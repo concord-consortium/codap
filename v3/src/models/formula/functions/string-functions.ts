@@ -96,7 +96,8 @@ export const stringFunctions = {
     evaluate: (...args: FValue[]) => {
       const stringToLookIn = valueToString(args[0]),
         pattern = valueToString(args[1])
-      return (stringToLookIn.match(new RegExp(unescapeBacktickString(pattern), "gmi")) || []).length
+      const matches = stringToLookIn.match(new RegExp(escapeStringRegexp(unescapeBacktickString(pattern)), "gmi"))
+      return (matches || []).length
     }
   },
   // repeatString(aString, numRepetitions) Takes two arguments, the first a string and the second an integer ≥ 0.
@@ -270,7 +271,7 @@ export const stringFunctions = {
       let result = 0
       wordAttribute.strValues.forEach(word => {
         const isRegEx = word.startsWith("/") && word.endsWith("/")
-        const pattern = isRegEx ? word.substring(1, word.length - 1) : `\\b${word}\\b`
+        const pattern = isRegEx ? word.substring(1, word.length - 1) : `\\b${escapeStringRegexp(word)}\\b`
         const flags = isRegEx ? "g" : "gi"
         const regEx = new RegExp(pattern, flags)
         const match = text.match(regEx)
