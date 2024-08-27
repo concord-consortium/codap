@@ -31,8 +31,7 @@ import {setNiceDomain} from "../utilities/graph-utils"
 import {GraphPointLayerModel, IGraphPointLayerModel, kGraphPointLayerType} from "./graph-point-layer-model"
 import {IAdornmentModel, IUpdateCategoriesOptions} from "../adornments/adornment-models"
 import {
-  AxisModelUnion, EmptyAxisModel, IAxisModelUnion, isBaseNumericAxisModel, isNumericAxisModel,
-  NumericAxisModel
+  AxisModelUnion, EmptyAxisModel, IAxisModelUnion, isBaseNumericAxisModel, NumericAxisModel
 } from "../../axis/models/axis-model"
 import {AdornmentsStore} from "../adornments/adornments-store"
 import {getPlottedValueFormulaAdapter} from "../../../models/formula/plotted-value-formula-adapter"
@@ -601,7 +600,9 @@ export const GraphContentModel = DataDisplayContentModel
         self.setBinAlignment(binAlignment)
         self.pointsAreBinned = true
       } else if (configType !== "histogram") {
-        self.pointsFusedIntoBars = false
+        if (configType !== "bars") {
+          self.pointsFusedIntoBars = false
+        }
         self.pointsAreBinned = false
       }
     },
@@ -641,26 +642,9 @@ export const GraphContentModel = DataDisplayContentModel
       setNiceDomain([0, maxCellCaseCount], countAxis, {clampPosMinAtZero: true})
       self.setAxis(secondaryPlace, countAxis)
     },
-    unsetBarCountAxis() {
-      const { secondaryRole } = self.dataConfiguration
-      const secondaryPlace = secondaryRole === "y" ? "left" : "bottom"
-      if (isNumericAxisModel(self.getAxis(secondaryPlace))) {
-        self.setAxis(secondaryPlace, EmptyAxisModel.create({ place: secondaryPlace }))
-      }
-    }
   }))
   .actions(self => ({
     setPointsFusedIntoBars(fuseIntoBars: boolean) {
-      if (fuseIntoBars === self.pointsFusedIntoBars) return
-
-      if (fuseIntoBars) {
-        self.setPointConfig(self.plotType !== "dotPlot" ? "bars" : "histogram")
-        self.setBarCountAxis()
-      } else {
-        self.setPointConfig(self.pointsAreBinned ? "bins" : "points")
-        self.unsetBarCountAxis()
-      }
-
       self.pointsFusedIntoBars = fuseIntoBars
     },
   }))
