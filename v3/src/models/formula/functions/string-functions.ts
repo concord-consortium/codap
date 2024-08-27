@@ -275,7 +275,7 @@ export const stringFunctions = {
         const flags = isRegEx ? "g" : "gi"
         const regEx = new RegExp(pattern, flags)
         const match = text.match(regEx)
-        result += wordRatingMap[word] * (match ? match.length : 0)
+        result += wordRatingMap[word] * (match?.length ?? 0)
       })
 
       return result
