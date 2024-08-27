@@ -218,7 +218,7 @@ export class FormulaMathJsScope {
   }
 
   getDataSetByTitle(dataSetTitle: string) {
-    return Array.from(this.context.dataSets.values()).find(dataSet => dataSet._title === dataSetTitle)
+    return Array.from(this.context.dataSets.values()).find(dataSet => dataSet.title === dataSetTitle)
   }
 
   getCaseAggregateGroupId() {
