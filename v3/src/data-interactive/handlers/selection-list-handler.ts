@@ -47,7 +47,8 @@ export const diSelectionListHandler: DIHandler = {
     if (!dataContext) return dataContextNotFoundResult
 
     const itemIds = new Set(dataContext.selection)
-    const _values = Array.from(dataContext.caseInfoMap.values())
+    const cases = collection?.caseGroups ?? Array.from(dataContext.caseInfoMap.values())
+    const values = cases
       // Only include cases where all child items are selected
       .filter(aCase => !aCase.childItemIds.some(itemId => !itemIds.has(itemId)))
       .map(aCase => ({
@@ -55,7 +56,6 @@ export const diSelectionListHandler: DIHandler = {
         collectionID: toV2Id(aCase.collectionId),
         collectionName: dataContext.getCollection(aCase.collectionId)?.name
       }))
-    const values = collection ? _values.filter(value => value.collectionID === toV2Id(collection.id)) : _values
     return {
       success: true,
       values
