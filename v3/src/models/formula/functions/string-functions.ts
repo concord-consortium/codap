@@ -2,7 +2,8 @@ import escapeStringRegexp from "escape-string-regexp"
 import { MathNode } from "mathjs"
 import { valueToString } from "../../../utilities/data-utils"
 import { t } from "../../../utilities/translation/translate"
-import { CurrentScope, DisplayNameMap, FValue, ILookupDependency, LookupStringConstantArg } from "../formula-types"
+import { unescapeBacktickString } from "../utils/canonicalization-utils"
+import { CurrentScope, FValue, LookupStringConstantArg } from "../formula-types"
 import { isConstantStringNode } from "../utils/mathjs-utils"
 import { evaluateNode, getRootScope } from "./function-utils"
 
@@ -95,7 +96,7 @@ export const stringFunctions = {
     evaluate: (...args: FValue[]) => {
       const stringToLookIn = valueToString(args[0]),
         pattern = valueToString(args[1])
-      return (stringToLookIn.match(new RegExp(escapeStringRegexp(pattern), "gmi")) || []).length
+      return (stringToLookIn.match(new RegExp(unescapeBacktickString(pattern), "gmi")) || []).length
     }
   },
   // repeatString(aString, numRepetitions) Takes two arguments, the first a string and the second an integer ≥ 0.
