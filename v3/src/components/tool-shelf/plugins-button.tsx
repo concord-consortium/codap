@@ -36,7 +36,8 @@ function PluginItem({ pluginData }: IPluginItemProps) {
         if (isWebViewModel(tile?.content)) tile.content.setUrl(url)
       }, {
         undoStringKey: t("V3.Undo.plugin.create", { vars: [pluginData.title] }),
-        redoStringKey: t("V3.Redo.plugin.create", { vars: [pluginData.title] })
+        redoStringKey: t("V3.Redo.plugin.create", { vars: [pluginData.title] }),
+        log: {message: "Add Plugin", args: { name: pluginData.title, url: pluginData.path } }
       }
     )
   }
