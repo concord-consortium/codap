@@ -7,7 +7,11 @@ context("CloudFileManager", () => {
     const queryParams = "?mouseSensor"
     const url = `${Cypress.config("index")}${queryParams}`
     cy.visit(url)
-    cy.wait(2500)
+  })
+  it("Opens Mammals example document via url parameter", () => {
+    const mammalsUrl = "https://codap-resources.s3.amazonaws.com/example-documents/documents/mammals.codap"
+    cy.visit(`${Cypress.config("index")}?url=${mammalsUrl}`)
+    cy.get(".codap-component.codap-case-table").contains(".title-bar", "Mammals").should("exist")
   })
   it("Opens Mammals example document via CFM Open dialog", () => {
     // hamburger menu is hidden initially
