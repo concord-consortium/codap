@@ -10,6 +10,7 @@ import { CollectionContext, ParentCollectionContext } from "../../hooks/use-coll
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useInstanceIdContext } from "../../hooks/use-instance-id-context"
 import { registerCanAutoScrollCallback } from "../../lib/dnd-kit/dnd-can-auto-scroll"
+import { logMessageWithReplacement } from "../../lib/log-message"
 import { ICollectionModel } from "../../models/data/collection"
 import { IDataSet } from "../../models/data/data-set"
 import { createCollectionNotification, deleteCollectionNotification } from "../../models/data/data-set-notifications"
@@ -17,7 +18,6 @@ import { INotification } from "../../models/history/apply-model-change"
 import { mstReaction } from "../../utilities/mst-reaction"
 import { prf } from "../../utilities/profiler"
 import { t } from "../../utilities/translation/translate"
-import { logStringifiedObjectMessage } from "../../lib/log-message"
 
 import "./case-table.scss"
 
@@ -102,8 +102,8 @@ export const CaseTable = observer(function CaseTable({ setNodeRef }: IProps) {
         },
         undoStringKey: "DG.Undo.caseTable.createCollection",
         redoStringKey: "DG.Redo.caseTable.createCollection",
-        log: logStringifiedObjectMessage("createCollection: name: %@, attribute: %@",
-                {collectionName: collection?.name, attr: attr.name})
+        log: logMessageWithReplacement("createCollection: name: %@, attribute: %@",
+                {name: collection?.name, attribute: attr.name})
       })
     }
   }, [])

@@ -9,10 +9,10 @@ import AddIcon from "../../assets/icons/icon-add-circle.svg"
 import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useTileModelContext } from "../../hooks/use-tile-model-context"
+import { logModelChangeFn } from "../../lib/log-message"
 import { updateCollectionNotification } from "../../models/data/data-set-notifications"
 import { preventCollectionReorg } from "../../utilities/plugin-utils"
 import { t } from "../../utilities/translation/translate"
-import { logModelChangeFn } from "../../lib/log-message"
 
 interface IProps {
   onAddNewAttribute: () => void

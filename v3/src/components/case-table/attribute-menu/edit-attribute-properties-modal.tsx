@@ -2,13 +2,13 @@ import { Button, FormControl, FormLabel, HStack, Input, ModalBody, ModalCloseBut
   Radio, RadioGroup, Select, Textarea, Tooltip } from "@chakra-ui/react"
 import React, { useEffect, useState } from "react"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
+import { logMessageWithReplacement } from "../../../lib/log-message"
 import { AttributeType, attributeTypes } from "../../../models/data/attribute"
 import { updateAttributesNotification } from "../../../models/data/data-set-notifications"
 import { uniqueName } from "../../../utilities/js-utils"
 import { t } from "../../../utilities/translation/translate"
 import { CodapModal } from "../../codap-modal"
 import AttributeIcon from "../../../assets/icons/attribute-icon.svg"
-import { logMessageWithReplacement } from "../../../lib/log-message"
 
 import "./attribute-menu.scss"
 

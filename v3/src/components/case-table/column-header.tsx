@@ -5,6 +5,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { IUseDraggableAttribute, useDraggableAttribute } from "../../hooks/use-drag-drop"
 import { useInstanceIdContext } from "../../hooks/use-instance-id-context"
+import { logModelChangeFn } from "../../lib/log-message"
 import { updateAttributesNotification } from "../../models/data/data-set-notifications"
 import { uniqueName } from "../../utilities/js-utils"
 import { AttributeMenuList } from "./attribute-menu/attribute-menu-list"
@@ -13,7 +14,6 @@ import { kIndexColumnKey, TRenderHeaderCellProps } from "./case-table-types"
 import { ColumnHeaderDivider } from "./column-header-divider"
 import { useRdgCellFocus } from "./use-rdg-cell-focus"
 import { useCollectionTableModel } from "./use-collection-table-model"
-import { logModelChangeFn } from "../../lib/log-message"
 
 // wrapper component because RDG doesn't like observer components as header cell renderers
 export function ColumnHeader(props: TRenderHeaderCellProps) {

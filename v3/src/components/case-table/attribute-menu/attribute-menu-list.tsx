@@ -3,6 +3,7 @@ import { observer } from "mobx-react-lite"
 import React, { forwardRef } from "react"
 import { useCaseMetadata } from "../../../hooks/use-case-metadata"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
+import { logMessageWithReplacement } from "../../../lib/log-message"
 import {
   deleteCollectionNotification, hideAttributeNotification, removeAttributesNotification
 } from "../../../models/data/data-set-notifications"
@@ -14,7 +15,6 @@ import { t } from "../../../utilities/translation/translate"
 import { TColumn } from "../case-table-types"
 import { EditAttributePropertiesModal } from "./edit-attribute-properties-modal"
 import { EditFormulaModal } from "./edit-formula-modal"
-import { logMessageWithReplacement } from "../../../lib/log-message"
 
 interface IProps {
   column: TColumn

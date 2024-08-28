@@ -2,6 +2,7 @@ import React, { useState } from "react"
 import { Button, Menu, MenuButton, MenuItem, MenuList, ModalBody, ModalFooter,
     Tooltip, useDisclosure } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
+import { logStringifiedObjectMessage } from "../../lib/log-message"
 import { appState } from "../../models/app-state"
 import { createDefaultTileOfType } from "../../models/codap/add-default-content"
 import { INewTileOptions } from "../../models/codap/create-tile"
@@ -133,7 +134,7 @@ export const DeleteDataSetModal = ({dataSetId, isOpen, onClose, setModalOpen}: I
         notify: [dataContextCountChangedNotification, dataContextDeletedNotification(data)],
         undoStringKey: "V3.Undo.caseTable.delete",
         redoStringKey: "V3.Redo.caseTable.delete",
-        log: "deleteDataSet"
+        log: logStringifiedObjectMessage("deleteDataSet: %@", { id: dataSetId, name: data?.title })
       })
     }
   }

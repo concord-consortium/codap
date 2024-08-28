@@ -6,6 +6,8 @@ import { useDebouncedCallback } from "use-debounce"
 import { useCaseMetadata } from "../../hooks/use-case-metadata"
 import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
+import { useLoggingContext } from "../../hooks/use-log-context"
+import { logMessageWithReplacement } from "../../lib/log-message"
 import { appState } from "../../models/app-state"
 import { kDefaultFormatStr } from "../../models/data/attribute"
 import { isAddCasesAction, isRemoveCasesAction, isSetCaseValuesAction } from "../../models/data/data-set-actions"
@@ -19,8 +21,6 @@ import { onAnyAction } from "../../utilities/mst-utils"
 import { prf } from "../../utilities/profiler"
 import { kInputRowKey, symDom, TRow, TRowsChangeData } from "./case-table-types"
 import { useCollectionTableModel } from "./use-collection-table-model"
-import { logMessageWithReplacement } from "../../lib/log-message"
-import { useLoggingContext } from "../../hooks/use-log-context"
 
 export const useRows = () => {
   const caseMetadata = useCaseMetadata()

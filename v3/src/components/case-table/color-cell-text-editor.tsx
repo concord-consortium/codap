@@ -5,12 +5,13 @@ import {
 import React, { ChangeEvent, useCallback, useEffect, useRef, useState } from "react"
 import { textEditorClassname } from "react-data-grid"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
+import { useLoggingContext } from "../../hooks/use-log-context"
+import { logStringifiedObjectMessage } from "../../lib/log-message"
 import { selectAllCases } from "../../models/data/data-set-utils"
 import { parseColor, parseColorToHex } from "../../utilities/color-utils"
 import { t } from "../../utilities/translation/translate"
 import { TRenderEditCellProps } from "./case-table-types"
 import { ColorPicker } from "./color-picker"
-import { useLoggingContext } from "../../hooks/use-log-context"
 
 /*
   ReactDataGrid uses Linaria CSS-in-JS for its internal styling. As with CSS Modules and other
@@ -48,6 +49,7 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
   const attributeId = column.key
   const attribute = data?.getAttribute(attributeId)
   const [inputValue, setInputValue] = useState(() => data?.getStrValue(row.__id__, attributeId))
+  const initialInputValue = useRef(inputValue)
   // support colors if user hasn't assigned a non-color type
   const supportColors = attribute?.userType == null || attribute?.userType === "color"
   // support color names if the color type is user-assigned
@@ -57,7 +59,6 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
   // show the color swatch if the initial value appears to be a color (no change mid-edit)
   const showColorSwatch = useRef(!!hexColor || attribute?.userType === "color")
   const { setPendingLogMessage } = useLoggingContext()
-  const prevInputValue = useRef(inputValue)
 
   useEffect(() => {
     selectAllCases(data, false)
@@ -72,9 +73,8 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
   const updateValue = useCallback((value: string) => {
     setInputValue(value)
     onRowChange({ ...row, [column.key]: value })
-    setPendingLogMessage("editCellValue", {message: "edit cell value",
-      args: {attrId: column.key, caseId: row.__id__, from: prevInputValue.current, to: value }})
-
+    setPendingLogMessage("editCellValue", logStringifiedObjectMessage("editCellValue: %@",
+      {attrId: column.key, caseId: row.__id__, from: initialInputValue.current, to: value }))
   }, [column.key, onRowChange, row, setPendingLogMessage])
 
   // rejects any local changes and closes the editor

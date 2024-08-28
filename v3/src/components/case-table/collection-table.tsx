@@ -20,6 +20,7 @@ import { useTileDroppable } from "../../hooks/use-drag-drop"
 import { useForceUpdate } from "../../hooks/use-force-update"
 import { useVisibleAttributes } from "../../hooks/use-visible-attributes"
 import { registerCanAutoScrollCallback } from "../../lib/dnd-kit/dnd-can-auto-scroll"
+import { logStringifiedObjectMessage } from "../../lib/log-message"
 import { IAttribute } from "../../models/data/attribute"
 import { IDataSet } from "../../models/data/data-set"
 import { createAttributesNotification } from "../../models/data/data-set-notifications"
@@ -29,7 +30,6 @@ import { preventCollectionReorg } from "../../utilities/plugin-utils"
 import { t } from "../../utilities/translation/translate"
 import { useCaseTableModel } from "./use-case-table-model"
 import { useCollectionTableModel } from "./use-collection-table-model"
-import { logStringifiedObjectMessage } from "../../lib/log-message"
 
 import "react-data-grid/lib/styles.css"
 import styles from "./case-table-shared.scss"
@@ -172,7 +172,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
       notify: () => createAttributesNotification(attribute ? [attribute] : [], data),
       undoStringKey: "DG.Undo.caseTable.createAttribute",
       redoStringKey: "DG.Redo.caseTable.createAttribute",
-      log: logStringifiedObjectMessage("attributeCreate",
+      log: logStringifiedObjectMessage("attributeCreate: %@",
               {name: "newAttr", collection: data?.getCollection(collectionId)?.name, formula: ""})
     })
   }

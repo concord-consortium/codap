@@ -1,13 +1,13 @@
 import { MenuItem, MenuList, useToast } from "@chakra-ui/react"
 import React from "react"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
+import { logStringifiedObjectMessage } from "../../../lib/log-message"
 import { IAttribute } from "../../../models/data/attribute"
 import { createAttributesNotification } from "../../../models/data/data-set-notifications"
 import { uniqueName } from "../../../utilities/js-utils"
 import { preventCollectionReorg } from "../../../utilities/plugin-utils"
 import { t } from "../../../utilities/translation/translate"
 import { useCaseTableModel } from "../use-case-table-model"
-import { logStringifiedObjectMessage } from "../../../lib/log-message"
 
 export const RulerMenuList = () => {
   const data = useDataSetContext()
@@ -38,7 +38,7 @@ export const RulerMenuList = () => {
       notify: () => createAttributesNotification(attribute ? [attribute] : [], data),
       undoStringKey: "DG.Undo.caseTable.createAttribute",
       redoStringKey: "DG.Redo.caseTable.createAttribute",
-      log: logStringifiedObjectMessage("attributeCreate",
+      log: logStringifiedObjectMessage("attributeCreate: %@",
         {name: "newAttr", collection: data?.getCollection(collectionId)?.name, formula: ""})
     })
   }

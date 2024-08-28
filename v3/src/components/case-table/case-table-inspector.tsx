@@ -15,9 +15,9 @@ import { ICaseTableModel, isCaseTableModel } from "./case-table-model"
 import { useDataSet } from "../../hooks/use-data-set"
 import { DataSetContext } from "../../hooks/use-data-set-context"
 import { CaseMetadataContext } from "../../hooks/use-case-metadata"
+import { logStringifiedObjectMessage } from "../../lib/log-message"
 import { CaseTableModelContext } from "./use-case-table-model"
 import "./case-table-inspector.scss"
-import { logStringifiedObjectMessage } from "../../lib/log-message"
 
 export const CaseTableInspector = ({ tile, show }: ITileInspectorPanelProps) => {
   const [showInfoModal, setShowInfoModal] = useState(false)
@@ -34,7 +34,7 @@ export const CaseTableInspector = ({ tile, show }: ITileInspectorPanelProps) => 
       case "resizeColumns":
         //TODO move log to respective handler
         tableModel?.applyModelChange(() => {}, {
-          log: logStringifiedObjectMessage("resizeColumns", {dataContext: data?.name})
+          log: logStringifiedObjectMessage("resizeColumns: %@", {dataContext: data?.name})
         })
         break
     }

@@ -1,9 +1,10 @@
 import React, { useEffect, useRef } from "react"
 import { textEditorClassname } from "react-data-grid"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
+import { useLoggingContext } from "../../hooks/use-log-context"
+import { logStringifiedObjectMessage } from "../../lib/log-message"
 import { selectAllCases } from "../../models/data/data-set-utils"
 import { TRenderEditCellProps } from "./case-table-types"
-import { useLoggingContext } from "../../hooks/use-log-context"
 
 /*
   ReactDataGrid uses Linaria CSS-in-JS for its internal styling. As with CSS Modules and other
@@ -36,9 +37,8 @@ export default function CellTextEditor({ row, column, onRowChange, onClose }: TR
   const handleChange = (value: string) => {
     valueRef.current = value
     onRowChange({ ...row, [column.key]: value })
-    setPendingLogMessage("editCellValue", { message: "edit cell value",
-      args: {attrId: column.key, caseId: row.__id__,
-              from: initialValueRef.current, to: valueRef.current }})
+    setPendingLogMessage("editCellValue", logStringifiedObjectMessage("editCellValue: %@",
+      {attrId: column.key, caseId: row.__id__, from: initialValueRef.current, to: valueRef.current }))
   }
 
   return (

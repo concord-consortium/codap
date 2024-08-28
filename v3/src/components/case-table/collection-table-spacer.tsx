@@ -7,6 +7,7 @@ import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { getDragAttributeInfo, useTileDroppable } from "../../hooks/use-drag-drop"
 import { measureText } from "../../hooks/use-measure-text"
 import { useVisibleAttributes } from "../../hooks/use-visible-attributes"
+import { logMessageWithReplacement } from "../../lib/log-message"
 import { IDataSet } from "../../models/data/data-set"
 // import { getNumericCssVariable } from "../../utilities/css-utils"
 import { preventAttributeMove, preventCollectionReorg } from "../../utilities/plugin-utils"
@@ -14,7 +15,6 @@ import { t } from "../../utilities/translation/translate"
 import { kInputRowKey } from "./case-table-types"
 import { CurvedSpline } from "./curved-spline"
 import { useCollectionTableModel } from "./use-collection-table-model"
-import { logMessageWithReplacement } from "../../lib/log-message"
 
 interface IProps {
   onDrop?: (dataSet: IDataSet, attrId: string) => void
