@@ -96,7 +96,7 @@ export const stringFunctions = {
     evaluate: (...args: FValue[]) => {
       const stringToLookIn = valueToString(args[0]),
         pattern = valueToString(args[1])
-      const matches = stringToLookIn.match(new RegExp(escapeStringRegexp(unescapeBacktickString(pattern)), "gmi"))
+      const matches = stringToLookIn.match(new RegExp(unescapeBacktickString(pattern), "gmi"))
       return (matches || []).length
     }
   },
@@ -246,9 +246,9 @@ export const stringFunctions = {
           throw new Error(t("V3.formula.error.stringConstantArg", { vars: [ functionName, i + 1 ] }))
         }
       })
-      const [_textRefArg, dataSetTitleArg, wordAttributeNameArg, ratingAttributeNameArg] =
-        args as LookupStringConstantArg[]
-      const text = evaluateNode(args[0], scope) as string
+      const [textRefArg, dataSetTitleArg, wordAttributeNameArg, ratingAttributeNameArg] =
+        args as [MathNode, LookupStringConstantArg, LookupStringConstantArg, LookupStringConstantArg]
+      const text = evaluateNode(textRefArg, scope) as string
       const dataSetTitle = dataSetTitleArg?.value || ""
       const dataSet = scope.getDataSetByTitle(dataSetTitle)
       if (!dataSet) {
