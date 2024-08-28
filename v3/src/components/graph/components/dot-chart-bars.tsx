@@ -146,20 +146,6 @@ export const DotChartBars = observer(function DotChartBars({ abovePointsGroupRef
     }
   }, [pixiPoints, graphModel.pointsFusedIntoBars])
 
-  // when points are fused into bars, we need to set the secondary axis scale type to linear
-  useEffect(function handleFuseIntoBars() {
-    return mstAutorun(
-      () => {
-        if (graphModel.pointsFusedIntoBars) {
-          const secondaryRole = graphModel.dataConfiguration.primaryRole === "x" ? "y" : "x"
-          const secondaryPlace = secondaryRole === "y" ? "left" : "bottom"
-          layout.setAxisScaleType(secondaryPlace, "linear")
-        }
-      },
-      {name: "useAxis [handleFuseIntoBars]"}, graphModel
-    )
-  }, [graphModel, layout])
-
   return (
     <>
       {abovePointsGroupRef?.current && createPortal(

@@ -28,7 +28,7 @@ import {GraphDataConfigurationContext} from "../hooks/use-graph-data-configurati
 import {useGraphLayoutContext} from "../hooks/use-graph-layout-context"
 import {useGraphModel} from "../hooks/use-graph-model"
 import {setNiceDomain} from "../utilities/graph-utils"
-import {IAxisModel} from "../../axis/models/axis-model"
+import { EmptyAxisModel, IAxisModel, isNumericAxisModel, NumericAxisModel } from "../../axis/models/axis-model"
 import {GraphPlace} from "../../axis-graph-shared"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {MarqueeState} from "../../data-display/models/marquee-state"
@@ -233,6 +233,29 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
     })
     return () => disposer?.()
   }, [graphController, layout, graphModel, startAnimation])
+
+  useEffect(function handlePointsFusedIntoBars() {
+    return mstReaction(
+      () => graphModel.pointsFusedIntoBars,
+      (pointsFusedIntoBars) => {
+        const dataConfiguration = graphModel.dataConfiguration
+        const { secondaryRole } = dataConfiguration
+        const secondaryPlace = secondaryRole === "y" ? "left" : "bottom"
+        if (pointsFusedIntoBars) {
+          graphModel.setPointConfig(graphModel.plotType !== "dotPlot" ? "bars" : "histogram")
+          layout.setAxisScaleType(secondaryPlace, "linear")
+          graphModel.setBarCountAxis()
+        }
+        else {
+          graphModel.setPointConfig(graphModel.pointsAreBinned ? "bins" : "points")
+          if (isNumericAxisModel(graphModel.getAxis(secondaryPlace))) {
+            graphModel.setAxis(secondaryPlace, EmptyAxisModel.create({ place: secondaryPlace }))
+          }
+        }
+      },
+      {name: "Graph.handlePointsFusedIntoBars"}, graphModel
+    )
+  }, [graphController, graphModel])
 
   const renderPlotComponent = () => {
     const props = {xAttrID, yAttrID, pixiPoints, abovePointsGroupRef},
