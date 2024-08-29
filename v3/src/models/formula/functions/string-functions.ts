@@ -2,9 +2,9 @@ import escapeStringRegexp from "escape-string-regexp"
 import { MathNode } from "mathjs"
 import { valueToString } from "../../../utilities/data-utils"
 import { t } from "../../../utilities/translation/translate"
-import { unescapeBacktickString } from "../utils/canonicalization-utils"
 import { CurrentScope, FValue, LookupStringConstantArg } from "../formula-types"
 import { isConstantStringNode } from "../utils/mathjs-utils"
+import { unescapeBacktickString } from "../utils/string-utils"
 import { evaluateNode, getRootScope } from "./function-utils"
 
 export const stringFunctions = {
