@@ -28,7 +28,7 @@ import {GraphDataConfigurationContext} from "../hooks/use-graph-data-configurati
 import {useGraphLayoutContext} from "../hooks/use-graph-layout-context"
 import {useGraphModel} from "../hooks/use-graph-model"
 import {setNiceDomain} from "../utilities/graph-utils"
-import { EmptyAxisModel, IAxisModel, isNumericAxisModel, NumericAxisModel } from "../../axis/models/axis-model"
+import { EmptyAxisModel, IAxisModel, isNumericAxisModel } from "../../axis/models/axis-model"
 import {GraphPlace} from "../../axis-graph-shared"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {MarqueeState} from "../../data-display/models/marquee-state"
@@ -255,7 +255,7 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
       },
       {name: "Graph.handlePointsFusedIntoBars"}, graphModel
     )
-  }, [graphController, graphModel])
+  }, [graphController, graphModel, layout])
 
   const renderPlotComponent = () => {
     const props = {xAttrID, yAttrID, pixiPoints, abovePointsGroupRef},
