@@ -1,4 +1,5 @@
-import {GeoJSONOptions} from "leaflet"
+import {GeoJSONOptions, LatLng} from "leaflet"
+import { logStringifiedObjectMessage, stringify } from "../../lib/log-message"
 
 export const BaseMapKeys = ['oceans', 'topo', 'streets'] as const
 export type BaseMapKey = typeof BaseMapKeys[number]
@@ -50,3 +51,13 @@ export const
 
 export const MapPlaces = ['map', 'legend'] as const
 export type MapPlace = typeof MapPlaces[number]
+
+export type LoggableMapObject = {
+  center?: LatLng
+  zoom?: number
+}
+
+export function logStringifiedMapMessage(message: string, args: LoggableMapObject) {
+  const { center = {}, ...others } = args
+  return logStringifiedObjectMessage(message, { center: stringify(center), ...others })
+}

@@ -5,6 +5,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { IUseDraggableAttribute, useDraggableAttribute } from "../../hooks/use-drag-drop"
 import { useInstanceIdContext } from "../../hooks/use-instance-id-context"
+import { logModelChangeFn } from "../../lib/log-message"
 import { updateAttributesNotification } from "../../models/data/data-set-notifications"
 import { uniqueName } from "../../utilities/js-utils"
 import { AttributeMenuList } from "./attribute-menu/attribute-menu-list"
@@ -121,7 +122,8 @@ const _ColumnHeader = observer(function _ColumnHeader({ column }: TRenderHeaderC
           }
         },
         undoStringKey: "DG.Undo.caseTable.editAttribute",
-        redoStringKey: "DG.Redo.caseTable.editAttribute"
+        redoStringKey: "DG.Redo.caseTable.editAttribute",
+        log: logModelChangeFn("Change attribute name from %@ to %@", () => ({ name: editingAttribute?.name }))
       })
     }
     setEditingAttrId("")

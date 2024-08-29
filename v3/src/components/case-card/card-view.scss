@@ -1,0 +1,138 @@
+.cardView {
+  background: white;
+  font-size: 11px;
+
+  .fadeIn {
+    opacity: 0;
+    animation: fadeIn 0.25s ease-in forwards;
+  }
+
+  @keyframes fadeIn {
+    100% {
+      opacity: 1;
+    }
+  }
+
+  .case {
+    margin: 5px 7px;
+    padding: 2px;
+    border-radius: 5px;
+    box-shadow: inset 0 2px 3px rgba(0,0,0,0.3), 0 2px 0 rgba(255,255,255,0.8);
+
+    &:first-child {
+      border: solid 2px #cecece;
+      box-shadow: none;
+    }
+    &.color-cycle-1 {
+      background-color: #cee9fb;
+    }
+    &.color-cycle-2 {
+      background-color: #f7eaba;
+    }
+    &.color-cycle-3 {
+      background-color: #ccbee0;
+    }
+    &.color-cycle-4 {
+      background-color: #bee0ca;
+    }
+    &.color-cycle-5 {
+      background-color: #e7c3a4;
+    }
+
+    .case-view-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      text-align: left;
+      margin: 0 0 10px;
+      padding: 3px;
+      border-radius: 4px;
+      border: solid 1px #cee9fb;
+      background-color: #fff;
+      font-weight: 600;
+
+      .controls {
+        display: flex;
+        align-items: center;
+
+        .arrow {
+          width: 20px;
+          height: 20px;
+          margin: 0 4px;
+          border-radius: 5px;
+          border: solid 1.5px #979797;
+          background-color: #f5fbfc;
+          fill: #0592af;
+          padding: 0;
+
+          &:disabled {
+            opacity: 0.35;
+          }
+
+          &.previous {
+            svg {
+              transform: rotate(90deg);
+            }
+          }
+          &.next {
+            svg {
+              transform: rotate(-90deg);
+            }
+          }
+
+          svg {
+            width: 20px;
+            height: 20px;
+            position: relative;
+            top: -1px;
+            left: -1px;
+          }
+        }
+
+        .caseIndex {
+          font-weight: 500;
+          font-stretch: normal;
+          font-style: normal;
+          line-height: normal;
+          letter-spacing: normal;
+          text-align: center;
+        }
+      }
+    }
+
+    .caseAttrs {
+      font-weight: 600;
+      text-align: right;
+      margin: 8px;
+      border-collapse: collapse;
+      border-spacing: 8px;
+
+      .attr {
+        .name {
+          font-weight: 400;
+          font-stretch: normal;
+          font-style: normal;
+          line-height: normal;
+          letter-spacing: normal;
+          text-align: right;
+          padding: 1px 4px 2px 4px;
+          white-space: nowrap;
+        }
+
+        .value {
+          padding: 4px;
+          border: solid 1px #B2B2B2;
+          background-color: #fff;
+          font-weight: 500;
+          text-align: left;
+          width: 100%;
+
+          // add space to guarantee cell height if value is empty string
+          &:empty::after{
+            content: "\00a0";
+          }
+        }
+      }
+    }
+  }
+}

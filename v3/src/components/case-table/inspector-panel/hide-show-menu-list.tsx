@@ -56,7 +56,8 @@ export const HideShowMenuList = () => {
           hideAttributeNotification(hiddenAttrIds, data, "showAttributes")
         ],
         undoStringKey: "DG.Undo.caseTable.showAllHiddenAttributes",
-        redoStringKey: "DG.Redo.caseTable.showAllHiddenAttributes"
+        redoStringKey: "DG.Redo.caseTable.showAllHiddenAttributes",
+        log: "Show all hidden attributes"
       }
     )
   }

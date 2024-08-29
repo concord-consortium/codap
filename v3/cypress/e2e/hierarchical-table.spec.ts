@@ -1,4 +1,5 @@
 import { TableTileElements as table } from "../support/elements/table-tile"
+import { ToolbarElements as toolbar } from "../support/elements/toolbar-elements"
 import hierarchical from '../fixtures/hierarchical.json'
 type HierarchicalTest = typeof hierarchical.tests[number] & { only?: boolean }
 
@@ -6,7 +7,7 @@ const values = hierarchical.attributes
 
 context("hierarchical collections", () => {
   beforeEach(function () {
-    const queryParams = "?sample=mammals&dashboard&mouseSensor"
+    const queryParams = "?sample=mammals&mouseSensor&scrollBehavior=auto"
     const url = `${Cypress.config("index")}${queryParams}`
     cy.visit(url)
     cy.wait(1000)
@@ -61,4 +62,43 @@ context("hierarchical collections", () => {
     // table.getNumOfRows(1).should("contain", 15)
     // table.getNumOfRows(2).should("contain", 31)
   })
+
+  it("verify insert case in hierarchical table", () => {
+    table.moveAttributeToParent("Order", "newCollection")
+    table.getNumOfRows(1).should("contain", 14)
+    table.getNumOfRows(2).should("contain", 29)
+
+    // Insert a new case
+    table.openIndexMenuForRow(3, 2)
+    table.insertCase()
+    table.getNumOfRows(1).should("contain", 14)
+    table.getNumOfRows(2).should("contain", 30)
+
+    // delete the new case
+    table.openIndexMenuForRow(3, 2)
+    table.deleteCase()
+    table.getNumOfRows(1).should("contain", 14)
+    table.getNumOfRows(2).should("contain", 29)
+
+    // Undo delete
+    toolbar.getUndoTool().click()
+    table.getNumOfRows(1).should("contain", 14)
+    table.getNumOfRows(2).should("contain", 30)
+
+    // Undo insert
+    toolbar.getUndoTool().click()
+    table.getNumOfRows(1).should("contain", 14)
+    table.getNumOfRows(2).should("contain", 29)
+
+    // Redo insert
+    toolbar.getRedoTool().click()
+    table.getNumOfRows(1).should("contain", 14)
+    table.getNumOfRows(2).should("contain", 30)
+
+    // Redo delete
+    toolbar.getRedoTool().click()
+    table.getNumOfRows(1).should("contain", 14)
+    table.getNumOfRows(2).should("contain", 29)
+  })
+
 })

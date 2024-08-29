@@ -109,7 +109,7 @@
     "DG.fileMenu.menuItem.share": "Share...",
     "DG.fileMenu.menuItem.shareGetLink": "Get link to shared view",
     "DG.fileMenu.menuItem.shareUpdate": "Update shared view",
-    "DG.fileMenu.menuItem.renameDocument": "Rename",
+    "DG.fileMenu.menuItem.renameDocument": "Rename...",
     "DG.fileMenu.provider.examples.displayName": "Example Documents",
 
     // main.js

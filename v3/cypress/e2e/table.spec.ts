@@ -3,30 +3,30 @@ import { ComponentElements as c } from "../support/elements/component-elements"
 import { ToolbarElements as toolbar } from "../support/elements/toolbar-elements"
 import { FormulaHelper as fh } from "../support/helpers/formula-helper"
 
-const numOfAttributes = 10
-const firstRowIndex = 2
-let lastRowIndex = -1
-let middleRowIndex = -1
-let numOfCases = "0"
-const collectionName = "Mammals"
-const renamedCollectionName = "Animals"
-const newCollectionName = "New Dataset"
-
-beforeEach(() => {
-  // cy.scrollTo() doesn't work as expected with `scroll-behavior: smooth`
-  const queryParams = "?sample=mammals&scrollBehavior=auto"
-  const url = `${Cypress.config("index")}${queryParams}`
-  cy.visit(url)
-  cy.wait(1000)
-  table.getNumOfAttributes().should("equal", numOfAttributes.toString())
-  table.getNumOfRows().then($cases => {
-    numOfCases = $cases ?? "0"
-    lastRowIndex = Number($cases) - 1
-    middleRowIndex = Math.min(5, Math.floor(lastRowIndex / 2))
-  })
-})
-
 context("case table ui", () => {
+  const numOfAttributes = 10
+  const firstRowIndex = 2
+  let lastRowIndex = -1
+  let middleRowIndex = -1
+  let numOfCases = "0"
+  const collectionName = "Mammals"
+  const renamedCollectionName = "Animals"
+  const newCollectionName = "New Dataset"
+
+  beforeEach(() => {
+    // cy.scrollTo() doesn't work as expected with `scroll-behavior: smooth`
+    const queryParams = "?sample=mammals&scrollBehavior=auto"
+    const url = `${Cypress.config("index")}${queryParams}`
+    cy.visit(url)
+    cy.wait(1000)
+    table.getNumOfAttributes().should("equal", numOfAttributes.toString())
+    table.getNumOfRows().then($cases => {
+      numOfCases = $cases ?? "0"
+      lastRowIndex = Number($cases) - 1
+      middleRowIndex = Math.min(5, Math.floor(lastRowIndex / 2))
+    })
+  })
+
   describe("table view", () => {
     it("populates title bar from sample data", () => {
       c.getComponentTitle("table").should("contain", collectionName)
@@ -493,7 +493,7 @@ context("case table ui", () => {
   describe("index menu", () => {
     it("verify index menu insert case and delete case work", () => {
 
-      let initialRowCount = 0, postInsertRowCount, postDeleteRowCount
+      let initialRowCount = 0, postInsertRowCount = -1, postDeleteRowCount = -1
 
       // Get initial row count
       table.getNumOfRows().then(rowCount => {
@@ -525,21 +525,19 @@ context("case table ui", () => {
       toolbar.getUndoTool().click()
 
       // Verify undo (check if row count is back to post-insert count)
-      // TODO: add the check once bug is fixed (PT #187083170)
-      // table.getNumOfRows().then(rowCount => {
-      //  const rowCountAfterUndo = Number(rowCount)
-      //  expect(rowCountAfterUndo).to.eq(postInsertRowCount)
-      //})
+      table.getNumOfRows().then(rowCount => {
+        const rowCountAfterUndo = Number(rowCount)
+        expect(rowCountAfterUndo).to.eq(postInsertRowCount)
+      })
 
       // Redo delete
       toolbar.getRedoTool().click()
 
       // Verify redo (check if row count is back to initial count)
-      // TODO: add the check once bug is fixed (PT #187083170)
-      //  table.getNumOfRows().then(rowCount => {
-      //  const rowCountAfterRedo = Number(rowCount)
-      //  expect(rowCountAfterRedo).to.eq(initialRowCount)
-      // })
+      table.getNumOfRows().then(rowCount => {
+        const rowCountAfterRedo = Number(rowCount)
+        expect(rowCountAfterRedo).to.eq(initialRowCount)
+      })
     })
     it("verify insert cases before a row by typing num of cases", () => {
 
@@ -604,7 +602,6 @@ context("case table ui", () => {
       table.openIndexMenuForRow(lastRowIndex)
       table.insertCase()
       table.getCaseTableGrid().scrollTo("bottom")
-      cy.wait(500)
       table.openIndexMenuForRow(lastRowIndex)
       table.deleteCase()
       table.getNumOfRows().should("equal", numOfCases)
@@ -631,7 +628,6 @@ context("case table ui", () => {
       table.openIndexMenuForRow(lastRowIndex)
       table.insertCases(2, "after")
       table.getCaseTableGrid().scrollTo("bottom")
-      cy.wait(500)
       table.openIndexMenuForRow(lastRowIndex + 1)
       table.deleteCase()
       table.openIndexMenuForRow(lastRowIndex + 1)
@@ -655,7 +651,6 @@ context("case table ui", () => {
       table.openIndexMenuForRow(lastRowIndex)
       table.insertCases(2, "before")
       table.getCaseTableGrid().scrollTo("bottom")
-      cy.wait(500)
       table.openIndexMenuForRow(lastRowIndex + 1)
       table.deleteCase()
       table.openIndexMenuForRow(lastRowIndex)
@@ -693,7 +688,6 @@ context("case table ui", () => {
       table.openIndexMenuForRow(firstRowIndex)
       table.insertCase()
       table.getCaseTableGrid().scrollTo("top")
-      cy.wait(500)
       table.openIndexMenuForRow(firstRowIndex)
       table.deleteCase()
       table.getNumOfRows().should("equal", numOfCases)
@@ -715,7 +709,6 @@ context("case table ui", () => {
       table.openIndexMenuForRow(firstRowIndex)
       table.insertCases(3, "after")
       table.getCaseTableGrid().scrollTo("top")
-      cy.wait(500)
       table.openIndexMenuForRow(firstRowIndex + 1)
       table.deleteCase()
       table.openIndexMenuForRow(firstRowIndex + 1)
@@ -741,7 +734,6 @@ context("case table ui", () => {
       table.openIndexMenuForRow(firstRowIndex)
       table.insertCases(3, "before")
       table.getCaseTableGrid().scrollTo("top")
-      cy.wait(500)
       table.openIndexMenuForRow(firstRowIndex)
       table.deleteCase()
       table.openIndexMenuForRow(firstRowIndex)
@@ -785,7 +777,6 @@ context("case table ui", () => {
       table.openIndexMenuForRow(middleRowIndex)
       table.insertCase()
       table.getCaseTableGrid().scrollTo("top")
-      cy.wait(500)
       table.openIndexMenuForRow(middleRowIndex)
       table.deleteCase()
       table.getNumOfRows().should("equal", numOfCases)
@@ -807,7 +798,6 @@ context("case table ui", () => {
       table.openIndexMenuForRow(middleRowIndex)
       table.insertCases(3, "after")
       table.getCaseTableGrid().scrollTo("top")
-      cy.wait(500)
       table.openIndexMenuForRow(middleRowIndex + 1)
       table.deleteCase()
       table.openIndexMenuForRow(middleRowIndex + 1)
@@ -833,7 +823,6 @@ context("case table ui", () => {
       table.openIndexMenuForRow(middleRowIndex)
       table.insertCases(3, "before")
       table.getCaseTableGrid().scrollTo("top")
-      cy.wait(500)
       table.openIndexMenuForRow(middleRowIndex)
       table.deleteCase()
       table.openIndexMenuForRow(middleRowIndex)
@@ -964,7 +953,7 @@ context("case table ui", () => {
       cy.log("double-clicking the cell")
       // double-click to initiate editing cell
       table.getGridCell(2, 2).dblclick()
-      cy.wait(1000) // Wait for the editing input to appear
+      cy.wait(100) // Wait for the editing input to appear
 
       cy.log("check the editing cell contents")
       table.getGridCell(2, 2).find("[data-testid='cell-text-editor']").should("have.value", "African Elephant")
@@ -976,7 +965,7 @@ context("case table ui", () => {
       cy.log("double-click to begin editing cell")
       table.getGridCell(2, 2).click()
       table.getGridCell(2, 2).dblclick()
-      cy.wait(1000) // Wait for the editing input to appear
+      cy.wait(100) // Wait for the editing input to appear
 
       cy.log("click color swatch to bring up color palette")
       table.getGridCell(2, 2)
@@ -984,11 +973,11 @@ context("case table ui", () => {
         .should('exist')
         .should('be.visible')
         .dblclick({ force: true }) // Double-click the button
-      cy.wait(1000) // Wait for the color palette to appear
+      cy.wait(100) // Wait for the color palette to appear
 
       cy.log("click hue bar to change color")
       cy.get(`.react-colorful .react-colorful__hue [aria-label="Hue"]`).should('be.visible').click()
-      cy.wait(1000) // Wait for the color change to be reflected
+      cy.wait(100) // Wait for the color change to be reflected
 
       cy.log("verify that the color actually changed")
       table.verifyEditCellSwatchColor(2, 2, "rgb(0, 255,")
@@ -1001,7 +990,7 @@ context("case table ui", () => {
 
       cy.log("double-click to begin editing cell again")
       table.getGridCell(2, 2).dblclick()
-      cy.wait(1000) // Wait for the editing input to appear
+      cy.wait(100) // Wait for the editing input to appear
 
       cy.log("click color swatch to bring up color palette again")
       table.getGridCell(2, 2)
@@ -1009,11 +998,11 @@ context("case table ui", () => {
         .should('exist')
         .should('be.visible')
         .dblclick({ force: true }) // Double-click the button
-      cy.wait(1000) // Wait for the color palette to appear
+      cy.wait(100) // Wait for the color palette to appear
 
       cy.log("click hue bar to change color again")
       cy.get(`.react-colorful .react-colorful__hue [aria-label="Hue"]`).should('be.visible').click()
-      cy.wait(1000) // Wait for the color change to be reflected
+      cy.wait(100) // Wait for the color change to be reflected
 
       cy.log("verify that the color actually changed again")
       table.verifyEditCellSwatchColor(2, 2, "rgb(0, 255,")

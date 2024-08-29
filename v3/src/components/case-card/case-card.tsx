@@ -1,18 +1,14 @@
 import { useMergeRefs } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
 import React, { useRef } from "react"
-import { useResizeDetector } from "react-resize-detector"
+// import { useResizeDetector } from "react-resize-detector"
 import { useDataSet } from "../../hooks/use-data-set"
 import { useCaseCardModel } from "./use-case-card-model"
 import { prf } from "../../utilities/profiler"
-
-import { DG } from "../../v2/dg-compat.v2"
-import { DGDataContext } from "../../models/v2/dg-data-context"
+import { CardView } from "./card-view"
+// import { DGDataContext } from "../../models/v2/dg-data-context"
 
 import "./case-card.v2"
-const DGCaseCard = (DG.React as any).CaseCard
-
-import "./case-card.scss"
 
 interface IProps {
   setNodeRef: (element: HTMLElement | null) => void
@@ -27,7 +23,7 @@ export const CaseCard = observer(function CaseCard({ setNodeRef }: IProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mergeRefs = useMergeRefs<HTMLDivElement>(containerRef, setNodeRef)
 
-  const { width, height } = useResizeDetector({ targetRef: containerRef })
+  // const { width, height } = useResizeDetector({ targetRef: containerRef })
 
   // const { isTileSelected } = useTileModelContext()
   // const isFocused = isTileSelected()
@@ -64,7 +60,7 @@ export const CaseCard = observer(function CaseCard({ setNodeRef }: IProps) {
                             ? `${active.id}` : undefined
 */
 
-    const context = new DGDataContext(data)
+    // const context = new DGDataContext(data)
     const columnWidths: Record<string, number> = {}
     cardModel.attributeColumnWidths.forEach((colWidth, id) => {
       const collection = data.getCollection(`${id}`)
@@ -73,28 +69,22 @@ export const CaseCard = observer(function CaseCard({ setNodeRef }: IProps) {
       }
     })
 
-    function handleResizeColumn(name: string, colWidth: number) {
-      const collection = data?.getCollectionByName(name)
-      if (collection) {
-        data?.applyModelChange(() => {
-          cardModel?.setAttributeColumnWidth(collection.id, colWidth)
-        }, {
-          undoStringKey: "DG.Undo.caseCard.columnWidthChange",
-          redoStringKey: "DG.Redo.caseCard.columnWidthChange",
-        })
-      }
-    }
+    // function handleResizeColumn(name: string, colWidth: number) {
+    //   const collection = data?.getCollectionByName(name)
+    //   if (collection) {
+    //     data?.applyModelChange(() => {
+    //       cardModel?.setAttributeColumnWidth(collection.id, colWidth)
+    //     }, {
+    //       undoStringKey: "DG.Undo.caseCard.columnWidthChange",
+    //       redoStringKey: "DG.Redo.caseCard.columnWidthChange",
+    //     })
+    //   }
+    // }
 
     return (
       <>
         <div ref={mergeRefs} className="case-card react-data-card" data-testid="case-card">
-          <DGCaseCard
-            size={{ width, height }}
-            context={context}
-            columnWidthMap={columnWidths}
-            isSelectedCallback={() => false}
-            onResizeColumn={handleResizeColumn}
-          />
+          <CardView />
         </div>
       </>
     )

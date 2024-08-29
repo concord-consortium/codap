@@ -1,12 +1,17 @@
 import { IAnyStateTreeNode, resolveIdentifier } from "mobx-state-tree"
+import { kItemIdPrefix, v3Id } from "../../utilities/codap-utils"
 import { ICustomUndoRedoPatcher } from "../history/custom-undo-redo-registry"
 import { HistoryEntryType } from "../history/history"
 import { ICustomPatch } from "../history/tree-types"
 import { withCustomUndoRedo } from "../history/with-custom-undo-redo"
-import { ICase, IItem } from "./data-set-types"
+import { ICollectionModel } from "./collection"
+import { CaseInfo, IAddCasesOptions, ICase, ICaseCreation, IItem } from "./data-set-types"
 import { DataSet, IDataSet } from "./data-set"
 import { deleteCasesNotification, } from "./data-set-notifications"
 
+/*
+ * setCaseValues custom undo/redo
+ */
 export interface ISetCaseValuesCustomPatch extends ICustomPatch {
   type: "DataSet.setCaseValues"
   data: {
@@ -49,6 +54,100 @@ export function setCaseValuesWithCustomUndoRedo(data: IDataSet, cases: ICase[], 
   }, setCaseValuesCustomUndoRedoPatcher)
 }
 
+/*
+ * insertCases custom undo/redo
+ */
+interface IInsertCasesCustomPatch extends ICustomPatch {
+  type: "DataSet.insertCases",
+  data: {
+    dataId: string  // DataSet id
+    items: IItem[]
+    options: IAddCasesOptions
+  }
+}
+function isInsertCasesCustomPatch(patch: ICustomPatch): patch is IInsertCasesCustomPatch {
+  return patch.type === "DataSet.insertCases"
+}
+
+const insertCasesCustomUndoRedo: ICustomUndoRedoPatcher = {
+  undo: (node: IAnyStateTreeNode, patch: ICustomPatch, entry: HistoryEntryType) => {
+    if (isInsertCasesCustomPatch(patch)) {
+      const data = resolveIdentifier<typeof DataSet>(DataSet, node, patch.data.dataId)
+      const itemIds = patch.data.items.map(({ __id__ }) => __id__)
+      if (data && itemIds.length) {
+        data.removeCases(itemIds)
+      }
+    }
+  },
+  redo: (node: IAnyStateTreeNode, patch: ICustomPatch, entry: HistoryEntryType) => {
+    if (isInsertCasesCustomPatch(patch)) {
+      const data = resolveIdentifier<typeof DataSet>(DataSet, node, patch.data.dataId)
+      data?.addCases(patch.data.items, patch.data.options)
+    }
+  }
+}
+
+export function insertCasesWithCustomUndoRedo(data: IDataSet, cases: ICaseCreation[], _options: IAddCasesOptions = {}) {
+  data.validateCases()
+
+  const options = { ..._options }
+
+  let siblingCaseId: Maybe<string>
+  let caseInfo: Maybe<CaseInfo>
+  let collection: Maybe<ICollectionModel>
+  if (options.before) {
+    caseInfo = data.caseInfoMap.get(options.before)
+    collection = data.getCollection(caseInfo?.collectionId)
+    if (collection && caseInfo) {
+      siblingCaseId = options.before
+      options.before = caseInfo.childItemIds[0]
+    }
+  } else if (options.after) {
+    caseInfo = data.caseInfoMap.get(options.after)
+    collection = data.getCollection(caseInfo?.collectionId)
+    if (collection && caseInfo) {
+      siblingCaseId = options.after
+      options.after = caseInfo.childItemIds[caseInfo.childItemIds.length - 1]
+    }
+  }
+
+  // add ids if they're not already present
+  const items: IItem[] = cases.map(aCase => ({ __id__: v3Id(kItemIdPrefix), ...aCase }))
+
+  // add parent case values
+  const parentCollection = collection?.parent
+  const parentCase = siblingCaseId
+                      ? parentCollection?.caseGroups.find(group => group.childCaseIds?.includes(siblingCaseId))
+                      : undefined
+  const parentCaseId = parentCase?.groupedCase.__id__
+  if (parentCollection && parentCaseId) {
+    parentCollection.allDataAttributes.forEach(attr => {
+      items.forEach(item => {
+        item[attr.id] = data.getValue(parentCaseId, attr.id)
+      })
+    })
+  }
+
+  const undoRedoPatch: IInsertCasesCustomPatch = {
+    type: "DataSet.insertCases",
+    data: { dataId: data.id, items, options }
+  }
+
+  // insert the items
+  data.applyModelChange(() => {
+    withCustomUndoRedo(undoRedoPatch, insertCasesCustomUndoRedo)
+
+    data.addCases(items, options)
+  }, {
+    // notify: insertCasesNotification(data, cases),
+    undoStringKey: "DG.Undo.caseTable.insertCases",
+    redoStringKey: "DG.Redo.caseTable.insertCases"
+  })
+}
+
+/*
+ * removeCases custom undo/redo
+ */
 interface IItemBatch {
   beforeId?: string
   items: IItem[]

@@ -7,9 +7,11 @@ import { isRandomFunctionPresent } from "./utils/misc"
 
 export const Formula = types.model("Formula", {
   id: types.optional(types.identifier, () => typedId("FORM")),
-  display: "",
-  canonical: ""
+  display: ""
 })
+.volatile(self => ({
+  canonical: ""
+}))
 .views(self => ({
   get formulaManager() {
     return getFormulaManager(self)

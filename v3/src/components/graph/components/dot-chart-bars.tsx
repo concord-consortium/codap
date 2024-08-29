@@ -4,7 +4,6 @@ import { createPortal } from "react-dom"
 import { IBarCover, PlotProps } from "../graphing-types"
 import { usePlotResponders } from "../hooks/use-plot"
 import { setPointCoordinates } from "../utilities/graph-utils"
-import { mstAutorun } from "../../../utilities/mst-autorun"
 import { useChartDots } from "../hooks/use-chart-dots"
 import { numericSortComparator } from "../../../utilities/data-utils"
 import { barCoverDimensions, renderBarCovers } from "../utilities/bar-utils"
@@ -83,7 +82,7 @@ export const DotChartBars = observer(function DotChartBars({ abovePointsGroupRef
                     return numericSortComparator({a: Number(cat1), b: Number(cat2), order: "desc"})
                   })
                 }
-                
+
                 // For each legend value, create a bar cover
                 legendCats.forEach((legendCat: string) => {
                   const matchingCases =
@@ -145,20 +144,6 @@ export const DotChartBars = observer(function DotChartBars({ abovePointsGroupRef
       pixiPoints.pointsFusedIntoBars = graphModel.pointsFusedIntoBars
     }
   }, [pixiPoints, graphModel.pointsFusedIntoBars])
-
-  // when points are fused into bars, we need to set the secondary axis scale type to linear
-  useEffect(function handleFuseIntoBars() {
-    return mstAutorun(
-      () => {
-        if (graphModel.pointsFusedIntoBars) {
-          const secondaryRole = graphModel.dataConfiguration.primaryRole === "x" ? "y" : "x"
-          const secondaryPlace = secondaryRole === "y" ? "left" : "bottom"
-          layout.setAxisScaleType(secondaryPlace, "linear")
-        }
-      },
-      {name: "useAxis [handleFuseIntoBars]"}, graphModel
-    )
-  }, [graphModel, layout])
 
   return (
     <>

@@ -6,6 +6,7 @@
   in performance-critical contexts, e.g. during a drag. The properties of this class will
   generally be MobX-observable.
  */
+import { cloneDeep } from "lodash"
 import { action, computed, makeObservable, observable } from "mobx"
 import { getSnapshot } from "mobx-state-tree"
 import { createCodapDocument } from "./codap/create-codap-document"
@@ -44,7 +45,8 @@ class AppState {
   }
 
   async getDocumentSnapshot() {
-    return await serializeDocument(this.currentDocument, doc => getSnapshot(doc))
+    // use cloneDeep because MST snapshots are immutable
+    return await serializeDocument(this.currentDocument, doc => cloneDeep(getSnapshot(doc)))
   }
 
   @action

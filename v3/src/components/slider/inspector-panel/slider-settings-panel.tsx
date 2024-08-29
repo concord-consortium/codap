@@ -7,6 +7,7 @@ import {ISliderModel} from "../slider-model"
 import {AnimationDirection, AnimationDirections, AnimationMode, AnimationModes} from "../slider-types"
 import {t} from "../../../utilities/translation/translate"
 import ValuesIcon from "../../../assets/icons/icon-values.svg"
+import { logStringifiedObjectMessage } from "../../../lib/log-message"
 
 import "./slider-settings-panel.scss"
 
@@ -23,16 +24,53 @@ export const SliderSettingsPalette =
   const handleMultiplesOfChange = (value: string) => {
     const multipleOf = parseFloat(value)
     if (isFinite(multipleOf)) {
-      sliderModel.setMultipleOf(multipleOf)
+      sliderModel.applyModelChange(() => {
+        sliderModel.setMultipleOf(multipleOf)
+      }, {
+        undoStringKey: "DG.Undo.slider.changeMultiples",
+        redoStringKey: "DG.Redo.slider.changeMultiples",
+        log: logStringifiedObjectMessage("sliderMultiplesOf: %@",
+              {name: sliderModel.name, restrictMultiplesOf: multipleOf})
+      })
     }
   }
 
   const handleAnimationRateChange = (value: string) => {
     const animationRate = parseFloat(value)
     if (isFinite(animationRate)) {
-      sliderModel.setAnimationRate(animationRate)
+      sliderModel.applyModelChange(() => {
+        sliderModel.setAnimationRate(animationRate)
+      }, {
+        undoStringKey: "DG.Undo.slider.changeSpeed",
+        redoStringKey: "DG.Redo.slider.changeSpeed",
+        log: logStringifiedObjectMessage("sliderMaxPerSecond: %@",
+              {name: sliderModel.name, maxPerSecond: animationRate})
+      })
     }
   }
+
+  const handleAnimationDirectionChange = (value: string) => {
+    sliderModel.applyModelChange(() => {
+      sliderModel.setAnimationDirection(value as AnimationDirection)
+    }, {
+      undoStringKey: "DG.Undo.slider.changeDirection",
+      redoStringKey: "DG.Redo.slider.changeDirection",
+      log: logStringifiedObjectMessage("sliderAnimationDirection: %@",
+            {name: sliderModel.name, direction: value})
+    })
+  }
+
+  const handleSliderAnimationModeChange = (value: string) => {
+    sliderModel.applyModelChange(() => {
+      sliderModel.setAnimationMode(value as AnimationMode)
+    }, {
+      undoStringKey: "DG.Undo.slider.changeRepetition",
+      redoStringKey: "DG.Redo.slider.changeRepetition",
+      log: logStringifiedObjectMessage("sliderRepetitionMode: %@",
+            {name: sliderModel.name, mode: value})
+    })
+  }
+
   return (
     <InspectorPalette
       title={t("DG.Inspector.values")}
@@ -60,7 +98,7 @@ export const SliderSettingsPalette =
           <Flex className="palette-row">
             <FormLabel className="form-label">{t("DG.Slider.maxPerSecond")}
               <NumberInput className="slider-input animation-rate" size="xs"
-                  step={0.1} defaultValue={sliderModel._animationRate} 
+                  step={0.1} defaultValue={sliderModel._animationRate}
                   onChange={handleAnimationRateChange} data-testid="slider-animation-rate">
                 <NumberInputField />
                   <NumberInputStepper>
@@ -75,7 +113,7 @@ export const SliderSettingsPalette =
           <Flex className="palette-row">
             <FormLabel className="form-label">{t("DG.Slider.direction")}
               <Select className="slider-select direction" value={sliderModel.animationDirection}
-                      onChange={e => sliderModel.setAnimationDirection(e.target.value as AnimationDirection)}
+                      onChange={(e) => handleAnimationDirectionChange(e.target.value)}
                       data-testid="slider-animation-direction">
                 {AnimationDirections.map(direction => (
                   <option key={direction} value={direction}>{t(`DG.Slider.${direction}`)}</option>
@@ -88,7 +126,7 @@ export const SliderSettingsPalette =
           <Flex className="palette-row">
             <FormLabel className="form-label">{t("DG.Slider.mode")}
               <Select className="slider-select mode" value={sliderModel.animationMode}
-                      onChange={e => sliderModel.setAnimationMode(e.target.value as AnimationMode)}
+                      onChange={(e) => handleSliderAnimationModeChange(e.target.value)}
                       data-testid="slider-animation-repetition">
                 {AnimationModes.map(mode => (
                   <option key={mode} value={mode}>{t(`DG.Slider.${mode}`)}</option>
