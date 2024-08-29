@@ -8,7 +8,7 @@ import { useInstanceIdContext } from "../../hooks/use-instance-id-context"
 import { logModelChangeFn } from "../../lib/log-message"
 import { updateAttributesNotification } from "../../models/data/data-set-notifications"
 import { uniqueName } from "../../utilities/js-utils"
-import { AttributeMenuList } from "./attribute-menu/attribute-menu-list"
+import { AttributeMenuList } from "../case-table-card-common/attribute-menu/attribute-menu-list"
 import { CaseTablePortal } from "./case-table-portal"
 import { kIndexColumnKey, TRenderHeaderCellProps } from "./case-table-types"
 import { ColumnHeaderDivider } from "./column-header-divider"
@@ -37,10 +37,12 @@ const _ColumnHeader = observer(function _ColumnHeader({ column }: TRenderHeaderC
   const onCloseRef = useRef<() => void>()
   // disable tooltips when there is an active drag in progress
   const dragging = !!active
-  const attribute = data?.attrFromID(column.key)
+
+  const {key: attrId, name: attrName} = column
+  const attribute = data?.attrFromID(attrId)
 
   const draggableOptions: IUseDraggableAttribute = {
-    prefix: instanceId, dataSet: data, attributeId: column.key
+    prefix: instanceId, dataSet: data, attributeId: attrId
   }
   const { attributes, listeners, setNodeRef: setDragNodeRef } = useDraggableAttribute(draggableOptions)
 
@@ -57,30 +59,30 @@ const _ColumnHeader = observer(function _ColumnHeader({ column }: TRenderHeaderC
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (inputRef.current && editingAttrId === column.key) {
+      if (inputRef.current && editingAttrId === attrId) {
         inputRef.current.focus()
         inputRef.current.select()
       }
     }, 100) // delay to ensure the input is rendered
 
     return () => clearTimeout(timer)
-  }, [column.key, editingAttrId])
+  }, [attrId, editingAttrId])
 
   useEffect(() => {
     onCloseRef.current?.()
   }, [dragging])
 
   useEffect(() => {
-    if (collectionTableModel?.attrIdToEdit === column.key) {
-      setEditingAttrId(column.key)
-      setEditingAttrName(column.name as string)
+    if (collectionTableModel?.attrIdToEdit === attrId) {
+      setEditingAttrId(attrId)
+      setEditingAttrName(attrName as string)
       updateAriaSelectedAttribute("true")
     } else {
       setEditingAttrId("")
       setEditingAttrName("")
       updateAriaSelectedAttribute("false")
     }
-  }, [collectionTableModel?.attrIdToEdit, cellElt, column.key, column.name, updateAriaSelectedAttribute])
+  }, [collectionTableModel?.attrIdToEdit, cellElt, attrId, attrName, updateAriaSelectedAttribute])
 
   // focus our content when the cell is focused
   useRdgCellFocus(cellElt, menuButtonRef.current)
@@ -113,7 +115,7 @@ const _ColumnHeader = observer(function _ColumnHeader({ column }: TRenderHeaderC
       const oldName = editingAttribute?.name
       data?.applyModelChange(() => {
         data.setAttributeName(editingAttrId, () => uniqueName(trimTitle,
-          (aName: string) => (aName === column.name) || !data.attributes.find(attr => aName === attr.name)
+          (aName: string) => (aName === attrName) || !data.attributes.find(attr => aName === attr.name)
         ))
       }, {
         notify: () => {
@@ -131,8 +133,8 @@ const _ColumnHeader = observer(function _ColumnHeader({ column }: TRenderHeaderC
     collectionTableModel?.setAttrIdToEdit?.(undefined)
   }
   const handleRenameAttribute = () => {
-    setEditingAttrId(column.key)
-    setEditingAttrName(column.name as string)
+    setEditingAttrId(attrId)
+    setEditingAttrName(attrName as string)
   }
 
   const handleModalOpen = (open: boolean) => {
@@ -169,13 +171,13 @@ const _ColumnHeader = observer(function _ColumnHeader({ column }: TRenderHeaderC
   return (
     <Menu isLazy>
       {({ isOpen, onClose }) => {
-        const disableTooltip = dragging || isOpen || modalIsOpen || editingAttrId === column.key
+        const disableTooltip = dragging || isOpen || modalIsOpen || editingAttrId === attrId
         isMenuOpen.current = isOpen
         onCloseRef.current = onClose
         // ensure selected header is styled correctly.
         if (isMenuOpen.current) updateAriaSelectedAttribute("true")
         return (
-          <Tooltip label={`${column.name ?? ""} ${description}`} h="20px" fontSize="12px"
+          <Tooltip label={`${attrName ?? ""} ${description}`} h="20px" fontSize="12px"
               color="white" openDelay={1000} placement="bottom" bottom="15px" left="15px"
               isDisabled={disableTooltip}
           >
@@ -189,13 +191,13 @@ const _ColumnHeader = observer(function _ColumnHeader({ column }: TRenderHeaderC
                     />
                   : <>
                       <MenuButton className="codap-attribute-button" ref={menuButtonRef}
-                          disabled={column?.key === kIndexColumnKey}
+                          disabled={attrId === kIndexColumnKey}
                           fontWeight="bold" onKeyDown={handleButtonKeyDown}
-                          data-testid={`codap-attribute-button ${column?.name}`}
+                          data-testid={`codap-attribute-button ${attrName}`}
                           aria-describedby={`sr-column-header-drag-instructions-${instanceId}`}>
-                        {`${column?.name ?? ""}${units}`}
+                        {`${attrName ?? ""}${units}`}
                       </MenuButton>
-                      {column.key !== kIndexColumnKey &&
+                      {attrId !== kIndexColumnKey &&
                         <VisuallyHidden id={`sr-column-header-drag-instructions-${instanceId}`}>
                           <pre> Press Space to drag the attribute within the table or to a graph.
                                 Press Enter to open the attribute menu.
@@ -205,12 +207,12 @@ const _ColumnHeader = observer(function _ColumnHeader({ column }: TRenderHeaderC
                     </>
                 }
               <CaseTablePortal>
-                <AttributeMenuList column={column} onRenameAttribute={handleRenameAttribute}
+                <AttributeMenuList attributeId={attrId} onRenameAttribute={handleRenameAttribute}
                   onModalOpen={handleModalOpen}
                 />
               </CaseTablePortal>
-              {column &&
-                <ColumnHeaderDivider key={column?.key} columnKey={column?.key} cellElt={cellElt}/>}
+              {attrId &&
+                <ColumnHeaderDivider key={attrId} columnKey={attrId} cellElt={cellElt}/>}
             </div>
           </Tooltip>
         )

@@ -115,7 +115,7 @@
           line-height: normal;
           letter-spacing: normal;
           text-align: right;
-          padding: 1px 4px 2px 4px;
+          padding: 1px 8px 2px 4px;
           white-space: nowrap;
         }
 
@@ -126,6 +126,10 @@
           font-weight: 500;
           text-align: left;
           width: 100%;
+
+          &.numeric {
+            text-align: right;
+          }
 
           // add space to guarantee cell height if value is empty string
           &:empty::after{

@@ -12,25 +12,22 @@ import {
   allowAttributeDeletion, preventCollectionReorg, preventTopLevelReorg
 } from "../../../utilities/plugin-utils"
 import { t } from "../../../utilities/translation/translate"
-import { TColumn } from "../case-table-types"
 import { EditAttributePropertiesModal } from "./edit-attribute-properties-modal"
 import { EditFormulaModal } from "./edit-formula-modal"
 
 interface IProps {
-  column?: TColumn
-  attrId?: string
+  attributeId: string
   onRenameAttribute: () => void
   onModalOpen: (open: boolean) => void
 }
 
 const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
-    ({ column, onRenameAttribute, onModalOpen, attrId }, ref) => {
+    ({ attributeId, onRenameAttribute, onModalOpen }, ref) => {
   const data = useDataSetContext()
   const caseMetadata = useCaseMetadata()
   // each use of useDisclosure() maintains its own state and callbacks so they can be used for independent dialogs
   const propertiesModal = useDisclosure()
   const formulaModal = useDisclosure()
-  const attributeId = column?.key || attrId
 
   if (!attributeId) return null
 

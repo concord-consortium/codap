@@ -1,11 +1,13 @@
 import React, { useState } from "react"
 import { observer } from "mobx-react-lite"
+import { clsx } from "clsx"
 import { IValueType } from "../../models/data/attribute"
 import CaseCellTextEditor from "./case-cell-editor"
 import { useCaseCardModel } from "./use-case-card-model"
 import { setCaseValuesWithCustomUndoRedo } from "../../models/data/data-set-undo"
 import { ICase } from "../../models/data/data-set-types"
 import { AttributeHeader } from "./case-attr-header"
+import { isFiniteNumber } from "../../utilities/math-utils"
 
 import "./card-view.scss"
 
@@ -21,7 +23,6 @@ interface ICaseAttrViewProps {
 export const CaseAttrView = observer(function CaseAttrView ({caseId, attrId, name, value, unit}: ICaseAttrViewProps) {
   const data = useCaseCardModel()?.data
   const [isEditing, setIsEditing] = useState(false)
-  const displayUnit = unit ? ` (${unit})` : ""
 
   const handleClick = () => {
     setIsEditing(!isEditing)
@@ -75,12 +76,16 @@ export const CaseAttrView = observer(function CaseAttrView ({caseId, attrId, nam
       <td className="name" data-testid="case-attr-name">
         <AttributeHeader attrId={attrId} attrName={name} />
       </td>
-      <td className="value" data-testid="case-attr-value" onClick={handleClick}>
-        { isEditing ?
-          <CaseCellTextEditor value={String(value)} onBlur={handleBlur}/> :
-          String(value)
+      <td
+        className={clsx("value", {numeric: isFiniteNumber(Number(value))})}
+        data-testid="case-attr-value"
+        onClick={handleClick}
+      >
+        { isEditing
+            ? <CaseCellTextEditor value={String(value)} onBlur={handleBlur}/>
+            : String(value)
         }
       </td>
     </tr>
   )
-});
+})
