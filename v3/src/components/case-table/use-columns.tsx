@@ -1,88 +1,17 @@
-import { Tooltip } from "@chakra-ui/react"
-import { format } from "d3"
 import { comparer } from "mobx"
-import React, { useCallback, useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { useCaseMetadata } from "../../hooks/use-case-metadata"
 import { useCollectionContext, useParentCollectionContext } from "../../hooks/use-collection-context"
-import { IAttribute, kDefaultFormatStr } from "../../models/data/attribute"
+import { IAttribute } from "../../models/data/attribute"
 import { IDataSet } from "../../models/data/data-set"
-import { symParent } from "../../models/data/data-set-types"
 import { getCollectionAttrs } from "../../models/data/data-set-utils"
-import { parseColor } from "../../utilities/color-utils"
-import { isStdISODateString } from "../../utilities/date-iso-utils"
-import { parseDate } from "../../utilities/date-parser"
-import { DatePrecision, formatDate } from "../../utilities/date-utils"
 import { mstReaction } from "../../utilities/mst-reaction"
 import { isCaseEditable } from "../../utilities/plugin-utils"
-import { kDefaultColumnWidth, symDom, TColumn, TRenderCellProps } from "./case-table-types"
+import { AttributeValueCell } from "./attribute-value-cell"
+import { kDefaultColumnWidth, TColumn } from "./case-table-types"
 import CellTextEditor from "./cell-text-editor"
 import ColorCellTextEditor from "./color-cell-text-editor"
 import { ColumnHeader } from "./column-header"
-
-// cache d3 number formatters so we don't have to generate them on every render
-type TNumberFormatter = (n: number) => string
-const formatters = new Map<string, TNumberFormatter>()
-
-export const getNumFormatter = (formatStr: string) => {
-  let formatter = formatters.get(formatStr)
-  if (formatStr && !formatter) {
-    formatter = format(formatStr)
-    formatters.set(formatStr, formatter)
-  }
-  return formatter
-}
-
-export function renderValue(str = "", num = NaN, attr?: IAttribute, key?: number) {
-  const { type, userType } = attr || {}
-
-  // colors
-  const color = type === "color" || !userType ? parseColor(str, { colorNames: type === "color" }) : ""
-  if (color) {
-    return {
-      value: color,
-      content: (
-        <div className="cell-color-swatch" key={key}>
-          <div className="cell-color-swatch-interior" style={{ background: color }} />
-        </div>
-      )
-    }
-  }
-
-  // numbers
-  if (isFinite(num)) {
-    const formatStr = attr?.format ?? kDefaultFormatStr
-    const formatter = getNumFormatter(formatStr)
-    if (formatter) str = formatter(num)
-  }
-
-  // Dates
-  // Note that CODAP v2 formats dates in the case table ONLY if the user explicitly specifies the type as "date".
-  // Dates are not interpreted as dates and formatted by default. However, V3 adds one exception to this rule:
-  // if the date string is strictly an ISO string produced by the browser's Date.toISOString(), it will be treated as
-  // a Date object that should be formatted. The main reason for this is to format the results of date formulas.
-  // This is because CODAP v3 stores all the case values as strings natively, and we cannot simply check if the value
-  // is an instance of the `Date` class (as it will never be). Date.toISOString() is the native way of serializing dates
-  // in CODAP v3 (check `importValueToString` from attribute.ts).
-  if (isStdISODateString(str) || userType === "date" && str !== "") {
-    const date = parseDate(str, true)
-    if (date) {
-      // TODO: add precision support for date formatting
-      const formattedDate = formatDate(date, DatePrecision.None)
-      return {
-        value: str,
-        content: <span className="cell-span" key={key}>{formattedDate || `"${str}"`}</span>
-      }
-    } else {
-      // If the date is not valid, wrap it in quotes (CODAP V2 behavior).
-      str = `"${str}"`
-    }
-  }
-
-  return {
-    value: str,
-    content: <span className="cell-span" key={key}>{str}</span>
-  }
-}
 
 interface IUseColumnsProps {
   data?: IDataSet
@@ -93,26 +22,6 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
   const parentCollection = useParentCollectionContext()
   const collectionId = useCollectionContext()
   const [columns, setColumns] = useState<TColumn[]>([])
-
-  // cell renderer
-  const RenderCell = useCallback(function({ column, row }: TRenderCellProps) {
-    const strValue = (data?.getStrValue(row.__id__, column.key) ?? "").trim()
-    const numValue = data?.getNumeric(row.__id__, column.key)
-    // if this is the first React render after performance rendering, add a
-    // random key to force React to render the contents for synchronization
-    const key = row[symDom]?.has(column.key) ? Math.random() : undefined
-    row[symDom]?.delete(column.key)
-    const isParentCollapsed = row[symParent] ? caseMetadata?.isCollapsed(row[symParent]) : false
-    const { value, content } = isParentCollapsed
-                                ? { value: "", content: null }
-                                : renderValue(strValue, numValue, data?.attrFromID(column.key), key)
-    return (
-      <Tooltip label={value} h="20px" fontSize="12px" color="white" data-testid="case-table-data-tip"
-        openDelay={1000} placement="bottom" bottom="10px" left="15px">
-        {content}
-      </Tooltip>
-    )
-  }, [caseMetadata, data])
 
   useEffect(() => {
     // rebuild column definitions when referenced properties change
@@ -139,7 +48,7 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
                 headerCellClass: `codap-column-header`,
                 renderHeaderCell: ColumnHeader,
                 cellClass: "codap-data-cell",
-                renderCell: RenderCell,
+                renderCell: AttributeValueCell,
                 editable: row => isCaseEditable(data, row.__id__),
                 renderEditCell: isEditable
                                   // if users haven't assigned a non-color type, then color swatches
@@ -153,7 +62,7 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
       },
       { name: "useColumns [rebuild columns]", equals: comparer.structural, fireImmediately: true }, data
     )
-  }, [RenderCell, caseMetadata, collectionId, data, indexColumn, parentCollection])
+  }, [caseMetadata, collectionId, data, indexColumn, parentCollection])
 
   return columns
 }
