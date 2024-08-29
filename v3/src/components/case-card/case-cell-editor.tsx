@@ -1,4 +1,5 @@
-import React, { useRef, useState } from "react"
+import React, { useState } from "react"
+
 import "./case-cell-editor.scss"
 
 function autoFocusAndSelect(input: HTMLInputElement | null) {
@@ -20,6 +21,7 @@ export default function CaseCellTextEditor({value, onBlur}: ICaseCellTextEditorP
 
   return (
     <input
+      className="case-cell-text-editor"
       data-testid="case-card-cell-text-editor"
       ref={autoFocusAndSelect}
       value={newValue}

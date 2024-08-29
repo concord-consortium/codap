@@ -5,6 +5,7 @@ import { CaseAttrView } from "./case-attr-view"
 import { IValueType } from "../../models/data/attribute"
 import { ICollectionModel } from "../../models/data/collection"
 import { useCaseCardModel } from "./use-case-card-model"
+import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-data-utils"
 
 import "./card-view.scss"
 
@@ -23,7 +24,8 @@ export const CaseAttrsView = observer(function CaseAttrsView({caseItem, collecti
     <table className="caseAttrs fadeIn" data-testid="case-attrs">
       <tbody>
         {collection?.attributes.map((attr, index: number) => {
-            if (!attr) return null
+            const metadata = data && getSharedCaseMetadataFromDataset(data)
+            if (!attr || metadata?.isHidden(attr.id)) return null
             return (
               <CaseAttrView
                 key={attr.id}
