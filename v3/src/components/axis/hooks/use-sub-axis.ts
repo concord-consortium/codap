@@ -264,8 +264,10 @@ export const useSubAxis = ({
       const _axisModel = axisProvider?.getAxis?.(axisPlace)
       if (isAliveSafe(_axisModel)) {
         if (isBaseNumericAxisModel(_axisModel)) {
-          const {domain} = _axisModel || {}
-          layout.getAxisMultiScale(axisPlace)?.setNumericDomain(domain)
+          const {domain} = _axisModel || {},
+            multiScale = layout.getAxisMultiScale(axisPlace)
+          multiScale?.setScaleType('linear')  // Make sure it's linear
+          multiScale?.setNumericDomain(domain)
           renderSubAxis()
         }
       } else if (_axisModel) {
