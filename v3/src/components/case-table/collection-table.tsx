@@ -20,6 +20,7 @@ import { useTileDroppable } from "../../hooks/use-drag-drop"
 import { useForceUpdate } from "../../hooks/use-force-update"
 import { useVisibleAttributes } from "../../hooks/use-visible-attributes"
 import { registerCanAutoScrollCallback } from "../../lib/dnd-kit/dnd-can-auto-scroll"
+import { logStringifiedObjectMessage } from "../../lib/log-message"
 import { IAttribute } from "../../models/data/attribute"
 import { IDataSet } from "../../models/data/data-set"
 import { createAttributesNotification } from "../../models/data/data-set-notifications"
@@ -170,7 +171,9 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
     }, {
       notify: () => createAttributesNotification(attribute ? [attribute] : [], data),
       undoStringKey: "DG.Undo.caseTable.createAttribute",
-      redoStringKey: "DG.Redo.caseTable.createAttribute"
+      redoStringKey: "DG.Redo.caseTable.createAttribute",
+      log: logStringifiedObjectMessage("attributeCreate: %@",
+              {name: "newAttr", collection: data?.getCollection(collectionId)?.name, formula: ""})
     })
   }
 

@@ -3,6 +3,7 @@ import { observer } from "mobx-react-lite"
 import React, { forwardRef } from "react"
 import { useCaseMetadata } from "../../../hooks/use-case-metadata"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
+import { logMessageWithReplacement } from "../../../lib/log-message"
 import {
   deleteCollectionNotification, hideAttributeNotification, removeAttributesNotification
 } from "../../../models/data/data-set-notifications"
@@ -100,7 +101,8 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
         }, {
           // TODO Should also broadcast notify component edit formula notification
           undoStringKey: "DG.Undo.caseTable.editAttributeFormula",
-          redoStringKey: "DG.Undo.caseTable.editAttributeFormula"
+          redoStringKey: "DG.Undo.caseTable.editAttributeFormula",
+          log: logMessageWithReplacement("Clear formula for attribute %@", { name: attribute?.name})
         })
       }
     },
@@ -140,7 +142,8 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
           {
             notify: hideAttributeNotification([attributeId], data),
             undoStringKey: "DG.Undo.caseTable.hideAttribute",
-            redoStringKey: "DG.Redo.caseTable.hideAttribute"
+            redoStringKey: "DG.Redo.caseTable.hideAttribute",
+            log: logMessageWithReplacement("Hide attribute %@", { name: attribute?.name })
           }
         )
       }
@@ -176,7 +179,8 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
               return notifications
             },
             undoStringKey: "DG.Undo.caseTable.deleteAttribute",
-            redoStringKey: "DG.Redo.caseTable.deleteAttribute"
+            redoStringKey: "DG.Redo.caseTable.deleteAttribute",
+            log: logMessageWithReplacement("Delete attribute %@", { name: attribute.name })
           })
         }
       }

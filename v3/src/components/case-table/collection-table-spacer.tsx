@@ -7,6 +7,7 @@ import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { getDragAttributeInfo, useTileDroppable } from "../../hooks/use-drag-drop"
 import { measureText } from "../../hooks/use-measure-text"
 import { useVisibleAttributes } from "../../hooks/use-visible-attributes"
+import { logMessageWithReplacement } from "../../lib/log-message"
 import { IDataSet } from "../../models/data/data-set"
 // import { getNumericCssVariable } from "../../utilities/css-utils"
 import { preventAttributeMove, preventCollectionReorg } from "../../utilities/plugin-utils"
@@ -98,7 +99,7 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({ o
     caseMetadata?.applyModelChange(() => {
       parentCases?.forEach((value) => caseMetadata?.setIsCollapsed(value.__id__, !everyCaseIsCollapsed))
     }, {
-      log: "Expand/Collapse all",
+      log: logMessageWithReplacement("%@ all", { state: everyCaseIsCollapsed ? "Expand" : "Collapse" }),
       undoStringKey: "DG.Undo.caseTable.groupToggleExpandCollapseAll",
       redoStringKey: "DG.Redo.caseTable.groupToggleExpandCollapseAll"
     })
@@ -111,7 +112,8 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({ o
     }, {
       undoStringKey: "DG.Undo.caseTable.expandCollapseOneCase",
       redoStringKey: "DG.Redo.caseTable.expandCollapseOneCase",
-      log: `${caseMetadata?.isCollapsed(parentCaseId) ? "Collapse" : "Expand"} case ${parentCaseId}`
+      log: logMessageWithReplacement("%@ case %@",
+              { state: caseMetadata?.isCollapsed(parentCaseId) ? "Expand" : "Collapse", parentCaseId })
     })
     // scroll to the first expanded/collapsed child case (if necessary)
     const parentCase = data?.caseInfoMap.get(parentCaseId)

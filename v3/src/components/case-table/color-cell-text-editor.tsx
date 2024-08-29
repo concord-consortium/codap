@@ -5,6 +5,8 @@ import {
 import React, { ChangeEvent, useCallback, useEffect, useRef, useState } from "react"
 import { textEditorClassname } from "react-data-grid"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
+import { useLoggingContext } from "../../hooks/use-log-context"
+import { logStringifiedObjectMessage } from "../../lib/log-message"
 import { selectAllCases } from "../../models/data/data-set-utils"
 import { parseColor, parseColorToHex } from "../../utilities/color-utils"
 import { t } from "../../utilities/translation/translate"
@@ -47,6 +49,7 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
   const attributeId = column.key
   const attribute = data?.getAttribute(attributeId)
   const [inputValue, setInputValue] = useState(() => data?.getStrValue(row.__id__, attributeId))
+  const initialInputValue = useRef(inputValue)
   // support colors if user hasn't assigned a non-color type
   const supportColors = attribute?.userType == null || attribute?.userType === "color"
   // support color names if the color type is user-assigned
@@ -55,6 +58,7 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
   const hexColor = color ? parseColorToHex(color, { colorNames }) : undefined
   // show the color swatch if the initial value appears to be a color (no change mid-edit)
   const showColorSwatch = useRef(!!hexColor || attribute?.userType === "color")
+  const { setPendingLogMessage } = useLoggingContext()
 
   useEffect(() => {
     selectAllCases(data, false)
@@ -63,13 +67,15 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
   // commits the change and closes the editor
   const acceptValue = useCallback(() => {
     onRowChange({ ...row, [column.key]: inputValue }, true)
-  }, [column, inputValue, onRowChange, row])
+  }, [column.key, inputValue, onRowChange, row])
 
   // updates the value locally without committing the changes
   const updateValue = useCallback((value: string) => {
     setInputValue(value)
     onRowChange({ ...row, [column.key]: value })
-  }, [column, onRowChange, row])
+    setPendingLogMessage("editCellValue", logStringifiedObjectMessage("editCellValue: %@",
+      {attrId: column.key, caseId: row.__id__, from: initialInputValue.current, to: value }))
+  }, [column.key, onRowChange, row, setPendingLogMessage])
 
   // rejects any local changes and closes the editor
   const rejectValue = useCallback(() => {

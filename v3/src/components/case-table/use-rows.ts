@@ -6,6 +6,8 @@ import { useDebouncedCallback } from "use-debounce"
 import { useCaseMetadata } from "../../hooks/use-case-metadata"
 import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
+import { useLoggingContext } from "../../hooks/use-log-context"
+import { logMessageWithReplacement } from "../../lib/log-message"
 import { appState } from "../../models/app-state"
 import { kDefaultFormatStr } from "../../models/data/attribute"
 import { isAddCasesAction, isRemoveCasesAction, isSetCaseValuesAction } from "../../models/data/data-set-actions"
@@ -25,6 +27,7 @@ export const useRows = () => {
   const data = useDataSetContext()
   const collectionId = useCollectionContext()
   const collectionTableModel = useCollectionTableModel()
+  const { getPendingLogMessage } = useLoggingContext()
 
   // reload the cache, e.g. on change of DataSet
   const resetRowCache = useCallback(() => {
@@ -269,7 +272,9 @@ export const useRows = () => {
     const creatingCases = casesToCreate.length > 0
     const undoStringKey = creatingCases ? "DG.Undo.caseTable.createNewCase" : "DG.Undo.caseTable.editCellValue"
     const redoStringKey = creatingCases ? "DG.Redo.caseTable.createNewCase" : "DG.Redo.caseTable.editCellValue"
-
+    const logMessage = creatingCases
+                        ? logMessageWithReplacement("Create %@ cases in table", { count: casesToCreate.length })
+                        : getPendingLogMessage("editCellValue")
     // We track case ids between updates and additions so we can make proper notifications afterwards
     let oldCaseIds = new Set(collection?.caseIds ?? [])
     let updatedCaseIds: string[] = []
@@ -325,10 +330,11 @@ export const useRows = () => {
           return notifications
         },
         undoStringKey,
-        redoStringKey
+        redoStringKey,
+        log: logMessage
       }
     )
-  }, [collectionTableModel, data])
+  }, [collectionTableModel, data, getPendingLogMessage])
 
   return { handleRowsChange }
 }
