@@ -28,10 +28,12 @@ export const CaseCardModel = TileContentModel
       if (!caseId) return undefined
       return self.data?.itemInfoMap.get(caseId)
     },
-    groupChildCases(collection: ICollectionModel, caseId: string) {
-      const parentCollectionGroups = self.data?.getGroupsForCollection(collection.parent?.id)
-      const group = parentCollectionGroups?.find(g => g.groupedCase.__id__ === caseId)
-      return collection.cases.filter((c: any) => group?.childCaseIds?.includes(c.__id__))
+    groupChildCases(collection: ICollectionModel, parentCaseId: string) {
+      const parentCaseInfo = self.data?.caseInfoMap.get(parentCaseId)
+      if (!parentCaseInfo?.childCaseIds) return undefined
+      return parentCaseInfo.childCaseIds
+              .map(childCaseId => self.data?.caseInfoMap.get(childCaseId)?.groupedCase)
+              .filter(groupedCase => !!groupedCase)
     }
   }))
   .actions(self => ({

@@ -31,11 +31,12 @@ export const CaseView = observer(function CaseView(props: ICaseViewProps) {
   const collection = data?.getCollection(collectionId)
   const initialSelectedCase = collection?.cases.find(c => c.__id__ === displayedCaseLineage[level])
   const displayedCase = initialSelectedCase ?? cases[0]
+  const displayedCaseId = displayedCase.__id__
 
   const displayedCaseIndex = useMemo(() => {
     // the first time this runs selectedCase will not be defined and this will return -1, thus the Math.max
-    return Math.max(0, cases.indexOf(displayedCase))
-  }, [displayedCase, cases])
+    return Math.max(0, cases.findIndex(c => c.__id__ === displayedCaseId))
+  }, [cases, displayedCaseId])
 
   const prevButtonDisabled = displayedCaseIndex <= 0
   const nextButtonDisabled = displayedCaseIndex >= cases.length - 1
@@ -48,11 +49,11 @@ export const CaseView = observer(function CaseView(props: ICaseViewProps) {
   }, [displayedCaseIndex, cases, onSelectCases])
 
   const renderChildCollection = (coll: ICollectionModel) => {
-    const childCases = cardModel?.groupChildCases(coll, displayedCase.__id__)
+    const childCases = cardModel?.groupChildCases(coll, displayedCaseId)
     if (!childCases) return null
 
     return (
-      <ParentCollectionContext.Provider key={`${displayedCase.__id__}-${level}`} value={coll.parent?.id}>
+      <ParentCollectionContext.Provider key={`${displayedCaseId}-${level}`} value={coll.parent?.id}>
         <CollectionContext.Provider value={coll.id}>
           <CaseView
             cases={childCases}
@@ -89,7 +90,7 @@ export const CaseView = observer(function CaseView(props: ICaseViewProps) {
           </button>
         </div>
       </div>
-      <CaseAttrsView key={displayedCase.__id__} caseItem={displayedCase} collection={collection} />
+      <CaseAttrsView key={displayedCaseId} caseItem={displayedCase} collection={collection} />
       {collection?.child && renderChildCollection(collection.child)}
     </div>
   )

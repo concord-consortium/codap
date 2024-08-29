@@ -1,12 +1,12 @@
 import { useMergeRefs } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
 import React, { useRef } from "react"
-import { useResizeDetector } from "react-resize-detector"
+// import { useResizeDetector } from "react-resize-detector"
 import { useDataSet } from "../../hooks/use-data-set"
 import { useCaseCardModel } from "./use-case-card-model"
 import { prf } from "../../utilities/profiler"
 import { CardView } from "./card-view"
-import { DGDataContext } from "../../models/v2/dg-data-context"
+// import { DGDataContext } from "../../models/v2/dg-data-context"
 
 import "./case-card.v2"
 
