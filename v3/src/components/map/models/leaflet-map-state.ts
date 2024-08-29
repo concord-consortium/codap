@@ -1,6 +1,8 @@
 import { LatLng, LatLngBoundsExpression, LatLngExpression, Map as LeafletMap, LeafletMouseEvent } from 'leaflet'
 import { debounce } from 'lodash'
 import { action, computed, makeObservable, observable, runInAction } from "mobx"
+import { ILogMessage } from '../../../lib/log-message'
+import { logStringifiedMapMessage } from '../map-types'
 
 interface IAdjustMapViewOptions {
   // specify center and/or zoom to set those directly
@@ -18,6 +20,7 @@ interface IAdjustMapViewOptions {
   // if undo/redo strings are not specified, the action is not undoable
   undoStringKey?: string
   redoStringKey?: string
+  log?: () => ILogMessage
 }
 
 export class LeafletMapState {
@@ -34,6 +37,7 @@ export class LeafletMapState {
   // if not set, then changes are not considered undoable
   undoStringKey = ""
   redoStringKey = ""
+  log?: () => ILogMessage
   // Callback function to be called on clicks
   onClick?: (event: MouseEvent) => void
   // bound event handlers for passing to leaflet
@@ -116,7 +120,10 @@ export class LeafletMapState {
 
   @action
   handleMoveStart() {
-    if (!this.isChanging) this.startLeafletInteraction("DG.Undo.map.pan", "DG.Redo.map.pan")
+    if (!this.isChanging) {
+      this.startLeafletInteraction("DG.Undo.map.pan", "DG.Redo.map.pan",
+        () => logStringifiedMapMessage("mapEvent: pan at %@", { center: this.center, zoom: this.zoom }))
+    }
     this.setIsMoving(true)
   }
 
@@ -133,7 +140,11 @@ export class LeafletMapState {
 
   @action
   handleZoomStart() {
-    if (!this.isChanging) this.startLeafletInteraction("DG.Undo.map.zoom", "DG.Redo.map.zoom")
+    if (!this.isChanging) {
+      this.startLeafletInteraction("DG.Undo.map.zoom", "DG.Redo.map.zoom",
+        () => logStringifiedMapMessage("mapEvent: fitBounds at %@", { center: this.center, zoom: this.zoom })
+      )
+    }
     this.setIsZooming(true)
   }
 
@@ -202,9 +213,10 @@ export class LeafletMapState {
   }
 
   @action
-  startLeafletInteraction(undoStringKey: string, redoStringKey: string) {
+  startLeafletInteraction(undoStringKey: string, redoStringKey: string, logMessage?: () => ILogMessage) {
     this.undoStringKey = undoStringKey
     this.redoStringKey = redoStringKey
+    this.log = logMessage
     this.completeLeafletInteraction = debounce(() => {
       runInAction(() => this.completeLeafletInteraction = undefined)
       // user interactions in close proximity are coalesced
@@ -224,12 +236,13 @@ export class LeafletMapState {
   @action
   adjustMapView({
     center, zoom, fitBounds, invalidateSize = false, animate = false,
-    debounceMS = 200, timeoutMS = 100, undoStringKey = "", redoStringKey = ""
+    debounceMS = 200, timeoutMS = 100, undoStringKey = "", redoStringKey = "", log
   }: IAdjustMapViewOptions) {
     if (!this.leafletMap) return
 
     this.undoStringKey = undoStringKey
     this.redoStringKey = redoStringKey
+    this.log = log
 
     if (!this.completeMapViewChange) {
       this.completeMapViewChange = debounce(() => {

@@ -9,6 +9,7 @@ import {isMapContentModel} from "../../models/map-content-model"
 import {MapBaseLayerControl} from "./map-base-layer-control"
 import {DisplayItemFormatControl} from "../../../data-display/inspector/display-item-format-control"
 import {IMapLayerModel, isMapLayerModel} from "../../models/map-layer-model"
+import { logMessageWithReplacement } from "../../../../lib/log-message"
 
 import "./map-inspector.scss"
 
@@ -49,7 +50,8 @@ export const MapLayersPalette = observer(function MapLayersPalette(
                   layer.setVisibility(!layer.isVisible)
                 }, {
                   undoStringKey: `V3.Undo.map.${op}Layer`,
-                  redoStringKey: `V3.Redo.map.${op}Layer`
+                  redoStringKey: `V3.Redo.map.${op}Layer`,
+                  log: logMessageWithReplacement("Map layer changed: %@ %@", {op, type: layer.type}),
                 })
               }}
             >

@@ -5,6 +5,7 @@ import {
 import React, { useEffect, useState } from "react"
 import { observer } from "mobx-react-lite"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
+import { logStringifiedObjectMessage } from "../../../lib/log-message"
 import { updateAttributesNotification, updateCasesNotification } from "../../../models/data/data-set-notifications"
 import { t } from "../../../utilities/translation/translate"
 import { CodapModal } from "../../codap-modal"
@@ -37,7 +38,9 @@ export const EditFormulaModal = observer(function EditFormulaModal({ attributeId
           updateAttributesNotification([attribute], dataSet)
         ],
         undoStringKey: "DG.Undo.caseTable.editAttributeFormula",
-        redoStringKey: "DG.Redo.caseTable.createAttribute"
+        redoStringKey: "DG.Redo.caseTable.createAttribute",
+        log: logStringifiedObjectMessage("attribute editFormula: %@",
+              { name: attribute.name, collection: dataSet?.getCollectionForAttribute(attributeId)?.name, formula })
       })
     }
     closeModal()

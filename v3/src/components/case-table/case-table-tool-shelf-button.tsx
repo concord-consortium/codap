@@ -2,6 +2,7 @@ import React, { useState } from "react"
 import { Button, Menu, MenuButton, MenuItem, MenuList, ModalBody, ModalFooter,
     Tooltip, useDisclosure } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
+import { logStringifiedObjectMessage } from "../../lib/log-message"
 import { appState } from "../../models/app-state"
 import { createDefaultTileOfType } from "../../models/codap/add-default-content"
 import { INewTileOptions } from "../../models/codap/create-tile"
@@ -53,7 +54,8 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
     }, {
       notify: dataContextCountChangedNotification,
       undoStringKey: "V3.Undo.caseTable.create",
-      redoStringKey: "V3.Redo.caseTable.create"
+      redoStringKey: "V3.Redo.caseTable.create",
+      log: "createNewEmptyDataSet"
     })
   }
 
@@ -71,16 +73,19 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
           return (
             <MenuItem key={`${dataset.dataSet.id}`} onClick={()=>createOrShowTableOrCardForDataset(dataset)}
               data-testid={`tool-shelf-table-${tileTitle}`}>
+              <TableIcon className="case-table-icon"/>
               {tileTitle}
               <TrashIcon className="tool-shelf-menu-trash-icon"
                   onClick={() => handleOpenRemoveDataSetModal(dataset.dataSet.id)} />
             </MenuItem>
           )
         })}
-        <MenuItem data-testid="tool-shelf-table-new-clipboard">
-          {t("DG.AppController.caseTableMenu.clipboardDataset")}
+        <MenuItem data-testid="tool-shelf-table-new-clipboard" isDisabled={true}>
+          <TableIcon className="case-table-icon"/>
+          {`${t("DG.AppController.caseTableMenu.clipboardDataset")} 🚧`}
         </MenuItem>
         <MenuItem onClick={handleCreateNewCaseTable} data-testid="tool-shelf-table-new">
+          <TableIcon className="case-table-icon"/>
           {t("DG.AppController.caseTableMenu.newDataSet")}
         </MenuItem>
       </MenuList>
@@ -131,7 +136,8 @@ export const DeleteDataSetModal = ({dataSetId, isOpen, onClose, setModalOpen}: I
       }, {
         notify: [dataContextCountChangedNotification, dataContextDeletedNotification(data)],
         undoStringKey: "V3.Undo.caseTable.delete",
-        redoStringKey: "V3.Redo.caseTable.delete"
+        redoStringKey: "V3.Redo.caseTable.delete",
+        log: logStringifiedObjectMessage("deleteDataSet: %@", { id: dataSetId, name: data?.title })
       })
     }
   }

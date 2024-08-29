@@ -10,6 +10,7 @@ import {useMapModelContext} from "../hooks/use-map-model-context"
 import {useDataDisplayLayout} from "../../data-display/hooks/use-data-display-layout"
 import {MultiLegend} from "../../data-display/components/legend/multi-legend"
 import {usePixiPointsArray} from "../../data-display/hooks/use-pixi-points-array"
+import {logStringifiedObjectMessage} from "../../../lib/log-message"
 import {DroppableMapArea} from "./droppable-map-area"
 import {MapBackground} from "./map-background"
 import {MapInterior} from "./map-interior"
@@ -42,7 +43,8 @@ export const CodapMap = observer(function CodapMap({mapRef}: IProps) {
       () => mapModel.setLegendAttributeID(dataSet.id, attrId),
       {
         undoStringKey: "V3.Undo.mapLegendAttributeChange",
-        redoStringKey: "V3.Redo.mapLegendAttributeChange"
+        redoStringKey: "V3.Redo.mapLegendAttributeChange",
+        log: logStringifiedObjectMessage("legendAttributeChange: %@", {to_attribute: dataSet.attrFromID(attrId)?.name})
       }
     )
   }, [mapModel])

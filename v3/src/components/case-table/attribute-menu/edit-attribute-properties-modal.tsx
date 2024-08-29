@@ -2,6 +2,7 @@ import { Button, FormControl, FormLabel, HStack, Input, ModalBody, ModalCloseBut
   Radio, RadioGroup, Select, Textarea, Tooltip } from "@chakra-ui/react"
 import React, { useEffect, useState } from "react"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
+import { logMessageWithReplacement } from "../../../lib/log-message"
 import { AttributeType, attributeTypes } from "../../../models/data/attribute"
 import { updateAttributesNotification } from "../../../models/data/data-set-notifications"
 import { uniqueName } from "../../../utilities/js-utils"
@@ -71,7 +72,8 @@ export const EditAttributePropertiesModal = ({ attributeId, isOpen, onClose }: I
       }, {
         notify: updateAttributesNotification([attribute], data),
         undoStringKey: "DG.Undo.caseTable.editAttribute",
-        redoStringKey: "DG.Redo.caseTable.editAttribute"
+        redoStringKey: "DG.Redo.caseTable.editAttribute",
+        log: logMessageWithReplacement("edit attribute %@", { name: attribute.name })
       })
     }
     closeModal()

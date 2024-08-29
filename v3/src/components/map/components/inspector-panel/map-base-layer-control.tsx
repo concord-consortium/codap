@@ -6,6 +6,7 @@ import {t} from "../../../../utilities/translation/translate"
 import {ITileModel} from "../../../../models/tiles/tile-model"
 import {BaseMapKey} from "../../map-types"
 import {isMapContentModel} from "../../models/map-content-model"
+import { logMessageWithReplacement, logStringifiedObjectMessage } from "../../../../lib/log-message"
 
 import "./map-inspector.scss"
 
@@ -31,7 +32,8 @@ export const MapBaseLayerControl = observer(function MapBaseLayerControl(
     mapModel.applyModelChange(
       () => mapModel.setBaseMapLayerVisibility(e.target.checked), {
         undoStringKey: undoString,
-        redoStringKey: redoString
+        redoStringKey: redoString,
+        log: logMessageWithReplacement("Map base layer visibility changed: %@", {visibility: isVisible}),
       }
     )
   }
@@ -41,7 +43,8 @@ export const MapBaseLayerControl = observer(function MapBaseLayerControl(
       () => mapModel.setBaseMapLayerName(layerName),
       {
         undoStringKey: "V3.Undo.map.inspector.changeMapBaseLayer",
-        redoStringKey: "V3.Redo.map.inspector.changeMapBaseLayer"
+        redoStringKey: "V3.Redo.map.inspector.changeMapBaseLayer",
+        log: logStringifiedObjectMessage("Map base layer changed: %@", {value: layerName}),
       }
     )
   }

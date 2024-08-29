@@ -9,6 +9,7 @@ import AddIcon from "../../assets/icons/icon-add-circle.svg"
 import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useTileModelContext } from "../../hooks/use-tile-model-context"
+import { logModelChangeFn } from "../../lib/log-message"
 import { updateCollectionNotification } from "../../models/data/data-set-notifications"
 import { preventCollectionReorg } from "../../utilities/plugin-utils"
 import { t } from "../../utilities/translation/translate"
@@ -87,7 +88,8 @@ export const CollectionTitle = observer(function CollectionTitle({onAddNewAttrib
       }, {
         notify: collection?.name !== newName ? () => updateCollectionNotification(collection, data) : undefined,
         undoStringKey: "DG.Undo.caseTable.collectionNameChange",
-        redoStringKey: "DG.Redo.caseTable.collectionNameChange"
+        redoStringKey: "DG.Redo.caseTable.collectionNameChange",
+        log: logModelChangeFn("Change collection name from %@ to %@", () => ({ name: collection?.name }))
       })
     } else {
       setEditingName(collectionName)

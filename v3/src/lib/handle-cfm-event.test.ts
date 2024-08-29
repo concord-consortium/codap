@@ -7,6 +7,8 @@ import * as ImportV2Document from "../v2/import-v2-document"
 import { handleCFMEvent } from "./handle-cfm-event"
 import { Logger } from "./logger"
 
+const urlParamsModule = require("../utilities/url-params")
+
 describe("handleCFMEvent", () => {
 
   let updateDocumentSpy: jest.SpyInstance
@@ -21,6 +23,7 @@ describe("handleCFMEvent", () => {
 
   it("handles the `connected` message", () => {
     const mockCfmClient = {
+      openUrlFile: jest.fn(),
       setProviderOptions: jest.fn(),
       _ui: {
         setMenuBarInfo: jest.fn()
@@ -31,6 +34,7 @@ describe("handleCFMEvent", () => {
       type: "connected"
     } as CloudFileManagerClientEvent
     handleCFMEvent(mockCfmClientArg, cfmEvent)
+    expect(mockCfmClient.openUrlFile).not.toHaveBeenCalled()
     expect(mockCfmClient.setProviderOptions).toHaveBeenCalledTimes(1)
     const [providerNameArg, providerOptionsArg] = mockCfmClient.setProviderOptions.mock.calls[0]
     expect(providerNameArg).toBe("documentStore")
@@ -40,6 +44,12 @@ describe("handleCFMEvent", () => {
     expect(mockCfmClient._ui.setMenuBarInfo).toHaveBeenCalledTimes(1)
     const menuBarInfoArg = mockCfmClient._ui.setMenuBarInfo.mock.calls[0][0]
     expect(menuBarInfoArg).toBe(`v${providerOptionsArg.appVersion} (${providerOptionsArg.appBuildNum})`)
+
+    urlParamsModule.urlParams.url = "https://concord.org/example.json"
+    handleCFMEvent(mockCfmClientArg, cfmEvent)
+    expect(mockCfmClient.openUrlFile).toHaveBeenCalledTimes(1)
+    expect(mockCfmClient.setProviderOptions).toHaveBeenCalledTimes(2)
+    expect(mockCfmClient._ui.setMenuBarInfo).toHaveBeenCalledTimes(2)
   })
 
   it("handles the `getContent` message", done => {
@@ -55,6 +65,19 @@ describe("handleCFMEvent", () => {
       expect(isCodapDocument(contentArg.content)).toBe(true)
       done()
     })
+  })
+
+  it("handles the willOpenFile message", () => {
+    const mockCfmClient = {} as CloudFileManagerClient
+    const mockCfmEvent = {
+      type: "willOpenFile",
+      callback: jest.fn()
+    }
+    const spy = jest.spyOn(urlParamsModule, "removeDevUrlParams")
+    const mockCfmEventArg = mockCfmEvent as unknown as CloudFileManagerClientEvent
+    handleCFMEvent(mockCfmClient, mockCfmEventArg)
+    expect(spy).toHaveBeenCalledTimes(1)
+    spy.mockRestore()
   })
 
   it("handles the `openedFile` message with a v2 document", () => {

@@ -10,6 +10,7 @@ import { CollectionContext, ParentCollectionContext } from "../../hooks/use-coll
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useInstanceIdContext } from "../../hooks/use-instance-id-context"
 import { registerCanAutoScrollCallback } from "../../lib/dnd-kit/dnd-can-auto-scroll"
+import { logMessageWithReplacement } from "../../lib/log-message"
 import { ICollectionModel } from "../../models/data/collection"
 import { IDataSet } from "../../models/data/data-set"
 import { createCollectionNotification, deleteCollectionNotification } from "../../models/data/data-set-notifications"
@@ -78,7 +79,8 @@ export const CaseTable = observer(function CaseTable({ setNodeRef }: IProps) {
   }, [syncTableScroll])
 
   const handleNewCollectionDrop = useCallback((dataSet: IDataSet, attrId: string, beforeCollectionId: string) => {
-    if (dataSet.attrFromID(attrId)) {
+    const attr = dataSet.attrFromID(attrId)
+    if (attr) {
       let collection: ICollectionModel | undefined
 
       // Determine if the old collection will become empty and therefore get removed
@@ -99,7 +101,9 @@ export const CaseTable = observer(function CaseTable({ setNodeRef }: IProps) {
           return notifications
         },
         undoStringKey: "DG.Undo.caseTable.createCollection",
-        redoStringKey: "DG.Redo.caseTable.createCollection"
+        redoStringKey: "DG.Redo.caseTable.createCollection",
+        log: logMessageWithReplacement("createCollection: name: %@, attribute: %@",
+                {name: collection?.name, attribute: attr.name})
       })
     }
   }, [])

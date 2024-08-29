@@ -1,6 +1,6 @@
 import { CloudFileManagerClient, CloudFileManagerClientEvent } from "@concord-consortium/cloud-file-manager"
 import { appState } from "../models/app-state"
-import { removeDevUrlParams } from "../utilities/url-params"
+import { removeDevUrlParams, urlParams } from "../utilities/url-params"
 import { isCodapV2Document } from "../v2/codap-v2-types"
 import { CodapV2Document } from "../v2/codap-v2-document"
 import { importV2Document } from "../v2/import-v2-document"
@@ -20,8 +20,14 @@ export function handleCFMEvent(cfmClient: CloudFileManagerClient, event: CloudFi
         appVersion: pkg.version,
         appBuildNum: build.buildNumber
       })
+      // pass the version number for display in the CFM menu bar
       wrapCfmCallback(() => cfmClient._ui.setMenuBarInfo(`v${pkg.version} (${build.buildNumber})`))
       appState.setVersion(pkg.version)
+
+      // load initial document specified via `url` parameter (if any)
+      if (urlParams.url) {
+        cfmClient.openUrlFile(urlParams.url)
+      }
       break
     // case "requiresUserInteraction":
     //   break
