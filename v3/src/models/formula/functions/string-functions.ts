@@ -96,6 +96,9 @@ export const stringFunctions = {
     evaluate: (...args: FValue[]) => {
       const stringToLookIn = valueToString(args[0]),
         pattern = valueToString(args[1])
+      // TODO We should really run escapeStringRegexp on the pattern we receive for security reasons,
+      // but that won't work for patterns received from the StoryQ plugin. We need to reconcile this.
+      // FWIW v2 does no processing on patterns it receives.
       const matches = stringToLookIn.match(new RegExp(unescapeBacktickString(pattern), "gmi"))
       return (matches || []).length
     }
