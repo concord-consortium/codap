@@ -473,6 +473,7 @@ export const DataSet = V2Model.named("DataSet").props({
   validateCases() {
     if (!self.isValidCases) {
       self.caseInfoMap.clear()
+      self.itemInfoMap.forEach(item => item.caseIds = [])
       self.collections.forEach((collection, index) => {
         // update the cases
         collection.updateCaseGroups()
