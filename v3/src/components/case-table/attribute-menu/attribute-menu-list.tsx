@@ -17,19 +17,23 @@ import { EditAttributePropertiesModal } from "./edit-attribute-properties-modal"
 import { EditFormulaModal } from "./edit-formula-modal"
 
 interface IProps {
-  column: TColumn
+  column?: TColumn
+  attrId?: string
   onRenameAttribute: () => void
   onModalOpen: (open: boolean) => void
 }
 
 const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
-    ({ column, onRenameAttribute, onModalOpen }, ref) => {
+    ({ column, onRenameAttribute, onModalOpen, attrId }, ref) => {
   const data = useDataSetContext()
   const caseMetadata = useCaseMetadata()
   // each use of useDisclosure() maintains its own state and callbacks so they can be used for independent dialogs
   const propertiesModal = useDisclosure()
   const formulaModal = useDisclosure()
-  const attributeId = column.key
+  const attributeId = column?.key || attrId
+
+  if (!attributeId) return null
+
   const attribute = data?.getAttribute(attributeId)
   // const attributeName = attribute?.name
   const collection = data?.getCollectionForAttribute(attributeId)

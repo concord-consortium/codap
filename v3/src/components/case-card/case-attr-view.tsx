@@ -4,9 +4,11 @@ import { IValueType } from "../../models/data/attribute"
 import CaseCellTextEditor from "./case-cell-editor"
 import { useCaseCardModel } from "./use-case-card-model"
 import { setCaseValuesWithCustomUndoRedo } from "../../models/data/data-set-undo"
+import { ICase } from "../../models/data/data-set-types"
+import { AttributeHeader } from "./case-attr-header"
 
 import "./card-view.scss"
-import { ICase, IGroupedCase } from "../../models/data/data-set-types"
+
 
 interface ICaseAttrViewProps {
   caseId: string
@@ -70,7 +72,9 @@ export const CaseAttrView = observer(function CaseAttrView ({caseId, attrId, nam
 
   return (
     <tr className="attr" data-testid="case-attr">
-      <td className="name" data-testid="case-attr-name">{name}{displayUnit}</td>
+      <td className="name" data-testid="case-attr-name">
+        <AttributeHeader attrId={attrId} attrName={name} />
+      </td>
       <td className="value" data-testid="case-attr-value" onClick={handleClick}>
         { isEditing ?
           <CaseCellTextEditor value={String(value)} onBlur={handleBlur}/> :
