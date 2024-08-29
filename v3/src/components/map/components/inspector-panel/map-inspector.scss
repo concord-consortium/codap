@@ -12,7 +12,10 @@
 .inspector-panel.map.data-display {
   .codap-inspector-palette {
     .map-base-control {
-      margin: 1px;
+      display: flex;
+      flex-direction: row;
+      margin: 10px;
+      align-items: center;
 
       .palette-checkbox{
         width: 80px;
@@ -60,7 +63,7 @@
     }
 
     .map-layer-controls {
-      padding: 3px;
+      margin: 10px;
     }
   }
 }
