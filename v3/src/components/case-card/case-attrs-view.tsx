@@ -24,7 +24,7 @@ export const CaseAttrsView = observer(function CaseAttrsView({caseItem, collecti
       <tbody>
         {collection?.attributes.map((attr, index: number) => {
             if (!attr) return null
-            return <CaseAttrView key={attr.name} name={attr.name} value={values[index]} unit={attr.units} />
+            return <CaseAttrView key={attr.id} name={attr.name} value={values[index]} unit={attr.units} />
           })
         }
       </tbody>

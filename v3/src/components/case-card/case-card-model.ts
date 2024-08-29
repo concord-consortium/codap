@@ -24,9 +24,9 @@ export const CaseCardModel = TileContentModel
     },
   }))
   .views(self => ({
-    caseLineage(caseId?: string) {
-      if (!caseId) return undefined
-      return self.data?.itemInfoMap.get(caseId)
+    caseLineage(itemId?: string) {
+      if (!itemId) return undefined
+      return self.data?.itemInfoMap.get(itemId)
     },
     groupChildCases(collection: ICollectionModel, parentCaseId: string) {
       const parentCaseInfo = self.data?.caseInfoMap.get(parentCaseId)

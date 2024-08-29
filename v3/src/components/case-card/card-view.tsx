@@ -11,9 +11,9 @@ export const CardView = observer(function CardView() {
   const data = cardModel?.data
   const collections = data?.collections
   const rootCollection = collections?.[0]
-  const selectedCases = data?.selection
-  const selectedCaseId = selectedCases && Array.from(selectedCases)[0]
-  const selectedCaseLineage = cardModel?.caseLineage(selectedCaseId)
+  const selectedItems = data?.selection
+  const selectedItemId = selectedItems && Array.from(selectedItems)[0]
+  const selectedItemLineage = cardModel?.caseLineage(selectedItemId)
 
   const handleSelectCases = (caseIds: string[]) => {
     data?.setSelectedCases(caseIds)
@@ -27,7 +27,7 @@ export const CardView = observer(function CardView() {
             cases={rootCollection.cases}
             level={0}
             onSelectCases={handleSelectCases}
-            displayedCaseLineage={selectedCaseLineage?.caseIds}
+            displayedCaseLineage={selectedItemLineage?.caseIds}
           />
         </CollectionContext.Provider>
       }
