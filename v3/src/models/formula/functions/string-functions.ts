@@ -238,7 +238,7 @@ export const stringFunctions = {
       const scope = getRootScope(currentScope)
       const functionName = "wordListMatches"
       const numOfReqArgs = stringFunctions.wordListMatches.numOfRequiredArguments
-      if (args.length !== numOfReqArgs) {
+      if (args.length < numOfReqArgs) {
         throw new Error(t("DG.Formula.FuncArgsErrorPlural.description", { vars: [ functionName, numOfReqArgs ] }))
       }
       [1, 2].forEach(i => {
@@ -270,12 +270,14 @@ export const stringFunctions = {
 
       let result = 0
       wordAttribute.strValues.forEach(word => {
-        const isRegEx = word.startsWith("/") && word.endsWith("/")
-        const pattern = isRegEx ? word.substring(1, word.length - 1) : `\\b${escapeStringRegexp(word)}\\b`
-        const flags = isRegEx ? "g" : "gi"
-        const regEx = new RegExp(pattern, flags)
-        const match = text.match(regEx)
-        result += wordRatingMap[word] * (match?.length ?? 0)
+        if (word) {
+          const isRegEx = word.startsWith("/") && word.endsWith("/")
+          const pattern = isRegEx ? word.substring(1, word.length - 1) : `\\b${escapeStringRegexp(word)}\\b`
+          const flags = isRegEx ? "g" : "gi"
+          const regEx = new RegExp(pattern, flags)
+          const match = text.match(regEx)
+          result += wordRatingMap[word] * (match?.length ?? 0)
+        }
       })
 
       return result

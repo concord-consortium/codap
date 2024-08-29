@@ -1,3 +1,4 @@
+import { evaluate } from "../test-utils/formula-test-utils"
 import { stringFunctions } from "./string-functions"
 
 describe("stringFunctions", () => {
@@ -157,6 +158,21 @@ describe("stringFunctions", () => {
   describe("trim", () => {
     it("returns the text with leading, trailing and >2 spaces whitespace removed", () => {
       expect(stringFunctions.trim.evaluate("  Hello  World  ")).toBe("Hello World")
+    })
+  })
+
+  describe("wordListMatches", () => {
+    it("counts words without ratings", () => {
+      // The 0th item in the Sleep attribute is "3".
+      // There are 10 copies of "3" in the Age attribute in the Cats dataset.
+      expect(evaluate("wordListMatches(Sleep, 'Cats', 'Age')", 0)).toBe(10)
+      expect(evaluate("wordListMatches(Sleep, 'Cats', 'Age')", 2)).toBe(0)
+    })
+
+    it("counts words with ratings", () => {
+      // The final "3" in Age has a Weight of 11, and all other weights are ignored.
+      expect(evaluate("wordListMatches(Sleep, 'Cats', 'Age', 'Weight')", 0)).toBe(110)
+      expect(evaluate("wordListMatches(Sleep, 'Cats', 'Age', 'Weight')", 2)).toBe(0)
     })
   })
 
