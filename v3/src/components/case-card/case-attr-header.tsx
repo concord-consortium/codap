@@ -7,9 +7,9 @@ import { IUseDraggableAttribute, useDraggableAttribute } from "../../hooks/use-d
 import { useInstanceIdContext } from "../../hooks/use-instance-id-context"
 import { updateAttributesNotification } from "../../models/data/data-set-notifications"
 import { uniqueName } from "../../utilities/js-utils"
-import { AttributeMenuList } from "../case-table/attribute-menu/attribute-menu-list"
+import { AttributeMenuList } from "../case-table-card-common/attribute-menu/attribute-menu-list"
 import { CaseTablePortal } from "../case-table/case-table-portal"
-import { kIndexColumnKey, TRenderHeaderCellProps } from "../case-table/case-table-types"
+import { kIndexColumnKey } from "../case-table/case-table-types"
 import { ColumnHeaderDivider } from "../case-table/column-header-divider"
 import { useRdgCellFocus } from "../case-table/use-rdg-cell-focus"
 import { useCollectionTableModel } from "../case-table/use-collection-table-model"
@@ -72,7 +72,7 @@ export const AttributeHeader = observer(function AttributeHeader({ attrId, attrN
   useEffect(() => {
     if (collectionTableModel?.attrIdToEdit === attrId) {
       setEditingAttrId(attrId)
-      setEditingAttrName(attrName as string)
+      setEditingAttrName(attrName)
       updateAriaSelectedAttribute("true")
     } else {
       setEditingAttrId("")
@@ -130,7 +130,7 @@ export const AttributeHeader = observer(function AttributeHeader({ attrId, attrN
   }
   const handleRenameAttribute = () => {
     setEditingAttrId(attrId)
-    setEditingAttrName(attrName as string)
+    setEditingAttrName(attrName)
   }
 
   const handleModalOpen = (open: boolean) => {
@@ -203,12 +203,12 @@ export const AttributeHeader = observer(function AttributeHeader({ attrId, attrN
                     </>
                 }
               <CaseTablePortal>
-                <AttributeMenuList attrId={attrId} onRenameAttribute={handleRenameAttribute}
+                <AttributeMenuList attributeId={attrId} onRenameAttribute={handleRenameAttribute}
                   onModalOpen={handleModalOpen}
                 />
               </CaseTablePortal>
-              {/* {attrId &&
-                <ColumnHeaderDivider key={attrId} columnKey={attrId} cellElt={cellElt}/>} */}
+              {attrId &&
+                <ColumnHeaderDivider key={attrId} columnKey={attrId} cellElt={cellElt}/>}
             </div>
           </Tooltip>
         )
