@@ -24,6 +24,9 @@ context("Text tile", () => {
 
     // Redo title change
     toolbar.getRedoTool().click()
+    cy.wait(300) // this test has become flaky.
+    // Added a small wait here to see if this fixes
+    // the disabled redo button issue
     c.getComponentTitle(kTextTileTestId).should("have.text", newTextTileName)
   })
   it("close text tile from close button with undo/redo", () => {
