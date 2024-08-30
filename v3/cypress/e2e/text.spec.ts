@@ -23,9 +23,7 @@ context("Text tile", () => {
     c.getComponentTitle(kTextTileTestId).should("have.text", textDefaultTitle)
 
     // Redo title change
-    cy.wait(300) // this test has become flaky.
-    // Added a small wait here to see if this fixes
-    // the disabled redo button issue
+    toolbar.getRedoTool().should("be.enabled")
     toolbar.getRedoTool().click()
     c.getComponentTitle(kTextTileTestId).should("have.text", newTextTileName)
   })
