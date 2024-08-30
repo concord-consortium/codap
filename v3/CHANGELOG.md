@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 3.0.0-pre.1831 - August 24, 2024
+## Version 3.0.0-pre.1831 - August 30, 2024
 
 ### ✨ Features & Improvements:
 - **PT-188104615:** Support less-restrictive date validation
