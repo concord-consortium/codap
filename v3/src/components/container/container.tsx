@@ -10,6 +10,7 @@ import { getSharedModelManager } from "../../models/tiles/tile-environment"
 import { urlParams } from "../../utilities/url-params"
 import { FreeTileRowComponent } from "./free-tile-row"
 import { MosaicTileRowComponent } from "./mosaic-tile-row"
+import { logMessageWithReplacement } from "../../lib/log-message"
 
 import "./container.scss"
 
@@ -31,7 +32,7 @@ export const Container: React.FC = () => {
       })
       tileId && documentContent?.deleteTile(tileId)
     }, {
-      log: `${tile?.content.type} is closed`,
+      log: logMessageWithReplacement("%@ is closed", {tileType: tile?.content.type}),
       undoStringKey: "DG.Undo.component.close",
       redoStringKey: "DG.Redo.component.close"
     })
