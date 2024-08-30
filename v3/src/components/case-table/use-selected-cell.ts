@@ -24,7 +24,6 @@ export function useSelectedCell(gridRef: React.RefObject<DataGridHandle | null>,
                               ? { columnId, rowId, rowIdx: args.rowIdx }
                               : undefined
     }
-    console.log(`!!! selectedCell.current`, selectedCell.current)
   }, [])
 
   const navigateToNextRow = useCallback((back = false) => {
@@ -40,33 +39,34 @@ export function useSelectedCell(gridRef: React.RefObject<DataGridHandle | null>,
     }
   }, [collectionTableModel, columns, gridRef])
 
-  // const refreshSelectedCell = useCallback((edit = true) => {})
+  const refreshSelectedCell = useCallback((edit = true, scroll = true) => {
+    if (selectedCell.current) {
+      const { columnId, rowId } = selectedCell.current
+      const idx = columns.findIndex(column => column.key === columnId)
+      const rowIdx = rows?.findIndex(row => row.__id__ === rowId)
+      if (rowIdx != null) {
+        const position = { idx, rowIdx }
+        blockUpdateSelectedCell.current = true
+        gridRef.current?.selectCell(position, edit)
+        selectedCell.current = { ...selectedCell.current, rowIdx }   
+        blockUpdateSelectedCell.current = false
+        if (scroll) setTimeout(() => collectionTableModel?.scrollRowIntoView(rowIdx), 1)
+      }
+    }
+  }, [collectionTableModel, columns, rows])
 
   useEffect(() => {
     return reaction(
       () => uiState.requestBatchesProcessed,
       requestBatchesProcessed => {
-        console.log(`... requestBatchesProcessed`, requestBatchesProcessed)
         setTimeout(() => {
-          if (selectedCell.current) {
-            console.log(`--- selectedCell.current`, selectedCell.current)
-            const { columnId, rowId } = selectedCell.current
-            const idx = columns.findIndex(column => column.key === columnId)
-            const rowIdx = rows?.findIndex(row => row.__id__ === rowId)
-            if (rowIdx != null) {
-              const position = { idx, rowIdx }
-              console.log(` -- position`, position)
-              blockUpdateSelectedCell.current = true
-              gridRef.current?.selectCell(position, true)
-              selectedCell.current = { ...selectedCell.current, rowIdx }   
-              blockUpdateSelectedCell.current = false
-              setTimeout(() => collectionTableModel?.scrollRowIntoView(rowIdx))
-            }
-          }
+          refreshSelectedCell(false, false)
+          // Refresh the cell again after a short wait to allow API requests to be processed
+          setTimeout(() => refreshSelectedCell(), 10)
         })
       }
     )
-  })
+  }, [refreshSelectedCell])
 
   return { selectedCell: selectedCell.current, handleSelectedCellChange, navigateToNextRow }
 }
