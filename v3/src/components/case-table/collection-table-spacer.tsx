@@ -17,9 +17,10 @@ import { CurvedSpline } from "./curved-spline"
 import { useCollectionTableModel } from "./use-collection-table-model"
 
 interface IProps {
+  selectedFillColor?: string
   onDrop?: (dataSet: IDataSet, attrId: string) => void
 }
-export const CollectionTableSpacer = observer(function CollectionTableSpacer({ onDrop }: IProps) {
+export const CollectionTableSpacer = observer(function CollectionTableSpacer({ selectedFillColor, onDrop }: IProps) {
   const data = useDataSetContext()
   const caseMetadata = useCaseMetadata()
   const parentCollectionId = useParentCollectionContext()
@@ -136,12 +137,14 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({ o
           <div className="spacer-mid">
             <svg className="spacer-mid-layer lower-layer">
               {indexRanges?.map(({ id: parentCaseId, firstChildIndex, lastChildIndex }, index) => {
+                const fillColor = data.isCaseSelected(parentCaseId) ? selectedFillColor : undefined
                 return <CurvedSpline key={`${parentCaseId}-${index}`}
                                       prevY1={parentTableModel.getTopOfRowModuloScroll(index)}
                                       y1={parentTableModel.getBottomOfRowModuloScroll(index)}
                                       prevY2={childTableModel.getTopOfRowModuloScroll(firstChildIndex)}
                                       y2={childTableModel.getBottomOfRowModuloScroll(lastChildIndex)}
                                       even={(index + 1) % 2 === 0}
+                                      fillColor={fillColor}
                         />
               })}
             </svg>

@@ -52,6 +52,9 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
   const caseTableModel = useCaseTableModel()
   const collectionTableModel = useCollectionTableModel()
   const gridRef = useRef<DataGridHandle>(null)
+  const selectedFillColor = gridRef.current?.element &&
+                              getComputedStyle(gridRef.current.element)
+                                .getPropertyValue("--rdg-row-selected-background-color") || undefined
   const visibleAttributes = useVisibleAttributes(collectionId)
   const { selectedRows, setSelectedRows, handleCellClick } = useSelectedRows({ gridRef, onScrollClosestRowIntoView })
   const forceUpdate = useForceUpdate()
@@ -197,7 +200,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
 
   return (
     <div className={`collection-table collection-${collectionId}`}>
-      <CollectionTableSpacer onDrop={handleNewCollectionDrop} />
+      <CollectionTableSpacer selectedFillColor={selectedFillColor} onDrop={handleNewCollectionDrop} />
       <div className="collection-table-and-title" ref={setNodeRef}>
         <CollectionTitle onAddNewAttribute={handleAddNewAttribute}/>
         <DataGrid ref={gridRef} className="rdg-light" data-testid="collection-table-grid" renderers={renderers}
