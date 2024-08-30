@@ -1,5 +1,50 @@
 # Changelog
 
+## Version 3.0.0-pre.1831 - August 24, 2024
+
+### ✨ Features & Improvements:
+- **PT-188104615:** Support less-restrictive date validation
+- **PT-188136819:** Relational operators support strings, dates
+- **PT-188136625:** Dates without hours/minutes should not display hours/minutes by default
+- **PT-181971361:** **Date axes** are similar to numeric axes, but different
+- **PT-181840552:** The hamburger menu item **Share…** functions as in V2
+- **PT-181840559:** The hamburger menu item **Rename…** opens dialog box for renaming document
+- **PT-188188119:** Support `url` url parameter
+- **PT-188131728:** There is a url parameter **di** that will load a data interactive plugin
+- **PT-188115683:** Remove Empty Row in Shared Table when Adding Data
+- **PT-187178550:** Optimize data synchronization for collaborative tables in high-volume scenarios
+- **PT-188117294:** Plugins menu contents should be in CODAP source rather than retrieved remotely
+- **PT-188124952:** Support morePlugins url parameter
+- **PT-188140449:** Add Data Interactive API Tester to plugins menus when DEBUG_PLUGINS is set
+- **PT-188140448:** Plugin API should support text component
+
+### 🐞 Bug Fixes:
+- **PT-187798725:** Graph turns into scatterplot when creating new collections in Mammals dataset
+- **PT-188130687:** MST warnings in Four Seals with date axis
+- **PT-188118418:** Story Builder Plugin Should Not Be Closable
+- **PT-188125035:** Fix selectCasesNotifications
+- **PT-188102629:** today()+24*3600 yields a number, not a date
+- **PT-188117637:** Undo of graph response to moving attribute from child to parent collection not working
+- **PT-188136564:** Formula `today()` should not be affected by time zone
+- **PT-188139181:** Insert Case via Index Column in Hierarchical Table
+- **PT-188166140:** Formula compilation adds extraneous actions to undo history
+- **PT-188103062:** Bullets and numbered lists don't work in the **Text** component
+- **PT-188056675:** Collaborative: Multiple Users
+- **PT-188104620:** Share document sometimes fails to show share url
+- **PT-187936148:** Inspector menu palette left margin consistency
+- **PT-188144634:** Bar charts are broken
+- **PT-188109309:** Graph doesn't respond dynamically to change in extent of date axis
+- **PT-188188327:** Date axis not restored properly
+- **PT-188104017:** Tab In Input Row Adds Two Items
+- **PT-188104291:** Return Table to Normal after Sharing
+- **PT-188109499:** Date axis grid lines missing for scatterplot
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  171274 bytes |                           -0.07% |
+|  index.js | 5879153 bytes |                            7.67% |
+
 ## Version 3.0.0-pre.1782 - August 12, 2024
 
 ### ✨ Features & Improvements:
@@ -25,7 +70,7 @@
 |      File |          Size | % Increase from Previous Release |
 |-----------|---------------|----------------------------------|
 |  main.css |  179710 bytes |                            2.33% |
-|  index.js | 5879153 bytes |                            7.67% |
+|  index.js | 5932034 bytes |                            0.90% |
 
 ## Version 3.0.0-pre.1762 - July 24, 2024
 
