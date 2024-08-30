@@ -14,13 +14,16 @@ interface ISelectedCell {
 export function useSelectedCell(gridRef: React.RefObject<DataGridHandle | null>, columns: TColumn[], rows?: TRow[]) {
   const collectionTableModel = useCollectionTableModel()
   const selectedCell = useRef<Maybe<ISelectedCell>>()
+  const blockUpdateSelectedCell = useRef(false)
 
   const handleSelectedCellChange = useCallback((args: TCellSelectArgs) => {
     const columnId = args.column?.key
     const rowId = args.row?.__id__
-    selectedCell.current = columnId && rowId
-                            ? { columnId, rowId, rowIdx: args.rowIdx }
-                            : undefined
+    if (!blockUpdateSelectedCell.current) {
+      selectedCell.current = columnId && rowId
+                              ? { columnId, rowId, rowIdx: args.rowIdx }
+                              : undefined
+    }
     console.log(`!!! selectedCell.current`, selectedCell.current)
   }, [])
 
@@ -37,6 +40,8 @@ export function useSelectedCell(gridRef: React.RefObject<DataGridHandle | null>,
     }
   }, [collectionTableModel, columns, gridRef])
 
+  // const refreshSelectedCell = useCallback((edit = true) => {})
+
   useEffect(() => {
     return reaction(
       () => uiState.requestBatchesProcessed,
@@ -51,8 +56,11 @@ export function useSelectedCell(gridRef: React.RefObject<DataGridHandle | null>,
             if (rowIdx != null) {
               const position = { idx, rowIdx }
               console.log(` -- position`, position)
-              collectionTableModel?.scrollRowIntoView(rowIdx)
-              gridRef.current?.selectCell(position, true)        
+              blockUpdateSelectedCell.current = true
+              gridRef.current?.selectCell(position, true)
+              selectedCell.current = { ...selectedCell.current, rowIdx }   
+              blockUpdateSelectedCell.current = false
+              setTimeout(() => collectionTableModel?.scrollRowIntoView(rowIdx))
             }
           }
         })
