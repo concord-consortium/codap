@@ -1,5 +1,5 @@
 import { BaseType, drag, select, Selection } from "d3"
-import { reaction } from "mobx"
+import { comparer, reaction } from "mobx"
 import { mstAutorun } from "../../../utilities/mst-autorun"
 import { mstReaction } from "../../../utilities/mst-reaction"
 import { useCallback, useEffect, useMemo, useRef } from "react"
@@ -324,9 +324,9 @@ export const useSubAxis = ({
   useEffect(function respondToHiddenCasesChange() {
     if (dataConfig) {
       return mstReaction(
-        () => dataConfig.hiddenCases.length,
+        () => [dataConfig.dataset?.itemIds.length, dataConfig.hiddenCases.length],
         () => updateDomainAndRenderSubAxis(),
-        {name: "useSubAxis.respondToHiddenCasesChange"}, dataConfig
+        {name: "useSubAxis.respondToHiddenCasesChange", equals: comparer.structural}, dataConfig
       )
     }
   }, [dataConfig, updateDomainAndRenderSubAxis])

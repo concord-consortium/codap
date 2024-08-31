@@ -19,6 +19,7 @@ export interface ICollectionLabels extends Instance<typeof CollectionLabels> {}
 // interface to data provided by DataSet
 export interface IItemData {
   itemIds: () => string[]
+  isHidden: (itemId: string) => boolean
   getValue: (itemId: string, attrId: string) => string
   addItemInfo: (itemId: string, index: number, caseId: string) => void
   invalidate: () => void
@@ -27,6 +28,7 @@ export interface IItemData {
 // used for initialization and tests
 export const defaultItemData: IItemData = {
   itemIds: () => [],
+  isHidden: () => false,
   getValue: () => "",
   addItemInfo: () => null,
   invalidate: () => null
@@ -164,6 +166,7 @@ export const CollectionModel = V2Model
   updateCaseGroups() {
     self.clearCases()
     self.itemData.itemIds().forEach((itemId, itemIndex) => {
+      if (self.itemData.isHidden(itemId)) return
       const groupKey = self.groupKey(itemId)
       const caseId = self.groupKeyCaseId(groupKey)
       if (groupKey && caseId) {

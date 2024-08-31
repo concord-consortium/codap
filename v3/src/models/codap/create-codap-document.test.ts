@@ -88,7 +88,8 @@ describe("createCodapDocument", () => {
                   values: ["1", "2", "3"]
                 }
               },
-              itemIds: ["test-9", "test-10", "test-11"],
+              _itemIds: ["test-9", "test-10", "test-11"],
+              hiddenItems: [],
               collections: [{
                 id: "test-7",
                 name: "Cases",

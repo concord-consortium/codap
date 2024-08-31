@@ -95,7 +95,9 @@ describe("CollectionModel", () => {
     expect(c1.caseGroups).toEqual([])
 
     expect(defaultItemData.itemIds()).toEqual([])
+    expect(defaultItemData.isHidden("foo")).toEqual(false)
     expect(defaultItemData.getValue("foo", "bar")).toBe("")
+    expect(defaultItemData.addItemInfo("foo", 0, "bar")).toBeNull()
 
     jestSpyConsole("warn", spy => {
       c1.addChildCase("foo", "bar")
@@ -241,6 +243,7 @@ describe("CollectionModel", () => {
 
     const itemData: IItemData = {
       itemIds: () => ["0", "1", "2", "3", "4", "5"].map(id => `i${id}`),
+      isHidden: () => false,
       getValue: (itemId: string, attrId: string) => {
         const baseId = itemId.substring(1)
         const index = +baseId

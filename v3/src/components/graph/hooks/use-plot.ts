@@ -1,5 +1,5 @@
 import {useEffect} from "react"
-import {reaction} from "mobx"
+import {comparer, reaction} from "mobx"
 import {isAlive} from "mobx-state-tree"
 import {onAnyAction} from "../../../utilities/mst-utils"
 import {mstAutorun} from "../../../utilities/mst-autorun"
@@ -128,7 +128,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
 
   useEffect(function respondToHiddenCasesChange() {
     const disposer = mstReaction(
-      () => dataConfiguration?.hiddenCases.length,
+      () => [dataConfiguration?.dataset?.itemIds.length, dataConfiguration?.hiddenCases.length],
       () => {
         if (!pixiPoints) {
           return
@@ -143,7 +143,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
           startAnimation, instanceId
         })
         callRefreshPointPositions(false)
-      }, {name: "respondToHiddenCasesChange"}, dataConfiguration
+      }, {name: "respondToHiddenCasesChange", equals: comparer.structural}, dataConfiguration
     )
     return () => disposer()
   }, [callRefreshPointPositions, dataConfiguration, graphModel, instanceId, pixiPoints, startAnimation])
