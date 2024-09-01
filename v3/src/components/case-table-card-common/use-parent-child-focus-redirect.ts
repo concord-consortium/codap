@@ -1,6 +1,6 @@
 import { useEffect } from "react"
 
-export function useRdgCellFocus(cell: HTMLDivElement | null, button: HTMLButtonElement | null) {
+export function useParentChildFocusRedirect(parent: HTMLElement | null, child: HTMLElement | null) {
   useEffect(() => {
     // During cell navigation, RDG sets the focus to the .rdg-cell. For keyboard invocation
     // of the index column menu, however, the focus needs to be on the Chakra MenuButton.
@@ -9,13 +9,13 @@ export function useRdgCellFocus(cell: HTMLDivElement | null, button: HTMLButtonE
     const handleFocus = (e: FocusEvent) => {
       // if the parent was focused, focus the child
       if (e.target === e.currentTarget) {
-        button?.focus()
+        child?.focus()
       }
     }
 
-    cell?.addEventListener("focusin", handleFocus)
+    parent?.addEventListener("focusin", handleFocus)
     return () => {
-      cell?.removeEventListener("focusin", handleFocus)
+      parent?.removeEventListener("focusin", handleFocus)
     }
-  }, [button, cell])
+  }, [child, parent])
 }

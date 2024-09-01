@@ -24,6 +24,7 @@ import { logStringifiedObjectMessage } from "../../lib/log-message"
 import { IAttribute } from "../../models/data/attribute"
 import { IDataSet } from "../../models/data/data-set"
 import { createAttributesNotification } from "../../models/data/data-set-notifications"
+import { uiState } from "../../models/ui-state"
 import { uniqueName } from "../../utilities/js-utils"
 import { mstReaction } from "../../utilities/mst-reaction"
 import { preventCollectionReorg } from "../../utilities/plugin-utils"
@@ -138,13 +139,6 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
       caseTableModel)
   }, [caseTableModel, columns, forceUpdate])
 
-  useEffect(() => {
-    if (collectionTableModel?.attrIdToEdit !== undefined) {
-      const newAttrIdx = columns.findIndex(column => column.key === collectionTableModel.attrIdToEdit)
-      gridRef.current?.selectCell({idx: columns.length, rowIdx: newAttrIdx})
-    }
-  }, [collectionTableModel?.attrIdToEdit, columns])
-
   // respond to column width changes from RDG
   const handleColumnResize = useCallback(
     function handleColumnResize(idx: number, width: number, isComplete?: boolean) {
@@ -169,7 +163,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
       )
       attribute = data.addAttribute({ name: newAttrName }, { collection: collectionId })
       if (attribute) {
-        collectionTableModel?.setAttrIdToEdit(attribute.id)
+        uiState.setAttrIdToEdit(attribute.id)
       }
     }, {
       notify: () => createAttributesNotification(attribute ? [attribute] : [], data),
