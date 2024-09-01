@@ -12,6 +12,8 @@ export class UIState {
   private focusTileId = ""
   @observable
   private hoverTileId = ""
+  // attribute id of the cell being edited
+  @observable attrIdToEdit: Maybe<string>
   // rulerState is used by graph inspector to manage the visibility univariate measure groups
   @observable
   rulerState: RulerState = {
@@ -49,6 +51,10 @@ export class UIState {
   @action
   setHoveredTile(tileId = "") {
     this.hoverTileId = tileId
+  }
+
+  @action setAttrIdToEdit(attrId?: string) {
+    this.attrIdToEdit = attrId
   }
 
   getRulerStateVisibility(key: RulerStateKey) {

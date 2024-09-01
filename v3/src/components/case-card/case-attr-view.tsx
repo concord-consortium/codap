@@ -6,8 +6,8 @@ import CaseCellTextEditor from "./case-cell-editor"
 import { useCaseCardModel } from "./use-case-card-model"
 import { setCaseValuesWithCustomUndoRedo } from "../../models/data/data-set-undo"
 import { ICase } from "../../models/data/data-set-types"
-import { AttributeHeader } from "./case-attr-header"
 import { isFiniteNumber } from "../../utilities/math-utils"
+import { AttributeHeader } from "../case-table-card-common/attribute-header"
 
 import "./card-view.scss"
 
@@ -74,7 +74,7 @@ export const CaseAttrView = observer(function CaseAttrView ({caseId, attrId, nam
   return (
     <tr className="attr" data-testid="case-attr">
       <td className="name" data-testid="case-attr-name">
-        <AttributeHeader attrId={attrId} attrName={name} />
+        <AttributeHeader attributeId={attrId} />
       </td>
       <td
         className={clsx("value", {numeric: isFiniteNumber(Number(value))})}

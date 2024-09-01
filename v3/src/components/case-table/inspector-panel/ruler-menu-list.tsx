@@ -4,14 +4,13 @@ import { useDataSetContext } from "../../../hooks/use-data-set-context"
 import { logStringifiedObjectMessage } from "../../../lib/log-message"
 import { IAttribute } from "../../../models/data/attribute"
 import { createAttributesNotification } from "../../../models/data/data-set-notifications"
+import { uiState } from "../../../models/ui-state"
 import { uniqueName } from "../../../utilities/js-utils"
 import { preventCollectionReorg } from "../../../utilities/plugin-utils"
 import { t } from "../../../utilities/translation/translate"
-import { useCaseTableModel } from "../use-case-table-model"
 
 export const RulerMenuList = () => {
   const data = useDataSetContext()
-  const tableModel = useCaseTableModel()
   const toast = useToast()
   const handleMenuItemClick = (menuItem: string) => {
     toast({
@@ -25,14 +24,13 @@ export const RulerMenuList = () => {
 
   const handleAddNewAttribute = (collectionId: string) => () => {
     let attribute: IAttribute | undefined
-    const collectionTableModel = tableModel?.getCollectionTableModel(collectionId)
     data?.applyModelChange(() => {
       const newAttrName = uniqueName("newAttr",
         (aName: string) => !data.attributes.find(attr => aName === attr.name)
       )
       attribute = data.addAttribute({name: newAttrName}, { collection: collectionId })
       if (attribute) {
-        collectionTableModel?.setAttrIdToEdit(attribute.id)
+        uiState.setAttrIdToEdit(attribute.id)
       }
     }, {
       notify: () => createAttributesNotification(attribute ? [attribute] : [], data),

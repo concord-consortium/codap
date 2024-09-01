@@ -12,7 +12,7 @@ import { PortalWithEventBlock } from "../portal-with-event-block"
   to implement a case table-specific portal which blocks the onPointerDown event. If necessary, other events
   can be added to the list of blocked events as the need arises.
  */
-export const CaseTablePortal = ({ children }: { children: ReactNode }) => {
+export const CaseTilePortal = ({ children }: { children: ReactNode }) => {
   return (
     <PortalWithEventBlock blockedEvents={["onPointerDown"]}>
       {children}
