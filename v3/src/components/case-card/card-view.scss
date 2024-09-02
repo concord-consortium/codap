@@ -1,6 +1,8 @@
 .cardView {
   background: white;
+  display: inline-block;
   font-size: 11px;
+  width: 100%;
 
   .fadeIn {
     opacity: 0;
@@ -101,11 +103,13 @@
     }
 
     .caseAttrs {
-      font-weight: 600;
-      text-align: right;
-      margin: 8px;
       border-collapse: collapse;
       border-spacing: 8px;
+      font-weight: 600;
+      margin: 5px;
+      table-layout: auto;
+      text-align: right;
+      width: calc(100% - 10px);
 
       .attr {
         .name {
@@ -120,15 +124,20 @@
         }
 
         .value {
-          padding: 4px;
           border: solid 1px #B2B2B2;
           background-color: #fff;
+          cursor: text;
           font-weight: 500;
+          padding: 4px;
           text-align: left;
           width: 100%;
 
           &.numeric {
             text-align: right;
+          }
+
+          &.editing {
+            padding: 0;
           }
 
           // add space to guarantee cell height if value is empty string

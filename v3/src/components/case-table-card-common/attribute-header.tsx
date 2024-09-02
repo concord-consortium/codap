@@ -185,7 +185,8 @@ export const AttributeHeader = observer(function ColumnHeader({
             <div className="codap-column-header-content" ref={setContentRef} {...attributes} {...listeners}
             data-testid="codap-column-header-content">
             { editingAttrId
-                  ? <Input ref={inputRef} value={editingAttrName} data-testid="column-name-input" size="xs"
+                  ? <Input ref={inputRef} value={editingAttrName} data-testid="column-name-input"
+                            className="column-name-input" size="xs"
                             autoFocus={true} variant="unstyled" onClick={handleInputClick}
                             onChange={event => setEditingAttrName(event.target.value)}
                             onKeyDown={handleInputKeyDown} onBlur={handleInputBlur} onFocus={handleFocus}
