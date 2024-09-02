@@ -5,6 +5,7 @@ import { ICollectionModel } from "../../models/data/collection"
 import { CaseAttrsView } from "./case-attrs-view"
 import { useCaseCardModel } from "./use-case-card-model"
 import { CollectionContext, ParentCollectionContext, useCollectionContext } from "../../hooks/use-collection-context"
+import { CollectionTitle } from "../case-table-card-common/collection-title"
 
 import Arrow from "../../assets/icons/arrow.svg"
 
@@ -69,7 +70,9 @@ export const CaseView = observer(function CaseView(props: ICaseViewProps) {
   return (
     <div className={`case fadeIn ${colorCycleClass(level)}`} data-testid="case-view">
       <div className="case-view-header" data-testid="case-view-header">
-        <div className="case-view-title" data-testid="case-view-title">{collection?.name}</div>
+        <div className="case-view-title" data-testid="case-view-title">
+          <CollectionTitle showCount={false} />
+        </div>
         <div className="controls">
           <button
             className="arrow previous"
