@@ -11,7 +11,6 @@ import { AttributeHeader } from "../case-table-card-common/attribute-header"
 
 import "./card-view.scss"
 
-
 interface ICaseAttrViewProps {
   caseId: string
   attrId: string
@@ -77,7 +76,7 @@ export const CaseAttrView = observer(function CaseAttrView ({caseId, attrId, nam
         <AttributeHeader attributeId={attrId} />
       </td>
       <td
-        className={clsx("value", {numeric: isFiniteNumber(Number(value))})}
+        className={clsx("value", {editing: isEditing, numeric: isFiniteNumber(Number(value))})}
         data-testid="case-attr-value"
         onClick={handleClick}
       >

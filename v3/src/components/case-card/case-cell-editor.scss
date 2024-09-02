@@ -1,3 +1,10 @@
+input.column-name-input,
+input.collection-title-input,
 input.case-cell-text-editor {
+  border-radius: 0;
+  display: inline-block;
+  min-width: 50px;
+  outline: solid 2px #3297fd;
+  padding: 4px;
   width: 100%;
 }
