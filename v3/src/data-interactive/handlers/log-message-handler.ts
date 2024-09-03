@@ -1,4 +1,4 @@
-import { LoggableObject, logMessageWithReplacement } from "../../lib/log-message"
+import { LoggableObject, LoggableValue, logMessageWithReplacement } from "../../lib/log-message"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIHandler, DILogMessage, DIResources, DIValues,  } from "../data-interactive-types"
 
@@ -11,11 +11,11 @@ export const diLogMessageHandler: DIHandler = {
       ? Array.isArray(replaceArgs) ? replaceArgs : [replaceArgs]
       : undefined
     const args: LoggableObject = {}
-    argsArray?.forEach((value: any, index: number) => {
+    argsArray?.forEach((value: LoggableValue, index: number) => {
       args[index.toString()] = value
     })
     webviewModel?.applyModelChange(()=>{},
-      { log: logMessageWithReplacement(message, args)}
+      { log: logMessageWithReplacement(message, args) }
     )
     return {success: true}
   }
