@@ -24,6 +24,10 @@ export class CollectionTableModel {
   scrollStep = 0
   // The index of the input row. -1 puts the input row at the bottom.
   @observable inputRowIndex = -1
+  // the last key the user has entered into a table cell
+  // This is used to determine whether the selected cell should be in editing mode when refreshing it after
+  // allowing delayed API requests to potentially modify the table.
+  @observable lastKey = ""
 
   // rowCache contains all rows, whether collapsed or not; key is case id
   // RDG memoizes on the row, so we need to pass a new "case" object to trigger a render.
@@ -38,6 +42,10 @@ export class CollectionTableModel {
     this.collectionId = collectionId
 
     makeObservable(this)
+  }
+
+  get inEditMode() {
+    return ["Enter", "Tab"].includes(this.lastKey)
   }
 
   get rowHeaderHeight() {
@@ -186,6 +194,10 @@ export class CollectionTableModel {
     const isSmoothScroll = (isForward && wasForward && this.scrollTop <= this.targetScrollTop) ||
                           (isBackward && wasBackward && this.scrollTop >= this.targetScrollTop)
     return !isSmoothScroll
+  }
+
+  @action setLastKey(key = "") {
+    this.lastKey = key
   }
 
   @action resetRowCache(rowCache: Map<string, TRow>) {

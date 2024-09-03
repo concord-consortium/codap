@@ -13,6 +13,7 @@ import { parseColor, parseColorToHex } from "../../utilities/color-utils"
 import { t } from "../../utilities/translation/translate"
 import { TRenderEditCellProps } from "./case-table-types"
 import { ColorPicker } from "./color-picker"
+import { useCollectionTableModel } from "./use-collection-table-model"
 
 /*
   ReactDataGrid uses Linaria CSS-in-JS for its internal styling. As with CSS Modules and other
@@ -60,6 +61,7 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
   // show the color swatch if the initial value appears to be a color (no change mid-edit)
   const showColorSwatch = useRef(!!hexColor || attribute?.userType === "color")
   const { setPendingLogMessage } = useLoggingContext()
+  const collectionTableModel = useCollectionTableModel()
 
   useEffect(() => {
     selectAllCases(data, false)
@@ -101,7 +103,7 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
     updateValue(event.target.value)
   }
 
-  const handleKeyDown: KeyboardEventHandler = event => uiState.setLastTableKey(event.key)
+  const handleKeyDown: KeyboardEventHandler = event => collectionTableModel?.setLastKey(event.key)
 
   const swatchStyle: React.CSSProperties | undefined = showColorSwatch.current ? { background: color } : undefined
   const inputElt = <InputElt

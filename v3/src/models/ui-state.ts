@@ -23,11 +23,6 @@ export class UIState {
 
   // Values used by the Collaborative plugin to ensure a shared table does not change while a user is editing it
 
-  // the last key the user has entered into a table cell
-  // This is used to determine whether the selected cell should be in editing mode when refreshing it after
-  // allowing delayed API requests to potentially modify the table.
-  @observable
-  private _lastTableKey = ""
   // true if the user is currently editing a table
   // This blocks the API request handler, preventing the table from changing out from under the user.
   @observable
@@ -47,14 +42,6 @@ export class UIState {
 
   get hoveredTile() {
     return this.hoverTileId
-  }
-
-  get lastTableKey() {
-    return this._lastTableKey
-  }
-
-  get tableInEditMode() {
-    return ["Enter", "Tab"].includes(this.lastTableKey)
   }
 
   get editingTable() {
@@ -81,11 +68,6 @@ export class UIState {
   @action
   setHoveredTile(tileId = "") {
     this.hoverTileId = tileId
-  }
-
-  @action
-  setLastTableKey(key = "") {
-    this._lastTableKey = key
   }
 
   @action
