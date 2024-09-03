@@ -2,7 +2,7 @@ import {
   Button, ButtonGroup, Flex, forwardRef, Popover, PopoverAnchor, PopoverArrow, PopoverBody,
   PopoverContent, PopoverFooter, PopoverTrigger, Portal, Spacer, useDisclosure, useMergeRefs
 } from "@chakra-ui/react"
-import React, { ChangeEvent, useCallback, useEffect, useRef, useState } from "react"
+import React, { ChangeEvent, KeyboardEventHandler, useCallback, useEffect, useRef, useState } from "react"
 import { textEditorClassname } from "react-data-grid"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useLoggingContext } from "../../hooks/use-log-context"
@@ -101,10 +101,13 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
     updateValue(event.target.value)
   }
 
+  const handleKeyDown: KeyboardEventHandler = event => uiState.setLastTableKey(event.key)
+
   const swatchStyle: React.CSSProperties | undefined = showColorSwatch.current ? { background: color } : undefined
   const inputElt = <InputElt
                     value={inputValue}
                     onChange={handleInputColorChange}
+                    onKeyDown={handleKeyDown}
                   />
 
   return swatchStyle

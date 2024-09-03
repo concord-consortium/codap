@@ -12,12 +12,6 @@ export class UIState {
   private focusTileId = ""
   @observable
   private hoverTileId = ""
-  // true if the user is currently editing a table
-  @observable
-  private _editingTable = false
-  // the number of request batches that have been processed
-  @observable
-  private _requestBatchesProcessed = 0
   // rulerState is used by graph inspector to manage the visibility univariate measure groups
   @observable
   rulerState: RulerState = {
@@ -26,6 +20,22 @@ export class UIState {
     boxPlotAndNormalCurve: false,
     otherValues: false
   }
+
+  // Values used by the Collaborative plugin to ensure a shared table does not change while a user is editing it
+
+  // the last key the user has entered into a table cell
+  // This is used to determine whether the selected cell should be in editing mode when refreshing it after
+  // allowing delayed API requests to potentially modify the table.
+  @observable
+  private _lastTableKey = ""
+  // true if the user is currently editing a table
+  // This blocks the API request handler, preventing the table from changing out from under the user.
+  @observable
+  private _editingTable = false
+  // the number of request batches that have been processed
+  // This triggers refreshes to the selected cell after delayed API requests have been processed.
+  @observable
+  private _requestBatchesProcessed = 0
 
   constructor() {
     makeObservable(this)
@@ -37,6 +47,14 @@ export class UIState {
 
   get hoveredTile() {
     return this.hoverTileId
+  }
+
+  get lastTableKey() {
+    return this._lastTableKey
+  }
+
+  get tableInEditMode() {
+    return ["Enter", "Tab"].includes(this.lastTableKey)
   }
 
   get editingTable() {
@@ -63,6 +81,11 @@ export class UIState {
   @action
   setHoveredTile(tileId = "") {
     this.hoverTileId = tileId
+  }
+
+  @action
+  setLastTableKey(key = "") {
+    this._lastTableKey = key
   }
 
   @action

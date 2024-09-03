@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react"
+import React, { KeyboardEventHandler, useEffect, useRef } from "react"
 import { textEditorClassname } from "react-data-grid"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useLoggingContext } from "../../hooks/use-log-context"
@@ -50,6 +50,8 @@ export default function CellTextEditor({ row, column, onRowChange, onClose }: TR
       {attrId: column.key, caseId: row.__id__, from: initialValueRef.current, to: valueRef.current }))
   }
 
+  const handleKeyDown: KeyboardEventHandler = (event) => uiState.setLastTableKey(event.key)
+
   return (
     <input
       data-testid="cell-text-editor"
@@ -57,6 +59,7 @@ export default function CellTextEditor({ row, column, onRowChange, onClose }: TR
       ref={autoFocusAndSelect}
       value={valueRef.current}
       onChange={(event) => handleChange(event.target.value)}
+      onKeyDown={handleKeyDown}
     />
   )
 }
