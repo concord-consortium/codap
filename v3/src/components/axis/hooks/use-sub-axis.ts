@@ -1,5 +1,5 @@
 import { BaseType, drag, select, Selection } from "d3"
-import { reaction } from "mobx"
+import { comparer, reaction } from "mobx"
 import { mstAutorun } from "../../../utilities/mst-autorun"
 import { mstReaction } from "../../../utilities/mst-reaction"
 import { useCallback, useEffect, useMemo, useRef } from "react"
@@ -340,7 +340,7 @@ export const useSubAxis = ({
       },
       () => {
         renderSubAxis()
-      }, {name: "useSubAxis [axisLength]"}
+      }, {name: "useSubAxis [axisLength]", equals: comparer.structural}
     )
     return () => disposer()
   }, [axisPlace, layout, renderSubAxis])
