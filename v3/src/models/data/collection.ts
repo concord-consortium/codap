@@ -460,7 +460,6 @@ export const CollectionModel = V2Model
       () => self.sortedDataAttributes.map(attr => attr.id),
       () => {
         if (self.child) {
-          self.groupKeyCaseIds.clear()
           self.itemData.invalidate()
         }
       }, { name: "CollectionModel.sortedDataAttributes reaction", equals: comparer.structural }

@@ -357,6 +357,20 @@ describe("CollectionModel", () => {
     expect(c1.caseIds).toEqual(originalParentCaseIds)
     expect(c2.caseIds).toEqual(originalChildCaseIds)
 
+    // removing attr1 from the parent collection invalidates grouping and changes parent case ids
+    c1.removeAttribute(a1.id)
+    expect(itemData.invalidate).toHaveBeenCalledTimes(2)
+    validateCases()
+    expect(c1.caseIds).not.toEqual(originalParentCaseIds)
+    expect([...c2.caseIds].sort()).toEqual([...originalChildCaseIds].sort())
+
+    // adding attr1 back to parent collection invalidates grouping and restores original parent case ids
+    c1.addAttribute(a1)
+    expect(itemData.invalidate).toHaveBeenCalledTimes(3)
+    validateCases()
+    expect(c1.caseIds).toEqual(originalParentCaseIds)
+    expect(c2.caseIds).toEqual(originalChildCaseIds)
+
     // changing all b's to c's doesn't change case ids
     attr1Values = ["a", "c"]
     validateCases()
