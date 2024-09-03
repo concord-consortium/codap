@@ -56,7 +56,15 @@ export const CollectionModel = V2Model
   // map from case id to group key (stringified attribute values)
   caseIdToGroupKeyMap: new Map<string, string>(),
   // map from group key (stringified attribute values) to CaseGroup
-  caseGroupMap: new Map<string, CaseInfo>()
+  caseGroupMap: new Map<string, CaseInfo>(),
+  // case ids in case table/render order
+  prevCaseIds: undefined as Maybe<string[]>,
+  // map from case id to case index
+  prevCaseIdToIndexMap: undefined as Maybe<Map<string, number>>,
+  // map from case id to group key (stringified attribute values)
+  prevCaseIdToGroupKeyMap: undefined as Maybe<Map<string, string>>,
+  // map from group key (stringified attribute values) to CaseGroup
+  prevCaseGroupMap: undefined as Maybe<Map<string, CaseInfo>>
 }))
 .actions(self => ({
   setParent(parent?: ICollectionModel) {
@@ -152,20 +160,98 @@ export const CollectionModel = V2Model
     return caseId
   }
 }))
+.views(self => ({
+  getChildItemsToken(caseId: string) {
+    const groupKey = self.caseIdToGroupKeyMap.get(caseId)
+    const caseGroup = groupKey ? self.caseGroupMap.get(groupKey) : undefined
+    const childItemIds = caseGroup?.childItemIds.length ? caseGroup.childItemIds : undefined
+    return childItemIds?.sort().join()
+  },
+  getPrevChildItemsToken(caseId: string) {
+    const groupKey = self.prevCaseIdToGroupKeyMap?.get(caseId)
+    const caseGroup = groupKey ? self.prevCaseGroupMap?.get(groupKey) : undefined
+    const childItemIds = caseGroup?.childItemIds.length ? caseGroup.childItemIds : undefined
+    return childItemIds?.sort().join()
+  }
+}))
 .actions(self => ({
   clearCases() {
+    if (!self.prevCaseIds) self.prevCaseIds = self.caseIds
     self.caseIds = []
-    self.caseIdToIndexMap.clear()
-    self.caseIdToGroupKeyMap.clear()
-    self.caseGroupMap.clear()
+
+    if (!self.prevCaseIdToIndexMap) self.prevCaseIdToIndexMap = self.caseIdToIndexMap
+    self.caseIdToIndexMap = new Map<string, number>()
+
+    if (!self.prevCaseIdToGroupKeyMap) self.prevCaseIdToGroupKeyMap = self.caseIdToGroupKeyMap
+    self.caseIdToGroupKeyMap = new Map<string, string>()
+
+    if (!self.prevCaseGroupMap) self.prevCaseGroupMap = self.caseGroupMap
+    self.caseGroupMap = new Map<string, CaseInfo>()
+  },
+  clearPrevCases() {
+    self.prevCaseIds = undefined
+    self.prevCaseIdToIndexMap = undefined
+    self.prevCaseIdToGroupKeyMap = undefined
+    self.prevCaseGroupMap = undefined
+  }
+}))
+.views(self => ({
+  // returns a map from newly assigned case id to previously used case id
+  getRemappedCaseIds(newCaseIds: string[]) {
+    // See if any case ids should be remapped. This occurs when the grouping values of a parent
+    // case change in unison, in which case we preserve the original case id rather than assigning
+    // a new one. Because the grouping values are used to generate the groupKey, and groupKeys are
+    // mapped to case ids, normally changing grouping values results in generation of a new id.
+    // To detect this, we identify case ids that were in use the last time we grouped cases as
+    // well as newly generated case ids corresponding to new groupKeys. If there are any recently
+    // unused case ids that correspond to the same set of items as any of the newly generated case
+    // ids, then we replace the new case id with the original case id in our internal structures.
+    // We have to do this in a second pass because we don't know the full set of child item ids
+    // associated with a particular case id or groupKey until the completion of the first pass.
+    // This assumes that from one grouping pass to the next, either items were added/removed
+    // (in which case sets of child item ids may have changed but case ids should be persistent)
+    // OR item values were changed (in which case case ids may have changed but sets of child item
+    // ids will not have changed). If both sets of changes occur in one pass then the remapping
+    // algorithm won't recognize the new cases as appropriate to inherit the previous case ids.
+    const remappedCaseIds = new Map<string, string>() // new case id => original case id
+    if (self.prevCaseIds) {
+      // identify recently released case ids no longer in use
+      const unusedCaseIds = self.prevCaseIds.filter(caseId => !self.caseIdToGroupKeyMap.get(caseId))
+      if (unusedCaseIds.length && newCaseIds.length) {
+        // determine the set of child item ids corresponding to each unused case id
+        const unusedChildItemTokens = new Map<string, string>()
+        unusedCaseIds.forEach(caseId => {
+          const childItemToken = self.getPrevChildItemsToken(caseId)
+          if (childItemToken) {
+            unusedChildItemTokens.set(childItemToken, caseId)
+          }
+        })
+        // see if any newly assigned case ids correspond to sets of items previously
+        // associated with one of the recently released case ids no longer in use
+        newCaseIds.forEach(newCaseId => {
+          const childItemToken = self.getChildItemsToken(newCaseId)
+          const unusedCaseIdForToken = childItemToken && unusedChildItemTokens.get(childItemToken)
+          if (unusedCaseIdForToken) {
+            // found an unused case id corresponding to the same child items as a new case id
+            remappedCaseIds.set(newCaseId, unusedCaseIdForToken)
+          }
+        })
+      }
+    }
+    return remappedCaseIds
   }
 }))
 .views(self => ({
   updateCaseGroups() {
     self.clearCases()
+
+    const newCaseIds: string[] = []
+    const parentChildIdPairs: Array<[string, string]> = []
     self.itemData.itemIds().forEach((itemId, itemIndex) => {
       const groupKey = self.groupKey(itemId)
+      const hadCaseIdForGroupKey = !!self.groupKeyCaseIds.get(groupKey)
       const caseId = self.groupKeyCaseId(groupKey)
+      if (caseId && !hadCaseIdForGroupKey) newCaseIds.push(caseId)
       if (groupKey && caseId) {
         let caseGroup = self.caseGroupMap.get(groupKey)
         if (!caseGroup) {
@@ -177,7 +263,8 @@ export const CollectionModel = V2Model
           const parentGroupKey = self.parentGroupKey(itemId)
           const parentCaseId = self.parent?.groupKeyCaseId(parentGroupKey)
           const parent = parentCaseId ? { [symParent]: parentCaseId } : {}
-          parentCaseId && self.parent?.addChildCase(parentCaseId, caseId)
+          // stash parent/child pairs so they can be remapped if necessary
+          parentGroupKey && parentCaseId && parentChildIdPairs.push([parentCaseId, caseId])
 
           caseGroup = {
             collectionId: self.id,
@@ -194,9 +281,54 @@ export const CollectionModel = V2Model
         else {
           caseGroup.childItemIds.push(itemId)
         }
+
         self.itemData.addItemInfo(itemId, itemIndex, caseId)
       }
     })
+
+    // Identify any new case ids that should be replaced with a prior case id
+    const remappedCaseIds = self.getRemappedCaseIds(newCaseIds)
+
+    // add child case ids to parent cases, remapping child case ids where appropriate
+    parentChildIdPairs.forEach(([parentCaseId, _childCaseId]) => {
+      const childCaseId = remappedCaseIds.get(_childCaseId) ?? _childCaseId
+      self.parent?.addChildCase(parentCaseId, childCaseId)
+    })
+
+    // remap case ids in our internal structures
+    if (remappedCaseIds.size) {
+      self.caseIds.forEach((caseId, i) => {
+        const remappedCaseId = remappedCaseIds.get(caseId)
+        if (remappedCaseId) {
+          self.caseIds[i] = remappedCaseId
+        }
+      })
+    }
+    Array.from(remappedCaseIds.entries()).forEach(([newCaseId, origCaseId]) => {
+      // update index map
+      const caseIndex = self.caseIdToIndexMap.get(newCaseId)
+      if (caseIndex != null) {
+        self.caseIdToIndexMap.delete(newCaseId)
+        self.caseIdToIndexMap.set(origCaseId, caseIndex)
+      }
+      // update group key-case id relationships
+      const groupKey = self.caseIdToGroupKeyMap.get(newCaseId)
+      if (groupKey != null) {
+        // update group key to case id map
+        self.groupKeyCaseIds.set(groupKey, origCaseId)
+
+        // update case id to group key map
+        self.caseIdToGroupKeyMap.delete(newCaseId)
+        self.caseIdToGroupKeyMap.set(origCaseId, groupKey)
+
+        // update case group map entry
+        const caseGroup = self.caseGroupMap.get(groupKey)
+        if (caseGroup) {
+          caseGroup.groupedCase.__id__ = origCaseId
+        }
+      }
+    })
+    self.clearPrevCases()
   }
 }))
 .views(self => ({
@@ -328,7 +460,6 @@ export const CollectionModel = V2Model
       () => self.sortedDataAttributes.map(attr => attr.id),
       () => {
         if (self.child) {
-          self.groupKeyCaseIds.clear()
           self.itemData.invalidate()
         }
       }, { name: "CollectionModel.sortedDataAttributes reaction", equals: comparer.structural }
