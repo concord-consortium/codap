@@ -17,6 +17,7 @@ const standardPlugins = _standardPlugins as PluginMenuConfig
 const combinedPlugins = [...standardPlugins, ...debugPlugins]
 
 import "./plugins-button.scss"
+import { logMessageWithReplacement } from "../../lib/log-message"
 
 interface IPluginItemProps {
   pluginData: PluginData | null
@@ -37,7 +38,8 @@ function PluginItem({ pluginData }: IPluginItemProps) {
       }, {
         undoStringKey: t("V3.Undo.plugin.create", { vars: [pluginData.title] }),
         redoStringKey: t("V3.Redo.plugin.create", { vars: [pluginData.title] }),
-        log: {message: "Add Plugin", args: { name: pluginData.title, url: pluginData.path } }
+        log: logMessageWithReplacement("Add Plugin: %@", { name: pluginData.title, url: pluginData.path })
+
       }
     )
   }
