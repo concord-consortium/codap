@@ -1,5 +1,5 @@
 import { BaseType, drag, select, Selection } from "d3"
-import { reaction } from "mobx"
+import { comparer, reaction } from "mobx"
 import { mstAutorun } from "../../../utilities/mst-autorun"
 import { mstReaction } from "../../../utilities/mst-reaction"
 import { useCallback, useEffect, useMemo, useRef } from "react"
@@ -331,15 +331,16 @@ export const useSubAxis = ({
     }
   }, [dataConfig, updateDomainAndRenderSubAxis])
 
-  // update d3 scale and axis when layout/range changes
+  // Render when axis length or number of sub-axes changes
   useEffect(() => {
     const disposer = reaction(
       () => {
-        return layout.getAxisLength(axisPlace)
+        return [layout.getAxisLength(axisPlace),
+          layout.getAxisMultiScale(axisPlace)?.repetitions]
       },
       () => {
         renderSubAxis()
-      }, {name: "useSubAxis [axisLength]"}
+      }, {name: "useSubAxis [axisLength]", equals: comparer.structural}
     )
     return () => disposer()
   }, [axisPlace, layout, renderSubAxis])
