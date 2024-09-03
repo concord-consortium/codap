@@ -138,7 +138,8 @@ export const DataSet = V2Model.named("DataSet").props({
   importDate: types.maybe(types.string),
   // for serialization only, not for dynamic selection tracking
   snapSelection: types.array(types.string),
-  hiddenItems: types.array(types.string)
+  // hidden by user, e.g. set-aside in CODAP
+  hiddenItemIds: types.array(types.string)
 })
 .volatile(self => ({
   // map from attribute name to attribute id
@@ -149,8 +150,9 @@ export const DataSet = V2Model.named("DataSet").props({
   selection: observable.set<string>(),
   selectionChanges: 0,
   // MobX-observable set of hidden (set aside) item IDs
-  hiddenItemsSet: observable.set<string>(),
-  hiddenItemsMirror: [] as string[],
+  hiddenItemIdsSet: observable.set<string>(),
+  // copy of hiddenItemIds used for change-detection
+  hiddenItemIdsMirror: [] as string[],
   // map from case ID to the CaseGroup it represents
   caseInfoMap: new Map<string, CaseInfo>(),
   // map from item ID to the child case containing it
@@ -269,11 +271,11 @@ export const DataSet = V2Model.named("DataSet").props({
 .views(self => ({
   isCaseOrItemHidden(caseOrItemId: string) {
     const caseInfo = self.caseInfoMap.get(caseOrItemId)
-    return caseInfo?.childItemIds.every(itemId => self.hiddenItemsSet.has(itemId)) ??
-            self.hiddenItemsSet.has(caseOrItemId)
+    return caseInfo?.childItemIds.every(itemId => self.hiddenItemIdsSet.has(itemId)) ??
+            self.hiddenItemIdsSet.has(caseOrItemId)
   },
   get itemIds() {
-    return self._itemIds.filter(itemId => !self.hiddenItemsSet.has(itemId))
+    return self._itemIds.filter(itemId => !self.hiddenItemIdsSet.has(itemId))
   }
 }))
 .views(self => ({
@@ -525,14 +527,14 @@ export const DataSet = V2Model.named("DataSet").props({
       const caseInfo = self.caseInfoMap.get(id)
       if (caseInfo) {
         caseInfo.childItemIds.forEach(itemId => {
-          if (!self.hiddenItemsSet.has(itemId)) {
-            self.hiddenItems.push(itemId)
+          if (!self.hiddenItemIdsSet.has(itemId)) {
+            self.hiddenItemIds.push(itemId)
           }
         })
       }
       else if (self.itemInfoMap.get(id)) {
-        if (!self.hiddenItemsSet.has(id)) {
-          self.hiddenItems.push(id)
+        if (!self.hiddenItemIdsSet.has(id)) {
+          self.hiddenItemIds.push(id)
         }
       }
     })
@@ -543,18 +545,18 @@ export const DataSet = V2Model.named("DataSet").props({
         const caseInfo = self.caseInfoMap.get(id)
         if (caseInfo) {
           caseInfo.childItemIds.forEach(itemId => {
-            const foundIndex = self.hiddenItems.findIndex(hiddenItemId => hiddenItemId === itemId)
-            if (foundIndex >= 0) self.hiddenItems.splice(foundIndex, 1)
+            const foundIndex = self.hiddenItemIds.findIndex(hiddenItemId => hiddenItemId === itemId)
+            if (foundIndex >= 0) self.hiddenItemIds.splice(foundIndex, 1)
           })
         }
         else if (self.itemInfoMap.get(id)) {
-          const foundIndex = self.hiddenItems.findIndex(hiddenItemId => hiddenItemId === id)
-          if (foundIndex >= 0) self.hiddenItems.splice(foundIndex, 1)
+          const foundIndex = self.hiddenItemIds.findIndex(hiddenItemId => hiddenItemId === id)
+          if (foundIndex >= 0) self.hiddenItemIds.splice(foundIndex, 1)
         }
       })
     } else {
       // show all hidden cases/items
-      self.hiddenItems.clear()
+      self.hiddenItemIds.clear()
     }
   }
 }))
@@ -1181,24 +1183,24 @@ export const DataSet = V2Model.named("DataSet").props({
       // when items are hidden/shown...
       addDisposer(self, onPatch(self, ({ op, path, value }) => {
         let match: RegExpExecArray | null = null
-        if ((op === "add" || op === "remove") && (match = /hiddenItems\/(\d+)$/.exec(path))) {
+        if ((op === "add" || op === "remove") && (match = /hiddenItemIds\/(\d+)$/.exec(path))) {
           const index = +match[1]
           if (op === "add") {
             const itemId = value
-            self.hiddenItemsMirror.splice(index, 0, itemId)
-            self.hiddenItemsSet.add(itemId)
+            self.hiddenItemIdsMirror.splice(index, 0, itemId)
+            self.hiddenItemIdsSet.add(itemId)
           }
           else {
-            const itemId = self.hiddenItemsMirror[index]
-            self.hiddenItemsMirror.splice(index, 1)
-            self.hiddenItemsSet.delete(itemId)
+            const itemId = self.hiddenItemIdsMirror[index]
+            self.hiddenItemIdsMirror.splice(index, 1)
+            self.hiddenItemIdsSet.delete(itemId)
           }
           self.invalidateCases()
         }
-        if ((op === "replace") && /hiddenItems$/.test(path)) {
+        if ((op === "replace") && /hiddenItemIds$/.test(path)) {
           const replacementArray: string[] = value
-          self.hiddenItemsMirror = [...replacementArray]
-          self.hiddenItemsSet.replace(observable.set<string>(replacementArray))
+          self.hiddenItemIdsMirror = [...replacementArray]
+          self.hiddenItemIdsSet.replace(observable.set<string>(replacementArray))
           self.invalidateCases()
         }
       }))

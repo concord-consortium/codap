@@ -22,9 +22,9 @@ export const HideShowMenuList = observer(function HideShowMenuList() {
     }
   }
 
-  const caseCount = data?.items.length ?? 0
+  const itemCount = data?.items.length ?? 0
   const selectionCount = data?.selection.size ?? 0
-  const setAsideCount = data?.hiddenItems.length ?? 0
+  const setAsideCount = data?.hiddenItemIds.length ?? 0
 
   const hiddenAttributes = data?.attributes.filter(attr => attr && caseMetadata?.isHidden(attr.id))
   const hiddenAttributeCount = hiddenAttributes?.length ?? 0
@@ -41,7 +41,7 @@ export const HideShowMenuList = observer(function HideShowMenuList() {
     },
     {
       itemKey: "DG.Inspector.setaside.setAsideUnselectedCases",
-      isEnabled: () => selectionCount < caseCount,
+      isEnabled: () => selectionCount < itemCount,
       handleClick: () => {
         const unselectedItemIds = data?.itemIds.filter(itemId => !data.isCaseSelected(itemId)) ?? []
         if (unselectedItemIds.length) {
@@ -54,9 +54,9 @@ export const HideShowMenuList = observer(function HideShowMenuList() {
       itemLabel: () => t("DG.Inspector.setaside.restoreSetAsideCases", { vars: [setAsideCount] }),
       isEnabled: () => setAsideCount > 0,
       handleClick: () => {
-        if (data?.hiddenItems.length) {
+        if (data?.hiddenItemIds.length) {
           data.applyModelChange(() => {
-            const hiddenItems = [...data.hiddenItems]
+            const hiddenItems = [...data.hiddenItemIds]
             data.showHiddenCasesAndItems()
             data.setSelectedCases(hiddenItems)
           }, {
