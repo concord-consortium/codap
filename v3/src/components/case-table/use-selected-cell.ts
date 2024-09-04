@@ -50,6 +50,8 @@ export function useSelectedCell(gridRef: React.RefObject<DataGridHandle | null>,
         gridRef.current?.selectCell(position, edit && collectionTableModel?.inEditMode)
         selectedCell.current = { ...selectedCell.current, rowIdx }
         blockUpdateSelectedCell.current = false
+
+        // Give the table a chance to rerender before making sure the selected cell is visible.
         if (scroll) setTimeout(() => collectionTableModel?.scrollRowIntoView(rowIdx, { jump: true }), 1)
       }
     }
@@ -60,9 +62,13 @@ export function useSelectedCell(gridRef: React.RefObject<DataGridHandle | null>,
       () => uiState.requestBatchesProcessed,
       requestBatchesProcessed => {
         setTimeout(() => {
+          // Reselect the selected cell without editing it, giving the API handler a chance to deal with any
+          // requests that built up in the queue.
           refreshSelectedCell(false, false)
-          // Refresh the cell again after a short wait to allow API requests to be processed
-          setTimeout(() => refreshSelectedCell(), 10)
+
+          // Refresh the cell again after a short wait to allow API requests to be processed.
+          // The wait is long enough to allow plugins to react to responses from queued requests.
+          setTimeout(() => refreshSelectedCell(), 30)
         })
       }
     )
