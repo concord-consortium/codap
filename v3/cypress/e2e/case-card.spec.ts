@@ -117,6 +117,7 @@ context("case card", () => {
       const rootCollectionTitle = "Diets"
       const firstCaseName = "African Elephant"
       table.moveAttributeToParent("Order", "newCollection")
+      cy.wait(500)
       table.moveAttributeToParent("Diet", "newCollection")
       cy.wait(500)
       cy.get(tableHeaderLeftSelector).click()
@@ -140,6 +141,5 @@ context("case card", () => {
       cy.get('[data-testid="case-card-view"]').eq(2).find('[data-testid="case-card-attr-value"]')
                                                  .eq(0).should("have.text", firstCaseName)
     })
-
   })
 })
