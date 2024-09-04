@@ -134,7 +134,8 @@ export const useRows = () => {
     )
 
     const onPatchDisposer = data && onPatch(data, ({ op, path, value }) => {
-      if ((op === "add" || op === "remove") && /itemIds\/\d+$/.test(path)) {
+      // reset on any changes to items or hidden items
+      if (/(_itemIds|hiddenItems)(\/\d+)?$/.test(path)) {
         resetRowCacheAndSyncRows()
       }
     })

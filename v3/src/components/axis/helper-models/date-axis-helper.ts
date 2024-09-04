@@ -379,11 +379,10 @@ export class DateAxisHelper extends AxisHelper {
 
         const drawTickAndLabel = (iDateLabel: ILabelDateAndString, drawLabel: boolean) => {
           const refPoint = {x: 0, y: 0}
-          let rotation = 0,
-            pixel = dataToCoordinate(iDateLabel.labelDate.valueOf() / 1000)
+          let rotation = 0
+          const pixel = dataToCoordinate(iDateLabel.labelDate.valueOf() / 1000)
           if (!isVertical) {
             refPoint.y = kAxisTickLength + kAxisGap + kDefaultFontHeight              // y-value
-            pixel += rangeMin
             refPoint.x = pixel
             sAS.append('line')
               .attr('style', 'stroke: black')

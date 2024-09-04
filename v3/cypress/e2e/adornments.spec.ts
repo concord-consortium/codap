@@ -295,7 +295,8 @@ context("Graph adornments", () => {
   it("adds box plot adornment to the graph when Box Plot checkbox is checked", () => {
     c.selectTile("graph", 0)
     cy.dragAttributeToTarget("table", "Height", "bottom")
-    graph.getDisplayValuesButton().click()
+    cy.wait(100) // Added a brief wait to allow the plot animation to complete
+    graph.getDisplayValuesButton().should("exist").click()
     graph.getInspectorPalette().should("be.visible")
     graph.getInspectorPalette().find("[data-testid=adornment-toggle-boxPlotAndNormalCurve]").click()
     graph.getInspectorPalette().find("[data-testid=adornment-checkbox-box-plot]").should("be.visible").click()

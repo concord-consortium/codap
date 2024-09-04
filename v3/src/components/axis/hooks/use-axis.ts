@@ -9,7 +9,7 @@ import { maxWidthOfStringsD3 } from "../../data-display/data-display-utils"
 import { useDataConfigurationContext } from "../../data-display/hooks/use-data-configuration-context"
 import { AxisPlace, AxisScaleType, axisGap } from "../axis-types"
 import { useAxisLayoutContext } from "../models/axis-layout-context"
-import { IAxisModel, isDateAxisModel, isNumericAxisModel } from "../models/axis-model"
+import { IAxisModel, isBaseNumericAxisModel, isDateAxisModel } from "../models/axis-model"
 import { collisionExists, getNumberOfLevelsForDateAxis, getStringBounds, isScaleLinear } from "../axis-utils"
 import { useAxisProviderContext } from "./use-axis-provider-context"
 import { useDataDisplayModelContext } from "../../data-display/hooks/use-data-display-model"
@@ -54,7 +54,7 @@ export const useAxis = ({axisPlace, axisTitle = "", centerCategoryLabels}: IUseA
     displayModel = useDataDisplayModelContext(),
     axisProvider = useAxisProviderContext(),
     axisModel = axisProvider.getAxis?.(axisPlace),
-    isNumeric = axisModel && isNumericAxisModel(axisModel),
+    isNumeric = axisModel && isBaseNumericAxisModel(axisModel),
     multiScale = layout.getAxisMultiScale(axisPlace),
     ordinalScale = isNumeric || axisModel?.type === 'empty' ? null : multiScale?.scale as ScaleBand<string>,
     // eslint-disable-next-line react-hooks/exhaustive-deps  --  see note below
@@ -111,7 +111,8 @@ export const useAxis = ({axisPlace, axisTitle = "", centerCategoryLabels}: IUseA
       }
       case 'date': {
         if (isDateAxisModel(axisModel)) {
-          desiredExtent += getNumberOfLevelsForDateAxis(axisModel.min, axisModel.max) * numbersHeight + axisGap
+          const [min, max] = axisModel.domain
+          desiredExtent += getNumberOfLevelsForDateAxis(min, max) * numbersHeight + axisGap
         }
         break
       }

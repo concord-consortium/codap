@@ -1,8 +1,6 @@
 import { isEqual, isEqualWith } from "lodash"
 import { applyAction, clone, destroy, getSnapshot, onAction, onSnapshot } from "mobx-state-tree"
 import { uniqueName } from "../../utilities/js-utils"
-import { IAttributeSnapshot } from "./attribute"
-import { ICollectionModelSnapshot } from "./collection"
 import { DataSet, fromCanonical, toCanonical } from "./data-set"
 import { createDataSet } from "./data-set-conversion"
 import { ICaseID } from "./data-set-types"
@@ -81,63 +79,6 @@ test("Canonicalization", () => {
   expect(toCanonical(ds, { foo: "bar", ...a1Case })).toEqual(a1Canonical)
   expect(mockConsoleWarn).toHaveBeenCalledTimes(1)
   mockConsole.mockRestore()
-})
-
-test("DataSet original flat snapshot conversion", () => {
-  const ungrouped: ICollectionModelSnapshot = { name: "Ungrouped" }
-  const attributes: IAttributeSnapshot[] = [
-    { name: "a1" },
-    { name: "a2" },
-    { name: "a3" }
-  ]
-  const data = DataSet.create({
-    name: "Data",
-    ungrouped,
-    attributes
-  } as any)
-  expect(data.collections.length).toBe(1)
-  expect(data.childCollection.name).toBe("Ungrouped")
-  expect(data.attributesMap.size).toBe(3)
-  expect(data.attributes.length).toBe(3)
-})
-
-test("DataSet original hierarchical snapshot conversion", () => {
-  const ungrouped: ICollectionModelSnapshot = { name: "Ungrouped" }
-  const attributes: IAttributeSnapshot[] = [
-    { id: "a1Id", name: "a1" },
-    { id: "a2Id", name: "a2" },
-    { id: "a3Id", name: "a3" }
-  ]
-  const collections: ICollectionModelSnapshot[] = [
-    { name: "Collection1", attributes: ["a1Id"] }
-  ]
-  const data = DataSet.create({
-    name: "Data",
-    collections,
-    ungrouped,
-    attributes
-  } as any)
-  expect(data.collections.length).toBe(2)
-  expect(data.collections[0].attributes.length).toBe(1)
-  expect(data.childCollection.name).toBe("Ungrouped")
-  expect(data.childCollection.attributes.length).toBe(2)
-  expect(data.attributesMap.size).toBe(3)
-  expect(data.attributes.length).toBe(3)
-})
-
-test("DataSet temporary flat snapshot conversion", () => {
-  const attributes: string[] = ["a1Id", "a2Id", "a3Id"]
-  const data = DataSet.create({
-    name: "Data",
-    attributesMap: {
-      a1Id: { id: "a1Id", name: "a1" },
-      a2Id: { id: "a2Id", name: "a2" },
-      a3Id: { id: "a3Id", name: "a3" }
-    },
-    attributes
-  } as any)
-  expect(data.attributesMap.size).toBe(3)
-  expect(data.attributes.length).toBe(3)
 })
 
 test("DataSet volatile caching", () => {
@@ -471,6 +412,11 @@ test("hierarchical collection support", () => {
   // Names must be unique
   const parentCollection2 = data.addCollection({ name: "ParentCollection" })
   expect(parentCollection2.name).toBe("ParentCollection1")
+  const parentAttr2 = data.addAttribute({ name: "parentAttr2" }, { collection: parentCollection2.id})
+  expect(parentCollection2.getAttribute(parentAttr2.id)).toBe(parentAttr2)
+
+  data.removeCollectionWithAttributes(parentCollection2)
+  expect(data.collections.length).toBe(2)
 
   destroy(data)
   jestSpyConsole("warn", spy => {
@@ -615,6 +561,60 @@ test("DataSet case selection", () => {
   expect(ds.items.map(c => ds.isCaseSelected(c.__id__))).toEqual([true, false, false, true, false])
   ds.selectAll()
   expect(ds.items.map(c => ds.isCaseSelected(c.__id__))).toEqual([true, true, true, true, true])
+})
+
+test("DataSet case hiding/showing (set aside)", () => {
+  const data = DataSet.create({ name: "data", collections: [{ name: "Children" }] })
+  const parentCollection = data.addCollection({ name: "Parents" })
+  expect(data.collections.length).toBe(2)
+  const parentAttr = data.addAttribute({ name: "parent" }, { collection: parentCollection.id })
+  const childAttr = data.addAttribute({ name: "child" })
+  expect(data.attributes.length).toBe(2)
+  data.addCases([
+    { __id__: "item0", [parentAttr.id]: "even", [childAttr.id]: 0 },
+    { __id__: "item1", [parentAttr.id]: "odd", [childAttr.id]: 1 },
+    { __id__: "item2", [parentAttr.id]: "even", [childAttr.id]: 2 },
+    { __id__: "item3", [parentAttr.id]: "odd", [childAttr.id]: 3 },
+    { __id__: "item4", [parentAttr.id]: "even", [childAttr.id]: 4 },
+    { __id__: "item5", [parentAttr.id]: "odd", [childAttr.id]: 5 },
+  ])
+  expect(data.items.length).toBe(6)
+  // hide/show cases
+  const evenCase = data.getCasesForCollection(parentCollection.id)[0]
+  data.hideCasesOrItems([evenCase.__id__])
+  expect(data._itemIds.length).toBe(6)
+  expect(data.items.length).toBe(3)
+  data.showHiddenCasesAndItems([evenCase.__id__])
+  expect(data._itemIds.length).toBe(6)
+  expect(data.items.length).toBe(6)
+  // hide/show items
+  const [firstItem, secondItem] = data.itemIds
+  data.hideCasesOrItems([firstItem, secondItem])
+  expect(data._itemIds.length).toBe(6)
+  expect(data.items.length).toBe(4)
+  data.showHiddenCasesAndItems([firstItem, secondItem])
+  expect(data._itemIds.length).toBe(6)
+  expect(data.items.length).toBe(6)
+  // hide cases/items and show all
+  data.hideCasesOrItems([evenCase.__id__, firstItem, secondItem])
+  expect(data._itemIds.length).toBe(6)
+  expect(data.items.length).toBe(2)
+  data.showHiddenCasesAndItems()
+  expect(data._itemIds.length).toBe(6)
+  expect(data.items.length).toBe(6)
+
+  // unrelated but convenient to test with a configured data set
+  expect(data.hasCase(evenCase.__id__)).toBe(true)
+  expect(data.getParentValues(evenCase.__id__)).toEqual({ [parentAttr.id]: "even" })
+
+  expect(data.getFirstItemForCase(evenCase.__id__)).toEqual({
+    __id__: "item0", [parentAttr.id]: "even", [childAttr.id]: "0"
+  })
+
+  data.moveItems(["item0"])
+  expect(data.itemIds).toEqual(["item1", "item2", "item3", "item4", "item5", "item0"])
+  data.moveItems(["item1", "item2"])
+  expect(data.itemIds).toEqual(["item3", "item4", "item5", "item0", "item1", "item2"])
 })
 
 test("Caching mode", () => {

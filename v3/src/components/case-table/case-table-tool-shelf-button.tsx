@@ -73,16 +73,19 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
           return (
             <MenuItem key={`${dataset.dataSet.id}`} onClick={()=>createOrShowTableOrCardForDataset(dataset)}
               data-testid={`tool-shelf-table-${tileTitle}`}>
+              <TableIcon className="case-table-icon"/>
               {tileTitle}
               <TrashIcon className="tool-shelf-menu-trash-icon"
                   onClick={() => handleOpenRemoveDataSetModal(dataset.dataSet.id)} />
             </MenuItem>
           )
         })}
-        <MenuItem data-testid="tool-shelf-table-new-clipboard">
-          {t("DG.AppController.caseTableMenu.clipboardDataset")}
+        <MenuItem data-testid="tool-shelf-table-new-clipboard" isDisabled={true}>
+          <TableIcon className="case-table-icon"/>
+          {`${t("DG.AppController.caseTableMenu.clipboardDataset")} 🚧`}
         </MenuItem>
         <MenuItem onClick={handleCreateNewCaseTable} data-testid="tool-shelf-table-new">
+          <TableIcon className="case-table-icon"/>
           {t("DG.AppController.caseTableMenu.newDataSet")}
         </MenuItem>
       </MenuList>

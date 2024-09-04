@@ -1,7 +1,8 @@
 import { comparer, reaction } from "mobx"
+import { mstReaction } from "../../utilities/mst-reaction"
 import { onAnyAction } from "../../utilities/mst-utils"
 import { IDataSet } from "../data/data-set"
-import { AddCasesAction, SetCaseValuesAction } from "../data/data-set-actions"
+import { SetCaseValuesAction } from "../data/data-set-actions"
 import {
   CaseList, IFormulaDependency, ILocalAttributeDependency, ILookupDependency
 } from "./formula-types"
@@ -25,17 +26,21 @@ export const observeLocalAttributes = (formulaDependencies: IFormulaDependency[]
   const localAttrDependencies =
     formulaDependencies.filter(d => d.type === "localAttribute")
 
-  const anyAggregateDepPresent = localAttrDependencies.some(d => d.aggregate)
+  // Observe local dataset items changes (add, remove, set aside, undo/redo)
+  // The MobX reaction doesn't provide enough information to determine which cases need to be recalculated
+  // in the absence of aggregate functions, but it works for addition, removal, set aside, undo/redo, etc.
+  // If we needed to optimize the non-aggregate case, we could cache the items and then determine which ones
+  // were added/removed ourselves, but it's not clear that it will be worth it.
+  const disposeDatasetItemsObserver = mstReaction(
+    () => localDataSet.itemIds.length,
+    () => recalculateCallback("ALL_CASES"),
+    { name: "FormulaObservers.itemsReaction" }, localDataSet
+  )
 
-  // Observe local dataset attribute changes
-  const disposeDatasetObserver = onAnyAction(localDataSet, mstAction => {
+  // Observe local dataset attribute value changes
+  const disposeDatasetValuesObserver = onAnyAction(localDataSet, mstAction => {
     let casesToRecalculate: CaseList = []
     switch (mstAction.name) {
-      case "addCases": {
-        // Recalculate only new cases if there's no aggregate dependency. Otherwise, we need to update all the cases.
-        casesToRecalculate = anyAggregateDepPresent ? "ALL_CASES" : (mstAction as AddCasesAction).args[0] || []
-        break
-      }
       case "setCaseValues": {
         // Recalculate cases with dependency attribute updated.
         const cases = (mstAction as SetCaseValuesAction).args[0] || []
@@ -51,7 +56,10 @@ export const observeLocalAttributes = (formulaDependencies: IFormulaDependency[]
     }
   })
 
-  return disposeDatasetObserver
+  return () => {
+    disposeDatasetItemsObserver()
+    disposeDatasetValuesObserver()
+  }
 }
 
 export const getLookupCasesToRecalculate = (cases: ICase[], dependency: ILookupDependency) =>
