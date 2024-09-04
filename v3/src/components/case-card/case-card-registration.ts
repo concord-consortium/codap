@@ -34,7 +34,7 @@ registerTileComponentInfo({
   // InspectorPanel: CaseCardInspector,
   tileEltClass: "codap-case-card",
   Icon: CardIcon,
-  defaultWidth: 300,
+  defaultWidth: 282,
   defaultHeight: 400
 })
 

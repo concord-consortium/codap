@@ -7,7 +7,7 @@ import { ICollectionModel } from "../../models/data/collection"
 import { useCaseCardModel } from "./use-case-card-model"
 import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-data-utils"
 
-import "./card-view.scss"
+import "./case-attrs-view.scss"
 
 interface ICaseAttrsViewProps {
   caseItem: IGroupedCase
@@ -21,7 +21,7 @@ export const CaseAttrsView = observer(function CaseAttrsView({caseItem, collecti
   }) ?? []
 
   return (
-    <table className="caseAttrs fadeIn" data-testid="case-attrs">
+    <table className="case-card-attrs fadeIn" data-testid="case-card-attrs">
       <tbody>
         {collection?.attributes.map((attr, index: number) => {
             const metadata = data && getSharedCaseMetadataFromDataset(data)
@@ -30,6 +30,7 @@ export const CaseAttrsView = observer(function CaseAttrsView({caseItem, collecti
               <CaseAttrView
                 key={attr.id}
                 caseId={caseItem.__id__}
+                collection={collection}
                 attrId={attr.id}
                 name={attr.name}
                 value={values[index]}
