@@ -48,9 +48,9 @@ export function useSelectedCell(gridRef: React.RefObject<DataGridHandle | null>,
         const position = { idx, rowIdx }
         blockUpdateSelectedCell.current = true
         gridRef.current?.selectCell(position, edit && collectionTableModel?.inEditMode)
-        selectedCell.current = { ...selectedCell.current, rowIdx }   
+        selectedCell.current = { ...selectedCell.current, rowIdx }
         blockUpdateSelectedCell.current = false
-        if (scroll) setTimeout(() => collectionTableModel?.scrollRowIntoView(rowIdx), 1)
+        if (scroll) setTimeout(() => collectionTableModel?.scrollRowIntoView(rowIdx, { jump: true }), 1)
       }
     }
   }, [collectionTableModel, columns, rows])

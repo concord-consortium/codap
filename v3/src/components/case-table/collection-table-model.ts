@@ -8,6 +8,10 @@ const kDefaultRowHeight = 18
 const kDefaultRowCount = 12
 const kDefaultGridHeight = kDefaultRowHeaderHeight + (kDefaultRowCount * kDefaultRowHeight)
 
+interface IScrollOptions {
+  jump?: boolean // True makes the scroll jump to the target location, rather than smoothly scrolling
+}
+
 export class CollectionTableModel {
   collectionId: string
   // RDG grid element
@@ -227,62 +231,64 @@ export class CollectionTableModel {
     this.scrollTop = scrollTop
   }
 
-  setElementScrollTop(scrollTop: number) {
+  setElementScrollTop(scrollTop: number, options?: IScrollOptions) {
     if (this.element) {
+      if (options?.jump) this.element.style.scrollBehavior = "auto"
       this.scrollStep = this.lastScrollStep = 0
       this.element.scrollTop = scrollTop
+      if (options?.jump) this.element.style.scrollBehavior = "smooth"
     }
   }
 
-  @action setTargetScrollTop(scrollTop: number) {
+  @action setTargetScrollTop(scrollTop: number, options?: IScrollOptions) {
     this.targetScrollTop = scrollTop
-    this.setElementScrollTop(scrollTop)
+    this.setElementScrollTop(scrollTop, options)
   }
 
-  syncScrollTopToElement() {
+  syncScrollTopToElement(options?: IScrollOptions) {
     if (this.element) {
       const scrollBehavior = this.element.style.scrollBehavior
       // turn off smooth scrolling for this sync
       this.element.style.scrollBehavior = "auto"
-      this.setElementScrollTop(this.scrollTop)
+      this.setElementScrollTop(this.scrollTop, options)
       this.element.style.scrollBehavior = scrollBehavior
     }
   }
 
-  scrollRowToTop(rowIndex: number) {
+  scrollRowToTop(rowIndex: number, options?: IScrollOptions) {
     if (!this.element) return
-    this.setTargetScrollTop(rowIndex * this.rowHeight)
+    this.setTargetScrollTop(rowIndex * this.rowHeight, options)
   }
 
-  scrollRowToBottom(rowIndex: number) {
+  scrollRowToBottom(rowIndex: number, options?: IScrollOptions) {
     if (!this.element) return
-    this.setTargetScrollTop(Math.max(0, (rowIndex + 1) * this.rowHeight - this.gridBodyHeight))
+    this.setTargetScrollTop(Math.max(0, (rowIndex + 1) * this.rowHeight - this.gridBodyHeight), options)
   }
 
-  scrollRowIntoView(rowIndex: number) {
+  scrollRowIntoView(rowIndex: number, options?: IScrollOptions) {
     if (!this.element) return
     if (rowIndex < this.firstVisibleRowIndex) {
-      this.scrollRowToTop(rowIndex)
+      this.scrollRowToTop(rowIndex, options)
     }
     else if (rowIndex > this.lastVisibleRowIndex) {
-      this.scrollRowToBottom(rowIndex)
+      this.scrollRowToBottom(rowIndex, options)
     }
   }
 
-  scrollRangeIntoView(firstRowIndex: number, lastRowIndex: number) {
+  scrollRangeIntoView(firstRowIndex: number, lastRowIndex: number, options?: IScrollOptions) {
     // part or all of range is offscreen below
     if ((firstRowIndex >= this.lastVisibleRowIndex) ||
         (this.isRowVisible(firstRowIndex) && (lastRowIndex > this.lastVisibleRowIndex))) {
-      this.scrollRowToBottom(lastRowIndex)
+      this.scrollRowToBottom(lastRowIndex, options)
     }
     // part or all of range is offscreen above
     else if ((lastRowIndex <= this.firstVisibleRowIndex) ||
             (this.isRowVisible(lastRowIndex) && (firstRowIndex < this.firstVisibleRowIndex))) {
-      this.scrollRowToTop(firstRowIndex)
+      this.scrollRowToTop(firstRowIndex, options)
     }
   }
 
-  scrollClosestRowIntoView(rowIndices: number[]) {
+  scrollClosestRowIntoView(rowIndices: number[], options?: IScrollOptions) {
     if (!this.element) return
     const viewTop = this.scrollTop
     const viewBottom = viewTop + this.gridBodyHeight
@@ -308,7 +314,7 @@ export class CollectionTableModel {
       }
     }
     if (closestRow >= 0) {
-      this.scrollRowIntoView(closestRow)
+      this.scrollRowIntoView(closestRow, options)
     }
   }
 
@@ -322,7 +328,7 @@ export class CollectionTableModel {
    * top visible row is lower than the top of this table or the last child of
    * the left table's bottom visible row is higher than the last row.
    */
-  scrollToAlignWithParent(parentTableModel: CollectionTableModel) {
+  scrollToAlignWithParent(parentTableModel: CollectionTableModel, options?: IScrollOptions) {
     const firstParentRow = parentTableModel.firstVisibleTargetRow
     const lastParentRow = parentTableModel.lastVisibleTargetRow
     let firstChildOfFirstParent: string | undefined
@@ -342,14 +348,14 @@ export class CollectionTableModel {
     if (firstChildOfFirstParent) {
       const firstChildRowIndex = this.getRowIndexOfCase(firstChildOfFirstParent)
       if (firstChildRowIndex > this.firstVisibleRowIndex) {
-        this.scrollRowToTop(firstChildRowIndex)
+        this.scrollRowToTop(firstChildRowIndex, options)
         return
       }
     }
     if (lastChildOfLastParent) {
       const lastChildRowIndex = this.getRowIndexOfCase(lastChildOfLastParent)
       if (lastChildRowIndex < this.lastVisibleRowIndex) {
-        this.scrollRowToBottom(lastChildRowIndex)
+        this.scrollRowToBottom(lastChildRowIndex, options)
       }
     }
   }
@@ -364,7 +370,7 @@ export class CollectionTableModel {
    * top visible row is higher than the top of this table or the parent of the
    * table's bottom visible row is lower than the last row of this table.
    */
-  scrollToAlignWithChild(childTableModel: CollectionTableModel) {
+  scrollToAlignWithChild(childTableModel: CollectionTableModel, options?: IScrollOptions) {
     const firstChildRow = childTableModel.firstVisibleTargetRow
     const firstChildRowParent = firstChildRow?.[symParent]
     const lastChildRow = childTableModel.lastVisibleTargetRow
@@ -372,7 +378,7 @@ export class CollectionTableModel {
     if (firstChildRowParent && lastChildRowParent) {
       const firstParentIndex = this.getRowIndexOfCase(firstChildRowParent)
       const lastParentIndex = this.getRowIndexOfCase(lastChildRowParent)
-      this.scrollRangeIntoView(firstParentIndex, lastParentIndex)
+      this.scrollRangeIntoView(firstParentIndex, lastParentIndex, options)
     }
   }
 }
