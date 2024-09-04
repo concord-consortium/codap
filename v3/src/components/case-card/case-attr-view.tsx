@@ -41,6 +41,7 @@ export const CaseAttrView = observer(function CaseAttrView ({caseId, collection,
 
   const handleSubmit = (newValue?: string) => {
     if (newValue) {
+      console.log("caseId", caseId)
       const casesToUpdate: ICase[] = [{__id__: caseId, [attrId]: newValue}]
       const undoStringKey = "V3.Undo.caseCard.editCellValue"
       const redoStringKey = "V3.Redo.caseCard.editCellValue"

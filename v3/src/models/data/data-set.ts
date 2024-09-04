@@ -306,6 +306,7 @@ export const DataSet = V2Model.named("DataSet").props({
     return this.getItemIndex(itemId)
   },
   getItemCaseIds(itemId: string): readonly string[] {
+    console.log("itemInfoMap", self.itemInfoMap)
     return self.itemInfoMap.get(itemId)?.caseIds ?? []
   },
   getItemChildCaseId(itemId: string) {

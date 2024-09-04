@@ -21,7 +21,7 @@ interface ICaseViewProps {
   cases: IGroupedCase[]
   level: number
   onSelectCases: (caseIds: string[]) => void
-  displayedCaseLineage?: string[]
+  displayedCaseLineage?: readonly string[]
 }
 
 const colorCycleClass = (level: number) => {
@@ -36,7 +36,9 @@ export const CaseView = observer(function CaseView(props: ICaseViewProps) {
   const data = cardModel?.data
   const collectionId = useCollectionContext()
   const collection = data?.getCollection(collectionId)
+  console.log("collection", collection, "level", level)
   const initialSelectedCase = collection?.cases.find(c => c.__id__ === displayedCaseLineage[level])
+  console.log("initialSelectedCase", initialSelectedCase)
   const displayedCase = initialSelectedCase ?? cases[0]
   const displayedCaseId = displayedCase.__id__
 
@@ -59,8 +61,10 @@ export const CaseView = observer(function CaseView(props: ICaseViewProps) {
     if (collection) {
       let newCaseId: string | undefined
       data?.applyModelChange(() => {
-        newCaseId = cardModel?.addNewCase(cases, collection, displayedCaseId)
+        const newItemId = cardModel?.addNewCase(cases, collection, displayedCaseId)
+        newCaseId = newItemId && data?.getItemCaseIds(newItemId)[level]
         newCaseId && onSelectCases([newCaseId])
+        console.log("newCaseId", newCaseId)
       }, {
         notify: () => {
           if (newCaseId) {

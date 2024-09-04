@@ -12,8 +12,10 @@ export const CardView = observer(function CardView() {
   const collections = data?.collections
   const rootCollection = collections?.[0]
   const selectedItems = data?.selection
+  console.log("selectedItems", selectedItems)
   const selectedItemId = selectedItems && Array.from(selectedItems)[0]
   const selectedItemLineage = cardModel?.caseLineage(selectedItemId)
+  console.log("selectedItemLineage", selectedItemLineage)
 
   const handleSelectCases = (caseIds: string[]) => {
     data?.setSelectedCases(caseIds)
@@ -27,7 +29,7 @@ export const CardView = observer(function CardView() {
             cases={rootCollection.cases}
             level={0}
             onSelectCases={handleSelectCases}
-            displayedCaseLineage={selectedItemLineage?.caseIds}
+            displayedCaseLineage={selectedItemLineage}
           />
         </CollectionContext.Provider>
       }
