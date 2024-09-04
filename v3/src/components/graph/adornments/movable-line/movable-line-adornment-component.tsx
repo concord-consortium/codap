@@ -371,7 +371,7 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
     !interceptLocked && lineObject.middle?.call(behaviors.middle)
     lineObject.upper?.call(behaviors.upper)
     lineObject.equation?.call(behaviors.equation)
-  }, [lineObject, handleTranslate, handleRotation, handleMoveEquation, interceptLocked])
+  }, [lineObject, handleTranslate, handleRotation, handleMoveEquation, interceptLocked, model.lines, instanceKey])
 
   // Build the line and its cover segments and handles just once
   useEffect(function createElements() {

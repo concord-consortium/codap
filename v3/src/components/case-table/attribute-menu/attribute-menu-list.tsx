@@ -56,7 +56,8 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
 
   // const handleSortCases = (item: IMenuItem) => {
   //   data?.applyModelChange(() => {}, {
-  //     log: logStringifiedObjectMessage("Sort cases by attribute:", { attributeId: attribute?.id, attribute: attributeName })
+  //     log: logStringifiedObjectMessage("Sort cases by attribute:",
+  //            { attributeId: attribute?.id, attribute: attributeName })
   //   })
   // }
 
