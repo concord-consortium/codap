@@ -5,19 +5,23 @@ import { DIHandler, DILogMessage, DIResources, DIValues,  } from "../data-intera
 export const diLogMessageHandler: DIHandler = {
   notify(resources: DIResources, values?: DIValues) {
     const webviewModel = resources.interactiveFrame?.content
-    const {formatStr, replaceArgs} = values as DILogMessage
-    const message = formatStr ?? ""
-    const argsArray = replaceArgs != null
-      ? Array.isArray(replaceArgs) ? replaceArgs : [replaceArgs]
-      : undefined
-    const args: LoggableObject = {}
-    argsArray?.forEach((value: LoggableValue, index: number) => {
-      args[index.toString()] = value
-    })
-    webviewModel?.applyModelChange(()=>{},
-      { log: logMessageWithReplacement(message, args) }
-    )
-    return {success: true}
+    if (values) {
+      const {formatStr, replaceArgs} = values as DILogMessage
+      const message = formatStr ?? ""
+      const argsArray = replaceArgs != null
+        ? Array.isArray(replaceArgs) ? replaceArgs : [replaceArgs]
+        : undefined
+      const args: LoggableObject = {}
+      argsArray?.forEach((value: LoggableValue, index: number) => {
+        args[index.toString()] = value
+      })
+      webviewModel?.applyModelChange(()=>{},
+        { log: logMessageWithReplacement(message, args) }
+      )
+      return {success: true}
+    } else {
+      return {success: false, error: "No values provided"}
+    }
   }
 }
 
