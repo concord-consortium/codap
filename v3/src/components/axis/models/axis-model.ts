@@ -133,7 +133,13 @@ export const NumericAxisModel = BaseNumericAxisModel
   .named("NumericAxisModel")
   .props({
     type: types.optional(types.literal("numeric"), "numeric"),
+    integersOnly: false
   })
+  .actions(self => ({
+    setIntegersOnly(integersOnly: boolean) {
+      self.integersOnly = integersOnly
+    }
+  }))
 
 export interface INumericAxisModel extends Instance<typeof NumericAxisModel> {}
 export interface INumericAxisModelSnapshot extends SnapshotIn<typeof NumericAxisModel> {}

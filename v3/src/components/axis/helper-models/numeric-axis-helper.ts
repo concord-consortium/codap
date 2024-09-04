@@ -57,6 +57,14 @@ export class NumericAxisHelper extends AxisHelper {
       axisScale.tickValues(tickValues)
       axisScale.tickFormat((d, i) => tickLabels[i])
     }
+    if (this.axisModel.integersOnly) {
+      // Note: This has the desirable effect of removing the decimal point from the tick labels,
+      // but it doesn't prevent the tick marks from showing for fractional values or grid lines
+      // from being drawn at fractional values.
+      axisScale.tickFormat((d, i) => {
+        return Number.isInteger(d) ? d.toString() : ""
+      })
+    }
     this.subAxisElt && select(this.subAxisElt)
       .attr("transform", this.initialTransform)
       .transition().duration(duration)
