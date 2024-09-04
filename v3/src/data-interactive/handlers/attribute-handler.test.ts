@@ -53,7 +53,7 @@ describe("DataInteractive AttributeHandler", () => {
   })
 
   it("update works as expected", () => {
-    const attribute = Attribute.create({ name: "test" })
+    const { dataset: dataContext, a1 } = setupTestDataset()
     const cid = "new cid"
     const name = "new name"
     const title = "new title"
@@ -63,31 +63,31 @@ describe("DataInteractive AttributeHandler", () => {
     const editable = false
     const type = "qualitative"
     const precision = 10
-    const result = handler.update?.({ attribute },
+    const result = handler.update?.({ attribute: a1, dataContext },
       { cid, name, title, description, unit, formula, editable, type, precision })
     expect(result?.success).toBe(true)
     const values = result?.values as DIResultAttributes
     const resultAttr = values.attrs?.[0]
     expect(resultAttr?.cid).toBe(cid)
-    expect(attribute.cid).toBe(cid)
+    expect(a1.cid).toBe(cid)
     expect(resultAttr?.name).toBe(name)
-    expect(attribute.name).toBe(name)
+    expect(a1.name).toBe(name)
     expect(resultAttr?.title).toBe(title)
-    expect(attribute.title).toBe(title)
+    expect(a1.title).toBe(title)
     expect(resultAttr?.description).toBe(description)
-    expect(attribute.description).toBe(description)
+    expect(a1.description).toBe(description)
     expect(resultAttr?.unit).toBe(unit)
-    expect(attribute.units).toBe(unit)
+    expect(a1.units).toBe(unit)
     expect(resultAttr?.formula).toBe(formula)
-    expect(attribute.formula?.display).toBe(formula)
+    expect(a1.formula?.display).toBe(formula)
     expect(resultAttr?.editable).toBe(editable)
-    expect(attribute.editable).toBe(editable)
+    expect(a1.editable).toBe(editable)
     expect(resultAttr?.type).toBe(type)
-    expect(attribute.type).toBe(type)
+    expect(a1.type).toBe(type)
     expect(resultAttr?.precision).toBe(precision)
-    expect(attribute.precision).toBe(precision)
+    expect(a1.precision).toBe(precision)
 
-    const result2 = handler.update?.({ attribute }, { type: "fake type" })
+    const result2 = handler.update?.({ attribute: a1, dataContext }, { type: "fake type" })
     const values2 = result2?.values as DIResultAttributes
     const resultAttr2 = values2.attrs?.[0]
     expect(resultAttr2?.type).toBe(type)
