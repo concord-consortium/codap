@@ -94,7 +94,8 @@ describe("observeLocalAttributes", () => {
       const dispose = observeLocalAttributes(formulaDependenciesWithoutAggregate, dataSet, recalculateCallback)
       const newCases = [{ __id__: "case1" }, { __id__: "case2" }]
       dataSet.addCases(newCases)
-      expect(recalculateCallback).toHaveBeenCalledWith(newCases)
+      // non-aggregate optimization has been removed for now
+      expect(recalculateCallback).toHaveBeenCalledWith("ALL_CASES")
 
       dispose()
       dataSet.addCases(newCases)

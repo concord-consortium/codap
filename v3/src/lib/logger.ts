@@ -2,6 +2,10 @@ import { nanoid } from "nanoid"
 import { debugLog, DEBUG_LOGGER } from "./debug"
 import { IDocumentModel } from "../models/document/document"
 
+// Set to true (temporarily) to debug logging to server specifically.
+// Otherwise, we assume that console.logs are sufficient.
+const DEBUG_LOG_TO_SERVER = !DEBUG_LOGGER
+
 type LoggerEnvironment = "dev" | "production"
 
 const logManagerUrl: Record<LoggerEnvironment, string> = {
@@ -144,8 +148,10 @@ function sendToLoggingService(data: LogMessage) {
   // const isProduction = user.portal === productionPortal || data.parameters?.portal === productionPortal
   // const url = logManagerUrl[isProduction ? "production" : "dev"]
   const url = logManagerUrl.dev
+
+  if (!Logger.isLoggingEnabled || !DEBUG_LOG_TO_SERVER) return
+
   debugLog(DEBUG_LOGGER, "Logger#sendToLoggingService sending", data, "to", url)
-  if (!Logger.isLoggingEnabled) return
 
   const request = new XMLHttpRequest()
 

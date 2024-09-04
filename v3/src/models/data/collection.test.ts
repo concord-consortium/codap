@@ -34,6 +34,9 @@ describe("CollectionModel", () => {
     withNameAndTitle.setTitle("newTitle")
     expect(withNameAndTitle.title).toBe("newTitle")
     expect(isCollectionModel(withNameAndTitle)).toBe(true)
+
+    defaultItemData.addItemInfo("foo", 0, "bar")
+    defaultItemData.invalidate()
   })
 
   it("labels work as expected", () => {
@@ -80,6 +83,9 @@ describe("CollectionModel", () => {
   it("empty collections work as expected", () => {
     const c1 = CollectionModel.create({ name: "c1" })
     c1.updateCaseGroups()
+    expect(c1.parent).toBeUndefined()
+    expect(c1.child).toBeUndefined()
+    expect(c1.isTopLevel).toBe(true)
     expect(c1.caseIds).toEqual([])
     expect(c1.caseIdToIndexMap.size).toBe(0)
     expect(c1.caseIdToGroupKeyMap.size).toBe(0)
@@ -95,7 +101,9 @@ describe("CollectionModel", () => {
     expect(c1.caseGroups).toEqual([])
 
     expect(defaultItemData.itemIds()).toEqual([])
+    expect(defaultItemData.isHidden("foo")).toEqual(false)
     expect(defaultItemData.getValue("foo", "bar")).toBe("")
+    expect(defaultItemData.addItemInfo("foo", 0, "bar")).toBeNull()
 
     jestSpyConsole("warn", spy => {
       c1.addChildCase("foo", "bar")
@@ -202,10 +210,13 @@ describe("CollectionModel", () => {
     const [c1, c2, c3] = root.collections
     expect(c1.parent).toBeUndefined()
     expect(c1.child).toBe(c2)
+    expect(c1.isTopLevel).toBe(true)
     expect(c2.parent).toBe(c1)
     expect(c2.child).toBe(c3)
+    expect(c2.isTopLevel).toBe(false)
     expect(c3.parent).toBe(c2)
     expect(c3.child).toBeUndefined()
+    expect(c3.isTopLevel).toBe(false)
 
     c1.addAttribute(a1)
     c2.addAttribute(a2)
@@ -233,56 +244,86 @@ describe("CollectionModel", () => {
     c1.addAttribute(a1)
     c2.addAttribute(a2)
 
-    const itemIdToCaseIdMap = new Map<string, string>()
+    const itemIdToCaseIdsMap = new Map<string, string[]>()
 
-    function caseIdsForItems(itemIds: string[]) {
-      return itemIds.map(itemId => itemIdToCaseIdMap.get(itemId))
+    function caseIdsForItems(itemIds: string[], index: number) {
+      return itemIds.reduce<string[]>((allCaseIds, itemId) => {
+        const caseIdsForItem = itemIdToCaseIdsMap.get(itemId) ?? []
+        allCaseIds.push(caseIdsForItem[index])
+        return allCaseIds
+      }, [])
     }
 
+    let attr1Values: [string, string] = ["a", "b"]
     const itemData: IItemData = {
       itemIds: () => ["0", "1", "2", "3", "4", "5"].map(id => `i${id}`),
+      isHidden: () => false,
       getValue: (itemId: string, attrId: string) => {
         const baseId = itemId.substring(1)
         const index = +baseId
         return attrId === "a1"
-                ? ["a", "b"][index % 2]
-                : baseId
+                ? attr1Values[index % 2]
+                : attrId === "a2"
+                  ? baseId
+                  : attrId === "a3"
+                    ? "parent"
+                    : "child"
       },
-      addItemInfo: (itemId, index, caseId) => itemIdToCaseIdMap.set(itemId, caseId),
+      addItemInfo: (itemId, index, caseId) => {
+        const entry = itemIdToCaseIdsMap.get(itemId)
+        if (entry) {
+          entry.push(caseId)
+        }
+        else {
+          itemIdToCaseIdsMap.set(itemId, [caseId])
+        }
+      },
       invalidate: jest.fn()
     }
     syncCollectionLinks(root.collections, itemData)
 
-    root.collections.forEach((collection, index) => {
-      // update the cases
-      collection.updateCaseGroups()
+    function validateCases() {
+      itemIdToCaseIdsMap.clear()
 
-      expect(collection.findParentCaseGroup("foo")).toBeUndefined()
-    })
+      root.collections.forEach((collection, index) => {
+        // update the cases
+        collection.updateCaseGroups()
 
-    root.collections.forEach((collection, index) => {
-      // sort child collection cases into groups
-      const parentCaseGroups = index > 0 ? root.collections[index - 1].caseGroups : undefined
-      collection.completeCaseGroups(parentCaseGroups)
-    })
+        expect(collection.findParentCaseGroup("foo")).toBeUndefined()
+      })
+
+      root.collections.forEach((collection, index) => {
+        // sort child collection cases into groups
+        const parentCaseGroups = index > 0 ? root.collections[index - 1].caseGroups : undefined
+        collection.completeCaseGroups(parentCaseGroups)
+      })
+    }
+    validateCases()
 
     expect(c1.caseIds.length).toBe(2)
     expect(c1.cases.length).toBe(2)
-    expect(c2.caseIds).toEqual(caseIdsForItems(["i0", "i2", "i4", "i1", "i3", "i5"]))
+    expect(c2.caseIds).toEqual(caseIdsForItems(["i0", "i2", "i4", "i1", "i3", "i5"], 1))
     expect(c2.findParentCaseGroup("foo")).toBeUndefined()
-    expect(c1.caseGroups[0].childCaseIds).toEqual(caseIdsForItems(["i0", "i2", "i4"]))
+    expect(c1.caseGroups[0].childCaseIds).toEqual(caseIdsForItems(["i0", "i2", "i4"], 1))
     expect(c1.caseGroups[0].childItemIds).toEqual(["i0", "i2", "i4"])
-    expect(c1.caseGroups[1].childCaseIds).toEqual(caseIdsForItems(["i1", "i3", "i5"]))
+    expect(c1.caseGroups[1].childCaseIds).toEqual(caseIdsForItems(["i1", "i3", "i5"], 1))
     expect(c1.caseGroups[1].childItemIds).toEqual(["i1", "i3", "i5"])
 
     itemData.itemIds().forEach((itemId, index) => {
       const itemBaseId = itemId.substring(1)
-      const caseId = itemIdToCaseIdMap.get(itemId)!
-      expect(c2.hasCase(caseId)).toBe(true)
-      expect(c2.getCaseIndex(caseId)).toBe(index)
-      expect(c2.getCaseGroup(caseId)!.childItemIds).toEqual([itemId])
-      expect(c1.findParentCaseGroup(caseId)).toBe(c1.caseGroups[+itemBaseId % 2])
+      const [parentCaseId, childCaseId] = itemIdToCaseIdsMap.get(itemId)!
+      const childItemIds = index % 2 ? ["i1", "i3", "i5"] : ["i0", "i2", "i4"]
+      expect(c1.hasCase(parentCaseId)).toBe(true)
+      expect(c1.getCaseIndex(parentCaseId)).toBe(index % 2)
+      expect(c1.getCaseGroup(parentCaseId)!.childItemIds).toEqual(childItemIds)
+      expect(c2.hasCase(childCaseId)).toBe(true)
+      expect(c2.getCaseIndex(childCaseId)).toBe(index)
+      expect(c2.getCaseGroup(childCaseId)!.childItemIds).toEqual([itemId])
+      expect(c1.findParentCaseGroup(childCaseId)).toBe(c1.caseGroups[+itemBaseId % 2])
     })
+
+    const originalParentCaseIds = [...c1.caseIds]
+    const originalChildCaseIds = [...c2.caseIds]
 
     // serializes group key => case id map appropriately
     c1.prepareSnapshot()
@@ -301,12 +342,42 @@ describe("CollectionModel", () => {
     c2.prepareSnapshot()
     expect(c2._groupKeyCaseIds!.length).toEqual(itemData.itemIds().length)
 
-    // adding an attribute to the child collection doesn't invalidate grouping
+    // adding constant attribute to the child collection doesn't invalidate grouping
     c2.addAttribute(a4)
     expect(itemData.invalidate).not.toHaveBeenCalled()
 
-    // adding an attribute to the parent collection does invalidate grouping
+    // adding constant attribute to the child collection doesn't change case ids
+    validateCases()
+    expect(c1.caseIds).toEqual(originalParentCaseIds)
+    expect(c2.caseIds).toEqual(originalChildCaseIds)
+
+    // adding constant attribute to the parent collection does invalidate grouping
     c1.addAttribute(a3)
     expect(itemData.invalidate).toHaveBeenCalledTimes(1)
+
+    // adding constant attribute to the parent collection doesn't change case ids
+    validateCases()
+    expect(c1.caseIds).toEqual(originalParentCaseIds)
+    expect(c2.caseIds).toEqual(originalChildCaseIds)
+
+    // removing attr1 from the parent collection invalidates grouping and changes parent case ids
+    c1.removeAttribute(a1.id)
+    expect(itemData.invalidate).toHaveBeenCalledTimes(2)
+    validateCases()
+    expect(c1.caseIds).not.toEqual(originalParentCaseIds)
+    expect([...c2.caseIds].sort()).toEqual([...originalChildCaseIds].sort())
+
+    // adding attr1 back to parent collection invalidates grouping and restores original parent case ids
+    c1.addAttribute(a1)
+    expect(itemData.invalidate).toHaveBeenCalledTimes(3)
+    validateCases()
+    expect(c1.caseIds).toEqual(originalParentCaseIds)
+    expect(c2.caseIds).toEqual(originalChildCaseIds)
+
+    // changing all b's to c's doesn't change case ids
+    attr1Values = ["a", "c"]
+    validateCases()
+    expect(c1.caseIds).toEqual(originalParentCaseIds)
+    expect(c2.caseIds).toEqual(originalChildCaseIds)
   })
 })

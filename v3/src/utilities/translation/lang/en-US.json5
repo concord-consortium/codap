@@ -4,7 +4,7 @@
 
     "V3.ToolButtonData.pluginMenu.fetchError": "No plugin configuration available",
 
-    // V3 general strings that are not present in V2 and will require translation
+    // V3 case table strings that are not present in V2 and will eventually require translation.
     "V3.general.yes": "Yes",
     "V3.general.no": "No",
 
@@ -23,7 +23,6 @@
     "V3.Undo.map.hideLayer": "Undo hiding map layer",
     "V3.Redo.map.hideLayer": "Redo hiding map layer",
 
-    // V3 case table strings that are not present in V2 and will eventually require translation.
     "DG.CaseTable.attribute.type.color": "color", // used dynamically (`DG.CaseTable.attribute.type.${type}`)
     "V3.CaseTable.colorPalette.setColor": "Set Color",
     "V3.CaseTable.colorPalette.cancel": "Cancel",
@@ -37,6 +36,10 @@
     "V3.Redo.import.data": "Redo import of data",
     "V3.Undo.caseCard.hide": "Undo hiding case card",
     "V3.Redo.caseCard.hide": "Redo hiding case card",
+    "V3.Undo.hideShowMenu.setAsideCases": "Undo setting aside cases",
+    "V3.Redo.hideShowMenu.setAsideCases": "Redo setting aside cases",
+    "V3.Undo.hideShowMenu.restoreSetAsideCases": "Undo restoring set aside cases",
+    "V3.Redo.hideShowMenu.restoreSetAsideCases": "Redo restoring set aside cases",
 
     "V3.Inspector.rescale.noRescale.toolTip": "All the data are already visible",
     "V3.Inspector.rescale.casePlot.toolTip": "Move the points to new random positions",

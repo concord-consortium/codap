@@ -132,12 +132,14 @@ export const DataSet = V2Model.named("DataSet").props({
   // ordered parent-most to child-most
   collections: types.array(CollectionModel),
   attributesMap: types.map(Attribute),
-  itemIds: types.array(types.string),
+  _itemIds: types.array(types.string),
   sourceName: types.maybe(types.string),
   description: types.maybe(types.string),
   importDate: types.maybe(types.string),
   // for serialization only, not for dynamic selection tracking
-  snapSelection: types.array(types.string)
+  snapSelection: types.array(types.string),
+  // hidden by user, e.g. set-aside in CODAP
+  hiddenItemIds: types.array(types.string)
 })
 .volatile(self => ({
   // map from attribute name to attribute id
@@ -147,6 +149,10 @@ export const DataSet = V2Model.named("DataSet").props({
   // MobX-observable set of selected case IDs
   selection: observable.set<string>(),
   selectionChanges: 0,
+  // MobX-observable set of hidden (set aside) item IDs
+  hiddenItemIdsSet: observable.set<string>(),
+  // copy of hiddenItemIds used for change-detection
+  hiddenItemIdsMirror: [] as string[],
   // map from case ID to the CaseGroup it represents
   caseInfoMap: new Map<string, CaseInfo>(),
   // map from item ID to the child case containing it
@@ -209,7 +215,9 @@ export const DataSet = V2Model.named("DataSet").props({
 .preProcessSnapshot(snap => {
   // convert legacy collections/attributes/cases implementation to current
   if (isLegacyDataSetSnap(snap)) {
-    const { collections: _collections = [], attributes: _legacyAttributes, ungrouped, cases, ...others } = snap
+    const {
+      collections: _collections = [], attributes: _legacyAttributes, ungrouped, cases, itemIds, ...others
+    } = snap
 
     const attributeIds: string[] = []
 
@@ -254,12 +262,22 @@ export const DataSet = V2Model.named("DataSet").props({
     }
     collections.push(childCollection)
 
-    const itemIds = cases?.map(({ __id__ }) => __id__) ?? []
+    const _itemIds = cases?.map(({ __id__ }) => __id__) ?? itemIds ?? []
 
-    return { attributesMap, collections, itemIds, ...others }
+    return { attributesMap, collections, _itemIds, ...others }
   }
   return snap
 })
+.views(self => ({
+  isCaseOrItemHidden(caseOrItemId: string) {
+    const caseInfo = self.caseInfoMap.get(caseOrItemId)
+    return caseInfo?.childItemIds.every(itemId => self.hiddenItemIdsSet.has(itemId)) ??
+            self.hiddenItemIdsSet.has(caseOrItemId)
+  },
+  get itemIds() {
+    return self._itemIds.filter(itemId => !self.hiddenItemIdsSet.has(itemId))
+  }
+}))
 .views(self => ({
   get attributes() {
     const attrs: IAttribute[] = []
@@ -504,6 +522,45 @@ export const DataSet = V2Model.named("DataSet").props({
   }
 }))
 .actions(self => ({
+  hideCasesOrItems(caseOrItemIds: string[]) {
+    caseOrItemIds.forEach(id => {
+      const caseInfo = self.caseInfoMap.get(id)
+      if (caseInfo) {
+        caseInfo.childItemIds.forEach(itemId => {
+          if (!self.hiddenItemIdsSet.has(itemId)) {
+            self.hiddenItemIds.push(itemId)
+          }
+        })
+      }
+      else if (self.itemInfoMap.get(id)) {
+        if (!self.hiddenItemIdsSet.has(id)) {
+          self.hiddenItemIds.push(id)
+        }
+      }
+    })
+  },
+  showHiddenCasesAndItems(caseOrItemIds?: string[]) {
+    if (caseOrItemIds) {
+      caseOrItemIds.forEach(id => {
+        const caseInfo = self.caseInfoMap.get(id)
+        if (caseInfo) {
+          caseInfo.childItemIds.forEach(itemId => {
+            const foundIndex = self.hiddenItemIds.findIndex(hiddenItemId => hiddenItemId === itemId)
+            if (foundIndex >= 0) self.hiddenItemIds.splice(foundIndex, 1)
+          })
+        }
+        else if (self.itemInfoMap.get(id)) {
+          const foundIndex = self.hiddenItemIds.findIndex(hiddenItemId => hiddenItemId === id)
+          if (foundIndex >= 0) self.hiddenItemIds.splice(foundIndex, 1)
+        }
+      })
+    } else {
+      // show all hidden cases/items
+      self.hiddenItemIds.clear()
+    }
+  }
+}))
+.actions(self => ({
   // if beforeCollectionId is not specified, new collection is parent of the child-most collection
   moveAttributeToNewCollection(attributeId: string, beforeCollectionId?: string) {
     const attribute = self.getAttribute(attributeId)
@@ -696,7 +753,7 @@ export const DataSet = V2Model.named("DataSet").props({
         }
         return cases
       },
-      getFirstItemForCase(caseId: string, options: IGetCasesOptions) {
+      getFirstItemForCase(caseId: string, options?: IGetCasesOptions) {
         const itemId = self.caseInfoMap.get(caseId)?.childItemIds[0]
         return itemId ? getItem(itemId, { numeric: false }) : undefined
       },
@@ -762,7 +819,7 @@ export const DataSet = V2Model.named("DataSet").props({
 
         // fill out any missing values
         // for (let i = attribute.strValues.length; i < self.cases.length; ++i) {
-        for (let i = attribute.strValues.length; i < self.itemIds.length; ++i) {
+        for (let i = attribute.strValues.length; i < self._itemIds.length; ++i) {
           attribute.addValue()
         }
 
@@ -855,7 +912,7 @@ export const DataSet = V2Model.named("DataSet").props({
         const ids = cases.map(({ __id__ = v3Id(kItemIdPrefix) }) => __id__)
         const _values = new Array(cases.length)
         if (insertPosition < self.items.length) {
-          self.itemIds.splice(insertPosition, 0, ...ids)
+          self._itemIds.splice(insertPosition, 0, ...ids)
           // update the indices of cases after the insert
           self.itemInfoMap.forEach((itemInfo, caseId) => {
             if (itemInfo.index >= insertPosition) {
@@ -868,7 +925,7 @@ export const DataSet = V2Model.named("DataSet").props({
           })
         }
         else {
-          self.itemIds.push(...ids)
+          self._itemIds.push(...ids)
           // append values to each attribute
           self.attributesMap.forEach(attr => {
             attr.setLength(self.items.length)
@@ -939,7 +996,7 @@ export const DataSet = V2Model.named("DataSet").props({
         items.sort((a, b) => b.index - a.index)
         const firstIndex = items[items.length - 1]?.index ?? -1
         items.forEach(({ id: caseID, index }) => {
-          self.itemIds.splice(index, 1)
+          self._itemIds.splice(index, 1)
           self.attributes.forEach((attr) => {
             attr.removeValues(index)
           })
@@ -947,8 +1004,8 @@ export const DataSet = V2Model.named("DataSet").props({
           self.itemInfoMap.delete(caseID)
         })
         if (firstIndex >= 0) {
-          for (let i = firstIndex; i < self.itemIds.length; ++i) {
-            const itemId = self.itemIds[i]
+          for (let i = firstIndex; i < self._itemIds.length; ++i) {
+            const itemId = self._itemIds[i]
             const itemInfo = self.itemInfoMap.get(itemId)
             if (itemInfo) itemInfo.index = i
           }
@@ -969,25 +1026,25 @@ export const DataSet = V2Model.named("DataSet").props({
 
         // Remove from ordered arrays
         indices.forEach(index => {
-          self.itemIds.splice(index, 1)
+          self._itemIds.splice(index, 1)
           self.attributes.forEach(attr => attr.removeValues(index))
         })
 
         // Determine position to re-insert items
-        const beforeIndex = options?.before ? self.itemIds.indexOf(options.before) : undefined
-        const afterIndex = options?.after ? self.itemIds.indexOf(options.after) + 1 : undefined
-        const insertIndex = afterIndex ?? beforeIndex ?? self.itemIds.length
+        const beforeIndex = options?.before ? self._itemIds.indexOf(options.before) : undefined
+        const afterIndex = options?.after ? self._itemIds.indexOf(options.after) + 1 : undefined
+        const insertIndex = afterIndex ?? beforeIndex ?? self._itemIds.length
 
         // Add back to ordered arrays
-        self.itemIds.splice(insertIndex, 0, ...items.map(({ item }) => item.__id__))
+        self._itemIds.splice(insertIndex, 0, ...items.map(({ item }) => item.__id__))
         self.attributes.forEach((attr, index) => {
           attr.strValues.splice(insertIndex, 0, ...items.map(({ values }) => values[index].strValue))
           attr.numValues.splice(insertIndex, 0, ...items.map(({ values }) => values[index].numValue))
         })
 
         // Fix indices
-        for (let i = 0; i < self.itemIds.length; ++i) {
-          const itemId = self.itemIds[i]
+        for (let i = 0; i < self._itemIds.length; ++i) {
+          const itemId = self._itemIds[i]
           const itemInfo = self.itemInfoMap.get(itemId)
           if (itemInfo) itemInfo.index = i
         }
@@ -1103,7 +1160,8 @@ export const DataSet = V2Model.named("DataSet").props({
         () => {
           // update parent/child links and provide access to item data
           const itemData: IItemData = {
-            itemIds: () => self.itemIds,
+            itemIds: () => self._itemIds,
+            isHidden: (itemId) => self.isCaseOrItemHidden(itemId),
             getValue: (itemId, attrId) => self.getStrValue(itemId, attrId) ?? "",
             addItemInfo: (itemId, index, caseId) => self.addItemInfo(itemId, index, caseId),
             invalidate: () => self.invalidateCases()
@@ -1116,8 +1174,36 @@ export const DataSet = V2Model.named("DataSet").props({
       ))
 
       // when items are added/removed...
+      // use MST's onPatch mechanism to respond to additions/removals of items and their undo/redo
       addDisposer(self, onPatch(self, ({ op, path, value }) => {
-        if ((op === "add" || op === "remove") && /itemIds\/\d+$/.test(path)) {
+        if ((op === "add" || op === "remove") && /_itemIds\/\d+$/.test(path)) {
+          self.invalidateCases()
+        }
+      }))
+
+      // when items are hidden/shown...
+      // Use MST's onPatch mechanism to respond to changes to the `hiddenItemIds`.
+      // This will be called once for each item added/removed and will update related properties.
+      addDisposer(self, onPatch(self, ({ op, path, value }) => {
+        let match: RegExpExecArray | null = null
+        if ((op === "add" || op === "remove") && (match = /hiddenItemIds\/(\d+)$/.exec(path))) {
+          const index = +match[1]
+          if (op === "add") {
+            const itemId = value
+            self.hiddenItemIdsMirror.splice(index, 0, itemId)
+            self.hiddenItemIdsSet.add(itemId)
+          }
+          else {
+            const itemId = self.hiddenItemIdsMirror[index]
+            self.hiddenItemIdsMirror.splice(index, 1)
+            self.hiddenItemIdsSet.delete(itemId)
+          }
+          self.invalidateCases()
+        }
+        if ((op === "replace") && /hiddenItemIds$/.test(path)) {
+          const replacementArray: string[] = value
+          self.hiddenItemIdsMirror = [...replacementArray]
+          self.hiddenItemIdsSet.replace(observable.set<string>(replacementArray))
           self.invalidateCases()
         }
       }))
