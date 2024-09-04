@@ -1,4 +1,4 @@
-import React, { KeyboardEventHandler, useEffect, useRef } from "react"
+import React, { useEffect, useRef } from "react"
 import { textEditorClassname } from "react-data-grid"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useLoggingContext } from "../../hooks/use-log-context"
@@ -6,7 +6,6 @@ import { logStringifiedObjectMessage } from "../../lib/log-message"
 import { selectAllCases } from "../../models/data/data-set-utils"
 import { uiState } from "../../models/ui-state"
 import { TRenderEditCellProps } from "./case-table-types"
-import { useCollectionTableModel } from "./use-collection-table-model"
 
 /*
   ReactDataGrid uses Linaria CSS-in-JS for its internal styling. As with CSS Modules and other
@@ -31,7 +30,6 @@ export default function CellTextEditor({ row, column, onRowChange, onClose }: TR
   const initialValueRef = useRef(data?.getStrValue(row.__id__, column.key))
   const valueRef = useRef(initialValueRef.current)
   const { setPendingLogMessage } = useLoggingContext()
-  const collectionTableModel = useCollectionTableModel()
 
   useEffect(()=>{
     selectAllCases(data, false)
@@ -39,9 +37,9 @@ export default function CellTextEditor({ row, column, onRowChange, onClose }: TR
 
   // Inform the ui that we're editing a table while this component exists.
   useEffect(() => {
-    uiState.setEditingTable(true)
+    uiState.setIsEditingCell(true)
     return () => {
-      uiState.setEditingTable(false)
+      uiState.setIsEditingCell(false)
     }
   }, [])
 
@@ -52,8 +50,6 @@ export default function CellTextEditor({ row, column, onRowChange, onClose }: TR
       {attrId: column.key, caseId: row.__id__, from: initialValueRef.current, to: valueRef.current }))
   }
 
-  const handleKeyDown: KeyboardEventHandler = (event) => collectionTableModel?.setLastKey(event.key)
-
   return (
     <input
       data-testid="cell-text-editor"
@@ -61,7 +57,6 @@ export default function CellTextEditor({ row, column, onRowChange, onClose }: TR
       ref={autoFocusAndSelect}
       value={valueRef.current}
       onChange={(event) => handleChange(event.target.value)}
-      onKeyDown={handleKeyDown}
     />
   )
 }

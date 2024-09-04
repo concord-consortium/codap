@@ -52,26 +52,26 @@ export function useDataInteractiveController(iframeRef: React.RefObject<HTMLIFra
       webViewModel?.setDataInteractiveController(rpcEndpoint)
 
       const disposer = autorun(() => {
-        const canProcessRequest = !uiState.editingTable
+        const canProcessRequest = !uiState.isEditingCell
         if (canProcessRequest && requestQueue.length > 0) {
           let tableModified = false
           while (requestQueue.length > 0) {
             const { request, callback } = requestQueue.nextItem
             debugLog(DEBUG_PLUGINS, `Processing data-interactive: ${JSON.stringify(request)}`)
             let result: DIRequestResponse = { success: false }
-    
+
             const errorResult = (error: string) => ({ success: false, values: { error }} as const)
             const processAction = (action: DIAction) => {
               if (!action) return errorResult(t("V3.DI.Error.noAction"))
               if (!tile) return errorResult(t("V3.DI.Error.noTile"))
-    
+
               const resourceSelector = parseResourceSelector(action.resource)
               const resources = resolveResources(resourceSelector, action.action, tile)
               const type = resourceSelector.type ?? ""
               const a = action.action
               const func = getDIHandler(type)?.[a as keyof DIHandler]
               if (!func) return errorResult(t("V3.DI.Error.unsupportedAction", {vars: [a, type]}))
-    
+
               const actionResult = func?.(resources, action.values)
               if (actionResult &&
                 ["create", "delete", "notify"].includes(a) &&
@@ -87,7 +87,7 @@ export function useDataInteractiveController(iframeRef: React.RefObject<HTMLIFra
             } else {
               result = processAction(request)
             }
-    
+
             debugLog(DEBUG_PLUGINS, `Responding with`, result)
             callback(result)
             requestQueue.shift()
@@ -98,7 +98,7 @@ export function useDataInteractiveController(iframeRef: React.RefObject<HTMLIFra
           if (tableModified) uiState.incrementRequestBatchesProcessed()
         }
       }, { name: "DataInteractiveController request processer autorun" })
-      
+
       return () => {
         disposer()
         rpcEndpoint.disconnect()
