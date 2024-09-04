@@ -1,0 +1,61 @@
+@import "./case-card-vars.scss";
+
+.case-card-attr {
+  height: 25px;
+
+  &:first-child {
+    .case-card-attr-value {
+      border-top: solid 1px #b2b2b2;
+    }
+  }
+
+  .case-card-attr-name {
+    font-weight: 400;
+    font-stretch: normal;
+    font-style: normal;
+    line-height: normal;
+    letter-spacing: normal;
+    text-align: right;
+    padding: 1px 8px 2px 4px;
+    position: relative;
+    white-space: nowrap;
+  }
+
+  .case-card-attr-value {
+    background-color: white;
+    border: solid 1px #b2b2b2;
+    border-top: none;
+    cursor: text;
+    font-weight: 500;
+    padding: 0;
+    text-align: left;
+    width: 100%;
+
+    &.numeric {
+      text-align: right;
+    }
+
+    .case-card-attr-value-text {
+      white-space: nowrap;
+
+      span {
+        border-radius: 0;
+        display: inline-block;
+        height: 25px;
+        padding: 4px;
+        position: relative;
+        width: 100%;
+
+        // add space to guarantee cell height if value is empty string
+        &:empty::after{
+          content: "\00a0";
+        }
+      }
+    }
+    input.case-card-attr-value-text-editor {
+      display: inline-block;
+      height: 25px;
+      padding: 4px;
+    }
+  }
+}
