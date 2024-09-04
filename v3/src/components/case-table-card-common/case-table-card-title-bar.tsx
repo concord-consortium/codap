@@ -91,7 +91,8 @@ export const CaseTableCardTitleBar =
         }, {
           notify: () => updateDataContextNotification(data),
           undoStringKey: "DG.Undo.component.componentTitleChange",
-          redoStringKey: "DG.Redo.component.componentTitleChange"
+          redoStringKey: "DG.Redo.component.componentTitleChange",
+          log: logMessageWithReplacement("Title changed to %@", {newTitle})
         })
       }
     }
@@ -102,7 +103,9 @@ export const CaseTableCardTitleBar =
         documentContent?.toggleNonDestroyableTileVisibility(tile?.id)
       }, {
         undoStringKey: `V3.Undo.case${suffix}.hide`,
-        redoStringKey: `V3.Redo.case${suffix}.hide`
+        redoStringKey: `V3.Redo.case${suffix}.hide`,
+        log: logMessageWithReplacement("Close %@", { type: tileInfo.toggleSuffix })
+
       })
     }, [documentContent, tile?.id, tileInfo])
 

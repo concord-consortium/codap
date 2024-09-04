@@ -48,7 +48,8 @@ export const Container: React.FC = () => {
             rowTile.setPosition(rowTile.x + evt.delta.x, rowTile.y + evt.delta.y)
           }, {
             undoStringKey: "DG.Undo.componentMove",
-            redoStringKey: "DG.Redo.componentMove"
+            redoStringKey: "DG.Redo.componentMove",
+            log: "Moved component"
           })
         }
       }

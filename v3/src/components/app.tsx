@@ -25,6 +25,7 @@ import { importSample, sampleData } from "../sample-data"
 import { urlParams } from "../utilities/url-params"
 import { kWebViewTileType } from "./web-view/web-view-defs"
 import { isWebViewModel } from "./web-view/web-view-model"
+import { logStringifiedObjectMessage } from "../lib/log-message"
 
 import "../models/shared/shared-case-metadata-registration"
 import "../models/shared/shared-data-set-registration"
@@ -48,7 +49,8 @@ export const App = observer(function App() {
       }, {
         notify: dataContextCountChangedNotification,
         undoStringKey: "V3.Undo.import.data",
-        redoStringKey: "V3.Redo.import.data"
+        redoStringKey: "V3.Redo.import.data",
+        log: logStringifiedObjectMessage("Imported data set: %@", {datasetName: data.name})
       })
       // return to "normal" after import process is complete
       sharedData?.dataSet.completeSnapshot()

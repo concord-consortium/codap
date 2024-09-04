@@ -99,7 +99,8 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
         tileLayout.setPosition(resizingLeft, tileLayout.y)
       }, {
         undoStringKey: "DG.Undo.componentResize",
-        redoStringKey: "DG.Redo.componentResize"
+        redoStringKey: "DG.Redo.componentResize",
+        log: "Resized component"
       })
       setResizingTileId("")
     }

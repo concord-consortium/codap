@@ -16,6 +16,8 @@ import { useAdornmentAttributes } from "../../hooks/use-adornment-attributes"
 import { useAdornmentCategories } from "../../hooks/use-adornment-categories"
 import { useAdornmentCells } from "../../hooks/use-adornment-cells"
 import { useGraphLayoutContext } from "../../hooks/use-graph-layout-context"
+import { LogMessageFn, logModelChangeFn } from "../../../../lib/log-message"
+import { safeGetSnapshot } from "../../../../utilities/mst-utils"
 
 import "./movable-line-adornment-component.scss"
 
@@ -66,6 +68,7 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
   const pointsOnAxes = useRef<IAxisIntercepts>({pt1: {x: 0, y: 0}, pt2: {x: 0, y: 0}})
   const xScaleRef = useRef(xScale.copy())
   const yScaleRef = useRef(yScale.copy())
+  const logFn = useRef<Maybe<LogMessageFn>>()
 
   // Set scale copy ranges. The scale copies are used when computing the line's coordinates during
   // dragging. We modify the ranges of the scale copies to match the sub plot's width and height so that
@@ -316,7 +319,8 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
           () => lineModel?.setEquationCoords({x: left, y: top}),
           {
             undoStringKey: "DG.Undo.graph.repositionEquation",
-            redoStringKey: "DG.Redo.graph.repositionEquation"
+            redoStringKey: "DG.Redo.graph.repositionEquation",
+            log: logFn.current
           }
         )
       }
@@ -354,7 +358,12 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
         .on("drag", (e) => handleRotation(e, "upper"))
         .on("end", (e) => handleRotation(e, "upper", true)),
       equation: drag()
-        .on("drag", (e) => handleMoveEquation(e))
+        .on("drag", (e) => {
+          logFn.current = logModelChangeFn(
+            "Moved equation from (%@, %@) to (%@, %@)",
+            () => safeGetSnapshot(model.lines?.get(instanceKey)?.equationCoords) ?? { x: "default", y: "default" })
+          handleMoveEquation(e)
+        })
         .on("end", (e) => handleMoveEquation(e, true))
     }
 

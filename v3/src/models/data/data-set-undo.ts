@@ -8,6 +8,7 @@ import { ICollectionModel } from "./collection"
 import { CaseInfo, IAddCasesOptions, ICase, ICaseCreation, IItem } from "./data-set-types"
 import { DataSet, IDataSet } from "./data-set"
 import { deleteCasesNotification, } from "./data-set-notifications"
+import { logMessageWithReplacement } from "../../lib/log-message"
 
 /*
  * setCaseValues custom undo/redo
@@ -141,7 +142,8 @@ export function insertCasesWithCustomUndoRedo(data: IDataSet, cases: ICaseCreati
   }, {
     // notify: insertCasesNotification(data, cases),
     undoStringKey: "DG.Undo.caseTable.insertCases",
-    redoStringKey: "DG.Redo.caseTable.insertCases"
+    redoStringKey: "DG.Redo.caseTable.insertCases",
+    log: logMessageWithReplacement("insert %@ cases", {numCases: items.length})
   })
 }
 
@@ -261,6 +263,7 @@ export function removeCasesWithCustomUndoRedo(data: IDataSet, caseIds: string[])
   }, {
     notify: deleteCasesNotification(data, cases),
     undoStringKey: "DG.Undo.data.deleteCases",
-    redoStringKey: "DG.Redo.data.deleteCases"
+    redoStringKey: "DG.Redo.data.deleteCases",
+    log: logMessageWithReplacement("Delete %@ cases", {numCases: cases.length})
   })
 }

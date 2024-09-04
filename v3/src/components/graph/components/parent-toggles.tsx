@@ -151,7 +151,8 @@ export const ParentToggles = observer(function ParentToggles() {
         },
         {
           undoStringKey: "DG.mainPage.mainPane.undoButton.toolTip",
-          redoStringKey: "DG.mainPage.mainPane.redoButton.toolTip"
+          redoStringKey: "DG.mainPage.mainPane.redoButton.toolTip",
+          log: "Show all parent toggles"
         }
       )
     } else {
@@ -159,7 +160,8 @@ export const ParentToggles = observer(function ParentToggles() {
         () => dataConfig.setHiddenCases(Array.from(dataConfig.allCaseIDs)),
         {
           undoStringKey: "DG.mainPage.mainPane.undoButton.toolTip",
-          redoStringKey: "DG.mainPage.mainPane.redoButton.toolTip"
+          redoStringKey: "DG.mainPage.mainPane.redoButton.toolTip",
+          log: "Hide all parent toggles"
         }
       )
     }
@@ -178,7 +180,8 @@ export const ParentToggles = observer(function ParentToggles() {
       },
       {
         undoStringKey: "DG.mainPage.mainPane.undoButton.toolTip",
-        redoStringKey: "DG.mainPage.mainPane.redoButton.toolTip"
+        redoStringKey: "DG.mainPage.mainPane.redoButton.toolTip",
+        log: isOnlyLastShown ? "Disable last parent toggle" : "Enable last parent toggle"
       }
     )
   }
@@ -199,7 +202,8 @@ export const ParentToggles = observer(function ParentToggles() {
       },
       {
         undoStringKey: "DG.mainPage.mainPane.undoButton.toolTip",
-        redoStringKey: "DG.mainPage.mainPane.redoButton.toolTip"
+        redoStringKey: "DG.mainPage.mainPane.redoButton.toolTip",
+        log: "Toggle parent toggle"
       }
     )
   }

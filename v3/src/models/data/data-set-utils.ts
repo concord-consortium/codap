@@ -8,6 +8,7 @@ import {
   deleteCollectionNotification, moveAttributeNotification, selectCasesNotification
 } from "./data-set-notifications"
 import { IAttributeChangeResult, IMoveAttributeOptions } from "./data-set-types"
+import { logMessageWithReplacement } from "../../lib/log-message"
 
 export function getCollectionAttrs(collection: ICollectionModel, data?: IDataSet): IAttribute[] {
   if (collection && !isAlive(collection)) {
@@ -71,7 +72,9 @@ export function moveAttribute({
   const notifications = includeNotifications ? moveAttributeNotification(dataset) : undefined
   const undoStringKey = undoable ? "DG.Undo.dataContext.moveAttribute" : undefined
   const redoStringKey = undoable ? "DG.Redo.dataContext.moveAttribute" : undefined
-  const modelChangeOptions = { notifications, undoStringKey, redoStringKey }
+  const logMessage = logMessageWithReplacement("Moved attribute %@ to %@ collection",
+                        { attrId, collection: targetCollection.name ?? "new" })
+  const modelChangeOptions = { notifications, undoStringKey, redoStringKey, log: logMessage }
 
   if (targetCollection.id === sourceCollection?.id) {
     // move the attribute within a collection
@@ -93,7 +96,7 @@ export function moveAttribute({
       () => {
         result = dataset.moveAttribute(attrId, { collection: targetCollection?.id, ...options })
       },
-      { notify: _notifications, undoStringKey, redoStringKey }
+      { notify: _notifications, undoStringKey, redoStringKey, log: logMessage }
     )
   }
 }
