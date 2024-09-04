@@ -1174,6 +1174,7 @@ export const DataSet = V2Model.named("DataSet").props({
       ))
 
       // when items are added/removed...
+      // use MST's onPatch mechanism to respond to additions/removals of items and their undo/redo
       addDisposer(self, onPatch(self, ({ op, path, value }) => {
         if ((op === "add" || op === "remove") && /_itemIds\/\d+$/.test(path)) {
           self.invalidateCases()
@@ -1181,6 +1182,8 @@ export const DataSet = V2Model.named("DataSet").props({
       }))
 
       // when items are hidden/shown...
+      // Use MST's onPatch mechanism to respond to changes to the `hiddenItemIds`.
+      // This will be called once for each item added/removed and will update related properties.
       addDisposer(self, onPatch(self, ({ op, path, value }) => {
         let match: RegExpExecArray | null = null
         if ((op === "add" || op === "remove") && (match = /hiddenItemIds\/(\d+)$/.exec(path))) {
