@@ -1,3 +1,4 @@
+import { Colord } from "colord"
 import React from "react"
 
 interface IProps {
@@ -6,8 +7,9 @@ interface IProps {
   even: boolean
   prevY1: number
   prevY2: number
+  fillColor?: string
 }
-export function CurvedSpline({ y1, y2, even, prevY1, prevY2 }: IProps) {
+export function CurvedSpline({ y1, y2, even, prevY1, prevY2, fillColor }: IProps) {
   const kDividerWidth = 48,
         kRelationParentMargin = 12,
         kRelationChildMargin = 4,
@@ -91,10 +93,13 @@ export function CurvedSpline({ y1, y2, even, prevY1, prevY2 }: IProps) {
 
   const pathData = buildPathStr(y1, y2)
   const fillData = buildFillPathStr(prevY1, prevY2, y1, y2)
+  const finalFillColor = fillColor
+                          ? even ? new Colord(fillColor).darken(0.05).toHex() : fillColor
+                          : even ? kRelationFillColor : undefined
   return (
-    even
+    finalFillColor
       ? <>
-          <path d={fillData} fill={kRelationFillColor} stroke ="none" />
+          <path d={fillData} fill={finalFillColor} stroke="none" />
           <path d={pathData} fill="none" stroke={kRelationStrokeColor} />
         </>
       : <path d={pathData} fill="none" stroke={kRelationStrokeColor} />

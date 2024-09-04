@@ -244,51 +244,90 @@ context("case table ui", () => {
       table.getAttribute("Mammal").should("exist")
     })
 
-    // // does set aside cases work? can we restore set aside cases? undo/redo?
-    // TODO: implement this test (blocker: need functionality of Set Aside Cases)
-    // PT: #187597833
-    // it.skip("tests for set aside cases with undo/redo", () => {
-    //   let initialRowCount, postInsertRowCount, postDeleteRowCount
+    it("tests for set aside cases with undo/redo", () => {
+      let initialRowCount = 0
 
-    //   // Get initial row count
-    //   table.getNumOfRows().then(rowCount => {
-    //    initialRowCount = Number(rowCount)
-    //   })
+      // Get initial row count
+      table.getNumOfRows().then(rowCount => {
+        initialRowCount = Number(rowCount)
+      })
 
-    //   table.getGridCell(2, 2).should("contain", "African Elephant").click({ force: true })
-    //   table.getHideShowButton().click()
-    //   table.getDeleteMenuItem("Set Aside Unselected Cases").click()
+      table.getGridCell(2, 2).should("contain", "African Elephant").click({ force: true })
+      table.getHideShowButton().click()
+      table.getHideShowMenuItem("Set Aside Selected Cases").click()
 
-    //   // Row count after delete all cases (assuming row count is set to 1 if no cases are in the table)
-    //   table.getNumOfRows().then(rowCount => {
-    //     postInsertRowCount = Number(rowCount)
-    //     expect(postInsertRowCount).to.eq(initialRowCount - 1 )
-    //   })
+      // Row count after delete all cases (assuming row count is set to 1 if no cases are in the table)
+      table.getNumOfRows().then(rowCount => {
+        const postSetAsideRowCount = Number(rowCount)
+        expect(postSetAsideRowCount).to.eq(initialRowCount - 1)
+      })
 
-    //    // // checks for undo/redo
-    //    // cy.log("check for undo/redo after delete")
+      // Undo set aside
+      toolbar.getUndoTool().click()
 
-    //    // // Undo delete
-    //    // toolbar.getUndoTool().click()
+      table.getNumOfRows().then(rowCount => {
+        const rowCountAfterUndo = Number(rowCount)
+        expect(rowCountAfterUndo).to.eq(initialRowCount)
+      })
 
-    //    // // Verify undo (check if row count is back to post-insert count)
-    //    // // TODO: add the check once bug is fixed (PT ##187597588)
-    //    // table.getNumOfRows().then(rowCount => {
-    //    //  const rowCountAfterUndo = Number(rowCount)
-    //    //  expect(rowCountAfterUndo).to.eq(postInsertRowCount)
-    //    // })
+      // Redo set aside
+      toolbar.getRedoTool().click()
 
-    //    // // Redo delete
-    //    // toolbar.getRedoTool().click()
+      table.getNumOfRows().then(rowCount => {
+        const rowCountAfterRedo = Number(rowCount)
+        expect(rowCountAfterRedo).to.eq(initialRowCount - 1)
+      })
 
-    //    // // Verify redo (check if row count is back to initial count)
-    //    // // TODO: add the check once bug is fixed (PT ##187597588)
-    //    //  table.getNumOfRows().then(rowCount => {
-    //    //  const rowCountAfterRedo = Number(rowCount)
-    //    //  expect(rowCountAfterRedo).to.eq(initialRowCount)
-    //    // })
+      table.getGridCell(2, 2).should("contain", "Asian Elephant").click({ force: true })
+      table.getHideShowButton().click()
+      table.getHideShowMenuItem("Set Aside Unselected Cases").click()
 
-    // })
+      table.getNumOfRows().then(rowCount => {
+        const rowCountAfterSetAsideUnselected = Number(rowCount)
+        expect(rowCountAfterSetAsideUnselected).to.eq(3)
+      })
+
+      // Undo set aside
+      toolbar.getUndoTool().click()
+
+      table.getNumOfRows().then(rowCount => {
+        const rowCountAfterUndo = Number(rowCount)
+        expect(rowCountAfterUndo).to.eq(initialRowCount - 1)
+      })
+
+      // Redo set aside
+      toolbar.getRedoTool().click()
+
+      table.getNumOfRows().then(rowCount => {
+        const rowCountAfterRedo = Number(rowCount)
+        expect(rowCountAfterRedo).to.eq(3)
+      })
+
+      // Show all set aside cases
+      table.getHideShowButton().click()
+      table.getHideShowMenuItem(/Restore \d+ Set Aside Cases/).click()
+
+      table.getNumOfRows().then(rowCount => {
+        const rowCountAfterShowAll = Number(rowCount)
+        expect(rowCountAfterShowAll).to.eq(initialRowCount)
+      })
+
+      // Undo show all set aside cases
+      toolbar.getUndoTool().click()
+
+      table.getNumOfRows().then(rowCount => {
+        const rowCountAfterUndo = Number(rowCount)
+        expect(rowCountAfterUndo).to.eq(3)
+      })
+
+      // Redo set aside
+      toolbar.getRedoTool().click()
+
+      table.getNumOfRows().then(rowCount => {
+        const rowCountAfterRedo = Number(rowCount)
+        expect(rowCountAfterRedo).to.eq(initialRowCount)
+      })
+    })
 
     it("check New Attribute from inspector menu with undo/redo", () => {
       c.selectTile("table", 0)

@@ -711,8 +711,9 @@ export const DataConfigurationModel = types
       ))
       // invalidate caches when hiddenCases changes
       addDisposer(self, reaction(
-        () => self.hiddenCases.length,
-        count => self._invalidateCases()
+        () => [self.dataset?.itemIds.length, self.hiddenCases.length],
+        () => self._invalidateCases(),
+        { name: "DataConfigurationModel.afterCreate.reaction [add/remove/hide cases]", equals: comparer.structural }
       ))
     },
     setDataset(dataset: IDataSet | undefined, metadata: ISharedCaseMetadata | undefined) {
