@@ -324,9 +324,9 @@ export const useSubAxis = ({
   useEffect(function respondToHiddenCasesChange() {
     if (dataConfig) {
       return mstReaction(
-        () => dataConfig.hiddenCases.length,
+        () => [dataConfig.dataset?.itemIds.length, dataConfig.hiddenCases.length],
         () => updateDomainAndRenderSubAxis(),
-        {name: "useSubAxis.respondToHiddenCasesChange"}, dataConfig
+        {name: "useSubAxis.respondToHiddenCasesChange", equals: comparer.structural}, dataConfig
       )
     }
   }, [dataConfig, updateDomainAndRenderSubAxis])

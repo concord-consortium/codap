@@ -263,7 +263,7 @@ export const TableTileElements = {
   getHideShowButton() {
     return c.getInspectorPanel().find("[data-testid=hide-show-button]")
   },
-  getHideShowMenuItem(item: string) {
+  getHideShowMenuItem(item: string | RegExp) {
     return cy.get("[data-testid=hide-show-menu-list] button").contains(item)
   },
   getRulerButton() {
