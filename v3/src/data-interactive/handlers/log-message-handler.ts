@@ -1,4 +1,5 @@
 import { LoggableObject, LoggableValue, logMessageWithReplacement } from "../../lib/log-message"
+import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIHandler, DILogMessage, DIResources, DIValues,  } from "../data-interactive-types"
 
@@ -20,7 +21,7 @@ export const diLogMessageHandler: DIHandler = {
       )
       return {success: true}
     } else {
-      return {success: false, error: "No values provided"}
+      return {success: false, error: t("V3.DI.Error.valuesRequired")}
     }
   }
 }

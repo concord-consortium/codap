@@ -10,6 +10,7 @@ import { isWebViewModel } from "../web-view/web-view-model"
 import { kRootPluginUrl, processPluginUrl } from "../web-view/web-view-utils"
 import { ToolShelfButtonTag } from "./tool-shelf-button"
 import { PluginData, PluginMenuConfig } from "./plugin-config-types"
+import { logMessageWithReplacement } from "../../lib/log-message"
 import _debugPlugins from "./debug-plugins.json"
 import _standardPlugins from "./standard-plugins.json"
 const debugPlugins = DEBUG_PLUGINS ? _debugPlugins as PluginMenuConfig : []
@@ -17,7 +18,6 @@ const standardPlugins = _standardPlugins as PluginMenuConfig
 const combinedPlugins = [...standardPlugins, ...debugPlugins]
 
 import "./plugins-button.scss"
-import { logMessageWithReplacement } from "../../lib/log-message"
 
 interface IPluginItemProps {
   pluginData: PluginData | null
