@@ -27,7 +27,7 @@ import { createAttributesNotification } from "../../models/data/data-set-notific
 import { uiState } from "../../models/ui-state"
 import { uniqueName } from "../../utilities/js-utils"
 import { mstReaction } from "../../utilities/mst-reaction"
-import { preventCollectionReorg } from "../../utilities/plugin-utils"
+import { blockAPIRequests, preventCollectionReorg } from "../../utilities/plugin-utils"
 import { t } from "../../utilities/translation/translate"
 import { useCaseTableModel } from "./use-case-table-model"
 import { useCollectionTableModel } from "./use-collection-table-model"
@@ -184,7 +184,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
 
   function handleCellKeyDown(args: TCellKeyDownArgs, event: CellKeyboardEvent) {
     if (args.mode === "EDIT") {
-      if (["Enter", "Tab"].includes(event.key)) {
+      if (blockAPIRequests(data) && ["Enter", "Tab"].includes(event.key)) {
         // Note that this doesn't account for the case in which the Tab key results in focus exiting
         // the table altogether. If we need to account for that, we can replicate the logic from
         // RDG's internal `canExitGrid()` function or perhaps add a callback to RDG that is called

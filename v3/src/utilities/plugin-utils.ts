@@ -33,7 +33,8 @@ export function allowEmptyAttributeDeletion(dataset: IDataSet) {
 }
 
 // blockAPIRequests prevents the API handler from processing requests while the user is editing the table.
-export function blockAPIRequests(dataset: IDataSet) {
+export function blockAPIRequests(dataset?: IDataSet) {
+  if (!dataset) return kDefaultBlockAPIRequests
   return getManagingController(dataset)?.blockAPIRequests ?? kDefaultBlockAPIRequests
 }
 

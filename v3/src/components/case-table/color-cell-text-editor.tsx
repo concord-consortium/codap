@@ -10,6 +10,7 @@ import { logStringifiedObjectMessage } from "../../lib/log-message"
 import { selectAllCases } from "../../models/data/data-set-utils"
 import { uiState } from "../../models/ui-state"
 import { parseColor, parseColorToHex } from "../../utilities/color-utils"
+import { blockAPIRequests } from "../../utilities/plugin-utils"
 import { t } from "../../utilities/translation/translate"
 import { TRenderEditCellProps } from "./case-table-types"
 import { ColorPicker } from "./color-picker"
@@ -67,9 +68,11 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
 
   // Inform the ui that we're editing a table while this component exists.
   useEffect(() => {
-    uiState.setIsEditingCell(true)
-    return () => {
-      uiState.setIsEditingCell(false)
+    if (blockAPIRequests(data)) {
+      uiState.setIsEditingBlockingCell(true)
+      return () => {
+        uiState.setIsEditingBlockingCell(false)
+      }
     }
   }, [])
 

@@ -5,6 +5,7 @@ import { useLoggingContext } from "../../hooks/use-log-context"
 import { logStringifiedObjectMessage } from "../../lib/log-message"
 import { selectAllCases } from "../../models/data/data-set-utils"
 import { uiState } from "../../models/ui-state"
+import { blockAPIRequests } from "../../utilities/plugin-utils"
 import { TRenderEditCellProps } from "./case-table-types"
 
 /*
@@ -37,9 +38,11 @@ export default function CellTextEditor({ row, column, onRowChange, onClose }: TR
 
   // Inform the ui that we're editing a table while this component exists.
   useEffect(() => {
-    uiState.setIsEditingCell(true)
-    return () => {
-      uiState.setIsEditingCell(false)
+    if (blockAPIRequests(data)) {
+      uiState.setIsEditingBlockingCell(true)
+      return () => {
+        uiState.setIsEditingBlockingCell(false)
+      }
     }
   }, [])
 

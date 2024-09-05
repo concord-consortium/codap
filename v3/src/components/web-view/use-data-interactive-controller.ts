@@ -52,7 +52,7 @@ export function useDataInteractiveController(iframeRef: React.RefObject<HTMLIFra
       webViewModel?.setDataInteractiveController(rpcEndpoint)
 
       const disposer = autorun(() => {
-        const canProcessRequest = !uiState.isEditingCell
+        const canProcessRequest = !uiState.isEditingBlockingCell
         if (canProcessRequest && requestQueue.length > 0) {
           let tableModified = false
           while (requestQueue.length > 0) {

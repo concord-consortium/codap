@@ -23,15 +23,16 @@ export class UIState {
 
   // Values used by the Collaborative plugin to ensure a shared table does not change while a user is editing it
 
-  // true if the user is currently editing a table
-  // This blocks the API request handler, preventing the table from changing out from under the user.
+  // True if the user is currently editing a table that blocks API requests,
+  // preventing the table from changing out from under the user.
   @observable
-  private _isEditingCell = false
-  // true if the prior cell edit was completed via navigation to another cell
+  private _isEditingBlockingCell = false
+
+  // True if the prior cell edit was completed via navigation to another cell.
   @observable
   private _isNavigatingToNextEditCell = false
 
-  // the number of request batches that have been processed
+  // The number of request batches that have been processed.
   // This triggers refreshes to the selected cell after delayed API requests have been processed.
   @observable
   private _requestBatchesProcessed = 0
@@ -48,8 +49,8 @@ export class UIState {
     return this.hoverTileId
   }
 
-  get isEditingCell() {
-    return this._isEditingCell
+  get isEditingBlockingCell() {
+    return this._isEditingBlockingCell
   }
 
   get isNavigatingToNextEditCell() {
@@ -79,9 +80,9 @@ export class UIState {
   }
 
   @action
-  setIsEditingCell(isEditingCell = false) {
-    this._isEditingCell = isEditingCell
-    if (isEditingCell) {
+  setIsEditingBlockingCell(isEditingBlockingCell = false) {
+    this._isEditingBlockingCell = isEditingBlockingCell
+    if (isEditingBlockingCell) {
       // we only need to track this between editor invocations
       this._isNavigatingToNextEditCell = false
     }
