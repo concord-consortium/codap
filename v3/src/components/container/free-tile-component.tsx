@@ -11,6 +11,7 @@ import { ITileModel } from "../../models/tiles/tile-model"
 import { CodapComponent } from "../codap-component"
 import { kTitleBarHeight } from "../constants"
 import { urlParams } from "../../utilities/url-params"
+import { logMessageWithReplacement } from "../../lib/log-message"
 
 interface IProps {
   row: IFreeTileRow
@@ -100,14 +101,14 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
       }, {
         undoStringKey: "DG.Undo.componentResize",
         redoStringKey: "DG.Redo.componentResize",
-        log: "Resized component"
+        log: logMessageWithReplacement("Resized component: %@", {tileID: resizingTileId})
       })
       setResizingTileId("")
     }
 
     document.body.addEventListener("pointermove", onPointerMove, { capture: true })
     document.body.addEventListener("pointerup", onPointerUp, { capture: true })
-  }, [row])
+  }, [resizingTileId, row])
 
   const handleBottomRightPointerDown = useCallback((e: React.PointerEvent) => {
     rowTile && handleResizePointerDown(e, rowTile, "bottom-right")

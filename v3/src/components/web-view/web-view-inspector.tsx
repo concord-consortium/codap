@@ -8,7 +8,7 @@ import {InspectorButton, InspectorPanel} from "../inspector-panel"
 import {ITileInspectorPanelProps} from "../tiles/tile-base-props"
 import {WebViewUrlModal} from "./web-view-url-modal"
 import {isWebViewModel} from "./web-view-model"
-import { logStringifiedObjectMessage } from "../../lib/log-message"
+import { logMessageWithReplacement } from "../../lib/log-message"
 
 import "./web-view-inspector.scss"
 
@@ -32,7 +32,7 @@ export const WebViewInspector = observer(function WebViewInspector({tile, show}:
     }, {
       undoStringKey: "V3.Undo.webView.changeUrl",
       redoStringKey: "V3.Redo.webView.changeUrl",
-      log: logStringifiedObjectMessage("Change web view URL: %@", {url})
+      log: logMessageWithReplacement("Change web view URL: %@", {url})
     })
   }
 

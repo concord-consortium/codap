@@ -181,7 +181,7 @@ export const ParentToggles = observer(function ParentToggles() {
       {
         undoStringKey: "DG.mainPage.mainPane.undoButton.toolTip",
         redoStringKey: "DG.mainPage.mainPane.redoButton.toolTip",
-        log: isOnlyLastShown ? "Disable last parent toggle" : "Enable last parent toggle"
+        log: isOnlyLastShown ? "Disable only showing last parent toggle" : "Enable only showing last parent toggle"
       }
     )
   }

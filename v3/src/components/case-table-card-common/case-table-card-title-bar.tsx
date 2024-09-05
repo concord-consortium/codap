@@ -105,7 +105,6 @@ export const CaseTableCardTitleBar =
         undoStringKey: `V3.Undo.case${suffix}.hide`,
         redoStringKey: `V3.Redo.case${suffix}.hide`,
         log: logMessageWithReplacement("Close %@", { type: tileInfo.toggleSuffix })
-
       })
     }, [documentContent, tile?.id, tileInfo])
 

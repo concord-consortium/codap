@@ -39,7 +39,7 @@ export const PlottedFunctionAdornmentBanner = observer(function PlottedFunctionA
       {
         undoStringKey: "DG.Undo.graph.changePlotFunction",
         redoStringKey: "DG.Redo.graph.changePlotFunction",
-        log: logStringifiedObjectMessage("Change plotted function", {from: expression, to: newExpression})
+        log: logStringifiedObjectMessage("Change plotted function: %@", {from: expression, to: newExpression})
       }
     )
   }

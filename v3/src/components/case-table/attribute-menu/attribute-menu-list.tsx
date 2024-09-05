@@ -56,7 +56,7 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
 
   // const handleSortCases = (item: IMenuItem) => {
   //   data?.applyModelChange(() => {}, {
-  //     log: logStringifiedObjectMessage("Sort cases by attribute:",
+  //     log: logStringifiedObjectMessage("Sort cases by attribute: %@",
   //            { attributeId: attribute?.id, attribute: attributeName })
   //   })
   // }
@@ -81,7 +81,8 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
       itemKey: "DG.TableController.headerMenuItems.resizeColumn",
       // handleClick: () => {
       //   data?.applyModelChange(() => {}, {
-      //     log: logStringifiedObjectMessage("Fit column width:", { collection: data?.name, attribute: attributeName })
+      //     log: logStringifiedObjectMessage("Fit column width: %@",
+      //              { collection: data?.name, attribute: attributeName })
       //   })
       // }
     },
