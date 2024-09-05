@@ -26,7 +26,11 @@ export class UIState {
   // true if the user is currently editing a table
   // This blocks the API request handler, preventing the table from changing out from under the user.
   @observable
-  private _editingTable = false
+  private _isEditingCell = false
+  // true if the prior cell edit was completed via navigation to another cell
+  @observable
+  private _isNavigatingToNextEditCell = false
+
   // the number of request batches that have been processed
   // This triggers refreshes to the selected cell after delayed API requests have been processed.
   @observable
@@ -44,8 +48,12 @@ export class UIState {
     return this.hoverTileId
   }
 
-  get editingTable() {
-    return this._editingTable
+  get isEditingCell() {
+    return this._isEditingCell
+  }
+
+  get isNavigatingToNextEditCell() {
+    return this._isNavigatingToNextEditCell
   }
 
   get requestBatchesProcessed() {
@@ -71,8 +79,17 @@ export class UIState {
   }
 
   @action
-  setEditingTable(editingTable = false) {
-    this._editingTable = editingTable
+  setIsEditingCell(isEditingCell = false) {
+    this._isEditingCell = isEditingCell
+    if (isEditingCell) {
+      // we only need to track this between editor invocations
+      this._isNavigatingToNextEditCell = false
+    }
+  }
+
+  @action
+  setIsNavigatingToNextEditCell(isNavigating: boolean) {
+    this._isNavigatingToNextEditCell = isNavigating
   }
 
   @action

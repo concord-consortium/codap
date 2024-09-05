@@ -24,6 +24,7 @@ import { logStringifiedObjectMessage } from "../../lib/log-message"
 import { IAttribute } from "../../models/data/attribute"
 import { IDataSet } from "../../models/data/data-set"
 import { createAttributesNotification } from "../../models/data/data-set-notifications"
+import { uiState } from "../../models/ui-state"
 import { uniqueName } from "../../utilities/js-utils"
 import { mstReaction } from "../../utilities/mst-reaction"
 import { preventCollectionReorg } from "../../utilities/plugin-utils"
@@ -182,17 +183,27 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
   const { handleSelectedCellChange, navigateToNextRow } = useSelectedCell(gridRef, columns, rows)
 
   function handleCellKeyDown(args: TCellKeyDownArgs, event: CellKeyboardEvent) {
-    // By default in RDG, the enter/return key simply enters/exits edit mode without moving the
-    // selected cell. In CODAP, the enter/return key should accept the edit _and_ advance to the
-    // next row. To achieve this in RDG, we provide this callback, which is called before RDG
-    // handles the event internally. If we get an enter/return key while in edit mode, we handle
-    // it ourselves and call `preventGridDefault()` to prevent RDG from handling the event itself.
-    if (args.mode === "EDIT" && event.key === "Enter") {
-      // complete the cell edit
-      args.onClose(true)
-      // prevent RDG from handling the event
-      event.preventGridDefault()
-      navigateToNextRow(event.shiftKey)
+    if (args.mode === "EDIT") {
+      if (["Enter", "Tab"].includes(event.key)) {
+        // Note that this doesn't account for the case in which the Tab key results in focus exiting
+        // the table altogether. If we need to account for that, we can replicate the logic from
+        // RDG's internal `canExitGrid()` function or perhaps add a callback to RDG that is called
+        // when focus exits the grid.
+        uiState.setIsNavigatingToNextEditCell(true)
+      }
+
+      // By default in RDG, the enter/return key simply enters/exits edit mode without moving the
+      // selected cell. In CODAP, the enter/return key should accept the edit _and_ advance to the
+      // next row. To achieve this in RDG, we provide this callback, which is called before RDG
+      // handles the event internally. If we get an enter/return key while in edit mode, we handle
+      // it ourselves and call `preventGridDefault()` to prevent RDG from handling the event itself.
+      if (event.key === "Enter") {
+        // complete the cell edit
+        args.onClose(true)
+        // prevent RDG from handling the event
+        event.preventGridDefault()
+        navigateToNextRow(event.shiftKey)
+      }
     }
   }
 
