@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useCallback, useRef, useState } from "react"
 import { observer } from "mobx-react-lite"
 import { Editable, EditablePreview, EditableInput } from "@chakra-ui/react"
 import { clsx } from "clsx"
@@ -10,6 +10,7 @@ import { isFiniteNumber } from "../../utilities/math-utils"
 import { AttributeHeader } from "../case-tile-common/attribute-header"
 import { ICollectionModel } from "../../models/data/collection"
 import { createCasesNotification, updateCasesNotification } from "../../models/data/data-set-notifications"
+import { AttributeHeaderDivider } from "./attribute-header-divider"
 
 import "./case-attr-view.scss"
 
@@ -25,11 +26,17 @@ interface ICaseAttrViewProps {
 export const CaseAttrView = observer(function CaseAttrView ({caseId, collection, attrId, value}: ICaseAttrViewProps) {
   const data = useCaseCardModel()?.data
   const displayValue = value ? String(value) : ""
+  const contentRef = useRef<HTMLDivElement | null>(null)
+  const [, setCellElt] = useState<HTMLElement | null>(null)
   const [isEditing, setIsEditing] = useState(false)
   const [editingValue, setEditingValue] = useState(displayValue)
 
-  // TODO: Implement dragging
-  const dragging = false
+  const handleSetContentElt = useCallback((contentElt: HTMLDivElement | null) => {
+    contentRef.current = contentElt
+    const _cellElt: HTMLElement | null = contentRef.current?.closest(".case-card-attr") ?? null
+    setCellElt(_cellElt)
+    return _cellElt
+  }, [])
 
   const handleChangeValue = (newValue: string) => {
     setEditingValue(newValue)
@@ -138,7 +145,11 @@ export const CaseAttrView = observer(function CaseAttrView ({caseId, collection,
   return (
     <tr className="case-card-attr" data-testid="case-card-attr">
       <td className="case-card-attr-name" data-testid="case-card-attr-name">
-        <AttributeHeader attributeId={attrId} />
+        <AttributeHeader
+          attributeId={attrId}
+          HeaderDivider={AttributeHeaderDivider}
+          onSetContentElt={handleSetContentElt}
+        />
       </td>
       <td
         className={clsx("case-card-attr-value", {editing: isEditing, numeric: isFiniteNumber(Number(value))})}
@@ -146,7 +157,7 @@ export const CaseAttrView = observer(function CaseAttrView ({caseId, collection,
       >
         <Editable
           className="case-card-attr-value-text"
-          isPreviewFocusable={!dragging}
+          isPreviewFocusable={true}
           onCancel={handleCancel}
           onChange={handleChangeValue}
           onEdit={() => setIsEditing(true)}

@@ -3,6 +3,20 @@
 
 .codap-case-card {
   overflow: auto hidden;
+  position: relative;
+
+  .codap-column-header-divider {
+    position: absolute;
+    background: #ffff00;
+    opacity: 0%;
+    pointer-events: none;
+    width: 100%;
+
+    &.over {
+      opacity: 100%;
+      height: 6px;
+    }
+  }
 
   input.column-name-input,
   input.collection-title-input,
