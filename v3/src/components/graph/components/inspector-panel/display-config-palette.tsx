@@ -31,6 +31,8 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
   const showFuseIntoBars = (plotType === "dotChart" && plotHasExactlyOneCategoricalAxis) ||
                            (plotType === "dotPlot" && pointDisplayType === "bins") ||
                            pointDisplayType === "histogram"
+  const showBarForEachPoint = plotType === "dotPlot" &&
+                            graphModel?.dataConfiguration.primaryAttributeType !== "date"
 
   const handleSelection = (configType: string) => {
     if (isPointDisplayType(configType)) {
@@ -125,14 +127,15 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
             >
               {t("DG.Inspector.graphGroupIntoBins")}
             </Radio>
-            <Radio
-              size="md"
-              value="bars"
-              data-testid="bars-radio-button"
-              onChange={(e) => handleSelection(e.target.value)}
-            >
-              {t("DG.Inspector.graphBarForEachPoint")}
-            </Radio>
+            {showBarForEachPoint &&
+               <Radio
+                  size="md"
+                  value="bars"
+                  data-testid="bars-radio-button"
+                  onChange={(e) => handleSelection(e.target.value)}
+               >
+                 {t("DG.Inspector.graphBarForEachPoint")}
+               </Radio>}
           </Stack>
         </RadioGroup>
       )}
