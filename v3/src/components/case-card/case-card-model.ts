@@ -27,7 +27,7 @@ export const CaseCardModel = TileContentModel
   .views(self => ({
     caseLineage(itemId?: string) {
       if (!itemId) return undefined
-      return self.data?.itemInfoMap.get(itemId)
+      return self.data?.getItemCaseIds(itemId)
     },
     groupChildCases(collection: ICollectionModel, parentCaseId: string) {
       const parentCaseInfo = self.data?.caseInfoMap.get(parentCaseId)
@@ -49,11 +49,11 @@ export const CaseCardModel = TileContentModel
     addNewCase(cases: IGroupedCase[], collection: ICollectionModel, displayedCaseId: string) {
       const newCase = {} as ICase
   
-      // This function gets values for the given ancestor or descendant collection's attributes, and 
+      // This function gets values for the given ancestor or descendant collection's attributes, and
       // sets them on the new case
       const setHierarchyValues = (relativeCollection: ICollectionModel, alreadyProcessed = new Set<string>()) => {
         if (alreadyProcessed.has(relativeCollection.id)) return
-  
+
         alreadyProcessed.add(relativeCollection.id)
         relativeCollection.attributes.forEach(attr => {
           if (attr?.id) {
@@ -61,7 +61,7 @@ export const CaseCardModel = TileContentModel
             newCase[attr.id] = value
           }
         })
-    
+
         // Recursively set any parent or child collection attribute values on the new case
         relativeCollection.parent && setHierarchyValues(relativeCollection.parent, alreadyProcessed)
         relativeCollection.child && setHierarchyValues(relativeCollection.child, alreadyProcessed)
@@ -78,10 +78,11 @@ export const CaseCardModel = TileContentModel
           newCase[attr.id] = ""
         }
       })
-    
+
       const newCases = [newCase]
       const lastExistingCaseId = cases[cases.length - 1].__id__
       const newCaseId = self.data?.addCases(newCases, {after: lastExistingCaseId})[0]
+      self.data?.validateCases()
     
       return newCaseId
     },

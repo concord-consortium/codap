@@ -27,7 +27,7 @@ export const CardView = observer(function CardView() {
             cases={rootCollection.cases}
             level={0}
             onSelectCases={handleSelectCases}
-            displayedCaseLineage={selectedItemLineage?.caseIds}
+            displayedCaseLineage={selectedItemLineage}
           />
         </CollectionContext.Provider>
       }
