@@ -248,7 +248,9 @@ export const CollectionModel = V2Model
     self.clearCases()
 
     const newCaseIds: string[] = []
+    // [parentCaseId, childCaseId] tuples
     const parentChildIdPairs: Array<[string, string]> = []
+    const itemInfo: Array<{itemId: string, itemIndex: number, caseId: string}> = []
     self.itemData.itemIds().forEach((itemId, itemIndex) => {
       if (self.itemData.isHidden(itemId)) return
       const groupKey = self.groupKey(itemId)
@@ -285,12 +287,18 @@ export const CollectionModel = V2Model
           caseGroup.childItemIds.push(itemId)
         }
 
-        self.itemData.addItemInfo(itemId, itemIndex, caseId)
+        itemInfo.push({ itemId, itemIndex, caseId })
       }
     })
 
     // Identify any new case ids that should be replaced with a prior case id
     const remappedCaseIds = self.getRemappedCaseIds(newCaseIds)
+
+    // add item info, remapping case ids where appropriate
+    itemInfo.forEach(({ itemId, itemIndex, caseId }) => {
+      const _caseId = remappedCaseIds.get(caseId) ?? caseId
+      self.itemData.addItemInfo(itemId, itemIndex, _caseId)
+    })
 
     // add child case ids to parent cases, remapping child case ids where appropriate
     parentChildIdPairs.forEach(([parentCaseId, _childCaseId]) => {

@@ -309,18 +309,22 @@ describe("CollectionModel", () => {
     expect(c1.caseGroups[1].childCaseIds).toEqual(caseIdsForItems(["i1", "i3", "i5"], 1))
     expect(c1.caseGroups[1].childItemIds).toEqual(["i1", "i3", "i5"])
 
-    itemData.itemIds().forEach((itemId, index) => {
-      const itemBaseId = itemId.substring(1)
-      const [parentCaseId, childCaseId] = itemIdToCaseIdsMap.get(itemId)!
-      const childItemIds = index % 2 ? ["i1", "i3", "i5"] : ["i0", "i2", "i4"]
-      expect(c1.hasCase(parentCaseId)).toBe(true)
-      expect(c1.getCaseIndex(parentCaseId)).toBe(index % 2)
-      expect(c1.getCaseGroup(parentCaseId)!.childItemIds).toEqual(childItemIds)
-      expect(c2.hasCase(childCaseId)).toBe(true)
-      expect(c2.getCaseIndex(childCaseId)).toBe(index)
-      expect(c2.getCaseGroup(childCaseId)!.childItemIds).toEqual([itemId])
-      expect(c1.findParentCaseGroup(childCaseId)).toBe(c1.caseGroups[+itemBaseId % 2])
-    })
+    function validateItemCaseIds() {
+      itemData.itemIds().forEach((itemId, index) => {
+        const itemBaseId = itemId.substring(1)
+        const [parentCaseId, childCaseId] = itemIdToCaseIdsMap.get(itemId)!
+        const childItemIds = index % 2 ? ["i1", "i3", "i5"] : ["i0", "i2", "i4"]
+        expect(c1.hasCase(parentCaseId)).toBe(true)
+        expect(c1.getCaseIndex(parentCaseId)).toBe(index % 2)
+        expect(c1.getCaseGroup(parentCaseId)!.childItemIds).toEqual(childItemIds)
+        expect(c2.hasCase(childCaseId)).toBe(true)
+        expect(c2.getCaseIndex(childCaseId)).toBe(index)
+        expect(c2.getCaseGroup(childCaseId)!.childItemIds).toEqual([itemId])
+        expect(c1.findParentCaseGroup(childCaseId)).toBe(c1.caseGroups[+itemBaseId % 2])
+      })
+    }
+
+    validateItemCaseIds()
 
     const originalParentCaseIds = [...c1.caseIds]
     const originalChildCaseIds = [...c2.caseIds]
@@ -350,6 +354,7 @@ describe("CollectionModel", () => {
     validateCases()
     expect(c1.caseIds).toEqual(originalParentCaseIds)
     expect(c2.caseIds).toEqual(originalChildCaseIds)
+    validateItemCaseIds()
 
     // adding constant attribute to the parent collection does invalidate grouping
     c1.addAttribute(a3)
@@ -359,6 +364,7 @@ describe("CollectionModel", () => {
     validateCases()
     expect(c1.caseIds).toEqual(originalParentCaseIds)
     expect(c2.caseIds).toEqual(originalChildCaseIds)
+    validateItemCaseIds()
 
     // removing attr1 from the parent collection invalidates grouping and changes parent case ids
     c1.removeAttribute(a1.id)
@@ -373,11 +379,13 @@ describe("CollectionModel", () => {
     validateCases()
     expect(c1.caseIds).toEqual(originalParentCaseIds)
     expect(c2.caseIds).toEqual(originalChildCaseIds)
+    validateItemCaseIds()
 
     // changing all b's to c's doesn't change case ids
     attr1Values = ["a", "c"]
     validateCases()
     expect(c1.caseIds).toEqual(originalParentCaseIds)
     expect(c2.caseIds).toEqual(originalChildCaseIds)
+    validateItemCaseIds()
   })
 })
