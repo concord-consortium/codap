@@ -2,6 +2,7 @@ import { reaction } from "mobx"
 import { useCallback, useEffect, useRef } from "react"
 import { DataGridHandle } from "react-data-grid"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
+import { useTileModelContext } from "../../hooks/use-tile-model-context"
 import { uiState } from "../../models/ui-state"
 import { blockAPIRequests } from "../../utilities/plugin-utils"
 import { TCellSelectArgs, TColumn, TRow } from "./case-table-types"
@@ -19,6 +20,8 @@ export function useSelectedCell(gridRef: React.RefObject<DataGridHandle | null>,
   const collectionTableModel = useCollectionTableModel()
   const selectedCell = useRef<Maybe<ISelectedCell>>()
   const blockUpdateSelectedCell = useRef(false)
+  const tile = useTileModelContext()
+  const tileIsFocused = tile.tileId === uiState.focusedTile
 
   const handleSelectedCellChange = useCallback((args: TCellSelectArgs) => {
     const columnId = args.column?.key
@@ -51,7 +54,7 @@ export function useSelectedCell(gridRef: React.RefObject<DataGridHandle | null>,
       if (rowIdx != null) {
         const position = { idx, rowIdx }
         blockUpdateSelectedCell.current = true
-        gridRef.current?.selectCell(position, allowEdit && uiState.isNavigatingToNextEditCell)
+        if (tileIsFocused) gridRef.current?.selectCell(position, allowEdit && uiState.isNavigatingToNextEditCell)
         selectedCell.current = { ...selectedCell.current, rowIdx }
         blockUpdateSelectedCell.current = false
 
@@ -59,7 +62,7 @@ export function useSelectedCell(gridRef: React.RefObject<DataGridHandle | null>,
         if (scroll) setTimeout(() => collectionTableModel?.scrollRowIntoView(rowIdx, { jump: true }), 1)
       }
     }
-  }, [collectionTableModel, columns, gridRef, rows])
+  }, [collectionTableModel, columns, gridRef, rows, tileIsFocused])
 
   useEffect(() => {
     if (blockingDataset) {
@@ -73,7 +76,7 @@ export function useSelectedCell(gridRef: React.RefObject<DataGridHandle | null>,
 
             // Refresh the cell again after a short wait to allow API requests to be processed.
             // The wait is long enough to allow plugins to react to responses from queued requests.
-            setTimeout(() => refreshSelectedCell(), 40)
+            setTimeout(() => refreshSelectedCell(), 50)
           })
         }
       )
