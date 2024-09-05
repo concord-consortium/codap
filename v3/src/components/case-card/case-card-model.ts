@@ -57,6 +57,9 @@ export const CaseCardModel = TileContentModel
       })
 
       const [newCaseId] = self.data?.addCases([newCase]) ?? []
+
+      // TODO: Figure out why this call to validateCases is necessary. The Cypress test for adding a case
+      // fails if it isn't here, though adding a case seems to work fine when tested manually.
       self.data?.validateCases()
     
       return newCaseId
