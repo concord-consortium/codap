@@ -30,6 +30,7 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
   const data = useCaseCardModel()?.data
   const displayValue = value ? String(value) : ""
   const contentRef = useRef<HTMLDivElement | null>(null)
+  const isFirstAttribute = collection?.attributes[0]?.id === attrId
   const [, setCellElt] = useState<HTMLElement | null>(null)
   const [isEditing, setIsEditing] = useState(false)
   const [editingValue, setEditingValue] = useState(displayValue)
