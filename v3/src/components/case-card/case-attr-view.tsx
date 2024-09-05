@@ -27,6 +27,7 @@ export const CaseAttrView = observer(function CaseAttrView ({caseId, collection,
   const data = useCaseCardModel()?.data
   const displayValue = value ? String(value) : ""
   const contentRef = useRef<HTMLDivElement | null>(null)
+  const isFirstAttribute = collection?.attributes[0]?.id === attrId
   const [, setCellElt] = useState<HTMLElement | null>(null)
   const [isEditing, setIsEditing] = useState(false)
   const [editingValue, setEditingValue] = useState(displayValue)
@@ -147,6 +148,7 @@ export const CaseAttrView = observer(function CaseAttrView ({caseId, collection,
       <td className="case-card-attr-name" data-testid="case-card-attr-name">
         <AttributeHeader
           attributeId={attrId}
+          beforeHeaderDivider={isFirstAttribute}
           HeaderDivider={AttributeHeaderDivider}
           onSetContentElt={handleSetContentElt}
         />

@@ -8,8 +8,9 @@ import { getDragAttributeInfo, useTileDroppable } from "../../hooks/use-drag-dro
 import { preventAttributeMove, preventCollectionReorg } from "../../utilities/plugin-utils"
 import { IDividerProps } from "../case-table-card-common/case-tile-types"
 import { kAttributeDividerDropZoneBaseId } from "../case-table/case-table-drag-drop"
+import { kIndexColumnKey } from "../case-table/case-table-types"
 
-export const AttributeHeaderDivider = ({ columnKey, cellElt }: IDividerProps) => {
+export const AttributeHeaderDivider = ({ before=false, columnKey, cellElt }: IDividerProps) => {
   const collectionId = useCollectionContext()
   const droppableId = `${kAttributeDividerDropZoneBaseId}:${collectionId}:${columnKey}`
   const dataset = useDataSetContext()
@@ -27,7 +28,7 @@ export const AttributeHeaderDivider = ({ columnKey, cellElt }: IDividerProps) =>
 
       const sourceCollection = dataSet.getCollectionForAttribute(dragAttrId)
       moveAttribute({
-        afterAttrId: columnKey,
+        afterAttrId: before ? kIndexColumnKey : columnKey,
         attrId: dragAttrId,
         dataset,
         includeNotifications: true,
@@ -57,16 +58,22 @@ export const AttributeHeaderDivider = ({ columnKey, cellElt }: IDividerProps) =>
     }
   }, [cellElt, containerElt])
 
-  const collectionLevel = dataset?.collectionIds.indexOf(collectionId) ?? 0
+  const hasBounds = containerBounds && cellBounds
+  const collectionIndex = dataset?.collectionIds.indexOf(collectionId) ?? 0
   const kLevelOffset = 5
-  const topOffset = collectionLevel * kLevelOffset
-  const style: CSSProperties = containerBounds && cellBounds
-                  ? {
-                      top: cellBounds.bottom - containerBounds.top + cellBounds.height + topOffset,
-                      left: containerBounds.left,
-                      width: containerBounds.width - containerBounds.left,
-                    }
-                  : {}
+  const collectionOffset = collectionIndex * kLevelOffset
+  const cellOffset = !before && hasBounds ? cellBounds.height : 0
+  const top = hasBounds
+                ? cellBounds.bottom - containerBounds.top + collectionOffset + cellOffset
+                : 0
+  
+  const style: CSSProperties = hasBounds
+    ? {
+        top,
+        left: containerBounds.left,
+        width: containerBounds.width - containerBounds.left,
+      }
+    : {}
 
   const className = clsx("codap-column-header-divider", { over: isOver && !preventDrop })
   if (containerElt && containerBounds && cellBounds && (cellBounds?.bottom < containerBounds?.bottom)) {

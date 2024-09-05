@@ -2,6 +2,7 @@
 export const kIndexColumnKey = "__index__"
 
 export interface IDividerProps {
+  before?: boolean
   columnKey: string
   cellElt: HTMLElement | null
 }

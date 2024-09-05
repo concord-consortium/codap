@@ -16,6 +16,7 @@ import { useParentChildFocusRedirect } from "./use-parent-child-focus-redirect"
 
 interface IProps {
   attributeId: string
+  beforeHeaderDivider?: boolean
   HeaderDivider?: React.ComponentType<IDividerProps>
   // returns the draggable parent element for use with DnDKit
   onSetContentElt?: (contentElt: HTMLDivElement | null) => HTMLElement | null
@@ -25,7 +26,7 @@ interface IProps {
 }
 
 export const AttributeHeader = observer(function ColumnHeader({
-  attributeId, HeaderDivider, onSetContentElt, onBeginEdit, onEndEdit, onOpenMenu
+  attributeId, beforeHeaderDivider, HeaderDivider, onSetContentElt, onBeginEdit, onEndEdit, onOpenMenu
 }: IProps) {
   const { active } = useDndContext()
   const data = useDataSetContext()
@@ -213,6 +214,9 @@ export const AttributeHeader = observer(function ColumnHeader({
                       }
                     </>
                 }
+              {attributeId && HeaderDivider && beforeHeaderDivider &&
+                <HeaderDivider key={attributeId} before={beforeHeaderDivider} columnKey={attributeId}
+                               cellElt={parentRef.current}/>}
               <CaseTilePortal>
                 <AttributeMenuList attributeId={attributeId} onRenameAttribute={handleRenameAttribute}
                   onModalOpen={handleModalOpen}
