@@ -86,7 +86,7 @@ export class Logger {
     this.pendingMessages = []
   }
 
-  public static get Instance() {
+  public static getInstance() {
     if (this._instance) {
       return this._instance
     }
@@ -97,9 +97,7 @@ export class Logger {
   private session: string
   private logListeners: ILogListener[] = []
 
-  // private constructor(stores: IStores, appContext = {}) {
   private constructor(document: IDocumentModel) {
-    // this.stores = stores
     this.document = document
     this.session = nanoid()
   }
@@ -112,7 +110,6 @@ export class Logger {
     const event_value = JSON.stringify(args)
     const logMessage = this.createLogMessage(time, event, documentTitle, event_value, args)
     debugLog(DEBUG_LOGGER, "logMessage:", logMessage)
-    // sendToLoggingService(logMessage, this.stores.user)
     sendToLoggingService(logMessage)
     // for (const listener of this.logListeners) {
     //   listener(logMessage)
