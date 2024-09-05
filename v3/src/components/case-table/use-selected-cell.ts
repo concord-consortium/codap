@@ -39,7 +39,7 @@ export function useSelectedCell(gridRef: React.RefObject<DataGridHandle | null>,
     }
   }, [collectionTableModel, columns, gridRef])
 
-  const refreshSelectedCell = useCallback((edit = true, scroll = true) => {
+  const refreshSelectedCell = useCallback((allowEdit = true, scroll = true) => {
     if (selectedCell.current) {
       const { columnId, rowId } = selectedCell.current
       const idx = columns.findIndex(column => column.key === columnId)
@@ -47,7 +47,7 @@ export function useSelectedCell(gridRef: React.RefObject<DataGridHandle | null>,
       if (rowIdx != null) {
         const position = { idx, rowIdx }
         blockUpdateSelectedCell.current = true
-        gridRef.current?.selectCell(position, edit && uiState.isNavigatingToNextEditCell)
+        gridRef.current?.selectCell(position, allowEdit && uiState.isNavigatingToNextEditCell)
         selectedCell.current = { ...selectedCell.current, rowIdx }
         blockUpdateSelectedCell.current = false
 
@@ -68,7 +68,7 @@ export function useSelectedCell(gridRef: React.RefObject<DataGridHandle | null>,
 
           // Refresh the cell again after a short wait to allow API requests to be processed.
           // The wait is long enough to allow plugins to react to responses from queued requests.
-          setTimeout(() => refreshSelectedCell(), 30)
+          setTimeout(() => refreshSelectedCell(), 35)
         })
       }
     )
