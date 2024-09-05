@@ -300,8 +300,11 @@ export const useSubAxis = ({
   const updateDomainAndRenderSubAxis = useCallback(() => {
     const role = axisPlaceToAttrRole[axisPlace]
     if (isCategoricalAxisModel(axisModel)) {
-      const categoryValues = dataConfig?.categoryArrayForAttrRole(role) ?? []
-      layout.getAxisMultiScale(axisPlace)?.setCategoricalDomain(categoryValues)
+      const categoryValues = dataConfig?.categoryArrayForAttrRole(role) ?? [],
+        multiScale = layout.getAxisMultiScale(axisPlace),
+        existingCategoryDomain = multiScale?.categoricalScale?.domain() ?? []
+      if (JSON.stringify(categoryValues) === JSON.stringify(existingCategoryDomain)) return
+      multiScale?.setCategoricalDomain(categoryValues)
       setupCategories()
     } else if (isBaseNumericAxisModel(axisModel)) {
       const numericValues = dataConfig?.numericValuesForAttrRole(role) ?? []
