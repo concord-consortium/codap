@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useCallback, useRef, useState } from "react"
 import { observer } from "mobx-react-lite"
 import { Editable, EditablePreview, EditableInput } from "@chakra-ui/react"
 import { clsx } from "clsx"
@@ -29,6 +29,8 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
   const { caseId, attrId, value, getDividerBounds, onSetContentElt } = props
   const data = useCaseCardModel()?.data
   const displayValue = value ? String(value) : ""
+  const contentRef = useRef<HTMLDivElement | null>(null)
+  const [, setCellElt] = useState<HTMLElement | null>(null)
   const [isEditing, setIsEditing] = useState(false)
   const [editingValue, setEditingValue] = useState(displayValue)
 
