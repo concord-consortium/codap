@@ -179,7 +179,6 @@ export const CollectionModel = V2Model
     if (!self.prevCaseIds) self.prevCaseIds = self.caseIds
     self.caseIds = []
 
-    // no need to maintain a prev copy
     self.caseIdToIndexMap.clear()
 
     if (!self.prevCaseIdToGroupKeyMap) self.prevCaseIdToGroupKeyMap = self.caseIdToGroupKeyMap
