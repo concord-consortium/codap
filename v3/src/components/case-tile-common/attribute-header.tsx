@@ -73,6 +73,11 @@ export const AttributeHeader = observer(function AttributeHeader({
 
   useEffect(() => {
     onCloseMenuRef.current?.()
+    if (dragging) {
+      document.body.style.cursor = "grabbing"
+    } else {
+      document.body.style.cursor = "default"
+    }
   }, [dragging])
 
   useEffect(() => {
