@@ -4,7 +4,7 @@ import { DataGridHandle } from "react-data-grid"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useTileModelContext } from "../../hooks/use-tile-model-context"
 import { uiState } from "../../models/ui-state"
-import { blockAPIRequests } from "../../utilities/plugin-utils"
+import { blockAPIRequestsWhileEditing } from "../../utilities/plugin-utils"
 import { TCellSelectArgs, TColumn, TRow } from "./case-table-types"
 import { useCollectionTableModel } from "./use-collection-table-model"
 
@@ -16,7 +16,7 @@ interface ISelectedCell {
 
 export function useSelectedCell(gridRef: React.RefObject<DataGridHandle | null>, columns: TColumn[], rows?: TRow[]) {
   const dataset = useDataSetContext()
-  const blockingDataset = blockAPIRequests(dataset)
+  const blockingDataset = blockAPIRequestsWhileEditing(dataset)
   const collectionTableModel = useCollectionTableModel()
   const selectedCell = useRef<Maybe<ISelectedCell>>()
   const blockUpdateSelectedCell = useRef(false)

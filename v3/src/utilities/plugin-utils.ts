@@ -2,8 +2,9 @@
 
 import { kInputRowKey } from "../components/case-table/case-table-types"
 import {
-  isWebViewModel, kDefaultAllowEmptyAttributeDeletion, kDefaultBlockAPIRequests, kDefaultPreventAttributeDeletion,
-  kDefaultPreventDataContextReorg, kDefaultPreventTopLevelReorg, kDefaultRespectEditableItemAttribute
+  isWebViewModel, kDefaultAllowEmptyAttributeDeletion, kDefaultBlockAPIRequestsWhileEditing,
+  kDefaultPreventAttributeDeletion, kDefaultPreventDataContextReorg, kDefaultPreventTopLevelReorg,
+  kDefaultRespectEditableItemAttribute
 } from "../components/web-view/web-view-model"
 import { appState } from "../models/app-state"
 import { IAttribute } from "../models/data/attribute"
@@ -32,10 +33,10 @@ export function allowEmptyAttributeDeletion(dataset: IDataSet) {
   return getManagingController(dataset)?.allowEmptyAttributeDeletion ?? kDefaultAllowEmptyAttributeDeletion
 }
 
-// blockAPIRequests prevents the API handler from processing requests while the user is editing the table.
-export function blockAPIRequests(dataset?: IDataSet) {
-  if (!dataset) return kDefaultBlockAPIRequests
-  return getManagingController(dataset)?.blockAPIRequests ?? kDefaultBlockAPIRequests
+// blockAPIRequestsWhileEditing prevents the API handler from processing requests while the user is editing the table.
+export function blockAPIRequestsWhileEditing(dataset?: IDataSet) {
+  if (!dataset) return kDefaultBlockAPIRequestsWhileEditing
+  return getManagingController(dataset)?.blockAPIRequestsWhileEditing ?? kDefaultBlockAPIRequestsWhileEditing
 }
 
 // preventAttributeDeletion disables the Delete Attribute item from the attribute menu.

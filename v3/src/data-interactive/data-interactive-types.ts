@@ -79,7 +79,7 @@ export interface DIGetCaseResult {
 }
 export interface DIInteractiveFrame {
   allowEmptyAttributeDeletion?: boolean
-  blockAPIRequests?: boolean
+  blockAPIRequestsWhileEditing?: boolean
   cannotClose?: boolean
   codapVersion?: string
   dimensions?: {

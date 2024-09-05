@@ -5,7 +5,7 @@ import { useLoggingContext } from "../../hooks/use-log-context"
 import { logStringifiedObjectMessage } from "../../lib/log-message"
 import { selectAllCases } from "../../models/data/data-set-utils"
 import { uiState } from "../../models/ui-state"
-import { blockAPIRequests } from "../../utilities/plugin-utils"
+import { blockAPIRequestsWhileEditing } from "../../utilities/plugin-utils"
 import { TRenderEditCellProps } from "./case-table-types"
 
 /*
@@ -38,7 +38,7 @@ export default function CellTextEditor({ row, column, onRowChange, onClose }: TR
 
   // Inform the ui that we're editing a table while this component exists.
   useEffect(() => {
-    if (blockAPIRequests(data)) {
+    if (blockAPIRequestsWhileEditing(data)) {
       uiState.setRefreshEditingSelectedCell(true)
       return () => {
         uiState.setIsEditingBlockingCell(false)
@@ -55,7 +55,7 @@ export default function CellTextEditor({ row, column, onRowChange, onClose }: TR
 
   const handleInput: FormEventHandler<HTMLInputElement> = event => {
     const { target } = event
-    if (blockAPIRequests(data) && target instanceof HTMLInputElement) {
+    if (blockAPIRequestsWhileEditing(data) && target instanceof HTMLInputElement) {
       // Only block API requests if the user has actually entered a value.
       uiState.setIsEditingBlockingCell(!!target.value)
     }

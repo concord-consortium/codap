@@ -5,7 +5,7 @@ import { ITileContentModel, TileContentModel } from "../../models/tiles/tile-con
 import { kWebViewTileType } from "./web-view-defs"
 
 export const kDefaultAllowEmptyAttributeDeletion = true
-export const kDefaultBlockAPIRequests = false
+export const kDefaultBlockAPIRequestsWhileEditing = false
 export const kDefaultPreventAttributeDeletion = false
 export const kDefaultPreventBringToFront = false
 export const kDefaultPreventDataContextReorg = false
@@ -21,7 +21,7 @@ export const WebViewModel = TileContentModel
     state: types.frozen<unknown>(),
     // fields controlled by plugins (like Collaborative) via interactiveFrame requests
     allowEmptyAttributeDeletion: kDefaultAllowEmptyAttributeDeletion,
-    blockAPIRequests: kDefaultBlockAPIRequests,
+    blockAPIRequestsWhileEditing: kDefaultBlockAPIRequestsWhileEditing,
     preventAttributeDeletion: kDefaultPreventAttributeDeletion,
     preventBringToFront: kDefaultPreventBringToFront,
     preventDataContextReorg: kDefaultPreventDataContextReorg,
@@ -57,8 +57,8 @@ export const WebViewModel = TileContentModel
     setAllowEmptyAttributeDeletion(value: boolean) {
       self.allowEmptyAttributeDeletion = value
     },
-    setBlockAPIRequests(value: boolean) {
-      self.blockAPIRequests = value
+    setBlockAPIRequestsWhileEditing(value: boolean) {
+      self.blockAPIRequestsWhileEditing = value
     },
     setPreventAttributeDeletion(value: boolean) {
       self.preventAttributeDeletion = value

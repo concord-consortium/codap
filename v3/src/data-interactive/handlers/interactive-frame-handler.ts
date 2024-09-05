@@ -15,12 +15,12 @@ export const diInteractiveFrameHandler: DIHandler = {
     const dimensions = appState.document.content?.getTileDimensions(interactiveFrame.id)
     const webViewContent = isWebViewModel(interactiveFrame.content) ? interactiveFrame.content : undefined
     const {
-      allowEmptyAttributeDeletion, blockAPIRequests, preventAttributeDeletion, preventBringToFront, preventDataContextReorg,
-      preventTopLevelReorg, respectEditableItemAttribute, state: savedState, version
+      allowEmptyAttributeDeletion, blockAPIRequestsWhileEditing, preventAttributeDeletion, preventBringToFront,
+      preventDataContextReorg, preventTopLevelReorg, respectEditableItemAttribute, state: savedState, version
     } = webViewContent ?? {}
     const values: DIInteractiveFrame = {
       allowEmptyAttributeDeletion,
-      blockAPIRequests,
+      blockAPIRequestsWhileEditing,
       codapVersion: appState.getVersion(),
       dimensions,
       externalUndoAvailable: true, // TODO Fix hard coded value
@@ -52,7 +52,7 @@ export const diInteractiveFrameHandler: DIHandler = {
     if (Array.isArray(values)) return { success: true }
 
     const {
-      allowEmptyAttributeDeletion, blockAPIRequests, cannotClose, dimensions, name, preventAttributeDeletion,
+      allowEmptyAttributeDeletion, blockAPIRequestsWhileEditing: blockAPIRequests, cannotClose, dimensions, name, preventAttributeDeletion,
       preventBringToFront, preventDataContextReorg, preventTopLevelReorg, respectEditableItemAttribute, title,
       version
     } = values as DIInteractiveFrame
@@ -65,7 +65,7 @@ export const diInteractiveFrameHandler: DIHandler = {
         appState.document.content?.setTileDimensions(interactiveFrame.id, dimensions)
       }
       if (name) interactiveFrame.setTitle(name)
-      if (blockAPIRequests != null) webViewContent?.setBlockAPIRequests(blockAPIRequests)
+      if (blockAPIRequests != null) webViewContent?.setBlockAPIRequestsWhileEditing(blockAPIRequests)
       if (preventAttributeDeletion != null) webViewContent?.setPreventAttributeDeletion(preventAttributeDeletion)
       if (preventBringToFront != null) webViewContent?.setPreventBringToFront(preventBringToFront)
       if (preventDataContextReorg != null) webViewContent?.setPreventDataContextReorg(preventDataContextReorg)
