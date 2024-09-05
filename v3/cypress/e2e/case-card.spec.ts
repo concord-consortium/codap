@@ -112,10 +112,12 @@ context("case card", () => {
       cy.get('[data-testid="case-card-attr-value"]').eq(0).click()
       cy.get('[data-testid="case-card-attr-value-text-editor"]').eq(0).type("Wooly Mammoth{enter}")
       cy.get('[data-testid="case-card-attr-value"]').eq(0).should("contain.text", "Wooly Mammoth")
+      cy.get('[data-testid="case-card-attr-value"]').eq(0).click()
+      cy.get('[data-testid="case-card-attr-value-text-editor"]').eq(0).type("{esc}")
+      cy.get('[data-testid="case-card-attr-value"]').eq(0).should("contain.text", "Wooly Mammoth")
     })
     it("allows the user to add a new case", () => {
       const rootCollectionTitle = "Diets"
-      const firstCaseName = "African Elephant"
       table.moveAttributeToParent("Order", "newCollection")
       cy.wait(500)
       table.moveAttributeToParent("Diet", "newCollection")
@@ -139,7 +141,7 @@ context("case card", () => {
       cy.get('[data-testid="case-card-view"]').eq(0).find('[data-testid="case-card-view-title"]')
                                                  .eq(0).should("have.text", rootCollectionTitle)
       cy.get('[data-testid="case-card-view"]').eq(2).find('[data-testid="case-card-attr-value"]')
-                                                 .eq(0).should("have.text", firstCaseName)
+                                                 .eq(0).should("have.text", "")
     })
   })
 })

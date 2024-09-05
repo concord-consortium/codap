@@ -3,30 +3,30 @@
 
 .codap-case-card {
   overflow: auto hidden;
-}
 
-input.column-name-input,
-input.collection-title-input,
-input.case-card-attr-value-text-editor {
-  border: solid 1.5px $input-border-color;
-  border-radius: 0;
-  box-shadow: none;
-  display: inline-block;
-  min-width: 50px;
-  outline: none;
-  padding: 4px;
-  text-align: left;
-  white-space: nowrap;
-  width: 100%;
-
-  &:focus, &:focus-visible {
+  input.column-name-input,
+  input.collection-title-input,
+  input.case-card-attr-value-text-editor {
+    border: solid 1.5px $input-border-color;
+    border-radius: 0;
     box-shadow: none;
-  }
-}
+    display: inline-block;
+    min-width: 50px;
+    outline: none;
+    padding: 4px;
+    text-align: left;
+    white-space: nowrap;
+    width: 100%;
 
-.collection-title {
-  input.collection-title-input {
-    padding: 2px 4px;
+    &:focus, &:focus-visible {
+      box-shadow: none;
+    }
+  }
+
+  .collection-title {
+    input.collection-title-input {
+      padding: 2px 4px;
+    }
   }
 }
 

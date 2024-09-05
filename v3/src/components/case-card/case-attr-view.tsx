@@ -24,8 +24,9 @@ interface ICaseAttrViewProps {
 
 export const CaseAttrView = observer(function CaseAttrView ({caseId, collection, attrId, value}: ICaseAttrViewProps) {
   const data = useCaseCardModel()?.data
+  const displayValue = value ? String(value) : ""
   const [isEditing, setIsEditing] = useState(false)
-  const [editingValue, setEditingValue] = useState(String(value))
+  const [editingValue, setEditingValue] = useState(displayValue)
 
   // TODO: Implement dragging
   const dragging = false
@@ -35,15 +36,15 @@ export const CaseAttrView = observer(function CaseAttrView ({caseId, collection,
   }
 
   const handleCancel = (_previousName?: string) => {
-    setEditingValue(String(value))
+    setEditingValue(displayValue)
     setIsEditing(false)
   }
 
   const handleSubmit = (newValue?: string) => {
     if (newValue) {
       const casesToUpdate: ICase[] = [{__id__: caseId, [attrId]: newValue}]
-      const undoStringKey = "V3.Undo.caseCard.editCellValue"
-      const redoStringKey = "V3.Redo.caseCard.editCellValue"
+      const undoStringKey = "DG.Undo.caseTable.editCellValue"
+      const redoStringKey = "DG.Redo.caseTable.editCellValue"
       let oldCaseIds = new Set(collection?.caseIds ?? [])
       let updatedCaseIds: string[] = []
 
@@ -82,7 +83,7 @@ export const CaseAttrView = observer(function CaseAttrView ({caseId, collection,
       )
       setEditingValue(newValue)
     } else {
-      setEditingValue(String(value))
+      setEditingValue(displayValue)
     }
     setIsEditing(false)
   }
@@ -104,7 +105,7 @@ export const CaseAttrView = observer(function CaseAttrView ({caseId, collection,
           onEdit={() => setIsEditing(true)}
           onSubmit={handleSubmit}
           submitOnBlur={true}
-          value={isEditing ? editingValue : String(value)}
+          value={isEditing ? editingValue : displayValue}
         >
           <EditablePreview paddingY={0} />
           <EditableInput

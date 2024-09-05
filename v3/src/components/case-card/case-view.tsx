@@ -68,8 +68,8 @@ export const CaseView = observer(function CaseView(props: ICaseViewProps) {
             return createCasesNotification([newCaseId], data)
           }
         },
-        undoStringKey: "V3.Undo.caseCard.createCase",
-        redoStringKey: "V3.Redo.caseCard.createCase"
+        undoStringKey: "DG.Undo.caseTable.createNewCase",
+        redoStringKey: "DG.Redo.caseTable.createNewCase"
       })
     }
   }
@@ -77,7 +77,7 @@ export const CaseView = observer(function CaseView(props: ICaseViewProps) {
   const handleAddNewAttribute = () => {
     let attribute: IAttribute | undefined
     data?.applyModelChange(() => {
-      const newAttrName = uniqueName(t("V3.CaseTable.defaultAttrName"),
+      const newAttrName = uniqueName(t("DG.CaseTable.defaultAttrName"),
         (aName: string) => !data.attributes.find(attr => aName === attr.name)
       )
       attribute = data.addAttribute({ name: newAttrName }, { collection: collectionId })
@@ -86,13 +86,13 @@ export const CaseView = observer(function CaseView(props: ICaseViewProps) {
       }
     }, {
       notify: () => createAttributesNotification(attribute ? [attribute] : [], data),
-      undoStringKey: "V3.Undo.caseCard.createAttribute",
-      redoStringKey: "V3.Redo.caseCard.createAttribute"
+      undoStringKey: "DG.Undo.caseTable.createAttribute",
+      redoStringKey: "DG.Redo.caseTable.createAttribute"
     })
   }
 
   const renderChildCollection = (coll: ICollectionModel) => {
-    const childCases = cardModel?.groupChildCases(coll, displayedCaseId)
+    const childCases = cardModel?.groupChildCases(displayedCaseId)
     if (!childCases) return null
 
     return (
