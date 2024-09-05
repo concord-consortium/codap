@@ -2,7 +2,7 @@ import {
   Button, ButtonGroup, Flex, forwardRef, Popover, PopoverAnchor, PopoverArrow, PopoverBody,
   PopoverContent, PopoverFooter, PopoverTrigger, Portal, Spacer, useDisclosure, useMergeRefs
 } from "@chakra-ui/react"
-import React, { ChangeEvent, useCallback, useEffect, useRef, useState } from "react"
+import React, { ChangeEvent, FormEventHandler, useCallback, useEffect, useRef, useState } from "react"
 import { textEditorClassname } from "react-data-grid"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useLoggingContext } from "../../hooks/use-log-context"
@@ -69,12 +69,20 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
   // Inform the ui that we're editing a table while this component exists.
   useEffect(() => {
     if (blockAPIRequests(data)) {
-      uiState.setIsEditingBlockingCell(true)
+      uiState.setRefreshEditingSelectedCell(true)
       return () => {
         uiState.setIsEditingBlockingCell(false)
       }
     }
   }, [])
+
+  const handleInput: FormEventHandler<HTMLInputElement> = event => {
+    const { target } = event
+    if (blockAPIRequests(data) && target instanceof HTMLInputElement) {
+      // Only block API requests if the user has actually entered a value.
+      uiState.setIsEditingBlockingCell(!!target.value)
+    }
+  }
 
   // commits the change and closes the editor
   const acceptValue = useCallback(() => {
@@ -105,7 +113,7 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
   }
 
   const swatchStyle: React.CSSProperties | undefined = showColorSwatch.current ? { background: color } : undefined
-  const inputElt = <InputElt value={inputValue} onChange={handleInputColorChange} />
+  const inputElt = <InputElt value={inputValue} onChange={handleInputColorChange} onInput={handleInput} />
 
   return swatchStyle
     ? (
