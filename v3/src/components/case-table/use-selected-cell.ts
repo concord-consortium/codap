@@ -59,7 +59,7 @@ export function useSelectedCell(gridRef: React.RefObject<DataGridHandle | null>,
         blockUpdateSelectedCell.current = false
 
         // Give the table a chance to rerender before making sure the selected cell is visible.
-        if (scroll) setTimeout(() => collectionTableModel?.scrollRowIntoView(rowIdx, { jump: true }), 1)
+        if (scroll) setTimeout(() => collectionTableModel?.scrollRowIntoView(rowIdx, { scrollBehavior: "auto" }), 1)
       }
     }
   }, [collectionTableModel, columns, gridRef, rows, tileIsFocused])
