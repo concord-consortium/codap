@@ -4,6 +4,7 @@ import { ISharedModel } from "../../models/shared/shared-model"
 import { ITileContentModel, TileContentModel } from "../../models/tiles/tile-content"
 import { kCaseCardTileType } from "./case-card-defs"
 import { ICollectionModel } from "../../models/data/collection"
+import { ICaseCreation, IGroupedCase } from "../../models/data/data-set-types"
 
 export const CaseCardModel = TileContentModel
   .named("CaseCardModel")
@@ -26,9 +27,9 @@ export const CaseCardModel = TileContentModel
   .views(self => ({
     caseLineage(itemId?: string) {
       if (!itemId) return undefined
-      return self.data?.itemInfoMap.get(itemId)
+      return self.data?.getItemCaseIds(itemId)
     },
-    groupChildCases(collection: ICollectionModel, parentCaseId: string) {
+    groupChildCases(parentCaseId: string) {
       const parentCaseInfo = self.data?.caseInfoMap.get(parentCaseId)
       if (!parentCaseInfo?.childCaseIds) return undefined
       return parentCaseInfo.childCaseIds
@@ -44,6 +45,24 @@ export const CaseCardModel = TileContentModel
       else {
         self.attributeColumnWidths.delete(collectionId)
       }
+    },
+    addNewCase(cases: IGroupedCase[], collection: ICollectionModel, displayedCaseId: string) {
+      const newCase: ICaseCreation = {}
+
+      collection.allParentDataAttrs.forEach(attr => {
+        if (attr?.id) {
+          const value = self.data?.getValue(displayedCaseId, attr.id)
+          newCase[attr.id] = value
+        }
+      })
+
+      const [newCaseId] = self.data?.addCases([newCase]) ?? []
+
+      // TODO: Figure out why this call to validateCases is necessary. The Cypress test for adding a case
+      // fails if it isn't here, though adding a case seems to work fine when tested manually.
+      self.data?.validateCases()
+    
+      return newCaseId
     },
     updateAfterSharedModelChanges(sharedModel?: ISharedModel) {
       // TODO

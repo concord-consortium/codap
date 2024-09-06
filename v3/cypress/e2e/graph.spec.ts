@@ -136,6 +136,17 @@ context("Graph UI", () => {
       graph.getDisplayConfigButton().should("not.exist")
     })
   })
+  describe("case card graph interaction", () => {
+    it("can drag attributes from the case card to the graph", () => {
+      const tableHeaderLeftSelector = ".codap-component.codap-case-table .component-title-bar .header-left"
+      cy.get(tableHeaderLeftSelector).click()
+      cy.get(`${tableHeaderLeftSelector} .card-table-toggle-message`).click()
+      cy.wait(500)
+      cy.dragAttributeToTarget("card", "Speed", "left")
+      cy.wait(500)
+      cy.get('[data-testid="axis-legend-attribute-button-left"]').should("have.text", "Speed")
+    })
+  })
   describe("graph inspector panel", () => {
     // work on this later PT #188015800
     it.skip("change points in table and check for autoscale", () => {

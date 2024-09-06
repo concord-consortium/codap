@@ -40,7 +40,7 @@ export function updateAttribute(attribute: IAttribute, value: DIAttribute, dataC
   if (value?.description != null) attribute.setDescription(value.description)
   if (value?.editable != null) attribute.setEditable(!!value.editable)
   if (value?.formula != null) attribute.setDisplayExpression(value.formula)
-  if (value?.name != null) attribute.setName(value.name)
+  if (value?.name != null) dataContext?.setAttributeName(attribute.id, value.name)
   if (hasOwnProperty(value, "precision")) {
     attribute.setPrecision(value.precision == null || value.precision === "" ? undefined : +value.precision)
   }

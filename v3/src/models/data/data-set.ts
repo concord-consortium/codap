@@ -153,7 +153,7 @@ export const DataSet = V2Model.named("DataSet").props({
   hiddenItemIdsSet: observable.set<string>(),
   // copy of hiddenItemIds used for change-detection
   hiddenItemIdsMirror: [] as string[],
-  // map from case ID to the CaseGroup it represents
+  // map from case ID to the CaseInfo it represents
   caseInfoMap: new Map<string, CaseInfo>(),
   // map from item ID to the child case containing it
   itemIdChildCaseMap: new Map<string, CaseInfo>(),

@@ -6,13 +6,10 @@ import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { getDragAttributeInfo, useTileDroppable } from "../../hooks/use-drag-drop"
 import { preventAttributeMove, preventCollectionReorg } from "../../utilities/plugin-utils"
+import { IDividerProps } from "../case-table-card-common/case-tile-types"
 import { kAttributeDividerDropZoneBaseId } from "./case-table-drag-drop"
 
-interface IProps {
-  columnKey: string
-  cellElt: HTMLElement | null
-}
-export const ColumnHeaderDivider = ({ columnKey, cellElt }: IProps) => {
+export const ColumnHeaderDivider = ({ columnKey, cellElt }: IDividerProps) => {
   const collectionId = useCollectionContext()
   const droppableId = `${kAttributeDividerDropZoneBaseId}:${collectionId}:${columnKey}`
   const dataset = useDataSetContext()

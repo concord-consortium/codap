@@ -5,16 +5,23 @@ import { ICollectionModel } from "../../models/data/collection"
 import { CaseAttrsView } from "./case-attrs-view"
 import { useCaseCardModel } from "./use-case-card-model"
 import { CollectionContext, ParentCollectionContext, useCollectionContext } from "../../hooks/use-collection-context"
+import { CollectionTitle } from "../case-table-card-common/collection-title"
+import { t } from "../../utilities/translation/translate"
+import { IAttribute } from "../../models/data/attribute"
+import { createAttributesNotification, createCasesNotification } from "../../models/data/data-set-notifications"
+import { uiState } from "../../models/ui-state"
+import { uniqueName } from "../../utilities/js-utils"
 
 import Arrow from "../../assets/icons/arrow.svg"
+import AddIcon from "../../assets/icons/add-data-icon.svg"
 
-import "./card-view.scss"
+import "./case-view.scss"
 
 interface ICaseViewProps {
   cases: IGroupedCase[]
   level: number
   onSelectCases: (caseIds: string[]) => void
-  displayedCaseLineage?: string[]
+  displayedCaseLineage?: readonly string[]
 }
 
 const colorCycleClass = (level: number) => {
@@ -41,15 +48,51 @@ export const CaseView = observer(function CaseView(props: ICaseViewProps) {
   const prevButtonDisabled = displayedCaseIndex <= 0
   const nextButtonDisabled = displayedCaseIndex >= cases.length - 1
 
-  const handleButtonClickFn = useCallback((delta: number) => () => {
+  const handleSelectCase = useCallback((delta: number) => () => {
     const newCase = cases[displayedCaseIndex + delta]
     if (!newCase.__id__) return
 
     onSelectCases([newCase.__id__])
   }, [displayedCaseIndex, cases, onSelectCases])
 
+  const handleAddNewCase = () => {
+    if (collection) {
+      let newCaseId: string | undefined
+      data?.applyModelChange(() => {
+        const newItemId = cardModel?.addNewCase(cases, collection, displayedCaseId)
+        newCaseId = newItemId && data?.getItemCaseIds(newItemId)[level]
+        newCaseId && onSelectCases([newCaseId])
+      }, {
+        notify: () => {
+          if (newCaseId) {
+            return createCasesNotification([newCaseId], data)
+          }
+        },
+        undoStringKey: "DG.Undo.caseTable.createNewCase",
+        redoStringKey: "DG.Redo.caseTable.createNewCase"
+      })
+    }
+  }
+
+  const handleAddNewAttribute = () => {
+    let attribute: IAttribute | undefined
+    data?.applyModelChange(() => {
+      const newAttrName = uniqueName(t("DG.CaseTable.defaultAttrName"),
+        (aName: string) => !data.attributes.find(attr => aName === attr.name)
+      )
+      attribute = data.addAttribute({ name: newAttrName }, { collection: collectionId })
+      if (attribute) {
+        uiState.setAttrIdToEdit(attribute.id)
+      }
+    }, {
+      notify: () => createAttributesNotification(attribute ? [attribute] : [], data),
+      undoStringKey: "DG.Undo.caseTable.createAttribute",
+      redoStringKey: "DG.Redo.caseTable.createAttribute"
+    })
+  }
+
   const renderChildCollection = (coll: ICollectionModel) => {
-    const childCases = cardModel?.groupChildCases(coll, displayedCaseId)
+    const childCases = cardModel?.groupChildCases(displayedCaseId)
     if (!childCases) return null
 
     return (
@@ -67,31 +110,45 @@ export const CaseView = observer(function CaseView(props: ICaseViewProps) {
   }
 
   return (
-    <div className={`case fadeIn ${colorCycleClass(level)}`} data-testid="case-view">
-      <div className="case-view-header" data-testid="case-view-header">
-        <div className="case-view-title" data-testid="case-view-title">{collection?.name}</div>
-        <div className="controls">
+    <div className={`case-card-view fadeIn ${colorCycleClass(level)}`} data-testid="case-card-view">
+      <div className="case-card-view-header" data-testid="case-card-view-header">
+        <div className="case-card-view-title" data-testid="case-card-view-title">
+          <CollectionTitle showCount={false} />
+        </div>
+        <div className="case-card-controls">
           <button
             className="arrow previous"
-            data-testid="case-view-previous-button"
+            data-testid="case-card-view-previous-button"
             disabled={prevButtonDisabled}
-            onClick={handleButtonClickFn(-1)}
+            onClick={handleSelectCase(-1)}
           >
             <Arrow />
           </button>
-          <span className="caseIndex" data-testid="case-view-index">{displayedCaseIndex + 1} of {cases.length}</span>
+          <span className="caseIndex" data-testid="case-card-view-index">
+            {displayedCaseIndex + 1} of {cases.length}
+          </span>
           <button
             className="arrow next"
-            data-testid="case-view-next-button"
+            data-testid="case-card-view-next-button"
             disabled={nextButtonDisabled}
-            onClick={handleButtonClickFn(+1)}
+            onClick={handleSelectCase(+1)}
           >
             <Arrow />
           </button>
         </div>
+        <div className="add-case">
+          <button onClick={handleAddNewCase} data-testid="add-case-button">
+            <AddIcon />
+          </button>
+        </div>
       </div>
-      <CaseAttrsView key={displayedCaseId} caseItem={displayedCase} collection={collection} />
-      {collection?.child && renderChildCollection(collection.child)}
+      <div className="case-card-attributes">
+        <button className="add-attribute" onClick={handleAddNewAttribute} data-testid="add-attribute-button">
+          <AddIcon />
+        </button>
+        <CaseAttrsView key={displayedCaseId} caseItem={displayedCase} collection={collection} />
+        {collection?.child && renderChildCollection(collection.child)}
+      </div>
     </div>
   )
 })

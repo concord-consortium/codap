@@ -134,6 +134,9 @@ export const GraphDataConfigurationModel = DataConfigurationModel
         }
       })
       return allGraphCaseIds
+    },
+    get primaryAttributeType(): AttributeType {
+      return self.primaryRole && self.attributeType(self.primaryRole) || "categorical"
     }
   }))
   .actions(self => ({

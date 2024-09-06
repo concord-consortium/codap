@@ -637,7 +637,8 @@ export const GraphContentModel = DataDisplayContentModel
         place: secondaryPlace,
         min: 0,
         max: maxCellCaseCount,
-        lockZero: true
+        lockZero: true,
+        integersOnly: true
       })
       setNiceDomain([0, maxCellCaseCount], countAxis, {clampPosMinAtZero: true})
       self.setAxis(secondaryPlace, countAxis)
