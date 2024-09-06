@@ -23,6 +23,7 @@ export class UIState {
 
   // Values used by the Collaborative plugin to ensure a shared table does not change while a user is editing it
 
+  // True if the user is editing a cell in a table.
   @observable
   private _isEditingCell = false
 
@@ -31,10 +32,9 @@ export class UIState {
   @observable
   private _isEditingBlockingCell = false
 
-  // True if the selected cell should be refreshed in edit mode.
-  // This can occur if it is being edited, or the prior cell edit was completed via navigation to another cell.
+  // True if the prior cell edit was completed via navigation to another cell.
   @observable
-  private _refreshEditingSelectedCell = false
+  private _isNavigatingToNextEditCell = false
 
   // The number of request batches that have been processed.
   // This triggers refreshes to the selected cell after delayed API requests have been processed.
@@ -61,13 +61,14 @@ export class UIState {
     return this._isEditingBlockingCell
   }
 
-  get refreshEditingSelectedCell() {
-    return this._refreshEditingSelectedCell
+  get isNavigatingToNextEditCell() {
+    return this._isNavigatingToNextEditCell
   }
 
-  get editRefreshedSelectedCell() {
-    console.log(`--- refreshingEditingSelectedCell`, this.refreshEditingSelectedCell)
-    return this.isEditingCell || this.refreshEditingSelectedCell
+  // When we refresh the selected cell, it should be in editing mode if we were editing
+  // or we navigated from the last edit with "enter" or "tab".
+  get refreshSelectedCellEditing() {
+    return this.isEditingCell || this.isNavigatingToNextEditCell
   }
 
   get requestBatchesProcessed() {
@@ -103,8 +104,8 @@ export class UIState {
   }
 
   @action
-  setRefreshEditingSelectedCell(refreshEditingSelectedCell: boolean) {
-    this._refreshEditingSelectedCell = refreshEditingSelectedCell
+  setIsNavigatingToNextEditCell(isNavigating: boolean) {
+    this._isNavigatingToNextEditCell = isNavigating
   }
 
   @action
