@@ -7,6 +7,7 @@ import { IGlobalValue } from "../models/global/global-value"
 import { ITileModel } from "../models/tiles/tile-model"
 import { ICollectionLabels, ICollectionModel } from "../models/data/collection"
 import { V2SpecificComponent } from "./data-interactive-component-types"
+import { LoggableValue } from "../lib/log-message"
 
 export type DICaseValue = string | number | boolean | Date | undefined
 export type DICaseValues = Record<string, DICaseValue>
@@ -142,6 +143,11 @@ export interface DIItemSearchNotify {
   itemOrder?: "first" | "last" | number[]
 }
 
+export interface DILogMessage {
+  formatStr?: string
+  replaceArgs?: LoggableValue | LoggableValue[]
+}
+
 export interface DIResources {
   attribute?: IAttribute
   attributeList?: IAttribute[]
@@ -169,7 +175,7 @@ export interface DIResources {
 // types for values accepted as inputs by the API
 export type DISingleValues = DIAttribute | DIAttributeLocationValues | DICase | DIDataContext |
   DIGlobal | DIInteractiveFrame | DIItemValues | DICreateCollection | DINewCase | DIUpdateCase |
-  DINotification | DIItemSearchNotify | V2SpecificComponent
+  DINotification | DIItemSearchNotify | V2SpecificComponent | DILogMessage
 export type DIValues = DISingleValues | DISingleValues[] | number | string[]
 
 // types returned as outputs by the API
