@@ -1,4 +1,3 @@
-import { MenuItem, MenuList, useToast } from "@chakra-ui/react"
 import React from "react"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
 import { logStringifiedObjectMessage } from "../../../lib/log-message"
@@ -8,21 +7,12 @@ import { uiState } from "../../../models/ui-state"
 import { uniqueName } from "../../../utilities/js-utils"
 import { preventCollectionReorg } from "../../../utilities/plugin-utils"
 import { t } from "../../../utilities/translation/translate"
+import { IMenuItem, StdMenuList } from "../../case-tile-common/std-menu-list"
 
 export const RulerMenuList = () => {
   const data = useDataSetContext()
-  const toast = useToast()
-  const handleMenuItemClick = (menuItem: string) => {
-    toast({
-      title: 'Menu item clicked',
-      description: `You clicked on ${menuItem}`,
-      status: 'success',
-      duration: 5000,
-      isClosable: true,
-    })
-  }
 
-  const handleAddNewAttribute = (collectionId: string) => () => {
+  const handleAddNewAttribute = (collectionId: string) => {
     let attribute: IAttribute | undefined
     data?.applyModelChange(() => {
       const newAttrName = uniqueName("newAttr",
@@ -41,33 +31,32 @@ export const RulerMenuList = () => {
     })
   }
 
-  const addAttributeButtons = data
-    ? data.collections.map(collection => (
-      <MenuItem
-        isDisabled={preventCollectionReorg(data, collection.id)}
-        key={`menu-add-attribute-button-${collection.id}`}
-        onClick={handleAddNewAttribute(collection.id)}
-      >
-        {t("DG.Inspector.newAttribute", { vars: [collection.title] })}
-      </MenuItem>
-    ))
-    : []
+  const addAttributeMenuItems: IMenuItem[] =
+    data?.collections.map(collection => ({
+        itemKey: collection.id,
+        itemLabel: () => t("DG.Inspector.newAttribute", { vars: [collection.title] }),
+        isEnabled: () => !preventCollectionReorg(data, collection.id),
+        handleClick: () => handleAddNewAttribute(collection.id)
+      }
+    )) ?? []
+
+  const menuItems: IMenuItem[] = [
+    ...addAttributeMenuItems,
+    {
+      itemKey: "DG.Inspector.randomizeAllAttributes"
+    },
+    {
+      itemKey: "DG.Inspector.exportCaseData"
+    },
+    {
+      itemKey: "DG.Inspector.copyCaseDataToClipboard"
+    },
+    {
+      itemKey: "DG.Inspector.getCaseDataFromClipboard"
+    }
+  ]
 
   return (
-    <MenuList data-testid="ruler-menu-list">
-      {...addAttributeButtons}
-      <MenuItem onClick={()=>handleMenuItemClick("Rerandomize All")}>
-        {t("DG.Inspector.randomizeAllAttributes")}
-      </MenuItem>
-      <MenuItem onClick={()=>handleMenuItemClick("Export Case Data")}>
-        {t("DG.Inspector.exportCaseData")}
-      </MenuItem>
-      <MenuItem onClick={()=>handleMenuItemClick("Copy Case Data To Clipboard")}>
-        {t("DG.Inspector.copyCaseDataToClipboard")}
-      </MenuItem>
-      <MenuItem onClick={()=>handleMenuItemClick("Get Case Data From Clipboard")}>
-        {t("DG.Inspector.getCaseDataFromClipboard")}
-      </MenuItem>
-    </MenuList>
+    <StdMenuList data-testid="ruler-menu-list" menuItems={menuItems} />
   )
 }
