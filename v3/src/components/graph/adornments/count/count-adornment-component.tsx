@@ -172,7 +172,8 @@ export const CountAdornment = observer(function CountAdornment(props: IAdornment
             model.setShowPercent(false)
           }, {
             undoStringKey: "DG.Undo.graph.hidePercent",
-            redoStringKey: "DG.Redo.graph.hidePercent"
+            redoStringKey: "DG.Redo.graph.hidePercent",
+            log: "Hide percent adornment"
           })
         }
      }, { name: "CountAdornment.refreshPercentOption"}, model)

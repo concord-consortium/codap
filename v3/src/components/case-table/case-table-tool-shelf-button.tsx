@@ -55,7 +55,7 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
       notify: dataContextCountChangedNotification,
       undoStringKey: "V3.Undo.caseTable.create",
       redoStringKey: "V3.Redo.caseTable.create",
-      log: "createNewEmptyDataSet"
+      log: "Create New Empty DataSet"
     })
   }
 

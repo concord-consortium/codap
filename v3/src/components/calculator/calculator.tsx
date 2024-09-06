@@ -3,6 +3,7 @@ import React, { useState } from "react"
 import { ITileBaseProps } from "../tiles/tile-base-props"
 import { isCalculatorModel } from "./calculator-model"
 import { evaluate } from "mathjs"
+import { logMessageWithReplacement } from "../../lib/log-message"
 
 import "./calculator.scss"
 
@@ -43,7 +44,7 @@ export const CalculatorComponent = ({ tile }: ITileBaseProps) => {
         const solution = evaluate(calcValue)
         !isNaN(solution) && setCalcValue(solution)
         calculatorModel?.applyModelChange(() => {}, {
-          log: `Calculation done: ${calcValue} = ${solution}`
+          log: logMessageWithReplacement("Calculation done: %@ = %@", {calcValue, solution})
         })
       } catch  (error) {
         setCalcValue(`Error`)

@@ -6,6 +6,7 @@ import { EditFormulaModal } from "./edit-formula-modal"
 import { IAdornmentBannerComponentProps } from "../adornment-component-info"
 import { IPlottedFunctionAdornmentModel } from "./plotted-function-adornment-model"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
+import { logStringifiedObjectMessage } from "../../../../lib/log-message"
 
 import "./plotted-function-adornment-banner.scss"
 
@@ -38,7 +39,7 @@ export const PlottedFunctionAdornmentBanner = observer(function PlottedFunctionA
       {
         undoStringKey: "DG.Undo.graph.changePlotFunction",
         redoStringKey: "DG.Redo.graph.changePlotFunction",
-        log: { message: "Change plotted function", args: {from: expression, to: newExpression}}
+        log: logStringifiedObjectMessage("Change plotted function: %@", {from: expression, to: newExpression})
       }
     )
   }
