@@ -7,7 +7,7 @@ import {
   kInputRowKey, OnScrollClosestRowIntoViewFn, OnTableScrollFn, TCellKeyDownArgs, TRenderers, TRow
 } from "./case-table-types"
 import { CollectionTableSpacer } from "./collection-table-spacer"
-import { CollectionTitle } from "../case-table-card-common/collection-title"
+import { CollectionTitle } from "../case-tile-common/collection-title"
 import { customRenderRow } from "./custom-row"
 import { useColumns } from "./use-columns"
 import { useIndexColumn } from "./use-index-column"

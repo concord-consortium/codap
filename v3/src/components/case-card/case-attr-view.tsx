@@ -7,7 +7,7 @@ import { useCaseCardModel } from "./use-case-card-model"
 import { setCaseValuesWithCustomUndoRedo } from "../../models/data/data-set-undo"
 import { ICase } from "../../models/data/data-set-types"
 import { isFiniteNumber } from "../../utilities/math-utils"
-import { AttributeHeader } from "../case-table-card-common/attribute-header"
+import { AttributeHeader } from "../case-tile-common/attribute-header"
 import { ICollectionModel } from "../../models/data/collection"
 import { createCasesNotification, updateCasesNotification } from "../../models/data/data-set-notifications"
 
