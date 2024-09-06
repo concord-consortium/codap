@@ -137,7 +137,7 @@ export const DeleteDataSetModal = ({dataSetId, isOpen, onClose, setModalOpen}: I
         notify: [dataContextCountChangedNotification, dataContextDeletedNotification(data)],
         undoStringKey: "V3.Undo.caseTable.delete",
         redoStringKey: "V3.Redo.caseTable.delete",
-        log: logStringifiedObjectMessage("deleteDataSet: %@", { id: dataSetId, name: data?.title })
+        log: logStringifiedObjectMessage("Delete dataset: %@", { id: dataSetId, name: data?.title })
       })
     }
   }

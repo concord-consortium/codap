@@ -169,7 +169,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
       notify: () => createAttributesNotification(attribute ? [attribute] : [], data),
       undoStringKey: "DG.Undo.caseTable.createAttribute",
       redoStringKey: "DG.Redo.caseTable.createAttribute",
-      log: logStringifiedObjectMessage("attributeCreate: %@",
+      log: logStringifiedObjectMessage("Create attribute: %@",
               {name: "newAttr", collection: data?.getCollection(collectionId)?.name, formula: ""})
     })
   }

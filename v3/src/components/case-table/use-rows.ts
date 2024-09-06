@@ -275,7 +275,7 @@ export const useRows = () => {
     const redoStringKey = creatingCases ? "DG.Redo.caseTable.createNewCase" : "DG.Redo.caseTable.editCellValue"
     const logMessage = creatingCases
                         ? logMessageWithReplacement("Create %@ cases in table", { count: casesToCreate.length })
-                        : getPendingLogMessage("editCellValue")
+                        : getPendingLogMessage("Edit cell value")
     // We track case ids between updates and additions so we can make proper notifications afterwards
     let oldCaseIds = new Set(collection?.caseIds ?? [])
     let updatedCaseIds: string[] = []
