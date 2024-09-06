@@ -39,7 +39,7 @@ export default function CellTextEditor({ row, column, onRowChange, onClose }: TR
   // Inform the ui that we're editing a table while this component exists.
   useEffect(() => {
     if (blockAPIRequestsWhileEditing(data)) {
-      uiState.setRefreshEditingSelectedCell(true)
+      uiState.setIsEditingCell(true)
       return () => {
         uiState.setIsEditingBlockingCell(false)
       }
@@ -61,12 +61,17 @@ export default function CellTextEditor({ row, column, onRowChange, onClose }: TR
     }
   }
 
+  function handleBlur() {
+    uiState.setIsEditingCell(false)
+  }
+
   return (
     <input
       data-testid="cell-text-editor"
       className={textEditorClassname}
       ref={autoFocusAndSelect}
       value={valueRef.current}
+      onBlur={handleBlur}
       onChange={(event) => handleChange(event.target.value)}
       onInput={handleInput}
     />

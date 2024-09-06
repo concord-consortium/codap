@@ -23,6 +23,9 @@ export class UIState {
 
   // Values used by the Collaborative plugin to ensure a shared table does not change while a user is editing it
 
+  @observable
+  private _isEditingCell = false
+
   // True if the user is currently editing a table that blocks API requests,
   // preventing the table from changing out from under the user.
   @observable
@@ -50,12 +53,21 @@ export class UIState {
     return this.hoverTileId
   }
 
+  get isEditingCell() {
+    return this._isEditingCell
+  }
+
   get isEditingBlockingCell() {
     return this._isEditingBlockingCell
   }
 
   get refreshEditingSelectedCell() {
     return this._refreshEditingSelectedCell
+  }
+
+  get editRefreshedSelectedCell() {
+    console.log(`--- refreshingEditingSelectedCell`, this.refreshEditingSelectedCell)
+    return this.isEditingCell || this.refreshEditingSelectedCell
   }
 
   get requestBatchesProcessed() {
@@ -81,17 +93,18 @@ export class UIState {
   }
 
   @action
-  setIsEditingBlockingCell(isEditingBlockingCell = false) {
-    this._isEditingBlockingCell = isEditingBlockingCell
-    if (isEditingBlockingCell) {
-      // we only need to track this between editor invocations
-      this._refreshEditingSelectedCell = false
-    }
+  setIsEditingCell(value: boolean) {
+    this._isEditingCell = value
   }
 
   @action
-  setRefreshEditingSelectedCell(isNavigating: boolean) {
-    this._refreshEditingSelectedCell = isNavigating
+  setIsEditingBlockingCell(isEditingBlockingCell = false) {
+    this._isEditingBlockingCell = isEditingBlockingCell
+  }
+
+  @action
+  setRefreshEditingSelectedCell(refreshEditingSelectedCell: boolean) {
+    this._refreshEditingSelectedCell = refreshEditingSelectedCell
   }
 
   @action

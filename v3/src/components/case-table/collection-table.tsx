@@ -190,6 +190,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
         // RDG's internal `canExitGrid()` function or perhaps add a callback to RDG that is called
         // when focus exits the grid.
         uiState.setRefreshEditingSelectedCell(true)
+        setTimeout(() => uiState.setRefreshEditingSelectedCell(false), 500)
       }
 
       // By default in RDG, the enter/return key simply enters/exits edit mode without moving the

@@ -54,7 +54,7 @@ export function useSelectedCell(gridRef: React.RefObject<DataGridHandle | null>,
       if (rowIdx != null) {
         const position = { idx, rowIdx }
         blockUpdateSelectedCell.current = true
-        if (tileIsFocused) gridRef.current?.selectCell(position, allowEdit && uiState.refreshEditingSelectedCell)
+        if (tileIsFocused) gridRef.current?.selectCell(position, allowEdit && uiState.editRefreshedSelectedCell)
         selectedCell.current = { ...selectedCell.current, rowIdx }
         blockUpdateSelectedCell.current = false
 

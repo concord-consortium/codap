@@ -69,7 +69,7 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
   // Inform the ui that we're editing a table while this component exists.
   useEffect(() => {
     if (blockAPIRequestsWhileEditing(data)) {
-      uiState.setRefreshEditingSelectedCell(true)
+      uiState.setIsEditingCell(true)
       return () => {
         uiState.setIsEditingBlockingCell(false)
       }
@@ -112,8 +112,13 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
     updateValue(event.target.value)
   }
 
+  function handleBlur() {
+    uiState.setIsEditingCell(false)
+  }
+
   const swatchStyle: React.CSSProperties | undefined = showColorSwatch.current ? { background: color } : undefined
-  const inputElt = <InputElt value={inputValue} onChange={handleInputColorChange} onInput={handleInput} />
+  const inputElt =
+    <InputElt value={inputValue} onBlur={handleBlur} onChange={handleInputColorChange} onInput={handleInput} />
 
   return swatchStyle
     ? (
