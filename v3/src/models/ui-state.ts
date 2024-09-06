@@ -96,8 +96,9 @@ export class UIState {
   }
 
   @action
-  setIsEditingCell(value: boolean) {
-    this._isEditingCell = value
+  setIsEditingCell(isEditing: boolean) {
+    this._isEditingCell = isEditing
+    if (!isEditing) this._isEditingBlockingCell = false
   }
 
   @action

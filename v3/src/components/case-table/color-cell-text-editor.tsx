@@ -2,7 +2,7 @@ import {
   Button, ButtonGroup, Flex, forwardRef, Popover, PopoverAnchor, PopoverArrow, PopoverBody,
   PopoverContent, PopoverFooter, PopoverTrigger, Portal, Spacer, useDisclosure, useMergeRefs
 } from "@chakra-ui/react"
-import React, { ChangeEvent, FormEventHandler, useCallback, useEffect, useRef, useState } from "react"
+import React, { ChangeEvent, useCallback, useEffect, useRef, useState } from "react"
 import { textEditorClassname } from "react-data-grid"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useLoggingContext } from "../../hooks/use-log-context"
@@ -68,21 +68,11 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
 
   // Inform the ui that we're editing a table while this component exists.
   useEffect(() => {
-    if (blockAPIRequestsWhileEditing(data)) {
-      uiState.setIsEditingCell(true)
-      return () => {
-        uiState.setIsEditingBlockingCell(false)
-      }
+    uiState.setIsEditingCell(true)
+    return () => {
+      uiState.setIsEditingCell(false)
     }
   }, [])
-
-  const handleInput: FormEventHandler<HTMLInputElement> = event => {
-    const { target } = event
-    if (blockAPIRequestsWhileEditing(data) && target instanceof HTMLInputElement) {
-      // Only block API requests if the user has actually entered a value.
-      uiState.setIsEditingBlockingCell(!!target.value)
-    }
-  }
 
   // commits the change and closes the editor
   const acceptValue = useCallback(() => {
@@ -91,11 +81,15 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
 
   // updates the value locally without committing the changes
   const updateValue = useCallback((value: string) => {
+    // only start blocking (if appropriate) when user makes changes
+    if (blockAPIRequestsWhileEditing(data) && value !== initialInputValue.current) {
+      uiState.setIsEditingBlockingCell(true)
+    }
     setInputValue(value)
     onRowChange({ ...row, [column.key]: value })
     setPendingLogMessage("editCellValue", logStringifiedObjectMessage("editCellValue: %@",
       {attrId: column.key, caseId: row.__id__, from: initialInputValue.current, to: value }))
-  }, [column.key, onRowChange, row, setPendingLogMessage])
+  }, [column.key, data, onRowChange, row, setPendingLogMessage])
 
   // rejects any local changes and closes the editor
   const rejectValue = useCallback(() => {
@@ -112,13 +106,8 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
     updateValue(event.target.value)
   }
 
-  function handleBlur() {
-    uiState.setIsEditingCell(false)
-  }
-
   const swatchStyle: React.CSSProperties | undefined = showColorSwatch.current ? { background: color } : undefined
-  const inputElt =
-    <InputElt value={inputValue} onBlur={handleBlur} onChange={handleInputColorChange} onInput={handleInput} />
+  const inputElt = <InputElt value={inputValue} onChange={handleInputColorChange} />
 
   return swatchStyle
     ? (

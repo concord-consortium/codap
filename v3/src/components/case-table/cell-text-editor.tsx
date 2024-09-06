@@ -1,4 +1,4 @@
-import React, { FormEventHandler, useEffect, useRef } from "react"
+import React, { useEffect, useRef } from "react"
 import { textEditorClassname } from "react-data-grid"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useLoggingContext } from "../../hooks/use-log-context"
@@ -38,31 +38,21 @@ export default function CellTextEditor({ row, column, onRowChange, onClose }: TR
 
   // Inform the ui that we're editing a table while this component exists.
   useEffect(() => {
-    if (blockAPIRequestsWhileEditing(data)) {
-      uiState.setIsEditingCell(true)
-      return () => {
-        uiState.setIsEditingBlockingCell(false)
-      }
+    uiState.setIsEditingCell(true)
+    return () => {
+      uiState.setIsEditingCell(false)
     }
   }, [])
 
   const handleChange = (value: string) => {
+    // only start blocking (if appropriate) when user makes changes
+    if (blockAPIRequestsWhileEditing(data) && value !== initialValueRef.current) {
+      uiState.setIsEditingBlockingCell(true)
+    }
     valueRef.current = value
     onRowChange({ ...row, [column.key]: value })
     setPendingLogMessage("editCellValue", logStringifiedObjectMessage("editCellValue: %@",
       {attrId: column.key, caseId: row.__id__, from: initialValueRef.current, to: valueRef.current }))
-  }
-
-  const handleInput: FormEventHandler<HTMLInputElement> = event => {
-    const { target } = event
-    if (blockAPIRequestsWhileEditing(data) && target instanceof HTMLInputElement) {
-      // Only block API requests if the user has actually entered a value.
-      uiState.setIsEditingBlockingCell(!!target.value)
-    }
-  }
-
-  function handleBlur() {
-    uiState.setIsEditingCell(false)
   }
 
   return (
@@ -71,9 +61,7 @@ export default function CellTextEditor({ row, column, onRowChange, onClose }: TR
       className={textEditorClassname}
       ref={autoFocusAndSelect}
       value={valueRef.current}
-      onBlur={handleBlur}
       onChange={(event) => handleChange(event.target.value)}
-      onInput={handleInput}
     />
   )
 }
