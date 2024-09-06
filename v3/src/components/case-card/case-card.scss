@@ -5,6 +5,12 @@
   overflow: auto hidden;
   position: relative;
 
+  .attribute-drag-overlay {
+    display: inline-flex;
+    padding: 0 5px;
+    width: auto;
+  }
+
   .codap-column-header-divider {
     position: absolute;
     background: #ffff00;
