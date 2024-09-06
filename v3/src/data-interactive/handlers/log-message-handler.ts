@@ -2,6 +2,7 @@ import { LoggableObject, LoggableValue, logMessageWithReplacement } from "../../
 import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIHandler, DILogMessage, DIResources, DIValues,  } from "../data-interactive-types"
+import { valuesRequiredResult } from "./di-results"
 
 export const diLogMessageHandler: DIHandler = {
   notify(resources: DIResources, values?: DIValues) {
@@ -21,7 +22,7 @@ export const diLogMessageHandler: DIHandler = {
       )
       return {success: true}
     } else {
-      return {success: false, error: t("V3.DI.Error.valuesRequired")}
+      return valuesRequiredResult
     }
   }
 }
