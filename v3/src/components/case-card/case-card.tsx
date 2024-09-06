@@ -8,7 +8,8 @@ import { prf } from "../../utilities/profiler"
 import { CardView } from "./card-view"
 // import { DGDataContext } from "../../models/v2/dg-data-context"
 
-import "./case-card.v2"
+// import "./case-card.v2"
+import "./case-card.scss"
 
 interface IProps {
   setNodeRef: (element: HTMLElement | null) => void
