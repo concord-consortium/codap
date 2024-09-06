@@ -6,6 +6,7 @@ import { IAdornmentBannerComponentProps } from "../../adornment-component-info"
 import { EditFormulaModal } from "./edit-formula-modal"
 import { IPlottedValueAdornmentModel } from "./plotted-value-adornment-model"
 import { useGraphContentModelContext } from "../../../hooks/use-graph-content-model-context"
+import { logMessageWithReplacement } from "../../../../../lib/log-message"
 
 import "./plotted-value-adornment-banner.scss"
 
@@ -34,7 +35,9 @@ export const PlottedValueAdornmentBanner = observer(function PlottedValueAdornme
       () => model.setExpression(newExpression),
       {
         undoStringKey: "DG.Undo.graph.changePlotValue",
-        redoStringKey: "DG.Redo.graph.changePlotValue"
+        redoStringKey: "DG.Redo.graph.changePlotValue",
+        log: logMessageWithReplacement("Change plotted value from %@ to %@",
+                {expression, newExpression})
       }
     )
   }

@@ -56,7 +56,8 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
       () => mapModel?.clearHiddenCases(),
       {
         undoStringKey: "DG.Undo.showAllCases",
-        redoStringKey: "DG.Redo.showAllCases"
+        redoStringKey: "DG.Redo.showAllCases",
+        log: "Show all cases"
       }
     )
   }

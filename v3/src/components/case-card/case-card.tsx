@@ -1,5 +1,6 @@
 import { useMergeRefs } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
+import { useDndContext } from "@dnd-kit/core"
 import React, { useRef } from "react"
 // import { useResizeDetector } from "react-resize-detector"
 import { useDataSet } from "../../hooks/use-data-set"
@@ -7,17 +8,19 @@ import { useCaseCardModel } from "./use-case-card-model"
 import { prf } from "../../utilities/profiler"
 import { CardView } from "./card-view"
 // import { DGDataContext } from "../../models/v2/dg-data-context"
+import { AttributeDragOverlay } from "../drag-drop/attribute-drag-overlay"
+import { useInstanceIdContext } from "../../hooks/use-instance-id-context"
+import { kIndexColumnKey } from "../case-table/case-table-types"
 
-import "./case-card.v2"
+// import "./case-card.v2"
+import "./case-card.scss"
 
 interface IProps {
   setNodeRef: (element: HTMLElement | null) => void
 }
 export const CaseCard = observer(function CaseCard({ setNodeRef }: IProps) {
-/*
   const { active } = useDndContext()
   const instanceId = useInstanceIdContext() || "case-card"
-*/
   const {data} = useDataSet()
   const cardModel = useCaseCardModel()
   const containerRef = useRef<HTMLDivElement>(null)
@@ -55,10 +58,8 @@ export const CaseCard = observer(function CaseCard({ setNodeRef }: IProps) {
 
   return prf.measure("CaseCard.render", () => {
     // disable the overlay for the index column
-/*
     const overlayDragId = active && `${active.id}`.startsWith(instanceId) && !(`${active.id}`.endsWith(kIndexColumnKey))
                             ? `${active.id}` : undefined
-*/
 
     // const context = new DGDataContext(data)
     const columnWidths: Record<string, number> = {}
@@ -77,6 +78,7 @@ export const CaseCard = observer(function CaseCard({ setNodeRef }: IProps) {
     //     }, {
     //       undoStringKey: "DG.Undo.caseCard.columnWidthChange",
     //       redoStringKey: "DG.Redo.caseCard.columnWidthChange",
+    //       log: "Resized column in case card"
     //     })
     //   }
     // }
@@ -85,6 +87,7 @@ export const CaseCard = observer(function CaseCard({ setNodeRef }: IProps) {
       <>
         <div ref={mergeRefs} className="case-card react-data-card" data-testid="case-card">
           <CardView />
+          <AttributeDragOverlay activeDragId={overlayDragId} />
         </div>
       </>
     )

@@ -1,0 +1,12 @@
+$margin-left: 29px;
+$margin-right: 5px;
+$xMarginOffset: $margin-left + $margin-right;
+
+.case-card-attrs {
+  border-collapse: collapse;
+  font-weight: 600;
+  margin: 5px $margin-right 5px $margin-left;
+  table-layout: auto;
+  text-align: right;
+  width: calc(100% - $xMarginOffset);
+}
