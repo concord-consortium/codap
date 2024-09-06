@@ -1,6 +1,7 @@
 import { nanoid } from "nanoid"
 import { debugLog, DEBUG_LOGGER } from "./debug"
 import { IDocumentModel } from "../models/document/document"
+import { eventCategoryMap, mockGA } from "./analytics"
 
 // Set to true (temporarily) to debug logging to server specifically.
 // Otherwise, we assume that console.logs are sufficient.
@@ -36,6 +37,16 @@ interface PendingMessage {
   documentTitle: string
   event_value?: string
   parameters?: Record<string, unknown>
+}
+
+interface IGAData {
+  readonly eventCategory: string;
+  readonly eventAction: string;
+  readonly eventLabel: string;
+}
+
+interface IAnalyticsService {
+  gtag?: (type: "event", event: string, data: IGAData) => void;
 }
 
 type ILogListener = (logMessage: LogMessage) => void
@@ -114,6 +125,7 @@ export class Logger {
     debugLog(DEBUG_LOGGER, "logMessage:", logMessage)
     // sendToLoggingService(logMessage, this.stores.user)
     sendToLoggingService(logMessage)
+    sendToAnalyticsService(event)
     // for (const listener of this.logListeners) {
     //   listener(logMessage)
     // }
@@ -162,4 +174,26 @@ function sendToLoggingService(data: LogMessage) {
   request.open("POST", url, true)
   request.setRequestHeader("Content-Type", "application/json; charset=UTF-8")
   request.send(JSON.stringify(data))
+}
+
+function sendToAnalyticsService(event: string) {
+  const windowWithPossibleGa = (window as IAnalyticsService)
+  const eventName = event.includes(":") ? event.split(":")[0] : event
+
+  const payload: IGAData = {
+    eventCategory: eventCategoryMap[eventName],
+    eventAction: event,
+    eventLabel: "CODAPV3"
+  }
+
+  try {
+    if (windowWithPossibleGa.gtag instanceof Function) {
+      windowWithPossibleGa.gtag("event", event, payload)
+    } else {
+      mockGA.gtag("event", event, payload)
+    }
+  } catch (e) {
+    console.error("Unable to send Google Analytics")
+    console.error(e)
+  }
 }
