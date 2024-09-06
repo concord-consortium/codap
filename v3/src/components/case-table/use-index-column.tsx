@@ -5,7 +5,7 @@ import { createPortal } from "react-dom"
 import { kIndexColumnKey, kInputRowKey, TColSpanArgs, TColumn, TRenderCellProps } from "./case-table-types"
 import { ColumnHeader } from "./column-header"
 import { IndexMenuList } from "./index-menu-list"
-import { useRdgCellFocus } from "./use-rdg-cell-focus"
+import { useParentChildFocusRedirect } from "../case-table-card-common/use-parent-child-focus-redirect"
 import { useCaseMetadata } from "../../hooks/use-case-metadata"
 import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
@@ -126,7 +126,7 @@ export function IndexCell({ caseId, disableMenu, index, collapsedCases, onClick 
   })
 
   // focus our content when the cell is focused
-  useRdgCellFocus(cellElt, menuButton)
+  useParentChildFocusRedirect(cellElt, menuButton)
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (["ArrowDown", "ArrowUp"].includes(e.key)) {
