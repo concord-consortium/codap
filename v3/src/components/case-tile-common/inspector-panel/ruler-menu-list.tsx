@@ -7,7 +7,7 @@ import { uiState } from "../../../models/ui-state"
 import { uniqueName } from "../../../utilities/js-utils"
 import { preventCollectionReorg } from "../../../utilities/plugin-utils"
 import { t } from "../../../utilities/translation/translate"
-import { IMenuItem, StdMenuList } from "../../case-tile-common/std-menu-list"
+import { IMenuItem, StdMenuList } from "../std-menu-list"
 
 export const RulerMenuList = () => {
   const data = useDataSetContext()
