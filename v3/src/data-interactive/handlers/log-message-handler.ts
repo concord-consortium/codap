@@ -1,5 +1,4 @@
 import { LoggableObject, LoggableValue, logMessageWithReplacement } from "../../lib/log-message"
-import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIHandler, DILogMessage, DIResources, DIValues,  } from "../data-interactive-types"
 import { valuesRequiredResult } from "./di-results"
