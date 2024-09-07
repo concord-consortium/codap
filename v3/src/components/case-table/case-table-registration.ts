@@ -1,5 +1,5 @@
 import { SetRequired } from "type-fest"
-import { caseTableCardComponentHandler } from "../case-table-card-common/case-table-card-handler"
+import { caseTableCardComponentHandler } from "../case-tile-common/case-tile-component-handler"
 import { registerComponentHandler } from "../../data-interactive/handlers/component-handler"
 import { registerTileComponentInfo } from "../../models/tiles/tile-component-info"
 import { registerTileContentInfo } from "../../models/tiles/tile-content-info"
@@ -7,7 +7,7 @@ import { ITileModelSnapshotIn } from "../../models/tiles/tile-model"
 import { CaseTableComponent } from "./case-table-component"
 import { kCaseTableTileType, kV2CaseTableType } from "./case-table-defs"
 import { CaseTableModel, ICaseTableSnapshot } from "./case-table-model"
-import { CaseTableCardTitleBar } from "../case-table-card-common/case-table-card-title-bar"
+import { CaseTileTitleBar } from "../case-tile-common/case-tile-title-bar"
 import TableIcon from '../../assets/icons/icon-table.svg'
 import { toV3Id } from "../../utilities/codap-utils"
 import { registerV2TileImporter } from "../../v2/codap-v2-tile-importers"
@@ -33,7 +33,7 @@ registerTileContentInfo({
 
 registerTileComponentInfo({
   type: kCaseTableTileType,
-  TitleBar: CaseTableCardTitleBar,
+  TitleBar: CaseTileTitleBar,
   Component: CaseTableComponent,
   InspectorPanel: CaseTableInspector,
   tileEltClass: "codap-case-table",

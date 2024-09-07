@@ -2,7 +2,7 @@ import { Tooltip } from "@chakra-ui/react"
 import React from "react"
 import { useDataSet } from "../../hooks/use-data-set"
 import { symParent } from "../../models/data/data-set-types"
-import { renderAttributeValue } from "../case-table-card-common/render-attribute-value"
+import { renderAttributeValue } from "../case-tile-common/render-attribute-value"
 import { symDom, TRenderCellProps } from "./case-table-types"
 
 export function AttributeValueCell({ column, row }: TRenderCellProps) {

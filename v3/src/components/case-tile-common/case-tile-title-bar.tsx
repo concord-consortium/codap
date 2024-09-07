@@ -13,9 +13,9 @@ import { kCaseCardTileType } from "../case-card/case-card-defs"
 import { kCaseTableTileType } from "../case-table/case-table-defs"
 import { ComponentTitleBar } from "../component-title-bar"
 import { ITileTitleBarProps } from "../tiles/tile-base-props"
-import { toggleCardTable } from "./case-table-card-utils"
+import { toggleCardTable } from "./case-tile-utils"
 
-import "./case-table-card-title-bar.scss"
+import "./case-tile-title-bar.scss"
 
 interface TableCardInfo {
   thisType: typeof kCaseCardTileType | typeof kCaseTableTileType
@@ -53,7 +53,7 @@ function getTileInfo(tileType?: string) {
   return (tileType ? tileInfoMap[tileType] : null) ?? tileInfoMap[kCaseTableTileType]
 }
 
-export const CaseTableCardTitleBar =
+export const CaseTileTitleBar =
   observer(function CaseTableTitleBar({tile, onCloseTile, ...others}: ITileTitleBarProps) {
     const tileInfo = getTileInfo(tile?.content.type)
     const data = tile?.content && getTileDataSet(tile?.content)
