@@ -14,7 +14,7 @@ import "../../components/web-view/web-view-registration"
 describe("DataInteractive DataContextHandler", () => {
   const handler = diDataContextHandler
 
-  it("create and delete work as expected", () => {
+  it("create and delete work", () => {
     gDataBroker.setSharedModelManager(getSharedModelManager(appState.document)!)
     const name = "dataSet"
     const title = "dataSet Title"
@@ -66,7 +66,7 @@ describe("DataInteractive DataContextHandler", () => {
     expect(dataset.attributes.length).toBe(4)
   })
 
-  it("get works as expected", () => {
+  it("get works", () => {
     const { dataset } = setupTestDataset()
 
     expect(handler.get?.({}).success).toBe(false)
@@ -79,7 +79,27 @@ describe("DataInteractive DataContextHandler", () => {
     expect(dataContext?.collections[0].attrs.length).toBe(1)
   })
 
-  it("update works as expected", () => {
+  it("notify works", () => {
+    const { c1, dataset: dataContext } = setupTestDataset()
+    const notify = handler.notify!
+
+    expect(notify({}).success).toBe(false)
+    expect(notify({ dataContext }).success).toBe(false)
+    expect(notify({ dataContext }, {}).success).toBe(false)
+    expect(notify({ dataContext }, { request: "badRequest" }).success).toBe(false)
+    expect(notify({ dataContext }, { request: "setAside" }).success).toBe(false)
+
+    const caseId = c1.caseIds[0]
+    expect(dataContext.isCaseOrItemHidden(caseId)).toBe(false)
+    const caseIDs = [toV2Id(caseId)]
+    expect(notify({ dataContext }, { request: "setAside", caseIDs }).success).toBe(true)
+    expect(dataContext.isCaseOrItemHidden(caseId)).toBe(true)
+
+    expect(notify({ dataContext }, { request: "restoreSetasides" }).success).toBe(true)
+    expect(dataContext.isCaseOrItemHidden(caseId)).toBe(false)
+  })
+
+  it("update works", () => {
     const { dataset } = setupTestDataset()
     const { content } = appState.document
     const tile = createDefaultTileOfType(kWebViewTileType)!

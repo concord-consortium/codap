@@ -65,6 +65,10 @@ export interface DIGlobal {
   value?: number
 }
 export type DIDataContext = Partial<ICodapV2DataContext>
+export interface DINotifyDataContext {
+  request?: string
+  caseIDs?: number[]
+}
 export interface DIGetCaseResult {
   case: {
     id?: number
@@ -173,9 +177,9 @@ export interface DIResources {
 }
 
 // types for values accepted as inputs by the API
-export type DISingleValues = DIAttribute | DIAttributeLocationValues | DICase | DIDataContext |
+export type DISingleValues = DIAttribute | DIAttributeLocationValues | DICase | DIDataContext | DINotifyDataContext |
   DIGlobal | DIInteractiveFrame | DIItemValues | DICreateCollection | DINewCase | DIUpdateCase |
-  DINotification | DIItemSearchNotify | V2SpecificComponent | DILogMessage
+  DINotification | DIItemSearchNotify | DILogMessage | V2SpecificComponent
 export type DIValues = DISingleValues | DISingleValues[] | number | string[]
 
 // types returned as outputs by the API
