@@ -52,9 +52,9 @@ export const diInteractiveFrameHandler: DIHandler = {
     if (Array.isArray(values)) return { success: true }
 
     const {
-      allowEmptyAttributeDeletion, blockAPIRequestsWhileEditing: blockAPIRequests, cannotClose, dimensions, name, preventAttributeDeletion,
-      preventBringToFront, preventDataContextReorg, preventTopLevelReorg, respectEditableItemAttribute, title,
-      version
+      allowEmptyAttributeDeletion, blockAPIRequestsWhileEditing, cannotClose, dimensions, name,
+      preventAttributeDeletion, preventBringToFront, preventDataContextReorg, preventTopLevelReorg,
+      respectEditableItemAttribute, title, version
     } = values as DIInteractiveFrame
     interactiveFrame.applyModelChange(() => {
       if (allowEmptyAttributeDeletion != null) {
@@ -65,7 +65,9 @@ export const diInteractiveFrameHandler: DIHandler = {
         appState.document.content?.setTileDimensions(interactiveFrame.id, dimensions)
       }
       if (name) interactiveFrame.setTitle(name)
-      if (blockAPIRequests != null) webViewContent?.setBlockAPIRequestsWhileEditing(blockAPIRequests)
+      if (blockAPIRequestsWhileEditing != null) {
+        webViewContent?.setBlockAPIRequestsWhileEditing(blockAPIRequestsWhileEditing)
+      }
       if (preventAttributeDeletion != null) webViewContent?.setPreventAttributeDeletion(preventAttributeDeletion)
       if (preventBringToFront != null) webViewContent?.setPreventBringToFront(preventBringToFront)
       if (preventDataContextReorg != null) webViewContent?.setPreventDataContextReorg(preventDataContextReorg)
