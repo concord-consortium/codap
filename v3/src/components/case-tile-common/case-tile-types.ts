@@ -5,4 +5,5 @@ export interface IDividerProps {
   before?: boolean
   columnKey: string
   cellElt: HTMLElement | null
+  isCardDivider?: boolean
 }

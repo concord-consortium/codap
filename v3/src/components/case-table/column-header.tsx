@@ -1,7 +1,7 @@
 import React, { useCallback, useRef, useState } from "react"
 import { AttributeHeader } from "../case-tile-common/attribute-header"
 import { TRenderHeaderCellProps } from "./case-table-types"
-import { ColumnHeaderDivider } from "./column-header-divider"
+import { AttributeHeaderDivider } from "../case-tile-common/attribute-header-divider"
 
 // wrapper component because RDG doesn't like observer components as header cell renderers
 export function ColumnHeader(props: TRenderHeaderCellProps) {
@@ -32,7 +32,7 @@ export function ColumnHeader(props: TRenderHeaderCellProps) {
   }, [cellElt])
 
   return <AttributeHeader attributeId={props.column.key}
-            HeaderDivider={ColumnHeaderDivider}
+            HeaderDivider={AttributeHeaderDivider}
             onSetContentElt={handleSetContentElt}
             onBeginEdit={setAriaSelectedAttribute}
             onEndEdit={clearAriaSelectedAttribute}

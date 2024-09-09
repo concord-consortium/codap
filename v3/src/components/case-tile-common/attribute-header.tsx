@@ -71,11 +71,6 @@ export const AttributeHeader = observer(function ColumnHeader({
 
   useEffect(() => {
     onCloseMenuRef.current?.()
-    if (dragging) {
-      document.body.style.cursor = "grabbing"
-    } else {
-      document.body.style.cursor = "default"
-    }
   }, [dragging])
 
   useEffect(() => {
@@ -214,16 +209,21 @@ export const AttributeHeader = observer(function ColumnHeader({
                       }
                     </>
                 }
-              {attributeId && HeaderDivider && beforeHeaderDivider &&
-                <HeaderDivider key={attributeId} before={beforeHeaderDivider} columnKey={attributeId}
-                               cellElt={parentRef.current}/>}
-              <CaseTilePortal>
-                <AttributeMenuList attributeId={attributeId} onRenameAttribute={handleRenameAttribute}
-                  onModalOpen={handleModalOpen}
+              {attributeId !== kIndexColumnKey &&
+                <CaseTilePortal>
+                  <AttributeMenuList attributeId={attributeId} onRenameAttribute={handleRenameAttribute}
+                    onModalOpen={handleModalOpen}
+                  />
+                </CaseTilePortal>
+              }
+              {attributeId && HeaderDivider && !beforeHeaderDivider &&
+                <HeaderDivider
+                  key={attributeId}
+                  columnKey={attributeId}
+                  cellElt={parentRef.current}
+                  isCardDivider={instanceId.includes("case-card-")}
                 />
-              </CaseTilePortal>
-              {attributeId && HeaderDivider &&
-                <HeaderDivider key={attributeId} columnKey={attributeId} cellElt={parentRef.current}/>}
+              }
             </div>
           </Tooltip>
         )
