@@ -28,7 +28,6 @@ export class UIState {
   // True if the user is editing a cell in a table.
   @observable
   private _isEditingCell = false
-  private _isEditingCellTimeout: ReturnType<typeof setTimeout> | undefined
 
   // True if the user is currently editing a table that blocks API requests,
   // preventing the table from changing out from under the user.
@@ -97,28 +96,8 @@ export class UIState {
   }
 
   @action
-  private setIsEditingCellTrue() {
-    clearTimeout(this._isEditingCellTimeout)
-    this._isEditingCellTimeout = undefined
-    this._isEditingCell = true
-  }
-
-  @action
-  private setIsEditingCellFalse() {
-    this._isEditingCell = false
-    this._isEditingBlockingCell = false
-    this._isEditingCellTimeout = undefined
-  }
-
-  @action
   setIsEditingCell(isEditing: boolean) {
-    if (isEditing) {
-      this.setIsEditingCellTrue()
-    } else {
-      this._isEditingCellTimeout = setTimeout(() => {
-        this.setIsEditingCellFalse()
-      }, 10)
-    }
+    this._isEditingCell = isEditing
   }
 
   @action

@@ -46,7 +46,7 @@ export function useSelectedCell(gridRef: React.RefObject<DataGridHandle | null>,
     }
   }, [collectionTableModel, columns, gridRef])
 
-  const refreshSelectedCell = useCallback((allowEdit = true, scroll = true) => {
+  const refreshSelectedCell = useCallback(() => {
     if (selectedCell.current) {
       const { columnId, rowId } = selectedCell.current
       const idx = columns.findIndex(column => column.key === columnId)
@@ -54,15 +54,12 @@ export function useSelectedCell(gridRef: React.RefObject<DataGridHandle | null>,
       if (rowIdx != null) {
         const position = { idx, rowIdx }
         blockUpdateSelectedCell.current = true
-        if (tileIsFocused) {
-          const selectCell = allowEdit && uiState.refreshSelectedCellEditing
-          gridRef.current?.selectCell(position, selectCell)
-        }
+        if (tileIsFocused) gridRef.current?.selectCell(position, uiState.refreshSelectedCellEditing)
         selectedCell.current = { ...selectedCell.current, rowIdx }
         blockUpdateSelectedCell.current = false
 
         // Give the table a chance to rerender before making sure the selected cell is visible.
-        if (scroll) setTimeout(() => collectionTableModel?.scrollRowIntoView(rowIdx, { scrollBehavior: "auto" }), 1)
+        setTimeout(() => collectionTableModel?.scrollRowIntoView(rowIdx, { scrollBehavior: "auto" }), 1)
       }
     }
   }, [collectionTableModel, columns, gridRef, rows, tileIsFocused])
@@ -72,9 +69,7 @@ export function useSelectedCell(gridRef: React.RefObject<DataGridHandle | null>,
       return reaction(
         () => uiState.requestBatchesProcessed,
         () => {
-          setTimeout(() => {
-            refreshSelectedCell()
-          })
+          setTimeout(refreshSelectedCell)
         }
       )
     }
