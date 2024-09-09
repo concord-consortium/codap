@@ -16,7 +16,7 @@ import { getFormulaManager, getSharedModelManager } from "../../models/tiles/til
 import { t } from "../../utilities/translation/translate"
 import {
   createOrShowTableOrCardForDataset, createTableOrCardForDataset
-} from "../case-table-card-common/case-table-card-utils"
+} from "../case-tile-common/case-tile-utils"
 import { CodapModal } from "../codap-modal"
 import { ToolShelfButtonTag } from "../tool-shelf/tool-shelf-button"
 import { kCaseTableTileType } from "./case-table-defs"

@@ -6,7 +6,7 @@ import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { getDragAttributeInfo, useTileDroppable } from "../../hooks/use-drag-drop"
 import { preventAttributeMove, preventCollectionReorg } from "../../utilities/plugin-utils"
-import { IDividerProps } from "../case-table-card-common/case-tile-types"
+import { IDividerProps } from "../case-tile-common/case-tile-types"
 import { kAttributeDividerDropZoneBaseId } from "./case-table-drag-drop"
 
 export const ColumnHeaderDivider = ({ columnKey, cellElt }: IDividerProps) => {
