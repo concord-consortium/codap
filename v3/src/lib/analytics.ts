@@ -2,7 +2,7 @@ enum AnalyticsCategory {
   GENERAL = "general",  // catch-all for events that we haven't categorized yet
   DATA = "data",     // Interactions with generated data
   DOCUMENT = "document", // Document interactions
-  GAME = "game",     // Game interactions
+  PLUGIN = "plugin",     // Game interactions
   MODEL = "model",    // Model interactions
   PLOT = "plot",     // Plot interactions
   SESSION = "session",  // Session events (log in/out)
@@ -14,13 +14,9 @@ enum AnalyticsCategory {
 
 export const eventCategoryMap: Record<string, AnalyticsCategory> = {
   "Show all cases": AnalyticsCategory.DATA,
-  "Show all": AnalyticsCategory.DATA,
-  "openCase": AnalyticsCategory.DATA,
-  "Hide all": AnalyticsCategory.DATA,
-  "deselectAll": AnalyticsCategory.DATA,
-  "createCases": AnalyticsCategory.DATA,
-  "createCase": AnalyticsCategory.DATA,
-  "closeCase": AnalyticsCategory.DATA,
+  "Show all cases from parent toggles": AnalyticsCategory.DATA,
+  "Hide all cases from parent toggles": AnalyticsCategory.DATA,
+  "Create %@ cases in table": AnalyticsCategory.DATA,
   "Create attribute": AnalyticsCategory.DATA,
   "Edit cell value": AnalyticsCategory.DATA,
   "Delete attribute": AnalyticsCategory.DATA,
@@ -39,8 +35,7 @@ export const eventCategoryMap: Record<string, AnalyticsCategory> = {
   "Delete dataset": AnalyticsCategory.DOCUMENT,
   "Show web view": AnalyticsCategory.DOCUMENT,
 
-  "initGame": AnalyticsCategory.GAME,
-  "backToGame": AnalyticsCategory.GAME,
+  "Plugin initialized": AnalyticsCategory.PLUGIN,
 
   "LoadedModel": AnalyticsCategory.MODEL,
   "StartedModel": AnalyticsCategory.MODEL,
@@ -49,15 +44,15 @@ export const eventCategoryMap: Record<string, AnalyticsCategory> = {
   "Close %@": AnalyticsCategory.COMPONENT,
   "Close": AnalyticsCategory.COMPONENT,
 
-  "togglePlottedMean": AnalyticsCategory.PLOT,
-  "togglePlotFunction": AnalyticsCategory.PLOT,
-  "rescaleScatterplot": AnalyticsCategory.PLOT,
-  "rescaleDotPlot": AnalyticsCategory.PLOT,
-  "plotFunction": AnalyticsCategory.PLOT,
-  "plotAxisAttributeChangeType": AnalyticsCategory.PLOT,
-  "plotAxisAttributeChange": AnalyticsCategory.PLOT,
-  "legendAttributeChange": AnalyticsCategory.PLOT,
-  "hoverOverGraphLine": AnalyticsCategory.PLOT,
+  "Added Plotted Value": AnalyticsCategory.PLOT,
+  "Removed Plotted Value": AnalyticsCategory.PLOT,
+  "Added Plotted Function": AnalyticsCategory.PLOT,
+  "Removed Plotted Function": AnalyticsCategory.PLOT,
+  "Added Mean": AnalyticsCategory.PLOT,
+  "Removed Mean": AnalyticsCategory.PLOT,
+  "Added Median": AnalyticsCategory.PLOT,
+  "Removed Median": AnalyticsCategory.PLOT,
+  "Rescale axes from data": AnalyticsCategory.PLOT,
   "ExportedModel": AnalyticsCategory.PLOT,
   "addAxisAttribute": AnalyticsCategory.PLOT,
   "attributeAssigned": AnalyticsCategory.PLOT,
