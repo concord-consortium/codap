@@ -69,6 +69,12 @@ const DraggableModalContent = ({children, modalWidth, modalHeight, onClick, fRef
     let initialY = 0
 
     const handleMouseDown = (e: MouseEvent) => {
+      // Prevent dragging if the target is an interactive element (like Select, button, input, etc.)
+      const interactiveTags = ["INPUT", "TEXTAREA", "SELECT", "OPTION", "BUTTON"]
+      if (interactiveTags.includes((e.target as HTMLElement).tagName)) {
+        return
+      }
+
       e.stopPropagation()
       isDragging = true
       startX = e.clientX
