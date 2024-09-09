@@ -104,7 +104,7 @@ export const CaseTileTitleBar =
       }, {
         undoStringKey: `V3.Undo.case${suffix}.hide`,
         redoStringKey: `V3.Redo.case${suffix}.hide`,
-        log: logMessageWithReplacement("Close %@", { type: tileInfo.toggleSuffix })
+        log: logMessageWithReplacement("Close component: %@", { type: tileInfo.toggleSuffix })
       })
     }, [documentContent, tile?.id, tileInfo])
 

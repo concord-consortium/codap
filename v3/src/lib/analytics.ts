@@ -25,12 +25,9 @@ export const eventCategoryMap: Record<string, AnalyticsCategory> = {
 
   "openDocument": AnalyticsCategory.DOCUMENT,
   "closeDocument": AnalyticsCategory.DOCUMENT,
-  "componentCreated": AnalyticsCategory.DOCUMENT,
-  "closeComponent": AnalyticsCategory.DOCUMENT,
   "autoSaveDocument": AnalyticsCategory.DOCUMENT,
   "saveDocument": AnalyticsCategory.DOCUMENT,
   "Imported data set": AnalyticsCategory.DOCUMENT,
-  "Close calculator": AnalyticsCategory.DOCUMENT,
   "Create New Empty DataSet": AnalyticsCategory.DOCUMENT,
   "Delete dataset": AnalyticsCategory.DOCUMENT,
   "Show web view": AnalyticsCategory.DOCUMENT,
@@ -40,9 +37,10 @@ export const eventCategoryMap: Record<string, AnalyticsCategory> = {
   "LoadedModel": AnalyticsCategory.MODEL,
   "StartedModel": AnalyticsCategory.MODEL,
 
+  "Create component": AnalyticsCategory.COMPONENT,
   "Title changed to %@": AnalyticsCategory.COMPONENT,
-  "Close %@": AnalyticsCategory.COMPONENT,
-  "Close": AnalyticsCategory.COMPONENT,
+  "Close component": AnalyticsCategory.COMPONENT,
+  "Close calculator": AnalyticsCategory.COMPONENT,
 
   "Added Plotted Value": AnalyticsCategory.PLOT,
   "Removed Plotted Value": AnalyticsCategory.PLOT,

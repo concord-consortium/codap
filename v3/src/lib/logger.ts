@@ -192,7 +192,7 @@ function sendToAnalyticsService(event: string) {
                           ? windowWithPossibleGa.gtag
                           : mockGA.gtag
 
-    gtagFunction("event", event, payload);
+    gtagFunction("event", event, payload)
   } catch (e) {
     console.error("Unable to send Google Analytics:", e)
   }
