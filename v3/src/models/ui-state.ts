@@ -34,10 +34,6 @@ export class UIState {
   @observable
   private _isEditingBlockingCell = false
 
-  // True if the prior cell edit was completed via navigation to another cell.
-  @observable
-  private _isNavigatingToNextEditCell = false
-
   // The number of request batches that have been processed.
   // This triggers refreshes to the selected cell after delayed API requests have been processed.
   @observable
@@ -63,14 +59,9 @@ export class UIState {
     return this._isEditingBlockingCell
   }
 
-  get isNavigatingToNextEditCell() {
-    return this._isNavigatingToNextEditCell
-  }
-
-  // When we refresh the selected cell, it should be in editing mode if we were editing
-  // or we navigated from the last edit with "enter" or "tab".
+  // When we refresh the selected cell, it should be in editing mode if we were editing.
   get refreshSelectedCellEditing() {
-    return this.isEditingCell || this.isNavigatingToNextEditCell
+    return this._isEditingCell
   }
 
   get requestBatchesProcessed() {
@@ -103,11 +94,6 @@ export class UIState {
   @action
   setIsEditingBlockingCell(isEditingBlockingCell = false) {
     this._isEditingBlockingCell = isEditingBlockingCell
-  }
-
-  @action
-  setIsNavigatingToNextEditCell(isNavigating: boolean) {
-    this._isNavigatingToNextEditCell = isNavigating
   }
 
   @action
