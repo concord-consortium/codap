@@ -39,9 +39,7 @@ export default function CellTextEditor({ row, column, onRowChange, onClose }: TR
   // Inform the ui that we're editing a table while this component exists.
   useEffect(() => {
     uiState.setIsEditingCell(true)
-    return () => {
-      uiState.setIsEditingCell(false)
-    }
+    return () => uiState.setIsEditingCell(false)
   }, [])
 
   const handleChange = (value: string) => {

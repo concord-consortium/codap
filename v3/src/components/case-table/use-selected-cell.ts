@@ -54,7 +54,10 @@ export function useSelectedCell(gridRef: React.RefObject<DataGridHandle | null>,
       if (rowIdx != null) {
         const position = { idx, rowIdx }
         blockUpdateSelectedCell.current = true
-        if (tileIsFocused) gridRef.current?.selectCell(position, allowEdit && uiState.refreshSelectedCellEditing)
+        if (tileIsFocused) {
+          const selectCell = allowEdit && uiState.refreshSelectedCellEditing
+          gridRef.current?.selectCell(position, selectCell)
+        }
         selectedCell.current = { ...selectedCell.current, rowIdx }
         blockUpdateSelectedCell.current = false
 
@@ -70,13 +73,7 @@ export function useSelectedCell(gridRef: React.RefObject<DataGridHandle | null>,
         () => uiState.requestBatchesProcessed,
         () => {
           setTimeout(() => {
-            // Reselect the selected cell without editing it, giving the API handler a chance to deal with any
-            // requests that built up in the queue.
-            refreshSelectedCell(false, false)
-
-            // Refresh the cell again after a short wait to allow API requests to be processed.
-            // The wait is long enough to allow plugins to react to responses from queued requests.
-            setTimeout(() => refreshSelectedCell(), 50)
+            refreshSelectedCell()
           })
         }
       )

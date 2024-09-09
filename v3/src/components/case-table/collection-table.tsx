@@ -59,6 +59,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
   const visibleAttributes = useVisibleAttributes(collectionId)
   const { selectedRows, setSelectedRows, handleCellClick } = useSelectedRows({ gridRef, onScrollClosestRowIntoView })
   const forceUpdate = useForceUpdate()
+  let navigationTimeoutId: ReturnType<typeof setTimeout> | undefined
 
   useEffect(function setGridElement() {
     const element = gridRef.current?.element
@@ -183,7 +184,12 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
         // RDG's internal `canExitGrid()` function or perhaps add a callback to RDG that is called
         // when focus exits the grid.
         uiState.setIsNavigatingToNextEditCell(true)
-        setTimeout(() => uiState.setIsNavigatingToNextEditCell(false), 500)
+
+        clearTimeout(navigationTimeoutId)
+        navigationTimeoutId = setTimeout(() => {
+          uiState.setIsNavigatingToNextEditCell(false)
+          navigationTimeoutId = undefined
+        }, 100)
       }
 
       // By default in RDG, the enter/return key simply enters/exits edit mode without moving the
