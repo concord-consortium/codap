@@ -187,13 +187,13 @@ function sendToAnalyticsService(event: string) {
   }
 
   try {
-    if (windowWithPossibleGa.gtag instanceof Function) {
-      windowWithPossibleGa.gtag("event", event, payload)
-    } else {
-      mockGA.gtag("event", event, payload)
-    }
+    const gtagFunction = (Logger.isLoggingEnabled && DEBUG_LOG_TO_SERVER &&
+                              windowWithPossibleGa.gtag instanceof Function)
+                          ? windowWithPossibleGa.gtag
+                          : mockGA.gtag
+
+    gtagFunction("event", event, payload);
   } catch (e) {
-    console.error("Unable to send Google Analytics")
-    console.error(e)
+    console.error("Unable to send Google Analytics:", e)
   }
 }
