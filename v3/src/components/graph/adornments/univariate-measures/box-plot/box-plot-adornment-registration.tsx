@@ -10,6 +10,7 @@ import { kBoxPlotClass, kBoxPlotLabelKey, kBoxPlotPrefix, kBoxPlotRedoAddKey, kB
 import { useGraphContentModelContext } from "../../../hooks/use-graph-content-model-context"
 import { BoxPlotAdornmentComponent } from "./box-plot-adornment-component"
 import { observer } from "mobx-react-lite"
+import { logMessageWithReplacement } from "../../../../../lib/log-message"
 
 const Controls = observer(function Controls() {
   const graphModel = useGraphContentModelContext()
@@ -34,7 +35,7 @@ const Controls = observer(function Controls() {
         {
           undoStringKey: undoRedoKeys.undoAdd || "",
           redoStringKey: undoRedoKeys.redoAdd || "",
-          log: `Added ${adornment}`
+          log: logMessageWithReplacement("Added %@", {adornmentType: adornment.type})
         }
       )
     } else {
@@ -43,7 +44,7 @@ const Controls = observer(function Controls() {
         {
           undoStringKey: undoRedoKeys.undoRemove || "",
           redoStringKey: undoRedoKeys.redoRemove || "",
-          log: `Removed ${adornment}`
+          log: logMessageWithReplacement("Removed %@", {adornmentType: adornment.type})
         }
       )
     }

@@ -55,10 +55,7 @@ export const useAxis = ({axisPlace, axisTitle = "", centerCategoryLabels}: IUseA
     axisProvider = useAxisProviderContext(),
     axisModel = axisProvider.getAxis?.(axisPlace),
     isNumeric = axisModel && isBaseNumericAxisModel(axisModel),
-    multiScale = layout.getAxisMultiScale(axisPlace),
-    ordinalScale = isNumeric || axisModel?.type === 'empty' ? null : multiScale?.scale as ScaleBand<string>,
-    // eslint-disable-next-line react-hooks/exhaustive-deps  --  see note below
-    categories = ordinalScale?.domain() ?? []
+    multiScale = layout.getAxisMultiScale(axisPlace)
   const
     // By all rights, the following three lines should not be necessary to get installDomainSync to run when
     // GraphController:processV2Document installs a new axis model.
@@ -90,9 +87,6 @@ export const useAxis = ({axisPlace, axisTitle = "", centerCategoryLabels}: IUseA
       axisTitleHeight = getStringBounds(axisTitle, labelFont).height,
       numbersHeight = getStringBounds('0').height,
       repetitions = multiScale?.repetitions ?? 1,
-      bandWidth = ((ordinalScale?.bandwidth?.()) ?? 0) / repetitions,
-      collision = collisionExists({bandWidth, categories, centerCategoryLabels}),
-      maxLabelExtent = maxWidthOfStringsD3(dataConfiguration?.categoryArrayForAttrRole(attrRole) ?? []),
       d3Scale = multiScale?.scale ?? (type === 'numeric' ? scaleLinear() : scaleOrdinal()),
       pointDisplayType = displayModel.pointDisplayType
     let desiredExtent = axisTitleHeight + 2 * axisGap
@@ -106,7 +100,12 @@ export const useAxis = ({axisPlace, axisTitle = "", centerCategoryLabels}: IUseA
         break
       }
       case 'categorical': {
-        desiredExtent += collision ? maxLabelExtent : getStringBounds().height
+        const
+          ordinalScale = multiScale?.scale as ScaleBand<string>,
+          bandWidth = ((ordinalScale?.bandwidth?.()) ?? 0) / repetitions,
+          categories = dataConfiguration?.categoryArrayForAttrRole(attrRole) ?? [],
+          collision = collisionExists({bandWidth, categories, centerCategoryLabels})
+        desiredExtent += collision ? maxWidthOfStringsD3(categories) : getStringBounds().height
         break
       }
       case 'date': {
@@ -118,8 +117,8 @@ export const useAxis = ({axisPlace, axisTitle = "", centerCategoryLabels}: IUseA
       }
     }
   return desiredExtent
-}, [dataConfiguration, axisPlace, axisTitle, multiScale, ordinalScale, categories, centerCategoryLabels,
-            attrRole, type, displayModel, axisModel]
+}, [dataConfiguration, axisPlace, axisTitle, multiScale, type, displayModel,
+          axisModel, attrRole, centerCategoryLabels]
 )
 
 // update d3 scale and axis when scale type changes

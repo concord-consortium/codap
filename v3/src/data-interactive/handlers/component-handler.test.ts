@@ -4,7 +4,7 @@ import { kCaseCardIdPrefix } from "../../components/case-card/case-card-registra
 import { kCaseTableTileType } from "../../components/case-table/case-table-defs"
 import { ICaseTableModel, isCaseTableModel } from "../../components/case-table/case-table-model"
 import { kCaseTableIdPrefix } from "../../components/case-table/case-table-registration"
-import { createOrShowTableOrCardForDataset } from "../../components/case-table-card-common/case-table-card-utils"
+import { createOrShowTableOrCardForDataset } from "../../components/case-tile-common/case-tile-utils"
 import { appState } from "../../models/app-state"
 import { getSharedDataSets } from "../../models/shared/shared-data-utils"
 import { toV3Id } from "../../utilities/codap-utils"

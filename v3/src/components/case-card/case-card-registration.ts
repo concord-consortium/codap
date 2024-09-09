@@ -1,11 +1,11 @@
-import { caseTableCardComponentHandler } from "../case-table-card-common/case-table-card-handler"
+import { caseTableCardComponentHandler } from "../case-tile-common/case-tile-component-handler"
 import { registerComponentHandler } from "../../data-interactive/handlers/component-handler"
 import { registerTileComponentInfo } from "../../models/tiles/tile-component-info"
 import { registerTileContentInfo } from "../../models/tiles/tile-content-info"
 import { CaseCardComponent } from "./case-card-component"
 import { kCaseCardTileType, kV2CaseCardType } from "./case-card-defs"
 import { CaseCardModel } from "./case-card-model"
-import { CaseTableCardTitleBar } from "../case-table-card-common/case-table-card-title-bar"
+import { CaseTileTitleBar } from "../case-tile-common/case-tile-title-bar"
 import CardIcon from '../../assets/icons/icon-case-card.svg'
 import { t } from "../../utilities/translation/translate"
 import { getTileDataSet } from "../../models/shared/shared-data-utils"
@@ -29,12 +29,12 @@ registerTileContentInfo({
 
 registerTileComponentInfo({
   type: kCaseCardTileType,
-  TitleBar: CaseTableCardTitleBar,
+  TitleBar: CaseTileTitleBar,
   Component: CaseCardComponent,
   // InspectorPanel: CaseCardInspector,
   tileEltClass: "codap-case-card",
   Icon: CardIcon,
-  defaultWidth: 200,
+  defaultWidth: 350,
   defaultHeight: 400
 })
 

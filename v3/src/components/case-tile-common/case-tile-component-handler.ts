@@ -10,7 +10,7 @@ import { kCaseCardTileType, kV2CaseCardType } from "../case-card/case-card-defs"
 import { isCaseCardModel } from "../case-card/case-card-model"
 import { kCaseTableTileType } from "../case-table/case-table-defs"
 import { isCaseTableModel } from "../case-table/case-table-model"
-import { createOrShowTableOrCardForDataset } from "./case-table-card-utils"
+import { createOrShowTableOrCardForDataset } from "./case-tile-utils"
 
 export const caseTableCardComponentHandler: DIComponentHandler = {
   create({ type, values }) {

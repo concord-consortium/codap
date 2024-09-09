@@ -20,14 +20,14 @@ export const CardView = observer(function CardView() {
   }
 
   return (
-    <div className="cardView" data-testid="card-view">
+    <div className="case-card-content" data-testid="case-card-content">
       {rootCollection &&
         <CollectionContext.Provider key={`${rootCollection.id}-${collections?.length}`} value={rootCollection.id}>
           <CaseView
             cases={rootCollection.cases}
             level={0}
             onSelectCases={handleSelectCases}
-            displayedCaseLineage={selectedItemLineage?.caseIds}
+            displayedCaseLineage={selectedItemLineage}
           />
         </CollectionContext.Provider>
       }

@@ -15,10 +15,11 @@ import { preventCollectionReorg } from "../../utilities/plugin-utils"
 import { t } from "../../utilities/translation/translate"
 
 interface IProps {
-  onAddNewAttribute: () => void
+  showCount: boolean
+  onAddNewAttribute?: () => void
 }
 
-export const CollectionTitle = observer(function CollectionTitle({onAddNewAttribute}: IProps) {
+export const CollectionTitle = observer(function CollectionTitle({onAddNewAttribute, showCount}: IProps) {
   const data = useDataSetContext()
   const collectionId = useCollectionContext()
   const collection = data?.getCollection(collectionId)
@@ -103,23 +104,26 @@ export const CollectionTitle = observer(function CollectionTitle({onAddNewAttrib
   }
 
   const casesStr = t(caseCount === 1 ? "DG.DataContext.singleCaseName" : "DG.DataContext.pluralCaseName")
+  const displayName = `${collectionName}${ showCount ? ` (${caseCount} ${casesStr})` : "" }`
   const addIconClass = clsx("add-icon", { focused: isTileInFocus })
 
   return (
     <div className="collection-title-wrapper" ref={titleRef}>
       <div className="collection-title" style={titleStyle}>
-        <Editable value={isEditing ? editingName : `${collectionName} (${caseCount} ${casesStr})`}
+        <Editable value={isEditing ? editingName : displayName}
             onEdit={() => setIsEditing(true)} onSubmit={handleSubmit} onCancel={handleCancel}
             isPreviewFocusable={!dragging} submitOnBlur={true} onChange={handleChangeName}>
           <EditablePreview paddingY={0} />
           <EditableInput value={editingName} paddingY={0} className="collection-title-input" />
         </Editable>
       </div>
-      <Button className="add-attribute-icon-button" title={t("DG.TableController.newAttributeTooltip")}
-          data-testid={"collection-add-attribute-icon-button"} style={addIconStyle}
-          isDisabled={disableAddAttribute} >
-        <AddIcon className={addIconClass} onClick={onAddNewAttribute} />
-      </Button>
+      {onAddNewAttribute &&
+        <Button className="add-attribute-icon-button" title={t("DG.TableController.newAttributeTooltip")}
+            data-testid={"collection-add-attribute-icon-button"} style={addIconStyle}
+            isDisabled={disableAddAttribute} >
+          <AddIcon className={addIconClass} onClick={onAddNewAttribute} />
+        </Button>
+      }
     </div>
   )
 })

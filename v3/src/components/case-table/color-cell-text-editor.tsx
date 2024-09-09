@@ -10,8 +10,8 @@ import { logStringifiedObjectMessage } from "../../lib/log-message"
 import { selectAllCases } from "../../models/data/data-set-utils"
 import { parseColor, parseColorToHex } from "../../utilities/color-utils"
 import { t } from "../../utilities/translation/translate"
+import { ColorPicker } from "../case-tile-common/color-picker"
 import { TRenderEditCellProps } from "./case-table-types"
-import { ColorPicker } from "./color-picker"
 
 /*
   ReactDataGrid uses Linaria CSS-in-JS for its internal styling. As with CSS Modules and other

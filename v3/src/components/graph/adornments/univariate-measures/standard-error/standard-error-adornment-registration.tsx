@@ -13,6 +13,7 @@ import {
 } from "./standard-error-adornment-types"
 import { IStandardErrorAdornmentModel, StandardErrorAdornmentModel } from "./standard-error-adornment-model"
 import { StandardErrorAdornmentComponent } from "./standard-error-adornment-component"
+import { logMessageWithReplacement } from "../../../../../lib/log-message"
 
 const Controls = () => {
   const graphModel = useGraphContentModelContext()
@@ -34,7 +35,8 @@ const Controls = () => {
         },
         {
           undoStringKey: 'DG.Undo.graph.setNumStErrs',
-          redoStringKey: 'DG.Undo.graph.setNumStErrs'
+          redoStringKey: 'DG.Undo.graph.setNumStErrs',
+          log: logMessageWithReplacement("Set standard error to %@", {numStErrs: existingAdornment.numStErrs})
         }
       )
     }

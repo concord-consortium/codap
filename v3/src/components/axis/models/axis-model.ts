@@ -112,8 +112,8 @@ export const BaseNumericAxisModel = AxisModel
       } else if ((min < 0) && (Math.abs(max) < Math.abs(min / snapFactor))) {
         max = 0
       }
-      self.min = min
-      self.max = max
+      if (isFinite(min)) self.min = min
+      if (isFinite(max)) self.max = max
       self.dynamicMin = undefined
       self.dynamicMax = undefined
     },
@@ -133,7 +133,13 @@ export const NumericAxisModel = BaseNumericAxisModel
   .named("NumericAxisModel")
   .props({
     type: types.optional(types.literal("numeric"), "numeric"),
+    integersOnly: false
   })
+  .actions(self => ({
+    setIntegersOnly(integersOnly: boolean) {
+      self.integersOnly = integersOnly
+    }
+  }))
 
 export interface INumericAxisModel extends Instance<typeof NumericAxisModel> {}
 export interface INumericAxisModelSnapshot extends SnapshotIn<typeof NumericAxisModel> {}
