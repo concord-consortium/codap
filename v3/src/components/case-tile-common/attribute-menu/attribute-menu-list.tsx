@@ -57,7 +57,8 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
 
   // const handleSortCases = (item: IMenuItem) => {
   //   data?.applyModelChange(() => {}, {
-  //     log: { message:`Sort cases by attribute:`, args: { attributeId: attribute?.id, attribute: attributeName }}
+  //     log: logStringifiedObjectMessage("Sort cases by attribute: %@",
+  //            { attributeId: attribute?.id, attribute: attributeName })
   //   })
   // }
 
@@ -81,7 +82,8 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
       itemKey: "DG.TableController.headerMenuItems.resizeColumn",
       // handleClick: () => {
       //   data?.applyModelChange(() => {}, {
-      //     log: {message:`Fit column width:`, args: { collection: data?.name, attribute: attributeName }}
+      //     log: logStringifiedObjectMessage("Fit column width: %@",
+      //              { collection: data?.name, attribute: attributeName })
       //   })
       // }
     },
@@ -103,7 +105,7 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
           // TODO Should also broadcast notify component edit formula notification
           undoStringKey: "DG.Undo.caseTable.editAttributeFormula",
           redoStringKey: "DG.Undo.caseTable.editAttributeFormula",
-          log: logMessageWithReplacement("Clear formula for attribute %@", { name: attribute?.name})
+          log: logMessageWithReplacement("Clear formula for attribute %@", { name: attribute?.name })
         })
       }
     },

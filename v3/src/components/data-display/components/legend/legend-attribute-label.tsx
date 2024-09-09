@@ -7,6 +7,7 @@ import {GraphPlace} from "../../../axis-graph-shared"
 import {getStringBounds} from "../../../axis/axis-utils"
 import {useDataConfigurationContext} from "../../hooks/use-data-configuration-context"
 import {AttributeLabel} from "../attribute-label"
+import { logMessageWithReplacement } from "../../../../lib/log-message"
 
 import vars from "../../../vars.scss"
 
@@ -48,7 +49,8 @@ export const LegendAttributeLabel =
         () => dataConfiguration.setAttribute('legend', {attributeID: ''}),
         {
           undoStringKey: "V3.Undo.legendAttributeRemove",
-          redoStringKey: "V3.Redo.legendAttributeRemove"
+          redoStringKey: "V3.Redo.legendAttributeRemove",
+          log: "Remove legend attribute"
         }
       )
     }, [dataConfiguration])
@@ -58,7 +60,8 @@ export const LegendAttributeLabel =
         () => dataConfiguration.setAttributeType('legend', treatAs),
         {
           undoStringKey: "V3.Undo.attributeTreatAs",
-          redoStringKey: "V3.Redo.attributeTreatAs"
+          redoStringKey: "V3.Redo.attributeTreatAs",
+          log: logMessageWithReplacement("Treat attribute as %@", {treatAs, _attrId, _place})
         }
       )
     }, [dataConfiguration])

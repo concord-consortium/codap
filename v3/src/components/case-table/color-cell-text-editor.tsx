@@ -12,8 +12,8 @@ import { uiState } from "../../models/ui-state"
 import { parseColor, parseColorToHex } from "../../utilities/color-utils"
 import { blockAPIRequestsWhileEditing } from "../../utilities/plugin-utils"
 import { t } from "../../utilities/translation/translate"
+import { ColorPicker } from "../case-tile-common/color-picker"
 import { TRenderEditCellProps } from "./case-table-types"
-import { ColorPicker } from "./color-picker"
 
 /*
   ReactDataGrid uses Linaria CSS-in-JS for its internal styling. As with CSS Modules and other

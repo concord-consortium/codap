@@ -298,7 +298,11 @@ export const useSubAxis = ({
   }, [axisModel, renderSubAxis, layout, isCategorical, setupCategories])
 
   const updateDomainAndRenderSubAxis = useCallback(() => {
-    const role = axisPlaceToAttrRole[axisPlace]
+    const role = axisPlaceToAttrRole[axisPlace],
+      attrID = dataConfig?.attributeID(role)
+    if (!attrID) {
+      return // We don't have an attribute. We're a count axis, so we rely on other methods for domain updates
+    }
     if (isCategoricalAxisModel(axisModel)) {
       const categoryValues = dataConfig?.categoryArrayForAttrRole(role) ?? [],
         multiScale = layout.getAxisMultiScale(axisPlace),

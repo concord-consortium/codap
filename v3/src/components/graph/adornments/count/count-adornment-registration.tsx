@@ -8,6 +8,7 @@ import { CountAdornment } from "./count-adornment-component"
 import { t } from "../../../../utilities/translation/translate"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
 import { useGraphDataConfigurationContext } from "../../hooks/use-graph-data-configuration-context"
+import { logMessageWithReplacement } from "../../../../lib/log-message"
 
 const Controls = () => {
   const graphModel = useGraphContentModelContext()
@@ -49,7 +50,8 @@ const Controls = () => {
         },
         {
           undoStringKey: undoAddKey,
-          redoStringKey: redoAddKey
+          redoStringKey: redoAddKey,
+          log: logMessageWithReplacement("Show %@", {adornmentType: checkBoxType === "count" ? "count" : "percent"})
         }
       )
     } else {
@@ -57,7 +59,8 @@ const Controls = () => {
         () => adornmentsStore.updateAdornment(setShowAdornment),
         {
           undoStringKey: undoRemoveKey,
-          redoStringKey: redoRemoveKey
+          redoStringKey: redoRemoveKey,
+          log: logMessageWithReplacement("Hide %@", {adornmentType: checkBoxType === "count" ? "count" : "percent"})
         }
       )
     }

@@ -5,6 +5,7 @@ import React from "react"
 import { ITileModel } from "../../../../models/tiles/tile-model"
 import { isGraphContentModel } from "../../models/graph-content-model"
 import { t } from "../../../../utilities/translation/translate"
+import { logMessageWithReplacement } from "../../../../lib/log-message"
 
 interface IProps {
   tile?: ITileModel
@@ -22,7 +23,7 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
       {
         undoStringKey: "DG.Undo.hideSelectedCases",
         redoStringKey: "DG.Redo.hideSelectedCases",
-        log: `Hide ${dataConfig?.selection.length} selected cases`
+        log: logMessageWithReplacement("Hide %@ selected cases", {length: dataConfig?.selection.length})
       }
     )
   }

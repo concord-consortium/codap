@@ -13,7 +13,8 @@ export const diAllCasesHandler: DIHandler = {
       dataContext.removeCases(dataContext.items.map(c => c.__id__))
     }, {
       undoStringKey: "DG.Undo.data.deleteCases",
-      redoStringKey: "DG.Redo.data.deleteCases"
+      redoStringKey: "DG.Redo.data.deleteCases",
+      log: "Delete all cases"
     })
     return { success: true }
   },

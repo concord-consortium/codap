@@ -78,6 +78,7 @@ export const CaseCard = observer(function CaseCard({ setNodeRef }: IProps) {
     //     }, {
     //       undoStringKey: "DG.Undo.caseCard.columnWidthChange",
     //       redoStringKey: "DG.Redo.caseCard.columnWidthChange",
+    //       log: "Resized column in case card"
     //     })
     //   }
     // }
