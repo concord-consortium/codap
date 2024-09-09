@@ -39,9 +39,9 @@ export default function CellTextEditor({ row, column, onRowChange, onClose }: TR
 
   // Inform the ui that we're editing a table while this component exists.
   useEffect(() => {
-    if (blockAPIRequests) {
-      uiState.setIsEditingCell(true)
-      return () => uiState.setIsEditingBlockingCell(false)
+    uiState.setIsEditingCell(true)
+    return () => {
+      if (blockAPIRequests) uiState.setIsEditingBlockingCell(false)
     }
   }, [])
 
@@ -61,7 +61,7 @@ export default function CellTextEditor({ row, column, onRowChange, onClose }: TR
   }
 
   function handleBlur() {
-    if (blockAPIRequests) uiState.setIsEditingCell(false)
+    uiState.setIsEditingCell(false)
   }
 
   return (
