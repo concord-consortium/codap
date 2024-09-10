@@ -7,14 +7,25 @@ import { ICollectionModel } from "../../models/data/collection"
 import { useCaseCardModel } from "./use-case-card-model"
 import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-data-utils"
 import { AttributeHeader } from "../case-tile-common/attribute-header"
-import { kIndexColumnKey } from "../case-table/case-table-types"
 import { AttributeHeaderDivider } from "../case-tile-common/attribute-header-divider"
+import { kIndexColumnKey } from "../case-tile-common/case-tile-types"
 
 import "./case-attrs-view.scss"
 
 interface ICaseAttrsViewProps {
   caseItem: IGroupedCase
   collection?: ICollectionModel
+}
+
+function getDividerBounds(containerBounds: DOMRect, cellBounds: DOMRect) {
+  const kCardCellWidthOffset = 5
+  const kCardCellHeight = 25
+  return {
+    top: cellBounds.bottom - containerBounds.top + kCardCellHeight,
+    left: cellBounds.left - containerBounds.left,
+    width: containerBounds.width - cellBounds.left - containerBounds.left - kCardCellWidthOffset,
+    height: 6
+  }
 }
 
 export const CaseAttrsView = observer(function CaseAttrsView({caseItem, collection}: ICaseAttrsViewProps) {
@@ -25,7 +36,7 @@ export const CaseAttrsView = observer(function CaseAttrsView({caseItem, collecti
     return attr?.id && data?.getValue(caseItem.__id__, attr.id)
   }) ?? []
 
-  const handleSetContentElt = useCallback((contentElt: HTMLDivElement | null) => {
+  const handleSetHeaderContentElt = useCallback((contentElt: HTMLDivElement | null) => {
     contentRef.current = contentElt
     const _cellElt: HTMLElement | null = contentRef.current?.closest(".case-card-attr") ?? null
     setCellElt(_cellElt)
@@ -37,11 +48,12 @@ export const CaseAttrsView = observer(function CaseAttrsView({caseItem, collecti
       <tbody>
         <tr className="case-card-attr index-row">
           <td colSpan={2}>
-        <AttributeHeader
-          attributeId={kIndexColumnKey}
-          HeaderDivider={AttributeHeaderDivider}
-          onSetContentElt={handleSetContentElt}
-        />
+            <AttributeHeader
+              attributeId={kIndexColumnKey}
+              getDividerBounds={getDividerBounds}
+              HeaderDivider={AttributeHeaderDivider}
+              onSetHeaderContentElt={handleSetHeaderContentElt}
+            />
           </td>
         </tr>
         {collection?.attributes.map((attr, index: number) => {
@@ -56,7 +68,8 @@ export const CaseAttrsView = observer(function CaseAttrsView({caseItem, collecti
                 name={attr.name}
                 value={values[index]}
                 unit={attr.units}
-                onSetContentElt={handleSetContentElt}
+                getDividerBounds={getDividerBounds}
+                onSetContentElt={handleSetHeaderContentElt}
               />
             )
           })

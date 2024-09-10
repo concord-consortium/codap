@@ -8,9 +8,10 @@ import { setCaseValuesWithCustomUndoRedo } from "../../models/data/data-set-undo
 import { ICase } from "../../models/data/data-set-types"
 import { isFiniteNumber } from "../../utilities/math-utils"
 import { AttributeHeader } from "../case-tile-common/attribute-header"
+import { AttributeHeaderDivider } from "../case-tile-common/attribute-header-divider"
+import { GetDividerBoundsFn } from "../case-tile-common/case-tile-types"
 import { ICollectionModel } from "../../models/data/collection"
 import { createCasesNotification, updateCasesNotification } from "../../models/data/data-set-notifications"
-import { AttributeHeaderDivider } from "../case-tile-common/attribute-header-divider"
 
 import "./case-attr-view.scss"
 
@@ -21,11 +22,12 @@ interface ICaseAttrViewProps {
   name: string
   value: IValueType
   unit?: string
+  getDividerBounds?: GetDividerBoundsFn
   onSetContentElt?: (contentElt: HTMLDivElement | null) => HTMLElement | null
 }
 
 export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrViewProps) {
-  const { caseId, collection, attrId, value, onSetContentElt } = props
+  const { caseId, collection, attrId, value, getDividerBounds, onSetContentElt } = props
   const data = useCaseCardModel()?.data
   const displayValue = value ? String(value) : ""
   const [isEditing, setIsEditing] = useState(false)
@@ -93,8 +95,9 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
       <td className="case-card-attr-name" data-testid="case-card-attr-name">
         <AttributeHeader
           attributeId={attrId}
+          getDividerBounds={getDividerBounds}
           HeaderDivider={AttributeHeaderDivider}
-          onSetContentElt={onSetContentElt}
+          onSetHeaderContentElt={onSetContentElt}
         />
       </td>
       <td

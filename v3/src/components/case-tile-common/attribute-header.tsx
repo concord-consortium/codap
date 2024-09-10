@@ -11,22 +11,24 @@ import { uiState } from "../../models/ui-state"
 import { uniqueName } from "../../utilities/js-utils"
 import { AttributeMenuList } from "./attribute-menu/attribute-menu-list"
 import { CaseTilePortal } from "./case-tile-portal"
-import { IDividerProps, kIndexColumnKey } from "./case-tile-types"
+import { GetDividerBoundsFn, IDividerProps, kIndexColumnKey } from "./case-tile-types"
 import { useParentChildFocusRedirect } from "./use-parent-child-focus-redirect"
 
 interface IProps {
   attributeId: string
   beforeHeaderDivider?: boolean
+  getDividerBounds?: GetDividerBoundsFn
   HeaderDivider?: React.ComponentType<IDividerProps>
   // returns the draggable parent element for use with DnDKit
-  onSetContentElt?: (contentElt: HTMLDivElement | null) => HTMLElement | null
+  onSetHeaderContentElt?: (contentElt: HTMLDivElement | null) => HTMLElement | null
   onBeginEdit?: () => void
   onEndEdit?: () => void
   onOpenMenu?: () => void
 }
 
-export const AttributeHeader = observer(function ColumnHeader({
-  attributeId, beforeHeaderDivider, HeaderDivider, onSetContentElt, onBeginEdit, onEndEdit, onOpenMenu
+export const AttributeHeader = observer(function AttributeHeader({
+  attributeId, beforeHeaderDivider, getDividerBounds, HeaderDivider,
+  onSetHeaderContentElt, onBeginEdit, onEndEdit, onOpenMenu
 }: IProps) {
   const { active } = useDndContext()
   const data = useDataSetContext()
@@ -52,9 +54,9 @@ export const AttributeHeader = observer(function ColumnHeader({
   }
   const { attributes, listeners, setNodeRef: setDragNodeRef } = useDraggableAttribute(draggableOptions)
 
-  const setContentRef = (elt: HTMLDivElement | null) => {
+  const setHeaderContentRef = (elt: HTMLDivElement | null) => {
     contentRef.current = elt
-    parentRef.current = onSetContentElt?.(elt) ?? null
+    parentRef.current = onSetHeaderContentElt?.(elt) ?? null
     setDragNodeRef(parentRef.current ?? elt)
   }
 
@@ -183,7 +185,7 @@ export const AttributeHeader = observer(function ColumnHeader({
               color="white" openDelay={1000} placement="bottom" bottom="15px" left="15px"
               isDisabled={disableTooltip}
           >
-            <div className="codap-column-header-content" ref={setContentRef} {...attributes} {...listeners}
+            <div className="codap-column-header-content" ref={setHeaderContentRef} {...attributes} {...listeners}
             data-testid="codap-column-header-content">
             { editingAttrId
                   ? <Input ref={inputRef} value={editingAttrName} data-testid="column-name-input"
@@ -221,7 +223,7 @@ export const AttributeHeader = observer(function ColumnHeader({
                   key={attributeId}
                   columnKey={attributeId}
                   cellElt={parentRef.current}
-                  isCardDivider={instanceId.includes("case-card-")}
+                  getDividerBounds={getDividerBounds}
                 />
               }
             </div>
