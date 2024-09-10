@@ -135,8 +135,7 @@ export const EditAttributePropertiesModal = ({ attributeId, isOpen, onClose }: I
                 onMouseDown={(e) => e.stopPropagation()}>
               {selectableAttributeTypes.map(aType => {
                 return (<option key={aType} value={aType} data-testid="attr-type-option"
-                          // onClick={(e) => e.stopPropagation()}
-                          onMouseDown={(e)=>e.stopPropagation()}>
+                                onMouseDown={(e)=>e.stopPropagation()}>
                           {t(`DG.CaseTable.attribute.type.${aType}`)}
                         </option>)
               })}
