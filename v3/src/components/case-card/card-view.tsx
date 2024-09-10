@@ -1,10 +1,9 @@
-import React, { useCallback, useRef } from "react"
+import React, { useRef } from "react"
 import { observer } from "mobx-react-lite"
 import { CollectionContext } from "../../hooks/use-collection-context"
 import { AttributeHeaderDividerContext } from "../case-tile-common/use-attribute-header-divider-context"
 import { CaseView } from "./case-view"
 import { useCaseCardModel } from "./use-case-card-model"
-import { CaseCardCollectionSpacer } from "./case-card-collection-spacer"
 import { IDataSet } from "../../models/data/data-set"
 
 import "./card-view.scss"

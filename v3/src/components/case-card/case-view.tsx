@@ -54,7 +54,7 @@ export const CaseView = observer(function CaseView(props: ICaseViewProps) {
   const handleNewCollectionDrop = useCallback((dataSet: IDataSet, attrId: string, collId: string) => {
     const attr = dataSet.attrFromID(attrId)
     attr && onNewCollectionDrop(dataSet, attrId, collId)
-  }, [collectionId, onNewCollectionDrop])
+  }, [onNewCollectionDrop])
 
   const handleSelectCase = useCallback((delta: number) => () => {
     const newCase = cases[displayedCaseIndex + delta]
