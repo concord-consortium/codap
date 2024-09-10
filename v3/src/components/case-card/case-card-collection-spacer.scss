@@ -1,0 +1,17 @@
+.case-card-collection-spacer {
+  height: 0px;
+  text-align: center;
+
+  &.parentMost {
+    border-radius: 4px 4px 0 0;
+  }
+
+  &.active {
+    height: 18px;
+    background:#ff0;
+  }
+
+  &.over {
+    background: #ff0;
+  }
+}

@@ -1,7 +1,7 @@
 import { useMergeRefs } from "@chakra-ui/react"
 import { useDndContext } from "@dnd-kit/core"
 import { observer } from "mobx-react-lite"
-import React, { useRef } from "react"
+import React, { useCallback, useRef } from "react"
 // import { useResizeDetector } from "react-resize-detector"
 import { useDataSet } from "../../hooks/use-data-set"
 import { useInstanceIdContext } from "../../hooks/use-instance-id-context"
@@ -11,6 +11,7 @@ import { kIndexColumnKey } from "../case-tile-common/case-tile-types"
 import { AttributeDragOverlay } from "../drag-drop/attribute-drag-overlay"
 import { CardView } from "./card-view"
 import { useCaseCardModel } from "./use-case-card-model"
+import { IDataSet } from "../../models/data/data-set"
 
 // import "./case-card.v2"
 import "./case-card.scss"
@@ -30,9 +31,8 @@ export const CaseCard = observer(function CaseCard({ setNodeRef }: IProps) {
 
   // const { isTileSelected } = useTileModelContext()
   // const isFocused = isTileSelected()
-  // const lastNewCollectionDrop = useRef<{ newCollectionId: string, beforeCollectionId: string } | undefined>()
+  const lastNewCollectionDrop = useRef<{ newCollectionId: string, beforeCollectionId: string } | undefined>()
 
-/*
   const handleNewCollectionDrop = useCallback((dataSet: IDataSet, attrId: string, beforeCollectionId: string) => {
     if (dataSet.attrFromID(attrId)) {
       dataSet.applyModelChange(() => {
@@ -46,7 +46,6 @@ export const CaseCard = observer(function CaseCard({ setNodeRef }: IProps) {
       })
     }
   }, [])
-*/
 
   if (!cardModel || !data) return null
 
@@ -86,7 +85,7 @@ export const CaseCard = observer(function CaseCard({ setNodeRef }: IProps) {
     return (
       <>
         <div ref={mergeRefs} className="case-card react-data-card" data-testid="case-card">
-          <CardView />
+          <CardView onNewCollectionDrop={handleNewCollectionDrop}/>
           <AttributeDragOverlay activeDragId={overlayDragId} />
         </div>
       </>
