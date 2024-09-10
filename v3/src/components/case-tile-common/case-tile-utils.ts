@@ -1,7 +1,12 @@
 import { kCaseCardTileType } from "../case-card/case-card-defs"
+import { ILogMessage, LogMessageFn } from "../../lib/log-message"
 import { appState } from "../../models/app-state"
 import { createDefaultTileOfType } from "../../models/codap/add-default-content"
 import { INewTileOptions } from "../../models/codap/create-tile"
+import { IDataSet } from "../../models/data/data-set"
+import { createCasesNotification, updateCasesNotification } from "../../models/data/data-set-notifications"
+import { ICase } from "../../models/data/data-set-types"
+import { setCaseValuesWithCustomUndoRedo } from "../../models/data/data-set-undo"
 import { IDocumentContentModel } from "../../models/document/document-content"
 import { isFreeTileLayout } from "../../models/document/free-tile-row"
 import {
@@ -124,4 +129,37 @@ export function toggleCardTable(documentContent: IDocumentContentModel, tileID: 
       return otherTile
     }
   }
+}
+
+export function applyCaseValueChanges(data: IDataSet, cases: ICase[], log?: ILogMessage | LogMessageFn) {
+  const updatedCaseIds = cases.map(aCase => aCase.__id__)
+  const newCaseIds: string[] = []
+  data.applyModelChange(() => {
+    if (cases.length > 0) {
+      const allCaseIDs = new Set<string>(data.caseInfoMap.keys())
+      setCaseValuesWithCustomUndoRedo(data, cases)
+
+      // Changing values can result in new cases if grouping changes occur
+      Array.from(data.caseInfoMap.keys()).forEach(caseId => {
+        if (!allCaseIDs.has(caseId)) {
+          newCaseIds.push(caseId)
+        }
+      })
+    }
+  }, {
+    log,
+    notify: () => {
+      const notifications = []
+      if (updatedCaseIds.length > 0) {
+        const updatedCases = updatedCaseIds.map(caseId => data.caseInfoMap.get(caseId))
+          .filter(caseGroup => !!caseGroup)
+          .map(caseGroup => caseGroup.groupedCase)
+        notifications.push(updateCasesNotification(data, updatedCases))
+      }
+      if (newCaseIds.length > 0) notifications.push(createCasesNotification(newCaseIds, data))
+      return notifications
+    },
+    undoStringKey: "DG.Undo.caseTable.editCellValue",
+    redoStringKey: "DG.Redo.caseTable.editCellValue"
+  })
 }
