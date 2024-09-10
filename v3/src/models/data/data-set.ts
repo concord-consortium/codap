@@ -787,12 +787,14 @@ export const DataSet = V2Model.named("DataSet").props({
       prepareSnapshot() {
         // move volatile data into serializable properties
         withoutUndo({ suppressWarning: true })
+        self.collections.forEach(collection => collection.prepareSnapshot())
         self.attributes.forEach(attr => attr.prepareSnapshot())
       },
       // should be called after retrieving snapshot (post-serialization)
       completeSnapshot() {
         // move data back into volatile storage for efficiency
         withoutUndo({ suppressWarning: true })
+        self.collections.forEach(collection => collection.completeSnapshot())
         self.attributes.forEach(attr => attr.completeSnapshot())
       },
       setName(name: string) {

@@ -93,7 +93,8 @@ describe("createCodapDocument", () => {
               collections: [{
                 id: "test-7",
                 name: "Cases",
-                attributes: ["test-8"]
+                attributes: ["test-8"],
+                _groupKeyCaseIds: []
               }],
               id: "test-5",
               snapSelection: []
