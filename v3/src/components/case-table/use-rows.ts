@@ -11,14 +11,14 @@ import { logMessageWithReplacement } from "../../lib/log-message"
 import { appState } from "../../models/app-state"
 import { kDefaultFormatStr } from "../../models/data/attribute"
 import { isAddCasesAction, isRemoveCasesAction, isSetCaseValuesAction } from "../../models/data/data-set-actions"
-import { createCasesNotification, updateCasesNotification } from "../../models/data/data-set-notifications"
+import { createCasesNotification } from "../../models/data/data-set-notifications"
 import {
   IAddCasesOptions, ICase, ICaseCreation, IGroupedCase, symFirstChild, symIndex, symParent
 } from "../../models/data/data-set-types"
-import { setCaseValuesWithCustomUndoRedo } from "../../models/data/data-set-undo"
 import { isSetIsCollapsedAction } from "../../models/shared/shared-case-metadata"
 import { onAnyAction } from "../../utilities/mst-utils"
 import { prf } from "../../utilities/profiler"
+import { applyCaseValueChanges } from "../case-tile-common/case-tile-utils"
 import { kInputRowKey, symDom, TRow, TRowsChangeData } from "./case-table-types"
 import { useCollectionTableModel } from "./use-collection-table-model"
 
@@ -270,70 +270,42 @@ export const useRows = () => {
       }
     })
 
-    const creatingCases = casesToCreate.length > 0
-    const undoStringKey = creatingCases ? "DG.Undo.caseTable.createNewCase" : "DG.Undo.caseTable.editCellValue"
-    const redoStringKey = creatingCases ? "DG.Redo.caseTable.createNewCase" : "DG.Redo.caseTable.editCellValue"
-    const logMessage = creatingCases
-                        ? logMessageWithReplacement("Create %@ cases in table",
-                              { count: casesToCreate.length, category: "data" })
-                        : getPendingLogMessage("Edit cell value")
-    // We track case ids between updates and additions so we can make proper notifications afterwards
-    let oldCaseIds = new Set(collection?.caseIds ?? [])
-    let updatedCaseIds: string[] = []
+    // handle updating cases (editing cells of existing cases)
+    if (data && casesToUpdate.length) {
+      applyCaseValueChanges(data, casesToUpdate, getPendingLogMessage("editCellValue"))
+      return
+    }
+
+    if (!data || !casesToCreate.length) return
+
+    // handle creating cases (editing input row)
+    // We track case ids between model changes so we can make proper notifications afterwards
+    const oldCaseIds = new Set(collection?.caseIds ?? [])
     const newCaseIds: string[] = []
     data?.applyModelChange(
       () => {
-        // Update existing cases
-        if (casesToUpdate.length > 0) {
-          setCaseValuesWithCustomUndoRedo(data, casesToUpdate)
-          if (collection?.id === data.childCollection.id) {
-            // The child collection's case ids are persistent, so we can just use the casesToUpdate to
-            // determine which case ids to use in the updateCasesNotification
-            updatedCaseIds = casesToUpdate.map(aCase => aCase.__id__)
-          } else {
-            // Other collections have cases whose ids change when values change due to updated case grouping,
-            // so we have to check which case ids were not present before updating to determine which case ids
-            // to use in the updateCasesNotification
-            collection?.caseIds.forEach(caseId => {
-              if (!oldCaseIds.has(caseId)) updatedCaseIds.push(caseId)
-            })
-          }
-          oldCaseIds = new Set(collection?.caseIds ?? [])
+        const options: IAddCasesOptions = {}
+        if (collectionTableModel?.inputRowIndex != null && collectionTableModel.inputRowIndex >= 0) {
+          options.before = collection?.caseIds[collectionTableModel.inputRowIndex]
+          collectionTableModel.setInputRowIndex(collectionTableModel.inputRowIndex + 1)
         }
-
-        // Create new cases
-        if (creatingCases) {
-          const options: IAddCasesOptions = {}
-          if (collectionTableModel?.inputRowIndex != null && collectionTableModel.inputRowIndex >= 0) {
-            options.before = collection?.caseIds[collectionTableModel.inputRowIndex]
-            collectionTableModel.setInputRowIndex(collectionTableModel.inputRowIndex + 1)
-          }
-          data.addCases(casesToCreate, options)
-          // Make sure things are updated since adding cases invalidates grouping
-          // TODO Would it be better to make collection.caseIds a getter that automatically validates the cases?
-          data.validateCases()
-          // We look for case ids that weren't present before adding the new cases to determine which case ids
-          // should be included in the createCasesNotification
-          collection?.caseIds.forEach(caseId => {
-            if (!oldCaseIds.has(caseId)) newCaseIds.push(caseId)
-          })
-        }
+        data.addCases(casesToCreate, options)
+        // Make sure things are updated since adding cases invalidates grouping
+        // TODO Would it be better to make collection.caseIds a getter that automatically validates the cases?
+        data.validateCases()
+        // We look for case ids that weren't present before adding the new cases to determine which case ids
+        // should be included in the createCasesNotification
+        collection?.caseIds.forEach(caseId => {
+          if (!oldCaseIds.has(caseId)) newCaseIds.push(caseId)
+        })
       },
       {
         notify: () => {
-          const notifications = []
-          if (updatedCaseIds.length > 0) {
-            const updatedCases = updatedCaseIds.map(caseId => data.caseInfoMap.get(caseId))
-              .filter(caseGroup => !!caseGroup)
-              .map(caseGroup => caseGroup.groupedCase)
-            notifications.push(updateCasesNotification(data, updatedCases))
-          }
-          if (newCaseIds.length > 0) notifications.push(createCasesNotification(newCaseIds, data))
-          return notifications
+          return newCaseIds.length > 0 ? createCasesNotification(newCaseIds, data) : undefined
         },
-        undoStringKey,
-        redoStringKey,
-        log: logMessage
+        undoStringKey: "DG.Undo.caseTable.createNewCase",
+        redoStringKey: "DG.Redo.caseTable.createNewCase",
+        log: logMessageWithReplacement("Create %@ cases in table", { count: casesToCreate.length, category: "data" })
       }
     )
   }, [collectionTableModel, data, getPendingLogMessage])
