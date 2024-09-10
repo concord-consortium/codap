@@ -4,14 +4,13 @@ import { Editable, EditablePreview, EditableInput } from "@chakra-ui/react"
 import { clsx } from "clsx"
 import { IValueType } from "../../models/data/attribute"
 import { useCaseCardModel } from "./use-case-card-model"
-import { setCaseValuesWithCustomUndoRedo } from "../../models/data/data-set-undo"
 import { ICase } from "../../models/data/data-set-types"
 import { isFiniteNumber } from "../../utilities/math-utils"
 import { AttributeHeader } from "../case-tile-common/attribute-header"
 import { AttributeHeaderDivider } from "../case-tile-common/attribute-header-divider"
 import { GetDividerBoundsFn } from "../case-tile-common/case-tile-types"
 import { ICollectionModel } from "../../models/data/collection"
-import { updateCasesNotification } from "../../models/data/data-set-notifications"
+import { applyCaseValueChanges } from "../case-tile-common/case-tile-utils"
 
 import "./case-attr-view.scss"
 
@@ -27,7 +26,7 @@ interface ICaseAttrViewProps {
 }
 
 export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrViewProps) {
-  const { caseId, collection, attrId, value, getDividerBounds, onSetContentElt } = props
+  const { caseId, attrId, value, getDividerBounds, onSetContentElt } = props
   const data = useCaseCardModel()?.data
   const displayValue = value ? String(value) : ""
   const [isEditing, setIsEditing] = useState(false)
@@ -45,43 +44,12 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
   const handleSubmit = (newValue?: string) => {
     if (newValue) {
       const casesToUpdate: ICase[] = [{__id__: caseId, [attrId]: newValue}]
-      const undoStringKey = "DG.Undo.caseTable.editCellValue"
-      const redoStringKey = "DG.Redo.caseTable.editCellValue"
-      let oldCaseIds = new Set(collection?.caseIds ?? [])
-      let updatedCaseIds: string[] = []
 
-      data?.applyModelChange(
-        () => {
-          setCaseValuesWithCustomUndoRedo(data, casesToUpdate)
-          if (collection?.id === data.childCollection.id) {
-            // The child collection's case ids are persistent, so we can just use the casesToUpdate to
-            // determine which case ids to use in the updateCasesNotification
-            updatedCaseIds = casesToUpdate.map(aCase => aCase.__id__)
-          } else {
-            // Other collections have cases whose ids change when values change due to updated case grouping,
-            // so we have to check which case ids were not present before updating to determine which case ids
-            // to use in the updateCasesNotification
-            collection?.caseIds.forEach(cid => {
-              if (!oldCaseIds.has(cid)) updatedCaseIds.push(cid)
-            })
-          }
-          oldCaseIds = new Set(collection?.caseIds ?? [])
-        },
-        {
-          notify: () => {
-            const notifications: any = []
-            if (updatedCaseIds.length > 0) {
-              const updatedCases = updatedCaseIds.map(cid => data.caseInfoMap.get(cid))
-                .filter(caseGroup => !!caseGroup)
-                .map(caseGroup => caseGroup.groupedCase)
-              notifications.push(updateCasesNotification(data, updatedCases))
-            }
-            return notifications
-          },
-          undoStringKey,
-          redoStringKey
-        }
-      )
+      if (data && casesToUpdate.length) {
+        applyCaseValueChanges(data, casesToUpdate)
+        return
+      }
+
       setEditingValue(newValue)
     } else {
       setEditingValue(displayValue)
