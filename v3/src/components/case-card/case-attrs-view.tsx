@@ -33,7 +33,7 @@ export const CaseAttrsView = observer(function CaseAttrsView({caseItem, collecti
   const contentRef = useRef<HTMLDivElement | null>(null)
   const [, setCellElt] = useState<HTMLElement | null>(null)
   const values: IValueType[] = collection?.attributes.map(attr => {
-    return attr?.id && data?.getValue(caseItem.__id__, attr.id)
+    return attr?.id && data?.getValue(caseItem?.__id__, attr.id)
   }) ?? []
 
   const handleSetHeaderContentElt = useCallback((contentElt: HTMLDivElement | null) => {
@@ -58,7 +58,7 @@ export const CaseAttrsView = observer(function CaseAttrsView({caseItem, collecti
         </tr>
         {collection?.attributes.map((attr, index: number) => {
             const metadata = data && getSharedCaseMetadataFromDataset(data)
-            if (!attr || metadata?.isHidden(attr.id)) return null
+            if (!attr || metadata?.isHidden(attr.id) || !caseItem) return null
             return (
               <CaseAttrView
                 key={attr.id}

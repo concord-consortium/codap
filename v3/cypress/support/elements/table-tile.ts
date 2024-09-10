@@ -239,6 +239,10 @@ export const TableTileElements = {
   getToggleCardView() {
     return cy.get("[data-testid=case-table-toggle-view]")
   },
+  toggleCaseView() {
+    this.getToggleCardView().click()
+    cy.get("[data-testid=card-table-toggle-message]").click()
+  },
   getDatasetInfoButton() {
     return c.getInspectorPanel().find("[data-testid=dataset-info-button]")
   },

@@ -41,7 +41,7 @@ export const CaseView = observer(function CaseView(props: ICaseViewProps) {
   const collection = data?.getCollection(collectionId)
   const initialSelectedCase = collection?.cases.find(c => c.__id__ === displayedCaseLineage[level])
   const displayedCase = initialSelectedCase ?? cases[0]
-  const displayedCaseId = displayedCase.__id__
+  const displayedCaseId = displayedCase?.__id__
 
   const displayedCaseIndex = useMemo(() => {
     // the first time this runs selectedCase will not be defined and this will return -1, thus the Math.max

@@ -144,4 +144,13 @@ context("case card", () => {
                                                  .eq(0).should("have.text", "")
     })
   })
+  it("allows a user to drag an attribute to a new collection", () => {
+    table.toggleCaseView()
+    cy.wait(500)
+    cy.get('[data-testid="case-card-view"]').should("have.length", 1)
+    cy.dragAttributeToTarget("card", "Diet", "newTopCardCollection")
+    cy.wait(2000)
+    cy.get('[data-testid="case-card-view"]').should("have.length", 2)
+    cy.get('[data-testid="case-card-view-title"]').first().should("have.text", "Diets")
+  })
 })
