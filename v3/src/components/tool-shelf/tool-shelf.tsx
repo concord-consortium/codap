@@ -119,7 +119,8 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
     const { undoStringKey = "", redoStringKey = "" } = tileInfo?.shelf || {}
     document?.content?.applyModelChange(() => {
       document?.content?.createOrShowTile?.(tileType, { animateCreation: true })
-    }, { undoStringKey, redoStringKey, log: logMessageWithReplacement("Created component: %@", { tileType }) })
+    }, { undoStringKey, redoStringKey, log: logMessageWithReplacement("Create component: %@",
+                                                { tileType, category: "component" }) })
   }
 
   function handleRightButtonClick(entry: IRightButtonEntry) {

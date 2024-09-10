@@ -55,7 +55,7 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
       notify: dataContextCountChangedNotification,
       undoStringKey: "V3.Undo.caseTable.create",
       redoStringKey: "V3.Redo.caseTable.create",
-      log: "Create New Empty DataSet"
+      log: {message: "Create New Empty DataSet", args: {category: "document"}}
     })
   }
 
@@ -137,7 +137,8 @@ export const DeleteDataSetModal = ({dataSetId, isOpen, onClose, setModalOpen}: I
         notify: [dataContextCountChangedNotification, dataContextDeletedNotification(data)],
         undoStringKey: "V3.Undo.caseTable.delete",
         redoStringKey: "V3.Redo.caseTable.delete",
-        log: logStringifiedObjectMessage("Delete dataset: %@", { id: dataSetId, name: data?.title })
+        log: logStringifiedObjectMessage("Delete dataset: %@",
+                { id: dataSetId, name: data?.title, category: "document" })
       })
     }
   }

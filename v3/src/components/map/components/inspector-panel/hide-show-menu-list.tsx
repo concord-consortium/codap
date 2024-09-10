@@ -57,7 +57,7 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
       {
         undoStringKey: "DG.Undo.showAllCases",
         redoStringKey: "DG.Redo.showAllCases",
-        log: "Show all cases"
+        log: {message: "Show all cases", args: {category: "data"}}
       }
     )
   }

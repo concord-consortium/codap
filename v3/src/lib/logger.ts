@@ -1,7 +1,7 @@
 import { nanoid } from "nanoid"
 import { debugLog, DEBUG_LOGGER } from "./debug"
 import { IDocumentModel } from "../models/document/document"
-import { eventCategoryMap, mockGA } from "./analytics"
+import { AnalyticsCategory, mockGA } from "./analytics"
 
 // Set to true (temporarily) to debug logging to server specifically.
 // Otherwise, we assume that console.logs are sufficient.
@@ -40,7 +40,7 @@ interface PendingMessage {
 }
 
 interface IGAData {
-  readonly eventCategory: string;
+  readonly eventCategory: AnalyticsCategory;
   readonly eventAction: string;
   readonly eventLabel: string;
 }
@@ -122,10 +122,12 @@ export class Logger {
   private formatAndSend(time: number, event: string, documentTitle: string, args?: Record<string, unknown>) {
     const event_value = JSON.stringify(args)
     const logMessage = this.createLogMessage(time, event, documentTitle, event_value, args)
+    console.log("in formatAndSend args:", args)
+    const category = args?.category as AnalyticsCategory || ""
     debugLog(DEBUG_LOGGER, "logMessage:", logMessage)
     // sendToLoggingService(logMessage, this.stores.user)
     sendToLoggingService(logMessage)
-    sendToAnalyticsService(event)
+    sendToAnalyticsService(event, category)
     // for (const listener of this.logListeners) {
     //   listener(logMessage)
     // }
@@ -176,12 +178,11 @@ function sendToLoggingService(data: LogMessage) {
   request.send(JSON.stringify(data))
 }
 
-function sendToAnalyticsService(event: string) {
+function sendToAnalyticsService(event: string, category: AnalyticsCategory) {
   const windowWithPossibleGa = (window as IAnalyticsService)
-  const eventName = event.includes(":") ? event.split(":")[0] : event
 
   const payload: IGAData = {
-    eventCategory: eventCategoryMap[eventName],
+    eventCategory: category,
     eventAction: event,
     eventLabel: "CODAPV3"
   }

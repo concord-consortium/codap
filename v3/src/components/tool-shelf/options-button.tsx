@@ -30,7 +30,7 @@ export const OptionsShelfButton = () => {
     }, {
       undoStringKey: "V3.Undo.webView.show",
       redoStringKey: "V3.Redo.webView.show",
-      log: logMessageWithReplacement("Show web view: %@", {url})
+      log: logMessageWithReplacement("Show web view: %@", {url, category: "document"})
     })
   }
   return (

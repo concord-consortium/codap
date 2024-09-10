@@ -15,7 +15,8 @@ export const CalculatorTitleBar =
       }, {
         undoStringKey: "DG.Undo.toggleComponent.delete.calcView",
         redoStringKey: "DG.Redo.toggleComponent.delete.calcView",
-        log: logStringifiedObjectMessage("Close calculator", { type: kCalculatorTileType })
+        log: logStringifiedObjectMessage("Close calculator", { type: kCalculatorTileType,
+                category: "component" })
       })
     }, [documentContent])
     return (

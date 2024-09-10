@@ -1,7 +1,10 @@
 import { t } from "../utilities/translation/translate"
+import { AnalyticsCategory } from "./analytics"
 
 export type LoggableValue = string | number | boolean | undefined
-export type LoggableObject = Record<string, LoggableValue>
+export type LoggableObject = Record<string, LoggableValue> & {
+  category?: AnalyticsCategory;  // If the "category" key exists, it must be an AnalyticsCategory
+}
 
 export interface ILogMessage {
   message: string
