@@ -487,6 +487,8 @@ export const CollectionModel = V2Model
   prepareSnapshot() {
     self._groupKeyCaseIds = Array.from(self.groupKeyCaseIds.entries())
   },
+  completeSnapshot() {
+  },
   addAttribute(attr: IAttribute, options?: IMoveAttributeOptions) {
     const beforeIndex = options?.before ? self.getAttributeIndex(options.before) : -1
     const afterIndex = options?.after ? self.getAttributeIndex(options.after) : -1
