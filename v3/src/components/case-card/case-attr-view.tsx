@@ -11,7 +11,7 @@ import { AttributeHeader } from "../case-tile-common/attribute-header"
 import { AttributeHeaderDivider } from "../case-tile-common/attribute-header-divider"
 import { GetDividerBoundsFn } from "../case-tile-common/case-tile-types"
 import { ICollectionModel } from "../../models/data/collection"
-import { createCasesNotification, updateCasesNotification } from "../../models/data/data-set-notifications"
+import { updateCasesNotification } from "../../models/data/data-set-notifications"
 
 import "./case-attr-view.scss"
 
@@ -76,7 +76,6 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
                 .map(caseGroup => caseGroup.groupedCase)
               notifications.push(updateCasesNotification(data, updatedCases))
             }
-            if (updatedCaseIds.length > 0) notifications.push(createCasesNotification(updatedCaseIds, data))
             return notifications
           },
           undoStringKey,
