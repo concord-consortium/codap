@@ -19,10 +19,12 @@ export type AnalyticsCategory = typeof AnalyticsCategories[number]
 
 export const mockGA = {
   gtag: (event: string, eventName: string, data: Record<string, any>) => {
+    /* eslint-disable no-console */
     console.group("Mock GA4 event payload:")
     console.debug("Event:", event)
     console.debug("Event Name:", eventName)
     console.debug("Data:", JSON.stringify(data, null, 2))
     console.groupEnd()
+    /* eslint-enable no-console */
   }
 }
