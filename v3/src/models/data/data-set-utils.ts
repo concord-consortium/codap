@@ -69,6 +69,9 @@ export function moveAttribute({
   const options: IMoveAttributeOptions =
     !afterAttrId || afterAttrId === kIndexColumnKey ? { before: firstAttr?.id } : { after: afterAttrId }
 
+  // bail if we're moving the attribute before/after itself
+  if (attrId === options.after || attrId === options.before) return
+
   const notifications = includeNotifications ? moveAttributeNotification(dataset) : undefined
   const undoStringKey = undoable ? "DG.Undo.dataContext.moveAttribute" : undefined
   const redoStringKey = undoable ? "DG.Redo.dataContext.moveAttribute" : undefined

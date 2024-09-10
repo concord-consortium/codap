@@ -508,7 +508,9 @@ export const CollectionModel = V2Model
 .actions(self => ({
   moveAttribute(attrId: string, options?: IMoveAttributeOptions) {
     const attr = self.getAttribute(attrId)
-    if (attr) {
+    // is the attribute being moved before/after itself?
+    const isMoving = attrId !== options?.after && attrId !== options?.before
+    if (attr && isMoving) {
       self.removeAttribute(attr.id)
       self.addAttribute(attr, options)
     }
