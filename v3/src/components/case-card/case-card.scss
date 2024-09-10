@@ -1,9 +1,12 @@
 @import "../vars.scss";
 @import "./case-card-vars.scss";
 
-.codap-case-card {
-  overflow: auto hidden;
+.case-card.react-data-card {
+  height: 100%;
+  overflow-x: auto;
+}
 
+.codap-case-card {
   input.column-name-input,
   input.collection-title-input,
   input.case-card-attr-value-text-editor {
