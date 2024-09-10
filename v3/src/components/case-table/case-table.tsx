@@ -1,11 +1,6 @@
 import { useDndContext } from "@dnd-kit/core"
 import { observer } from "mobx-react-lite"
 import React, { useCallback, useEffect, useRef } from "react"
-import { AttributeDragOverlay } from "../drag-drop/attribute-drag-overlay"
-import { kIndexColumnKey } from "./case-table-types"
-import { CollectionTable } from "./collection-table"
-import { useCaseTableModel } from "./use-case-table-model"
-import { useSyncScrolling } from "./use-sync-scrolling"
 import { CollectionContext, ParentCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useInstanceIdContext } from "../../hooks/use-instance-id-context"
@@ -18,6 +13,12 @@ import { INotification } from "../../models/history/apply-model-change"
 import { mstReaction } from "../../utilities/mst-reaction"
 import { prf } from "../../utilities/profiler"
 import { t } from "../../utilities/translation/translate"
+import { kIndexColumnKey } from "../case-tile-common/case-tile-types"
+import { AttributeHeaderDividerContext } from "../case-tile-common/use-attribute-header-divider-context"
+import { AttributeDragOverlay } from "../drag-drop/attribute-drag-overlay"
+import { CollectionTable } from "./collection-table"
+import { useCaseTableModel } from "./use-case-table-model"
+import { useSyncScrolling } from "./use-sync-scrolling"
 
 import "./case-table.scss"
 
@@ -123,19 +124,21 @@ export const CaseTable = observer(function CaseTable({ setNodeRef }: IProps) {
     return (
       <div ref={setNodeRef} className="case-table" data-testid="case-table">
         <div className="case-table-content" ref={contentRef} onScroll={handleHorizontalScroll}>
-          {collections.map((collection, i) => {
-            const key = collection.id
-            const parent = i > 0 ? collections[i - 1] : undefined
-            return (
-              <ParentCollectionContext.Provider key={key} value={parent?.id}>
-                <CollectionContext.Provider value={collection.id}>
-                  <CollectionTable onMount={handleCollectionTableMount}
-                    onNewCollectionDrop={handleNewCollectionDrop} onTableScroll={handleTableScroll}
-                    onScrollClosestRowIntoView={handleScrollClosestRowIntoView} />
-                </CollectionContext.Provider>
-              </ParentCollectionContext.Provider>
-            )
-          })}
+          <AttributeHeaderDividerContext.Provider value={contentRef}>
+            {collections.map((collection, i) => {
+              const key = collection.id
+              const parent = i > 0 ? collections[i - 1] : undefined
+              return (
+                <ParentCollectionContext.Provider key={key} value={parent?.id}>
+                  <CollectionContext.Provider value={collection.id}>
+                    <CollectionTable onMount={handleCollectionTableMount}
+                      onNewCollectionDrop={handleNewCollectionDrop} onTableScroll={handleTableScroll}
+                      onScrollClosestRowIntoView={handleScrollClosestRowIntoView} />
+                  </CollectionContext.Provider>
+                </ParentCollectionContext.Provider>
+              )
+            })}
+          </AttributeHeaderDividerContext.Provider>
           <AttributeDragOverlay activeDragId={overlayDragId} />
           <NoCasesMessage />
         </div>

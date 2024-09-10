@@ -9,4 +9,9 @@ $xMarginOffset: $margin-left + $margin-right;
   table-layout: auto;
   text-align: right;
   width: calc(100% - $xMarginOffset);
+
+  .case-card-attr.index-row {
+    display: block;
+    height: 0;
+  }
 }

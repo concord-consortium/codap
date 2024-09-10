@@ -1,7 +1,18 @@
 import React, { useCallback, useRef, useState } from "react"
 import { AttributeHeader } from "../case-tile-common/attribute-header"
 import { TRenderHeaderCellProps } from "./case-table-types"
-import { ColumnHeaderDivider } from "./column-header-divider"
+import { AttributeHeaderDivider } from "../case-tile-common/attribute-header-divider"
+
+function getDividerBounds(containerBounds: DOMRect, cellBounds: DOMRect) {
+  const kTableDividerWidth = 7
+  const kTableDividerOffset = Math.floor(kTableDividerWidth / 2)
+  return {
+    top: cellBounds.top - containerBounds.top,
+    left: cellBounds.right - containerBounds.left - kTableDividerOffset - 1,
+    width: kTableDividerWidth,
+    height: cellBounds.height
+  }
+}
 
 // wrapper component because RDG doesn't like observer components as header cell renderers
 export function ColumnHeader(props: TRenderHeaderCellProps) {
@@ -13,7 +24,7 @@ export function ColumnHeader(props: TRenderHeaderCellProps) {
   // useful for the child to know about the containing cell element, so we pass this function
   // to the AttributeHeader component as `onSetContentElt`, which then returns the relevant
   // parent/cell element back to the AttributeHeader.
-  const handleSetContentElt = useCallback((contentElt: HTMLDivElement | null) => {
+  const handleSetHeaderContentElt = useCallback((contentElt: HTMLDivElement | null) => {
     contentRef.current = contentElt
     const _cellElt: HTMLElement | null = contentRef.current?.closest(".rdg-cell") ?? null
     setCellElt(_cellElt)
@@ -32,8 +43,9 @@ export function ColumnHeader(props: TRenderHeaderCellProps) {
   }, [cellElt])
 
   return <AttributeHeader attributeId={props.column.key}
-            HeaderDivider={ColumnHeaderDivider}
-            onSetContentElt={handleSetContentElt}
+            getDividerBounds={getDividerBounds}
+            HeaderDivider={AttributeHeaderDivider}
+            onSetHeaderContentElt={handleSetHeaderContentElt}
             onBeginEdit={setAriaSelectedAttribute}
             onEndEdit={clearAriaSelectedAttribute}
             onOpenMenu={setAriaSelectedAttribute}/>

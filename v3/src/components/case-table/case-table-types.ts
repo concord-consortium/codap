@@ -44,9 +44,6 @@ export type TableScrollEvent = React.UIEvent<HTMLDivElement, UIEvent>
 export type OnTableScrollFn = (event: TableScrollEvent, collectionId: string, element: HTMLDivElement) => void
 export type OnScrollClosestRowIntoViewFn = (collectionId: string, rowIndices: number[]) => void
 
-// used in lieu of attribute id for index column for ReactDataGrid
-export const kIndexColumnKey = "__index__"
-
 export const kInputRowKey = "__input__"
 
 export const kDefaultColumnWidth = 80
