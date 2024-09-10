@@ -6,10 +6,11 @@ import { IValueType } from "../../models/data/attribute"
 import { useCaseCardModel } from "./use-case-card-model"
 import { setCaseValuesWithCustomUndoRedo } from "../../models/data/data-set-undo"
 import { ICase } from "../../models/data/data-set-types"
+import { INotification } from "../../models/history/apply-model-change"
 import { isFiniteNumber } from "../../utilities/math-utils"
 import { AttributeHeader } from "../case-tile-common/attribute-header"
 import { ICollectionModel } from "../../models/data/collection"
-import { createCasesNotification, updateCasesNotification } from "../../models/data/data-set-notifications"
+import { createCasesNotification, updateCasesNotificationFromIds } from "../../models/data/data-set-notifications"
 
 import "./case-attr-view.scss"
 
@@ -67,13 +68,8 @@ export const CaseAttrView = observer(function CaseAttrView ({caseId, collection,
         },
         {
           notify: () => {
-            const notifications: any = []
-            if (updatedCaseIds.length > 0) {
-              const updatedCases = updatedCaseIds.map(cid => data.caseInfoMap.get(cid))
-                .filter(caseGroup => !!caseGroup)
-                .map(caseGroup => caseGroup.groupedCase)
-              notifications.push(updateCasesNotification(data, updatedCases))
-            }
+            const notifications: INotification[] = []
+            if (updatedCaseIds.length > 0) notifications.push(updateCasesNotificationFromIds(data, updatedCaseIds))
             if (updatedCaseIds.length > 0) notifications.push(createCasesNotification(updatedCaseIds, data))
             return notifications
           },

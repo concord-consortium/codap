@@ -1,3 +1,4 @@
+import { createCasesNotification } from "../../models/data/data-set-notifications"
 import { ICaseCreation } from "../../models/data/data-set-types"
 import { toV2Id, toV3CaseId } from "../../utilities/codap-utils"
 import { registerDIHandler } from "../data-interactive-handler"
@@ -14,6 +15,8 @@ export const diCaseHandler: DIHandler = {
     let itemIds: string[] = []
     const newCaseData: ICaseCreation[] = []
     const cases = (Array.isArray(values) ? values : [values]) as DIFullCase[]
+    const oldCaseIds = new Set(dataContext.caseInfoMap.keys())
+    const newCaseIds: string[] = []
     dataContext.applyModelChange(() => {
       cases.forEach(aCase => {
         if (aCase.values) {
@@ -24,8 +27,16 @@ export const diCaseHandler: DIHandler = {
         }
       })
       itemIds = dataContext.addCases(newCaseData)
+
+      dataContext.validateCases()
+      Array.from(dataContext.caseInfoMap.keys()).forEach(caseId => {
+        if (!oldCaseIds.has(caseId)) newCaseIds.push(caseId)
+      })
+    }, {
+      notify: () => {
+        if (newCaseIds.length > 0) return createCasesNotification(newCaseIds, dataContext)
+      }
     })
-    dataContext.validateCases()
 
     return {
       success: true,

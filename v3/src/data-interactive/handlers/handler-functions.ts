@@ -7,6 +7,7 @@ import {
 import { getV2ItemResult, getCaseRequestResultValues } from "../data-interactive-type-utils"
 import { attrNamesToIds } from "../data-interactive-utils"
 import { caseNotFoundResult, dataContextNotFoundResult, itemNotFoundResult } from "./di-results"
+import { updateCasesNotificationFromIds } from "../../models/data/data-set-notifications"
 
 export function deleteCaseBy(resources: DIResources, aCase?: ICase) {
   const { dataContext } = resources
@@ -120,6 +121,12 @@ export function updateCasesBy(resources: DIResources, values?: DIValues, itemRet
         dataContext.setCaseValues([{ ...updatedAttributes, __id__: v3Id }])
       }
     })
+  }, {
+    notify: () => {
+      if (caseIDs.length > 0) {
+        return updateCasesNotificationFromIds(dataContext, caseIDs.map(v2Id => toV3CaseId(v2Id)))
+      }
+    }
   })
 
   if (caseIDs.length > 0) {

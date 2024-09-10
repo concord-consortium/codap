@@ -11,7 +11,7 @@ import { logMessageWithReplacement } from "../../lib/log-message"
 import { appState } from "../../models/app-state"
 import { kDefaultFormatStr } from "../../models/data/attribute"
 import { isAddCasesAction, isRemoveCasesAction, isSetCaseValuesAction } from "../../models/data/data-set-actions"
-import { createCasesNotification, updateCasesNotification } from "../../models/data/data-set-notifications"
+import { createCasesNotification, updateCasesNotificationFromIds } from "../../models/data/data-set-notifications"
 import {
   IAddCasesOptions, ICase, ICaseCreation, IGroupedCase, symFirstChild, symIndex, symParent
 } from "../../models/data/data-set-types"
@@ -321,12 +321,7 @@ export const useRows = () => {
       {
         notify: () => {
           const notifications = []
-          if (updatedCaseIds.length > 0) {
-            const updatedCases = updatedCaseIds.map(caseId => data.caseInfoMap.get(caseId))
-              .filter(caseGroup => !!caseGroup)
-              .map(caseGroup => caseGroup.groupedCase)
-            notifications.push(updateCasesNotification(data, updatedCases))
-          }
+          if (updatedCaseIds.length > 0) notifications.push(updateCasesNotificationFromIds(data, updatedCaseIds))
           if (newCaseIds.length > 0) notifications.push(createCasesNotification(newCaseIds, data))
           return notifications
         },
