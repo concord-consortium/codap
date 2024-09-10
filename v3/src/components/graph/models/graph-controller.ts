@@ -74,7 +74,7 @@ export class GraphController {
             axisMultiScale.setScaleType('ordinal')
           }
           if (isCategoricalAxisModel(axisModel)) {
-            axisMultiScale.setCategorySet(dataConfig.categorySetForAttrRole(attrRole))
+            axisMultiScale.setCategoricalDomain(dataConfig.categoryArrayForAttrRole(attrRole))
           }
           if (isNumericAxisModel(axisModel)) {
             axisMultiScale.setNumericDomain(axisModel.domain)
