@@ -11,8 +11,6 @@ import { IAttribute } from "../../models/data/attribute"
 import { createAttributesNotification, createCasesNotification } from "../../models/data/data-set-notifications"
 import { uiState } from "../../models/ui-state"
 import { uniqueName } from "../../utilities/js-utils"
-import { IDataSet } from "../../models/data/data-set"
-import { CaseCardCollectionSpacer } from "./case-card-collection-spacer"
 
 import Arrow from "../../assets/icons/arrow.svg"
 import AddIcon from "../../assets/icons/add-data-icon.svg"
@@ -24,7 +22,6 @@ interface ICaseViewProps {
   level: number
   onSelectCases: (caseIds: string[]) => void
   displayedCaseLineage?: readonly string[]
-  onNewCollectionDrop: (dataSet: IDataSet, attrId: string, beforeCollectionId: string) => void
 }
 
 const colorCycleClass = (level: number) => {
@@ -34,7 +31,7 @@ const colorCycleClass = (level: number) => {
 }
 
 export const CaseView = observer(function CaseView(props: ICaseViewProps) {
-  const {cases, level, onSelectCases, onNewCollectionDrop, displayedCaseLineage = []} = props
+  const {cases, level, onSelectCases, displayedCaseLineage = []} = props
   const cardModel = useCaseCardModel()
   const data = cardModel?.data
   const collectionId = useCollectionContext()
@@ -50,11 +47,6 @@ export const CaseView = observer(function CaseView(props: ICaseViewProps) {
 
   const prevButtonDisabled = displayedCaseIndex <= 0
   const nextButtonDisabled = displayedCaseIndex >= cases.length - 1
-
-  const handleNewCollectionDrop = useCallback((dataSet: IDataSet, attrId: string, collId: string) => {
-    const attr = dataSet.attrFromID(attrId)
-    attr && onNewCollectionDrop(dataSet, attrId, collId)
-  }, [collectionId, onNewCollectionDrop])
 
   const handleSelectCase = useCallback((delta: number) => () => {
     const newCase = cases[displayedCaseIndex + delta]
@@ -111,7 +103,6 @@ export const CaseView = observer(function CaseView(props: ICaseViewProps) {
             level={level + 1}
             onSelectCases={onSelectCases}
             displayedCaseLineage={displayedCaseLineage}
-            onNewCollectionDrop={handleNewCollectionDrop}
           />
         </CollectionContext.Provider>
       </ParentCollectionContext.Provider>
@@ -119,9 +110,7 @@ export const CaseView = observer(function CaseView(props: ICaseViewProps) {
   }
 
   return (
-    <>
     <div className={`case-card-view fadeIn ${colorCycleClass(level)}`} data-testid="case-card-view">
-      {level === 0 && <CaseCardCollectionSpacer onDrop={handleNewCollectionDrop} collectionId={collectionId}/>}
       <div className="case-card-view-header" data-testid="case-card-view-header">
         <div className="case-card-view-title" data-testid="case-card-view-title">
           <CollectionTitle showCount={false} />
@@ -158,14 +147,8 @@ export const CaseView = observer(function CaseView(props: ICaseViewProps) {
           <AddIcon />
         </button>
         <CaseAttrsView key={displayedCaseId} caseItem={displayedCase} collection={collection} />
-        { collection?.child &&
-          <>
-            <CaseCardCollectionSpacer onDrop={handleNewCollectionDrop} collectionId={collection.child.id} />
-            {renderChildCollection(collection.child)}
-          </>
-        }
+        {collection?.child && renderChildCollection(collection.child)}
       </div>
     </div>
-    </>
   )
 })
