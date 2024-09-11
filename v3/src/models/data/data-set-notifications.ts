@@ -124,6 +124,7 @@ export function updateCasesNotification(data: IDataSet, cases?: ICase[]) {
 }
 
 export function updateCasesNotificationFromIds(data: IDataSet, caseIds?: string[]) {
+  data.validateCases()
   const cases = caseIds?.map(caseId => data.caseInfoMap.get(caseId))
     .filter(caseGroup => !!caseGroup)
     .map(caseGroup => caseGroup.groupedCase)

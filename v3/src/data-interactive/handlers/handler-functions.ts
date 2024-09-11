@@ -124,19 +124,7 @@ export function updateCasesBy(resources: DIResources, values?: DIValues, itemRet
   }, {
     notify: () => {
       if (caseIDs.length > 0) {
-        dataContext.validateCases()
-        // Translate item ids into their child case ids
-        const actualCaseIds: string[] = []
-        caseIDs.forEach(caseId => {
-          const v3CaseId = toV3CaseId(caseId)
-          if (dataContext.caseInfoMap.get(v3CaseId)) {
-            actualCaseIds.push(v3CaseId)
-          } else {
-            const childCase = dataContext.itemIdChildCaseMap.get(toV3ItemId(caseId))
-            if (childCase) actualCaseIds.push(childCase.groupedCase.__id__)
-          }
-        })
-        return updateCasesNotificationFromIds(dataContext, actualCaseIds)
+        return updateCasesNotificationFromIds(dataContext, caseIDs.map(caseId => toV3CaseId(caseId)))
       }
     }
   })
