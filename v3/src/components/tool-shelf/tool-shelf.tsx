@@ -120,7 +120,7 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
     document?.content?.applyModelChange(() => {
       document?.content?.createOrShowTile?.(tileType, { animateCreation: true })
     }, { undoStringKey, redoStringKey, log: logMessageWithReplacement("Create component: %@",
-                                                { tileType, category: "component" }) })
+                                                {tileType}, "component")})
   }
 
   function handleRightButtonClick(entry: IRightButtonEntry) {

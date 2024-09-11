@@ -122,7 +122,6 @@ export class Logger {
   private formatAndSend(time: number, event: string, documentTitle: string, args?: Record<string, unknown>) {
     const event_value = JSON.stringify(args)
     const logMessage = this.createLogMessage(time, event, documentTitle, event_value, args)
-    console.log("in formatAndSend args:", args)
     const category = args?.category as AnalyticsCategory || ""
     debugLog(DEBUG_LOGGER, "logMessage:", logMessage)
     // sendToLoggingService(logMessage, this.stores.user)

@@ -14,7 +14,7 @@ export const diAllCasesHandler: DIHandler = {
     }, {
       undoStringKey: "DG.Undo.data.deleteCases",
       redoStringKey: "DG.Redo.data.deleteCases",
-      log: {message: "Delete all cases", args: {category: "data"}}
+      log: {message: "Delete all cases", args: {}, category: "data"}
     })
     return { success: true }
   },

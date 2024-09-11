@@ -18,7 +18,7 @@ export const CalculatorComponent = ({ tile }: ITileBaseProps) => {
     setCalcValue("")
     setJustEvaled(false)
     calculatorModel?.applyModelChange(() => {}, {
-      log: {message: "Calculator value cleared", args: {category: "calculator"}}
+      log: {message: "Calculator value cleared", args: {}, category: "calculator"}
     })
   }
 
@@ -44,7 +44,7 @@ export const CalculatorComponent = ({ tile }: ITileBaseProps) => {
         const solution = evaluate(calcValue)
         !isNaN(solution) && setCalcValue(solution)
         calculatorModel?.applyModelChange(() => {}, {
-          log: logMessageWithReplacement("Calculation done: %@ = %@", {calcValue, solution, category: "calculator"})
+          log: logMessageWithReplacement("Calculation done: %@ = %@", {calcValue, solution}, "calculator")
         })
       } catch  (error) {
         setCalcValue(`Error`)

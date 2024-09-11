@@ -152,7 +152,7 @@ export const ParentToggles = observer(function ParentToggles() {
         {
           undoStringKey: "DG.mainPage.mainPane.undoButton.toolTip",
           redoStringKey: "DG.mainPage.mainPane.redoButton.toolTip",
-          log: {message: "Show all cases from parent toggles", args: {category: "data"}}
+          log: {message: "Show all cases from parent toggles", args: {}, category: "data"}
         }
       )
     } else {
@@ -161,7 +161,7 @@ export const ParentToggles = observer(function ParentToggles() {
         {
           undoStringKey: "DG.mainPage.mainPane.undoButton.toolTip",
           redoStringKey: "DG.mainPage.mainPane.redoButton.toolTip",
-          log: {message: "Hide all cases from parent toggles", args: {category: "data"}}
+          log: {message: "Hide all cases from parent toggles", args: {}, category: "data"}
         }
       )
     }

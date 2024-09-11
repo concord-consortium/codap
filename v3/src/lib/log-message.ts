@@ -2,20 +2,20 @@ import { t } from "../utilities/translation/translate"
 import { AnalyticsCategory } from "./analytics"
 
 export type LoggableValue = string | number | boolean | undefined
-export type LoggableObject = Record<string, LoggableValue> & {
-  category?: AnalyticsCategory;  // If the "category" key exists, it must be an AnalyticsCategory
-}
+export type LoggableObject = Record<string, LoggableValue>
 
 export interface ILogMessage {
   message: string
   args?: LoggableObject
+  category?: AnalyticsCategory;
 }
 
 export type LogMessageFn = () => ILogMessage
 
 // e.g. logMessageWithReplacement("Moved category %@ into position of %@", { movedCat: string, targetCat: string })
-export function logMessageWithReplacement(message: string, args: LoggableObject): ILogMessage {
-  return { message: t(message, { vars: Object.values(args) }), args }
+export function logMessageWithReplacement(message: string, args: LoggableObject,
+                    category?: AnalyticsCategory): ILogMessage {
+  return { message: t(message, { vars: Object.values(args) }), args, category }
 }
 
 export function stringify(obj: LoggableObject | object) {
@@ -24,8 +24,9 @@ export function stringify(obj: LoggableObject | object) {
 }
 
 // e.g. logStringifiedObjectMessage("dragEnd: %@", { lower: number, upper: number })
-export function logStringifiedObjectMessage(message: string, args: LoggableObject): ILogMessage {
-  return { message: t(message, { vars: [stringify(args)] }), args }
+export function logStringifiedObjectMessage(message: string, args: LoggableObject,
+            category?: AnalyticsCategory): ILogMessage {
+  return { message: t(message, { vars: [stringify(args)] }), args, category }
 }
 
 // Call this function before the change occurs to capture the initial model state.
@@ -37,7 +38,8 @@ interface LMCOptions {
   initialArg?: any
   initialKeyFn?: (finalKey: string) => string
 }
-export function logModelChangeFn(message: string, modelStateFn: ModelStateFn, options?: LMCOptions): LogMessageFn {
+export function logModelChangeFn(message: string, modelStateFn: ModelStateFn, options?: LMCOptions,
+                    category?: AnalyticsCategory): LogMessageFn {
   const { initialArg, initialKeyFn = ((key: string) => `${key}Initial`) } = options || {}
   // capture the relevant initial state of the model
   const initial = modelStateFn(initialArg)
@@ -50,6 +52,6 @@ export function logModelChangeFn(message: string, modelStateFn: ModelStateFn, op
     const argsInitial = Object.fromEntries(Object.entries(initial).map(([key, value]) => [initialKeyFn(key), value]))
     // final logged object contains initial and final values
     const args = { ...argsInitial, ...final }
-    return { message: t(message, { vars }), args }
+    return { message: t(message, { vars }), args, category }
   }
 }

@@ -148,7 +148,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
         caseTableModel?.applyModelChange(() => {
           caseTableModel?.columnWidths.set(attrId, width)
         }, {
-          log: {message: "Resize one case table column", args:{category: "table"}},
+          log: {message: "Resize one case table column", args:{}, category: "table"},
           undoStringKey: "DG.Undo.caseTable.resizeOneColumn",
           redoStringKey: "DG.Redo.caseTable.resizeOneColumn"
         })
@@ -170,7 +170,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
       undoStringKey: "DG.Undo.caseTable.createAttribute",
       redoStringKey: "DG.Redo.caseTable.createAttribute",
       log: logStringifiedObjectMessage("Create attribute: %@",
-              {name: "newAttr", collection: data?.getCollection(collectionId)?.name, formula: "", category: "data"})
+              {name: "newAttr", collection: data?.getCollection(collectionId)?.name, formula: ""}, "data")
     })
   }
 
