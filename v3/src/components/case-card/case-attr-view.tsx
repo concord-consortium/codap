@@ -3,14 +3,14 @@ import { observer } from "mobx-react-lite"
 import { Editable, EditablePreview, EditableInput } from "@chakra-ui/react"
 import { clsx } from "clsx"
 import { IValueType } from "../../models/data/attribute"
-import { useCaseCardModel } from "./use-case-card-model"
-import { setCaseValuesWithCustomUndoRedo } from "../../models/data/data-set-undo"
+import { ICollectionModel } from "../../models/data/collection"
 import { ICase } from "../../models/data/data-set-types"
-import { INotification } from "../../models/history/apply-model-change"
 import { isFiniteNumber } from "../../utilities/math-utils"
 import { AttributeHeader } from "../case-tile-common/attribute-header"
-import { ICollectionModel } from "../../models/data/collection"
-import { createCasesNotification, updateCasesNotificationFromIds } from "../../models/data/data-set-notifications"
+import { AttributeHeaderDivider } from "../case-tile-common/attribute-header-divider"
+import { GetDividerBoundsFn } from "../case-tile-common/case-tile-types"
+import { applyCaseValueChanges } from "../case-tile-common/case-tile-utils"
+import { useCaseCardModel } from "./use-case-card-model"
 
 import "./case-attr-view.scss"
 
@@ -21,16 +21,16 @@ interface ICaseAttrViewProps {
   name: string
   value: IValueType
   unit?: string
+  getDividerBounds?: GetDividerBoundsFn
+  onSetContentElt?: (contentElt: HTMLDivElement | null) => HTMLElement | null
 }
 
-export const CaseAttrView = observer(function CaseAttrView ({caseId, collection, attrId, value}: ICaseAttrViewProps) {
+export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrViewProps) {
+  const { caseId, attrId, value, getDividerBounds, onSetContentElt } = props
   const data = useCaseCardModel()?.data
   const displayValue = value ? String(value) : ""
   const [isEditing, setIsEditing] = useState(false)
   const [editingValue, setEditingValue] = useState(displayValue)
-
-  // TODO: Implement dragging
-  const dragging = false
 
   const handleChangeValue = (newValue: string) => {
     setEditingValue(newValue)
@@ -43,40 +43,13 @@ export const CaseAttrView = observer(function CaseAttrView ({caseId, collection,
 
   const handleSubmit = (newValue?: string) => {
     if (newValue) {
-      const casesToUpdate: ICase[] = [{__id__: caseId, [attrId]: newValue}]
-      const undoStringKey = "DG.Undo.caseTable.editCellValue"
-      const redoStringKey = "DG.Redo.caseTable.editCellValue"
-      let oldCaseIds = new Set(collection?.caseIds ?? [])
-      let updatedCaseIds: string[] = []
+      const casesToUpdate: ICase[] = [{ __id__: caseId, [attrId]: newValue }]
 
-      data?.applyModelChange(
-        () => {
-          setCaseValuesWithCustomUndoRedo(data, casesToUpdate)
-          if (collection?.id === data.childCollection.id) {
-            // The child collection's case ids are persistent, so we can just use the casesToUpdate to
-            // determine which case ids to use in the updateCasesNotification
-            updatedCaseIds = casesToUpdate.map(aCase => aCase.__id__)
-          } else {
-            // Other collections have cases whose ids change when values change due to updated case grouping,
-            // so we have to check which case ids were not present before updating to determine which case ids
-            // to use in the updateCasesNotification
-            collection?.caseIds.forEach(cid => {
-              if (!oldCaseIds.has(cid)) updatedCaseIds.push(cid)
-            })
-          }
-          oldCaseIds = new Set(collection?.caseIds ?? [])
-        },
-        {
-          notify: () => {
-            const notifications: INotification[] = []
-            if (updatedCaseIds.length > 0) notifications.push(updateCasesNotificationFromIds(data, updatedCaseIds))
-            if (updatedCaseIds.length > 0) notifications.push(createCasesNotification(updatedCaseIds, data))
-            return notifications
-          },
-          undoStringKey,
-          redoStringKey
-        }
-      )
+      if (data) {
+        applyCaseValueChanges(data, casesToUpdate)
+        return
+      }
+
       setEditingValue(newValue)
     } else {
       setEditingValue(displayValue)
@@ -87,7 +60,12 @@ export const CaseAttrView = observer(function CaseAttrView ({caseId, collection,
   return (
     <tr className="case-card-attr" data-testid="case-card-attr">
       <td className="case-card-attr-name" data-testid="case-card-attr-name">
-        <AttributeHeader attributeId={attrId} />
+        <AttributeHeader
+          attributeId={attrId}
+          getDividerBounds={getDividerBounds}
+          HeaderDivider={AttributeHeaderDivider}
+          onSetHeaderContentElt={onSetContentElt}
+        />
       </td>
       <td
         className={clsx("case-card-attr-value", {editing: isEditing, numeric: isFiniteNumber(Number(value))})}
@@ -95,7 +73,7 @@ export const CaseAttrView = observer(function CaseAttrView ({caseId, collection,
       >
         <Editable
           className="case-card-attr-value-text"
-          isPreviewFocusable={!dragging}
+          isPreviewFocusable={true}
           onCancel={handleCancel}
           onChange={handleChangeValue}
           onEdit={() => setIsEditing(true)}

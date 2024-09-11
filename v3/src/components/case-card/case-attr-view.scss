@@ -2,8 +2,8 @@
 
 .case-card-attr {
   height: 25px;
-
-  &:first-child {
+  
+  &:nth-child(2) {
     .case-card-attr-value {
       border-top: solid 1px #b2b2b2;
     }
