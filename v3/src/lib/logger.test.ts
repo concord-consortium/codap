@@ -14,7 +14,7 @@ describe("Logger", () => {
   const mockDocument: IDocumentModel = { title: "Test Document" } as IDocumentModel
 
   it("should throw an error if instance is not initialized", () => {
-    expect(() => Logger.getInstance()).toThrow()
+    expect(() => Logger.Instance).toThrow()
   })
 
   it("does not log when not initialized", () => {
@@ -30,7 +30,7 @@ describe("Logger", () => {
 
   it("should log when initialized", () => {
     Logger.initializeLogger(mockDocument)
-    const logger = Logger.getInstance()
+    const logger = Logger.Instance
     const event = "test event"
     const time = Date.now()
     const documentTitle = "Test Document"

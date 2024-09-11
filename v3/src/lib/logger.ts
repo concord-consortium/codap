@@ -86,7 +86,7 @@ export class Logger {
     this.pendingMessages = []
   }
 
-  public static getInstance() {
+  public static get Instance() {
     if (this._instance) {
       return this._instance
     }
