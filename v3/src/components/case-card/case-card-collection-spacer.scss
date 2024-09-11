@@ -1,17 +1,18 @@
 .case-card-collection-spacer {
-  height: 0px;
+  /* we set the spacer initially to absolute so that it does not interfere with the parent layout */
+  position: absolute;
+  height: 10px;
   text-align: center;
+  width: 100%;
 
   &.parentMost {
     border-radius: 4px 4px 0 0;
   }
 
-  &.active {
-    height: 18px;
-    background:#ff0;
-  }
-
   &.over {
+    /*  we change the position to relative here so that the spacer can take up space in the layout */
+    position: relative;
+    height: 18px;
     background: #ff0;
   }
 }

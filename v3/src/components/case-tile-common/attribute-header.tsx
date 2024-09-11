@@ -185,9 +185,11 @@ export const AttributeHeader = observer(function AttributeHeader({
               color="white" openDelay={1000} placement="bottom" bottom="15px" left="15px"
               isDisabled={disableTooltip}
           >
-            <div className="codap-column-header-content" ref={setHeaderContentRef} {...attributes} {...listeners}
+            <div className="codap-column-header-content" onClick={(e) => console.log(e.target)} ref={setHeaderContentRef} {...attributes} {...listeners}
             data-testid="codap-column-header-content">
-            { editingAttrId
+              { attributeId === kIndexColumnKey
+                ? null
+                : editingAttrId
                   ? <Input ref={inputRef} value={editingAttrName} data-testid="column-name-input"
                             className="column-name-input" size="xs"
                             autoFocus={true} variant="unstyled" onClick={handleInputClick}
@@ -195,22 +197,20 @@ export const AttributeHeader = observer(function AttributeHeader({
                             onKeyDown={handleInputKeyDown} onBlur={handleInputBlur} onFocus={handleFocus}
                     />
                   : <>
-                      <MenuButton className="codap-attribute-button" ref={menuButtonRef}
-                          disabled={attributeId === kIndexColumnKey}
+                      <MenuButton
+                          className="codap-attribute-button" ref={menuButtonRef}
                           fontWeight="bold" onKeyDown={handleButtonKeyDown}
                           data-testid={`codap-attribute-button ${attrName}`}
                           aria-describedby={`sr-column-header-drag-instructions-${instanceId}`}>
                         {`${attrName ?? ""}${units}`}
                       </MenuButton>
-                      {attributeId !== kIndexColumnKey &&
-                        <VisuallyHidden id={`sr-column-header-drag-instructions-${instanceId}`}>
-                          <pre> Press Space to drag the attribute within the table or to a graph.
-                                Press Enter to open the attribute menu.
-                          </pre>
-                        </VisuallyHidden>
-                      }
+                      <VisuallyHidden id={`sr-column-header-drag-instructions-${instanceId}`}>
+                        <pre> Press Space to drag the attribute within the table or to a graph.
+                              Press Enter to open the attribute menu.
+                        </pre>
+                      </VisuallyHidden>
                     </>
-                }
+              }
               {attributeId !== kIndexColumnKey &&
                 <CaseTilePortal>
                   <AttributeMenuList attributeId={attributeId} onRenameAttribute={handleRenameAttribute}
