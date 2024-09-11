@@ -1,3 +1,4 @@
+import { updateCasesNotificationFromIds } from "../../models/data/data-set-notifications"
 import { ICase } from "../../models/data/data-set-types"
 import { toV2Id, toV3CaseId, toV3ItemId } from "../../utilities/codap-utils"
 import { t } from "../../utilities/translation/translate"
@@ -7,7 +8,6 @@ import {
 import { getV2ItemResult, getCaseRequestResultValues } from "../data-interactive-type-utils"
 import { attrNamesToIds } from "../data-interactive-utils"
 import { caseNotFoundResult, dataContextNotFoundResult, itemNotFoundResult } from "./di-results"
-import { updateCasesNotificationFromIds } from "../../models/data/data-set-notifications"
 
 export function deleteCaseBy(resources: DIResources, aCase?: ICase) {
   const { dataContext } = resources
