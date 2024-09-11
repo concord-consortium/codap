@@ -6,7 +6,7 @@ Cypress.Commands.add("dragAttributeToTarget", (source, attribute, target, target
   const el = {
     tableColumnHeader:
       `.codap-case-table [data-testid="codap-attribute-button ${attribute}"]`,
-    headerDivider: `.codap-column-header-divider`,
+    headerDivider: `.codap-attribute-header-divider`,
     caseCardHeader: `.codap-case-card [data-testid="codap-attribute-button ${attribute}"]`,
     caseCardHeaderDropZone: ".react-data-card .data-cell-lower",
     caseCardCollectionDropZone: ".react-data-card .collection-header-row",

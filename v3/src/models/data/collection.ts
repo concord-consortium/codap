@@ -487,6 +487,8 @@ export const CollectionModel = V2Model
   prepareSnapshot() {
     self._groupKeyCaseIds = Array.from(self.groupKeyCaseIds.entries())
   },
+  completeSnapshot() {
+  },
   addAttribute(attr: IAttribute, options?: IMoveAttributeOptions) {
     const beforeIndex = options?.before ? self.getAttributeIndex(options.before) : -1
     const afterIndex = options?.after ? self.getAttributeIndex(options.after) : -1
@@ -508,7 +510,9 @@ export const CollectionModel = V2Model
 .actions(self => ({
   moveAttribute(attrId: string, options?: IMoveAttributeOptions) {
     const attr = self.getAttribute(attrId)
-    if (attr) {
+    // is the attribute being moved before/after itself?
+    const isMoving = attrId !== options?.after && attrId !== options?.before
+    if (attr && isMoving) {
       self.removeAttribute(attr.id)
       self.addAttribute(attr, options)
     }

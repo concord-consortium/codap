@@ -1,5 +1,6 @@
 import { isAlive } from "mobx-state-tree"
-import { kIndexColumnKey } from "../../components/case-table/case-table-types"
+import { kIndexColumnKey } from "../../components/case-tile-common/case-tile-types"
+import { logMessageWithReplacement } from "../../lib/log-message"
 import { getSharedCaseMetadataFromDataset } from "../shared/shared-data-utils"
 import { IAttribute } from "./attribute"
 import { ICollectionModel } from "./collection"
@@ -8,7 +9,6 @@ import {
   deleteCollectionNotification, moveAttributeNotification, selectCasesNotification
 } from "./data-set-notifications"
 import { IAttributeChangeResult, IMoveAttributeOptions } from "./data-set-types"
-import { logMessageWithReplacement } from "../../lib/log-message"
 
 export function getCollectionAttrs(collection: ICollectionModel, data?: IDataSet): IAttribute[] {
   if (collection && !isAlive(collection)) {
@@ -68,6 +68,9 @@ export function moveAttribute({
   const firstAttr: IAttribute | undefined = getCollectionAttrs(targetCollection, dataset)[0]
   const options: IMoveAttributeOptions =
     !afterAttrId || afterAttrId === kIndexColumnKey ? { before: firstAttr?.id } : { after: afterAttrId }
+
+  // bail if we're moving the attribute before/after itself
+  if (attrId === options.after || attrId === options.before) return
 
   const notifications = includeNotifications ? moveAttributeNotification(dataset) : undefined
   const undoStringKey = undoable ? "DG.Undo.dataContext.moveAttribute" : undefined
