@@ -1,6 +1,11 @@
 @import "../vars.scss";
 @import "./case-card-vars.scss";
 
+.case-card.react-data-card {
+  height: calc(100% - $title-bar-height);
+  overflow: auto;
+}
+
 .codap-case-card {
   overflow: auto hidden;
   position: relative;
