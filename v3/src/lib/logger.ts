@@ -36,6 +36,7 @@ interface PendingMessage {
   event: string
   documentTitle: string
   event_value?: string
+  category?: AnalyticsCategory
   parameters?: Record<string, unknown>
 }
 
@@ -74,17 +75,17 @@ export class Logger {
     }
   }
 
-  public static log(event: string, args?: Record<string, unknown>) {
+  public static log(event: string, args?: Record<string, unknown>, category?: AnalyticsCategory) {
     if (!this._instance) return
 
     const time = Date.now() // eventually we will want server skew (or to add this via FB directly)
     const documentTitle = this._instance.document.title || "Untitled Document"
     if (this._instance) {
-      this._instance.formatAndSend(time, event, documentTitle, args)
+      this._instance.formatAndSend(time, event, documentTitle, args, category)
     } else {
       debugLog(DEBUG_LOGGER, "Queueing log message for later delivery", event)
       const event_value = args ? JSON.stringify(args) : undefined
-      this.pendingMessages.push({ time, event, documentTitle, event_value, parameters: args })
+      this.pendingMessages.push({ time, event, documentTitle, category, event_value, parameters: args })
     }
   }
 
@@ -92,7 +93,7 @@ export class Logger {
     if (!this._instance) return
     for (const message of this.pendingMessages) {
       this._instance.formatAndSend(message.time, message.event, message.documentTitle,
-                                    message.parameters)
+                                    message.parameters, message.category)
     }
     this.pendingMessages = []
   }
@@ -119,10 +120,12 @@ export class Logger {
     this.logListeners.push(listener)
   }
 
-  private formatAndSend(time: number, event: string, documentTitle: string, args?: Record<string, unknown>) {
+  private formatAndSend(
+    time: number, event: string, documentTitle: string,
+    args?: Record<string, unknown>, category: AnalyticsCategory = "general"
+  ) {
     const event_value = JSON.stringify(args)
     const logMessage = this.createLogMessage(time, event, documentTitle, event_value, args)
-    const category = args?.category as AnalyticsCategory || ""
     debugLog(DEBUG_LOGGER, "logMessage:", logMessage)
     // sendToLoggingService(logMessage, this.stores.user)
     sendToLoggingService(logMessage)
