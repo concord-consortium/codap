@@ -2,8 +2,8 @@
 @import "./case-card-vars.scss";
 
 .case-card.react-data-card {
-  height: 100%;
-  overflow-x: auto;
+  height: calc(100% - $title-bar-height);
+  overflow: auto;
 }
 
 .codap-case-card {

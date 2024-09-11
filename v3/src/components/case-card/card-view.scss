@@ -1,13 +1,10 @@
-@use "../vars.scss";
-
 .case-card-content {
   background: white;
   display: inline-block;
   font-size: 11px;
   min-width: 350px;
   width: 100%;
-  overflow-y: auto;
-  height: calc(100% - vars.$title-bar-height);
+  height: 100%;
 
   .fadeIn {
     opacity: 0;
