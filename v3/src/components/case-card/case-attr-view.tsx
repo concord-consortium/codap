@@ -57,11 +57,20 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
     setIsEditing(false)
   }
 
+  const customButtonStyle = {
+    _focusVisible: {
+      borderRadius: 0,
+      outline: "2px solid #66afe9",
+      outlineOffset: "5px"
+    }
+  }
+
   return (
     <tr className="case-card-attr" data-testid="case-card-attr">
       <td className="case-card-attr-name" data-testid="case-card-attr-name">
         <AttributeHeader
           attributeId={attrId}
+          customButtonStyle={customButtonStyle}
           getDividerBounds={getDividerBounds}
           HeaderDivider={AttributeHeaderDivider}
           onSetHeaderContentElt={onSetContentElt}
