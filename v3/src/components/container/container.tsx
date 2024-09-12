@@ -32,7 +32,7 @@ export const Container: React.FC = () => {
       })
       tileId && documentContent?.deleteTile(tileId)
     }, {
-      log: logMessageWithReplacement("%@ is closed", {tileType: tile?.content.type}),
+      log: logMessageWithReplacement("Close component: %@", {tileType: tile?.content.type}, "component"),
       undoStringKey: "DG.Undo.component.close",
       redoStringKey: "DG.Redo.component.close"
     })

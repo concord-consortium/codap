@@ -37,11 +37,9 @@ export function applyModelChange(self: IAnyStateTreeNode) {
         // Send log message to logger
         if (tileEnv.log) {
           const logInfo = typeof log === "function" ? log() : log
-          const message = typeof logInfo === "string" ? logInfo : logInfo?.message
-
-          if (message) {
-            const logArgs = typeof logInfo === "object" ? logInfo.args : undefined
-            tileEnv.log(message, logArgs)
+          const logMessage = typeof logInfo === "string" ? { message: logInfo } : logInfo
+          if (logMessage) {
+            tileEnv.log(logMessage)
           }
         }
 

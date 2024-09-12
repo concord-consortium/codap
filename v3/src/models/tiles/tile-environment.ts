@@ -1,6 +1,7 @@
 import iframePhone from "iframe-phone"
 import { getEnv, hasEnv, IAnyStateTreeNode } from "mobx-state-tree"
 import { DIMessage } from "../../data-interactive/iframe-phone-types"
+import { ILogMessage } from "../../lib/log-message"
 // There's nothing wrong in explicit ISharedModelManager interface, but probably dependency cycle could have been also
 // avoided using `import type { SharedModelManager } from ...`.
 import { ISharedModelManager } from "../shared/shared-model-manager"
@@ -10,7 +11,7 @@ import { IGlobalValueManager, kGlobalValueManagerType } from "../global/global-v
 export interface ITileEnvironment {
   sharedModelManager?: ISharedModelManager
   formulaManager?: FormulaManager
-  log?: (event: string, args?: Record<string, unknown>) => void
+  log?: (message: ILogMessage) => void
   notify?: (message: DIMessage, callback: iframePhone.ListenerCallback) => void
 }
 

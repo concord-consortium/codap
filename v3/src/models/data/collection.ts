@@ -322,6 +322,8 @@ export const CollectionModel = V2Model
       const groupKey = self.caseIdToGroupKeyMap.get(newCaseId)
       if (groupKey != null) {
         // update group key to case id map
+        const origGroupKey = self.prevCaseIdToGroupKeyMap?.get(origCaseId)
+        origGroupKey && self.groupKeyCaseIds.delete(origGroupKey)
         self.groupKeyCaseIds.set(groupKey, origCaseId)
 
         // update case id to group key map

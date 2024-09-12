@@ -135,7 +135,7 @@ export const useRows = () => {
 
     const onPatchDisposer = data && onPatch(data, ({ op, path, value }) => {
       // reset on any changes to items or hidden items
-      if (/(_itemIds|hiddenItems)(\/\d+)?$/.test(path)) {
+      if (/(_itemIds|hiddenItemIds)(\/\d+)?$/.test(path)) {
         resetRowCacheAndSyncRows()
       }
     })
@@ -305,7 +305,7 @@ export const useRows = () => {
         },
         undoStringKey: "DG.Undo.caseTable.createNewCase",
         redoStringKey: "DG.Redo.caseTable.createNewCase",
-        log: logMessageWithReplacement("Create %@ cases in table", { count: casesToCreate.length })
+        log: logMessageWithReplacement("Create %@ cases in table", { count: casesToCreate.length }, "data")
       }
     )
   }, [collectionTableModel, data, getPendingLogMessage])

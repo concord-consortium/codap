@@ -50,6 +50,7 @@ export function useDataInteractiveController(iframeRef: React.RefObject<HTMLIFra
       rpcEndpoint.call({message: "codap-present"} as any,
         reply => debugLog(DEBUG_PLUGINS, `Reply to codap-present: `, JSON.stringify(reply)))
       webViewModel?.setDataInteractiveController(rpcEndpoint)
+      webViewModel?.applyModelChange(() => {}, {log: {message: "Plugin initialized", args:{}, category: "plugin"}})
 
       const disposer = autorun(() => {
         const canProcessRequest = !uiState.isEditingBlockingCell

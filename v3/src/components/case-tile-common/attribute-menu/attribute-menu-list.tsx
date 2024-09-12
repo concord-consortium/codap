@@ -183,7 +183,7 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
             },
             undoStringKey: "DG.Undo.caseTable.deleteAttribute",
             redoStringKey: "DG.Redo.caseTable.deleteAttribute",
-            log: logMessageWithReplacement("Delete attribute %@", { name: attribute.name })
+            log: logMessageWithReplacement("Delete attribute %@", { name: attribute.name }, "data")
           })
         }
       }
