@@ -50,7 +50,8 @@ export const App = observer(function App() {
         notify: dataContextCountChangedNotification,
         undoStringKey: "V3.Undo.import.data",
         redoStringKey: "V3.Redo.import.data",
-        log: logStringifiedObjectMessage("Imported data set: %@", {datasetName: data.name})
+        log: logStringifiedObjectMessage("Imported data set: %@",
+                  {datasetName: data.name}, "document")
       })
       // return to "normal" after import process is complete
       sharedData?.dataSet.completeSnapshot()

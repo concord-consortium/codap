@@ -103,8 +103,8 @@ export const CaseTable = observer(function CaseTable({ setNodeRef }: IProps) {
         },
         undoStringKey: "DG.Undo.caseTable.createCollection",
         redoStringKey: "DG.Redo.caseTable.createCollection",
-        log: logMessageWithReplacement("createCollection: name: %@, attribute: %@",
-                {name: collection?.name, attribute: attr.name})
+        log: logMessageWithReplacement("Create collection: name: %@, attribute: %@",
+                {name: collection?.name, attribute: attr.name},  "table")
       })
     }
   }, [])

@@ -100,7 +100,8 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({ s
     caseMetadata?.applyModelChange(() => {
       parentCases?.forEach((value) => caseMetadata?.setIsCollapsed(value.__id__, !everyCaseIsCollapsed))
     }, {
-      log: logMessageWithReplacement("%@ all", { state: everyCaseIsCollapsed ? "Expand" : "Collapse" }),
+      log: logMessageWithReplacement("%@ all",
+              { state: everyCaseIsCollapsed ? "Expand" : "Collapse" }, "table"),
       undoStringKey: "DG.Undo.caseTable.groupToggleExpandCollapseAll",
       redoStringKey: "DG.Redo.caseTable.groupToggleExpandCollapseAll"
     })
@@ -114,7 +115,7 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({ s
       undoStringKey: "DG.Undo.caseTable.expandCollapseOneCase",
       redoStringKey: "DG.Redo.caseTable.expandCollapseOneCase",
       log: logMessageWithReplacement("%@ case %@",
-              { state: caseMetadata?.isCollapsed(parentCaseId) ? "Expand" : "Collapse", parentCaseId })
+              { state: caseMetadata?.isCollapsed(parentCaseId) ? "Expand" : "Collapse", parentCaseId}, "table")
     })
     // scroll to the first expanded/collapsed child case (if necessary)
     const parentCase = data?.caseInfoMap.get(parentCaseId)

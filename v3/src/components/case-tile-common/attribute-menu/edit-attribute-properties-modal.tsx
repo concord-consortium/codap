@@ -73,7 +73,7 @@ export const EditAttributePropertiesModal = ({ attributeId, isOpen, onClose }: I
         notify: updateAttributesNotification([attribute], data),
         undoStringKey: "DG.Undo.caseTable.editAttribute",
         redoStringKey: "DG.Redo.caseTable.editAttribute",
-        log: logMessageWithReplacement("Edit attribute %@", { name: attribute.name })
+        log: logMessageWithReplacement("Edit attribute: %@", { name: attribute.name })
       })
     }
     closeModal()

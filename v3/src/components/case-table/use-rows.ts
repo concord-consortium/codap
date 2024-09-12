@@ -305,7 +305,7 @@ export const useRows = () => {
         },
         undoStringKey: "DG.Undo.caseTable.createNewCase",
         redoStringKey: "DG.Redo.caseTable.createNewCase",
-        log: logMessageWithReplacement("Create %@ cases in table", { count: casesToCreate.length })
+        log: logMessageWithReplacement("Create %@ cases in table", { count: casesToCreate.length }, "data")
       }
     )
   }, [collectionTableModel, data, getPendingLogMessage])

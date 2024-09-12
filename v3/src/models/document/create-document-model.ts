@@ -1,6 +1,7 @@
 import iframePhone from "iframe-phone"
 import { addDisposer, onAction } from "mobx-state-tree"
 import { DIMessage } from "../../data-interactive/iframe-phone-types"
+import { ILogMessage } from "../../lib/log-message"
 import { Logger } from "../../lib/logger"
 import { ITileEnvironment } from "../tiles/tile-environment"
 import { DocumentModel, IDocumentModelSnapshot } from "./document"
@@ -54,8 +55,8 @@ export const createDocumentModel = (snapshot?: IDocumentModelSnapshot) => {
       .forEach((model: ISharedDataSet) => formulaManager.addDataSet(model.dataSet))
 
     // configure logging
-    fullEnvironment.log = function(event: string, args?: Record<string, unknown>) {
-      Logger.log(event, args)
+    fullEnvironment.log = function({ message, args, category }: ILogMessage) {
+      Logger.log(message, args, category)
     }
 
     // configure notifications
