@@ -72,10 +72,11 @@ export class AxisHelper {
   }
 
   renderAxisLine() {
-    select(this.subAxisElt).selectAll('*').remove()
+    select(this.subAxisElt).selectAll('.axis-line').remove()
     select(this.subAxisElt)
       .attr("transform", this.initialTransform)
       .append('line')
+      .attr("class", "axis-line")
       .attr('x1', 0)
       .attr('x2', this.isVertical ? 0 : this.subAxisLength)
       .attr('y1', 0)

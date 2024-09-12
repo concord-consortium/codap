@@ -19,8 +19,9 @@ interface ICaseButton {
 }
 
 interface ICreateCaseButtons {
-  caseIDs: string[]
+  itemIDs: string[]
   dataset?: IDataSet
+  collectionIndexForPrimaryAttribute: number
   hiddenCases: string[]
   isCollectionSet: boolean
 }
@@ -48,7 +49,7 @@ const consolidateCaseButtonsByAttrValue = (caseButtons: ICaseButton[], hiddenCas
 }
 
 const createCaseButtons = (props: ICreateCaseButtons): ICaseButton[] => {
-  const { caseIDs, dataset, isCollectionSet, hiddenCases } = props
+  const { itemIDs, dataset, collectionIndexForPrimaryAttribute, isCollectionSet, hiddenCases } = props
   if (!dataset) return []
 
   // Determine the attribute to use for setting the buttons' text labels.
@@ -56,14 +57,16 @@ const createCaseButtons = (props: ICreateCaseButtons): ICaseButton[] => {
                         ? dataset.collections[0].attributes[0]?.id
                         : dataset.attributes[0].id
 
-  const caseButtons = caseIDs.map((caseID) => {
+  const caseButtons = itemIDs.map((itemID) => {
     // Buttons start off associated with a single case but can potentially be associated with multiple cases if a
     // parent collection is set. When a collection is set, the association with multiple cases will be made
     // in `consolidateCaseButtonsByAttrValue`.
-    const ids = [caseID]
-    const textLabel = firstAttrId && dataset?.getStrValue(caseID, firstAttrId)
+    const childCaseIDs = isCollectionSet ? dataset.getItemCaseIds(itemID) ?? '' : [itemID]
+    const childCaseID = childCaseIDs[collectionIndexForPrimaryAttribute]
+    const ids = [childCaseID]
+    const textLabel = firstAttrId && dataset?.getStrValue(itemID, firstAttrId)
     const width = textLabel ? measureText(textLabel, BUTTON_FONT) : 0
-    const isHidden = !!hiddenCases.includes(caseID)
+    const isHidden = hiddenCases.includes(childCaseID)
     return { ids, textLabel, isHidden, width }
   })
 
@@ -74,11 +77,14 @@ export const ParentToggles = observer(function ParentToggles() {
   const { tileWidth } = useGraphLayoutContext()
   const graphModel = useGraphContentModelContext()
   const dataConfig = useGraphDataConfigurationContext()
+  const primaryAttribute = dataConfig?.primaryAttributeID ?? ""
   const dataset = dataConfig?.dataset
+  const collectionIndexForPrimaryAttribute = dataset?.getCollectionIndexForAttribute(primaryAttribute) ?? 0
   const isCollectionSet = !!(dataset && dataset.collections?.length > 0)
   const hiddenCases = dataConfig?.hiddenCases ?? []
-  const caseIDs = dataset?.items.map((c) => c.__id__) ?? []
-  const caseButtons = createCaseButtons({ caseIDs, dataset, isCollectionSet, hiddenCases })
+  const itemIDs = dataset?.items.map((c) => c.__id__) ?? []
+  const caseButtons = createCaseButtons(
+    { itemIDs, dataset, collectionIndexForPrimaryAttribute, isCollectionSet, hiddenCases })
   const caseButtonsListWidth = caseButtons.reduce((acc, button) => acc + button.width + TEXT_OFFSET, 0)
   const isOnlyLastShown = !!graphModel?.showOnlyLastCase
   const firstVisibleIndex = useRef(0)
