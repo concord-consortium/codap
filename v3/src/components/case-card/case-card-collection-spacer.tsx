@@ -14,7 +14,7 @@ interface IProps {
   collectionId: string
 }
 
-export const CaseCardCollectionSpacer = observer(function CollectionTableSpacer({ onDrop, collectionId }: IProps) {
+export const CaseCardCollectionSpacer = observer(function CaseCardCollectionSpacer({ onDrop, collectionId }: IProps) {
   const data = useDataSetContext()
   const parentCollectionId = data?.getCollection(collectionId)?.parent?.id
   const parentMost = !parentCollectionId

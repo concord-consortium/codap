@@ -185,7 +185,7 @@ export const AttributeHeader = observer(function AttributeHeader({
               color="white" openDelay={1000} placement="bottom" bottom="15px" left="15px"
               isDisabled={disableTooltip}
           >
-            <div className="codap-column-header-content" onClick={(e) => console.log(e.target)} ref={setHeaderContentRef} {...attributes} {...listeners}
+            <div className="codap-column-header-content" ref={setHeaderContentRef} {...attributes} {...listeners}
             data-testid="codap-column-header-content">
               { attributeId === kIndexColumnKey
                 ? null
