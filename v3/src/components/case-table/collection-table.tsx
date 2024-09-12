@@ -27,7 +27,7 @@ import { createAttributesNotification } from "../../models/data/data-set-notific
 import { uiState } from "../../models/ui-state"
 import { uniqueName } from "../../utilities/js-utils"
 import { mstReaction } from "../../utilities/mst-reaction"
-import { blockAPIRequestsWhileEditing, preventCollectionReorg } from "../../utilities/plugin-utils"
+import { preventCollectionReorg } from "../../utilities/plugin-utils"
 import { t } from "../../utilities/translation/translate"
 import { useCaseTableModel } from "./use-case-table-model"
 import { useCollectionTableModel } from "./use-collection-table-model"
@@ -59,7 +59,6 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
   const visibleAttributes = useVisibleAttributes(collectionId)
   const { selectedRows, setSelectedRows, handleCellClick } = useSelectedRows({ gridRef, onScrollClosestRowIntoView })
   const forceUpdate = useForceUpdate()
-  let navigationTimeoutId: ReturnType<typeof setTimeout> | undefined
 
   useEffect(function setGridElement() {
     const element = gridRef.current?.element

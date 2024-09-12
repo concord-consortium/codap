@@ -1,4 +1,4 @@
-import React, { FormEventHandler, useEffect, useRef } from "react"
+import React, { useEffect, useRef } from "react"
 import { textEditorClassname } from "react-data-grid"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useLoggingContext } from "../../hooks/use-log-context"
@@ -40,9 +40,7 @@ export default function CellTextEditor({ row, column, onRowChange, onClose }: TR
   // Inform the ui that we're editing a table while this component exists.
   useEffect(() => {
     uiState.setIsEditingCell(true)
-    return () => {
-      if (blockAPIRequests) uiState.setIsEditingBlockingCell(false)
-    }
+    return () => uiState.setIsEditingCell(false)
   }, [])
 
   const handleChange = (value: string) => {
@@ -50,18 +48,10 @@ export default function CellTextEditor({ row, column, onRowChange, onClose }: TR
     onRowChange({ ...row, [column.key]: value })
     setPendingLogMessage("editCellValue", logStringifiedObjectMessage("editCellValue: %@",
       {attrId: column.key, caseId: row.__id__, from: initialValueRef.current, to: valueRef.current }))
-  }
-
-  const handleInput: FormEventHandler<HTMLInputElement> = event => {
-    const { target } = event
-    if (blockAPIRequests && target instanceof HTMLInputElement) {
-      // Only block API requests if the user has actually entered a value.
-      uiState.setIsEditingBlockingCell(!!target.value)
+    if (blockAPIRequests && value !== initialValueRef.current) {
+      // Only block API requests if the user has actually changed the value.
+      uiState.setIsEditingBlockingCell()
     }
-  }
-
-  function handleBlur() {
-    uiState.setIsEditingCell(false)
   }
 
   return (
@@ -70,9 +60,7 @@ export default function CellTextEditor({ row, column, onRowChange, onClose }: TR
       className={textEditorClassname}
       ref={autoFocusAndSelect}
       value={valueRef.current}
-      onBlur={handleBlur}
       onChange={(event) => handleChange(event.target.value)}
-      onInput={handleInput}
     />
   )
 }
