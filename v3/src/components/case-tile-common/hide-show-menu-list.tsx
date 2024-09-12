@@ -61,7 +61,8 @@ export const HideShowMenuList = observer(function HideShowMenuList() {
             data.setSelectedCases(hiddenItems)
           }, {
             undoStringKey: "V3.Undo.hideShowMenu.restoreSetAsideCases",
-            redoStringKey: "V3.Redo.hideShowMenu.restoreSetAsideCases"
+            redoStringKey: "V3.Redo.hideShowMenu.restoreSetAsideCases",
+            log: "Restore set aside cases"
           })
         }
       }

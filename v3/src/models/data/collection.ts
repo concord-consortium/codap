@@ -57,15 +57,13 @@ export const CollectionModel = V2Model
   caseIdToIndexMap: new Map<string, number>(),
   // map from case id to group key (stringified attribute values)
   caseIdToGroupKeyMap: new Map<string, string>(),
-  // map from group key (stringified attribute values) to CaseGroup
+  // map from group key (stringified attribute values) to CaseInfo
   caseGroupMap: new Map<string, CaseInfo>(),
   // case ids in case table/render order
   prevCaseIds: undefined as Maybe<string[]>,
-  // map from case id to case index
-  prevCaseIdToIndexMap: undefined as Maybe<Map<string, number>>,
   // map from case id to group key (stringified attribute values)
   prevCaseIdToGroupKeyMap: undefined as Maybe<Map<string, string>>,
-  // map from group key (stringified attribute values) to CaseGroup
+  // map from group key (stringified attribute values) to CaseInfo
   prevCaseGroupMap: undefined as Maybe<Map<string, CaseInfo>>
 }))
 .actions(self => ({
@@ -181,8 +179,7 @@ export const CollectionModel = V2Model
     if (!self.prevCaseIds) self.prevCaseIds = self.caseIds
     self.caseIds = []
 
-    if (!self.prevCaseIdToIndexMap) self.prevCaseIdToIndexMap = self.caseIdToIndexMap
-    self.caseIdToIndexMap = new Map<string, number>()
+    self.caseIdToIndexMap.clear()
 
     if (!self.prevCaseIdToGroupKeyMap) self.prevCaseIdToGroupKeyMap = self.caseIdToGroupKeyMap
     self.caseIdToGroupKeyMap = new Map<string, string>()
@@ -192,7 +189,6 @@ export const CollectionModel = V2Model
   },
   clearPrevCases() {
     self.prevCaseIds = undefined
-    self.prevCaseIdToIndexMap = undefined
     self.prevCaseIdToGroupKeyMap = undefined
     self.prevCaseGroupMap = undefined
   }
@@ -248,7 +244,9 @@ export const CollectionModel = V2Model
     self.clearCases()
 
     const newCaseIds: string[] = []
+    // [parentCaseId, childCaseId] tuples
     const parentChildIdPairs: Array<[string, string]> = []
+    const itemInfo: Array<{itemId: string, itemIndex: number, caseId: string}> = []
     self.itemData.itemIds().forEach((itemId, itemIndex) => {
       if (self.itemData.isHidden(itemId)) return
       const groupKey = self.groupKey(itemId)
@@ -285,12 +283,18 @@ export const CollectionModel = V2Model
           caseGroup.childItemIds.push(itemId)
         }
 
-        self.itemData.addItemInfo(itemId, itemIndex, caseId)
+        itemInfo.push({ itemId, itemIndex, caseId })
       }
     })
 
     // Identify any new case ids that should be replaced with a prior case id
     const remappedCaseIds = self.getRemappedCaseIds(newCaseIds)
+
+    // add item info, remapping case ids where appropriate
+    itemInfo.forEach(({ itemId, itemIndex, caseId }) => {
+      const _caseId = remappedCaseIds.get(caseId) ?? caseId
+      self.itemData.addItemInfo(itemId, itemIndex, _caseId)
+    })
 
     // add child case ids to parent cases, remapping child case ids where appropriate
     parentChildIdPairs.forEach(([parentCaseId, _childCaseId]) => {
@@ -318,6 +322,8 @@ export const CollectionModel = V2Model
       const groupKey = self.caseIdToGroupKeyMap.get(newCaseId)
       if (groupKey != null) {
         // update group key to case id map
+        const origGroupKey = self.prevCaseIdToGroupKeyMap?.get(origCaseId)
+        origGroupKey && self.groupKeyCaseIds.delete(origGroupKey)
         self.groupKeyCaseIds.set(groupKey, origCaseId)
 
         // update case id to group key map
@@ -458,11 +464,23 @@ export const CollectionModel = V2Model
       self.groupKeyCaseIds = new Map<string, string>(self._groupKeyCaseIds)
     }
 
-    // changes to a parent collection's attributes invalidate grouping and persistent ids
+    // changes to a parent collection's attributes invalidate grouping
     addDisposer(self, reaction(
       () => self.sortedDataAttributes.map(attr => attr.id),
       () => {
         if (self.child) {
+          // There's a tradeoff here. By preserving the group key => case id mappings across
+          // hierarchy changes, we allow case ids to be persistent across such hierarchy changes.
+          // For instance, removing an attribute from a collection (which causes re-grouping) and
+          // then adding it back will result in the same case ids as before. The cost of this,
+          // however, is that collections maintain a history of all of the group key => case id
+          // mappings that have ever come before, and this gets serialized as well. Conversely,
+          // we can reduce the memory used by the collection and the size of the serialized
+          // document by clearing the map on hierarchy changes and accepting that new case ids
+          // will be generated at these times. At this writing, it seems unlikely that large
+          // documents with large numbers of cases that go through lots of different parent
+          // case groupings will be particularly common, but we can revisit if necessary.
+          // self.groupKeyCaseIds.clear()
           self.itemData.invalidate()
         }
       }, { name: "CollectionModel.sortedDataAttributes reaction", equals: comparer.structural }
@@ -470,6 +488,8 @@ export const CollectionModel = V2Model
   },
   prepareSnapshot() {
     self._groupKeyCaseIds = Array.from(self.groupKeyCaseIds.entries())
+  },
+  completeSnapshot() {
   },
   addAttribute(attr: IAttribute, options?: IMoveAttributeOptions) {
     const beforeIndex = options?.before ? self.getAttributeIndex(options.before) : -1
@@ -492,7 +512,9 @@ export const CollectionModel = V2Model
 .actions(self => ({
   moveAttribute(attrId: string, options?: IMoveAttributeOptions) {
     const attr = self.getAttribute(attrId)
-    if (attr) {
+    // is the attribute being moved before/after itself?
+    const isMoving = attrId !== options?.after && attrId !== options?.before
+    if (attr && isMoving) {
       self.removeAttribute(attr.id)
       self.addAttribute(attr, options)
     }

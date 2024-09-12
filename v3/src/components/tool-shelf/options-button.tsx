@@ -7,6 +7,7 @@ import { kWebViewTileType } from "../web-view/web-view-defs"
 import { isWebViewModel } from "../web-view/web-view-model"
 import { WebViewUrlModal } from "../web-view/web-view-url-modal"
 import { kRightButtonBackground, ToolShelfButtonTag } from "./tool-shelf-button"
+import { logMessageWithReplacement } from "../../lib/log-message"
 
 import "./tool-shelf.scss"
 
@@ -28,7 +29,8 @@ export const OptionsShelfButton = () => {
       isWebViewModel(tile?.content) && tile?.content.setUrl(url)
     }, {
       undoStringKey: "V3.Undo.webView.show",
-      redoStringKey: "V3.Redo.webView.show"
+      redoStringKey: "V3.Redo.webView.show",
+      log: logMessageWithReplacement("Show web view: %@", {url}, "document")
     })
   }
   return (

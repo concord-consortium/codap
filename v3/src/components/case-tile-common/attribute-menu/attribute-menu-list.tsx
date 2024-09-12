@@ -12,24 +12,25 @@ import {
   allowAttributeDeletion, preventCollectionReorg, preventTopLevelReorg
 } from "../../../utilities/plugin-utils"
 import { t } from "../../../utilities/translation/translate"
-import { TColumn } from "../case-table-types"
 import { EditAttributePropertiesModal } from "./edit-attribute-properties-modal"
 import { EditFormulaModal } from "./edit-formula-modal"
 
 interface IProps {
-  column: TColumn
+  attributeId: string
   onRenameAttribute: () => void
   onModalOpen: (open: boolean) => void
 }
 
 const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
-    ({ column, onRenameAttribute, onModalOpen }, ref) => {
+    ({ attributeId, onRenameAttribute, onModalOpen }, ref) => {
   const data = useDataSetContext()
   const caseMetadata = useCaseMetadata()
   // each use of useDisclosure() maintains its own state and callbacks so they can be used for independent dialogs
   const propertiesModal = useDisclosure()
   const formulaModal = useDisclosure()
-  const attributeId = column.key
+
+  if (!attributeId) return null
+
   const attribute = data?.getAttribute(attributeId)
   // const attributeName = attribute?.name
   const collection = data?.getCollectionForAttribute(attributeId)
@@ -56,7 +57,8 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
 
   // const handleSortCases = (item: IMenuItem) => {
   //   data?.applyModelChange(() => {}, {
-  //     log: { message:`Sort cases by attribute:`, args: { attributeId: attribute?.id, attribute: attributeName }}
+  //     log: logStringifiedObjectMessage("Sort cases by attribute: %@",
+  //            { attributeId: attribute?.id, attribute: attributeName })
   //   })
   // }
 
@@ -80,7 +82,8 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
       itemKey: "DG.TableController.headerMenuItems.resizeColumn",
       // handleClick: () => {
       //   data?.applyModelChange(() => {}, {
-      //     log: {message:`Fit column width:`, args: { collection: data?.name, attribute: attributeName }}
+      //     log: logStringifiedObjectMessage("Fit column width: %@",
+      //              { collection: data?.name, attribute: attributeName })
       //   })
       // }
     },
@@ -102,7 +105,7 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
           // TODO Should also broadcast notify component edit formula notification
           undoStringKey: "DG.Undo.caseTable.editAttributeFormula",
           redoStringKey: "DG.Undo.caseTable.editAttributeFormula",
-          log: logMessageWithReplacement("Clear formula for attribute %@", { name: attribute?.name})
+          log: logMessageWithReplacement("Clear formula for attribute %@", { name: attribute?.name })
         })
       }
     },
@@ -180,7 +183,7 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
             },
             undoStringKey: "DG.Undo.caseTable.deleteAttribute",
             redoStringKey: "DG.Redo.caseTable.deleteAttribute",
-            log: logMessageWithReplacement("Delete attribute %@", { name: attribute.name })
+            log: logMessageWithReplacement("Delete attribute %@", { name: attribute.name }, "data")
           })
         }
       }

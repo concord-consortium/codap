@@ -188,8 +188,8 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
         undoStringKey: "DG.Undo.axisAttributeChange",
         redoStringKey: "DG.Redo.axisAttributeChange",
         log: logStringifiedObjectMessage(
-              attrIdToRemove ? "attributeRemoved: %@" : "attributeAssigned: %@",
-              { attribute: attrName, axis: place })
+              attrIdToRemove ? "Attribute removed: %@" : "Attribute assigned: %@",
+              { attribute: attrName, axis: place }, "plot")
       }
     )
   }, [dataset, graphModel])

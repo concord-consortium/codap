@@ -10,6 +10,7 @@ import { getSharedModelManager } from "../../models/tiles/tile-environment"
 import { urlParams } from "../../utilities/url-params"
 import { FreeTileRowComponent } from "./free-tile-row"
 import { MosaicTileRowComponent } from "./mosaic-tile-row"
+import { logMessageWithReplacement, logStringifiedObjectMessage } from "../../lib/log-message"
 
 import "./container.scss"
 
@@ -31,7 +32,7 @@ export const Container: React.FC = () => {
       })
       tileId && documentContent?.deleteTile(tileId)
     }, {
-      log: `${tile?.content.type} is closed`,
+      log: logMessageWithReplacement("Close component: %@", {tileType: tile?.content.type}, "component"),
       undoStringKey: "DG.Undo.component.close",
       redoStringKey: "DG.Redo.component.close"
     })
@@ -42,12 +43,14 @@ export const Container: React.FC = () => {
     if (dragTileId) {
       if (isFreeTileRow(row)) {
         const rowTile = row.getNode(dragTileId)
+        const tile = getTile(dragTileId)
         if (rowTile && (evt.delta.x || evt.delta.y)) {
           documentContent?.applyModelChange(() => {
             rowTile.setPosition(rowTile.x + evt.delta.x, rowTile.y + evt.delta.y)
           }, {
             undoStringKey: "DG.Undo.componentMove",
-            redoStringKey: "DG.Redo.componentMove"
+            redoStringKey: "DG.Redo.componentMove",
+            log: logStringifiedObjectMessage("Moved component %@", {tileType: tile?.content.type, tileId: dragTileId})
           })
         }
       }

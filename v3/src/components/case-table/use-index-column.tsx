@@ -2,10 +2,6 @@ import { Menu, MenuButton, VisuallyHidden } from "@chakra-ui/react"
 import { clsx } from "clsx"
 import React, { useCallback, useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
-import { kIndexColumnKey, kInputRowKey, TColSpanArgs, TColumn, TRenderCellProps } from "./case-table-types"
-import { ColumnHeader } from "./column-header"
-import { IndexMenuList } from "./index-menu-list"
-import { useRdgCellFocus } from "./use-rdg-cell-focus"
 import { useCaseMetadata } from "../../hooks/use-case-metadata"
 import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
@@ -16,6 +12,11 @@ import { getCollectionAttrs, selectCases, setSelectedCases } from "../../models/
 import { ISharedCaseMetadata } from "../../models/shared/shared-case-metadata"
 import { preventCollectionReorg } from "../../utilities/plugin-utils"
 import { t } from "../../utilities/translation/translate"
+import { kIndexColumnKey } from "../case-tile-common/case-tile-types"
+import { IndexMenuList } from "../case-tile-common/index-menu-list"
+import { useParentChildFocusRedirect } from "../case-tile-common/use-parent-child-focus-redirect"
+import { kInputRowKey, TColSpanArgs, TColumn, TRenderCellProps } from "./case-table-types"
+import { ColumnHeader } from "./column-header"
 
 import DragIndicator from "../../assets/icons/drag-indicator.svg"
 
@@ -126,7 +127,7 @@ export function IndexCell({ caseId, disableMenu, index, collapsedCases, onClick 
   })
 
   // focus our content when the cell is focused
-  useRdgCellFocus(cellElt, menuButton)
+  useParentChildFocusRedirect(cellElt, menuButton)
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (["ArrowDown", "ArrowUp"].includes(e.key)) {

@@ -5,8 +5,8 @@ import { HexAlphaColorPicker } from "react-colorful"
 type ColorPickerHTMLAttributes =
   Omit<React.HTMLAttributes<HTMLDivElement>, "color" | "onChange" | "onChangeCapture">
 export interface ColorPickerProps extends ColorPickerHTMLAttributes {
-    color?: string;
-    onChange?: (newColor: string) => void;
+  color?: string;
+  onChange?: (newColor: string) => void;
 }
 export function ColorPicker(props: ColorPickerProps) {
   return <HexAlphaColorPicker {...props} />

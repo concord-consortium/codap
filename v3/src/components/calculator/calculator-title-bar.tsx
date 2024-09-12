@@ -4,6 +4,7 @@ import { ComponentTitleBar } from "../component-title-bar"
 import { useDocumentContent } from "../../hooks/use-document-content"
 import { ITileTitleBarProps } from "../tiles/tile-base-props"
 import { kCalculatorTileType } from "./calculator-defs"
+import { logStringifiedObjectMessage } from "../../lib/log-message"
 
 export const CalculatorTitleBar =
   observer(function CalculatorTitleBar({ tile, onCloseTile, ...others }: ITileTitleBarProps) {
@@ -13,7 +14,8 @@ export const CalculatorTitleBar =
         documentContent?.toggleSingletonTileVisibility(kCalculatorTileType)
       }, {
         undoStringKey: "DG.Undo.toggleComponent.delete.calcView",
-        redoStringKey: "DG.Redo.toggleComponent.delete.calcView"
+        redoStringKey: "DG.Redo.toggleComponent.delete.calcView",
+        log: logStringifiedObjectMessage("Close calculator", { type: kCalculatorTileType}, "component")
       })
     }, [documentContent])
     return (

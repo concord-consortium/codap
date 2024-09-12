@@ -69,7 +69,7 @@ export const CodapSliderThumb = observer(function CodapSliderThumb({
             undoStringKey: "DG.Undo.slider.change",
             redoStringKey: "DG.Redo.slider.change",
             log: logMessageWithReplacement("sliderThumbDrag: { name: %@ = value: %@ }",
-                  {name: sliderModel?.name, value: sliderValue})
+                  {name: sliderModel?.name, value: sliderValue}, "slider")
           }
         )
       }

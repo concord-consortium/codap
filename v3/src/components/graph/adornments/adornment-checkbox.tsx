@@ -4,6 +4,7 @@ import { observer } from "mobx-react-lite"
 import { t } from "../../../utilities/translation/translate"
 import { useGraphContentModelContext } from "../hooks/use-graph-content-model-context"
 import { getAdornmentContentInfo } from "./adornment-content-info"
+import { logMessageWithReplacement } from "../../../lib/log-message"
 
 interface IProps {
   classNameValue: string
@@ -33,7 +34,7 @@ export const AdornmentCheckbox = observer(function AdornmentCheckbox({classNameV
         {
           undoStringKey: undoRedoKeys.undoAdd,
           redoStringKey: undoRedoKeys.redoAdd,
-          log: `Added ${adornment.type}`
+          log: logMessageWithReplacement(`Added %@`, {type: adornment.type})
         }
       )
     } else {
@@ -42,7 +43,7 @@ export const AdornmentCheckbox = observer(function AdornmentCheckbox({classNameV
         {
           undoStringKey: undoRedoKeys.undoRemove,
           redoStringKey: undoRedoKeys.redoRemove,
-          log: `Removed ${adornment.type}`
+          log: logMessageWithReplacement(`Removed %@`, {type: adornment.type})
         }
       )
     }

@@ -67,7 +67,7 @@ export const GraphInspector = observer(function GraphInspector({tile, show}: ITi
         {
           undoStringKey: "DG.Undo.axisDilate",
           redoStringKey: "DG.Redo.axisDilate",
-          log: "Rescale axes from data"
+          log: {message: "Rescale axes from data", args: {}, category: "plot"}
         }
       )
     }

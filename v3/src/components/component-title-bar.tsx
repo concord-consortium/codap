@@ -8,6 +8,7 @@ import { uiState } from "../models/ui-state"
 import MinimizeIcon from "../assets/icons/icon-minimize.svg"
 import { ITileTitleBarProps } from "./tiles/tile-base-props"
 import { t } from "../utilities/translation/translate"
+import { logMessageWithReplacement } from "../lib/log-message"
 
 import "./component-title-bar.scss"
 
@@ -29,7 +30,7 @@ export const ComponentTitleBar = observer(function ComponentTitleBar({
       tile.applyModelChange(() => {
         tile.setTitle(nextValue)
       }, {
-        log: `Title changed to ${nextValue}`,
+        log: logMessageWithReplacement("Title changed to: %@", {nextValue}, "component"),
         undoStringKey: "DG.Undo.component.componentTitleChange",
         redoStringKey: "DG.Redo.component.componentTitleChange"
       })

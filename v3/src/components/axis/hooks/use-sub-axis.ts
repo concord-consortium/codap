@@ -148,8 +148,8 @@ export const useSubAxis = ({
         { undoStringKey: "DG.Undo.graph.swapCategories",
           redoStringKey: "DG.Redo.graph.swapCategories",
           log: logMessageWithReplacement(
-                "Moved category %@ into position of %@",
-                {movedCategory: dI.catName, targetCategory: dI.currentDragPositionCatName})
+                  "Moved category %@ into position of %@",
+                  {movedCategory: dI.catName, targetCategory: dI.currentDragPositionCatName}, "plot")
         }
       )
     }, [stopAnimation, renderSubAxis, displayModel]),
@@ -298,10 +298,17 @@ export const useSubAxis = ({
   }, [axisModel, renderSubAxis, layout, isCategorical, setupCategories])
 
   const updateDomainAndRenderSubAxis = useCallback(() => {
-    const role = axisPlaceToAttrRole[axisPlace]
+    const role = axisPlaceToAttrRole[axisPlace],
+      attrID = dataConfig?.attributeID(role)
+    if (!attrID) {
+      return // We don't have an attribute. We're a count axis, so we rely on other methods for domain updates
+    }
     if (isCategoricalAxisModel(axisModel)) {
-      const categoryValues = dataConfig?.categoryArrayForAttrRole(role) ?? []
-      layout.getAxisMultiScale(axisPlace)?.setCategoricalDomain(categoryValues)
+      const categoryValues = dataConfig?.categoryArrayForAttrRole(role) ?? [],
+        multiScale = layout.getAxisMultiScale(axisPlace),
+        existingCategoryDomain = multiScale?.categoricalScale?.domain() ?? []
+      if (JSON.stringify(categoryValues) === JSON.stringify(existingCategoryDomain)) return
+      multiScale?.setCategoricalDomain(categoryValues)
       setupCategories()
     } else if (isBaseNumericAxisModel(axisModel)) {
       const numericValues = dataConfig?.numericValuesForAttrRole(role) ?? []

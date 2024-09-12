@@ -1,5 +1,6 @@
 import { isAlive } from "mobx-state-tree"
-import { kIndexColumnKey } from "../../components/case-table/case-table-types"
+import { kIndexColumnKey } from "../../components/case-tile-common/case-tile-types"
+import { logMessageWithReplacement } from "../../lib/log-message"
 import { getSharedCaseMetadataFromDataset } from "../shared/shared-data-utils"
 import { IAttribute } from "./attribute"
 import { ICollectionModel } from "./collection"
@@ -68,10 +69,15 @@ export function moveAttribute({
   const options: IMoveAttributeOptions =
     !afterAttrId || afterAttrId === kIndexColumnKey ? { before: firstAttr?.id } : { after: afterAttrId }
 
+  // bail if we're moving the attribute before/after itself
+  if (attrId === options.after || attrId === options.before) return
+
   const notifications = includeNotifications ? moveAttributeNotification(dataset) : undefined
   const undoStringKey = undoable ? "DG.Undo.dataContext.moveAttribute" : undefined
   const redoStringKey = undoable ? "DG.Redo.dataContext.moveAttribute" : undefined
-  const modelChangeOptions = { notifications, undoStringKey, redoStringKey }
+  const logMessage = logMessageWithReplacement("Moved attribute %@ to %@ collection",
+                        { attrId, collection: targetCollection.name ?? "new" })
+  const modelChangeOptions = { notifications, undoStringKey, redoStringKey, log: logMessage }
 
   if (targetCollection.id === sourceCollection?.id) {
     // move the attribute within a collection
@@ -93,7 +99,7 @@ export function moveAttribute({
       () => {
         result = dataset.moveAttribute(attrId, { collection: targetCollection?.id, ...options })
       },
-      { notify: _notifications, undoStringKey, redoStringKey }
+      { notify: _notifications, undoStringKey, redoStringKey, log: logMessage }
     )
   }
 }

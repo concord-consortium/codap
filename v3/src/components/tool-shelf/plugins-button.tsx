@@ -10,6 +10,7 @@ import { isWebViewModel } from "../web-view/web-view-model"
 import { kRootPluginUrl, processPluginUrl } from "../web-view/web-view-utils"
 import { ToolShelfButtonTag } from "./tool-shelf-button"
 import { PluginData, PluginMenuConfig } from "./plugin-config-types"
+import { logMessageWithReplacement } from "../../lib/log-message"
 import _debugPlugins from "./debug-plugins.json"
 import _standardPlugins from "./standard-plugins.json"
 const debugPlugins = DEBUG_PLUGINS ? _debugPlugins as PluginMenuConfig : []
@@ -36,7 +37,9 @@ function PluginItem({ pluginData }: IPluginItemProps) {
         if (isWebViewModel(tile?.content)) tile.content.setUrl(url)
       }, {
         undoStringKey: t("V3.Undo.plugin.create", { vars: [pluginData.title] }),
-        redoStringKey: t("V3.Redo.plugin.create", { vars: [pluginData.title] })
+        redoStringKey: t("V3.Redo.plugin.create", { vars: [pluginData.title] }),
+        log: logMessageWithReplacement("Add Plugin: %@", { name: pluginData.title, url: pluginData.path })
+
       }
     )
   }
