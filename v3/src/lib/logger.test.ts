@@ -32,9 +32,9 @@ describe("Logger", () => {
     Logger.initializeLogger(mockDocument)
     const logger = Logger.Instance
     const event = "test event"
-    const time = Date.now()
     const documentTitle = "Test Document"
     const args = { key: "value" }
+    const category = "general"
 
     const mockPostHandler = jest.fn((req, res) => {
       expect(mockPostHandler).toHaveBeenCalledTimes(1)
@@ -46,6 +46,6 @@ describe("Logger", () => {
 
     Logger.log(event, args)
 
-    expect(formatAndSendSpy).toHaveBeenCalledWith(time, event, documentTitle, args)
+    expect(formatAndSendSpy).toHaveBeenCalledWith(expect.any(Number), event, documentTitle, category, args)
   })
 })

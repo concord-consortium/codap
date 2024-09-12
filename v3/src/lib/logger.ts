@@ -35,8 +35,8 @@ interface PendingMessage {
   time: number
   event: string
   documentTitle: string
+  category: AnalyticsCategory
   event_value?: string
-  category?: AnalyticsCategory
   parameters?: Record<string, unknown>
 }
 
@@ -75,13 +75,13 @@ export class Logger {
     }
   }
 
-  public static log(event: string, args?: Record<string, unknown>, category?: AnalyticsCategory) {
+  public static log(event: string, args?: Record<string, unknown>, category: AnalyticsCategory = "general") {
     if (!this._instance) return
 
     const time = Date.now() // eventually we will want server skew (or to add this via FB directly)
     const documentTitle = this._instance.document.title || "Untitled Document"
     if (this._instance) {
-      this._instance.formatAndSend(time, event, documentTitle, args, category)
+      this._instance.formatAndSend(time, event, documentTitle, category, args)
     } else {
       debugLog(DEBUG_LOGGER, "Queueing log message for later delivery", event)
       const event_value = args ? JSON.stringify(args) : undefined
@@ -93,7 +93,7 @@ export class Logger {
     if (!this._instance) return
     for (const message of this.pendingMessages) {
       this._instance.formatAndSend(message.time, message.event, message.documentTitle,
-                                    message.parameters, message.category)
+                                    message.category, message.parameters)
     }
     this.pendingMessages = []
   }
@@ -120,16 +120,13 @@ export class Logger {
 
   private formatAndSend(
     time: number, event: string, documentTitle: string,
-    args?: Record<string, unknown>, category: AnalyticsCategory = "general"
+    category: AnalyticsCategory = "general", args?: Record<string, unknown>,
   ) {
     const event_value = JSON.stringify(args)
     const logMessage = this.createLogMessage(time, event, documentTitle, event_value, args)
     debugLog(DEBUG_LOGGER, "logMessage:", logMessage)
     sendToLoggingService(logMessage)
     sendToAnalyticsService(event, category)
-    // for (const listener of this.logListeners) {
-    //   listener(logMessage)
-    // }
   }
 
   private createLogMessage(
