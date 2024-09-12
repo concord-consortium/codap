@@ -54,6 +54,7 @@ export function useDataInteractiveController(iframeRef: React.RefObject<HTMLIFra
       const disposer = autorun(() => {
         const canProcessRequest = !uiState.isEditingBlockingCell
         if (canProcessRequest && requestQueue.length > 0) {
+          uiState.captureEditingStateBeforeInterruption()
           let tableModified = false
           while (requestQueue.length > 0) {
             const { request, callback } = requestQueue.nextItem
@@ -95,9 +96,9 @@ export function useDataInteractiveController(iframeRef: React.RefObject<HTMLIFra
           // TODO Only increment if a table may have changed
           // - many actions and resources could be ignored
           // - could specify which dataContext has been updated
-          if (tableModified) uiState.incrementRequestBatchesProcessed()
+          if (tableModified) uiState.incrementInterruptionCount()
         }
-      }, { name: "DataInteractiveController request processer autorun" })
+      }, { name: "DataInteractiveController request processor autorun" })
 
       return () => {
         disposer()

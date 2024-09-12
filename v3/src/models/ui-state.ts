@@ -34,10 +34,14 @@ export class UIState {
   @observable
   private _isEditingBlockingCell = false
 
-  // The number of request batches that have been processed.
+  // True if _isEditingCell was true before being interrupted (e.g. by API processing).
+  @observable
+  private _wasEditingCellBeforeInterruption = false
+
+  // The number of editing interruptions (e.g. processing API requests) that have occurred.
   // This triggers refreshes to the selected cell after delayed API requests have been processed.
   @observable
-  private _requestBatchesProcessed = 0
+  private _interruptionCount = 0
 
   constructor() {
     makeObservable(this)
@@ -59,13 +63,12 @@ export class UIState {
     return this._isEditingBlockingCell
   }
 
-  // When we refresh the selected cell, it should be in editing mode if we were editing.
-  get refreshSelectedCellEditing() {
-    return this._isEditingCell
+  get wasEditingCellBeforeInterruption() {
+    return this._wasEditingCellBeforeInterruption
   }
 
-  get requestBatchesProcessed() {
-    return this._requestBatchesProcessed
+  get interruptionCount() {
+    return this._interruptionCount
   }
 
   isFocusedTile(tileId?: string) {
@@ -88,17 +91,32 @@ export class UIState {
 
   @action
   setIsEditingCell(isEditing: boolean) {
+    if (!isEditing) {
+      this._isEditingBlockingCell = false
+    }
     this._isEditingCell = isEditing
   }
 
   @action
-  setIsEditingBlockingCell(isEditingBlockingCell = false) {
-    this._isEditingBlockingCell = isEditingBlockingCell
+  setIsEditingBlockingCell() {
+    this._isEditingBlockingCell = true
   }
 
   @action
-  incrementRequestBatchesProcessed() {
-    this._requestBatchesProcessed += 1
+  captureEditingStateBeforeInterruption() {
+    if (this.isEditingCell) {
+      this._wasEditingCellBeforeInterruption = true
+    }
+  }
+
+  @action
+  clearEditingStateAfterInterruption() {
+    this._wasEditingCellBeforeInterruption = false
+  }
+
+  @action
+  incrementInterruptionCount() {
+    this._interruptionCount += 1
   }
 
   @action setAttrIdToEdit(attrId?: string) {

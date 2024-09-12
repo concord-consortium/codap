@@ -1,6 +1,7 @@
 import { reaction } from "mobx"
 import { useCallback, useEffect, useRef } from "react"
 import { DataGridHandle } from "react-data-grid"
+import { useDebouncedCallback } from "use-debounce"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useTileModelContext } from "../../hooks/use-tile-model-context"
 import { uiState } from "../../models/ui-state"
@@ -54,7 +55,9 @@ export function useSelectedCell(gridRef: React.RefObject<DataGridHandle | null>,
       if (rowIdx != null) {
         const position = { idx, rowIdx }
         blockUpdateSelectedCell.current = true
-        if (tileIsFocused) gridRef.current?.selectCell(position, uiState.refreshSelectedCellEditing)
+        // When transitioning from editing one cell to another, we get here
+        if (tileIsFocused) gridRef.current?.selectCell(position, uiState.wasEditingCellBeforeInterruption)
+        uiState.clearEditingStateAfterInterruption()
         selectedCell.current = { ...selectedCell.current, rowIdx }
         blockUpdateSelectedCell.current = false
 
@@ -64,16 +67,17 @@ export function useSelectedCell(gridRef: React.RefObject<DataGridHandle | null>,
     }
   }, [collectionTableModel, columns, gridRef, rows, tileIsFocused])
 
+  // debounce the callback so it occurs after the last batch if there's a set of batches
+  const refreshSelectedCellDebounced = useDebouncedCallback(refreshSelectedCell, 50)
+
   useEffect(() => {
     if (blockingDataset) {
       return reaction(
-        () => uiState.requestBatchesProcessed,
-        () => {
-          setTimeout(refreshSelectedCell)
-        }
+        () => uiState.interruptionCount,
+        () => refreshSelectedCellDebounced()
       )
     }
-  }, [blockingDataset, refreshSelectedCell])
+  }, [blockingDataset, refreshSelectedCellDebounced])
 
   return { selectedCell: selectedCell.current, handleSelectedCellChange, navigateToNextRow }
 }

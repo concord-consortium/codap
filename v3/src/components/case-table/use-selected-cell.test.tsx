@@ -96,7 +96,7 @@ describe("useSelectedCell", () => {
     expect(gridRef.current.selectCell).toHaveBeenCalledTimes(1)
     expect(mockScrollRowIntoView).toHaveBeenCalledTimes(1)
     // simulate processing of a batch of requests
-    uiState.incrementRequestBatchesProcessed()
+    uiState.incrementInterruptionCount()
     jest.runAllTimers()
     expect(mockScrollRowIntoView).toHaveBeenCalledTimes(2)
   })
