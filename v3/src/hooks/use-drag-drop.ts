@@ -138,3 +138,13 @@ export const containerSnapToGridModifier: Modifier = ({transform, active}) => {
     y: Math.ceil(transform.y / gridSize) * gridSize,
   }
 }
+
+export const restrictDragToArea: Modifier = ({transform, activeNodeRect, containerNodeRect}) =>{
+  // Prevent dragging upwards beyond the main container but allow dragging freely in other directions
+  if (activeNodeRect && containerNodeRect) {
+    if (activeNodeRect.top + transform.y < containerNodeRect.top) {
+      transform.y = containerNodeRect.top - activeNodeRect.top
+    }
+  }
+  return transform
+}
