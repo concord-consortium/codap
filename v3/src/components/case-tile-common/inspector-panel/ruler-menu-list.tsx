@@ -43,7 +43,16 @@ export const RulerMenuList = () => {
   const menuItems: IMenuItem[] = [
     ...addAttributeMenuItems,
     {
-      itemKey: "DG.Inspector.randomizeAllAttributes"
+      itemKey: "DG.Inspector.randomizeAllAttributes",
+      handleClick: () => {
+        data?.applyModelChange(() => {
+          data.attributes.forEach(attr => {
+            if (attr.formula?.isRandomFunctionPresent) {
+              attr.formula.rerandomize()
+            }
+          })
+        })
+      }
     },
     {
       itemKey: "DG.Inspector.exportCaseData"
