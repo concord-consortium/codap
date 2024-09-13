@@ -1,5 +1,49 @@
 # Changelog
 
+## Version 3.0.0-pre.1869 - September 13, 2024
+
+### ✨ Features & Improvements:
+- **PT-188001758:** Multidata Styling on CODAPv3 Card Data Graph Interaction
+- **PT-188001450:** Multidata  CODAPv3 Card Data Reorganization within level
+- **PT-188212617:** Multidata  CODAPv3 Card Data Reorganization create hierarchy level
+- **PT-188173137:** Representation of dataset in case card is hierarchical
+- **PT-188199941:** Hierarchical case table -- Parent child grouping areas show selection color when all child cases are selected
+- **PT-181869565:** Case card has 'plus' icon for making new attributes
+- **PT-188173206:** Clicking on attributes in case card brings up attribute menu
+- **PT-188173211:** Dragging case card attributes
+- **PT-181869693:** Editing existing values in a case card is initiated with a single-click
+- **PT-181869597:** Case card has an **add case** icon at right of each collection header
+- **PT-188003195:** Case ids should be persistent across case-wide value changes
+- **PT-188173216:** Dropping attributes in case card
+- **PT-187381671:** Click in case table "white space" deselects all cases for that dataset
+- **PT-188003381:** Set Aside **filter** on Tables
+- **PT-187372247:** DI create/get/update selectionList featuring collections
+
+### 🐞 Bug Fixes:
+- **PT-188109429:** Horizontal date axis partly empty when split on top
+- **PT-188219800:** Bar for each point problem with dates
+- **PT-188221613:** A Count axis should only show integer values
+- **PT-188228770:** On opening document categorical axis on y-axis is too narrow
+- **PT-188227145:** Excessive categorical axis repainting
+- **PT-188200067:** **Bar Chart** Compresses to Top When Hiding Unselected Cases in Mammals Dataset
+- **PT-188214433:** Rename Attributes in Collaborative
+- **PT-188045800:** Modal dialog box follows the mouse when selecting text in input area or choosing Precision in Attribute Properties (Safari)
+- **PT-188252932:** Bug: dragging attribute before itself moves it to end
+- **PT-188245707:** Cases hidden in graph become visible on restore
+- **PT-188254368:** Dot chart not restoring properly with hidden cases
+- **PT-188200175:** Cards extend below bottom of **card view** container rather than being scrollable within the container
+- **PT-188254408:** Duplicate Cases after restore setAside
+- **PT-188104418:** Tile names do not update in the **tiles menu** after renaming components
+- **PT-188263826:** SetAside + Adding Cases Bug
+- **PT-188104356:** Maintain Editing Status When Shared Table Changes
+- **PT-188103938:** Unable to advance to blank cells using "enter" key in Collaborative Sharing plugin
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  171157 bytes |                            0.00% |
+|  index.js | 5879153 bytes |                            0.20% |
+
 ## Version 3.0.0-pre.1831 - August 30, 2024
 
 ### ✨ Features & Improvements:
