@@ -4,10 +4,15 @@ import { CollectionContext } from "../../hooks/use-collection-context"
 import { AttributeHeaderDividerContext } from "../case-tile-common/use-attribute-header-divider-context"
 import { CaseView } from "./case-view"
 import { useCaseCardModel } from "./use-case-card-model"
+import { IDataSet } from "../../models/data/data-set"
 
 import "./card-view.scss"
 
-export const CardView = observer(function CardView() {
+interface CardViewProps {
+  onNewCollectionDrop: (dataSet: IDataSet, attrId: string, beforeCollectionId: string) => void
+}
+
+export const CardView = observer(function CardView({onNewCollectionDrop}: CardViewProps) {
   const cardModel = useCaseCardModel()
   const data = cardModel?.data
   const collections = data?.collections
@@ -31,6 +36,7 @@ export const CardView = observer(function CardView() {
               level={0}
               onSelectCases={handleSelectCases}
               displayedCaseLineage={selectedItemLineage}
+              onNewCollectionDrop={onNewCollectionDrop}
             />
           </CollectionContext.Provider>
         }

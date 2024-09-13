@@ -18,12 +18,11 @@ interface ICaseAttrsViewProps {
 }
 
 function getDividerBounds(containerBounds: DOMRect, cellBounds: DOMRect) {
-  const kCardCellWidthOffset = 5
   const kCardCellHeight = 25
   return {
     top: cellBounds.bottom - containerBounds.top + kCardCellHeight,
     left: cellBounds.left - containerBounds.left,
-    width: containerBounds.width - cellBounds.left - containerBounds.left - kCardCellWidthOffset,
+    width: cellBounds.right - cellBounds.left,
     height: 6
   }
 }
@@ -33,7 +32,7 @@ export const CaseAttrsView = observer(function CaseAttrsView({caseItem, collecti
   const contentRef = useRef<HTMLDivElement | null>(null)
   const [, setCellElt] = useState<HTMLElement | null>(null)
   const values: IValueType[] = collection?.attributes.map(attr => {
-    return attr?.id && data?.getValue(caseItem.__id__, attr.id)
+    return attr?.id && data?.getValue(caseItem?.__id__, attr.id)
   }) ?? []
 
   const handleSetHeaderContentElt = useCallback((contentElt: HTMLDivElement | null) => {
@@ -58,7 +57,7 @@ export const CaseAttrsView = observer(function CaseAttrsView({caseItem, collecti
         </tr>
         {collection?.attributes.map((attr, index: number) => {
             const metadata = data && getSharedCaseMetadataFromDataset(data)
-            if (!attr || metadata?.isHidden(attr.id)) return null
+            if (!attr || metadata?.isHidden(attr.id) || !caseItem) return null
             return (
               <CaseAttrView
                 key={attr.id}

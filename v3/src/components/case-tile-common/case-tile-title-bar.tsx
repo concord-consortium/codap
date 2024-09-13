@@ -123,8 +123,10 @@ export const CaseTileTitleBar =
              data-testid={"case-table-toggle-view"}>
           <CardOrTableIcon className={`${cardOrTableIconClass}`}/>
           {showSwitchMessage &&
-             <Box ref={cardTableToggleRef} className={`card-table-toggle-message`}
-                  onClick={handleToggleCardTable}>
+             <Box ref={cardTableToggleRef}
+                  className="card-table-toggle-message"
+                  onClick={handleToggleCardTable}
+                  data-testid="card-table-toggle-message">
                {caseTableOrCardToggleString}
              </Box>
           }
