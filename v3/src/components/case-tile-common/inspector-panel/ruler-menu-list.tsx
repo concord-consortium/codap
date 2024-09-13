@@ -44,6 +44,7 @@ export const RulerMenuList = () => {
     ...addAttributeMenuItems,
     {
       itemKey: "DG.Inspector.randomizeAllAttributes",
+      isEnabled: () => !!data?.attributes.some(attr => attr.formula?.isRandomFunctionPresent),
       handleClick: () => {
         data?.applyModelChange(() => {
           data.attributes.forEach(attr => {
