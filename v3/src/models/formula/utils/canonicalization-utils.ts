@@ -3,18 +3,9 @@ import { DisplayNameMap, CanonicalNameMap } from "../formula-types"
 import { typedFnRegistry } from "../functions/math"
 import { isCanonicalName, safeSymbolName } from "./name-mapping-utils"
 import { isConstantStringNode, isNonFunctionSymbolNode } from "./mathjs-utils"
-
-export const unescapeBacktickString = (name: string) =>
-  name.replace(/\\`/g, "`").replace(/\\\\/g, "\\")
-
-export const escapeBacktickString = (name: string) =>
-  name.replace(/\\/g, "\\\\").replace(/`/g, "\\`")
-
-export const escapeDoubleQuoteString = (constant: string) =>
-  constant.replace(/\\/g, "\\\\").replace(/"/g, '\\"')
-
-export const escapeSingleQuoteString = (constant: string) =>
-  constant.replace(/\\/g, "\\\\").replace(/'/g, "\\'")
+import {
+  escapeBacktickString, escapeDoubleQuoteString, escapeSingleQuoteString, unescapeBacktickString
+} from "./string-utils"
 
 export const safeSymbolNameFromDisplayFormula = (name: string) =>
   // Replace escaped backslash and backticks in user-generated string with a single character, so they're not replaced

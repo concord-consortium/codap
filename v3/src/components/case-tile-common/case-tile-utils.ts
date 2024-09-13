@@ -4,7 +4,7 @@ import { appState } from "../../models/app-state"
 import { createDefaultTileOfType } from "../../models/codap/add-default-content"
 import { INewTileOptions } from "../../models/codap/create-tile"
 import { IDataSet } from "../../models/data/data-set"
-import { createCasesNotification, updateCasesNotification } from "../../models/data/data-set-notifications"
+import { createCasesNotification, updateCasesNotificationFromIds } from "../../models/data/data-set-notifications"
 import { ICase } from "../../models/data/data-set-types"
 import { setCaseValuesWithCustomUndoRedo } from "../../models/data/data-set-undo"
 import { IDocumentContentModel } from "../../models/document/document-content"
@@ -150,12 +150,7 @@ export function applyCaseValueChanges(data: IDataSet, cases: ICase[], log?: ILog
     log,
     notify: () => {
       const notifications = []
-      if (updatedCaseIds.length > 0) {
-        const updatedCases = updatedCaseIds.map(caseId => data.caseInfoMap.get(caseId))
-          .filter(caseGroup => !!caseGroup)
-          .map(caseGroup => caseGroup.groupedCase)
-        notifications.push(updateCasesNotification(data, updatedCases))
-      }
+      if (updatedCaseIds.length > 0) notifications.push(updateCasesNotificationFromIds(data, updatedCaseIds))
       if (newCaseIds.length > 0) notifications.push(createCasesNotification(newCaseIds, data))
       return notifications
     },

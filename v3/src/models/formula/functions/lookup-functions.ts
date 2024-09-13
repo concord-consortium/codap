@@ -1,12 +1,10 @@
-import { ConstantNode, MathNode } from "mathjs"
-import { CurrentScope, DisplayNameMap, FValue, ILookupDependency } from "../formula-types"
+import { MathNode } from "mathjs"
+import { CurrentScope, DisplayNameMap, FValue, ILookupDependency, LookupStringConstantArg } from "../formula-types"
 import { rmCanonicalPrefix } from "../utils/name-mapping-utils"
 import { UNDEF_RESULT, equal, evaluateNode, getRootScope } from "./function-utils"
 import { isConstantStringNode } from "../utils/mathjs-utils"
 import { t } from "../../../utilities/translation/translate"
 import type { IDataSet } from "../../data/data-set"
-
-type LookupStringConstantArg = ConstantNode<string> | undefined
 
 export const lookupFunctions = {
   // lookupByIndex("dataSetName", "attributeName", index)

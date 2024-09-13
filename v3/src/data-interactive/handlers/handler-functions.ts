@@ -1,3 +1,4 @@
+import { updateCasesNotificationFromIds } from "../../models/data/data-set-notifications"
 import { ICase } from "../../models/data/data-set-types"
 import { toV2Id, toV3CaseId, toV3ItemId } from "../../utilities/codap-utils"
 import { t } from "../../utilities/translation/translate"
@@ -120,6 +121,12 @@ export function updateCasesBy(resources: DIResources, values?: DIValues, itemRet
         dataContext.setCaseValues([{ ...updatedAttributes, __id__: v3Id }])
       }
     })
+  }, {
+    notify: () => {
+      if (caseIDs.length > 0) {
+        return updateCasesNotificationFromIds(dataContext, caseIDs.map(caseId => toV3CaseId(caseId)))
+      }
+    }
   })
 
   if (caseIDs.length > 0) {

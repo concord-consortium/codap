@@ -123,6 +123,14 @@ export function updateCasesNotification(data: IDataSet, cases?: ICase[]) {
   return notification("updateCases", result, data)
 }
 
+export function updateCasesNotificationFromIds(data: IDataSet, caseIds?: string[]) {
+  data.validateCases()
+  const cases = caseIds?.map(caseId => data.caseInfoMap.get(caseId))
+    .filter(caseGroup => !!caseGroup)
+    .map(caseGroup => caseGroup.groupedCase)
+  return updateCasesNotification(data, cases)
+}
+
 export function deleteCasesNotification(data: IDataSet, cases?: ICase[]) {
   const result = {
     success: true,

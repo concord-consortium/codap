@@ -6,15 +6,20 @@ import {
 } from "../../models/data/data-set-notifications"
 import { getFormulaManager } from "../../models/tiles/tile-environment"
 import { hasOwnProperty } from "../../utilities/js-utils"
+import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
 import {
-  DIDataContext, DIHandler, DIResources, DIUpdateDataContext, DIValues, diNotImplementedYet
+  DIDataContext, DIHandler, DINotifyDataContext, DIResources, DIUpdateDataContext, DIValues
 } from "../data-interactive-types"
 import { basicDataSetInfo, convertDataSetToV2 } from "../data-interactive-type-utils"
 import { getAttribute } from "../data-interactive-utils"
 import { findTileFromNameOrId } from "../resource-parser-utils"
 import { createCollection } from "./di-handler-utils"
-import { dataContextNotFoundResult } from "./di-results"
+import { dataContextNotFoundResult, errorResult } from "./di-results"
+import { toV3CaseId } from "../../utilities/codap-utils"
+
+const requestRequiedResult =
+  errorResult(t("V3.DI.Error.fieldRequired", { vars: ["Notify", "dataContext", "request"] }))
 
 export const diDataContextHandler: DIHandler = {
   create(_resources: DIResources, _values?: DIValues) {
@@ -70,8 +75,26 @@ export const diDataContextHandler: DIHandler = {
     return { success: true, values: convertDataSetToV2(dataContext, appState.document.key) }
   },
 
-  // TODO setAside and restoreSetasides [sic]
-  notify: diNotImplementedYet,
+  notify(resources: DIResources, values?: DIValues) {
+    const { dataContext } = resources
+    if (!dataContext) return dataContextNotFoundResult
+
+    if (!values) return requestRequiedResult
+    const { caseIDs, request } = values as DINotifyDataContext
+    if (!request) return requestRequiedResult
+
+    const successResult = { success: true as const, values: {} }
+    if (request === "setAside") {
+      if (!caseIDs) return errorResult(t("V3.DI.Error.fieldRequired", { vars: ["Notify", "dataContext", "caseIDs"] }))
+      dataContext.hideCasesOrItems(caseIDs.map(caseId => toV3CaseId(caseId)))
+      return successResult
+    } else if (request === "restoreSetasides") {
+      dataContext.showHiddenCasesAndItems()
+      return successResult
+    } else {
+      return errorResult(t("V3.DI.Error.unknownRequest", { vars: [request] }))
+    }
+  },
 
   update(resources: DIResources, _values?: DIValues) {
     // TODO rerandomize

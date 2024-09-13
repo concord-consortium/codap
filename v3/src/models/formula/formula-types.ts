@@ -1,6 +1,8 @@
-import type { MathNode } from "mathjs"
+import type { ConstantNode, MathNode } from "mathjs"
 import type { FormulaMathJsScope } from "./formula-mathjs-scope"
 import type { ICase } from "../data/data-set-types"
+
+export type LookupStringConstantArg = Maybe<ConstantNode<string>>
 
 export type DisplayNameMap = {
   localNames: Record<string, string>

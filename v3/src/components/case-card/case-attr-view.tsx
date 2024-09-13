@@ -3,14 +3,14 @@ import { observer } from "mobx-react-lite"
 import { Editable, EditablePreview, EditableInput } from "@chakra-ui/react"
 import { clsx } from "clsx"
 import { IValueType } from "../../models/data/attribute"
-import { useCaseCardModel } from "./use-case-card-model"
+import { ICollectionModel } from "../../models/data/collection"
 import { ICase } from "../../models/data/data-set-types"
 import { isFiniteNumber } from "../../utilities/math-utils"
 import { AttributeHeader } from "../case-tile-common/attribute-header"
 import { AttributeHeaderDivider } from "../case-tile-common/attribute-header-divider"
 import { GetDividerBoundsFn } from "../case-tile-common/case-tile-types"
-import { ICollectionModel } from "../../models/data/collection"
 import { applyCaseValueChanges } from "../case-tile-common/case-tile-utils"
+import { useCaseCardModel } from "./use-case-card-model"
 
 import "./case-attr-view.scss"
 
@@ -43,9 +43,9 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
 
   const handleSubmit = (newValue?: string) => {
     if (newValue) {
-      const casesToUpdate: ICase[] = [{__id__: caseId, [attrId]: newValue}]
+      const casesToUpdate: ICase[] = [{ __id__: caseId, [attrId]: newValue }]
 
-      if (data && casesToUpdate.length) {
+      if (data) {
         applyCaseValueChanges(data, casesToUpdate)
         return
       }

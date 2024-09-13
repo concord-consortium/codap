@@ -1,7 +1,11 @@
-import { t } from "../../../utilities/translation/translate"
-import { valueToString } from "../../../utilities/data-utils"
-import { FValue } from "../formula-types"
 import escapeStringRegexp from "escape-string-regexp"
+import { MathNode } from "mathjs"
+import { valueToString } from "../../../utilities/data-utils"
+import { t } from "../../../utilities/translation/translate"
+import { CurrentScope, FValue, LookupStringConstantArg } from "../formula-types"
+import { isConstantStringNode } from "../utils/mathjs-utils"
+import { unescapeBacktickString } from "../utils/string-utils"
+import { evaluateNode, getRootScope } from "./function-utils"
 
 export const stringFunctions = {
   // beginsWith(text, prefix) Returns true if text begins with prefix, otherwise false.
@@ -92,7 +96,11 @@ export const stringFunctions = {
     evaluate: (...args: FValue[]) => {
       const stringToLookIn = valueToString(args[0]),
         pattern = valueToString(args[1])
-      return (stringToLookIn.match(new RegExp(escapeStringRegexp(pattern), "gmi")) || []).length
+      // TODO We should really run escapeStringRegexp on the pattern we receive for security reasons,
+      // but that won't work for patterns received from the StoryQ plugin. We need to reconcile this.
+      // FWIW v2 does no processing on patterns it receives.
+      const matches = stringToLookIn.match(new RegExp(unescapeBacktickString(pattern), "gmi"))
+      return (matches || []).length
     }
   },
   // repeatString(aString, numRepetitions) Takes two arguments, the first a string and the second an integer ≥ 0.
@@ -229,9 +237,53 @@ export const stringFunctions = {
   // ends with "/" it is treated as a regular expression and searched for with case sensitivity.
   wordListMatches: {
     numOfRequiredArguments: 3,
-    evaluate: (...args: FValue[]) => {
-      // todo: Implement this function
-      return "NYI"
+    evaluateRaw: (args: MathNode[], _mathjs: any, currentScope: CurrentScope) => {
+      const scope = getRootScope(currentScope)
+      const functionName = "wordListMatches"
+      const numOfReqArgs = stringFunctions.wordListMatches.numOfRequiredArguments
+      if (args.length < numOfReqArgs) {
+        throw new Error(t("DG.Formula.FuncArgsErrorPlural.description", { vars: [ functionName, numOfReqArgs ] }))
+      }
+      [1, 2].forEach(i => {
+        if (!isConstantStringNode(args[i])) {
+          throw new Error(t("V3.formula.error.stringConstantArg", { vars: [ functionName, i + 1 ] }))
+        }
+      })
+      const [textRefArg, dataSetTitleArg, wordAttributeNameArg, ratingAttributeNameArg] =
+        args as [MathNode, LookupStringConstantArg, LookupStringConstantArg, LookupStringConstantArg]
+      const text = evaluateNode(textRefArg, scope) as string
+      const dataSetTitle = dataSetTitleArg?.value || ""
+      const dataSet = scope.getDataSetByTitle(dataSetTitle)
+      if (!dataSet) {
+        throw new Error(t("DG.Formula.LookupDataSetError.description", { vars: [ dataSetTitle ] }))
+      }
+
+      const wordAttributeName = wordAttributeNameArg?.value
+      const wordAttribute = wordAttributeName ? dataSet.getAttributeByName(wordAttributeName) : undefined
+      if (!wordAttribute) {
+        throw new Error(t("DG.Formula.LookupAttrError.description",
+          { vars: [ wordAttributeName, dataSet.title || "" ] }))
+      }
+
+      const ratingAttributeName = ratingAttributeNameArg?.value
+      const ratingAttribute = ratingAttributeName ? dataSet.getAttributeByName(ratingAttributeName) : undefined
+
+      const wordRatingMap: Record<string, number> = {}
+      wordAttribute.strValues.forEach((word, index) => wordRatingMap[word] = ratingAttribute?.numeric(index) ?? 1)
+
+      let result = 0
+      wordAttribute.strValues.forEach(word => {
+        if (word) {
+          const isRegEx = word.startsWith("/") && word.endsWith("/")
+          const pattern = isRegEx ? word.substring(1, word.length - 1) : `\\b${escapeStringRegexp(word)}\\b`
+          const flags = isRegEx ? "g" : "gi"
+          const regEx = new RegExp(pattern, flags)
+          const match = text.match(regEx)
+          result += wordRatingMap[word] * (match?.length ?? 0)
+        }
+      })
+
+      return result
     }
   },
 }
