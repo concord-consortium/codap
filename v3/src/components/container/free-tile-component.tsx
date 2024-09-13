@@ -57,7 +57,9 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
   }, [rowTile])
 
   const handleResizePointerDown = useCallback((e: PointerEvent, tileLayout: IFreeTileLayout, direction: string) => {
-    e.currentTarget.setPointerCapture(e.pointerId)
+    if (e.pointerId !== undefined) {
+      e.currentTarget.setPointerCapture(e.pointerId)
+    }
     const startWidth = tileLayout.width
     const startHeight = tileLayout.height
     const startPosition = {x: e.pageX, y: e.pageY}
