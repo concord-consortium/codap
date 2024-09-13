@@ -392,6 +392,7 @@ describe("CollectionModel", () => {
     validateCases()
     expect(c1.caseIds).toEqual(originalParentCaseIds)
     expect(c2.caseIds).toEqual(originalChildCaseIds)
+    expect(c1.groupKeyCaseIds.get(bGroupKey)).toBeUndefined()
     validateItemCaseIds()
   })
 })

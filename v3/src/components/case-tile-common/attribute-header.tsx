@@ -1,4 +1,4 @@
-import { Tooltip, Menu, MenuButton, Input, VisuallyHidden } from "@chakra-ui/react"
+import { Tooltip, Menu, MenuButton, Input, VisuallyHidden, SystemStyleObject } from "@chakra-ui/react"
 import { useDndContext } from "@dnd-kit/core"
 import { autorun } from "mobx"
 import { observer } from "mobx-react-lite"
@@ -17,6 +17,7 @@ import { useParentChildFocusRedirect } from "./use-parent-child-focus-redirect"
 interface IProps {
   attributeId: string
   beforeHeaderDivider?: boolean
+  customButtonStyle?: SystemStyleObject
   getDividerBounds?: GetDividerBoundsFn
   HeaderDivider?: React.ComponentType<IDividerProps>
   // returns the draggable parent element for use with DnDKit
@@ -27,7 +28,7 @@ interface IProps {
 }
 
 export const AttributeHeader = observer(function AttributeHeader({
-  attributeId, beforeHeaderDivider, getDividerBounds, HeaderDivider,
+  attributeId, beforeHeaderDivider, customButtonStyle, getDividerBounds, HeaderDivider,
   onSetHeaderContentElt, onBeginEdit, onEndEdit, onOpenMenu
 }: IProps) {
   const { active } = useDndContext()
@@ -199,6 +200,8 @@ export const AttributeHeader = observer(function AttributeHeader({
                   : <>
                       <MenuButton
                           className="codap-attribute-button" ref={menuButtonRef}
+                          disabled={attributeId === kIndexColumnKey}
+                          sx={customButtonStyle}
                           fontWeight="bold" onKeyDown={handleButtonKeyDown}
                           data-testid={`codap-attribute-button ${attrName}`}
                           aria-describedby={`sr-column-header-drag-instructions-${instanceId}`}>

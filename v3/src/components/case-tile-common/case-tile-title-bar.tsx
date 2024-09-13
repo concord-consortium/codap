@@ -77,7 +77,7 @@ export const CaseTileTitleBar =
       documentContent?.applyModelChange(() => {
         tile && documentContent && toggleCardTable(documentContent, tile.id)
       }, {
-        log: logMessageWithReplacement("Toggle component: %@", {componentType: suffix}),
+        log: logMessageWithReplacement("Toggle component: %@", {componentType: suffix}, "table"),
         undoStringKey: `DG.Undo.component.toggle${suffix}`,
         redoStringKey: `DG.Redo.component.toggle${suffix}`
       })
@@ -92,7 +92,7 @@ export const CaseTileTitleBar =
           notify: () => updateDataContextNotification(data),
           undoStringKey: "DG.Undo.component.componentTitleChange",
           redoStringKey: "DG.Redo.component.componentTitleChange",
-          log: logMessageWithReplacement("Title changed to %@", {newTitle})
+          log: logMessageWithReplacement("Title changed to: %@", {newTitle}, "component")
         })
       }
     }
@@ -104,7 +104,7 @@ export const CaseTileTitleBar =
       }, {
         undoStringKey: `V3.Undo.case${suffix}.hide`,
         redoStringKey: `V3.Redo.case${suffix}.hide`,
-        log: logMessageWithReplacement("Close %@", { type: tileInfo.toggleSuffix })
+        log: logMessageWithReplacement("Close component: %@", { type: tileInfo.toggleSuffix }, "component")
       })
     }, [documentContent, tile?.id, tileInfo])
 

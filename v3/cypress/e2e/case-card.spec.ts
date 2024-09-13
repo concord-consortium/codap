@@ -1,4 +1,5 @@
 import { TableTileElements as table } from "../support/elements/table-tile"
+import { ToolbarElements as toolbar } from "../support/elements/toolbar-elements"
 
 context("case card", () => {
   beforeEach(() => {
@@ -74,14 +75,15 @@ context("case card", () => {
       cy.get('[data-testid="case-card-attrs"]').eq(1).find('[data-testid="case-card-attr-value"]')
                                                   .eq(0).should("have.text", "African Elephant")
     })
-    it("allows the user to add, edit, and hide attributes", () => {
+    it("allows the user to add, edit, and hide attributes with undo/redo", () => {
       cy.get(tableHeaderLeftSelector).click()
       cy.get(`${tableHeaderLeftSelector} .card-table-toggle-message`).click()
       cy.wait(500)
       cy.get('[data-testid="case-card-attr"]').should("have.length", 9)
       cy.get('[data-testid="case-card-attr-name"]').should("have.length", 9)
       cy.get('[data-testid="case-card-attr-value"]').should("have.length", 9)
-      cy.log("Add new attribute.")
+
+      cy.log("Add new attribute with undo/redo.")
       cy.get('[data-testid="add-attribute-button"]').click()
       cy.wait(500)
       cy.get('[data-testid="column-name-input"]').should("exist").type(" Memory{enter}")
@@ -92,6 +94,20 @@ context("case card", () => {
       cy.get('[data-testid="case-card-attr-value"]').eq(9).click()
       cy.get('[data-testid="case-card-attr-value-text-editor"]').eq(9).should("exist").type("excellent{enter}")
       cy.get('[data-testid="case-card-attr-value"]').eq(9).should("contain.text", "excellent")
+
+      // Undo/redo check after adding a new attribute
+      toolbar.getUndoTool().click()
+      toolbar.getUndoTool().click()
+      toolbar.getUndoTool().click()
+      cy.get('[data-testid="case-card-attr"]').should("have.length", 9)
+      cy.get('[data-testid="case-card-attr-name"]').should("have.length", 9)
+      toolbar.getRedoTool().click()
+      toolbar.getRedoTool().click()
+      toolbar.getRedoTool().click()
+      cy.get('[data-testid="case-card-attr"]').should("have.length", 10)
+      cy.get('[data-testid="case-card-attr-name"]').should("have.length", 10)
+      cy.get('[data-testid="case-card-attr-name"]').eq(9).should("contain.text", "Memory")
+
       cy.log("Hide an attribute.")
       cy.get('[data-testid="case-card-attr-name"]').eq(9).click()
       cy.get('[data-testid="attribute-menu-list"]').should("be.visible")
@@ -99,7 +115,14 @@ context("case card", () => {
       cy.get('[data-testid="case-card-attr"]').should("have.length", 9)
       cy.get('[data-testid="case-card-attr-name"]').should("have.length", 9)
       cy.get('[data-testid="case-card-attr-value"]').should("have.length", 9)
-      cy.log("Edit an attribute name.")
+
+      // Undo/redo check after hiding an attribute
+      toolbar.getUndoTool().click()
+      cy.get('[data-testid="case-card-attr"]').should("have.length", 10)
+      toolbar.getRedoTool().click()
+      cy.get('[data-testid="case-card-attr"]').should("have.length", 9)
+
+      cy.log("Edit an attribute name with undo/redo.")
       cy.get('[data-testid="case-card-attr-name"]').eq(0).should("contain.text", "Mammal")
       cy.get('[data-testid="case-card-attr-name"]').eq(0).click()
       cy.get('[data-testid="attribute-menu-list"]').find("button").first().trigger("click")
@@ -107,6 +130,13 @@ context("case card", () => {
       cy.get('[data-testid="column-name-input"]').type("{selectall}{backspace}Name{enter}")
       cy.get('[data-testid="column-name-input"]').should("not.exist")
       cy.get('[data-testid="case-card-attr-name"]').eq(0).should("contain.text", "Name")
+
+      // Undo/redo check after editing an attribute name
+      toolbar.getUndoTool().click()
+      cy.get('[data-testid="case-card-attr-name"]').eq(0).should("contain.text", "Mammal")
+      toolbar.getRedoTool().click()
+      cy.get('[data-testid="case-card-attr-name"]').eq(0).should("contain.text", "Name")
+
       cy.log("Edit an attribute value.")
       cy.get('[data-testid="case-card-attr-value"]').eq(0).should("contain.text", "African Elephant")
       cy.get('[data-testid="case-card-attr-value"]').eq(0).click()
@@ -115,8 +145,14 @@ context("case card", () => {
       cy.get('[data-testid="case-card-attr-value"]').eq(0).click()
       cy.get('[data-testid="case-card-attr-value-text-editor"]').eq(0).type("{esc}")
       cy.get('[data-testid="case-card-attr-value"]').eq(0).should("contain.text", "Wooly Mammoth")
+
+      // Undo/redo check after editing an attribute value
+      toolbar.getUndoTool().click()
+      cy.get('[data-testid="case-card-attr-value"]').eq(0).should("contain.text", "African Elephant")
+      toolbar.getRedoTool().click()
+      cy.get('[data-testid="case-card-attr-value"]').eq(0).should("contain.text", "Wooly Mammoth")
     })
-    it("allows the user to add a new case", () => {
+    it("allows the user to add a new case with undo/redo", () => {
       const rootCollectionTitle = "Diets"
       table.moveAttributeToParent("Order", "newCollection")
       cy.wait(500)
@@ -142,6 +178,24 @@ context("case card", () => {
                                                  .eq(0).should("have.text", rootCollectionTitle)
       cy.get('[data-testid="case-card-view"]').eq(2).find('[data-testid="case-card-attr-value"]')
                                                  .eq(0).should("have.text", "")
+
+      // Check for undo/redo after adding a new case
+      toolbar.getUndoTool().click()
+      toolbar.getUndoTool().click()
+      cy.get('[data-testid="case-card-view"]').eq(1).find('[data-testid="case-card-view-index"]')
+                                                  .eq(0).should("have.text", "1 of 4")
+      toolbar.getRedoTool().click()
+      toolbar.getRedoTool().click()
+      cy.get('[data-testid="case-card-view"]').eq(1).find('[data-testid="case-card-view-index"]')
+                                                  .eq(0).should("have.text", "5 of 5")
+
+      // Check for undo/redo after editing a case attribute value
+      toolbar.getUndoTool().click()
+      cy.get('[data-testid="case-card-view"]').eq(1).find('[data-testid="case-card-attr-value"]')
+                                                  .eq(0).should("not.contain.text", "New Order")
+      toolbar.getRedoTool().click()
+      cy.get('[data-testid="case-card-view"]').eq(1).find('[data-testid="case-card-attr-value"]')
+                                                  .eq(0).should("contain.text", "New Order")
     })
   })
   it("allows a user to drag an attribute to a new collection", () => {

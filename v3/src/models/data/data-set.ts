@@ -702,10 +702,10 @@ export const DataSet = V2Model.named("DataSet").props({
       },
       getValueAtItemIndex(index: number, attributeID: string) {
         if (self.isCaching()) {
-          const caseID = self.items[index]?.__id__
-          const cachedCase = self.itemCache.get(caseID)
-          if (cachedCase && Object.prototype.hasOwnProperty.call(cachedCase, attributeID)) {
-            return cachedCase[attributeID]
+          const itemId = self.items[index]?.__id__
+          const cachedItem = self.itemCache.get(itemId)
+          if (cachedItem && Object.prototype.hasOwnProperty.call(cachedItem, attributeID)) {
+            return cachedItem[attributeID]
           }
         }
         const attr = self.getAttribute(attributeID)
@@ -717,10 +717,10 @@ export const DataSet = V2Model.named("DataSet").props({
       },
       getStrValueAtItemIndex(itemIndex: number, attributeID: string) {
         if (self.isCaching()) {
-          const caseID = self.items[itemIndex]?.__id__
-          const cachedCase = self.itemCache.get(caseID)
-          if (cachedCase && Object.prototype.hasOwnProperty.call(cachedCase, attributeID)) {
-            return cachedCase[attributeID]?.toString()
+          const itemId = self.items[itemIndex]?.__id__
+          const cachedItem = self.itemCache.get(itemId)
+          if (cachedItem && Object.prototype.hasOwnProperty.call(cachedItem, attributeID)) {
+            return cachedItem[attributeID]?.toString()
           }
         }
         const attr = self.getAttribute(attributeID)
@@ -732,10 +732,10 @@ export const DataSet = V2Model.named("DataSet").props({
       },
       getNumericAtItemIndex(index: number, attributeID: string) {
         if (self.isCaching()) {
-          const caseID = self.items[index]?.__id__
-          const cachedCase = self.itemCache.get(caseID)
-          if (cachedCase && Object.prototype.hasOwnProperty.call(cachedCase, attributeID)) {
-            return Number(cachedCase[attributeID])
+          const itemId = self.items[index]?.__id__
+          const cachedItem = self.itemCache.get(itemId)
+          if (cachedItem && Object.prototype.hasOwnProperty.call(cachedItem, attributeID)) {
+            return Number(cachedItem[attributeID])
           }
         }
         const attr = self.getAttribute(attributeID)
@@ -908,12 +908,12 @@ export const DataSet = V2Model.named("DataSet").props({
           if (afterCaseItemIndex) return afterCaseItemIndex + 1
         }
         const afterPosition = getAfterPosition()
-        const insertPosition = beforePosition ?? afterPosition ?? self.items.length
+        const insertPosition = beforePosition ?? afterPosition ?? self._itemIds.length
 
         // insert/append cases and empty values
         const ids = cases.map(({ __id__ = v3Id(kItemIdPrefix) }) => __id__)
         const _values = new Array(cases.length)
-        if (insertPosition < self.items.length) {
+        if (insertPosition < self._itemIds.length) {
           self._itemIds.splice(insertPosition, 0, ...ids)
           // update the indices of cases after the insert
           self.itemInfoMap.forEach((itemInfo, caseId) => {
@@ -930,7 +930,7 @@ export const DataSet = V2Model.named("DataSet").props({
           self._itemIds.push(...ids)
           // append values to each attribute
           self.attributesMap.forEach(attr => {
-            attr.setLength(self.items.length)
+            attr.setLength(self._itemIds.length)
           })
         }
         // add the itemInfo for the appended cases
@@ -1124,13 +1124,13 @@ export const DataSet = V2Model.named("DataSet").props({
     })
 
     // build itemIDMap
-    self.items.forEach((aCase, index) => {
-      self.itemInfoMap.set(aCase.__id__, { index, caseIds: [] })
+    self._itemIds.forEach((itemId, index) => {
+      self.itemInfoMap.set(itemId, { index, caseIds: [] })
     })
 
     // make sure attributes have appropriate length, including attributes with formulas
     self.attributesMap.forEach(attr => {
-      attr.setLength(self.items.length)
+      attr.setLength(self._itemIds.length)
     })
 
     // add initial collection if not already present

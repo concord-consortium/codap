@@ -23,6 +23,26 @@ export class UIState {
     otherValues: false
   }
 
+  // Values used by the Collaborative plugin to ensure a shared table does not change while a user is editing it
+
+  // True if the user is editing a cell in a table.
+  @observable
+  private _isEditingCell = false
+
+  // True if the user is currently editing a table that blocks API requests,
+  // preventing the table from changing out from under the user.
+  @observable
+  private _isEditingBlockingCell = false
+
+  // True if _isEditingCell was true before being interrupted (e.g. by API processing).
+  @observable
+  private _wasEditingCellBeforeInterruption = false
+
+  // The number of editing interruptions (e.g. processing API requests) that have occurred.
+  // This triggers refreshes to the selected cell after delayed API requests have been processed.
+  @observable
+  private _interruptionCount = 0
+
   constructor() {
     makeObservable(this)
   }
@@ -33,6 +53,22 @@ export class UIState {
 
   get hoveredTile() {
     return this.hoverTileId
+  }
+
+  get isEditingCell() {
+    return this._isEditingCell
+  }
+
+  get isEditingBlockingCell() {
+    return this._isEditingBlockingCell
+  }
+
+  get wasEditingCellBeforeInterruption() {
+    return this._wasEditingCellBeforeInterruption
+  }
+
+  get interruptionCount() {
+    return this._interruptionCount
   }
 
   isFocusedTile(tileId?: string) {
@@ -51,6 +87,36 @@ export class UIState {
   @action
   setHoveredTile(tileId = "") {
     this.hoverTileId = tileId
+  }
+
+  @action
+  setIsEditingCell(isEditing: boolean) {
+    if (!isEditing) {
+      this._isEditingBlockingCell = false
+    }
+    this._isEditingCell = isEditing
+  }
+
+  @action
+  setIsEditingBlockingCell() {
+    this._isEditingBlockingCell = true
+  }
+
+  @action
+  captureEditingStateBeforeInterruption() {
+    if (this.isEditingCell) {
+      this._wasEditingCellBeforeInterruption = true
+    }
+  }
+
+  @action
+  clearEditingStateAfterInterruption() {
+    this._wasEditingCellBeforeInterruption = false
+  }
+
+  @action
+  incrementInterruptionCount() {
+    this._interruptionCount += 1
   }
 
   @action setAttrIdToEdit(attrId?: string) {

@@ -8,6 +8,23 @@ const kDefaultRowHeight = 18
 const kDefaultRowCount = 12
 const kDefaultGridHeight = kDefaultRowHeaderHeight + (kDefaultRowCount * kDefaultRowHeight)
 
+interface IScrollOptions {
+  // "auto" moves immediately; "smooth" animates
+  scrollBehavior?: "auto" | "smooth"
+}
+
+function wrapScrollBehavior(element: HTMLElement, fn: (element: HTMLElement) => void, options?: IScrollOptions) {
+  if (options?.scrollBehavior) {
+    const origScrollBehavior = element.style.scrollBehavior
+    element.style.scrollBehavior = options.scrollBehavior
+    fn(element)
+    element.style.scrollBehavior = origScrollBehavior
+  }
+  else {
+    fn(element)
+  }
+}
+
 export class CollectionTableModel {
   collectionId: string
   // RDG grid element
@@ -209,45 +226,42 @@ export class CollectionTableModel {
     this.scrollTop = scrollTop
   }
 
-  setElementScrollTop(scrollTop: number) {
+  setElementScrollTop(scrollTop: number, options?: IScrollOptions) {
     if (this.element) {
-      this.scrollStep = this.lastScrollStep = 0
-      this.element.scrollTop = scrollTop
+      wrapScrollBehavior(this.element, element => {
+        this.scrollStep = this.lastScrollStep = 0
+        element.scrollTop = scrollTop
+      }, options)
     }
   }
 
-  @action setTargetScrollTop(scrollTop: number) {
+  @action setTargetScrollTop(scrollTop: number, options?: IScrollOptions) {
     this.targetScrollTop = scrollTop
-    this.setElementScrollTop(scrollTop)
+    this.setElementScrollTop(scrollTop, options)
   }
 
   syncScrollTopToElement() {
-    if (this.element) {
-      const scrollBehavior = this.element.style.scrollBehavior
-      // turn off smooth scrolling for this sync
-      this.element.style.scrollBehavior = "auto"
-      this.setElementScrollTop(this.scrollTop)
-      this.element.style.scrollBehavior = scrollBehavior
-    }
+    // turn off smooth scrolling for this sync
+    this.setElementScrollTop(this.scrollTop, { scrollBehavior: "auto" })
   }
 
-  scrollRowToTop(rowIndex: number) {
+  scrollRowToTop(rowIndex: number, options?: IScrollOptions) {
     if (!this.element) return
-    this.setTargetScrollTop(rowIndex * this.rowHeight)
+    this.setTargetScrollTop(rowIndex * this.rowHeight, options)
   }
 
-  scrollRowToBottom(rowIndex: number) {
+  scrollRowToBottom(rowIndex: number, options?: IScrollOptions) {
     if (!this.element) return
-    this.setTargetScrollTop(Math.max(0, (rowIndex + 1) * this.rowHeight - this.gridBodyHeight))
+    this.setTargetScrollTop(Math.max(0, (rowIndex + 1) * this.rowHeight - this.gridBodyHeight), options)
   }
 
-  scrollRowIntoView(rowIndex: number) {
+  scrollRowIntoView(rowIndex: number, options?: IScrollOptions) {
     if (!this.element) return
     if (rowIndex < this.firstVisibleRowIndex) {
-      this.scrollRowToTop(rowIndex)
+      this.scrollRowToTop(rowIndex, options)
     }
     else if (rowIndex > this.lastVisibleRowIndex) {
-      this.scrollRowToBottom(rowIndex)
+      this.scrollRowToBottom(rowIndex, options)
     }
   }
 

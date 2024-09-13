@@ -21,8 +21,15 @@ export const TableTileElements = {
     return this.getCollection(collectionIndex).find("[data-testid=collection-table-grid]")
       .invoke("attr", "aria-rowcount")
   },
+  getSelectedRows(collectionIndex = 1) {
+    return this.getCollection(collectionIndex)
+            .find(`[data-testid=collection-table-grid] [role="row"][aria-selected="true"]`)
+  },
   getCollection(collectionIndex = 1) {
     return this.getTableTile().find(`.collection-table:nth-child(${collectionIndex})`)
+  },
+  getCollectionSpacer(collectionIndex = 1) {
+    return this.getCollection(collectionIndex).find(".collection-table-spacer")
   },
   getCollectionTitle(collectionIndex = 1) {
     return this.getCollection(collectionIndex).find(".collection-title")
@@ -311,7 +318,7 @@ export const TableTileElements = {
   getPreviousCollectionHeader() {
     return cy.get(".collection-table:nth-child(1) .codap-column-header:nth-child(2)")
   },
-  verifyExpandAllGroupseButton(collectionIndex = 1) {
+  verifyExpandAllGroupsButton(collectionIndex = 1) {
     this.getExpandAllGroupsButton(collectionIndex).should("exist")
   },
   verifyCollapseAllGroupsButton(collectionIndex = 1) {

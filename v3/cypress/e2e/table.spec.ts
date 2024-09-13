@@ -127,6 +127,12 @@ context("case table ui", () => {
       })
 
       table.getGridCell(2, 2).should("contain", "African Elephant").click({ force: true })
+      table.getSelectedRows().should("have.length", 1)
+      table.getCollectionSpacer().click()
+      table.getSelectedRows().should("have.length", 0)
+
+      table.getGridCell(2, 2).should("contain", "African Elephant").click({ force: true })
+      table.getSelectedRows().should("have.length", 1)
       table.getDeleteCasesButton().click({force: true})
       table.getDeleteMenuItem("Delete Selected Cases").click({force: true})
 

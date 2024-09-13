@@ -9,6 +9,7 @@ import { measureText } from "../../hooks/use-measure-text"
 import { useVisibleAttributes } from "../../hooks/use-visible-attributes"
 import { logMessageWithReplacement } from "../../lib/log-message"
 import { IDataSet } from "../../models/data/data-set"
+import { selectAllCases } from "../../models/data/data-set-utils"
 // import { getNumericCssVariable } from "../../utilities/css-utils"
 import { preventAttributeMove, preventCollectionReorg } from "../../utilities/plugin-utils"
 import { t } from "../../utilities/translation/translate"
@@ -100,7 +101,8 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({ s
     caseMetadata?.applyModelChange(() => {
       parentCases?.forEach((value) => caseMetadata?.setIsCollapsed(value.__id__, !everyCaseIsCollapsed))
     }, {
-      log: logMessageWithReplacement("%@ all", { state: everyCaseIsCollapsed ? "Expand" : "Collapse" }),
+      log: logMessageWithReplacement("%@ all",
+              { state: everyCaseIsCollapsed ? "Expand" : "Collapse" }, "table"),
       undoStringKey: "DG.Undo.caseTable.groupToggleExpandCollapseAll",
       redoStringKey: "DG.Redo.caseTable.groupToggleExpandCollapseAll"
     })
@@ -114,7 +116,7 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({ s
       undoStringKey: "DG.Undo.caseTable.expandCollapseOneCase",
       redoStringKey: "DG.Redo.caseTable.expandCollapseOneCase",
       log: logMessageWithReplacement("%@ case %@",
-              { state: caseMetadata?.isCollapsed(parentCaseId) ? "Expand" : "Collapse", parentCaseId })
+              { state: caseMetadata?.isCollapsed(parentCaseId) ? "Expand" : "Collapse", parentCaseId}, "table")
     })
     // scroll to the first expanded/collapsed child case (if necessary)
     const parentCase = data?.caseInfoMap.get(parentCaseId)
@@ -123,11 +125,17 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({ s
     ;(rowIndex >= 0) && childTableModel?.scrollRowIntoView(rowIndex)
   }
 
+  function handleBackgroundClick() {
+    data?.applyModelChange(() => {
+      selectAllCases(data, false)
+    })
+  }
+
   const topTooltipKey = `DG.CaseTable.dividerView.${everyCaseIsCollapsed ? 'expandAllTooltip' : 'collapseAllTooltip'}`
   const topButtonTooltip = t(topTooltipKey)
 
   return (
-    <div className={classes} ref={handleRef}>
+    <div className={classes} ref={handleRef} onClick={handleBackgroundClick}>
       {parentCollectionId && parentTableModel && childTableModel && visibleParentAttributes.length > 0 &&
         <>
           <div className="spacer-top">

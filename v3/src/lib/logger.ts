@@ -1,6 +1,7 @@
 import { nanoid } from "nanoid"
 import { debugLog, DEBUG_LOGGER } from "./debug"
 import { IDocumentModel } from "../models/document/document"
+import { AnalyticsCategory, mockGA } from "./analytics"
 
 // Set to true (temporarily) to debug logging to server specifically.
 // Otherwise, we assume that console.logs are sufficient.
@@ -34,8 +35,19 @@ interface PendingMessage {
   time: number
   event: string
   documentTitle: string
+  category: AnalyticsCategory
   event_value?: string
   parameters?: Record<string, unknown>
+}
+
+interface IGAData {
+  readonly eventCategory: AnalyticsCategory;
+  readonly eventAction: string;
+  readonly eventLabel: string;
+}
+
+interface IAnalyticsService {
+  gtag?: (type: "event", event: string, data: IGAData) => void;
 }
 
 type ILogListener = (logMessage: LogMessage) => void
@@ -63,17 +75,17 @@ export class Logger {
     }
   }
 
-  public static log(event: string, args?: Record<string, unknown>) {
+  public static log(event: string, args?: Record<string, unknown>, category: AnalyticsCategory = "general") {
     if (!this._instance) return
 
     const time = Date.now() // eventually we will want server skew (or to add this via FB directly)
     const documentTitle = this._instance.document.title || "Untitled Document"
     if (this._instance) {
-      this._instance.formatAndSend(time, event, documentTitle, args)
+      this._instance.formatAndSend(time, event, documentTitle, category, args)
     } else {
       debugLog(DEBUG_LOGGER, "Queueing log message for later delivery", event)
       const event_value = args ? JSON.stringify(args) : undefined
-      this.pendingMessages.push({ time, event, documentTitle, event_value, parameters: args })
+      this.pendingMessages.push({ time, event, documentTitle, category, event_value, parameters: args })
     }
   }
 
@@ -81,7 +93,7 @@ export class Logger {
     if (!this._instance) return
     for (const message of this.pendingMessages) {
       this._instance.formatAndSend(message.time, message.event, message.documentTitle,
-                                    message.parameters)
+                                    message.category, message.parameters)
     }
     this.pendingMessages = []
   }
@@ -97,9 +109,7 @@ export class Logger {
   private session: string
   private logListeners: ILogListener[] = []
 
-  // private constructor(stores: IStores, appContext = {}) {
   private constructor(document: IDocumentModel) {
-    // this.stores = stores
     this.document = document
     this.session = nanoid()
   }
@@ -108,15 +118,15 @@ export class Logger {
     this.logListeners.push(listener)
   }
 
-  private formatAndSend(time: number, event: string, documentTitle: string, args?: Record<string, unknown>) {
+  private formatAndSend(
+    time: number, event: string, documentTitle: string,
+    category: AnalyticsCategory = "general", args?: Record<string, unknown>,
+  ) {
     const event_value = JSON.stringify(args)
     const logMessage = this.createLogMessage(time, event, documentTitle, event_value, args)
     debugLog(DEBUG_LOGGER, "logMessage:", logMessage)
-    // sendToLoggingService(logMessage, this.stores.user)
     sendToLoggingService(logMessage)
-    // for (const listener of this.logListeners) {
-    //   listener(logMessage)
-    // }
+    sendToAnalyticsService(event, category)
   }
 
   private createLogMessage(
@@ -162,4 +172,25 @@ function sendToLoggingService(data: LogMessage) {
   request.open("POST", url, true)
   request.setRequestHeader("Content-Type", "application/json; charset=UTF-8")
   request.send(JSON.stringify(data))
+}
+
+function sendToAnalyticsService(event: string, category: AnalyticsCategory) {
+  const windowWithPossibleGa = (window as IAnalyticsService)
+
+  const payload: IGAData = {
+    eventCategory: category,
+    eventAction: event,
+    eventLabel: "CODAPV3"
+  }
+
+  try {
+    const gtagFunction = (Logger.isLoggingEnabled && DEBUG_LOG_TO_SERVER &&
+                              windowWithPossibleGa.gtag instanceof Function)
+                          ? windowWithPossibleGa.gtag
+                          : mockGA.gtag
+
+    gtagFunction("event", event, payload)
+  } catch (e) {
+    console.error("Unable to send Google Analytics:", e)
+  }
 }

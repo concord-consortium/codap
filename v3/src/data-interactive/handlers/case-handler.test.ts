@@ -1,4 +1,4 @@
-import { toV2Id, toV3ItemId } from "../../utilities/codap-utils"
+import { toV2Id, toV3CaseId, toV3ItemId } from "../../utilities/codap-utils"
 import { DINewCase, DISuccessResult, DIValues } from "../data-interactive-types"
 import { diCaseHandler } from "./case-handler"
 import { setupTestDataset } from "./handler-test-utils"
@@ -9,13 +9,15 @@ describe("DataInteractive CaseHandler", () => {
   it("create works as expected", () => {
     const { dataset, c1, c2 } = setupTestDataset()
 
-    const oldCaseIds = dataset.items.map(c => toV2Id(c.__id__))
+    const oldCaseIds = new Set(Array.from(dataset.caseInfoMap.values()).map(aCase => toV2Id(aCase.groupedCase.__id__)))
+    const oldItemIds = new Set(dataset.items.map(item => toV2Id(item.__id__)))
     const confirmNewCase = (newCase: DINewCase) => {
+      expect(newCase.id).toBeDefined()
       expect(newCase.itemID).toBeDefined()
-      expect(oldCaseIds.includes(newCase.itemID!)).toBe(false)
+      expect(oldCaseIds.has(newCase.id!)).toBe(false)
+      expect(oldItemIds.has(newCase.itemID!)).toBe(false)
+      expect(dataset.caseInfoMap.get(toV3CaseId(newCase.id!))).toBeDefined()
       expect(dataset.getItem(toV3ItemId(newCase.itemID!))).toBeDefined()
-
-      // TODO Check newCase.id
     }
 
     expect(handler.create?.({}).success).toBe(false)
