@@ -44,8 +44,15 @@ describe("Logger", () => {
 
     const formatAndSendSpy = jest.spyOn(logger as any, "formatAndSend")
 
+    const consoleDebugSpy = jest.spyOn(console, "debug").mockImplementation(() => null)
+    const consoleGroupSpy = jest.spyOn(console, "group").mockImplementation(() => null)
+
     Logger.log(event, args)
 
     expect(formatAndSendSpy).toHaveBeenCalledWith(expect.any(Number), event, documentTitle, category, args)
+
+    consoleGroupSpy.mockRestore()
+    consoleDebugSpy.mockRestore()
+    formatAndSendSpy.mockRestore()
   })
 })
