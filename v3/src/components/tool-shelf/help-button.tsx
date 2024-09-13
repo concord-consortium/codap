@@ -56,17 +56,17 @@ export const HelpShelfButton = () => {
             label={t("DG.ToolButtonData.help.title")}
           />
         </MenuButton>
-        <MenuList>
-          <MenuItem data-testid="tool-shelf-button-help" onClick={handleShowHelp}>
+        <MenuList data-testid="help-menu">
+          <MenuItem data-testid="help-menu-help-page" onClick={handleShowHelp}>
             {t("DG.AppController.optionMenuItems.help")}
           </MenuItem>
-          <MenuItem data-testid="tool-shelf-button-web-view" onClick={()=>window.open(showHelpForumURL)}>
+          <MenuItem data-testid="help-menu-forum-page" onClick={()=>window.open(showHelpForumURL)}>
             {t("DG.AppController.optionMenuItems.help-forum")}
           </MenuItem>
-          <MenuItem data-testid="tool-shelf-button-web-view" onClick={()=>window.open(showWebSiteURL)}>
+          <MenuItem data-testid="help-menu-project-page" onClick={()=>window.open(showWebSiteURL)}>
             {t("DG.AppController.optionMenuItems.toWebSite")}
           </MenuItem>
-          <MenuItem data-testid="tool-shelf-button-web-view" onClick={()=>window.open(showPrivacyURL)}>
+          <MenuItem data-testid="help-menu-privacy-page" onClick={()=>window.open(showPrivacyURL)}>
             {t("DG.AppController.optionMenuItems.toPrivacyPage")}
           </MenuItem>
         </MenuList>
