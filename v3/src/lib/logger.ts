@@ -186,9 +186,9 @@ function sendToAnalyticsService(event: string, category: AnalyticsCategory) {
   try {
     let gtagFunction
     if (Logger.isLoggingEnabled && DEBUG_LOG_TO_SERVER && windowWithPossibleGa.gtag instanceof Function) {
-      gtagFunction = windowWithPossibleGa.gtag;
+      gtagFunction = windowWithPossibleGa.gtag
     } else if (DEBUG_LOGGER && mockGA.gtag instanceof Function) {
-      gtagFunction = mockGA.gtag;
+      gtagFunction = mockGA.gtag
     } else {
       return
     }
