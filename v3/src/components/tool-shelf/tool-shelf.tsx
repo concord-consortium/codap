@@ -18,6 +18,7 @@ import { t } from "../../utilities/translation/translate"
 import { OptionsShelfButton } from "./options-button"
 import { TilesListShelfButton } from "./tiles-list-button"
 import { PluginsButton } from "./plugins-button"
+import { HelpShelfButton } from "./help-button"
 import { kRightButtonBackground, ToolShelfButton, ToolShelfTileButton } from "./tool-shelf-button"
 import { logMessageWithReplacement } from "../../lib/log-message"
 
@@ -92,7 +93,8 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
     {
       icon: <HelpIcon className="icon-help"/>,
       label: t("DG.ToolButtonData.help.title"),
-      hint: t("DG.ToolButtonData.help.toolTip")
+      hint: t("DG.ToolButtonData.help.toolTip"),
+      button: <HelpShelfButton key={t("DG.ToolButtonData.help.title")} />
     },
     {
       icon: <GuideIcon className="icon-guide"/>,
