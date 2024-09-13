@@ -4,6 +4,8 @@ import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useLoggingContext } from "../../hooks/use-log-context"
 import { logStringifiedObjectMessage } from "../../lib/log-message"
 import { selectAllCases } from "../../models/data/data-set-utils"
+import { uiState } from "../../models/ui-state"
+import { blockAPIRequestsWhileEditing } from "../../utilities/plugin-utils"
 import { TRenderEditCellProps } from "./case-table-types"
 
 /*
@@ -29,16 +31,27 @@ export default function CellTextEditor({ row, column, onRowChange, onClose }: TR
   const initialValueRef = useRef(data?.getStrValue(row.__id__, column.key))
   const valueRef = useRef(initialValueRef.current)
   const { setPendingLogMessage } = useLoggingContext()
+  const blockAPIRequests = blockAPIRequestsWhileEditing(data)
 
   useEffect(()=>{
     selectAllCases(data, false)
   }, [data])
+
+  // Inform the ui that we're editing a table while this component exists.
+  useEffect(() => {
+    uiState.setIsEditingCell(true)
+    return () => uiState.setIsEditingCell(false)
+  }, [])
 
   const handleChange = (value: string) => {
     valueRef.current = value
     onRowChange({ ...row, [column.key]: value })
     setPendingLogMessage("editCellValue", logStringifiedObjectMessage("editCellValue: %@",
       {attrId: column.key, caseId: row.__id__, from: initialValueRef.current, to: valueRef.current }))
+    if (blockAPIRequests && value !== initialValueRef.current) {
+      // Only block API requests if the user has actually changed the value.
+      uiState.setIsEditingBlockingCell()
+    }
   }
 
   return (
