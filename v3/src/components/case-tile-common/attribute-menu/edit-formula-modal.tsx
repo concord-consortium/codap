@@ -38,7 +38,7 @@ export const EditFormulaModal = observer(function EditFormulaModal({ attributeId
           updateAttributesNotification([attribute], dataSet)
         ],
         undoStringKey: "DG.Undo.caseTable.editAttributeFormula",
-        redoStringKey: "DG.Redo.caseTable.createAttribute",
+        redoStringKey: "DG.Redo.caseTable.editAttributeFormula",
         log: logStringifiedObjectMessage("Edit attribute formula: %@",
               {name: attribute.name, collection: dataSet?.getCollectionForAttribute(attributeId)?.name, formula},
               "data")

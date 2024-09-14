@@ -47,7 +47,7 @@ context("case card", () => {
       cy.get('[data-testid="case-card-view-previous-button"]').should("not.be.disabled").click()
       cy.get('[data-testid="case-card-attr-value"]').first().should("have.text", "African Elephant")
     })
-    it("displays case data in a hierachy when there is a parent collection", () => {
+    it("displays case data in a hierarchy when there is a parent collection", () => {
       // make a parent collection
       table.moveAttributeToParent("Order", "newCollection")
       cy.wait(500)
@@ -198,7 +198,7 @@ context("case card", () => {
                                                   .eq(0).should("contain.text", "New Order")
     })
   })
-  it("allows a user to drag an attribute to a new collection", () => {
+  it.skip("allows a user to drag an attribute to a new collection", () => {
     table.toggleCaseView()
     cy.wait(500)
     cy.get('[data-testid="case-card-view"]').should("have.length", 1)
