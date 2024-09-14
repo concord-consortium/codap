@@ -38,14 +38,15 @@ export const ComponentTitleBar = observer(function ComponentTitleBar({
   }
 
   const handleSubmit = (nextValue: string) => {
+    // if the title is blank, show a placeholder
+    const nextTitle = nextValue === "" ? "_____": nextValue
     if (!preventTitleChange) {
       if (onHandleTitleChange) {
-        onHandleTitleChange(nextValue)
+        onHandleTitleChange(nextTitle)
       } else {
-        handleChangeTitle(nextValue)
+        handleChangeTitle(nextTitle)
       }
-      // Assume the title was successfully changed if nextValue is not empty.
-      setEditingTitle(nextValue || title)
+      setEditingTitle(nextTitle)
       setIsEditing(false)
     }
   }
@@ -59,6 +60,12 @@ export const ComponentTitleBar = observer(function ComponentTitleBar({
     if (!preventTitleChange) {
       setIsEditing(true)
       setEditingTitle(title)
+    }
+  }
+  const handleBlankTitleClick = () => {
+    if (!preventTitleChange) {
+      setIsEditing(true)
+      setEditingTitle("")
     }
   }
 
@@ -86,7 +93,8 @@ export const ComponentTitleBar = observer(function ComponentTitleBar({
               onChange={(e) => setEditingTitle(e.target.value)} onBlur={() => handleSubmit(editingTitle)}
               onFocus={(e) => e.target.select()} onKeyDown={handleInputKeyDown}
             />
-          : <div className="title-text" data-testid="title-text" onClick={handleTitleClick}>{title}</div>
+          : title ? <div className="title-text" data-testid="title-text" onClick={handleTitleClick}>{title}</div>
+                  : <div className="title-text" data-testid="title-text" onClick={handleBlankTitleClick}>_____</div>
         }
       </div>
       <Flex className={clsx("header-right", { disabled: isEditing })}>
