@@ -111,9 +111,9 @@ context("codap toolbar", () => {
   it('will show the help pages', ()=>{
     c.getIconFromToolShelf("help").click()
     toolbar.getHelpMenu().should("be.visible")
-    toolbar.getHelpMenuItem("help").eq(0).should("contains.text", "Help Pages and Videos")
-    toolbar.getHelpMenuItem("forum").eq(1).should("contains.text", "Help Forum")
-    toolbar.getHelpMenuItem("project").eq(2).should("contains.text", "CODAP Website")
-    toolbar.getHelpMenuItem("privacy").eq(3).should("contains.text", "Privacy Policy")
+    toolbar.getHelpMenuItem("help").should("contains.text", "Help Pages and Videos")
+    toolbar.getHelpMenuItem("forum").should("contains.text", "Help Forum")
+    toolbar.getHelpMenuItem("project").should("contains.text", "The CODAP Project")
+    toolbar.getHelpMenuItem("privacy").should("contains.text", "Privacy Page")
   })
 })
