@@ -184,10 +184,14 @@ function sendToAnalyticsService(event: string, category: AnalyticsCategory) {
   }
 
   try {
-    const gtagFunction = (Logger.isLoggingEnabled && DEBUG_LOG_TO_SERVER &&
-                              windowWithPossibleGa.gtag instanceof Function)
-                          ? windowWithPossibleGa.gtag
-                          : mockGA.gtag
+    let gtagFunction
+    if (Logger.isLoggingEnabled && DEBUG_LOG_TO_SERVER && windowWithPossibleGa.gtag instanceof Function) {
+      gtagFunction = windowWithPossibleGa.gtag
+    } else if (DEBUG_LOGGER && mockGA.gtag instanceof Function) {
+      gtagFunction = mockGA.gtag
+    } else {
+      return
+    }
 
     gtagFunction("event", event, payload)
   } catch (e) {
