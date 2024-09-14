@@ -58,6 +58,7 @@ import {
 } from "./data-set-types"
 // eslint-disable-next-line import/no-cycle
 import { isLegacyDataSetSnap, isOriginalDataSetSnap, isTempDataSetSnap } from "./data-set-conversion"
+import { Formula } from "../formula/formula"
 import { applyModelChange } from "../history/apply-model-change"
 import { withoutUndo } from "../history/without-undo"
 import { kAttrIdPrefix, kItemIdPrefix, typeV3Id, v3Id } from "../../utilities/codap-utils"
@@ -139,7 +140,8 @@ export const DataSet = V2Model.named("DataSet").props({
   // for serialization only, not for dynamic selection tracking
   snapSelection: types.array(types.string),
   // hidden by user, e.g. set-aside in CODAP
-  hiddenItemIds: types.array(types.string)
+  hiddenItemIds: types.array(types.string),
+  filterFormula: types.maybe(Formula)
 })
 .volatile(self => ({
   // map from attribute name to attribute id
@@ -274,8 +276,19 @@ export const DataSet = V2Model.named("DataSet").props({
     return caseInfo?.childItemIds.every(itemId => self.hiddenItemIdsSet.has(itemId)) ??
             self.hiddenItemIdsSet.has(caseOrItemId)
   },
-  get itemIds() {
+  // ids of items that have not been hidden (set aside) by user
+  get _unhiddenItemIds() {
     return self._itemIds.filter(itemId => !self.hiddenItemIdsSet.has(itemId))
+  },
+  isPassedByFilter(itemId: string) {
+    // evaluate filter for item (or retrieve cached value)
+    return true
+  }
+}))
+.views(self => ({
+  // ids of items that have not been hidden (set aside) or filtered by user
+  get itemIds() {
+    return self._unhiddenItemIds.filter(itemId => self.isPassedByFilter(itemId))
   }
 }))
 .views(self => ({
@@ -557,6 +570,14 @@ export const DataSet = V2Model.named("DataSet").props({
     } else {
       // show all hidden cases/items
       self.hiddenItemIds.clear()
+    }
+  },
+  setFilterFormula(display: string) {
+    if (!self.filterFormula) {
+      self.filterFormula = Formula.create({ display })
+    }
+    else {
+      self.filterFormula.setDisplayExpression(display)
     }
   }
 }))
