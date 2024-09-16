@@ -24,9 +24,10 @@ export const ComponentTitleBar = observer(function ComponentTitleBar({
   const draggableOptions: IUseDraggableTile = { prefix: tileType || "tile", tileId, disabled: isEditing }
   const {attributes, listeners, setActivatorNodeRef} = useDraggableTile(draggableOptions)
   const classes = clsx("component-title-bar", `${tileType}-title-bar`, {focusTile: uiState.isFocusedTile(tile?.id)})
+  const blankTitle = "_____"
 
   const handleChangeTitle = (nextValue?: string) => {
-    if (tile != null && nextValue) {
+    if (tile != null && nextValue !== undefined) {
       tile.applyModelChange(() => {
         tile.setTitle(nextValue)
       }, {
@@ -39,12 +40,12 @@ export const ComponentTitleBar = observer(function ComponentTitleBar({
 
   const handleSubmit = (nextValue: string) => {
     // if the title is blank, show a placeholder
-    const nextTitle = nextValue === "" ? "_____": nextValue
+    const nextTitle = nextValue === "" ? blankTitle : nextValue
     if (!preventTitleChange) {
       if (onHandleTitleChange) {
-        onHandleTitleChange(nextTitle)
+        onHandleTitleChange(nextValue)
       } else {
-        handleChangeTitle(nextTitle)
+        handleChangeTitle(nextValue)
       }
       setEditingTitle(nextTitle)
       setIsEditing(false)
@@ -60,12 +61,6 @@ export const ComponentTitleBar = observer(function ComponentTitleBar({
     if (!preventTitleChange) {
       setIsEditing(true)
       setEditingTitle(title)
-    }
-  }
-  const handleBlankTitleClick = () => {
-    if (!preventTitleChange) {
-      setIsEditing(true)
-      setEditingTitle("")
     }
   }
 
@@ -93,8 +88,9 @@ export const ComponentTitleBar = observer(function ComponentTitleBar({
               onChange={(e) => setEditingTitle(e.target.value)} onBlur={() => handleSubmit(editingTitle)}
               onFocus={(e) => e.target.select()} onKeyDown={handleInputKeyDown}
             />
-          : title ? <div className="title-text" data-testid="title-text" onClick={handleTitleClick}>{title}</div>
-                  : <div className="title-text" data-testid="title-text" onClick={handleBlankTitleClick}>_____</div>
+          : <div className="title-text" data-testid="title-text" onClick={handleTitleClick}>
+              { title && title !== "" ? title :  blankTitle }
+            </div>
         }
       </div>
       <Flex className={clsx("header-right", { disabled: isEditing })}>
