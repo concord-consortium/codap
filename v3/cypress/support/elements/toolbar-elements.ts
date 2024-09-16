@@ -46,5 +46,11 @@ export const ToolbarElements = {
  },
  getRedoTool() {
     return cy.get('[data-testid="tool-shelf-button-redo"]')
+ },
+ getHelpMenu() {
+    return cy.get('[data-testid="help-menu"]')
+ },
+ getHelpMenuItem(item: string) {
+    return cy.get(`[data-testid="help-menu-${item}-page"]`)
  }
 }

@@ -3,11 +3,9 @@ import { Menu, MenuButton, MenuItem, MenuList, useDisclosure } from "@chakra-ui/
 import OptionsIcon from "../../assets/icons/icon-options.svg"
 import { useDocumentContent } from "../../hooks/use-document-content"
 import { t } from "../../utilities/translation/translate"
-import { kWebViewTileType } from "../web-view/web-view-defs"
-import { isWebViewModel } from "../web-view/web-view-model"
 import { WebViewUrlModal } from "../web-view/web-view-url-modal"
 import { kRightButtonBackground, ToolShelfButtonTag } from "./tool-shelf-button"
-import { logMessageWithReplacement } from "../../lib/log-message"
+import { showWebView } from "./tool-shelf-utilities"
 
 import "./tool-shelf.scss"
 
@@ -24,14 +22,7 @@ export const OptionsShelfButton = () => {
   }
 
   const handleSetWebViewUrlAccept = (url: string) => {
-    documentContent?.applyModelChange(() => {
-      const tile = documentContent?.createOrShowTile?.(kWebViewTileType)
-      isWebViewModel(tile?.content) && tile?.content.setUrl(url)
-    }, {
-      undoStringKey: "V3.Undo.webView.show",
-      redoStringKey: "V3.Redo.webView.show",
-      log: logMessageWithReplacement("Show web view: %@", {url}, "document")
-    })
+    showWebView(url, documentContent)
   }
   return (
     <>
