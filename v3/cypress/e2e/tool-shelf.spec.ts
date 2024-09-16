@@ -7,6 +7,12 @@ import { SliderTileElements as slider } from "../support/elements/slider-tile"
 import { CalculatorTileElements as calculator } from "../support/elements/calculator-tile"
 import { WebViewTileElements as webView } from "../support/elements/web-view-tile"
 
+const helpURL = 'https://codap.concord.org/help'
+const helpURL_ja = 'https://codap.concord.org/resources/latest/help-documents/CODAP解説書.pdf'
+const helpForumURL = 'https://codap.concord.org/forums/forum/test/'
+const projectWebSiteURL = 'https://codap.concord.org'
+const privacyURL = 'https://codap.concord.org/privacy'
+
 context("codap toolbar", () => {
   beforeEach(function () {
     const url = `${Cypress.config("index")}?mouseSensor`
@@ -108,7 +114,8 @@ context("codap toolbar", () => {
     toolbar.getTilesListMenuItem().eq(2).should("have.text", "Measurements")
     toolbar.getTilesListMenuItem().eq(3).should("have.text", "Getting Started")
   })
-  it('will show the help pages', ()=>{
+  it('will show the help pages list', ()=>{
+    cy.visit("#file=examples:Four%20Seals")
     c.getIconFromToolShelf("help").click()
     toolbar.getHelpMenu().should("be.visible")
     toolbar.getHelpMenuItem("help").should("contains.text", "Help Pages and Videos")
@@ -116,4 +123,34 @@ context("codap toolbar", () => {
     toolbar.getHelpMenuItem("project").should("contains.text", "The CODAP Project")
     toolbar.getHelpMenuItem("privacy").should("contains.text", "Privacy Page")
   })
+})
+
+context("Help Pages", () => {
+  beforeEach(() => {
+    cy.visit("#file=examples:Four%20Seals")
+    cy.window().then((win) => {
+      cy.stub(win, "open").as("windowOpen")
+    })
+  })
+  it('will open the help page', ()=>{
+    c.getIconFromToolShelf("help").click()
+    toolbar.getHelpMenuItem("help").click()
+    cy.get('@windowOpen').should('have.been.calledWith', helpURL)
+  })
+  it('will open the forum page', ()=>{
+    c.getIconFromToolShelf("help").click()
+    toolbar.getHelpMenuItem("forum").click()
+    cy.get('@windowOpen').should('have.been.calledWith', helpForumURL)
+  })
+  it('will open the project website', ()=>{
+    c.getIconFromToolShelf("help").click()
+    toolbar.getHelpMenuItem("project").click()
+    cy.get('@windowOpen').should('have.been.calledWith', projectWebSiteURL)
+  })
+  it('will open the privacy policy page', ()=>{
+    c.getIconFromToolShelf("help").click()
+    toolbar.getHelpMenuItem("privacy").click()
+    cy.get('@windowOpen').should('have.been.calledWith', privacyURL)
+  })
+  //TODO need to add test for the translated help page
 })

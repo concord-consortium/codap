@@ -8,14 +8,14 @@ import { showWebView } from "./tool-shelf-utilities"
 
 import "./tool-shelf.scss"
 
-const showHelpURL = 'https://codap.concord.org/help'
-const showHelpURL_ja = 'https://codap.concord.org/resources/latest/help-documents/CODAP解説書.pdf'
-const showHelpForumURL = 'https://codap.concord.org/forums/forum/test/'
-const showWebSiteURL = 'https://codap.concord.org'
-const showPrivacyURL = 'https://codap.concord.org/privacy'
+const helpURL = 'https://codap.concord.org/help'
+const helpURL_ja = 'https://codap.concord.org/resources/latest/help-documents/CODAP解説書.pdf'
+const helpForumURL = 'https://codap.concord.org/forums/forum/test/'
+const projectWebSiteURL = 'https://codap.concord.org'
+const privacyURL = 'https://codap.concord.org/privacy'
 
-const helpURLs: Record<string, string> = {
-  "ja": showHelpURL_ja
+const translatedHelpURLs: Record<string, string> = {
+  "ja": helpURL_ja
 }
 
 export const HelpShelfButton = () => {
@@ -23,12 +23,12 @@ export const HelpShelfButton = () => {
 
   const handleShowHelp = () => {
     const locale = getDefaultLanguage()
-    const url = helpURLs[locale]
+    const url = translatedHelpURLs[locale]
 
     if (url !== undefined) {
       showWebView(url, documentContent)
     } else {
-      window.open(showHelpURL, '_blank')
+      window.open(helpURL, '_blank')
     }
   }
 
@@ -51,13 +51,13 @@ export const HelpShelfButton = () => {
           <MenuItem data-testid="help-menu-help-page" onClick={handleShowHelp}>
             {t("DG.AppController.optionMenuItems.help")}
           </MenuItem>
-          <MenuItem data-testid="help-menu-forum-page" onClick={()=>window.open(showHelpForumURL)}>
+          <MenuItem data-testid="help-menu-forum-page" onClick={()=>window.open(helpForumURL)}>
             {t("DG.AppController.optionMenuItems.help-forum")}
           </MenuItem>
-          <MenuItem data-testid="help-menu-project-page" onClick={()=>window.open(showWebSiteURL)}>
+          <MenuItem data-testid="help-menu-project-page" onClick={()=>window.open(projectWebSiteURL)}>
             {t("DG.AppController.optionMenuItems.toWebSite")}
           </MenuItem>
-          <MenuItem data-testid="help-menu-privacy-page" onClick={()=>window.open(showPrivacyURL)}>
+          <MenuItem data-testid="help-menu-privacy-page" onClick={()=>window.open(privacyURL)}>
             {t("DG.AppController.optionMenuItems.toPrivacyPage")}
           </MenuItem>
         </MenuList>
