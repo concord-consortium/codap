@@ -109,22 +109,23 @@ const locales = [
     icon: 'flag flag-cn'
   }
 ]
-
 function makeNewLocaleUrl(digraph: string, locationHref: string) {
   const location = new URL(locationHref)
   const locMatch = location.pathname.match(/(^.*\/static\/dg\/)[^/]+(\/cert\/.*$)/)
-  let baseURL = `https://codap.concord.org/releases/latest/static/dg/${digraph}/cert/`
+  let baseURL = `https://codapV3.concord.org`
+  let queryParams
   if (locMatch) {
     baseURL = location.protocol + location.host + locMatch[1] + digraph + locMatch[2]
   }
   let hash = location.hash
-  if (location.pathname.indexOf('static/dg')>0) {
-    baseURL = `../../${digraph}/cert`
-  }
+
   if (hash.startsWith('#file=examples:')) {
     hash = ''
   }
-  return baseURL + location.search+hash
+  if (location.search) {
+    queryParams = `?${location.search}&lang=${digraph}`
+  }
+  return baseURL + queryParams + hash
 }
 
 export function useCloudFileManager(optionsArg: CFMAppOptions) {
@@ -152,6 +153,7 @@ export function useCloudFileManager(optionsArg: CFMAppOptions) {
             window.location.href = makeNewLocaleUrl(langCode, window.location.href)
           }
         },
+
         menu: [
           { name: t('DG.fileMenu.menuItem.newDocument'), action: 'newFileDialog' },
           { name: t('DG.fileMenu.menuItem.openDocument'), action: 'openFileDialog' },
