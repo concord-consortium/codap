@@ -9,6 +9,7 @@ import MinimizeIcon from "../assets/icons/icon-minimize.svg"
 import { ITileTitleBarProps } from "./tiles/tile-base-props"
 import { t } from "../utilities/translation/translate"
 import { logMessageWithReplacement } from "../lib/log-message"
+import { kBlankTitle } from "./constants"
 
 import "./component-title-bar.scss"
 
@@ -25,10 +26,9 @@ export const ComponentTitleBar = observer(function ComponentTitleBar({
   const {attributes, listeners, setActivatorNodeRef} = useDraggableTile(draggableOptions)
   const classes = clsx("component-title-bar", `${tileType}-title-bar`, {focusTile: uiState.isFocusedTile(tile?.id)})
   const [isHovering, setIsHovering] = useState(false)
-  const blankTitle = "_____"
 
   const handleChangeTitle = (nextValue?: string) => {
-    if (tile != null && nextValue !== undefined) {
+    if (tile != null && nextValue) {
       tile.applyModelChange(() => {
         tile.setTitle(nextValue)
       }, {
@@ -40,15 +40,14 @@ export const ComponentTitleBar = observer(function ComponentTitleBar({
   }
 
   const handleSubmit = (nextValue: string) => {
-    // if the title is blank, show a placeholder
-    const nextTitle = nextValue === "" ? blankTitle : nextValue
     if (!preventTitleChange) {
       if (onHandleTitleChange) {
         onHandleTitleChange(nextValue)
       } else {
         handleChangeTitle(nextValue)
       }
-      setEditingTitle(nextTitle)
+      // Assume the title was successfully changed if nextValue is not empty.
+      setEditingTitle(nextValue || title)
       setIsEditing(false)
     }
   }
@@ -62,7 +61,6 @@ export const ComponentTitleBar = observer(function ComponentTitleBar({
     if (!preventTitleChange) {
       setIsEditing(true)
       setEditingTitle(title)
-      setIsHovering(false)
     }
   }
 
@@ -90,9 +88,8 @@ export const ComponentTitleBar = observer(function ComponentTitleBar({
               onChange={(e) => setEditingTitle(e.target.value)} onBlur={() => handleSubmit(editingTitle)}
               onFocus={(e) => e.target.select()} onKeyDown={handleInputKeyDown}
             />
-          : <div className="title-text" data-testid="title-text" onClick={handleTitleClick}
-                  style={{ textDecoration: isHovering && title && title !== "" ? "underline" : "none" }}>
-              {title && title !== "" ? title : isHovering ? blankTitle : ""}
+          : <div className="title-text" data-testid="title-text" onClick={handleTitleClick}>
+              {isHovering && !title ? kBlankTitle : title}
             </div>
         }
       </div>
