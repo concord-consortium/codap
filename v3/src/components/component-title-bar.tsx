@@ -24,6 +24,7 @@ export const ComponentTitleBar = observer(function ComponentTitleBar({
   const draggableOptions: IUseDraggableTile = { prefix: tileType || "tile", tileId, disabled: isEditing }
   const {attributes, listeners, setActivatorNodeRef} = useDraggableTile(draggableOptions)
   const classes = clsx("component-title-bar", `${tileType}-title-bar`, {focusTile: uiState.isFocusedTile(tile?.id)})
+  const [isHovering, setIsHovering] = useState(false)
   const blankTitle = "_____"
 
   const handleChangeTitle = (nextValue?: string) => {
@@ -61,6 +62,7 @@ export const ComponentTitleBar = observer(function ComponentTitleBar({
     if (!preventTitleChange) {
       setIsEditing(true)
       setEditingTitle(title)
+      setIsHovering(false)
     }
   }
 
@@ -79,7 +81,7 @@ export const ComponentTitleBar = observer(function ComponentTitleBar({
   }
 
   return (
-    <Flex className={classes}
+    <Flex className={classes} onMouseOver={()=>setIsHovering(true)} onMouseOut={()=>setIsHovering(false)}
         ref={setActivatorNodeRef} {...listeners} {...attributes}>
       {children}
       <div className="title-bar" data-testid="component-title-bar">
@@ -88,8 +90,9 @@ export const ComponentTitleBar = observer(function ComponentTitleBar({
               onChange={(e) => setEditingTitle(e.target.value)} onBlur={() => handleSubmit(editingTitle)}
               onFocus={(e) => e.target.select()} onKeyDown={handleInputKeyDown}
             />
-          : <div className="title-text" data-testid="title-text" onClick={handleTitleClick}>
-              { title && title !== "" ? title :  blankTitle }
+          : <div className="title-text" data-testid="title-text" onClick={handleTitleClick}
+                  style={{ textDecoration: isHovering && title && title !== "" ? "underline" : "none" }}>
+              {title && title !== "" ? title : isHovering ? blankTitle : ""}
             </div>
         }
       </div>
