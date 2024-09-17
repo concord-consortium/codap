@@ -9,7 +9,6 @@ import MinimizeIcon from "../assets/icons/icon-minimize.svg"
 import { ITileTitleBarProps } from "./tiles/tile-base-props"
 import { t } from "../utilities/translation/translate"
 import { logMessageWithReplacement } from "../lib/log-message"
-import { kBlankTitle } from "./constants"
 
 import "./component-title-bar.scss"
 
@@ -26,6 +25,7 @@ export const ComponentTitleBar = observer(function ComponentTitleBar({
   const {attributes, listeners, setActivatorNodeRef} = useDraggableTile(draggableOptions)
   const classes = clsx("component-title-bar", `${tileType}-title-bar`, {focusTile: uiState.isFocusedTile(tile?.id)})
   const [isHovering, setIsHovering] = useState(false)
+  const blankTitle = "_____"
 
   const handleChangeTitle = (nextValue?: string) => {
     if (tile != null && nextValue) {
@@ -89,7 +89,7 @@ export const ComponentTitleBar = observer(function ComponentTitleBar({
               onFocus={(e) => e.target.select()} onKeyDown={handleInputKeyDown}
             />
           : <div className="title-text" data-testid="title-text" onClick={handleTitleClick}>
-              {isHovering && !title ? kBlankTitle : title}
+              {isHovering && !title ? blankTitle : title}
             </div>
         }
       </div>
