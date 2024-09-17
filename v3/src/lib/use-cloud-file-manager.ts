@@ -112,20 +112,24 @@ const locales = [
 function makeNewLocaleUrl(digraph: string, locationHref: string) {
   const location = new URL(locationHref)
   const locMatch = location.pathname.match(/(^.*\/static\/dg\/)[^/]+(\/cert\/.*$)/)
-  let baseURL = `https://codapV3.concord.org`
-  let queryParams
+  let baseURL = "https://codap3.concord.org/branch/main/"
+  let queryParams = ""
+
   if (locMatch) {
-    baseURL = location.protocol + location.host + locMatch[1] + digraph + locMatch[2]
+    baseURL = `${location.protocol}//${location.host}${locMatch[1]}${digraph}${locMatch[2]}`
   }
   let hash = location.hash
-
   if (hash.startsWith('#file=examples:')) {
-    hash = ''
+    hash = ""
   }
+
   if (location.search) {
-    queryParams = `?${location.search}&lang=${digraph}`
+    queryParams = `${location.search}&lang=${digraph}`
+  } else {
+    queryParams = `?lang=${digraph}`
   }
-  return baseURL + queryParams + hash
+
+  return `${baseURL}${queryParams}${hash}`
 }
 
 export function useCloudFileManager(optionsArg: CFMAppOptions) {
