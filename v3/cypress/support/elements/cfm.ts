@@ -10,9 +10,15 @@ export const CfmElements = {
     return cy.get('#codap-menu-bar-id')
   },
   getHamburgerMenuButton() {
-    return cy.get('#codap-menu-bar-id .cfm-menu.menu-anchor')
+    return cy.get('#codap-menu-bar-id .menu-bar-left .cfm-menu.menu-anchor')
   },
   getHamburgerMenu() {
+    return cy.get('#codap-menu-bar-id .cfm-menu.menu-showing')
+  },
+  getLanguageMenuButton() {
+    return cy.get('#codap-menu-bar-id .menu-bar-right .cfm-menu.menu-anchor')
+  },
+  getLanguageMenu() {
     return cy.get('#codap-menu-bar-id .cfm-menu.menu-showing')
   },
   getModalDialog() {
