@@ -82,7 +82,7 @@ export const ParentToggles = observer(function ParentToggles() {
   const collectionIndexForPrimaryAttribute = dataset?.getCollectionIndexForAttribute(primaryAttribute) ?? 0
   const isCollectionSet = !!(dataset && dataset.collections?.length > 0)
   const hiddenCases = dataConfig?.hiddenCases ?? []
-  const itemIDs = dataset?.items.map((c) => c.__id__) ?? []
+  const itemIDs = dataset?.itemIds ?? []
   const caseButtons = createCaseButtons(
     { itemIDs, dataset, collectionIndexForPrimaryAttribute, isCollectionSet, hiddenCases })
   const caseButtonsListWidth = caseButtons.reduce((acc, button) => acc + button.width + TEXT_OFFSET, 0)

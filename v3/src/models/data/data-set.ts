@@ -383,7 +383,7 @@ export const DataSet = V2Model.named("DataSet").props({
   }
 
   function getCollectionIndexForAttribute(attributeId: string): number | undefined {
-    const id = (self.collections.find(coll => coll.getAttribute(attributeId)))?.id
+    const id = getCollectionForAttribute(attributeId)?.id
     return id ? getCollectionIndex(id) : undefined
   }
 
