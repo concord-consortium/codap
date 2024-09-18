@@ -60,6 +60,19 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
   const { selectedRows, setSelectedRows, handleCellClick, setSelectedCases } =
             useSelectedRows({ gridRef, onScrollClosestRowIntoView })
   const forceUpdate = useForceUpdate()
+  // Whitespace should only clear selection if the table is aleady focused.
+  // If user clicks on the whitespace of the table and the table is not focus,
+  // then the table should be focused and the selection should not be cleared.
+  // So we track if the table is in focus and if it was in focus before.
+  const isFocusedTileRef = useRef(false)
+  const wasFocusedTileRef = useRef(false)
+  const isFocusedTile = uiState.isFocusedTile(caseTableModel?.metadata?.caseTableTileId)
+
+  // Store the previous focus state
+  useEffect(() => {
+    wasFocusedTileRef.current = isFocusedTileRef.current
+    isFocusedTileRef.current = isFocusedTile
+  }, [isFocusedTile])
 
   useEffect(function setGridElement() {
     const element = gridRef.current?.element
@@ -191,14 +204,19 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
     }
   }
 
-  const handleWhitespaceClick = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
-    if (event.target === gridRef.current?.element) {
+  const handleWhitespaceClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (!wasFocusedTileRef.current && isFocusedTileRef.current) {
+      // Focused the table, do nothing with the selection
+      wasFocusedTileRef.current = true
+      return
+    }
+    if (isFocusedTileRef.current && event.target === gridRef.current?.element) {
       setSelectedCases([], data)
       document.querySelectorAll('[aria-selected="true"]').forEach(cell => {
         cell.setAttribute('aria-selected', 'false')
       })
     }
-  }, [data, setSelectedCases])
+  }
 
   if (!data || !rows || !visibleAttributes.length) return null
 
