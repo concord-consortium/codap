@@ -57,7 +57,8 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
                               getComputedStyle(gridRef.current.element)
                                 .getPropertyValue("--rdg-row-selected-background-color") || undefined
   const visibleAttributes = useVisibleAttributes(collectionId)
-  const { selectedRows, setSelectedRows, handleCellClick } = useSelectedRows({ gridRef, onScrollClosestRowIntoView })
+  const { selectedRows, setSelectedRows, handleCellClick, setSelectedCases } =
+            useSelectedRows({ gridRef, onScrollClosestRowIntoView })
   const forceUpdate = useForceUpdate()
 
   useEffect(function setGridElement() {
@@ -190,12 +191,21 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
     }
   }
 
+  const handleWhitespaceClick = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
+    if (event.target === gridRef.current?.element) {
+      setSelectedCases([], data)
+      document.querySelectorAll('[aria-selected="true"]').forEach(cell => {
+        cell.setAttribute('aria-selected', 'false')
+      })
+    }
+  }, [data, setSelectedCases])
+
   if (!data || !rows || !visibleAttributes.length) return null
 
   return (
     <div className={`collection-table collection-${collectionId}`}>
       <CollectionTableSpacer selectedFillColor={selectedFillColor} onDrop={handleNewCollectionDrop} />
-      <div className="collection-table-and-title" ref={setNodeRef}>
+      <div className="collection-table-and-title" ref={setNodeRef} onClick={handleWhitespaceClick}>
         <CollectionTitle onAddNewAttribute={handleAddNewAttribute} showCount={true} />
         <DataGrid ref={gridRef} className="rdg-light" data-testid="collection-table-grid" renderers={renderers}
           columns={columns} rows={rows} headerRowHeight={+styles.headerRowHeight} rowKeyGetter={rowKey}
