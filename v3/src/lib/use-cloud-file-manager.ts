@@ -9,7 +9,6 @@ import { appState } from "../models/app-state"
 import { createCodapDocument, isCodapDocument } from "../models/codap/create-codap-document"
 import { t } from "../utilities/translation/translate"
 import { removeDevUrlParams } from "../utilities/url-params"
-import { Logger } from "./logger"
 
 const locales = [
   {
@@ -109,28 +108,6 @@ const locales = [
     icon: 'flag flag-cn'
   }
 ]
-function makeNewLocaleUrl(digraph: string, locationHref: string) {
-  const location = new URL(locationHref)
-  const locMatch = location.pathname.match(/(^.*\/static\/dg\/)[^/]+(\/cert\/.*$)/)
-  let baseURL = "https://codap3.concord.org/branch/main/"
-  let queryParams = ""
-
-  if (locMatch) {
-    baseURL = `${location.protocol}//${location.host}${locMatch[1]}${digraph}${locMatch[2]}`
-  }
-  let hash = location.hash
-  if (hash.startsWith('#file=examples:')) {
-    hash = ""
-  }
-
-  if (location.search) {
-    queryParams = `${location.search}&lang=${digraph}`
-  } else {
-    queryParams = `?lang=${digraph}`
-  }
-
-  return `${baseURL}${queryParams}${hash}`
-}
 
 export function useCloudFileManager(optionsArg: CFMAppOptions) {
   const options = useRef(optionsArg)
@@ -152,10 +129,9 @@ export function useCloudFileManager(optionsArg: CFMAppOptions) {
               }
             }),
           },
-          onLangChanged: (langCode: string) => {
-            Logger.log(`Changed language: ${langCode}`)
-            window.location.href = makeNewLocaleUrl(langCode, window.location.href)
-          }
+          // onLangChanged: (langCode: string) => {
+          //   Logger.log(`Changed language: ${langCode}`)
+          // }
         },
 
         menu: [

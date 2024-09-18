@@ -92,7 +92,7 @@ context("CloudFileManager", () => {
     // Verify document was closed (Map data table doesn't exist)
     c.checkComponentDoesNotExist("table")
   })
-  it("verify langugae menu is present", () => {
+  it("verify language menu is present", () => {
     cfm.getLanguageMenuButton().should("exist")
     cfm.getLanguageMenu().should("not.exist")
     cfm.getLanguageMenuButton().click()
