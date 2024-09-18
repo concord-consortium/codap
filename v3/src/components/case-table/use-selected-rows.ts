@@ -135,5 +135,5 @@ export const useSelectedRows = ({ gridRef, onScrollClosestRowIntoView }: UseSele
     }
   }, [collectionId, data])
 
-  return { selectedRows, setSelectedRows, handleCellClick, setSelectedCases }
+  return { selectedRows, setSelectedRows, handleCellClick }
 }

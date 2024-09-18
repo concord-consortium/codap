@@ -18,6 +18,7 @@ import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useTileDroppable } from "../../hooks/use-drag-drop"
 import { useForceUpdate } from "../../hooks/use-force-update"
+import { useTileModelContext } from "../../hooks/use-tile-model-context"
 import { useVisibleAttributes } from "../../hooks/use-visible-attributes"
 import { registerCanAutoScrollCallback } from "../../lib/dnd-kit/dnd-can-auto-scroll"
 import { logStringifiedObjectMessage } from "../../lib/log-message"
@@ -31,6 +32,7 @@ import { preventCollectionReorg } from "../../utilities/plugin-utils"
 import { t } from "../../utilities/translation/translate"
 import { useCaseTableModel } from "./use-case-table-model"
 import { useCollectionTableModel } from "./use-collection-table-model"
+import { useWhiteSpaceClick } from "./use-white-space-click"
 
 import "react-data-grid/lib/styles.css"
 import styles from "./case-table-shared.scss"
@@ -57,22 +59,10 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
                               getComputedStyle(gridRef.current.element)
                                 .getPropertyValue("--rdg-row-selected-background-color") || undefined
   const visibleAttributes = useVisibleAttributes(collectionId)
-  const { selectedRows, setSelectedRows, handleCellClick, setSelectedCases } =
-            useSelectedRows({ gridRef, onScrollClosestRowIntoView })
+  const { selectedRows, setSelectedRows, handleCellClick } = useSelectedRows({ gridRef, onScrollClosestRowIntoView })
+  const { handleWhiteSpaceClick } = useWhiteSpaceClick({ gridRef })
   const forceUpdate = useForceUpdate()
-  // Whitespace should only clear selection if the table is aleady focused.
-  // If user clicks on the whitespace of the table and the table is not focus,
-  // then the table should be focused and the selection should not be cleared.
-  // So we track if the table is in focus and if it was in focus before.
-  const isFocusedTileRef = useRef(false)
-  const wasFocusedTileRef = useRef(false)
-  const isFocusedTile = uiState.isFocusedTile(caseTableModel?.metadata?.caseTableTileId)
-
-  // Store the previous focus state
-  useEffect(() => {
-    wasFocusedTileRef.current = isFocusedTileRef.current
-    isFocusedTileRef.current = isFocusedTile
-  }, [isFocusedTile])
+  const { isTileSelected } = useTileModelContext()
 
   useEffect(function setGridElement() {
     const element = gridRef.current?.element
@@ -204,17 +194,10 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
     }
   }
 
-  const handleWhitespaceClick = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (!wasFocusedTileRef.current && isFocusedTileRef.current) {
-      // Focused the table, do nothing with the selection
-      wasFocusedTileRef.current = true
-      return
-    }
-    if (isFocusedTileRef.current && event.target === gridRef.current?.element) {
-      setSelectedCases([], data)
-      document.querySelectorAll('[aria-selected="true"]').forEach(cell => {
-        cell.setAttribute('aria-selected', 'false')
-      })
+  const handleClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    // the grid element is the target when clicking outside the cells (otherwise, the cell is the target)
+    if (isTileSelected() && event.target === gridRef.current?.element) {
+      handleWhiteSpaceClick()
     }
   }
 
@@ -222,8 +205,9 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
 
   return (
     <div className={`collection-table collection-${collectionId}`}>
-      <CollectionTableSpacer selectedFillColor={selectedFillColor} onDrop={handleNewCollectionDrop} />
-      <div className="collection-table-and-title" ref={setNodeRef} onClick={handleWhitespaceClick}>
+      <CollectionTableSpacer selectedFillColor={selectedFillColor}
+        onWhiteSpaceClick={handleWhiteSpaceClick} onDrop={handleNewCollectionDrop} />
+      <div className="collection-table-and-title" ref={setNodeRef} onClick={handleClick}>
         <CollectionTitle onAddNewAttribute={handleAddNewAttribute} showCount={true} />
         <DataGrid ref={gridRef} className="rdg-light" data-testid="collection-table-grid" renderers={renderers}
           columns={columns} rows={rows} headerRowHeight={+styles.headerRowHeight} rowKeyGetter={rowKey}
