@@ -1,7 +1,7 @@
 import { Button, CloseButton, Flex, Input } from "@chakra-ui/react"
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
-import React, { useState } from "react"
+import React, { useRef, useState } from "react"
 import { IUseDraggableTile, useDraggableTile } from "../hooks/use-drag-drop"
 import { getTitle } from "../models/tiles/tile-content-info"
 import { uiState } from "../models/ui-state"
@@ -16,9 +16,9 @@ export const ComponentTitleBar = observer(function ComponentTitleBar({
   tile, children, onHandleTitleChange, onMinimizeTile, onCloseTile, preventTitleChange
 }: ITileTitleBarProps) {
   // perform all title-related model access here so only title is re-rendered when properties change
-  const title = (tile && getTitle?.(tile)) || tile?.title || ""
+  const initialTitle = (tile && getTitle?.(tile)) || tile?.title || ""
   const [isEditing, setIsEditing] = useState(false)
-  const [editingTitle, setEditingTitle] = useState(title)
+  const [editingTitle, setEditingTitle] = useState(initialTitle)
   const tileId = tile?.id || ""
   const tileType = tile?.content.type
   const draggableOptions: IUseDraggableTile = { prefix: tileType || "tile", tileId, disabled: isEditing }
@@ -26,9 +26,10 @@ export const ComponentTitleBar = observer(function ComponentTitleBar({
   const classes = clsx("component-title-bar", `${tileType}-title-bar`, {focusTile: uiState.isFocusedTile(tile?.id)})
   const [isHovering, setIsHovering] = useState(false)
   const blankTitle = "_____"
+  const prevTitleRef = useRef(initialTitle)
 
   const handleChangeTitle = (nextValue?: string) => {
-    if (tile != null && nextValue) {
+    if (tile != null && nextValue !== undefined) {
       tile.applyModelChange(() => {
         tile.setTitle(nextValue)
       }, {
@@ -40,27 +41,29 @@ export const ComponentTitleBar = observer(function ComponentTitleBar({
   }
 
   const handleSubmit = (nextValue: string) => {
+    const trimmedNextValue = nextValue.trim()
     if (!preventTitleChange) {
       if (onHandleTitleChange) {
-        onHandleTitleChange(nextValue)
+        onHandleTitleChange(trimmedNextValue)
       } else {
-        handleChangeTitle(nextValue)
+        handleChangeTitle(trimmedNextValue)
       }
-      // Assume the title was successfully changed if nextValue is not empty.
-      setEditingTitle(nextValue || title)
+      // Assume the title was successfully changed
+      setEditingTitle(trimmedNextValue)
       setIsEditing(false)
+      prevTitleRef.current = trimmedNextValue
     }
   }
 
-  const handleCancel = (previousValue: string) => {
-    setEditingTitle(previousValue)
+  const handleCancel = () => {
+    setEditingTitle(prevTitleRef.current)
     setIsEditing(false)
   }
 
   const handleTitleClick = () => {
     if (!preventTitleChange) {
       setIsEditing(true)
-      setEditingTitle(title)
+      setEditingTitle(editingTitle)
     }
   }
 
@@ -69,7 +72,7 @@ export const ComponentTitleBar = observer(function ComponentTitleBar({
     e.stopPropagation()
     switch (key) {
       case "Escape":
-        handleCancel(title)
+        handleCancel()
         break
       case "Enter":
       case "Tab":
@@ -77,7 +80,7 @@ export const ComponentTitleBar = observer(function ComponentTitleBar({
         break
     }
   }
-
+console.log(`editingTitle is blank #${editingTitle === ""}`)
   return (
     <Flex className={classes} onMouseOver={()=>setIsHovering(true)} onMouseOut={()=>setIsHovering(false)}
         ref={setActivatorNodeRef} {...listeners} {...attributes}>
@@ -89,7 +92,7 @@ export const ComponentTitleBar = observer(function ComponentTitleBar({
               onFocus={(e) => e.target.select()} onKeyDown={handleInputKeyDown}
             />
           : <div className="title-text" data-testid="title-text" onClick={handleTitleClick}>
-              {isHovering && !title ? blankTitle : title}
+              {isHovering && editingTitle === "" ? blankTitle : editingTitle}
             </div>
         }
       </div>
