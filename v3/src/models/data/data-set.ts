@@ -382,6 +382,11 @@ export const DataSet = V2Model.named("DataSet").props({
     return self.collections.find(coll => coll.getAttribute(attributeId))
   }
 
+  function getCollectionIndexForAttribute(attributeId: string): number | undefined {
+    const id = getCollectionForAttribute(attributeId)?.id
+    return id ? getCollectionIndex(id) : undefined
+  }
+
   function getUniqueCollectionName(name: string) {
     let suffix = 1
     let collectionName = name
@@ -400,6 +405,7 @@ export const DataSet = V2Model.named("DataSet").props({
       // get collection from attribute
       // undefined => attribute not present in dataset
       getCollectionForAttribute,
+      getCollectionIndexForAttribute,
       getUniqueCollectionName
     },
     actions: {

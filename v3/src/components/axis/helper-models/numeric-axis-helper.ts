@@ -44,7 +44,6 @@ export class NumericAxisHelper extends AxisHelper {
       : undefined
     if (!isNumericAxisModel(this.axisModel) || !numericScale) return
 
-    select(this.subAxisElt).selectAll('*').remove()
     this.renderAxisLine()
 
     const axisScale = this.axis(numericScale).tickSizeOuter(0).tickFormat(format('.9'))

@@ -80,7 +80,6 @@ describe("AxisHelper", () => {
   it("should render axis line correctly", () => {
     axisHelper.renderAxisLine()
     expect(select).toHaveBeenCalledWith(props.subAxisElt)
-    expect(select(props.subAxisElt).selectAll).toHaveBeenCalledWith('*')
     expect(select(props.subAxisElt).attr).toHaveBeenCalledWith("transform", "translate(100, 0)")
     expect(select(props.subAxisElt).append).toHaveBeenCalledWith('line')
     expect(select(props.subAxisElt).style).toHaveBeenCalledWith("stroke", "darkgray")

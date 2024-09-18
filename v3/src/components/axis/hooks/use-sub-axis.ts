@@ -1,4 +1,4 @@
-import { BaseType, drag, select, Selection } from "d3"
+import { BaseType, drag, extent, select, Selection } from "d3"
 import { comparer, reaction } from "mobx"
 import { mstAutorun } from "../../../utilities/mst-autorun"
 import { mstReaction } from "../../../utilities/mst-reaction"
@@ -15,7 +15,7 @@ import {
 } from "../models/axis-model"
 import { isVertical } from "../../axis-graph-shared"
 import { isAliveSafe } from "../../../utilities/mst-utils"
-import { setNiceDomain } from "../../graph/utilities/graph-utils"
+import { computeNiceNumericBounds, setNiceDomain } from "../../graph/utilities/graph-utils"
 import { DragInfo } from "../axis-utils"
 import { useAxisProviderContext } from "./use-axis-provider-context"
 import { useDataDisplayModelContext } from "../../data-display/hooks/use-data-display-model"
@@ -267,8 +267,10 @@ export const useSubAxis = ({
           const {domain} = _axisModel || {},
             multiScale = layout.getAxisMultiScale(axisPlace)
           multiScale?.setScaleType('linear')  // Make sure it's linear
-          multiScale?.setNumericDomain(domain)
-          renderSubAxis()
+          if (JSON.stringify(domain) !== JSON.stringify(multiScale?.numericScale?.domain())) {
+            multiScale?.setNumericDomain(domain)
+            renderSubAxis()
+          }
         }
       } else if (_axisModel) {
         console.warn("useSubAxis.installDomainSync skipping sync of defunct axis model")
@@ -311,8 +313,12 @@ export const useSubAxis = ({
       multiScale?.setCategoricalDomain(categoryValues)
       setupCategories()
     } else if (isBaseNumericAxisModel(axisModel)) {
+      const currentAxisDomain = axisModel.domain
       const numericValues = dataConfig?.numericValuesForAttrRole(role) ?? []
-      layout.getAxisMultiScale(axisPlace)?.setNumericDomain(numericValues)
+      const [minValue, maxValue] = extent(numericValues, d => d) as [number, number]
+      const niceBounds = computeNiceNumericBounds(minValue, maxValue)
+      if (niceBounds.min === currentAxisDomain[0] && niceBounds.max === currentAxisDomain[1]) return
+      layout.getAxisMultiScale(axisPlace)?.setNumericDomain([niceBounds.min, niceBounds.max])
       isBaseNumericAxisModel(axisModel) && setNiceDomain(numericValues, axisModel)
     }
     renderSubAxis()
