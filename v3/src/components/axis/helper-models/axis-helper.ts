@@ -94,6 +94,7 @@ export class AxisHelper {
 export class EmptyAxisHelper extends AxisHelper {
 
   render() {
+    select(this.subAxisElt).selectAll('*').remove()
     this.renderAxisLine()
   }
 }
