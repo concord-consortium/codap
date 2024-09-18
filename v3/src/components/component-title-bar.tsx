@@ -80,7 +80,6 @@ export const ComponentTitleBar = observer(function ComponentTitleBar({
         break
     }
   }
-console.log(`editingTitle is blank #${editingTitle === ""}`)
   return (
     <Flex className={classes} onMouseOver={()=>setIsHovering(true)} onMouseOut={()=>setIsHovering(false)}
         ref={setActivatorNodeRef} {...listeners} {...attributes}>
@@ -92,7 +91,7 @@ console.log(`editingTitle is blank #${editingTitle === ""}`)
               onFocus={(e) => e.target.select()} onKeyDown={handleInputKeyDown}
             />
           : <div className="title-text" data-testid="title-text" onClick={handleTitleClick}>
-              {isHovering && editingTitle === "" ? blankTitle : editingTitle}
+              {isHovering && tile?.title === "" ? blankTitle : tile?.title}
             </div>
         }
       </div>
