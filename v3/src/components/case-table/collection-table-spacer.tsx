@@ -9,7 +9,6 @@ import { measureText } from "../../hooks/use-measure-text"
 import { useVisibleAttributes } from "../../hooks/use-visible-attributes"
 import { logMessageWithReplacement } from "../../lib/log-message"
 import { IDataSet } from "../../models/data/data-set"
-import { selectAllCases } from "../../models/data/data-set-utils"
 // import { getNumericCssVariable } from "../../utilities/css-utils"
 import { preventAttributeMove, preventCollectionReorg } from "../../utilities/plugin-utils"
 import { t } from "../../utilities/translation/translate"
@@ -20,8 +19,11 @@ import { useCollectionTableModel } from "./use-collection-table-model"
 interface IProps {
   selectedFillColor?: string
   onDrop?: (dataSet: IDataSet, attrId: string) => void
+  onWhiteSpaceClick?: () => void
 }
-export const CollectionTableSpacer = observer(function CollectionTableSpacer({ selectedFillColor, onDrop }: IProps) {
+export const CollectionTableSpacer = observer(function CollectionTableSpacer({
+  selectedFillColor, onDrop, onWhiteSpaceClick
+}: IProps) {
   const data = useDataSetContext()
   const caseMetadata = useCaseMetadata()
   const parentCollectionId = useParentCollectionContext()
@@ -126,9 +128,7 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({ s
   }
 
   function handleBackgroundClick() {
-    data?.applyModelChange(() => {
-      selectAllCases(data, false)
-    })
+    onWhiteSpaceClick?.()
   }
 
   const topTooltipKey = `DG.CaseTable.dividerView.${everyCaseIsCollapsed ? 'expandAllTooltip' : 'collapseAllTooltip'}`

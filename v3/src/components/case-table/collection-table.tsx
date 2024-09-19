@@ -18,6 +18,7 @@ import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useTileDroppable } from "../../hooks/use-drag-drop"
 import { useForceUpdate } from "../../hooks/use-force-update"
+import { useTileModelContext } from "../../hooks/use-tile-model-context"
 import { useVisibleAttributes } from "../../hooks/use-visible-attributes"
 import { registerCanAutoScrollCallback } from "../../lib/dnd-kit/dnd-can-auto-scroll"
 import { logStringifiedObjectMessage } from "../../lib/log-message"
@@ -31,6 +32,7 @@ import { preventCollectionReorg } from "../../utilities/plugin-utils"
 import { t } from "../../utilities/translation/translate"
 import { useCaseTableModel } from "./use-case-table-model"
 import { useCollectionTableModel } from "./use-collection-table-model"
+import { useWhiteSpaceClick } from "./use-white-space-click"
 
 import "react-data-grid/lib/styles.css"
 import styles from "./case-table-shared.scss"
@@ -58,7 +60,9 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
                                 .getPropertyValue("--rdg-row-selected-background-color") || undefined
   const visibleAttributes = useVisibleAttributes(collectionId)
   const { selectedRows, setSelectedRows, handleCellClick } = useSelectedRows({ gridRef, onScrollClosestRowIntoView })
+  const { handleWhiteSpaceClick } = useWhiteSpaceClick({ gridRef })
   const forceUpdate = useForceUpdate()
+  const { isTileSelected } = useTileModelContext()
 
   useEffect(function setGridElement() {
     const element = gridRef.current?.element
@@ -190,12 +194,20 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
     }
   }
 
+  const handleClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    // the grid element is the target when clicking outside the cells (otherwise, the cell is the target)
+    if (isTileSelected() && event.target === gridRef.current?.element) {
+      handleWhiteSpaceClick()
+    }
+  }
+
   if (!data || !rows || !visibleAttributes.length) return null
 
   return (
     <div className={`collection-table collection-${collectionId}`}>
-      <CollectionTableSpacer selectedFillColor={selectedFillColor} onDrop={handleNewCollectionDrop} />
-      <div className="collection-table-and-title" ref={setNodeRef}>
+      <CollectionTableSpacer selectedFillColor={selectedFillColor}
+        onWhiteSpaceClick={handleWhiteSpaceClick} onDrop={handleNewCollectionDrop} />
+      <div className="collection-table-and-title" ref={setNodeRef} onClick={handleClick}>
         <CollectionTitle onAddNewAttribute={handleAddNewAttribute} showCount={true} />
         <DataGrid ref={gridRef} className="rdg-light" data-testid="collection-table-grid" renderers={renderers}
           columns={columns} rows={rows} headerRowHeight={+styles.headerRowHeight} rowKeyGetter={rowKey}
