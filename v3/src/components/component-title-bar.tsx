@@ -16,10 +16,9 @@ export const ComponentTitleBar = observer(function ComponentTitleBar({
   tile, children, onHandleTitleChange, onMinimizeTile, onCloseTile, preventTitleChange
 }: ITileTitleBarProps) {
   // perform all title-related model access here so only title is re-rendered when properties change
-  const initialTitle = (tile && getTitle?.(tile)) || tile?.title || ""
-  const title = (tile && getTitle?.(tile)) !== undefined ? (tile && getTitle?.(tile)) : tile?.title || ""
+  const title = (tile && getTitle?.(tile)) || tile?.title || ""
   const [isEditing, setIsEditing] = useState(false)
-  const [editingTitle, setEditingTitle] = useState(initialTitle)
+  const [editingTitle, setEditingTitle] = useState(title)
   const tileId = tile?.id || ""
   const tileType = tile?.content.type
   const draggableOptions: IUseDraggableTile = { prefix: tileType || "tile", tileId, disabled: isEditing }
@@ -27,8 +26,8 @@ export const ComponentTitleBar = observer(function ComponentTitleBar({
   const classes = clsx("component-title-bar", `${tileType}-title-bar`, {focusTile: uiState.isFocusedTile(tile?.id)})
   const [isHovering, setIsHovering] = useState(false)
   const blankTitle = "_____"
-  const prevTitleRef = useRef(initialTitle)
-console.log("in component title bar, title: ", title, "title is blank: ", title === "")
+  const prevTitleRef = useRef(title)
+
   const handleChangeTitle = (nextValue?: string) => {
     if (tile != null && nextValue !== undefined) {
       tile.applyModelChange(() => {
