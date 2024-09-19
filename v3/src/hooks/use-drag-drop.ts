@@ -141,8 +141,9 @@ export const containerSnapToGridModifier: Modifier = ({transform, active}) => {
 
 export const restrictDragToArea: Modifier = ({transform, activeNodeRect, containerNodeRect}) =>{
   // Prevent dragging upwards beyond the main container but allow dragging freely in other directions
+  const codapContainerTop = 95
   if (activeNodeRect && containerNodeRect) {
-    if (activeNodeRect.top + transform.y < containerNodeRect.top) {
+    if (activeNodeRect.top + transform.y < codapContainerTop) {
       transform.y = containerNodeRect.top - activeNodeRect.top
     }
   }
