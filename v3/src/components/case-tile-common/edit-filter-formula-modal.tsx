@@ -58,8 +58,14 @@ export const EditFilterFormulaModal = observer(function EditFormulaModal({ isOpe
         <div className="codap-modal-icon-container" />
         <div className="codap-header-title" />
         <ModalCloseButton onClick={onClose} data-testid="modal-close-button" />
-      </ModalHeader>
+      </ModalHeader>=
       <ModalBody>
+        {
+          data?.filterFormulaError &&
+          <div className="formula-error" style={{ background: "rgb(254, 224, 228)", fontSize: "0.8em" }}>
+            {data.filterFormulaError}
+          </div>
+        }
         <FormControl display="flex" flexDirection="column" className="formula-form-control">
           <FormLabel>{t("DG.AttrFormView.formulaPrompt")}
             <Textarea size="xs" value={formula} onChange={handleFormulaChange}

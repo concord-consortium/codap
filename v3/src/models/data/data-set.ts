@@ -58,7 +58,7 @@ import {
 } from "./data-set-types"
 // eslint-disable-next-line import/no-cycle
 import { isLegacyDataSetSnap, isOriginalDataSetSnap, isTempDataSetSnap } from "./data-set-conversion"
-import { Formula } from "../formula/formula"
+import { Formula, IFormula } from "../formula/formula"
 import { applyModelChange } from "../history/apply-model-change"
 import { withoutUndo } from "../history/without-undo"
 import { kAttrIdPrefix, kItemIdPrefix, typeV3Id, v3Id } from "../../utilities/codap-utils"
@@ -164,7 +164,10 @@ export const DataSet = V2Model.named("DataSet").props({
   transactionCount: 0,
   // the id of the interactive frame handling this dataset
   // used by the Collaborative plugin
-  managingControllerId: ""
+  managingControllerId: "",
+  // cached result of filter formula evaluation for each item ID
+  filterFormulaResults: observable.map<string, boolean>(),
+  filterFormulaError: ""
 }))
 .extend(self => {
   const _validationCount = observable.box<number>(0)
@@ -271,24 +274,35 @@ export const DataSet = V2Model.named("DataSet").props({
   return snap
 })
 .views(self => ({
-  isCaseOrItemHidden(caseOrItemId: string) {
-    const caseInfo = self.caseInfoMap.get(caseOrItemId)
-    return caseInfo?.childItemIds.every(itemId => self.hiddenItemIdsSet.has(itemId)) ??
-            self.hiddenItemIdsSet.has(caseOrItemId)
+  isItemSetAside(itemId: string) {
+    return self.hiddenItemIdsSet.has(itemId)
   },
-  // ids of items that have not been hidden (set aside) by user
-  get _unhiddenItemIds() {
-    return self._itemIds.filter(itemId => !self.hiddenItemIdsSet.has(itemId))
-  },
-  isPassedByFilter(itemId: string) {
-    // evaluate filter for item (or retrieve cached value)
-    return true
+  isItemFilteredOut(itemId: string) {
+    // Note that if itemResult is undefined, it means the item has not been filtered out (e.g., there may not be any
+    /// filter formula), so it should be considered as having passed the filter.
+    return self.filterFormulaResults.get(itemId) === false
   }
 }))
 .views(self => ({
+  isItemHidden(itemId: string) {
+    return self.isItemSetAside(itemId) || self.isItemFilteredOut(itemId)
+  }
+}))
+.views(self => ({
+  isCaseOrItemHidden(caseOrItemId: string) {
+    const caseInfo = self.caseInfoMap.get(caseOrItemId)
+    return caseInfo?.childItemIds.every(itemId => self.isItemHidden(itemId)) ??
+            self.isItemHidden(caseOrItemId)
+  }
+}))
+.views(self => ({
+  // ids of items that have not been hidden (set aside) by user
+  get itemsNotSetAside() {
+    return self._itemIds.filter(itemId => !self.isItemSetAside(itemId))
+  },
   // ids of items that have not been hidden (set aside) or filtered by user
   get itemIds() {
-    return self._unhiddenItemIds.filter(itemId => self.isPassedByFilter(itemId))
+    return self._itemIds.filter(itemId => !self.isItemHidden(itemId))
   }
 }))
 .views(self => ({
@@ -303,6 +317,9 @@ export const DataSet = V2Model.named("DataSet").props({
   },
   get items(): readonly IItem[] {
     return self.itemIds.map(id => ({ __id__: id }))
+  },
+  get hasFilterFormula() {
+    return !!self.filterFormula && !self.filterFormula.empty
   }
 }))
 .views(self => ({
@@ -535,6 +552,14 @@ export const DataSet = V2Model.named("DataSet").props({
   }
 }))
 .actions(self => ({
+  clearFilterFormula() {
+    self.filterFormula = undefined
+    self.filterFormulaResults.clear()
+    self.filterFormulaError = ""
+    self.invalidateCases()
+  }
+}))
+.actions(self => ({
   hideCasesOrItems(caseOrItemIds: string[]) {
     caseOrItemIds.forEach(id => {
       const caseInfo = self.caseInfoMap.get(id)
@@ -573,12 +598,33 @@ export const DataSet = V2Model.named("DataSet").props({
     }
   },
   setFilterFormula(display: string) {
-    if (!self.filterFormula) {
-      self.filterFormula = Formula.create({ display })
+    if (display) {
+      if (!self.filterFormula) {
+        self.filterFormula = Formula.create({ display })
+      }
+      else {
+        self.filterFormula.setDisplayExpression(display)
+      }
+    } else {
+      // Note that this generates a warning that the formula is unregistered in an unexpected way.
+      // Originally, the formula manager was designed to handle only empty formulas. However,
+      // https://github.com/concord-consortium/codap/pull/1124 changed the behavior, and formula objects now get deleted
+      // from the parent model.
+      // TODO: handle it better, or remove the warning from the formula manager if it doesn't cause any issues
+      self.clearFilterFormula()
     }
-    else {
-      self.filterFormula.setDisplayExpression(display)
+  },
+  updateFilterFormulaResults(filterFormulaResults: { itemId: string, result: boolean }[], { replaceAll = false }) {
+    if (replaceAll) {
+      self.filterFormulaResults.clear()
     }
+    filterFormulaResults.forEach(({ itemId, result }) => {
+      self.filterFormulaResults.set(itemId, result)
+    })
+    self.invalidateCases()
+  },
+  setFilterFormulaError(error: string) {
+    self.filterFormulaError = error
   }
 }))
 .actions(self => ({
@@ -1256,3 +1302,11 @@ export const DataSet = V2Model.named("DataSet").props({
 
 export interface IDataSet extends Instance<typeof DataSet> {}
 export interface IDataSetSnapshot extends SnapshotIn<typeof DataSet> {}
+
+export interface IDataSetWithFilterFormula extends IDataSet {
+  filterFormula: IFormula
+}
+
+export function isFilterFormulaDataSet(dataSet?: IDataSet): dataSet is IDataSetWithFilterFormula {
+  return !!dataSet?.hasFilterFormula
+}

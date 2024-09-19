@@ -12,6 +12,7 @@ import { AttributeFormulaAdapter } from "../formula/attribute-formula-adapter"
 import { PlottedValueFormulaAdapter } from "../formula/plotted-value-formula-adapter"
 import { PlottedFunctionFormulaAdapter } from "../formula/plotted-function-formula-adapter"
 import { ISharedDataSet, SharedDataSet, kSharedDataSetType } from "../shared/shared-data-set"
+import { FilterFormulaAdapter } from "../formula/filter-formula-adapter"
 
 /**
  * Create a DocumentModel and add a new sharedModelManager into its environment
@@ -35,7 +36,8 @@ export const createDocumentModel = (snapshot?: IDocumentModelSnapshot) => {
     formulaManager.addAdapters([
       new AttributeFormulaAdapter(adapterApi),
       new PlottedValueFormulaAdapter(adapterApi),
-      new PlottedFunctionFormulaAdapter(adapterApi)
+      new PlottedFunctionFormulaAdapter(adapterApi),
+      new FilterFormulaAdapter(adapterApi)
     ])
 
     addDisposer(document, onAction(document, (call) => {
