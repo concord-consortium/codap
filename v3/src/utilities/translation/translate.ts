@@ -60,7 +60,7 @@ const varRegExp = /%({\s*([^}\s]*)\s*}|@(\d*))/g
 
 const urlLanguage = urlParams.lang as string | null || urlParams["lang-override"] as string | null || ""
 const candidates = [urlLanguage, ...window.navigator.languages]
-let defaultLang = "en"
+let defaultLang = "en-US"
 for (const lang of candidates) {
   if (lang && translations[lang]) {
     defaultLang = lang
