@@ -7,7 +7,7 @@ import { clientConnect, createCloudFileManager, renderRoot } from "./cfm-utils"
 import { handleCFMEvent } from "./handle-cfm-event"
 import { appState } from "../models/app-state"
 import { createCodapDocument, isCodapDocument } from "../models/codap/create-codap-document"
-import { t } from "../utilities/translation/translate"
+import { getDefaultLanguage, t } from "../utilities/translation/translate"
 import { removeDevUrlParams } from "../utilities/url-params"
 
 const locales = [
@@ -121,13 +121,14 @@ export function useCloudFileManager(optionsArg: CFMAppOptions) {
         menuBar: {
           info: "Language menu",
           languageMenu: {
-            currentLang: "EN-us",
-            options: locales.map(function (locale) {
-              return {
-                label: locale.langName,
-                langCode: locale.langDigraph,
-              }
-            }),
+            currentLang: "en",
+            options: locales.filter(locale => locale.langDigraph !== getDefaultLanguage())
+                            .map(function (locale) {
+                              return {
+                                label: locale.langName,
+                                langCode: locale.langDigraph,
+                              }
+                            }),
           },
           // onLangChanged: (langCode: string) => {
           //   Logger.log(`Changed language: ${langCode}`)
