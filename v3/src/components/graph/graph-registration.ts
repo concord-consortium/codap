@@ -41,7 +41,7 @@ registerTileContentInfo({
   },
   getTitle: (tile: ITileLikeModel) => {
     const data = isGraphContentModel(tile?.content) ? tile.content.dataset : undefined
-    return tile.title || data?.title || ""
+    return tile.title === undefined ? data?.title : tile.title || ""
   }
 })
 

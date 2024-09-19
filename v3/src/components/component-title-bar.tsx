@@ -9,7 +9,6 @@ import MinimizeIcon from "../assets/icons/icon-minimize.svg"
 import { ITileTitleBarProps } from "./tiles/tile-base-props"
 import { t } from "../utilities/translation/translate"
 import { logMessageWithReplacement } from "../lib/log-message"
-import { kCaseTableTileType } from "./case-table/case-table-defs"
 
 import "./component-title-bar.scss"
 
@@ -18,6 +17,7 @@ export const ComponentTitleBar = observer(function ComponentTitleBar({
 }: ITileTitleBarProps) {
   // perform all title-related model access here so only title is re-rendered when properties change
   const initialTitle = (tile && getTitle?.(tile)) || tile?.title || ""
+  const title = (tile && getTitle?.(tile)) !== undefined ? (tile && getTitle?.(tile)) : tile?.title || ""
   const [isEditing, setIsEditing] = useState(false)
   const [editingTitle, setEditingTitle] = useState(initialTitle)
   const tileId = tile?.id || ""
@@ -27,9 +27,8 @@ export const ComponentTitleBar = observer(function ComponentTitleBar({
   const classes = clsx("component-title-bar", `${tileType}-title-bar`, {focusTile: uiState.isFocusedTile(tile?.id)})
   const [isHovering, setIsHovering] = useState(false)
   const blankTitle = "_____"
-  const title = tile?.content.type === kCaseTableTileType ? getTitle?.(tile) : tile?.title || ""
   const prevTitleRef = useRef(initialTitle)
-
+console.log("in component title bar, title: ", title, "title is blank: ", title === "")
   const handleChangeTitle = (nextValue?: string) => {
     if (tile != null && nextValue !== undefined) {
       tile.applyModelChange(() => {
