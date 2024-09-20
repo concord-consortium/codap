@@ -65,8 +65,10 @@ export const GraphAttributeLabel =
       if (graphModel.pointsFusedIntoBars && place === secondaryPlace) {
         return t("DG.CountAxisView.countLabel")
       }
-      return attrIDs.map(anID => dataset?.attrFromID(anID)?.name)
-        .filter(aName => aName !== '').join(', ')
+      return attrIDs.map(anID => dataset?.attrFromID(anID))
+                    .filter(attr => attr?.name !== '')
+                    .map(attr => `${attr?.name} ${attr?.units ? `(${attr?.units})` : ""}`)
+                    .join(', ')
     }, [dataConfiguration?.secondaryRole, dataset, getAttributeIDs, getClickHereCue,
       graphModel.pointsFusedIntoBars, place])
 
