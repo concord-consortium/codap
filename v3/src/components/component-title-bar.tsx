@@ -1,7 +1,7 @@
 import { Button, CloseButton, Flex, Input } from "@chakra-ui/react"
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
-import React, { useRef, useState } from "react"
+import React, { useState } from "react"
 import { IUseDraggableTile, useDraggableTile } from "../hooks/use-drag-drop"
 import { getTitle } from "../models/tiles/tile-content-info"
 import { uiState } from "../models/ui-state"
@@ -26,7 +26,6 @@ export const ComponentTitleBar = observer(function ComponentTitleBar({
   const classes = clsx("component-title-bar", `${tileType}-title-bar`, {focusTile: uiState.isFocusedTile(tile?.id)})
   const [isHovering, setIsHovering] = useState(false)
   const blankTitle = "_____"
-  const prevTitleRef = useRef(title)
 
   const handleChangeTitle = (nextValue?: string) => {
     if (tile != null && nextValue !== undefined) {
@@ -51,19 +50,18 @@ export const ComponentTitleBar = observer(function ComponentTitleBar({
       // Assume the title was successfully changed
       setEditingTitle(trimmedNextValue)
       setIsEditing(false)
-      prevTitleRef.current = trimmedNextValue
     }
   }
 
   const handleCancel = () => {
-    setEditingTitle(prevTitleRef.current)
+    setEditingTitle(title)
     setIsEditing(false)
   }
 
   const handleTitleClick = () => {
     if (!preventTitleChange) {
       setIsEditing(true)
-      setEditingTitle(editingTitle)
+      setEditingTitle(title)
     }
   }
 
