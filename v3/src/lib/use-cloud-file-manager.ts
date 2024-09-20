@@ -7,8 +7,107 @@ import { clientConnect, createCloudFileManager, renderRoot } from "./cfm-utils"
 import { handleCFMEvent } from "./handle-cfm-event"
 import { appState } from "../models/app-state"
 import { createCodapDocument, isCodapDocument } from "../models/codap/create-codap-document"
-import { t } from "../utilities/translation/translate"
+import { getDefaultLanguage, t } from "../utilities/translation/translate"
 import { removeDevUrlParams } from "../utilities/url-params"
+
+const locales = [
+  {
+    langName: 'Deutsch',
+    langDigraph: 'de',
+    countryDigraph: 'DE',
+    icon: 'flag flag-de'
+  },
+  {
+    langName: 'English',
+    langDigraph: 'en',
+    countryDigraph: 'US',
+    icon: 'flag flag-us'
+  },
+  {
+    langName: 'Español',
+    langDigraph: 'es',
+    countryDigraph: 'ES',
+    icon: 'flag flag-es'
+  },
+  {
+    langName: 'فارسی',
+    langDigraph: 'fa',
+    countryDigraph: 'IR',
+    icon: 'flag flag-ir'
+  },
+  {
+    langName: 'Ελληνικά',
+    langDigraph: 'el',
+    countryDigraph: 'GR',
+    icon: 'flag flag-gr'
+  },
+  {
+    langName: 'עברית',
+    langDigraph: 'he',
+    countryDigraph: 'IL',
+    icon: 'flag flag-il'
+  },
+  {
+    langName: '日本語',
+    langDigraph: 'ja',
+    countryDigraph: 'JP',
+    icon: 'flag flag-jp'
+  },
+  {
+    langName: '한국어',
+    langDigraph: 'ko',
+    countryDigraph: 'KO',
+    icon: 'flag flag-kr'
+  },
+  {
+    langName: 'Bokmål',
+    langDigraph: 'nb',
+    countryDigraph: 'NO',
+    icon: 'flag flag-no'
+  },
+  {
+    langName: 'Nynorsk',
+    langDigraph: 'nn',
+    countryDigraph: 'NO',
+    icon: 'flag flag-no'
+  },
+  {
+    langName: 'Polski',
+    langDigraph: 'pl',
+    countryDigraph: 'PL',
+    icon: 'flag flag-pl'
+  },
+  {
+    langName: 'Português do Brasil',
+    langDigraph: 'pt-BR',
+    countryDigraph: 'BR',
+    icon: 'flag flag-br'
+  },
+  {
+    langName: 'ไทย',
+    langDigraph: 'th',
+    countryDigraph: 'TH',
+    icon: 'flag flag-th'
+  },
+  {
+    langName: 'Türkçe',
+    langDigraph: 'tr',
+    countryDigraph: 'TR',
+    icon: 'flag flag-tr'
+  },
+  {
+    langName: '繁体中文',
+    langDigraph: 'zh-TW',
+    countryDigraph: 'TW',
+    icon: 'flag flag-tw'
+  },
+  {
+    langName: '简体中文',
+    langDigraph: 'zh-Hans',
+    countryDigraph: 'Hans',
+    icon: 'flag flag-cn'
+  }
+]
 
 export function useCloudFileManager(optionsArg: CFMAppOptions) {
   const options = useRef(optionsArg)
@@ -19,22 +118,23 @@ export function useCloudFileManager(optionsArg: CFMAppOptions) {
 
     const _options: CFMAppOptions = {
       ui: {
-        // menuBar: {
-        //   info: "Language menu",
-        //   languageMenu: {
-        //     currentLang: "EN-us",
-        //     options: DG.locales.map(function (locale) {
-        //       return {
-        //         label: locale.langName,
-        //         langCode: locale.langDigraph,
-        //       };
-        //     }),
-        //     onLangChanged: function (langCode) {
-        //       DG.log('Changed language: ' + langCode);
-        //       window.location = makeNewLocaleUrl(langCode, window.location);
-        //     }
-        //   }
-        // },
+        menuBar: {
+          info: "Language menu",
+          languageMenu: {
+            currentLang: "en",
+            options: locales.filter(locale => locale.langDigraph !== getDefaultLanguage())
+                            .map(function (locale) {
+                              return {
+                                label: locale.langName,
+                                langCode: locale.langDigraph,
+                              }
+                            }),
+          },
+          // onLangChanged: (langCode: string) => {
+          //   Logger.log(`Changed language: ${langCode}`)
+          // }
+        },
+
         menu: [
           { name: t('DG.fileMenu.menuItem.newDocument'), action: 'newFileDialog' },
           { name: t('DG.fileMenu.menuItem.openDocument'), action: 'openFileDialog' },

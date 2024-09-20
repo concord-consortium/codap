@@ -269,8 +269,9 @@ export const useSubAxis = ({
           multiScale?.setScaleType('linear')  // Make sure it's linear
           if (JSON.stringify(domain) !== JSON.stringify(multiScale?.numericScale?.domain())) {
             multiScale?.setNumericDomain(domain)
-            renderSubAxis()
           }
+          // Render regardless because we can get here during undo/redo with the domains identical
+          renderSubAxis()
         }
       } else if (_axisModel) {
         console.warn("useSubAxis.installDomainSync skipping sync of defunct axis model")
