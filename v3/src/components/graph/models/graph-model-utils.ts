@@ -56,11 +56,13 @@ function setupAxes(graphModel: IGraphContentModel, layout: GraphLayout) {
       case 'numeric': {
         if (!currAxisModel || !isNumericAxisModel(currAxisModel)) {
           const newAxisModel = NumericAxisModel.create({place, min: 0, max: 1})
+          newAxisModel.setAllowRangeToShrink(true)
           graphModel?.setAxis(place, newAxisModel)
           dataConfig?.setAttributeType(attrRole, 'numeric')
           layout.setAxisScaleType(place, 'linear')
           setNiceDomain(attr?.numValues || [], newAxisModel, graphModel?.axisDomainOptions)
         } else {
+          currAxisModel.setAllowRangeToShrink(true)
           setNiceDomain(attr?.numValues || [], currAxisModel, graphModel?.axisDomainOptions)
         }
       }

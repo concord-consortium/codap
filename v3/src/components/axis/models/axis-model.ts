@@ -84,7 +84,8 @@ export const BaseNumericAxisModel = AxisModel
   })
   .volatile(_self => ({
     dynamicMin: undefined as number | undefined,
-    dynamicMax: undefined as number | undefined
+    dynamicMax: undefined as number | undefined,
+    allowRangeToShrink: false
   }))
   .views(self => ({
     get domain() {
@@ -112,6 +113,14 @@ export const BaseNumericAxisModel = AxisModel
       } else if ((min < 0) && (Math.abs(max) < Math.abs(min / snapFactor))) {
         max = 0
       }
+      if (!self.allowRangeToShrink) {
+        const currentMin = self.dynamicMin ?? self.min,
+          currentMax = self.dynamicMax ?? self.max
+        min = Math.min(min, currentMin)
+        max = Math.max(max, currentMax)
+      } else {
+        self.allowRangeToShrink = false
+      }
       if (isFinite(min)) self.min = min
       if (isFinite(max)) self.max = max
       self.dynamicMin = undefined
@@ -119,6 +128,9 @@ export const BaseNumericAxisModel = AxisModel
     },
     setLockZero(lockZero: boolean) {
       self.lockZero = lockZero
+    },
+    setAllowRangeToShrink(allowRangeToShrink: boolean) {
+      self.allowRangeToShrink = allowRangeToShrink
     }
   }))
 

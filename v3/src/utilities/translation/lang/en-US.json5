@@ -8,6 +8,17 @@
     "V3.general.yes": "Yes",
     "V3.general.no": "No",
 
+    "V3.Undo.graph.toggleParentVisibility": "Undo toggling visibility",
+    "V3.Redo.graph.toggleParentVisibility": "Redo toggling visibility",
+    "V3.Undo.graph.hideAllCases": "Undo hiding all cases",
+    "V3.Redo.graph.hideAllCases": "Redo hiding all cases",
+    "V3.Undo.graph.showAllCases": "Undo showing all cases",
+    "V3.Redo.graph.showAllCases": "Redo showing all cases",
+    "V3.Undo.graph.showLastParentOnly": "Undo showing only last parent case",
+    "V3.Redo.graph.showLastParentOnly": "Redo showing only last parent case",
+    "V3.Undo.graph.uncheckLastParentOnly": "Undo unchecking \"Last\" checkbox",
+    "V3.Redo.graph.uncheckLastParentOnly": "Redo unchecking \"Last\" checkbox",
+
     "V3.map.inspector.base": "Base",
     "V3.map.inspector.oceans": "Oceans",
     "V3.map.inspector.topo": "Topo",
