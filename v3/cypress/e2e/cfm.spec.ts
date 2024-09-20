@@ -92,4 +92,12 @@ context("CloudFileManager", () => {
     // Verify document was closed (Map data table doesn't exist)
     c.checkComponentDoesNotExist("table")
   })
+  it("verify language menu is present", () => {
+    cfm.getLanguageMenuButton().should("exist")
+    cfm.getLanguageMenu().should("not.exist")
+    cfm.getLanguageMenuButton().click()
+    cfm.getLanguageMenu().should("exist")
+    cfm.getLanguageMenuButton().click()
+    cfm.getLanguageMenu().should("not.exist")
+  })
 })
