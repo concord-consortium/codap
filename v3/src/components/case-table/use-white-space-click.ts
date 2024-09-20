@@ -17,8 +17,8 @@ export function useWhiteSpaceClick({ gridRef }: IProps) {
   // then the table should be focused and the selection should not be cleared.
   // So we track if the table is in focus and if it was in focus before.
   const { isTileSelected } = useTileModelContext()
-  const isFocusedTileRef = useRef(false)
-  const wasFocusedTileRef = useRef(false)
+  const isFocusedTileRef = useRef(isTileSelected())
+  const wasFocusedTileRef = useRef(isTileSelected())
   const isFocusedTile = isTileSelected()
 
   // Store the previous focus state
