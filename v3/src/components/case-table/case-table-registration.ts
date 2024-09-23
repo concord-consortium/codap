@@ -26,7 +26,7 @@ registerTileContentInfo({
   defaultContent: () => ({ type: kCaseTableTileType }),
   getTitle: (tile) => {
     const data = tile.content && getTileDataSet(tile.content)
-    return data?.title || t("DG.DocumentController.caseTableTitle")
+    return data?.title ?? tile.title ?? t("DG.DocumentController.caseTableTitle")
   },
   hideOnClose: true
 })
