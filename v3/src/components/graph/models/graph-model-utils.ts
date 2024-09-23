@@ -82,6 +82,7 @@ function setupAxes(graphModel: IGraphContentModel, layout: GraphLayout) {
       case 'date': {
         if (!currAxisModel || !isDateAxisModel(currAxisModel)) {
           const newAxisModel = DateAxisModel.create({place, min: 0, max: 1})
+          newAxisModel.setAllowRangeToShrink(true)
           graphModel?.setAxis(place, newAxisModel)
           dataConfig?.setAttributeType(attrRole, 'date')
           layout.setAxisScaleType(place, 'linear')
