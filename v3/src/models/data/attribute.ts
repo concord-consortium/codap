@@ -307,11 +307,6 @@ export const Attribute = V2Model.named("Attribute").props({
       }
     }
     else {
-      // Note that this generates a warning that the formula is unregistered in an unexpected way.
-      // Originally, the formula manager was designed to handle only empty formulas. However,
-      // https://github.com/concord-consortium/codap/pull/1124 changed the behavior, and formula objects now get deleted
-      // from the parent model.
-      // TODO: handle it better, or remove the warning from the formula manager if it doesn't cause any issues
       this.clearFormula()
     }
   },

@@ -140,7 +140,7 @@ export const DataSet = V2Model.named("DataSet").props({
   // for serialization only, not for dynamic selection tracking
   snapSelection: types.array(types.string),
   // hidden by user, e.g. set-aside in CODAP
-  hiddenItemIds: types.array(types.string),
+  setAsideItemIds: types.array(types.string),
   filterFormula: types.maybe(Formula)
 })
 .volatile(self => ({
@@ -152,9 +152,9 @@ export const DataSet = V2Model.named("DataSet").props({
   selection: observable.set<string>(),
   selectionChanges: 0,
   // MobX-observable set of hidden (set aside) item IDs
-  hiddenItemIdsSet: observable.set<string>(),
-  // copy of hiddenItemIds used for change-detection
-  hiddenItemIdsMirror: [] as string[],
+  setAsideItemIdsSet: observable.set<string>(),
+  // copy of setAsideItemIds used for change-detection
+  setAsideItemIdsMirror: [] as string[],
   // map from case ID to the CaseInfo it represents
   caseInfoMap: new Map<string, CaseInfo>(),
   // map from item ID to the child case containing it
@@ -221,7 +221,8 @@ export const DataSet = V2Model.named("DataSet").props({
   // convert legacy collections/attributes/cases implementation to current
   if (isLegacyDataSetSnap(snap)) {
     const {
-      collections: _collections = [], attributes: _legacyAttributes, ungrouped, cases, itemIds, ...others
+      collections: _collections = [], attributes: _legacyAttributes, ungrouped,
+      cases, itemIds, hiddenItemIds = [], ...others
     } = snap
 
     const attributeIds: string[] = []
@@ -269,13 +270,13 @@ export const DataSet = V2Model.named("DataSet").props({
 
     const _itemIds = cases?.map(({ __id__ }) => __id__) ?? itemIds ?? []
 
-    return { attributesMap, collections, _itemIds, ...others }
+    return { attributesMap, collections, _itemIds, setAsideItemIds: hiddenItemIds, ...others }
   }
   return snap
 })
 .views(self => ({
   isItemSetAside(itemId: string) {
-    return self.hiddenItemIdsSet.has(itemId)
+    return self.setAsideItemIdsSet.has(itemId)
   },
   isItemFilteredOut(itemId: string) {
     // Note that if itemResult is undefined, it means the item has not been filtered out (e.g., there may not be any
@@ -565,14 +566,14 @@ export const DataSet = V2Model.named("DataSet").props({
       const caseInfo = self.caseInfoMap.get(id)
       if (caseInfo) {
         caseInfo.childItemIds.forEach(itemId => {
-          if (!self.hiddenItemIdsSet.has(itemId)) {
-            self.hiddenItemIds.push(itemId)
+          if (!self.setAsideItemIdsSet.has(itemId)) {
+            self.setAsideItemIds.push(itemId)
           }
         })
       }
       else if (self.itemInfoMap.get(id)) {
-        if (!self.hiddenItemIdsSet.has(id)) {
-          self.hiddenItemIds.push(id)
+        if (!self.setAsideItemIdsSet.has(id)) {
+          self.setAsideItemIds.push(id)
         }
       }
     })
@@ -583,18 +584,18 @@ export const DataSet = V2Model.named("DataSet").props({
         const caseInfo = self.caseInfoMap.get(id)
         if (caseInfo) {
           caseInfo.childItemIds.forEach(itemId => {
-            const foundIndex = self.hiddenItemIds.findIndex(hiddenItemId => hiddenItemId === itemId)
-            if (foundIndex >= 0) self.hiddenItemIds.splice(foundIndex, 1)
+            const foundIndex = self.setAsideItemIds.findIndex(hiddenItemId => hiddenItemId === itemId)
+            if (foundIndex >= 0) self.setAsideItemIds.splice(foundIndex, 1)
           })
         }
         else if (self.itemInfoMap.get(id)) {
-          const foundIndex = self.hiddenItemIds.findIndex(hiddenItemId => hiddenItemId === id)
-          if (foundIndex >= 0) self.hiddenItemIds.splice(foundIndex, 1)
+          const foundIndex = self.setAsideItemIds.findIndex(hiddenItemId => hiddenItemId === id)
+          if (foundIndex >= 0) self.setAsideItemIds.splice(foundIndex, 1)
         }
       })
     } else {
       // show all hidden cases/items
-      self.hiddenItemIds.clear()
+      self.setAsideItemIds.clear()
     }
   },
   setFilterFormula(display: string) {
@@ -606,11 +607,6 @@ export const DataSet = V2Model.named("DataSet").props({
         self.filterFormula.setDisplayExpression(display)
       }
     } else {
-      // Note that this generates a warning that the formula is unregistered in an unexpected way.
-      // Originally, the formula manager was designed to handle only empty formulas. However,
-      // https://github.com/concord-consortium/codap/pull/1124 changed the behavior, and formula objects now get deleted
-      // from the parent model.
-      // TODO: handle it better, or remove the warning from the formula manager if it doesn't cause any issues
       self.clearFilterFormula()
     }
   },
@@ -1251,28 +1247,28 @@ export const DataSet = V2Model.named("DataSet").props({
       }))
 
       // when items are hidden/shown...
-      // Use MST's onPatch mechanism to respond to changes to the `hiddenItemIds`.
+      // Use MST's onPatch mechanism to respond to changes to the `setAsideItemIds`.
       // This will be called once for each item added/removed and will update related properties.
       addDisposer(self, onPatch(self, ({ op, path, value }) => {
         let match: RegExpExecArray | null = null
-        if ((op === "add" || op === "remove") && (match = /hiddenItemIds\/(\d+)$/.exec(path))) {
+        if ((op === "add" || op === "remove") && (match = /setAsideItemIds\/(\d+)$/.exec(path))) {
           const index = +match[1]
           if (op === "add") {
             const itemId = value
-            self.hiddenItemIdsMirror.splice(index, 0, itemId)
-            self.hiddenItemIdsSet.add(itemId)
+            self.setAsideItemIdsMirror.splice(index, 0, itemId)
+            self.setAsideItemIdsSet.add(itemId)
           }
           else {
-            const itemId = self.hiddenItemIdsMirror[index]
-            self.hiddenItemIdsMirror.splice(index, 1)
-            self.hiddenItemIdsSet.delete(itemId)
+            const itemId = self.setAsideItemIdsMirror[index]
+            self.setAsideItemIdsMirror.splice(index, 1)
+            self.setAsideItemIdsSet.delete(itemId)
           }
           self.invalidateCases()
         }
-        if ((op === "replace") && /hiddenItemIds$/.test(path)) {
+        if ((op === "replace") && /setAsideItemIds$/.test(path)) {
           const replacementArray: string[] = value
-          self.hiddenItemIdsMirror = [...replacementArray]
-          self.hiddenItemIdsSet.replace(observable.set<string>(replacementArray))
+          self.setAsideItemIdsMirror = [...replacementArray]
+          self.setAsideItemIdsSet.replace(observable.set<string>(replacementArray))
           self.invalidateCases()
         }
       }))

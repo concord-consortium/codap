@@ -9,10 +9,10 @@ import { IDocumentEnvironment } from "./document-environment"
 import { SharedModelDocumentManager } from "./shared-model-document-manager"
 import { FormulaManager } from "../formula/formula-manager"
 import { AttributeFormulaAdapter } from "../formula/attribute-formula-adapter"
+import { FilterFormulaAdapter } from "../formula/filter-formula-adapter"
 import { PlottedValueFormulaAdapter } from "../formula/plotted-value-formula-adapter"
 import { PlottedFunctionFormulaAdapter } from "../formula/plotted-function-formula-adapter"
 import { ISharedDataSet, SharedDataSet, kSharedDataSetType } from "../shared/shared-data-set"
-import { FilterFormulaAdapter } from "../formula/filter-formula-adapter"
 
 /**
  * Create a DocumentModel and add a new sharedModelManager into its environment
@@ -35,9 +35,9 @@ export const createDocumentModel = (snapshot?: IDocumentModelSnapshot) => {
     // initialize formula adapters after the document has been created
     formulaManager.addAdapters([
       new AttributeFormulaAdapter(adapterApi),
+      new FilterFormulaAdapter(adapterApi),
       new PlottedValueFormulaAdapter(adapterApi),
-      new PlottedFunctionFormulaAdapter(adapterApi),
-      new FilterFormulaAdapter(adapterApi)
+      new PlottedFunctionFormulaAdapter(adapterApi)
     ])
 
     addDisposer(document, onAction(document, (call) => {
