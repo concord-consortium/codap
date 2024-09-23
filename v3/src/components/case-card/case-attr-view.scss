@@ -38,6 +38,12 @@
     .case-card-attr-value-text {
       white-space: nowrap;
 
+      &.static-summary {
+        font-style: italic;
+        padding: 4px;
+        text-align: left;
+      }
+
       span {
         border-radius: 0;
         display: inline-block;
