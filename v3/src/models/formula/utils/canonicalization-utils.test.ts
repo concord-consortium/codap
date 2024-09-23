@@ -73,6 +73,30 @@ describe("customizeDisplayFormula", () => {
     expect(customizeDisplayFormula("a >= b")).toEqual("a >= b")
     expect(customizeDisplayFormula("a >= b = c = d >= e")).toEqual("a >= b == c == d >= e")
   })
+  it("replaces unicode characters with MathJS supported characters", () => {
+    expect(customizeDisplayFormula("a ≠ 1")).toEqual("a != 1")
+    expect(customizeDisplayFormula("a ≠ b")).toEqual("a != b")
+    expect(customizeDisplayFormula("a ≠ b = c = d ≠ e")).toEqual("a != b == c == d != e")
+
+    expect(customizeDisplayFormula("a ≥ 1")).toEqual("a >= 1")
+    expect(customizeDisplayFormula("a ≥ b")).toEqual("a >= b")
+    expect(customizeDisplayFormula("a ≥ b = c = d ≥ e")).toEqual("a >= b == c == d >= e")
+
+    expect(customizeDisplayFormula("a ≤ 1")).toEqual("a <= 1")
+    expect(customizeDisplayFormula("a ≤ b")).toEqual("a <= b")
+    expect(customizeDisplayFormula("a ≤ b = c = d ≤ e")).toEqual("a <= b == c == d <= e")
+
+    expect(customizeDisplayFormula("a × 1")).toEqual("a * 1")
+    expect(customizeDisplayFormula("a × b")).toEqual("a * b")
+    expect(customizeDisplayFormula("a × b = c = d × e")).toEqual("a * b == c == d * e")
+
+    expect(customizeDisplayFormula("a ÷ 1")).toEqual("a / 1")
+    expect(customizeDisplayFormula("a ÷ b")).toEqual("a / b")
+    expect(customizeDisplayFormula("a ÷ b = c = d ÷ e")).toEqual("a / b == c == d / e")
+
+    expect(customizeDisplayFormula("π")).toEqual("pi")
+    expect(customizeDisplayFormula("∞")).toEqual("Infinity")
+  })
 })
 
 describe("formulaIndexOf", () => {
