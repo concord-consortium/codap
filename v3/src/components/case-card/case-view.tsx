@@ -22,7 +22,7 @@ import "./case-view.scss"
 interface ICaseViewProps {
   cases: IGroupedCase[]
   level: number
-  onSelectCases: (caseIds: string[]) => void
+  onSelectCases: (caseIds: string[], collection: string) => void
   displayedCaseLineage?: readonly string[]
   onNewCollectionDrop: (dataSet: IDataSet, attrId: string, beforeCollectionId: string) => void
 }
@@ -37,8 +37,12 @@ export const CaseView = observer(function CaseView(props: ICaseViewProps) {
   const {cases, level, onSelectCases, onNewCollectionDrop, displayedCaseLineage = []} = props
   const cardModel = useCaseCardModel()
   const data = cardModel?.data
+  const selectedCases = data?.selection
+  const selectionContainsCollectionCases = selectedCases && cases.some(c => selectedCases.has(c.__id__))
+  const summaryTotal = selectionContainsCollectionCases ? selectedCases.size : cases.length
   const collectionId = useCollectionContext()
   const collection = data?.getCollection(collectionId)
+  const isCollectionSummarized = !!cardModel?.summarizedCollections.includes(collectionId)
   const initialSelectedCase = collection?.cases.find(c => c.__id__ === displayedCaseLineage[level])
   const displayedCase = initialSelectedCase ?? cases[0]
   const displayedCaseId = displayedCase?.__id__
@@ -48,6 +52,9 @@ export const CaseView = observer(function CaseView(props: ICaseViewProps) {
     return Math.max(0, cases.findIndex(c => c.__id__ === displayedCaseId))
   }, [cases, displayedCaseId])
 
+  const caseIndexText = isCollectionSummarized
+    ? `${summaryTotal} ${summaryTotal === 1 ? t("DG.DataContext.singleCaseName") : t("DG.DataContext.pluralCaseName")}`
+    : `${displayedCaseIndex + 1} of ${cases.length}`
   const prevButtonDisabled = displayedCaseIndex <= 0
   const nextButtonDisabled = displayedCaseIndex >= cases.length - 1
 
@@ -57,11 +64,14 @@ export const CaseView = observer(function CaseView(props: ICaseViewProps) {
   }, [onNewCollectionDrop])
 
   const handleSelectCase = useCallback((delta: number) => () => {
-    const newCase = cases[displayedCaseIndex + delta]
+    const selectedCaseIndex = isCollectionSummarized
+                                ? delta < 0 ? cases.length - 1 : 0
+                                : displayedCaseIndex + delta
+    const newCase = cases[selectedCaseIndex]
     if (!newCase.__id__) return
 
-    onSelectCases([newCase.__id__])
-  }, [displayedCaseIndex, cases, onSelectCases])
+    onSelectCases([newCase.__id__], collectionId)
+  }, [isCollectionSummarized, cases, displayedCaseIndex, onSelectCases, collectionId])
 
   const handleAddNewCase = () => {
     if (collection) {
@@ -69,7 +79,7 @@ export const CaseView = observer(function CaseView(props: ICaseViewProps) {
       data?.applyModelChange(() => {
         const newItemId = cardModel?.addNewCase(cases, collection, displayedCaseId)
         newCaseId = newItemId && data?.getItemCaseIds(newItemId)[level]
-        newCaseId && onSelectCases([newCaseId])
+        newCaseId && onSelectCases([newCaseId], collectionId)
       }, {
         notify: () => {
           if (newCaseId) {
@@ -136,7 +146,7 @@ export const CaseView = observer(function CaseView(props: ICaseViewProps) {
             <Arrow />
           </button>
           <span className="caseIndex" data-testid="case-card-view-index">
-            {displayedCaseIndex + 1} of {cases.length}
+            {caseIndexText}
           </span>
           <button
             className="arrow next"
