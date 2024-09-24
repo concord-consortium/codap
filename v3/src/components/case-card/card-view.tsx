@@ -5,7 +5,6 @@ import { AttributeHeaderDividerContext } from "../case-tile-common/use-attribute
 import { CaseView } from "./case-view"
 import { useCaseCardModel } from "./use-case-card-model"
 import { IDataSet } from "../../models/data/data-set"
-import { mstAutorun } from "../../utilities/mst-autorun"
 import { t } from "../../utilities/translation/translate"
 
 import "./card-view.scss"
@@ -36,15 +35,11 @@ export const CardView = observer(function CardView({onNewCollectionDrop}: CardVi
 
   // The first time the card is rendered, summarize all collections unless there is a selection.
   useEffect(function startWithAllCollectionsSummarized() {
-    return mstAutorun(
-      () => {
-        if (data?.selection.size === 0) {
-          const allCollections = data?.collections.map(c => c.id) ?? []
-          cardModel?.setSummarizedCollections(allCollections)
-        }
-      }, { name: "CardView.startWithAllCollectionsSummarized" }, cardModel)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    if (data?.selection.size === 0) {
+      const allCollections = data?.collections.map(c => c.id) ?? []
+      cardModel?.setSummarizedCollections(allCollections)
+    }
+  }, [cardModel, data])
 
   return (
     <div ref={contentRef} className="case-card-content" data-testid="case-card-content">
