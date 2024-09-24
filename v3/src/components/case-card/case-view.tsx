@@ -53,8 +53,8 @@ export const CaseView = observer(function CaseView(props: ICaseViewProps) {
   }, [cases, displayedCaseId])
 
   const caseIndexText = isCollectionSummarized
-                          ? `${summaryTotal} cases`
-                          : `${displayedCaseIndex + 1} of ${cases.length}`
+    ? `${summaryTotal} ${summaryTotal === 1 ? t("DG.DataContext.singleCaseName") : t("DG.DataContext.pluralCaseName")}`
+    : `${displayedCaseIndex + 1} of ${cases.length}`
   const prevButtonDisabled = displayedCaseIndex <= 0
   const nextButtonDisabled = displayedCaseIndex >= cases.length - 1
 

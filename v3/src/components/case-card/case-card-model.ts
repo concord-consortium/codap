@@ -43,12 +43,12 @@ export const CaseCardModel = TileContentModel
       const getNumericSummary = (numericValues: number[], attrUnits: string): string => {
         const minValue = Math.min(...numericValues)
         const maxValue = Math.max(...numericValues)
-        return numericValues.length === 1
+        return minValue === maxValue
                  ? `${minValue}${attrUnits ? ` ${attrUnits}` : ""}`
                  : `${minValue}-${maxValue}${attrUnits ? ` ${attrUnits}` : ""}`
       }
     
-      const getCategoricSummary = (uniqueValues: Set<IValueType>): string => {
+      const getCategoricalSummary = (uniqueValues: Set<IValueType>): string => {
         const uniqueValuesArray = Array.from(uniqueValues)
         if (uniqueValuesArray.length === 1) {
           return `${uniqueValuesArray[0]}`
@@ -77,7 +77,7 @@ export const CaseCardModel = TileContentModel
             const attrUnits = attr.units ?? "" // self.data?.attrFromID(attr.id)?.units ?? ""
             summary = getNumericSummary(numericValues, attrUnits)
           } else {
-            summary = getCategoricSummary(uniqueValues)
+            summary = getCategoricalSummary(uniqueValues)
           } 
           return { ...acc, [attr.id]: summary }
         }, {})
