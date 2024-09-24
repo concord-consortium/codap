@@ -15,7 +15,7 @@ context("case card", () => {
 
   describe("case card", () => {
     it("can switch from case table to case card view and back with undo/redo", () => {
-      // Initial checks
+      // Initial checks case table->case card
       cy.get('[data-testid="codap-case-table"]').should("exist")
       cy.get('[data-testid="case-card"]').should("not.exist")
 
