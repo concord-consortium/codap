@@ -58,7 +58,7 @@ export const EditFilterFormulaModal = observer(function EditFormulaModal({ isOpe
         <div className="codap-modal-icon-container" />
         <div className="codap-header-title" />
         <ModalCloseButton onClick={onClose} data-testid="modal-close-button" />
-      </ModalHeader>=
+      </ModalHeader>
       <ModalBody>
         {
           data?.filterFormulaError &&
