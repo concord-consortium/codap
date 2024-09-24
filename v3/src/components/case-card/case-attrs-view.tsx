@@ -19,9 +19,8 @@ interface ICaseAttrsViewProps {
 }
 
 function getDividerBounds(containerBounds: DOMRect, cellBounds: DOMRect) {
-  const kCardCellHeight = 25
   return {
-    top: cellBounds.bottom - containerBounds.top + kCardCellHeight,
+    top: cellBounds.bottom - containerBounds.top,
     left: cellBounds.left - containerBounds.left,
     width: cellBounds.right - cellBounds.left,
     height: 6
