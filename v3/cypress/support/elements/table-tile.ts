@@ -246,6 +246,9 @@ export const TableTileElements = {
   getToggleCardView() {
     return cy.get("[data-testid=case-table-toggle-view]")
   },
+  getToggleCardMessage() {
+    return cy.get('[data-testid="card-table-toggle-message"]')
+  },
   toggleCaseView() {
     this.getToggleCardView().click()
     cy.get("[data-testid=card-table-toggle-message]").click()

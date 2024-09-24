@@ -43,6 +43,7 @@ export const HideShowMenuList = observer(function HideShowMenuList() {
   const menuItems: IMenuItem[] = [
     {
       itemKey: "DG.Inspector.setaside.setAsideSelectedCases",
+      dataTestId: "hide-show-menu-set-aside-selected-cases",
       isEnabled: () => selectionCount > 0,
       handleClick: () => {
         if (data?.selection.size) {
@@ -52,6 +53,7 @@ export const HideShowMenuList = observer(function HideShowMenuList() {
     },
     {
       itemKey: "DG.Inspector.setaside.setAsideUnselectedCases",
+      dataTestId: "hide-show-menu-set-aside-unselected-cases",
       isEnabled: () => selectionCount < itemCount,
       handleClick: () => {
         const unselectedItemIds = data?.itemIds.filter(itemId => !data.isCaseSelected(itemId)) ?? []
@@ -62,6 +64,7 @@ export const HideShowMenuList = observer(function HideShowMenuList() {
     },
     {
       itemKey: "DG.Inspector.setaside.restoreSetAsideCases",
+      dataTestId: "hide-show-menu-restore-set-aside-cases",
       itemLabel: () => t("DG.Inspector.setaside.restoreSetAsideCases", { vars: [setAsideCount] }),
       isEnabled: () => setAsideCount > 0,
       handleClick: () => {
@@ -87,6 +90,7 @@ export const HideShowMenuList = observer(function HideShowMenuList() {
     },
     {
       itemKey: "DG.Inspector.attributes.showAllHiddenAttributesPlural",
+      dataTestId: "hide-show-menu-show-all-hidden-attributes",
       isEnabled: () => hiddenAttributeCount > 0,
       itemLabel: () => {
         const showAllHiddenAttributesKey = {

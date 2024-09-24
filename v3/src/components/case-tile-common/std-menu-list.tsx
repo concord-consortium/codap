@@ -10,6 +10,7 @@ export interface IMenuItem {
   // defaults to true if not implemented
   isEnabled?: (item: IMenuItem) => boolean
   handleClick?: (item: IMenuItem) => void
+  dataTestId?: string
 }
 
 interface IProps {
@@ -24,7 +25,12 @@ export const StdMenuList = observer(function StdMenuList({ menuItems, ...others 
           const isDisabled = !item.handleClick || (item.isEnabled && !item.isEnabled(item))
           const itemLabel = item.itemLabel?.(item) || t(item.itemKey)
           return (
-            <MenuItem key={item.itemKey} isDisabled={isDisabled} onClick={() => item.handleClick?.(item)}>
+            <MenuItem
+              key={item.itemKey}
+              isDisabled={isDisabled}
+              onClick={() => item.handleClick?.(item)}
+              data-testid={item.dataTestId}
+            >
               {`${itemLabel}${item.handleClick ? "" : " 🚧"}`}
             </MenuItem>
           )
