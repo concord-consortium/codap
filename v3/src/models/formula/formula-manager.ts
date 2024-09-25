@@ -1,5 +1,5 @@
 import { comparer, makeObservable, observable, reaction, action } from "mobx"
-import { addDisposer, isAlive } from "mobx-state-tree"
+import { addDisposer } from "mobx-state-tree"
 import { ICase } from "../data/data-set-types"
 import { CaseList } from "./formula-types"
 import { IDataSet } from "../data/data-set"
@@ -236,10 +236,6 @@ export class FormulaManager {
       if (!activeFormulas.has(formulaId)) {
         this.unregisterFormula(formulaId)
       }
-      if (!isAlive(metadata.formula)) {
-        console.warn(`Formula ${metadata.formula.display} unregistered in an unexpected way`)
-        this.unregisterFormula(formulaId)
-      }
     })
   }
 
@@ -307,6 +303,10 @@ export class FormulaManager {
     const { dataSet } = formulaContext
     const { formula, adapter } = formulaMetadata
     const { defaultArgument } = extraMetadata
+
+    // unregister formulas when they're destroyed
+    addDisposer(formula, () => this.unregisterFormula(formulaId))
+
     if (formula.empty) {
       return
     }

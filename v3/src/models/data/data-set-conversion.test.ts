@@ -2,7 +2,7 @@ import { IAttributeSnapshot } from "./attribute"
 import { ICollectionModelSnapshot } from "./collection"
 import { DataSet } from "./data-set"
 import {
-  IInitialItemsDataSetSnap, IOriginalDataSetSnap, IPreItemsDataSetSnap, ITempDataSetSnap
+  IHiddenItemIdsDataSetSnap, IInitialItemsDataSetSnap, IOriginalDataSetSnap, IPreItemsDataSetSnap, ITempDataSetSnap
 } from "./data-set-conversion"
 
 const kUngroupedCollectionName = "Collection Formerly Known As Ungrouped"
@@ -108,5 +108,27 @@ describe("DataSet conversions", () => {
     expect(data.attributes.length).toBe(3)
     expect(data._itemIds.length).toBe(1)
     expect(data.itemIds.length).toBe(1)
+  })
+
+  test("DataSet hiddenItemIds flat snapshot conversion", () => {
+    const data = DataSet.create({
+      name: "Data",
+      collections: [{
+        name: "Cases",
+        attributes: ["a1Id", "a2Id", "a3Id"]
+      }],
+      attributesMap: {
+        a1Id: { id: "a1Id", name: "a1", values: ["a1-0"] },
+        a2Id: { id: "a2Id", name: "a2", values: ["a2-0"] },
+        a3Id: { id: "a3Id", name: "a3", values: ["a3-0"] }
+      },
+      _itemIds: ["ITEM0"],
+      hiddenItemIds: ["ITEM0"]
+    } as IHiddenItemIdsDataSetSnap)
+    expect(data.attributesMap.size).toBe(3)
+    expect(data.attributes.length).toBe(3)
+    expect(data._itemIds.length).toBe(1)
+    expect(data.itemIds.length).toBe(1)
+    expect(data.setAsideItemIds.length).toBe(1)
   })
 })

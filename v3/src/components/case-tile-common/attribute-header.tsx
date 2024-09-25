@@ -20,6 +20,7 @@ interface IProps {
   customButtonStyle?: SystemStyleObject
   getDividerBounds?: GetDividerBoundsFn
   HeaderDivider?: React.ComponentType<IDividerProps>
+  showUnits?: boolean
   // returns the draggable parent element for use with DnDKit
   onSetHeaderContentElt?: (contentElt: HTMLDivElement | null) => HTMLElement | null
   onBeginEdit?: () => void
@@ -29,7 +30,7 @@ interface IProps {
 
 export const AttributeHeader = observer(function AttributeHeader({
   attributeId, beforeHeaderDivider, customButtonStyle, getDividerBounds, HeaderDivider,
-  onSetHeaderContentElt, onBeginEdit, onEndEdit, onOpenMenu
+  showUnits=true, onSetHeaderContentElt, onBeginEdit, onEndEdit, onOpenMenu
 }: IProps) {
   const { active } = useDndContext()
   const data = useDataSetContext()
@@ -205,7 +206,7 @@ export const AttributeHeader = observer(function AttributeHeader({
                           fontWeight="bold" onKeyDown={handleButtonKeyDown}
                           data-testid={`codap-attribute-button ${attrName}`}
                           aria-describedby={`sr-column-header-drag-instructions-${instanceId}`}>
-                        {`${attrName ?? ""}${units}`}
+                        {`${attrName ?? ""}${showUnits ? units : ""}`}
                       </MenuButton>
                       <VisuallyHidden id={`sr-column-header-drag-instructions-${instanceId}`}>
                         <pre> Press Space to drag the attribute within the table or to a graph.

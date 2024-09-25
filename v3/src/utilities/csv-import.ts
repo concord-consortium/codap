@@ -13,7 +13,10 @@ export function downloadCsvFile(dataUrl: string, onComplete: (results: CsvParseR
 }
 
 export function convertParsedCsvToDataSet(results: CsvParseResult, filename: string) {
-  const ds = DataSet.create({ name: filename })
+  // Remove extension
+  // From https://stackoverflow.com/questions/4250364/how-to-trim-a-file-extension-from-a-string-in-javascript
+  const name = filename.replace(/\.[^/.]+$/, "")
+  const ds = DataSet.create({ name })
   // add attributes (extracted from first case)
   for (const pName in results.data[0]) {
     ds.addAttribute({name: pName})
