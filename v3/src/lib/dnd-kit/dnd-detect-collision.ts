@@ -39,11 +39,5 @@ export const dndDetectCollision: CollisionDetection = (args) => {
     }
   }
 
-  // if we're in the graph component, use rectangle intersection on the drop targets (e.g. axes, plot)
-  if (collisions.find(collision => /graph.+component-drop-overlay/.test(`${collision.id}`))) {
-    const containers = args.droppableContainers.filter(({id}) => /graph.+-drop/.test(`${id}`))
-    return rectIntersection({ ...args, droppableContainers: containers })
-  }
-
   return collisions
 }

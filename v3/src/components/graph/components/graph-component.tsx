@@ -11,15 +11,19 @@ import {useGraphController} from "../hooks/use-graph-controller"
 import {GraphLayoutContext} from '../hooks/use-graph-layout-context'
 import {useInitGraphLayout} from '../hooks/use-init-graph-layout'
 import {InstanceIdContext, useNextInstanceId} from "../../../hooks/use-instance-id-context"
+import { registerTileCollisionDetection } from "../../../lib/dnd-kit/dnd-detect-collision"
 import {AxisProviderContext} from '../../axis/hooks/use-axis-provider-context'
 import {AxisLayoutContext} from "../../axis/models/axis-layout-context"
 import {usePixiPointsArray} from '../../data-display/hooks/use-pixi-points-array'
 import {GraphController} from "../models/graph-controller"
 import {isGraphContentModel} from "../models/graph-content-model"
 import {Graph} from "./graph"
+import { graphCollisionDetection, kGraphIdBase } from './graph-drag-drop'
 import { kTitleBarHeight } from "../../constants"
 import {AttributeDragOverlay} from "../../drag-drop/attribute-drag-overlay"
 import "../register-adornment-types"
+
+registerTileCollisionDetection(kGraphIdBase, graphCollisionDetection)
 
 export const GraphComponent = observer(function GraphComponent({tile}: ITileBaseProps) {
   const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
