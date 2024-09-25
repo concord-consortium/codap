@@ -28,18 +28,18 @@ context("case card", () => {
 
       // Switch from case card view back to case table
       cy.get(cardHeaderLeftSelector).click()
-      cy.wait(500);
+      cy.wait(500)
       cy.get(`${cardHeaderLeftSelector} .card-table-toggle-message`).click()
       cy.get('[data-testid="codap-case-table"]').should("exist")
       cy.get('[data-testid="case-card-view"]').should("not.exist")
 
       // Perform undo actions
-      toolbar.getUndoTool().click()  // Undo switch to case card
+      toolbar.getUndoTool().click()  // Undo switch
       cy.get('[data-testid="codap-case-table"]').should("not.exist")
       cy.get('[data-testid="case-card-view"]').should("exist")
 
       // Perform redo actions
-      toolbar.getRedoTool().click();  // Redo switch to case table
+      toolbar.getRedoTool().click()  // Redo switch to case table
       cy.get('[data-testid="codap-case-table"]').should("exist")
       cy.get('[data-testid="case-card-view"]').should("not.exist")
     })
