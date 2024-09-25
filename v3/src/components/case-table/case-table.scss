@@ -217,10 +217,17 @@ $table-body-font-size: 8pt;
             height: 100%;
             color: #555555 !important;
           }
-          
+
           button.codap-attribute-button.table > span {
             display: flex;
             flex-direction: column;
+
+            .two-line-header-line-1 {
+              display: inline-block;
+              hyphens: auto;
+              overflow-wrap: break-word;
+              overflow: hidden;
+            }
 
             .two-line-header-line-2.truncated {
               display: inline-block;
@@ -228,7 +235,6 @@ $table-body-font-size: 8pt;
               overflow: hidden;
               text-overflow: ellipsis;
               direction: rtl;
-              text-align: left;
               unicode-bidi: bidi-override;
             }
           }

@@ -60,6 +60,10 @@ export function useAdjustHeaderForOverflow(attrbuteHeaderButtonEl: HTMLButtonEle
         currentLine1 = currentLine1 ? `${currentLine1} ${words[i]}` : words[i]
         i++
       }
+      // If line1 ends up with just one word, show the word no matter what the width is
+      if (currentLine1.split(' ').length === 1) {
+        currentLine1 = words[0]
+      }
       setLine1(currentLine1)
 
       const remainingWords = words.slice(i).join(' ')
