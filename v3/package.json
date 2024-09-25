@@ -202,7 +202,7 @@
     "mobx-react-lite": "^4.0.7",
     "nanoid": "^5.0.7",
     "papaparse": "^5.4.1",
-    "pixi.js": "~7.4.2",
+    "pixi.js": "~8.4.1",
     "pluralize": "^8.0.0",
     "prop-types": "^15.8.1",
     "query-string": "^9.1.0",

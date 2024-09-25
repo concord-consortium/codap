@@ -24,7 +24,7 @@ export enum PixiBackgroundPassThroughEvent {
   PointerDown = "pointerdown",
 }
 
-export type IPixiPointsArrayRef = React.MutableRefObject<PixiPoints[]>
+export type IPixiPointsArray = PixiPoints[]
 
 export type PixiPointEventHandler = (event: PointerEvent, point: PIXI.Sprite, metadata: IPixiPointMetadata) => void
 
@@ -72,21 +72,7 @@ interface IPointTransitionState {
 const caseDataKey = ({ plotNum, caseID }: CaseData) => `${plotNum}:${caseID}`
 
 export class PixiPoints {
-  renderer: PIXI.Renderer = new PIXI.Renderer({
-    resolution: window.devicePixelRatio,
-    autoDensity: true,
-    backgroundAlpha: 0,
-    antialias: true,
-    // `passive` is more performant and will be used by default in the future Pixi.JS versions
-    eventMode: "passive",
-    eventFeatures: {
-      move: true,
-      click: true,
-      // disables the global move events which can be very expensive in large scenes
-      globalMove: false,
-      wheel: false
-    }
-  })
+  renderer?: PIXI.Renderer
   stage = new PIXI.Container()
   pointsContainer = new PIXI.Container()
   background = new PIXI.Sprite(PIXI.Texture.EMPTY)
@@ -118,7 +104,27 @@ export class PixiPoints {
   onPointDrag?: PixiPointEventHandler
   onPointDragEnd?: PixiPointEventHandler
 
-  constructor(options?: IPixiPointsOptions) {
+  async init(options?: IPixiPointsOptions) {
+    // Automatically determines the most appropriate renderer for the current environment.
+    // The function will prioritize the WebGL renderer as it is the most tested safe API to use. In the near future as
+    // WebGPU becomes more stable and ubiquitous, it will be prioritized over WebGL.
+    // See: https://pixijs.download/release/docs/rendering.html#autoDetectRenderer
+    this.renderer = await PIXI.autoDetectRenderer({
+      resolution: window.devicePixelRatio,
+      autoDensity: true,
+      backgroundAlpha: 0,
+      antialias: true,
+      // `passive` is more performant and will be used by default in the future Pixi.JS versions
+      eventMode: "passive",
+      eventFeatures: {
+        move: true,
+        click: true,
+        // disables the global move events which can be very expensive in large scenes
+        globalMove: false,
+        wheel: false
+      }
+    })
+
     this.ticker.add(this.tick.bind(this))
     this.stage.addChild(this.background)
     this.stage.addChild(this.pointsContainer)
@@ -141,7 +147,7 @@ export class PixiPoints {
   }
 
   get canvas() {
-    return this.renderer.view as HTMLCanvasElement
+    return this.renderer?.view.canvas as HTMLCanvasElement
   }
 
   get points() {
@@ -163,14 +169,14 @@ export class PixiPoints {
       // The only reason for ticker to run is to handle ongoing transitions. If there are no transitions, we can stop.
       this.ticker.stop()
     }
-    this.renderer.render(this.stage)
+    this.renderer?.render(this.stage)
   }
 
   resize(width: number, height: number) {
     // We only set the background size if the width and height are valid. If we ever set width/height of background to
     // negative values, the background won't be able to detect pointer events.
     if (width > 0 && height > 0) {
-      this.renderer.resize(width, height)
+      this.renderer?.resize(width, height)
       this.background.width = width
       this.background.height = height
       this.startRendering()
@@ -420,7 +426,11 @@ export class PixiPoints {
   }
 
   generateTexture(graphics: PIXI.Graphics, key: string): PIXI.Texture {
-    const texture = this.renderer.generateTexture(graphics, {
+    if (!this.renderer) {
+      throw new Error("PixiPoints renderer not initialized")
+    }
+    const texture = this.renderer.generateTexture({
+      target: graphics,
       // A trick to make sprites/textures look still sharp when they're scaled up (e.g. during hover effect).
       // The default resolution is `devicePixelRatio`, so if we multiply it by `MAX_SPRITE_SCALE`, we can scale
       // sprites up to `MAX_SPRITE_SCALE` without losing sharpness.
@@ -439,9 +449,6 @@ export class PixiPoints {
       return this.textures.get(key) as PIXI.Texture
     }
 
-    const graphics = new PIXI.Graphics()
-    graphics.beginFill(fill)
-
     const shouldDrawStroke = (dimension: number | undefined) => {
       // Do not draw the stroke when either:
       // 1. a transition from points to bars is active -- the stroke would be distorted by the scale change
@@ -451,7 +458,6 @@ export class PixiPoints {
     }
 
     const textureStrokeWidth = shouldDrawStroke(width) || shouldDrawStroke(height) ? strokeWidth : 0
-    graphics.lineStyle(textureStrokeWidth, stroke, strokeOpacity ?? 0.4)
 
     // When the option to display bars is first selected, the width and height of the bars are first set to two times
     // the radius value specified in `style`. This is so the bars are initially drawn as squares that are the same size
@@ -464,8 +470,11 @@ export class PixiPoints {
       ? width : radius * 2
     const rectHeight = isFiniteNumber(height) && (!this.displayTypeTransitionState.isActive || includeDimensions)
       ? height : radius * 2
-    graphics.drawRect(0, 0, rectWidth, rectHeight)
-    graphics.endFill()
+
+    const graphics = new PIXI.Graphics()
+      .rect(0, 0, rectWidth, rectHeight)
+      .fill(fill)
+      .stroke({ color: stroke, width: textureStrokeWidth, alpha: strokeOpacity ?? 0.4 })
 
     return this.generateTexture(graphics, key)
   }
@@ -479,10 +488,9 @@ export class PixiPoints {
     }
 
     const graphics = new PIXI.Graphics()
-    graphics.beginFill(fill)
-    graphics.lineStyle(strokeWidth, stroke, strokeOpacity ?? 0.4)
-    graphics.drawCircle(0, 0, radius)
-    graphics.endFill()
+      .circle(0, 0, radius)
+      .fill(fill)
+      .stroke({ color: stroke, width: strokeWidth, alpha: strokeOpacity ?? 0.4 })
 
     return this.generateTexture(graphics, key)
   }
@@ -704,7 +712,7 @@ export class PixiPoints {
 
   dispose() {
     this.ticker.destroy()
-    this.renderer.destroy()
+    this.renderer?.destroy()
     this.stage.destroy()
     this.textures.forEach(texture => texture.destroy())
     this.resizeObserver?.disconnect()

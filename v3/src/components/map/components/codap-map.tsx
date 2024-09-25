@@ -33,7 +33,7 @@ export const CodapMap = observer(function CodapMap({mapRef}: IProps) {
     interiorDivRef = useRef<HTMLDivElement>(null),
     prevMapSize = useRef<{ width: number, height: number, legend: number }>({width: 0, height: 0, legend: 0}),
     forceUpdate = useForceUpdate(),
-    pixiPointsArrayRef = usePixiPointsArray()
+    {pixiPointsArray, setPixiPointsLayer} = usePixiPointsArray()
 
   // trigger an additional render once references have been fulfilled
   useEffect(() => forceUpdate(), [forceUpdate])
@@ -92,9 +92,9 @@ export const CodapMap = observer(function CodapMap({mapRef}: IProps) {
               })
             }
           </>
-          <MapInterior pixiPointsArrayRef={pixiPointsArrayRef}/>
+          <MapInterior setPixiPointsLayer={setPixiPointsLayer}/>
         </MapContainer>
-        <MapBackground mapModel={mapModel} pixiPointsArrayRef={pixiPointsArrayRef}/>
+        <MapBackground mapModel={mapModel} pixiPointsArray={pixiPointsArray}/>
       </div>
       {renderSliderIfAppropriate()}
       <DroppableMapArea

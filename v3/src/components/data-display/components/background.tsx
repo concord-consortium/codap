@@ -13,12 +13,11 @@ import {rectangleSubtract, rectNormalize} from "../data-display-utils"
 import {useDataDisplayLayout} from "../hooks/use-data-display-layout"
 import {useDataDisplayModelContext} from "../hooks/use-data-display-model"
 import {MarqueeState} from "../models/marquee-state"
-import {IPixiPointMetadata, IPixiPointsArrayRef, PixiBackgroundPassThroughEvent, PixiPoints}
-  from "../pixi/pixi-points"
+import {IPixiPointMetadata, IPixiPointsArray, PixiBackgroundPassThroughEvent, PixiPoints} from "../pixi/pixi-points"
 
 interface IProps {
   marqueeState: MarqueeState
-  pixiPointsArrayRef: IPixiPointsArrayRef
+  pixiPointsArray: IPixiPointsArray
 }
 
 type RTree = ReturnType<typeof RTreeLib>
@@ -64,7 +63,7 @@ const prepareTree = (pixiPointsArray: PixiPoints[]): RTree => {
   }
 
 export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((props, ref) => {
-  const {marqueeState, pixiPointsArrayRef} = props,
+  const {marqueeState, pixiPointsArray} = props,
     dataDisplayModel = useDataDisplayModelContext(),
     datasetsArray = dataDisplayModel.datasetsArray,
     datasetsMap: SelectionMap = useMemo(() => {
@@ -92,7 +91,7 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
 
     onDragStart = useCallback((event: PointerEvent) => {
       appState.beginPerformance()
-      selectionTree.current = prepareTree(pixiPointsArrayRef.current)
+      selectionTree.current = prepareTree(pixiPointsArray)
       // Event coordinates are window coordinates. To convert them to SVG coordinates, we need to subtract the
       // bounding rect of the SVG element.
       const bgRect = (bgRef.current as SVGGElement).getBoundingClientRect()
@@ -108,7 +107,7 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
         })
       }
       marqueeState.setMarqueeRect({x: startX.current, y: startY.current, width: 0, height: 0})
-    }, [bgRef, datasetsArray, marqueeState, pixiPointsArrayRef]),
+    }, [bgRef, datasetsArray, marqueeState, pixiPointsArray]),
 
     onDrag = useCallback((event: { dx: number; dy: number }) => {
       if (event.dx !== 0 || event.dy !== 0 && datasetsArray.length) {

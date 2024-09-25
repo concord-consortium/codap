@@ -29,13 +29,13 @@ export const GraphComponent = observer(function GraphComponent({tile}: ITileBase
   const layout = useInitGraphLayout(graphModel)
   const graphRef = useRef<HTMLDivElement | null>(null)
   const {width, height} = useResizeDetector<HTMLDivElement>({targetRef: graphRef})
-  const pixiPointsArrayRef = usePixiPointsArray({ addInitialPixiPoints: true })
+  const {pixiPointsArray} = usePixiPointsArray({ addInitialPixiPoints: true })
   const graphController = useMemo(
     () => new GraphController({layout, instanceId}),
     [layout, instanceId]
   )
 
-  useGraphController({graphController, graphModel, pixiPointsArrayRef})
+  useGraphController({graphController, graphModel, pixiPointsArray})
 
   useEffect(() => {
     (width != null) && width >= 0 && (height != null) &&
@@ -69,7 +69,7 @@ export const GraphComponent = observer(function GraphComponent({tile}: ITileBase
                 <Graph
                   graphController={graphController}
                   graphRef={graphRef}
-                  pixiPointsArrayRef={pixiPointsArrayRef}
+                  pixiPointsArray={pixiPointsArray}
                 />
               </AxisProviderContext.Provider>
               <AttributeDragOverlay activeDragId={overlayDragId}/>
