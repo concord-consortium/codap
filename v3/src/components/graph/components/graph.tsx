@@ -7,7 +7,7 @@ import {clsx} from "clsx"
 import { logStringifiedObjectMessage } from "../../../lib/log-message"
 import {mstReaction} from "../../../utilities/mst-reaction"
 import {onAnyAction} from "../../../utilities/mst-utils"
-import {IPixiPointsArrayRef} from "../../data-display/pixi/pixi-points"
+import {IPixiPointsArray} from "../../data-display/pixi/pixi-points"
 import {GraphAttrRole, graphPlaceToAttrRole, kPortalClass} from "../../data-display/data-display-types"
 import {AxisPlace, AxisPlaces} from "../../axis/axis-types"
 import {GraphAxis} from "./graph-axis"
@@ -47,13 +47,13 @@ import "./graph.scss"
 interface IProps {
   graphController: GraphController
   graphRef: MutableRefObject<HTMLDivElement | null>
-  pixiPointsArrayRef: IPixiPointsArrayRef
+  pixiPointsArray: IPixiPointsArray
 }
 
-export const Graph = observer(function Graph({graphController, graphRef, pixiPointsArrayRef}: IProps) {
+export const Graph = observer(function Graph({graphController, graphRef, pixiPointsArray}: IProps) {
   const graphModel = useGraphContentModelContext(),
     {plotType} = graphModel,
-    pixiPoints = pixiPointsArrayRef.current?.[0],
+    pixiPoints = pixiPointsArray[0],
     {startAnimation} = useDataDisplayAnimation(),
     instanceId = useInstanceIdContext(),
     marqueeState = useMemo<MarqueeState>(() => new MarqueeState(), []),
@@ -350,7 +350,7 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
           <Background
             ref={backgroundSvgRef}
             marqueeState={marqueeState}
-            pixiPointsArrayRef={pixiPointsArrayRef}
+            pixiPointsArray={pixiPointsArray}
           />
 
           {renderGraphAxes()}

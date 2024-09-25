@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { PixiPoints } from "../pixi/pixi-points"
 
 interface IProps {
@@ -7,18 +7,33 @@ interface IProps {
 
 export function usePixiPointsArray(props?: IProps) {
   const { addInitialPixiPoints = false } = props || {}
-  const pixiPointsRef = useRef<PixiPoints[]>([])
+  const [ pixiPointsArray, setPixiPointsArray ] = useState<PixiPoints[]>([])
 
   useEffect(() => {
-    const pixiPointsArray = pixiPointsRef.current
     const initialPixiPoints = addInitialPixiPoints ? new PixiPoints() : undefined
-    initialPixiPoints && pixiPointsArray.push(initialPixiPoints)
+
+    async function initPixiPoints() {
+      if (initialPixiPoints) {
+        await initialPixiPoints.init()
+        setPixiPointsArray([initialPixiPoints])
+      }
+    }
+    initPixiPoints()
+
     return () => {
       // if we created it, we destroy it
       initialPixiPoints?.dispose()
-      pixiPointsArray.length = 0
+      setPixiPointsArray([])
     }
   }, [addInitialPixiPoints])
 
-  return pixiPointsRef
+  const setPixiPointsLayer = useCallback((pixiPoints: PixiPoints, layerIndex: number) => {
+    setPixiPointsArray((prev) => {
+      const newPixiPointsArray = [...prev]
+      newPixiPointsArray[layerIndex] = pixiPoints
+      return newPixiPointsArray
+    })
+  }, [])
+
+  return {pixiPointsArray, setPixiPointsLayer}
 }
