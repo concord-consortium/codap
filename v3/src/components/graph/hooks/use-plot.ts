@@ -59,6 +59,15 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     refreshPointPositions(selectedOnly)
   })
 
+  // Refresh point positions when pixiPoints become available to fix this bug:
+  // https://www.pivotaltracker.com/story/show/188333898
+  // This might be a workaround for the fact that useDebouncedCallback may not be updated when pixiPoints
+  // (a dependency of refreshPointPositions) are updated. useDebouncedCallback doesn't seem to declare any
+  // dependencies and I'd imagine it returns a stable result (?).
+  useEffect(() => {
+    callRefreshPointPositions(false)
+  }, [callRefreshPointPositions, pixiPoints])
+
   // respond to numeric axis domain changes (e.g. axis dragging)
   useEffect(() => {
     return mstReaction(
