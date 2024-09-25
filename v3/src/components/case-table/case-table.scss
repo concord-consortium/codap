@@ -222,6 +222,10 @@ $table-body-font-size: 8pt;
             display: flex;
             flex-direction: column;
 
+            .one-line-header {
+              white-space: normal;
+            }
+
             .two-line-header-line-1 {
               display: inline-block;
               hyphens: auto;
