@@ -1,5 +1,4 @@
 import * as PIXI from "pixi.js"
-import { WebGLRenderer } from "pixi.js"
 import { CaseData } from "../d3-types"
 import { PixiTransition, TransitionPropMap, TransitionProp } from "./pixi-transition"
 import { hoverRadiusFactor, transitionDuration } from "../data-display-types"
@@ -73,7 +72,7 @@ interface IPointTransitionState {
 const caseDataKey = ({ plotNum, caseID }: CaseData) => `${plotNum}:${caseID}`
 
 export class PixiPoints {
-  renderer: PIXI.Renderer = new WebGLRenderer()
+  renderer?: PIXI.Renderer
   stage = new PIXI.Container()
   pointsContainer = new PIXI.Container()
   background = new PIXI.Sprite(PIXI.Texture.EMPTY)
@@ -106,7 +105,11 @@ export class PixiPoints {
   onPointDragEnd?: PixiPointEventHandler
 
   async init(options?: IPixiPointsOptions) {
-    await this.renderer.init({
+    // Automatically determines the most appropriate renderer for the current environment.
+    // The function will prioritize the WebGL renderer as it is the most tested safe API to use. In the near future as
+    // WebGPU becomes more stable and ubiquitous, it will be prioritized over WebGL.
+    // See: https://pixijs.download/release/docs/rendering.html#autoDetectRenderer
+    this.renderer = await PIXI.autoDetectRenderer({
       resolution: window.devicePixelRatio,
       autoDensity: true,
       backgroundAlpha: 0,
@@ -144,7 +147,7 @@ export class PixiPoints {
   }
 
   get canvas() {
-    return this.renderer.view.canvas as HTMLCanvasElement
+    return this.renderer?.view.canvas as HTMLCanvasElement
   }
 
   get points() {
@@ -166,14 +169,14 @@ export class PixiPoints {
       // The only reason for ticker to run is to handle ongoing transitions. If there are no transitions, we can stop.
       this.ticker.stop()
     }
-    this.renderer.render(this.stage)
+    this.renderer?.render(this.stage)
   }
 
   resize(width: number, height: number) {
     // We only set the background size if the width and height are valid. If we ever set width/height of background to
     // negative values, the background won't be able to detect pointer events.
     if (width > 0 && height > 0) {
-      this.renderer.resize(width, height)
+      this.renderer?.resize(width, height)
       this.background.width = width
       this.background.height = height
       this.startRendering()
@@ -423,6 +426,9 @@ export class PixiPoints {
   }
 
   generateTexture(graphics: PIXI.Graphics, key: string): PIXI.Texture {
+    if (!this.renderer) {
+      throw new Error("PixiPoints renderer not initialized")
+    }
     const texture = this.renderer.generateTexture({
       target: graphics,
       // A trick to make sprites/textures look still sharp when they're scaled up (e.g. during hover effect).
@@ -706,7 +712,7 @@ export class PixiPoints {
 
   dispose() {
     this.ticker.destroy()
-    this.renderer.destroy()
+    this.renderer?.destroy()
     this.stage.destroy()
     this.textures.forEach(texture => texture.destroy())
     this.resizeObserver?.disconnect()
