@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { measureText } from './use-measure-text'
 
+const kPaddingBuffer = 5 // Button width is 5px smaller because of parent padding
+
 // Hook to split headers into 2 rows and ellide the 2nd line if it doesn't fit
 export function useAdjustHeaderForOverflow(attrbuteHeaderButtonEl: HTMLButtonElement | null,
                                             attrName: string, attrUnits?: string) {
@@ -34,7 +36,7 @@ export function useAdjustHeaderForOverflow(attrbuteHeaderButtonEl: HTMLButtonEle
       return
     }
 
-    const attributeButtonWidth = attrbuteHeaderButtonEl.clientWidth
+    const attributeButtonWidth = attrbuteHeaderButtonEl.clientWidth - kPaddingBuffer
     const computedStyle = getComputedStyle(attrbuteHeaderButtonEl)
     const style = [
       `font-style:${computedStyle.fontStyle}`,
@@ -46,13 +48,12 @@ export function useAdjustHeaderForOverflow(attrbuteHeaderButtonEl: HTMLButtonEle
       `height:${attrbuteHeaderButtonEl.clientHeight}px`
     ].join('')
     const fullTextWidth = measureText(candidateAttributeLabel, style)
-
-    if (fullTextWidth <= attributeButtonWidth) {
+    const words = candidateAttributeLabel.split(' ')
+    if (fullTextWidth <= attributeButtonWidth || words.length === 1) {
       setLine1(candidateAttributeLabel)
       setLine2('')
       setIsOverflowed(false)
     } else {
-      const words = candidateAttributeLabel.split(' ')
       let i = 0
       let currentLine1 = ''
       // Build line1 word by word without exceeding the button width
