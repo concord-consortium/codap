@@ -226,7 +226,7 @@ export const AttributeHeader = observer(function AttributeHeader({
                           data-testid={`codap-attribute-button ${attrName}`}
                           aria-describedby={`sr-column-header-drag-instructions-${instanceId}`}>
                         {instanceId.includes("table") ? renderAttributeLabel
-                                                      : `${attrName ?? ""}${showUnits && attrUnits}`.trim()}
+                                                      : `${attrName ?? ""}${showUnits ? attrUnits : ""}`.trim()}
                       </MenuButton>
                       <VisuallyHidden id={`sr-column-header-drag-instructions-${instanceId}`}>
                         <pre> Press Space to drag the attribute within the table or to a graph.
