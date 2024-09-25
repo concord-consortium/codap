@@ -58,6 +58,7 @@ import {
 } from "./data-set-types"
 // eslint-disable-next-line import/no-cycle
 import { isLegacyDataSetSnap, isOriginalDataSetSnap, isTempDataSetSnap } from "./data-set-conversion"
+import { Formula, IFormula } from "../formula/formula"
 import { applyModelChange } from "../history/apply-model-change"
 import { withoutUndo } from "../history/without-undo"
 import { kAttrIdPrefix, kItemIdPrefix, typeV3Id, v3Id } from "../../utilities/codap-utils"
@@ -139,7 +140,8 @@ export const DataSet = V2Model.named("DataSet").props({
   // for serialization only, not for dynamic selection tracking
   snapSelection: types.array(types.string),
   // hidden by user, e.g. set-aside in CODAP
-  hiddenItemIds: types.array(types.string)
+  setAsideItemIds: types.array(types.string),
+  filterFormula: types.maybe(Formula)
 })
 .volatile(self => ({
   // map from attribute name to attribute id
@@ -150,9 +152,9 @@ export const DataSet = V2Model.named("DataSet").props({
   selection: observable.set<string>(),
   selectionChanges: 0,
   // MobX-observable set of hidden (set aside) item IDs
-  hiddenItemIdsSet: observable.set<string>(),
-  // copy of hiddenItemIds used for change-detection
-  hiddenItemIdsMirror: [] as string[],
+  setAsideItemIdsSet: observable.set<string>(),
+  // copy of setAsideItemIds used for change-detection
+  setAsideItemIdsMirror: [] as string[],
   // map from case ID to the CaseInfo it represents
   caseInfoMap: new Map<string, CaseInfo>(),
   // map from item ID to the child case containing it
@@ -162,7 +164,10 @@ export const DataSet = V2Model.named("DataSet").props({
   transactionCount: 0,
   // the id of the interactive frame handling this dataset
   // used by the Collaborative plugin
-  managingControllerId: ""
+  managingControllerId: "",
+  // cached result of filter formula evaluation for each item ID
+  filterFormulaResults: observable.map<string, boolean>(),
+  filterFormulaError: ""
 }))
 .extend(self => {
   const _validationCount = observable.box<number>(0)
@@ -216,7 +221,8 @@ export const DataSet = V2Model.named("DataSet").props({
   // convert legacy collections/attributes/cases implementation to current
   if (isLegacyDataSetSnap(snap)) {
     const {
-      collections: _collections = [], attributes: _legacyAttributes, ungrouped, cases, itemIds, ...others
+      collections: _collections = [], attributes: _legacyAttributes, ungrouped,
+      cases, itemIds, hiddenItemIds = [], ...others
     } = snap
 
     const attributeIds: string[] = []
@@ -264,18 +270,40 @@ export const DataSet = V2Model.named("DataSet").props({
 
     const _itemIds = cases?.map(({ __id__ }) => __id__) ?? itemIds ?? []
 
-    return { attributesMap, collections, _itemIds, ...others }
+    return { attributesMap, collections, _itemIds, setAsideItemIds: hiddenItemIds, ...others }
   }
   return snap
 })
 .views(self => ({
+  isItemSetAside(itemId: string) {
+    return self.setAsideItemIdsSet.has(itemId)
+  },
+  isItemFilteredOut(itemId: string) {
+    // Note that if itemResult is undefined, it means the item has not been filtered out (e.g., there may not be any
+    /// filter formula), so it should be considered as having passed the filter.
+    return self.filterFormulaResults.get(itemId) === false
+  }
+}))
+.views(self => ({
+  isItemHidden(itemId: string) {
+    return self.isItemSetAside(itemId) || self.isItemFilteredOut(itemId)
+  }
+}))
+.views(self => ({
   isCaseOrItemHidden(caseOrItemId: string) {
     const caseInfo = self.caseInfoMap.get(caseOrItemId)
-    return caseInfo?.childItemIds.every(itemId => self.hiddenItemIdsSet.has(itemId)) ??
-            self.hiddenItemIdsSet.has(caseOrItemId)
+    return caseInfo?.childItemIds.every(itemId => self.isItemHidden(itemId)) ??
+            self.isItemHidden(caseOrItemId)
+  }
+}))
+.views(self => ({
+  // ids of items that have not been hidden (set aside) by user
+  get itemsNotSetAside() {
+    return self._itemIds.filter(itemId => !self.isItemSetAside(itemId))
   },
+  // ids of items that have not been hidden (set aside) or filtered by user
   get itemIds() {
-    return self._itemIds.filter(itemId => !self.hiddenItemIdsSet.has(itemId))
+    return self._itemIds.filter(itemId => !self.isItemHidden(itemId))
   }
 }))
 .views(self => ({
@@ -290,6 +318,9 @@ export const DataSet = V2Model.named("DataSet").props({
   },
   get items(): readonly IItem[] {
     return self.itemIds.map(id => ({ __id__: id }))
+  },
+  get hasFilterFormula() {
+    return !!self.filterFormula && !self.filterFormula.empty
   }
 }))
 .views(self => ({
@@ -528,19 +559,27 @@ export const DataSet = V2Model.named("DataSet").props({
   }
 }))
 .actions(self => ({
+  clearFilterFormula() {
+    self.filterFormula = undefined
+    self.filterFormulaResults.clear()
+    self.filterFormulaError = ""
+    self.invalidateCases()
+  }
+}))
+.actions(self => ({
   hideCasesOrItems(caseOrItemIds: string[]) {
     caseOrItemIds.forEach(id => {
       const caseInfo = self.caseInfoMap.get(id)
       if (caseInfo) {
         caseInfo.childItemIds.forEach(itemId => {
-          if (!self.hiddenItemIdsSet.has(itemId)) {
-            self.hiddenItemIds.push(itemId)
+          if (!self.setAsideItemIdsSet.has(itemId)) {
+            self.setAsideItemIds.push(itemId)
           }
         })
       }
       else if (self.itemInfoMap.get(id)) {
-        if (!self.hiddenItemIdsSet.has(id)) {
-          self.hiddenItemIds.push(id)
+        if (!self.setAsideItemIdsSet.has(id)) {
+          self.setAsideItemIds.push(id)
         }
       }
     })
@@ -551,19 +590,43 @@ export const DataSet = V2Model.named("DataSet").props({
         const caseInfo = self.caseInfoMap.get(id)
         if (caseInfo) {
           caseInfo.childItemIds.forEach(itemId => {
-            const foundIndex = self.hiddenItemIds.findIndex(hiddenItemId => hiddenItemId === itemId)
-            if (foundIndex >= 0) self.hiddenItemIds.splice(foundIndex, 1)
+            const foundIndex = self.setAsideItemIds.findIndex(hiddenItemId => hiddenItemId === itemId)
+            if (foundIndex >= 0) self.setAsideItemIds.splice(foundIndex, 1)
           })
         }
         else if (self.itemInfoMap.get(id)) {
-          const foundIndex = self.hiddenItemIds.findIndex(hiddenItemId => hiddenItemId === id)
-          if (foundIndex >= 0) self.hiddenItemIds.splice(foundIndex, 1)
+          const foundIndex = self.setAsideItemIds.findIndex(hiddenItemId => hiddenItemId === id)
+          if (foundIndex >= 0) self.setAsideItemIds.splice(foundIndex, 1)
         }
       })
     } else {
       // show all hidden cases/items
-      self.hiddenItemIds.clear()
+      self.setAsideItemIds.clear()
     }
+  },
+  setFilterFormula(display: string) {
+    if (display) {
+      if (!self.filterFormula) {
+        self.filterFormula = Formula.create({ display })
+      }
+      else {
+        self.filterFormula.setDisplayExpression(display)
+      }
+    } else {
+      self.clearFilterFormula()
+    }
+  },
+  updateFilterFormulaResults(filterFormulaResults: { itemId: string, result: boolean }[], { replaceAll = false }) {
+    if (replaceAll) {
+      self.filterFormulaResults.clear()
+    }
+    filterFormulaResults.forEach(({ itemId, result }) => {
+      self.filterFormulaResults.set(itemId, result)
+    })
+    self.invalidateCases()
+  },
+  setFilterFormulaError(error: string) {
+    self.filterFormulaError = error
   }
 }))
 .actions(self => ({
@@ -1190,28 +1253,28 @@ export const DataSet = V2Model.named("DataSet").props({
       }))
 
       // when items are hidden/shown...
-      // Use MST's onPatch mechanism to respond to changes to the `hiddenItemIds`.
+      // Use MST's onPatch mechanism to respond to changes to the `setAsideItemIds`.
       // This will be called once for each item added/removed and will update related properties.
       addDisposer(self, onPatch(self, ({ op, path, value }) => {
         let match: RegExpExecArray | null = null
-        if ((op === "add" || op === "remove") && (match = /hiddenItemIds\/(\d+)$/.exec(path))) {
+        if ((op === "add" || op === "remove") && (match = /setAsideItemIds\/(\d+)$/.exec(path))) {
           const index = +match[1]
           if (op === "add") {
             const itemId = value
-            self.hiddenItemIdsMirror.splice(index, 0, itemId)
-            self.hiddenItemIdsSet.add(itemId)
+            self.setAsideItemIdsMirror.splice(index, 0, itemId)
+            self.setAsideItemIdsSet.add(itemId)
           }
           else {
-            const itemId = self.hiddenItemIdsMirror[index]
-            self.hiddenItemIdsMirror.splice(index, 1)
-            self.hiddenItemIdsSet.delete(itemId)
+            const itemId = self.setAsideItemIdsMirror[index]
+            self.setAsideItemIdsMirror.splice(index, 1)
+            self.setAsideItemIdsSet.delete(itemId)
           }
           self.invalidateCases()
         }
-        if ((op === "replace") && /hiddenItemIds$/.test(path)) {
+        if ((op === "replace") && /setAsideItemIds$/.test(path)) {
           const replacementArray: string[] = value
-          self.hiddenItemIdsMirror = [...replacementArray]
-          self.hiddenItemIdsSet.replace(observable.set<string>(replacementArray))
+          self.setAsideItemIdsMirror = [...replacementArray]
+          self.setAsideItemIdsSet.replace(observable.set<string>(replacementArray))
           self.invalidateCases()
         }
       }))
@@ -1241,3 +1304,11 @@ export const DataSet = V2Model.named("DataSet").props({
 
 export interface IDataSet extends Instance<typeof DataSet> {}
 export interface IDataSetSnapshot extends SnapshotIn<typeof DataSet> {}
+
+export interface IDataSetWithFilterFormula extends IDataSet {
+  filterFormula: IFormula
+}
+
+export function isFilterFormulaDataSet(dataSet?: IDataSet): dataSet is IDataSetWithFilterFormula {
+  return !!dataSet?.hasFilterFormula
+}

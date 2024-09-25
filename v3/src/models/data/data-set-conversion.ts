@@ -47,11 +47,19 @@ export function isInitialItemsDataSetSnap(snap: IDataSetSnapshot): snap is IInit
   return !("attributes" in snap) && !("ungrouped" in snap) && !("cases" in snap) && ("itemIds" in snap)
 }
 
-export type ILegacyDataSetSnap = (IOriginalDataSetSnap | ITempDataSetSnap |
-            IPreItemsDataSetSnap | IInitialItemsDataSetSnap) & { itemIds?: string[] }
+// hiddenItemIds => setAsideItemIds
+export interface IHiddenItemIdsDataSetSnap extends Omit<IInitialItemsDataSetSnap, "itemIds"> {
+  hiddenItemIds?: string[]
+}
+export function isHiddenItemIdsDataSetSnap(snap: IDataSetSnapshot): snap is IHiddenItemIdsDataSetSnap {
+  return "hiddenItemIds" in snap
+}
+
+export type ILegacyDataSetSnap = (IOriginalDataSetSnap | ITempDataSetSnap | IPreItemsDataSetSnap |
+            IInitialItemsDataSetSnap | IHiddenItemIdsDataSetSnap) & { itemIds?: string[], hiddenItemIds?: string[] }
 export function isLegacyDataSetSnap(snap: IDataSetSnapshot): snap is ILegacyDataSetSnap {
-  return isOriginalDataSetSnap(snap) || isTempDataSetSnap(snap) ||
-          isPreItemDataSetSnap(snap) || isInitialItemsDataSetSnap(snap)
+  return isOriginalDataSetSnap(snap) || isTempDataSetSnap(snap) || isPreItemDataSetSnap(snap) ||
+          isInitialItemsDataSetSnap(snap) || isHiddenItemIdsDataSetSnap(snap)
 }
 
 export function createDataSet(snap: IDataSetSnapshot | ILegacyDataSetSnap): IDataSet {

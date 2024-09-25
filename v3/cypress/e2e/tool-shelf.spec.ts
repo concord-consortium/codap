@@ -29,8 +29,10 @@ context("codap toolbar", () => {
   it("will open a graph", () => {
     c.clickIconFromToolShelf("graph")
     graph.getGraphTile().should("be.visible")
-    // graphs with no associated data set should not have a title
-    c.getComponentTitle("graph").should("have.text", "")
+    // graphs with no associated data set should not have a title but show a blank space when hovered
+    c.getComponentTitle("graph").should("not.be.visible")
+    c.getComponentTitleBar("graph").trigger("mouseover")
+    c.getComponentTitle("graph").should("have.text", "_____")
   })
   it("will open a map", () => {
     c.clickIconFromToolShelf("map")

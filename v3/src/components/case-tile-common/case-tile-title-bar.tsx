@@ -84,7 +84,7 @@ export const CaseTileTitleBar =
     }
 
     const handleChangeTitle = (newTitle?: string) => {
-      if (newTitle) {
+      if (newTitle !== undefined) {
         // case table title reflects DataSet title
         data?.applyModelChange(() => {
           data.setTitle(newTitle)

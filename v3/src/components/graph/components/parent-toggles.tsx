@@ -156,8 +156,8 @@ export const ParentToggles = observer(function ParentToggles() {
           dataConfig.clearHiddenCases()
         },
         {
-          undoStringKey: "DG.mainPage.mainPane.undoButton.toolTip",
-          redoStringKey: "DG.mainPage.mainPane.redoButton.toolTip",
+          undoStringKey: "V3.Undo.graph.showAllCases",
+          redoStringKey: "V3.Redo.graph.showAllCases",
           log: {message: "Show all cases from parent toggles", args: {}, category: "data"}
         }
       )
@@ -165,8 +165,8 @@ export const ParentToggles = observer(function ParentToggles() {
       dataConfig?.applyModelChange(
         () => dataConfig.setHiddenCases(Array.from(dataConfig.allCaseIDs)),
         {
-          undoStringKey: "DG.mainPage.mainPane.undoButton.toolTip",
-          redoStringKey: "DG.mainPage.mainPane.redoButton.toolTip",
+          undoStringKey: "V3.Undo.graph.hideAllCases",
+          redoStringKey: "V3.Redo.graph.hideAllCases",
           log: {message: "Hide all cases from parent toggles", args: {}, category: "data"}
         }
       )
@@ -174,6 +174,10 @@ export const ParentToggles = observer(function ParentToggles() {
   }
 
   const handleToggleLast = () => {
+    const undoString = isOnlyLastShown
+      ? "V3.Undo.graph.uncheckLastParentOnly" : "V3.Undo.graph.showLastParentOnly"
+    const redoString = isOnlyLastShown
+      ? "V3.Redo.graph.uncheckLastParentOnly" : "V3.Redo.graph.showLastParentOnly"
     dataConfig?.applyModelChange(
       () => {
         graphModel?.setShowOnlyLastCase(!isOnlyLastShown)
@@ -185,8 +189,8 @@ export const ParentToggles = observer(function ParentToggles() {
         }
       },
       {
-        undoStringKey: "DG.mainPage.mainPane.undoButton.toolTip",
-        redoStringKey: "DG.mainPage.mainPane.redoButton.toolTip",
+        undoStringKey: undoString,
+        redoStringKey: redoString,
         log: isOnlyLastShown ? "Disable only showing last parent toggle" : "Enable only showing last parent toggle"
       }
     )
@@ -207,9 +211,9 @@ export const ParentToggles = observer(function ParentToggles() {
         dataConfig.setHiddenCases(Array.from(currentHiddenCases))
       },
       {
-        undoStringKey: "DG.mainPage.mainPane.undoButton.toolTip",
-        redoStringKey: "DG.mainPage.mainPane.redoButton.toolTip",
-        log: "Toggle parent toggle"
+        undoStringKey: "V3.Undo.graph.toggleParentVisibility",
+        redoStringKey: "V3.Redo.graph.toggleParentVisibility",
+        log: "Toggle parent group visibility"
       }
     )
   }

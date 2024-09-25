@@ -5,6 +5,7 @@ import {
 import { IDataSet } from "../models/data/data-set"
 import { useInstanceIdContext } from "./use-instance-id-context"
 import { useTileModelContext } from "./use-tile-model-context"
+import { kTitleBarHeight } from "../components/constants"
 
 // list of draggable types
 const DragTypes = ["attribute", "tile"] as const
@@ -141,8 +142,9 @@ export const containerSnapToGridModifier: Modifier = ({transform, active}) => {
 
 export const restrictDragToArea: Modifier = ({transform, activeNodeRect, containerNodeRect}) =>{
   // Prevent dragging upwards beyond the main container but allow dragging freely in other directions
+  const codapContainerTop = kTitleBarHeight
   if (activeNodeRect && containerNodeRect) {
-    if (activeNodeRect.top + transform.y < containerNodeRect.top) {
+    if (activeNodeRect.top + transform.y < codapContainerTop) {
       transform.y = containerNodeRect.top - activeNodeRect.top
     }
   }

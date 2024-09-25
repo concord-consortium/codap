@@ -26,9 +26,12 @@ interface ICaseAttrViewProps {
 }
 
 export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrViewProps) {
-  const { caseId, attrId, value, getDividerBounds, onSetContentElt } = props
-  const data = useCaseCardModel()?.data
+  const { caseId, collection, attrId, unit, value, getDividerBounds, onSetContentElt } = props
+  const cardModel = useCaseCardModel()
+  const data = cardModel?.data
+  const isCollectionSummarized = !!cardModel?.summarizedCollections.includes(collection.id)
   const displayValue = value ? String(value) : ""
+  const showUnitWithValue = isFiniteNumber(Number(value)) && unit
   const [isEditing, setIsEditing] = useState(false)
   const [editingValue, setEditingValue] = useState(displayValue)
 
@@ -37,11 +40,12 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
   }
 
   const handleCancel = (_previousName?: string) => {
-    setEditingValue(displayValue)
     setIsEditing(false)
+    setEditingValue(displayValue)
   }
 
   const handleSubmit = (newValue?: string) => {
+    setIsEditing(false)
     if (newValue) {
       const casesToUpdate: ICase[] = [{ __id__: caseId, [attrId]: newValue }]
 
@@ -54,7 +58,37 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
     } else {
       setEditingValue(displayValue)
     }
-    setIsEditing(false)
+  }
+
+  const renderEditableOrSummaryValue = () => {
+    if (isCollectionSummarized) {
+      return (
+        <div className="case-card-attr-value-text static-summary">
+          {displayValue}
+        </div>
+      )
+    }
+
+    return (
+      <Editable
+        className="case-card-attr-value-text"
+        isPreviewFocusable={true}
+        onCancel={handleCancel}
+        onChange={handleChangeValue}
+        onEdit={() => setIsEditing(true)}
+        onSubmit={handleSubmit}
+        submitOnBlur={true}
+        value={isEditing ? editingValue : `${displayValue}${showUnitWithValue ? ` ${unit}` : ""}`}
+      >
+        <EditablePreview paddingY={0} />
+        <EditableInput
+          className="case-card-attr-value-text-editor"
+          data-testid="case-card-attr-value-text-editor"
+          paddingY={0}
+          value={editingValue}
+        />
+      </Editable>
+    )
   }
 
   const customButtonStyle = {
@@ -73,31 +107,17 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
           customButtonStyle={customButtonStyle}
           getDividerBounds={getDividerBounds}
           HeaderDivider={AttributeHeaderDivider}
+          showUnits={false}
           onSetHeaderContentElt={onSetContentElt}
         />
       </td>
       <td
-        className={clsx("case-card-attr-value", {editing: isEditing, numeric: isFiniteNumber(Number(value))})}
+        className={clsx("case-card-attr-value",
+                       {editing: isEditing, numeric: !isCollectionSummarized && isFiniteNumber(Number(value))}
+                  )}
         data-testid="case-card-attr-value"
       >
-        <Editable
-          className="case-card-attr-value-text"
-          isPreviewFocusable={true}
-          onCancel={handleCancel}
-          onChange={handleChangeValue}
-          onEdit={() => setIsEditing(true)}
-          onSubmit={handleSubmit}
-          submitOnBlur={true}
-          value={isEditing ? editingValue : displayValue}
-        >
-          <EditablePreview paddingY={0} />
-          <EditableInput
-            className="case-card-attr-value-text-editor"
-            data-testid="case-card-attr-value-text-editor"
-            paddingY={0}
-            value={editingValue}
-          />
-        </Editable>
+        {renderEditableOrSummaryValue()}
       </td>
     </tr>
   )

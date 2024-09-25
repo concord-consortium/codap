@@ -60,6 +60,7 @@ export function setNiceDomain(values: number[], axisModel: IAxisModel, options?:
     // When clamping, the domain should start at 0 unless there are negative values.
     if (options?.clampPosMinAtZero && minValue >= 0) {
       niceMin = 0
+      axisModel.setAllowRangeToShrink(true)
     }
     axisModel.setDomain(niceMin, niceMax)
   }

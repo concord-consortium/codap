@@ -1,14 +1,17 @@
+import { useDisclosure } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
 import React from "react"
 import { useCaseMetadata } from "../../hooks/use-case-metadata"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { hideAttributeNotification } from "../../models/data/data-set-notifications"
 import { t } from "../../utilities/translation/translate"
+import { EditFilterFormulaModal } from "./edit-filter-formula-modal"
 import { IMenuItem, StdMenuList } from "./std-menu-list"
 
 export const HideShowMenuList = observer(function HideShowMenuList() {
   const data = useDataSetContext()
   const caseMetadata = useCaseMetadata()
+  const formulaModal = useDisclosure()
 
   const handleSetAsideCases = (itemIds: string[], deselect: boolean) => {
     if (data && itemIds.length) {
@@ -22,9 +25,17 @@ export const HideShowMenuList = observer(function HideShowMenuList() {
     }
   }
 
+  const handleEditFormulaOpen = () => {
+    formulaModal.onOpen()
+  }
+
+  const handleEditFormulaClose = () => {
+    formulaModal.onClose()
+  }
+
   const itemCount = data?.items.length ?? 0
   const selectionCount = data?.selection.size ?? 0
-  const setAsideCount = data?.hiddenItemIds.length ?? 0
+  const setAsideCount = data?.setAsideItemIds.length ?? 0
 
   const hiddenAttributes = data?.attributes.filter(attr => attr && caseMetadata?.isHidden(attr.id))
   const hiddenAttributeCount = hiddenAttributes?.length ?? 0
@@ -54,9 +65,9 @@ export const HideShowMenuList = observer(function HideShowMenuList() {
       itemLabel: () => t("DG.Inspector.setaside.restoreSetAsideCases", { vars: [setAsideCount] }),
       isEnabled: () => setAsideCount > 0,
       handleClick: () => {
-        if (data?.hiddenItemIds.length) {
+        if (data?.setAsideItemIds.length) {
           data.applyModelChange(() => {
-            const hiddenItems = [...data.hiddenItemIds]
+            const hiddenItems = [...data.setAsideItemIds]
             data.showHiddenCasesAndItems()
             data.setSelectedCases(hiddenItems)
           }, {
@@ -66,6 +77,13 @@ export const HideShowMenuList = observer(function HideShowMenuList() {
           })
         }
       }
+    },
+    {
+      itemKey: !data?.filterFormula?.empty
+                ? "V3.hideShowMenu.editFilterFormula"
+                : "V3.hideShowMenu.addFilterFormula",
+      isEnabled: () => !!data,
+      handleClick: handleEditFormulaOpen
     },
     {
       itemKey: "DG.Inspector.attributes.showAllHiddenAttributesPlural",
@@ -98,6 +116,9 @@ export const HideShowMenuList = observer(function HideShowMenuList() {
   ]
 
   return (
-    <StdMenuList data-testid="hide-show-menu-list" menuItems={menuItems} />
+    <>
+      <StdMenuList data-testid="hide-show-menu-list" menuItems={menuItems} />
+      <EditFilterFormulaModal isOpen={formulaModal.isOpen} onClose={handleEditFormulaClose} />
+    </>
   )
 })

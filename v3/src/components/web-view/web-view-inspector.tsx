@@ -27,6 +27,9 @@ export const WebViewInspector = observer(function WebViewInspector({tile, show}:
   }
 
   const handleSetWebViewUrlAccept = (url: string) => {
+    if (!url.startsWith("https://") && !url.startsWith("http://")) {
+      url = `https://${url}`
+    }
     documentContent?.applyModelChange(() => {
       webViewModel?.setUrl(url)
     }, {

@@ -315,9 +315,14 @@ export const useSubAxis = ({
       setupCategories()
     } else if (isBaseNumericAxisModel(axisModel)) {
       const currentAxisDomain = axisModel.domain
+      const allowToShrink = axisModel.allowRangeToShrink
       const numericValues = dataConfig?.numericValuesForAttrRole(role) ?? []
       const [minValue, maxValue] = extent(numericValues, d => d) as [number, number]
       const niceBounds = computeNiceNumericBounds(minValue, maxValue)
+      if (!allowToShrink) {
+        niceBounds.min = Math.min(niceBounds.min, currentAxisDomain[0])
+        niceBounds.max = Math.max(niceBounds.max, currentAxisDomain[1])
+      }
       if (niceBounds.min === currentAxisDomain[0] && niceBounds.max === currentAxisDomain[1]) return
       layout.getAxisMultiScale(axisPlace)?.setNumericDomain([niceBounds.min, niceBounds.max])
       isBaseNumericAxisModel(axisModel) && setNiceDomain(numericValues, axisModel)
