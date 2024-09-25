@@ -2,7 +2,7 @@ import { Tooltip, Menu, MenuButton, Input, VisuallyHidden, SystemStyleObject } f
 import { useDndContext } from "@dnd-kit/core"
 import { autorun } from "mobx"
 import { observer } from "mobx-react-lite"
-import React, { useEffect, useRef, useState } from "react"
+import React, { useEffect, useMemo, useRef, useState } from "react"
 import { clsx } from "clsx"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { IUseDraggableAttribute, useDraggableAttribute } from "../../hooks/use-drag-drop"
@@ -175,7 +175,7 @@ export const AttributeHeader = observer(function AttributeHeader({
     setIsFocused(true)
   }
 
-  const renderAttributeLabel = () => {
+  const renderAttributeLabel = useMemo(() => {
     if (isOverflowed) {
       return (
         <>
@@ -188,7 +188,7 @@ export const AttributeHeader = observer(function AttributeHeader({
         <span className="one-line-header">{line1}</span>
       )
     }
-  }
+  }, [line1, line2, isOverflowed, line2Truncated])
 
   const description = attribute?.description ? `: ${attribute.description}` : ""
   return (
@@ -224,7 +224,7 @@ export const AttributeHeader = observer(function AttributeHeader({
                           fontWeight="bold" onKeyDown={handleButtonKeyDown}
                           data-testid={`codap-attribute-button ${attrName}`}
                           aria-describedby={`sr-column-header-drag-instructions-${instanceId}`}>
-                        {instanceId.includes("table") ? renderAttributeLabel() : `${attrName}${attrUnits}`}
+                        {instanceId.includes("table") ? renderAttributeLabel : `${attrName}${attrUnits}`}
                       </MenuButton>
                       <VisuallyHidden id={`sr-column-header-drag-instructions-${instanceId}`}>
                         <pre> Press Space to drag the attribute within the table or to a graph.

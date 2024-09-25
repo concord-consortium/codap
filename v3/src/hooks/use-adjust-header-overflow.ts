@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { measureText } from './use-measure-text'
 
-// Hook to adjust headers for overflow
+// Hook to split headers into 2 rows and ellide the 2nd line if it doesn't fit
 export function useAdjustHeaderForOverflow(attrbuteHeaderButtonEl: HTMLButtonElement | null,
                                             attrName: string, attrUnits?: string) {
   const attributeName = attrName.replace(/_/g, ' ')
@@ -88,7 +88,15 @@ export function useAdjustHeaderForOverflow(attrbuteHeaderButtonEl: HTMLButtonEle
     return () => {
       resizeObserverRef.current?.disconnect()
     }
+  // Adding calculateSplit to dependencies causes rerender problems on attribute rename
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [candidateAttributeLabel, attrbuteHeaderButtonEl])
+
+  useEffect(()=> {
+    calculateSplit()
+  // Adding calculateSplit to dependencies causes rerender problems on attribute rename
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [candidateAttributeLabel])
 
   return { line1, line2, isOverflowed, line2Truncated }
 }
