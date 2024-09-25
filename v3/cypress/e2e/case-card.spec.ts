@@ -14,17 +14,32 @@ context("case card", () => {
   const cardHeaderLeftSelector = ".codap-component.codap-case-card .component-title-bar .header-left"
 
   describe("case card", () => {
-    it("can switch from case table to case card view and back", () => {
+    it("can switch from case table to case card view and back with undo/redo", () => {
+      // Initial checks case table->case card
       cy.get('[data-testid="codap-case-table"]').should("exist")
       cy.get('[data-testid="case-card"]').should("not.exist")
+
+      // Switch from case table to case card view
       cy.get(tableHeaderLeftSelector).click()
       cy.get(`${tableHeaderLeftSelector} .card-table-toggle-message`).click()
       cy.wait(500)
       cy.get('[data-testid="codap-case-table"]').should("not.exist")
       cy.get('[data-testid="case-card-view"]').should("exist")
+
+      // Switch from case card view back to case table
       cy.get(cardHeaderLeftSelector).click()
       cy.wait(500)
       cy.get(`${cardHeaderLeftSelector} .card-table-toggle-message`).click()
+      cy.get('[data-testid="codap-case-table"]').should("exist")
+      cy.get('[data-testid="case-card-view"]').should("not.exist")
+
+      // Perform undo actions
+      toolbar.getUndoTool().click()  // Undo switch
+      cy.get('[data-testid="codap-case-table"]').should("not.exist")
+      cy.get('[data-testid="case-card-view"]').should("exist")
+
+      // Perform redo actions
+      toolbar.getRedoTool().click()  // Redo switch to case table
       cy.get('[data-testid="codap-case-table"]').should("exist")
       cy.get('[data-testid="case-card-view"]').should("not.exist")
     })
