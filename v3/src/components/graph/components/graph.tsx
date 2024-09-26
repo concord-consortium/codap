@@ -110,9 +110,19 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
         .attr("width", `${Math.max(0, layout.plotWidth)}px`)
         .attr("height", `${Math.max(0, layout.plotHeight)}px`)
 
-      pixiPoints?.resize(layout.plotWidth, layout.plotHeight)
+      pixiPoints?.resize(layout.plotWidth, layout.plotHeight, layout.numColumns, layout.numRows)
+      pixiPoints?.setPointsMask(graphModel.dataConfiguration.caseDataWithSubPlot)
     }
-  }, [dataset, layout, layout.plotHeight, layout.plotWidth, pixiPoints, xScale])
+  }, [dataset, graphModel.dataConfiguration, layout, layout.plotHeight, layout.plotWidth, pixiPoints, xScale])
+
+  useEffect(function handleSubPlotsUpdate() {
+    return mstReaction(
+      () => graphModel.dataConfiguration.caseDataWithSubPlot,
+      () => {
+        pixiPoints?.setPointsMask(graphModel.dataConfiguration.caseDataWithSubPlot)
+      }, {name: "Graph.handleSubPlotsUpdate"}, graphModel
+    )
+  }, [graphModel, graphModel.dataConfiguration, pixiPoints])
 
   useEffect(function handleAttributeConfigurationChange() {
     // Handles attribute configuration changes from undo/redo, for instance, among others.

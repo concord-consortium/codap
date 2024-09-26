@@ -1,5 +1,5 @@
 import * as PIXI from "pixi.js"
-import { CaseData } from "../d3-types"
+import { CaseData, CaseDataWithSubPlot } from "../d3-types"
 import { PixiTransition, TransitionPropMap, TransitionProp } from "./pixi-transition"
 import { hoverRadiusFactor, transitionDuration } from "../data-display-types"
 import { isFiniteNumber } from "../../../utilities/math-utils"
@@ -76,6 +76,7 @@ export class PixiPoints {
   stage = new PIXI.Container()
   pointsContainer = new PIXI.Container()
   background = new PIXI.Sprite(PIXI.Texture.EMPTY)
+  subPlotMasks: PIXI.Graphics[] = []
   ticker = new PIXI.Ticker()
   tickerStopTimeoutId: number | undefined
 
@@ -172,7 +173,7 @@ export class PixiPoints {
     this.renderer?.render(this.stage)
   }
 
-  resize(width: number, height: number) {
+  resize(width: number, height: number, numColumns?: number, numRows?: number) {
     // We only set the background size if the width and height are valid. If we ever set width/height of background to
     // negative values, the background won't be able to detect pointer events.
     if (width > 0 && height > 0) {
@@ -180,6 +181,24 @@ export class PixiPoints {
       this.background.width = width
       this.background.height = height
       this.startRendering()
+    }
+
+    if (numColumns !== undefined && numRows !== undefined) {
+      this.subPlotMasks = []
+      const maskWidth = width / numColumns
+      const maskHeight = height / numRows
+      // These two for loops follow order of the subPlots ordering. Subplots seem to be ordered by columns first (left
+      // to right), then rows (bottom to top).
+      for (let c = 0; c < numColumns; c++) {
+        for (let r = numRows - 1; r >= 0; r--) {
+          const mask = new PIXI.Graphics()
+            .rect(c * maskWidth, r * maskHeight, maskWidth, maskHeight)
+            .fill(0xffffff)
+          this.subPlotMasks.push(mask)
+        }
+      }
+    } else {
+      this.subPlotMasks = []
     }
   }
 
@@ -362,6 +381,11 @@ export class PixiPoints {
       point.texture = texture
     }
 
+    this.startRendering()
+  }
+
+  setPointSubPlot(point: PIXI.Sprite, subPlotIndex: number) {
+    point.mask = this.subPlotMasks[subPlotIndex]
     this.startRendering()
   }
 
@@ -638,7 +662,7 @@ export class PixiPoints {
     })
   }
 
-  matchPointsToData(datasetID:string, caseData: CaseData[], _displayType: string, style: IPixiPointStyle) {
+  matchPointsToData(datasetID:string, caseData: CaseDataWithSubPlot[], _displayType: string, style: IPixiPointStyle) {
     // If the display type has changed, we need to prepare for the transition between types
     // For now, the only display type values PixiPoints supports are "points" and "bars", so
     // all other display type values passed to this method will be treated as "points".
@@ -702,12 +726,24 @@ export class PixiPoints {
       }
     }
 
+    this.setPointsMask(caseData)
+
     // Before rendering, reset the scale for all points. This may be necessary if the scale was modified
     // during a transition immediately before matchPointsToData is called. For example, when the Connecting
     // Lines graph adornment is activated or deactivated.
     this.setAllPointsScale(1)
 
     this.startRendering()
+  }
+
+  setPointsMask(allCaseData: CaseDataWithSubPlot[]) {
+    allCaseData.forEach((caseData, i) => {
+      const point = this.getPointForCaseData(caseData)
+      if (point) {
+        const subPlotNum = caseData.subPlotNum
+        point.mask = subPlotNum !== undefined ? this.subPlotMasks[subPlotNum] : null
+      }
+    })
   }
 
   dispose() {
