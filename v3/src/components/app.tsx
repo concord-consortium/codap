@@ -1,3 +1,4 @@
+import { useDndContext } from "@dnd-kit/core"
 import { observer } from "mobx-react-lite"
 import React, { useCallback, useEffect } from "react"
 import { CodapDndContext } from "../lib/dnd-kit/codap-dnd-context"
@@ -18,11 +19,13 @@ import { IImportDataSetOptions } from "../models/document/document-content"
 import { ISharedDataSet } from "../models/shared/shared-data-set"
 import { getSharedModelManager } from "../models/tiles/tile-environment"
 import { DocumentContentContext } from "../hooks/use-document-content"
+import { getOverlayDragId } from "../hooks/use-drag-drop"
 import {useDropHandler} from "../hooks/use-drop-handler"
 import { useKeyStates } from "../hooks/use-key-states"
 import { registerTileTypes } from "../register-tile-types"
 import { importSample, sampleData } from "../sample-data"
 import { urlParams } from "../utilities/url-params"
+import { AttributeDragOverlay } from "./drag-drop/attribute-drag-overlay"
 import { kWebViewTileType } from "./web-view/web-view-defs"
 import { isWebViewModel } from "./web-view/web-view-model"
 import { logStringifiedObjectMessage } from "../lib/log-message"
@@ -40,6 +43,8 @@ export const App = observer(function App() {
   useCloudFileManager({
     appOrMenuElemId: kMenuBarElementId
   })
+
+  const { active } = useDndContext()
 
   const handleImportDataSet = useCallback(
     function handleImportDataSet(data: IDataSet, options?: IImportDataSetOptions) {
@@ -130,6 +135,7 @@ export const App = observer(function App() {
           <MenuBar/>
           <ToolShelf document={appState.document}/>
           <Container/>
+          <AttributeDragOverlay activeDragId={getOverlayDragId(active, "plugin")} />
         </div>
       </DocumentContentContext.Provider>
     </CodapDndContext>
