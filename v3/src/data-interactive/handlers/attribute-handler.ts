@@ -4,9 +4,11 @@ import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-dat
 import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
 import { convertAttributeToV2, convertAttributeToV2FromResources } from "../data-interactive-type-utils"
-import { DIAttribute, DIHandler, DIResources, DIValues } from "../data-interactive-types"
+import { DIAttribute, DIHandler, DINotifyAttribute, DIResources, DIValues } from "../data-interactive-types"
 import { createAttribute, updateAttribute } from "./di-handler-utils"
-import { attributeNotFoundResult, collectionNotFoundResult, dataContextNotFoundResult } from "./di-results"
+import {
+  attributeNotFoundResult, collectionNotFoundResult, dataContextNotFoundResult, errorResult, fieldRequiredResult
+} from "./di-results"
 
 export const diAttributeHandler: DIHandler = {
   create(resources: DIResources, _values?: DIValues) {
@@ -19,12 +21,7 @@ export const diAttributeHandler: DIHandler = {
     // Wrap single attribute in array and bail if any new attributes are missing names
     const attributeValues = Array.isArray(values) ? values : [values]
     const attributeErrors = attributeValues.map(singleValue => {
-      if (!singleValue?.name) {
-        return {
-          success: false,
-          values: { error: t("V3.DI.Error.fieldRequired", { vars: ["Create", "attribute", "name"] }) }
-        } as const
-      }
+      if (!singleValue?.name) return fieldRequiredResult("Create", "attribute", "name")
       return { success: true }
     }).filter(error => !error.success)
     if (attributeErrors.length > 0) return attributeErrors[0]
@@ -73,6 +70,25 @@ export const diAttributeHandler: DIHandler = {
       success: true,
       values: attribute
     }
+  },
+
+  notify(resources: DIResources, values?: DIValues) {
+    const { attribute, dataContext } = resources
+    if (!dataContext) return dataContextNotFoundResult
+    if (!attribute) return attributeNotFoundResult
+
+    const { request } = (values ?? {}) as DINotifyAttribute
+    if (!request) return fieldRequiredResult("Notify", "attribute", "request")
+
+    if (request === "dragStart") {
+      // Emit an event that will be captured by a custom dnd-kit sensor to start a drag
+      document.dispatchEvent(new CustomEvent("attributeDragStart", {
+        detail: { attribute, dataContext }
+      }))
+      return { success: true }
+    }
+
+    return errorResult(t("V3.DI.Error.unknownRequest", { vars: [request] })) 
   },
 
   update(resources: DIResources, _values?: DIValues) {

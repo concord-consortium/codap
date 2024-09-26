@@ -15,11 +15,10 @@ import { basicDataSetInfo, convertDataSetToV2 } from "../data-interactive-type-u
 import { getAttribute } from "../data-interactive-utils"
 import { findTileFromNameOrId } from "../resource-parser-utils"
 import { createCollection } from "./di-handler-utils"
-import { dataContextNotFoundResult, errorResult } from "./di-results"
+import { dataContextNotFoundResult, errorResult, fieldRequiredResult } from "./di-results"
 import { toV3CaseId } from "../../utilities/codap-utils"
 
-const requestRequiedResult =
-  errorResult(t("V3.DI.Error.fieldRequired", { vars: ["Notify", "dataContext", "request"] }))
+const requestRequiedResult = fieldRequiredResult("Notify", "dataContext", "request")
 
 export const diDataContextHandler: DIHandler = {
   create(_resources: DIResources, _values?: DIValues) {
@@ -85,7 +84,7 @@ export const diDataContextHandler: DIHandler = {
 
     const successResult = { success: true as const, values: {} }
     if (request === "setAside") {
-      if (!caseIDs) return errorResult(t("V3.DI.Error.fieldRequired", { vars: ["Notify", "dataContext", "caseIDs"] }))
+      if (!caseIDs) return fieldRequiredResult("Notify", "dataContext", "caseIDs")
       dataContext.hideCasesOrItems(caseIDs.map(caseId => toV3CaseId(caseId)))
       return successResult
     } else if (request === "restoreSetasides") {

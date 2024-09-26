@@ -1,10 +1,9 @@
 import { toV2Id } from "../../utilities/codap-utils"
-import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
 import { getV2ItemResult } from "../data-interactive-type-utils"
 import { ICase } from "../../models/data/data-set-types"
 import { DIHandler, DIItemSearchNotify, DIResources, DIValues } from "../data-interactive-types"
-import { couldNotParseQueryResult, dataContextNotFoundResult, errorResult, valuesRequiredResult } from "./di-results"
+import { couldNotParseQueryResult, dataContextNotFoundResult, fieldRequiredResult, valuesRequiredResult } from "./di-results"
 
 export const diItemSearchHandler: DIHandler = {
   delete(resources: DIResources) {
@@ -36,7 +35,7 @@ export const diItemSearchHandler: DIHandler = {
 
     if (!values) return valuesRequiredResult
     const { itemOrder } = values as DIItemSearchNotify
-    if (!itemOrder) return errorResult(t("V3.DI.Error.fieldRequired", { vars: ["Notify", "itemSearch", "itemOrder"] }))
+    if (!itemOrder) return fieldRequiredResult("Notify", "itemSearch", "itemOrder")
 
     dataContext.applyModelChange(() => {
       const itemIds = itemSearch.map(({ __id__ }) => __id__)
