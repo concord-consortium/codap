@@ -33,6 +33,8 @@ import { t } from "../../utilities/translation/translate"
 import { useCaseTableModel } from "./use-case-table-model"
 import { useCollectionTableModel } from "./use-collection-table-model"
 import { useWhiteSpaceClick } from "./use-white-space-click"
+import { collectionCaseIdFromIndex, collectionCaseIndexFromId, selectCases, setSelectedCases }
+  from "../../models/data/data-set-utils"
 
 import "react-data-grid/lib/styles.css"
 import styles from "./case-table-shared.scss"
@@ -191,6 +193,29 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
       // prevent RDG from handling the event
       event.preventGridDefault()
       navigateToNextRow(event.shiftKey)
+    }
+    if ((event.key === "ArrowDown" || event.key === "ArrowUp")) {
+      const caseId = args.row.__id__
+      const isCaseSelected = data?.isCaseSelected(caseId)
+      const isExtending = event.shiftKey || event.altKey || event.metaKey
+      const currentSelectionIdx = collectionCaseIndexFromId(caseId, data, collectionId)
+
+      if (currentSelectionIdx !== undefined && currentSelectionIdx !== null) {
+        const nextIndex = event.key === "ArrowDown" ? currentSelectionIdx + 1 : currentSelectionIdx - 1
+        const nextCaseId = collectionCaseIdFromIndex(nextIndex, data, collectionId)
+        if (nextCaseId) {
+          const isNextCaseSelected = data?.isCaseSelected(nextCaseId)
+          if (isExtending) {
+            if (isNextCaseSelected) {
+              selectCases([caseId], data, !isCaseSelected)
+            } else {
+              selectCases([nextCaseId], data)
+            }
+          } else {
+            setSelectedCases([nextCaseId], data)
+          }
+        }
+      }
     }
   }
 
