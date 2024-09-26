@@ -7,6 +7,7 @@ import { containerSnapToGridModifier, restrictDragToArea } from "../../hooks/use
 import { urlParams } from "../../utilities/url-params"
 import { canAutoScroll } from "./dnd-can-auto-scroll"
 import { dndDetectCollision } from "./dnd-detect-collision"
+// import { PluginSensor } from "./plugin-sensor"
 
 interface IProps {
   children: ReactNode
@@ -31,6 +32,7 @@ export const CodapDndContext = ({ children }: IProps) => {
                     // pointer must move three pixels before starting a drag
                     useSensor(PointerSensor, { activationConstraint: { distance: 3 }}),
                     useSensor(KeyboardSensor, { coordinateGetter: customCoordinatesGetter }),
+                    // useSensor(PluginSensor),
                     // mouse sensor can be enabled for cypress tests, for instance
                     urlParams.mouseSensor !== undefined ? useMouseSensor : null)
   return (
