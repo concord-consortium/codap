@@ -7,6 +7,7 @@ import {
 import {applyModelChange} from "../../../models/history/apply-model-change"
 import {cachedFnWithArgsFactory, onAnyAction} from "../../../utilities/mst-utils"
 import { isFiniteNumber } from "../../../utilities/math-utils"
+import { stringValuesToDateSeconds } from "../../../utilities/date-utils"
 import {AttributeType, attributeTypes} from "../../../models/data/attribute"
 import {DataSet, IDataSet} from "../../../models/data/data-set"
 import {ICase} from "../../../models/data/data-set-types"
@@ -418,6 +419,11 @@ export const DataConfigurationModel = types
         return self.legendQuantileScale(value)
       },
 
+      getLegendColorForDateValue(value: string): string {
+        const dateValueArray = stringValuesToDateSeconds([value])
+        return self.legendQuantileScale(dateValueArray[0])
+      },
+
       getCasesForCategoryValues(
         primaryAttrRole: AttrRole, primaryValue: string, secondaryValue?: string, primarySplitValue?: string,
         secondarySplitValue?: string, legendCat?: string, extend = false
@@ -487,7 +493,7 @@ export const DataConfigurationModel = types
           max = quantile === thresholds.length ? Infinity : thresholds[quantile]
         return legendID
           ? self.caseDataArray.filter((aCaseData: CaseData) => {
-            const value = dataset?.getNumeric(aCaseData.caseID, legendID)
+            const value = dataDisplayGetNumericValue(dataset, aCaseData.caseID, legendID)
             return value !== undefined && value >= min && value < max
           }).map((aCaseData: CaseData) => aCaseData.caseID)
           : []
@@ -526,6 +532,8 @@ export const DataConfigurationModel = types
             return self.getLegendColorForCategory(legendValue)
           case 'numeric':
             return self.getLegendColorForNumericValue(Number(legendValue))
+          case 'date':
+            return self.getLegendColorForDateValue(legendValue)
           default:
             return ''
         }

@@ -71,6 +71,7 @@ export const NumericLegend =
         quantileScale.current.domain(valuesRef.current).range(schemeBlues[5])
         choroplethLegend(quantileScale.current, choroplethElt,
           {
+            isDate: dataConfiguration?.attributeType('legend') === 'date',
             width: tileWidth,
             marginLeft: 6, marginTop: labelHeight, marginRight: 6, ticks: 5,
             clickHandler: (quantile: number, extend: boolean) => {
