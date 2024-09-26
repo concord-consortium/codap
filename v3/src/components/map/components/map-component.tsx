@@ -2,6 +2,7 @@ import {useDndContext, useDroppable} from '@dnd-kit/core'
 import {observer} from "mobx-react-lite"
 import React, {useEffect, useRef} from "react"
 import {useResizeDetector} from "react-resize-detector"
+import { getOverlayDragId } from '../../../hooks/use-drag-drop'
 import {InstanceIdContext, useNextInstanceId} from "../../../hooks/use-instance-id-context"
 import { selectAllCases } from '../../../models/data/data-set-utils'
 import {DataDisplayLayoutContext} from "../../data-display/hooks/use-data-display-layout"
@@ -41,8 +42,6 @@ export const MapComponent = observer(function MapComponent({tile}: ITileBaseProp
   setNodeRef(mapRef.current ?? null)
 
   const {active} = useDndContext()
-  const overlayDragId = active && `${active.id}`.startsWith(instanceId)
-    ? `${active.id}` : undefined
 
   if (!mapModel) return null
 
@@ -51,7 +50,7 @@ export const MapComponent = observer(function MapComponent({tile}: ITileBaseProp
       <DataDisplayLayoutContext.Provider value={layout}>
         <MapModelContext.Provider value={mapModel}>
           <CodapMap mapRef={mapRef}/>
-          <AttributeDragOverlay activeDragId={overlayDragId}/>
+          <AttributeDragOverlay activeDragId={getOverlayDragId(active, instanceId)}/>
         </MapModelContext.Provider>
       </DataDisplayLayoutContext.Provider>
     </InstanceIdContext.Provider>
