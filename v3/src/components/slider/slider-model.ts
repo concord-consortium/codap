@@ -1,16 +1,16 @@
 import { reaction } from "mobx"
 import { addDisposer, Instance, SnapshotIn, types} from "mobx-state-tree"
-import { IBaseNumericAxisModel, NumericAxisModel } from "../axis/models/axis-model"
+import {DateAxisModel, IBaseNumericAxisModel, NumericAxisModel} from "../axis/models/axis-model"
 import { GlobalValue } from "../../models/global/global-value"
 import { applyModelChange } from "../../models/history/apply-model-change"
 import { ISharedModel } from "../../models/shared/shared-model"
 import { getGlobalValueManager, getSharedModelManager } from "../../models/tiles/tile-environment"
 import { ITileContentModel, TileContentModel } from "../../models/tiles/tile-content"
+import { unitsStringToMilliseconds } from "../../utilities/date-utils"
 import { kSliderTileType } from "./slider-defs"
-import {
-  AnimationDirection, AnimationDirections, AnimationMode, AnimationModes,
-  FixValueFn, kDefaultAnimationDirection, kDefaultAnimationMode, kDefaultAnimationRate
-} from "./slider-types"
+import {AnimationDirection, AnimationDirections, AnimationMode, AnimationModes, FixValueFn, ISliderScaleType,
+  kDefaultAnimationDirection, kDefaultAnimationMode, kDefaultAnimationRate, kDefaultDateMultipleOfUnit,
+  kDefaultSliderScaleType, SliderScaleTypes} from "./slider-types"
 
 export const SliderModel = TileContentModel
   .named("SliderModel")
@@ -18,11 +18,14 @@ export const SliderModel = TileContentModel
     type: types.optional(types.literal(kSliderTileType), kSliderTileType),
     globalValue: types.reference(GlobalValue),
     multipleOf: types.maybe(types.number),
+    dateMultipleOfUnit: types.optional(types.string, kDefaultDateMultipleOfUnit),
     animationDirection: types.optional(types.enumeration([...AnimationDirections]), kDefaultAnimationDirection),
     animationMode: types.optional(types.enumeration([...AnimationModes]), kDefaultAnimationMode),
     // clients should use animationRate view defined below
     _animationRate: types.maybe(types.number),  // frames per second
-    axis: types.optional(NumericAxisModel, { place: 'bottom', min: -0.5, max: 11.5 })
+    scaleType: types.optional(types.enumeration([...SliderScaleTypes]), kDefaultSliderScaleType),
+    axis: types.optional(types.union(NumericAxisModel, DateAxisModel),
+      () => NumericAxisModel.create({ place: 'bottom', min: -0.5, max: 11.5 }))
   })
   .views(self => ({
     get name() {
@@ -44,8 +47,13 @@ export const SliderModel = TileContentModel
       return self.globalValue.isUpdatingDynamically
     },
     get increment() {
-      // TODO: implement v2 algorithm which determines default increment from axis bounds
-      return self.multipleOf || 0.5
+      if (self.scaleType === "numeric") {
+        return self.multipleOf
+      } else {
+        const multipleOf = self.multipleOf,
+          multiplier = unitsStringToMilliseconds(self.dateMultipleOfUnit) / 1000
+        return multipleOf ? multipleOf * multiplier : undefined
+      }
     },
     get animationRate() {
       return self._animationRate ?? kDefaultAnimationRate
@@ -63,8 +71,10 @@ export const SliderModel = TileContentModel
         else return num
       }
 
-      if (self.multipleOf) {
-        value = Math.round(value / self.multipleOf) * self.multipleOf
+      if (self.multipleOf && self.increment) {
+        value = Math.round(value / self.increment) * self.increment
+        value = value > self.axis.max ? value - self.increment : value
+        value = value < self.axis.min ? value + self.increment : value
       }
       return keepValueInBounds(value)
     },
@@ -131,10 +141,17 @@ export const SliderModel = TileContentModel
     setName(name: string) {
       self.globalValue.setName(name)
     },
-    setMultipleOf(n: number) {
+    setMultipleOf(n: number | undefined) {
       if (n) {
         self.multipleOf = Math.abs(n)
+        self.setValue(self.constrainValue(self.value))
       }
+      else {
+        self.multipleOf = undefined
+      }
+    },
+    setDateMultipleOfUnit(unit: "Millisecond" | "Second" | "Minute" | "Hour" | "Day" | "Month" | "Year") {
+      self.dateMultipleOfUnit = unit
     },
     setAnimationDirection(direction: AnimationDirection) {
       self.animationDirection = direction
@@ -142,10 +159,34 @@ export const SliderModel = TileContentModel
     setAnimationMode(mode: AnimationMode) {
       self.animationMode = mode
     },
-    setAnimationRate(rate: number) {
+    setAnimationRate(rate: number | undefined) {
       if (rate) {
         // no need to store the default value
         self._animationRate = rate === kDefaultAnimationRate ? undefined : Math.abs(rate)
+      }
+    },
+    setScaleType(scaleType: ISliderScaleType) {
+      if (scaleType !== self.scaleType) {
+        switch (scaleType) {
+          case "numeric":
+            self.axis = NumericAxisModel.create({ place: 'bottom', min: -0.5, max: 11.5 })
+            self.setValue(0.5)
+            break
+          case "date": {
+            const currentDate = new Date()
+            const currentYear = currentDate.getFullYear()
+            const firstDayOfYear = new Date(currentYear, 0, 1).getTime() / 1000
+            const lastDayOfYear = new Date(currentYear, 11, 31, 23, 59, 59).getTime() / 1000
+            self.axis = DateAxisModel.create({
+              place: 'bottom',
+              min: firstDayOfYear,
+              max: lastDayOfYear
+            })
+            self.setValue(currentDate.getTime() / 1000)
+          }
+            break
+        }
+        self.scaleType = scaleType
       }
     },
     setAxisMin(n: number) {

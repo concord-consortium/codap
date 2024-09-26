@@ -13,6 +13,7 @@ export const kDefaultSliderPadding = 10
 export const AnimationDirections = ["backAndForth", "lowToHigh", "highToLow"] as const
 export type AnimationDirection = typeof AnimationDirections[number]
 export const kDefaultAnimationDirection = "lowToHigh"
+export const kDefaultDateMultipleOfUnit = "day"
 
 // values are translation string keys; indices are v2 values
 export const AnimationModes = ["nonStop", "onceOnly"] as const
@@ -26,5 +27,9 @@ export const kAnimationDefaults = {
   animationDirection: kDefaultAnimationDirection,
   animationRate: kDefaultAnimationRate
 }
+
+export const SliderScaleTypes = ["numeric", "date"] as const
+export type ISliderScaleType = typeof SliderScaleTypes[number]
+export const kDefaultSliderScaleType = "numeric"
 
 export type FixValueFn = (value: number) => number

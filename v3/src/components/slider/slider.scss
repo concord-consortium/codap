@@ -39,6 +39,11 @@ $slider-component-height: 98px;
       left: 0;
       height: 17px;
 
+      .axis {
+        font-size: 11px;
+        fill: black;
+      }
+
       .axis-end {
         position: relative;
         top: -7px;
@@ -57,6 +62,10 @@ $slider-component-height: 98px;
       .slider-axis {
         width: 100%;
       }
+
+    }
+    .two-lines {
+      height: 37px;
     }
   }
 
@@ -64,7 +73,7 @@ $slider-component-height: 98px;
     align-items: center;
     line-height: 1;
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
 
     .play-pause {
       border: none;
@@ -95,7 +104,7 @@ $slider-component-height: 98px;
       height: inherit;
       align-items: center;
       display: flex;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
 
       .name-input {
         border-radius: 3px;
@@ -116,6 +125,7 @@ $slider-component-height: 98px;
         overflow-wrap: normal;
         border-radius: 3px;
         border: none;
+        font-size: 14px;
         .text-input {
           font-family: "museo-sans", sans-serif !important;
           font-size: 14px !important;
@@ -130,5 +140,11 @@ $slider-component-height: 98px;
         padding-bottom: 2px;
       }
     }
+  }
+}
+
+.slider-input {
+  input {
+    padding-right: 8px;
   }
 }

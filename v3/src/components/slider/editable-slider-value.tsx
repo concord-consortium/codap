@@ -1,10 +1,11 @@
-import {NumberInput, NumberInputField} from "@chakra-ui/react"
+import { Input, NumberInput, NumberInputField } from "@chakra-ui/react"
 import { autorun } from "mobx"
-import {observer} from "mobx-react-lite"
+import { observer } from "mobx-react-lite"
 import { isAlive } from "mobx-state-tree"
-import React, {useState, useEffect} from "react"
-import {MultiScale} from "../axis/models/multi-scale"
-import {ISliderModel} from "./slider-model"
+import React, { useState, useEffect } from "react"
+import { convertToDate } from "../../utilities/date-utils"
+import { MultiScale } from "../axis/models/multi-scale"
+import { ISliderModel } from "./slider-model"
 import { valueChangeNotification } from "./slider-utils"
 import { logMessageWithReplacement } from "../../lib/log-message"
 
@@ -15,7 +16,7 @@ interface IProps {
   multiScale: MultiScale
 }
 
-export const EditableSliderValue = observer(function EditableSliderValue({ sliderModel, multiScale}: IProps) {
+export const EditableSliderValue = observer(function EditableSliderValue({sliderModel, multiScale}: IProps) {
   const [candidate, setCandidate] = useState("")
 
   useEffect(() => {
@@ -24,9 +25,19 @@ export const EditableSliderValue = observer(function EditableSliderValue({ slide
       // trigger update on domain change
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const domain = sliderModel.domain
-      setCandidate(multiScale.formatValueForScale(sliderModel.value))
+      setCandidate(multiScale.formatValueForScale(sliderModel.value, sliderModel.scaleType === "date"))
     })
   }, [multiScale, sliderModel])
+
+  const parseValue = (value: string) => {
+    if (sliderModel.scaleType === 'numeric') {
+      return parseFloat(value)
+    }
+    else {
+      const dateValue = convertToDate(value)
+      return (dateValue?.valueOf() ?? 0) / 1000
+    }
+  }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     const {key} = e
@@ -40,7 +51,7 @@ export const EditableSliderValue = observer(function EditableSliderValue({ slide
   }
 
   const handleSubmitValue = (e: React.FocusEvent<HTMLInputElement>) => {
-    const inputValue = parseFloat(e.target.value)
+    const inputValue = parseValue(e.target.value)
     if (isFinite(inputValue)) {
       sliderModel.applyModelChange(
         () => {
@@ -52,18 +63,33 @@ export const EditableSliderValue = observer(function EditableSliderValue({ slide
           undoStringKey: "DG.Undo.slider.change",
           redoStringKey: "DG.Redo.slider.change",
           log: logMessageWithReplacement("sliderEdit: { expression: %@ = %@ }",
-               {name: sliderModel.name, value: inputValue})
+            {name: sliderModel.name, value: inputValue})
         }
       )
     }
   }
 
+  const renderValueInputField = () => {
+    return sliderModel.scaleType === 'numeric'
+      ? (
+        <NumberInput value={candidate} className="value-input"
+                     onChange={handleValueChange} data-testid="slider-variable-value">
+          <NumberInputField className="value-text-input text-input" data-testid="slider-variable-value-text-input"
+                            maxLength={15} onKeyDown={handleKeyDown} onBlur={handleSubmitValue}/>
+        </NumberInput>
+      ) : (
+        <Input value={candidate} className="value-text-input text-input value-input"
+               data-testid="slider-variable-value-text-input" size={'xs'}
+               maxLength={30} onKeyDown={handleKeyDown} onBlur={handleSubmitValue} onChange={
+          (e) => handleValueChange(e.target.value)
+        }
+        />
+      )
+  }
+
   return (
-    <NumberInput value={candidate} className="value-input"
-        onChange={handleValueChange} data-testid="slider-variable-value">
-      <NumberInputField className="value-text-input text-input"
-        data-testid="slider-variable-value-text-input" maxLength={15}
-        onKeyDown={handleKeyDown} onBlur={handleSubmitValue} />
-    </NumberInput>
+    <>
+      {renderValueInputField()}
+    </>
   )
 })

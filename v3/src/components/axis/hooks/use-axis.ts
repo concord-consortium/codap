@@ -83,6 +83,7 @@ export const useAxis = ({axisPlace, axisTitle = "", centerCategoryLabels}: IUseA
     if (dataConfiguration?.placeCanHaveZeroExtent(axisPlace)) {
       return 0
     }
+    const _axisModel = axisProvider?.getNumericAxis?.(axisPlace)
     const labelFont = vars.labelFont,
       axisTitleHeight = getStringBounds(axisTitle, labelFont).height,
       numbersHeight = getStringBounds('0').height,
@@ -109,29 +110,29 @@ export const useAxis = ({axisPlace, axisTitle = "", centerCategoryLabels}: IUseA
         break
       }
       case 'date': {
-        if (isDateAxisModel(axisModel)) {
-          const [min, max] = axisModel.domain
+        if (isDateAxisModel(_axisModel)) {
+          const [min, max] = _axisModel.domain
           desiredExtent += getNumberOfLevelsForDateAxis(min, max) * numbersHeight + axisGap
         }
         break
       }
     }
   return desiredExtent
-}, [dataConfiguration, axisPlace, axisTitle, multiScale, type, displayModel,
-          axisModel, attrRole, centerCategoryLabels]
+}, [dataConfiguration, axisPlace, axisTitle, multiScale, type, displayModel, axisProvider,
+    attrRole, centerCategoryLabels]
 )
 
 // update d3 scale and axis when scale type changes
 useEffect(() => {
   if (axisModel) {
-    const disposer = reaction(
+    const disposer = mstReaction(
       () => {
         const {place: aPlace, scale: scaleType} = axisModel
         return {place: aPlace, scaleType}
       },
       ({place: aPlace, scaleType}) => {
         layout.getAxisMultiScale(aPlace)?.setScaleType(scaleType)
-      }, {name: "useAxis [scaleType]"}
+      }, {name: "useAxis [scaleType]"}, axisModel
     )
     return () => disposer()
   }

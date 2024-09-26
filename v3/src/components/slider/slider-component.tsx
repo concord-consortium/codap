@@ -4,9 +4,11 @@ import React, { CSSProperties, useEffect, useMemo, useRef, useState } from "reac
 import { useResizeDetector } from "react-resize-detector"
 import PlayIcon from "../../assets/icons/icon-play.svg"
 import PauseIcon from "../../assets/icons/icon-pause.svg"
+import { isDateAxisModel } from "../axis/models/axis-model"
 import { SliderAxisLayout } from "./slider-layout"
 import { isSliderModel } from "./slider-model"
 import { kSliderClass } from "./slider-types"
+import { getNumberOfLevelsForDateAxis } from "../axis/axis-utils"
 import { Axis } from "../axis/components/axis"
 import { AxisProviderContext } from "../axis/hooks/use-axis-provider-context"
 import { AxisLayoutContext } from "../axis/models/axis-layout-context"
@@ -50,6 +52,14 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
 
   if (!sliderModel) return null
 
+  const axisClasses = () => {
+    const axisModel = sliderModel.axis,
+      isDateAxis = axisModel && isDateAxisModel(axisModel),
+      [min, max] = axisModel.domain,
+      requires2Lines = isDateAxis && min && max && getNumberOfLevelsForDateAxis(min, max) > 1
+    return `slider-axis-wrapper ${requires2Lines ? "two-lines" : ""}`
+  }
+
   const handleSliderNameInput = (name: string) => {
     sliderModel.setName(name)
   }
@@ -78,7 +88,7 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
               <CodapSliderThumb sliderContainer={sliderRef.current} sliderModel={sliderModel}
                 running={running} setRunning={setRunning}
               />
-              <div className="slider-axis-wrapper" style={axisStyle}>
+              <div className={axisClasses()} style={axisStyle}>
                 <div className="axis-end min" />
                 <svg className="slider-axis" data-testid="slider-axis">
                   <Axis

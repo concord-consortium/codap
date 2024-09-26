@@ -232,9 +232,14 @@ export const useSubAxis = ({
           helper = new DateAxisHelper({ ...helperProps, showScatterPlotGridLines, subAxisSelectionRef })
       }
     }
-    if (helper) setAxisHelper(axisModel, subAxisIndex, helper)
-  }, [axisModel, centerCategoryLabels, displayModel, isAnimating, layout,
-      showScatterPlotGridLines, subAxisElt, subAxisIndex])
+    if (helper) {
+      setAxisHelper(axisModel, subAxisIndex, helper)
+      // It is necessary to call renderSubAxis in most cases, but doing so for a categorical axis causes
+      // a crash on redo. So we only do it for non-categorical axes.
+      axisModel.type !== 'categorical' && renderSubAxis()
+    }
+  }, [axisModel, centerCategoryLabels, displayModel, isAnimating, layout, renderSubAxis,
+            showScatterPlotGridLines, subAxisElt, subAxisIndex])
 
   // update d3 scale and axis when scale type changes
   useEffect(() => {
