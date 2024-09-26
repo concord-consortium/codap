@@ -1,0 +1,44 @@
+.cm-editor {
+  .cm-line {
+
+    .cm-comment {
+      color: #888
+    }
+
+    .cm-boolean, .cm-number {
+      color: #164;
+    }
+
+    .cm-string {
+      color: #a11;
+    }
+
+    .cm-operator {
+      color: black;
+    }
+
+    .cm-function, .cm-variable {
+      color: black;
+    }
+
+    .codap-function .cm-function {
+      color: blue;
+    }
+
+    .codap-attribute .cm-variable {
+      color: magenta;
+    }
+
+    .codap-constant .cm-variable {
+      color: teal;
+    }
+
+    .codap-global .cm-variable {
+      color: maroon;
+    }
+
+    .codap-special .cm-variable {
+      color: red;
+    }
+  }
+}

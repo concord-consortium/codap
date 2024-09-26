@@ -1,6 +1,5 @@
 import {
-  Button, FormControl, FormLabel, Input, ModalBody, ModalCloseButton, ModalFooter, ModalHeader,
-  Textarea, Tooltip
+  Button, FormControl, FormLabel, Input, ModalBody, ModalCloseButton, ModalFooter, ModalHeader, Tooltip
 } from "@chakra-ui/react"
 import React, { useEffect, useState } from "react"
 import { observer } from "mobx-react-lite"
@@ -8,6 +7,7 @@ import { useDataSetContext } from "../../../hooks/use-data-set-context"
 import { logStringifiedObjectMessage } from "../../../lib/log-message"
 import { updateAttributesNotification, updateCasesNotification } from "../../../models/data/data-set-notifications"
 import { t } from "../../../utilities/translation/translate"
+import { FormulaEditor } from "../../common/formula-editor"
 import { CodapModal } from "../../codap-modal"
 
 import "./attribute-menu.scss"
@@ -21,7 +21,7 @@ interface IProps {
 export const EditFormulaModal = observer(function EditFormulaModal({ attributeId, isOpen, onClose }: IProps) {
   const dataSet = useDataSetContext()
   const attribute = dataSet?.attrFromID(attributeId)
-  const [formula, setFormula] = useState("")
+  const [formula, setFormula] = useState(attribute?.formula?.display || "")
 
   useEffect(() => {
     setFormula(attribute?.formula?.display || "")
@@ -51,8 +51,6 @@ export const EditFormulaModal = observer(function EditFormulaModal({ attributeId
     onClose()
   }
 
-  const handleFormulaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => setFormula(e.target.value)
-
   const buttons = [{
     label: t("DG.AttrFormView.cancelBtnTitle"),
     tooltip: t("DG.AttrFormView.cancelBtnTooltip"),
@@ -75,7 +73,7 @@ export const EditFormulaModal = observer(function EditFormulaModal({ attributeId
         <div className="codap-header-title" />
         <ModalCloseButton onClick={onClose} data-testid="modal-close-button" />
       </ModalHeader>
-      <ModalBody>
+      <ModalBody onKeyDown={e => e.stopPropagation()}>
         <FormControl display="flex" flexDirection="column" className="formula-form-control">
           <FormLabel display="flex" flexDirection="row">{t("DG.AttrFormView.attrNamePrompt")}
             <Input
@@ -83,8 +81,7 @@ export const EditFormulaModal = observer(function EditFormulaModal({ attributeId
             />
           </FormLabel>
           <FormLabel>{t("DG.AttrFormView.formulaPrompt")}
-            <Textarea size="xs" value={formula} onChange={handleFormulaChange}
-              onKeyDown={(e) => e.stopPropagation()} data-testid="attr-formula-input" />
+            <FormulaEditor formula={formula} setFormula={setFormula} />
           </FormLabel>
         </FormControl>
       </ModalBody>
