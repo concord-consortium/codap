@@ -737,13 +737,13 @@ export class PixiPoints {
   }
 
   setPointsMask(allCaseData: CaseDataWithSubPlot[]) {
-    allCaseData.forEach((caseData, i) => {
-      const point = this.getPointForCaseData(caseData)
-      if (point) {
-        const subPlotNum = caseData.subPlotNum
-        point.mask = subPlotNum !== undefined ? this.subPlotMasks[subPlotNum] : null
-      }
-    })
+    // allCaseData.forEach((caseData, i) => {
+    //   const point = this.getPointForCaseData(caseData)
+    //   if (point) {
+    //     const subPlotNum = caseData.subPlotNum
+    //     point.mask = subPlotNum !== undefined ? this.subPlotMasks[subPlotNum] : null
+    //   }
+    // })
   }
 
   dispose() {
