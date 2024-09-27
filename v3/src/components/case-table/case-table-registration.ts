@@ -12,10 +12,10 @@ import TableIcon from '../../assets/icons/icon-table.svg'
 import { toV3Id } from "../../utilities/codap-utils"
 import { registerV2TileImporter } from "../../v2/codap-v2-tile-importers"
 import { isCodapV2Attribute, isV2TableComponent } from "../../v2/codap-v2-types"
+import { CaseTableInspector } from "./case-table-inspector"
 import { CaseTableToolShelfButton } from "./case-table-tool-shelf-button"
 import { getTileDataSet } from "../../models/shared/shared-data-utils"
 import { t } from "../../utilities/translation/translate"
-import { CaseTileInspector } from "../case-tile-common/inspector-panel/case-tile-inspector"
 
 export const kCaseTableIdPrefix = "TABL"
 
@@ -35,7 +35,7 @@ registerTileComponentInfo({
   type: kCaseTableTileType,
   TitleBar: CaseTileTitleBar,
   Component: CaseTableComponent,
-  InspectorPanel: CaseTileInspector,
+  InspectorPanel: CaseTableInspector,
   tileEltClass: "codap-case-table",
   Icon: TableIcon,
   shelf: {
