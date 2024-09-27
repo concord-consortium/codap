@@ -69,7 +69,7 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
     xAttrID = graphModel.getAttributeID('x'),
     yAttrID = graphModel.getAttributeID('y')
 
-  if (pixiPoints && pixiContainerRef.current && pixiContainerRef.current.children.length === 0) {
+  if (pixiPoints?.canvas && pixiContainerRef.current && pixiContainerRef.current.children.length === 0) {
     pixiContainerRef.current.appendChild(pixiPoints.canvas)
     pixiPoints.setupBackgroundEventDistribution({
       elementToHide: pixiContainerRef.current
