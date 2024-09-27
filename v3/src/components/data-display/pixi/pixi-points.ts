@@ -110,21 +110,26 @@ export class PixiPoints {
     // The function will prioritize the WebGL renderer as it is the most tested safe API to use. In the near future as
     // WebGPU becomes more stable and ubiquitous, it will be prioritized over WebGL.
     // See: https://pixijs.download/release/docs/rendering.html#autoDetectRenderer
-    this.renderer = await PIXI.autoDetectRenderer({
-      resolution: window.devicePixelRatio,
-      autoDensity: true,
-      backgroundAlpha: 0,
-      antialias: true,
-      // `passive` is more performant and will be used by default in the future Pixi.JS versions
-      eventMode: "passive",
-      eventFeatures: {
-        move: true,
-        click: true,
-        // disables the global move events which can be very expensive in large scenes
-        globalMove: false,
-        wheel: false
-      }
-    })
+    try {
+      this.renderer = await PIXI.autoDetectRenderer({
+        resolution: window.devicePixelRatio,
+        autoDensity: true,
+        backgroundAlpha: 0,
+        antialias: true,
+        // `passive` is more performant and will be used by default in the future Pixi.JS versions
+        eventMode: "passive",
+        eventFeatures: {
+          move: true,
+          click: true,
+          // disables the global move events which can be very expensive in large scenes
+          globalMove: false,
+          wheel: false
+        }
+      })
+    } catch (e) {
+      console.error("PixiPoints failed to initialize renderer")
+      return
+    }
 
     this.ticker.add(this.tick.bind(this))
     this.stage.addChild(this.background)
@@ -147,8 +152,8 @@ export class PixiPoints {
     }
   }
 
-  get canvas() {
-    return this.renderer?.view.canvas as HTMLCanvasElement
+  get canvas(): HTMLCanvasElement | null {
+    return this.renderer?.view.canvas as HTMLCanvasElement ?? null
   }
 
   get points() {
@@ -663,6 +668,9 @@ export class PixiPoints {
   }
 
   matchPointsToData(datasetID:string, caseData: CaseDataWithSubPlot[], _displayType: string, style: IPixiPointStyle) {
+    if (!this.renderer) {
+      return
+    }
     // If the display type has changed, we need to prepare for the transition between types
     // For now, the only display type values PixiPoints supports are "points" and "bars", so
     // all other display type values passed to this method will be treated as "points".

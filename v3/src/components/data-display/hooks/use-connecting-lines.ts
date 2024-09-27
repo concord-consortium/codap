@@ -73,7 +73,7 @@ export const useConnectingLines = (props: IProps) => {
 
   const handleConnectingLinesMouseOver = useCallback((mouseOverProps: IMouseOverProps) => {
     const { caseIDs, event, parentAttrName, primaryAttrValue } = mouseOverProps
-    if (pixiPoints) pixiPoints.canvas.style.cursor = "pointer"
+    if (pixiPoints?.canvas) pixiPoints.canvas.style.cursor = "pointer"
     // TODO: In V2, the tool tip is only shown when there is a parent attribute. V3 should always show the tool tip,
     // but the text needs to be different when there is no parent attribute. We'll need to work out how to handle the
     // localization for this. When a parent attribute is present, the tool tip should look like:
@@ -90,7 +90,7 @@ export const useConnectingLines = (props: IProps) => {
   }, [dataTip, dataset?.name, pixiPoints])
 
   const handleConnectingLinesMouseOut = useCallback(() => {
-    if (pixiPoints) pixiPoints.canvas.style.cursor = ""
+    if (pixiPoints?.canvas) pixiPoints.canvas.style.cursor = ""
     dataTip.hide()
   }, [dataTip, pixiPoints])
 
