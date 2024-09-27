@@ -112,9 +112,10 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
         />
       </td>
       <td
-        className={clsx("case-card-attr-value",
-                       {editing: isEditing, numeric: !isCollectionSummarized && isFiniteNumber(Number(value))}
-                  )}
+        className={clsx("case-card-attr-value", {
+                    editing: isEditing,
+                    numeric: !isCollectionSummarized && isFiniteNumber(Number(value))
+                  })}
         data-testid="case-card-attr-value"
       >
         {renderEditableOrSummaryValue()}

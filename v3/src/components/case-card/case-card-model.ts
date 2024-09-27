@@ -134,6 +134,9 @@ export const CaseCardModel = TileContentModel
 
       self.setSummarizedCollections(updatedSummarizedCollections)
     },
+    summarizeAllCollections() {
+      self.setSummarizedCollections(self.data?.collections.map(c => c.id) ?? [])
+    },
     updateAfterSharedModelChanges(sharedModel?: ISharedModel) {
       // TODO
     },
