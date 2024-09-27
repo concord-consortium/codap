@@ -115,14 +115,14 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
     }
   }, [dataset, graphModel.dataConfiguration, layout, layout.plotHeight, layout.plotWidth, pixiPoints, xScale])
 
-  useEffect(function handleSubPlotsUpdate() {
-    return mstReaction(
-      () => graphModel.dataConfiguration.caseDataWithSubPlot,
-      () => {
-        pixiPoints?.setPointsMask(graphModel.dataConfiguration.caseDataWithSubPlot)
-      }, {name: "Graph.handleSubPlotsUpdate"}, graphModel
-    )
-  }, [graphModel, graphModel.dataConfiguration, pixiPoints])
+  // useEffect(function handleSubPlotsUpdate() {
+  //   return mstReaction(
+  //     () => graphModel.dataConfiguration.caseDataWithSubPlot,
+  //     () => {
+  //       pixiPoints?.setPointsMask(graphModel.dataConfiguration.caseDataWithSubPlot)
+  //     }, {name: "Graph.handleSubPlotsUpdate"}, graphModel
+  //   )
+  // }, [graphModel, graphModel.dataConfiguration, pixiPoints])
 
   useEffect(function handleAttributeConfigurationChange() {
     // Handles attribute configuration changes from undo/redo, for instance, among others.
