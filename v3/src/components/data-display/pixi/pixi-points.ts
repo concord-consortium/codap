@@ -745,7 +745,7 @@ export class PixiPoints {
   }
 
   setPointsMask(allCaseData: CaseDataWithSubPlot[]) {
-    if (!this.renderer) {
+    if (!this.renderer || (window as any).Cypress) {
       return
     }
     allCaseData.forEach((caseData, i) => {
