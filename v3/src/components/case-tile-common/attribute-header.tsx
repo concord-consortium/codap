@@ -23,6 +23,7 @@ interface IProps {
   getDividerBounds?: GetDividerBoundsFn
   HeaderDivider?: React.ComponentType<IDividerProps>
   showUnits?: boolean
+  allowTwoLines?: boolean
   // returns the draggable parent element for use with DnDKit
   onSetHeaderContentElt?: (contentElt: HTMLDivElement | null) => HTMLElement | null
   onBeginEdit?: () => void
@@ -31,7 +32,7 @@ interface IProps {
 }
 
 export const AttributeHeader = observer(function AttributeHeader({
-  attributeId, beforeHeaderDivider, customButtonStyle, getDividerBounds, HeaderDivider,
+  attributeId, beforeHeaderDivider, customButtonStyle, allowTwoLines, getDividerBounds, HeaderDivider,
   showUnits=true, onSetHeaderContentElt, onBeginEdit, onEndEdit, onOpenMenu
 }: IProps) {
   const { active } = useDndContext()
@@ -218,15 +219,15 @@ export const AttributeHeader = observer(function AttributeHeader({
                     />
                   : <>
                       <MenuButton
-                          className={clsx("codap-attribute-button", {"table": instanceId.includes("table")})}
+                          className={clsx("codap-attribute-button", {"allow-two-lines": allowTwoLines})}
                           ref={menuButtonRef}
                           disabled={attributeId === kIndexColumnKey}
                           sx={customButtonStyle}
                           fontWeight="bold" onKeyDown={handleButtonKeyDown}
                           data-testid={`codap-attribute-button ${attrName}`}
                           aria-describedby={`sr-column-header-drag-instructions-${instanceId}`}>
-                        {instanceId.includes("table") ? renderAttributeLabel
-                                                      : `${attrName ?? ""}${showUnits ? attrUnits : ""}`.trim()}
+                        {allowTwoLines ? renderAttributeLabel
+                                       : `${attrName ?? ""}${showUnits ? attrUnits : ""}`.trim()}
                       </MenuButton>
                       <VisuallyHidden id={`sr-column-header-drag-instructions-${instanceId}`}>
                         <pre> Press Space to drag the attribute within the table or to a graph.

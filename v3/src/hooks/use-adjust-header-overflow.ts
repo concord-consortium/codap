@@ -3,7 +3,7 @@ import { measureText } from './use-measure-text'
 
 const kPaddingBuffer = 5 // Button width is 5px smaller because of parent padding
 
-// Hook to split headers into 2 rows and ellide the 2nd line if it doesn't fit
+// Hook to split headers into 2 rows and elide the 2nd line if it doesn't fit
 export function useAdjustHeaderForOverflow(attrbuteHeaderButtonEl: HTMLButtonElement | null,
                                             attrName: string, attrUnits?: string) {
   const attributeName = attrName.replace(/_/g, ' ')
