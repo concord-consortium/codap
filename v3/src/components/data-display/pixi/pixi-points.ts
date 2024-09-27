@@ -737,6 +737,9 @@ export class PixiPoints {
   }
 
   setPointsMask(allCaseData: CaseDataWithSubPlot[]) {
+    if (!this.renderer) {
+      return
+    }
     allCaseData.forEach((caseData, i) => {
       const point = this.getPointForCaseData(caseData)
       if (point) {
