@@ -1,6 +1,6 @@
 import { comparer } from "mobx"
 import { observer } from "mobx-react-lite"
-import React, { useCallback, useEffect, useMemo, useRef } from "react"
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import DataGrid, { CellKeyboardEvent, DataGridHandle } from "react-data-grid"
 import { kCollectionTableBodyDropZoneBaseId } from "./case-table-drag-drop"
 import {
@@ -62,9 +62,11 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
                                 .getPropertyValue("--rdg-row-selected-background-color") || undefined
   const visibleAttributes = useVisibleAttributes(collectionId)
   const { selectedRows, setSelectedRows, handleCellClick } = useSelectedRows({ gridRef, onScrollClosestRowIntoView })
-  const { handleWhiteSpaceClick } = useWhiteSpaceClick({ gridRef })
+  const { clearCurrentSelection } = useWhiteSpaceClick({ gridRef })
   const forceUpdate = useForceUpdate()
   const { isTileSelected } = useTileModelContext()
+  const [isSelectDragging, setIsSelectDragging] = useState(false)
+  const [isDragging, setIsDragging] = useState(false)
 
   useEffect(function setGridElement() {
     const element = gridRef.current?.element
@@ -220,10 +222,55 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
   }
 
   const handleClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (isDragging) {
+      setIsDragging(false)
+      return
+    }
     // the grid element is the target when clicking outside the cells (otherwise, the cell is the target)
     if (isTileSelected() && event.target === gridRef.current?.element) {
-      handleWhiteSpaceClick()
+      clearCurrentSelection()
     }
+  }
+
+  const handleMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
+    const isExtending = event.shiftKey || event.altKey || event.metaKey
+    setIsSelectDragging(true)
+    if (!isExtending) clearCurrentSelection() // clear current selection
+  }
+
+  const handleMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (isSelectDragging) {
+      setIsDragging(true)
+      // Check if the mouse is within the bounds of the DataGrid
+      const gridElement = gridRef.current?.element
+      if (gridElement) {
+        const gridBounds = gridElement.getBoundingClientRect()
+        const { clientX, clientY } = event
+        // Check if the mouse is inside the grid's boundaries
+        if (
+          clientX >= gridBounds.left &&
+          clientX <= gridBounds.right &&
+          clientY >= gridBounds.top &&
+          clientY <= gridBounds.bottom
+        ) {
+          const target = event.target as HTMLDivElement
+          const closestDataCell = target.closest('.codap-data-cell')
+          const className = closestDataCell ? closestDataCell.className : ""
+          const caseId = className.split(" ").find(c => c.startsWith("rowId-"))?.split("-")[1]
+          if (caseId) {
+            if (selectedRows.size > 0) {
+              selectCases([caseId], data)
+            } else {
+              setSelectedCases([caseId], data)
+            }
+          }
+        }
+      }
+    }
+  }
+
+  const handleMouseUp = (event: React.MouseEvent<HTMLDivElement>) => {
+    setIsSelectDragging(false)
   }
 
   if (!data || !rows || !visibleAttributes.length) return null
@@ -231,8 +278,9 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
   return (
     <div className={`collection-table collection-${collectionId}`}>
       <CollectionTableSpacer selectedFillColor={selectedFillColor}
-        onWhiteSpaceClick={handleWhiteSpaceClick} onDrop={handleNewCollectionDrop} />
-      <div className="collection-table-and-title" ref={setNodeRef} onClick={handleClick}>
+        onWhiteSpaceClick={clearCurrentSelection} onDrop={handleNewCollectionDrop} />
+      <div className="collection-table-and-title" ref={setNodeRef} onClick={handleClick} onMouseDown={handleMouseDown}
+           onMouseMove={handleMouseMove} onMouseUp={handleMouseUp}>
         <CollectionTitle onAddNewAttribute={handleAddNewAttribute} showCount={true} />
         <DataGrid ref={gridRef} className="rdg-light" data-testid="collection-table-grid" renderers={renderers}
           columns={columns} rows={rows} headerRowHeight={+styles.headerRowHeight} rowKeyGetter={rowKey}

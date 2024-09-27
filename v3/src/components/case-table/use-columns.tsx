@@ -47,7 +47,7 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
                 resizable: true,
                 headerCellClass: `codap-column-header`,
                 renderHeaderCell: ColumnHeader,
-                cellClass: "codap-data-cell",
+                cellClass: row => `codap-data-cell rowId-${row.__id__}`,
                 renderCell: AttributeValueCell,
                 editable: row => isCaseEditable(data, row.__id__),
                 renderEditCell: isEditable

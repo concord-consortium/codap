@@ -36,7 +36,7 @@ export function useWhiteSpaceClick({ gridRef }: IProps) {
     })
   }, [componentRef, data])
 
-  const handleWhiteSpaceClick = useCallback(() => {
+  const clearCurrentSelection = useCallback(() => {
     if (!wasFocusedTileRef.current && isFocusedTileRef.current) {
       // Focused the table, do nothing with the selection
       wasFocusedTileRef.current = true
@@ -45,5 +45,5 @@ export function useWhiteSpaceClick({ gridRef }: IProps) {
     clearCaseSelection()
   }, [clearCaseSelection])
 
-  return { handleWhiteSpaceClick }
+  return { clearCurrentSelection }
 }
