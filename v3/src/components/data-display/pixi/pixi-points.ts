@@ -168,6 +168,7 @@ export class PixiPoints {
     } else {
       // The only reason for ticker to run is to handle ongoing transitions. If there are no transitions, we can stop.
       this.ticker.stop()
+      this.cleanupUnusedTextures()
     }
     this.renderer?.render(this.stage)
   }
@@ -500,7 +501,16 @@ export class PixiPoints {
   }
 
   cleanupUnusedTextures() {
-    // TODO PIXI
+    const texturesInUse: Set<PIXI.Texture> = new Set()
+    this.points.forEach(point => {
+      texturesInUse.add(point.texture)
+    })
+    for (const [key, texture] of this.textures) {
+      if (!texturesInUse.has(texture)) {
+        texture.destroy()
+        this.textures.delete(key)
+      }
+    }
   }
 
   setupBackgroundEventDistribution(options: IBackgroundEventDistributionOptions) {
