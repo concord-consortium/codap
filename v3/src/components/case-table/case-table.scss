@@ -238,6 +238,9 @@ $table-body-font-size: 8pt;
               white-space: nowrap;
               overflow: hidden;
               text-overflow: ellipsis;
+              // We reverse the text in code so that the ellipsis is at the beginning of the text
+              // so text is styled to show right to left, but we override the unicode bi-directionality
+              // so that text is actually displayed left to right
               direction: rtl;
               unicode-bidi: bidi-override;
             }
