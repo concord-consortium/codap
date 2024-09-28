@@ -4,7 +4,7 @@ import { getNumericCssVariable } from "../../utilities/css-utils"
 import { symParent } from "../../models/data/data-set-types"
 
 const kDefaultRowHeaderHeight = 30
-const kDefaultRowHeight = 18
+export const kDefaultRowHeight = 18
 const kDefaultRowCount = 12
 const kDefaultGridHeight = kDefaultRowHeaderHeight + (kDefaultRowCount * kDefaultRowHeight)
 
