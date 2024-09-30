@@ -1,5 +1,56 @@
 # Changelog
 
+## Version 3.0.0-pre.1907 - September 30, 2024
+
+### ✨ Features & Improvements:
+- **PT-184432150:** Case Table Ruler - Rerandomize All
+- **PT-181841034:** The **Help** icon allows the user to access help and other information about the project
+- **PT-188235437:** CODAP logs user actions to Google Analytics
+- **PT-181840383:** The menu bar has a language menu
+- **PT-186945890:** Show language menu in CFM bar
+- **PT-188276295:** Click in case table "white space" below the table deselects all cases for that dataset
+- **PT-187573192:** Attribute labels on graphs and maps display units
+- **PT-188274494:** Formulas should work with `≠`, `≤`, `≥` as well as their two-character counterparts
+- **PT-188333647:** The **case card** has an inspector menu
+- **PT-187799307:** The inspector panel for case tables and case cards shows a **Set Aside Filter Function** choice
+- **PT-185628921:** Dots sometimes go beyond the boundaries of the subplots that contain them
+- **PT-188243268:** Setup Deployment for StoryQ
+- **PT-187738941:** DI Finish SelectionList Requests
+- **PT-187738977:** DI Notify LogMessage Requests
+- **PT-187738922:** DI Notify DataContext
+
+### 🐞 Bug Fixes:
+- **PT-184879587:** Need to restrict all tile/components from being dragged beyond the top border
+- **PT-187774818:** Components are slow to reload when resizing
+- **PT-188300239:** Fix fresh shared tables
+- **PT-188279613:** Fix sharing existing table
+- **PT-188300061:** Undo of add numeric attribute to axis is broken
+- **PT-188234714:** Parent visibility toggles not working
+- **PT-187833691:** Enable Automation Test for Undo/Redo Functionality in Graph with Numeric x-axis and Two Numeric y-Attributes
+- **PT-188293477:** When hiding cases, numeric axes should not rescale
+- **PT-188305480:** Crash on undo of drag attribute to graph
+- **PT-188286129:** Web view inspector menu is missing its icon
+- **PT-188286148:** The user should be able to enter a web view url that is missing "https://"
+- **PT-188312576:** Date axis not working properly
+- **PT-188270437:** Impossible to edit title of graph component with no title
+- **PT-188286576:** Selected attributes are not dragging upward
+- **PT-188326911:** Fix Importing Datasets
+- **PT-188319487:** Crash on closing text component in Four Seals
+- **PT-188275873:** Cannot drag any attribute from case card view to the vertical axis, resulting in incorrect graph creation
+- **PT-188333898:** Graph points stuck in the top-left corner
+
+### 🛠️ Under the Hood:
+- **PT-187950454:** Update pixi.js to v8 (latest version)
+- **PT-186784013:** PixiJS graph: periodically dispose unused textures
+- **PT-187972789:** Automate Redo Functionality for Case Card in Table View
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  172492 bytes |                            0.80% |
+|  index.js | 5673100 bytes |                            -4.0% |
+
+
 ## Version 3.0.0-pre.1869 - September 13, 2024
 
 ### ✨ Features & Improvements:

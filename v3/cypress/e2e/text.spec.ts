@@ -19,12 +19,15 @@ context("Text tile", () => {
 
     cy.log("Check update text title with undo/redo")
     // Undo title change
+    cy.wait(100)
     toolbar.getUndoTool().click()
+    cy.wait(100)
     c.getComponentTitle(kTextTileTestId).should("have.text", textDefaultTitle)
 
     // Redo title change
     toolbar.getRedoTool().should("be.enabled")
     toolbar.getRedoTool().click()
+    cy.wait(100)
     c.getComponentTitle(kTextTileTestId).should("have.text", newTextTileName)
   })
   it("close text tile from close button with undo/redo", () => {
