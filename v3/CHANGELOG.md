@@ -13,7 +13,6 @@
 - **PT-188274494:** Formulas should work with `≠`, `≤`, `≥` as well as their two-character counterparts
 - **PT-188333647:** The **case card** has an inspector menu
 - **PT-187799307:** The inspector panel for case tables and case cards shows a **Set Aside Filter Function** choice
-- **PT-188261676:** A date attribute can be added to a map to create a date legend
 - **PT-185628921:** Dots sometimes go beyond the boundaries of the subplots that contain them
 - **PT-188243268:** Setup Deployment for StoryQ
 - **PT-187738941:** DI Finish SelectionList Requests
