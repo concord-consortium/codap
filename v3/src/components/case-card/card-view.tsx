@@ -46,7 +46,7 @@ export const CardView = observer(function CardView({onNewCollectionDrop}: CardVi
     return mstReaction(
       () => selectedItems?.size,
       () => {
-        if (selectedItems?.size === data?.items.length) {
+        if (selectedItems?.size === data?.items.length || selectedItems?.size === 0) {
           cardModel?.summarizeAllCollections()
         }
       }, {name: "CardView.showSummaryOnAllCasesSelection"}, data
