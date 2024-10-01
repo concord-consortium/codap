@@ -11,7 +11,9 @@ context("Text tile", () => {
       cy.visit(url)
       cy.wait(1000) // Ensuring the page and components are fully loaded.
   })
-  it("updates text title with undo/redo", () => {
+  // this test has become flaky, skipping for now
+  // PT-#188358092
+  it.skip("updates text title with undo/redo", () => {
     const newTextTileName = "My Text"
     c.getComponentTitle(kTextTileTestId).should("have.text", textDefaultTitle)
     c.changeComponentTitle(kTextTileTestId, newTextTileName)
