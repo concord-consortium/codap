@@ -2,7 +2,8 @@ import { Tooltip, Menu, MenuButton, Input, VisuallyHidden, SystemStyleObject } f
 import { useDndContext } from "@dnd-kit/core"
 import { autorun } from "mobx"
 import { observer } from "mobx-react-lite"
-import React, { useEffect, useRef, useState } from "react"
+import React, { useEffect, useMemo, useRef, useState } from "react"
+import { clsx } from "clsx"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { IUseDraggableAttribute, useDraggableAttribute } from "../../hooks/use-drag-drop"
 import { useInstanceIdContext } from "../../hooks/use-instance-id-context"
@@ -13,6 +14,7 @@ import { AttributeMenuList } from "./attribute-menu/attribute-menu-list"
 import { CaseTilePortal } from "./case-tile-portal"
 import { GetDividerBoundsFn, IDividerProps, kIndexColumnKey } from "./case-tile-types"
 import { useParentChildFocusRedirect } from "./use-parent-child-focus-redirect"
+import { useAdjustHeaderForOverflow } from "../../hooks/use-adjust-header-overflow"
 
 interface IProps {
   attributeId: string
@@ -21,6 +23,7 @@ interface IProps {
   getDividerBounds?: GetDividerBoundsFn
   HeaderDivider?: React.ComponentType<IDividerProps>
   showUnits?: boolean
+  allowTwoLines?: boolean
   // returns the draggable parent element for use with DnDKit
   onSetHeaderContentElt?: (contentElt: HTMLDivElement | null) => HTMLElement | null
   onBeginEdit?: () => void
@@ -29,7 +32,7 @@ interface IProps {
 }
 
 export const AttributeHeader = observer(function AttributeHeader({
-  attributeId, beforeHeaderDivider, customButtonStyle, getDividerBounds, HeaderDivider,
+  attributeId, beforeHeaderDivider, customButtonStyle, allowTwoLines, getDividerBounds, HeaderDivider,
   showUnits=true, onSetHeaderContentElt, onBeginEdit, onEndEdit, onOpenMenu
 }: IProps) {
   const { active } = useDndContext()
@@ -50,7 +53,9 @@ export const AttributeHeader = observer(function AttributeHeader({
 
   const attribute = data?.attrFromID(attributeId)
   const attrName = attribute?.name ?? ""
-
+  const attrUnits = attribute?.units ? ` (${attribute.units})` : ""
+  const { line1, line2, isOverflowed, line2Truncated } =
+            useAdjustHeaderForOverflow(menuButtonRef.current, attrName, attrUnits)
   const draggableOptions: IUseDraggableAttribute = {
     prefix: instanceId, dataSet: data, attributeId
   }
@@ -172,7 +177,21 @@ export const AttributeHeader = observer(function AttributeHeader({
     setIsFocused(true)
   }
 
-  const units = attribute?.units ? ` (${attribute.units})` : ""
+  const renderAttributeLabel = useMemo(() => {
+    if (isOverflowed) {
+      return (
+        <>
+          <span className="two-line-header-line-1">{line1}</span>
+          <span className={clsx("two-line-header-line-2", {truncated: line2Truncated})}>{line2}</span>
+        </>
+      )
+    } else {
+      return (
+        <span className="one-line-header">{line1}</span>
+      )
+    }
+  }, [line1, line2, isOverflowed, line2Truncated])
+
   const description = attribute?.description ? `: ${attribute.description}` : ""
   return (
     <Menu isLazy>
@@ -200,13 +219,15 @@ export const AttributeHeader = observer(function AttributeHeader({
                     />
                   : <>
                       <MenuButton
-                          className="codap-attribute-button" ref={menuButtonRef}
+                          className={clsx("codap-attribute-button", {"allow-two-lines": allowTwoLines})}
+                          ref={menuButtonRef}
                           disabled={attributeId === kIndexColumnKey}
                           sx={customButtonStyle}
                           fontWeight="bold" onKeyDown={handleButtonKeyDown}
                           data-testid={`codap-attribute-button ${attrName}`}
                           aria-describedby={`sr-column-header-drag-instructions-${instanceId}`}>
-                        {`${attrName ?? ""}${showUnits ? units : ""}`}
+                        {allowTwoLines ? renderAttributeLabel
+                                       : `${attrName ?? ""}${showUnits ? attrUnits : ""}`.trim()}
                       </MenuButton>
                       <VisuallyHidden id={`sr-column-header-drag-instructions-${instanceId}`}>
                         <pre> Press Space to drag the attribute within the table or to a graph.

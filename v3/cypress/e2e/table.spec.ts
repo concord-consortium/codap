@@ -49,7 +49,7 @@ context("case table ui", () => {
       const name = "Tallness",
         description = "The average height of the mammal.",
         unit = "meters",
-        newName = "Tallness (meters)",
+        newName = "Tallness(meters)", // this would appear over 2 lines and extra spaces are trimmed
         type = "color",
         precision = null,
         editable = "No"
@@ -58,6 +58,7 @@ context("case table ui", () => {
       table.editAttributeProperties("Height", name, description, type, unit, precision, editable)
       // Verify the attribute has been edited
       table.getAttribute(name).should("have.text", newName)
+
 
       // opening the dialog again should show the updated values
       table.openAttributeMenu(name)
