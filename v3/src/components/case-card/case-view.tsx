@@ -22,7 +22,7 @@ import "./case-view.scss"
 interface ICaseViewProps {
   cases: IGroupedCase[]
   level: number
-  onSelectCases: (caseIds: string[], collection: string) => void
+  onSelectCases: (caseIds: string[]) => void
   displayedCaseLineage?: readonly string[]
   onNewCollectionDrop: (dataSet: IDataSet, attrId: string, beforeCollectionId: string) => void
 }
@@ -69,9 +69,8 @@ export const CaseView = observer(function CaseView(props: ICaseViewProps) {
                                 : displayedCaseIndex + delta
     const newCase = cases[selectedCaseIndex]
     if (!newCase.__id__) return
-
-    onSelectCases([newCase.__id__], collectionId)
-  }, [isCollectionSummarized, cases, displayedCaseIndex, onSelectCases, collectionId])
+    onSelectCases([newCase.__id__])
+  }, [isCollectionSummarized, cases, displayedCaseIndex, onSelectCases])
 
   const handleAddNewCase = () => {
     if (collection) {
@@ -79,7 +78,7 @@ export const CaseView = observer(function CaseView(props: ICaseViewProps) {
       data?.applyModelChange(() => {
         const newItemId = cardModel?.addNewCase(cases, collection, displayedCaseId)
         newCaseId = newItemId && data?.getItemCaseIds(newItemId)[level]
-        newCaseId && onSelectCases([newCaseId], collectionId)
+        newCaseId && onSelectCases([newCaseId])
       }, {
         notify: () => {
           if (newCaseId) {
@@ -89,7 +88,6 @@ export const CaseView = observer(function CaseView(props: ICaseViewProps) {
         undoStringKey: "DG.Undo.caseTable.createNewCase",
         redoStringKey: "DG.Redo.caseTable.createNewCase"
       })
-      cardModel?.setShowSummary(false)
     }
   }
 
