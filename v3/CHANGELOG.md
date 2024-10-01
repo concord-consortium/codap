@@ -26,7 +26,6 @@
 - **PT-188279613:** Fix sharing existing table
 - **PT-188300061:** Undo of add numeric attribute to axis is broken
 - **PT-188234714:** Parent visibility toggles not working
-- **PT-187833691:** Enable Automation Test for Undo/Redo Functionality in Graph with Numeric x-axis and Two Numeric y-Attributes
 - **PT-188293477:** When hiding cases, numeric axes should not rescale
 - **PT-188305480:** Crash on undo of drag attribute to graph
 - **PT-188286129:** Web view inspector menu is missing its icon
@@ -43,6 +42,7 @@
 - **PT-187950454:** Update pixi.js to v8 (latest version)
 - **PT-186784013:** PixiJS graph: periodically dispose unused textures
 - **PT-187972789:** Automate Redo Functionality for Case Card in Table View
+- **PT-187833691:** Enable Automation Test for Undo/Redo Functionality in Graph with Numeric x-axis and Two Numeric y-Attributes
 
 ### Asset Sizes
 |      File |          Size | % Increase from Previous Release |
