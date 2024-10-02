@@ -1,6 +1,9 @@
+import { appState } from "../../models/app-state"
 import { IAttribute } from "../../models/data/attribute"
 import { createAttributesNotification, updateAttributesNotification } from "../../models/data/data-set-notifications"
+import { IFreeTileLayout, isFreeTileRow } from "../../models/document/free-tile-row"
 import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-data-utils"
+import { uiState } from "../../models/ui-state"
 import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
 import { convertAttributeToV2, convertAttributeToV2FromResources } from "../data-interactive-type-utils"
@@ -81,10 +84,42 @@ export const diAttributeHandler: DIHandler = {
     if (!request) return fieldRequiredResult("Notify", "attribute", "request")
 
     if (request === "dragStart") {
-      // Emit an event that will be captured by a custom dnd-kit sensor to start a drag
-      document.dispatchEvent(new CustomEvent("attributeDragStart", {
-        detail: { attribute, dataContext }
-      }))
+      uiState.setDraggingDatasetId(dataContext.id)
+      uiState.setDraggingAttributeId(attribute.id)
+      const pluginAttributeDrag = document.getElementById("plugin-attribute-drag")
+      if (pluginAttributeDrag) {
+        // General properties of events
+        const bubbles = true
+        const cancelable = true
+        const isPrimary = true
+        const pointerId = Date.now()
+        const pointerType = "mouse"
+
+        // Determine position of drag
+        let height = 10
+        let width = 10
+        let x = 0
+        let y = 0
+        const { interactiveFrame } = resources
+        const row = appState.document.content?.firstRow
+        if (interactiveFrame && row && isFreeTileRow(row)) {
+          const layout = (row.getTileLayout(interactiveFrame.id) ?? { x: 0, y: 0 }) as IFreeTileLayout
+          height = layout.height ?? height
+          width = layout.width ?? width
+          x = layout.x
+          y = layout.y
+        }
+        const clientX = x + (width / 2)
+        const clientY = y + (height / 2)
+
+        // Dispatch events that will trigger a drag start
+        pluginAttributeDrag.dispatchEvent(new PointerEvent("pointerdown", {
+          bubbles, cancelable, clientX, clientY, isPrimary, pointerId, pointerType
+        }))
+        document.dispatchEvent(new PointerEvent("pointermove", {
+          bubbles, cancelable, clientX, clientY, isPrimary, pointerId, pointerType
+        }))
+      }
       return { success: true }
     }
 

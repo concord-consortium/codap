@@ -1,5 +1,5 @@
 import {
-  AutoScrollOptions, DndContext, KeyboardCoordinateGetter, KeyboardSensor,
+  AutoScrollOptions, DndContext, DragEndEvent, DragStartEvent, KeyboardCoordinateGetter, KeyboardSensor,
   MouseSensor, PointerSensor, TraversalOrder, useSensor, useSensors
 } from "@dnd-kit/core"
 import React, { ReactNode } from "react"
@@ -7,6 +7,7 @@ import { containerSnapToGridModifier, restrictDragToArea } from "../../hooks/use
 import { urlParams } from "../../utilities/url-params"
 import { canAutoScroll } from "./dnd-can-auto-scroll"
 import { dndDetectCollision } from "./dnd-detect-collision"
+import { uiState } from "../../models/ui-state"
 // import { PluginSensor } from "./plugin-sensor"
 
 interface IProps {
@@ -27,19 +28,34 @@ export const CodapDndContext = ({ children }: IProps) => {
     threshold: { x: 0.05, y: 0.05 }
   }
 
-  const useMouseSensor = useSensor(MouseSensor)
+  const handleDragStart = (event: DragStartEvent) => {
+    console.log(`*** Starting drag`)
+  }
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    console.log(` ** Ending drag`)
+    // uiState.setDraggingDatasetId("")
+    // uiState.setDraggingAttributeId("")
+  }
+
+  // pointer must move three pixels before starting a drag
+  const pointerSensor = useSensor(PointerSensor, { activationConstraint: { distance: 3 } })
+  // mouse sensor can be enabled for cypress tests, for instance
+  const _mouseSensor = useSensor(MouseSensor)
+  const mouseSensor = urlParams.mouseSensor ? _mouseSensor : null
+  // const mouseSensor = useSensor(MouseSensor, { activationConstraint: { distance: 3 } })
   const sensors = useSensors(
-                    // pointer must move three pixels before starting a drag
-                    useSensor(PointerSensor, { activationConstraint: { distance: 3 }}),
+                    pointerSensor,
                     useSensor(KeyboardSensor, { coordinateGetter: customCoordinatesGetter }),
                     // useSensor(PluginSensor),
-                    // mouse sensor can be enabled for cypress tests, for instance
-                    urlParams.mouseSensor !== undefined ? useMouseSensor : null)
+                    mouseSensor)
   return (
     <DndContext
       autoScroll={autoScrollOptions}
       collisionDetection={dndDetectCollision}
       modifiers={[containerSnapToGridModifier, restrictDragToArea]}
+      onDragEnd={handleDragEnd}
+      onDragStart={handleDragStart}
       sensors={sensors} >
       {children}
     </DndContext>

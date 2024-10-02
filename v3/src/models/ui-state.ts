@@ -43,6 +43,10 @@ export class UIState {
   @observable
   private _interruptionCount = 0
 
+  @observable private _draggingDatasetId = ""
+
+  @observable private _draggingAttributeId = ""
+
   constructor() {
     makeObservable(this)
   }
@@ -69,6 +73,14 @@ export class UIState {
 
   get interruptionCount() {
     return this._interruptionCount
+  }
+
+  get draggingDatasetId() {
+    return this._draggingDatasetId
+  }
+
+  get draggingAttributeId() {
+    return this._draggingAttributeId
   }
 
   isFocusedTile(tileId?: string) {
@@ -121,6 +133,14 @@ export class UIState {
 
   @action setAttrIdToEdit(attrId?: string) {
     this.attrIdToEdit = attrId
+  }
+
+  @action setDraggingDatasetId(datasetId?: string) {
+    this._draggingDatasetId = datasetId ?? ""
+  }
+
+  @action setDraggingAttributeId(attributeId?: string) {
+    this._draggingAttributeId = attributeId ?? ""
   }
 
   getRulerStateVisibility(key: RulerStateKey) {

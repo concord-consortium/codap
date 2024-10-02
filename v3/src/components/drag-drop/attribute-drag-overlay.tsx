@@ -12,6 +12,7 @@ export function AttributeDragOverlay ({ activeDragId }: IProps) {
   const { active } = useDndContext()
   const { dataSet, attributeId: dragAttrId } = getDragAttributeInfo(active) || {}
   const attr = activeDragId && dragAttrId ? dataSet?.attrFromID(dragAttrId) : undefined
+  console.log(`... attr`, attr)
   const handleDropAnimation = (/*params: any*/) => {
     /**
      * If there has been no drop we would like to animate the overlay back to its original position.

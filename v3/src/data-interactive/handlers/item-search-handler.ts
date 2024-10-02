@@ -3,7 +3,9 @@ import { registerDIHandler } from "../data-interactive-handler"
 import { getV2ItemResult } from "../data-interactive-type-utils"
 import { ICase } from "../../models/data/data-set-types"
 import { DIHandler, DIItemSearchNotify, DIResources, DIValues } from "../data-interactive-types"
-import { couldNotParseQueryResult, dataContextNotFoundResult, fieldRequiredResult, valuesRequiredResult } from "./di-results"
+import {
+  couldNotParseQueryResult, dataContextNotFoundResult, fieldRequiredResult, valuesRequiredResult
+} from "./di-results"
 
 export const diItemSearchHandler: DIHandler = {
   delete(resources: DIResources) {
