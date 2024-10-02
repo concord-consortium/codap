@@ -1,12 +1,15 @@
 import {
-  AutoScrollOptions, DndContext, KeyboardCoordinateGetter, KeyboardSensor,
+  AutoScrollOptions, DndContext, DragEndEvent, DragStartEvent, KeyboardCoordinateGetter, KeyboardSensor,
   MouseSensor, PointerSensor, TraversalOrder, useSensor, useSensors
 } from "@dnd-kit/core"
 import React, { ReactNode } from "react"
-import { containerSnapToGridModifier, restrictDragToArea } from "../../hooks/use-drag-drop"
+import { containerSnapToGridModifier, getDragAttributeInfo, restrictDragToArea } from "../../hooks/use-drag-drop"
+import { appState } from "../../models/app-state"
+import { uiState } from "../../models/ui-state"
 import { urlParams } from "../../utilities/url-params"
 import { canAutoScroll } from "./dnd-can-auto-scroll"
 import { dndDetectCollision } from "./dnd-detect-collision"
+import { dragEndNotification, dragStartNotification } from "./dnd-notifications"
 
 interface IProps {
   children: ReactNode
@@ -26,6 +29,28 @@ export const CodapDndContext = ({ children }: IProps) => {
     threshold: { x: 0.05, y: 0.05 }
   }
 
+  const handleDragEnd = (e: DragEndEvent) => {
+    if (uiState.draggingDataSet && uiState.draggingAttributeId) {
+      appState.document.applyModelChange(() => {}, {
+        notify: dragEndNotification(uiState.draggingDataSet, uiState.draggingAttributeId)
+      })
+    }
+    uiState.setDraggingDataSet()
+    uiState.setDraggingAttributeId()
+  }
+
+  const handleDragStart = (e: DragStartEvent) => {
+    const info = getDragAttributeInfo(e.active)
+    if (info?.dataSet) {
+      const { dataSet, attributeId } = info
+      uiState.setDraggingDataSet(dataSet)
+      uiState.setDraggingAttributeId(attributeId)
+      appState.document.applyModelChange(() => {}, {
+        notify: dragStartNotification(dataSet, attributeId)
+      })
+    }
+  }
+
   const useMouseSensor = useSensor(MouseSensor)
   const sensors = useSensors(
                     // pointer must move three pixels before starting a drag
@@ -38,6 +63,8 @@ export const CodapDndContext = ({ children }: IProps) => {
       autoScroll={autoScrollOptions}
       collisionDetection={dndDetectCollision}
       modifiers={[containerSnapToGridModifier, restrictDragToArea]}
+      onDragEnd={handleDragEnd}
+      onDragStart={handleDragStart}
       sensors={sensors} >
       {children}
     </DndContext>

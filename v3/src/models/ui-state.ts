@@ -1,5 +1,6 @@
 import { action, makeObservable, observable } from "mobx"
 import { RulerState, RulerStateKey } from "./ui-state-types"
+import { IDataSet } from "./data/data-set"
 
 /*
   UIState represents globally accessible user-interface state that is not undoable, is not
@@ -43,6 +44,9 @@ export class UIState {
   @observable
   private _interruptionCount = 0
 
+  @observable private _draggingDataSet: IDataSet | undefined
+  @observable private _draggingAttributeId: string | undefined
+
   constructor() {
     makeObservable(this)
   }
@@ -69,6 +73,14 @@ export class UIState {
 
   get interruptionCount() {
     return this._interruptionCount
+  }
+
+  get draggingDataSet() {
+    return this._draggingDataSet
+  }
+
+  get draggingAttributeId() {
+    return this._draggingAttributeId
   }
 
   isFocusedTile(tileId?: string) {
@@ -117,6 +129,14 @@ export class UIState {
   @action
   incrementInterruptionCount() {
     this._interruptionCount += 1
+  }
+
+  @action setDraggingDataSet(dataSet?: IDataSet) {
+    this._draggingDataSet = dataSet
+  }
+
+  @action setDraggingAttributeId(attributeId?: string) {
+    this._draggingAttributeId = attributeId
   }
 
   @action setAttrIdToEdit(attrId?: string) {
