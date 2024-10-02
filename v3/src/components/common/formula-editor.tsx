@@ -232,11 +232,17 @@ export function FormulaEditor({ formula, setFormula, options: _options }: IProps
     const { attributes = true, constants = true, functions = true, globals = true, specials = true } = options || {}
     const fullOptions: ICompletionOptions = { attributes, constants, functions, globals, specials }
     view.dispatch({ effects: cmUpdateOptionsEffect.of(fullOptions) })
+
+    // https://discuss.codemirror.net/t/how-to-autofocus-in-cm6/2966
+    const focusTimer = setInterval(() => {
+      view.focus()
+      if (view.hasFocus) clearInterval(focusTimer)
+    }, 100)
   }, [dataSet, options])
 
   const handleFormulaChange = (value: string, viewUpdate: ViewUpdate) => setFormula(value)
 
-  return <CodeMirror ref={cmRef} value={formula} data-test-id="formula-editor-input" height="70px"
+  return <CodeMirror ref={cmRef} value={formula} data-testid="formula-editor-input" height="70px"
                      basicSetup={false} extensions={cmExtensionsSetup()}
                      onCreateEditor={handleCreateEditor} onChange={handleFormulaChange} />
 }
