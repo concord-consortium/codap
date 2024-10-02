@@ -30,7 +30,8 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
         const collection = data?.getCollection(collectionId)
         const attrs: IAttribute[] = collection ? getCollectionAttrs(collection, data) : []
         const visible: IAttribute[] = attrs.filter(attr => attr && !caseMetadata?.isHidden(attr.id))
-        return visible.map(({ id, name, type, userType, isEditable }) => ({ id, name, type, userType, isEditable }))
+        return visible.map(({ id, name, type, userType, isEditable, hasFormula }) =>
+                  ({ id, name, type, userType, isEditable, hasFormula }))
       },
       entries => {
         // column definitions
@@ -38,7 +39,7 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
           ? [
               ...(indexColumn ? [indexColumn] : []),
               // attribute column definitions
-              ...entries.map(({ id, name, userType, isEditable }): TColumn => ({
+              ...entries.map(({ id, name, userType, isEditable, hasFormula }): TColumn => ({
                 key: id,
                 name,
                 // If a default column width isn't supplied, RDG defaults to "auto",
@@ -47,7 +48,7 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
                 resizable: true,
                 headerCellClass: `codap-column-header`,
                 renderHeaderCell: ColumnHeader,
-                cellClass: "codap-data-cell",
+                cellClass: `codap-data-cell ${hasFormula ? "formula-column" : ""}`,
                 renderCell: AttributeValueCell,
                 editable: row => isCaseEditable(data, row.__id__),
                 renderEditCell: isEditable
