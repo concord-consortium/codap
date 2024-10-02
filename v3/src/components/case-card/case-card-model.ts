@@ -147,7 +147,7 @@ export const CaseCardModel = TileContentModel
       if (selectedCases) {
         const caseLineages = Array.from(selectedCases).map(caseId => self.caseLineage(caseId) || [])
         const commonCaseIds = findCommonCases(caseLineages)
-        if (commonCaseIds.length === 0) {
+        if (commonCaseIds.length > 0) {
           const nearestCommonParentCaseId = commonCaseIds[commonCaseIds.length - 1]
           const parentAttrs = collection.allParentAttrs
           parentAttrs.forEach(attr => {
