@@ -29,6 +29,7 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
   const { caseId, collection, attrId, unit, value, getDividerBounds, onSetContentElt } = props
   const cardModel = useCaseCardModel()
   const data = cardModel?.data
+  const attr = collection.getAttribute(attrId)
   const isCollectionSummarized = !!cardModel?.summarizedCollections.includes(collection.id)
   const displayValue = value ? String(value) : ""
   const showUnitWithValue = isFiniteNumber(Number(value)) && unit
@@ -63,7 +64,7 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
   const renderEditableOrSummaryValue = () => {
     if (isCollectionSummarized) {
       return (
-        <div className="case-card-attr-value-text static-summary">
+        <div className={clsx("case-card-attr-value-text", "static-summary", {"formula-attr-value": attr?.hasFormula})}>
           {displayValue}
         </div>
       )
@@ -71,8 +72,9 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
 
     return (
       <Editable
-        className="case-card-attr-value-text"
+        className={clsx("case-card-attr-value-text", {"formula-attr-value": attr?.hasFormula})}
         isPreviewFocusable={true}
+        isDisabled={attr?.hasFormula}
         onCancel={handleCancel}
         onChange={handleChangeValue}
         onEdit={() => setIsEditing(true)}

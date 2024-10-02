@@ -287,6 +287,19 @@ context("case card", () => {
       cy.get('[data-testid="case-card-view"]').should("have.length", 2)
       cy.get('[data-testid="case-card-view-title"]').first().should("have.text", "Diets")
     })
+  })
+})
+
+context("case card inspector panel", () => {
+  beforeEach(() => {
+    // cy.scrollTo() doesn't work as expected with `scroll-behavior: smooth`
+    const queryParams = "?sample=mammals&scrollBehavior=auto"
+    const url = `${Cypress.config("index")}${queryParams}`
+    cy.visit(url)
+    cy.wait(2000)
+  })
+
+  describe("case card inspector panel", () => {
     it("displays inspector panel when in focus", () => {
       table.toggleCaseView()
       cy.wait(500)
@@ -378,14 +391,14 @@ context("case card", () => {
       cy.wait(500)
       card.getShowAllHiddenAttributesButton().should("be.disabled")
       // FIXME: Reinstate the below after figuring out why clicking attribute buttons does nothing in Cypress
-      // cy.get('[data-testid="case-card-attr-name"]').eq(8).click()
-      // cy.get('[data-testid="attribute-menu-list"]').should("be.visible")
-      // cy.get('[data-testid="attribute-menu-list"]').find("button").contains("Hide Attribute").click()
-      // cy.get('[data-testid="case-card-attr"]').should("have.length", 8)
-      // card.getHideShowButton().click()
-      // cy.get('[data-testid="hide-show-menu-list"]').should("be.visible")
-      // cy.get('[data-testid="hide-show-menu-show-all-hidden-attributes"]').should("not.be.disabled").click()
-      // cy.get('[data-testid="case-card-attr"]').should("have.length", 9)
+      cy.get('[data-testid="case-card-attr-name"]').eq(8).click()
+      cy.get('[data-testid="attribute-menu-list"]').should("be.visible")
+      cy.get('[data-testid="attribute-menu-list"]').find("button").contains("Hide Attribute").click()
+      cy.get('[data-testid="case-card-attr"]').should("have.length", 8)
+      card.getHideShowButton().click()
+      cy.get('[data-testid="hide-show-menu-list"]').should("be.visible")
+      cy.get('[data-testid="hide-show-menu-show-all-hidden-attributes"]').should("not.be.disabled").click()
+      cy.get('[data-testid="case-card-attr"]').should("have.length", 9)
     })
     it("allows user to add an attribute from inspector panel", () => {
       table.toggleCaseView()
@@ -397,6 +410,20 @@ context("case card", () => {
       cy.wait(500)
       cy.get('[data-testid="column-name-input"]').should("exist").type("Friendliness{enter}")
       cy.get('[data-testid="case-card-attr"]').should("have.length", 10)
+
+      cy.log("add a formula to the new attribute")
+      cy.get('[data-testid="case-card-attr-name"]').eq(9).click()
+      cy.wait(500)
+      cy.get('[data-testid="attribute-menu-list"]').should("be.visible")
+      cy.get("[data-testid=attribute-menu-list] button").contains("Edit Formula...").click()
+      cy.get('[data-testid="attr-formula-input"]').should("be.visible")
+      cy.get('[data-testid="attr-formula-input"]')
+        .type("if(LifeSpan>20, \"Friendly\", \"Unfriendly\")", {force:true})
+      cy.get("[data-testid=Apply-button]").click()
+      cy.get('[data-testid="attr-formula-input"]').should("not.exist")
+      cy.get('[data-testid="case-card-attr-value"]').eq(9).should("have.text", "Friendly, Unfriendly")
+      cy.get('[data-testid="case-card-attr-value"] .formula-attr-value')
+          .should("have.css", "background-color", "rgba(255, 255, 0, 0.2)")
     })
   })
 })
