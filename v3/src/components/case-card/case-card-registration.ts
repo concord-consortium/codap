@@ -9,9 +9,7 @@ import { CaseTileTitleBar } from "../case-tile-common/case-tile-title-bar"
 import CardIcon from '../../assets/icons/icon-case-card.svg'
 import { t } from "../../utilities/translation/translate"
 import { getTileDataSet } from "../../models/shared/shared-data-utils"
-/*
-import { CaseCardInspector } from "./case-card-inspector"
-*/
+import { CaseTileInspector } from "../case-tile-common/inspector-panel/case-tile-inspector"
 
 export const kCaseCardIdPrefix = "CARD"
 
@@ -31,7 +29,7 @@ registerTileComponentInfo({
   type: kCaseCardTileType,
   TitleBar: CaseTileTitleBar,
   Component: CaseCardComponent,
-  // InspectorPanel: CaseCardInspector,
+  InspectorPanel: CaseTileInspector,
   tileEltClass: "codap-case-card",
   Icon: CardIcon,
   defaultWidth: 350,

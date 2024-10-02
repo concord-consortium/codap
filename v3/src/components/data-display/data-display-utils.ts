@@ -7,6 +7,7 @@ import {
 } from "../../utilities/color-utils"
 import {between} from "../../utilities/math-utils"
 import { IBarCover } from "../graph/graphing-types"
+import {isGraphDataConfigurationModel} from "../graph/models/graph-data-configuration-model"
 import {ISetPointSelection} from "../graph/utilities/graph-utils"
 import {
   hoverRadiusFactor, kDataDisplayFont, Point, PointDisplayType, pointRadiusLogBase, pointRadiusMax, pointRadiusMin,
@@ -14,6 +15,7 @@ import {
 } from "./data-display-types"
 import {IDataConfigurationModel } from "./models/data-configuration-model"
 import {IPixiPointStyle, PixiPoints} from "./pixi/pixi-points"
+import {CaseDataWithSubPlot} from "./d3-types"
 
 export const maxWidthOfStringsD3 = (strings: Iterable<string>) => {
   let maxWidth = 0
@@ -85,7 +87,9 @@ export interface IMatchCirclesProps {
 export function matchCirclesToData(props: IMatchCirclesProps) {
   const { dataConfiguration, pixiPoints, startAnimation, pointRadius, pointColor, pointStrokeColor,
           pointDisplayType = "points" } = props
-  const allCaseData = dataConfiguration.joinedCaseDataArrays
+  const allCaseData: CaseDataWithSubPlot[] = isGraphDataConfigurationModel(dataConfiguration)
+    ? dataConfiguration.caseDataWithSubPlot
+    : dataConfiguration.joinedCaseDataArrays
 
   startAnimation()
 
@@ -212,4 +216,3 @@ export function rectToTreeRect(rect: Rect) {
     h: rect.height
   }
 }
-

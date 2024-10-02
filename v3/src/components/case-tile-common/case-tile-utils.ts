@@ -15,6 +15,7 @@ import {
 import { ISharedDataSet } from "../../models/shared/shared-data-set"
 import { getSharedDataSetFromDataSetId, getTileCaseMetadata } from "../../models/shared/shared-data-utils"
 import { getTileComponentInfo } from "../../models/tiles/tile-component-info"
+import { ITileContentModel } from "../../models/tiles/tile-content"
 import { getSharedModelManager, getTileEnvironment } from "../../models/tiles/tile-environment"
 import { uiState } from "../../models/ui-state"
 import { getPositionOfNewComponent } from "../../utilities/view-utils"
@@ -22,6 +23,15 @@ import { kTitleBarHeight } from "../constants"
 import { kCaseTableTileType } from "../case-table/case-table-defs"
 
 export type kCardOrTableTileType = typeof kCaseTableTileType | typeof kCaseCardTileType
+
+export interface ICaseTileContentModel extends ITileContentModel {
+  data?: IDataSet
+  metadata?: ISharedCaseMetadata
+}
+
+export function isCaseTileContentModel(tile?: ITileContentModel): tile is ICaseTileContentModel {
+  return (!!tile && "data" in tile && "metadata" in tile)
+}
 
 export function createTableOrCardForDataset (
   sharedDataSet: ISharedDataSet, caseMetadata: ISharedCaseMetadata, tileType: kCardOrTableTileType = kCaseTableTileType,

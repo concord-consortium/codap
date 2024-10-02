@@ -11,7 +11,7 @@ import {AttributeDescription, DataConfigurationModel, IAttributeDescriptionSnaps
 import {AttrRole, GraphAttrRole, graphPlaceToAttrRole, PrimaryAttrRoles} from "../../data-display/data-display-types"
 import {updateCellKey} from "../adornments/adornment-utils"
 import { isFiniteNumber } from "../../../utilities/math-utils"
-import { CaseData } from "../../data-display/d3-types"
+import { CaseData, CaseDataWithSubPlot } from "../../data-display/d3-types"
 
 export const kGraphDataConfigurationType = "graphDataConfigurationType"
 
@@ -511,6 +511,21 @@ export const GraphDataConfigurationModel = DataConfigurationModel
         })
       }
     })
+  }))
+  .views(self => ({
+    get caseDataWithSubPlot() {
+      const allCaseData: CaseDataWithSubPlot[] = self.joinedCaseDataArrays
+      const caseIDToSubPlot: Record<string, number> = {}
+      self.getAllCellKeys().forEach((cellKey, cellIndex) => {
+        self.subPlotCases(cellKey).forEach(caseID => {
+          caseIDToSubPlot[caseID] = cellIndex
+        })
+      })
+      allCaseData.forEach((caseData) => {
+        caseData.subPlotNum = caseIDToSubPlot[caseData.caseID]
+      })
+      return allCaseData
+    }
   }))
   .views(self => ({
     casesInRange(min: number, max: number, attrId: string, cellKey: Record<string, string>, inclusiveMax = true) {

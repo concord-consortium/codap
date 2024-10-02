@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useRef} from "react"
+import React, {useCallback, useEffect, useRef, useState} from "react"
 import {comparer, reaction} from "mobx"
 import { observer } from "mobx-react-lite"
 import { isAlive } from "mobx-state-tree"
@@ -30,10 +30,10 @@ import { useConnectingLines } from "../../data-display/hooks/use-connecting-line
 
 interface IProps {
   mapLayerModel: IMapPointLayerModel
-  onSetPixiPointsForLayer: (pixiPoints: PixiPoints, layerIndex: number) => void
+  setPixiPointsLayer: (pixiPoints: PixiPoints, layerIndex: number) => void
 }
 
-export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, onSetPixiPointsForLayer}: IProps) {
+export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, setPixiPointsLayer}: IProps) {
   const {dataConfiguration, pointDescription} = mapLayerModel,
     dataset = isAlive(dataConfiguration) ? dataConfiguration?.dataset : undefined,
     mapModel = useMapModelContext(),
@@ -42,7 +42,7 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, onS
     layout = useDataDisplayLayout(),
     instanceId = useInstanceIdContext(),
     pixiContainerRef = useRef<HTMLDivElement>(null),
-    pixiPointsRef = useRef<PixiPoints>(),
+    [pixiPoints, setPixiPoints] = useState<PixiPoints>(),
     showConnectingLines = mapLayerModel.connectingLinesAreVisible,
     connectingLinesRef = useRef<SVGGElement>(null),
     connectingLinesActivatedRef = useRef(false)
@@ -95,32 +95,41 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, onS
   }, [mapModel])
 
   const { renderConnectingLines } = useConnectingLines({
-    clientType: "map", pixiPoints: pixiPointsRef.current, connectingLinesSvg: connectingLinesRef.current,
+    clientType: "map", pixiPoints, connectingLinesSvg: connectingLinesRef.current,
     connectingLinesActivatedRef, onConnectingLinesClick: handleConnectingLinesClick
   })
 
   useEffect(function createPixiPoints() {
-    if (!pixiContainerRef.current) {
-      return
-    }
-    pixiPointsRef.current = new PixiPoints({
-      resizeTo: pixiContainerRef.current,
-      // PixiPoints background should redistribute events to the geoJSON polygons that lie underneath.
-      backgroundEventDistribution: {
-        // Element that needs to be "hidden" to obtain another element at the current cursor position.
-        elementToHide: pixiContainerRef.current
-      }
-    })
-    onSetPixiPointsForLayer(pixiPointsRef.current, mapLayerModel.layerIndex)
+    let _pixiPoints: PixiPoints
 
-    return () => pixiPointsRef.current?.dispose()
-  }, [mapLayerModel.layerIndex, onSetPixiPointsForLayer])
+    async function initPixiPoints() {
+      if (!pixiContainerRef.current) {
+        return
+      }
+      _pixiPoints = new PixiPoints()
+      await _pixiPoints.init({
+        resizeTo: pixiContainerRef.current,
+        // PixiPoints background should redistribute events to the geoJSON polygons that lie underneath.
+        backgroundEventDistribution: {
+          // Element that needs to be "hidden" to obtain another element at the current cursor position.
+          elementToHide: pixiContainerRef.current
+        }
+      })
+      setPixiPoints(_pixiPoints)
+      setPixiPointsLayer(_pixiPoints, mapLayerModel.layerIndex)
+    }
+    initPixiPoints()
+
+    return () => {
+      _pixiPoints?.dispose()
+    }
+  }, [mapLayerModel.layerIndex, setPixiPointsLayer])
 
   useEffect(() => {
-    if (!pixiPointsRef.current) {
+    if (!pixiPoints) {
       return
     }
-    pixiPointsRef.current.onPointClick = (event: PointerEvent, sprite: PIXI.Sprite, metadata: IPixiPointMetadata) => {
+    pixiPoints.onPointClick = (event: PointerEvent, sprite: PIXI.Sprite, metadata: IPixiPointMetadata) => {
       handleClickOnCase(event, metadata.caseID, dataConfiguration.dataset)
       // TODO PIXI: this doesn't seem to work in pixi. Note that this click will be propagated to the map container
       // and handled by its click handler (which will deselect the point). The current workaround is to disable
@@ -134,14 +143,14 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, onS
         setTimeout(() => mapModel.ignoreLeafletClicks(false), 10)
       }
     }
-  }, [dataConfiguration.dataset, mapModel])
+  }, [dataConfiguration.dataset, mapModel, pixiPoints])
 
   useEffect(() => {
-    if (pixiPointsRef.current != null && pixiContainerRef.current && pixiContainerRef.current.children.length === 0) {
-      pixiContainerRef.current.appendChild(pixiPointsRef.current.canvas)
-      pixiPointsRef.current.resize(layout.contentWidth, layout.contentHeight)
+    if (pixiPoints?.canvas && pixiContainerRef.current && pixiContainerRef.current.children.length === 0) {
+      pixiContainerRef.current.appendChild(pixiPoints.canvas)
+      pixiPoints.resize(layout.contentWidth, layout.contentHeight)
     }
-  }, [layout.contentWidth, layout.contentHeight])
+  }, [layout.contentWidth, layout.contentHeight, pixiPoints])
 
   const refreshConnectingLines = useCallback(() => {
     if (!showConnectingLines && !connectingLinesActivatedRef.current) return
@@ -157,10 +166,10 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, onS
       renderConnectingLines, showConnectingLines])
 
   const callMatchCirclesToData = useCallback(() => {
-    if (mapLayerModel && dataConfiguration && layout && pixiPointsRef.current) {
+    if (mapLayerModel && dataConfiguration && layout && pixiPoints) {
       matchCirclesToData({
         dataConfiguration,
-        pixiPoints: pixiPointsRef.current,
+        pixiPoints,
         pointRadius: mapLayerModel.getPointRadius(),
         instanceId: dataConfiguration.id,
         pointColor: pointDescription?.pointColor,
@@ -169,16 +178,16 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, onS
       })
     }
   }, [dataConfiguration, layout, mapLayerModel, mapModel.startAnimation,
-    pointDescription?.pointColor, pointDescription?.pointStrokeColor])
+    pointDescription?.pointColor, pointDescription?.pointStrokeColor, pixiPoints])
 
   const refreshPointSelection = useCallback(() => {
     const {pointColor, pointStrokeColor} = pointDescription,
       selectedPointRadius = mapLayerModel.getPointRadius('select')
     dataConfiguration && setPointSelection({
-      pixiPoints: pixiPointsRef.current, dataConfiguration, pointRadius: mapLayerModel.getPointRadius(),
+      pixiPoints, dataConfiguration, pointRadius: mapLayerModel.getPointRadius(),
       selectedPointRadius, pointColor, pointStrokeColor
     })
-  }, [pointDescription, mapLayerModel, dataConfiguration])
+  }, [pointDescription, mapLayerModel, dataConfiguration, pixiPoints])
 
   const refreshPoints = useDebouncedCallback(async (selectedOnly: boolean) => {
     const lookupLegendColor = (aCaseData: CaseData) => {
@@ -201,16 +210,15 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, onS
       },
       layerIsVisible = mapLayerModel.isVisible,
       pointsAreVisible = mapLayerModel.pointsAreVisible
-    const pixiPoints = pixiPointsRef.current
     if (!pixiPoints || !dataset) {
       return
     }
-    if (!(layerIsVisible && pointsAreVisible && pixiPointsRef.current?.isVisible)) {
-      pixiPointsRef.current?.setVisibility(false)
+    if (!(layerIsVisible && pointsAreVisible && pixiPoints.isVisible)) {
+      pixiPoints?.setVisibility(false)
       return
     }
-    if (layerIsVisible && pointsAreVisible && !pixiPointsRef.current?.isVisible) {
-      pixiPointsRef.current?.setVisibility(true)
+    if (layerIsVisible && pointsAreVisible && !pixiPoints.isVisible) {
+      pixiPoints?.setVisibility(true)
     }
     const pointRadius = computePointRadius(dataConfiguration.caseDataArray.length,
         pointDescription.pointSizeMultiplier)
@@ -309,17 +317,17 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, onS
         return { layerIsVisible: mapLayerModel.isVisible, pointsAreVisible: mapLayerModel.pointsAreVisible}
       },
       ({layerIsVisible, pointsAreVisible}) => {
-        if (layerIsVisible && pointsAreVisible && !pixiPointsRef.current?.isVisible) {
-          pixiPointsRef.current?.setVisibility(true)
+        if (layerIsVisible && pointsAreVisible && !pixiPoints?.isVisible) {
+          pixiPoints?.setVisibility(true)
           refreshPoints(false)
         }
-        else if (!(layerIsVisible && pointsAreVisible) && pixiPointsRef.current?.isVisible) {
-          pixiPointsRef.current?.setVisibility(false)
+        else if (!(layerIsVisible && pointsAreVisible) && pixiPoints?.isVisible) {
+          pixiPoints?.setVisibility(false)
         }
       },
       {name: "MapPointLayer.respondToLayerVisibilityChange"}, mapLayerModel
     )
-  }, [mapLayerModel, callMatchCirclesToData, layout.contentWidth, layout.contentHeight, refreshPoints])
+  }, [mapLayerModel, callMatchCirclesToData, layout.contentWidth, layout.contentHeight, refreshPoints, pixiPoints])
 
   // respond to point properties change
   useEffect(function respondToPointVisualChange() {
@@ -358,7 +366,7 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, onS
       <DataTip
         dataset={dataset}
         getTipAttrs={getTipAttrs}
-        pixiPoints={pixiPointsRef.current}
+        pixiPoints={pixiPoints}
         getTipText={mapModel.getTipText}
       />
     </>

@@ -89,6 +89,7 @@ export const CaseView = observer(function CaseView(props: ICaseViewProps) {
         undoStringKey: "DG.Undo.caseTable.createNewCase",
         redoStringKey: "DG.Redo.caseTable.createNewCase"
       })
+      cardModel?.setShowSummary(false)
     }
   }
 

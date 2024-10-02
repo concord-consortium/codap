@@ -25,6 +25,7 @@ export const LegendAttributeLabel =
       const dataset = dataConfiguration?.dataset,
         attributeID = dataConfiguration?.attributeID('legend'),
         attributeName = (attributeID ? dataset?.attrFromID(attributeID)?.name : '') ?? '',
+        attributeUnits = (attributeID ? dataset?.attrFromID(attributeID)?.units : '') ?? '',
         labelFont = vars.labelFont,
         labelBounds = getStringBounds(attributeName, labelFont),
         tX = axisGap,
@@ -40,7 +41,7 @@ export const LegendAttributeLabel =
               .attr('data-testid', className)
               .attr('x', tX)
               .attr('y', tY)
-              .text(attributeName)
+              .text(`${attributeName}${attributeUnits ? ` (${attributeUnits})` : ''}`)
         )
     }, [dataConfiguration])
 
