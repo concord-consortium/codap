@@ -47,9 +47,6 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
       const draggedElement = document.getElementById(dragTileId)
       if (draggedElement) {
         // Capture pointer events for the dragged tile
-        // draggedElement.addEventListener('pointerdown', (event) => {
-        //   draggedElement.setPointerCapture(event.pointerId)
-        // })
         draggedElement.addEventListener('pointermove', (event) => {
           draggedElement.setPointerCapture(event.pointerId)
         })
