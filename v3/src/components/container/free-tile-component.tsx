@@ -44,6 +44,20 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
     activeDrag => {
     const dragTileId = getDragTileId(activeDrag)
     if (dragTileId) {
+      const draggedElement = document.getElementById(dragTileId)
+      if (draggedElement) {
+        // Capture pointer events for the dragged tile
+        draggedElement.addEventListener('pointermove', (event) => {
+          if (!draggedElement.hasPointerCapture(event.pointerId)) {
+            draggedElement.setPointerCapture(event.pointerId)
+          }
+        })
+
+        draggedElement.addEventListener('pointerup', (event) => {
+          draggedElement.releasePointerCapture(event.pointerId)
+        })
+      }
+
       if (isFreeTileRow(row)) {
         const allowBringToFront = dragTileId === tile.id ? tile.content.allowBringToFront : true
         row.moveTileToTop(dragTileId, allowBringToFront)
