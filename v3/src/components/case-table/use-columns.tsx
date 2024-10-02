@@ -12,6 +12,7 @@ import { kDefaultColumnWidth, TColumn } from "./case-table-types"
 import CellTextEditor from "./cell-text-editor"
 import ColorCellTextEditor from "./color-cell-text-editor"
 import { ColumnHeader } from "./column-header"
+import clsx from "clsx"
 
 interface IUseColumnsProps {
   data?: IDataSet
@@ -48,7 +49,7 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
                 resizable: true,
                 headerCellClass: `codap-column-header`,
                 renderHeaderCell: ColumnHeader,
-                cellClass: `codap-data-cell ${hasFormula ? "formula-column" : ""}`,
+                cellClass: clsx("codap-data-cell", {"formula-column": hasFormula}),
                 renderCell: AttributeValueCell,
                 editable: row => isCaseEditable(data, row.__id__),
                 renderEditCell: isEditable
