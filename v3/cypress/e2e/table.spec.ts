@@ -431,6 +431,8 @@ context("case table ui", () => {
         random1 = +cell.text()
         expect(random1 >= 0).to.eq(true)
         expect(random1 < 1).to.eq(true)
+        // verify cell background color is not white
+        cy.wrap(cell).should("have.css", "background-color", "rgba(255, 255, 0, 0.2)")
       })
       // Rerandomize
       let random2 = 0
