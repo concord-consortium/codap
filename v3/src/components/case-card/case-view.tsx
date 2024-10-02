@@ -76,7 +76,7 @@ export const CaseView = observer(function CaseView(props: ICaseViewProps) {
     if (collection) {
       let newCaseId: string | undefined
       data?.applyModelChange(() => {
-        const newItemId = cardModel?.addNewCase(cases, collection, displayedCaseId)
+        const newItemId = cardModel?.addNewCase(collection)
         newCaseId = newItemId && data?.getItemCaseIds(newItemId)[level]
         newCaseId && onSelectCases([newCaseId])
       }, {

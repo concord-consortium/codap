@@ -128,15 +128,35 @@ export const CaseCardModel = TileContentModel
         self.attributeColumnWidths.delete(collectionId)
       }
     },
-    addNewCase(cases: IGroupedCase[], collection: ICollectionModel, displayedCaseId: string) {
+    addNewCase(collection: ICollectionModel) {
       const newCase: ICaseCreation = {}
+      const selectedCases = self.data?.selection
 
-      collection.allParentDataAttrs.forEach(attr => {
-        if (attr?.id) {
-          const value = self.data?.getValue(displayedCaseId, attr.id)
-          newCase[attr.id] = value
+      function findCommonCases(lineages: (readonly string[])[]) {
+        if (lineages.length === 0) return [];
+        let commonValues = lineages[0];
+        for (let i = 1; i < lineages.length; i++) {
+          commonValues = commonValues.filter(value => lineages[i].includes(value));
+          if (commonValues.length === 0) {
+            return [];
+          }
         }
-      })
+        return commonValues;
+      }
+
+      if (selectedCases) {
+        const caseLineages = Array.from(selectedCases).map(caseId => self.caseLineage(caseId) || [])
+        const commonCaseIds = findCommonCases(caseLineages)
+        if (commonCaseIds.length === 0) {
+          const nearestCommonParentCaseId = commonCaseIds[commonCaseIds.length - 1]
+          const parentAttrs = collection.allParentAttrs
+          parentAttrs.forEach(attr => {
+            const attrId = attr.id
+            const parentValue = nearestCommonParentCaseId && self.data?.getValue(nearestCommonParentCaseId, attrId)
+            newCase[attrId] = parentValue
+          })
+        }
+      }
 
       const [newCaseId] = self.data?.addCases([newCase]) ?? []
 
