@@ -62,8 +62,8 @@ export const createDocumentModel = (snapshot?: IDocumentModelSnapshot) => {
     }
 
     // configure notifications
-    fullEnvironment.notify = function(message: DIMessage, callback: iframePhone.ListenerCallback) {
-      document.content?.broadcastMessage(message, callback)
+    fullEnvironment.notify = function(message: DIMessage, callback: iframePhone.ListenerCallback, webViewId?: string) {
+      document.content?.broadcastMessage(message, callback, webViewId)
     }
 
     return document

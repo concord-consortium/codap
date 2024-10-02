@@ -78,11 +78,11 @@ export const DocumentContentModel = BaseDocumentContentModel
       // complete serialization for each row
       self.rowMap.forEach(row => row.completeSnapshot())
     },
-    broadcastMessage(message: DIMessage, callback: iframePhone.ListenerCallback) {
+    broadcastMessage(message: DIMessage, callback: iframePhone.ListenerCallback, webViewId?: string) {
       const tileIds = self.tileMap.keys()
       if (tileIds) {
         Array.from(tileIds).forEach(tileId => {
-          self.tileMap.get(tileId)?.content.broadcastMessage(message, callback)
+          if (!webViewId || tileId === webViewId) self.tileMap.get(tileId)?.content.broadcastMessage(message, callback)
         })
       }
     }

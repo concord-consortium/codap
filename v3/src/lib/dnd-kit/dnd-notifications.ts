@@ -8,7 +8,7 @@ function makeCallback(operation: string, other?: any) {
     debugLog(DEBUG_PLUGINS, `Reply to ${action} ${operation} ${other ?? ""}`, JSON.stringify(response))
 }
 
-function notification(
+export function dragNotification(
   operation: string, dataSet: IDataSet, attributeId: string, _callback?: (result: any) => void,
   extraValues?: Record<string, any>
 ) {
@@ -38,9 +38,9 @@ function notification(
 }
 
 export function dragStartNotification(dataSet: IDataSet, attributeId: string) {
-  return notification("dragstart", dataSet, attributeId)
+  return dragNotification("dragstart", dataSet, attributeId)
 }
 
 export function dragEndNotification(dataSet: IDataSet, attributeId: string) {
-  return notification("dragend", dataSet, attributeId)
+  return dragNotification("dragend", dataSet, attributeId)
 }

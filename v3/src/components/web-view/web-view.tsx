@@ -1,5 +1,7 @@
+import { useDndContext, useDroppable } from "@dnd-kit/core"
 import { observer } from "mobx-react-lite"
 import React, { useRef } from "react"
+import { getDragAttributeInfo } from "../../hooks/use-drag-drop"
 import { t } from "../../utilities/translation/translate"
 import { ITileBaseProps } from "../tiles/tile-base-props"
 import { useDataInteractiveController } from "./use-data-interactive-controller"
@@ -10,6 +12,9 @@ import "./web-view.scss"
 export const WebViewComponent = observer(function WebViewComponent({ tile }: ITileBaseProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const webViewModel = tile?.content
+  const { active } = useDndContext()
+  const info = getDragAttributeInfo(active)
+  const draggingAttribute = info?.attributeId && info.dataSet
 
   useDataInteractiveController(iframeRef, tile)
 
@@ -26,6 +31,12 @@ export const WebViewComponent = observer(function WebViewComponent({ tile }: ITi
       <div className="codap-web-view-iframe-wrapper">
         <iframe className="codap-web-view-iframe" ref={iframeRef} src={webViewModel.url} />
       </div>
+      {draggingAttribute && <WebViewDragOverlay />}
     </div>
   )
 })
+
+function WebViewDragOverlay() {
+  useDroppable()
+  return <div className="codap-web-view-drag-overlay" />
+}
