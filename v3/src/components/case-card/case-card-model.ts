@@ -133,15 +133,15 @@ export const CaseCardModel = TileContentModel
       const selectedCases = self.data?.selection
 
       function findCommonCases(lineages: (readonly string[])[]) {
-        if (lineages.length === 0) return [];
-        let commonValues = lineages[0];
+        if (lineages.length === 0) return []
+        let commonValues = lineages[0]
         for (let i = 1; i < lineages.length; i++) {
-          commonValues = commonValues.filter(value => lineages[i].includes(value));
+          commonValues = commonValues.filter(value => lineages[i].includes(value))
           if (commonValues.length === 0) {
-            return [];
+            return []
           }
         }
-        return commonValues;
+        return commonValues
       }
 
       if (selectedCases) {
