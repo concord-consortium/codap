@@ -164,7 +164,10 @@ function addCodapHighlightingClasses(view: EditorView) {
   // Traverse the syntax tree
   tree.iterate({
     enter(node) {
-      const nodeText = view.state.doc.sliceString(node.from, node.to)
+      let nodeText = view.state.doc.sliceString(node.from, node.to)
+      // highlight attribute names in backticks
+      const execResult = /^`(.+)`$/.exec(nodeText)
+      if (execResult?.[1]) nodeText = execResult[1]
       const highlightClass = highlightClasses[node.type.name]?.(nodeText, dataSet, options ?? kAllOptions)
       if (highlightClass) {
         builder.add(node.from, node.to, Decoration.mark({ class: highlightClass }))

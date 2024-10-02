@@ -85,6 +85,7 @@ boolean { @specialize[@name=BooleanLiteral]<identifier, "true" | "false"> }
 FunctionName { identifier }
 
 // identifiers can be specified with backtick strings
+// TODO: separate backticks from variable name so variable name can be highlighted without the backticks
 VariableName { identifier | BackTickString }
 
 questionOp[@name=LogicOp] { "?" }

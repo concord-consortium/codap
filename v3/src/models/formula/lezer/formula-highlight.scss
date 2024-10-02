@@ -5,6 +5,8 @@
       color: #888
     }
 
+    // colors match v2 colors
+
     .cm-boolean, .cm-number {
       color: #164;
     }
@@ -25,19 +27,21 @@
       color: blue;
     }
 
-    .codap-attribute .cm-variable {
+    // codap-class can occur with or without cm-variable
+
+    .codap-attribute, .codap-attribute .cm-variable {
       color: magenta;
     }
 
-    .codap-constant .cm-variable {
+    .codap-constant, .codap-constant .cm-variable {
       color: teal;
     }
 
-    .codap-global .cm-variable {
+    .codap-global, .codap-global .cm-variable {
       color: maroon;
     }
 
-    .codap-special .cm-variable {
+    .codap-special, .codap-special .cm-variable {
       color: red;
     }
   }
