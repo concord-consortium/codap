@@ -1,9 +1,10 @@
-import { useDndContext, useDroppable } from "@dnd-kit/core"
+import { Active, useDndContext, useDroppable } from "@dnd-kit/core"
 import { observer } from "mobx-react-lite"
-import React, { useEffect, useRef, useState } from "react"
-import { getDragAttributeInfo } from "../../hooks/use-drag-drop"
-import { dragNotification } from "../../lib/dnd-kit/dnd-notifications"
-import { appState } from "../../models/app-state"
+import React, { MouseEventHandler, useEffect, useRef, useState } from "react"
+import { getDragAttributeInfo, useDropHandler } from "../../hooks/use-drag-drop"
+import { useTileModelContext } from "../../hooks/use-tile-model-context"
+import { dragNotification, dragWithPositionNotification } from "../../lib/dnd-kit/dnd-notifications"
+import { getTileInfo } from "../../models/document/tile-utils"
 import { t } from "../../utilities/translation/translate"
 import { ITileBaseProps } from "../tiles/tile-base-props"
 import { useDataInteractiveController } from "./use-data-interactive-controller"
@@ -33,25 +34,57 @@ export const WebViewComponent = observer(function WebViewComponent({ tile }: ITi
       <div className="codap-web-view-iframe-wrapper">
         <iframe className="codap-web-view-iframe" ref={iframeRef} src={webViewModel.url} />
       </div>
-      {draggingAttribute && <WebViewDropOverlay tileId={tile?.id ?? ""} />}
+      {draggingAttribute && <WebViewDropOverlay />}
     </div>
   )
 })
 
-interface IWebViewDropOverlayProps {
-  tileId: string
-}
-function WebViewDropOverlay({ tileId }: IWebViewDropOverlayProps) {
+function WebViewDropOverlay() {
+  const mouseX = useRef<number|undefined>()
+  const mouseY = useRef<number|undefined>()
+  const { tile, tileId } = useTileModelContext()
+  const dropId = `web-view-drop-overlay-${tileId}`
   const [dragOver, setDragOver] = useState(false)
-  const { active, isOver, setNodeRef } = useDroppable({ id: `web-view-drop-overlay-${tileId}` })
+  const { active, isOver, setNodeRef } = useDroppable({ id: dropId })
   const info = active && getDragAttributeInfo(active)
   const dataSet = info?.dataSet
   const attributeId = info?.attributeId
+  const { position } = getTileInfo(tileId ?? "")
+  const tileX = position?.left ?? 0
+  // TODO Hardcoded header heights
+  const kDocumentHeaderHeight = 94
+  const kTileHeaderHeight = 25
+  const tileY = (position?.top ?? 0) + kDocumentHeaderHeight + kTileHeaderHeight
+
+  const handleMouseOver: MouseEventHandler<HTMLDivElement> = event => {
+    const { clientX, clientY } = event
+    const x = clientX - tileX
+    const y = clientY - tileY
+    console.log(`--- handleMouseMove`, x, y)
+    if (dataSet && attributeId && (mouseX.current !== x || mouseY.current !== y)) {
+      tile?.applyModelChange(() => {}, {
+        notify: dragWithPositionNotification("drag", dataSet, attributeId, x, y),
+        webViewId: tileId
+      })
+    }
+    mouseX.current = x
+    mouseY.current = y
+  }
+
+  useDropHandler(dropId, (_active: Active) => {
+    const { dataSet: dropDataSet, attributeId: dropAttributeId } = getDragAttributeInfo(_active) || {}
+    if (dropDataSet && dropAttributeId && mouseX.current != null && mouseY.current != null) {
+      tile?.applyModelChange(() => {}, {
+        notify: dragWithPositionNotification("drop", dropDataSet, dropAttributeId, mouseX.current, mouseY.current),
+        webViewId: tileId
+      })
+    }
+  })
 
   useEffect(() => {
     if (dataSet && attributeId && isOver !== dragOver) {
       const operation = isOver ? "dragenter" : "dragleave"
-      appState.document.applyModelChange(() => {}, {
+      tile?.applyModelChange(() => {}, {
         notify: dragNotification(operation, dataSet, attributeId),
         webViewId: tileId
       })
@@ -59,5 +92,9 @@ function WebViewDropOverlay({ tileId }: IWebViewDropOverlayProps) {
     }
   }, [isOver])
 
-  return <div className="codap-web-view-drop-overlay" ref={setNodeRef} />
+  return <div
+    className="codap-web-view-drop-overlay"
+    onMouseOver={handleMouseOver}
+    ref={setNodeRef}
+  />
 }

@@ -44,3 +44,9 @@ export function dragStartNotification(dataSet: IDataSet, attributeId: string) {
 export function dragEndNotification(dataSet: IDataSet, attributeId: string) {
   return dragNotification("dragend", dataSet, attributeId)
 }
+
+export function dragWithPositionNotification(
+  operation: string, dataSet: IDataSet, attributeId: string, x: number, y: number
+) {
+  return dragNotification(operation, dataSet, attributeId, undefined, { position: { x, y } })
+}
