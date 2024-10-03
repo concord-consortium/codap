@@ -41,9 +41,9 @@ export const CodapDndContext = ({ children }: IProps) => {
   // pointer must move three pixels before starting a drag
   const pointerSensor = useSensor(PointerSensor, { activationConstraint: { distance: 3 } })
   // mouse sensor can be enabled for cypress tests, for instance
-  const _mouseSensor = useSensor(MouseSensor)
-  const mouseSensor = urlParams.mouseSensor ? _mouseSensor : null
-  // const mouseSensor = useSensor(MouseSensor, { activationConstraint: { distance: 3 } })
+  // const _mouseSensor = useSensor(MouseSensor)
+  // const mouseSensor = urlParams.mouseSensor ? _mouseSensor : null
+  const mouseSensor = useSensor(MouseSensor, { activationConstraint: { distance: 3 } })
   const sensors = useSensors(
                     pointerSensor,
                     useSensor(KeyboardSensor, { coordinateGetter: customCoordinatesGetter }),

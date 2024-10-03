@@ -91,9 +91,9 @@ export const diAttributeHandler: DIHandler = {
         // General properties of events
         const bubbles = true
         const cancelable = true
-        const isPrimary = true
-        const pointerId = Date.now()
-        const pointerType = "mouse"
+        // const isPrimary = true
+        // const pointerId = Date.now()
+        // const pointerType = "mouse"
 
         // Determine position of drag
         let height = 10
@@ -113,11 +113,17 @@ export const diAttributeHandler: DIHandler = {
         const clientY = y + (height / 2)
 
         // Dispatch events that will trigger a drag start
-        pluginAttributeDrag.dispatchEvent(new PointerEvent("pointerdown", {
-          bubbles, cancelable, clientX, clientY, isPrimary, pointerId, pointerType
+        // pluginAttributeDrag.dispatchEvent(new PointerEvent("pointerdown", {
+        //   bubbles, cancelable, clientX, clientY, isPrimary, pointerId, pointerType
+        // }))
+        // document.dispatchEvent(new PointerEvent("pointermove", {
+        //   bubbles, cancelable, clientX: clientX + 10, clientY: clientY + 10, isPrimary, pointerId, pointerType
+        // }))
+        pluginAttributeDrag.dispatchEvent(new MouseEvent("mousedown", {
+          bubbles, cancelable, clientX, clientY
         }))
-        document.dispatchEvent(new PointerEvent("pointermove", {
-          bubbles, cancelable, clientX, clientY, isPrimary, pointerId, pointerType
+        document.dispatchEvent(new MouseEvent("mousemove", {
+          bubbles, cancelable, clientX: clientX + 10, clientY: clientY + 10
         }))
       }
       return { success: true }

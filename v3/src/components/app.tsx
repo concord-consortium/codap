@@ -1,4 +1,3 @@
-import { useDndContext } from "@dnd-kit/core"
 import { observer } from "mobx-react-lite"
 import React, { useCallback, useEffect } from "react"
 import { CodapDndContext } from "../lib/dnd-kit/codap-dnd-context"
@@ -41,8 +40,6 @@ export const App = observer(function App() {
   useCloudFileManager({
     appOrMenuElemId: kMenuBarElementId
   })
-
-  const { active } = useDndContext()
 
   const handleImportDataSet = useCallback(
     function handleImportDataSet(data: IDataSet, options?: IImportDataSetOptions) {
