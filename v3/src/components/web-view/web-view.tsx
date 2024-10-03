@@ -50,7 +50,7 @@ function WebViewDropOverlay({ tileId }: IWebViewDropOverlayProps) {
 
   useEffect(() => {
     if (dataSet && attributeId && isOver !== dragOver) {
-      const operation = isOver ? "dragenter" : "dragexit"
+      const operation = isOver ? "dragenter" : "dragleave"
       appState.document.applyModelChange(() => {}, {
         notify: dragNotification(operation, dataSet, attributeId),
         webViewId: tileId
