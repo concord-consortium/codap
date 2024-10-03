@@ -1,7 +1,7 @@
 import { isEqual, isEqualWith } from "lodash"
 import { applyAction, clone, destroy, getSnapshot, onAction, onSnapshot } from "mobx-state-tree"
 import { uniqueName } from "../../utilities/js-utils"
-import { DataSet, fromCanonical, toCanonical } from "./data-set"
+import { DataSet, fromCanonical, isFilterFormulaDataSet, toCanonical } from "./data-set"
 import { createDataSet } from "./data-set-conversion"
 import { ICaseID } from "./data-set-types"
 
@@ -237,9 +237,13 @@ test("DataSet basic functionality", () => {
   dataset.addCases(toCanonical(dataset, [{ str: "d", num: 4 }]), { before: "bogus" })
   dataset.validateCases()
   expect(dataset.items.length).toBe(2)
+  expect(dataset.itemInfoMap.size).toBe(2)
   expect(dataset.getItemCaseIds(dataset.itemIds[1]).length).toBe(1)
   expect(dataset.getItemAtIndex(1, { canonical: false })).toEqualExcludingIds({ str: "d", num: 4 })
   dataset.removeCases([dataset.items[0].__id__, dataset.items[1].__id__])
+  dataset.validateCases()
+  expect(dataset.items.length).toBe(0)
+  expect(dataset.itemInfoMap.size).toBe(0)
 
   // add new case
   dataset.addCases(toCanonical(dataset, [{ str: "d", num: 4 }]), { after: cCaseId })
@@ -724,12 +728,55 @@ test("DataSet collection helpers", () => {
   expect(ds.getCollectionIndex(ds.collections[0].id)).toEqual(0)
   expect(ds.getCollectionForAttribute(ds.attributes[0].id)).toBe(ds.collections[0])
   expect(ds.getCollectionByName(ds.collections[0].name)).toBeDefined()
+  expect(ds.getGroupsForCollection(ds.collections[0].id)).toEqual([])
 
   // Test collection helpers using the the ungrouped collection stand-in. It's not considered be a grouped collection,
   // but other collection-related helpers handle it as expected.
   expect(ds.getCollection(ds.childCollection.id)).toBeDefined()
   expect(ds.getCollectionIndex(ds.childCollection.id)).toEqual(1)
   expect(ds.getCollectionForAttribute(ds.attributes[1].id)).toBe(ds.childCollection)
+  expect(ds.getGroupsForCollection(ds.childCollection.id)).toEqual([])
 
   expect(ds.getCollectionForAttribute("non-existent-attr-ID")).toBeUndefined()
+})
+
+
+test("Filter formula", () => {
+  const data = DataSet.create()
+  data.addCases([{ __id__: "ITEM0" }, { __id__: "ITEM1" }, { __id__: "ITEM2" }])
+  expect(data._itemIds).toEqual(["ITEM0", "ITEM1", "ITEM2"])
+  expect(data.itemIds).toEqual(["ITEM0", "ITEM1", "ITEM2"])
+  expect(isFilterFormulaDataSet(data)).toBe(false)
+  // add filter formula and simulate its evaluation
+  data.setFilterFormula("even(caseIndex)")
+  data.updateFilterFormulaResults([
+    { itemId: "ITEM0", result: true },
+    { itemId: "ITEM1", result: false },
+    { itemId: "ITEM2", result: true }
+  ], {})
+  data.validateCases()
+  expect(isFilterFormulaDataSet(data)).toBe(true)
+  expect(data._itemIds).toEqual(["ITEM0", "ITEM1", "ITEM2"])
+  expect(data.itemIds).toEqual(["ITEM0", "ITEM2"])
+  // change filter formula and simulate its evaluation
+  data.setFilterFormula("odd(caseIndex)")
+  data.updateFilterFormulaResults([
+    { itemId: "ITEM0", result: false },
+    { itemId: "ITEM1", result: true },
+    { itemId: "ITEM2", result: false }
+  ], {})
+  data.validateCases()
+  expect(isFilterFormulaDataSet(data)).toBe(true)
+  expect(data._itemIds).toEqual(["ITEM0", "ITEM1", "ITEM2"])
+  expect(data.itemIds).toEqual(["ITEM1"])
+  // clear filter formula and simulate its evaluation
+  data.setFilterFormula("")
+  data.updateFilterFormulaResults([], { replaceAll: true })
+  data.validateCases()
+  expect(isFilterFormulaDataSet(data)).toBe(false)
+  expect(data._itemIds).toEqual(["ITEM0", "ITEM1", "ITEM2"])
+  expect(data.itemIds).toEqual(["ITEM0", "ITEM1", "ITEM2"])
+
+  data.setFilterFormulaError("Error")
+  expect(data.filterFormulaError).toBe("Error")
 })
