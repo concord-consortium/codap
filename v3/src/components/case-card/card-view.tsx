@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react"
+import React, { useRef } from "react"
 import { observer } from "mobx-react-lite"
 import { CollectionContext } from "../../hooks/use-collection-context"
 import { AttributeHeaderDividerContext } from "../case-tile-common/use-attribute-header-divider-context"
@@ -23,7 +23,7 @@ export const CardView = observer(function CardView({onNewCollectionDrop}: CardVi
   const selectedItemLineage = cardModel?.caseLineage(selectedItemId)
   const contentRef = useRef<HTMLDivElement>(null)
   const summarizedCollections = cardModel?.summarizedCollections || []
-  const [isInSummaryMode, setIsInSummaryMode] = useState(summarizedCollections.length !== 0)
+  const isInSummaryMode = summarizedCollections.length > 0
 
   const handleSelectCases = (caseIds: string[]) => {
     data?.setSelectedCases(caseIds)
@@ -37,10 +37,8 @@ export const CardView = observer(function CardView({onNewCollectionDrop}: CardVi
       if (firstItemLineage) {
         data?.setSelectedCases([firstItemLineage[firstItemLineage.length - 1]])
       }
-      setIsInSummaryMode(false)
     } else {
       data?.setSelectedCases([])
-      setIsInSummaryMode(true)
     }
   }
 
