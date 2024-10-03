@@ -1,5 +1,6 @@
 import { useDisclosure } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
+import { isAlive } from "mobx-state-tree"
 import React from "react"
 import { useCaseMetadata } from "../../hooks/use-case-metadata"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
@@ -12,6 +13,8 @@ export const HideShowMenuList = observer(function HideShowMenuList() {
   const data = useDataSetContext()
   const caseMetadata = useCaseMetadata()
   const formulaModal = useDisclosure()
+
+  if (data && !isAlive(data)) return null
 
   const handleSetAsideCases = (itemIds: string[], deselect: boolean) => {
     if (data && itemIds.length) {

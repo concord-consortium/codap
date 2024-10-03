@@ -1,5 +1,5 @@
 import { action, computed, makeObservable, observable } from "mobx"
-import { ISerializedActionCall } from "mobx-state-tree"
+import { addDisposer, ISerializedActionCall } from "mobx-state-tree"
 import { typedId } from "../../utilities/js-utils"
 import { onAnyAction } from "../../utilities/mst-utils"
 import { IDataSet } from "./data-set"
@@ -25,14 +25,14 @@ interface IProps {
 
 export class FilteredCases {
   public readonly id = typedId("FICA")
-  private source: IDataSet
+  private source?: IDataSet
   private collectionID: string | undefined
   private casesArrayNumber: number
   @observable private filter?: FilterFn
   private onSetCaseValues?: OnSetCaseValuesFn
 
   private prevCaseIdSet = new Set<string>()
-  private onActionDisposers: Array<() => void>
+  private disposers: Array<() => void>
 
   constructor({ source, collectionID, casesArrayNumber = 0, filter, onSetCaseValues }: IProps) {
     this.source = source
@@ -43,14 +43,15 @@ export class FilteredCases {
 
     makeObservable(this)
 
-    this.onActionDisposers = [
+    this.disposers = [
+      addDisposer(source, () => this.source = undefined),
       onAnyAction(this.source, this.handleBeforeAction, { attachAfter: false }),  // runs before the action
       onAnyAction(this.source, this.handleAction, { attachAfter: true }),         // runs after the action
     ]
   }
 
   destroy() {
-    this.onActionDisposers.forEach(disposer => disposer())
+    this.disposers.forEach(disposer => disposer())
   }
 
   @computed
@@ -61,10 +62,12 @@ export class FilteredCases {
     // cases when cases are inserted, but that would be more code to write/maintain and running
     // the filter function over an array of cases should be quick so rather than succumb to the
     // temptation of premature optimization, let's wait to see whether it becomes a bottleneck.
-    const rawCases = this.collectionID ? this.source.getCasesForCollection(this.collectionID) : this.source.items
+    const rawCases = this.collectionID
+                      ? this.source?.getCasesForCollection(this.collectionID) ?? []
+                      : this.source?.items ?? []
     return rawCases
             .map(aCase => aCase.__id__)
-            .filter(id => !this.filter || this.filter(this.source, id, this.casesArrayNumber))
+            .filter(id => !this.filter || (this.source && this.filter(this.source, id, this.casesArrayNumber)))
   }
 
   @computed
@@ -124,7 +127,7 @@ export class FilteredCases {
       cases.forEach(aCase => {
         // compare the pre-/post-change filter state of the affected cases
         const wasIncluded = this.prevCaseIdSet.has(aCase.__id__)
-        const nowIncluded = !this.filter || this.filter(this.source, aCase.__id__)
+        const nowIncluded = !this.filter || (this.source && this.filter(this.source, aCase.__id__))
         if (wasIncluded === nowIncluded) {
           changed.push(aCase.__id__)
         }
