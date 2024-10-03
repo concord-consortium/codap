@@ -12,7 +12,7 @@ export interface ITileEnvironment {
   sharedModelManager?: ISharedModelManager
   formulaManager?: FormulaManager
   log?: (message: ILogMessage) => void
-  notify?: (message: DIMessage, callback: iframePhone.ListenerCallback) => void
+  notify?: (message: DIMessage, callback: iframePhone.ListenerCallback, webViewId?: string) => void
 }
 
 export function getTileEnvironment(node?: IAnyStateTreeNode) {
