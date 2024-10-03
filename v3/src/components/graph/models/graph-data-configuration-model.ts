@@ -695,7 +695,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
               self.filteredCases.pop()?.destroy()
             }
             // add any required filteredCases
-            while (self.filteredCases.length < filteredCasesRequired) {
+            while (self.dataset && self.filteredCases.length < filteredCasesRequired) {
               self._addNewFilteredCases()
             }
           }, { name: "GraphDataConfigurationModel yAttrDescriptions reaction", equals: comparer.structural }
