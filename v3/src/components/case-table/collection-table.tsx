@@ -69,8 +69,12 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
   const [isSelectDragging, setIsSelectDragging] = useState(false)
   const [isDragging, setIsDragging] = useState(false) //This prevents the grid click handler from firing on mouse up
   const [initialMousePosition, setInitialMousePosition] = useState({ x: 0, y: 0 })
-  const [lastMousePosition, setLastMousePosition] = useState({ x: 0, y: 0 }) // Track last mouse position
+  const [lastMousePosition, setLastMousePosition] = useState({ x: 0, y: 0 })
   const [initialDirection, setInitialDirection] = useState<'up' | 'down' | null>(null)
+  const [initialCaseId, setInitialCaseId] = useState<string | null>(null)
+  const [initialCaseIndex, setInitialCaseIndex] = useState<number | null>(null)
+  const [lastSelectedCaseIndex, setLastSelectedCaseIndex] = useState<number | null>(null)
+  const mouseMoveThreshold = Math.min(kDefaultRowHeight/3, 5)
 
   useEffect(function setGridElement() {
     const element = gridRef.current?.element
@@ -206,7 +210,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
       const isExtending = event.shiftKey || event.altKey || event.metaKey
       const currentSelectionIdx = collectionCaseIndexFromId(caseId, data, collectionId)
 
-      if (currentSelectionIdx !== undefined && currentSelectionIdx !== null) {
+      if (currentSelectionIdx != null) {
         const nextIndex = event.key === "ArrowDown" ? currentSelectionIdx + 1 : currentSelectionIdx - 1
         const nextCaseId = collectionCaseIdFromIndex(nextIndex, data, collectionId)
         if (nextCaseId) {
@@ -236,6 +240,11 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
     }
   }
 
+  const getTargetCaseId = (target: HTMLElement) => {
+    const closestDataCell = target.closest('.codap-data-cell')
+    return closestDataCell?.className.split(" ").find(c => c.startsWith("rowId-"))?.split("-")[1]
+  }
+
   const handleMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
     const isExtending = event.shiftKey || event.altKey || event.metaKey
     setIsSelectDragging(true)
@@ -243,86 +252,105 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
     setLastMousePosition({ x: event.clientX, y: event.clientY }) // Initialize last mouse position
     setInitialDirection(null) // Reset the initial direction
 
-    if (!isExtending) {
-      clearCurrentSelection() // clear current selection
-    }
     const target = event.target as HTMLDivElement
-    const closestDataCell = target.closest('.codap-data-cell')
-    const className = closestDataCell ? closestDataCell.className : ""
-    const caseId = className.split(" ").find(c => c.startsWith("rowId-"))?.split("-")[1]
+    const caseId = getTargetCaseId(target)
     if (caseId) {
-      if (selectedRows.size > 0) {
-        selectCases([caseId], data)
-      } else {
-        setSelectedCases([caseId], data)
+      setInitialCaseId(caseId)
+      const caseIndex = collectionCaseIndexFromId(caseId, data, collectionId)
+      if (caseIndex) {
+        setLastSelectedCaseIndex(caseIndex)
+        setInitialCaseIndex(caseIndex)
+        if (isExtending) {
+          selectCases([caseId], data, true)
+        } else {
+          clearCurrentSelection()
+          setSelectedCases([caseId], data)
+        }
+      }
+    }
+  }
+
+  const calculateSelectRange = (start: number, end: number, isSelecting: boolean) => {
+    if (end > start) {
+      for (let i = start; i <= end; i++) {
+        const idInRange = collectionCaseIdFromIndex(i, data, collectionId)
+        if (idInRange && idInRange !== initialCaseId) {
+          selectCases([idInRange], data, isSelecting)
+        }
+      }
+    } else {
+      for (let i = start; i >= end; i--) {
+        const idInRange = collectionCaseIdFromIndex(i, data, collectionId)
+        if (idInRange && idInRange !== initialCaseId) {
+          selectCases([idInRange], data, isSelecting)
+        }
       }
     }
   }
 
   const handleMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
-    const mouseMoveThreshold = Math.max(kDefaultRowHeight / 3, 5)
-    if (isSelectDragging) {
+    const { clientX, clientY } = event
+    const yDiffFromInitial = clientY - initialMousePosition.y
+    const yDiffFromLast = clientY - lastMousePosition.y // Difference from the last mouse position
+    if (Math.abs(yDiffFromInitial) < mouseMoveThreshold) {
+      return
+    }
+
+    if (isSelectDragging && initialCaseIndex) {
       setIsDragging(true)
-      // Check if the mouse is inside the grid's boundaries
-      const gridElement = gridRef.current?.element
-      if (gridElement) {
-        const gridBounds = gridElement.getBoundingClientRect()
-        const { clientX, clientY } = event
+      const target = event.target as HTMLDivElement
+      const currentCaseId = getTargetCaseId(target)
+      const currentCaseIndex = currentCaseId && collectionCaseIndexFromId(currentCaseId, data, collectionId)
+      const currentDirection = yDiffFromLast > mouseMoveThreshold
+                                  ? 'down'
+                                  : yDiffFromLast < -mouseMoveThreshold ? 'up'
+                                                                        : null
+      if (!initialDirection && Math.abs(yDiffFromInitial) > mouseMoveThreshold) {
+        setInitialDirection(currentDirection)
+      }
+      if (currentDirection && currentCaseIndex) {
+        // Reset the initial direction to allow for reverse selection in the case of a user first
+        // moving the mouse up and then down or vice versa past the initially selected case
         if (
-          clientX >= gridBounds.left &&
-          clientX <= gridBounds.right &&
-          clientY >= gridBounds.top &&
-          clientY <= gridBounds.bottom
+          (initialDirection === 'down' && currentDirection === 'up' && clientY < initialMousePosition.y) ||
+          (initialDirection === 'up' && currentDirection === 'down' && clientY > initialMousePosition.y)
         ) {
-          const yDiffFromInitial = clientY - initialMousePosition.y
-          const yDiffFromLast = clientY - lastMousePosition.y // Difference from the last mouse position
-          const currentDirection = yDiffFromLast > mouseMoveThreshold
-                                      ? 'down'
-                                      : yDiffFromLast < -mouseMoveThreshold ? 'up'
-                                                                            : null
-          if (!initialDirection && Math.abs(yDiffFromInitial) > mouseMoveThreshold) {
-            setInitialDirection(currentDirection)
-          }
+          setInitialDirection(currentDirection)
+        }
 
-          if (currentDirection) {
-            const target = event.target as HTMLDivElement
-            const closestDataCell = target.closest('.codap-data-cell')
-            const className = closestDataCell ? closestDataCell.className : ""
-            const caseId = className.split(" ").find(c => c.startsWith("rowId-"))?.split("-")[1]
-
-            if (caseId) {
-              const caseIndex = collectionCaseIndexFromId(caseId, data, collectionId)
-            // Reset the initial direction to allow for reverse selection in the case of a user first
-            // moving the mouse up and then down or vice versa past the initially selected case
-              if (
-                (initialDirection === 'down' && currentDirection === 'up' && clientY < initialMousePosition.y) ||
-                (initialDirection === 'up' && currentDirection === 'down' && clientY > initialMousePosition.y)
-              ) {
-                setInitialDirection(currentDirection)
-              }
-              
-              if (currentDirection === initialDirection) {
-                selectCases([caseId], data)
-              } else {
-                // Deselect if moving in the opposite direction
-                if (initialDirection === 'down') {
-                  const nextCaseId = caseIndex && collectionCaseIdFromIndex(caseIndex + 1, data, collectionId)
-                  nextCaseId && selectCases([nextCaseId], data, false)
-                } else if (initialDirection === 'up') {
-                  const prevCaseId = caseIndex && collectionCaseIdFromIndex(caseIndex - 1, data, collectionId)
-                  prevCaseId && selectCases([prevCaseId], data, false)
-                }
+        if (currentDirection === initialDirection) {
+          setLastSelectedCaseIndex(currentCaseIndex)
+          const rangeStart = Math.min(initialCaseIndex, currentCaseIndex)
+          const rangeEnd = Math.max(initialCaseIndex, currentCaseIndex)
+          calculateSelectRange(rangeStart, rangeEnd, true)
+        } else {
+          if (lastSelectedCaseIndex) {
+            if (initialDirection === 'down' && currentDirection === 'up') {
+              if (lastSelectedCaseIndex > currentCaseIndex) {
+                const rangeStart = Math.max(lastSelectedCaseIndex, currentCaseIndex)
+                const rangeEnd = Math.min(lastSelectedCaseIndex, currentCaseIndex)
+                calculateSelectRange(rangeStart, rangeEnd, false)
               }
             }
-            setLastMousePosition({ x: clientX, y: clientY })
+            if (initialDirection === 'up' && currentDirection === 'down') {
+              if (lastSelectedCaseIndex < currentCaseIndex) {
+                const rangeStart = Math.min(lastSelectedCaseIndex, currentCaseIndex)
+                const rangeEnd = Math.max(lastSelectedCaseIndex, currentCaseIndex)
+                calculateSelectRange(rangeStart, rangeEnd, false)
+              }
+            }
+            setLastSelectedCaseIndex(currentCaseIndex)
           }
         }
+        setLastMousePosition({ x: clientX, y: clientY })
       }
     }
   }
 
   const handleMouseUp = (event: React.MouseEvent<HTMLDivElement>) => {
     setIsSelectDragging(false)
+    setLastSelectedCaseIndex(null)
+    setInitialCaseIndex(null)
   }
 
   if (!data || !rows || !visibleAttributes.length) return null

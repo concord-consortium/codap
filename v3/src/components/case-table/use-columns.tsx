@@ -12,7 +12,7 @@ import { kDefaultColumnWidth, TColumn } from "./case-table-types"
 import CellTextEditor from "./cell-text-editor"
 import ColorCellTextEditor from "./color-cell-text-editor"
 import { ColumnHeader } from "./column-header"
-import clsx from "clsx"
+import { clsx } from "clsx"
 
 interface IUseColumnsProps {
   data?: IDataSet
