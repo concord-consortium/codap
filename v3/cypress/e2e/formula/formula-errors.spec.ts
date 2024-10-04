@@ -3,7 +3,7 @@ import { FormulaHelper as fh } from "../../support/helpers/formula-helper"
 context("Formula Engine", () => {
   describe("Errors Formula Tests", () => {
     it("Check invalid functions", () => {
-      fh.visitURL("?sample=four&dashboard")
+      fh.visitURL("?sample=four")
       fh.addNewAttribute()
       fh.renameAttribute("newAttr", "Formula")
       fh.addFormula("Formula", "count(aaa)")
@@ -22,7 +22,8 @@ context("Formula Engine", () => {
         "❌ Undefined function c",
         "❌ Undefined function c"
       ])
-      fh.editFormula("Formula", "count(a")
+      // need to add {del} because CodeMirror auto-matches parentheses
+      fh.editFormula("Formula", "count(a{del}")
       fh.verifyValues("Formula", [
         "❌ Syntax error: 'Parenthesis ) expected (char 8)'",
         "❌ Syntax error: 'Parenthesis ) expected (char 8)'",
