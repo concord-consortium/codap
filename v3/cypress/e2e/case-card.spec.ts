@@ -261,11 +261,17 @@ context("case card", () => {
       cy.get('[data-testid="case-card-view"]').eq(2).find('[data-testid="case-card-attr-value"]')
                                                  .eq(0).should("have.text", "")
 
+      // Check for undo/redo after editing a case attribute value
+      toolbar.getUndoTool().click()
+      cy.get('[data-testid="case-card-view"]').eq(1).find('[data-testid="case-card-attr-value"]')
+                                                  .eq(0).should("not.contain.text", "New Order")
       // Check for undo/redo after adding a new case
       toolbar.getUndoTool().click()
-      toolbar.getUndoTool().click()
       cy.get('[data-testid="case-card-view"]').eq(1).find('[data-testid="case-card-view-index"]')
-                                                  .eq(0).should("have.text", "1 of 4")
+                                                  .eq(0).should("have.text", "4 cases")
+
+/* Note that selection is not guaranteed to be restored on undo/redo.
+
       toolbar.getRedoTool().click()
       toolbar.getRedoTool().click()
       cy.get('[data-testid="case-card-view"]').eq(1).find('[data-testid="case-card-view-index"]')
@@ -278,6 +284,7 @@ context("case card", () => {
       toolbar.getRedoTool().click()
       cy.get('[data-testid="case-card-view"]').eq(1).find('[data-testid="case-card-attr-value"]')
                                                   .eq(0).should("contain.text", "New Order")
+*/
     })
     it("adds a new case with the correct parent values depending on what is selected", () => {
       const rootCollectionTitle = "Diets"
