@@ -545,13 +545,13 @@ export const DataSet = V2Model.named("DataSet").props({
         self.itemIdChildCaseMap.set(caseGroup.childItemIds[0], caseGroup)
       })
       // delete removed items
-      for (const [itemId, itemInfo] of self.itemInfoMap.entries()) {
-        if (itemInfo.caseIds.length === 0) {
-          self.itemInfoMap.delete(itemId)
-          // update selection
-          self.selection.delete(itemId)
-        }
-      }
+      const itemsToValidate = new Set<string>(self.itemInfoMap.keys())
+      self._itemIds.forEach(itemId => itemsToValidate.delete(itemId))
+      itemsToValidate.forEach(itemId => {
+        self.itemInfoMap.delete(itemId)
+        // update selection
+        self.selection.delete(itemId)
+      })
       self.setValidCases()
     }
   }
