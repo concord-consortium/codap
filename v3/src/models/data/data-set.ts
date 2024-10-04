@@ -146,9 +146,9 @@ export const DataSet = V2Model.named("DataSet").props({
 .volatile(self => ({
   // map from attribute name to attribute id
   attrNameMap: observable.map<string, string>({}, { name: "attrNameMap" }),
-  // map from case IDs to indices
+  // map from item ids to info like index and case ids
   itemInfoMap: new Map<string, ItemInfo>(),
-  // MobX-observable set of selected case IDs
+  // MobX-observable set of selected item IDs
   selection: observable.set<string>(),
   selectionChanges: 0,
   // MobX-observable set of hidden (set aside) item IDs
@@ -544,6 +544,14 @@ export const DataSet = V2Model.named("DataSet").props({
       self.childCollection.caseGroups.forEach(caseGroup => {
         self.itemIdChildCaseMap.set(caseGroup.childItemIds[0], caseGroup)
       })
+      // delete removed items
+      for (const [itemId, itemInfo] of self.itemInfoMap.entries()) {
+        if (itemInfo.caseIds.length === 0) {
+          self.itemInfoMap.delete(itemId)
+          // update selection
+          self.selection.delete(itemId)
+        }
+      }
       self.setValidCases()
     }
   }
