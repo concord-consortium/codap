@@ -17,7 +17,7 @@ import {ISharedCaseMetadata, SharedCaseMetadata} from "../../../models/shared/sh
 import {isSetCaseValuesAction} from "../../../models/data/data-set-actions"
 import {FilteredCases, IFilteredChangedCases} from "../../../models/data/filtered-cases"
 import {Formula, IFormula} from "../../../models/formula/formula"
-import {typedId, uniqueId} from "../../../utilities/js-utils"
+import {hashStringSets, typedId, uniqueId} from "../../../utilities/js-utils"
 import {missingColor} from "../../../utilities/color-utils"
 import {CaseData} from "../d3-types"
 import {AttrRole, TipAttrRoles, graphPlaceToAttrRole} from "../data-display-types"
@@ -251,31 +251,13 @@ export const DataConfigurationModel = types
       // The first attribute is always assigned as 'caption'. So it's really no attributes assigned except for that
       return this.attributes.length <= 1
     },
-    get unhiddenCaseIDs() {
-      // TODO: verify that this is the correct way to get the cases. Likely it's not.
-      const result = new Set<string>()
-      self.filteredCases.forEach(aFilteredCases => {
-        if (aFilteredCases) {
-          aFilteredCases.rawCaseIds.forEach(id => {
-            if (!self.hiddenCasesSet.has(id)) {
-              result.add(id)
-            }
-          })
-        }
-      })
-      return result
-    },
-    get allCaseIDs() {
+    get visibleCaseIds() {
       const allCaseIds = new Set<string>()
-      // todo: We're bypassing get caseDataArray to avoid infinite recursion. Is it necessary?
       self.filteredCases.forEach(aFilteredCases => {
         if (aFilteredCases) {
           aFilteredCases.caseIds.forEach(id => allCaseIds.add(id))
         }
       })
-      // TODO: I cannot force graph to update itself, so currently this is the only way to verify that the filter
-      // formula works correctly. Remove this log when graph display is updated.
-      console.log("DataConfigurationModel#allCaseIDs", [...allCaseIds])
       return allCaseIds
     },
     /**
@@ -285,7 +267,7 @@ export const DataConfigurationModel = types
     get selection() {
       if (!self.dataset || !self.filteredCases[0]) return []
       const selection = Array.from(self.dataset.selection),
-        allGraphCaseIds = this.allCaseIDs
+        allGraphCaseIds = this.visibleCaseIds
       return selection.filter((caseId: string) => allGraphCaseIds.has(caseId))
     },
     /**
@@ -295,7 +277,7 @@ export const DataConfigurationModel = types
     get unselectedCases() {
       if (!self.dataset || !self.filteredCases[0]) return []
       const selection = self.dataset.selection,
-        allGraphCaseIds = Array.from(this.allCaseIDs)
+        allGraphCaseIds = Array.from(this.visibleCaseIds)
       return allGraphCaseIds.filter((caseId: string) => !selection.has(caseId))
     }
   }))
@@ -306,7 +288,7 @@ export const DataConfigurationModel = types
       calculate: (role: AttrRole) => {
         const attrID = self.attributeID(role)
         const dataset = self.dataset
-        const allCaseIDs = Array.from(self.allCaseIDs)
+        const allCaseIDs = Array.from(self.visibleCaseIds)
         const allValues = attrID ? allCaseIDs.map((anID: string) => dataset?.getStrValue(anID, attrID)) : []
         return allValues.filter(aValue => aValue) as string[]
       }
@@ -318,7 +300,7 @@ export const DataConfigurationModel = types
       calculate: (role: AttrRole) => {
         const attrID = self.attributeID(role)
         const dataset = self.dataset
-        const allCaseIDs = Array.from(self.allCaseIDs)
+        const allCaseIDs = Array.from(self.visibleCaseIds)
         const allValues = attrID
           ? allCaseIDs.map((anID: string) => {
             const value = dataDisplayGetNumericValue(dataset, anID, attrID)
@@ -410,6 +392,12 @@ export const DataConfigurationModel = types
     },
     get caseDataArray() {
       return this.getCaseDataArray(0)
+    }
+  }))
+  .views(self => ({
+    // observable hash of rendered case ids
+    get caseDataHash() {
+      return hashStringSets(self.filteredCases.map(cases => cases.caseIds))
     }
   }))
   .extend(self => {
@@ -690,7 +678,6 @@ export const DataConfigurationModel = types
       self.filterFormula = undefined
       self.filterFormulaResults.clear()
       self.filterFormulaError = ""
-      // TODO: This doesn't seem to update graph. Change it to something that will trigger a graph update.
       self._invalidateCases()
     }
   }))
@@ -714,7 +701,6 @@ export const DataConfigurationModel = types
       filterFormulaResults.forEach(({ itemId, result }) => {
         self.filterFormulaResults.set(itemId, result)
       })
-      // TODO: This doesn't seem to update graph. Change it to something that will trigger a graph update.
       self._invalidateCases()
     },
     setFilterFormulaError(error: string) {
@@ -778,11 +764,11 @@ export const DataConfigurationModel = types
           equals: comparer.structural
         }
       ))
-      // invalidate caches when hiddenCases changes
+      // invalidate caches when set of visible cases changes
       addDisposer(self, reaction(
-        () => [self.dataset?.itemIds.length, self.hiddenCases.length],
+        () => self.caseDataHash,
         () => self._invalidateCases(),
-        { name: "DataConfigurationModel.afterCreate.reaction [add/remove/hide cases]", equals: comparer.structural }
+        { name: "DataConfigurationModel.afterCreate.reaction [add/remove/hide cases]" }
       ))
     },
     setDataset(dataset: IDataSet | undefined, metadata: ISharedCaseMetadata | undefined) {

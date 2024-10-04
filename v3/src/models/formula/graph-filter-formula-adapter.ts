@@ -100,9 +100,9 @@ export class GraphFilterFormulaAdapter implements IFormulaManagerAdapter {
     const { attributeId } = extraMetadata
     const dataConfig = this.getDataConfiguration(extraMetadata)
 
-    // Use unhiddenCaseIDs to exclude hidden cases so they're not included in calculations,
+    // Use visibleCaseIds to exclude hidden cases so they're not included in calculations,
     // such as aggregate functions like mean.
-    const childMostCollectionCaseIds = [...dataConfig.unhiddenCaseIDs]
+    const childMostCollectionCaseIds = [...dataConfig.visibleCaseIds]
 
     let casesToRecalculate: string[] = []
     if (casesToRecalculateDesc === "ALL_CASES") {
