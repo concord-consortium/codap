@@ -36,7 +36,7 @@ export const CaseAttrsView = observer(function CaseAttrsView({caseItem, collecti
   const contentRef = useRef<HTMLDivElement | null>(null)
   const [, setCellElt] = useState<HTMLElement | null>(null)
   const summaryValues = displayValues && collection ? displayValues(collection, caseItem) : []
-  const values: IValueType[] = isCollectionSummarized ? summaryValues : collection?.attributes.map(attr => {
+  const values: IValueType[] = collection?.attributes.map(attr => {
     return attr?.id && data?.getValue(caseItem?.__id__, attr.id)
   }) ?? []
 
@@ -68,12 +68,12 @@ export const CaseAttrsView = observer(function CaseAttrsView({caseItem, collecti
             if (!attr || metadata?.isHidden(attr.id)) return null
             return (
               <CaseAttrView
-                key={attr.id}
+                key={isCollectionSummarized ? `${attr.id}-summary` : attr.id}
                 caseId={caseItem?.__id__}
                 collection={collection}
                 attrId={attr.id}
                 name={attr.name}
-                value={values[index]}
+                value={isCollectionSummarized ? summaryValues[index] : values[index]}
                 unit={attr.units}
                 getDividerBounds={getDividerBounds}
                 onSetContentElt={handleSetHeaderContentElt}

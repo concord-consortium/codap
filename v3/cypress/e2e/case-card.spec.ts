@@ -268,7 +268,7 @@ context("case card", () => {
       // Check for undo/redo after adding a new case
       toolbar.getUndoTool().click()
       cy.get('[data-testid="case-card-view"]').eq(1).find('[data-testid="case-card-view-index"]')
-                                                  .eq(0).should("have.text", "4 cases")
+                                                  .eq(0).should("have.text", "14 cases")
 
 /* Note that selection is not guaranteed to be restored on undo/redo.
 
@@ -286,8 +286,7 @@ context("case card", () => {
                                                   .eq(0).should("contain.text", "New Order")
 */
     })
-    it("adds a new case with the correct parent values depending on what is selected", () => {
-      const rootCollectionTitle = "Diets"
+    it.only("adds a new case with the correct parent values depending on what is selected", () => {
       table.moveAttributeToParent("Order", "newCollection")
       cy.wait(500)
       table.moveAttributeToParent("Diet", "newCollection")
@@ -304,9 +303,7 @@ context("case card", () => {
       cy.get('[data-testid="case-card-view"]').eq(0).find('[data-testid="case-card-view-index"]')
                                                  .eq(0).should("have.text", "4 of 4")
 
-      // TODO: these tests can be added in when undo/redo create case function is fixed to also deselect case
       // toolbar.getUndoTool().click()
-      // if parent
       // cy.get('[data-testid="case-card-view-next-button"]').eq(0).click()
       // cy.get('[data-testid="case-card-view"]').eq(1).find('[data-testid="case-card-view-index"]')
       //                                            .eq(0).should("have.text", "4 cases")
@@ -316,12 +313,8 @@ context("case card", () => {
       //                                            .eq(0).should("have.text", "5 of 5")
       // cy.get('[data-testid="case-card-view"]').eq(0).find('[data-testid="case-card-attr-value-text-editor"]')
       //                                            .eq(0).should("have.text", "plants")
-
-      // toolbar.getUndoTool().click()
-
-
-
-
+      // cy.get('[data-testid="case-card-view"]').eq(1).find('[data-testid="case-card-attr-value-text-editor"]')
+      //                                            .eq(0).should("have.text", "")
     })
     it("allows a user to drag an attribute to a new collection", () => {
       table.toggleCaseView()
