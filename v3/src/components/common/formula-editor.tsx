@@ -232,8 +232,7 @@ export function FormulaEditor({ formula, setFormula, options: _options }: IProps
   // update the editor state field with the appropriate data set
   const handleCreateEditor = useCallback((view: EditorView, state: EditorState) => {
     view.dispatch({ effects: cmUpdateDataSetEffect.of(dataSet ?? null) })
-    const { attributes = true, constants = true, functions = true, globals = true, specials = true } = options || {}
-    const fullOptions: ICompletionOptions = { attributes, constants, functions, globals, specials }
+    const fullOptions: ICompletionOptions = { ...kAllOptions, ...(options || {}) }
     view.dispatch({ effects: cmUpdateOptionsEffect.of(fullOptions) })
 
     // https://discuss.codemirror.net/t/how-to-autofocus-in-cm6/2966

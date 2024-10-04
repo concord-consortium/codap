@@ -47,9 +47,7 @@ const customizations: Record<string, CustomizationFn> = {
     const nodeText = formula.substring(cursor.from, cursor.to)
     const replaceMap: Record<string, string> = {
       "=": "==",
-      "===": "==",
       "≠": "!=",
-      "!==": "!=",
       "≤": "<=",
       "≥": ">="
     }
