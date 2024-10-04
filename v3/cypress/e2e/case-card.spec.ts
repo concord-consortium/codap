@@ -132,7 +132,7 @@ context("case card", () => {
       cy.get('[data-testid="case-card-view-next-button"]').should("have.length", 2).and("not.be.disabled")
       cy.get('[data-testid="case-card-view-index"]').should("have.length", 2)
       cy.get('[data-testid="case-card-view-index"]').eq(0).should("have.text", "12 cases")
-      cy.get('[data-testid="case-card-view-index"]').eq(1).should("have.text", "2 cases")
+      cy.get('[data-testid="case-card-view-index"]').eq(1).should("have.text", "27 cases")
       cy.get('[data-testid="case-card-attrs"]').should("have.length", 2)
       cy.get('[data-testid="case-card-attrs"]').eq(0).find('[data-testid="case-card-attr"]').should("have.length", 1)
       cy.get('[data-testid="case-card-attrs"]').eq(0).find('[data-testid="case-card-attr-name"]')
@@ -278,6 +278,43 @@ context("case card", () => {
       toolbar.getRedoTool().click()
       cy.get('[data-testid="case-card-view"]').eq(1).find('[data-testid="case-card-attr-value"]')
                                                   .eq(0).should("contain.text", "New Order")
+    })
+    it("adds a new case with the correct parent values depending on what is selected", () => {
+      const rootCollectionTitle = "Diets"
+      table.moveAttributeToParent("Order", "newCollection")
+      cy.wait(500)
+      table.moveAttributeToParent("Diet", "newCollection")
+      cy.wait(500)
+      table.toggleCaseView()
+      cy.wait(500)
+      cy.get('[data-testid="case-card-view"]').should("have.length", 3)
+
+      // when no cases are selected, should always add a case to the root level
+      cy.get('[data-testid="case-card-view"]').eq(0).find('[data-testid="case-card-view-index"]')
+                                                 .eq(0).should("have.text", "3 cases")
+      cy.get('[data-testid="case-card-view"]').eq(2).find('[data-testid="add-case-button"]')
+                                                 .eq(0).click()
+      cy.get('[data-testid="case-card-view"]').eq(0).find('[data-testid="case-card-view-index"]')
+                                                 .eq(0).should("have.text", "4 of 4")
+
+      // TODO: these tests can be added in when undo/redo create case function is fixed to also deselect case
+      // toolbar.getUndoTool().click()
+      // if parent
+      // cy.get('[data-testid="case-card-view-next-button"]').eq(0).click()
+      // cy.get('[data-testid="case-card-view"]').eq(1).find('[data-testid="case-card-view-index"]')
+      //                                            .eq(0).should("have.text", "4 cases")
+      // cy.get('[data-testid="case-card-view"]').eq(1).find('[data-testid="add-case-button"]')
+      //                                            .eq(0).click()
+      // cy.get('[data-testid="case-card-view"]').eq(1).find('[data-testid="case-card-view-index"]')
+      //                                            .eq(0).should("have.text", "5 of 5")
+      // cy.get('[data-testid="case-card-view"]').eq(0).find('[data-testid="case-card-attr-value-text-editor"]')
+      //                                            .eq(0).should("have.text", "plants")
+
+      // toolbar.getUndoTool().click()
+
+
+
+
     })
     it("allows a user to drag an attribute to a new collection", () => {
       table.toggleCaseView()
