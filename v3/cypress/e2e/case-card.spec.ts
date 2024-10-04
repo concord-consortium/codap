@@ -286,7 +286,7 @@ context("case card", () => {
                                                   .eq(0).should("contain.text", "New Order")
 */
     })
-    it.only("adds a new case with the correct parent values depending on what is selected", () => {
+    it("adds a new case with the correct parent values depending on what is selected", () => {
       table.moveAttributeToParent("Order", "newCollection")
       cy.wait(500)
       table.moveAttributeToParent("Diet", "newCollection")
