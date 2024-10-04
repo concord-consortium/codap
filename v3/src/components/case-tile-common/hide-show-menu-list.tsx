@@ -125,7 +125,10 @@ export const HideShowMenuList = observer(function HideShowMenuList() {
   return (
     <>
       <StdMenuList data-testid="hide-show-menu-list" menuItems={menuItems} />
-      <EditFilterFormulaModal isOpen={formulaModal.isOpen} onClose={handleEditFormulaClose} />
+      {
+        data &&
+        <EditFilterFormulaModal formulaSource={data} isOpen={formulaModal.isOpen} onClose={handleEditFormulaClose} />
+      }
     </>
   )
 })

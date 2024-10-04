@@ -16,6 +16,7 @@ import { dataDisplayGetNumericValue } from "../data-display-value-utils"
 import {ISharedCaseMetadata, SharedCaseMetadata} from "../../../models/shared/shared-case-metadata"
 import {isSetCaseValuesAction} from "../../../models/data/data-set-actions"
 import {FilteredCases, IFilteredChangedCases} from "../../../models/data/filtered-cases"
+import {Formula, IFormula} from "../../../models/formula/formula"
 import {typedId, uniqueId} from "../../../utilities/js-utils"
 import {missingColor} from "../../../utilities/color-utils"
 import {CaseData} from "../d3-types"
@@ -87,14 +88,18 @@ export const DataConfigurationModel = types
       }
     }),
     hiddenCases: types.array(types.string),
-    displayOnlySelectedCases: types.maybe(types.boolean)
+    displayOnlySelectedCases: types.maybe(types.boolean),
+    filterFormula: types.maybe(Formula)
   })
   .volatile(() => ({
     actionHandlerDisposer: undefined as (() => void) | undefined,
     filteredCases: observable.array<FilteredCases>([], { deep: false }),
     handlers: new Map<string, (actionCall: ISerializedActionCall) => void>(),
     pointsNeedUpdating: false,
-    casesChangeCount: 0
+    casesChangeCount: 0,
+    // cached result of filter formula evaluation for each case ID
+    filterFormulaResults: observable.map<string, boolean>(),
+    filterFormulaError: ""
   }))
   .views(self => ({
     get isEmpty() {
@@ -201,8 +206,8 @@ export const DataConfigurationModel = types
     // This function can be called either here in this base class or in a subclass to handle the situation in which
     // caseArrayNumber === 0.
     _filterCase(data: IDataSet, caseID: string) {
-      // If the case is hidden we don't plot it
-      if (self.hiddenCasesSet.has(caseID)) return false
+      // If the case is hidden or filtered out we don't plot it
+      if (self.hiddenCasesSet.has(caseID) || self.filterFormulaResults.get(caseID) === false) return false
       return this._caseHasValidValuesForDescriptions(data, caseID, self.attributeDescriptions)
     },
   }))
@@ -212,6 +217,9 @@ export const DataConfigurationModel = types
     }
   }))
   .views(self => ({
+    get hasFilterFormula() {
+      return !!self.filterFormula && !self.filterFormula.empty
+    },
     get attributes() {
       return self.places.map(place => self.attributeID(place)).filter(attrID => !!attrID)
     },
@@ -243,6 +251,20 @@ export const DataConfigurationModel = types
       // The first attribute is always assigned as 'caption'. So it's really no attributes assigned except for that
       return this.attributes.length <= 1
     },
+    get unhiddenCaseIDs() {
+      // TODO: verify that this is the correct way to get the cases. Likely it's not.
+      const result = new Set<string>()
+      self.filteredCases.forEach(aFilteredCases => {
+        if (aFilteredCases) {
+          aFilteredCases.rawCaseIds.forEach(id => {
+            if (!self.hiddenCasesSet.has(id)) {
+              result.add(id)
+            }
+          })
+        }
+      })
+      return result
+    },
     get allCaseIDs() {
       const allCaseIds = new Set<string>()
       // todo: We're bypassing get caseDataArray to avoid infinite recursion. Is it necessary?
@@ -251,6 +273,9 @@ export const DataConfigurationModel = types
           aFilteredCases.caseIds.forEach(id => allCaseIds.add(id))
         }
       })
+      // TODO: I cannot force graph to update itself, so currently this is the only way to verify that the filter
+      // formula works correctly. Remove this log when graph display is updated.
+      console.log("DataConfigurationModel#allCaseIDs", [...allCaseIds])
       return allCaseIds
     },
     /**
@@ -661,6 +686,42 @@ export const DataConfigurationModel = types
     },
   }))
   .actions(self => ({
+    clearFilterFormula() {
+      self.filterFormula = undefined
+      self.filterFormulaResults.clear()
+      self.filterFormulaError = ""
+      // TODO: This doesn't seem to update graph. Change it to something that will trigger a graph update.
+      self._invalidateCases()
+    }
+  }))
+  .actions(self => ({
+    setFilterFormula(display: string) {
+      if (display) {
+        if (!self.filterFormula) {
+          self.filterFormula = Formula.create({ display })
+        }
+        else {
+          self.filterFormula.setDisplayExpression(display)
+        }
+      } else {
+        self.clearFilterFormula()
+      }
+    },
+    updateFilterFormulaResults(filterFormulaResults: { itemId: string, result: boolean }[], { replaceAll = false }) {
+      if (replaceAll) {
+        self.filterFormulaResults.clear()
+      }
+      filterFormulaResults.forEach(({ itemId, result }) => {
+        self.filterFormulaResults.set(itemId, result)
+      })
+      // TODO: This doesn't seem to update graph. Change it to something that will trigger a graph update.
+      self._invalidateCases()
+    },
+    setFilterFormulaError(error: string) {
+      self.filterFormulaError = error
+    }
+  }))
+  .actions(self => ({
     handleDataSetChange(data?: IDataSet) {
       self.actionHandlerDisposer?.()
       self.actionHandlerDisposer = undefined
@@ -776,3 +837,12 @@ export interface IDataConfigurationModel extends Instance<typeof DataConfigurati
 
 export interface IDataConfigurationModelSnapshot extends SnapshotIn<typeof DataConfigurationModel> {
 }
+
+export interface IDataConfigurationWithFilterFormula extends IDataConfigurationModel {
+  filterFormula: IFormula
+}
+
+export function isFilterFormulaDataConfiguration(dataConfig?: IDataConfigurationModel):
+  dataConfig is IDataConfigurationWithFilterFormula {
+    return !!dataConfig?.hasFilterFormula
+  }
