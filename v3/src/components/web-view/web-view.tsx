@@ -1,4 +1,4 @@
-import { Active, useDndContext, useDroppable } from "@dnd-kit/core"
+import { Active, useDroppable } from "@dnd-kit/core"
 import { observer } from "mobx-react-lite"
 import React, { MouseEventHandler, useRef } from "react"
 import { getDragAttributeInfo, useDropHandler } from "../../hooks/use-drag-drop"
@@ -15,9 +15,6 @@ import "./web-view.scss"
 export const WebViewComponent = observer(function WebViewComponent({ tile }: ITileBaseProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const webViewModel = tile?.content
-  const { active } = useDndContext()
-  const info = getDragAttributeInfo(active)
-  const draggingAttribute = info?.attributeId && info.dataSet
 
   useDataInteractiveController(iframeRef, tile)
 
@@ -34,11 +31,12 @@ export const WebViewComponent = observer(function WebViewComponent({ tile }: ITi
       <div className="codap-web-view-iframe-wrapper">
         <iframe className="codap-web-view-iframe" ref={iframeRef} src={webViewModel.url} />
       </div>
-      {draggingAttribute && <WebViewDropOverlay />}
+      <WebViewDropOverlay />
     </div>
   )
 })
 
+// The WebViewDropOverlay broadcasts notifications to plugins as the user drags and drops attributes.
 function WebViewDropOverlay() {
   const { tile, tileId } = useTileModelContext()
   const dropId = `web-view-drop-overlay-${tileId}`
@@ -46,10 +44,21 @@ function WebViewDropOverlay() {
   const info = active && getDragAttributeInfo(active)
   const dataSet = info?.dataSet
   const attributeId = info?.attributeId
-  const isDraggingAttribute = !!(dataSet && attributeId)
   // Mouse x and y are tracked so we know where the mouse is when a dragged attribute is dropped
   const mouseX = useRef<number|undefined>()
   const mouseY = useRef<number|undefined>()
+
+  useDropHandler(dropId, (_active: Active) => {
+    const { dataSet: dropDataSet, attributeId: dropAttributeId } = getDragAttributeInfo(_active) || {}
+    if (dropDataSet && dropAttributeId && mouseX.current != null && mouseY.current != null) {
+      tile?.applyModelChange(() => {}, {
+        notify: dragWithPositionNotification("drop", dropDataSet, dropAttributeId, mouseX.current, mouseY.current),
+        webViewId: tileId
+      })
+    }
+  })
+
+  if (!dataSet || !attributeId) return null
 
   const handleMouseMove: MouseEventHandler<HTMLDivElement> = event => {
     // Determine position within interactiveFrame based on mouse and tile locations
@@ -62,7 +71,7 @@ function WebViewDropOverlay() {
     const x = event.clientX - tileX
     const y = event.clientY - tileY
 
-    if (isDraggingAttribute && (mouseX.current !== x || mouseY.current !== y)) {
+    if (mouseX.current !== x || mouseY.current !== y) {
       tile?.applyModelChange(() => {}, {
         notify: dragWithPositionNotification("drag", dataSet, attributeId, x, y),
         webViewId: tileId
@@ -73,23 +82,11 @@ function WebViewDropOverlay() {
   }
 
   const handleMouseEnterLeave = (operation: string) => {
-    if (isDraggingAttribute) {
-      tile?.applyModelChange(() => {}, {
-        notify: dragNotification(operation, dataSet, attributeId),
-        webViewId: tileId
-      })
-    }
+    tile?.applyModelChange(() => {}, {
+      notify: dragNotification(operation, dataSet, attributeId),
+      webViewId: tileId
+    })
   }
-
-  useDropHandler(dropId, (_active: Active) => {
-    const { dataSet: dropDataSet, attributeId: dropAttributeId } = getDragAttributeInfo(_active) || {}
-    if (dropDataSet && dropAttributeId && mouseX.current != null && mouseY.current != null) {
-      tile?.applyModelChange(() => {}, {
-        notify: dragWithPositionNotification("drop", dropDataSet, dropAttributeId, mouseX.current, mouseY.current),
-        webViewId: tileId
-      })
-    }
-  })
 
   return <div
     className="codap-web-view-drop-overlay"
