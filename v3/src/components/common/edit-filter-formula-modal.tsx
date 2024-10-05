@@ -2,11 +2,11 @@ import {
   Button, FormControl, FormLabel, ModalBody, ModalCloseButton, ModalFooter, ModalHeader,
   Textarea, Tooltip
 } from "@chakra-ui/react"
-import React, { useEffect, useState } from "react"
 import { observer } from "mobx-react-lite"
+import React, { useEffect, useState } from "react"
+import { IFormula } from "../../models/formula/formula"
 import { t } from "../../utilities/translation/translate"
 import { CodapModal } from "../codap-modal"
-import { IFormula } from "../../models/formula/formula"
 
 interface IFormulaSource {
   filterFormula?: IFormula

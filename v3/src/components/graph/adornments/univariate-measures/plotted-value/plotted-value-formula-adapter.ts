@@ -1,29 +1,35 @@
-import { IAnyStateTreeNode } from "@concord-consortium/mobx-state-tree"
-import { ICase } from "../data/data-set-types"
-import { formulaError } from "./utils/misc"
-import { math } from "./functions/math"
-import type { IFormulaContext } from "./formula-manager"
-import type { IGraphContentModel } from "../../components/graph/models/graph-content-model"
-import {
-  isPlottedValueAdornment
-} from "../../components/graph/adornments/univariate-measures/plotted-value/plotted-value-adornment-model"
-
-import { getFormulaManager } from "../tiles/tile-environment"
-import { DEBUG_FORMULAS, debugLog } from "../../lib/debug"
-import {
-  kPlottedValueType
-} from "../../components/graph/adornments/univariate-measures/plotted-value/plotted-value-adornment-types"
-import { BaseGraphFormulaAdapter, IBaseGraphFormulaExtraMetadata } from "./base-graph-formula-adapter"
+import { IAnyStateTreeNode } from "mobx-state-tree"
+import { DEBUG_FORMULAS, debugLog } from "../../../../../lib/debug"
+import { ICase } from "../../../../../models/data/data-set-types"
+import { registerFormulaAdapter } from "../../../../../models/formula/formula-adapter-registry"
+import type { IFormulaAdapterApi, IFormulaContext } from "../../../../../models/formula/formula-manager-types"
+import { math } from "../../../../../models/formula/functions/math"
+import { formulaError } from "../../../../../models/formula/utils/misc"
+import { getFormulaManager } from "../../../../../models/tiles/tile-environment"
+import type { IGraphContentModel } from "../../../models/graph-content-model"
+import { BaseGraphFormulaAdapter, IBaseGraphFormulaExtraMetadata } from "../../base-graph-formula-adapter"
+import { isPlottedValueAdornment } from "./plotted-value-adornment-model"
+import { kPlottedValueType } from "./plotted-value-adornment-types"
 
 const PLOTTED_VALUE_FORMULA_ADAPTER = "PlottedValueFormulaAdapter"
 
 export interface IPlottedValueFormulaExtraMetadata extends IBaseGraphFormulaExtraMetadata {}
 
-export const getPlottedValueFormulaAdapter = (node?: IAnyStateTreeNode): PlottedValueFormulaAdapter | undefined =>
-  getFormulaManager(node)?.adapters.find(a => a.type === PLOTTED_VALUE_FORMULA_ADAPTER) as PlottedValueFormulaAdapter
-
 export class PlottedValueFormulaAdapter extends BaseGraphFormulaAdapter {
-  type = PLOTTED_VALUE_FORMULA_ADAPTER
+
+  static register() {
+    registerFormulaAdapter(api => new PlottedValueFormulaAdapter(api))
+  }
+
+  static get(node?: IAnyStateTreeNode) {
+    return getFormulaManager(node)?.adapters.find(({ type }) =>
+      type === PLOTTED_VALUE_FORMULA_ADAPTER
+    ) as Maybe<PlottedValueFormulaAdapter>
+  }
+
+  constructor(api: IFormulaAdapterApi) {
+    super(PLOTTED_VALUE_FORMULA_ADAPTER, api)
+  }
 
   getAdornment(graphContentModel: IGraphContentModel) {
     const adornment = graphContentModel.adornments.find(a => a.type === kPlottedValueType)

@@ -6,7 +6,7 @@ import { useCaseMetadata } from "../../hooks/use-case-metadata"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { hideAttributeNotification } from "../../models/data/data-set-notifications"
 import { t } from "../../utilities/translation/translate"
-import { EditFilterFormulaModal } from "./edit-filter-formula-modal"
+import { EditFilterFormulaModal } from "../common/edit-filter-formula-modal"
 import { IMenuItem, StdMenuList } from "./std-menu-list"
 
 export const HideShowMenuList = observer(function HideShowMenuList() {

@@ -6,7 +6,7 @@ import { ITileModel } from "../../../../models/tiles/tile-model"
 import { isGraphContentModel } from "../../models/graph-content-model"
 import { t } from "../../../../utilities/translation/translate"
 import { logMessageWithReplacement } from "../../../../lib/log-message"
-import { EditFilterFormulaModal } from "../../../case-tile-common/edit-filter-formula-modal"
+import { EditFilterFormulaModal } from "../../../common/edit-filter-formula-modal"
 
 interface IProps {
   tile?: ITileModel

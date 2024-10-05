@@ -30,22 +30,24 @@ import { CatMapType, CellType, IDomainOptions, PlotType, PlotTypes } from "../gr
 import {setNiceDomain} from "../utilities/graph-utils"
 import {GraphPointLayerModel, IGraphPointLayerModel, kGraphPointLayerType} from "./graph-point-layer-model"
 import {IAdornmentModel, IUpdateCategoriesOptions} from "../adornments/adornment-models"
+import {AdornmentsStore} from "../adornments/adornments-store"
+import { PlottedFunctionFormulaAdapter } from "../adornments/plotted-function/plotted-function-formula-adapter"
+import {
+  PlottedValueFormulaAdapter
+} from "../adornments/univariate-measures/plotted-value/plotted-value-formula-adapter"
 import {
   AxisModelUnion, EmptyAxisModel, IAxisModelUnion, isBaseNumericAxisModel, NumericAxisModel
 } from "../../axis/models/axis-model"
-import {AdornmentsStore} from "../adornments/adornments-store"
-import {getPlottedValueFormulaAdapter} from "../../../models/formula/plotted-value-formula-adapter"
-import {getPlottedFunctionFormulaAdapter} from "../../../models/formula/plotted-function-formula-adapter"
-import {getGraphFilterFormulaAdapter} from "../../../models/formula/graph-filter-formula-adapter"
 import { ICase } from "../../../models/data/data-set-types"
 import { isFiniteNumber } from "../../../utilities/math-utils"
 import { t } from "../../../utilities/translation/translate"
 import { CaseData } from "../../data-display/d3-types"
+import { GraphFilterFormulaAdapter } from "./graph-filter-formula-adapter"
 
 const getFormulaAdapters = (node?: IAnyStateTreeNode) => [
-  getPlottedValueFormulaAdapter(node),
-  getPlottedFunctionFormulaAdapter(node),
-  getGraphFilterFormulaAdapter(node),
+  GraphFilterFormulaAdapter.get(node),
+  PlottedFunctionFormulaAdapter.get(node),
+  PlottedValueFormulaAdapter.get(node)
 ]
 
 export interface GraphProperties {
