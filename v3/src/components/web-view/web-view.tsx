@@ -1,6 +1,6 @@
 import { Active, useDndContext, useDroppable } from "@dnd-kit/core"
 import { observer } from "mobx-react-lite"
-import React, { MouseEventHandler, useEffect, useRef, useState } from "react"
+import React, { MouseEventHandler, useRef } from "react"
 import { getDragAttributeInfo, useDropHandler } from "../../hooks/use-drag-drop"
 import { useTileModelContext } from "../../hooks/use-tile-model-context"
 import { dragNotification, dragWithPositionNotification } from "../../lib/dnd-kit/dnd-notifications"
@@ -40,34 +40,45 @@ export const WebViewComponent = observer(function WebViewComponent({ tile }: ITi
 })
 
 function WebViewDropOverlay() {
-  const mouseX = useRef<number|undefined>()
-  const mouseY = useRef<number|undefined>()
   const { tile, tileId } = useTileModelContext()
   const dropId = `web-view-drop-overlay-${tileId}`
-  const [dragOver, setDragOver] = useState(false)
-  const { active, isOver, setNodeRef } = useDroppable({ id: dropId })
+  const { active, setNodeRef } = useDroppable({ id: dropId })
   const info = active && getDragAttributeInfo(active)
   const dataSet = info?.dataSet
   const attributeId = info?.attributeId
-  const { position } = getTileInfo(tileId ?? "")
-  const tileX = position?.left ?? 0
-  // TODO Hardcoded header heights
-  const kDocumentHeaderHeight = 94
-  const kTileHeaderHeight = 25
-  const tileY = (position?.top ?? 0) + kDocumentHeaderHeight + kTileHeaderHeight
+  const isDraggingAttribute = !!(dataSet && attributeId)
+  // Mouse x and y are tracked so we know where the mouse is when a dragged attribute is dropped
+  const mouseX = useRef<number|undefined>()
+  const mouseY = useRef<number|undefined>()
 
   const handleMouseMove: MouseEventHandler<HTMLDivElement> = event => {
-    const { clientX, clientY } = event
-    const x = clientX - tileX
-    const y = clientY - tileY
-    if (dataSet && attributeId && (mouseX.current !== x || mouseY.current !== y)) {
+    // Determine position within interactiveFrame based on mouse and tile locations
+    const { position } = getTileInfo(tileId ?? "")
+    const tileX = position?.left ?? 0
+    // TODO Hardcoded header heights
+    const kDocumentHeaderHeight = 94
+    const kTileHeaderHeight = 25
+    const tileY = (position?.top ?? 0) + kDocumentHeaderHeight + kTileHeaderHeight
+    const x = event.clientX - tileX
+    const y = event.clientY - tileY
+
+    if (isDraggingAttribute && (mouseX.current !== x || mouseY.current !== y)) {
       tile?.applyModelChange(() => {}, {
         notify: dragWithPositionNotification("drag", dataSet, attributeId, x, y),
         webViewId: tileId
       })
+      mouseX.current = x
+      mouseY.current = y
     }
-    mouseX.current = x
-    mouseY.current = y
+  }
+
+  const handleMouseEnterLeave = (operation: string) => {
+    if (isDraggingAttribute) {
+      tile?.applyModelChange(() => {}, {
+        notify: dragNotification(operation, dataSet, attributeId),
+        webViewId: tileId
+      })
+    }
   }
 
   useDropHandler(dropId, (_active: Active) => {
@@ -80,19 +91,10 @@ function WebViewDropOverlay() {
     }
   })
 
-  useEffect(() => {
-    if (dataSet && attributeId && isOver !== dragOver) {
-      const operation = isOver ? "dragenter" : "dragleave"
-      tile?.applyModelChange(() => {}, {
-        notify: dragNotification(operation, dataSet, attributeId),
-        webViewId: tileId
-      })
-      setDragOver(isOver)
-    }
-  }, [isOver])
-
   return <div
     className="codap-web-view-drop-overlay"
+    onMouseEnter={() => handleMouseEnterLeave("dragenter")}
+    onMouseLeave={() => handleMouseEnterLeave("dragleave")}
     onMouseMove={handleMouseMove}
     ref={setNodeRef}
   />
