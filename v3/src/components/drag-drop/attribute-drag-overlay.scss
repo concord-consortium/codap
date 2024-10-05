@@ -1,6 +1,5 @@
 .attribute-drag-overlay {
   cursor: grabbing;
-  pointer-events: none;
   width: 100%;
   height: 100%;
   border: none;
@@ -12,4 +11,8 @@
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+.dnd-kit-drag-overlay {
+  pointer-events: none;
 }

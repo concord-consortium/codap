@@ -56,11 +56,10 @@ function WebViewDropOverlay() {
   const kTileHeaderHeight = 25
   const tileY = (position?.top ?? 0) + kDocumentHeaderHeight + kTileHeaderHeight
 
-  const handleMouseOver: MouseEventHandler<HTMLDivElement> = event => {
+  const handleMouseMove: MouseEventHandler<HTMLDivElement> = event => {
     const { clientX, clientY } = event
     const x = clientX - tileX
     const y = clientY - tileY
-    console.log(`--- handleMouseMove`, x, y)
     if (dataSet && attributeId && (mouseX.current !== x || mouseY.current !== y)) {
       tile?.applyModelChange(() => {}, {
         notify: dragWithPositionNotification("drag", dataSet, attributeId, x, y),
@@ -94,7 +93,7 @@ function WebViewDropOverlay() {
 
   return <div
     className="codap-web-view-drop-overlay"
-    onMouseOver={handleMouseOver}
+    onMouseMove={handleMouseMove}
     ref={setNodeRef}
   />
 }
