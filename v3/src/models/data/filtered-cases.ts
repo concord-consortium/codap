@@ -55,6 +55,14 @@ export class FilteredCases {
   }
 
   @computed
+  get rawCaseIds() {
+    const rawCases = this.collectionID
+                      ? this.source?.getCasesForCollection(this.collectionID) ?? []
+                      : this.source?.items ?? []
+    return rawCases.map(aCase => aCase.__id__)
+  }
+
+  @computed
   get caseIds(): string[] {
     // MobX will cache the resulting array until either the source's `cases` array changes or the
     // filter function changes, at which point it will run the filter function over all the cases.
@@ -62,12 +70,8 @@ export class FilteredCases {
     // cases when cases are inserted, but that would be more code to write/maintain and running
     // the filter function over an array of cases should be quick so rather than succumb to the
     // temptation of premature optimization, let's wait to see whether it becomes a bottleneck.
-    const rawCases = this.collectionID
-                      ? this.source?.getCasesForCollection(this.collectionID) ?? []
-                      : this.source?.items ?? []
-    return rawCases
-            .map(aCase => aCase.__id__)
-            .filter(id => !this.filter || (this.source && this.filter(this.source, id, this.casesArrayNumber)))
+    return this.rawCaseIds
+          .filter(id => !this.filter || (this.source && this.filter(this.source, id, this.casesArrayNumber)))
   }
 
   @computed

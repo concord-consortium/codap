@@ -12,6 +12,7 @@ import { AttributeFormulaAdapter } from "../formula/attribute-formula-adapter"
 import { FilterFormulaAdapter } from "../formula/filter-formula-adapter"
 import { PlottedValueFormulaAdapter } from "../formula/plotted-value-formula-adapter"
 import { PlottedFunctionFormulaAdapter } from "../formula/plotted-function-formula-adapter"
+import { GraphFilterFormulaAdapter } from "../formula/graph-filter-formula-adapter"
 import { ISharedDataSet, SharedDataSet, kSharedDataSetType } from "../shared/shared-data-set"
 
 /**
@@ -37,7 +38,8 @@ export const createDocumentModel = (snapshot?: IDocumentModelSnapshot) => {
       new AttributeFormulaAdapter(adapterApi),
       new FilterFormulaAdapter(adapterApi),
       new PlottedValueFormulaAdapter(adapterApi),
-      new PlottedFunctionFormulaAdapter(adapterApi)
+      new PlottedFunctionFormulaAdapter(adapterApi),
+      new GraphFilterFormulaAdapter(adapterApi)
     ])
 
     addDisposer(document, onAction(document, (call) => {

@@ -24,12 +24,10 @@ context("Graph adornments", () => {
     // add undo/redo to this test
     toolbar.getUndoTool().click()
     ae.getAxisLabel("left").should("have.length", 0)
-    cy.wait(250)
     toolbar.getRedoTool().click()
     ae.getAxisLabel("left").should("have.length", 1)
-    cy.wait(250)
 
-
+    // show the count adornment
     graph.getDisplayValuesButton().click()
     graph.getInspectorPalette().should("be.visible")
     graph.getInspectorPalette().find("[data-testid=adornment-checkbox-count-count]").should("be.visible").click()
@@ -39,27 +37,51 @@ context("Graph adornments", () => {
     cy.get("[data-testid=adornment-wrapper]").should("have.length", 1)
     cy.get("[data-testid=adornment-wrapper]").should("have.class", "visible")
     cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid^=graph-count]").should("exist")
-    // this test is still flaky, sometimes returning 21 and sometimes returning 24
-    // cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid^=graph-count]").should("have.text", "21")
-    cy.wait(250)
+    cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid^=graph-count]").should("have.text", "21")
+
+    // add a filter formula
+    graph.getHideShowButton().click()
+    cy.get("[data-testid=hide-show-menu-list]").should("be.visible")
+    cy.get("[data-testid=hide-show-menu-list]").find("[data-testid=edit-filter-formula]").should("be.visible").click()
+    cy.get(".codap-modal-content [data-testid=attr-formula-input]").type(`Diet="meat"`)
+    cy.get(".codap-modal-content [data-testid=Apply-button]").should("be.visible").click()
+    cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid^=graph-count]").should("exist")
+    cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid^=graph-count]").should("have.text", "10")
+
+    // change the filter formula
+    graph.getHideShowButton().click()
+    cy.get("[data-testid=hide-show-menu-list]").should("be.visible")
+    cy.get("[data-testid=hide-show-menu-list]").find("[data-testid=edit-filter-formula]").should("be.visible").click()
+    cy.get(".codap-modal-content [data-testid=attr-formula-input]").type(`{selectAll}{del}Diet="plants"`)
+    cy.get(".codap-modal-content [data-testid=Apply-button]").should("be.visible").click()
+    cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid^=graph-count]").should("exist")
+    cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid^=graph-count]").should("have.text", "11")
+
+    // delete the filter formula
+    graph.getHideShowButton().click()
+    cy.get("[data-testid=hide-show-menu-list]").should("be.visible")
+    cy.get("[data-testid=hide-show-menu-list]").find("[data-testid=edit-filter-formula]").should("be.visible").click()
+    cy.get(".codap-modal-content [data-testid=attr-formula-input]").type(`{selectAll}{del}`)
+    cy.get(".codap-modal-content [data-testid=Apply-button]").should("be.visible").click()
+    cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid^=graph-count]").should("exist")
+    cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid^=graph-count]").should("have.text", "21")
+
+    // hide the count adornment
+    graph.getDisplayValuesButton().click()
+    graph.getInspectorPalette().should("be.visible")
     graph.getInspectorPalette().find("[data-testid=adornment-checkbox-count-count]").click()
     cy.get("[data-testid=adornment-wrapper]").should("have.class", "hidden")
 
-    // Add a test undo/redo for the count checkbox
-
+    // Undo hiding the adornment
     toolbar.getUndoTool().click()
-    cy.wait(250)
     cy.get("[data-testid=adornment-wrapper]").should("have.length", 1)
     cy.get("[data-testid=adornment-wrapper]").should("have.class", "visible")
     cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid^=graph-count]").should("exist")
-    // this test is flaky, sometimes returning 21 and sometimes returning 24
-    // cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid^=graph-count]").should("have.text", "21")
+    cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid^=graph-count]").should("have.text", "21")
 
+    // Redo hiding the adornment
     toolbar.getRedoTool().click()
-    cy.wait(250)
-
     cy.get("[data-testid=adornment-wrapper]").should("have.class", "hidden")
-
   })
   // TODO: Reinstate this skipped test. Even though it passes locally, it fails in CI with an error saying
   // the element with data-testid of `graph-adornments-grid__cell` cannot be found.

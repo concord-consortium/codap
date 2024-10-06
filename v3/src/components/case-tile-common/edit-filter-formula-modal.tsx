@@ -4,30 +4,36 @@ import {
 } from "@chakra-ui/react"
 import React, { useEffect, useState } from "react"
 import { observer } from "mobx-react-lite"
-import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { t } from "../../utilities/translation/translate"
 import { CodapModal } from "../codap-modal"
+import { IFormula } from "../../models/formula/formula"
 
+interface IFormulaSource {
+  filterFormula?: IFormula
+  filterFormulaError: string
+  setFilterFormula: (formula: string) => void
+  applyModelChange: (change: () => void, options: { undoStringKey: string, redoStringKey: string }) => void
+}
 interface IProps {
+  formulaSource: IFormulaSource
   isOpen: boolean
   onClose: () => void
 }
 
-export const EditFilterFormulaModal = observer(function EditFormulaModal({ isOpen, onClose }: IProps) {
-  const data = useDataSetContext()
+export const EditFilterFormulaModal = observer(function EditFormulaModal({ formulaSource, isOpen, onClose }: IProps) {
   const [formula, setFormula] = useState("")
 
   useEffect(() => {
-    setFormula(data?.filterFormula?.display || "")
-  }, [data?.filterFormula?.display])
+    setFormula(formulaSource.filterFormula?.display || "")
+  }, [formulaSource.filterFormula?.display])
 
   const closeModal = () => {
     onClose()
   }
 
   function applyFilterFormula() {
-    data?.applyModelChange(() => {
-      data.setFilterFormula(formula)
+    formulaSource.applyModelChange(() => {
+      formulaSource.setFilterFormula(formula)
     }, {
       undoStringKey: "V3.Undo.hideShowMenu.changeFilterFormula",
       redoStringKey: "V3.Redo.hideShowMenu.changeFilterFormula"
@@ -61,9 +67,9 @@ export const EditFilterFormulaModal = observer(function EditFormulaModal({ isOpe
       </ModalHeader>
       <ModalBody>
         {
-          data?.filterFormulaError &&
+          formulaSource.filterFormulaError &&
           <div className="formula-error" style={{ background: "rgb(254, 224, 228)", fontSize: "0.8em" }}>
-            {data.filterFormulaError}
+            {formulaSource.filterFormulaError}
           </div>
         }
         <FormControl display="flex" flexDirection="column" className="formula-form-control">

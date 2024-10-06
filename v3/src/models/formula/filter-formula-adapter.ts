@@ -58,30 +58,36 @@ export class FilterFormulaAdapter implements IFormulaManagerAdapter {
     const { formula, dataSet } = formulaContext
     const { attributeId } = extraMetadata
 
-    let casesToRecalculate: ICase[] = []
+    // Use itemsNotSetAside to exclude set-aside cases so they're not included in calculations,
+    // such as aggregate functions like mean.
+    const childMostCollectionCaseIds =
+      dataSet.itemsNotSetAside.map(id => dataSet.getItem(id)).filter(c => c).map(c => c?.__id__) as string[]
+
+    let casesToRecalculate: string[] = []
     if (casesToRecalculateDesc === "ALL_CASES") {
       // If casesToRecalculate is not provided, recalculate all cases.
-      // Use itemsNotSetAside to exclude set-aside cases so they're not included in calculations,
-      // such as aggregate functions like mean.
-      casesToRecalculate = dataSet.itemsNotSetAside.map(id => dataSet.getItem(id)).filter(c => c) as ICase[]
+      casesToRecalculate = childMostCollectionCaseIds
     } else {
-      casesToRecalculate = casesToRecalculateDesc
+      casesToRecalculate = casesToRecalculateDesc.map(c => {
+        return dataSet.caseInfoMap.get(c.__id__)?.childItemIds || c.__id__
+      }).filter(c => c).flat()
     }
     if (!casesToRecalculate || casesToRecalculate.length === 0) {
       return
     }
 
-    const caseIds = casesToRecalculate.map(c => c.__id__)
-
-    debugLog(DEBUG_FORMULAS, `[attr formula] recalculate "${formula.canonical}" for ${casesToRecalculate.length} cases`)
+    debugLog(
+      DEBUG_FORMULAS,
+      `[dataset filter formula] recalculate "${formula.canonical}" for ${casesToRecalculate.length} cases`
+    )
 
     const formulaScope = new FormulaMathJsScope({
       localDataSet: dataSet,
       dataSets: this.api.getDatasets(),
       globalValueManager: this.api.getGlobalValueManager(),
       formulaAttrId: attributeId,
-      caseIds,
-      childMostCollectionCaseIds: caseIds
+      caseIds: casesToRecalculate,
+      childMostCollectionCaseIds
     })
 
     try {
@@ -93,7 +99,7 @@ export class FilterFormulaAdapter implements IFormulaManagerAdapter {
         // its own attribute.
         formulaScope.savePreviousResult(formulaValue)
         return {
-          itemId: c.__id__,
+          itemId: c,
           result: !!formulaValue // only boolean values are supported
         }
       })

@@ -163,7 +163,7 @@ export const ParentToggles = observer(function ParentToggles() {
       )
     } else {
       dataConfig?.applyModelChange(
-        () => dataConfig.setHiddenCases(Array.from(dataConfig.allCaseIDs)),
+        () => dataConfig.setHiddenCases(Array.from(dataConfig.visibleCaseIds)),
         {
           undoStringKey: "V3.Undo.graph.hideAllCases",
           redoStringKey: "V3.Redo.graph.hideAllCases",
