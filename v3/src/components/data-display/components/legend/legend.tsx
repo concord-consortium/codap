@@ -31,7 +31,7 @@ export const Legend = function Legend({
             ? <CategoricalLegend
                 layerIndex={layerIndex}
                 setDesiredExtent={setDesiredExtent}/>
-            : attrType === 'numeric'
+            : attrType === 'numeric' || attrType === 'date'
               ? <NumericLegend
                   layerIndex={layerIndex}
                   setDesiredExtent={setDesiredExtent}/> : null

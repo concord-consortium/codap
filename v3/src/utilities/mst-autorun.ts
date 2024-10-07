@@ -9,8 +9,9 @@ import { SetRequired } from "type-fest"
   MobX `autorun` API, except that passing a name is required.
  */
 type IAutorunOptionsWithName = SetRequired<IAutorunOptions, "name">
+type IAnyModels = IAnyStateTreeNode | IAnyStateTreeNode[]
 
-export function mstAutorun(fn: () => void, options: IAutorunOptionsWithName, model: IAnyStateTreeNode) {
+export function mstAutorun(fn: () => void, options: IAutorunOptionsWithName, models: IAnyModels) {
   // install autorun
   let _disposer: IReactionDisposer | undefined = autorun(fn, options)
   // returned disposer prevents MobX disposer from being called multiple times
@@ -18,7 +19,8 @@ export function mstAutorun(fn: () => void, options: IAutorunOptionsWithName, mod
     _disposer?.()
     _disposer = undefined
   }
-  // dispose of autorun if the model it depends on is destroyed
-  addDisposer(model, disposer)
+  // dispose of autorun if the model(s) it depends on is/are destroyed
+  const _models = Array.isArray(models) ? models : [models]
+  _models.forEach(model => model && addDisposer(model, disposer))
   return disposer
 }

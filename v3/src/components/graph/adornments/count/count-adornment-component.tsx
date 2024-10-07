@@ -146,7 +146,7 @@ export const CountAdornment = observer(function CountAdornment(props: IAdornment
         getAxisDomains(xAxis, yAxis)
         subPlotRegionBoundariesRef.current = subPlotRegionBoundaries()
         plotCaseCounts()
-      }, { name: "Count.refreshBoundariesAndCaseCounts" }, model)
+      }, { name: "Count.refreshBoundariesAndCaseCounts" }, [model, xAxis, yAxis])
   }, [model, plotCaseCounts, subPlotRegionBoundaries, xAxis, yAxis])
 
   useEffect(function refreshOnSubPlotRegionChange() {

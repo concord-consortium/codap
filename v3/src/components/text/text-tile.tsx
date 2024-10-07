@@ -29,14 +29,21 @@ export const TextTile = observer(function TextTile({ tile }: ITileBaseProps) {
   }, [initialValue])
 
   useEffect(() => {
-    return tile && mstReaction(
+    let animationFrame: number
+    const disposer = tile && mstReaction(
       () => isTileSelected() && tile?.transitionComplete,
       isSelected => {
         // RAF to delay focus request until after model processing completes
-        isSelected && requestAnimationFrame(() => ReactEditor.focus(editor))
+        if (isSelected) {
+          animationFrame = requestAnimationFrame(() => ReactEditor.focus(editor))
+        }
       },
       { name: "FocusEditorOnTileSelect" }, tile
     )
+    return () => {
+      if (animationFrame) cancelAnimationFrame(animationFrame)
+      disposer?.()
+    }
   }, [editor, isTileSelected, tile])
 
   const textTileRef = useRef<HTMLDivElement | null>(null)

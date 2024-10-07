@@ -34,6 +34,7 @@ export const RulerMenuList = () => {
   const addAttributeMenuItems: IMenuItem[] =
     data?.collections.map(collection => ({
         itemKey: collection.id,
+        dataTestId: "ruler-menu-new-attribute",
         itemLabel: () => t("DG.Inspector.newAttribute", { vars: [collection.title] }),
         isEnabled: () => !preventCollectionReorg(data, collection.id),
         handleClick: () => handleAddNewAttribute(collection.id)

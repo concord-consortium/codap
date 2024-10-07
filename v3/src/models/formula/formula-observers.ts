@@ -32,7 +32,7 @@ export const observeLocalAttributes = (formulaDependencies: IFormulaDependency[]
   // If we needed to optimize the non-aggregate case, we could cache the items and then determine which ones
   // were added/removed ourselves, but it's not clear that it will be worth it.
   const disposeDatasetItemsObserver = mstReaction(
-    () => localDataSet.itemIds.length,
+    () => localDataSet.itemIdsHash,
     () => recalculateCallback("ALL_CASES"),
     { name: "FormulaObservers.itemsReaction" }, localDataSet
   )

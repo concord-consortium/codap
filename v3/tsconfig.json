@@ -29,6 +29,7 @@
     "why-did-you-render.ts"
   ],
   "exclude": [
-    "src/**/*.v2.ts"
+    "src/**/*.v2.ts",
+    "*.grammar"
   ]
 }

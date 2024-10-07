@@ -1,5 +1,6 @@
 import { useDisclosure } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
+import { isAlive } from "mobx-state-tree"
 import React from "react"
 import { useCaseMetadata } from "../../hooks/use-case-metadata"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
@@ -12,6 +13,8 @@ export const HideShowMenuList = observer(function HideShowMenuList() {
   const data = useDataSetContext()
   const caseMetadata = useCaseMetadata()
   const formulaModal = useDisclosure()
+
+  if (data && !isAlive(data)) return null
 
   const handleSetAsideCases = (itemIds: string[], deselect: boolean) => {
     if (data && itemIds.length) {
@@ -43,6 +46,7 @@ export const HideShowMenuList = observer(function HideShowMenuList() {
   const menuItems: IMenuItem[] = [
     {
       itemKey: "DG.Inspector.setaside.setAsideSelectedCases",
+      dataTestId: "hide-show-menu-set-aside-selected-cases",
       isEnabled: () => selectionCount > 0,
       handleClick: () => {
         if (data?.selection.size) {
@@ -52,6 +56,7 @@ export const HideShowMenuList = observer(function HideShowMenuList() {
     },
     {
       itemKey: "DG.Inspector.setaside.setAsideUnselectedCases",
+      dataTestId: "hide-show-menu-set-aside-unselected-cases",
       isEnabled: () => selectionCount < itemCount,
       handleClick: () => {
         const unselectedItemIds = data?.itemIds.filter(itemId => !data.isCaseSelected(itemId)) ?? []
@@ -62,6 +67,7 @@ export const HideShowMenuList = observer(function HideShowMenuList() {
     },
     {
       itemKey: "DG.Inspector.setaside.restoreSetAsideCases",
+      dataTestId: "hide-show-menu-restore-set-aside-cases",
       itemLabel: () => t("DG.Inspector.setaside.restoreSetAsideCases", { vars: [setAsideCount] }),
       isEnabled: () => setAsideCount > 0,
       handleClick: () => {
@@ -87,6 +93,7 @@ export const HideShowMenuList = observer(function HideShowMenuList() {
     },
     {
       itemKey: "DG.Inspector.attributes.showAllHiddenAttributesPlural",
+      dataTestId: "hide-show-menu-show-all-hidden-attributes",
       isEnabled: () => hiddenAttributeCount > 0,
       itemLabel: () => {
         const showAllHiddenAttributesKey = {
@@ -118,7 +125,10 @@ export const HideShowMenuList = observer(function HideShowMenuList() {
   return (
     <>
       <StdMenuList data-testid="hide-show-menu-list" menuItems={menuItems} />
-      <EditFilterFormulaModal isOpen={formulaModal.isOpen} onClose={handleEditFormulaClose} />
+      {
+        data &&
+        <EditFilterFormulaModal formulaSource={data} isOpen={formulaModal.isOpen} onClose={handleEditFormulaClose} />
+      }
     </>
   )
 })

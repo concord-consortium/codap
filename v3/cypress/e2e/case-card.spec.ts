@@ -1,4 +1,5 @@
 import { TableTileElements as table } from "../support/elements/table-tile"
+import { CardTileElements as card } from "../support/elements/card-tile"
 import { ToolbarElements as toolbar } from "../support/elements/toolbar-elements"
 
 context("case card", () => {
@@ -10,27 +11,34 @@ context("case card", () => {
     cy.wait(2000)
   })
 
-  const tableHeaderLeftSelector = ".codap-component.codap-case-table .component-title-bar .header-left"
-  const cardHeaderLeftSelector = ".codap-component.codap-case-card .component-title-bar .header-left"
-
   describe("case card", () => {
-    it("can switch from case table to case card view and back", () => {
+    it("can switch from case table to case card view and back with undo/redo", () => {
+      // Initial checks case table->case card
       cy.get('[data-testid="codap-case-table"]').should("exist")
-      cy.get('[data-testid="case-card"]').should("not.exist")
-      cy.get(tableHeaderLeftSelector).click()
-      cy.get(`${tableHeaderLeftSelector} .card-table-toggle-message`).click()
+      cy.get('[data-testid="codap-case-card"]').should("not.exist")
+      table.getToggleCardView().click()
+      table.getToggleCardMessage().should("have.text", "Switch to case card view of the data").click()
       cy.wait(500)
       cy.get('[data-testid="codap-case-table"]').should("not.exist")
-      cy.get('[data-testid="case-card-view"]').should("exist")
-      cy.get(cardHeaderLeftSelector).click()
+      cy.get('[data-testid="codap-case-card"]').should("exist")
+      table.getToggleCardView().click()
       cy.wait(500)
-      cy.get(`${cardHeaderLeftSelector} .card-table-toggle-message`).click()
+      table.getToggleCardMessage().should("have.text", "Switch to case table view of the data").click()
+      cy.get('[data-testid="codap-case-table"]').should("exist")
+      cy.get('[data-testid="codap-case-card"]').should("not.exist")
+
+      // Perform undo actions
+      toolbar.getUndoTool().click()  // Undo switch
+      cy.get('[data-testid="codap-case-table"]').should("not.exist")
+      cy.get('[data-testid="case-card-view"]').should("exist")
+
+      // Perform redo actions
+      toolbar.getRedoTool().click()  // Redo switch to case table
       cy.get('[data-testid="codap-case-table"]').should("exist")
       cy.get('[data-testid="case-card-view"]').should("not.exist")
     })
     it("initially displays a summary view of all cases and whenever 'Summarize Dataset' button is clicked", () => {
-      cy.get(tableHeaderLeftSelector).click()
-      cy.get(`${tableHeaderLeftSelector} .card-table-toggle-message`).click()
+      table.toggleCaseView()
       cy.wait(500)
       cy.get('[data-testid="case-card-view-title"]').should("have.text", "Cases")
       cy.get('[data-testid="case-card-view-index"]').should("have.text", "27 cases")
@@ -80,8 +88,7 @@ context("case card", () => {
     })
     it("should not initially display a summary view of all cases if there is a selection", () => {
       table.getGridCell(6, 2).should("contain", "Cheetah").click()
-      cy.get(tableHeaderLeftSelector).click()
-      cy.get(`${tableHeaderLeftSelector} .card-table-toggle-message`).click()
+      table.toggleCaseView()
       cy.wait(500)
       cy.get('[data-testid="case-card-attr-name"]').eq(0).should("contain.text", "Mammal")
       cy.get('[data-testid="case-card-attr-value"]').eq(0).should("have.text", "Cheetah")
@@ -89,8 +96,7 @@ context("case card", () => {
       cy.get('[data-testid="case-card-attr-value"]').eq(2).should("have.text", "14")
     })
     it("displays cases and allows user to scroll through them", () => {
-      cy.get(tableHeaderLeftSelector).click()
-      cy.get(`${tableHeaderLeftSelector} .card-table-toggle-message`).click()
+      table.toggleCaseView()
       cy.wait(500)
       cy.get('[data-testid="case-card-view"]').should("have.length", 1)
       cy.get('[data-testid="case-card-view-title"]').should("have.text", "Cases")
@@ -114,8 +120,7 @@ context("case card", () => {
       // make a parent collection
       table.moveAttributeToParent("Order", "newCollection")
       cy.wait(500)
-      cy.get(tableHeaderLeftSelector).click()
-      cy.get(`${tableHeaderLeftSelector} .card-table-toggle-message`).click()
+      table.toggleCaseView()
       cy.wait(500)
       cy.get('[data-testid="case-card-view"]').should("have.length", 2)
       cy.get('[data-testid="case-card-view"]').eq(0).should("have.class", "color-cycle-1")
@@ -153,8 +158,7 @@ context("case card", () => {
                                                  .eq(0).should("have.text", "African Elephant")
     })
     it("allows the user to add, edit, and hide attributes with undo/redo", () => {
-      cy.get(tableHeaderLeftSelector).click()
-      cy.get(`${tableHeaderLeftSelector} .card-table-toggle-message`).click()
+      table.toggleCaseView()
       cy.wait(500)
       cy.get('[data-testid="case-card-attr"]').should("have.length", 9)
       cy.get('[data-testid="case-card-attr-name"]').should("have.length", 9)
@@ -236,8 +240,7 @@ context("case card", () => {
       cy.wait(500)
       table.moveAttributeToParent("Diet", "newCollection")
       cy.wait(500)
-      cy.get(tableHeaderLeftSelector).click()
-      cy.get(`${tableHeaderLeftSelector} .card-table-toggle-message`).click()
+      table.toggleCaseView()
       cy.wait(500)
       cy.get('[data-testid="case-card-view"]').should("have.length", 3)
       cy.log("Add new case to 'middle' collection.")
@@ -257,11 +260,17 @@ context("case card", () => {
       cy.get('[data-testid="case-card-view"]').eq(2).find('[data-testid="case-card-attr-value"]')
                                                  .eq(0).should("have.text", "")
 
-      // Check for undo/redo after adding a new case
+      // Check for undo/redo after editing a case attribute value
       toolbar.getUndoTool().click()
+      cy.get('[data-testid="case-card-view"]').eq(1).find('[data-testid="case-card-attr-value"]')
+                                                  .eq(0).should("not.contain.text", "New Order")
+      // Check for undo/redo after adding a new case
       toolbar.getUndoTool().click()
       cy.get('[data-testid="case-card-view"]').eq(1).find('[data-testid="case-card-view-index"]')
                                                   .eq(0).should("have.text", "4 cases")
+
+/* Note that selection is not guaranteed to be restored on undo/redo.
+
       toolbar.getRedoTool().click()
       toolbar.getRedoTool().click()
       cy.get('[data-testid="case-card-view"]').eq(1).find('[data-testid="case-card-view-index"]')
@@ -274,15 +283,154 @@ context("case card", () => {
       toolbar.getRedoTool().click()
       cy.get('[data-testid="case-card-view"]').eq(1).find('[data-testid="case-card-attr-value"]')
                                                   .eq(0).should("contain.text", "New Order")
+*/
+    })
+    it("allows a user to drag an attribute to a new collection", () => {
+      table.toggleCaseView()
+      cy.wait(500)
+      cy.get('[data-testid="case-card-view"]').should("have.length", 1)
+      cy.dragAttributeToTarget("card", "Diet", "newTopCardCollection")
+      cy.wait(2000)
+      cy.get('[data-testid="case-card-view"]').should("have.length", 2)
+      cy.get('[data-testid="case-card-view-title"]').first().should("have.text", "Diets")
     })
   })
-  it.skip("allows a user to drag an attribute to a new collection", () => {
-    table.toggleCaseView()
-    cy.wait(500)
-    cy.get('[data-testid="case-card-view"]').should("have.length", 1)
-    cy.dragAttributeToTarget("card", "Diet", "newTopCardCollection")
+})
+
+context("case card inspector panel", () => {
+  beforeEach(() => {
+    // cy.scrollTo() doesn't work as expected with `scroll-behavior: smooth`
+    const queryParams = "?sample=mammals&scrollBehavior=auto"
+    const url = `${Cypress.config("index")}${queryParams}`
+    cy.visit(url)
     cy.wait(2000)
-    cy.get('[data-testid="case-card-view"]').should("have.length", 2)
-    cy.get('[data-testid="case-card-view-title"]').first().should("have.text", "Diets")
+  })
+
+  describe("case card inspector panel", () => {
+    it("displays inspector panel when in focus", () => {
+      table.toggleCaseView()
+      cy.wait(500)
+      card.getInspectorPanel().should("exist")
+      // click outside the card tile to remove focus
+      cy.get('[data-testid="codap-app"]').click()
+      card.getInspectorPanel().should("not.exist")
+      cy.get('[data-testid="codap-case-card"]').click()
+      card.getInspectorPanel().should("exist")
+    })
+    it("allows user to select and delete all cases from inspector panel", () => {
+      table.toggleCaseView()
+      cy.wait(500)
+      cy.get('[data-testid="case-card-view-next-button"]').click()
+      cy.get('[data-testid="case-card-view-index"]').should("have.text", "1 of 27")
+      cy.get('[data-testid="case-card-attr-value"]').first().should("have.text", "African Elephant")
+      card.getDeleteCasesButton().click()
+      cy.wait(500)
+      card.getTrashMenu().should("be.visible")
+      card.getSelectAllCasesButton().click()
+      cy.get('[data-testid="case-card-view-index"]').should("have.text", "27 cases")
+      cy.get('[data-testid="case-card-attr-name"]').first().should("contain.text", "Mammal")
+      cy.get('[data-testid="case-card-attr-value"]').first().should("have.text", "27 values")
+      card.getDeleteCasesButton().click()
+      cy.wait(500)
+      // resorting to {force: true} because this is failing in CI, though it passes locally
+      card.getDeleteAllCasesButton().click({force: true})
+      cy.get('[data-testid="case-card-view-index"]').should("have.text", "0 cases")
+      cy.get('[data-testid="case-card-attr-name"]').first().should("contain.text", "Mammal")
+      cy.get('[data-testid="case-card-attr-value"]').first().should("have.text", "")
+    })
+    it("allows user to delete selected and unselected cases from inspector panel", () => {
+      table.toggleCaseView()
+      cy.wait(500)
+      cy.get('[data-testid="case-card-view-next-button"]').click()
+      cy.get('[data-testid="case-card-view-index"]').should("have.text", "1 of 27")
+      cy.get('[data-testid="case-card-attr-value"]').first().should("have.text", "African Elephant")
+      card.getDeleteCasesButton().click()
+      cy.wait(500)
+      cy.get('[data-testid="trash-menu-list"]').should("be.visible")
+      card.getDeleteSelectedCasesButton().click()
+      cy.get('[data-testid="case-card-view-index"]').should("have.text", "1 of 26")
+      cy.get('[data-testid="case-card-attr-value"]').first().should("have.text", "Asian Elephant")
+      cy.get('[data-testid="case-card-view-next-button"]').click()
+      cy.get('[data-testid="case-card-view-index"]').should("have.text", "2 of 26")
+      cy.get('[data-testid="case-card-attr-value"]').first().should("have.text", "Big Brown Bat")
+      card.getDeleteCasesButton().click()
+      cy.wait(500)
+      card.getDeleteUnselectedCasesButton().click()
+      cy.get('[data-testid="case-card-view-index"]').should("have.text", "1 of 1")
+      cy.get('[data-testid="case-card-attr-value"]').first().should("have.text", "Big Brown Bat")
+    })
+    it("allows user to set aside and restore cases from inspector panel", () => {
+      table.toggleCaseView()
+      cy.wait(500)
+      card.getHideShowButton().click()
+      card.getHideShowMenu().should("be.visible").should("be.visible")
+      card.getSetAsideSelectedCasesButton().should("be.disabled")
+      cy.get('[data-testid="case-card-view-next-button"]').click()
+      cy.get('[data-testid="case-card-view-index"]').should("have.text", "1 of 27")
+      cy.get('[data-testid="case-card-attr-value"]').first().should("have.text", "African Elephant")
+      card.getHideShowButton().click()
+      cy.wait(500)
+      card.getRestoreSetAsideCasesButton().should("be.disabled").and("have.text", "Restore 0 Set Aside Cases")
+      // resorting to {force: true} because this is failing in CI, though it passes locally
+      card.getSetAsideSelectedCasesButton().click({force: true})
+      cy.get('[data-testid="case-card-view-index"]').should("have.text", "1 of 26")
+      cy.get('[data-testid="case-card-attr-value"]').first().should("have.text", "Asian Elephant")
+      card.getHideShowButton().click()
+      cy.wait(500)
+      card.getRestoreSetAsideCasesButton().should("not.be.disabled").and("have.text", "Restore 1 Set Aside Cases")
+      // resorting to {force: true} because this is failing in CI, though it passes locally
+      card.getRestoreSetAsideCasesButton().click({force: true})
+      cy.get('[data-testid="case-card-view-index"]').should("have.text", "1 of 27")
+      cy.get('[data-testid="case-card-attr-value"]').first().should("have.text", "African Elephant")
+      card.getHideShowButton().click()
+      cy.wait(500)
+      card.getRestoreSetAsideCasesButton().should("be.disabled").and("have.text", "Restore 0 Set Aside Cases")
+      // resorting to {force: true} because this is failing in CI, though it passes locally
+      card.getSetAsideUnselectedCasesButton().click({force: true})
+      cy.get('[data-testid="case-card-view-index"]').should("have.text", "1 of 1")
+      cy.get('[data-testid="case-card-attr-value"]').first().should("have.text", "African Elephant")
+    })
+    it("allows user to show hidden attributes from inspector panel", () => {
+      table.toggleCaseView()
+      cy.wait(500)
+      cy.get('[data-testid="case-card-attr"]').should("have.length", 9)
+      card.getHideShowButton().click()
+      cy.wait(500)
+      card.getShowAllHiddenAttributesButton().should("be.disabled")
+      // FIXME: Reinstate the below after figuring out why clicking attribute buttons does nothing in Cypress
+      cy.get('[data-testid="case-card-attr-name"]').eq(8).click()
+      cy.get('[data-testid="attribute-menu-list"]').should("be.visible")
+      cy.get('[data-testid="attribute-menu-list"]').find("button").contains("Hide Attribute").click()
+      cy.get('[data-testid="case-card-attr"]').should("have.length", 8)
+      card.getHideShowButton().click()
+      cy.get('[data-testid="hide-show-menu-list"]').should("be.visible")
+      cy.get('[data-testid="hide-show-menu-show-all-hidden-attributes"]').should("not.be.disabled").click()
+      cy.get('[data-testid="case-card-attr"]').should("have.length", 9)
+    })
+    it("allows user to add an attribute from inspector panel", () => {
+      table.toggleCaseView()
+      cy.wait(500)
+      cy.get('[data-testid="case-card-attr"]').should("have.length", 9)
+      card.getRulerButton().click()
+      card.getRulerMenu().should("be.visible")
+      card.getRulerAddAttributeButton().click()
+      cy.wait(500)
+      cy.get('[data-testid="column-name-input"]').should("exist").type("Friendliness{enter}")
+      cy.get('[data-testid="case-card-attr"]').should("have.length", 10)
+
+      cy.log("add a formula to the new attribute")
+      cy.get('[data-testid="case-card-attr-name"]').eq(9).click()
+      cy.wait(500)
+      cy.get('[data-testid="attribute-menu-list"]').should("be.visible")
+      cy.get("[data-testid=attribute-menu-list] button").contains("Edit Formula...").click()
+      cy.get("[data-testid=formula-editor-input] .cm-content").should("be.visible").and("have.focus")
+      cy.get("[data-testid=formula-editor-input] .cm-content")
+        .realType("if(LifeSpan>20, \"Friendly\", \"Unfriendly\")")
+      cy.get("[data-testid=Apply-button]").click()
+      cy.get('[data-testid="attr-formula-input"]').should("not.exist")
+      cy.get('[data-testid="case-card-attr-value"]').eq(9).should("have.text", "Friendly, Unfriendly")
+      cy.get('[data-testid="case-card-attr-value"] .formula-attr-value')
+          .should("have.css", "background-color", "rgba(255, 255, 0, 0.2)")
+    })
   })
 })

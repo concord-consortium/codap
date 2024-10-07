@@ -7,7 +7,7 @@ import {clsx} from "clsx"
 import { logStringifiedObjectMessage } from "../../../lib/log-message"
 import {mstReaction} from "../../../utilities/mst-reaction"
 import {onAnyAction} from "../../../utilities/mst-utils"
-import {IPixiPointsArrayRef} from "../../data-display/pixi/pixi-points"
+import {IPixiPointsArray} from "../../data-display/pixi/pixi-points"
 import {GraphAttrRole, graphPlaceToAttrRole, kPortalClass} from "../../data-display/data-display-types"
 import {AxisPlace, AxisPlaces} from "../../axis/axis-types"
 import {GraphAxis} from "./graph-axis"
@@ -47,13 +47,13 @@ import "./graph.scss"
 interface IProps {
   graphController: GraphController
   graphRef: MutableRefObject<HTMLDivElement | null>
-  pixiPointsArrayRef: IPixiPointsArrayRef
+  pixiPointsArray: IPixiPointsArray
 }
 
-export const Graph = observer(function Graph({graphController, graphRef, pixiPointsArrayRef}: IProps) {
+export const Graph = observer(function Graph({graphController, graphRef, pixiPointsArray}: IProps) {
   const graphModel = useGraphContentModelContext(),
     {plotType} = graphModel,
-    pixiPoints = pixiPointsArrayRef.current?.[0],
+    pixiPoints = pixiPointsArray[0],
     {startAnimation} = useDataDisplayAnimation(),
     instanceId = useInstanceIdContext(),
     marqueeState = useMemo<MarqueeState>(() => new MarqueeState(), []),
@@ -69,7 +69,7 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
     xAttrID = graphModel.getAttributeID('x'),
     yAttrID = graphModel.getAttributeID('y')
 
-  if (pixiPoints && pixiContainerRef.current && pixiContainerRef.current.children.length === 0) {
+  if (pixiPoints?.canvas && pixiContainerRef.current && pixiContainerRef.current.children.length === 0) {
     pixiContainerRef.current.appendChild(pixiPoints.canvas)
     pixiPoints.setupBackgroundEventDistribution({
       elementToHide: pixiContainerRef.current
@@ -110,9 +110,19 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
         .attr("width", `${Math.max(0, layout.plotWidth)}px`)
         .attr("height", `${Math.max(0, layout.plotHeight)}px`)
 
-      pixiPoints?.resize(layout.plotWidth, layout.plotHeight)
+      pixiPoints?.resize(layout.plotWidth, layout.plotHeight, layout.numColumns, layout.numRows)
+      pixiPoints?.setPointsMask(graphModel.dataConfiguration.caseDataWithSubPlot)
     }
-  }, [dataset, layout, layout.plotHeight, layout.plotWidth, pixiPoints, xScale])
+  }, [dataset, graphModel.dataConfiguration, layout, layout.plotHeight, layout.plotWidth, pixiPoints, xScale])
+
+  useEffect(function handleSubPlotsUpdate() {
+    return mstReaction(
+      () => graphModel.dataConfiguration.caseDataWithSubPlot,
+      () => {
+        pixiPoints?.setPointsMask(graphModel.dataConfiguration.caseDataWithSubPlot)
+      }, {name: "Graph.handleSubPlotsUpdate"}, graphModel
+    )
+  }, [graphModel, graphModel.dataConfiguration, pixiPoints])
 
   useEffect(function handleAttributeConfigurationChange() {
     // Handles attribute configuration changes from undo/redo, for instance, among others.
@@ -350,7 +360,7 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
           <Background
             ref={backgroundSvgRef}
             marqueeState={marqueeState}
-            pixiPointsArrayRef={pixiPointsArrayRef}
+            pixiPointsArray={pixiPointsArray}
           />
 
           {renderGraphAxes()}

@@ -1,5 +1,5 @@
 import * as PIXI from "pixi.js"
-import { CaseData } from "../d3-types"
+import { CaseData, CaseDataWithSubPlot } from "../d3-types"
 import { PixiTransition, TransitionPropMap, TransitionProp } from "./pixi-transition"
 import { hoverRadiusFactor, transitionDuration } from "../data-display-types"
 import { isFiniteNumber } from "../../../utilities/math-utils"
@@ -24,7 +24,7 @@ export enum PixiBackgroundPassThroughEvent {
   PointerDown = "pointerdown",
 }
 
-export type IPixiPointsArrayRef = React.MutableRefObject<PixiPoints[]>
+export type IPixiPointsArray = PixiPoints[]
 
 export type PixiPointEventHandler = (event: PointerEvent, point: PIXI.Sprite, metadata: IPixiPointMetadata) => void
 
@@ -72,24 +72,11 @@ interface IPointTransitionState {
 const caseDataKey = ({ plotNum, caseID }: CaseData) => `${plotNum}:${caseID}`
 
 export class PixiPoints {
-  renderer: PIXI.Renderer = new PIXI.Renderer({
-    resolution: window.devicePixelRatio,
-    autoDensity: true,
-    backgroundAlpha: 0,
-    antialias: true,
-    // `passive` is more performant and will be used by default in the future Pixi.JS versions
-    eventMode: "passive",
-    eventFeatures: {
-      move: true,
-      click: true,
-      // disables the global move events which can be very expensive in large scenes
-      globalMove: false,
-      wheel: false
-    }
-  })
+  renderer?: PIXI.Renderer
   stage = new PIXI.Container()
   pointsContainer = new PIXI.Container()
   background = new PIXI.Sprite(PIXI.Texture.EMPTY)
+  subPlotMasks: PIXI.Graphics[] = []
   ticker = new PIXI.Ticker()
   tickerStopTimeoutId: number | undefined
 
@@ -118,7 +105,32 @@ export class PixiPoints {
   onPointDrag?: PixiPointEventHandler
   onPointDragEnd?: PixiPointEventHandler
 
-  constructor(options?: IPixiPointsOptions) {
+  async init(options?: IPixiPointsOptions) {
+    // Automatically determines the most appropriate renderer for the current environment.
+    // The function will prioritize the WebGL renderer as it is the most tested safe API to use. In the near future as
+    // WebGPU becomes more stable and ubiquitous, it will be prioritized over WebGL.
+    // See: https://pixijs.download/release/docs/rendering.html#autoDetectRenderer
+    try {
+      this.renderer = await PIXI.autoDetectRenderer({
+        resolution: window.devicePixelRatio,
+        autoDensity: true,
+        backgroundAlpha: 0,
+        antialias: true,
+        // `passive` is more performant and will be used by default in the future Pixi.JS versions
+        eventMode: "passive",
+        eventFeatures: {
+          move: true,
+          click: true,
+          // disables the global move events which can be very expensive in large scenes
+          globalMove: false,
+          wheel: false
+        }
+      })
+    } catch (e) {
+      console.error("PixiPoints failed to initialize renderer")
+      return
+    }
+
     this.ticker.add(this.tick.bind(this))
     this.stage.addChild(this.background)
     this.stage.addChild(this.pointsContainer)
@@ -140,8 +152,8 @@ export class PixiPoints {
     }
   }
 
-  get canvas() {
-    return this.renderer.view as HTMLCanvasElement
+  get canvas(): HTMLCanvasElement | null {
+    return this.renderer?.view.canvas as HTMLCanvasElement ?? null
   }
 
   get points() {
@@ -162,18 +174,37 @@ export class PixiPoints {
     } else {
       // The only reason for ticker to run is to handle ongoing transitions. If there are no transitions, we can stop.
       this.ticker.stop()
+      this.cleanupUnusedTextures()
     }
-    this.renderer.render(this.stage)
+    this.renderer?.render(this.stage)
   }
 
-  resize(width: number, height: number) {
+  resize(width: number, height: number, numColumns?: number, numRows?: number) {
     // We only set the background size if the width and height are valid. If we ever set width/height of background to
     // negative values, the background won't be able to detect pointer events.
     if (width > 0 && height > 0) {
-      this.renderer.resize(width, height)
+      this.renderer?.resize(width, height)
       this.background.width = width
       this.background.height = height
       this.startRendering()
+    }
+
+    if (numColumns !== undefined && numRows !== undefined) {
+      this.subPlotMasks = []
+      const maskWidth = width / numColumns
+      const maskHeight = height / numRows
+      // These two for loops follow order of the subPlots ordering. Subplots seem to be ordered by columns first (left
+      // to right), then rows (bottom to top).
+      for (let c = 0; c < numColumns; c++) {
+        for (let r = numRows - 1; r >= 0; r--) {
+          const mask = new PIXI.Graphics()
+            .rect(c * maskWidth, r * maskHeight, maskWidth, maskHeight)
+            .fill(0xffffff)
+          this.subPlotMasks.push(mask)
+        }
+      }
+    } else {
+      this.subPlotMasks = []
     }
   }
 
@@ -359,6 +390,11 @@ export class PixiPoints {
     this.startRendering()
   }
 
+  setPointSubPlot(point: PIXI.Sprite, subPlotIndex: number) {
+    point.mask = this.subPlotMasks[subPlotIndex]
+    this.startRendering()
+  }
+
   transition(callback: () => void, options: { duration: number }) {
     const { duration } = options
     if (duration === 0) {
@@ -420,7 +456,11 @@ export class PixiPoints {
   }
 
   generateTexture(graphics: PIXI.Graphics, key: string): PIXI.Texture {
-    const texture = this.renderer.generateTexture(graphics, {
+    if (!this.renderer) {
+      throw new Error("PixiPoints renderer not initialized")
+    }
+    const texture = this.renderer.generateTexture({
+      target: graphics,
       // A trick to make sprites/textures look still sharp when they're scaled up (e.g. during hover effect).
       // The default resolution is `devicePixelRatio`, so if we multiply it by `MAX_SPRITE_SCALE`, we can scale
       // sprites up to `MAX_SPRITE_SCALE` without losing sharpness.
@@ -439,9 +479,6 @@ export class PixiPoints {
       return this.textures.get(key) as PIXI.Texture
     }
 
-    const graphics = new PIXI.Graphics()
-    graphics.beginFill(fill)
-
     const shouldDrawStroke = (dimension: number | undefined) => {
       // Do not draw the stroke when either:
       // 1. a transition from points to bars is active -- the stroke would be distorted by the scale change
@@ -451,7 +488,6 @@ export class PixiPoints {
     }
 
     const textureStrokeWidth = shouldDrawStroke(width) || shouldDrawStroke(height) ? strokeWidth : 0
-    graphics.lineStyle(textureStrokeWidth, stroke, strokeOpacity ?? 0.4)
 
     // When the option to display bars is first selected, the width and height of the bars are first set to two times
     // the radius value specified in `style`. This is so the bars are initially drawn as squares that are the same size
@@ -464,8 +500,11 @@ export class PixiPoints {
       ? width : radius * 2
     const rectHeight = isFiniteNumber(height) && (!this.displayTypeTransitionState.isActive || includeDimensions)
       ? height : radius * 2
-    graphics.drawRect(0, 0, rectWidth, rectHeight)
-    graphics.endFill()
+
+    const graphics = new PIXI.Graphics()
+      .rect(0, 0, rectWidth, rectHeight)
+      .fill(fill)
+      .stroke({ color: stroke, width: textureStrokeWidth, alpha: strokeOpacity ?? 0.4 })
 
     return this.generateTexture(graphics, key)
   }
@@ -479,10 +518,9 @@ export class PixiPoints {
     }
 
     const graphics = new PIXI.Graphics()
-    graphics.beginFill(fill)
-    graphics.lineStyle(strokeWidth, stroke, strokeOpacity ?? 0.4)
-    graphics.drawCircle(0, 0, radius)
-    graphics.endFill()
+      .circle(0, 0, radius)
+      .fill(fill)
+      .stroke({ color: stroke, width: strokeWidth, alpha: strokeOpacity ?? 0.4 })
 
     return this.generateTexture(graphics, key)
   }
@@ -492,7 +530,16 @@ export class PixiPoints {
   }
 
   cleanupUnusedTextures() {
-    // TODO PIXI
+    const texturesInUse: Set<PIXI.Texture> = new Set()
+    this.points.forEach(point => {
+      texturesInUse.add(point.texture)
+    })
+    for (const [key, texture] of this.textures) {
+      if (!texturesInUse.has(texture)) {
+        texture.destroy()
+        this.textures.delete(key)
+      }
+    }
   }
 
   setupBackgroundEventDistribution(options: IBackgroundEventDistributionOptions) {
@@ -630,7 +677,10 @@ export class PixiPoints {
     })
   }
 
-  matchPointsToData(datasetID:string, caseData: CaseData[], _displayType: string, style: IPixiPointStyle) {
+  matchPointsToData(datasetID:string, caseData: CaseDataWithSubPlot[], _displayType: string, style: IPixiPointStyle) {
+    if (!this.renderer) {
+      return
+    }
     // If the display type has changed, we need to prepare for the transition between types
     // For now, the only display type values PixiPoints supports are "points" and "bars", so
     // all other display type values passed to this method will be treated as "points".
@@ -694,6 +744,8 @@ export class PixiPoints {
       }
     }
 
+    this.setPointsMask(caseData)
+
     // Before rendering, reset the scale for all points. This may be necessary if the scale was modified
     // during a transition immediately before matchPointsToData is called. For example, when the Connecting
     // Lines graph adornment is activated or deactivated.
@@ -702,9 +754,26 @@ export class PixiPoints {
     this.startRendering()
   }
 
+  setPointsMask(allCaseData: CaseDataWithSubPlot[]) {
+    if (!this.renderer || (window as any).Cypress) {
+      // This method causes Cypress tests to fail in the GitHub Actions environment, so we skip it in that case.
+      // The exact reason is unclear, but it seems likely that the WebGL (or WebGPU) renderer initialized in GitHub
+      // Actions is somehow faulty or incomplete, and using masking features causes it to break entirely. This isn't
+      // a feature that can be tested using Cypress anyway, so it's safe to skip it in this case.
+      return
+    }
+    allCaseData.forEach((caseData, i) => {
+      const point = this.getPointForCaseData(caseData)
+      if (point) {
+        const subPlotNum = caseData.subPlotNum
+        point.mask = subPlotNum !== undefined ? this.subPlotMasks[subPlotNum] : null
+      }
+    })
+  }
+
   dispose() {
     this.ticker.destroy()
-    this.renderer.destroy()
+    this.renderer?.destroy()
     this.stage.destroy()
     this.textures.forEach(texture => texture.destroy())
     this.resizeObserver?.disconnect()

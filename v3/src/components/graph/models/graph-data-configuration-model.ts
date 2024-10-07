@@ -11,7 +11,7 @@ import {AttributeDescription, DataConfigurationModel, IAttributeDescriptionSnaps
 import {AttrRole, GraphAttrRole, graphPlaceToAttrRole, PrimaryAttrRoles} from "../../data-display/data-display-types"
 import {updateCellKey} from "../adornments/adornment-utils"
 import { isFiniteNumber } from "../../../utilities/math-utils"
-import { CaseData } from "../../data-display/d3-types"
+import { CaseData, CaseDataWithSubPlot } from "../../data-display/d3-types"
 
 export const kGraphDataConfigurationType = "graphDataConfigurationType"
 
@@ -160,7 +160,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
      */
     filterCase(data: IDataSet, caseID: string, caseArrayNumber?: number) {
       // If the case is hidden we don't plot it
-      if (self.hiddenCasesSet.has(caseID)) return false
+      if (self.hiddenCasesSet.has(caseID) || self.filterFormulaResults.get(caseID) === false) return false
       if (caseArrayNumber === 0 || caseArrayNumber === undefined) {
         return self._filterCase(data, caseID)
       }
@@ -513,6 +513,21 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     })
   }))
   .views(self => ({
+    get caseDataWithSubPlot() {
+      const allCaseData: CaseDataWithSubPlot[] = self.joinedCaseDataArrays
+      const caseIDToSubPlot: Record<string, number> = {}
+      self.getAllCellKeys().forEach((cellKey, cellIndex) => {
+        self.subPlotCases(cellKey).forEach(caseID => {
+          caseIDToSubPlot[caseID] = cellIndex
+        })
+      })
+      allCaseData.forEach((caseData) => {
+        caseData.subPlotNum = caseIDToSubPlot[caseData.caseID]
+      })
+      return allCaseData
+    }
+  }))
+  .views(self => ({
     casesInRange(min: number, max: number, attrId: string, cellKey: Record<string, string>, inclusiveMax = true) {
       return self.subPlotCases(cellKey)?.filter(caseId => {
         const caseValue = self.dataset?.getNumeric(caseId, attrId)
@@ -680,7 +695,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
               self.filteredCases.pop()?.destroy()
             }
             // add any required filteredCases
-            while (self.filteredCases.length < filteredCasesRequired) {
+            while (self.dataset && self.filteredCases.length < filteredCasesRequired) {
               self._addNewFilteredCases()
             }
           }, { name: "GraphDataConfigurationModel yAttrDescriptions reaction", equals: comparer.structural }

@@ -1,5 +1,5 @@
 import {useEffect} from "react"
-import {comparer, reaction} from "mobx"
+import {reaction} from "mobx"
 import {isAlive} from "mobx-state-tree"
 import {onAnyAction} from "../../../utilities/mst-utils"
 import {mstAutorun} from "../../../utilities/mst-autorun"
@@ -58,6 +58,15 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
   const callRefreshPointPositions = useDebouncedCallback((selectedOnly: boolean) => {
     refreshPointPositions(selectedOnly)
   })
+
+  // Refresh point positions when pixiPoints become available to fix this bug:
+  // https://www.pivotaltracker.com/story/show/188333898
+  // This might be a workaround for the fact that useDebouncedCallback may not be updated when pixiPoints
+  // (a dependency of refreshPointPositions) are updated. useDebouncedCallback doesn't seem to declare any
+  // dependencies and I'd imagine it returns a stable result (?).
+  useEffect(() => {
+    callRefreshPointPositions(false)
+  }, [callRefreshPointPositions, pixiPoints])
 
   // respond to numeric axis domain changes (e.g. axis dragging)
   useEffect(() => {
@@ -128,7 +137,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
 
   useEffect(function respondToHiddenCasesChange() {
     const disposer = mstReaction(
-      () => [dataConfiguration?.dataset?.itemIds.length, dataConfiguration?.hiddenCases.length],
+      () => dataConfiguration?.caseDataHash,
       () => {
         if (!pixiPoints) {
           return
@@ -143,7 +152,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
           startAnimation, instanceId
         })
         callRefreshPointPositions(false)
-      }, {name: "respondToHiddenCasesChange", equals: comparer.structural}, dataConfiguration
+      }, {name: "respondToHiddenCasesChange"}, dataConfiguration
     )
     return () => disposer()
   }, [callRefreshPointPositions, dataConfiguration, graphModel, instanceId, pixiPoints, startAnimation])

@@ -1,5 +1,5 @@
 import {observer} from "mobx-react-lite"
-import React, {useCallback, useEffect} from "react"
+import React, {useEffect} from "react"
 import {PixiPoints} from "../../data-display/pixi/pixi-points"
 import {useMapModelContext} from "../hooks/use-map-model-context"
 import {useMapModel} from "../hooks/use-map-model"
@@ -12,19 +12,14 @@ import { DataConfigurationContext } from "../../data-display/hooks/use-data-conf
 import { useTileModelContext } from "../../../hooks/use-tile-model-context"
 
 interface IProps {
-  pixiPointsArrayRef:  React.MutableRefObject<PixiPoints[]>
+  setPixiPointsLayer: (pixiPoints: PixiPoints, layerIndex: number) => void
 }
 
-export const MapInterior = observer(function MapInterior({pixiPointsArrayRef}: IProps) {
+export const MapInterior = observer(function MapInterior({setPixiPointsLayer}: IProps) {
   const mapModel = useMapModelContext()
   const { transitionComplete: tileTransitionComplete } = useTileModelContext()
 
   useMapModel()
-
-  const onSetPixiPointsForLayer = useCallback((pixiPoints: PixiPoints, layerIndex: number) => {
-    pixiPointsArrayRef.current[layerIndex] = pixiPoints
-  }, [pixiPointsArrayRef])
-
 
   // Ensure the map rescales when its tile's CSS transition is complete to compensate for any changes to the tile's
   // size that may have occurred after the map was initially rendered.
@@ -46,7 +41,7 @@ export const MapInterior = observer(function MapInterior({pixiPointsArrayRef}: I
                >
                  <MapPointLayer
                    mapLayerModel={layerModel}
-                   onSetPixiPointsForLayer={onSetPixiPointsForLayer}
+                   setPixiPointsLayer={setPixiPointsLayer}
                  />
                </DataConfigurationContext.Provider>
       }

@@ -49,7 +49,7 @@ context("case table ui", () => {
       const name = "Tallness",
         description = "The average height of the mammal.",
         unit = "meters",
-        newName = "Tallness (meters)",
+        newName = "Tallness(meters)", // this would appear over 2 lines and extra spaces are trimmed
         type = "color",
         precision = null,
         editable = "No"
@@ -58,6 +58,7 @@ context("case table ui", () => {
       table.editAttributeProperties("Height", name, description, type, unit, precision, editable)
       // Verify the attribute has been edited
       table.getAttribute(name).should("have.text", newName)
+
 
       // opening the dialog again should show the updated values
       table.openAttributeMenu(name)
@@ -430,6 +431,8 @@ context("case table ui", () => {
         random1 = +cell.text()
         expect(random1 >= 0).to.eq(true)
         expect(random1 < 1).to.eq(true)
+        // verify cell background color is not white
+        cy.wrap(cell).should("have.css", "background-color", "rgba(255, 255, 0, 0.2)")
       })
       // Rerandomize
       let random2 = 0

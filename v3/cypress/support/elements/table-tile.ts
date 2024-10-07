@@ -4,6 +4,9 @@ type TestValues = Record<string, string[]>
 
 type OptString = string | null | undefined
 
+const isMac = navigator.platform.toLowerCase().includes("mac")
+const metaCtrlKey = isMac ? "Meta" : "Control"
+
 export const TableTileElements = {
   getTableTile(index = 0) {
     return c.getComponentTile("table", index)
@@ -246,6 +249,9 @@ export const TableTileElements = {
   getToggleCardView() {
     return cy.get("[data-testid=case-table-toggle-view]")
   },
+  getToggleCardMessage() {
+    return cy.get('[data-testid="card-table-toggle-message"]')
+  },
   toggleCaseView() {
     this.getToggleCardView().click()
     cy.get("[data-testid=card-table-toggle-message]").click()
@@ -384,19 +390,22 @@ export const TableTileElements = {
   },
   addFormulaInModal(attributeName: string, formula: string) {
     cy.get("[data-testid=attr-name-input]").invoke("attr", "value").should("eq", attributeName)
-    cy.get("[data-testid=attr-formula-input]").type(formula, {force:true})
+    cy.get("[data-testid=formula-editor-input] .cm-content").should("be.visible").and("have.focus")
+    cy.get("[data-testid=formula-editor-input] .cm-content").realType(formula)
     cy.get("[data-testid=Apply-button]").click()
     cy.get("[data-testid=attr-name-input]").should("not.exist")
   },
   clearFormulaInModal(attributeName: string) {
     cy.get("[data-testid=attr-name-input]").invoke("attr", "value").should("eq", attributeName)
-    cy.get("[data-testid=attr-formula-input]").type(`{selectAll}{del}`)
+    cy.get("[data-testid=formula-editor-input] .cm-content").should("be.visible").and("have.focus")
+    cy.get("[data-testid=formula-editor-input] .cm-content").realPress([metaCtrlKey, "A"])
+    cy.get("[data-testid=formula-editor-input] .cm-content").realType("{del}")
     cy.get("[data-testid=Apply-button]").click()
     cy.get("[data-testid=attr-name-input]").should("not.exist")
   },
   checkFormulaInModal(attributeName: string, formula: string) {
     cy.get("[data-testid=attr-name-input]").invoke("attr", "value").should("eq", attributeName)
-    cy.get("[data-testid=attr-formula-input]").should("have.text", formula)
+    cy.get("[data-testid=formula-editor-input] .cm-content").should("have.text", formula)
     cy.get("[data-testid=Cancel-button]").click()
     cy.get("[data-testid=attr-name-input]").should("not.exist")
   },

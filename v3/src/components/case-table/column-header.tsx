@@ -43,6 +43,7 @@ export function ColumnHeader(props: TRenderHeaderCellProps) {
   }, [cellElt])
 
   return <AttributeHeader attributeId={props.column.key}
+            allowTwoLines={true}
             getDividerBounds={getDividerBounds}
             HeaderDivider={AttributeHeaderDivider}
             onSetHeaderContentElt={handleSetHeaderContentElt}

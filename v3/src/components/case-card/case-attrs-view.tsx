@@ -31,7 +31,8 @@ export const CaseAttrsView = observer(function CaseAttrsView({caseItem, collecti
   const cardModel = useCaseCardModel()
   const data = cardModel?.data
   const displayValues = useCaseCardModel()?.displayValues
-  const isCollectionSummarized = !!cardModel?.summarizedCollections.find(cid => cid === collection?.id)
+  const isCollectionSummarized = collection?.cases && collection.cases.length > 0 &&
+                                 !!cardModel?.summarizedCollections.find(cid => cid === collection?.id)
   const contentRef = useRef<HTMLDivElement | null>(null)
   const [, setCellElt] = useState<HTMLElement | null>(null)
   const values: IValueType[] = collection?.attributes.map(attr => {
@@ -64,11 +65,11 @@ export const CaseAttrsView = observer(function CaseAttrsView({caseItem, collecti
         </tr>
         {collection?.attributes.map((attr, index: number) => {
             const metadata = data && getSharedCaseMetadataFromDataset(data)
-            if (!attr || metadata?.isHidden(attr.id) || !caseItem) return null
+            if (!attr || metadata?.isHidden(attr.id)) return null
             return (
               <CaseAttrView
                 key={attr.id}
-                caseId={caseItem.__id__}
+                caseId={caseItem?.__id__}
                 collection={collection}
                 attrId={attr.id}
                 name={attr.name}

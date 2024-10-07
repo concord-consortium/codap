@@ -2,7 +2,7 @@
 
 .case-card-attr {
   height: 25px;
-  
+
   &:nth-child(2) {
     .case-card-attr-value {
       border-top: solid 1px #b2b2b2;
@@ -43,6 +43,11 @@
         height: 25px;
         padding: 4px;
         text-align: left;
+      }
+
+      &.formula-attr-value {
+        background-color: rgba(255, 255, 0, 0.2);
+        font-style: italic;
       }
 
       span {

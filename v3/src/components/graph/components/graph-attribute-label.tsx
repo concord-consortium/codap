@@ -67,7 +67,7 @@ export const GraphAttributeLabel =
       }
       return attrIDs.map(anID => dataset?.attrFromID(anID))
                     .filter(attr => attr?.name !== '')
-                    .map(attr => `${attr?.name} ${attr?.units ? `(${attr?.units})` : ""}`.trim())
+                    .map(attr => `${attr?.name}${attr?.units ? ` (${attr?.units})` : ""}`.trim())
                     .join(', ')
     }, [dataConfiguration?.secondaryRole, dataset, getAttributeIDs, getClickHereCue,
       graphModel.pointsFusedIntoBars, place])

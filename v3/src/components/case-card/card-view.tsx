@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from "react"
 import { observer } from "mobx-react-lite"
+import { mstReaction } from "../../utilities/mst-reaction"
 import { CollectionContext } from "../../hooks/use-collection-context"
 import { AttributeHeaderDividerContext } from "../case-tile-common/use-attribute-header-divider-context"
 import { CaseView } from "./case-view"
@@ -36,10 +37,21 @@ export const CardView = observer(function CardView({onNewCollectionDrop}: CardVi
   // The first time the card is rendered, summarize all collections unless there is a selection.
   useEffect(function startWithAllCollectionsSummarized() {
     if (data?.selection.size === 0) {
-      const allCollections = data?.collections.map(c => c.id) ?? []
-      cardModel?.setSummarizedCollections(allCollections)
+      cardModel?.summarizeAllCollections()
     }
   }, [cardModel, data])
+
+  // When all cases are selected, show summary.
+  useEffect(function showSummaryOnAllCasesSelection() {
+    return mstReaction(
+      () => selectedItems?.size,
+      () => {
+        if (selectedItems?.size === data?.items.length) {
+          cardModel?.summarizeAllCollections()
+        }
+      }, {name: "CardView.showSummaryOnAllCasesSelection"}, data
+    )
+  }, [cardModel, data, selectedItems])
 
   return (
     <div ref={contentRef} className="case-card-content" data-testid="case-card-content">
@@ -58,6 +70,7 @@ export const CardView = observer(function CardView({onNewCollectionDrop}: CardVi
                 className="summary-view-toggle-button"
                 data-testid="summary-view-toggle-button"
                 onClick={handleSummaryButtonClick}
+                disabled={data?.items.length === 0}
               >
                 { areAllCollectionsSummarized
                     ? t("V3.caseCard.summaryButton.showIndividualCases")
