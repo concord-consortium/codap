@@ -1,4 +1,6 @@
-import { hasOwnProperty, isEquivalentArray, isEquivalentSet } from "./js-utils"
+import {
+  hashString, hashStringSet, hashStringSets, hasOwnProperty, isEquivalentArray, isEquivalentSet
+} from "./js-utils"
 
 describe("JavaScript Utilities", () => {
 
@@ -30,4 +32,31 @@ describe("JavaScript Utilities", () => {
     expect(isEquivalentSet(new Set(["a", "a", "b"]), new Set(["a", "b", "b"]))).toBe(true)
   })
 
+  test("hashString", () => {
+    expect(hashString("")).toBe(hashString(""))
+    expect(hashString("")).not.toBe(hashString("a"))
+    expect(hashString("a")).toBe(hashString("a"))
+    expect(hashString("a")).not.toBe(hashString("A"))
+    expect(hashString("a")).not.toBe(hashString("b"))
+    expect(hashString("abcdef")).toBe(hashString("abcdef"))
+    expect(hashString("abcdef")).not.toBe(hashString("abCdef"))
+  })
+
+  test("hashStringSet", () => {
+    expect(hashStringSet([])).toBe(hashStringSet([]))
+    expect(hashStringSet(["a", "b", "c"])).toBe(hashStringSet(["a", "b", "c"]))
+    expect(hashStringSet(["a", "b", "c"])).toBe(hashStringSet(["a", "b", "c"]))
+    expect(hashStringSet(["a", "b", "c"])).toBe(hashStringSet(["c", "b", "a"]))
+    expect(hashStringSet(["a", "b", "c"])).not.toBe(hashStringSet(["a", "b"]))
+    expect(hashStringSet(["a", "b", "c"])).not.toBe(hashStringSet(["a", "b", ""]))
+    expect(hashStringSet(["a", "b", "c"])).not.toBe(hashStringSet(["a", "b", "C"]))
+  })
+
+  test("hashStringSets", () => {
+    expect(hashStringSets([])).toBe(hashStringSets([]))
+    expect(hashStringSets([["a"], ["b"]])).toBe(hashStringSets([["a"], ["b"]]))
+    expect(hashStringSets([["a"]])).not.toBe(hashStringSets([["a"], ["a"]]))
+    expect(hashStringSets([["a"], ["b"]])).not.toBe(hashStringSets([["a"], ["a"]]))
+    expect(hashStringSets([["a"], ["b"]])).not.toBe(hashStringSets([["a"], ["b"], ["c"]]))
+  })
 })

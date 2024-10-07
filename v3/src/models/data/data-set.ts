@@ -62,6 +62,7 @@ import { Formula, IFormula } from "../formula/formula"
 import { applyModelChange } from "../history/apply-model-change"
 import { withoutUndo } from "../history/without-undo"
 import { kAttrIdPrefix, kItemIdPrefix, typeV3Id, v3Id } from "../../utilities/codap-utils"
+import { hashStringSet } from "../../utilities/js-utils"
 import { t } from "../../utilities/translation/translate"
 import { V2Model } from "./v2-model"
 
@@ -316,6 +317,10 @@ export const DataSet = V2Model.named("DataSet").props({
     })
     return attrs
   },
+  get itemIdsHash() {
+    // observable hash of visible (not set aside, not filtered out) item ids
+    return hashStringSet(self.itemIds)
+  },
   get items(): readonly IItem[] {
     return self.itemIds.map(id => ({ __id__: id }))
   },
@@ -545,13 +550,13 @@ export const DataSet = V2Model.named("DataSet").props({
         self.itemIdChildCaseMap.set(caseGroup.childItemIds[0], caseGroup)
       })
       // delete removed items
-      for (const [itemId, itemInfo] of self.itemInfoMap.entries()) {
-        if (itemInfo.caseIds.length === 0) {
-          self.itemInfoMap.delete(itemId)
-          // update selection
-          self.selection.delete(itemId)
-        }
-      }
+      const itemsToValidate = new Set<string>(self.itemInfoMap.keys())
+      self._itemIds.forEach(itemId => itemsToValidate.delete(itemId))
+      itemsToValidate.forEach(itemId => {
+        self.itemInfoMap.delete(itemId)
+        // update selection
+        self.selection.delete(itemId)
+      })
       self.setValidCases()
     }
   }

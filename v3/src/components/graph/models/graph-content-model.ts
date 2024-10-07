@@ -36,6 +36,7 @@ import {
 import {AdornmentsStore} from "../adornments/adornments-store"
 import {getPlottedValueFormulaAdapter} from "../../../models/formula/plotted-value-formula-adapter"
 import {getPlottedFunctionFormulaAdapter} from "../../../models/formula/plotted-function-formula-adapter"
+import {getGraphFilterFormulaAdapter} from "../../../models/formula/graph-filter-formula-adapter"
 import { ICase } from "../../../models/data/data-set-types"
 import { isFiniteNumber } from "../../../utilities/math-utils"
 import { t } from "../../../utilities/translation/translate"
@@ -43,7 +44,8 @@ import { CaseData } from "../../data-display/d3-types"
 
 const getFormulaAdapters = (node?: IAnyStateTreeNode) => [
   getPlottedValueFormulaAdapter(node),
-  getPlottedFunctionFormulaAdapter(node)
+  getPlottedFunctionFormulaAdapter(node),
+  getGraphFilterFormulaAdapter(node),
 ]
 
 export interface GraphProperties {
