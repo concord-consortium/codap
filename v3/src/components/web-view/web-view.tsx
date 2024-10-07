@@ -44,7 +44,7 @@ function WebViewDropOverlay() {
   const info = active && getDragAttributeInfo(active)
   const dataSet = info?.dataSet
   const attributeId = info?.attributeId
-  // Mouse x and y are tracked so we know where the mouse is when a dragged attribute is dropped
+  // Mouse x and y are tracked so we know where the mouse is when a dragged attribute is dropped.
   const mouseX = useRef<number|undefined>()
   const mouseY = useRef<number|undefined>()
 
