@@ -67,8 +67,7 @@ Cypress.Commands.add('dragAttributeToTarget', (source, attribute, target,num=0)=
               y_axis: '.dg-axis-view.dg-v-axis',
               y_axis_label: '.dg-axis-view.dg-v-axis .dg-axis-label',
               mapTile: '.dg.leaflet-container',
-              newCollection: '.dg-table-drop-target',
-              webView: '.codap-web-view-body'
+              newCollection: '.dg-table-drop-target'
             }
 
   var source_el='', target_el='';
@@ -124,9 +123,6 @@ Cypress.Commands.add('dragAttributeToTarget', (source, attribute, target,num=0)=
         break
     case('newCollection'):
         target_el=el.newCollection;
-        break
-    case('webView'):
-        target_el=el.webView
         break
   }
   cy.get(source_el).contains(attribute)
