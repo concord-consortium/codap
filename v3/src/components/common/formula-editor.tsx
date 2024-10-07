@@ -86,7 +86,19 @@ function cmCodapCompletions(context: CompletionContext): CompletionResult | null
   const dataSet = context.state.field(cmDataSetState)
   const options = context.state.field(cmOptionsState)
   const attributes = options?.attributes
-                      ? dataSet?.attributes.map(attr => ({ label: attr.name })) ?? []
+                      ? dataSet?.attributes.map(attr => ({
+                          label: attr.name,
+                          apply: (view: EditorView, completion: Completion, from: number, to: number) => {
+                            let label = completion.label
+                            // if the attribute name has any non-alphanumeric chars, wrap it in backticks
+                            if (/[^\w]/.test(label)) label = `\`${label}\``
+                            // apply the completion
+                            view.dispatch({
+                              ...insertCompletionText(view.state, label, from, to),
+                              annotations: pickedCompletion.of(completion)
+                            })
+                          }
+                        })) ?? []
                       : []
   const constants = options?.constants ? [
     { label: "e" },
