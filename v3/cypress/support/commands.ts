@@ -26,6 +26,7 @@ Cypress.Commands.add("dragAttributeToTarget", (source, attribute, target, target
     newCollection: ".collection-table-spacer.parentMost",
     prevCollection: ".collection-table:nth-child(1) .codap-column-header:nth-child(2)",
     newTopCardCollection: ".case-card-collection-spacer.parentMost",
+    webView: '.codap-web-view-body'
   }
 
   let source_el = "", target_el = ""
@@ -114,6 +115,9 @@ Cypress.Commands.add("dragAttributeToTarget", (source, attribute, target, target
       break
     case ("headerDivider"):
       target_el = el.headerDivider
+      break
+    case('webView'):
+      target_el=el.webView
       break
     default:
       target_el = el.tableColumnHeader
