@@ -4,7 +4,6 @@ import React, { MouseEventHandler, useRef } from "react"
 import { getDragAttributeInfo, useDropHandler } from "../../hooks/use-drag-drop"
 import { useTileModelContext } from "../../hooks/use-tile-model-context"
 import { dragNotification, dragWithPositionNotification } from "../../lib/dnd-kit/dnd-notifications"
-import { getTileInfo } from "../../models/document/tile-utils"
 import { t } from "../../utilities/translation/translate"
 import { ITileBaseProps } from "../tiles/tile-base-props"
 import { useDataInteractiveController } from "./use-data-interactive-controller"
@@ -38,6 +37,7 @@ export const WebViewComponent = observer(function WebViewComponent({ tile }: ITi
 
 // The WebViewDropOverlay broadcasts notifications to plugins as the user drags and drops attributes.
 function WebViewDropOverlay() {
+  const overlayRef = useRef<HTMLElement|null>()
   const { tile, tileId } = useTileModelContext()
   const dropId = `web-view-drop-overlay-${tileId}`
   const { active, setNodeRef } = useDroppable({ id: dropId })
@@ -61,15 +61,9 @@ function WebViewDropOverlay() {
   if (!dataSet || !attributeId) return null
 
   const handleMouseMove: MouseEventHandler<HTMLDivElement> = event => {
-    // Determine position within interactiveFrame based on mouse and tile locations
-    const { position } = getTileInfo(tileId ?? "")
-    const tileX = position?.left ?? 0
-    // TODO Hardcoded header heights
-    const kDocumentHeaderHeight = 94
-    const kTileHeaderHeight = 25
-    const tileY = (position?.top ?? 0) + kDocumentHeaderHeight + kTileHeaderHeight
-    const x = event.clientX - tileX
-    const y = event.clientY - tileY
+    const { top, left } = overlayRef.current?.getBoundingClientRect() ?? { top: 0, left: 0 }
+    const x = event.clientX - left
+    const y = event.clientY - top
 
     if (mouseX.current !== x || mouseY.current !== y) {
       tile?.applyModelChange(() => {}, {
@@ -88,11 +82,16 @@ function WebViewDropOverlay() {
     })
   }
 
+  const setRef = (ref: HTMLDivElement) => {
+    overlayRef.current = ref
+    setNodeRef(ref)
+  }
+
   return <div
     className="codap-web-view-drop-overlay"
     onMouseEnter={() => handleMouseEnterLeave("dragenter")}
     onMouseLeave={() => handleMouseEnterLeave("dragleave")}
     onMouseMove={handleMouseMove}
-    ref={setNodeRef}
+    ref={setRef}
   />
 }
