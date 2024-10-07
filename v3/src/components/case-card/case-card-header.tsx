@@ -26,14 +26,15 @@ export const CaseCardHeader = observer(function CaseView(props: ICaseHeaderProps
   const isCollectionSummarized = !!cardModel?.summarizedCollections.includes(collectionId)
 
   const getDisplayedCaseIndex = () => {
+    if (cases.length === 1) return 0
     let displayedCaseIndex = cases.findIndex(c => data?.isCaseSelected(c.__id__))
-      if (displayedCaseIndex === -1) {
-        // the child case is selected and not the parent, so we need to find the case that has the selected child
-        const selectedItemId = data?.selection && Array.from(data.selection)[0]
-        const selectedCaseId = cardModel?.caseLineage(selectedItemId)?.[level]
-        const selectedCase = collection?.cases.find(c => c.__id__ === selectedCaseId)
-        displayedCaseIndex = cases.findIndex(c => c.__id__ === selectedCase?.__id__)
-      }
+    if (displayedCaseIndex === -1) {
+      // the child case is selected and not the parent, so we need to find the case that has the selected child
+      const selectedItemId = data?.selection && Array.from(data.selection)[0]
+      const selectedCaseId = cardModel?.caseLineage(selectedItemId)?.[level]
+      const selectedCase = collection?.cases.find(c => c.__id__ === selectedCaseId)
+      displayedCaseIndex = cases.findIndex(c => c.__id__ === selectedCase?.__id__)
+    }
     return displayedCaseIndex
   }
 

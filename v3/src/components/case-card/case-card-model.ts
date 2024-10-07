@@ -32,30 +32,26 @@ export const CaseCardModel = TileContentModel
 
       if (!collections || !items || selectedItems?.size === 1) {
         return []
-      } else if (!selectedItems || selectedItems.size === 0 || selectedItems.size === items.length) {
-        return collections?.map(c => c.id) ?? []
-      } else {
-        const collectionIdsToSummarize: string[] = []
-        const summarizeCollectionsRecursively = (index = 0) => {
-          if (index >= collections.length - 1) return
-          const collection = collections[index]
-          const collectionCases = collection.cases
-          const selectedChildrenPerCase = collectionCases.map(collectionCase => {
-            const caseGroup = self.data?.caseInfoMap.get(collectionCase.__id__)
-            if (!caseGroup?.childCaseIds) return 0
-            return caseGroup.childCaseIds.filter(childCaseId => self.data?.isCaseSelected(childCaseId)).length
-          })
-          if (selectedChildrenPerCase.filter(v => v > 0).length > 1) {
+      }
+
+      const collectionIdsToSummarize: string[] = []
+
+      collections.forEach((collection, index) => {
+        if (index < collections.length - 1) {
+          const cases = self.data?.getCasesForCollection(collection.id) ?? []
+          const selectedCount = cases.reduce((count, { __id__ }) => {
+            return self.data?.isCaseSelected(__id__) ? count + 1 : count
+          }, 0)
+          if (cases.length > 1 && selectedCount !== 1) {
             collectionIdsToSummarize.push(collection.id)
           }
-          summarizeCollectionsRecursively(index + 1)
+        } else {
+          // always summarize the last collection
+            collectionIdsToSummarize.push(collection.id)
         }
+      })
 
-        summarizeCollectionsRecursively()
-        // always summarize the last collection
-        collectionIdsToSummarize.push(collections[collections.length - 1].id)
-        return collectionIdsToSummarize
-      }
+      return collectionIdsToSummarize
     }
   }))
   .views(self => ({
