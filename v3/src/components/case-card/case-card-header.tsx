@@ -40,10 +40,19 @@ export const CaseCardHeader = observer(function CaseView(props: ICaseHeaderProps
 
   const getCaseIndexText = () => {
     if (isCollectionSummarized) {
-      const selectionContainsCollectionCases = cases.some(c => data?.isCaseSelected(c.__id__))
-      const summaryTotal = selectionContainsCollectionCases
-                            ? collection?.cases.filter(c => data?.isCaseSelected(c.__id__)).length
-                            : collection?.cases.length
+      let summaryTotal = 0
+      if (data?.selection.size === 0) {
+        summaryTotal = collection?.cases.length ?? 0
+      } else if (!collection?.child) {
+        summaryTotal = collection?.cases.filter(c => data?.isCaseSelected(c.__id__)).length ?? 0
+      } else {
+        const anyChildSelectedCount = collection?.cases.reduce((count, { __id__ }) => {
+          const caseInfo = data?.caseInfoMap.get(__id__)
+          return caseInfo?.childItemIds.some(id => data?.selection?.has(id)) ? count + 1 : count
+        }, 0)
+        summaryTotal = anyChildSelectedCount
+      }
+
       return `${summaryTotal} ${summaryTotal === 1
                                 ? t("DG.DataContext.singleCaseName")
                                 : t("DG.DataContext.pluralCaseName")}`

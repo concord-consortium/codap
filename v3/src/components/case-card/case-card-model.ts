@@ -39,10 +39,11 @@ export const CaseCardModel = TileContentModel
       collections.forEach((collection, index) => {
         if (index < collections.length - 1) {
           const cases = self.data?.getCasesForCollection(collection.id) ?? []
-          const selectedCount = cases.reduce((count, { __id__ }) => {
-            return self.data?.isCaseSelected(__id__) ? count + 1 : count
+          const anyChildSelectedCount = cases.reduce((count, { __id__ }) => {
+            const caseInfo = self.data?.caseInfoMap.get(__id__)
+            return caseInfo?.childItemIds.some(id => selectedItems?.has(id)) ? count + 1 : count
           }, 0)
-          if (cases.length > 1 && selectedCount !== 1) {
+          if (cases.length > 1 && anyChildSelectedCount !== 1) {
             collectionIdsToSummarize.push(collection.id)
           }
         } else {
