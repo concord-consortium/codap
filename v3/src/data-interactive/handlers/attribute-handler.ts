@@ -93,16 +93,12 @@ export const diAttributeHandler: DIHandler = {
         const cancelable = true
 
         // Determine position of drag
-        let height = 10
-        let width = 10
         let clientX = 0
         let clientY = 0
         const { interactiveFrame } = resources
         const row = appState.document.content?.firstRow
         if (interactiveFrame && row && isFreeTileRow(row)) {
           const layout = (row.getTileLayout(interactiveFrame.id) ?? { x: 0, y: 0 }) as IFreeTileLayout
-          height = layout.height ?? height
-          width = layout.width ?? width
           clientX = layout.x
           clientY = layout.y
         }

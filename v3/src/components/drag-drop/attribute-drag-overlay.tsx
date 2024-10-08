@@ -24,8 +24,8 @@ export function AttributeDragOverlay ({ activeDragId, overlayHeight, overlayWidt
   }
 
   // Drags initiated by plugins can specify the size of the overlay
-  const style: CSSProperties | undefined = overlayHeight || overlayWidth ?
-    { height: `${overlayHeight}px`, width: `${overlayWidth}px` } : undefined
+  const style: CSSProperties | undefined = overlayHeight || overlayWidth
+    ? { height: `${overlayHeight}px`, width: `${overlayWidth}px` } : undefined
 
   // Drags initiated by plugins have to be offset based on the location of the plugin
   const modifier = (xOffset || yOffset) && ((args: any) => {
