@@ -1,5 +1,5 @@
 import {
-  Button, FormControl, FormLabel, Input, ModalBody, ModalCloseButton, ModalFooter, ModalHeader,
+  Button, Flex, FormControl, FormLabel, Input, Menu, MenuButton, MenuGroup, MenuItem, MenuList, ModalBody, ModalCloseButton, ModalFooter, ModalHeader,
   Textarea, Tooltip
 } from "@chakra-ui/react"
 import React, { useEffect, useState } from "react"
@@ -10,6 +10,7 @@ import { updateAttributesNotification, updateCasesNotification } from "../../../
 import { t } from "../../../utilities/translation/translate"
 import { CodapModal } from "../../codap-modal"
 
+import functionStringMap from "../../../assets/json/function_strings.json"
 import "./attribute-menu.scss"
 
 interface IProps {
@@ -53,7 +54,101 @@ export const EditFormulaModal = observer(function EditFormulaModal({ attributeId
 
   const handleFormulaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => setFormula(e.target.value)
 
-  const buttons = [{
+  const renderOperandMenu = () => {
+    console.log("openOperandMenu clicked")
+    const attributeNames = dataSet?.attributes.map(attr => attr.name)
+    return (
+      <Menu>
+        <MenuButton ml="5" _hover={{backgroundColor: "#72bfca", color: "white"}} data-testid="formula-operand-button">
+          {t("DG.AttrFormView.operandMenuTitle")}
+        </MenuButton>
+        <MenuGroup>
+          <MenuList>
+            {attributeNames?.map((attrName) => {
+              return (
+                <MenuItem key={attrName} onClick={() => setFormula(formula + attrName)}>
+                  {attrName}
+                </MenuItem>
+              )
+            })}
+          </MenuList>
+        </MenuGroup>
+        <MenuGroup>
+          <MenuList>
+            <MenuItem onClick={() => setFormula(`${formula  }caseIndex`)}>caseIndex</MenuItem>
+          </MenuList>
+        </MenuGroup>
+        <MenuGroup>
+          <MenuList>
+            <MenuItem onClick={() => setFormula(`${formula  }e`)}>e</MenuItem>
+            <MenuItem onClick={() => setFormula(`${formula  }false`)}>false</MenuItem>
+            <MenuItem onClick={() => setFormula(`${formula  }true`)}>true</MenuItem>
+            <MenuItem onClick={() => setFormula(`${formula  }π`)}>π</MenuItem>
+          </MenuList>
+        </MenuGroup>
+      </Menu>
+    )
+  }
+
+  const insertFunctionToFormula = (func: any) => {
+    console.log("insertFunctionToFormula clicked")
+    // insert the function to the formula
+    setFormula(formula + func.function)
+  }
+
+  const showFunctionsList = (category: string) => {
+    console.log("showFunctionsList clicked")
+    // get functions list for the category
+    const categoryObj = functionStringMap.find((categoryItem) => categoryItem.category === category)
+    console.log(categoryObj)
+    // show a menu of a list of functions
+    return (
+      <Menu>
+        <MenuList>
+          {categoryObj?.functions.map((func) => {
+            return (
+              <MenuItem className="function-menu-item" key={func.displayName}
+                        onClick={()=>insertFunctionToFormula(func)}>
+                <span className="function-menu-name">{func.displayName}</span>
+                <span className="function-info-button" data-testid="function-info-button">ⓘ</span>
+              </MenuItem>
+            )
+          })}
+        </MenuList>
+      </Menu>
+    )
+  }
+
+  const renderFunctionMenu = () => {
+    console.log("openFunctionMenu clicked")
+    //get the displayName for the categories from the functionStringMap
+    const functionCategories = functionStringMap.map((category) => {
+      // console.log("category: ", category, "displayName: ", category.displayName)
+      return category.displayName
+    })
+    // console.log(functionCategories)
+    // show a menu of a list of category.displayName
+    return (
+      <Menu>
+        <MenuButton ml="5" _hover={{backgroundColor: "#72bfca", color: "white"}} data-testid="formula-function-button">
+          {t("DG.AttrFormView.functionMenuTitle")}
+        </MenuButton>
+        <MenuList>
+          {functionStringMap.map((category) => {
+            console.log("category: ", category)
+            return (
+              <MenuItem key={category.category} onClick={()=>showFunctionsList(category.category)}>
+                {category.displayName} Functions
+              </MenuItem>
+            )
+          })}
+        </MenuList>
+      </Menu>
+    )
+
+  }
+
+  const footerButtons = [{
     label: t("DG.AttrFormView.cancelBtnTitle"),
     tooltip: t("DG.AttrFormView.cancelBtnTooltip"),
     onClick: closeModal
@@ -87,10 +182,14 @@ export const EditFormulaModal = observer(function EditFormulaModal({ attributeId
               onKeyDown={(e) => e.stopPropagation()} data-testid="attr-formula-input" />
           </FormLabel>
         </FormControl>
+        <Flex flexDirection="row" justifyContent="space-between">
+          {renderOperandMenu()}
+          {renderFunctionMenu()}
+        </Flex>
       </ModalBody>
       <ModalFooter mt="-5">
         {
-          buttons.map((b, idx) => {
+          footerButtons.map((b, idx) => {
             const key = `${idx}-${b.label}`
             return (
               <Tooltip key={idx} label={b.tooltip} h="20px" fontSize="12px" color="white" openDelay={1000}
