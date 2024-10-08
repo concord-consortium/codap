@@ -9,6 +9,7 @@ import { logMessageWithReplacement, logStringifiedObjectMessage } from "../../li
 import { isFreeTileRow } from "../../models/document/free-tile-row"
 import { isMosaicTileRow } from "../../models/document/mosaic-tile-row"
 import { getSharedModelManager } from "../../models/tiles/tile-environment"
+import { uiState } from "../../models/ui-state"
 import { urlParams } from "../../utilities/url-params"
 import { AttributeDragOverlay } from "../drag-drop/attribute-drag-overlay"
 import { PluginAttributeDrag } from "../drag-drop/plugin-attribute-drag"
@@ -71,7 +72,13 @@ export const Container: React.FC = () => {
         {isFreeTileRow(row) &&
           <FreeTileRowComponent row={row} getTile={getTile} onCloseTile={handleCloseTile}/>}
         <PluginAttributeDrag />
-        <AttributeDragOverlay activeDragId={getOverlayDragId(active, "plugin")} />
+        <AttributeDragOverlay
+          activeDragId={getOverlayDragId(active, "plugin")}
+          overlayHeight={uiState.draggingOverlayHeight}
+          overlayWidth={uiState.draggingOverlayWidth}
+          xOffset={uiState.draggingXOffset}
+          yOffset={uiState.draggingYOffset}
+        />
       </div>
     </DocumentContainerContext.Provider>
   )

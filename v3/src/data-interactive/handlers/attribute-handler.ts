@@ -91,41 +91,38 @@ export const diAttributeHandler: DIHandler = {
         // General properties of events
         const bubbles = true
         const cancelable = true
-        // const isPrimary = true
-        // const pointerId = Date.now()
-        // const pointerType = "mouse"
 
         // Determine position of drag
         let height = 10
         let width = 10
-        let x = 0
-        let y = 0
+        let clientX = 0
+        let clientY = 0
         const { interactiveFrame } = resources
         const row = appState.document.content?.firstRow
         if (interactiveFrame && row && isFreeTileRow(row)) {
           const layout = (row.getTileLayout(interactiveFrame.id) ?? { x: 0, y: 0 }) as IFreeTileLayout
           height = layout.height ?? height
           width = layout.width ?? width
-          x = layout.x
-          y = layout.y
+          clientX = layout.x
+          clientY = layout.y
         }
-        const clientX = x + (width / 2)
-        const clientY = y + (height / 2)
+
+        const { overlayHeight, overlayWidth } = (values ?? {}) as DINotifyAttribute
+        uiState.setDraggingOverlayHeight(overlayHeight)
+        uiState.setDraggingOverlayWidth(overlayWidth)
+        uiState.setDraggingXOffset(clientX - (overlayWidth ?? 0) / 2)
+        // TODO Hard coded header height
+        const kCodapHeaderHeight = 94
+        uiState.setDraggingYOffset(clientY - kCodapHeaderHeight - (overlayHeight ?? 0))
 
         // Dispatch events that will trigger a drag start
         // A setTimeout is used to ensure that hooks are updated before the drag begins
         setTimeout(() => {
-          // pluginAttributeDrag.dispatchEvent(new PointerEvent("pointerdown", {
-          //   bubbles, cancelable, clientX, clientY, isPrimary, pointerId, pointerType
-          // }))
-          // document.dispatchEvent(new PointerEvent("pointermove", {
-          //   bubbles, cancelable, clientX: clientX + 10, clientY: clientY + 10, isPrimary, pointerId, pointerType
-          // }))
           pluginAttributeDrag.dispatchEvent(new MouseEvent("mousedown", {
-            bubbles, cancelable, clientX, clientY
+            bubbles, cancelable, clientX: clientX - 10, clientY: clientY - 10
           }))
           document.dispatchEvent(new MouseEvent("mousemove", {
-            bubbles, cancelable, clientX: clientX + 10, clientY: clientY + 10
+            bubbles, cancelable, clientX, clientY
           }))
         })
       }

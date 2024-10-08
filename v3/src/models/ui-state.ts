@@ -44,8 +44,11 @@ export class UIState {
   private _interruptionCount = 0
 
   @observable private _draggingDatasetId = ""
-
   @observable private _draggingAttributeId = ""
+  @observable private _draggingXOffset = 0
+  @observable private _draggingYOffset = 0
+  @observable private _draggingOverlayHeight = 100
+  @observable private _draggingOverlayWidth = 100
 
   constructor() {
     makeObservable(this)
@@ -81,6 +84,22 @@ export class UIState {
 
   get draggingAttributeId() {
     return this._draggingAttributeId
+  }
+
+  get draggingXOffset() {
+    return this._draggingXOffset
+  }
+
+  get draggingYOffset() {
+    return this._draggingYOffset
+  }
+
+  get draggingOverlayHeight() {
+    return this._draggingOverlayHeight
+  }
+
+  get draggingOverlayWidth() {
+    return this._draggingOverlayWidth
   }
 
   isFocusedTile(tileId?: string) {
@@ -141,6 +160,22 @@ export class UIState {
 
   @action setDraggingAttributeId(attributeId?: string) {
     this._draggingAttributeId = attributeId ?? ""
+  }
+
+  @action setDraggingXOffset(offset = 0) {
+    this._draggingXOffset = offset
+  }
+
+  @action setDraggingYOffset(offset = 0) {
+    this._draggingYOffset = offset
+  }
+
+  @action setDraggingOverlayHeight(height = 100) {
+    this._draggingOverlayHeight = height
+  }
+
+  @action setDraggingOverlayWidth(width = 100) {
+    this._draggingOverlayWidth = width
   }
 
   getRulerStateVisibility(key: RulerStateKey) {

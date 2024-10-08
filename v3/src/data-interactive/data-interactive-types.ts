@@ -42,6 +42,8 @@ export interface DIAllCases {
 }
 export type DIAttribute = Partial<ICodapV2Attribute>
 export interface DINotifyAttribute {
+  overlayHeight?: number
+  overlayWidth?: number
   request?: string
 }
 export interface DIAttributeLocationValues {
