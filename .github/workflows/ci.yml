@@ -6,6 +6,10 @@ on:
       - 'v3/**'   # https://docs.github.com/en/actions/using-workflows/triggering-a-workflow#example-excluding-paths
       - '.github/workflows/v3.yml'
       - '.github/workflows/build-num-increment.yml'
+      - '.github/workflows/run-regression-label.yml'
+      - '.github/workflows/v3-regression.yml'
+      - '.github/workflows/release-v3-production.yml'
+      - '.github/workflows/release-v3-staging.yml'
     tags-ignore:
       - '3.*'
     branches-ignore:
