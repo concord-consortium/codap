@@ -9,7 +9,6 @@ import "./plugin-attribute-drag.scss"
 
 export const PluginAttributeDrag = observer(function PluginAttributeDrag() {
   const dataSet = getDataSetFromId(appState.document, uiState.draggingDatasetId)
-  console.log(`+++ PluginAttributeDrag`, uiState.draggingAttributeId)
   const { attributes, listeners, setNodeRef } = useDraggableAttribute({
     attributeId: uiState.draggingAttributeId,
     dataSet,
