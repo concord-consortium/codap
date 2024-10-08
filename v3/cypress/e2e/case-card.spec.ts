@@ -428,7 +428,6 @@ context("case card inspector panel", () => {
       card.getHideShowButton().click()
       cy.wait(500)
       card.getShowAllHiddenAttributesButton().should("be.disabled")
-      // FIXME: Reinstate the below after figuring out why clicking attribute buttons does nothing in Cypress
       cy.get('[data-testid="case-card-attr-name"]').eq(8).click()
       cy.get('[data-testid="attribute-menu-list"]').should("be.visible")
       cy.get('[data-testid="attribute-menu-list"]').find("button").contains("Hide Attribute").click()
