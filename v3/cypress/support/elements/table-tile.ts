@@ -411,7 +411,7 @@ export const TableTileElements = {
   },
   addFilterFormulaInModal(formula: string) {
     this.getHideShowButton().click()
-    this.getHideShowMenuItem("Edit Filter Formula...").click()
+    this.getHideShowMenuItem(/(Add|Edit) Filter Formula.../).click()
     cy.get(".codap-modal-content [data-testid=attr-formula-input]").type(`{selectAll}{del}${formula}`)
     cy.get(".codap-modal-content [data-testid=Apply-button]").should("be.visible").click()
     cy.get("[data-testid=Apply-button]").click()
