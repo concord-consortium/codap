@@ -132,7 +132,7 @@ context("case card", () => {
       cy.get('[data-testid="case-card-view-next-button"]').should("have.length", 2).and("not.be.disabled")
       cy.get('[data-testid="case-card-view-index"]').should("have.length", 2)
       cy.get('[data-testid="case-card-view-index"]').eq(0).should("have.text", "12 cases")
-      cy.get('[data-testid="case-card-view-index"]').eq(1).should("have.text", "2 cases")
+      cy.get('[data-testid="case-card-view-index"]').eq(1).should("have.text", "27 cases")
       cy.get('[data-testid="case-card-attrs"]').should("have.length", 2)
       cy.get('[data-testid="case-card-attrs"]').eq(0).find('[data-testid="case-card-attr"]').should("have.length", 1)
       cy.get('[data-testid="case-card-attrs"]').eq(0).find('[data-testid="case-card-attr-name"]')
@@ -243,6 +243,7 @@ context("case card", () => {
       table.toggleCaseView()
       cy.wait(500)
       cy.get('[data-testid="case-card-view"]').should("have.length", 3)
+      cy.get('[data-testid="case-card-view-next-button"]').eq(0).click()
       cy.log("Add new case to 'middle' collection.")
       cy.get('[data-testid="case-card-view"]').eq(1).find('[data-testid="case-card-view-index"]')
                                                  .eq(0).should("have.text", "4 cases")
@@ -267,7 +268,7 @@ context("case card", () => {
       // Check for undo/redo after adding a new case
       toolbar.getUndoTool().click()
       cy.get('[data-testid="case-card-view"]').eq(1).find('[data-testid="case-card-view-index"]')
-                                                  .eq(0).should("have.text", "4 cases")
+                                                  .eq(0).should("have.text", "14 cases")
 
 /* Note that selection is not guaranteed to be restored on undo/redo.
 
@@ -284,6 +285,36 @@ context("case card", () => {
       cy.get('[data-testid="case-card-view"]').eq(1).find('[data-testid="case-card-attr-value"]')
                                                   .eq(0).should("contain.text", "New Order")
 */
+    })
+    it("adds a new case with the correct parent values depending on what is selected", () => {
+      table.moveAttributeToParent("Order", "newCollection")
+      cy.wait(500)
+      table.moveAttributeToParent("Diet", "newCollection")
+      cy.wait(500)
+      table.toggleCaseView()
+      cy.wait(500)
+      cy.get('[data-testid="case-card-view"]').should("have.length", 3)
+
+      // when no cases are selected, should always add a case to the root level
+      cy.get('[data-testid="case-card-view"]').eq(0).find('[data-testid="case-card-view-index"]')
+                                                 .eq(0).should("have.text", "3 cases")
+      cy.get('[data-testid="case-card-view"]').eq(2).find('[data-testid="add-case-button"]')
+                                                 .eq(0).click()
+      cy.get('[data-testid="case-card-view"]').eq(0).find('[data-testid="case-card-view-index"]')
+                                                 .eq(0).should("have.text", "4 of 4")
+
+      // toolbar.getUndoTool().click()
+      // cy.get('[data-testid="case-card-view-next-button"]').eq(0).click()
+      // cy.get('[data-testid="case-card-view"]').eq(1).find('[data-testid="case-card-view-index"]')
+      //                                            .eq(0).should("have.text", "4 cases")
+      // cy.get('[data-testid="case-card-view"]').eq(1).find('[data-testid="add-case-button"]')
+      //                                            .eq(0).click()
+      // cy.get('[data-testid="case-card-view"]').eq(1).find('[data-testid="case-card-view-index"]')
+      //                                            .eq(0).should("have.text", "5 of 5")
+      // cy.get('[data-testid="case-card-view"]').eq(0).find('[data-testid="case-card-attr-value-text-editor"]')
+      //                                            .eq(0).should("have.text", "plants")
+      // cy.get('[data-testid="case-card-view"]').eq(1).find('[data-testid="case-card-attr-value-text-editor"]')
+      //                                            .eq(0).should("have.text", "")
     })
     it("allows a user to drag an attribute to a new collection", () => {
       table.toggleCaseView()
@@ -348,16 +379,16 @@ context("case card inspector panel", () => {
       cy.wait(500)
       cy.get('[data-testid="trash-menu-list"]').should("be.visible")
       card.getDeleteSelectedCasesButton().click()
+      cy.get('[data-testid="case-card-view-index"]').should("have.text", "26 cases")
+      cy.get('[data-testid="case-card-attr-value"]').first().should("have.text", "26 values")
+      cy.get('[data-testid="case-card-view-next-button"]').click()
       cy.get('[data-testid="case-card-view-index"]').should("have.text", "1 of 26")
       cy.get('[data-testid="case-card-attr-value"]').first().should("have.text", "Asian Elephant")
-      cy.get('[data-testid="case-card-view-next-button"]').click()
-      cy.get('[data-testid="case-card-view-index"]').should("have.text", "2 of 26")
-      cy.get('[data-testid="case-card-attr-value"]').first().should("have.text", "Big Brown Bat")
       card.getDeleteCasesButton().click()
       cy.wait(500)
       card.getDeleteUnselectedCasesButton().click()
       cy.get('[data-testid="case-card-view-index"]').should("have.text", "1 of 1")
-      cy.get('[data-testid="case-card-attr-value"]').first().should("have.text", "Big Brown Bat")
+      cy.get('[data-testid="case-card-attr-value"]').first().should("have.text", "Asian Elephant")
     })
     it("allows user to set aside and restore cases from inspector panel", () => {
       table.toggleCaseView()
@@ -373,8 +404,8 @@ context("case card inspector panel", () => {
       card.getRestoreSetAsideCasesButton().should("be.disabled").and("have.text", "Restore 0 Set Aside Cases")
       // resorting to {force: true} because this is failing in CI, though it passes locally
       card.getSetAsideSelectedCasesButton().click({force: true})
-      cy.get('[data-testid="case-card-view-index"]').should("have.text", "1 of 26")
-      cy.get('[data-testid="case-card-attr-value"]').first().should("have.text", "Asian Elephant")
+      cy.get('[data-testid="case-card-view-index"]').should("have.text", "26 cases")
+      cy.get('[data-testid="case-card-attr-value"]').first().should("have.text", "26 values")
       card.getHideShowButton().click()
       cy.wait(500)
       card.getRestoreSetAsideCasesButton().should("not.be.disabled").and("have.text", "Restore 1 Set Aside Cases")
@@ -397,7 +428,6 @@ context("case card inspector panel", () => {
       card.getHideShowButton().click()
       cy.wait(500)
       card.getShowAllHiddenAttributesButton().should("be.disabled")
-      // FIXME: Reinstate the below after figuring out why clicking attribute buttons does nothing in Cypress
       cy.get('[data-testid="case-card-attr-name"]').eq(8).click()
       cy.get('[data-testid="attribute-menu-list"]').should("be.visible")
       cy.get('[data-testid="attribute-menu-list"]').find("button").contains("Hide Attribute").click()

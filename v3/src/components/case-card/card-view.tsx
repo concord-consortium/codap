@@ -1,6 +1,5 @@
-import React, { useEffect, useRef } from "react"
+import React, { useRef } from "react"
 import { observer } from "mobx-react-lite"
-import { mstReaction } from "../../utilities/mst-reaction"
 import { CollectionContext } from "../../hooks/use-collection-context"
 import { AttributeHeaderDividerContext } from "../case-tile-common/use-attribute-header-divider-context"
 import { CaseView } from "./case-view"
@@ -18,40 +17,30 @@ export const CardView = observer(function CardView({onNewCollectionDrop}: CardVi
   const cardModel = useCaseCardModel()
   const data = cardModel?.data
   const collections = data?.collections
-  const areAllCollectionsSummarized = !!collections?.every(c => cardModel?.summarizedCollections.includes(c.id))
   const rootCollection = collections?.[0]
   const selectedItems = data?.selection
   const selectedItemId = selectedItems && Array.from(selectedItems)[0]
   const selectedItemLineage = cardModel?.caseLineage(selectedItemId)
   const contentRef = useRef<HTMLDivElement>(null)
+  const summarizedCollections = cardModel?.summarizedCollections || []
+  const isInSummaryMode = summarizedCollections.length > 0
 
-  const handleSelectCases = (caseIds: string[], collectionId: string) => {
-    cardModel?.setShowSummary(caseIds.length > 1, collectionId)
+  const handleSelectCases = (caseIds: string[]) => {
     data?.setSelectedCases(caseIds)
   }
 
   const handleSummaryButtonClick = () => {
-    cardModel?.setShowSummary(!areAllCollectionsSummarized)
-  }
-
-  // The first time the card is rendered, summarize all collections unless there is a selection.
-  useEffect(function startWithAllCollectionsSummarized() {
-    if (data?.selection.size === 0) {
-      cardModel?.summarizeAllCollections()
+    if (isInSummaryMode) {
+      // select the first child-most case
+      const firstItemId = data?.itemIds[0]
+      const firstItemLineage = cardModel?.caseLineage(firstItemId)
+      if (firstItemLineage) {
+        data?.setSelectedCases([firstItemLineage[firstItemLineage.length - 1]])
+      }
+    } else {
+      data?.setSelectedCases([])
     }
-  }, [cardModel, data])
-
-  // When all cases are selected, show summary.
-  useEffect(function showSummaryOnAllCasesSelection() {
-    return mstReaction(
-      () => selectedItems?.size,
-      () => {
-        if (selectedItems?.size === data?.items.length) {
-          cardModel?.summarizeAllCollections()
-        }
-      }, {name: "CardView.showSummaryOnAllCasesSelection"}, data
-    )
-  }, [cardModel, data, selectedItems])
+  }
 
   return (
     <div ref={contentRef} className="case-card-content" data-testid="case-card-content">
@@ -72,7 +61,7 @@ export const CardView = observer(function CardView({onNewCollectionDrop}: CardVi
                 onClick={handleSummaryButtonClick}
                 disabled={data?.items.length === 0}
               >
-                { areAllCollectionsSummarized
+                { isInSummaryMode
                     ? t("V3.caseCard.summaryButton.showIndividualCases")
                     : t("V3.caseCard.summaryButton.showSummary")
                 }
