@@ -74,6 +74,7 @@ module.exports = (env, argv) => {
       filename: 'assets/index.[contenthash].js',
     },
     infrastructureLogging: {
+      level: 'verbose',
       debug: true
     },
     cache: {
