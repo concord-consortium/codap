@@ -99,6 +99,8 @@ jobs:
           key: ${{ github.head_ref || github.ref_name }}-webpack-dev-build
           restore-keys: |
             main-webpack-dev-build
+      - name: Print Webpack Cache
+        run: ls -R v3/node_modules/.cache/webpack/
       - uses: cypress-io/github-action@v6
         with:
           working-directory: v3
