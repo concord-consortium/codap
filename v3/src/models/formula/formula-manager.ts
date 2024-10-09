@@ -1,58 +1,18 @@
 import { comparer, makeObservable, observable, reaction, action } from "mobx"
 import { addDisposer } from "mobx-state-tree"
-import { ICase } from "../data/data-set-types"
-import { CaseList } from "./formula-types"
 import { IDataSet } from "../data/data-set"
+import { ICase } from "../data/data-set-types"
 import { IGlobalValueManager } from "../global/global-value-manager"
 import { IFormula } from "./formula"
+import { IFormulaExtraMetadata, IFormulaManagerAdapter, IFormulaMetadata } from "./formula-manager-types"
 import {
   observeGlobalValues, observeLocalAttributes, observeLookupDependencies, observeSymbolNameChanges
 } from "./formula-observers"
+import { CaseList } from "./formula-types"
+import { canonicalToDisplay, displayToCanonical } from "./utils/canonicalization-utils"
+import { getFormulaDependencies } from "./utils/formula-dependency-utils"
 import { formulaError } from "./utils/misc"
 import { getCanonicalNameMap, getDisplayNameMap } from "./utils/name-mapping-utils"
-import { getFormulaDependencies } from "./utils/formula-dependency-utils"
-import { canonicalToDisplay, displayToCanonical } from "./utils/canonicalization-utils"
-
-export interface IFormulaMetadata {
-  formula: IFormula
-  registeredDisplay: string
-  isInitialized: boolean
-  adapter: IFormulaManagerAdapter
-  dispose?: () => void
-}
-
-// Note that specific formula adapters might extend this interface and provide more information.
-// `dataSetId` is the required minimum, as each formula is always associated with a single data set that is considered
-// to be the "local one" (e.g. any formula's symbol is resolved to an attribute of this data set).
-export interface IFormulaExtraMetadata {
-  dataSetId: string
-  attributeId?: string
-  defaultArgument?: string
-}
-
-export interface IFormulaContext {
-  formula: IFormula
-  dataSet: IDataSet
-}
-
-export interface IFormulaAdapterApi {
-  getDatasets: () => Map<string, IDataSet>
-  getGlobalValueManager: () => IGlobalValueManager | undefined
-  getFormulaContext(formulaId: string): IFormulaContext
-  getFormulaExtraMetadata(formulaId: string): IFormulaExtraMetadata
-}
-
-export interface IFormulaManagerAdapter {
-  type: string
-  // This method returns all the formulas supported by this adapter. It should exclusively return formulas that need
-  // active tracking and recalculation whenever any of their dependencies change. The adapter might opt not to return
-  // formulas that currently shouldn't be recalculated, such as when the formula's adornment is hidden.
-  getActiveFormulas: () => ({ formula: IFormula, extraMetadata: any })[]
-  recalculateFormula: (formulaContext: IFormulaContext, extraMetadata: any, casesToRecalculateDesc?: CaseList) => void
-  setFormulaError: (formulaContext: IFormulaContext, extraMetadata: any, errorMsg: string) => void
-  getFormulaError: (formulaContext: IFormulaContext, extraMetadata: any) => undefined | string
-  setupFormulaObservers?: (formulaContext: IFormulaContext, extraMetadata: any) => () => void
-}
 
 export class FormulaManager {
   formulaMetadata = new Map<string, IFormulaMetadata>()
@@ -256,6 +216,8 @@ export class FormulaManager {
       isInitialized: false
     })
     this.extraMetadata.set(formula.id, extraMetadata)
+    // unregister formulas when they're destroyed
+    addDisposer(formula, () => this.unregisterFormula(formula.id))
   }
 
   registerFormulaErrors(formulaId: string) {
@@ -303,9 +265,6 @@ export class FormulaManager {
     const { dataSet } = formulaContext
     const { formula, adapter } = formulaMetadata
     const { defaultArgument } = extraMetadata
-
-    // unregister formulas when they're destroyed
-    addDisposer(formula, () => this.unregisterFormula(formulaId))
 
     if (formula.empty) {
       return

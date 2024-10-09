@@ -3,17 +3,13 @@ import { addDisposer, onAction } from "mobx-state-tree"
 import { DIMessage } from "../../data-interactive/iframe-phone-types"
 import { ILogMessage } from "../../lib/log-message"
 import { Logger } from "../../lib/logger"
+import { createFormulaAdapters } from "../formula/formula-adapter-registry"
+import { FormulaManager } from "../formula/formula-manager"
+import { ISharedDataSet, SharedDataSet, kSharedDataSetType } from "../shared/shared-data-set"
 import { ITileEnvironment } from "../tiles/tile-environment"
 import { DocumentModel, IDocumentModelSnapshot } from "./document"
 import { IDocumentEnvironment } from "./document-environment"
 import { SharedModelDocumentManager } from "./shared-model-document-manager"
-import { FormulaManager } from "../formula/formula-manager"
-import { AttributeFormulaAdapter } from "../formula/attribute-formula-adapter"
-import { FilterFormulaAdapter } from "../formula/filter-formula-adapter"
-import { PlottedValueFormulaAdapter } from "../formula/plotted-value-formula-adapter"
-import { PlottedFunctionFormulaAdapter } from "../formula/plotted-function-formula-adapter"
-import { GraphFilterFormulaAdapter } from "../formula/graph-filter-formula-adapter"
-import { ISharedDataSet, SharedDataSet, kSharedDataSetType } from "../shared/shared-data-set"
 
 /**
  * Create a DocumentModel and add a new sharedModelManager into its environment
@@ -34,13 +30,7 @@ export const createDocumentModel = (snapshot?: IDocumentModelSnapshot) => {
     const document = DocumentModel.create(snapshot, fullEnvironment)
 
     // initialize formula adapters after the document has been created
-    formulaManager.addAdapters([
-      new AttributeFormulaAdapter(adapterApi),
-      new FilterFormulaAdapter(adapterApi),
-      new PlottedValueFormulaAdapter(adapterApi),
-      new PlottedFunctionFormulaAdapter(adapterApi),
-      new GraphFilterFormulaAdapter(adapterApi)
-    ])
+    setTimeout(() => formulaManager.addAdapters(createFormulaAdapters(adapterApi)))
 
     addDisposer(document, onAction(document, (call) => {
       if (!document.content || !call.path?.match(/\/content\/tileMap\//)) {

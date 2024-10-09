@@ -8,6 +8,7 @@ import { kPlottedFunctionClass, kPlottedFunctionLabelKey, kPlottedFunctionPrefix
 import { AdornmentCheckbox } from "../adornment-checkbox"
 import { PlottedFunctionAdornmentBanner } from "./plotted-function-adornment-banner"
 import { PlottedFunctionAdornmentComponent } from "./plotted-function-adornment-component"
+import { PlottedFunctionFormulaAdapter } from "./plotted-function-formula-adapter"
 
 const Controls = () => {
   return (
@@ -18,6 +19,8 @@ const Controls = () => {
     />
   )
 }
+
+PlottedFunctionFormulaAdapter.register()
 
 registerAdornmentContentInfo({
   type: kPlottedFunctionType,

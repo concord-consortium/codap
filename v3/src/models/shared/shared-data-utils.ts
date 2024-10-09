@@ -1,4 +1,4 @@
-import { IAnyStateTreeNode } from "@concord-consortium/mobx-state-tree"
+import { IAnyStateTreeNode } from "mobx-state-tree"
 import { toV2Id } from "../../utilities/codap-utils"
 import { IDataSet } from "../data/data-set"
 import { ITileContentModel } from "../tiles/tile-content"

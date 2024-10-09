@@ -337,6 +337,53 @@ context("case table ui", () => {
       })
     })
 
+    it("behaves as expected with a filter formula", () => {
+      let initialCaseCount = 0
+
+      const caseCount = (rowCount?: string) => rowCount ? +rowCount - 2 : 0
+
+      // Get initial row count
+      table.getNumOfRows().then(rowCount => {
+        initialCaseCount = caseCount(rowCount)
+      })
+
+      // add a filter formula
+      table.addFilterFormulaInModal(`Diet="meat"`)
+      table.getNumOfRows().then(rowCount => expect(caseCount(rowCount)).to.eq(11))
+
+      // change the filter formula
+      table.addFilterFormulaInModal(`Diet="plants"`)
+      table.getNumOfRows().then(rowCount => expect(caseCount(rowCount)).to.eq(7))
+
+      // remove the filter formula
+      table.addFilterFormulaInModal("")
+      table.getNumOfRows().then(rowCount => expect(caseCount(rowCount)).to.eq(initialCaseCount))
+
+      // undo the removal of the filter formula
+      toolbar.getUndoTool().click()
+      table.getNumOfRows().then(rowCount => expect(caseCount(rowCount)).to.eq(7))
+
+      // undo the filter formula change
+      toolbar.getUndoTool().click()
+      table.getNumOfRows().then(rowCount => expect(caseCount(rowCount)).to.eq(11))
+
+      // undo the addition of the filter formula
+      toolbar.getUndoTool().click()
+      table.getNumOfRows().then(rowCount => expect(caseCount(rowCount)).to.eq(initialCaseCount))
+
+      // redo the addition of the filter formula
+      toolbar.getRedoTool().click()
+      table.getNumOfRows().then(rowCount => expect(caseCount(rowCount)).to.eq(11))
+
+      // redo the change of the filter formula
+      toolbar.getRedoTool().click()
+      table.getNumOfRows().then(rowCount => expect(caseCount(rowCount)).to.eq(7))
+
+      // redo the removal of the filter formula
+      toolbar.getRedoTool().click()
+      table.getNumOfRows().then(rowCount => expect(caseCount(rowCount)).to.eq(initialCaseCount))
+    })
+
     it("check New Attribute from inspector menu with undo/redo", () => {
       c.selectTile("table", 0)
       table.getRulerButton().click()

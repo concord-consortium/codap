@@ -98,7 +98,7 @@ export const DataConfigurationModel = types
     pointsNeedUpdating: false,
     casesChangeCount: 0,
     // cached result of filter formula evaluation for each case ID
-    filterFormulaResults: observable.map<string, boolean>(),
+    filteredOutCaseIds: observable.set<string>(),
     filterFormulaError: ""
   }))
   .views(self => ({
@@ -207,7 +207,7 @@ export const DataConfigurationModel = types
     // caseArrayNumber === 0.
     _filterCase(data: IDataSet, caseID: string) {
       // If the case is hidden or filtered out we don't plot it
-      if (self.hiddenCasesSet.has(caseID) || self.filterFormulaResults.get(caseID) === false) return false
+      if (self.hiddenCasesSet.has(caseID) || self.filteredOutCaseIds.has(caseID)) return false
       return this._caseHasValidValuesForDescriptions(data, caseID, self.attributeDescriptions)
     },
   }))
@@ -676,7 +676,7 @@ export const DataConfigurationModel = types
   .actions(self => ({
     clearFilterFormula() {
       self.filterFormula = undefined
-      self.filterFormulaResults.clear()
+      self.filteredOutCaseIds.clear()
       self.filterFormulaError = ""
       self._invalidateCases()
     }
@@ -696,10 +696,15 @@ export const DataConfigurationModel = types
     },
     updateFilterFormulaResults(filterFormulaResults: { itemId: string, result: boolean }[], { replaceAll = false }) {
       if (replaceAll) {
-        self.filterFormulaResults.clear()
+        self.filteredOutCaseIds.clear()
       }
       filterFormulaResults.forEach(({ itemId, result }) => {
-        self.filterFormulaResults.set(itemId, result)
+        if (result === false) {
+          self.filteredOutCaseIds.add(itemId)
+        }
+        else {
+          self.filteredOutCaseIds.delete(itemId)
+        }
       })
       self._invalidateCases()
     },

@@ -167,7 +167,7 @@ export const DataSet = V2Model.named("DataSet").props({
   // used by the Collaborative plugin
   managingControllerId: "",
   // cached result of filter formula evaluation for each item ID
-  filterFormulaResults: observable.map<string, boolean>(),
+  filteredOutItemIds: observable.set<string>(),
   filterFormulaError: ""
 }))
 .extend(self => {
@@ -280,9 +280,7 @@ export const DataSet = V2Model.named("DataSet").props({
     return self.setAsideItemIdsSet.has(itemId)
   },
   isItemFilteredOut(itemId: string) {
-    // Note that if itemResult is undefined, it means the item has not been filtered out (e.g., there may not be any
-    /// filter formula), so it should be considered as having passed the filter.
-    return self.filterFormulaResults.get(itemId) === false
+    return self.filteredOutItemIds.has(itemId)
   }
 }))
 .views(self => ({
@@ -574,7 +572,7 @@ export const DataSet = V2Model.named("DataSet").props({
 .actions(self => ({
   clearFilterFormula() {
     self.filterFormula = undefined
-    self.filterFormulaResults.clear()
+    self.filteredOutItemIds.clear()
     self.filterFormulaError = ""
     self.invalidateCases()
   }
@@ -631,10 +629,17 @@ export const DataSet = V2Model.named("DataSet").props({
   },
   updateFilterFormulaResults(filterFormulaResults: { itemId: string, result: boolean }[], { replaceAll = false }) {
     if (replaceAll) {
-      self.filterFormulaResults.clear()
+      self.filteredOutItemIds.clear()
     }
     filterFormulaResults.forEach(({ itemId, result }) => {
-      self.filterFormulaResults.set(itemId, result)
+      if (result === false) {
+        self.filteredOutItemIds.add(itemId)
+      }
+      else {
+        // Note that if itemResult is undefined, it means the item has not been filtered out (e.g., there may not be any
+        // filter formula), so it should be considered as having passed the filter.
+        self.filteredOutItemIds.delete(itemId)
+      }
     })
     self.invalidateCases()
   },
