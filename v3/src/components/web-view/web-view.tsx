@@ -53,7 +53,7 @@ function WebViewDropOverlay() {
     if (dropDataSet && dropAttributeId && mouseX.current != null && mouseY.current != null) {
       tile?.applyModelChange(() => {}, {
         notify: dragWithPositionNotification("drop", dropDataSet, dropAttributeId, mouseX.current, mouseY.current),
-        webViewId: tileId
+        notifyTileId: tileId
       })
     }
   })
@@ -68,7 +68,7 @@ function WebViewDropOverlay() {
     if (mouseX.current !== x || mouseY.current !== y) {
       tile?.applyModelChange(() => {}, {
         notify: dragWithPositionNotification("drag", dataSet, attributeId, x, y),
-        webViewId: tileId
+        notifyTileId: tileId
       })
       mouseX.current = x
       mouseY.current = y
@@ -78,7 +78,7 @@ function WebViewDropOverlay() {
   const handleMouseEnterLeave = (operation: string) => {
     tile?.applyModelChange(() => {}, {
       notify: dragNotification(operation, dataSet, attributeId),
-      webViewId: tileId
+      notifyTileId: tileId
     })
   }
 
