@@ -92,12 +92,14 @@ describe("DataSet undo/redo", () => {
     const { data, whenTreeManagerIsReady, undoManager } = setupDocument()
 
     expect(data.itemIds).toEqual(["ITEM0"])
+    expect(data.itemInfoMap.size).toBe(1)
 
     data.applyModelChange(
       () => data.addCases([{ __id__: "ITEM1", aId: 3, bId: 4 }, { __id__: "ITEM2", aId: 5, bId: 6 }]),
       { undoStringKey: "Undo insert cases", redoStringKey: "Redo insert cases" })
 
     expect(data.itemIds).toEqual(["ITEM0", "ITEM1", "ITEM2"])
+    expect(data.itemInfoMap.size).toBe(3)
 
     // wait for action to complete
     await whenTreeManagerIsReady()
@@ -107,14 +109,18 @@ describe("DataSet undo/redo", () => {
     // wait for undo to complete
     await whenTreeManagerIsReady()
 
+    data.validateCases()
     expect(data.itemIds).toEqual(["ITEM0"])
+    expect(data.itemInfoMap.size).toBe(1)
 
     undoManager?.redo()
 
     // wait for redo to complete
     await whenTreeManagerIsReady()
 
+    data.validateCases()
     expect(data.itemIds).toEqual(["ITEM0", "ITEM1", "ITEM2"])
+    expect(data.itemInfoMap.size).toBe(3)
     expect(data.getItem("ITEM0")).toEqual({ __id__: "ITEM0", aId: 1, bId: 2 })
     expect(data.getItem("ITEM1")).toEqual({ __id__: "ITEM1", aId: 3, bId: 4 })
     expect(data.getItem("ITEM2")).toEqual({ __id__: "ITEM2", aId: 5, bId: 6 })

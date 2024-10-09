@@ -89,24 +89,15 @@ describe("AttributeFormulaAdapter", () => {
     it("should store results in DataSet filterFormulaResult map", () => {
       const { adapter, dataSet, context, extraMetadata } = getTestEnv("foo < 2")
       adapter.recalculateFormula(context, extraMetadata, "ALL_CASES")
-      expect(dataSet.filterFormulaResults.toJSON()).toEqual([
-        ["1", true],
-        ["2", false],
-        ["3", false],
-      ])
+      expect(dataSet.filteredOutItemIds.toJSON()).toEqual(["2", "3"])
     })
 
     it("should update just provided cases when casesToRecalculateDesc is an array", () => {
       const { adapter, dataSet, context, extraMetadata } = getTestEnv("foo < 2")
-      dataSet.filterFormulaResults.set("1", false)
-      dataSet.filterFormulaResults.set("2", true)
+      dataSet.filteredOutItemIds.add("1")
 
       adapter.recalculateFormula(context, extraMetadata, [{ __id__: "1" }])
-      expect(dataSet.filterFormulaResults.toJSON()).toEqual([
-        ["1", true],
-        // Old values should be preserved
-        ["2", true]
-      ])
+      expect(dataSet.filteredOutItemIds.toJSON()).toEqual([])
     })
 
     it("should clear previous filter formula error", () => {

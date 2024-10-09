@@ -160,7 +160,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
      */
     filterCase(data: IDataSet, caseID: string, caseArrayNumber?: number) {
       // If the case is hidden we don't plot it
-      if (self.hiddenCasesSet.has(caseID)) return false
+      if (self.hiddenCasesSet.has(caseID) || self.filteredOutCaseIds.has(caseID)) return false
       if (caseArrayNumber === 0 || caseArrayNumber === undefined) {
         return self._filterCase(data, caseID)
       }
@@ -695,7 +695,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
               self.filteredCases.pop()?.destroy()
             }
             // add any required filteredCases
-            while (self.filteredCases.length < filteredCasesRequired) {
+            while (self.dataset && self.filteredCases.length < filteredCasesRequired) {
               self._addNewFilteredCases()
             }
           }, { name: "GraphDataConfigurationModel yAttrDescriptions reaction", equals: comparer.structural }

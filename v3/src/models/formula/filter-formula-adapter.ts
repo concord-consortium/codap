@@ -1,22 +1,27 @@
-import { math } from "./functions/math"
-import { FormulaMathJsScope } from "./formula-mathjs-scope"
-import { formulaError } from "./utils/misc"
+import { DEBUG_FORMULAS, debugLog } from "../../lib/debug"
+import { mstReaction } from "../../utilities/mst-reaction"
+import { isFilterFormulaDataSet } from "../data/data-set"
 import { ICase } from "../data/data-set-types"
 import { IFormula } from "./formula"
-import type {
-  IFormulaAdapterApi, IFormulaContext, IFormulaExtraMetadata, IFormulaManagerAdapter
-} from "./formula-manager"
-import { DEBUG_FORMULAS, debugLog } from "../../lib/debug"
-import { isFilterFormulaDataSet } from "../data/data-set"
+import { registerFormulaAdapter } from "./formula-adapter-registry"
+import {
+  FormulaManagerAdapter,
+  type IFormulaAdapterApi, type IFormulaContext, type IFormulaExtraMetadata, type IFormulaManagerAdapter
+} from "./formula-manager-types"
+import { FormulaMathJsScope } from "./formula-mathjs-scope"
+import { math } from "./functions/math"
+import { formulaError } from "./utils/misc"
 
 const FILTER_FORMULA_ADAPTER = "FilterFormulaAdapter"
 
-export class FilterFormulaAdapter implements IFormulaManagerAdapter {
-  type = FILTER_FORMULA_ADAPTER
-  api: IFormulaAdapterApi
+export class FilterFormulaAdapter extends FormulaManagerAdapter implements IFormulaManagerAdapter {
+
+  static register() {
+    registerFormulaAdapter(api => new FilterFormulaAdapter(api))
+  }
 
   constructor(api: IFormulaAdapterApi) {
-    this.api = api
+    super(FILTER_FORMULA_ADAPTER, api)
   }
 
   getActiveFormulas(): ({ formula: IFormula, extraMetadata: IFormulaExtraMetadata })[] {
@@ -36,14 +41,18 @@ export class FilterFormulaAdapter implements IFormulaManagerAdapter {
 
   recalculateFormula(formulaContext: IFormulaContext, extraMetadata: IFormulaExtraMetadata,
     casesToRecalculateDesc: ICase[] | "ALL_CASES" = "ALL_CASES") {
+
+    const dataSet = this.api.getDatasets().get(extraMetadata.dataSetId)
+
     if (formulaContext.formula.empty) {
+      // if there is no filter formula, clear any filter results
+      dataSet?.updateFilterFormulaResults([], { replaceAll: true })
       return
     }
 
     // Clear any previous error first.
     this.setFormulaError(formulaContext, extraMetadata, "")
 
-    const dataSet = this.api.getDatasets().get(extraMetadata.dataSetId)
     if (!dataSet) {
       throw new Error(`Dataset with id "${extraMetadata.dataSetId}" not found`)
     }
@@ -58,30 +67,36 @@ export class FilterFormulaAdapter implements IFormulaManagerAdapter {
     const { formula, dataSet } = formulaContext
     const { attributeId } = extraMetadata
 
-    let casesToRecalculate: ICase[] = []
+    // Use itemsNotSetAside to exclude set-aside cases so they're not included in calculations,
+    // such as aggregate functions like mean.
+    const childMostCollectionCaseIds =
+      dataSet.itemsNotSetAside.map(id => dataSet.getItem(id)).filter(c => c).map(c => c?.__id__) as string[]
+
+    let casesToRecalculate: string[] = []
     if (casesToRecalculateDesc === "ALL_CASES") {
       // If casesToRecalculate is not provided, recalculate all cases.
-      // Use itemsNotSetAside to exclude set-aside cases so they're not included in calculations,
-      // such as aggregate functions like mean.
-      casesToRecalculate = dataSet.itemsNotSetAside.map(id => dataSet.getItem(id)).filter(c => c) as ICase[]
+      casesToRecalculate = childMostCollectionCaseIds
     } else {
-      casesToRecalculate = casesToRecalculateDesc
+      casesToRecalculate = casesToRecalculateDesc.map(c => {
+        return dataSet.caseInfoMap.get(c.__id__)?.childItemIds || c.__id__
+      }).filter(c => c).flat()
     }
     if (!casesToRecalculate || casesToRecalculate.length === 0) {
       return
     }
 
-    const caseIds = casesToRecalculate.map(c => c.__id__)
-
-    debugLog(DEBUG_FORMULAS, `[attr formula] recalculate "${formula.canonical}" for ${casesToRecalculate.length} cases`)
+    debugLog(
+      DEBUG_FORMULAS,
+      `[dataset filter formula] recalculate "${formula.canonical}" for ${casesToRecalculate.length} cases`
+    )
 
     const formulaScope = new FormulaMathJsScope({
       localDataSet: dataSet,
       dataSets: this.api.getDatasets(),
       globalValueManager: this.api.getGlobalValueManager(),
       formulaAttrId: attributeId,
-      caseIds,
-      childMostCollectionCaseIds: caseIds
+      caseIds: casesToRecalculate,
+      childMostCollectionCaseIds
     })
 
     try {
@@ -93,7 +108,7 @@ export class FilterFormulaAdapter implements IFormulaManagerAdapter {
         // its own attribute.
         formulaScope.savePreviousResult(formulaValue)
         return {
-          itemId: c.__id__,
+          itemId: c,
           result: !!formulaValue // only boolean values are supported
         }
       })
@@ -111,5 +126,18 @@ export class FilterFormulaAdapter implements IFormulaManagerAdapter {
   getFormulaError(formulaContext: IFormulaContext, extraMetadata: IFormulaExtraMetadata) {
     // No custom errors yet.
     return undefined
+  }
+
+  setupFormulaObservers(formulaContext: IFormulaContext, extraMetadata: IFormulaExtraMetadata) {
+    const { dataSet } = formulaContext
+    const disposer = dataSet && mstReaction(
+                      () => dataSet.filterFormula?.display,
+                      () => this.recalculateFormula(formulaContext, extraMetadata, "ALL_CASES"),
+                      { name: "FilterFormulaAdapter.reaction" }, dataSet)
+    return () => {
+      // if there is no filter formula, clear any filter results
+      dataSet?.updateFilterFormulaResults([], { replaceAll: true })
+      disposer?.()
+    }
   }
 }

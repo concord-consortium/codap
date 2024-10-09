@@ -81,7 +81,8 @@ context("Formula Engine", () => {
       fh.renameAttribute("b", "x\\\"yz")
       fh.addNewAttribute()
       fh.renameAttribute("newAttr", "Formula1")
-      fh.addFormula("Formula1", "`x\\\"yz`+1")
+      // must add {del} to delete auto-matched (in error) closing quote
+      fh.addFormula("Formula1", "`x\\\"yz`+1{del}")
       fh.verifyValues("Formula1", [2, 2, 2, 1, 1])
       fh.addNewAttribute()
       fh.renameAttribute("newAttr", "Formula2")

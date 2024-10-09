@@ -1,4 +1,4 @@
-import { MenuItem, MenuList } from "@chakra-ui/react"
+import { MenuItem, MenuList, useDisclosure } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
 import { isAlive } from "mobx-state-tree"
 import React from "react"
@@ -6,6 +6,7 @@ import { ITileModel } from "../../../../models/tiles/tile-model"
 import { isGraphContentModel } from "../../models/graph-content-model"
 import { t } from "../../../../utilities/translation/translate"
 import { logMessageWithReplacement } from "../../../../lib/log-message"
+import { EditFilterFormulaModal } from "../../../common/edit-filter-formula-modal"
 
 interface IProps {
   tile?: ITileModel
@@ -14,6 +15,7 @@ interface IProps {
 export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProps) {
   const graphModel = tile && isAlive(tile) && isGraphContentModel(tile?.content) ? tile?.content : undefined
   const dataConfig = graphModel?.dataConfiguration
+  const formulaModal = useDisclosure()
 
   const hideSelectedCases = () => {
     dataConfig?.applyModelChange(
@@ -73,6 +75,14 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
     )
   }
 
+  const handleEditFormulaOpen = () => {
+    formulaModal.onOpen()
+  }
+
+  const handleEditFormulaClose = () => {
+    formulaModal.onClose()
+  }
+
   const handleParentTogglesChange = () => {
     const [undoStringKey, redoStringKey] = graphModel?.showParentToggles
       ? ["DG.Undo.disableNumberToggle", "DG.Redo.disableNumberToggle"]
@@ -116,26 +126,40 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
     displayOnlySelectedIsDisabled = dataConfig?.displayOnlySelectedCases
 
   return (
-    <MenuList data-testid="hide-show-menu-list">
-      <MenuItem onClick={hideSelectedCases} isDisabled={hideSelectedIsDisabled} data-testid="hide-selected-cases">
-        {hideSelectedString}
-      </MenuItem>
-      <MenuItem onClick={hideUnselectedCases} isDisabled={hideUnselectedIsDisabled} data-testid="hide-unselected-cases">
-        {hideUnselectedString}
-      </MenuItem>
-      <MenuItem onClick={showAllCases} isDisabled={showAllIsDisabled} data-testid="show-all-cases">
-        {t("DG.DataDisplayMenu.showAll")}
-      </MenuItem>
-      <MenuItem onClick={displayOnlySelectedCases} isDisabled={displayOnlySelectedIsDisabled}
-       data-testid="display-selected-cases">
-        {t("DG.DataDisplayMenu.displayOnlySelected")}
-      </MenuItem>
-      <MenuItem onClick={handleParentTogglesChange} data-testid="show-parent-toggles">
-        {parentToggleString}
-      </MenuItem>
-      <MenuItem onClick={handleMeasuresForSelectionChange} data-testid="show-selection-measures">
-        {measuresForSelectionString}
-      </MenuItem>
-    </MenuList>
+    <>
+      <MenuList data-testid="hide-show-menu-list">
+        <MenuItem onClick={hideSelectedCases} isDisabled={hideSelectedIsDisabled} data-testid="hide-selected-cases">
+          {hideSelectedString}
+        </MenuItem>
+        <MenuItem onClick={hideUnselectedCases} isDisabled={hideUnselectedIsDisabled}
+          data-testid="hide-unselected-cases">
+          {hideUnselectedString}
+        </MenuItem>
+        <MenuItem onClick={showAllCases} isDisabled={showAllIsDisabled} data-testid="show-all-cases">
+          {t("DG.DataDisplayMenu.showAll")}
+        </MenuItem>
+        <MenuItem onClick={handleEditFormulaOpen} data-testid="edit-filter-formula">
+          {t("V3.hideShowMenu.editFilterFormula")}
+        </MenuItem>
+        <MenuItem onClick={displayOnlySelectedCases} isDisabled={displayOnlySelectedIsDisabled}
+        data-testid="display-selected-cases">
+          {t("DG.DataDisplayMenu.displayOnlySelected")}
+        </MenuItem>
+        <MenuItem onClick={handleParentTogglesChange} data-testid="show-parent-toggles">
+          {parentToggleString}
+        </MenuItem>
+        <MenuItem onClick={handleMeasuresForSelectionChange} data-testid="show-selection-measures">
+          {measuresForSelectionString}
+        </MenuItem>
+      </MenuList>
+      {
+        dataConfig &&
+        <EditFilterFormulaModal
+          formulaSource={dataConfig}
+          isOpen={formulaModal.isOpen}
+          onClose={handleEditFormulaClose}
+        />
+      }
+    </>
   )
 })

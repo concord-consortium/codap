@@ -22,6 +22,9 @@ import "./commands"
 // add code coverage support
 import "@cypress/code-coverage/support"
 
+// add support for dispatching native events (https://github.com/dmtrKovalenko/cypress-real-events)
+import "cypress-real-events"
+
 // https://github.com/quasarframework/quasar/issues/2233#issuecomment-1006506083
 Cypress.on("uncaught:exception", err => !err.message.includes("ResizeObserver"))
 
