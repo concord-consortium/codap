@@ -325,7 +325,7 @@
           "month(date(2017,3,20,7,1,59)) returns 3"
         ]
       },
-      { "displayName": "month",
+      { "displayName": "monthName",
         "description": "Returns the name of the month corresponding to the given date.",
         "args": [
           {

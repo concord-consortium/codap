@@ -25,3 +25,118 @@
     max-width: 270px;
   }
 }
+
+.formula-editor-button {
+  padding: 0 10px;
+  &.insert-value {
+    margin-left: 0;
+  }
+}
+
+.formula-function-menu-container {
+  margin: 3px 0;
+  border: 1px solid #000;
+  font-size: 12px;
+  z-index: 105;
+  background-color: white;
+  max-width: 300px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  position: absolute;
+  max-height: 380px;
+  cursor: pointer;
+
+  .formula-function-list {
+    display: flex;
+    flex-direction: column;
+    // padding: 0 10px;
+    margin: 10px;
+    list-style-type: none;
+    font-size: 12px;
+    width: 270px;
+
+    .function-category-list-item {
+      display: flex;
+      align-items: center;
+      font-size: 12px;
+      line-height: 20px;
+
+      .function-category-expand-arrow {
+        position: absolute;
+        right: 15px;
+      }
+    }
+
+    .functions-list-header {
+      .function-select-back-arrow {
+        margin-right: 5px;
+      }
+
+      .function-selected-item-name-header {
+        font-weight: bold;
+        margin-left: 5px;
+      }
+    }
+
+    .function-menu-item {
+      margin-top: 5px;
+      min-height: 20px;
+    }
+
+    .function-header-divider {
+      border: 1px solid #777;
+      opacity: 1;
+    }
+  }
+}
+
+.function-info-name {
+  font-size: 14px;
+  font-weight: bold;
+  margin: 5px 0;
+  cursor: pointer;
+}
+
+.function-info-subtitle {
+  font-size: 12px;
+  font-weight: bold;
+  margin: 5px 0;
+  color: #555;
+}
+
+.function-arguments-info {
+  font-size: 12px;
+  font-weight: normal;
+  margin: 5px 0;
+
+  span {
+    margin-right: 3px;
+  }
+}
+
+.function-arguments {
+  font-style: italic;
+  color: #555;
+}
+
+.formula-operand-list-container {
+  max-height: 480px;
+  max-width: 310px;
+  overflow: visible;
+  z-index: 100;
+  position: absolute;
+  background-color: white;
+  border: solid 0 transparent;
+  display: flex;
+  vertical-align: middle;
+  // padding-left: 10px;
+  flex-direction: column;
+
+  .formula-operand-list-item {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-size: 12px;
+    margin: 0 10px;
+  }
+}
