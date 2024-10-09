@@ -73,12 +73,10 @@ module.exports = (env, argv) => {
       path: path.resolve(__dirname, 'dist'),
       filename: 'assets/index.[contenthash].js',
     },
-    infrastructureLogging: { debug: true },
     cache: {
       buildDependencies: {
         config: [__filename],
       },
-      profile: true,
       type: 'filesystem',
     },
     performance: { hints: false },
