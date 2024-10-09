@@ -22,8 +22,9 @@ jobs:
       - name: Install Dependencies
         working-directory: v3
         run: npm ci
-      - name: Webpack Cache
-        uses: actions/cache@v4
+      - name: Restore Webpack Cache
+        id: restore-webpack-cache
+        uses: actions/cache/restore@v4
         with:
           path: v3/node_modules/.cache/webpack/
           key: ${{ github.head_ref || github.ref_name }}-webpack-build
@@ -44,6 +45,14 @@ jobs:
         run: npm run build
         env:
           DEPLOY_PATH: ${{ steps.s3-deploy-path.outputs.deployPath }}
+      - name: Save Webpack Cache
+        uses: actions/cache/save@v4
+        # Always save the cache on the main branch, it won't be built often and
+        # this way features branches will have an up-to-date main cache
+        if: github.ref_name == 'main' || steps.restore-webpack-cache.outputs.cache-hit != 'true'
+        with:
+          path: v3/node_modules/.cache/webpack/
+          key: ${{ github.head_ref || github.ref_name }}-webpack-build
       - uses: actions/upload-artifact@v4
         with:
           name: build
