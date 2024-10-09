@@ -82,7 +82,9 @@ export const DocumentContentModel = BaseDocumentContentModel
       const tileIds = self.tileMap.keys()
       if (tileIds) {
         Array.from(tileIds).forEach(tileId => {
-          if (!targetTileId || tileId === targetTileId) self.tileMap.get(tileId)?.content.broadcastMessage(message, callback)
+          if (!targetTileId || tileId === targetTileId) {
+            self.tileMap.get(tileId)?.content.broadcastMessage(message, callback)
+          }
         })
       }
     }
