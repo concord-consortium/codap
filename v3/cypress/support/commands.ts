@@ -69,54 +69,54 @@ Cypress.Commands.add("dragAttributeToTarget", (source, attribute, target, target
   }
 
   switch (target) {
-    case ("card"):
+    case "card":
       target_el = el.caseCardHeaderDropZone
       break
-    case ("card collection"):
+    case "card collection":
       target_el = el.caseCardCollectionDropZone
       break
-    case ("graph-plot"):
+    case "graph-plot":
       target_el = el.graphTile
       break
-    case ("graph-legend"):
+    case "graph-legend":
       target_el = el.graphLegend
       break
-    case ("map"):
+    case "map":
       target_el = el.mapTile
       break
-    case ("map-legend"):
+    case "map-legend":
         target_el = el.mapLegend
         break
-    case ("bottom"):
+    case "bottom":
       target_el = el.bottomAxis
       break
-    case ("left"):
+    case "left":
       target_el = el.leftAxis
       break
-    case ("top"):
-    case ("top-axis-label"):
+    case "top":
+    case "top-axis-label":
       target_el = el.topAxis
       break
-    case ("yplus"):
+    case "yplus":
       target_el = el.yPlusAxis
       break
-    case ("right"):
-    case ("right-axis-label"):
+    case "right":
+    case "right-axis-label":
       target_el = el.rightAxis
       break
-    case ("newCollection"):
+    case "newCollection":
       target_el = el.newCollection
       break
-    case ("prevCollection"):
+    case "prevCollection":
       target_el = el.prevCollection
       break
-    case ("newTopCardCollection"):
+    case "newTopCardCollection":
       target_el = el.newTopCardCollection
       break
-    case ("headerDivider"):
+    case "headerDivider":
       target_el = el.headerDivider
       break
-    case('webView'):
+    case "webView":
       target_el=el.webView
       break
     default:
