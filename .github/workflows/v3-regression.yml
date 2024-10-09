@@ -59,6 +59,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      # We don't save the webpack cache here because the same cache should be saved
+      # by the cypress job in `v3.yml` and that will run more often
+      - name: Restore Webpack Cache
+        uses: actions/cache/restore@v4
+        with:
+          path: v3/.cache/webpack/
+          key: webpack-dev-build
       - uses: cypress-io/github-action@v6
         with:
           working-directory: v3

@@ -26,10 +26,8 @@ jobs:
         id: restore-webpack-cache
         uses: actions/cache/restore@v4
         with:
-          path: v3/node_modules/.cache/webpack/
-          key: ${{ github.head_ref || github.ref_name }}-webpack-build
-          restore-keys: |
-            main-webpack-build
+          path: v3/.cache/webpack/
+          key: webpack-build
       - uses: concord-consortium/s3-deploy-action/deploy-path@v1
         id: s3-deploy-path
       - name: Configure Environment
@@ -51,8 +49,8 @@ jobs:
         # this way features branches will have an up-to-date main cache
         if: github.ref_name == 'main' || steps.restore-webpack-cache.outputs.cache-hit != 'true'
         with:
-          path: v3/node_modules/.cache/webpack/
-          key: ${{ github.head_ref || github.ref_name }}-webpack-build
+          path: v3/.cache/webpack/
+          key: webpack-build
       - uses: actions/upload-artifact@v4
         with:
           name: build
@@ -101,6 +99,14 @@ jobs:
       - uses: snow-actions/sparse-checkout@v1.2.0
         with:
           patterns: v3
+      - name: Restore Webpack Cache
+        id: restore-webpack-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: v3/.cache/webpack/
+          # this key is different from the build job above because this is a dev build so its
+          # folder in the cache will be different and cached data is also likely different
+          key: webpack-dev-build
       - uses: cypress-io/github-action@v6
         with:
           working-directory: v3
@@ -128,6 +134,14 @@ jobs:
           # Also turn on the code coverage tasks in cypress itself, these are disabled
           # by default.
           CYPRESS_coverage: true
+      - name: Save Webpack Cache
+        uses: actions/cache/save@v4
+        # Always save the cache on the main branch, it won't be built often and
+        # this way features branches will have an up-to-date main cache
+        if: github.ref_name == 'main' || steps.restore-webpack-cache.outputs.cache-hit != 'true'
+        with:
+          path: v3/.cache/webpack/
+          key: webpack-dev-build
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
