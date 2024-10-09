@@ -145,6 +145,7 @@ jobs:
           name: build
           path: v3/dist
       - uses: concord-consortium/s3-deploy-action@v1
+        id: s3-deploy
         with:
           build: echo no build
           bucket: models-resources
