@@ -77,6 +77,12 @@ module.exports = (env, argv) => {
       level: 'verbose',
       debug: true
     },
+    snapshot: {
+      buildDependencies: { hash: true},
+      module: { hash: true},
+      resolve: { hash: true},
+      resolveBuildDependencies: { hash: true},
+    },
     cache: {
       buildDependencies: {
         config: [__filename],
