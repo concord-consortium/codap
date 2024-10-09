@@ -5,7 +5,7 @@ on:
     types: [ labeled ]
 jobs:
   re_run:
-    # only conintue if a push or PR labeled with 'run regression'
+    # only continue if a push or PR labeled with 'run regression'
     if: github.event.label.name == 'run regression'
     runs-on: ubuntu-latest
     permissions:
@@ -17,7 +17,7 @@ jobs:
         # if the run id can't be found the rerun command will fail which should
         # fail the job
         # When the run hasn't finished yet, we try to cancel the run
-        # and wait 30s for it to fnish canceling before trying to re-run it.
+        # and wait 30s for it to finish canceling before trying to re-run it.
         # If the run isn't complete the rerun command prints this message:
         # returned: run 6410886572 cannot be rerun; its workflow file may be broken
         run: |
