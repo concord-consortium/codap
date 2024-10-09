@@ -88,9 +88,10 @@ export const diAttributeHandler: DIHandler = {
       uiState.setDraggingAttributeId(attribute.id)
       const pluginAttributeDrag = document.getElementById("plugin-attribute-drag")
       if (pluginAttributeDrag) {
-        // General properties of events
-        const bubbles = true
-        const cancelable = true
+        // Get overlay dimensions specified by plugin
+        const { overlayHeight, overlayWidth } = (values ?? {}) as DINotifyAttribute
+        uiState.setDraggingOverlayHeight(overlayHeight)
+        uiState.setDraggingOverlayWidth(overlayWidth)
 
         // Determine position of drag
         let clientX = 0
@@ -102,10 +103,6 @@ export const diAttributeHandler: DIHandler = {
           clientX = layout.x
           clientY = layout.y
         }
-
-        const { overlayHeight, overlayWidth } = (values ?? {}) as DINotifyAttribute
-        uiState.setDraggingOverlayHeight(overlayHeight)
-        uiState.setDraggingOverlayWidth(overlayWidth)
         uiState.setDraggingXOffset(clientX - (overlayWidth ?? 0) / 2)
         // TODO Hard coded header height
         const kCodapHeaderHeight = 94
@@ -113,6 +110,8 @@ export const diAttributeHandler: DIHandler = {
 
         // Dispatch events that will trigger a drag start
         // A setTimeout is used to ensure that hooks are updated before the drag begins
+        const bubbles = true
+        const cancelable = true
         setTimeout(() => {
           pluginAttributeDrag.dispatchEvent(new MouseEvent("mousedown", {
             bubbles, cancelable, clientX: clientX - 10, clientY: clientY - 10
