@@ -62,7 +62,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
                                 .getPropertyValue("--rdg-row-selected-background-color") || undefined
   const visibleAttributes = useVisibleAttributes(collectionId)
   const { selectedRows, setSelectedRows, handleCellClick } = useSelectedRows({ gridRef, onScrollClosestRowIntoView })
-  const { clearCurrentSelection } = useWhiteSpaceClick({ gridRef })
+  const { handleWhiteSpaceClick } = useWhiteSpaceClick({ gridRef })
   const forceUpdate = useForceUpdate()
   const { isTileSelected } = useTileModelContext()
   const [isSelecting, setIsSelecting] = useState(false)
@@ -229,7 +229,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
     }
     // the grid element is the target when clicking outside the cells (otherwise, the cell is the target)
     if (isTileSelected() && event.target === gridRef.current?.element) {
-      clearCurrentSelection()
+      handleWhiteSpaceClick()
     }
   }
 
@@ -242,7 +242,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
     return rowIdx
   }, [collectionId, data])
 
-   const handleMouseDown = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
+   const handleMouseDown = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
     const startRowIdx = getRowIndexFromEvent(event)
     if (startRowIdx != null) {
       setIsSelecting(true)
@@ -250,7 +250,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
     }
   }, [])
 
-  const handleMouseMove = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
+  const handleMouseMove = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
     setIsDragging(true)
     if (isSelecting && selectionStartRowIdx !== null) {
       const currentRowIdx = getRowIndexFromEvent(event as React.MouseEvent)
@@ -279,9 +279,9 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
   return (
     <div className={`collection-table collection-${collectionId}`}>
       <CollectionTableSpacer selectedFillColor={selectedFillColor}
-        onWhiteSpaceClick={clearCurrentSelection} onDrop={handleNewCollectionDrop} />
-      <div className="collection-table-and-title" ref={setNodeRef} onClick={handleClick} onMouseDown={handleMouseDown}
-           onMouseMove={handleMouseMove} onMouseUp={handleMouseUp}>
+        onWhiteSpaceClick={handleWhiteSpaceClick} onDrop={handleNewCollectionDrop} />
+      <div className="collection-table-and-title" ref={setNodeRef} onClick={handleClick} onPointerDown={handleMouseDown}
+           onPointerMove={handleMouseMove} onPointerUp={handleMouseUp}>
         <CollectionTitle onAddNewAttribute={handleAddNewAttribute} showCount={true} />
         <DataGrid ref={gridRef} className="rdg-light" data-testid="collection-table-grid" renderers={renderers}
           columns={columns} rows={rows} headerRowHeight={+styles.headerRowHeight} rowKeyGetter={rowKey}
