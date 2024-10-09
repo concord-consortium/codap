@@ -14,5 +14,6 @@
 }
 
 .dnd-kit-drag-overlay {
+  // This element was preventing WebViewDropOverlays from receiving pointerenter, pointermove, and pointerleave events.
   pointer-events: none;
 }
