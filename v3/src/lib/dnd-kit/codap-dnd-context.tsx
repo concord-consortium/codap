@@ -4,11 +4,10 @@ import {
 } from "@dnd-kit/core"
 import React, { ReactNode } from "react"
 import { containerSnapToGridModifier, restrictDragToArea } from "../../hooks/use-drag-drop"
+import { uiState } from "../../models/ui-state"
 import { urlParams } from "../../utilities/url-params"
 import { canAutoScroll } from "./dnd-can-auto-scroll"
 import { dndDetectCollision } from "./dnd-detect-collision"
-import { uiState } from "../../models/ui-state"
-// import { PluginSensor } from "./plugin-sensor"
 
 interface IProps {
   children: ReactNode
@@ -34,8 +33,12 @@ export const CodapDndContext = ({ children }: IProps) => {
 
   const handleDragEnd = (event: DragEndEvent) => {
     console.log(` ** Ending drag`)
-    // uiState.setDraggingDatasetId("")
-    // uiState.setDraggingAttributeId("")
+    uiState.setDraggingDatasetId()
+    uiState.setDraggingAttributeId()
+    uiState.setDraggingOverlayHeight()
+    uiState.setDraggingOverlayWidth()
+    uiState.setDraggingXOffset()
+    uiState.setDraggingYOffset()
   }
 
   // pointer must move three pixels before starting a drag
@@ -47,7 +50,6 @@ export const CodapDndContext = ({ children }: IProps) => {
   const sensors = useSensors(
                     pointerSensor,
                     useSensor(KeyboardSensor, { coordinateGetter: customCoordinatesGetter }),
-                    // useSensor(PluginSensor),
                     mouseSensor)
   return (
     <DndContext
