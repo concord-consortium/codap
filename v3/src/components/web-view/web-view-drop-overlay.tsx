@@ -2,7 +2,9 @@ import { Active, DragEndEvent, DragStartEvent, useDndMonitor, useDroppable } fro
 import React, { MouseEventHandler, useRef } from "react"
 import { getDragAttributeInfo, useDropHandler } from "../../hooks/use-drag-drop"
 import { useTileModelContext } from "../../hooks/use-tile-model-context"
-import { dragEndNotification, dragNotification, dragStartNotification, dragWithPositionNotification } from "../../lib/dnd-kit/dnd-notifications"
+import {
+  dragEndNotification, dragNotification, dragStartNotification, dragWithPositionNotification
+} from "../../lib/dnd-kit/dnd-notifications"
 import { IDataSet } from "../../models/data/data-set"
 import { INotification } from "../../models/history/apply-model-change"
 
