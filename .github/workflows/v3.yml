@@ -68,7 +68,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: /tmp/jest_rt
-          key: ${{ hashFiles('v3/package-lock.json') }}
+          key: jest-${{ hashFiles('v3/package-lock.json') }}
       - name: Get number of CPU cores
         id: cpu-cores
         uses: SimenB/github-actions-cpu-cores@v2
