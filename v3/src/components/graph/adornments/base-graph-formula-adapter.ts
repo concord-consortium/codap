@@ -1,13 +1,14 @@
 import { action, makeObservable, observable } from "mobx"
-import { ICase } from "../data/data-set-types"
-import { IFormula } from "./formula"
-import { localAttrIdToCanonical } from "./utils/name-mapping-utils"
-import type {
-  IFormulaAdapterApi, IFormulaContext, IFormulaExtraMetadata, IFormulaManagerAdapter
-} from "./formula-manager"
-import type { IGraphContentModel } from "../../components/graph/models/graph-content-model"
-import { FormulaMathJsScope } from "./formula-mathjs-scope"
-import { IAdornmentModel } from "../../components/graph/adornments/adornment-models"
+import { ICase } from "../../../models/data/data-set-types"
+import { IFormula } from "../../../models/formula/formula"
+import {
+  FormulaManagerAdapter,
+  type IFormulaAdapterApi, type IFormulaContext, type IFormulaExtraMetadata, type IFormulaManagerAdapter
+} from "../../../models/formula/formula-manager-types"
+import { FormulaMathJsScope } from "../../../models/formula/formula-mathjs-scope"
+import { localAttrIdToCanonical } from "../../../models/formula/utils/name-mapping-utils"
+import type { IGraphContentModel } from "../models/graph-content-model"
+import { IAdornmentModel } from "./adornment-models"
 
 type GraphCellKey = Record<string, string>
 
@@ -27,9 +28,8 @@ interface IFormulaSupportingAdornment extends IAdornmentModel {
   setError(errorMsg: string): void
 }
 
-export class BaseGraphFormulaAdapter implements IFormulaManagerAdapter {
+export class BaseGraphFormulaAdapter extends FormulaManagerAdapter implements IFormulaManagerAdapter {
   // --- METHODS AND PROPS TO OVERRIDE/IMPLEMENT ---
-  type = "OVERRIDE"
 
   getAdornment(graphContentModel: IGraphContentModel): IFormulaSupportingAdornment | undefined {
     throw new Error("Method not implemented.")
@@ -40,12 +40,11 @@ export class BaseGraphFormulaAdapter implements IFormulaManagerAdapter {
   }
   // --- END OF METHODS AND PROPS TO OVERRIDE/IMPLEMENT ---
 
-  api: IFormulaAdapterApi
   @observable.shallow graphContentModels = new Map<string, IGraphContentModel>()
 
-  constructor(api: IFormulaAdapterApi) {
+  constructor(type: string, api: IFormulaAdapterApi) {
+    super(type, api)
     makeObservable(this)
-    this.api = api
   }
 
   @action

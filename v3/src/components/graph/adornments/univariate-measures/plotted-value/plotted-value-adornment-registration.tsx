@@ -8,6 +8,7 @@ import { kPlottedValueClass, kPlottedValueLabelKey, kPlottedValuePrefix, kPlotte
 import { AdornmentCheckbox } from "../../adornment-checkbox"
 import { PlottedValueAdornmentBanner } from "./plotted-value-adornment-banner"
 import { PlottedValueComponent } from "./plotted-value-adornment-component"
+import { PlottedValueFormulaAdapter } from "./plotted-value-formula-adapter"
 
 const Controls = () => {
   return (
@@ -18,6 +19,8 @@ const Controls = () => {
     />
   )
 }
+
+PlottedValueFormulaAdapter.register()
 
 registerAdornmentContentInfo({
   type: kPlottedValueType,

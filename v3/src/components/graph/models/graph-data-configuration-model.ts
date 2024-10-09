@@ -160,7 +160,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
      */
     filterCase(data: IDataSet, caseID: string, caseArrayNumber?: number) {
       // If the case is hidden we don't plot it
-      if (self.hiddenCasesSet.has(caseID) || self.filterFormulaResults.get(caseID) === false) return false
+      if (self.hiddenCasesSet.has(caseID) || self.filteredOutCaseIds.has(caseID)) return false
       if (caseArrayNumber === 0 || caseArrayNumber === undefined) {
         return self._filterCase(data, caseID)
       }

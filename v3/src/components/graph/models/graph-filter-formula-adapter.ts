@@ -1,37 +1,43 @@
 import { action, makeObservable, observable } from "mobx"
-import { math } from "./functions/math"
-import { FormulaMathJsScope } from "./formula-mathjs-scope"
-import { formulaError } from "./utils/misc"
-import { ICase } from "../data/data-set-types"
-import { IFormula } from "./formula"
-import type {
-  IFormulaAdapterApi, IFormulaContext, IFormulaExtraMetadata, IFormulaManagerAdapter
-} from "./formula-manager"
-import { DEBUG_FORMULAS, debugLog } from "../../lib/debug"
-import { isFilterFormulaDataConfiguration } from "../../components/data-display/models/data-configuration-model"
-import { IAnyStateTreeNode } from "@concord-consortium/mobx-state-tree"
-import { getFormulaManager } from "../tiles/tile-environment"
-import type { IGraphContentModel } from "../../components/graph/models/graph-content-model"
+import { IAnyStateTreeNode } from "mobx-state-tree"
+import { DEBUG_FORMULAS, debugLog } from "../../../lib/debug"
+import { ICase } from "../../../models/data/data-set-types"
+import { IFormula } from "../../../models/formula/formula"
+import { registerFormulaAdapter } from "../../../models/formula/formula-adapter-registry"
+import {
+  FormulaManagerAdapter, IFormulaAdapterApi, IFormulaContext, IFormulaExtraMetadata, IFormulaManagerAdapter
+} from "../../../models/formula/formula-manager-types"
+import { FormulaMathJsScope } from "../../../models/formula/formula-mathjs-scope"
+import { math } from "../../../models/formula/functions/math"
+import { formulaError } from "../../../models/formula/utils/misc"
+import { getFormulaManager } from "../../../models/tiles/tile-environment"
+import { mstReaction } from "../../../utilities/mst-reaction"
+import { isFilterFormulaDataConfiguration } from "../../data-display/models/data-configuration-model"
+import type { IGraphContentModel } from "./graph-content-model"
 
 const GRAPH_FILTER_FORMULA_ADAPTER = "GraphFilterFormulaAdapter"
-
-export const getGraphFilterFormulaAdapter = (node?: IAnyStateTreeNode): GraphFilterFormulaAdapter | undefined =>
-  getFormulaManager(node)?.adapters.find(a =>
-    a.type === GRAPH_FILTER_FORMULA_ADAPTER
-  ) as GraphFilterFormulaAdapter
 
 export interface IGraphFilterFormulaExtraMetadata extends IFormulaExtraMetadata {
   graphContentModelId: string
 }
 
-export class GraphFilterFormulaAdapter implements IFormulaManagerAdapter {
-  type = GRAPH_FILTER_FORMULA_ADAPTER
-  api: IFormulaAdapterApi
+export class GraphFilterFormulaAdapter extends FormulaManagerAdapter implements IFormulaManagerAdapter {
+
+  static register() {
+    registerFormulaAdapter(api => new GraphFilterFormulaAdapter(api))
+  }
+
+  static get(node?: IAnyStateTreeNode) {
+    return getFormulaManager(node)?.adapters.find(({ type }) =>
+      type === GRAPH_FILTER_FORMULA_ADAPTER
+    ) as Maybe<GraphFilterFormulaAdapter>
+  }
+
   @observable.shallow graphContentModels = new Map<string, IGraphContentModel>()
 
   constructor(api: IFormulaAdapterApi) {
+    super(GRAPH_FILTER_FORMULA_ADAPTER, api)
     makeObservable(this)
-    this.api = api
   }
 
   @action
@@ -77,14 +83,17 @@ export class GraphFilterFormulaAdapter implements IFormulaManagerAdapter {
 
   recalculateFormula(formulaContext: IFormulaContext, extraMetadata: IGraphFilterFormulaExtraMetadata,
     casesToRecalculateDesc: ICase[] | "ALL_CASES" = "ALL_CASES") {
+    const dataConfig = this.getDataConfiguration(extraMetadata)
+
     if (formulaContext.formula.empty) {
+      // if there is no filter formula, clear any filter results
+      dataConfig?.updateFilterFormulaResults([], { replaceAll: true })
       return
     }
 
     // Clear any previous error first.
     this.setFormulaError(formulaContext, extraMetadata, "")
 
-    const dataConfig = this.getDataConfiguration(extraMetadata)
     if (!dataConfig) {
       throw new Error(`GraphContentModel with id "${extraMetadata.graphContentModelId}" not found`)
     }
@@ -157,5 +166,18 @@ export class GraphFilterFormulaAdapter implements IFormulaManagerAdapter {
   getFormulaError(formulaContext: IFormulaContext, extraMetadata: IGraphFilterFormulaExtraMetadata) {
     // No custom errors yet.
     return undefined
+  }
+
+  setupFormulaObservers(formulaContext: IFormulaContext, extraMetadata: IGraphFilterFormulaExtraMetadata) {
+    const graphContent = this.graphContentModels.get(extraMetadata.graphContentModelId)
+    const disposer = graphContent && mstReaction(
+                      () => graphContent?.dataConfiguration.filterFormula?.display,
+                      () => this.recalculateFormula(formulaContext, extraMetadata, "ALL_CASES"),
+                      { name: "GraphFilterFormulaAdapter.reaction" }, graphContent)
+    return () => {
+      // if there is no filter formula, clear any filter results
+      graphContent?.dataConfiguration.updateFilterFormulaResults([], { replaceAll: true })
+      disposer?.()
+    }
   }
 }

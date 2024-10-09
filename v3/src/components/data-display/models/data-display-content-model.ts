@@ -31,7 +31,7 @@ export const DataDisplayContentModel = TileContentModel
     isTransparent: false,
   })
   .volatile(() => ({
-    animationEnabled: false,
+    animationTimerId: 0,
     marqueeMode: 'unclicked' as MarqueeMode,
   }))
   .views(self => ({
@@ -77,12 +77,17 @@ export const DataDisplayContentModel = TileContentModel
     }
   }))
   .actions(self => ({
+    beforeDestroy() {
+      if (self.animationTimerId) {
+        clearTimeout(self.animationTimerId)
+      }
+    },
     startAnimation() {
-      self.animationEnabled = true
-      setTimeout(() => this.stopAnimation(), 2000)
+      if (self.animationTimerId) clearTimeout(self.animationTimerId)
+      self.animationTimerId = window.setTimeout(() => this.stopAnimation(), 2000)
     },
     stopAnimation() {
-      self.animationEnabled = false
+      self.animationTimerId = 0
     },
     installSharedModelManagerSync() {
       // synchronizes shared model references from layers' DataConfigurations to the sharedModelManager

@@ -1,6 +1,8 @@
 import { isAlive } from "mobx-state-tree"
 import { kIndexColumnKey } from "../../components/case-tile-common/case-tile-types"
 import { logMessageWithReplacement } from "../../lib/log-message"
+import { AttributeFormulaAdapter } from "../formula/attribute-formula-adapter"
+import { FilterFormulaAdapter } from "../formula/filter-formula-adapter"
 import { getSharedCaseMetadataFromDataset } from "../shared/shared-data-utils"
 import { IAttribute } from "./attribute"
 import { ICollectionModel } from "./collection"
@@ -9,6 +11,9 @@ import {
   deleteCollectionNotification, moveAttributeNotification, selectCasesNotification
 } from "./data-set-notifications"
 import { IAttributeChangeResult, IMoveAttributeOptions } from "./data-set-types"
+
+AttributeFormulaAdapter.register()
+FilterFormulaAdapter.register()
 
 export function getCollectionAttrs(collection: ICollectionModel, data?: IDataSet): IAttribute[] {
   if (collection && !isAlive(collection)) {

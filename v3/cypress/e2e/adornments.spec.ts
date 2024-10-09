@@ -55,7 +55,7 @@ context("Graph adornments", () => {
     cy.get(".codap-modal-content [data-testid=attr-formula-input]").type(`{selectAll}{del}Diet="plants"`)
     cy.get(".codap-modal-content [data-testid=Apply-button]").should("be.visible").click()
     cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid^=graph-count]").should("exist")
-    cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid^=graph-count]").should("have.text", "11")
+    cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid^=graph-count]").should("have.text", "6")
 
     // delete the filter formula
     graph.getHideShowButton().click()

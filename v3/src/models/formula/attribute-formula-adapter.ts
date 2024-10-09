@@ -1,20 +1,21 @@
 import { EvalFunction } from "mathjs"
-import { math } from "./functions/math"
+import { DEBUG_FORMULAS, debugLog } from "../../lib/debug"
+import { isFormulaAttr, isValidFormulaAttr } from "../data/attribute"
+import { CaseInfo, ICase, IGroupedCase, symParent } from "../data/data-set-types"
+import { IFormula } from "./formula"
+import { registerFormulaAdapter } from "./formula-adapter-registry"
+import {
+  FormulaManagerAdapter, IFormulaAdapterApi, IFormulaContext, IFormulaExtraMetadata, IFormulaManagerAdapter
+} from "./formula-manager-types"
 import { FormulaMathJsScope, NO_PARENT_KEY } from "./formula-mathjs-scope"
-import { formulaError } from "./utils/misc"
-import { getFormulaDependencies } from "./utils/formula-dependency-utils"
+import { observeDatasetHierarchyChanges } from "./formula-observers"
+import { FValue, ILocalAttributeDependency, ILookupDependency, CaseList } from "./formula-types"
+import { math } from "./functions/math"
 import {
   getFormulaChildMostAggregateCollectionIndex, getIncorrectChildAttrReference, getIncorrectParentAttrReference
 } from "./utils/collection-utils"
-import { isFormulaAttr, isValidFormulaAttr } from "../data/attribute"
-import { CaseInfo, ICase, IGroupedCase, symParent } from "../data/data-set-types"
-import { FValue, ILocalAttributeDependency, ILookupDependency, CaseList } from "./formula-types"
-import { IFormula } from "./formula"
-import { observeDatasetHierarchyChanges } from "./formula-observers"
-import type {
-  IFormulaAdapterApi, IFormulaContext, IFormulaExtraMetadata, IFormulaManagerAdapter
-} from "./formula-manager"
-import { DEBUG_FORMULAS, debugLog } from "../../lib/debug"
+import { getFormulaDependencies } from "./utils/formula-dependency-utils"
+import { formulaError } from "./utils/misc"
 
 const ATTRIBUTE_FORMULA_ADAPTER = "AttributeFormulaAdapter"
 
@@ -22,12 +23,14 @@ interface IAttrFormulaExtraMetadata extends IFormulaExtraMetadata {
   attributeId: string
 }
 
-export class AttributeFormulaAdapter implements IFormulaManagerAdapter {
-  type = ATTRIBUTE_FORMULA_ADAPTER
-  api: IFormulaAdapterApi
+export class AttributeFormulaAdapter extends FormulaManagerAdapter implements IFormulaManagerAdapter {
+
+  static register() {
+    registerFormulaAdapter(api => new AttributeFormulaAdapter(api))
+  }
 
   constructor(api: IFormulaAdapterApi) {
-    this.api = api
+    super(ATTRIBUTE_FORMULA_ADAPTER, api)
   }
 
   getActiveFormulas(): ({ formula: IFormula, extraMetadata: IAttrFormulaExtraMetadata })[] {
