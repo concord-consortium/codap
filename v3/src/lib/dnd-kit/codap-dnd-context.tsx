@@ -1,23 +1,17 @@
 import {
-  AutoScrollOptions, DndContext, DragEndEvent, DragStartEvent, KeyboardCoordinateGetter, KeyboardSensor,
+  AutoScrollOptions, DndContext, KeyboardCoordinateGetter, KeyboardSensor,
   MouseSensor, PointerSensor, TraversalOrder, useSensor, useSensors
 } from "@dnd-kit/core"
-import React, { ReactNode, useRef } from "react"
-import { containerSnapToGridModifier, getDragAttributeInfo, restrictDragToArea } from "../../hooks/use-drag-drop"
-import { appState } from "../../models/app-state"
+import React, { ReactNode } from "react"
+import { containerSnapToGridModifier, restrictDragToArea } from "../../hooks/use-drag-drop"
 import { urlParams } from "../../utilities/url-params"
 import { canAutoScroll } from "./dnd-can-auto-scroll"
 import { dndDetectCollision } from "./dnd-detect-collision"
-import { dragEndNotification, dragStartNotification } from "./dnd-notifications"
-import { IDataSet } from "../../models/data/data-set"
 
 interface IProps {
   children: ReactNode
 }
 export const CodapDndContext = ({ children }: IProps) => {
-  const draggingDataSet = useRef<IDataSet | null>()
-  const draggingAttributeId = useRef<string | null>()
-
   // Note that as of this writing, the auto-scroll options are not documented in the official docs,
   // but they are described in this PR: https://github.com/clauderic/dnd-kit/pull/140.
   const autoScrollOptions: AutoScrollOptions = {
@@ -29,28 +23,6 @@ export const CodapDndContext = ({ children }: IProps) => {
     order: TraversalOrder.ReversedTreeOrder,
     // reduce the auto-scroll area to 5% (default is 20%)
     threshold: { x: 0.05, y: 0.05 }
-  }
-
-  const handleDragEnd = (e: DragEndEvent) => {
-    if (draggingDataSet.current && draggingAttributeId.current) {
-      appState.document.applyModelChange(() => {}, {
-        notify: dragEndNotification(draggingDataSet.current, draggingAttributeId.current)
-      })
-    }
-    draggingDataSet.current = null
-    draggingAttributeId.current = null
-  }
-
-  const handleDragStart = (e: DragStartEvent) => {
-    const info = getDragAttributeInfo(e.active)
-    if (info?.dataSet) {
-      const { dataSet, attributeId } = info
-      draggingDataSet.current = dataSet
-      draggingAttributeId.current = attributeId
-      appState.document.applyModelChange(() => {}, {
-        notify: dragStartNotification(dataSet, attributeId)
-      })
-    }
   }
 
   const useMouseSensor = useSensor(MouseSensor)
@@ -65,8 +37,6 @@ export const CodapDndContext = ({ children }: IProps) => {
       autoScroll={autoScrollOptions}
       collisionDetection={dndDetectCollision}
       modifiers={[containerSnapToGridModifier, restrictDragToArea]}
-      onDragEnd={handleDragEnd}
-      onDragStart={handleDragStart}
       sensors={sensors} >
       {children}
     </DndContext>

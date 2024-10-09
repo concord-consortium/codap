@@ -1,8 +1,10 @@
-import { Active, useDroppable } from "@dnd-kit/core"
+import { Active, DragEndEvent, DragStartEvent, useDndMonitor, useDroppable } from "@dnd-kit/core"
 import React, { MouseEventHandler, useRef } from "react"
 import { getDragAttributeInfo, useDropHandler } from "../../hooks/use-drag-drop"
 import { useTileModelContext } from "../../hooks/use-tile-model-context"
-import { dragNotification, dragWithPositionNotification } from "../../lib/dnd-kit/dnd-notifications"
+import { dragEndNotification, dragNotification, dragStartNotification, dragWithPositionNotification } from "../../lib/dnd-kit/dnd-notifications"
+import { IDataSet } from "../../models/data/data-set"
+import { INotification } from "../../models/history/apply-model-change"
 
 import "./web-view-drop-overlay.scss"
 
@@ -19,6 +21,25 @@ export function WebViewDropOverlay() {
   const mouseX = useRef<number|undefined>()
   const mouseY = useRef<number|undefined>()
 
+  // Broadcast dragstart and dragend notifications
+  const handleDragStartEnd = (
+    notification: (dataSet: IDataSet, attributeId: string) => INotification, _active: Active
+  ) => {
+    const _info = getDragAttributeInfo(_active)
+    if (_info?.dataSet && _info.attributeId) {
+      tile?.applyModelChange(() => {}, {
+        notify: notification(_info.dataSet, _info.attributeId),
+        notifyTileId: tileId
+      })
+    }
+  }
+
+  useDndMonitor({
+    onDragStart: (e: DragStartEvent) => handleDragStartEnd(dragStartNotification, e.active),
+    onDragEnd: (e: DragEndEvent) => handleDragStartEnd(dragEndNotification, e.active)
+  })
+
+  // Broadcast drop notifications
   useDropHandler(dropId, (_active: Active) => {
     const { dataSet: dropDataSet, attributeId: dropAttributeId } = getDragAttributeInfo(_active) || {}
     if (dropDataSet && dropAttributeId && mouseX.current != null && mouseY.current != null) {
@@ -32,6 +53,7 @@ export function WebViewDropOverlay() {
   // Only render the overlay if an attribute is being dragged
   if (!dataSet || !attributeId) return null
 
+  // Broadcast drag notifications
   const handleMouseMove: MouseEventHandler<HTMLDivElement> = event => {
     const { top, left } = overlayRef.current?.getBoundingClientRect() ?? { top: 0, left: 0 }
     const x = event.clientX - left
@@ -47,6 +69,7 @@ export function WebViewDropOverlay() {
     }
   }
 
+  // Broadcast dragenter and dragleave notifications
   const handleMouseEnterLeave = (operation: string) => {
     tile?.applyModelChange(() => {}, {
       notify: dragNotification(operation, dataSet, attributeId),
