@@ -22,7 +22,8 @@ jobs:
       - name: Install Dependencies
         working-directory: v3
         run: npm ci
-      - uses: actions/cache@v4
+      - name: Webpack Cache
+        uses: actions/cache@v4
         with:
           path: v3/node_modules/.cache/webpack/
           key: ${{ github.head_ref || github.ref_name }}-webpack-build
@@ -63,7 +64,7 @@ jobs:
       - name: Install Dependencies
         working-directory: v3
         run: npm ci
-      - name: Cache Jest cache
+      - name: Jest Cache
         uses: actions/cache@v4
         with:
           path: /tmp/jest_rt
@@ -91,12 +92,13 @@ jobs:
       - uses: snow-actions/sparse-checkout@v1.2.0
         with:
           patterns: v3
-      - uses: actions/cache@v4
+      - name: Webpack Cache
+        uses: actions/cache@v4
         with:
           path: v3/node_modules/.cache/webpack/
-          key: ${{ github.head_ref || github.ref_name }}-webpack-build
+          key: ${{ github.head_ref || github.ref_name }}-webpack-dev-build
           restore-keys: |
-            main-webpack-build
+            main-webpack-dev-build
       - uses: cypress-io/github-action@v6
         with:
           working-directory: v3
