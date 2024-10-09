@@ -56,7 +56,7 @@ export function WebViewDropOverlay() {
   if (!dataSet || !attributeId) return null
 
   // Broadcast drag notifications
-  const handleMouseMove: MouseEventHandler<HTMLDivElement> = event => {
+  const handlePointerMove: MouseEventHandler<HTMLDivElement> = event => {
     const { top, left } = overlayRef.current?.getBoundingClientRect() ?? { top: 0, left: 0 }
     const x = event.clientX - left
     const y = event.clientY - top
@@ -72,7 +72,7 @@ export function WebViewDropOverlay() {
   }
 
   // Broadcast dragenter and dragleave notifications
-  const handleMouseEnterLeave = (operation: string) => {
+  const handlePointerEnterLeave = (operation: string) => {
     tile?.applyModelChange(() => {}, {
       notify: dragNotification(operation, dataSet, attributeId),
       notifyTileId: tileId
@@ -86,9 +86,9 @@ export function WebViewDropOverlay() {
 
   return <div
     className="codap-web-view-drop-overlay"
-    onMouseEnter={() => handleMouseEnterLeave("dragenter")}
-    onMouseLeave={() => handleMouseEnterLeave("dragleave")}
-    onMouseMove={handleMouseMove}
+    onPointerEnter={() => handlePointerEnterLeave("dragenter")}
+    onPointerLeave={() => handlePointerEnterLeave("dragleave")}
+    onPointerMove={handlePointerMove}
     ref={setRef}
   />
 }
