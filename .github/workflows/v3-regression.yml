@@ -102,3 +102,21 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           flags: cypress
+  notify-slack:
+    if: ${{ failure() && github.ref_name == 'main' }}
+    needs: [cypress]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify Slack the tests failed
+        id: slack
+        uses: slackapi/slack-github-action@v1.25.0
+        with:
+          # This data can be any valid JSON from a previous step in the GitHub Action
+          payload: |
+            {
+              "ref_name": "${{ github.ref_name }}",
+              "workflow": "${{ github.workflow }}",
+              "run_url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
