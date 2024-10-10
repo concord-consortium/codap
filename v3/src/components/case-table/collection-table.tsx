@@ -66,8 +66,9 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
   const forceUpdate = useForceUpdate()
   const { isTileSelected } = useTileModelContext()
   const [isSelecting, setIsSelecting] = useState(false)
-  const [isDragging, setIsDragging] = useState(false) //This prevents the grid click handler from firing on mouse up
   const [selectionStartRowIdx, setSelectionStartRowIdx] = useState<number | null>(null)
+  const initialMouseDownPosition = useRef({ x: 0, y: 0 })
+  const kMouseMovementThreshold = 3
 
   useEffect(function setGridElement() {
     const element = gridRef.current?.element
@@ -223,13 +224,21 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
   }
 
   const handleClick = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (isDragging) {
-      setIsDragging(false)
+    // See if mouse has moved beyond kMouseMovementThreshold since initial mousedown
+    // If it has, then it is not a click
+    const deltaX = event.clientX - initialMouseDownPosition.current.x
+    const deltaY = event.clientY - initialMouseDownPosition.current.y
+    const distanceMoved = Math.sqrt(deltaX * deltaX + deltaY * deltaY)
+    const mouseHasMoved = distanceMoved > kMouseMovementThreshold
+    if (mouseHasMoved) {
+      initialMouseDownPosition.current = { x: 0, y: 0 } // reset the initial position
       return
     }
+
     // the grid element is the target when clicking outside the cells (otherwise, the cell is the target)
     if (isTileSelected() && event.target === gridRef.current?.element) {
       handleWhiteSpaceClick()
+      initialMouseDownPosition.current = { x: 0, y: 0 }
     }
   }
 
@@ -242,16 +251,16 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
     return rowIdx
   }, [collectionId, data])
 
-   const handleMouseDown = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
+   const handleMouseDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    initialMouseDownPosition.current = { x: event.clientX, y: event.clientY }
     const startRowIdx = getRowIndexFromEvent(event)
     if (startRowIdx != null) {
-      setIsSelecting(true)
       setSelectionStartRowIdx(startRowIdx)
+      setIsSelecting(true)
     }
-  }, [])
+  }
 
-  const handleMouseMove = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
-    setIsDragging(true)
+  const handleMouseMove = (event: React.PointerEvent<HTMLDivElement>) => {
     if (isSelecting && selectionStartRowIdx !== null) {
       const currentRowIdx = getRowIndexFromEvent(event as React.MouseEvent)
       if (currentRowIdx != null) {
@@ -267,9 +276,11 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
         setOrExtendSelection(selectedCaseIds, data)
       }
     }
-  }, [collectionId, data, getRowIndexFromEvent, isSelecting, selectionStartRowIdx])
+  }
 
-  const handleMouseUp = useCallback(() => {
+  const handleMouseUp = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
+    event.preventDefault()
+    event.stopPropagation()
     setIsSelecting(false)
     setSelectionStartRowIdx(null)
   }, [])
