@@ -95,6 +95,8 @@ jobs:
           # Also turn on the code coverage tasks in cypress itself, these are disabled
           # by default.
           CYPRESS_coverage: true
+          # Have webpack skip eslint checking, that was already done by the build step
+          SKIP_ESLINT: true
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:

@@ -134,6 +134,8 @@ jobs:
           # Also turn on the code coverage tasks in cypress itself, these are disabled
           # by default.
           CYPRESS_coverage: true
+          # Have webpack skip eslint checking, that was already done by the build step
+          SKIP_ESLINT: true
       - name: Save Webpack Cache
         uses: actions/cache/save@v4
         # Always save the cache on the main branch, it won't be built often and

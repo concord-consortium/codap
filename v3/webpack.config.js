@@ -36,7 +36,7 @@ module.exports = (env, argv) => {
     })] : []),
     new CleanWebpackPlugin(),
   ]
-  if (devMode) {
+  if (devMode && !process.env.SKIP_ESLINT) {
     // `build` script runs eslint independently in production mode,
     // so we don't need to run it again as part of the webpack build
     webpackPlugins.push(new ESLintPlugin({
@@ -78,10 +78,10 @@ module.exports = (env, argv) => {
       debug: true
     },
     snapshot: {
-      buildDependencies: { hash: true},
-      module: { hash: true},
-      resolve: { hash: true},
-      resolveBuildDependencies: { hash: true},
+      // Look at the hash if the timestamp is different
+      // In the Cypress github actions job the timestamps are changing
+      module: { timestamp: true, hash: true},
+      resolve: { timestamp: true, hash: true},
     },
     cache: {
       buildDependencies: {
