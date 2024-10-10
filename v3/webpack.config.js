@@ -73,13 +73,9 @@ module.exports = (env, argv) => {
       path: path.resolve(__dirname, 'dist'),
       filename: 'assets/index.[contenthash].js',
     },
-    infrastructureLogging: {
-      level: 'verbose',
-      debug: true
-    },
     snapshot: {
-      // Look at the hash if the timestamp is different
-      // In the Cypress github actions job the timestamps are changing
+      // When computing the cache, use the hash if the timestamp is different
+      // In the Cypress github actions job, the timestamps are changing
       module: { timestamp: true, hash: true},
       resolve: { timestamp: true, hash: true},
     },
