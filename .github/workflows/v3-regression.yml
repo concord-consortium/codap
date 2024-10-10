@@ -6,6 +6,8 @@ on:
     paths:      # only run this workflow if it contains v3 files
       - 'v3/**' # https://docs.github.com/en/actions/using-workflows/triggering-a-workflow#example-including-paths
       - '.github/workflows/v3-regression.yml'
+      - '.github/workflows/v3.yml'
+      - '.github/workflows/run-regression-label.yml'
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -57,12 +59,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - uses: actions/cache@v4
-        with:
-          path: v3/node_modules/.cache/webpack/
-          key: ${{ github.head_ref || github.ref_name }}-webpack-build
-          restore-keys: |
-            main-webpack-build
       - uses: cypress-io/github-action@v6
         with:
           working-directory: v3
