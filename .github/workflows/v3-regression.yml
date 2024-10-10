@@ -59,6 +59,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Restore Webpack Cache
+        # Don't save the webpack cache because the same cache wil be saved
+        # by the cypress job in `v3.yml`
+        uses: actions/cache/restore@v4
+        with:
+          path: v3/.cache/webpack/
+          key: webpack-dev-build-${{ hashFiles('v3/webpack.config.js') }}
       - uses: cypress-io/github-action@v6
         with:
           working-directory: v3
@@ -88,6 +95,8 @@ jobs:
           # Also turn on the code coverage tasks in cypress itself, these are disabled
           # by default.
           CYPRESS_coverage: true
+          # Have webpack skip eslint checking, that was already done by the build step
+          SKIP_ESLINT: true
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
