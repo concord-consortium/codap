@@ -621,6 +621,34 @@ test("DataSet case hiding/showing (set aside)", () => {
   expect(data.itemIds).toEqual(["item3", "item4", "item5", "item0", "item1", "item2"])
 })
 
+test("sortItems", () => {
+  const data = DataSet.create({ name: "data" })
+  const a = data.addAttribute({ id: "AttrA", name: "A" })
+  const b = data.addAttribute({ id: "AttrB", name: "B" })
+  data.addCases([
+    { __id__: "ITEM0", [a.id]: "A2", [b.id]:  "0" },
+    { __id__: "ITEM1", [a.id]:  "1", [b.id]: "B1" },
+    { __id__: "ITEM2", [a.id]: "A3", [b.id]:  "5" },
+    { __id__: "ITEM3", [a.id]: "-1", [b.id]: "B0" },
+    { __id__: "ITEM4", [a.id]: "A1", [b.id]:  "3" }
+  ])
+  expect(data.itemIds).toEqual(["ITEM0", "ITEM1", "ITEM2", "ITEM3", "ITEM4"])
+  // sort by a
+  data.sortItems(a.id)
+  expect(data.itemIds).toEqual(["ITEM4", "ITEM0", "ITEM2", "ITEM3", "ITEM1"])
+  data.prepareSnapshot()
+  expect(a.values).toEqual(["A1", "A2", "A3", "-1", "1"])
+  expect(b.values).toEqual(["3", "0", "5", "B0", "B1"])
+  data.completeSnapshot()
+  // sort by b descending
+  data.sortItems(b.id, "descending")
+  expect(data.itemIds).toEqual(["ITEM2", "ITEM4", "ITEM0", "ITEM1", "ITEM3"])
+  data.prepareSnapshot()
+  expect(a.values).toEqual(["A3", "A1", "A2", "1", "-1"])
+  expect(b.values).toEqual(["5", "3", "0", "B1", "B0"])
+  data.completeSnapshot()
+})
+
 test("Caching mode", () => {
   const ds = DataSet.create({ name: "data" })
 

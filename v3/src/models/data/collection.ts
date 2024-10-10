@@ -1,6 +1,7 @@
 import { comparer, observable, reaction, runInAction } from "mobx"
 import { addDisposer, getType, IAnyStateTreeNode, Instance, SnapshotIn, types } from "mobx-state-tree"
 import { kCaseIdPrefix, kCollectionIdPrefix, typeV3Id, v3Id } from "../../utilities/codap-utils"
+import { hashStringSet, hashOrderedStringSet } from "../../utilities/js-utils"
 import { Attribute, IAttribute } from "./attribute"
 import {
   CaseInfo, IGroupedCase, IMoveAttributeOptions, symIndex, symParent
@@ -370,6 +371,8 @@ export const CollectionModel = V2Model
 .extend(self => {
   const _caseGroups = observable.box<CaseInfo[]>([])
   const _cases = observable.box<IGroupedCase[]>([])
+  const _caseIdsHash = observable.box<number>(0)
+  const _caseIdsOrderedHash = observable.box<number>(0)
   return {
     views: {
       get caseGroups() {
@@ -377,6 +380,12 @@ export const CollectionModel = V2Model
       },
       get cases() {
         return _cases.get()
+      },
+      get caseIdsHash() {
+        return _caseIdsHash.get()
+      },
+      get caseIdsOrderedHash() {
+        return _caseIdsOrderedHash.get()
       },
       completeCaseGroups(parentCaseGroups?: CaseInfo[]) {
         if (parentCaseGroups) {
@@ -397,12 +406,17 @@ export const CollectionModel = V2Model
         const caseGroups = self.caseIds
                             .map(caseId => self.getCaseGroup(caseId))
                             .filter(group => !!group)
-        runInAction(() => _caseGroups.set(caseGroups))
 
         const cases = self.caseIds
                         .map(caseId => self.getCaseGroup(caseId)?.groupedCase)
                         .filter(groupedCase => !!groupedCase)
-        runInAction(() => _cases.set(cases))
+
+        runInAction(() => {
+          _caseGroups.set(caseGroups)
+          _cases.set(cases)
+          _caseIdsHash.set(hashStringSet(self.caseIds))
+          _caseIdsOrderedHash.set(hashOrderedStringSet(self.caseIds))
+        })
       }
     }
   }

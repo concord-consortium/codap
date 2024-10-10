@@ -1,4 +1,5 @@
 import {
+  hashOrderedStringSet,
   hashString, hashStringSet, hashStringSets, hasOwnProperty, isEquivalentArray, isEquivalentSet
 } from "./js-utils"
 
@@ -45,7 +46,6 @@ describe("JavaScript Utilities", () => {
   test("hashStringSet", () => {
     expect(hashStringSet([])).toBe(hashStringSet([]))
     expect(hashStringSet(["a", "b", "c"])).toBe(hashStringSet(["a", "b", "c"]))
-    expect(hashStringSet(["a", "b", "c"])).toBe(hashStringSet(["a", "b", "c"]))
     expect(hashStringSet(["a", "b", "c"])).toBe(hashStringSet(["c", "b", "a"]))
     expect(hashStringSet(["a", "b", "c"])).not.toBe(hashStringSet(["a", "b"]))
     expect(hashStringSet(["a", "b", "c"])).not.toBe(hashStringSet(["a", "b", ""]))
@@ -58,5 +58,14 @@ describe("JavaScript Utilities", () => {
     expect(hashStringSets([["a"]])).not.toBe(hashStringSets([["a"], ["a"]]))
     expect(hashStringSets([["a"], ["b"]])).not.toBe(hashStringSets([["a"], ["a"]]))
     expect(hashStringSets([["a"], ["b"]])).not.toBe(hashStringSets([["a"], ["b"], ["c"]]))
+  })
+
+  test("hashOrderedStringSet", () => {
+    expect(hashOrderedStringSet([])).toBe(hashOrderedStringSet([]))
+    expect(hashOrderedStringSet(["a", "b", "c"])).toBe(hashOrderedStringSet(["a", "b", "c"]))
+    expect(hashOrderedStringSet(["a", "b", "c"])).not.toBe(hashOrderedStringSet(["c", "b", "a"]))
+    expect(hashOrderedStringSet(["a", "b", "c"])).not.toBe(hashOrderedStringSet(["a", "b"]))
+    expect(hashOrderedStringSet(["a", "b", "c"])).not.toBe(hashOrderedStringSet(["a", "b", ""]))
+    expect(hashOrderedStringSet(["a", "b", "c"])).not.toBe(hashOrderedStringSet(["a", "b", "C"]))
   })
 })

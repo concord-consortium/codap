@@ -7,6 +7,7 @@ import { onAnyAction } from "../../utilities/mst-utils"
 // eslint-disable-next-line no-var
 var mockNodeIdCount = 0
 jest.mock("../../utilities/js-utils", () => ({
+  ...jest.requireActual("../../utilities/js-utils"),
   typedId: () => `test-${++mockNodeIdCount}`,
   uniqueOrderedId: () => `order-${++mockNodeIdCount}`
 }))

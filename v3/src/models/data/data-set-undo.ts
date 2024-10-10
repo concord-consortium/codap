@@ -1,4 +1,5 @@
-import { IAnyStateTreeNode, resolveIdentifier } from "mobx-state-tree"
+import { getSnapshot, IAnyStateTreeNode, resolveIdentifier } from "mobx-state-tree"
+import { logMessageWithReplacement, logStringifiedObjectMessage } from "../../lib/log-message"
 import { kItemIdPrefix, v3Id } from "../../utilities/codap-utils"
 import { ICustomUndoRedoPatcher } from "../history/custom-undo-redo-registry"
 import { HistoryEntryType } from "../history/history"
@@ -8,7 +9,6 @@ import { ICollectionModel } from "./collection"
 import { CaseInfo, IAddCasesOptions, ICase, ICaseCreation, IItem } from "./data-set-types"
 import { DataSet, IDataSet } from "./data-set"
 import { deleteCasesNotification, } from "./data-set-notifications"
-import { logMessageWithReplacement } from "../../lib/log-message"
 
 /*
  * setCaseValues custom undo/redo
@@ -265,5 +265,70 @@ export function removeCasesWithCustomUndoRedo(data: IDataSet, caseIds: string[])
     undoStringKey: "DG.Undo.data.deleteCases",
     redoStringKey: "DG.Redo.data.deleteCases",
     log: logMessageWithReplacement("Delete %@ cases", {numCases: cases.length})
+  })
+}
+
+/*
+ * sortItems custom undo/redo
+ */
+interface ISortItemsCustomPatch extends ICustomPatch {
+  type: "DataSet.sortItems",
+  data: {
+    dataId: string  // DataSet id
+    attrId: string
+    direction: "ascending" | "descending"
+    beforeItemIds: string[]
+    after: Array<{ itemId: string, origIndex: number }>
+  }
+}
+function isSortItemsCustomPatch(patch: ICustomPatch): patch is ISortItemsCustomPatch {
+  return patch.type === "DataSet.sortItems"
+}
+
+const sortItemsCustomUndoRedo: ICustomUndoRedoPatcher = {
+  undo: (node: IAnyStateTreeNode, patch: ICustomPatch, entry: HistoryEntryType) => {
+    if (isSortItemsCustomPatch(patch)) {
+      const data = resolveIdentifier<typeof DataSet>(DataSet, node, patch.data.dataId)
+      const itemIdsWithIndices = patch.data.after.map((item, afterIndex) => ({ ...item, afterIndex }))
+      itemIdsWithIndices.sort((a, b) => a.origIndex - b.origIndex)
+      const afterIndices = itemIdsWithIndices.map(({ afterIndex }) => afterIndex)
+      data?.attributes.forEach(attr => attr.orderValues(afterIndices))
+      data?._itemIds.replace(patch.data.beforeItemIds)
+    }
+  },
+  redo: (node: IAnyStateTreeNode, patch: ICustomPatch, entry: HistoryEntryType) => {
+    if (isSortItemsCustomPatch(patch)) {
+      const data = resolveIdentifier<typeof DataSet>(DataSet, node, patch.data.dataId)
+      data?.sortItems(patch.data.attrId, patch.data.direction)
+    }
+  }
+}
+
+type ISortDirection = "ascending" | "descending"
+export function sortItemsWithCustomUndoRedo(data: IDataSet, attrId: string, direction: ISortDirection = "ascending") {
+
+  const undoRedoPatch: ISortItemsCustomPatch = {
+    type: "DataSet.sortItems",
+    data: {
+      dataId: data.id,
+      attrId,
+      direction,
+      beforeItemIds: getSnapshot(data._itemIds),
+      after: [] // filled in later
+    }
+  }
+
+  // sort the items
+  data?.applyModelChange(() => {
+    withCustomUndoRedo(undoRedoPatch, sortItemsCustomUndoRedo)
+
+    const itemIdsWithIndices = data?.sortItems(attrId, direction)
+
+    undoRedoPatch.data.after = itemIdsWithIndices ?? []
+  }, {
+    log: logStringifiedObjectMessage("Sort cases by attribute: %@",
+            { attributeId: attrId, attribute: data?.getAttribute(attrId)?.name }),
+    undoStringKey: "DG.Undo.caseTable.sortCases",
+    redoStringKey: "DG.Redo.caseTable.sortCases"
   })
 }

@@ -8,6 +8,7 @@ import {
   deleteCollectionNotification, hideAttributeNotification, removeAttributesNotification
 } from "../../../models/data/data-set-notifications"
 import { IAttributeChangeResult } from "../../../models/data/data-set-types"
+import { sortItemsWithCustomUndoRedo } from "../../../models/data/data-set-undo"
 import {
   allowAttributeDeletion, preventCollectionReorg, preventTopLevelReorg
 } from "../../../utilities/plugin-utils"
@@ -55,12 +56,10 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
     onModalOpen(false)
   }
 
-  // const handleSortCases = (item: IMenuItem) => {
-  //   data?.applyModelChange(() => {}, {
-  //     log: logStringifiedObjectMessage("Sort cases by attribute: %@",
-  //            { attributeId: attribute?.id, attribute: attributeName })
-  //   })
-  // }
+  const handleSortCases = (item: IMenuItem) => {
+    const direction = item.itemKey.includes("Descending") ? "descending" : "ascending"
+    data && sortItemsWithCustomUndoRedo(data, attributeId, direction)
+  }
 
   const handleMenuKeyDown = (e: React.KeyboardEvent) => {
     e.stopPropagation()
@@ -123,11 +122,11 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
     },
     {
       itemKey: "DG.TableController.headerMenuItems.sortAscending",
-      // handleClick: handleSortCases
+      handleClick: handleSortCases
     },
     {
       itemKey: "DG.TableController.headerMenuItems.sortDescending",
-      // handleClick: handleSortCases
+      handleClick: handleSortCases
     },
     {
       itemKey: "DG.TableController.headerMenuItems.hideAttribute",
