@@ -517,6 +517,28 @@ context("case table ui", () => {
         expect(value).not.to.eq(random2)
       })
     })
+    it("verify sorting", () => {
+      // sort by ascending Order
+      table.openAttributeMenu("Order")
+      table.selectMenuItemFromAttributeMenu("Sort Ascending")
+      table.getGridCell(2, 2).should("contain", "Giraffe")
+      // sort by descending Speed
+      table.openAttributeMenu("Speed")
+      table.selectMenuItemFromAttributeMenu("Sort Descending")
+      table.getGridCell(2, 2).should("contain", "Cheetah")
+      // undo Speed sort
+      toolbar.getUndoTool().click()
+      table.getGridCell(2, 2).should("contain", "Giraffe")
+      // undo Order sort
+      toolbar.getUndoTool().click()
+      table.getGridCell(2, 2).should("contain", "African Elephant")
+      // redo Order sort
+      toolbar.getRedoTool().click()
+      table.getGridCell(2, 2).should("contain", "Giraffe")
+      // redo Speed sort
+      toolbar.getRedoTool().click()
+      table.getGridCell(2, 2).should("contain", "Cheetah")
+    })
     it("verify hide and showAll attribute with undo and redo", () => {
 
       // Hide the attribute

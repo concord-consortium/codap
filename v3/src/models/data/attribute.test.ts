@@ -24,13 +24,19 @@ describe("Attribute", () => {
     expect(isAttributeType("color")).toBe(true)
   })
 
-  test("matchNameOrId", () => {
+  test("matchNameOrId and cid", () => {
     const a = Attribute.create({ id: "ATTR1", name: "name", _title: "title" })
     expect(a.matchNameOrId("")).toBe(false)
     expect(a.matchNameOrId(1)).toBe(true)
     expect(a.matchNameOrId("ATTR1")).toBe(true)
     expect(a.matchNameOrId("name")).toBe(true)
     expect(a.matchNameOrId("title")).toBe(false)
+
+    expect(a._cid).toBeUndefined()
+    expect(a.cid).toBe(a.id)
+    a.setCid("cid")
+    expect(a._cid).toBe("cid")
+    expect(a.cid).toBe("cid")
   })
 
   test("Value conversions", () => {
@@ -417,6 +423,20 @@ describe("Attribute", () => {
     attr.setDisplayExpression("")
     expect(isFormulaAttr(attr)).toBe(false)
     expect(isValidFormulaAttr(attr)).toBe(false)
+  })
+
+  test("orderValues", () => {
+    const a = Attribute.create({ id: "aId", name: "a", values: ["a", "b", "c"] })
+    // no order change
+    a.orderValues([0, 1, 2])
+    a.prepareSnapshot()
+    expect(a.values).toEqual(["a", "b", "c"])
+    a.completeSnapshot()
+    // reverse order
+    a.orderValues([2, 1, 0])
+    a.prepareSnapshot()
+    expect(a.values).toEqual(["c", "b", "a"])
+    a.completeSnapshot()
   })
 
   test("Attribute derivation", () => {
