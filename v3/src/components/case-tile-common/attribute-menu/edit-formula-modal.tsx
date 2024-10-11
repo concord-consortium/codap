@@ -1,7 +1,5 @@
-import {
-  Box, Button, Divider, Flex, FormControl, FormLabel, Input, List, ListItem,
-  ModalBody, ModalCloseButton, ModalFooter, ModalHeader, Textarea, Tooltip
-} from "@chakra-ui/react"
+import {  Box, Button, Flex, FormControl, FormLabel, Input, ModalBody, ModalCloseButton,
+          ModalFooter, ModalHeader, Tooltip } from "@chakra-ui/react"
 import React, { useEffect, useState } from "react"
 import { observer } from "mobx-react-lite"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
@@ -10,8 +8,9 @@ import { updateAttributesNotification, updateCasesNotification } from "../../../
 import { t } from "../../../utilities/translation/translate"
 import { FormulaEditor } from "../../common/formula-editor"
 import { CodapModal } from "../../codap-modal"
+import { InsertFunctionMenu } from "./formula-insert-function-menu"
+import { InsertValuesMenu } from "./formula-insert-values-menu"
 
-import functionStringMap from "../../../assets/json/function_strings.json"
 import "./attribute-menu.scss"
 
 interface IProps {
@@ -24,11 +23,10 @@ export const EditFormulaModal = observer(function EditFormulaModal({ attributeId
   const dataSet = useDataSetContext()
   const attribute = dataSet?.attrFromID(attributeId)
   const [formula, setFormula] = useState(attribute?.formula?.display || "")
-  const [showOperandMenu, setShowOperandMenu] = useState(false)
-  const [functionMenuView, setFunctionMenuView] = useState<"category" | "list" | "info" | undefined>("category")
+  const [showValuesMenu, setShowValuesMenu] = useState(false)
   const [showFunctionMenu, setShowFunctionMenu] = useState(false)
-  const [selectedCategory, setSelectedCategory] = useState("")
-  const [selectedFunction, setSelectedFunction] = useState("")
+  const [cursorPosition, setCursorPosition] = useState(0)
+  const [editorSelection, setEditorSelection] = useState({from: 0, to: 0})
 
   useEffect(() => {
     setFormula(attribute?.formula?.display || "")
@@ -55,8 +53,7 @@ export const EditFormulaModal = observer(function EditFormulaModal({ attributeId
   }
 
   const closeModal = () => {
-    setFunctionMenuView(undefined)
-    setShowOperandMenu(false)
+    setShowValuesMenu(false)
     setShowFunctionMenu(false)
     onClose()
   }
@@ -64,211 +61,18 @@ export const EditFormulaModal = observer(function EditFormulaModal({ attributeId
   const handleModalWhitspaceClick = (e: React.MouseEvent<HTMLDivElement>) => {
     console.log("handleModalWhitspaceClick clicked")
     e.preventDefault()
-    setShowOperandMenu(false)
-    setFunctionMenuView(undefined)
+    setShowValuesMenu(false)
     setShowFunctionMenu(false)
   }
-  const handleFormulaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => setFormula(e.target.value)
 
   const handleInsertValuesOpen = () => {
-    setShowOperandMenu(true)
-    setFunctionMenuView(undefined)
+    setShowValuesMenu(true)
     setShowFunctionMenu(false)
   }
 
   const handleInsertFunctionsOpen = () => {
     setShowFunctionMenu(true)
-    setFunctionMenuView("category")
-    setShowOperandMenu(false)
-  }
-
-  const insertOperandToFormula = (operand: string) => {
-    console.log("insertOperandToFormula clicked")
-    // insert the function to the formula
-    setFormula(formula + operand)
-    setShowOperandMenu(false)
-  }
-
-  const renderOperandMenu = () => {
-    const attributeNames = dataSet?.attributes.map(attr => attr.name)
-    if (showOperandMenu) {
-      return (
-        <Flex className="formula-operand-list-container" style={{ top: 0, left: 0 }}>
-          <List className="formula-operand-list">
-            {attributeNames?.map((attrName) => {
-              return (
-                <ListItem className="formula-operand-list-item" key={attrName}
-                          onClick={() => insertOperandToFormula(attrName)}>
-                  {attrName}
-                </ListItem>
-              )
-            })}
-          </List>
-          <Divider color={"#A0A0A0"}/>
-          <List>
-            <ListItem className="formula-operand-list-item" onClick={() => insertOperandToFormula("caseIndex")}>
-              caseIndex
-            </ListItem>
-          </List>
-          <Divider color={"#A0A0A0"}/>
-          <List>
-            <ListItem className="formula-operand-list-item" onClick={() => insertOperandToFormula("e")}>
-              e
-            </ListItem>
-            <ListItem className="formula-operand-list-item" onClick={() => insertOperandToFormula("false")}>
-              false
-            </ListItem>
-            <ListItem className="formula-operand-list-item" onClick={() => insertOperandToFormula("true")}>
-              true
-            </ListItem>
-            <ListItem className="formula-operand-list-item" onClick={() => insertOperandToFormula("π")}>
-              π
-            </ListItem>
-          </List>
-        </Flex>
-      )
-    }
-  }
-
-  const insertFunctionToFormula = (func: any, args?: any) => {
-    // insert the function to the formula
-    const argsString = args.map((arg: any) => arg.name).join(", ") || ""
-    setFormula(`${formula}${func}(${argsString})`)
-    setFunctionMenuView(undefined)
-    setShowFunctionMenu(false)
-  }
-
-  const handleShowFunctionCategoryList = (e: React.MouseEvent, categoryName?: string) => {
-    e.stopPropagation()
-    setFunctionMenuView("list")
-    categoryName && setSelectedCategory(categoryName)
-  }
-
-  const handleShowFunctionInfo = (funcName: string, e: React.MouseEvent) => {
-    e.stopPropagation()
-    setFunctionMenuView("info")
-    setSelectedFunction(funcName)
-  }
-
-  const handleShowFunctionCategoryMenu = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    setFunctionMenuView("category")
-  }
-
-  const renderFunctionInfo = () => {
-    const functionCategoryObj = functionStringMap.find((category) =>
-      category.functions.some((func) => func.displayName === selectedFunction))
-    const functionObj = functionCategoryObj?.functions.find(
-      (func) => func.displayName === selectedFunction)
-      console.log("in renderFunctionInfo functionObj: ", functionObj)
-    return (
-      <Flex className="formula-function-list">
-        <Flex className="functions-list-header" flexDir="row"
-              onClick={handleShowFunctionCategoryList}>
-          <span className="function-select-back-arrow">&lt; </span>
-          <span className="function-categories-header">{`${functionCategoryObj?.displayName} Functions`}</span>
-          <span className="function-selected-item-name-header">{`${functionObj?.displayName}`}</span>
-        </Flex>
-        <Divider className="function-header-divider"/>
-        <Flex className="function-info-body" flexDir="column">
-          <div className="function-info-name"
-                onClick={()=>insertFunctionToFormula(functionObj?.displayName, functionObj?.args)}>
-            <span>
-              {functionObj?.displayName}
-              (<span className="function-arguments">{functionObj?.args.map((arg) => arg.name).join(", ")}</span>)
-            </span>
-          </div>
-          <div>{functionObj?.description}</div>
-          <div className="function-info-subtitle">Parameters</div>
-          {functionObj?.args.map((arg) => {
-            return (
-              <div className="function-arguments-info" key={arg.name}>
-                <span>{arg.name}:</span>
-                <span>{arg.description}</span>
-                <span className="function-arguments">{arg.optional ? "(optional)" : "(required)"}</span>
-              </div>
-            )
-          })}
-          <div className="function-info-subtitle">Examples</div>
-          {functionObj?.examples.map((example) => {
-            return (
-              <div key={example}>
-                <span>{example}</span>
-              </div>
-            )
-          })}
-        </Flex>
-      </Flex>
-    )
-  }
-
-  const renderFunctionList = () => {
-    const categoryObj = functionStringMap.find((categoryItem) => categoryItem.category === selectedCategory)
-    console.log("in renderFunctionList categoryObj", categoryObj)
-    return (
-      <Flex flexDir={"column"} className="formula-function-list">
-        <Flex className="functions-list-header" alignItems="center" flexDir={"row"}
-              onClick={handleShowFunctionCategoryMenu} >
-          <span className="function-select-back-arrow">&lt; </span>
-          <span>Categories</span>
-          <span className="function-selected-item-name-header">{`${categoryObj?.displayName} Functions`}</span>
-        </Flex>
-        <Divider className="function-header-divider"/>
-        <Flex flexDir={"column"}>
-          {categoryObj?.functions.map((func) => {
-            return (
-              <Flex
-                key={`function-${func.displayName}`}
-                flexDir="row"
-                alignItems="center"
-                justifyContent="space-between"
-                w="100%"
-                className="function-menu-item"
-              >
-                <span className="function-menu-name" onClick={()=>insertFunctionToFormula(func.displayName, func.args)}>
-                  {func.displayName}
-                    (<span className="function-arguments">{func.args.map((arg) => arg.name).join(", ")}</span>)
-                </span>
-                <span className="function-info-button" data-testid="function-info-button"
-                  onClick={(event)=>handleShowFunctionInfo(func.displayName, event)}>
-                  ⓘ
-                </span>
-              </Flex>
-            )
-          })}
-        </Flex>
-      </Flex>
-    )
-  }
-
-  const renderFunctionCategoryList = () => {
-    return (
-      <List className="formula-function-list">
-        {functionStringMap.map((category) => {
-          console.log("category: ", category)
-          return (
-            <ListItem key={category.category} className="function-category-list-item"
-                      onClick={(event)=>handleShowFunctionCategoryList(event, category.category)}>
-              <span>{`${category.displayName} Functions`}</span>
-              <span className="function-category-expand-arrow">&gt;</span>
-            </ListItem>
-          )
-        })}
-      </List>
-    )
-  }
-
-  const renderFunctionMenu = () => {
-    console.log("functionMenuView: ", functionMenuView)
-    return (
-      <Flex className="formula-function-menu-container">
-        { functionMenuView === "info"
-            ? renderFunctionInfo()
-            : functionMenuView === "list"
-              ? renderFunctionList()
-              : functionMenuView === "category" ? renderFunctionCategoryList() : null}
-      </Flex>
-    )
+    setShowValuesMenu(false)
   }
 
   const footerButtons = [{
@@ -291,7 +95,7 @@ export const EditFormulaModal = observer(function EditFormulaModal({ attributeId
       <ModalHeader h="30" className="codap-modal-header" fontSize="md" data-testid="codap-modal-header">
         <div className="codap-modal-icon-container" />
         <div className="codap-header-title" />
-        <ModalCloseButton onClick={onClose} data-testid="modal-close-button" />
+        <ModalCloseButton onClick={closeModal} data-testid="modal-close-button" />
       </ModalHeader>
       <ModalBody onKeyDown={e => e.stopPropagation()} onClick={() => handleModalWhitspaceClick}>
         <FormControl display="flex" flexDirection="column" className="formula-form-control">
@@ -301,7 +105,8 @@ export const EditFormulaModal = observer(function EditFormulaModal({ attributeId
             />
           </FormLabel>
           <FormLabel>{t("DG.AttrFormView.formulaPrompt")}
-            <FormulaEditor formula={formula} setFormula={setFormula} />
+            <FormulaEditor formula={formula} setFormula={setFormula} setCursorPosition={setCursorPosition}
+                setEditorSelection={(from, to) => setEditorSelection({ from, to })}/>
           </FormLabel>
         </FormControl>
         <Flex flexDirection="row" justifyContent="flex-start">
@@ -310,14 +115,21 @@ export const EditFormulaModal = observer(function EditFormulaModal({ attributeId
                     onClick={handleInsertValuesOpen}>
               {t("DG.AttrFormView.operandMenuTitle")}
             </Button>
-            {showOperandMenu && renderOperandMenu()}
+            {showValuesMenu &&
+              <InsertValuesMenu setShowValuesMenu={setShowValuesMenu}
+                    setFormula={setFormula} formula={formula} cursorPosition={cursorPosition}
+                    editorSelection={editorSelection} />
+            }
           </Box>
           <Box position="relative">
             <Button className="formula-editor-button insert-function" size="xs" ml="5"
                     onClick={handleInsertFunctionsOpen}>
               {t("DG.AttrFormView.functionMenuTitle")}
             </Button>
-            {showFunctionMenu && renderFunctionMenu()}
+            {showFunctionMenu &&
+                <InsertFunctionMenu setShowFunctionMenu={setShowFunctionMenu}
+                    setFormula={setFormula} formula={formula} />
+            }
           </Box>
         </Flex>
       </ModalBody>
