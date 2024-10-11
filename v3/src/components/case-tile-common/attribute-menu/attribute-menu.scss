@@ -20,6 +20,13 @@
 }
 
 // Formula Editor Styles
+.formula-modal-body {
+  cursor: default;
+}
+
+.formula-modal-footer {
+  cursor: default;
+}
 .formula-form-control {
   input {
     max-width: 270px;

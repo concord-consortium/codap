@@ -58,19 +58,19 @@ export const EditFormulaModal = observer(function EditFormulaModal({ attributeId
     onClose()
   }
 
-  const handleModalWhitspaceClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    console.log("handleModalWhitspaceClick clicked")
-    e.preventDefault()
+  const handleModalWhitspaceClick = () => {
     setShowValuesMenu(false)
     setShowFunctionMenu(false)
   }
 
-  const handleInsertValuesOpen = () => {
+  const handleInsertValuesOpen = (e: React.MouseEvent) => {
+    e.stopPropagation()
     setShowValuesMenu(true)
     setShowFunctionMenu(false)
   }
 
-  const handleInsertFunctionsOpen = () => {
+  const handleInsertFunctionsOpen = (e: React.MouseEvent) => {
+    e.stopPropagation()
     setShowFunctionMenu(true)
     setShowValuesMenu(false)
   }
@@ -88,16 +88,17 @@ export const EditFormulaModal = observer(function EditFormulaModal({ attributeId
   return (
     <CodapModal
       isOpen={isOpen}
-      onClose={onClose}
+      onClose={closeModal}
       modalWidth={"400px"}
       modalHeight={"180px"}
+      onClick={handleModalWhitspaceClick}
     >
       <ModalHeader h="30" className="codap-modal-header" fontSize="md" data-testid="codap-modal-header">
         <div className="codap-modal-icon-container" />
         <div className="codap-header-title" />
         <ModalCloseButton onClick={closeModal} data-testid="modal-close-button" />
       </ModalHeader>
-      <ModalBody onKeyDown={e => e.stopPropagation()} onClick={() => handleModalWhitspaceClick}>
+      <ModalBody className="formula-modal-body" onKeyDown={e => e.stopPropagation()}>
         <FormControl display="flex" flexDirection="column" className="formula-form-control">
           <FormLabel display="flex" flexDirection="row">{t("DG.AttrFormView.attrNamePrompt")}
             <Input
@@ -133,9 +134,8 @@ export const EditFormulaModal = observer(function EditFormulaModal({ attributeId
           </Box>
         </Flex>
       </ModalBody>
-      <ModalFooter mt="-5">
-        {
-          footerButtons.map((b, idx) => {
+      <ModalFooter mt="-5" className="formula-modal-footer">
+        { footerButtons.map((b, idx) => {
             const key = `${idx}-${b.label}`
             return (
               <Tooltip key={idx} label={b.tooltip} h="20px" fontSize="12px" color="white" openDelay={1000}
