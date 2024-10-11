@@ -10,6 +10,7 @@ import { FormulaEditor } from "../../common/formula-editor"
 import { CodapModal } from "../../codap-modal"
 import { InsertFunctionMenu } from "./formula-insert-function-menu"
 import { InsertValuesMenu } from "./formula-insert-values-menu"
+import { clsx } from "clsx"
 
 import "./attribute-menu.scss"
 
@@ -112,8 +113,8 @@ export const EditFormulaModal = observer(function EditFormulaModal({ attributeId
         </FormControl>
         <Flex flexDirection="row" justifyContent="flex-start">
           <Box position="relative">
-            <Button className="formula-editor-button insert-value" size="xs" ml="5"
-                    onClick={handleInsertValuesOpen}>
+            <Button className={clsx("formula-editor-button", "insert-value", {"menu-open": showValuesMenu})}
+                    size="xs" ml="5" onClick={handleInsertValuesOpen}>
               {t("DG.AttrFormView.operandMenuTitle")}
             </Button>
             {showValuesMenu &&
@@ -123,8 +124,8 @@ export const EditFormulaModal = observer(function EditFormulaModal({ attributeId
             }
           </Box>
           <Box position="relative">
-            <Button className="formula-editor-button insert-function" size="xs" ml="5"
-                    onClick={handleInsertFunctionsOpen}>
+            <Button className={clsx("formula-editor-button", "insert-function", {"menu-open": showFunctionMenu})}
+                    size="xs" ml="5" onClick={handleInsertFunctionsOpen}>
               {t("DG.AttrFormView.functionMenuTitle")}
             </Button>
             {showFunctionMenu &&

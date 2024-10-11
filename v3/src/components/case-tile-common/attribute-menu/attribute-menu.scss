@@ -1,3 +1,5 @@
+@import "../../vars.scss";
+
 // Edit Attribute Modal Styles
 .edit-attribute-form-row {
   display: flex !important;
@@ -35,6 +37,13 @@
 
 .formula-editor-button {
   padding: 0 10px;
+  &:hover {
+    background: $codap-teal-lighter !important;
+  }
+  &:active, &.menu-open {
+    background: $codap-teal-light !important;
+    color: white;
+  }
   &.insert-value {
     margin-left: 0;
   }
@@ -56,7 +65,6 @@
   .formula-function-list {
     display: flex;
     flex-direction: column;
-    // padding: 0 10px;
     margin: 10px;
     list-style-type: none;
     font-size: 12px;
@@ -67,6 +75,10 @@
       align-items: center;
       font-size: 12px;
       line-height: 20px;
+      &:hover, &:active {
+        color: $codap-teal-light;
+        text-decoration: underline;
+      }
 
       .function-category-expand-arrow {
         position: absolute;
@@ -75,6 +87,10 @@
     }
 
     .functions-list-header {
+      &:hover, &:active {
+        color: $codap-teal-light;
+        text-decoration: underline;
+      }
       .function-select-back-arrow {
         margin-right: 5px;
       }
@@ -88,6 +104,18 @@
     .function-menu-item {
       margin-top: 5px;
       min-height: 20px;
+      &:hover, &:active {
+        color: $codap-teal-light;
+        .function-menu-name {
+          text-decoration: underline;
+        }
+        .function-arguments {
+          text-decoration: underline;
+        }
+        .function-info-button {
+          text-decoration: none;
+        }
+      }
     }
 
     .function-header-divider {
@@ -102,6 +130,11 @@
   font-weight: bold;
   margin: 5px 0;
   cursor: pointer;
+
+  &:hover, &:active {
+    color: $codap-teal-light;
+    text-decoration: underline;
+  }
 }
 
 .function-info-subtitle {
@@ -123,7 +156,6 @@
 
 .function-arguments {
   font-style: italic;
-  color: #555;
 }
 
 .formula-operand-list-container {
@@ -136,7 +168,6 @@
   border: solid 0 transparent;
   display: flex;
   vertical-align: middle;
-  // padding-left: 10px;
   flex-direction: column;
 
   .formula-operand-list-item {
@@ -145,5 +176,9 @@
     cursor: pointer;
     font-size: 12px;
     margin: 0 10px;
+    &:hover, &:active {
+      color: $codap-teal-light;
+      text-decoration: underline;
+    }
   }
 }
