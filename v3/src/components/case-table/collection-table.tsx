@@ -35,6 +35,7 @@ import { useCollectionTableModel } from "./use-collection-table-model"
 import { useWhiteSpaceClick } from "./use-white-space-click"
 import { collectionCaseIdFromIndex, collectionCaseIndexFromId, selectCases, setOrExtendSelection, setSelectedCases }
   from "../../models/data/data-set-utils"
+  import { kDefaultRowHeight } from "./collection-table-model"
 
 import "react-data-grid/lib/styles.css"
 import styles from "./case-table-shared.scss"
@@ -67,8 +68,8 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
   const { isTileSelected } = useTileModelContext()
   const [isSelecting, setIsSelecting] = useState(false)
   const [selectionStartRowIdx, setSelectionStartRowIdx] = useState<number | null>(null)
-  const initialMouseDownPosition = useRef({ x: 0, y: 0 })
-  const kMouseMovementThreshold = 3
+  const initialPointerDownPosition = useRef({ x: 0, y: 0 })
+  const kPointerMovementThreshold = 3
 
   useEffect(function setGridElement() {
     const element = gridRef.current?.element
@@ -223,27 +224,73 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
     }
   }
 
-  const handleClick = (event: React.MouseEvent<HTMLDivElement>) => {
+  const handleClick = (event: React.PointerEvent<HTMLDivElement>) => {
     // See if mouse has moved beyond kMouseMovementThreshold since initial mousedown
     // If it has, then it is not a click
-    const deltaX = event.clientX - initialMouseDownPosition.current.x
-    const deltaY = event.clientY - initialMouseDownPosition.current.y
+    const deltaX = event.clientX - initialPointerDownPosition.current.x
+    const deltaY = event.clientY - initialPointerDownPosition.current.y
     const distanceMoved = Math.sqrt(deltaX * deltaX + deltaY * deltaY)
-    const mouseHasMoved = distanceMoved > kMouseMovementThreshold
-    if (mouseHasMoved) {
-      initialMouseDownPosition.current = { x: 0, y: 0 } // reset the initial position
+    const pointerHasMoved = distanceMoved > kPointerMovementThreshold
+    if (pointerHasMoved) {
+      initialPointerDownPosition.current = { x: 0, y: 0 }
       return
     }
 
     // the grid element is the target when clicking outside the cells (otherwise, the cell is the target)
     if (isTileSelected() && event.target === gridRef.current?.element) {
       handleWhiteSpaceClick()
-      initialMouseDownPosition.current = { x: 0, y: 0 }
+      initialPointerDownPosition.current = { x: 0, y: 0 }
     }
   }
 
+const scrollInterval = useRef<NodeJS.Timeout | null>(null)
+const mouseY = useRef<number>(0)
+
+const startAutoScroll = useCallback((clientY: number) => {
+  const grid = gridRef.current?.element
+  if (!grid) return
+
+  const scrollSpeed = 50
+
+  scrollInterval.current = setInterval(() => {
+    const { top, bottom } = grid.getBoundingClientRect()
+    let scrolledToRowIdx = null
+
+    if (mouseY.current < top + 35) {
+      grid.scrollTop -= scrollSpeed
+      const scrolledTop = grid.scrollTop
+      scrolledToRowIdx = Math.floor(scrolledTop / kDefaultRowHeight)
+    } else if (mouseY.current > bottom - 20) {
+      grid.scrollTop += scrollSpeed
+      const scrolledTop = grid.scrollTop + grid.clientHeight - 1
+      scrolledToRowIdx = Math.floor(scrolledTop / kDefaultRowHeight)
+
+    }
+    if (scrolledToRowIdx != null && selectionStartRowIdx!= null && scrolledToRowIdx >= 0 &&
+          (rows?.length && scrolledToRowIdx < rows?.length)) {
+      const newSelectedRows = []
+      const startIdx = Math.min(selectionStartRowIdx, scrolledToRowIdx)
+      const endIdx = Math.max(selectionStartRowIdx, scrolledToRowIdx)
+      for (let i = startIdx; i <= endIdx; i++) {
+        const rowId = collectionCaseIdFromIndex(i, data, collectionId)
+        if (rowId) {
+          newSelectedRows.push(rowId)
+        }
+      }
+      setOrExtendSelection(newSelectedRows, data)
+    }
+  }, 25)
+}, [collectionId, data, rows?.length, selectionStartRowIdx])
+
+const stopAutoScroll = useCallback(() => {
+  if (scrollInterval.current) {
+    clearInterval(scrollInterval.current)
+    scrollInterval.current = null
+  }
+}, [])
+
   // Helper function to get the row index from a mouse event
-  const getRowIndexFromEvent = useCallback((event: React.MouseEvent) => {
+  const getRowIndexFromEvent = useCallback((event: React.PointerEvent) => {
     const target = event.target as HTMLElement
     const closestDataCell = target.closest('.codap-data-cell')
     const caseId = closestDataCell?.className.split(" ").find(c => c.startsWith("rowId-"))?.split("-")[1]
@@ -251,18 +298,20 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
     return rowIdx
   }, [collectionId, data])
 
-   const handleMouseDown = (event: React.PointerEvent<HTMLDivElement>) => {
-    initialMouseDownPosition.current = { x: event.clientX, y: event.clientY }
+   const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    initialPointerDownPosition.current = { x: event.clientX, y: event.clientY }
     const startRowIdx = getRowIndexFromEvent(event)
     if (startRowIdx != null) {
       setSelectionStartRowIdx(startRowIdx)
       setIsSelecting(true)
+      startAutoScroll(event.clientY)
+      mouseY.current = event.clientY
     }
   }
 
-  const handleMouseMove = (event: React.PointerEvent<HTMLDivElement>) => {
+  const handlePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
     if (isSelecting && selectionStartRowIdx !== null) {
-      const currentRowIdx = getRowIndexFromEvent(event as React.MouseEvent)
+      const currentRowIdx = getRowIndexFromEvent(event as React.PointerEvent)
       if (currentRowIdx != null) {
         const newSelectedRows = []
         const start = Math.min(selectionStartRowIdx, currentRowIdx)
@@ -275,15 +324,32 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
                                   .filter((id): id is string => id !== undefined)
         setOrExtendSelection(selectedCaseIds, data)
       }
+      mouseY.current = event.clientY
+      const grid = gridRef.current?.element
+      if (grid) {
+        const { top, bottom } = grid.getBoundingClientRect()
+        if (mouseY.current < top + 50 || mouseY.current > bottom - 20) {
+          if (!scrollInterval.current) {
+            startAutoScroll(mouseY.current)
+          }
+        } else {
+          stopAutoScroll()
+        }
+      }
     }
   }
 
-  const handleMouseUp = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
-    event.preventDefault()
-    event.stopPropagation()
+  const handlePointerUp = useCallback((event: PointerEvent | React.PointerEvent<HTMLDivElement>) => {
     setIsSelecting(false)
     setSelectionStartRowIdx(null)
-  }, [])
+    stopAutoScroll()
+  }, [stopAutoScroll])
+
+  useEffect(() => {
+    return () => {
+      stopAutoScroll()
+    }
+  }, [stopAutoScroll])
 
   if (!data || !rows || !visibleAttributes.length) return null
 
@@ -291,8 +357,8 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
     <div className={`collection-table collection-${collectionId}`}>
       <CollectionTableSpacer selectedFillColor={selectedFillColor}
         onWhiteSpaceClick={handleWhiteSpaceClick} onDrop={handleNewCollectionDrop} />
-      <div className="collection-table-and-title" ref={setNodeRef} onClick={handleClick} onPointerDown={handleMouseDown}
-           onPointerMove={handleMouseMove} onPointerUp={handleMouseUp}>
+      <div className="collection-table-and-title" ref={setNodeRef} onClick={handleClick} onPointerDown={handlePointerDown}
+           onPointerMove={handlePointerMove} onPointerUp={handlePointerUp}>
         <CollectionTitle onAddNewAttribute={handleAddNewAttribute} showCount={true} />
         <DataGrid ref={gridRef} className="rdg-light" data-testid="collection-table-grid" renderers={renderers}
           columns={columns} rows={rows} headerRowHeight={+styles.headerRowHeight} rowKeyGetter={rowKey}
