@@ -6,19 +6,34 @@ import "./attribute-menu.scss"
 
 interface IProps {
   formula: string
+  cursorPosition: number,
+  editorSelection: {from: number, to: number},
   setFormula: (formula: string) => void
   setShowFunctionMenu: (show: boolean) => void
 }
 
-export const InsertFunctionMenu = ({formula, setFormula, setShowFunctionMenu}: IProps) => {
+export const InsertFunctionMenu = ({formula, cursorPosition, editorSelection, setFormula,
+          setShowFunctionMenu}: IProps) => {
   const [functionMenuView, setFunctionMenuView] = useState<"category" | "list" | "info" | undefined>("category")
   const [selectedCategory, setSelectedCategory] = useState("")
   const [selectedFunction, setSelectedFunction] = useState("")
 
   const insertFunctionToFormula = (func: any, args?: any) => {
-    // insert the function to the formula
+    // insert the function to the formula st the cursor position or selection
     const argsString = args.map((arg: any) => arg.name).join(", ") || ""
-    setFormula(`${formula}${func}(${argsString})`)
+    const functionStr = `${func}(${argsString})`
+    const from = editorSelection.from
+    const to = editorSelection.to
+
+    if (from != null && to != null) {
+      const formulaStart = formula.slice(0, from)
+      const formulaEnd = formula.slice(to)
+      setFormula(`${formulaStart}${functionStr}${formulaEnd}`)
+    } else if (cursorPosition != null) {
+      const formulaStart = formula.slice(0, cursorPosition)
+      const formulaEnd = formula.slice(cursorPosition)
+      setFormula(`${formulaStart}${functionStr}${formulaEnd}`)
+    }
     setFunctionMenuView(undefined)
     setShowFunctionMenu(false)
   }

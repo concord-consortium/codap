@@ -9,7 +9,7 @@ import CodeMirror, {
   drawSelection, EditorState, EditorView, Extension, KeyBinding, RangeSet, RangeSetBuilder, RangeValue,
   ReactCodeMirrorRef, StateEffect, StateField, ViewUpdate
 } from "@uiw/react-codemirror"
-import React, { useCallback, useRef } from "react"
+import React, { useCallback, useEffect, useRef } from "react"
 import { useMemo } from "use-memo-one"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { IDataSet } from "../../models/data/data-set"
@@ -32,6 +32,8 @@ const kAllOptions: ICompletionOptions = {
 interface IProps {
   formula: string
   setFormula: (formula: string) => void
+  setCursorPosition?: (position: number) => void
+  setEditorSelection?: (from: number, to: number) => void
   // options default to true if not specified
   options?: Partial<ICompletionOptions>
 }
@@ -235,11 +237,27 @@ function cmExtensionsSetup() {
   return extensions.filter(Boolean)
 }
 
-export function FormulaEditor({ formula, setFormula, options: _options }: IProps) {
+export function FormulaEditor({ formula, setFormula, setCursorPosition, setEditorSelection,
+                                options: _options }: IProps) {
   const dataSet = useDataSetContext()
   const jsonOptions = JSON.stringify(_options ?? {})
   const options = useMemo(() => JSON.parse(jsonOptions), [jsonOptions])
   const cmRef = useRef<ReactCodeMirrorRef>(null)
+  const prevFormula = useRef(formula)
+
+  useEffect(() => {
+    if (cmRef.current?.view) {
+      const view = cmRef.current.view
+      view.focus() // Focus the editor directly
+      const endPosition = view?.state.doc.length
+      if (endPosition !== undefined) {
+        view?.dispatch({
+          selection: { anchor: endPosition }
+        })
+      }
+      prevFormula.current = formula
+    }
+  }, [formula])
 
   // update the editor state field with the appropriate data set
   const handleCreateEditor = useCallback((view: EditorView, state: EditorState) => {
@@ -256,7 +274,20 @@ export function FormulaEditor({ formula, setFormula, options: _options }: IProps
 
   const handleFormulaChange = (value: string, viewUpdate: ViewUpdate) => setFormula(value)
 
+  const handleEditorUpdate = useCallback((update: ViewUpdate) => {
+    const view = update.view
+    if (setCursorPosition) setCursorPosition(view.state.selection.main.head)
+    if (setEditorSelection) {
+      const selection = view.state.selection.main
+      if (selection.from !== selection.to) {
+        setEditorSelection(selection.from, selection.to)
+        } else {
+          setEditorSelection?.(selection.from, selection.from)
+        }
+    }
+  }, [])
+
   return <CodeMirror ref={cmRef} value={formula} data-testid="formula-editor-input" height="70px"
-                     basicSetup={false} extensions={cmExtensionsSetup()}
+                     basicSetup={false} extensions={cmExtensionsSetup()} onUpdate={handleEditorUpdate}
                      onCreateEditor={handleCreateEditor} onChange={handleFormulaChange} />
 }

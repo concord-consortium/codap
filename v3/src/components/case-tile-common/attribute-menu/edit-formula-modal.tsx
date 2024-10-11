@@ -130,7 +130,8 @@ export const EditFormulaModal = observer(function EditFormulaModal({ attributeId
             </Button>
             {showFunctionMenu &&
                 <InsertFunctionMenu setShowFunctionMenu={setShowFunctionMenu}
-                    setFormula={setFormula} formula={formula} />
+                    setFormula={setFormula} formula={formula} cursorPosition={cursorPosition}
+                    editorSelection={editorSelection} />
             }
           </Box>
         </Flex>

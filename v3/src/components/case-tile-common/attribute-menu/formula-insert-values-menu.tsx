@@ -17,23 +17,19 @@ export const InsertValuesMenu = ({formula, cursorPosition, editorSelection,
   const dataSet = useDataSetContext()
 
   const insertValueToFormula = (value: string) => {
-    console.log("insertOperandToFormula operand", value)
     // insert operand into the formula at either cursor position or selected range
     const from = editorSelection.from
     const to = editorSelection.to
-    console.log("insertOperandToFormula from", from, "to", to)
-    console.log("insertOperandToFormula cursorPosition", cursorPosition)
 
-    if (from !== 0 && to !== 0) {
+    if (from != null && to != null) {
       const formulaStart = formula.slice(0, from)
       const formulaEnd = formula.slice(to)
       setFormula(`${formulaStart}${value}${formulaEnd}`)
-    } else if (cursorPosition !== 0) {
+    } else if (cursorPosition != null) {
       const formulaStart = formula.slice(0, cursorPosition)
       const formulaEnd = formula.slice(cursorPosition)
       setFormula(`${formulaStart}${value}${formulaEnd}`)
     }
-    setFormula(formula + value)
     setShowValuesMenu(false)
   }
 
