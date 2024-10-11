@@ -71,7 +71,11 @@ const DraggableModalContent = ({children, modalWidth, modalHeight, onClick, fRef
     const handleMouseDown = (e: MouseEvent) => {
       // Prevent dragging if the target is an interactive element (like Select, button, input, etc.)
       const interactiveTags = ["INPUT", "TEXTAREA", "SELECT", "OPTION", "BUTTON"]
-      if (interactiveTags.includes((e.target as HTMLElement).tagName)) {
+      const targetElt = e.target as HTMLElement
+      if (interactiveTags.includes(targetElt.tagName) ||
+          targetElt.getAttribute("contenteditable") === "true" ||
+          // client can add .input-element to indicate that an element should be treated like an input
+          targetElt.closest(".input-element") != null) {
         return
       }
 
