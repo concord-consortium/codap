@@ -18,6 +18,12 @@
 - **PT-188397633:** Implement `run regression` label to reduce Cypress test results
 - **PT-188402115:** Speed up GitHub build
 
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  174315 bytes |                            1.05% |
+|  index.js | 6110789 bytes |                            7.71% |
+
 ## Version 3.0.0-pre.1907 - September 30, 2024
 
 ### ✨ Features & Improvements:
