@@ -1,5 +1,21 @@
 # Changelog
 
+### ✨ Features & Improvements:
+- **PT-186182704:** In case table columns whose values are computed with a formula have a yellow background
+- **PT-188274615:** Develop lezer grammar for CODAP formulas for use with CodeMirror
+- **PT-187951404:** Case table attribute name cell displays on two lines if required and makes "smart" word break choices
+- **PT-188392010:** Graph/map filter formula changes should be undoable
+
+### 🐞 Bug Fixes:
+- **PT-187323603:** WebView iframes interrupt dragging tiles
+- **PT-188236957:** Crash when deleting a dataset used by a graph
+- **PT-188376356:** Undoing a create case action should also deselect the case
+- **PT-188382390:** Four Seals example document is empty
+
+### 🛠️ Under the Hood:
+- **PT-188397633:** Implement `run regression` label to reduce Cypress test results
+- **PT-188402115:** Speed up GitHub build
+
 ## Version 3.0.0-pre.1907 - September 30, 2024
 
 ### ✨ Features & Improvements:
