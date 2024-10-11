@@ -1,6 +1,8 @@
+import { TreeCursor } from "@lezer/common"
 import { parse, MathNode, isFunctionNode } from "mathjs"
 import { DisplayNameMap, CanonicalNameMap } from "../formula-types"
 import { typedFnRegistry } from "../functions/math"
+import { parser } from "../lezer/parser"
 import { isCanonicalName, safeSymbolName } from "./name-mapping-utils"
 import { isConstantStringNode, isNonFunctionSymbolNode } from "./mathjs-utils"
 import {
@@ -19,21 +21,83 @@ export const makeDisplayNamesSafe = (formula: string) => {
     .replace(/(?<!\\)`((?:[^`\\]|\\.)+)`/g, (_, match) => safeSymbolNameFromDisplayFormula(match))
 }
 
+interface IReplacement {
+  from: number
+  to: number
+  replacement: string
+}
+
+type CustomizationFn = (formula: string, cursor: TreeCursor) => Maybe<IReplacement>
+
+const customizations: Record<string, CustomizationFn> = {
+  ArithOp: (formula, cursor) => {
+    const nodeText = formula.substring(cursor.from, cursor.to)
+    const replaceMap: Record<string, string> = {
+      "×": "*",
+      "÷": "/"
+    }
+    const replacement = replaceMap[nodeText]
+    return replacement ? { from: cursor.from, to: cursor.to, replacement } : undefined
+  },
+  BlockComment: (formula, cursor) => {
+    // replace comments with a single space
+    return { from: cursor.from, to: cursor.to, replacement: " " }
+  },
+  CompareOp: (formula, cursor) => {
+    const nodeText = formula.substring(cursor.from, cursor.to)
+    const replaceMap: Record<string, string> = {
+      "=": "==",
+      "≠": "!=",
+      "≤": "<=",
+      "≥": ">="
+    }
+    const replacement = replaceMap[nodeText]
+    return replacement ? { from: cursor.from, to: cursor.to, replacement } : undefined
+  },
+  LineComment: (formula, cursor) => {
+    // replace comments with a single space
+    return { from: cursor.from, to: cursor.to, replacement: " " }
+  },
+  LogicOp: (formula, cursor) => {
+    const nodeText = formula.substring(cursor.from, cursor.to)
+    const replaceMap: Record<string, string> = {
+      "&": "and",
+      "AND": "and",
+      "|": "or",
+      "OR": "or"
+    }
+    const replacement = replaceMap[nodeText]
+    return replacement ? { from: cursor.from, to: cursor.to, replacement } : undefined
+  },
+  VariableName: (formula, cursor) => {
+    const nodeText = formula.substring(cursor.from, cursor.to)
+    const replaceMap: Record<string, string> = {
+      "π": "pi",
+      "∞": "Infinity"
+    }
+    const replacement = replaceMap[nodeText]
+    return replacement ? { from: cursor.from, to: cursor.to, replacement } : undefined
+  }
+}
+
 export const customizeDisplayFormula = (formula: string) => {
-  // Over time, this function might grow significantly and require more advanced parsing of the formula.
-  return formula
-    // Replace all the assignment operators with equality operators, as CODAP v2 uses a single "=" for equality check.
-    // Regular expression developed with the help of ChatGPT.
-    // Matches `=` when not preceded by '<', '>', '!', or '=` and not followed by `=`, preserving white space.
-    .replace(/(?<!<|>|!|=)(\s*)=(\s*)(?!=)/g, "$1==$2")
-    // Replace unicode characters with the MathJS supported characters.
-    .replace(/≠/g, "!=")
-    .replace(/≥/g, ">=")
-    .replace(/≤/g, "<=")
-    .replace(/×/g, "*")
-    .replace(/÷/g, "/")
-    .replace(/π/g, "pi")
-    .replace(/∞/g, "Infinity")
+  // use lezer parser to parse the formula for canonicalization
+  const tree = parser.parse(formula)
+  const replacements: IReplacement[] = []
+  let hasNext = tree != null
+  // identify required string replacements
+  for (let cursor = tree.cursor(); hasNext; hasNext = cursor.next()) {
+    const replacement = customizations[cursor.type.name]?.(formula, cursor)
+    if (replacement) replacements.push(replacement)
+  }
+  // sort replacements so they are applied back-to-front
+  replacements.sort((a, b) => b.from - a.from)
+  // apply replacements
+  replacements.forEach(({ from, to, replacement }) => {
+    formula = formula.substring(0, from) + replacement + formula.substring(to)
+  })
+  // replace EOL chars with spaces
+  return formula.replace(/[\n\r]+/g, " ")
 }
 
 export const preprocessDisplayFormula = (formula: string) => customizeDisplayFormula(makeDisplayNamesSafe(formula))

@@ -7,8 +7,8 @@ on:
       - '.github/workflows/v3.yml'
 
 jobs:
-  build_test:
-    name: Build and Run Jest Tests
+  lint:
+    name: Lint
     runs-on: ubuntu-latest
     steps:
       - uses: snow-actions/sparse-checkout@v1.2.0
@@ -17,21 +17,103 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 18
+          cache: 'npm'
+          cache-dependency-path: v3/package-lock.json
       - name: Install Dependencies
         working-directory: v3
         run: npm ci
-      - uses: actions/cache@v4
+      - name: Restore ESLint Cache
+        id: restore-eslint-cache
+        uses: actions/cache/restore@v4
         with:
-          path: v3/node_modules/.cache/webpack/
-          key: ${{ github.head_ref || github.ref_name }}-webpack-build
-          restore-keys: |
-            main-webpack-build
+          path: v3/.cache/eslint/
+          key: eslint-${{ hashFiles('v3/package-lock.json', 'v3/.eslintrc.build.cjs', 'v3/.eslintrc.cjs') }}
+      - name: Lint
+        working-directory: v3
+        run: npm run lint:build
+      - name: Save ESLint Cache
+        uses: actions/cache/save@v4
+        # Always save the cache on the main branch, it won't be built often and
+        # this way features branches will have an up-to-date main cache
+        if: github.ref_name == 'main' || steps.restore-eslint-cache.outputs.cache-hit != 'true'
+        with:
+          path: v3/.cache/eslint/
+          key: ${{steps.restore-eslint-cache.outputs.cache-primary-key}}  
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: snow-actions/sparse-checkout@v1.2.0
+        with:
+          patterns: v3
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+          cache-dependency-path: v3/package-lock.json
+      - name: Install Dependencies
+        working-directory: v3
+        run: npm ci
+      - name: Restore Webpack Cache
+        id: restore-webpack-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: v3/.cache/webpack/
+          key: webpack-build-${{ hashFiles('v3/webpack.config.js') }}
+      - uses: concord-consortium/s3-deploy-action/deploy-path@v1
+        id: s3-deploy-path
+      - name: Configure Environment
+        working-directory: v3
+        run: |
+          cat <<EOF > .env
+          GOOGLE_DRIVE_CLIENT_ID="${{ secrets.GOOGLE_DRIVE_CLIENT_ID }}"
+          GOOGLE_DRIVE_API_KEY="${{ secrets.GOOGLE_DRIVE_API_KEY }}"
+          GOOGLE_DRIVE_APP_ID="${{ secrets.GOOGLE_DRIVE_APP_ID }}"
+          EOF
       - name: Build
         working-directory: v3
-        run: npm run build
+        run: npm run build:ci
+        env:
+          DEPLOY_PATH: ${{ steps.s3-deploy-path.outputs.deployPath }}
+      - name: Save Webpack Cache
+        uses: actions/cache/save@v4
+        # Always save the cache on the main branch, it won't be built often and
+        # this way features branches will have an up-to-date main cache
+        if: github.ref_name == 'main' || steps.restore-webpack-cache.outputs.cache-hit != 'true'
+        with:
+          path: v3/.cache/webpack/
+          key: ${{steps.restore-webpack-cache.outputs.cache-primary-key}}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: build
+          path: v3/dist/
+      
+  jest:
+    name: Run Jest Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: snow-actions/sparse-checkout@v1.2.0
+        with:
+          patterns: v3
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+          cache-dependency-path: v3/package-lock.json
+      - name: Install Dependencies
+        working-directory: v3
+        run: npm ci
+      - name: Jest Cache
+        uses: actions/cache@v4
+        with:
+          path: /tmp/jest_rt
+          key: jest-${{ hashFiles('v3/package-lock.json') }}
+      - name: Get number of CPU cores
+        id: cpu-cores
+        uses: SimenB/github-actions-cpu-cores@v2
       - name: Run Tests
         working-directory: v3
-        run: npm run test:coverage -- --maxWorkers=2
+        run: npm run test:coverage -- --maxWorkers=${{ steps.cpu-cores.outputs.count }}
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
@@ -45,18 +127,18 @@ jobs:
       # leaving the Dashboard hanging ...
       # https://github.com/cypress-io/github-action/issues/48
       fail-fast: false
-      matrix:
-        # run multiple copies of the current job in parallel [1, ..., n]
-        containers: [1, 2, 3, 4, 5]
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - uses: actions/cache@v4
+      - uses: snow-actions/sparse-checkout@v1.2.0
         with:
-          path: v3/node_modules/.cache/webpack/
-          key: ${{ github.head_ref || github.ref_name }}-webpack-build
-          restore-keys: |
-            main-webpack-build
+          patterns: v3
+      - name: Restore Webpack Cache
+        id: restore-webpack-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: v3/.cache/webpack/
+          # this key is different from the build job above because this is a dev build so its
+          # folder in the cache will be different and cached data is also likely different
+          key: webpack-dev-build-${{ hashFiles('v3/webpack.config.js') }}
       - uses: cypress-io/github-action@v6
         with:
           working-directory: v3
@@ -66,9 +148,11 @@ jobs:
           wait-on-timeout: 300
           # only record the results to dashboard.cypress.io if CYPRESS_RECORD_KEY is set
           record: ${{ !!secrets.CYPRESS_RECORD_KEY }}
-          # only do parallel if we have a record key
-          parallel: ${{ !!secrets.CYPRESS_RECORD_KEY }}
           browser: chrome
+          # only run a single test
+          # TODO: setup a special test for this purpose
+          spec: cypress/e2e/import-v2.spec.ts
+          group: 'Smoke Tests'
         env:
           # pass the Dashboard record key as an environment variable
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
@@ -82,6 +166,16 @@ jobs:
           # Also turn on the code coverage tasks in cypress itself, these are disabled
           # by default.
           CYPRESS_coverage: true
+          # Have webpack skip eslint checking, that was already done by the build step
+          SKIP_ESLINT: true
+      - name: Save Webpack Cache
+        uses: actions/cache/save@v4
+        # Always save the cache on the main branch, it won't be built often and
+        # this way features branches will have an up-to-date main cache
+        if: github.ref_name == 'main' || steps.restore-webpack-cache.outputs.cache-hit != 'true'
+        with:
+          path: v3/.cache/webpack/
+          key: ${{steps.restore-webpack-cache.outputs.cache-primary-key}}
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
@@ -90,37 +184,23 @@ jobs:
   s3-deploy:
     name: S3 Deploy
     needs:
-      - build_test
+      - lint
+      - build
+      - jest
       - cypress
     runs-on: ubuntu-latest
+    environment:
+      name: ${{ github.ref_type == 'branch' && 'branches' || 'versions' }}
+      url: https://codap3.concord.org/${{ steps.s3-deploy.outputs.deployPath }}/
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/download-artifact@v4
         with:
-          node-version: 18
-      - name: Install Dependencies
-        working-directory: v3
-        run: npm ci
-        env:
-          # skip installing cypress since it isn't needed for just building
-          # This decreases the deploy time quite a bit
-          CYPRESS_INSTALL_BINARY: 0
-      - uses: actions/cache@v4
-        with:
-          path: v3/node_modules/.cache/webpack/
-          key: ${{ github.head_ref || github.ref_name }}-webpack-build
-          restore-keys: |
-            main-webpack-build
-      - name: Configure Environment
-        working-directory: v3
-        run: |
-          cat <<EOF > .env
-          GOOGLE_DRIVE_CLIENT_ID="${{ secrets.GOOGLE_DRIVE_CLIENT_ID }}"
-          GOOGLE_DRIVE_API_KEY="${{ secrets.GOOGLE_DRIVE_API_KEY }}"
-          GOOGLE_DRIVE_APP_ID="${{ secrets.GOOGLE_DRIVE_APP_ID }}"
-          EOF
+          name: build
+          path: v3/dist
       - uses: concord-consortium/s3-deploy-action@v1
+        id: s3-deploy
         with:
+          build: echo no build
           bucket: models-resources
           prefix: codap3
           workingDirectory: v3

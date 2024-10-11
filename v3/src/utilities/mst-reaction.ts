@@ -13,7 +13,7 @@ type IReactionOptionsWithName<T, fireImmediately extends boolean> =
 
 export function mstReaction<T, fireImmediately extends boolean>(
   accessor: () => T, effect: (args: T) => void,
-  options: IReactionOptionsWithName<T, fireImmediately>, model: IAnyStateTreeNode) {
+  options: IReactionOptionsWithName<T, fireImmediately>, models: IAnyStateTreeNode | IAnyStateTreeNode[]) {
   // install reaction
   let _disposer: IReactionDisposer | undefined = reaction(accessor, effect, options)
   // returned disposer prevents MobX disposer from being called multiple times
@@ -21,7 +21,8 @@ export function mstReaction<T, fireImmediately extends boolean>(
     _disposer?.()
     _disposer = undefined
   }
-  // dispose of the reaction if the model it depends on is destroyed
-  addDisposer(model, disposer)
+  // dispose of the reaction if the model(s) it depends on is/are destroyed
+  const _models = Array.isArray(models) ? models : [models]
+  _models.forEach(model => model && addDisposer(model, disposer))
   return disposer
 }

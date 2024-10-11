@@ -1,17 +1,20 @@
 import { useDisclosure } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
+import { isAlive } from "mobx-state-tree"
 import React from "react"
 import { useCaseMetadata } from "../../hooks/use-case-metadata"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { hideAttributeNotification } from "../../models/data/data-set-notifications"
 import { t } from "../../utilities/translation/translate"
-import { EditFilterFormulaModal } from "./edit-filter-formula-modal"
+import { EditFilterFormulaModal } from "../common/edit-filter-formula-modal"
 import { IMenuItem, StdMenuList } from "./std-menu-list"
 
 export const HideShowMenuList = observer(function HideShowMenuList() {
   const data = useDataSetContext()
   const caseMetadata = useCaseMetadata()
   const formulaModal = useDisclosure()
+
+  if (data && !isAlive(data)) return null
 
   const handleSetAsideCases = (itemIds: string[], deselect: boolean) => {
     if (data && itemIds.length) {
@@ -82,7 +85,7 @@ export const HideShowMenuList = observer(function HideShowMenuList() {
       }
     },
     {
-      itemKey: !data?.filterFormula?.empty
+      itemKey: data?.filterFormula && !data.filterFormula.empty
                 ? "V3.hideShowMenu.editFilterFormula"
                 : "V3.hideShowMenu.addFilterFormula",
       isEnabled: () => !!data,
@@ -122,7 +125,10 @@ export const HideShowMenuList = observer(function HideShowMenuList() {
   return (
     <>
       <StdMenuList data-testid="hide-show-menu-list" menuItems={menuItems} />
-      <EditFilterFormulaModal isOpen={formulaModal.isOpen} onClose={handleEditFormulaClose} />
+      {
+        data &&
+        <EditFilterFormulaModal formulaSource={data} isOpen={formulaModal.isOpen} onClose={handleEditFormulaClose} />
+      }
     </>
   )
 })

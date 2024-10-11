@@ -1,0 +1,44 @@
+name: Regression Label
+
+on:
+  pull_request:
+    types: [ labeled ]
+jobs:
+  re_run:
+    # only continue if a push or PR labeled with 'run regression'
+    if: github.event.label.name == 'run regression'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - name: Re Run last push
+        # get the last regression run triggered by a pull, and get this run's id
+        # then rerun the run
+        # if the run id can't be found the rerun command will fail which should
+        # fail the job
+        # When the run hasn't finished yet, we try to cancel the run
+        # and wait 30s for it to finish canceling before trying to re-run it.
+        # If the run isn't complete the rerun command prints this message:
+        # returned: run 6410886572 cannot be rerun; its workflow file may be broken
+        run: |
+          run_id=$(gh run list -e push -b ${{github.head_ref}} -w 'CI v3 Regression' -L 1 --json databaseId -q '.[0].databaseId')
+          run_status=$(gh run view $run_id --json status -q '.status')
+          if [[ "$run_status" != "completed" ]]
+          then
+            echo "run $run_id is $run_status, trying to cancel"
+            gh run cancel $run_id
+            count=0
+            until [[ "$run_status" == "completed" || $count -gt 15 ]]
+            do
+              sleep 2
+              count=$((count+1))
+              run_status=$(gh run view $run_id --json status -q '.status')
+              echo "run: $run_id, status: $run_status, try: $count"
+            done
+          fi
+          echo "rerunning $run_id"
+          gh run rerun $run_id
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # set repository so we don't have to check out all of the code
+          GH_REPO: ${{github.repository}}

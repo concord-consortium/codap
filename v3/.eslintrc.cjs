@@ -32,7 +32,7 @@ module.exports = {
     ]
   },
   ignorePatterns: [
-    "dist/", "node_modules/"
+    "dist/", "node_modules/", "src/models/formula/lezer"
   ],
   extends: [
     "eslint:recommended",

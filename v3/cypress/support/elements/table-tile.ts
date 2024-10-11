@@ -4,6 +4,9 @@ type TestValues = Record<string, string[]>
 
 type OptString = string | null | undefined
 
+const isMac = navigator.platform.toLowerCase().includes("mac")
+const metaCtrlKey = isMac ? "Meta" : "Control"
+
 export const TableTileElements = {
   getTableTile(index = 0) {
     return c.getComponentTile("table", index)
@@ -372,36 +375,46 @@ export const TableTileElements = {
   addFormula(attributeName: string, formula: string, collectionIndex = 1) {
     this.openAttributeMenu(attributeName, collectionIndex)
     this.selectMenuItemFromAttributeMenu("Edit Formula...")
-    this.addFormulaInModal(attributeName, formula)
+    this.addAttrFormulaInModal(attributeName, formula)
   },
   editFormula(attributeName: string, formula: string, collectionIndex = 1) {
     this.openAttributeMenu(attributeName, collectionIndex)
     this.selectMenuItemFromAttributeMenu("Edit Formula...")
-    this.clearFormulaInModal(attributeName)
+    this.clearAttrFormulaInModal(attributeName)
     this.addFormula(attributeName, formula, collectionIndex)
   },
   checkFormulaExists(attributeName: string, formula: string, collectionIndex = 1) {
     this.openAttributeMenu(attributeName, collectionIndex)
     this.selectMenuItemFromAttributeMenu("Edit Formula...")
-    this.checkFormulaInModal(attributeName, formula)
+    this.checkAttrFormulaInModal(attributeName, formula)
   },
-  addFormulaInModal(attributeName: string, formula: string) {
+  addAttrFormulaInModal(attributeName: string, formula: string) {
     cy.get("[data-testid=attr-name-input]").invoke("attr", "value").should("eq", attributeName)
-    cy.get("[data-testid=attr-formula-input]").type(formula, {force:true})
+    cy.get("[data-testid=formula-editor-input] .cm-content").should("be.visible").and("have.focus")
+    cy.get("[data-testid=formula-editor-input] .cm-content").realType(formula)
     cy.get("[data-testid=Apply-button]").click()
     cy.get("[data-testid=attr-name-input]").should("not.exist")
   },
-  clearFormulaInModal(attributeName: string) {
+  clearAttrFormulaInModal(attributeName: string) {
     cy.get("[data-testid=attr-name-input]").invoke("attr", "value").should("eq", attributeName)
-    cy.get("[data-testid=attr-formula-input]").type(`{selectAll}{del}`)
+    cy.get("[data-testid=formula-editor-input] .cm-content").should("be.visible").and("have.focus")
+    cy.get("[data-testid=formula-editor-input] .cm-content").realPress([metaCtrlKey, "A"])
+    cy.get("[data-testid=formula-editor-input] .cm-content").realType("{del}")
     cy.get("[data-testid=Apply-button]").click()
     cy.get("[data-testid=attr-name-input]").should("not.exist")
   },
-  checkFormulaInModal(attributeName: string, formula: string) {
+  checkAttrFormulaInModal(attributeName: string, formula: string) {
     cy.get("[data-testid=attr-name-input]").invoke("attr", "value").should("eq", attributeName)
-    cy.get("[data-testid=attr-formula-input]").should("have.text", formula)
+    cy.get("[data-testid=formula-editor-input] .cm-content").should("have.text", formula)
     cy.get("[data-testid=Cancel-button]").click()
     cy.get("[data-testid=attr-name-input]").should("not.exist")
+  },
+  addFilterFormulaInModal(formula: string) {
+    this.getHideShowButton().click()
+    this.getHideShowMenuItem(/(Add|Edit) Filter Formula.../).click()
+    cy.get(".codap-modal-content [data-testid=attr-formula-input]").type(`{selectAll}{del}${formula}`)
+    cy.get(".codap-modal-content [data-testid=Apply-button]").should("be.visible").click()
+    cy.get("[data-testid=Apply-button]").click()
   },
   verifyFormulaValues(attribute: string, values: Array<any>, collectionIndex = 1) {
     for (let rowIndex = 0; rowIndex < values.length; rowIndex++) {

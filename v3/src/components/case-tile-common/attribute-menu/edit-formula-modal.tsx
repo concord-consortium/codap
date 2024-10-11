@@ -8,6 +8,7 @@ import { useDataSetContext } from "../../../hooks/use-data-set-context"
 import { logStringifiedObjectMessage } from "../../../lib/log-message"
 import { updateAttributesNotification, updateCasesNotification } from "../../../models/data/data-set-notifications"
 import { t } from "../../../utilities/translation/translate"
+import { FormulaEditor } from "../../common/formula-editor"
 import { CodapModal } from "../../codap-modal"
 
 import functionStringMap from "../../../assets/json/function_strings.json"
@@ -22,7 +23,7 @@ interface IProps {
 export const EditFormulaModal = observer(function EditFormulaModal({ attributeId, isOpen, onClose }: IProps) {
   const dataSet = useDataSetContext()
   const attribute = dataSet?.attrFromID(attributeId)
-  const [formula, setFormula] = useState("")
+  const [formula, setFormula] = useState(attribute?.formula?.display || "")
   const [showOperandMenu, setShowOperandMenu] = useState(false)
   const [functionMenuView, setFunctionMenuView] = useState<"category" | "list" | "info" | undefined>("category")
   const [showFunctionMenu, setShowFunctionMenu] = useState(false)
@@ -292,7 +293,7 @@ export const EditFormulaModal = observer(function EditFormulaModal({ attributeId
         <div className="codap-header-title" />
         <ModalCloseButton onClick={onClose} data-testid="modal-close-button" />
       </ModalHeader>
-      <ModalBody onClick={() => handleModalWhitspaceClick}>
+      <ModalBody onKeyDown={e => e.stopPropagation()} onClick={() => handleModalWhitspaceClick}>
         <FormControl display="flex" flexDirection="column" className="formula-form-control">
           <FormLabel display="flex" flexDirection="row">{t("DG.AttrFormView.attrNamePrompt")}
             <Input
@@ -300,8 +301,7 @@ export const EditFormulaModal = observer(function EditFormulaModal({ attributeId
             />
           </FormLabel>
           <FormLabel>{t("DG.AttrFormView.formulaPrompt")}
-            <Textarea size="xs" value={formula} onChange={handleFormulaChange}
-              onKeyDown={(e) => e.stopPropagation()} data-testid="attr-formula-input" />
+            <FormulaEditor formula={formula} setFormula={setFormula} />
           </FormLabel>
         </FormControl>
         <Flex flexDirection="row" justifyContent="flex-start">

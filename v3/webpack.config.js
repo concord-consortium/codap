@@ -36,7 +36,7 @@ module.exports = (env, argv) => {
     })] : []),
     new CleanWebpackPlugin(),
   ]
-  if (devMode) {
+  if (devMode && !process.env.SKIP_ESLINT) {
     // `build` script runs eslint independently in production mode,
     // so we don't need to run it again as part of the webpack build
     webpackPlugins.push(new ESLintPlugin({
@@ -73,10 +73,17 @@ module.exports = (env, argv) => {
       path: path.resolve(__dirname, 'dist'),
       filename: 'assets/index.[contenthash].js',
     },
+    snapshot: {
+      // When computing the cache, use the hash if the timestamp is different
+      // In the Cypress github actions job, the timestamps are changing
+      module: { timestamp: true, hash: true},
+      resolve: { timestamp: true, hash: true},
+    },
     cache: {
       buildDependencies: {
         config: [__filename],
       },
+      cacheDirectory: path.resolve(__dirname, '.cache/webpack'),
       type: 'filesystem',
     },
     performance: { hints: false },

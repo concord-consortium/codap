@@ -9,8 +9,12 @@
     "ccrte",
     "Chakra",
     "clsx",
+    "codemirror",
     "colord",
     "instanbul",
+    "keymap",
+    "keymaps",
+    "lezer",
     "papaparse",
     "portaling",
     "ulid"

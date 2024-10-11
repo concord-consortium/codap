@@ -62,6 +62,7 @@ import { Formula, IFormula } from "../formula/formula"
 import { applyModelChange } from "../history/apply-model-change"
 import { withoutUndo } from "../history/without-undo"
 import { kAttrIdPrefix, kItemIdPrefix, typeV3Id, v3Id } from "../../utilities/codap-utils"
+import { hashStringSet } from "../../utilities/js-utils"
 import { t } from "../../utilities/translation/translate"
 import { V2Model } from "./v2-model"
 
@@ -146,9 +147,9 @@ export const DataSet = V2Model.named("DataSet").props({
 .volatile(self => ({
   // map from attribute name to attribute id
   attrNameMap: observable.map<string, string>({}, { name: "attrNameMap" }),
-  // map from case IDs to indices
+  // map from item ids to info like index and case ids
   itemInfoMap: new Map<string, ItemInfo>(),
-  // MobX-observable set of selected case IDs
+  // MobX-observable set of selected item IDs
   selection: observable.set<string>(),
   selectionChanges: 0,
   // MobX-observable set of hidden (set aside) item IDs
@@ -166,7 +167,7 @@ export const DataSet = V2Model.named("DataSet").props({
   // used by the Collaborative plugin
   managingControllerId: "",
   // cached result of filter formula evaluation for each item ID
-  filterFormulaResults: observable.map<string, boolean>(),
+  filteredOutItemIds: observable.set<string>(),
   filterFormulaError: ""
 }))
 .extend(self => {
@@ -279,9 +280,7 @@ export const DataSet = V2Model.named("DataSet").props({
     return self.setAsideItemIdsSet.has(itemId)
   },
   isItemFilteredOut(itemId: string) {
-    // Note that if itemResult is undefined, it means the item has not been filtered out (e.g., there may not be any
-    /// filter formula), so it should be considered as having passed the filter.
-    return self.filterFormulaResults.get(itemId) === false
+    return self.filteredOutItemIds.has(itemId)
   }
 }))
 .views(self => ({
@@ -315,6 +314,10 @@ export const DataSet = V2Model.named("DataSet").props({
       })
     })
     return attrs
+  },
+  get itemIdsHash() {
+    // observable hash of visible (not set aside, not filtered out) item ids
+    return hashStringSet(self.itemIds)
   },
   get items(): readonly IItem[] {
     return self.itemIds.map(id => ({ __id__: id }))
@@ -544,6 +547,14 @@ export const DataSet = V2Model.named("DataSet").props({
       self.childCollection.caseGroups.forEach(caseGroup => {
         self.itemIdChildCaseMap.set(caseGroup.childItemIds[0], caseGroup)
       })
+      // delete removed items
+      const itemsToValidate = new Set<string>(self.itemInfoMap.keys())
+      self._itemIds.forEach(itemId => itemsToValidate.delete(itemId))
+      itemsToValidate.forEach(itemId => {
+        self.itemInfoMap.delete(itemId)
+        // update selection
+        self.selection.delete(itemId)
+      })
       self.setValidCases()
     }
   }
@@ -561,7 +572,7 @@ export const DataSet = V2Model.named("DataSet").props({
 .actions(self => ({
   clearFilterFormula() {
     self.filterFormula = undefined
-    self.filterFormulaResults.clear()
+    self.filteredOutItemIds.clear()
     self.filterFormulaError = ""
     self.invalidateCases()
   }
@@ -618,10 +629,17 @@ export const DataSet = V2Model.named("DataSet").props({
   },
   updateFilterFormulaResults(filterFormulaResults: { itemId: string, result: boolean }[], { replaceAll = false }) {
     if (replaceAll) {
-      self.filterFormulaResults.clear()
+      self.filteredOutItemIds.clear()
     }
     filterFormulaResults.forEach(({ itemId, result }) => {
-      self.filterFormulaResults.set(itemId, result)
+      if (result === false) {
+        self.filteredOutItemIds.add(itemId)
+      }
+      else {
+        // Note that if itemResult is undefined, it means the item has not been filtered out (e.g., there may not be any
+        // filter formula), so it should be considered as having passed the filter.
+        self.filteredOutItemIds.delete(itemId)
+      }
     })
     self.invalidateCases()
   },

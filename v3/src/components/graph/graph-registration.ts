@@ -9,12 +9,15 @@ import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-dat
 import { ComponentTitleBar } from "../component-title-bar"
 import { GraphContentModel, IGraphContentModelSnapshot, isGraphContentModel } from "./models/graph-content-model"
 import { kGraphDataConfigurationType } from "./models/graph-data-configuration-model"
+import { GraphFilterFormulaAdapter } from "./models/graph-filter-formula-adapter"
 import { kGraphPointLayerType } from "./models/graph-point-layer-model"
 import { GraphComponent } from "./components/graph-component"
 import { GraphInspector } from "./components/graph-inspector"
 import GraphIcon from '../../assets/icons/icon-graph.svg'
 import { registerV2TileImporter } from "../../v2/codap-v2-tile-importers"
 import { v2GraphImporter } from "./v2-graph-importer"
+
+GraphFilterFormulaAdapter.register()
 
 registerTileContentInfo({
   type: kGraphTileType,
