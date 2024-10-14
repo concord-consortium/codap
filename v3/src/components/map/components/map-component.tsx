@@ -4,10 +4,10 @@ import React, {useEffect, useRef} from "react"
 import {useResizeDetector} from "react-resize-detector"
 import { getOverlayDragId } from '../../../hooks/use-drag-drop'
 import {InstanceIdContext, useNextInstanceId} from "../../../hooks/use-instance-id-context"
-import { selectAllCases } from '../../../models/data/data-set-utils'
-import {DataDisplayLayoutContext} from "../../data-display/hooks/use-data-display-layout"
-import {AttributeDragOverlay} from "../../drag-drop/attribute-drag-overlay"
 import {ITileBaseProps} from '../../tiles/tile-base-props'
+import {DataDisplayLayoutContext} from "../../data-display/hooks/use-data-display-layout"
+import { usePointerDownCapture } from "../../data-display/hooks/use-pointer-down-capture"
+import {AttributeDragOverlay} from "../../drag-drop/attribute-drag-overlay"
 import {isMapContentModel} from "../models/map-content-model"
 import {MapModelContext} from "../hooks/use-map-model-context"
 import {useInitMapLayout} from "../hooks/use-init-map-layout"
@@ -21,16 +21,7 @@ export const MapComponent = observer(function MapComponent({tile}: ITileBaseProp
   const mapRef = useRef<HTMLDivElement | null>(null)
   const {width, height} = useResizeDetector<HTMLDivElement>({targetRef: mapRef})
 
-  useEffect(() => {
-    if (mapModel) {
-      mapModel.leafletMapState.setOnClickCallback((event: MouseEvent) => {
-        if (!event.shiftKey && !event.metaKey && !mapModel._ignoreLeafletClicks) {
-          mapModel.layers.forEach(layer => selectAllCases(layer.data, false))
-        }
-      })
-      return () => mapModel.leafletMapState.setOnClickCallback()
-    }
-  }, [mapModel])
+  usePointerDownCapture(mapModel)
 
   useEffect(() => {
     (width != null) && (height != null) && layout.setTileExtent(width, height)

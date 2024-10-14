@@ -9,7 +9,8 @@ export const useTileModelContext = () => {
   const transitionComplete = tile?.transitionComplete ?? false
 
   const isTileSelected = useCallback(function isTileSelected() {
-    return uiState.isFocusedTile(tile?.id)
+    const isFocused = uiState.isFocusedTile(tile?.id)
+    return isFocused
   }, [tile])
 
   const selectTile = useCallback(function selectTile() {
