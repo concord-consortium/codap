@@ -256,7 +256,10 @@ export function FormulaEditor({ formula, setFormula, options: _options }: IProps
 
   const handleFormulaChange = (value: string, viewUpdate: ViewUpdate) => setFormula(value)
 
-  return <CodeMirror ref={cmRef} value={formula} data-testid="formula-editor-input" height="70px"
+  // .input-element indicates to CodapModal not to drag the modal from within the element
+  const classes = "formula-editor-input input-element"
+  return <CodeMirror ref={cmRef} className={classes} data-testid="formula-editor-input" height="70px"
                      basicSetup={false} extensions={cmExtensionsSetup()}
-                     onCreateEditor={handleCreateEditor} onChange={handleFormulaChange} />
+                     onCreateEditor={handleCreateEditor}
+                     value={formula} onChange={handleFormulaChange} />
 }
