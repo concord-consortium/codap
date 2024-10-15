@@ -76,7 +76,7 @@ export const diAttributeHandler: DIHandler = {
   },
 
   notify(resources: DIResources, values?: DIValues) {
-    const { attribute, dataContext } = resources
+    const { attribute, dataContext, interactiveFrame } = resources
     if (!dataContext) return dataContextNotFoundResult
     if (!attribute) return attributeNotFoundResult
 
@@ -96,7 +96,6 @@ export const diAttributeHandler: DIHandler = {
         // Determine position of drag
         let clientX = 0
         let clientY = 0
-        const { interactiveFrame } = resources
         const row = appState.document.content?.firstRow
         if (interactiveFrame && row && isFreeTileRow(row)) {
           const layout = (row.getTileLayout(interactiveFrame.id) ?? { x: 0, y: 0 }) as IFreeTileLayout
@@ -122,6 +121,16 @@ export const diAttributeHandler: DIHandler = {
         })
       }
       return { success: true }
+    } else if (["dragOver", "dragEnd"].includes(request) && interactiveFrame) {
+      const { mouseX, mouseY } = (values ?? {}) as DINotifyAttribute
+      const pluginElement = document.getElementById(interactiveFrame.id)
+      const rect = pluginElement?.getBoundingClientRect()
+      const clientX = (mouseX ?? 0) + (rect?.x ?? 0)
+      const clientY = (mouseY ?? 0) + (rect?.y ?? 0)
+      const event = request === "dragOver" ? "mousemove" : "mouseup"
+      document.dispatchEvent(new MouseEvent(event, {
+        bubbles: true, cancelable: true, clientX, clientY
+      }))        
     }
 
     return errorResult(t("V3.DI.Error.unknownRequest", { vars: [request] })) 
