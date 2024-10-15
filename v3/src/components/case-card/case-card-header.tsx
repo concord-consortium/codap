@@ -75,7 +75,7 @@ export const CaseCardHeader = observer(function CaseView(props: ICaseHeaderProps
     if (collection) {
       let newCaseId: string | undefined
       data?.applyModelChange(() => {
-        const newItemId = cardModel?.addNewCase()
+        const newItemId = cardModel?.addNewCase(level)
         newCaseId = newItemId && data?.getItemCaseIds(newItemId)[level]
         newCaseId && data?.setSelectedCases([newCaseId])
       }, {

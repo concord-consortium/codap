@@ -125,14 +125,16 @@ export const CaseCardModel = TileContentModel
         self.attributeColumnWidths.delete(collectionId)
       }
     },
-    addNewCase() {
+    addNewCase(level: number) {
       const newCase: ICaseCreation = {}
-      const selectedCases = self.data?.selection
+      const selectedItemIds = self.data?.selection
+      const collections = self.data?.collections
 
       function findCommonCases(lineages: (readonly string[])[]) {
+        if (!collections) return
         if (lineages.length === 0) return []
-        if (lineages.length === 1) return lineages[0].slice(0, -1)
-        let commonValues = lineages[0]
+        if (lineages.length === 1) return lineages[0].slice(0, (level - collections.length))
+        let commonValues = lineages[0].slice(0, level)
         for (let i = 1; i < lineages.length; i++) {
           commonValues = commonValues.filter(value => lineages[i].includes(value))
           if (commonValues.length === 0) {
@@ -142,10 +144,10 @@ export const CaseCardModel = TileContentModel
         return commonValues
       }
 
-      if (selectedCases) {
-        const caseLineages = Array.from(selectedCases).map(caseId => self.caseLineage(caseId) || [])
+      if (collections && selectedItemIds && level !== 0) {
+        const caseLineages = Array.from(selectedItemIds).map(itemId => self.caseLineage(itemId) || [])
         const commonCaseIds = findCommonCases(caseLineages)
-        if (commonCaseIds.length > 0) {
+        if (commonCaseIds && commonCaseIds.length > 0) {
           commonCaseIds.forEach(caseId => {
             const caseCollection = self.data?.getCollectionForCase(caseId)
             caseCollection?.attributes.forEach(attr => {
