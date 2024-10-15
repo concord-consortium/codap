@@ -1,8 +1,9 @@
-import React from "react"
 import { Menu, MenuButton, MenuItem, MenuList } from "@chakra-ui/react"
+import React from "react"
 import HelpIcon from "../../assets/icons/icon-help.svg"
 import { useDocumentContent } from "../../hooks/use-document-content"
-import { getDefaultLanguage, t } from "../../utilities/translation/translate"
+import { gLocale } from "../../utilities/translation/locale"
+import { t } from "../../utilities/translation/translate"
 import { kRightButtonBackground, ToolShelfButtonTag } from "./tool-shelf-button"
 import { showWebView } from "./tool-shelf-utilities"
 
@@ -22,8 +23,7 @@ export const HelpShelfButton = () => {
   const documentContent = useDocumentContent()
 
   const handleShowHelp = () => {
-    const locale = getDefaultLanguage()
-    const url = translatedHelpURLs[locale]
+    const url = translatedHelpURLs[gLocale.current]
 
     if (url !== undefined) {
       showWebView(url, documentContent)

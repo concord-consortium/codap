@@ -1,6 +1,7 @@
 import { fixYear, isDateString, parseDate } from "./date-parser"
 import { goodTickValue, isFiniteNumber, isNumber } from "./math-utils"
-import { getDefaultLanguage, translate } from "./translation/translate"
+import { gLocale } from "./translation/locale"
+import { translate } from "./translation/translate"
 
 export enum EDateTimeLevel {
   eSecond = 0,
@@ -201,8 +202,7 @@ export function formatDate(x: Date | number | string | null, precision: DatePrec
                         : formatPrecisions.day
   }
 
-  const locale = getDefaultLanguage()
-  return new Intl.DateTimeFormat(locale, precisionFormat).format(x)
+  return gLocale.formatDate(x, precisionFormat)
 }
 
 /**

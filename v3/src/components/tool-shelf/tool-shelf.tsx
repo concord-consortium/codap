@@ -33,8 +33,8 @@ export function isShelfTileComponent(info?: ITileComponentInfo): info is IShelfT
 interface IRightButtonEntry {
   className?: string
   icon: React.ReactElement
-  label: string
-  hint: string
+  labelKey: string
+  hintKey: string
   button?: React.ReactElement
   isDisabled?: () => boolean
   onClick?: () => void
@@ -46,7 +46,7 @@ interface IProps {
 export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
   const toast = useToast()
   const labelToast = (entry: IRightButtonEntry) => toast({
-    title: `"${entry.label}" button clicked`,
+    title: `"${t(entry.labelKey)}" button clicked`,
     status: "success",
     duration: 9000,
     isClosable: true
@@ -57,8 +57,8 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
     {
       className: "undo-button",
       icon: <UndoIcon className="icon-undo"/>,
-      label: t("DG.mainPage.mainPane.undoButton.title"),
-      hint: t(getUndoStringKey(undoManager)),
+      labelKey: "DG.mainPage.mainPane.undoButton.title",
+      hintKey: getUndoStringKey(undoManager),
       isDisabled: () => !document?.canUndo,
       onClick: () => {
         if (document?.canUndo) {
@@ -69,8 +69,8 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
     {
       className: "redo-button",
       icon: <RedoIcon className="icon-redo"/>,
-      label: t("DG.mainPage.mainPane.redoButton.title"),
-      hint: t(getRedoStringKey(undoManager)),
+      labelKey: "DG.mainPage.mainPane.redoButton.title",
+      hintKey: getRedoStringKey(undoManager),
       isDisabled: () => !document?.canRedo,
       onClick: () => {
         if (document?.canRedo) {
@@ -80,26 +80,26 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
     },
     {
       icon: <TileListIcon className="icon-tile-list"/>,
-      label: t("DG.ToolButtonData.tileListMenu.title"),
-      hint: t("DG.ToolButtonData.tileListMenu.toolTip"),
+      labelKey: "DG.ToolButtonData.tileListMenu.title",
+      hintKey: "DG.ToolButtonData.tileListMenu.toolTip",
       button: <TilesListShelfButton key={t("DG.ToolButtonData.tileListMenu.title")} />
     },
     {
       icon: <OptionsIcon className="icon-options"/>,
-      label: t("DG.ToolButtonData.optionMenu.title"),
-      hint: t("DG.ToolButtonData.optionMenu.toolTip"),
+      labelKey: "DG.ToolButtonData.optionMenu.title",
+      hintKey: "DG.ToolButtonData.optionMenu.toolTip",
       button: <OptionsShelfButton key={t("DG.ToolButtonData.optionMenu.title")} />
     },
     {
       icon: <HelpIcon className="icon-help"/>,
-      label: t("DG.ToolButtonData.help.title"),
-      hint: t("DG.ToolButtonData.help.toolTip"),
+      labelKey: "DG.ToolButtonData.help.title",
+      hintKey: "DG.ToolButtonData.help.toolTip",
       button: <HelpShelfButton key={t("DG.ToolButtonData.help.title")} />
     },
     {
       icon: <GuideIcon className="icon-guide"/>,
-      label: t("DG.ToolButtonData.guideMenu.title"),
-      hint: t("DG.ToolButtonData.guideMenu.toolTip")
+      labelKey: "DG.ToolButtonData.guideMenu.title",
+      hintKey: "DG.ToolButtonData.guideMenu.toolTip"
     }
   ]
 
@@ -107,7 +107,7 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
     rightButtons.forEach(b => {
       if (b.className) {
         // eslint-disable-next-line no-console
-        console.log(`ToolShelf Button "${b.className}": enabled: ${!b.isDisabled?.()} hint: ${b.hint}`)
+        console.log(`ToolShelf Button "${b.className}": enabled: ${!b.isDisabled?.()} hint: ${t(b.hintKey)}`)
       }
     })
   }
@@ -137,11 +137,9 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
   const tileButtons = tileComponentInfo.map((info, idx) => {
     if (!info) return null
     const { type, shelf: { ButtonComponent = ToolShelfTileButton, labelKey, hintKey } } = info
-    const label = t(labelKey)
-    const hint = t(hintKey)
     return (
       ButtonComponent
-        ? <ButtonComponent tileType={type} key={`${type}-${idx}`} label={label} hint={hint}
+        ? <ButtonComponent tileType={type} key={`${type}-${idx}`} label={t(labelKey)} hint={t(hintKey)}
               onClick={handleTileButtonClick}/>
         : null
     )
@@ -155,11 +153,11 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
       <Spacer/>
       <Flex className="tool-shelf-right-buttons">
         {rightButtons.map(entry => {
-          const { className, icon, label, hint, button } = entry
+          const { className, icon, labelKey, hintKey, button } = entry
           return (
             button
               ? button
-              : <ToolShelfButton key={label} className={className} icon={icon} label={label} hint={hint}
+              : <ToolShelfButton key={labelKey} className={className} icon={icon} label={t(labelKey)} hint={t(hintKey)}
                     disabled={entry.isDisabled?.()} background={kRightButtonBackground}
                     onClick={() => handleRightButtonClick(entry)} />
           )
