@@ -23,6 +23,9 @@ export class FormulaManager {
 
   adapters: IFormulaManagerAdapter[] = []
 
+  @observable
+  areAdaptersInitialized = false
+
   constructor() {
     makeObservable(this)
   }
@@ -36,9 +39,10 @@ export class FormulaManager {
     }
   }
 
-  addAdapters(adapters: IFormulaManagerAdapter[]) {
+  @action addAdapters(adapters: IFormulaManagerAdapter[]) {
     this.adapters.push(...adapters)
     this.registerActiveFormulas()
+    this.areAdaptersInitialized = true
   }
 
   @action addDataSet(dataSet: IDataSet) {
