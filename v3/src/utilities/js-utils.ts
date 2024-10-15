@@ -173,3 +173,15 @@ export function hashStringSets(stringSets: Array<string[]>) {
     // eslint-disable-next-line no-bitwise
     .reduce((acc, hash) => acc ^ hash, 0) // XOR all individual hashes
 }
+
+/*
+ * hashOrderedStringSet()
+ *
+ * returns an order-dependent hash value for a set of strings (e.g. ids).
+ * developed with the help of ChatGPT.
+ */
+export function hashOrderedStringSet(strings: string[]) {
+  return strings
+    .map((str, index) => hashString(str) * (index + 1)) // Multiply hash by index + 1 to reflect position
+    .reduce((acc, hash) => acc + hash, 0) // sum all individual hashes
+}

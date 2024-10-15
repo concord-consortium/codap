@@ -1,6 +1,5 @@
 import { format } from "d3"
 import { reaction } from "mobx"
-import { onPatch } from "mobx-state-tree"
 import { useCallback, useEffect, useRef } from "react"
 import { useDebouncedCallback } from "use-debounce"
 import { useCaseMetadata } from "../../hooks/use-case-metadata"
@@ -16,6 +15,7 @@ import {
   IAddCasesOptions, ICase, ICaseCreation, IGroupedCase, symFirstChild, symIndex, symParent
 } from "../../models/data/data-set-types"
 import { isSetIsCollapsedAction } from "../../models/shared/shared-case-metadata"
+import { mstReaction } from "../../utilities/mst-reaction"
 import { onAnyAction } from "../../utilities/mst-utils"
 import { prf } from "../../utilities/profiler"
 import { applyCaseValueChanges } from "../case-tile-common/case-tile-utils"
@@ -121,10 +121,11 @@ export const useRows = () => {
   const lowestIndex = useRef<number>(Infinity)
   useEffect(() => {
     if (!collectionTableModel) return
+    const collection = data?.getCollection(collectionId)
     const { rowCache } = collectionTableModel
 
     // rebuild the entire cache after grouping changes
-    const reactionDisposer = reaction(
+    const validationReactionDisposer = reaction(
       () => data?.isValidCases && data?.validationCount,
       validation => {
         if (typeof validation === "number") {
@@ -133,12 +134,12 @@ export const useRows = () => {
       }, { name: "useRows.useEffect.reaction [collectionGroups]", fireImmediately: true }
     )
 
-    const onPatchDisposer = data && onPatch(data, ({ op, path, value }) => {
-      // reset on any changes to items or hidden items
-      if (/(_itemIds|setAsideItemIds)(\/\d+)?$/.test(path)) {
-        resetRowCacheAndSyncRows()
-      }
-    })
+    // respond to case id changes (add, remove, sort)
+    const caseIdsReactionDisposer = mstReaction(
+      () => collection?.caseIdsOrderedHash,
+      () => resetRowCacheAndSyncRows(),
+      { name: "useRows.useEffect.reaction [collectionGroups]" }, collection
+    )
 
     // update the affected rows on data changes without grouping changes
     const beforeAnyActionDisposer = data && onAnyAction(data, action => {
@@ -231,13 +232,14 @@ export const useRows = () => {
       }
     })
     return () => {
-      reactionDisposer?.()
-      onPatchDisposer?.()
+      validationReactionDisposer?.()
+      caseIdsReactionDisposer?.()
       beforeAnyActionDisposer?.()
       afterAnyActionDisposer?.()
       metadataDisposer?.()
     }
-  }, [caseMetadata, collectionTableModel, data, resetRowCache, resetRowCacheAndSyncRows, syncRowsToDom, syncRowsToRdg])
+  }, [caseMetadata, collectionId, collectionTableModel, data, resetRowCache, resetRowCacheAndSyncRows,
+      syncRowsToDom, syncRowsToRdg])
 
   const handleRowsChange = useCallback((_rows: TRow[], changes: TRowsChangeData) => {
     // when rows change, e.g. after cell edits, update the dataset

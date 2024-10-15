@@ -332,8 +332,15 @@ describe("CollectionModel", () => {
 
     validateItemCaseIds()
 
-    const originalParentCaseIds = [...c1.caseIds]
-    const originalChildCaseIds = [...c2.caseIds]
+    function getCaseIdInfo(collection: ICollectionModel) {
+      return {
+        caseIds: [...collection.caseIds],
+        caseIdsHash: collection.caseIdsHash,
+        caseIdsOrderedHash: collection.caseIdsOrderedHash
+      }
+    }
+    const origParentCollectionInfo = getCaseIdInfo(c1)
+    const origChildCollectionInfo = getCaseIdInfo(c2)
 
     // serializes group key => case id map appropriately
     c1.prepareSnapshot()
@@ -358,8 +365,8 @@ describe("CollectionModel", () => {
 
     // adding constant attribute to the child collection doesn't change case ids
     validateCases()
-    expect(c1.caseIds).toEqual(originalParentCaseIds)
-    expect(c2.caseIds).toEqual(originalChildCaseIds)
+    expect(getCaseIdInfo(c1)).toEqual(origParentCollectionInfo)
+    expect(getCaseIdInfo(c2)).toEqual(origChildCollectionInfo)
     validateItemCaseIds()
 
     // adding constant attribute to the parent collection does invalidate grouping
@@ -368,30 +375,34 @@ describe("CollectionModel", () => {
 
     // adding constant attribute to the parent collection doesn't change case ids
     validateCases()
-    expect(c1.caseIds).toEqual(originalParentCaseIds)
-    expect(c2.caseIds).toEqual(originalChildCaseIds)
+    expect(getCaseIdInfo(c1)).toEqual(origParentCollectionInfo)
+    expect(getCaseIdInfo(c2)).toEqual(origChildCollectionInfo)
     validateItemCaseIds()
 
     // removing attr1 from the parent collection invalidates grouping and changes parent case ids
     c1.removeAttribute(a1.id)
     expect(itemData.invalidate).toHaveBeenCalledTimes(2)
     validateCases()
-    expect(c1.caseIds).not.toEqual(originalParentCaseIds)
-    expect([...c2.caseIds].sort()).toEqual([...originalChildCaseIds].sort())
+    expect(c1.caseIds).not.toEqual(origParentCollectionInfo.caseIds)
+    expect(c1.caseIdsHash).not.toEqual(origParentCollectionInfo.caseIdsHash)
+    expect(c1.caseIdsOrderedHash).not.toEqual(origParentCollectionInfo.caseIdsOrderedHash)
+    expect([...c2.caseIds].sort()).toEqual([...origChildCollectionInfo.caseIds].sort())
+    expect(c2.caseIdsHash).toEqual(origChildCollectionInfo.caseIdsHash)
+    expect(c2.caseIdsOrderedHash).not.toEqual(origChildCollectionInfo.caseIdsOrderedHash)
 
     // adding attr1 back to parent collection invalidates grouping and restores original parent case ids
     c1.addAttribute(a1)
     expect(itemData.invalidate).toHaveBeenCalledTimes(3)
     validateCases()
-    expect(c1.caseIds).toEqual(originalParentCaseIds)
-    expect(c2.caseIds).toEqual(originalChildCaseIds)
+    expect(getCaseIdInfo(c1)).toEqual(origParentCollectionInfo)
+    expect(getCaseIdInfo(c2)).toEqual(origChildCollectionInfo)
     validateItemCaseIds()
 
     // changing all b's to c's doesn't change case ids
     attr1Values = ["a", "c"]
     validateCases()
-    expect(c1.caseIds).toEqual(originalParentCaseIds)
-    expect(c2.caseIds).toEqual(originalChildCaseIds)
+    expect(getCaseIdInfo(c1)).toEqual(origParentCollectionInfo)
+    expect(getCaseIdInfo(c2)).toEqual(origChildCollectionInfo)
     expect(c1.groupKeyCaseIds.get(bGroupKey)).toBeUndefined()
     validateItemCaseIds()
   })

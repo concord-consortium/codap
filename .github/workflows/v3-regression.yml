@@ -6,6 +6,8 @@ on:
     paths:      # only run this workflow if it contains v3 files
       - 'v3/**' # https://docs.github.com/en/actions/using-workflows/triggering-a-workflow#example-including-paths
       - '.github/workflows/v3-regression.yml'
+      - '.github/workflows/v3.yml'
+      - '.github/workflows/run-regression-label.yml'
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -57,12 +59,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - uses: actions/cache@v4
+      - name: Restore Webpack Cache
+        # Don't save the webpack cache because the same cache wil be saved
+        # by the cypress job in `v3.yml`
+        uses: actions/cache/restore@v4
         with:
-          path: v3/node_modules/.cache/webpack/
-          key: ${{ github.head_ref || github.ref_name }}-webpack-build
-          restore-keys: |
-            main-webpack-build
+          path: v3/.cache/webpack/
+          key: webpack-dev-build-${{ hashFiles('v3/webpack.config.js') }}
       - uses: cypress-io/github-action@v6
         with:
           working-directory: v3
@@ -92,6 +95,8 @@ jobs:
           # Also turn on the code coverage tasks in cypress itself, these are disabled
           # by default.
           CYPRESS_coverage: true
+          # Have webpack skip eslint checking, that was already done by the build step
+          SKIP_ESLINT: true
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:

@@ -373,6 +373,15 @@ export const Attribute = V2Model.named("Attribute").props({
       self.incChangeCount()
     }
   },
+  // order the values of the attribute according to the provided indices
+  orderValues(indices: number[]) {
+    const _strValues = self.strValues.slice()
+    const _numValues = self.numValues.slice()
+    for (let i = 0; i < _strValues.length; ++i) {
+      self.strValues[i] = _strValues[indices[i]]
+      self.numValues[i] = _numValues[indices[i]]
+    }
+  },
   clearValues() {
     for (let i = self.strValues.length - 1; i >= 0; --i) {
       self.strValues[i] = ""
