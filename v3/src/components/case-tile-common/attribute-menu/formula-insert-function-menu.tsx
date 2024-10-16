@@ -4,6 +4,8 @@ import React, { useState } from "react"
 import functionStringMap from "../../../assets/json/function_strings.json"
 import "./attribute-menu.scss"
 
+const kMenuGap = 3
+
 interface IProps {
   formula: string
   cursorPosition: number,
@@ -17,6 +19,32 @@ export const InsertFunctionMenu = ({formula, cursorPosition, editorSelection, se
   const [functionMenuView, setFunctionMenuView] = useState<"category" | "list" | "info" | undefined>("category")
   const [selectedCategory, setSelectedCategory] = useState("")
   const [selectedFunction, setSelectedFunction] = useState("")
+
+  const getFunctionMenuPosition = () => {
+    const menuEl = document.querySelector(".formula-function-menu-container") as HTMLElement
+    const buttonEl = document.querySelector(".formula-editor-button.insert-value")
+    const viewableTop = window.scrollY
+    let menuTopPosition = 0
+
+    if (menuEl && buttonEl) {
+      const buttonRect = buttonEl.getBoundingClientRect()
+      let menuElHeight = menuEl.offsetHeight || 0
+      //get space available above and below the button
+      const spaceBelow = window.innerHeight - buttonRect.bottom
+      const spaceAbove = buttonRect.top
+      if (spaceBelow >= menuElHeight) {
+        menuTopPosition = buttonRect.height + kMenuGap
+      } else if (spaceAbove >= menuElHeight) {
+        menuTopPosition = -(menuElHeight + kMenuGap)
+      } else {
+        menuTopPosition = spaceBelow > spaceAbove
+          ? 0 + kMenuGap
+          : viewableTop || -(menuElHeight + kMenuGap)
+        menuElHeight = spaceBelow > spaceAbove ? spaceBelow : spaceAbove
+      }
+      return { top: menuTopPosition, height: menuElHeight }
+    }
+  }
 
   const insertFunctionToFormula = (func: any, args?: any) => {
     // insert the function to the formula st the cursor position or selection
@@ -156,7 +184,7 @@ export const InsertFunctionMenu = ({formula, cursorPosition, editorSelection, se
   }
 
   return (
-    <Flex className="formula-function-menu-container">
+    <Flex className="formula-function-menu-container" style={getFunctionMenuPosition()}>
       { functionMenuView === "info"
           ? renderFunctionInfo()
           : functionMenuView === "list"

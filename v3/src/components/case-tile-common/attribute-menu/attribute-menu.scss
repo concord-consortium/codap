@@ -60,6 +60,7 @@
   overflow-y: auto;
   position: absolute;
   max-height: 380px;
+  left: 20px;
   cursor: pointer;
 
   .formula-function-list {
@@ -73,7 +74,9 @@
     .function-category-list-item {
       display: flex;
       align-items: center;
-      font-size: 12px;
+      padding: 3px;
+      font-size: 14px;
+      font-weight: bold;
       line-height: 20px;
       &:hover, &:active {
         color: $codap-teal-light;
