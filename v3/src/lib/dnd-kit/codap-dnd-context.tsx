@@ -46,7 +46,9 @@ export const CodapDndContext = ({ children }: IProps) => {
   // mouse sensor can be enabled for cypress tests, for instance
   // const _mouseSensor = useSensor(MouseSensor)
   // const mouseSensor = urlParams.mouseSensor ? _mouseSensor : null
-  const mouseSensor = useSensor(MouseSensor, { activationConstraint: { distance: 3 } })
+  // The mouseSensor url parameter is used for cypress tests, which won't work if there's a distance requirement
+  const mouseOptions = urlParams.mouseSensor !== undefined ? undefined : { activationConstraint: { distance: 3 } }
+  const mouseSensor = useSensor(MouseSensor, mouseOptions)
   const sensors = useSensors(
                     pointerSensor,
                     useSensor(KeyboardSensor, { coordinateGetter: customCoordinatesGetter }),
