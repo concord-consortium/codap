@@ -35,12 +35,14 @@ import { useCollectionTableModel } from "./use-collection-table-model"
 import { useWhiteSpaceClick } from "./use-white-space-click"
 import { collectionCaseIdFromIndex, collectionCaseIndexFromId, selectCases, setOrExtendSelection, setSelectedCases }
   from "../../models/data/data-set-utils"
-  import { kDefaultRowHeight } from "./collection-table-model"
+import { kDefaultRowHeight } from "./collection-table-model"
 
 import "react-data-grid/lib/styles.css"
 import styles from "./case-table-shared.scss"
 
 type OnNewCollectionDropFn = (dataSet: IDataSet, attrId: string, beforeCollectionId: string) => void
+
+const kScrollMargin = 35
 
 // custom renderers for use with RDG
 const renderers: TRenderers = { renderRow: customRenderRow }
@@ -243,51 +245,55 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
     }
   }
 
-const scrollInterval = useRef<NodeJS.Timeout | null>(null)
-const mouseY = useRef<number>(0)
+  const scrollInterval = useRef<NodeJS.Timeout | null>(null)
+  const mouseY = useRef<number>(0)
 
-const startAutoScroll = useCallback((clientY: number) => {
-  const grid = gridRef.current?.element
-  if (!grid) return
-
-  const scrollSpeed = 50
-
-  scrollInterval.current = setInterval(() => {
-    const { top, bottom } = grid.getBoundingClientRect()
-    let scrolledToRowIdx = null
-
-    if (mouseY.current < top + 35) {
-      grid.scrollTop -= scrollSpeed
-      const scrolledTop = grid.scrollTop
-      scrolledToRowIdx = Math.floor(scrolledTop / kDefaultRowHeight)
-    } else if (mouseY.current > bottom - 20) {
-      grid.scrollTop += scrollSpeed
-      const scrolledTop = grid.scrollTop + grid.clientHeight - 1
-      scrolledToRowIdx = Math.floor(scrolledTop / kDefaultRowHeight)
-
-    }
-    if (scrolledToRowIdx != null && selectionStartRowIdx!= null && scrolledToRowIdx >= 0 &&
-          (rows?.length && scrolledToRowIdx < rows?.length)) {
-      const newSelectedRows = []
-      const startIdx = Math.min(selectionStartRowIdx, scrolledToRowIdx)
-      const endIdx = Math.max(selectionStartRowIdx, scrolledToRowIdx)
-      for (let i = startIdx; i <= endIdx; i++) {
-        const rowId = collectionCaseIdFromIndex(i, data, collectionId)
-        if (rowId) {
-          newSelectedRows.push(rowId)
+  const marqueeSelectCases = useCallback((startIdx: number, endIdx: number) => {
+        const newSelectedRows = []
+        const start = Math.min(startIdx, endIdx)
+        const end = Math.max(startIdx, endIdx)
+        for (let i = start; i <= end; i++) {
+          newSelectedRows.push(i)
         }
-      }
-      setOrExtendSelection(newSelectedRows, data)
-    }
-  }, 25)
-}, [collectionId, data, rows?.length, selectionStartRowIdx])
+        const selectedCaseIds = newSelectedRows
+                                  .map(idx => collectionCaseIdFromIndex(idx, data, collectionId))
+                                  .filter((id): id is string => id !== undefined)
+        setOrExtendSelection(selectedCaseIds, data)
+  }, [collectionId, data])
 
-const stopAutoScroll = useCallback(() => {
-  if (scrollInterval.current) {
-    clearInterval(scrollInterval.current)
-    scrollInterval.current = null
-  }
-}, [])
+  const startAutoScroll = useCallback((clientY: number) => {
+    const grid = gridRef.current?.element
+    if (!grid) return
+
+    const scrollSpeed = 50
+
+    scrollInterval.current = setInterval(() => {
+      const { top, bottom } = grid.getBoundingClientRect()
+      let scrolledToRowIdx = null
+
+      if (mouseY.current < top + kScrollMargin) {
+        grid.scrollTop -= scrollSpeed
+        const scrolledTop = grid.scrollTop
+        scrolledToRowIdx = Math.floor(scrolledTop / kDefaultRowHeight)
+      } else if (mouseY.current > bottom - kScrollMargin) {
+        grid.scrollTop += scrollSpeed
+        const scrolledBottom = grid.scrollTop + grid.clientHeight - 1
+        scrolledToRowIdx = Math.floor(scrolledBottom / kDefaultRowHeight)
+
+      }
+      if (scrolledToRowIdx != null && selectionStartRowIdx != null && scrolledToRowIdx >= 0 &&
+            (rows?.length && scrolledToRowIdx < rows?.length)) {
+        marqueeSelectCases(selectionStartRowIdx, scrolledToRowIdx)
+      }
+    }, 25)
+  }, [marqueeSelectCases, rows?.length, selectionStartRowIdx])
+
+  const stopAutoScroll = useCallback(() => {
+    if (scrollInterval.current) {
+      clearInterval(scrollInterval.current)
+      scrollInterval.current = null
+    }
+  }, [])
 
   // Helper function to get the row index from a mouse event
   const getRowIndexFromEvent = useCallback((event: React.PointerEvent) => {
@@ -313,22 +319,13 @@ const stopAutoScroll = useCallback(() => {
     if (isSelecting && selectionStartRowIdx !== null) {
       const currentRowIdx = getRowIndexFromEvent(event as React.PointerEvent)
       if (currentRowIdx != null) {
-        const newSelectedRows = []
-        const start = Math.min(selectionStartRowIdx, currentRowIdx)
-        const end = Math.max(selectionStartRowIdx, currentRowIdx)
-        for (let i = start; i <= end; i++) {
-          newSelectedRows.push(i)
-        }
-        const selectedCaseIds = newSelectedRows
-                                  .map(idx => collectionCaseIdFromIndex(idx, data, collectionId))
-                                  .filter((id): id is string => id !== undefined)
-        setOrExtendSelection(selectedCaseIds, data)
+        marqueeSelectCases(selectionStartRowIdx, currentRowIdx)
       }
       mouseY.current = event.clientY
       const grid = gridRef.current?.element
       if (grid) {
         const { top, bottom } = grid.getBoundingClientRect()
-        if (mouseY.current < top + 50 || mouseY.current > bottom - 20) {
+        if (mouseY.current < top + kScrollMargin || mouseY.current > bottom - kScrollMargin) {
           if (!scrollInterval.current) {
             startAutoScroll(mouseY.current)
           }
@@ -345,10 +342,10 @@ const stopAutoScroll = useCallback(() => {
     stopAutoScroll()
   }, [stopAutoScroll])
 
-  useEffect(() => {
-    return () => {
-      stopAutoScroll()
-    }
+  const handlePointerLeave = useCallback((event: PointerEvent | React.PointerEvent<HTMLDivElement>) => {
+    setIsSelecting(false)
+    setSelectionStartRowIdx(null)
+    stopAutoScroll()
   }, [stopAutoScroll])
 
   if (!data || !rows || !visibleAttributes.length) return null
@@ -357,8 +354,9 @@ const stopAutoScroll = useCallback(() => {
     <div className={`collection-table collection-${collectionId}`}>
       <CollectionTableSpacer selectedFillColor={selectedFillColor}
         onWhiteSpaceClick={handleWhiteSpaceClick} onDrop={handleNewCollectionDrop} />
-      <div className="collection-table-and-title" ref={setNodeRef} onClick={handleClick} onPointerDown={handlePointerDown}
-           onPointerMove={handlePointerMove} onPointerUp={handlePointerUp}>
+      <div className="collection-table-and-title" ref={setNodeRef} onClick={handleClick}
+            onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp}
+            onPointerLeave={handlePointerLeave}>
         <CollectionTitle onAddNewAttribute={handleAddNewAttribute} showCount={true} />
         <DataGrid ref={gridRef} className="rdg-light" data-testid="collection-table-grid" renderers={renderers}
           columns={columns} rows={rows} headerRowHeight={+styles.headerRowHeight} rowKeyGetter={rowKey}
