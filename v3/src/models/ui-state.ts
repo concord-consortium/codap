@@ -178,6 +178,15 @@ export class UIState {
     this._draggingOverlayWidth = width
   }
 
+  @action endDrag() {
+    this.setDraggingAttributeId()
+    this.setDraggingDatasetId()
+    this.setDraggingOverlayHeight()
+    this.setDraggingOverlayWidth()
+    this.setDraggingXOffset()
+    this.setDraggingYOffset()
+  }
+
   getRulerStateVisibility(key: RulerStateKey) {
     return this.rulerState[key]
   }
