@@ -11,7 +11,7 @@ export const diInteractiveFrameHandler: DIHandler = {
   get(resources: DIResources) {
     const { interactiveFrame } = resources
     if (!interactiveFrame) return noIFResult
-    
+
     const dimensions = appState.document.content?.getTileDimensions(interactiveFrame.id)
     const webViewContent = isWebViewModel(interactiveFrame.content) ? interactiveFrame.content : undefined
     const {

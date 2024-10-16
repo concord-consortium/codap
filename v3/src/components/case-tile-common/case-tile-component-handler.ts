@@ -1,6 +1,6 @@
 import { V2CaseTable } from "../../data-interactive/data-interactive-component-types"
 import { CreateOrShowTileFn, DIComponentHandler } from "../../data-interactive/handlers/component-handler"
-import { errorResult } from "../../data-interactive/handlers/di-results"
+import { errorResult, fieldRequiredResult } from "../../data-interactive/handlers/di-results"
 import { appState } from "../../models/app-state"
 import {
   getDataSetByNameOrId, getSharedCaseMetadataFromDataset, getSharedDataSetFromDataSetId
@@ -16,7 +16,7 @@ export const caseTableCardComponentHandler: DIComponentHandler = {
   create({ type, values }) {
     const { document } = appState
     const { dataContext, horizontalScrollOffset } = values as V2CaseTable
-    const dataContextNotFound = errorResult(t("V3.DI.Error.fieldRequired", { vars: ["Create", type, "dataContext"] }))
+    const dataContextNotFound = fieldRequiredResult("Create", type, "dataContext")
     if (!dataContext) return dataContextNotFound
     const dataSet = getDataSetByNameOrId(document, dataContext)
     if (!dataSet) return dataContextNotFound

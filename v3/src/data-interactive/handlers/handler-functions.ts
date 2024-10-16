@@ -1,13 +1,12 @@
 import { updateCasesNotificationFromIds } from "../../models/data/data-set-notifications"
 import { ICase } from "../../models/data/data-set-types"
 import { toV2Id, toV3CaseId, toV3ItemId } from "../../utilities/codap-utils"
-import { t } from "../../utilities/translation/translate"
 import {
   DICaseValues, DIFullCase, DIResources, DISuccessResult, DIUpdateCase, DIUpdateItemResult, DIValues
 } from "../data-interactive-types"
 import { getV2ItemResult, getCaseRequestResultValues } from "../data-interactive-type-utils"
 import { attrNamesToIds } from "../data-interactive-utils"
-import { caseNotFoundResult, dataContextNotFoundResult, itemNotFoundResult } from "./di-results"
+import { caseNotFoundResult, dataContextNotFoundResult, fieldRequiredResult, itemNotFoundResult } from "./di-results"
 
 export function deleteCaseBy(resources: DIResources, aCase?: ICase) {
   const { dataContext } = resources
@@ -78,10 +77,7 @@ export function updateCaseBy(
 
   const { itemReturnStyle, nestedValues, resourceName } = options ?? {}
 
-  const missingFieldResult = (field: string) => ({
-    success: false as const,
-    values: { error: t("V3.DI.Error.fieldRequired", { vars: ["update", resourceName ?? "case", field] }) }
-  })
+  const missingFieldResult = (field: string) => fieldRequiredResult("update", resourceName ?? "case", field)
   if (!values) return missingFieldResult("values")
 
   let _values = values as DICaseValues

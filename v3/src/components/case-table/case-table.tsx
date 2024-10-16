@@ -3,6 +3,7 @@ import { observer } from "mobx-react-lite"
 import React, { useCallback, useEffect, useRef } from "react"
 import { CollectionContext, ParentCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
+import { getOverlayDragId } from "../../hooks/use-drag-drop"
 import { useInstanceIdContext } from "../../hooks/use-instance-id-context"
 import { registerCanAutoScrollCallback } from "../../lib/dnd-kit/dnd-can-auto-scroll"
 import { logMessageWithReplacement } from "../../lib/log-message"
@@ -13,7 +14,6 @@ import { INotification } from "../../models/history/apply-model-change"
 import { mstReaction } from "../../utilities/mst-reaction"
 import { prf } from "../../utilities/profiler"
 import { t } from "../../utilities/translation/translate"
-import { kIndexColumnKey } from "../case-tile-common/case-tile-types"
 import { AttributeHeaderDividerContext } from "../case-tile-common/use-attribute-header-divider-context"
 import { AttributeDragOverlay } from "../drag-drop/attribute-drag-overlay"
 import { CollectionTable } from "./collection-table"
@@ -110,10 +110,6 @@ export const CaseTable = observer(function CaseTable({ setNodeRef }: IProps) {
   }, [])
 
   return prf.measure("Table.render", () => {
-    // disable the overlay for the index column
-    const overlayDragId = active && `${active.id}`.startsWith(instanceId) && !(`${active.id}`.endsWith(kIndexColumnKey))
-                            ? `${active.id}` : undefined
-
     if (!tableModel || !data) return null
 
     const collections = data.collections
@@ -139,7 +135,7 @@ export const CaseTable = observer(function CaseTable({ setNodeRef }: IProps) {
               )
             })}
           </AttributeHeaderDividerContext.Provider>
-          <AttributeDragOverlay activeDragId={overlayDragId} />
+          <AttributeDragOverlay activeDragId={getOverlayDragId(active, instanceId, true)} />
           <NoCasesMessage />
         </div>
       </div>

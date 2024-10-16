@@ -6,6 +6,7 @@ import {useMemo} from 'use-memo-one'
 import {ITileBaseProps} from '../../tiles/tile-base-props'
 import {useDataSet} from '../../../hooks/use-data-set'
 import {DataSetContext} from '../../../hooks/use-data-set-context'
+import { getOverlayDragId } from '../../../hooks/use-drag-drop'
 import {GraphContentModelContext} from '../hooks/use-graph-content-model-context'
 import {useGraphController} from "../hooks/use-graph-controller"
 import {GraphLayoutContext} from '../hooks/use-graph-layout-context'
@@ -58,8 +59,6 @@ export const GraphComponent = observer(function GraphComponent({tile}: ITileBase
   setNodeRef(graphRef.current ?? null)
 
   const {active} = useDndContext()
-  const overlayDragId = active && `${active.id}`.startsWith(instanceId)
-    ? `${active.id}` : undefined
 
   if (!graphModel) return null
 
@@ -76,7 +75,7 @@ export const GraphComponent = observer(function GraphComponent({tile}: ITileBase
                   pixiPointsArray={pixiPointsArray}
                 />
               </AxisProviderContext.Provider>
-              <AttributeDragOverlay activeDragId={overlayDragId}/>
+              <AttributeDragOverlay activeDragId={getOverlayDragId(active, instanceId)}/>
             </GraphContentModelContext.Provider>
           </AxisLayoutContext.Provider>
         </GraphLayoutContext.Provider>

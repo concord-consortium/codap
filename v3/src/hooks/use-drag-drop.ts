@@ -2,10 +2,11 @@ import {
   Active, DataRef, DragEndEvent, Modifier, useDndMonitor,
   useDraggable, UseDraggableArguments, useDroppable, UseDroppableArguments
 } from "@dnd-kit/core"
+import { kIndexColumnKey } from "../components/case-tile-common/case-tile-types"
+import { kTitleBarHeight } from "../components/constants"
 import { IDataSet } from "../models/data/data-set"
 import { useInstanceIdContext } from "./use-instance-id-context"
 import { useTileModelContext } from "./use-tile-model-context"
-import { kTitleBarHeight } from "../components/constants"
 
 // list of draggable types
 const DragTypes = ["attribute", "tile"] as const
@@ -28,6 +29,11 @@ export function isDragAttributeData(data: DataRef): data is DataRef<IDragAttribu
 export function getDragAttributeInfo(active: Active | null): Omit<IDragAttributeData, "type"> | undefined {
   const { dataSet, attributeId } = active?.data.current as IDragAttributeData || {}
   return dataSet && attributeId ? { dataSet, attributeId } : undefined
+}
+export function getOverlayDragId(active: Active | null, instanceId: string, excludeIndexColumn = false) {
+  const activeId = `${active?.id}`
+  return active && activeId.startsWith(instanceId) && !(excludeIndexColumn && activeId.endsWith(kIndexColumnKey))
+    ? activeId : undefined
 }
 
 export interface IUseDraggableAttribute extends Omit<UseDraggableArguments, "id"> {

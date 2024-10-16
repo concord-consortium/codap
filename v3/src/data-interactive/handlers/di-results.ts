@@ -9,3 +9,7 @@ export const couldNotParseQueryResult = errorResult(t("V3.DI.Error.couldNotParse
 export const dataContextNotFoundResult = errorResult(t("V3.DI.Error.dataContextNotFound"))
 export const itemNotFoundResult = errorResult(t("V3.DI.Error.itemNotFound"))
 export const valuesRequiredResult = errorResult(t("V3.DI.Error.valuesRequired"))
+
+export function fieldRequiredResult(action: string, resource: string, field: string) {
+  return errorResult(t("V3.DI.Error.fieldRequired", { vars: [action, resource, field] }))
+}
