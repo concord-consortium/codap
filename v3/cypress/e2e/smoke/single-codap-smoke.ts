@@ -8,6 +8,7 @@ import { CalculatorTileElements as calculator } from "../support/elements/calcul
 import { WebViewTileElements as webView } from "../support/elements/web-view-tile"
 
 const helpURL = 'https://codap.concord.org/help'
+const helpURL_ja = 'https://codap.concord.org/resources/latest/help-documents/CODAP解説書.pdf'
 const helpForumURL = 'https://codap.concord.org/forums/forum/test/'
 const projectWebSiteURL = 'https://codap.concord.org'
 const privacyURL = 'https://codap.concord.org/privacy'
