@@ -129,9 +129,9 @@ export const EditFormulaModal = observer(function EditFormulaModal({ attributeId
               {t("DG.AttrFormView.functionMenuTitle")}
             </Button>
             {showFunctionMenu &&
-                <InsertFunctionMenu setShowFunctionMenu={setShowFunctionMenu}
-                    setFormula={setFormula} formula={formula} cursorPosition={cursorPosition}
-                    editorSelection={editorSelection} />
+              <InsertFunctionMenu setShowFunctionMenu={setShowFunctionMenu}
+                  setFormula={setFormula} formula={formula} cursorPosition={cursorPosition}
+                  editorSelection={editorSelection} />
             }
           </Box>
         </Flex>

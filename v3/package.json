@@ -184,6 +184,7 @@
     "xhr-mock": "^2.5.1"
   },
   "dependencies": {
+    "@chakra-ui/icons": "^2.2.4",
     "@chakra-ui/react": "^2.8.2",
     "@codemirror/autocomplete": "^6.18.1",
     "@codemirror/commands": "^6.6.1",

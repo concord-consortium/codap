@@ -53,7 +53,7 @@
   margin: 3px 0;
   border: 1px solid #000;
   font-size: 12px;
-  z-index: 105;
+  z-index: 1005;
   background-color: white;
   max-width: 300px;
   overflow-x: hidden;
@@ -162,26 +162,58 @@
 }
 
 .formula-operand-list-container {
-  max-height: 480px;
   max-width: 310px;
-  overflow: visible;
-  z-index: 100;
   position: absolute;
+  z-index: 1005;
+  display: flex;
+  flex-direction: column;
   background-color: white;
   border: solid 0 transparent;
-  display: flex;
-  vertical-align: middle;
-  flex-direction: column;
+  padding: 10px 0;
 
-  .formula-operand-list-item {
+  .scroll-arrow {
     display: flex;
+    flex-direction: row;
+    justify-content: center;
     align-items: center;
     cursor: pointer;
     font-size: 12px;
-    margin: 0 10px;
+    height: 20px;
+
     &:hover, &:active {
       color: $codap-teal-light;
       text-decoration: underline;
+    }
+  }
+
+  .formula-operand-scrollable-container {
+    overflow-x: hidden;
+    overflow-y: auto;
+    display: flex;
+    vertical-align: middle;
+    flex-direction: column;
+
+    .list-divider {
+      border: 0.5px solid #d6d6d6;
+      opacity: 0.6;
+      margin: 5px 0;
+    }
+
+    .formula-operand-subset {
+      margin: 5px 0;
+    }
+
+    .formula-operand-list-item {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      font-size: 12px;
+      margin: 0 20px;
+      height: 20px;
+      &:hover, &:active {
+        color: $codap-teal-light;
+        text-decoration: underline;
+      }
     }
   }
 }
