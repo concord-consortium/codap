@@ -6,7 +6,7 @@ import { applyModelChange } from "../../models/history/apply-model-change"
 import { ISharedModel } from "../../models/shared/shared-model"
 import { getGlobalValueManager, getSharedModelManager } from "../../models/tiles/tile-environment"
 import { ITileContentModel, TileContentModel } from "../../models/tiles/tile-content"
-import { unitsStringToMilliseconds } from "../../utilities/date-utils"
+import { DateUnit, dateUnits, unitsStringToMilliseconds } from "../../utilities/date-utils"
 import { kSliderTileType } from "./slider-defs"
 import {AnimationDirection, AnimationDirections, AnimationMode, AnimationModes, FixValueFn, ISliderScaleType,
   kDefaultAnimationDirection, kDefaultAnimationMode, kDefaultAnimationRate, kDefaultDateMultipleOfUnit,
@@ -18,7 +18,7 @@ export const SliderModel = TileContentModel
     type: types.optional(types.literal(kSliderTileType), kSliderTileType),
     globalValue: types.reference(GlobalValue),
     multipleOf: types.maybe(types.number),
-    dateMultipleOfUnit: types.optional(types.string, kDefaultDateMultipleOfUnit),
+    dateMultipleOfUnit: types.optional(types.enumeration([...dateUnits]), kDefaultDateMultipleOfUnit),
     animationDirection: types.optional(types.enumeration([...AnimationDirections]), kDefaultAnimationDirection),
     animationMode: types.optional(types.enumeration([...AnimationModes]), kDefaultAnimationMode),
     // clients should use animationRate view defined below
@@ -150,7 +150,7 @@ export const SliderModel = TileContentModel
         self.multipleOf = undefined
       }
     },
-    setDateMultipleOfUnit(unit: "Millisecond" | "Second" | "Minute" | "Hour" | "Day" | "Month" | "Year") {
+    setDateMultipleOfUnit(unit: DateUnit) {
       self.dateMultipleOfUnit = unit
     },
     setAnimationDirection(direction: AnimationDirection) {

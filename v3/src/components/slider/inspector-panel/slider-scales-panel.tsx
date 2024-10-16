@@ -1,13 +1,13 @@
-import React, { useEffect, useState } from "react"
-import { observer } from "mobx-react-lite"
 import { Flex, FormControl, FormLabel, Input, Menu, MenuButton, MenuList, MenuItem, Button } from "@chakra-ui/react"
-import { InspectorPalette } from "../../inspector-panel"
+import { observer } from "mobx-react-lite"
+import React, { useEffect, useState } from "react"
+import { logStringifiedObjectMessage } from "../../../lib/log-message"
 import { convertToDate } from "../../../utilities/date-utils"
+import { t } from "../../../utilities/translation/translate"
+import { InspectorPalette } from "../../inspector-panel"
 import { ISliderModel } from "../slider-model"
 import { ISliderScaleType, SliderScaleTypes } from "../slider-types"
-import { t } from "../../../utilities/translation/translate"
 import ScaleIcon from "../../../assets/icons/icon-values.svg"
-import { logStringifiedObjectMessage } from "../../../lib/log-message"
 
 import "./slider-settings-panel.scss"
 
@@ -50,8 +50,8 @@ export const SliderScalesPalette =
       })
     }
 
-    const handleMinimumBlur = (event: React.FocusEvent<HTMLInputElement>) => {
-      const value = parseValue(event.target.value)
+    const handleAcceptMinValue = (minValue: string) => {
+      const value = parseValue(minValue)
       sliderModel.axis.applyModelChange(() => {
         sliderModel.axis.setMinimum(value)
       }, {
@@ -62,14 +62,18 @@ export const SliderScalesPalette =
       })
     }
 
+    const handleMinimumBlur = (event: React.FocusEvent<HTMLInputElement>) => {
+      handleAcceptMinValue(event.target.value)
+    }
+
     const handleMinimumKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
       if (event.key === 'Enter') {
-        handleMinimumBlur(event as unknown as React.FocusEvent<HTMLInputElement>)
+        handleAcceptMinValue(minInputValue)
       }
     }
 
-    const handleMaximumBlur = (event: React.FocusEvent<HTMLInputElement>) => {
-      const value = parseValue(event.target.value)
+    const handleAcceptMaxValue = (maxValue: string) => {
+      const value = parseValue(maxValue)
       sliderModel.axis.applyModelChange(() => {
         sliderModel.axis.setMaximum(value)
       }, {
@@ -80,11 +84,16 @@ export const SliderScalesPalette =
       })
     }
 
+    const handleMaximumBlur = (event: React.FocusEvent<HTMLInputElement>) => {
+      handleAcceptMaxValue(event.target.value)
+    }
+
     const handleMaximumKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
       if (event.key === 'Enter') {
-        handleMaximumBlur(event as unknown as React.FocusEvent<HTMLInputElement>)
+        handleAcceptMaxValue(maxInputValue)
       }
     }
+
     return (
       <InspectorPalette
         title={t("V3.Inspector.scale")}

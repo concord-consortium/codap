@@ -7,9 +7,10 @@ import { InspectorPalette } from "../../inspector-panel"
 import { ISliderModel } from "../slider-model"
 import {AnimationDirection, AnimationDirections, AnimationMode, AnimationModes, kDefaultAnimationRate}
   from "../slider-types"
+import { logStringifiedObjectMessage } from "../../../lib/log-message"
+import { DateUnit, dateUnits } from "../../../utilities/date-utils"
 import { t } from "../../../utilities/translation/translate"
 import ScaleIcon from "../../../assets/icons/icon-stopwatch.svg"
-import { logStringifiedObjectMessage } from "../../../lib/log-message"
 
 import "./slider-settings-panel.scss"
 
@@ -32,9 +33,8 @@ export const SliderSettingsPalette =
       setIsEditing(true)
     }
 
-    const handleMultiplesOfBlur = useCallback((event: React.FocusEvent<HTMLInputElement>) => {
-      const value = event.target.value,
-        multipleOf = value ? parseFloat(value) : undefined
+    const handleAcceptMultiplesOf = useCallback((value: string) => {
+      const multipleOf = value ? parseFloat(value) : undefined
       if (!multipleOf || isFinite(multipleOf)) {
         sliderModel.applyModelChange(() => {
           sliderModel.setMultipleOf(multipleOf)
@@ -48,15 +48,18 @@ export const SliderSettingsPalette =
       setIsEditing(false)
     }, [sliderModel])
 
-    const handleDateMultipleOfUnitChange = (value: string) => {
+    const handleMultiplesOfBlur = useCallback((event: React.FocusEvent<HTMLInputElement>) => {
+      handleAcceptMultiplesOf(event.target.value)
+    }, [handleAcceptMultiplesOf])
+
+    const handleDateMultipleOfUnitChange = (precision: DateUnit) => {
       sliderModel.applyModelChange(() => {
-        // @ts-expect-error types are not compatible
-        sliderModel.setDateMultipleOfUnit(value)
+        sliderModel.setDateMultipleOfUnit(precision)
       }, {
         undoStringKey: "DG.Undo.slider.changeDateMultipleOfUnit",
         redoStringKey: "DG.Redo.slider.changeDateMultipleOfUnit",
         log: logStringifiedObjectMessage("sliderDateMultipleOfUnit: %@",
-          {name: sliderModel.name, dateMultipleOfUnit: value})
+          {name: sliderModel.name, dateMultipleOfUnit: precision})
       })
     }
 
@@ -106,7 +109,8 @@ export const SliderSettingsPalette =
           </NumberInput>
         )
       } else {
-        const datePrecisionOptions = t("DG.CaseTable.attributeEditor.datePrecisionOptions").split(" ")
+        // localized date precision strings are displayed in the menu
+        const langDatePrecisionOptions = t("DG.CaseTable.attributeEditor.datePrecisionOptions").split(" ")
         return (
           <>
             <NumberInput className="slider-input multiples-input" size="xs" defaultValue={sliderModel.multipleOf}
@@ -119,9 +123,9 @@ export const SliderSettingsPalette =
                 {sliderModel.dateMultipleOfUnit}
               </MenuButton>
               <MenuList>
-                {datePrecisionOptions.map(aPrecision => (
+                {dateUnits.map((aPrecision, index) => (
                   <MenuItem key={aPrecision} onClick={() => handleDateMultipleOfUnitChange(aPrecision)}>
-                    {aPrecision}
+                    {langDatePrecisionOptions[index]}
                   </MenuItem>
                 ))}
               </MenuList>
@@ -136,10 +140,10 @@ export const SliderSettingsPalette =
       const currentNumberInputRef = numberInputRef.current
       return () => {
         if (isEditing && currentNumberInputRef) {
-          handleMultiplesOfBlur({target: currentNumberInputRef} as React.FocusEvent<HTMLInputElement>)
+          handleAcceptMultiplesOf(currentNumberInputRef.value)
         }
       }
-    }, [isEditing, handleMultiplesOfBlur])
+    }, [isEditing, handleAcceptMultiplesOf])
 
     return (
       <InspectorPalette
