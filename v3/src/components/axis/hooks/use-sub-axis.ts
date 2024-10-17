@@ -211,7 +211,7 @@ export const useSubAxis = ({
   // update axis helper
   useEffect(() => {
     let helper: Maybe<AxisHelper>
-    let shouldRenderSubAxis = false
+    let shouldRenderSubAxis = true
     const helperProps =
       {displayModel, subAxisIndex, subAxisElt, axisModel, layout, isAnimating}
     if (axisModel) {
@@ -226,7 +226,7 @@ export const useSubAxis = ({
         case 'categorical':
           // It is necessary to call renderSubAxis in most cases, but doing so for a categorical axis causes
           // a crash on redo. So we only do it for non-categorical axes.
-          shouldRenderSubAxis = true
+          shouldRenderSubAxis = false
           helper = new CategoricalAxisHelper(
             { ...helperProps, centerCategoryLabels, dragInfo,
               subAxisSelectionRef, categoriesSelectionRef, swapInProgress })
