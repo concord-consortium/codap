@@ -200,9 +200,7 @@ class CodapHighlightingPluginClass {
   }
 
   update(update: ViewUpdate) {
-    if (update.docChanged || update.viewportChanged) {
-      this.decorations = addCodapHighlightingClasses(update.view)
-    }
+    this.decorations = addCodapHighlightingClasses(update.view)
   }
 }
 
@@ -243,6 +241,7 @@ export function FormulaEditor({ formula, setFormula, setCursorPosition, setEdito
   const jsonOptions = JSON.stringify(_options ?? {})
   const options = useMemo(() => JSON.parse(jsonOptions), [jsonOptions])
   const cmRef = useRef<ReactCodeMirrorRef>(null)
+  const extensions = useMemo(() => cmExtensionsSetup(), [])
   const prevFormula = useRef(formula)
 
   useEffect(() => {
@@ -290,7 +289,7 @@ export function FormulaEditor({ formula, setFormula, setCursorPosition, setEdito
   // .input-element indicates to CodapModal not to drag the modal from within the element
   const classes = "formula-editor-input input-element"
   return <CodeMirror ref={cmRef} className={classes} data-testid="formula-editor-input" height="70px"
-                     basicSetup={false} extensions={cmExtensionsSetup()}
+                     basicSetup={false} extensions={extensions}
                      onCreateEditor={handleCreateEditor}
                      value={formula} onChange={handleFormulaChange} />
 }

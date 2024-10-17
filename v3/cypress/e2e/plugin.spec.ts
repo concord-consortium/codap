@@ -308,6 +308,18 @@ context("codap plugins", () => {
     // webView.confirmAPITesterResponseContains(/"operation":\s"moveAttribute/)
     webView.clearAPITesterResponses()
 
+    cy.log("Broadcast drag notifications")
+    // Drag attribute to plugin
+    cy.dragAttributeToTarget("table", "newAttr", "webView")
+    webView.confirmAPITesterResponseContains(/"operation":\s"dragstart/)
+    webView.confirmAPITesterResponseContains(/"operation":\s"dragend/)
+    // TODO Check for other notifications when dragging to plugin
+    // webView.confirmAPITesterResponseContains(/"operation":\s"dragenter/)
+    // webView.confirmAPITesterResponseContains(/"operation":\s"drag/)
+    // webView.confirmAPITesterResponseContains(/"operation":\s"drop/)
+    webView.clearAPITesterResponses()
+    // TODO Check for dragleave notification when dragging to plugin then out of plugin
+
     cy.log("Broadcast deleteCollection notifications")
     // Move the last attribute from the ungrouped collection to a new collection
     table.moveAttributeToParent("AttributeName", "newCollection")

@@ -13,6 +13,7 @@ export interface INotification {
 export interface IApplyModelChangeOptions {
   log?: string | ILogMessage | (() => Maybe<string | ILogMessage>)
   notify?: INotification | INotification[] | (() => Maybe<INotification | INotification[]>)
+  notifyTileId?: string
   undoStringKey?: string
   redoStringKey?: string
 }
@@ -22,7 +23,7 @@ export function applyModelChange(self: IAnyStateTreeNode) {
   return ({
     // performs the specified action so that response actions are included and undo/redo strings assigned
     applyModelChange<TResult = unknown>(actionFn: () => TResult, options?: IApplyModelChangeOptions) {
-      const { log, notify, undoStringKey, redoStringKey } = options || {}
+      const { log, notify, notifyTileId, undoStringKey, redoStringKey } = options || {}
       const result = actionFn()
 
       // Add strings to undoable action or keep out of the undo stack
@@ -53,7 +54,7 @@ export function applyModelChange(self: IAnyStateTreeNode) {
             // Actually broadcast the notifications
             notificationArray.forEach(_notification => {
               const { message, callback } = _notification
-              tileEnv.notify?.(message, callback ?? (() => null))
+              tileEnv.notify?.(message, callback ?? (() => null), notifyTileId)
             })
           }
         }
