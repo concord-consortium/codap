@@ -33,10 +33,8 @@ export const EditableSliderValue = observer(function EditableSliderValue({slider
     if (sliderModel.scaleType === 'numeric') {
       return parseFloat(value)
     }
-    else {
-      const dateValue = convertToDate(value)
-      return (dateValue?.valueOf() ?? 0) / 1000
-    }
+    const dateValue = convertToDate(value)
+    return (dateValue?.valueOf() ?? 0) / 1000
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {

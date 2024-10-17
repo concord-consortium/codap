@@ -110,7 +110,7 @@ export class MultiScale {
     const domain = this.numericDomain
     const range: AxisExtent = this.cellLength
       ? [0, this.cellLength]
-      : this.numericScale?.range() as AxisExtent | undefined ?? [0, 1]
+      : this.numericScale?.range() as Maybe<AxisExtent> ?? [0, 1]
     return this.numericScale && domain ? (domain[1] - domain[0]) / (range[1] - range[0]) : undefined
   }
 
@@ -203,10 +203,8 @@ export class MultiScale {
       // Use D3 format to generate a string with the appropriate number of decimal places
       return format('.9')(roundedNumber)
     }
-    if (!isDate) {
-      return this.resolution ? formatNumber(value) : String(value)
-    } else {
-      return formatDate(value * 1000) ?? ''
-    }
+    return isDate
+             ? formatDate(value * 1000) ?? ''
+             : this.resolution ? formatNumber(value) : String(value)
   }
 }

@@ -1,6 +1,7 @@
 import { Flex, Editable, EditablePreview, EditableInput, Button } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
 import React, { CSSProperties, useEffect, useMemo, useRef, useState } from "react"
+import { clsx } from "clsx"
 import { useResizeDetector } from "react-resize-detector"
 import PlayIcon from "../../assets/icons/icon-play.svg"
 import PauseIcon from "../../assets/icons/icon-pause.svg"
@@ -57,7 +58,7 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
       isDateAxis = axisModel && isDateAxisModel(axisModel),
       [min, max] = axisModel.domain,
       requires2Lines = isDateAxis && min && max && getNumberOfLevelsForDateAxis(min, max) > 1
-    return `slider-axis-wrapper ${requires2Lines ? "two-lines" : ""}`
+    return clsx("slider-axis-wrapper", {"two-lines": requires2Lines})
   }
 
   const handleSliderNameInput = (name: string) => {

@@ -1,5 +1,5 @@
 import {FormatLocaleDefinition, format, formatLocale} from "d3-format"
-import {between, isFiniteNumber, isValueNonEmpty, isNumber, extractNumeric} from "./math-utils"
+import { between, isFiniteNumber, isValueNonEmpty, isNumber, extractNumeric, chooseDecimalPlaces } from "./math-utils"
 
 // default formatting except uses ASCII minus sign
 const asciiLocale = formatLocale({ minus: "-" } as FormatLocaleDefinition)
@@ -114,5 +114,33 @@ describe("math-utils", () => {
       expect(extractNumeric("aa123bbb")).toBe(123)
       expect(extractNumeric("123aa456")).toBe(123456)
     })
+  })
+
+  describe("chooseDecimalPlaces", () => {
+    it("should return no decimals for large spans", () => {
+      expect(chooseDecimalPlaces(50.1, 0, 100)).toBe("50")
+      expect(chooseDecimalPlaces(-45.9, -100, 10)).toBe("-46")
+    })
+
+    it("should return 1 decimal for medium spans", () => {
+      expect(chooseDecimalPlaces(1.23, 0, 10)).toBe("1.2")
+      expect(chooseDecimalPlaces(-1.23, -10, 0)).toBe("-1.2")
+    })
+
+    it("should return 2 decimals for small spans", () => {
+      expect(chooseDecimalPlaces(0.123, 0, 1)).toBe("0.12")
+      expect(chooseDecimalPlaces(-0.123, -1, 0)).toBe("-0.12")
+    })
+
+    it("should return 3 decimals for tiny spans", () => {
+      expect(chooseDecimalPlaces(0.0123, 0, 0.1)).toBe("0.012")
+      expect(chooseDecimalPlaces(-0.0123, -0.1, 0)).toBe("-0.012")
+    })
+
+    it("should return an extra decimal place when near a boundary", () => {
+      expect(chooseDecimalPlaces(0.01234, 0, 1)).toBe("0.012")
+      expect(chooseDecimalPlaces(0.91234, 0, 1)).toBe("0.912")
+    })
+
   })
 })

@@ -49,11 +49,11 @@ export const SliderModel = TileContentModel
     get increment() {
       if (self.scaleType === "numeric") {
         return self.multipleOf
-      } else {
-        const multipleOf = self.multipleOf,
-          multiplier = unitsStringToMilliseconds(self.dateMultipleOfUnit) / 1000
-        return multipleOf ? multipleOf * multiplier : undefined
       }
+      // date
+      const multipleOf = self.multipleOf,
+        multiplier = unitsStringToMilliseconds(self.dateMultipleOfUnit) / 1000
+      return multipleOf ? multipleOf * multiplier : undefined
     },
     get animationRate() {
       return self._animationRate ?? kDefaultAnimationRate
@@ -141,7 +141,7 @@ export const SliderModel = TileContentModel
     setName(name: string) {
       self.globalValue.setName(name)
     },
-    setMultipleOf(n: number | undefined) {
+    setMultipleOf(n?: number) {
       if (n) {
         self.multipleOf = Math.abs(n)
         self.setValue(self.constrainValue(self.value))
@@ -159,7 +159,7 @@ export const SliderModel = TileContentModel
     setAnimationMode(mode: AnimationMode) {
       self.animationMode = mode
     },
-    setAnimationRate(rate: number | undefined) {
+    setAnimationRate(rate?: number) {
       if (rate) {
         // no need to store the default value
         self._animationRate = rate === kDefaultAnimationRate ? undefined : Math.abs(rate)

@@ -29,7 +29,7 @@ export function neededSignificantDigits(num1: number, num2: number) {
 }
 
 /* Given a n1 < n < n2, return a string representation of n with an appropriate precision. */
-export function chooseDecimalPlaces(n:number, lower:number, upper:number) {
+export function chooseDecimalPlaces(n: number, lower: number, upper: number) {
   if (n === Math.round(n)) {
     return n.toString()
   }
