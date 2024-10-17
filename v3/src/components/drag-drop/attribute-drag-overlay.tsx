@@ -19,7 +19,7 @@ export function AttributeDragOverlay ({ activeDragId }: IProps) {
      */
   }
   return (
-    <DragOverlay dropAnimation={handleDropAnimation}>
+    <DragOverlay className="dnd-kit-drag-overlay" dropAnimation={handleDropAnimation}>
       {attr
         ? <div className="attribute-drag-overlay">
             {attr?.name}

@@ -3,6 +3,7 @@ import React, { useRef } from "react"
 import { t } from "../../utilities/translation/translate"
 import { ITileBaseProps } from "../tiles/tile-base-props"
 import { useDataInteractiveController } from "./use-data-interactive-controller"
+import { WebViewDropOverlay } from "./web-view-drop-overlay"
 import { isWebViewModel } from "./web-view-model"
 
 import "./web-view.scss"
@@ -26,6 +27,7 @@ export const WebViewComponent = observer(function WebViewComponent({ tile }: ITi
       <div className="codap-web-view-iframe-wrapper">
         <iframe className="codap-web-view-iframe" ref={iframeRef} src={webViewModel.url} />
       </div>
+      <WebViewDropOverlay />
     </div>
   )
 })
