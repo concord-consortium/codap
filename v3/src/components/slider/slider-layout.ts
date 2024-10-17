@@ -2,9 +2,8 @@ import { action, makeObservable, observable } from "mobx"
 import { AxisBounds, AxisPlace, IScaleType } from "../axis/axis-types"
 import { IAxisLayout } from "../axis/models/axis-layout-context"
 import { MultiScale } from "../axis/models/multi-scale"
-import {
-  kDefaultSliderAxisHeight, kDefaultSliderAxisTop, kDefaultSliderHeight, kDefaultSliderWidth, kSliderWidthLayoutAdj
-} from "./slider-types"
+import { kDefaultSliderAxisHeight, kDefaultSliderAxisTop, kDefaultSliderHeight, kDefaultSliderWidth,
+  kSliderWidthLayoutAdj } from "./slider-types"
 
 export class SliderAxisLayout implements IAxisLayout {
   @observable sliderWidth = kDefaultSliderWidth

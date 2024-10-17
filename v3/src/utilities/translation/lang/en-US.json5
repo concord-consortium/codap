@@ -61,6 +61,21 @@
     "V3.Inspector.rescale.noRescale.toolTip": "All the data are already visible",
     "V3.Inspector.rescale.casePlot.toolTip": "Move the points to new random positions",
 
+    "V3.Inspector.sliderScales.toolTip": "Set slider scale to numeric or date-time",
+    "V3.Inspector.animation": "Animation",
+    "V3.Inspector.scale": "Scale",
+    "V3.Slider.scaleType": "Scale Type:",
+    "V3.Slider.scaleType.numeric": "Numeric",
+    "V3.Slider.scaleType.date": "Date-Time",
+    "V3.Undo.slider.changeScaleType": "Undo change to slider scale type",
+    "V3.Redo.slider.changeScaleType": "Redo change to slider scale type",
+    "V3.Slider.minimum": "Minimum:",
+    "V3.Slider.maximum": "Maximum:",
+    "V3.Undo.slider.changeMinimum": "Undo change of slider minimum",
+    "V3.Redo.slider.changeMinimum": "Redo change of slider minimum",
+    "V3.Undo.slider.changeMaximum": "Undo change of slider maximum",
+    "V3.Redo.slider.changeMaximum": "Redo change of slider maximum",
+
     // V3 web view strings that are not present in V2 and will eventually require translation.
     "V3.WebView.Modal.PlaceholderText": "URL",
     "V3.WebView.Modal.okBtnTitle": "OK",
