@@ -1,5 +1,6 @@
 import { comparer } from "mobx"
 import { useEffect, useState } from "react"
+import { clsx } from "clsx"
 import { useCaseMetadata } from "../../hooks/use-case-metadata"
 import { useCollectionContext, useParentCollectionContext } from "../../hooks/use-collection-context"
 import { IAttribute } from "../../models/data/attribute"
@@ -12,7 +13,6 @@ import { kDefaultColumnWidth, TColumn } from "./case-table-types"
 import CellTextEditor from "./cell-text-editor"
 import ColorCellTextEditor from "./color-cell-text-editor"
 import { ColumnHeader } from "./column-header"
-import clsx from "clsx"
 
 interface IUseColumnsProps {
   data?: IDataSet
@@ -49,7 +49,7 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
                 resizable: true,
                 headerCellClass: `codap-column-header`,
                 renderHeaderCell: ColumnHeader,
-                cellClass: clsx("codap-data-cell", {"formula-column": hasFormula}),
+                cellClass: row => clsx("codap-data-cell", `rowId-${row.__id__}`, {"formula-column": hasFormula}),
                 renderCell: AttributeValueCell,
                 editable: row => isCaseEditable(data, row.__id__),
                 renderEditCell: isEditable
