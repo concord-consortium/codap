@@ -290,6 +290,6 @@ export function FormulaEditor({ formula, setFormula, setCursorPosition, setEdito
   const classes = "formula-editor-input input-element"
   return <CodeMirror ref={cmRef} className={classes} data-testid="formula-editor-input" height="70px"
                      basicSetup={false} extensions={extensions}
-                     onCreateEditor={handleCreateEditor}
+                     onCreateEditor={handleCreateEditor} onUpdate={handleEditorUpdate}
                      value={formula} onChange={handleFormulaChange} />
 }
