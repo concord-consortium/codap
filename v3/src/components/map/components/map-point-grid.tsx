@@ -2,11 +2,9 @@ import React, {useCallback, useEffect, useRef} from "react"
 import {DomEvent, LeafletMouseEvent, point, popup, Rectangle, rectangle} from "leaflet"
 import {useMap} from "react-leaflet"
 import {useMemo} from "use-memo-one"
-import {isSelectionAction, isSetCaseValuesAction} from "../../../models/data/data-set-actions"
 import { setOrExtendSelection } from "../../../models/data/data-set-utils"
 import {mstAutorun} from "../../../utilities/mst-autorun"
 import {mstReaction} from "../../../utilities/mst-reaction"
-import {onAnyAction} from "../../../utilities/mst-utils"
 import {IMapPointLayerModel} from "../models/map-point-layer-model"
 import {getCaseCountString, getCategoryBreakdownHtml} from "../utilities/map-utils"
 
@@ -107,20 +105,19 @@ export const MapPointGrid = function MapPointGrid(props: IMapPointGridProps) {
       }, {name: 'MapPointGrid respondToHiddenCasesChange'}, mapLayerModel)
   }, [mapLayerModel, refreshLeafletRects])
 
-  // Actions in the dataset can trigger need for grid updates
-  useEffect(function setupResponsesToDatasetActions() {
-    const dataset = mapLayerModel.dataConfiguration?.dataset
-    if (dataset) {
-      const disposer = onAnyAction(dataset, action => {
-        if (isSelectionAction(action)) {
-          refreshGridSelection()
-        } else if (isSetCaseValuesAction(action) || ["addCases", "removeCases"].includes(action.name)) {
-          refreshLeafletRects()
-        }
-      })
-      return () => disposer()
-    }
-  }, [mapLayerModel.dataConfiguration?.dataset, refreshGridSelection, refreshLeafletRects])
+  useEffect(() => {
+    return mstReaction(
+      () => mapGridModel.changeCount,
+      () => {
+        refreshLeafletRects()
+        refreshGridSelection()
+      }, {name: 'MapPointGrid respondToGridChange'}, mapGridModel
+    )
+  }, [mapGridModel, refreshGridSelection, refreshLeafletRects])
+
+  useEffect(() => {
+    refreshLeafletRects()
+  }, [refreshLeafletRects])
 
   return (
     <></>
