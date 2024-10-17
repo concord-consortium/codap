@@ -17,10 +17,12 @@ export class LatLngGridCell {
 }
 
 export class LatLngGrid {
+  initialized: boolean
   maxCount: number
   gridCells: (LatLngGridCell | undefined)[][]
 
   constructor() {
+    this.initialized = false
     this.maxCount = 0
     this.gridCells = []
   }
