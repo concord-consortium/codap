@@ -105,7 +105,7 @@ export const diAttributeHandler: DIHandler = {
         uiState.setDraggingXOffset(clientX - (overlayWidth ?? 0) / 2)
         // TODO Hard coded header height
         const kCodapHeaderHeight = 94
-        uiState.setDraggingYOffset(clientY - kCodapHeaderHeight - (overlayHeight ?? 0))
+        uiState.setDraggingYOffset(clientY - kCodapHeaderHeight) // - (overlayHeight ?? 0))
 
         // Dispatch events that will trigger a drag start
         // A setTimeout is used to ensure that hooks are updated before the drag begins
@@ -130,7 +130,8 @@ export const diAttributeHandler: DIHandler = {
       const event = request === "dragOver" ? "mousemove" : "mouseup"
       document.dispatchEvent(new MouseEvent(event, {
         bubbles: true, cancelable: true, clientX, clientY
-      }))        
+      }))
+      return { success: true }
     }
 
     return errorResult(t("V3.DI.Error.unknownRequest", { vars: [request] })) 
