@@ -287,7 +287,10 @@ export function FormulaEditor({ formula, setFormula, setCursorPosition, setEdito
     }
   }, [])
 
-  return <CodeMirror ref={cmRef} value={formula} data-testid="formula-editor-input" height="70px"
-                     basicSetup={false} extensions={cmExtensionsSetup()} onUpdate={handleEditorUpdate}
-                     onCreateEditor={handleCreateEditor} onChange={handleFormulaChange} />
+  // .input-element indicates to CodapModal not to drag the modal from within the element
+  const classes = "formula-editor-input input-element"
+  return <CodeMirror ref={cmRef} className={classes} data-testid="formula-editor-input" height="70px"
+                     basicSetup={false} extensions={cmExtensionsSetup()}
+                     onCreateEditor={handleCreateEditor}
+                     value={formula} onChange={handleFormulaChange} />
 }

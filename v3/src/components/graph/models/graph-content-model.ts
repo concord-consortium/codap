@@ -6,16 +6,17 @@ import {cloneDeep} from "lodash"
 import {when} from "mobx"
 import {addDisposer, IAnyStateTreeNode, Instance, SnapshotIn, types} from "mobx-state-tree"
 import { format } from "d3"
-import {mstAutorun} from "../../../utilities/mst-autorun"
-import {applyModelChange} from "../../../models/history/apply-model-change"
-import {ISharedModel} from "../../../models/shared/shared-model"
-import {SharedModelChangeType} from "../../../models/shared/shared-model-manager"
-import {typedId} from "../../../utilities/js-utils"
-import {ITileContentModel} from "../../../models/tiles/tile-content"
 import {IDataSet} from "../../../models/data/data-set"
+import {applyModelChange} from "../../../models/history/apply-model-change"
 import {
   getDataSetFromId, getSharedCaseMetadataFromDataset, getTileCaseMetadata, getTileDataSet
 } from "../../../models/shared/shared-data-utils"
+import {ISharedModel} from "../../../models/shared/shared-model"
+import {SharedModelChangeType} from "../../../models/shared/shared-model-manager"
+import {ITileContentModel} from "../../../models/tiles/tile-content"
+import { getFormulaManager } from "../../../models/tiles/tile-environment"
+import {typedId} from "../../../utilities/js-utils"
+import {mstAutorun} from "../../../utilities/mst-autorun"
 import { computePointRadius } from "../../data-display/data-display-utils"
 import { dataDisplayGetNumericValue } from "../../data-display/data-display-value-utils"
 import {IGraphDataConfigurationModel} from "./graph-data-configuration-model"
@@ -257,9 +258,15 @@ export const GraphContentModel = DataDisplayContentModel
         await when(() => !!self.tileEnv?.sharedModelManager?.isReady)
       }
 
-      getFormulaAdapters(self).forEach(adapter => {
-        adapter?.addGraphContentModel(self as IGraphContentModel)
-      })
+      // register with the formula adapters once they've been initialized
+      when(
+        () => getFormulaManager(self)?.areAdaptersInitialized ?? false,
+        () => {
+          getFormulaAdapters(self).forEach(adapter => {
+            adapter?.addGraphContentModel(self as IGraphContentModel)
+          })
+        }
+      )
 
       self.installSharedModelManagerSync()
 

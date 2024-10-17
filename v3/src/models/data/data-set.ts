@@ -61,7 +61,9 @@ import { isLegacyDataSetSnap, isOriginalDataSetSnap, isTempDataSetSnap } from ".
 import { Formula, IFormula } from "../formula/formula"
 import { applyModelChange } from "../history/apply-model-change"
 import { withoutUndo } from "../history/without-undo"
+import { getCurrentLocale } from "../tiles/tile-environment"
 import { kAttrIdPrefix, kItemIdPrefix, typeV3Id, v3Id } from "../../utilities/codap-utils"
+import { compareValues } from "../../utilities/data-utils"
 import { hashStringSet } from "../../utilities/js-utils"
 import { t } from "../../utilities/translation/translate"
 import { V2Model } from "./v2-model"
@@ -1265,7 +1267,7 @@ export const DataSet = V2Model.named("DataSet").props({
       // when items are added/removed...
       // use MST's onPatch mechanism to respond to additions/removals of items and their undo/redo
       addDisposer(self, onPatch(self, ({ op, path, value }) => {
-        if ((op === "add" || op === "remove") && /_itemIds\/\d+$/.test(path)) {
+        if (/_itemIds(\/\d+)?$/.test(path)) {
           self.invalidateCases()
         }
       }))
@@ -1315,6 +1317,29 @@ export const DataSet = V2Model.named("DataSet").props({
       }
     })
     self.removeCollection(collection)
+  },
+  sortItems(attributeId: string, direction: "ascending" | "descending" = "ascending") {
+    self.validateCases()
+    // sort by the specified attribute to determine mapping from original to sorted indices
+    const itemIdsWithIndices = self._itemIds.map((itemId, origIndex) => ({ itemId, origIndex }))
+    // cf. https://stackoverflow.com/a/25775469 for performance issues with localeCompare
+    const collator = new Intl.Collator(getCurrentLocale(self), { sensitivity: 'base' })
+    itemIdsWithIndices.sort((a, b) => {
+      const aValue = self.getValue(a.itemId, attributeId)
+      const bValue = self.getValue(b.itemId, attributeId)
+      const compareResult = compareValues(aValue, bValue, collator.compare)
+      return direction === "descending" ? -compareResult : compareResult
+    })
+    // if no changes then nothing to do
+    if (itemIdsWithIndices.every(({ origIndex }, index) => index === origIndex)) return
+    // apply the index mapping to each attribute's value arrays
+    const origIndices = itemIdsWithIndices.map(({ origIndex }) => origIndex)
+    self.attributes.forEach(attr => attr.orderValues(origIndices))
+    // update the _itemIds array
+    const itemIds = itemIdsWithIndices.map(({ itemId }) => itemId)
+    self._itemIds.replace(itemIds)
+
+    return itemIdsWithIndices
   }
 }))
 // performs the specified action so that response actions are included and undo/redo strings assigned
