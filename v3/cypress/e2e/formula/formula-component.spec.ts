@@ -1,4 +1,5 @@
 import { FormulaHelper as fh } from "../../support/helpers/formula-helper"
+import { TableTileElements as table } from "../../support/elements/table-tile"
 
 context("Formula Engine", () => {
   describe("Component Formula Tests", () => {
@@ -90,6 +91,63 @@ context("Formula Engine", () => {
       fh.addNewAttribute()
       fh.addFormula("newAttr", "AttributeName+2")
       fh.verifyValues("newAttr", [102, 102, 102, 102, 102])
+    })
+  })
+  describe("Add functions and values from Insert buttons", () => {
+    it("Navigate functions browser", () => {
+      const func = "abs"
+      const funcCategory = "Arithmetic"
+      fh.visitURL("?sample=four&dashboard")
+      fh.addNewAttribute()
+      fh.renameAttribute("newAttr", "Formula")
+      table.openAttributeMenu("Formula")
+      table.selectMenuItemFromAttributeMenu("Edit Formula...")
+      cy.get("[data-testid=formula-insert-function-button]").click()
+      cy.get("[data-testid=formula-function-category-list]").should("be.visible")
+      cy.get("[data-testid=formula-function-category-item]").contains(funcCategory).click()
+      cy.get("[data-testid=formula-function-list]").should("be.visible")
+      cy.get("[data-testid=formula-function-list-header]").should("contain", funcCategory)
+      cy.get("[data-testid=function-menu-item]").contains(func).should("be.visible")
+      cy.get(`[data-testid=function-info-button-${func}]`).click()
+      cy.get("[data-testid=formula-function-info]").should("be.visible")
+      cy.get("[data-testid=formula-function-info-header]").should("contain", func)
+      cy.get("[data-testid=function-info-name]").should("contain", func)
+      cy.get("[data-testid=formula-function-info-header]").click()
+      cy.get("[data-testid=formula-function-list]").should("be.visible")
+      cy.get("[data-testid=formula-function-list-header]").click()
+      cy.get("[data-testid=formula-function-category-list]").should("be.visible")
+    })
+    it("Insert function into formula", () => {
+      const func = "abs"
+      const funcCategory = "Arithmetic"
+      fh.visitURL("?sample=four&dashboard")
+      fh.addNewAttribute()
+      fh.renameAttribute("newAttr", "Formula")
+      table.openAttributeMenu("Formula")
+      table.selectMenuItemFromAttributeMenu("Edit Formula...")
+      cy.get("[data-testid=formula-insert-function-button]").click()
+      cy.get("[data-testid=formula-function-category-list]").should("be.visible")
+      cy.get("[data-testid=formula-function-category-item]").contains(funcCategory).click()
+      cy.get("[data-testid=formula-function-list]").should("be.visible")
+      cy.get("[data-testid=function-menu-item]").contains(func).should("be.visible")
+      cy.get(`[data-testid=function-info-button-${func}]`).click()
+      cy.get("[data-testid=formula-function-info]").should("be.visible")
+      cy.get("[data-testid=function-info-name]").click()
+      cy.get("[data-testid=formula-editor-input] .cm-content").should("have.text", `${func}(number)`)
+
+    })
+    it("Insert value into formula", () => {
+      const value = "b"
+      fh.visitURL("?sample=four&dashboard")
+      fh.addNewAttribute()
+      fh.renameAttribute("newAttr", "Formula")
+      table.openAttributeMenu("Formula")
+      table.selectMenuItemFromAttributeMenu("Edit Formula...")
+      cy.get("[data-testid=formula-insert-value-button]").click()
+      cy.get("[data-testid=formula-value-list").should("be.visible")
+      cy.get("[data-testid=formula-value-item").contains(value).should("be.visible")
+      cy.get("[data-testid=formula-value-item").contains(value).click()
+      cy.get("[data-testid=formula-editor-input] .cm-content").should("have.text", value)
     })
   })
 })
