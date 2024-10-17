@@ -2,6 +2,7 @@ import {  Box, Button, Flex, FormControl, FormLabel, Input, ModalBody, ModalClos
           ModalFooter, ModalHeader, Tooltip } from "@chakra-ui/react"
 import React, { useEffect, useState } from "react"
 import { observer } from "mobx-react-lite"
+import { clsx } from "clsx"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
 import { logStringifiedObjectMessage } from "../../../lib/log-message"
 import { updateAttributesNotification, updateCasesNotification } from "../../../models/data/data-set-notifications"
@@ -10,7 +11,6 @@ import { FormulaEditor } from "../../common/formula-editor"
 import { CodapModal } from "../../codap-modal"
 import { InsertFunctionMenu } from "./formula-insert-function-menu"
 import { InsertValuesMenu } from "./formula-insert-values-menu"
-import { clsx } from "clsx"
 
 import "./attribute-menu.scss"
 
@@ -114,7 +114,7 @@ export const EditFormulaModal = observer(function EditFormulaModal({ attributeId
         <Flex flexDirection="row" justifyContent="flex-start">
           <Box position="relative">
             <Button className={clsx("formula-editor-button", "insert-value", {"menu-open": showValuesMenu})}
-                    size="xs" ml="5" onClick={handleInsertValuesOpen}>
+                    size="xs" ml="5" onClick={handleInsertValuesOpen} data-testid="formula-insert-value-button">
               {t("DG.AttrFormView.operandMenuTitle")}
             </Button>
             {showValuesMenu &&
@@ -125,7 +125,7 @@ export const EditFormulaModal = observer(function EditFormulaModal({ attributeId
           </Box>
           <Box position="relative">
             <Button className={clsx("formula-editor-button", "insert-function", {"menu-open": showFunctionMenu})}
-                    size="xs" ml="5" onClick={handleInsertFunctionsOpen}>
+                    size="xs" ml="5" onClick={handleInsertFunctionsOpen} data-testid="formula-insert-function-button">
               {t("DG.AttrFormView.functionMenuTitle")}
             </Button>
             {showFunctionMenu &&

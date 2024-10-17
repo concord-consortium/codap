@@ -106,7 +106,7 @@ export const InsertValuesMenu = ({formula, cursorPosition, editorSelection,
   }
 
   return (
-    <Flex className="formula-operand-list-container"
+    <Flex className="formula-operand-list-container" data-testid="formula-value-list"
         style={getListContainerStyle()} >
       { scrollableContainerRef.current && scrollableContainerRef.current.scrollTop > 0 &&
       <div className="scroll-arrow" onPointerOver={()=>handleScroll("up")}>
@@ -122,7 +122,7 @@ export const InsertValuesMenu = ({formula, cursorPosition, editorSelection,
                   { attributeNamesInCollection?.[index]?.map((attrName) => {
                     return (
                       <ListItem className="formula-operand-list-item" key={attrName}
-                                onClick={() => insertValueToFormula(attrName)}>
+                          onClick={() => insertValueToFormula(attrName)} data-testid="formula-value-item">
                         {attrName}
                       </ListItem>
                     )

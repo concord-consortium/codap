@@ -248,7 +248,7 @@ export function FormulaEditor({ formula, setFormula, setCursorPosition, setEdito
     if (cmRef.current?.view) {
       const view = cmRef.current.view
       view.focus() // Focus the editor directly
-      const endPosition = view?.state.doc.length
+      const endPosition = view.state.selection.main.from || view.state.doc.length
       if (endPosition !== undefined) {
         view?.dispatch({
           selection: { anchor: endPosition }
