@@ -258,7 +258,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
         const selectedCaseIds = newSelectedRows
                                   .map(idx => collectionCaseIdFromIndex(idx, data, collectionId))
                                   .filter((id): id is string => id !== undefined)
-        setOrExtendSelection(selectedCaseIds, data)
+        setSelectedCases(selectedCaseIds, data)
   }, [collectionId, data])
 
   const startAutoScroll = useCallback((clientY: number) => {
