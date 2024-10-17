@@ -25,6 +25,9 @@ import { logStringifiedObjectMessage } from "../../lib/log-message"
 import { IAttribute } from "../../models/data/attribute"
 import { IDataSet } from "../../models/data/data-set"
 import { createAttributesNotification } from "../../models/data/data-set-notifications"
+import {
+  collectionCaseIdFromIndex, collectionCaseIndexFromId, selectCases, setSelectedCases
+} from "../../models/data/data-set-utils"
 import { uiState } from "../../models/ui-state"
 import { uniqueName } from "../../utilities/js-utils"
 import { mstReaction } from "../../utilities/mst-reaction"
@@ -33,9 +36,6 @@ import { t } from "../../utilities/translation/translate"
 import { useCaseTableModel } from "./use-case-table-model"
 import { useCollectionTableModel } from "./use-collection-table-model"
 import { useWhiteSpaceClick } from "./use-white-space-click"
-import { collectionCaseIdFromIndex, collectionCaseIndexFromId, selectCases, setOrExtendSelection, setSelectedCases }
-  from "../../models/data/data-set-utils"
-import { kDefaultRowHeight } from "./collection-table-model"
 
 import "react-data-grid/lib/styles.css"
 import styles from "./case-table-shared.scss"
@@ -249,21 +249,22 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
   const mouseY = useRef<number>(0)
 
   const marqueeSelectCases = useCallback((startIdx: number, endIdx: number) => {
-        const newSelectedRows = []
-        const start = Math.min(startIdx, endIdx)
-        const end = Math.max(startIdx, endIdx)
-        for (let i = start; i <= end; i++) {
-          newSelectedRows.push(i)
-        }
-        const selectedCaseIds = newSelectedRows
-                                  .map(idx => collectionCaseIdFromIndex(idx, data, collectionId))
-                                  .filter((id): id is string => id !== undefined)
-        setSelectedCases(selectedCaseIds, data)
+    const newSelectedRows = []
+    const start = Math.min(startIdx, endIdx)
+    const end = Math.max(startIdx, endIdx)
+    for (let i = start; i <= end; i++) {
+      newSelectedRows.push(i)
+    }
+    const selectedCaseIds = newSelectedRows
+                              .map(idx => collectionCaseIdFromIndex(idx, data, collectionId))
+                              .filter((id): id is string => id !== undefined)
+    setSelectedCases(selectedCaseIds, data)
   }, [collectionId, data])
 
   const startAutoScroll = useCallback((clientY: number) => {
     const grid = gridRef.current?.element
-    if (!grid) return
+    const rowHeight = collectionTableModel?.rowHeight
+    if (!grid || !rowHeight) return
 
     const scrollSpeed = 50
 
@@ -274,11 +275,11 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
       if (mouseY.current < top + kScrollMargin) {
         grid.scrollTop -= scrollSpeed
         const scrolledTop = grid.scrollTop
-        scrolledToRowIdx = Math.floor(scrolledTop / kDefaultRowHeight)
+        scrolledToRowIdx = Math.floor(scrolledTop / rowHeight)
       } else if (mouseY.current > bottom - kScrollMargin) {
         grid.scrollTop += scrollSpeed
         const scrolledBottom = grid.scrollTop + grid.clientHeight - 1
-        scrolledToRowIdx = Math.floor(scrolledBottom / kDefaultRowHeight)
+        scrolledToRowIdx = Math.floor(scrolledBottom / rowHeight)
 
       }
       if (scrolledToRowIdx != null && selectionStartRowIdx != null && scrolledToRowIdx >= 0 &&
@@ -286,7 +287,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
         marqueeSelectCases(selectionStartRowIdx, scrolledToRowIdx)
       }
     }, 25)
-  }, [marqueeSelectCases, rows?.length, selectionStartRowIdx])
+  }, [collectionTableModel, marqueeSelectCases, rows?.length, selectionStartRowIdx])
 
   const stopAutoScroll = useCallback(() => {
     if (scrollInterval.current) {
@@ -336,13 +337,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
     }
   }
 
-  const handlePointerUp = useCallback((event: PointerEvent | React.PointerEvent<HTMLDivElement>) => {
-    setIsSelecting(false)
-    setSelectionStartRowIdx(null)
-    stopAutoScroll()
-  }, [stopAutoScroll])
-
-  const handlePointerLeave = useCallback((event: PointerEvent | React.PointerEvent<HTMLDivElement>) => {
+  const handlePointerLeaveOrUp = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
     setIsSelecting(false)
     setSelectionStartRowIdx(null)
     stopAutoScroll()
@@ -355,8 +350,8 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
       <CollectionTableSpacer selectedFillColor={selectedFillColor}
         onWhiteSpaceClick={handleWhiteSpaceClick} onDrop={handleNewCollectionDrop} />
       <div className="collection-table-and-title" ref={setNodeRef} onClick={handleClick}
-            onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp}
-            onPointerLeave={handlePointerLeave}>
+            onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={handlePointerLeaveOrUp}
+            onPointerLeave={handlePointerLeaveOrUp}>
         <CollectionTitle onAddNewAttribute={handleAddNewAttribute} showCount={true} />
         <DataGrid ref={gridRef} className="rdg-light" data-testid="collection-table-grid" renderers={renderers}
           columns={columns} rows={rows} headerRowHeight={+styles.headerRowHeight} rowKeyGetter={rowKey}
