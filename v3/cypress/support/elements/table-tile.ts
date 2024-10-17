@@ -99,7 +99,8 @@ export const TableTileElements = {
     return cy.get("[data-testid^=codap-attribute-button]")
   },
   getAttribute(name: string, collectionIndex = 1) {
-    return this.getCollection(collectionIndex).find(`[data-testid^="codap-attribute-button ${name}"]`)
+    const sanitizedName = name.trim()
+    return this.getCollection(collectionIndex).find(`[data-testid="codap-attribute-button ${sanitizedName}"]`)
   },
   getAttributeInput(collectionIndex = 1) {
     return this.getCollection(collectionIndex).find("[data-testid=column-name-input]")
