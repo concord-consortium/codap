@@ -39,7 +39,12 @@ export function AttributeDragOverlay ({ activeDragId, overlayHeight, overlayWidt
   const modifiers: Modifiers | undefined = modifier ? [modifier] : undefined
 
   return (
-    <DragOverlay dropAnimation={handleDropAnimation} modifiers={modifiers} style={style}>
+    <DragOverlay
+      className="dnd-kit-drag-overlay"
+      dropAnimation={handleDropAnimation}
+      modifiers={modifiers}
+      style={style}
+    >
       {attr
         ? <div className="attribute-drag-overlay">
             {attr?.name}

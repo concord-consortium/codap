@@ -1,7 +1,10 @@
 import { appState } from "../../models/app-state"
 import { INewTileOptions } from "../../models/codap/create-tile"
 import { isFreeTileRow } from "../../models/document/free-tile-row"
+import { getTileInfo } from "../../models/document/tile-utils"
 import { ITileContentModel, ITileContentSnapshotWithType } from "../../models/tiles/tile-content"
+import { getTileContentInfo } from "../../models/tiles/tile-content-info"
+import { ITileModel } from "../../models/tiles/tile-model"
 import { uiState } from "../../models/ui-state"
 import { toV2Id } from "../../utilities/codap-utils"
 import { t } from "../../utilities/translation/translate"
@@ -15,8 +18,6 @@ import {
 import {
   componentNotFoundResult, errorResult, valuesRequiredResult
 } from "./di-results"
-import { getTileContentInfo } from "../../models/tiles/tile-content-info"
-import { ITileModel } from "../../models/tiles/tile-model"
 
 export type CreateOrShowTileFn = (type: string, options?: INewTileOptions) => Maybe<ITileModel>
 
@@ -101,10 +102,7 @@ export const diComponentHandler: DIHandler = {
     const { cannotClose, content, id, name: _name, _title } = component
     const v2Id = toV2Id(id)
     const name = _name || undefined
-    const row = appState.document.content?.findRowContainingTile(id)
-    const freeTileRow = row && isFreeTileRow(row) ? row : undefined
-    const dimensions = freeTileRow?.getTileDimensions(id)
-    const position = freeTileRow?.getTilePosition(id)
+    const { dimensions, position } = getTileInfo(id)
     const generalValues = {
       cannotClose,
       dimensions,
