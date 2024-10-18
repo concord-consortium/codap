@@ -41,7 +41,7 @@ context("codap single smoke test", () => {
 
     cy.log("Test table functionalities in Mammals sample doc")
       // Test linking of selected cases
-    cy.log("verify columns and tooltips")
+    cy.log("verify columns exist")
         // css width specification caused grid virtualization to only have 9 attributes in the DOM
         table.getColumnHeaders().should("have.length.be.within", 9, 10)
         table.getColumnHeader(0).invoke("text").then(columnName => {
@@ -52,17 +52,41 @@ context("codap single smoke test", () => {
       table.getColumnHeader(1).invoke("text").then(columnName => {
         table.getColumnHeader(1).rightclick({ force: true })
         })
-      table.getAttribute("Order").should("have.text", "Order")
-      table.getAttribute("LifeSpan").should('have.text', 'LifeSpan(years)')
+      table.getAttribute("Order").should('be.visible').and("have.text", "Order")
+      table.getAttribute("LifeSpan").should('be.visible').and('have.text', 'LifeSpan(years)')
+
+      cy.log("verify grid cells exist")
+      table.getGridCell(2, 2).should('be.visible').and("contain", "African Elephant")
+      table.getGridCell(4, 4).should('be.visible').and("contain", "19")
+      table.getNumOfRows().should('eq', '29') // 27 cases, plus the empty row and top row
+
+      cy.log("test table functionalities")
+      // test lined selection
+      table.getGridCell(2, 2).should("contain", "African Elephant").click()
+      // TODO: Add more thorough checks to make sure graph points and table rows actually change color when selected,
+      // once Cypress is configured to interact with the PixiJS canvas. For now, we just check that the buttons
+      // are disabled and enabled as expected.
+
+      // test selecting cases
+      table.getGridCell(2, 2).should('have.attr', 'aria-selected', 'true')
+
+      cy.log("test creating parent collections")
+        //table.moveAttributeToParent("Habitat", "parent", 1)
+
+        table.moveAttributeToParent("Habitat", "newCollection")
+        table.getNumOfRows(1).should("contain", 5) // five rows: top, land, water, both, bottom
+
+       table.moveAttributeToParent("Diet", "newCollection")
+       table.getNumOfRows(1).should("contain", 5) // five rows: top, plants, meat, both, bottom
+
 
     // Test table functionalities: (use cy.log())
-      // // Test linking?
-      // // Test selecting cases?
-      // // Test creating parent collections
-      // // Test Expand / collaspe button (?)
+      // // Test linking? (x)
+      // // Test creating parent collections (x)
+      // // ~~Test Expand / collaspe button (?)~~
 
       // Test graph functionalities: (use cy.log()) (all with undo/redo if possible)
-      // // Click on a data point in graph and verify highlighting (if possible)
+      // // ~~Click on a data point in graph and verify highlighting (if possible)~~
       // // Use click and drag to create a graph with x and y attributes and verify the graph axes are made
       // // Change the x and y attributes using the attribute menu and verify new graph axes are made
 
