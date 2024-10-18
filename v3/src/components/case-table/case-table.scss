@@ -268,7 +268,7 @@ $table-body-font-size: 8pt;
       }
       &[aria-selected=true] {
         .codap-data-cell {
-          background-color: var(--rdg-row-selected-background-color) !important;
+          background-color: var(--rdg-row-selected-background-color);
         }
       }
     }
