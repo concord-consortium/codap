@@ -1,3 +1,5 @@
+@import "../../vars.scss";
+
 // Edit Attribute Modal Styles
 .edit-attribute-form-row {
   display: flex !important;
@@ -20,8 +22,32 @@
 }
 
 // Formula Editor Styles
-.formula-form-control {
-  input {
-    max-width: 270px;
+.codap-modal-content {
+  .formula-modal-body {
+    cursor: default;
+
+    .formula-form-control {
+      input {
+        max-width: 270px;
+      }
+    }
+
+    .formula-editor-button {
+      padding: 0 10px;
+      &:hover {
+        background: $codap-teal-lighter;
+      }
+      &:active, &.menu-open {
+        background: $codap-teal-light;
+        color: white;
+      }
+      &.insert-value {
+        margin-left: 0;
+      }
+    }
+  }
+
+  .formula-modal-footer {
+    cursor: default;
   }
 }

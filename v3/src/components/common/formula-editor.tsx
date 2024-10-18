@@ -16,6 +16,7 @@ import { IDataSet } from "../../models/data/data-set"
 import { typedFnRegistry } from "../../models/formula/functions/math"
 import { formulaLanguageWithHighlighting } from "../../models/formula/lezer/formula-language"
 import { getGlobalValueManager, getSharedModelManager } from "../../models/tiles/tile-environment"
+import { FormulaEditorApi, useFormulaEditorContext } from "./formula-editor-context"
 
 interface ICompletionOptions {
   attributes: boolean
@@ -30,8 +31,6 @@ const kAllOptions: ICompletionOptions = {
 }
 
 interface IProps {
-  formula: string
-  setFormula: (formula: string) => void
   // options default to true if not specified
   options?: Partial<ICompletionOptions>
 }
@@ -233,12 +232,13 @@ function cmExtensionsSetup() {
   return extensions.filter(Boolean)
 }
 
-export function FormulaEditor({ formula, setFormula, options: _options }: IProps) {
+export function FormulaEditor({ options: _options }: IProps) {
   const dataSet = useDataSetContext()
   const jsonOptions = JSON.stringify(_options ?? {})
   const options = useMemo(() => JSON.parse(jsonOptions), [jsonOptions])
   const cmRef = useRef<ReactCodeMirrorRef>(null)
   const extensions = useMemo(() => cmExtensionsSetup(), [])
+  const { formula, setFormula, setEditorApi } = useFormulaEditorContext()
 
   // update the editor state field with the appropriate data set
   const handleCreateEditor = useCallback((view: EditorView, state: EditorState) => {
@@ -246,19 +246,20 @@ export function FormulaEditor({ formula, setFormula, options: _options }: IProps
     const fullOptions: ICompletionOptions = { ...kAllOptions, ...(options || {}) }
     view.dispatch({ effects: cmUpdateOptionsEffect.of(fullOptions) })
 
+    setEditorApi?.(new FormulaEditorApi(view))
+
     // https://discuss.codemirror.net/t/how-to-autofocus-in-cm6/2966
     const focusTimer = setInterval(() => {
       view.focus()
       if (view.hasFocus) clearInterval(focusTimer)
     }, 100)
-  }, [dataSet, options])
+  }, [dataSet, options, setEditorApi])
 
-  const handleFormulaChange = (value: string, viewUpdate: ViewUpdate) => setFormula(value)
+  const handleFormulaChange = (value: string, viewUpdate: ViewUpdate) => setFormula?.(value)
 
   // .input-element indicates to CodapModal not to drag the modal from within the element
   const classes = "formula-editor-input input-element"
   return <CodeMirror ref={cmRef} className={classes} data-testid="formula-editor-input" height="70px"
-                     basicSetup={false} extensions={extensions}
-                     onCreateEditor={handleCreateEditor}
+                     basicSetup={false} extensions={extensions} onCreateEditor={handleCreateEditor}
                      value={formula} onChange={handleFormulaChange} />
 }
