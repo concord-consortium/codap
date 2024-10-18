@@ -1,5 +1,26 @@
 # Changelog
 
+## Version 3.0.0-pre.1934 - October 18, 2024
+
+### ✨ Features & Improvements:
+- **PT-187799311:** The inspector panel for graphs shows a **filter** icon
+- **PT-182079193:** Users can enter formulas for attributes via a formula editor like v2's
+- **PT-181890013:** Attribute menu **Sort Ascending (A->Z, 0->9)** or **Descending**
+- **PT-182849961:** Case table supports advanced selection
+- **PT-187799278:** A slider can be configured to display date-time values (*Finished*)
+
+### 🐞 Bug Fixes:
+- **PT-188428955:** Attributes lose color on modal re-open
+
+### 🛠️ Under the Hood:
+- **PT-188363964:** Codap to Plugin Drag and Drop (*Finished*)
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  174686 bytes |                            0.21% |
+|  index.js | 6131530 bytes |                            0.34% |
+
 ## Version 3.0.0-pre.1926 - October 11, 2024
 
 ### ✨ Features & Improvements:
