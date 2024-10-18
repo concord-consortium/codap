@@ -9,13 +9,14 @@ import CodeMirror, {
   drawSelection, EditorState, EditorView, Extension, KeyBinding, RangeSet, RangeSetBuilder, RangeValue,
   ReactCodeMirrorRef, StateEffect, StateField, ViewUpdate
 } from "@uiw/react-codemirror"
-import React, { useCallback, useEffect, useRef } from "react"
+import React, { useCallback, useRef } from "react"
 import { useMemo } from "use-memo-one"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { IDataSet } from "../../models/data/data-set"
 import { typedFnRegistry } from "../../models/formula/functions/math"
 import { formulaLanguageWithHighlighting } from "../../models/formula/lezer/formula-language"
 import { getGlobalValueManager, getSharedModelManager } from "../../models/tiles/tile-environment"
+import { FormulaEditorApi, useFormulaEditorContext } from "./formula-editor-context"
 
 interface ICompletionOptions {
   attributes: boolean
@@ -30,10 +31,6 @@ const kAllOptions: ICompletionOptions = {
 }
 
 interface IProps {
-  formula: string
-  setFormula: (formula: string) => void
-  setCursorPosition?: (position: number) => void
-  setEditorSelection?: (from: number, to: number) => void
   // options default to true if not specified
   options?: Partial<ICompletionOptions>
 }
@@ -235,28 +232,13 @@ function cmExtensionsSetup() {
   return extensions.filter(Boolean)
 }
 
-export function FormulaEditor({ formula, setFormula, setCursorPosition, setEditorSelection,
-                                options: _options }: IProps) {
+export function FormulaEditor({ options: _options }: IProps) {
   const dataSet = useDataSetContext()
   const jsonOptions = JSON.stringify(_options ?? {})
   const options = useMemo(() => JSON.parse(jsonOptions), [jsonOptions])
   const cmRef = useRef<ReactCodeMirrorRef>(null)
   const extensions = useMemo(() => cmExtensionsSetup(), [])
-  const prevFormula = useRef(formula)
-
-  useEffect(() => {
-    if (cmRef.current?.view) {
-      const view = cmRef.current.view
-      view.focus() // Focus the editor directly
-      const endPosition = view.state.selection.main.from || view.state.doc.length
-      if (endPosition !== undefined) {
-        view?.dispatch({
-          selection: { anchor: endPosition }
-        })
-      }
-      prevFormula.current = formula
-    }
-  }, [formula])
+  const { formula, setFormula, setEditorApi } = useFormulaEditorContext()
 
   // update the editor state field with the appropriate data set
   const handleCreateEditor = useCallback((view: EditorView, state: EditorState) => {
@@ -264,32 +246,20 @@ export function FormulaEditor({ formula, setFormula, setCursorPosition, setEdito
     const fullOptions: ICompletionOptions = { ...kAllOptions, ...(options || {}) }
     view.dispatch({ effects: cmUpdateOptionsEffect.of(fullOptions) })
 
+    setEditorApi?.(new FormulaEditorApi(view))
+
     // https://discuss.codemirror.net/t/how-to-autofocus-in-cm6/2966
     const focusTimer = setInterval(() => {
       view.focus()
       if (view.hasFocus) clearInterval(focusTimer)
     }, 100)
-  }, [dataSet, options])
+  }, [dataSet, options, setEditorApi])
 
-  const handleFormulaChange = (value: string, viewUpdate: ViewUpdate) => setFormula(value)
-
-  const handleEditorUpdate = useCallback((update: ViewUpdate) => {
-    const view = update.view
-    if (setCursorPosition) setCursorPosition(view.state.selection.main.head)
-    if (setEditorSelection) {
-      const selection = view.state.selection.main
-      if (selection.from !== selection.to) {
-        setEditorSelection(selection.from, selection.to)
-        } else {
-          setEditorSelection?.(selection.from, selection.from)
-        }
-    }
-  }, [])
+  const handleFormulaChange = (value: string, viewUpdate: ViewUpdate) => setFormula?.(value)
 
   // .input-element indicates to CodapModal not to drag the modal from within the element
   const classes = "formula-editor-input input-element"
   return <CodeMirror ref={cmRef} className={classes} data-testid="formula-editor-input" height="70px"
-                     basicSetup={false} extensions={extensions}
-                     onCreateEditor={handleCreateEditor} onUpdate={handleEditorUpdate}
+                     basicSetup={false} extensions={extensions} onCreateEditor={handleCreateEditor}
                      value={formula} onChange={handleFormulaChange} />
 }

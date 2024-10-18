@@ -1,21 +1,22 @@
 import {Divider, Flex, List, ListItem,} from "@chakra-ui/react"
 import React, { useState } from "react"
 
-import functionStringMap from "../../../assets/json/function_strings.json"
-import "./attribute-menu.scss"
+import functionCategoryInfoArray from "../../assets/json/function_strings.json"
+import { useFormulaEditorContext } from "./formula-editor-context"
+
+import "./formula-insert-menus.scss"
+
+type FunctionCategoryInfo = typeof functionCategoryInfoArray[number]
+type FunctionInfo = FunctionCategoryInfo["functions"][number]
 
 const kMenuGap = 3
 
 interface IProps {
-  formula: string
-  cursorPosition: number,
-  editorSelection: {from: number, to: number},
-  setFormula: (formula: string) => void
   setShowFunctionMenu: (show: boolean) => void
 }
 
-export const InsertFunctionMenu = ({formula, cursorPosition, editorSelection, setFormula,
-          setShowFunctionMenu}: IProps) => {
+export const InsertFunctionMenu = ({setShowFunctionMenu}: IProps) => {
+  const { editorApi } = useFormulaEditorContext()
   const [functionMenuView, setFunctionMenuView] = useState<"category" | "list" | "info" | undefined>("category")
   const [selectedCategory, setSelectedCategory] = useState("")
   const [selectedFunction, setSelectedFunction] = useState("")
@@ -46,22 +47,12 @@ export const InsertFunctionMenu = ({formula, cursorPosition, editorSelection, se
     }
   }
 
-  const insertFunctionToFormula = (func: any, args?: any) => {
+  const insertFunctionString = (functionInfo?: FunctionInfo) => {
+    const { displayName = "", args = [] } = functionInfo || {}
     // insert the function to the formula st the cursor position or selection
-    const argsString = args.map((arg: any) => arg.name).join(", ") || ""
-    const functionStr = `${func}(${argsString})`
-    const from = editorSelection.from
-    const to = editorSelection.to
-
-    if (from != null && to != null) {
-      const formulaStart = formula.slice(0, from)
-      const formulaEnd = formula.slice(to)
-      setFormula(`${formulaStart}${functionStr}${formulaEnd}`)
-    } else if (cursorPosition != null) {
-      const formulaStart = formula.slice(0, cursorPosition)
-      const formulaEnd = formula.slice(cursorPosition)
-      setFormula(`${formulaStart}${functionStr}${formulaEnd}`)
-    }
+    const argsString = args.map(arg => arg.name).join(", ") || ""
+    const functionStr = `${displayName}(${argsString})`
+    editorApi?.insertFunctionString(functionStr)
     setFunctionMenuView(undefined)
     setShowFunctionMenu(false)
   }
@@ -84,7 +75,7 @@ export const InsertFunctionMenu = ({formula, cursorPosition, editorSelection, se
   }
 
   const renderFunctionInfo = () => {
-    const functionCategoryObj = functionStringMap.find((category) =>
+    const functionCategoryObj = functionCategoryInfoArray.find((category) =>
       category.functions.some((func) => func.displayName === selectedFunction))
     const functionObj = functionCategoryObj?.functions.find(
       (func) => func.displayName === selectedFunction)
@@ -99,7 +90,7 @@ export const InsertFunctionMenu = ({formula, cursorPosition, editorSelection, se
         <Divider className="function-header-divider"/>
         <Flex className="function-info-body" flexDir="column">
           <div className="function-info-name" data-testid="function-info-name"
-                onClick={()=>insertFunctionToFormula(functionObj?.displayName, functionObj?.args)}>
+                onClick={() => insertFunctionString(functionObj)}>
             <span>
               {functionObj?.displayName}
               (<span className="function-arguments">{functionObj?.args.map((arg) => arg.name).join(", ")}</span>)
@@ -130,7 +121,7 @@ export const InsertFunctionMenu = ({formula, cursorPosition, editorSelection, se
   }
 
   const renderFunctionList = () => {
-    const categoryObj = functionStringMap.find((categoryItem) => categoryItem.category === selectedCategory)
+    const categoryObj = functionCategoryInfoArray.find((categoryItem) => categoryItem.category === selectedCategory)
     return (
       <Flex flexDir={"column"} className="formula-function-list" data-testid="formula-function-list">
         <Flex className="functions-list-header" alignItems="center" flexDir={"row"}
@@ -150,9 +141,10 @@ export const InsertFunctionMenu = ({formula, cursorPosition, editorSelection, se
                 justifyContent="space-between"
                 w="100%"
                 className="function-menu-item"
+                onClick={() => insertFunctionString(func)}
                 data-testid="function-menu-item"
               >
-                <span className="function-menu-name" onClick={()=>insertFunctionToFormula(func.displayName, func.args)}>
+                <span className="function-menu-name">
                   {func.displayName}
                     (<span className="function-arguments">{func.args.map((arg) => arg.name).join(", ")}</span>)
                 </span>
@@ -171,7 +163,7 @@ export const InsertFunctionMenu = ({formula, cursorPosition, editorSelection, se
   const renderFunctionCategoryList = () => {
     return (
       <List className="formula-function-list" data-testid="formula-function-category-list">
-        {functionStringMap.map((category) => {
+        {functionCategoryInfoArray.map((category) => {
           return (
             <ListItem key={category.category} className="function-category-list-item"
                       onClick={(event)=>handleShowFunctionCategoryList(event, category.category)}

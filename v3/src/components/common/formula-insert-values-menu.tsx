@@ -1,25 +1,22 @@
+import { TriangleDownIcon, TriangleUpIcon } from "@chakra-ui/icons"
 import {Divider, Flex, List, ListItem,} from "@chakra-ui/react"
 import React, { useRef } from "react"
-import { useDataSetContext } from "../../../hooks/use-data-set-context"
-import { TriangleDownIcon, TriangleUpIcon } from "@chakra-ui/icons"
-import { getGlobalValueManager, getSharedModelManager } from "../../../models/tiles/tile-environment"
+import { useDataSetContext } from "../../hooks/use-data-set-context"
+import { getGlobalValueManager, getSharedModelManager } from "../../models/tiles/tile-environment"
+import { useFormulaEditorContext } from "./formula-editor-context"
 
-import "./attribute-menu.scss"
+import "./formula-insert-menus.scss"
 
 const kMenuGap = 3
 const kMaxHeight = 570
 
 interface IProps {
-  formula: string
-  cursorPosition: number,
-  editorSelection: {from: number, to: number},
-  setFormula: (formula: string) => void
   setShowValuesMenu: (show: boolean) => void
 }
 
-export const InsertValuesMenu = ({formula, cursorPosition, editorSelection,
-      setFormula, setShowValuesMenu}: IProps) => {
+export const InsertValuesMenu = ({setShowValuesMenu}: IProps) => {
   const dataSet = useDataSetContext()
+  const { editorApi } = useFormulaEditorContext()
   const collections = dataSet?.collections
   const attributeNamesInCollection = collections?.map(collection =>
     collection.attributes
@@ -31,26 +28,16 @@ export const InsertValuesMenu = ({formula, cursorPosition, editorSelection,
   const globals = globalManager
                     ? Array.from(globalManager.globals.values()).map(global => ({ label: global.name }))
                     : []
+  // TODO_Boundaries
   const remoteBoundaryData = [ "CR_Cantones", "CR_Provincias", "DE_state_boundaries",
      "IT_region_boundaries", "JP_Prefectures", "US_congressional_boundaries", "US_county_boundaries",
      "US_puma_boundaries", "US_state_boundaries", "country_boundaries" ]
+  const constants = ["e", "false", "true", "π"]
   const scrollableContainerRef = useRef<HTMLUListElement>(null)
   let maxItemLength = 0
 
   const insertValueToFormula = (value: string) => {
-    // insert operand into the formula at either cursor position or selected range
-    const from = editorSelection.from
-    const to = editorSelection.to
-
-    if (from != null && to != null) {
-      const formulaStart = formula.slice(0, from)
-      const formulaEnd = formula.slice(to)
-      setFormula(`${formulaStart}${value}${formulaEnd}`)
-    } else if (cursorPosition != null) {
-      const formulaStart = formula.slice(0, cursorPosition)
-      const formulaEnd = formula.slice(cursorPosition)
-      setFormula(`${formulaStart}${value}${formulaEnd}`)
-    }
+    editorApi?.insertVariableString(value)
     setShowValuesMenu(false)
   }
 
@@ -151,7 +138,7 @@ export const InsertValuesMenu = ({formula, cursorPosition, editorSelection,
           { globals.map((global) => {
             return (
               <ListItem key={global.label} className="formula-operand-list-item"
-                    onClick={() => insertValueToFormula("caseIndex")}>
+                    onClick={() => insertValueToFormula(global.label)}>
                 {global.label}
               </ListItem>
             )
@@ -159,21 +146,16 @@ export const InsertValuesMenu = ({formula, cursorPosition, editorSelection,
         </List>
         <Divider className="list-divider"/>
         <List className="formula-operand-subset">
-          <ListItem className="formula-operand-list-item" onClick={() => insertValueToFormula("e")}>
-            e
-          </ListItem>
-          <ListItem className="formula-operand-list-item" onClick={() => insertValueToFormula("false")}>
-            false
-          </ListItem>
-          <ListItem className="formula-operand-list-item" onClick={() => insertValueToFormula("true")}>
-            true
-          </ListItem>
-          <ListItem className="formula-operand-list-item" onClick={() => insertValueToFormula("π")}>
-            π
-          </ListItem>
+          {constants.map(constant => (
+            <ListItem className="formula-operand-list-item" key={constant}
+                      onClick={() => insertValueToFormula(constant)}>
+              {constant}
+            </ListItem>
+          ))}
         </List>
       </List>
-      { scrollableContainerRef.current && (scrollableContainerRef.current.scrollHeight - scrollableContainerRef.current.scrollTop + 20 > kMaxHeight) &&
+      { scrollableContainerRef.current &&
+        (scrollableContainerRef.current.scrollHeight - scrollableContainerRef.current.scrollTop + 20 > kMaxHeight) &&
         <div className="scroll-arrow" onPointerOver={()=>handleScroll("down")}>
           <TriangleDownIcon />
         </div>
