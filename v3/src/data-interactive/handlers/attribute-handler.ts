@@ -84,6 +84,8 @@ export const diAttributeHandler: DIHandler = {
     if (!request) return fieldRequiredResult("Notify", "attribute", "request")
 
     // Common properties for synthetic events
+    const bubbles = true
+    const cancelable = true
     const isPrimary = true
     const pointerId = 1
     const pointerType = "mouse"
@@ -111,12 +113,10 @@ export const diAttributeHandler: DIHandler = {
         const containers = document.getElementsByClassName("codap-container")
         const kCodapHeaderHeight = 95
         const containerOffset = containers.item(0)?.getBoundingClientRect()?.top ?? kCodapHeaderHeight
-        uiState.setDraggingYOffset(clientY - containerOffset)
+        uiState.setDraggingYOffset(clientY - containerOffset - (overlayHeight ?? 0))
 
         // Dispatch events that will trigger a drag start
         // A setTimeout is used to ensure that hooks are updated before the drag begins
-        const bubbles = true
-        const cancelable = true
         setTimeout(() => {
           pluginAttributeDrag.dispatchEvent(new PointerEvent("pointerdown", {
             bubbles, cancelable, clientX: clientX - 10, clientY: clientY - 10, isPrimary, pointerId, pointerType
@@ -129,13 +129,14 @@ export const diAttributeHandler: DIHandler = {
       return { success: true }
     } else if (["dragOver", "dragEnd"].includes(request) && interactiveFrame) {
       const { mouseX, mouseY } = (values ?? {}) as DINotifyAttribute
-      const pluginElement = document.getElementById(interactiveFrame.id)
+      const pluginTileElement = document.getElementById(interactiveFrame.id)
+      const pluginElement = pluginTileElement?.getElementsByClassName("codap-web-view-body").item(0)
       const rect = pluginElement?.getBoundingClientRect()
       const clientX = (mouseX ?? 0) + (rect?.x ?? 0)
       const clientY = (mouseY ?? 0) + (rect?.y ?? 0)
       const event = request === "dragOver" ? "pointermove" : "pointerup"
       document.dispatchEvent(new PointerEvent(event, {
-        bubbles: true, cancelable: true, clientX, clientY, isPrimary, pointerId, pointerType
+        bubbles, cancelable, clientX, clientY, isPrimary, pointerId, pointerType
       }))
       return { success: true }
     }
