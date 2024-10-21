@@ -25,7 +25,6 @@ export const PointColorSetting = ({category, dataConfiguration}: ColorPickerIPro
   const popoverContainerRect = popoverContainerRef.current?.getBoundingClientRect()
   const [openPopover, setOpenPopover] = useState<string | null>(null)
   const catPointColorSettingButtonRef = useRef<HTMLButtonElement>(null)
-  console.log("popoverContainerRect", popoverContainerRect)
 
   const handleSwatchClick = (cat: string) => {
     console.log("handleSwatchClick", cat)
@@ -52,7 +51,6 @@ export const PointColorSetting = ({category, dataConfiguration}: ColorPickerIPro
   const handleShowColorPicker = (evt: React.MouseEvent) => {
     evt.preventDefault()
     evt.stopPropagation()
-    console.log("handleShowColorPicker showColorPicker", showColorPicker)
     setShowColorPicker(!showColorPicker)
   }
 
@@ -66,11 +64,8 @@ export const PointColorSetting = ({category, dataConfiguration}: ColorPickerIPro
 
       if (popover && triggerButton) {
         const rect = popover.getBoundingClientRect()
-        const triggerRect = triggerButton.getBoundingClientRect()
         const viewportWidth = window.innerWidth
         const viewportHeight = window.innerHeight
-console.log("rect", rect)
-console.log("triggerRect", triggerRect)
         let top = 0
         let left = 0
 
@@ -90,13 +85,13 @@ console.log("triggerRect", triggerRect)
           top = +styles.colorPickerPopoverTop
           left = +styles.colorPickerPopoverLeft
         }
-console.log("top", top, "left", left)
+
         popover.style.top = `${top}px`
         popover.style.left = `${left}px`
       }
     }
 
-    adjustPosition();
+    adjustPosition()
     window.addEventListener('resize', adjustPosition)
     return () => {
       window.removeEventListener('resize', adjustPosition)
