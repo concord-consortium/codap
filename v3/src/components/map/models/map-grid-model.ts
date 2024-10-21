@@ -136,8 +136,7 @@ export const MapGridModel = types.model("MapGridModel", {
   .actions(self => ({
     afterCreate() {
       addDisposer(self, reaction(
-        () => [self.dataConfiguration, self.dataConfiguration?.caseDataHash,
-          self.dataConfiguration?.hiddenCases.length, self.gridMultiplier, self._gridSize],
+        () => [self.dataConfiguration?.caseDataHash, self.gridMultiplier, self._gridSize],
         () => {
           self.initializeGrid()
           self.updateSelection()
