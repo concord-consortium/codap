@@ -1,3 +1,5 @@
+import { chooseDecimalPlaces } from "../../../utilities/math-utils"
+import { determineLevels, formatDate, mapLevelToPrecision } from "../../../utilities/date-utils"
 import {Instance, SnapshotIn, isAlive, types} from "mobx-state-tree"
 import {applyModelChange} from "../../../models/history/apply-model-change"
 import {AxisOrientation, AxisPlaces, IScaleType, ScaleTypes} from "../axis-types"
@@ -126,6 +128,18 @@ export const BaseNumericAxisModel = AxisModel
       self.dynamicMin = undefined
       self.dynamicMax = undefined
     },
+    setMinimum(min: number) {
+      if (isFinite(min)) {
+        self.min = min
+        self.dynamicMin = undefined
+      }
+    },
+    setMaximum(max: number) {
+      if (isFinite(max)) {
+        self.max = max
+        self.dynamicMax = undefined
+      }
+    },
     setLockZero(lockZero: boolean) {
       self.lockZero = lockZero
     },
@@ -147,9 +161,14 @@ export const NumericAxisModel = BaseNumericAxisModel
     type: types.optional(types.literal("numeric"), "numeric"),
     integersOnly: false
   })
-  .actions(self => ({
-    setIntegersOnly(integersOnly: boolean) {
-      self.integersOnly = integersOnly
+  .views(self => ({
+    get minDisplay() {
+      return String(self.integersOnly ? Math.round(self.min)
+        : chooseDecimalPlaces(self.min, self.min, self.max))
+    },
+    get maxDisplay() {
+      return String(self.integersOnly ? Math.round(self.max)
+        : chooseDecimalPlaces(self.max, self.min, self.max))
     }
   }))
 
@@ -165,6 +184,18 @@ export const DateAxisModel = BaseNumericAxisModel
   .props({
     type: types.optional(types.literal("date"), "date"),
   })
+  .views(self => ({
+    get precisionForDisplay() {
+      const levels = determineLevels(self.min, self.max)
+      return mapLevelToPrecision(levels.innerLevel + 1)
+    },
+    get minDisplay() {
+      return String(formatDate(self.min * 1000, this.precisionForDisplay))
+    },
+    get maxDisplay() {
+      return String(formatDate(self.max * 1000, this.precisionForDisplay))
+    }
+  }))
 export interface IDateAxisModel extends Instance<typeof DateAxisModel> {}
 export interface IDateAxisModelSnapshot extends SnapshotIn<typeof DateAxisModel> {}
 

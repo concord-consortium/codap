@@ -119,7 +119,7 @@ export const DataConfigurationModel = types
       const defaultCaptionAttributeID = () => {
         // We find the childmost collection and return the first attribute in that collection. If there is no
         // childmost collection, we return the first attribute in the dataset.
-        const attrIDs = (['x', 'y', 'rightNumeric', 'topSplit', 'rightSplit', 'legend'] as const)
+        const attrIDs = (['x', 'y', 'rightNumeric', 'topSplit', 'rightSplit', 'legend', 'lat', 'long'] as const)
             .map(aRole => this.attributeID(aRole))
             .filter(id => !!id),
           childmostCollectionID = idOfChildmostCollectionForAttributes(attrIDs, self.dataset)
@@ -266,9 +266,7 @@ export const DataConfigurationModel = types
      */
     get selection() {
       if (!self.dataset || !self.filteredCases[0]) return []
-      const selection = Array.from(self.dataset.selection),
-        allGraphCaseIds = this.visibleCaseIds
-      return selection.filter((caseId: string) => allGraphCaseIds.has(caseId))
+      return Array.from(this.visibleCaseIds).filter(caseId => self.dataset?.isCaseSelected(caseId))
     },
     /**
      * Note that in order to eliminate a selected case from the graph's selection, we have to check that it is not

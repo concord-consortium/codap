@@ -11,6 +11,10 @@ export enum EDateTimeLevel {
   eYear = 5
 }
 
+// note that these strings should match the order of strings in DG.CaseTable.attributeEditor.datePrecisionOptions
+export const dateUnits = ["year", "month", "day", "hour", "minute", "second", "millisecond"] as const
+export type DateUnit = typeof dateUnits[number]
+
 export enum DatePrecision {
   None = '',
   Millisecond = 'millisecond',
@@ -22,6 +26,7 @@ export enum DatePrecision {
   Year = 'year'
 }
 
+// Constants for converting between units of time and milliseconds
 export const secondsConverter = {
   kSecond: 1000,
   kMinute: 1000 * 60,
@@ -29,6 +34,28 @@ export const secondsConverter = {
   kDay: (((1000) * 60) * 60) * 24,
   kMonth: ((((1000) * 60) * 60) * 24) * 30,
   kYear: ((((1000) * 60) * 60) * 24) * 365
+}
+
+export const unitsStringToMilliseconds = (unitString: DateUnit) => {
+  switch (unitString.toLowerCase()) {
+    case 'millisecond':
+      return 1
+    case 'second':
+      return secondsConverter.kSecond
+    case 'minute':
+      return secondsConverter.kMinute
+    case 'hour':
+      return secondsConverter.kHour
+    case 'day':
+      return secondsConverter.kDay
+    case 'month':
+      return secondsConverter.kMonth
+    case 'year':
+      return secondsConverter.kYear
+    default:
+      return 0
+  }
+
 }
 
 export const shortMonthNames = [

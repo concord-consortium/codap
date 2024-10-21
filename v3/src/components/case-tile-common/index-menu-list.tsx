@@ -58,7 +58,7 @@ export const IndexMenuList = ({caseId, index}: IProps) => {
       itemKey: `DG.CaseTable.indexMenu.delete${deletableSelectedItems.length === 1 ? "Case" : "Cases" }`,
       isEnabled: () => deletableSelectedItems.length >= 1,
       handleClick: () => {
-        if (data?.selection.size) {
+        if (deletableSelectedItems && data) {
           removeCasesWithCustomUndoRedo(data, deletableSelectedItems)
         }
       }

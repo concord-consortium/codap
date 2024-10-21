@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef } from "react"
 import { ISliderModel } from "./slider-model"
 import { FixValueFn, kAnimationDefaults } from "./slider-types"
 import { valueChangeNotification } from "./slider-utils"
+import { useAxisLayoutContext } from "../axis/models/axis-layout-context"
 
 interface IUseSliderAnimationProps {
   sliderModel?: ISliderModel
@@ -17,6 +18,8 @@ export const useSliderAnimation = ({sliderModel, running, setRunning}: IUseSlide
   const mode = animationMode
   const prevDirectionRef = useRef("")
   const maxMinHitsRef = useRef(0)
+  const axisLayout = useAxisLayoutContext()
+  const multiScale = axisLayout.getAxisMultiScale("bottom")
 
   const getAxisDomain = useCallback(function getAxisDomain(): readonly [number, number] {
     const { axis: { domain } } = sliderModel || { axis: { domain: [0, 10] } }
@@ -26,7 +29,8 @@ export const useSliderAnimation = ({sliderModel, running, setRunning}: IUseSlide
   const resetSlider = useCallback((val?: number) => {
     if (!sliderModel) return 0
     const [axisMin, axisMax] = getAxisDomain()
-    const testValue = val || sliderModel.value
+    const sign = animationDirection === "lowToHigh" ? 1 : -1
+    const testValue = val || sliderModel.value + sign * (sliderModel.increment ?? 0)
     if (animationDirection === "lowToHigh" && testValue >= axisMax) {
       sliderModel.applyModelChange(
         () => sliderModel.setValue(axisMin),
@@ -65,8 +69,10 @@ export const useSliderAnimation = ({sliderModel, running, setRunning}: IUseSlide
 
   useInterval(() => {
     if (running && sliderModel) {
+      const increment = sliderModel.increment ? sliderModel.increment
+        : multiScale?.resolution ? multiScale.resolution : 1
       const incrementModifier = direction === 'highToLow' || prevDirectionRef.current === 'highToLow' ? -1 : 1
-      const newValue = sliderModel.value + sliderModel.increment * incrementModifier
+      const newValue = sliderModel.value + increment * incrementModifier
 
       switch (direction) {
         case "lowToHigh":

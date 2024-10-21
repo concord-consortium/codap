@@ -28,6 +28,41 @@ export function neededSignificantDigits(num1: number, num2: number) {
   return significantDigits
 }
 
+/* Given a n1 < n < n2, return a string representation of n with an appropriate precision. */
+export function chooseDecimalPlaces(n: number, lower: number, upper: number) {
+  if (n === Math.round(n)) {
+    return n.toString()
+  }
+  // Calculate the span between lower and upper
+  const span = upper - lower
+
+  // Logic to choose decimal places based on n's position relative to lower and upper
+  let decimalPlaces
+
+  if (span > 10) {
+    // Large span - fewer decimal places needed
+    decimalPlaces = 0
+  } else if (span > 1) {
+    // Medium span - moderate precision
+    decimalPlaces = 1
+  } else if (span > 0.1) {
+    // Smaller span - higher precision
+    decimalPlaces = 2
+  } else {
+    // Very small span - highest precision
+    decimalPlaces = 3
+  }
+
+  // Adjust for the position of n within the span
+  if (Math.abs(n - lower) < span * 0.1 || Math.abs(n - upper) < span * 0.1) {
+    // If n is very close to lower or upper, show more precision
+    decimalPlaces += 1
+  }
+
+  // Format n with the chosen number of decimal places
+  return n.toFixed(decimalPlaces)
+}
+
 /**
  * Given an array of numbers, return a new array of significant digits needed for each number in the array to
  * distinguish it from the numbers on either side of it. For the first and last numbers, the number of significant

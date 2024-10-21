@@ -18,6 +18,10 @@
       input {
         height: inherit;
       }
+
+      &.multiples-input {
+        width: 50px;
+      }
     }
     .animation-rate-input {
       height: 24px;

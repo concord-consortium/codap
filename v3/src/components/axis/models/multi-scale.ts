@@ -1,10 +1,11 @@
-import {action, comparer, computed, makeObservable, observable} from "mobx"
+import { mstReaction } from "../../../utilities/mst-reaction"
+import { action, comparer, computed, makeObservable, observable } from "mobx"
 import {
   format, NumberValue, ScaleBand, scaleBand, scaleLinear, scaleLog, ScaleOrdinal, scaleOrdinal
 } from "d3"
-import {AxisScaleType, IScaleType, ScaleNumericBaseType} from "../axis-types"
-import {ICategorySet} from "../../../models/data/category-set"
-import { mstReaction } from "../../../utilities/mst-reaction"
+import { formatDate } from "../../../utilities/date-utils"
+import { AxisScaleType, IScaleType, ScaleNumericBaseType } from "../axis-types"
+import { ICategorySet } from "../../../models/data/category-set"
 
 interface IDataCoordinate {
   cell: number
@@ -45,6 +46,7 @@ export class MultiScale {
   @observable scaleType: IScaleType
   @observable repetitions = 1
   @observable length = 0
+  @observable numericDomain: AxisExtent = [0, 1] // Make domain observable
   @observable orientation: "horizontal" | "vertical"
   @observable changeCount = 0
   @observable categorySet: ICategorySet | undefined
@@ -103,6 +105,15 @@ export class MultiScale {
     return this.scale.range()
   }
 
+  // The resolution is the number of data units per pixel.
+  @computed get resolution() {
+    const domain = this.numericDomain
+    const range: AxisExtent = this.cellLength
+      ? [0, this.cellLength]
+      : this.numericScale?.range() as Maybe<AxisExtent> ?? [0, 1]
+    return this.numericScale && domain ? (domain[1] - domain[0]) / (range[1] - range[0]) : undefined
+  }
+
   _setRangeFromLength() {
     this.scale.range(this.orientation === 'horizontal' ? [0, this.length] : [this.length, 0])
   }
@@ -124,7 +135,7 @@ export class MultiScale {
       this.categoriesReactionDisposer = mstReaction(
         () => this.categoryValues,
         values => this.updateCategoricalDomain(values),
-        { name: "MultiScale.updateCategoricalDomain", equals: comparer.structural, fireImmediately: true },
+        {name: "MultiScale.updateCategoricalDomain", equals: comparer.structural, fireImmediately: true},
         this.categorySet
       )
     }
@@ -144,6 +155,7 @@ export class MultiScale {
   }
 
   @action setNumericDomain(domain: Iterable<NumberValue>) {
+    this.numericDomain = domain as AxisExtent
     this.numericScale?.domain(domain)
   }
 
@@ -173,11 +185,12 @@ export class MultiScale {
 
   /** To display values for a numeric axis we use just the number of significant figures required to distinguish
    *   the value for one screen pixel from the value for the adjacent screen pixel.
+   *   If isDate is true, the value is the number of seconds since the epoch.
    * **/
-  formatValueForScale(value: number) {
-    function formatNumber(n: number, _domain: AxisExtent, _range: AxisExtent): string {
+  formatValueForScale(value: number, isDate = false): string {
+    const formatNumber = (n: number): string => {
+      const resolution = this.resolution ?? 1
       // Calculate the number of significant digits based on domain and range
-      const resolution = (_domain[1] - _domain[0]) / (_range[1] - _range[0])
       const logResolution = Math.log10(resolution)
       const sigDigits = Math.ceil(logResolution) - 1
 
@@ -190,11 +203,8 @@ export class MultiScale {
       // Use D3 format to generate a string with the appropriate number of decimal places
       return format('.9')(roundedNumber)
     }
-
-    const domain = this.numericScale?.domain() as AxisExtent | undefined
-    const range: AxisExtent = this.cellLength
-      ? [0, this.cellLength]
-      : this.numericScale?.range() as AxisExtent | undefined ?? [0, 1]
-    return domain ? formatNumber(value, domain, range) : String(value)
+    return isDate
+             ? formatDate(value * 1000) ?? ''
+             : this.resolution ? formatNumber(value) : String(value)
   }
 }
