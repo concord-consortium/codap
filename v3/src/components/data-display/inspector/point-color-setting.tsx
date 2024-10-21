@@ -22,9 +22,9 @@ export const PointColorSetting = ({category, dataConfiguration}: ColorPickerIPro
   const nonStandardColorSelected = false
   const popoverRef = useRef<HTMLDivElement>(null)
   const popoverContainerRef = useRef<HTMLDivElement>(null)
-  const popoverContainerRect = popoverContainerRef.current?.getBoundingClientRect()
   const [openPopover, setOpenPopover] = useState<string | null>(null)
   const catPointColorSettingButtonRef = useRef<HTMLButtonElement>(null)
+  const kGapSize = 10
 
   const handleSwatchClick = (cat: string) => {
     console.log("handleSwatchClick", cat)
@@ -70,16 +70,16 @@ export const PointColorSetting = ({category, dataConfiguration}: ColorPickerIPro
         let left = 0
 
         if (rect.right > viewportWidth) {
-          left = viewportWidth - rect.right - 10 // 10px padding from the edge
+          left = viewportWidth - rect.right - kGapSize // 10px padding from the edge
         }
         if (rect.bottom > viewportHeight) {
-          top = viewportHeight - rect.bottom - 10 // 10px padding from the edge
+          top = viewportHeight - rect.bottom - kGapSize // 10px padding from the edge
         }
         if (rect.left < 0) {
-          left = 10 // 10px padding from the edge
+          left = kGapSize // 10px padding from the edge
         }
         if (rect.top < 0) {
-          top = 10 // 10px padding from the edge
+          top = kGapSize // 10px padding from the edge
         }
         if (!showColorPicker) {
           top = +styles.colorPickerPopoverTop
