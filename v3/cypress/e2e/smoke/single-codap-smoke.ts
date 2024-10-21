@@ -62,9 +62,9 @@ context("codap single smoke test", () => {
         cy.log("verify selecting cases in the table")
           table.getGridCell(2, 2).should("contain", "African Elephant").click()
           table.getGridCell(2, 2).should('have.attr', 'aria-selected', 'true')
-        // TODO: Add more thorough checks to make sure graph points and table rows actually change color when selected,
-        // once Cypress is configured to interact with the PixiJS canvas. For now, we just check that the buttons in table
-        // are enabled upon selection.
+        // TODO: Add more thorough checks to make sure graph points and table rows actually
+        // change color when selected, once Cypress is configured to interact with the PixiJS canvas.
+        // For now, we just check that the buttons in table are enabled upon selection.
 
         cy.log("test graph axis functionalities in Mammals sample doc")
         // it is possible to create a graph
