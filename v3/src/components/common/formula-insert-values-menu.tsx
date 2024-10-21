@@ -1,6 +1,6 @@
 import { TriangleDownIcon, TriangleUpIcon } from "@chakra-ui/icons"
 import {Divider, Flex, List, ListItem,} from "@chakra-ui/react"
-import React, { useRef } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { getGlobalValueManager, getSharedModelManager } from "../../models/tiles/tile-environment"
 import { useFormulaEditorContext } from "./formula-editor-context"
@@ -8,7 +8,7 @@ import { useFormulaEditorContext } from "./formula-editor-context"
 import "./formula-insert-menus.scss"
 
 const kMenuGap = 3
-const kMaxHeight = 570
+const kMaxHeight = 470
 
 interface IProps {
   setShowValuesMenu: (show: boolean) => void
@@ -34,6 +34,9 @@ export const InsertValuesMenu = ({setShowValuesMenu}: IProps) => {
      "US_puma_boundaries", "US_state_boundaries", "country_boundaries" ]
   const constants = ["e", "false", "true", "π"]
   const scrollableContainerRef = useRef<HTMLUListElement>(null)
+  const [listContainerStyle, setListContainerStyle] = useState({})
+  const [, setScrollPosition] = useState(0)
+
   let maxItemLength = 0
 
   const insertValueToFormula = (value: string) => {
@@ -79,6 +82,7 @@ export const InsertValuesMenu = ({setShowValuesMenu}: IProps) => {
       }
       return { top, height: kMaxHeight, width: 40 + 10 * maxItemLength }
     }
+    return {}
   }
 
   const handleScroll = (direction: "up" | "down") => {
@@ -92,10 +96,32 @@ export const InsertValuesMenu = ({setShowValuesMenu}: IProps) => {
     }
   }
 
+  useEffect(() => {
+    setListContainerStyle(getListContainerStyle())
+
+    const handleScrollPosition = () => {
+      if (scrollableContainerRef.current) {
+        setScrollPosition(scrollableContainerRef.current.scrollTop)
+      }
+    }
+
+    const container = scrollableContainerRef.current
+    container?.addEventListener("scroll", handleScrollPosition)
+
+    return () => {
+      container?.removeEventListener("scroll", handleScrollPosition)
+    }
+  }, [])
+
+  const isScrollable = scrollableContainerRef.current && scrollableContainerRef.current.scrollHeight > kMaxHeight
+  const canScrollUp = scrollableContainerRef.current && scrollableContainerRef.current.scrollTop > 0
+  const canScrollDown = scrollableContainerRef.current &&
+          (scrollableContainerRef.current.scrollHeight - scrollableContainerRef.current.scrollTop + 20 > kMaxHeight)
+
   return (
     <Flex className="formula-operand-list-container" data-testid="formula-value-list"
-        style={getListContainerStyle()} >
-      { scrollableContainerRef.current && scrollableContainerRef.current.scrollTop > 0 &&
+        style={listContainerStyle} >
+      { isScrollable && canScrollUp &&
       <div className="scroll-arrow" onPointerOver={()=>handleScroll("up")}>
         <TriangleUpIcon />
       </div>
@@ -154,8 +180,7 @@ export const InsertValuesMenu = ({setShowValuesMenu}: IProps) => {
           ))}
         </List>
       </List>
-      { scrollableContainerRef.current &&
-        (scrollableContainerRef.current.scrollHeight - scrollableContainerRef.current.scrollTop + 20 > kMaxHeight) &&
+      { isScrollable && canScrollDown &&
         <div className="scroll-arrow" onPointerOver={()=>handleScroll("down")}>
           <TriangleDownIcon />
         </div>

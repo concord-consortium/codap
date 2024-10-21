@@ -1,5 +1,5 @@
 import {Divider, Flex, List, ListItem,} from "@chakra-ui/react"
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 
 import functionCategoryInfoArray from "../../assets/json/function_strings.json"
 import { useFormulaEditorContext } from "./formula-editor-context"
@@ -20,6 +20,7 @@ export const InsertFunctionMenu = ({setShowFunctionMenu}: IProps) => {
   const [functionMenuView, setFunctionMenuView] = useState<"category" | "list" | "info" | undefined>("category")
   const [selectedCategory, setSelectedCategory] = useState("")
   const [selectedFunction, setSelectedFunction] = useState("")
+  const [menuPosition, setMenuPosition] = useState({})
 
   const getFunctionMenuPosition = () => {
     const menuEl = document.querySelector(".formula-function-menu-container") as HTMLElement
@@ -45,7 +46,12 @@ export const InsertFunctionMenu = ({setShowFunctionMenu}: IProps) => {
       }
       return { top: menuTopPosition, height: menuElHeight }
     }
+    return {}
   }
+
+  useEffect(() => {
+    setMenuPosition(getFunctionMenuPosition())
+  }, [])
 
   const insertFunctionString = (functionInfo?: FunctionInfo) => {
     const { displayName = "", args = [] } = functionInfo || {}
@@ -178,7 +184,7 @@ export const InsertFunctionMenu = ({setShowFunctionMenu}: IProps) => {
   }
 
   return (
-    <Flex className="formula-function-menu-container" style={getFunctionMenuPosition()}>
+    <Flex className="formula-function-menu-container" style={menuPosition}>
       { functionMenuView === "info"
           ? renderFunctionInfo()
           : functionMenuView === "list"
