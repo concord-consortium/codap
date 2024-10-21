@@ -26,16 +26,14 @@ export const CodapDndContext = ({ children }: IProps) => {
     threshold: { x: 0.05, y: 0.05 }
   }
 
-  // pointer must move three pixels before starting a drag
-  const pointerSensor = useSensor(PointerSensor, { activationConstraint: { distance: 3 } })
-  // Codap uses both a pointer and mouse sensor to enable synthetic drags via plugin API requests.
-  // The mouseSensor url parameter is used for cypress tests, which won't work if there's a distance requirement
-  const mouseOptions = urlParams.mouseSensor !== undefined ? undefined : { activationConstraint: { distance: 3 } }
-  const mouseSensor = useSensor(MouseSensor, mouseOptions)
+  const mouseSensor = useSensor(MouseSensor)
   const sensors = useSensors(
-                    pointerSensor,
-                    useSensor(KeyboardSensor, { coordinateGetter: customCoordinatesGetter }),
-                    mouseSensor)
+    // pointer must move three pixels before starting a drag
+    useSensor(PointerSensor, { activationConstraint: { distance: 3 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: customCoordinatesGetter }),
+    // mouse sensor can be enabled for cypress tests, for instance
+    urlParams.mouseSensor !== undefined ? mouseSensor : null
+  )
   return (
     <DndContext
       autoScroll={autoScrollOptions}

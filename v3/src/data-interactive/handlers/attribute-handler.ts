@@ -83,6 +83,11 @@ export const diAttributeHandler: DIHandler = {
     const { request } = (values ?? {}) as DINotifyAttribute
     if (!request) return fieldRequiredResult("Notify", "attribute", "request")
 
+    // Common properties for synthetic events
+    const isPrimary = true
+    const pointerId = 1
+    const pointerType = "mouse"
+
     if (request === "dragStart") {
       uiState.setDraggingDatasetId(dataContext.id)
       uiState.setDraggingAttributeId(attribute.id)
@@ -112,11 +117,11 @@ export const diAttributeHandler: DIHandler = {
         const bubbles = true
         const cancelable = true
         setTimeout(() => {
-          pluginAttributeDrag.dispatchEvent(new MouseEvent("mousedown", {
-            bubbles, cancelable, clientX: clientX - 10, clientY: clientY - 10
+          pluginAttributeDrag.dispatchEvent(new PointerEvent("pointerdown", {
+            bubbles, cancelable, clientX: clientX - 10, clientY: clientY - 10, isPrimary, pointerId, pointerType
           }))
-          document.dispatchEvent(new MouseEvent("mousemove", {
-            bubbles, cancelable, clientX, clientY
+          document.dispatchEvent(new PointerEvent("pointermove", {
+            bubbles, cancelable, clientX, clientY, isPrimary, pointerId, pointerType
           }))
         })
       }
@@ -127,9 +132,9 @@ export const diAttributeHandler: DIHandler = {
       const rect = pluginElement?.getBoundingClientRect()
       const clientX = (mouseX ?? 0) + (rect?.x ?? 0)
       const clientY = (mouseY ?? 0) + (rect?.y ?? 0)
-      const event = request === "dragOver" ? "mousemove" : "mouseup"
-      document.dispatchEvent(new MouseEvent(event, {
-        bubbles: true, cancelable: true, clientX, clientY
+      const event = request === "dragOver" ? "pointermove" : "pointerup"
+      document.dispatchEvent(new PointerEvent(event, {
+        bubbles: true, cancelable: true, clientX, clientY, isPrimary, pointerId, pointerType
       }))
       return { success: true }
     }
