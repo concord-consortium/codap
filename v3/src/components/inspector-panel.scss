@@ -99,6 +99,11 @@ $inspector-panel-width: 50px;
     padding: 5px 10px 10px 10px;
     background-color: #EEE;
     height: fit-content;
+    z-index: 20;
+
+    .chakra-form-control {
+      margin: 3px 0;
+    }
 
     .palette-row {
       flex-direction: row;
