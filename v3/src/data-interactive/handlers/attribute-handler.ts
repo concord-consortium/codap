@@ -108,9 +108,10 @@ export const diAttributeHandler: DIHandler = {
           clientY = layout.y
         }
         uiState.setDraggingXOffset(clientX - (overlayWidth ?? 0) / 2)
-        // TODO Hard coded header height
-        const kCodapHeaderHeight = 94
-        uiState.setDraggingYOffset(clientY - kCodapHeaderHeight) // - (overlayHeight ?? 0))
+        const containers = document.getElementsByClassName("codap-container")
+        const kCodapHeaderHeight = 95
+        const containerOffset = containers.item(0)?.getBoundingClientRect()?.top ?? kCodapHeaderHeight
+        uiState.setDraggingYOffset(clientY - containerOffset)
 
         // Dispatch events that will trigger a drag start
         // A setTimeout is used to ensure that hooks are updated before the drag begins
