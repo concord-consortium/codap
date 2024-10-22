@@ -127,14 +127,14 @@ export const diAttributeHandler: DIHandler = {
         })
       }
       return { success: true }
-    } else if (["dragOver", "dragEnd"].includes(request) && interactiveFrame) {
+    } else if (["dragMove", "dragEnd"].includes(request) && interactiveFrame) {
       const { mouseX, mouseY } = (values ?? {}) as DINotifyAttribute
       const pluginTileElement = document.getElementById(interactiveFrame.id)
       const pluginElement = pluginTileElement?.getElementsByClassName("codap-web-view-body").item(0)
       const rect = pluginElement?.getBoundingClientRect()
       const clientX = (mouseX ?? 0) + (rect?.x ?? 0)
       const clientY = (mouseY ?? 0) + (rect?.y ?? 0)
-      const event = request === "dragOver" ? "pointermove" : "pointerup"
+      const event = request === "dragMove" ? "pointermove" : "pointerup"
       document.dispatchEvent(new PointerEvent(event, {
         bubbles, cancelable, clientX, clientY, isPrimary, pointerId, pointerType
       }))
