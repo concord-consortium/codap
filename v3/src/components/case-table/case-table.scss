@@ -266,6 +266,11 @@ $table-body-font-size: 8pt;
           background-color: #D3E9C8;
         }
       }
+      &[aria-selected=true] {
+        .codap-data-cell {
+          background-color: var(--rdg-row-selected-background-color);
+        }
+      }
     }
 
     .rdg-cell {
@@ -305,6 +310,10 @@ $table-body-font-size: 8pt;
 
       &.formula-column {
         background-color: rgba(255, 255, 0, 0.2);
+      }
+
+      &.selected {
+        background-color: var(--rdg-row-selected-background-color);
       }
 
       .cell-color-swatch {
