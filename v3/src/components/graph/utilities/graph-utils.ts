@@ -291,6 +291,13 @@ interface IEquationString {
   sumOfSquares?: number
 }
 
+export function residualsString(sumOfSquares:number, includeBreak = true) {
+  const squaresMaxDec = !sumOfSquares || sumOfSquares > 100 ? 0 : 3
+  const formattedSumOfSquares = formatEquationValue(sumOfSquares || 0, squaresMaxDec)
+  return isFiniteNumber(sumOfSquares)
+    ? `${includeBreak ? '<br />' : ''}${t("DG.ScatterPlotModel.sumSquares")} = ${formattedSumOfSquares}` : ""
+}
+
 export function equationString({ slope, intercept, attrNames, sumOfSquares, layout }: IEquationString) {
   const slopeIsFinite = isFinite(slope) && slope !== 0
   const neededFractionDigits = findNeededFractionDigits(slopeIsFinite ? slope : 0, intercept, layout)
@@ -622,12 +629,10 @@ export const leastSquaresLinearRegression = (iValues: Point[], iInterceptLocked:
 interface ISumOfSquares {
   cellKey: Record<string, string>
   dataConfig: IGraphDataConfigurationModel
-  intercept: number
-  slope: number
-  defaultVal?: number
+  computeY: (x: number) => number
 }
 
-export const calculateSumOfSquares = ({ cellKey, dataConfig, intercept, slope }: ISumOfSquares) => {
+export const calculateSumOfSquares = ({ cellKey, dataConfig, computeY }: ISumOfSquares) => {
   const dataset = dataConfig?.dataset
   const caseData = dataset?.items
   const xAttrID = dataConfig?.attributeID("x") ?? ""
@@ -638,9 +643,8 @@ export const calculateSumOfSquares = ({ cellKey, dataConfig, intercept, slope }:
     if (fullCaseData && dataConfig?.isCaseInSubPlot(cellKey, fullCaseData)) {
       const x = dataset?.getNumeric(datum.__id__, xAttrID) ?? NaN
       const y = dataset?.getNumeric(datum.__id__, yAttrID) ?? NaN
-      if (slope == null || intercept == null) return
-      const lineY = slope * x + intercept
-      const residual = y - lineY
+      const yValue = computeY(x)
+      const residual = y - yValue
       if (isFinite(residual)) {
         sumOfSquares += residual * residual
       }

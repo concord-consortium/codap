@@ -11,7 +11,7 @@ import { useGraphDataConfigurationContext } from "../../hooks/use-graph-data-con
 import { useAdornmentAttributes } from "../../hooks/use-adornment-attributes"
 import { useAdornmentCategories } from "../../hooks/use-adornment-categories"
 import { useAdornmentCells } from "../../hooks/use-adornment-cells"
-import { curveBasis } from "../../utilities/graph-utils"
+import { calculateSumOfSquares, curveBasis, residualsString } from "../../utilities/graph-utils"
 import { FormulaFn } from "./plotted-function-adornment-types"
 
 import "./plotted-function-adornment-component.scss"
@@ -24,6 +24,15 @@ interface IComputePointsOptions {
   gap: number,
   xScale: ScaleNumericBaseType,
   yScale: ScaleNumericBaseType
+}
+
+function residualsContainer(model: IPlottedFunctionAdornmentModel,
+                            cellKey: Record<string, string>, containerId: string) {
+  const classFromKey = model.classNameFromKey(cellKey)
+  const residualsContainerClass = `movable-line-equation-container-${classFromKey}`
+  const residualsContainerSelector = `#${containerId} .${residualsContainerClass}`
+
+  return { residualsContainerClass, residualsContainerSelector }
 }
 
 const computePoints = (options: IComputePointsOptions) => {
@@ -43,16 +52,32 @@ const computePoints = (options: IComputePointsOptions) => {
 export const PlottedFunctionAdornmentComponent = observer(function PlottedFunctionAdornment(
   props: IAdornmentComponentProps
 ) {
-  const {cellKey = {}, plotWidth, plotHeight, xAxis, yAxis} = props
+  const {cellKey = {}, containerId, plotWidth, plotHeight, xAxis, yAxis} = props
   const model = props.model as IPlottedFunctionAdornmentModel
   const graphModel = useGraphContentModelContext()
   const dataConfig = useGraphDataConfigurationContext()
+  const showSumSquares = graphModel?.adornmentsStore.showSquaresOfResiduals
   const { xScale, yScale } = useAdornmentAttributes()
   const { cellCounts, classFromKey, instanceKey } = useAdornmentCells(model, cellKey)
   const { xSubAxesCount } = useAdornmentCategories()
+  const {residualsContainerClass, residualsContainerSelector} = residualsContainer(model, cellKey, containerId)
   const path = useRef("")
   const plottedFunctionRef = useRef<SVGGElement>(null)
 
+  const refreshResiduals = useCallback((plottedFunc: FormulaFn) => {
+    if (!showSumSquares || !dataConfig) return
+    const sumOfSquares = calculateSumOfSquares({ cellKey, dataConfig, computeY: plottedFunc })
+    const string = residualsString(sumOfSquares, false)
+    const residualsParagraph = select(residualsContainerSelector).select("p")
+
+    select(residualsContainerSelector)
+      .style("width", `${plotWidth}px`)
+      .style("height", `${plotHeight}px`)
+    residualsParagraph.html(string)
+    residualsParagraph.style("left", '0px')
+      .style("top", '0px')
+  }, [cellKey, dataConfig, residualsContainerSelector, plotHeight, plotWidth, showSumSquares])
+  
   const addPath = useCallback((formulaFunction: FormulaFn) => {
     if (!model.expression) return
     const xMin = xScale.domain()[0]
@@ -78,16 +103,17 @@ export const PlottedFunctionAdornmentComponent = observer(function PlottedFuncti
   const refreshValues = useCallback(() => {
     if (!model.isVisible) return
 
-    const measure = model?.plottedFunctions.get(instanceKey)
+    const plottedFunctionMeasure = model?.plottedFunctions.get(instanceKey)
     const selection = select(plottedFunctionRef.current)
 
     // Remove the previous value's elements
     selection.html(null)
 
-    if (measure) {
-      addPath(measure.formulaFunction)
+    if (plottedFunctionMeasure) {
+      addPath(plottedFunctionMeasure.formulaFunction)
+      refreshResiduals(plottedFunctionMeasure.formulaFunction)
     }
-  }, [model, instanceKey, addPath])
+  }, [model.isVisible, model?.plottedFunctions, instanceKey, addPath, refreshResiduals])
 
   // Refresh values on expression changes
   useEffect(function refreshExpressionChange() {
@@ -105,7 +131,7 @@ export const PlottedFunctionAdornmentComponent = observer(function PlottedFuncti
     return mstAutorun(() => {
       // We observe changes to the axis domains within the autorun by extracting them from the axes below.
       // We do this instead of including domains in the useEffect dependency array to prevent domain changes
-      // from triggering a reinstall of the autorun.
+      // from triggering a reinstallation of the autorun.
       if (xAxis && yAxis) {
         const { domain: xDomain } = xAxis // eslint-disable-line @typescript-eslint/no-unused-vars
         const { domain: yDomain } = yAxis // eslint-disable-line @typescript-eslint/no-unused-vars
@@ -113,6 +139,29 @@ export const PlottedFunctionAdornmentComponent = observer(function PlottedFuncti
       refreshValues()
     }, { name: "PlottedFunctionAdornmentComponent.refreshAxisChange" }, model)
   }, [dataConfig, model, plotWidth, plotHeight, refreshValues, xAxis, yAxis])
+
+  // Build the line and its cover segments and handles just once
+  useEffect(function createResidualsBox() {
+    // Set up the text box for the residuals
+    // Define the selector that corresponds with this specific movable line's adornment container
+    const residualsBox = select(`#${containerId}`).append("div")
+      .attr("class", `movable-line-equation-container ${residualsContainerClass}`)
+      .attr("data-testid", `${residualsContainerClass}`)
+      .style("width", `${plotWidth}px`)
+      .style("height", `${plotHeight}px`)
+
+    residualsBox
+      .append("p")
+      .attr("class", "plotted-functions-residuals")
+      .attr("data-testid", `plotted-functions-residuals-${model.classNameFromKey(cellKey)}`)
+
+    return () => {
+      residualsBox.remove()
+    }
+    // This effect should only run once on mount, otherwise it would create multiple
+    // instances of the line elements
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
     <svg
