@@ -1,3 +1,6 @@
+import { kContainerClass } from "../../components/container/container-constants"
+import { kPluginAttributeDragId } from "../../components/drag-drop/drag-drop-constants"
+import { kWebViewBodyClass } from "../../components/web-view/web-view-constants"
 import { appState } from "../../models/app-state"
 import { IAttribute } from "../../models/data/attribute"
 import { createAttributesNotification, updateAttributesNotification } from "../../models/data/data-set-notifications"
@@ -93,7 +96,7 @@ export const diAttributeHandler: DIHandler = {
     if (request === "dragStart") {
       dataInteractiveState.setDraggingDatasetId(dataContext.id)
       dataInteractiveState.setDraggingAttributeId(attribute.id)
-      const pluginAttributeDrag = document.getElementById("plugin-attribute-drag")
+      const pluginAttributeDrag = document.getElementById(kPluginAttributeDragId)
       if (pluginAttributeDrag) {
         // Get overlay dimensions specified by plugin
         const { overlayHeight, overlayWidth } = (values ?? {}) as DINotifyAttribute
@@ -110,7 +113,7 @@ export const diAttributeHandler: DIHandler = {
           clientY = layout.y
         }
         dataInteractiveState.setDraggingXOffset(clientX - (overlayWidth ?? 0) / 2)
-        const containers = document.getElementsByClassName("codap-container")
+        const containers = document.getElementsByClassName(kContainerClass)
         const kCodapHeaderHeight = 95
         const containerOffset = containers.item(0)?.getBoundingClientRect()?.top ?? kCodapHeaderHeight
         dataInteractiveState.setDraggingYOffset(clientY - containerOffset - (overlayHeight ?? 0))
@@ -130,7 +133,7 @@ export const diAttributeHandler: DIHandler = {
     } else if (["dragMove", "dragEnd"].includes(request) && interactiveFrame) {
       const { mouseX, mouseY } = (values ?? {}) as DINotifyAttribute
       const pluginTileElement = document.getElementById(interactiveFrame.id)
-      const pluginElement = pluginTileElement?.getElementsByClassName("codap-web-view-body").item(0)
+      const pluginElement = pluginTileElement?.getElementsByClassName(kWebViewBodyClass).item(0)
       const rect = pluginElement?.getBoundingClientRect()
       const clientX = (mouseX ?? 0) + (rect?.x ?? 0)
       const clientY = (mouseY ?? 0) + (rect?.y ?? 0)

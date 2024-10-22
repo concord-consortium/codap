@@ -3,6 +3,7 @@ import React, { useRef } from "react"
 import { t } from "../../utilities/translation/translate"
 import { ITileBaseProps } from "../tiles/tile-base-props"
 import { useDataInteractiveController } from "./use-data-interactive-controller"
+import { kWebViewBodyClass } from "./web-view-constants"
 import { WebViewDropOverlay } from "./web-view-drop-overlay"
 import { isWebViewModel } from "./web-view-model"
 
@@ -17,7 +18,7 @@ export const WebViewComponent = observer(function WebViewComponent({ tile }: ITi
   if (!isWebViewModel(webViewModel)) return null
 
   return (
-    <div className="codap-web-view-body" data-testid="codap-web-view">
+    <div className={kWebViewBodyClass} data-testid="codap-web-view">
       {!webViewModel.isPlugin && (
         <div className="codap-web-view-backdrop">
           <div className="codap-web-view-url">{webViewModel.url}</div>

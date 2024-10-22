@@ -13,6 +13,7 @@ import { getSharedModelManager } from "../../models/tiles/tile-environment"
 import { urlParams } from "../../utilities/url-params"
 import { AttributeDragOverlay } from "../drag-drop/attribute-drag-overlay"
 import { PluginAttributeDrag } from "../drag-drop/plugin-attribute-drag"
+import { kContainerClass } from "./container-constants"
 import { FreeTileRowComponent } from "./free-tile-row"
 import { MosaicTileRowComponent } from "./mosaic-tile-row"
 
@@ -43,7 +44,7 @@ export const Container: React.FC = () => {
     })
   }, [documentContent, getTile])
 
-  const { setNodeRef } = useContainerDroppable("codap-container", evt => {
+  const { setNodeRef } = useContainerDroppable(kContainerClass, evt => {
     const dragTileId = getDragTileId(evt.active)
     if (dragTileId) {
       if (isFreeTileRow(row)) {
@@ -63,7 +64,7 @@ export const Container: React.FC = () => {
   })
   const mergedContainerRef = useMergeRefs<HTMLDivElement>(containerRef, setNodeRef)
 
-  const classes = clsx("codap-container", { "scroll-behavior-auto": isScrollBehaviorAuto })
+  const classes = clsx(kContainerClass, { "scroll-behavior-auto": isScrollBehaviorAuto })
   return (
     <DocumentContainerContext.Provider value={containerRef}>
       <div className={classes} ref={mergedContainerRef}>
