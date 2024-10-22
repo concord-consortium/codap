@@ -9,7 +9,7 @@ import { appState } from "../models/app-state"
 import { createCodapDocument, isCodapDocument } from "../models/codap/create-codap-document"
 import { gLocale } from "../utilities/translation/locale"
 import { t } from "../utilities/translation/translate"
-import { removeDevUrlParams } from "../utilities/url-params"
+import { removeDevUrlParams, urlParams } from "../utilities/url-params"
 
 const locales = [
   {
@@ -147,6 +147,8 @@ export function useCloudFileManager(optionsArg: CFMAppOptions) {
   useEffect(function initCfm() {
 
     const _options: CFMAppOptions = {
+      // When running in the Activity Player, hide the hamburger menu
+      hideMenuBar: urlParams.interactiveApi !== undefined,
       ui: {
         menuBar: {
           info: "Language menu",
