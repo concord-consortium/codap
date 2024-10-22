@@ -3,8 +3,8 @@ import {
   MouseSensor, PointerSensor, TraversalOrder, useSensor, useSensors
 } from "@dnd-kit/core"
 import React, { ReactNode } from "react"
+import { dataInteractiveState } from "../../data-interactive/data-interactive-state"
 import { containerSnapToGridModifier, restrictDragToArea } from "../../hooks/use-drag-drop"
-import { uiState } from "../../models/ui-state"
 import { urlParams } from "../../utilities/url-params"
 import { canAutoScroll } from "./dnd-can-auto-scroll"
 import { dndDetectCollision } from "./dnd-detect-collision"
@@ -39,7 +39,7 @@ export const CodapDndContext = ({ children }: IProps) => {
       autoScroll={autoScrollOptions}
       collisionDetection={dndDetectCollision}
       modifiers={[containerSnapToGridModifier, restrictDragToArea]}
-      onDragEnd={() => uiState.endDrag()}
+      onDragEnd={() => dataInteractiveState.endDrag()}
       sensors={sensors} >
       {children}
     </DndContext>

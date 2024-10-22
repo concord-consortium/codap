@@ -2,6 +2,7 @@ import { useMergeRefs } from "@chakra-ui/react"
 import { useDndContext } from "@dnd-kit/core"
 import { clsx } from "clsx"
 import React, { useCallback, useRef } from "react"
+import { dataInteractiveState } from "../../data-interactive/data-interactive-state"
 import { DocumentContainerContext } from "../../hooks/use-document-container-context"
 import { useDocumentContent } from "../../hooks/use-document-content"
 import { useContainerDroppable, getDragTileId, getOverlayDragId } from "../../hooks/use-drag-drop"
@@ -9,7 +10,6 @@ import { logMessageWithReplacement, logStringifiedObjectMessage } from "../../li
 import { isFreeTileRow } from "../../models/document/free-tile-row"
 import { isMosaicTileRow } from "../../models/document/mosaic-tile-row"
 import { getSharedModelManager } from "../../models/tiles/tile-environment"
-import { uiState } from "../../models/ui-state"
 import { urlParams } from "../../utilities/url-params"
 import { AttributeDragOverlay } from "../drag-drop/attribute-drag-overlay"
 import { PluginAttributeDrag } from "../drag-drop/plugin-attribute-drag"
@@ -74,10 +74,10 @@ export const Container: React.FC = () => {
         <PluginAttributeDrag />
         <AttributeDragOverlay
           activeDragId={getOverlayDragId(active, "plugin")}
-          overlayHeight={uiState.draggingOverlayHeight}
-          overlayWidth={uiState.draggingOverlayWidth}
-          xOffset={uiState.draggingXOffset}
-          yOffset={uiState.draggingYOffset}
+          overlayHeight={dataInteractiveState.draggingOverlayHeight}
+          overlayWidth={dataInteractiveState.draggingOverlayWidth}
+          xOffset={dataInteractiveState.draggingXOffset}
+          yOffset={dataInteractiveState.draggingYOffset}
         />
       </div>
     </DocumentContainerContext.Provider>

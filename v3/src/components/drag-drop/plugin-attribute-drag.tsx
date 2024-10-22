@@ -1,16 +1,16 @@
 import { observer } from "mobx-react-lite"
 import React from "react"
+import { dataInteractiveState } from "../../data-interactive/data-interactive-state"
 import { useDraggableAttribute } from "../../hooks/use-drag-drop"
-import { uiState } from "../../models/ui-state"
 import { getDataSetFromId } from "../../models/shared/shared-data-utils"
 import { appState } from "../../models/app-state"
 
 import "./plugin-attribute-drag.scss"
 
 export const PluginAttributeDrag = observer(function PluginAttributeDrag() {
-  const dataSet = getDataSetFromId(appState.document, uiState.draggingDatasetId)
+  const dataSet = getDataSetFromId(appState.document, dataInteractiveState.draggingDatasetId)
   const { attributes, listeners, setNodeRef } = useDraggableAttribute({
-    attributeId: uiState.draggingAttributeId,
+    attributeId: dataInteractiveState.draggingAttributeId,
     dataSet,
     prefix: "plugin"
   })

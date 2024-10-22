@@ -3,9 +3,9 @@ import { IAttribute } from "../../models/data/attribute"
 import { createAttributesNotification, updateAttributesNotification } from "../../models/data/data-set-notifications"
 import { IFreeTileLayout, isFreeTileRow } from "../../models/document/free-tile-row"
 import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-data-utils"
-import { uiState } from "../../models/ui-state"
 import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
+import { dataInteractiveState } from "../data-interactive-state"
 import { convertAttributeToV2, convertAttributeToV2FromResources } from "../data-interactive-type-utils"
 import { DIAttribute, DIHandler, DINotifyAttribute, DIResources, DIValues } from "../data-interactive-types"
 import { createAttribute, updateAttribute } from "./di-handler-utils"
@@ -91,14 +91,14 @@ export const diAttributeHandler: DIHandler = {
     const pointerType = "mouse"
 
     if (request === "dragStart") {
-      uiState.setDraggingDatasetId(dataContext.id)
-      uiState.setDraggingAttributeId(attribute.id)
+      dataInteractiveState.setDraggingDatasetId(dataContext.id)
+      dataInteractiveState.setDraggingAttributeId(attribute.id)
       const pluginAttributeDrag = document.getElementById("plugin-attribute-drag")
       if (pluginAttributeDrag) {
         // Get overlay dimensions specified by plugin
         const { overlayHeight, overlayWidth } = (values ?? {}) as DINotifyAttribute
-        uiState.setDraggingOverlayHeight(overlayHeight)
-        uiState.setDraggingOverlayWidth(overlayWidth)
+        dataInteractiveState.setDraggingOverlayHeight(overlayHeight)
+        dataInteractiveState.setDraggingOverlayWidth(overlayWidth)
 
         // Determine position of drag
         let clientX = 0
@@ -109,11 +109,11 @@ export const diAttributeHandler: DIHandler = {
           clientX = layout.x
           clientY = layout.y
         }
-        uiState.setDraggingXOffset(clientX - (overlayWidth ?? 0) / 2)
+        dataInteractiveState.setDraggingXOffset(clientX - (overlayWidth ?? 0) / 2)
         const containers = document.getElementsByClassName("codap-container")
         const kCodapHeaderHeight = 95
         const containerOffset = containers.item(0)?.getBoundingClientRect()?.top ?? kCodapHeaderHeight
-        uiState.setDraggingYOffset(clientY - containerOffset - (overlayHeight ?? 0))
+        dataInteractiveState.setDraggingYOffset(clientY - containerOffset - (overlayHeight ?? 0))
 
         // Dispatch events that will trigger a drag start
         // A setTimeout is used to ensure that hooks are updated before the drag begins
