@@ -1,4 +1,4 @@
-import { DragOverlay, Modifiers, useDndContext } from "@dnd-kit/core"
+import { DragOverlay, Modifier, Modifiers, useDndContext } from "@dnd-kit/core"
 import React, { CSSProperties } from "react"
 import { getDragAttributeInfo } from "../../hooks/use-drag-drop"
 
@@ -28,14 +28,14 @@ export function AttributeDragOverlay ({ activeDragId, overlayHeight, overlayWidt
     ? { height: `${overlayHeight}px`, width: `${overlayWidth}px` } : undefined
 
   // Drags initiated by plugins have to be offset based on the location of the plugin
-  const modifier = (xOffset || yOffset) && ((args: any) => {
+  const modifier: Modifier | undefined = (xOffset || yOffset) ? (args => {
     const { x, y, scaleX, scaleY } = args.transform
     return {
       x: x + (xOffset ?? 0),
       y: y + (yOffset ?? 0),
       scaleX, scaleY
     }
-  })
+  }) : undefined
   const modifiers: Modifiers | undefined = modifier ? [modifier] : undefined
 
   return (
