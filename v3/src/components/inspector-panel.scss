@@ -112,9 +112,12 @@ $inspector-panel-width: 50px;
       white-space: nowrap;
 
       &.color-picker-row {
+        display: flex;
+        flex-direction: row;
         height: 30px;
         justify-content: space-between;
         padding-right: 5px;
+        margin: 4px 0;
       }
     }
 

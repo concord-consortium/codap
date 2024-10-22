@@ -17,8 +17,7 @@
     padding: 2px 5px !important;
     margin: 2px 1px;
     border: 1px solid #d0d0d0;
-    position: absolute;
-    right: 28px;
+
     &.categorical {
       position: absolute;
       right: 2px;
@@ -56,6 +55,10 @@
     .cat-color-picker {
       margin: 6px 0;
     }
+  }
+
+  .num-color-setting {
+    margin: 3px 0;
   }
 }
 

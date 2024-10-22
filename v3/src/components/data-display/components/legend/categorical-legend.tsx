@@ -2,7 +2,7 @@ import {observer} from "mobx-react-lite"
 import {mstReaction} from "../../../../utilities/mst-reaction"
 import {comparer, reaction} from "mobx"
 import {drag, range, select} from "d3"
-import React, {useCallback, useEffect, useMemo, useRef} from "react"
+import React, {useCallback, useEffect, useMemo, useRef, useState} from "react"
 import { logMessageWithReplacement } from "../../../../lib/log-message"
 // import { setOrExtendSelection } from "../../../../models/data/data-set-utils"
 import {isSelectionAction} from "../../../../models/data/data-set-actions"
@@ -88,16 +88,20 @@ export const CategoricalLegend = observer(
     const prevCategoryIndex = useRef(0)
     const
       keysElt = useRef(null)
+    const [, setLegendColors] = useState<string[]>([])
 
     const setCategoryData = useCallback(() => {
       if (categoriesRef.current) {
-        const newCategoryData = categoriesRef.current.map((cat: string, index) => ({
-          category: cat,
-          color: dataConfiguration?.getLegendColorForCategory(cat) || missingColor,
-          column: index % layoutData.current.numColumns,
-          index,
-          row: Math.floor(index / layoutData.current.numColumns)
-        }))
+        const newCategoryData = categoriesRef.current.map((cat: string, index) => {
+          return (
+          {
+            category: cat,
+            color: dataConfiguration?.getLegendColorForCategory(cat) || missingColor,
+            column: index % layoutData.current.numColumns,
+            index,
+            row: Math.floor(index / layoutData.current.numColumns)
+          })
+        })
         categoryData.current = newCategoryData
       }
     }, [dataConfiguration])
@@ -326,6 +330,22 @@ export const CategoricalLegend = observer(
       )
       return () => disposer()
     }, [refreshKeys, computeDesiredExtent, dataConfiguration, setupKeys, setDesiredExtent, layerIndex])
+
+    useEffect(function respondToLegendColorChange() {
+      const disposer = reaction(
+        () => {
+          return categoriesRef.current?.map(cat => dataConfiguration?.getLegendColorForCategory(cat))
+        },
+        (newLegendColors) => {
+          if (newLegendColors) {
+            setLegendColors((newLegendColors?.filter((color): color is string => color !== undefined))
+                              || [missingColor])
+          }
+          refreshKeys()
+        }, {fireImmediately: true}
+      )
+      return () => disposer()
+    }, [dataConfiguration, refreshKeys])
 
     useEffect(function setup() {
       if (keysElt.current && categoryData.current) {

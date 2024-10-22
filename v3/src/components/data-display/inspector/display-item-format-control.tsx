@@ -1,6 +1,6 @@
 import React, {useRef} from "react"
 import {observer} from "mobx-react-lite"
-import {Checkbox, Flex, FormControl, FormLabel, Input, Slider, SliderThumb, SliderTrack
+import {Checkbox, Flex, FormControl, FormLabel, Slider, SliderThumb, SliderTrack
   } from "@chakra-ui/react"
 import { PointColorSetting } from "./point-color-setting"
 import {IDataConfigurationModel} from "../models/data-configuration-model"
@@ -36,13 +36,33 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
     },  {
       undoStringKey: "DG.Undo.graph.changePointColor",
       redoStringKey: "DG.Redo.graph.changePointColor",
-      log: "Changed point color"
+      log: attrType === "categorical" ? "Changed categorical point color" : "Changed point color"
     })
   }
-  // const handleSwatchClick = (cat: string) => {
-  //   console.log("handleSwatchClick", cat)
-  //   setOpenPopover(openPopover === cat ? null : cat)
-  // }
+
+  const handleCatPointColorChange = (color: string, cat: string) => {
+    displayItemDescription.applyModelChange(
+      () => {
+        dataConfiguration.setLegendColorForCategory(cat, color)
+      },
+      {
+        undoStringKey: "DG.Undo.graph.changePointColor",
+        redoStringKey: "DG.Redo.graph.changePointColor",
+        log: "Changed categorical point color"
+      }
+    )
+  }
+
+  const handlePointStrokeColorChange = (color: string) => {
+    displayItemDescription.applyModelChange(
+      () => displayItemDescription.setPointStrokeColor(color),
+      {
+        undoStringKey: "DG.Undo.graph.changeStrokeColor",
+        redoStringKey: "DG.Redo.graph.changeStrokeColor",
+        log: "Changed stroke color"
+      }
+    )
+  }
 
   const renderPlotControlsIfAny = () => {
     if (onBackgroundTransparencyChange && onBackgroundColorChange) {
@@ -51,8 +71,9 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
           <FormControl isDisabled={isTransparent}>
             <Flex className="palette-row color-picker-row">
               <FormLabel className="form-label color-picker">{t("DG.Inspector.backgroundColor")}</FormLabel>
-              <Input type="color" className="color-picker-thumb" value={plotBackgroundColor}
-                     onChange={e => onBackgroundColorChange(e.target.value)}/>
+              <PointColorSetting propertyLabel={t("DG.Inspector.backgroundColor")}
+                                onColorChange={(color) => onBackgroundColorChange(color)}
+                                swatchBackgroundColor={plotBackgroundColor ?? "#FFFFFF"}/>
             </Flex>
           </FormControl>
           <FormControl>
@@ -103,59 +124,47 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
 
       <FormControl isDisabled={displayItemDescription.pointStrokeSameAsFill} className="palette-form-control">
         <Flex className="palette-row color-picker-row">
-          <FormLabel className="form-label color-picker stroke">{t("DG.Inspector.stroke")}</FormLabel>
-          <Input type="color" className="color-picker-thumb" value={displayItemDescription.pointStrokeColor}
-                 onChange={(e) => {
-                   displayItemDescription.applyModelChange(
-                     () => displayItemDescription.setPointStrokeColor(e.target.value),
-                     {
-                       undoStringKey: "DG.Undo.graph.changeStrokeColor",
-                       redoStringKey: "DG.Redo.graph.changeStrokeColor",
-                       log: "Changed stroke color"
-                     }
-                   )
-                 }}/>
+          <FormLabel className="form-label color-picker">{t("DG.Inspector.stroke")}</FormLabel>
+          <PointColorSetting propertyLabel={t("DG.Inspector.stroke")}
+                            onColorChange={(color)=>handlePointStrokeColorChange(color)}
+                            swatchBackgroundColor={displayItemDescription.pointStrokeColor}/>
         </Flex>
         <>
-          { /*todo: The legend color controls are not in place yet*/ }
           {dataConfiguration.attributeID("legend") &&
-          attrType === "categorical"
-            ? <FormControl className="cat-color-setting">
-              {categoriesRef.current?.map(category => {
-                return (
-                  <PointColorSetting category={category} key={category} dataConfiguration={dataConfiguration}/>
-                )
-              })}
-              </FormControl>
-            : attrType === "numeric"
-              ?(
-              <FormControl className="num-color-setting">
+            attrType === "categorical"
+              ? <FormControl className="cat-color-setting">
+                {categoriesRef.current?.map(category => {
+                  return (
+                    <Flex direction="row" key={category} className="palette-row color-picker-row cat-color-picker">
+                      <FormLabel className="form-label color-picker">{category}</FormLabel>
+                      <PointColorSetting key={category} attrType={"categorical"} propertyLabel={category}
+                        onColorChange={(color) => handleCatPointColorChange(color, category)}
+                        swatchBackgroundColor={dataConfiguration.getLegendColorForCategory(category)}/>
+                    </Flex>
+                  )
+                })}
+                </FormControl>
+              : attrType === "numeric"
+                ? <FormControl className="num-color-setting">
+                    <Flex className="palette-row color-picker-row">
+                      <FormLabel className="form-label color-picker">{t("DG.Inspector.legendColor")}</FormLabel>
+                      {/* Sets the min and max colors for numeric legend. Currently not implemented so
+                                    this sets the same color for all the points*/}
+                      <PointColorSetting propertyLabel={t("DG.Inspector.legendColor")} attrType={"numeric"}
+                                        onColorChange={(color) => handlePointColorChange(color)}
+                                        swatchBackgroundColor={displayItemDescription.pointColor}/>
+                      <PointColorSetting propertyLabel={t("DG.Inspector.legendColor")} attrType={"numeric"}
+                                        onColorChange={(color) => handlePointColorChange(color)}
+                                        swatchBackgroundColor={displayItemDescription.pointColor}/>
+                    </Flex>
+                  </FormControl>
+                :(
                 <Flex className="palette-row color-picker-row">
-                  {/* Sets the min and max colors for numeric legend. Currently not implemented so
-                                this sets the same color for all the points*/}
-                  <FormLabel className="form-label color-picker legend">{t("DG.Inspector.legendColor")}</FormLabel>
-                  <Input type="color" className="color-picker-thumb" value={missingColor}
-                         onChange={e => displayItemDescription.setPointColor(e.target.value)}/>
-                  <Input type="color" className="color-picker-thumb" value={missingColor}
-                         onChange={e => displayItemDescription.setPointColor(e.target.value)}/>
-                </Flex>
-              </FormControl>)
-              :(
-              <Flex className="palette-row color-picker-row">
-                <FormLabel className="form-label color-picker color">{t("DG.Inspector.color")}</FormLabel>
-                <Input type="color" className="color-picker-thumb"
-                       value={displayItemDescription.pointColor}
-                       onChange={e => {
-                         displayItemDescription.applyModelChange(
-                           () => displayItemDescription.setPointColor(e.target.value),
-                           {
-                             undoStringKey: "DG.Undo.graph.changePointColor",
-                             redoStringKey: "DG.Redo.graph.changePointColor",
-                             log: attrType === "categorical" ? "Changed categorical point color" : "Changed point color"
-                           }
-                         )
-                       }}/>
-              </Flex>)
+                  <FormLabel className="form-label color-picker">{t("DG.Inspector.color")}</FormLabel>
+                  <PointColorSetting propertyLabel={t("DG.Inspector.color")}
+                                    onColorChange={(color) => handlePointColorChange(color)}
+                                    swatchBackgroundColor={displayItemDescription.pointColor}/>
+                </Flex>)
           }
         </>
       </FormControl>
