@@ -7,6 +7,7 @@ import { useDataSet } from "../../hooks/use-data-set"
 import { getOverlayDragId } from "../../hooks/use-drag-drop"
 import { useInstanceIdContext } from "../../hooks/use-instance-id-context"
 import { prf } from "../../utilities/profiler"
+import { excludeDragOverlayRegEx } from "../case-tile-common/case-tile-types"
 // import { DGDataContext } from "../../models/v2/dg-data-context"
 import { AttributeDragOverlay } from "../drag-drop/attribute-drag-overlay"
 import { CardView } from "./card-view"
@@ -82,7 +83,7 @@ export const CaseCard = observer(function CaseCard({ setNodeRef }: IProps) {
       <>
         <div ref={mergeRefs} className="case-card react-data-card" data-testid="case-card">
           <CardView onNewCollectionDrop={handleNewCollectionDrop}/>
-          <AttributeDragOverlay activeDragId={getOverlayDragId(active, instanceId, true)} />
+          <AttributeDragOverlay activeDragId={getOverlayDragId(active, instanceId, excludeDragOverlayRegEx)}/>
         </div>
       </>
     )

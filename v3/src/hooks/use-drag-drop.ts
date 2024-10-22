@@ -30,9 +30,9 @@ export function getDragAttributeInfo(active: Active | null): Omit<IDragAttribute
   const { dataSet, attributeId } = active?.data.current as IDragAttributeData || {}
   return dataSet && attributeId ? { dataSet, attributeId } : undefined
 }
-export function getOverlayDragId(active: Active | null, instanceId: string, excludeIndexColumn = false) {
+export function getOverlayDragId(active: Active | null, instanceId: string, excludeRegEx?: RegExp) {
   const activeId = `${active?.id}`
-  return active && activeId.startsWith(instanceId) && !(excludeIndexColumn && activeId.endsWith(kIndexColumnKey))
+  return active && activeId.startsWith(instanceId) && !(excludeRegEx && excludeRegEx.test(activeId))
     ? activeId : undefined
 }
 

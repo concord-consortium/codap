@@ -14,6 +14,7 @@ import { INotification } from "../../models/history/apply-model-change"
 import { mstReaction } from "../../utilities/mst-reaction"
 import { prf } from "../../utilities/profiler"
 import { t } from "../../utilities/translation/translate"
+import { excludeDragOverlayRegEx } from "../case-tile-common/case-tile-types"
 import { AttributeHeaderDividerContext } from "../case-tile-common/use-attribute-header-divider-context"
 import { AttributeDragOverlay } from "../drag-drop/attribute-drag-overlay"
 import { CollectionTable } from "./collection-table"
@@ -135,7 +136,7 @@ export const CaseTable = observer(function CaseTable({ setNodeRef }: IProps) {
               )
             })}
           </AttributeHeaderDividerContext.Provider>
-          <AttributeDragOverlay activeDragId={getOverlayDragId(active, instanceId, true)} />
+          <AttributeDragOverlay activeDragId={getOverlayDragId(active, instanceId, excludeDragOverlayRegEx)} />
           <NoCasesMessage />
         </div>
       </div>
