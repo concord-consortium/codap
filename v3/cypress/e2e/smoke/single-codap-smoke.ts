@@ -31,7 +31,7 @@ context("codap single smoke test", () => {
     cfm.getModalDialog().contains(".tab-selected", "Example Documents")
     cfm.getModalDialog().contains(".filelist div.selectable", "Four Seals").should("exist")
     cfm.getModalDialog().contains(".filelist div.selectable", "Mammals").should("exist")
-    // Selecting Mammals document should load the mammals example document
+    // Selecting Mammals document should load the Mammals example document
     cfm.getModalDialog().contains(".filelist div.selectable", "Mammals").click()
     cfm.getModalDialog().contains(".buttons button", "Open").click()
     cy.wait(1000)
@@ -50,7 +50,7 @@ context("codap single smoke test", () => {
     })
     table.getColumnHeader(1).invoke("text").then(columnName => {
       table.getColumnHeader(1).rightclick({ force: true })
-      })
+    })
     table.getAttribute("Order").should('be.visible').and("have.text", "Order")
     table.getAttribute("LifeSpan").should('be.visible').and('have.text', 'LifeSpan(years)')
 
@@ -69,17 +69,15 @@ context("codap single smoke test", () => {
     cy.log("test graph axis functionalities in Mammals sample doc")
     // it is possible to create a graph
     cy.dragAttributeToTarget("table", "Speed", "left")
-    //cy.wait(500)
     cy.get('[data-testid="axis-legend-attribute-button-left"]').eq(0).should("have.text", "Speed")
     cy.get("[data-testid=graph]").find("[data-testid=axis-left]").find(".tick").should("have.length", 25)
     cy.dragAttributeToTarget("table", "Mammal", "bottom")
-    //cy.wait(500)
     cy.get('[data-testid="axis-legend-attribute-button-bottom"]').eq(0).should("have.text", "Mammal")
     cy.get("[data-testid=graph]").find("[data-testid=axis-bottom]").find(".tick").should("have.length", 27)
 
     cy.log("test creating parent collections")
     // NOTE: the graph compresses to a single point in Cypress here.
-    // This is a known issue and seems tied to just the Mammals sample dataset (PT-#188415914)
+    // This is a known issue and seems tied to just the Mammals example dataset (PT-#188415914)
     table.moveAttributeToParent("Habitat", "newCollection")
     table.getNumOfRows(1).should("contain", 5) // five rows: top, land, water, both, bottom
     table.moveAttributeToParent("Diet", "newCollection")
@@ -109,7 +107,7 @@ context("codap single smoke test", () => {
     cfm.getModalDialog().contains(".tab-selected", "Example Documents")
     cfm.getModalDialog().contains(".filelist div.selectable", "Mammals").should("exist")
     cfm.getModalDialog().contains(".filelist div.selectable", "Four Seals").should("exist")
-    // Selecting Mammals document should load the mammals example document
+    // Selecting Four Seals document should load the Four Seals example document
     cfm.getModalDialog().contains(".filelist div.selectable", "Four Seals").click()
     cfm.getModalDialog().contains(".buttons button", "Open").click()
     cy.wait(1000)
@@ -126,22 +124,22 @@ context("codap single smoke test", () => {
     cy.get('[data-testid="axis-legend-attribute-button-bottom"]').eq(0).should("have.text", "date")
     // Check that the date axis contains the year '2005'
     cy.get('[data-testid="axis-bottom"]')
-    .find('text')
-    .contains('2005')
-    .should('exist')
+      .find('text')
+      .contains('2005')
+      .should('exist')
 
     // Check the number of tick marks on axis (e.g., ensuring there are 9 months: May to Jan)
     cy.get('[data-testid="axis-bottom"]')
-    .find('text')
-    .should('have.length', 10) // Adjust this if the expected number changes (currently 9 + ghost div=10)
+      .find('text')
+      .should('have.length', 10) // Adjust this if the expected number changes (currently 9 + ghost div=10)
 
     cy.log("checks map component")
     c.getComponentTitle("map").should("have.text", "Measurements")
+    cy.get('.leaflet-container').should('exist') // Ensure the map container is ready
     // Some day add a check for map with points, see PT #187534790
     // Also some day add a legend to the map.
-
   })
-  it("verify an empty CODAP document appears", () => {
+  it("verify an empty CODAP document appears and components open", () => {
     cy.log("verifies that toolshelf items open")
     cy.log("will open a new table")
     c.clickIconFromToolShelf("table")
@@ -166,6 +164,7 @@ context("codap single smoke test", () => {
     c.clickIconFromToolShelf("map")
     map.getMapTile().should("be.visible")
     c.getComponentTitle("map").should("have.text", "Map")
+    cy.get('.leaflet-container').should('exist') // Ensure the map container is ready
     c.closeComponent("map")
 
     cy.log("will open a slider")
