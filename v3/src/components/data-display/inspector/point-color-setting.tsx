@@ -139,7 +139,7 @@ export const PointColorSetting = observer(function PointColorSetting({onColorCha
             {showColorPicker &&
               <div className="color-picker-container">
                 <div className="color-picker">
-                  <ColorPicker color={inputValue} onChange={updateValue} />
+                  <ColorPicker color={swatchBackgroundColor} onChange={updateValue} />
                 </div>
                 <Flex className="color-picker-footer">
                   <ButtonGroup>
