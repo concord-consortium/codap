@@ -3,6 +3,7 @@ import {
   MouseSensor, PointerSensor, TraversalOrder, useSensor, useSensors
 } from "@dnd-kit/core"
 import React, { ReactNode } from "react"
+import { dataInteractiveState } from "../../data-interactive/data-interactive-state"
 import { containerSnapToGridModifier, restrictDragToArea } from "../../hooks/use-drag-drop"
 import { urlParams } from "../../utilities/url-params"
 import { canAutoScroll } from "./dnd-can-auto-scroll"
@@ -28,15 +29,17 @@ export const CodapDndContext = ({ children }: IProps) => {
   const useMouseSensor = useSensor(MouseSensor)
   const sensors = useSensors(
                     // pointer must move three pixels before starting a drag
-                    useSensor(PointerSensor, { activationConstraint: { distance: 3 }}),
+                    useSensor(PointerSensor, { activationConstraint: { distance: 3 } }),
                     useSensor(KeyboardSensor, { coordinateGetter: customCoordinatesGetter }),
                     // mouse sensor can be enabled for cypress tests, for instance
-                    urlParams.mouseSensor !== undefined ? useMouseSensor : null)
+                    urlParams.mouseSensor !== undefined ? useMouseSensor : null
+  )
   return (
     <DndContext
       autoScroll={autoScrollOptions}
       collisionDetection={dndDetectCollision}
       modifiers={[containerSnapToGridModifier, restrictDragToArea]}
+      onDragEnd={() => dataInteractiveState.endDrag()}
       sensors={sensors} >
       {children}
     </DndContext>

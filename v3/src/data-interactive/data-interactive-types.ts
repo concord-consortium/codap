@@ -41,6 +41,13 @@ export interface DIAllCases {
   }
 }
 export type DIAttribute = Partial<ICodapV2Attribute>
+export interface DINotifyAttribute {
+  mouseX?: number
+  mouseY?: number
+  overlayHeight?: number
+  overlayWidth?: number
+  request?: string
+}
 export interface DIAttributeLocationValues {
   collection?: string | number
   position?: number
@@ -178,8 +185,8 @@ export interface DIResources {
 }
 
 // types for values accepted as inputs by the API
-export type DISingleValues = DIAttribute | DIAttributeLocationValues | DICase | DIDataContext | DINotifyDataContext |
-  DIGlobal | DIInteractiveFrame | DIItemValues | DICreateCollection | DINewCase | DIUpdateCase |
+export type DISingleValues = DIAttribute | DINotifyAttribute | DIAttributeLocationValues | DICase | DIDataContext |
+  DINotifyDataContext | DIGlobal | DIInteractiveFrame | DIItemValues | DICreateCollection | DINewCase | DIUpdateCase |
   DINotification | DIItemSearchNotify | DILogMessage | V2SpecificComponent
 export type DIValues = DISingleValues | DISingleValues[] | number | string[]
 

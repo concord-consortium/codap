@@ -82,7 +82,7 @@ export function moveAttribute({
   const redoStringKey = undoable ? "DG.Redo.dataContext.moveAttribute" : undefined
   const logMessage = logMessageWithReplacement("Moved attribute %@ to %@ collection",
                         { attrId, collection: targetCollection.name ?? "new" })
-  const modelChangeOptions = { notifications, undoStringKey, redoStringKey, log: logMessage }
+  const modelChangeOptions = { notify: notifications, undoStringKey, redoStringKey, log: logMessage }
 
   if (targetCollection.id === sourceCollection?.id) {
     // move the attribute within a collection

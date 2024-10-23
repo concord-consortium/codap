@@ -1,16 +1,21 @@
 import { useMergeRefs } from "@chakra-ui/react"
+import { useDndContext } from "@dnd-kit/core"
 import { clsx } from "clsx"
 import React, { useCallback, useRef } from "react"
+import { dataInteractiveState } from "../../data-interactive/data-interactive-state"
 import { DocumentContainerContext } from "../../hooks/use-document-container-context"
 import { useDocumentContent } from "../../hooks/use-document-content"
-import { useContainerDroppable, getDragTileId } from "../../hooks/use-drag-drop"
+import { useContainerDroppable, getDragTileId, getOverlayDragId } from "../../hooks/use-drag-drop"
+import { logMessageWithReplacement, logStringifiedObjectMessage } from "../../lib/log-message"
 import { isFreeTileRow } from "../../models/document/free-tile-row"
 import { isMosaicTileRow } from "../../models/document/mosaic-tile-row"
 import { getSharedModelManager } from "../../models/tiles/tile-environment"
 import { urlParams } from "../../utilities/url-params"
+import { AttributeDragOverlay } from "../drag-drop/attribute-drag-overlay"
+import { PluginAttributeDrag } from "../drag-drop/plugin-attribute-drag"
+import { kContainerClass } from "./container-constants"
 import { FreeTileRowComponent } from "./free-tile-row"
 import { MosaicTileRowComponent } from "./mosaic-tile-row"
-import { logMessageWithReplacement, logStringifiedObjectMessage } from "../../lib/log-message"
 
 import "./container.scss"
 
@@ -21,6 +26,7 @@ export const Container: React.FC = () => {
   const row = documentContent?.getRowByIndex(0)
   const getTile = useCallback((tileId: string) => documentContent?.getTile(tileId), [documentContent])
   const containerRef = useRef<HTMLDivElement>(null)
+  const { active } = useDndContext()
 
   const handleCloseTile = useCallback((tileId: string) => {
     const tile = getTile(tileId)
@@ -38,7 +44,7 @@ export const Container: React.FC = () => {
     })
   }, [documentContent, getTile])
 
-  const { setNodeRef } = useContainerDroppable("codap-container", evt => {
+  const { setNodeRef } = useContainerDroppable(kContainerClass, evt => {
     const dragTileId = getDragTileId(evt.active)
     if (dragTileId) {
       if (isFreeTileRow(row)) {
@@ -58,7 +64,7 @@ export const Container: React.FC = () => {
   })
   const mergedContainerRef = useMergeRefs<HTMLDivElement>(containerRef, setNodeRef)
 
-  const classes = clsx("codap-container", { "scroll-behavior-auto": isScrollBehaviorAuto })
+  const classes = clsx(kContainerClass, { "scroll-behavior-auto": isScrollBehaviorAuto })
   return (
     <DocumentContainerContext.Provider value={containerRef}>
       <div className={classes} ref={mergedContainerRef}>
@@ -66,6 +72,14 @@ export const Container: React.FC = () => {
           <MosaicTileRowComponent row={row} getTile={getTile} onCloseTile={handleCloseTile}/>}
         {isFreeTileRow(row) &&
           <FreeTileRowComponent row={row} getTile={getTile} onCloseTile={handleCloseTile}/>}
+        <PluginAttributeDrag />
+        <AttributeDragOverlay
+          activeDragId={getOverlayDragId(active, "plugin")}
+          overlayHeight={dataInteractiveState.draggingOverlayHeight}
+          overlayWidth={dataInteractiveState.draggingOverlayWidth}
+          xOffset={dataInteractiveState.draggingXOffset}
+          yOffset={dataInteractiveState.draggingYOffset}
+        />
       </div>
     </DocumentContainerContext.Provider>
   )
