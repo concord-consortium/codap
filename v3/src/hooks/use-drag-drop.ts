@@ -31,7 +31,7 @@ export function getDragAttributeInfo(active: Active | null): Omit<IDragAttribute
 }
 export function getOverlayDragId(active: Active | null, instanceId: string, excludeRegEx?: RegExp) {
   const activeId = `${active?.id}`
-  return active && activeId.startsWith(instanceId) && !(excludeRegEx && excludeRegEx.test(activeId))
+  return active && activeId.startsWith(instanceId) && !excludeRegEx?.test(activeId)
     ? activeId : undefined
 }
 
