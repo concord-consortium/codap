@@ -1,6 +1,6 @@
 import { kContainerClass } from "../../components/container/container-constants"
 import { kPluginAttributeDragId } from "../../components/drag-drop/drag-drop-constants"
-import { kWebViewBodyClass } from "../../components/web-view/web-view-constants"
+import { kWebViewBodyClass } from "../../components/web-view/web-view-defs"
 import { appState } from "../../models/app-state"
 import { IAttribute } from "../../models/data/attribute"
 import { createAttributesNotification, updateAttributesNotification } from "../../models/data/data-set-notifications"

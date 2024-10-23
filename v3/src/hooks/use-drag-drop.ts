@@ -2,7 +2,6 @@ import {
   Active, DataRef, DragEndEvent, Modifier, useDndMonitor,
   useDraggable, UseDraggableArguments, useDroppable, UseDroppableArguments
 } from "@dnd-kit/core"
-import { kIndexColumnKey } from "../components/case-tile-common/case-tile-types"
 import { kTitleBarHeight } from "../components/constants"
 import { IDataSet } from "../models/data/data-set"
 import { useInstanceIdContext } from "./use-instance-id-context"
