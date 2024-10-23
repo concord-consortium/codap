@@ -116,9 +116,9 @@ export const diDataContextHandler: DIHandler = {
 
       if (sort != null) {
         const { attr, isDescending } = sort
-        if (!attr) return fieldRequiredResult("update:sort", "dataContext", "attr")
+        if (!attr) return fieldRequiredResult("update sort", "dataContext", "attr")
 
-        const attribute = getAttribute(attr, dataContext)
+        const attribute = getAttribute(`${attr}`, dataContext)
         if (!attribute) return attributeNotFoundResult
 
         dataContext.applyModelChange(() => {
