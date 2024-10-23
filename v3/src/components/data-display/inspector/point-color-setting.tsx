@@ -12,14 +12,15 @@ import styles from "./point-color-setting-shared.scss"
 import "./point-color-setting.scss"
 
 interface ColorPickerIProps {
-  onColorChange: (color: string) => void | ((color: string, cat: string) => void)
+  onColorChange: (color: string) => void | ((color: string, cat: string) => void) | ((color: string, quantile: number) => void)
   propertyLabel: string
   swatchBackgroundColor: string
   attrType?: string
+  quantile?: number
 }
 
 export const PointColorSetting = observer(function PointColorSetting({onColorChange,
-      propertyLabel, swatchBackgroundColor, attrType}: ColorPickerIProps) {
+      propertyLabel, swatchBackgroundColor, attrType, quantile=0}: ColorPickerIProps) {
   const [showColorPicker, setShowColorPicker] = useState(false)
   const [inputValue, setInputValue] = useState(missingColor)
   const popoverRef = useRef<HTMLDivElement>(null)
@@ -39,10 +40,12 @@ export const PointColorSetting = observer(function PointColorSetting({onColorCha
     setInputValue(value)
     if (attrType === "categorical") {
       (onColorChange as (color: string, cat: string) => void)(value, propertyLabel)
+    } else if (attrType === "numeric") {
+      (onColorChange as (color: string, quantile: number) => void)(value, quantile)
     } else {
       (onColorChange as (color: string) => void)(value)
     }
-  }, [attrType, onColorChange, propertyLabel])
+  }, [attrType, propertyLabel])
 
   const rejectValue = useCallback(() => {
     setShowColorPicker(false)
@@ -61,8 +64,10 @@ export const PointColorSetting = observer(function PointColorSetting({onColorCha
     setShowColorPicker(!showColorPicker)
   }
 
-  const baseColors = ["#000000", "#a9a9a9", "#d3d3d3", "#FFFFFF"]
-  const standardSwatchColors = [...baseColors, ...kellyColors.slice(0, 12)]
+  // const baseColors = ["#000000", "#a9a9a9", "#d3d3d3", "#FFFFFF"]
+  // const standardSwatchColors = [...baseColors, ...kellyColors.slice(0, 12)]
+  const paletteColors = ["#000000", "#a9a9a9", "#d3d3d3", "#FFFFFF", "#ad2323", "#ff9632", "#ffee33", "#1d6914",
+                          "#2a4bd7", "#814a19", "#8126c0", "#29d0d0", "#e9debb", "#ffcdf3", "#9dafff", "#81c57a"]
 
   useEffect(() => {
     const adjustPosition = () => {
@@ -120,13 +125,13 @@ export const PointColorSetting = observer(function PointColorSetting({onColorCha
           <PopoverBody className="color-picker-palette" ref={popoverRef}>
             <div className="color-swatch-palette">
               <div className="color-swatch-grid">
-                {standardSwatchColors.map((color, index) => (
-                  <div className={clsx("color-swatch-cell", {"selected": inputValue === color})}
+                {paletteColors.map((color, index) => (
+                  <div className={clsx("color-swatch-cell", {"selected": swatchBackgroundColor === color})}
                         style={{ backgroundColor: color }} key={index} onClick={()=>onColorChange(color)}/>
                 ))}
                 {nonStandardColorSelected &&
                   <div className="color-swatch-row">
-                    <div className={clsx("color-swatch-cell", "selected")}
+                    <div className={clsx("color-swatch-cell", {"selected": swatchBackgroundColor === inputValue})}
                           style={{backgroundColor: inputValue}}/>
                   </div>}
               </div>
