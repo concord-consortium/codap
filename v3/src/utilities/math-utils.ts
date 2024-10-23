@@ -143,7 +143,9 @@ export function isFiniteNumber(x: any): x is number {
   return x != null && Number.isFinite(x)
 }
 
-export const isValueNonEmpty = (value: any) => value !== "" && value != null
+export const isValueEmpty = (value: any) => value == null || value === ""
+
+export const isValueNonEmpty = (value: any) => !isValueEmpty(value)
 
 // Similar to isFiniteNumber, but looser.
 // It allows for strings that can be converted to numbers and treats Infinity and -Infinity as valid numbers.
