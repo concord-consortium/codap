@@ -427,10 +427,6 @@ export const DataConfigurationModel = types
         const categorySet = self.categorySetForAttrRole('legend')
         return categorySet?.colorForCategory(cat) ?? missingColor
       },
-      setLegendColorForCategory(cat: string, color: string) {
-        const categorySet = self.categorySetForAttrRole('legend')
-        categorySet?.setColorForCategory(cat, color)
-      },
 
       getLegendColorForNumericValue(value: number): string {
         return self.legendQuantileScale(value)
@@ -675,6 +671,10 @@ export const DataConfigurationModel = types
         this._invalidateCases()
       }
       self.handlers.forEach(handler => handler(actionCall))
+    },
+    setLegendColorForCategory(cat: string, color: string) {
+      const categorySet = self.categorySetForAttrRole('legend')
+      categorySet?.setColorForCategory(cat, color)
     },
   }))
   .actions(self => ({

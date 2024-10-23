@@ -5,7 +5,6 @@ import {Checkbox, Flex, FormControl, FormLabel, Slider, SliderThumb, SliderTrack
 import { PointColorSetting } from "./point-color-setting"
 import {IDataConfigurationModel} from "../models/data-configuration-model"
 import {IDisplayItemDescriptionModel} from "../models/display-item-description-model"
-import {missingColor} from "../../../utilities/color-utils"
 import {t} from "../../../utilities/translation/translate"
 
 import "./inspector-panel.scss"

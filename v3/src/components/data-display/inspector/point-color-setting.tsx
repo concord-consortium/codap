@@ -6,8 +6,9 @@ import {Button, ButtonGroup, Flex, Popover, PopoverBody, PopoverContent, Popover
 import {missingColor, kellyColors} from "../../../utilities/color-utils"
 import {t} from "../../../utilities/translation/translate"
 import { ColorPicker } from "../../case-tile-common/color-picker"
-import styles from "./point-color-setting-shared.scss"
+import { useOutsidePointerDown } from "../../../hooks/use-outside-pointer-down"
 
+import styles from "./point-color-setting-shared.scss"
 import "./point-color-setting.scss"
 
 interface ColorPickerIProps {
@@ -28,14 +29,14 @@ export const PointColorSetting = observer(function PointColorSetting({onColorCha
   const kGapSize = 10
   const [nonStandardColorSelected, setNonStandardColorSelected] = useState(false)
 
+  useOutsidePointerDown({ref: popoverContainerRef, handler: () => setOpenPopover?.(null)})
+
   const handleSwatchClick = (cat: string) => {
-    console.log("handleSwatchClick", cat)
     setOpenPopover(openPopover === cat ? null : cat)
   }
 
   const updateValue = useCallback((value: string) => {
     setInputValue(value)
-    console.log("ColorPicker: updateValue", value)
     if (attrType === "categorical") {
       (onColorChange as (color: string, cat: string) => void)(value, propertyLabel)
     } else {
@@ -50,7 +51,9 @@ export const PointColorSetting = observer(function PointColorSetting({onColorCha
   const acceptValue = useCallback(() => {
     setShowColorPicker(false)
     setNonStandardColorSelected(true)
-  }, [inputValue])
+    updateValue(inputValue)
+    onColorChange(inputValue)
+  }, [inputValue, onColorChange, updateValue])
 
   const handleShowColorPicker = (evt: React.MouseEvent) => {
     evt.preventDefault()

@@ -88,7 +88,6 @@ export const CategoricalLegend = observer(
     const prevCategoryIndex = useRef(0)
     const
       keysElt = useRef(null)
-    const [, setLegendColors] = useState<string[]>([])
 
     const setCategoryData = useCallback(() => {
       if (categoriesRef.current) {
@@ -153,7 +152,8 @@ export const CategoricalLegend = observer(
                   return dataConfiguration?.allCasesForCategoryAreSelected(catData[index].category) ??
                     false
                 })
-              .style('fill', (index: number) => catData[index].color || 'white')
+              .style('fill', (index: number) =>
+                                dataConfiguration?.getLegendColorForCategory(catData[index].category) || 'white')
               .transition().duration(duration.current)
               .on('end', () => {
                 duration.current = 0
@@ -334,13 +334,9 @@ export const CategoricalLegend = observer(
     useEffect(function respondToLegendColorChange() {
       const disposer = reaction(
         () => {
-          return categoriesRef.current?.map(cat => dataConfiguration?.getLegendColorForCategory(cat))
+          return dataConfiguration?.categorySetForAttrRole('legend')?.colorHash
         },
-        (newLegendColors) => {
-          if (newLegendColors) {
-            setLegendColors((newLegendColors?.filter((color): color is string => color !== undefined))
-                              || [missingColor])
-          }
+        () => {
           refreshKeys()
         }, {fireImmediately: true}
       )
