@@ -148,6 +148,6 @@ export const CaseTable = observer(function CaseTable({ setNodeRef }: IProps) {
 const NoCasesMessage = observer(function NoCasesMessage() {
   const data = useDataSetContext()
   return !data?.items.length
-          ? <div className="no-cases-message">{t("V3.caseTable.noCases")}</div>
+          ? <div className="no-cases-message" data-testid="no-cases-message">{t("V3.caseTable.noCases")}</div>
           : null
 })
