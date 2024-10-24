@@ -4,19 +4,19 @@ import {
 import React, { useEffect, useState } from "react"
 import { observer } from "mobx-react-lite"
 import { clsx } from "clsx"
-import { DataSetContext } from "../../../hooks/use-data-set-context"
-import { logStringifiedObjectMessage } from "../../../lib/log-message"
-import { appState } from "../../../models/app-state"
-import { updateAttributesNotification, updateCasesNotification } from "../../../models/data/data-set-notifications"
-import { getSharedDataSets } from "../../../models/shared/shared-data-utils"
-import { t } from "../../../utilities/translation/translate"
-import { FormulaEditor } from "../../common/formula-editor"
-import { FormulaEditorContext, useFormulaEditorState } from "../../common/formula-editor-context"
-import { CodapModal } from "../../codap-modal"
-import { InsertFunctionMenu } from "../../common/formula-insert-function-menu"
-import { InsertValuesMenu } from "../../common/formula-insert-values-menu"
+import { DataSetContext } from "../../hooks/use-data-set-context"
+import { logStringifiedObjectMessage } from "../../lib/log-message"
+import { appState } from "../../models/app-state"
+import { updateAttributesNotification, updateCasesNotification } from "../../models/data/data-set-notifications"
+import { getSharedDataSets } from "../../models/shared/shared-data-utils"
+import { t } from "../../utilities/translation/translate"
+import { FormulaEditor } from "./formula-editor"
+import { FormulaEditorContext, useFormulaEditorState } from "./formula-editor-context"
+import { CodapModal } from "../codap-modal"
+import { InsertFunctionMenu } from "./formula-insert-function-menu"
+import { InsertValuesMenu } from "./formula-insert-values-menu"
 
-import "./attribute-menu.scss"
+import "./edit-formula-modal.scss"
 
 interface IProps {
   attributeId: string
@@ -25,7 +25,7 @@ interface IProps {
 }
 
 export const EditFormulaModal = observer(function EditFormulaModal({ attributeId, isOpen, onClose }: IProps) {
-  const dataSet = getSharedDataSets(appState.document).map(ds => ds.dataSet).find(ds => ds.attrFromID(attributeId))
+  const dataSet = getSharedDataSets(appState.document).find(ds => ds.dataSet.attrFromID(attributeId))?.dataSet
   const attribute = dataSet?.attrFromID(attributeId)
   const [showValuesMenu, setShowValuesMenu] = useState(false)
   const [showFunctionMenu, setShowFunctionMenu] = useState(false)

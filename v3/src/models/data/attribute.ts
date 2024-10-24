@@ -100,8 +100,7 @@ export const Attribute = V2Model.named("Attribute").props({
 .volatile(self => ({
   strValues: [] as string[],
   numValues: [] as number[],
-  changeCount: 0,
-  displayFormulaEditor: false
+  changeCount: 0
 }))
 .views(self => {
   const baseMatchNameOrId = self.matchNameOrId
@@ -171,9 +170,6 @@ export const Attribute = V2Model.named("Attribute").props({
   },
   setCid(cid?: string) {
     self._cid = cid
-  },
-  setDisplayFormulaEditor(value?: boolean) {
-    self.displayFormulaEditor = value ?? false
   }
 }))
 .actions(self => ({
