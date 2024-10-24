@@ -9,12 +9,12 @@ import {
 } from "../../../models/data/data-set-notifications"
 import { IAttributeChangeResult } from "../../../models/data/data-set-types"
 import { sortItemsWithCustomUndoRedo } from "../../../models/data/data-set-undo"
+import { uiState } from "../../../models/ui-state"
 import {
   allowAttributeDeletion, preventCollectionReorg, preventTopLevelReorg
 } from "../../../utilities/plugin-utils"
 import { t } from "../../../utilities/translation/translate"
 import { EditAttributePropertiesModal } from "./edit-attribute-properties-modal"
-import { EditFormulaModal } from "./edit-formula-modal"
 
 interface IProps {
   attributeId: string
@@ -28,7 +28,6 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
   const caseMetadata = useCaseMetadata()
   // each use of useDisclosure() maintains its own state and callbacks so they can be used for independent dialogs
   const propertiesModal = useDisclosure()
-  const formulaModal = useDisclosure()
 
   if (!attributeId) return null
 
@@ -47,14 +46,7 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
   }
 
   const handleEditFormulaOpen = () => {
-    formulaModal.onOpen()
-    onModalOpen(true)
-  }
-
-  const handleEditFormulaClose = () => {
-    formulaModal.onClose()
-    onModalOpen(false)
-    attribute?.setDisplayFormulaEditor(false)
+    uiState.setEditFormulaAttributeId(attributeId)
   }
 
   const handleSortCases = (item: IMenuItem) => {
@@ -207,11 +199,6 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
       </MenuList>
       <EditAttributePropertiesModal attributeId={attributeId} isOpen={propertiesModal.isOpen}
         onClose={handleEditPropertiesClose} />
-      <EditFormulaModal
-        attributeId={attributeId}
-        isOpen={attribute?.displayFormulaEditor || formulaModal.isOpen}
-        onClose={handleEditFormulaClose}
-      />
     </>
   )
 })

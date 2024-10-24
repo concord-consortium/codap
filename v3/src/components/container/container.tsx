@@ -1,6 +1,7 @@
 import { useMergeRefs } from "@chakra-ui/react"
 import { useDndContext } from "@dnd-kit/core"
 import { clsx } from "clsx"
+import { observer } from "mobx-react-lite"
 import React, { useCallback, useRef } from "react"
 import { dataInteractiveState } from "../../data-interactive/data-interactive-state"
 import { DocumentContainerContext } from "../../hooks/use-document-container-context"
@@ -10,7 +11,9 @@ import { logMessageWithReplacement, logStringifiedObjectMessage } from "../../li
 import { isFreeTileRow } from "../../models/document/free-tile-row"
 import { isMosaicTileRow } from "../../models/document/mosaic-tile-row"
 import { getSharedModelManager } from "../../models/tiles/tile-environment"
+import { uiState } from "../../models/ui-state"
 import { urlParams } from "../../utilities/url-params"
+import { EditFormulaModal } from "../case-tile-common/attribute-menu/edit-formula-modal"
 import { AttributeDragOverlay } from "../drag-drop/attribute-drag-overlay"
 import { PluginAttributeDrag } from "../drag-drop/plugin-attribute-drag"
 import { kContainerClass } from "./container-constants"
@@ -19,7 +22,7 @@ import { MosaicTileRowComponent } from "./mosaic-tile-row"
 
 import "./container.scss"
 
-export const Container: React.FC = () => {
+export const Container: React.FC = observer(function Container() {
   const documentContent = useDocumentContent()
   const isScrollBehaviorAuto = urlParams.scrollBehavior === "auto"
   // TODO: handle the possibility of multiple rows
@@ -80,7 +83,12 @@ export const Container: React.FC = () => {
           xOffset={dataInteractiveState.draggingXOffset}
           yOffset={dataInteractiveState.draggingYOffset}
         />
+        <EditFormulaModal
+          attributeId={uiState.editFormulaAttributeId}
+          isOpen={!!uiState.editFormulaAttributeId}
+          onClose={() => uiState.setEditFormulaAttributeId()}
+        />
       </div>
     </DocumentContainerContext.Provider>
   )
-}
+})

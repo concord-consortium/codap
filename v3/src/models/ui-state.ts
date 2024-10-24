@@ -43,6 +43,9 @@ export class UIState {
   @observable
   private _interruptionCount = 0
 
+  // Id of attribute whose formula is being edited using the editor modal
+  @observable private _editFormulaAttributeId = ""
+
   constructor() {
     makeObservable(this)
   }
@@ -69,6 +72,10 @@ export class UIState {
 
   get interruptionCount() {
     return this._interruptionCount
+  }
+
+  get editFormulaAttributeId() {
+    return this._editFormulaAttributeId
   }
 
   isFocusedTile(tileId?: string) {
@@ -117,6 +124,10 @@ export class UIState {
   @action
   incrementInterruptionCount() {
     this._interruptionCount += 1
+  }
+
+  @action setEditFormulaAttributeId(id?: string) {
+    this._editFormulaAttributeId = id ?? ""
   }
 
   @action setAttrIdToEdit(attrId?: string) {
