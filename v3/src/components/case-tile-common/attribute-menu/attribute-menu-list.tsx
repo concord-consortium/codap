@@ -54,6 +54,7 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
   const handleEditFormulaClose = () => {
     formulaModal.onClose()
     onModalOpen(false)
+    attribute?.setDisplayFormulaEditor(false)
   }
 
   const handleSortCases = (item: IMenuItem) => {
@@ -206,7 +207,11 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
       </MenuList>
       <EditAttributePropertiesModal attributeId={attributeId} isOpen={propertiesModal.isOpen}
         onClose={handleEditPropertiesClose} />
-      <EditFormulaModal attributeId={attributeId} isOpen={formulaModal.isOpen} onClose={handleEditFormulaClose} />
+      <EditFormulaModal
+        attributeId={attributeId}
+        isOpen={attribute?.displayFormulaEditor || formulaModal.isOpen}
+        onClose={handleEditFormulaClose}
+      />
     </>
   )
 })

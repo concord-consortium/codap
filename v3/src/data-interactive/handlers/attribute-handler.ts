@@ -142,6 +142,9 @@ export const diAttributeHandler: DIHandler = {
         bubbles, cancelable, clientX, clientY, isPrimary, pointerId, pointerType
       }))
       return { success: true }
+    } else if (request === "formulaEditor") {
+      attribute.setDisplayFormulaEditor(true)
+      return { success: true }
     }
 
     return errorResult(t("V3.DI.Error.unknownRequest", { vars: [request] })) 
