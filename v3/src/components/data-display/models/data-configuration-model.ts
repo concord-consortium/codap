@@ -672,6 +672,8 @@ export const DataConfigurationModel = types
       }
       self.handlers.forEach(handler => handler(actionCall))
     },
+  }))
+  .actions(self => ({
     setLegendColorForCategory(cat: string, color: string) {
       const categorySet = self.categorySetForAttrRole('legend')
       categorySet?.setColorForCategory(cat, color)
