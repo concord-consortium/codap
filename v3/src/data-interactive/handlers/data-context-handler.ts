@@ -15,8 +15,9 @@ import { basicDataSetInfo, convertDataSetToV2 } from "../data-interactive-type-u
 import { getAttribute } from "../data-interactive-utils"
 import { findTileFromNameOrId } from "../resource-parser-utils"
 import { createCollection } from "./di-handler-utils"
-import { dataContextNotFoundResult, errorResult, fieldRequiredResult } from "./di-results"
+import { attributeNotFoundResult, dataContextNotFoundResult, errorResult, fieldRequiredResult } from "./di-results"
 import { toV3CaseId } from "../../utilities/codap-utils"
+import { sortItemsWithCustomUndoRedo } from "../../models/data/data-set-undo"
 
 const requestRequiedResult = fieldRequiredResult("Notify", "dataContext", "request")
 
@@ -97,14 +98,13 @@ export const diDataContextHandler: DIHandler = {
 
   update(resources: DIResources, _values?: DIValues) {
     // TODO rerandomize
-    // TODO sort
     const { dataContext } = resources
     if (!dataContext) return dataContextNotFoundResult
 
     const values = _values as DIUpdateDataContext
     if (values) {
+      const { managingController, metadata, sort, title } = values
       dataContext.applyModelChange(() => {
-        const { managingController, metadata, sort, title } = values
         if (metadata && hasOwnProperty(metadata, "description")) dataContext.setDescription(metadata.description)
         if (hasOwnProperty(values, "title")) dataContext.setTitle(title)
 
@@ -112,14 +112,20 @@ export const diDataContextHandler: DIHandler = {
           const tile = findTileFromNameOrId(managingController)
           dataContext.setManagingControllerId(tile?.id)
         }
-
-        if (sort?.attr) {
-          const attribute = getAttribute(sort.attr, dataContext)
-          if (attribute) {
-            // TODO Perform the actual sort
-          }
-        }
       })
+
+      if (sort != null) {
+        const { attr, isDescending } = sort
+        if (!attr) return fieldRequiredResult("update sort", "dataContext", "attr")
+
+        const attribute = getAttribute(`${attr}`, dataContext)
+        if (!attribute) return attributeNotFoundResult
+
+        dataContext.applyModelChange(() => {
+          const direction = isDescending ? "descending" : "ascending"
+          sortItemsWithCustomUndoRedo(dataContext, attribute.id, direction)
+        })
+      }
     }
 
     return { success: true }
