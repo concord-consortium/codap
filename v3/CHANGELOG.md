@@ -1,4 +1,27 @@
 # Changelog
+## Version 3.0.0-pre.1946 - October 25, 2024
+
+### ✨ Features & Improvements:
+- **PT-182079220:** The formula editor has full documentation for functions as in V2
+- **PT-188415994:** CODAP v3 Documents in the **Activity Player** shouldn't show the file menu
+- **PT-186945894:** Support language-switching via CFM language menu
+- **PT-188416015:** Remaining Logical/Other **Functions**
+- **PT-188286105:** Drag objects from Plugins to CODAP tables or graphs
+
+### 🐞 Bug Fixes:
+- **PT-188104342:** Grid does not display in Four Seals
+- **PT-188382528:** **Formulas** Don’t Highlight Across Table Row
+
+### 🛠️ Under the Hood:
+- **PT-187738926:** DI Update DataContext Sort (*Delivered*)
+- **PT-188363563:** Add plugin API for plugins to request that CODAP bring up formula editor for a particular attribute (*Finished*)
+- **PT-188410313:** Add Slack Notification about failed tests on `main`
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  179807 bytes |                            2.93% |
+|  index.js | 6289897 bytes |                            2.58% |
 
 ## Version 3.0.0-pre.1934 - October 18, 2024
 
