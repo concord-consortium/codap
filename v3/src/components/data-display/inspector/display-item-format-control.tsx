@@ -40,7 +40,7 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
   }
 
   const handleCatPointColorChange = (color: string, cat: string) => {
-    displayItemDescription.applyModelChange(
+    dataConfiguration.applyModelChange(
       () => {
         dataConfiguration.setLegendColorForCategory(cat, color)
       },
@@ -138,7 +138,8 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
                       <FormLabel className="form-label color-picker">{category}</FormLabel>
                       <PointColorSetting key={category} attrType={"categorical"} propertyLabel={category}
                         onColorChange={(color) => handleCatPointColorChange(color, category)}
-                        swatchBackgroundColor={dataConfiguration.getLegendColorForCategory(category)}/>
+                        swatchBackgroundColor={dataConfiguration.getLegendColorForCategory(category)}
+                        dataConfiguration={dataConfiguration}/>
                     </Flex>
                   )
                 })}
@@ -151,10 +152,12 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
                                     this sets the same color for all the points*/}
                       <PointColorSetting propertyLabel={t("DG.Inspector.legendColor")} attrType={"numeric"}
                                         onColorChange={(color) => handlePointColorChange(color)}
-                                        swatchBackgroundColor={displayItemDescription.pointColor}/>
+                                        swatchBackgroundColor={displayItemDescription.pointColor}
+                                        dataConfiguration={dataConfiguration}/>
                       <PointColorSetting propertyLabel={t("DG.Inspector.legendColor")} attrType={"numeric"}
                                         onColorChange={(color) => handlePointColorChange(color)}
-                                        swatchBackgroundColor={displayItemDescription.pointColor}/>
+                                        swatchBackgroundColor={displayItemDescription.pointColor}
+                                        dataConfiguration={dataConfiguration}/>
                     </Flex>
                   </FormControl>
                 :(
@@ -162,7 +165,8 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
                   <FormLabel className="form-label color-picker">{t("DG.Inspector.color")}</FormLabel>
                   <PointColorSetting propertyLabel={t("DG.Inspector.color")}
                                     onColorChange={(color) => handlePointColorChange(color)}
-                                    swatchBackgroundColor={displayItemDescription.pointColor}/>
+                                    swatchBackgroundColor={displayItemDescription.pointColor}
+                                    dataConfiguration={dataConfiguration}/>
                 </Flex>)
           }
         </>

@@ -1,6 +1,7 @@
 import {Instance, types} from "mobx-state-tree"
 import {applyModelChange} from "../../../models/history/apply-model-change"
 import {defaultPointColor, defaultStrokeColor, kellyColors} from "../../../utilities/color-utils"
+import { observable } from "mobx"
 
 export const DisplayItemDescriptionModel = types
   .model("PointDescriptionModel", {
@@ -10,7 +11,8 @@ export const DisplayItemDescriptionModel = types
     _pointSizeMultiplier: 1, // Not used when item is a polygon in which case it is set to -1
   })
   .volatile(() => ({
-    _dynamicPointSizeMultiplier: undefined as number | undefined  // Used during slider drag
+    _dynamicPointSizeMultiplier: undefined as number | undefined,  // Used during slider drag
+    provisionalPointDescriptionColorMap: observable.map<string, string>() //
   }))
   .actions(self => ({
     setPointColor(color: string, plotIndex = 0) {

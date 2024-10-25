@@ -54,14 +54,15 @@ export const CategorySet = types.model("CategorySet", {
       self.handleAttributeInvalidated?.(invalidId)
     }
   }),
-  // user color assignments
+  // user color assignments to categories in an attribute
   colors: types.map(types.string),
   // user category re-orderings
   moves: types.array(types.frozen<ICategoryMove>())
 })
 .volatile(self => ({
   provisionalAttributeActionDisposer: undefined as Maybe<IDisposer>,
-  handleAttributeInvalidated: undefined as Maybe<(attrId: string) => void>
+  handleAttributeInvalidated: undefined as Maybe<(attrId: string) => void>,
+  provisionalColorMap: observable.map<string, string>()
 }))
 .actions(self => ({
   onAttributeInvalidated(handler: (attrId: string) => void) {
@@ -204,7 +205,11 @@ export const CategorySet = types.model("CategorySet", {
 }))
 .views(self => ({
   get colorHash() {
-    return hashStringSets([Array.from(self.colors.values()), self.valuesArray])
+    if (self.provisionalColorMap) {
+      return hashStringSets([Array.from(self.provisionalColorMap.values()), self.valuesArray])
+    } else {
+      return hashStringSets([Array.from(self.colors.values()), self.valuesArray])
+    }
   }
 }))
 .actions(self => ({
@@ -219,6 +224,10 @@ export const CategorySet = types.model("CategorySet", {
 }))
 .actions(self => ({
   afterCreate() {
+    // Initialize provisionalColorMap with colors
+    self.colors.forEach((color, category) => {
+      self.provisionalColorMap.set(category as string, color)
+    })
     // invalidate the cached categories when necessary
     // afterAttach isn't called for provisional category sets, so we need to listen here
     const hasProvisionalDataSet = !!getProvisionalDataSet(self)
@@ -266,9 +275,15 @@ export const CategorySet = types.model("CategorySet", {
     }
     self.invalidate()
   },
+  setProvisionalColorForCategory(value: string, color: string) {
+    self.provisionalColorMap.set(value, color)
+  },
   setColorForCategory(value: string, color: string) {
     if (self.index(value) != null) {
       self.colors.set(value, color)
+      if (self.provisionalColorMap.has(value)) {
+        self.provisionalColorMap.delete(value)
+      }
     }
   },
   storeCurrentColorForCategory(value: string) {
