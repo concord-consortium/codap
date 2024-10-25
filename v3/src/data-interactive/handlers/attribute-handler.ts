@@ -6,6 +6,7 @@ import { IAttribute } from "../../models/data/attribute"
 import { createAttributesNotification, updateAttributesNotification } from "../../models/data/data-set-notifications"
 import { IFreeTileLayout, isFreeTileRow } from "../../models/document/free-tile-row"
 import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-data-utils"
+import { uiState } from "../../models/ui-state"
 import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
 import { dataInteractiveState } from "../data-interactive-state"
@@ -141,6 +142,9 @@ export const diAttributeHandler: DIHandler = {
       document.dispatchEvent(new PointerEvent(event, {
         bubbles, cancelable, clientX, clientY, isPrimary, pointerId, pointerType
       }))
+      return { success: true }
+    } else if (request === "formulaEditor") {
+      uiState.setEditFormulaAttributeId(attribute.id)
       return { success: true }
     }
 
