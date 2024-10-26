@@ -7,8 +7,9 @@
   generally be MobX-observable.
  */
 import { cloneDeep } from "lodash"
-import { action, computed, makeObservable, observable } from "mobx"
+import { action, computed, makeObservable, observable, reaction } from "mobx"
 import { getSnapshot } from "mobx-state-tree"
+import { CloudFileManager } from "@concord-consortium/cloud-file-manager"
 import { createCodapDocument } from "./codap/create-codap-document"
 import { gDataBroker } from "./data/data-broker"
 import { IDocumentModel, IDocumentModelSnapshot } from "./document/document"
@@ -17,6 +18,7 @@ import { ISharedDataSet, kSharedDataSetType, SharedDataSet } from "./shared/shar
 import { getSharedModelManager } from "./tiles/tile-environment"
 import { Logger } from "../lib/logger"
 import { t } from "../utilities/translation/translate"
+import { DEBUG_DOCUMENT } from "../lib/debug"
 
 type AppMode = "normal" | "performance"
 
@@ -32,9 +34,14 @@ class AppState {
   private isPerformanceEnabled = true
 
   private version = ""
+  private cfm: CloudFileManager | undefined
+  private dirtyMonitorDisposer: (() => void) | undefined
 
   constructor() {
     this.currentDocument = createCodapDocument()
+    if (DEBUG_DOCUMENT) {
+      (window as any).currentDocument = this.currentDocument
+    }
 
     makeObservable(this)
   }
@@ -46,18 +53,29 @@ class AppState {
 
   async getDocumentSnapshot() {
     // use cloneDeep because MST snapshots are immutable
-    return await serializeDocument(this.currentDocument, doc => cloneDeep(getSnapshot(doc)))
+    const snapshot = await serializeDocument(this.currentDocument, doc => cloneDeep(getSnapshot(doc)))
+    return {
+      revisionId: this.document.treeManagerAPI?.revisionId,
+      ...snapshot
+    }
+  }
+
+  setCFM(cfm: CloudFileManager) {
+    this.cfm = cfm
   }
 
   @action
-  setDocument(snap: IDocumentModelSnapshot, metadata?: Record<string, any>) {
+  setDocument(snap: IDocumentModelSnapshot & {revisionId?: string}, metadata?: Record<string, any>) {
     // stop monitoring changes for undo/redo on the existing document
-    this.disableUndoRedoMonitoring()
+    this.disableDocumentMonitoring()
 
     try {
       const document = createCodapDocument(snap)
       if (document) {
         this.currentDocument = document
+        if (DEBUG_DOCUMENT) {
+          (window as any).currentDocument = document
+        }
         if (metadata) {
           const metadataEntries = Object.entries(metadata)
           metadataEntries.forEach(([key, value]) => {
@@ -68,8 +86,15 @@ class AppState {
         }
         const docTitle = this.currentDocument.getDocumentTitle()
         this.currentDocument.setTitle(docTitle || t("DG.Document.defaultDocumentName"))
+        if (snap.revisionId && appState.document.treeManagerAPI) {
+          // TODO: might need to make this be an action since we are modifying an
+          // observable. But this is happening in the same action that created the
+          // treeManager so it might be allowed.
+          appState.document.treeManagerAPI.revisionId = snap.revisionId
+        }
+
         // monitor document changes for undo/redo
-        this.enableUndoRedoMonitoring()
+        this.enableDocumentMonitoring()
 
         // update data broker with the new data sets
         const manager = getSharedModelManager(document)
@@ -86,13 +111,23 @@ class AppState {
   }
 
   @action
-  enableUndoRedoMonitoring() {
+  enableDocumentMonitoring() {
     this.currentDocument?.treeMonitor?.enableMonitoring()
+    if (this.currentDocument && !this.dirtyMonitorDisposer) {
+      this.dirtyMonitorDisposer = reaction(
+        () => this.currentDocument.treeManagerAPI?.revisionId,
+        () => {
+          this.cfm?.client.dirty(true)
+        }
+      )
+    }
   }
 
   @action
-  disableUndoRedoMonitoring() {
+  disableDocumentMonitoring() {
     this.currentDocument?.treeMonitor?.disableMonitoring()
+    this.dirtyMonitorDisposer?.()
+    this.dirtyMonitorDisposer = undefined
   }
 
   @action

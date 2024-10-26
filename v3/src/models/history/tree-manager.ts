@@ -61,7 +61,13 @@ export const TreeManager = types
   // When replaying history this number can be less than the total number
   // history entries (self.document.history.length)
   numHistoryEventsApplied: 0 as number | undefined,
-  mainDocument: undefined as IMainDocument | undefined
+  mainDocument: undefined as IMainDocument | undefined,
+  /**
+   * The most recent historyEntryId of the document. If the document is restored
+   * from a system that stores the revisionId, the revisionId can be restored.
+   * However in that case, there might not be a corresponding history entry.
+   */
+  revisionId: ""
 }))
 .views((self) => ({
   get undoManager() : IUndoManager {
@@ -146,6 +152,10 @@ export const TreeManager = types
 
       // Re-attach the entry to the actual history
       self.document.history.push(entry)
+
+      // Store the most recent history id.
+      console.log("RevisionId", entry.id)
+      self.revisionId = entry.id
 
       // Add the entry to the undo stack if it is undoable.
       //

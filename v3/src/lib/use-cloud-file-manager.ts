@@ -147,6 +147,7 @@ export function useCloudFileManager(optionsArg: CFMAppOptions) {
   useEffect(function initCfm() {
 
     const _options: CFMAppOptions = {
+      autoSaveInterval: 5,
       // When running in the Activity Player, hide the hamburger menu
       hideMenuBar: urlParams.interactiveApi !== undefined,
       ui: {
@@ -246,6 +247,7 @@ export function useCloudFileManager(optionsArg: CFMAppOptions) {
       handleCFMEvent(cfm.client, event)
     })
 
+    appState.setCFM(cfm)
   }, [cfm])
 
   return cfm
