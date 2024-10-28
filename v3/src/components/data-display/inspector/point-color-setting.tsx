@@ -43,6 +43,7 @@ export const PointColorSetting = observer(function PointColorSetting({onColorCha
 
   const updateValue = useCallback((value: string) => {
     setInputValue(value)
+    setNonStandardColorSelected(true)
     if (attrType === "categorical") {
       (onColorChange as (color: string, cat: string) => void)(value, propertyLabel)
     } else if (attrType === "numeric") {
@@ -54,6 +55,8 @@ export const PointColorSetting = observer(function PointColorSetting({onColorCha
 
   const rejectValue = useCallback(() => {
     setShowColorPicker(false)
+    setOpenPopover(null)
+    setNonStandardColorSelected(false)
   }, [])
 
   const acceptValue = useCallback(() => {
@@ -68,10 +71,6 @@ export const PointColorSetting = observer(function PointColorSetting({onColorCha
     evt.stopPropagation()
     setShowColorPicker(!showColorPicker)
   }
-
-  // const baseColors = ["#000000", "#a9a9a9", "#d3d3d3", "#FFFFFF"]
-  // const standardSwatchColors = [...baseColors, ...kellyColors.slice(0, 12)]
-
   useEffect(() => {
     const adjustPosition = () => {
       const popover = popoverRef.current
