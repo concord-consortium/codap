@@ -1,21 +1,20 @@
 import {autorun} from "mobx"
-import React, { forwardRef, MutableRefObject, useCallback, useEffect, useRef } from "react"
+import React, {forwardRef, MutableRefObject, useCallback, useEffect, useRef} from "react"
 import {useMemo} from "use-memo-one"
 import {select, color, range} from "d3"
 import RTreeLib from 'rtree'
 import * as PIXI from "pixi.js"
 import {appState} from "../../../models/app-state"
 import {IDataSet} from "../../../models/data/data-set"
-import { selectAndDeselectCases } from "../../../models/data/data-set-utils"
+import {selectAndDeselectCases} from "../../../models/data/data-set-utils"
 import {defaultBackgroundColor} from "../../../utilities/color-utils"
 import {rTreeRect} from "../data-display-types"
 import {rectangleSubtract, rectNormalize} from "../data-display-utils"
-import { usePointerDownCapture } from "../hooks/use-pointer-down-capture"
 import {useDataDisplayLayout} from "../hooks/use-data-display-layout"
 import {useDataDisplayModelContext} from "../hooks/use-data-display-model"
+import {usePixiPointerDownDeselect} from "../hooks/use-pixi-pointer-down-deselect"
 import {MarqueeState} from "../models/marquee-state"
 import {IPixiPointMetadata, IPixiPointsArray, PixiBackgroundPassThroughEvent, PixiPoints} from "../pixi/pixi-points"
-import { useTileModelContext } from "../../../hooks/use-tile-model-context"
 
 interface IProps {
   marqueeState: MarqueeState
@@ -84,8 +83,6 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
     selectionTree = useRef<RTree | null>(null),
     previousMarqueeRect = useRef<rTreeRect>()
 
-  const { isTileSelected } = useTileModelContext()
-
   const clearDatasetsMapArrays = useCallback(() => {
     Object.keys(datasetsMap).forEach((key) => {
       datasetsMap[key].caseIDsToSelect = []
@@ -148,7 +145,7 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
       appState.endPerformance()
     }, [dataDisplayModel, marqueeState])
 
-  usePointerDownCapture(dataDisplayModel)
+  usePixiPointerDownDeselect(pixiPointsArray, dataDisplayModel)
 
   useEffect(() => {
     return autorun(() => {
@@ -206,7 +203,8 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
           window.addEventListener("pointerup", onDragEndHandler)
         })
     }, {name: "Background.autorun"})
-  }, [bgRef, datasetsArray, dataDisplayModel, layout, onDrag, onDragEnd, onDragStart, isTileSelected])
+  }, [bgRef, datasetsArray, dataDisplayModel, layout, onDrag, onDragEnd, onDragStart])
+
   return (
     <g className='background-group-element' ref={bgRef}/>
   )
