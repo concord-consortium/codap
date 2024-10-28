@@ -1,9 +1,9 @@
 import React, {useCallback, useEffect, useRef, useState} from "react"
 import {observer} from "mobx-react-lite"
 import { clsx } from "clsx"
+import { colord } from "colord"
 import {Button, ButtonGroup, Flex, Popover, PopoverBody, PopoverContent, PopoverTrigger,
   Portal} from "@chakra-ui/react"
-import {missingColor} from "../../../utilities/color-utils"
 import {t} from "../../../utilities/translation/translate"
 import { ColorPicker } from "../../case-tile-common/color-picker"
 import { useOutsidePointerDown } from "../../../hooks/use-outside-pointer-down"
@@ -25,24 +25,28 @@ interface ColorPickerIProps {
 export const PointColorSetting = observer(function PointColorSetting({onColorChange,
       propertyLabel, swatchBackgroundColor, attrType, dataConfiguration, quantile=0}: ColorPickerIProps) {
   const [showColorPicker, setShowColorPicker] = useState(false)
-  const [inputValue, setInputValue] = useState(missingColor)
+  const [inputValue, setInputValue] = useState(swatchBackgroundColor)
   const popoverRef = useRef<HTMLDivElement>(null)
   const popoverContainerRef = useRef<HTMLDivElement>(null)
   const [openPopover, setOpenPopover] = useState<string | null>(null)
   const pointColorSettingButtonRef = useRef<HTMLButtonElement>(null)
   const kGapSize = 10
-  const [nonStandardColorSelected, setNonStandardColorSelected] = useState(false)
-  const prevColorSelected = useRef("")
+  const [initialColor, setInitialColor] = useState(swatchBackgroundColor) // Added initialColor state
+  const paletteColors = ["#000000", "#a9a9a9", "#d3d3d3", "#FFFFFF", "#ad2323", "#ff9632", "#ffee33", "#1d6914",
+    "#2a4bd7", "#814a19", "#8126c0", "#29d0d0", "#e9debb", "#ffcdf3", "#9dafff", "#81c57a"]
+  const [nonStandardColorSelected, setNonStandardColorSelected] =
+            useState(!paletteColors.includes(swatchBackgroundColor))
+
   useOutsidePointerDown({ref: popoverContainerRef, handler: () => setOpenPopover?.(null)})
 
   const handleSwatchClick = (cat: string) => {
-    prevColorSelected.current = swatchBackgroundColor
+    setInitialColor(swatchBackgroundColor)
     setOpenPopover(openPopover === cat ? null : cat)
   }
 
   const updateValue = useCallback((value: string) => {
     setInputValue(value)
-    dataConfiguration?.setProvisionalColorForCategory(propertyLabel, value)
+    setNonStandardColorSelected(true)
     if (attrType === "categorical") {
       dataConfiguration?.setProvisionalColorForCategory(propertyLabel, value)
       // } else if (attrType === "numeric") {
@@ -55,33 +59,23 @@ export const PointColorSetting = observer(function PointColorSetting({onColorCha
   const rejectValue = useCallback(() => {
     setShowColorPicker(false)
     setOpenPopover(null)
-    setInputValue(prevColorSelected.current || missingColor)
-    dataConfiguration?.setProvisionalColorForCategory(propertyLabel, prevColorSelected.current || missingColor)
-  }, [])
+    setNonStandardColorSelected(false)
+    onColorChange(initialColor)
+  }, [onColorChange, initialColor])
 
   const acceptValue = useCallback(() => {
     setShowColorPicker(false)
     setOpenPopover(null)
     setNonStandardColorSelected(true)
-    prevColorSelected.current = inputValue
-    if (attrType === "categorical") {
-      (onColorChange as (color: string, cat: string) => void)(inputValue, propertyLabel)
-    } else if (attrType === "numeric") {
-      (onColorChange as (color: string, quantile: number) => void)(inputValue, quantile)
-    } else {
-      (onColorChange as (color: string) => void)(inputValue)
-    }
-  }, [attrType, inputValue, onColorChange, propertyLabel, quantile])
+    updateValue(inputValue)
+    setInitialColor(inputValue)
+  }, [inputValue, updateValue])
 
   const handleShowColorPicker = (evt: React.MouseEvent) => {
     evt.preventDefault()
     evt.stopPropagation()
     setShowColorPicker(!showColorPicker)
   }
-
-  const paletteColors = ["#000000", "#a9a9a9", "#d3d3d3", "#FFFFFF", "#ad2323", "#ff9632", "#ffee33", "#1d6914",
-                          "#2a4bd7", "#814a19", "#8126c0", "#29d0d0", "#e9debb", "#ffcdf3", "#9dafff", "#81c57a"]
-
   useEffect(() => {
     const adjustPosition = () => {
       const popover = popoverRef.current
@@ -140,12 +134,15 @@ export const PointColorSetting = observer(function PointColorSetting({onColorCha
             <div className="color-swatch-palette">
               <div className="color-swatch-grid">
                 {paletteColors.map((color, index) => (
-                  <div className={clsx("color-swatch-cell", {"selected": color === inputValue})}
-                        style={{ backgroundColor: color }} key={index} onClick={()=>updateValue(color)}/>
+                  <div className={clsx("color-swatch-cell",
+                                      {"selected": swatchBackgroundColor === color, "light": colord(color).isLight()})}
+                        style={{ backgroundColor: color }} key={index} onClick={()=>onColorChange(color)}/>
                 ))}
                 {nonStandardColorSelected &&
                   <div className="color-swatch-row">
-                    <div className={clsx("color-swatch-cell", {"selected": swatchBackgroundColor === inputValue})}
+                    <div className={clsx("color-swatch-cell",
+                                          {"selected": swatchBackgroundColor === inputValue,
+                                             "light": colord(inputValue).isLight()})}
                           style={{backgroundColor: inputValue}}/>
                   </div>}
               </div>
