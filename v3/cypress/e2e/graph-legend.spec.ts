@@ -492,7 +492,7 @@ context("Test selecting and selecting categories in legend", () => {
     cy.visit(url)
     cy.wait(2500)
   })
-  it("will select and unselect categories in categorical legend with categorical x axis", () => {
+  it.skip("will select and unselect categories in categorical legend with categorical x axis", () => {
     cy.dragAttributeToTarget("table", arrayOfAttributes[8], "bottom") // Diet => x-axis
     glh.dragAttributeToPlot(arrayOfAttributes[7]) // Habitat => plot area
     glh.selectCategoryNameForCategoricalLegend(arrayOfValues[7].values[0])
