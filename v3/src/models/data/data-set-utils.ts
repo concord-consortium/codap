@@ -8,8 +8,8 @@ import { IAttribute } from "./attribute"
 import { ICollectionModel } from "./collection"
 import { IDataSet } from "./data-set"
 import {
-  createCasesNotification,
-  deleteCollectionNotification, moveAttributeNotification, selectCasesNotification
+  createCasesNotification, deleteCasesNotification, deleteCollectionNotification,
+  moveAttributeNotification, selectCasesNotification
 } from "./data-set-notifications"
 import { IAttributeChangeResult, IMoveAttributeOptions } from "./data-set-types"
 
@@ -146,7 +146,20 @@ export function selectAndDeselectCases(addCaseIds: string[], removeCaseIds: stri
 
 // Set aside helper functions
 
-export function setAsideCases(data: IDataSet, caseIDs: string[]) {}
+export function addSetAsideCases(data: IDataSet, caseIDs: string[], undoable = true) {
+  if (caseIDs.length) {
+    const cases = caseIDs.map(caseId => data.caseInfoMap.get(caseId) ?? data.itemIdChildCaseMap.get(caseId))
+      .filter(caseInfo => !!caseInfo).map(caseInfo => caseInfo.groupedCase)
+    data.applyModelChange(() => {
+      data.hideCasesOrItems(caseIDs)
+      data.selectCases(caseIDs, false)
+    }, {
+      notify: [selectCasesNotification(data, true, cases), deleteCasesNotification(data, cases)],
+      undoStringKey: undoable ? "V3.Undo.hideShowMenu.setAsideCases" : undefined,
+      redoStringKey: undoable ? "V3.Redo.hideShowMenu.setAsideCases" : undefined
+    })
+  }
+}
 
 export function restoreSetAsideCases(data?: IDataSet, caseIDs?: string[], undoable = true) {
   if (!data) return

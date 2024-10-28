@@ -3,7 +3,7 @@ import { convertAttributeToV2, convertCaseToV2FullCase } from "../../data-intera
 import { toV2Id } from "../../utilities/codap-utils"
 import { IAttribute } from "./attribute"
 import { IDataSet } from "./data-set"
-import { ICase } from "./data-set-types"
+import { ICase, IGroupedCase } from "./data-set-types"
 import { ICollectionModel } from "./collection"
 
 const action = "notify"
@@ -141,7 +141,9 @@ export function deleteCasesNotification(data: IDataSet, cases?: ICase[]) {
 
 // selectCasesNotification returns a function that will later be called to determine if the selection
 // actually changed and a notification is necessary to broadcast
-export function selectCasesNotification(dataset: IDataSet, extend?: boolean) {
+export function selectCasesNotification(
+  dataset: IDataSet, extend?: boolean, hiddenRemovedGroupedCases?: IGroupedCase[]
+) {
   const getSelectedCaseIds = (selectedItemIds: Set<string>) => {
     const caseIds: string[] = []
     Array.from(dataset.caseInfoMap.values()).forEach(aCase => {
@@ -153,6 +155,15 @@ export function selectCasesNotification(dataset: IDataSet, extend?: boolean) {
   const oldSelectedItemIdSet = new Set(oldSelectedItemIds)
   const oldSelectedCaseIds = getSelectedCaseIds(oldSelectedItemIdSet)
   const oldSelectedCaseIdSet = new Set(oldSelectedCaseIds)
+
+  const convertCasesToV2FullCases = (_cases: IGroupedCase[]) => {
+    return _cases.map(groupedCase => convertCaseToV2FullCase(groupedCase, dataset))
+  }
+  // hiddenRemovedGroupedCases are deselected when they are setAside, so they are not present in
+  // dataset.caseInfoMap when normal removed cases are determined below
+  const hiddenRemovedCases = convertCasesToV2FullCases(
+    hiddenRemovedGroupedCases?.filter(groupedCase => dataset.isCaseSelected(groupedCase.__id__)) ?? []
+  )
 
   return () => {
     const newSelectedItemIds = Array.from(dataset.selection)
@@ -166,18 +177,19 @@ export function selectCasesNotification(dataset: IDataSet, extend?: boolean) {
     if (addedCaseIds.length === 0 && removedCaseIds.length === 0) return
 
     const convertCaseIdsToV2FullCases = (_caseIds: string[]) => {
-      return _caseIds.map(caseId => {
-        const c = dataset.caseInfoMap.get(caseId)
-        return c && convertCaseToV2FullCase(c.groupedCase, dataset)
-      }).filter(c => !!c)
+      const caseGroups = _caseIds.map(caseId => dataset.caseInfoMap.get(caseId)?.groupedCase).filter(c => !!c)
+      return convertCasesToV2FullCases(caseGroups)
     }
+
     const caseIds = extend ? addedCaseIds : newSelectedCaseIds
     const _cases = convertCaseIdsToV2FullCases(caseIds)
     const cases = extend
       ? _cases.length > 0 ? _cases : undefined
       : _cases
-    const removedCases = extend && removedCaseIds.length > 0
-      ? convertCaseIdsToV2FullCases(removedCaseIds) : undefined
+    const normalRemovedCases = extend && removedCaseIds.length > 0
+      ? convertCaseIdsToV2FullCases(removedCaseIds) : []
+    const _removedCases = hiddenRemovedCases.concat(normalRemovedCases)
+    const removedCases = _removedCases.length ? _removedCases : undefined
     const result = { success: true, cases, removedCases, extend: !!extend }
     return notification("selectCases", result, dataset)
   }
