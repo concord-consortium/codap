@@ -1,9 +1,10 @@
 import React, {useCallback, useEffect, useRef, useState} from "react"
 import {observer} from "mobx-react-lite"
 import { clsx } from "clsx"
+import { colord } from "colord"
 import {Button, ButtonGroup, Flex, Popover, PopoverBody, PopoverContent, PopoverTrigger,
   Portal} from "@chakra-ui/react"
-import {missingColor, kellyColors} from "../../../utilities/color-utils"
+import {missingColor} from "../../../utilities/color-utils"
 import {t} from "../../../utilities/translation/translate"
 import { ColorPicker } from "../../case-tile-common/color-picker"
 import { useOutsidePointerDown } from "../../../hooks/use-outside-pointer-down"
@@ -12,7 +13,8 @@ import styles from "./point-color-setting-shared.scss"
 import "./point-color-setting.scss"
 
 interface ColorPickerIProps {
-  onColorChange: (color: string) => void | ((color: string, cat: string) => void) | ((color: string, quantile: number) => void)
+  onColorChange: (color: string) => void | ((color: string, cat: string) => void) |
+                  ((color: string, quantile: number) => void)
   propertyLabel: string
   swatchBackgroundColor: string
   attrType?: string
@@ -29,6 +31,9 @@ export const PointColorSetting = observer(function PointColorSetting({onColorCha
   const pointColorSettingButtonRef = useRef<HTMLButtonElement>(null)
   const kGapSize = 10
   const [nonStandardColorSelected, setNonStandardColorSelected] = useState(false)
+  const paletteColors = ["#000000", "#a9a9a9", "#d3d3d3", "#FFFFFF", "#ad2323", "#ff9632", "#ffee33", "#1d6914",
+    "#2a4bd7", "#814a19", "#8126c0", "#29d0d0", "#e9debb", "#ffcdf3", "#9dafff", "#81c57a"]
+
 
   useOutsidePointerDown({ref: popoverContainerRef, handler: () => setOpenPopover?.(null)})
 
@@ -66,8 +71,6 @@ export const PointColorSetting = observer(function PointColorSetting({onColorCha
 
   // const baseColors = ["#000000", "#a9a9a9", "#d3d3d3", "#FFFFFF"]
   // const standardSwatchColors = [...baseColors, ...kellyColors.slice(0, 12)]
-  const paletteColors = ["#000000", "#a9a9a9", "#d3d3d3", "#FFFFFF", "#ad2323", "#ff9632", "#ffee33", "#1d6914",
-                          "#2a4bd7", "#814a19", "#8126c0", "#29d0d0", "#e9debb", "#ffcdf3", "#9dafff", "#81c57a"]
 
   useEffect(() => {
     const adjustPosition = () => {
@@ -126,12 +129,15 @@ export const PointColorSetting = observer(function PointColorSetting({onColorCha
             <div className="color-swatch-palette">
               <div className="color-swatch-grid">
                 {paletteColors.map((color, index) => (
-                  <div className={clsx("color-swatch-cell", {"selected": swatchBackgroundColor === color})}
+                  <div className={clsx("color-swatch-cell",
+                                      {"selected": swatchBackgroundColor === color, "light": colord(color).isLight()})}
                         style={{ backgroundColor: color }} key={index} onClick={()=>onColorChange(color)}/>
                 ))}
                 {nonStandardColorSelected &&
                   <div className="color-swatch-row">
-                    <div className={clsx("color-swatch-cell", {"selected": swatchBackgroundColor === inputValue})}
+                    <div className={clsx("color-swatch-cell",
+                                          {"selected": swatchBackgroundColor === inputValue,
+                                             "light": colord(inputValue).isLight()})}
                           style={{backgroundColor: inputValue}}/>
                   </div>}
               </div>
