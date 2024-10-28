@@ -5,7 +5,7 @@ import {
   resolveIdentifier, SnapshotIn, types
 } from "mobx-state-tree"
 import {applyModelChange} from "../../../models/history/apply-model-change"
-import {cachedFnWithArgsFactory, onAnyAction} from "../../../utilities/mst-utils"
+import {cachedFnWithArgsFactory} from "../../../utilities/mst-utils"
 import { isFiniteNumber } from "../../../utilities/math-utils"
 import { stringValuesToDateSeconds } from "../../../utilities/date-utils"
 import {AttributeType, attributeTypes} from "../../../models/data/attribute"
@@ -102,6 +102,15 @@ export const DataConfigurationModel = types
     filterFormulaError: ""
   }))
   .views(self => ({
+    get plottedAttributeIDs() {
+      // Note that 'caption' is not a role we include here
+      return (['x', 'y', 'rightNumeric', 'topSplit', 'rightSplit', 'legend', 'lat', 'long', 'polygon'] as const)
+        .map(aRole => this.attributeID(aRole))
+        .filter(id => !!id)
+    },
+    get childmostCollectionIDForPlottedAttributes() {
+        return idOfChildmostCollectionForAttributes(this.plottedAttributeIDs, self.dataset)
+    },
     get isEmpty() {
       return self._attributeDescriptions.size === 0
     },
@@ -448,7 +457,7 @@ export const DataConfigurationModel = types
           extraPrimaryAttrID = self.attributeID(extraPrimaryAttrRole),
           extraSecondaryAttrID = self.attributeID(extraSecondaryAttrRole)
 
-        const caseIDs = primaryAttrID
+        return primaryAttrID
           ? self.caseDataArray.filter((aCaseData: CaseData) => {
             return dataset?.getStrValue(aCaseData.caseID, primaryAttrID) === primaryValue &&
               (secondaryValue === "__main__" ||
@@ -461,8 +470,6 @@ export const DataConfigurationModel = types
                 dataset?.getStrValue(aCaseData.caseID, self.attributeID("legend")) === legendCat)
           }).map((aCaseData: CaseData) => aCaseData.caseID)
           : []
-
-        return caseIDs
       },
 
       getCasesForLegendValue(aValue: string) {
@@ -648,11 +655,21 @@ export const DataConfigurationModel = types
         self.setPointsNeedUpdating(true)
       }
     },
-    _setAttribute(role: AttrRole, desc?: IAttributeDescriptionSnapshot) {
-      this._updateFilteredCasesCollectionID()
-      self.clearCasesCache()
+    _clearFilteredCases(dataset: IDataSet | undefined) {
+      self.filteredCases.forEach((aFilteredCases) => {
+        aFilteredCases.destroy()
+      })
+      self.filteredCases.clear()
+      if (dataset) {
+        self.filteredCases[0] = new FilteredCases({
+          source: dataset,
+          filter: self.filterCase,
+          collectionID: idOfChildmostCollectionForAttributes(self.attributes, dataset),
+          onSetCaseValues: this.handleSetCaseValues
+        })
+      }
     },
-    _setAttributeType(role: AttrRole, type: AttributeType, plotNumber = 0) {
+    _setAttributeType(type: AttributeType, plotNumber = 0) {
       self.filteredCases?.forEach((aFilteredCases) => {
         aFilteredCases.invalidateCases()
       })
@@ -714,17 +731,7 @@ export const DataConfigurationModel = types
     handleDataSetChange(data?: IDataSet) {
       self.actionHandlerDisposer?.()
       self.actionHandlerDisposer = undefined
-      self.clearCasesCache()
-      self.clearFilteredCases()
-      if (data) {
-        self.actionHandlerDisposer = onAnyAction(data, self.handleDataSetAction)
-        self.filteredCases[0] = new FilteredCases({
-          source: data,
-          filter: self.filterCase,
-          collectionID: idOfChildmostCollectionForAttributes(self.attributes, data),
-          onSetCaseValues: self.handleSetCaseValues
-        })
-      }
+      self._clearFilteredCases(data)
     }
   }))
   .actions(self => ({
@@ -773,6 +780,12 @@ export const DataConfigurationModel = types
         () => self._invalidateCases(),
         { name: "DataConfigurationModel.afterCreate.reaction [add/remove/hide cases]" }
       ))
+      // invalidate filtered cases when childmost collection changes
+      addDisposer(self, reaction(
+        () => self.childmostCollectionIDForPlottedAttributes,
+        () => self._clearFilteredCases(self.dataset),
+        { name: "DataConfigurationModel.afterCreate.reaction [childmost collection]" }
+      ))
     },
     setDataset(dataset: IDataSet | undefined, metadata: ISharedCaseMetadata | undefined) {
       self.dataset = dataset
@@ -783,12 +796,11 @@ export const DataConfigurationModel = types
     },
     setAttribute(role: AttrRole, desc?: IAttributeDescriptionSnapshot) {
       self._setAttributeDescription(role, desc)
-      self._setAttribute(role, desc)
       self.setPointsNeedUpdating(true)
     },
     setAttributeType(role: AttrRole, type: AttributeType, plotNumber = 0) {
       self._attributeDescriptions.get(role)?.setType(type)
-      self._setAttributeType(role, type, plotNumber)
+      self._setAttributeType(type, plotNumber)
     },
     addNewHiddenCases(hiddenCases: string[]) {
       self.hiddenCases.push(...hiddenCases)

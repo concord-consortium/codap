@@ -46,9 +46,6 @@ export const GraphDataConfigurationModel = DataConfigurationModel
         : self.primaryRole === 'y' ? 'x'
           : ''
     },
-    get y2AttributeDescriptionIsPresent() {
-      return !!self._attributeDescriptions.get('rightNumeric')
-    },
     get yAttributeDescriptionsExcludingY2() {
       return self._yAttributeDescriptions
     },
@@ -100,10 +97,6 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       return this.placeCanShowClickHereCue(place) &&
         !self.attributeID(graphPlaceToAttrRole[place === 'left' ? 'bottom' : 'left'])
     },
-    placeShouldShowClickHereCue(place: GraphPlace, tileHasFocus: boolean) {
-      return this.placeAlwaysShowsClickHereCue(place) ||
-        (this.placeCanShowClickHereCue(place) && tileHasFocus)
-    }
   }))
   .views(self => {
     const baseRolesForAttribute = self.rolesForAttribute
@@ -199,15 +192,6 @@ export const GraphDataConfigurationModel = DataConfigurationModel
   }))
   .views(self => (
     {
-      get numericValuesForYAxis() {
-        const allGraphCaseIds = Array.from(self.graphCaseIDs),
-          allValues: number[] = []
-
-        return self.yAttributeIDs.reduce((acc: number[], yAttrID: string) => {
-          const values = allGraphCaseIds.map((anID: string) => Number(self.dataset?.getValue(anID, yAttrID)))
-          return acc.concat(values)
-        }, allValues)
-      },
       numRepetitionsForPlace(place: GraphPlace) {
         // numRepetitions is the number of times an axis is repeated in the graph
         let numRepetitions = 1
@@ -248,21 +232,8 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       const attrTypes = self.attrTypes
       const xHasCategorical = attrTypes.bottom === "categorical" || attrTypes.top === "categorical"
       const yHasCategorical = attrTypes.left === "categorical"
-      const hasOnlyOneCategoricalAxis = (xHasCategorical && !yHasCategorical) || (!xHasCategorical && yHasCategorical)
-      return hasOnlyOneCategoricalAxis
+      return (xHasCategorical && !yHasCategorical) || (!xHasCategorical && yHasCategorical)
     },
-    get hasExactlyTwoPerpendicularCategoricalAttrs() {
-      const attrTypes = self.attrTypes
-      const xHasCategorical = attrTypes.bottom === "categorical" || attrTypes.top === "categorical"
-      const yHasCategorical = attrTypes.left === "categorical" || attrTypes.right === "categorical"
-      const hasOnlyTwoCategorical = this.categoricalAttrCount === 2
-      return hasOnlyTwoCategorical && xHasCategorical && yHasCategorical
-    },
-    get hasSingleSubplot() {
-      // A graph has a single subplot if it has one or fewer categorical attributes, or if it has exactly two
-      // categorical attributes on axes that are perpendicular to each other.
-      return this.categoricalAttrCount <= 1 || this.hasExactlyTwoPerpendicularCategoricalAttrs
-    }
   }))
   .views(self => ({
     getCategoriesOptions() {
@@ -618,7 +589,6 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       } else {
         self._setAttributeDescription(role, desc)
       }
-      self._setAttribute(role, desc)
     },
     addYAttribute(desc: IAttributeDescriptionSnapshot) {
       self._yAttributeDescriptions.push(desc)
@@ -651,7 +621,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       } else {
         self._attributeDescriptions.get(role)?.setType(type)
       }
-      self._setAttributeType(role, type, plotNumber)
+      self._setAttributeType(type, plotNumber)
     },
   }))
   .actions(self => ({
