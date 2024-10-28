@@ -80,15 +80,23 @@ export const diDataContextHandler: DIHandler = {
     if (!dataContext) return dataContextNotFoundResult
 
     if (!values) return requestRequiedResult
-    const { caseIDs, request } = values as DINotifyDataContext
+    const { caseIDs, operation, request } = values as DINotifyDataContext
     if (!request) return requestRequiedResult
 
     const successResult = { success: true as const, values: {} }
     if (request === "setAside") {
+      if (operation === "restore") {
+        dataContext.showHiddenCasesAndItems(caseIDs?.map(caseId => toV3CaseId(caseId)))
+        return successResult
+      }
+
       if (!caseIDs) return fieldRequiredResult("Notify", "dataContext", "caseIDs")
+
+      if (operation === "replace") dataContext.showHiddenCasesAndItems()
+
       dataContext.hideCasesOrItems(caseIDs.map(caseId => toV3CaseId(caseId)))
       return successResult
-    } else if (request === "restoreSetasides") {
+    } else if (request.toLowerCase() === "restoresetasides") {
       dataContext.showHiddenCasesAndItems()
       return successResult
     } else {

@@ -89,6 +89,35 @@ describe("DataInteractive DataContextHandler", () => {
     expect(notify({ dataContext }, { request: "badRequest" }).success).toBe(false)
     expect(notify({ dataContext }, { request: "setAside" }).success).toBe(false)
 
+    // Modern setAside
+    const case1Id = c1.caseIds[0]
+    const case1V2Id = toV2Id(case1Id)
+    const case2Id = c1.caseIds[1]
+    const case2V2Id = toV2Id(case2Id)
+    const neitherIsSetAside = () =>
+      expect(dataContext.isCaseOrItemHidden(case1Id) || dataContext.isCaseOrItemHidden(case2Id)).toBe(false)
+    const bothAreSetAside = () =>
+      expect(dataContext.isCaseOrItemHidden(case1Id) && dataContext.isCaseOrItemHidden(case2Id)).toBe(true)
+
+    neitherIsSetAside()
+    expect(notify({ dataContext }, { request: "setAside", caseIDs: [case1V2Id, case2V2Id] }).success).toBe(true)
+    bothAreSetAside()
+    expect(notify({ dataContext }, {
+      request: "setAside", operation: "restore", caseIDs: [case2V2Id]
+    }).success).toBe(true)
+    expect(dataContext.isCaseOrItemHidden(case1Id)).toBe(true)
+    expect(dataContext.isCaseOrItemHidden(case2Id)).toBe(false)
+    expect(notify({ dataContext }, {
+      request: "setAside", operation: "replace", caseIDs: [case2V2Id]
+    }).success).toBe(true)
+    expect(dataContext.isCaseOrItemHidden(case1Id)).toBe(false)
+    expect(dataContext.isCaseOrItemHidden(case2Id)).toBe(true)
+    expect(notify({ dataContext }, { request: "setAside", caseIDs: [case1V2Id] }).success).toBe(true)
+    bothAreSetAside()
+    expect(notify({ dataContext }, { request: "setAside", operation: "restore" }).success).toBe(true)
+    neitherIsSetAside()
+
+    // Depricated setAside
     const caseId = c1.caseIds[0]
     expect(dataContext.isCaseOrItemHidden(caseId)).toBe(false)
     const caseIDs = [toV2Id(caseId)]

@@ -73,6 +73,7 @@ export interface DIGlobal {
 }
 export type DIDataContext = Partial<ICodapV2DataContext>
 export interface DINotifyDataContext {
+  operation?: string
   request?: string
   caseIDs?: number[]
 }
