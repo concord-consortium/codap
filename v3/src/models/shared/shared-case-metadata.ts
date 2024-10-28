@@ -1,5 +1,5 @@
 import { observable } from "mobx"
-import { getSnapshot, getType, Instance, ISerializedActionCall, onAction, types } from "mobx-state-tree"
+import { getSnapshot, getType, Instance, ISerializedActionCall, types } from "mobx-state-tree"
 import { onAnyAction } from "../../utilities/mst-utils"
 import { CategorySet, createProvisionalCategorySet, ICategorySet } from "../data/category-set"
 import { DataSet, IDataSet } from "../data/data-set"

@@ -136,7 +136,7 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
                   return (
                     <Flex direction="row" key={category} className="palette-row color-picker-row cat-color-picker">
                       <FormLabel className="form-label color-picker">{category}</FormLabel>
-                      <PointColorSetting key={category} attrType={"categorical"} propertyLabel={category}
+                      <PointColorSetting key={category} propertyLabel={category}
                         onColorChange={(color) => handleCatPointColorChange(color, category)}
                         swatchBackgroundColor={dataConfiguration.getLegendColorForCategory(category)}/>
                     </Flex>
@@ -149,10 +149,10 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
                       <FormLabel className="form-label color-picker">{t("DG.Inspector.legendColor")}</FormLabel>
                       {/* Sets the min and max colors for numeric legend. Currently not implemented so
                                     this sets the same color for all the points*/}
-                      <PointColorSetting propertyLabel={t("DG.Inspector.legendColor")} attrType={"numeric"}
+                      <PointColorSetting propertyLabel={t("DG.Inspector.legendColor")}
                                         onColorChange={(color) => handlePointColorChange(color)}
                                         swatchBackgroundColor={displayItemDescription.pointColor}/>
-                      <PointColorSetting propertyLabel={t("DG.Inspector.legendColor")} attrType={"numeric"}
+                      <PointColorSetting propertyLabel={t("DG.Inspector.legendColor")}
                                         onColorChange={(color) => handlePointColorChange(color)}
                                         swatchBackgroundColor={displayItemDescription.pointColor}/>
                     </Flex>
