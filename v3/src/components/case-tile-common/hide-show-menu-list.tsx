@@ -5,6 +5,7 @@ import React from "react"
 import { useCaseMetadata } from "../../hooks/use-case-metadata"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { hideAttributeNotification } from "../../models/data/data-set-notifications"
+import { restoreSetAsideCases } from "../../models/data/data-set-utils"
 import { t } from "../../utilities/translation/translate"
 import { EditFilterFormulaModal } from "../common/edit-filter-formula-modal"
 import { IMenuItem, StdMenuList } from "./std-menu-list"
@@ -70,19 +71,7 @@ export const HideShowMenuList = observer(function HideShowMenuList() {
       dataTestId: "hide-show-menu-restore-set-aside-cases",
       itemLabel: () => t("DG.Inspector.setaside.restoreSetAsideCases", { vars: [setAsideCount] }),
       isEnabled: () => setAsideCount > 0,
-      handleClick: () => {
-        if (data?.setAsideItemIds.length) {
-          data.applyModelChange(() => {
-            const hiddenItems = [...data.setAsideItemIds]
-            data.showHiddenCasesAndItems()
-            data.setSelectedCases(hiddenItems)
-          }, {
-            undoStringKey: "V3.Undo.hideShowMenu.restoreSetAsideCases",
-            redoStringKey: "V3.Redo.hideShowMenu.restoreSetAsideCases",
-            log: "Restore set aside cases"
-          })
-        }
-      }
+      handleClick: () => restoreSetAsideCases(data)
     },
     {
       itemKey: data?.filterFormula && !data.filterFormula.empty

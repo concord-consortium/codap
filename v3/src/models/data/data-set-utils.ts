@@ -8,6 +8,7 @@ import { IAttribute } from "./attribute"
 import { ICollectionModel } from "./collection"
 import { IDataSet } from "./data-set"
 import {
+  createCasesNotification,
   deleteCollectionNotification, moveAttributeNotification, selectCasesNotification
 } from "./data-set-notifications"
 import { IAttributeChangeResult, IMoveAttributeOptions } from "./data-set-types"
@@ -109,6 +110,8 @@ export function moveAttribute({
   }
 }
 
+// Selection helper functions
+
 function selectWithNotification(func: () => void, data?: IDataSet, extend?: boolean) {
   data?.applyModelChange(() => {
     func()
@@ -139,4 +142,33 @@ export function selectAndDeselectCases(addCaseIds: string[], removeCaseIds: stri
     data?.selectCases(addCaseIds)
     data?.selectCases(removeCaseIds, false)
   }, data, true)
+}
+
+// Set aside helper functions
+
+export function setAsideCases(data: IDataSet, caseIDs: string[]) {}
+
+export function restoreSetAsideCases(data?: IDataSet, caseIDs?: string[], undoable = true) {
+  if (!data) return
+
+  const hiddenItemIds = caseIDs ? caseIDs.filter(caseId => data.isCaseOrItemHidden(caseId)) : [...data.setAsideItemIds]
+  // The createCasesNotification must be created after the setAsides have been restored
+  // becaues the child cases are invisible until then
+  const _createCasesNotification = () => {
+    const hiddenCaseIds = hiddenItemIds
+      .filter(itemId => data.getItem(itemId) ? data.itemIdChildCaseMap.get(itemId) : itemId)
+      .filter(caseId => !!caseId)
+    return createCasesNotification(hiddenCaseIds, data)
+  }
+  if (hiddenItemIds.length) {
+    data.applyModelChange(() => {
+      data.showHiddenCasesAndItems(hiddenItemIds)
+      data.setSelectedCases(hiddenItemIds)
+    }, {
+      notify: [_createCasesNotification, selectCasesNotification(data)],
+      undoStringKey: undoable ? "V3.Undo.hideShowMenu.restoreSetAsideCases" : undefined,
+      redoStringKey: undoable ? "V3.Redo.hideShowMenu.restoreSetAsideCases" : undefined,
+      log: "Restore set aside cases"
+    })
+  }
 }

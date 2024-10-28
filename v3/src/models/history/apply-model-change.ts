@@ -12,7 +12,8 @@ export interface INotification {
 }
 export interface IApplyModelChangeOptions {
   log?: string | ILogMessage | (() => Maybe<string | ILogMessage>)
-  notify?: INotification | INotification[] | (() => Maybe<INotification | INotification[]>)
+  notify?:
+    INotification | (INotification | (() => Maybe<INotification>))[] | (() => Maybe<INotification | INotification[]>)
   notifyTileId?: string
   undoStringKey?: string
   redoStringKey?: string
@@ -53,8 +54,11 @@ export function applyModelChange(self: IAnyStateTreeNode) {
 
             // Actually broadcast the notifications
             notificationArray.forEach(_notification => {
-              const { message, callback } = _notification
-              tileEnv.notify?.(message, callback ?? (() => null), notifyTileId)
+              const __notification = typeof _notification === "function" ? _notification() : _notification
+              if (__notification) {
+                const { message, callback } = __notification
+                tileEnv.notify?.(message, callback ?? (() => null), notifyTileId)
+              }
             })
           }
         }

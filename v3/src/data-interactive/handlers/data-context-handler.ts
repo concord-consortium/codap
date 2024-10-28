@@ -2,9 +2,14 @@ import { appState } from "../../models/app-state"
 import { gDataBroker } from "../../models/data/data-broker"
 import { DataSet } from "../../models/data/data-set"
 import {
-  dataContextCountChangedNotification, dataContextDeletedNotification
+  createCasesNotification,
+  dataContextCountChangedNotification, dataContextDeletedNotification,
+  deleteCasesNotification
 } from "../../models/data/data-set-notifications"
+import { sortItemsWithCustomUndoRedo } from "../../models/data/data-set-undo"
+import { restoreSetAsideCases, setSelectedCases } from "../../models/data/data-set-utils"
 import { getFormulaManager } from "../../models/tiles/tile-environment"
+import { toV3CaseId } from "../../utilities/codap-utils"
 import { hasOwnProperty } from "../../utilities/js-utils"
 import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
@@ -16,8 +21,6 @@ import { getAttribute } from "../data-interactive-utils"
 import { findTileFromNameOrId } from "../resource-parser-utils"
 import { createCollection } from "./di-handler-utils"
 import { attributeNotFoundResult, dataContextNotFoundResult, errorResult, fieldRequiredResult } from "./di-results"
-import { toV3CaseId } from "../../utilities/codap-utils"
-import { sortItemsWithCustomUndoRedo } from "../../models/data/data-set-undo"
 
 const requestRequiedResult = fieldRequiredResult("Notify", "dataContext", "request")
 
@@ -86,19 +89,42 @@ export const diDataContextHandler: DIHandler = {
     const successResult = { success: true as const, values: {} }
     if (request === "setAside") {
       if (operation === "restore") {
-        dataContext.showHiddenCasesAndItems(caseIDs?.map(caseId => toV3CaseId(caseId)))
+        const v3CaseIDs = caseIDs?.map(caseID => toV3CaseId(caseID))
+        restoreSetAsideCases(dataContext, v3CaseIDs, false)
+        return successResult
+
+      } else {
+        if (!caseIDs) return fieldRequiredResult("Notify", "dataContext", "caseIDs")
+
+        let originallyHiddenItemIds: string[] = []
+        if (operation === "replace") {
+          originallyHiddenItemIds = [...dataContext.setAsideItemIds]
+          dataContext.showHiddenCasesAndItems()
+        }
+
+        dataContext.hideCasesOrItems(caseIDs.map(caseId => toV3CaseId(caseId)))
+        const restoredItemIds = originallyHiddenItemIds.filter(caseId => !dataContext.isCaseOrItemHidden(caseId))
+        const originallyHiddenItemIdSet = new Set(originallyHiddenItemIds)
+        const newlySetAsideItemIds = [...dataContext.setAsideItemIds]
+          .filter(caseId => !originallyHiddenItemIdSet.has(caseId))
+        const newlySetAsideCases = newlySetAsideItemIds.map(itemId => dataContext.itemIdChildCaseMap.get(itemId))
+          .filter(caseInfo => !!caseInfo).map(caseInfo => caseInfo.groupedCase)
+        if (newlySetAsideCases.length > 0) {
+          dataContext.applyModelChange(() => {}, { notify: deleteCasesNotification(dataContext, newlySetAsideCases) })
+        }
+        if (restoredItemIds.length > 0) {
+          const restoredCaseIds = restoredItemIds.map(itemId => dataContext.itemIdChildCaseMap.get(itemId))
+            .filter(caseInfo => !!caseInfo).map(caseInfo => caseInfo.groupedCase.__id__)
+          dataContext.applyModelChange(() => {}, { notify: createCasesNotification(restoredCaseIds, dataContext) })
+          setSelectedCases(restoredItemIds)
+        }
         return successResult
       }
 
-      if (!caseIDs) return fieldRequiredResult("Notify", "dataContext", "caseIDs")
-
-      if (operation === "replace") dataContext.showHiddenCasesAndItems()
-
-      dataContext.hideCasesOrItems(caseIDs.map(caseId => toV3CaseId(caseId)))
-      return successResult
     } else if (request.toLowerCase() === "restoresetasides") {
-      dataContext.showHiddenCasesAndItems()
+      restoreSetAsideCases(dataContext, undefined, false)
       return successResult
+
     } else {
       return errorResult(t("V3.DI.Error.unknownRequest", { vars: [request] }))
     }
