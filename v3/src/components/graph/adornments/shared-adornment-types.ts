@@ -1,6 +1,6 @@
-export interface ILineDescription {
-  category?: string
-  cellKey: Record<string, string>
+import { ICaseSubsetDescription } from "../../data-display/data-display-types"
+
+export interface ILineDescription extends ICaseSubsetDescription {
   intercept: number
   slope: number
 }

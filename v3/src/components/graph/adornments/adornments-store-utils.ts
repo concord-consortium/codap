@@ -3,6 +3,7 @@ import { getAdornmentComponentInfo, IAdornmentComponentInfo } from "./adornment-
 import { IMeasure, measures, RulerStateKey } from "./adornment-ui-types"
 import { kMovableLineType } from "./movable-line/movable-line-adornment-types"
 import { kLSRLType } from "./lsrl/lsrl-adornment-types"
+import { kPlottedFunctionType } from "./plotted-function/plotted-function-adornment-types"
 import { kCountType } from "./count/count-adornment-types"
 import { IAdornmentsBaseStore } from "./adornments-base-store"
 import { PlotType } from "../graphing-types"
@@ -122,9 +123,10 @@ export function getAdornmentsMenuItemsFromTheStore(theStore: IAdornmentsBaseStor
   if (plotType === "scatterPlot") {
     const movableLineVisible = theStore.isShowingAdornment(kMovableLineType)
     const lsrlVisible = theStore.isShowingAdornment(kLSRLType)
+    const plottedFunctionVisible = theStore.isShowingAdornment(kPlottedFunctionType)
     addItemIfCondition(true, {
       checked: theStore.showSquaresOfResiduals,
-      disabled: !movableLineVisible && !lsrlVisible,
+      disabled: !movableLineVisible && !lsrlVisible && !plottedFunctionVisible,
       title: "DG.Inspector.graphSquares",
       type: "control",
       clickHandler: theStore.toggleShowSquaresOfResiduals

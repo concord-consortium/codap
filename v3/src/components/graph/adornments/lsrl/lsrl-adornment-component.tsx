@@ -136,7 +136,7 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
       const { slope, intercept, rSquared } = lines[linesIndex]
       if (slope == null || intercept == null) return
       const sumOfSquares = dataConfig && showSumSquares
-        ? calculateSumOfSquares({ cellKey, dataConfig, intercept, slope })
+        ? calculateSumOfSquares({ cellKey, dataConfig, computeY: (x) => intercept + slope * x })
         : undefined
       const screenX = xScale((pointsOnAxes.current.pt1.x + pointsOnAxes.current.pt2.x) / 2) / xSubAxesCount
       const screenY = yScale((pointsOnAxes.current.pt1.y + pointsOnAxes.current.pt2.y) / 2) / ySubAxesCount
