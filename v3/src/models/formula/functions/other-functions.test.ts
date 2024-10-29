@@ -93,7 +93,7 @@ describe("greatCircleDistance", () => {
     // distance from New York to San Francisco (CODAP example)
     // note: the CODAP example uses positive longitudes where negative longitudes would be expected
     // This doesn't affect the result, but could be confusing.
-    expect(fn.evaluate({ lat1: 40.66, long1: 74, lat2: 37.8, long2: 122.4 })).toBeCloseTo(4128, -1)
+    expect(fn.evaluate({ lat1: 40.66, long1: -74, lat2: 37.8, long2: -122.4 })).toBeCloseTo(4128, -1)
     // distance from New York to London (ChatGPT)
     expect(fn.evaluate({ lat1: 40.7128, long1: -74.0060, lat2: 51.5074, long2: -0.1278 })).toBeCloseTo(5571, -1)
     // distance from Tokyo to Sydney (ChatGPT)

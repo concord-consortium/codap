@@ -152,6 +152,7 @@ export const isValueNonEmpty = (value: any) => !isValueEmpty(value)
 export const isNumber = (v: any) => isValueNonEmpty(v) && !isNaN(Number(v))
 
 // returns whether the value can be interpreted as a number and if so, its value
+// more efficient than isNumber(v) ? Number(v) : NaN because conversion is only performed once
 export function checkNumber(value: any) : [false] | [true, number] {
   if (typeof value === "number") return [true, value]
   if (value == null || value === "") return [false]
@@ -171,10 +172,10 @@ export const extractNumeric = (v: any) => {
 
   // Based on the V2 implementation for the backward compatibility.
   if (typeof v === 'string') {
-    const noNumberPatt = /[^.\d-]+/gm
-    const firstNumericPatt = /(^-?\.?[\d]+(?:\.?[\d]*)?)/gm
-    const firstPass = v.replace(noNumberPatt, '')
-    const matches = firstPass.match(firstNumericPatt)
+    const noNumberPattern = /[^.\d-]+/gm
+    const firstNumericPattern = /(^-?\.?[\d]+(?:\.?[\d]*)?)/gm
+    const firstPass = v.replace(noNumberPattern, '')
+    const matches = firstPass.match(firstNumericPattern)
     v = matches ? matches[0] : null
   }
   return isValueNonEmpty(v) ? Number(v) : null
@@ -234,8 +235,6 @@ export function quantileOfSortedArray (sortedArray:number[], quantile:number) {
     return (sortedArray[i2] * fraction + sortedArray[i1] * (1.0 - fraction))
   }
 }
-
-
 
 type XYToNumberFunction = (x: number, y: number) => number
 

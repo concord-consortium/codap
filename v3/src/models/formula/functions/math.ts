@@ -13,6 +13,7 @@ import { operators } from "./operators"
 import { otherFunctions } from "./other-functions"
 import { semiAggregateFunctions } from "./semi-aggregate-functions"
 import { stringFunctions } from "./string-functions"
+import { univariateStatsFunctions } from "./univariate-stats-functions"
 
 export const math = create(all)
 
@@ -81,6 +82,8 @@ export const fnRegistry = {
   ...otherFunctions,
 
   ...aggregateFunctions,
+
+  ...univariateStatsFunctions,
 
   ...semiAggregateFunctions
 }

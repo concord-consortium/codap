@@ -538,7 +538,7 @@
         "examples": [
           "first(age) returns the first value of the attribute age",
           "first(age,sex=\"female\") returns the first value for the attribute age for which the attribute sex is female",
-          "first(age,height>68) returns the first value for the attribute age for which the the value of the attribute height is greater than 68"
+          "first(age,height>68) returns the first value for the attribute age for which the value of the attribute height is greater than 68"
         ]
       },
       { "displayName": "last",
@@ -721,7 +721,7 @@
           }
         ],
         "examples": [
-          "greatCircleDistance(40.66, 74, 37.8, 122.4) returns 4128, the distance in kilometers between New York and San Francisco"
+          "greatCircleDistance(40.66, -74, 37.8, -122.4) returns 4128, the distance in kilometers between New York and San Francisco"
         ]
       },
       { "displayName": "if",
@@ -855,13 +855,19 @@
   { "category": "statistical",
     "displayName": "Statistical",
     "functions": [
-      { "displayName": "combine",
+      { "displayName": "combine", // appears in statistical (because it's aggregate) and strings sections
         "description": "Returns the aggregated concatenation of its evaluated expression values.",
         "args": [
           {
             "name": "expression",
             "type": "any",
             "description": "The values to be concatenated."
+          },
+          {
+            "name": "filter",
+            "type": "filter",
+            "description": "A true-false expression that limits the cases considered.",
+            "optional": true
           }
         ],
         "examples": [
@@ -891,26 +897,6 @@
           "count(Height, Age<18) returns the number of cases for the attribute Height with a value for the Age attribute that is less than 18"
         ]
       },
-      { "displayName": "uniqueValues",
-        "description": "Returns the number of unique values produced by the argument.",
-        "args": [
-          {
-            "name": "expression",
-            "type": "any",
-            "description": "Evaluated for each case. The number of these that are unique will be the final value."
-          },
-          {
-            "name": "filter",
-            "type": "boolean",
-            "description": "Serves as a filter for the cases for which the expression will be computed.",
-            "optional": true
-          }
-        ],
-        "examples": [
-          "uniqueValues(State) returns the number unique values of the attribute State. If all state names are present, the result would likely be 50",
-          "uniqueValues(Age, Sex=\"male\") returns the number of different ages for the cases whose sex is male"
-        ]
-      },
       { "displayName": "mad",
         "description": "Computes the mean absolute deviation the given expression.",
         "args": [
@@ -918,6 +904,12 @@
             "name": "expression",
             "type": "expression",
             "description": "The expression for which you want to find the MAD."
+          },
+          {
+            "name": "filter",
+            "type": "filter",
+            "description": "A true-false expression that limits the cases considered.",
+            "optional": true
           }
         ],
         "examples": [
@@ -964,31 +956,6 @@
         "examples": [
           "mean(Height) computes the mean of the attribute Height",
           "mean(Height, Sex = \"F\") computes the mean Height of females"
-        ]
-      },
-      { "displayName": "rollingMean",
-        "description": "Returns the rolling arithmetic mean of its expression evaluated for every case. The rolling mean averages the n nearest values with the given value where n is the value of \"width\".",
-        "args": [
-          {
-            "name": "expression",
-            "type": "expression",
-            "description": "The expression whose mean will be returned."
-          },
-          {
-            "name": "width",
-            "type": "expression",
-            "description": "The number of values included in each mean. This value is rounded to the nearest whole number."
-          },
-          {
-            "name": "filter",
-            "type": "boolean",
-            "description": "(optional) A true-false expression that selects the cases considered.",
-            "optional": true
-          }
-        ],
-        "examples": [
-          "rollingMean(Height, 5) computes the rolling mean of the attribute Height, including the the current value and the two preceding and following values",
-          "rollingMean(Height, 5, Habitat!=\"water\") computes the rolling mean of Height, excluding water dwelling Mammals"
         ]
       },
       { "displayName": "median",
@@ -1044,12 +1011,43 @@
             "name": "constant",
             "type": "value",
             "description": "The percentile (in the range 0 to 1, inclusive)."
+          },
+          {
+            "name": "filter",
+            "type": "expression",
+            "description": "Additional filter, numbers, or ranges for which you want the first case.",
+            "optional": true
           }
         ],
         "examples": [
           "percentile(Speed, .5) is another way to compute the median for the attribute Speed",
           "percentile(Score, 0.95) will return the Score corresponding to the 95th percentile",
           "percentile(Mass/Volume, 0.1) will return the density corresponding to the 10th percentile"
+        ]
+      },
+      { "displayName": "rollingMean",
+        "description": "Returns the rolling arithmetic mean of its expression evaluated for every case. The rolling mean averages the n nearest values with the given value where n is the value of \"width\".",
+        "args": [
+          {
+            "name": "expression",
+            "type": "expression",
+            "description": "The expression whose mean will be returned."
+          },
+          {
+            "name": "width",
+            "type": "expression",
+            "description": "The number of values included in each mean. This value is rounded to the nearest whole number."
+          },
+          {
+            "name": "filter",
+            "type": "boolean",
+            "description": "(optional) A true-false expression that selects the cases considered.",
+            "optional": true
+          }
+        ],
+        "examples": [
+          "rollingMean(Height, 5) computes the rolling mean of the attribute Height, including the current value and the two preceding and following values",
+          "rollingMean(Height, 5, Habitat!=\"water\") computes the rolling mean of Height, excluding water dwelling Mammals"
         ]
       },
       { "displayName": "stdDev",
@@ -1059,6 +1057,12 @@
             "name": "expression",
             "type": "expression",
             "description": "The expression for which you want to find the standard deviation."
+          },
+          {
+            "name": "filter",
+            "type": "expression",
+            "description": "Additional filter, numbers, or ranges for which you want the first case.",
+            "optional": true
           }
         ],
         "examples": [
@@ -1073,6 +1077,12 @@
             "name": "expression",
             "type": "expression",
             "description": "The expression for which you want to find the standard error."
+          },
+          {
+            "name": "filter",
+            "type": "expression",
+            "description": "Additional filter, numbers, or ranges for which you want the first case.",
+            "optional": true
           }
         ],
         "examples": [
@@ -1100,6 +1110,26 @@
           "sum(Time)/count(Time) returns the sum of the Time attribute divided by the count of the Time attribute"
         ]
       },
+      { "displayName": "uniqueValues",
+        "description": "Returns the number of unique values produced by the argument.",
+        "args": [
+          {
+            "name": "expression",
+            "type": "any",
+            "description": "Evaluated for each case. The number of these that are unique will be the final value."
+          },
+          {
+            "name": "filter",
+            "type": "boolean",
+            "description": "Serves as a filter for the cases for which the expression will be computed.",
+            "optional": true
+          }
+        ],
+        "examples": [
+          "uniqueValues(State) returns the number unique values of the attribute State. If all state names are present, the result would likely be 50",
+          "uniqueValues(Age, Sex=\"male\") returns the number of different ages for the cases whose sex is male"
+        ]
+      },
       { "displayName": "variance",
         "description": "Computes the variance of an attribute.",
         "args": [
@@ -1107,6 +1137,12 @@
             "name": "expression",
             "type": "attribute",
             "description": "The attribute for which you want to find the variance."
+          },
+          {
+            "name": "filter",
+            "type": "expression",
+            "description": "Additional filter, numbers, or ranges for which you want the first case.",
+            "optional": true
           }
         ],
         "examples": [
@@ -1289,7 +1325,7 @@
           }
         ],
         "examples": [
-          "linRegrPredicted(horsepower, mpg) returns, for each value of horsepower, the the predicted value of mpg."
+          "linRegrPredicted(horsepower, mpg) returns, for each value of horsepower, the predicted value of mpg."
         ]
       }
     ]
@@ -1336,6 +1372,26 @@
           "charAt(\"water\", 3) returns t",
           "charAt(Name, 1) returns the first letter of each Name",
           "charAt(123, random(4, 1)) returns a random number between 1 and 3"
+        ]
+      },
+      { "displayName": "combine", // appears in statistical (because it's aggregate) and strings sections
+        "description": "Returns the aggregated concatenation of its evaluated expression values.",
+        "args": [
+          {
+            "name": "expression",
+            "type": "any",
+            "description": "The values to be concatenated."
+          },
+          {
+            "name": "filter",
+            "type": "filter",
+            "description": "A true-false expression that limits the cases considered.",
+            "optional": true
+          }
+        ],
+        "examples": [
+          "combine(flip) might return \"HHT\" when there are three cases each with value \"H\" or \"T\"",
+          "combine(1) returns 1, repeated for the number of cases in the case table"
         ]
       },
       { "displayName": "concat",

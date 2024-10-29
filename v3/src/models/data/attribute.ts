@@ -34,14 +34,8 @@ import { cachedFnFactory } from "../../utilities/mst-utils"
 import { Formula, IFormula } from "../formula/formula"
 import { applyModelChange } from "../history/apply-model-change"
 import { withoutUndo } from "../history/without-undo"
+import { isDevelopment, isProduction, IValueType, kDefaultFormatStr } from "./attribute-types"
 import { V2Model } from "./v2-model"
-
-export const kDefaultFormatStr = ".3~f"
-
-const isDevelopment = () => process.env.NODE_ENV !== "production"
-const isProduction = () => process.env.NODE_ENV === "production"
-
-export type IValueType = string | number | boolean | Date | undefined
 
 export interface ISetValueOptions {
   noInvalidate?: boolean
