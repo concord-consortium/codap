@@ -425,7 +425,7 @@ export const DataConfigurationModel = types
     {
       getLegendColorForCategory(cat: string): string {
         const categorySet = self.categorySetForAttrRole('legend')
-        return categorySet?.provisionalColorMap.get(cat) ?? categorySet?.colorForCategory(cat) ?? missingColor
+        return categorySet?.colorForCategory(cat) ?? missingColor
       },
 
       getLegendColorForNumericValue(value: number): string {
@@ -674,13 +674,7 @@ export const DataConfigurationModel = types
     },
   }))
   .actions(self => ({
-    setProvisionalColorForCategory(cat: string, color: string) {
-      console.log("setProvisionalColorForCategory", cat, color)
-      const categorySet = self.categorySetForAttrRole('legend')
-      categorySet?.setProvisionalColorForCategory(cat, color)
-    },
     setLegendColorForCategory(cat: string, color: string) {
-      console.log("setLegendColorForCategory", cat, color)
       const categorySet = self.categorySetForAttrRole('legend')
       categorySet?.setColorForCategory(cat, color)
     },

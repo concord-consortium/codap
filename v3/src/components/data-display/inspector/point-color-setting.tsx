@@ -7,23 +7,21 @@ import {Button, ButtonGroup, Flex, Popover, PopoverBody, PopoverContent, Popover
 import {t} from "../../../utilities/translation/translate"
 import { ColorPicker } from "../../case-tile-common/color-picker"
 import { useOutsidePointerDown } from "../../../hooks/use-outside-pointer-down"
-import { IDataConfigurationModel } from "../models/data-configuration-model"
 
 import styles from "./point-color-setting-shared.scss"
 import "./point-color-setting.scss"
 
 interface ColorPickerIProps {
   onColorChange: (color: string) => void | ((color: string, cat: string) => void) |
-                    ((color: string, quantile: number) => void)
+                  ((color: string, quantile: number) => void)
   propertyLabel: string
   swatchBackgroundColor: string
   attrType?: string
   quantile?: number
-  dataConfiguration?: IDataConfigurationModel
 }
 
 export const PointColorSetting = observer(function PointColorSetting({onColorChange,
-      propertyLabel, swatchBackgroundColor, attrType, dataConfiguration, quantile=0}: ColorPickerIProps) {
+      propertyLabel, swatchBackgroundColor, attrType, quantile=0}: ColorPickerIProps) {
   const [showColorPicker, setShowColorPicker] = useState(false)
   const [inputValue, setInputValue] = useState(swatchBackgroundColor)
   const popoverRef = useRef<HTMLDivElement>(null)
@@ -48,13 +46,13 @@ export const PointColorSetting = observer(function PointColorSetting({onColorCha
     setInputValue(value)
     setNonStandardColorSelected(true)
     if (attrType === "categorical") {
-      dataConfiguration?.setProvisionalColorForCategory(propertyLabel, value)
-      // } else if (attrType === "numeric") {
-    //   (onColorChange as (color: string, quantile: number) => void)(value, quantile)
+      (onColorChange as (color: string, cat: string) => void)(value, propertyLabel)
+    } else if (attrType === "numeric") {
+      (onColorChange as (color: string, quantile: number) => void)(value, quantile)
     } else {
       (onColorChange as (color: string) => void)(value)
     }
-  }, [attrType, dataConfiguration, onColorChange, propertyLabel])
+  }, [attrType, onColorChange, propertyLabel, quantile])
 
   const rejectValue = useCallback(() => {
     setShowColorPicker(false)
@@ -65,7 +63,6 @@ export const PointColorSetting = observer(function PointColorSetting({onColorCha
 
   const acceptValue = useCallback(() => {
     setShowColorPicker(false)
-    setOpenPopover(null)
     setNonStandardColorSelected(true)
     updateValue(inputValue)
     setInitialColor(inputValue)
@@ -118,8 +115,7 @@ export const PointColorSetting = observer(function PointColorSetting({onColorCha
   }, [showColorPicker])
 
   return (
-    <Popover isLazy={true} isOpen={openPopover === propertyLabel} closeOnBlur={true}
-              onClose={()=>acceptValue()}>
+    <Popover isLazy={true} isOpen={openPopover === propertyLabel} closeOnBlur={false}>
       <PopoverTrigger>
         <button className="color-picker-thumb" onClick={()=>handleSwatchClick(propertyLabel)}
                 ref={pointColorSettingButtonRef}>
