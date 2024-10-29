@@ -1,9 +1,12 @@
 import { ScaleBand, ScaleLinear } from "d3"
+import { IItem } from "../../../models/data/data-set-types"
 import { IGraphDataConfigurationModel } from "../models/graph-data-configuration-model"
 import { GraphLayout } from "../models/graph-layout"
 import { ILineDescription, ISquareOfResidual } from "../adornments/shared-adornment-types"
-import { IConnectingLineDescription } from "../../data-display/data-display-types"
+import { FormulaFn } from "../adornments/plotted-function/plotted-function-adornment-types"
+import { ICaseSubsetDescription, IConnectingLineDescription } from "../../data-display/data-display-types"
 import { dataDisplayGetNumericValue } from "../../data-display/data-display-value-utils"
+import { IPlottedFunctionAdornmentModel } from "../adornments/plotted-function/plotted-function-adornment-model"
 
 export function scatterPlotFuncs(layout: GraphLayout, dataConfiguration?: IGraphDataConfigurationModel) {
   const { dataset: data, yAttributeIDs: yAttrIDs = [], hasY2Attribute, numberOfPlots = 1 } = dataConfiguration || {}
@@ -83,28 +86,67 @@ export function scatterPlotFuncs(layout: GraphLayout, dataConfiguration?: IGraph
     return { caseID, color, side, x, y }
   }
 
+  function addSquare(caseData: IItem, category: string | undefined, cellKey: Record<string, string>,
+                     squareFunc: (caseID: string)=>ISquareOfResidual, squares: ISquareOfResidual[]) {
+    const dataset = dataConfiguration?.dataset
+    const legendID = dataConfiguration?.attributeID("legend")
+    const legendType = dataConfiguration?.attributeType("legend")
+    const legendValue = caseData.__id__ && legendID ? dataset?.getStrValue(caseData.__id__, legendID) : null
+    // If the line has a category, and it does not match the categorical legend value,
+    // do not render squares.
+    if (category && legendValue !== category && legendType === "categorical") return
+    const fullCaseData = dataset?.getItem(caseData.__id__, { numeric: false })
+    if (fullCaseData && dataConfiguration?.isCaseInSubPlot(cellKey, fullCaseData)) {
+      const square = squareFunc(caseData.__id__)
+      if (!isFinite(square.x) || !isFinite(square.y)) return
+      squares.push(square)
+    }
+  }
+
   function residualSquaresForLines(lineDescriptions: ILineDescription[]) {
     const squares: ISquareOfResidual[] = []
     const dataset = dataConfiguration?.dataset
     lineDescriptions.forEach((lineDescription: ILineDescription) => {
       const { category, cellKey, intercept, slope } = lineDescription
       dataset?.items.forEach(caseData => {
-        const legendID = dataConfiguration?.attributeID("legend")
-        const legendType = dataConfiguration?.attributeType("legend")
-        const legendValue = caseData.__id__ && legendID ? dataset?.getStrValue(caseData.__id__, legendID) : null
-        // If the line has a category and it does not match the categorical legend value,
-        // do not render squares.
-        if (category && legendValue !== category && legendType === "categorical") return
-        const fullCaseData = dataset?.getItem(caseData.__id__, { numeric: false })
-        if (fullCaseData && dataConfiguration?.isCaseInSubPlot(cellKey, fullCaseData)) {
-          const square = residualSquare(slope, intercept, caseData.__id__)
-          if (!isFinite(square.x) || !isFinite(square.y)) return
-          squares.push(square)
-        }
+        addSquare(caseData, category, cellKey,
+          (caseID: string) => residualSquare(slope, intercept, caseID), squares)
       })
     })
     return squares
   }
 
-  return { getXCoord, getYCoord, getCaseCoords, residualSquare, residualSquaresForLines, connectingLinesForCases }
+  function residualSquareForFunction(func: FormulaFn, caseID: string, plotNum = 0): ISquareOfResidual {
+    const { xValue, xCoord, yCoord, rightCoord, color } = getCaseCoords(caseID)
+    const yValue = func(xValue)
+    const yScale = y2Scale && plotNum === numberOfPlots - 1 ? y2Scale : y1Scale
+    const funcYCoord = yScale(yValue) / numExtraSecondaryBands + rightCoord
+    const residualCoord = yCoord - funcYCoord
+    const funcXCoord = xCoord + residualCoord
+    const x = Math.min(xCoord, funcXCoord)
+    const y = Math.min(yCoord, funcYCoord)
+    const side = Math.abs(residualCoord)
+    return { caseID, color, side, x, y }
+  }
+
+  function residualSquaresForFunction(plottedFunctionModel: IPlottedFunctionAdornmentModel,
+                                      caseSubsetDescriptions: ICaseSubsetDescription[]) {
+    const squares: ISquareOfResidual[] = []
+    const dataset = dataConfiguration?.dataset
+    caseSubsetDescriptions.forEach((caseSubsetDescription: ICaseSubsetDescription) => {
+      const { cellKey, category } = caseSubsetDescription
+      const instanceKey = plottedFunctionModel.instanceKey(cellKey)
+      const func = plottedFunctionModel.plottedFunctions.get(instanceKey)?.formulaFunction
+      if (func) {
+        dataset?.items.forEach(caseData => {
+          addSquare(caseData, category, cellKey,
+            (caseID: string) => residualSquareForFunction(func, caseID), squares)
+        })
+      }
+    })
+    return squares
+  }
+
+  return { getXCoord, getYCoord, residualSquaresForLines, connectingLinesForCases,
+    residualSquaresForFunction}
 }

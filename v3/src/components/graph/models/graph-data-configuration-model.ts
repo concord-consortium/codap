@@ -8,7 +8,8 @@ import {AxisPlace} from "../../axis/axis-types"
 import {GraphPlace} from "../../axis-graph-shared"
 import {AttributeDescription, DataConfigurationModel, IAttributeDescriptionSnapshot, IDataConfigurationModel}
   from "../../data-display/models/data-configuration-model"
-import {AttrRole, GraphAttrRole, graphPlaceToAttrRole, PrimaryAttrRoles} from "../../data-display/data-display-types"
+import {AttrRole, GraphAttrRole, graphPlaceToAttrRole, ICaseSubsetDescription, PrimaryAttrRoles}
+  from "../../data-display/data-display-types"
 import {updateCellKey} from "../adornments/adornment-utils"
 import { isFiniteNumber } from "../../../utilities/math-utils"
 import { CaseData, CaseDataWithSubPlot } from "../../data-display/d3-types"
@@ -368,6 +369,17 @@ export const GraphDataConfigurationModel = DataConfigurationModel
         cellKeys.push(this.cellKey(i))
       }
       return cellKeys
+    },
+    getAllCaseSubsetDescriptions() {
+      const cellKeys = this.getAllCellKeys()
+      const legendCategories = self.categoryArrayForAttrRole("legend") ?? [""]
+      const cellSubsetDescriptions: ICaseSubsetDescription[] = []
+      cellKeys.forEach(cellKey => {
+        legendCategories.forEach(category => {
+          cellSubsetDescriptions.push({category, cellKey})
+        })
+      })
+      return cellSubsetDescriptions
     },
     isCaseInSubPlot(cellKey: Record<string, string>, caseData: Record<string, any>) {
       const numOfKeys = Object.keys(cellKey).length
