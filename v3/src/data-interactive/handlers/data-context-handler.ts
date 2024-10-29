@@ -5,7 +5,7 @@ import {
   dataContextCountChangedNotification, dataContextDeletedNotification,
 } from "../../models/data/data-set-notifications"
 import { sortItemsWithCustomUndoRedo } from "../../models/data/data-set-undo"
-import { addSetAsideCases, restoreSetAsideCases } from "../../models/data/data-set-utils"
+import { addSetAsideCases, replaceSetAsideCases, restoreSetAsideCases } from "../../models/data/data-set-utils"
 import { getFormulaManager } from "../../models/tiles/tile-environment"
 import { toV3CaseId } from "../../utilities/codap-utils"
 import { hasOwnProperty } from "../../utilities/js-utils"
@@ -93,30 +93,14 @@ export const diDataContextHandler: DIHandler = {
 
       } else {
         if (!caseIDs) return fieldRequiredResult("Notify", "dataContext", "caseIDs")
+        const v3CaseIds = caseIDs.map(caseId => toV3CaseId(caseId))
 
-        // let originallyHiddenItemIds: string[] = []
-        // if (operation === "replace") {
-        //   originallyHiddenItemIds = [...dataContext.setAsideItemIds]
-        //   dataContext.showHiddenCasesAndItems()
-        // }
-
-        addSetAsideCases(dataContext, caseIDs.map(caseId => toV3CaseId(caseId)), false)
-        // dataContext.hideCasesOrItems(caseIDs.map(caseId => toV3CaseId(caseId)))
-        // const restoredItemIds = originallyHiddenItemIds.filter(caseId => !dataContext.isCaseOrItemHidden(caseId))
-        // const originallyHiddenItemIdSet = new Set(originallyHiddenItemIds)
-        // const newlySetAsideItemIds = [...dataContext.setAsideItemIds]
-        //   .filter(caseId => !originallyHiddenItemIdSet.has(caseId))
-        // const newlySetAsideCases = newlySetAsideItemIds.map(itemId => dataContext.itemIdChildCaseMap.get(itemId))
-        //   .filter(caseInfo => !!caseInfo).map(caseInfo => caseInfo.groupedCase)
-        // if (newlySetAsideCases.length > 0) {
-        // dataContext.applyModelChange(() => {}, { notify: deleteCasesNotification(dataContext, newlySetAsideCases) })
-        // }
-        // if (restoredItemIds.length > 0) {
-        //   const restoredCaseIds = restoredItemIds.map(itemId => dataContext.itemIdChildCaseMap.get(itemId))
-        //     .filter(caseInfo => !!caseInfo).map(caseInfo => caseInfo.groupedCase.__id__)
-        //   dataContext.applyModelChange(() => {}, { notify: createCasesNotification(restoredCaseIds, dataContext) })
-        //   setSelectedCases(restoredItemIds)
-        // }
+        if (operation === "replace") {
+          replaceSetAsideCases(dataContext, v3CaseIds)
+        } else {
+          addSetAsideCases(dataContext, v3CaseIds, false)
+        }
+        
         return successResult
       }
 

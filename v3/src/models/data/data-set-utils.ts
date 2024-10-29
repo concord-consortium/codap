@@ -146,42 +146,77 @@ export function selectAndDeselectCases(addCaseIds: string[], removeCaseIds: stri
 
 // Set aside helper functions
 
-export function addSetAsideCases(data: IDataSet, caseIDs: string[], undoable = true) {
-  if (caseIDs.length) {
-    const cases = caseIDs.map(caseId => data.caseInfoMap.get(caseId) ?? data.itemIdChildCaseMap.get(caseId))
+export function addSetAsideCases(data: IDataSet, caseIds: string[], undoable = true) {
+  if (caseIds.length) {
+    const cases = caseIds.map(caseId => data.caseInfoMap.get(caseId) ?? data.itemIdChildCaseMap.get(caseId))
       .filter(caseInfo => !!caseInfo).map(caseInfo => caseInfo.groupedCase)
     data.applyModelChange(() => {
-      data.hideCasesOrItems(caseIDs)
-      data.selectCases(caseIDs, false)
+      data.hideCasesOrItems(caseIds)
+      data.selectCases(caseIds, false)
     }, {
-      notify: [selectCasesNotification(data, true, cases), deleteCasesNotification(data, cases)],
+      notify: [selectCasesNotification(data, false, cases), deleteCasesNotification(data, cases)],
       undoStringKey: undoable ? "V3.Undo.hideShowMenu.setAsideCases" : undefined,
       redoStringKey: undoable ? "V3.Redo.hideShowMenu.setAsideCases" : undefined
     })
   }
 }
 
-export function restoreSetAsideCases(data?: IDataSet, caseIDs?: string[], undoable = true) {
-  if (!data) return
-
-  const hiddenItemIds = caseIDs ? caseIDs.filter(caseId => data.isCaseOrItemHidden(caseId)) : [...data.setAsideItemIds]
-  // The createCasesNotification must be created after the setAsides have been restored
-  // becaues the child cases are invisible until then
-  const _createCasesNotification = () => {
-    const hiddenCaseIds = hiddenItemIds
+// createCasesNotifications must be created after the setAsides have been restored
+// becaues the child cases are invisible until then
+function _createCasesNotification(data: IDataSet, restoredItemIds: string[]) {
+  return () => {
+    data.validateCases()
+    const hiddenCaseIds = restoredItemIds
       .filter(itemId => data.getItem(itemId) ? data.itemIdChildCaseMap.get(itemId) : itemId)
       .filter(caseId => !!caseId)
     return createCasesNotification(hiddenCaseIds, data)
   }
+}
+
+export function restoreSetAsideCases(data?: IDataSet, caseIds?: string[], undoable = true) {
+  if (!data) return
+
+  const hiddenItemIds = caseIds ? caseIds.filter(caseId => data.isCaseOrItemHidden(caseId)) : [...data.setAsideItemIds]
   if (hiddenItemIds.length) {
     data.applyModelChange(() => {
       data.showHiddenCasesAndItems(hiddenItemIds)
       data.setSelectedCases(hiddenItemIds)
     }, {
-      notify: [_createCasesNotification, selectCasesNotification(data)],
+      notify: [_createCasesNotification(data, hiddenItemIds), selectCasesNotification(data)],
       undoStringKey: undoable ? "V3.Undo.hideShowMenu.restoreSetAsideCases" : undefined,
       redoStringKey: undoable ? "V3.Redo.hideShowMenu.restoreSetAsideCases" : undefined,
       log: "Restore set aside cases"
+    })
+  }
+}
+
+export function replaceSetAsideCases(data: IDataSet, caseIds: string[]) {
+  if (caseIds.length) {
+    const itemIds: string[] = []
+    caseIds.forEach(caseId => {
+      if (data.getItem(caseId)) {
+        itemIds.push(caseId)
+      } else {
+        data.caseInfoMap.get(caseId)?.childItemIds.forEach(itemId => itemIds.push(itemId))
+      }
+    })
+    const itemIdSet = new Set(itemIds)
+    const restoredItemIds = data.setAsideItemIds.filter(itemId => !itemIdSet.has(itemId))
+    const hiddenCaseIds = caseIds.filter(caseId => !data.isCaseOrItemHidden(caseId))
+    const hiddenCases = hiddenCaseIds
+      .map(caseId => data.caseInfoMap.get(caseId) ?? data.itemIdChildCaseMap.get(caseId))
+      .filter(caseInfo => !!caseInfo).map(caseInfo => caseInfo.groupedCase)
+    data.applyModelChange(() => {
+      data.showHiddenCasesAndItems()
+      data.hideCasesOrItems(caseIds)
+      data.setSelectedCases(restoredItemIds)
+
+    }, {
+      notify: [
+        _createCasesNotification(data, restoredItemIds),
+        deleteCasesNotification(data, hiddenCases),
+        selectCasesNotification(data, false, hiddenCases)
+      ]
     })
   }
 }
