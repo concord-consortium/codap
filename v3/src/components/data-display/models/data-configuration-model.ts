@@ -274,18 +274,12 @@ export const DataConfigurationModel = types
      * present in any of the case sets, not just the 0th one.
      */
     get selection() {
-      if (!self.dataset || !self.filteredCases[0]) return []
+      if (!self.dataset) return []
       return Array.from(this.visibleCaseIds).filter(caseId => self.dataset?.isCaseSelected(caseId))
     },
-    /**
-     * Note that in order to eliminate a selected case from the graph's selection, we have to check that it is not
-     * present in any of the case sets, not just the 0th one.
-     */
     get unselectedCases() {
-      if (!self.dataset || !self.filteredCases[0]) return []
-      const selection = self.dataset.selection,
-        allGraphCaseIds = Array.from(this.visibleCaseIds)
-      return allGraphCaseIds.filter((caseId: string) => !selection.has(caseId))
+      if (!self.dataset) return []
+      return Array.from(this.visibleCaseIds).filter(caseId => !self.dataset?.isCaseSelected(caseId))
     }
   }))
   .views(self => ({
