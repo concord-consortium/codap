@@ -16,14 +16,15 @@ import "./edit-formula-modal.scss"
 interface IProps {
   applyFormula: (formula: string) => void
   isOpen: boolean
-  onClose: () => void
+  onClose?: () => void
   titleInput?: string
   titleLabel: string
+  titlePlaceholder?: string
   value?: string
 }
 
 export const EditFormulaModal = observer(function EditFormulaModal({
-  applyFormula, isOpen, onClose, titleInput, titleLabel, value
+  applyFormula, isOpen, onClose, titleInput, titleLabel, titlePlaceholder, value
 }: IProps) {
   const [showValuesMenu, setShowValuesMenu] = useState(false)
   const [showFunctionMenu, setShowFunctionMenu] = useState(false)
@@ -44,7 +45,7 @@ export const EditFormulaModal = observer(function EditFormulaModal({
   const closeModal = () => {
     setShowValuesMenu(false)
     setShowFunctionMenu(false)
-    onClose()
+    onClose?.()
   }
 
   const handleModalWhitespaceClick = () => {
@@ -94,7 +95,7 @@ export const EditFormulaModal = observer(function EditFormulaModal({
               <Input
                 size="xs"
                 ml={5}
-                placeholder="attribute"
+                placeholder={titlePlaceholder ?? ""}
                 value={titleInput ?? ""}
                 data-testid="attr-name-input"
                 disabled
