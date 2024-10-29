@@ -2,7 +2,7 @@ import { appState } from "../../models/app-state"
 import { gDataBroker } from "../../models/data/data-broker"
 import { DataSet } from "../../models/data/data-set"
 import {
-  dataContextCountChangedNotification, dataContextDeletedNotification,
+  dataContextCountChangedNotification, dataContextDeletedNotification
 } from "../../models/data/data-set-notifications"
 import { sortItemsWithCustomUndoRedo } from "../../models/data/data-set-undo"
 import { addSetAsideCases, replaceSetAsideCases, restoreSetAsideCases } from "../../models/data/data-set-utils"
