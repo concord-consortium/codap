@@ -1,9 +1,9 @@
 import { MathNode } from "mathjs"
+import { checkNumber } from "../../../utilities/math-utils"
 import { IValueType } from "../../data/attribute-types"
 import { CurrentScope, FValue, FValueOrArray } from "../formula-types"
 import { UNDEF_RESULT, evaluateNode, getRootScope, isNumber, isValueNonEmpty, isValueTruthy } from "./function-utils"
 import { FormulaMathJsScope } from "../formula-mathjs-scope"
-import { checkNumber } from "../../../utilities/math-utils"
 
 // Almost every aggregate function can be cached in the same way.
 export const cachedAggregateFnFactory =

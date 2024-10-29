@@ -538,7 +538,7 @@
         "examples": [
           "first(age) returns the first value of the attribute age",
           "first(age,sex=\"female\") returns the first value for the attribute age for which the attribute sex is female",
-          "first(age,height>68) returns the first value for the attribute age for which the the value of the attribute height is greater than 68"
+          "first(age,height>68) returns the first value for the attribute age for which the value of the attribute height is greater than 68"
         ]
       },
       { "displayName": "last",
@@ -1046,7 +1046,7 @@
           }
         ],
         "examples": [
-          "rollingMean(Height, 5) computes the rolling mean of the attribute Height, including the the current value and the two preceding and following values",
+          "rollingMean(Height, 5) computes the rolling mean of the attribute Height, including the current value and the two preceding and following values",
           "rollingMean(Height, 5, Habitat!=\"water\") computes the rolling mean of Height, excluding water dwelling Mammals"
         ]
       },
@@ -1325,7 +1325,7 @@
           }
         ],
         "examples": [
-          "linRegrPredicted(horsepower, mpg) returns, for each value of horsepower, the the predicted value of mpg."
+          "linRegrPredicted(horsepower, mpg) returns, for each value of horsepower, the predicted value of mpg."
         ]
       }
     ]

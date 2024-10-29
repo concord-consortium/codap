@@ -1,10 +1,10 @@
 import { mad, MathNode, max, mean, median, min, std, sum } from "mathjs"
+import { IValueType } from "../../data/attribute-types"
 import { CurrentScope, FValue, IFormulaMathjsFunction } from "../formula-types"
 import { evaluateNode, getRootScope, isValueNonEmpty, isValueTruthy, UNDEF_RESULT } from "./function-utils"
 import {
   aggregateFnWithFilterFactory, aggregateNumericFnWithFilterFactory, cachedAggregateFnFactory
 } from "./aggregate-functions"
-import { IValueType } from "../../data/attribute-types"
 
 export const univariateStatsFunctions: Record<string, IFormulaMathjsFunction> = {
 
