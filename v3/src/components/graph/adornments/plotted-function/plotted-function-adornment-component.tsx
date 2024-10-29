@@ -29,7 +29,7 @@ interface IComputePointsOptions {
 function residualsContainer(model: IPlottedFunctionAdornmentModel,
                             cellKey: Record<string, string>, containerId: string) {
   const classFromKey = model.classNameFromKey(cellKey)
-  const residualsContainerClass = `movable-line-equation-container-${classFromKey}`
+  const residualsContainerClass = `plotted-function-equation-container-${classFromKey}`
   const residualsContainerSelector = `#${containerId} .${residualsContainerClass}`
 
   return { residualsContainerClass, residualsContainerSelector }
@@ -145,7 +145,7 @@ export const PlottedFunctionAdornmentComponent = observer(function PlottedFuncti
     // Set up the text box for the residuals
     // Define the selector that corresponds with this specific movable line's adornment container
     const residualsBox = select(`#${containerId}`).append("div")
-      .attr("class", `movable-line-equation-container ${residualsContainerClass}`)
+      .attr("class", `plotted-function-equation-container ${residualsContainerClass}`)
       .attr("data-testid", `${residualsContainerClass}`)
       .style("width", `${plotWidth}px`)
       .style("height", `${plotHeight}px`)

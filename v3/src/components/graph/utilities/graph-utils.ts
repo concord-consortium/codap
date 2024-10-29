@@ -291,7 +291,7 @@ interface IEquationString {
   sumOfSquares?: number
 }
 
-export function residualsString(sumOfSquares:number, includeBreak = true) {
+export function residualsString(sumOfSquares: number, includeBreak = true) {
   const squaresMaxDec = !sumOfSquares || sumOfSquares > 100 ? 0 : 3
   const formattedSumOfSquares = formatEquationValue(sumOfSquares || 0, squaresMaxDec)
   return isFiniteNumber(sumOfSquares)
