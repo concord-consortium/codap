@@ -83,7 +83,7 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
     const screenY = yScaleRef.current((pointsOnAxes.current.pt1.y + pointsOnAxes.current.pt2.y) / 2) / ySubAxesCount
     const attrNames = {x: xAttrName, y: yAttrName}
     const sumOfSquares = dataConfig && showSumSquares
-      ? calculateSumOfSquares({ cellKey, dataConfig, intercept, slope })
+      ? calculateSumOfSquares({ cellKey, dataConfig, computeY: (x) => intercept + slope * x })
       : undefined
     const string = equationString({slope, intercept, attrNames, sumOfSquares, layout})
     const equation = select(equationContainerSelector).select("p")

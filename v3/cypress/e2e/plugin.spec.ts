@@ -259,6 +259,12 @@ context("codap plugins", () => {
     webView.confirmAPITesterResponseContains(/"operation":\s"updateCases/)
     webView.clearAPITesterResponses()
 
+    cy.log("Broadcast moveCases notifications")
+    table.openAttributeMenu("Mammal")
+    table.selectMenuItemFromAttributeMenu("Sort Ascending (A→Z, 0→9)")
+    webView.confirmAPITesterResponseContains(/"operation":\s"moveCases/)
+    webView.clearAPITesterResponses()
+
     cy.log("Broadcast deleteCases notifications")
     table.openIndexMenuForRow(2)
     table.deleteCase()

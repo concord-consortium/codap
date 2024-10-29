@@ -8,7 +8,7 @@ import { withCustomUndoRedo } from "../history/with-custom-undo-redo"
 import { ICollectionModel } from "./collection"
 import { CaseInfo, IAddCasesOptions, ICase, ICaseCreation, IItem } from "./data-set-types"
 import { DataSet, IDataSet } from "./data-set"
-import { deleteCasesNotification, } from "./data-set-notifications"
+import { deleteCasesNotification, moveCasesNotification, } from "./data-set-notifications"
 
 /*
  * setCaseValues custom undo/redo
@@ -328,6 +328,7 @@ export function sortItemsWithCustomUndoRedo(data: IDataSet, attrId: string, dire
   }, {
     log: logStringifiedObjectMessage("Sort cases by attribute: %@",
             { attributeId: attrId, attribute: data?.getAttribute(attrId)?.name }),
+    notify: moveCasesNotification(data),
     undoStringKey: "DG.Undo.caseTable.sortCases",
     redoStringKey: "DG.Redo.caseTable.sortCases"
   })

@@ -113,6 +113,14 @@ export function createCasesNotification(caseIDs: string[], data?: IDataSet) {
   return notification("createCases", result, data)
 }
 
+export function moveCasesNotification(data: IDataSet, cases: ICase[] = []) {
+  const result = {
+    success: true,
+    caseIDs: cases.map(aCase => toV2Id(aCase.__id__))
+  }
+  return notification("moveCases", result, data)
+}
+
 export function updateCasesNotification(data: IDataSet, cases?: ICase[]) {
   const caseIDs = cases?.map(c => toV2Id(c.__id__))
   const result = {

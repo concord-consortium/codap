@@ -6,12 +6,13 @@ import RTreeLib from 'rtree'
 import * as PIXI from "pixi.js"
 import {appState} from "../../../models/app-state"
 import {IDataSet} from "../../../models/data/data-set"
-import { /*selectAllCases,*/ selectAndDeselectCases } from "../../../models/data/data-set-utils"
+import {selectAndDeselectCases} from "../../../models/data/data-set-utils"
 import {defaultBackgroundColor} from "../../../utilities/color-utils"
 import {rTreeRect} from "../data-display-types"
 import {rectangleSubtract, rectNormalize} from "../data-display-utils"
 import {useDataDisplayLayout} from "../hooks/use-data-display-layout"
 import {useDataDisplayModelContext} from "../hooks/use-data-display-model"
+import {usePixiPointerDownDeselect} from "../hooks/use-pixi-pointer-down-deselect"
 import {MarqueeState} from "../models/marquee-state"
 import {IPixiPointMetadata, IPixiPointsArray, PixiBackgroundPassThroughEvent, PixiPoints} from "../pixi/pixi-points"
 
@@ -99,15 +100,8 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
       startY.current = event.y - bgRect.top
       width.current = 0
       height.current = 0
-      if (!event.shiftKey) {
-        datasetsArray.forEach(dataset => {
-          // This is breaking the graph-legend cypress test
-          // selectAllCases(dataset, false)
-          dataset.setSelectedCases([])
-        })
-      }
       marqueeState.setMarqueeRect({x: startX.current, y: startY.current, width: 0, height: 0})
-    }, [bgRef, datasetsArray, marqueeState, pixiPointsArray]),
+    }, [bgRef, marqueeState, pixiPointsArray]),
 
     onDrag = useCallback((event: { dx: number; dy: number }) => {
       if (event.dx !== 0 || event.dy !== 0 && datasetsArray.length) {
@@ -150,6 +144,8 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
       dataDisplayModel.setMarqueeMode("unclicked")
       appState.endPerformance()
     }, [dataDisplayModel, marqueeState])
+
+  usePixiPointerDownDeselect(pixiPointsArray, dataDisplayModel)
 
   useEffect(() => {
     return autorun(() => {
