@@ -1,15 +1,15 @@
 import React, { useCallback, useRef, useState } from "react"
 import { observer } from "mobx-react-lite"
 import { clsx } from "clsx"
+import { IValueType } from "../../models/data/attribute-types"
 import { IGroupedCase } from "../../models/data/data-set-types"
-import { CaseAttrView } from "./case-attr-view"
-import { IValueType } from "../../models/data/attribute"
 import { ICollectionModel } from "../../models/data/collection"
-import { useCaseCardModel } from "./use-case-card-model"
 import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-data-utils"
 import { AttributeHeader } from "../case-tile-common/attribute-header"
 import { AttributeHeaderDivider } from "../case-tile-common/attribute-header-divider"
 import { kIndexColumnKey } from "../case-tile-common/case-tile-types"
+import { CaseAttrView } from "./case-attr-view"
+import { useCaseCardModel } from "./use-case-card-model"
 
 import "./case-attrs-view.scss"
 

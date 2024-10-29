@@ -8,7 +8,7 @@ import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useLoggingContext } from "../../hooks/use-log-context"
 import { logMessageWithReplacement } from "../../lib/log-message"
 import { appState } from "../../models/app-state"
-import { kDefaultFormatStr } from "../../models/data/attribute"
+import { kDefaultFormatStr } from "../../models/data/attribute-types"
 import { isAddCasesAction, isRemoveCasesAction, isSetCaseValuesAction } from "../../models/data/data-set-actions"
 import { createCasesNotification } from "../../models/data/data-set-notifications"
 import {
