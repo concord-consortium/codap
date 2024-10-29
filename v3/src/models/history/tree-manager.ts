@@ -154,7 +154,6 @@ export const TreeManager = types
       self.document.history.push(entry)
 
       // Store the most recent history id.
-      console.log("RevisionId", entry.id)
       self.revisionId = entry.id
 
       // Add the entry to the undo stack if it is undoable.

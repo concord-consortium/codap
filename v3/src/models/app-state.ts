@@ -54,10 +54,15 @@ class AppState {
   async getDocumentSnapshot() {
     // use cloneDeep because MST snapshots are immutable
     const snapshot = await serializeDocument(this.currentDocument, doc => cloneDeep(getSnapshot(doc)))
-    return {
-      revisionId: this.document.treeManagerAPI?.revisionId,
-      ...snapshot
+    const revisionId = this.document.treeManagerAPI?.revisionId
+    if (revisionId) {
+      return {
+        revisionId: this.document.treeManagerAPI?.revisionId,
+        ...snapshot
+      }
     }
+
+    return snapshot
   }
 
   setCFM(cfm: CloudFileManager) {
