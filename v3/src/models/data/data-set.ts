@@ -292,9 +292,12 @@ export const DataSet = V2Model.named("DataSet").props({
 }))
 .views(self => ({
   isCaseOrItemHidden(caseOrItemId: string) {
+    // Hidden cases are not included in caseInfoMap. So if validateCases() has been called since the case
+    // was hidden, we won't be able to find the case or its contained items. We assume that the caseOrItemId
+    // provided is actually in this dataset, and return true if we can't find the corresponding case or item.
     const caseInfo = self.caseInfoMap.get(caseOrItemId)
     return caseInfo?.childItemIds.every(itemId => self.isItemHidden(itemId)) ??
-            self.isItemHidden(caseOrItemId)
+      (self._itemIds.includes(caseOrItemId) ? self.isItemHidden(caseOrItemId) : true)
   }
 }))
 .views(self => ({

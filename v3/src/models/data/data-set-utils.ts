@@ -148,6 +148,7 @@ export function selectAndDeselectCases(addCaseIds: string[], removeCaseIds: stri
 
 export function addSetAsideCases(data: IDataSet, caseIds: string[], undoable = true) {
   if (caseIds.length) {
+    data.validateCases()
     const cases = caseIds.map(caseId => data.caseInfoMap.get(caseId) ?? data.itemIdChildCaseMap.get(caseId))
       .filter(caseInfo => !!caseInfo).map(caseInfo => caseInfo.groupedCase)
     data.applyModelChange(() => {
@@ -176,6 +177,7 @@ function _createCasesNotification(data: IDataSet, restoredItemIds: string[]) {
 export function restoreSetAsideCases(data?: IDataSet, caseIds?: string[], undoable = true) {
   if (!data) return
 
+  data.validateCases()
   const hiddenItemIds = caseIds ? caseIds.filter(caseId => data.isCaseOrItemHidden(caseId)) : [...data.setAsideItemIds]
   if (hiddenItemIds.length) {
     data.applyModelChange(() => {
@@ -192,6 +194,7 @@ export function restoreSetAsideCases(data?: IDataSet, caseIds?: string[], undoab
 
 export function replaceSetAsideCases(data: IDataSet, caseIds: string[]) {
   if (caseIds.length) {
+    data.validateCases()
     const itemIds: string[] = []
     caseIds.forEach(caseId => {
       if (data.getItem(caseId)) {
@@ -208,6 +211,7 @@ export function replaceSetAsideCases(data: IDataSet, caseIds: string[]) {
       .filter(caseInfo => !!caseInfo).map(caseInfo => caseInfo.groupedCase)
     data.applyModelChange(() => {
       data.showHiddenCasesAndItems()
+      data.validateCases()
       data.hideCasesOrItems(caseIds)
       data.setSelectedCases(restoredItemIds)
 
