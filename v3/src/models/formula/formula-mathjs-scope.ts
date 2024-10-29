@@ -1,9 +1,9 @@
 import { MathNode, parse } from "mathjs"
-import { FValue } from "./formula-types"
-import type { IGlobalValueManager } from "../global/global-value-manager"
+import type { IValueType } from "../data/attribute-types"
 import type { IDataSet } from "../data/data-set"
-import type { IValueType } from "../data/attribute"
+import type { IGlobalValueManager } from "../global/global-value-manager"
 import { t } from "../../utilities/translation/translate"
+import { FValue } from "./formula-types"
 import { CASE_INDEX_FAKE_ATTR_ID, globalValueIdToCanonical, localAttrIdToCanonical } from "./utils/name-mapping-utils"
 
 const CACHE_ENABLED = true
