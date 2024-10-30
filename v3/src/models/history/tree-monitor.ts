@@ -38,7 +38,7 @@ export class TreeMonitor {
         }
 
         // Ignore the special snapshot actions, this will pick up other actions
-        // with the same name, so we need to be careful about this
+        // with the same name, so these are now reserved action names.
         // A better approach would be to use type.snapshotProcessor which provides
         // access to the model instance in its postProcess function
         // this would avoid the need for completeSnapshot, and will probably be

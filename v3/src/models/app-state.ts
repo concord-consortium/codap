@@ -19,6 +19,7 @@ import { getSharedModelManager } from "./tiles/tile-environment"
 import { Logger } from "../lib/logger"
 import { t } from "../utilities/translation/translate"
 import { DEBUG_DOCUMENT } from "../lib/debug"
+import { TreeManagerType } from "./history/tree-manager"
 
 type AppMode = "normal" | "performance"
 
@@ -51,13 +52,20 @@ class AppState {
     return this.currentDocument
   }
 
+  @computed
+  private get treeManager() {
+    // Internally we know our treeManagerAPI is really an instance of TreeManager.
+    // And we don't have need to expose the revisionId to tiles.
+    return this.document.treeManagerAPI as TreeManagerType | undefined
+  }
+
   async getDocumentSnapshot() {
     // use cloneDeep because MST snapshots are immutable
     const snapshot = await serializeDocument(this.currentDocument, doc => cloneDeep(getSnapshot(doc)))
-    const revisionId = this.document.treeManagerAPI?.revisionId
+    const revisionId = this.treeManager?.revisionId
     if (revisionId) {
       return {
-        revisionId: this.document.treeManagerAPI?.revisionId,
+        revisionId: this.treeManager?.revisionId,
         ...snapshot
       }
     }
@@ -91,11 +99,12 @@ class AppState {
         }
         const docTitle = this.currentDocument.getDocumentTitle()
         this.currentDocument.setTitle(docTitle || t("DG.Document.defaultDocumentName"))
-        if (snap.revisionId && appState.document.treeManagerAPI) {
-          // TODO: might need to make this be an action since we are modifying an
-          // observable. But this is happening in the same action that created the
-          // treeManager so it might be allowed.
-          appState.document.treeManagerAPI.revisionId = snap.revisionId
+        console.log("restoring revisionId", snap.revisionId)
+        if (snap.revisionId && this.treeManager) {
+          // Restore the revisionId from the stored document
+          // This will allow us to consistently compare the local document
+          // to the stored document.
+          this.treeManager.setRevisionId(snap.revisionId)
         }
 
         // monitor document changes for undo/redo
@@ -120,7 +129,7 @@ class AppState {
     this.currentDocument?.treeMonitor?.enableMonitoring()
     if (this.currentDocument && !this.dirtyMonitorDisposer) {
       this.dirtyMonitorDisposer = reaction(
-        () => this.currentDocument.treeManagerAPI?.revisionId,
+        () => this.treeManager?.revisionId,
         () => {
           this.cfm?.client.dirty(true)
         }

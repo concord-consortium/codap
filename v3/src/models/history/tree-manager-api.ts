@@ -159,11 +159,4 @@ export interface TreeManagerAPI {
      * This provides an interface for Trees to undo and redo history events
      */
     undoManager: IUndoManager;
-
-    /**
-     * A revisionId of the main tree or main document, that can be used for tracking
-     * when the document changes. This might not be compatible with the multiple
-     * tree iframe use case.
-     */
-    revisionId: string;
 }

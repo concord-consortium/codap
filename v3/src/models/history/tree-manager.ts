@@ -175,6 +175,10 @@ export const TreeManager = types
     self.document = cDoc
   },
 
+  setRevisionId(revisionId: string) {
+    self.revisionId = revisionId
+  },
+
   setNumHistoryEntriesApplied(value: number) {
     self.numHistoryEventsApplied = value
   },
