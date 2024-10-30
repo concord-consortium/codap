@@ -38,6 +38,7 @@ export const EditAttributeFormulaModal = observer(function EditAttributeFormulaM
     <DataSetContext.Provider value={dataSet}>
       <EditFormulaModal
         applyFormula={applyFormula}
+        formulaPrompt={t("DG.AttrFormView.formulaPrompt")}
         isOpen={!!uiState.editFormulaAttributeId}
         onClose={() => uiState.setEditFormulaAttributeId()}
         titleInput={attribute?.name}

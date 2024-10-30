@@ -15,6 +15,7 @@ import "./edit-formula-modal.scss"
 
 interface IProps {
   applyFormula: (formula: string) => void
+  formulaPrompt?: string
   isOpen: boolean
   onClose?: () => void
   titleInput?: string
@@ -24,7 +25,7 @@ interface IProps {
 }
 
 export const EditFormulaModal = observer(function EditFormulaModal({
-  applyFormula, isOpen, onClose, titleInput, titleLabel, titlePlaceholder, value
+  applyFormula, formulaPrompt, isOpen, onClose, titleInput, titleLabel, titlePlaceholder, value
 }: IProps) {
   const [showValuesMenu, setShowValuesMenu] = useState(false)
   const [showFunctionMenu, setShowFunctionMenu] = useState(false)
@@ -101,7 +102,7 @@ export const EditFormulaModal = observer(function EditFormulaModal({
                 disabled
               />
             </FormLabel>
-            <FormLabel>{t("DG.AttrFormView.formulaPrompt")}
+            <FormLabel>{formulaPrompt ?? t("DG.AttrFormView.formulaPrompt")}
               <FormulaEditor />
             </FormLabel>
           </FormControl>
