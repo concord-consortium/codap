@@ -20,7 +20,7 @@ interface ColorPickerIProps {
 export const PointColorSetting = observer(function PointColorSetting({onColorChange,
       propertyLabel, swatchBackgroundColor}: ColorPickerIProps) {
   const [showColorPicker, setShowColorPicker] = useState(false)
-  const [inputValue, setInputValue] = useState(missingColor)
+  const [inputValue, setInputValue] = useState(swatchBackgroundColor)
   const popoverRef = useRef<HTMLDivElement>(null)
   const popoverContainerRef = useRef<HTMLDivElement>(null)
   const [openPopover, setOpenPopover] = useState<string | null>(null)
