@@ -33,7 +33,6 @@ export const EditFormulaModal = observer(function EditFormulaModal({
   const formulaEditorState = useFormulaEditorState(value ?? "")
   const { formula, setFormula } = formulaEditorState
 
-
   useEffect(() => {
     setFormula(value || "")
   }, [value, setFormula])
@@ -46,6 +45,7 @@ export const EditFormulaModal = observer(function EditFormulaModal({
   const closeModal = () => {
     setShowValuesMenu(false)
     setShowFunctionMenu(false)
+    setFormula("")
     onClose?.()
   }
 
@@ -92,7 +92,8 @@ export const EditFormulaModal = observer(function EditFormulaModal({
         </ModalHeader>
         <ModalBody className="formula-modal-body" onKeyDown={e => e.stopPropagation()}>
           <FormControl display="flex" flexDirection="column" className="formula-form-control">
-            <FormLabel display="flex" flexDirection="row">{titleLabel}
+            <FormLabel display="flex" flexDirection="row">
+              <span className="title-label">{titleLabel}</span>
               <Input
                 size="xs"
                 ml={5}
@@ -102,7 +103,8 @@ export const EditFormulaModal = observer(function EditFormulaModal({
                 disabled
               />
             </FormLabel>
-            <FormLabel>{formulaPrompt ?? t("DG.AttrFormView.formulaPrompt")}
+            <FormLabel>
+              {formulaPrompt ?? t("DG.AttrFormView.formulaPrompt")}
               <FormulaEditor />
             </FormLabel>
           </FormControl>
