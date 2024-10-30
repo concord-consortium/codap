@@ -99,7 +99,6 @@ class AppState {
         }
         const docTitle = this.currentDocument.getDocumentTitle()
         this.currentDocument.setTitle(docTitle || t("DG.Document.defaultDocumentName"))
-        console.log("restoring revisionId", snap.revisionId)
         if (snap.revisionId && this.treeManager) {
           // Restore the revisionId from the stored document
           // This will allow us to consistently compare the local document
