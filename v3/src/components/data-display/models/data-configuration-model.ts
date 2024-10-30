@@ -108,7 +108,7 @@ export const DataConfigurationModel = types
         .map(aRole => this.attributeID(aRole))
         .filter(id => !!id)
     },
-    get childmostCollectionIDForPlottedAttributes() {
+    get childmostCollectionIDForAxisAttributes() {
         return idOfChildmostCollectionForAttributes(this.axisAttributeIDs, self.dataset)
     },
     get isEmpty() {
