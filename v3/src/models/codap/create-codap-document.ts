@@ -1,13 +1,13 @@
 import { getSnapshot } from "mobx-state-tree"
 import { SetOptional } from "type-fest"
+import build from "../../../build_number.json"
+import pkg from "../../../package.json"
 import { urlParams } from "../../utilities/url-params"
 import { createDocumentModel } from "../document/create-document-model"
 import { IDocumentModel, IDocumentModelSnapshot } from "../document/document"
 import { DocumentContentModel } from "../document/document-content"
 import { FreeTileRow } from "../document/free-tile-row"
 import { MosaicTileRow } from "../document/mosaic-tile-row"
-import build from "../../../build_number.json"
-import pkg from "../../../package.json"
 import { GlobalValueManager } from "../global/global-value-manager"
 import "../global/global-value-manager-registration"
 import { getFormulaManager } from "../tiles/tile-environment"
@@ -35,9 +35,12 @@ export function createCodapDocument(snapshot?: ICodapDocumentModelSnapshot, opti
     document.setContent(getSnapshot(DocumentContentModel.create()))
   }
   // add the global value manager if there isn't one
-  if (document.content && !noGlobals && !document.content.getFirstSharedModelByType(GlobalValueManager)) {
-    const globalValueManager = GlobalValueManager.create()
-    document.content.addSharedModel(globalValueManager)
+  if (!noGlobals) {
+    let globalValueManager = document.content?.getFirstSharedModelByType(GlobalValueManager)
+    if (!globalValueManager) {
+      globalValueManager = GlobalValueManager.create()
+      document.content?.addSharedModel(globalValueManager)
+    }
     // Add the global value manager to the formula manager
     getFormulaManager(document)?.addGlobalValueManager(globalValueManager)
   }
