@@ -30,6 +30,7 @@ import { kAttrIdPrefix, typeV3Id } from "../../utilities/codap-utils"
 import { parseColor } from "../../utilities/color-utils"
 import { formatStdISODateString } from "../../utilities/date-iso-utils"
 import { isDateString } from "../../utilities/date-parser"
+import { isBoundaryValue } from "../../utilities/geojson-utils"
 import { cachedFnFactory } from "../../utilities/mst-utils"
 import { Formula, IFormula } from "../formula/formula"
 import { applyModelChange } from "../history/apply-model-change"
@@ -142,6 +143,9 @@ export const Attribute = V2Model.named("Attribute").props({
     self.changeCount // eslint-disable-line no-unused-expressions
     return self.strValues.reduce((prev, current) => isDateString(current) ? ++prev : prev, 0)
   }),
+  getBoundaryCount: cachedFnFactory<number>(() => {
+    return self.strValues.reduce((prev, current) => isBoundaryValue(current) ? ++prev : prev, 0)
+  }),
   get hasFormula() {
     return !!self.formula && !self.formula.empty
   },
@@ -237,6 +241,10 @@ export const Attribute = V2Model.named("Attribute").props({
     // only infer date if all non-empty values are dates
     const dateCount = self.getDateCount()
     if (dateCount > 0 && dateCount === this.length - self.getEmptyCount()) return "date"
+
+    // only infer boundary if all non-empty values are boundaries
+    const boundaryCount = self.getBoundaryCount()
+    if (boundaryCount > 0 && boundaryCount === this.length - self.getEmptyCount()) return "boundary"
 
     return "categorical"
   },
