@@ -91,13 +91,16 @@ export const CategoricalLegend = observer(
 
     const setCategoryData = useCallback(() => {
       if (categoriesRef.current) {
-        const newCategoryData = categoriesRef.current.map((cat: string, index) => ({
-          category: cat,
-          color: dataConfiguration?.getLegendColorForCategory(cat) || missingColor,
-          column: index % layoutData.current.numColumns,
-          index,
-          row: Math.floor(index / layoutData.current.numColumns)
-        }))
+        const newCategoryData = categoriesRef.current.map((cat: string, index) => {
+          return (
+          {
+            category: cat,
+            color: dataConfiguration?.getLegendColorForCategory(cat) || missingColor,
+            column: index % layoutData.current.numColumns,
+            index,
+            row: Math.floor(index / layoutData.current.numColumns)
+          })
+        })
         categoryData.current = newCategoryData
       }
     }, [dataConfiguration])
@@ -149,7 +152,8 @@ export const CategoricalLegend = observer(
                   return dataConfiguration?.allCasesForCategoryAreSelected(catData[index].category) ??
                     false
                 })
-              .style('fill', (index: number) => catData[index].color || 'white')
+              .style('fill', (index: number) =>
+                                dataConfiguration?.getLegendColorForCategory(catData[index].category) || 'white')
               .transition().duration(duration.current)
               .on('end', () => {
                 duration.current = 0
@@ -326,6 +330,18 @@ export const CategoricalLegend = observer(
       )
       return () => disposer()
     }, [refreshKeys, computeDesiredExtent, dataConfiguration, setupKeys, setDesiredExtent, layerIndex])
+
+    useEffect(function respondToLegendColorChange() {
+      const disposer = reaction(
+        () => {
+          return dataConfiguration?.categorySetForAttrRole('legend')?.colorHash
+        },
+        () => {
+          refreshKeys()
+        }, {fireImmediately: true}
+      )
+      return () => disposer()
+    }, [dataConfiguration, refreshKeys])
 
     useEffect(function setup() {
       if (keysElt.current && categoryData.current) {

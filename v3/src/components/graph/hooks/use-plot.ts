@@ -269,6 +269,14 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     )
   }, [callRefreshPointPositions, dataConfiguration, graphModel, instanceId, pixiPoints, startAnimation])
 
+  useEffect(() => {
+    return mstReaction(
+      () => graphModel.dataConfiguration.categorySetForAttrRole('legend')?.colorHash,
+      () => {
+        callRefreshPointPositions(false)
+      }, {name: "usePlot [categorySetChange]"}, graphModel)
+  }, [graphModel, callRefreshPointPositions])
+
   // respond to pointsNeedUpdating becoming false; that is when the points have been updated
   // Happens when the number of plots has changed for now. Possibly other situations in the future.
   useEffect(() => {
