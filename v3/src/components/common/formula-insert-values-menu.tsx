@@ -1,6 +1,7 @@
 import { TriangleDownIcon, TriangleUpIcon } from "@chakra-ui/icons"
 import {Divider, Flex, List, ListItem,} from "@chakra-ui/react"
-import React, { useEffect, useRef, useState } from "react"
+import React, { useCallback, useEffect, useRef, useState } from "react"
+import { useMemo } from "use-memo-one"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { getGlobalValueManager, getSharedModelManager } from "../../models/tiles/tile-environment"
 import { useFormulaEditorContext } from "./formula-editor-context"
@@ -25,26 +26,26 @@ export const InsertValuesMenu = ({setShowValuesMenu}: IProps) => {
   )
   const attributeNames = dataSet?.attributes.map(attr => attr.name)
   const globalManager = dataSet && getGlobalValueManager(getSharedModelManager(dataSet))
-  const globals = globalManager
-                    ? Array.from(globalManager.globals.values()).map(global => ({ label: global.name }))
-                    : []
+  const globals = useMemo(() => globalManager
+    ? Array.from(globalManager.globals.values()).map(global => ({ label: global.name }))
+    : [], [globalManager])
   // TODO_Boundaries
-  const remoteBoundaryData = [ "CR_Cantones", "CR_Provincias", "DE_state_boundaries",
+  const remoteBoundaryData = useMemo(() => [ "CR_Cantones", "CR_Provincias", "DE_state_boundaries",
      "IT_region_boundaries", "JP_Prefectures", "US_congressional_boundaries", "US_county_boundaries",
-     "US_puma_boundaries", "US_state_boundaries", "country_boundaries" ]
+     "US_puma_boundaries", "US_state_boundaries", "country_boundaries" ], [])
   const constants = ["e", "false", "true", "π"]
   const scrollableContainerRef = useRef<HTMLUListElement>(null)
   const [listContainerStyle, setListContainerStyle] = useState({})
   const [, setScrollPosition] = useState(0)
 
-  let maxItemLength = 0
+  const maxItemLength = useRef(0)
 
   const insertValueToFormula = (value: string) => {
     editorApi?.insertVariableString(value)
     setShowValuesMenu(false)
   }
 
-  const getListContainerStyle = () => {
+  const getListContainerStyle = useCallback(() => {
     // calculate the top of the list container based on the height of the list. The list should be
     // nearly centered on the button that opens it.
     // The list should not extend beyond the top or bottom of the window.
@@ -52,19 +53,19 @@ export const InsertValuesMenu = ({setShowValuesMenu}: IProps) => {
     const button = document.querySelector(".formula-editor-button.insert-value")
 
     attributeNames?.forEach((attrName) => {
-      if (attrName.length > maxItemLength) {
-        maxItemLength = attrName.length
+      if (attrName.length > maxItemLength.current) {
+        maxItemLength.current = attrName.length
       }
     })
     remoteBoundaryData.forEach((boundary) => {
-      if (boundary.length > maxItemLength) {
-        maxItemLength = boundary.length
+      if (boundary.length > maxItemLength.current) {
+        maxItemLength.current = boundary.length
       }
     })
 
     globals.forEach((global) => {
-      if (global.label.length > maxItemLength) {
-        maxItemLength = global.label.length
+      if (global.label.length > maxItemLength.current) {
+        maxItemLength.current = global.label.length
       }
     })
 
@@ -80,10 +81,10 @@ export const InsertValuesMenu = ({setShowValuesMenu}: IProps) => {
       } else {
         top = spaceBelow - listHeight
       }
-      return { top, height: kMaxHeight, width: 40 + 10 * maxItemLength }
+      return { top, height: kMaxHeight, width: 40 + 10 * maxItemLength.current }
     }
     return {}
-  }
+  }, [attributeNames, globals, remoteBoundaryData])
 
   const handleScroll = (direction: "up" | "down") => {
     const container = scrollableContainerRef.current
@@ -111,7 +112,7 @@ export const InsertValuesMenu = ({setShowValuesMenu}: IProps) => {
     return () => {
       container?.removeEventListener("scroll", handleScrollPosition)
     }
-  }, [])
+  }, [getListContainerStyle])
 
   const isScrollable = scrollableContainerRef.current && scrollableContainerRef.current.scrollHeight > kMaxHeight
   const canScrollUp = scrollableContainerRef.current && scrollableContainerRef.current.scrollTop > 0
