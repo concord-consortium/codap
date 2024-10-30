@@ -143,7 +143,7 @@ export const PointColorSetting = observer(function PointColorSetting({onColorCha
                   </div>}
               </div>
               <div className="color-swatch-footer">
-                <Button size="xs" onClick={handleShowColorPicker}>
+                <Button size="xs" onClick={handleShowColorPicker} data-testid="toggle-show-color-picker-button">
                   {showColorPicker ? "Less" : "More"}
                 </Button>
               </div>
