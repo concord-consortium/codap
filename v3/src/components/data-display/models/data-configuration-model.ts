@@ -102,14 +102,14 @@ export const DataConfigurationModel = types
     filterFormulaError: ""
   }))
   .views(self => ({
-    get plottedAttributeIDs() {
+    get axisAttributeIDs() {
       // Note that 'caption' is not a role we include here
-      return (['x', 'y', 'rightNumeric', 'topSplit', 'rightSplit', 'legend', 'lat', 'long', 'polygon'] as const)
+      return (['x', 'y', 'rightNumeric', 'topSplit', 'rightSplit', 'lat', 'long', 'polygon'] as const)
         .map(aRole => this.attributeID(aRole))
         .filter(id => !!id)
     },
     get childmostCollectionIDForPlottedAttributes() {
-        return idOfChildmostCollectionForAttributes(this.plottedAttributeIDs, self.dataset)
+        return idOfChildmostCollectionForAttributes(this.axisAttributeIDs, self.dataset)
     },
     get isEmpty() {
       return self._attributeDescriptions.size === 0
@@ -625,7 +625,7 @@ export const DataConfigurationModel = types
       }
     },
     _updateFilteredCasesCollectionID() {
-      const childmostCollectionID = idOfChildmostCollectionForAttributes(self.attributes, self.dataset)
+      const childmostCollectionID = idOfChildmostCollectionForAttributes(self.axisAttributeIDs, self.dataset)
       self.filteredCases.forEach((aFilteredCases) => {
         aFilteredCases.setCollectionID(childmostCollectionID)
       })
