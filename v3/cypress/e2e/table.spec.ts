@@ -2,6 +2,7 @@ import { TableTileElements as table } from "../support/elements/table-tile"
 import { ComponentElements as c } from "../support/elements/component-elements"
 import { ToolbarElements as toolbar } from "../support/elements/toolbar-elements"
 import { FormulaHelper as fh } from "../support/helpers/formula-helper"
+import { ColorPickerPaletteElements as cpp } from "../support/elements/color-picker-palette"
 
 context("case table ui", () => {
   const numOfAttributes = 10
@@ -1094,14 +1095,14 @@ context("case table ui", () => {
       cy.wait(100) // Wait for the color palette to appear
 
       cy.log("click hue bar to change color")
-      cy.get(`.react-colorful .react-colorful__hue [aria-label="Hue"]`).should('be.visible').click()
+      cpp.getColorSettingSwatchCell().eq(0).click()
       cy.wait(100) // Wait for the color change to be reflected
 
       cy.log("verify that the color actually changed")
-      table.verifyEditCellSwatchColor(2, 2, "rgb(0, 255,")
+      table.verifyEditCellSwatchColor(2, 2, "rgb(0, 0, 0)")
 
       cy.log("type escape key to dismiss color palette")
-      cy.get(".react-colorful").type("{esc}")
+      cy.get(".color-swatch-palette").type("{esc}")
 
       cy.log("verify that cell displays original color")
       table.verifyCellSwatchColor(2, 2, "rgb(255, 0, 255)")
@@ -1119,17 +1120,18 @@ context("case table ui", () => {
       cy.wait(100) // Wait for the color palette to appear
 
       cy.log("click hue bar to change color again")
-      cy.get(`.react-colorful .react-colorful__hue [aria-label="Hue"]`).should('be.visible').click()
+      cpp.getColorPickerToggleButton().click()
+      cpp.getColorPickerHue().click()
       cy.wait(100) // Wait for the color change to be reflected
 
       cy.log("verify that the color actually changed again")
-      table.verifyEditCellSwatchColor(2, 2, "rgb(0, 255,")
+      table.verifyEditCellSwatchColor(2, 2, "rgb(0, 255, 255)")
 
       cy.log("click Set Color button to dismiss color palette and change color")
-      cy.get(".text-editor-color-picker .set-color-button").should('be.visible').click()
+      cpp.getSetColorButton().click()
 
       cy.log("verify that the color actually changed finally")
-      table.verifyCellSwatchColor(2, 2, "rgb(0, 255,")
+      table.verifyCellSwatchColor(2, 2, "rgb(0, 255, 255)")
     })
 })
 })

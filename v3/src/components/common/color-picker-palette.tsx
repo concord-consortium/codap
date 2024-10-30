@@ -79,12 +79,19 @@ export const ColorPickerPalette = ({ swatchBackgroundColor, initialColor, inputV
     setShowColorPicker(!showColorPicker)
   }
 
+  const handleKeyDown = (evt: React.KeyboardEvent) => {
+    if (evt.key === "Escape") {
+      setShowColorPicker(false)
+      onReject()
+    }
+  }
+
   return (
     <PopoverContent ref={popoverContainerRef}
                     className={clsx("color-picker-palette-container", {"with-color-picker": showColorPicker})}>
       {showArrow && <PopoverArrow />}
       <PopoverBody className="color-picker-palette" ref={popoverRef}>
-        <div className="color-swatch-palette">
+        <div className="color-swatch-palette" onKeyDown={handleKeyDown}>
           <div className="color-swatch-grid">
             {paletteColors.map((pColor, index) => (
               <div className={clsx("color-swatch-cell",
@@ -100,7 +107,7 @@ export const ColorPickerPalette = ({ swatchBackgroundColor, initialColor, inputV
               </div>}
           </div>
           <div className="color-swatch-footer">
-            <Button size="xs" onClick={handleShowColorPicker}>
+            <Button size="xs" onClick={handleShowColorPicker} data-testid="toggle-show-color-picker-button">
               {showColorPicker ? "Less" : "More"}
             </Button>
           </div>
