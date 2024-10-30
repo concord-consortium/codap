@@ -57,6 +57,7 @@
     "V3.hideShowMenu.editFilterFormula": "Edit Filter Formula...",
     "V3.Undo.hideShowMenu.changeFilterFormula": "Undo changing filter formula",
     "V3.Redo.hideShowMenu.changeFilterFormula": "Redo changing filter formula",
+    "V3.AttrFormView.attrPlaceholder": "attribute",
 
     "V3.Inspector.rescale.noRescale.toolTip": "All the data are already visible",
     "V3.Inspector.rescale.casePlot.toolTip": "Move the points to new random positions",

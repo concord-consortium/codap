@@ -43,7 +43,7 @@ export const EditAttributeFormulaModal = observer(function EditAttributeFormulaM
         onClose={() => uiState.setEditFormulaAttributeId()}
         titleInput={attribute?.name}
         titleLabel={t("DG.AttrFormView.attrNamePrompt")}
-        titlePlaceholder="attribute"
+        titlePlaceholder={t("V3.AttrFormView.attrPlaceholder")}
         value={value}
       />
     </DataSetContext.Provider>
