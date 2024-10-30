@@ -12,8 +12,9 @@ import { uiState } from "../../models/ui-state"
 import { parseColor, parseColorToHex } from "../../utilities/color-utils"
 import { blockAPIRequestsWhileEditing } from "../../utilities/plugin-utils"
 import { t } from "../../utilities/translation/translate"
-import { ColorPicker } from "../case-tile-common/color-picker"
+import { ColorPicker } from "../common/color-picker"
 import { TRenderEditCellProps } from "./case-table-types"
+import { ColorPickerPalette } from "../common/color-picker-palette"
 
 /*
   ReactDataGrid uses Linaria CSS-in-JS for its internal styling. As with CSS Modules and other
@@ -62,6 +63,7 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
   const showColorSwatch = useRef(!!hexColor || attribute?.userType === "color")
   const { setPendingLogMessage } = useLoggingContext()
   const blockAPIRequests = blockAPIRequestsWhileEditing(data)
+  const triggerButtonRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
     selectAllCases(data, false)
@@ -95,10 +97,10 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
     onClose()
   }, [onClose])
 
-  const { isOpen: isPaletteOpen, onToggle: togglePalette } = useDisclosure()
+  const { isOpen: isPaletteOpen, onToggle: setOpenPopover } = useDisclosure()
 
   function handleSwatchClick(event: React.MouseEvent) {
-    togglePalette()
+    setOpenPopover()
   }
 
   function handleInputColorChange(event: ChangeEvent<HTMLInputElement>) {
@@ -118,7 +120,7 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
             closeOnBlur={false}
           >
             <PopoverTrigger>
-              <button className="cell-edit-color-swatch"
+              <button className="cell-edit-color-swatch" ref={triggerButtonRef}
                 onClick={handleSwatchClick}>
                 <div className="cell-edit-color-swatch-interior" style={swatchStyle}/>
               </button>
@@ -127,7 +129,11 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
               { inputElt }
             </PopoverAnchor>
             <Portal>
-              <PopoverContent className="text-editor-color-picker" width={"inherit"}>
+              <ColorPickerPalette initialColor={initialInputValue.current || "#000000"}
+                inputValue={inputValue || "#000000"} swatchBackgroundColor={color || "#000000"}
+                buttonRef={triggerButtonRef} showArrow={true}
+                onColorChange={updateValue} onAccept={acceptValue} onReject={rejectValue} onUpdateValue={updateValue}/>
+              {/* <PopoverContent className="text-editor-color-picker" width={"inherit"}>
                 <PopoverArrow />
                 <PopoverBody>
                   <ColorPicker color={hexColor} onChange={updateValue} />
@@ -145,7 +151,7 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
                     </ButtonGroup>
                   </Flex>
                 </PopoverFooter>
-              </PopoverContent>
+              </PopoverContent> */}
             </Portal>
           </Popover>
         </div>

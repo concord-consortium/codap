@@ -1,7 +1,7 @@
-import { Button, ButtonGroup, Flex, PopoverBody, PopoverContent } from "@chakra-ui/react"
+import { Button, ButtonGroup, Flex, PopoverArrow, PopoverBody, PopoverContent } from "@chakra-ui/react"
 import { clsx } from "clsx"
 import { colord } from "colord"
-import React, { useCallback, useEffect, useRef, useState } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import { ColorPicker } from "./color-picker"
 import { t } from "../../utilities/translation/translate"
 
@@ -9,51 +9,28 @@ import styles from "./point-color-setting-shared.scss"
 import "./point-color-setting.scss"
 
 interface IProps {
-  swatchBackgroundColor: string
   initialColor: string
-  onColorChange: (newColor: string) => void
-  setOpenPopover: (value: string | null) => void
-  setInitialColor: (value: string) => void
+  inputValue: string
+  swatchBackgroundColor: string
   buttonRef: React.RefObject<HTMLButtonElement>
+  showArrow?: boolean
+  onColorChange: (newColor: string) => void
+  // setOpenPopover: (value: string | null) => void
+  onAccept: () => void
+  onReject: () => void
+  onUpdateValue: (value: string) => void
 }
 
-export const ColorPickerPalette = ({ swatchBackgroundColor, initialColor, onColorChange,
-                  setOpenPopover, setInitialColor, buttonRef }: IProps) => {
+export const ColorPickerPalette = ({ swatchBackgroundColor, initialColor, inputValue, buttonRef, showArrow,
+                  onColorChange, onAccept, onReject, onUpdateValue }: IProps) => {
   const paletteColors = ["#000000", "#a9a9a9", "#d3d3d3", "#FFFFFF", "#ad2323", "#ff9632", "#ffee33", "#1d6914",
     "#2a4bd7", "#814a19", "#8126c0", "#29d0d0", "#e9debb", "#ffcdf3", "#9dafff", "#81c57a"]
   const [nonStandardColorSelected, setNonStandardColorSelected] = useState(false)
   const [showColorPicker, setShowColorPicker] = useState(false)
-  const [inputValue, setInputValue] = useState(swatchBackgroundColor)
+  // const [inputValue, setInputValue] = useState(swatchBackgroundColor)
   const popoverRef = useRef<HTMLDivElement>(null)
   const popoverContainerRef = useRef<HTMLDivElement>(null)
   const kGapSize = 10
-
-  const updateValue = useCallback((value: string) => {
-    setInputValue(value)
-    setNonStandardColorSelected(true)
-    onColorChange(value)
-  }, [onColorChange])
-
-  const rejectValue = useCallback(() => {
-    setShowColorPicker(false)
-    setOpenPopover(null)
-    setNonStandardColorSelected(false)
-    onColorChange(initialColor)
-  }, [initialColor, onColorChange, setOpenPopover])
-
-  const acceptValue = useCallback(() => {
-    setShowColorPicker(false)
-    setNonStandardColorSelected(true)
-    updateValue(inputValue)
-    // onColorChange(inputValue)
-    setInitialColor(inputValue)
-  }, [inputValue, onColorChange, updateValue])
-
-  const handleShowColorPicker = (evt: React.MouseEvent) => {
-    evt.preventDefault()
-    evt.stopPropagation()
-    setShowColorPicker(!showColorPicker)
-  }
 
   useEffect(() => {
     const adjustPosition = () => {
@@ -96,9 +73,16 @@ export const ColorPickerPalette = ({ swatchBackgroundColor, initialColor, onColo
     }
   }, [showColorPicker, buttonRef])
 
+  const handleShowColorPicker = (evt: React.MouseEvent) => {
+    evt.preventDefault()
+    evt.stopPropagation()
+    setShowColorPicker(!showColorPicker)
+  }
+
   return (
     <PopoverContent ref={popoverContainerRef}
                     className={clsx("color-picker-palette-container", {"with-color-picker": showColorPicker})}>
+      {showArrow && <PopoverArrow />}
       <PopoverBody className="color-picker-palette" ref={popoverRef}>
         <div className="color-swatch-palette">
           <div className="color-swatch-grid">
@@ -124,14 +108,14 @@ export const ColorPickerPalette = ({ swatchBackgroundColor, initialColor, onColo
         {showColorPicker &&
           <div className="color-picker-container">
             <div className="color-picker">
-              <ColorPicker color={swatchBackgroundColor} onChange={updateValue} />
+              <ColorPicker color={swatchBackgroundColor} onChange={onUpdateValue} />
             </div>
             <Flex className="color-picker-footer">
               <ButtonGroup>
-                <Button className="cancel-button" size="xs" fontWeight="normal" onClick={rejectValue}>
+                <Button className="cancel-button" size="xs" fontWeight="normal" onClick={onReject}>
                   {t("V3.CaseTable.colorPalette.cancel")}
                 </Button>
-                <Button className="set-color-button" size="xs" fontWeight="normal" onClick={acceptValue}>
+                <Button className="set-color-button" size="xs" fontWeight="normal" onClick={onAccept}>
                   {t("V3.CaseTable.colorPalette.setColor")}
                 </Button>
               </ButtonGroup>
