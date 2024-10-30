@@ -2,12 +2,12 @@ import createReactClass from "create-react-class"
 import PropTypes from 'prop-types'
 import React from 'react'
 import ReactDOMFactories from "react-dom-factories"
+import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-data-utils"
+import { uiState } from "../../models/ui-state"
 import { preventCollectionReorg } from "../../utilities/plugin-utils"
 import { createReactFactory, DG } from "../../v2/dg-compat.v2"
 import { SC } from "../../v2/sc-compat"
-import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-data-utils"
 import { EditAttributePropertiesModal } from "../case-tile-common/attribute-menu/edit-attribute-properties-modal"
-import { EditFormulaModal } from "../case-tile-common/attribute-menu/edit-formula-modal"
 
 import "./attribute-name-cell.v2"
 import "./attribute-value-cell.v2"
@@ -247,17 +247,6 @@ iDataContext.doSelectCases({
 
           closeEditAttributePropModal() {
             this.setState({ editAttributePropModalIsOpen: false, currentAttributeId: null })
-          },
-
-          editFormulaModal(attributeId, isOpen) {
-            if (attributeId) {
-              this.setState({editFormulaModalIsOpen: isOpen, currentAttributeId: attributeId})
-            }
-          },
-
-          closeEditFormulaModal() {
-            this.setState({ editFormulaModalIsOpen: false, currentAttributeId: null })
-            this.incrementStateCount()
           },
 
           /**
@@ -534,7 +523,7 @@ iDataContext.doSelectCases({
                 }.bind(this),
 
                 editFormula = function () {
-                  this.editFormulaModal(iAttr.get('id'), true)
+                  uiState.setEditFormulaAttributeId(iAttr.get('id'))
                 }.bind(this),
 
                 hideAttribute = function () {
@@ -934,11 +923,6 @@ return tResult
               attributeId: this.state.currentAttributeId,
               isOpen: this.state.editAttributePropModalIsOpen,
               onClose: this.closeEditAttributePropModal
-            }),
-            this.state.editFormulaModalIsOpen && React.createElement(EditFormulaModal, {
-              attributeId: this.state.currentAttributeId,
-              isOpen: this.state.editFormulaModalIsOpen,
-              onClose: this.closeEditFormulaModal
             }))
           }
         }

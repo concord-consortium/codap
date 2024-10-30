@@ -1,7 +1,7 @@
+import { IValueType } from "../../models/data/attribute-types"
+import { maybeToV2Id, toV2Id } from "../../utilities/codap-utils"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIHandler, DIResources } from "../data-interactive-types"
-import { IValueType } from "../../models/data/attribute"
-import { maybeToV2Id, toV2Id } from "../../utilities/codap-utils"
 import { collectionNotFoundResult, dataContextNotFoundResult } from "./di-results"
 
 export const diAllCasesHandler: DIHandler = {

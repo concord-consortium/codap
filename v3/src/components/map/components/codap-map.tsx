@@ -8,6 +8,7 @@ import {GraphPlace} from "../../axis-graph-shared"
 import {useForceUpdate} from "../../../hooks/use-force-update"
 import {useMapModelContext} from "../hooks/use-map-model-context"
 import {useDataDisplayLayout} from "../../data-display/hooks/use-data-display-layout"
+import {usePixiPointerDownDeselect} from "../../data-display/hooks/use-pixi-pointer-down-deselect"
 import {MultiLegend} from "../../data-display/components/legend/multi-legend"
 import {usePixiPointsArray} from "../../data-display/hooks/use-pixi-points-array"
 import {logStringifiedObjectMessage} from "../../../lib/log-message"
@@ -19,7 +20,7 @@ import {IDataSet} from "../../../models/data/data-set"
 import {isMapPointLayerModel} from "../models/map-point-layer-model"
 import {MapGridSlider} from "./map-grid-slider"
 
-import 'leaflet/dist/leaflet.css'
+import "leaflet/dist/leaflet.css"
 import "./map.scss"
 
 interface IProps {
@@ -37,6 +38,8 @@ export const CodapMap = observer(function CodapMap({mapRef}: IProps) {
 
   // trigger an additional render once references have been fulfilled
   useEffect(() => forceUpdate(), [forceUpdate])
+
+  usePixiPointerDownDeselect(pixiPointsArray, mapModel)
 
   const handleChangeLegendAttribute = useCallback((dataSet: IDataSet, attrId: string) => {
     mapModel.applyModelChange(

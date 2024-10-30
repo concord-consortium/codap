@@ -1,4 +1,4 @@
-import { CFMAppOptions, CloudFileManagerClientEvent } from "@concord-consortium/cloud-file-manager"
+import { CFMAppOptions, CloudFileManager, CloudFileManagerClientEvent } from "@concord-consortium/cloud-file-manager"
 import { getSnapshot } from "mobx-state-tree"
 import { useEffect, useRef } from "react"
 import { Root, createRoot } from "react-dom/client"
@@ -7,107 +7,137 @@ import { clientConnect, createCloudFileManager, renderRoot } from "./cfm-utils"
 import { handleCFMEvent } from "./handle-cfm-event"
 import { appState } from "../models/app-state"
 import { createCodapDocument, isCodapDocument } from "../models/codap/create-codap-document"
-import { getDefaultLanguage, t } from "../utilities/translation/translate"
-import { removeDevUrlParams } from "../utilities/url-params"
+import { gLocale } from "../utilities/translation/locale"
+import { t } from "../utilities/translation/translate"
+import { removeDevUrlParams, urlParams } from "../utilities/url-params"
 
 const locales = [
   {
     langName: 'Deutsch',
-    langDigraph: 'de',
+    langCode: 'de',
     countryDigraph: 'DE',
     icon: 'flag flag-de'
   },
   {
     langName: 'English',
-    langDigraph: 'en',
+    langCode: 'en-US',
     countryDigraph: 'US',
     icon: 'flag flag-us'
   },
   {
     langName: 'Español',
-    langDigraph: 'es',
+    langCode: 'es',
     countryDigraph: 'ES',
     icon: 'flag flag-es'
   },
   {
     langName: 'فارسی',
-    langDigraph: 'fa',
+    langCode: 'fa',
     countryDigraph: 'IR',
     icon: 'flag flag-ir'
   },
   {
     langName: 'Ελληνικά',
-    langDigraph: 'el',
+    langCode: 'el',
     countryDigraph: 'GR',
     icon: 'flag flag-gr'
   },
   {
     langName: 'עברית',
-    langDigraph: 'he',
+    langCode: 'he',
     countryDigraph: 'IL',
     icon: 'flag flag-il'
   },
   {
     langName: '日本語',
-    langDigraph: 'ja',
+    langCode: 'ja',
     countryDigraph: 'JP',
     icon: 'flag flag-jp'
   },
   {
     langName: '한국어',
-    langDigraph: 'ko',
+    langCode: 'ko',
     countryDigraph: 'KO',
     icon: 'flag flag-kr'
   },
   {
     langName: 'Bokmål',
-    langDigraph: 'nb',
+    langCode: 'nb',
     countryDigraph: 'NO',
     icon: 'flag flag-no'
   },
   {
     langName: 'Nynorsk',
-    langDigraph: 'nn',
+    langCode: 'nn',
     countryDigraph: 'NO',
     icon: 'flag flag-no'
   },
   {
-    langName: 'Polski',
-    langDigraph: 'pl',
-    countryDigraph: 'PL',
-    icon: 'flag flag-pl'
-  },
-  {
     langName: 'Português do Brasil',
-    langDigraph: 'pt-BR',
+    langCode: 'pt-BR',
     countryDigraph: 'BR',
     icon: 'flag flag-br'
   },
   {
     langName: 'ไทย',
-    langDigraph: 'th',
+    langCode: 'th',
     countryDigraph: 'TH',
     icon: 'flag flag-th'
   },
   {
     langName: 'Türkçe',
-    langDigraph: 'tr',
+    langCode: 'tr',
     countryDigraph: 'TR',
     icon: 'flag flag-tr'
   },
   {
-    langName: '繁体中文',
-    langDigraph: 'zh-TW',
-    countryDigraph: 'TW',
-    icon: 'flag flag-tw'
-  },
-  {
     langName: '简体中文',
-    langDigraph: 'zh-Hans',
+    langCode: 'zh-Hans',
     countryDigraph: 'Hans',
     icon: 'flag flag-cn'
+  },
+  {
+    langName: '繁体中文',
+    langCode: 'zh-TW',
+    countryDigraph: 'TW',
+    icon: 'flag flag-tw'
   }
 ]
+
+function getMenuConfig(cfm: CloudFileManager) {
+  return [
+    { name: t('DG.fileMenu.menuItem.newDocument'), action: 'newFileDialog' },
+    { name: t('DG.fileMenu.menuItem.openDocument'), action: 'openFileDialog' },
+    {
+      name: t('DG.fileMenu.menuItem.closeDocument'),
+      action() {
+        cfm.client.closeFileDialog(function() {
+          removeDevUrlParams()
+          appState.setDocument(getSnapshot(createCodapDocument()))
+        })
+      }
+    },
+    { name: t('DG.fileMenu.menuItem.importFile'), action: 'importDataDialog' },
+    {
+      name: t('DG.fileMenu.menuItem.revertTo'),
+      items: [
+        { name: t('DG.fileMenu.menuItem.revertToOpened'), action: 'revertToLastOpenedDialog'},
+        { name: t('DG.fileMenu.menuItem.revertToShared'), action: 'revertToSharedDialog'}
+      ]
+    },
+    'separator',
+    { name: t('DG.fileMenu.menuItem.saveDocument'), action: 'saveFileAsDialog' },
+    { name: t('DG.fileMenu.menuItem.copyDocument'), action: 'createCopy' },
+    {
+      name: t('DG.fileMenu.menuItem.share'),
+      items: [
+        { name: t('DG.fileMenu.menuItem.shareGetLink'), action: 'shareGetLink' },
+        { name: t('DG.fileMenu.menuItem.shareUpdate'), action: 'shareUpdate' }
+      ]
+    },
+    { name: t('DG.fileMenu.menuItem.renameDocument'), action: 'renameDialog' }
+  ]
+}
 
 export function useCloudFileManager(optionsArg: CFMAppOptions) {
   const options = useRef(optionsArg)
@@ -117,56 +147,27 @@ export function useCloudFileManager(optionsArg: CFMAppOptions) {
   useEffect(function initCfm() {
 
     const _options: CFMAppOptions = {
+      // When running in the Activity Player, hide the hamburger menu
+      hideMenuBar: urlParams.interactiveApi !== undefined,
       ui: {
         menuBar: {
           info: "Language menu",
           languageMenu: {
-            currentLang: "en",
-            options: locales.filter(locale => locale.langDigraph !== getDefaultLanguage())
-                            .map(function (locale) {
+            currentLang: gLocale.current,
+            options: locales.map(function (locale) {
                               return {
                                 label: locale.langName,
-                                langCode: locale.langDigraph,
+                                langCode: locale.langCode,
                               }
                             }),
-          },
-          // onLangChanged: (langCode: string) => {
-          //   Logger.log(`Changed language: ${langCode}`)
-          // }
-        },
-
-        menu: [
-          { name: t('DG.fileMenu.menuItem.newDocument'), action: 'newFileDialog' },
-          { name: t('DG.fileMenu.menuItem.openDocument'), action: 'openFileDialog' },
-          {
-            name: t('DG.fileMenu.menuItem.closeDocument'),
-            action() {
-              cfm.client.closeFileDialog(function() {
-                removeDevUrlParams()
-                appState.setDocument(getSnapshot(createCodapDocument()))
-              })
+            onLangChanged: (langCode: string) => {
+              gLocale.setCurrent(langCode)
+              cfm.client.replaceMenu({ menu: getMenuConfig(cfm) })
             }
           },
-          { name: t('DG.fileMenu.menuItem.importFile'), action: 'importDataDialog' },
-          {
-            name: t('DG.fileMenu.menuItem.revertTo'),
-            items: [
-              { name: t('DG.fileMenu.menuItem.revertToOpened'), action: 'revertToLastOpenedDialog'},
-              { name: t('DG.fileMenu.menuItem.revertToShared'), action: 'revertToSharedDialog'}
-            ]
-          },
-          'separator',
-          { name: t('DG.fileMenu.menuItem.saveDocument'), action: 'saveFileAsDialog' },
-          { name: t('DG.fileMenu.menuItem.copyDocument'), action: 'createCopy' },
-          {
-            name: t('DG.fileMenu.menuItem.share'),
-            items: [
-              { name: t('DG.fileMenu.menuItem.shareGetLink'), action: 'shareGetLink' },
-              { name: t('DG.fileMenu.menuItem.shareUpdate'), action: 'shareUpdate' }
-            ]
-          },
-          { name: t('DG.fileMenu.menuItem.renameDocument'), action: 'renameDialog' }
-        ],
+        },
+
+        menu: getMenuConfig(cfm)
       },
       renderRoot(content: React.ReactNode, container: HTMLElement) {
         if (container && !root.current) {

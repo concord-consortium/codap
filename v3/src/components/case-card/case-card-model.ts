@@ -1,10 +1,10 @@
 import { Instance, SnapshotIn, types } from "mobx-state-tree"
+import { IValueType } from "../../models/data/attribute-types"
+import { ICollectionModel } from "../../models/data/collection"
+import { ICaseCreation, IGroupedCase } from "../../models/data/data-set-types"
 import { getTileCaseMetadata, getTileDataSet } from "../../models/shared/shared-data-utils"
 import { ITileContentModel, TileContentModel } from "../../models/tiles/tile-content"
 import { kCaseCardTileType } from "./case-card-defs"
-import { ICollectionModel } from "../../models/data/collection"
-import { ICaseCreation, IGroupedCase } from "../../models/data/data-set-types"
-import { IValueType } from "../../models/data/attribute"
 
 export const CaseCardModel = TileContentModel
   .named("CaseCardModel")

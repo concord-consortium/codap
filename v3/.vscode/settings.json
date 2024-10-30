@@ -16,6 +16,7 @@
     "keymaps",
     "lezer",
     "papaparse",
+    "Pixi",
     "portaling",
     "ulid"
   ],

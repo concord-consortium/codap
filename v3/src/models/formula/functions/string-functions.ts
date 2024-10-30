@@ -81,7 +81,7 @@ export const stringFunctions = {
     }
   },
   // join(delimiter, string1, string2, …) Returns the string formed by concatenating its string arguments, each
-  // seperated by its delimiter argument.
+  // separated by its delimiter argument.
   join: {
     numOfRequiredArguments: 2,
     evaluate: (...args: FValue[]) => {

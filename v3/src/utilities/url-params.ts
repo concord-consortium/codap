@@ -42,6 +42,12 @@ export interface UrlParams {
    */
   ICI?: string | null
   /*
+   * Indicates CODAP is running in the Activity Player. Used by the CFM and to configure 
+   * the CFM.
+   * value: ignored
+   */
+  interactiveApi?: string | null
+  /*
    * [v2] Specifies the default locale, overriding the browser default.
    * value: locale string, e.g. `en-US` or `es`
    */

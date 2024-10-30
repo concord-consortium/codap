@@ -1,5 +1,5 @@
 import { RequireAtLeastOne } from "type-fest"
-import { IValueType } from "./attribute"
+import { IValueType } from "./attribute-types"
 
 
 export interface IItemID {

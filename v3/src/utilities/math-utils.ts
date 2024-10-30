@@ -28,6 +28,41 @@ export function neededSignificantDigits(num1: number, num2: number) {
   return significantDigits
 }
 
+/* Given a n1 < n < n2, return a string representation of n with an appropriate precision. */
+export function chooseDecimalPlaces(n: number, lower: number, upper: number) {
+  if (n === Math.round(n)) {
+    return n.toString()
+  }
+  // Calculate the span between lower and upper
+  const span = upper - lower
+
+  // Logic to choose decimal places based on n's position relative to lower and upper
+  let decimalPlaces
+
+  if (span > 10) {
+    // Large span - fewer decimal places needed
+    decimalPlaces = 0
+  } else if (span > 1) {
+    // Medium span - moderate precision
+    decimalPlaces = 1
+  } else if (span > 0.1) {
+    // Smaller span - higher precision
+    decimalPlaces = 2
+  } else {
+    // Very small span - highest precision
+    decimalPlaces = 3
+  }
+
+  // Adjust for the position of n within the span
+  if (Math.abs(n - lower) < span * 0.1 || Math.abs(n - upper) < span * 0.1) {
+    // If n is very close to lower or upper, show more precision
+    decimalPlaces += 1
+  }
+
+  // Format n with the chosen number of decimal places
+  return n.toFixed(decimalPlaces)
+}
+
 /**
  * Given an array of numbers, return a new array of significant digits needed for each number in the array to
  * distinguish it from the numbers on either side of it. For the first and last numbers, the number of significant
@@ -108,13 +143,16 @@ export function isFiniteNumber(x: any): x is number {
   return x != null && Number.isFinite(x)
 }
 
-export const isValueNonEmpty = (value: any) => value !== "" && value != null
+export const isValueEmpty = (value: any) => value == null || value === ""
+
+export const isValueNonEmpty = (value: any) => !isValueEmpty(value)
 
 // Similar to isFiniteNumber, but looser.
 // It allows for strings that can be converted to numbers and treats Infinity and -Infinity as valid numbers.
 export const isNumber = (v: any) => isValueNonEmpty(v) && !isNaN(Number(v))
 
 // returns whether the value can be interpreted as a number and if so, its value
+// more efficient than isNumber(v) ? Number(v) : NaN because conversion is only performed once
 export function checkNumber(value: any) : [false] | [true, number] {
   if (typeof value === "number") return [true, value]
   if (value == null || value === "") return [false]
@@ -134,10 +172,10 @@ export const extractNumeric = (v: any) => {
 
   // Based on the V2 implementation for the backward compatibility.
   if (typeof v === 'string') {
-    const noNumberPatt = /[^.\d-]+/gm
-    const firstNumericPatt = /(^-?\.?[\d]+(?:\.?[\d]*)?)/gm
-    const firstPass = v.replace(noNumberPatt, '')
-    const matches = firstPass.match(firstNumericPatt)
+    const noNumberPattern = /[^.\d-]+/gm
+    const firstNumericPattern = /(^-?\.?[\d]+(?:\.?[\d]*)?)/gm
+    const firstPass = v.replace(noNumberPattern, '')
+    const matches = firstPass.match(firstNumericPattern)
     v = matches ? matches[0] : null
   }
   return isValueNonEmpty(v) ? Number(v) : null
@@ -197,8 +235,6 @@ export function quantileOfSortedArray (sortedArray:number[], quantile:number) {
     return (sortedArray[i2] * fraction + sortedArray[i1] * (1.0 - fraction))
   }
 }
-
-
 
 type XYToNumberFunction = (x: number, y: number) => number
 

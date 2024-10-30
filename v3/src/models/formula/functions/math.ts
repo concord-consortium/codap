@@ -1,17 +1,19 @@
-import { create, all, MathNode } from 'mathjs'
+import { create, all, MathNode } from "mathjs"
 import {
   CODAPMathjsFunctionRegistry, CurrentScope, EvaluateFunc, EvaluateFuncWithAggregateContextSupport, EvaluateRawFunc,
   FValue, FValueOrArray
-} from '../formula-types'
-import { evaluateNode, getRootScope } from './function-utils'
-import { arithmeticFunctions } from './arithmetic-functions'
-import { dateFunctions } from './date-functions'
-import { stringFunctions } from './string-functions'
-import { lookupFunctions } from './lookup-functions'
-import { otherFunctions } from './other-functions'
-import { aggregateFunctions } from './aggregate-functions'
-import { semiAggregateFunctions } from './semi-aggregate-functions'
-import { operators } from './operators'
+} from "../formula-types"
+import { aggregateFunctions } from "./aggregate-functions"
+import { arithmeticFunctions } from "./arithmetic-functions"
+import { dateFunctions } from "./date-functions"
+import { evaluateNode, getRootScope } from "./function-utils"
+import { logicFunctions } from "./logic-functions"
+import { lookupFunctions } from "./lookup-functions"
+import { operators } from "./operators"
+import { otherFunctions } from "./other-functions"
+import { semiAggregateFunctions } from "./semi-aggregate-functions"
+import { stringFunctions } from "./string-functions"
+import { univariateStatsFunctions } from "./univariate-stats-functions"
 
 export const math = create(all)
 
@@ -69,6 +71,8 @@ export const fnRegistry = {
 
   ...arithmeticFunctions,
 
+  ...logicFunctions,
+
   ...dateFunctions,
 
   ...stringFunctions,
@@ -78,6 +82,8 @@ export const fnRegistry = {
   ...otherFunctions,
 
   ...aggregateFunctions,
+
+  ...univariateStatsFunctions,
 
   ...semiAggregateFunctions
 }

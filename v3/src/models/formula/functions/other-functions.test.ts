@@ -77,3 +77,27 @@ describe("number", () => {
     expect(fn.evaluate()).toEqual(UNDEF_RESULT)
   })
 })
+
+describe("greatCircleDistance", () => {
+  it("returns empty if not enough numeric arguments are provided", () => {
+    expect(math.compile("greatCircleDistance()").evaluate()).toBe(UNDEF_RESULT)
+    expect(math.compile("greatCircleDistance(0)").evaluate()).toBe(UNDEF_RESULT)
+    expect(math.compile("greatCircleDistance(0, 0)").evaluate()).toBe(UNDEF_RESULT)
+    expect(math.compile("greatCircleDistance(0, 0, 0)").evaluate()).toBe(UNDEF_RESULT)
+    expect(math.compile("greatCircleDistance(0, 0, 0, 'a')").evaluate()).toBe(UNDEF_RESULT)
+    expect(math.compile("greatCircleDistance('a', 'b', 'c', 'd')").evaluate()).toBe(UNDEF_RESULT)
+  })
+
+  it("returns valid values for legitimate arguments", () => {
+    const fn = math.compile("greatCircleDistance(lat1, long1, lat2, long2)")
+    // distance from New York to San Francisco (CODAP example)
+    // note: the CODAP example uses positive longitudes where negative longitudes would be expected
+    // This doesn't affect the result, but could be confusing.
+    expect(fn.evaluate({ lat1: 40.66, long1: -74, lat2: 37.8, long2: -122.4 })).toBeCloseTo(4128, -1)
+    // distance from New York to London (ChatGPT)
+    expect(fn.evaluate({ lat1: 40.7128, long1: -74.0060, lat2: 51.5074, long2: -0.1278 })).toBeCloseTo(5571, -1)
+    // distance from Tokyo to Sydney (ChatGPT)
+    // TODO: CODAP's result (7826) fails this test -- who's right?
+    // expect(fn.evaluate({ lat1: 35.6762, long1: 139.6503, lat2: -33.8688, long2: 151.2093 })).toBeCloseTo(7395, -1)
+  })
+})

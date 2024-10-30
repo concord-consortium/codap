@@ -1,3 +1,5 @@
+@import "../../vars.scss";
+
 // Edit Attribute Modal Styles
 .edit-attribute-form-row {
   display: flex !important;
@@ -16,12 +18,5 @@
   justify-content: flex-start;
   .chakra-radio-group {
     margin-left: 10px;
-  }
-}
-
-// Formula Editor Styles
-.formula-form-control {
-  input {
-    max-width: 270px;
   }
 }

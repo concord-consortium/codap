@@ -33,6 +33,11 @@ export interface IConnectingLineDescription {
   plotNum?: number
 }
 
+export interface ICaseSubsetDescription {
+  category?: string
+  cellKey: Record<string, string>
+}
+
 export const
   transitionDuration = 1000,
   pointRadiusMax = 10,

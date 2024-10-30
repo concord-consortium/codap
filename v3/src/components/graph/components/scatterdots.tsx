@@ -21,7 +21,11 @@ import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {ICase} from "../../../models/data/data-set-types"
 import { ILSRLAdornmentModel } from "../adornments/lsrl/lsrl-adornment-model"
 import { IMovableLineAdornmentModel } from "../adornments/movable-line/movable-line-adornment-model"
+import { IPlottedFunctionAdornmentModel } from "../adornments/plotted-function/plotted-function-adornment-model"
 import {ISquareOfResidual} from "../adornments/shared-adornment-types"
+import { kLSRLType } from "../adornments/lsrl/lsrl-adornment-types"
+import { kMovableLineType } from "../adornments/movable-line/movable-line-adornment-types"
+import { kPlottedFunctionType } from "../adornments/plotted-function/plotted-function-adornment-types"
 import { scatterPlotFuncs } from "./scatter-plot-utils"
 import { IPixiPointMetadata } from "../../data-display/pixi/pixi-points"
 import { useConnectingLines } from "../../data-display/hooks/use-connecting-lines"
@@ -54,10 +58,12 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
   // LSRL adornments, so we need to get information from those adornments as well.
   const adornmentsStore = graphModel.adornmentsStore
   const showSquares = adornmentsStore.showSquaresOfResiduals
-  const movableLine = adornmentsStore.findAdornmentOfType<IMovableLineAdornmentModel>("Movable Line")
-  const lsrl = adornmentsStore.findAdornmentOfType<ILSRLAdornmentModel>("LSRL")
+  const movableLine = adornmentsStore.findAdornmentOfType<IMovableLineAdornmentModel>(kMovableLineType)
+  const lsrl = adornmentsStore.findAdornmentOfType<ILSRLAdornmentModel>(kLSRLType)
+  const plottedFunctionModel = adornmentsStore.findAdornmentOfType<IPlottedFunctionAdornmentModel>(kPlottedFunctionType)
   const movableLineSquaresRef = useRef<SVGGElement>(null)
   const lsrlSquaresRef = useRef<SVGGElement>(null)
+  const functionSquaresRef = useRef<SVGGElement>(null)
 
   // The Connecting Lines option is controlled by the AdornmentsStore, so we need to watch for changes to that store
   // and call refreshConnectingLines when the option changes. Unlike the Squares of Residuals, the lines are not
@@ -207,28 +213,13 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
 
   const refreshSquares = useCallback(() => {
 
-    const { residualSquaresForLines } = scatterPlotFuncs(layout, dataConfiguration)
+    const { residualSquaresForLines, residualSquaresForFunction } = scatterPlotFuncs(layout, dataConfiguration)
 
-    if (lsrl?.isVisible) {
-      const lsrlLineDescriptions = lsrl.lineDescriptions
-      const lsrlSquares: ISquareOfResidual[] = residualSquaresForLines(lsrlLineDescriptions)
-      select(lsrlSquaresRef.current).selectAll("*")
-        .data(lsrlSquares)
-        .join("rect")
-        .attr("id", (d: ISquareOfResidual) => `#${instanceId}-${d.caseID}-lsrl-square`)
-        .attr("x", (d: ISquareOfResidual) => d.x)
-        .attr("y", (d: ISquareOfResidual) => d.y)
-        .attr("width", (d: ISquareOfResidual) => d.side)
-        .attr("height", (d: ISquareOfResidual) => d.side)
-        .attr("fill", "none")
-        .attr("stroke", (d: ISquareOfResidual) => d.color && d.color !== "" ? d.color : "#008000")
-    }
-
-    if (movableLine?.isVisible) {
-      const mlLineDescriptions = movableLine.lineDescriptions
-      const mlSquares: ISquareOfResidual[] = residualSquaresForLines(mlLineDescriptions)
-      select(movableLineSquaresRef.current).selectAll("*")
-        .data(mlSquares)
+    const doUpdateSquares = (squaresElement: SVGElement | null, squares: ISquareOfResidual[], stroke: string) => {
+      const strokeFunc = stroke ? () => stroke
+        : (d: ISquareOfResidual) => d.color && d.color !== "" ? d.color : "#008000"
+      select(squaresElement).selectAll("*")
+        .data(squares)
         .join("rect")
         .attr("id", (d: ISquareOfResidual) => `#${instanceId}-${d.caseID}-ml-square`)
         .attr("x", (d: ISquareOfResidual) => d.x)
@@ -236,10 +227,31 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
         .attr("width", (d: ISquareOfResidual) => d.side)
         .attr("height", (d: ISquareOfResidual) => d.side)
         .attr("fill", "none")
-        .attr("stroke", "#4682b4")
+        .attr("stroke", strokeFunc)
     }
 
-  }, [lsrl, movableLine, dataConfiguration, layout, instanceId])
+    if (lsrl?.isVisible) {
+      const lsrlLineDescriptions = lsrl.lineDescriptions
+      const lsrlSquares: ISquareOfResidual[] = residualSquaresForLines(lsrlLineDescriptions)
+      doUpdateSquares(lsrlSquaresRef.current, lsrlSquares, "")
+    }
+
+    if (movableLine?.isVisible) {
+      const mlLineDescriptions = movableLine.lineDescriptions
+      const mlSquares: ISquareOfResidual[] = residualSquaresForLines(mlLineDescriptions)
+      doUpdateSquares(movableLineSquaresRef.current, mlSquares, "#4682b4")
+    }
+
+    if (plottedFunctionModel?.isVisible) {
+      const funcs = plottedFunctionModel.plottedFunctions
+      const func = funcs.get('{}')?.formulaFunction
+      if (!func) return
+      const caseSubsetDescriptions = dataConfiguration?.getAllCaseSubsetDescriptions() || []
+      const funcSquares: ISquareOfResidual[] = residualSquaresForFunction(plottedFunctionModel, caseSubsetDescriptions)
+      doUpdateSquares(functionSquaresRef.current, funcSquares, "#4682b4")
+    }
+
+  }, [lsrl, movableLine, dataConfiguration, layout, instanceId, plottedFunctionModel])
 
   const refreshAllPointPositions = useCallback((selectedOnly: boolean) => {
 
@@ -331,6 +343,13 @@ export const ScatterDots = observer(function ScatterDots(props: PlotProps) {
           data-testid={`lsrl-squares-${instanceId}`}
           className="lsrl-squares"
           ref={lsrlSquaresRef}
+        />
+      }
+      { plottedFunctionModel?.isVisible && showSquares &&
+        <g
+          data-testid={`function-squares-${instanceId}`}
+          className="function-squares"
+          ref={functionSquaresRef}
         />
       }
     </>

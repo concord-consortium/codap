@@ -151,7 +151,7 @@ jobs:
           browser: chrome
           # only run a single test
           # TODO: setup a special test for this purpose
-          spec: cypress/e2e/import-v2.spec.ts
+          spec: cypress/e2e/smoke/single-codap-smoke.ts
           group: 'Smoke Tests'
         env:
           # pass the Dashboard record key as an environment variable

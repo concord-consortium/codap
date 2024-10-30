@@ -1,12 +1,15 @@
 import { Flex, Editable, EditablePreview, EditableInput, Button } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
 import React, { CSSProperties, useEffect, useMemo, useRef, useState } from "react"
+import { clsx } from "clsx"
 import { useResizeDetector } from "react-resize-detector"
 import PlayIcon from "../../assets/icons/icon-play.svg"
 import PauseIcon from "../../assets/icons/icon-pause.svg"
+import { isDateAxisModel } from "../axis/models/axis-model"
 import { SliderAxisLayout } from "./slider-layout"
 import { isSliderModel } from "./slider-model"
 import { kSliderClass } from "./slider-types"
+import { getNumberOfLevelsForDateAxis } from "../axis/axis-utils"
 import { Axis } from "../axis/components/axis"
 import { AxisProviderContext } from "../axis/hooks/use-axis-provider-context"
 import { AxisLayoutContext } from "../axis/models/axis-layout-context"
@@ -50,6 +53,14 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
 
   if (!sliderModel) return null
 
+  const axisClasses = () => {
+    const axisModel = sliderModel.axis,
+      isDateAxis = axisModel && isDateAxisModel(axisModel),
+      [min, max] = axisModel.domain,
+      requires2Lines = isDateAxis && min && max && getNumberOfLevelsForDateAxis(min, max) > 1
+    return clsx("slider-axis-wrapper", {"two-lines": requires2Lines})
+  }
+
   const handleSliderNameInput = (name: string) => {
     sliderModel.setName(name)
   }
@@ -78,7 +89,7 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
               <CodapSliderThumb sliderContainer={sliderRef.current} sliderModel={sliderModel}
                 running={running} setRunning={setRunning}
               />
-              <div className="slider-axis-wrapper" style={axisStyle}>
+              <div className={axisClasses()} style={axisStyle}>
                 <div className="axis-end min" />
                 <svg className="slider-axis" data-testid="slider-axis">
                   <Axis

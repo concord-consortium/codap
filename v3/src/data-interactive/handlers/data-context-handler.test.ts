@@ -6,7 +6,7 @@ import { gDataBroker } from "../../models/data/data-broker"
 import { getSharedModelManager } from "../../models/tiles/tile-environment"
 import { toV2Id } from "../../utilities/codap-utils"
 import { ICodapV2DataContext } from "../../v2/codap-v2-types"
-import { DIDataContext, DIValues } from "../data-interactive-types"
+import { DIDataContext, DIUpdateDataContext, DIValues } from "../data-interactive-types"
 import { diDataContextHandler } from "./data-context-handler"
 import { setupTestDataset } from "./handler-test-utils"
 import "../../components/web-view/web-view-registration"
@@ -100,7 +100,8 @@ describe("DataInteractive DataContextHandler", () => {
   })
 
   it("update works", () => {
-    const { dataset } = setupTestDataset()
+    const update = handler.update!
+    const { dataset: dataContext } = setupTestDataset()
     const { content } = appState.document
     const tile = createDefaultTileOfType(kWebViewTileType)!
     content?.insertTileInDefaultRow(tile)
@@ -110,17 +111,27 @@ describe("DataInteractive DataContextHandler", () => {
     const managingController = toV2Id(tile.id)
     const values = { title, managingController, metadata: { description } }
 
-    expect(handler.update?.({}, values).success).toBe(false)
+    expect(update({}, values).success).toBe(false)
 
-    expect(dataset.title === title).toBe(false)
-    expect(dataset.description === description).toBe(false)
-    expect(dataset.managingControllerId).toBe("")
-    expect(handler.update?.({ dataContext: dataset }, values).success).toBe(true)
-    expect(dataset.title).toEqual(title)
-    expect(dataset.description).toEqual(description)
-    expect(dataset.managingControllerId).toBe(tile.id)
+    expect(dataContext.title === title).toBe(false)
+    expect(dataContext.description === description).toBe(false)
+    expect(dataContext.managingControllerId).toBe("")
+    expect(update({ dataContext }, values).success).toBe(true)
+    expect(dataContext.title).toEqual(title)
+    expect(dataContext.description).toEqual(description)
+    expect(dataContext.managingControllerId).toBe(tile.id)
 
-    expect(handler.update?.({ dataContext: dataset }, { managingController: "__none__" }).success).toBe(true)
-    expect(dataset.managingControllerId).toBe("")
+    expect(update({ dataContext }, { managingController: "__none__" }).success).toBe(true)
+    expect(dataContext.managingControllerId).toBe("")
+
+    // Sort works
+    expect(update({ dataContext }, { sort: {} } as DIUpdateDataContext).success).toBe(false)
+    expect(update({ dataContext }, { sort: { attr: "fake" } } as DIUpdateDataContext).success).toBe(false)
+    expect(dataContext.attrFromName("a1")?.strValues[0]).toBe("a")
+    expect(update({ dataContext }, { sort: { attr: "a1", isDescending: true } } as DIUpdateDataContext).success)
+      .toBe(true)
+    expect(dataContext.attrFromName("a1")?.strValues[0]).toBe("b")
+    expect(update({ dataContext }, { sort: { attr: "a1" } } as DIUpdateDataContext).success).toBe(true)
+    expect(dataContext.attrFromName("a1")?.strValues[0]).toBe("a")
   })
 })

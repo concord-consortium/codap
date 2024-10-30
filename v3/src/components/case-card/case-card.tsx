@@ -4,10 +4,11 @@ import { observer } from "mobx-react-lite"
 import React, { useCallback, useRef } from "react"
 // import { useResizeDetector } from "react-resize-detector"
 import { useDataSet } from "../../hooks/use-data-set"
+import { getOverlayDragId } from "../../hooks/use-drag-drop"
 import { useInstanceIdContext } from "../../hooks/use-instance-id-context"
 import { prf } from "../../utilities/profiler"
+import { excludeDragOverlayRegEx } from "../case-tile-common/case-tile-types"
 // import { DGDataContext } from "../../models/v2/dg-data-context"
-import { kIndexColumnKey } from "../case-tile-common/case-tile-types"
 import { AttributeDragOverlay } from "../drag-drop/attribute-drag-overlay"
 import { CardView } from "./card-view"
 import { useCaseCardModel } from "./use-case-card-model"
@@ -56,10 +57,6 @@ export const CaseCard = observer(function CaseCard({ setNodeRef }: IProps) {
   data.selectionChanges   // eslint-disable-line no-unused-expressions
 
   return prf.measure("CaseCard.render", () => {
-    // disable the overlay for the index column
-    const overlayDragId = active && `${active.id}`.startsWith(instanceId) && !(`${active.id}`.endsWith(kIndexColumnKey))
-                            ? `${active.id}` : undefined
-
     // const context = new DGDataContext(data)
     const columnWidths: Record<string, number> = {}
     cardModel.attributeColumnWidths.forEach((colWidth, id) => {
@@ -86,7 +83,7 @@ export const CaseCard = observer(function CaseCard({ setNodeRef }: IProps) {
       <>
         <div ref={mergeRefs} className="case-card react-data-card" data-testid="case-card">
           <CardView onNewCollectionDrop={handleNewCollectionDrop}/>
-          <AttributeDragOverlay activeDragId={overlayDragId} />
+          <AttributeDragOverlay activeDragId={getOverlayDragId(active, instanceId, excludeDragOverlayRegEx)}/>
         </div>
       </>
     )

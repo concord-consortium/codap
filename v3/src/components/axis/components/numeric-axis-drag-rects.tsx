@@ -1,6 +1,6 @@
 import {observer} from "mobx-react-lite"
 import React, {useEffect, useRef} from "react"
-import {reaction} from "mobx"
+import { comparer, reaction } from "mobx"
 import {drag, ScaleContinuousNumeric, select} from "d3"
 import { logMessageWithReplacement } from "../../../lib/log-message"
 import { t } from "../../../utilities/translation/translate"
@@ -213,7 +213,7 @@ export const NumericAxisDragRects = observer(
               )
             selectDragRects(rectRef.current)?.raise()
           }
-        }, {name: "NumericAxisDragRects [axisBounds]", fireImmediately: true}
+        }, {equals: comparer.structural, name: "NumericAxisDragRects [axisBounds]", fireImmediately: true}
       )
       return () => disposer()
     }, [axisModel, layout, axisWrapperElt, place, numSubAxes, subAxisIndex, lockZero])

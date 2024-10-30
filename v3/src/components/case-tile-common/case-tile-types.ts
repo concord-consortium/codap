@@ -16,3 +16,5 @@ export interface IDividerProps {
   cellElt: HTMLElement | null
   getDividerBounds?: GetDividerBoundsFn
 }
+
+export const excludeDragOverlayRegEx = new RegExp(`${kIndexColumnKey}$`)
