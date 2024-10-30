@@ -37,7 +37,7 @@ export function handleCFMEvent(cfmClient: CloudFileManagerClient, event: CloudFi
     //   break
     case "getContent": {
       appState.getDocumentSnapshot().then(content => {
-        event.callback({ content })
+        event.callback(content)
       })
       break
     }
