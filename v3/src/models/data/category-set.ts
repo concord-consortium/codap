@@ -7,7 +7,7 @@ import { kellyColors } from "../../utilities/color-utils"
 import { onAnyAction } from "../../utilities/mst-utils"
 import { Attribute, IAttribute } from "./attribute"
 import { IDataSet } from "./data-set"
-import { hashStringSets } from "../../utilities/js-utils"
+import { hashStringSet } from "../../utilities/js-utils"
 
 interface ICategoryMove {
   value: string     // category value
@@ -204,7 +204,7 @@ export const CategorySet = types.model("CategorySet", {
 }))
 .views(self => ({
   get colorHash() {
-    return hashStringSets([Array.from(self.colors.values()), self.valuesArray])
+    return hashStringSet(self.valuesArray.map(category => `${category}:${self.colorForCategory(category) ?? ''}`))
   }
 }))
 .actions(self => ({
