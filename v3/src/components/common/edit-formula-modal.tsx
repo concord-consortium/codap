@@ -4,11 +4,6 @@ import {
 import React, { useEffect, useState } from "react"
 import { observer } from "mobx-react-lite"
 import { clsx } from "clsx"
-import { DataSetContext } from "../../hooks/use-data-set-context"
-import { logStringifiedObjectMessage } from "../../lib/log-message"
-import { appState } from "../../models/app-state"
-import { updateAttributesNotification, updateCasesNotification } from "../../models/data/data-set-notifications"
-import { getSharedDataSets } from "../../models/shared/shared-data-utils"
 import { t } from "../../utilities/translation/translate"
 import { FormulaEditor } from "./formula-editor"
 import { FormulaEditorContext, useFormulaEditorState } from "./formula-editor-context"
@@ -19,49 +14,39 @@ import { InsertValuesMenu } from "./formula-insert-values-menu"
 import "./edit-formula-modal.scss"
 
 interface IProps {
-  attributeId: string
+  applyFormula: (formula: string) => void
+  formulaPrompt?: string
   isOpen: boolean
-  onClose: () => void
+  onClose?: () => void
+  titleInput?: string
+  titleLabel: string
+  titlePlaceholder?: string
+  value?: string
 }
 
-export const EditFormulaModal = observer(function EditFormulaModal({ attributeId, isOpen, onClose }: IProps) {
-  const dataSet = getSharedDataSets(appState.document).find(ds => ds.dataSet.attrFromID(attributeId))?.dataSet
-  const attribute = dataSet?.attrFromID(attributeId)
+export const EditFormulaModal = observer(function EditFormulaModal({
+  applyFormula, formulaPrompt, isOpen, onClose, titleInput, titleLabel, titlePlaceholder, value
+}: IProps) {
   const [showValuesMenu, setShowValuesMenu] = useState(false)
   const [showFunctionMenu, setShowFunctionMenu] = useState(false)
 
-  const formulaEditorState = useFormulaEditorState(attribute?.formula?.display ?? "")
+  const formulaEditorState = useFormulaEditorState(value ?? "")
   const { formula, setFormula } = formulaEditorState
 
-
   useEffect(() => {
-    setFormula(attribute?.formula?.display || "")
-  }, [attribute, attribute?.formula?.display, setFormula])
+    setFormula(value || "")
+  }, [value, setFormula])
 
-  const applyFormula = () => {
-    if (attribute) {
-      dataSet?.applyModelChange(() => {
-        attribute.setDisplayExpression(formula)
-      }, {
-        // TODO Should also broadcast notify component edit formula notification
-        notify: [
-          updateCasesNotification(dataSet),
-          updateAttributesNotification([attribute], dataSet)
-        ],
-        undoStringKey: "DG.Undo.caseTable.editAttributeFormula",
-        redoStringKey: "DG.Redo.caseTable.editAttributeFormula",
-        log: logStringifiedObjectMessage("Edit attribute formula: %@",
-              {name: attribute.name, collection: dataSet?.getCollectionForAttribute(attributeId)?.name, formula},
-              "data")
-      })
-    }
+  const handleApplyClick = () => {
+    applyFormula(formula)
     closeModal()
   }
 
   const closeModal = () => {
     setShowValuesMenu(false)
     setShowFunctionMenu(false)
-    onClose()
+    setFormula("")
+    onClose?.()
   }
 
   const handleModalWhitespaceClick = () => {
@@ -87,82 +72,82 @@ export const EditFormulaModal = observer(function EditFormulaModal({ attributeId
     onClick: closeModal
   }, {
     label: t("DG.AttrFormView.applyBtnTitle"),
-    onClick: applyFormula,
+    onClick: handleApplyClick,
     default: true
   }]
 
   return (
-    <DataSetContext.Provider value={dataSet}>
-      <FormulaEditorContext.Provider value={formulaEditorState}>
-        <CodapModal
-          isOpen={isOpen}
-          onClose={closeModal}
-          modalWidth={"400px"}
-          modalHeight={"180px"}
-          onClick={handleModalWhitespaceClick}
-        >
-          <ModalHeader h="30" className="codap-modal-header" fontSize="md" data-testid="codap-modal-header">
-            <div className="codap-modal-icon-container" />
-            <div className="codap-header-title" />
-            <ModalCloseButton onClick={closeModal} data-testid="modal-close-button" />
-          </ModalHeader>
-          <ModalBody className="formula-modal-body" onKeyDown={e => e.stopPropagation()}>
-            <FormControl display="flex" flexDirection="column" className="formula-form-control">
-              <FormLabel display="flex" flexDirection="row">{t("DG.AttrFormView.attrNamePrompt")}
-                <Input
-                  size="xs"
-                  ml={5}
-                  placeholder="attribute"
-                  value={attribute?.name}
-                  data-testid="attr-name-input"
-                  disabled
-                />
-              </FormLabel>
-              <FormLabel>{t("DG.AttrFormView.formulaPrompt")}
-                <FormulaEditor />
-              </FormLabel>
-            </FormControl>
-            <Flex flexDirection="row" justifyContent="flex-start">
-              <Box position="relative">
-                <Button className={clsx("formula-editor-button", "insert-value", {"menu-open": showValuesMenu})}
-                        size="xs" ml="5" onClick={handleInsertValuesOpen} data-testid="formula-insert-value-button">
-                  {t("DG.AttrFormView.operandMenuTitle")}
-                </Button>
-                {showValuesMenu &&
-                  <InsertValuesMenu setShowValuesMenu={setShowValuesMenu} />
-                }
-              </Box>
-              <Box position="relative">
-                <Button 
-                  className={clsx("formula-editor-button", "insert-function", {"menu-open": showFunctionMenu})}
-                  size="xs" ml="5" onClick={handleInsertFunctionsOpen} data-testid="formula-insert-function-button"
+    <FormulaEditorContext.Provider value={formulaEditorState}>
+      <CodapModal
+        isOpen={isOpen}
+        onClose={closeModal}
+        modalWidth={"400px"}
+        modalHeight={"180px"}
+        onClick={handleModalWhitespaceClick}
+      >
+        <ModalHeader h="30" className="codap-modal-header" fontSize="md" data-testid="codap-modal-header">
+          <div className="codap-modal-icon-container" />
+          <div className="codap-header-title" />
+          <ModalCloseButton onClick={closeModal} data-testid="modal-close-button" />
+        </ModalHeader>
+        <ModalBody className="formula-modal-body" onKeyDown={e => e.stopPropagation()}>
+          <FormControl display="flex" flexDirection="column" className="formula-form-control">
+            <FormLabel display="flex" flexDirection="row">
+              <span className="title-label">{titleLabel}</span>
+              <Input
+                size="xs"
+                ml={5}
+                placeholder={titlePlaceholder ?? ""}
+                value={titleInput ?? ""}
+                data-testid="attr-name-input"
+                disabled
+              />
+            </FormLabel>
+            <FormLabel>
+              {formulaPrompt ?? t("DG.AttrFormView.formulaPrompt")}
+              <FormulaEditor />
+            </FormLabel>
+          </FormControl>
+          <Flex flexDirection="row" justifyContent="flex-start">
+            <Box position="relative">
+              <Button className={clsx("formula-editor-button", "insert-value", {"menu-open": showValuesMenu})}
+                      size="xs" ml="5" onClick={handleInsertValuesOpen} data-testid="formula-insert-value-button">
+                {t("DG.AttrFormView.operandMenuTitle")}
+              </Button>
+              {showValuesMenu &&
+                <InsertValuesMenu setShowValuesMenu={setShowValuesMenu} />
+              }
+            </Box>
+            <Box position="relative">
+              <Button 
+                className={clsx("formula-editor-button", "insert-function", {"menu-open": showFunctionMenu})}
+                size="xs" ml="5" onClick={handleInsertFunctionsOpen} data-testid="formula-insert-function-button"
+              >
+                {t("DG.AttrFormView.functionMenuTitle")}
+              </Button>
+              {showFunctionMenu &&
+                <InsertFunctionMenu setShowFunctionMenu={setShowFunctionMenu} />
+              }
+            </Box>
+          </Flex>
+        </ModalBody>
+        <ModalFooter mt="-5" className="formula-modal-footer">
+          { footerButtons.map((b, idx) => {
+              const key = `${idx}-${b.label}`
+              return (
+                <Tooltip key={idx} label={b.tooltip} h="20px" fontSize="12px" color="white" openDelay={1000}
+                  placement="bottom" bottom="15px" left="15px" data-testid="modal-tooltip"
                 >
-                  {t("DG.AttrFormView.functionMenuTitle")}
-                </Button>
-                {showFunctionMenu &&
-                  <InsertFunctionMenu setShowFunctionMenu={setShowFunctionMenu} />
-                }
-              </Box>
-            </Flex>
-          </ModalBody>
-          <ModalFooter mt="-5" className="formula-modal-footer">
-            { footerButtons.map((b, idx) => {
-                const key = `${idx}-${b.label}`
-                return (
-                  <Tooltip key={idx} label={b.tooltip} h="20px" fontSize="12px" color="white" openDelay={1000}
-                    placement="bottom" bottom="15px" left="15px" data-testid="modal-tooltip"
-                  >
-                    <Button key={key} size="xs" variant={`${b.default ? "default" : ""}`} ml="5" onClick={b.onClick}
-                          _hover={{backgroundColor: "#72bfca", color: "white"}} data-testid={`${b.label}-button`}>
-                      {b.label}
-                    </Button>
-                  </Tooltip>
-                )
-              })
-            }
-          </ModalFooter>
-        </CodapModal>
-      </FormulaEditorContext.Provider>
-    </DataSetContext.Provider>
+                  <Button key={key} size="xs" variant={`${b.default ? "default" : ""}`} ml="5" onClick={b.onClick}
+                        _hover={{backgroundColor: "#72bfca", color: "white"}} data-testid={`${b.label}-button`}>
+                    {b.label}
+                  </Button>
+                </Tooltip>
+              )
+            })
+          }
+        </ModalFooter>
+      </CodapModal>
+    </FormulaEditorContext.Provider>
   )
 })
