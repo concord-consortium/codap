@@ -1,4 +1,4 @@
-@import "./vars.scss";
+@use "./vars";
 $header-height: 30px;
 $modal-height: 350px;
 $modal-width: 350px;
@@ -17,7 +17,7 @@ $modal-width: 350px;
     .codap-modal-icon-container {
       width: 30px;
       height: 30px;
-      background-color: $teal-dark;
+      background-color: vars.$teal-dark;
       top: 0;
       left: 0;
       display: flex;

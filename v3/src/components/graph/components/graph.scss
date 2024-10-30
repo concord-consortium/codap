@@ -1,4 +1,4 @@
-@import "../../vars.scss";
+@use "../../vars";
 
 .codap-component.codap-graph.minimized {
   .graph-plot {
@@ -9,11 +9,11 @@
 .graph-plot {
   position: relative;
   width: 100%;
-  height: calc(100% - $title-bar-height);
+  height: calc(100% - vars.$title-bar-height);
 
   .empty-label {
     fill: #999;
-    font: $empty-label-font;
+    font: vars.$empty-label-font;
   }
 
   .category-label {
@@ -34,7 +34,7 @@
   .axis-wrapper {
 
     .axis-background {
-      fill: $background-fill;
+      fill: vars.$background-fill;
     }
 
     .axis {
@@ -163,7 +163,7 @@
   pointer-events: all;
   stroke: rgba(0, 0, 0, 0);
   stroke-width: 8px;
-  
+
   &.horizontal {
     cursor: url("../adornments/assets/up-down-cursor.png") 8 8, grab;
   }
