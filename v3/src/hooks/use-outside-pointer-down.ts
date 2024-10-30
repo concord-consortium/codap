@@ -52,6 +52,9 @@ function isValidEvent(event: any, ref: React.RefObject<HTMLElement>) {
     const doc = getOwnerDocument(target)
     if (!doc.contains(target)) return false
   }
+  // Ignore outside clicks if the target is a portal
+  // This is to prevent the inspector panel from closing when a user clicks on a color picker
+  if (target.closest('.chakra-portal')) return false
 
   return !ref.current?.contains(target)
 }

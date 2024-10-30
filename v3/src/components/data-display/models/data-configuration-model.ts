@@ -683,6 +683,12 @@ export const DataConfigurationModel = types
     },
   }))
   .actions(self => ({
+    setLegendColorForCategory(cat: string, color: string) {
+      const categorySet = self.categorySetForAttrRole('legend')
+      categorySet?.setColorForCategory(cat, color)
+    },
+  }))
+  .actions(self => ({
     clearFilterFormula() {
       self.filterFormula = undefined
       self.filteredOutCaseIds.clear()
