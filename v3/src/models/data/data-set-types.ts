@@ -106,14 +106,18 @@ export interface CaseInfo {
   groupedCase: IGroupedCase
   // ids of child cases in the group (if any)
   childCaseIds?: string[]
-  // ids of leaf child cases (items) in the group
+  // ids of leaf child items in the group
   childItemIds: string[]
+  // ids of hidden leaf child items in the group
+  hiddenChildItemIds: string[]
   // stringified version of grouped case values for easy comparison/categorization
   groupKey: string
+  isHidden: boolean
 }
 
 export interface ItemInfo {
   index: number
   // ids of cases associated with this item from parent-most collection (0) to child-most (n-1)
   caseIds: string[]
+  isHidden: boolean
 }

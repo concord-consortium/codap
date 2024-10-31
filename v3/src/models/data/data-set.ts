@@ -377,14 +377,13 @@ export const DataSet = V2Model.named("DataSet").props({
                       ? self.items[index + 1] : undefined
     return nextItem?.__id__
   },
-  addItemInfo(itemId: string, index: number, caseId: string) {
+  addItemInfo(itemId: string, caseId: string) {
     const itemInfo = self.itemInfoMap.get(itemId)
     if (itemInfo) {
-      itemInfo.index = index
       itemInfo.caseIds.push(caseId)
     }
     else {
-      self.itemInfoMap.set(itemId, { index, caseIds: [caseId] })
+      console.warn("DataSet.addItemInfo called for missing item:", itemId)
     }
   }
 }))
@@ -536,7 +535,7 @@ export const DataSet = V2Model.named("DataSet").props({
       const itemsToValidate = new Set<string>(self.itemInfoMap.keys())
       self.itemInfoMap.clear()
       self._itemIds.forEach((itemId, index) => {
-        self.itemInfoMap.set(itemId, { index, caseIds: [] })
+        self.itemInfoMap.set(itemId, { index, caseIds: [], isHidden: self.isCaseOrItemHidden(itemId) })
         itemsToValidate.delete(itemId)
       })
       self.collections.forEach((collection, index) => {
@@ -548,7 +547,7 @@ export const DataSet = V2Model.named("DataSet").props({
         const parentCaseGroups = index > 0 ? self.collections[index - 1].caseGroups : undefined
         collection.completeCaseGroups(parentCaseGroups)
         // update the caseGroupMap
-        collection.caseGroups.forEach(group => self.caseInfoMap.set(group.groupedCase.__id__, group))
+        collection.caseGroupMap.forEach(group => self.caseInfoMap.set(group.groupedCase.__id__, group))
       })
       self.itemIdChildCaseMap.clear()
       self.childCollection.caseGroups.forEach(caseGroup => {
@@ -604,7 +603,7 @@ export const DataSet = V2Model.named("DataSet").props({
       caseOrItemIds.forEach(id => {
         const caseInfo = self.caseInfoMap.get(id)
         if (caseInfo) {
-          caseInfo.childItemIds.forEach(itemId => {
+          caseInfo.hiddenChildItemIds.forEach(itemId => {
             const foundIndex = self.setAsideItemIds.findIndex(hiddenItemId => hiddenItemId === itemId)
             if (foundIndex >= 0) self.setAsideItemIds.splice(foundIndex, 1)
           })
@@ -1026,7 +1025,7 @@ export const DataSet = V2Model.named("DataSet").props({
         }
         // add the itemInfo for the appended cases
         ids.forEach((caseId, index) => {
-          self.itemInfoMap.set(caseId, { index: insertPosition + index, caseIds: [] })
+          self.itemInfoMap.set(caseId, { index: insertPosition + index, caseIds: [], isHidden: false })
         })
 
         // copy any values provided
@@ -1216,7 +1215,7 @@ export const DataSet = V2Model.named("DataSet").props({
 
     // build itemIDMap
     self._itemIds.forEach((itemId, index) => {
-      self.itemInfoMap.set(itemId, { index, caseIds: [] })
+      self.itemInfoMap.set(itemId, { index, caseIds: [], isHidden: self.isCaseOrItemHidden(itemId) })
     })
 
     // make sure attributes have appropriate length, including attributes with formulas
@@ -1256,7 +1255,7 @@ export const DataSet = V2Model.named("DataSet").props({
             itemIds: () => self._itemIds,
             isHidden: (itemId) => self.isCaseOrItemHidden(itemId),
             getValue: (itemId, attrId) => self.getStrValue(itemId, attrId) ?? "",
-            addItemInfo: (itemId, index, caseId) => self.addItemInfo(itemId, index, caseId),
+            addItemInfo: (itemId, caseId) => self.addItemInfo(itemId, caseId),
             invalidate: () => self.invalidateCases()
           }
           syncCollectionLinks(self.collections, itemData)
