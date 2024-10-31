@@ -102,14 +102,14 @@ export const DataConfigurationModel = types
     filterFormulaError: ""
   }))
   .views(self => ({
-    get plottedAttributeIDs() {
-      // Note that 'caption' is not a role we include here
-      return (['x', 'y', 'rightNumeric', 'topSplit', 'rightSplit', 'legend', 'lat', 'long', 'polygon'] as const)
+    get axisAttributeIDs() {
+      // Note that 'caption' and 'legend' are not roles we include here
+      return (['x', 'y', 'rightNumeric', 'topSplit', 'rightSplit', 'lat', 'long', 'polygon'] as const)
         .map(aRole => this.attributeID(aRole))
         .filter(id => !!id)
     },
-    get childmostCollectionIDForPlottedAttributes() {
-        return idOfChildmostCollectionForAttributes(this.plottedAttributeIDs, self.dataset)
+    get childmostCollectionIDForAxisAttributes() {
+        return idOfChildmostCollectionForAttributes(this.axisAttributeIDs, self.dataset)
     },
     get isEmpty() {
       return self._attributeDescriptions.size === 0
@@ -530,10 +530,22 @@ export const DataConfigurationModel = types
         return false
       },
       getLegendColorForCase(id: string): string {
+
+        const collectionOfLegendIsMoreChildmost = () => {
+          const legendCollectionID = self.dataset?.getCollectionForAttribute(legendID)?.id,
+            legendCollectionIndex = self.dataset?.getCollectionIndex(legendCollectionID) ?? 0,
+            childmostCollectionID = idOfChildmostCollectionForAttributes(self.axisAttributeIDs, self.dataset),
+            childmostCollectionIndex = self.dataset?.getCollectionIndex(childmostCollectionID) ?? 0
+          return legendCollectionIndex > childmostCollectionIndex
+        }
+
         const legendID = self.attributeID('legend')
         const legendType = self.attributeType('legend')
         if (!id || !legendID) {
           return ''
+        }
+        if (collectionOfLegendIsMoreChildmost()) {
+          return missingColor
         }
         const legendValue = self.dataset?.getStrValue(id, legendID)
         if (!legendValue) {
@@ -625,7 +637,7 @@ export const DataConfigurationModel = types
       }
     },
     _updateFilteredCasesCollectionID() {
-      const childmostCollectionID = idOfChildmostCollectionForAttributes(self.attributes, self.dataset)
+      const childmostCollectionID = idOfChildmostCollectionForAttributes(self.axisAttributeIDs, self.dataset)
       self.filteredCases.forEach((aFilteredCases) => {
         aFilteredCases.setCollectionID(childmostCollectionID)
       })
@@ -680,6 +692,12 @@ export const DataConfigurationModel = types
         this._invalidateCases()
       }
       self.handlers.forEach(handler => handler(actionCall))
+    },
+  }))
+  .actions(self => ({
+    setLegendColorForCategory(cat: string, color: string) {
+      const categorySet = self.categorySetForAttrRole('legend')
+      categorySet?.setColorForCategory(cat, color)
     },
   }))
   .actions(self => ({
@@ -776,7 +794,7 @@ export const DataConfigurationModel = types
       ))
       // invalidate filtered cases when childmost collection changes
       addDisposer(self, reaction(
-        () => self.childmostCollectionIDForPlottedAttributes,
+        () => self.childmostCollectionIDForAxisAttributes,
         () => self._clearFilteredCases(self.dataset),
         { name: "DataConfigurationModel.afterCreate.reaction [childmost collection]" }
       ))

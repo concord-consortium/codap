@@ -17,10 +17,17 @@
     padding: 2px 5px !important;
     margin: 2px 1px;
     border: 1px solid #d0d0d0;
-    margin-left: 10px;
+
     &.categorical {
       position: absolute;
       right: 2px;
+    }
+    .color-picker-thumb-swatch {
+      width: 35px;
+      height: 18px;
+      position: relative;
+      left: 2px;
+      border: 1px solid var(--codap-colors-gray-500);
     }
   }
 
@@ -48,6 +55,10 @@
     .cat-color-picker {
       margin: 6px 0;
     }
+  }
+
+  .num-color-setting {
+    margin: 3px 0;
   }
 }
 

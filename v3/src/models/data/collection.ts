@@ -22,7 +22,7 @@ export interface IItemData {
   itemIds: () => string[]
   isHidden: (itemId: string) => boolean
   getValue: (itemId: string, attrId: string) => string
-  addItemInfo: (itemId: string, index: number, caseId: string) => void
+  addItemInfo: (itemId: string, caseId: string) => void
   invalidate: () => void
 }
 
@@ -245,11 +245,11 @@ export const CollectionModel = V2Model
     self.clearCases()
 
     const newCaseIds: string[] = []
-    // [parentCaseId, childCaseId] tuples
-    const parentChildIdPairs: Array<[string, string]> = []
-    const itemInfo: Array<{itemId: string, itemIndex: number, caseId: string}> = []
+    // key is child caseId
+    const parentChildIdMap = new Map<string, { parentCaseId: string, isHidden: boolean }>()
+    const itemInfo: Array<{itemId: string, caseId: string}> = []
     self.itemData.itemIds().forEach((itemId, itemIndex) => {
-      if (self.itemData.isHidden(itemId)) return
+      const isItemHidden = self.itemData.isHidden(itemId)
       const groupKey = self.groupKey(itemId)
       const hadCaseIdForGroupKey = !!self.groupKeyCaseIds.get(groupKey)
       const caseId = self.groupKeyCaseId(groupKey)
@@ -257,8 +257,9 @@ export const CollectionModel = V2Model
       if (groupKey && caseId) {
         let caseGroup = self.caseGroupMap.get(groupKey)
         if (!caseGroup) {
-          const newCaseIndex = self.caseIds.length
-          self.caseIds.push(caseId)
+          // cases with only hidden items aren't in caseIds and don't get indices
+          const newCaseIndex = isItemHidden ? -1 : self.caseIds.length
+          !isItemHidden && self.caseIds.push(caseId)
           self.caseIdToIndexMap.set(caseId, newCaseIndex)
           self.caseIdToGroupKeyMap.set(caseId, groupKey)
 
@@ -266,7 +267,7 @@ export const CollectionModel = V2Model
           const parentCaseId = self.parent?.groupKeyCaseId(parentGroupKey)
           const parent = parentCaseId ? { [symParent]: parentCaseId } : {}
           // stash parent/child pairs so they can be remapped if necessary
-          parentGroupKey && parentCaseId && parentChildIdPairs.push([parentCaseId, caseId])
+          parentCaseId && parentChildIdMap.set(caseId, { parentCaseId, isHidden: isItemHidden })
 
           caseGroup = {
             collectionId: self.id,
@@ -275,16 +276,36 @@ export const CollectionModel = V2Model
               ...parent,
               [symIndex]: newCaseIndex
             },
-            childItemIds: [itemId],
-            groupKey
+            childItemIds: isItemHidden ? [] : [itemId],
+            hiddenChildItemIds: isItemHidden ? [itemId] : [],
+            groupKey,
+            // case is hidden if all of its items are hidden
+            isHidden: isItemHidden
           }
           self.caseGroupMap.set(groupKey, caseGroup)
         }
+        // case group already exists
         else {
-          caseGroup.childItemIds.push(itemId)
+          // If case is hidden, then this is its first visible item. Need to make the case visible.
+          if (!isItemHidden && caseGroup.isHidden) {
+            const newCaseIndex = self.caseIds.length
+            const parentChildInfo = parentChildIdMap.get(caseId)
+            self.caseIds.push(caseId)
+            self.caseIdToIndexMap.set(caseId, newCaseIndex)
+            parentChildInfo && (parentChildInfo.isHidden = false)
+            caseGroup.groupedCase[symIndex] = newCaseIndex
+            caseGroup.isHidden = false
+          }
+          if (isItemHidden) {
+            caseGroup.hiddenChildItemIds.push(itemId)
+          }
+          else {
+            caseGroup.childItemIds.push(itemId)
+          }
         }
 
-        itemInfo.push({ itemId, itemIndex, caseId })
+        // item info is only stored for visible items
+        itemInfo.push({ itemId, caseId })
       }
     })
 
@@ -292,15 +313,17 @@ export const CollectionModel = V2Model
     const remappedCaseIds = self.getRemappedCaseIds(newCaseIds)
 
     // add item info, remapping case ids where appropriate
-    itemInfo.forEach(({ itemId, itemIndex, caseId }) => {
+    itemInfo.forEach(({ itemId, caseId }) => {
       const _caseId = remappedCaseIds.get(caseId) ?? caseId
-      self.itemData.addItemInfo(itemId, itemIndex, _caseId)
+      self.itemData.addItemInfo(itemId, _caseId)
     })
 
     // add child case ids to parent cases, remapping child case ids where appropriate
-    parentChildIdPairs.forEach(([parentCaseId, _childCaseId]) => {
-      const childCaseId = remappedCaseIds.get(_childCaseId) ?? _childCaseId
-      self.parent?.addChildCase(parentCaseId, childCaseId)
+    parentChildIdMap.forEach(({ parentCaseId, isHidden }, _childCaseId) => {
+      if (!isHidden) {
+        const childCaseId = remappedCaseIds.get(_childCaseId) ?? _childCaseId
+        self.parent?.addChildCase(parentCaseId, childCaseId)
+      }
     })
 
     // remap case ids in our internal structures
@@ -423,6 +446,7 @@ export const CollectionModel = V2Model
 })
 .views(self => ({
   findParentCaseGroup(childCaseId: string): Maybe<CaseInfo> {
+    //consider building a child -> parent case id map if performance is an issue
     return self.caseGroups.find(group => group.childCaseIds?.includes(childCaseId))
   }
 }))

@@ -1,6 +1,7 @@
 import { format } from "d3-format"
 import React from "react"
-import { IAttribute, kDefaultFormatStr } from "../../models/data/attribute"
+import { IAttribute } from "../../models/data/attribute"
+import { kDefaultFormatStr } from "../../models/data/attribute-types"
 import { parseColor } from "../../utilities/color-utils"
 import { isStdISODateString } from "../../utilities/date-iso-utils"
 import { parseDate } from "../../utilities/date-parser"

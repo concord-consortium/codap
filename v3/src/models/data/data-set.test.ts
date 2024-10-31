@@ -582,30 +582,52 @@ test("DataSet case hiding/showing (set aside)", () => {
     { __id__: "item4", [parentAttr.id]: "even", [childAttr.id]: 4 },
     { __id__: "item5", [parentAttr.id]: "odd", [childAttr.id]: 5 },
   ])
+  data.validateCases()
+  expect(data._itemIds.length).toBe(6)
   expect(data.items.length).toBe(6)
+  expect(data.itemInfoMap.size).toBe(6)
+  expect(data.caseInfoMap.size).toBe(8)
   // hide/show cases
   const evenCase = data.getCasesForCollection(parentCollection.id)[0]
   data.hideCasesOrItems([evenCase.__id__])
+  data.validateCases()
   expect(data._itemIds.length).toBe(6)
   expect(data.items.length).toBe(3)
+  expect(data.itemInfoMap.size).toBe(6)
+  expect(data.caseInfoMap.size).toBe(8)
   data.showHiddenCasesAndItems([evenCase.__id__])
+  data.validateCases()
   expect(data._itemIds.length).toBe(6)
   expect(data.items.length).toBe(6)
+  expect(data.itemInfoMap.size).toBe(6)
+  expect(data.caseInfoMap.size).toBe(8)
   // hide/show items
   const [firstItem, secondItem] = data.itemIds
   data.hideCasesOrItems([firstItem, secondItem])
+  data.validateCases()
   expect(data._itemIds.length).toBe(6)
   expect(data.items.length).toBe(4)
+  expect(data.itemInfoMap.size).toBe(6)
+  expect(data.caseInfoMap.size).toBe(8)
   data.showHiddenCasesAndItems([firstItem, secondItem])
+  data.validateCases()
   expect(data._itemIds.length).toBe(6)
   expect(data.items.length).toBe(6)
+  expect(data.itemInfoMap.size).toBe(6)
+  expect(data.caseInfoMap.size).toBe(8)
   // hide cases/items and show all
   data.hideCasesOrItems([evenCase.__id__, firstItem, secondItem])
+  data.validateCases()
   expect(data._itemIds.length).toBe(6)
   expect(data.items.length).toBe(2)
+  expect(data.itemInfoMap.size).toBe(6)
+  expect(data.caseInfoMap.size).toBe(8)
   data.showHiddenCasesAndItems()
+  data.validateCases()
   expect(data._itemIds.length).toBe(6)
   expect(data.items.length).toBe(6)
+  expect(data.itemInfoMap.size).toBe(6)
+  expect(data.caseInfoMap.size).toBe(8)
 
   // unrelated but convenient to test with a configured data set
   expect(data.hasCase(evenCase.__id__)).toBe(true)

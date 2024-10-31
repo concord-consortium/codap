@@ -7,6 +7,7 @@ import { kellyColors } from "../../utilities/color-utils"
 import { onAnyAction } from "../../utilities/mst-utils"
 import { Attribute, IAttribute } from "./attribute"
 import { IDataSet } from "./data-set"
+import { hashStringSet } from "../../utilities/js-utils"
 
 interface ICategoryMove {
   value: string     // category value
@@ -53,14 +54,14 @@ export const CategorySet = types.model("CategorySet", {
       self.handleAttributeInvalidated?.(invalidId)
     }
   }),
-  // user color assignments
+  // user color assignments to categories in an attribute
   colors: types.map(types.string),
   // user category re-orderings
   moves: types.array(types.frozen<ICategoryMove>())
 })
 .volatile(self => ({
   provisionalAttributeActionDisposer: undefined as Maybe<IDisposer>,
-  handleAttributeInvalidated: undefined as Maybe<(attrId: string) => void>
+  handleAttributeInvalidated: undefined as Maybe<(attrId: string) => void>,
 }))
 .actions(self => ({
   onAttributeInvalidated(handler: (attrId: string) => void) {
@@ -199,6 +200,11 @@ export const CategorySet = types.model("CategorySet", {
     }
     const catIndex = self.index(category)
     return catIndex != null ? kellyColors[catIndex % kellyColors.length] : undefined
+  }
+}))
+.views(self => ({
+  get colorHash() {
+    return hashStringSet(self.valuesArray.map(category => `${category}:${self.colorForCategory(category) ?? ''}`))
   }
 }))
 .actions(self => ({
