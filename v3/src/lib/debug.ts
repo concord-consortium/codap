@@ -22,6 +22,7 @@ if (debug.length > 0) {
 const debugContains = (key: string) => debug.indexOf(key) !== -1
 
 export const DEBUG_CANVAS = debugContains("canvas")
+export const DEBUG_CFM_LOCAL_STORAGE = debugContains("cfmLocalStorage")
 export const DEBUG_DOCUMENT = debugContains("document")
 export const DEBUG_FORMULAS = debugContains("formulas")
 export const DEBUG_HISTORY = debugContains("history")

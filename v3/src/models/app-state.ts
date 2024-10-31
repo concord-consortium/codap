@@ -59,6 +59,16 @@ class AppState {
     return this.document.treeManagerAPI as TreeManagerType | undefined
   }
 
+  /**
+   * Check if this revisionId is the same as the current document's revisionId
+   *
+   * @param revisionId required but can be undefined
+   * @returns
+   */
+  isCurrentRevision(revisionId: string | undefined) {
+    return revisionId === this.treeManager?.revisionId
+  }
+
   async getDocumentSnapshot() {
     // use cloneDeep because MST snapshots are immutable
     const snapshot = await serializeDocument(this.currentDocument, doc => cloneDeep(getSnapshot(doc)))

@@ -10,6 +10,7 @@ import { createCodapDocument, isCodapDocument } from "../models/codap/create-cod
 import { gLocale } from "../utilities/translation/locale"
 import { t } from "../utilities/translation/translate"
 import { removeDevUrlParams, urlParams } from "../utilities/url-params"
+import { DEBUG_CFM_LOCAL_STORAGE } from "./debug"
 
 const locales = [
   {
@@ -222,7 +223,7 @@ export function useCloudFileManager(optionsArg: CFMAppOptions) {
           }
         },
         "localFile",
-        //"localStorage"
+        ...(DEBUG_CFM_LOCAL_STORAGE ? ["localStorage"] : [])
       ],
       ...options.current
     }

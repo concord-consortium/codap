@@ -58,11 +58,17 @@ export function handleCFMEvent(cfmClient: CloudFileManagerClient, event: CloudFi
       }
       break
     }
-    // TODO: compare the revisionId of the saved content with the
-    // revisionId of the current content and if they are different then we need to
-    // tell the CFM the document is dirty even though it just saved it.
-    // case "savedFile":
-    //   break
+    case "savedFile": {
+      const { content } = event.data
+      // Compare the revisionId of the saved content with the revisionId of
+      // the current content. If they are different, tell the CFM the document
+      // is dirty again. This can happen if the save takes a while and user
+      // changes the document during the save.
+      if (!appState.isCurrentRevision(content.revisionId)) {
+        cfmClient.dirty(true)
+      }
+      break
+    }
     // case "sharedFile":
     //   break
     // case "unsharedFile":
