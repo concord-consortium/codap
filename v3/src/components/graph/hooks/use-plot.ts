@@ -1,5 +1,5 @@
 import {useEffect} from "react"
-import {reaction} from "mobx"
+import {comparer, reaction} from "mobx"
 import {isAlive} from "mobx-state-tree"
 import {onAnyAction} from "../../../utilities/mst-utils"
 import {mstAutorun} from "../../../utilities/mst-autorun"
@@ -285,4 +285,16 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
         !graphModel.dataConfiguration.pointsNeedUpdating && callRefreshPointPositions(false)
       }, {name: "usePlot [callRefreshPointPositions]"}, graphModel)
   }, [graphModel, callRefreshPointPositions])
+
+  // respond to point properties change
+  useEffect(function respondToPointVisualChange() {
+    return mstReaction(() => {
+      const { pointColor, pointStrokeColor, pointStrokeSameAsFill, pointSizeMultiplier } =
+        graphModel.pointDescription
+      return [pointColor, pointStrokeColor, pointStrokeSameAsFill, pointSizeMultiplier]
+    },
+      () => callRefreshPointPositions(false),
+      {name: "respondToPointVisualChange", equals: comparer.structural}, graphModel
+    )
+  }, [callRefreshPointPositions, graphModel])
 }

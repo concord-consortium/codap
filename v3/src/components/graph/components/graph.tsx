@@ -339,7 +339,7 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
     return droppables
   }
 
-  useGraphModel({pixiPoints, graphModel, instanceId})
+  useGraphModel({graphModel})
 
   const getTipAttrs = useCallback((plotNum: number) => {
     const dataConfig = graphModel.dataConfiguration
