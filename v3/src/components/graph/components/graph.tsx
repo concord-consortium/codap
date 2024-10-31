@@ -30,7 +30,6 @@ import {useGraphModel} from "../hooks/use-graph-model"
 import {setNiceDomain} from "../utilities/graph-utils"
 import { EmptyAxisModel, IAxisModel, isNumericAxisModel } from "../../axis/models/axis-model"
 import {GraphPlace} from "../../axis-graph-shared"
-import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {MarqueeState} from "../../data-display/models/marquee-state"
 import {DataTip} from "../../data-display/components/data-tip"
 import {MultiLegend} from "../../data-display/components/legend/multi-legend"
@@ -55,7 +54,6 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
     {plotType} = graphModel,
     pixiPoints = pixiPointsArray[0],
     {startAnimation} = useDataDisplayAnimation(),
-    instanceId = useInstanceIdContext(),
     marqueeState = useMemo<MarqueeState>(() => new MarqueeState(), []),
     dataset = useDataSetContext(),
     layout = useGraphLayoutContext(),
@@ -339,7 +337,7 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
     return droppables
   }
 
-  useGraphModel({pixiPoints, graphModel, instanceId})
+  useGraphModel({graphModel})
 
   const getTipAttrs = useCallback((plotNum: number) => {
     const dataConfig = graphModel.dataConfiguration
