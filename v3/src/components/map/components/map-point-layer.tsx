@@ -263,6 +263,16 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
     }
   }, [dataset, refreshPoints, refreshPointSelection])
 
+  useEffect(() => {
+    return mstReaction(
+      () => {
+        return dataConfiguration?.categorySetForAttrRole('legend')?.colorHash
+      },
+      () => {
+        refreshPoints(false)
+      }, {name: "MapPointLayer [categorySetChange]", fireImmediately: true}, dataConfiguration)
+  }, [dataConfiguration, refreshPoints])
+
   // Changes in layout or map pan/zoom require repositioning points
   useEffect(function setupResponsesToLayoutChanges() {
     return reaction(

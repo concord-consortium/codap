@@ -40,7 +40,7 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
   }
 
   const handleCatPointColorChange = (color: string, cat: string) => {
-    displayItemDescription.applyModelChange(
+    dataConfiguration.applyModelChange(
       () => {
         dataConfiguration.setLegendColorForCategory(cat, color)
       },
