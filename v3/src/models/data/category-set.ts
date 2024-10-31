@@ -54,14 +54,14 @@ export const CategorySet = types.model("CategorySet", {
       self.handleAttributeInvalidated?.(invalidId)
     }
   }),
-  // user color assignments
+  // user color assignments to categories in an attribute
   colors: types.map(types.string),
   // user category re-orderings
   moves: types.array(types.frozen<ICategoryMove>())
 })
 .volatile(self => ({
   provisionalAttributeActionDisposer: undefined as Maybe<IDisposer>,
-  handleAttributeInvalidated: undefined as Maybe<(attrId: string) => void>
+  handleAttributeInvalidated: undefined as Maybe<(attrId: string) => void>,
 }))
 .actions(self => ({
   onAttributeInvalidated(handler: (attrId: string) => void) {

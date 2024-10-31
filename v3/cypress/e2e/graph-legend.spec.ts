@@ -1,6 +1,8 @@
 import { AxisHelper as ah } from "../support/helpers/axis-helper"
 import { GraphLegendHelper as glh } from "../support/helpers/graph-legend-helper"
 import { ToolbarElements as toolbar } from "../support/elements/toolbar-elements"
+import { GraphTileElements as graph } from "../support/elements/graph-tile"
+import { ColorPickerPaletteElements as color_picker } from "../support/elements/color-picker-palette"
 
 const arrayOfAttributes = ["Mammal", "Order", "LifeSpan", "Height", "Mass", "Sleep", "Speed", "Habitat", "Diet"]
 
@@ -530,5 +532,137 @@ context("Test selecting and selecting categories in legend", () => {
     glh.removeAttributeFromLegend(arrayOfAttributes[3])
     ah.openAxisAttributeMenu("bottom")
     ah.removeAttributeFromAxis(arrayOfAttributes[8], "bottom")
+  })
+})
+context("Test changing legend colors", () => {
+  describe("Test changing legend colors for categorical legend", () => {
+    const initLandBackgroundColor = "rgb(255, 104"
+    const standardLandBackgroundColor = "rgb(255, 238"
+    const saturationLandBackgroundColor = "rgb(128, 122"
+    const hueLandBackgroundColor = "rgb(64, 128"
+
+    beforeEach(function () {
+      const queryParams = "?sample=mammals&dashboard&mouseSensor"
+      const url = `${Cypress.config("index")}${queryParams}`
+      cy.visit(url)
+      cy.wait(2500)
+      cy.dragAttributeToTarget("table", arrayOfAttributes[8], "bottom") // Diet => x-axis
+      glh.dragAttributeToPlot(arrayOfAttributes[7]) // Habitat => plot area
+      //move graph up to make room for color picker
+      cy.get('.Graph-title-bar')
+        .trigger("mousedown", { button: 0 })
+        .trigger("mousemove", { clientY: 300 })
+        .trigger("mouseup")
+      cy.get("[data-testid=inspector-panel]").should("be.visible")
+    })
+
+    // Habitat categorical legend uses a non-standard color
+    it("Shows standard 16 grid color palette with extra row for non-standard color", () => {
+      graph.getDisplayStylesButton().click()
+      color_picker.getCategoricalColorSettingsGroup().should("be.visible")
+      color_picker.getCategoricalColorSettingRow().should("have.length", 3)
+      color_picker.getCategoricalColorSettingLabel().should("have.length", 3)
+      color_picker.getCategoricalColorSettingButton().should("have.length", 3)
+      color_picker.getCategoricalColorSettingSwatch().eq(0)
+        .invoke('css', 'background-color').should('contain', initLandBackgroundColor)
+      color_picker.getCategoricalColorSettingSwatch().eq(0).click()
+      color_picker.getColorSettingSwatchGrid().should("be.visible")
+      color_picker.getColorSettingSwatchRow().should("have.length", 1)
+      color_picker.getColorSettingSwatchCell().should("have.length", 17)
+      color_picker.getColorSettingSwatchCell().eq(16).should("have.class", "selected")
+        .invoke('css', 'background-color').should('contain', initLandBackgroundColor)
+
+      cy.log("Shows expanded color picker when user click More button")
+      color_picker.getColorPickerToggleButton().should("have.text", "More")
+      color_picker.getColorPickerToggleButton().click()
+      color_picker.getColorPicker().should("be.visible")
+
+      cy.log("Hides expanded color picker when user click Less button")
+      color_picker.getColorPickerToggleButton().should("have.text", "Less")
+      color_picker.getColorPickerToggleButton().click()
+      color_picker.getColorPicker().should("not.exist")
+
+      cy.log("Propagates selected color to inspector palette swatch, legend key, and plot area")
+      color_picker.getColorSettingSwatchCell().eq(6).click()
+      color_picker.getColorSettingSwatchCell().eq(6).should("have.class", "selected")
+      color_picker.getColorSettingSwatchCell().eq(6)
+        .invoke('css', 'background-color').should('contain', standardLandBackgroundColor)
+      cy.get('[data-testid="legend-key"]').eq(0) //fragile but couldn't get it to work with the contains "land"
+        .find('rect')
+        .invoke('css', 'fill')
+        .then((fillColor) => {
+          expect(fillColor).to.contain(standardLandBackgroundColor)
+        })
+
+      cy.log("Hides color picker when user clicks outside of the color picker")
+      cy.get(".codap-inspector-palette-header-title").click()
+      color_picker.getColorPalette().should("not.exist")
+
+      cy.log("Undo/Redo color change")
+      toolbar.getUndoTool().click()
+      cy.get('[data-testid="legend-key"]').eq(0) //fragile but couldn't get it to work with the contains "land"
+        .find('rect')
+        .invoke('css', 'fill')
+        .then((fillColor) => {
+          expect(fillColor).to.contain(initLandBackgroundColor)
+        })
+      toolbar.getRedoTool().click()
+      cy.get('[data-testid="legend-key"]').eq(0) //fragile but couldn't get it to work with the contains "land"
+        .find('rect')
+        .invoke('css', 'fill')
+        .then((fillColor) => {
+          expect(fillColor).to.contain(standardLandBackgroundColor)
+        })
+
+      cy.log("Selects non-standard color from color picker")
+      graph.getDisplayStylesButton().click()
+      color_picker.getCategoricalColorSettingSwatch().eq(0).click()
+      color_picker.getColorSettingSwatchCell().should("have.length", 16)
+      color_picker.getColorPickerToggleButton().should("have.text", "More").click()
+      color_picker.getColorPickerSaturation().click()
+      color_picker.getColorSettingSwatchCell().should("have.length", 17)
+      color_picker.getColorSettingSwatchCell().eq(16).should("have.class", "selected")
+      color_picker.getColorSettingSwatchCell().eq(6).should("not.have.class", "selected")
+      color_picker.getColorSettingSwatchCell().eq(16)
+        .invoke('css', 'background-color').should('contain', saturationLandBackgroundColor)
+      color_picker.getCategoricalColorSettingSwatch().eq(0)
+        .invoke('css', 'background-color').should('contain', saturationLandBackgroundColor)
+      cy.get('[data-testid="legend-key"]').eq(0) //fragile but couldn't get it to work with the contains "land"
+        .find('rect')
+        .invoke('css', 'fill')
+        .then((fillColor) => {
+          expect(fillColor).to.contain(saturationLandBackgroundColor)
+        })
+      color_picker.getSetColorButton().click()
+      cy.get('[data-testid="legend-key"]').eq(0) //fragile but couldn't get it to work with the contains "land"
+        .find('rect')
+        .invoke('css', 'fill')
+        .then((fillColor) => {
+          expect(fillColor).to.contain(saturationLandBackgroundColor)
+        })
+
+      cy.log("Does not change color when user cancels color selection from color picker")
+      color_picker.getColorPickerToggleButton().should("have.text", "More").click()
+      color_picker.getColorPickerHue().click()
+      color_picker.getColorSettingSwatchCell().eq(16)
+        .invoke('css', 'background-color').should('contain', hueLandBackgroundColor)
+      color_picker.getCategoricalColorSettingSwatch().eq(0)
+        .invoke('css', 'background-color').should('contain', hueLandBackgroundColor)
+      cy.get('[data-testid="legend-key"]').eq(0) //fragile but couldn't get it to work with the contains "land"
+        .find('rect')
+        .invoke('css', 'fill')
+        .then((fillColor) => {
+          expect(fillColor).to.contain(hueLandBackgroundColor)
+        })
+      color_picker.getCancelColorButton().click({waitForAnimations: false, animationDistanceThreshold: 20})
+      color_picker.getCategoricalColorSettingSwatch().eq(0)
+        .invoke('css', 'background-color').should('contain', saturationLandBackgroundColor)
+      cy.get('[data-testid="legend-key"]').eq(0) //fragile but couldn't get it to work with the contains "land"
+        .find('rect')
+        .invoke('css', 'fill')
+        .then((fillColor) => {
+          expect(fillColor).to.contain(saturationLandBackgroundColor)
+        })
+    })
   })
 })

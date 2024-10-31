@@ -4,7 +4,6 @@ import { clsx } from "clsx"
 import { colord } from "colord"
 import {Button, ButtonGroup, Flex, Popover, PopoverBody, PopoverContent, PopoverTrigger,
   Portal} from "@chakra-ui/react"
-import {missingColor} from "../../../utilities/color-utils"
 import {t} from "../../../utilities/translation/translate"
 import { ColorPicker } from "../../case-tile-common/color-picker"
 import { useOutsidePointerDown } from "../../../hooks/use-outside-pointer-down"
@@ -21,19 +20,22 @@ interface ColorPickerIProps {
 export const PointColorSetting = observer(function PointColorSetting({onColorChange,
       propertyLabel, swatchBackgroundColor}: ColorPickerIProps) {
   const [showColorPicker, setShowColorPicker] = useState(false)
-  const [inputValue, setInputValue] = useState(missingColor)
+  const [inputValue, setInputValue] = useState(swatchBackgroundColor)
   const popoverRef = useRef<HTMLDivElement>(null)
   const popoverContainerRef = useRef<HTMLDivElement>(null)
   const [openPopover, setOpenPopover] = useState<string | null>(null)
   const pointColorSettingButtonRef = useRef<HTMLButtonElement>(null)
   const kGapSize = 10
-  const [nonStandardColorSelected, setNonStandardColorSelected] = useState(false)
+  const [initialColor, setInitialColor] = useState(swatchBackgroundColor) // Added initialColor state
   const paletteColors = ["#000000", "#a9a9a9", "#d3d3d3", "#FFFFFF", "#ad2323", "#ff9632", "#ffee33", "#1d6914",
     "#2a4bd7", "#814a19", "#8126c0", "#29d0d0", "#e9debb", "#ffcdf3", "#9dafff", "#81c57a"]
+  const [nonStandardColorSelected, setNonStandardColorSelected] =
+            useState(!paletteColors.includes(swatchBackgroundColor))
 
   useOutsidePointerDown({ref: popoverContainerRef, handler: () => setOpenPopover?.(null)})
 
   const handleSwatchClick = (cat: string) => {
+    setInitialColor(swatchBackgroundColor)
     setOpenPopover(openPopover === cat ? null : cat)
   }
 
@@ -47,14 +49,15 @@ export const PointColorSetting = observer(function PointColorSetting({onColorCha
     setShowColorPicker(false)
     setOpenPopover(null)
     setNonStandardColorSelected(false)
-  }, [])
+    onColorChange(initialColor)
+  }, [onColorChange, initialColor])
 
   const acceptValue = useCallback(() => {
     setShowColorPicker(false)
     setNonStandardColorSelected(true)
     updateValue(inputValue)
-    onColorChange(inputValue)
-  }, [inputValue, onColorChange, updateValue])
+    setInitialColor(inputValue)
+  }, [inputValue, updateValue])
 
   const handleShowColorPicker = (evt: React.MouseEvent) => {
     evt.preventDefault()
@@ -131,7 +134,7 @@ export const PointColorSetting = observer(function PointColorSetting({onColorCha
                   </div>}
               </div>
               <div className="color-swatch-footer">
-                <Button size="xs" onClick={handleShowColorPicker}>
+                <Button size="xs" onClick={handleShowColorPicker} data-testid="toggle-show-color-picker-button">
                   {showColorPicker ? "Less" : "More"}
                 </Button>
               </div>
