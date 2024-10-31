@@ -124,15 +124,19 @@ function cmCodapCompletions(context: CompletionContext): CompletionResult | null
     label: `${fnName}()`,
     // provide a custom apply function so we can place the caret between the parentheses
     apply: (view: EditorView, completion: Completion, from: number, to: number) => {
+      const hasParens = view.state.sliceDoc(to, to + 1) === "("
+      const replaceStr =  hasParens ? fnName : `${fnName}()`
       // apply the completion
       view.dispatch({
-        ...insertCompletionText(view.state, completion.label, from, to),
+        ...insertCompletionText(view.state, replaceStr, from, to),
         annotations: pickedCompletion.of(completion)
       })
-      // put the caret between the parentheses of the function
-      const selectionStart = view.state.selection.main.from
-      const transaction = view.state.update({ selection: { anchor: selectionStart - 1 } })
-      view.dispatch(transaction)
+      if (!hasParens) {
+        // put the caret between the parentheses of the function
+        const selectionStart = view.state.selection.main.from
+        const transaction = view.state.update({ selection: { anchor: selectionStart - 1 } })
+        view.dispatch(transaction)
+      }
     }
   })) : []
   const completions: Completion[] = [...attributes, ...constants, ...specials, ...globals, ...functions]
