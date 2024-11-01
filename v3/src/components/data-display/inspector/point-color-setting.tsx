@@ -45,7 +45,7 @@ export const PointColorSetting = observer(function PointColorSetting({ onColorCh
 
   const handleSwatchClick = (cat: string) => {
     setOpenPopover(openPopover === cat ? null : cat)
-    initialColorRef.current = swatchBackgroundColor;
+    initialColorRef.current = swatchBackgroundColor
   }
 
   return (

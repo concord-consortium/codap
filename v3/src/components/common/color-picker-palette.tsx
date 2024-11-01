@@ -6,7 +6,7 @@ import { ColorPicker } from "./color-picker"
 import { t } from "../../utilities/translation/translate"
 
 import styles from "./point-color-setting-shared.scss"
-import "./point-color-setting.scss"
+import "./color-picker-palette.scss"
 
 interface IProps {
   initialColor: string
@@ -15,7 +15,6 @@ interface IProps {
   buttonRef: React.RefObject<HTMLButtonElement>
   showArrow?: boolean
   onColorChange: (newColor: string) => void
-  // setOpenPopover: (value: string | null) => void
   onAccept: () => void
   onReject: () => void
   onUpdateValue: (value: string) => void
@@ -90,7 +89,9 @@ export const ColorPickerPalette = ({ swatchBackgroundColor, initialColor, inputV
     <PopoverContent ref={popoverContainerRef}
                     className={clsx("color-picker-palette-container", {"with-color-picker": showColorPicker})}>
       {showArrow && <PopoverArrow />}
-      <PopoverBody className="color-picker-palette" ref={popoverRef}>
+      <PopoverBody ref={popoverRef}
+            className={clsx("color-picker-palette",
+                            {"with-color-picker": showColorPicker, "without-arrow": !showArrow})}>
         <div className="color-swatch-palette" onKeyDown={handleKeyDown}>
           <div className="color-swatch-grid">
             {paletteColors.map((pColor, index) => (

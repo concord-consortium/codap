@@ -112,7 +112,7 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
 
   return swatchStyle
     ? (
-        <div className={"color-cell-text-editor"}>
+        <div className={"color-cell-text-editor"} style={{ position: 'relative' }}>
           <Popover
             isLazy={true}
             isOpen={isPaletteOpen}
@@ -129,29 +129,10 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
               { inputElt }
             </PopoverAnchor>
             <Portal>
-              <ColorPickerPalette initialColor={initialInputValue.current || "#000000"}
-                inputValue={inputValue || "#000000"} swatchBackgroundColor={color || "#000000"}
+              <ColorPickerPalette initialColor={initialInputValue.current || "#ffffff"}
+                inputValue={inputValue || "#ffffff"} swatchBackgroundColor={color || "#ffffff"}
                 buttonRef={triggerButtonRef} showArrow={true}
                 onColorChange={updateValue} onAccept={acceptValue} onReject={rejectValue} onUpdateValue={updateValue}/>
-              {/* <PopoverContent className="text-editor-color-picker" width={"inherit"}>
-                <PopoverArrow />
-                <PopoverBody>
-                  <ColorPicker color={hexColor} onChange={updateValue} />
-                </PopoverBody>
-                <PopoverFooter>
-                  <Flex>
-                    <Spacer/>
-                    <ButtonGroup>
-                      <Button className="cancel-button" size="xs" fontWeight="normal" onClick={rejectValue}>
-                        {t("V3.CaseTable.colorPalette.cancel")}
-                      </Button>
-                      <Button className="set-color-button" size="xs" fontWeight="normal" onClick={acceptValue}>
-                        {t("V3.CaseTable.colorPalette.setColor")}
-                      </Button>
-                    </ButtonGroup>
-                  </Flex>
-                </PopoverFooter>
-              </PopoverContent> */}
             </Portal>
           </Popover>
         </div>

@@ -4,35 +4,43 @@
 .color-picker-palette-container {
   background: none !important;
   border: none !important;
-  width: max-content;
   height: max-content;
+  position: relative;
+  width: 108px;
 
   .color-picker-palette {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     padding: 10px;
-    position: absolute;
     background-color: white;
     border: 1px solid #d0d0d0;
-    top: shared.$color-picker-popover-top-px;
-    left: shared.$color-picker-popover-left-px;
+    width: 108px;
+
+    &.with-color-picker {
+      width: 222px;;
+    }
+
+    &.without-arrow {
+      position: absolute;
+      top: -8px;
+      left: -52px;
+    }
 
     .color-swatch-palette {
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      padding: 10px;
-      min-height: 140px;
-      width: 101px;
+      justify-content: flex-start;
 
       .color-swatch-grid {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
         grid-template-rows: repeat(4, 1fr);
         grid-gap: 2px;
+        width: 100%;
+        height: fit-content;
 
         .color-swatch-cell {
           width: 18px;
@@ -51,7 +59,6 @@
       }
 
       .color-swatch-footer {
-        position: relative;
         display: flex;
         justify-content: center;
         align-items: center;
