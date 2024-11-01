@@ -105,7 +105,7 @@ export const EditFormulaModal = observer(function EditFormulaModal({
             </FormLabel>
             <FormLabel>
               {formulaPrompt ?? t("DG.AttrFormView.formulaPrompt")}
-              <FormulaEditor />
+              <FormulaEditor onClose={closeModal} onApply={handleApplyClick}/>
             </FormLabel>
           </FormControl>
           <Flex flexDirection="row" justifyContent="flex-start">

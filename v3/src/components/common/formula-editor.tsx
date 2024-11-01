@@ -6,7 +6,7 @@ import { defaultKeymap } from "@codemirror/commands"
 import { defaultHighlightStyle, syntaxHighlighting, syntaxTree } from "@codemirror/language"
 import { Decoration, DecorationSet, keymap, ViewPlugin } from "@codemirror/view"
 import CodeMirror, {
-  drawSelection, EditorState, EditorView, Extension, KeyBinding, RangeSet, RangeSetBuilder, RangeValue,
+  drawSelection, EditorState, EditorView, Extension, KeyBinding, Prec, RangeSet, RangeSetBuilder, RangeValue,
   ReactCodeMirrorRef, StateEffect, StateField, ViewUpdate
 } from "@uiw/react-codemirror"
 import React, { useCallback, useRef } from "react"
@@ -33,6 +33,8 @@ const kAllOptions: ICompletionOptions = {
 interface IProps {
   // options default to true if not specified
   options?: Partial<ICompletionOptions>
+  onClose?: () => void;
+  onApply?: (formula: string) => void;
 }
 
 /*
@@ -215,7 +217,7 @@ const codapHighlightingViewPlugin = ViewPlugin.fromClass(
 /*
  * editor configuration
  */
-function cmExtensionsSetup() {
+function cmExtensionsSetup(onClose: () => void, onApply: (formula: string) => void) {
   let keymaps: KeyBinding[] = []
   keymaps = keymaps.concat(closeBracketsKeymap)
   keymaps = keymaps.concat(defaultKeymap)
@@ -231,18 +233,40 @@ function cmExtensionsSetup() {
       override: [cmCodapCompletions],
     }),
     codapHighlightingViewPlugin,
-    keymap.of(keymaps.flat())
+    keymap.of(keymaps.flat()),
+    Prec.highest( //Overrides CodeMirror's default keymap for Cmd-Enter key
+      keymap.of([
+        { key: "Mod-Enter",
+          run:  (view) => {
+            onApply(view.state.doc.toString())
+            view.dom.closest('.codap-modal')?.classList.add('hidden')
+            onClose()
+            return true
+          }
+        }
+      ])
+    ),
+    keymap.of([
+      { key: "Escape",
+        run: (view) => {
+          console.log("Escape key pressed. Formula not saved.")
+          view.dom.closest('.codap-modal')?.classList.add('hidden')
+          onClose()
+          return false
+        }
+      }
+    ])
   ]
   return extensions.filter(Boolean)
 }
 
-export function FormulaEditor({ options: _options }: IProps) {
+export function FormulaEditor({ options: _options, onClose, onApply }: IProps) {
   const dataSet = useDataSetContext()
   const jsonOptions = JSON.stringify(_options ?? {})
   const options = useMemo(() => JSON.parse(jsonOptions), [jsonOptions])
   const cmRef = useRef<ReactCodeMirrorRef>(null)
-  const extensions = useMemo(() => cmExtensionsSetup(), [])
   const { formula, setFormula, setEditorApi } = useFormulaEditorContext()
+  const extensions = useMemo(() => cmExtensionsSetup(onClose!, onApply!), [onClose, onApply])
 
   // update the editor state field with the appropriate data set
   const handleCreateEditor = useCallback((view: EditorView, state: EditorState) => {
