@@ -642,6 +642,7 @@ context("Test changing legend colors", () => {
         })
 
       cy.log("Does not change color when user cancels color selection from color picker")
+      color_picker.getCategoricalColorSettingSwatch().eq(0).click()
       color_picker.getColorPickerToggleButton().should("have.text", "More").click()
       color_picker.getColorPickerHue().click()
       color_picker.getColorSettingSwatchCell().eq(16)

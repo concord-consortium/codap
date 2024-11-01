@@ -20,12 +20,12 @@ interface IProps {
   onUpdateValue: (value: string) => void
 }
 
-export const ColorPickerPalette = ({ swatchBackgroundColor, initialColor, inputValue, buttonRef, showArrow,
+export const ColorPickerPalette = ({ swatchBackgroundColor, inputValue, buttonRef, showArrow,
                 onColorChange, onAccept, onReject, onUpdateValue }: IProps) => {
   const paletteColors = ["#000000", "#a9a9a9", "#d3d3d3", "#FFFFFF", "#ad2323", "#ff9632", "#ffee33", "#1d6914",
     "#2a4bd7", "#814a19", "#8126c0", "#29d0d0", "#e9debb", "#ffcdf3", "#9dafff", "#81c57a"]
   const [showColorPicker, setShowColorPicker] = useState(false)
-  const nonStandardColorSelected = paletteColors.includes(inputValue)
+  const nonStandardColorSelected = !paletteColors.includes(swatchBackgroundColor)
   const popoverRef = useRef<HTMLDivElement>(null)
   const popoverContainerRef = useRef<HTMLDivElement>(null)
   const kGapSize = 10
