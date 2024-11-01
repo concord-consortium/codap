@@ -232,18 +232,22 @@ export const TableTileElements = {
   },
   createNewTableFromToolShelf() {
     c.getIconFromToolShelf("table").click()
+    cy.wait(1000)
     cy.get("[data-testid=tool-shelf-table-new]").click()
   },
   createNewClipboardTableFromToolShelf() {
     c.getIconFromToolShelf("table").click()
+    cy.wait(1000)
     cy.get("[data-testid=tool-shelf-table-new-clipboard]").click()
   },
   openExistingTableFromToolShelf(name: string) {
     c.getIconFromToolShelf("table").click()
+    cy.wait(1000)
     cy.get(`[data-testid=tool-shelf-table-${name}]`).click()
   },
   deleteDataSetFromToolShelf(index = 0) {
     c.getIconFromToolShelf("table").click()
+    cy.wait(1000)
     cy.get(`.tool-shelf-menu-trash-icon`).eq(index).click()
     cy.get(`.delete-data-set-button-delete`).click()
   },
