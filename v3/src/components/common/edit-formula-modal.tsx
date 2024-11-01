@@ -102,6 +102,7 @@ export const EditFormulaModal = observer(function EditFormulaModal({
                 data-testid="attr-name-input"
                 disabled
               />
+              <span>=</span>
             </FormLabel>
             <FormLabel>
               {formulaPrompt ?? t("DG.AttrFormView.formulaPrompt")}
@@ -119,7 +120,7 @@ export const EditFormulaModal = observer(function EditFormulaModal({
               }
             </Box>
             <Box position="relative">
-              <Button 
+              <Button
                 className={clsx("formula-editor-button", "insert-function", {"menu-open": showFunctionMenu})}
                 size="xs" ml="5" onClick={handleInsertFunctionsOpen} data-testid="formula-insert-function-button"
               >
