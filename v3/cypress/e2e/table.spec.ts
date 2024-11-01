@@ -1071,7 +1071,7 @@ context("case table ui", () => {
 
       cy.log("selecting the cell doesn't dirty the document")
       table.getGridCell(2, 2).click()
-      // check for the "UNSAVE" badge
+      // check for the "UNSAVED" badge
       // The badge will not be there before the selection, so we need to wait
       // to give some time for buggy code to add the badge.
       cy.wait(100)

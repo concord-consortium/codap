@@ -74,10 +74,7 @@ class AppState {
     const snapshot = await serializeDocument(this.currentDocument, doc => cloneDeep(getSnapshot(doc)))
     const revisionId = this.treeManager?.revisionId
     if (revisionId) {
-      return {
-        revisionId: this.treeManager?.revisionId,
-        ...snapshot
-      }
+      return { revisionId, ...snapshot }
     }
 
     return snapshot
