@@ -153,9 +153,6 @@ export const TreeManager = types
       // Re-attach the entry to the actual history
       self.document.history.push(entry)
 
-      // Store the most recent history id.
-      self.revisionId = entry.id
-
       // Add the entry to the undo stack if it is undoable.
       //
       // TODO: Is it best to wait until the entry is complete like this? It
@@ -166,6 +163,9 @@ export const TreeManager = types
       // stack will have incomplete entries in sometimes.
       if (entry.undoable) {
         self.undoStore.addHistoryEntry(entry)
+
+        // Store the most recent undo-able history id.
+        self.revisionId = entry.id
       }
     }
   }
