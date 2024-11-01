@@ -1,6 +1,5 @@
 import {
-  Button, ButtonGroup, Flex, forwardRef, Popover, PopoverAnchor, PopoverArrow, PopoverBody,
-  PopoverContent, PopoverFooter, PopoverTrigger, Portal, Spacer, useDisclosure, useMergeRefs
+  forwardRef, Popover, PopoverAnchor, PopoverTrigger, Portal, useDisclosure, useMergeRefs
 } from "@chakra-ui/react"
 import React, { ChangeEvent, useCallback, useEffect, useRef, useState } from "react"
 import { textEditorClassname } from "react-data-grid"
@@ -11,8 +10,6 @@ import { selectAllCases } from "../../models/data/data-set-utils"
 import { uiState } from "../../models/ui-state"
 import { parseColor, parseColorToHex } from "../../utilities/color-utils"
 import { blockAPIRequestsWhileEditing } from "../../utilities/plugin-utils"
-import { t } from "../../utilities/translation/translate"
-import { ColorPicker } from "../common/color-picker"
 import { TRenderEditCellProps } from "./case-table-types"
 import { ColorPickerPalette } from "../common/color-picker-palette"
 

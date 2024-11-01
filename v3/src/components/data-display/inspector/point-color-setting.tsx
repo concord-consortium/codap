@@ -14,34 +14,31 @@ export const PointColorSetting = observer(function PointColorSetting({ onColorCh
   propertyLabel, swatchBackgroundColor }: ColorPickerIProps) {
   const popoverContainerRef = useRef<HTMLDivElement>(null)
   const [openPopover, setOpenPopover] = useState<string | null>(null)
-  const [nonStandardColorSelected, setNonStandardColorSelected] = useState(false)
-  const [showColorPicker, setShowColorPicker] = useState(false)
   const [inputValue, setInputValue] = useState(swatchBackgroundColor)
   const initialColorRef = useRef(swatchBackgroundColor)
   const pointColorSettingButtonRef = useRef<HTMLButtonElement>(null)
 
   useOutsidePointerDown({ ref: popoverContainerRef, handler: () => setOpenPopover?.(null) })
 
+  const onClose = useCallback(() => {
+    setOpenPopover(null)
+  }, [])
+
   const updateValue = useCallback((value: string) => {
     setInputValue(value)
-    setNonStandardColorSelected(true)
     onColorChange(value)
   }, [onColorChange])
 
   const rejectValue = useCallback(() => {
-    setShowColorPicker(false)
-    setOpenPopover(null)
-    setNonStandardColorSelected(false)
     onColorChange(initialColorRef.current)
-  }, [onColorChange, setOpenPopover])
+    onClose()
+  }, [onClose, onColorChange])
 
   const acceptValue = useCallback(() => {
-    setShowColorPicker(false)
-    setNonStandardColorSelected(true)
     updateValue(inputValue)
     initialColorRef.current = inputValue
-  }, [inputValue, updateValue])
-
+    onClose()
+  }, [inputValue, onClose, updateValue])
 
   const handleSwatchClick = (cat: string) => {
     setOpenPopover(openPopover === cat ? null : cat)
@@ -49,7 +46,7 @@ export const PointColorSetting = observer(function PointColorSetting({ onColorCh
   }
 
   return (
-    <Popover isLazy={true} isOpen={openPopover === propertyLabel} closeOnBlur={false}>
+    <Popover isLazy={true} isOpen={openPopover === propertyLabel} closeOnBlur={false} onClose={onClose}>
       <PopoverTrigger>
         <button className="color-picker-thumb" onClick={() => handleSwatchClick(propertyLabel)}
           ref={pointColorSettingButtonRef}>

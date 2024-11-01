@@ -21,12 +21,11 @@ interface IProps {
 }
 
 export const ColorPickerPalette = ({ swatchBackgroundColor, initialColor, inputValue, buttonRef, showArrow,
-                  onColorChange, onAccept, onReject, onUpdateValue }: IProps) => {
+                onColorChange, onAccept, onReject, onUpdateValue }: IProps) => {
   const paletteColors = ["#000000", "#a9a9a9", "#d3d3d3", "#FFFFFF", "#ad2323", "#ff9632", "#ffee33", "#1d6914",
     "#2a4bd7", "#814a19", "#8126c0", "#29d0d0", "#e9debb", "#ffcdf3", "#9dafff", "#81c57a"]
-  const [nonStandardColorSelected, setNonStandardColorSelected] = useState(false)
   const [showColorPicker, setShowColorPicker] = useState(false)
-  // const [inputValue, setInputValue] = useState(swatchBackgroundColor)
+  const nonStandardColorSelected = paletteColors.includes(inputValue)
   const popoverRef = useRef<HTMLDivElement>(null)
   const popoverContainerRef = useRef<HTMLDivElement>(null)
   const kGapSize = 10
@@ -44,7 +43,7 @@ export const ColorPickerPalette = ({ swatchBackgroundColor, initialColor, inputV
         let left = 0
 
         if (rect.right > viewportWidth) {
-          left = viewportWidth - rect.right - kGapSize
+          left = viewportWidth - rect.right + (rect.width/2) - kGapSize
         }
         if (rect.bottom > viewportHeight) {
           top = viewportHeight - rect.bottom - kGapSize
@@ -71,6 +70,16 @@ export const ColorPickerPalette = ({ swatchBackgroundColor, initialColor, inputV
       window.removeEventListener('resize', adjustPosition)
     }
   }, [showColorPicker, buttonRef])
+
+  const handleAccept = () => {
+    onAccept()
+    setShowColorPicker(false)
+  }
+
+  const handleReject = () => {
+    onReject()
+    setShowColorPicker(false)
+  }
 
   const handleShowColorPicker = (evt: React.MouseEvent) => {
     evt.preventDefault()
@@ -120,10 +129,10 @@ export const ColorPickerPalette = ({ swatchBackgroundColor, initialColor, inputV
             </div>
             <Flex className="color-picker-footer">
               <ButtonGroup>
-                <Button className="cancel-button" size="xs" fontWeight="normal" onClick={onReject}>
+                <Button className="cancel-button" size="xs" fontWeight="normal" onClick={handleReject}>
                   {t("V3.CaseTable.colorPalette.cancel")}
                 </Button>
-                <Button className="set-color-button" size="xs" fontWeight="normal" onClick={onAccept}>
+                <Button className="set-color-button" size="xs" fontWeight="normal" onClick={handleAccept}>
                   {t("V3.CaseTable.colorPalette.setColor")}
                 </Button>
               </ButtonGroup>

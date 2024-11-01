@@ -24,8 +24,8 @@
 
     &.without-arrow {
       position: absolute;
-      top: -8px;
-      left: -52px;
+      top: shared.$color-picker-popover-top-px;
+      left: shared.$color-picker-popover-left-px;
     }
 
     .color-swatch-palette {
