@@ -538,7 +538,7 @@ context("Test changing legend colors", () => {
   describe("Test changing legend colors for categorical legend", () => {
     const initLandBackgroundColor = "rgb(255, 104"
     const standardLandBackgroundColor = "rgb(255, 238"
-    const saturationLandBackgroundColor = "rgb(128, 122"
+    const saturationLandBackgroundColor = "rgb(129, 124"
     const hueLandBackgroundColor = "rgb(64, 128"
 
     beforeEach(function () {
