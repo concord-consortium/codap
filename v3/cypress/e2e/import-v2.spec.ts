@@ -11,11 +11,9 @@ context("import codap v2 documents", () => {
     cy.wait(1000)
     webView.getIFrame().find(".welcome").should("contain.text",
       "Save Madeline the dog by winning at Rock Paper Scissors.")
-    // In this case the document is not dirty for some reason
     cfm.openExampleDocument("Parachute Model")
     webView.getTitle().should("contain.text", "Terminal Velocity")
-    // In this case the document is dirty for some reason
-    cfm.openExampleDocument("Getting started with CODAP", {discardChanges: true})
+    cfm.openExampleDocument("Getting started with CODAP")
     cy.wait(1000)
     webView.getIFrame().find(".App-list").should("contain.text",
       "Drag this data file into CODAP")
