@@ -2,7 +2,7 @@ import {
   Active, DataRef, DragEndEvent, Modifier, useDndMonitor,
   useDraggable, UseDraggableArguments, useDroppable, UseDroppableArguments
 } from "@dnd-kit/core"
-import { kTitleBarHeight } from "../components/constants"
+import { kTitleBarHeight, kToolshelfHeight } from "../components/constants"
 import { IDataSet } from "../models/data/data-set"
 import { useInstanceIdContext } from "./use-instance-id-context"
 import { useTileModelContext } from "./use-tile-model-context"
@@ -147,7 +147,7 @@ export const containerSnapToGridModifier: Modifier = ({transform, active}) => {
 
 export const restrictDragToArea: Modifier = ({transform, activeNodeRect, containerNodeRect}) =>{
   // Prevent dragging upwards beyond the main container but allow dragging freely in other directions
-  const codapContainerTop = kTitleBarHeight
+  const codapContainerTop = kTitleBarHeight + kToolshelfHeight
   if (activeNodeRect && containerNodeRect) {
     if (activeNodeRect.top + transform.y < codapContainerTop) {
       transform.y = containerNodeRect.top - activeNodeRect.top
