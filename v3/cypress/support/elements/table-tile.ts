@@ -232,8 +232,7 @@ export const TableTileElements = {
   },
   createNewTableFromToolShelf() {
     c.getIconFromToolShelf("table").click()
-    cy.wait(1000)
-    cy.get("[data-testid=tool-shelf-table-new]").click({force:true})
+    cy.clickWhenClickable("[data-testid=tool-shelf-table-new]")
   },
   createNewClipboardTableFromToolShelf() {
     c.getIconFromToolShelf("table").click()

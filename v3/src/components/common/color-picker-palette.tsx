@@ -5,8 +5,7 @@ import React, { useEffect, useRef, useState } from "react"
 import { ColorPicker } from "./color-picker"
 import { t } from "../../utilities/translation/translate"
 
-import styles from "./point-color-setting-shared.scss"
-import "./color-picker-palette.scss"
+import styles from "./color-picker-palette.scss"
 
 interface IProps {
   initialColor: string
@@ -118,7 +117,7 @@ export const ColorPickerPalette = ({ swatchBackgroundColor, inputValue, buttonRe
           </div>
           <div className="color-swatch-footer">
             <Button size="xs" onClick={handleShowColorPicker} data-testid="toggle-show-color-picker-button">
-              {showColorPicker ? "Less" : "More"}
+              {t(showColorPicker ? "DG.Inspector.colorPicker.less" : "DG.Inspector.colorPicker.more")}
             </Button>
           </div>
         </div>

@@ -1,4 +1,13 @@
-@use "./point-color-setting-shared.scss" as shared;
+$color-picker-popover-top: -8;
+$color-picker-popover-top-px: #{$color-picker-popover-top}px;
+$color-picker-popover-left: 112;
+$color-picker-popover-left-px: #{$color-picker-popover-left}px;
+
+// https://mattferderer.com/use-sass-variables-in-typescript-and-javascript
+:export {
+  colorPickerPopoverTop: $color-picker-popover-top;
+  colorPickerPopoverLeft: $color-picker-popover-left;
+}
 
 // Palette Color Picker
 .color-picker-palette-container {
@@ -24,8 +33,8 @@
 
     &.without-arrow {
       position: absolute;
-      top: shared.$color-picker-popover-top-px;
-      left: shared.$color-picker-popover-left-px;
+      top: $color-picker-popover-top-px;
+      left: $color-picker-popover-left-px;
     }
 
     .color-swatch-palette {
@@ -49,7 +58,8 @@
           padding: 0;
           border: solid 1px #d0d0d0;
           &.selected {
-            border: 2px solid #000;
+            border: 1px solid #000;
+            background-position: 50% 50%;
             background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAYAAABWzo5XAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAadEVYdFNvZnR3YXJlAFBhaW50Lk5FVCB2My41LjEwMPRyoQAAAMdJREFUOE+tkgsNwzAMRMugEAahEAahEAZhEAqlEAZhEAohEAYh81X2dIm8fKpEspLGvudPOsUYpxE2BIJCroJmEW9qJ+MKaBFhEMNabSy9oIcIPwrB+afvAUFoK4H0tMaQ3XtlrggDhOVVMuT4E5MMG0FBbCEYzjYT7OxLEvIHQLY2zWwQ3D+9luyOQTfKDiFD3iUIfPk8VqrKjgAiSfGFPecrg6HN6m/iBcwiDAo7WiBeawa+Kwh7tZoSCGLMqwlSAzVDhoK+6vH4G0P5wdkAAAAASUVORK5CYII=);
             &.light {
               background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAYAAABWzo5XAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAIVJREFUeNpiYBhsgJFMffxAXABlN5JruT4Q3wfi/0DsT64h8UD8HmpIPCWG/KemIfOJCUB+Aoacx6EGBZyHBqI+WsDCwuQ9mhxeg2A210Ntfo8klk9sOMijaURm7yc1UP2RNCMbKE9ODK1HM6iegYLkfx8pligC9lCD7KmRof0ZhjQACDAAceovrtpVBRkAAAAASUVORK5CYII=);

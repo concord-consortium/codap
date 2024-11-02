@@ -20,7 +20,7 @@ export const PointColorSetting = observer(function PointColorSetting({ onColorCh
 
   useOutsidePointerDown({ ref: popoverContainerRef, handler: () => setOpenPopover?.(null) })
 
-  const onClose = useCallback(() => {
+  const closePopover = useCallback(() => {
     setOpenPopover(null)
   }, [])
 
@@ -31,14 +31,14 @@ export const PointColorSetting = observer(function PointColorSetting({ onColorCh
 
   const rejectValue = useCallback(() => {
     onColorChange(initialColorRef.current)
-    onClose()
-  }, [onClose, onColorChange])
+    closePopover()
+  }, [closePopover, onColorChange])
 
   const acceptValue = useCallback(() => {
     updateValue(inputValue)
     initialColorRef.current = inputValue
-    onClose()
-  }, [inputValue, onClose, updateValue])
+    closePopover()
+  }, [inputValue, closePopover, updateValue])
 
   const handleSwatchClick = (cat: string) => {
     setOpenPopover(openPopover === cat ? null : cat)
@@ -46,7 +46,7 @@ export const PointColorSetting = observer(function PointColorSetting({ onColorCh
   }
 
   return (
-    <Popover isLazy={true} isOpen={openPopover === propertyLabel} closeOnBlur={false} onClose={onClose}>
+    <Popover isLazy={true} isOpen={openPopover === propertyLabel} closeOnBlur={false} onClose={closePopover}>
       <PopoverTrigger>
         <button className="color-picker-thumb" onClick={() => handleSwatchClick(propertyLabel)}
           ref={pointColorSettingButtonRef}>

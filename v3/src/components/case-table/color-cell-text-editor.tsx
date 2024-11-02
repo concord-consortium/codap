@@ -10,8 +10,8 @@ import { selectAllCases } from "../../models/data/data-set-utils"
 import { uiState } from "../../models/ui-state"
 import { parseColor, parseColorToHex } from "../../utilities/color-utils"
 import { blockAPIRequestsWhileEditing } from "../../utilities/plugin-utils"
-import { TRenderEditCellProps } from "./case-table-types"
 import { ColorPickerPalette } from "../common/color-picker-palette"
+import { TRenderEditCellProps } from "./case-table-types"
 
 /*
   ReactDataGrid uses Linaria CSS-in-JS for its internal styling. As with CSS Modules and other
@@ -109,7 +109,7 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
 
   return swatchStyle
     ? (
-        <div className={"color-cell-text-editor"} style={{ position: 'relative' }}>
+        <div className={"color-cell-text-editor"}>
           <Popover
             isLazy={true}
             isOpen={isPaletteOpen}
