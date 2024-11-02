@@ -189,7 +189,7 @@ describe("DataConfigurationModel", () => {
     // triggers observers when values change
     const trigger = jest.fn()
     reaction(
-      () => config.getCaseDataArray(0),
+      () => config.casesChangeCount,
       () => trigger(),
       { name: "GraphDataConfigurationTest.getCaseDataArray(0) reaction" })
     expect(trigger).not.toHaveBeenCalled()

@@ -1,5 +1,5 @@
 import {useEffect} from "react"
-import { comparer,reaction } from "mobx"
+import { comparer, reaction } from "mobx"
 import {isAlive} from "mobx-state-tree"
 import {onAnyAction} from "../../../utilities/mst-utils"
 import {mstAutorun} from "../../../utilities/mst-autorun"
