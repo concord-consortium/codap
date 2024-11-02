@@ -34,15 +34,17 @@ export class FormulaEditorApi {
     this.insertString(fnStr)
 
     // select the first argument (if any)
-    const execResult = /.+\(([^,)]+)[,)]/.exec(fnStr)
-    const fullMatch = execResult?.[0]
-    const firstArg = execResult?.[1]
-    if (fullMatch && firstArg) {
-      const from = initialSelectionFrom + fullMatch.indexOf(firstArg)
-      const to = from + firstArg.length
+    const execResult = /.+(\([^,)]+)[,)]/.exec(fnStr)
+    const parenAndFirstArg = execResult?.[1]
+    if (fnStr && parenAndFirstArg) {
+      const from = initialSelectionFrom + fnStr.indexOf(parenAndFirstArg) + 1
+      const to = from + parenAndFirstArg.length - 1
       if (from >= 0 && to >= 0 && from < to) {
-        this.editorView.dispatch({
-          selection: EditorSelection.single(from, to)
+        // setTimeout seems to be required on Safari
+        setTimeout(() => {
+          this.editorView.dispatch({
+            selection: EditorSelection.single(from, to)
+          })
         })
       }
     }
