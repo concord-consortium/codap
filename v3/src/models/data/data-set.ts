@@ -161,6 +161,7 @@ export const DataSet = V2Model.named("DataSet").props({
   // map from case ID to the CaseInfo it represents
   caseInfoMap: new Map<string, CaseInfo>(),
   // map from item ID to the child case containing it
+  // contains all items and child cases, including hidden ones
   itemIdChildCaseMap: new Map<string, CaseInfo>(),
   // incremented when collection parent/child links are updated
   syncCollectionLinksCount: 0,
@@ -292,12 +293,11 @@ export const DataSet = V2Model.named("DataSet").props({
 }))
 .views(self => ({
   isCaseOrItemHidden(caseOrItemId: string) {
-    // Hidden cases are not included in caseInfoMap. So if validateCases() has been called since the case
-    // was hidden, we won't be able to find the case or its contained items. We assume that the caseOrItemId
-    // provided is actually in this dataset, and return true if we can't find the corresponding case or item.
+    // A case is hidden if all of its child items are hidden
     const caseInfo = self.caseInfoMap.get(caseOrItemId)
-    return caseInfo?.childItemIds.every(itemId => self.isItemHidden(itemId)) ??
-      (self._itemIds.includes(caseOrItemId) ? self.isItemHidden(caseOrItemId) : true)
+    if (caseInfo) return caseInfo.childItemIds.length === 0 && caseInfo.hiddenChildItemIds.length > 0
+
+    return self.isItemHidden(caseOrItemId)
   }
 }))
 .views(self => ({
@@ -553,8 +553,8 @@ export const DataSet = V2Model.named("DataSet").props({
         collection.caseGroupMap.forEach(group => self.caseInfoMap.set(group.groupedCase.__id__, group))
       })
       self.itemIdChildCaseMap.clear()
-      self.childCollection.caseGroups.forEach(caseGroup => {
-        self.itemIdChildCaseMap.set(caseGroup.childItemIds[0], caseGroup)
+      Array.from(self.childCollection.caseGroupMap.values()).forEach(caseGroup => {
+        self.itemIdChildCaseMap.set(caseGroup.childItemIds[0] ?? caseGroup.hiddenChildItemIds[0], caseGroup)
       })
       // delete removed items from selection
       itemsToValidate.forEach(itemId => {

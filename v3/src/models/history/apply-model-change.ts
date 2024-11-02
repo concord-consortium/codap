@@ -10,10 +10,11 @@ export interface INotification {
   message: DIMessage
   callback?: iframePhone.ListenerCallback
 }
+export type INotify =
+  INotification | (INotification | (() => Maybe<INotification>))[] | (() => Maybe<INotification | INotification[]>)
 export interface IApplyModelChangeOptions {
   log?: string | ILogMessage | (() => Maybe<string | ILogMessage>)
-  notify?:
-    INotification | (INotification | (() => Maybe<INotification>))[] | (() => Maybe<INotification | INotification[]>)
+  notify?: INotify
   notifyTileId?: string
   undoStringKey?: string
   redoStringKey?: string

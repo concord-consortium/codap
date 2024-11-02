@@ -107,10 +107,9 @@ describe("DataInteractive DataContextHandler", () => {
     neitherIsSetAside()
     expect(setAside([case1V2Id, case2V2Id]).success).toBe(true)
     bothAreSetAside()
-    // Restore with specified cases currently doesn't work, because hidden cases do not show up in dataset.caseInfoMap
-    // expect(setAside([case2V2Id], "restore").success).toBe(true)
-    // expect(dataContext.isCaseOrItemHidden(case1Id)).toBe(true)
-    // expect(dataContext.isCaseOrItemHidden(case2Id)).toBe(false)
+    expect(setAside([case2V2Id], "restore").success).toBe(true)
+    expect(dataContext.isCaseOrItemHidden(case1Id)).toBe(true)
+    expect(dataContext.isCaseOrItemHidden(case2Id)).toBe(false)
     expect(setAside([case2V2Id], "replace").success).toBe(true)
     expect(dataContext.isCaseOrItemHidden(case1Id)).toBe(false)
     expect(dataContext.isCaseOrItemHidden(case2Id)).toBe(true)

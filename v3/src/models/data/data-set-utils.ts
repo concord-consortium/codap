@@ -3,6 +3,7 @@ import { kIndexColumnKey } from "../../components/case-tile-common/case-tile-typ
 import { logMessageWithReplacement } from "../../lib/log-message"
 import { AttributeFormulaAdapter } from "../formula/attribute-formula-adapter"
 import { FilterFormulaAdapter } from "../formula/filter-formula-adapter"
+import { INotify } from "../history/apply-model-change"
 import { getSharedCaseMetadataFromDataset } from "../shared/shared-data-utils"
 import { IAttribute } from "./attribute"
 import { ICollectionModel } from "./collection"
@@ -146,46 +147,48 @@ export function selectAndDeselectCases(addCaseIds: string[], removeCaseIds: stri
 
 // Set aside helper functions
 
-export function addSetAsideCases(data: IDataSet, caseIds: string[], undoable = true) {
-  if (caseIds.length) {
+// For case ids, returns the grouped case. For item ids, returns the childmost grouped case containing that item.
+function getGroupedCases(data: IDataSet, caseOrItemIds: string[]) {
+  return caseOrItemIds.map(caseId => data.caseInfoMap.get(caseId) ?? data.itemIdChildCaseMap.get(caseId))
+    .filter(caseInfo => !!caseInfo).map(caseInfo => caseInfo.groupedCase)
+}
+
+export function addSetAsideCases(data: IDataSet, caseOrItemIds: string[], undoable = true) {
+  if (caseOrItemIds.length) {
     data.validateCases()
-    const cases = caseIds.map(caseId => data.caseInfoMap.get(caseId) ?? data.itemIdChildCaseMap.get(caseId))
-      .filter(caseInfo => !!caseInfo).map(caseInfo => caseInfo.groupedCase)
     data.applyModelChange(() => {
-      data.hideCasesOrItems(caseIds)
-      data.selectCases(caseIds, false)
+      data.hideCasesOrItems(caseOrItemIds)
+      data.selectCases(caseOrItemIds, true)
     }, {
-      notify: [selectCasesNotification(data, false, cases), deleteCasesNotification(data, cases)],
+      notify:
+        [selectCasesNotification(data, true), deleteCasesNotification(data, getGroupedCases(data, caseOrItemIds))],
       undoStringKey: undoable ? "V3.Undo.hideShowMenu.setAsideCases" : undefined,
       redoStringKey: undoable ? "V3.Redo.hideShowMenu.setAsideCases" : undefined
     })
   }
 }
 
-// createCasesNotifications must be created after the setAsides have been restored
-// becaues the child cases are invisible until then
-function _createCasesNotification(data: IDataSet, restoredItemIds: string[]) {
-  return () => {
-    data.validateCases()
-    const restoredCaseIds = restoredItemIds
-      .filter(itemId => data.getItem(itemId) ? data.itemIdChildCaseMap.get(itemId) : itemId)
-      .filter(caseId => !!caseId)
-    return createCasesNotification(restoredCaseIds, data)
-  }
+function createGuaranteedCasesNotification(data: IDataSet, caseOrItemIds: string[]) {
+  const caseIds = caseOrItemIds
+    .map(id => data.caseInfoMap.get(id) ? id : data.itemIdChildCaseMap.get(id)?.groupedCase.__id__)
+    .filter(caseId => caseId != null)
+  if (caseIds.length) return createCasesNotification(caseIds, data)
 }
 
-export function restoreSetAsideCases(data?: IDataSet, caseIds?: string[], undoable = true) {
+export function restoreSetAsideCases(data?: IDataSet, caseOrItemIds?: string[], undoable = true) {
   if (!data) return
 
   data.validateCases()
-  const setAsideItemIds =
-    caseIds ? caseIds.filter(caseId => data.isCaseOrItemHidden(caseId)) : [...data.setAsideItemIds]
-  if (setAsideItemIds.length) {
+  const setAsideCaseOrItemIds =
+    caseOrItemIds ? caseOrItemIds.filter(caseId => data.isCaseOrItemHidden(caseId)) : [...data.setAsideItemIds]
+  const createNotification = createGuaranteedCasesNotification(data, setAsideCaseOrItemIds)
+  const notifications: INotify = createNotification ? [createNotification] : []
+  if (setAsideCaseOrItemIds.length) {
     data.applyModelChange(() => {
-      data.showHiddenCasesAndItems(setAsideItemIds)
-      data.setSelectedCases(setAsideItemIds)
+      data.showHiddenCasesAndItems(setAsideCaseOrItemIds)
+      data.setSelectedCases(setAsideCaseOrItemIds)
     }, {
-      notify: [_createCasesNotification(data, setAsideItemIds), selectCasesNotification(data)],
+      notify: notifications.concat(selectCasesNotification(data)),
       undoStringKey: undoable ? "V3.Undo.hideShowMenu.restoreSetAsideCases" : undefined,
       redoStringKey: undoable ? "V3.Redo.hideShowMenu.restoreSetAsideCases" : undefined,
       log: "Restore set aside cases"
@@ -193,34 +196,35 @@ export function restoreSetAsideCases(data?: IDataSet, caseIds?: string[], undoab
   }
 }
 
-export function replaceSetAsideCases(data: IDataSet, caseIds: string[]) {
-  if (caseIds.length) {
+export function replaceSetAsideCases(data: IDataSet, caseOrItemIds: string[]) {
+  if (caseOrItemIds.length) {
     data.validateCases()
     const itemIds: string[] = []
-    caseIds.forEach(caseId => {
-      if (data.getItem(caseId)) {
-        itemIds.push(caseId)
+    caseOrItemIds.forEach(caseOrItemId => {
+      const aCase = data.caseInfoMap.get(caseOrItemId)
+      if (aCase) {
+        aCase.childItemIds.forEach(itemId => itemIds.push(itemId))
+        aCase.hiddenChildItemIds.forEach(itemId => itemIds.push(itemId))
       } else {
-        data.caseInfoMap.get(caseId)?.childItemIds.forEach(itemId => itemIds.push(itemId))
+        itemIds.push(caseOrItemId)
       }
     })
     const itemIdSet = new Set(itemIds)
     const restoredItemIds = data.setAsideItemIds.filter(itemId => !itemIdSet.has(itemId))
-    const setAsideCaseIds = caseIds.filter(caseId => !data.isCaseOrItemHidden(caseId))
-    const setAsideCases = setAsideCaseIds
-      .map(caseId => data.caseInfoMap.get(caseId) ?? data.itemIdChildCaseMap.get(caseId))
-      .filter(caseInfo => !!caseInfo).map(caseInfo => caseInfo.groupedCase)
+    const setAsideCaseOrItemIds = caseOrItemIds.filter(caseId => !data.isCaseOrItemHidden(caseId))
+    const setAsideCases = getGroupedCases(data, setAsideCaseOrItemIds)
+
+    const createNotification = createGuaranteedCasesNotification(data, restoredItemIds)
+    let notifications: INotify = createNotification ? [createNotification] : []
+    if (setAsideCases.length) notifications = notifications.concat(deleteCasesNotification(data, setAsideCases))
+
     data.applyModelChange(() => {
       data.showHiddenCasesAndItems()
       data.validateCases()
-      data.hideCasesOrItems(caseIds)
+      data.hideCasesOrItems(caseOrItemIds)
       data.setSelectedCases(restoredItemIds)
     }, {
-      notify: [
-        _createCasesNotification(data, restoredItemIds),
-        deleteCasesNotification(data, setAsideCases),
-        selectCasesNotification(data, false, setAsideCases)
-      ]
+      notify: notifications.concat(selectCasesNotification(data, true))
     })
   }
 }
