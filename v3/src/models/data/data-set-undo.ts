@@ -1,4 +1,4 @@
-import { getSnapshot, IAnyStateTreeNode, resolveIdentifier } from "mobx-state-tree"
+import { IAnyStateTreeNode, resolveIdentifier } from "mobx-state-tree"
 import { logMessageWithReplacement, logStringifiedObjectMessage } from "../../lib/log-message"
 import { kItemIdPrefix, v3Id } from "../../utilities/codap-utils"
 import { ICustomUndoRedoPatcher } from "../history/custom-undo-redo-registry"
@@ -278,7 +278,7 @@ interface ISortItemsCustomPatch extends ICustomPatch {
     attrId: string
     direction: "ascending" | "descending"
     beforeItemIds: string[]
-    after: Array<{ itemId: string, origIndex: number }>
+    itemIdToIndexMap: Record<string, { beforeIndex: number, afterIndex: number }>
   }
 }
 function isSortItemsCustomPatch(patch: ICustomPatch): patch is ISortItemsCustomPatch {
@@ -288,18 +288,19 @@ function isSortItemsCustomPatch(patch: ICustomPatch): patch is ISortItemsCustomP
 const sortItemsCustomUndoRedo: ICustomUndoRedoPatcher = {
   undo: (node: IAnyStateTreeNode, patch: ICustomPatch, entry: HistoryEntryType) => {
     if (isSortItemsCustomPatch(patch)) {
-      const data = resolveIdentifier<typeof DataSet>(DataSet, node, patch.data.dataId)
-      const itemIdsWithIndices = patch.data.after.map((item, afterIndex) => ({ ...item, afterIndex }))
-      itemIdsWithIndices.sort((a, b) => a.origIndex - b.origIndex)
-      const afterIndices = itemIdsWithIndices.map(({ afterIndex }) => afterIndex)
+      const { dataId, beforeItemIds, itemIdToIndexMap } = patch.data
+      const data = resolveIdentifier<typeof DataSet>(DataSet, node, dataId)
+
+      const afterIndices = beforeItemIds.map(itemId => itemIdToIndexMap[itemId].afterIndex)
       data?.attributes.forEach(attr => attr.orderValues(afterIndices))
-      data?._itemIds.replace(patch.data.beforeItemIds)
+      data?._itemIds.replace(beforeItemIds)
     }
   },
   redo: (node: IAnyStateTreeNode, patch: ICustomPatch, entry: HistoryEntryType) => {
     if (isSortItemsCustomPatch(patch)) {
-      const data = resolveIdentifier<typeof DataSet>(DataSet, node, patch.data.dataId)
-      data?.sortItems(patch.data.attrId, patch.data.direction)
+      const { dataId, attrId, direction } = patch.data
+      const data = resolveIdentifier<typeof DataSet>(DataSet, node, dataId)
+      data?.sortByAttribute(attrId, direction)
     }
   }
 }
@@ -313,8 +314,8 @@ export function sortItemsWithCustomUndoRedo(data: IDataSet, attrId: string, dire
       dataId: data.id,
       attrId,
       direction,
-      beforeItemIds: getSnapshot(data._itemIds),
-      after: [] // filled in later
+      beforeItemIds: Array.from(data._itemIds),
+      itemIdToIndexMap: {}  // filled in later
     }
   }
 
@@ -322,9 +323,7 @@ export function sortItemsWithCustomUndoRedo(data: IDataSet, attrId: string, dire
   data?.applyModelChange(() => {
     withCustomUndoRedo(undoRedoPatch, sortItemsCustomUndoRedo)
 
-    const itemIdsWithIndices = data?.sortItems(attrId, direction)
-
-    undoRedoPatch.data.after = itemIdsWithIndices ?? []
+    undoRedoPatch.data.itemIdToIndexMap = data?.sortByAttribute(attrId, direction) ?? {}
   }, {
     log: logStringifiedObjectMessage("Sort cases by attribute: %@",
             { attributeId: attrId, attribute: data?.getAttribute(attrId)?.name }),

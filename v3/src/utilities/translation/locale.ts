@@ -41,17 +41,17 @@ export class Locale {
 
   @action
   setCurrent(_current: string) {
-    this.collator = new Intl.Collator(this.current, { sensitivity: "base" })
+    this.collator = new Intl.Collator(_current, { sensitivity: "base" })
     this.dateTimeFormats.clear()
     this.numberFormats.clear()
     this.current = _current
   }
 
-  compareStrings(str1: string, str2: string) {
-    return this.collator?.compare(str1, str2)
+  compareStrings = (str1: string, str2: string) => {
+    return this.collator?.compare(str1, str2) ?? 0
   }
 
-  formatDate(date?: Date | number, options: Intl.DateTimeFormatOptions = {}) {
+  formatDate = (date?: Date | number, options: Intl.DateTimeFormatOptions = {}) => {
     const optionsStr = JSON.stringify(options)
     let formatter = this.dateTimeFormats.get(optionsStr)
     if (!formatter) {
@@ -61,7 +61,7 @@ export class Locale {
     return formatter?.format(date)
   }
 
-  formatNumber(value: number, options: Intl.NumberFormatOptions = {}) {
+  formatNumber = (value: number, options: Intl.NumberFormatOptions = {}) => {
     const optionsStr = JSON.stringify(options)
     let formatter = this.numberFormats.get(optionsStr)
     if (!formatter) {
