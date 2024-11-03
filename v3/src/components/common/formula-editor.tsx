@@ -33,8 +33,6 @@ const kAllOptions: ICompletionOptions = {
 interface IProps {
   // options default to true if not specified
   options?: Partial<ICompletionOptions>
-  onClose?: () => void;
-  onApply?: (formula: string) => void;
 }
 
 /*
@@ -217,7 +215,7 @@ const codapHighlightingViewPlugin = ViewPlugin.fromClass(
 /*
  * editor configuration
  */
-function cmExtensionsSetup(onClose: () => void, onApply: (formula: string) => void) {
+function cmExtensionsSetup() {
   let keymaps: KeyBinding[] = []
   keymaps = keymaps.concat(closeBracketsKeymap)
   keymaps = keymaps.concat(defaultKeymap)
@@ -234,39 +232,20 @@ function cmExtensionsSetup(onClose: () => void, onApply: (formula: string) => vo
     }),
     codapHighlightingViewPlugin,
     keymap.of(keymaps.flat()),
-    Prec.highest( //Overrides CodeMirror's default keymap for Cmd-Enter key
-      keymap.of([
-        { key: "Mod-Enter",
-          run:  (view) => {
-            onApply(view.state.doc.toString())
-            view.dom.closest('.codap-modal')?.classList.add('hidden')
-            onClose()
-            return true
-          }
-        }
-      ])
-    ),
-    keymap.of([
-      { key: "Escape",
-        run: (view) => {
-          console.log("Escape key pressed. Formula not saved.")
-          view.dom.closest('.codap-modal')?.classList.add('hidden')
-          onClose()
-          return false
-        }
-      }
-    ])
+    Prec.highest( // Overrides CodeMirror's default keymap for Cmd-Enter key
+      keymap.of([{ key: "Mod-Enter", run: () => true }])
+    )
   ]
   return extensions.filter(Boolean)
 }
 
-export function FormulaEditor({ options: _options, onClose, onApply }: IProps) {
+export function FormulaEditor({ options: _options }: IProps) {
   const dataSet = useDataSetContext()
   const jsonOptions = JSON.stringify(_options ?? {})
   const options = useMemo(() => JSON.parse(jsonOptions), [jsonOptions])
   const cmRef = useRef<ReactCodeMirrorRef>(null)
+  const extensions = useMemo(() => cmExtensionsSetup(), [])
   const { formula, setFormula, setEditorApi } = useFormulaEditorContext()
-  const extensions = useMemo(() => cmExtensionsSetup(onClose!, onApply!), [onClose, onApply])
 
   // update the editor state field with the appropriate data set
   const handleCreateEditor = useCallback((view: EditorView, state: EditorState) => {
