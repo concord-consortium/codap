@@ -113,6 +113,7 @@ export const EditFormulaModal = observer(function EditFormulaModal({
                 data-testid="attr-name-input"
                 disabled
               />
+              <span>=</span>
             </FormLabel>
             <FormLabel>
               {formulaPrompt ?? t("DG.AttrFormView.formulaPrompt")}
