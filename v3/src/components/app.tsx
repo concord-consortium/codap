@@ -116,7 +116,7 @@ export const App = observer(function App() {
         })
       }
 
-      appState.enableUndoRedoMonitoring()
+      appState.enableDocumentMonitoring()
       Logger.initializeLogger(appState.document)
     }
 
