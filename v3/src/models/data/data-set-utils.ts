@@ -158,7 +158,7 @@ export function addSetAsideCases(data: IDataSet, caseOrItemIds: string[], undoab
     data.validateCases()
     data.applyModelChange(() => {
       data.hideCasesOrItems(caseOrItemIds)
-      data.selectCases(caseOrItemIds, true)
+      data.selectCases(caseOrItemIds, false)
     }, {
       notify:
         [selectCasesNotification(data, true), deleteCasesNotification(data, getGroupedCases(data, caseOrItemIds))],
