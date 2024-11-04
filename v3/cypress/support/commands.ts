@@ -2,6 +2,29 @@ Cypress.Commands.add("clickMenuItem", text => {
   cy.get("button[role=menuitem]").contains(text).click()
 })
 
+Cypress.Commands.add("clickWhenClickable", (selector: string, shouldCondition = "be.visible") => {
+  /* According to ChatGPT:
+
+    Using `.should('be.visible').then(...)` is generally more reliable than chaining actions like
+    `.should('be.visible').click()` directly after an assertion.
+
+    Here's why:
+
+    1. Retry Mechanism
+        Cypress will retry the `.should` assertion until it passes (up to the default timeout).
+        However, when you chain an action like `.click()` directly after `.should('be.visible')`,
+        the `.click()` may not retry if the element’s state changes quickly.
+        This can result in flaky tests if the visibility of the element isn't stable.
+    2. Clear Separation
+        By using `.then(...)` after the `.should`, you separate the assertion
+        (which benefits from Cypress’s retry behavior) from the action,
+        ensuring the action only happens once the assertion is fully satisfied.
+  */
+  cy.get(selector).should(shouldCondition).then($el => {
+    cy.wrap($el).click()
+  })
+})
+
 Cypress.Commands.add("dragAttributeToTarget", (source, attribute, target, targetNumber) => {
   const el = {
     tableColumnHeader:

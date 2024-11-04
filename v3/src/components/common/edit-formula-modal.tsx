@@ -4,6 +4,7 @@ import {
 import React, { useEffect, useState } from "react"
 import { observer } from "mobx-react-lite"
 import { clsx } from "clsx"
+import { isCommandKeyDown } from "../../utilities/platform-utils"
 import { t } from "../../utilities/translation/translate"
 import { FormulaEditor } from "./formula-editor"
 import { FormulaEditorContext, useFormulaEditorState } from "./formula-editor-context"
@@ -37,7 +38,7 @@ export const EditFormulaModal = observer(function EditFormulaModal({
     setFormula(value || "")
   }, [value, setFormula])
 
-  const handleApplyClick = () => {
+  const applyAndClose = () => {
     applyFormula(formula)
     closeModal()
   }
@@ -72,9 +73,19 @@ export const EditFormulaModal = observer(function EditFormulaModal({
     onClick: closeModal
   }, {
     label: t("DG.AttrFormView.applyBtnTitle"),
-    onClick: handleApplyClick,
+    onClick: applyAndClose,
     default: true
   }]
+
+  function handleKeyDown(event: React.KeyboardEvent) {
+    if (event.key === "Enter" && isCommandKeyDown(event)) {
+      applyAndClose()
+    }
+    if (event.key === "Escape") {
+      closeModal()
+    }
+    event.stopPropagation()
+  }
 
   return (
     <FormulaEditorContext.Provider value={formulaEditorState}>
@@ -90,7 +101,7 @@ export const EditFormulaModal = observer(function EditFormulaModal({
           <div className="codap-header-title" />
           <ModalCloseButton onClick={closeModal} data-testid="modal-close-button" />
         </ModalHeader>
-        <ModalBody className="formula-modal-body" onKeyDown={e => e.stopPropagation()}>
+        <ModalBody className="formula-modal-body" onKeyDown={handleKeyDown}>
           <FormControl display="flex" flexDirection="column" className="formula-form-control">
             <FormLabel display="flex" flexDirection="row">
               <span className="title-label">{titleLabel}</span>
@@ -119,7 +130,7 @@ export const EditFormulaModal = observer(function EditFormulaModal({
               }
             </Box>
             <Box position="relative">
-              <Button 
+              <Button
                 className={clsx("formula-editor-button", "insert-function", {"menu-open": showFunctionMenu})}
                 size="xs" ml="5" onClick={handleInsertFunctionsOpen} data-testid="formula-insert-function-button"
               >

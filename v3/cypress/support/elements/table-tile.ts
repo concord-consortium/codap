@@ -232,20 +232,22 @@ export const TableTileElements = {
   },
   createNewTableFromToolShelf() {
     c.getIconFromToolShelf("table").click()
-    cy.get("[data-testid=tool-shelf-table-new]").click()
+    cy.clickWhenClickable("[data-testid=tool-shelf-table-new]")
   },
   createNewClipboardTableFromToolShelf() {
     c.getIconFromToolShelf("table").click()
-    cy.get("[data-testid=tool-shelf-table-new-clipboard]").click()
+    cy.clickWhenClickable("[data-testid=tool-shelf-table-new-clipboard]")
   },
   openExistingTableFromToolShelf(name: string) {
     c.getIconFromToolShelf("table").click()
-    cy.get(`[data-testid=tool-shelf-table-${name}]`).click()
+    cy.clickWhenClickable(`[data-testid=tool-shelf-table-${name}]`)
   },
   deleteDataSetFromToolShelf(index = 0) {
     c.getIconFromToolShelf("table").click()
-    cy.get(`.tool-shelf-menu-trash-icon`).eq(index).click()
-    cy.get(`.delete-data-set-button-delete`).click()
+    cy.get(`.tool-shelf-menu-trash-icon`).eq(index).should("be.visible").then($el => {
+      cy.wrap($el).click()
+    })
+    cy.clickWhenClickable(`.delete-data-set-button-delete`)
   },
   getToggleCardView() {
     return cy.get("[data-testid=case-table-toggle-view]")
