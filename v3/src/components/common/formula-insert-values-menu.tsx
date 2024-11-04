@@ -1,5 +1,6 @@
 import { TriangleDownIcon, TriangleUpIcon } from "@chakra-ui/icons"
 import {Divider, Flex, List, ListItem,} from "@chakra-ui/react"
+import { IAnyStateTreeNode } from "mobx-state-tree"
 import React, { useCallback, useEffect, useRef, useState } from "react"
 import { useMemo } from "use-memo-one"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
@@ -15,6 +16,11 @@ interface IProps {
   setShowValuesMenu: (show: boolean) => void
 }
 
+function getGlobalsNames(node?: IAnyStateTreeNode) {
+  const globalManager = node && getGlobalValueManager(getSharedModelManager(node))
+  return globalManager ? Array.from(globalManager.globals.values()).map(global => global.name) : []
+}
+
 export const InsertValuesMenu = ({setShowValuesMenu}: IProps) => {
   const dataSet = useDataSetContext()
   const { editorApi } = useFormulaEditorContext()
@@ -25,10 +31,6 @@ export const InsertValuesMenu = ({setShowValuesMenu}: IProps) => {
       .filter(name => name !== undefined)
   )
   const attributeNames = dataSet?.attributes.map(attr => attr.name)
-  const globalManager = dataSet && getGlobalValueManager(getSharedModelManager(dataSet))
-  const globals = useMemo(() => globalManager
-    ? Array.from(globalManager.globals.values()).map(global => ({ label: global.name }))
-    : [], [globalManager])
   // TODO_Boundaries
   const remoteBoundaryData = useMemo(() => [ "CR_Cantones", "CR_Provincias", "DE_state_boundaries",
      "IT_region_boundaries", "JP_Prefectures", "US_congressional_boundaries", "US_county_boundaries",
@@ -63,9 +65,9 @@ export const InsertValuesMenu = ({setShowValuesMenu}: IProps) => {
       }
     })
 
-    globals.forEach((global) => {
-      if (global.label.length > maxItemLength.current) {
-        maxItemLength.current = global.label.length
+    getGlobalsNames(dataSet).forEach(globalName => {
+      if (globalName.length > maxItemLength.current) {
+        maxItemLength.current = globalName.length
       }
     })
 
@@ -84,7 +86,7 @@ export const InsertValuesMenu = ({setShowValuesMenu}: IProps) => {
       return { top, height: kMaxHeight, width: 40 + 10 * maxItemLength.current }
     }
     return {}
-  }, [attributeNames, globals, remoteBoundaryData])
+  }, [attributeNames, dataSet, remoteBoundaryData])
 
   const handleScroll = (direction: "up" | "down") => {
     const container = scrollableContainerRef.current
@@ -162,11 +164,11 @@ export const InsertValuesMenu = ({setShowValuesMenu}: IProps) => {
               </ListItem>
             )
           })}
-          { globals.map((global) => {
+          { getGlobalsNames(dataSet).map(globalName => {
             return (
-              <ListItem key={global.label} className="formula-operand-list-item"
-                    onClick={() => insertValueToFormula(global.label)}>
-                {global.label}
+              <ListItem key={globalName} className="formula-operand-list-item"
+                    onClick={() => insertValueToFormula(globalName)}>
+                {globalName}
               </ListItem>
             )
           })}
