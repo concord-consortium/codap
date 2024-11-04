@@ -1,10 +1,11 @@
 import React, {useRef} from "react"
 import {IDataSet} from "../../../../models/data/data-set"
-import {LegendAttributeLabel} from "./legend-attribute-label"
-import {CategoricalLegend} from "./categorical-legend"
-import {NumericLegend} from "./numeric-legend"
 import {GraphPlace} from "../../../axis-graph-shared"
 import {useDataConfigurationContext} from "../../hooks/use-data-configuration-context"
+import {LegendAttributeLabel} from "./legend-attribute-label"
+import {CategoricalLegend} from "./categorical-legend"
+import { ColorLegend } from "./color-legend"
+import {NumericLegend} from "./numeric-legend"
 
 interface ILegendProps {
   layerIndex: number
@@ -34,7 +35,13 @@ export const Legend = function Legend({
             : attrType === 'numeric' || attrType === 'date'
               ? <NumericLegend
                   layerIndex={layerIndex}
-                  setDesiredExtent={setDesiredExtent}/> : null
+                  setDesiredExtent={setDesiredExtent}/>
+              : attrType === 'color'
+                ? <ColorLegend
+                    layerIndex={layerIndex}
+                    setDesiredExtent={setDesiredExtent}
+                  />
+                : null
         }
       </svg>
     </>
