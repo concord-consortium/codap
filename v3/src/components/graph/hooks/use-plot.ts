@@ -92,12 +92,12 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
 
   useEffect(function respondToCategorySetChanges() {
     return reaction(() => {
-      return dataConfiguration.casesChangeCount
+      return dataConfiguration.allCategoriesForRoles
     }, () => {
       startAnimation()
       callRefreshPointPositions(false)
     }, {name: "usePlot.respondToCategorySetChanges"})
-  }, [callRefreshPointPositions, dataConfiguration.casesChangeCount, startAnimation])
+  }, [callRefreshPointPositions, dataConfiguration, startAnimation])
 
   // respond to attribute assignment changes
   useEffect(() => {

@@ -191,7 +191,7 @@ describe("DataConfigurationModel", () => {
     reaction(
       () => config.casesChangeCount,
       () => trigger(),
-      { name: "GraphDataConfigurationTest.getCaseDataArray(0) reaction" })
+      { name: "GraphDataConfigurationTest.casesChangeCount reaction" })
     expect(trigger).not.toHaveBeenCalled()
     tree.data.setCaseValues([{ __id__: "c2", "yId": "" }])
     expect(trigger).toHaveBeenCalled()
