@@ -118,7 +118,7 @@ describe("DataInteractive DataContextHandler", () => {
     expect(setAside(undefined, "restore").success).toBe(true)
     neitherIsSetAside()
 
-    // Depricated setAside
+    // Deprecated setAside
     const caseId = c1.caseIds[0]
     expect(dataContext.isCaseOrItemHidden(caseId)).toBe(false)
     expect(setAside([toV2Id(caseId)]).success).toBe(true)
