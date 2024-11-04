@@ -6,22 +6,22 @@ function traverseCursor(formula: string, cursor: TreeCursor) {
   do {
     const nodeType = cursor.type.name;
 
-    // Check if the current node is an error
-    if (nodeType === "⚠" || nodeType === "ERROR") {
-      console.log("Parse Error detected:");
-      console.log({
-        from: cursor.from,
-        to: cursor.to,
-        text: formula.slice(cursor.from, cursor.to) // Text where the error occurred
-      });
-    } else {
-      console.log({
-        nodeName: nodeType,
-        from: cursor.from,
-        to: cursor.to,
-        text: formula.slice(cursor.from, cursor.to)
-      });
-    }
+    // Debugging: Check if the current node is an error
+    // if (nodeType === "⚠" || nodeType === "ERROR") {
+    //   console.log("Parse Error detected:");
+    //   console.log({
+    //     from: cursor.from,
+    //     to: cursor.to,
+    //     text: formula.slice(cursor.from, cursor.to) // Text where the error occurred
+    //   });
+    // } else {
+    //   console.log({
+    //     nodeName: nodeType,
+    //     from: cursor.from,
+    //     to: cursor.to,
+    //     text: formula.slice(cursor.from, cursor.to)
+    //   });
+    // }
 
     // Traverse child nodes recursively
     if (cursor.firstChild()) {

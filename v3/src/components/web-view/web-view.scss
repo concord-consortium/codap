@@ -1,8 +1,8 @@
-@import "../vars.scss";
+@use "../vars";
 
 .codap-web-view-body {
   background-color: white;
-  height: calc(100% - $title-bar-height);
+  height: calc(100% - vars.$title-bar-height);
   overflow: hidden;
   position: relative;
   width: 100%;

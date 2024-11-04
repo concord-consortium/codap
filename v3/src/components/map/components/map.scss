@@ -1,4 +1,4 @@
-@import "../../vars.scss";
+@use "../../vars";
 
 .codap-component.codap-map.minimized {
   .map {
@@ -9,7 +9,7 @@
 .map-container {
   position: relative;
   width: 100%;
-  height: calc(100% - $title-bar-height);
+  height: calc(100% - vars.$title-bar-height);
   z-index: 5;
 
   .leaflet-wrapper {

@@ -400,7 +400,7 @@ context("Graph UI", () => {
 
       cy.log("checks the box Stroke same color as fill and check it")
       // Get the checkbox and check it
-      cy.get('span.chakra-checkbox__control.css-4utxuo')
+      cy.get('[data-testid=stroke-same-as-fill-checkbox]')
         .eq(0)
         .click()
 
