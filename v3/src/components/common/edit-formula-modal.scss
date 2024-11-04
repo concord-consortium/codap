@@ -1,4 +1,4 @@
-@import "../vars.scss";
+@use "../vars";
 
 .codap-modal-content {
   .formula-modal-body {
@@ -8,19 +8,20 @@
       .title-label {
         width: 140px;
       }
-      
       input {
         max-width: 270px;
+        margin-right: 3px;
+        margin-left: 0
       }
     }
 
     .formula-editor-button {
       padding: 0 10px;
       &:hover {
-        background: $codap-teal-lighter;
+        background: vars.$codap-teal-lighter;
       }
       &:active, &.menu-open {
-        background: $codap-teal-light;
+        background: vars.$codap-teal-light;
         color: white;
       }
       &.insert-value {

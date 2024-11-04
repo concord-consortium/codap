@@ -62,7 +62,7 @@ describe("handleCFMEvent", () => {
     handleCFMEvent(mockCfmClient, mockCfmEventArg)
     setTimeout(() => {
       const contentArg = mockCfmEvent.callback.mock.calls[0][0]
-      expect(isCodapDocument(contentArg.content)).toBe(true)
+      expect(isCodapDocument(contentArg)).toBe(true)
       done()
     })
   })

@@ -3,7 +3,6 @@ import { addDisposer, onAction } from "mobx-state-tree"
 import { DIMessage } from "../../data-interactive/iframe-phone-types"
 import { ILogMessage } from "../../lib/log-message"
 import { Logger } from "../../lib/logger"
-import { gLocale } from "../../utilities/translation/locale"
 import { createFormulaAdapters } from "../formula/formula-adapter-registry"
 import { FormulaManager } from "../formula/formula-manager"
 import { ISharedDataSet, SharedDataSet, kSharedDataSetType } from "../shared/shared-data-set"
@@ -48,9 +47,6 @@ export const createDocumentModel = (snapshot?: IDocumentModelSnapshot) => {
     }
     sharedModelManager.getSharedModelsByType<typeof SharedDataSet>(kSharedDataSetType)
       .forEach((model: ISharedDataSet) => formulaManager.addDataSet(model.dataSet))
-
-    // configure locale
-    fullEnvironment.getLocale = () => gLocale.current
 
     // configure logging
     fullEnvironment.log = function({ message, args, category }: ILogMessage) {

@@ -1,11 +1,11 @@
-@import "../vars.scss/";
+@use "../vars";
 $deleteModalBackground: #EEE;
 $deleteButton: #4B8ADD;
 
 .tool-shelf {
-  height: $tool-shelf-height;
+  height: vars.$tool-shelf-height;
   width: 100%;
-  background-color: $codap-tool-shelf-gray;
+  background-color: vars.$codap-tool-shelf-gray;
   border-bottom: 1px solid #dcdbd8;
   box-shadow: 0 0 0 1px #888888!important;
   display: flex;
@@ -23,7 +23,7 @@ $deleteButton: #4B8ADD;
   }
 
   .tool-shelf-right-buttons {
-    background-color: $codap-tool-shelf-gray;
+    background-color: vars.$codap-tool-shelf-gray;
 
     .tool-shelf-button {
       // override CFM styles issue
@@ -59,7 +59,7 @@ $deleteButton: #4B8ADD;
   }
 
   .tool-shelf-component-buttons, .tool-shelf-right-buttons {
-    height: $tool-shelf-height;
+    height: vars.$tool-shelf-height;
     border-right: solid #888888;
     align-items: center;
     padding: 0 5px;

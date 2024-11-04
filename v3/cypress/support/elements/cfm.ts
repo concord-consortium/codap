@@ -1,10 +1,16 @@
+interface IDocumentOptions {
+  discardChanges?: boolean
+}
 export const CfmElements = {
   openLocalDoc(filename: string) {
     cy.get('#codap-app-id').selectFile(filename, { action: 'drag-drop' })
   },
-  closeDocument() {
+  closeDocument(options?: IDocumentOptions) {
     this.getHamburgerMenuButton().click()
     this.getHamburgerMenu().contains("li", "Close").click()
+    if (options?.discardChanges) {
+      this.discardDocumentChanges()
+    }
   },
   getMenuBar() {
     return cy.get('#codap-menu-bar-id')
@@ -24,9 +30,16 @@ export const CfmElements = {
   getModalDialog() {
     return cy.get('#codap-menu-bar-id .view .modal-dialog')
   },
-  openExampleDocument(filename: string) {
+  discardDocumentChanges() {
+    this.getModalDialog().contains("Are you sure")
+    this.getModalDialog().find('button').contains("Yes").click()
+  },
+  openExampleDocument(filename: string, options?: IDocumentOptions) {
     this.getHamburgerMenuButton().click()
     this.getHamburgerMenu().find("li").contains("Open...").click()
+    if (options?.discardChanges) {
+      this.discardDocumentChanges()
+    }
     this.getModalDialog().find(".selectable").contains(filename).eq(0).click()
     this.getModalDialog().find("button").contains("Open").click()
   },

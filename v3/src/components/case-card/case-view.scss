@@ -1,5 +1,5 @@
-@import "../vars.scss";
-@import "./case-card-vars.scss";
+@use "../vars";
+@use "./case-card-vars" as cardVars;
 
 @mixin buttonSvgStyles {
   &:hover {
@@ -32,19 +32,19 @@
     box-shadow: none;
   }
   &.color-cycle-1 {
-    background-color: $color-cycle-1;
+    background-color: cardVars.$color-cycle-1;
   }
   &.color-cycle-2 {
-    background-color: $color-cycle-2;
+    background-color: cardVars.$color-cycle-2;
   }
   &.color-cycle-3 {
-    background-color: $color-cycle-3;
+    background-color: cardVars.$color-cycle-3;
   }
   &.color-cycle-4 {
-    background-color: $color-cycle-4;
+    background-color: cardVars.$color-cycle-4;
   }
   &.color-cycle-5 {
-    background-color: $color-cycle-5;
+    background-color: cardVars.$color-cycle-5;
   }
 
   .case-card-view-header {
@@ -86,7 +86,7 @@
         height: 20px;
         margin: 0 4px;
         border-radius: 5px;
-        border: solid 1.5px $charcoal-light-1-c;
+        border: solid 1.5px vars.$charcoal-light-1-c;
         background-color: #f5fbfc;
         fill: #0592af;
         padding: 0;

@@ -3,6 +3,7 @@ import { IValueType } from "../../models/data/attribute-types"
 import { ICollectionModel } from "../../models/data/collection"
 import { ICaseCreation, IGroupedCase } from "../../models/data/data-set-types"
 import { getTileCaseMetadata, getTileDataSet } from "../../models/shared/shared-data-utils"
+import { ISharedModel } from "../../models/shared/shared-model"
 import { ITileContentModel, TileContentModel } from "../../models/tiles/tile-content"
 import { kCaseCardTileType } from "./case-card-defs"
 
@@ -117,6 +118,9 @@ export const CaseCardModel = TileContentModel
     }
   }))
   .actions(self => ({
+    updateAfterSharedModelChanges(sharedModel?: ISharedModel) {
+      // TODO
+    },
     setAttributeColumnWidth(collectionId: string, width?: number) {
       if (width) {
         self.attributeColumnWidths.set(collectionId, width)

@@ -1,4 +1,4 @@
-@import "../../vars";
+@use "../../vars";
 
 .tool-tile.placeholder {
   outline: none;
@@ -13,8 +13,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: $charcoal;
-  border-color: $charcoal-light-2;
+  color: vars.$charcoal;
+  border-color: vars.$charcoal-light-2;
   border-style: dashed;
   border-width: 1px;
 }
