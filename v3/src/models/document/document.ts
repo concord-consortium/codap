@@ -21,7 +21,6 @@ export const DocumentModel = Tree.named("Document")
     title: types.maybe(types.string),
     properties: types.map(types.string),
     content: types.maybe(DocumentContentModel),
-    changeCount: 0
   })
   .volatile(self => ({
     treeMonitor: undefined as TreeMonitor | undefined
@@ -126,10 +125,6 @@ export const DocumentModel = Tree.named("Document")
     deleteTile(tileId: string) {
       self.content?.deleteTile(tileId)
     },
-
-    incChangeCount() {
-      return ++self.changeCount
-    }
   }))
 export interface IDocumentModel extends Instance<typeof DocumentModel> {}
 export interface IDocumentModelSnapshot extends SnapshotIn<typeof DocumentModel> {}

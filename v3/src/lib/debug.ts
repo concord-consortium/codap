@@ -21,16 +21,13 @@ if (debug.length > 0) {
 
 const debugContains = (key: string) => debug.indexOf(key) !== -1
 
-export const DEBUG_CANVAS = debugContains("canvas")
+export const DEBUG_CFM_LOCAL_STORAGE = debugContains("cfmLocalStorage")
 export const DEBUG_DOCUMENT = debugContains("document")
 export const DEBUG_FORMULAS = debugContains("formulas")
 export const DEBUG_HISTORY = debugContains("history")
-export const DEBUG_LISTENERS = debugContains("listeners")
 export const DEBUG_LOGGER = debugContains("logger")
 export const DEBUG_MAP = debugContains("map")
 export const DEBUG_PLUGINS = debugContains("plugins")
-export const DEBUG_SAVE = debugContains("save")
-export const DEBUG_STORES = debugContains("stores")
 export const DEBUG_UNDO = debugContains("undo")
 
 export function debugLog(debugFlag: boolean, ...args: any[]) {

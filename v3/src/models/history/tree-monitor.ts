@@ -36,6 +36,18 @@ export class TreeMonitor {
           // monitoring is disabled or we are already recording
           return false
         }
+
+        // Ignore the special snapshot actions, this will pick up other actions
+        // with the same name, so these are now reserved action names.
+        // A better approach would be to use type.snapshotProcessor which provides
+        // access to the model instance in its postProcess function
+        // this would avoid the need for completeSnapshot, and will probably be
+        // more memory efficient, and it would remove the need for this special
+        // handling
+        const actionName = call.actionCall.name
+        if (actionName === "completeSnapshot" || actionName === "prepareSnapshot") {
+          return false
+        }
         return true
       },
       onStart(call) {
