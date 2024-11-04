@@ -1,4 +1,4 @@
-@import "./../vars.scss";
+@use "./../vars";
 
 $slider-component-height: 98px;
 
@@ -11,10 +11,10 @@ $slider-component-height: 98px;
 .slider-wrapper {
   position: relative;
   overflow: clip;
-  height: calc($slider-component-height - $title-bar-height);
-  transition: $minimize-transition;
+  height: calc($slider-component-height - vars.$title-bar-height);
+  transition: vars.$minimize-transition;
   background: #fff;
-  border-radius: $border-radius-bottom-corners;
+  border-radius: vars.$border-radius-bottom-corners;
 
   .slider {
     position: absolute;

@@ -168,7 +168,7 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
         </>
       </FormControl>
       <FormControl>
-        <Checkbox
+        <Checkbox data-testid="stroke-same-as-fill-checkbox"
           mt="6px" isChecked={displayItemDescription.pointStrokeSameAsFill}
           onChange={e => {
             displayItemDescription.applyModelChange(
