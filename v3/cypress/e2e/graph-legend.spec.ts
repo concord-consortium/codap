@@ -3,6 +3,7 @@ import { GraphLegendHelper as glh } from "../support/helpers/graph-legend-helper
 import { ToolbarElements as toolbar } from "../support/elements/toolbar-elements"
 import { GraphTileElements as graph } from "../support/elements/graph-tile"
 import { ColorPickerPaletteElements as color_picker } from "../support/elements/color-picker-palette"
+import { TableTileElements as tte } from "../support/elements/table-tile"
 
 const arrayOfAttributes = ["Mammal", "Order", "LifeSpan", "Height", "Mass", "Sleep", "Speed", "Habitat", "Diet"]
 
@@ -307,6 +308,43 @@ context("Test legend with various attribute types", () => {
 
     // Verify the attributes are removed from the legend
     glh.verifyLegendDoesNotExist()
+  })
+  it("will draw color legend", () => {
+    // I was having trouble creating a new color attribute, so I hacked this.
+    // I needed to add a new attribute to enter text in the former rightmost column
+    tte.addNewAttribute(1)
+    // The first typed letter was getting cut off
+    // All cells need to replaced with colors or the attribute will be considered categorical
+    tte.getCell(10, 2, 1).type(" #00ff00")
+    tte.getCell(10, 3, 1).type(" #ff0000")
+    tte.getCell(10, 4, 1).type(" #0000ff")
+    tte.getCell(10, 5, 1).type(" #00ff00")
+    tte.getCell(10, 6, 1).type(" #00ff00")
+    tte.getCell(10, 7, 1).type(" #ff0000")
+    tte.getCell(10, 8, 1).type(" #0000ff")
+    tte.getCell(10, 9, 1).type(" #00ff00")
+    tte.getCell(10, 10, 1).type(" #00ff00")
+    tte.getCell(10, 11, 1).type(" #ff0000")
+    tte.getCell(10, 12, 1).type(" #0000ff")
+    tte.getCell(10, 13, 1).type(" #00ff00")
+    tte.getCell(10, 14, 1).type(" #00ff00")
+    tte.getCell(10, 15, 1).type(" #ff0000")
+    tte.getCell(10, 16, 1).type(" #0000ff")
+    tte.getCell(10, 17, 1).type(" #00ff00")
+    tte.getCell(10, 18, 1).type(" #00ff00")
+    tte.getCell(10, 19, 1).type(" #ff0000")
+    tte.getCell(10, 20, 1).type(" #0000ff")
+    tte.getCell(10, 21, 1).type(" #00ff00")
+    tte.getCell(10, 22, 1).type(" #00ff00")
+    tte.getCell(10, 23, 1).type(" #ff0000")
+    tte.getCell(10, 24, 1).type(" #0000ff")
+    tte.getCell(10, 25, 1).type(" #00ff00")
+    tte.getCell(10, 26, 1).type(" #ff0000")
+    tte.getCell(10, 27, 1).type(" #0000ff")
+    tte.getCell(10, 28, 1).type(" #00ff00{enter}")
+    cy.dragAttributeToTarget("table", arrayOfAttributes[2], "bottom")
+    glh.dragAttributeToPlot("Diet")
+    glh.verifyColorLegend("Diet")
   })
 })
 
