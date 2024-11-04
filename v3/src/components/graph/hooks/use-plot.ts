@@ -206,7 +206,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
       const disposer = onAnyAction(dataset, action => {
         if (isSetCaseValuesAction(action)) {
           // assumes that if we're caching then only selected cases are being updated
-          callRefreshPointPositions(dataset.isCaching())
+          callRefreshPointPositions(dataset.isCaching() && graphModel.plotType !== "dotPlot")
           // TODO: handling of add/remove cases was added specifically for the case plot.
           // Bill has expressed a desire to refactor the case plot to behave more like the
           // other plots, which already handle removal of cases (and perhaps addition of cases?)
@@ -217,7 +217,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
       })
       return () => disposer()
     }
-  }, [dataset, callRefreshPointPositions])
+  }, [dataset, callRefreshPointPositions, graphModel.plotType])
 
   // respond to added or removed cases or change in attribute type or change in collection groups
   useEffect(function handleDataConfigurationActions() {
