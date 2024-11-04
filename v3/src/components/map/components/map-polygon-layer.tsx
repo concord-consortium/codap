@@ -136,7 +136,7 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
       })
     // If this layer is not visible, skipping the following mapping will cause all the features to be removed
     // which is what we want
-    mapLayerModel.isVisible && dataConfiguration.caseDataArray.forEach((aCaseData, caseIndex) => {
+    mapLayerModel.isVisible && dataConfiguration.getCaseDataArray(0).forEach((aCaseData, caseIndex) => {
       const notAlreadyStashed = mapLayerModel.features.findIndex((feature) => {
         return (feature.options as PolygonLayerOptions).caseID === aCaseData.caseID
       }) === -1
@@ -208,7 +208,7 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
 
   useEffect(function setupResponseToChangeInNumberOfCases() {
     return mstReaction(
-      () => dataConfiguration?.caseDataArray.length,
+      () => dataConfiguration?.getCaseDataArray(0).length,
       () => {
         refreshPolygons(false)
       }, {name: "MapPolygonLayer.setupResponseToChangeInNumberOfCases"}, dataConfiguration

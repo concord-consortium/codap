@@ -22,7 +22,7 @@ export function useGraphModel(props: IProps) {
   useEffect(function installPlotTypeAction() {
     const disposer = onAnyAction(graphModel, action => {
       if (action.name === 'setPlotType') {
-        const { caseDataArray } = dataConfig || {}
+        const caseDataArray = dataConfig.getCaseDataArray(0) || {}
         const newPlotType = action.args?.[0]/*,
           attrIDs = newPlotType === 'dotPlot' ? [xAttrID] : [xAttrID, yAttrID]*/
         startAnimation()

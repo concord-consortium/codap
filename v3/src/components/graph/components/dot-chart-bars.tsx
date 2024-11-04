@@ -60,7 +60,7 @@ export const DotChartBars = observer(function DotChartBars({ abovePointsGroupRef
                 // Create a map of cases grouped by legend value so we don't need to filter all cases per value when
                 // creating the bar covers.
                 const caseGroups = new Map()
-                dataConfig.caseDataArray.forEach(aCase => {
+                dataConfig.getCaseDataArray(0).forEach(aCase => {
                   const legendValue = dataset?.getStrValue(aCase.caseID, legendAttrID)
                   const primaryValue = dataset?.getStrValue(aCase.caseID, dataConfig.attributeID(primaryAttrRole))
                   const primarySplitValue =

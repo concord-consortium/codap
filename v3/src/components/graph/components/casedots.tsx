@@ -100,10 +100,10 @@ export const CaseDots = function CaseDots(props: {
   }, [pixiPoints, graphModel, layout, dataConfiguration, dataset, isAnimating])
 
   useEffect(function initDistribution() {
-    randomlyDistributePoints(dataConfiguration?.caseDataArray)
+    randomlyDistributePoints(dataConfiguration?.getCaseDataArray(0))
     const disposer = dataConfiguration?.onAction(action => {
       if (['addCases', 'removeCases'].includes(action.name)) {
-        randomlyDistributePoints(dataConfiguration?.caseDataArray)
+        randomlyDistributePoints(dataConfiguration?.getCaseDataArray(0))
       }
     }) || (() => true)
     return () => disposer?.()
@@ -114,7 +114,7 @@ export const CaseDots = function CaseDots(props: {
       () => graphModel.changeCount,
       () => {
         randomPointsRef.current = {}
-        randomlyDistributePoints(dataConfiguration?.caseDataArray)
+        randomlyDistributePoints(dataConfiguration?.getCaseDataArray(0))
         startAnimation()
         refreshPointPositions(false)
       },

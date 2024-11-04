@@ -75,6 +75,7 @@ export class GraphController {
           }
           if (isCategoricalAxisModel(axisModel)) {
             axisMultiScale.setCategoricalDomain(dataConfig.categoryArrayForAttrRole(attrRole))
+            axisMultiScale.setCategorySet(dataConfig.categorySetForAttrRole(attrRole))
           }
           if (isNumericAxisModel(axisModel)) {
             axisMultiScale.setNumericDomain(axisModel.domain)
