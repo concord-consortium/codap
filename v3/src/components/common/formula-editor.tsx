@@ -1,5 +1,5 @@
 import {
-  autocompletion, closeBrackets, closeBracketsKeymap, Completion, CompletionContext,
+  acceptCompletion, autocompletion, closeBrackets, closeBracketsKeymap, Completion, CompletionContext,
   completionKeymap, CompletionResult, insertCompletionText, pickedCompletion
 } from "@codemirror/autocomplete"
 import { defaultKeymap } from "@codemirror/commands"
@@ -232,8 +232,13 @@ function cmExtensionsSetup() {
     }),
     codapHighlightingViewPlugin,
     keymap.of(keymaps.flat()),
-    Prec.highest( // Overrides CodeMirror's default keymap for Cmd-Enter key
-      keymap.of([{ key: "Mod-Enter", run: () => true }])
+    Prec.highest(
+      keymap.of([
+        // Tab key accepts auto-complete suggestion (https://discuss.codemirror.net/t/tab-autocompletion/6396)
+        { key: "Tab", run: acceptCompletion },
+        // Prevents CodeMirror's default behavior for Cmd-Enter key
+        { key: "Mod-Enter", run: () => true }
+      ])
     )
   ]
   return extensions.filter(Boolean)
