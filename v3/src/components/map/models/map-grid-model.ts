@@ -53,10 +53,11 @@ export const MapGridModel = types.model("MapGridModel", {
     const computeCounts = () => {
       if (self.dataConfiguration) {
         const {
-            dataConfiguration: {dataset, caseDataArray},
+            dataConfiguration: {dataset},
             _latLngGrid, gridSize
           } = self,
-          dataConfiguration = self.dataConfiguration
+          dataConfiguration = self.dataConfiguration,
+          caseDataArray = dataConfiguration.getCaseDataArray(0)
 
         _latLngGrid.zeroCounts()
         caseDataArray.forEach(({caseID}: { plotNum: number, caseID: string }) => {
@@ -77,7 +78,7 @@ export const MapGridModel = types.model("MapGridModel", {
     }
     const _initializeGrid = () => {
       if (!self.isVisible) return
-      const cases = self.dataConfiguration?.caseDataArray,
+      const cases = self.dataConfiguration?.getCaseDataArray(0),
         bounds = self.dataConfiguration ? getLatLongBounds(self.dataConfiguration) : undefined
       if (cases?.length && bounds?.isValid()) {
         setupLatLngGrid()

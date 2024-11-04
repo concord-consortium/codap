@@ -301,18 +301,14 @@ export const CategoricalLegend = observer(
       })
     }, [refreshKeys, dataset, computeDesiredExtent])
 
-    useEffect(function respondToCategorySetsChange() {
+    useEffect(function respondToChangeCount() {
       return mstReaction(
-        () => {
-          const categories = dataConfiguration?.categoryArrayForAttrRole('legend')
-          const numHidden = dataConfiguration?.hiddenCases.length
-          return { categories, numHidden }
-        },
+        () => dataConfiguration?.casesChangeCount,
         () => {
           setDesiredExtent(layerIndex, computeDesiredExtent())
           setupKeys()
           refreshKeys()
-        }, {name: 'CategoricalLegend respondToCategorySetsChange',
+        }, {name: 'CategoricalLegend respondToChangeCount',
           equals: comparer.structural}, dataConfiguration)
     }, [setupKeys, refreshKeys, dataConfiguration, computeDesiredExtent, setDesiredExtent, layerIndex])
 
