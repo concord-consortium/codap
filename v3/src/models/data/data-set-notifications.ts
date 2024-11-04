@@ -99,7 +99,7 @@ export function createCasesNotification(caseIDs: string[], data?: IDataSet) {
   caseIDs.forEach(caseId => {
     const aCase = data?.caseInfoMap.get(caseId)
     if (aCase) {
-      itemIDs = itemIDs.concat(aCase.childItemIds.map(itemId => toV2Id(itemId)))
+      itemIDs = itemIDs.concat(aCase.childItemIds.concat(aCase.hiddenChildItemIds).map(itemId => toV2Id(itemId)))
     }
   })
   const itemID = itemIDs.length > 0 ? itemIDs[0] : undefined
@@ -153,7 +153,9 @@ export function selectCasesNotification(dataset: IDataSet, extend?: boolean) {
   const getSelectedCaseIds = (selectedItemIds: Set<string>) => {
     const caseIds: string[] = []
     Array.from(dataset.caseInfoMap.values()).forEach(aCase => {
-      if (aCase.childItemIds.every(itemId => selectedItemIds.has(itemId))) caseIds.push(aCase.groupedCase.__id__)
+      if (aCase.childItemIds.length && aCase.childItemIds.every(itemId => selectedItemIds.has(itemId))) {
+        caseIds.push(aCase.groupedCase.__id__)
+      }
     })
     return caseIds
   }
@@ -174,18 +176,17 @@ export function selectCasesNotification(dataset: IDataSet, extend?: boolean) {
     if (addedCaseIds.length === 0 && removedCaseIds.length === 0) return
 
     const convertCaseIdsToV2FullCases = (_caseIds: string[]) => {
-      return _caseIds.map(caseId => {
-        const c = dataset.caseInfoMap.get(caseId)
-        return c && convertCaseToV2FullCase(c.groupedCase, dataset)
-      }).filter(c => !!c)
+      const caseGroups = _caseIds.map(caseId => dataset.caseInfoMap.get(caseId)?.groupedCase).filter(c => !!c)
+      return caseGroups.map(groupedCase => convertCaseToV2FullCase(groupedCase, dataset))
     }
+
     const caseIds = extend ? addedCaseIds : newSelectedCaseIds
     const _cases = convertCaseIdsToV2FullCases(caseIds)
     const cases = extend
       ? _cases.length > 0 ? _cases : undefined
       : _cases
     const removedCases = extend && removedCaseIds.length > 0
-      ? convertCaseIdsToV2FullCases(removedCaseIds) : undefined
+      ? convertCaseIdsToV2FullCases(removedCaseIds) : []
     const result = { success: true, cases, removedCases, extend: !!extend }
     return notification("selectCases", result, dataset)
   }
