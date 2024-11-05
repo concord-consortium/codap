@@ -8,7 +8,6 @@ export const defaultItalicFont = `italic ${defaultFont}`
 export const defaultTileTitleFont = defaultItalicFont
 
 export const kTitleBarHeight = 25
-export const kToolshelfHeight = 68
 
 export const kDefaultTileWidth = 250
 export const kDefaultTileHeight = 250
