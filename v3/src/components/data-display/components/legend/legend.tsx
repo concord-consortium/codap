@@ -5,7 +5,15 @@ import {useDataConfigurationContext} from "../../hooks/use-data-configuration-co
 import {LegendAttributeLabel} from "./legend-attribute-label"
 import {CategoricalLegend} from "./categorical-legend"
 import { ColorLegend } from "./color-legend"
+import { IBaseLegendProps } from "./legend-common"
 import {NumericLegend} from "./numeric-legend"
+
+const legendComponentMap: Partial<Record<string, React.ComponentType<IBaseLegendProps>>> = {
+  categorical: CategoricalLegend,
+  color: ColorLegend,
+  date: NumericLegend,
+  numeric: NumericLegend
+}
 
 interface ILegendProps {
   layerIndex: number
@@ -19,6 +27,7 @@ export const Legend = function Legend({
   const dataConfiguration = useDataConfigurationContext(),
     legendAttrID = dataConfiguration?.attributeID('legend'),
     attrType = dataConfiguration?.dataset?.attrFromID(legendAttrID ?? '')?.type,
+    LegendComponent = attrType && legendComponentMap[attrType],
     legendRef = useRef() as React.RefObject<SVGSVGElement>
 
   return legendAttrID ? (
@@ -27,25 +36,9 @@ export const Legend = function Legend({
         <LegendAttributeLabel
           onChangeAttribute={onDropAttribute}
         />
-        {
-          attrType === 'categorical'
-            ? <CategoricalLegend
-                layerIndex={layerIndex}
-                setDesiredExtent={setDesiredExtent}/>
-            : attrType === 'numeric' || attrType === 'date'
-              ? <NumericLegend
-                  layerIndex={layerIndex}
-                  setDesiredExtent={setDesiredExtent}/>
-              : attrType === 'color'
-                ? <ColorLegend
-                    layerIndex={layerIndex}
-                    setDesiredExtent={setDesiredExtent}
-                  />
-                : null
-        }
+        {LegendComponent && <LegendComponent layerIndex={layerIndex} setDesiredExtent={setDesiredExtent} />}
       </svg>
     </>
-
   ) : null
 }
 Legend.displayName = "Legend"

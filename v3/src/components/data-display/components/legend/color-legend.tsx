@@ -4,16 +4,12 @@ import React, { useCallback, useEffect } from "react"
 import {axisGap} from "../../../axis/axis-types"
 import {getStringBounds} from "../../../axis/axis-utils"
 import {useDataConfigurationContext} from "../../hooks/use-data-configuration-context"
+import { IBaseLegendProps } from "./legend-common"
 
 import vars from "../../../vars.scss"
 
-interface IColorLegendProps {
-  layerIndex: number
-  setDesiredExtent: (layerIndex:number, extent: number) => void
-}
-
 export const ColorLegend =
-  observer(function ColorLegend({layerIndex, setDesiredExtent}: IColorLegendProps) {
+  observer(function ColorLegend({layerIndex, setDesiredExtent}: IBaseLegendProps) {
   const dataConfiguration = useDataConfigurationContext(),
 
     getLabelHeight = useCallback(() => {
@@ -40,13 +36,9 @@ export const ColorLegend =
 
   useEffect(function respondToLayoutChange() {
     const disposer = reaction(
-      () => {
-        const legendID = dataConfiguration?.attributeID('legend')
-        return { legendID }
-      },
-      () => {
-        refreshScale()
-      }, {fireImmediately: true}
+      () => dataConfiguration?.attributeID('legend'),
+      () => refreshScale(),
+      {fireImmediately: true}
     )
     return () => disposer()
   }, [dataConfiguration, refreshScale])
