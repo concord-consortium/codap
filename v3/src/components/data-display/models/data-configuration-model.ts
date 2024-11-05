@@ -48,7 +48,7 @@ export const kDataConfigurationType = "dataConfigurationType"
 // A DataConfigurationModel (or a containing tile model) can be created with an environment containing
 // a provisional dataset and metadata. In this case, the provisional dataset or metadata will be retrieved
 // instead of the DataConfiguration's own. This allows the DI system to set up a graph tile snapshot,
-// referencing the dataset and metadata as necessary, outside of the main MST tree.
+// referencing the dataset and metadata as necessary, outside the main MST tree.
 interface IProvisionalEnvironment {
   provisionalDataSet?: IDataSet
   provisionalMetadata?: ISharedCaseMetadata
@@ -344,9 +344,10 @@ export const DataConfigurationModel = types
         return orderedCategories
       }
     }),
-    getAllCategoriesForRoles() {
+    get allCategoriesForRoles() {
       const categories: Map<AttrRole, string[]> = new Map()
-      self.potentiallyCategoricalRoles().forEach(role => {
+      const roles = self.potentiallyCategoricalRoles()
+      roles.forEach(role => {
         const categorySet = self.categorySetForAttrRole(role)
         if (categorySet) {
           categories.set(role, categorySet.valuesArray)
@@ -360,28 +361,34 @@ export const DataConfigurationModel = types
       return (self.filteredCases[caseArrayNumber]?.caseIds || []).map(id => {
         return {plotNum: caseArrayNumber, caseID: id}
       })
-    },
-    getCaseDataArray(caseArrayNumber: number) {
-      const caseDataArray = this.getUnsortedCaseDataArray(caseArrayNumber),
-        legendAttrID = self.attributeID('legend')
-      if (legendAttrID) {
-        if (self.attributeType("legend") === "numeric") {
-          caseDataArray.sort((cd1: CaseData, cd2: CaseData) => {
-            const cd1Value = self.dataset?.getNumeric(cd1.caseID, legendAttrID) ?? NaN,
-              cd2Value = self.dataset?.getNumeric(cd2.caseID, legendAttrID) ?? NaN
-            return numericSortComparator({a: cd1Value, b: cd2Value, order: "desc"})
-          })
-        } else {
-          const categories = Array.from(self.categoryArrayForAttrRole('legend'))
-          caseDataArray.sort((cd1: CaseData, cd2: CaseData) => {
-            const cd1Value = self.dataset?.getStrValue(cd1.caseID, legendAttrID) ?? '',
-              cd2Value = self.dataset?.getStrValue(cd2.caseID, legendAttrID) ?? ''
-            return categories.indexOf(cd1Value) - categories.indexOf(cd2Value)
-          })
+    }
+  }))
+  .views(self => ({
+    // Note that we have to go through each of the filteredCases in order to return all the values
+    getCaseDataArray: cachedFnWithArgsFactory({
+      key: (caseArrayNumber: number) => String(caseArrayNumber),
+      calculate: (caseArrayNumber: number) => {
+        const caseDataArray = self.getUnsortedCaseDataArray(caseArrayNumber),
+          legendAttrID = self.attributeID('legend')
+        if (legendAttrID) {
+          if (self.attributeType("legend") === "numeric") {
+            caseDataArray.sort((cd1: CaseData, cd2: CaseData) => {
+              const cd1Value = self.dataset?.getNumeric(cd1.caseID, legendAttrID) ?? NaN,
+                cd2Value = self.dataset?.getNumeric(cd2.caseID, legendAttrID) ?? NaN
+              return numericSortComparator({a: cd1Value, b: cd2Value, order: "desc"})
+            })
+          } else {
+            const categories = Array.from(self.categoryArrayForAttrRole('legend'))
+            caseDataArray.sort((cd1: CaseData, cd2: CaseData) => {
+              const cd1Value = self.dataset?.getStrValue(cd1.caseID, legendAttrID) ?? '',
+                cd2Value = self.dataset?.getStrValue(cd2.caseID, legendAttrID) ?? ''
+              return categories.indexOf(cd1Value) - categories.indexOf(cd2Value)
+            })
+          }
         }
+        return caseDataArray
       }
-      return caseDataArray
-    },
+    }),
     get joinedCaseDataArrays() {
       const joinedCaseData: CaseData[] = []
       self.filteredCases.forEach((aFilteredCases, index) => {
@@ -391,9 +398,6 @@ export const DataConfigurationModel = types
       )
       return joinedCaseData
     },
-    get caseDataArray() {
-      return this.getCaseDataArray(0)
-    }
   }))
   .views(self => ({
     // observable hash of rendered case ids
@@ -452,7 +456,7 @@ export const DataConfigurationModel = types
           extraSecondaryAttrID = self.attributeID(extraSecondaryAttrRole)
 
         return primaryAttrID
-          ? self.caseDataArray.filter((aCaseData: CaseData) => {
+          ? self.getCaseDataArray(0).filter((aCaseData: CaseData) => {
             return dataset?.getStrValue(aCaseData.caseID, primaryAttrID) === primaryValue &&
               (secondaryValue === "__main__" ||
                 dataset?.getStrValue(aCaseData.caseID, secondaryAttrID) === secondaryValue) &&
@@ -479,7 +483,7 @@ export const DataConfigurationModel = types
             }
           })
         } else {
-          caseIDs = legendID ? self.caseDataArray.filter((aCaseData: CaseData) => {
+          caseIDs = legendID ? self.getCaseDataArray(0).filter((aCaseData: CaseData) => {
               return dataset?.getValue(aCaseData.caseID, legendID) === aValue
             }).map((aCaseData: CaseData) => aCaseData.caseID)
             : []
@@ -491,7 +495,7 @@ export const DataConfigurationModel = types
         calculate: (cat: string) => {
           const dataset = self.dataset
           const legendID = self.attributeID('legend')
-          const selection = (legendID && self.caseDataArray.filter((aCaseData: CaseData) =>
+          const selection = (legendID && self.getCaseDataArray(0).filter((aCaseData: CaseData) =>
             dataset?.getValue(aCaseData.caseID, legendID) === cat
           ).map((aCaseData: CaseData) => aCaseData.caseID)) ?? []
           return selection.length > 0 && (selection as Array<string>).every(anID => dataset?.isCaseSelected(anID))
@@ -504,7 +508,7 @@ export const DataConfigurationModel = types
           min = quantile === 0 ? -Infinity : thresholds[quantile - 1],
           max = quantile === thresholds.length ? Infinity : thresholds[quantile]
         return legendID
-          ? self.caseDataArray.filter((aCaseData: CaseData) => {
+          ? self.getCaseDataArray(0).filter((aCaseData: CaseData) => {
             const value = dataDisplayGetNumericValue(dataset, aCaseData.caseID, legendID)
             return value !== undefined && value >= min && value < max
           }).map((aCaseData: CaseData) => aCaseData.caseID)
@@ -571,6 +575,7 @@ export const DataConfigurationModel = types
       self.numericValuesForAttrRole.invalidateAll()
       self.categoryArrayForAttrRole.invalidateAll()
       self.allCasesForCategoryAreSelected.invalidateAll()
+      self.getCaseDataArray.invalidateAll()
       // increment observable change count
       ++self.casesChangeCount
     }
@@ -757,10 +762,21 @@ export const DataConfigurationModel = types
         {name: "DataConfigurationModel.afterCreate.reaction [dataset]", fireImmediately: true }
       ))
       addDisposer(self, reaction(
-        () => self.getAllCategoriesForRoles(),
+        () => self.allCategoriesForRoles,
         () => self.clearCasesCache(),
         {
-          name: "DataConfigurationModel.afterCreate.reaction [getAllCategoriesForRoles]",
+          name: "DataConfigurationModel.afterCreate.reaction [allCategoriesForRoles]",
+          equals: comparer.structural
+        }
+      ))
+      addDisposer(self, reaction(
+        () => {
+          const legendCategorySet = self.categorySetForAttrRole("legend")
+          return legendCategorySet?.valuesArray
+        },
+        () => self.clearCasesCache(),
+        {
+          name: "DataConfigurationModel.afterCreate.reaction [allCategoriesForRoles]",
           equals: comparer.structural
         }
       ))

@@ -20,7 +20,7 @@ import { CameraMenuList } from "./camera-menu-list"
 
 export const GraphInspector = observer(function GraphInspector({tile, show}: ITileInspectorPanelProps) {
   const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
-  const caseDataArray = graphModel?.dataConfiguration?.caseDataArray ?? []
+  const caseDataArray = graphModel?.dataConfiguration?.getCaseDataArray(0) ?? []
   const [showPalette, setShowPalette] = useState<string | undefined>(undefined)
   const panelRef = useRef<HTMLDivElement>()
   const panelRect = panelRef.current?.getBoundingClientRect()
