@@ -8,26 +8,25 @@ import { IBaseLegendProps } from "./legend-common"
 
 import vars from "../../../vars.scss"
 
-export const ColorLegend =
-  observer(function ColorLegend({layerIndex, setDesiredExtent}: IBaseLegendProps) {
-  const dataConfiguration = useDataConfigurationContext(),
+export const ColorLegend = observer(function ColorLegend({layerIndex, setDesiredExtent}: IBaseLegendProps) {
+  const dataConfiguration = useDataConfigurationContext()
 
-    getLabelHeight = useCallback(() => {
-      const labelFont = vars.labelFont,
-        legendAttrID = dataConfiguration?.attributeID('legend') ?? ''
-      return getStringBounds(dataConfiguration?.dataset?.attrFromID(legendAttrID)?.name ?? '', labelFont).height
-    }, [dataConfiguration]),
+  const getLabelHeight = useCallback(() => {
+    const labelFont = vars.labelFont,
+      legendAttrID = dataConfiguration?.attributeID('legend') ?? ''
+    return getStringBounds(dataConfiguration?.dataset?.attrFromID(legendAttrID)?.name ?? '', labelFont).height
+  }, [dataConfiguration])
 
-    refreshScale = useCallback(() => {
-      const labelHeight = getLabelHeight()
-      const computeDesiredExtent = () => {
-        if (dataConfiguration?.placeCanHaveZeroExtent('legend')) return 0
+  const refreshScale = useCallback(() => {
+    const labelHeight = getLabelHeight()
+    const computeDesiredExtent = () => {
+      if (dataConfiguration?.placeCanHaveZeroExtent('legend')) return 0
 
-        return labelHeight + 2 * axisGap
-      }
+      return labelHeight + 2 * axisGap
+    }
 
-      setDesiredExtent(layerIndex, computeDesiredExtent())
-    }, [dataConfiguration, getLabelHeight, setDesiredExtent, layerIndex])
+    setDesiredExtent(layerIndex, computeDesiredExtent())
+  }, [dataConfiguration, getLabelHeight, setDesiredExtent, layerIndex])
 
   useEffect(function refresh() {
     refreshScale()
