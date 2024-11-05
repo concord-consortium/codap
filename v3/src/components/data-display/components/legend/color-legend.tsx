@@ -21,9 +21,8 @@ export const ColorLegend =
     refreshScale = useCallback(() => {
       const labelHeight = getLabelHeight()
       const computeDesiredExtent = () => {
-        if (dataConfiguration?.placeCanHaveZeroExtent('legend')) {
-          return 0
-        }
+        if (dataConfiguration?.placeCanHaveZeroExtent('legend')) return 0
+
         return labelHeight + 2 * axisGap
       }
 
@@ -35,18 +34,15 @@ export const ColorLegend =
   }, [refreshScale])
 
   useEffect(function respondToLayoutChange() {
-    const disposer = reaction(
+    return reaction(
       () => dataConfiguration?.attributeID('legend'),
       () => refreshScale(),
-      {fireImmediately: true}
+      { fireImmediately: true, name: "ColorLegend attributeID" }
     )
-    return () => disposer()
   }, [dataConfiguration, refreshScale])
 
   useEffect(function cleanup () {
-    return () => {
-      setDesiredExtent(layerIndex, 0)
-    }
+    return () => setDesiredExtent(layerIndex, 0)
   }, [setDesiredExtent, layerIndex])
 
   return <svg className='legend-categories' data-testid='legend-categories' />
