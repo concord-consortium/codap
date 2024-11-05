@@ -3,8 +3,9 @@ import { getSnapshot, getType, Instance, ISerializedActionCall, types } from "mo
 import { onAnyAction } from "../../utilities/mst-utils"
 import { CategorySet, createProvisionalCategorySet, ICategorySet } from "../data/category-set"
 import { DataSet, IDataSet } from "../data/data-set"
-import { ISharedModel, SharedModel } from "./shared-model"
 import { applyModelChange } from "../history/apply-model-change"
+import { kDefaultHighAttributeColor, kDefaultLowAttributeColor } from "./shared-case-metadata-constants"
+import { ISharedModel, SharedModel } from "./shared-model"
 
 export const kSharedCaseMetadataType = "SharedCaseMetadata"
 
@@ -26,7 +27,9 @@ export const SharedCaseMetadata = SharedModel
     hidden: types.map(types.boolean),
     caseTableTileId: types.maybe(types.string),
     caseCardTileId: types.maybe(types.string),
-    lastShownTableOrCardTileId: types.maybe(types.string) // used to restore the last shown tile both have been hidden
+    lastShownTableOrCardTileId: types.maybe(types.string), // used to restore the last shown tile both have been hidden
+    lowAttributeColor: types.optional(types.string, kDefaultLowAttributeColor),
+    highAttributeColor: types.optional(types.string, kDefaultHighAttributeColor)
   })
   .volatile(self => ({
     // CategorySets are generated whenever CODAP needs to treat an attribute categorically.
@@ -87,6 +90,12 @@ export const SharedCaseMetadata = SharedModel
     },
     showAllAttributes() {
       self.hidden.clear()
+    },
+    setLowAttributeColor(color: string) {
+      self.lowAttributeColor = color
+    },
+    setHighAttributeColor(color: string) {
+      self.highAttributeColor = color
     }
   }))
   .actions(self => ({
