@@ -205,7 +205,8 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     if (dataset) {
       const disposer = onAnyAction(dataset, action => {
         if (isSetCaseValuesAction(action)) {
-          // assumes that if we're caching then only selected cases are being updated
+          // If we're caching then only selected cases need to be updated in scatterplots. But for dotplots
+          // we need to update all points because the unselecte points positions change.
           callRefreshPointPositions(dataset.isCaching() && graphModel.plotType !== "dotPlot")
           // TODO: handling of add/remove cases was added specifically for the case plot.
           // Bill has expressed a desire to refactor the case plot to behave more like the
