@@ -1,4 +1,4 @@
-import {scaleQuantile, ScaleQuantile, schemeBlues} from "d3"
+import {scaleQuantile, ScaleQuantile} from "d3"
 import {comparer, observable, reaction} from "mobx"
 import {
   addDisposer, getEnv, getSnapshot, hasEnv, IAnyStateTreeNode, Instance, ISerializedActionCall,
@@ -17,12 +17,15 @@ import {ISharedCaseMetadata, SharedCaseMetadata} from "../../../models/shared/sh
 import {isSetCaseValuesAction} from "../../../models/data/data-set-actions"
 import {FilteredCases, IFilteredChangedCases} from "../../../models/data/filtered-cases"
 import {Formula, IFormula} from "../../../models/formula/formula"
+import {
+  kDefaultHighAttributeColor, kDefaultLowAttributeColor
+} from "../../../models/shared/shared-case-metadata-constants"
 import {hashStringSets, typedId, uniqueId} from "../../../utilities/js-utils"
-import {missingColor} from "../../../utilities/color-utils"
+import {getQuantileScale, missingColor} from "../../../utilities/color-utils"
+import { numericSortComparator } from "../../../utilities/data-utils"
+import {GraphPlace} from "../../axis-graph-shared"
 import {CaseData} from "../d3-types"
 import {AttrRole, TipAttrRoles, graphPlaceToAttrRole} from "../data-display-types"
-import {GraphPlace} from "../../axis-graph-shared"
-import { numericSortComparator } from "../../../utilities/data-utils"
 
 export const AttributeDescription = types
   .model('AttributeDescription', {
@@ -403,6 +406,12 @@ export const DataConfigurationModel = types
     // observable hash of rendered case ids
     get caseDataHash() {
       return hashStringSets(self.filteredCases.map(cases => cases.caseIds))
+    },
+    get quantileScaleColors() {
+      return getQuantileScale(
+        self.metadata?.lowAttributeColor ?? kDefaultLowAttributeColor,
+        self.metadata?.highAttributeColor ?? kDefaultHighAttributeColor
+      )
     }
   }))
   .extend(self => {
@@ -414,7 +423,7 @@ export const DataConfigurationModel = types
       views: {
         get legendQuantileScale() {
           if (!quantileScale) {
-            quantileScale = scaleQuantile(self.numericValuesForAttrRole('legend'), schemeBlues[5])
+            quantileScale = scaleQuantile(self.numericValuesForAttrRole('legend'), self.quantileScaleColors)
           }
           return quantileScale
         },

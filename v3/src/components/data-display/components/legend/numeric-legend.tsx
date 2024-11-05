@@ -27,6 +27,7 @@ export const NumericLegend =
     quantileScale = useRef<ScaleQuantile<string>>(scaleQuantile()),
     [choroplethElt, setChoroplethElt] = useState<SVGGElement | null>(null),
     valuesRef = useRef<number[]>([]),
+    metadata = dataConfiguration?.metadata,
 
     getLabelHeight = useCallback(() => {
       const labelFont = vars.labelFont,
@@ -68,7 +69,7 @@ export const NumericLegend =
         }
 
         setDesiredExtent(layerIndex, computeDesiredExtent())
-        quantileScale.current.domain(valuesRef.current).range(schemeBlues[5])
+        quantileScale.current.domain(valuesRef.current).range(dataConfiguration?.quantileScaleColors ?? schemeBlues[5])
         choroplethLegend(quantileScale.current, choroplethElt,
           {
             isDate: dataConfiguration?.attributeType('legend') === 'date',
@@ -119,6 +120,13 @@ export const NumericLegend =
     () => refreshScale(),
     {name: "NumericLegend respondToHiddenCaseChange"}, dataConfiguration)
   }, [dataConfiguration, refreshScale])
+
+  useEffect(function respondToColorChange() {
+    return mstReaction(
+      () => ({ lowColor: metadata?.lowAttributeColor, highColor: metadata?.highAttributeColor }),
+      refreshScale, { name: "NumericLegend respondToColorChange" }, metadata
+    )
+  }, [metadata, refreshScale])
 
   // todo: This reaction is not being triggered when a legend attribute value is changed.
   // It should be.
