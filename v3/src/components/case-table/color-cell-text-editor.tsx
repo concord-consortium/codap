@@ -1,6 +1,5 @@
 import {
-  Button, ButtonGroup, Flex, forwardRef, Popover, PopoverAnchor, PopoverArrow, PopoverBody,
-  PopoverContent, PopoverFooter, PopoverTrigger, Portal, Spacer, useDisclosure, useMergeRefs
+  forwardRef, Popover, PopoverAnchor, PopoverTrigger, Portal, useDisclosure, useMergeRefs
 } from "@chakra-ui/react"
 import React, { ChangeEvent, useCallback, useEffect, useRef, useState } from "react"
 import { textEditorClassname } from "react-data-grid"
@@ -11,8 +10,7 @@ import { selectAllCases } from "../../models/data/data-set-utils"
 import { uiState } from "../../models/ui-state"
 import { parseColor, parseColorToHex } from "../../utilities/color-utils"
 import { blockAPIRequestsWhileEditing } from "../../utilities/plugin-utils"
-import { t } from "../../utilities/translation/translate"
-import { ColorPicker } from "../case-tile-common/color-picker"
+import { ColorPickerPalette } from "../common/color-picker-palette"
 import { TRenderEditCellProps } from "./case-table-types"
 
 /*
@@ -62,6 +60,7 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
   const showColorSwatch = useRef(!!hexColor || attribute?.userType === "color")
   const { setPendingLogMessage } = useLoggingContext()
   const blockAPIRequests = blockAPIRequestsWhileEditing(data)
+  const triggerButtonRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
     selectAllCases(data, false)
@@ -95,10 +94,10 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
     onClose()
   }, [onClose])
 
-  const { isOpen: isPaletteOpen, onToggle: togglePalette } = useDisclosure()
+  const { isOpen: isPaletteOpen, onToggle: setOpenPopover } = useDisclosure()
 
   function handleSwatchClick(event: React.MouseEvent) {
-    togglePalette()
+    setOpenPopover()
   }
 
   function handleInputColorChange(event: ChangeEvent<HTMLInputElement>) {
@@ -118,7 +117,7 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
             closeOnBlur={false}
           >
             <PopoverTrigger>
-              <button className="cell-edit-color-swatch"
+              <button className="cell-edit-color-swatch" ref={triggerButtonRef}
                 onClick={handleSwatchClick}>
                 <div className="cell-edit-color-swatch-interior" style={swatchStyle}/>
               </button>
@@ -127,25 +126,10 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
               { inputElt }
             </PopoverAnchor>
             <Portal>
-              <PopoverContent className="text-editor-color-picker" width={"inherit"}>
-                <PopoverArrow />
-                <PopoverBody>
-                  <ColorPicker color={hexColor} onChange={updateValue} />
-                </PopoverBody>
-                <PopoverFooter>
-                  <Flex>
-                    <Spacer/>
-                    <ButtonGroup>
-                      <Button className="cancel-button" size="xs" fontWeight="normal" onClick={rejectValue}>
-                        {t("V3.CaseTable.colorPalette.cancel")}
-                      </Button>
-                      <Button className="set-color-button" size="xs" fontWeight="normal" onClick={acceptValue}>
-                        {t("V3.CaseTable.colorPalette.setColor")}
-                      </Button>
-                    </ButtonGroup>
-                  </Flex>
-                </PopoverFooter>
-              </PopoverContent>
+              <ColorPickerPalette initialColor={initialInputValue.current || "#ffffff"}
+                inputValue={inputValue || "#ffffff"} swatchBackgroundColor={color || "#ffffff"}
+                buttonRef={triggerButtonRef} showArrow={true}
+                onColorChange={updateValue} onAccept={acceptValue} onReject={rejectValue} onUpdateValue={updateValue}/>
             </Portal>
           </Popover>
         </div>

@@ -538,8 +538,8 @@ context("Test changing legend colors", () => {
   describe("Test changing legend colors for categorical legend", () => {
     const initLandBackgroundColor = "rgb(255, 104"
     const standardLandBackgroundColor = "rgb(255, 238"
-    const saturationLandBackgroundColor = "rgb(128, 122"
-    const hueLandBackgroundColor = "rgb(64, 128"
+    const saturationLandBackgroundColor = "rgb(255, 234"
+    const hueLandBackgroundColor = "rgb(3, 255"
 
     beforeEach(function () {
       const queryParams = "?sample=mammals&dashboard&mouseSensor"
@@ -573,12 +573,12 @@ context("Test changing legend colors", () => {
         .invoke('css', 'background-color').should('contain', initLandBackgroundColor)
 
       cy.log("Shows expanded color picker when user click More button")
-      color_picker.getColorPickerToggleButton().should("have.text", "More")
+      color_picker.getColorPickerToggleButton().should("have.text", "more")
       color_picker.getColorPickerToggleButton().click()
       color_picker.getColorPicker().should("be.visible")
 
       cy.log("Hides expanded color picker when user click Less button")
-      color_picker.getColorPickerToggleButton().should("have.text", "Less")
+      color_picker.getColorPickerToggleButton().should("have.text", "less")
       color_picker.getColorPickerToggleButton().click()
       color_picker.getColorPicker().should("not.exist")
 
@@ -618,8 +618,8 @@ context("Test changing legend colors", () => {
       graph.getDisplayStylesButton().click()
       color_picker.getCategoricalColorSettingSwatch().eq(0).click()
       color_picker.getColorSettingSwatchCell().should("have.length", 16)
-      color_picker.getColorPickerToggleButton().should("have.text", "More").click()
-      color_picker.getColorPickerSaturation().click()
+      color_picker.getColorPickerToggleButton().should("have.text", "more").click()
+      color_picker.getColorPickerSaturation().click("topRight", {force: true})
       color_picker.getColorSettingSwatchCell().should("have.length", 17)
       color_picker.getColorSettingSwatchCell().eq(16).should("have.class", "selected")
       color_picker.getColorSettingSwatchCell().eq(6).should("not.have.class", "selected")
@@ -642,7 +642,11 @@ context("Test changing legend colors", () => {
         })
 
       cy.log("Does not change color when user cancels color selection from color picker")
-      color_picker.getColorPickerToggleButton().should("have.text", "More").click()
+      graph.getGraphTile().click()
+      graph.getDisplayStylesButton().click()
+      color_picker.getCategoricalColorSettingSwatch().eq(0).click()
+      color_picker.getColorPalette().should("be.visible")
+      color_picker.getColorPickerToggleButton().should("have.text", "more").click()
       color_picker.getColorPickerHue().click()
       color_picker.getColorSettingSwatchCell().eq(16)
         .invoke('css', 'background-color').should('contain', hueLandBackgroundColor)
