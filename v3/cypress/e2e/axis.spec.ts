@@ -31,7 +31,7 @@ context("Test graph axes with various attribute types", () => {
     ah.verifyDefaultAxisLabel("left")
   })
   // This test has become flaky (tick mark count is off)
-  // Skipping for now
+  // Skipping for now (PT-#188534232)
   it.skip("will add categorical attribute to x axis with undo/redo", () => {
     // Adding the attribute
     cy.dragAttributeToTarget("table", arrayOfAttributes[7], "bottom") // Habitat => x-axis
