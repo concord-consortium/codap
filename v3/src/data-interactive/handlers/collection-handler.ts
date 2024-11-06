@@ -109,7 +109,7 @@ export const diCollectionHandler: DIHandler = {
     if (!dataContext) return dataContextNotFoundResult
     if (!collection) return collectionNotFoundResult
 
-    const v2Collection = convertCollectionToV2(collection)
+    const v2Collection = convertCollectionToV2(collection, dataContext)
     return {
       success: true,
       values: v2Collection
