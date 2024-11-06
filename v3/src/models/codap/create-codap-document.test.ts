@@ -111,7 +111,9 @@ describe("createCodapDocument", () => {
             collections: {},
             data: "test-5",
             hidden: {},
+            highAttributeColor: "#08519c",
             id: caseMetadata.id,
+            lowAttributeColor: "#eff3ff",
             type: "SharedCaseMetadata"
           },
           tiles: []
