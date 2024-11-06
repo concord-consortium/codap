@@ -31,32 +31,46 @@ export const ColorPickerPalette = ({ swatchBackgroundColor, inputValue, buttonRe
 
   useEffect(() => {
     const adjustPosition = () => {
+      const popoverContainer = popoverContainerRef.current
       const popover = popoverRef.current
-      const triggerButton = buttonRef.current
+      // const triggerButton = buttonRef.current
 
-      if (popover && triggerButton) {
+      if (popoverContainer && popover) {
         const rect = popover.getBoundingClientRect()
         const viewportWidth = window.innerWidth
         const viewportHeight = window.innerHeight
-        let top = 0
-        let left = 0
+        let top = +styles.colorPickerPopoverTop
+        let left = +styles.colorPickerPopoverLeft
 
+console.log("rect", rect)
         if (rect.right > viewportWidth) {
-          left = viewportWidth - rect.right + (rect.width/2) - kGapSize
-        }
-        if (rect.bottom > viewportHeight) {
-          top = viewportHeight - rect.bottom - kGapSize
-        }
-        if (rect.left < 0) {
+          left = +styles.colorPickerPopoverLeft - (rect.width/2) - kGapSize // Adjusted calculation for clarity
+        } else if (rect.left < 0) {
           left = kGapSize
         }
-        if (rect.top < 0) {
+
+        if (rect.bottom > viewportHeight) {
+          top = viewportHeight - rect.bottom - kGapSize // Adjusted calculation for clarity
+        } else if (rect.top < 0) {
           top = kGapSize
         }
-        if (!showColorPicker) {
-          top = +styles.colorPickerPopoverTop
-          left = +styles.colorPickerPopoverLeft
-        }
+
+        // if (rect.right > viewportWidth) {
+        //   left = viewportWidth - rect.right + (rect.width/2) - kGapSize
+        // }
+        // if (rect.bottom > viewportHeight) {
+        //   top = viewportHeight - rect.bottom - kGapSize
+        // }
+        // if (rect.left < 0) {
+        //   left = kGapSize
+        // }
+        // if (rect.top < 0) {
+        //   top = kGapSize
+        // }
+        // if (!showColorPicker) {
+        //   top = +styles.colorPickerPopoverTop
+        //   left = +styles.colorPickerPopoverLeft
+        // }
 
         popover.style.top = `${top}px`
         popover.style.left = `${left}px`
@@ -68,7 +82,7 @@ export const ColorPickerPalette = ({ swatchBackgroundColor, inputValue, buttonRe
     return () => {
       window.removeEventListener('resize', adjustPosition)
     }
-  }, [showColorPicker, buttonRef])
+  }, [showColorPicker])
 
   const handleAccept = () => {
     onAccept()
