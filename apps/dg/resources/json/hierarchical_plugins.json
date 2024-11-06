@@ -1,0 +1,250 @@
+[
+  {
+    "title": "Story Telling",
+    "subMenu": [
+      {
+        "title": "Draw Tool",
+        "description": "Annotate an image.",
+        "title-string": "DG.plugin.DrawTool.title",
+        "description-string": "DG.plugin.DrawTool.description",
+        "width": 600,
+        "height": 400,
+        "path": "/DrawTool/index.html",
+        "icon": "/DrawTool/icon-draw-tool.svg",
+        "visible": true,
+        "isStandard": "true",
+        "categories": [
+          "Utilities",
+          "Tools"
+        ]
+      },
+      {
+        "title": "Sonify",
+        "description": "Listen to your data",
+        "title-string": "DG.plugin.Sonify.title",
+        "description-string": "DG.plugin.Sonify.description",
+        "width": 325,
+        "height": 274,
+        "path": "/Sonify/index.html",
+        "icon": "/Sonify/src/assets/sonify.svg",
+        "visible": "true",
+        "isStandard": "true",
+        "categories": [
+          "Partners",
+          "Tools"
+        ]
+      },
+      {
+        "title": "Story Builder",
+        "description": "Create a narrative of your investigation",
+        "title-string": "DG.plugin.StoryBuilder.pluginName",
+        "description-string": "DG.plugin.StoryBuilder.description",
+        "width": 800,
+        "height": 130,
+        "path": "/story-builder/index.html",
+        "icon": "/story-builder/story-builder-icon.svg",
+        "visible": "false",
+        "isStandard": "true",
+        "categories": [
+          "Partners",
+          "Tools"
+        ]
+      }
+    ]
+  },
+  {
+    "title": "Getting Data",
+    "subMenu": [
+      {
+        "title": "Microdata Portal",
+        "description": "Investigate populations from the US census at the individual level.",
+        "title-string": "DG.plugin.MicrodataPortal.title",
+        "description-string": "DG.plugin.MicrodataPortal.description",
+        "path": "/sdlc/plugin/index.html",
+        "icon": "/sdlc/plugin/assets/images/icon-microdata-portal.svg",
+        "aegis": "SDLC",
+        "visible": true,
+        "width": 380,
+        "height": 520,
+        "isStandard": "true",
+        "categories": [
+          "Partners",
+          "Portals"
+        ]
+      },
+      {
+        "title": "NHANES Portal",
+        "description": "Get data from the National Health and Nutrition Examination Survey.",
+        "title-string": "DG.plugin.NHANES.title",
+        "description-string": "DG.plugin.NHANES.description",
+        "path": "/data-science-worlds/nhanes/nhanes.html",
+        "visible": true,
+        "width": 380,
+        "height": 520,
+        "isStandard": "true",
+        "categories": [
+          "Portals"
+        ]
+      },
+      {
+        "title": "NOAA Weather",
+        "description": "Investigate historical weather patterns",
+        "title-string": "DG.plugin.NOAA-weather.title",
+        "description-string": "DG.plugin.NOAA-weather.description",
+        "width": 380,
+        "height": 490,
+        "path": "/noaa-codap-plugin/index.html",
+        "icon": "/noaa-codap-plugin/assets/images/icon-noaa-weather.svg",
+        "visible": "true",
+        "isStandard": "true",
+        "categories": [
+          "Partners",
+          "Portals"
+        ]
+      },
+      {
+        "title": "NASA Earth, Air and Water",
+        "description": "Get global data from NASA",
+        "title-string": "DG.plugin.NASA-data.title",
+        "description-string": "DG.plugin.NASA-data.description",
+        "width": 380,
+        "height": 490,
+        "path": "https://models-resources.concord.org/nasa-codap-plugin/index.html",
+        "icon": "https://models-resources.concord.org/nasa-codap-plugin/nasa-earth-air-and-water.svg",
+        "visible": "true",
+        "isStandard": "true",
+        "categories": [
+          "Partners",
+          "Portals"
+        ]
+      },
+      {
+        "title": "Day Length",
+        "description": "Get day lengths for any location on Earth plus an astronomical simulation",
+        "title-string": "DG.plugin.DayLength.title",
+        "description-string": "DG.plugin.DayLength.description",
+        "width": 380,
+        "height": 490,
+        "path": "https://models-resources.concord.org/codap-day-length-plugin-3/index.html",
+        "icon": "https://models-resources.concord.org/codap-day-length-plugin-3/day-length.svg",
+        "visible": "true",
+        "isStandard": "true",
+        "categories": [
+          "Partners",
+          "Portals"
+        ]
+      }
+    ]
+  },
+  {
+    "title": "Simulation",
+    "subMenu": [
+      {
+        "title": "Sampler",
+        "description": "Create random datasets from scratch or existing datasets.",
+        "title-string": "DG.plugin.Sampler.title",
+        "description-string": "DG.plugin.Sampler.description",
+        "width": 232,
+        "height": 400,
+        "path": "/TP-Sampler/index.html",
+        "icon": "/TP-Sampler/icon-sampler.svg",
+        "visible": "true",
+        "aegis": "ESTEEM",
+        "isStandard": "true",
+        "categories": [
+          "Partners",
+          "Generators"
+        ]
+      },
+      {
+        "title": "Simmer",
+        "description": "Use block programming to create simulations that produce data.",
+        "title-string": "DG.plugin.Simmer.name",
+        "description-string": "DG.plugin.Simmer.description",
+        "width": 400,
+        "height": 600,
+        "path": "/eepsmedia/plugins/simmer/index.html",
+        "visible": "true",
+        "isStandard": "true",
+        "categories": [
+          "Tools",
+          "Partners"
+        ]
+      }
+    ]
+  },
+  {
+    "title": "Data Moves",
+    "subMenu": [
+      {
+        "title": "Choosy",
+        "description": "Organize and simplify datasets, especially those with many attributes.",
+        "title-string": "DG.plugin.Choosy.title",
+        "description-string": "DG.plugin.Choosy.description",
+        "width": 400,
+        "height": 600,
+        "icon": "/eepsmedia/plugins/Choosy/art/choosy.svg",
+        "path": "/eepsmedia/plugins/Choosy/index.html",
+        "visible": "false",
+        "isStandard": "true",
+        "categories": [
+          "Partners",
+          "Tools"
+        ]
+      },
+      {
+        "title": "Transformers",
+        "description": "Transform datasets with a collection of powerful tools",
+        "title-string": "DG.plugin.Transformers.title",
+        "description-string": "DG.plugin.Transformers.description",
+        "width": 350,
+        "height": 450,
+        "icon": "/codap-transformers/transformers-icon-small.svg",
+        "path": "/codap-transformers/",
+        "visible": "false",
+        "isStandard": "true",
+        "categories": [
+          "Partners",
+          "Tools"
+        ]
+      }
+    ]
+  },
+  {
+    "title": "Statistical Inference",
+    "subMenu": [
+      {
+        "title": "Scrambler",
+        "description": "Test hypotheses by randomly varying an attribute.",
+        "title-string": "DG.plugin.Scrambler.name",
+        "description-string": "DG.plugin.Scrambler.description",
+        "width": 400,
+        "height": 600,
+        "path": "/eepsmedia/plugins/scrambler/index.html",
+        "icon": "/eepsmedia/plugins/scrambler/images/whisk_on_side.svg",
+        "visible": "true",
+        "isStandard": "true",
+        "categories": [
+          "Tools",
+          "Partners"
+        ]
+      },
+      {
+        "title": "Testimate",
+        "description": "Test hypotheses using classical inferential methods.",
+        "title-string": "DG.plugin.Testimate.name",
+        "description-string": "DG.plugin.Testimate.description",
+        "width": 400,
+        "height": 600,
+        "path": "/eepsmedia/plugins/testimate/index.html",
+        "icon": "/eepsmedia/plugins/testimate/art/chisq.svg",
+        "visible": "true",
+        "isStandard": "true",
+        "categories": [
+          "Tools",
+          "Partners"
+        ]
+      }
+    ]
+  }
+]
