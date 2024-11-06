@@ -1,5 +1,5 @@
 import {useEffect} from "react"
-import {comparer, reaction} from "mobx"
+import { comparer, reaction } from "mobx"
 import {isAlive} from "mobx-state-tree"
 import {onAnyAction} from "../../../utilities/mst-utils"
 import {mstAutorun} from "../../../utilities/mst-autorun"
@@ -63,7 +63,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
   // https://www.pivotaltracker.com/story/show/188333898
   // This might be a workaround for the fact that useDebouncedCallback may not be updated when pixiPoints
   // (a dependency of refreshPointPositions) are updated. useDebouncedCallback doesn't seem to declare any
-  // dependencies and I'd imagine it returns a stable result (?).
+  // dependencies, and I'd imagine it returns a stable result (?).
   useEffect(() => {
     callRefreshPointPositions(false)
   }, [callRefreshPointPositions, pixiPoints])
@@ -92,14 +92,12 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
 
   useEffect(function respondToCategorySetChanges() {
     return reaction(() => {
-      return layout.categorySetArrays
-    }, (categorySetsArrays) => {
-      if (categorySetsArrays.length) {
-        startAnimation()
-        callRefreshPointPositions(false)
-      }
+      return dataConfiguration.allCategoriesForRoles
+    }, () => {
+      startAnimation()
+      callRefreshPointPositions(false)
     }, {name: "usePlot.respondToCategorySetChanges"})
-  }, [callRefreshPointPositions, layout.categorySetArrays, startAnimation])
+  }, [callRefreshPointPositions, dataConfiguration, startAnimation])
 
   // respond to attribute assignment changes
   useEffect(() => {
@@ -115,7 +113,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
           graphModel?.setPointsFusedIntoBars(false)
         }
         // If points are fused into bars and a secondary attribute is added or the primary attribute is removed,
-        // unfuse the points. Otherwise, if a primary attribute exists, make sure the bar graph's count axis gets
+        // un-fuse the points. Otherwise, if a primary attribute exists, make sure the bar graph's count axis gets
         // updated.
         const { primaryRole } = dataConfiguration
         const primaryAttrID = primaryRole && dataConfiguration.attributeID(primaryRole)
@@ -205,8 +203,9 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     if (dataset) {
       const disposer = onAnyAction(dataset, action => {
         if (isSetCaseValuesAction(action)) {
-          // assumes that if we're caching then only selected cases are being updated
-          callRefreshPointPositions(dataset.isCaching())
+          // If we're caching then only selected cases need to be updated in scatterplots. But for dotplots
+          // we need to update all points because the unselecte points positions change.
+          callRefreshPointPositions(dataset.isCaching() && graphModel.plotType !== "dotPlot")
           // TODO: handling of add/remove cases was added specifically for the case plot.
           // Bill has expressed a desire to refactor the case plot to behave more like the
           // other plots, which already handle removal of cases (and perhaps addition of cases?)
@@ -217,7 +216,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
       })
       return () => disposer()
     }
-  }, [dataset, callRefreshPointPositions])
+  }, [dataset, callRefreshPointPositions, graphModel.plotType])
 
   // respond to added or removed cases or change in attribute type or change in collection groups
   useEffect(function handleDataConfigurationActions() {
@@ -228,7 +227,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
       if (['addCases', 'removeCases', 'setAttributeType', 'invalidateCollectionGroups'].includes(action.name)) {
         // there  are no longer any cases in the dataset, or if plot is not univariate and the attribute type changes,
         // we need to set the pointConfig to points
-        const caseDataArray = dataConfiguration?.caseDataArray ?? []
+        const caseDataArray = dataConfiguration?.getCaseDataArray(0) ?? []
         if (caseDataArray.length === 0 || graphModel?.plotType !== "dotPlot") {
           graphModel?.setPointConfig("points")
         }

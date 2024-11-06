@@ -1,12 +1,12 @@
 import {
-  autocompletion, closeBrackets, closeBracketsKeymap, Completion, CompletionContext,
+  acceptCompletion, autocompletion, closeBrackets, closeBracketsKeymap, Completion, CompletionContext,
   completionKeymap, CompletionResult, insertCompletionText, pickedCompletion
 } from "@codemirror/autocomplete"
 import { defaultKeymap } from "@codemirror/commands"
 import { defaultHighlightStyle, syntaxHighlighting, syntaxTree } from "@codemirror/language"
 import { Decoration, DecorationSet, keymap, ViewPlugin } from "@codemirror/view"
 import CodeMirror, {
-  drawSelection, EditorState, EditorView, Extension, KeyBinding, RangeSet, RangeSetBuilder, RangeValue,
+  drawSelection, EditorState, EditorView, Extension, KeyBinding, Prec, RangeSet, RangeSetBuilder, RangeValue,
   ReactCodeMirrorRef, StateEffect, StateField, ViewUpdate
 } from "@uiw/react-codemirror"
 import React, { useCallback, useRef } from "react"
@@ -231,7 +231,15 @@ function cmExtensionsSetup() {
       override: [cmCodapCompletions],
     }),
     codapHighlightingViewPlugin,
-    keymap.of(keymaps.flat())
+    keymap.of(keymaps.flat()),
+    Prec.highest(
+      keymap.of([
+        // Tab key accepts auto-complete suggestion (https://discuss.codemirror.net/t/tab-autocompletion/6396)
+        { key: "Tab", run: acceptCompletion },
+        // Prevents CodeMirror's default behavior for Cmd-Enter key
+        { key: "Mod-Enter", run: () => true }
+      ])
+    )
   ]
   return extensions.filter(Boolean)
 }

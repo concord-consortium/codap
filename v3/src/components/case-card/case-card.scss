@@ -1,8 +1,8 @@
-@import "../vars.scss";
-@import "./case-card-vars.scss";
+@use "../vars";
+@use "./case-card-vars" as cardVars;
 
 .case-card.react-data-card {
-  height: calc(100% - $title-bar-height);
+  height: calc(100% - vars.$title-bar-height);
   overflow: auto;
 }
 
@@ -34,7 +34,7 @@
   input.column-name-input,
   input.collection-title-input,
   input.case-card-attr-value-text-editor {
-    border: solid 1.5px $input-border-color;
+    border: solid 1.5px cardVars.$input-border-color;
     border-radius: 0;
     box-shadow: none;
     display: inline-block;
@@ -59,7 +59,7 @@
 
 // TODO: Determine if the legacy styles below are still needed
 
-// $table-body-font-size: 8pt;
+// vars.$table-body-font-size: 8pt;
 
 // .case-card {
 //   position: relative;

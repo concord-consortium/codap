@@ -3,12 +3,14 @@ import { kIndexColumnKey } from "../../components/case-tile-common/case-tile-typ
 import { logMessageWithReplacement } from "../../lib/log-message"
 import { AttributeFormulaAdapter } from "../formula/attribute-formula-adapter"
 import { FilterFormulaAdapter } from "../formula/filter-formula-adapter"
+import { INotify } from "../history/apply-model-change"
 import { getSharedCaseMetadataFromDataset } from "../shared/shared-data-utils"
 import { IAttribute } from "./attribute"
 import { ICollectionModel } from "./collection"
 import { IDataSet } from "./data-set"
 import {
-  deleteCollectionNotification, moveAttributeNotification, selectCasesNotification
+  createCasesNotification, deleteCasesNotification, deleteCollectionNotification,
+  moveAttributeNotification, selectCasesNotification
 } from "./data-set-notifications"
 import { IAttributeChangeResult, IMoveAttributeOptions } from "./data-set-types"
 
@@ -109,6 +111,8 @@ export function moveAttribute({
   }
 }
 
+// Selection helper functions
+
 function selectWithNotification(func: () => void, data?: IDataSet, extend?: boolean) {
   data?.applyModelChange(() => {
     func()
@@ -139,4 +143,88 @@ export function selectAndDeselectCases(addCaseIds: string[], removeCaseIds: stri
     data?.selectCases(addCaseIds)
     data?.selectCases(removeCaseIds, false)
   }, data, true)
+}
+
+// Set aside helper functions
+
+// For case ids, returns the grouped case. For item ids, returns the childmost grouped case containing that item.
+function getGroupedCases(data: IDataSet, caseOrItemIds: string[]) {
+  return caseOrItemIds.map(caseId => data.caseInfoMap.get(caseId) ?? data.itemIdChildCaseMap.get(caseId))
+    .filter(caseInfo => !!caseInfo).map(caseInfo => caseInfo.groupedCase)
+}
+
+export function addSetAsideCases(data: IDataSet, caseOrItemIds: string[], undoable = true) {
+  if (caseOrItemIds.length) {
+    data.validateCases()
+    data.applyModelChange(() => {
+      data.hideCasesOrItems(caseOrItemIds)
+      data.selectCases(caseOrItemIds, false)
+    }, {
+      notify:
+        [selectCasesNotification(data, true), deleteCasesNotification(data, getGroupedCases(data, caseOrItemIds))],
+      undoStringKey: undoable ? "V3.Undo.hideShowMenu.setAsideCases" : undefined,
+      redoStringKey: undoable ? "V3.Redo.hideShowMenu.setAsideCases" : undefined
+    })
+  }
+}
+
+function createGuaranteedCasesNotification(data: IDataSet, caseOrItemIds: string[]) {
+  const caseIds = caseOrItemIds
+    .map(id => data.caseInfoMap.get(id) ? id : data.itemIdChildCaseMap.get(id)?.groupedCase.__id__)
+    .filter(caseId => caseId != null)
+  if (caseIds.length) return createCasesNotification(caseIds, data)
+}
+
+export function restoreSetAsideCases(data?: IDataSet, caseOrItemIds?: string[], undoable = true) {
+  if (!data) return
+
+  data.validateCases()
+  const setAsideCaseOrItemIds =
+    caseOrItemIds ? caseOrItemIds.filter(caseId => data.isCaseOrItemHidden(caseId)) : [...data.setAsideItemIds]
+  const createNotification = createGuaranteedCasesNotification(data, setAsideCaseOrItemIds)
+  const notifications: INotify = createNotification ? [createNotification] : []
+  if (setAsideCaseOrItemIds.length) {
+    data.applyModelChange(() => {
+      data.showHiddenCasesAndItems(setAsideCaseOrItemIds)
+      data.setSelectedCases(setAsideCaseOrItemIds)
+    }, {
+      notify: notifications.concat(selectCasesNotification(data)),
+      undoStringKey: undoable ? "V3.Undo.hideShowMenu.restoreSetAsideCases" : undefined,
+      redoStringKey: undoable ? "V3.Redo.hideShowMenu.restoreSetAsideCases" : undefined,
+      log: "Restore set aside cases"
+    })
+  }
+}
+
+export function replaceSetAsideCases(data: IDataSet, caseOrItemIds: string[]) {
+  if (caseOrItemIds.length) {
+    data.validateCases()
+    const itemIds: string[] = []
+    caseOrItemIds.forEach(caseOrItemId => {
+      const aCase = data.caseInfoMap.get(caseOrItemId)
+      if (aCase) {
+        aCase.childItemIds.forEach(itemId => itemIds.push(itemId))
+        aCase.hiddenChildItemIds.forEach(itemId => itemIds.push(itemId))
+      } else {
+        itemIds.push(caseOrItemId)
+      }
+    })
+    const itemIdSet = new Set(itemIds)
+    const restoredItemIds = data.setAsideItemIds.filter(itemId => !itemIdSet.has(itemId))
+    const setAsideCaseOrItemIds = caseOrItemIds.filter(caseId => !data.isCaseOrItemHidden(caseId))
+    const setAsideCases = getGroupedCases(data, setAsideCaseOrItemIds)
+
+    const createNotification = createGuaranteedCasesNotification(data, restoredItemIds)
+    let notifications: INotify = createNotification ? [createNotification] : []
+    if (setAsideCases.length) notifications = notifications.concat(deleteCasesNotification(data, setAsideCases))
+
+    data.applyModelChange(() => {
+      data.showHiddenCasesAndItems()
+      data.validateCases()
+      data.hideCasesOrItems(caseOrItemIds)
+      data.setSelectedCases(restoredItemIds)
+    }, {
+      notify: notifications.concat(selectCasesNotification(data, true))
+    })
+  }
 }

@@ -7,8 +7,9 @@
   generally be MobX-observable.
  */
 import { cloneDeep } from "lodash"
-import { action, computed, makeObservable, observable } from "mobx"
+import { action, computed, makeObservable, observable, reaction } from "mobx"
 import { getSnapshot } from "mobx-state-tree"
+import { CloudFileManager } from "@concord-consortium/cloud-file-manager"
 import { createCodapDocument } from "./codap/create-codap-document"
 import { gDataBroker } from "./data/data-broker"
 import { IDocumentModel, IDocumentModelSnapshot } from "./document/document"
@@ -17,6 +18,8 @@ import { ISharedDataSet, kSharedDataSetType, SharedDataSet } from "./shared/shar
 import { getSharedModelManager } from "./tiles/tile-environment"
 import { Logger } from "../lib/logger"
 import { t } from "../utilities/translation/translate"
+import { DEBUG_DOCUMENT } from "../lib/debug"
+import { TreeManagerType } from "./history/tree-manager"
 
 type AppMode = "normal" | "performance"
 
@@ -32,9 +35,14 @@ class AppState {
   private isPerformanceEnabled = true
 
   private version = ""
+  private cfm: CloudFileManager | undefined
+  private dirtyMonitorDisposer: (() => void) | undefined
 
   constructor() {
     this.currentDocument = createCodapDocument()
+    if (DEBUG_DOCUMENT) {
+      (window as any).currentDocument = this.currentDocument
+    }
 
     makeObservable(this)
   }
@@ -44,20 +52,50 @@ class AppState {
     return this.currentDocument
   }
 
+  @computed
+  private get treeManager() {
+    // Internally we know our treeManagerAPI is really an instance of TreeManager.
+    // And we don't have need to expose the revisionId to tiles.
+    return this.document.treeManagerAPI as TreeManagerType | undefined
+  }
+
+  /**
+   * Check if this revisionId is the same as the current document's revisionId
+   *
+   * @param revisionId required but can be undefined
+   * @returns
+   */
+  isCurrentRevision(revisionId: string | undefined) {
+    return revisionId === this.treeManager?.revisionId
+  }
+
   async getDocumentSnapshot() {
     // use cloneDeep because MST snapshots are immutable
-    return await serializeDocument(this.currentDocument, doc => cloneDeep(getSnapshot(doc)))
+    const snapshot = await serializeDocument(this.currentDocument, doc => cloneDeep(getSnapshot(doc)))
+    const revisionId = this.treeManager?.revisionId
+    if (revisionId) {
+      return { revisionId, ...snapshot }
+    }
+
+    return snapshot
+  }
+
+  setCFM(cfm: CloudFileManager) {
+    this.cfm = cfm
   }
 
   @action
-  setDocument(snap: IDocumentModelSnapshot, metadata?: Record<string, any>) {
+  setDocument(snap: IDocumentModelSnapshot & {revisionId?: string}, metadata?: Record<string, any>) {
     // stop monitoring changes for undo/redo on the existing document
-    this.disableUndoRedoMonitoring()
+    this.disableDocumentMonitoring()
 
     try {
       const document = createCodapDocument(snap)
       if (document) {
         this.currentDocument = document
+        if (DEBUG_DOCUMENT) {
+          (window as any).currentDocument = document
+        }
         if (metadata) {
           const metadataEntries = Object.entries(metadata)
           metadataEntries.forEach(([key, value]) => {
@@ -68,8 +106,15 @@ class AppState {
         }
         const docTitle = this.currentDocument.getDocumentTitle()
         this.currentDocument.setTitle(docTitle || t("DG.Document.defaultDocumentName"))
+        if (snap.revisionId && this.treeManager) {
+          // Restore the revisionId from the stored document
+          // This will allow us to consistently compare the local document
+          // to the stored document.
+          this.treeManager.setRevisionId(snap.revisionId)
+        }
+
         // monitor document changes for undo/redo
-        this.enableUndoRedoMonitoring()
+        this.enableDocumentMonitoring()
 
         // update data broker with the new data sets
         const manager = getSharedModelManager(document)
@@ -86,13 +131,23 @@ class AppState {
   }
 
   @action
-  enableUndoRedoMonitoring() {
+  enableDocumentMonitoring() {
     this.currentDocument?.treeMonitor?.enableMonitoring()
+    if (this.currentDocument && !this.dirtyMonitorDisposer) {
+      this.dirtyMonitorDisposer = reaction(
+        () => this.treeManager?.revisionId,
+        () => {
+          this.cfm?.client.dirty(true)
+        }
+      )
+    }
   }
 
   @action
-  disableUndoRedoMonitoring() {
+  disableDocumentMonitoring() {
     this.currentDocument?.treeMonitor?.disableMonitoring()
+    this.dirtyMonitorDisposer?.()
+    this.dirtyMonitorDisposer = undefined
   }
 
   @action

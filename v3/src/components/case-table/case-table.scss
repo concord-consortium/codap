@@ -252,6 +252,11 @@ $table-body-font-size: 8pt;
     .rdg-row {
       input.rdg-text-editor {
         font-size: $table-body-font-size;
+        height: 100%;
+        line-height: 1.5;
+        display: flex;
+        align-items: center;
+        box-sizing: border-box;
       }
       &.rdg-row-even {
         .codap-index-cell {
@@ -280,6 +285,8 @@ $table-body-font-size: 8pt;
       padding-inline: 4px;
       border-inline-end: 1px solid var(--rdg-border-color);
       border-block-end: 1px solid var(--rdg-border-color);
+      display: flex;
+      align-items: center;
 
       &.codap-index-cell {
         padding-inline: 0;
@@ -332,13 +339,16 @@ $table-body-font-size: 8pt;
 
       .color-cell-text-editor {
         width: 100%;
-        height: 100%;
+        height: calc(100% - 4px);
         display: flex;
+        flex-direction: row;
+        align-items: center;
         padding-inline-start: 2px;
 
         .cell-edit-color-swatch {
           width: 12px;
-          padding: 4px 2px 3px 0;
+          height: 12px;
+          margin-right: 2px;
 
           .cell-edit-color-swatch-interior {
             width: 100%;

@@ -64,7 +64,7 @@ export const Container: React.FC = observer(function Container() {
       }
     }
   })
-  const mergedContainerRef = useMergeRefs<HTMLDivElement>(containerRef, setNodeRef)
+  const mergedContainerRef = useMergeRefs<HTMLDivElement | null>(containerRef, setNodeRef)
 
   const classes = clsx(kContainerClass, { "scroll-behavior-auto": isScrollBehaviorAuto })
   return (

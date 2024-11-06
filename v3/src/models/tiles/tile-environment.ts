@@ -11,17 +11,12 @@ import { IGlobalValueManager, kGlobalValueManagerType } from "../global/global-v
 export interface ITileEnvironment {
   sharedModelManager?: ISharedModelManager
   formulaManager?: FormulaManager
-  getLocale?: () => string
   log?: (message: ILogMessage) => void
   notify?: (message: DIMessage, callback: iframePhone.ListenerCallback, targetTileId?: string) => void
 }
 
 export function getTileEnvironment(node?: IAnyStateTreeNode) {
   return node && hasEnv(node) ? getEnv<ITileEnvironment | undefined>(node) : undefined
-}
-
-export function getCurrentLocale(node?: IAnyStateTreeNode) {
-  return getTileEnvironment(node)?.getLocale?.() ?? "en-US"
 }
 
 export function getSharedModelManager(node?: IAnyStateTreeNode) {

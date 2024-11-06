@@ -1,6 +1,8 @@
 import { TriangleDownIcon, TriangleUpIcon } from "@chakra-ui/icons"
 import {Divider, Flex, List, ListItem,} from "@chakra-ui/react"
+import { IAnyStateTreeNode } from "mobx-state-tree"
 import React, { useEffect, useRef, useState } from "react"
+import { useMemo } from "use-memo-one"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { getGlobalValueManager, getSharedModelManager } from "../../models/tiles/tile-environment"
 import { useFormulaEditorContext } from "./formula-editor-context"
@@ -14,6 +16,11 @@ interface IProps {
   setShowValuesMenu: (show: boolean) => void
 }
 
+function getGlobalsNames(node?: IAnyStateTreeNode) {
+  const globalManager = node && getGlobalValueManager(getSharedModelManager(node))
+  return globalManager ? Array.from(globalManager.globals.values()).map(global => global.name) : []
+}
+
 export const InsertValuesMenu = ({setShowValuesMenu}: IProps) => {
   const dataSet = useDataSetContext()
   const { editorApi } = useFormulaEditorContext()
@@ -24,27 +31,22 @@ export const InsertValuesMenu = ({setShowValuesMenu}: IProps) => {
       .filter(name => name !== undefined)
   )
   const attributeNames = dataSet?.attributes.map(attr => attr.name)
-  const globalManager = dataSet && getGlobalValueManager(getSharedModelManager(dataSet))
-  const globals = globalManager
-                    ? Array.from(globalManager.globals.values()).map(global => ({ label: global.name }))
-                    : []
   // TODO_Boundaries
-  const remoteBoundaryData = [ "CR_Cantones", "CR_Provincias", "DE_state_boundaries",
+  const remoteBoundaryData = useMemo(() => [ "CR_Cantones", "CR_Provincias", "DE_state_boundaries",
      "IT_region_boundaries", "JP_Prefectures", "US_congressional_boundaries", "US_county_boundaries",
-     "US_puma_boundaries", "US_state_boundaries", "country_boundaries" ]
+     "US_puma_boundaries", "US_state_boundaries", "country_boundaries" ], [])
   const constants = ["e", "false", "true", "π"]
   const scrollableContainerRef = useRef<HTMLUListElement>(null)
-  const [listContainerStyle, setListContainerStyle] = useState({})
   const [, setScrollPosition] = useState(0)
 
-  let maxItemLength = 0
+  const maxItemLength = useRef(0)
 
   const insertValueToFormula = (value: string) => {
     editorApi?.insertVariableString(value)
     setShowValuesMenu(false)
   }
 
-  const getListContainerStyle = () => {
+  function getListContainerStyle() {
     // calculate the top of the list container based on the height of the list. The list should be
     // nearly centered on the button that opens it.
     // The list should not extend beyond the top or bottom of the window.
@@ -52,19 +54,19 @@ export const InsertValuesMenu = ({setShowValuesMenu}: IProps) => {
     const button = document.querySelector(".formula-editor-button.insert-value")
 
     attributeNames?.forEach((attrName) => {
-      if (attrName.length > maxItemLength) {
-        maxItemLength = attrName.length
+      if (attrName.length > maxItemLength.current) {
+        maxItemLength.current = attrName.length
       }
     })
     remoteBoundaryData.forEach((boundary) => {
-      if (boundary.length > maxItemLength) {
-        maxItemLength = boundary.length
+      if (boundary.length > maxItemLength.current) {
+        maxItemLength.current = boundary.length
       }
     })
 
-    globals.forEach((global) => {
-      if (global.label.length > maxItemLength) {
-        maxItemLength = global.label.length
+    getGlobalsNames(dataSet).forEach(globalName => {
+      if (globalName.length > maxItemLength.current) {
+        maxItemLength.current = globalName.length
       }
     })
 
@@ -80,7 +82,7 @@ export const InsertValuesMenu = ({setShowValuesMenu}: IProps) => {
       } else {
         top = spaceBelow - listHeight
       }
-      return { top, height: kMaxHeight, width: 40 + 10 * maxItemLength }
+      return { top, height: kMaxHeight, width: 40 + 10 * maxItemLength.current }
     }
     return {}
   }
@@ -97,8 +99,6 @@ export const InsertValuesMenu = ({setShowValuesMenu}: IProps) => {
   }
 
   useEffect(() => {
-    setListContainerStyle(getListContainerStyle())
-
     const handleScrollPosition = () => {
       if (scrollableContainerRef.current) {
         setScrollPosition(scrollableContainerRef.current.scrollTop)
@@ -120,7 +120,7 @@ export const InsertValuesMenu = ({setShowValuesMenu}: IProps) => {
 
   return (
     <Flex className="formula-operand-list-container" data-testid="formula-value-list"
-        style={listContainerStyle} >
+        style={getListContainerStyle()} >
       { isScrollable && canScrollUp &&
       <div className="scroll-arrow" onPointerOver={()=>handleScroll("up")}>
         <TriangleUpIcon />
@@ -161,11 +161,11 @@ export const InsertValuesMenu = ({setShowValuesMenu}: IProps) => {
               </ListItem>
             )
           })}
-          { globals.map((global) => {
+          { getGlobalsNames(dataSet).map(globalName => {
             return (
-              <ListItem key={global.label} className="formula-operand-list-item"
-                    onClick={() => insertValueToFormula(global.label)}>
-                {global.label}
+              <ListItem key={globalName} className="formula-operand-list-item"
+                    onClick={() => insertValueToFormula(globalName)}>
+                {globalName}
               </ListItem>
             )
           })}

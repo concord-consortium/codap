@@ -152,7 +152,7 @@ export const computeBinPlacements = (props: IComputeBinPlacements) => {
   const binMap: Record<string, BinMap> = {}
 
   if (primaryAxisScale) {
-    dataConfig?.caseDataArray.forEach((aCaseData: CaseData) => {
+    dataConfig?.getCaseDataArray(0).forEach((aCaseData: CaseData) => {
       const anID = aCaseData.caseID
       const caseValue = dataDisplayGetNumericValue(dataset, anID, primaryAttrID) ?? -1
       const numerator = primaryAxisScale(caseValue) / numExtraPrimaryBands

@@ -2,6 +2,7 @@ import { TableTileElements as table } from "../support/elements/table-tile"
 import { ComponentElements as c } from "../support/elements/component-elements"
 import { ToolbarElements as toolbar } from "../support/elements/toolbar-elements"
 import { FormulaHelper as fh } from "../support/helpers/formula-helper"
+import { ColorPickerPaletteElements as cpp } from "../support/elements/color-picker-palette"
 
 context("case table ui", () => {
   const numOfAttributes = 10
@@ -28,10 +29,11 @@ context("case table ui", () => {
   })
 
   describe("table view", () => {
-    it("populates title bar from sample data", () => {
+    it("has a valid title bar and column headers", () => {
+      cy.log("populates title bar from sample data")
       c.getComponentTitle("table").should("contain", collectionName)
-    })
-    it("verify columns and tooltips", () => {
+
+      cy.log("verify columns and tooltips")
       // css width specification caused grid virtualization to only have 9 attributes in the DOM
       table.getColumnHeaders().should("have.length.be.within", 9, 10)
       table.getColumnHeader(0).invoke("text").then(columnName => {
@@ -39,10 +41,10 @@ context("case table ui", () => {
         table.getColumnHeader(0).rightclick({ force: true })
         // table.getColumnHeaderTooltip().should("contain", columnNameArr[0])
       })
-    table.getColumnHeader(1).invoke("text").then(columnName => {
-      // const columnNameArr = columnName.split(" ")
-      table.getColumnHeader(1).rightclick({ force: true })
-      // table.getColumnHeaderTooltip().should("contain", columnNameArr[0])
+      table.getColumnHeader(1).invoke("text").then(columnName => {
+        // const columnNameArr = columnName.split(" ")
+        table.getColumnHeader(1).rightclick({ force: true })
+        // table.getColumnHeaderTooltip().should("contain", columnNameArr[0])
       })
     })
     it("verify edit attribute properties with undo and redo", () => {
@@ -1064,21 +1066,37 @@ context("case table ui", () => {
   })
 
   describe("table cell editing", () => {
-    it("edits cells with color swatch", () => {
+    it("edits cells with text and color swatches", () => {
       cy.log("checking cell contents")
       table.getGridCell(2, 2).should("contain", "African Elephant")
 
-      cy.log("double-clicking the cell")
+      cy.log("selecting the cell doesn't dirty the document")
+      table.getGridCell(2, 2).click()
+      // check for the "UNSAVED" badge
+      // The badge will not be there before the selection, so we need to wait
+      // to give some time for buggy code to add the badge.
+      cy.wait(100)
+      cy.get(".menu-bar-file-status-alert").should("not.exist")
+
+      cy.log("edit cell text and check dirty state")
       // double-click to initiate editing cell
       table.getGridCell(2, 2).dblclick()
       cy.wait(100) // Wait for the editing input to appear
-
-      cy.log("check the editing cell contents")
       table.getGridCell(2, 2).find("[data-testid='cell-text-editor']").should("have.value", "African Elephant")
+      // update the text
+      table.getGridCell(2, 2).find("[data-testid='cell-text-editor']").type("African Turtle{enter}")
+      cy.get(".menu-bar-file-status-alert").should("contain", "Unsaved")
+
+      cy.log("add color swatch to cell")
+      // select the cell again
+      table.getGridCell(2, 2).click()
+      // double-click to initiate editing cell
+      table.getGridCell(2, 2).dblclick()
+      cy.wait(100) // Wait for the editing input to appear
       // type a color string
       table.getGridCell(2, 2).find("[data-testid='cell-text-editor']").type("#ff00ff{enter}")
       // verify that cell shows color swatch of appropriate color
-      table.verifyCellSwatchColor(2, 2, "rgb(255, 0, 255)")
+      table.verifyCellSwatchColor(2, 2, "rgb(255, 0")
 
       cy.log("double-click to begin editing cell")
       table.getGridCell(2, 2).click()
@@ -1094,17 +1112,17 @@ context("case table ui", () => {
       cy.wait(100) // Wait for the color palette to appear
 
       cy.log("click hue bar to change color")
-      cy.get(`.react-colorful .react-colorful__hue [aria-label="Hue"]`).should('be.visible').click()
+      cpp.getColorSettingSwatchCell().eq(0).click()
       cy.wait(100) // Wait for the color change to be reflected
 
       cy.log("verify that the color actually changed")
-      table.verifyEditCellSwatchColor(2, 2, "rgb(0, 255,")
+      table.verifyEditCellSwatchColor(2, 2, "rgb(0, 0")
 
       cy.log("type escape key to dismiss color palette")
-      cy.get(".react-colorful").type("{esc}")
+      cy.get(".color-swatch-palette").type("{esc}")
 
       cy.log("verify that cell displays original color")
-      table.verifyCellSwatchColor(2, 2, "rgb(255, 0, 255)")
+      table.verifyCellSwatchColor(2, 2, "rgb(255, 0")
 
       cy.log("double-click to begin editing cell again")
       table.getGridCell(2, 2).dblclick()
@@ -1119,17 +1137,18 @@ context("case table ui", () => {
       cy.wait(100) // Wait for the color palette to appear
 
       cy.log("click hue bar to change color again")
-      cy.get(`.react-colorful .react-colorful__hue [aria-label="Hue"]`).should('be.visible').click()
+      cpp.getColorPickerToggleButton().click()
+      cpp.getColorPickerHue().click()
       cy.wait(100) // Wait for the color change to be reflected
 
       cy.log("verify that the color actually changed again")
-      table.verifyEditCellSwatchColor(2, 2, "rgb(0, 255,")
+      table.verifyEditCellSwatchColor(2, 2, "rgb(0, 255")
 
       cy.log("click Set Color button to dismiss color palette and change color")
-      cy.get(".text-editor-color-picker .set-color-button").should('be.visible').click()
+      cpp.getSetColorButton().click()
 
       cy.log("verify that the color actually changed finally")
-      table.verifyCellSwatchColor(2, 2, "rgb(0, 255,")
+      table.verifyCellSwatchColor(2, 2, "rgb(0, 255")
     })
 })
 })

@@ -1,4 +1,4 @@
-@import "../vars.scss";
+@use "../vars";
 
 .formula-function-menu-container {
   margin: 3px 0;
@@ -30,7 +30,7 @@
       font-weight: bold;
       line-height: 20px;
       &:hover, &:active {
-        color: $codap-teal-light;
+        color: vars.$codap-teal-light;
         text-decoration: underline;
       }
 
@@ -42,7 +42,7 @@
 
     .functions-list-header {
       &:hover, &:active {
-        color: $codap-teal-light;
+        color: vars.$codap-teal-light;
         text-decoration: underline;
       }
       .function-select-back-arrow {
@@ -59,7 +59,7 @@
       margin-top: 5px;
       min-height: 20px;
       &:hover, &:active {
-        color: $codap-teal-light;
+        color: vars.$codap-teal-light;
         .function-menu-name {
           text-decoration: underline;
         }
@@ -86,7 +86,7 @@
   cursor: pointer;
 
   &:hover, &:active {
-    color: $codap-teal-light;
+    color: vars.$codap-teal-light;
     text-decoration: underline;
   }
 }
@@ -132,7 +132,7 @@
     height: 20px;
 
     &:hover, &:active {
-      color: $codap-teal-light;
+      color: vars.$codap-teal-light;
       text-decoration: underline;
     }
   }
@@ -162,7 +162,7 @@
       margin: 0 20px;
       height: 18px;
       &:hover, &:active {
-        color: $codap-teal-light;
+        color: vars.$codap-teal-light;
         text-decoration: underline;
       }
     }

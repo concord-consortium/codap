@@ -1,4 +1,4 @@
-import { ScaleBand, ScaleLinear, scaleLinear, scaleOrdinal } from "d3"
+import { ScaleLinear, scaleLinear, scaleOrdinal } from "d3"
 import { reaction } from "mobx"
 import { isAlive } from "mobx-state-tree"
 import { useCallback, useEffect, useRef } from "react"
@@ -101,10 +101,11 @@ export const useAxis = ({axisPlace, axisTitle = "", centerCategoryLabels}: IUseA
         break
       }
       case 'categorical': {
-        const
-          ordinalScale = multiScale?.scale as ScaleBand<string>,
-          bandWidth = ((ordinalScale?.bandwidth?.()) ?? 0) / repetitions,
+        // We compute the desired bandWidth from the axis length and the number of categories. rather than
+        // from the multiScale. This is because during restore the multiScale has not been set up yet.
+        const axisLength = layout.getAxisLength(axisPlace),
           categories = dataConfiguration?.categoryArrayForAttrRole(attrRole) ?? [],
+          bandWidth = axisLength / categories.length / repetitions,
           collision = collisionExists({bandWidth, categories, centerCategoryLabels})
         desiredExtent += collision ? maxWidthOfStringsD3(categories) : getStringBounds().height
         break
@@ -118,8 +119,8 @@ export const useAxis = ({axisPlace, axisTitle = "", centerCategoryLabels}: IUseA
       }
     }
   return desiredExtent
-}, [dataConfiguration, axisPlace, axisTitle, multiScale, type, displayModel, axisProvider,
-    attrRole, centerCategoryLabels]
+}, [dataConfiguration, axisPlace, axisProvider, axisTitle, multiScale, type, displayModel,
+    layout, attrRole, centerCategoryLabels]
 )
 
 // update d3 scale and axis when scale type changes

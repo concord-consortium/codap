@@ -35,7 +35,7 @@ export const MapPointLayerModel = MapLayerModel
   }))
   .views(self => ({
     getPointRadius(use: 'normal' | 'hover-drag' | 'select' = 'normal') {
-      return computePointRadius(self.dataConfiguration.caseDataArray.length,
+      return computePointRadius(self.dataConfiguration.getCaseDataArray(0).length,
         self.displayItemDescription.pointSizeMultiplier, use)
     },
     get pointDescription() {

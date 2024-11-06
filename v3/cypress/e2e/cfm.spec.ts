@@ -60,6 +60,7 @@ context("CloudFileManager", () => {
     table.getGridCell(2, 2).should("contain", "African Elephant")
 
     // Close the document
+    // Note: because we aren't changing the document we can close it without the dialog
     cfm.closeDocument()
 
     // Verify document was closed (table doesn't exist)
@@ -74,6 +75,7 @@ context("CloudFileManager", () => {
     table.getGridCell(2, 2).should("contain", "African Elephant")
 
     // Close the document
+    // Note: because we aren't changing the document we can close it without the dialog
     cfm.closeDocument()
 
     // Verify document was closed (table doesn't exist)
@@ -87,7 +89,7 @@ context("CloudFileManager", () => {
     table.getGridCell(2, 2).should("contain", "Alabama")
 
     // Close the document
-    cfm.closeDocument()
+    cfm.closeDocument({discardChanges: true})
 
     // Verify document was closed (Map data table doesn't exist)
     c.checkComponentDoesNotExist("table")
