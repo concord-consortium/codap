@@ -562,6 +562,8 @@ export const DataConfigurationModel = types
             return self.getLegendColorForNumericValue(Number(legendValue))
           case 'date':
             return self.getLegendColorForDateValue(legendValue)
+          case 'color':
+            return legendValue
           default:
             return ''
         }
