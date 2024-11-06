@@ -418,11 +418,18 @@ export const DataConfigurationModel = types
     // TODO: This is a hack to get around the fact that MST doesn't seem to cache this as expected
     // when implemented as simple view.
     let quantileScale: ScaleQuantile<string> | undefined = undefined
+    let previousLowAttributeColor: string | undefined
+    let previousHighAttributeColor: string | undefined
 
     return {
       views: {
         get legendQuantileScale() {
-          if (!quantileScale) {
+          if (!quantileScale ||
+            previousLowAttributeColor !== self.metadata?.lowAttributeColor ||
+            previousHighAttributeColor !== self.metadata?.highAttributeColor
+          ) {
+            previousLowAttributeColor = self.metadata?.lowAttributeColor
+            previousHighAttributeColor = self.metadata?.highAttributeColor
             quantileScale = scaleQuantile(self.numericValuesForAttrRole('legend'), self.quantileScaleColors)
           }
           return quantileScale
