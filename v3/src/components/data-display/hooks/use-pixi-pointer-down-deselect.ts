@@ -4,10 +4,12 @@ import { PixiPoints } from "../pixi/pixi-points"
 import { usePixiPointerDown } from "./use-pixi-pointer-down"
 
 export function usePixiPointerDownDeselect(pixiPointsArray: PixiPoints[], model?: IDataDisplayContentModel) {
-  usePixiPointerDown(pixiPointsArray, event => {
+  usePixiPointerDown(pixiPointsArray, (event, pixiPoints: PixiPoints) => {
     if (!event.shiftKey && !event.metaKey && !event.ctrlKey) {
-      const datasetsArray = model?.datasetsArray ?? []
-      datasetsArray.forEach(data => selectAllCases(data, false))
+      pixiPoints.requestAnimationFrame("deselectAll", () => {
+        const datasetsArray = model?.datasetsArray ?? []
+        datasetsArray.forEach(data => selectAllCases(data, false))
+      })
     }
   })
 }
