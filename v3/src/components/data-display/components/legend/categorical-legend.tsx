@@ -14,14 +14,10 @@ import {useDataDisplayLayout} from "../../hooks/use-data-display-layout"
 import {getStringBounds} from "../../../axis/axis-utils"
 import {kDataDisplayFont, transitionDuration} from "../../data-display-types"
 import {axisGap} from "../../../axis/axis-types"
+import { IBaseLegendProps } from "./legend-common"
 
 import './legend.scss'
 import vars from "../../../vars.scss"
-
-interface ICategoricalLegendProps {
-  layerIndex: number
-  setDesiredExtent: (layerIndex:number, extent: number) => void
-}
 
 interface Key {
   category: string
@@ -65,7 +61,7 @@ const coordinatesToCatIndex = (lod: Layout, numCategories: number, localPoint: {
   }
 
 export const CategoricalLegend = observer(
-  function CategoricalLegend({layerIndex, setDesiredExtent}: ICategoricalLegendProps) {
+  function CategoricalLegend({layerIndex, setDesiredExtent}: IBaseLegendProps) {
     const dataConfiguration = useDataConfigurationContext(),
       dataset = dataConfiguration?.dataset,
       tileWidth = useDataDisplayLayout().tileWidth,

@@ -11,17 +11,12 @@ import {kChoroplethHeight} from "../../data-display-types"
 import {useDataConfigurationContext} from "../../hooks/use-data-configuration-context"
 import {useDataDisplayLayout} from "../../hooks/use-data-display-layout"
 import {choroplethLegend} from "./choropleth-legend/choropleth-legend"
+import { IBaseLegendProps } from "./legend-common"
 
 import vars from "../../../vars.scss"
 
-
-interface INumericLegendProps {
-  layerIndex: number
-  setDesiredExtent: (layerIndex:number, extent: number) => void
-}
-
 export const NumericLegend =
-  observer(function NumericLegend({layerIndex, setDesiredExtent}: INumericLegendProps) {
+  observer(function NumericLegend({layerIndex, setDesiredExtent}: IBaseLegendProps) {
   const dataConfiguration = useDataConfigurationContext(),
     tileWidth = useDataDisplayLayout().tileWidth,
     quantileScale = useRef<ScaleQuantile<string>>(scaleQuantile()),
