@@ -40,7 +40,7 @@ export const ColorPickerPalette = ({ swatchBackgroundColor, inputValue, buttonRe
         const viewportWidth = window.innerWidth
         const viewportHeight = window.innerHeight
         let top = +styles.colorPickerPopoverTop
-        let left = +styles.colorPickerPopoverLeft
+        let left = showArrow ? 0 : +styles.colorPickerPopoverLeft
 
 console.log("rect", rect)
         if (rect.right > viewportWidth) {
@@ -109,8 +109,9 @@ console.log("rect", rect)
 
   return (
     <PopoverContent ref={popoverContainerRef}
-                    className={clsx("color-picker-palette-container", {"with-color-picker": showColorPicker})}>
-      {showArrow && <PopoverArrow />}
+                    className={clsx("color-picker-palette-container",
+                                    {"with-color-picker": showColorPicker, "with-arrow": showArrow})}>
+      {showArrow && <PopoverArrow className="palette-arrow"/>}
       <PopoverBody ref={popoverRef}
             className={clsx("color-picker-palette",
                             {"with-color-picker": showColorPicker, "without-arrow": !showArrow})}>

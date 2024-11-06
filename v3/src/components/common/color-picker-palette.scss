@@ -2,6 +2,8 @@ $color-picker-popover-top: -8;
 $color-picker-popover-top-px: #{$color-picker-popover-top}px;
 $color-picker-popover-left: -90;
 $color-picker-popover-left-px: #{$color-picker-popover-left}px;
+$color-palette-height: 170px;
+$color-palette-and-picker-height: 410px;
 
 // https://mattferderer.com/use-sass-variables-in-typescript-and-javascript
 :export {
@@ -16,6 +18,23 @@ $color-picker-popover-left-px: #{$color-picker-popover-left}px;
   height: max-content;
   position: relative;
   width: 0 !important;
+
+  &.with-arrow {
+    top: - calc($color-palette-height / 2);
+
+    .color-picker-palette {
+      left: 0px;
+      &.with-color-picker {
+        left: 0px !important;
+      }
+    }
+  }
+  // &.with-color-picker {
+  //   // .color-picker-palette {
+  //   top: - calc($color-palette-and-picker-height / 2);
+  //     // left: $color-picker-popover-left-px;
+  //   // }
+  // }
 
   .color-picker-palette {
     display: flex;
@@ -90,5 +109,17 @@ $color-picker-popover-left-px: #{$color-picker-popover-left}px;
         margin-top: 5px;
       }
     }
+  }
+
+  .palette-arrow {
+    position: absolute;
+    top: calc(($color-palette-height / 2) - 20px) !important;
+    left: -10px;
+    width: 0;
+    height: 0;
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+    border-right: 10px solid white;
+    transform: translateY(-50%);
   }
 }
