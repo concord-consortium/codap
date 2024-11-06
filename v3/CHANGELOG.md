@@ -1,5 +1,31 @@
 # Changelog
 
+## Version 3.0.0-pre.1976 - November 6, 2024
+
+### ✨ Features & Improvements:
+- **PT-188182907:** Dirty document management
+- **PT-181840421:** The hamburger menu item **Close** closes the current document
+- **PT-188484902:** Formula Editor keyboard shortcuts
+- **PT-187502179:** Case table Color picker shows palette of 16 + 1 color squares by default (*Started*)
+
+### 🐞 Bug Fixes:
+- **PT-188509712:** **Sorting** of hierarchical attribute should sort within parent cases
+- **PT-188037024:** Missing "=" sign in Formula Editor dialog
+- **PT-188403674:** Layout of graph axis not correct on restore
+- **PT-188463149:** **Insert Function** selects incorrect portion of inserted text for editing on Safari (and sometimes other browsers)
+- **PT-188524694:** Dragging dot plot point fails to cause other points to adjust their positions
+- **PT-188470760:** “TAB” Button Does Not Trigger Autocomplete in **Formula Editor**
+- **PT-187614572:** Dot chart and bar chart respond dynamically to change in category order (*Delivered*)
+
+### 🛠️ Under the Hood:
+- **PT-187223531:** The plugin api supports the ability to specify set aside cases
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  183151 bytes |                            0.21% |
+|  index.js | 6299639 bytes |                           <0.00% |
+
 ## Version 3.0.0-pre.1963 - November 1, 2024
 
 ### ✨ Features & Improvements:
