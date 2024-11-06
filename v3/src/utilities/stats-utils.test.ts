@@ -2,7 +2,7 @@ import { certifiedResults as norrisResults, data as norrisData } from "./nist-no
 import { certifiedResults as noInt1Results, data as noInt1Data } from "./nist-noint1"
 import {
   computeBivariateStats, correlation, leastSquaresLinearRegression, linRegrIntercept, linRegrSlope,
-  linRegrStdErrSlopeAndIntercept, rSquared
+  linRegrStdErrSlopeAndIntercept, rSquared, XYValues
 } from "./stats-utils"
 
 describe("stats-utils", () => {
@@ -17,6 +17,19 @@ describe("stats-utils", () => {
     const { stdErrSlope, stdErrIntercept } = linRegrStdErrSlopeAndIntercept([])
     expect(stdErrIntercept).toBeNaN()
     expect(stdErrSlope).toBeNaN()
+  })
+
+  it("returns expected values for perfect regression (exactly two points)", () => {
+    const values: XYValues = [{ x: 0, y: 0 }, { x: 1, y: 1 }]
+    const { count } = computeBivariateStats(values)
+    expect(count).toBe(2)
+    expect(correlation(values)).toBe(1)
+    expect(rSquared(values)).toBe(1)
+    expect(linRegrIntercept(values)).toBe(0)
+    expect(linRegrSlope(values)).toBe(1)
+    const { stdErrSlope, stdErrIntercept } = linRegrStdErrSlopeAndIntercept(values)
+    expect(stdErrIntercept).toBe(0)
+    expect(stdErrSlope).toBe(0)
   })
 
   it("matches results from NIST Norris data set", () => {

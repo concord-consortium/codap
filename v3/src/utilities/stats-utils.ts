@@ -33,13 +33,13 @@ export function computeBivariateStats(xyValues: XYValues) {
     xyValues.forEach(({ x, y }) => {
       let xDiff, yDiff
       if (isFinite(x) && isFinite(y)) {
-        result.sumOfProductDiffs += (x - result.xMean) * (y - result.yMean)
         xDiff = x - result.xMean
-        result.xSumSquaredDeviations += xDiff * xDiff
-        xSumDiffs += xDiff
         yDiff = y - result.yMean
-        result.ySumSquaredDeviations += yDiff * yDiff
+        xSumDiffs += xDiff
         ySumDiffs += yDiff
+        result.xSumSquaredDeviations += xDiff * xDiff
+        result.ySumSquaredDeviations += yDiff * yDiff
+        result.sumOfProductDiffs += xDiff * yDiff
       }
     })
     // Subtract a correction factor for round-off error.
@@ -174,10 +174,10 @@ export function leastSquaresLinearRegression(xyValues: XYValues, interceptLocked
     })
     result.rSquared = interceptLocked
       // since intercept is 0 when locked, denominator is total sum of squares
-      ? result.rSquared = 1 - result.sumSquaredErrors / ySumSquaredValues
+      ? 1 - result.sumSquaredErrors / ySumSquaredValues
       : (sumOfProductDiffs * sumOfProductDiffs) / (xSumSquaredDeviations * ySumSquaredDeviations)
-    result.sdResiduals = Math.sqrt(result.sumSquaredErrors / (count - 2))
-    result.meanSquaredError = result.sumSquaredErrors / (count - 2)
+    result.sdResiduals = count > 2 ? Math.sqrt(result.sumSquaredErrors / (count - 2)) : 0
+    result.meanSquaredError = count > 2 ? result.sumSquaredErrors / (count - 2) : 0
   }
   return result
 }
@@ -196,10 +196,12 @@ export function linRegrStdErrSlopeAndIntercept(xyValues: XYValues): StdErrLSRRes
   const result = { stdErrSlope: NaN, stdErrIntercept: NaN }
   const { count, sumSquaredErrors, xMean, xSumSquaredDeviations } = leastSquaresLinearRegression(xyValues)
   if (!count || xMean == null || xSumSquaredDeviations == null) return result
-  if (count > 1) {
+  // no error if only two points
+  if (count === 2) return { stdErrSlope: 0, stdErrIntercept: 0 }
+  if (count > 2) {
     result.stdErrSlope = Math.sqrt((sumSquaredErrors / (count - 2)) / xSumSquaredDeviations)
     result.stdErrIntercept = Math.sqrt(sumSquaredErrors / (count - 2)) *
-                              Math.sqrt(1 / count + Math.pow(xMean, 2) / xSumSquaredDeviations)
+                              Math.sqrt(1 / count + xMean * xMean / xSumSquaredDeviations)
   }
   return result
 }
