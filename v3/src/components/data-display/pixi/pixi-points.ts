@@ -43,6 +43,16 @@ export interface IPixiPointStyle {
   height?: number
 }
 
+export const PixiPointsAnimationFrameRequestIds = ["deselectAll"] as const
+export type PixiPointsAnimationFrameRequestId = typeof PixiPointsAnimationFrameRequestIds[number]
+
+// map from dispatched event to the PixiPoints instance that dispatched it
+const pixiDispatchedEventsMap = new WeakMap<Event | PIXI.FederatedEvent, PixiPoints>()
+
+export function getPixiPointsDispatcher(event: Event) {
+  return pixiDispatchedEventsMap.get(event)
+}
+
 // PixiPoints layer can be setup to distribute events from background to elements laying underneath.
 export interface IBackgroundEventDistributionOptions {
   elementToHide: HTMLElement | SVGElement // element which should be hidden to obtain element laying underneath
@@ -104,6 +114,9 @@ export class PixiPoints {
   onPointDragStart?: PixiPointEventHandler
   onPointDrag?: PixiPointEventHandler
   onPointDragEnd?: PixiPointEventHandler
+
+  // map from id string to requestAnimationFrame id number
+  animationFrames = new Map<PixiPointsAnimationFrameRequestId, number>()
 
   async init(options?: IPixiPointsOptions) {
     // Automatically determines the most appropriate renderer for the current environment.
@@ -542,6 +555,15 @@ export class PixiPoints {
     }
   }
 
+  dispatchEvent(targetElement: Element | null, event: Event, pixiEvent: PIXI.FederatedEvent) {
+    if (targetElement) {
+      // associate this PixiPoints instance with dispatched events
+      pixiDispatchedEventsMap.set(event, this)
+      pixiDispatchedEventsMap.set(pixiEvent, this)
+      targetElement.dispatchEvent(event)
+    }
+  }
+
   setupBackgroundEventDistribution(options: IBackgroundEventDistributionOptions) {
     const { elementToHide } = options
 
@@ -558,23 +580,17 @@ export class PixiPoints {
     this.background.eventMode = "static"
     // Click event redistribution.
     this.background.on("click", (event: PIXI.FederatedPointerEvent) => {
-      const elementUnderneath = getElementUnderCanvas(event)
       // Dispatch the same event to the element under the cursor.
-      if (elementUnderneath) {
-        elementUnderneath.dispatchEvent(new MouseEvent("click", event))
-      }
+      this.dispatchEvent(getElementUnderCanvas(event), new MouseEvent("click", event), event)
     })
 
     this.background.on("pointerdown", (event: PIXI.FederatedPointerEvent) => {
-      const elementUnderneath = getElementUnderCanvas(event)
       // Dispatch the same event to the element under the cursor.
-      if (elementUnderneath) {
-        elementUnderneath.dispatchEvent(new PointerEvent("pointerdown", event))
-      }
+      this.dispatchEvent(getElementUnderCanvas(event), new PointerEvent("pointerdown", event), event)
     })
 
     // Handle mousemove events by dispatching mouseover/mouseout events to the elements beneath the cursor.
-    let mouseoverElement: Element | undefined
+    let mouseoverElement: Element | null = null
     this.background.on("mousemove", (event: PIXI.FederatedPointerEvent) => {
       const elementUnderneath = getElementUnderCanvas(event)
       if (elementUnderneath && elementUnderneath === mouseoverElement) {
@@ -583,21 +599,37 @@ export class PixiPoints {
       }
       if (elementUnderneath) {
         if (mouseoverElement && mouseoverElement !== elementUnderneath) {
-          mouseoverElement.dispatchEvent(new MouseEvent("mouseout", event))
+          this.dispatchEvent(mouseoverElement, new MouseEvent("mouseout", event), event)
         }
-        elementUnderneath.dispatchEvent(new MouseEvent("mouseover", event))
+        this.dispatchEvent(elementUnderneath, new MouseEvent("mouseover", event), event)
         mouseoverElement = elementUnderneath
       } else if (mouseoverElement) {
-        mouseoverElement.dispatchEvent(new MouseEvent("mouseout", event))
-        mouseoverElement = undefined
+        this.dispatchEvent(mouseoverElement, new MouseEvent("mouseout", event), event)
+        mouseoverElement = null
       }
     })
     this.background.on("mouseout", (event: PIXI.FederatedPointerEvent) => {
-      if (mouseoverElement) {
-        mouseoverElement.dispatchEvent(new MouseEvent("mouseout", event))
-        mouseoverElement = undefined
-      }
+      this.dispatchEvent(mouseoverElement, new MouseEvent("mouseout", event), event)
+      mouseoverElement = null
     })
+  }
+
+  requestAnimationFrame(requestId: PixiPointsAnimationFrameRequestId, callback: () => void) {
+    // can only have one pending request of a given type
+    if (!this.animationFrames.get(requestId)) {
+      this.animationFrames.set(requestId, requestAnimationFrame(() => {
+        callback()
+        this.animationFrames.delete(requestId)
+      }))
+    }
+  }
+
+  cancelAnimationFrame(requestId: PixiPointsAnimationFrameRequestId) {
+    const frameToCancel = this.animationFrames.get(requestId)
+    if (frameToCancel != null) {
+      cancelAnimationFrame(frameToCancel)
+      this.animationFrames.delete(requestId)
+    }
   }
 
   setupSpriteInteractivity(sprite: PIXI.Sprite) {
