@@ -72,6 +72,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
   const [selectionStartRowIdx, setSelectionStartRowIdx] = useState<number | null>(null)
   const initialPointerDownPosition = useRef({ x: 0, y: 0 })
   const kPointerMovementThreshold = 3
+  const [dataGridColumnWidths, setDataGridColumnWidths] = useState<Map<string, number>>(new Map());
 
   useEffect(function setGridElement() {
     const element = gridRef.current?.element
@@ -129,6 +130,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
       },
       newColumnWidths => {
         columnWidths.current = newColumnWidths
+        setDataGridColumnWidths(newColumnWidths)
         forceUpdate()
       },
       { name: "CollectionTable.updateColumnWidths", fireImmediately: true, equals: comparer.structural },
@@ -356,7 +358,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
         <DataGrid ref={gridRef} className="rdg-light" data-testid="collection-table-grid" renderers={renderers}
           columns={columns} rows={rows} headerRowHeight={+styles.headerRowHeight} rowKeyGetter={rowKey}
           rowHeight={+styles.bodyRowHeight} selectedRows={selectedRows} onSelectedRowsChange={setSelectedRows}
-          columnWidths={columnWidths.current} onColumnResize={handleColumnResize} onCellClick={handleCellClick}
+          columnWidths={dataGridColumnWidths} onColumnResize={handleColumnResize} onCellClick={handleCellClick}
           onCellKeyDown={handleCellKeyDown} onRowsChange={handleRowsChange} onScroll={handleGridScroll}
           onSelectedCellChange={handleSelectedCellChange}/>
       </div>

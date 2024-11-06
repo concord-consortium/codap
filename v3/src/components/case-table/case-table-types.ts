@@ -47,3 +47,4 @@ export type OnScrollClosestRowIntoViewFn = (collectionId: string, rowIndices: nu
 export const kInputRowKey = "__input__"
 
 export const kDefaultColumnWidth = 80
+export const kMinColumnWidth = 60
