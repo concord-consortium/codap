@@ -15,6 +15,7 @@ import { ITileInspectorPanelProps } from "../../tiles/tile-base-props"
 import { useDataSet } from "../../../hooks/use-data-set"
 import { DataSetContext } from "../../../hooks/use-data-set-context"
 import { CaseMetadataContext } from "../../../hooks/use-case-metadata"
+import { useMeasureText } from "../../../hooks/use-measure-text"
 import { IAttribute } from "../../../models/data/attribute"
 import { ICaseTableModel, isCaseTableModel } from "../../case-table/case-table-model"
 import { kMinColumnWidth } from "../../case-table/case-table-types"
@@ -31,7 +32,7 @@ export const CaseTileInspector = ({ tile, show, showResizeColumnsButton }: IProp
     isCaseTileContentModel(tile?.content) ? tile?.content : undefined
   const { data, metadata } = useDataSet(caseTileModel?.data, caseTileModel?.metadata)
   const tableModel: ICaseTableModel | undefined = isCaseTableModel(tile?.content) ? tile?.content : undefined
-
+  const measureText = useMeasureText()
   if (!caseTileModel) return null
 
   const handleButtonClick = (tool: string) => {
@@ -43,49 +44,30 @@ export const CaseTileInspector = ({ tile, show, showResizeColumnsButton }: IProp
   }
 
   const resizeAllColumns = () => {
-    data?.collections.forEach((collection) => {
-      collection.attributes.forEach((attr) => {
-        if (attr) {
-          const attrId = attr?.id
-          const longestContentWidth = findLongestContentWidth(attr)
-          tableModel?.applyModelChange(() => {
+    tableModel?.applyModelChange(() => {
+      data?.collections.forEach((collection) => {
+        collection.attributes.forEach((attr) => {
+          if (attr) {
+            const attrId = attr?.id
+            const longestContentWidth = findLongestContentWidth(attr)
             tableModel?.setColumnWidth(attrId, longestContentWidth)
-          }, {
-            log: {message: "Resize all columns", args:{}, category: "table"},
-            undoStringKey: "DG.Undo.caseTable.resizeColumns",
-            redoStringKey: "DG.Redo.caseTable.resizeColumns"
-          })
-        }
+          }
+        })
       })
+    }, {
+      log: {message: "Resize all columns", args:{}, category: "table"},
+      undoStringKey: "DG.Undo.caseTable.resizeColumns",
+      redoStringKey: "DG.Redo.caseTable.resizeColumns"
     })
   }
 
   const findLongestContentWidth = (attr: IAttribute) => {
     let longestWidth = 0
-    const widthAdjustment = 25 // width calculation is too wide without this adjustment
     attr.strValues.forEach((val) => {
-      const contentWidth = measureTextWidth(val?.toString() || "")
-      if (contentWidth > longestWidth) {
-        longestWidth = contentWidth
-      }
+      const contentWidth = measureText(val)
+      longestWidth = Math.max(longestWidth, contentWidth)
     })
-
-    return longestWidth - widthAdjustment > kMinColumnWidth
-              ? longestWidth - widthAdjustment :  kMinColumnWidth
-  }
-
-  const measureTextWidth = (text: string) => {
-    // Use a temporary span to measure the width of the text
-    const span = document.createElement('span')
-    span.innerText = text
-    span.style.position = 'absolute'
-    span.style.visibility = 'hidden'
-    span.style.height = '0'
-    span.style.width = 'auto'
-    document.body.appendChild(span)
-    const width = span.offsetWidth
-    document.body.removeChild(span)
-    return width
+    return Math.max(longestWidth, kMinColumnWidth)
   }
 
   return (
