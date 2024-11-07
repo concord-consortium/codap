@@ -1,5 +1,6 @@
 import { MathNode } from "mathjs"
 import { checkNumber } from "../../../utilities/math-utils"
+import { XYValues } from "../../../utilities/stats-utils"
 import { IValueType } from "../../data/attribute-types"
 import { CurrentScope, FValue, FValueOrArray } from "../formula-types"
 import { UNDEF_RESULT, evaluateNode, getRootScope, isNumber, isValueNonEmpty, isValueTruthy } from "./function-utils"
@@ -41,6 +42,38 @@ export const aggregateNumericFnWithFilterFactory = (fn: (values: number[]) => FV
       isNumber(v) && (filterValues ? isValueTruthy(filterValues[i]) : true)
     )
     return expressionValues.length > 0 ? fn(expressionValues) : UNDEF_RESULT
+  }
+}
+
+// Calls the client function with a filtered array of strictly numeric value pairs.
+// Note that bivariate functions like correlation, rSquared, etc., all have the same signature.
+// The only difference is the final math operation applied to the values.
+export const aggregateBivariateNumericFnWithFilterFactory = (fn: (xyValues: XYValues) => FValue) => {
+  return (args: MathNode[], mathjs: any, currentScope: CurrentScope) => {
+    const scope = getRootScope(currentScope)
+    const [xArg, yArg, filterArg] = args
+    let xValues = evaluateNode(xArg, scope)
+    if (!Array.isArray(xValues)) {
+      xValues = [xValues]
+    }
+    let yValues = evaluateNode(yArg, scope)
+    if (!Array.isArray(yValues)) {
+      yValues = [yValues]
+    }
+    let filterValues = !!filterArg && evaluateNode(filterArg, scope)
+    if (!!filterArg && !Array.isArray(filterValues)) {
+      filterValues = [filterValues]
+    }
+    const xyValues: XYValues = []
+    const count = Math.min(xValues.length, yValues.length)
+    for (let i = 0; i < count; ++i) {
+      const [isXValid, x] = checkNumber(xValues[i])
+      const [isYValid, y] = checkNumber(yValues[i])
+      if (isXValid && isYValid && (filterValues ? isValueTruthy(filterValues[i]) : true)) {
+        xyValues.push({ x, y })
+      }
+    }
+    return xyValues.length > 0 ? fn(xyValues) : UNDEF_RESULT
   }
 }
 
