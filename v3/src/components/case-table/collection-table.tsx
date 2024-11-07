@@ -72,7 +72,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
   const [selectionStartRowIdx, setSelectionStartRowIdx] = useState<number | null>(null)
   const initialPointerDownPosition = useRef({ x: 0, y: 0 })
   const kPointerMovementThreshold = 3
-  const [dataGridColumnWidths, setDataGridColumnWidths] = useState<Map<string, number>>(new Map());
+  const [dataGridColumnWidths, setDataGridColumnWidths] = useState<Map<string, number>>(new Map())
 
   useEffect(function setGridElement() {
     const element = gridRef.current?.element
