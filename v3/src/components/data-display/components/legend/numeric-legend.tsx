@@ -1,5 +1,5 @@
 import {ScaleQuantile, scaleQuantile, schemeBlues} from "d3"
-import {reaction} from "mobx"
+import {comparer, reaction} from "mobx"
 import {observer} from "mobx-react-lite"
 import React, {useCallback, useEffect, useRef, useState} from "react"
 import { mstReaction } from "../../../../utilities/mst-reaction"
@@ -119,7 +119,7 @@ export const NumericLegend =
   useEffect(function respondToColorChange() {
     return mstReaction(
       () => metadata?.getAttributeColorRange(legendAttrID),
-      refreshScale, { name: "NumericLegend respondToColorChange" }, metadata
+      refreshScale, { name: "NumericLegend respondToColorChange", equals: comparer.structural }, metadata
     )
   }, [legendAttrID, metadata, refreshScale])
 

@@ -42,7 +42,7 @@ export const SharedCaseMetadata = SharedModel
     caseCardTileId: types.maybe(types.string),
     lastShownTableOrCardTileId: types.maybe(types.string), // used to restore the last shown tile both have been hidden
     // key is attribute id
-    numericColors: types.map(ColorRangeModel)
+    attributeColorRanges: types.map(ColorRangeModel)
   })
   .volatile(self => ({
     // CategorySets are generated whenever CODAP needs to treat an attribute categorically.
@@ -65,8 +65,8 @@ export const SharedCaseMetadata = SharedModel
     },
     getAttributeColorRange(attrId: string) {
       return {
-        low: self.numericColors.get(attrId)?.lowColor ?? kDefaultLowAttributeColor,
-        high: self.numericColors.get(attrId)?.highColor ?? kDefaultHighAttributeColor
+        low: self.attributeColorRanges.get(attrId)?.lowColor ?? kDefaultLowAttributeColor,
+        high: self.attributeColorRanges.get(attrId)?.highColor ?? kDefaultHighAttributeColor
       }
     }
   }))
@@ -111,10 +111,10 @@ export const SharedCaseMetadata = SharedModel
       self.hidden.clear()
     },
     setAttributeColor(attrId: string, color: string, selector: "low" | "high") {
-      let numericColors = self.numericColors.get(attrId)
+      let numericColors = self.attributeColorRanges.get(attrId)
       if (!numericColors) {
         numericColors = ColorRangeModel.create()
-        self.numericColors.set(attrId, numericColors)
+        self.attributeColorRanges.set(attrId, numericColors)
       }
       if (selector === "high") {
         numericColors.setHighColor(color)

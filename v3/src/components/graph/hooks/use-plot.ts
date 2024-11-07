@@ -282,7 +282,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     return mstReaction(
       () => metadata?.getAttributeColorRange(legendAttrID),
       () => callRefreshPointPositions(false),
-      { name: "usePlotResponders respondToColorChange" }, metadata
+      { name: "usePlotResponders respondToColorChange", equals: comparer.structural }, metadata
     )
   }, [callRefreshPointPositions, legendAttrID, metadata])
 }
