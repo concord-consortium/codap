@@ -15,6 +15,7 @@ import { CaseTilePortal } from "./case-tile-portal"
 import { GetDividerBoundsFn, IDividerProps, kIndexColumnKey } from "./case-tile-types"
 import { useParentChildFocusRedirect } from "./use-parent-child-focus-redirect"
 import { useAdjustHeaderForOverflow } from "../../hooks/use-adjust-header-overflow"
+import { useOutsidePointerDown } from "../../hooks/use-outside-pointer-down"
 
 interface IProps {
   attributeId: string
@@ -98,6 +99,7 @@ export const AttributeHeader = observer(function AttributeHeader({
 
   // focus our content when the cell is focused
   useParentChildFocusRedirect(parentRef.current, menuButtonRef.current)
+  useOutsidePointerDown({ ref: inputRef, handler: () => handleClose(true) })
 
   const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     const { key } = e
