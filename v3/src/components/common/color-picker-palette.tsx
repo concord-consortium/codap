@@ -1,7 +1,7 @@
 import { Button, ButtonGroup, Flex, PopoverArrow, PopoverBody, PopoverContent } from "@chakra-ui/react"
 import { clsx } from "clsx"
 import { colord } from "colord"
-import React, { useEffect, useRef, useState } from "react"
+import React, { useCallback, useEffect, useRef, useState } from "react"
 import { ColorPicker } from "./color-picker"
 import { t } from "../../utilities/translation/translate"
 
@@ -11,16 +11,19 @@ interface IProps {
   initialColor: string
   inputValue: string
   swatchBackgroundColor: string
+  isPaletteOpen?: boolean
   buttonRef: React.RefObject<HTMLButtonElement>
   showArrow?: boolean
+  placement?: "right" | "left"
   onColorChange: (newColor: string) => void
   onAccept: () => void
   onReject: () => void
   onUpdateValue: (value: string) => void
+  setPlacement?: (placement: "right" | "left") => void
 }
 
-export const ColorPickerPalette = ({ swatchBackgroundColor, inputValue, buttonRef, showArrow,
-                onColorChange, onAccept, onReject, onUpdateValue }: IProps) => {
+export const ColorPickerPalette = ({ swatchBackgroundColor, inputValue, buttonRef, showArrow, isPaletteOpen,
+                placement, onColorChange, onAccept, onReject, onUpdateValue, setPlacement }: IProps) => {
   const paletteColors = ["#000000", "#a9a9a9", "#d3d3d3", "#FFFFFF", "#ad2323", "#ff9632", "#ffee33", "#1d6914",
     "#2a4bd7", "#814a19", "#8126c0", "#29d0d0", "#e9debb", "#ffcdf3", "#9dafff", "#81c57a"]
   const [showColorPicker, setShowColorPicker] = useState(false)
@@ -29,60 +32,53 @@ export const ColorPickerPalette = ({ swatchBackgroundColor, inputValue, buttonRe
   const popoverContainerRef = useRef<HTMLDivElement>(null)
   const kGapSize = 10
 
-  useEffect(() => {
-    const adjustPosition = () => {
-      const popoverContainer = popoverContainerRef.current
-      const popover = popoverRef.current
-      // const triggerButton = buttonRef.current
+  const adjustPosition = useCallback(() => {
+    const popoverContainer = popoverContainerRef.current
+    const popover = popoverRef.current
 
-      if (popoverContainer && popover) {
-        const rect = popover.getBoundingClientRect()
-        const viewportWidth = window.innerWidth
-        const viewportHeight = window.innerHeight
-        let top = +styles.colorPickerPopoverTop
-        let left = showArrow ? 0 : +styles.colorPickerPopoverLeft
+    if (popoverContainer && popover) {
+      const rect = popover.getBoundingClientRect()
+      const viewportWidth = window.innerWidth
+      const viewportHeight = window.innerHeight
+      let top = +styles.colorPickerPopoverTop
 
-console.log("rect", rect)
-        if (rect.right > viewportWidth) {
-          left = +styles.colorPickerPopoverLeft - (rect.width/2) - kGapSize // Adjusted calculation for clarity
-        } else if (rect.left < 0) {
-          left = kGapSize
+      let left = placement=== "left" ? +styles.leftColorPickerPopoverLeft
+                                      : showArrow ? 0
+                                                  : +styles.colorPickerPopoverLeft
+      if (rect.right > viewportWidth) {
+        if (setPlacement) {
+          setPlacement("left")
+        } else {
+          left = +styles.colorPickerPopoverLeft - (rect.width/2) - kGapSize
         }
-
-        if (rect.bottom > viewportHeight) {
-          top = viewportHeight - rect.bottom - kGapSize // Adjusted calculation for clarity
-        } else if (rect.top < 0) {
-          top = kGapSize
-        }
-
-        // if (rect.right > viewportWidth) {
-        //   left = viewportWidth - rect.right + (rect.width/2) - kGapSize
-        // }
-        // if (rect.bottom > viewportHeight) {
-        //   top = viewportHeight - rect.bottom - kGapSize
-        // }
-        // if (rect.left < 0) {
-        //   left = kGapSize
-        // }
-        // if (rect.top < 0) {
-        //   top = kGapSize
-        // }
-        // if (!showColorPicker) {
-        //   top = +styles.colorPickerPopoverTop
-        //   left = +styles.colorPickerPopoverLeft
-        // }
-
-        popover.style.top = `${top}px`
-        popover.style.left = `${left}px`
+      } else if (rect.left < 0) {
+        left = kGapSize
       }
-    }
 
+      if (rect.bottom > viewportHeight) {
+        top = viewportHeight - rect.bottom - kGapSize
+      } else if (rect.top < 0) {
+        top = kGapSize
+      }
+
+      popover.style.top = `${top}px`
+      popover.style.left = `${left}px`
+    }
+  }, [placement, setPlacement, showArrow])
+
+  useEffect(() => {
     adjustPosition()
     window.addEventListener('resize', adjustPosition)
     return () => {
       window.removeEventListener('resize', adjustPosition)
     }
-  }, [showColorPicker])
+  }, [setPlacement, placement, showArrow, showColorPicker, adjustPosition])
+
+  useEffect(() => {
+    if (isPaletteOpen) {
+      adjustPosition()
+    }
+  }, [adjustPosition, isPaletteOpen])
 
   const handleAccept = () => {
     onAccept()
@@ -111,9 +107,9 @@ console.log("rect", rect)
     <PopoverContent ref={popoverContainerRef}
                     className={clsx("color-picker-palette-container",
                                     {"with-color-picker": showColorPicker, "with-arrow": showArrow})}>
-      {showArrow && <PopoverArrow className="palette-arrow"/>}
+      {showArrow && <PopoverArrow className={clsx("palette-arrow", `${placement}`)}/>}
       <PopoverBody ref={popoverRef}
-            className={clsx("color-picker-palette",
+            className={clsx("color-picker-palette", `${placement}`,
                             {"with-color-picker": showColorPicker, "without-arrow": !showArrow})}>
         <div className="color-swatch-palette" onKeyDown={handleKeyDown}>
           <div className="color-swatch-grid">

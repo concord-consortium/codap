@@ -2,6 +2,8 @@ $color-picker-popover-top: -8;
 $color-picker-popover-top-px: #{$color-picker-popover-top}px;
 $color-picker-popover-left: -90;
 $color-picker-popover-left-px: #{$color-picker-popover-left}px;
+$left-color-picker-popover-left: -120;
+$left-color-picker-popover-left-px: #{$left-color-picker-popover-left}px;
 $color-palette-height: 170px;
 $color-palette-and-picker-height: 410px;
 
@@ -9,6 +11,7 @@ $color-palette-and-picker-height: 410px;
 :export {
   colorPickerPopoverTop: $color-picker-popover-top;
   colorPickerPopoverLeft: $color-picker-popover-left;
+  leftColorPickerPopoverLeft: $left-color-picker-popover-left;
 }
 
 // Palette Color Picker
@@ -29,12 +32,6 @@ $color-palette-and-picker-height: 410px;
       }
     }
   }
-  // &.with-color-picker {
-  //   // .color-picker-palette {
-  //   top: - calc($color-palette-and-picker-height / 2);
-  //     // left: $color-picker-popover-left-px;
-  //   // }
-  // }
 
   .color-picker-palette {
     display: flex;
@@ -46,18 +43,21 @@ $color-palette-and-picker-height: 410px;
     border: 1px solid #d0d0d0;
     position: absolute;
     width: 108px;
-    // top: $color-picker-popover-top-px;
-    // top: 0;
-    // left: 40px;
 
     &.with-color-picker {
       width: 222px;
     }
 
     &.without-arrow {
-      // position: absolute;
       top: $color-picker-popover-top-px;
       left: $color-picker-popover-left-px;
+    }
+
+    &.left {
+      left: -120px;
+      &.with-color-picker {
+        left: -235px !important;
+      }
     }
 
     .color-swatch-palette {
@@ -121,5 +121,9 @@ $color-palette-and-picker-height: 410px;
     border-bottom: 10px solid transparent;
     border-right: 10px solid white;
     transform: translateY(-50%);
+
+    &.left {
+      transform: rotate(135deg) translate(10px, 12px) !important;
+    }
   }
 }
