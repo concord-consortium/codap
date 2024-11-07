@@ -7,6 +7,7 @@ import { SliderTileElements as slider } from "../../support/elements/slider-tile
 import { CalculatorTileElements as calculator } from "../../support/elements/calculator-tile"
 import { WebViewTileElements as webView } from "../../support/elements/web-view-tile"
 import { CfmElements as cfm } from "../../support/elements/cfm"
+import { AxisHelper as ah } from "../../support/helpers/axis-helper"
 
 
 context("codap single smoke test", () => {
@@ -119,21 +120,21 @@ context("codap single smoke test", () => {
     cy.get('button[data-testid="codap-attribute-button date"]').should('exist')
     table.getGridCell(2, 3, 2).should('be.visible').and("contain", "5/23/2005")
 
-    // This test has become flaky, commenting out for now
+    cy.log("Test date display in bottom axis of graph")
+    ah.verifyDefaultAxisLabel("bottom")
+    ah.openAxisAttributeMenu("bottom")
+    ah.selectMenuAttribute("date", "bottom") // Date => x-axis
+    cy.get('[data-testid="axis-legend-attribute-button-bottom"]').eq(0).should("have.text", "date")
+    // Check that the date axis contains the year '2005'
+    cy.get('[data-testid="axis-bottom"]')
+      .find('text')
+      .contains('2005')
+      .should('exist')
 
-    // cy.log("Test date display in bottom axis of graph")
-    // cy.dragAttributeToTarget("table", "date", "bottom")
-    // cy.get('[data-testid="axis-legend-attribute-button-bottom"]').eq(0).should("have.text", "date")
-    // // Check that the date axis contains the year '2005'
-    // cy.get('[data-testid="axis-bottom"]')
-    //   .find('text')
-    //   .contains('2005')
-    //   .should('exist')
-
-    // // Check the number of tick marks on axis (e.g., ensuring there are 9 months: May to Jan)
-    // cy.get('[data-testid="axis-bottom"]')
-    //   .find('text')
-    //   .should('have.length', 10) // Adjust this if the expected number changes (currently 9 + ghost div=10)
+    // Check the number of tick marks on axis (e.g., ensuring there are 9 months: May to Jan)
+    cy.get('[data-testid="axis-bottom"]')
+      .find('text')
+      .should('have.length', 10) // Adjust this if the expected number changes (currently 9 + ghost div=10)
 
     cy.log("checks map component")
     c.getComponentTitle("map").should("have.text", "Measurements")
