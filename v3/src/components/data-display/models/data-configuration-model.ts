@@ -401,6 +401,14 @@ export const DataConfigurationModel = types
       )
       return joinedCaseData
     },
+    get lowColor() {
+      const attrId = self.attributeID("legend")
+      return self.metadata?.getLowColor(attrId)
+    },
+    get highColor() {
+      const attrId = self.attributeID("legend")
+      return self.metadata?.getHighColor(attrId)
+    }
   }))
   .views(self => ({
     // observable hash of rendered case ids
@@ -409,8 +417,8 @@ export const DataConfigurationModel = types
     },
     get quantileScaleColors() {
       return getQuantileScale(
-        self.metadata?.lowAttributeColor ?? kDefaultLowAttributeColor,
-        self.metadata?.highAttributeColor ?? kDefaultHighAttributeColor
+        self.lowColor ?? kDefaultLowAttributeColor,
+        self.highColor ?? kDefaultHighAttributeColor
       )
     }
   }))
@@ -424,12 +432,13 @@ export const DataConfigurationModel = types
     return {
       views: {
         get legendQuantileScale() {
-          if (!quantileScale ||
-            previousLowAttributeColor !== self.metadata?.lowAttributeColor ||
-            previousHighAttributeColor !== self.metadata?.highAttributeColor
+          if (
+            !quantileScale ||
+            previousLowAttributeColor !== self.lowColor ||
+            previousHighAttributeColor !== self.highColor
           ) {
-            previousLowAttributeColor = self.metadata?.lowAttributeColor
-            previousHighAttributeColor = self.metadata?.highAttributeColor
+            previousLowAttributeColor = self.lowColor
+            previousHighAttributeColor = self.highColor
             quantileScale = scaleQuantile(self.numericValuesForAttrRole('legend'), self.quantileScaleColors)
           }
           return quantileScale

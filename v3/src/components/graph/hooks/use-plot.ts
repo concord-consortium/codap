@@ -52,6 +52,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     startAnimation = graphModel.startAnimation,
     layout = useGraphLayoutContext(),
     dataConfiguration = graphModel.dataConfiguration,
+    legendAttrID = dataConfiguration?.attributeID("legend"),
     dataset = dataConfiguration?.dataset,
     metadata = dataConfiguration?.metadata,
     instanceId = useInstanceIdContext()
@@ -279,9 +280,9 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
   // respond to attribute color change
   useEffect(function respondToColorChange() {
     return mstReaction(
-      () => [metadata?.lowAttributeColor, metadata?.highAttributeColor],
+      () => [metadata?.getLowColor(legendAttrID), metadata?.getHighColor(legendAttrID)],
       () => callRefreshPointPositions(false),
       { name: "usePlotResponders respondToColorChange" }, metadata
     )
-  }, [callRefreshPointPositions, metadata])
+  }, [callRefreshPointPositions, legendAttrID, metadata])
 }

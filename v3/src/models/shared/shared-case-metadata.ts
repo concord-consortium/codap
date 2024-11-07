@@ -14,6 +14,19 @@ export const CollectionTableMetadata = types.model("CollectionTable", {
   collapsed: types.map(types.boolean)
 })
 
+const ColorRangeModel = types.model("ColorRangeModel", {
+  lowColor: kDefaultLowAttributeColor,
+  highColor: kDefaultHighAttributeColor
+})
+.actions(self => ({
+  setLowColor(color: string) {
+    self.lowColor = color
+  },
+  setHighColor(color: string) {
+    self.highColor = color
+  }
+}))
+
 export const SharedCaseMetadata = SharedModel
   .named(kSharedCaseMetadataType)
   .props({
@@ -28,8 +41,8 @@ export const SharedCaseMetadata = SharedModel
     caseTableTileId: types.maybe(types.string),
     caseCardTileId: types.maybe(types.string),
     lastShownTableOrCardTileId: types.maybe(types.string), // used to restore the last shown tile both have been hidden
-    lowAttributeColor: types.optional(types.string, kDefaultLowAttributeColor),
-    highAttributeColor: types.optional(types.string, kDefaultHighAttributeColor)
+    // key is attribute id
+    numericColors: types.map(ColorRangeModel)
   })
   .volatile(self => ({
     // CategorySets are generated whenever CODAP needs to treat an attribute categorically.
@@ -49,6 +62,12 @@ export const SharedCaseMetadata = SharedModel
     // true if passed the id of a hidden attribute, false otherwise
     isHidden(attrId: string) {
       return self.hidden.get(attrId) ?? false
+    },
+    getLowColor(attrId: string) {
+      return self.numericColors.get(attrId)?.lowColor ?? kDefaultLowAttributeColor
+    },
+    getHighColor(attrId: string) {
+      return self.numericColors.get(attrId)?.highColor ?? kDefaultHighAttributeColor
     }
   }))
   .actions(self => ({
@@ -91,14 +110,26 @@ export const SharedCaseMetadata = SharedModel
     showAllAttributes() {
       self.hidden.clear()
     },
-    setLowAttributeColor(color: string) {
-      self.lowAttributeColor = color
-    },
-    setHighAttributeColor(color: string) {
-      self.highAttributeColor = color
+    setColor(attrId: string, color: string, high: boolean) {
+      let numericColors = self.numericColors.get(attrId)
+      if (!numericColors) {
+        numericColors = ColorRangeModel.create()
+        self.numericColors.set(attrId, numericColors)
+      }
+      if (high) {
+        numericColors.setHighColor(color)
+      } else {
+        numericColors.setLowColor(color)
+      }
     }
   }))
   .actions(self => ({
+    setLowColor(attrId: string, color: string) {
+      self.setColor(attrId, color, false)
+    },
+    setHighColor(attrId: string, color: string) {
+      self.setColor(attrId, color, true)
+    },
     removeCategorySet(attrId: string) {
       self.categories.delete(attrId)
       self.provisionalCategories.delete(attrId)

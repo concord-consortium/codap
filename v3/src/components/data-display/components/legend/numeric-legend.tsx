@@ -23,12 +23,12 @@ export const NumericLegend =
     [choroplethElt, setChoroplethElt] = useState<SVGGElement | null>(null),
     valuesRef = useRef<number[]>([]),
     metadata = dataConfiguration?.metadata,
+    legendAttrID = dataConfiguration?.attributeID("legend") ?? "",
 
     getLabelHeight = useCallback(() => {
-      const labelFont = vars.labelFont,
-        legendAttrID = dataConfiguration?.attributeID('legend') ?? ''
+      const labelFont = vars.labelFont
       return getStringBounds(dataConfiguration?.dataset?.attrFromID(legendAttrID)?.name ?? '', labelFont).height
-    }, [dataConfiguration]),
+    }, [dataConfiguration, legendAttrID]),
 
     refreshScale = useCallback(() => {
       const numberHeight = getStringBounds('0').height
@@ -118,10 +118,10 @@ export const NumericLegend =
 
   useEffect(function respondToColorChange() {
     return mstReaction(
-      () => ({ lowColor: metadata?.lowAttributeColor, highColor: metadata?.highAttributeColor }),
+      () => ({ lowColor: metadata?.getLowColor(legendAttrID), highColor: metadata?.getHighColor(legendAttrID) }),
       refreshScale, { name: "NumericLegend respondToColorChange" }, metadata
     )
-  }, [metadata, refreshScale])
+  }, [legendAttrID, metadata, refreshScale])
 
   // todo: This reaction is not being triggered when a legend attribute value is changed.
   // It should be.
