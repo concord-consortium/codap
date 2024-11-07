@@ -51,7 +51,6 @@ export const univariateStatsFunctions: Record<string, IFormulaMathjsFunction> = 
   },
 
   // mad(expression, filterExpression)
-  // median absolute deviation
   mad: {
     numOfRequiredArguments: 1,
     isAggregate: true,
