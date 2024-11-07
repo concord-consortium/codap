@@ -89,6 +89,12 @@ export const AxisHelper = {
     ae.getAttributeFromAttributeMenu(axis).contains(name).click()
     cy.wait(2000)
   },
+  selectMenuAttribute(attributeName: string, axis: string) {
+    ae.getAttributeFromAttributeMenu(axis)
+      .contains("button", attributeName) // This finds the button with the text
+      .click()
+    cy.wait(2000)
+  },
   removeAttributeFromAxis(name: string, axis: string) {
     ae.getAttributeFromAttributeMenu(axis).contains(`Remove`).click()
   },
