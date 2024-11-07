@@ -44,7 +44,7 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
 
   const handleLowAttributeColorChange = (color: string) => {
     metadata?.applyModelChange(() => {
-      metadata.setLowColor(legendAttrID, color)
+      metadata.setAttributeColor(legendAttrID, color, "low")
     }, {
       undoStringKey: "DG.Undo.graph.changeAttributeColor",
       redoStringKey: "DG.Redo.graph.changeAttributeColor",
@@ -54,7 +54,7 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
 
   const handleHighAttributeColorChange = (color: string) => {
     metadata?.applyModelChange(() => {
-      metadata.setHighColor(legendAttrID, color)
+      metadata.setAttributeColor(legendAttrID, color, "high")
     }, {
       undoStringKey: "DG.Undo.graph.changeAttributeColor",
       redoStringKey: "DG.Redo.graph.changeAttributeColor",
@@ -139,6 +139,7 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
     }
   }
 
+  const colorRange = metadata?.getAttributeColorRange(legendAttrID)
   return (
     <Flex className="palette-form" direction="column">
 
@@ -175,12 +176,12 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
                       <PointColorSetting
                         propertyLabel={t("DG.Inspector.legendColor")}
                         onColorChange={(color) => handleLowAttributeColorChange(color)}
-                        swatchBackgroundColor={metadata?.getLowColor(legendAttrID) ?? kDefaultLowAttributeColor}
+                        swatchBackgroundColor={colorRange?.low ?? kDefaultLowAttributeColor}
                       />
                       <PointColorSetting
                         propertyLabel={t("DG.Inspector.legendColor")}
                         onColorChange={(color) => handleHighAttributeColorChange(color)}
-                        swatchBackgroundColor={metadata?.getHighColor(legendAttrID) ?? kDefaultHighAttributeColor}
+                        swatchBackgroundColor={colorRange?.high ?? kDefaultHighAttributeColor}
                       />
                     </Flex>
                   </FormControl>

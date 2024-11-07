@@ -280,7 +280,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
   // respond to attribute color change
   useEffect(function respondToColorChange() {
     return mstReaction(
-      () => [metadata?.getLowColor(legendAttrID), metadata?.getHighColor(legendAttrID)],
+      () => metadata?.getAttributeColorRange(legendAttrID),
       () => callRefreshPointPositions(false),
       { name: "usePlotResponders respondToColorChange" }, metadata
     )

@@ -118,7 +118,7 @@ export const NumericLegend =
 
   useEffect(function respondToColorChange() {
     return mstReaction(
-      () => ({ lowColor: metadata?.getLowColor(legendAttrID), highColor: metadata?.getHighColor(legendAttrID) }),
+      () => metadata?.getAttributeColorRange(legendAttrID),
       refreshScale, { name: "NumericLegend respondToColorChange" }, metadata
     )
   }, [legendAttrID, metadata, refreshScale])

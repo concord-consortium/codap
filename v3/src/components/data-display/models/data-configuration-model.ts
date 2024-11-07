@@ -403,11 +403,11 @@ export const DataConfigurationModel = types
     },
     get lowColor() {
       const attrId = self.attributeID("legend")
-      return self.metadata?.getLowColor(attrId)
+      return self.metadata?.getAttributeColorRange(attrId).low
     },
     get highColor() {
       const attrId = self.attributeID("legend")
-      return self.metadata?.getHighColor(attrId)
+      return self.metadata?.getAttributeColorRange(attrId).high
     }
   }))
   .views(self => ({

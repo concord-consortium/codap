@@ -63,11 +63,11 @@ export const SharedCaseMetadata = SharedModel
     isHidden(attrId: string) {
       return self.hidden.get(attrId) ?? false
     },
-    getLowColor(attrId: string) {
-      return self.numericColors.get(attrId)?.lowColor ?? kDefaultLowAttributeColor
-    },
-    getHighColor(attrId: string) {
-      return self.numericColors.get(attrId)?.highColor ?? kDefaultHighAttributeColor
+    getAttributeColorRange(attrId: string) {
+      return {
+        low: self.numericColors.get(attrId)?.lowColor ?? kDefaultLowAttributeColor,
+        high: self.numericColors.get(attrId)?.highColor ?? kDefaultHighAttributeColor
+      }
     }
   }))
   .actions(self => ({
@@ -110,13 +110,13 @@ export const SharedCaseMetadata = SharedModel
     showAllAttributes() {
       self.hidden.clear()
     },
-    setColor(attrId: string, color: string, high: boolean) {
+    setAttributeColor(attrId: string, color: string, selector: "low" | "high") {
       let numericColors = self.numericColors.get(attrId)
       if (!numericColors) {
         numericColors = ColorRangeModel.create()
         self.numericColors.set(attrId, numericColors)
       }
-      if (high) {
+      if (selector === "high") {
         numericColors.setHighColor(color)
       } else {
         numericColors.setLowColor(color)
@@ -124,12 +124,6 @@ export const SharedCaseMetadata = SharedModel
     }
   }))
   .actions(self => ({
-    setLowColor(attrId: string, color: string) {
-      self.setColor(attrId, color, false)
-    },
-    setHighColor(attrId: string, color: string) {
-      self.setColor(attrId, color, true)
-    },
     removeCategorySet(attrId: string) {
       self.categories.delete(attrId)
       self.provisionalCategories.delete(attrId)
