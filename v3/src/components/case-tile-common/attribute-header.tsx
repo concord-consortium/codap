@@ -61,6 +61,7 @@ export const AttributeHeader = observer(function AttributeHeader({
     prefix: instanceId, dataSet: data, attributeId
   }
   const { attributes, listeners, setNodeRef: setDragNodeRef } = useDraggableAttribute(draggableOptions)
+  useOutsidePointerDown({ ref: inputRef, handler: () => onCloseMenuRef.current?.() })
 
   const setHeaderContentRef = (elt: HTMLDivElement | null) => {
     contentRef.current = elt
