@@ -73,11 +73,12 @@ export const useRows = () => {
 
   const syncRowsToDom = useCallback(() => {
     prf.measure("Table.useRows[syncRowsToDom]", () => {
+      const collection = data?.getCollection(collectionId)
       const grid = document.querySelector(".rdg")
       const domRows = grid?.querySelectorAll(".rdg-row")
       domRows?.forEach(row => {
         const rowIndex = Number(row.getAttribute("aria-rowindex")) - 2
-        const caseId = data?.itemIDFromIndex(rowIndex)
+        const caseId = collection?.caseIds[rowIndex]
         const cells = row.querySelectorAll(".rdg-cell")
         cells.forEach(cell => {
           const colIndex = Number(cell.getAttribute("aria-colindex")) - 2
@@ -94,7 +95,7 @@ export const useRows = () => {
         })
       })
     })
-  }, [data, setCachedDomAttr])
+  }, [collectionId, data, setCachedDomAttr])
 
   const resetRowCacheAndSyncRows = useDebouncedCallback(() => {
     resetRowCache()
