@@ -16,6 +16,8 @@
 - **PT-188524694:** Dragging dot plot point fails to cause other points to adjust their positions
 - **PT-188470760:** “TAB” Button Does Not Trigger Autocomplete in **Formula Editor**
 - **PT-187614572:** Dot chart and bar chart respond dynamically to change in category order (*Delivered*)
+- **PT-188476241:** **[MultiData]** Hidden attributes are visible in MultiData Nested Table plugin (Delivered)
+
 
 ### 🛠️ Under the Hood:
 - **PT-187223531:** The plugin api supports the ability to specify set aside cases
