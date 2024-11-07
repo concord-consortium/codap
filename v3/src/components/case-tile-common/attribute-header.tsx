@@ -43,6 +43,7 @@ export const AttributeHeader = observer(function AttributeHeader({
   const menuButtonRef = useRef<HTMLButtonElement | null>(null)
   const inputRef = useRef<HTMLInputElement | null>(null)
   const contentRef = useRef<HTMLDivElement | null>(null)
+  const menuListRef = useRef<HTMLDivElement | null>(null)
   const isMenuOpen = useRef(false)
   const [editingAttrId, setEditingAttrId] = useState("")
   const [editingAttrName, setEditingAttrName] = useState("")
@@ -61,7 +62,7 @@ export const AttributeHeader = observer(function AttributeHeader({
     prefix: instanceId, dataSet: data, attributeId
   }
   const { attributes, listeners, setNodeRef: setDragNodeRef } = useDraggableAttribute(draggableOptions)
-  useOutsidePointerDown({ ref: inputRef, handler: () => onCloseMenuRef.current?.() })
+  useOutsidePointerDown({ ref: menuListRef, handler: () => onCloseMenuRef.current?.() })
 
   const setHeaderContentRef = (elt: HTMLDivElement | null) => {
     contentRef.current = elt
@@ -241,7 +242,7 @@ export const AttributeHeader = observer(function AttributeHeader({
               }
               {attributeId !== kIndexColumnKey &&
                 <CaseTilePortal>
-                  <AttributeMenuList attributeId={attributeId} onRenameAttribute={handleRenameAttribute}
+                  <AttributeMenuList ref={menuListRef} attributeId={attributeId} onRenameAttribute={handleRenameAttribute}
                     onModalOpen={handleModalOpen}
                   />
                 </CaseTilePortal>
