@@ -1,4 +1,4 @@
-import {useEffect} from "react"
+import { useCallback, useEffect } from "react"
 import { comparer, reaction } from "mobx"
 import {isAlive} from "mobx-state-tree"
 import {onAnyAction} from "../../../utilities/mst-utils"
@@ -52,12 +52,26 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     startAnimation = graphModel.startAnimation,
     layout = useGraphLayoutContext(),
     dataConfiguration = graphModel.dataConfiguration,
+    legendAttrID = dataConfiguration?.attributeID("legend"),
     dataset = dataConfiguration?.dataset,
+    metadata = dataConfiguration?.metadata,
     instanceId = useInstanceIdContext()
 
   const callRefreshPointPositions = useDebouncedCallback((selectedOnly: boolean) => {
     refreshPointPositions(selectedOnly)
   })
+
+  const callMatchCirclesToData = useCallback(() => {
+    pixiPoints && matchCirclesToData({
+      dataConfiguration,
+      pointRadius: graphModel.getPointRadius(),
+      pointColor: graphModel.pointDescription.pointColor,
+      pointDisplayType: graphModel.pointDisplayType,
+      pointStrokeColor: graphModel.pointDescription.pointStrokeColor,
+      pixiPoints,
+      startAnimation, instanceId
+    })
+  }, [dataConfiguration, graphModel, instanceId, pixiPoints, startAnimation])
 
   // Refresh point positions when pixiPoints become available to fix this bug:
   // https://www.pivotaltracker.com/story/show/188333898
@@ -140,30 +154,21 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
         if (!pixiPoints) {
           return
         }
-        matchCirclesToData({
-          dataConfiguration,
-          pointRadius: graphModel.getPointRadius(),
-          pointColor: graphModel.pointDescription.pointColor,
-          pointDisplayType: graphModel.pointDisplayType,
-          pointStrokeColor: graphModel.pointDescription.pointStrokeColor,
-          pixiPoints,
-          startAnimation, instanceId
-        })
+        callMatchCirclesToData()
         callRefreshPointPositions(false)
       }, {name: "respondToHiddenCasesChange"}, dataConfiguration
     )
     return () => disposer()
-  }, [callRefreshPointPositions, dataConfiguration, graphModel, instanceId, pixiPoints, startAnimation])
+  }, [callMatchCirclesToData, callRefreshPointPositions, dataConfiguration, pixiPoints])
 
   // respond to axis range changes (e.g. component resizing)
   useEffect(() => {
-    const disposer = reaction(
+    return reaction(
       () => [layout.getAxisLength('left'), layout.getAxisLength('bottom')],
       () => {
         callRefreshPointPositions(false)
       }, {name: "usePlot [axis range]"}
     )
-    return () => disposer()
   }, [layout, callRefreshPointPositions])
 
   // respond to selection changes
@@ -179,15 +184,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
             const allCases = dataset.items.map(c => c.__id__)
             const updatedHiddenCases = allCases.filter(caseID => !selectedCases.includes(caseID))
             dataConfiguration?.setHiddenCases(updatedHiddenCases)
-            pixiPoints && matchCirclesToData({
-              dataConfiguration,
-              pointRadius: graphModel.getPointRadius(),
-              pointColor: graphModel.pointDescription.pointColor,
-              pointDisplayType: graphModel.pointDisplayType,
-              pointStrokeColor: graphModel.pointDescription.pointStrokeColor,
-              pixiPoints,
-              startAnimation, instanceId
-            })
+            callMatchCirclesToData()
             callRefreshPointPositions(false)
           }
           refreshPointSelection()
@@ -195,8 +192,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
         {name: "useSubAxis.respondToSelectionChanges"}, dataConfiguration
       )
     }
-  }, [callRefreshPointPositions, dataConfiguration, dataset, graphModel, instanceId, pixiPoints,
-      refreshPointSelection, startAnimation])
+  }, [callMatchCirclesToData, callRefreshPointPositions, dataConfiguration, dataset, refreshPointSelection])
 
   // respond to value changes
   useEffect(() => {
@@ -232,20 +228,12 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
           graphModel?.setPointConfig("points")
         }
 
-        matchCirclesToData({
-          dataConfiguration,
-          pointRadius: graphModel.getPointRadius(),
-          pointColor: graphModel.pointDescription.pointColor,
-          pointDisplayType: graphModel.pointDisplayType,
-          pointStrokeColor: graphModel.pointDescription.pointStrokeColor,
-          pixiPoints,
-          startAnimation, instanceId
-        })
+        callMatchCirclesToData()
         callRefreshPointPositions(false)
       }
     }) || (() => true)
     return () => disposer()
-  }, [dataset, dataConfiguration, startAnimation, graphModel, callRefreshPointPositions, instanceId, pixiPoints])
+  }, [callMatchCirclesToData, dataset, dataConfiguration, graphModel, callRefreshPointPositions, pixiPoints])
 
   // respond to pointDisplayType changes
   useEffect(function respondToPointConfigChange() {
@@ -254,19 +242,11 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
       () => {
         if (!pixiPoints) return
 
-        matchCirclesToData({
-          dataConfiguration,
-          pointRadius: graphModel.getPointRadius(),
-          pointColor: graphModel.pointDescription.pointColor,
-          pointDisplayType: graphModel.pointDisplayType,
-          pointStrokeColor: graphModel.pointDescription.pointStrokeColor,
-          pixiPoints,
-          startAnimation, instanceId
-        })
+        callMatchCirclesToData()
         callRefreshPointPositions(false)
       }, {name: "usePlot [pointDisplayType]"}, graphModel
     )
-  }, [callRefreshPointPositions, dataConfiguration, graphModel, instanceId, pixiPoints, startAnimation])
+  }, [callMatchCirclesToData, callRefreshPointPositions, graphModel, pixiPoints])
 
   useEffect(() => {
     return mstReaction(
@@ -296,4 +276,13 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
       {name: "respondToPointVisualChange", equals: comparer.structural}, graphModel
     )
   }, [callRefreshPointPositions, graphModel])
+
+  // respond to attribute color change
+  useEffect(function respondToColorChange() {
+    return mstReaction(
+      () => metadata?.getAttributeColorRange(legendAttrID),
+      () => callRefreshPointPositions(false),
+      { name: "usePlotResponders respondToColorChange", equals: comparer.structural }, metadata
+    )
+  }, [callRefreshPointPositions, legendAttrID, metadata])
 }

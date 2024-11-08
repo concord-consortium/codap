@@ -1,11 +1,13 @@
-import React, {useRef} from "react"
-import {observer} from "mobx-react-lite"
-import {Checkbox, Flex, FormControl, FormLabel, Slider, SliderThumb, SliderTrack
-  } from "@chakra-ui/react"
+import React, { useRef } from "react"
+import { observer } from "mobx-react-lite"
+import { Checkbox, Flex, FormControl, FormLabel, Slider, SliderThumb, SliderTrack } from "@chakra-ui/react"
+import {
+  kDefaultHighAttributeColor, kDefaultLowAttributeColor
+} from "../../../models/shared/shared-case-metadata-constants"
+import { t } from "../../../utilities/translation/translate"
+import { IDataConfigurationModel } from "../models/data-configuration-model"
+import { IDisplayItemDescriptionModel } from "../models/display-item-description-model"
 import { PointColorSetting } from "./point-color-setting"
-import {IDataConfigurationModel} from "../models/data-configuration-model"
-import {IDisplayItemDescriptionModel} from "../models/display-item-description-model"
-import {t} from "../../../utilities/translation/translate"
 
 import "./inspector-panel.scss"
 
@@ -28,6 +30,7 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
   const attrType = dataConfiguration?.dataset?.attrFromID(legendAttrID ?? "")?.type
   const categoriesRef = useRef<string[] | undefined>()
   categoriesRef.current = dataConfiguration?.categoryArrayForAttrRole('legend')
+  const metadata = dataConfiguration.metadata
 
   const handlePointColorChange = (color: string) => {
     displayItemDescription.applyModelChange(() => {
@@ -36,6 +39,26 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
       undoStringKey: "DG.Undo.graph.changePointColor",
       redoStringKey: "DG.Redo.graph.changePointColor",
       log: attrType === "categorical" ? "Changed categorical point color" : "Changed point color"
+    })
+  }
+
+  const handleLowAttributeColorChange = (color: string) => {
+    metadata?.applyModelChange(() => {
+      metadata.setAttributeColor(legendAttrID, color, "low")
+    }, {
+      undoStringKey: "DG.Undo.graph.changeAttributeColor",
+      redoStringKey: "DG.Redo.graph.changeAttributeColor",
+      log: "Changed attribute color"
+    })
+  }
+
+  const handleHighAttributeColorChange = (color: string) => {
+    metadata?.applyModelChange(() => {
+      metadata.setAttributeColor(legendAttrID, color, "high")
+    }, {
+      undoStringKey: "DG.Undo.graph.changeAttributeColor",
+      redoStringKey: "DG.Redo.graph.changeAttributeColor",
+      log: "Changed attribute color"
     })
   }
 
@@ -116,6 +139,7 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
     }
   }
 
+  const colorRange = metadata?.getAttributeColorRange(legendAttrID)
   return (
     <Flex className="palette-form" direction="column">
 
@@ -149,12 +173,16 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
                       <FormLabel className="form-label color-picker">{t("DG.Inspector.legendColor")}</FormLabel>
                       {/* Sets the min and max colors for numeric legend. Currently not implemented so
                                     this sets the same color for all the points*/}
-                      <PointColorSetting propertyLabel={t("DG.Inspector.legendColor")}
-                                        onColorChange={(color) => handlePointColorChange(color)}
-                                        swatchBackgroundColor={displayItemDescription.pointColor}/>
-                      <PointColorSetting propertyLabel={t("DG.Inspector.legendColor")}
-                                        onColorChange={(color) => handlePointColorChange(color)}
-                                        swatchBackgroundColor={displayItemDescription.pointColor}/>
+                      <PointColorSetting
+                        propertyLabel={t("DG.Inspector.legendColor")}
+                        onColorChange={(color) => handleLowAttributeColorChange(color)}
+                        swatchBackgroundColor={colorRange?.low ?? kDefaultLowAttributeColor}
+                      />
+                      <PointColorSetting
+                        propertyLabel={t("DG.Inspector.legendColor")}
+                        onColorChange={(color) => handleHighAttributeColorChange(color)}
+                        swatchBackgroundColor={colorRange?.high ?? kDefaultHighAttributeColor}
+                      />
                     </Flex>
                   </FormControl>
                 :(
