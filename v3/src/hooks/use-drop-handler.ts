@@ -3,23 +3,16 @@ import { IDataSet } from "../models/data/data-set"
 import { IDocumentModelSnapshot } from "../models/document/document"
 import { convertParsedCsvToDataSet, CsvParseResult, importCsvFile } from "../utilities/csv-import"
 import { safeJsonParse } from "../utilities/js-utils"
-import { CodapV2Document } from "../v2/codap-v2-document"
 import { ICodapV2DocumentJson } from "../v2/codap-v2-types"
 
-function importCodapV2Document(file: File | null, onComplete: (document: CodapV2Document) => void) {
+function importCodapDocument(
+  file: File | null,
+  onComplete: (document: IDocumentModelSnapshot | ICodapV2DocumentJson) => void
+) {
   const reader = new FileReader()
   reader.onload = () => {
-    const result = reader.result && safeJsonParse<ICodapV2DocumentJson>(reader.result as string)
-    const document = result && new CodapV2Document(result)
-    document && onComplete(document)
-  }
-  file && reader.readAsText(file)
-}
-
-function importCodapV3Document(file: File | null, onComplete: (document: IDocumentModelSnapshot) => void) {
-  const reader = new FileReader()
-  reader.onload = () => {
-    const document = reader.result && safeJsonParse<IDocumentModelSnapshot>(reader.result as string)
+    const document = reader.result &&
+      safeJsonParse<IDocumentModelSnapshot | ICodapV2DocumentJson>(reader.result as string)
     document && onComplete(document)
   }
   file && reader.readAsText(file)
@@ -28,12 +21,11 @@ function importCodapV3Document(file: File | null, onComplete: (document: IDocume
 export interface IDropHandler {
   selector: string
   onImportDataSet?: (data: IDataSet) => void
-  onImportV2Document?: (document: CodapV2Document) => void
-  onImportV3Document?: (document: IDocumentModelSnapshot) => void
+  onImportDocument?: (document: IDocumentModelSnapshot | ICodapV2DocumentJson) => void
   onHandleUrlDrop?: (url: string) => void
 }
 export const useDropHandler = ({
-  selector, onImportDataSet, onImportV2Document, onImportV3Document, onHandleUrlDrop
+  selector, onImportDataSet, onImportDocument, onHandleUrlDrop
 }: IDropHandler) => {
   const eltRef = useRef<HTMLElement | null>(null)
 
@@ -47,12 +39,8 @@ export const useDropHandler = ({
 
     function dropHandler(event: DragEvent) {
 
-      function onCompleteCodapV2Import(document: CodapV2Document) {
-        onImportV2Document?.(document)
-      }
-
-      function onCompleteCodapV3Import(document: IDocumentModelSnapshot) {
-        onImportV3Document?.(document)
+      function onCompleteCodapImport(document: IDocumentModelSnapshot | ICodapV2DocumentJson) {
+        onImportDocument?.(document)
       }
 
       function onCompleteCsvImport(results: CsvParseResult, aFile: any) {
@@ -73,10 +61,8 @@ export const useDropHandler = ({
             const extension = nameParts?.length ? nameParts[nameParts.length - 1] : ""
             switch (extension) {
               case "codap":
-                importCodapV2Document(file, onCompleteCodapV2Import)
-                break
               case "codap3":
-                importCodapV3Document(file, onCompleteCodapV3Import)
+                importCodapDocument(file, onCompleteCodapImport)
                 break
               case "csv":
                 importCsvFile(file, onCompleteCsvImport)
@@ -116,7 +102,7 @@ export const useDropHandler = ({
       eltRef.current?.removeEventListener('dragover', dragOverHandler)
       eltRef.current?.removeEventListener('drop', dropHandler)
     }
-  }, [onHandleUrlDrop, onImportDataSet, onImportV2Document, onImportV3Document, selector])
+  }, [onHandleUrlDrop, onImportDataSet, onImportDocument, selector])
 
   // return element to which listeners were attached; useful for tests
   return eltRef.current

@@ -114,7 +114,7 @@ function getMenuConfig(cfm: CloudFileManager) {
       action() {
         cfm.client.closeFileDialog(function() {
           removeDevUrlParams()
-          appState.setDocument(getSnapshot(createCodapDocument()))
+          appState.setDocument({type: "CODAP"})
         })
       }
     },
