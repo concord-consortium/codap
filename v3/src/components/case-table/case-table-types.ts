@@ -47,4 +47,10 @@ export type OnScrollClosestRowIntoViewFn = (collectionId: string, rowIndices: nu
 export const kInputRowKey = "__input__"
 
 export const kDefaultColumnWidth = 80
-export const kMinColumnWidth = 60
+export const kMinAutoColumnWidth = 40
+export const kMaxAutoColumnWidth = 600
+
+export const kCaseTableFontFamily = "Montserrat, sans-serif"
+export const kCaseTableFontSize = "8pt"
+export const kCaseTableHeaderFont = `bold ${kCaseTableFontSize} ${kCaseTableFontFamily}`
+export const kCaseTableBodyFont = `${kCaseTableFontSize} ${kCaseTableFontFamily}`

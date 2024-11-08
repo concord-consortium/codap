@@ -18,7 +18,10 @@ import { CaseMetadataContext } from "../../../hooks/use-case-metadata"
 import { useMeasureText } from "../../../hooks/use-measure-text"
 import { IAttribute } from "../../../models/data/attribute"
 import { ICaseTableModel, isCaseTableModel } from "../../case-table/case-table-model"
-import { kMinColumnWidth } from "../../case-table/case-table-types"
+import {
+  kCaseTableBodyFont, kCaseTableHeaderFont, kMaxAutoColumnWidth, kMinAutoColumnWidth
+} from "../../case-table/case-table-types"
+import { renderAttributeValue } from "../render-attribute-value"
 
 import "./case-tile-inspector.scss"
 
@@ -32,7 +35,8 @@ export const CaseTileInspector = ({ tile, show, showResizeColumnsButton }: IProp
     isCaseTileContentModel(tile?.content) ? tile?.content : undefined
   const { data, metadata } = useDataSet(caseTileModel?.data, caseTileModel?.metadata)
   const tableModel: ICaseTableModel | undefined = isCaseTableModel(tile?.content) ? tile?.content : undefined
-  const measureText = useMeasureText()
+  const measureHeaderText = useMeasureText(kCaseTableHeaderFont)
+  const measureBodyText = useMeasureText(kCaseTableBodyFont)
   if (!caseTileModel) return null
 
   const handleButtonClick = (tool: string) => {
@@ -44,16 +48,19 @@ export const CaseTileInspector = ({ tile, show, showResizeColumnsButton }: IProp
   }
 
   const resizeAllColumns = () => {
-    tableModel?.applyModelChange(() => {
-      data?.collections.forEach((collection) => {
-        collection.attributes.forEach((attr) => {
-          if (attr) {
-            const attrId = attr?.id
-            const longestContentWidth = findLongestContentWidth(attr)
-            tableModel?.setColumnWidth(attrId, longestContentWidth)
-          }
-        })
+    const kCellPadding = 10
+    const newColumnWidths = new Map<string, number>()
+    data?.collections.forEach((collection) => {
+      collection.attributes.forEach((attr) => {
+        if (attr) {
+          const attrId = attr?.id
+          const longestContentWidth = findLongestContentWidth(attr)
+          newColumnWidths.set(attrId, Math.ceil(longestContentWidth + kCellPadding))
+        }
       })
+    })
+    tableModel?.applyModelChange(() => {
+      tableModel?.setColumnWidths(newColumnWidths)
     }, {
       log: {message: "Resize all columns", args:{}, category: "table"},
       undoStringKey: "DG.Undo.caseTable.resizeColumns",
@@ -62,12 +69,14 @@ export const CaseTileInspector = ({ tile, show, showResizeColumnsButton }: IProp
   }
 
   const findLongestContentWidth = (attr: IAttribute) => {
-    let longestWidth = 0
-    attr.strValues.forEach((val) => {
-      const contentWidth = measureText(val)
-      longestWidth = Math.max(longestWidth, contentWidth)
-    })
-    return Math.max(longestWidth, kMinColumnWidth)
+    // include attribute name in content width calculation
+    let longestWidth = Math.max(kMinAutoColumnWidth, Math.min(kMaxAutoColumnWidth, measureHeaderText(attr.name)))
+    for (let i = 0; i < attr.length; ++i) {
+      // use the formatted attribute value in content width calculation
+      const { value } = renderAttributeValue(attr.strValues[i], attr.numValues[i], attr)
+      longestWidth = Math.max(longestWidth, Math.min(kMaxAutoColumnWidth, measureBodyText(value)))
+    }
+    return longestWidth
   }
 
   return (
