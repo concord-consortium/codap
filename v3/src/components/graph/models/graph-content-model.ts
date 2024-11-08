@@ -569,6 +569,7 @@ export const GraphContentModel = DataDisplayContentModel
             role = axisPlaceToAttrRole[axisPlace]
           if (isBaseNumericAxisModel(axis)) {
             const numericValues = dataConfiguration.numericValuesForAttrRole(role)
+            axis.setAllowRangeToShrink(true)
             setNiceDomain(numericValues, axis, self.axisDomainOptions)
           }
         })

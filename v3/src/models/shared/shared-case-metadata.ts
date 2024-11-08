@@ -3,8 +3,9 @@ import { getSnapshot, getType, Instance, ISerializedActionCall, types } from "mo
 import { onAnyAction } from "../../utilities/mst-utils"
 import { CategorySet, createProvisionalCategorySet, ICategorySet } from "../data/category-set"
 import { DataSet, IDataSet } from "../data/data-set"
-import { ISharedModel, SharedModel } from "./shared-model"
 import { applyModelChange } from "../history/apply-model-change"
+import { kDefaultHighAttributeColor, kDefaultLowAttributeColor } from "./shared-case-metadata-constants"
+import { ISharedModel, SharedModel } from "./shared-model"
 
 export const kSharedCaseMetadataType = "SharedCaseMetadata"
 
@@ -12,6 +13,19 @@ export const CollectionTableMetadata = types.model("CollectionTable", {
   // key is valueJson; value is true (false values are deleted)
   collapsed: types.map(types.boolean)
 })
+
+const ColorRangeModel = types.model("ColorRangeModel", {
+  lowColor: kDefaultLowAttributeColor,
+  highColor: kDefaultHighAttributeColor
+})
+.actions(self => ({
+  setLowColor(color: string) {
+    self.lowColor = color
+  },
+  setHighColor(color: string) {
+    self.highColor = color
+  }
+}))
 
 export const SharedCaseMetadata = SharedModel
   .named(kSharedCaseMetadataType)
@@ -26,7 +40,9 @@ export const SharedCaseMetadata = SharedModel
     hidden: types.map(types.boolean),
     caseTableTileId: types.maybe(types.string),
     caseCardTileId: types.maybe(types.string),
-    lastShownTableOrCardTileId: types.maybe(types.string) // used to restore the last shown tile both have been hidden
+    lastShownTableOrCardTileId: types.maybe(types.string), // used to restore the last shown tile both have been hidden
+    // key is attribute id
+    attributeColorRanges: types.map(ColorRangeModel)
   })
   .volatile(self => ({
     // CategorySets are generated whenever CODAP needs to treat an attribute categorically.
@@ -46,6 +62,12 @@ export const SharedCaseMetadata = SharedModel
     // true if passed the id of a hidden attribute, false otherwise
     isHidden(attrId: string) {
       return self.hidden.get(attrId) ?? false
+    },
+    getAttributeColorRange(attrId: string) {
+      return {
+        low: self.attributeColorRanges.get(attrId)?.lowColor ?? kDefaultLowAttributeColor,
+        high: self.attributeColorRanges.get(attrId)?.highColor ?? kDefaultHighAttributeColor
+      }
     }
   }))
   .actions(self => ({
@@ -87,6 +109,18 @@ export const SharedCaseMetadata = SharedModel
     },
     showAllAttributes() {
       self.hidden.clear()
+    },
+    setAttributeColor(attrId: string, color: string, selector: "low" | "high") {
+      let attributeColors = self.attributeColorRanges.get(attrId)
+      if (!attributeColors) {
+        attributeColors = ColorRangeModel.create()
+        self.attributeColorRanges.set(attrId, attributeColors)
+      }
+      if (selector === "high") {
+        attributeColors.setHighColor(color)
+      } else {
+        attributeColors.setLowColor(color)
+      }
     }
   }))
   .actions(self => ({

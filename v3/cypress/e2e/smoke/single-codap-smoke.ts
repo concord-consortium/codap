@@ -7,6 +7,7 @@ import { SliderTileElements as slider } from "../../support/elements/slider-tile
 import { CalculatorTileElements as calculator } from "../../support/elements/calculator-tile"
 import { WebViewTileElements as webView } from "../../support/elements/web-view-tile"
 import { CfmElements as cfm } from "../../support/elements/cfm"
+import { AxisHelper as ah } from "../../support/helpers/axis-helper"
 
 
 context("codap single smoke test", () => {
@@ -90,7 +91,7 @@ context("codap single smoke test", () => {
     table.getNumOfRows(1).should("contain", 2) // two rows: top, empty
     cy.get('[data-testid="no-cases-message"]').should('exist').and('contain.text', 'no cases')
   })
-  it("verify Four Seals opens from Hamburger menu and tests graph date and table functionality", () => {
+  it("verify Four Seals opens from Hamburger menu and test table functionality", () => {
     // Open Four Seals
     cy.log("Open Four Seals from Hamburger menu")
     // hamburger menu is hidden initially
@@ -120,7 +121,9 @@ context("codap single smoke test", () => {
     table.getGridCell(2, 3, 2).should('be.visible').and("contain", "5/23/2005")
 
     cy.log("Test date display in bottom axis of graph")
-    cy.dragAttributeToTarget("table", "date", "bottom")
+    ah.verifyDefaultAxisLabel("bottom")
+    ah.openAxisAttributeMenu("bottom")
+    ah.selectMenuAttribute("date", "bottom") // Date => x-axis
     cy.get('[data-testid="axis-legend-attribute-button-bottom"]').eq(0).should("have.text", "date")
     // Check that the date axis contains the year '2005'
     cy.get('[data-testid="axis-bottom"]')

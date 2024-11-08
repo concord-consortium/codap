@@ -2,6 +2,7 @@
 export interface IPointColorSettingSharedShared {
   colorPickerPopoverTop: string
   colorPickerPopoverLeft: string
+  leftColorPickerPopoverLeft: string
 }
 
 export const styles: IPointColorSettingSharedShared

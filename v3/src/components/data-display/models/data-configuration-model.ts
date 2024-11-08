@@ -1,4 +1,4 @@
-import {scaleQuantile, ScaleQuantile, schemeBlues} from "d3"
+import {scaleQuantile, ScaleQuantile} from "d3"
 import {comparer, observable, reaction} from "mobx"
 import {
   addDisposer, getEnv, getSnapshot, hasEnv, IAnyStateTreeNode, Instance, ISerializedActionCall,
@@ -17,12 +17,15 @@ import {ISharedCaseMetadata, SharedCaseMetadata} from "../../../models/shared/sh
 import {isSetCaseValuesAction} from "../../../models/data/data-set-actions"
 import {FilteredCases, IFilteredChangedCases} from "../../../models/data/filtered-cases"
 import {Formula, IFormula} from "../../../models/formula/formula"
+import {
+  kDefaultHighAttributeColor, kDefaultLowAttributeColor
+} from "../../../models/shared/shared-case-metadata-constants"
 import {hashStringSets, typedId, uniqueId} from "../../../utilities/js-utils"
-import {missingColor} from "../../../utilities/color-utils"
+import {getQuantileScale, missingColor} from "../../../utilities/color-utils"
+import { numericSortComparator } from "../../../utilities/data-utils"
+import {GraphPlace} from "../../axis-graph-shared"
 import {CaseData} from "../d3-types"
 import {AttrRole, TipAttrRoles, graphPlaceToAttrRole} from "../data-display-types"
-import {GraphPlace} from "../../axis-graph-shared"
-import { numericSortComparator } from "../../../utilities/data-utils"
 
 export const AttributeDescription = types
   .model('AttributeDescription', {
@@ -398,23 +401,45 @@ export const DataConfigurationModel = types
       )
       return joinedCaseData
     },
+    get lowColor() {
+      const attrId = self.attributeID("legend")
+      return self.metadata?.getAttributeColorRange(attrId).low
+    },
+    get highColor() {
+      const attrId = self.attributeID("legend")
+      return self.metadata?.getAttributeColorRange(attrId).high
+    }
   }))
   .views(self => ({
     // observable hash of rendered case ids
     get caseDataHash() {
       return hashStringSets(self.filteredCases.map(cases => cases.caseIds))
+    },
+    get quantileScaleColors() {
+      return getQuantileScale(
+        self.lowColor ?? kDefaultLowAttributeColor,
+        self.highColor ?? kDefaultHighAttributeColor
+      )
     }
   }))
   .extend(self => {
     // TODO: This is a hack to get around the fact that MST doesn't seem to cache this as expected
     // when implemented as simple view.
     let quantileScale: ScaleQuantile<string> | undefined = undefined
+    let previousLowAttributeColor: string | undefined
+    let previousHighAttributeColor: string | undefined
 
     return {
       views: {
         get legendQuantileScale() {
-          if (!quantileScale) {
-            quantileScale = scaleQuantile(self.numericValuesForAttrRole('legend'), schemeBlues[5])
+          if (
+            !quantileScale ||
+            previousLowAttributeColor !== self.lowColor ||
+            previousHighAttributeColor !== self.highColor
+          ) {
+            previousLowAttributeColor = self.lowColor
+            previousHighAttributeColor = self.highColor
+            quantileScale = scaleQuantile(self.numericValuesForAttrRole('legend'), self.quantileScaleColors)
           }
           return quantileScale
         },
@@ -562,6 +587,8 @@ export const DataConfigurationModel = types
             return self.getLegendColorForNumericValue(Number(legendValue))
           case 'date':
             return self.getLegendColorForDateValue(legendValue)
+          case 'color':
+            return legendValue
           default:
             return ''
         }

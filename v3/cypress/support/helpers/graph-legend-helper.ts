@@ -14,6 +14,12 @@ export const GraphLegendHelper = {
   verifyNumericLegend() {
     gle.getNumericLegendCategories().should("exist")
   },
+  verifyColorLegend(name: string) {
+    // Color legends display the attribute's name but nothing else
+    this.verifyLegendLabel(name)
+    gle.getCategoricalLegendCategories().should("not.exist")
+    gle.getNumericLegendCategories().should("not.exist")
+  },
   selectCategoryNameForCategoricalLegend(name: string) {
     gle.getCategoricalLegendCategory(name).click()
   },

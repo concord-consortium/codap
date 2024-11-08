@@ -1,3 +1,6 @@
+import { getSnapshot } from "mobx-state-tree"
+import { appState } from "../../models/app-state"
+import { getSharedCaseMetadataFromDataset, getSharedDataSets } from "../../models/shared/shared-data-utils"
 import { ICodapV2CollectionV3 } from "../../v2/codap-v2-types"
 import { toV2Id, toV3CollectionId } from "../../utilities/codap-utils"
 import { DICollection, DIDeleteCollectionResult, DIValues } from "../data-interactive-types"
@@ -79,28 +82,35 @@ describe("DataInteractive CollectionHandler", () => {
   })
 
   it("get works", () => {
-    const { dataset, c1 } = setupTestDataset()
+    const documentContent = appState.document.content!
+    const { dataset } = setupTestDataset()
+    documentContent.createDataSet(getSnapshot(dataset))
+    const dataContext = getSharedDataSets(documentContent)[0].dataSet
+    const c1 = dataContext.collections[0]
     expect(handler.get?.({}).success).toBe(false)
-    expect(handler.get?.({ dataContext: dataset }).success).toBe(false)
+    expect(handler.get?.({ dataContext }).success).toBe(false)
 
     // Grouped collection
+    const metadata = getSharedCaseMetadataFromDataset(dataContext)
+    metadata.setIsHidden(c1.attributes[0]!.id, true)
     c1.setLabels({ singleCase: "singleCase" })
-    const groupedResult = handler.get?.({ dataContext: dataset, collection: c1 })
+    const groupedResult = handler.get?.({ dataContext, collection: c1 })
     expect(groupedResult?.success).toBe(true)
     const groupedValues = groupedResult?.values as ICodapV2CollectionV3
     expect(groupedValues.name).toEqual(c1.name)
     expect(groupedValues.id).toEqual(toV2Id(c1.id))
     expect(groupedValues.attrs.length).toEqual(c1.attributes.length)
+    expect(groupedValues.attrs[0].hidden).toBe(true)
     expect(groupedValues.labels?.singleCase).toBe("singleCase")
 
     // child collection
-    const childCollection = dataset.childCollection
-    const childCollectionResult = handler.get?.({ dataContext: dataset, collection: childCollection })
+    const childCollection = dataContext.childCollection
+    const childCollectionResult = handler.get?.({ dataContext, collection: childCollection })
     expect(childCollectionResult?.success).toBe(true)
     const childCollectionValues = childCollectionResult?.values as ICodapV2CollectionV3
     expect(childCollectionValues.name).toEqual(childCollection.name)
     expect(childCollectionValues.id).toEqual(toV2Id(childCollection.id))
-    expect(childCollectionValues.attrs.length).toEqual(dataset.childCollection.attributes.length)
+    expect(childCollectionValues.attrs.length).toEqual(dataContext.childCollection.attributes.length)
   })
 
   it("update works", () => {
