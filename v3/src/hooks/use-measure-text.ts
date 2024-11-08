@@ -1,5 +1,9 @@
 import { useCallback } from "react"
 import { defaultFont } from "../components/constants"
+import { kCaseTableBodyFont, kCaseTableHeaderFont, kMaxAutoColumnWidth, kMinAutoColumnWidth }
+    from "../components/case-table/case-table-types"
+import { IAttribute } from "../models/data/attribute"
+import { renderAttributeValue } from "../components/case-tile-common/render-attribute-value"
 
 const canvas = document.createElement("canvas")
 const cache: Record<string, Record<string, number>> = {}
@@ -21,4 +25,16 @@ export const useMeasureText = (font = defaultFont) => {
   return useCallback((text: string) => {
     return measureText(text, font)
   }, [font])
+}
+
+export const findLongestContentWidth = (attr: IAttribute) => {
+  // include attribute name in content width calculation
+  let longestWidth = Math.max(kMinAutoColumnWidth,
+                              Math.min(kMaxAutoColumnWidth, measureText(attr.name, kCaseTableHeaderFont)))
+  for (let i = 0; i < attr.length; ++i) {
+    // use the formatted attribute value in content width calculation
+    const { value } = renderAttributeValue(attr.strValues[i], attr.numValues[i], attr)
+    longestWidth = Math.max(longestWidth, Math.min(kMaxAutoColumnWidth, measureText(value, kCaseTableBodyFont)))
+  }
+  return longestWidth
 }
