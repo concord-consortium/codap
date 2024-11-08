@@ -111,15 +111,15 @@ export const SharedCaseMetadata = SharedModel
       self.hidden.clear()
     },
     setAttributeColor(attrId: string, color: string, selector: "low" | "high") {
-      let numericColors = self.attributeColorRanges.get(attrId)
-      if (!numericColors) {
-        numericColors = ColorRangeModel.create()
-        self.attributeColorRanges.set(attrId, numericColors)
+      let attributeColors = self.attributeColorRanges.get(attrId)
+      if (!attributeColors) {
+        attributeColors = ColorRangeModel.create()
+        self.attributeColorRanges.set(attrId, attributeColors)
       }
       if (selector === "high") {
-        numericColors.setHighColor(color)
+        attributeColors.setHighColor(color)
       } else {
-        numericColors.setLowColor(color)
+        attributeColors.setLowColor(color)
       }
     }
   }))
