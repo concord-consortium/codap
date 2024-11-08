@@ -50,6 +50,7 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
   const attribute = data?.getAttribute(attributeId)
   const [inputValue, setInputValue] = useState(() => data?.getStrValue(row.__id__, attributeId))
   const initialInputValue = useRef(inputValue)
+  const [placement, setPlacement ]= useState<"right" | "left">("right")
   // support colors if user hasn't assigned a non-color type
   const supportColors = attribute?.userType == null || attribute?.userType === "color"
   // support color names if the color type is user-assigned
@@ -113,7 +114,7 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
           <Popover
             isLazy={true}
             isOpen={isPaletteOpen}
-            placement="right"
+            placement={placement}
             closeOnBlur={false}
           >
             <PopoverTrigger>
@@ -126,9 +127,9 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
               { inputElt }
             </PopoverAnchor>
             <Portal>
-              <ColorPickerPalette initialColor={initialInputValue.current || "#ffffff"}
+              <ColorPickerPalette initialColor={initialInputValue.current || "#ffffff"} isPaletteOpen={isPaletteOpen}
                 inputValue={inputValue || "#ffffff"} swatchBackgroundColor={color || "#ffffff"}
-                buttonRef={triggerButtonRef} showArrow={true}
+                buttonRef={triggerButtonRef} showArrow={true} setPlacement={setPlacement} placement={placement}
                 onColorChange={updateValue} onAccept={acceptValue} onReject={rejectValue} onUpdateValue={updateValue}/>
             </Portal>
           </Popover>
