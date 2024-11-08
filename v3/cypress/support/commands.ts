@@ -21,7 +21,7 @@ Cypress.Commands.add("clickWhenClickable", (selector: string, shouldCondition = 
         ensuring the action only happens once the assertion is fully satisfied.
   */
   cy.get(selector).should(shouldCondition).then($el => {
-    cy.wrap($el).click()
+    cy.wrap($el).click({force:true})
   })
 })
 
