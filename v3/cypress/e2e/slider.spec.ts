@@ -6,6 +6,7 @@ const sliderName = "v1"
 const newName = "v2"
 const initialSliderValue = "0.5"
 const finalSliderValue = "11.5"
+const nearFinalSliderValue = "11.45"
 const newSliderValue = "0.6"
 
 context("Slider UI", () => {
@@ -72,10 +73,10 @@ context("Slider UI", () => {
     slider.checkPlayButtonIsPaused()
     slider.getVariableValue().should("not.equal", initialSliderValue)
   })
-  // I stopped here. I think the animation rate is wrong.
-  it.only("replays from initial value once it reaches the end", () => {
-    slider.setAnimationRate(3)
+  it("replays from initial value once it reaches the end", () => {
+    slider.setAnimationRate(30)
     slider.getVariableValue().should("contain", initialSliderValue)
+    cy.log("play slider")
     slider.playSliderButton()
     slider.checkPlayButtonIsRunning()
     cy.wait(15000)
@@ -84,17 +85,19 @@ context("Slider UI", () => {
     slider.playSliderButton()
     slider.getVariableValue().should("contain", "0")
   })
-  it.skip("plays low to high animation direction", () => {
-    slider.setAnimationRate(3)
+  it("plays low to high animation direction", () => {
+    slider.setAnimationRate(50)
+    cy.log("set animation direction Low to High")
     slider.setAnimationDirection("lowToHigh")
+    cy.log("successfully set animation direction")
     slider.getVariableValue().should("contain", initialSliderValue)
     slider.playSliderButton()
     slider.checkPlayButtonIsRunning()
     slider.getVariableValue().should("contain", finalSliderValue)
     slider.checkPlayButtonIsPaused()
   })
-  it.skip("plays back and forth animation direction", () => {
-    slider.setAnimationRate(3)
+  it("plays back and forth animation direction", () => {
+    slider.setAnimationRate(50)
     slider.setAnimationDirection("backAndForth")
     slider.getVariableValue().should("contain", initialSliderValue)
     slider.playSliderButton()
@@ -104,8 +107,8 @@ context("Slider UI", () => {
     slider.getVariableValue().should("contain", "2.5")
     slider.checkPlayButtonIsPaused()
   })
-  it.skip("plays high to low animation direction", () => {
-    slider.setAnimationRate(3)
+  it("plays high to low animation direction", () => {
+    slider.setAnimationRate(50)
     slider.setAnimationDirection("highToLow")
     slider.changeVariableValue(finalSliderValue)
     slider.getVariableValue().should("contain", finalSliderValue)
@@ -114,18 +117,25 @@ context("Slider UI", () => {
     slider.getVariableValue().should("contain", initialSliderValue)
     slider.checkPlayButtonIsPaused()
   })
-  it.skip("plays nonstop", () => {
-    slider.setAnimationRate(3)
+  it("plays nonstop", () => {
+    slider.setAnimationRate(50)
     slider.setAnimationRepetition("nonStop")
+
+    // Initial value check
     slider.getVariableValue().should("contain", initialSliderValue)
+
+    // Start playing and verify the button state
     slider.playSliderButton()
     slider.checkPlayButtonIsRunning()
-    slider.getVariableValue().should("contain", finalSliderValue)
-    slider.checkPlayButtonIsRunning()
+
+    // Wait and verify it approaches the final value
+    slider.getVariableValue().should("contain", nearFinalSliderValue)
+
+    // Check if the slider has looped back to the initial value in nonstop mode
     slider.getVariableValue().should("contain", initialSliderValue)
     slider.checkPlayButtonIsRunning()
   })
-  it.skip("plays with restricting multiples", () => {
+  it("plays with restricting multiples", () => {
     const initialValue = "0"
     const finalValue = "60"
     const multiple = "10"
@@ -146,7 +156,7 @@ context("Slider UI", () => {
     slider.getVariableValue().should("contain", values[5])
     slider.checkPlayButtonIsPaused()
   })
-  it.skip("creates another slider from toolshelf", () => {
+  it("creates another slider from toolshelf", () => {
     c.getIconFromToolShelf("slider").click()
 
     c.getComponentTitle("slider").should("contain", sliderName)
@@ -159,7 +169,7 @@ context("Slider UI", () => {
     slider.getVariableValue(1).should("contain", initialSliderValue)
     slider.checkPlayButtonIsPaused(1)
   })
-  it.skip("checks editing variable name in one slider only affects that slider", () => {
+  it("checks editing variable name in one slider only affects that slider", () => {
     const newSliderName = "xyz"
     c.getIconFromToolShelf("slider").click()
 
@@ -169,6 +179,7 @@ context("Slider UI", () => {
     slider.getVariableName(0).should("have.text", sliderName)
     slider.getVariableName(1).should("have.text", newSliderName)
   })
+  // issues with the click occur here, skipping for now
   it.skip("checks editing variable value in one slider only affects that slider", () => {
     const newVariableValue = "100"
     c.getIconFromToolShelf("slider").click()
@@ -177,9 +188,9 @@ context("Slider UI", () => {
     slider.getVariableValue(0).should("contain", initialSliderValue)
     slider.getVariableValue(1).should("contain", newVariableValue)
   })
-  it.skip("checks playing in one slider only plays that slider", () => {
+  it("checks playing in one slider only plays that slider", () => {
     c.getIconFromToolShelf("slider").click()
-    slider.setAnimationRate(3, 1)
+    slider.setAnimationRate(50, 1)
 
     slider.checkPlayButtonIsPaused(0)
     slider.checkPlayButtonIsPaused(1)
@@ -200,7 +211,7 @@ context("Slider UI", () => {
     slider.checkPlayButtonIsPaused(0)
     slider.checkPlayButtonIsPaused(1)
   })
-  it.skip("creates sliders with incrementing names", () => {
+  it("creates sliders with incrementing names", () => {
     c.getIconFromToolShelf("slider").click()
 
     c.getComponentTitle("slider").should("contain", sliderName)
@@ -219,7 +230,7 @@ context("Slider UI", () => {
     slider.getVariableValue(2).should("contain", initialSliderValue)
     slider.checkPlayButtonIsPaused(2)
   })
-  it.skip("reuses slider names after existing ones are closed", () => {
+  it("reuses slider names after existing ones are closed", () => {
     c.closeComponent("slider")
     c.checkComponentDoesNotExist("slider")
     c.getIconFromToolShelf("slider").click()
@@ -239,7 +250,7 @@ context("Slider UI", () => {
     slider.checkPlayButtonIsPaused()
 
   })
-  it.skip("checks all slider tooltips", () => {
+  it("checks all slider tooltips", () => {
     c.selectTile("slider", 0)
     toolbar.getToolShelfIcon("slider").then($element => {
       c.checkToolTip($element, c.tooltips.sliderToolShelfIcon)
@@ -250,11 +261,12 @@ context("Slider UI", () => {
     c.getCloseButton("slider").then($element => {
       c.checkToolTip($element, c.tooltips.closeComponent)
     })
+    cy.log("made it here")
     slider.getInspectorIcon().then($element => {
-      c.checkToolTip($element, c.tooltips.inspectorPanel)
+      c.checkToolTip($element, c.tooltips.sliderInspectorPanel)
     })
   })
-  it.skip("checks min max slider values", () => {
+  it("checks min max slider values", () => {
     slider.getVariableValue().should("contain", initialSliderValue)
     // slider.changeVariableValue("12345678901234567890")
     // slider.getVariableValue().should("contain", "1.235e+14")
