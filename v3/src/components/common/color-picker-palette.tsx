@@ -42,7 +42,7 @@ export const ColorPickerPalette = ({ swatchBackgroundColor, inputValue, buttonRe
       const viewportHeight = window.innerHeight
       let top = +styles.colorPickerPopoverTop
 
-      let left = placement=== "left" ? +styles.leftColorPickerPopoverLeft
+      let left = placement === "left" ? +styles.leftColorPickerPopoverLeft
                                       : showArrow ? 0
                                                   : +styles.colorPickerPopoverLeft
       if (rect.right > viewportWidth) {
