@@ -139,7 +139,7 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
         <MenuItem onClick={showAllCases} isDisabled={showAllIsDisabled} data-testid="show-all-cases">
           {t("DG.DataDisplayMenu.showAll")}
         </MenuItem>
-        <MenuItem onClick={handleEditFormulaOpen} data-testid="edit-filter-formula">
+        <MenuItem onClick={handleEditFormulaOpen} data-testid="graph-edit-filter-formula">
           {t("V3.hideShowMenu.editFilterFormula")}
         </MenuItem>
         <MenuItem onClick={displayOnlySelectedCases} isDisabled={displayOnlySelectedIsDisabled}

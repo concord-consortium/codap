@@ -1,4 +1,4 @@
-import {MenuItem, MenuList} from "@chakra-ui/react"
+import {MenuItem, MenuList, useDisclosure} from "@chakra-ui/react"
 import {observer} from "mobx-react-lite"
 import {isAlive} from "mobx-state-tree"
 import React from "react"
@@ -7,6 +7,8 @@ import {ITileModel} from "../../../../models/tiles/tile-model"
 import {t} from "../../../../utilities/translation/translate"
 import {IMapContentModel, isMapContentModel} from "../../models/map-content-model"
 import { logMessageWithReplacement } from "../../../../lib/log-message"
+import { DataSetContext } from "../../../../hooks/use-data-set-context"
+import { EditFormulaModal } from "../../../common/edit-formula-modal"
 
 interface IProps {
   tile?: ITileModel
@@ -21,6 +23,8 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
   const numSelected = mapModel?.numSelected() ?? 0
   const numUnselected = mapModel?.numUnselected() ?? 0
   const numHidden = mapModel?.numHidden() ?? 0
+  const formulaModal = useDisclosure()
+  const dataConfig = mapModel?.layers.find(layer => layer.dataConfiguration)?.dataConfiguration
 
   const hideSelectedString = numSelected === 1
                               ? t("DG.DataDisplayMenu.hideSelectedSing")
@@ -62,17 +66,40 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
     )
   }
 
+  const handleEditFormulaOpen = () => {
+    formulaModal.onOpen()
+  }
+
+  const handleEditFormulaClose = () => {
+    formulaModal.onClose()
+  }
+
   return (
-    <MenuList data-testid="hide-show-menu-list">
-      <MenuItem onClick={hideSelectedCases} isDisabled={numSelected === 0} data-testid="hide-selected-cases">
-        {hideSelectedString}
-      </MenuItem>
-      <MenuItem onClick={hideUnselectedCases} isDisabled={numUnselected === 0} data-testid="hide-unselected-cases">
-        {hideUnselectedString}
-      </MenuItem>
-      <MenuItem onClick={showAllCases} isDisabled={numHidden === 0} data-testid="show-all-cases">
-        {t("DG.DataDisplayMenu.showAll")}
-      </MenuItem>
-    </MenuList>
+    <>
+      <MenuList data-testid="hide-show-menu-list">
+        <MenuItem onClick={hideSelectedCases} isDisabled={numSelected === 0} data-testid="hide-selected-cases">
+          {hideSelectedString}
+        </MenuItem>
+        <MenuItem onClick={hideUnselectedCases} isDisabled={numUnselected === 0} data-testid="hide-unselected-cases">
+          {hideUnselectedString}
+        </MenuItem>
+        <MenuItem onClick={showAllCases} isDisabled={numHidden === 0} data-testid="show-all-cases">
+          {t("DG.DataDisplayMenu.showAll")}
+        </MenuItem>
+        <MenuItem onClick={handleEditFormulaOpen} data-testid="map-edit-filter-formula">
+          {t("V3.hideShowMenu.editFilterFormula")}
+        </MenuItem>
+      </MenuList>
+      {dataConfig &&
+        <DataSetContext.Provider value={dataConfig.dataset}>
+          <EditFormulaModal
+            applyFormula={dataConfig.setFilterFormula}
+            isOpen={formulaModal.isOpen}
+            onClose={handleEditFormulaClose}
+            titleLabel={t("V3.hideShowMenu.filterFormulaPrompt")}
+            value={dataConfig.filterFormula?.display} />
+        </DataSetContext.Provider>
+      }
+    </>
   )
 })
