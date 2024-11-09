@@ -125,6 +125,8 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
       ? t("DG.DataDisplayMenu.disableMeasuresForSelection")
       : t("DG.DataDisplayMenu.enableMeasuresForSelection"),
     displayOnlySelectedIsDisabled = dataConfig?.displayOnlySelectedCases
+    const addOrEditFormulaString = dataConfig?.filterFormula?.display ? t("V3.hideShowMenu.editFilterFormula")
+                                                                      : t("V3.hideShowMenu.addFilterFormula")
 
   return (
     <>
@@ -140,7 +142,7 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
           {t("DG.DataDisplayMenu.showAll")}
         </MenuItem>
         <MenuItem onClick={handleEditFormulaOpen} data-testid="graph-edit-filter-formula">
-          {t("V3.hideShowMenu.editFilterFormula")}
+          {addOrEditFormulaString}
         </MenuItem>
         <MenuItem onClick={displayOnlySelectedCases} isDisabled={displayOnlySelectedIsDisabled}
         data-testid="display-selected-cases">

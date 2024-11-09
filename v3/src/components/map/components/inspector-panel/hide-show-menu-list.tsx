@@ -32,6 +32,8 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
   const hideUnselectedString = numUnselected === 1
                               ? t("DG.DataDisplayMenu.hideUnselectedSing")
                               : t("DG.DataDisplayMenu.hideUnselectedPlural")
+  const addOrEditFormulaString = dataConfig?.filterFormula?.display ? t("V3.hideShowMenu.editFilterFormula")
+                                                                    : t("V3.hideShowMenu.addFilterFormula")
 
   const hideSelectedCases = () => {
     mapModel?.applyModelChange(
@@ -87,7 +89,7 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
           {t("DG.DataDisplayMenu.showAll")}
         </MenuItem>
         <MenuItem onClick={handleEditFormulaOpen} data-testid="map-edit-filter-formula">
-          {t("V3.hideShowMenu.editFilterFormula")}
+          {addOrEditFormulaString}
         </MenuItem>
       </MenuList>
       {dataConfig &&
