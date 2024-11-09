@@ -1,3 +1,5 @@
+import { SetNonNullable } from "type-fest"
+
 export type XYValues = Array<{ x: number, y: number }>
 
 /**
@@ -119,7 +121,7 @@ export function linRegrIntercept(xyValues: XYValues, interceptLocked = false) {
  *         slope: {Number}, intercept: {Number}, sse: {Number}, mse: {Number},
  *         rSquared: {Number}, sdResiduals: {Number} }}
  */
-interface LSRResult {
+export interface LSRResult {
   count: number | null
   xMean: number | null
   xSumSquaredDeviations: number | null
@@ -180,6 +182,12 @@ export function leastSquaresLinearRegression(xyValues: XYValues, interceptLocked
     result.meanSquaredError = count > 2 ? result.sumSquaredErrors / (count - 2) : 0
   }
   return result
+}
+
+export type ValidLSRResult = SetNonNullable<LSRResult>
+
+export function isValidLSRResult(result?: LSRResult): result is ValidLSRResult {
+  return result?.count != null && result.count >= 2 && result.intercept != null && result.slope != null
 }
 
 /**

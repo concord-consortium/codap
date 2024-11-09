@@ -22,6 +22,30 @@ describe("linRegrIntercept", () => {
   })
 })
 
+describe("linRegrPredicted", () => {
+  it("returns correct value", () => {
+    expect(evaluate("linRegrPredicted(LifeSpan, Order)", 0)).toBe(UNDEF_RESULT)
+    expect(evaluate("linRegrPredicted(LifeSpan, Speed)", 0)).toBeCloseTo(45.780786, 6)
+    expect(evaluate("linRegrPredicted(LifeSpan, Speed)", 1)).toBeCloseTo(45.780786, 6)
+    expect(evaluate("linRegrPredicted(LifeSpan, Speed)", 2)).toBeCloseTo(49.381459, 6)
+    expect(evaluate("linRegrPredicted(Height, Mass)", 0)).toBeCloseTo(2398.1555, 6)
+    expect(evaluate("linRegrPredicted(Height, Mass)", 1)).toBeCloseTo(1669.424693, 6)
+    expect(evaluate("linRegrPredicted(Height, Mass)", 2)).toBeCloseTo(-443.894646, 6)
+  })
+})
+
+describe("linRegrResidual", () => {
+  it("returns correct value", () => {
+    expect(evaluate("linRegrResidual(LifeSpan, Order)", 0)).toBe(UNDEF_RESULT)
+    expect(evaluate("linRegrResidual(LifeSpan, Speed)", 0)).toBeCloseTo(-5.780786, 6)
+    expect(evaluate("linRegrResidual(LifeSpan, Speed)", 1)).toBeCloseTo(-5.780786, 6)
+    expect(evaluate("linRegrResidual(LifeSpan, Speed)", 2)).toBeCloseTo(-9.381459, 6)
+    expect(evaluate("linRegrResidual(Height, Mass)", 0)).toBeCloseTo(4001.8445, 6)
+    expect(evaluate("linRegrResidual(Height, Mass)", 1)).toBeCloseTo(3330.575307, 6)
+    expect(evaluate("linRegrResidual(Height, Mass)", 2)).toBeCloseTo(443.914646, 6)
+  })
+})
+
 describe("linRegrSESlope", () => {
   it("returns correct value", () => {
     expect(evaluate("linRegrSESlope(LifeSpan, Order)")).toBe(UNDEF_RESULT)
