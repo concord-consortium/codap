@@ -70,13 +70,13 @@ export const CaseTileInspector = ({ tile, show, showResizeColumnsButton }: IProp
 
   const findLongestContentWidth = (attr: IAttribute) => {
     // include attribute name in content width calculation
-    let longestWidth = Math.max(kMinAutoColumnWidth, Math.min(kMaxAutoColumnWidth, measureHeaderText(attr.name)))
+    let longestWidth = Math.max(kMinAutoColumnWidth, measureHeaderText(attr.name))
     for (let i = 0; i < attr.length; ++i) {
       // use the formatted attribute value in content width calculation
       const { value } = renderAttributeValue(attr.strValues[i], attr.numValues[i], attr)
-      longestWidth = Math.max(longestWidth, Math.min(kMaxAutoColumnWidth, measureBodyText(value)))
+      longestWidth = Math.max(longestWidth, measureBodyText(value))
     }
-    return longestWidth
+    return Math.min(kMaxAutoColumnWidth, longestWidth)
   }
 
   return (
