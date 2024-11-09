@@ -26,7 +26,7 @@ export const CaseCard = observer(function CaseCard({ setNodeRef }: IProps) {
   const {data} = useDataSet()
   const cardModel = useCaseCardModel()
   const containerRef = useRef<HTMLDivElement>(null)
-  const mergeRefs = useMergeRefs<HTMLDivElement>(containerRef, setNodeRef)
+  const mergeRefs = useMergeRefs<HTMLDivElement | null>(containerRef, setNodeRef)
 
   // const { width, height } = useResizeDetector({ targetRef: containerRef })
 

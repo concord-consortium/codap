@@ -35,7 +35,7 @@ describe("CollectionModel", () => {
     expect(withNameAndTitle.title).toBe("newTitle")
     expect(isCollectionModel(withNameAndTitle)).toBe(true)
 
-    defaultItemData.addItemInfo("foo", 0, "bar")
+    defaultItemData.addItemInfo("foo", "bar")
     defaultItemData.invalidate()
   })
 
@@ -103,7 +103,7 @@ describe("CollectionModel", () => {
     expect(defaultItemData.itemIds()).toEqual([])
     expect(defaultItemData.isHidden("foo")).toEqual(false)
     expect(defaultItemData.getValue("foo", "bar")).toBe("")
-    expect(defaultItemData.addItemInfo("foo", 0, "bar")).toBeNull()
+    expect(defaultItemData.addItemInfo("foo", "bar")).toBeNull()
 
     jestSpyConsole("warn", spy => {
       c1.addChildCase("foo", "bar")
@@ -275,7 +275,7 @@ describe("CollectionModel", () => {
                     ? "parent"
                     : "child"
       },
-      addItemInfo: (itemId, index, caseId) => {
+      addItemInfo: (itemId, caseId) => {
         const entry = itemIdToCaseIdsMap.get(itemId)
         if (entry) {
           entry.push(caseId)
@@ -405,5 +405,19 @@ describe("CollectionModel", () => {
     expect(getCaseIdInfo(c2)).toEqual(origChildCollectionInfo)
     expect(c1.groupKeyCaseIds.get(bGroupKey)).toBeUndefined()
     validateItemCaseIds()
+
+    // hiding items works as expected
+    itemData.isHidden = itemId => ["i0", "i2"].includes(itemId)
+    validateCases()
+
+    // when i0 & i2 are hidden, first parent case is odds, second is evens (except i0, i2)
+    expect(c1.caseIds.length).toBe(2)
+    expect(c1.cases.length).toBe(2)
+    expect(c2.caseIds).toEqual(caseIdsForItems(["i1", "i3", "i5", "i4"], 1))
+    expect(c2.findParentCaseGroup("foo")).toBeUndefined()
+    expect(c1.caseGroups[0].childCaseIds).toEqual(caseIdsForItems(["i1", "i3", "i5"], 1))
+    expect(c1.caseGroups[0].childItemIds).toEqual(["i1", "i3", "i5"])
+    expect(c1.caseGroups[1].childCaseIds).toEqual(caseIdsForItems(["i4"], 1))
+    expect(c1.caseGroups[1].childItemIds).toEqual(["i4"])
   })
 })

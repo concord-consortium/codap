@@ -1,4 +1,4 @@
-@import "../../../vars";
+@use "../../../vars";
 
 .legend-component {
   position: relative;
@@ -6,7 +6,7 @@
   height: 100%;
 
   .legend-background {
-    fill: $background-fill;
+    fill: vars.$background-fill;
     opacity: 1;
     stroke: none;
   }
@@ -37,7 +37,7 @@
   width: 100%;
   display: flex;
   flex-direction: column;
-  background-color: $background-fill;
+  background-color: vars.$background-fill;
 }
 
 .legend-rect-selected {

@@ -14,7 +14,7 @@ import {
   pointRadiusSelectionAddend, Rect, rTreeRect
 } from "./data-display-types"
 import {IDataConfigurationModel } from "./models/data-configuration-model"
-import {IPixiPointStyle, PixiPoints} from "./pixi/pixi-points"
+import {getPixiPointsDispatcher, IPixiPointStyle, PixiPoints} from "./pixi/pixi-points"
 import {CaseDataWithSubPlot} from "./d3-types"
 
 export const maxWidthOfStringsD3 = (strings: Iterable<string>) => {
@@ -51,6 +51,9 @@ export const computePointRadius = (numPoints: number, pointSizeMultiplier: numbe
 }
 
 export function handleClickOnCase(event: PointerEvent, caseID: string, dataset?: IDataSet) {
+  // click occurred on a point, so don't deselect
+  getPixiPointsDispatcher(event)?.cancelAnimationFrame("deselectAll")
+
   const extendSelection = event.shiftKey,
     caseIsSelected = dataset?.isCaseSelected(caseID)
 

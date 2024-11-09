@@ -2,11 +2,11 @@ import React, { useState } from "react"
 import { observer } from "mobx-react-lite"
 import { Button, useDisclosure } from "@chakra-ui/react"
 import { t } from "../../../../utilities/translation/translate"
-import { EditFormulaModal } from "./edit-formula-modal"
+import { logStringifiedObjectMessage } from "../../../../lib/log-message"
+import { EditFormulaModal } from "../../../common/edit-formula-modal"
+import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
 import { IAdornmentBannerComponentProps } from "../adornment-component-info"
 import { IPlottedFunctionAdornmentModel } from "./plotted-function-adornment-model"
-import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
-import { logStringifiedObjectMessage } from "../../../../lib/log-message"
 
 import "./plotted-function-adornment-banner.scss"
 
@@ -31,9 +31,13 @@ export const PlottedFunctionAdornmentBanner = observer(function PlottedFunctionA
     handleModalOpen(true)
   }
 
-  const handleEditExpressionClose = (newExpression: string) => {
+  const handleCloseModal = () => {
     formulaModal.onClose()
     handleModalOpen(false)
+  }
+
+  const handleEditExpressionClose = (newExpression: string) => {
+    handleCloseModal()
     graphModel.applyModelChange(
       () => model.setExpression(newExpression),
       {
@@ -66,12 +70,14 @@ export const PlottedFunctionAdornmentBanner = observer(function PlottedFunctionA
         {error && <div className="plotted-function-error" data-testid="plotted-function-error">{error}</div>}
       </Button>
       {modalIsOpen &&
-         <EditFormulaModal
+        <EditFormulaModal
+          applyFormula={handleEditExpressionClose}
+          formulaPrompt={`${yAttrName} =`}
           isOpen={formulaModal.isOpen}
-          currentValue={expression}
-          onClose={handleEditExpressionClose}
-          leftHandSideLabel={`${yAttrName} =`}
-         />
+          onClose={handleCloseModal}
+          titleLabel={t("DG.PlottedFunction.namePrompt")}
+          value={expression}
+        />
       }
     </>
   )

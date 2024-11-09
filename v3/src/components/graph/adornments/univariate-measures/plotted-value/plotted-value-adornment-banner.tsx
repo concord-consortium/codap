@@ -1,12 +1,12 @@
 import React, { useState } from "react"
 import { observer } from "mobx-react-lite"
 import { Button, useDisclosure } from "@chakra-ui/react"
-import { t } from "../../../../../utilities/translation/translate"
-import { IAdornmentBannerComponentProps } from "../../adornment-component-info"
-import { EditFormulaModal } from "./edit-formula-modal"
-import { IPlottedValueAdornmentModel } from "./plotted-value-adornment-model"
-import { useGraphContentModelContext } from "../../../hooks/use-graph-content-model-context"
 import { logMessageWithReplacement } from "../../../../../lib/log-message"
+import { t } from "../../../../../utilities/translation/translate"
+import { EditFormulaModal } from "../../../../common/edit-formula-modal"
+import { useGraphContentModelContext } from "../../../hooks/use-graph-content-model-context"
+import { IAdornmentBannerComponentProps } from "../../adornment-component-info"
+import { IPlottedValueAdornmentModel } from "./plotted-value-adornment-model"
 
 import "./plotted-value-adornment-banner.scss"
 
@@ -28,9 +28,13 @@ export const PlottedValueAdornmentBanner = observer(function PlottedValueAdornme
     handleModalOpen(true)
   }
 
-  const handleEditExpressionClose = (newExpression: string) => {
+  const handleCloseModal = () => {
     formulaModal.onClose()
-    handleModalOpen(false)
+    setModalIsOpen(false)
+  }
+
+  const handleEditExpressionClose = (newExpression: string) => {
+    handleCloseModal()
     graphModel.applyModelChange(
       () => model.setExpression(newExpression),
       {
@@ -61,7 +65,14 @@ export const PlottedValueAdornmentBanner = observer(function PlottedValueAdornme
         { error && <div className="plotted-value-error" data-testid="plotted-value-error">{error}</div> }
       </Button>
       { modalIsOpen &&
-        <EditFormulaModal isOpen={formulaModal.isOpen} currentValue={expression} onClose={handleEditExpressionClose} />
+        <EditFormulaModal
+          applyFormula={handleEditExpressionClose}
+          formulaPrompt={t("DG.PlottedValue.formulaPrompt")}
+          isOpen={formulaModal.isOpen}
+          onClose={handleCloseModal}
+          titleLabel={t("DG.PlottedValue.namePrompt")}
+          value={expression}
+        />
       }
     </>
   )

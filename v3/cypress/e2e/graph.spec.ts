@@ -3,6 +3,7 @@ import { TableTileElements as table } from "../support/elements/table-tile"
 import { ComponentElements as c } from "../support/elements/component-elements"
 import { ToolbarElements as toolbar } from "../support/elements/toolbar-elements"
 import { CfmElements as cfm } from "../support/elements/cfm"
+import { ColorPickerPaletteElements as cpp} from "../support/elements/color-picker-palette"
 import graphRules from '../fixtures/graph-rules.json'
 
 const collectionName = "Mammals"
@@ -368,41 +369,38 @@ context("Graph UI", () => {
         .get('div[role="slider"]').should('have.attr', 'aria-valuenow', "0.98")
 
       cy.log("changes the stroke color value and verifies the change")
+      // Ensure stroke initially has the expected value
 
-      cy.get('input[type="color"].chakra-input.color-picker-thumb.css-12wa1y3')
-        .eq(0)
-        .should('have.value', '#ffffff') // Ensure stroke initially has the expected value
+      cy.get('.color-picker-row').eq(0).find('.color-picker-thumb-swatch')
+        .should('have.css', 'background-color', 'rgb(255, 255, 255)')
         .then((colorPicker) => {
           // Change the value of the color picker
-          cy.wrap(colorPicker)
-            .invoke('val', '#000000')
-            .trigger('input')
-            .trigger('change')
+          cy.wrap(colorPicker).click()
+          cpp.getColorSettingSwatchCell().eq(0).click()
 
           // Verify the value has been updated
-          cy.wrap(colorPicker).should('have.value', '#000000')
+          cy.wrap(colorPicker).should('have.css', 'background-color', 'rgb(0, 0, 0)')
         })
+      cy.get('.codap-inspector-palette-header-title').click() //close the color palette
 
       cy.log("changes the point color value and verifies the change")
 
-      cy.get('input[type="color"].chakra-input.color-picker-thumb.css-12wa1y3')
-        .eq(1)
-        .should('have.value', '#e6805b') // Ensure point color initially has the expected value
+      cy.get('.color-picker-row').eq(1).find('.color-picker-thumb-swatch')
+        // Ensure point color initially has the expected value
+        .should('have.css', 'background-color', 'rgb(230, 128, 91)')
         .then((colorPicker) => {
           // Change the value of the color picker
-          cy.wrap(colorPicker)
-            .invoke('val', '#ff5733')
-            .trigger('input')
-            .trigger('change')
+          cy.wrap(colorPicker).click()
+          cpp.getColorSettingSwatchCell().eq(1).click()
 
           // Verify the value has been updated
-          cy.wrap(colorPicker).should('have.value', '#ff5733')
+          cy.wrap(colorPicker).should('have.css', 'background-color', 'rgb(169, 169, 169)')
         })
+      cy.get('.codap-inspector-palette-header-title').click() //close the color palette
 
       cy.log("checks the box Stroke same color as fill and check it")
-
       // Get the checkbox and check it
-      cy.get('span.chakra-checkbox__control.css-4utxuo')
+      cy.get('[data-testid=stroke-same-as-fill-checkbox]')
         .eq(0)
         .click()
 
@@ -411,35 +409,31 @@ context("Graph UI", () => {
         .should('be.checked')
 
       // Use Cypress commands to get the first and second color picker elements
-      cy.get('input[type="color"].chakra-input.color-picker-thumb.css-12wa1y3')
-        .eq(0)
+      cy.get('.color-picker-row').eq(0).find('.color-picker-thumb-swatch')
         .as('fillColorPicker')
 
-      cy.get('input[type="color"].chakra-input.color-picker-thumb.css-12wa1y3')
-        .eq(1)
+      cy.get('.color-picker-row').eq(1).find('.color-picker-thumb-swatch')
         .as('strokeColorPicker')
 
       // Get the fill color value
-      cy.get('@fillColorPicker').invoke('val').then((fillColor) => {
+      cy.get('@fillColorPicker').invoke('css', 'background-color').then((fillColor) => {
         // Get the stroke color value and compare it to the fill color
         cy.get('@strokeColorPicker')
-        .should('have.value', fillColor)
+        .should('have.css', 'background-color', fillColor)
       })
 
       cy.log("changes the background color and verifies the change")
       // Use a more specific selector to find the background color input element
-      cy.get('input[type="color"].chakra-input.color-picker-thumb.css-12wa1y3')
-        .eq(2)
-        .should('have.value', '#ffffff') // Ensure background initially has the expected value
+      cy.get('.color-picker-row').eq(2).find('.color-picker-thumb-swatch')
+        // Ensure background initially has the expected value
+        .should('have.css', 'background-color', 'rgb(255, 255, 255)')
         .then((backgroundColorPicker) => {
           // Change the value of the background color picker
-          cy.wrap(backgroundColorPicker)
-            .invoke('val', '#ff5733')
-            .trigger('input')
-            .trigger('change')
+          cy.wrap(backgroundColorPicker).click()
+          cpp.getColorSettingSwatchCell().eq(4).click()
 
           // Verify the value has been updated
-          cy.wrap(backgroundColorPicker).should('have.value', '#ff5733')
+          cy.wrap(backgroundColorPicker).should('have.css', 'background-color', 'rgb(173, 35, 35)')
         })
 
       cy.log("finds the Transparent checkbox and verifies it can be checked")

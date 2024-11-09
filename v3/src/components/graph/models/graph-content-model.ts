@@ -209,7 +209,8 @@ export const GraphContentModel = DataDisplayContentModel
     },
     binDetails(options?: { initialize?: boolean }) {
       const { initialize = false } = options ?? {}
-      const { caseDataArray, dataset, primaryAttributeID } = self.dataConfiguration
+      const { dataset, primaryAttributeID } = self.dataConfiguration
+      const caseDataArray = self.dataConfiguration.getCaseDataArray(0)
       const minValue = caseDataArray.reduce((min, aCaseData) => {
         return Math.min(min, dataDisplayGetNumericValue(dataset, aCaseData.caseID, primaryAttributeID) ?? min)
       }, Infinity)
@@ -327,7 +328,7 @@ export const GraphContentModel = DataDisplayContentModel
   }))
   .views(self => ({
     getPointRadius(use: 'normal' | 'hover-drag' | 'select' = 'normal') {
-      return computePointRadius(self.dataConfiguration.caseDataArray.length,
+      return computePointRadius(self.dataConfiguration.getCaseDataArray(0).length,
         self.pointDescription.pointSizeMultiplier, use)
     },
     nonDraggableAxisTicks(formatter: (value: number) => string): { tickValues: number[], tickLabels: string[] } {
@@ -534,7 +535,7 @@ export const GraphContentModel = DataDisplayContentModel
       const extraSecondaryAttrID = dataConfig?.attributeID(extraSecondaryAttrRole) ?? ''
       const extraPrimaryAttrID = dataConfig.attributeID(extraPrimaryAttrRole)
 
-      primaryAttrID && (dataConfig.caseDataArray || []).forEach((aCaseData: CaseData) => {
+      primaryAttrID && (dataConfig.getCaseDataArray(0) || []).forEach((aCaseData: CaseData) => {
         const anID = aCaseData.caseID,
           hCat = dataset?.getStrValue(anID, primaryAttrID),
           vCat = secondaryAttrID ? dataset?.getStrValue(anID, secondaryAttrID) : '__main__',
@@ -568,6 +569,7 @@ export const GraphContentModel = DataDisplayContentModel
             role = axisPlaceToAttrRole[axisPlace]
           if (isBaseNumericAxisModel(axis)) {
             const numericValues = dataConfiguration.numericValuesForAttrRole(role)
+            axis.setAllowRangeToShrink(true)
             setNiceDomain(numericValues, axis, self.axisDomainOptions)
           }
         })

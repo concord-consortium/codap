@@ -103,3 +103,22 @@ export class TinyColor {
 export function tinycolor(color: string) {
   return new TinyColor(color)
 }
+
+// Returns a color that is between color1 and color2
+export function interpolateColors(color1: string, color2: string, percentage: number) {
+  const rgb1 = colord(color1).toRgb()
+  const rgb2 = colord(color2).toRgb()
+  const rRange = rgb2.r - rgb1.r
+  const gRange = rgb2.g - rgb1.g
+  const bRange = rgb2.b - rgb1.b
+  const r = rgb1.r + percentage * rRange
+  const g = rgb1.g + percentage * gRange
+  const b = rgb1.b + percentage * bRange
+  return colord({ r, g, b }).toHex()
+}
+
+// Returns an array of five colors transitioning between color1 and color2
+export function getQuantileScale(color1: string, color2: string) {
+  const midColor = (percentage: number) => interpolateColors(color1, color2, percentage)
+  return [color1, midColor(.25), midColor(.5), midColor(.75), color2]
+}

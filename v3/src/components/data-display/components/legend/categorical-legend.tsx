@@ -14,14 +14,10 @@ import {useDataDisplayLayout} from "../../hooks/use-data-display-layout"
 import {getStringBounds} from "../../../axis/axis-utils"
 import {kDataDisplayFont, transitionDuration} from "../../data-display-types"
 import {axisGap} from "../../../axis/axis-types"
+import { IBaseLegendProps } from "./legend-common"
 
 import './legend.scss'
 import vars from "../../../vars.scss"
-
-interface ICategoricalLegendProps {
-  layerIndex: number
-  setDesiredExtent: (layerIndex:number, extent: number) => void
-}
 
 interface Key {
   category: string
@@ -65,7 +61,7 @@ const coordinatesToCatIndex = (lod: Layout, numCategories: number, localPoint: {
   }
 
 export const CategoricalLegend = observer(
-  function CategoricalLegend({layerIndex, setDesiredExtent}: ICategoricalLegendProps) {
+  function CategoricalLegend({layerIndex, setDesiredExtent}: IBaseLegendProps) {
     const dataConfiguration = useDataConfigurationContext(),
       dataset = dataConfiguration?.dataset,
       tileWidth = useDataDisplayLayout().tileWidth,
@@ -91,13 +87,16 @@ export const CategoricalLegend = observer(
 
     const setCategoryData = useCallback(() => {
       if (categoriesRef.current) {
-        const newCategoryData = categoriesRef.current.map((cat: string, index) => ({
-          category: cat,
-          color: dataConfiguration?.getLegendColorForCategory(cat) || missingColor,
-          column: index % layoutData.current.numColumns,
-          index,
-          row: Math.floor(index / layoutData.current.numColumns)
-        }))
+        const newCategoryData = categoriesRef.current.map((cat: string, index) => {
+          return (
+          {
+            category: cat,
+            color: dataConfiguration?.getLegendColorForCategory(cat) || missingColor,
+            column: index % layoutData.current.numColumns,
+            index,
+            row: Math.floor(index / layoutData.current.numColumns)
+          })
+        })
         categoryData.current = newCategoryData
       }
     }, [dataConfiguration])
@@ -149,7 +148,8 @@ export const CategoricalLegend = observer(
                   return dataConfiguration?.allCasesForCategoryAreSelected(catData[index].category) ??
                     false
                 })
-              .style('fill', (index: number) => catData[index].color || 'white')
+              .style('fill', (index: number) =>
+                                dataConfiguration?.getLegendColorForCategory(catData[index].category) || 'white')
               .transition().duration(duration.current)
               .on('end', () => {
                 duration.current = 0
@@ -297,18 +297,14 @@ export const CategoricalLegend = observer(
       })
     }, [refreshKeys, dataset, computeDesiredExtent])
 
-    useEffect(function respondToCategorySetsChange() {
+    useEffect(function respondToChangeCount() {
       return mstReaction(
-        () => {
-          const categories = dataConfiguration?.categoryArrayForAttrRole('legend')
-          const numHidden = dataConfiguration?.hiddenCases.length
-          return { categories, numHidden }
-        },
+        () => dataConfiguration?.casesChangeCount,
         () => {
           setDesiredExtent(layerIndex, computeDesiredExtent())
           setupKeys()
           refreshKeys()
-        }, {name: 'CategoricalLegend respondToCategorySetsChange',
+        }, {name: 'CategoricalLegend respondToChangeCount',
           equals: comparer.structural}, dataConfiguration)
     }, [setupKeys, refreshKeys, dataConfiguration, computeDesiredExtent, setDesiredExtent, layerIndex])
 
@@ -326,6 +322,18 @@ export const CategoricalLegend = observer(
       )
       return () => disposer()
     }, [refreshKeys, computeDesiredExtent, dataConfiguration, setupKeys, setDesiredExtent, layerIndex])
+
+    useEffect(function respondToLegendColorChange() {
+      const disposer = reaction(
+        () => {
+          return dataConfiguration?.categorySetForAttrRole('legend')?.colorHash
+        },
+        () => {
+          refreshKeys()
+        }, {fireImmediately: true}
+      )
+      return () => disposer()
+    }, [dataConfiguration, refreshKeys])
 
     useEffect(function setup() {
       if (keysElt.current && categoryData.current) {

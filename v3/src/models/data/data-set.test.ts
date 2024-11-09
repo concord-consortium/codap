@@ -582,30 +582,52 @@ test("DataSet case hiding/showing (set aside)", () => {
     { __id__: "item4", [parentAttr.id]: "even", [childAttr.id]: 4 },
     { __id__: "item5", [parentAttr.id]: "odd", [childAttr.id]: 5 },
   ])
+  data.validateCases()
+  expect(data._itemIds.length).toBe(6)
   expect(data.items.length).toBe(6)
+  expect(data.itemInfoMap.size).toBe(6)
+  expect(data.caseInfoMap.size).toBe(8)
   // hide/show cases
   const evenCase = data.getCasesForCollection(parentCollection.id)[0]
   data.hideCasesOrItems([evenCase.__id__])
+  data.validateCases()
   expect(data._itemIds.length).toBe(6)
   expect(data.items.length).toBe(3)
+  expect(data.itemInfoMap.size).toBe(6)
+  expect(data.caseInfoMap.size).toBe(8)
   data.showHiddenCasesAndItems([evenCase.__id__])
+  data.validateCases()
   expect(data._itemIds.length).toBe(6)
   expect(data.items.length).toBe(6)
+  expect(data.itemInfoMap.size).toBe(6)
+  expect(data.caseInfoMap.size).toBe(8)
   // hide/show items
   const [firstItem, secondItem] = data.itemIds
   data.hideCasesOrItems([firstItem, secondItem])
+  data.validateCases()
   expect(data._itemIds.length).toBe(6)
   expect(data.items.length).toBe(4)
+  expect(data.itemInfoMap.size).toBe(6)
+  expect(data.caseInfoMap.size).toBe(8)
   data.showHiddenCasesAndItems([firstItem, secondItem])
+  data.validateCases()
   expect(data._itemIds.length).toBe(6)
   expect(data.items.length).toBe(6)
+  expect(data.itemInfoMap.size).toBe(6)
+  expect(data.caseInfoMap.size).toBe(8)
   // hide cases/items and show all
   data.hideCasesOrItems([evenCase.__id__, firstItem, secondItem])
+  data.validateCases()
   expect(data._itemIds.length).toBe(6)
   expect(data.items.length).toBe(2)
+  expect(data.itemInfoMap.size).toBe(6)
+  expect(data.caseInfoMap.size).toBe(8)
   data.showHiddenCasesAndItems()
+  data.validateCases()
   expect(data._itemIds.length).toBe(6)
   expect(data.items.length).toBe(6)
+  expect(data.itemInfoMap.size).toBe(6)
+  expect(data.caseInfoMap.size).toBe(8)
 
   // unrelated but convenient to test with a configured data set
   expect(data.hasCase(evenCase.__id__)).toBe(true)
@@ -621,7 +643,7 @@ test("DataSet case hiding/showing (set aside)", () => {
   expect(data.itemIds).toEqual(["item3", "item4", "item5", "item0", "item1", "item2"])
 })
 
-test("sortItems", () => {
+test("sortByAttribute with a flat DataSet", () => {
   const data = DataSet.create({ name: "data" })
   const a = data.addAttribute({ id: "AttrA", name: "A" })
   const b = data.addAttribute({ id: "AttrB", name: "B" })
@@ -634,18 +656,50 @@ test("sortItems", () => {
   ])
   expect(data.itemIds).toEqual(["ITEM0", "ITEM1", "ITEM2", "ITEM3", "ITEM4"])
   // sort by a
-  data.sortItems(a.id)
+  data.sortByAttribute(a.id)
   expect(data.itemIds).toEqual(["ITEM4", "ITEM0", "ITEM2", "ITEM3", "ITEM1"])
   data.prepareSnapshot()
   expect(a.values).toEqual(["A1", "A2", "A3", "-1", "1"])
   expect(b.values).toEqual(["3", "0", "5", "B0", "B1"])
   data.completeSnapshot()
   // sort by b descending
-  data.sortItems(b.id, "descending")
+  data.sortByAttribute(b.id, "descending")
   expect(data.itemIds).toEqual(["ITEM2", "ITEM4", "ITEM0", "ITEM1", "ITEM3"])
   data.prepareSnapshot()
   expect(a.values).toEqual(["A3", "A1", "A2", "1", "-1"])
   expect(b.values).toEqual(["5", "3", "0", "B1", "B0"])
+  data.completeSnapshot()
+})
+
+test("sortByAttribute with a hierarchical DataSet", () => {
+  const data = DataSet.create({
+    name: "data",
+    collections: [{ id: "Parent", name: "Parents" }, { id: "Child", name: "Children" }]
+  })
+  const p = data.addAttribute({ id: "ParentAttr", name: "parentAttr" }, { collection: "Parents" })
+  const c = data.addAttribute({ id: "ChildAttr", name: "childAttr" }, { collection: "Children" })
+
+  data.addCases([
+    { __id__: "ITEM0", [p.id]: "A", [c.id]: "5" },
+    { __id__: "ITEM1", [p.id]: "B", [c.id]: "2" },
+    { __id__: "ITEM2", [p.id]: "A", [c.id]: "3" },
+    { __id__: "ITEM3", [p.id]: "B", [c.id]: "4" },
+    { __id__: "ITEM4", [p.id]: "A", [c.id]: "1" }
+  ])
+  expect(data.itemIds).toEqual(["ITEM0", "ITEM1", "ITEM2", "ITEM3", "ITEM4"])
+  // sort by child attribute
+  data.sortByAttribute(c.id)
+  expect(data.itemIds).toEqual(["ITEM4", "ITEM1", "ITEM2", "ITEM3", "ITEM0"])
+  data.prepareSnapshot()
+  expect(p.values).toEqual(["A", "B", "A", "B", "A"])
+  expect(c.values).toEqual(["1", "2", "3", "4", "5"])
+  data.completeSnapshot()
+  // sort by child attribute descending
+  data.sortByAttribute(c.id, "descending")
+  expect(data.itemIds).toEqual(["ITEM0", "ITEM3", "ITEM2", "ITEM1", "ITEM4"])
+  data.prepareSnapshot()
+  expect(p.values).toEqual(["A", "B", "A", "B", "A"])
+  expect(c.values).toEqual(["5", "4", "3", "2", "1"])
   data.completeSnapshot()
 })
 

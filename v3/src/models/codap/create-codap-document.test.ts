@@ -107,6 +107,7 @@ describe("createCodapDocument", () => {
         },
         [caseMetadata.id]: {
           sharedModel: {
+            attributeColorRanges: {},
             categories: {},
             collections: {},
             data: "test-5",

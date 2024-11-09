@@ -1,5 +1,5 @@
 import {ScaleQuantile, scaleQuantile, schemeBlues} from "d3"
-import {reaction} from "mobx"
+import {comparer, reaction} from "mobx"
 import {observer} from "mobx-react-lite"
 import React, {useCallback, useEffect, useRef, useState} from "react"
 import { mstReaction } from "../../../../utilities/mst-reaction"
@@ -11,28 +11,24 @@ import {kChoroplethHeight} from "../../data-display-types"
 import {useDataConfigurationContext} from "../../hooks/use-data-configuration-context"
 import {useDataDisplayLayout} from "../../hooks/use-data-display-layout"
 import {choroplethLegend} from "./choropleth-legend/choropleth-legend"
+import { IBaseLegendProps } from "./legend-common"
 
 import vars from "../../../vars.scss"
 
-
-interface INumericLegendProps {
-  layerIndex: number
-  setDesiredExtent: (layerIndex:number, extent: number) => void
-}
-
 export const NumericLegend =
-  observer(function NumericLegend({layerIndex, setDesiredExtent}: INumericLegendProps) {
+  observer(function NumericLegend({layerIndex, setDesiredExtent}: IBaseLegendProps) {
   const dataConfiguration = useDataConfigurationContext(),
     tileWidth = useDataDisplayLayout().tileWidth,
     quantileScale = useRef<ScaleQuantile<string>>(scaleQuantile()),
     [choroplethElt, setChoroplethElt] = useState<SVGGElement | null>(null),
     valuesRef = useRef<number[]>([]),
+    metadata = dataConfiguration?.metadata,
+    legendAttrID = dataConfiguration?.attributeID("legend") ?? "",
 
     getLabelHeight = useCallback(() => {
-      const labelFont = vars.labelFont,
-        legendAttrID = dataConfiguration?.attributeID('legend') ?? ''
+      const labelFont = vars.labelFont
       return getStringBounds(dataConfiguration?.dataset?.attrFromID(legendAttrID)?.name ?? '', labelFont).height
-    }, [dataConfiguration]),
+    }, [dataConfiguration, legendAttrID]),
 
     refreshScale = useCallback(() => {
       const numberHeight = getStringBounds('0').height
@@ -68,7 +64,7 @@ export const NumericLegend =
         }
 
         setDesiredExtent(layerIndex, computeDesiredExtent())
-        quantileScale.current.domain(valuesRef.current).range(schemeBlues[5])
+        quantileScale.current.domain(valuesRef.current).range(dataConfiguration?.quantileScaleColors ?? schemeBlues[5])
         choroplethLegend(quantileScale.current, choroplethElt,
           {
             isDate: dataConfiguration?.attributeType('legend') === 'date',
@@ -119,6 +115,13 @@ export const NumericLegend =
     () => refreshScale(),
     {name: "NumericLegend respondToHiddenCaseChange"}, dataConfiguration)
   }, [dataConfiguration, refreshScale])
+
+  useEffect(function respondToColorChange() {
+    return mstReaction(
+      () => metadata?.getAttributeColorRange(legendAttrID),
+      refreshScale, { name: "NumericLegend respondToColorChange", equals: comparer.structural }, metadata
+    )
+  }, [legendAttrID, metadata, refreshScale])
 
   // todo: This reaction is not being triggered when a legend attribute value is changed.
   // It should be.

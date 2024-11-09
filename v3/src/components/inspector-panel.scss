@@ -1,4 +1,4 @@
-@import "./vars.scss";
+@use "./vars";
 $inspector-panel-width: 50px;
 
 .inspector-panel {
@@ -20,12 +20,12 @@ $inspector-panel-width: 50px;
     padding: 5px;
     border: none !important;
     margin: 5px;
-    background-color: $teal-dark;
+    background-color: vars.$teal-dark;
     &:hover {
-      background-color: $teal-light1;
+      background-color: vars.$teal-light1;
     }
     &:active {
-      background-color: $teal-light3;
+      background-color: vars.$teal-light3;
     }
 
     .more-options-icon {
@@ -76,7 +76,7 @@ $inspector-panel-width: 50px;
     .codap-inspector-palette-icon-container {
       width: 30px;
       height: 30px;
-      background-color: $teal-dark;
+      background-color: vars.$teal-dark;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -86,19 +86,24 @@ $inspector-panel-width: 50px;
       border-bottom: solid #C1C5C7 1px;
       border-left: solid #C1C5C7 1px;
       padding-left: 5px;
-      width: calc(100% - $header-height);
-      height: $header-height;
+      width: calc(100% - vars.$header-height);
+      height: vars.$header-height;
       font-size: 12px;
-      line-height: $header-height;
+      line-height: vars.$header-height;
     }
   }
 
   .palette-form {
     position: relative;
     left: 0;
-    margin: 5px 0 10px 10px;
+    padding: 5px 10px 10px 10px;
     background-color: #EEE;
     height: fit-content;
+    z-index: 20;
+
+    .chakra-form-control {
+      margin: 3px 0;
+    }
 
     .palette-row {
       flex-direction: row;
@@ -107,7 +112,12 @@ $inspector-panel-width: 50px;
       white-space: nowrap;
 
       &.color-picker-row {
+        display: flex;
+        flex-direction: row;
         height: 30px;
+        justify-content: space-between;
+        padding-right: 5px;
+        margin: 4px 0;
       }
     }
 

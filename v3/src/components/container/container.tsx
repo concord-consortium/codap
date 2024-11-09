@@ -11,9 +11,8 @@ import { logMessageWithReplacement, logStringifiedObjectMessage } from "../../li
 import { isFreeTileRow } from "../../models/document/free-tile-row"
 import { isMosaicTileRow } from "../../models/document/mosaic-tile-row"
 import { getSharedModelManager } from "../../models/tiles/tile-environment"
-import { uiState } from "../../models/ui-state"
 import { urlParams } from "../../utilities/url-params"
-import { EditFormulaModal } from "../common/edit-formula-modal"
+import { EditAttributeFormulaModal } from "../common/edit-attribute-formula-modal"
 import { AttributeDragOverlay } from "../drag-drop/attribute-drag-overlay"
 import { PluginAttributeDrag } from "../drag-drop/plugin-attribute-drag"
 import { kContainerClass } from "./container-constants"
@@ -65,7 +64,7 @@ export const Container: React.FC = observer(function Container() {
       }
     }
   })
-  const mergedContainerRef = useMergeRefs<HTMLDivElement>(containerRef, setNodeRef)
+  const mergedContainerRef = useMergeRefs<HTMLDivElement | null>(containerRef, setNodeRef)
 
   const classes = clsx(kContainerClass, { "scroll-behavior-auto": isScrollBehaviorAuto })
   return (
@@ -83,11 +82,7 @@ export const Container: React.FC = observer(function Container() {
           xOffset={dataInteractiveState.draggingXOffset}
           yOffset={dataInteractiveState.draggingYOffset}
         />
-        <EditFormulaModal
-          attributeId={uiState.editFormulaAttributeId}
-          isOpen={!!uiState.editFormulaAttributeId}
-          onClose={() => uiState.setEditFormulaAttributeId()}
-        />
+        <EditAttributeFormulaModal />
       </div>
     </DocumentContainerContext.Provider>
   )

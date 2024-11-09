@@ -22,7 +22,7 @@ import { applyCaseValueChanges } from "../case-tile-common/case-tile-utils"
 import { kInputRowKey, symDom, TRow, TRowsChangeData } from "./case-table-types"
 import { useCollectionTableModel } from "./use-collection-table-model"
 
-export const useRows = () => {
+export const useRows = (gridElement: HTMLDivElement | null) => {
   const caseMetadata = useCaseMetadata()
   const data = useDataSetContext()
   const collectionId = useCollectionContext()
@@ -73,15 +73,15 @@ export const useRows = () => {
 
   const syncRowsToDom = useCallback(() => {
     prf.measure("Table.useRows[syncRowsToDom]", () => {
-      const grid = document.querySelector(".rdg")
-      const domRows = grid?.querySelectorAll(".rdg-row")
+      const collection = data?.getCollection(collectionId)
+      const domRows = gridElement?.querySelectorAll(".rdg-row")
       domRows?.forEach(row => {
         const rowIndex = Number(row.getAttribute("aria-rowindex")) - 2
-        const caseId = data?.itemIDFromIndex(rowIndex)
+        const caseId = collection?.caseIds[rowIndex]
         const cells = row.querySelectorAll(".rdg-cell")
         cells.forEach(cell => {
           const colIndex = Number(cell.getAttribute("aria-colindex")) - 2
-          const attr = data?.attributes[colIndex]
+          const attr = collection?.attributes[colIndex]
           const cellSpan = cell.querySelector(".cell-span")
           if (data && caseId && attr && cellSpan) {
             const strValue = data.getStrValue(caseId, attr.id)
@@ -94,7 +94,7 @@ export const useRows = () => {
         })
       })
     })
-  }, [data, setCachedDomAttr])
+  }, [collectionId, data, gridElement, setCachedDomAttr])
 
   const resetRowCacheAndSyncRows = useDebouncedCallback(() => {
     resetRowCache()

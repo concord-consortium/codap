@@ -46,7 +46,7 @@ describe("DataConfigurationModel", () => {
     expect(config.uniqueAttributes).toEqual([])
     expect(config.tipAttributes).toEqual([])
     expect(config.uniqueTipAttributes).toEqual([])
-    expect(config.caseDataArray).toEqual([])
+    expect(config.getCaseDataArray(0)).toEqual([])
     expect(isGraphDataConfigurationModel(config)).toBe(true)
   })
 
@@ -64,7 +64,7 @@ describe("DataConfigurationModel", () => {
     expect(config.uniqueAttributes).toEqual(["nId"])
     expect(config.tipAttributes).toEqual([{attributeID: "nId", role: "caption"}])
     expect(config.uniqueTipAttributes).toEqual([{attributeID: "nId", role: "caption"}])
-    expect(config.caseDataArray).toEqual([
+    expect(config.getCaseDataArray(0)).toEqual([
       {plotNum: 0, caseID: caseIdFromItemId("c1")},
       {plotNum: 0, caseID: caseIdFromItemId("c2")},
       {plotNum: 0, caseID: caseIdFromItemId("c3")}
@@ -89,7 +89,7 @@ describe("DataConfigurationModel", () => {
     expect(config.tipAttributes).toEqual([{attributeID: "nId", role: "x"},
       {attributeID: "nId", role: "caption"}])
     expect(config.uniqueTipAttributes).toEqual([{attributeID: "nId", role: "caption"}])
-    expect(config.caseDataArray).toEqual([
+    expect(config.getCaseDataArray(0)).toEqual([
       {plotNum: 0, caseID: caseIdFromItemId("c1")},
       {plotNum: 0, caseID: caseIdFromItemId("c3")}
     ])
@@ -113,7 +113,7 @@ describe("DataConfigurationModel", () => {
       {attributeID: "nId", role: "caption"}])
     expect(config.uniqueTipAttributes).toEqual([{attributeID: "xId", role: "x"},
       {attributeID: "nId", role: "caption"}])
-    expect(config.caseDataArray).toEqual([
+    expect(config.getCaseDataArray(0)).toEqual([
       {plotNum: 0, caseID: caseIdFromItemId("c1")},
       {plotNum: 0, caseID: caseIdFromItemId("c2")}
     ])
@@ -141,7 +141,7 @@ describe("DataConfigurationModel", () => {
       {attributeID: "yId", role: "y"}, {attributeID: "nId", role: "caption"}])
     expect(config.uniqueTipAttributes).toEqual([{attributeID: "xId", role: "x"},
       {attributeID: "yId", role: "y"}, {attributeID: "nId", role: "caption"}])
-    expect(config.caseDataArray).toEqual([{plotNum: 0, caseID: caseIdFromItemId("c1")}])
+    expect(config.getCaseDataArray(0)).toEqual([{plotNum: 0, caseID: caseIdFromItemId("c1")}])
 
     // behaves as expected after adding "x" as an additional y attribute
     config.addYAttribute({ attributeID: "xId" })
@@ -173,14 +173,14 @@ describe("DataConfigurationModel", () => {
       {attributeID: "nId", role: "caption"}])
     expect(config.uniqueTipAttributes).toEqual([{attributeID: "yId", role: "y"},
       {attributeID: "nId", role: "caption"}])
-    expect(config.caseDataArray).toEqual([
+    expect(config.getCaseDataArray(0)).toEqual([
       {plotNum: 0, caseID: caseIdFromItemId("c1")},
       {plotNum: 0, caseID: caseIdFromItemId("c3")}
     ])
 
     // updates cases when values change
     tree.data.setCaseValues([{ __id__: "c2", "yId": 2 }])
-    expect(config.caseDataArray).toEqual([
+    expect(config.getCaseDataArray(0)).toEqual([
       {plotNum: 0, caseID: caseIdFromItemId("c1")},
       {plotNum: 0, caseID: caseIdFromItemId("c2")},
       {plotNum: 0, caseID: caseIdFromItemId("c3")}
@@ -189,20 +189,20 @@ describe("DataConfigurationModel", () => {
     // triggers observers when values change
     const trigger = jest.fn()
     reaction(
-      () => config.caseDataArray,
+      () => config.casesChangeCount,
       () => trigger(),
-      { name: "GraphDataConfigurationTest.caseDataArray reaction" })
+      { name: "GraphDataConfigurationTest.casesChangeCount reaction" })
     expect(trigger).not.toHaveBeenCalled()
     tree.data.setCaseValues([{ __id__: "c2", "yId": "" }])
     expect(trigger).toHaveBeenCalled()
-    expect(config.caseDataArray).toEqual([
+    expect(config.getCaseDataArray(0)).toEqual([
       {plotNum: 0, caseID: caseIdFromItemId("c1")},
       {plotNum: 0, caseID: caseIdFromItemId("c3")}
     ])
     trigger.mockClear()
     tree.data.setCaseValues([{ __id__: "c2", "yId": "2" }])
     expect(trigger).toHaveBeenCalled()
-    expect(config.caseDataArray).toEqual([
+    expect(config.getCaseDataArray(0)).toEqual([
       {plotNum: 0, caseID: caseIdFromItemId("c1")},
       {plotNum: 0, caseID: caseIdFromItemId("c2")},
       {plotNum: 0, caseID: caseIdFromItemId("c3")}

@@ -220,9 +220,9 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
     if (layerIsVisible && pointsAreVisible && !pixiPoints.isVisible) {
       pixiPoints?.setVisibility(true)
     }
-    const pointRadius = computePointRadius(dataConfiguration.caseDataArray.length,
+    const pointRadius = computePointRadius(dataConfiguration.getCaseDataArray(0).length,
         pointDescription.pointSizeMultiplier)
-    const selectedPointRadius = computePointRadius(dataConfiguration.caseDataArray.length,
+    const selectedPointRadius = computePointRadius(dataConfiguration.getCaseDataArray(0).length,
         pointDescription.pointSizeMultiplier, 'select')
     const {pointColor, pointStrokeColor} = pointDescription
     const getLegendColor = dataConfiguration?.attributeID('legend')
@@ -263,6 +263,16 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
     }
   }, [dataset, refreshPoints, refreshPointSelection])
 
+  useEffect(() => {
+    return mstReaction(
+      () => {
+        return dataConfiguration?.categorySetForAttrRole('legend')?.colorHash
+      },
+      () => {
+        refreshPoints(false)
+      }, {name: "MapPointLayer [categorySetChange]", fireImmediately: true}, dataConfiguration)
+  }, [dataConfiguration, refreshPoints])
+
   // Changes in layout or map pan/zoom require repositioning points
   useEffect(function setupResponsesToLayoutChanges() {
     return reaction(
@@ -293,7 +303,7 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
 
   useEffect(function setupResponseToChangeInNumberOfCases() {
     return mstReaction(
-      () => dataConfiguration?.caseDataArray.length,
+      () => dataConfiguration?.getCaseDataArray(0).length,
       () => {
         callMatchCirclesToData()
         refreshPoints(false)

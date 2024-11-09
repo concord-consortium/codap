@@ -265,7 +265,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
         secAttrID = self.secondaryRole ? self.attributeID(self.secondaryRole) : "",
         extraPrimAttrID = self.attributeID(extraPrimaryAttrRole) ?? '',
         extraSecAttrID = self.attributeID(extraSecondaryAttrRole) ?? '',
-        valueQuads = (self.caseDataArray || []).map((aCaseData: CaseData) => {
+        valueQuads = (self.getCaseDataArray(0) || []).map((aCaseData: CaseData) => {
           return {
             primary: (primAttrID && self.dataset?.getValue(aCaseData.caseID, primAttrID)) ?? '',
             secondary: (secAttrID && self.dataset?.getValue(aCaseData.caseID, secAttrID)) ?? '__main__',

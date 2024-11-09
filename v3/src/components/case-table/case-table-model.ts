@@ -60,6 +60,9 @@ export const CaseTableModel = TileContentModel
         self.columnWidths.delete(attrId)
       }
     },
+    setColumnWidths(columnWidths: Map<string, number>) {
+      self.columnWidths.replace(columnWidths)
+    },
     updateAfterSharedModelChanges(sharedModel?: ISharedModel) {
       // TODO
     },

@@ -61,10 +61,10 @@ import { isLegacyDataSetSnap, isOriginalDataSetSnap, isTempDataSetSnap } from ".
 import { Formula, IFormula } from "../formula/formula"
 import { applyModelChange } from "../history/apply-model-change"
 import { withoutUndo } from "../history/without-undo"
-import { getCurrentLocale } from "../tiles/tile-environment"
 import { kAttrIdPrefix, kItemIdPrefix, typeV3Id, v3Id } from "../../utilities/codap-utils"
 import { compareValues } from "../../utilities/data-utils"
 import { hashStringSet } from "../../utilities/js-utils"
+import { gLocale } from "../../utilities/translation/locale"
 import { t } from "../../utilities/translation/translate"
 import { V2Model } from "./v2-model"
 
@@ -161,6 +161,7 @@ export const DataSet = V2Model.named("DataSet").props({
   // map from case ID to the CaseInfo it represents
   caseInfoMap: new Map<string, CaseInfo>(),
   // map from item ID to the child case containing it
+  // contains all items and child cases, including hidden ones
   itemIdChildCaseMap: new Map<string, CaseInfo>(),
   // incremented when collection parent/child links are updated
   syncCollectionLinksCount: 0,
@@ -292,9 +293,11 @@ export const DataSet = V2Model.named("DataSet").props({
 }))
 .views(self => ({
   isCaseOrItemHidden(caseOrItemId: string) {
+    // A case is hidden if all of its child items are hidden
     const caseInfo = self.caseInfoMap.get(caseOrItemId)
-    return caseInfo?.childItemIds.every(itemId => self.isItemHidden(itemId)) ??
-            self.isItemHidden(caseOrItemId)
+    if (caseInfo) return caseInfo.childItemIds.length === 0 && caseInfo.hiddenChildItemIds.length > 0
+
+    return self.isItemHidden(caseOrItemId)
   }
 }))
 .views(self => ({
@@ -377,14 +380,13 @@ export const DataSet = V2Model.named("DataSet").props({
                       ? self.items[index + 1] : undefined
     return nextItem?.__id__
   },
-  addItemInfo(itemId: string, index: number, caseId: string) {
+  addItemInfo(itemId: string, caseId: string) {
     const itemInfo = self.itemInfoMap.get(itemId)
     if (itemInfo) {
-      itemInfo.index = index
       itemInfo.caseIds.push(caseId)
     }
     else {
-      self.itemInfoMap.set(itemId, { index, caseIds: [caseId] })
+      console.warn("DataSet.addItemInfo called for missing item:", itemId)
     }
   }
 }))
@@ -533,7 +535,12 @@ export const DataSet = V2Model.named("DataSet").props({
   validateCases() {
     if (!self.isValidCases) {
       self.caseInfoMap.clear()
-      self.itemInfoMap.forEach(item => item.caseIds = [])
+      const itemsToValidate = new Set<string>(self.itemInfoMap.keys())
+      self.itemInfoMap.clear()
+      self._itemIds.forEach((itemId, index) => {
+        self.itemInfoMap.set(itemId, { index, caseIds: [], isHidden: self.isCaseOrItemHidden(itemId) })
+        itemsToValidate.delete(itemId)
+      })
       self.collections.forEach((collection, index) => {
         // update the cases
         collection.updateCaseGroups()
@@ -543,17 +550,14 @@ export const DataSet = V2Model.named("DataSet").props({
         const parentCaseGroups = index > 0 ? self.collections[index - 1].caseGroups : undefined
         collection.completeCaseGroups(parentCaseGroups)
         // update the caseGroupMap
-        collection.caseGroups.forEach(group => self.caseInfoMap.set(group.groupedCase.__id__, group))
+        collection.caseGroupMap.forEach(group => self.caseInfoMap.set(group.groupedCase.__id__, group))
       })
       self.itemIdChildCaseMap.clear()
-      self.childCollection.caseGroups.forEach(caseGroup => {
-        self.itemIdChildCaseMap.set(caseGroup.childItemIds[0], caseGroup)
+      Array.from(self.childCollection.caseGroupMap.values()).forEach(caseGroup => {
+        self.itemIdChildCaseMap.set(caseGroup.childItemIds[0] ?? caseGroup.hiddenChildItemIds[0], caseGroup)
       })
-      // delete removed items
-      const itemsToValidate = new Set<string>(self.itemInfoMap.keys())
-      self._itemIds.forEach(itemId => itemsToValidate.delete(itemId))
+      // delete removed items from selection
       itemsToValidate.forEach(itemId => {
-        self.itemInfoMap.delete(itemId)
         // update selection
         self.selection.delete(itemId)
       })
@@ -602,7 +606,7 @@ export const DataSet = V2Model.named("DataSet").props({
       caseOrItemIds.forEach(id => {
         const caseInfo = self.caseInfoMap.get(id)
         if (caseInfo) {
-          caseInfo.childItemIds.forEach(itemId => {
+          caseInfo.hiddenChildItemIds.forEach(itemId => {
             const foundIndex = self.setAsideItemIds.findIndex(hiddenItemId => hiddenItemId === itemId)
             if (foundIndex >= 0) self.setAsideItemIds.splice(foundIndex, 1)
           })
@@ -1024,7 +1028,7 @@ export const DataSet = V2Model.named("DataSet").props({
         }
         // add the itemInfo for the appended cases
         ids.forEach((caseId, index) => {
-          self.itemInfoMap.set(caseId, { index: insertPosition + index, caseIds: [] })
+          self.itemInfoMap.set(caseId, { index: insertPosition + index, caseIds: [], isHidden: false })
         })
 
         // copy any values provided
@@ -1214,7 +1218,7 @@ export const DataSet = V2Model.named("DataSet").props({
 
     // build itemIDMap
     self._itemIds.forEach((itemId, index) => {
-      self.itemInfoMap.set(itemId, { index, caseIds: [] })
+      self.itemInfoMap.set(itemId, { index, caseIds: [], isHidden: self.isCaseOrItemHidden(itemId) })
     })
 
     // make sure attributes have appropriate length, including attributes with formulas
@@ -1254,7 +1258,7 @@ export const DataSet = V2Model.named("DataSet").props({
             itemIds: () => self._itemIds,
             isHidden: (itemId) => self.isCaseOrItemHidden(itemId),
             getValue: (itemId, attrId) => self.getStrValue(itemId, attrId) ?? "",
-            addItemInfo: (itemId, index, caseId) => self.addItemInfo(itemId, index, caseId),
+            addItemInfo: (itemId, caseId) => self.addItemInfo(itemId, caseId),
             invalidate: () => self.invalidateCases()
           }
           syncCollectionLinks(self.collections, itemData)
@@ -1318,28 +1322,64 @@ export const DataSet = V2Model.named("DataSet").props({
     })
     self.removeCollection(collection)
   },
-  sortItems(attributeId: string, direction: "ascending" | "descending" = "ascending") {
+  sortByAttribute(attributeId: string, direction: "ascending" | "descending" = "ascending") {
     self.validateCases()
-    // sort by the specified attribute to determine mapping from original to sorted indices
-    const itemIdsWithIndices = self._itemIds.map((itemId, origIndex) => ({ itemId, origIndex }))
-    // cf. https://stackoverflow.com/a/25775469 for performance issues with localeCompare
-    const collator = new Intl.Collator(getCurrentLocale(self), { sensitivity: 'base' })
-    itemIdsWithIndices.sort((a, b) => {
-      const aValue = self.getValue(a.itemId, attributeId)
-      const bValue = self.getValue(b.itemId, attributeId)
-      const compareResult = compareValues(aValue, bValue, collator.compare)
-      return direction === "descending" ? -compareResult : compareResult
-    })
-    // if no changes then nothing to do
-    if (itemIdsWithIndices.every(({ origIndex }, index) => index === origIndex)) return
-    // apply the index mapping to each attribute's value arrays
-    const origIndices = itemIdsWithIndices.map(({ origIndex }) => origIndex)
-    self.attributes.forEach(attr => attr.orderValues(origIndices))
-    // update the _itemIds array
-    const itemIds = itemIdsWithIndices.map(({ itemId }) => itemId)
-    self._itemIds.replace(itemIds)
 
-    return itemIdsWithIndices
+    const compareFn = (aItemId: string, bItemId: string) => {
+      const aValue = self.getValue(aItemId, attributeId)
+      const bValue = self.getValue(bItemId, attributeId)
+      const compareResult = compareValues(aValue, bValue, gLocale.compareStrings)
+      return direction === "descending" ? -compareResult : compareResult
+    }
+
+    const finalItemIds = Array.from(self._itemIds)
+    const itemIdToIndexMap: Record<string, { beforeIndex: number, afterIndex: number }> = {}
+    self._itemIds.forEach((itemId, beforeIndex) => itemIdToIndexMap[itemId] = { beforeIndex, afterIndex: -1 })
+
+    const collection = self.getCollectionForAttribute(attributeId)
+    const parentCollection = collection?.parent
+
+    // if there's a parent collection, items are sorted within their parent cases
+    if (parentCollection) {
+      parentCollection.caseGroups.forEach(group => {
+        // combine all the child item ids for this parent case
+        const origGroupItemIds = [...group.childItemIds, ...group.hiddenChildItemIds]
+        // sort them into their original order
+        origGroupItemIds.sort((aItemId, bItemId) => {
+          return itemIdToIndexMap[aItemId].beforeIndex - itemIdToIndexMap[bItemId].beforeIndex
+        })
+        // sort them into their sorted order
+        const sortedGroupItemIds = origGroupItemIds.slice()
+        sortedGroupItemIds.sort(compareFn)
+        // map indices from original to sorted
+        sortedGroupItemIds.forEach((itemId, index) => {
+          const origItemIdAtIndex = origGroupItemIds[index]
+          itemIdToIndexMap[itemId].afterIndex = itemIdToIndexMap[origItemIdAtIndex].beforeIndex
+        })
+        // sort the items into their appropriate sorted locations
+        finalItemIds.sort((aItemId, bItemId) => {
+          return itemIdToIndexMap[aItemId].afterIndex - itemIdToIndexMap[bItemId].afterIndex
+        })
+      })
+    }
+
+    // if no parent collection, items can be sorted globally
+    else {
+      finalItemIds.sort(compareFn)
+      finalItemIds.forEach((itemId, index) => itemIdToIndexMap[itemId].afterIndex = index)
+    }
+
+    // if no changes then nothing to do
+    if (finalItemIds.every((itemId, index) => itemId === self._itemIds[index])) return
+
+    // apply the index mapping to each attribute's value arrays
+    const origIndices = finalItemIds.map(itemId => itemIdToIndexMap[itemId].beforeIndex)
+    self.attributes.forEach(attr => attr.orderValues(origIndices))
+
+    // update the _itemIds array
+    self._itemIds.replace(finalItemIds)
+
+    return itemIdToIndexMap
   }
 }))
 // performs the specified action so that response actions are included and undo/redo strings assigned

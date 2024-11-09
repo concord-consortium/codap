@@ -1,4 +1,61 @@
 # Changelog
+
+## Version 3.0.0-pre.1976 - November 6, 2024
+
+### ✨ Features & Improvements:
+- **PT-188182907:** Dirty document management
+- **PT-181840421:** The hamburger menu item **Close** closes the current document
+- **PT-188484902:** Formula Editor keyboard shortcuts
+- **PT-187502179:** Case table Color picker shows palette of 16 + 1 color squares by default (*Started*)
+
+### 🐞 Bug Fixes:
+- **PT-188509712:** **Sorting** of hierarchical attribute should sort within parent cases
+- **PT-188037024:** Missing "=" sign in Formula Editor dialog
+- **PT-188403674:** Layout of graph axis not correct on restore
+- **PT-188463149:** **Insert Function** selects incorrect portion of inserted text for editing on Safari (and sometimes other browsers)
+- **PT-188524694:** Dragging dot plot point fails to cause other points to adjust their positions
+- **PT-188470760:** “TAB” Button Does Not Trigger Autocomplete in **Formula Editor**
+- **PT-187614572:** Dot chart and bar chart respond dynamically to change in category order (*Delivered*)
+- **PT-188476241:** **[MultiData]** Hidden attributes are visible in MultiData Nested Table plugin (Delivered)
+
+
+### 🛠️ Under the Hood:
+- **PT-187223531:** The plugin api supports the ability to specify set aside cases
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  183151 bytes |                            0.21% |
+|  index.js | 6299639 bytes |                           <0.00% |
+
+## Version 3.0.0-pre.1963 - November 1, 2024
+
+### ✨ Features & Improvements:
+- **PT-188459260:** Remaining Statistical Functions
+- **PT-188497515:** Plotted value/function use new formula editor
+- **PT-188356056:** The user can choose to display the squares of residuals from a plotted function (*Delivered*)
+- **PT-183987088:** Graph brush palette allows categories to be assigned colors via scrollable list (*Delivered*)
+
+### 🐞 Bug Fixes:
+- **PT-187953007:** First click in graph/map empty space does not change selection
+- **PT-188351110:** Hide cases is broken in map
+- **PT-188497004:** **Sort** Behavior for Parent Cases Differs Between CODAP v3 and CODAP v2
+- **PT-188460088:** Dot chart not respecting number of cases when attribute is not at childmost level (*Delivered*)
+- **PT-187364079:** Attribute formula based on slider doesn't save/restore
+- **PT-188428974:** Cancel does not revert **formula** back to previous state
+- **PT-188502341:** Dot chart not responding correctly to change in hierarchy if it has a legend.
+- **PT-188484892:** Formula editor doesn't recognize pre-existing parentheses (*Delivered*)
+
+### 🛠️ Under the Hood:
+- **PT-188412560:** Develop targeted cypress smoke test
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  182767 bytes |                            1.64% |
+|  index.js | 6294019 bytes |                           <0.00% |
+
+
 ## Version 3.0.0-pre.1946 - October 25, 2024
 
 ### ✨ Features & Improvements:
