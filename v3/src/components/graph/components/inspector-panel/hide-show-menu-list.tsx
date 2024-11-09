@@ -6,7 +6,8 @@ import { ITileModel } from "../../../../models/tiles/tile-model"
 import { isGraphContentModel } from "../../models/graph-content-model"
 import { t } from "../../../../utilities/translation/translate"
 import { logMessageWithReplacement } from "../../../../lib/log-message"
-import { EditFilterFormulaModal } from "../../../common/edit-filter-formula-modal"
+import { EditFormulaModal } from "../../../common/edit-formula-modal"
+import { DataSetContext } from "../../../../hooks/use-data-set-context"
 
 interface IProps {
   tile?: ITileModel
@@ -154,11 +155,14 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
       </MenuList>
       {
         dataConfig &&
-        <EditFilterFormulaModal
-          formulaSource={dataConfig}
-          isOpen={formulaModal.isOpen}
-          onClose={handleEditFormulaClose}
-        />
+        <DataSetContext.Provider value={dataConfig.dataset}>
+          <EditFormulaModal
+            applyFormula={dataConfig.setFilterFormula}
+            isOpen={formulaModal.isOpen}
+            onClose={handleEditFormulaClose}
+            titleLabel={t("V3.hideShowMenu.filterFormulaPrompt")}
+            value={dataConfig.filterFormula?.display} />
+        </DataSetContext.Provider>
       }
     </>
   )
