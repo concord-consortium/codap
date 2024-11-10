@@ -2,6 +2,7 @@ import {
   Active, DataRef, DragEndEvent, Modifier, useDndMonitor,
   useDraggable, UseDraggableArguments, useDroppable, UseDroppableArguments
 } from "@dnd-kit/core"
+import { kDragContainerClass } from "../components/container/container-constants"
 import { IDataSet } from "../models/data/data-set"
 import { useInstanceIdContext } from "./use-instance-id-context"
 import { useTileModelContext } from "./use-tile-model-context"
@@ -144,12 +145,17 @@ export const containerSnapToGridModifier: Modifier = ({transform, active}) => {
   }
 }
 
-export const restrictDragToArea: Modifier = ({transform, activeNodeRect, containerNodeRect}) =>{
+function isElement(target?: EventTarget | null) : target is Element {
+  return !!target && "closest" in target && typeof target.closest === "function"
+}
+
+export const restrictDragToContainer: Modifier = ({activeNodeRect, activatorEvent, transform}) =>{
   // Prevent dragging upwards beyond the main container but allow dragging freely in other directions
-  const codapContainerTop = document.querySelector(".codap-container")?.getBoundingClientRect().top
-  if (activeNodeRect && containerNodeRect && codapContainerTop) {
-    if (activeNodeRect.top + transform.y < codapContainerTop) {
-      transform.y = containerNodeRect.top - activeNodeRect.top
+  const container = isElement(activatorEvent?.target) ? activatorEvent.target.closest(`.${kDragContainerClass}`) : null
+  const containerTop = container ? container.getBoundingClientRect().top - container.scrollTop : null
+  if (activeNodeRect && containerTop != null) {
+    if (activeNodeRect.top + transform.y < containerTop) {
+      transform.y = containerTop - activeNodeRect.top
     }
   }
   return transform
