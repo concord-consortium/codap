@@ -1,6 +1,7 @@
 import { SliderTileElements as slider } from "../support/elements/slider-tile"
 import { ComponentElements as c } from "../support/elements/component-elements"
 import { ToolbarElements as toolbar } from "../support/elements/toolbar-elements"
+import { CfmElements as cfm } from "../support/elements/cfm"
 
 const sliderName = "v1"
 const newName = "v2"
@@ -16,7 +17,7 @@ context("Slider UI", () => {
     cy.visit(url)
     cy.wait(2500)
   })
-  it.only("basic Slider UI", () => {
+  it("basic Slider UI", () => {
     cy.log("populates default title, variable name and value and checks tooltips")
     c.getComponentTitle("slider").should("contain", sliderName)
     slider.getVariableName().should("have.text", sliderName)
@@ -269,6 +270,44 @@ context("Slider UI", () => {
     c.getComponentTitle("slider", 1).should("contain", newSliderName)
     slider.getVariableName(0).should("have.text", sliderName)
     slider.getVariableName(1).should("have.text", newSliderName)
+  })
+  it("checks slider with dates", () => {
+    const today = new Date().toLocaleDateString("en-US"); // Adjust locale as needed
+    const minValue = "01/01/2023" // Set an example minimum date
+    const maxValue = "12/31/2023" // Set an example maximum date
+    const expectedYear = "2023" // Expected year based on min and max values
+
+    cy.log("Change from numeric to date display")
+    c.selectTile("slider", 0)
+    slider.selectScaleType('date') // Use 'date' to match the data-testid
+    cy.get('[data-testid="slider-variable-value-text-input"]')
+    .invoke('val') // Get the value of the input
+    .should('include', today) // Check if today's date is included
+
+    cy.log("set the minimum value and verify it is displayed correctly")
+    cy.get('[data-testid="slider-minimum"]')
+    .clear()
+    .type(minValue)
+    .should('have.value', minValue)
+
+    // Set the maximum value and verify it’s displayed correctly
+    cy.get('[data-testid="slider-maximum"]')
+      .clear()
+      .type(maxValue)
+      .should('have.value', maxValue)
+
+    // Check that the year displayed on the axis matches the expected year
+    c.selectTile("slider", 0)
+    cy.get('[data-testid="axis-bottom"]')
+    .find('text')
+    .contains(expectedYear)
+
+    cy.log("Start playing and verify the button state with dates")
+    slider.playSliderButton()
+    slider.checkPlayButtonIsRunning()
+
+    // Wait and verify it reaches April 30
+    slider.getVariableValue().should("contain", "4/30/2023")
   })
   // Issues with the click occur here, skipping for now
   it.skip("checks editing variable value in one slider only affects that slider", () => {

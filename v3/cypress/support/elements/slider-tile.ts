@@ -58,6 +58,9 @@ export const SliderTileElements = {
   getInspectorIcon() {
     return c.getInspectorPanel().find("[data-testid=slider-values-button]")
   },
+  getRulerIcon() {
+    return c.getInspectorPanel().find("[data-testid=slider-scale-button]")
+  },
   clickInspectorPanel() {
     this.getInspectorIcon().click()
   },
@@ -114,5 +117,12 @@ export const SliderTileElements = {
     cy.contains('[role="menuitem"]', repetition).click()
     // Close the inspector panel if needed
     this.clickInspectorPanel()
+  },
+  selectScaleType(scaleType: string, index = 0) {
+    // Grab the button that opens the scale type menu
+    this.getRulerIcon().click()
+    cy.get('[data-testid="slider-scale-type-button"]').click()
+    // Choose either Numeric or Date-Time based on the provided scaleType
+    cy.get(`[data-testid="slider-scale-${scaleType}"]`).click()
   }
 }
