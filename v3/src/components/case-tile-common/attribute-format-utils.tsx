@@ -1,5 +1,6 @@
 import { format } from "d3-format"
 import React from "react"
+import { measureText } from "../../hooks/use-measure-text"
 import { IAttribute } from "../../models/data/attribute"
 import { kDefaultFormatStr } from "../../models/data/attribute-types"
 import { parseColor } from "../../utilities/color-utils"
@@ -7,6 +8,8 @@ import { isStdISODateString } from "../../utilities/date-iso-utils"
 import { parseDate } from "../../utilities/date-parser"
 import { DatePrecision, formatDate } from "../../utilities/date-utils"
 import { boundaryObjectFromBoundaryValue } from "../../utilities/geojson-utils"
+import { kCaseTableBodyFont, kCaseTableHeaderFont, kMaxAutoColumnWidth,
+          kMinAutoColumnWidth } from "../case-table/case-table-types"
 
 // cache d3 number formatters so we don't have to generate them on every render
 type TNumberFormatter = (n: number) => string
@@ -87,4 +90,15 @@ export function renderAttributeValue(str = "", num = NaN, attr?: IAttribute, key
     value: str,
     content: <span className="cell-span" key={key}>{str}</span>
   }
+}
+
+export const findLongestContentWidth = (attr: IAttribute) => {
+  // include attribute name in content width calculation
+  let longestWidth = Math.max(kMinAutoColumnWidth, measureText(attr.name, kCaseTableHeaderFont))
+  for (let i = 0; i < attr.length; ++i) {
+    // use the formatted attribute value in content width calculation
+    const { value } = renderAttributeValue(attr.strValues[i], attr.numValues[i], attr)
+    longestWidth = Math.max(longestWidth, measureText(value, kCaseTableBodyFont))
+  }
+  return Math.min(longestWidth, kMaxAutoColumnWidth)
 }

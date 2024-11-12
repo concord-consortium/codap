@@ -14,11 +14,11 @@ import {useDataDisplayLayout} from "../hooks/use-data-display-layout"
 import {useDataDisplayModelContext} from "../hooks/use-data-display-model"
 import {usePixiPointerDownDeselect} from "../hooks/use-pixi-pointer-down-deselect"
 import {MarqueeState} from "../models/marquee-state"
-import {IPixiPointMetadata, IPixiPointsArray, PixiBackgroundPassThroughEvent, PixiPoints} from "../pixi/pixi-points"
+import {IPixiPointMetadata, PixiBackgroundPassThroughEvent, PixiPointsArray} from "../pixi/pixi-points"
 
 interface IProps {
   marqueeState: MarqueeState
-  pixiPointsArray: IPixiPointsArray
+  pixiPointsArray: PixiPointsArray
 }
 
 type RTree = ReturnType<typeof RTreeLib>
@@ -38,10 +38,10 @@ interface SelectionMap {
   [key: string]: SelectionSpec
 }
 
-const prepareTree = (pixiPointsArray: PixiPoints[]): RTree => {
+const prepareTree = (pixiPointsArray: PixiPointsArray): RTree => {
     const selectionTree = RTreeLib(10)
     pixiPointsArray.forEach(pixiPoints => {
-      pixiPoints.forEachPoint((point: PIXI.Sprite, metadata: IPixiPointMetadata) => {
+      pixiPoints?.forEachPoint((point: PIXI.Sprite, metadata: IPixiPointMetadata) => {
         const rect = {
           x: point.x,
           y: point.y,

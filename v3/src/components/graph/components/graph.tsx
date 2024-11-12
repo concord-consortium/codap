@@ -7,7 +7,7 @@ import {clsx} from "clsx"
 import { logStringifiedObjectMessage } from "../../../lib/log-message"
 import {mstReaction} from "../../../utilities/mst-reaction"
 import {onAnyAction} from "../../../utilities/mst-utils"
-import {IPixiPointsArray} from "../../data-display/pixi/pixi-points"
+import {PixiPointsArray} from "../../data-display/pixi/pixi-points"
 import {GraphAttrRole, graphPlaceToAttrRole, kPortalClass} from "../../data-display/data-display-types"
 import {AxisPlace, AxisPlaces} from "../../axis/axis-types"
 import {GraphAxis} from "./graph-axis"
@@ -46,7 +46,7 @@ import "./graph.scss"
 interface IProps {
   graphController: GraphController
   graphRef: MutableRefObject<HTMLDivElement | null>
-  pixiPointsArray: IPixiPointsArray
+  pixiPointsArray: PixiPointsArray
 }
 
 export const Graph = observer(function Graph({graphController, graphRef, pixiPointsArray}: IProps) {

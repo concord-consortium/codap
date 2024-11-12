@@ -4,7 +4,7 @@ import { CodapDndContext } from "../lib/dnd-kit/codap-dnd-context"
 import { Container } from "./container/container"
 import { ToolShelf } from "./tool-shelf/tool-shelf"
 import { kCodapAppElementId } from "./constants"
-import { importV2Document } from "../v2/import-v2-document"
+import { ICodapV2DocumentJson } from "../v2/codap-v2-types"
 import { MenuBar, kMenuBarElementId } from "./menu-bar/menu-bar"
 import { useCloudFileManager } from "../lib/use-cloud-file-manager"
 import { Logger } from "../lib/logger"
@@ -57,7 +57,7 @@ export const App = observer(function App() {
       sharedData?.dataSet.completeSnapshot()
     }, [])
 
-  const handleImportV3Document = useCallback((document: IDocumentModelSnapshot) => {
+  const handleImportDocument = useCallback((document: IDocumentModelSnapshot | ICodapV2DocumentJson) => {
     appState.setDocument(document)
   }, [])
 
@@ -69,8 +69,7 @@ export const App = observer(function App() {
   useDropHandler({
     selector: `#${kCodapAppElementId}`,
     onImportDataSet: handleImportDataSet,
-    onImportV2Document: importV2Document,
-    onImportV3Document: handleImportV3Document,
+    onImportDocument: handleImportDocument,
     onHandleUrlDrop: handleUrlDrop
   })
 

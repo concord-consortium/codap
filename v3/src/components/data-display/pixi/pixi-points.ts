@@ -24,7 +24,7 @@ export enum PixiBackgroundPassThroughEvent {
   PointerDown = "pointerdown",
 }
 
-export type IPixiPointsArray = PixiPoints[]
+export type PixiPointsArray = Array<Maybe<PixiPoints>>
 
 export type PixiPointEventHandler = (event: PointerEvent, point: PIXI.Sprite, metadata: IPixiPointMetadata) => void
 

@@ -15,13 +15,8 @@ import { ITileInspectorPanelProps } from "../../tiles/tile-base-props"
 import { useDataSet } from "../../../hooks/use-data-set"
 import { DataSetContext } from "../../../hooks/use-data-set-context"
 import { CaseMetadataContext } from "../../../hooks/use-case-metadata"
-import { useMeasureText } from "../../../hooks/use-measure-text"
-import { IAttribute } from "../../../models/data/attribute"
 import { ICaseTableModel, isCaseTableModel } from "../../case-table/case-table-model"
-import {
-  kCaseTableBodyFont, kCaseTableHeaderFont, kMaxAutoColumnWidth, kMinAutoColumnWidth
-} from "../../case-table/case-table-types"
-import { renderAttributeValue } from "../render-attribute-value"
+import { findLongestContentWidth } from "../attribute-format-utils"
 
 import "./case-tile-inspector.scss"
 
@@ -35,8 +30,6 @@ export const CaseTileInspector = ({ tile, show, showResizeColumnsButton }: IProp
     isCaseTileContentModel(tile?.content) ? tile?.content : undefined
   const { data, metadata } = useDataSet(caseTileModel?.data, caseTileModel?.metadata)
   const tableModel: ICaseTableModel | undefined = isCaseTableModel(tile?.content) ? tile?.content : undefined
-  const measureHeaderText = useMeasureText(kCaseTableHeaderFont)
-  const measureBodyText = useMeasureText(kCaseTableBodyFont)
   if (!caseTileModel) return null
 
   const handleButtonClick = (tool: string) => {
@@ -66,17 +59,6 @@ export const CaseTileInspector = ({ tile, show, showResizeColumnsButton }: IProp
       undoStringKey: "DG.Undo.caseTable.resizeColumns",
       redoStringKey: "DG.Redo.caseTable.resizeColumns"
     })
-  }
-
-  const findLongestContentWidth = (attr: IAttribute) => {
-    // include attribute name in content width calculation
-    let longestWidth = Math.max(kMinAutoColumnWidth, measureHeaderText(attr.name))
-    for (let i = 0; i < attr.length; ++i) {
-      // use the formatted attribute value in content width calculation
-      const { value } = renderAttributeValue(attr.strValues[i], attr.numValues[i], attr)
-      longestWidth = Math.max(longestWidth, measureBodyText(value))
-    }
-    return Math.min(kMaxAutoColumnWidth, longestWidth)
   }
 
   return (

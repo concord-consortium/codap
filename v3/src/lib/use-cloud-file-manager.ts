@@ -1,12 +1,11 @@
 import { CFMAppOptions, CloudFileManager, CloudFileManagerClientEvent } from "@concord-consortium/cloud-file-manager"
-import { getSnapshot } from "mobx-state-tree"
 import { useEffect, useRef } from "react"
 import { Root, createRoot } from "react-dom/client"
 import { useMemo } from "use-memo-one"
 import { clientConnect, createCloudFileManager, renderRoot } from "./cfm-utils"
 import { handleCFMEvent } from "./handle-cfm-event"
 import { appState } from "../models/app-state"
-import { createCodapDocument, isCodapDocument } from "../models/codap/create-codap-document"
+import { isCodapDocument } from "../models/codap/create-codap-document"
 import { gLocale } from "../utilities/translation/locale"
 import { t } from "../utilities/translation/translate"
 import { removeDevUrlParams, urlParams } from "../utilities/url-params"
@@ -114,7 +113,7 @@ function getMenuConfig(cfm: CloudFileManager) {
       action() {
         cfm.client.closeFileDialog(function() {
           removeDevUrlParams()
-          appState.setDocument(getSnapshot(createCodapDocument()))
+          appState.setDocument({type: "CODAP"})
         })
       }
     },
