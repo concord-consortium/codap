@@ -17,17 +17,19 @@ export const boundaryObjectFromBoundaryValue = (iBoundaryValue: object | string)
 }
 
 export const isBoundaryValue = (iValue: object | string): boolean => {
-  const isGeoJsonBoundary = (obj: any): boolean => {
-    return obj && typeof obj === 'object' &&
-      (obj.type === 'FeatureCollection' || obj.type === 'Feature' || obj.jsonBoundaryObject)
+  // TODO It would be better to check strings and objects in the same way
+  if (typeof iValue === "string") {
+    let obj: any
+    try {
+      obj = JSON.parse(iValue)
+    } catch (error) {
+      // If it fails to parse, it isn't a boundary
+    }
+    return obj != null && (obj.geometry || obj.coordinates || obj.features)
+  } else if (typeof iValue === "object") {
+    const obj = iValue as any
+    return obj.type === 'FeatureCollection' || obj.type === 'Feature' || obj.jsonBoundaryObject
   }
 
-  if (typeof iValue === 'object') {
-    return isGeoJsonBoundary(iValue)
-  } else {
-    return iValue.startsWith('{') &&
-      (iValue.includes('"geometry"') ||
-      iValue.includes('"coordinates"') ||
-      iValue.includes('"features"'))
-  }
+  return false
 }

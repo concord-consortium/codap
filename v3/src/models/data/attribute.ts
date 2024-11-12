@@ -26,6 +26,7 @@
  */
 
 import { Instance, SnapshotIn, types } from "mobx-state-tree"
+import { kPolygonNames } from "../../components/map/map-types"
 import { kAttrIdPrefix, typeV3Id } from "../../utilities/codap-utils"
 import { parseColor } from "../../utilities/color-utils"
 import { formatStdISODateString } from "../../utilities/date-iso-utils"
@@ -244,7 +245,10 @@ export const Attribute = V2Model.named("Attribute").props({
 
     // only infer boundary if all non-empty values are boundaries
     const boundaryCount = self.getBoundaryCount()
-    if (boundaryCount > 0 && boundaryCount === this.length - self.getEmptyCount()) return "boundary"
+    const allValuesAreBoundaries = boundaryCount > 0 && boundaryCount === this.length - self.getEmptyCount()
+    if (kPolygonNames.includes(self.title) || allValuesAreBoundaries) {
+      return "boundary"
+    }
 
     return "categorical"
   },

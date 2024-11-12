@@ -11,7 +11,7 @@ export function usePixiPointerDown(pixiPointsArray: PixiPoints[], onPointerDown:
     const handlePointerDownCapture = (event: PointerEvent) => {
       // Browser events are dispatched directly to the PIXI canvas.
       // Re-dispatched events are dispatched to elements behind the PIXI canvas.
-      const pixiPointsIndex = pixiPointsArray.findIndex(pixiPoints => event.target === pixiPoints.canvas)
+      const pixiPointsIndex = pixiPointsArray.findIndex(pixiPoints => pixiPoints && event.target === pixiPoints.canvas)
       // first click selects tile; deselection only occurs once the tile is already selected
       if (pixiPointsIndex >= 0 && isTileSelected()) {
         onPointerDown(event, pixiPointsArray[pixiPointsIndex])
