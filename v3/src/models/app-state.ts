@@ -7,7 +7,7 @@
   generally be MobX-observable.
  */
 import { cloneDeep } from "lodash"
-import { action, computed, makeObservable, observable, reaction } from "mobx"
+import { action, computed, makeObservable, observable, reaction, flow } from "mobx"
 import { getSnapshot } from "mobx-state-tree"
 import { CloudFileManager } from "@concord-consortium/cloud-file-manager"
 import { createCodapDocument } from "./codap/create-codap-document"
@@ -20,8 +20,13 @@ import { Logger } from "../lib/logger"
 import { t } from "../utilities/translation/translate"
 import { DEBUG_DOCUMENT } from "../lib/debug"
 import { TreeManagerType } from "./history/tree-manager"
+import { ICodapV2DocumentJson, isCodapV2Document } from "../v2/codap-v2-types"
+import { CodapV2Document } from "../v2/codap-v2-document"
+import { importV2Document } from "../v2/import-v2-document"
 
 type AppMode = "normal" | "performance"
+
+type ISerializedDocumentModel = IDocumentModelSnapshot & {revisionId?: string}
 
 class AppState {
   @observable
@@ -84,13 +89,29 @@ class AppState {
     this.cfm = cfm
   }
 
-  @action
-  setDocument(snap: IDocumentModelSnapshot & {revisionId?: string}, metadata?: Record<string, any>) {
+  @flow
+  *setDocument(
+    snap: ISerializedDocumentModel | ICodapV2DocumentJson,
+    metadata?: Record<string, any>
+  ) {
     // stop monitoring changes for undo/redo on the existing document
     this.disableDocumentMonitoring()
 
+    let content: ISerializedDocumentModel
+    if (isCodapV2Document(snap)) {
+      const v2Document = new CodapV2Document(snap, metadata)
+      const v3Document = importV2Document(v2Document)
+
+      // We serialize the v3 document to enforce the idea that the conversion process
+      // needs to result in a basic javascript object. This prevents the import process
+      // from accidentally setting up something in the v3 document that doesn't serialize.
+      content = yield serializeDocument(v3Document, doc => getSnapshot(doc))
+    } else {
+      content = snap
+    }
+
     try {
-      const document = createCodapDocument(snap)
+      const document = createCodapDocument(content)
       if (document) {
         this.currentDocument = document
         if (DEBUG_DOCUMENT) {
@@ -106,11 +127,11 @@ class AppState {
         }
         const docTitle = this.currentDocument.getDocumentTitle()
         this.currentDocument.setTitle(docTitle || t("DG.Document.defaultDocumentName"))
-        if (snap.revisionId && this.treeManager) {
+        if (content.revisionId && this.treeManager) {
           // Restore the revisionId from the stored document
           // This will allow us to consistently compare the local document
           // to the stored document.
-          this.treeManager.setRevisionId(snap.revisionId)
+          this.treeManager.setRevisionId(content.revisionId)
         }
 
         // monitor document changes for undo/redo

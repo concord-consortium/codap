@@ -91,7 +91,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
   const columns = useColumns({ data, indexColumn })
 
   // rows
-  const { handleRowsChange } = useRows()
+  const { handleRowsChange } = useRows(gridRef.current?.element ?? null)
   const rowKey = (row: TRow) => row.__id__
 
   const { setNodeRef } = useTileDroppable(`${kCollectionTableBodyDropZoneBaseId}-${collectionId}`)

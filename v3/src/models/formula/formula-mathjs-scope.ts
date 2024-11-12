@@ -205,6 +205,14 @@ export class FormulaMathJsScope {
     return result
   }
 
+  withLocalContext(callback: () => any) {
+    const originalIsAggregate = this.isAggregate
+    this.isAggregate = false
+    const result = callback()
+    this.isAggregate = originalIsAggregate
+    return result
+  }
+
   getCaseChildrenCount() {
     return this.context.caseChildrenCount?.[this.caseId] ?? 0
   }
@@ -242,15 +250,15 @@ export class FormulaMathJsScope {
   }
 
   // Basic, flexible cache used by formula's custom functions, usually aggregate or semi-aggregate.
-  setCached(key: string, value: any) {
+  setCached<T = any>(key: string, value?: T) {
     if (CACHE_ENABLED) {
       this.cache.set(key, value)
     }
   }
 
-  getCached(key: string) {
+  getCached<T = any>(key: string) {
     if (CACHE_ENABLED) {
-      return this.cache.get(key)
+      return this.cache.get(key) as T | undefined
     }
     return undefined
   }

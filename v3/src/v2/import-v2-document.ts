@@ -1,8 +1,5 @@
-import { getSnapshot } from "mobx-state-tree"
-import { appState } from "../models/app-state"
 import { createCodapDocument } from "../models/codap/create-codap-document"
 import { gDataBroker } from "../models/data/data-broker"
-import { serializeDocument } from "../models/document/serialize-document"
 import { getTileComponentInfo } from "../models/tiles/tile-component-info"
 import { getSharedModelManager } from "../models/tiles/tile-environment"
 import { ITileModel, ITileModelSnapshotIn } from "../models/tiles/tile-model"
@@ -10,7 +7,7 @@ import { CodapV2Document } from "./codap-v2-document"
 import { importV2Component } from "./codap-v2-tile-importers"
 import { IFreeTileInRowOptions, isFreeTileRow } from "../models/document/free-tile-row"
 
-export async function importV2Document(v2Document: CodapV2Document) {
+export function importV2Document(v2Document: CodapV2Document) {
   const v3Document = createCodapDocument(undefined, { layout: "free" })
   const sharedModelManager = getSharedModelManager(v3Document)
   sharedModelManager && gDataBroker.setSharedModelManager(sharedModelManager)
@@ -61,8 +58,5 @@ export async function importV2Document(v2Document: CodapV2Document) {
     row.setMaxZIndex(maxZIndex)
   }
 
-  // retrieve document snapshot
-  const docSnapshot = await serializeDocument(v3Document, doc => getSnapshot(doc))
-  // use document snapshot
-  appState.setDocument(docSnapshot)
+  return v3Document
 }

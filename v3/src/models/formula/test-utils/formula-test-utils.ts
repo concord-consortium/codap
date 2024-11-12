@@ -46,7 +46,7 @@ export const getFormulaTestEnv = () => {
   }
 }
 
-// When casePointer is provided, evaluation will support cases-dependant formulas.
+// When casePointer is provided, evaluation will support case-dependant formulas.
 export const evaluate = (displayFormula: string, casePointer?: number) => {
   const { dataSetsByName, dataSets, globalValueManager } = getFormulaTestEnv()
   const localDataSet = dataSetsByName.Mammals
