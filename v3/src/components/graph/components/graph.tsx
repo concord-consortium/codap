@@ -28,7 +28,7 @@ import {GraphDataConfigurationContext} from "../hooks/use-graph-data-configurati
 import {useGraphLayoutContext} from "../hooks/use-graph-layout-context"
 import {useGraphModel} from "../hooks/use-graph-model"
 import {setNiceDomain} from "../utilities/graph-utils"
-import { EmptyAxisModel, IAxisModel, isNumericAxisModel } from "../../axis/models/axis-model"
+import { EmptyAxisModel, IBaseNumericAxisModel, isNumericAxisModel } from "../../axis/models/axis-model"
 import {GraphPlace} from "../../axis-graph-shared"
 import {MarqueeState} from "../../data-display/models/marquee-state"
 import {DataTip} from "../../data-display/components/data-tip"
@@ -209,7 +209,7 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
   const handleRemoveAttribute = useCallback((place: GraphPlace, idOfAttributeToRemove: string) => {
     if (place === 'left' && (graphModel.dataConfiguration.yAttributeDescriptions.length ?? 0) > 1) {
       graphModel.dataConfiguration.removeYAttributeWithID(idOfAttributeToRemove)
-      const yAxisModel = graphModel.getAxis('left') as IAxisModel
+      const yAxisModel = graphModel.getAxis('left') as IBaseNumericAxisModel
       const yValues = graphModel.dataConfiguration.numericValuesForAttrRole('y') ?? []
       setNiceDomain(yValues, yAxisModel, graphModel.axisDomainOptions)
     } else {
