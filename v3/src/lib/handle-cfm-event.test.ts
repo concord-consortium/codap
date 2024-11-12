@@ -21,7 +21,7 @@ describe("handleCFMEvent", () => {
     updateDocumentSpy.mockRestore()
   })
 
-  it("handles the `connected` message", () => {
+  it("handles the `connected` message", async () => {
     const mockCfmClient = {
       openUrlFile: jest.fn(),
       setProviderOptions: jest.fn(),
@@ -33,7 +33,7 @@ describe("handleCFMEvent", () => {
     const cfmEvent = {
       type: "connected"
     } as CloudFileManagerClientEvent
-    handleCFMEvent(mockCfmClientArg, cfmEvent)
+    await handleCFMEvent(mockCfmClientArg, cfmEvent)
     expect(mockCfmClient.openUrlFile).not.toHaveBeenCalled()
     expect(mockCfmClient.setProviderOptions).toHaveBeenCalledTimes(1)
     const [providerNameArg, providerOptionsArg] = mockCfmClient.setProviderOptions.mock.calls[0]
@@ -46,28 +46,26 @@ describe("handleCFMEvent", () => {
     expect(menuBarInfoArg).toBe(`v${providerOptionsArg.appVersion} (${providerOptionsArg.appBuildNum})`)
 
     urlParamsModule.urlParams.url = "https://concord.org/example.json"
-    handleCFMEvent(mockCfmClientArg, cfmEvent)
+    await handleCFMEvent(mockCfmClientArg, cfmEvent)
     expect(mockCfmClient.openUrlFile).toHaveBeenCalledTimes(1)
     expect(mockCfmClient.setProviderOptions).toHaveBeenCalledTimes(2)
     expect(mockCfmClient._ui.setMenuBarInfo).toHaveBeenCalledTimes(2)
   })
 
-  it("handles the `getContent` message", done => {
+  it("handles the `getContent` message", async () => {
     const mockCfmClient = {} as CloudFileManagerClient
     const mockCfmEvent = {
       type: "getContent",
       callback: jest.fn()
     }
     const mockCfmEventArg = mockCfmEvent as unknown as CloudFileManagerClientEvent
-    handleCFMEvent(mockCfmClient, mockCfmEventArg)
-    setTimeout(() => {
-      const contentArg = mockCfmEvent.callback.mock.calls[0][0]
-      expect(isCodapDocument(contentArg)).toBe(true)
-      done()
-    })
+    await handleCFMEvent(mockCfmClient, mockCfmEventArg)
+
+    const contentArg = mockCfmEvent.callback.mock.calls[0][0]
+    expect(isCodapDocument(contentArg)).toBe(true)
   })
 
-  it("handles the willOpenFile message", () => {
+  it("handles the willOpenFile message", async () => {
     const mockCfmClient = {} as CloudFileManagerClient
     const mockCfmEvent = {
       type: "willOpenFile",
@@ -75,12 +73,12 @@ describe("handleCFMEvent", () => {
     }
     const spy = jest.spyOn(urlParamsModule, "removeDevUrlParams")
     const mockCfmEventArg = mockCfmEvent as unknown as CloudFileManagerClientEvent
-    handleCFMEvent(mockCfmClient, mockCfmEventArg)
+    await handleCFMEvent(mockCfmClient, mockCfmEventArg)
     expect(spy).toHaveBeenCalledTimes(1)
     spy.mockRestore()
   })
 
-  it("handles the `openedFile` message with a v2 document", () => {
+  it("handles the `openedFile` message with a v2 document", async () => {
     const mockCfmClient = {} as CloudFileManagerClient
     const mockV2Document: ICodapV2DocumentJson = {
       appName: "DG",
@@ -94,12 +92,12 @@ describe("handleCFMEvent", () => {
       }
     } as CloudFileManagerClientEvent
     const spy = jest.spyOn(ImportV2Document, "importV2Document")
-    handleCFMEvent(mockCfmClient, cfmEvent)
+    await handleCFMEvent(mockCfmClient, cfmEvent)
     expect(ImportV2Document.importV2Document).toHaveBeenCalledTimes(1)
     spy.mockRestore()
   })
 
-  it("handles the `openedFile` message with a v3 document", () => {
+  it("handles the `openedFile` message with a v3 document", async () => {
     const mockCfmClient = {} as CloudFileManagerClient
     const v3Document = createCodapDocument()
     const cfmEvent = {
@@ -109,7 +107,7 @@ describe("handleCFMEvent", () => {
       }
     } as CloudFileManagerClientEvent
     const spy = jest.spyOn(appState, "setDocument")
-    handleCFMEvent(mockCfmClient, cfmEvent)
+    await handleCFMEvent(mockCfmClient, cfmEvent)
     expect(spy).toHaveBeenCalledTimes(1)
     spy.mockRestore()
   })
