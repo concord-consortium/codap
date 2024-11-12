@@ -17,19 +17,17 @@ export const boundaryObjectFromBoundaryValue = (iBoundaryValue: object | string)
 }
 
 export const isBoundaryValue = (iValue: object | string): boolean => {
-  // TODO It would be better to check strings and objects in the same way
+  let obj: any
   if (typeof iValue === "string") {
-    let obj: any
     try {
       obj = JSON.parse(iValue)
     } catch (error) {
       // If it fails to parse, it isn't a boundary
     }
-    return obj != null && (obj.geometry || obj.coordinates || obj.features)
   } else if (typeof iValue === "object") {
-    const obj = iValue as any
-    return obj.type === 'FeatureCollection' || obj.type === 'Feature' || obj.jsonBoundaryObject
+    obj = iValue as any
   }
-
-  return false
+  return obj != null &&
+    (obj.geometry || obj.coordinates || obj.features ||
+      obj.type === 'FeatureCollection' || obj.type === 'Feature' || obj.jsonBoundaryObject)
 }
