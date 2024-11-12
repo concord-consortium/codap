@@ -4,7 +4,6 @@ import { CodapDndContext } from "../lib/dnd-kit/codap-dnd-context"
 import { Container } from "./container/container"
 import { ToolShelf } from "./tool-shelf/tool-shelf"
 import { kCodapAppElementId } from "./constants"
-import { ICodapV2DocumentJson } from "../v2/codap-v2-types"
 import { MenuBar, kMenuBarElementId } from "./menu-bar/menu-bar"
 import { useCloudFileManager } from "../lib/use-cloud-file-manager"
 import { Logger } from "../lib/logger"
@@ -13,7 +12,6 @@ import { addDefaultComponents } from "../models/codap/add-default-content"
 import {gDataBroker} from "../models/data/data-broker"
 import {IDataSet} from "../models/data/data-set"
 import { dataContextCountChangedNotification } from "../models/data/data-set-notifications"
-import { IDocumentModelSnapshot } from "../models/document/document"
 import { IImportDataSetOptions } from "../models/document/document-content"
 import { ISharedDataSet } from "../models/shared/shared-data-set"
 import { getSharedModelManager } from "../models/tiles/tile-environment"
@@ -37,7 +35,7 @@ registerTileTypes([])
 export const App = observer(function App() {
   useKeyStates()
 
-  useCloudFileManager({
+  const cfm = useCloudFileManager({
     appOrMenuElemId: kMenuBarElementId
   })
 
@@ -57,9 +55,9 @@ export const App = observer(function App() {
       sharedData?.dataSet.completeSnapshot()
     }, [])
 
-  const handleImportDocument = useCallback((document: IDocumentModelSnapshot | ICodapV2DocumentJson) => {
-    appState.setDocument(document)
-  }, [])
+  const handleImportDocument = useCallback((file: File) => {
+    cfm?.client.openLocalFileWithConfirmation(file)
+  }, [cfm])
 
   const handleUrlDrop = useCallback((url: string) => {
     const tile = appState.document.content?.createOrShowTile(kWebViewTileType)

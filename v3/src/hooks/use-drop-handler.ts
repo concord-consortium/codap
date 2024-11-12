@@ -1,27 +1,11 @@
 import { useEffect, useRef } from "react"
 import { IDataSet } from "../models/data/data-set"
-import { IDocumentModelSnapshot } from "../models/document/document"
 import { convertParsedCsvToDataSet, CsvParseResult, importCsvFile } from "../utilities/csv-import"
-import { safeJsonParse } from "../utilities/js-utils"
-import { ICodapV2DocumentJson } from "../v2/codap-v2-types"
-
-function importCodapDocument(
-  file: File | null,
-  onComplete: (document: IDocumentModelSnapshot | ICodapV2DocumentJson) => void
-) {
-  const reader = new FileReader()
-  reader.onload = () => {
-    const document = reader.result &&
-      safeJsonParse<IDocumentModelSnapshot | ICodapV2DocumentJson>(reader.result as string)
-    document && onComplete(document)
-  }
-  file && reader.readAsText(file)
-}
 
 export interface IDropHandler {
   selector: string
   onImportDataSet?: (data: IDataSet) => void
-  onImportDocument?: (document: IDocumentModelSnapshot | ICodapV2DocumentJson) => void
+  onImportDocument?: (file: File) => void
   onHandleUrlDrop?: (url: string) => void
 }
 export const useDropHandler = ({
@@ -38,10 +22,6 @@ export const useDropHandler = ({
     }
 
     function dropHandler(event: DragEvent) {
-
-      function onCompleteCodapImport(document: IDocumentModelSnapshot | ICodapV2DocumentJson) {
-        onImportDocument?.(document)
-      }
 
       function onCompleteCsvImport(results: CsvParseResult, aFile: any) {
         const ds = convertParsedCsvToDataSet(results, aFile.name)
@@ -62,7 +42,7 @@ export const useDropHandler = ({
             switch (extension) {
               case "codap":
               case "codap3":
-                importCodapDocument(file, onCompleteCodapImport)
+                file && onImportDocument?.(file)
                 break
               case "csv":
                 importCsvFile(file, onCompleteCsvImport)
