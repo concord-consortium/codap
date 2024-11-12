@@ -1,19 +1,13 @@
 export const boundaryObjectFromBoundaryValue = (iBoundaryValue: object | string) => {
   if (typeof iBoundaryValue === 'object') {
     return iBoundaryValue
-  }
-  else if (iBoundaryValue.startsWith('{')) // Assume it's the geojson itself
-  {
-    let tObject
+  } else {
     try {
-      tObject = JSON.parse(iBoundaryValue)
+      return JSON.parse(iBoundaryValue)
+    } catch (er) {
+      return null
     }
-    catch (er) {
-      console.log(er)
-    }
-    return {jsonBoundaryObject: tObject}
   }
-  else { return null }
 }
 
 export const isBoundaryValue = (iValue: object | string): boolean => {
@@ -22,7 +16,7 @@ export const isBoundaryValue = (iValue: object | string): boolean => {
     try {
       obj = JSON.parse(iValue)
     } catch (error) {
-      // If it fails to parse, it isn't a boundary
+      return false
     }
   } else if (typeof iValue === "object") {
     obj = iValue as any

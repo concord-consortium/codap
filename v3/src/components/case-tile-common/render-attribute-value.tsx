@@ -6,6 +6,7 @@ import { parseColor } from "../../utilities/color-utils"
 import { isStdISODateString } from "../../utilities/date-iso-utils"
 import { parseDate } from "../../utilities/date-parser"
 import { DatePrecision, formatDate } from "../../utilities/date-utils"
+import { boundaryObjectFromBoundaryValue } from "../../utilities/geojson-utils"
 
 // cache d3 number formatters so we don't have to generate them on every render
 type TNumberFormatter = (n: number) => string
@@ -22,6 +23,22 @@ export const getNumFormatter = (formatStr: string) => {
 
 export function renderAttributeValue(str = "", num = NaN, attr?: IAttribute, key?: number) {
   const { type, userType } = attr || {}
+
+  // boundaries
+  if (type === "boundary") {
+    const boundaryObject = boundaryObjectFromBoundaryValue(str)
+    const thumb = boundaryObject?.properties?.THUMB
+    if (thumb) {
+      return {
+        value: boundaryObject?.properties?.NAME ?? str,
+        content: (
+          <span className="cell-boundary-thumb">
+            <img src={thumb} alt="thumb" className="cell-boundary-thumb-interior" />
+          </span>
+        )
+      }
+    }
+  }
 
   // colors
   const color = type === "color" || !userType ? parseColor(str, { colorNames: type === "color" }) : ""
