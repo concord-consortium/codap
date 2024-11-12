@@ -3,6 +3,9 @@ import { TableTileElements as table } from "../elements/table-tile"
 import { SliderTileElements as slider } from "../elements/slider-tile"
 import { CfmElements as cfm } from "../elements/cfm"
 
+const isMac = navigator.platform.toLowerCase().includes("mac")
+const metaCtrlKey = isMac ? "Meta" : "Control"
+
 export const FormulaHelper = {
   visitURL(queryParams = "") {
     const url = `${Cypress.config("index")}${queryParams}`
@@ -52,5 +55,14 @@ export const FormulaHelper = {
   },
   deleteSlider() {
     c.closeComponent("slider")
+  },
+  clearFormulaInput() {
+    cy.get("[data-testid=formula-editor-input] .cm-content").should("be.visible").and("have.focus")
+    cy.get("[data-testid=formula-editor-input] .cm-content").realPress([metaCtrlKey, "A"])
+    cy.get("[data-testid=formula-editor-input] .cm-content").realType("{del}")
+  },
+  addFilterFormula(formula: string) {
+    cy.get(".formula-modal-body [data-testid=formula-editor-input] .cm-content").click()
+    cy.get(".formula-modal-body [data-testid=formula-editor-input] .cm-focused").realType(formula)
   }
 }
