@@ -15,8 +15,8 @@ import {
 } from "../../../utilities/plugin-utils"
 import { t } from "../../../utilities/translation/translate"
 import { EditAttributePropertiesModal } from "./edit-attribute-properties-modal"
-import { findLongestContentWidth } from "../../../hooks/use-measure-text"
 import { useCaseTableModel } from "../../case-table/use-case-table-model"
+import { findLongestContentWidth } from "../attribute-format-utils"
 
 interface IProps {
   attributeId: string

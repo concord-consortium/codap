@@ -15,8 +15,8 @@ import { ITileInspectorPanelProps } from "../../tiles/tile-base-props"
 import { useDataSet } from "../../../hooks/use-data-set"
 import { DataSetContext } from "../../../hooks/use-data-set-context"
 import { CaseMetadataContext } from "../../../hooks/use-case-metadata"
-import { findLongestContentWidth } from "../../../hooks/use-measure-text"
 import { ICaseTableModel, isCaseTableModel } from "../../case-table/case-table-model"
+import { findLongestContentWidth } from "../attribute-format-utils"
 
 import "./case-tile-inspector.scss"
 
