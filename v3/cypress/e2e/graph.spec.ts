@@ -4,6 +4,7 @@ import { ComponentElements as c } from "../support/elements/component-elements"
 import { ToolbarElements as toolbar } from "../support/elements/toolbar-elements"
 import { CfmElements as cfm } from "../support/elements/cfm"
 import { ColorPickerPaletteElements as cpp} from "../support/elements/color-picker-palette"
+import { AxisHelper as ah } from "../support/helpers/axis-helper"
 import graphRules from '../fixtures/graph-rules.json'
 
 const collectionName = "Mammals"
@@ -149,11 +150,11 @@ context("Graph UI", () => {
     })
   })
   describe("graph inspector panel", () => {
-    // work on this later PT #188015800
-    it.skip("change points in table and check for autoscale", () => {
+    it("change points in table and check for autoscale", () => {
       // create a graph with Lifespan (x-axis) and Height (y-axis)
       c.getComponentTitle("graph").should("have.text", collectionName)
-      cy.dragAttributeToTarget("table", "LifeSpan", "bottom")
+      ah.openAxisAttributeMenu("bottom")
+      ah.selectMenuAttribute("LifeSpan", "bottom") // LifeSpan => x-axis
       cy.dragAttributeToTarget("table", "Height", "left")
 
       // change values in table so that points need rescale
