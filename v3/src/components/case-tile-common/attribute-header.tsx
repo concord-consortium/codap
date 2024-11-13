@@ -242,8 +242,8 @@ export const AttributeHeader = observer(function AttributeHeader({
               }
               {attributeId !== kIndexColumnKey &&
                 <CaseTilePortal>
-                  <AttributeMenuList ref={menuListRef} attributeId={attributeId} onRenameAttribute={handleRenameAttribute}
-                    onModalOpen={handleModalOpen}
+                  <AttributeMenuList ref={menuListRef} attributeId={attributeId}
+                    onRenameAttribute={handleRenameAttribute} onModalOpen={handleModalOpen}
                   />
                 </CaseTilePortal>
               }
