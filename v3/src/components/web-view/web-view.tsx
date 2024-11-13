@@ -1,11 +1,12 @@
 import { observer } from "mobx-react-lite"
-import React, { useRef } from "react"
+import React, { useEffect, useRef } from "react"
 import { t } from "../../utilities/translation/translate"
 import { ITileBaseProps } from "../tiles/tile-base-props"
 import { useDataInteractiveController } from "./use-data-interactive-controller"
 import { kWebViewBodyClass } from "./web-view-defs"
 import { WebViewDropOverlay } from "./web-view-drop-overlay"
 import { isWebViewModel } from "./web-view-model"
+import { urlParams } from "../../utilities/url-params"
 
 import "./web-view.scss"
 
@@ -14,6 +15,25 @@ export const WebViewComponent = observer(function WebViewComponent({ tile }: ITi
   const webViewModel = tile?.content
 
   useDataInteractiveController(iframeRef, tile)
+
+  useEffect(() => {
+    const { di } = urlParams
+    if (di && isWebViewModel(webViewModel) && webViewModel?.url === di) {
+      const iframeDocBody = iframeRef.current?.contentWindow?.document.body
+      const activeEl = document.activeElement
+      if (iframeDocBody && activeEl && activeEl instanceof HTMLElement && activeEl !== iframeDocBody) {
+        activeEl.blur()
+        console.log("iframeDocBody", iframeDocBody)
+        iframeDocBody.focus()
+      }
+    }
+    // Empty dependency array ensures this runs only once when the component mounts
+  }, [])
+
+  useEffect(() => {
+    console.log("document.activeElement", document.activeElement)
+    console.log("is iframe focused", iframeRef.current?.contentWindow?.document.hasFocus())
+  }, [iframeRef])
 
   if (!isWebViewModel(webViewModel)) return null
 

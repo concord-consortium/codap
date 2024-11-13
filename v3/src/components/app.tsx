@@ -1,5 +1,6 @@
 import { observer } from "mobx-react-lite"
 import React, { useCallback, useEffect } from "react"
+import { SetRequired } from "type-fest"
 import { CodapDndContext } from "../lib/dnd-kit/codap-dnd-context"
 import { Container } from "./container/container"
 import { ToolShelf } from "./tool-shelf/tool-shelf"
@@ -24,7 +25,7 @@ import { registerTileTypes } from "../register-tile-types"
 import { importSample, sampleData } from "../sample-data"
 import { urlParams } from "../utilities/url-params"
 import { kWebViewTileType } from "./web-view/web-view-defs"
-import { isWebViewModel } from "./web-view/web-view-model"
+import { isWebViewModel, IWebViewSnapshot } from "./web-view/web-view-model"
 import { logStringifiedObjectMessage } from "../lib/log-message"
 
 import "../models/shared/shared-case-metadata-registration"
@@ -109,8 +110,8 @@ export const App = observer(function App() {
         // which is necessary to properly position the plugin.
         setTimeout(() => {
           appState.document.content?.applyModelChange(() => {
-            const plugin = appState.document.content?.createTile?.(kWebViewTileType)
-            if (isWebViewModel(plugin?.content)) plugin.content.setUrl(di)
+            const content: SetRequired<IWebViewSnapshot, "type"> = { type: kWebViewTileType, url: di }
+            appState.document.content?.createTile?.(kWebViewTileType, { content })
           })
         })
       }
