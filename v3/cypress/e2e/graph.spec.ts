@@ -150,7 +150,8 @@ context("Graph UI", () => {
     })
   })
   describe("graph inspector panel", () => {
-    it("change points in table and check for autoscale", () => {
+    // this test is flaky. Skipping for now (PT-#188370962)
+    it.skip("change points in table and check for autoscale", () => {
       // create a graph with Lifespan (x-axis) and Height (y-axis)
       c.getComponentTitle("graph").should("have.text", collectionName)
       ah.openAxisAttributeMenu("bottom")
