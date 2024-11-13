@@ -2,6 +2,7 @@ import { GraphTileElements as graph } from "../support/elements/graph-tile"
 import { ComponentElements as c } from "../support/elements/component-elements"
 import { AxisElements as ae } from "../support/elements/axis-elements"
 import { ToolbarElements as toolbar } from "../support/elements/toolbar-elements"
+import { FormulaHelper as fh } from "../support/helpers/formula-helper"
 
 context("Graph adornments", () => {
   beforeEach(function () {
@@ -42,8 +43,10 @@ context("Graph adornments", () => {
     // add a filter formula
     graph.getHideShowButton().click()
     cy.get("[data-testid=hide-show-menu-list]").should("be.visible")
-    cy.get("[data-testid=hide-show-menu-list]").find("[data-testid=edit-filter-formula]").should("be.visible").click()
-    cy.get(".codap-modal-content [data-testid=attr-formula-input]").type(`Diet="meat"`)
+    cy.get("[data-testid=hide-show-menu-list]")
+      .find("[data-testid=graph-edit-filter-formula]")
+      .should("be.visible").click()
+    fh.addFilterFormula(`Diet="meat"`)
     cy.get(".codap-modal-content [data-testid=Apply-button]").should("be.visible").click()
     cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid^=graph-count]").should("exist")
     cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid^=graph-count]").should("have.text", "10")
@@ -51,8 +54,11 @@ context("Graph adornments", () => {
     // change the filter formula
     graph.getHideShowButton().click()
     cy.get("[data-testid=hide-show-menu-list]").should("be.visible")
-    cy.get("[data-testid=hide-show-menu-list]").find("[data-testid=edit-filter-formula]").should("be.visible").click()
-    cy.get(".codap-modal-content [data-testid=attr-formula-input]").type(`{selectAll}{del}Diet="plants"`)
+    cy.get("[data-testid=hide-show-menu-list]")
+      .find("[data-testid=graph-edit-filter-formula]")
+      .should("be.visible").click()
+    fh.clearFormulaInput()
+    fh.addFilterFormula(`Diet="plants"`)
     cy.get(".codap-modal-content [data-testid=Apply-button]").should("be.visible").click()
     cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid^=graph-count]").should("exist")
     cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid^=graph-count]").should("have.text", "6")
@@ -60,8 +66,10 @@ context("Graph adornments", () => {
     // delete the filter formula
     graph.getHideShowButton().click()
     cy.get("[data-testid=hide-show-menu-list]").should("be.visible")
-    cy.get("[data-testid=hide-show-menu-list]").find("[data-testid=edit-filter-formula]").should("be.visible").click()
-    cy.get(".codap-modal-content [data-testid=attr-formula-input]").type(`{selectAll}{del}`)
+    cy.get("[data-testid=hide-show-menu-list]")
+      .find("[data-testid=graph-edit-filter-formula]")
+      .should("be.visible").click()
+    fh.clearFormulaInput()
     cy.get(".codap-modal-content [data-testid=Apply-button]").should("be.visible").click()
     cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid^=graph-count]").should("exist")
     cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid^=graph-count]").should("have.text", "21")

@@ -55,6 +55,7 @@
     "V3.Redo.hideShowMenu.restoreSetAsideCases": "Redo restoring set aside cases",
     "V3.hideShowMenu.addFilterFormula": "Add Filter Formula...",
     "V3.hideShowMenu.editFilterFormula": "Edit Filter Formula...",
+    "V3.hideShowMenu.filterFormulaPrompt": "Filter Formula",
     "V3.Undo.hideShowMenu.changeFilterFormula": "Undo changing filter formula",
     "V3.Redo.hideShowMenu.changeFilterFormula": "Redo changing filter formula",
     "V3.AttrFormView.attrPlaceholder": "attribute",
