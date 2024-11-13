@@ -100,5 +100,11 @@ export const SliderTileElements = {
     this.clickInspectorPanel()
     this.getAnimationRepetition().select(repetition)
     this.clickInspectorPanel()
-  }
+  },
+  addSlider() {
+    c.getIconFromToolShelf("slider").click()
+  },
+  deleteSlider() {
+    c.closeComponent("slider")
+  },
 }

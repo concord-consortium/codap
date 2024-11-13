@@ -417,7 +417,7 @@ context("case table ui", () => {
   describe("case table header attribute menu", () => {
     it("verify add attribute with undo and redo", ()=>{
       // Add new attribute using Add New Attribute button (+)
-      fh.addNewAttribute()
+      table.addNewAttribute()
 
       // verify new attribute exists
       table.getColumnHeaders().should("have.length.be.within", 10, 11)
