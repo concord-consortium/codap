@@ -34,8 +34,8 @@ export const EditFormulaModal = observer(function EditFormulaModal({
   const { formula, setFormula } = formulaEditorState
 
   useEffect(() => {
-    setFormula(value || formula || "")
-  }, [value, setFormula, formula])
+    setFormula(value || "")
+  }, [value, setFormula])
 
   const applyAndClose = () => {
     applyFormula(formula)
@@ -45,7 +45,7 @@ export const EditFormulaModal = observer(function EditFormulaModal({
   const closeModal = () => {
     setShowValuesMenu(false)
     setShowFunctionMenu(false)
-    setFormula("")
+    setFormula(value || "")
     onClose?.()
   }
 
