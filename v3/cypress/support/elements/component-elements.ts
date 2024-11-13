@@ -10,6 +10,7 @@ export const ComponentElements = {
     minimizeComponent: "Minimize or expand this Component",
     closeComponent: "Close this Component",
     inspectorPanel: "Change what is shown along with the points",
+    sliderInspectorPanel: "Set slider animation direction, speed, …",
     graphResizeButton: "Move the points to new random positions",
     graphHideShowButton: "Show all cases or hide selected/unselected cases",
     graphDisplayValuesButton: "Change what is shown along with the points",

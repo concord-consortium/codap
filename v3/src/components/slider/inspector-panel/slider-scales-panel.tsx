@@ -105,12 +105,14 @@ export const SliderScalesPalette =
             <Flex className="palette-row">
               <FormLabel className="form-label">{t("V3.Slider.scaleType")}
                 <Menu>
-                  <MenuButton as={Button} className="slider-select scaleType" sx={{ height: "20px" }}>
+                  <MenuButton as={Button} className="slider-select scaleType" sx={{ height: "20px" }}
+                    data-testid="slider-scale-type-button">
                     {t(`V3.Slider.scaleType.${scaleType}`)}
                   </MenuButton>
                   <MenuList>
                     {SliderScaleTypes.map(aScaleType => (
-                      <MenuItem key={aScaleType} onClick={() => handleScaleTypeChange(aScaleType)}>
+                      <MenuItem key={aScaleType} onClick={() => handleScaleTypeChange(aScaleType)}
+                        data-testid={`slider-scale-${aScaleType.toLowerCase()}`}>
                         {t(`V3.Slider.scaleType.${aScaleType}`)}
                       </MenuItem>
                     ))}
