@@ -43,8 +43,8 @@ export const SliderTileElements = {
     this.getPlayButton(index)
       .invoke("attr", "class")
       .should(($class) => {
-        expect($class).to.include("paused");
-      });
+        expect($class).to.include("paused")
+      })
   },
   checkPlayButtonIsRunning(index = 0) {
     this.getPlayButton(index).invoke("attr", "class").should("contain", "running")
@@ -119,10 +119,13 @@ export const SliderTileElements = {
     this.clickInspectorPanel()
   },
   selectScaleType(scaleType: string, index = 0) {
+    const today = new Date().toLocaleDateString("en-US")
     // Grab the button that opens the scale type menu
     this.getRulerIcon().click()
     cy.get('[data-testid="slider-scale-type-button"]').click()
     // Choose either Numeric or Date-Time based on the provided scaleType
     cy.get(`[data-testid="slider-scale-${scaleType}"]`).click()
+    cy.get('[data-testid="slider-date-display"]').should("have.text", today)
+
   }
 }

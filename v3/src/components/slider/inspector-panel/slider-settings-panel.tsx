@@ -176,7 +176,8 @@ export const SliderSettingsPalette =
             <Flex className="palette-row">
               <FormLabel className="form-label">{t("DG.Slider.direction")}
                 <Menu>
-                  <MenuButton as={Button} className="slider-select direction" sx={{height: "20px"}} data-testid="slider-animation-direction">
+                  <MenuButton as={Button} className="slider-select direction" sx={{height: "20px"}}
+                    data-testid="slider-animation-direction">
                     {sliderModel.animationDirection}
                   </MenuButton>
                   <MenuList>
@@ -194,7 +195,8 @@ export const SliderSettingsPalette =
             <Flex className="palette-row">
               <FormLabel className="form-label">{t("DG.Slider.mode")}
                 <Menu>
-                  <MenuButton as={Button} className="slider-select mode" sx={{height: "20px"}} data-testid="slider-animation-repetition">
+                  <MenuButton as={Button} className="slider-select mode" sx={{height: "20px"}}
+                    data-testid="slider-animation-repetition">
                     {sliderModel.animationMode}
                   </MenuButton>
                   <MenuList>

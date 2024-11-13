@@ -1,13 +1,11 @@
 import { SliderTileElements as slider } from "../support/elements/slider-tile"
 import { ComponentElements as c } from "../support/elements/component-elements"
 import { ToolbarElements as toolbar } from "../support/elements/toolbar-elements"
-import { CfmElements as cfm } from "../support/elements/cfm"
 
 const sliderName = "v1"
 const newName = "v2"
 const initialSliderValue = "0.5"
 const finalSliderValue = "11.5"
-const nearFinalSliderValue = "11.45"
 const newSliderValue = "0.6"
 
 context("Slider UI", () => {
@@ -272,7 +270,7 @@ context("Slider UI", () => {
     slider.getVariableName(1).should("have.text", newSliderName)
   })
   it("checks slider with dates", () => {
-    const today = new Date().toLocaleDateString("en-US"); // Adjust locale as needed
+    const today = new Date().toLocaleDateString("en-US") // Adjust locale as needed
     const minValue = "01/01/2023" // Set an example minimum date
     const maxValue = "12/31/2023" // Set an example maximum date
     const expectedYear = "2023" // Expected year based on min and max values
