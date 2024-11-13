@@ -1,11 +1,11 @@
-import {
-  CANONICAL_NAME, CASE_INDEX_FAKE_ATTR_ID, getCanonicalNameMap, getDisplayNameMap, globalValueIdToCanonical,
-  idToCanonical, isCanonicalName, localAttrIdToCanonical, rmCanonicalPrefix, safeSymbolName
-} from "./name-mapping-utils"
 import { createDataSet } from "../../data/data-set-conversion"
-import { getFormulaTestEnv } from "../test-utils/formula-test-utils"
 import { GlobalValueManager } from "../../global/global-value-manager"
-import { basicCanonicalNameToDependency } from "./formula-dependency-utils"
+import { getFormulaTestEnv } from "../test-utils/formula-test-utils"
+import {
+  basicCanonicalNameToDependency, CANONICAL_NAME, CASE_INDEX_FAKE_ATTR_ID, getCanonicalNameMap, getDisplayNameMap,
+  GLOBAL_VALUE, globalValueIdToCanonical, idToCanonical, isCanonicalName, LOCAL_ATTR, localAttrIdToCanonical,
+  rmCanonicalPrefix, safeSymbolName
+} from "./name-mapping-utils"
 
 describe("localAttrIdToCanonical", () => {
   it("returns a string that is recognized by basicCanonicalNameToDependency as a local attribute dependency", () => {
@@ -221,5 +221,23 @@ describe("getCanonicalNameMap", () => {
       __CANONICAL_NAME__ATTRz6jOChMIwbTW: 'PadColor',
       __CANONICAL_NAME__ATTRPDkNH9bz51th: 'Tail_Body_Ratio'
     })
+  })
+})
+
+describe("basicCanonicalNameToDependency", () => {
+  it("returns undefined if the name is not a canonical name", () => {
+    const name = "FOO_BAR"
+    const result = basicCanonicalNameToDependency(name)
+    expect(result).toBeUndefined()
+  })
+  it("returns a local attribute dependency if the name starts with the local attribute prefix", () => {
+    const name = `${CANONICAL_NAME}${LOCAL_ATTR}foo`
+    const result = basicCanonicalNameToDependency(name)
+    expect(result).toEqual({ type: "localAttribute", attrId: "foo" })
+  })
+  it("returns a global value dependency if the name starts with the global value prefix", () => {
+    const name = `${CANONICAL_NAME}${GLOBAL_VALUE}bar`
+    const result = basicCanonicalNameToDependency(name)
+    expect(result).toEqual({ type: "globalValue", globalId: "bar" })
   })
 })

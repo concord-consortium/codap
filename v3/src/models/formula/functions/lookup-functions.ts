@@ -1,12 +1,64 @@
-import { MathNode } from "mathjs"
-import { CurrentScope, DisplayNameMap, FValue, ILookupDependency, LookupStringConstantArg } from "../formula-types"
-import { rmCanonicalPrefix } from "../utils/name-mapping-utils"
-import { UNDEF_RESULT, equal, evaluateNode, getRootScope } from "./function-utils"
-import { isConstantStringNode } from "../utils/mathjs-utils"
+import { isSymbolNode, MathNode } from "mathjs"
 import { t } from "../../../utilities/translation/translate"
+import { isBoundarySet, lookupBoundary } from "../../../boundaries/boundaries"
 import type { IDataSet } from "../../data/data-set"
+import { CurrentScope, DisplayNameMap, FValue, ILookupDependency, LookupStringConstantArg } from "../formula-types"
+import { isConstantStringNode } from "../utils/mathjs-utils"
+import { basicCanonicalNameToDependency, rmCanonicalPrefix } from "../utils/name-mapping-utils"
+import { UNDEF_RESULT, equal, evaluateNode, getRootScope } from "./function-utils"
 
 export const lookupFunctions = {
+  // lookupBoundary(boundary_set, boundary_key)
+  lookupBoundary: {
+    numOfRequiredArguments: 2,
+    evaluateRaw: (args: MathNode[], mathjs: any, currentScope: CurrentScope) => {
+      const functionName = "lookupBoundary"
+      const numOfReqArgs = lookupFunctions.lookupBoundary.numOfRequiredArguments
+      if (args.length !== numOfReqArgs) {
+        throw new Error(t("DG.Formula.FuncArgsErrorPlural.description", { vars: [ functionName, numOfReqArgs ] }))
+      }
+
+      // Find the boundary set
+      if (!isSymbolNode(args[0])) {
+        throw new Error(t("DG.Formula.TypeError.message", { vars: [ "boundary_set" ] }))
+      }
+      const boundarySetArg = args[0]
+      const boundarySet = boundarySetArg?.name ?? ""
+      if (!isBoundarySet(boundarySet)) {
+        throw new Error(t("DG.Formula.VarReferenceError.message", { vars: [ boundarySet ] }))
+      }
+
+      // Find the boundary key
+      let boundaryKey: string = ""
+      if (isConstantStringNode(args[1])) {
+        boundaryKey = args[1].value
+      } else if (isSymbolNode(args[1])) {
+        const symbol = basicCanonicalNameToDependency(args[1].name)
+        if (symbol?.type === "localAttribute") {
+          const attributeId = symbol.attrId
+          const scope = getRootScope(currentScope)
+          const dataset = scope.getLocalDataSet()
+          const attribute = dataset.getAttribute(attributeId)
+          if (!attribute) {
+            throw new Error(t("DG.Formula.VarReferenceError.message", { vars: [ attributeId ] }))
+          }
+          const aCase = dataset.caseInfoMap.get(scope.caseId)
+          const caseIndex = dataset.getItemIndex(aCase?.childItemIds[0] ?? "")
+          boundaryKey = attribute?.strValues[caseIndex ?? -1]
+        }
+      } else {
+        throw new Error(t("DG.Formula.TypeError.message", { vars: [ "boundary_key" ] }))
+      }
+
+      // Find the boundary
+      const boundary = lookupBoundary(boundarySet, boundaryKey)
+      if (!boundary) {
+        throw new Error(t("DG.Formula.VarReferenceError.message", { vars: [ boundaryKey ] }))
+      }
+      return boundary
+    }
+  },
+
   // lookupByIndex("dataSetName", "attributeName", index)
   lookupByIndex: {
     numOfRequiredArguments: 3,
