@@ -199,13 +199,9 @@ export const MapContentModel = DataDisplayContentModel
 
       // Rescale when the layers are changed
       addDisposer(self, reaction(
-        () => {
-          const {layers} = self
-          return {layers}
-        },
-        () => {
-          self.rescale()
-        }, {name: "MapContentModel.reaction rescale when layers change", equals: comparer.structural}
+        () => self.layers.map(layer => layer.id),
+        () => self.rescale(),
+        {name: "MapContentModel.reaction rescale when layers change", equals: comparer.structural}
       ))
     },
     afterAttachToDocument() {
