@@ -8,6 +8,7 @@ import { t } from "../../../../utilities/translation/translate"
 import { logMessageWithReplacement } from "../../../../lib/log-message"
 import { EditFormulaModal } from "../../../common/edit-formula-modal"
 import { DataSetContext } from "../../../../hooks/use-data-set-context"
+import { useInspectorFormulaString } from "../../../../hooks/use-inspector-formula-string"
 
 interface IProps {
   tile?: ITileModel
@@ -125,8 +126,7 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
       ? t("DG.DataDisplayMenu.disableMeasuresForSelection")
       : t("DG.DataDisplayMenu.enableMeasuresForSelection"),
     displayOnlySelectedIsDisabled = dataConfig?.displayOnlySelectedCases
-    const addOrEditFormulaString = dataConfig?.filterFormula?.display ? t("V3.hideShowMenu.editFilterFormula")
-                                                                      : t("V3.hideShowMenu.addFilterFormula")
+    const addOrEditFormulaString = useInspectorFormulaString(dataConfig?.filterFormula?.display)
 
   return (
     <>

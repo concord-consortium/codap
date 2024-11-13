@@ -9,6 +9,7 @@ import {IMapContentModel, isMapContentModel} from "../../models/map-content-mode
 import { logMessageWithReplacement } from "../../../../lib/log-message"
 import { DataSetContext } from "../../../../hooks/use-data-set-context"
 import { EditFormulaModal } from "../../../common/edit-formula-modal"
+import { useInspectorFormulaString } from "../../../../hooks/use-inspector-formula-string"
 
 interface IProps {
   tile?: ITileModel
@@ -32,8 +33,7 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
   const hideUnselectedString = numUnselected === 1
                               ? t("DG.DataDisplayMenu.hideUnselectedSing")
                               : t("DG.DataDisplayMenu.hideUnselectedPlural")
-  const addOrEditFormulaString = dataConfig?.filterFormula?.display ? t("V3.hideShowMenu.editFilterFormula")
-                                                                    : t("V3.hideShowMenu.addFilterFormula")
+  const addOrEditFormulaString = useInspectorFormulaString(dataConfig?.filterFormula?.display)
 
   const hideSelectedCases = () => {
     mapModel?.applyModelChange(
