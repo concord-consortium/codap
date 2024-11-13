@@ -196,6 +196,13 @@ export const MapContentModel = DataDisplayContentModel
           }
         }, {name: "MapContentModel.reaction [sync mapModel => leaflet map]", equals: comparer.structural}
       ))
+
+      // Rescale when the layers are changed
+      addDisposer(self, reaction(
+        () => self.layers.map(layer => layer.id),
+        () => self.rescale(),
+        {name: "MapContentModel.reaction rescale when layers change", equals: comparer.structural}
+      ))
     },
     afterAttachToDocument() {
       // Monitor coming and going of shared datasets
@@ -216,7 +223,6 @@ export const MapContentModel = DataDisplayContentModel
           // We make a copy of the layers array and remove any layers that are still in the shared model
           // If there are any layers left in the copy, they are no longer in any shared dataset and should be removed
           const layersToCheck = Array.from(self.layers)
-          let layersHaveChanged = false
           sharedDataSets.forEach(sharedDataSet => {
             if (datasetHasLatLongData(sharedDataSet.dataSet)) {
               const foundIndex = layersToCheck.findIndex(aLayer => aLayer.data === sharedDataSet.dataSet)
@@ -229,7 +235,6 @@ export const MapContentModel = DataDisplayContentModel
               } else {
                 // Add a new layer for this dataset
                 this.addPointLayer(sharedDataSet.dataSet)
-                layersHaveChanged = true
               }
             }
             // Todo: We should allow both points and polygons from the same dataset
@@ -241,18 +246,13 @@ export const MapContentModel = DataDisplayContentModel
               } else {
                 // Add a new layer for this dataset
                 this.addPolygonLayer(sharedDataSet.dataSet)
-                layersHaveChanged = true
               }
             }
           })
           // Remove any remaining layers in layersToCheck since they are no longer in any shared dataset
           layersToCheck.forEach(layer => {
             self.layers.splice(self.layers.indexOf(layer), 1)
-            layersHaveChanged = true
           })
-          if (layersHaveChanged) {
-            self.rescale()
-          }
           self.isSharedDataInitialized = true
         },
         {name: "MapContentModel.respondToSharedDatasetsChanges", fireImmediately: true}))
