@@ -13,13 +13,7 @@ export function useSyncScrolling() {
    * a visible case should also be visible. We have gotten here from a
    * notification from a scroll event from RDG and any scrolling
    * of dependent tables will also produce scroll events, so we need to
-   * avoid getting into feedback loops. We do this by keeping a global scrollCount
-   * count and, in each case table, a scroll event count. We increment the
-   * global scrollCount and the event count for any case table that wasn't
-   * scrolled from propagation. When a new notification arrives if its
-   * table has a count less than the propagation count then it was a scroll
-   * event from propagation and bypasses further propagation. If it has an event
-   * count higher, it is a new event, so propagation should occur.
+   * avoid getting into feedback loops.
    */
   const syncTableScroll = useCallback((collectionId: string) => {
     const collectionTableModel = tableModel?.getCollectionTableModel(collectionId)
