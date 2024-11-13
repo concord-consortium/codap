@@ -17,7 +17,7 @@ export const semiAggregateFunctions = {
       const caseGroupId = scope.getCaseGroupId()
       const cacheKey = `next(${args.toString()})-${caseGroupId}`
       const [ expression, defaultValue, filter ] = args
-      const cachedData = scope.getCached(cacheKey) as ICachedData | undefined
+      const cachedData = scope.getCached<ICachedData>(cacheKey)
 
       let result
       let casePointer = scope.getCasePointer()
