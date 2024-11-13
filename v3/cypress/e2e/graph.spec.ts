@@ -187,7 +187,8 @@ context("Graph UI", () => {
       cy.get("[data-testid=graph]").find("[data-testid=axis-bottom]").find(".tick").should("have.length", 29)
     })
     it("hides and shows selected/unselected cases", () => {
-      cy.dragAttributeToTarget("table", "Sleep", "bottom")
+      ah.openAxisAttributeMenu("bottom")
+      ah.selectMenuAttribute("Sleep", "bottom") // Sleep => x-axis
       cy.wait(500)
       // TODO: Add more thorough checks to make sure the cases are actually hidden and shown once Cypress is
       // configured to interact with the PixiJS canvas. For now, we just check that the buttons are disabled
@@ -213,7 +214,8 @@ context("Graph UI", () => {
       // TODO: Add more thorough checks to make sure cases are actually hidden and shown, and the axes adjust
       // once Cypress is configured to interact with the PixiJS canvas. For now, we just check that the buttons
       // are disabled and enabled as expected.
-      cy.dragAttributeToTarget("table", "Sleep", "bottom")
+      ah.openAxisAttributeMenu("bottom")
+      ah.selectMenuAttribute("Sleep", "bottom") // Sleep => x-axis
       cy.wait(500)
       graph.getHideShowButton().click()
       cy.get("[data-testid=display-selected-cases]").should("not.be.disabled")
@@ -230,7 +232,8 @@ context("Graph UI", () => {
       cy.get("[data-testid=show-all-cases]").should("be.disabled")
     })
     it("shows a warning when 'Display Only Selected Cases' is selected and no cases have been selected", () => {
-      cy.dragAttributeToTarget("table", "Sleep", "bottom")
+      ah.openAxisAttributeMenu("bottom")
+      ah.selectMenuAttribute("Sleep", "bottom") // Sleep => x-axis
       cy.wait(500)
       cy.get("[data-testid=display-only-selected-warning]").should("not.exist")
       graph.getHideShowButton().click()
@@ -243,7 +246,8 @@ context("Graph UI", () => {
       cy.get("[data-testid=display-only-selected-warning]").should("not.exist")
     })
     it("shows parent visibility toggles when Show Parent Visibility Toggles option is selected", () => {
-      cy.dragAttributeToTarget("table", "Sleep", "bottom")
+      ah.openAxisAttributeMenu("bottom")
+      ah.selectMenuAttribute("Sleep", "bottom") // Sleep => x-axis
       cy.wait(500)
       cy.get("[data-testid=parent-toggles-container]").should("not.exist")
       graph.getHideShowButton().click()
@@ -334,7 +338,8 @@ context("Graph UI", () => {
     })
 
     it("It adds a banner to the graph when Show Measures for Selection is activated", () => {
-      cy.dragAttributeToTarget("table", "Sleep", "bottom")
+      ah.openAxisAttributeMenu("bottom")
+      ah.selectMenuAttribute("Sleep", "bottom") // Sleep => x-axis
       cy.get("[data-testid=measures-for-selection-banner]").should("not.exist")
       graph.getHideShowButton().click()
       cy.wait(500)
@@ -453,7 +458,8 @@ context("Graph UI", () => {
   })
   describe("graph bin configuration", () => {
     it("disables Point Size control when display type is bars", () => {
-      cy.dragAttributeToTarget("table", "Sleep", "bottom")
+      ah.openAxisAttributeMenu("bottom")
+      ah.selectMenuAttribute("Sleep", "bottom") // Sleep => x-axis
       cy.wait(500)
       graph.getDisplayStylesButton().click()
       cy.get("[data-testid=point-size-slider]").should("not.have.attr", "aria-disabled")
@@ -465,7 +471,8 @@ context("Graph UI", () => {
       cy.get("[data-testid=point-size-slider]").should("have.attr", "aria-disabled", "true")
     })
     it("adds bin boundaries to plot when 'Group into Bins' is selected", () => {
-      cy.dragAttributeToTarget("table", "Sleep", "bottom")
+      ah.openAxisAttributeMenu("bottom")
+      ah.selectMenuAttribute("Sleep", "bottom") // Sleep => x-axis
       cy.wait(500)
       cy.get("[data-testid=bin-ticks-graph-1]").should("not.exist")
       graph.getDisplayConfigButton().click()
@@ -475,7 +482,8 @@ context("Graph UI", () => {
       cy.get("[data-testid=bin-ticks-graph-1]").should("exist")
     })
     it("enables bin width and alignment options when 'Group into Bins' is selected", () => {
-      cy.dragAttributeToTarget("table", "Sleep", "bottom")
+      ah.openAxisAttributeMenu("bottom")
+      ah.selectMenuAttribute("Sleep", "bottom") // Sleep => x-axis
       graph.getDisplayConfigButton().click()
       cy.get("[data-testid=graph-bin-width-setting]").should("not.exist")
       cy.get("[data-testid=graph-bin-alignment-setting]").should("not.exist")
@@ -489,7 +497,8 @@ context("Graph UI", () => {
       cy.get("[data-testid=graph-bin-alignment-setting]").find("input").should("exist").should("have.value", "2")
     })
     it("updates bin configuration when bin width and bin alignment values are changed", () => {
-      cy.dragAttributeToTarget("table", "Sleep", "bottom")
+      ah.openAxisAttributeMenu("bottom")
+      ah.selectMenuAttribute("Sleep", "bottom") // Sleep => x-axis
       graph.getDisplayConfigButton().click()
       cy.get("[data-testid=bins-radio-button]").click()
       cy.wait(500)
@@ -505,7 +514,8 @@ context("Graph UI", () => {
       cy.get("[data-testid=bin-ticks-graph-1]").find("path.draggable-bin-boundary-cover").should("have.length", 4)
     })
     it("reverts bin width and bin alignment to default values for new value range when attribute is changed", () => {
-      cy.dragAttributeToTarget("table", "Sleep", "bottom")
+      ah.openAxisAttributeMenu("bottom")
+      ah.selectMenuAttribute("Sleep", "bottom") // Sleep => x-axis
       graph.getDisplayConfigButton().click()
       cy.get("[data-testid=bins-radio-button]").click()
       cy.wait(500)
@@ -519,7 +529,8 @@ context("Graph UI", () => {
       cy.get("[data-testid=graph-bin-alignment-setting]").find("input").should("have.value", "0")
     })
     it("allows user to change bin width and alignment values by dragging the bin boundary lines", () => {
-      cy.dragAttributeToTarget("table", "Sleep", "bottom")
+      ah.openAxisAttributeMenu("bottom")
+      ah.selectMenuAttribute("Sleep", "bottom") // Sleep => x-axis
       graph.getDisplayConfigButton().click()
       cy.get("[data-testid=bins-radio-button]").click()
       cy.wait(500)
@@ -547,7 +558,8 @@ context("Graph UI", () => {
       })
     })
     it("shows a bar graph for categorical attr on primary axis with 'Fuse Dots into Bars' checked", () => {
-      cy.dragAttributeToTarget("table", "Habitat", "bottom")
+      ah.openAxisAttributeMenu("bottom")
+      ah.selectMenuAttribute("Habitat", "bottom") // Habitat => x-axis
       cy.get("[data-testid=bar-cover]").should("not.exist")
       graph.getDisplayConfigButton().click()
       cy.get("[data-testid=bar-chart-checkbox]").find("input").should("exist").and("have.attr", "type", "checkbox")
@@ -589,7 +601,8 @@ context("Graph UI", () => {
     })
   })
   it("shows a histogram when 'Group into Bins' and 'Fuse Dots into Bars' are both checked", () => {
-    cy.dragAttributeToTarget("table", "Height", "bottom")
+    ah.openAxisAttributeMenu("bottom")
+    ah.selectMenuAttribute("Height", "bottom") // Height => x-axis
     cy.get("[data-testid=bar-cover]").should("not.exist")
     graph.getDisplayConfigButton().click()
     cy.get("[data-testid=bins-radio-button]").click()
@@ -599,7 +612,8 @@ context("Graph UI", () => {
     cy.wait(500)
     cy.get("[data-testid=bar-cover]").should("exist").and("have.length", 4)
     cy.wait(500)
-    cy.dragAttributeToTarget("table", "Speed", "bottom")
+    ah.openAxisAttributeMenu("bottom")
+    ah.selectMenuAttribute("Speed", "bottom") // Speed => x-axis
     cy.wait(500)
     cy.get("[data-testid=bar-cover]").should("exist").and("have.length", 6)
     graph.getDisplayConfigButton().click()

@@ -30,11 +30,10 @@ context("Test graph axes with various attribute types", () => {
     ah.verifyDefaultAxisLabel("bottom")
     ah.verifyDefaultAxisLabel("left")
   })
-  // This test has become flaky (tick mark count is off)
-  // Skipping for now (PT-#188534232)
-  it.skip("will add categorical attribute to x axis with undo/redo", () => {
+  it("will add categorical attribute to x axis with undo/redo", () => {
     // Adding the attribute
-    cy.dragAttributeToTarget("table", arrayOfAttributes[7], "bottom") // Habitat => x-axis
+    ah.openAxisAttributeMenu("bottom")
+    ah.selectMenuAttribute("Habitat", "bottom") // Habitat => x-axis
     ah.verifyTickMarksDoNotExist("left")
     ah.verifyGridLinesDoNotExist("left")
     ah.verifyXAxisTickMarksDisplayed(true)
@@ -56,9 +55,10 @@ context("Test graph axes with various attribute types", () => {
     // Verify the attribute was removed
     ah.verifyAxisTickLabels("bottom", arrayOfValues[7].values, true)
   })
-  it.only("will add numeric attribute to x axis with undo/redo", () => {
+  it("will add numeric attribute to x axis with undo/redo", () => {
     // Adding the attribute
-    cy.dragAttributeToTarget("table", arrayOfAttributes[2], "bottom") // LifeSpan => x-axis
+    ah.openAxisAttributeMenu("bottom")
+    ah.selectMenuAttribute("LifeSpan", "bottom") // LifeSpan => x-axis
     ah.verifyTickMarksDoNotExist("left")
     ah.verifyGridLinesDoNotExist("left")
     ah.verifyXAxisTickMarksDisplayed()
@@ -123,8 +123,9 @@ context("Test graph axes with various attribute types", () => {
     ah.verifyTickMarksDoNotExist("left")
     ah.verifyGridLinesDoNotExist("left")
   })
-  it.only("will add categorical attribute to x axis and categorical attribute to y axis with undo/redo", () => {
-    cy.dragAttributeToTarget("table", arrayOfAttributes[7], "bottom") // Habitat => x-axis
+  it("will add categorical attribute to x axis and categorical attribute to y axis with undo/redo", () => {
+    ah.openAxisAttributeMenu("bottom")
+    ah.selectMenuAttribute("Habitat", "bottom") // Habitat => x-axis
     cy.dragAttributeToTarget("table", arrayOfAttributes[8], "left") // Diet => y-axis
     ah.verifyXAxisTickMarksDisplayed(true)
     ah.verifyXAxisGridLinesDisplayed(true)
@@ -158,8 +159,9 @@ context("Test graph axes with various attribute types", () => {
     ah.verifyTickMarksDoNotExist("left")
     ah.verifyGridLinesDoNotExist("left")
   })
-  it.only("will add categorical attribute to x axis and numeric attribute to y axis with undo/redo", () => {
-    cy.dragAttributeToTarget("table", arrayOfAttributes[7], "bottom") // Habitat => x-axis
+  it("will add categorical attribute to x axis and numeric attribute to y axis with undo/redo", () => {
+    ah.openAxisAttributeMenu("bottom")
+    ah.selectMenuAttribute("Habitat", "bottom") // Habitat => x-axis
     cy.dragAttributeToTarget("table", arrayOfAttributes[5], "left") // Sleep => y-axis
     ah.verifyXAxisTickMarksDisplayed(true)
     ah.verifyXAxisGridLinesDisplayed(true)
@@ -192,8 +194,9 @@ context("Test graph axes with various attribute types", () => {
     ah.verifyTickMarksDoNotExist("left")
     ah.verifyGridLinesDoNotExist("left")
   })
-  it.only("will add numeric attribute to x axis and categorical attribute to y axis with undo/redo", () => {
-    cy.dragAttributeToTarget("table", arrayOfAttributes[3], "bottom") // Height => x-axis
+  it("will add numeric attribute to x axis and categorical attribute to y axis with undo/redo", () => {
+    ah.openAxisAttributeMenu("bottom")
+    ah.selectMenuAttribute("Height", "bottom") // Height => x-axis
     cy.dragAttributeToTarget("table", arrayOfAttributes[7], "left") // Habitat => y-axis
     ah.verifyXAxisTickMarksDisplayed()
     ah.verifyXAxisGridLinesNotDisplayed()
@@ -227,8 +230,9 @@ context("Test graph axes with various attribute types", () => {
     ah.verifyTickMarksDoNotExist("left")
     ah.verifyGridLinesDoNotExist("left")
   })
-  it.only("will add numeric attribute to x axis and numeric attribute to y axis with undo/redo", () => {
-    cy.dragAttributeToTarget("table", arrayOfAttributes[3], "bottom") // Height => x-axis
+  it("will add numeric attribute to x axis and numeric attribute to y axis with undo/redo", () => {
+    ah.openAxisAttributeMenu("bottom")
+    ah.selectMenuAttribute("Height", "bottom") // Height => x-axis
     cy.dragAttributeToTarget("table", arrayOfAttributes[4], "left") // Mass => y-axis
     ah.verifyXAxisTickMarksDisplayed()
     ah.verifyYAxisTickMarksDisplayed()
@@ -258,7 +262,8 @@ context("Test graph axes with various attribute types", () => {
     ah.verifyGridLinesDoNotExist("left")
   })
   it("will split an axis into identical sub axes when categorical attribute is on opposite split", () => {
-    cy.dragAttributeToTarget("table", arrayOfAttributes[4], "bottom") // Mass => x-axis
+    ah.openAxisAttributeMenu("bottom")
+    ah.selectMenuAttribute("Mass", "bottom") // Mass => x-axis
     cy.get("[data-testid=graph]").find("[data-testid=axis-bottom]").find(".sub-axis-wrapper").should("have.length", 1)
     cy.dragAttributeToTarget("table", arrayOfAttributes[7], "top") // Habitat => top split
     cy.get("[data-testid=graph]").find("[data-testid=axis-bottom]").find(".sub-axis-wrapper").should("have.length", 3)
@@ -275,8 +280,9 @@ context("Test graph axes with various attribute types", () => {
     ah.removeAttributeFromAxis(arrayOfAttributes[7], "top")
     cy.get("[data-testid=graph]").find("[data-testid=axis-bottom]").find(".sub-axis-wrapper").should("have.length", 1)
   })
-  it.only("will test graph with numeric x-axis and two numeric y-attributes", () => {
-    cy.dragAttributeToTarget("table", arrayOfAttributes[2], "bottom") // Lifespan => x-axis
+  it("will test graph with numeric x-axis and two numeric y-attributes", () => {
+    ah.openAxisAttributeMenu("bottom")
+    ah.selectMenuAttribute("LifeSpan", "bottom") // LifeSpan => x-axis
     cy.get("[data-testid=graph]").find("[data-testid=axis-bottom]").find(".sub-axis-wrapper").should("have.length", 1)
     cy.dragAttributeToTarget("table", arrayOfAttributes[3], "left") // Height => left split
     cy.dragAttributeToTarget("table", arrayOfAttributes[5], "yplus") // Sleep => left split
@@ -308,10 +314,11 @@ context("Test graph axes with various attribute types", () => {
     cy.get("[data-testid=graph]").find("[data-testid=axis-bottom]")
     .find(".sub-axis-wrapper").should("have.length", 1)
   })
-  it.only("will adjust axis domain when points are changed to bars with undo/redo", () => {
+  it("will adjust axis domain when points are changed to bars with undo/redo", () => {
     // When there are no negative numeric values, such as in the case of Height, the domain for the primary
     // axis of a univariate plot showing bars should start at zero.
-    cy.dragAttributeToTarget("table", arrayOfAttributes[3], "bottom") // Height => x-axis
+    ah.openAxisAttributeMenu("bottom")
+    ah.selectMenuAttribute("Height", "bottom") // Height => x-axis
     ah.verifyXAxisTickMarksDisplayed()
     ah.verifyAxisTickLabel("bottom", "−0.5", 0)
 
