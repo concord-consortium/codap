@@ -202,7 +202,7 @@ describe("Attribute", () => {
     expect(attribute.strValues).toEqual(["", "", "", "", "", ""])
     expect(attribute.numValues).toEqual([NaN, NaN, NaN, NaN, NaN, NaN])
 
-    expect(attribute.format).toBe(`${kDefaultFormatNum}~f`)
+    expect(attribute.format).toBe(`.${kDefaultFormatNum}~f`)
     attribute.setPrecision(2)
     expect(attribute.format).toBe(".2~f")
 

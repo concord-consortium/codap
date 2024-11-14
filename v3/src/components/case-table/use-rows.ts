@@ -86,7 +86,7 @@ export const useRows = (gridElement: HTMLDivElement | null) => {
           if (data && caseId && attr && cellSpan) {
             const strValue = data.getStrValue(caseId, attr.id)
             const numValue = data.getNumeric(caseId, attr.id)
-            const formatStr = attr.format || `${kDefaultFormatNum}~f`
+            const formatStr = attr.format || `.${kDefaultFormatNum}~f`
             const formatted = (numValue != null) && isFinite(numValue) ? format(formatStr)(numValue) : strValue
             cellSpan.textContent = formatted ?? ""
             setCachedDomAttr(caseId, attr.id)
