@@ -1,6 +1,5 @@
 import { FormulaHelper as fh } from "../../support/helpers/formula-helper"
 import { TableTileElements as table } from "../../support/elements/table-tile"
-import { ComponentElements as c } from "../../support/elements/component-elements"
 import { SliderTileElements as slider } from "../../support/elements/slider-tile"
 
 context("Formula Engine", () => {

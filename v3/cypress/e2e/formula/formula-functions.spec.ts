@@ -106,7 +106,8 @@ context("Formula Engine", () => {
     table.addNewAttribute()
     table.renameAttribute("newAttr", "boolean")
     table.addFormula("boolean", "boolean(3+4=7)")
-    table.verifyFormulaValues("boolean", ["true", "true", "true", "true", "true", "true", "true", "true", "true", "true", "true"])
+    table.verifyFormulaValues("boolean",
+        ["true", "true", "true", "true", "true", "true", "true", "true", "true", "true", "true"])
   })
   it("Check other functions", () => {
     fh.visitURL("")
@@ -120,7 +121,8 @@ context("Formula Engine", () => {
     table.addNewAttribute()
     table.renameAttribute("newAttr", "random")
     table.addFormula("random", `if("random(1, 5) > 0 AND random(1, 5) < 6", "true", "false")`)
-    table.verifyFormulaValues("random", ["true", "true", "true", "true", "true", "true", "true", "true", "true", "true", "true"])
+    table.verifyFormulaValues("random",
+        ["true", "true", "true", "true", "true", "true", "true", "true", "true", "true", "true"])
 
     table.addNewAttribute()
     table.renameAttribute("newAttr", "randomPick")

@@ -1,7 +1,6 @@
 import { TableTileElements as table } from "../support/elements/table-tile"
 import { ComponentElements as c } from "../support/elements/component-elements"
 import { ToolbarElements as toolbar } from "../support/elements/toolbar-elements"
-import { FormulaHelper as fh } from "../support/helpers/formula-helper"
 import { ColorPickerPaletteElements as cpp } from "../support/elements/color-picker-palette"
 
 context("case table ui", () => {
