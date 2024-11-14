@@ -15,6 +15,8 @@ const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin')
 //   https://github.com/concord-consortium/s3-deploy-action/blob/main/README.md#top-branch-example
 const DEPLOY_PATH = process.env.DEPLOY_PATH
 
+const CACHE_DIRECTORY = '.cache'
+
 module.exports = (env, argv) => {
   const devMode = argv.mode !== 'production'
 
@@ -40,6 +42,7 @@ module.exports = (env, argv) => {
     // `build` script runs eslint independently in production mode,
     // so we don't need to run it again as part of the webpack build
     webpackPlugins.push(new ESLintPlugin({
+      cacheLocation: path.resolve(__dirname, `${CACHE_DIRECTORY}/eslint-webpack-plugin/.eslintcache`),
       extensions: ['ts', 'tsx', 'js', 'jsx'],
     }))
   }
@@ -83,7 +86,7 @@ module.exports = (env, argv) => {
       buildDependencies: {
         config: [__filename],
       },
-      cacheDirectory: path.resolve(__dirname, '.cache/webpack'),
+      cacheDirectory: path.resolve(__dirname, `${CACHE_DIRECTORY}/webpack`),
       type: 'filesystem',
     },
     performance: { hints: false },

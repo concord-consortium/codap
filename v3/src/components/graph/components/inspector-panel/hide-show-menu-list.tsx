@@ -6,7 +6,9 @@ import { ITileModel } from "../../../../models/tiles/tile-model"
 import { isGraphContentModel } from "../../models/graph-content-model"
 import { t } from "../../../../utilities/translation/translate"
 import { logMessageWithReplacement } from "../../../../lib/log-message"
-import { EditFilterFormulaModal } from "../../../common/edit-filter-formula-modal"
+import { EditFormulaModal } from "../../../common/edit-formula-modal"
+import { DataSetContext } from "../../../../hooks/use-data-set-context"
+import { useInspectorFormulaString } from "../../../../hooks/use-inspector-formula-string"
 
 interface IProps {
   tile?: ITileModel
@@ -75,6 +77,18 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
     )
   }
 
+  const applyFilterFormula = (formula: string) => {
+    dataConfig?.applyModelChange(
+      () => dataConfig?.setFilterFormula(formula),
+      {
+        undoStringKey: "DG.Undo.hideShowMenu.changeFilterFormula",
+        redoStringKey: "DG.Redo.hideShowMenu.changeFilterFormula",
+        log: logMessageWithReplacement("Change filter formula to %@", {formula})
+      }
+    )
+    formulaModal.onClose()
+  }
+
   const handleEditFormulaOpen = () => {
     formulaModal.onOpen()
   }
@@ -124,6 +138,7 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
       ? t("DG.DataDisplayMenu.disableMeasuresForSelection")
       : t("DG.DataDisplayMenu.enableMeasuresForSelection"),
     displayOnlySelectedIsDisabled = dataConfig?.displayOnlySelectedCases
+    const addOrEditFormulaString = useInspectorFormulaString(dataConfig?.filterFormula?.display)
 
   return (
     <>
@@ -138,8 +153,8 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
         <MenuItem onClick={showAllCases} isDisabled={showAllIsDisabled} data-testid="show-all-cases">
           {t("DG.DataDisplayMenu.showAll")}
         </MenuItem>
-        <MenuItem onClick={handleEditFormulaOpen} data-testid="edit-filter-formula">
-          {t("V3.hideShowMenu.editFilterFormula")}
+        <MenuItem onClick={handleEditFormulaOpen} data-testid="graph-edit-filter-formula">
+          {addOrEditFormulaString}
         </MenuItem>
         <MenuItem onClick={displayOnlySelectedCases} isDisabled={displayOnlySelectedIsDisabled}
         data-testid="display-selected-cases">
@@ -154,11 +169,14 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
       </MenuList>
       {
         dataConfig &&
-        <EditFilterFormulaModal
-          formulaSource={dataConfig}
-          isOpen={formulaModal.isOpen}
-          onClose={handleEditFormulaClose}
-        />
+        <DataSetContext.Provider value={dataConfig.dataset}>
+          <EditFormulaModal
+            applyFormula={applyFilterFormula}
+            isOpen={formulaModal.isOpen}
+            onClose={handleEditFormulaClose}
+            titleLabel={t("V3.hideShowMenu.filterFormulaPrompt")}
+            value={dataConfig.filterFormula?.display} />
+        </DataSetContext.Provider>
       }
     </>
   )

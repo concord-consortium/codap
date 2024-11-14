@@ -155,8 +155,10 @@ export class MultiScale {
   }
 
   @action setNumericDomain(domain: Iterable<NumberValue>) {
-    this.numericDomain = domain as AxisExtent
-    this.numericScale?.domain(domain)
+    const newDomain = domain as AxisExtent
+    if (!isFinite(newDomain[0]) || !isFinite(newDomain[1])) return
+    this.numericDomain = newDomain
+    this.numericScale?.domain(newDomain)
   }
 
   @action setCategoricalDomain(domain: Iterable<string>) {

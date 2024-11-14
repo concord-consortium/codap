@@ -30,7 +30,6 @@ export const EditFormulaModal = observer(function EditFormulaModal({
 }: IProps) {
   const [showValuesMenu, setShowValuesMenu] = useState(false)
   const [showFunctionMenu, setShowFunctionMenu] = useState(false)
-
   const formulaEditorState = useFormulaEditorState(value ?? "")
   const { formula, setFormula } = formulaEditorState
 
@@ -46,7 +45,7 @@ export const EditFormulaModal = observer(function EditFormulaModal({
   const closeModal = () => {
     setShowValuesMenu(false)
     setShowFunctionMenu(false)
-    setFormula("")
+    setFormula(value || "")
     onClose?.()
   }
 

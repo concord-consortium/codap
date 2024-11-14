@@ -1,9 +1,11 @@
+import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import React, { useEffect, useRef } from "react"
 import { IFreeTileRow } from "../../models/document/free-tile-row"
 import { ITileModel } from "../../models/tiles/tile-model"
 import { uiState } from "../../models/ui-state"
 import { mstReaction } from "../../utilities/mst-reaction"
+import { kDragContainerClass } from "./container-constants"
 import { FreeTileComponent } from "./free-tile-component"
 
 import "./free-tile-row.scss"
@@ -46,8 +48,10 @@ export const FreeTileRowComponent = observer(function FreeTileRowComponent(
     }
   }
 
+  const classes = clsx("free-tile-row", "tile-row", kDragContainerClass)
+
   return (
-    <div className="free-tile-row tile-row" ref={rowRef} onPointerDown={handlePointerDown}>
+    <div className={classes} ref={rowRef} onPointerDown={handlePointerDown}>
       {
         row?.tileIds.map(tileId => {
           const tile = getTile(tileId)

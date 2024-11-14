@@ -5,7 +5,7 @@ import {IPixiPointMetadata, PixiPoints} from "../../data-display/pixi/pixi-point
 import {IDataSet} from "../../../models/data/data-set"
 import {CaseData} from "../../data-display/d3-types"
 import {Point, PointDisplayType, transitionDuration} from "../../data-display/data-display-types"
-import { IAxisModel, isDateAxisModel, isNumericAxisModel } from "../../axis/models/axis-model"
+import {IAxisModel, IBaseNumericAxisModel, isDateAxisModel, isNumericAxisModel} from "../../axis/models/axis-model"
 import {ScaleNumericBaseType} from "../../axis/axis-types"
 import {defaultSelectedColor, defaultSelectedStroke, defaultSelectedStrokeWidth, defaultStrokeWidth}
   from "../../../utilities/color-utils"
@@ -53,7 +53,8 @@ export function computeNiceNumericBounds(min: number, max: number): { min: numbe
   return bounds
 }
 
-export function setNiceDomain(values: number[], axisModel: IAxisModel, options?: IDomainOptions) {
+export function setNiceDomain(values: number[], axisModel: IBaseNumericAxisModel, options?: IDomainOptions) {
+  if (values.length === 0) return // leave things as they are
   if (isNumericAxisModel(axisModel)) {
     const [minValue, maxValue] = extent(values, d => d) as [number, number]
     let {min: niceMin, max: niceMax} = computeNiceNumericBounds(minValue, maxValue)
