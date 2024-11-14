@@ -1,5 +1,22 @@
 import { evaluate } from "../test-utils/formula-test-utils"
 
+describe("lookupBoundary", () => {
+  it("throws an error when appropriate", () => {
+    // Correct number of arguments
+    expect(() => evaluate(`lookupBoundary(US_state_boundaries)`)).toThrow()
+    expect(() => evaluate(`lookupBoundary(US_state_boundaries, "Alaska", "Fairbanks")`)).toThrow()
+
+    // First argument must be a legal symbol
+    expect(() => evaluate(`lookupBoundary("US_state_boundaries", "Alaska")`)).toThrow()
+    expect(() => evaluate(`lookupBoundary(Mammal, "Alaska")`)).toThrow()
+  })
+
+  it("returns boundary data", () => {
+    expect(() => JSON.parse(evaluate(`lookupBoundary(US_state_boundaries, "Alaska")`)).geometry).toBeDefined()
+    // TODO Test a symbol for the second argument. There is no state attribute in the test-doc, making this difficult.
+  })
+})
+
 describe("lookupByIndex", () => {
   it("returns the value at the given constant index (1-based)", () => {
     expect(evaluate("lookupByIndex('Mammals', 'Mammal', 2)")).toEqual("Asian Elephant")

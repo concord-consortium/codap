@@ -243,7 +243,7 @@ export const Attribute = V2Model.named("Attribute").props({
     const dateCount = self.getDateCount()
     if (dateCount > 0 && dateCount === this.length - self.getEmptyCount()) return "date"
 
-    // only infer boundary if all non-empty values are boundaries
+    // only infer boundary if all non-empty values are boundaries or if the attribute has a special name
     const boundaryCount = self.getBoundaryCount()
     const allValuesAreBoundaries = boundaryCount > 0 && boundaryCount === this.length - self.getEmptyCount()
     if (kPolygonNames.includes(self.title) || allValuesAreBoundaries) {
