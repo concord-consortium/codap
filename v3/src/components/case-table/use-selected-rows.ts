@@ -138,18 +138,31 @@ export const useSelectedRows = (props: UseSelectedRows) => {
     // In this case, we match the v2 behavior in that clicking on a single row when multiple rows
     // are selected deselects other rows.
     else {
-      setSelectedCases([caseId], data)
+      let caseIds = [caseId]
+      setSelectedCases(caseIds, data)
       anchorCase.current = caseId
 
-      const caseInfo = data?.caseInfoMap.get(caseId)
-      const collection = data?.getCollection(caseInfo?.collectionId)
-      // scroll to newly selected child cases (if any)
-      const childCollection = collection?.child
-      if (childCollection && caseInfo?.childCaseIds?.length) {
-        const childIndices = caseInfo?.childCaseIds.map(id => {
-          return collectionCaseIndexFromId(id, data, childCollection.id)
-        }).filter(index => index != null)
-        onScrollRowRangeIntoView(childCollection.id, childIndices, { disableScrollSync: true })
+      // loop through collections and scroll newly selected child cases into view
+      const collection = data?.getCollection(collectionId)
+      for (let childCollection = collection?.child; childCollection; childCollection = childCollection?.child) {
+        const childCaseIds: string[] = []
+        const childIndices: number[] = []
+        caseIds.forEach(id => {
+          const caseInfo = data?.caseInfoMap.get(id)
+          caseInfo?.childCaseIds?.forEach(childCaseId => {
+            childCaseIds.push(childCaseId)
+            const caseIndex = collectionCaseIndexFromId(childCaseId, data, childCollection.id)
+            if (caseIndex != null) {
+              childIndices.push(caseIndex)
+            }
+          })
+        })
+        // scroll to newly selected child cases (if any)
+        if (childIndices.length) {
+          onScrollRowRangeIntoView(childCollection.id, childIndices, { disableScrollSync: true })
+        }
+        // advance to child cases in next collection
+        caseIds = childCaseIds
       }
     }
   }, [collectionId, data, onScrollRowRangeIntoView])
