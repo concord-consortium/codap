@@ -228,7 +228,8 @@ export const TableTileElements = {
   },
   showAllAttributes() {
     cy.get("[data-testid=hide-show-button]").click()
-    cy.get("[data-testid=hide-show-menu-list]").find("button").contains("Show 1 Hidden Attribute").click()
+    // The show hidden attributes button is the only one with "Show" in it
+    cy.get("[data-testid=hide-show-menu-list]").find("button").contains("Show").click()
   },
   createNewTableFromToolShelf() {
     c.getIconFromToolShelf("table").click()
