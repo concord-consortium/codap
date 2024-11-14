@@ -22,6 +22,6 @@ export const isBoundaryValue = (iValue: object | string): boolean => {
     obj = iValue as any
   }
   return obj != null &&
-    (obj.geometry || obj.coordinates || obj.features ||
+    !!(obj.geometry || obj.coordinates || obj.features ||
       obj.type === 'FeatureCollection' || obj.type === 'Feature' || obj.jsonBoundaryObject)
 }
