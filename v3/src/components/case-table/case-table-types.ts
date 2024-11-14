@@ -28,6 +28,13 @@ export interface TCellSelectArgs extends CellSelectArgs<TRow> {}
 export type TCellKeyDownArgs = CellKeyDownArgs<TRow>
 export type TColSpanArgs = ColSpanArgs<TRow, unknown>
 
+export interface IScrollOptions {
+  // "auto" moves immediately; "smooth" animates
+  scrollBehavior?: "auto" | "smooth"
+  // disable parent/child scroll sync for the target table
+  disableScrollSync?: boolean
+}
+
 export interface IBaseTableScrollInfo {
   element: HTMLDivElement
   scrollRowIntoView: (rowIndex: number) => void
@@ -43,6 +50,7 @@ export type SetScrollInfoFn = (scrollInfo: ISetTableScrollInfo) => void
 export type TableScrollEvent = React.UIEvent<HTMLDivElement, UIEvent>
 export type OnTableScrollFn = (event: TableScrollEvent, collectionId: string, element: HTMLDivElement) => void
 export type OnScrollClosestRowIntoViewFn = (collectionId: string, rowIndices: number[]) => void
+export type OnScrollRowRangeIntoViewFn = (collectionId: string, rowIndices: number[], options?: IScrollOptions) => void
 
 export const kInputRowKey = "__input__"
 

@@ -10,15 +10,19 @@ import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { onAnyAction } from "../../utilities/mst-utils"
 import { prf } from "../../utilities/profiler"
-import { OnScrollClosestRowIntoViewFn, TCellClickArgs } from "./case-table-types"
+import {
+  OnScrollClosestRowIntoViewFn, OnScrollRowRangeIntoViewFn, TCellClickArgs
+} from "./case-table-types"
 import { useCollectionTableModel } from "./use-collection-table-model"
 
 interface UseSelectedRows {
   gridRef: React.RefObject<DataGridHandle | null>
   onScrollClosestRowIntoView: OnScrollClosestRowIntoViewFn
+  onScrollRowRangeIntoView: OnScrollRowRangeIntoViewFn
 }
 
-export const useSelectedRows = ({ gridRef, onScrollClosestRowIntoView }: UseSelectedRows) => {
+export const useSelectedRows = (props: UseSelectedRows) => {
+  const { onScrollClosestRowIntoView, onScrollRowRangeIntoView } = props
   const data = useDataSetContext()
   const collectionId = useCollectionContext()
   const collectionTableModel = useCollectionTableModel()
@@ -129,11 +133,39 @@ export const useSelectedRows = ({ gridRef, onScrollClosestRowIntoView }: UseSele
     else if (isExtending) {
       selectCases([caseId], data, !isCaseSelected)
     }
-    else if (!isCaseSelected) {
-      setSelectedCases([caseId], data)
+    // Note: in most UI environments, clicking on a selected item does not change the selection
+    // because you may want to drag or otherwise interact with the current set of selected items.
+    // In this case, we match the v2 behavior in that clicking on a single row when multiple rows
+    // are selected deselects other rows.
+    else {
+      let caseIds = [caseId]
+      setSelectedCases(caseIds, data)
       anchorCase.current = caseId
+
+      // loop through collections and scroll newly selected child cases into view
+      const collection = data?.getCollection(collectionId)
+      for (let childCollection = collection?.child; childCollection; childCollection = childCollection?.child) {
+        const childCaseIds: string[] = []
+        const childIndices: number[] = []
+        caseIds.forEach(id => {
+          const caseInfo = data?.caseInfoMap.get(id)
+          caseInfo?.childCaseIds?.forEach(childCaseId => {
+            childCaseIds.push(childCaseId)
+            const caseIndex = collectionCaseIndexFromId(childCaseId, data, childCollection.id)
+            if (caseIndex != null) {
+              childIndices.push(caseIndex)
+            }
+          })
+        })
+        // scroll to newly selected child cases (if any)
+        if (childIndices.length) {
+          onScrollRowRangeIntoView(childCollection.id, childIndices, { disableScrollSync: true })
+        }
+        // advance to child cases in next collection
+        caseIds = childCaseIds
+      }
     }
-  }, [collectionId, data])
+  }, [collectionId, data, onScrollRowRangeIntoView])
 
   return { selectedRows, setSelectedRows, handleCellClick }
 }

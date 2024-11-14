@@ -4,7 +4,8 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import DataGrid, { CellKeyboardEvent, DataGridHandle } from "react-data-grid"
 import { kCollectionTableBodyDropZoneBaseId } from "./case-table-drag-drop"
 import {
-  kInputRowKey, OnScrollClosestRowIntoViewFn, OnTableScrollFn, TCellKeyDownArgs, TRenderers, TRow
+  kInputRowKey, OnScrollClosestRowIntoViewFn, OnScrollRowRangeIntoViewFn, OnTableScrollFn,
+  TCellKeyDownArgs, TRenderers, TRow
 } from "./case-table-types"
 import { CollectionTableSpacer } from "./collection-table-spacer"
 import { CollectionTitle } from "../case-tile-common/collection-title"
@@ -51,9 +52,12 @@ interface IProps {
   onNewCollectionDrop: OnNewCollectionDropFn
   onTableScroll: OnTableScrollFn
   onScrollClosestRowIntoView: OnScrollClosestRowIntoViewFn
+  onScrollRowRangeIntoView: OnScrollRowRangeIntoViewFn
 }
 export const CollectionTable = observer(function CollectionTable(props: IProps) {
-  const { onMount, onNewCollectionDrop, onTableScroll, onScrollClosestRowIntoView } = props
+  const {
+    onMount, onNewCollectionDrop, onScrollClosestRowIntoView, onScrollRowRangeIntoView, onTableScroll
+  } = props
   const data = useDataSetContext()
   const collectionId = useCollectionContext()
   const caseTableModel = useCaseTableModel()
@@ -63,7 +67,8 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
                               getComputedStyle(gridRef.current.element)
                                 .getPropertyValue("--rdg-row-selected-background-color") || undefined
   const visibleAttributes = useVisibleAttributes(collectionId)
-  const { selectedRows, setSelectedRows, handleCellClick } = useSelectedRows({ gridRef, onScrollClosestRowIntoView })
+  const { selectedRows, setSelectedRows, handleCellClick } =
+    useSelectedRows({ gridRef, onScrollClosestRowIntoView, onScrollRowRangeIntoView })
   const { handleWhiteSpaceClick } = useWhiteSpaceClick({ gridRef })
   const { isTileSelected } = useTileModelContext()
   const [isSelecting, setIsSelecting] = useState(false)

@@ -17,6 +17,7 @@ import { t } from "../../utilities/translation/translate"
 import { excludeDragOverlayRegEx } from "../case-tile-common/case-tile-types"
 import { AttributeHeaderDividerContext } from "../case-tile-common/use-attribute-header-divider-context"
 import { AttributeDragOverlay } from "../drag-drop/attribute-drag-overlay"
+import { IScrollOptions } from "./case-table-types"
 import { CollectionTable } from "./collection-table"
 import { useCaseTableModel } from "./use-case-table-model"
 import { useSyncScrolling } from "./use-sync-scrolling"
@@ -74,6 +75,19 @@ export const CaseTable = observer(function CaseTable({ setNodeRef }: IProps) {
     }
   }, [syncTableScroll, tableModel])
 
+  const handleScrollRowRangeIntoView = useCallback(
+    function(collectionId: string, rowIndices: number[], options?: IScrollOptions) {
+      const collectionTableModel = tableModel?.getCollectionTableModel(collectionId)
+      if (collectionTableModel) {
+        const [firstIndex, lastIndex] = rowIndices.reduce((prev, index) => {
+          const [minIndex, maxIndex] = prev
+          return [Math.min(minIndex, index), Math.max(maxIndex, index)] as const
+        }, [Infinity, -Infinity] as const)
+        collectionTableModel.scrollRangeIntoView(firstIndex, lastIndex, options)
+        syncTableScroll(collectionId)
+      }
+    }, [syncTableScroll, tableModel])
+
   const handleCollectionTableMount = useCallback((collectionId: string) => {
     if (collectionId === lastNewCollectionDrop.current?.newCollectionId) {
       syncTableScroll(lastNewCollectionDrop.current.beforeCollectionId)
@@ -130,7 +144,8 @@ export const CaseTable = observer(function CaseTable({ setNodeRef }: IProps) {
                   <CollectionContext.Provider value={collection.id}>
                     <CollectionTable onMount={handleCollectionTableMount}
                       onNewCollectionDrop={handleNewCollectionDrop} onTableScroll={handleTableScroll}
-                      onScrollClosestRowIntoView={handleScrollClosestRowIntoView} />
+                      onScrollClosestRowIntoView={handleScrollClosestRowIntoView}
+                      onScrollRowRangeIntoView={handleScrollRowRangeIntoView} />
                   </CollectionContext.Provider>
                 </ParentCollectionContext.Provider>
               )
