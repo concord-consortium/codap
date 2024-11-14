@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react"
-import { PixiPoints } from "../pixi/pixi-points"
+import { PixiPoints, PixiPointsArray } from "../pixi/pixi-points"
 
 interface IProps {
   addInitialPixiPoints?: boolean
@@ -7,7 +7,7 @@ interface IProps {
 
 export function usePixiPointsArray(props?: IProps) {
   const { addInitialPixiPoints = false } = props || {}
-  const [ pixiPointsArray, setPixiPointsArray ] = useState<PixiPoints[]>([])
+  const [ pixiPointsArray, setPixiPointsArray ] = useState<PixiPointsArray>([])
 
   useEffect(() => {
     const initialPixiPoints = addInitialPixiPoints ? new PixiPoints() : undefined

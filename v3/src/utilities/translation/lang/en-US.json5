@@ -738,7 +738,7 @@
     "DG.TableController.headerMenuItems.hideAttribute": "Hide Attribute",
     "DG.TableController.headerMenuItems.deleteAttribute": "Delete Attribute",
     "DG.TableController.headerMenuItems.renameAttribute": "Rename",
-    "DG.TableController.headerMenuItems.resizeColumn": "Fit width to content",
+    "DG.TableController.headerMenuItems.resizeColumn": "Fit Width To Content",
     "DG.TableController.newAttrDlg.defaultAttrName": "new_attr",
     "DG.TableController.newAttrDlg.attrNameHint": "Enter a name for the new attribute",
     "DG.TableController.newAttrDlg.formulaHint": "If desired, type a formula for computing values of this attribute",

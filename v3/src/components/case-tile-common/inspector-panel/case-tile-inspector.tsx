@@ -15,7 +15,8 @@ import { ITileInspectorPanelProps } from "../../tiles/tile-base-props"
 import { useDataSet } from "../../../hooks/use-data-set"
 import { DataSetContext } from "../../../hooks/use-data-set-context"
 import { CaseMetadataContext } from "../../../hooks/use-case-metadata"
-import { logStringifiedObjectMessage } from "../../../lib/log-message"
+import { ICaseTableModel, isCaseTableModel } from "../../case-table/case-table-model"
+import { findLongestContentWidth } from "../attribute-format-utils"
 
 import "./case-tile-inspector.scss"
 
@@ -28,7 +29,7 @@ export const CaseTileInspector = ({ tile, show, showResizeColumnsButton }: IProp
   const caseTileModel: Maybe<ICaseTileContentModel> =
     isCaseTileContentModel(tile?.content) ? tile?.content : undefined
   const { data, metadata } = useDataSet(caseTileModel?.data, caseTileModel?.metadata)
-
+  const tableModel: ICaseTableModel | undefined = isCaseTableModel(tile?.content) ? tile?.content : undefined
   if (!caseTileModel) return null
 
   const handleButtonClick = (tool: string) => {
@@ -36,13 +37,28 @@ export const CaseTileInspector = ({ tile, show, showResizeColumnsButton }: IProp
       case "datasetInfo":
         setShowInfoModal(true)
         break
-      case "resizeColumns":
-        //TODO move log to respective handler
-        caseTileModel?.applyModelChange(() => {}, {
-          log: logStringifiedObjectMessage("resizeColumns: %@", {dataContext: data?.name}, "table")
-        })
-        break
     }
+  }
+
+  const resizeAllColumns = () => {
+    const kCellPadding = 10
+    const newColumnWidths = new Map<string, number>()
+    data?.collections.forEach((collection) => {
+      collection.attributes.forEach((attr) => {
+        if (attr) {
+          const attrId = attr?.id
+          const longestContentWidth = findLongestContentWidth(attr)
+          newColumnWidths.set(attrId, Math.ceil(longestContentWidth + kCellPadding))
+        }
+      })
+    })
+    tableModel?.applyModelChange(() => {
+      tableModel?.setColumnWidths(newColumnWidths)
+    }, {
+      log: {message: "Resize all columns", args:{}, category: "table"},
+      undoStringKey: "DG.Undo.caseTable.resizeColumns",
+      redoStringKey: "DG.Redo.caseTable.resizeColumns"
+    })
   }
 
   return (
@@ -55,7 +71,7 @@ export const CaseTileInspector = ({ tile, show, showResizeColumnsButton }: IProp
           </InspectorButton>
           {showResizeColumnsButton &&
             <InspectorButton tooltip={t("DG.Inspector.resize.toolTip")} showMoreOptions={false}
-              testId="resize-table-button" onButtonClick={()=>handleButtonClick("resizeColumns")}>
+              testId="resize-table-button" onButtonClick={resizeAllColumns}>
               <ScaleDataIcon />
             </InspectorButton>}
           <InspectorMenu tooltip={t("DG.Inspector.delete.toolTip")}

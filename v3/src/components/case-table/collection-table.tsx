@@ -17,7 +17,6 @@ import { useSelectedRows } from "./use-selected-rows"
 import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useTileDroppable } from "../../hooks/use-drag-drop"
-import { useForceUpdate } from "../../hooks/use-force-update"
 import { useTileModelContext } from "../../hooks/use-tile-model-context"
 import { useVisibleAttributes } from "../../hooks/use-visible-attributes"
 import { registerCanAutoScrollCallback } from "../../lib/dnd-kit/dnd-can-auto-scroll"
@@ -66,7 +65,6 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
   const visibleAttributes = useVisibleAttributes(collectionId)
   const { selectedRows, setSelectedRows, handleCellClick } = useSelectedRows({ gridRef, onScrollClosestRowIntoView })
   const { handleWhiteSpaceClick } = useWhiteSpaceClick({ gridRef })
-  const forceUpdate = useForceUpdate()
   const { isTileSelected } = useTileModelContext()
   const [isSelecting, setIsSelecting] = useState(false)
   const [selectionStartRowIdx, setSelectionStartRowIdx] = useState<number | null>(null)
@@ -93,7 +91,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
   const columns = useColumns({ data, indexColumn })
 
   // rows
-  const { handleRowsChange } = useRows()
+  const { handleRowsChange } = useRows(gridRef.current?.element ?? null)
   const rowKey = (row: TRow) => row.__id__
 
   const { setNodeRef } = useTileDroppable(`${kCollectionTableBodyDropZoneBaseId}-${collectionId}`)
@@ -112,44 +110,57 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
   }, [collectionId, collectionTableModel, onTableScroll])
 
   // column widths passed to RDG
-  const columnWidths = useRef<Map<string, number>>(new Map())
+  const [columnWidths, setColumnWidths] = useState(new Map<string, number>())
 
   // respond to column width changes in shared metadata (e.g. undo/redo)
   useEffect(() => {
+    let templateColumnWidths: string[] = []
     return caseTableModel && mstReaction(
       () => {
+        let shouldReplaceTemplateColumnWidths = false
+        templateColumnWidths = gridRef.current?.element?.style.gridTemplateColumns.split(/\s+/) ?? []
         const newColumnWidths = new Map<string, number>()
-        columns.forEach(column => {
+        columns.forEach((column, index) => {
           const width = caseTableModel.columnWidths.get(column.key) ?? column.width
           if (width != null && typeof width === "number") {
             newColumnWidths.set(column.key, width)
+            // When double-clicking on a column divider, RDG puts `max-content` into the `gridTemplateColumns` property
+            // via direct DOM manipulation and it doesn't get replaced when processing the undo, so we do it ourselves.
+            if (templateColumnWidths[index] === "max-content") {
+              templateColumnWidths[index] = `${width}px`
+              shouldReplaceTemplateColumnWidths = true
+            }
           }
         })
-        return newColumnWidths
+        return { newColumnWidths, shouldReplaceTemplateColumnWidths }
       },
-      newColumnWidths => {
-        columnWidths.current = newColumnWidths
-        forceUpdate()
+      ({ newColumnWidths, shouldReplaceTemplateColumnWidths }) => {
+        // Replace `gridTemplateColumns` if `max-content` was detected. See comment above.
+        if (shouldReplaceTemplateColumnWidths && gridRef.current?.element) {
+          gridRef.current.element.style.gridTemplateColumns = templateColumnWidths.join(" ")
+        }
+        setColumnWidths(newColumnWidths)
       },
       { name: "CollectionTable.updateColumnWidths", fireImmediately: true, equals: comparer.structural },
       caseTableModel)
-  }, [caseTableModel, columns, forceUpdate])
+  }, [caseTableModel, columns])
 
   // respond to column width changes from RDG
   const handleColumnResize = useCallback(
     function handleColumnResize(idx: number, width: number, isComplete?: boolean) {
       const attrId = columns[idx].key
-      columnWidths.current.set(attrId, width)
+      const newWidth = Math.ceil(width)
+      columnWidths.set(attrId, newWidth)
       if (isComplete) {
         caseTableModel?.applyModelChange(() => {
-          caseTableModel?.columnWidths.set(attrId, width)
+          caseTableModel?.columnWidths.set(attrId, newWidth)
         }, {
           log: {message: "Resize one case table column", args:{}, category: "table"},
           undoStringKey: "DG.Undo.caseTable.resizeOneColumn",
           redoStringKey: "DG.Redo.caseTable.resizeOneColumn"
         })
       }
-    }, [columns, caseTableModel])
+    }, [columns, columnWidths, caseTableModel])
 
   const handleAddNewAttribute = () => {
     let attribute: IAttribute | undefined
@@ -356,7 +367,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
         <DataGrid ref={gridRef} className="rdg-light" data-testid="collection-table-grid" renderers={renderers}
           columns={columns} rows={rows} headerRowHeight={+styles.headerRowHeight} rowKeyGetter={rowKey}
           rowHeight={+styles.bodyRowHeight} selectedRows={selectedRows} onSelectedRowsChange={setSelectedRows}
-          columnWidths={columnWidths.current} onColumnResize={handleColumnResize} onCellClick={handleCellClick}
+          columnWidths={columnWidths} onColumnResize={handleColumnResize} onCellClick={handleCellClick}
           onCellKeyDown={handleCellKeyDown} onRowsChange={handleRowsChange} onScroll={handleGridScroll}
           onSelectedCellChange={handleSelectedCellChange}/>
       </div>

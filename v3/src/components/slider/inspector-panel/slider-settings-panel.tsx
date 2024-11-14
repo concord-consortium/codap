@@ -116,7 +116,7 @@ export const SliderSettingsPalette =
             <NumberInput className="slider-input multiples-input" size="xs" defaultValue={sliderModel.multipleOf}
                          onBlur={handleMultiplesOfBlur} onFocus={handleMultiplesOfFocus}
                          data-testid="slider-restrict-multiples">
-              <NumberInputField ref={numberInputRef}/>
+              <NumberInputField ref={numberInputRef} data-testid="slider-variable-value-text-input"/>
             </NumberInput>
             <Menu>
               <MenuButton as={Button} className="slider-select direction" sx={{height: "20px"}}>
@@ -176,7 +176,8 @@ export const SliderSettingsPalette =
             <Flex className="palette-row">
               <FormLabel className="form-label">{t("DG.Slider.direction")}
                 <Menu>
-                  <MenuButton as={Button} className="slider-select direction" sx={{height: "20px"}}>
+                  <MenuButton as={Button} className="slider-select direction" sx={{height: "20px"}}
+                    data-testid="slider-animation-direction">
                     {sliderModel.animationDirection}
                   </MenuButton>
                   <MenuList>
@@ -194,7 +195,8 @@ export const SliderSettingsPalette =
             <Flex className="palette-row">
               <FormLabel className="form-label">{t("DG.Slider.mode")}
                 <Menu>
-                  <MenuButton as={Button} className="slider-select mode" sx={{height: "20px"}}>
+                  <MenuButton as={Button} className="slider-select mode" sx={{height: "20px"}}
+                    data-testid="slider-animation-repetition">
                     {sliderModel.animationMode}
                   </MenuButton>
                   <MenuList>

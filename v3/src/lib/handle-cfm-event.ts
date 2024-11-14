@@ -1,9 +1,6 @@
 import { CloudFileManagerClient, CloudFileManagerClientEvent } from "@concord-consortium/cloud-file-manager"
 import { appState } from "../models/app-state"
 import { removeDevUrlParams, urlParams } from "../utilities/url-params"
-import { isCodapV2Document } from "../v2/codap-v2-types"
-import { CodapV2Document } from "../v2/codap-v2-document"
-import { importV2Document } from "../v2/import-v2-document"
 import { wrapCfmCallback } from "./cfm-utils"
 
 import build from "../../build_number.json"
@@ -36,10 +33,10 @@ export function handleCFMEvent(cfmClient: CloudFileManagerClient, event: CloudFi
     // case "closedFile":
     //   break
     case "getContent": {
-      appState.getDocumentSnapshot().then(content => {
+      // return the promise so tests can make sure it is complete
+      return appState.getDocumentSnapshot().then(content => {
         event.callback(content)
       })
-      break
     }
     case "willOpenFile":
       removeDevUrlParams()
@@ -49,14 +46,8 @@ export function handleCFMEvent(cfmClient: CloudFileManagerClient, event: CloudFi
     case "openedFile": {
       const content = event.data.content
       const metadata = event.data.metadata
-      if (isCodapV2Document(content)) {
-        const v2Document = new CodapV2Document(content, metadata)
-        importV2Document(v2Document)
-      }
-      else {
-        appState.setDocument(content, metadata)
-      }
-      break
+      // return the promise so tests can make sure it is complete
+      return appState.setDocument(content, metadata)
     }
     case "savedFile": {
       const { content } = event.data

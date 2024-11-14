@@ -22,9 +22,11 @@ export const SliderTileElements = {
     return this.getSliderTile(index).find("[data-testid=slider-variable-value-text-input]")
   },
   changeVariableValue(value: number | string, index = 0) {
-    this.getVariableValueInput(index).click()
-    this.getVariableValueInput(index).clear()
-    this.getVariableValueInput(index).type(`${value}{enter})`)
+    this.getVariableValueInput(index)
+    .dblclick()
+    .clear()
+    .type(`${value}{enter}`)
+    this.getVariableValueInput(index).should("have.value", `${value}`)
   },
   getPlayButton(index = 0) {
     return this.getSliderTile(index).find("[data-testid=slider-play-pause]")
@@ -38,7 +40,11 @@ export const SliderTileElements = {
     this.getPlayButton(index).click()
   },
   checkPlayButtonIsPaused(index = 0) {
-    this.getPlayButton(index).invoke("attr", "class").should("contain", "paused")
+    this.getPlayButton(index)
+      .invoke("attr", "class")
+      .should(($class) => {
+        expect($class).to.include("paused")
+      })
   },
   checkPlayButtonIsRunning(index = 0) {
     this.getPlayButton(index).invoke("attr", "class").should("contain", "running")
@@ -51,6 +57,9 @@ export const SliderTileElements = {
   },
   getInspectorIcon() {
     return c.getInspectorPanel().find("[data-testid=slider-values-button]")
+  },
+  getRulerIcon() {
+    return c.getInspectorPanel().find("[data-testid=slider-scale-button]")
   },
   clickInspectorPanel() {
     this.getInspectorIcon().click()
@@ -89,18 +98,35 @@ export const SliderTileElements = {
   setAnimationDirection(direction: string, index = 0) {
     c.selectTile("slider", index)
     this.clickInspectorPanel()
-    this.getAnimationDirection().select(direction)
+    // Open the animation direction dropdown
+    this.getAnimationDirection().click()
+    // Select the specified direction from the dropdown menu
+    cy.contains('[role="menuitem"]', direction).click()
+    // Close the inspector panel if necessary
     this.clickInspectorPanel()
   },
   getAnimationRepetition() {
-    return c.getInspectorPanel().find("[data-testid=slider-animation-repetition]")
+    return c.getInspectorPanel().find("[data-testid=slider-animation-repetition]") // Targets the dropdown button itself
   },
   setAnimationRepetition(repetition: string, index = 0) {
     c.selectTile("slider", index)
     this.clickInspectorPanel()
-    this.getAnimationRepetition().select(repetition)
+    // Open the repetition dropdown
+    this.getAnimationRepetition().click()
+    // Select the specified repetition option from the dropdown menu
+    cy.contains('[role="menuitem"]', repetition).click()
+    // Close the inspector panel if needed
     this.clickInspectorPanel()
   },
+  selectScaleType(scaleType: "numeric" | "date", index = 0) {
+    const today = new Date().toLocaleDateString("en-US")
+    // Grab the button that opens the scale type menu
+    this.getRulerIcon().click()
+    cy.get('[data-testid="slider-scale-type-button"]').click()
+    // Choose either Numeric or Date-Time based on the provided scaleType
+    cy.clickWhenClickable(`[data-testid="slider-scale-${scaleType}"]`)
+    // cy.get('[data-testid="slider-date-display"]').should("have.text", today)
+  }
   addSlider() {
     c.getIconFromToolShelf("slider").click()
   },

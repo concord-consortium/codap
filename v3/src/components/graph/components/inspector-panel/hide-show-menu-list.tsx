@@ -77,6 +77,18 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
     )
   }
 
+  const applyFilterFormula = (formula: string) => {
+    dataConfig?.applyModelChange(
+      () => dataConfig?.setFilterFormula(formula),
+      {
+        undoStringKey: "DG.Undo.hideShowMenu.changeFilterFormula",
+        redoStringKey: "DG.Redo.hideShowMenu.changeFilterFormula",
+        log: logMessageWithReplacement("Change filter formula to %@", {formula})
+      }
+    )
+    formulaModal.onClose()
+  }
+
   const handleEditFormulaOpen = () => {
     formulaModal.onOpen()
   }
@@ -159,7 +171,7 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
         dataConfig &&
         <DataSetContext.Provider value={dataConfig.dataset}>
           <EditFormulaModal
-            applyFormula={dataConfig.setFilterFormula}
+            applyFormula={applyFilterFormula}
             isOpen={formulaModal.isOpen}
             onClose={handleEditFormulaClose}
             titleLabel={t("V3.hideShowMenu.filterFormulaPrompt")}

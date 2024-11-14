@@ -7,7 +7,7 @@ import {clsx} from "clsx"
 import { logStringifiedObjectMessage } from "../../../lib/log-message"
 import {mstReaction} from "../../../utilities/mst-reaction"
 import {onAnyAction} from "../../../utilities/mst-utils"
-import {IPixiPointsArray} from "../../data-display/pixi/pixi-points"
+import {PixiPointsArray} from "../../data-display/pixi/pixi-points"
 import {GraphAttrRole, graphPlaceToAttrRole, kPortalClass} from "../../data-display/data-display-types"
 import {AxisPlace, AxisPlaces} from "../../axis/axis-types"
 import {GraphAxis} from "./graph-axis"
@@ -28,7 +28,7 @@ import {GraphDataConfigurationContext} from "../hooks/use-graph-data-configurati
 import {useGraphLayoutContext} from "../hooks/use-graph-layout-context"
 import {useGraphModel} from "../hooks/use-graph-model"
 import {setNiceDomain} from "../utilities/graph-utils"
-import { EmptyAxisModel, IAxisModel, isNumericAxisModel } from "../../axis/models/axis-model"
+import { EmptyAxisModel, IBaseNumericAxisModel, isNumericAxisModel } from "../../axis/models/axis-model"
 import {GraphPlace} from "../../axis-graph-shared"
 import {MarqueeState} from "../../data-display/models/marquee-state"
 import {DataTip} from "../../data-display/components/data-tip"
@@ -46,7 +46,7 @@ import "./graph.scss"
 interface IProps {
   graphController: GraphController
   graphRef: MutableRefObject<HTMLDivElement | null>
-  pixiPointsArray: IPixiPointsArray
+  pixiPointsArray: PixiPointsArray
 }
 
 export const Graph = observer(function Graph({graphController, graphRef, pixiPointsArray}: IProps) {
@@ -209,7 +209,7 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
   const handleRemoveAttribute = useCallback((place: GraphPlace, idOfAttributeToRemove: string) => {
     if (place === 'left' && (graphModel.dataConfiguration.yAttributeDescriptions.length ?? 0) > 1) {
       graphModel.dataConfiguration.removeYAttributeWithID(idOfAttributeToRemove)
-      const yAxisModel = graphModel.getAxis('left') as IAxisModel
+      const yAxisModel = graphModel.getAxis('left') as IBaseNumericAxisModel
       const yValues = graphModel.dataConfiguration.numericValuesForAttrRole('y') ?? []
       setNiceDomain(yValues, yAxisModel, graphModel.axisDomainOptions)
     } else {
