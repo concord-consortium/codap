@@ -4,7 +4,7 @@ function processBoundaries(boundaryDocument: any) {
   const dataset = boundaryDocument.contexts[0]
   const boundaryCollection = dataset.collections[0]
   const boundaries: Record<number, string> = {}
-  boundaryCollection.cases.forEach((aCase: any) => boundaries[aCase.guid] = JSON.stringify(aCase.values))
+  boundaryCollection.cases.forEach((aCase: any) => boundaries[aCase.guid] = aCase.values.boundary)
 
   const keyCollection = dataset.collections[1]
   const _boundaryMap: Record<string, string> = {}
