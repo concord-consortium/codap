@@ -8,6 +8,7 @@ import { updateAttributesNotification } from "../../../models/data/data-set-noti
 import { uniqueName } from "../../../utilities/js-utils"
 import { t } from "../../../utilities/translation/translate"
 import { CodapModal } from "../../codap-modal"
+import { DatePrecision } from "../../../utilities/date-utils"
 import AttributeIcon from "../../../assets/icons/attribute-icon.svg"
 
 import "./attribute-menu.scss"
@@ -31,7 +32,7 @@ export const EditAttributePropertiesModal = ({ attributeId, isOpen, onClose }: I
   const [attributeName, setAttributeName] = useState(columnName)
   const [description, setDescription] = useState("")
   const [units, setUnits] = useState("")
-  const [precision, setPrecision] = useState("")
+  const [precision, setPrecision] = useState<DatePrecision | number | undefined>(attribute?.precision)
   const [userType, setUserType] = useState<SelectableAttributeType>("none")
   const [editable, setEditable] = useState<YesNoValue>("yes")
 
@@ -40,7 +41,7 @@ export const EditAttributePropertiesModal = ({ attributeId, isOpen, onClose }: I
     setAttributeName(attribute?.name || "attribute")
     setDescription(attribute?.description ?? "")
     setUnits(attribute?.units ?? "")
-    setPrecision(`${attribute?.precision ?? ""}`)
+    setPrecision(attribute?.precision)
     setUserType(attribute?.userType ?? "none")
     setEditable(attribute?.editable ? "yes" : "no")
   }, [attribute, isOpen])
@@ -63,8 +64,8 @@ export const EditAttributePropertiesModal = ({ attributeId, isOpen, onClose }: I
         if (userType !== (attribute.userType ?? "none")) {
           attribute.setUserType(userType === "none" ? undefined : userType)
         }
-        if (precision !== `${attribute?.precision ?? ""}`) {
-          attribute.setPrecision(precision ? +precision : undefined)
+        if (precision !== (attribute.precision ?? "")) {
+          attribute.setPrecision(precision)
         }
         if ((editable === "yes") !== attribute.editable) {
           attribute.setEditable(editable === "yes")
@@ -99,6 +100,46 @@ export const EditAttributePropertiesModal = ({ attributeId, isOpen, onClose }: I
     },
     { label: t("DG.AttrFormView.applyBtnTitle"), onClick: applyChanges, default: true }
   ]
+
+  const getPrecisionMenu = () => {
+    if (attribute?.type === "numeric" || userType === "numeric") {
+      return (
+        <Select size="xs" ml={5} value={precision === undefined ? "" : precision.toString()}
+            data-testid="attr-precision-select"
+            onChange={(e) => setPrecision(parseInt(e.target.value, 10))}>
+          <option value={""}></option>
+          <option value={"0"} data-testid="attr-precision-option">0</option>
+          <option value={"1"} data-testid="attr-precision-option">1</option>
+          <option value={"2"} data-testid="attr-precision-option">2</option>
+          <option value={"3"} data-testid="attr-precision-option">3</option>
+          <option value={"4"} data-testid="attr-precision-option">4</option>
+          <option value={"5"} data-testid="attr-precision-option">5</option>
+          <option value={"6"} data-testid="attr-precision-option">6</option>
+          <option value={"7"} data-testid="attr-precision-option">7</option>
+          <option value={"8"} data-testid="attr-precision-option">8</option>
+          <option value={"9"} data-testid="attr-precision-option">9</option>
+        </Select>
+      )
+    } else if (attribute?.type === "date" || userType === "date") {
+      return (
+        <Select size="xs" ml={5} value={precision ?? DatePrecision.None} data-testid="attr-precision-select"
+                        onChange={(e) => setPrecision(e.target.value as DatePrecision)}>
+          <option value={DatePrecision.None}>{DatePrecision.None}</option>
+          <option value={DatePrecision.Year} data-testid="attr-precision-option">{DatePrecision.Year}</option>
+          <option value={DatePrecision.Month} data-testid="attr-precision-option">{DatePrecision.Month}</option>
+          <option value={DatePrecision.Day} data-testid="attr-precision-option">{DatePrecision.Day}</option>
+          <option value={DatePrecision.Hour} data-testid="attr-precision-option">{DatePrecision.Hour}</option>
+          <option value={DatePrecision.Minute} data-testid="attr-precision-option">{DatePrecision.Minute}</option>
+          <option value={DatePrecision.Second} data-testid="attr-precision-option">{DatePrecision.Second}</option>
+          <option value={DatePrecision.Millisecond} data-testid="attr-precision-option">
+            {DatePrecision.Millisecond}
+          </option>
+        </Select>
+      )
+    } else {
+      return null
+    }
+  }
 
   return (
     <CodapModal
@@ -148,20 +189,7 @@ export const EditAttributePropertiesModal = ({ attributeId, isOpen, onClose }: I
             />
           </FormLabel>
           <FormLabel className="edit-attribute-form-row" mr={5}>{t("DG.CaseTable.attributeEditor.precision")}
-            <Select size="xs" ml={5} value={precision} data-testid="attr-precision-select"
-                onChange={(e) => setPrecision(e.target.value)}>
-              <option value={""}></option>
-              <option value={"0"} data-testid="attr-precision-option">0</option>
-              <option value={"1"} data-testid="attr-precision-option">1</option>
-              <option value={"2"} data-testid="attr-precision-option">2</option>
-              <option value={"3"} data-testid="attr-precision-option">3</option>
-              <option value={"4"} data-testid="attr-precision-option">4</option>
-              <option value={"5"} data-testid="attr-precision-option">5</option>
-              <option value={"6"} data-testid="attr-precision-option">6</option>
-              <option value={"7"} data-testid="attr-precision-option">7</option>
-              <option value={"8"} data-testid="attr-precision-option">8</option>
-              <option value={"9"} data-testid="attr-precision-option">9</option>
-            </Select>
+            {getPrecisionMenu()}
           </FormLabel>
           <FormLabel className="edit-attribute-form-row editable">{t("DG.CaseTable.attributeEditor.editable")}
             <RadioGroup value={editable} ml={5} data-testid="attr-editable-radio"

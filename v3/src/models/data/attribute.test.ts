@@ -4,7 +4,7 @@ import { getSnapshot } from "mobx-state-tree"
 import {
   Attribute, IAttributeSnapshot, importValueToString, isAttributeType, isFormulaAttr, isValidFormulaAttr
 } from "./attribute"
-import { kDefaultFormatStr } from "./attribute-types"
+import { kDefaultFormatNum } from "./attribute-types"
 
 describe("Attribute", () => {
 
@@ -202,7 +202,7 @@ describe("Attribute", () => {
     expect(attribute.strValues).toEqual(["", "", "", "", "", ""])
     expect(attribute.numValues).toEqual([NaN, NaN, NaN, NaN, NaN, NaN])
 
-    expect(attribute.format).toBe(kDefaultFormatStr)
+    expect(attribute.format).toBe(`${kDefaultFormatNum}~f`)
     attribute.setPrecision(2)
     expect(attribute.format).toBe(".2~f")
 

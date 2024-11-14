@@ -34,8 +34,9 @@ import { cachedFnFactory } from "../../utilities/mst-utils"
 import { Formula, IFormula } from "../formula/formula"
 import { applyModelChange } from "../history/apply-model-change"
 import { withoutUndo } from "../history/without-undo"
-import { isDevelopment, isProduction, IValueType, kDefaultFormatStr } from "./attribute-types"
+import { isDevelopment, isProduction, IValueType, kDefaultFormatNum } from "./attribute-types"
 import { V2Model } from "./v2-model"
+import { DatePrecision } from "../../utilities/date-utils"
 
 export interface ISetValueOptions {
   noInvalidate?: boolean
@@ -71,7 +72,7 @@ export const Attribute = V2Model.named("Attribute").props({
   userType: types.maybe(types.enumeration([...attributeTypes])),
   // userFormat: types.maybe(types.string),
   units: types.maybe(types.string),
-  precision: types.maybe(types.number),
+  precision: types.maybe(types.union(types.number, types.enumeration(Object.values(DatePrecision)))),
   deleteable: true,
   editable: true,
   formula: types.maybe(Formula),
@@ -241,7 +242,8 @@ export const Attribute = V2Model.named("Attribute").props({
     return "categorical"
   },
   get format() {
-    return self.precision != null ? `.${self.precision}~f` : kDefaultFormatStr
+    const precision = self.precision ?? kDefaultFormatNum
+    return typeof precision === "number" ? `.${precision}~f` : precision
   },
   get isEditable() {
     return self.editable && !self.hasFormula
@@ -279,7 +281,7 @@ export const Attribute = V2Model.named("Attribute").props({
   // setUserFormat(precision: string) {
   //   self.userFormat = `.${precision}~f`
   // },
-  setPrecision(precision?: number) {
+  setPrecision(precision?: number | DatePrecision) {
     self.precision = precision
   },
   setDeleteable(deleteable: boolean) {
