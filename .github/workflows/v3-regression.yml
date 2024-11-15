@@ -47,6 +47,10 @@ jobs:
     # only run the regression tests if the PR is labeled.
     if: fromJSON(needs.prepare.outputs.run_regression)
     runs-on: ubuntu-latest
+    container:
+      image: cypress/browsers:node-20.18.0-chrome-130.0.6723.69-1-ff-131.0.3-edge-130.0.2849.52-1
+      # This is needed so the commit info can be recorded by cypress
+      options: --user 1001
     strategy:
       # when one test fails, DO NOT cancel the other
       # containers, because this will kill Cypress processes
