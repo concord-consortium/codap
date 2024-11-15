@@ -31,8 +31,8 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
         const collection = data?.getCollection(collectionId)
         const attrs: IAttribute[] = collection ? getCollectionAttrs(collection, data) : []
         const visible: IAttribute[] = attrs.filter(attr => attr && !caseMetadata?.isHidden(attr.id))
-        return visible.map(({ id, name, type, userType, isEditable, hasFormula }) =>
-                  ({ id, name, type, userType, isEditable, hasFormula }))
+        return visible.map(({ id, name, type, userType, isEditable, hasFormula, precision }) =>
+                  ({ id, name, type, userType, isEditable, hasFormula, precision }))
       },
       entries => {
         // column definitions
