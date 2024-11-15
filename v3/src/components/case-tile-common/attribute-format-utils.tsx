@@ -1,3 +1,4 @@
+import { clsx } from "clsx"
 import { format } from "d3-format"
 import React from "react"
 import { IAttribute } from "../../models/data/attribute"
@@ -25,6 +26,8 @@ export const getNumFormatter = (formatStr: string) => {
 
 export function renderAttributeValue(str = "", num = NaN, attr?: IAttribute, key?: number) {
   const { type, userType, numPrecision, datePrecision } = attr || {}
+  let formatClass = ""
+
   // colors
   const color = type === "color" || !userType ? parseColor(str, { colorNames: type === "color" }) : ""
   if (color) {
@@ -42,7 +45,10 @@ export function renderAttributeValue(str = "", num = NaN, attr?: IAttribute, key
   if (isFinite(num)) {
     const formatStr = `.${numPrecision ?? kDefaultNumPrecision}~f`
     const formatter = getNumFormatter(formatStr)
-    if (formatter) str = formatter(num)
+    if (formatter) {
+      str = formatter(num)
+      formatClass = "numeric-format"
+    }
   }
 
   // Dates
@@ -69,7 +75,7 @@ export function renderAttributeValue(str = "", num = NaN, attr?: IAttribute, key
 
   return {
     value: str,
-    content: <span className="cell-span" key={key}>{str}</span>
+    content: <span className={clsx("cell-span", formatClass)} key={key}>{str}</span>
   }
 }
 
