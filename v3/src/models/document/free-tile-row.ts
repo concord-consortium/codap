@@ -66,6 +66,7 @@ export interface IFreeTileInRowOptions extends ITileInRowOptions {
   width?: number
   height?: number
   zIndex?: number
+  isMinimized?: boolean
   animateCreation?: boolean
 }
 export const isFreeTileInRowOptions = (options?: ITileInRowOptions): options is IFreeTileInRowOptions =>
@@ -141,9 +142,10 @@ export const FreeTileRow = TileRowModel
     },
     insertTile(tileId: string, options?: ITileInRowOptions) {
       const {
-        x = 50, y = 50, width = undefined, height = undefined, zIndex = this.nextZIndex(), animateCreation = false
+        x = 50, y = 50, width = undefined, height = undefined, zIndex = this.nextZIndex(),
+        isMinimized = undefined, animateCreation = false
       } = isFreeTileInRowOptions(options) ? options : {}
-      self.tiles.set(tileId, { tileId, x, y, width, height, zIndex })
+      self.tiles.set(tileId, { tileId, x, y, width, height, zIndex, isMinimized })
       animateCreation && self.animateCreationTiles.add(tileId)
     },
     removeTile(tileId: string) {

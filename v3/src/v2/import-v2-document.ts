@@ -40,13 +40,17 @@ export function importV2Document(v2Document: CodapV2Document) {
       if (row && tile) {
         const info = getTileComponentInfo(tile.content.type)
         if (info) {
-          const { left = 0, top = 0, width, height, zIndex } = v2Component.layout
+          const {
+            layout: { left = 0, top = 0, width, height: v2Height, isVisible, zIndex }, savedHeight
+          } = v2Component
+          const isMinimized = (!!savedHeight && savedHeight >= v2Height && !isVisible) || undefined
+          const height = savedHeight && isMinimized ? savedHeight : v2Height
           // only apply imported width and height to resizable tiles
           const _width = !info.isFixedWidth ? { width } : {}
           const _height = !info?.isFixedHeight ? { height } : {}
           const _zIndex = zIndex != null ? { zIndex } : {}
           if (zIndex != null && zIndex > maxZIndex) maxZIndex = zIndex
-          const layout: IFreeTileInRowOptions = { x: left, y: top, ..._width, ..._height, ..._zIndex }
+          const layout: IFreeTileInRowOptions = { x: left, y: top, ..._width, ..._height, ..._zIndex, isMinimized }
           newTile = content?.insertTileSnapshotInRow(tile, row, layout)
         }
       }
