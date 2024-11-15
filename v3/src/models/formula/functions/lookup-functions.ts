@@ -19,9 +19,7 @@ export const lookupFunctions = {
       }
 
       // Find the boundary set
-      if (!isSymbolNode(args[0])) {
-        throw new Error(t("DG.Formula.TypeError.message", { vars: [ "boundary_set" ] }))
-      }
+      if (!isSymbolNode(args[0])) throw new Error(t("DG.Formula.TypeError.message", { vars: [ "boundary_set" ] }))
       const boundarySetArg = args[0]
       const boundarySet = boundarySetArg?.name ?? ""
       if (!isBoundarySet(boundarySet)) {
@@ -34,28 +32,34 @@ export const lookupFunctions = {
         boundaryKey = args[1].value
       } else if (isSymbolNode(args[1])) {
         const symbol = basicCanonicalNameToDependency(args[1].name)
-        if (symbol?.type === "localAttribute") {
+        if (!symbol) throw new Error(t("DG.Formula.VarReferenceError.message", { vars: [ args[1].name ] }))
+
+        if (symbol.type === "localAttribute") {
           const attributeId = symbol.attrId
           const scope = getRootScope(currentScope)
           const dataset = scope.getLocalDataSet()
+          dataset.validateCases()
           const attribute = dataset.getAttribute(attributeId)
-          if (!attribute) {
-            throw new Error(t("DG.Formula.VarReferenceError.message", { vars: [ attributeId ] }))
+          if (!attribute) throw new Error(t("DG.Formula.VarReferenceError.message", { vars: [ attributeId ] }))
+
+          // The referenced attribute must be in the same or a parent collection--child collections are not allowed
+          const attributeCollectionIndex =
+            dataset.getCollectionIndex(dataset.getCollectionForAttribute(attribute.id)?.id)
+          const thisCollectionIndex =
+            Math.max(dataset.getCollectionIndex(dataset.getCollectionForCase(scope.caseId)?.id), 0)
+          if (attributeCollectionIndex > thisCollectionIndex) {
+            throw new Error(t("DG.Formula.HierReferenceError.message", { vars: [ attribute.title] }))
           }
+
           const aCase = dataset.caseInfoMap.get(scope.caseId)
           const caseIndex = dataset.getItemIndex(aCase?.childItemIds[0] ?? "")
-          boundaryKey = attribute?.strValues[caseIndex ?? -1]
+          boundaryKey = attribute?.strValues[caseIndex ?? -1] ?? ""
         }
-      } else {
-        throw new Error(t("DG.Formula.TypeError.message", { vars: [ "boundary_key" ] }))
       }
 
       // Find the boundary
       const boundary = lookupBoundary(boundarySet, boundaryKey)
-      if (!boundary) {
-        throw new Error(t("DG.Formula.VarReferenceError.message", { vars: [ boundaryKey ] }))
-      }
-      return boundary
+      return boundary ?? ""
     }
   },
 

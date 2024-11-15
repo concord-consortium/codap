@@ -9,10 +9,21 @@ describe("lookupBoundary", () => {
     // First argument must be a legal symbol
     expect(() => evaluate(`lookupBoundary("US_state_boundaries", "Alaska")`)).toThrow()
     expect(() => evaluate(`lookupBoundary(Mammal, "Alaska")`)).toThrow()
+
+    // Second argument can't be a non-existant symbol
+    expect(() => evaluate(`lookupBoundary(US_state_boundaries, Alaska)`)).toThrow()
+
+    // TODO The second argument cannot refer to a child collection
+  })
+
+  it("returns empty string in some situations", () => {
+    expect(evaluate(`lookupBoundary(US_state_boundaries, "nonstate")`, 1)).toBe("")
+    expect(evaluate(`lookupBoundary(US_state_boundaries, Mammal)`, 1)).toBe("")
+    expect(evaluate(`lookupBoundary(US_state_boundaries, v1)`, 1)).toBe("")
   })
 
   it("returns boundary data", () => {
-    expect(() => JSON.parse(evaluate(`lookupBoundary(US_state_boundaries, "Alaska")`)).geometry).toBeDefined()
+    expect(JSON.parse(evaluate(`lookupBoundary(US_state_boundaries, "Alaska")`, 1)).geometry).toBeDefined()
     // TODO Test a symbol for the second argument. There is no state attribute in the test-doc, making this difficult.
   })
 })
