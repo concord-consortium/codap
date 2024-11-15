@@ -1,4 +1,3 @@
-import { format } from "d3"
 import { reaction } from "mobx"
 import { useCallback, useEffect, useRef } from "react"
 import { useDebouncedCallback } from "use-debounce"
@@ -8,7 +7,6 @@ import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useLoggingContext } from "../../hooks/use-log-context"
 import { logMessageWithReplacement } from "../../lib/log-message"
 import { appState } from "../../models/app-state"
-import { kDefaultFormatNum } from "../../models/data/attribute-types"
 import { isAddCasesAction, isRemoveCasesAction, isSetCaseValuesAction } from "../../models/data/data-set-actions"
 import { createCasesNotification } from "../../models/data/data-set-notifications"
 import {
@@ -18,6 +16,7 @@ import { isSetIsCollapsedAction } from "../../models/shared/shared-case-metadata
 import { mstReaction } from "../../utilities/mst-reaction"
 import { onAnyAction } from "../../utilities/mst-utils"
 import { prf } from "../../utilities/profiler"
+import { renderAttributeValue } from "../case-tile-common/attribute-format-utils"
 import { applyCaseValueChanges } from "../case-tile-common/case-tile-utils"
 import { kInputRowKey, symDom, TRow, TRowsChangeData } from "./case-table-types"
 import { useCollectionTableModel } from "./use-collection-table-model"
@@ -86,9 +85,8 @@ export const useRows = (gridElement: HTMLDivElement | null) => {
           if (data && caseId && attr && cellSpan) {
             const strValue = data.getStrValue(caseId, attr.id)
             const numValue = data.getNumeric(caseId, attr.id)
-            const formatStr = attr.format || `.${kDefaultFormatNum}~f`
-            const formatted = (numValue != null) && isFinite(numValue) ? format(formatStr)(numValue) : strValue
-            cellSpan.textContent = formatted ?? ""
+            const { value } = renderAttributeValue(strValue, numValue, attr)
+            cellSpan.textContent = value
             setCachedDomAttr(caseId, attr.id)
           }
         })

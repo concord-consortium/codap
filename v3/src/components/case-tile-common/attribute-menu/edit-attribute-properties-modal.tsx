@@ -5,10 +5,10 @@ import { useDataSetContext } from "../../../hooks/use-data-set-context"
 import { logMessageWithReplacement } from "../../../lib/log-message"
 import { AttributeType, attributeTypes } from "../../../models/data/attribute"
 import { updateAttributesNotification } from "../../../models/data/data-set-notifications"
+import { DatePrecision } from "../../../utilities/date-utils"
 import { uniqueName } from "../../../utilities/js-utils"
 import { t } from "../../../utilities/translation/translate"
 import { CodapModal } from "../../codap-modal"
-import { DatePrecision } from "../../../utilities/date-utils"
 import AttributeIcon from "../../../assets/icons/attribute-icon.svg"
 
 import "./attribute-menu.scss"
@@ -32,7 +32,7 @@ export const EditAttributePropertiesModal = ({ attributeId, isOpen, onClose }: I
   const [attributeName, setAttributeName] = useState(columnName)
   const [description, setDescription] = useState("")
   const [units, setUnits] = useState("")
-  const [precision, setPrecision] = useState<DatePrecision | number | undefined>(attribute?.precision)
+  const [precision, setPrecision] = useState(attribute?.precision)
   const [userType, setUserType] = useState<SelectableAttributeType>("none")
   const [editable, setEditable] = useState<YesNoValue>("yes")
 
@@ -64,7 +64,7 @@ export const EditAttributePropertiesModal = ({ attributeId, isOpen, onClose }: I
         if (userType !== (attribute.userType ?? "none")) {
           attribute.setUserType(userType === "none" ? undefined : userType)
         }
-        if (precision !== (attribute.precision ?? "")) {
+        if (precision !== attribute.precision) {
           attribute.setPrecision(precision)
         }
         if ((editable === "yes") !== attribute.editable) {
@@ -101,43 +101,50 @@ export const EditAttributePropertiesModal = ({ attributeId, isOpen, onClose }: I
     { label: t("DG.AttrFormView.applyBtnTitle"), onClick: applyChanges, default: true }
   ]
 
+  function toDatePrecision(pStr: string) {
+    return !pStr || isFinite(Number(pStr)) ? undefined : pStr as DatePrecision
+  }
+  function toDatePrecisionStr(p: typeof precision) {
+    return p == null || typeof p === "number" ? "" : p
+  }
+
+  function toNumPrecision(pStr: string) {
+    return isFinite(Number(pStr)) ? Number(pStr) : undefined
+  }
+  function toNumPrecisionStr(p: typeof precision) {
+    return p == null || typeof p === "string" ? "" : `${p}`
+  }
+
   const getPrecisionMenu = () => {
-    if (attribute?.type === "numeric" || userType === "numeric") {
+    if (attribute?.type === "date" || userType === "date") {
       return (
-        <Select size="xs" ml={5} value={precision === undefined ? "" : precision.toString()}
-            data-testid="attr-precision-select"
-            onChange={(e) => setPrecision(parseInt(e.target.value, 10))}>
-          <option value={""}></option>
-          <option value={"0"} data-testid="attr-precision-option">0</option>
-          <option value={"1"} data-testid="attr-precision-option">1</option>
-          <option value={"2"} data-testid="attr-precision-option">2</option>
-          <option value={"3"} data-testid="attr-precision-option">3</option>
-          <option value={"4"} data-testid="attr-precision-option">4</option>
-          <option value={"5"} data-testid="attr-precision-option">5</option>
-          <option value={"6"} data-testid="attr-precision-option">6</option>
-          <option value={"7"} data-testid="attr-precision-option">7</option>
-          <option value={"8"} data-testid="attr-precision-option">8</option>
-          <option value={"9"} data-testid="attr-precision-option">9</option>
-        </Select>
-      )
-    } else if (attribute?.type === "date" || userType === "date") {
-      return (
-        <Select size="xs" ml={5} value={precision ?? DatePrecision.None} data-testid="attr-precision-select"
-                        onChange={(e) => setPrecision(e.target.value as DatePrecision)}>
-          <option value={DatePrecision.None}>{DatePrecision.None}</option>
-          <option value={DatePrecision.Year} data-testid="attr-precision-option">{DatePrecision.Year}</option>
-          <option value={DatePrecision.Month} data-testid="attr-precision-option">{DatePrecision.Month}</option>
-          <option value={DatePrecision.Day} data-testid="attr-precision-option">{DatePrecision.Day}</option>
-          <option value={DatePrecision.Hour} data-testid="attr-precision-option">{DatePrecision.Hour}</option>
-          <option value={DatePrecision.Minute} data-testid="attr-precision-option">{DatePrecision.Minute}</option>
-          <option value={DatePrecision.Second} data-testid="attr-precision-option">{DatePrecision.Second}</option>
-          <option value={DatePrecision.Millisecond} data-testid="attr-precision-option">
-            {DatePrecision.Millisecond}
-          </option>
+        <Select size="xs" ml={5} value={toDatePrecisionStr(precision)} data-testid="attr-precision-select"
+                        onChange={(e) => setPrecision(toDatePrecision(e.target.value))}>
+          {Object.values(DatePrecision).map(p => {
+            return (
+              <option value={p} key={`precision-${p}`} data-testid={`attr-precision-option-${p}`}>
+                {p}
+              </option>
+            )
+          })}
         </Select>
       )
     } else {
-      return null
+      return (
+        <Select size="xs" ml={5} value={toNumPrecisionStr(precision)}
+            data-testid="attr-precision-select"
+            onChange={(e) => setPrecision(toNumPrecision(e.target.value))}>
+          <option value={""}></option>
+          {[...Array(10).keys()].map(pNum => {
+            const precisionStr = `${pNum}`
+            return (
+              <option value={pNum} key={`precision-${pNum}`} data-testid={`attr-precision-option-${pNum}`}>
+                {precisionStr}
+              </option>
+            )
+          })}
+        </Select>
+      )
     }
   }
 

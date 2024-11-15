@@ -34,7 +34,7 @@ import { cachedFnFactory } from "../../utilities/mst-utils"
 import { Formula, IFormula } from "../formula/formula"
 import { applyModelChange } from "../history/apply-model-change"
 import { withoutUndo } from "../history/without-undo"
-import { isDevelopment, isProduction, IValueType, kDefaultFormatNum } from "./attribute-types"
+import { isDevelopment, isProduction, IValueType } from "./attribute-types"
 import { V2Model } from "./v2-model"
 import { DatePrecision } from "../../utilities/date-utils"
 
@@ -114,6 +114,12 @@ export const Attribute = V2Model.named("Attribute").props({
   toNumeric(value: string) {
     if (value == null || value === "") return NaN
     return Number(value)
+  },
+  get numPrecision() {
+    return typeof self.precision === "number" ? self.precision : undefined
+  },
+  get datePrecision() {
+    return typeof self.precision === "string" ? self.precision : undefined
   },
   getEmptyCount: cachedFnFactory<number>(() => {
     // Note that `self.changeCount` is absolutely not necessary here. However, historically, this function used to be
@@ -240,10 +246,6 @@ export const Attribute = V2Model.named("Attribute").props({
     if (dateCount > 0 && dateCount === this.length - self.getEmptyCount()) return "date"
 
     return "categorical"
-  },
-  get format() {
-    const precision = self.precision ?? kDefaultFormatNum
-    return typeof precision === "number" ? `.${precision}~f` : precision
   },
   get isEditable() {
     return self.editable && !self.hasFormula
