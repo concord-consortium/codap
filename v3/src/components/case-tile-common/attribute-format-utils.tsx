@@ -1,11 +1,11 @@
 import { format } from "d3-format"
 import React from "react"
 import { IAttribute } from "../../models/data/attribute"
-import { kDefaultFormatStr } from "../../models/data/attribute-types"
+import { kDefaultNumPrecision } from "../../models/data/attribute-types"
 import { parseColor } from "../../utilities/color-utils"
 import { isStdISODateString } from "../../utilities/date-iso-utils"
 import { parseDate } from "../../utilities/date-parser"
-import { DatePrecision, formatDate } from "../../utilities/date-utils"
+import { formatDate } from "../../utilities/date-utils"
 import { kCaseTableBodyFont, kCaseTableHeaderFont, kMaxAutoColumnWidth,
           kMinAutoColumnWidth } from "../case-table/case-table-types"
 import { measureText } from "../../hooks/use-measure-text"
@@ -24,8 +24,7 @@ export const getNumFormatter = (formatStr: string) => {
 }
 
 export function renderAttributeValue(str = "", num = NaN, attr?: IAttribute, key?: number) {
-  const { type, userType } = attr || {}
-
+  const { type, userType, numPrecision, datePrecision } = attr || {}
   // colors
   const color = type === "color" || !userType ? parseColor(str, { colorNames: type === "color" }) : ""
   if (color) {
@@ -41,7 +40,7 @@ export function renderAttributeValue(str = "", num = NaN, attr?: IAttribute, key
 
   // numbers
   if (isFinite(num)) {
-    const formatStr = attr?.format ?? kDefaultFormatStr
+    const formatStr = `.${numPrecision ?? kDefaultNumPrecision}~f`
     const formatter = getNumFormatter(formatStr)
     if (formatter) str = formatter(num)
   }
@@ -57,8 +56,7 @@ export function renderAttributeValue(str = "", num = NaN, attr?: IAttribute, key
   if (isStdISODateString(str) || userType === "date" && str !== "") {
     const date = parseDate(str, true)
     if (date) {
-      // TODO: add precision support for date formatting
-      const formattedDate = formatDate(date, DatePrecision.None)
+      const formattedDate = formatDate(date, datePrecision)
       return {
         value: str,
         content: <span className="cell-span" key={key}>{formattedDate || `"${str}"`}</span>

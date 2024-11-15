@@ -126,5 +126,11 @@ export const SliderTileElements = {
     // Choose either Numeric or Date-Time based on the provided scaleType
     cy.clickWhenClickable(`[data-testid="slider-scale-${scaleType}"]`)
     // cy.get('[data-testid="slider-date-display"]').should("have.text", today)
-  }
+  },
+  addSlider() {
+    c.getIconFromToolShelf("slider").click()
+  },
+  deleteSlider() {
+    c.closeComponent("slider")
+  },
 }
