@@ -57,6 +57,9 @@ jobs:
         # run multiple copies of the current job in parallel [1, ..., n]
         containers: [1, 2, 3, 4, 5]
     steps:
+      - uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: stable
       - name: Checkout
         uses: actions/checkout@v4
       - name: Restore Webpack Cache
