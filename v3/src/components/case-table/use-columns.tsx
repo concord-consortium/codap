@@ -40,7 +40,7 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
           ? [
               ...(indexColumn ? [indexColumn] : []),
               // attribute column definitions
-              ...entries.map(({ id, name, userType, isEditable, hasFormula }): TColumn => ({
+              ...entries.map(({ id, name, type, userType, isEditable, hasFormula }): TColumn => ({
                 key: id,
                 name,
                 // If a default column width isn't supplied, RDG defaults to "auto",
@@ -49,7 +49,8 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
                 resizable: true,
                 headerCellClass: `codap-column-header`,
                 renderHeaderCell: ColumnHeader,
-                cellClass: row => clsx("codap-data-cell", `rowId-${row.__id__}`, {"formula-column": hasFormula}),
+                cellClass: row => clsx("codap-data-cell", `rowId-${row.__id__}`, {"formula-column": hasFormula,
+                                        "right-justify": userType === "numeric" || type === "numeric"}),
                 renderCell: AttributeValueCell,
                 editable: row => isCaseEditable(data, row.__id__),
                 renderEditCell: isEditable

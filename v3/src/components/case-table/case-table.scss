@@ -323,6 +323,13 @@ $table-body-font-size: 8pt;
         background-color: var(--rdg-row-selected-background-color);
       }
 
+      &.right-justify {
+        justify-content: flex-end;
+        // font-family: 'Roboto  Mono', monospace;
+        font-family: 'Inconsolata', monospace;
+        font-weight: 600;
+        font-size: 10px;      }
+
       .cell-color-swatch {
         width: 100%;
         height: 100%;
