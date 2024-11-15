@@ -4,6 +4,8 @@ import { ToolShelf } from "./tool-shelf"
 import { render, screen } from "@testing-library/react"
 import { createCodapDocument } from "../../models/codap/create-codap-document"
 import { IDocumentModel } from "../../models/document/document"
+import { ITestTileContent, TestTileContent } from "../../test/test-tile-content"
+import { TileModel } from "../../models/tiles/tile-model"
 
 // way to get a writable reference to libDebug
 const libDebug = require("../../lib/debug")
@@ -56,11 +58,13 @@ describe("Tool shelf", () => {
     renderToolShelf(document)
     expect(screen.getByTestId("tool-shelf")).toBeDefined()
 
-    document.setTitle("New Title")
+    const tile = TileModel.create({ id: "tile-1", content: TestTileContent.create() })
+    document.addTile(tile)
+    expect(document.content?.tileMap.size).toBe(1)
     await user.click(screen.getByTestId("tool-shelf-button-undo"))
-    expect(document.title).toBe("New Title")
+    expect(document.content?.tileMap.size).toBe(1)
     await user.click(screen.getByTestId("tool-shelf-button-redo"))
-    expect(document.title).toBe("New Title")
+    expect(document.content?.tileMap.size).toBe(1)
   })
 
   it("undo/redo buttons work as expected when enabled", async () => {
@@ -70,11 +74,13 @@ describe("Tool shelf", () => {
     expect(screen.getByTestId("tool-shelf")).toBeDefined()
 
     document.treeMonitor?.enableMonitoring()
-    document.setTitle("New Title")
+    const tile = TileModel.create({ id: "tile-1", content: TestTileContent.create() })
+    document.addTile(tile)
+    expect(document.content?.tileMap.size).toBe(1)
     await user.click(screen.getByTestId("tool-shelf-button-undo"))
-    expect(document.title).toBeUndefined()
+    expect(document.content?.tileMap.size).toBe(0)
     await user.click(screen.getByTestId("tool-shelf-button-redo"))
-    expect(document.title).toBe("New Title")
+    expect(document.content?.tileMap.size).toBe(1)
     document.treeMonitor?.disableMonitoring()
   })
 })

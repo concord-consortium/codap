@@ -22,7 +22,9 @@ export function importV2Document(v2Document: CodapV2Document) {
     })
   }
 
-  v3Document.setTitle(v2Document.getDocumentTitle())
+  // Note: it is not necessary to set the name when importing a v2 document
+  // The CFM will get the name itself and then we'll set the name when
+  // the v3 document is initialized
 
   // add shared models (data sets and case metadata)
   v2Document.dataSets.forEach((data, key) => {

@@ -7,7 +7,7 @@
   generally be MobX-observable.
  */
 import { cloneDeep } from "lodash"
-import { action, computed, makeObservable, observable, reaction, flow } from "mobx"
+import { action, autorun, computed, makeObservable, observable, reaction, flow } from "mobx"
 import { getSnapshot } from "mobx-state-tree"
 import { CloudFileManager } from "@concord-consortium/cloud-file-manager"
 import { createCodapDocument } from "./codap/create-codap-document"
@@ -23,6 +23,8 @@ import { TreeManagerType } from "./history/tree-manager"
 import { ICodapV2DocumentJson, isCodapV2Document } from "../v2/codap-v2-types"
 import { CodapV2Document } from "../v2/codap-v2-document"
 import { importV2Document } from "../v2/import-v2-document"
+
+const kAppName = "CODAP"
 
 type AppMode = "normal" | "performance"
 
@@ -42,6 +44,7 @@ class AppState {
   private version = ""
   private cfm: CloudFileManager | undefined
   private dirtyMonitorDisposer: (() => void) | undefined
+  titleMonitorDisposer: any
 
   constructor() {
     this.currentDocument = createCodapDocument()
@@ -120,13 +123,20 @@ class AppState {
         if (metadata) {
           const metadataEntries = Object.entries(metadata)
           metadataEntries.forEach(([key, value]) => {
-            if (value != null) {
+            if (value == null) return
+
+            if (key === "filename") {
+              // We don't save the filename because it is redundant with the filename in the actual
+              // filesystem.
+              // However we need to the extension-less name for the window title
+              // The CFM also expects the document to have a name field when the document
+              // is loaded from a filesystem that doesn't use filenames.
+              this.currentDocument.setTitleFromFilename(value)
+            } else {
               this.currentDocument.setProperty(key, value)
             }
           })
         }
-        const docTitle = this.currentDocument.getDocumentTitle()
-        this.currentDocument.setTitle(docTitle || t("DG.Document.defaultDocumentName"))
         if (content.revisionId && this.treeManager) {
           // Restore the revisionId from the stored document
           // This will allow us to consistently compare the local document
@@ -153,14 +163,32 @@ class AppState {
 
   @action
   enableDocumentMonitoring() {
-    this.currentDocument?.treeMonitor?.enableMonitoring()
-    if (this.currentDocument && !this.dirtyMonitorDisposer) {
+    if (!this.currentDocument) return
+
+    this.currentDocument.treeMonitor?.enableMonitoring()
+    if (!this.dirtyMonitorDisposer) {
       this.dirtyMonitorDisposer = reaction(
         () => this.treeManager?.revisionId,
         () => {
           this.cfm?.client.dirty(true)
         }
       )
+    }
+
+    // TODO: look for tests of opening documents so we can update them to check
+    // the title
+    if (!this.titleMonitorDisposer) {
+      this.titleMonitorDisposer = autorun(() => {
+        const { title } = this.currentDocument
+
+        // TODO: handle componentMode and embeddedMode
+        // if ((DG.get('componentMode') === 'yes') || (DG.get('embeddedMode') === 'yes')) {
+        //   return;
+        // }
+
+        const titleString = t("DG.main.page.title", {vars: [title, kAppName]})
+        window.document.title = titleString
+      })
     }
   }
 
@@ -169,6 +197,8 @@ class AppState {
     this.currentDocument?.treeMonitor?.disableMonitoring()
     this.dirtyMonitorDisposer?.()
     this.dirtyMonitorDisposer = undefined
+    this.titleMonitorDisposer?.()
+    this.titleMonitorDisposer = undefined
   }
 
   @action
