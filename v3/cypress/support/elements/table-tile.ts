@@ -1,4 +1,6 @@
 import { ComponentElements as c } from "./component-elements"
+import { FormulaHelper as fh } from "../helpers/formula-helper"
+
 type TestAttributes = Array<{ name: string, move: string }>
 type TestValues = Record<string, string[]>
 
@@ -416,7 +418,8 @@ export const TableTileElements = {
   addFilterFormulaInModal(formula: string) {
     this.getHideShowButton().click()
     this.getHideShowMenuItem(/(Add|Edit) Filter Formula.../).click()
-    cy.get(".codap-modal-content [data-testid=attr-formula-input]").type(`{selectAll}{del}${formula}`)
+    fh.clearFormulaInput()
+    fh.addFilterFormula(formula)
     cy.get(".codap-modal-content [data-testid=Apply-button]").should("be.visible").click()
     cy.get("[data-testid=Apply-button]").click()
   },

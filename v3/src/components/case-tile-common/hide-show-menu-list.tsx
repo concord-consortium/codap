@@ -7,8 +7,8 @@ import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { hideAttributeNotification } from "../../models/data/data-set-notifications"
 import { addSetAsideCases, restoreSetAsideCases } from "../../models/data/data-set-utils"
 import { t } from "../../utilities/translation/translate"
-import { EditFilterFormulaModal } from "../common/edit-filter-formula-modal"
 import { IMenuItem, StdMenuList } from "./std-menu-list"
+import { EditFormulaModal } from "../common/edit-formula-modal"
 
 export const HideShowMenuList = observer(function HideShowMenuList() {
   const data = useDataSetContext()
@@ -104,7 +104,13 @@ export const HideShowMenuList = observer(function HideShowMenuList() {
       <StdMenuList data-testid="hide-show-menu-list" menuItems={menuItems} />
       {
         data &&
-        <EditFilterFormulaModal formulaSource={data} isOpen={formulaModal.isOpen} onClose={handleEditFormulaClose} />
+        <EditFormulaModal
+          applyFormula={data.setFilterFormula}
+          isOpen={formulaModal.isOpen}
+          onClose={handleEditFormulaClose}
+          titleLabel={t("V3.hideShowMenu.filterFormulaPrompt")}
+          value={data.filterFormula?.display}
+        />
       }
     </>
   )

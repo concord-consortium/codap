@@ -1,17 +1,13 @@
 import { action, computed, makeObservable, observable } from "mobx"
-import { TRow } from "./case-table-types"
-import { getNumericCssVariable } from "../../utilities/css-utils"
 import { symParent } from "../../models/data/data-set-types"
+import { getNumericCssVariable } from "../../utilities/css-utils"
+import { uniqueId } from "../../utilities/js-utils"
+import { IScrollOptions, TRow } from "./case-table-types"
 
 const kDefaultRowHeaderHeight = 30
 const kDefaultRowHeight = 18
 const kDefaultRowCount = 12
 const kDefaultGridHeight = kDefaultRowHeaderHeight + (kDefaultRowCount * kDefaultRowHeight)
-
-interface IScrollOptions {
-  // "auto" moves immediately; "smooth" animates
-  scrollBehavior?: "auto" | "smooth"
-}
 
 function wrapScrollBehavior(element: HTMLElement, fn: (element: HTMLElement) => void, options?: IScrollOptions) {
   if (options?.scrollBehavior) {
@@ -37,6 +33,8 @@ export class CollectionTableModel {
   // scroll steps -- used to distinguish user scrolls from browser-generated smooth scrolls
   lastScrollStep = 0
   scrollStep = 0
+  // timers for temporarily disabling sync scroll response
+  disableSyncScrollTimers = new Map<string, number>()
   // The index of the input row. -1 puts the input row at the bottom.
   @observable inputRowIndex = -1
 
@@ -53,6 +51,10 @@ export class CollectionTableModel {
     this.collectionId = collectionId
 
     makeObservable(this)
+  }
+
+  destroy() {
+    this.disableSyncScrollTimers.forEach(timerId => window.clearTimeout(timerId))
   }
 
   get rowHeaderHeight() {
@@ -74,6 +76,17 @@ export class CollectionTableModel {
 
   getRowBottom(rowIndex: number) {
     return (rowIndex + 1) * this.rowHeight
+  }
+
+  get isSyncScrollingResponseDisabled() {
+    return this.disableSyncScrollTimers.size > 0
+  }
+
+  @action disableSyncScrollingResponse(duration = 1000) {
+    const id = uniqueId()
+    this.disableSyncScrollTimers.set(id, window.setTimeout(() => {
+      this.disableSyncScrollTimers.delete(id)
+    }, duration))
   }
 
   @computed get firstVisibleRowIndex() {
@@ -231,6 +244,9 @@ export class CollectionTableModel {
       wrapScrollBehavior(this.element, element => {
         this.scrollStep = this.lastScrollStep = 0
         element.scrollTop = scrollTop
+        if (options?.disableScrollSync) {
+          this.disableSyncScrollingResponse()
+        }
       }, options)
     }
   }
@@ -265,16 +281,28 @@ export class CollectionTableModel {
     }
   }
 
-  scrollRangeIntoView(firstRowIndex: number, lastRowIndex: number) {
+  scrollRangeIntoView(firstRowIndex: number, lastRowIndex: number, options?: IScrollOptions) {
+    const rowCount = lastRowIndex - firstRowIndex + 1
+    const allRowsFit = Math.floor(this.gridBodyHeight / this.rowHeight) >= rowCount
     // part or all of range is offscreen below
     if ((firstRowIndex >= this.lastVisibleRowIndex) ||
         (this.isRowVisible(firstRowIndex) && (lastRowIndex > this.lastVisibleRowIndex))) {
-      this.scrollRowToBottom(lastRowIndex)
+      if (allRowsFit) {
+        this.scrollRowToBottom(lastRowIndex, options)
+      }
+      else {
+        this.scrollRowToTop(firstRowIndex, options)
+      }
     }
     // part or all of range is offscreen above
     else if ((lastRowIndex <= this.firstVisibleRowIndex) ||
             (this.isRowVisible(lastRowIndex) && (firstRowIndex < this.firstVisibleRowIndex))) {
-      this.scrollRowToTop(firstRowIndex)
+      if (allRowsFit) {
+        this.scrollRowToTop(firstRowIndex, options)
+      }
+      else {
+        this.scrollRowToBottom(lastRowIndex, options)
+      }
     }
   }
 
@@ -319,6 +347,7 @@ export class CollectionTableModel {
    * the left table's bottom visible row is higher than the last row.
    */
   scrollToAlignWithParent(parentTableModel: CollectionTableModel) {
+    if (this.isSyncScrollingResponseDisabled) return
     const firstParentRow = parentTableModel.firstVisibleTargetRow
     const lastParentRow = parentTableModel.lastVisibleTargetRow
     let firstChildOfFirstParent: string | undefined
@@ -361,6 +390,7 @@ export class CollectionTableModel {
    * table's bottom visible row is lower than the last row of this table.
    */
   scrollToAlignWithChild(childTableModel: CollectionTableModel) {
+    if (this.isSyncScrollingResponseDisabled) return
     const firstChildRow = childTableModel.firstVisibleTargetRow
     const firstChildRowParent = firstChildRow?.[symParent]
     const lastChildRow = childTableModel.lastVisibleTargetRow

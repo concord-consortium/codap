@@ -32,6 +32,7 @@ const removeAttrItemLabelKeys: Record<string, string> = {
 export const AxisOrLegendAttributeMenu = ({ place, target, portal,
                                       onChangeAttribute, onRemoveAttribute, onTreatAttributeAs }: IProps) => {
   const dataConfiguration = useDataConfigurationContext()
+  const metadata = dataConfiguration?.metadata
   const data = dataConfiguration?.dataset
   const role = graphPlaceToAttrRole[place]
   const attrId = dataConfiguration?.attributeID(role) || ''
@@ -64,7 +65,7 @@ export const AxisOrLegendAttributeMenu = ({ place, target, portal,
                 {attribute?.name}
               </MenuButton>
               <MenuList>
-                { data?.attributes?.map((attr) => {
+                { data?.attributes?.filter(attr => !metadata?.isHidden(attr.id)).map((attr) => {
                   return (
                     <MenuItem onClick={() => onChangeAttribute(place, data, attr.id)} key={attr.id}>
                       {attr.name}

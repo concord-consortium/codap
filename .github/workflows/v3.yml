@@ -128,6 +128,9 @@ jobs:
       # https://github.com/cypress-io/github-action/issues/48
       fail-fast: false
     steps:
+      - uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: stable
       - uses: snow-actions/sparse-checkout@v1.2.0
         with:
           patterns: v3

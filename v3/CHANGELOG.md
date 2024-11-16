@@ -1,5 +1,45 @@
 # Changelog
 
+## Version 3.0.0-pre.2009 - November 15, 2024
+
+### ✨ Features & Improvements:
+- **PT-181910061:** **Legend colors** can be changed in the brush (for graphs) inspector menu
+- **PT-181889643:** Attribute menu **Fit width to content**
+- **PT-188497532:** Graph/map filter function use new formula editor
+- **PT-188545557:** dropping a codap file onto a dirty document should ask for confirmation
+- **PT-187014862:** When color attributes are used as legends points are colored accordingly (*Delivered*)
+- **PT-188459268:** Remaining Bivariate Statistical Functions (*Delivered*)
+- **PT-181869876:** The case *table* has a **"rescale"** icon that causes columns to resize (*Delivered*)
+- **PT-188497528:** Case table/card filter function use new formula editor (*Delivered*)
+- **PT-187967988:** Edit Attribute Properties dialog should support date-time precision for date types (*Delivered*)
+- **PT-182991523:** User has control over display of numbers (*Delivered*)
+
+### 🐞 Bug Fixes:
+- **PT-188323297:** Autoscale Fails When Multiple Points Are Selected and Hidden from the Graph
+- **PT-188539637:** Dragging dot plot points doesn't affect case table values if dataset is hierarchical
+- **PT-188234640:** Attribute Menu Doesn't Dismiss When Resizing **Case Table** and **Case Card**
+- **PT-188524711:** Case table doesn't display correct value on release of dragged point
+- **PT-188514843:** Maps do not open at correct zoom level
+- **PT-188539688:** Dot plot messed up response to adding parent collection
+- **PT-188415967:** CODAP document name is not restoring on open
+- **PT-188305544:** Hidden attributes show in graph attribute menu list
+- **PT-188411147:** Unable to Dismiss **Rename Attribute** Dialog in **case table** after a single click away
+- **PT-188524747:** Graph: Clicking on selected points deselects other points preventing multiple point drag (*Delivered*)
+- **PT-188411287:** **Case Card with Hierarchy** becomes stuck in Tool-shelf in CODAP v3 (*Delivered*)
+- **PT-188036951:** Inability to select/scroll to individual cases in child level of hierarchy (*Delivered*)
+- **PT-188514748:** Point slide incorrect representation in hierarchical case table with crash (*Delivered*)
+
+### 🛠️ Under the Hood:
+- **PT-188402995:** Automation for Slider components with new date handling implemented
+- **PT-188575672:** Run Cypress in a fixed version of Chrome on GitHub
+- **PT-188554616:** Crash in usePixiPointerDown
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  183913 bytes |                            0.41% |
+|  index.js | 6321511 bytes |                            0.34% |
+
 ## Version 3.0.0-pre.1976 - November 6, 2024
 
 ### ✨ Features & Improvements:

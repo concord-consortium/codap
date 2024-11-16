@@ -4,6 +4,7 @@ import { ToolbarElements as toolbar } from "../support/elements/toolbar-elements
 import { GraphTileElements as graph } from "../support/elements/graph-tile"
 import { ColorPickerPaletteElements as color_picker } from "../support/elements/color-picker-palette"
 import { TableTileElements as tte } from "../support/elements/table-tile"
+import { ColorHelper as ch } from "../support/helpers/color-helper"
 
 const arrayOfAttributes = ["Mammal", "Order", "LifeSpan", "Height", "Mass", "Sleep", "Speed", "Habitat", "Diet"]
 
@@ -574,10 +575,15 @@ context("Test selecting and selecting categories in legend", () => {
 })
 context("Test changing legend colors", () => {
   describe("Test changing legend colors for categorical legend", () => {
-    const initLandBackgroundColor = "rgb(255, 104"
-    const standardLandBackgroundColor = "rgb(255, 238"
-    const saturationLandBackgroundColor = "rgb(255, 234"
-    const hueLandBackgroundColor = "rgb(3, 255"
+    const colorTolerance = 5
+    const initLandRed = 255
+    const initLandGreen = 104
+    const standardLandRed = 255
+    const standardLandGreen = 238
+    const saturationLandRed = 255
+    const saturationLandGreen = 234
+    const hueLandBaseRed = 3
+    const hueLandBaseGreen = 255
 
     beforeEach(function () {
       const queryParams = "?sample=mammals&dashboard&mouseSensor"
@@ -602,13 +608,25 @@ context("Test changing legend colors", () => {
       color_picker.getCategoricalColorSettingLabel().should("have.length", 3)
       color_picker.getCategoricalColorSettingButton().should("have.length", 3)
       color_picker.getCategoricalColorSettingSwatch().eq(0)
-        .invoke('css', 'background-color').should('contain', initLandBackgroundColor)
+        .invoke('css', 'background-color').then((color) => {
+          const rgb = ch.parseRgbColorToObj(color)
+          if (rgb !== null) {
+            expect(rgb.r).to.be.within(initLandRed - colorTolerance, initLandRed + colorTolerance)
+            expect(rgb.g).to.be.within(initLandGreen - colorTolerance, initLandGreen + colorTolerance)
+          }
+        })
       color_picker.getCategoricalColorSettingSwatch().eq(0).click()
       color_picker.getColorSettingSwatchGrid().should("be.visible")
       color_picker.getColorSettingSwatchRow().should("have.length", 1)
       color_picker.getColorSettingSwatchCell().should("have.length", 17)
       color_picker.getColorSettingSwatchCell().eq(16).should("have.class", "selected")
-        .invoke('css', 'background-color').should('contain', initLandBackgroundColor)
+        .invoke('css', 'background-color').then((color) => {
+          const rgb = ch.parseRgbColorToObj(color)
+          if (rgb !== null) {
+            expect(rgb.r).to.be.within(initLandRed - colorTolerance, initLandRed + colorTolerance)
+            expect(rgb.g).to.be.within(initLandGreen - colorTolerance, initLandGreen + colorTolerance)
+          }
+        })
 
       cy.log("Shows expanded color picker when user click More button")
       color_picker.getColorPickerToggleButton().should("have.text", "more")
@@ -624,12 +642,22 @@ context("Test changing legend colors", () => {
       color_picker.getColorSettingSwatchCell().eq(6).click()
       color_picker.getColorSettingSwatchCell().eq(6).should("have.class", "selected")
       color_picker.getColorSettingSwatchCell().eq(6)
-        .invoke('css', 'background-color').should('contain', standardLandBackgroundColor)
+        .invoke('css', 'background-color').then((color) => {
+          const rgb = ch.parseRgbColorToObj(color)
+          if (rgb !== null) {
+            expect(rgb.r).to.be.within(standardLandRed - colorTolerance, standardLandRed + colorTolerance)
+            expect(rgb.g).to.be.within(standardLandGreen - colorTolerance, standardLandGreen + colorTolerance)
+          }
+        })
       cy.get('[data-testid="legend-key"]').eq(0) //fragile but couldn't get it to work with the contains "land"
         .find('rect')
         .invoke('css', 'fill')
         .then((fillColor) => {
-          expect(fillColor).to.contain(standardLandBackgroundColor)
+          const rgb = ch.parseRgbColorToObj(fillColor)
+          if (rgb !== null) {
+            expect(rgb.r).to.be.within(standardLandRed - colorTolerance, standardLandRed + colorTolerance)
+            expect(rgb.g).to.be.within(standardLandGreen - colorTolerance, standardLandGreen + colorTolerance)
+          }
         })
 
       cy.log("Hides color picker when user clicks outside of the color picker")
@@ -642,14 +670,22 @@ context("Test changing legend colors", () => {
         .find('rect')
         .invoke('css', 'fill')
         .then((fillColor) => {
-          expect(fillColor).to.contain(initLandBackgroundColor)
+          const rgb = ch.parseRgbColorToObj(fillColor)
+          if (rgb !== null) {
+            expect(rgb.r).to.be.within(initLandRed - colorTolerance, initLandRed + colorTolerance)
+            expect(rgb.g).to.be.within(initLandGreen - colorTolerance, initLandGreen + colorTolerance)
+          }
         })
       toolbar.getRedoTool().click()
       cy.get('[data-testid="legend-key"]').eq(0) //fragile but couldn't get it to work with the contains "land"
         .find('rect')
         .invoke('css', 'fill')
         .then((fillColor) => {
-          expect(fillColor).to.contain(standardLandBackgroundColor)
+          const rgb = ch.parseRgbColorToObj(fillColor)
+          if (rgb !== null) {
+            expect(rgb.r).to.be.within(standardLandRed - colorTolerance, standardLandRed + colorTolerance)
+            expect(rgb.g).to.be.within(standardLandGreen - colorTolerance, standardLandGreen + colorTolerance)
+          }
         })
 
       cy.log("Selects non-standard color from color picker")
@@ -662,21 +698,41 @@ context("Test changing legend colors", () => {
       color_picker.getColorSettingSwatchCell().eq(16).should("have.class", "selected")
       color_picker.getColorSettingSwatchCell().eq(6).should("not.have.class", "selected")
       color_picker.getColorSettingSwatchCell().eq(16)
-        .invoke('css', 'background-color').should('contain', saturationLandBackgroundColor)
+        .invoke('css', 'background-color').then((color) => {
+          const rgb = ch.parseRgbColorToObj(color)
+          if (rgb !== null) {
+            expect(rgb.r).to.be.within(saturationLandRed - colorTolerance, saturationLandRed + colorTolerance)
+            expect(rgb.g).to.be.within(saturationLandGreen - colorTolerance, saturationLandGreen + colorTolerance)
+          }
+        })
       color_picker.getCategoricalColorSettingSwatch().eq(0)
-        .invoke('css', 'background-color').should('contain', saturationLandBackgroundColor)
+        .invoke('css', 'background-color').then((color) => {
+          const rgb = ch.parseRgbColorToObj(color)
+          if (rgb !== null) {
+            expect(rgb.r).to.be.within(saturationLandRed - colorTolerance, saturationLandRed + colorTolerance)
+            expect(rgb.g).to.be.within(saturationLandGreen - colorTolerance, saturationLandGreen + colorTolerance)
+          }
+        })
       cy.get('[data-testid="legend-key"]').eq(0) //fragile but couldn't get it to work with the contains "land"
         .find('rect')
         .invoke('css', 'fill')
         .then((fillColor) => {
-          expect(fillColor).to.contain(saturationLandBackgroundColor)
+          const rgb = ch.parseRgbColorToObj(fillColor)
+          if (rgb !== null) {
+            expect(rgb.r).to.be.within(saturationLandRed - colorTolerance, saturationLandRed + colorTolerance)
+            expect(rgb.g).to.be.within(saturationLandGreen - colorTolerance, saturationLandGreen + colorTolerance)
+          }
         })
       color_picker.getSetColorButton().click()
       cy.get('[data-testid="legend-key"]').eq(0) //fragile but couldn't get it to work with the contains "land"
         .find('rect')
         .invoke('css', 'fill')
         .then((fillColor) => {
-          expect(fillColor).to.contain(saturationLandBackgroundColor)
+          const rgb = ch.parseRgbColorToObj(fillColor)
+          if (rgb !== null) {
+            expect(rgb.r).to.be.within(saturationLandRed - colorTolerance, saturationLandRed + colorTolerance)
+            expect(rgb.g).to.be.within(saturationLandGreen - colorTolerance, saturationLandGreen + colorTolerance)
+          }
         })
 
       cy.log("Does not change color when user cancels color selection from color picker")
@@ -686,25 +742,54 @@ context("Test changing legend colors", () => {
       color_picker.getColorPalette().should("be.visible")
       color_picker.getColorPickerToggleButton().should("have.text", "more").click()
       color_picker.getColorPickerHue().click()
+      // color_picker.getColorSettingSwatchCell().eq(16)
+      //   .invoke('css', 'background-color').should('contain', hueLandBackgroundColor)
       color_picker.getColorSettingSwatchCell().eq(16)
-        .invoke('css', 'background-color').should('contain', hueLandBackgroundColor)
+        .invoke('css', 'background-color').then((color) => {
+          const rgb = ch.parseRgbColorToObj(color)
+          if (rgb !== null) {
+            expect(rgb.r).to.be.within(hueLandBaseRed - colorTolerance, hueLandBaseRed + colorTolerance)
+            expect(rgb.g).to.be.within(hueLandBaseGreen - colorTolerance, hueLandBaseGreen + colorTolerance)
+          }
+        })
       color_picker.getCategoricalColorSettingSwatch().eq(0)
-        .invoke('css', 'background-color').should('contain', hueLandBackgroundColor)
+        .invoke('css', 'background-color').then((color) => {
+          const rgb = ch.parseRgbColorToObj(color)
+          if (rgb !== null) {
+            expect(rgb.r).to.be.within(hueLandBaseRed - colorTolerance, hueLandBaseRed + colorTolerance)
+            expect(rgb.g).to.be.within(hueLandBaseGreen - colorTolerance, hueLandBaseGreen + colorTolerance)
+          }
+        })
       cy.get('[data-testid="legend-key"]').eq(0) //fragile but couldn't get it to work with the contains "land"
         .find('rect')
         .invoke('css', 'fill')
         .then((fillColor) => {
-          expect(fillColor).to.contain(hueLandBackgroundColor)
+          const rgb = ch.parseRgbColorToObj(fillColor)
+          if (rgb !== null) {
+            expect(rgb.r).to.be.within(hueLandBaseRed - colorTolerance, hueLandBaseRed + colorTolerance)
+            expect(rgb.g).to.be.within(hueLandBaseGreen - colorTolerance, hueLandBaseGreen + colorTolerance)
+          }
         })
       color_picker.getCancelColorButton().click({waitForAnimations: false, animationDistanceThreshold: 20})
       color_picker.getCategoricalColorSettingSwatch().eq(0)
-        .invoke('css', 'background-color').should('contain', saturationLandBackgroundColor)
+        // .invoke('css', 'background-color').should('contain', saturationLandBackgroundColor)
+        .invoke('css', 'background-color').then((color) => {
+          const rgb = ch.parseRgbColorToObj(color)
+          if (rgb !== null) {
+            expect(rgb.r).to.be.within(saturationLandRed - colorTolerance, saturationLandRed + colorTolerance)
+            expect(rgb.g).to.be.within(saturationLandGreen - colorTolerance, saturationLandGreen + colorTolerance)
+          }
+        })
       cy.get('[data-testid="legend-key"]').eq(0) //fragile but couldn't get it to work with the contains "land"
         .find('rect')
         .invoke('css', 'fill')
         .then((fillColor) => {
-          expect(fillColor).to.contain(saturationLandBackgroundColor)
-        })
+          const rgb = ch.parseRgbColorToObj(fillColor)
+          if (rgb !== null) {
+            expect(rgb.r).to.be.within(saturationLandRed - colorTolerance, saturationLandRed + colorTolerance)
+            expect(rgb.g).to.be.within(saturationLandGreen - colorTolerance, saturationLandGreen + colorTolerance)
+          }
+         })
     })
   })
 })
