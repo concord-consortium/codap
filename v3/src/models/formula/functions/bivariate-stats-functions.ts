@@ -134,7 +134,8 @@ function evaluateRawLinearRegressionSemiAggregate(fn: (lsr: ValidLSRResult, x: n
     scope.withLocalContext(() => {
       const [xIsValid, x] = checkNumber(evaluateNode(xArg, scope))
       const [yIsValid, y] = checkNumber(evaluateNode(yArg, scope))
-      if (xIsValid && yIsValid) {
+      const filterValue = filterArg ? evaluateNode(filterArg, scope) : true
+      if (xIsValid && yIsValid && isValueTruthy(filterValue)) {
         result = fn(lsrResult, x, y)
       }
     })
