@@ -1,6 +1,6 @@
 import React, { useState } from "react"
 import { observer } from "mobx-react-lite"
-import { Editable, EditablePreview, EditableInput, Tooltip } from "@chakra-ui/react"
+import { Editable, EditablePreview, EditableInput, Tooltip, useDisclosure } from "@chakra-ui/react"
 import { clsx } from "clsx"
 import { IValueType } from "../../models/data/attribute-types"
 import { ICollectionModel } from "../../models/data/collection"
@@ -14,6 +14,9 @@ import { useCaseCardModel } from "./use-case-card-model"
 import { renderAttributeValue } from "../case-tile-common/attribute-format-utils"
 
 import "./case-attr-view.scss"
+import ColorCellTextEditor from "../case-table/color-cell-text-editor"
+import CellTextEditor from "../case-table/cell-text-editor"
+import ColorValueTextEditor from "../case-tile-common/color-value-text-editor"
 
 interface ICaseAttrViewProps {
   caseId: string
@@ -34,18 +37,30 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
   const isCollectionSummarized = !!cardModel?.summarizedCollections.includes(collection.id)
   const strValue = cellValue ? String(cellValue) : ""
   const numValue = isFiniteNumber(Number(cellValue)) ? Number(cellValue) : undefined
-  const showUnitWithValue = isFiniteNumber(Number(cellValue)) && unit
+  const showUnitWithValue = !!(isFiniteNumber(Number(cellValue)) && unit)
   const [isEditing, setIsEditing] = useState(false)
-  // const [editingValue, setEditingValue] = useState(strValue)
-  const { value, content } = renderAttributeValue(strValue, numValue, attr)
+  const [editingValue, setEditingValue] = useState(strValue)
+  const { value, content } = renderAttributeValue(strValue, numValue, showUnitWithValue, attr)
+  const { onClose } = useDisclosure()
+  const handleChangeValue = (newValue: string) => {
+    setEditingValue(newValue)
+  }
 
-  // const handleChangeValue = (newValue: string) => {
-  //   setEditingValue(newValue)
-  // }
+  const updateValue = (val: string) => {
+    setEditingValue(val)
+    // onRowChange({ ...row, [column.key]: value })
+    // setPendingLogMessage("editCellValue", logStringifiedObjectMessage("editCellValue: %@",
+    //   {attrId: column.key, caseId: row.__id__, from: initialInputValue.current, to: value }))
+    // if (blockAPIRequests && value !== initialInputValue.current) {
+    //   // Only block API requests if the user has actually changed the value.
+    //   uiState.setIsEditingBlockingCell()
+    // }
+  }
+
 
   const handleCancel = (_previousName?: string) => {
     setIsEditing(false)
-    // setEditingValue(strValue)
+    setEditingValue(value)
   }
 
   const handleSubmit = (newValue?: string) => {
@@ -58,9 +73,9 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
 
       }
 
-      // setEditingValue(newValue)
+      setEditingValue(newValue)
     } else {
-      // setEditingValue(strValue)
+      setEditingValue(value)
     }
   }
 
@@ -75,28 +90,33 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
     }
 
     return (
-      <Tooltip label={value} h="20px" fontSize="12px" color="white" data-testid="case-table-data-tip"
-        openDelay={1000} placement="bottom" bottom="10px" left="15px">
-        {content}
-      </Tooltip>      // <Editable
-      //   className={clsx("case-card-attr-value-text", {"formula-attr-value": attr?.hasFormula})}
-      //   isPreviewFocusable={true}
-      //   isDisabled={attr?.hasFormula}
-      //   onCancel={handleCancel}
-      //   onChange={handleChangeValue}
-      //   onEdit={() => setIsEditing(true)}
-      //   onSubmit={handleSubmit}
-      //   submitOnBlur={true}
-      //   value={isEditing ? editingValue : `${strValue}${showUnitWithValue ? ` ${unit}` : ""}`}
-      // >
-      //   <EditablePreview paddingY={0} />
-      //   <EditableInput
-      //     className="case-card-attr-value-text-editor"
-      //     data-testid="case-card-attr-value-text-editor"
-      //     paddingY={0}
-      //     value={editingValue}
-      //   />
-      // </Editable>
+      isEditing
+        ? attr?.userType == null || attr?.userType === "color"
+            ? <ColorValueTextEditor attributeId={attrId} inputValue={value} updateValue={updateValue}
+                  acceptValue={handleSubmit} onClose={onClose}/>
+            : <Editable
+                className={clsx("case-card-attr-value-text", {"formula-attr-value": attr?.hasFormula})}
+                isPreviewFocusable={true}
+                isDisabled={attr?.hasFormula}
+                onCancel={handleCancel}
+                onChange={handleChangeValue}
+                onEdit={() => setIsEditing(true)}
+                onSubmit={handleSubmit}
+                submitOnBlur={true}
+                value={isEditing ? editingValue : `${strValue}${showUnitWithValue ? ` ${unit}` : ""}`}
+              >
+                <EditablePreview paddingY={0} />
+                <EditableInput
+                  className="case-card-attr-value-text-editor"
+                  data-testid="case-card-attr-value-text-editor"
+                  paddingY={0}
+                  value={editingValue}
+                />
+              </Editable>
+        : <Tooltip label={value} h="20px" fontSize="12px" color="white" data-testid="case-table-data-tip"
+            openDelay={1000} placement="bottom" bottom="10px" left="15px">
+            {content}
+          </Tooltip>
     )
   }
 

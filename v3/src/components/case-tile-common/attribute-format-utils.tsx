@@ -23,7 +23,7 @@ export const getNumFormatter = (formatStr: string) => {
   return formatter
 }
 
-export function renderAttributeValue(str = "", num = NaN, attr?: IAttribute, key?: number) {
+export function renderAttributeValue(str = "", num = NaN, showUnits=false, attr?: IAttribute, key?: number) {
   const { type, userType, numPrecision, datePrecision } = attr || {}
   // colors
   const color = type === "color" || !userType ? parseColor(str, { colorNames: type === "color" }) : ""
@@ -42,7 +42,7 @@ export function renderAttributeValue(str = "", num = NaN, attr?: IAttribute, key
   if (isFinite(num)) {
     const formatStr = `.${numPrecision ?? kDefaultNumPrecision}~f`
     const formatter = getNumFormatter(formatStr)
-    if (formatter) str = formatter(num)
+    if (formatter) str = `${formatter(num)} ${showUnits ? attr?.units : ""}`
   }
 
   // Dates
@@ -78,7 +78,7 @@ export const findLongestContentWidth = (attr: IAttribute) => {
   let longestWidth = Math.max(kMinAutoColumnWidth, measureText(attr.name, kCaseTableHeaderFont))
   for (let i = 0; i < attr.length; ++i) {
     // use the formatted attribute value in content width calculation
-    const { value } = renderAttributeValue(attr.strValues[i], attr.numValues[i], attr)
+    const { value } = renderAttributeValue(attr.strValues[i], attr.numValues[i], false, attr)
     longestWidth = Math.max(longestWidth, measureText(value, kCaseTableBodyFont))
   }
   return Math.min(longestWidth, kMaxAutoColumnWidth)
