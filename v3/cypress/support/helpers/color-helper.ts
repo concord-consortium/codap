@@ -1,7 +1,7 @@
 interface RgbObject {
-  r: number;
-  g: number;
-  b: number;
+  r: number
+  g: number
+  b: number
 }
 
 export const ColorHelper = {
@@ -15,7 +15,7 @@ export const ColorHelper = {
         r: parseInt(match[1], 10),
         g: parseInt(match[2], 10),
         b: parseInt(match[3], 10)
-      };
+      }
     } else {
       console.warn(`Failed to parse RGB string: "${color}"`)
       return null
