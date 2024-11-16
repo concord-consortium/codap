@@ -43,7 +43,7 @@ export const useDotPlotDragDrop = () => {
     // Record the current values, so we can change them during the drag and restore them when done
     const {selection} = dataConfig || {}
     selection?.forEach((anID: string) => {
-      const itsValue = dataDisplayGetNumericValue(dataset, anID, primaryAttrID) || undefined
+      const itsValue = dataDisplayGetNumericValue(dataset, anID, primaryAttrID) ?? undefined
       if (itsValue != null) {
         selectedDataObjects.current[anID] = itsValue
       }
