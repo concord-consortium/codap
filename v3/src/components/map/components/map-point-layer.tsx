@@ -35,6 +35,7 @@ interface IProps {
 
 export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, setPixiPointsLayer}: IProps) {
   const {dataConfiguration, pointDescription} = mapLayerModel,
+    { pointColor, pointSizeMultiplier, pointStrokeColor, pointStrokeSameAsFill } = pointDescription,
     dataset = isAlive(dataConfiguration) ? dataConfiguration?.dataset : undefined,
     mapModel = useMapModelContext(),
     {isAnimating} = useDataDisplayAnimation(),
@@ -172,30 +173,31 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
         pixiPoints,
         pointRadius: mapLayerModel.getPointRadius(),
         instanceId: dataConfiguration.id,
-        pointColor: pointDescription?.pointColor,
-        pointStrokeColor: pointDescription?.pointStrokeColor,
+        pointColor,
+        pointStrokeColor,
         startAnimation: mapModel.startAnimation
       })
     }
   }, [dataConfiguration, layout, mapLayerModel, mapModel.startAnimation,
-    pointDescription?.pointColor, pointDescription?.pointStrokeColor, pixiPoints])
+    pointColor, pointStrokeColor, pixiPoints])
 
   const refreshPointSelection = useCallback(() => {
-    const {pointColor, pointStrokeColor} = pointDescription,
-      selectedPointRadius = mapLayerModel.getPointRadius('select')
+    const selectedPointRadius = mapLayerModel.getPointRadius('select')
     dataConfiguration && setPointSelection({
       pixiPoints, dataConfiguration, pointRadius: mapLayerModel.getPointRadius(),
       selectedPointRadius, pointColor, pointStrokeColor
     })
-  }, [pointDescription, mapLayerModel, dataConfiguration, pixiPoints])
+  }, [mapLayerModel, dataConfiguration, pixiPoints, pointColor, pointStrokeColor])
+
+  const legendAttributeId = dataConfiguration.attributeID('legend')
+  const legendAttribute = dataset?.getAttribute(legendAttributeId)
+  const getLegendColor = legendAttribute ? dataConfiguration?.getLegendColorForCase : undefined
+  const lookupLegendColor = useCallback((caseData: CaseData) => {
+    return getLegendColor?.(caseData.caseID) ?? pointColor
+  }, [getLegendColor, pointColor])
 
   const refreshPoints = useDebouncedCallback(async (selectedOnly: boolean) => {
-    const lookupLegendColor = (aCaseData: CaseData) => {
-        return dataConfiguration.attributeID('legend')
-          ? dataConfiguration.getLegendColorForCase(aCaseData.caseID)
-          : pointColor
-      },
-      getCoords = (anID: string) => {
+      const getCoords = (anID: string) => {
         const long = dataset?.getNumeric(anID, longId) || 0,
           lat = dataset?.getNumeric(anID, latId) || 0
         return leafletMap.latLngToContainerPoint([lat, long])
@@ -220,13 +222,9 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
     if (layerIsVisible && pointsAreVisible && !pixiPoints.isVisible) {
       pixiPoints?.setVisibility(true)
     }
-    const pointRadius = computePointRadius(dataConfiguration.getCaseDataArray(0).length,
-        pointDescription.pointSizeMultiplier)
+    const pointRadius = computePointRadius(dataConfiguration.getCaseDataArray(0).length, pointSizeMultiplier)
     const selectedPointRadius = computePointRadius(dataConfiguration.getCaseDataArray(0).length,
-        pointDescription.pointSizeMultiplier, 'select')
-    const {pointColor, pointStrokeColor} = pointDescription
-    const getLegendColor = dataConfiguration?.attributeID('legend')
-        ? dataConfiguration?.getLegendColorForCase : undefined
+        pointSizeMultiplier, 'select')
     const {latId, longId} = latLongAttributesFromDataSet(dataset)
 
     await pixiPoints.transition(() => {
@@ -265,12 +263,9 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
 
   useEffect(() => {
     return mstReaction(
-      () => {
-        return dataConfiguration?.categorySetForAttrRole('legend')?.colorHash
-      },
-      () => {
-        refreshPoints(false)
-      }, {name: "MapPointLayer [categorySetChange]", fireImmediately: true}, dataConfiguration)
+      () => dataConfiguration?.categorySetForAttrRole('legend')?.colorHash,
+      () => refreshPoints(false),
+      {name: "MapPointLayer [categorySetChange]", fireImmediately: true}, dataConfiguration)
   }, [dataConfiguration, refreshPoints])
 
   // Changes in layout or map pan/zoom require repositioning points
@@ -291,12 +286,9 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
   // respond to attribute assignment changes
   useEffect(function setupResponseToLegendAttributeChange() {
     const disposer = mstReaction(
-      () => {
-        return [dataConfiguration?.attributeID('legend'), dataConfiguration?.attributeType('legend')]
-      },
-      () => {
-        refreshPoints(false)
-      }, {name: "MapPointLayer.respondToLegendAttributeChange", equals: comparer.structural}, dataConfiguration
+      () => [dataConfiguration?.attributeID('legend'), dataConfiguration?.attributeType('legend')],
+      () => refreshPoints(false),
+      {name: "MapPointLayer.respondToLegendAttributeChange", equals: comparer.structural}, dataConfiguration
     )
     return () => disposer()
   }, [refreshPoints, dataConfiguration])
@@ -315,11 +307,11 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
   useEffect(function respondToDisplayItemVisualPropsAction() {
     const disposer = onAnyAction(mapLayerModel, action => {
       if (isDisplayItemVisualPropsAction(action)) {
-        callMatchCirclesToData()
+        refreshPoints(false)
       }
     })
     return () => disposer()
-  }, [callMatchCirclesToData, mapLayerModel])
+  }, [refreshPoints, mapLayerModel])
 
   // respond to change in layer visibility
   useEffect(function respondToLayerVisibilityChange() {
@@ -342,14 +334,13 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
   // respond to point properties change
   useEffect(function respondToPointVisualChange() {
     return mstReaction(() => {
-        const { pointColor, pointStrokeColor, pointStrokeSameAsFill, pointSizeMultiplier } =
-          mapLayerModel.pointDescription
-        return [pointColor, pointStrokeColor, pointStrokeSameAsFill, pointSizeMultiplier]
+        const { pointSizeMultiplier: _pointSizeMultiplier } = mapLayerModel.pointDescription
+        return [pointColor, pointStrokeColor, pointStrokeSameAsFill, _pointSizeMultiplier]
       },
-      () => callMatchCirclesToData(),
+      () => refreshPoints(false),
       {name: "MapPointLayer.respondToPointVisualChange"}, mapLayerModel
     )
-  }, [callMatchCirclesToData, mapLayerModel])
+  }, [refreshPoints, mapLayerModel, pointColor, pointStrokeColor, pointStrokeSameAsFill])
 
   // Call refreshConnectingLines when Connecting Lines option is switched on and when all
   // points are selected.
