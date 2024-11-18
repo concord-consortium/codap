@@ -2,7 +2,6 @@ import { CfmElements as cfm } from "../support/elements/cfm"
 import { ComponentElements as c } from "../support/elements/component-elements"
 import { TableTileElements as table } from "../support/elements/table-tile"
 
-// TODO: update this with a test that checks the window title
 context("CloudFileManager", () => {
   function visitEmptyCodap()  {
     const queryParams = "?mouseSensor"
