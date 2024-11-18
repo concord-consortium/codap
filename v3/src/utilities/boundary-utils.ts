@@ -1,4 +1,4 @@
-import usStateBoundaries from "../boundaries/US_State_Boundaries.json"
+import { observable } from "mobx"
 
 export const kPolygonNames = ['boundary', 'boundaries', 'polygon', 'polygons', 'grenze', '境界', 'مرز']
 
@@ -23,6 +23,29 @@ export const isBoundaryValue = (iValue: object | string): boolean => {
 
 // Functions to access remote boundary data
 
+const boundariesRoot = "https://codap-resources.s3.amazonaws.com/boundaries/"
+const boundariesSpecUrl = `${boundariesRoot}default_boundary_specs.json`
+
+interface boundaryInfo {
+  boundary?: any
+  format: string
+  name: string
+  url: string
+}
+export const boundaryMap: Record<string, any> = observable({})
+export const boundaryKeys: string[] = observable([])
+
+fetch(boundariesSpecUrl).then((boundariesResponse: Response) => {
+  if (!boundariesResponse.ok) return
+
+  boundariesResponse.json().then((boundariesSpecs: boundaryInfo[]) => {
+    boundariesSpecs.forEach(boundariesSpec => {
+      boundaryKeys.push(boundariesSpec.name)
+      boundaryMap[boundariesSpec.name] = boundariesSpec
+    })
+  })
+})
+
 function processBoundaries(boundaryDocument: any) {
   const dataset = boundaryDocument.contexts[0]
   const boundaryCollection = dataset.collections[0]
@@ -35,14 +58,21 @@ function processBoundaries(boundaryDocument: any) {
   return _boundaryMap
 }
 
-const boundaryMap: Record<string, any> = {
-  US_state_boundaries: processBoundaries(usStateBoundaries)
-}
-
 export function isBoundarySet(name?: string) {
   return name != null && !!boundaryMap[name]
 }
 
 export function lookupBoundary(document: string, key: string) {
-  return boundaryMap[document]?.[key.toLowerCase()]
+  if (!isBoundarySet(document)) return
+
+  const boundaryInfo = boundaryMap[document]
+  if (boundaryInfo.boundary) {
+    return boundaryInfo.boundary[key.toLowerCase()]
+  }
+
+  fetch(`${boundariesRoot}${boundaryInfo.url}`).then((boundaryResponse) => {
+    boundaryResponse.json().then((boundary) => {
+      boundaryInfo.boundary = processBoundaries(boundary)
+    })
+  })
 }

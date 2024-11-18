@@ -172,6 +172,7 @@ export const Attribute = V2Model.named("Attribute").props({
     self.getEmptyCount.invalidate()
     self.getNumericCount.invalidate()
     self.getStrictColorCount.invalidate()
+    self.getBoundaryCount.invalidate()
   },
   setCid(cid?: string) {
     self._cid = cid
