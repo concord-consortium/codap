@@ -79,7 +79,7 @@ export class Logger {
     if (!this._instance) return
 
     const time = Date.now() // eventually we will want server skew (or to add this via FB directly)
-    const documentTitle = this._instance.document.title || "Untitled Document"
+    const documentTitle = this._instance.document.title
     if (this._instance) {
       this._instance.formatAndSend(time, event, documentTitle, category, args)
     } else {

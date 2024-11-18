@@ -3,17 +3,28 @@ import { ComponentElements as c } from "../support/elements/component-elements"
 import { TableTileElements as table } from "../support/elements/table-tile"
 
 context("CloudFileManager", () => {
-  beforeEach(function () {
+  function visitEmptyCodap()  {
     const queryParams = "?mouseSensor"
     const url = `${Cypress.config("index")}${queryParams}`
     cy.visit(url)
-  })
-  it("Opens Mammals example document via url parameter", () => {
-    const mammalsUrl = "https://codap-resources.s3.amazonaws.com/example-documents/documents/mammals.codap"
+  }
+
+  it("Opens Mammals document using different methods", () => {
+    cy.log("Opening via a url parameter")
+    const mammalsUrl = "https://codap-resources.concord.org/example-documents/documents/mammals.codap"
     cy.visit(`${Cypress.config("index")}?url=${mammalsUrl}`)
     cy.get(".codap-component.codap-case-table").contains(".title-bar", "Mammals").should("exist")
-  })
-  it("Opens Mammals example document via CFM Open dialog", () => {
+
+    // The title is not set to mammals because the CFM is not reading the name from the document
+    // nor is it looking at the filename in the URL. This behaves the same in CODAPv2.
+    // If this ever gets fixed it should be:
+    // cy.title().should("equal", "mammals - CODAP")
+    cy.title().should("equal", "Untitled Document - CODAP")
+
+    cy.log("Opening via the CFM Open dialog")
+    visitEmptyCodap()
+    cy.title().should("equal", "Untitled Document - CODAP")
+
     // hamburger menu is hidden initially
     cfm.getHamburgerMenuButton().should("exist")
     cfm.getHamburgerMenu().should("not.exist")
@@ -31,16 +42,18 @@ context("CloudFileManager", () => {
     // Selecting Mammals document should load the mammals example document
     cfm.getModalDialog().contains(".filelist div.selectable", "Mammals").click()
     cfm.getModalDialog().contains(".buttons button", "Open").click()
-    cy.wait(1000)
+
     // once loaded, Open dialog should be hidden and document content should be shown
     cfm.getModalDialog().should("not.exist")
     cy.get(".codap-component.codap-case-table").contains(".title-bar", "Mammals").should("exist")
+    cy.title().should("equal", "Mammals - CODAP")
   })
   it("Opens a local document using different methods", () => {
     const fileName = "../v3/cypress/fixtures/mammals.codap"
     const CSVFileName = "../v3/cypress/fixtures/map-data.csv"
 
     cy.log("Opens a CODAP document from a local file using CFM dialog")
+    visitEmptyCodap()
 
     // Open the document from Hamburger menu
     // Select file from dialog
@@ -54,6 +67,8 @@ context("CloudFileManager", () => {
       .should("exist")
       .click({force:true})
     cy.get('input[type=file]').selectFile(fileName)
+
+    cy.title().should("equal", "mammals - CODAP")
 
     // Verify table in Mammals exists
     table.getAttribute("Order").should("have.text", "Order")
@@ -95,6 +110,8 @@ context("CloudFileManager", () => {
     c.checkComponentDoesNotExist("table")
   })
   it("verify language menu is present", () => {
+    visitEmptyCodap()
+
     cfm.getLanguageMenuButton().should("exist")
     cfm.getLanguageMenu().should("not.exist")
     cfm.getLanguageMenuButton().click()

@@ -29,6 +29,7 @@ interface IOptions {
 }
 export function createCodapDocument(snapshot?: ICodapDocumentModelSnapshot, options?: IOptions): IDocumentModel {
   const { layout = "free", noGlobals = false } = options || {}
+  // Note: The version and build will not be updated after the document is first created
   const document = createDocumentModel({ type: "CODAP", version, build: `${buildNumber}`, ...snapshot })
   // create the content if there isn't any
   if (!document.content) {
