@@ -10,7 +10,7 @@ describe("lookupBoundary", () => {
     expect(() => evaluate(`lookupBoundary("US_state_boundaries", "Alaska")`)).toThrow()
     expect(() => evaluate(`lookupBoundary(Mammal, "Alaska")`)).toThrow()
 
-    // Second argument can't be a non-existant symbol
+    // Second argument can't be a non-existent symbol
     expect(() => evaluate(`lookupBoundary(US_state_boundaries, Alaska)`)).toThrow()
 
     // TODO The second argument cannot refer to a child collection

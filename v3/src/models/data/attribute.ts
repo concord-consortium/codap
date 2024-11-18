@@ -26,19 +26,18 @@
  */
 
 import { Instance, SnapshotIn, types } from "mobx-state-tree"
-import { kPolygonNames } from "../../components/map/map-types"
+import { isBoundaryValue, kPolygonNames } from "../../utilities/boundary-utils"
 import { kAttrIdPrefix, typeV3Id } from "../../utilities/codap-utils"
 import { parseColor } from "../../utilities/color-utils"
 import { formatStdISODateString } from "../../utilities/date-iso-utils"
 import { isDateString } from "../../utilities/date-parser"
-import { isBoundaryValue } from "../../utilities/geojson-utils"
+import { DatePrecision } from "../../utilities/date-utils"
 import { cachedFnFactory } from "../../utilities/mst-utils"
 import { Formula, IFormula } from "../formula/formula"
 import { applyModelChange } from "../history/apply-model-change"
 import { withoutUndo } from "../history/without-undo"
 import { isDevelopment, isProduction, IValueType } from "./attribute-types"
 import { V2Model } from "./v2-model"
-import { DatePrecision } from "../../utilities/date-utils"
 
 export interface ISetValueOptions {
   noInvalidate?: boolean

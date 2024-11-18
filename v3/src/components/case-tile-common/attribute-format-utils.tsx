@@ -4,11 +4,11 @@ import React from "react"
 import { measureText } from "../../hooks/use-measure-text"
 import { IAttribute } from "../../models/data/attribute"
 import { kDefaultNumPrecision } from "../../models/data/attribute-types"
+import { boundaryObjectFromBoundaryValue } from "../../utilities/boundary-utils"
 import { parseColor } from "../../utilities/color-utils"
 import { isStdISODateString } from "../../utilities/date-iso-utils"
 import { parseDate } from "../../utilities/date-parser"
 import { formatDate } from "../../utilities/date-utils"
-import { boundaryObjectFromBoundaryValue } from "../../utilities/geojson-utils"
 import { kCaseTableBodyFont, kCaseTableHeaderFont, kMaxAutoColumnWidth,
           kMinAutoColumnWidth } from "../case-table/case-table-types"
 

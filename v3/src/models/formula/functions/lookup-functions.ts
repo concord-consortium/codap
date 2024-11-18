@@ -1,6 +1,6 @@
 import { isSymbolNode, MathNode } from "mathjs"
+import { isBoundarySet, lookupBoundary } from "../../../utilities/boundary-utils"
 import { t } from "../../../utilities/translation/translate"
-import { isBoundarySet, lookupBoundary } from "../../../boundaries/boundaries"
 import type { IDataSet } from "../../data/data-set"
 import { CurrentScope, DisplayNameMap, FValue, ILookupDependency, LookupStringConstantArg } from "../formula-types"
 import { isConstantStringNode } from "../utils/mathjs-utils"

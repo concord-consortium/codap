@@ -1,4 +1,4 @@
-import { boundaryObjectFromBoundaryValue, isBoundaryValue } from "./geojson-utils"
+import { boundaryObjectFromBoundaryValue, isBoundaryValue } from "./boundary-utils"
 
 describe("boundaryObjectFromBoundaryValue", () => {
   it("Returns the correct value", () => {
