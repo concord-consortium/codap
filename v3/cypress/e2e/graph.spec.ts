@@ -15,7 +15,7 @@ const plots = graphRules.plots
 // https://github.com/cypress-io/cypress/issues/28289
 // This test can be unskipped when the above cypress bug is resolved
 // (In local, this works fine and the tests can be run successfully)
-context.skip("Test graph plot transitions", () => {
+context("Test graph plot transitions", () => {
   beforeEach(function () {
     const queryParams = "?mouseSensor"
     const url = `${Cypress.config("index")}${queryParams}`
@@ -25,7 +25,7 @@ context.skip("Test graph plot transitions", () => {
   })
 
   plots.forEach(test => {
-    it.skip(`${test.testName}`, () => {
+    it(`${test.testName}`, () => {
       c.getIconFromToolShelf("graph").click()
       c.moveComponent("graph", 1000)
       test.axes.forEach(hash => {
