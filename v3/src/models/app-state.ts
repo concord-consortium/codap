@@ -44,7 +44,7 @@ class AppState {
   private version = ""
   private cfm: CloudFileManager | undefined
   private dirtyMonitorDisposer: (() => void) | undefined
-  titleMonitorDisposer: any
+  private titleMonitorDisposer: (() => void) | undefined
 
   constructor() {
     this.currentDocument = createCodapDocument()
@@ -128,7 +128,7 @@ class AppState {
             if (key === "filename") {
               // We don't save the filename because it is redundant with the filename in the actual
               // filesystem.
-              // However we need to the extension-less name for the window title
+              // However we need the extension-less name for the window title.
               // The CFM also expects the document to have a name field when the document
               // is loaded from a filesystem that doesn't use filenames.
               this.currentDocument.setTitleFromFilename(value)
