@@ -12,6 +12,7 @@ import { CodapModal } from "../../codap-modal"
 import AttributeIcon from "../../../assets/icons/attribute-icon.svg"
 
 import "./attribute-menu.scss"
+import { observer } from "mobx-react-lite"
 
 // for use in menus of attribute types
 const selectableAttributeTypes = ["none", ...attributeTypes] as const
@@ -25,7 +26,8 @@ interface IProps {
   onClose: () => void
 }
 
-export const EditAttributePropertiesModal = ({ attributeId, isOpen, onClose }: IProps) => {
+export const EditAttributePropertiesModal =
+    observer(function EditAttributePropertiesModal({ attributeId, isOpen, onClose }: IProps) {
   const data = useDataSetContext()
   const attribute = data?.attrFromID(attributeId)
   const columnName = attribute?.name || "attribute"
@@ -33,7 +35,7 @@ export const EditAttributePropertiesModal = ({ attributeId, isOpen, onClose }: I
   const [description, setDescription] = useState("")
   const [units, setUnits] = useState("")
   const [precision, setPrecision] = useState(attribute?.precision)
-  const [userType, setUserType] = useState<SelectableAttributeType>("none")
+  const [userType, setUserType] = useState<SelectableAttributeType>(attribute?.type ?? "none")
   const [editable, setEditable] = useState<YesNoValue>("yes")
 
   useEffect(() => {
@@ -115,8 +117,8 @@ export const EditAttributePropertiesModal = ({ attributeId, isOpen, onClose }: I
     return p == null || typeof p === "string" ? "" : `${p}`
   }
 
-  const getPrecisionMenu = () => {
-    if (attribute?.type === "date" || userType === "date") {
+  const renderPrecisionMenu = () => {
+    if (userType === "date") {
       return (
         <Select size="xs" ml={5} value={toDatePrecisionStr(precision)} data-testid="attr-precision-select"
                         onChange={(e) => setPrecision(toDatePrecision(e.target.value))}>
@@ -196,7 +198,7 @@ export const EditAttributePropertiesModal = ({ attributeId, isOpen, onClose }: I
             />
           </FormLabel>
           <FormLabel className="edit-attribute-form-row" mr={5}>{t("DG.CaseTable.attributeEditor.precision")}
-            {getPrecisionMenu()}
+            {renderPrecisionMenu()}
           </FormLabel>
           <FormLabel className="edit-attribute-form-row editable">{t("DG.CaseTable.attributeEditor.editable")}
             <RadioGroup value={editable} ml={5} data-testid="attr-editable-radio"
@@ -227,4 +229,4 @@ export const EditAttributePropertiesModal = ({ attributeId, isOpen, onClose }: I
       </ModalFooter>
     </CodapModal>
   )
-}
+})
