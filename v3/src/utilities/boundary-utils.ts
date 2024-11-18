@@ -36,14 +36,14 @@ export const boundaryMap: Record<string, any> = observable({})
 export const boundaryKeys: string[] = observable([])
 
 fetch(boundariesSpecUrl).then((boundariesResponse: Response) => {
-  if (!boundariesResponse.ok) return
-
-  boundariesResponse.json().then((boundariesSpecs: boundaryInfo[]) => {
-    boundariesSpecs.forEach(boundariesSpec => {
-      boundaryKeys.push(boundariesSpec.name)
-      boundaryMap[boundariesSpec.name] = boundariesSpec
+  if (boundariesResponse.ok && boundariesResponse.headers.get("content-type")?.includes("application/json")) {
+    boundariesResponse.json().then((boundariesSpecs: boundaryInfo[]) => {
+      boundariesSpecs.forEach(boundariesSpec => {
+        boundaryKeys.push(boundariesSpec.name)
+        boundaryMap[boundariesSpec.name] = boundariesSpec
+      })
     })
-  })
+  }
 })
 
 function processBoundaries(boundaryDocument: any) {
