@@ -1,4 +1,5 @@
 import { observable } from "mobx"
+import { t } from "./translation/translate"
 
 export const kPolygonNames = ['boundary', 'boundaries', 'polygon', 'polygons', 'grenze', '境界', 'مرز']
 
@@ -75,4 +76,5 @@ export function lookupBoundary(document: string, key: string) {
       boundaryInfo.boundary = processBoundaries(boundary)
     })
   })
+  return t("DG.Formula.PendingBoundaries.message")
 }
