@@ -1,7 +1,6 @@
 import { TableTileElements as table } from "../support/elements/table-tile"
 import { ComponentElements as c } from "../support/elements/component-elements"
 import { ToolbarElements as toolbar } from "../support/elements/toolbar-elements"
-import { FormulaHelper as fh } from "../support/helpers/formula-helper"
 import { ColorPickerPaletteElements as cpp } from "../support/elements/color-picker-palette"
 
 context("case table ui", () => {
@@ -417,7 +416,7 @@ context("case table ui", () => {
   describe("case table header attribute menu", () => {
     it("verify add attribute with undo and redo", ()=>{
       // Add new attribute using Add New Attribute button (+)
-      fh.addNewAttribute()
+      table.addNewAttribute()
 
       // verify new attribute exists
       table.getColumnHeaders().should("have.length.be.within", 10, 11)

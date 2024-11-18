@@ -1,21 +1,22 @@
 import { FormulaHelper as fh } from "../../support/helpers/formula-helper"
+import { TableTileElements as table } from "../../support/elements/table-tile"
 
 context("Formula Engine", () => {
   describe("Errors Formula Tests", () => {
     it("Check invalid functions", () => {
       fh.visitURL("?sample=four")
-      fh.addNewAttribute()
-      fh.renameAttribute("newAttr", "Formula")
-      fh.addFormula("Formula", "count(aaa)")
-      fh.verifyValues("Formula", [
+      table.addNewAttribute()
+      table.renameAttribute("newAttr", "Formula")
+      table.addFormula("Formula", "count(aaa)")
+      table.verifyFormulaValues("Formula", [
         "❌ Undefined symbol aaa",
         "❌ Undefined symbol aaa",
         "❌ Undefined symbol aaa",
         "❌ Undefined symbol aaa",
         "❌ Undefined symbol aaa"
       ])
-      fh.editFormula("Formula", "c(aaa)")
-      fh.verifyValues("Formula", [
+      table.editFormula("Formula", "c(aaa)")
+      table.verifyFormulaValues("Formula", [
         "❌ Undefined function c",
         "❌ Undefined function c",
         "❌ Undefined function c",
@@ -23,16 +24,16 @@ context("Formula Engine", () => {
         "❌ Undefined function c"
       ])
       // need to add {del} because CodeMirror auto-matches parentheses
-      fh.editFormula("Formula", "count(a{del}")
-      fh.verifyValues("Formula", [
+      table.editFormula("Formula", "count(a{del}")
+      table.verifyFormulaValues("Formula", [
         "❌ Syntax error: 'Parenthesis ) expected (char 8)'",
         "❌ Syntax error: 'Parenthesis ) expected (char 8)'",
         "❌ Syntax error: 'Parenthesis ) expected (char 8)'",
         "❌ Syntax error: 'Parenthesis ) expected (char 8)'",
         "❌ Syntax error: 'Parenthesis ) expected (char 8)'"
       ])
-      fh.editFormula("Formula", "count(a)")
-      fh.verifyValues("Formula", [4, 4, 4, 4, 4])
+      table.editFormula("Formula", "count(a)")
+      table.verifyFormulaValues("Formula", [4, 4, 4, 4, 4])
     })
   })
 })

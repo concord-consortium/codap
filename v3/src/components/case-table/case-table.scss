@@ -323,6 +323,17 @@ $table-body-font-size: 8pt;
         background-color: var(--rdg-row-selected-background-color);
       }
 
+      .cell-span {
+
+        &.numeric-format {
+          width: 100%;
+          font-family: 'Chivo Mono', monospace;
+          font-weight: 500;
+          margin-top: 2px;
+          text-align: right;
+        }
+      }
+
       .cell-color-swatch {
         width: 100%;
         height: 100%;

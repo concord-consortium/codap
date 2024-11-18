@@ -119,12 +119,18 @@ export const SliderTileElements = {
     this.clickInspectorPanel()
   },
   selectScaleType(scaleType: "numeric" | "date", index = 0) {
-    const today = new Date().toLocaleDateString("en-US")
+    // const today = new Date().toLocaleDateString("en-US")
     // Grab the button that opens the scale type menu
     this.getRulerIcon().click()
     cy.get('[data-testid="slider-scale-type-button"]').click()
     // Choose either Numeric or Date-Time based on the provided scaleType
     cy.clickWhenClickable(`[data-testid="slider-scale-${scaleType}"]`)
     // cy.get('[data-testid="slider-date-display"]').should("have.text", today)
-  }
+  },
+  addSlider() {
+    c.getIconFromToolShelf("slider").click()
+  },
+  deleteSlider() {
+    c.closeComponent("slider")
+  },
 }
