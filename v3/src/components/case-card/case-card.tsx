@@ -13,6 +13,10 @@ import { AttributeDragOverlay } from "../drag-drop/attribute-drag-overlay"
 import { CardView } from "./card-view"
 import { useCaseCardModel } from "./use-case-card-model"
 import { IDataSet } from "../../models/data/data-set"
+import { ICollectionModel } from "../../models/data/collection"
+import { INotification } from "../../models/history/apply-model-change"
+import { createCollectionNotification, deleteCollectionNotification } from "../../models/data/data-set-notifications"
+import { logMessageWithReplacement } from "../../lib/log-message"
 
 // import "./case-card.v2"
 import "./case-card.scss"
@@ -35,15 +39,31 @@ export const CaseCard = observer(function CaseCard({ setNodeRef }: IProps) {
   const lastNewCollectionDrop = useRef<{ newCollectionId: string, beforeCollectionId: string } | undefined>()
 
   const handleNewCollectionDrop = useCallback((dataSet: IDataSet, attrId: string, beforeCollectionId: string) => {
-    if (dataSet.attrFromID(attrId)) {
+    const attr = dataSet.attrFromID(attrId)
+    if (attr) {
+      let collection: ICollectionModel | undefined
+
+      // Determine if the old collection will become empty and therefore get removed
+      const oldCollectionId = dataSet.getCollectionForAttribute(attrId)?.id
+      let removedOldCollection = false
+
       dataSet.applyModelChange(() => {
-        const collection = dataSet.moveAttributeToNewCollection(attrId, beforeCollectionId)
+        collection = dataSet.moveAttributeToNewCollection(attrId, beforeCollectionId)
         if (collection) {
           lastNewCollectionDrop.current = { newCollectionId: collection.id, beforeCollectionId }
         }
+        removedOldCollection = !!(oldCollectionId && !dataSet.getCollection(oldCollectionId))
       }, {
+        notify: () => {
+          const notifications: INotification[] = []
+          if (removedOldCollection) notifications.push(deleteCollectionNotification(dataSet))
+          if (collection) notifications.push(createCollectionNotification(collection, dataSet))
+          return notifications
+        },
         undoStringKey: "DG.Undo.caseTable.createCollection",
-        redoStringKey: "DG.Redo.caseTable.createCollection"
+        redoStringKey: "DG.Redo.caseTable.createCollection",
+        log: logMessageWithReplacement("Create collection: name: %@, attribute: %@",
+          {name: collection?.name, attribute: attr.name},  "table")
       })
     }
   }, [])
