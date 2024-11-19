@@ -55,7 +55,7 @@ export type OnScrollRowRangeIntoViewFn = (collectionId: string, rowIndices: numb
 export const kInputRowKey = "__input__"
 
 export const kDefaultColumnWidth = 80
-export const kMinAutoColumnWidth = 40
+export const kMinAutoColumnWidth = 52
 export const kMaxAutoColumnWidth = 600
 
 export const kCaseTableFontFamily = "Montserrat, sans-serif"
