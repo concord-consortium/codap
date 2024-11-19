@@ -201,11 +201,11 @@ export const EditAttributePropertiesModal = ({ attributeId, isOpen, onClose }: I
             {getPrecisionMenu()}
           </FormLabel>
           <FormLabel className="edit-attribute-form-row editable">{t("DG.CaseTable.attributeEditor.editable")}
-            <RadioGroup value={editable} ml={5} data-testid="attr-editable-radio"
+            <RadioGroup value={attribute?.hasFormula ? "no" : editable} ml={5} data-testid="attr-editable-radio"
               onChange={(value) => setEditable(value as YesNoValue)}
               onKeyDown={handleKeyDown}>
               <HStack>
-                <Radio value="yes">{t("V3.general.yes")}</Radio>
+                <Radio value="yes" isDisabled={attribute?.hasFormula}>{t("V3.general.yes")}</Radio>
                 <Radio value="no">{t("V3.general.no")}</Radio>
               </HStack>
             </RadioGroup>

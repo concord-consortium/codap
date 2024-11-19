@@ -1,10 +1,11 @@
 import { Instance, SnapshotIn, types } from "mobx-state-tree"
-import { IValueType } from "../../models/data/attribute-types"
+import { IValueType, kDefaultNumPrecision } from "../../models/data/attribute-types"
 import { ICollectionModel } from "../../models/data/collection"
 import { ICaseCreation, IGroupedCase } from "../../models/data/data-set-types"
 import { getTileCaseMetadata, getTileDataSet } from "../../models/shared/shared-data-utils"
 import { ISharedModel } from "../../models/shared/shared-model"
 import { ITileContentModel, TileContentModel } from "../../models/tiles/tile-content"
+import { getNumFormatter } from "../case-tile-common/attribute-format-utils"
 import { kCaseCardTileType } from "./case-card-defs"
 
 export const CaseCardModel = TileContentModel
@@ -69,10 +70,11 @@ export const CaseCardModel = TileContentModel
         .filter(groupedCase => !!groupedCase)
     },
     displayValues(collection: ICollectionModel, caseItem: IGroupedCase) {
-
-      const getNumericSummary = (numericValues: number[], attrUnits: string): string => {
-        const minValue = Math.min(...numericValues)
-        const maxValue = Math.max(...numericValues)
+      const getNumericSummary = (numericValues: number[], attrUnits: string, attrPrecision: number): string => {
+        const formatStr = `.${attrPrecision}~f`
+        const formatter = getNumFormatter(formatStr)
+        const minValue = formatter ? formatter(Math.min(...numericValues)) : Math.min(...numericValues)
+        const maxValue = formatter ? formatter(Math.max(...numericValues)) : Math.max(...numericValues)
         return minValue === maxValue
           ? `${minValue}${attrUnits ? ` ${attrUnits}` : ""}`
           : `${minValue}-${maxValue}${attrUnits ? ` ${attrUnits}` : ""}`
@@ -105,7 +107,8 @@ export const CaseCardModel = TileContentModel
           if (isNumeric) {
             const numericValues = attr.numValues?.filter((v, i) => attr.isNumeric(i))
             const attrUnits = attr.units ?? "" // self.data?.attrFromID(attr.id)?.units ?? ""
-            summary = getNumericSummary(numericValues, attrUnits)
+            const attrPrecision = attr.numPrecision ?? kDefaultNumPrecision
+            summary = getNumericSummary(numericValues, attrUnits, attrPrecision)
           } else {
             summary = getCategoricalSummary(uniqueValues)
           }

@@ -6,6 +6,7 @@ import { IValueType } from "../../models/data/attribute-types"
 import { ICollectionModel } from "../../models/data/collection"
 import { ICase } from "../../models/data/data-set-types"
 import { isFiniteNumber } from "../../utilities/math-utils"
+import { renderAttributeValue } from "../case-tile-common/attribute-format-utils"
 import { AttributeHeader } from "../case-tile-common/attribute-header"
 import { AttributeHeaderDivider } from "../case-tile-common/attribute-header-divider"
 import { GetDividerBoundsFn } from "../case-tile-common/case-tile-types"
@@ -19,30 +20,30 @@ interface ICaseAttrViewProps {
   collection: ICollectionModel
   attrId: string
   name: string
-  value: IValueType
+  cellValue: IValueType
   unit?: string
   getDividerBounds?: GetDividerBoundsFn
   onSetContentElt?: (contentElt: HTMLDivElement | null) => HTMLElement | null
 }
 
 export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrViewProps) {
-  const { caseId, collection, attrId, unit, value, getDividerBounds, onSetContentElt } = props
+  const { caseId, collection, attrId, unit, cellValue, getDividerBounds, onSetContentElt } = props
   const cardModel = useCaseCardModel()
   const data = cardModel?.data
   const attr = collection.getAttribute(attrId)
   const isCollectionSummarized = !!cardModel?.summarizedCollections.includes(collection.id)
-  const displayValue = value ? String(value) : ""
-  const showUnitWithValue = isFiniteNumber(Number(value)) && unit
+  const displayStrValue = cellValue ? String(cellValue) : ""
+  const displayNumValue = cellValue ? Number(cellValue) : NaN
+  const showUnitWithValue = isFiniteNumber(displayNumValue) && !!unit
   const [isEditing, setIsEditing] = useState(false)
-  const [editingValue, setEditingValue] = useState(displayValue)
-
+  const [editingValue, setEditingValue] = useState(displayStrValue)
   const handleChangeValue = (newValue: string) => {
     setEditingValue(newValue)
   }
 
   const handleCancel = (_previousName?: string) => {
     setIsEditing(false)
-    setEditingValue(displayValue)
+    setEditingValue(displayStrValue)
   }
 
   const handleSubmit = (newValue?: string) => {
@@ -57,7 +58,7 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
 
       setEditingValue(newValue)
     } else {
-      setEditingValue(displayValue)
+      setEditingValue(displayStrValue)
     }
   }
 
@@ -65,10 +66,12 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
     if (isCollectionSummarized) {
       return (
         <div className={clsx("case-card-attr-value-text", "static-summary", {"formula-attr-value": attr?.hasFormula})}>
-          {displayValue}
+          {displayStrValue}
         </div>
       )
     }
+
+    const { value } = renderAttributeValue(displayStrValue, displayNumValue, showUnitWithValue, attr)
 
     return (
       <Editable
@@ -80,7 +83,7 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
         onEdit={() => setIsEditing(true)}
         onSubmit={handleSubmit}
         submitOnBlur={true}
-        value={isEditing ? editingValue : `${displayValue}${showUnitWithValue ? ` ${unit}` : ""}`}
+        value={isEditing ? editingValue : value}
       >
         <EditablePreview paddingY={0} />
         <EditableInput
@@ -116,7 +119,7 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
       <td
         className={clsx("case-card-attr-value", {
                     editing: isEditing,
-                    numeric: !isCollectionSummarized && isFiniteNumber(Number(value))
+                    numeric: !isCollectionSummarized && isFiniteNumber(displayNumValue)
                   })}
         data-testid="case-card-attr-value"
       >
