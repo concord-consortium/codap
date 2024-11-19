@@ -1,15 +1,16 @@
-import * as PIXI from "pixi.js"
-import { useGraphLayoutContext } from "./use-graph-layout-context"
-import { useDataDisplayAnimation } from "../../data-display/hooks/use-data-display-animation"
-import { useGraphDataConfigurationContext } from "./use-graph-data-configuration-context"
-import { useDataSetContext } from "../../../hooks/use-data-set-context"
 import { ScaleLinear } from "d3"
-import { IPixiPointMetadata } from "../../data-display/pixi/pixi-points"
+import * as PIXI from "pixi.js"
+import { useRef, useState } from "react"
+import { useDataSetContext } from "../../../hooks/use-data-set-context"
 import { appState } from "../../../models/app-state"
+import { ICase } from "../../../models/data/data-set-types"
+import { toNonEmptyValue } from "../../../utilities/math-utils"
 import { handleClickOnCase } from "../../data-display/data-display-utils"
 import { dataDisplayGetNumericValue } from "../../data-display/data-display-value-utils"
-import { useRef, useState } from "react"
-import { ICase } from "../../../models/data/data-set-types"
+import { useDataDisplayAnimation } from "../../data-display/hooks/use-data-display-animation"
+import { IPixiPointMetadata } from "../../data-display/pixi/pixi-points"
+import { useGraphDataConfigurationContext } from "./use-graph-data-configuration-context"
+import { useGraphLayoutContext } from "./use-graph-layout-context"
 
 export const useDotPlotDragDrop = () => {
   const layout = useGraphLayoutContext()
@@ -43,7 +44,7 @@ export const useDotPlotDragDrop = () => {
     // Record the current values, so we can change them during the drag and restore them when done
     const {selection} = dataConfig || {}
     selection?.forEach((anID: string) => {
-      const itsValue = dataDisplayGetNumericValue(dataset, anID, primaryAttrID) || undefined
+      const itsValue = toNonEmptyValue(dataDisplayGetNumericValue(dataset, anID, primaryAttrID))
       if (itsValue != null) {
         selectedDataObjects.current[anID] = itsValue
       }
