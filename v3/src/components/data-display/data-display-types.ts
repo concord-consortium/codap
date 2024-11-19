@@ -58,6 +58,8 @@ export const GraphTipAttrRoles =
 export const GraphAttrRoles = [
   ...GraphTipAttrRoles, 'yPlus'] as const
 export type GraphAttrRole = typeof GraphAttrRoles[number]
+export const GraphSplitAttrRoles = [...PrimaryAttrRoles, 'topSplit', 'rightSplit'] as const
+export type GraphSplitAttrRole = typeof GraphSplitAttrRoles[number]
 
 export const MapAttrRoles = ['lat', 'long', 'polygon'] as const
 export type MapAttrRole = typeof MapAttrRoles[number]
@@ -94,3 +96,7 @@ export const graphPlaceToAttrRole: Record<GraphPlace, GraphAttrRole> = {
   plot: "legend",
   yPlus: "yPlus"
 }
+
+export const kOther = '_other_' // Used as key to category map entry that stashes overflow of what
+                                          // doesn't fit on cell axis. Not likely to be an attribute value
+export const kMain = '__main__' // When an axis has no categories, this is its pseudo-category

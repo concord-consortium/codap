@@ -72,9 +72,12 @@ context("codap single smoke test", () => {
     cy.dragAttributeToTarget("table", "Speed", "left")
     cy.get('[data-testid="axis-legend-attribute-button-left"]').eq(0).should("have.text", "Speed")
     cy.get("[data-testid=graph]").find("[data-testid=axis-left]").find(".tick").should("have.length", 25)
-    cy.dragAttributeToTarget("table", "Mammal", "bottom")
-    cy.get('[data-testid="axis-legend-attribute-button-bottom"]').eq(0).should("have.text", "Mammal")
-    cy.get("[data-testid=graph]").find("[data-testid=axis-bottom]").find(".tick").should("have.length", 27)
+    /*  Commented out because now the number of categories displayed is variable where those that don't fit are
+        lumped into OTHER.
+        cy.dragAttributeToTarget("table", "Mammal", "bottom")
+        cy.get('[data-testid="axis-legend-attribute-button-bottom"]').eq(0).should("have.text", "Mammal")
+        cy.get("[data-testid=graph]").find("[data-testid=axis-bottom]").find(".tick").should("have.length", 27)
+    */
 
     cy.log("test creating parent collections")
     // NOTE: the graph compresses to a single point in Cypress here.
