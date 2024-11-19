@@ -5,8 +5,8 @@ import { ICaseCreation, IGroupedCase } from "../../models/data/data-set-types"
 import { getTileCaseMetadata, getTileDataSet } from "../../models/shared/shared-data-utils"
 import { ISharedModel } from "../../models/shared/shared-model"
 import { ITileContentModel, TileContentModel } from "../../models/tiles/tile-content"
-import { kCaseCardTileType } from "./case-card-defs"
 import { getNumFormatter } from "../case-tile-common/attribute-format-utils"
+import { kCaseCardTileType } from "./case-card-defs"
 
 export const CaseCardModel = TileContentModel
   .named("CaseCardModel")
@@ -107,8 +107,8 @@ export const CaseCardModel = TileContentModel
           if (isNumeric) {
             const numericValues = attr.numValues?.filter((v, i) => attr.isNumeric(i))
             const attrUnits = attr.units ?? "" // self.data?.attrFromID(attr.id)?.units ?? ""
-            const attrPrecision = attr.precision ?? kDefaultNumPrecision
-            summary = getNumericSummary(numericValues, attrUnits, attrPrecision as number)
+            const attrPrecision = attr.numPrecision ?? kDefaultNumPrecision
+            summary = getNumericSummary(numericValues, attrUnits, attrPrecision)
           } else {
             summary = getCategoricalSummary(uniqueValues)
           }

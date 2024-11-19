@@ -6,12 +6,12 @@ import { IValueType } from "../../models/data/attribute-types"
 import { ICollectionModel } from "../../models/data/collection"
 import { ICase } from "../../models/data/data-set-types"
 import { isFiniteNumber } from "../../utilities/math-utils"
+import { renderAttributeValue } from "../case-tile-common/attribute-format-utils"
 import { AttributeHeader } from "../case-tile-common/attribute-header"
 import { AttributeHeaderDivider } from "../case-tile-common/attribute-header-divider"
 import { GetDividerBoundsFn } from "../case-tile-common/case-tile-types"
 import { applyCaseValueChanges } from "../case-tile-common/case-tile-utils"
 import { useCaseCardModel } from "./use-case-card-model"
-import { renderAttributeValue } from "../case-tile-common/attribute-format-utils"
 
 import "./case-attr-view.scss"
 
@@ -33,8 +33,8 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
   const attr = collection.getAttribute(attrId)
   const isCollectionSummarized = !!cardModel?.summarizedCollections.includes(collection.id)
   const displayStrValue = cellValue ? String(cellValue) : ""
-  const displayNumValue = cellValue ? Number(cellValue) : undefined
-  const showUnitWithValue = isFiniteNumber(displayNumValue) && unit
+  const displayNumValue = cellValue ? Number(cellValue) : NaN
+  const showUnitWithValue = isFiniteNumber(displayNumValue) && !!unit
   const [isEditing, setIsEditing] = useState(false)
   const [editingValue, setEditingValue] = useState(displayStrValue)
   const handleChangeValue = (newValue: string) => {
@@ -71,7 +71,7 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
       )
     }
 
-    const { value } = renderAttributeValue(displayStrValue, displayNumValue, !!showUnitWithValue, attr)
+    const { value } = renderAttributeValue(displayStrValue, displayNumValue, showUnitWithValue, attr)
 
     return (
       <Editable
@@ -119,7 +119,7 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
       <td
         className={clsx("case-card-attr-value", {
                     editing: isEditing,
-                    numeric: !isCollectionSummarized && isFiniteNumber(Number(cellValue))
+                    numeric: !isCollectionSummarized && isFiniteNumber(displayNumValue)
                   })}
         data-testid="case-card-attr-value"
       >

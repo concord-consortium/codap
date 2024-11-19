@@ -25,7 +25,7 @@ export const getNumFormatter = (formatStr: string) => {
   return formatter
 }
 
-export function renderAttributeValue(str = "", num = NaN, showUnits=false, attr?: IAttribute, key?: number) {
+export function renderAttributeValue(str = "", num = NaN, showUnits = false, attr?: IAttribute, key?: number) {
   const { type, userType, numPrecision, datePrecision } = attr || {}
   let formatClass = ""
 
