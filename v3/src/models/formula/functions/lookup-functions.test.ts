@@ -1,5 +1,18 @@
 import { evaluate } from "../test-utils/formula-test-utils"
 
+const boundaryMap: Record<string, any> = { US_state_boundaries: { boundary: {
+  alaska : `{ "geometry": "coords" }`
+} } }
+jest.mock("../../../utilities/boundary-utils", () => ({
+  isBoundarySet: (document?: string) => !!document && !!boundaryMap[document],
+  lookupBoundary: (document: string, key: string) => {
+    const boundaryInfo = boundaryMap[document]
+    if (boundaryInfo?.boundary) {
+      return boundaryInfo.boundary[key.toLowerCase()]
+    }
+  }
+}))
+
 describe("lookupBoundary", () => {
   it("throws an error when appropriate", () => {
     // Correct number of arguments
