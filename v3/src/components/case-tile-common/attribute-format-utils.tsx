@@ -63,7 +63,7 @@ export function renderAttributeValue(str = "", num = NaN, showUnits=false, attr?
     const formatStr = `.${numPrecision ?? kDefaultNumPrecision}~f`
     const formatter = getNumFormatter(formatStr)
     if (formatter) {
-      str = `${formatter(num)} ${showUnits ? attr?.units : ""}`
+      str = `${formatter(num)}${showUnits ? ` ${attr?.units}` : ""}`
       formatClass = "numeric-format"
     }
   }

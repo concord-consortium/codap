@@ -32,16 +32,18 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
   const data = cardModel?.data
   const attr = collection.getAttribute(attrId)
   const isCollectionSummarized = !!cardModel?.summarizedCollections.includes(collection.id)
-  const showUnitWithValue = isFiniteNumber(Number(cellValue)) && unit
+  const displayStrValue = cellValue ? String(cellValue) : ""
+  const displayNumValue = cellValue ? Number(cellValue) : undefined
+  const showUnitWithValue = isFiniteNumber(displayNumValue) && unit
   const [isEditing, setIsEditing] = useState(false)
-  const [editingValue, setEditingValue] = useState(String(cellValue))
+  const [editingValue, setEditingValue] = useState(displayStrValue)
   const handleChangeValue = (newValue: string) => {
     setEditingValue(newValue)
   }
 
   const handleCancel = (_previousName?: string) => {
     setIsEditing(false)
-    setEditingValue(String(cellValue))
+    setEditingValue(displayStrValue)
   }
 
   const handleSubmit = (newValue?: string) => {
@@ -56,7 +58,7 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
 
       setEditingValue(newValue)
     } else {
-      setEditingValue(String(cellValue))
+      setEditingValue(displayStrValue)
     }
   }
 
@@ -64,12 +66,12 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
     if (isCollectionSummarized) {
       return (
         <div className={clsx("case-card-attr-value-text", "static-summary", {"formula-attr-value": attr?.hasFormula})}>
-          {String(cellValue)}
+          {displayStrValue}
         </div>
       )
     }
 
-    const { value } = renderAttributeValue(String(cellValue), Number(cellValue), !!showUnitWithValue, attr)
+    const { value } = renderAttributeValue(displayStrValue, displayNumValue, !!showUnitWithValue, attr)
 
     return (
       <Editable
