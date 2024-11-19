@@ -339,6 +339,9 @@ $table-body-font-size: 8pt;
           font-weight: 500;
           margin-top: 2px;
           text-align: right;
+          text-overflow: ellipsis;
+          overflow: hidden;
+          white-space: nowrap;
         }
       }
 
