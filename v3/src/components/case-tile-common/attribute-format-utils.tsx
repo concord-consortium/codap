@@ -1,15 +1,16 @@
 import { clsx } from "clsx"
 import { format } from "d3-format"
 import React from "react"
+import { measureText } from "../../hooks/use-measure-text"
 import { IAttribute } from "../../models/data/attribute"
 import { kDefaultNumPrecision } from "../../models/data/attribute-types"
+import { boundaryObjectFromBoundaryValue } from "../../utilities/boundary-utils"
 import { parseColor } from "../../utilities/color-utils"
 import { isStdISODateString } from "../../utilities/date-iso-utils"
 import { parseDate } from "../../utilities/date-parser"
 import { formatDate } from "../../utilities/date-utils"
 import { kCaseTableBodyFont, kCaseTableHeaderFont, kMaxAutoColumnWidth,
           kMinAutoColumnWidth } from "../case-table/case-table-types"
-import { measureText } from "../../hooks/use-measure-text"
 
 // cache d3 number formatters so we don't have to generate them on every render
 type TNumberFormatter = (n: number) => string
@@ -27,6 +28,22 @@ export const getNumFormatter = (formatStr: string) => {
 export function renderAttributeValue(str = "", num = NaN, attr?: IAttribute, key?: number) {
   const { type, userType, numPrecision, datePrecision } = attr || {}
   let formatClass = ""
+
+  // boundaries
+  if (type === "boundary") {
+    const boundaryObject = boundaryObjectFromBoundaryValue(str)
+    const thumb = boundaryObject?.properties?.THUMB
+    if (thumb) {
+      return {
+        value: boundaryObject?.properties?.NAME ?? str,
+        content: (
+          <span className="cell-boundary-thumb">
+            <img src={thumb} alt="thumb" className="cell-boundary-thumb-interior" />
+          </span>
+        )
+      }
+    }
+  }
 
   // colors
   const color = type === "color" || !userType ? parseColor(str, { colorNames: type === "color" }) : ""

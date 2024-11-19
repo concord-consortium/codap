@@ -1,26 +1,8 @@
 import { parse, MathNode, isFunctionNode } from "mathjs"
 import { IFormulaDependency } from "../formula-types"
 import { typedFnRegistry } from "../functions/math"
-import { GLOBAL_VALUE, LOCAL_ATTR, isCanonicalName, rmCanonicalPrefix } from "./name-mapping-utils"
+import { basicCanonicalNameToDependency } from "./name-mapping-utils"
 import { isNonFunctionSymbolNode } from "./mathjs-utils"
-
-// Currently, canonical names can be "basic": they can refer to local attributes or global values.
-// Or they can be custom, like ones used by lookup functions. This helper parses basic canonical names.
-export const basicCanonicalNameToDependency = (canonicalName: string): IFormulaDependency | undefined => {
-  if (!isCanonicalName(canonicalName)) {
-    return undefined
-  }
-  canonicalName = rmCanonicalPrefix(canonicalName)
-  if (canonicalName.startsWith(LOCAL_ATTR)) {
-    const attrId = canonicalName.substring(LOCAL_ATTR.length)
-    return { type: "localAttribute", attrId }
-  }
-  if (canonicalName.startsWith(GLOBAL_VALUE)) {
-    const globalId = canonicalName.substring(GLOBAL_VALUE.length)
-    return { type: "globalValue", globalId }
-  }
-  return undefined
-}
 
 export const ifSelfReference = (dependency?: IFormulaDependency, formulaAttributeId?: string) =>
   formulaAttributeId && dependency?.type === "localAttribute" && dependency.attrId === formulaAttributeId

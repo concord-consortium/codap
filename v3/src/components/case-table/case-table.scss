@@ -323,6 +323,14 @@ $table-body-font-size: 8pt;
         background-color: var(--rdg-row-selected-background-color);
       }
 
+      .cell-boundary-thumb {
+        position: absolute;
+
+        .cell-boundary-thumb-interior {
+          height: 14px;
+        }
+      }
+      
       .cell-span {
 
         &.numeric-format {
