@@ -1,6 +1,6 @@
 import React, { useState } from "react"
 import { observer } from "mobx-react-lite"
-import { Editable, EditablePreview, EditableInput, Tooltip, useDisclosure } from "@chakra-ui/react"
+import { Editable, EditablePreview, EditableInput } from "@chakra-ui/react"
 import { clsx } from "clsx"
 import { IValueType } from "../../models/data/attribute-types"
 import { ICollectionModel } from "../../models/data/collection"
@@ -14,9 +14,6 @@ import { useCaseCardModel } from "./use-case-card-model"
 import { renderAttributeValue } from "../case-tile-common/attribute-format-utils"
 
 import "./case-attr-view.scss"
-import ColorCellTextEditor from "../case-table/color-cell-text-editor"
-import CellTextEditor from "../case-table/cell-text-editor"
-import ColorValueTextEditor from "../case-tile-common/color-value-text-editor"
 
 interface ICaseAttrViewProps {
   caseId: string
@@ -35,32 +32,16 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
   const data = cardModel?.data
   const attr = collection.getAttribute(attrId)
   const isCollectionSummarized = !!cardModel?.summarizedCollections.includes(collection.id)
-  const strValue = cellValue ? String(cellValue) : ""
-  const numValue = isFiniteNumber(Number(cellValue)) ? Number(cellValue) : undefined
-  const showUnitWithValue = !!(isFiniteNumber(Number(cellValue)) && unit)
+  const showUnitWithValue = isFiniteNumber(Number(cellValue)) && unit
   const [isEditing, setIsEditing] = useState(false)
-  const [editingValue, setEditingValue] = useState(strValue)
-  const { value, content } = renderAttributeValue(strValue, numValue, showUnitWithValue, attr)
-  const { onClose } = useDisclosure()
+  const [editingValue, setEditingValue] = useState(String(cellValue))
   const handleChangeValue = (newValue: string) => {
     setEditingValue(newValue)
   }
 
-  const updateValue = (val: string) => {
-    setEditingValue(val)
-    // onRowChange({ ...row, [column.key]: value })
-    // setPendingLogMessage("editCellValue", logStringifiedObjectMessage("editCellValue: %@",
-    //   {attrId: column.key, caseId: row.__id__, from: initialInputValue.current, to: value }))
-    // if (blockAPIRequests && value !== initialInputValue.current) {
-    //   // Only block API requests if the user has actually changed the value.
-    //   uiState.setIsEditingBlockingCell()
-    // }
-  }
-
-
   const handleCancel = (_previousName?: string) => {
     setIsEditing(false)
-    setEditingValue(value)
+    setEditingValue(String(cellValue))
   }
 
   const handleSubmit = (newValue?: string) => {
@@ -70,12 +51,12 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
 
       if (data) {
         applyCaseValueChanges(data, casesToUpdate)
-
+        return
       }
 
       setEditingValue(newValue)
     } else {
-      setEditingValue(value)
+      setEditingValue(String(cellValue))
     }
   }
 
@@ -83,40 +64,33 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
     if (isCollectionSummarized) {
       return (
         <div className={clsx("case-card-attr-value-text", "static-summary", {"formula-attr-value": attr?.hasFormula})}>
-          {/* {displayValue} */}
-          {content}
+          {String(cellValue)}
         </div>
       )
     }
 
+    const { value } = renderAttributeValue(String(cellValue), Number(cellValue), !!showUnitWithValue, attr)
+
     return (
-      isEditing
-        ? attr?.userType == null || attr?.userType === "color"
-            ? <ColorValueTextEditor attributeId={attrId} inputValue={value} updateValue={updateValue}
-                  acceptValue={handleSubmit} onClose={onClose}/>
-            : <Editable
-                className={clsx("case-card-attr-value-text", {"formula-attr-value": attr?.hasFormula})}
-                isPreviewFocusable={true}
-                isDisabled={attr?.hasFormula}
-                onCancel={handleCancel}
-                onChange={handleChangeValue}
-                onEdit={() => setIsEditing(true)}
-                onSubmit={handleSubmit}
-                submitOnBlur={true}
-                value={isEditing ? editingValue : `${strValue}${showUnitWithValue ? ` ${unit}` : ""}`}
-              >
-                <EditablePreview paddingY={0} />
-                <EditableInput
-                  className="case-card-attr-value-text-editor"
-                  data-testid="case-card-attr-value-text-editor"
-                  paddingY={0}
-                  value={editingValue}
-                />
-              </Editable>
-        : <Tooltip label={value} h="20px" fontSize="12px" color="white" data-testid="case-table-data-tip"
-            openDelay={1000} placement="bottom" bottom="10px" left="15px">
-            {content}
-          </Tooltip>
+      <Editable
+        className={clsx("case-card-attr-value-text", {"formula-attr-value": attr?.hasFormula})}
+        isPreviewFocusable={true}
+        isDisabled={attr?.hasFormula}
+        onCancel={handleCancel}
+        onChange={handleChangeValue}
+        onEdit={() => setIsEditing(true)}
+        onSubmit={handleSubmit}
+        submitOnBlur={true}
+        value={isEditing ? editingValue : value}
+      >
+        <EditablePreview paddingY={0} />
+        <EditableInput
+          className="case-card-attr-value-text-editor"
+          data-testid="case-card-attr-value-text-editor"
+          paddingY={0}
+          value={editingValue}
+        />
+      </Editable>
     )
   }
 
@@ -143,7 +117,7 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
       <td
         className={clsx("case-card-attr-value", {
                     editing: isEditing,
-                    numeric: !isCollectionSummarized && isFiniteNumber(Number(value))
+                    numeric: !isCollectionSummarized && isFiniteNumber(Number(cellValue))
                   })}
         data-testid="case-card-attr-value"
       >
