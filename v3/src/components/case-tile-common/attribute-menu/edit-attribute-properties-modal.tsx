@@ -116,7 +116,7 @@ export const EditAttributePropertiesModal = ({ attributeId, isOpen, onClose }: I
   }
 
   const getPrecisionMenu = () => {
-    if (attribute?.type === "date" || userType === "date") {
+    if (userType === "date" || (userType === "none" && attribute?.type === "date")) {
       return (
         <Select size="xs" ml={5} value={toDatePrecisionStr(precision)} data-testid="attr-precision-select"
                         onChange={(e) => setPrecision(toDatePrecision(e.target.value))}>
@@ -130,8 +130,10 @@ export const EditAttributePropertiesModal = ({ attributeId, isOpen, onClose }: I
         </Select>
       )
     } else {
+      const isDisabled = !["none", "date", "numeric"].includes(userType)
+      const value = isDisabled ? "" : toNumPrecisionStr(precision)
       return (
-        <Select size="xs" ml={5} value={toNumPrecisionStr(precision)}
+        <Select size="xs" ml={5} value={value} disabled={isDisabled}
             data-testid="attr-precision-select"
             onChange={(e) => setPrecision(toNumPrecision(e.target.value))}>
           <option value={""}></option>
