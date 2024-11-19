@@ -3,6 +3,7 @@ import {observer} from "mobx-react-lite"
 import React, {useCallback, useEffect} from "react"
 import { mstAutorun } from "../../../utilities/mst-autorun"
 import {mstReaction} from "../../../utilities/mst-reaction"
+import { kMain } from "../../data-display/data-display-types"
 import {PlotProps} from "../graphing-types"
 import {usePixiDragHandlers, usePlotResponders} from "../hooks/use-plot"
 import {setNiceDomain, setPointCoordinates} from "../utilities/graph-utils"
@@ -102,8 +103,8 @@ export const FreeDotPlotDots = observer(function FreeDotPlotDots(props: PlotProp
         const { caseIndex, casesInCategory } = getSubPlotDetails(anID)
         const barDimension = getBarStaticDimension()
         const { category, extraCategory } = binMap[anID]
-        const secondaryCoord = category && category !== '__main__' ? (secondaryAxisScale(category) ?? 0) : 0
-        const extraSecondaryCoord = extraCategory && extraCategory !== '__main__'
+        const secondaryCoord = category && category !== kMain ? (secondaryAxisScale(category) ?? 0) : 0
+        const extraSecondaryCoord = extraCategory && extraCategory !== kMain
           ? (extraSecondaryAxisScale(extraCategory) ?? 0)
           : 0
 

@@ -25,7 +25,8 @@ import {getQuantileScale, missingColor, parseColor} from "../../../utilities/col
 import { numericSortComparator } from "../../../utilities/data-utils"
 import {GraphPlace} from "../../axis-graph-shared"
 import {CaseData} from "../d3-types"
-import {AttrRole, GraphAttrRole, TipAttrRoles, graphPlaceToAttrRole} from "../data-display-types"
+import { AttrRole, GraphAttrRole, TipAttrRoles, graphPlaceToAttrRole, kOther, kMain, GraphSplitAttrRoles }
+  from "../data-display-types"
 
 export const AttributeDescription = types
   .model('AttributeDescription', {
@@ -104,7 +105,9 @@ export const DataConfigurationModel = types
     casesChangeCount: 0,
     // cached result of filter formula evaluation for each case ID
     filteredOutCaseIds: observable.set<string>(),
-    filterFormulaError: ""
+    filterFormulaError: "",
+    // The following is set in useSubAxis:setupCategories based on how many fit in available space
+    numberOfCategoriesLimitByRole: observable.map<AttrRole, number | undefined>()
   }))
   .views(self => ({
     get axisAttributeIDs() {
@@ -162,6 +165,11 @@ export const DataConfigurationModel = types
       const attrID = this.attributeID(role)
       const attr = attrID ? self.dataset?.attrFromID(attrID) : undefined
       return attr?.type
+    },
+    roleForAttributeWithCategoryLimit(attrID: string) {
+      return GraphSplitAttrRoles.find(role => {
+        return self.numberOfCategoriesLimitByRole.get(role) !== undefined
+      })
     },
     get places() {
       const places = new Set<string>(Object.keys(this.attributeDescriptions))
@@ -331,22 +339,33 @@ export const DataConfigurationModel = types
      * @param emptyCategoryArray
      */
     categoryArrayForAttrRole: cachedFnWithArgsFactory<(role: AttrRole, emptyCategoryArray?: string[]) => string[]>({
-      key: (role: AttrRole, emptyCategoryArray = ['__main__']) => JSON.stringify({ role, emptyCategoryArray }),
-      calculate: (role: AttrRole, emptyCategoryArray = ['__main__']) => {
-        const valuesSet = new Set(self.valuesForAttrRole(role))
-        if (valuesSet.size === 0) return emptyCategoryArray
+      key: (role: AttrRole, emptyCategoryArray = [kMain]) => JSON.stringify({ role, emptyCategoryArray }),
+      calculate: (role: AttrRole, emptyCategoryArray = [kMain]) => {
+        const valuesSet = new Set(self.valuesForAttrRole(role)),
+          categoryLimitForRole = self.numberOfCategoriesLimitByRole.get(role)
+        let resultArray: string[] = []
+        if (valuesSet.size === 0) {
+          resultArray.push(kMain)
+        }
         // category set maintains the canonical order of categories
         const allCategorySet = self.categorySetForAttrRole(role)
         // if we don't have a category set just return the values
-        if (!allCategorySet) return Array.from(valuesSet)
-        // return the categories in canonical order
-        const orderedCategories: string[] = []
-        allCategorySet.values.forEach(category => {
-          if (valuesSet.has(category)) {
-            orderedCategories.push(category)
+        if (!allCategorySet && valuesSet.size > 0) {
+          resultArray = Array.from(valuesSet)
+        }
+        else {
+          // return the categories in canonical order
+          allCategorySet?.values.forEach(category => {
+            if (valuesSet.has(category)) {
+              resultArray.push(category)
+            }
+          })
+          if (categoryLimitForRole && resultArray.length > categoryLimitForRole) {
+            resultArray.length = categoryLimitForRole
+            resultArray[categoryLimitForRole - 1] = kOther
           }
-        })
-        return orderedCategories
+        }
+        return resultArray
       }
     }),
     get allCategoriesForRoles() {
@@ -485,11 +504,11 @@ export const DataConfigurationModel = types
         return primaryAttrID
           ? self.getCaseDataArray(0).filter((aCaseData: CaseData) => {
             return dataset?.getStrValue(aCaseData.caseID, primaryAttrID) === primaryValue &&
-              (secondaryValue === "__main__" ||
+              (secondaryValue === kMain ||
                 dataset?.getStrValue(aCaseData.caseID, secondaryAttrID) === secondaryValue) &&
-              (primarySplitValue === "__main__" ||
+              (primarySplitValue === kMain ||
                 dataset?.getStrValue(aCaseData.caseID, extraPrimaryAttrID) === primarySplitValue) &&
-              (secondarySplitValue === "__main__" ||
+              (secondarySplitValue === kMain ||
                 dataset?.getStrValue(aCaseData.caseID, extraSecondaryAttrID) === secondarySplitValue) &&
               (!legendCat ||
                 dataset?.getStrValue(aCaseData.caseID, self.attributeID("legend")) === legendCat)
@@ -735,6 +754,10 @@ export const DataConfigurationModel = types
     setLegendColorForCategory(cat: string, color: string) {
       const categorySet = self.categorySetForAttrRole('legend')
       categorySet?.setColorForCategory(cat, color)
+    },
+    setNumberOfCategoriesLimitForRole(role: AttrRole, limit: number | undefined) {
+      self.numberOfCategoriesLimitByRole.set(role, limit)
+      self.categoryArrayForAttrRole.invalidate(role)
     },
   }))
   .actions(self => ({

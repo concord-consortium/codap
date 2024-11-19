@@ -1,18 +1,15 @@
+import { translate } from "../../../utilities/translation/translate"
 import { BaseType, drag, extent, select, Selection } from "d3"
 import { comparer, reaction } from "mobx"
 import { mstAutorun } from "../../../utilities/mst-autorun"
 import { mstReaction } from "../../../utilities/mst-reaction"
-import { useCallback, useEffect, useMemo, useRef } from "react"
-import { axisPlaceToAttrRole } from "../../data-display/data-display-types"
+import { MutableRefObject, useCallback, useEffect, useMemo, useRef } from "react"
+import { axisPlaceToAttrRole, kOther } from "../../data-display/data-display-types"
+import { kDefaultFontHeight } from "../../graph/graphing-types"
 import { useDataDisplayAnimation } from "../../data-display/hooks/use-data-display-animation"
 import { AxisPlace } from "../axis-types"
 import { useAxisLayoutContext } from "../models/axis-layout-context"
-import {
-  IAxisModel,
-  isBaseNumericAxisModel,
-  isCategoricalAxisModel,
-  isNumericAxisModel
-} from "../models/axis-model"
+import {IAxisModel, isBaseNumericAxisModel, isCategoricalAxisModel, isNumericAxisModel} from "../models/axis-model"
 import { isVertical } from "../../axis-graph-shared"
 import { isAliveSafe } from "../../../utilities/mst-utils"
 import { computeNiceNumericBounds, setNiceDomain } from "../../graph/utilities/graph-utils"
@@ -28,7 +25,7 @@ import { logMessageWithReplacement } from "../../../lib/log-message"
 export interface IUseSubAxis {
   subAxisIndex: number
   axisPlace: AxisPlace
-  subAxisElt: SVGGElement | null
+  subAxisEltRef: MutableRefObject<SVGGElement | null>
   showScatterPlotGridLines: boolean
   centerCategoryLabels: boolean
 }
@@ -53,7 +50,7 @@ function setAxisHelper(axisModel: IAxisModel, subAxisIndex: number, axisHelper: 
 }
 
 export const useSubAxis = ({
-                             subAxisIndex, axisPlace, subAxisElt, showScatterPlotGridLines, centerCategoryLabels
+                             subAxisIndex, axisPlace, subAxisEltRef, showScatterPlotGridLines, centerCategoryLabels
                            }: IUseSubAxis) => {
   const layout = useAxisLayoutContext(),
     displayModel = useDataDisplayModelContextMaybe(),
@@ -80,6 +77,7 @@ export const useSubAxis = ({
     swapInProgress = useRef(false),
     subAxisSelectionRef = useRef<Selection<SVGGElement, any, any, any>>(),
     categoriesSelectionRef = useRef<Selection<SVGGElement | BaseType, CatObject, SVGGElement, any>>(),
+    categoriesRef = useRef<string[]>([]),
 
     renderSubAxis = useCallback(() => {
       const _axisModel = axisProvider.getAxis?.(axisPlace)
@@ -163,12 +161,19 @@ export const useSubAxis = ({
      * Make sure there is a group element for each category and that the text elements have drag behavior
      */
     setupCategories = useCallback(() => {
-      if (!subAxisElt) return
-      const role = axisPlaceToAttrRole[axisPlace],
-        categories = dataConfig?.categoryArrayForAttrRole(role) ?? [],
+      const subAxisElt = subAxisEltRef.current,
+        axisLength = layout.getAxisLength(axisPlace),
+        numCategoriesLimit = Math.floor(axisLength / kDefaultFontHeight)
+      dataConfig?.setNumberOfCategoriesLimitForRole(axisPlaceToAttrRole[axisPlace], numCategoriesLimit)
+      const catArray = (dataConfig?.categoryArrayForAttrRole(axisPlaceToAttrRole[axisPlace]) ?? []).slice()
+      if (catArray[catArray.length - 1] === kOther) {
+        catArray[catArray.length - 1] = translate("DG.CellAxis.other")
+      }
+      const categories = catArray,
         categoryData: CatObject[] = categories.map((cat, index) =>
           ({cat, index: isVertical(axisPlace) ? categories.length - index - 1 : index}))
 
+      if (!subAxisElt) return
       subAxisSelectionRef.current = select(subAxisElt)
       const sAS = subAxisSelectionRef.current
 
@@ -206,12 +211,19 @@ export const useSubAxis = ({
           .attr('y', 0)
       })
 
-    }, [axisPlace, dataConfig, dragBehavior, subAxisElt])
+      const multiScale = layout.getAxisMultiScale(axisPlace),
+        existingCategoryDomain = multiScale?.categoricalScale?.domain() ?? []
+      if (JSON.stringify(categories) !== JSON.stringify(existingCategoryDomain)) {
+        multiScale?.setCategoricalDomain(categories)
+      }
+      categoriesRef.current = catArray
+    }, [axisPlace, dataConfig, dragBehavior, layout, subAxisEltRef])
 
   // update axis helper
   useEffect(() => {
     let helper: Maybe<AxisHelper>
     let shouldRenderSubAxis = true
+    const subAxisElt = subAxisEltRef.current
     if (axisModel) {
       const helperProps: IAxisHelperArgs =
         {displayModel, axisProvider, subAxisIndex, subAxisElt, axisModel, layout, isAnimating}
@@ -230,7 +242,7 @@ export const useSubAxis = ({
           shouldRenderSubAxis = false
           helper = new CategoricalAxisHelper(
             { ...helperProps, centerCategoryLabels, dragInfo,
-              subAxisSelectionRef, categoriesSelectionRef, swapInProgress })
+              subAxisSelectionRef, categoriesSelectionRef, categoriesRef, swapInProgress })
           break
         case 'date':
           subAxisSelectionRef.current = subAxisElt ? select(subAxisElt) : undefined
@@ -242,7 +254,7 @@ export const useSubAxis = ({
       }
     }
   }, [axisModel, axisProvider, centerCategoryLabels, displayModel, isAnimating, layout, renderSubAxis,
-            showScatterPlotGridLines, subAxisElt, subAxisIndex])
+            showScatterPlotGridLines, subAxisEltRef, subAxisIndex])
 
   // update d3 scale and axis when scale type changes
   useEffect(() => {
@@ -260,11 +272,14 @@ export const useSubAxis = ({
   useEffect(() => {
     const disposer = reaction(
       () => layout.getComputedBounds(axisPlace),
-      () => renderSubAxis(),
+      () => {
+        isCategorical && setupCategories()
+        renderSubAxis()
+      },
       {name: "useSubAxis [layout.getComputedBounds()"}
     )
     return () => disposer()
-  }, [axisPlace, layout, renderSubAxis])
+  }, [axisPlace, layout, isCategorical, renderSubAxis, setupCategories])
 
   // update d3 scale and axis when axis domain changes
   useEffect(function installDomainSync() {
@@ -315,12 +330,12 @@ export const useSubAxis = ({
       return // We don't have an attribute. We're a count axis, so we rely on other methods for domain updates
     }
     if (isCategoricalAxisModel(axisModel)) {
-      const categoryValues = dataConfig?.categoryArrayForAttrRole(role) ?? [],
+      setupCategories()
+      const categoryValues = categoriesRef.current,
         multiScale = layout.getAxisMultiScale(axisPlace),
         existingCategoryDomain = multiScale?.categoricalScale?.domain() ?? []
       if (JSON.stringify(categoryValues) === JSON.stringify(existingCategoryDomain)) return
       multiScale?.setCategoricalDomain(categoryValues)
-      setupCategories()
     } else if (isBaseNumericAxisModel(axisModel)) {
       const currentAxisDomain = axisModel.domain
       const multiScale = layout.getAxisMultiScale(axisPlace)
@@ -380,10 +395,10 @@ export const useSubAxis = ({
 
   // We only need to do this for categorical axes
   useEffect(function setup() {
-    if (subAxisElt && isCategorical) {
+    if (isCategorical) {
       setupCategories()
       renderSubAxis()
     }
-  }, [subAxisElt, isCategorical, setupCategories, renderSubAxis])
+  }, [isCategorical, setupCategories, renderSubAxis])
 
 }
