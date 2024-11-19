@@ -58,6 +58,12 @@ export function handleCFMEvent(cfmClient: CloudFileManagerClient, event: CloudFi
       if (!appState.isCurrentRevision(content.revisionId)) {
         cfmClient.dirty(true)
       }
+
+      // The filename might have changed when the document was saved
+      const filename = event.state?.metadata?.filename
+      if (filename) {
+        appState.document.setTitleFromFilename(filename)
+      }
       break
     }
     // case "sharedFile":
@@ -66,8 +72,15 @@ export function handleCFMEvent(cfmClient: CloudFileManagerClient, event: CloudFi
     //   break
     // case "importedData":
     //   break
-    // case "renamedFile":
-    //   break
+    case "renamedFile": {
+      // Possible Improvement: Add a custom undo entry when the file is renamed.
+      // It would need to send the appropriate commands to the CFM to update the filename.
+      const filename = event.state?.metadata?.filename
+      if (filename) {
+        appState.document.setTitleFromFilename(filename)
+      }
+      break
+    }
     // case "log":
     //   break
   }

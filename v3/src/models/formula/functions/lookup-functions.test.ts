@@ -1,5 +1,6 @@
 import { evaluate } from "../test-utils/formula-test-utils"
 
+// Mock boundary functions because they require boundary info to be fetched, which 
 const boundaryMap: Record<string, any> = { US_state_boundaries: { boundary: {
   alaska : `{ "geometry": "coords" }`
 } } }
