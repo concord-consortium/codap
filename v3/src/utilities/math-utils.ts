@@ -147,6 +147,9 @@ export const isValueEmpty = (value: any) => value == null || value === ""
 
 export const isValueNonEmpty = (value: any) => !isValueEmpty(value)
 
+// returns undefined for empty values, and the value itself for non-empty values
+export const toNonEmptyValue = (value: any) => isValueEmpty(value) ? undefined : value
+
 // Similar to isFiniteNumber, but looser.
 // It allows for strings that can be converted to numbers and treats Infinity and -Infinity as valid numbers.
 export const isNumber = (v: any) => isValueNonEmpty(v) && !isNaN(Number(v))

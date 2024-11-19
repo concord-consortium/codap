@@ -1,10 +1,11 @@
-import {singular} from "pluralize"
-import {translate} from "../../../utilities/translation/translate"
 import {LatLngBounds, latLngBounds} from 'leaflet'
-import {isFiniteNumber} from "../../../utilities/math-utils"
+import {singular} from "pluralize"
 import {IDataSet} from "../../../models/data/data-set"
-import {kLatNames, kLongNames, kPolygonNames} from "../map-types"
+import { kPolygonNames } from "../../../utilities/boundary-utils"
+import {isFiniteNumber} from "../../../utilities/math-utils"
+import {translate} from "../../../utilities/translation/translate"
 import {IDataConfigurationModel} from "../../data-display/models/data-configuration-model"
+import {kLatNames, kLongNames} from "../map-types"
 
 // A dataset has point data if it has both a latitude and longitude attribute; i.e. an attribute whose name
 // is in kLatNames and an attribute whose name is in kLongNames

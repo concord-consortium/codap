@@ -22,7 +22,9 @@ export function importV2Document(v2Document: CodapV2Document) {
     })
   }
 
-  v3Document.setTitle(v2Document.getDocumentTitle())
+  // Note: it is not necessary to set the name when importing a v2 document
+  // The CFM will get the name itself and then we'll set the name when
+  // the v3 document is initialized
 
   // add shared models (data sets and case metadata)
   v2Document.dataSets.forEach((data, key) => {
@@ -43,14 +45,18 @@ export function importV2Document(v2Document: CodapV2Document) {
           const {
             layout: { left = 0, top = 0, width, height: v2Height, isVisible, zIndex }, savedHeight
           } = v2Component
-          const isMinimized = (!!savedHeight && savedHeight >= v2Height && !isVisible) || undefined
-          const height = savedHeight && isMinimized ? savedHeight : v2Height
+          const isHidden = isVisible === false
+          const v2Minimized = (!!savedHeight && savedHeight >= v2Height) || undefined
+          const isMinimized = v2Minimized && !isHidden
+          const height = savedHeight && v2Minimized ? savedHeight : v2Height
           // only apply imported width and height to resizable tiles
           const _width = !info.isFixedWidth ? { width } : {}
           const _height = !info?.isFixedHeight ? { height } : {}
           const _zIndex = zIndex != null ? { zIndex } : {}
           if (zIndex != null && zIndex > maxZIndex) maxZIndex = zIndex
-          const layout: IFreeTileInRowOptions = { x: left, y: top, ..._width, ..._height, ..._zIndex, isMinimized }
+          const layout: IFreeTileInRowOptions = {
+            x: left, y: top, ..._width, ..._height, ..._zIndex, isHidden, isMinimized
+          }
           newTile = content?.insertTileSnapshotInRow(tile, row, layout)
         }
       }

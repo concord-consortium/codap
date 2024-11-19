@@ -10,6 +10,7 @@ import { DocumentContentModel, IDocumentContentSnapshotIn } from "./document-con
 import { IDocumentProperties } from "./document-types"
 import { ISharedModelDocumentManager } from "./shared-model-document-manager"
 import { typedId } from "../../utilities/js-utils"
+import { t } from "../../utilities/translation/translate"
 
 export const DocumentModel = Tree.named("Document")
   .props({
@@ -18,12 +19,17 @@ export const DocumentModel = Tree.named("Document")
     version: types.maybe(types.string),
     build: types.maybe(types.string),
     createdAt: 0,       // remote documents fill this in when content is loaded
-    title: types.maybe(types.string),
     properties: types.map(types.string),
     content: types.maybe(DocumentContentModel),
   })
   .volatile(self => ({
-    treeMonitor: undefined as TreeMonitor | undefined
+    treeMonitor: undefined as TreeMonitor | undefined,
+    // This is in volatile because the CFM is the source of truth for the title.
+    // Do not change this property directly, rename the file in the CFM instead.
+    // The default value should match the MENUBAR.UNTITLED_DOCUMENT in the CFM. When a new
+    // document is saved, the CFM will use its default title not this one. However we need a
+    // default value to show in the browser window.
+    title: t("DG.Document.defaultDocumentName")
   }))
   .views(self => ({
     // This is needed for the tree monitor and manager
@@ -91,8 +97,9 @@ export const DocumentModel = Tree.named("Document")
       self.createdAt = createdAt
     },
 
-    setTitle(title: string) {
-      self.title = title
+    setTitleFromFilename(filename: string) {
+      // This will be called when the file is loaded, saved, or renamed by the CFM
+      self.title = filename.split(".")[0]
     },
 
     setProperty(key: string, value?: string) {

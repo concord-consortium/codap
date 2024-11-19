@@ -22,6 +22,14 @@ export const FreeTileLayout = types.model("FreeTileLayout", {
   isHidden: types.maybe(types.boolean),
   isMinimized: types.maybe(types.boolean)
 })
+.preProcessSnapshot(snap => {
+  if (snap.isHidden && snap.isMinimized) {
+    // can't be both minimized and hidden
+    const { isMinimized, ...others } = snap
+    return { ...others }
+  }
+  return snap
+})
 .views(self => ({
   get position() {
     return { x: self.x, y: self.y }
@@ -45,6 +53,8 @@ export const FreeTileLayout = types.model("FreeTileLayout", {
   setHidden(isHidden: boolean) {
     // only store it if it's true
     self.isHidden = isHidden || undefined
+    // can't be both hidden and minimized
+    if (isHidden) self.isMinimized = undefined
   },
   setMinimized(isMinimized: boolean) {
     // only store it if it's true
@@ -60,13 +70,7 @@ export function isFreeTileLayout(layout?: any): layout is IFreeTileLayout {
           Number.isFinite(layout.x) && Number.isFinite(layout.y)
 }
 
-export interface IFreeTileInRowOptions extends ITileInRowOptions {
-  x: number
-  y: number
-  width?: number
-  height?: number
-  zIndex?: number
-  isMinimized?: boolean
+export type IFreeTileInRowOptions = ITileInRowOptions & Omit<IFreeTileLayoutSnapshot, "tileId"> & {
   animateCreation?: boolean
 }
 export const isFreeTileInRowOptions = (options?: ITileInRowOptions): options is IFreeTileInRowOptions =>
@@ -143,9 +147,9 @@ export const FreeTileRow = TileRowModel
     insertTile(tileId: string, options?: ITileInRowOptions) {
       const {
         x = 50, y = 50, width = undefined, height = undefined, zIndex = this.nextZIndex(),
-        isMinimized = undefined, animateCreation = false
+        isHidden = undefined, isMinimized = undefined, animateCreation = false
       } = isFreeTileInRowOptions(options) ? options : {}
-      self.tiles.set(tileId, { tileId, x, y, width, height, zIndex, isMinimized })
+      self.tiles.set(tileId, { tileId, x, y, width, height, zIndex, isHidden, isMinimized })
       animateCreation && self.animateCreationTiles.add(tileId)
     },
     removeTile(tileId: string) {

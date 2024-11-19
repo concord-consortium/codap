@@ -44,10 +44,10 @@ describe("document model", () => {
     expect(document.createdAt).toBe(10)
   })
 
-  it("can set title", () => {
-    expect(document.title).toBeUndefined()
-    document.setTitle("FooTitle")
-    expect(document.title).toBe("FooTitle")
+  it("has a default title", () => {
+    // This is the default document name defined by the localization key:
+    // DG.Document.defaultDocumentName
+    expect(document.title).toBe("Untitled Document")
   })
 
   it("can set properties", () => {

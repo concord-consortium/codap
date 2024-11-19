@@ -1149,5 +1149,18 @@ context("case table ui", () => {
       cy.log("verify that the color actually changed finally")
       table.verifyCellSwatchColor(2, 2, "rgb(0, 255")
     })
-})
+  })
+
+  describe("table cells with boundary thumbnails", () => {
+    it("displays boundary thumbnails in cells of boundary attributes", () => {
+      const queryParams = "#file=examples:Roller%20Coasters"
+      const url = `${Cypress.config("index")}${queryParams}`
+      cy.visit(url)
+      cy.wait(1000)
+
+      table.getTableTile().click()
+      table.showAllAttributes()
+      cy.get(".cell-boundary-thumb").should("exist")
+    })
+  })
 })
