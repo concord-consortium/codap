@@ -193,10 +193,14 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
   const legendAttributeId = dataConfiguration.attributeID('legend')
   const legendAttribute = dataset?.getAttribute(legendAttributeId)
   const getLegendColor = legendAttribute ? dataConfiguration?.getLegendColorForCase : undefined
+/*
   const lookupLegendColor = useCallback((caseData: CaseData) => {
-    const {pointColor} = pointDescription
-    return getLegendColor?.(caseData.caseID) ?? pointColor
-  }, [getLegendColor, pointDescription])
+    return getLegendColor?.(caseData.caseID) ?? missingColor
+  }, [getLegendColor])
+*/
+  const lookupLegendColor = (aCaseData: CaseData) => {
+      return dataConfiguration.getLegendColorForCase(aCaseData.caseID) || pointDescription.pointColor
+    }
 
   const refreshPoints = useDebouncedCallback(async (selectedOnly: boolean) => {
     const {pointSizeMultiplier, pointStrokeColor} = pointDescription,
