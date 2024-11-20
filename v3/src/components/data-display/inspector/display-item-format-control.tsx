@@ -185,13 +185,16 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
                       />
                     </Flex>
                   </FormControl>
-                :(
-                <Flex className="palette-row color-picker-row">
-                  <FormLabel className="form-label color-picker">{t("DG.Inspector.color")}</FormLabel>
-                  <PointColorSetting propertyLabel={t("DG.Inspector.color")}
-                                    onColorChange={(color) => handlePointColorChange(color)}
-                                    swatchBackgroundColor={displayItemDescription.pointColor}/>
-                </Flex>)
+                : attrType === "color"
+                  ? null
+                  : (
+                    <Flex className="palette-row color-picker-row">
+                      <FormLabel className="form-label color-picker">{t("DG.Inspector.color")}</FormLabel>
+                      <PointColorSetting propertyLabel={t("DG.Inspector.color")}
+                                        onColorChange={(color) => handlePointColorChange(color)}
+                                        swatchBackgroundColor={displayItemDescription.pointColor}/>
+                    </Flex>
+                  )
           }
         </>
       </FormControl>
