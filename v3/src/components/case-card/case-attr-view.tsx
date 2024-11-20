@@ -12,6 +12,7 @@ import { AttributeHeaderDivider } from "../case-tile-common/attribute-header-div
 import { GetDividerBoundsFn } from "../case-tile-common/case-tile-types"
 import { applyCaseValueChanges } from "../case-tile-common/case-tile-utils"
 import { useCaseCardModel } from "./use-case-card-model"
+import ColorTextEditor from "../case-tile-common/color-text-editor"
 
 import "./case-attr-view.scss"
 
@@ -74,25 +75,31 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
     const { value } = renderAttributeValue(displayStrValue, displayNumValue, showUnitWithValue, attr)
 
     return (
-      <Editable
-        className={clsx("case-card-attr-value-text", {"formula-attr-value": attr?.hasFormula})}
-        isPreviewFocusable={true}
-        isDisabled={attr?.hasFormula}
-        onCancel={handleCancel}
-        onChange={handleChangeValue}
-        onEdit={() => setIsEditing(true)}
-        onSubmit={handleSubmit}
-        submitOnBlur={true}
-        value={isEditing ? editingValue : value}
-      >
-        <EditablePreview paddingY={0} />
-        <EditableInput
-          className="case-card-attr-value-text-editor"
-          data-testid="case-card-attr-value-text-editor"
-          paddingY={0}
-          value={editingValue}
+      (attr?.userType === "color" || (attr?.userType === undefined && attr?.type === "color"))
+      ? <ColorTextEditor
+          attributeId={attr.id}
+          caseId={caseId}
+          value={isEditing ? editingValue : cellValue}
         />
-      </Editable>
+      : <Editable
+          className={clsx("case-card-attr-value-text", {"formula-attr-value": attr?.hasFormula})}
+          isPreviewFocusable={true}
+          isDisabled={attr?.hasFormula}
+          onCancel={handleCancel}
+          onChange={handleChangeValue}
+          onEdit={() => setIsEditing(true)}
+          onSubmit={handleSubmit}
+          submitOnBlur={true}
+          value={isEditing ? editingValue : value}
+        >
+          <EditablePreview paddingY={0} />
+          <EditableInput
+            className="case-card-attr-value-text-editor"
+            data-testid="case-card-attr-value-text-editor"
+            paddingY={0}
+            value={editingValue}
+          />
+        </Editable>
     )
   }
 
