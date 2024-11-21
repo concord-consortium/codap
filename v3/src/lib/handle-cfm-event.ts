@@ -1,3 +1,4 @@
+import { cloneDeep } from "lodash"
 import { CloudFileManagerClient, CloudFileManagerClientEvent } from "@concord-consortium/cloud-file-manager"
 import { appState } from "../models/app-state"
 import { removeDevUrlParams, urlParams } from "../utilities/url-params"
@@ -6,7 +7,7 @@ import { wrapCfmCallback } from "./cfm-utils"
 import build from "../../build_number.json"
 import pkg from "../../package.json"
 
-export function handleCFMEvent(cfmClient: CloudFileManagerClient, event: CloudFileManagerClientEvent) {
+export async function handleCFMEvent(cfmClient: CloudFileManagerClient, event: CloudFileManagerClientEvent) {
   // const { data, state, ...restEvent } = event
   // console.log("cfmEventCallback", JSON.stringify({ ...restEvent }))
 
@@ -33,10 +34,21 @@ export function handleCFMEvent(cfmClient: CloudFileManagerClient, event: CloudFi
     // case "closedFile":
     //   break
     case "getContent": {
-      // return the promise so tests can make sure it is complete
-      return appState.getDocumentSnapshot().then(content => {
-        event.callback(content)
-      })
+      const content = await appState.getDocumentSnapshot()
+      // getDocumentSnapshot makes a clone of the snapshot so it is safe to mutate in place.
+      const cfmContent = content as any
+
+      // Add 'metadata.shared' property based on the CFM event shared data
+      // The CFM assumes this is where the shared metadata is when it tries
+      // to strip it out in `getDownloadBlob`
+      const cfmSharedMetadata = event.data?.shared
+      if (cfmSharedMetadata) {
+        // In CODAPv2 the CFM metadata is cloned, so we do the same here to be safe
+        cfmContent.metadata = { shared: cloneDeep(cfmSharedMetadata) }
+      }
+      event.callback(cfmContent)
+
+      break
     }
     case "willOpenFile":
       removeDevUrlParams()
@@ -46,8 +58,21 @@ export function handleCFMEvent(cfmClient: CloudFileManagerClient, event: CloudFi
     case "openedFile": {
       const content = event.data.content
       const metadata = event.data.metadata
-      // return the promise so tests can make sure it is complete
-      return appState.setDocument(content, metadata)
+
+      // Pull the shared metadata out of the content if it exists
+      // Otherwise use the shared metadata passed from the CFM
+      const cfmSharedMetadata = content?.metadata?.shared || metadata?.shared || {}
+
+      // Clone this metadata because that is what CODAPv2 did so we do the
+      // same to be safe
+      const clonedCfmSharedMetadata = cloneDeep(cfmSharedMetadata)
+
+      await appState.setDocument(content, metadata)
+
+      // acknowledge a successful open and return shared metadata
+      event.callback(null, clonedCfmSharedMetadata)
+
+      break
     }
     case "savedFile": {
       const { content } = event.data
