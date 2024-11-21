@@ -11,11 +11,7 @@ const collectionName = "Mammals"
 const newCollectionName = "Animals"
 const plots = graphRules.plots
 
-// Skipping this test because Cypress 13 does not support displaying pixijs canvas elements in CI
-// https://github.com/cypress-io/cypress/issues/28289
-// This test can be unskipped when the above cypress bug is resolved
-// (In local, this works fine and the tests can be run successfully)
-context.skip("Test graph plot transitions", () => {
+context("Test graph plot transitions", () => {
   beforeEach(function () {
     const queryParams = "?mouseSensor"
     const url = `${Cypress.config("index")}${queryParams}`
@@ -25,7 +21,7 @@ context.skip("Test graph plot transitions", () => {
   })
 
   plots.forEach(test => {
-    it.skip(`${test.testName}`, () => {
+    it(`${test.testName}`, () => {
       c.getIconFromToolShelf("graph").click()
       c.moveComponent("graph", 1000)
       test.axes.forEach(hash => {
@@ -47,6 +43,32 @@ context("Graph UI", () => {
     cy.wait(2500)
   })
   describe("graph view", () => {
+    it.skip("should highlight a selected graph point", () => {
+      // This test is the outcome of a SPIKE to explore testing graph interactions.
+      // It partially validates interactions but requires further PIXIJS-level support.
+      // https://github.com/concord-consortium/codap/pull/1637
+
+      // Select the target table cell
+      table.getGridCell(2, 2).should("contain", "African Elephant").click({ force: true })
+
+      // Verify the graph's component title matches the collection name
+      c.getComponentTitle("graph").should("contain", collectionName)
+
+      // Re-click the table cell to ensure interaction consistency
+      table.getGridCell(2, 2).click({ force: true })
+
+      // Future goal: Validate the highlighted graph point
+      // ChatGPT suggests this approach could work if PIXIJS exposes DOM elements
+      // or provides API/event hooks that allow direct verification of point states.
+      // cy.get('[data-testid="graph"] canvas')
+      //   .should('be.visible') // Ensure the canvas is rendered
+      // cy.get('[data-testid="graph"]')
+      //   .find('svg .below-points-group circle') // Intended to locate graph points
+      //   .then((elements) => {
+      // Debugging information (e.g. to find out point color or position of points)
+      //     cy.log('Highlighted point details:', elements)
+      // })
+    })
     it("updates graph title", () => {
       c.getComponentTitle("graph").should("have.text", collectionName)
       c.changeComponentTitle("graph", newCollectionName)
