@@ -38,19 +38,24 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
   const showUnitWithValue = isFiniteNumber(displayNumValue) && !!unit
   const [isEditing, setIsEditing] = useState(false)
   const [editingValue, setEditingValue] = useState(displayStrValue)
+
+  console.log("caseattrview displayStrValue", displayStrValue)
+  
   const handleChangeValue = (newValue: string) => {
     setEditingValue(newValue)
   }
 
   const handleCancel = (_previousName?: string) => {
     setIsEditing(false)
-    setEditingValue(displayStrValue)
+    setEditingValue(_previousName ?? displayStrValue)
   }
 
   const handleSubmit = (newValue?: string) => {
     setIsEditing(false)
+    console.log("caseattrview caseId", caseId, newValue)
     if (newValue) {
       const casesToUpdate: ICase[] = [{ __id__: caseId, [attrId]: newValue }]
+      console.log("caseattrview casesToUpdate", casesToUpdate)
 
       if (data) {
         applyCaseValueChanges(data, casesToUpdate)
@@ -72,16 +77,43 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
       )
     }
 
+    const CaseCardEditableInput = () => {
+      return (
+        // (attr?.userType === "color" || (attr?.userType === undefined && attr?.type === "color"))
+        // ? <ColorTextEditor
+        //     attributeId={attr.id}
+        //     caseId={caseId}
+        //     acceptValue={handleSubmit}
+        //     updateValue={handleChangeValue}
+        //     renderInput={renderEditableInput}
+        //   />
+        // :
+        <>
+          <EditablePreview paddingY={0} />
+          <EditableInput
+            className="case-card-attr-value-text-editor"
+            data-testid="case-card-attr-value-text-editor"
+            paddingY={0}
+            value={editingValue}
+          />
+        </>
+
+      )
+    }
+
     const { value } = renderAttributeValue(displayStrValue, displayNumValue, showUnitWithValue, attr)
 
     return (
-      (attr?.userType === "color" || (attr?.userType === undefined && attr?.type === "color"))
-      ? <ColorTextEditor
-          attributeId={attr.id}
-          caseId={caseId}
-          value={isEditing ? editingValue : cellValue}
-        />
-      : <Editable
+      // (attr?.userType === "color" || (attr?.userType === undefined && attr?.type === "color"))
+      // ? <ColorTextEditor
+      //     attributeId={attr.id}
+      //     caseId={caseId}
+      //     acceptValue={handleSubmit}
+      //     updateValue={handleChangeValue}
+      //     renderInput={renderEditableInput}
+      //   />
+      // :
+      <Editable
           className={clsx("case-card-attr-value-text", {"formula-attr-value": attr?.hasFormula})}
           isPreviewFocusable={true}
           isDisabled={attr?.hasFormula}
@@ -92,14 +124,28 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
           submitOnBlur={true}
           value={isEditing ? editingValue : value}
         >
-          <EditablePreview paddingY={0} />
-          <EditableInput
+          {(attr?.userType === "color" || (attr?.userType === undefined && attr?.type === "color"))
+              ? <ColorTextEditor
+                  attributeId={attr.id}
+                  caseId={caseId}
+                  acceptValue={handleSubmit}
+                  updateValue={handleChangeValue}
+                  renderInput={CaseCardEditableInput}
+                  value={isEditing ? editingValue : displayStrValue}
+                />
+              : <>
+                  {/* <EditablePreview paddingY={0} /> */}
+                  <CaseCardEditableInput />
+                </>
+
+          }
+          {/* <EditableInput
             className="case-card-attr-value-text-editor"
             data-testid="case-card-attr-value-text-editor"
             paddingY={0}
             value={editingValue}
-          />
-        </Editable>
+          /> */}
+      </Editable>
     )
   }
 

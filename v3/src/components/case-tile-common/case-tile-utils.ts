@@ -144,6 +144,7 @@ export function toggleCardTable(documentContent: IDocumentContentModel, tileID: 
 export function applyCaseValueChanges(data: IDataSet, cases: ICase[], log?: ILogMessage | LogMessageFn) {
   const updatedCaseIds = cases.map(aCase => aCase.__id__)
   const newCaseIds: string[] = []
+  console.log("applyCaseValueChanges cases", cases)
   data.applyModelChange(() => {
     if (cases.length > 0) {
       const allCaseIDs = new Set<string>(data.caseInfoMap.keys())

@@ -34,9 +34,9 @@ const InputElt = forwardRef<React.InputHTMLAttributes<HTMLInputElement>, 'input'
   const inputRef = useRef<HTMLInputElement | null>(null)
   const mergeRefs = useMergeRefs(ref, inputRef)
 
-  useEffect(() => {
-    autoFocusAndSelect(inputRef.current)
-  }, [])
+  // useEffect(() => {
+  //   autoFocusAndSelect(inputRef.current)
+  // }, [])
 
   return (
     <input data-testid="cell-text-editor" className={textEditorClassname} ref={mergeRefs} {...props} />
@@ -47,73 +47,59 @@ interface IProps {
   attributeId: string
   caseId: string
   value: IValueType
+  acceptValue: (newValue: string) => void
+  updateValue: (newValue: string) => void
+  renderInput?: (value: string) => JSX.Element
 }
 
-export default function ColorTextEditor({attributeId, caseId, value}: IProps) {
+export default function ColorTextEditor({attributeId, caseId, value, acceptValue, updateValue, renderInput}: IProps) {
   const data = useDataSetContext()
   const attribute = data?.getAttribute(attributeId)
-  const [inputValue, setInputValue] = useState(() => data?.getValue(attributeId, caseId))
-  // const [inputValue, setInputValue] = useState("")
-  const initialInputValue = useRef(value)
-  const [placement, setPlacement ]= useState<"right" | "left">("right")
+  const [inputValue, setInputValue] = useState(value)
+  const initialInputValue = useRef(inputValue)
   // support colors if user hasn't assigned a non-color type
   const supportColors = attribute?.userType == null || attribute?.userType === "color"
   // support color names if the color type is user-assigned
   const colorNames = attribute?.userType === "color"
-  const color = supportColors && inputValue ? parseColor(inputValue as string, { colorNames }) : undefined
+  const color = supportColors && value ? parseColor(String(value), { colorNames }) : undefined
   const hexColor = color ? parseColorToHex(color, { colorNames }) : undefined
-  // show the color swatch if the initial value appears to be a color (no change mid-edit)
   const showColorSwatch = useRef(!!hexColor || attribute?.userType === "color")
+  const [placement, setPlacement ]= useState<"right" | "left">("right")
   const triggerButtonRef = useRef<HTMLButtonElement>(null)
-  const displayStrValue = value ? String(value) : ""
-  const displayNumValue = value ? Number(value) : NaN
+
   const { isOpen: isPaletteOpen, onToggle: setOpenPopover, onClose } = useDisclosure()
-  const [isEditing, setIsEditing] = useState(false)
-  const [editingValue, setEditingValue] = useState(value)
 
-
-  // Inform the ui that we're editing a table while this component exists.
-  useEffect(() => {
-    uiState.setIsEditingCell(true)
-    return () => uiState.setIsEditingCell(false)
-  }, [])
-
-  const handleChangeValue = (newValue: string) => {
-    setEditingValue(newValue)
-  }
-
-  const handleCancel = (_previousName?: string) => {
-    setIsEditing(false)
-    setEditingValue(displayStrValue)
-  }
-
-  const handleSubmit = (newValue?: string) => {
-    setIsEditing(false)
+  function handleSubmit(newValue?: string) {
     if (newValue) {
+      acceptValue(newValue)
       const casesToUpdate: ICase[] = [{ __id__: caseId, [attributeId]: newValue }]
-
-      if (data) {
-        applyCaseValueChanges(data, casesToUpdate)
-        return
-      }
-
-      setEditingValue(newValue)
-    } else {
-      setEditingValue(displayStrValue)
+      data && applyCaseValueChanges(data, casesToUpdate)
     }
+    onClose()
   }
 
+  const handleUpdateValue = useCallback((newValue: string) => {
+    setInputValue(newValue)
+    updateValue(newValue)
+  }, [updateValue])
+
+  function handleCancel() {
+    setInputValue(data?.getStrValue(caseId, attributeId) || "")
+    onClose()
+  }
 
   function handleSwatchClick(event: React.MouseEvent) {
     setOpenPopover()
   }
 
   function handleInputColorChange(event: ChangeEvent<HTMLInputElement>) {
-    handleChangeValue(event.target.value)
+    setInputValue(event.target.value)
+    handleUpdateValue(event.target.value)
   }
 
   const swatchStyle: React.CSSProperties | undefined = showColorSwatch.current ? { background: color } : undefined
-  const inputElt = <InputElt value={value as string} onChange={handleInputColorChange} />
+  const inputElt = renderInput ? renderInput(String(inputValue || ""))
+                                : <InputElt value={String(inputValue)} onChange={handleInputColorChange} />
 
   return swatchStyle
     ? (
@@ -134,10 +120,11 @@ export default function ColorTextEditor({attributeId, caseId, value}: IProps) {
               { inputElt }
             </PopoverAnchor>
             <Portal>
-              <ColorPickerPalette initialColor={initialInputValue.current as string || "#ffffff"} isPaletteOpen={isPaletteOpen}
-                inputValue={value as string || "#ffffff"} swatchBackgroundColor={color || "#ffffff"}
-                buttonRef={triggerButtonRef} showArrow={true} setPlacement={setPlacement} placement={placement}
-                onColorChange={handleChangeValue} onAccept={handleSubmit} onReject={handleCancel} onUpdateValue={handleChangeValue}/>
+              <ColorPickerPalette initialColor={String(initialInputValue.current) || "#ffffff"}
+                isPaletteOpen={isPaletteOpen} inputValue={String(inputValue) || "#ffffff"}
+                swatchBackgroundColor={color || "#ffffff"} setPlacement={setPlacement} placement={placement}
+                buttonRef={triggerButtonRef} showArrow={true} onColorChange={handleUpdateValue} 
+                onAccept={handleSubmit} onReject={handleCancel} onUpdateValue={handleUpdateValue}/>
             </Portal>
           </Popover>
         </div>

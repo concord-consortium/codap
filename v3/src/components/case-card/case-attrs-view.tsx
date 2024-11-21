@@ -39,7 +39,7 @@ export const CaseAttrsView = observer(function CaseAttrsView({caseItem, collecti
   const values: IValueType[] = collection?.attributes.map(attr => {
     return attr?.id && data?.getValue(caseItem?.__id__, attr.id)
   }) ?? []
-
+console.log("caseattrsview values", values)
   const handleSetHeaderContentElt = useCallback((contentElt: HTMLDivElement | null) => {
     contentRef.current = contentElt
     const _cellElt: HTMLElement | null = contentRef.current?.closest(".case-card-attr") ?? null
