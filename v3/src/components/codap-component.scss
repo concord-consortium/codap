@@ -2,6 +2,19 @@
 $border-drag-width: 8px;
 $corner-drag-size: calc($border-drag-width * 2);
 
+.dialog-wrapper-container {
+  position: absolute;
+  margin: 0;
+  width: inherit;
+  height: inherit;
+}
+
+.dialog-wrapper {
+  width: inherit;
+  height: inherit;
+  margin: 0;
+}
+
 .codap-component {
   position: relative;
   width: 100%;
@@ -10,6 +23,12 @@ $corner-drag-size: calc($border-drag-width * 2);
   // z-index: 20;
   &.shadowed {
     box-shadow: 0 1px 20px 0 rgba(0, 0, 0, 0.4);
+  }
+
+  &.dialogWrapper {
+    position: absolute;
+    width: inherit;
+    height: inherit;
   }
 
   input {

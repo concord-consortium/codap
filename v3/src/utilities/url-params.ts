@@ -32,6 +32,10 @@ export interface UrlParams {
    */
   di?: string | null
   /*
+   * [v3] Wrap the iframe plugin in a dialog element.
+   */
+  dialogWrapper?: string | null
+    /*
    * [v2] When present enables the gaussian fit feature of the normal curve adornment.
    * value: ignored
    */
@@ -42,7 +46,7 @@ export interface UrlParams {
    */
   ICI?: string | null
   /*
-   * Indicates CODAP is running in the Activity Player. Used by the CFM and to configure 
+   * Indicates CODAP is running in the Activity Player. Used by the CFM and to configure
    * the CFM.
    * value: ignored
    */
