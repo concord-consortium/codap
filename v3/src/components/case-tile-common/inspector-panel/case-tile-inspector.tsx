@@ -17,6 +17,7 @@ import { DataSetContext } from "../../../hooks/use-data-set-context"
 import { CaseMetadataContext } from "../../../hooks/use-case-metadata"
 import { ICaseTableModel, isCaseTableModel } from "../../case-table/case-table-model"
 import { findLongestContentWidth } from "../attribute-format-utils"
+import { kCellPadding } from "../../case-table/case-table-types"
 
 import "./case-tile-inspector.scss"
 
@@ -41,7 +42,6 @@ export const CaseTileInspector = ({ tile, show, showResizeColumnsButton }: IProp
   }
 
   const resizeAllColumns = () => {
-    const kCellPadding = 10
     const newColumnWidths = new Map<string, number>()
     data?.collections.forEach((collection) => {
       collection.attributes.forEach((attr) => {
