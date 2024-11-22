@@ -172,7 +172,8 @@ context("Graph UI", () => {
     })
   })
   describe("graph inspector panel", () => {
-    // this test is flaky. Skipping for now (PT-#188370962)
+    // this test doesn't work. Skipping for now (PT-#188370962)
+    // Logged a bug #188601882
     it.skip("change points in table and check for autoscale", () => {
       // create a graph with Lifespan (x-axis) and Height (y-axis)
       c.getComponentTitle("graph").should("have.text", collectionName)
