@@ -55,7 +55,7 @@ describe("FormulaManager", () => {
     expect(formula.canonical).toEqual(`1 + 2 + ${localAttrIdToCanonical(dataSet.attrFromName("foo")?.id || "")}`)
   })
 
-  describe("when formulas has a syntax error", () => {
+  describe("when formula has a syntax error", () => {
     it("should set formula error", () => {
       const { manager, adapter, formula } = getManagerWithFakeAdapter()
       formula.setDisplayExpression("1 + 2 +")
@@ -156,6 +156,7 @@ describe("FormulaManager", () => {
       const api = manager.getAdapterApi()
       expect(api).toBeDefined()
       expect(api.getDatasets()).toEqual(manager.dataSets)
+      expect(api.getBoundaryManager()).toEqual(manager.boundaryManager)
       expect(api.getGlobalValueManager()).toEqual(manager.globalValueManager)
       expect(api.getFormulaExtraMetadata(formula.id)).toEqual({
         dataSetId: dataSet.id

@@ -1,13 +1,14 @@
 import { comparer, reaction } from "mobx"
 import { mstReaction } from "../../utilities/mst-reaction"
 import { onAnyAction } from "../../utilities/mst-utils"
+import { BoundaryManager } from "../boundaries/boundary-manager"
 import { IDataSet } from "../data/data-set"
 import { SetCaseValuesAction } from "../data/data-set-actions"
+import { ICase } from "../data/data-set-types"
+import { IGlobalValueManager } from "../global/global-value-manager"
 import {
   CaseList, IFormulaDependency, ILocalAttributeDependency, ILookupDependency
 } from "./formula-types"
-import { IGlobalValueManager } from "../global/global-value-manager"
-import { ICase } from "../data/data-set-types"
 
 export const isAttrDefined = (dataSetCase: ICase, attributeId?: string) =>
   !!attributeId && Object.prototype.hasOwnProperty.call(dataSetCase, attributeId)
@@ -104,6 +105,20 @@ export const observeLookupDependencies = (formulaDependencies: IFormulaDependenc
   })
 
   return () => disposeLookupObserver.forEach(dispose => dispose?.())
+}
+
+export const observeBoundaries = (formulaDependencies: IFormulaDependency[],
+  boundaryManager: BoundaryManager | undefined, recalculateCallback: (casesToRecalculate: CaseList) => void) => {
+  const boundaryDependencies = formulaDependencies.filter(d => d.type === "boundary")
+  const disposeBoundaryObserver = boundaryDependencies.map(dependency =>
+    // Recalculate formula when boundary dependency is updated.
+    reaction(
+      () => boundaryManager?.hasBoundaryData(dependency.boundarySet),
+      () => recalculateCallback("ALL_CASES"),
+      { name: "observeBoundaries reaction"  }
+    )
+  )
+  return () => disposeBoundaryObserver.forEach(dispose => dispose())
 }
 
 export const observeGlobalValues = (formulaDependencies: IFormulaDependency[],

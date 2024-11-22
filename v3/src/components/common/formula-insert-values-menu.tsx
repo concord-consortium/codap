@@ -3,8 +3,8 @@ import {Divider, Flex, List, ListItem,} from "@chakra-ui/react"
 import { IAnyStateTreeNode } from "mobx-state-tree"
 import React, { useEffect, useRef, useState } from "react"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
+import { boundaryManager } from "../../models/boundaries/boundary-manager"
 import { getGlobalValueManager, getSharedModelManager } from "../../models/tiles/tile-environment"
-import { boundaryKeys } from "../../utilities/boundary-utils"
 import { useFormulaEditorContext } from "./formula-editor-context"
 
 import "./formula-insert-menus.scss"
@@ -54,7 +54,7 @@ export const InsertValuesMenu = ({setShowValuesMenu}: IProps) => {
         maxItemLength.current = attrName.length
       }
     })
-    boundaryKeys.forEach((boundary) => {
+    boundaryManager.boundaryKeys.forEach((boundary) => {
       if (boundary.length > maxItemLength.current) {
         maxItemLength.current = boundary.length
       }
@@ -149,7 +149,7 @@ export const InsertValuesMenu = ({setShowValuesMenu}: IProps) => {
         </List>
         <Divider className="list-divider"/>
         <List className="formula-operand-subset">
-          { boundaryKeys.map((boundary) => {
+          { boundaryManager.boundaryKeys.map((boundary) => {
             return (
               <ListItem key={boundary} className="formula-operand-list-item"
                     onClick={() => insertValueToFormula(boundary)}>

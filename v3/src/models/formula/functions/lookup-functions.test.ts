@@ -1,15 +1,16 @@
 import { evaluate } from "../test-utils/formula-test-utils"
 
-// Mock boundary functions because they require boundary info to be fetched, which 
-const boundaryMap: Record<string, any> = { US_state_boundaries: { boundary: {
-  alaska : `{ "geometry": "coords" }`
-} } }
-jest.mock("../../../utilities/boundary-utils", () => ({
-  isBoundarySet: (document?: string) => !!document && !!boundaryMap[document],
-  lookupBoundary: (document: string, key: string) => {
-    const boundaryInfo = boundaryMap[document]
-    if (boundaryInfo?.boundary) {
-      return boundaryInfo.boundary[key.toLowerCase()]
+// Mock boundary functions because they require boundary info to be fetched, which
+jest.mock("../../boundaries/boundary-manager", () => ({
+  boundaryManager: {
+    boundaryKeys: ["US_state_boundaries"],
+    isBoundarySet: (set: string) => set === "US_state_boundaries",
+    isBoundaryDataPending: (set: string) => false,
+    hasBoundaryDataError: (set: string) => false,
+    getBoundaryData: (set: string, key: string) => {
+      return set === "US_state_boundaries" && key.toLowerCase() === "alaska"
+              ? JSON.stringify({ geometry: { coords: {} } })
+              : undefined
     }
   }
 }))
@@ -31,7 +32,7 @@ describe("lookupBoundary", () => {
   })
 
   it("returns empty string in some situations", () => {
-    expect(evaluate(`lookupBoundary(US_state_boundaries, "nonstate")`, 1)).toBe("")
+    expect(evaluate(`lookupBoundary(US_state_boundaries, "non-state")`, 1)).toBe("")
     expect(evaluate(`lookupBoundary(US_state_boundaries, Mammal)`, 1)).toBe("")
     expect(evaluate(`lookupBoundary(US_state_boundaries, v1)`, 1)).toBe("")
   })
