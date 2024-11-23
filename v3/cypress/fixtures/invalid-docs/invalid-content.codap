@@ -1,0 +1,7 @@
+{
+    "type": "CODAP",
+    "version": "1234",
+    "content": {
+        "invalid": "value"
+    }
+}
