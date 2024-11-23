@@ -89,6 +89,30 @@ describe("handleCFMEvent", () => {
     expect(contentArg.metadata.shared).toEqual(mockSharingInfo)
   })
 
+  it("handles the sharedFile message", async () => {
+    const mockCfmClient = {
+      dirty: jest.fn() as CloudFileManagerClient["dirty"]
+    } as CloudFileManagerClient
+    const mockCfmEvent = {
+      type: "sharedFile"
+    }
+    const mockCfmEventArg = mockCfmEvent as unknown as CloudFileManagerClientEvent
+    await handleCFMEvent(mockCfmClient, mockCfmEventArg)
+    expect(mockCfmClient.dirty).toHaveBeenCalledWith(true)
+  })
+
+  it("handles the unsharedFile message", async () => {
+    const mockCfmClient = {
+      dirty: jest.fn() as CloudFileManagerClient["dirty"]
+    } as CloudFileManagerClient
+    const mockCfmEvent = {
+      type: "unsharedFile"
+    }
+    const mockCfmEventArg = mockCfmEvent as unknown as CloudFileManagerClientEvent
+    await handleCFMEvent(mockCfmClient, mockCfmEventArg)
+    expect(mockCfmClient.dirty).toHaveBeenCalledWith(true)
+  })
+
   it("handles the willOpenFile message", async () => {
     const mockCfmClient = {} as CloudFileManagerClient
     const mockCfmEvent = {

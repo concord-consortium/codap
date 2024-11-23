@@ -3,13 +3,16 @@ import { CloudFileManagerClient, CloudFileManagerClientEvent } from "@concord-co
 import { appState } from "../models/app-state"
 import { removeDevUrlParams, urlParams } from "../utilities/url-params"
 import { wrapCfmCallback } from "./cfm-utils"
+import { DEBUG_CFM_EVENTS } from "./debug"
 
 import build from "../../build_number.json"
 import pkg from "../../package.json"
 
 export async function handleCFMEvent(cfmClient: CloudFileManagerClient, event: CloudFileManagerClientEvent) {
-  // const { data, state, ...restEvent } = event
-  // console.log("cfmEventCallback", JSON.stringify({ ...restEvent }))
+  if (DEBUG_CFM_EVENTS) {
+    // We clone the event because the CFM reuses the same objects within the event
+    console.log("cfmEvent", event.type, cloneDeep(event))
+  }
 
   switch (event.type) {
     case "connected":
@@ -91,10 +94,22 @@ export async function handleCFMEvent(cfmClient: CloudFileManagerClient, event: C
       }
       break
     }
-    // case "sharedFile":
-    //   break
-    // case "unsharedFile":
-    //   break
+    case "sharedFile":
+      // Trigger a save so the sharing info can be updated in the file
+      // If the file is already shared, and the user updates the shared document this event
+      // will happen again. Currently it isn't necessary to update the sharing info, but
+      // perhaps in the future the sharing info will include properties that change each
+      // time, such as a timestamp for when the document was shared.
+      // Due to the design of the CFM event system we need to do this in the next time slice
+      await new Promise(resolve => setTimeout(resolve, 0))
+      cfmClient.dirty(true)
+      break
+    case "unsharedFile":
+      // Trigger a save so the sharing info can be updated in the file
+      // Due to the design of the CFM event system we need to do this in the next time slice
+      await new Promise(resolve => setTimeout(resolve, 0))
+      cfmClient.dirty(true)
+      break
     // case "importedData":
     //   break
     case "renamedFile": {
