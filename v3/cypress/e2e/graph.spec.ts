@@ -11,7 +11,10 @@ const collectionName = "Mammals"
 const newCollectionName = "Animals"
 const plots = graphRules.plots
 
-context("Test graph plot transitions", () => {
+// Skipping because with these enabled the graph tests take 23+ minutes to run.
+// For them to be useful, they would have to be much quicker, possibly by reloading
+// the page less often and/or by waiting less. As written, each test takes ~75 sec.
+context.skip("Test graph plot transitions", () => {
   beforeEach(function () {
     const queryParams = "?mouseSensor"
     const url = `${Cypress.config("index")}${queryParams}`
