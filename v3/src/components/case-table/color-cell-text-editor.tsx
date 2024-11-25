@@ -1,5 +1,5 @@
 import {
-  forwardRef, Input, Popover, PopoverAnchor, PopoverTrigger, Portal, useDisclosure, useMergeRefs
+  forwardRef, Popover, PopoverAnchor, PopoverTrigger, Portal, useDisclosure, useMergeRefs
 } from "@chakra-ui/react"
 import React, { ChangeEvent, useCallback, useEffect, useRef, useState } from "react"
 import { textEditorClassname } from "react-data-grid"
@@ -12,7 +12,6 @@ import { parseColor, parseColorToHex } from "../../utilities/color-utils"
 import { blockAPIRequestsWhileEditing } from "../../utilities/plugin-utils"
 import { ColorPickerPalette } from "../common/color-picker-palette"
 import { TRenderEditCellProps } from "./case-table-types"
-import ColorTextEditor from "../case-tile-common/color-text-editor"
 
 /*
   ReactDataGrid uses Linaria CSS-in-JS for its internal styling. As with CSS Modules and other
@@ -109,43 +108,33 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
   const swatchStyle: React.CSSProperties | undefined = showColorSwatch.current ? { background: color } : undefined
   const inputElt = <InputElt value={inputValue} onChange={handleInputColorChange} />
 
-  return (
-    <ColorTextEditor attributeId={attributeId} caseId={row.__id__}
-      value={inputValue}
-      acceptValue={acceptValue} updateValue={updateValue} renderInput={() => inputElt}
-    />
-  )
-
-  // const swatchStyle: React.CSSProperties | undefined = showColorSwatch.current ? { background: color } : undefined
-  // const inputElt = <InputElt value={inputValue} onChange={handleInputColorChange} />
-
-  // return swatchStyle
-  //   ? (
-  //       <div className={"color-cell-text-editor"}>
-  //         <Popover
-  //           isLazy={true}
-  //           isOpen={isPaletteOpen}
-  //           placement={placement}
-  //           closeOnBlur={false}
-  //         >
-  //           <PopoverTrigger>
-  //             <button className="cell-edit-color-swatch" ref={triggerButtonRef}
-  //               onClick={handleSwatchClick}>
-  //               <div className="cell-edit-color-swatch-interior" style={swatchStyle}/>
-  //             </button>
-  //           </PopoverTrigger>
-  //           <PopoverAnchor>
-  //             { inputElt }
-  //           </PopoverAnchor>
-  //           <Portal>
-  //             <ColorPickerPalette initialColor={initialInputValue.current || "#ffffff"} isPaletteOpen={isPaletteOpen}
-  //               inputValue={inputValue || "#ffffff"} swatchBackgroundColor={color || "#ffffff"}
-  //               buttonRef={triggerButtonRef} showArrow={true} setPlacement={setPlacement} placement={placement}
-  //               onColorChange={updateValue} onAccept={acceptValue} onReject={rejectValue} onUpdateValue={updateValue}/>
-  //           </Portal>
-  //         </Popover>
-  //       </div>
-  //     )
-  //   // if we don't have a valid color, just a simple text editor
-  //   : inputElt
+  return swatchStyle
+    ? (
+        <div className={"color-cell-text-editor"}>
+          <Popover
+            isLazy={true}
+            isOpen={isPaletteOpen}
+            placement={placement}
+            closeOnBlur={false}
+          >
+            <PopoverTrigger>
+              <button className="cell-edit-color-swatch" ref={triggerButtonRef}
+                onClick={handleSwatchClick}>
+                <div className="cell-edit-color-swatch-interior" style={swatchStyle}/>
+              </button>
+            </PopoverTrigger>
+            <PopoverAnchor>
+              { inputElt }
+            </PopoverAnchor>
+            <Portal>
+              <ColorPickerPalette initialColor={initialInputValue.current || "#ffffff"} isPaletteOpen={isPaletteOpen}
+                inputValue={inputValue || "#ffffff"} swatchBackgroundColor={color || "#ffffff"}
+                buttonRef={triggerButtonRef} showArrow={true} setPlacement={setPlacement} placement={placement}
+                onColorChange={updateValue} onAccept={acceptValue} onReject={rejectValue} onUpdateValue={updateValue}/>
+            </Portal>
+          </Popover>
+        </div>
+      )
+    // if we don't have a valid color, just a simple text editor
+    : inputElt
 }
