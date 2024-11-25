@@ -1,10 +1,13 @@
 import { MathNode, parse } from "mathjs"
+import { t } from "../../utilities/translation/translate"
+import { BoundaryManager } from "../boundaries/boundary-manager"
 import type { IValueType } from "../data/attribute-types"
 import type { IDataSet } from "../data/data-set"
 import type { IGlobalValueManager } from "../global/global-value-manager"
-import { t } from "../../utilities/translation/translate"
 import { FValue } from "./formula-types"
-import { CASE_INDEX_FAKE_ATTR_ID, globalValueIdToCanonical, localAttrIdToCanonical } from "./utils/name-mapping-utils"
+import {
+  boundaryValueIdToCanonical, CASE_INDEX_FAKE_ATTR_ID, globalValueIdToCanonical, localAttrIdToCanonical
+} from "./utils/name-mapping-utils"
 
 const CACHE_ENABLED = true
 
@@ -13,6 +16,7 @@ export const NO_PARENT_KEY = "__NO_PARENT__"
 export interface IFormulaMathjsScopeContext {
   localDataSet: IDataSet
   dataSets: Map<string, IDataSet>
+  boundaryManager?: BoundaryManager
   globalValueManager?: IGlobalValueManager
   // Cases used by aggregate functions. E.g `mean(NewAttribute)` will use all the cases from this array.
   childMostCollectionCaseIds: string[]
@@ -92,7 +96,16 @@ export class FormulaMathJsScope {
         }
       })
     })
-    // Global value symbols.
+    // Boundary symbols
+    context.boundaryManager?.boundaryKeys.forEach(boundaryKey => {
+      Object.defineProperty(this.dataStorage, boundaryValueIdToCanonical(boundaryKey), {
+        get: () => {
+          // key (e.g. `US_state_boundaries`) is the `value` of the symbol
+          return boundaryKey
+        }
+      })
+    })
+    // Global value symbols
     context.globalValueManager?.globals.forEach(global => {
       Object.defineProperty(this.dataStorage, globalValueIdToCanonical(global.id), {
         get: () => {

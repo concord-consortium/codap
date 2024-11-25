@@ -1,6 +1,7 @@
 import { IDataSet } from "../data/data-set"
 import { createDataSet } from "../data/data-set-conversion"
 import { FilterFormulaAdapter } from "./filter-formula-adapter"
+import { IFormulaAdapterApi } from "./formula-manager-types"
 import { displayToCanonical } from "./utils/canonicalization-utils"
 import { getDisplayNameMap } from "./utils/name-mapping-utils"
 
@@ -16,8 +17,9 @@ const getTestEnv = (filterFormula: string) => {
   const dataSets = new Map<string, IDataSet>([[dataSet.id, dataSet]])
   const context = { dataSet, formula }
   const extraMetadata = { dataSetId: dataSet.id }
-  const api = {
+  const api: IFormulaAdapterApi = {
     getDatasets: jest.fn(() => dataSets),
+    getBoundaryManager: jest.fn(),
     getGlobalValueManager: jest.fn(),
     getFormulaExtraMetadata: jest.fn(() => extraMetadata),
     getFormulaContext: jest.fn(() => context),

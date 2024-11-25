@@ -2,8 +2,8 @@ import { TriangleDownIcon, TriangleUpIcon } from "@chakra-ui/icons"
 import {Divider, Flex, List, ListItem,} from "@chakra-ui/react"
 import { IAnyStateTreeNode } from "mobx-state-tree"
 import React, { useEffect, useRef, useState } from "react"
-import { useMemo } from "use-memo-one"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
+import { boundaryManager } from "../../models/boundaries/boundary-manager"
 import { getGlobalValueManager, getSharedModelManager } from "../../models/tiles/tile-environment"
 import { useFormulaEditorContext } from "./formula-editor-context"
 
@@ -31,10 +31,6 @@ export const InsertValuesMenu = ({setShowValuesMenu}: IProps) => {
       .filter(name => name !== undefined)
   )
   const attributeNames = dataSet?.attributes.map(attr => attr.name)
-  // TODO_Boundaries
-  const remoteBoundaryData = useMemo(() => [ "CR_Cantones", "CR_Provincias", "DE_state_boundaries",
-     "IT_region_boundaries", "JP_Prefectures", "US_congressional_boundaries", "US_county_boundaries",
-     "US_puma_boundaries", "US_state_boundaries", "country_boundaries" ], [])
   const constants = ["e", "false", "true", "π"]
   const scrollableContainerRef = useRef<HTMLUListElement>(null)
   const [, setScrollPosition] = useState(0)
@@ -58,7 +54,7 @@ export const InsertValuesMenu = ({setShowValuesMenu}: IProps) => {
         maxItemLength.current = attrName.length
       }
     })
-    remoteBoundaryData.forEach((boundary) => {
+    boundaryManager.boundaryKeys.forEach((boundary) => {
       if (boundary.length > maxItemLength.current) {
         maxItemLength.current = boundary.length
       }
@@ -153,7 +149,7 @@ export const InsertValuesMenu = ({setShowValuesMenu}: IProps) => {
         </List>
         <Divider className="list-divider"/>
         <List className="formula-operand-subset">
-          { remoteBoundaryData.map((boundary) => {
+          { boundaryManager.boundaryKeys.map((boundary) => {
             return (
               <ListItem key={boundary} className="formula-operand-list-item"
                     onClick={() => insertValueToFormula(boundary)}>

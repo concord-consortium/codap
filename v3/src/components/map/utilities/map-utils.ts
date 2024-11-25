@@ -1,7 +1,7 @@
 import {LatLngBounds, latLngBounds} from 'leaflet'
 import {singular} from "pluralize"
+import {kPolygonNames} from "../../../models/boundaries/boundary-types"
 import {IDataSet} from "../../../models/data/data-set"
-import { kPolygonNames } from "../../../utilities/boundary-utils"
 import {isFiniteNumber} from "../../../utilities/math-utils"
 import {translate} from "../../../utilities/translation/translate"
 import {IDataConfigurationModel} from "../../data-display/models/data-configuration-model"

@@ -1,12 +1,15 @@
 import { comparer, makeObservable, observable, reaction, action } from "mobx"
 import { addDisposer } from "mobx-state-tree"
+import { boundaryManager, BoundaryManager } from "../boundaries/boundary-manager"
 import { IDataSet } from "../data/data-set"
 import { ICase } from "../data/data-set-types"
 import { IGlobalValueManager } from "../global/global-value-manager"
 import { IFormula } from "./formula"
-import { IFormulaExtraMetadata, IFormulaManagerAdapter, IFormulaMetadata } from "./formula-manager-types"
 import {
-  observeGlobalValues, observeLocalAttributes, observeLookupDependencies, observeSymbolNameChanges
+  IFormulaAdapterApi, IFormulaExtraMetadata, IFormulaManagerAdapter, IFormulaMetadata
+} from "./formula-manager-types"
+import {
+  observeBoundaries, observeGlobalValues, observeLocalAttributes, observeLookupDependencies, observeSymbolNameChanges
 } from "./formula-observers"
 import { CaseList } from "./formula-types"
 import { canonicalToDisplay, displayToCanonical } from "./utils/canonicalization-utils"
@@ -19,6 +22,8 @@ export class FormulaManager {
   extraMetadata = new Map<string, IFormulaExtraMetadata>()
 
   @observable.shallow dataSets = new Map<string, IDataSet>()
+
+  boundaryManager?: BoundaryManager
   globalValueManager?: IGlobalValueManager
 
   adapters: IFormulaManagerAdapter[] = []
@@ -28,11 +33,14 @@ export class FormulaManager {
 
   constructor() {
     makeObservable(this)
+
+    this.boundaryManager = boundaryManager
   }
 
-  getAdapterApi() {
+  getAdapterApi(): IFormulaAdapterApi {
     return {
       getDatasets: () => this.dataSets,
+      getBoundaryManager: () => this.boundaryManager,
       getGlobalValueManager: () => this.globalValueManager,
       getFormulaContext: (formulaId: string) => this.getFormulaContext(formulaId),
       getFormulaExtraMetadata: (formulaId: string) => this.getExtraMetadata(formulaId)
@@ -249,6 +257,7 @@ export class FormulaManager {
     return getDisplayNameMap({
       localDataSet,
       dataSets: this.dataSets,
+      boundaryManager: this.boundaryManager,
       globalValueManager: this.globalValueManager,
     })
   }
@@ -293,6 +302,7 @@ export class FormulaManager {
     }
 
     const disposeLocalAttributeObservers = observeLocalAttributes(dependencies, dataSet, recalculate)
+    const disposeBoundaryObservers = observeBoundaries(dependencies, this.boundaryManager, recalculate)
     const disposeGlobalValueObservers = observeGlobalValues(dependencies, this.globalValueManager, recalculate)
     const disposeLookupObservers = observeLookupDependencies(dependencies, this.dataSets, recalculate)
     const disposeNameChangeObservers = observeSymbolNameChanges(this.dataSets, this.globalValueManager, updateDisplay)
@@ -302,11 +312,12 @@ export class FormulaManager {
       ...formulaMetadata,
       dispose: () => {
         disposeLocalAttributeObservers()
+        disposeBoundaryObservers()
         disposeGlobalValueObservers()
         disposeLookupObservers()
         disposeNameChangeObservers()
         disposeAdapterSpecificObservers?.()
-      },
+      }
     })
   }
 }

@@ -166,6 +166,7 @@ export class AttributeFormulaAdapter extends FormulaManagerAdapter implements IF
     const formulaScope = new FormulaMathJsScope({
       localDataSet: dataSet,
       dataSets: this.api.getDatasets(),
+      boundaryManager: this.api.getBoundaryManager(),
       globalValueManager: this.api.getGlobalValueManager(),
       formulaAttrId: attributeId,
       formulaCollectionIndex: collectionIndex,

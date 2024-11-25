@@ -16,6 +16,7 @@ const getTestEnv = () => {
   const extraMetadata = { dataSetId: dataSet.id, attributeId: attribute.id }
   const api = {
     getDatasets: jest.fn(() => dataSets),
+    getBoundaryManager: jest.fn(),
     getGlobalValueManager: jest.fn(),
     getFormulaExtraMetadata: jest.fn(() => extraMetadata),
     getFormulaContext: jest.fn(() => context),
@@ -74,6 +75,7 @@ describe("AttributeFormulaAdapter", () => {
       const extraMetadata = { dataSetId: dataSet.id, attributeId: attribute.id }
       const api = {
         getDatasets: jest.fn(() => dataSets),
+        getBoundaryManager: jest.fn(),
         getGlobalValueManager: jest.fn(),
         getFormulaExtraMetadata: jest.fn(() => extraMetadata),
         getFormulaContext: jest.fn(() => context),
@@ -101,6 +103,7 @@ describe("AttributeFormulaAdapter", () => {
       const extraMetadata = { dataSetId: dataSet.id, attributeId: attribute.id }
       const api = {
         getDatasets: jest.fn(() => dataSets),
+        getBoundaryManager: jest.fn(),
         getGlobalValueManager: jest.fn(),
         getFormulaExtraMetadata: jest.fn(() => extraMetadata),
         getFormulaContext: jest.fn(() => context),
