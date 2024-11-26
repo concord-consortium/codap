@@ -46,7 +46,7 @@ registerTileComponentInfo({
     undoStringKey: "V3.Undo.caseTable.create",
     redoStringKey: "V3.Redo.caseTable.create"
   },
-  defaultWidth: 580,
+  defaultWidth: 162,
   defaultHeight: 200
 })
 
