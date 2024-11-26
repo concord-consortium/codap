@@ -40,10 +40,8 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
 
   const handleCreateNewCaseTable = () => {
     document.applyModelChange(() => {
-      const newData = [{ AttributeName: "" }]
       const ds = DataSet.create({ name: t("DG.AppController.createDataSet.name")})
       ds.addAttribute({ name: t("DG.AppController.createDataSet.initialAttribute") })
-      ds.addCases(toCanonical(ds, newData))
       const options: INewTileOptions = { animateCreation: true }
       const tile = createDefaultTileOfType(kCaseTableTileType, options)
       if (!tile) return

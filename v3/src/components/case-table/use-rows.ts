@@ -258,7 +258,7 @@ export const useRows = (gridElement: HTMLDivElement | null) => {
         // Find values inherited from parent case
         const prevRowIndex = inputRowIndex != null && inputRowIndex !== -1
           ? inputRowIndex > 0 ? inputRowIndex - 1 : 1
-          : _rows.length - 2
+          : _rows.length - 1
         const prevRowId = _rows[prevRowIndex].__id__
         const prevRow = collectionTableModel?.rowCache.get(prevRowId)
         const parentId = prevRow?.[symParent]
