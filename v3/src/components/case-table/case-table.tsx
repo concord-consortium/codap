@@ -152,17 +152,8 @@ export const CaseTable = observer(function CaseTable({ setNodeRef }: IProps) {
             })}
           </AttributeHeaderDividerContext.Provider>
           <AttributeDragOverlay activeDragId={getOverlayDragId(active, instanceId, excludeDragOverlayRegEx)} />
-          <NoCasesMessage />
         </div>
       </div>
     )
   })
-})
-
-// temporary until we have an input row
-const NoCasesMessage = observer(function NoCasesMessage() {
-  const data = useDataSetContext()
-  return !data?.items.length
-          ? <div className="no-cases-message" data-testid="no-cases-message">{t("V3.caseTable.noCases")}</div>
-          : null
 })
