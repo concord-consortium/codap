@@ -1,3 +1,4 @@
+import { observer } from "mobx-react-lite"
 import React from "react"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
 import { logStringifiedObjectMessage } from "../../../lib/log-message"
@@ -9,7 +10,7 @@ import { preventCollectionReorg } from "../../../utilities/plugin-utils"
 import { t } from "../../../utilities/translation/translate"
 import { IMenuItem, StdMenuList } from "../std-menu-list"
 
-export const RulerMenuList = () => {
+export const RulerMenuList = observer(function RulerMenuList() {
   const data = useDataSetContext()
 
   const handleAddNewAttribute = (collectionId: string) => {
@@ -70,4 +71,4 @@ export const RulerMenuList = () => {
   return (
     <StdMenuList data-testid="ruler-menu-list" menuItems={menuItems} />
   )
-}
+})
