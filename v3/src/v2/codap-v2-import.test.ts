@@ -72,13 +72,15 @@ describe(`V2 "mammals.codap"`, () => {
     const context = mammals.contexts[0]
     const collection = context.collections[0]
     const data = mammals.dataSets[0].dataSet
+    data.validateCases()
     expect(data.id).toBe(`DATA${context.guid}`)
     expect(data.collections[0].id).toBe(`COLL${collection.guid}`)
+    expect(data.collections[0].caseIds[0]).toBe(`CASE${collection.cases[0].guid}`)
     expect(data.attributes.length).toBe(9)
     expect(data.attributes[0].id).toBe(`ATTR${collection.attrs[0].guid}`)
     expect(data.attributes[0].cid).toBe(collection.attrs[0].cid)
     expect(data.items.length).toBe(27)
-    expect(data.items[0].__id__).toBe(`CASE${collection.cases[0].guid}`)
+    // note: mammals doesn't contain item ids
 
     // mammals has no parent cases
     const firstCase = collection.cases[0]
@@ -119,6 +121,7 @@ describe(`V2 "24cats.codap"`, () => {
     const context = cats.contexts[0]
     const [v2ParentCollection, v2ChildCollection] = context.collections
     const data = cats.dataSets[0].dataSet
+    data.validateCases()
     expect(data.collections.length).toBe(2)
     expect(data.collections[0].attributes.length).toBe(1)
     expect(data.attributes.length).toBe(9)
@@ -133,8 +136,11 @@ describe(`V2 "24cats.codap"`, () => {
     expect(dsSexAttr!.title).toBe(v2SexAttr.title)
 
     // should be able to look up parent cases for child cases
-    const firstCase = v2ChildCollection.cases[0]
-    expect(cats.getParentCase(firstCase)).toBeDefined()
+    const firstParentCase = v2ParentCollection.cases[0]
+    const firstChildCase = v2ChildCollection.cases[0]
+    expect(data.collections[0].caseIds[0]).toBe(`CASE${firstParentCase.guid}`)
+    expect(data.collections[1].caseIds[0]).toBe(`CASE${firstChildCase.guid}`)
+    expect(cats.getParentCase(firstChildCase)).toBeDefined()
 
     expect(cats.components.map(c => c.type))
       .toEqual(["DG.TableView", "DG.GraphView", "DG.TextView", "DG.TextView", "DG.GraphView"])

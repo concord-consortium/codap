@@ -21,6 +21,7 @@ if (debug.length > 0) {
 
 const debugContains = (key: string) => debug.indexOf(key) !== -1
 
+export const DEBUG_CASE_IDS = debugContains("caseIds")
 export const DEBUG_CFM_EVENTS = debugContains("cfmEvents")
 export const DEBUG_CFM_LOCAL_STORAGE = debugContains("cfmLocalStorage")
 export const DEBUG_DOCUMENT = debugContains("document")
