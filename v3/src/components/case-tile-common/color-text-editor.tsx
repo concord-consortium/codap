@@ -40,10 +40,11 @@ interface IProps {
   value: IValueType
   acceptValue: (newValue: string) => void
   updateValue: (newValue: string) => void
+  cancelChanges: () => void
   renderInput?: (value: string) => JSX.Element
 }
 
-export default function ColorTextEditor({attributeId, caseId, value, acceptValue, updateValue, renderInput}: IProps) {
+export default function ColorTextEditor({attributeId, caseId, value, acceptValue, updateValue, cancelChanges}: IProps) {
   const data = useDataSetContext()
   const attribute = data?.getAttribute(attributeId)
   const [inputValue, setInputValue] = useState(value)
@@ -92,6 +93,7 @@ export default function ColorTextEditor({attributeId, caseId, value, acceptValue
       handleSubmit(inputValue as string)
     } else if (event.key === "Escape") {
       handleCancel()
+      cancelChanges()
     }
   }
 

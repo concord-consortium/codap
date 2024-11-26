@@ -174,7 +174,8 @@ context("case card", () => {
       cy.get('[data-testid="case-card-attr-name"]').should("have.length", 10)
       cy.get('[data-testid="case-card-attr-value"]').should("have.length", 10)
       cy.get('[data-testid="case-card-attr-value"]').eq(9).click()
-      cy.get('[data-testid="case-card-attr-value-text-editor"]').eq(9).should("exist").type("excellent{enter}")
+      cy.get('[data-testid="case-card-attr-value"] [data-testid="cell-text-editor"]')
+        .should("exist").type("excellent{enter}")
       cy.get('[data-testid="case-card-attr-value"]').eq(9).should("contain.text", "excellent")
 
       // Undo/redo check after adding a new attribute
@@ -222,10 +223,10 @@ context("case card", () => {
       cy.log("Edit an attribute value.")
       cy.get('[data-testid="case-card-attr-value"]').eq(0).should("contain.text", "African Elephant")
       cy.get('[data-testid="case-card-attr-value"]').eq(0).click()
-      cy.get('[data-testid="case-card-attr-value-text-editor"]').eq(0).type("Wooly Mammoth{enter}")
+      cy.get('[data-testid="case-card-attr-value"] [data-testid="cell-text-editor"]').eq(0).type("Wooly Mammoth{enter}")
       cy.get('[data-testid="case-card-attr-value"]').eq(0).should("contain.text", "Wooly Mammoth")
       cy.get('[data-testid="case-card-attr-value"]').eq(0).click()
-      cy.get('[data-testid="case-card-attr-value-text-editor"]').eq(0).type("{esc}")
+      cy.get('[data-testid="case-card-attr-value"] [data-testid="cell-text-editor"]').eq(0).type("{esc}")
       cy.get('[data-testid="case-card-attr-value"]').eq(0).should("contain.text", "Wooly Mammoth")
 
       // Undo/redo check after editing an attribute value
@@ -253,7 +254,8 @@ context("case card", () => {
                                                  .eq(0).should("have.text", "5 of 5")
       cy.get('[data-testid="case-card-view"]').eq(1).find('[data-testid="case-card-attr-value"]')
                                                  .eq(0).should("exist").click()
-      cy.get('[data-testid="case-card-view"]').eq(1).find('[data-testid="case-card-attr-value-text-editor"]')
+      cy.get('[data-testid="case-card-view"]').eq(1)
+        .find('[data-testid="case-card-attr-value"] [data-testid="cell-text-editor"]')
                                                  .eq(0).should("exist").type("New Order{enter}")
       cy.log("Check new case has parent and child collections' attributes and values match previously-selected case.")
       cy.get('[data-testid="case-card-view"]').eq(0).find('[data-testid="case-card-view-title"]')

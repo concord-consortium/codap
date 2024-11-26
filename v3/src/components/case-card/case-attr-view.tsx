@@ -82,6 +82,7 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
             caseId={caseId}
             acceptValue={handleSubmit}
             updateValue={handleChangeValue}
+            cancelChanges={handleCancel}
             value={isEditing ? editingValue : displayStrValue}
           />
         : <div className="case-card-attr-value-color" onClick={()=>setIsEditing(true)}>{ content }</div>
