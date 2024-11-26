@@ -40,7 +40,6 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
   const [isEditing, setIsEditing] = useState(false)
   const [editingValue, setEditingValue] = useState(value)
 
-
   const handleChangeValue = (newValue: string) => {
     setEditingValue(newValue)
   }
@@ -52,10 +51,8 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
 
   const handleSubmit = (newValue?: string) => {
     setIsEditing(false)
-    console.log("caseattrview caseId", caseId, newValue)
     if (newValue) {
       const casesToUpdate: ICase[] = [{ __id__: caseId, [attrId]: newValue }]
-      console.log("caseattrview casesToUpdate", casesToUpdate)
 
       if (data) {
         applyCaseValueChanges(data, casesToUpdate)
