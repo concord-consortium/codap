@@ -97,8 +97,10 @@ export function renderAttributeValue(str = "", num = NaN, showUnits = false, att
 }
 
 export const findLongestContentWidth = (attr: IAttribute) => {
-  // include attribute name in content width calculation
-  let longestWidth = Math.max(kMinAutoColumnWidth, measureText(attr.name, kCaseTableHeaderFont))
+  // We take in to account that attribute names can appear over two lines and elided
+  // when calculating their widths
+  const headerWidth = measureText(`${attr.name}${attr.units ? `_(${attr.units})` : ''}`, kCaseTableHeaderFont)
+  let longestWidth = Math.max(kMinAutoColumnWidth, Math.ceil(3 + (headerWidth/2)))
   for (let i = 0; i < attr.length; ++i) {
     // use the formatted attribute value in content width calculation
     const { value } = renderAttributeValue(attr.strValues[i], attr.numValues[i], false, attr)

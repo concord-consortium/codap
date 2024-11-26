@@ -17,6 +17,7 @@ import { t } from "../../../utilities/translation/translate"
 import { EditAttributePropertiesModal } from "./edit-attribute-properties-modal"
 import { useCaseTableModel } from "../../case-table/use-case-table-model"
 import { findLongestContentWidth } from "../attribute-format-utils"
+import { kCellPadding } from "../../case-table/case-table-types"
 
 interface IProps {
   attributeId: string
@@ -78,7 +79,7 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
       handleClick: () => {
         data?.applyModelChange(() => {
           if (attribute) {
-            const longestContentWidth = findLongestContentWidth(attribute)
+            const longestContentWidth = findLongestContentWidth(attribute) + kCellPadding
             tableModel?.setColumnWidth(attributeId, longestContentWidth)
           }
         }, {
