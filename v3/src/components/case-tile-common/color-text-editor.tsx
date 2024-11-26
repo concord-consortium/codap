@@ -10,19 +10,12 @@ import { IValueType } from "../../models/data/attribute-types"
 import { useOutsidePointerDown } from "../../hooks/use-outside-pointer-down"
 
 import "./color-text-editor.scss"
-/*
-  ReactDataGrid uses Linaria CSS-in-JS for its internal styling. As with CSS Modules and other
-  CSS-in-JS solutions, this involves dynamically generating class names on the fly. The
-  `CellTextEditor` class below is a modified version of RDG's internal `TextEditor` class which
-  pulls its data from the DataSet, among other customizations. For the `CellTextEditor` component
-  to take advantage of the CSS of the `TextEditor` class, we must use the same classes.
-  Unfortunately, instead of tying their internal CSS to the public class names (e.g.
-  `rdg-text-editor`), RDG ties its internal CSS to the dynamically generated class names.
-  Therefore, to preserve the prior behavior we must give our instances of these components the
-  same classes as the components they're replacing, including the dynamically generated classes.
-  To enable this, patch-package has been used to export the `textEditorClassname` string.
- */
 
+/* This component was refactored out of the case table ColorCellTextEditor to work with the case card.
+    At some point we should refactor the ColorCellTextEditor to use this component as well. Currently,
+    the code is duplicated in both components because there were problems with duplicating cell entries
+    when entering a new case in the case table.
+*/
 function autoFocusAndSelect(input: HTMLInputElement | null) {
   input?.focus()
   input?.select()
@@ -129,7 +122,7 @@ export default function ColorTextEditor({attributeId, caseId, value, acceptValue
                 isPaletteOpen={isPaletteOpen} inputValue={String(inputValue) || "#ffffff"}
                 swatchBackgroundColor={color || "#ffffff"} setPlacement={setPlacement} placement={placement}
                 buttonRef={triggerButtonRef} showArrow={true} onColorChange={handleUpdateValue}
-                onAccept={handleSubmit} onReject={handleCancel} onUpdateValue={handleUpdateValue}/>
+                onAccept={()=>handleSubmit} onReject={handleCancel} onUpdateValue={handleUpdateValue}/>
             </Portal>
           </Popover>
         </div>

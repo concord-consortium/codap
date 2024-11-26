@@ -77,7 +77,7 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
       )
     }
 
-    if (attr?.userType === "color" || (attr?.userType === undefined && attr?.type === "color")) {
+    if (attr?.userType == null || attr?.userType === "color") {
       return (
         isEditing
         ? <ColorTextEditor
