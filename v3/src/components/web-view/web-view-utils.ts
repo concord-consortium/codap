@@ -1,4 +1,6 @@
-export const kRootPluginUrl = "https://codap-resources.s3.amazonaws.com/plugins"
+import { codapResourcesUrl } from "../../constants"
+
+export const kRootPluginUrl = codapResourcesUrl("plugins")
 export const kRelativePluginRoot = "../../../../extn/plugins"
 
 export function processPluginUrl(url: string) {

@@ -1,3 +1,4 @@
+import { BoundaryManager } from "../boundaries/boundary-manager"
 import { IDataSet } from "../data/data-set"
 import { IGlobalValueManager } from "../global/global-value-manager"
 import { IFormula } from "./formula"
@@ -20,13 +21,14 @@ export interface IFormulaExtraMetadata {
   defaultArgument?: string
 }
 
-export interface IFormulaContext {
-  formula: IFormula
+export interface IFormulaContext extends Partial<IFormulaMetadata> {
   dataSet: IDataSet
+  formula: IFormula
 }
 
 export interface IFormulaAdapterApi {
   getDatasets: () => Map<string, IDataSet>
+  getBoundaryManager: () => Maybe<BoundaryManager>
   getGlobalValueManager: () => Maybe<IGlobalValueManager>
   getFormulaContext(formulaId: string): IFormulaContext
   getFormulaExtraMetadata(formulaId: string): IFormulaExtraMetadata

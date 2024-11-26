@@ -1,8 +1,10 @@
-import { CanonicalNameMap, DisplayNameMap, IFormulaDependency } from "../formula-types"
+import { BoundaryManager } from "../../boundaries/boundary-manager"
 import type { IDataSet } from "../../data/data-set"
 import type { IGlobalValueManager } from "../../global/global-value-manager"
+import { CanonicalNameMap, DisplayNameMap, IFormulaDependency } from "../formula-types"
 
 export const CANONICAL_NAME = "__CANONICAL_NAME__"
+export const BOUNDARY_VALUE = "BOUNDARY_VALUE_"
 export const GLOBAL_VALUE = "GLOBAL_VALUE_"
 export const LOCAL_ATTR = "LOCAL_ATTR_"
 export const CASE_INDEX_FAKE_ATTR_ID = "CASE_INDEX"
@@ -16,6 +18,8 @@ export const safeSymbolName = (name: string) =>
 
 export const localAttrIdToCanonical = (attrId: string) => `${CANONICAL_NAME}${LOCAL_ATTR}${attrId}`
 
+export const boundaryValueIdToCanonical = (boundaryId: string) => `${CANONICAL_NAME}${BOUNDARY_VALUE}${boundaryId}`
+
 export const globalValueIdToCanonical = (globalId: string) => `${CANONICAL_NAME}${GLOBAL_VALUE}${globalId}`
 
 export const idToCanonical = (id: string) => `${CANONICAL_NAME}${id}`
@@ -27,12 +31,13 @@ export const rmCanonicalPrefix = (name: any) => isCanonicalName(name) ? name.sub
 export interface IDisplayNameMapOptions {
   localDataSet: IDataSet
   dataSets: Map<string, IDataSet>
+  boundaryManager?: BoundaryManager
   globalValueManager?: IGlobalValueManager
 }
 
 // useSafeSymbolNames should be set to false only when display map is generated to be reversed into canonical map.
 export const getDisplayNameMap = (options: IDisplayNameMapOptions, useSafeSymbolNames = true) => {
-  const { localDataSet, dataSets, globalValueManager } = options
+  const { localDataSet, dataSets, boundaryManager, globalValueManager } = options
 
   const displayNameMap: DisplayNameMap = {
     localNames: {},
@@ -47,8 +52,12 @@ export const getDisplayNameMap = (options: IDisplayNameMapOptions, useSafeSymbol
   // When localNames are generated, the order of processing various sources of names is important.
   // The last source would provide the final canonical name for the symbol. So, currently the global values
   // have the lowest priority, then local attributes, and finally the reserved symbols like `caseIndex`.
+  boundaryManager?.boundaryKeys.forEach(boundaryId => {
+    displayNameMap.localNames[key(boundaryId)] = boundaryValueIdToCanonical(boundaryId)
+  })
+
   globalValueManager?.globals.forEach(global => {
-    displayNameMap.localNames[key(global.name)] = `${CANONICAL_NAME}${GLOBAL_VALUE}${global.id}`
+    displayNameMap.localNames[key(global.name)] = globalValueIdToCanonical(global.id)
   })
 
   localDataSet.attributes.forEach(attr => {
@@ -103,6 +112,10 @@ export const basicCanonicalNameToDependency = (canonicalName: string): IFormulaD
   if (canonicalName.startsWith(LOCAL_ATTR)) {
     const attrId = canonicalName.substring(LOCAL_ATTR.length)
     return { type: "localAttribute", attrId }
+  }
+  if (canonicalName.startsWith(BOUNDARY_VALUE)) {
+    const boundarySet = canonicalName.substring(BOUNDARY_VALUE.length)
+    return { type: "boundary", boundarySet }
   }
   if (canonicalName.startsWith(GLOBAL_VALUE)) {
     const globalId = canonicalName.substring(GLOBAL_VALUE.length)

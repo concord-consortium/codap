@@ -2,14 +2,15 @@ import { CFMAppOptions, CloudFileManager, CloudFileManagerClientEvent } from "@c
 import { useEffect, useRef } from "react"
 import { Root, createRoot } from "react-dom/client"
 import { useMemo } from "use-memo-one"
-import { clientConnect, createCloudFileManager, renderRoot } from "./cfm-utils"
-import { handleCFMEvent } from "./handle-cfm-event"
+import { codapResourcesUrl } from "../constants"
 import { appState } from "../models/app-state"
 import { isCodapDocument } from "../models/codap/create-codap-document"
 import { gLocale } from "../utilities/translation/locale"
 import { t } from "../utilities/translation/translate"
 import { removeDevUrlParams, urlParams } from "../utilities/url-params"
+import { clientConnect, createCloudFileManager, renderRoot } from "./cfm-utils"
 import { DEBUG_CFM_LOCAL_STORAGE } from "./debug"
+import { handleCFMEvent } from "./handle-cfm-event"
 
 const locales = [
   {
@@ -199,7 +200,7 @@ export function useCloudFileManager(optionsArg: CFMAppOptions) {
           "name": "readOnly",
           "displayName": t("DG.fileMenu.provider.examples.displayName"),
           "urlDisplayName": "examples",
-          "src": "https://codap-resources.s3.amazonaws.com/example-documents/index.json",
+          "src": codapResourcesUrl("example-documents/index.json"),
           alphabetize: false
         },
         {

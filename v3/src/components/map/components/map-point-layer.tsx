@@ -177,8 +177,7 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
         startAnimation: mapModel.startAnimation
       })
     }
-  }, [dataConfiguration, layout, mapLayerModel, mapModel.startAnimation,
-    pointDescription?.pointColor, pointDescription?.pointStrokeColor, pixiPoints])
+  }, [dataConfiguration, layout, mapLayerModel, mapModel.startAnimation, pointDescription, pixiPoints])
 
   const refreshPointSelection = useCallback(() => {
     const {pointColor, pointStrokeColor} = pointDescription,
@@ -189,12 +188,22 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
     })
   }, [pointDescription, mapLayerModel, dataConfiguration, pixiPoints])
 
+  // TODO: Deleted attributes should be removed from the DataConfiguration, in
+  // which case the additional validation via the DataSet would be unnecessary.
+  const legendAttributeId = dataConfiguration.attributeID('legend')
+  const legendAttribute = dataset?.getAttribute(legendAttributeId)
+  const getLegendColor = legendAttribute ? dataConfiguration?.getLegendColorForCase : undefined
+/*
+  const lookupLegendColor = useCallback((caseData: CaseData) => {
+    return getLegendColor?.(caseData.caseID) ?? missingColor
+  }, [getLegendColor])
+*/
+  const lookupLegendColor = (aCaseData: CaseData) => {
+      return dataConfiguration.getLegendColorForCase(aCaseData.caseID) || pointDescription.pointColor
+    }
+
   const refreshPoints = useDebouncedCallback(async (selectedOnly: boolean) => {
-    const lookupLegendColor = (aCaseData: CaseData) => {
-        return dataConfiguration.attributeID('legend')
-          ? dataConfiguration.getLegendColorForCase(aCaseData.caseID)
-          : pointColor
-      },
+    const {pointSizeMultiplier, pointStrokeColor} = pointDescription,
       getCoords = (anID: string) => {
         const long = dataset?.getNumeric(anID, longId) || 0,
           lat = dataset?.getNumeric(anID, latId) || 0
@@ -220,13 +229,9 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
     if (layerIsVisible && pointsAreVisible && !pixiPoints.isVisible) {
       pixiPoints?.setVisibility(true)
     }
-    const pointRadius = computePointRadius(dataConfiguration.getCaseDataArray(0).length,
-        pointDescription.pointSizeMultiplier)
+    const pointRadius = computePointRadius(dataConfiguration.getCaseDataArray(0).length, pointSizeMultiplier)
     const selectedPointRadius = computePointRadius(dataConfiguration.getCaseDataArray(0).length,
-        pointDescription.pointSizeMultiplier, 'select')
-    const {pointColor, pointStrokeColor} = pointDescription
-    const getLegendColor = dataConfiguration?.attributeID('legend')
-        ? dataConfiguration?.getLegendColorForCase : undefined
+        pointSizeMultiplier, 'select')
     const {latId, longId} = latLongAttributesFromDataSet(dataset)
 
     await pixiPoints.transition(() => {
@@ -265,12 +270,9 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
 
   useEffect(() => {
     return mstReaction(
-      () => {
-        return dataConfiguration?.categorySetForAttrRole('legend')?.colorHash
-      },
-      () => {
-        refreshPoints(false)
-      }, {name: "MapPointLayer [categorySetChange]", fireImmediately: true}, dataConfiguration)
+      () => dataConfiguration?.categorySetForAttrRole('legend')?.colorHash,
+      () => refreshPoints(false),
+      {name: "MapPointLayer [categorySetChange]", fireImmediately: true}, dataConfiguration)
   }, [dataConfiguration, refreshPoints])
 
   // Changes in layout or map pan/zoom require repositioning points
@@ -291,23 +293,20 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
   // respond to attribute assignment changes
   useEffect(function setupResponseToLegendAttributeChange() {
     const disposer = mstReaction(
-      () => {
-        return [dataConfiguration?.attributeID('legend'), dataConfiguration?.attributeType('legend')]
-      },
-      () => {
-        refreshPoints(false)
-      }, {name: "MapPointLayer.respondToLegendAttributeChange", equals: comparer.structural}, dataConfiguration
+      () => [dataConfiguration?.attributeID('legend'), dataConfiguration?.attributeType('legend')],
+      () => refreshPoints(false),
+      {name: "MapPointLayer.respondToLegendAttributeChange", equals: comparer.structural}, dataConfiguration
     )
     return () => disposer()
   }, [refreshPoints, dataConfiguration])
 
-  useEffect(function setupResponseToChangeInNumberOfCases() {
+  useEffect(function setupResponseToChangeInCases() {
     return mstReaction(
-      () => dataConfiguration?.getCaseDataArray(0).length,
+      () => dataConfiguration?.caseDataHash,
       () => {
         callMatchCirclesToData()
         refreshPoints(false)
-      }, {name: "MapPointLayer.setupResponseToChangeInNumberOfCases", fireImmediately: true}, dataConfiguration
+      }, {name: "MapPointLayer.setupResponseToChangeInCases", fireImmediately: true}, dataConfiguration
     )
   }, [callMatchCirclesToData, dataConfiguration, refreshPoints])
 
@@ -315,11 +314,11 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
   useEffect(function respondToDisplayItemVisualPropsAction() {
     const disposer = onAnyAction(mapLayerModel, action => {
       if (isDisplayItemVisualPropsAction(action)) {
-        callMatchCirclesToData()
+        refreshPoints(false)
       }
     })
     return () => disposer()
-  }, [callMatchCirclesToData, mapLayerModel])
+  }, [refreshPoints, mapLayerModel])
 
   // respond to change in layer visibility
   useEffect(function respondToLayerVisibilityChange() {
@@ -337,7 +336,7 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
       },
       {name: "MapPointLayer.respondToLayerVisibilityChange"}, mapLayerModel
     )
-  }, [mapLayerModel, callMatchCirclesToData, layout.contentWidth, layout.contentHeight, refreshPoints, pixiPoints])
+  }, [mapLayerModel, refreshPoints, pixiPoints])
 
   // respond to point properties change
   useEffect(function respondToPointVisualChange() {
@@ -346,10 +345,10 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
           mapLayerModel.pointDescription
         return [pointColor, pointStrokeColor, pointStrokeSameAsFill, pointSizeMultiplier]
       },
-      () => callMatchCirclesToData(),
+      () => refreshPoints(false),
       {name: "MapPointLayer.respondToPointVisualChange"}, mapLayerModel
     )
-  }, [callMatchCirclesToData, mapLayerModel])
+  }, [mapLayerModel, refreshPoints])
 
   // Call refreshConnectingLines when Connecting Lines option is switched on and when all
   // points are selected.

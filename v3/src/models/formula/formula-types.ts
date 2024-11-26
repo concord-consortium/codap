@@ -21,6 +21,11 @@ export interface ILocalAttributeDependency {
   aggregate?: boolean
 }
 
+export interface IBoundaryDependency {
+  type: "boundary"
+  boundarySet: string
+}
+
 export interface IGlobalValueDependency {
   type: "globalValue"
   globalId: string
@@ -33,7 +38,8 @@ export interface ILookupDependency {
   keyAttrId?: string
 }
 
-export type IFormulaDependency = ILocalAttributeDependency | IGlobalValueDependency | ILookupDependency
+export type IFormulaDependency = ILocalAttributeDependency | IBoundaryDependency |
+                                  IGlobalValueDependency | ILookupDependency
 
 export type FValue = string | number | boolean | Date
 

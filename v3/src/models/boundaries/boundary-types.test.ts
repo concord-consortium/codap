@@ -1,4 +1,4 @@
-import { boundaryObjectFromBoundaryValue, isBoundaryValue } from "./boundary-utils"
+import { boundaryObjectFromBoundaryValue, isBoundaryValue } from "./boundary-types"
 
 describe("boundaryObjectFromBoundaryValue", () => {
   it("Returns the correct value", () => {

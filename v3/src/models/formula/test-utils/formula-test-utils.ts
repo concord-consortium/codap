@@ -1,11 +1,12 @@
-import testDoc from "./test-doc.json"
-import { getSharedDataSets } from "../../shared/shared-data-utils"
+import { boundaryManager } from "../../boundaries/boundary-manager"
 import { createCodapDocument } from "../../codap/create-codap-document"
+import { getSharedDataSets } from "../../shared/shared-data-utils"
 import { getSharedModelManager, getGlobalValueManager } from "../../tiles/tile-environment"
-import { math } from "../functions/math"
 import { FormulaMathJsScope } from "../formula-mathjs-scope"
-import { getDisplayNameMap } from "../utils/name-mapping-utils"
+import { math } from "../functions/math"
 import { displayToCanonical } from "../utils/canonicalization-utils"
+import { getDisplayNameMap } from "../utils/name-mapping-utils"
+import testDoc from "./test-doc.json"
 
 // Because formulas largely depend on the document context and data structures, it's not trivial to mock them in each
 // unit test. Therefore, these helpers are provided to make it easier to write tests for formulas.
@@ -41,6 +42,7 @@ export const getFormulaTestEnv = () => {
       Mammals: mammals,
       Cats: cats,
     },
+    boundaryManager,
     globalValueManager: getGlobalValueManager(getSharedModelManager(doc)),
     dataSets: new Map(dataSets.map(dataSet => [dataSet.id, dataSet])),
   }
@@ -54,6 +56,7 @@ export const evaluate = (displayFormula: string, casePointer?: number) => {
   const scope = new FormulaMathJsScope({
     localDataSet,
     dataSets,
+    boundaryManager,
     globalValueManager,
     caseIds: casePointer !== undefined ? caseIds : undefined,
     childMostCollectionCaseIds: caseIds
@@ -64,7 +67,8 @@ export const evaluate = (displayFormula: string, casePointer?: number) => {
   const displayNameMap = getDisplayNameMap({
     localDataSet,
     dataSets,
-    globalValueManager,
+    boundaryManager,
+    globalValueManager
   })
   const formula = displayToCanonical(displayFormula, displayNameMap)
   return math.evaluate(formula, scope)
@@ -78,6 +82,7 @@ export const evaluateForAllCases = (displayFormula: string, formulaAttrName?: st
   const scope = new FormulaMathJsScope({
     localDataSet,
     dataSets,
+    boundaryManager,
     globalValueManager,
     caseIds,
     childMostCollectionCaseIds: caseIds,
@@ -87,7 +92,8 @@ export const evaluateForAllCases = (displayFormula: string, formulaAttrName?: st
   const displayNameMap = getDisplayNameMap({
     localDataSet,
     dataSets,
-    globalValueManager,
+    boundaryManager,
+    globalValueManager
   })
   const formula = displayToCanonical(displayFormula, displayNameMap)
   const compiledFormula = math.compile(formula)

@@ -1,7 +1,7 @@
 import {LatLngBounds, latLngBounds} from 'leaflet'
 import {singular} from "pluralize"
+import {kPolygonNames} from "../../../models/boundaries/boundary-types"
 import {IDataSet} from "../../../models/data/data-set"
-import { kPolygonNames } from "../../../utilities/boundary-utils"
 import {isFiniteNumber} from "../../../utilities/math-utils"
 import {translate} from "../../../utilities/translation/translate"
 import {IDataConfigurationModel} from "../../data-display/models/data-configuration-model"
@@ -10,7 +10,7 @@ import {kLatNames, kLongNames} from "../map-types"
 // A dataset has point data if it has both a latitude and longitude attribute; i.e. an attribute whose name
 // is in kLatNames and an attribute whose name is in kLongNames
 export const datasetHasLatLongData = (dataset: IDataSet) => {
-  const attrNames = dataset.attributes.map(attr => attr.name)
+  const attrNames = dataset.attributes.map(attr => attr.name.toLowerCase())
   let hasLatAttribute = false,
     hasLngAttribute = false
   while (attrNames.length > 0 && (!hasLatAttribute || !hasLngAttribute)) {
@@ -44,8 +44,8 @@ export const datasetHasBoundaryData = (dataset: IDataSet) => {
 // Throws an error if the dataset does not have both latitude and longitude attributes
 export const latLongAttributesFromDataSet = (dataSet: IDataSet) => {
   const attributes = dataSet.attributes,
-    latAttr = attributes.find(attr => kLatNames.includes(attr.name)),
-    longAttr = attributes.find(attr => kLongNames.includes(attr.name))
+    latAttr = attributes.find(attr => kLatNames.includes(attr.name.toLowerCase())),
+    longAttr = attributes.find(attr => kLongNames.includes(attr.name.toLowerCase()))
   if (!latAttr || !longAttr) {
     throw new Error(`Unable to find both latitude and longitude attributes in dataset ${dataSet.name}`)
   }

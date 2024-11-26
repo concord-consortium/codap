@@ -1,4 +1,7 @@
-import { CloudFileManagerClient, CloudFileManagerClientEvent } from "@concord-consortium/cloud-file-manager"
+import { cloneDeep } from "lodash"
+import {
+  ClientEventCallback, CloudFileManagerClient, CloudFileManagerClientEvent
+} from "@concord-consortium/cloud-file-manager"
 import { getSnapshot } from "mobx-state-tree"
 import { appState } from "../models/app-state"
 import { createCodapDocument, isCodapDocument } from "../models/codap/create-codap-document"
@@ -65,6 +68,51 @@ describe("handleCFMEvent", () => {
     expect(isCodapDocument(contentArg)).toBe(true)
   })
 
+  it("handles the `getContent` message with sharing info", async () => {
+    const mockCfmClient = {} as CloudFileManagerClient
+    // This is not real metadata for sharing. Our CFM handler should
+    // not care and just add it to the returned content whatever it is.
+    const mockSharingInfo = { sharingInfo: "value" }
+    const mockCfmEvent = {
+      type: "getContent",
+      callback: jest.fn(),
+      data: {
+        shared: mockSharingInfo
+      }
+    }
+    const mockCfmEventArg = mockCfmEvent as unknown as CloudFileManagerClientEvent
+    await handleCFMEvent(mockCfmClient, mockCfmEventArg)
+
+    const contentArg = mockCfmEvent.callback.mock.calls[0][0]
+    expect(isCodapDocument(contentArg)).toBe(true)
+
+    expect(contentArg.metadata.shared).toEqual(mockSharingInfo)
+  })
+
+  it("handles the sharedFile message", async () => {
+    const mockCfmClient = {
+      dirty: jest.fn() as CloudFileManagerClient["dirty"]
+    } as CloudFileManagerClient
+    const mockCfmEvent = {
+      type: "sharedFile"
+    }
+    const mockCfmEventArg = mockCfmEvent as unknown as CloudFileManagerClientEvent
+    await handleCFMEvent(mockCfmClient, mockCfmEventArg)
+    expect(mockCfmClient.dirty).toHaveBeenCalledWith(true)
+  })
+
+  it("handles the unsharedFile message", async () => {
+    const mockCfmClient = {
+      dirty: jest.fn() as CloudFileManagerClient["dirty"]
+    } as CloudFileManagerClient
+    const mockCfmEvent = {
+      type: "unsharedFile"
+    }
+    const mockCfmEventArg = mockCfmEvent as unknown as CloudFileManagerClientEvent
+    await handleCFMEvent(mockCfmClient, mockCfmEventArg)
+    expect(mockCfmClient.dirty).toHaveBeenCalledWith(true)
+  })
+
   it("handles the willOpenFile message", async () => {
     const mockCfmClient = {} as CloudFileManagerClient
     const mockCfmEvent = {
@@ -89,11 +137,14 @@ describe("handleCFMEvent", () => {
       type: "openedFile",
       data: {
         content: mockV2Document
-      }
+      },
+      callback: jest.fn() as ClientEventCallback
     } as CloudFileManagerClientEvent
     const spy = jest.spyOn(ImportV2Document, "importV2Document")
     await handleCFMEvent(mockCfmClient, cfmEvent)
     expect(ImportV2Document.importV2Document).toHaveBeenCalledTimes(1)
+    // No error and no shared data
+    expect(cfmEvent.callback).toHaveBeenCalledWith(null, {})
     spy.mockRestore()
   })
 
@@ -104,12 +155,41 @@ describe("handleCFMEvent", () => {
       type: "openedFile",
       data: {
         content: getSnapshot(v3Document)
-      }
+      },
+      callback: jest.fn() as ClientEventCallback
     } as CloudFileManagerClientEvent
     const spy = jest.spyOn(appState, "setDocument")
     await handleCFMEvent(mockCfmClient, cfmEvent)
     expect(spy).toHaveBeenCalledTimes(1)
+    // No error and no shared data
+    expect(cfmEvent.callback).toHaveBeenCalledWith(null, {})
     spy.mockRestore()
   })
 
+  it("handles the `openedFile` message with sharing info", async () => {
+    const mockCfmClient = {} as CloudFileManagerClient
+    const v3Document = createCodapDocument()
+    // This is not real metadata for sharing. Our CFM handler should
+    // not care and just return it whatever it is.
+    const mockSharingInfo = { sharingInfo: "value" }
+    const snapshot = getSnapshot(v3Document)
+    const content = cloneDeep(snapshot) as any
+    content.metadata = {
+      shared: mockSharingInfo
+    }
+
+    const cfmEvent = {
+      type: "openedFile",
+      data: {
+        content
+      },
+      callback: jest.fn() as ClientEventCallback
+    } as CloudFileManagerClientEvent
+    const spy = jest.spyOn(appState, "setDocument")
+    await handleCFMEvent(mockCfmClient, cfmEvent)
+    expect(spy).toHaveBeenCalledTimes(1)
+    // No error and the sharing info is returned
+    expect(cfmEvent.callback).toHaveBeenCalledWith(null, mockSharingInfo)
+    spy.mockRestore()
+  })
 })

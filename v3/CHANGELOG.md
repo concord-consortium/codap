@@ -1,5 +1,28 @@
 # Changelog
 
+## Version 3.0.0-pre.2023 - November 22, 2024
+
+### ✨ Features & Improvements:
+- **PT-188491735:** Boundaries display in case table cells as small representations of the polygon
+- **PT-187849414:** Auto-detect boundary data type
+- **PT-188491712:** lookupBoundary function
+- **PT-188104685:** Browser tab titles show document name
+- **PT-188497370:** **Legend colors** can be changed in the layers (for maps) inspector menu
+
+### 🐞 Bug Fixes:
+- **PT-188570070:** Minimized components can't be unminimized after importing a v2 document into v3
+- **PT-188364161:** Misalignment of **numerical attributes** in **case table**
+- **PT-188392104:** **Formulas** don't behave for **case card** view
+- **PT-188571448:** Nested Table View in MultiData plugin fails to update when adding new hierarchy levels in CODAP v3 case card view (*Delivered*)
+- **PT-188571538:** Lat/long points will not display in Map component when migrating v2 documents to v3 (*Finished*)
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  184216 bytes |                            0.16% |
+|  index.js | 8592052 bytes |                           135.9% |
+
+
 ## Version 3.0.0-pre.2009 - November 15, 2024
 
 ### ✨ Features & Improvements:

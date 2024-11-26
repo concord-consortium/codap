@@ -58,6 +58,7 @@ const getTestEnv = () => {
   }
   const api = {
     getDatasets: jest.fn(() => dataSets),
+    getBoundaryManager: jest.fn(),
     getGlobalValueManager: jest.fn(),
     getFormulaExtraMetadata: jest.fn(() => extraMetadata),
     getFormulaContext: jest.fn(() => context),

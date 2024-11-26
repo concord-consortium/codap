@@ -12,6 +12,7 @@ import CodeMirror, {
 import React, { useCallback, useRef } from "react"
 import { useMemo } from "use-memo-one"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
+import { boundaryManager } from "../../models/boundaries/boundary-manager"
 import { IDataSet } from "../../models/data/data-set"
 import { typedFnRegistry } from "../../models/formula/functions/math"
 import { formulaLanguageWithHighlighting } from "../../models/formula/lezer/formula-language"
@@ -20,6 +21,7 @@ import { FormulaEditorApi, useFormulaEditorContext } from "./formula-editor-cont
 
 interface ICompletionOptions {
   attributes: boolean
+  boundaries: boolean
   constants: boolean
   functions: boolean
   globals: boolean
@@ -27,7 +29,7 @@ interface ICompletionOptions {
 }
 
 const kAllOptions: ICompletionOptions = {
-  attributes: true, constants: true, functions: true, globals: true, specials: true
+  attributes: true, boundaries: true, constants: true, functions: true, globals: true, specials: true
 }
 
 interface IProps {
@@ -114,6 +116,9 @@ function cmCodapCompletions(context: CompletionContext): CompletionResult | null
     { label: "π" }
   ] : []
   const specials = options?.specials ? [{ label: "caseIndex" }] : []
+  const boundaries = options?.boundaries
+                      ? Array.from(boundaryManager.boundaryKeys.map(key => ({ label: key })))
+                      : []
   const globalManager = dataSet && options?.globals
                           ? getGlobalValueManager(getSharedModelManager(dataSet))
                           : undefined
@@ -139,7 +144,9 @@ function cmCodapCompletions(context: CompletionContext): CompletionResult | null
       }
     }
   })) : []
-  const completions: Completion[] = [...attributes, ...constants, ...specials, ...globals, ...functions]
+  const completions: Completion[] = [
+    ...attributes, ...constants, ...specials, ...boundaries, ...globals, ...functions
+  ]
 
   if (!before || before.to === before.from) return null
 
@@ -164,6 +171,9 @@ const highlightClasses: Record<string, HighlightFn> = {
     if (options.attributes && data?.getAttributeByName(nodeText)) return "codap-attribute"
     if (options.constants && ["e", "pi", "π"].includes(nodeText)) return "codap-constant"
     if (options.specials && ["caseIndex"].includes(nodeText)) return "codap-special"
+
+    if (boundaryManager.isBoundarySet(nodeText)) return "codap-boundary"
+
     const globalManager = options.globals ? getGlobalValueManager(getSharedModelManager(data)) : undefined
     if (globalManager?.getValueByName(nodeText)) return "codap-global"
   }

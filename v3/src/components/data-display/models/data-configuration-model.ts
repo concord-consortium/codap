@@ -21,7 +21,7 @@ import {
   kDefaultHighAttributeColor, kDefaultLowAttributeColor
 } from "../../../models/shared/shared-case-metadata-constants"
 import {hashStringSets, typedId, uniqueId} from "../../../utilities/js-utils"
-import {getQuantileScale, missingColor} from "../../../utilities/color-utils"
+import {getQuantileScale, missingColor, parseColor} from "../../../utilities/color-utils"
 import { numericSortComparator } from "../../../utilities/data-utils"
 import {GraphPlace} from "../../axis-graph-shared"
 import {CaseData} from "../d3-types"
@@ -569,16 +569,18 @@ export const DataConfigurationModel = types
         }
 
         const legendID = self.attributeID('legend')
-        const legendType = self.attributeType('legend')
-        if (!id || !legendID) {
+        // todo: When user deletes we are not currently deleting the legend attribute ID. But we should.
+        const legendAttribute = self.dataset?.getAttribute(legendID)
+        if (!id || !legendID || !legendAttribute) {
           return ''
         }
+        const legendType = self.attributeType('legend')
         if (collectionOfLegendIsMoreChildmost()) {
           return missingColor
         }
         const legendValue = self.dataset?.getStrValue(id, legendID)
         if (!legendValue) {
-          return ''
+          return missingColor
         }
         switch (legendType) {
           case 'categorical':
@@ -588,7 +590,7 @@ export const DataConfigurationModel = types
           case 'date':
             return self.getLegendColorForDateValue(legendValue)
           case 'color':
-            return legendValue
+            return parseColor(legendValue, { colorNames: true }) ? legendValue : missingColor
           default:
             return ''
         }
