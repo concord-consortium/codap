@@ -16,9 +16,8 @@ import {CaseData} from "../../data-display/d3-types"
 import {
   computePointRadius, handleClickOnCase, matchCirclesToData, setPointSelection
 } from "../../data-display/data-display-utils"
-import { IConnectingLineDescription, transitionDuration } from "../../data-display/data-display-types"
+import { IConnectingLineDescription } from "../../data-display/data-display-types"
 import {isDisplayItemVisualPropsAction} from "../../data-display/models/display-model-actions"
-import {useDataDisplayAnimation} from "../../data-display/hooks/use-data-display-animation"
 import {useDataDisplayLayout} from "../../data-display/hooks/use-data-display-layout"
 import {latLongAttributesFromDataSet} from "../utilities/map-utils"
 import {IPixiPointMetadata, PixiPoints} from "../../data-display/pixi/pixi-points"
@@ -37,7 +36,6 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
   const {dataConfiguration, pointDescription} = mapLayerModel,
     dataset = isAlive(dataConfiguration) ? dataConfiguration?.dataset : undefined,
     mapModel = useMapModelContext(),
-    {isAnimating} = useDataDisplayAnimation(),
     leafletMap = useMap(),
     layout = useDataDisplayLayout(),
     instanceId = useInstanceIdContext(),
@@ -193,11 +191,6 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
   const legendAttributeId = dataConfiguration.attributeID('legend')
   const legendAttribute = dataset?.getAttribute(legendAttributeId)
   const getLegendColor = legendAttribute ? dataConfiguration?.getLegendColorForCase : undefined
-/*
-  const lookupLegendColor = useCallback((caseData: CaseData) => {
-    return getLegendColor?.(caseData.caseID) ?? missingColor
-  }, [getLegendColor])
-*/
   const lookupLegendColor = (aCaseData: CaseData) => {
       return dataConfiguration.getLegendColorForCase(aCaseData.caseID) || pointDescription.pointColor
     }
@@ -234,20 +227,19 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
         pointSizeMultiplier, 'select')
     const {latId, longId} = latLongAttributesFromDataSet(dataset)
 
-    await pixiPoints.transition(() => {
-      pixiPoints.forEachPoint((point: PIXI.Sprite, metadata: IPixiPointMetadata) => {
-        const {caseID} = metadata
-        pixiPoints.setPointPosition(point, getScreenX(caseID), getScreenY(caseID))
-        pixiPoints.setPointStyle(point, {
-          radius: dataset?.isCaseSelected(caseID) ? selectedPointRadius : pointRadius,
-          fill: lookupLegendColor(metadata),
-          stroke: getLegendColor && dataset?.isCaseSelected(caseID)
-            ? defaultSelectedStroke : pointStrokeColor,
-          strokeWidth: getLegendColor && dataset?.isCaseSelected(caseID)
-            ? defaultSelectedStrokeWidth : defaultStrokeWidth
-         })
-      }, { selectedOnly })
-    }, { duration: isAnimating() ? transitionDuration : 0 })
+    pixiPoints.forEachPoint((point: PIXI.Sprite, metadata: IPixiPointMetadata) => {
+      const {caseID} = metadata
+      pixiPoints.setPointPosition(point, getScreenX(caseID), getScreenY(caseID))
+      pixiPoints.setPointStyle(point, {
+        radius: dataset?.isCaseSelected(caseID) ? selectedPointRadius : pointRadius,
+        fill: lookupLegendColor(metadata),
+        stroke: getLegendColor && dataset?.isCaseSelected(caseID)
+          ? defaultSelectedStroke : pointStrokeColor,
+        strokeWidth: getLegendColor && dataset?.isCaseSelected(caseID)
+          ? defaultSelectedStrokeWidth : defaultStrokeWidth
+      })
+    }, { selectedOnly })
+
     refreshPointSelection()
   }, 10)
 
