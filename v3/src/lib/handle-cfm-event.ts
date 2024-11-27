@@ -3,6 +3,7 @@ import { CloudFileManagerClient, CloudFileManagerClientEvent } from "@concord-co
 import { appState } from "../models/app-state"
 import { removeDevUrlParams, urlParams } from "../utilities/url-params"
 import { wrapCfmCallback } from "./cfm-utils"
+import { t } from "../utilities/translation/translate"
 import { DEBUG_CFM_EVENTS } from "./debug"
 
 import build from "../../build_number.json"
@@ -60,21 +61,52 @@ export async function handleCFMEvent(cfmClient: CloudFileManagerClient, event: C
     // case "newedFile":
     //   break
     case "openedFile": {
-      const content = event.data.content
+      const rawContent = event.data.content as unknown
       const metadata = event.data.metadata
 
-      // Pull the shared metadata out of the content if it exists
-      // Otherwise use the shared metadata passed from the CFM
-      const cfmSharedMetadata = content?.metadata?.shared || metadata?.shared || {}
 
-      // Clone this metadata because that is what CODAPv2 did so we do the
-      // same to be safe
-      const clonedCfmSharedMetadata = cloneDeep(cfmSharedMetadata)
+      try {
+        // The content could be either an object or a string
+        // We don't currently handle strings
+        if (typeof rawContent === "string") {
+          throw new Error(`Content from CFM is a string: ${rawContent}`)
+        }
+        const content = rawContent as any
 
-      await appState.setDocument(content, metadata)
+        // Pull the shared metadata out of the content if it exists
+        // Otherwise use the shared metadata passed from the CFM
+        const cfmSharedMetadata = content?.metadata?.shared || metadata?.shared || {}
 
-      // acknowledge a successful open and return shared metadata
-      event.callback(null, clonedCfmSharedMetadata)
+        // Clone this metadata because that is what CODAPv2 did so we do the
+        // same to be safe
+        const clonedCfmSharedMetadata = cloneDeep(cfmSharedMetadata)
+
+        await appState.setDocument(content, metadata)
+
+        // acknowledge a successful open and return shared metadata
+        event.callback(null, clonedCfmSharedMetadata)
+      } catch (e) {
+        // Log the error to the console so we can debug the problem
+        // The error is sent in the cause so that Rollbar has a chance of fully recording
+        // the cause of this error
+        console.error("Error opening the document.", {cause: e})
+        // The message and stack of the error are logged in a group so it is easier
+        // to view them in the console.
+        if (isError(e)) {
+          console.groupCollapsed("Details of document error")
+          console.log(e.message)
+          console.log(e.stack)
+          console.groupEnd()
+        }
+
+        // Have the CFM show an error dialog
+        event.callback(t("DG.AppController.openDocument.error.general"))
+        // Clear the dirty state so the red "unsaved" badge isn't visible behind the error message
+        event.state.dirty = false
+        // Close the file so the title resets, and any residual metadata or content are not
+        // preserved by the CFM
+        cfmClient.closeFile()
+      }
 
       break
     }
@@ -121,4 +153,8 @@ export async function handleCFMEvent(cfmClient: CloudFileManagerClient, event: C
     // case "log":
     //   break
   }
+}
+
+function isError(e: unknown): e is {message: string, stack: string} {
+  return !!e && typeof e === "object" && "message" in e && "stack" in e
 }

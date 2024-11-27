@@ -51,6 +51,16 @@ context("CloudFileManager", () => {
   it("Opens a local document using different methods", () => {
     const fileName = "../v3/cypress/fixtures/mammals.codap"
     const CSVFileName = "../v3/cypress/fixtures/map-data.csv"
+    const invalidDocsFolder = "../v3/cypress/fixtures/invalid-docs/"
+    const erroringDocuments = [
+      "invalid-json",
+      "invalid-rowmap",
+      "numeric-version-with-content",
+      "numeric-version"
+    ]
+    const shouldBeErroringDocuments = [
+      "invalid-content"
+    ]
 
     cy.log("Opens a CODAP document from a local file using CFM dialog")
     visitEmptyCodap()
@@ -108,6 +118,25 @@ context("CloudFileManager", () => {
 
     // Verify document was closed (Map data table doesn't exist)
     c.checkComponentDoesNotExist("table")
+
+    cy.log("Shows errors with invalid documents")
+    for (const docFileName of erroringDocuments) {
+      cfm.openLocalDoc(`${invalidDocsFolder}${docFileName}.codap`)
+      cfm.getModalDialog().contains(".modal-dialog-title", "Error")
+      cfm.getModalDialog()
+        .contains("button", "Close")
+        .click()
+
+      cy.title().should("equal", "Untitled Document - CODAP")
+    }
+
+    // If these documents start showing errors, update this test
+    cy.log("Doesn't show errors for certain invalid documents")
+    for (const docFileName of shouldBeErroringDocuments) {
+      cfm.openLocalDoc(`${invalidDocsFolder}${docFileName}.codap`)
+      cy.title().should("equal", `${docFileName} - CODAP`)
+    }
+
   })
   it("verify language menu is present", () => {
     visitEmptyCodap()

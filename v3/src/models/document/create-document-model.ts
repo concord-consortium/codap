@@ -26,64 +26,49 @@ export const createDocumentModel = (snapshot?: IDocumentModelSnapshot) => {
     formulaManager,
     documentEnv: {}
   }
-  try {
-    const document = DocumentModel.create(snapshot, fullEnvironment)
 
-    // initialize formula adapters after the document has been created
-    setTimeout(() => formulaManager.addAdapters(createFormulaAdapters(adapterApi)))
+  const document = DocumentModel.create(snapshot, fullEnvironment)
 
-    addDisposer(document, onAction(document, (call) => {
-      if (!document.content || !call.path?.match(/\/content\/tileMap\//)) {
-        return
-      }
-      const tileTypeId = call.path?.match(/\/content\/tileMap\/([^/]*)/)?.[1]
-      if (tileTypeId) {
-        const tile = document.content.tileMap.get(tileTypeId)
-        tile?.onTileAction(call)
-      }
-    }))
-    if (document.content) {
-      sharedModelManager.setDocument(document.content)
+  // initialize formula adapters after the document has been created
+  setTimeout(() => formulaManager.addAdapters(createFormulaAdapters(adapterApi)))
+
+  addDisposer(document, onAction(document, (call) => {
+    if (!document.content || !call.path?.match(/\/content\/tileMap\//)) {
+      return
     }
-    sharedModelManager.getSharedModelsByType<typeof SharedDataSet>(kSharedDataSetType)
-      .forEach((model: ISharedDataSet) => formulaManager.addDataSet(model.dataSet))
-
-    // configure logging
-    fullEnvironment.log = function({ message, args, category }: ILogMessage) {
-      Logger.log(message, args, category)
+    const tileTypeId = call.path?.match(/\/content\/tileMap\/([^/]*)/)?.[1]
+    if (tileTypeId) {
+      const tile = document.content.tileMap.get(tileTypeId)
+      tile?.onTileAction(call)
     }
-
-    // configure notifications
-    fullEnvironment.notify = function(
-      message: DIMessage, callback: iframePhone.ListenerCallback, targetTileId?: string
-    ) {
-      document.content?.broadcastMessage(message, callback, targetTileId)
-    }
-
-    return document
-  } catch (e) {
-    // The only time we've seen this error so far is when MST fails to load the content
-    // because it doesn't match the types of the MST models
-    if (!snapshot) {
-      console.error("Empty document failed to be created")
-      throw e
-    }
-
-    if (!snapshot.content) {
-      console.error("Document with empty content failed to be created", {docKey: snapshot.key})
-      throw e
-    }
-
-    // Putting the error in an object like this prevents Chrome from expanding the
-    // error and taking up a bunch of console lines.
-    console.error("Failed to load document", {docKey: snapshot.key, error: e})
-
-    // Create a document without the content, so this can be returned and passed
-    // through the rest of the CLUE system. The Canvas component checks the contentStatus
-    // and renders a DocumentError component if the status is Error
-    const {content, ...snapshotWithoutContent} = snapshot
-    const documentWithoutContent = DocumentModel.create(snapshotWithoutContent, fullEnvironment)
-    // documentWithoutContent.setContentError(content, (e as Error)?.message)
-    return documentWithoutContent
+  }))
+  if (document.content) {
+    sharedModelManager.setDocument(document.content)
   }
+  sharedModelManager.getSharedModelsByType<typeof SharedDataSet>(kSharedDataSetType)
+    .forEach((model: ISharedDataSet) => formulaManager.addDataSet(model.dataSet))
+
+  // configure logging
+  fullEnvironment.log = function({ message, args, category }: ILogMessage) {
+    Logger.log(message, args, category)
+  }
+
+  // configure notifications
+  fullEnvironment.notify = function(
+    message: DIMessage, callback: iframePhone.ListenerCallback, targetTileId?: string
+  ) {
+    document.content?.broadcastMessage(message, callback, targetTileId)
+  }
+
+  // In CLUE we handled exceptions thrown by DocumentModel.create and returned a document
+  // with a contentError property. This way the document object would be treated like any
+  // other document and when it was rendered it would show the error message instead of
+  // the document content
+
+  // In CODAP we just let the exception be thrown. It is caught higher in the stack and
+  // the user is informed of the error in a dialog. Details of the error will be available
+  // in the console. In the future we might want to include the `e.message` in some details
+  // of the error dialog. This will help with bug reports
+
+  return document
 }

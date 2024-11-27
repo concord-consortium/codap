@@ -192,4 +192,68 @@ describe("handleCFMEvent", () => {
     expect(cfmEvent.callback).toHaveBeenCalledWith(null, mockSharingInfo)
     spy.mockRestore()
   })
+
+  describe("`openedFile` message with invalid documents", () => {
+    let setDocumentSpy: jest.SpyInstance
+    let mockCfmClient: CloudFileManagerClient
+    let cfmEvent: CloudFileManagerClientEvent
+    let consoleSpys: jest.SpyInstance[]
+
+    beforeEach(() => {
+      mockCfmClient = {
+        closeFile: jest.fn() as CloudFileManagerClient["closeFile"]
+      } as CloudFileManagerClient
+      cfmEvent = {
+        type: "openedFile",
+        data: {},
+        state: {},
+        callback: jest.fn() as ClientEventCallback
+      } as CloudFileManagerClientEvent
+      setDocumentSpy = jest.spyOn(appState, "setDocument")
+      consoleSpys = ["error", "log", "groupCollapsed", "groupEnd"].map(method => {
+        return jest.spyOn(console, method as any).mockImplementation(() => null)
+      })
+    })
+
+    afterEach(() => {
+      setDocumentSpy?.mockRestore()
+      for (const spy of consoleSpys) {
+        spy.mockRestore()
+      }
+    })
+
+    it("errors with a string document", async () => {
+      cfmEvent.data.content = "foo bar"
+      await handleCFMEvent(mockCfmClient, cfmEvent)
+      expect(setDocumentSpy).toHaveBeenCalledTimes(0)
+      // No error and the sharing info is returned
+      expect(cfmEvent.callback).toHaveBeenCalledWith("Unable to open document")
+    })
+
+    it("errors with an invalid version type", async () => {
+      cfmEvent.data.content = {version: 1234}
+      await handleCFMEvent(mockCfmClient, cfmEvent)
+      expect(setDocumentSpy).toHaveBeenCalledTimes(1)
+      // No error and the sharing info is returned
+      expect(cfmEvent.callback).toHaveBeenCalledWith("Unable to open document")
+    })
+
+    it("errors with an invalid rowMap type", async () => {
+      cfmEvent.data.content = {content: {rowMap: "invalid"}}
+      await handleCFMEvent(mockCfmClient, cfmEvent)
+      expect(setDocumentSpy).toHaveBeenCalledTimes(1)
+      // No error and the sharing info is returned
+      expect(cfmEvent.callback).toHaveBeenCalledWith("Unable to open document")
+    })
+
+    // We might want to require there to be a `type: "CODAP"`
+    it("doesn't error with unknown field", async () => {
+      cfmEvent.data.content = {invalid: "value"}
+      await handleCFMEvent(mockCfmClient, cfmEvent)
+      expect(setDocumentSpy).toHaveBeenCalledTimes(1)
+      // No error and the sharing info is returned
+      expect(cfmEvent.callback).toHaveBeenCalledWith(null, {})
+    })
+
+  })
 })

@@ -113,51 +113,46 @@ class AppState {
       content = snap
     }
 
-    try {
-      const document = createCodapDocument(content)
-      if (document) {
-        this.currentDocument = document
-        if (DEBUG_DOCUMENT) {
-          (window as any).currentDocument = document
-        }
-        if (metadata) {
-          const metadataEntries = Object.entries(metadata)
-          metadataEntries.forEach(([key, value]) => {
-            if (value == null) return
-
-            if (key === "filename") {
-              // We don't save the filename because it is redundant with the filename in the actual
-              // filesystem.
-              // However we need the extension-less name for the window title.
-              // The CFM also expects the document to have a name field when the document
-              // is loaded from a filesystem that doesn't use filenames.
-              this.currentDocument.setTitleFromFilename(value)
-            } else {
-              this.currentDocument.setProperty(key, value)
-            }
-          })
-        }
-        if (content.revisionId && this.treeManager) {
-          // Restore the revisionId from the stored document
-          // This will allow us to consistently compare the local document
-          // to the stored document.
-          this.treeManager.setRevisionId(content.revisionId)
-        }
-
-        // monitor document changes for undo/redo
-        this.enableDocumentMonitoring()
-
-        // update data broker with the new data sets
-        const manager = getSharedModelManager(document)
-        manager && gDataBroker.setSharedModelManager(manager)
-        manager?.getSharedModelsByType<typeof SharedDataSet>(kSharedDataSetType).forEach((model: ISharedDataSet) => {
-          gDataBroker.addSharedDataSet(model)
-        })
-        Logger.updateDocument(document)
+    const document = createCodapDocument(content)
+    if (document) {
+      this.currentDocument = document
+      if (DEBUG_DOCUMENT) {
+        (window as any).currentDocument = document
       }
-    }
-    catch (e) {
-      console.error("Error loading document!", e)
+      if (metadata) {
+        const metadataEntries = Object.entries(metadata)
+        metadataEntries.forEach(([key, value]) => {
+          if (value == null) return
+
+          if (key === "filename") {
+            // We don't save the filename because it is redundant with the filename in the actual
+            // filesystem.
+            // However we need the extension-less name for the window title.
+            // The CFM also expects the document to have a name field when the document
+            // is loaded from a filesystem that doesn't use filenames.
+            this.currentDocument.setTitleFromFilename(value)
+          } else {
+            this.currentDocument.setProperty(key, value)
+          }
+        })
+      }
+      if (content.revisionId && this.treeManager) {
+        // Restore the revisionId from the stored document
+        // This will allow us to consistently compare the local document
+        // to the stored document.
+        this.treeManager.setRevisionId(content.revisionId)
+      }
+
+      // monitor document changes for undo/redo
+      this.enableDocumentMonitoring()
+
+      // update data broker with the new data sets
+      const manager = getSharedModelManager(document)
+      manager && gDataBroker.setSharedModelManager(manager)
+      manager?.getSharedModelsByType<typeof SharedDataSet>(kSharedDataSetType).forEach((model: ISharedDataSet) => {
+        gDataBroker.addSharedDataSet(model)
+      })
+      Logger.updateDocument(document)
     }
   }
 
