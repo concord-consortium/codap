@@ -185,6 +185,11 @@ interface ICodapV2ProportionCoordinates {
   proportionY: number
 }
 
+interface ICodapV2LegacyValueModel {
+  isVisible: boolean
+  value: number
+}
+
 interface ICodapV2ValueModel {
   isVisible: boolean
   enableMeasuresForSelection: boolean
@@ -210,7 +215,7 @@ interface ICodapV2MovableValueAdornment {
   isShowingCount: boolean
   isShowingPercent: boolean
   // some (older?) documents have `values`, e.g. 24cats.codap
-  values?: ICodapV2ValueModel[]
+  values?: ICodapV2LegacyValueModel[]
   // more recent documents have `valueModels` ¯\_(ツ)_/¯
   valueModels?: ICodapV2ValueModel[]
 }

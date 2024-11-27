@@ -326,8 +326,8 @@ export const v2AdornmentImporter = ({data, plotModels, attributeDescriptions, yA
     const values: Record<string, any> = {}
     instanceKeys?.forEach((key: string) => {
       const plotValues: number[] = []
-      const valueModels = movableValuesAdornment.valueModels ?? movableValuesAdornment.values
-      valueModels.forEach((valueModel: Record<string, any>) => {
+      // ignoring legacy `values` for now
+      movableValuesAdornment.valueModels?.forEach((valueModel: Record<string, any>) => {
         plotValues.push(valueModel.values._main)
       })
       values[key] = plotValues
