@@ -1,9 +1,8 @@
-
+import { ICodapV2PlotStorage } from "../../../v2/codap-v2-types"
 import { IAttribute } from "../../../models/data/attribute"
 import { typedId } from "../../../utilities/js-utils"
 import { updateCellKey } from "./adornment-utils"
 import { kCountType } from "./count/count-adornment-types"
-import { ILSRLInstance } from "./lsrl/lsrl-adornment-model"
 import { kLSRLType } from "./lsrl/lsrl-adornment-types"
 import { kMovableLineType } from "./movable-line/movable-line-adornment-types"
 import { kMovablePointType } from "./movable-point/movable-point-adornment-types"
@@ -131,7 +130,7 @@ const instanceKeysForAdornments = (props: IInstanceKeysForAdornmentsProps) => {
 
 export const v2AdornmentImporter = ({data, plotModels, attributeDescriptions, yAttributeDescriptions}: IProps) => {
   const instanceKeys = instanceKeysForAdornments({data, attributeDescriptions, yAttributeDescriptions})
-  const plotModelStorage = plotModels?.[0].plotModelStorage
+  const plotModelStorage = plotModels?.[0].plotModelStorage as ICodapV2PlotStorage
   const v2Adornments = plotModelStorage.adornments
   const showSquaresOfResiduals = plotModelStorage.areSquaresVisible
   const showMeasureLabels = plotModelStorage.showMeasureLabels
@@ -140,7 +139,7 @@ export const v2AdornmentImporter = ({data, plotModels, attributeDescriptions, yA
   let interceptLocked = false
 
   // COUNT/PERCENT
-  const countAdornment = v2Adornments.plottedCount
+  const countAdornment = v2Adornments?.plottedCount
   const percentTypeMap: Record<string, string> = { 1: "cell", 2: "column", 3: "row" }
   if (countAdornment) {
     const countAdornmentImport = {
@@ -155,7 +154,7 @@ export const v2AdornmentImporter = ({data, plotModels, attributeDescriptions, yA
   }
 
   // CONNECTING LINES
-  const connectingLinesAdornment = v2Adornments.connectingLine
+  const connectingLinesAdornment = v2Adornments?.connectingLine
   if (connectingLinesAdornment?.isVisible) {
     showConnectingLines = true
   }
@@ -209,7 +208,7 @@ export const v2AdornmentImporter = ({data, plotModels, attributeDescriptions, yA
     const lines: Record<string, any> = {}
     instanceKeys?.forEach((key: string) => {
       const lsrlInstances: ILSRLImportInstance[] = []
-      lsrlAdornment.lsrls.forEach((lsrl: ILSRLInstance) => {
+      lsrlAdornment.lsrls.forEach(lsrl => {
         const lsrlInstance = {
           equationCoords: lsrl.equationCoords ?? undefined // The V2 default is null, but we want undefined
         }
@@ -229,7 +228,7 @@ export const v2AdornmentImporter = ({data, plotModels, attributeDescriptions, yA
   }
 
   // MEAN
-  const meanAdornment = v2Adornments.plottedMean
+  const meanAdornment = v2Adornments?.plottedMean
   if (meanAdornment) {
     const measures = univariateMeasureInstances(meanAdornment, instanceKeys)
     const meanAdornmentImport = {
@@ -242,7 +241,7 @@ export const v2AdornmentImporter = ({data, plotModels, attributeDescriptions, yA
   }
 
   // MEDIAN
-  const medianAdornment = v2Adornments.plottedMedian
+  const medianAdornment = v2Adornments?.plottedMedian
   if (medianAdornment) {
     const measures = univariateMeasureInstances(medianAdornment, instanceKeys)
     const medianAdornmentImport = {
@@ -255,7 +254,7 @@ export const v2AdornmentImporter = ({data, plotModels, attributeDescriptions, yA
   }
 
   // STANDARD DEVIATION
-  const stDevAdornment = v2Adornments.plottedStDev
+  const stDevAdornment = v2Adornments?.plottedStDev
   if (stDevAdornment) {
     const measures = univariateMeasureInstances(stDevAdornment, instanceKeys)
     const stDevAdornmentImport = {
@@ -268,7 +267,7 @@ export const v2AdornmentImporter = ({data, plotModels, attributeDescriptions, yA
   }
 
   // STANDARD ERROR
-  const stErrAdornment = v2Adornments.plottedStDev
+  const stErrAdornment = v2Adornments?.plottedStDev
   if (stErrAdornment) {
     const measures = univariateMeasureInstances(stErrAdornment, instanceKeys)
     const stErrAdornmentImport = {
@@ -282,7 +281,7 @@ export const v2AdornmentImporter = ({data, plotModels, attributeDescriptions, yA
   }
 
   // MEAN ABSOLUTE DEVIATION
-  const madAdornment = v2Adornments.plottedMad
+  const madAdornment = v2Adornments?.plottedMad
   if (madAdornment) {
     const measures = univariateMeasureInstances(madAdornment, instanceKeys)
     const madAdornmentImport = {
@@ -295,7 +294,7 @@ export const v2AdornmentImporter = ({data, plotModels, attributeDescriptions, yA
   }
 
   // BOX PLOT
-  const boxPlotAdornment = v2Adornments.plottedBoxPlot
+  const boxPlotAdornment = v2Adornments?.plottedBoxPlot
   if (boxPlotAdornment) {
     const measures = univariateMeasureInstances(boxPlotAdornment, instanceKeys)
     const boxPlotAdornmentImport = {
@@ -309,7 +308,7 @@ export const v2AdornmentImporter = ({data, plotModels, attributeDescriptions, yA
   }
 
   // NORMAL CURVE
-  const normalCurveAdornment = v2Adornments.plottedNormal
+  const normalCurveAdornment = v2Adornments?.plottedNormal
   if (normalCurveAdornment) {
     const measures = univariateMeasureInstances(normalCurveAdornment, instanceKeys)
     const normalCurveAdornmentImport = {
@@ -322,12 +321,13 @@ export const v2AdornmentImporter = ({data, plotModels, attributeDescriptions, yA
   }
 
   // MOVABLE VALUES
-  const movableValuesAdornment = v2Adornments.multipleMovableValues
+  const movableValuesAdornment = v2Adornments?.multipleMovableValues
   if (movableValuesAdornment) {
     const values: Record<string, any> = {}
     instanceKeys?.forEach((key: string) => {
       const plotValues: number[] = []
-      movableValuesAdornment.valueModels.forEach((valueModel: Record<string, any>) => {
+      // ignoring legacy `values` for now
+      movableValuesAdornment.valueModels?.forEach((valueModel: Record<string, any>) => {
         plotValues.push(valueModel.values._main)
       })
       values[key] = plotValues
@@ -342,7 +342,7 @@ export const v2AdornmentImporter = ({data, plotModels, attributeDescriptions, yA
   }
 
   // PLOTTED VALUES
-  const plottedValueAdornment = v2Adornments.plottedValue
+  const plottedValueAdornment = v2Adornments?.plottedValue
   if (plottedValueAdornment) {
     const formula = {
       id: typedId("FORM"),
@@ -359,7 +359,7 @@ export const v2AdornmentImporter = ({data, plotModels, attributeDescriptions, yA
   }
 
   // PLOTTED FUNCTION
-  const plottedFunctionAdornment = v2Adornments.plottedFunction
+  const plottedFunctionAdornment = v2Adornments?.plottedFunction
   if (plottedFunctionAdornment) {
     const formula = {
       id: typedId("FORM"),

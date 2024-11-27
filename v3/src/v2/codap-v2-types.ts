@@ -53,7 +53,7 @@ export function v3TypeFromV2TypeString(v2Type?: string | null): AttributeType | 
 export interface ICodapV2Case {
   id?: number
   guid: number
-  itemID?: number
+  itemID?: string
   parent?: number
   values: Record<string, number | string>
 }
@@ -185,6 +185,11 @@ interface ICodapV2ProportionCoordinates {
   proportionY: number
 }
 
+interface ICodapV2LegacyValueModel {
+  isVisible: boolean
+  value: number
+}
+
 interface ICodapV2ValueModel {
   isVisible: boolean
   enableMeasuresForSelection: boolean
@@ -209,7 +214,10 @@ interface ICodapV2MovableValueAdornment {
   enableMeasuresForSelection: boolean
   isShowingCount: boolean
   isShowingPercent: boolean
-  valueModels: ICodapV2ValueModel[]
+  // some (older?) documents have `values`, e.g. 24cats.codap
+  values?: ICodapV2LegacyValueModel[]
+  // more recent documents have `valueModels` ¯\_(ツ)_/¯
+  valueModels?: ICodapV2ValueModel[]
 }
 
 interface ICodapV2MeanAdornment {
@@ -269,6 +277,8 @@ type ICodapV2Adornment = ICodapV2CountAdornment | ICodapV2ConnectingLinesAdornme
                          ICodapV2MeanAdornment | ICodapV2MedianAdornment | ICodapV2StDevAdornment |
                          ICodapV2StErrAdornment | ICodapV2MadAdornment | ICodapV2PlottedFunctionAdornment |
                          ICodapV2PlottedValueAdornment | ICodapV2BoxPlotAdornment
+// TODO: fix adornments typing
+type CodapV2AdornmentMap = Record<string, ICodapV2Adornment | any>
 
 interface ICodapV2MovablePointStorage {
   isVisible: boolean
@@ -306,13 +316,13 @@ interface ICodapV2MultipleLSRLsStorage {
 
 export interface ICodapV2PlotStorage {
   verticalAxisIsY2: boolean
-  adornments: ICodapV2Adornment
-  areSquaresVisible: boolean
-  isLSRLVisible: boolean
-  movableLineStorage: ICodapV2MovableLineStorage
-  movablePointStorage: ICodapV2MovablePointStorage
-  multipleLSRLsStorage: ICodapV2MultipleLSRLsStorage
-  showMeasureLabels: boolean
+  adornments?: CodapV2AdornmentMap
+  areSquaresVisible?: boolean
+  isLSRLVisible?: boolean
+  movableLineStorage?: ICodapV2MovableLineStorage
+  movablePointStorage?: ICodapV2MovablePointStorage
+  multipleLSRLsStorage?: ICodapV2MultipleLSRLsStorage
+  showMeasureLabels?: boolean
 }
 
 export interface ICodapV2PlotModel {

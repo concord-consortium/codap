@@ -5,6 +5,7 @@ import { createPortal } from "react-dom"
 import { useCaseMetadata } from "../../hooks/use-case-metadata"
 import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
+import { DEBUG_CASE_IDS } from "../../lib/debug"
 import { ICollectionModel } from "../../models/data/collection"
 import { IDataSet } from "../../models/data/data-set"
 import { symIndex, symParent } from "../../models/data/data-set-types"
@@ -19,6 +20,8 @@ import { kInputRowKey, TColSpanArgs, TColumn, TRenderCellProps } from "./case-ta
 import { ColumnHeader } from "./column-header"
 
 import DragIndicator from "../../assets/icons/drag-indicator.svg"
+
+const kIndexColumnWidth = DEBUG_CASE_IDS ? 150 : 52
 
 interface IColSpanProps {
   data?: IDataSet
@@ -79,8 +82,8 @@ export const useIndexColumn = () => {
     indexColumn.current = {
       key: kIndexColumnKey,
       name: t("DG.CaseTable.indexColumnName"),
-      minWidth: 52,
-      width: 52,
+      minWidth: kIndexColumnWidth,
+      width: kIndexColumnWidth,
       headerCellClass: "codap-column-header index",
       renderHeaderCell: ColumnHeader,
       cellClass: "codap-index-cell",
@@ -150,9 +153,10 @@ export function IndexCell({ caseId, disableMenu, index, collapsedCases, onClick 
 
   // cell contents
   const casesStr = t(collapsedCases === 1 ? "DG.DataContext.singleCaseName" : "DG.DataContext.pluralCaseName")
+  const caseIdStr = DEBUG_CASE_IDS ? `: ${caseId}` : ""
   const cellContents = collapsedCases
-    ? `${collapsedCases} ${casesStr}`
-    : index != null ? `${index + 1}` : ""
+                        ? `${collapsedCases} ${casesStr}`
+                        : index != null ? `${index + 1}${caseIdStr}` : ""
   const handleClick = collapsedCases ? onClick : undefined
 
   // collapsed row or normal row with no menu
