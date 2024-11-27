@@ -16,7 +16,7 @@ interface IProps {
   showArrow?: boolean
   placement?: "right" | "left"
   onColorChange: (newColor: string) => void
-  onAccept: () => void
+  onAccept: (value: string) => void
   onReject: () => void
   onUpdateValue: (value: string) => void
   setPlacement?: (placement: "right" | "left") => void
@@ -27,6 +27,7 @@ export const ColorPickerPalette = ({ swatchBackgroundColor, inputValue, buttonRe
   const paletteColors = ["#000000", "#a9a9a9", "#d3d3d3", "#FFFFFF", "#ad2323", "#ff9632", "#ffee33", "#1d6914",
     "#2a4bd7", "#814a19", "#8126c0", "#29d0d0", "#e9debb", "#ffcdf3", "#9dafff", "#81c57a"]
   const [showColorPicker, setShowColorPicker] = useState(false)
+  const [selectedColor, setSelectedColor] = useState(swatchBackgroundColor)
   const nonStandardColorSelected = !paletteColors.includes(swatchBackgroundColor)
   const popoverRef = useRef<HTMLDivElement>(null)
   const popoverContainerRef = useRef<HTMLDivElement>(null)
@@ -80,14 +81,24 @@ export const ColorPickerPalette = ({ swatchBackgroundColor, inputValue, buttonRe
     }
   }, [adjustPosition, isPaletteOpen])
 
+  const handleColorSelection = (color: string) => {
+    setSelectedColor(color)
+    onColorChange(color)
+  }
+
   const handleAccept = () => {
-    onAccept()
+    onAccept(selectedColor)
     setShowColorPicker(false)
   }
 
   const handleReject = () => {
     onReject()
     setShowColorPicker(false)
+  }
+
+  const handleUpdate = (color: string) => {
+    setSelectedColor(color)
+    onUpdateValue(color)
   }
 
   const handleShowColorPicker = (evt: React.MouseEvent) => {
@@ -116,7 +127,7 @@ export const ColorPickerPalette = ({ swatchBackgroundColor, inputValue, buttonRe
             {paletteColors.map((pColor, index) => (
               <div className={clsx("color-swatch-cell",
                               {"selected": swatchBackgroundColor === pColor, "light": colord(pColor).isLight()})}
-                    style={{ backgroundColor: pColor }} key={index} onClick={()=>onColorChange(pColor)}/>
+                    style={{ backgroundColor: pColor }} key={index} onClick={()=>handleColorSelection(pColor)}/>
             ))}
             {nonStandardColorSelected &&
               <div className="color-swatch-row">
@@ -135,7 +146,7 @@ export const ColorPickerPalette = ({ swatchBackgroundColor, inputValue, buttonRe
         {showColorPicker &&
           <div className="color-picker-container">
             <div className="color-picker">
-              <ColorPicker color={swatchBackgroundColor} onChange={onUpdateValue} />
+              <ColorPicker color={swatchBackgroundColor} onChange={handleUpdate} />
             </div>
             <Flex className="color-picker-footer">
               <ButtonGroup>

@@ -1145,6 +1145,7 @@ context("case table ui", () => {
 
       cy.log("click Set Color button to dismiss color palette and change color")
       cpp.getSetColorButton().click()
+      cy.wait(1000) // Wait for the color change to be reflected
 
       cy.log("verify that the color actually changed finally")
       table.verifyCellSwatchColor(2, 2, "rgb(0, 255")

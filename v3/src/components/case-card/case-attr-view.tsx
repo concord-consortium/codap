@@ -12,6 +12,7 @@ import { AttributeHeaderDivider } from "../case-tile-common/attribute-header-div
 import { GetDividerBoundsFn } from "../case-tile-common/case-tile-types"
 import { applyCaseValueChanges } from "../case-tile-common/case-tile-utils"
 import { useCaseCardModel } from "./use-case-card-model"
+import ColorTextEditor from "../case-tile-common/color-text-editor"
 
 import "./case-attr-view.scss"
 
@@ -35,15 +36,17 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
   const displayStrValue = cellValue ? String(cellValue) : ""
   const displayNumValue = cellValue ? Number(cellValue) : NaN
   const showUnitWithValue = isFiniteNumber(displayNumValue) && !!unit
+  const { value, content } = renderAttributeValue(displayStrValue, displayNumValue, showUnitWithValue, attr)
   const [isEditing, setIsEditing] = useState(false)
-  const [editingValue, setEditingValue] = useState(displayStrValue)
+  const [editingValue, setEditingValue] = useState(value)
+
   const handleChangeValue = (newValue: string) => {
     setEditingValue(newValue)
   }
 
   const handleCancel = (_previousName?: string) => {
     setIsEditing(false)
-    setEditingValue(displayStrValue)
+    setEditingValue(_previousName ?? value)
   }
 
   const handleSubmit = (newValue?: string) => {
@@ -58,7 +61,7 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
 
       setEditingValue(newValue)
     } else {
-      setEditingValue(displayStrValue)
+      setEditingValue(value)
     }
   }
 
@@ -66,12 +69,25 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
     if (isCollectionSummarized) {
       return (
         <div className={clsx("case-card-attr-value-text", "static-summary", {"formula-attr-value": attr?.hasFormula})}>
-          {displayStrValue}
+          {value}
         </div>
       )
     }
 
-    const { value } = renderAttributeValue(displayStrValue, displayNumValue, showUnitWithValue, attr)
+    if (attr?.userType == null || attr?.userType === "color") {
+      return (
+        isEditing
+        ? <ColorTextEditor
+            attributeId={attr?.id ?? ""}
+            caseId={caseId}
+            acceptValue={handleSubmit}
+            updateValue={handleChangeValue}
+            cancelChanges={handleCancel}
+            value={isEditing ? editingValue : displayStrValue}
+          />
+        : <div className="case-card-attr-value-color" onClick={()=>setIsEditing(true)}>{ content }</div>
+        )
+    }
 
     return (
       <Editable

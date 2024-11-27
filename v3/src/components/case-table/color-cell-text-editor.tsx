@@ -105,6 +105,11 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
     updateValue(event.target.value)
   }
 
+  /* The ColorTextEditor component was refactored out of this component to work with the case card.
+    At some point we should refactor this component to use the ColorTextEditor as well. Currently,
+    the code is duplicated in both components because there were problems with duplicating cell entries
+    when entering a new case in the case table.
+*/
   const swatchStyle: React.CSSProperties | undefined = showColorSwatch.current ? { background: color } : undefined
   const inputElt = <InputElt value={inputValue} onChange={handleInputColorChange} />
 
