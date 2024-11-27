@@ -130,6 +130,7 @@ Inside of your `package.json` file:
 
 Various developer features can be enabled by adding a `debug` local storage key with one or more of the following flags separated by spaces. Local storage is specific to the domain that CODAP is running on. In Chrome local storage can be edited by opening the developer tools and going to the "Application" tab. Then find "Storage/Local storage" and the domain that CODAP is running on.
 
+- `caseIds` displays the id of each case in the index column of the case table
 - `cfmEvents` console log all events received from the CFM
 - `cfmLocalStorage` enable the CFM local storage provider so documents can be saved and loaded from the browser's local storage
 - `cfmNoAutoSave` disable CFM auto-save for any document loaded by the CFM

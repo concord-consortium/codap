@@ -4,7 +4,7 @@ import { ToolShelf } from "./tool-shelf"
 import { render, screen } from "@testing-library/react"
 import { createCodapDocument } from "../../models/codap/create-codap-document"
 import { IDocumentModel } from "../../models/document/document"
-import { ITestTileContent, TestTileContent } from "../../test/test-tile-content"
+import { TestTileContent } from "../../test/test-tile-content"
 import { TileModel } from "../../models/tiles/tile-model"
 
 // way to get a writable reference to libDebug
