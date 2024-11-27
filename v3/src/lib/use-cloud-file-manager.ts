@@ -9,7 +9,7 @@ import { gLocale } from "../utilities/translation/locale"
 import { t } from "../utilities/translation/translate"
 import { removeDevUrlParams, urlParams } from "../utilities/url-params"
 import { clientConnect, createCloudFileManager, renderRoot } from "./cfm-utils"
-import { DEBUG_CFM_LOCAL_STORAGE } from "./debug"
+import { DEBUG_CFM_LOCAL_STORAGE, DEBUG_CFM_NO_AUTO_SAVE } from "./debug"
 import { handleCFMEvent } from "./handle-cfm-event"
 
 const locales = [
@@ -147,8 +147,9 @@ export function useCloudFileManager(optionsArg: CFMAppOptions) {
 
   useEffect(function initCfm() {
 
+    const autoSaveInterval = DEBUG_CFM_NO_AUTO_SAVE ? undefined : 5
     const _options: CFMAppOptions = {
-      autoSaveInterval: 5,
+      autoSaveInterval,
       // When running in the Activity Player, hide the hamburger menu
       hideMenuBar: urlParams.interactiveApi !== undefined,
       ui: {
