@@ -2,6 +2,7 @@ import { SetRequired } from "type-fest"
 import { IAttribute } from "../models/data/attribute"
 import { ICollectionModel, ICollectionModelSnapshot } from "../models/data/collection"
 import { IDataSet, toCanonical } from "../models/data/data-set"
+import { ICaseCreation } from "../models/data/data-set-types"
 import { v2NameTitleToV3Title } from "../models/data/v2-model"
 import { IDocumentMetadata } from "../models/document/document-metadata"
 import { ISharedCaseMetadata, SharedCaseMetadata } from "../models/shared/shared-case-metadata"
@@ -15,7 +16,9 @@ import {
 } from "./codap-v2-types"
 
 interface V2CaseIdInfo {
-  attrNames: string[]
+  // cumulative list of ordered attribute names used for grouping
+  groupAttrNames: string[]
+  // mapping from group key (parent attribute values) to case id
   groupKeyCaseIds: Map<string, string>
 }
 
@@ -29,9 +32,9 @@ export class CodapV2Document {
   private v3AttrMap = new Map<number, IAttribute>()
   private caseMetadataMap = new Map<number, ISharedCaseMetadata>()
 
-  constructor(document: ICodapV2DocumentJson, metadata?: IDocumentMetadata) {
+  constructor(document: ICodapV2DocumentJson, metadata: IDocumentMetadata = {}) {
     this.document = document
-    this.documentMetadata = metadata ?? {}
+    this.documentMetadata = metadata
     // register the document
     this.guidMap.set(document.guid, { type: "DG.Document", object: document })
 
@@ -121,7 +124,7 @@ export class CodapV2Document {
 
       // assumes hierarchical collections are in order parent => child
       const level = collections.length - index - 1  // 0 === child-most
-      this.v2CaseIdInfoArray[level] = { attrNames: [], groupKeyCaseIds: new Map() }
+      this.v2CaseIdInfoArray[level] = { groupAttrNames: [], groupKeyCaseIds: new Map() }
       this.registerAttributes(data, caseMetadata, attrs, level)
       this.registerCases(data, cases, level)
 
@@ -148,13 +151,19 @@ export class CodapV2Document {
 
   registerAttributes(data: IDataSet, caseMetadata: ISharedCaseMetadata,
                       attributes: ICodapV2Attribute[], level: number) {
+    const v2CaseIdInfo = this.v2CaseIdInfoArray[level]
+    const v2ParentCaseIdInfo = this.v2CaseIdInfoArray[level + 1]
+    if (v2ParentCaseIdInfo) {
+      // grouping attribute are cumulative, i.e. include all parent attributes
+      v2CaseIdInfo.groupAttrNames = [...v2ParentCaseIdInfo.groupAttrNames]
+    }
     attributes.forEach(v2Attr => {
       const {
         cid: _cid, guid, description: v2Description, name = "", title: v2Title, type: v2Type, formula: v2Formula,
         editable: v2Editable, unit: v2Unit, precision: v2Precision
       } = v2Attr
       if (!v2Formula) {
-        this.v2CaseIdInfoArray[level].attrNames.push(name)
+        v2CaseIdInfo.groupAttrNames.push(name)
       }
       const _title = v2NameTitleToV3Title(name, v2Title)
       const description = v2Description ?? undefined
@@ -177,6 +186,7 @@ export class CodapV2Document {
   }
 
   registerCases(data: IDataSet, cases: ICodapV2Case[], level: number) {
+    const itemsToAdd: ICaseCreation[] = []
     const v2CollectionInfo = this.v2CaseIdInfoArray[level]
     const groupKeyCaseIds = v2CollectionInfo.groupKeyCaseIds
     cases.forEach(_case => {
@@ -191,17 +201,26 @@ export class CodapV2Document {
         for (let parentCase = this.getParentCase(_case); parentCase; parentCase = this.getParentCase(parentCase)) {
           itemValues = { ...(parentCase.values ? toCanonical(data, parentCase.values) : undefined), ...itemValues }
         }
-        data.addCases([itemValues])
+        itemsToAdd.push(itemValues)
         if (itemID) {
           groupKeyCaseIds.set(itemID, v3CaseId)
         }
       }
       // for parent collections, stash case ids in `groupKeyCaseIds`
       else {
-        const groupValues = v2CollectionInfo.attrNames.map(name => values[name] != null ? String(values[name]) : "")
+        const caseValues = { ...values }
+        for (let parentCase = this.getParentCase(_case); parentCase; parentCase = this.getParentCase(parentCase)) {
+          Object.assign(caseValues, parentCase.values)
+        }
+        const groupValues = v2CollectionInfo.groupAttrNames.map(name => {
+          return caseValues[name] != null ? String(caseValues[name]) : ""
+        })
         const groupKey = JSON.stringify(groupValues)
         v2CollectionInfo.groupKeyCaseIds.set(groupKey, v3CaseId)
       }
     })
+    if (itemsToAdd.length) {
+      data.addCases(itemsToAdd)
+    }
   }
 }
