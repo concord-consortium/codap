@@ -15,7 +15,7 @@ import {
 import {GraphPlace} from '../../axis-graph-shared'
 import {DataDisplayContentModel} from "../../data-display/models/data-display-content-model"
 import {isMapPolygonLayerModel, MapPolygonLayerModel} from "./map-polygon-layer-model"
-import {MapPointLayerModel} from "./map-point-layer-model"
+import {isMapPointLayerModel, MapPointLayerModel} from "./map-point-layer-model"
 import {ILatLngSnapshot, LatLngModel} from '../map-model-types'
 import {LeafletMapState} from './leaflet-map-state'
 import {isMapLayerModel} from "./map-layer-model"
@@ -225,24 +225,24 @@ export const MapContentModel = DataDisplayContentModel
           const layersToCheck = Array.from(self.layers)
           sharedDataSets.forEach(sharedDataSet => {
             if (datasetHasLatLongData(sharedDataSet.dataSet)) {
-              const foundIndex = layersToCheck.findIndex(aLayer => aLayer.data === sharedDataSet.dataSet)
-              if (foundIndex >= 0) {
-                const layer = layersToCheck[foundIndex],
-                  dataset = sharedDataSet.dataSet
-                layer.dataConfiguration.setDataset(dataset, getSharedCaseMetadataFromDataset(dataset))
-                // Remove this layer from the list of layers to check since it _is_ present
-                layersToCheck.splice(foundIndex, 1)
+              const pointLayer = layersToCheck.find(layer => {
+                return layer.data === sharedDataSet.dataSet && isMapPointLayerModel(layer)
+              })
+              if (isMapPointLayerModel(pointLayer)) {
+                pointLayer.setDataset(sharedDataSet.dataSet)
+                layersToCheck.splice(layersToCheck.indexOf(pointLayer), 1)
               } else {
                 // Add a new layer for this dataset
                 this.addPointLayer(sharedDataSet.dataSet)
               }
             }
-            // Todo: We should allow both points and polygons from the same dataset
-            else if (datasetHasBoundaryData(sharedDataSet.dataSet)) {
-              const layer = layersToCheck.find(aLayer => aLayer.data === sharedDataSet.dataSet)
-              if (layer && isMapPolygonLayerModel(layer)) {
-                layer.setDataset(sharedDataSet.dataSet)
-                layersToCheck.splice(layersToCheck.indexOf(layer), 1)
+            if (datasetHasBoundaryData(sharedDataSet.dataSet)) {
+              const polygonLayer = layersToCheck.find(layer => {
+                return layer.data === sharedDataSet.dataSet && isMapPolygonLayerModel(layer)
+              })
+              if (isMapPolygonLayerModel(polygonLayer)) {
+                polygonLayer.setDataset(sharedDataSet.dataSet)
+                layersToCheck.splice(layersToCheck.indexOf(polygonLayer), 1)
               } else {
                 // Add a new layer for this dataset
                 this.addPolygonLayer(sharedDataSet.dataSet)
