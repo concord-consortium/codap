@@ -40,7 +40,6 @@ export class GraphController {
   handleAttributeAssignment() {
     const { graphModel, layout } = this
     if (graphModel) syncModelWithAttributeConfiguration(graphModel, layout)
-    this.callMatchCirclesToData()
   }
 
   callMatchCirclesToData() {

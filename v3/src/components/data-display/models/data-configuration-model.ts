@@ -319,8 +319,8 @@ export const DataConfigurationModel = types
         return self.metadata.getCategorySet(attributeID)
       }
     },
-    potentiallyCategoricalRoles(): AttrRole[] {
-      return ["legend"] as const
+    categoricalRoles(): AttrRole[] {
+      return self.attributeType("legend") === "categorical" ? ["legend"] : []
     }
   }))
   .views(self => ({
@@ -349,7 +349,7 @@ export const DataConfigurationModel = types
     }),
     get allCategoriesForRoles() {
       const categories: Map<AttrRole, string[]> = new Map()
-      const roles = self.potentiallyCategoricalRoles()
+      const roles = self.categoricalRoles()
       roles.forEach(role => {
         const categorySet = self.categorySetForAttrRole(role)
         if (categorySet) {
