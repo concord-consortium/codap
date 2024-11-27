@@ -44,16 +44,10 @@ export class NumericAxisHelper extends AxisHelper {
       : undefined
     if (!isNumericAxisModel(this.axisModel) || !numericScale || !this.subAxisElt) return
 
-    const subAxisSelection = select(this.subAxisElt),
-      numericAxisSelection = subAxisSelection.selectAll('.numeric-axis-tag')
-    // If we don't already have a numeric axis, we have to remove whatever is there
-    if (numericAxisSelection.size() === 0) {
-      subAxisSelection.selectAll('*').remove()
-    }
+    const subAxisSelection = select(this.subAxisElt)
+    // Simplest if we remove everything and start again. Without this, #188523090 caused trouble
+    subAxisSelection.selectAll('*').remove()
     this.renderAxisLine()
-    // The axis line gets removed and rerendered each time.
-    // Tag it so the next time around we know we have a numeric axis.
-    subAxisSelection.select('.axis-line').classed('numeric-axis-tag', true)
 
     const axisScale = this.axis(numericScale).tickSizeOuter(0).tickFormat(format('.9'))
     const duration = this.isAnimating() ? transitionDuration : 0
