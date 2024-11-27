@@ -24,6 +24,7 @@ const debugContains = (key: string) => debug.indexOf(key) !== -1
 export const DEBUG_CASE_IDS = debugContains("caseIds")
 export const DEBUG_CFM_EVENTS = debugContains("cfmEvents")
 export const DEBUG_CFM_LOCAL_STORAGE = debugContains("cfmLocalStorage")
+export const DEBUG_CFM_NO_AUTO_SAVE = debugContains("cfmNoAutoSave")
 export const DEBUG_DOCUMENT = debugContains("document")
 export const DEBUG_FORMULAS = debugContains("formulas")
 export const DEBUG_HISTORY = debugContains("history")
