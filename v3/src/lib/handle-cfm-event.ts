@@ -93,10 +93,12 @@ export async function handleCFMEvent(cfmClient: CloudFileManagerClient, event: C
         // The message and stack of the error are logged in a group so it is easier
         // to view them in the console.
         if (isError(e)) {
+          /* eslint-disable no-console */
           console.groupCollapsed("Details of document error")
           console.log(e.message)
           console.log(e.stack)
           console.groupEnd()
+          /* eslint-enable no-console */
         }
 
         // Have the CFM show an error dialog
