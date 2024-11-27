@@ -1,4 +1,4 @@
-import { Instance, types } from "mobx-state-tree"
+import { Instance, SnapshotIn, types } from "mobx-state-tree"
 import { Point } from "../../../data-display/data-display-types"
 import { AdornmentModel, IAdornmentModel, IUpdateCategoriesOptions, PointModel } from "../adornment-models"
 import { IAxisModel, isNumericAxisModel } from "../../../axis/models/axis-model"
@@ -39,6 +39,7 @@ export const MovablePointAdornmentModel = AdornmentModel
       })
     }
   }))
+export interface IMovablePointAdornmentModelSnapshot extends SnapshotIn<typeof MovablePointAdornmentModel> {}
 export interface IMovablePointAdornmentModel extends Instance<typeof MovablePointAdornmentModel> {}
 export function isMovablePointAdornment(adornment: IAdornmentModel): adornment is IMovablePointAdornmentModel {
   return adornment.type === kMovablePointType

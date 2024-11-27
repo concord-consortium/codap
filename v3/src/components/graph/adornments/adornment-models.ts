@@ -2,7 +2,7 @@
   Adornment models are strictly MST. They keep track of the user modifications of the defaults.
  */
 
-import {Instance, types} from "mobx-state-tree"
+import {Instance, SnapshotIn, types} from "mobx-state-tree"
 import { IAxisModel } from "../../axis/models/axis-model"
 import {safeDomIdentifier, typedId} from "../../../utilities/js-utils"
 import {Point} from "../../data-display/data-display-types"
@@ -27,6 +27,8 @@ export const PointModel = types.model("Point", {
       }
     }
   }))
+export interface IPointModelSnapshot extends SnapshotIn<typeof PointModel> {}
+
 export const kInfinitePoint = {x:NaN, y:NaN}
 
 export interface IUpdateCategoriesOptions {

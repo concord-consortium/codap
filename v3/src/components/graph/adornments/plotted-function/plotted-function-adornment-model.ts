@@ -1,4 +1,4 @@
-import { Instance, types } from "mobx-state-tree"
+import { Instance, SnapshotIn, types } from "mobx-state-tree"
 import { AdornmentModel, IAdornmentModel } from "../adornment-models"
 import { kPlottedFunctionType, kPlottedFunctionValueTitleKey, FormulaFn } from "./plotted-function-adornment-types"
 import { Formula } from "../../../../models/formula/formula"
@@ -50,6 +50,7 @@ export const PlottedFunctionAdornmentModel = AdornmentModel
     }
   }))
 
+export interface IPlottedFunctionAdornmentModelSnapshot extends SnapshotIn<typeof PlottedFunctionAdornmentModel> {}
 export interface IPlottedFunctionAdornmentModel extends Instance<typeof PlottedFunctionAdornmentModel> {}
 export function isPlottedFunctionAdornment(adornment: IAdornmentModel): adornment is IPlottedFunctionAdornmentModel {
   return adornment.type === kPlottedFunctionType

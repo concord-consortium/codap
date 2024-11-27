@@ -1,4 +1,4 @@
-import { Instance, types } from "mobx-state-tree"
+import { Instance, SnapshotIn, types } from "mobx-state-tree"
 import { AdornmentModel, IAdornmentModel } from "../adornment-models"
 import { kCountType } from "./count-adornment-types"
 import {IGraphDataConfigurationModel} from "../../models/graph-data-configuration-model"
@@ -63,7 +63,7 @@ export const CountAdornmentModel = AdornmentModel
       } else {
         scaleCopy.range([plotHeight, 0])
       }
-  
+
       for (let i = 0; i < subPlotRegionBoundaries.length - 1; i++) {
         const lowerBoundary = subPlotRegionBoundaries[i]
         const upperBoundary = subPlotRegionBoundaries[i + 1]
@@ -79,7 +79,7 @@ export const CountAdornmentModel = AdornmentModel
         prevHeight += height
         counts.push({ bottomOffset, height, leftOffset, count, width })
       }
-  
+
       return counts
     }
   }))
@@ -97,6 +97,7 @@ export const CountAdornmentModel = AdornmentModel
     }
   }))
 
+export interface ICountAdornmentModelSnapshot extends SnapshotIn<typeof CountAdornmentModel> {}
 export interface ICountAdornmentModel extends Instance<typeof CountAdornmentModel> {}
 export function isCountAdornment(adornment: IAdornmentModel): adornment is ICountAdornmentModel {
   return adornment.type === kCountType

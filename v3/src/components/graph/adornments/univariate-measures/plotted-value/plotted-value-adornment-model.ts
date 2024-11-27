@@ -1,4 +1,4 @@
-import { Instance, types } from "mobx-state-tree"
+import { Instance, SnapshotIn, types } from "mobx-state-tree"
 import { IAdornmentModel } from "../../adornment-models"
 import { kPlottedValueType, kPlottedValueValueTitleKey } from "./plotted-value-adornment-types"
 import { UnivariateMeasureAdornmentModel } from "../univariate-measure-adornment-model"
@@ -32,6 +32,7 @@ export const PlottedValueAdornmentModel = UnivariateMeasureAdornmentModel
     }
   }))
 
+export interface IPlottedValueAdornmentModelSnapshot extends SnapshotIn<typeof PlottedValueAdornmentModel> {}
 export interface IPlottedValueAdornmentModel extends Instance<typeof PlottedValueAdornmentModel> {}
 export function isPlottedValueAdornment(adornment: IAdornmentModel): adornment is IPlottedValueAdornmentModel {
   return adornment.type === kPlottedValueType

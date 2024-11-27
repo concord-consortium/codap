@@ -1,4 +1,4 @@
-import { Instance, types } from "mobx-state-tree"
+import { Instance, SnapshotIn, types } from "mobx-state-tree"
 import { Point } from "../../../data-display/data-display-types"
 import { dataDisplayGetNumericValue } from "../../../data-display/data-display-value-utils"
 import { AdornmentModel, IAdornmentModel, IUpdateCategoriesOptions, PointModel } from "../adornment-models"
@@ -61,6 +61,7 @@ export const LSRLInstance = types.model("LSRLInstance", {
     self.sdResiduals = sdResiduals
   }
 }))
+
 
 export const LSRLAdornmentModel = AdornmentModel
 .named("LSRLAdornmentModel")
@@ -224,7 +225,9 @@ export const LSRLAdornmentModel = AdornmentModel
   }
 }))
 
+export interface ILSRLInstanceSnapshot extends SnapshotIn<typeof LSRLInstance> {}
 export interface ILSRLInstance extends Instance<typeof LSRLInstance> {}
+export interface ILSRLAdornmentModelSnapshot extends SnapshotIn<typeof LSRLAdornmentModel> {}
 export interface ILSRLAdornmentModel extends Instance<typeof LSRLAdornmentModel> {}
 export function isLSRLAdornment(adornment: IAdornmentModel): adornment is ILSRLAdornmentModel {
   return adornment.type === kLSRLType

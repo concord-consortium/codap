@@ -11,7 +11,7 @@ import {kGraphPointLayerType} from "./models/graph-point-layer-model"
 import {IAttributeDescriptionSnapshot} from "../data-display/models/data-configuration-model"
 import {AxisPlace} from "../axis/axis-types"
 import {IAxisModelSnapshotUnion} from "../axis/models/axis-model"
-import {v2AdornmentImporter} from "./adornments/v2-adornment-importer"
+import {AdornmentAttributeDescriptions, v2AdornmentImporter} from "./adornments/v2-adornment-importer"
 import {defaultBackgroundColor} from "../../utilities/color-utils"
 
 export function v2GraphImporter({v2Component, v2Document, sharedModelManager, insertTile}: V2TileImportArgs) {
@@ -49,7 +49,7 @@ export function v2GraphImporter({v2Component, v2Document, sharedModelManager, in
   }
   const axes: Partial<Record<AxisPlace, IAxisModelSnapshotUnion>> = {}
   let primaryRole: PrimaryAttrRole | undefined
-  const _attributeDescriptions: Partial<Record<GraphAttrRole, IAttributeDescriptionSnapshot>> = {}
+  const _attributeDescriptions: AdornmentAttributeDescriptions = {}
   const _yAttributeDescriptions: IAttributeDescriptionSnapshot[] = []
 
     // configure attributes

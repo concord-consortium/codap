@@ -1,4 +1,4 @@
-import { Instance, types } from "mobx-state-tree"
+import { Instance, SnapshotIn, types } from "mobx-state-tree"
 import { median } from "mathjs"
 import {IGraphDataConfigurationModel} from "../../../models/graph-data-configuration-model"
 import { UnivariateMeasureAdornmentModel } from "../univariate-measure-adornment-model"
@@ -19,6 +19,7 @@ export const MedianAdornmentModel = UnivariateMeasureAdornmentModel
     }
   }))
 
+export interface IMedianAdornmentModelSnapshot extends SnapshotIn<typeof MedianAdornmentModel> {}
 export interface IMedianAdornmentModel extends Instance<typeof MedianAdornmentModel> {}
 export function isMedianAdornment(adornment: IAdornmentModel): adornment is IMedianAdornmentModel {
   return adornment.type === kMedianType

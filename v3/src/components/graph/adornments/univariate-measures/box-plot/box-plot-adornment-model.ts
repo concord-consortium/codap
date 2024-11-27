@@ -1,4 +1,4 @@
-import { Instance, types } from "mobx-state-tree"
+import { Instance, SnapshotIn, types } from "mobx-state-tree"
 import { median } from "mathjs"
 import { quantileOfSortedArray } from "../../../../../utilities/math-utils"
 import { UnivariateMeasureAdornmentModel } from "../univariate-measure-adornment-model"
@@ -114,6 +114,7 @@ export const BoxPlotAdornmentModel = UnivariateMeasureAdornmentModel
     }
   }))
 
+export interface IBoxPlotAdornmentModelSnapshot extends SnapshotIn<typeof BoxPlotAdornmentModel> {}
 export interface IBoxPlotAdornmentModel extends Instance<typeof BoxPlotAdornmentModel> {}
 export function isBoxPlotAdornment(adornment: IAdornmentModel): adornment is IBoxPlotAdornmentModel {
   return adornment.type === kBoxPlotType
