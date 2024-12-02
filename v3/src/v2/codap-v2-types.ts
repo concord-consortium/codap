@@ -506,18 +506,21 @@ export interface ICodapV2SliderComponent extends ICodapV2BaseComponent {
 }
 export const isV2SliderComponent = (component: ICodapV2BaseComponent): component is ICodapV2SliderComponent =>
   component.type === "DG.SliderView"
+
 export interface ICodapV2TableComponent extends ICodapV2BaseComponent {
   type: "DG.TableView"
   componentStorage: ICodapV2TableStorage
 }
 export const isV2TableComponent = (component: ICodapV2BaseComponent): component is ICodapV2TableComponent =>
-              component.type === "DG.TableView"
+  component.type === "DG.TableView"
+
 export interface ICodapV2WebViewComponent extends ICodapV2BaseComponent {
   type: "DG.WebView"
   componentStorage: ICodapV2WebViewStorage
 }
 export const isV2WebViewComponent =
   (component: ICodapV2BaseComponent): component is ICodapV2WebViewComponent => component.type === "DG.WebView"
+
 export interface ICodapGameViewComponent extends ICodapV2BaseComponent {
   type: "DG.GameView"
   componentStorage: ICodapV2GameViewStorage
@@ -556,6 +559,7 @@ export const isV2TextComponent = (component: ICodapV2BaseComponent): component i
 export type CodapV2Component = ICodapV2CalculatorComponent | ICodapGameViewComponent | ICodapV2GraphComponent |
                                 ICodapV2GuideComponent | ICodapV2MapComponent | ICodapV2SliderComponent |
                                 ICodapV2TableComponent | ICodapV2TextComponent | ICodapV2WebViewComponent
+export type CodapV2ComponentStorage = CodapV2Component["componentStorage"]
 
 export interface ICodapV2DocumentJson {
   type?: string         // "DG.Document"
