@@ -364,7 +364,46 @@ export interface ICodapV2GraphStorage extends ICodapV2BaseComponentStorage {
   plotModels: ICodapV2PlotModel[]
 }
 
-export interface ICodapV2MapLayerStorage {
+interface ICodapV2MapLegacyStorage extends ICodapV2BaseComponentStorage {
+  // [begin] legacy top-level properties ignored by current v2 code
+  _links_: {
+    context: IGuidLink<"DG.DataContextRecord">
+    hiddenCases: any[]
+  }
+  legendRole: number
+  legendAttributeType: number
+  pointColor: string
+  strokeColor: string
+  pointSizeMultiplier: number
+  transparency: number
+  strokeTransparency: number
+  // [end] legacy top-level properties ignored by current v2 code
+
+  mapModelStorage: {
+    center: { lat: number, lng: number } | [lat: number, lng: number]
+    zoom: number
+    baseMapLayerName: string
+    gridMultiplier: number
+
+    // [begin] legacy mapModelStorage properties ignored by current v2 code
+    pointsShouldBeVisible: boolean
+    linesShouldBeVisible: boolean
+    grid: {
+      gridMultiplier: number
+      visible: boolean
+    }
+    areaColor: string
+    areaTransparency: string  // e.g. "0.5"
+    areaStrokeColor: string
+    areaStrokeTransparency: string  // e.g. "0.6"
+    // [end] legacy mapModelStorage properties ignored by current v2 code
+  }
+}
+export function isV2MapLegacyStorage(obj: unknown): obj is ICodapV2MapCurrentStorage {
+  return !!obj && typeof obj === "object" && "legendRole" in obj && obj.legendRole != null
+}
+
+interface ICodapV2MapLayerBaseStorage {
   _links_: {
     context: IGuidLink<"DG.DataContextRecord">
     hiddenCases: any[],
@@ -376,31 +415,54 @@ export interface ICodapV2MapLayerStorage {
   legendAttributeType: number
   isVisible: boolean
   strokeSameAsFill: boolean
-  // Polygons
-  areaColor?: string
-  areaTransparency?: number
-  areaStrokeColor?: string
-  areaStrokeTransparency?: number
-  // Points
-  pointColor?: string
-  strokeColor?: string
-  pointSizeMultiplier?: number
-  transparency?: number
-  strokeTransparency?: number
-  pointsShouldBeVisible?: boolean
+}
+
+export interface ICodapV2MapPointLayerStorage extends ICodapV2MapLayerBaseStorage {
+  pointColor: string
+  strokeColor: string
+  pointSizeMultiplier: number
+  transparency: number
+  strokeTransparency: number
+  pointsShouldBeVisible: boolean
   grid: { gridMultiplier: number, isVisible: boolean }
   connectingLines: { isVisible: boolean, enableMeasuresForSelection: boolean }
 }
+export function isV2MapPointLayerStorage(obj: unknown): obj is ICodapV2MapPointLayerStorage {
+  return !!obj && typeof obj === "object" && "pointColor" in obj && obj.pointColor != null
+}
 
-export interface ICodapV2MapStorage extends ICodapV2BaseComponentStorage {
+export interface ICodapV2MapPolygonLayerStorage extends ICodapV2MapLayerBaseStorage {
+  areaColor: string
+  areaTransparency: number | string // e.g. "0.5"
+  areaStrokeColor: string
+  areaStrokeTransparency: number | string // e.g. "0.6"
+}
+export function isV2MapPolygonLayerStorage(obj: unknown): obj is ICodapV2MapPolygonLayerStorage {
+  return !!obj && typeof obj === "object" && "areaColor" in obj && obj.areaColor != null
+}
+
+export type ICodapV2MapLayerStorage = ICodapV2MapPointLayerStorage | ICodapV2MapPolygonLayerStorage
+
+export interface ICodapV2MapCurrentStorage extends ICodapV2BaseComponentStorage {
   mapModelStorage: {
-    center: { lat: number, lng: number }
+    center: { lat: number, lng: number } | [lat: number, lng: number]
     zoom: number
     baseMapLayerName: string
     gridMultiplier: number
     layerModels: ICodapV2MapLayerStorage[]
   }
 }
+export function isV2MapCurrentStorage(obj: unknown): obj is ICodapV2MapCurrentStorage {
+  if (!!obj && typeof obj === "object" && "mapModelStorage" in obj) {
+    const mapModelStorage = obj.mapModelStorage
+    if (!!mapModelStorage && typeof mapModelStorage === "object" && "layerModels" in mapModelStorage) {
+      return Array.isArray(mapModelStorage.layerModels)
+    }
+  }
+  return false
+}
+
+export type ICodapV2MapStorage = ICodapV2MapLegacyStorage | ICodapV2MapCurrentStorage
 
 export interface ICodapV2GuideStorage extends ICodapV2BaseComponentStorage {
   currentItemIndex?: number
