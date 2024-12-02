@@ -228,6 +228,7 @@ context("codap plugins", () => {
     // New Attribute button in ruler menu
     table.getRulerButton().click()
     table.selectItemFromRulerMenu("New Attribute")
+    c.getComponentTile("table").click()
     webView.confirmAPITesterResponseContains(/"operation":\s"createAttributes/)
     webView.clearAPITesterResponses()
 
@@ -289,11 +290,31 @@ context("codap plugins", () => {
     cy.log("Broadcast notifications involving dragging")
     const url = `${Cypress.config("index")}?mouseSensor`
     cy.visit(url)
-    table.createNewTableFromToolShelf()
-    table.addNewAttribute()
-    table.addNewAttribute()
     openAPITester()
     webView.toggleAPITesterFilter()
+    table.createNewTableFromToolShelf()
+    cy.wait(1000)
+    c.getResizeControl("table")
+    .realMouseDown({ position: "center" })
+    .realMouseMove(350, 0)
+    .realMouseUp()
+    table.addNewAttribute()
+    table.addNewAttribute()
+    // cy.get('[data-testid="codap-attribute-button Attribute Name"]').click()
+    cy.get('.codap-attribute-button').eq(0).click()
+    cy.wait(250)
+    cy.get('[data-testid="attribute-menu-list"] button').contains("Rename").should("be.visible")
+    cy.get('[data-testid="attribute-menu-list"] button').contains("Rename").click({force:true})
+    cy.get("[data-testid=column-name-input]").wait(250).type("AttributeName{enter}")
+    // table.renameAttribute("Attribute Name", "AttributeName")
+
+
+      // cy.wait(500)
+    // cy.get('[data-testid="codap-attribute-button Attribute Name"]').click()
+    // cy.get('[data-testid="attribute-menu-list"] button').contains("Rename").click({force:true})
+    // cy.get('[data-testid="column-name-input"]').type("{backspace}AttributeName{enter}")
+
+    // table.renameAttribute("Attribute Name", "AttributeName")
 
     cy.log("Broadcast createCollection notifications")
     table.moveAttributeToParent("newAttr2", "newCollection")

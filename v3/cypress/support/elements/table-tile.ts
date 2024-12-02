@@ -365,7 +365,7 @@ export const TableTileElements = {
   addNewAttribute(collectionIndex = 1) {
     this.getCollection(collectionIndex).find("[data-testid=collection-add-attribute-icon-button] svg")
       .click({force:true})
-    cy.get("[data-testid=column-name-input]").type("{enter}")
+    cy.get("[data-testid=column-name-input]").type("{enter}{enter}")
   },
   deleteAttribute(attributeName: string, collectionIndex = 1) {
     this.openAttributeMenu(attributeName, collectionIndex)
