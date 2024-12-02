@@ -18,8 +18,8 @@ import { kStandardDeviationType } from "./univariate-measures/standard-deviation
 import { kStandardErrorType } from "./univariate-measures/standard-error/standard-error-adornment-types"
 import { kNormalCurveType } from "./univariate-measures/normal-curve/normal-curve-adornment-types"
 import { ISharedDataSet } from "../../../models/shared/shared-data-set"
-import { IAttributeDescriptionSnapshot } from "../../data-display/models/data-configuration-model"
-import { GraphAttrRole } from "../../data-display/data-display-types"
+import { GraphAttributeDescriptionsMapSnapshot, IAttributeDescriptionSnapshot }
+  from "../../data-display/models/data-configuration-model"
 import { IMovablePointAdornmentModelSnapshot } from "./movable-point/movable-point-adornment-model"
 import { IPointModelSnapshot } from "./adornment-models"
 import { IMeasureInstanceSnapshot } from "./univariate-measures/univariate-measure-adornment-model"
@@ -44,7 +44,7 @@ import { INormalCurveAdornmentModelSnapshot } from "./univariate-measures/normal
 interface IProps {
   data?: ISharedDataSet
   plotModels: ICodapV2PlotModel[]
-  attributeDescriptions: AdornmentAttributeDescriptions
+  attributeDescriptions: GraphAttributeDescriptionsMapSnapshot
   yAttributeDescriptions: IAttributeDescriptionSnapshot[]
 }
 
@@ -62,7 +62,7 @@ interface IInstanceKeyProps {
 
 interface IInstanceKeysForAdornmentsProps {
   data?: ISharedDataSet
-  attributeDescriptions: AdornmentAttributeDescriptions
+  attributeDescriptions: GraphAttributeDescriptionsMapSnapshot
   yAttributeDescriptions: IAttributeDescriptionSnapshot[]
 }
 
@@ -117,8 +117,6 @@ const instanceKeysForAdornments = (props: IInstanceKeysForAdornmentsProps) => {
   const { attributeID: xAttrId, type: xAttrType } = attributeDescriptions.x ?? { attributeID: null, type: null }
   const { attributeID: topAttrId } = attributeDescriptions.topSplit ?? { attributeID: null }
   const { attributeID: rightAttrId } = attributeDescriptions.rightSplit ?? { attributeID: null }
-  // TODO_V2_IMPORT: This used to be yAttributeDescriptions.y, which would have always been undefined
-  // I'm not sure if yAttributeDescriptions[0] is the right replacement.
   const { attributeID: yAttrId, type: yAttrType } = yAttributeDescriptions[0] ?? { attributeID: null }
   const xAttr = data.dataSet.attributes.find((attr: IAttribute) => attr.id === xAttrId)
   const xCats = xAttr && xAttrType !== "numeric" ? [...new Set(xAttr.strValues)] as string[] : [""]
@@ -152,8 +150,6 @@ const instanceKeysForAdornments = (props: IInstanceKeysForAdornmentsProps) => {
   }
   return instanceKeys
 }
-
-export type AdornmentAttributeDescriptions = Partial<Record<GraphAttrRole, IAttributeDescriptionSnapshot>>
 
 type ImportableAdornmentSnapshots = IBoxPlotAdornmentModelSnapshot |
   ICountAdornmentModelSnapshot | ILSRLAdornmentModelSnapshot | IMeanAdornmentModelSnapshot |

@@ -25,7 +25,7 @@ import {getQuantileScale, missingColor, parseColor} from "../../../utilities/col
 import { numericSortComparator } from "../../../utilities/data-utils"
 import {GraphPlace} from "../../axis-graph-shared"
 import {CaseData} from "../d3-types"
-import {AttrRole, TipAttrRoles, graphPlaceToAttrRole} from "../data-display-types"
+import {AttrRole, GraphAttrRole, TipAttrRoles, graphPlaceToAttrRole} from "../data-display-types"
 
 export const AttributeDescription = types
   .model('AttributeDescription', {
@@ -43,6 +43,8 @@ export type RoleAttrIDPair = { role: AttrRole, attributeID: string }
 
 export interface IAttributeDescriptionSnapshot extends SnapshotIn<typeof AttributeDescription> {
 }
+
+export type GraphAttributeDescriptionsMapSnapshot = Partial<Record<GraphAttrRole, IAttributeDescriptionSnapshot>>
 export type AttributeDescriptionsMapSnapshot = Partial<Record<AttrRole, IAttributeDescriptionSnapshot>>
 
 export const kUnknownDataConfigurationType = "unknownDataConfigurationType"
