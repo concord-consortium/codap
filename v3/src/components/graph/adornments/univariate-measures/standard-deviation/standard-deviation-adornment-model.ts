@@ -1,4 +1,4 @@
-import { Instance, types } from "mobx-state-tree"
+import { Instance, SnapshotIn, types } from "mobx-state-tree"
 import { mean, std } from "mathjs"
 import {IGraphDataConfigurationModel} from "../../../models/graph-data-configuration-model"
 import {
@@ -36,6 +36,7 @@ export const StandardDeviationAdornmentModel = UnivariateMeasureAdornmentModel
     }
   }))
 
+export interface IStandardDeviationAdornmentModelSnapshot extends SnapshotIn<typeof StandardDeviationAdornmentModel> {}
 export interface IStandardDeviationAdornmentModel extends Instance<typeof StandardDeviationAdornmentModel> {}
 export function isStandardDeviationAdornment(adornment: IUnivariateMeasureAdornmentModel):
   adornment is IStandardDeviationAdornmentModel {

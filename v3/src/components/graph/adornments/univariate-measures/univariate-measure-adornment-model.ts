@@ -1,4 +1,4 @@
-import { Instance, types } from "mobx-state-tree"
+import { Instance, SnapshotIn, types } from "mobx-state-tree"
 import { Point } from "../../../data-display/data-display-types"
 import { AdornmentModel, IAdornmentModel, IUpdateCategoriesOptions, PointModel } from "../adornment-models"
 import { IDataConfigurationModel } from "../../../data-display/models/data-configuration-model"
@@ -126,6 +126,7 @@ export const UnivariateMeasureAdornmentModel = AdornmentModel
     }
   }))
 
+export interface IMeasureInstanceSnapshot extends SnapshotIn<typeof MeasureInstance> {}
 export interface IMeasureInstance extends Instance<typeof MeasureInstance> {}
 export interface IUnivariateMeasureAdornmentModel extends Instance<typeof UnivariateMeasureAdornmentModel> {}
 export function isUnivariateMeasureAdornment(adornment: IAdornmentModel):

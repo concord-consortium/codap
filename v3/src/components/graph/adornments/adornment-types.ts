@@ -12,7 +12,8 @@ import { IStandardDeviationAdornmentModel, StandardDeviationAdornmentModel }
   from "./univariate-measures/standard-deviation/standard-deviation-adornment-model"
 import { IStandardErrorAdornmentModel, StandardErrorAdornmentModel }
   from "./univariate-measures/standard-error/standard-error-adornment-model"
-import { NormalCurveAdornmentModel } from "./univariate-measures/normal-curve/normal-curve-adornment-model"
+import { INormalCurveAdornmentModel, NormalCurveAdornmentModel }
+  from "./univariate-measures/normal-curve/normal-curve-adornment-model"
 import { IMeanAbsoluteDeviationAdornmentModel, MeanAbsoluteDeviationAdornmentModel }
   from "./univariate-measures/mean-absolute-deviation/mean-absolute-deviation-adornment-model"
 import { BoxPlotAdornmentModel, IBoxPlotAdornmentModel } from "./univariate-measures/box-plot/box-plot-adornment-model"
@@ -52,8 +53,9 @@ export const AdornmentModelUnion = types.union({ dispatcher: adornmentTypeDispat
   StandardDeviationAdornmentModel, StandardErrorAdornmentModel, UnknownAdornmentModel)
 export type IAdornmentModelUnion = IBoxPlotAdornmentModel | ICountAdornmentModel | ILSRLAdornmentModel |
   IMeanAdornmentModel | IMeanAbsoluteDeviationAdornmentModel | IMedianAdornmentModel | IMovableValueAdornmentModel |
-  IMovableLineAdornmentModel | IMovablePointAdornmentModel | IPlottedFunctionAdornmentModel |
-  IPlottedValueAdornmentModel | IStandardDeviationAdornmentModel | IStandardErrorAdornmentModel | IUnknownAdornmentModel
+  IMovableLineAdornmentModel | IMovablePointAdornmentModel | INormalCurveAdornmentModel |
+  IPlottedFunctionAdornmentModel | IPlottedValueAdornmentModel |
+  IStandardDeviationAdornmentModel | IStandardErrorAdornmentModel | IUnknownAdornmentModel
 
 export const ParentAdornmentTypes = ["Univariate Measure"] as const
 export type ParentAdornmentType = typeof ParentAdornmentTypes[number]

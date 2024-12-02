@@ -7,9 +7,9 @@ export function getAxisDomains(xAxis?: IBaseNumericAxisModel, yAxis?: IBaseNumer
   return { xDomain, yDomain }
 }
 
-export const updateCellKey = (cellKey: Record<string, string>, attrId: string, cat: string) => {
+export const updateCellKey = (cellKey: Record<string, string>, attrId: string | undefined, cat: string) => {
   const newCellKey = { ...cellKey }
-  if (cat) {
+  if (attrId && cat) {
     const propertyAlreadyPresent = Object.prototype.hasOwnProperty.call(newCellKey, attrId)
     if (propertyAlreadyPresent && newCellKey[attrId] !== cat) {
       // When the same attribute appears on multiple axes or splits, we avoid overwriting the existing key's

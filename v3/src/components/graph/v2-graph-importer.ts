@@ -8,7 +8,8 @@ import {PlotType} from "./graphing-types"
 import {IGraphContentModelSnapshot} from "./models/graph-content-model"
 import {kGraphDataConfigurationType} from "./models/graph-data-configuration-model"
 import {kGraphPointLayerType} from "./models/graph-point-layer-model"
-import {IAttributeDescriptionSnapshot} from "../data-display/models/data-configuration-model"
+import {GraphAttributeDescriptionsMapSnapshot, IAttributeDescriptionSnapshot}
+  from "../data-display/models/data-configuration-model"
 import {AxisPlace} from "../axis/axis-types"
 import {IAxisModelSnapshotUnion} from "../axis/models/axis-model"
 import {v2AdornmentImporter} from "./adornments/v2-adornment-importer"
@@ -49,7 +50,7 @@ export function v2GraphImporter({v2Component, v2Document, sharedModelManager, in
   }
   const axes: Partial<Record<AxisPlace, IAxisModelSnapshotUnion>> = {}
   let primaryRole: PrimaryAttrRole | undefined
-  const _attributeDescriptions: Partial<Record<GraphAttrRole, IAttributeDescriptionSnapshot>> = {}
+  const _attributeDescriptions: GraphAttributeDescriptionsMapSnapshot = {}
   const _yAttributeDescriptions: IAttributeDescriptionSnapshot[] = []
 
     // configure attributes

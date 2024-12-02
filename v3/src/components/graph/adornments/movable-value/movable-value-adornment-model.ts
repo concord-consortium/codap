@@ -1,4 +1,4 @@
-import { Instance, types } from "mobx-state-tree"
+import { Instance, SnapshotIn, types } from "mobx-state-tree"
 import { AdornmentModel, IAdornmentModel, IUpdateCategoriesOptions } from "../adornment-models"
 import { kMovableValueType } from "./movable-value-adornment-types"
 import { IBaseNumericAxisModel } from "../../../axis/models/axis-model"
@@ -140,6 +140,7 @@ export const MovableValueAdornmentModel = AdornmentModel
     }
   }))
 
+export interface IMovableValueAdornmentModelSnapshot extends SnapshotIn<typeof MovableValueAdornmentModel> {}
 export interface IMovableValueAdornmentModel extends Instance<typeof MovableValueAdornmentModel> {}
 export function isMovableValueAdornment(adornment: IAdornmentModel): adornment is IMovableValueAdornmentModel {
   return adornment.type === kMovableValueType

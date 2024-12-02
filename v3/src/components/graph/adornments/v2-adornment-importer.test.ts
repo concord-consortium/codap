@@ -2,19 +2,18 @@ import { CodapV2Document } from "../../../v2/codap-v2-document"
 import { ICodapV2DocumentJson, ICodapV2GraphStorage } from "../../../v2/codap-v2-types"
 import { v2AdornmentImporter } from "./v2-adornment-importer"
 import { ICountAdornmentModel } from "./count/count-adornment-model"
-import { IMeanAdornmentModel } from "./univariate-measures/mean/mean-adornment-model"
-import { IMedianAdornmentModel } from "./univariate-measures/median/median-adornment-model"
-import { IStandardDeviationAdornmentModel }
+import { IMeanAdornmentModelSnapshot } from "./univariate-measures/mean/mean-adornment-model"
+import { IMedianAdornmentModelSnapshot } from "./univariate-measures/median/median-adornment-model"
+import { IStandardDeviationAdornmentModelSnapshot }
   from "./univariate-measures/standard-deviation/standard-deviation-adornment-model"
-import { IMeanAbsoluteDeviationAdornmentModel }
+import { IMeanAbsoluteDeviationAdornmentModelSnapshot }
   from "./univariate-measures/mean-absolute-deviation/mean-absolute-deviation-adornment-model"
-import { IBoxPlotAdornmentModel } from "./univariate-measures/box-plot/box-plot-adornment-model"
-import { IPlottedValueAdornmentModel } from "./univariate-measures/plotted-value/plotted-value-adornment-model"
-import { IMovableValueAdornmentModel } from "./movable-value/movable-value-adornment-model"
-import { IMovablePointAdornmentModel } from "./movable-point/movable-point-adornment-model"
-import { IMovableLineAdornmentModel } from "./movable-line/movable-line-adornment-model"
-import { ILSRLAdornmentModel } from "./lsrl/lsrl-adornment-model"
-import { IPlottedFunctionAdornmentModel } from "./plotted-function/plotted-function-adornment-model"
+import { IBoxPlotAdornmentModelSnapshot } from "./univariate-measures/box-plot/box-plot-adornment-model"
+import { IPlottedValueAdornmentModelSnapshot } from "./univariate-measures/plotted-value/plotted-value-adornment-model"
+import { IMovableValueAdornmentModelSnapshot } from "./movable-value/movable-value-adornment-model"
+import { IMovablePointAdornmentModelSnapshot } from "./movable-point/movable-point-adornment-model"
+import { ILSRLAdornmentModelSnapshot } from "./lsrl/lsrl-adornment-model"
+import { IPlottedFunctionAdornmentModelSnapshot } from "./plotted-function/plotted-function-adornment-model"
 
 const fs = require("fs")
 const path = require("path")
@@ -88,26 +87,27 @@ describe("V2AdornmentImporter", () => {
     })
     expect(adornmentStore).toBeDefined()
     expect(adornmentStore.showMeasureLabels).toBe(true)
-    expect(adornmentStore.adornments.length).toBe(10)
-    const meanAdornment = adornmentStore.adornments.find(a=> a.type === "Mean") as IMeanAdornmentModel
+    expect(adornmentStore.adornments.length).toBe(9)
+    const meanAdornment = adornmentStore.adornments.find(a=> a.type === "Mean") as IMeanAdornmentModelSnapshot
     expect(meanAdornment).toBeDefined()
     expect(meanAdornment.id).toBeDefined()
     expect(meanAdornment.isVisible).toBe(true)
-    const medianAdornment = adornmentStore.adornments.find(a => a.type === "Median") as IMedianAdornmentModel
+    const medianAdornment = adornmentStore.adornments.find(a => a.type === "Median") as IMedianAdornmentModelSnapshot
     expect(medianAdornment).toBeDefined()
     expect(medianAdornment.id).toBeDefined()
     expect(medianAdornment.isVisible).toBe(true)
     const stDevAdornment =
-      adornmentStore.adornments.find(a => a.type === "Standard Deviation") as IStandardDeviationAdornmentModel
+      adornmentStore.adornments.find(a => a.type === "Standard Deviation") as IStandardDeviationAdornmentModelSnapshot
     expect(stDevAdornment).toBeDefined()
     expect(stDevAdornment.id).toBeDefined()
     expect(stDevAdornment.isVisible).toBe(true)
-    const madAdornment =
-      adornmentStore.adornments.find(a => a.type === "Mean Absolute Deviation") as IMeanAbsoluteDeviationAdornmentModel
+    const madAdornment = adornmentStore.adornments
+      .find(a => a.type === "Mean Absolute Deviation") as IMeanAbsoluteDeviationAdornmentModelSnapshot
     expect(madAdornment).toBeDefined()
     expect(madAdornment?.id).toBeDefined()
     expect(madAdornment?.isVisible).toBe(true)
-    const boxPlotAdornment = adornmentStore.adornments.find(a => a.type === "Box Plot") as IBoxPlotAdornmentModel
+    const boxPlotAdornment = adornmentStore.adornments
+      .find(a => a.type === "Box Plot") as IBoxPlotAdornmentModelSnapshot
     expect(boxPlotAdornment).toBeDefined()
     expect(boxPlotAdornment.id).toBeDefined()
     expect(boxPlotAdornment.isVisible).toBe(true)
@@ -124,13 +124,13 @@ describe("V2AdornmentImporter", () => {
     expect(adornmentStore).toBeDefined()
     expect(adornmentStore.adornments.length).toBe(3)
     const plottedValuesAdornment =
-      adornmentStore.adornments.find(a => a.type === "Plotted Value") as IPlottedValueAdornmentModel
+      adornmentStore.adornments.find(a => a.type === "Plotted Value") as IPlottedValueAdornmentModelSnapshot
     expect(plottedValuesAdornment).toBeDefined()
     expect(plottedValuesAdornment.id).toBeDefined()
     expect(plottedValuesAdornment.isVisible).toBe(true)
-    expect(plottedValuesAdornment.formula.display).toBe("60")
+    expect(plottedValuesAdornment.formula?.display).toBe("60")
     const movableValuesAdornment =
-      adornmentStore.adornments.find(a => a.type === "Movable Value") as IMovableValueAdornmentModel
+      adornmentStore.adornments.find(a => a.type === "Movable Value") as IMovableValueAdornmentModelSnapshot
     expect(movableValuesAdornment).toBeDefined()
     expect(movableValuesAdornment.id).toBeDefined()
     expect(movableValuesAdornment.isVisible).toBe(true)
@@ -147,16 +147,16 @@ describe("V2AdornmentImporter", () => {
     expect(adornmentStore.interceptLocked).toBe(true)
     expect(adornmentStore.adornments.length).toBe(4)
     const movablePointAdornment =
-      adornmentStore.adornments.find(a => a.type === "Movable Point") as IMovablePointAdornmentModel
+      adornmentStore.adornments.find(a => a.type === "Movable Point") as IMovablePointAdornmentModelSnapshot
     expect(movablePointAdornment).toBeDefined()
     expect(movablePointAdornment.id).toBeDefined()
     expect(movablePointAdornment.isVisible).toBe(true)
     const movableLineAdornment =
-      adornmentStore.adornments.find(a => a.type === "Movable Line") as IMovableLineAdornmentModel
+      adornmentStore.adornments.find(a => a.type === "Movable Line") as IMovablePointAdornmentModelSnapshot
     expect(movableLineAdornment).toBeDefined()
     expect(movableLineAdornment.id).toBeDefined()
     expect(movableLineAdornment.isVisible).toBe(true)
-    const lsrlAdornment = adornmentStore.adornments.find(a => a.type === "LSRL") as ILSRLAdornmentModel
+    const lsrlAdornment = adornmentStore.adornments.find(a => a.type === "LSRL") as ILSRLAdornmentModelSnapshot
     expect(lsrlAdornment).toBeDefined()
     expect(lsrlAdornment.id).toBeDefined()
     expect(lsrlAdornment.isVisible).toBe(true)
@@ -172,10 +172,10 @@ describe("V2AdornmentImporter", () => {
     expect(adornmentStore).toBeDefined()
     expect(adornmentStore.adornments.length).toBe(2)
     const plottedFunctionAdornment =
-      adornmentStore.adornments.find(a => a.type === "Plotted Function") as IPlottedFunctionAdornmentModel
+      adornmentStore.adornments.find(a => a.type === "Plotted Function") as IPlottedFunctionAdornmentModelSnapshot
     expect(plottedFunctionAdornment).toBeDefined()
     expect(plottedFunctionAdornment.id).toBeDefined()
     expect(plottedFunctionAdornment.isVisible).toBe(true)
-    expect(plottedFunctionAdornment.formula.display).toBe("x*x")
+    expect(plottedFunctionAdornment.formula?.display).toBe("x*x")
   })
 })

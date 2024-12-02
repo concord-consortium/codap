@@ -1,4 +1,4 @@
-import { Instance, types } from "mobx-state-tree"
+import { Instance, SnapshotIn, types } from "mobx-state-tree"
 import { mean } from "mathjs"
 import { UnivariateMeasureAdornmentModel } from "../univariate-measure-adornment-model"
 import { kMeanType, kMeanValueTitleKey } from "./mean-adornment-types"
@@ -19,6 +19,7 @@ export const MeanAdornmentModel = UnivariateMeasureAdornmentModel
     }
   }))
 
+export interface IMeanAdornmentModelSnapshot extends SnapshotIn<typeof MeanAdornmentModel> {}
 export interface IMeanAdornmentModel extends Instance<typeof MeanAdornmentModel> {}
 export function isMeanAdornment(adornment: IAdornmentModel): adornment is IMeanAdornmentModel {
   return adornment.type === kMeanType
