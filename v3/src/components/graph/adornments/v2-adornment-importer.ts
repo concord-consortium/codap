@@ -235,7 +235,7 @@ export const v2AdornmentImporter = ({data, plotModels, attributeDescriptions, yA
     const lines: Record<string, ILSRLInstanceSnapshot[]> = {}
     instanceKeys?.forEach((key: string) => {
       const lsrlInstances: ILSRLInstanceSnapshot[] = []
-      lsrlAdornment.lsrls.forEach((lsrl) => {
+      lsrlAdornment.lsrls?.forEach((lsrl) => {
         const lsrlInstance = {
           equationCoords: lsrl.equationCoords ?? undefined // The V2 default is null, but we want undefined
         }
