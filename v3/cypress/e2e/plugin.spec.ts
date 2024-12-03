@@ -300,21 +300,6 @@ context("codap plugins", () => {
     .realMouseUp()
     table.addNewAttribute()
     table.addNewAttribute()
-    // cy.get('[data-testid="codap-attribute-button Attribute Name"]').click()
-    cy.get('.codap-attribute-button').eq(0).click()
-    cy.wait(250)
-    cy.get('[data-testid="attribute-menu-list"] button').contains("Rename").should("be.visible")
-    cy.get('[data-testid="attribute-menu-list"] button').contains("Rename").click({force:true})
-    cy.get("[data-testid=column-name-input]").wait(250).type("AttributeName{enter}")
-    // table.renameAttribute("Attribute Name", "AttributeName")
-
-
-      // cy.wait(500)
-    // cy.get('[data-testid="codap-attribute-button Attribute Name"]').click()
-    // cy.get('[data-testid="attribute-menu-list"] button').contains("Rename").click({force:true})
-    // cy.get('[data-testid="column-name-input"]').type("{backspace}AttributeName{enter}")
-
-    // table.renameAttribute("Attribute Name", "AttributeName")
 
     cy.log("Broadcast createCollection notifications")
     table.moveAttributeToParent("newAttr2", "newCollection")
@@ -347,19 +332,66 @@ context("codap plugins", () => {
     webView.clearAPITesterResponses()
     // TODO Check for dragleave notification when dragging to plugin then out of plugin
 
+    // For tests involving drag and drop of components with attribute "Attribute Name",
+    // we use a different drag and drop code because the cy.command version includes a
+    // "contains" expectation of text "Attribute Name", which it cannot find because it is over
+    // two spans. This code omits the "contains" expectation because the selector already has enough
+    // information without needing to find a specific text in a span
     cy.log("Broadcast deleteCollection notifications")
     // Move the last attribute from the ungrouped collection to a new collection
-    table.moveAttributeToParent("AttributeName", "newCollection")
+    // table.moveAttributeToParent("Attribute Name", "newCollection")
+    cy.get('[data-testid="codap-attribute-button Attribute Name"]')
+      .trigger("mousedown", { force: true })
+      .then(() => {
+        cy.get(".collection-table-spacer.parentMost").eq(0).then($target => {
+          return $target[0].getBoundingClientRect()
+        })
+        .then($targetRect => {
+          cy.log("targetRect", $targetRect)
+          cy.get('[data-testid="codap-attribute-button Attribute Name"]').then($subject => {
+            cy.mouseMoveBy($subject, $targetRect, { delay: 100 })
+          })
+        })
+      })
+    cy.wait(1000)
     webView.confirmAPITesterResponseContains(/"operation":\s"deleteCollection/)
     webView.confirmAPITesterResponseContains(/"operation":\s"createCollection/)
     webView.clearAPITesterResponses()
     // Move the last attribute from a grouped collection to a new collection
-    table.moveAttributeToParent("AttributeName", "newCollection")
+    // table.moveAttributeToParent("Attribute Name", "newCollection")
+    cy.get('[data-testid="codap-attribute-button Attribute Name"]')
+      .trigger("mousedown", { force: true })
+      .then(() => {
+        cy.get(".collection-table-spacer.parentMost").eq(0).then($target => {
+          return $target[0].getBoundingClientRect()
+        })
+        .then($targetRect => {
+          cy.log("targetRect", $targetRect)
+          cy.get('[data-testid="codap-attribute-button Attribute Name"]').then($subject => {
+            cy.mouseMoveBy($subject, $targetRect, { delay: 100 })
+          })
+        })
+      })
+    cy.wait(1000)
     webView.confirmAPITesterResponseContains(/"operation":\s"deleteCollection/)
     webView.confirmAPITesterResponseContains(/"operation":\s"createCollection/)
     webView.clearAPITesterResponses()
     // Move the last attribute from a grouped collection to an existing collection
-    table.moveAttributeToParent("AttributeName", "headerDivider", 2)
+    // table.moveAttributeToParent("Attribute Name", "headerDivider", 2)
+    cy.get('[data-testid="codap-attribute-button Attribute Name"]')
+      .trigger("mousedown", { force: true })
+      .then(() => {
+        cy.get(".codap-attribute-header-divider").eq(0).then($target => {
+          return $target[0].getBoundingClientRect()
+        })
+        .then($targetRect => {
+          cy.log("targetRect", $targetRect)
+          cy.get('[data-testid="codap-attribute-button Attribute Name"]').then($subject => {
+            cy.mouseMoveBy($subject, $targetRect, { delay: 100 })
+          })
+        })
+      })
+    cy.wait(1000)
     webView.confirmAPITesterResponseContains(/"operation":\s"moveAttribute/)
     webView.confirmAPITesterResponseContains(/"operation":\s"deleteCollection/)
     webView.clearAPITesterResponses()
