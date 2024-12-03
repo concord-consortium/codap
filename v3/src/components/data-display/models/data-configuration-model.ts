@@ -651,6 +651,7 @@ export const DataConfigurationModel = types
         const idSet = new Set(cases.changed)
         const changedCases = affectedCases.filter(aCase => idSet.has(aCase.__id__))
         self.handlers.forEach(handler => handler({name: "setCaseValues", args: [changedCases]}))
+        ++self.casesChangeCount
       }
       // Changes to case values require that existing cached categorySets be wiped.
       // But if we know the ids of the attributes involved, we can determine whether
