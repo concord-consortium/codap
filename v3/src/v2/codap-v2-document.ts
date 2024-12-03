@@ -11,7 +11,7 @@ import {
   kItemIdPrefix, toV3AttrId, toV3CaseId, toV3CollectionId, toV3DataSetId, v3Id
 } from "../utilities/codap-utils"
 import {
-  CodapV2Component, ICodapV2Attribute, ICodapV2Case, ICodapV2Collection, ICodapV2DataContext, ICodapV2DocumentJson,
+  CodapV2Component, CodapV2Context, ICodapV2Attribute, ICodapV2Case, ICodapV2Collection, ICodapV2DocumentJson,
   v3TypeFromV2TypeString
 } from "./codap-v2-types"
 
@@ -98,7 +98,7 @@ export class CodapV2Document {
     })
   }
 
-  registerContexts(contexts?: ICodapV2DataContext[]) {
+  registerContexts(contexts?: CodapV2Context[]) {
     contexts?.forEach(context => {
       const { guid, type = "DG.DataContext", document, name = "", title, collections = [] } = context
       if (document && this.guidMap.get(document)?.type !== "DG.Document") {

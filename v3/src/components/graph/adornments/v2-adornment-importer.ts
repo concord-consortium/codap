@@ -213,6 +213,8 @@ export const v2AdornmentImporter = ({data, plotModels, attributeDescriptions, yA
     const lines: Record<string, IMovableLineInstanceSnapshot> = {}
     instanceKeys?.forEach((key: string) => {
       const lineInstance = {
+        // TODO_V2_IMPORT: equationCoords are not handled correctly, the model stores x and y
+        // but the loaded equationCoords have proportionCenterX and proportionCenterY
         equationCoords: equationCoords ?? undefined, // The V2 default is null, but we want undefined
         intercept: movableLineAdornment.intercept,
         slope: movableLineAdornment.slope
@@ -237,6 +239,8 @@ export const v2AdornmentImporter = ({data, plotModels, attributeDescriptions, yA
       const lsrlInstances: ILSRLInstanceSnapshot[] = []
       lsrlAdornment.lsrls?.forEach((lsrl) => {
         const lsrlInstance = {
+          // TODO_V2_IMPORT: equationCoords are not handled correctly, the model stores x and y
+          // but the loaded equationCoords have proportionCenterX and proportionCenterY
           equationCoords: lsrl.equationCoords ?? undefined // The V2 default is null, but we want undefined
         }
         lsrlInstances.push(lsrlInstance)

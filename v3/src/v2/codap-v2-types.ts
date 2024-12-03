@@ -26,7 +26,7 @@ export interface ICodapV2Attribute {
   blockDisplayOfEmptyCategories?: boolean
   // plugin bugs have led to documents in the field with values like `[true]`
   editable: boolean | unknown
-  hidden: boolean
+  hidden?: boolean
   renameable?: boolean
   deleteable?: boolean
   formula?: string
@@ -64,16 +64,22 @@ export interface ICodapV2Case {
 export interface ICodapV2Collection {
   attrs: ICodapV2Attribute[]
   cases: ICodapV2Case[]
-  caseName: string | null
+  // TODO_V2_IMPORT: caseName is not imported
+  // There are 2,500 cases where this has a value in cfm-shared
+  caseName?: string | null
   childAttrName: string | null
   cid?: string
-  collapseChildren: boolean | null
+  // TODO_V2_IMPORT: collapseChildren is not imported
+  // There are 250 cases where this is true in cfm-shared
+  collapseChildren?: boolean | null
   defaults?: {
     xAttr: string
     yAttr: string
   }
   guid: number
   id?: number
+  // TODO_V2_IMPORT: labels seem to be handled by the plugin api, and stored in v3 structures but
+  // they don't seem to be imported when opening a v2 document
   labels?: {
     singleCase?: string
     pluralCase?: string
@@ -108,11 +114,56 @@ export interface ICodapV2DataContext {
   title: string
   collections: ICodapV2Collection[]
   description?: string
-  metadata?: ICodapV2DataContextMetadata | null,
+  metadata?: ICodapV2DataContextMetadata | null
   // preventReorg: boolean
   // setAsideItems: this.get('dataSet').archiveSetAsideItems(),
   // contextStorage: this.contextStorage
 }
+
+export interface ICodapV2GameContextSelectedCase {
+  type: string
+  id: number
+}
+
+export interface ICodapV2GameContextStorage {
+  gameName?: string | null
+  gameUrl?: string | null
+  gameState?: any
+  _links_?: {
+    selectedCases: ICodapV2GameContextSelectedCase[]
+  }
+}
+
+// TODO_V2_IMPORT: we don't currently handle the GameContext
+// It seems it is legacy version of the DataContext specific for plugins.
+// v2 can open documents with GameContext objects.
+// There are about 4,000 documents in cfm-shared with a GameContext.
+// If v2 opens a document with a GameContext it will preserve it when
+// saving the document.
+//
+// Here is an example document using the Markov plugin:
+// cfm-shared/0b5715a7dab0a92ef332c8407bf51c53cc3ae710/file.json
+// It has gameState in the GameContext
+// It restores the gameState in v2
+//
+// An example with Next Gen MW games:
+// cfm-shared/0b65185859c238170055bde1fef60830e52bd63d49bec96e0b1db84c65ea3356/file.json
+// - this document cannot be opened by CODAP build 0730
+//
+// Here is one with the CartWeight plugin:
+// cfm-shared/1d38b1c8597644dfee50687adc66661a55b0ca21/file.json
+// It opens in v2 and has saved game state and saved cases (you need to open the table)
+//
+// Here is one with Sage Modeler:
+// cfm-shared/003a3f0c482fdda8c9d3a7ac77ddfcbb9375420b/file.json
+//
+// There are also documents that are just GameContext nothing else:
+// cfm-shared/19a5cbdb252a03e168d5b7541f70189ff6b47381ec70842e1bd4a7beef0bb42f/file.json
+export interface ICodapV2GameContext extends Omit<ICodapV2DataContext, "type"> {
+  type: "DG.GameContext"
+  contextStorage: ICodapV2GameContextStorage
+}
+
 // when exporting a v3 data set to v2 data context
 type DCNotYetExported = "flexibleGroupingChangeFlag"
 export interface ICodapV2DataContextV3
@@ -137,7 +188,7 @@ export interface ICodapV2BaseComponentStorage {
   // from DG.Component.toArchive
   title?: string
   name?: string
-  userSetTitle: boolean
+  userSetTitle?: boolean
   // in a document saved by build 0441 this property didn't exist
   // TODO_V2_IMPORT: this property seems to be ignored by the import code
   // The v3 models do support it, but from what I can tell each component
@@ -214,9 +265,13 @@ interface ICodapV2LegacyValueModel {
   value: number
 }
 
+// TODO_V2_IMPORT: enableMeasuresForSelection is not imported
+// There are 1,600 files in cfm-shared that have it set to true
+// It can be set in various places within a v2 documents
+
 interface ICodapV2ValueModel {
   isVisible: boolean
-  enableMeasuresForSelection: boolean
+  enableMeasuresForSelection?: boolean
   values: Record<string, number>
 }
 
@@ -282,27 +337,43 @@ interface ICodapV2AdornmentMap {
 
 interface ICodapV2MovablePointStorage {
   isVisible: boolean
-  enableMeasuresForSelection: boolean
+  enableMeasuresForSelection?: boolean
   coordinates: ICodapV2Coordinates
+}
+
+interface ICodapV2LineEquationCoords {
+  proportionCenterX: number
+  proportionCenterY: number
 }
 
 interface ICodapV2MovableLineStorage {
   isVisible: boolean
-  enableMeasuresForSelection: boolean
+  enableMeasuresForSelection?: boolean
   isInterceptLocked: boolean
-  equationCoords: ICodapV2Coordinates | null
+  // TODO_V2_IMPORT: equationCoords are not handled correctly, the import code assumes they have
+  // an x and y instead of proportionCenterX and proportionCenterY
+  // There are 2,000 instances of this in cfm-shared
+  // example: cfm-shared/02RllCJzS0Nt4wX3c6XL/file.json
+  equationCoords: ICodapV2LineEquationCoords | null
   intercept: number
   slope: number
   isVertical: boolean
-  xIntercept: number
+  xIntercept: number | null
 }
 
 interface ICodapV2LSRL {
+  // TODO_V2_IMPORT: isVisible is not imported. Unknown how many files have it set to true
   isVisible: boolean
-  enableMeasuresForSelection: boolean
+  enableMeasuresForSelection?: boolean
+  // TODO_V2_IMPORT: isInterceptLocked is not imported. Unknown how many files have it set to true
   isInterceptLocked: boolean
-  equationCoords: ICodapV2Coordinates | null,
-  showConfidenceBands: boolean
+  // TODO_V2_IMPORT: equationCoords are not handled correctly, the import code assumes they have
+  // an x and y instead of proportionCenterX and proportionCenterY
+  // There are 4,000 instances of this in cfm-shared
+  // example: cfm-shared/00JG6PytJ4Zfhk3Yw4Xf/file.json
+  equationCoords: ICodapV2LineEquationCoords | null,
+  // TODO_V2_IMPORT: showConfidenceBands is not imported. Unknown how many files have it set to true
+  showConfidenceBands?: boolean
 }
 
 // In a doc generated by build 0441:
@@ -416,7 +487,13 @@ export interface ICodapV2MapLayerStorage {
   strokeTransparency?: number
   pointsShouldBeVisible?: boolean
   grid: { gridMultiplier: number, isVisible: boolean }
-  connectingLines: { isVisible: boolean, enableMeasuresForSelection: boolean }
+  connectingLines: {
+    isVisible: boolean,
+    // TODO_V2_IMPORT: enableMeasuresForSelection is not imported
+    // there are 0 cases in cfm-shared where it is `true` in this
+    // location
+    enableMeasuresForSelection?: boolean
+  }
 }
 
 export interface ICodapV2MapStorage extends ICodapV2BaseComponentStorage {
@@ -531,6 +608,8 @@ export type CodapV2Component = ICodapV2CalculatorComponent | ICodapV2CaseCardCom
                                 ICodapV2SliderComponent | ICodapV2TableComponent | ICodapV2TextComponent |
                                 ICodapV2WebViewComponent
 
+export type CodapV2Context = ICodapV2DataContext | ICodapV2GameContext
+
 export interface ICodapV2DocumentJson {
   type?: string         // "DG.Document"
   id?: number
@@ -542,7 +621,7 @@ export interface ICodapV2DocumentJson {
   metadata: Record<string, any>
   // these three are maintained as maps internally but serialized as arrays
   components: CodapV2Component[]
-  contexts: ICodapV2DataContext[]
+  contexts: CodapV2Context[]
   globalValues: ICodapV2GlobalValue[]
   lang?: string
   idCount?: number
