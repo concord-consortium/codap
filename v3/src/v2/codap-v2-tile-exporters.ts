@@ -61,5 +61,5 @@ export function exportV2Component(args: V2TileExportArgs): Maybe<CodapV2Componen
       zIndex: layout.zIndex
     },
     savedHeight: layout.isMinimized ? tileHeight : null
-  } as Maybe<CodapV2Component>
+  } as CodapV2Component
 }

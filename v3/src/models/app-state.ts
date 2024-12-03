@@ -101,10 +101,7 @@ class AppState {
   }
 
   @flow
-  *setDocument(
-    snap: ISerializedV3Document | ICodapV2DocumentJson,
-    metadata?: Record<string, any>
-  ) {
+  *setDocument(snap: ISerializedDocument, metadata?: Record<string, any>) {
     // stop monitoring changes for undo/redo on the existing document
     this.disableDocumentMonitoring()
 
@@ -144,11 +141,11 @@ class AppState {
           }
         })
       }
-      if (content.revisionId && this.treeManager) {
+      if (snap.revisionId && this.treeManager) {
         // Restore the revisionId from the stored document
         // This will allow us to consistently compare the local document
         // to the stored document.
-        this.treeManager.setRevisionId(content.revisionId)
+        this.treeManager.setRevisionId(snap.revisionId)
       }
 
       // monitor document changes for undo/redo
