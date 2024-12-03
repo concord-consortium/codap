@@ -8,7 +8,7 @@ import { IGlobalValue } from "../models/global/global-value"
 import { getSharedCaseMetadataFromDataset } from "../models/shared/shared-data-utils"
 import { kAttrIdPrefix, maybeToV2Id, toV2Id, toV3AttrId } from "../utilities/codap-utils"
 import {
-  ICodapV2AttributeV3, ICodapV2CollectionV3, ICodapV2DataContextV3, v3TypeFromV2TypeString
+  ICodapV2Attribute, ICodapV2CollectionV3, ICodapV2DataContextV3, v3TypeFromV2TypeString
 } from "../v2/codap-v2-types"
 import { DIAttribute, DIGetCaseResult, DIResources, DISingleValues } from "./data-interactive-types"
 import { getCaseValues } from "./data-interactive-utils"
@@ -104,7 +104,7 @@ export function getCaseRequestResultValues(c: ICase, dataContext: IDataSet): DIG
   }
 }
 
-export function convertAttributeToV2(attribute: IAttribute, dataContext?: IDataSet): ICodapV2AttributeV3 {
+export function convertAttributeToV2(attribute: IAttribute, dataContext?: IDataSet): ICodapV2Attribute {
   const metadata = dataContext && getSharedCaseMetadataFromDataset(dataContext)
   const { cid, name, type, title, description, deleteable, editable, id, precision } = attribute
   const v2Id = toV2Id(id)
@@ -143,11 +143,9 @@ export function convertCollectionToV2(collection: ICollectionModel, dataContext?
   const { name, title, id, labels: _labels } = collection
   const v2Id = toV2Id(id)
   const labels = _labels ? getSnapshot(_labels) : undefined
-  const v2Attrs = collection.attributes.map(attribute => {
+  const attrs = collection.attributes.map(attribute => {
     if (attribute) return convertAttributeToV2(attribute, dataContext)
-  })
-  const attrs: ICodapV2AttributeV3[] = []
-  v2Attrs.forEach(attr => attr && attrs.push(attr))
+  }).filter(attr => !!attr)
   return {
     // areParentChildLinksConfigured,
     attrs,
@@ -184,7 +182,8 @@ export function convertDataSetToV2(dataSet: IDataSet, docId: number | string): I
     description,
     // metadata,
     // preventReorg,
-    // setAsideItems,
+    // TODO_V2_EXPORT
+    setAsideItems: []
     // contextStorage
   }
 }

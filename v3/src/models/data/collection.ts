@@ -304,7 +304,7 @@ export const CollectionModel = V2Model
           }
         }
 
-        // item info is only stored for visible items
+        // item info is stored for all items
         itemInfo.push({ itemId, caseId })
       }
     })

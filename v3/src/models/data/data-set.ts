@@ -1231,6 +1231,9 @@ export const DataSet = V2Model.named("DataSet").props({
       self.addCollection({ name: t("DG.AppController.createDataSet.collectionName") })
     }
 
+    // initialize setAsideItemIdsSet
+    self.setAsideItemIdsSet.replace(self.setAsideItemIds)
+
     if (!srcDataSet) {
       // set up middleware to add ids to inserted attributes and cases
       // adding the ids in middleware makes them available as action arguments
