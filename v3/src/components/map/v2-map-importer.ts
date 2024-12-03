@@ -23,7 +23,7 @@ export function v2MapImporter({v2Component, v2Document, insertTile}: V2TileImpor
 
   const layers: Array<IMapBaseLayerModelSnapshot | IMapPolygonLayerModelSnapshot | IMapPointLayerModelSnapshot> = []
 
-  v2LayerModels.forEach((v2LayerModel, layerIndex) => {
+  v2LayerModels?.forEach((v2LayerModel, layerIndex) => {
     // Pull out stuff from _links_ and decide if it's a point layer or polygon layer
     const contextId = v2LayerModel._links_.context.id,
       _attributeDescriptions: Partial<Record<AttrRole, IAttributeDescriptionSnapshot>> = {},
@@ -56,7 +56,7 @@ export function v2MapImporter({v2Component, v2Document, insertTile}: V2TileImpor
       const {
         pointColor, strokeColor, pointSizeMultiplier,
         grid, pointsShouldBeVisible, connectingLines
-        /* Present in v2 layer model but not yet used in V3 layer model:
+        /* TODO_V2_IMPORT: Present in v2 layer model but not yet used in V3 layer model:
         transparency, strokeTransparency
         */
       } = v2LayerModel
@@ -64,6 +64,15 @@ export function v2MapImporter({v2Component, v2Document, insertTile}: V2TileImpor
       const {latId, longId} = latLongAttributesFromDataSet(data.dataSet)
       _attributeDescriptions.lat = {attributeID: latId, type: 'numeric'}
       _attributeDescriptions.long = {attributeID: longId, type: 'numeric'}
+      const gridModel = grid
+        ? {
+          gridModel: {
+            isVisible: grid.isVisible,
+            _gridMultiplier: grid.gridMultiplier,
+          }
+        }
+        : {}
+
       const pointLayerSnapshot: IMapPointLayerModelSnapshot = {
         type: kMapPointLayerType,
         layerIndex,
@@ -80,19 +89,16 @@ export function v2MapImporter({v2Component, v2Document, insertTile}: V2TileImpor
           _itemStrokeColor: strokeColor,
           _pointSizeMultiplier: pointSizeMultiplier,
         },
-        gridModel: {
-          isVisible: grid.isVisible,
-          _gridMultiplier: grid.gridMultiplier,
-        },
         pointsAreVisible: pointsShouldBeVisible,
-        connectingLinesAreVisible: connectingLines.isVisible
+        connectingLinesAreVisible: connectingLines?.isVisible,
+        ...gridModel
       }
       layers.push(pointLayerSnapshot)
     }
     else {
       const {
         areaColor, areaStrokeColor,
-        /* Present in v2 layer model but not yet used in V3 layer model:
+        /* TODO_V2_IMPORT: Present in v2 layer model but not yet used in V3 layer model:
         areaTransparency, strokeTransparency, areaStrokeTransparency
         */
       } = v2LayerModel
