@@ -9,7 +9,8 @@ import { gLocale } from "../utilities/translation/locale"
 import { t } from "../utilities/translation/translate"
 import { removeDevUrlParams, urlParams } from "../utilities/url-params"
 import { clientConnect, createCloudFileManager, renderRoot } from "./cfm-utils"
-import { DEBUG_CFM_LOCAL_STORAGE, DEBUG_CFM_NO_AUTO_SAVE } from "./debug"
+import { CONFIG_SAVE_AS_V2 } from "./config"
+import { DEBUG_CFM_LOCAL_STORAGE, DEBUG_CFM_NO_AUTO_SAVE, DEBUG_SAVE_AS_V2 } from "./debug"
 import { handleCFMEvent } from "./handle-cfm-event"
 
 const locales = [
@@ -147,7 +148,7 @@ export function useCloudFileManager(optionsArg: CFMAppOptions) {
 
   useEffect(function initCfm() {
 
-    const autoSaveInterval = DEBUG_CFM_NO_AUTO_SAVE ? undefined : 5
+    const autoSaveInterval = DEBUG_CFM_NO_AUTO_SAVE || DEBUG_SAVE_AS_V2 ? undefined : 5
     const _options: CFMAppOptions = {
       autoSaveInterval,
       // When running in the Activity Player, hide the hamburger menu
@@ -189,7 +190,7 @@ export function useCloudFileManager(optionsArg: CFMAppOptions) {
       },
       mimeType: 'application/json',
       readableMimeTypes: ['application/x-codap-document'],
-      extension: "codap3",
+      extension: CONFIG_SAVE_AS_V2 ? "codap" : "codap3",
       readableExtensions: ["json", "", "codap", "codap3"],
       enableLaraSharing: true,
       log(event, eventData) {

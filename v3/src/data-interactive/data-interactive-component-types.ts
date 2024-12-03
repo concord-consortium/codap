@@ -1,5 +1,5 @@
 import { SlateExchangeValue } from "@concord-consortium/slate-editor"
-import { kCalculatorTileType, kV2CalculatorType } from "../components/calculator/calculator-defs"
+import { kCalculatorTileType, kV2CalculatorDIType } from "../components/calculator/calculator-defs"
 import { kCaseCardTileType, kV2CaseCardType } from "../components/case-card/case-card-defs"
 import { kCaseTableTileType, kV2CaseTableType } from "../components/case-table/case-table-defs"
 import { kGraphTileType, kV2GraphType } from "../components/graph/graph-defs"
@@ -12,7 +12,7 @@ import { kV2GameType, kV2WebViewType, kWebViewTileType } from "../components/web
 // export const kV2TextType = "text"
 
 export const kComponentTypeV3ToV2Map: Record<string, string> = {
-  [kCalculatorTileType]: kV2CalculatorType,
+  [kCalculatorTileType]: kV2CalculatorDIType,
   [kCaseTableTileType]: kV2CaseTableType,
   [kCaseCardTileType]: kV2CaseCardType,
   [kGraphTileType]: kV2GraphType,

@@ -31,6 +31,7 @@ export const DEBUG_HISTORY = debugContains("history")
 export const DEBUG_LOGGER = debugContains("logger")
 export const DEBUG_MAP = debugContains("map")
 export const DEBUG_PLUGINS = debugContains("plugins")
+export const DEBUG_SAVE_AS_V2 = debugContains("saveAsV2")
 export const DEBUG_UNDO = debugContains("undo")
 
 export function debugLog(debugFlag: boolean, ...args: any[]) {

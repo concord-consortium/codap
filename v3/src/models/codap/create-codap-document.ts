@@ -16,7 +16,7 @@ const { buildNumber } = build
 
 type ICodapDocumentModelSnapshot = SetOptional<IDocumentModelSnapshot, "type">
 
-export function isCodapDocument(doc: unknown) {
+export function isCodapDocument(doc: unknown): doc is ICodapDocumentModelSnapshot {
   if (!doc || typeof doc !== "object") return false
   if (!("content" in doc) || !doc.content || typeof doc.content !== "object") return false
   return "rowMap" in doc.content && !!doc.content.rowMap &&
