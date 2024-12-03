@@ -3,8 +3,8 @@ import { kDefaultTileHeight, kDefaultTileWidth, kTitleBarHeight } from "../compo
 import { IFreeTileRow, isFreeTileLayout } from "../models/document/free-tile-row"
 import { ISharedModelManager } from "../models/shared/shared-model-manager"
 import { ITileModel } from "../models/tiles/tile-model"
-import { CodapV2Component, CodapV2ComponentStorage } from "./codap-v2-types"
 import { toV2Id } from "../utilities/codap-utils"
+import { CodapV2Component, CodapV2ComponentStorage } from "./codap-v2-types"
 
 export interface V2ExporterOutput {
   type: CodapV2Component["type"]
@@ -18,7 +18,7 @@ export interface V2TileExportArgs {
 }
 export type V2TileExportFn = (args: V2TileExportArgs) => Maybe<V2ExporterOutput>
 
-// map from v2 component type to import function
+// map from v2 component type to export function
 const gV2TileExporters = new Map<string, V2TileExportFn>()
 
 // register a v2 exporter for the specified tile type
