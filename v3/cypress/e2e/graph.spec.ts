@@ -175,9 +175,7 @@ context("Graph UI", () => {
     })
   })
   describe("graph inspector panel", () => {
-    // this test doesn't work. Skipping for now (PT-#188370962)
-    // Logged a bug #188601882
-    it.skip("change points in table and check for autoscale", () => {
+    it("change points in table and check for autoscale", () => {
       // create a graph with Lifespan (x-axis) and Height (y-axis)
       c.getComponentTitle("graph").should("have.text", collectionName)
       ah.openAxisAttributeMenu("bottom")
@@ -197,6 +195,8 @@ context("Graph UI", () => {
       table.getGridCell(2, 2).should("contain", "African Elephant")
       cy.log("double-clicking the cell")
       // double-click to initiate editing cell
+      table.getGridCell(3, 5).click()
+      cy.wait(10)
       table.getGridCell(3, 5).dblclick()
       // Wait for the input to appear and then type
       table.getGridCell(3, 5).within(() => {
@@ -205,7 +205,7 @@ context("Graph UI", () => {
 
       // get the rescale button
       c.getComponentTitle("graph").should("have.text", collectionName).click()
-      graph.getResizeIcon().click()
+      graph.getResizeIcon().dblclick()
 
       // Checks for axis rescale
       // this check basically just counts the tick marks in the graph but I'm
