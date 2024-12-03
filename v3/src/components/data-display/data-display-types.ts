@@ -43,7 +43,7 @@ export const
   pointRadiusMax = 10,
   pointRadiusMin = 3,
   pointRadiusLogBase = 2.0, // reduce point radius from max by log of (num. cases) base (LogBase).
-  pointRadiusSelectionAddend = 1,
+  pointRadiusSelectionAddend = 0,
   hoverRadiusFactor = 1.5,
   kDataDisplayFont = '12px sans-serif',
   kChoroplethHeight = 16
