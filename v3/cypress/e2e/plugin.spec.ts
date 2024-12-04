@@ -339,59 +339,17 @@ context("codap plugins", () => {
     // information without needing to find a specific text in a span
     cy.log("Broadcast deleteCollection notifications")
     // Move the last attribute from the ungrouped collection to a new collection
-    // table.moveAttributeToParent("Attribute Name", "newCollection")
-    cy.get('[data-testid="codap-attribute-button Attribute Name"]')
-      .trigger("mousedown", { force: true })
-      .then(() => {
-        cy.get(".collection-table-spacer.parentMost").eq(0).then($target => {
-          return $target[0].getBoundingClientRect()
-        })
-        .then($targetRect => {
-          cy.log("targetRect", $targetRect)
-          cy.get('[data-testid="codap-attribute-button Attribute Name"]').then($subject => {
-            cy.mouseMoveBy($subject, $targetRect, { delay: 100 })
-          })
-        })
-      })
-    cy.wait(1000)
+    table.moveTwoLineAttributeNameToTarget("Attribute Name", "newCollection")
     webView.confirmAPITesterResponseContains(/"operation":\s"deleteCollection/)
     webView.confirmAPITesterResponseContains(/"operation":\s"createCollection/)
     webView.clearAPITesterResponses()
     // Move the last attribute from a grouped collection to a new collection
-    // table.moveAttributeToParent("Attribute Name", "newCollection")
-    cy.get('[data-testid="codap-attribute-button Attribute Name"]')
-      .trigger("mousedown", { force: true })
-      .then(() => {
-        cy.get(".collection-table-spacer.parentMost").eq(0).then($target => {
-          return $target[0].getBoundingClientRect()
-        })
-        .then($targetRect => {
-          cy.log("targetRect", $targetRect)
-          cy.get('[data-testid="codap-attribute-button Attribute Name"]').then($subject => {
-            cy.mouseMoveBy($subject, $targetRect, { delay: 100 })
-          })
-        })
-      })
-    cy.wait(1000)
+    table.moveTwoLineAttributeNameToTarget("Attribute Name", "newCollection")
     webView.confirmAPITesterResponseContains(/"operation":\s"deleteCollection/)
     webView.confirmAPITesterResponseContains(/"operation":\s"createCollection/)
     webView.clearAPITesterResponses()
     // Move the last attribute from a grouped collection to an existing collection
-    // table.moveAttributeToParent("Attribute Name", "headerDivider", 2)
-    cy.get('[data-testid="codap-attribute-button Attribute Name"]')
-      .trigger("mousedown", { force: true })
-      .then(() => {
-        cy.get(".codap-attribute-header-divider").eq(0).then($target => {
-          return $target[0].getBoundingClientRect()
-        })
-        .then($targetRect => {
-          cy.log("targetRect", $targetRect)
-          cy.get('[data-testid="codap-attribute-button Attribute Name"]').then($subject => {
-            cy.mouseMoveBy($subject, $targetRect, { delay: 100 })
-          })
-        })
-      })
-    cy.wait(1000)
+    table.moveTwoLineAttributeNameToTarget("Attribute Name", "headerDivider", 2)
     webView.confirmAPITesterResponseContains(/"operation":\s"moveAttribute/)
     webView.confirmAPITesterResponseContains(/"operation":\s"deleteCollection/)
     webView.clearAPITesterResponses()
