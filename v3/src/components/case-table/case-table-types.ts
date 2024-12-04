@@ -64,3 +64,5 @@ export const kCaseTableFontFamily = "Montserrat, sans-serif"
 export const kCaseTableFontSize = "8pt"
 export const kCaseTableHeaderFont = `bold ${kCaseTableFontSize} ${kCaseTableFontFamily}`
 export const kCaseTableBodyFont = `${kCaseTableFontSize} ${kCaseTableFontFamily}`
+
+export const kCaseTableDefaultWidth = 580
