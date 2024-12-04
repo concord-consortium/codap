@@ -18,17 +18,21 @@ import { ISharedDataSet, kSharedDataSetType, SharedDataSet } from "./shared/shar
 import { getSharedModelManager } from "./tiles/tile-environment"
 import { Logger } from "../lib/logger"
 import { t } from "../utilities/translation/translate"
+import { CONFIG_SAVE_AS_V2 } from "../lib/config"
 import { DEBUG_DOCUMENT } from "../lib/debug"
 import { TreeManagerType } from "./history/tree-manager"
 import { ICodapV2DocumentJson, isCodapV2Document } from "../v2/codap-v2-types"
 import { CodapV2Document } from "../v2/codap-v2-document"
+import { exportV2Document } from "../v2/export-v2-document"
 import { importV2Document } from "../v2/import-v2-document"
 
 const kAppName = "CODAP"
 
 type AppMode = "normal" | "performance"
 
-type ISerializedDocumentModel = IDocumentModelSnapshot & {revisionId?: string}
+type ISerializedV3Document = IDocumentModelSnapshot & {revisionId?: string}
+type ISerializedV2Document = ICodapV2DocumentJson & {revisionId?: string}
+type ISerializedDocument = ISerializedV3Document | ISerializedV2Document
 
 class AppState {
   @observable
@@ -77,12 +81,16 @@ class AppState {
     return revisionId === this.treeManager?.revisionId
   }
 
-  async getDocumentSnapshot() {
-    // use cloneDeep because MST snapshots are immutable
-    const snapshot = await serializeDocument(this.currentDocument, doc => cloneDeep(getSnapshot(doc)))
+  async getDocumentSnapshot(): Promise<ISerializedDocument> {
+    const serializeFn = CONFIG_SAVE_AS_V2
+                          // export as v2 if configured to do so
+                          ? (doc: IDocumentModel) => exportV2Document(doc) as ISerializedDocument
+                          // use cloneDeep because MST snapshots are immutable
+                          : (doc: IDocumentModel) => cloneDeep(getSnapshot(doc)) as ISerializedDocument
+    const snapshot = await serializeDocument(this.currentDocument, serializeFn)
     const revisionId = this.treeManager?.revisionId
     if (revisionId) {
-      return { revisionId, ...snapshot }
+      snapshot.revisionId = revisionId
     }
 
     return snapshot
@@ -93,14 +101,11 @@ class AppState {
   }
 
   @flow
-  *setDocument(
-    snap: ISerializedDocumentModel | ICodapV2DocumentJson,
-    metadata?: Record<string, any>
-  ) {
+  *setDocument(snap: ISerializedDocument, metadata?: Record<string, any>) {
     // stop monitoring changes for undo/redo on the existing document
     this.disableDocumentMonitoring()
 
-    let content: ISerializedDocumentModel
+    let content: ISerializedV3Document
     if (isCodapV2Document(snap)) {
       const v2Document = new CodapV2Document(snap, metadata)
       const v3Document = importV2Document(v2Document)
@@ -136,11 +141,11 @@ class AppState {
           }
         })
       }
-      if (content.revisionId && this.treeManager) {
+      if (snap.revisionId && this.treeManager) {
         // Restore the revisionId from the stored document
         // This will allow us to consistently compare the local document
         // to the stored document.
-        this.treeManager.setRevisionId(content.revisionId)
+        this.treeManager.setRevisionId(snap.revisionId)
       }
 
       // monitor document changes for undo/redo

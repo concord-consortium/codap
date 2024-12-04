@@ -1,3 +1,4 @@
+import { kV2CalculatorDGType } from "../components/calculator/calculator-defs"
 import { CodapV2Document } from "./codap-v2-document"
 import { ICodapV2DocumentJson, isCodapV2Document } from "./codap-v2-types"
 
@@ -40,7 +41,7 @@ describe(`V2 "calculator.codap"`, () => {
     expect(calculator.globalValues.length).toBe(0)
     expect(calculator.dataSets.length).toBe(0)
 
-    expect(calculator.components.map(c => c.type)).toEqual(["DG.Calculator"])
+    expect(calculator.components.map(c => c.type)).toEqual([kV2CalculatorDGType])
   })
 })
 

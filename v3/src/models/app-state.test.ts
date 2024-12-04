@@ -1,6 +1,7 @@
 import { reaction } from "mobx"
 import { getSnapshot } from "mobx-state-tree"
 import { appState } from "./app-state"
+import { isCodapDocument } from "./codap/create-codap-document"
 import { DocumentModel } from "./document/document"
 import { serializeDocument } from "./document/serialize-document"
 
@@ -33,7 +34,7 @@ describe("AppState", () => {
 
   it("returns de-serializable document snapshots", async () => {
     const snap = await appState.getDocumentSnapshot()
-    const docModel = DocumentModel.create(snap)
+    const docModel = DocumentModel.create(isCodapDocument(snap) ? snap : { type: "CODAP" })
     const docSnap = await serializeDocument(docModel, doc => getSnapshot(doc))
     expect(docSnap).toEqual(snap)
   })

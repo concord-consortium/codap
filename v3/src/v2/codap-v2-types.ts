@@ -491,7 +491,55 @@ export interface ICodapV2GraphStorage extends ICodapV2BaseComponentStorage {
   plotModels: ICodapV2PlotModel[]
 }
 
-export interface ICodapV2MapLayerStorage {
+// This is differentiated from the current storage because it has no
+// layerModels
+interface ICodapV2MapLegacyStorage extends ICodapV2BaseComponentStorage {
+  // [begin] legacy top-level properties ignored by current v2 code
+  _links_: {
+    context: IGuidLink<"DG.DataContextRecord">
+    hiddenCases: any[]
+  }
+  legendRole: number
+  legendAttributeType: number
+  pointColor: string
+  strokeColor: string
+  pointSizeMultiplier: number
+  transparency: number
+  strokeTransparency: number
+  // [end] legacy top-level properties ignored by current v2 code
+
+  mapModelStorage: {
+    center: { lat: number, lng: number } | [lat: number, lng: number]
+    zoom: number
+    baseMapLayerName: string
+    gridMultiplier: number
+
+    // [begin] legacy mapModelStorage properties ignored by current v2 code
+    pointsShouldBeVisible: boolean
+    linesShouldBeVisible: boolean
+
+    // TODO_V2_IMPORT: grid might not be not imported
+    // It appears 821 times in cfm-shared, need to recheck this now that there is
+    // a legacy and current definition of the map storage
+    grid: {
+      gridMultiplier: number
+      visible: boolean
+    }
+
+    // TODO_V2_IMPORT: the area* properties are not imported at this level
+    // These properties happen at least 600 times in cfm-shared
+    areaColor: string
+    areaTransparency: string  // e.g. "0.5"
+    areaStrokeColor: string
+    areaStrokeTransparency: string  // e.g. "0.6"
+    // [end] legacy mapModelStorage properties ignored by current v2 code
+  }
+}
+export function isV2MapLegacyStorage(obj: unknown): obj is ICodapV2MapCurrentStorage {
+  return !!obj && typeof obj === "object" && "legendRole" in obj && obj.legendRole != null
+}
+
+interface ICodapV2MapLayerBaseStorage {
   _links_: {
     context: IGuidLink<"DG.DataContextRecord">
     hiddenCases?: any[],
@@ -502,56 +550,66 @@ export interface ICodapV2MapLayerStorage {
   legendRole: number
   legendAttributeType: number
   isVisible: boolean
-  strokeSameAsFill?: boolean
-  // Polygons
-  areaColor?: string
-  // TODO_V2_IMPORT: areaTransparency is not imported
-  areaTransparency?: number | string
-  areaStrokeColor?: string
-  // TODO_V2_IMPORT: areaTransparency is not imported
-  areaStrokeTransparency?: number | string
-  // Points
-  pointColor?: string
-  strokeColor?: string
-  pointSizeMultiplier?: number
-  transparency?: number
-  strokeTransparency?: number
-  pointsShouldBeVisible?: boolean
-  grid?: { gridMultiplier: number, isVisible: boolean }
-  connectingLines?: {
-    isVisible: boolean,
-    // TODO_V2_IMPORT: enableMeasuresForSelection is not imported
-    // there are 0 cases in cfm-shared where it is `true` in this
-    // location
-    enableMeasuresForSelection?: boolean
-  }
+  strokeSameAsFill: boolean
 }
 
-export interface ICodapV2MapStorage extends ICodapV2BaseComponentStorage {
+export interface ICodapV2MapPointLayerStorage extends ICodapV2MapLayerBaseStorage {
+  pointColor: string
+  strokeColor: string
+  pointSizeMultiplier: number
+  transparency: number
+  strokeTransparency: number
+  pointsShouldBeVisible: boolean
+  grid: { gridMultiplier: number, isVisible: boolean }
+  connectingLines: {
+    isVisible: boolean,
+    // TODO_V2_IMPORT: enableMeasuresForSelection might not be imported
+    // there are 0 cases in cfm-shared where it is `true` in this
+    // location
+    enableMeasuresForSelection: boolean
+  }
+}
+export function isV2MapPointLayerStorage(obj: unknown): obj is ICodapV2MapPointLayerStorage {
+  return !!obj && typeof obj === "object" && "pointColor" in obj && obj.pointColor != null
+}
+
+export interface ICodapV2MapPolygonLayerStorage extends ICodapV2MapLayerBaseStorage {
+  areaColor: string
+  // TODO_V2_IMPORT: areaTransparency might not be imported
+  areaTransparency: number | string // e.g. "0.5"
+  areaStrokeColor: string
+  // TODO_V2_IMPORT: areaTransparency might not imported
+  areaStrokeTransparency: number | string // e.g. "0.6"
+}
+export function isV2MapPolygonLayerStorage(obj: unknown): obj is ICodapV2MapPolygonLayerStorage {
+  return !!obj && typeof obj === "object" && "areaColor" in obj && obj.areaColor != null
+}
+
+export type ICodapV2MapLayerStorage = ICodapV2MapPointLayerStorage | ICodapV2MapPolygonLayerStorage
+
+export interface ICodapV2MapCurrentStorage extends ICodapV2BaseComponentStorage {
   mapModelStorage: {
-    center: { lat: number, lng: number }
+    center: { lat: number, lng: number } | [lat: number, lng: number]
     zoom: number
     baseMapLayerName: string
     // TODO_V2_IMPORT: gridMultiplier is not imported at this level
     // It appears 8,612 times in cfm-shared either here or
-    // inside of the grid object below
-    gridMultiplier?: number
-    // TODO_V2_IMPORT: grid is not imported
-    // It appears 821 times in cfm-shared
-    grid?: {
-      gridMultiplier: number
-      visible: boolean
-    }
-    // TODO_V2_IMPORT: the area* properties are not imported at this level
-    // These properties happen at least 600 times in cfm-shared
-    areaColor?: string
-    areaTransparency?: string
-    areaStrokeColor?: string
-    areaStrokeTransparency?: string
-
-    layerModels?: ICodapV2MapLayerStorage[]
+    // inside of the grid object
+    gridMultiplier: number
+    layerModels: ICodapV2MapLayerStorage[]
   }
 }
+export function isV2MapCurrentStorage(obj: unknown): obj is ICodapV2MapCurrentStorage {
+  if (!!obj && typeof obj === "object" && "mapModelStorage" in obj) {
+    const mapModelStorage = obj.mapModelStorage
+    if (!!mapModelStorage && typeof mapModelStorage === "object" && "layerModels" in mapModelStorage) {
+      return Array.isArray(mapModelStorage.layerModels)
+    }
+  }
+  return false
+}
+
+export type ICodapV2MapStorage = ICodapV2MapLegacyStorage | ICodapV2MapCurrentStorage
 
 export interface ICodapV2GuideStorage extends ICodapV2BaseComponentStorage {
   currentItemIndex?: number | null
@@ -596,12 +654,13 @@ export interface ICodapV2SliderComponent extends ICodapV2BaseComponent {
 }
 export const isV2SliderComponent = (component: ICodapV2BaseComponent): component is ICodapV2SliderComponent =>
   component.type === "DG.SliderView"
+
 export interface ICodapV2TableComponent extends ICodapV2BaseComponent {
   type: "DG.TableView"
   componentStorage: ICodapV2TableStorage
 }
 export const isV2TableComponent = (component: ICodapV2BaseComponent): component is ICodapV2TableComponent =>
-              component.type === "DG.TableView"
+  component.type === "DG.TableView"
 
 // TODO_V2_IMPORT: handle importing case cards:
 // https://www.pivotaltracker.com/story/show/188596023
@@ -609,12 +668,14 @@ export interface ICodapV2CaseCardComponent extends ICodapV2BaseComponent {
   type: "DG.CaseCard"
   componentStorage: ICodapV2CaseCardStorage
 }
+
 export interface ICodapV2WebViewComponent extends ICodapV2BaseComponent {
   type: "DG.WebView"
   componentStorage: ICodapV2WebViewStorage
 }
 export const isV2WebViewComponent =
   (component: ICodapV2BaseComponent): component is ICodapV2WebViewComponent => component.type === "DG.WebView"
+
 export interface ICodapGameViewComponent extends ICodapV2BaseComponent {
   type: "DG.GameView"
   componentStorage: ICodapV2GameViewStorage
@@ -654,6 +715,7 @@ export type CodapV2Component = ICodapV2CalculatorComponent | ICodapV2CaseCardCom
                                 ICodapV2GraphComponent | ICodapV2GuideComponent | ICodapV2MapComponent |
                                 ICodapV2SliderComponent | ICodapV2TableComponent | ICodapV2TextComponent |
                                 ICodapV2WebViewComponent
+export type CodapV2ComponentStorage = CodapV2Component["componentStorage"]
 
 export type CodapV2Context = ICodapV2DataContext | ICodapV2GameContext
 

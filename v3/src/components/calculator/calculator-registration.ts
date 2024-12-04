@@ -1,16 +1,17 @@
+import CalcIcon from "../../assets/icons/icon-calc.svg"
 import { registerComponentHandler } from "../../data-interactive/handlers/component-handler"
 import { registerTileComponentInfo } from "../../models/tiles/tile-component-info"
 import { ITileLikeModel, registerTileContentInfo } from "../../models/tiles/tile-content-info"
 import { ITileModelSnapshotIn } from "../../models/tiles/tile-model"
-import { CalculatorComponent } from "./calculator"
-import { kCalculatorTileClass, kCalculatorTileType, kV2CalculatorType } from "./calculator-defs"
-import { CalculatorModel, ICalculatorSnapshot } from "./calculator-model"
-import { CalculatorTitleBar } from "./calculator-title-bar"
-import CalcIcon from '../../assets/icons/icon-calc.svg'
 import { toV3Id } from "../../utilities/codap-utils"
+import { t } from "../../utilities/translation/translate"
+import { registerV2TileExporter } from "../../v2/codap-v2-tile-exporters"
 import { registerV2TileImporter } from "../../v2/codap-v2-tile-importers"
 import { isV2CalculatorComponent } from "../../v2/codap-v2-types"
-import { t } from "../../utilities/translation/translate"
+import { CalculatorComponent } from "./calculator"
+import { kCalculatorTileClass, kCalculatorTileType, kV2CalculatorDGType, kV2CalculatorDIType } from "./calculator-defs"
+import { CalculatorModel, ICalculatorSnapshot } from "./calculator-model"
+import { CalculatorTitleBar } from "./calculator-title-bar"
 
 export const kCalculatorIdPrefix = "CALC"
 
@@ -46,7 +47,7 @@ registerTileComponentInfo({
   defaultWidth: 137
 })
 
-registerV2TileImporter("DG.Calculator", ({ v2Component, insertTile }) => {
+registerV2TileImporter(kV2CalculatorDGType, ({ v2Component, insertTile }) => {
   if (!isV2CalculatorComponent(v2Component)) return
 
   const { guid, componentStorage: { name = "", title = "" } } = v2Component
@@ -63,7 +64,12 @@ registerV2TileImporter("DG.Calculator", ({ v2Component, insertTile }) => {
   return calculatorTile
 })
 
-registerComponentHandler(kV2CalculatorType, {
+registerV2TileExporter(kCalculatorTileType, () => {
+  // Calculator doesn't have calculator-specific storage
+  return { type: kV2CalculatorDGType }
+})
+
+registerComponentHandler(kV2CalculatorDIType, {
   create() {
     return { content: { type: kCalculatorTileType } }
   },
