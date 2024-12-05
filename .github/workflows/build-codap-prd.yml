@@ -1,0 +1,32 @@
+name: Build Codap Prd
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+
+  build:
+    uses: team-monolith-product/tmn-gh-actions/.github/workflows/build_v2.yml@main
+    with:
+      env: prd
+      target: main
+      updateTargets: |
+        {
+          "aws": {
+            "imageName": "jce-ecr-codap-all-prd",
+            "valueFilePath": ["codap/prd.yaml"]
+          },
+          "ncp": {
+            "registry": "ped-cr-all-prd.ncr.gov-ntruss.com",
+            "imageName": "jce-codap",
+            "valueFilePath": ["codap/ncloud-prd.yaml"]
+          }
+        }
+
+    secrets:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      NCP_ACCESS_KEY_ID: ${{ secrets.NCP_ACCESS_KEY_ID }}
+      NCP_SECRET_KEY: ${{ secrets.NCP_SECRET_KEY }}
+      MACHINE_TOKEN: ${{ secrets.MACHINE_TOKEN }}
