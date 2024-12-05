@@ -34,8 +34,11 @@ RUN npm ci --legacy-peer-deps
 # add app
 COPY . ./
 
-# add sproutcore app
-RUN git submodule update --init
+RUN ls -al
+
+# Github Action에서 submodule을 checkout 과정에서 사용하고 있음
+# # add sproutcore app
+# RUN git submodule update --init
 
 FROM base as dev
 # bundle app
