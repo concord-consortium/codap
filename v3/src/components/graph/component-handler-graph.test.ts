@@ -79,9 +79,11 @@ describe("DataInteractive ComponentHandler Graph", () => {
     // Get graph
     testGetComponent(tile, handler, (graphTile, values) => {
       const {
-        dataContext, enableNumberToggle, numberToggleLastMode, captionAttributeName, legendAttributeName,
-        rightSplitAttributeName, topSplitAttributeName, xAttributeName, xLowerBound, xUpperBound,
-        yAttributeName, yLowerBound, yUpperBound, y2AttributeName, y2LowerBound, y2UpperBound
+        dataContext, enableNumberToggle, numberToggleLastMode, captionAttributeID, captionAttributeName,
+        legendAttributeID, legendAttributeName, rightSplitAttributeID, rightSplitAttributeName,
+        topSplitAttributeID, topSplitAttributeName, xAttributeID, xAttributeName, xLowerBound, xUpperBound,
+        yAttributeID, yAttributeName, yLowerBound, yUpperBound,
+        y2AttributeID, y2AttributeName, y2LowerBound, y2UpperBound
       } = values as V2GetGraph
       const content = graphTile.content as IGraphContentModel
       const graphDataset = content.dataset!
@@ -91,30 +93,37 @@ describe("DataInteractive ComponentHandler Graph", () => {
       expect(numberToggleLastMode).toBe(content.showOnlyLastCase)
 
       const captionAttributeId = dataConfiguration.attributeDescriptionForRole("caption")!.attributeID
+      expect(captionAttributeID).toBe(captionAttributeId)
       expect(captionAttributeName).toBe(graphDataset.getAttribute(captionAttributeId)?.name)
 
       const legendAttributeId = dataConfiguration.attributeDescriptionForRole("legend")!.attributeID
+      expect(legendAttributeID).toBe(legendAttributeId)
       expect(legendAttributeName).toBe(graphDataset.getAttribute(legendAttributeId)?.name)
 
       const rightSplitId = dataConfiguration.attributeDescriptionForRole("rightSplit")!.attributeID
+      expect(rightSplitAttributeID).toBe(rightSplitId)
       expect(rightSplitAttributeName).toBe(graphDataset.getAttribute(rightSplitId)?.name)
 
       const topSplitId = dataConfiguration.attributeDescriptionForRole("topSplit")!.attributeID
+      expect(topSplitAttributeID).toBe(topSplitId)
       expect(topSplitAttributeName).toBe(graphDataset.getAttribute(topSplitId)?.name)
 
       const xAttributeId = dataConfiguration.attributeDescriptionForRole("x")!.attributeID
+      expect(xAttributeID).toBe(xAttributeId)
       expect(xAttributeName).toBe(graphDataset.getAttribute(xAttributeId)?.name)
       const xAxis = content.getAxis("bottom") as IBaseNumericAxisModel
       expect(xLowerBound).toBe(xAxis.min)
       expect(xUpperBound).toBe(xAxis.max)
 
       const yAttributeId = dataConfiguration.attributeDescriptionForRole("y")!.attributeID
+      expect(yAttributeID).toBe(yAttributeId)
       expect(yAttributeName).toBe(graphDataset.getAttribute(yAttributeId)?.name)
       const yAxis = content.getAxis("left") as IBaseNumericAxisModel
       expect(yLowerBound).toBe(yAxis.min)
       expect(yUpperBound).toBe(yAxis.max)
 
       const y2AttributeId = dataConfiguration.attributeDescriptionForRole("rightNumeric")!.attributeID
+      expect(y2AttributeID).toBe(y2AttributeId)
       expect(y2AttributeName).toBe(graphDataset.getAttribute(y2AttributeId)?.name)
       const y2Axis = content.getAxis("rightNumeric") as IBaseNumericAxisModel
       expect(y2LowerBound).toBe(y2Axis.min)
