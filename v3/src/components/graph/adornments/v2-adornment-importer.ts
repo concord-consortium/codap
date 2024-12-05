@@ -67,10 +67,20 @@ interface IInstanceKeysForAdornmentsProps {
 }
 
 const univariateMeasureInstances = (adornment: ICodapV2UnivariateAdornment, instanceKeys?: string[]) => {
-  const equationCoords = adornment.equationCoordsArray?.[0]
+  // TODO_V2_IMPORT: most documents with an equationCoordsArray have multiple items in the array
+  // we are only looking at the first item here
+  const equationCoordsV2 = adornment.equationCoordsArray?.[0]
+
+  // TODO_V2_IMPORT: 93 files in cfm-shared have equationCoordsArray with values with
+  // proportionCenterX and proportionCenterY instead of proportionX and proportionY.
+  // For now we are just skipping those and treating them as undefined
+  // example doc: cfm-shared/1caDhoHFlpuNQgSfOdhh/file.json
+  const equationCoords = (equationCoordsV2 && ("proportionX" in equationCoordsV2))
+    ? equationCoordsV2
+    : { proportionX: NaN, proportionY: NaN }
   const measures: Record<string, IMeasureInstanceSnapshot> = {}
   instanceKeys?.forEach((key: string) => {
-    const { proportionX, proportionY } = equationCoords ?? { proportionX: NaN, proportionY: NaN }
+    const { proportionX, proportionY } = equationCoords
     const labelCoords = isFinite(proportionX) && isFinite(proportionY)
       ? { x: proportionX, y: proportionY }
       : undefined
@@ -176,7 +186,7 @@ export const v2AdornmentImporter = ({data, plotModels, attributeDescriptions, yA
     const countAdornmentImport: ICountAdornmentModelSnapshot = {
       id: typedId("ADRN"),
       isVisible: countAdornment.isVisible,
-      percentType: percentTypeMap[countAdornment.percentKind],
+      percentType: countAdornment.percentKind != null ? percentTypeMap[countAdornment.percentKind] : undefined,
       showCount: countAdornment.isShowingCount,
       showPercent: countAdornment.isShowingPercent,
       type: kCountType

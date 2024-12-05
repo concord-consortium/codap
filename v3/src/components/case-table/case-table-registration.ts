@@ -55,6 +55,9 @@ registerV2TileImporter("DG.TableView", ({ v2Component, v2Document, sharedModelMa
 
   const { guid, componentStorage: { name, title = "", _links_, attributeWidths } } = v2Component
 
+  // Handle broken tables that don't have any links
+  if (!_links_) return
+
   const content: SetRequired<ICaseTableSnapshot, "columnWidths"> = {
     type: kCaseTableTileType,
     columnWidths: {}

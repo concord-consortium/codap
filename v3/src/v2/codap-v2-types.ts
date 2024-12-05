@@ -53,32 +53,15 @@ export function v3TypeFromV2TypeString(v2Type?: string | null): AttributeType | 
   return v2Type as AttributeType
 }
 
-// Boundaries can show up as empty objects
-type EmptyObj = Record<PropertyKey, never>
 
-interface CaseValueError {
-  name: "❌"
-  message: string
-  description: string
-  reference: string
-}
+type CaseValue = number | string | boolean | null | object
 
-interface CaseValueWaiting {
-  name: "⌛"
-  message: string
-  description: string
-}
-
-interface CaseValueBoundary {
-  // TODO_V2_IMPORT: should we type this more precisely?
-  jsonBoundaryObject: any
-}
 export interface ICodapV2Case {
   id?: number
   guid: number
   itemID?: string
   parent?: number
-  values: Record<string, number | string | EmptyObj | CaseValueError | CaseValueWaiting | CaseValueBoundary>
+  values: Record<string, CaseValue>
 }
 
 export interface ICodapV2Collection {
@@ -94,9 +77,11 @@ export interface ICodapV2Collection {
   // TODO_V2_IMPORT: collapseChildren is not imported
   // There are 250 cases where this is true in cfm-shared
   collapseChildren?: boolean | null
+  // TODO_V2_IMPORT: defaults does not seem to be imported
+  // There are 825 cases where it is defined in cfm-shared
   defaults?: {
-    xAttr: string
-    yAttr: string
+    xAttr?: string
+    yAttr?: string
   }
   guid: number
   id?: number
@@ -121,6 +106,9 @@ export interface ICodapV2CollectionV3
   attrs: ICodapV2AttributeV3[]
 }
 
+export interface ICodapV2ExternalContext {
+  externalDocumentId: string
+}
 export interface ICodapV2DataContextMetadata {
   description?: string
 }
@@ -133,7 +121,7 @@ export interface ICodapV2DataContext {
   id?: number
   // TODO_V2_IMPORT flexibleGroupingChangeFlag is not imported
   // This is set to true in 11,000 cfm-shared files
-  flexibleGroupingChangeFlag?: boolean
+  flexibleGroupingChangeFlag?: boolean | null
   name?: string
   title?: string
   collections: ICodapV2Collection[]
@@ -233,22 +221,24 @@ export interface ICodapV2SliderStorage extends ICodapV2BaseComponentStorage {
   },
   lowerBound?: number
   upperBound?: number
-  animationDirection: number
-  animationMode: number
-  restrictToMultiplesOf: number | null
-  maxPerSecond: number | null
+  animationDirection?: number
+  animationMode?: number
+  restrictToMultiplesOf?: number | null
+  maxPerSecond?: number | null
   userTitle?: boolean
 }
 
 export interface ICodapV2TableStorage extends ICodapV2BaseComponentStorage {
-  _links_: {
+  // There are some documents which have broken tables which are not linked to
+  // a context
+  _links_?: {
     context: IGuidLink<"DG.DataContextRecord">
   }
   attributeWidths?: Array<{
     _links_: {
       attr: IGuidLink<"DG.Attribute">
     }
-    width: number
+    width?: number
   }>
   title?: string
 }
@@ -257,7 +247,13 @@ export interface ICodapV2CaseCardStorage extends ICodapV2BaseComponentStorage {
   _links_: {
     context: IGuidLink<"DG.DataContextRecord">
   }
+  title?: string
+}
+
+export interface ICodapV2ImageStorage extends ICodapV2BaseComponentStorage {
   title: string
+  URL: string
+  name: string
 }
 
 export interface ICodapV2WebViewStorage extends ICodapV2BaseComponentStorage {
@@ -305,9 +301,9 @@ interface ICodapV2Adornment {
 }
 
 interface ICodapV2CountAdornment extends ICodapV2Adornment {
-  isShowingCount: boolean
-  isShowingPercent: boolean
-  percentKind: number
+  isShowingCount?: boolean
+  isShowingPercent?: boolean
+  percentKind?: number
 }
 
 interface ICodapV2MovableValueAdornment extends ICodapV2Adornment {
@@ -321,7 +317,9 @@ interface ICodapV2MovableValueAdornment extends ICodapV2Adornment {
 }
 
 export interface ICodapV2UnivariateAdornment extends ICodapV2Adornment {
-  equationCoordsArray?: ICodapV2ProportionCoordinates[]
+  // TODO_V2_IMPORT: there are 267 instances in cfm-shared where
+  // the equationCoordsArray has items with the type of ICodapV2LineEquationCoords
+  equationCoordsArray?: (ICodapV2ProportionCoordinates | ICodapV2LineEquationCoords | null)[]
 }
 
 interface ICodapV2StErrAdornment extends ICodapV2UnivariateAdornment {
@@ -335,12 +333,20 @@ interface ICodapV2BoxPlotAdornment extends ICodapV2UnivariateAdornment {
 }
 
 interface ICodapV2PlottedFunctionAdornment extends ICodapV2Adornment {
-  adornmentKey: string
+  // TODO_V2_EXPORT: this key seems unnecessary because it is basically defining
+  // the type of the adornment. The type of adornment is already determined from
+  // the key in ICodapV2AdornmentMap. However the v2 code does use this key, and
+  // it looks necessary to set it on export.
+  adornmentKey?: string
   expression: string
 }
 
 interface ICodapV2PlottedValueAdornment extends ICodapV2Adornment {
-  adornmentKey: string
+  // TODO_V2_EXPORT: this key seems unnecessary because it is basically defining
+  // the type of the adornment. The type of adornment is already determined from
+  // the key in ICodapV2AdornmentMap. However the v2 code does use this key, and
+  // it looks necessary to set it on export.
+  adornmentKey?: string
   expression: string
 }
 
@@ -378,7 +384,7 @@ interface ICodapV2MovableLineStorage {
   // an x and y instead of proportionCenterX and proportionCenterY
   // There are 2,000 instances of this in cfm-shared
   // example: cfm-shared/02RllCJzS0Nt4wX3c6XL/file.json
-  equationCoords: ICodapV2LineEquationCoords | null
+  equationCoords?: ICodapV2LineEquationCoords | null
   intercept: number
   slope: number
   isVertical: boolean
@@ -395,7 +401,7 @@ interface ICodapV2LSRL {
   // an x and y instead of proportionCenterX and proportionCenterY
   // There are 4,000 instances of this in cfm-shared
   // example: cfm-shared/00JG6PytJ4Zfhk3Yw4Xf/file.json
-  equationCoords: ICodapV2LineEquationCoords | null,
+  equationCoords?: ICodapV2LineEquationCoords | null,
   // TODO_V2_IMPORT: showConfidenceBands is not imported. Unknown how many files have it set to true
   showConfidenceBands?: boolean
 }
@@ -414,7 +420,9 @@ interface ICodapV2MultipleLSRLsStorage {
 }
 
 export interface ICodapV2PlotStorage {
-  verticalAxisIsY2: boolean
+  // TODO_V2_IMPORT: verticalAxisIsY2 is not imported
+  // it is true 2,859 times in cfm-shared
+  verticalAxisIsY2?: boolean
   adornments?: ICodapV2AdornmentMap
   areSquaresVisible?: boolean
   isLSRLVisible?: boolean
@@ -434,9 +442,10 @@ export interface ICodapV2GraphStorage extends ICodapV2BaseComponentStorage {
     context?: IGuidLink<"DG.DataContextRecord">
     // TODO_V2_IMPORT: hiddenCases is not imported
     hiddenCases?: any[]
-    xColl?: IGuidLink<"DG.Collection">
+    // TODO_V2_IMPORT: it doesn't seem like any of the *Coll fields are imported
+    xColl?: IGuidLink<"DG.Collection" | "DG.CollectionRecord">
     xAttr?: IGuidLink<"DG.Attribute">
-    yColl?: IGuidLink<"DG.Collection">
+    yColl?: IGuidLink<"DG.Collection" | "DG.CollectionRecord">
     yAttr?: IGuidLink<"DG.Attribute"> | Array<IGuidLink<"DG.Attribute">>
     y2Coll?: IGuidLink<"DG.Collection">
     y2Attr?: IGuidLink<"DG.Attribute">
@@ -464,74 +473,73 @@ export interface ICodapV2GraphStorage extends ICodapV2BaseComponentStorage {
   plotBackgroundOpacity?: number
   plotBackgroundImageLockInfo?: any
   plotBackgroundImage?: string | null
+
   xRole: number
   xAttributeType: number
+  xAxisClass: string
+  // TODO_V2_IMPORT: it looks like undefined and null might not be handled correctly
+  // for *LowerBound and *UpperBound when the *AxisClass is DG.CellLinearAxisModel.
+  // There are 966 instances of `xUpperBound: null` in cfm-shared
+  xLowerBound?: number | null
+  xUpperBound?: number | null
+
   yRole: number
   yAttributeType: number
-  y2Role: number
-  y2AttributeType: number
+  yAxisClass: string
+  yLowerBound?: number | null
+  yUpperBound?: number | null
 
-  // The right* and top* properties were not defined in a document from build 0473
+  y2Role?: number
+  y2AttributeType?: number
+  y2AxisClass?: string
+  y2LowerBound?: number | null
+  y2UpperBound?: number | null
+
   topRole?: number
   topAttributeType?: number
   topAxisClass?: string
+
   rightRole?: number
   rightAttributeType?: number
   rightAxisClass?: string
 
-  xAxisClass: string
-  xLowerBound?: number
-  xUpperBound?: number
-  yAxisClass: string
-  yLowerBound?: number
-  yUpperBound?: number
-  y2AxisClass: string
-  y2LowerBound?: number
-  y2UpperBound?: number
   plotModels: ICodapV2PlotModel[]
 }
 
 // This is differentiated from the current storage because it has no
-// layerModels
+// layerModels and it has a legendRole
 interface ICodapV2MapLegacyStorage extends ICodapV2BaseComponentStorage {
   // [begin] legacy top-level properties ignored by current v2 code
   _links_: {
-    context: IGuidLink<"DG.DataContextRecord">
-    hiddenCases: any[]
+    context?: IGuidLink<"DG.DataContextRecord">
+    hiddenCases?: any[]
   }
   legendRole: number
   legendAttributeType: number
-  pointColor: string
-  strokeColor: string
-  pointSizeMultiplier: number
-  transparency: number
-  strokeTransparency: number
+  pointColor?: string
+  strokeColor?: string
+  pointSizeMultiplier?: number
+  transparency?: number
+  strokeTransparency?: number
   // [end] legacy top-level properties ignored by current v2 code
 
   mapModelStorage: {
     center: { lat: number, lng: number } | [lat: number, lng: number]
     zoom: number
     baseMapLayerName: string
-    gridMultiplier: number
+    gridMultiplier?: number
 
     // [begin] legacy mapModelStorage properties ignored by current v2 code
-    pointsShouldBeVisible: boolean
-    linesShouldBeVisible: boolean
-
-    // TODO_V2_IMPORT: grid might not be not imported
-    // It appears 821 times in cfm-shared, need to recheck this now that there is
-    // a legacy and current definition of the map storage
+    pointsShouldBeVisible?: boolean
+    linesShouldBeVisible?: boolean
     grid: {
       gridMultiplier: number
       visible: boolean
     }
-
-    // TODO_V2_IMPORT: the area* properties are not imported at this level
-    // These properties happen at least 600 times in cfm-shared
-    areaColor: string
-    areaTransparency: string  // e.g. "0.5"
-    areaStrokeColor: string
-    areaStrokeTransparency: string  // e.g. "0.6"
+    areaColor?: string
+    areaTransparency?: string | number // e.g. "0.5"
+    areaStrokeColor?: string
+    areaStrokeTransparency?: string | number // e.g. "0.6"
     // [end] legacy mapModelStorage properties ignored by current v2 code
   }
 }
@@ -550,7 +558,7 @@ interface ICodapV2MapLayerBaseStorage {
   legendRole: number
   legendAttributeType: number
   isVisible: boolean
-  strokeSameAsFill: boolean
+  strokeSameAsFill?: boolean
 }
 
 export interface ICodapV2MapPointLayerStorage extends ICodapV2MapLayerBaseStorage {
@@ -560,13 +568,16 @@ export interface ICodapV2MapPointLayerStorage extends ICodapV2MapLayerBaseStorag
   transparency: number
   strokeTransparency: number
   pointsShouldBeVisible: boolean
-  grid: { gridMultiplier: number, isVisible: boolean }
+  grid: {
+    gridMultiplier: number
+    isVisible?: boolean
+  }
   connectingLines: {
     isVisible: boolean,
     // TODO_V2_IMPORT: enableMeasuresForSelection might not be imported
-    // there are 0 cases in cfm-shared where it is `true` in this
+    // There are 0 cases in cfm-shared where it is `true` in this
     // location
-    enableMeasuresForSelection: boolean
+    enableMeasuresForSelection?: boolean
   }
 }
 export function isV2MapPointLayerStorage(obj: unknown): obj is ICodapV2MapPointLayerStorage {
@@ -589,6 +600,8 @@ export type ICodapV2MapLayerStorage = ICodapV2MapPointLayerStorage | ICodapV2Map
 
 export interface ICodapV2MapCurrentStorage extends ICodapV2BaseComponentStorage {
   mapModelStorage: {
+    // This was found to be an array files saved from builds 0271 - 0460
+    // The array was found 137 in cfm-shared
     center: { lat: number, lng: number } | [lat: number, lng: number]
     zoom: number
     baseMapLayerName: string
@@ -614,7 +627,7 @@ export type ICodapV2MapStorage = ICodapV2MapLegacyStorage | ICodapV2MapCurrentSt
 export interface ICodapV2GuideStorage extends ICodapV2BaseComponentStorage {
   currentItemIndex?: number | null
   isVisible?: boolean
-  items: Array<{ itemTitle: string | null, url: string }>
+  items: Array<{ itemTitle: string | null, url: string | null }>
 }
 
 export interface ICodapV2TextStorage extends ICodapV2BaseComponentStorage {
@@ -628,7 +641,7 @@ export interface ICodapV2BaseComponent {
   type: string  // e.g. "DG.TableView", "DG.GraphView", "DG.GuideView", etc.
   guid: number
   id?: number
-  componentStorage: Record<string, any>
+  componentStorage?: Record<string, any> | null
   layout: {
     // A GameView saved by build 0606 had no width or height
     width?: number
@@ -643,7 +656,7 @@ export interface ICodapV2BaseComponent {
 
 export interface ICodapV2CalculatorComponent extends ICodapV2BaseComponent {
   type: "DG.Calculator"
-  componentStorage: ICodapV2CalculatorStorage
+  componentStorage?: ICodapV2CalculatorStorage | null
 }
 export const isV2CalculatorComponent = (component: ICodapV2BaseComponent): component is ICodapV2CalculatorComponent =>
   component.type === "DG.Calculator"
@@ -667,6 +680,13 @@ export const isV2TableComponent = (component: ICodapV2BaseComponent): component 
 export interface ICodapV2CaseCardComponent extends ICodapV2BaseComponent {
   type: "DG.CaseCard"
   componentStorage: ICodapV2CaseCardStorage
+}
+
+// TODO_V2_IMPORT: handle importing images
+// This is used 3,971 times in cfm-shared
+export interface ICodapV2ImageComponent extends ICodapV2BaseComponent {
+  type: "DG.ImageComponentView"
+  componentStorage: ICodapV2ImageStorage
 }
 
 export interface ICodapV2WebViewComponent extends ICodapV2BaseComponent {
@@ -711,19 +731,29 @@ export interface ICodapV2TextComponent extends ICodapV2BaseComponent {
 export const isV2TextComponent = (component: ICodapV2BaseComponent): component is ICodapV2TextComponent =>
               component.type === "DG.TextView"
 
-export type CodapV2Component = ICodapV2CalculatorComponent | ICodapV2CaseCardComponent| ICodapGameViewComponent |
-                                ICodapV2GraphComponent | ICodapV2GuideComponent | ICodapV2MapComponent |
-                                ICodapV2SliderComponent | ICodapV2TableComponent | ICodapV2TextComponent |
-                                ICodapV2WebViewComponent
+export type CodapV2Component =
+  ICodapV2CalculatorComponent |
+  ICodapV2CaseCardComponent|
+  ICodapGameViewComponent |
+  ICodapV2GraphComponent |
+  ICodapV2GuideComponent |
+  ICodapV2ImageComponent |
+  ICodapV2MapComponent |
+  ICodapV2SliderComponent |
+  ICodapV2TableComponent |
+  ICodapV2TextComponent |
+  ICodapV2WebViewComponent
 export type CodapV2ComponentStorage = CodapV2Component["componentStorage"]
 
-export type CodapV2Context = ICodapV2DataContext | ICodapV2GameContext
+export type CodapV2Context = ICodapV2DataContext | ICodapV2GameContext | ICodapV2ExternalContext
+export const isV2ExternalContext = (context: CodapV2Context): context is ICodapV2ExternalContext =>
+  !("type" in context) && ("externalDocumentId" in context)
 
 export interface ICodapV2DocumentJson {
   type?: string         // "DG.Document"
   id?: number
   guid: number
-  name: string | null
+  name?: string | null
   appName: string       // "DG"
   appVersion: string
   appBuildNum: string

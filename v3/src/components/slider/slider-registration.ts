@@ -90,13 +90,23 @@ registerV2TileImporter("DG.SliderView", ({ v2Component, v2Document, sharedModelM
   const { guid, ...globalSnap } = v2Global
   const globalValue = globalValueManager.addValueSnapshot({ id: toV3GlobalId(guid), ...globalSnap })
 
+  const getAnimationDirectionStr = (direction: number | undefined) => {
+    if (direction == null) return kDefaultAnimationDirection
+    return AnimationDirections[direction] || kDefaultAnimationDirection
+  }
+
+  const getAnimationModeStr = (mode: number | undefined) => {
+    if (mode == null) return kDefaultAnimationMode
+    return AnimationModes[mode] || kDefaultAnimationMode
+  }
+
   // create slider model
   const content: ISliderSnapshot = {
     type: kSliderTileType,
     globalValue: globalValue.id,
     multipleOf: restrictToMultiplesOf ?? undefined,
-    animationDirection: AnimationDirections[animationDirection] || kDefaultAnimationDirection,
-    animationMode: AnimationModes[animationMode] || kDefaultAnimationMode,
+    animationDirection: getAnimationDirectionStr(animationDirection),
+    animationMode: getAnimationModeStr(animationMode),
     _animationRate: maxPerSecond ?? undefined,
     axis: { type: "numeric", place: "bottom", min: lowerBound ?? 0, max: upperBound ?? 12 }
   }
@@ -152,7 +162,7 @@ registerComponentHandler(kV2SliderType, {
         globalValue: global.id
       } as SetRequired<ISliderSnapshot, "type">
     }
-    
+
     return { content }
   },
   get(content) {

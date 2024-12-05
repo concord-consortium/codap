@@ -12,6 +12,7 @@ import {
 } from "../utilities/codap-utils"
 import {
   CodapV2Component, CodapV2Context, ICodapV2Attribute, ICodapV2Case, ICodapV2Collection, ICodapV2DocumentJson,
+  isV2ExternalContext,
   v3TypeFromV2TypeString
 } from "./codap-v2-types"
 
@@ -100,6 +101,9 @@ export class CodapV2Document {
 
   registerContexts(contexts?: CodapV2Context[]) {
     contexts?.forEach(context => {
+      // TODO_V2_IMPORT: external contexts are not imported
+      // There are 75 cases of external contexts in cfm-shared
+      if (isV2ExternalContext(context)) return
       const { guid, type = "DG.DataContext", document, name = "", title, collections = [] } = context
       if (document && this.guidMap.get(document)?.type !== "DG.Document") {
         console.warn("CodapV2Document.registerContexts: context with invalid document guid:", context.document)
