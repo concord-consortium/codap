@@ -17,27 +17,55 @@ import { IGraphDataConfigurationModel, kGraphDataConfigurationType } from "./mod
 import { GraphLayout } from "./models/graph-layout"
 import { syncModelWithAttributeConfiguration } from "./models/graph-model-utils"
 import { IGraphPointLayerModelSnapshot, kGraphPointLayerType } from "./models/graph-point-layer-model"
+import { IAttribute } from "../../models/data/attribute"
+import { toV3AttrId } from "../../utilities/codap-utils"
+
+interface AttributeInfo {
+  id?: string | null
+  name?: string | null
+}
 
 export const graphComponentHandler: DIComponentHandler = {
   create({ values }) {
     const {
-      captionAttributeName, dataContext: _dataContext, enableNumberToggle: showParentToggles, legendAttributeName,
-      numberToggleLastMode: showOnlyLastCase, rightNumericAttributeName, rightSplitAttributeName,
-      topSplitAttributeName, xAttributeName, yAttributeName, y2AttributeName
+      captionAttributeID, captionAttributeName, dataContext: _dataContext, enableNumberToggle: showParentToggles,
+      legendAttributeID, legendAttributeName, numberToggleLastMode: showOnlyLastCase, rightNumericAttributeID,
+      rightNumericAttributeName, rightSplitAttributeID, rightSplitAttributeName, topSplitAttributeID,
+      topSplitAttributeName, xAttributeID, xAttributeName, yAttributeID, yAttributeName, y2AttributeID, y2AttributeName
     } = values as V2Graph
-    const attributeNames: Record<string, string | undefined> = {
-      captionAttributeName, legendAttributeName, rightNumericAttributeName, rightSplitAttributeName,
-      topSplitAttributeName, xAttributeName, y2AttributeName
+    function packageAttribute(id?: string | null, name?: string | null): Maybe<AttributeInfo> {
+      if (id || id === null || name || name === null) {
+        return { id, name }
+      }
+    }
+    function getAttributeFromInfo(dataset: IDataSet, info?: AttributeInfo) {
+      let attribute: Maybe<IAttribute>
+      if (info?.id != null) {
+        attribute = dataset.getAttribute(toV3AttrId(info.id))
+      }
+      if (!attribute && info?.name != null) {
+        attribute = dataset.getAttributeByName(info.name)
+      }
+      return attribute
+    }
+    const attributeInfo: Record<string, Maybe<AttributeInfo>> = {
+      caption: packageAttribute(captionAttributeID, captionAttributeName),
+      legend: packageAttribute(legendAttributeID, legendAttributeName),
+      rightNumeric: packageAttribute(rightNumericAttributeID, rightNumericAttributeName),
+      rightSplit: packageAttribute(rightSplitAttributeID, rightSplitAttributeName),
+      topSplit: packageAttribute(topSplitAttributeID, topSplitAttributeName),
+      x: packageAttribute(xAttributeID, xAttributeName),
+      y2: packageAttribute(y2AttributeID, y2AttributeName)
     }
     const roleFromAttrKey: Record<string, GraphAttrRole> = {
-      xAttributeName: "x",
-      yAttributeName: "y",
-      y2AttributeName: "rightNumeric",
-      rightNumericAttributeName: "rightNumeric",
-      captionAttributeName: "caption",
-      legendAttributeName: "legend",
-      topSplitAttributeName: "topSplit",
-      rightSplitAttributeName: "rightSplit"
+      x: "x",
+      y: "y",
+      y2: "rightNumeric",
+      rightNumeric: "rightNumeric",
+      caption: "caption",
+      legend: "legend",
+      topSplit: "topSplit",
+      rightSplit: "rightSplit"
     }
 
     let layerIndex = 0
@@ -54,24 +82,25 @@ export const graphComponentHandler: DIComponentHandler = {
         if (dataset.name === _dataContext) {
           provisionalDataSet = dataset
           provisionalMetadata = metadata
-          for (const attributeType in attributeNames) {
-            const attributeName = attributeNames[attributeType]
-            if (attributeName) {
-              const attribute = dataset.getAttributeByName(attributeName)
-              if (attribute) {
-                const attributeRole = roleFromAttrKey[attributeType]
-                if (attributeRole) {
-                  _attributeDescriptions[attributeRole] = { attributeID: attribute.id, type: attribute.type }
-                }
+          for (const attributeType in attributeInfo) {
+            const attribute = getAttributeFromInfo(dataset, attributeInfo[attributeType])
+            if (attribute) {
+              const attributeRole = roleFromAttrKey[attributeType]
+              if (attributeRole) {
+                _attributeDescriptions[attributeRole] = { attributeID: attribute.id, type: attribute.type }
               }
             }
           }
 
-          if (yAttributeName) {
-            const yAttribute = dataset.getAttributeByName(yAttributeName)
-            if (yAttribute) {
-              _yAttributeDescriptions.push({ attributeID: yAttribute.id, type: yAttribute.type })
-            }
+          let yAttribute: Maybe<IAttribute>
+          if (yAttributeID != null) {
+            yAttribute = dataset.getAttribute(toV3AttrId(yAttributeID))
+          }
+          if (!yAttribute && yAttributeName != null) {
+            yAttribute = dataset.getAttributeByName(yAttributeName)
+          }
+          if (yAttribute) {
+            _yAttributeDescriptions.push({ attributeID: yAttribute.id, type: yAttribute.type })
           }
 
           if (showOnlyLastCase) {
@@ -117,20 +146,20 @@ export const graphComponentHandler: DIComponentHandler = {
       const { dataset } = dataConfiguration
       if (dataset && dataset.name === _dataContext) {
         // Make sure all attributes can legally fulfill their specified roles
-        for (const attributeType in attributeNames) {
-          const attributeName = attributeNames[attributeType]
-          if (attributeName) {
-            const attribute = dataset.getAttributeByName(attributeName)
-            if (attribute) {
-              const attributeRole = roleFromAttrKey[attributeType]
-              const attributePlace = attrRoleToGraphPlace[attributeRole]
-              if (attributePlace && !dataConfiguration.placeCanAcceptAttributeIDDrop(
-                attributePlace, dataset, attribute.id, { allowSameAttr: true }
-              )) {
-                return errorResult(
-                  t("V3.DI.Error.illegalAttributeAssignment", { vars: [attributeName, attributeRole] })
-                )
-              }
+        for (const attributeType in attributeInfo) {
+          const attributePackage = attributeInfo[attributeType]
+          const attribute = getAttributeFromInfo(dataset, attributePackage)
+          if (attribute) {
+            const attributeRole = roleFromAttrKey[attributeType]
+            const attributePlace = attrRoleToGraphPlace[attributeRole]
+            if (attributePlace && !dataConfiguration.placeCanAcceptAttributeIDDrop(
+              attributePlace, dataset, attribute.id, { allowSameAttr: true }
+            )) {
+              return errorResult(
+                t("V3.DI.Error.illegalAttributeAssignment", {
+                  vars: [attributePackage?.id ?? attributePackage?.name ?? "", attributeRole]
+                })
+              )
             }
           }
         }

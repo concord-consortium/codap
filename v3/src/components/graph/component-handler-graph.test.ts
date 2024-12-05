@@ -6,7 +6,7 @@ import { diComponentHandler } from "../../data-interactive/handlers/component-ha
 import { setupTestDataset, testCases } from "../../data-interactive/handlers/handler-test-utils"
 import { testGetComponent } from "../../data-interactive/handlers/component-handler-test-utils"
 import { appState } from "../../models/app-state"
-import { toV3Id } from "../../utilities/codap-utils"
+import { toV2Id, toV3Id } from "../../utilities/codap-utils"
 import { kGraphIdPrefix } from "./graph-defs"
 import "./graph-registration"
 import { IGraphContentModel, isGraphContentModel } from "./models/graph-content-model"
@@ -45,6 +45,41 @@ describe("DataInteractive ComponentHandler Graph", () => {
     expect(handler.create!({}, {
       type: "graph", dataContext: "data", rightSplitAttributeName: "a3", xAttributeName: "a3"
     }).success).toBe(false)
+
+    // Create a graph with ids
+    const resultIds = handler.create!({}, {
+      type: "graph", cannotClose: true, dataContext: "data", xAttributeID: toV2Id(a3.id), yAttributeID: toV2Id(a2.id),
+      legendAttributeID: toV2Id(a1.id), captionAttributeID: toV2Id(a2.id), rightNumericAttributeID: toV2Id(a3.id),
+      rightSplitAttributeID: toV2Id(a1.id), topSplitAttributeID: toV2Id(a2.id), topSplitAttributeName: "a3",
+      enableNumberToggle: true, numberToggleLastMode: true
+    })
+    expect(resultIds.success).toBe(true)
+    expect(documentContent.tileMap.size).toBe(1)
+    const resultIdsValues = resultIds.values as DIComponentInfo
+    const tileIds = documentContent.tileMap.get(toV3Id(kGraphIdPrefix, resultIdsValues.id!))!
+    expect(tileIds).toBeDefined()
+    expect(isGraphContentModel(tileIds.content)).toBe(true)
+    const tileContentIds = tileIds.content as IGraphContentModel
+    expect(tileIds.cannotClose).toBe(true)
+    expect(tileContentIds.dataConfiguration.attributeDescriptionForRole("x")?.attributeID).toBe(a3.id)
+    expect(tileContentIds.dataConfiguration.attributeDescriptionForRole("y")?.attributeID).toBe(a2.id)
+    expect(tileContentIds.dataConfiguration.attributeDescriptionForRole("legend")?.attributeID).toBe(a1.id)
+    expect(tileContentIds.dataConfiguration.attributeDescriptionForRole("caption")?.attributeID).toBe(a2.id)
+    expect(tileContentIds.dataConfiguration.attributeDescriptionForRole("rightNumeric")?.attributeID).toBe(a3.id)
+    expect(tileContentIds.dataConfiguration.attributeDescriptionForRole("rightSplit")?.attributeID).toBe(a1.id)
+    // Id should trump name for topSplit
+    expect(tileContentIds.dataConfiguration.attributeDescriptionForRole("topSplit")?.attributeID).toBe(a2.id)
+    expect(tileContentIds.showParentToggles).toBe(true)
+    // Make sure numberToggleLastMode hid all appropriate cases
+    tileContentIds.layers.forEach(layer => {
+      const lastCaseId = dataset.itemIds[dataset.itemIds.length - 1]
+      dataset.itemIds.forEach(itemId => {
+        expect(layer.dataConfiguration.hiddenCases.includes(itemId)).toBe(itemId !== lastCaseId)
+      })
+    })
+    // Delete the graph when we're finished
+    handler.delete!({ component: tileIds })
+    expect(documentContent.tileMap.size).toBe(0)
 
     // Create a graph with options
     const result = handler.create!({}, {
