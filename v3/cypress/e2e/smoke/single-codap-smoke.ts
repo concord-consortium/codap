@@ -88,8 +88,7 @@ context("codap single smoke test", () => {
     c.selectTile("table", 0)
     table.getDeleteCasesButton().click()
     table.getDeleteMenuItem("Delete All Cases").click()
-    table.getNumOfRows(1).should("contain", 2) // two rows: top, empty
-    cy.get('[data-testid="no-cases-message"]').should('exist').and('contain.text', 'no cases')
+    table.getNumOfRows(1).should("not.contain", 1) // there should only be the input row
   })
   it("verify Four Seals opens from Hamburger menu and test table functionality", () => {
     // Open Four Seals

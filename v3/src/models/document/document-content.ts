@@ -212,10 +212,8 @@ export const DocumentContentModel = BaseDocumentContentModel
   .actions(self => ({
     createStarterDataset() {
       const attributeName = t("DG.AppController.createDataSet.initialAttribute")
-      const newData = [{[attributeName]: ""}]
       const ds = DataSet.create({ name: t("DG.AppController.createDataSet.name")})
       ds.addAttribute({ name: attributeName })
-      ds.addCases(toCanonical(ds, newData))
       gDataBroker.addDataSet(ds)
       // Add dataset to the formula manager
       getFormulaManager(self)?.addDataSet(ds)
