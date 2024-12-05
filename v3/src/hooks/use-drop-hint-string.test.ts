@@ -1,6 +1,6 @@
-import { AttributeType } from "../models/data/attribute"
-import {determineBaseString} from "./use-drop-hint-string"
 import {GraphAttrRole} from "../components/data-display/data-display-types"
+import {AttributeType} from "../models/data/attribute-types"
+import {determineBaseString} from "./use-drop-hint-string"
 
 interface Scenario {
   role: GraphAttrRole

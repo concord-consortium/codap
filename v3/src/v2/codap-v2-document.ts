@@ -206,7 +206,7 @@ export class CodapV2Document {
       if (level === 0) {
         // FIXME: values can include objects not just the primitives defined by IValueType
         // FIXME: should the itemID overwrite any __id__ returned by toCanonical?
-        let itemValues = { ...toCanonical(data, values as any), __id__: itemID }
+        let itemValues = { __id__: itemID, ...toCanonical(data, values) }
         // look up parent case attributes and add them to caseValues
         for (let parentCase = this.getParentCase(_case); parentCase; parentCase = this.getParentCase(parentCase)) {
           itemValues = {

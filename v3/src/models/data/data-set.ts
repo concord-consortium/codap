@@ -48,6 +48,7 @@ import {
 } from "mobx-state-tree"
 import pluralize from "pluralize"
 import { Attribute, IAttribute, IAttributeSnapshot } from "./attribute"
+import { importValueToString } from "./attribute-types"
 import {
   CollectionModel, ICollectionModel, ICollectionModelSnapshot, IItemData, isCollectionModel, syncCollectionLinks
 } from "./collection"
@@ -110,7 +111,7 @@ export function toCanonicalCase(ds: IDataSet, aCase: ICase | ICaseCreation): ICa
     if (key !== "__id__") {
       const id = ds.attrIDFromName(key)
       if (id) {
-        canonical[id] = aCase[key]
+        canonical[id] = importValueToString(aCase[key] ?? "")
       }
       else {
         console.warn(`Dataset.toCanonical failed to convert attribute: "${key}"`)

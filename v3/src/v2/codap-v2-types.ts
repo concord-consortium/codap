@@ -1,5 +1,5 @@
 import { SetOptional } from "type-fest"
-import {AttributeType} from "../models/data/attribute"
+import { AttributeType } from "../models/data/attribute-types"
 
 export interface ICodapV2Attribute {
   guid: number

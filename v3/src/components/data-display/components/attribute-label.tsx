@@ -6,7 +6,7 @@ import { GraphPlace } from "../../axis-graph-shared"
 import { useDataDisplayLayout } from "../hooks/use-data-display-layout"
 import { useDataDisplayModelContext } from "../hooks/use-data-display-model"
 import { AxisOrLegendAttributeMenu } from "../../axis/components/axis-or-legend-attribute-menu"
-import { AttributeType } from "../../../models/data/attribute"
+import { AttributeType } from "../../../models/data/attribute-types"
 import { mstAutorun } from "../../../utilities/mst-autorun"
 
 import "./attribute-label.scss"
