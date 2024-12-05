@@ -83,16 +83,18 @@ context("Formula Engine", () => {
         "❌ Undefined symbol v1"
       ])
     })
-    // Skipped for now until insert cases on input row is implemnted
-    it.skip("Formula in a new dataset", () => {
+    // TODO: update test when insert cases on input row is implemnted
+    it("Formula in a new dataset", () => {
       fh.visitURL("")
       table.createNewTableFromToolShelf()
+      table.getGridCell(2, 2).dblclick()
+      table.getGridCell(2, 2).find("input").type("Sloth{enter}")
       table.openIndexMenuForRow(2)
       table.insertCases(4, "after")
       table.addFormula("Attribute Name", "10*10")
       table.verifyFormulaValues("Attribute Name", [100, 100, 100, 100, 100])
       table.addNewAttribute()
-      table.addFormula("newAttr", "Attribute Name+2")
+      table.addFormula("newAttr", "`Attribute Name`+2")
       table.verifyFormulaValues("newAttr", [102, 102, 102, 102, 102])
     })
   })
