@@ -9,7 +9,7 @@ import { IDataSet } from "../../models/data/data-set"
 import { ISharedCaseMetadata } from "../../models/shared/shared-case-metadata"
 import { getSharedCaseMetadataFromDataset, getSharedDataSets } from "../../models/shared/shared-data-utils"
 import { ITileContentModel, ITileContentSnapshotWithType } from "../../models/tiles/tile-content"
-import { toV3AttrId } from "../../utilities/codap-utils"
+import { toV3AttrId, toV3DataSetId } from "../../utilities/codap-utils"
 import { t } from "../../utilities/translation/translate"
 import { isNumericAxisModel } from "../axis/models/axis-model"
 import { attrRoleToGraphPlace, GraphAttrRole } from "../data-display/data-display-types"
@@ -244,35 +244,68 @@ export const graphComponentHandler: DIComponentHandler = {
     if (!isGraphContentModel(content)) return { success: false }
 
     const {
-      enableNumberToggle: showParentToggles, numberToggleLastMode: showOnlyLastCase, yAttributeID, yAttributeName
+      dataContext: _dataContext, enableNumberToggle: showParentToggles, numberToggleLastMode: showOnlyLastCase,
+      yAttributeID, yAttributeName
     } = values as V2Graph
     const attributeInfo = getAttributeInfo(values)
-    // TODO Make sure all attributes are legal before assigning them
-    // TODO perform in an apply model change call
-    // TODO handle changing dataset?
-    // TODO handle changing axis range?
+
+    // Determine which dataset to work with
+    let dataSet: Maybe<IDataSet>
+    if (_dataContext) {
+      getSharedDataSets(appState.document).forEach(sharedDataSet => {
+        if (sharedDataSet.dataSet.name === _dataContext || sharedDataSet.dataSet.id === toV3DataSetId(_dataContext)) {
+          dataSet = sharedDataSet.dataSet
+        }
+      })
+    }
+    if (!dataSet) {
+      dataSet = content.dataset ?? getSharedDataSets(appState.document)[0].dataSet
+    }
+
+    // Ensure that all specified attributes are legal for their roles
+    const updatedAttributes: Record<string, IAttribute | null> = {}
     for (const attributeType in attributeInfo) {
       const attributePackage = attributeInfo[attributeType]
-      const role = roleFromAttrKey[attributeType]
-      if (attributePackage && role) {
-        const { id, name } = attributePackage
-        if (id !== undefined) {
-          if (id) {
-            content.dataConfiguration.setAttribute(role, { attributeID: toV3AttrId(id) })
-          } else {
-            content.dataConfiguration.setAttribute(role)
+      if (attributePackage?.id === null || (attributePackage?.id === undefined && attributePackage?.name === null)) {
+        updatedAttributes[attributeType] = null
+      } else {
+        const attribute = getAttributeFromInfo(dataSet, attributePackage)
+        if (attribute) {
+          const role = roleFromAttrKey[attributeType]
+          const place = attrRoleToGraphPlace[role]
+          if (place && !content.dataConfiguration.placeCanAcceptAttributeIDDrop(
+            place, dataSet, attribute.id, { allowSameAttr: true }
+          )) {
+            return errorResult(
+              t("V3.DI.Error.illegalAttributeAssignment", {
+                vars: [attributePackage?.id ?? attributePackage?.name ?? "", role]
+              })
+            )
           }
-        } else {
-          if (name) {
-            const attribute = content.dataset?.getAttributeByName(name)
-            if (attribute) content.dataConfiguration.setAttribute(role, { attributeID: attribute.id })
-          } else {
-            content.dataConfiguration.setAttribute(role)
-          }
+          updatedAttributes[attributeType] = attribute
         }
       }
     }
 
+    // TODO handle changing axis range?
+    if (dataSet && dataSet !== content.dataset) {
+      content.setDataSet(dataSet.id)
+    }
+
+    for (const attributeType in updatedAttributes) {
+      const attribute = updatedAttributes[attributeType]
+      const role = roleFromAttrKey[attributeType]
+      if (role) {
+        if (attribute) {
+          content.dataConfiguration.setAttribute(role, { attributeID: attribute.id })
+        } else {
+          content.dataConfiguration.setAttribute(role)
+        }
+      }
+    }
+
+    // Any attribute can be put on the y axis, so we don't check to make sure the attribute is legal first
+    // We don't use dataConfiguration.setAttribute() to make the change because that clears additional y attributes
     if (yAttributeID !== undefined) {
       if (yAttributeID) {
         content.dataConfiguration.replaceYAttribute({ attributeID: toV3AttrId(yAttributeID) }, 0)
@@ -281,7 +314,7 @@ export const graphComponentHandler: DIComponentHandler = {
       }
     } else if (yAttributeName !== undefined) {
       if (yAttributeName !== null) {
-        const attribute = content.dataset?.getAttributeByName(yAttributeName)
+        const attribute = dataSet?.getAttributeByName(yAttributeName)
         if (attribute) content.dataConfiguration.replaceYAttribute({ attributeID: attribute.id }, 0)
       } else {
         content.dataConfiguration.removeYAttributeAtIndex(0)

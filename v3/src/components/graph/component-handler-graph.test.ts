@@ -23,6 +23,7 @@ describe("DataInteractive ComponentHandler Graph", () => {
   const a1 = dataset.getAttributeByName("a1")!
   const a2 = dataset.getAttributeByName("a2")!
   const a3 = dataset.getAttributeByName("a3")!
+  const a4 = dataset.getAttributeByName("a4")!
 
   it("create and get graph work", async () => {
     // Create a graph tile with no options
@@ -116,7 +117,7 @@ describe("DataInteractive ComponentHandler Graph", () => {
     // Update a graph to switch attributes
     const updateResult1 = handler.update!({ component: tile }, {
       xAttributeName: "a2", yAttributeName: "a1", legendAttributeName: "a2", captionAttributeName: "a1",
-      rightNumericAttributeName: "a2", rightSplitAttributeName: "a3", topSplitAttributeName: "a1",
+      rightNumericAttributeName: "a4", rightSplitAttributeName: "a1", topSplitAttributeName: "a1",
       enableNumberToggle: false, numberToggleLastMode: false
     })
     expect(updateResult1.success).toBe(true)
@@ -125,8 +126,8 @@ describe("DataInteractive ComponentHandler Graph", () => {
     expect(dataConfig.attributeDescriptionForRole("y")?.attributeID).toBe(a1.id)
     expect(dataConfig.attributeDescriptionForRole("legend")?.attributeID).toBe(a2.id)
     expect(dataConfig.attributeDescriptionForRole("caption")?.attributeID).toBe(a1.id)
-    expect(dataConfig.attributeDescriptionForRole("rightNumeric")?.attributeID).toBe(a2.id)
-    expect(dataConfig.attributeDescriptionForRole("rightSplit")?.attributeID).toBe(a3.id)
+    expect(dataConfig.attributeDescriptionForRole("rightNumeric")?.attributeID).toBe(a4.id)
+    expect(dataConfig.attributeDescriptionForRole("rightSplit")?.attributeID).toBe(a1.id)
     expect(dataConfig.attributeDescriptionForRole("topSplit")?.attributeID).toBe(a1.id)
     expect(tileContent.showParentToggles).toBe(false)
 
@@ -147,8 +148,8 @@ describe("DataInteractive ComponentHandler Graph", () => {
     // Update a graph to add attributes
     const updateResult3 = handler.update!({ component: tile }, {
       xAttributeID: toV2Id(a3.id), xAttributeName: "a2", yAttributeID: toV2Id(a2.id), legendAttributeID: toV2Id(a3.id),
-      captionAttributeID: toV2Id(a2.id), rightNumericAttributeID: toV2Id(a3.id), rightSplitAttributeID: toV2Id(a1.id),
-      topSplitAttributeID: toV2Id(a2.id), enableNumberToggle: true, numberToggleLastMode: true
+      captionAttributeID: toV2Id(a2.id), rightSplitAttributeID: toV2Id(a1.id), topSplitAttributeID: toV2Id(a2.id),
+      enableNumberToggle: true, numberToggleLastMode: true
     })
     expect(updateResult3.success).toBe(true)
     // Id should trump name
@@ -156,10 +157,15 @@ describe("DataInteractive ComponentHandler Graph", () => {
     expect(dataConfig.attributeDescriptionForRole("y")?.attributeID).toBe(a2.id)
     expect(dataConfig.attributeDescriptionForRole("legend")?.attributeID).toBe(a3.id)
     expect(dataConfig.attributeDescriptionForRole("caption")?.attributeID).toBe(a2.id)
-    expect(dataConfig.attributeDescriptionForRole("rightNumeric")?.attributeID).toBe(a3.id)
     expect(dataConfig.attributeDescriptionForRole("rightSplit")?.attributeID).toBe(a1.id)
     expect(dataConfig.attributeDescriptionForRole("topSplit")?.attributeID).toBe(a2.id)
     expect(tileContent.showParentToggles).toBe(true)
+
+    // We have to set a numeric x attribute before we can set the rightNumeric attribute
+    handler.update!({ component: tile }, {
+      rightNumericAttributeID: toV2Id(a3.id)
+    })
+    expect(dataConfig.attributeDescriptionForRole("rightNumeric")?.attributeID).toBe(a3.id)
 
     // Get graph
     testGetComponent(tile, handler, (graphTile, values) => {
