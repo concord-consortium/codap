@@ -46,13 +46,13 @@ describe("lookupBoundary", () => {
 describe("lookupByIndex", () => {
   it("returns the value at the given constant index (1-based)", () => {
     expect(evaluate("lookupByIndex('Mammals', 'Mammal', 2)")).toEqual("Asian Elephant")
-    expect(evaluate("lookupByIndex('Mammals', 'Mass', 2)")).toEqual("5000")
+    expect(evaluate("lookupByIndex('Mammals', 'Mass', 2)")).toEqual(5000)
     expect(evaluate("lookupByIndex('Cats', 'PadColor', 5)")).toEqual("pink")
   })
 
   it("returns the value at the given evaluated index (1-based)", () => {
     expect(evaluate("lookupByIndex('Mammals', 'Mammal', caseIndex)", 1)).toEqual("Asian Elephant")
-    expect(evaluate("lookupByIndex('Mammals', 'Mass', caseIndex)", 1)).toEqual("5000")
+    expect(evaluate("lookupByIndex('Mammals', 'Mass', caseIndex)", 1)).toEqual(5000)
     expect(evaluate("lookupByIndex('Cats', 'PadColor', caseIndex)", 4)).toEqual("pink")
   })
 

@@ -20,7 +20,7 @@ import { findTileFromNameOrId } from "../resource-parser-utils"
 import { createCollection } from "./di-handler-utils"
 import { attributeNotFoundResult, dataContextNotFoundResult, errorResult, fieldRequiredResult } from "./di-results"
 
-const requestRequiedResult = fieldRequiredResult("Notify", "dataContext", "request")
+const requestRequiredResult = fieldRequiredResult("Notify", "dataContext", "request")
 
 export const diDataContextHandler: DIHandler = {
   create(_resources: DIResources, _values?: DIValues) {
@@ -73,16 +73,16 @@ export const diDataContextHandler: DIHandler = {
     const { dataContext } = resources
     if (!dataContext) return dataContextNotFoundResult
 
-    return { success: true, values: convertDataSetToV2(dataContext, appState.document.key) }
+    return { success: true, values: convertDataSetToV2(dataContext) }
   },
 
   notify(resources: DIResources, values?: DIValues) {
     const { dataContext } = resources
     if (!dataContext) return dataContextNotFoundResult
 
-    if (!values) return requestRequiedResult
+    if (!values) return requestRequiredResult
     const { caseIDs, operation, request } = values as DINotifyDataContext
-    if (!request) return requestRequiedResult
+    if (!request) return requestRequiredResult
 
     const successResult = { success: true as const, values: {} }
     if (request === "setAside") {
@@ -100,7 +100,7 @@ export const diDataContextHandler: DIHandler = {
         } else {
           addSetAsideCases(dataContext, v3CaseIds, false)
         }
-        
+
         return successResult
       }
 
