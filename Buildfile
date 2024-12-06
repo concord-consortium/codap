@@ -29,7 +29,7 @@ end
 mode :debug do
   config :dg ,
          :google_analytics_id => nil,
-         :preferred_language => 'en' # language for sc-server can be changed here
+         :preferred_language => 'ko' # language for sc-server can be changed here
 end
 
 # proxy for local dev.
