@@ -358,7 +358,7 @@ DG.main = function main() {
                 ]
               },
               'separator',
-              { name: 'DG.fileMenu.menuItem.saveDocument'.loc(), action: 'saveFileNoDialog' },
+              { name: 'DG.fileMenu.menuItem.saveDocument'.loc(), action: 'save' },
               { name: 'DG.fileMenu.menuItem.renameDocument'.loc(), action: 'renameDialog' }
             ],
           },
