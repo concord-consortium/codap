@@ -128,7 +128,7 @@ describe("FreeTileRow", () => {
     row.insertTile("tile-3", { x: 100, y: 100, width: 100, height: 100 })
     expect(patches).toEqual([
       `{"op":"replace","path":"/maxZIndex","value":3}`,
-      // eslint-disable-next-line max-len
+      // eslint-disable-next-line @stylistic/max-len
       `{"op":"add","path":"/tiles/tile-3","value":{"tileId":"tile-3","x":100,"y":100,"width":100,"height":100,"zIndex":3}}`
     ])
     expect(reverses).toEqual([
@@ -170,7 +170,7 @@ describe("FreeTileRow", () => {
       `{"op":"remove","path":"/tiles/tile-3"}`
     ])
     expect(reverses).toEqual([
-      // eslint-disable-next-line max-len
+      // eslint-disable-next-line @stylistic/max-len
       `{"op":"add","path":"/tiles/tile-3","value":{"tileId":"tile-3","x":100,"y":100,"width":100,"height":100,"zIndex":3}}`
     ])
 

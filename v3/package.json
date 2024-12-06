@@ -108,6 +108,7 @@
     "@istanbuljs/nyc-config-typescript": "^1.0.2",
     "@jsdevtools/coverage-istanbul-loader": "^3.0.5",
     "@lezer/generator": "^1.7.1",
+    "@stylistic/eslint-plugin": "^2.11.0",
     "@svgr/webpack": "^8.1.0",
     "@swc/core": "1.7.42",
     "@talabes/json5-jest": "^2.0.0",
