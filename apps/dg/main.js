@@ -338,10 +338,8 @@ DG.main = function main() {
               }
             },
             menu: [
-              { name: 'DG.fileMenu.menuItem.newDocument'.loc(), action: 'newFileDialog' },
-              { name: 'DG.fileMenu.menuItem.openDocument'.loc(), action: 'openFileDialog' },
               {
-                name: 'DG.fileMenu.menuItem.closeDocument'.loc(),
+                name: 'DG.fileMenu.menuItem.newDocument'.loc(),
                 action: function () {
                           DG.cfmClient.closeFileDialog(function () {
                             SC.run(function() {
@@ -350,6 +348,7 @@ DG.main = function main() {
                           });
                         }
               },
+              { name: 'DG.fileMenu.menuItem.openDocument'.loc(), action: 'openFileDialog' },
               { name: 'DG.fileMenu.menuItem.importFile'.loc(), action: 'importDataDialog' },
               {
                 name: 'DG.fileMenu.menuItem.revertTo'.loc(),
@@ -359,15 +358,7 @@ DG.main = function main() {
                 ]
               },
               'separator',
-              { name: 'DG.fileMenu.menuItem.saveDocument'.loc(), action: 'saveFileAsDialog' },
-              { name: 'DG.fileMenu.menuItem.copyDocument'.loc(), action: 'createCopy' },
-              {
-                name: 'DG.fileMenu.menuItem.share'.loc(),
-                items: [
-                  { name: 'DG.fileMenu.menuItem.shareGetLink'.loc(), action: 'shareGetLink' },
-                  { name: 'DG.fileMenu.menuItem.shareUpdate'.loc(), action: 'shareUpdate' }
-                ]
-              },
+              { name: 'DG.fileMenu.menuItem.saveDocument'.loc(), action: 'saveFileNoDialog' },
               { name: 'DG.fileMenu.menuItem.renameDocument'.loc(), action: 'renameDialog' }
             ],
           },
