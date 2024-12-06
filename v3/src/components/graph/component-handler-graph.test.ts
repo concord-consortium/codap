@@ -1,6 +1,8 @@
+// TODO Rename this file after the PR is approved
+
 import { getSnapshot } from "mobx-state-tree"
 import { IBaseNumericAxisModel } from "../axis/models/axis-model"
-import { V2GetGraph } from "../../data-interactive/data-interactive-component-types"
+import { V2GetGraph, V2Graph } from "../../data-interactive/data-interactive-component-types"
 import { DIComponentInfo } from "../../data-interactive/data-interactive-types"
 import { diComponentHandler } from "../../data-interactive/handlers/component-handler"
 import { setupTestDataset, testCases } from "../../data-interactive/handlers/handler-test-utils"
@@ -110,6 +112,54 @@ describe("DataInteractive ComponentHandler Graph", () => {
         expect(layer.dataConfiguration.hiddenCases.includes(itemId)).toBe(itemId !== lastCaseId)
       })
     })
+
+    // Update a graph to switch attributes
+    const updateResult1 = handler.update!({ component: tile }, {
+      xAttributeName: "a2", yAttributeName: "a1", legendAttributeName: "a2", captionAttributeName: "a1",
+      rightNumericAttributeName: "a2", rightSplitAttributeName: "a3", topSplitAttributeName: "a1",
+      enableNumberToggle: false, numberToggleLastMode: false
+    })
+    expect(updateResult1.success).toBe(true)
+    const dataConfig = tileContent.dataConfiguration
+    expect(dataConfig.attributeDescriptionForRole("x")?.attributeID).toBe(a2.id)
+    expect(dataConfig.attributeDescriptionForRole("y")?.attributeID).toBe(a1.id)
+    expect(dataConfig.attributeDescriptionForRole("legend")?.attributeID).toBe(a2.id)
+    expect(dataConfig.attributeDescriptionForRole("caption")?.attributeID).toBe(a1.id)
+    expect(dataConfig.attributeDescriptionForRole("rightNumeric")?.attributeID).toBe(a2.id)
+    expect(dataConfig.attributeDescriptionForRole("rightSplit")?.attributeID).toBe(a3.id)
+    expect(dataConfig.attributeDescriptionForRole("topSplit")?.attributeID).toBe(a1.id)
+    expect(tileContent.showParentToggles).toBe(false)
+
+    // Update a graph to remove attributes
+    const updateResult2 = handler.update!({ component: tile }, {
+      xAttributeName: null, yAttributeName: null, legendAttributeName: null, captionAttributeID: null,
+      rightNumericAttributeName: null, rightSplitAttributeName: null, topSplitAttributeName: null
+    } as V2Graph)
+    expect(updateResult2.success).toBe(true)
+    expect(dataConfig.attributeDescriptionForRole("x")?.attributeID).toBeUndefined()
+    expect(dataConfig.attributeDescriptionForRole("y")?.attributeID).toBeUndefined()
+    expect(dataConfig.attributeDescriptionForRole("legend")?.attributeID).toBeUndefined()
+    expect(dataConfig.attributeDescriptionForRole("caption")?.attributeID).toBeUndefined()
+    expect(dataConfig.attributeDescriptionForRole("rightNumeric")?.attributeID).toBeUndefined()
+    expect(dataConfig.attributeDescriptionForRole("rightSplit")?.attributeID).toBeUndefined()
+    expect(dataConfig.attributeDescriptionForRole("topSplit")?.attributeID).toBeUndefined()
+
+    // Update a graph to add attributes
+    const updateResult3 = handler.update!({ component: tile }, {
+      xAttributeID: toV2Id(a3.id), xAttributeName: "a2", yAttributeID: toV2Id(a2.id), legendAttributeID: toV2Id(a3.id),
+      captionAttributeID: toV2Id(a2.id), rightNumericAttributeID: toV2Id(a3.id), rightSplitAttributeID: toV2Id(a1.id),
+      topSplitAttributeID: toV2Id(a2.id), enableNumberToggle: true, numberToggleLastMode: true
+    })
+    expect(updateResult3.success).toBe(true)
+    // Id should trump name
+    expect(dataConfig.attributeDescriptionForRole("x")?.attributeID).toBe(a3.id)
+    expect(dataConfig.attributeDescriptionForRole("y")?.attributeID).toBe(a2.id)
+    expect(dataConfig.attributeDescriptionForRole("legend")?.attributeID).toBe(a3.id)
+    expect(dataConfig.attributeDescriptionForRole("caption")?.attributeID).toBe(a2.id)
+    expect(dataConfig.attributeDescriptionForRole("rightNumeric")?.attributeID).toBe(a3.id)
+    expect(dataConfig.attributeDescriptionForRole("rightSplit")?.attributeID).toBe(a1.id)
+    expect(dataConfig.attributeDescriptionForRole("topSplit")?.attributeID).toBe(a2.id)
+    expect(tileContent.showParentToggles).toBe(true)
 
     // Get graph
     testGetComponent(tile, handler, (graphTile, values) => {

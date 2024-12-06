@@ -186,6 +186,7 @@ export const graphComponentHandler: DIComponentHandler = {
     }
     return { content: { ...getSnapshot(graphModel), layers: finalLayers } as ITileContentSnapshotWithType }
   },
+
   get(content: ITileContentModel) {
     if (isGraphContentModel(content)) {
       const dataset = content.dataset
@@ -238,6 +239,7 @@ export const graphComponentHandler: DIComponentHandler = {
       }
     }
   },
+
   update(content: ITileContentModel, values: DIValues) {
     if (!isGraphContentModel(content)) return { success: false }
 
@@ -245,6 +247,10 @@ export const graphComponentHandler: DIComponentHandler = {
       enableNumberToggle: showParentToggles, numberToggleLastMode: showOnlyLastCase, yAttributeID, yAttributeName
     } = values as V2Graph
     const attributeInfo = getAttributeInfo(values)
+    // TODO Make sure all attributes are legal before assigning them
+    // TODO perform in an apply model change call
+    // TODO handle changing dataset?
+    // TODO handle changing axis range?
     for (const attributeType in attributeInfo) {
       const attributePackage = attributeInfo[attributeType]
       const role = roleFromAttrKey[attributeType]
@@ -269,20 +275,19 @@ export const graphComponentHandler: DIComponentHandler = {
 
     if (yAttributeID !== undefined) {
       if (yAttributeID) {
-        content.dataConfiguration.replaceYAttribute({ attributeID: yAttributeID }, 0)
+        content.dataConfiguration.replaceYAttribute({ attributeID: toV3AttrId(yAttributeID) }, 0)
       } else {
         content.dataConfiguration.removeYAttributeAtIndex(0)
       }
     } else if (yAttributeName !== undefined) {
       if (yAttributeName !== null) {
         const attribute = content.dataset?.getAttributeByName(yAttributeName)
-        if (attribute) {
-          content.dataConfiguration.replaceYAttribute({ attributeID: attribute.id }, 0)
-        }
+        if (attribute) content.dataConfiguration.replaceYAttribute({ attributeID: attribute.id }, 0)
       } else {
         content.dataConfiguration.removeYAttributeAtIndex(0)
       }
     }
+
     if (showParentToggles != null) {
       content.setShowParentToggles(showParentToggles)
     }

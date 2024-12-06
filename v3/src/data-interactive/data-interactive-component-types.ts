@@ -64,26 +64,26 @@ export interface V2Game extends V2Component {
   URL?: string
 }
 export interface V2Graph extends V2Component {
-  captionAttributeID?: string
-  captionAttributeName?: string
+  captionAttributeID?: string | null
+  captionAttributeName?: string | null
   dataContext?: string
   enableNumberToggle?: boolean
-  legendAttributeID?: string
-  legendAttributeName?: string
+  legendAttributeID?: string | null
+  legendAttributeName?: string | null
   numberToggleLastMode?: boolean
-  rightNumericAttributeID?: string
-  rightNumericAttributeName?: string
-  rightSplitAttributeID?: string
-  rightSplitAttributeName?: string
-  topSplitAttributeID?: string
-  topSplitAttributeName?: string
+  rightNumericAttributeID?: string | null
+  rightNumericAttributeName?: string | null
+  rightSplitAttributeID?: string | null
+  rightSplitAttributeName?: string | null
+  topSplitAttributeID?: string | null
+  topSplitAttributeName?: string | null
   type: "graph"
-  xAttributeID?: string
-  xAttributeName?: string
-  yAttributeID?: string
-  yAttributeName?: string
-  y2AttributeID?: string
-  y2AttributeName?: string
+  xAttributeID?: string | null
+  xAttributeName?: string | null
+  yAttributeID?: string | null
+  yAttributeName?: string | null
+  y2AttributeID?: string | null
+  y2AttributeName?: string | null
 }
 export interface V2GetGraph extends V2Graph {
   xLowerBound?: number
