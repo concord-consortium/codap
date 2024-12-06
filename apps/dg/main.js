@@ -395,50 +395,9 @@ DG.main = function main() {
               "src": DG.get('exampleListURL'),
               alphabetize: false
             },
-            {
-              "name": "lara",
-              "patch": true,
-              patchObjectHash: function(obj) {
-                return obj.guid || JSON.stringify(obj);
-              },
-              logLaraData: function(obj) {
-                handleLogLaraData(obj);
-              }
-            },
-            {
-              "name": "documentStore",
-              "displayName": "Concord Cloud",
-              "deprecationPhase": (function() { // IIFE to keep code localized
-                                    // queryParam overrides defaults for testing
-                                    var phase = DG.getQueryParam('deprecationPhase');
-                                    if (phase) return Number(phase);
-
-                                    var currDate = new Date(),
-                                        phase2Date = new Date(2016, 10, 15),
-                                        phase3Date = new Date(2017, 0, 1);
-                                    if (currDate >= phase3Date) return 3;
-                                    if (currDate >= phase2Date) return 2;
-                                    return 1;
-                                  }()),
-              "patch": true,
-              "patchObjectHash": function(obj) {
-                return obj.guid || JSON.stringify(obj);
-              }
-            },
-            "localFile"//,
-            //"localStorage"
+            "classRails"
           ]
         };
-    // only enable Google Drive if origin is ssl or localhost
-     if (document.location.protocol === 'https:' || document.location.hostname === 'localhost' || document.location.hostname === '127.0.0.1') {
-      options.providers.splice(1, 0, {
-        "name": "googleDrive",
-        "mimeType": "application/json",
-        "clientId": DG.get('googleDriveClientID'),
-        "apiKey": DG.get('googleDriveAPIKey'),
-        "appId": DG.get('googleDriveAppId'),
-      });
-     }
     if (DG.cfmConfigurationOverride) {
       options = Object.assign(options, DG.cfmConfigurationOverride);
     }
