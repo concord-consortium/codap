@@ -1,12 +1,15 @@
 import { getSnapshot } from "mobx-state-tree"
 import { V2Graph } from "../../data-interactive/data-interactive-component-types"
+import { DIValues } from "../../data-interactive/data-interactive-types"
 import { DIComponentHandler } from "../../data-interactive/handlers/component-handler"
 import { errorResult } from "../../data-interactive/handlers/di-results"
 import { appState } from "../../models/app-state"
+import { IAttribute } from "../../models/data/attribute"
 import { IDataSet } from "../../models/data/data-set"
 import { ISharedCaseMetadata } from "../../models/shared/shared-case-metadata"
 import { getSharedCaseMetadataFromDataset, getSharedDataSets } from "../../models/shared/shared-data-utils"
 import { ITileContentModel, ITileContentSnapshotWithType } from "../../models/tiles/tile-content"
+import { toV3AttrId } from "../../utilities/codap-utils"
 import { t } from "../../utilities/translation/translate"
 import { isNumericAxisModel } from "../axis/models/axis-model"
 import { attrRoleToGraphPlace, GraphAttrRole } from "../data-display/data-display-types"
@@ -17,56 +20,60 @@ import { IGraphDataConfigurationModel, kGraphDataConfigurationType } from "./mod
 import { GraphLayout } from "./models/graph-layout"
 import { syncModelWithAttributeConfiguration } from "./models/graph-model-utils"
 import { IGraphPointLayerModelSnapshot, kGraphPointLayerType } from "./models/graph-point-layer-model"
-import { IAttribute } from "../../models/data/attribute"
-import { toV3AttrId } from "../../utilities/codap-utils"
 
 interface AttributeInfo {
   id?: string | null
   name?: string | null
 }
+function packageAttribute(id?: string | null, name?: string | null): Maybe<AttributeInfo> {
+  if (id || id === null || name || name === null) {
+    return { id, name }
+  }
+}
+function getAttributeInfo(values?: DIValues): Record<string, Maybe<AttributeInfo>> {
+  const {
+    captionAttributeID, captionAttributeName, legendAttributeID, legendAttributeName, rightNumericAttributeID,
+    rightNumericAttributeName, rightSplitAttributeID, rightSplitAttributeName, topSplitAttributeID,
+    topSplitAttributeName, xAttributeID, xAttributeName, y2AttributeID, y2AttributeName
+  } = values as V2Graph
+  return {
+    caption: packageAttribute(captionAttributeID, captionAttributeName),
+    legend: packageAttribute(legendAttributeID, legendAttributeName),
+    rightNumeric: packageAttribute(rightNumericAttributeID, rightNumericAttributeName),
+    rightSplit: packageAttribute(rightSplitAttributeID, rightSplitAttributeName),
+    topSplit: packageAttribute(topSplitAttributeID, topSplitAttributeName),
+    x: packageAttribute(xAttributeID, xAttributeName),
+    y2: packageAttribute(y2AttributeID, y2AttributeName)
+  }
+}
+function getAttributeFromInfo(dataset: IDataSet, info?: AttributeInfo) {
+  let attribute: Maybe<IAttribute>
+  if (info?.id != null) {
+    attribute = dataset.getAttribute(toV3AttrId(info.id))
+  }
+  if (!attribute && info?.name != null) {
+    attribute = dataset.getAttributeByName(info.name)
+  }
+  return attribute
+}
+const roleFromAttrKey: Record<string, GraphAttrRole> = {
+  x: "x",
+  y: "y",
+  y2: "rightNumeric",
+  rightNumeric: "rightNumeric",
+  caption: "caption",
+  legend: "legend",
+  topSplit: "topSplit",
+  rightSplit: "rightSplit"
+}
 
 export const graphComponentHandler: DIComponentHandler = {
   create({ values }) {
     const {
-      captionAttributeID, captionAttributeName, dataContext: _dataContext, enableNumberToggle: showParentToggles,
-      legendAttributeID, legendAttributeName, numberToggleLastMode: showOnlyLastCase, rightNumericAttributeID,
-      rightNumericAttributeName, rightSplitAttributeID, rightSplitAttributeName, topSplitAttributeID,
-      topSplitAttributeName, xAttributeID, xAttributeName, yAttributeID, yAttributeName, y2AttributeID, y2AttributeName
+      dataContext: _dataContext, enableNumberToggle: showParentToggles, numberToggleLastMode: showOnlyLastCase,
+      yAttributeID, yAttributeName,
     } = values as V2Graph
-    function packageAttribute(id?: string | null, name?: string | null): Maybe<AttributeInfo> {
-      if (id || id === null || name || name === null) {
-        return { id, name }
-      }
-    }
-    function getAttributeFromInfo(dataset: IDataSet, info?: AttributeInfo) {
-      let attribute: Maybe<IAttribute>
-      if (info?.id != null) {
-        attribute = dataset.getAttribute(toV3AttrId(info.id))
-      }
-      if (!attribute && info?.name != null) {
-        attribute = dataset.getAttributeByName(info.name)
-      }
-      return attribute
-    }
-    const attributeInfo: Record<string, Maybe<AttributeInfo>> = {
-      caption: packageAttribute(captionAttributeID, captionAttributeName),
-      legend: packageAttribute(legendAttributeID, legendAttributeName),
-      rightNumeric: packageAttribute(rightNumericAttributeID, rightNumericAttributeName),
-      rightSplit: packageAttribute(rightSplitAttributeID, rightSplitAttributeName),
-      topSplit: packageAttribute(topSplitAttributeID, topSplitAttributeName),
-      x: packageAttribute(xAttributeID, xAttributeName),
-      y2: packageAttribute(y2AttributeID, y2AttributeName)
-    }
-    const roleFromAttrKey: Record<string, GraphAttrRole> = {
-      x: "x",
-      y: "y",
-      y2: "rightNumeric",
-      rightNumeric: "rightNumeric",
-      caption: "caption",
-      legend: "legend",
-      topSplit: "topSplit",
-      rightSplit: "rightSplit"
-    }
+    const attributeInfo = getAttributeInfo(values)
 
     let layerIndex = 0
     const layers: Array<IGraphPointLayerModelSnapshot> = []
@@ -230,5 +237,59 @@ export const graphComponentHandler: DIComponentHandler = {
         y2AttributeID, y2AttributeName, y2LowerBound, y2UpperBound
       }
     }
+  },
+  update(content: ITileContentModel, values: DIValues) {
+    if (!isGraphContentModel(content)) return { success: false }
+
+    const {
+      enableNumberToggle: showParentToggles, numberToggleLastMode: showOnlyLastCase, yAttributeID, yAttributeName
+    } = values as V2Graph
+    const attributeInfo = getAttributeInfo(values)
+    for (const attributeType in attributeInfo) {
+      const attributePackage = attributeInfo[attributeType]
+      const role = roleFromAttrKey[attributeType]
+      if (attributePackage && role) {
+        const { id, name } = attributePackage
+        if (id !== undefined) {
+          if (id) {
+            content.dataConfiguration.setAttribute(role, { attributeID: toV3AttrId(id) })
+          } else {
+            content.dataConfiguration.setAttribute(role)
+          }
+        } else {
+          if (name) {
+            const attribute = content.dataset?.getAttributeByName(name)
+            if (attribute) content.dataConfiguration.setAttribute(role, { attributeID: attribute.id })
+          } else {
+            content.dataConfiguration.setAttribute(role)
+          }
+        }
+      }
+    }
+
+    if (yAttributeID !== undefined) {
+      if (yAttributeID) {
+        content.dataConfiguration.replaceYAttribute({ attributeID: yAttributeID }, 0)
+      } else {
+        content.dataConfiguration.removeYAttributeAtIndex(0)
+      }
+    } else if (yAttributeName !== undefined) {
+      if (yAttributeName !== null) {
+        const attribute = content.dataset?.getAttributeByName(yAttributeName)
+        if (attribute) {
+          content.dataConfiguration.replaceYAttribute({ attributeID: attribute.id }, 0)
+        }
+      } else {
+        content.dataConfiguration.removeYAttributeAtIndex(0)
+      }
+    }
+    if (showParentToggles != null) {
+      content.setShowParentToggles(showParentToggles)
+    }
+    if (showOnlyLastCase != null) {
+      content.setShowOnlyLastCase(showOnlyLastCase)
+    }
+
+    return { success: true }
   }
 }
