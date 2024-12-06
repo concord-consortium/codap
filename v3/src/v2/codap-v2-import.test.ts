@@ -1,6 +1,6 @@
 import { kV2CalculatorDGType } from "../components/calculator/calculator-defs"
 import { CodapV2Document } from "./codap-v2-document"
-import { ICodapV2DocumentJson, isCodapV2Document } from "./codap-v2-types"
+import { ICodapV2DocumentJson, isCodapV2Document, isV2ExternalContext } from "./codap-v2-types"
 
 const fs = require("fs")
 const path = require("path")
@@ -57,7 +57,7 @@ describe(`V2 "mammals.codap"`, () => {
     expect(mammalsData.components?.length).toBe(5)
     expect(mammalsData.contexts?.length).toBe(1)
     const context = mammalsData.contexts?.[0]
-    if (! ("guid" in context)) throw new Error("Context is not a data context")
+    if (isV2ExternalContext(context)) throw new Error("Context is external")
     expect(context.collections.length).toBe(1)
     expect(context.collections?.[0].attrs.length).toBe(9)
     expect(context.collections?.[0].cases.length).toBe(27)
@@ -106,7 +106,7 @@ describe(`V2 "24cats.codap"`, () => {
     expect(catsData.components?.length).toBe(5)
     expect(catsData.contexts?.length).toBe(1)
     const context = catsData.contexts?.[0]
-    if (! ("guid" in context)) throw new Error("Context is not a data context")
+    if (isV2ExternalContext(context)) throw new Error("Context is external")
     expect(context.collections.length).toBe(2)
     expect(context.collections?.[0].attrs.length).toBe(1)
     expect(context.collections?.[0].cases.length).toBe(2)

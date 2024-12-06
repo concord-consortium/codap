@@ -89,12 +89,12 @@ export function v2MapImporter({v2Component, v2Document, insertTile}: V2TileImpor
           _itemStrokeColor: strokeColor,
           _pointSizeMultiplier: pointSizeMultiplier,
         },
-        pointsAreVisible: pointsShouldBeVisible,
-        connectingLinesAreVisible: connectingLines?.isVisible,
         gridModel: {
           isVisible: grid.isVisible,
           _gridMultiplier: grid.gridMultiplier,
-        }
+        },
+        pointsAreVisible: pointsShouldBeVisible,
+        connectingLinesAreVisible: connectingLines.isVisible
       }
       layers.push(pointLayerSnapshot)
     }

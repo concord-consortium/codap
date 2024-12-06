@@ -12,8 +12,7 @@ import {
 } from "../utilities/codap-utils"
 import {
   CodapV2Component, CodapV2Context, ICodapV2Attribute, ICodapV2Case, ICodapV2Collection, ICodapV2DocumentJson,
-  isV2ExternalContext,
-  v3TypeFromV2TypeString
+  isV2ExternalContext, isV2InternalContext, v3TypeFromV2TypeString
 } from "./codap-v2-types"
 
 interface V2CaseIdInfo {
@@ -52,7 +51,7 @@ export class CodapV2Document {
   }
 
   get dataContexts() {
-    return this.document.contexts.filter(context => "guid" in context)
+    return this.document.contexts.filter(isV2InternalContext)
   }
 
   get components() {
