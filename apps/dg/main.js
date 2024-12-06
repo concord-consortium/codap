@@ -338,23 +338,12 @@ DG.main = function main() {
               }
             },
             menu: [
-              {
-                name: 'DG.fileMenu.menuItem.newDocument'.loc(),
-                action: function () {
-                          DG.cfmClient.closeFileDialog(function () {
-                            SC.run(function() {
-                              DG.appController.closeAndNewDocument();
-                            });
-                          });
-                        }
-              },
               { name: 'DG.fileMenu.menuItem.openDocument'.loc(), action: 'openFileDialog' },
               { name: 'DG.fileMenu.menuItem.importFile'.loc(), action: 'importDataDialog' },
               {
                 name: 'DG.fileMenu.menuItem.revertTo'.loc(),
                 items: [
                   { name: 'DG.fileMenu.menuItem.revertToOpened'.loc(), action: 'revertToLastOpenedDialog'},
-                  { name: 'DG.fileMenu.menuItem.revertToShared'.loc(), action: 'revertToSharedDialog'}
                 ]
               },
               'separator',
