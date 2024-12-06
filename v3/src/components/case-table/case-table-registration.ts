@@ -16,6 +16,7 @@ import { CaseTableInspector } from "./case-table-inspector"
 import { CaseTableToolShelfButton } from "./case-table-tool-shelf-button"
 import { getTileDataSet } from "../../models/shared/shared-data-utils"
 import { t } from "../../utilities/translation/translate"
+import { kCaseTableDefaultWidth } from "./case-table-types"
 
 export const kCaseTableIdPrefix = "TABL"
 
@@ -46,7 +47,7 @@ registerTileComponentInfo({
     undoStringKey: "V3.Undo.caseTable.create",
     redoStringKey: "V3.Redo.caseTable.create"
   },
-  defaultWidth: 580,
+  defaultWidth: kCaseTableDefaultWidth,
   defaultHeight: 200
 })
 

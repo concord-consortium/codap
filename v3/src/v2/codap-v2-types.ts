@@ -1,11 +1,6 @@
 import { SetOptional } from "type-fest"
 import {AttributeType} from "../models/data/attribute"
 
-export type AllowStringIds<T> = Omit<T, "guid" | "id"> & {
-  guid: number | string
-  id: number | string
-}
-
 export interface ICodapV2Attribute {
   guid: number
   id?: number
@@ -31,8 +26,6 @@ export interface ICodapV2Attribute {
   precision?: number | string | null
   unit?: string | null
 }
-// when exporting a v3 attribute to v2
-export type ICodapV2AttributeV3 = AllowStringIds<ICodapV2Attribute>
 
 export function isCodapV2Attribute(o: any): o is ICodapV2Attribute {
   return o.type === "DG.Attribute"
@@ -99,8 +92,13 @@ export interface ICodapV2Collection {
 // when exporting a v3 collection to v2
 type CollectionNotYetExported = "cases" | "caseName" | "childAttrName" | "collapseChildren"
 export interface ICodapV2CollectionV3
-  extends SetOptional<Omit<AllowStringIds<ICodapV2Collection>, "attrs">, CollectionNotYetExported> {
-  attrs: ICodapV2AttributeV3[]
+  extends SetOptional<Omit<ICodapV2Collection, "attrs">, CollectionNotYetExported> {
+  attrs: ICodapV2Attribute[]
+}
+
+export interface ICodapV2SetAsideItem {
+  id: string  // item id
+  values: Record<string, number | string>
 }
 
 export interface ICodapV2ExternalContext {
@@ -126,7 +124,7 @@ export interface ICodapV2DataContext {
   description?: string
   metadata?: ICodapV2DataContextMetadata | null
   // preventReorg: boolean
-  // setAsideItems: this.get('dataSet').archiveSetAsideItems(),
+  setAsideItems?: ICodapV2SetAsideItem[]
   // contextStorage: this.contextStorage
 }
 
@@ -179,7 +177,7 @@ export interface ICodapV2GameContext extends Omit<ICodapV2DataContext, "type"> {
 // when exporting a v3 data set to v2 data context
 type DCNotYetExported = "flexibleGroupingChangeFlag"
 export interface ICodapV2DataContextV3
-  extends SetOptional<Omit<AllowStringIds<ICodapV2DataContext>, "document" | "collections">, DCNotYetExported> {
+  extends SetOptional<Omit<ICodapV2DataContext, "document" | "collections">, DCNotYetExported> {
   document: number | string
   collections: ICodapV2CollectionV3[]
 }

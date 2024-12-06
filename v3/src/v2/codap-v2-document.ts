@@ -2,7 +2,7 @@ import { SetRequired } from "type-fest"
 import { IAttribute } from "../models/data/attribute"
 import { ICollectionModel, ICollectionModelSnapshot } from "../models/data/collection"
 import { IDataSet, toCanonical } from "../models/data/data-set"
-import { ICaseCreation } from "../models/data/data-set-types"
+import { ICaseCreation, IItem } from "../models/data/data-set-types"
 import { v2NameTitleToV3Title } from "../models/data/v2-model"
 import { IDocumentMetadata } from "../models/document/document-metadata"
 import { ISharedCaseMetadata, SharedCaseMetadata } from "../models/shared/shared-case-metadata"
@@ -12,7 +12,7 @@ import {
 } from "../utilities/codap-utils"
 import {
   CodapV2Component, CodapV2Context, ICodapV2Attribute, ICodapV2Case, ICodapV2Collection, ICodapV2DocumentJson,
-  isV2ExternalContext, isV2InternalContext, v3TypeFromV2TypeString
+  isV2ExternalContext, isV2InternalContext, ICodapV2SetAsideItem, v3TypeFromV2TypeString
 } from "./codap-v2-types"
 
 interface V2CaseIdInfo {
@@ -119,6 +119,7 @@ export class CodapV2Document {
       this.caseMetadataMap.set(guid, caseMetadata)
 
       this.registerCollections(sharedDataSet.dataSet, caseMetadata, collections)
+      this.registerSetAsideItems(sharedDataSet.dataSet, context.setAsideItems)
     })
   }
 
@@ -234,6 +235,19 @@ export class CodapV2Document {
     })
     if (itemsToAdd.length) {
       data.addCases(itemsToAdd)
+    }
+  }
+
+  registerSetAsideItems(data: IDataSet, setAsideItems?: ICodapV2SetAsideItem[]) {
+    const itemsToAdd: IItem[] = []
+    setAsideItems?.forEach(item => {
+      // some v2 documents don't store item ids, so we generate them if necessary
+      const { id = v3Id(kItemIdPrefix), values } = item
+      itemsToAdd.push({ __id__: id, ...toCanonical(data, values) })
+    })
+    if (itemsToAdd.length) {
+      data.addCases(itemsToAdd)
+      data.hideCasesOrItems(itemsToAdd.map(item => item.__id__))
     }
   }
 }

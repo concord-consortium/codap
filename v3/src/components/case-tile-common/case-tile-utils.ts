@@ -21,6 +21,8 @@ import { uiState } from "../../models/ui-state"
 import { getPositionOfNewComponent } from "../../utilities/view-utils"
 import { kTitleBarHeight } from "../constants"
 import { kCaseTableTileType } from "../case-table/case-table-defs"
+import { kCaseTableDefaultWidth, kDefaultColumnWidth, kDropzoneWidth, kIndexColumnWidth }
+  from "../case-table/case-table-types"
 
 export type kCardOrTableTileType = typeof kCaseTableTileType | typeof kCaseCardTileType
 
@@ -62,7 +64,10 @@ export function createTableOrCardForDataset (
   }
   caseMetadata.setLastShownTableOrCardTileId(tile.id)
 
-  const width = caseTableComponentInfo.defaultWidth || 0
+  const numAttributes = sharedDataSet.dataSet.attributes.length
+  const width = Math.min(kCaseTableDefaultWidth,
+                          (numAttributes * kDefaultColumnWidth) + kDropzoneWidth + kIndexColumnWidth)
+
   const height = caseTableComponentInfo.defaultHeight || 0
   let {x, y} = getPositionOfNewComponent({width, height})
   if (options?.x != null) x = options.x
