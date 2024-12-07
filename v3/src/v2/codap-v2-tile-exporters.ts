@@ -1,4 +1,3 @@
-import { SetOptional } from "type-fest"
 import { kDefaultTileHeight, kDefaultTileWidth, kTitleBarHeight } from "../components/constants"
 import { IFreeTileRow, isFreeTileLayout } from "../models/document/free-tile-row"
 import { ISharedModelManager } from "../models/shared/shared-model-manager"
@@ -8,7 +7,7 @@ import { CodapV2Component, CodapV2ComponentStorage } from "./codap-v2-types"
 
 export interface V2ExporterOutput {
   type: CodapV2Component["type"]
-  storage?: SetOptional<CodapV2ComponentStorage, "cannotClose" | "userSetTitle">
+  storage?: CodapV2ComponentStorage
 }
 
 export interface V2TileExportArgs {
