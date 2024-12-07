@@ -91,7 +91,7 @@ export const MapPointGrid = function MapPointGrid(props: IMapPointGridProps) {
 
   useEffect(function syncMapGridRectangles() {
     return mstAutorun(() => {
-      // eslint-disable-next-line no-unused-expressions -- used for side effect
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions -- used for side effect
       mapGridModel.gridMultiplier
       refreshLeafletRects()
     }, {name: "syncMapGridRectangles"}, mapGridModel)

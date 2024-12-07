@@ -14,7 +14,7 @@ export function useInitGraphLayout(model?: IGraphContentModel) {
     const { dataConfiguration } = model || {}
     return mstReaction(
       () => {
-        dataConfiguration?.casesChangeCount // eslint-disable-line no-unused-expressions
+        dataConfiguration?.casesChangeCount // eslint-disable-line @typescript-eslint/no-unused-expressions
         const repetitions: Partial<Record<AxisPlace, number>> = {}
         layout.axisScales.forEach((multiScale, place) => {
           repetitions[place] = dataConfiguration?.numRepetitionsForPlace(place) ?? 1

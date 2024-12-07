@@ -8,7 +8,7 @@ import { useInstanceIdContext } from "./use-instance-id-context"
 import { useTileModelContext } from "./use-tile-model-context"
 
 // list of draggable types
-const DragTypes = ["attribute", "tile"] as const
+export const DragTypes = ["attribute", "tile"] as const
 type DragType = typeof DragTypes[number]
 
 export interface IDragData {

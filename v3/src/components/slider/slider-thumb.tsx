@@ -36,7 +36,7 @@ export const CodapSliderThumb = observer(function CodapSliderThumb({
   }
 
   // forces thumbnail to rerender when axis bounds change
-  sliderModel?.axis.domain // eslint-disable-line no-unused-expressions
+  sliderModel?.axis.domain // eslint-disable-line @typescript-eslint/no-unused-expressions
 
   useEffect(() => {
     const containerX = sliderContainer?.getBoundingClientRect().x
