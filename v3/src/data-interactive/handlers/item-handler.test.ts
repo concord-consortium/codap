@@ -75,7 +75,7 @@ describe("DataInteractive ItemHandler", () => {
     expect(result.success).toBe(true)
     const values = result.values as DIFullCase
     expect(values.id).toBe(toV2Id(item.__id__))
-    expect(Object.keys(values.values!).length).toBe(3)
+    expect(Object.keys(values.values!).length).toBe(4)
     expect(values.values?.a1).toBe(a1.value(0))
   })
 

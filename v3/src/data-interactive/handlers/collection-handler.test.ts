@@ -32,12 +32,12 @@ describe("DataInteractive CollectionHandler", () => {
 
     // Add a right-most collection
     // Add attributes with attributes field
-    const rightResult = handler.create?.({ dataContext }, { name: "right", attributes: [{ name: "a4" }] })
+    const rightResult = handler.create?.({ dataContext }, { name: "right", attributes: [{ name: "a4b" }] })
     expect(rightResult?.success).toBe(true)
     expect(dataset.collections.length).toBe(4)
     expect(dataset.collections[3].name).toBe("right")
     expect(dataset.collections[3].attributes.length).toBe(1)
-    expect(dataset.collections[3].attributes[0]?.name).toBe("a4")
+    expect(dataset.collections[3].attributes[0]?.name).toBe("a4b")
 
     // Add a left-most collection
     // Add attributes with attrs field
@@ -76,7 +76,7 @@ describe("DataInteractive CollectionHandler", () => {
     const result = handler.delete?.({ dataContext, collection })
     expect(result?.success).toBe(true)
     expect((result?.values as DIDeleteCollectionResult).collections?.[0]).toBe(toV2Id(collectionId))
-    expect(dataContext.attributes.length).toBe(2)
+    expect(dataContext.attributes.length).toBe(3)
     expect(dataContext.collections.length).toBe(2)
     expect(dataContext.getCollection(collectionId)).toBeUndefined()
   })

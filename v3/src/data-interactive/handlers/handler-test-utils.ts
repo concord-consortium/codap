@@ -1,12 +1,12 @@
 import { DataSet } from "../../models/data/data-set"
 
 export const testCases = [
-  { a1: "a", a2: "x", a3: 1 },
-  { a1: "b", a2: "y", a3: 2 },
-  { a1: "a", a2: "z", a3: 3 },
-  { a1: "b", a2: "z", a3: 4 },
-  { a1: "a", a2: "x", a3: 5 },
-  { a1: "b", a2: "y", a3: 6 },
+  { a1: "a", a2: "x", a3: 1, a4: -1 },
+  { a1: "b", a2: "y", a3: 2, a4: -2 },
+  { a1: "a", a2: "z", a3: 3, a4: -3 },
+  { a1: "b", a2: "z", a3: 4, a4: -4 },
+  { a1: "a", a2: "x", a3: 5, a4: -5 },
+  { a1: "b", a2: "y", a3: 6, a4: -6 },
 ]
 interface ITestDatasetOptions {
   datasetName?: string
@@ -24,9 +24,10 @@ export const setupTestDataset = (options?: ITestDatasetOptions) => {
   const a1 = dataset.addAttribute({ name: "a1" }, { collection: c1.id })
   const a2 = dataset.addAttribute({ name: "a2" }, { collection: c2.id })
   const a3 = dataset.addAttribute({ name: "a3" })
+  const a4 = dataset.addAttribute({ name: "a4" })
   dataset.addCases(testCases, { canonicalize: true })
   dataset.validateCases()
-  return { dataset, c1, c2, a1, a2, a3 }
+  return { dataset, c1, c2, a1, a2, a3, a4 }
 }
 
 export function setupForCaseTest() {

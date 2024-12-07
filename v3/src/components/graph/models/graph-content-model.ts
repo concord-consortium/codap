@@ -324,6 +324,13 @@ export const GraphContentModel = DataDisplayContentModel
         binCount++
       }
       return { tickValues, tickLabels }
+    },
+    setDataSet(dataSetID: string) {
+      const newDataSet = getDataSetFromId(self, dataSetID)
+      if (newDataSet && newDataSet !== self.dataConfiguration.dataset) {
+        self.dataConfiguration.clearAttributes()
+        self.dataConfiguration.setDataset(newDataSet, getSharedCaseMetadataFromDataset(newDataSet))
+      }
     }
   }))
   .views(self => ({
@@ -582,11 +589,7 @@ export const GraphContentModel = DataDisplayContentModel
       self.axes.delete(place)
     },
     setAttributeID(role: GraphAttrRole, dataSetID: string, id: string) {
-      const newDataSet = getDataSetFromId(self, dataSetID)
-      if (newDataSet && newDataSet !== self.dataConfiguration.dataset) {
-        self.dataConfiguration.clearAttributes()
-        self.dataConfiguration.setDataset(newDataSet, getSharedCaseMetadataFromDataset(newDataSet))
-      }
+      self.setDataSet(dataSetID)
       if (role === 'yPlus') {
         self.dataConfiguration.addYAttribute({attributeID: id})
       } else {
