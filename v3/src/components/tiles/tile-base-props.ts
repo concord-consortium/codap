@@ -15,6 +15,6 @@ export interface ITileTitleBarProps extends ITileBaseProps {
   preventTitleChange?: boolean
 }
 
-export interface ITileInspectorPanelProps extends ITileBaseProps{
+export interface ITileInspectorPanelProps extends ITileBaseProps {
   show?: boolean
 }

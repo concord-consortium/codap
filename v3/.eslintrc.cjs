@@ -7,7 +7,7 @@ module.exports = {
     project: ["./tsconfig.json", "./tsconfig.v2.json", "./cypress/tsconfig.json"],
     tsconfigRootDir: __dirname,
   },
-  plugins: ["@typescript-eslint", "json", "react", "react-hooks"],
+  plugins: ["@stylistic/eslint-plugin", "@typescript-eslint", "json", "react", "react-hooks"],
   env: {
     browser: true,
     es6: true
@@ -32,9 +32,7 @@ module.exports = {
       "observer"
     ]
   },
-  ignorePatterns: [
-    "dist/", "node_modules/", "src/models/formula/lezer"
-  ],
+  ignorePatterns: ["dist/", "node_modules/", "src/models/formula/lezer"],
   extends: [
     "eslint:recommended",
     "plugin:@typescript-eslint/recommended",
@@ -46,8 +44,20 @@ module.exports = {
     "plugin:react-hooks/recommended"
   ],
   rules: {
+    "@stylistic/block-spacing": ["off"],
+    "@stylistic/comma-spacing": ["warn"],
+    "@stylistic/eol-last": ["warn"],
+    "@stylistic/func-call-spacing": "off", // Superseded by @typescript-eslint
+    "@stylistic/keyword-spacing": ["warn"],
+    "@stylistic/max-len": ["warn", { code: 120, ignoreUrls: true }],
+    "@stylistic/no-tabs": "error",
+    "@stylistic/no-whitespace-before-property": "error",
+    "@stylistic/operator-linebreak": "warn",
+    "@stylistic/semi": ["warn", "never", { beforeStatementContinuationChars: "always" }],
+    "@stylistic/semi-style": ["warn", "first"],
+    "@stylistic/space-before-blocks": ["warn"],
+    "@stylistic/space-in-parens": ["warn"],
     "@typescript-eslint/explicit-module-boundary-types": "off",
-    "@typescript-eslint/func-call-spacing": ["warn"],
     "@typescript-eslint/no-confusing-non-null-assertion": "error",
     "@typescript-eslint/no-empty-interface": "off",
     "@typescript-eslint/no-explicit-any": "off",
@@ -56,28 +66,20 @@ module.exports = {
     "@typescript-eslint/no-unnecessary-type-assertion": "warn",
     "@typescript-eslint/no-unused-vars": ["warn", { args: "none", ignoreRestSiblings: true }],
     "@typescript-eslint/prefer-optional-chain": "warn",
-    "@typescript-eslint/semi": ["warn", "never", { "beforeStatementContinuationChars": "always" }],
-    "block-spacing": ["warn"],
-    "comma-spacing": ["warn"],
     "curly": ["error", "multi-line", "consistent"],
     "dot-notation": "error",
-    "eol-last": "warn",
     "eqeqeq": ["error", "smart"],
     "eslint-comments/no-unused-disable": "off",   // enabled in .eslintrc.build.js
-    "func-call-spacing": "off", // superseded by @typescript-eslint/func-call-spacing
     "import/no-cycle": "warn",
     "import/no-extraneous-dependencies": "warn",
     "import/no-useless-path-segments": "warn",
     // "jsx-quotes": ["error", "prefer-double"],
-    "keyword-spacing": ["warn"],
-    "max-len": ["warn", { code: 120, ignoreUrls: true }],
     "no-bitwise": "error",
     "no-constant-binary-expression": "error",
     "no-debugger": "off",
     "no-duplicate-imports": "error",
     "no-sequences": "error",
     "no-shadow": "off", // superseded by @typescript-eslint/no-shadow
-    "no-tabs": "error",
     "no-unneeded-ternary": "error",
     "no-unused-expressions": ["error", { allowShortCircuit: true }],
     "no-unused-vars": "off",  // superseded by @typescript-eslint/no-unused-vars
@@ -86,9 +88,7 @@ module.exports = {
     "no-useless-rename": "error",
     "no-useless-return": "error",
     "no-var": "error",
-    "no-whitespace-before-property": "error",
     "object-shorthand": "error",
-    "operator-linebreak": "warn",
     "prefer-const": ["error", { destructuring: "all" }],
     "prefer-object-spread": "error",
     "prefer-regex-literals": "error",
@@ -104,22 +104,18 @@ module.exports = {
     "react/no-danger": "error",
     "react/no-unsafe": ["off", { checkAliases: true }],
     "react/no-unused-state": "error",
-    "react/prop-types": "off",
-    "semi": "off", // superseded by @typescript-eslint/semi
-    "semi-style": ["warn", "first"],
-    "space-before-blocks": ["warn"],
-    "space-in-parens": ["warn"]
+    "react/prop-types": "off"
   },
   overrides: [
     { // rules specific to CODAP v2 code ported to v3
       files: ["**/*.v2.js", "**/*.v2.ts", "**/*.v2.test.tsx"],
       rules: {
+        "@stylistic/max-len": "off",
         "@typescript-eslint/no-shadow": "off",
         "@typescript-eslint/no-this-alias": "off",
         "no-prototype-builtins": "off",
         "no-var": "off",
         "import/no-named-as-default-member": "off",
-        "max-len": "off",
         "no-useless-escape": "off",
         "prefer-const": "off",
         "react/no-deprecated": "off",
