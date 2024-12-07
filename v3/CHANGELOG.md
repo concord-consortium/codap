@@ -1,5 +1,36 @@
 # Changelog
 
+## Version 3.0.0-pre.2046 - December 6, 2024
+
+### ✨ Features & Improvements:
+- **PT-188544375:** Use fixed-width font to display numeric attribute values in case table
+- **PT-188589165:** Country Boundaries in v3 Case Table
+- **PT-187958696:** Improve **input row** UI
+- **PT-188514789:** Attribute color type in case card
+- **PT-188618452:** New table clean up
+
+### 🐞 Bug Fixes:
+- **PT-188548516:** Undo of making parent collection causes errors visible in console
+- **PT-188590901:** Graph: axis tick and gridlines issues with component resize
+- **PT-188523090:** Graph numeric axis labels do not restore correctly on component resize
+- **PT-188640918:** When points in dot plot are dragged, mean isn't updating
+- **PT-188589248:** Plots not showing when split on top and/or right
+- **PT-188617540:** Points in map should not animate in from top left
+- **PT-188600172:** Opening a corrupted document should notify the user and not succeed
+- **PT-188620026:** V2 Map Importer crashes with older documents
+- **PT-188652082:** Documents with set-aside cases should import/restore correctly
+
+### 🛠️ Under the Hood:
+- **PT-188613413:** Initial infrastructure for v2 export
+- **PT-188523684:** Shared document info should be stored in original document
+- **PT-188383228:** Should preserve case ids when importing v2 documents
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  185550 bytes |                            0.72% |
+|  index.js | 6342330 bytes |                           -26.2% |
+
 ## Version 3.0.0-pre.2023 - November 22, 2024
 
 ### ✨ Features & Improvements:
