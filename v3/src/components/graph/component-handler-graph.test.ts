@@ -86,7 +86,7 @@ describe("DataInteractive ComponentHandler Graph", () => {
 
     // Create a graph with options
     const result = handler.create!({}, {
-      type: "graph", cannotClose: true, dataContext: "data", xAttributeName: "a3", yAttributeName: "a2",
+      type: "graph", cannotClose: true, dataContext: "data", xAttributeName: "a3", yAttributeName: "a4",
       legendAttributeName: "a1", captionAttributeName: "a2", rightNumericAttributeName: "a3",
       rightSplitAttributeName: "a1", topSplitAttributeName: "a2", enableNumberToggle: true, numberToggleLastMode: true
     })
@@ -97,14 +97,15 @@ describe("DataInteractive ComponentHandler Graph", () => {
     expect(tile).toBeDefined()
     expect(isGraphContentModel(tile.content)).toBe(true)
     const tileContent = tile.content as IGraphContentModel
+    const dataConfig = tileContent.dataConfiguration
     expect(tile.cannotClose).toBe(true)
-    expect(tileContent.dataConfiguration.attributeDescriptionForRole("x")?.attributeID).toBe(a3.id)
-    expect(tileContent.dataConfiguration.attributeDescriptionForRole("y")?.attributeID).toBe(a2.id)
-    expect(tileContent.dataConfiguration.attributeDescriptionForRole("legend")?.attributeID).toBe(a1.id)
-    expect(tileContent.dataConfiguration.attributeDescriptionForRole("caption")?.attributeID).toBe(a2.id)
-    expect(tileContent.dataConfiguration.attributeDescriptionForRole("rightNumeric")?.attributeID).toBe(a3.id)
-    expect(tileContent.dataConfiguration.attributeDescriptionForRole("rightSplit")?.attributeID).toBe(a1.id)
-    expect(tileContent.dataConfiguration.attributeDescriptionForRole("topSplit")?.attributeID).toBe(a2.id)
+    expect(dataConfig.attributeDescriptionForRole("x")?.attributeID).toBe(a3.id)
+    expect(dataConfig.attributeDescriptionForRole("y")?.attributeID).toBe(a4.id)
+    expect(dataConfig.attributeDescriptionForRole("legend")?.attributeID).toBe(a1.id)
+    expect(dataConfig.attributeDescriptionForRole("caption")?.attributeID).toBe(a2.id)
+    expect(dataConfig.attributeDescriptionForRole("rightNumeric")?.attributeID).toBe(a3.id)
+    expect(dataConfig.attributeDescriptionForRole("rightSplit")?.attributeID).toBe(a1.id)
+    expect(dataConfig.attributeDescriptionForRole("topSplit")?.attributeID).toBe(a2.id)
     expect(tileContent.showParentToggles).toBe(true)
     // Make sure numberToggleLastMode hid all appropriate cases
     tileContent.layers.forEach(layer => {
@@ -114,6 +115,27 @@ describe("DataInteractive ComponentHandler Graph", () => {
       })
     })
 
+    // Update a graph's axis bounds
+    const xAxis = tileContent.getAxis("bottom") as IBaseNumericAxisModel
+    const yAxis = tileContent.getAxis("left") as IBaseNumericAxisModel
+    const y2Axis = tileContent.getAxis("rightNumeric") as IBaseNumericAxisModel
+    expect(xAxis.min).toBe(-.5)
+    expect(xAxis.max).toBe(7.5)
+    expect(yAxis.min).toBe(-6.5)
+    expect(yAxis.max).toBe(1.5)
+    expect(y2Axis.min).toBe(-.5)
+    expect(y2Axis.max).toBe(7.5)
+    const updateBoundsResult = handler.update!({ component: tile }, {
+      xLowerBound: 2, xUpperBound: 6, yLowerBound: -20, yUpperBound: 10, y2LowerBound: -3, y2UpperBound: 13
+    })
+    expect(updateBoundsResult.success).toBe(true)
+    expect(xAxis.min).toBe(2)
+    expect(xAxis.max).toBe(6)
+    expect(yAxis.min).toBe(-20)
+    expect(yAxis.max).toBe(10)
+    expect(y2Axis.min).toBe(-3)
+    expect(y2Axis.max).toBe(13)
+
     // Update a graph to switch attributes
     const updateResult1 = handler.update!({ component: tile }, {
       xAttributeName: "a2", yAttributeName: "a1", legendAttributeName: "a2", captionAttributeName: "a1",
@@ -121,7 +143,6 @@ describe("DataInteractive ComponentHandler Graph", () => {
       enableNumberToggle: false, numberToggleLastMode: false
     })
     expect(updateResult1.success).toBe(true)
-    const dataConfig = tileContent.dataConfiguration
     expect(dataConfig.attributeDescriptionForRole("x")?.attributeID).toBe(a2.id)
     expect(dataConfig.attributeDescriptionForRole("y")?.attributeID).toBe(a1.id)
     expect(dataConfig.attributeDescriptionForRole("legend")?.attributeID).toBe(a2.id)
@@ -202,21 +223,18 @@ describe("DataInteractive ComponentHandler Graph", () => {
       const xAttributeId = dataConfiguration.attributeDescriptionForRole("x")!.attributeID
       expect(xAttributeID).toBe(xAttributeId)
       expect(xAttributeName).toBe(graphDataset.getAttribute(xAttributeId)?.name)
-      const xAxis = content.getAxis("bottom") as IBaseNumericAxisModel
       expect(xLowerBound).toBe(xAxis.min)
       expect(xUpperBound).toBe(xAxis.max)
 
       const yAttributeId = dataConfiguration.attributeDescriptionForRole("y")!.attributeID
       expect(yAttributeID).toBe(yAttributeId)
       expect(yAttributeName).toBe(graphDataset.getAttribute(yAttributeId)?.name)
-      const yAxis = content.getAxis("left") as IBaseNumericAxisModel
       expect(yLowerBound).toBe(yAxis.min)
       expect(yUpperBound).toBe(yAxis.max)
 
       const y2AttributeId = dataConfiguration.attributeDescriptionForRole("rightNumeric")!.attributeID
       expect(y2AttributeID).toBe(y2AttributeId)
       expect(y2AttributeName).toBe(graphDataset.getAttribute(y2AttributeId)?.name)
-      const y2Axis = content.getAxis("rightNumeric") as IBaseNumericAxisModel
       expect(y2LowerBound).toBe(y2Axis.min)
       expect(y2UpperBound).toBe(y2Axis.max)
     })

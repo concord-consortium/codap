@@ -1,5 +1,5 @@
 import { getSnapshot } from "mobx-state-tree"
-import { V2Graph } from "../../data-interactive/data-interactive-component-types"
+import { V2GetGraph, V2Graph } from "../../data-interactive/data-interactive-component-types"
 import { DIValues } from "../../data-interactive/data-interactive-types"
 import { DIComponentHandler } from "../../data-interactive/handlers/component-handler"
 import { errorResult } from "../../data-interactive/handlers/di-results"
@@ -11,6 +11,7 @@ import { getSharedCaseMetadataFromDataset, getSharedDataSets } from "../../model
 import { ITileContentModel, ITileContentSnapshotWithType } from "../../models/tiles/tile-content"
 import { toV3AttrId, toV3DataSetId } from "../../utilities/codap-utils"
 import { t } from "../../utilities/translation/translate"
+import { AxisPlace } from "../axis/axis-types"
 import { isNumericAxisModel } from "../axis/models/axis-model"
 import { attrRoleToGraphPlace, GraphAttrRole } from "../data-display/data-display-types"
 import { IAttributeDescriptionSnapshot } from "../data-display/models/data-configuration-model"
@@ -245,8 +246,8 @@ export const graphComponentHandler: DIComponentHandler = {
 
     const {
       dataContext: _dataContext, enableNumberToggle: showParentToggles, numberToggleLastMode: showOnlyLastCase,
-      yAttributeID, yAttributeName
-    } = values as V2Graph
+      xLowerBound, xUpperBound, yAttributeID, yAttributeName, yLowerBound, yUpperBound, y2LowerBound, y2UpperBound
+    } = values as V2GetGraph
     const attributeInfo = getAttributeInfo(values)
 
     // Determine which dataset to work with
@@ -262,7 +263,7 @@ export const graphComponentHandler: DIComponentHandler = {
       dataSet = content.dataset ?? getSharedDataSets(appState.document)[0].dataSet
     }
 
-    // Ensure that all specified attributes are legal for their roles
+    // Ensure that all specified attributes are legal for their roles before we actually update anything
     const updatedAttributes: Record<string, IAttribute | null> = {}
     for (const attributeType in attributeInfo) {
       const attributePackage = attributeInfo[attributeType]
@@ -287,11 +288,12 @@ export const graphComponentHandler: DIComponentHandler = {
       }
     }
 
-    // TODO handle changing axis range?
+    // Actually update dataSet (which will clear any old attribute assignments)
     if (dataSet && dataSet !== content.dataset) {
       content.setDataSet(dataSet.id)
     }
 
+    // Actually update attributes
     for (const attributeType in updatedAttributes) {
       const attribute = updatedAttributes[attributeType]
       const role = roleFromAttrKey[attributeType]
@@ -321,6 +323,21 @@ export const graphComponentHandler: DIComponentHandler = {
       }
     }
 
+    // Update lower and upper bounds
+    const updateBounds = (place: AxisPlace, lower?: number, upper?: number) => {
+      if (lower != null || upper != null) {
+        const axis = content.getAxis(place)
+        if (isNumericAxisModel(axis)) {
+          if (lower != null) axis.setMinimum(lower)
+          if (upper != null) axis.setMaximum(upper)
+        }
+      }
+    }
+    updateBounds("bottom", xLowerBound, xUpperBound)
+    updateBounds("left", yLowerBound, yUpperBound)
+    updateBounds("rightNumeric", y2LowerBound, y2UpperBound)
+
+    // Update odd features
     if (showParentToggles != null) {
       content.setShowParentToggles(showParentToggles)
     }
