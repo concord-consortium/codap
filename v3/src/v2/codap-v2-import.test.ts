@@ -1,6 +1,6 @@
 import { kV2CalculatorDGType } from "../components/calculator/calculator-defs"
 import { CodapV2Document } from "./codap-v2-document"
-import { ICodapV2DocumentJson, isCodapV2Document } from "./codap-v2-types"
+import { ICodapV2DocumentJson, isCodapV2Document, isV2ExternalContext } from "./codap-v2-types"
 
 const fs = require("fs")
 const path = require("path")
@@ -56,9 +56,11 @@ describe(`V2 "mammals.codap"`, () => {
     expect(mammalsData.name).toBe("Mammals Sample")
     expect(mammalsData.components?.length).toBe(5)
     expect(mammalsData.contexts?.length).toBe(1)
-    expect(mammalsData.contexts?.[0].collections.length).toBe(1)
-    expect(mammalsData.contexts?.[0].collections?.[0].attrs.length).toBe(9)
-    expect(mammalsData.contexts?.[0].collections?.[0].cases.length).toBe(27)
+    const context = mammalsData.contexts?.[0]
+    if (isV2ExternalContext(context)) throw new Error("Context is external")
+    expect(context.collections.length).toBe(1)
+    expect(context.collections?.[0].attrs.length).toBe(9)
+    expect(context.collections?.[0].cases.length).toBe(27)
     expect(mammalsData.globalValues?.length).toBe(0)
   })
 
@@ -70,7 +72,7 @@ describe(`V2 "mammals.codap"`, () => {
     expect(mammals.dataSets.length).toBe(1)
 
     // numeric ids are converted to strings on import
-    const context = mammals.contexts[0]
+    const context = mammals.dataContexts[0]
     const collection = context.collections[0]
     const data = mammals.dataSets[0].dataSet
     data.validateCases()
@@ -103,11 +105,13 @@ describe(`V2 "24cats.codap"`, () => {
     expect(catsData.name).toBe("24cats")
     expect(catsData.components?.length).toBe(5)
     expect(catsData.contexts?.length).toBe(1)
-    expect(catsData.contexts?.[0].collections.length).toBe(2)
-    expect(catsData.contexts?.[0].collections?.[0].attrs.length).toBe(1)
-    expect(catsData.contexts?.[0].collections?.[0].cases.length).toBe(2)
-    expect(catsData.contexts?.[0].collections?.[1].attrs.length).toBe(8)
-    expect(catsData.contexts?.[0].collections?.[1].cases.length).toBe(24)
+    const context = catsData.contexts?.[0]
+    if (isV2ExternalContext(context)) throw new Error("Context is external")
+    expect(context.collections.length).toBe(2)
+    expect(context.collections?.[0].attrs.length).toBe(1)
+    expect(context.collections?.[0].cases.length).toBe(2)
+    expect(context.collections?.[1].attrs.length).toBe(8)
+    expect(context.collections?.[1].cases.length).toBe(24)
     expect(catsData.globalValues?.length).toBe(0)
   })
 
@@ -119,7 +123,7 @@ describe(`V2 "24cats.codap"`, () => {
     expect(cats.dataSets.length).toBe(1)
 
     // numeric ids are converted to strings on import
-    const context = cats.contexts[0]
+    const context = cats.dataContexts[0]
     const [v2ParentCollection, v2ChildCollection] = context.collections
     const data = cats.dataSets[0].dataSet
     data.validateCases()

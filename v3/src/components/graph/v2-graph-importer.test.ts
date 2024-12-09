@@ -21,7 +21,7 @@ function firstGraphComponent(v2Document: CodapV2Document) {
 }
 
 function graphComponentWithTitle(v2Document: CodapV2Document, title: string) {
-  return v2Document.components.find(c => c.componentStorage.title === title)!
+  return v2Document.components.find(c => c.componentStorage?.title === title)!
 }
 
 describe("V2GraphImporter", () => {
@@ -45,7 +45,7 @@ describe("V2GraphImporter", () => {
     sharedModelManager.setDocument(docContent)
 
     // load shared models into sharedModelManager
-    v2Document.contexts.forEach(({ guid }) => {
+    v2Document.dataContexts.forEach(({ guid }) => {
       const { data, metadata } = v2Document.getDataAndMetadata(guid)
       data && sharedModelManager!.addSharedModel(data)
       metadata?.setData(data?.dataSet)

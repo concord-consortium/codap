@@ -38,7 +38,7 @@ describe("V2MapImporter imports legacy v2 map documents", () => {
     sharedModelManager.setDocument(docContent)
 
     // load shared models into sharedModelManager
-    v2Document.contexts.forEach(({ guid }) => {
+    v2Document.dataContexts.forEach(({ guid }) => {
       const { data, metadata } = v2Document.getDataAndMetadata(guid)
       data && sharedModelManager!.addSharedModel(data)
       metadata?.setData(data?.dataSet)
@@ -84,7 +84,7 @@ describe("V2MapImporter imports current v2 map documents", () => {
     sharedModelManager.setDocument(docContent)
 
     // load shared models into sharedModelManager
-    v2Document.contexts.forEach(({ guid }) => {
+    v2Document.dataContexts.forEach(({ guid }) => {
       const { data, metadata } = v2Document.getDataAndMetadata(guid)
       data && sharedModelManager!.addSharedModel(data)
       metadata?.setData(data?.dataSet)

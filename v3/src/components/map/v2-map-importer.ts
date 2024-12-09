@@ -64,7 +64,7 @@ export function v2MapImporter({v2Component, v2Document, insertTile}: V2TileImpor
       const {
         pointColor, strokeColor, pointSizeMultiplier,
         grid, pointsShouldBeVisible, connectingLines
-        /* Present in v2 layer model but not yet used in V3 layer model:
+        /* TODO_V2_IMPORT: Present in v2 layer model but not yet used in V3 layer model:
         transparency, strokeTransparency
         */
       } = v2LayerModel
@@ -72,6 +72,7 @@ export function v2MapImporter({v2Component, v2Document, insertTile}: V2TileImpor
       const {latId, longId} = latLongAttributesFromDataSet(data.dataSet)
       _attributeDescriptions.lat = {attributeID: latId, type: 'numeric'}
       _attributeDescriptions.long = {attributeID: longId, type: 'numeric'}
+
       const pointLayerSnapshot: IMapPointLayerModelSnapshot = {
         type: kMapPointLayerType,
         layerIndex,
@@ -100,7 +101,7 @@ export function v2MapImporter({v2Component, v2Document, insertTile}: V2TileImpor
     else if (isV2MapPolygonLayerStorage(v2LayerModel)) {
       const {
         areaColor, areaStrokeColor,
-        /* Present in v2 layer model but not yet used in V3 layer model:
+        /* TODO_V2_IMPORT: Present in v2 layer model but not yet used in V3 layer model:
         areaTransparency, areaStrokeTransparency
         */
       } = v2LayerModel

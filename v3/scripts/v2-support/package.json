@@ -1,0 +1,15 @@
+{
+  "name": "v2-support",
+  "description": "scripts for analyzing v2 files",
+  "scripts": {
+    "generate:schema": "ts-json-schema-generator --unstable --additional-properties --path '../../src/**/*.ts' --type 'ICodapV2DocumentJson' --no-type-check -o v2-schema.json",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "validate": "ajv validate --verbose --errors=js --inline-refs=false --allow-union-types -s v2-schema.json -d",
+    "generate-and-validate": "npm-run-all generate:schema \"validate -- {1}\" --"
+  },
+  "dependencies": {
+    "ajv-cli": "^5.0.0",
+    "jsonschema": "^1.4.1",
+    "ts-json-schema-generator": "^2.3.0"
+  }
+}
