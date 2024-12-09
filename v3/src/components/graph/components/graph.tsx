@@ -1,6 +1,6 @@
 import {comparer} from "mobx"
 import {observer} from "mobx-react-lite"
-import {isAlive} from "mobx-state-tree"
+import {IDisposer, isAlive} from "mobx-state-tree"
 import React, {MutableRefObject, useCallback, useEffect, useMemo, useRef} from "react"
 import {select} from "d3"
 import {clsx} from "clsx"
@@ -233,13 +233,24 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
 
   // respond to assignment of new attribute ID
   useEffect(function handleNewAttributeID() {
-    const disposer = graphModel && onAnyAction(graphModel, action => {
-      if (isSetAttributeIDAction(action)) {
-        startAnimation()
-        graphController?.handleAttributeAssignment()
-      }
-    })
-    return () => disposer?.()
+    const react = () => {
+      startAnimation()
+      graphController?.handleAttributeAssignment()
+    }
+    let disposer: Maybe<IDisposer>
+    let disposer2: Maybe<IDisposer>
+    if (graphModel) {
+      disposer = onAnyAction(graphModel, action => {
+        if (isSetAttributeIDAction(action)) react()
+      })
+      disposer2 = onAnyAction(graphModel.dataConfiguration, action => {
+        if (["setAttribute", "replaceYAttribute", "removeYAttributeAtIndex"].includes(action.name)) react()
+      })
+    }
+    return () => {
+      disposer?.()
+      disposer2?.()
+    }
   }, [graphController, layout, graphModel, startAnimation])
 
   useEffect(function handlePointsFusedIntoBars() {

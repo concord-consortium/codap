@@ -7,7 +7,7 @@ describe("DataInteractive AttributeLocationHandler", () => {
 
   it("update works as expected", () => {
     const { dataset, c1, c2, a1, a2 } = setupTestDataset()
-    const a4 = dataset.addAttribute({ name: "a4" }, { collection: c1.id })
+    const a4 = dataset.addAttribute({ name: "a4b" }, { collection: c1.id })
     const a5 = dataset.addAttribute({ name: "a5" }, { collection: c2.id })
     const a6 = dataset.addAttribute({ name: "a6" })
     const dataContext = dataset
@@ -29,11 +29,11 @@ describe("DataInteractive AttributeLocationHandler", () => {
 
     // Move attribute within the ungrouped collection
     // Indexes snap to the end of the array
-    expect(dataset.childCollection.attributes[1]!.id).toBe(a6.id)
+    expect(dataset.childCollection.attributes[2]!.id).toBe(a6.id)
     expect(handler.update?.({ attributeLocation: a6, dataContext }, { position: -1 }).success).toBe(true)
     expect(dataset.childCollection.attributes[0]!.id).toBe(a6.id)
     expect(handler.update?.({ attributeLocation: a6, dataContext }, { position: 10 }).success).toBe(true)
-    expect(dataset.childCollection.attributes[1]!.id).toBe(a6.id)
+    expect(dataset.childCollection.attributes[2]!.id).toBe(a6.id)
 
     // Move attribute within a grouped collection
     // If not specified, move the attribute to the far right
@@ -49,7 +49,7 @@ describe("DataInteractive AttributeLocationHandler", () => {
     expect(handler.update?.({ attributeLocation: a6, dataContext }, { collection: c1.name, position: 1 }).success)
       .toBe(true)
     expect(collectionAttributes(c1)?.length).toBe(3)
-    expect(dataset.childCollection.attributes.length).toBe(1)
+    expect(dataset.childCollection.attributes.length).toBe(2)
     expect(collectionAttributes(c1)?.[1]?.id).toBe(a6.id)
     expect(collectionAttributes(c1)?.[2]?.id).toBe(a4.id)
 
