@@ -7,7 +7,7 @@ import { appState } from "../../models/app-state"
 import { createDefaultTileOfType } from "../../models/codap/add-default-content"
 import { INewTileOptions } from "../../models/codap/create-tile"
 import { gDataBroker } from "../../models/data/data-broker"
-import { DataSet, toCanonical } from "../../models/data/data-set"
+import { DataSet } from "../../models/data/data-set"
 import {
   dataContextCountChangedNotification, dataContextDeletedNotification
 } from "../../models/data/data-set-notifications"
