@@ -15,13 +15,13 @@ import globals from "globals"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 const compat = new FlatCompat({
   baseDirectory: __dirname,
   recommendedConfig: js.configs.recommended,
   allConfig: js.configs.all
-});
+})
 
 export default [{
   ignores: ["**/dist/", "**/node_modules/", "src/models/formula/lezer"],
@@ -78,7 +78,7 @@ export default [{
     "@stylistic/block-spacing": ["off"],
     "@stylistic/comma-spacing": ["warn"],
     "@stylistic/eol-last": ["warn"],
-    "@stylistic/func-call-spacing": ["warn"],
+    "@stylistic/function-call-spacing": ["warn"],
     "@stylistic/keyword-spacing": ["warn"],
     "@stylistic/max-len": ["warn", { code: 120, ignoreUrls: true }],
     "@stylistic/no-tabs": "error",
