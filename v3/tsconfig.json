@@ -22,7 +22,7 @@
   },
   "include": [
     "src/**/*",
-    ".eslintrc*.cjs",
+    "eslint.*.mjs",
     // cypress.config.ts will need another pass before being added
     // "*.config.ts",
     "*.config.js",
@@ -30,6 +30,7 @@
   ],
   "exclude": [
     "src/**/*.v2.ts",
-    "*.grammar"
+    "*.grammar",
+    "*.json"
   ]
 }

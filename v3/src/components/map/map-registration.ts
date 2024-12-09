@@ -74,6 +74,7 @@ registerComponentHandler(kV2MapType, {
       const dataset = sharedDataSet.dataSet
       const metadata = getSharedCaseMetadataFromDataset(dataset)
       if (metadata) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const LayerTypes = [kMapPointLayerType, kMapPolygonLayerType] as const
         type LayerType = typeof LayerTypes[number]
         const addLayer = (_type: LayerType, _attributeDescriptions: AttributeDescriptionsMapSnapshot) => {

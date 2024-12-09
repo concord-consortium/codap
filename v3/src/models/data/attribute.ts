@@ -126,28 +126,28 @@ export const Attribute = V2Model.named("Attribute").props({
     // Note that `self.changeCount` is absolutely not necessary here. However, historically, this function used to be
     // a MobX computed property, and `self.changeCount` was used to invalidate the cache. Also, there are tests
     // (and possibly some features?) that depend on MobX reactivity. Hence, this is left here for now.
-    self.changeCount // eslint-disable-line no-unused-expressions
+    self.changeCount // eslint-disable-line @typescript-eslint/no-unused-expressions
     return self.strValues.reduce((prev, current) => current === "" ? ++prev : prev, 0)
   }),
   getNumericCount: cachedFnFactory<number>(() => {
     // Note that `self.changeCount` is absolutely not necessary here. However, historically, this function used to be
     // a MobX computed property, and `self.changeCount` was used to invalidate the cache. Also, there are tests
     // (and possibly some features?) that depend on MobX reactivity. Hence, this is left here for now.
-    self.changeCount // eslint-disable-line no-unused-expressions
+    self.changeCount // eslint-disable-line @typescript-eslint/no-unused-expressions
     return self.numValues.reduce((prev, current) => isFinite(current) ? ++prev : prev, 0)
   }),
   getStrictColorCount: cachedFnFactory<number>(() => {
     // Note that `self.changeCount` is absolutely not necessary here. However, historically, this function used to be
     // a MobX computed property, and `self.changeCount` was used to invalidate the cache. Also, there are tests
     // (and possibly some features?) that depend on MobX reactivity. Hence, this is left here for now.
-    self.changeCount // eslint-disable-line no-unused-expressions
+    self.changeCount // eslint-disable-line @typescript-eslint/no-unused-expressions
     return self.strValues.reduce((prev, current) => parseColor(current) ? ++prev : prev, 0)
   }),
   getDateCount: cachedFnFactory<number>(() => {
     // Note that `self.changeCount` is absolutely not necessary here. However, historically, this function used to be
     // a MobX computed property, and `self.changeCount` was used to invalidate the cache. Also, there are tests
     // (and possibly some features?) that depend on MobX reactivity. Hence, this is left here for now.
-    self.changeCount // eslint-disable-line no-unused-expressions
+    self.changeCount // eslint-disable-line @typescript-eslint/no-unused-expressions
     return self.strValues.reduce((prev, current) => isDateString(current) ? ++prev : prev, 0)
   }),
   getBoundaryCount: cachedFnFactory<number>(() => {
@@ -230,12 +230,12 @@ export const Attribute = V2Model.named("Attribute").props({
 }))
 .views(self => ({
   get length() {
-    self.changeCount  // eslint-disable-line no-unused-expressions
+    self.changeCount  // eslint-disable-line @typescript-eslint/no-unused-expressions
     return self.strValues.length
   },
   get type() {
     if (self.userType) return self.userType
-    self.changeCount  // eslint-disable-line no-unused-expressions
+    self.changeCount  // eslint-disable-line @typescript-eslint/no-unused-expressions
     if (this.length === 0) return
 
     // only infer color if all non-empty values are strict colors

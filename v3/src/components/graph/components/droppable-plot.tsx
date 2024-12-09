@@ -14,7 +14,7 @@ interface IProps {
   onDropAttribute: (place: GraphPlace, dataSet: IDataSet, attrId: string) => void
 }
 
-const _DroppablePlot = ({graphElt, plotElt, onDropAttribute}: IProps) => {
+const DroppablePlotBase = ({graphElt, plotElt, onDropAttribute}: IProps) => {
   const instanceId = useInstanceIdContext()
   const dataConfig = useGraphDataConfigurationContext()
   const isDropAllowed = dataConfig?.placeCanAcceptAttributeIDDrop ?? (() => true)
@@ -49,4 +49,4 @@ const _DroppablePlot = ({graphElt, plotElt, onDropAttribute}: IProps) => {
     />
   )
 }
-export const DroppablePlot = memo(_DroppablePlot)
+export const DroppablePlot = memo(DroppablePlotBase)
