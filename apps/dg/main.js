@@ -313,6 +313,26 @@ DG.main = function main() {
   }
 
   function cfmInit(iCloudFileManager, iViewConfig) {
+    var menu = [
+      { name: "DG.fileMenu.menuItem.importFile".loc(), action: "importDataDialog", },
+      {
+        name: "DG.fileMenu.menuItem.revertTo".loc(),
+        items: [
+          { name: "DG.fileMenu.menuItem.revertToOpened".loc(), action: "revertToLastOpenedDialog", },
+        ],
+      },
+      "separator",
+      { name: "DG.fileMenu.menuItem.saveDocument".loc(), action: "save" },
+      { name: "내보내기", action: "exportFile" },
+      {
+        name: "DG.fileMenu.menuItem.renameDocument".loc(), action: "renameDialog",
+      },
+    ];
+    var isEditMode = Boolean(DG.getQueryParam("is_edit_mode"));
+    if (isEditMode) {
+      menu.splice(0, 0, { name: "DG.fileMenu.menuItem.openDocument".loc(), action: "openFileDialog" });
+    }
+
     var options = {
           autoSaveInterval: 5,
           appName: DG.APPNAME,
@@ -337,19 +357,7 @@ DG.main = function main() {
                 }
               }
             },
-            menu: [
-              { name: 'DG.fileMenu.menuItem.openDocument'.loc(), action: 'openFileDialog' },
-              { name: 'DG.fileMenu.menuItem.importFile'.loc(), action: 'importDataDialog' },
-              {
-                name: 'DG.fileMenu.menuItem.revertTo'.loc(),
-                items: [
-                  { name: 'DG.fileMenu.menuItem.revertToOpened'.loc(), action: 'revertToLastOpenedDialog'},
-                ]
-              },
-              'separator',
-              { name: 'DG.fileMenu.menuItem.saveDocument'.loc(), action: 'save' },
-              { name: 'DG.fileMenu.menuItem.renameDocument'.loc(), action: 'renameDialog' }
-            ],
+            menu: menu
           },
           appSetsWindowTitle: true, // CODAP takes responsibility for the window title
           wrapFileContent: false,
@@ -375,6 +383,7 @@ DG.main = function main() {
               "src": DG.get('exampleListURL'),
               alphabetize: false
             },
+            "localFile",
             "classRails"
           ]
         };
