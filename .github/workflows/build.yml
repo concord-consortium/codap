@@ -1,0 +1,206 @@
+# 폴더 이름을 values 파일에 주입하기 위해서 기존의 build.yml을 수정하였습니다.
+# 원본: tmn-gh-actions/.github/workflows/build_v2.yml (v2.2)
+#
+# 수정 내역
+#  - (신규) Extract Build Hash from Docker Image
+#  - (수정) Set changes: CHANGES 변수에 buildHash 추가
+
+############################################
+
+# v2.1 - 류호선
+#   DOCKER_SECRETS 를 추가하였습니다. (하위 호환성 유지)
+# v2.2 - 류호선
+#   submodules: recursive 추가
+name: Build
+
+on:
+  workflow_call:
+    inputs:
+      # gha
+      runner:
+        required: false
+        type: string
+        default: ubuntu-latest
+      # Common
+      env:
+        required: true
+        type: string
+      target:
+        required: true
+        type: string
+      propertyPath:
+        required: false
+        type: string
+        default: 'image.tag'
+      buildArgs:
+        required: false
+        type: string
+      # interface UpdateTarget = {
+      #   "registry": string;
+      #   "imageName": string;
+      #   "valueFilePath": string[];
+      # }
+      # interface UpdateTargets = {
+      #   "aws": UpdateTarget;
+      #   "ncp": UpdateTarget;
+      # }
+      updateTargets:
+        required: true
+        type: string
+      dockerTarget:
+        required: false
+        type: string
+        description: Docker target. It uses the value of `env` if not specified.
+
+    secrets:
+      AWS_ACCESS_KEY_ID:
+        required: false
+      AWS_SECRET_ACCESS_KEY:
+        required: false
+      NCP_ACCESS_KEY_ID:
+        required: false
+      NCP_SECRET_KEY:
+        required: false
+      MACHINE_TOKEN:
+        required: true
+      DOCKER_SECRETS:
+        required: false
+
+jobs:
+  build:
+    runs-on: ${{ inputs.runner }}
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive # 서브모듈 초기화
+        fetch-depth: 0
+
+    # buildx는 빠른 도커 백엔드입니다. 빌드 속도 개선을 위해 추가했습니다.
+    - name: Set up Docker Buildx
+      id: buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Get current date time
+      id: date
+      run: echo "date=$(TZ='Asia/Seoul' date +'%Y-%m-%dT%H-%M-%S')" >> $GITHUB_OUTPUT
+
+    - name: Set up JSON file
+      id: set-json
+      run: echo '${{ inputs.updateTargets }}' > updateTargets.json
+
+    - name: Check for platform presence
+      id: check-platform
+      run: |
+        CONTAINS_AWS=$(cat updateTargets.json | jq -r 'has("aws")')
+        CONTAINS_NCP=$(cat updateTargets.json | jq -r 'has("ncp")')
+        
+        echo "contains_aws=$CONTAINS_AWS" >> $GITHUB_OUTPUT
+        echo "contains_ncp=$CONTAINS_NCP" >> $GITHUB_OUTPUT
+
+    # AWS 관련 작업
+    - name: Configure AWS credentials
+      if: ${{ steps.check-platform.outputs.contains_aws == 'true' }}
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ap-northeast-2
+
+    - name: Login to Amazon ECR
+      if: ${{ steps.check-platform.outputs.contains_aws == 'true' }}
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
+
+    # NCP 관련 작업
+    - name: Login to NCP Container Registry
+      if: ${{ steps.check-platform.outputs.contains_ncp == 'true' }}
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ fromJSON(inputs.updateTargets).ncp.registry }}
+        username: ${{ secrets.NCP_ACCESS_KEY_ID }}
+        password: ${{ secrets.NCP_SECRET_KEY }}
+        logout: false
+
+    - name: Set tags
+      id: tags
+      run: |
+        TAGS=""
+        for type in $(cat updateTargets.json | jq -r 'keys[]'); do
+          TARGET=$(cat updateTargets.json | jq -r ".$type")
+          if [ "$type" == "aws" ]; then
+            AWS_IMAGE_NAME=$(echo "$TARGET" | jq -r '.imageName')
+            for VALUE_FILE_PATH in $(echo "$TARGET" | jq -r '.valueFilePath[]'); do
+              TAG="${{ steps.login-ecr.outputs.registry }}/${AWS_IMAGE_NAME}:${{ steps.date.outputs.date }}"
+              if [ -n "$TAGS" ]; then
+                TAGS="$TAGS,$TAG"
+              else
+                TAGS="$TAG"
+              fi
+            done
+          elif [ "$type" == "ncp" ]; then
+            NCP_REGISTRY=$(echo "$TARGET" | jq -r '.registry')
+            NCP_IMAGE_NAME=$(echo "$TARGET" | jq -r '.imageName')
+            for VALUE_FILE_PATH in $(echo "$TARGET" | jq -r '.valueFilePath[]'); do
+              TAG="${NCP_REGISTRY}/${NCP_IMAGE_NAME}:${{ steps.date.outputs.date }}"
+              if [ -n "$TAGS" ]; then
+                TAGS="$TAGS,$TAG"
+              else
+                TAGS="$TAG"
+              fi
+            done
+          fi
+        done
+        echo "tags=$TAGS" >> $GITHUB_OUTPUT
+
+    - name: Build and push
+      uses: docker/build-push-action@v5
+      with:
+        push: true
+        tags: ${{ steps.tags.outputs.tags }}
+        secrets: |
+          ${{ secrets.DOCKER_SECRETS }}
+        build-args: ${{ inputs.buildArgs }}
+        target: ${{ inputs.dockerTarget || inputs.env }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+    - name: Extract Build Hash from Docker Image
+      id: extract-build-hash
+      run: |
+        HASH=$(docker run --rm my-app:${{ steps.tags.outputs.tags }} /app/extract-build-hash.sh)
+        echo "hash=$HASH" >> $GITHUB_OUTPUT
+
+    - name: Checkout jce-service-helm Repository
+      uses: actions/checkout@v4
+      with:
+        repository: team-monolith-product/jce-service-helm
+        path: jce-service-helm
+        token: ${{ secrets.MACHINE_TOKEN }}
+        ref: ${{ inputs.target }}
+
+    - name: Set changes
+      id: changes
+      run: |
+        CHANGES="{}"
+        for type in $(cat updateTargets.json | jq -r 'keys[]'); do
+          TARGET=$(cat updateTargets.json | jq -r ".$type")
+          for VALUE_FILE_PATH in $(echo "$TARGET" | jq -r '.valueFilePath[]'); do
+            if [ "$VALUE_FILE_PATH" != "null" ]; then
+              CHANGES=$(echo $CHANGES | jq -c ".\"$VALUE_FILE_PATH\".\"${{ inputs.propertyPath }}\" = \"${{ steps.date.outputs.date }}\"")
+            fi
+          done
+        done
+        CHANGES=$(echo $CHANGES | jq -c 'with_entries(.value += {"buildHash": "${{ steps.extract-build-hash.outputs.hash }}"})')
+        echo "changes=$CHANGES" >> $GITHUB_OUTPUT
+
+    - name: Update Image Version in the related HelmChart value file
+      uses: fjogeleit/yaml-update-action@master
+      with:
+        repository: team-monolith-product/jce-service-helm
+        branch: ${{ inputs.target }}
+        message: 'auto: Update Image Version to ${{ steps.date.outputs.date }}'
+        token: ${{ secrets.MACHINE_TOKEN }}
+        workDir: jce-service-helm
+        changes: ${{ steps.changes.outputs.changes }}

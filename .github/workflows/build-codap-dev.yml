@@ -7,8 +7,7 @@ on:
 jobs:
 
   build:
-    # TODO: main으로 변
-    uses: team-monolith-product/tmn-gh-actions/.github/workflows/build_v2.yml@feature/v2.2
+    uses: team-monolith-product/codap/.github/workflows/build@develop
     with:
       env: dev
       target: develop
