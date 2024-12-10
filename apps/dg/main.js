@@ -721,11 +721,6 @@ DG.main = function main() {
         switch (event.type) {
           case 'connected':
             DG.cfmClient = event.data.client;
-            DG.cfmClient.setProviderOptions("documentStore",
-                                            {appName: DG.APPNAME,
-                                             appVersion: DG.VERSION,
-                                             appBuildNum: DG.BUILD_NUM
-                                            });
             DG.cfmClient._ui.setMenuBarInfo("Version "+DG.VERSION+" ("+DG.BUILD_NUM+")");
 
             // synchronize document dirty state on document change
