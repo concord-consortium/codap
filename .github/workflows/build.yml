@@ -169,7 +169,8 @@ jobs:
     - name: Extract Build Hash from Docker Image
       id: extract-build-hash
       run: |
-        HASH=$(docker run --rm my-app:${{ steps.tags.outputs.tags }} /app/extract-build-hash.sh)
+        TAG=$(echo "${{ steps.tags.outputs.tags }}" | cut -d',' -f1)
+        HASH=$(docker run --rm $TAG app/extract-build-hash.sh)
         echo "hash=$HASH" >> $GITHUB_OUTPUT
 
     - name: Checkout jce-service-helm Repository
