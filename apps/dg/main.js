@@ -313,7 +313,7 @@ DG.main = function main() {
   }
 
   function cfmInit(iCloudFileManager, iViewConfig) {
-    var menu = [
+    var viewModeMenu = [
       { name: "DG.fileMenu.menuItem.importFile".loc(), action: "importDataDialog", },
       {
         name: "DG.fileMenu.menuItem.revertTo".loc(),
@@ -328,10 +328,11 @@ DG.main = function main() {
         name: "DG.fileMenu.menuItem.renameDocument".loc(), action: "renameDialog",
       },
     ];
-    var isEditMode = Boolean(DG.getQueryParam("is_edit_mode"));
-    if (isEditMode) {
-      menu.splice(0, 0, { name: "DG.fileMenu.menuItem.openDocument".loc(), action: "openFileDialog" });
-    }
+    var editModeMenu = [
+      { name: "DG.fileMenu.menuItem.openDocument".loc(), action: "openFileDialog" },
+    ].concat(viewModeMenu);
+    var observeModeMenu = [{ name: "내보내기", action: "exportFile" }];
+    var mode = DG.getQueryParam("mode");
     var disableAutoSave = DG.getQueryParam("autosave") === "false";  
 
     var options = {
@@ -359,7 +360,12 @@ DG.main = function main() {
                 }
               }
             },
-            menu: menu
+            menu: 
+              mode === "edit" 
+                ? editModeMenu 
+                : mode === "observe" 
+                ? observeModeMenu 
+                : viewModeMenu,
           },
           appSetsWindowTitle: true, // CODAP takes responsibility for the window title
           wrapFileContent: false,
