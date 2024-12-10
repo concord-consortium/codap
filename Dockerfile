@@ -71,7 +71,7 @@ FROM bitnami/nginx:1.26.0-debian-12-r1 as dev
 # 빌드된 정적 파일 복사
 COPY --from=builder-dev /app/tmp/build /app/codap
 # 빌드된 정적 파일의 버전 정보를 추출하는 스크립트 복사
-COPY --from=builder-dev --chmod=+x /app/extract-build-hash.sh /app/extract-build-hash.sh
+COPY --from=builder-dev --chmod=0755 /app/extract-build-hash.sh /app/extract-build-hash.sh
 
 # Nginx 포트 노출
 EXPOSE 80
@@ -82,7 +82,7 @@ FROM bitnami/nginx:1.26.0-debian-12-r1 as prd
 # 빌드된 정적 파일 복사
 COPY --from=builder-prd /app/tmp/build /app/codap
 # 빌드된 정적 파일의 버전 정보를 추출하는 스크립트 복사
-COPY --from=builder-dev --chmod=+x /app/extract-build-hash.sh /app/extract-build-hash.sh
+COPY --from=builder-dev --chmod=0755 /app/extract-build-hash.sh /app/extract-build-hash.sh
 
 # Nginx 포트 노출
 EXPOSE 80
