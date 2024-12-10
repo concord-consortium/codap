@@ -27,7 +27,7 @@ export function v2GraphImporter({v2Component, v2Document, sharedModelManager, in
       pointColor, strokeColor, pointSizeMultiplier,
       strokeSameAsFill, isTransparent,
       plotBackgroundImageLockInfo,
-  /* The following are present in the componentStorage but not used in the V3 content model (yet):
+  /* TODO_V2_IMPORT: The following are present in the componentStorage but not used in the V3 content model (yet):
       displayOnlySelected, legendRole, legendAttributeType, numberOfLegendQuantiles,
       legendQuantilesAreLocked, plotBackgroundImage, transparency, strokeTransparency,
       plotBackgroundOpacity,
@@ -65,6 +65,8 @@ export function v2GraphImporter({v2Component, v2Document, sharedModelManager, in
         const v2AttrId = aLink.id,
           attribute = v2Document.getV3Attribute(v2AttrId),
           v3AttrId = attribute?.id ?? '',
+          // This approach of dynamic key computation bypasses the typing in ICodapV2GraphStorage,
+          // there might be a typescript approach which fixes this.
           attrRoleKey = `${attrKey}Role` as keyof ICodapV2GraphStorage,
           v2Role = v2Component.componentStorage[attrRoleKey],
           attrTypeKey = `${attrKey}AttributeType` as keyof ICodapV2GraphStorage,

@@ -61,6 +61,6 @@ describe("Calculator registration", () => {
     })!
     const output = exportV2Component({ tile, row: freeTileRow })
     expect(output?.type).toBe(kV2CalculatorDGType)
-    expect(output?.componentStorage.name).toBe(calculatorContentInfo?.defaultName?.())
+    expect(output?.componentStorage?.name).toBe(calculatorContentInfo?.defaultName?.())
   })
 })
