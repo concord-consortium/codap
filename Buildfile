@@ -29,7 +29,7 @@ end
 mode :debug do
   config :dg ,
          :google_analytics_id => nil,
-         :preferred_language => 'ko' # language for sc-server can be changed here
+         :preferred_language => 'en' # language for sc-server can be changed here
 end
 
 # proxy for local dev.
@@ -43,4 +43,4 @@ end
 # with the web location of your developer instance of the codap extensions directory
 # see developer notes: https://github.com/concord-consortium/codap/wiki/Developer-Guide
 #proxy '/extn', :to => 'localhost:80', :url => '/some/path'
-proxy '/extn', :to => 'codap-server.concord.org:80', :url => '/releases/latest/extn', :inactivity_timeout => 65
+proxy '/extn', :to => 'codap-server.concord.org:80', :url => '/releases/latest/extn'
