@@ -688,12 +688,12 @@ export interface ICodapV2WebViewComponent extends ICodapV2BaseComponent {
 export const isV2WebViewComponent =
   (component: ICodapV2BaseComponent): component is ICodapV2WebViewComponent => component.type === "DG.WebView"
 
-export interface ICodapGameViewComponent extends ICodapV2BaseComponent {
+export interface ICodapV2GameViewComponent extends ICodapV2BaseComponent {
   type: "DG.GameView"
   componentStorage: ICodapV2GameViewStorage
 }
 export const isV2GameViewComponent =
-  (component: ICodapV2BaseComponent): component is ICodapGameViewComponent => component.type === "DG.GameView"
+  (component: ICodapV2BaseComponent): component is ICodapV2GameViewComponent => component.type === "DG.GameView"
 
 export interface ICodapV2GraphComponent extends ICodapV2BaseComponent {
   type: "DG.GraphView"
@@ -726,7 +726,7 @@ export const isV2TextComponent = (component: ICodapV2BaseComponent): component i
 export type CodapV2Component =
   ICodapV2CalculatorComponent |
   ICodapV2CaseCardComponent|
-  ICodapGameViewComponent |
+  ICodapV2GameViewComponent |
   ICodapV2GraphComponent |
   ICodapV2GuideComponent |
   ICodapV2ImageComponent |
