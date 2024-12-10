@@ -11,16 +11,17 @@ jobs:
     with:
       env: prd
       target: main
+      propertyPath: nginx.image.tag
       updateTargets: |
         {
           "aws": {
             "imageName": "jce-ecr-codap-all-prd",
-            "valueFilePath": ["codap/prd.yaml"]
+            "valueFilePath": ["codap-nginx/prd.yaml"]
           },
           "ncp": {
             "registry": "ped-cr-all-prd.ncr.gov-ntruss.com",
             "imageName": "jce-codap",
-            "valueFilePath": ["codap/ncloud-prd.yaml"]
+            "valueFilePath": ["codap-nginx/ncloud-prd.yaml"]
           }
         }
 

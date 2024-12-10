@@ -11,16 +11,17 @@ jobs:
     with:
       env: dev
       target: develop
+      propertyPath: nginx.image.tag
       updateTargets: |
         {
           "aws": {
             "imageName": "jce-ecr-codap-all-dev",
-            "valueFilePath": ["codap/dev.yaml"]
+            "valueFilePath": ["codap-nginx/dev.yaml"]
           },
           "ncp": {
             "registry": "ped-cr-all-dev.ncr.gov-ntruss.com",
             "imageName": "jce-codap",
-            "valueFilePath": ["codap/ncloud.yaml"]
+            "valueFilePath": ["codap-nginx/ncloud.yaml"]
           }
         }
 
