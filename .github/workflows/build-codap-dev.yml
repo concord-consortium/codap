@@ -7,7 +7,7 @@ on:
 jobs:
 
   build:
-    uses: team-monolith-product/codap/.github/workflows/build@develop
+    uses: team-monolith-product/codap/.github/workflows/build.yml@develop
     with:
       env: dev
       target: develop

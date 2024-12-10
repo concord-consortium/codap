@@ -7,7 +7,7 @@ on:
 jobs:
 
   build:
-    uses: team-monolith-product/codap/.github/workflows/build@master
+    uses: team-monolith-product/codap/.github/workflows/build.yml@master
     with:
       env: prd
       target: main
