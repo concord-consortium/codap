@@ -744,14 +744,19 @@ DG.main = function main() {
             break;
 
           case "ready":
+            /*
             if ( SC.empty(DG.startingDocUrl)) {
               cfmShowUserEntryView();
             }
+            */
             DG.splash.hideSplash();
             if (event.state.metadata && event.state.metadata.name) {
               DG.currDocumentController().set('documentName',
-                  normalizeDocumentName(event.state.metadata.name));
-            }
+                normalizeDocumentName(event.state.metadata.name));
+              } else {
+                // 열린 프로젝트가 없는 경우, 항상 새 프로젝트로 시작합니다.
+                DG.cfmClient.newFile();
+              }
             break;
 
           case "closedFile":
