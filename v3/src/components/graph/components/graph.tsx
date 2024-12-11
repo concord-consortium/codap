@@ -233,24 +233,17 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
 
   // respond to assignment of new attribute ID
   useEffect(function handleNewAttributeID() {
-    const react = () => {
-      startAnimation()
-      graphController?.handleAttributeAssignment()
-    }
     let disposer: Maybe<IDisposer>
-    let disposer2: Maybe<IDisposer>
     if (graphModel) {
       disposer = onAnyAction(graphModel, action => {
-        if (isSetAttributeIDAction(action)) react()
-      })
-      disposer2 = onAnyAction(graphModel.dataConfiguration, action => {
-        if (["setAttribute", "replaceYAttribute", "removeYAttributeAtIndex"].includes(action.name)) react()
+        const dataConfigActions = ["setAttribute", "replaceYAttribute", "removeYAttributeAtIndex"]
+        if (dataConfigActions.includes(action.name) || isSetAttributeIDAction(action)) {
+          startAnimation()
+          graphController?.handleAttributeAssignment()
+        }
       })
     }
-    return () => {
-      disposer?.()
-      disposer2?.()
-    }
+    return () => disposer?.()
   }, [graphController, layout, graphModel, startAnimation])
 
   useEffect(function handlePointsFusedIntoBars() {

@@ -264,6 +264,8 @@ export const graphComponentHandler: DIComponentHandler = {
     }
 
     // Ensure that all specified attributes are legal for their roles before we actually update anything
+    // NOTE: This isn't perfect. It compares each new attribute assignment to the current configuration, but
+    // other attributes changed at the same time could make an assignment illegal.
     const updatedAttributes: Record<string, IAttribute | null> = {}
     for (const attributeType in attributeInfo) {
       const attributePackage = attributeInfo[attributeType]
