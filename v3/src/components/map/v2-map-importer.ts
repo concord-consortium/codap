@@ -85,7 +85,7 @@ export function v2MapImporter({v2Component, v2Document, insertTile}: V2TileImpor
           // the array in a "modern" v2 document coming from `mapModelStorage.layerModels[]._links_.hiddenCases`
           // looks like { type: "DG.Case", id: number }
           // The MST type expects an array of strings.
-          // There are 296 instances where this a non-empty array in cfm-shared
+          // There are 296 instances where this is a non-empty array in cfm-shared
           // hiddenCases,
         },
         isVisible,

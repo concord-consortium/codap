@@ -725,7 +725,7 @@ interface ICodapV2MapLayerBaseStorage {
     context: IGuidLink<"DG.DataContextRecord">
     // TODO_V2_IMPORT hiddenCases are not imported
     // this array was passed right into MST where it is typed as a string array
-    // There are 296 instances where this a non-empty array in cfm-shared
+    // There are 296 instances where this is a non-empty array in cfm-shared
     hiddenCases?: IGuidLink<"DG.Case">[],
     legendColl?: IGuidLink<"DG.Collection">,
     // We sometimes see an array of links here
