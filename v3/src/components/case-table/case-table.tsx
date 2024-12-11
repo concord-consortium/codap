@@ -13,7 +13,6 @@ import { createCollectionNotification, deleteCollectionNotification } from "../.
 import { INotification } from "../../models/history/apply-model-change"
 import { mstReaction } from "../../utilities/mst-reaction"
 import { prf } from "../../utilities/profiler"
-import { t } from "../../utilities/translation/translate"
 import { excludeDragOverlayRegEx } from "../case-tile-common/case-tile-types"
 import { AttributeHeaderDividerContext } from "../case-tile-common/use-attribute-header-divider-context"
 import { AttributeDragOverlay } from "../drag-drop/attribute-drag-overlay"
@@ -152,17 +151,8 @@ export const CaseTable = observer(function CaseTable({ setNodeRef }: IProps) {
             })}
           </AttributeHeaderDividerContext.Provider>
           <AttributeDragOverlay activeDragId={getOverlayDragId(active, instanceId, excludeDragOverlayRegEx)} />
-          <NoCasesMessage />
         </div>
       </div>
     )
   })
-})
-
-// temporary until we have an input row
-const NoCasesMessage = observer(function NoCasesMessage() {
-  const data = useDataSetContext()
-  return !data?.items.length
-          ? <div className="no-cases-message" data-testid="no-cases-message">{t("V3.caseTable.noCases")}</div>
-          : null
 })

@@ -128,7 +128,7 @@ describe("DataSet conversions", () => {
     expect(data.attributesMap.size).toBe(3)
     expect(data.attributes.length).toBe(3)
     expect(data._itemIds.length).toBe(1)
-    expect(data.itemIds.length).toBe(1)
+    expect(data.itemIds.length).toBe(0)
     expect(data.setAsideItemIds.length).toBe(1)
   })
 })

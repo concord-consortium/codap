@@ -228,6 +228,7 @@ context("codap plugins", () => {
     // New Attribute button in ruler menu
     table.getRulerButton().click()
     table.selectItemFromRulerMenu("New Attribute")
+    c.getComponentTile("table").click()
     webView.confirmAPITesterResponseContains(/"operation":\s"createAttributes/)
     webView.clearAPITesterResponses()
 
@@ -289,11 +290,16 @@ context("codap plugins", () => {
     cy.log("Broadcast notifications involving dragging")
     const url = `${Cypress.config("index")}?mouseSensor`
     cy.visit(url)
-    table.createNewTableFromToolShelf()
-    table.addNewAttribute()
-    table.addNewAttribute()
     openAPITester()
     webView.toggleAPITesterFilter()
+    table.createNewTableFromToolShelf()
+    cy.wait(1000)
+    c.getResizeControl("table")
+    .realMouseDown({ position: "center" })
+    .realMouseMove(350, 0)
+    .realMouseUp()
+    table.addNewAttribute()
+    table.addNewAttribute()
 
     cy.log("Broadcast createCollection notifications")
     table.moveAttributeToParent("newAttr2", "newCollection")
@@ -326,19 +332,24 @@ context("codap plugins", () => {
     webView.clearAPITesterResponses()
     // TODO Check for dragleave notification when dragging to plugin then out of plugin
 
+    // For tests involving drag and drop of components with attribute "Attribute Name",
+    // we use a different drag and drop code because the cy.command version includes a
+    // "contains" expectation of text "Attribute Name", which it cannot find because it is over
+    // two spans. This code omits the "contains" expectation because the selector already has enough
+    // information without needing to find a specific text in a span
     cy.log("Broadcast deleteCollection notifications")
     // Move the last attribute from the ungrouped collection to a new collection
-    table.moveAttributeToParent("AttributeName", "newCollection")
+    table.moveTwoLineAttributeNameToTarget("Attribute Name", "newCollection")
     webView.confirmAPITesterResponseContains(/"operation":\s"deleteCollection/)
     webView.confirmAPITesterResponseContains(/"operation":\s"createCollection/)
     webView.clearAPITesterResponses()
     // Move the last attribute from a grouped collection to a new collection
-    table.moveAttributeToParent("AttributeName", "newCollection")
+    table.moveTwoLineAttributeNameToTarget("Attribute Name", "newCollection")
     webView.confirmAPITesterResponseContains(/"operation":\s"deleteCollection/)
     webView.confirmAPITesterResponseContains(/"operation":\s"createCollection/)
     webView.clearAPITesterResponses()
     // Move the last attribute from a grouped collection to an existing collection
-    table.moveAttributeToParent("AttributeName", "headerDivider", 2)
+    table.moveTwoLineAttributeNameToTarget("Attribute Name", "headerDivider", 2)
     webView.confirmAPITesterResponseContains(/"operation":\s"moveAttribute/)
     webView.confirmAPITesterResponseContains(/"operation":\s"deleteCollection/)
     webView.clearAPITesterResponses()

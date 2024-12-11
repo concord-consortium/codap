@@ -13,7 +13,7 @@ import { ITileModel } from "../tiles/tile-model"
 import { getPositionOfNewComponent } from "../../utilities/view-utils"
 import { t } from "../../utilities/translation/translate"
 import { createTileSnapshotOfType, INewTileOptions } from "../codap/create-tile"
-import { DataSet, IDataSet, IDataSetSnapshot, toCanonical } from "../data/data-set"
+import { DataSet, IDataSet, IDataSetSnapshot } from "../data/data-set"
 import { gDataBroker } from "../data/data-broker"
 import { applyModelChange } from "../history/apply-model-change"
 import { SharedCaseMetadata } from "../shared/shared-case-metadata"
@@ -212,10 +212,8 @@ export const DocumentContentModel = BaseDocumentContentModel
   .actions(self => ({
     createStarterDataset() {
       const attributeName = t("DG.AppController.createDataSet.initialAttribute")
-      const newData = [{[attributeName]: ""}]
       const ds = DataSet.create({ name: t("DG.AppController.createDataSet.name")})
       ds.addAttribute({ name: attributeName })
-      ds.addCases(toCanonical(ds, newData))
       gDataBroker.addDataSet(ds)
       // Add dataset to the formula manager
       getFormulaManager(self)?.addDataSet(ds)

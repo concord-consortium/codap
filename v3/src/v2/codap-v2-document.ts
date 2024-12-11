@@ -2,7 +2,7 @@ import { SetRequired } from "type-fest"
 import { IAttribute } from "../models/data/attribute"
 import { ICollectionModel, ICollectionModelSnapshot } from "../models/data/collection"
 import { IDataSet, toCanonical } from "../models/data/data-set"
-import { ICaseCreation } from "../models/data/data-set-types"
+import { ICaseCreation, IItem } from "../models/data/data-set-types"
 import { v2NameTitleToV3Title } from "../models/data/v2-model"
 import { IDocumentMetadata } from "../models/document/document-metadata"
 import { ISharedCaseMetadata, SharedCaseMetadata } from "../models/shared/shared-case-metadata"
@@ -11,8 +11,8 @@ import {
   kItemIdPrefix, toV3AttrId, toV3CaseId, toV3CollectionId, toV3DataSetId, v3Id
 } from "../utilities/codap-utils"
 import {
-  CodapV2Component, ICodapV2Attribute, ICodapV2Case, ICodapV2Collection, ICodapV2DataContext, ICodapV2DocumentJson,
-  v3TypeFromV2TypeString
+  CodapV2Component, CodapV2Context, ICodapV2Attribute, ICodapV2Case, ICodapV2Collection, ICodapV2DocumentJson,
+  isV2ExternalContext, isV2InternalContext, ICodapV2SetAsideItem, v3TypeFromV2TypeString
 } from "./codap-v2-types"
 
 interface V2CaseIdInfo {
@@ -48,6 +48,10 @@ export class CodapV2Document {
 
   get contexts() {
     return this.document.contexts
+  }
+
+  get dataContexts() {
+    return this.document.contexts.filter(isV2InternalContext)
   }
 
   get components() {
@@ -98,8 +102,11 @@ export class CodapV2Document {
     })
   }
 
-  registerContexts(contexts?: ICodapV2DataContext[]) {
+  registerContexts(contexts?: CodapV2Context[]) {
     contexts?.forEach(context => {
+      // TODO_V2_IMPORT: external contexts are not imported
+      // There are 75 cases of external contexts in cfm-shared
+      if (isV2ExternalContext(context)) return
       const { guid, type = "DG.DataContext", document, name = "", title, collections = [] } = context
       if (document && this.guidMap.get(document)?.type !== "DG.Document") {
         console.warn("CodapV2Document.registerContexts: context with invalid document guid:", context.document)
@@ -112,6 +119,7 @@ export class CodapV2Document {
       this.caseMetadataMap.set(guid, caseMetadata)
 
       this.registerCollections(sharedDataSet.dataSet, caseMetadata, collections)
+      this.registerSetAsideItems(sharedDataSet.dataSet, context.setAsideItems)
     })
   }
 
@@ -196,10 +204,16 @@ export class CodapV2Document {
       this.guidMap.set(guid, { type: "DG.Case", object: _case })
       // for level 0 (child-most collection), add items with their item ids and stash case ids
       if (level === 0) {
-        let itemValues = { __id__: itemID, ...toCanonical(data, values) }
+        // FIXME: values can include objects not just the primitives defined by IValueType
+        // FIXME: should the itemID overwrite any __id__ returned by toCanonical?
+        let itemValues = { ...toCanonical(data, values as any), __id__: itemID }
         // look up parent case attributes and add them to caseValues
         for (let parentCase = this.getParentCase(_case); parentCase; parentCase = this.getParentCase(parentCase)) {
-          itemValues = { ...(parentCase.values ? toCanonical(data, parentCase.values) : undefined), ...itemValues }
+          itemValues = {
+            // FIXME: see above
+            ...(parentCase.values ? toCanonical(data, parentCase.values as any) : undefined),
+            ...itemValues
+          }
         }
         itemsToAdd.push(itemValues)
         if (itemID) {
@@ -221,6 +235,19 @@ export class CodapV2Document {
     })
     if (itemsToAdd.length) {
       data.addCases(itemsToAdd)
+    }
+  }
+
+  registerSetAsideItems(data: IDataSet, setAsideItems?: ICodapV2SetAsideItem[]) {
+    const itemsToAdd: IItem[] = []
+    setAsideItems?.forEach(item => {
+      // some v2 documents don't store item ids, so we generate them if necessary
+      const { id = v3Id(kItemIdPrefix), values } = item
+      itemsToAdd.push({ __id__: id, ...toCanonical(data, values) })
+    })
+    if (itemsToAdd.length) {
+      data.addCases(itemsToAdd)
+      data.hideCasesOrItems(itemsToAdd.map(item => item.__id__))
     }
   }
 }

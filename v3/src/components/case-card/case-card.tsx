@@ -74,7 +74,7 @@ export const CaseCard = observer(function CaseCard({ setNodeRef }: IProps) {
   data.collections.map(({ name }) => name)
   data.attributes.map(({ name }) => name)
   data.items.map(({ __id__ }) => __id__)
-  data.selectionChanges   // eslint-disable-line no-unused-expressions
+  data.selectionChanges   // eslint-disable-line @typescript-eslint/no-unused-expressions
 
   return prf.measure("CaseCard.render", () => {
     // const context = new DGDataContext(data)

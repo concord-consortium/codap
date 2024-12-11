@@ -43,7 +43,9 @@ module.exports = (env, argv) => {
     // so we don't need to run it again as part of the webpack build
     webpackPlugins.push(new ESLintPlugin({
       cacheLocation: path.resolve(__dirname, `${CACHE_DIRECTORY}/eslint-webpack-plugin/.eslintcache`),
+      configType: 'flat',
       extensions: ['ts', 'tsx', 'js', 'jsx'],
+      lintDirtyModulesOnly: true
     }))
   }
   if (!process.env.CODE_COVERAGE) {

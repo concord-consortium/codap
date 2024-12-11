@@ -273,7 +273,7 @@ export const GraphContentModel = DataDisplayContentModel
 
       // update adornments when case data changes
       addDisposer(self, mstAutorun(function updateAdornments() {
-        self.dataConfiguration.casesChangeCount // eslint-disable-line no-unused-expressions
+        self.dataConfiguration.casesChangeCount // eslint-disable-line @typescript-eslint/no-unused-expressions
         const updateCategoriesOptions = self.getUpdateCategoriesOptions()
         self.adornmentsStore.updateAdornments(updateCategoriesOptions)
       }, {name: "GraphContentModel.afterAttachToDocument.updateAdornments"}, self.dataConfiguration))

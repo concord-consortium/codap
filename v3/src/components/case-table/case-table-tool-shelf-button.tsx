@@ -7,7 +7,7 @@ import { appState } from "../../models/app-state"
 import { createDefaultTileOfType } from "../../models/codap/add-default-content"
 import { INewTileOptions } from "../../models/codap/create-tile"
 import { gDataBroker } from "../../models/data/data-broker"
-import { DataSet, toCanonical } from "../../models/data/data-set"
+import { DataSet } from "../../models/data/data-set"
 import {
   dataContextCountChangedNotification, dataContextDeletedNotification
 } from "../../models/data/data-set-notifications"
@@ -40,10 +40,8 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
 
   const handleCreateNewCaseTable = () => {
     document.applyModelChange(() => {
-      const newData = [{ AttributeName: "" }]
       const ds = DataSet.create({ name: t("DG.AppController.createDataSet.name")})
       ds.addAttribute({ name: t("DG.AppController.createDataSet.initialAttribute") })
-      ds.addCases(toCanonical(ds, newData))
       const options: INewTileOptions = { animateCreation: true }
       const tile = createDefaultTileOfType(kCaseTableTileType, options)
       if (!tile) return

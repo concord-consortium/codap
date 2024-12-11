@@ -46,7 +46,7 @@ export function importV2Document(v2Document: CodapV2Document) {
             layout: { left = 0, top = 0, width, height: v2Height, isVisible, zIndex }, savedHeight
           } = v2Component
           const isHidden = isVisible === false
-          const v2Minimized = (!!savedHeight && savedHeight >= v2Height) || undefined
+          const v2Minimized = (!!savedHeight && v2Height != null && savedHeight >= v2Height) || undefined
           const isMinimized = v2Minimized && !isHidden
           const height = savedHeight && v2Minimized ? savedHeight : v2Height
           // only apply imported width and height to resizable tiles
