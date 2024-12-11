@@ -1,7 +1,7 @@
 import {ITileModelSnapshotIn} from "../../models/tiles/tile-model"
 import {toV3Id} from "../../utilities/codap-utils"
 import {V2TileImportArgs} from "../../v2/codap-v2-tile-importers"
-import {ICodapV2GraphStorage, IGuidLink, isV2GraphComponent, v3TypeFromV2TypeIndex} from "../../v2/codap-v2-types"
+import {IGuidLink, isV2GraphComponent, v3TypeFromV2TypeIndex} from "../../v2/codap-v2-types"
 import {GraphAttrRole, PrimaryAttrRole, axisPlaceToAttrRole} from "../data-display/data-display-types"
 import {kGraphIdPrefix, kGraphTileType} from "./graph-defs"
 import {PlotType} from "./graphing-types"
@@ -15,13 +15,13 @@ import {IAxisModelSnapshotUnion} from "../axis/models/axis-model"
 import {v2AdornmentImporter} from "./adornments/v2-adornment-importer"
 import {defaultBackgroundColor} from "../../utilities/color-utils"
 
-const attrKeys = ["x", "y", "y2", "legend", "top", "right"] as const;
-type AttrKey = typeof attrKeys[number];
+const attrKeys = ["x", "y", "y2", "legend", "top", "right"] as const
+type AttrKey = typeof attrKeys[number]
 function isAttrKey(key: string | undefined): key is AttrKey {
   // attrKeys is made a more generic readonly string[] so we can
   // call includes with any string
   if (!key) return false
-  return (attrKeys as readonly string[]).includes(key);
+  return (attrKeys as readonly string[]).includes(key)
 }
 
 const v2GraphPlaces = ["x", "y", "y2", "top", "right"] as const
