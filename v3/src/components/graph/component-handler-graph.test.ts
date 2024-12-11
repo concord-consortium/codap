@@ -205,35 +205,35 @@ describe("DataInteractive ComponentHandler Graph", () => {
       expect(numberToggleLastMode).toBe(content.showOnlyLastCase)
 
       const captionAttributeId = dataConfiguration.attributeDescriptionForRole("caption")!.attributeID
-      expect(captionAttributeID).toBe(captionAttributeId)
+      expect(captionAttributeID).toBe(toV2Id(captionAttributeId))
       expect(captionAttributeName).toBe(graphDataset.getAttribute(captionAttributeId)?.name)
 
       const legendAttributeId = dataConfiguration.attributeDescriptionForRole("legend")!.attributeID
-      expect(legendAttributeID).toBe(legendAttributeId)
+      expect(legendAttributeID).toBe(toV2Id(legendAttributeId))
       expect(legendAttributeName).toBe(graphDataset.getAttribute(legendAttributeId)?.name)
 
       const rightSplitId = dataConfiguration.attributeDescriptionForRole("rightSplit")!.attributeID
-      expect(rightSplitAttributeID).toBe(rightSplitId)
+      expect(rightSplitAttributeID).toBe(toV2Id(rightSplitId))
       expect(rightSplitAttributeName).toBe(graphDataset.getAttribute(rightSplitId)?.name)
 
       const topSplitId = dataConfiguration.attributeDescriptionForRole("topSplit")!.attributeID
-      expect(topSplitAttributeID).toBe(topSplitId)
+      expect(topSplitAttributeID).toBe(toV2Id(topSplitId))
       expect(topSplitAttributeName).toBe(graphDataset.getAttribute(topSplitId)?.name)
 
       const xAttributeId = dataConfiguration.attributeDescriptionForRole("x")!.attributeID
-      expect(xAttributeID).toBe(xAttributeId)
+      expect(xAttributeID).toBe(toV2Id(xAttributeId))
       expect(xAttributeName).toBe(graphDataset.getAttribute(xAttributeId)?.name)
       expect(xLowerBound).toBe(xAxis.min)
       expect(xUpperBound).toBe(xAxis.max)
 
       const yAttributeId = dataConfiguration.attributeDescriptionForRole("y")!.attributeID
-      expect(yAttributeID).toBe(yAttributeId)
+      expect(yAttributeID).toBe(toV2Id(yAttributeId))
       expect(yAttributeName).toBe(graphDataset.getAttribute(yAttributeId)?.name)
       expect(yLowerBound).toBe(yAxis.min)
       expect(yUpperBound).toBe(yAxis.max)
 
       const y2AttributeId = dataConfiguration.attributeDescriptionForRole("rightNumeric")!.attributeID
-      expect(y2AttributeID).toBe(y2AttributeId)
+      expect(y2AttributeID).toBe(toV2Id(y2AttributeId))
       expect(y2AttributeName).toBe(graphDataset.getAttribute(y2AttributeId)?.name)
       expect(y2LowerBound).toBe(y2Axis.min)
       expect(y2UpperBound).toBe(y2Axis.max)
