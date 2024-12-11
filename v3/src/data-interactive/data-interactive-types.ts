@@ -1,15 +1,16 @@
 import { RequireAtLeastOne } from "type-fest"
+import { LoggableValue } from "../lib/log-message"
 import { IAttribute } from "../models/data/attribute"
-import { ICodapV2Attribute, ICodapV2Collection, ICodapV2DataContext } from "../v2/codap-v2-types"
+import { IValueType } from "../models/data/attribute-types"
+import { ICollectionLabels, ICollectionModel } from "../models/data/collection"
 import { IDataSet } from "../models/data/data-set"
 import { ICase, ICaseID } from "../models/data/data-set-types"
 import { IGlobalValue } from "../models/global/global-value"
 import { ITileModel } from "../models/tiles/tile-model"
-import { ICollectionLabels, ICollectionModel } from "../models/data/collection"
+import { ICodapV2Attribute, ICodapV2Collection, ICodapV2DataContext } from "../v2/codap-v2-types"
 import { V2SpecificComponent } from "./data-interactive-component-types"
-import { LoggableValue } from "../lib/log-message"
 
-export type DICaseValue = string | number | boolean | Date | undefined
+export type DICaseValue = IValueType
 export type DICaseValues = Record<string, DICaseValue>
 export interface DIFullCase {
   children?: number[]

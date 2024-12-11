@@ -1,4 +1,5 @@
-import { IAttribute, isAttributeType } from "../../models/data/attribute"
+import { IAttribute } from "../../models/data/attribute"
+import { isAttributeType } from "../../models/data/attribute-types"
 import { ICollectionModel } from "../../models/data/collection"
 import { IDataSet } from "../../models/data/data-set"
 import { IAddCollectionOptions } from "../../models/data/data-set-types"
