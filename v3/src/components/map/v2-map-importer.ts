@@ -36,7 +36,7 @@ export function v2MapImporter({v2Component, v2Document, insertTile}: V2TileImpor
     // Pull out stuff from _links_ and decide if it's a point layer or polygon layer
     const contextId = v2LayerModel._links_.context.id,
       _attributeDescriptions: Partial<Record<AttrRole, IAttributeDescriptionSnapshot>> = {},
-      hiddenCases = v2LayerModel._links_.hiddenCases,
+      // hiddenCases = v2LayerModel._links_.hiddenCases,
       // legendCollectionId = v2LayerModel._links_.legendColl?.id,
       v2LegendAttribute = Array.isArray(v2LayerModel._links_.legendAttr)
         ? v2LayerModel._links_.legendAttr[0] : v2LayerModel._links_.legendAttr,
@@ -81,7 +81,12 @@ export function v2MapImporter({v2Component, v2Document, insertTile}: V2TileImpor
           dataset: data?.dataSet.id,
           metadata: metadata?.id,
           _attributeDescriptions,
-          hiddenCases,
+          // TODO_V2_IMPORT hiddenCases are not imported
+          // the array in a "modern" v2 document coming from `mapModelStorage.layerModels[]._links_.hiddenCases`
+          // looks like { type: "DG.Case", id: number }
+          // The MST type expects an array of strings.
+          // There are 296 instances where this a non-empty array in cfm-shared
+          // hiddenCases,
         },
         isVisible,
         displayItemDescription: {
