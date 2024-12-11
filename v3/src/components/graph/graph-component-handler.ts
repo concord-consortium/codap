@@ -259,7 +259,8 @@ export const graphComponentHandler: DIComponentHandler = {
 
     const {
       dataContext: _dataContext, enableNumberToggle: showParentToggles, numberToggleLastMode: showOnlyLastCase,
-      xLowerBound, xUpperBound, yAttributeID, yAttributeName, yLowerBound, yUpperBound, y2LowerBound, y2UpperBound
+      xLowerBound, xUpperBound, yAttributeID, yAttributeIDs, yAttributeName, yAttributeNames,
+      yLowerBound, yUpperBound, y2LowerBound, y2UpperBound
     } = values as V2GetGraph
     const attributeInfo = getAttributeInfo(values)
 
@@ -323,7 +324,15 @@ export const graphComponentHandler: DIComponentHandler = {
 
     // Any attribute can be put on the y axis, so we don't check to make sure the attribute is legal first
     // We don't use dataConfiguration.setAttribute() to make the change because that clears additional y attributes
-    if (yAttributeID !== undefined) {
+    if (yAttributeIDs != null) {
+      content.dataConfiguration.replaceYAttributes(yAttributeIDs.map(id => ({ attributeID: toV3AttrId(id) })))
+    } else if (yAttributeNames != null) {
+      const descriptions = yAttributeNames.map(name => {
+        const attribute = dataSet?.getAttributeByName(name)
+        if (attribute) return { attributeID: attribute.id }
+      }).filter(desc => !!desc)
+      content.dataConfiguration.replaceYAttributes(descriptions)
+    } else if (yAttributeID !== undefined) {
       if (yAttributeID) {
         content.dataConfiguration.replaceYAttribute({ attributeID: toV3AttrId(yAttributeID) }, 0)
       } else {

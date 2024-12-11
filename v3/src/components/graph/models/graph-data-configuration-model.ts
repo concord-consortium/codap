@@ -646,6 +646,12 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       if (self._yAttributeDescriptions[plotNumber]) self.removeYAttributeAtIndex(plotNumber)
       if (desc) self.addYAttribute(desc, plotNumber)
     },
+    replaceYAttributes(descriptions: IAttributeDescriptionSnapshot[]) {
+      self._yAttributeDescriptions.clear()
+      descriptions.forEach(description => {
+        self.addYAttribute(description)
+      })
+    },
     removeYAttributeWithID(id: string) {
       const index = self._yAttributeDescriptions.findIndex((aDesc) => aDesc.attributeID === id)
       self.removeYAttributeAtIndex(index)
