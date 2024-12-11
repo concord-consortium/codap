@@ -72,7 +72,7 @@ export const graphComponentHandler: DIComponentHandler = {
   create({ values }) {
     const {
       dataContext: _dataContext, enableNumberToggle: showParentToggles, numberToggleLastMode: showOnlyLastCase,
-      yAttributeID, yAttributeName,
+      yAttributeID, yAttributeIDs, yAttributeName, yAttributeNames
     } = values as V2Graph
     const attributeInfo = getAttributeInfo(values)
 
@@ -100,15 +100,27 @@ export const graphComponentHandler: DIComponentHandler = {
             }
           }
 
-          let yAttribute: Maybe<IAttribute>
-          if (yAttributeID != null) {
-            yAttribute = dataset.getAttribute(toV3AttrId(yAttributeID))
-          }
-          if (!yAttribute && yAttributeName != null) {
-            yAttribute = dataset.getAttributeByName(yAttributeName)
-          }
-          if (yAttribute) {
-            _yAttributeDescriptions.push({ attributeID: yAttribute.id, type: yAttribute.type })
+          if (yAttributeIDs) {
+            yAttributeIDs.forEach(id => {
+              const attribute = dataset.getAttribute(toV3AttrId(id))
+              if (attribute) _yAttributeDescriptions.push({ attributeID: attribute.id })
+            })
+          } else if (yAttributeNames) {
+            yAttributeNames.forEach(name => {
+              const attribute = dataset.getAttributeByName(name)
+              if (attribute) _yAttributeDescriptions.push({ attributeID: attribute.id })
+            })
+          } else {
+            let yAttribute: Maybe<IAttribute>
+            if (yAttributeID != null) {
+              yAttribute = dataset.getAttribute(toV3AttrId(yAttributeID))
+            }
+            if (!yAttribute && yAttributeName != null) {
+              yAttribute = dataset.getAttributeByName(yAttributeName)
+            }
+            if (yAttribute) {
+              _yAttributeDescriptions.push({ attributeID: yAttribute.id, type: yAttribute.type })
+            }
           }
 
           if (showOnlyLastCase) {
