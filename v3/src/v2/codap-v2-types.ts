@@ -177,8 +177,7 @@ export interface ICodapV2GameContext extends Omit<ICodapV2DataContext, "type"> {
 // when exporting a v3 data set to v2 data context
 type DCNotYetExported = "flexibleGroupingChangeFlag"
 export interface ICodapV2DataContextV3
-  extends SetOptional<Omit<ICodapV2DataContext, "document" | "collections">, DCNotYetExported> {
-  document: number | string
+  extends SetOptional<Omit<ICodapV2DataContext, "collections">, DCNotYetExported> {
   collections: ICodapV2CollectionV3[]
 }
 

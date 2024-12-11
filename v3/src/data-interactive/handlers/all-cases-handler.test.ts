@@ -20,7 +20,7 @@ describe("DataInteractive AllCasesHandler", () => {
     }
     const getCase = (result: GetAllCasesResult, index: number) =>
       result.values.cases![index].case!
-    const checkCase = (c: any, attribute: string, value: string, children: number, parent?: number) => {
+    const checkCase = (c: any, attribute: string, value: number | string, children: number, parent?: number) => {
       expect(c.values[attribute]).toBe(value)
       expect(c.children.length).toBe(children)
       expect(c.parent).toBe(parent)
@@ -49,11 +49,11 @@ describe("DataInteractive AllCasesHandler", () => {
     const result3 = handler.get?.({ dataContext: dataset, collection: dataset?.childCollection }) as GetAllCasesResult
     expect(result3.success).toBe(true)
     expect(result3.values.cases?.length).toBe(6)
-    checkCase(getCase(result3, 0), "a3", "1", 0, c2c1.id)
-    checkCase(getCase(result3, 1), "a3", "5", 0, c2c1.id)
-    checkCase(getCase(result3, 2), "a3", "3", 0, c2c2.id)
-    checkCase(getCase(result3, 3), "a3", "2", 0, c2c3.id)
-    checkCase(getCase(result3, 4), "a3", "6", 0, c2c3.id)
-    checkCase(getCase(result3, 5), "a3", "4", 0, c2c4.id)
+    checkCase(getCase(result3, 0), "a3", 1, 0, c2c1.id)
+    checkCase(getCase(result3, 1), "a3", 5, 0, c2c1.id)
+    checkCase(getCase(result3, 2), "a3", 3, 0, c2c2.id)
+    checkCase(getCase(result3, 3), "a3", 2, 0, c2c3.id)
+    checkCase(getCase(result3, 4), "a3", 6, 0, c2c3.id)
+    checkCase(getCase(result3, 5), "a3", 4, 0, c2c4.id)
   })
 })

@@ -20,9 +20,9 @@ describe("evaluate", () => {
   })
 
   it("can evaluate case-dependant formulas when case pointer is provided", () => {
-    expect(evaluate("LifeSpan", 0)).toEqual("70")
-    expect(evaluate("LifeSpan", 10)).toEqual("30")
-    expect(evaluate("LifeSpan", 26)).toEqual("25")
+    expect(evaluate("LifeSpan", 0)).toEqual(70)
+    expect(evaluate("LifeSpan", 10)).toEqual(30)
+    expect(evaluate("LifeSpan", 26)).toEqual(25)
   })
 
   it("evaluates formulas with global values", () => {
@@ -31,7 +31,7 @@ describe("evaluate", () => {
   })
 
   it("sets Mammals dataset as a local dataset", () => {
-    expect(evaluate("LifeSpan", 0)).toEqual("70")
+    expect(evaluate("LifeSpan", 0)).toEqual(70)
     // TailLength is an attribute from Cats dataset.
     expect(() => evaluate("TailLength", 0)).toThrow("Undefined symbol TailLength")
   })
@@ -49,8 +49,8 @@ describe("evaluateForAllCases", () => {
 
   it("can evaluate case-dependant formulas", () => {
     expect(evaluateForAllCases("LifeSpan")).toEqual([
-      "70", "70", "19", "25", "14", "40", "16", "40", "25", "16", "30", "9", "25", "3", "80", "20", "50", "15", "5",
-      "10", "12", "20", "10", "10", "5", "7", "25"
+      70, 70, 19, 25, 14, 40, 16, 40, 25, 16, 30, 9, 25, 3, 80, 20, 50, 15, 5,
+      10, 12, 20, 10, 10, 5, 7, 25
     ])
   })
 })

@@ -243,17 +243,21 @@ export const Attribute = V2Model.named("Attribute").props({
     return self.editable && !self.hasFormula
   },
   value(index: number) {
-    return self.strValues[index]
+    const numValue = self.numValues[index]
+    return !isNaN(numValue) ? numValue : self.strValues[index]
   },
   isNumeric(index: number) {
     return !isNaN(self.numValues[index])
   },
-  numeric(index: number) {
+  numValue(index: number) {
     return self.numValues[index]
+  },
+  strValue(index: number) {
+    return self.strValues[index]
   },
   boolean(index: number) {
     return ["true", "yes"].includes(self.strValues[index].toLowerCase()) ||
-            (!isNaN(this.numeric(index)) ? this.numeric(index) !== 0 : false)
+            (!isNaN(this.numValue(index)) ? this.numValue(index) !== 0 : false)
   },
   derive(name?: string) {
     return { id: self.id, name: name || self.name, values: [] }

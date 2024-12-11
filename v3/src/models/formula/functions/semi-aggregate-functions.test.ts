@@ -8,10 +8,10 @@ describe("semiAggregateFunctions", () => {
   describe("prev", () => {
     it("should returns the prev value", () => {
       expect(evaluate("prev(LifeSpan)", 0)).toBe("")
-      expect(evaluate("prev(LifeSpan)", 1)).toBe("70")
-      expect(evaluate("prev(LifeSpan)", 2)).toBe("70")
-      expect(evaluate("prev(LifeSpan)", 3)).toBe("19")
-      expect(evaluate("prev(LifeSpan)", 4)).toBe("25")
+      expect(evaluate("prev(LifeSpan)", 1)).toBe(70)
+      expect(evaluate("prev(LifeSpan)", 2)).toBe(70)
+      expect(evaluate("prev(LifeSpan)", 3)).toBe(19)
+      expect(evaluate("prev(LifeSpan)", 4)).toBe(25)
     })
 
     it("supports the default value", () => {
@@ -23,15 +23,15 @@ describe("semiAggregateFunctions", () => {
       // When prev is evaluated with filter, it needs to be evaluated for each case using the same scope.
       // That's why evaluateForAllCases is used here.
       expect(evaluateForAllCases("prev(LifeSpan, 0, Diet = 'both')")).toEqual([
-        0, 0, 0, 0, 0, 0, "40", "40", "40", "40", "40", "40", "9", "9", "3", "80", "80", "80", "80", "5", "5", "12",
-        "20", "10", "10", "10", "7",
+        0, 0, 0, 0, 0, 0, 40, 40, 40, 40, 40, 40, 9, 9, 3, 80, 80, 80, 80, 5, 5, 12,
+        20, 10, 10, 10, 7
       ])
     })
 
     it("supports recursive calls", () => {
       expect(evaluateForAllCases("prev(prev(LifeSpan))")).toEqual([
-        "", "", "70", "70", "19", "25", "14", "40", "16", "40", "25", "16", "30", "9", "25", "3", "80", "20", "50",
-        "15", "5", "10", "12", "20", "10", "10", "5"
+        "", "", 70, 70, 19, 25, 14, 40, 16, 40, 25, 16, 30, 9, 25, 3, 80, 20, 50,
+        15, 5, 10, 12, 20, 10, 10, 5
       ])
     })
 
@@ -71,7 +71,7 @@ describe("semiAggregateFunctions", () => {
         return formulaValue
       })
 
-      const expectedResult = new Array(27).fill("70")
+      const expectedResult = new Array(27).fill(70)
       expectedResult[0] = 0 // default value
       expect(result).toEqual(expectedResult)
 
@@ -83,10 +83,10 @@ describe("semiAggregateFunctions", () => {
 
   describe("next", () => {
     it("should returns the next value", () => {
-      expect(evaluate("next(LifeSpan)", 0)).toBe("70")
-      expect(evaluate("next(LifeSpan)", 1)).toBe("19")
-      expect(evaluate("next(LifeSpan)", 2)).toBe("25")
-      expect(evaluate("next(LifeSpan)", 25)).toBe("25")
+      expect(evaluate("next(LifeSpan)", 0)).toBe(70)
+      expect(evaluate("next(LifeSpan)", 1)).toBe(19)
+      expect(evaluate("next(LifeSpan)", 2)).toBe(25)
+      expect(evaluate("next(LifeSpan)", 25)).toBe(25)
       expect(evaluate("next(LifeSpan)", 26)).toBe("") // last case
     })
 
@@ -96,18 +96,18 @@ describe("semiAggregateFunctions", () => {
     })
 
     it("supports the filter argument", () => {
-      expect(evaluate("next(LifeSpan, 0, Diet = 'both')", 0)).toBe("40")
-      expect(evaluate("next(LifeSpan, 0, Diet = 'both')", 1)).toBe("40")
-      expect(evaluate("next(LifeSpan, 0, Diet = 'both')", 5)).toBe("9")
-      expect(evaluate("next(LifeSpan, 0, Diet = 'both')", 6)).toBe("9")
-      expect(evaluate("next(LifeSpan, 0, Diet = 'both')", 11)).toBe("3")
-      expect(evaluate("next(LifeSpan, 0, Diet = 'both')", 12)).toBe("3")
+      expect(evaluate("next(LifeSpan, 0, Diet = 'both')", 0)).toBe(40)
+      expect(evaluate("next(LifeSpan, 0, Diet = 'both')", 1)).toBe(40)
+      expect(evaluate("next(LifeSpan, 0, Diet = 'both')", 5)).toBe(9)
+      expect(evaluate("next(LifeSpan, 0, Diet = 'both')", 6)).toBe(9)
+      expect(evaluate("next(LifeSpan, 0, Diet = 'both')", 11)).toBe(3)
+      expect(evaluate("next(LifeSpan, 0, Diet = 'both')", 12)).toBe(3)
     })
 
     it("supports recursive calls", () => {
       expect(evaluateForAllCases("next(next(LifeSpan))")).toEqual([
-        "19", "25", "14", "40", "16", "40", "25", "16", "30", "9", "25", "3", "80", "20", "50", "15", "5", "10", "12",
-        "20", "10", "10", "5", "7", "25", "", ""
+        19, 25, 14, 40, 16, 40, 25, 16, 30, 9, 25, 3, 80, 20, 50, 15, 5, 10, 12,
+        20, 10, 10, 5, 7, 25, "", ""
       ])
     })
   })
@@ -140,7 +140,7 @@ describe("semiAggregateFunctions", () => {
       return formulaValue
     })
 
-    const expectedResult = new Array(27).fill("25")
+    const expectedResult = new Array(27).fill(25)
     expectedResult[26] = 0 // default value
     expect(result).toEqual(expectedResult)
 

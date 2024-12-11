@@ -257,11 +257,11 @@ test("DataSet basic functionality", () => {
   expect(dataset.items.length).toBe(1)
   expect(caseD4ID).toBeDefined()
   expect(dataset.attributes[0].value(0)).toBe("d")
-  expect(dataset.attributes[1].value(0)).toBe("4")
-  expect(dataset.attributes[1].numeric(0)).toBe(4)
+  expect(dataset.attributes[1].value(0)).toBe(4)
+  expect(dataset.attributes[1].numValue(0)).toBe(4)
   expect(dataset.getNumeric(caseD4ID, numAttrID)).toBe(4)
   expect(dataset.getNumericAtItemIndex(0, numAttrID)).toBe(4)
-  expect(dataset.getValueAtItemIndex(0, numAttrID)).toBe("4")
+  expect(dataset.getValueAtItemIndex(0, numAttrID)).toBe(4)
   expect(dataset.getStrValueAtItemIndex(0, numAttrID)).toBe("4")
 
   // add new case before first case
@@ -275,11 +275,11 @@ test("DataSet basic functionality", () => {
   expect(dataset.nextItemID(caseC3ID)).toBe(caseD4ID)
   expect(dataset.items[1].__id__).toBe(caseD4ID)
   expect(dataset.attributes[0].value(0)).toBe("c")
-  expect(dataset.attributes[1].value(0)).toBe("3")
-  expect(dataset.attributes[1].numeric(0)).toBe(3)
+  expect(dataset.attributes[1].value(0)).toBe(3)
+  expect(dataset.attributes[1].numValue(0)).toBe(3)
   expect(dataset.getNumeric(caseC3ID, numAttrID)).toBe(3)
   expect(dataset.getNumericAtItemIndex(0, numAttrID)).toBe(3)
-  expect(dataset.getValueAtItemIndex(0, numAttrID)).toBe("3")
+  expect(dataset.getValueAtItemIndex(0, numAttrID)).toBe(3)
 
   // add multiple new cases before specified case
   dataset.addCases([{ str: "a", num: 1 }, { str: "b", num: 2 }], { before: caseC3ID, canonicalize: true })
@@ -287,9 +287,9 @@ test("DataSet basic functionality", () => {
         caseB2ID = dataset.items[1].__id__
   expect(dataset.items.length).toBe(4)
   expect(dataset.attributes[0].value(0)).toBe("a")
-  expect(dataset.attributes[1].value(0)).toBe("1")
+  expect(dataset.attributes[1].value(0)).toBe(1)
   expect(dataset.attributes[0].value(1)).toBe("b")
-  expect(dataset.attributes[1].value(1)).toBe("2")
+  expect(dataset.attributes[1].value(1)).toBe(2)
   expect(dataset.getValue(caseA1ID, "foo")).toBeUndefined()
   expect(dataset.getValue("foo", "bar")).toBeUndefined()
   expect(dataset.getItem(caseA1ID, { canonical: false })).toEqual({ __id__: caseA1ID, str: "a", num: 1 })
@@ -321,9 +321,9 @@ test("DataSet basic functionality", () => {
         caseK2ID = dataset.items[4].__id__
   expect(dataset.items.length).toBe(7)
   expect(dataset.attributes[0].value(3)).toBe("j")
-  expect(dataset.attributes[1].value(3)).toBe("1")
+  expect(dataset.attributes[1].value(3)).toBe(1)
   expect(dataset.attributes[0].value(4)).toBe("k")
-  expect(dataset.attributes[1].value(4)).toBe("2")
+  expect(dataset.attributes[1].value(4)).toBe(2)
   expect(dataset.getValue(caseJ1ID, "foo")).toBeUndefined()
   expect(dataset.getValue("foo", "bar")).toBeUndefined()
   expect(dataset.getItem(caseJ1ID, { canonical: false })).toEqual({ __id__: caseJ1ID, str: "j", num: 1 })
@@ -344,10 +344,10 @@ test("DataSet basic functionality", () => {
   dataset.setCaseValues(toCanonical(dataset, [{ __id__: caseB2ID, str: "B", num: 20 },
                                               { __id__: caseC3ID, str: "C", num: 30 }]))
   expect(dataset.getValue(caseB2ID, strAttrID)).toBe("B")
-  expect(dataset.getValue(caseB2ID, numAttrID)).toBe("20")
+  expect(dataset.getValue(caseB2ID, numAttrID)).toBe(20)
   expect(dataset.getItem(caseB2ID, { canonical: false })).toEqual({ __id__: caseB2ID, str: "B", num: 20 })
   expect(dataset.getValue(caseC3ID, strAttrID)).toBe("C")
-  expect(dataset.getValue(caseC3ID, numAttrID)).toBe("30")
+  expect(dataset.getValue(caseC3ID, numAttrID)).toBe(30)
   const mockConsoleWarn = jest.fn()
   const consoleSpy = jest.spyOn(console, "warn").mockImplementation((...args: any[]) => mockConsoleWarn(...args))
   dataset.setCaseValues(toCanonical(dataset, [{ __id__: caseA1ID, foo: "bar" }]))
@@ -457,7 +457,7 @@ test("Canonical case functionality", () => {
   expect(dataset.items.length).toBe(1)
   expect(caseD4ID).toBeDefined()
   expect(dataset.attributes[0].value(0)).toBe("d")
-  expect(dataset.attributes[1].value(0)).toBe("4")
+  expect(dataset.attributes[1].value(0)).toBe(4)
 
   // add new case before first case
   dataset.addCases([{ [strAttrID]: "c", [numAttrID]: 3 }], { before: caseD4ID })
@@ -469,7 +469,7 @@ test("Canonical case functionality", () => {
   expect(dataset.nextItemID(caseC3ID)).toBe(caseD4ID)
   expect(dataset.items[1].__id__).toBe(caseD4ID)
   expect(dataset.attributes[0].value(0)).toBe("c")
-  expect(dataset.attributes[1].value(0)).toBe("3")
+  expect(dataset.attributes[1].value(0)).toBe(3)
 
   // add multiple new cases
   dataset.addCases([{ [strAttrID]: "a", [numAttrID]: 1 },
@@ -478,9 +478,9 @@ test("Canonical case functionality", () => {
         caseB2ID = dataset.items[1].__id__
   expect(dataset.items.length).toBe(4)
   expect(dataset.attributes[0].value(0)).toBe("a")
-  expect(dataset.attributes[1].numeric(0)).toBe(1)
+  expect(dataset.attributes[1].numValue(0)).toBe(1)
   expect(dataset.attributes[0].value(1)).toBe("b")
-  expect(dataset.attributes[1].numeric(1)).toBe(2)
+  expect(dataset.attributes[1].numValue(1)).toBe(2)
   expect(dataset.getItem(caseA1ID, { canonical: false })).toEqual({ __id__: caseA1ID, str: "a", num: 1 })
   expect(dataset.getItem(caseB2ID, { canonical: false })).toEqual({ __id__: caseB2ID, str: "b", num: 2 })
   expect(dataset.getItem(caseA1ID, { canonical: true }))

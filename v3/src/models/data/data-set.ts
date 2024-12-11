@@ -736,7 +736,7 @@ export const DataSet = V2Model.named("DataSet").props({
     const item: ICase = { __id__: itemID }
     self.attributes.forEach((attr) => {
       const key = canonical ? attr.id : attr.name
-      item[key] = numeric && attr.isNumeric(index) ? attr.numeric(index) : attr.value(index)
+      item[key] = numeric ? attr.value(index) : attr.strValue(index)
     })
     return item
   }
@@ -818,7 +818,7 @@ export const DataSet = V2Model.named("DataSet").props({
           }
         }
         const attr = self.getAttribute(attributeID)
-        return attr?.value(itemIndex) ?? ""
+        return attr?.strValue(itemIndex) ?? ""
       },
       getNumeric(caseID: string, attributeID: string): number | undefined {
         const index = self.getItemIndexForCaseOrItem(caseID)
@@ -833,7 +833,7 @@ export const DataSet = V2Model.named("DataSet").props({
           }
         }
         const attr = self.getAttribute(attributeID)
-        return attr?.numeric(index)
+        return attr?.numValue(index)
       },
       getItem,
       getItems,
