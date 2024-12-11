@@ -84,6 +84,40 @@ describe("DataInteractive ComponentHandler Graph", () => {
     handler.delete!({ component: tileIds })
     expect(documentContent.tileMap.size).toBe(0)
 
+    // Create a graph with multiple y attributes using ids
+    const resultYIDs = handler.create!({}, {
+      type: "graph", dataContext: "data", yAttributeIDs: [toV2Id(a3.id), toV2Id(a4.id)]
+    })
+    expect(resultYIDs.success).toBe(true)
+    const resultYIDsValues = resultYIDs.values as DIComponentInfo
+    const tileYIDs = documentContent.tileMap.get(toV3Id(kGraphIdPrefix, resultYIDsValues.id!))!
+    expect(tileYIDs).toBeDefined()
+    expect(isGraphContentModel(tileYIDs.content)).toBe(true)
+    const tileContentYIDs = tileYIDs.content as IGraphContentModel
+    expect(tileContentYIDs.dataConfiguration._yAttributeDescriptions.length).toBe(2)
+    expect(tileContentYIDs.dataConfiguration._yAttributeDescriptions[0].attributeID).toBe(a3.id)
+    expect(tileContentYIDs.dataConfiguration._yAttributeDescriptions[1].attributeID).toBe(a4.id)
+    // Delete the graph when we're finished
+    handler.delete!({ component: tileYIDs })
+    expect(documentContent.tileMap.size).toBe(0)
+
+    // Create a graph with multiple y attributes using names
+    const resultYNames = handler.create!({}, {
+      type: "graph", dataContext: "data", yAttributeNames: [a3.name, a4.name]
+    })
+    expect(resultYNames.success).toBe(true)
+    const resultYNamesValues = resultYNames.values as DIComponentInfo
+    const tileYNames = documentContent.tileMap.get(toV3Id(kGraphIdPrefix, resultYNamesValues.id!))!
+    expect(tileYNames).toBeDefined()
+    expect(isGraphContentModel(tileYNames.content)).toBe(true)
+    const tileContentYNames = tileYNames.content as IGraphContentModel
+    expect(tileContentYNames.dataConfiguration._yAttributeDescriptions.length).toBe(2)
+    expect(tileContentYNames.dataConfiguration._yAttributeDescriptions[0].attributeID).toBe(a3.id)
+    expect(tileContentYNames.dataConfiguration._yAttributeDescriptions[1].attributeID).toBe(a4.id)
+    // Delete the graph when we're finished
+    handler.delete!({ component: tileYNames })
+    expect(documentContent.tileMap.size).toBe(0)
+
     // Create a graph with options
     const result = handler.create!({}, {
       type: "graph", cannotClose: true, dataContext: "data", xAttributeName: "a3", yAttributeName: "a4",
@@ -188,13 +222,37 @@ describe("DataInteractive ComponentHandler Graph", () => {
     })
     expect(dataConfig.attributeDescriptionForRole("rightNumeric")?.attributeID).toBe(a3.id)
 
+    // Update to remove y attributes
+    const updateResultRemoveYs = handler.update!({ component: tile }, {
+      yAttributeNames: [] as string[]
+    } as V2Graph)
+    expect(updateResultRemoveYs.success).toBe(true)
+    expect(dataConfig._yAttributeDescriptions.length).toBe(0)
+
+    // Update to set multiple y attributes with names
+    const updateResultYNames = handler.update!({ component: tile }, {
+      yAttributeNames: [a4.name, a3.name]
+    } as V2Graph)
+    expect(updateResultYNames.success).toBe(true)
+    expect(dataConfig._yAttributeDescriptions.length).toBe(2)
+    expect(dataConfig._yAttributeDescriptions[0].attributeID).toBe(a4.id)
+    expect(dataConfig._yAttributeDescriptions[1].attributeID).toBe(a3.id)
+
+    // Update to set y attributes with ids
+    const updateResultYIDs = handler.update!({ component: tile }, {
+      yAttributeIDs: [toV2Id(a3.id)]
+    } as V2Graph)
+    expect(updateResultYIDs.success).toBe(true)
+    expect(dataConfig._yAttributeDescriptions.length).toBe(1)
+    expect(dataConfig._yAttributeDescriptions[0].attributeID).toBe(a3.id)
+
     // Get graph
     testGetComponent(tile, handler, (graphTile, values) => {
       const {
         dataContext, enableNumberToggle, numberToggleLastMode, captionAttributeID, captionAttributeName,
         legendAttributeID, legendAttributeName, rightSplitAttributeID, rightSplitAttributeName,
         topSplitAttributeID, topSplitAttributeName, xAttributeID, xAttributeName, xLowerBound, xUpperBound,
-        yAttributeID, yAttributeName, yLowerBound, yUpperBound,
+        yAttributeID, yAttributeIDs, yAttributeName, yAttributeNames, yLowerBound, yUpperBound,
         y2AttributeID, y2AttributeName, y2LowerBound, y2UpperBound
       } = values as V2GetGraph
       const content = graphTile.content as IGraphContentModel
@@ -228,7 +286,11 @@ describe("DataInteractive ComponentHandler Graph", () => {
 
       const yAttributeId = dataConfiguration.attributeDescriptionForRole("y")!.attributeID
       expect(yAttributeID).toBe(toV2Id(yAttributeId))
+      expect(yAttributeIDs?.length).toBe(1)
+      expect(yAttributeIDs?.[0]).toBe(toV2Id(a3.id))
       expect(yAttributeName).toBe(graphDataset.getAttribute(yAttributeId)?.name)
+      expect(yAttributeNames?.length).toBe(1)
+      expect(yAttributeNames?.[0]).toBe(a3.name)
       expect(yLowerBound).toBe(yAxis.min)
       expect(yUpperBound).toBe(yAxis.max)
 
