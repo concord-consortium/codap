@@ -9,7 +9,7 @@ import { IDataSet } from "../../models/data/data-set"
 import { ISharedCaseMetadata } from "../../models/shared/shared-case-metadata"
 import { getSharedCaseMetadataFromDataset, getSharedDataSets } from "../../models/shared/shared-data-utils"
 import { ITileContentModel, ITileContentSnapshotWithType } from "../../models/tiles/tile-content"
-import { toV2Id, toV3AttrId, toV3DataSetId } from "../../utilities/codap-utils"
+import { maybeToV2Id, toV2Id, toV3AttrId, toV3DataSetId } from "../../utilities/codap-utils"
 import { t } from "../../utilities/translation/translate"
 import { AxisPlace } from "../axis/axis-types"
 import { isNumericAxisModel } from "../axis/models/axis-model"
@@ -195,36 +195,43 @@ export const graphComponentHandler: DIComponentHandler = {
       const { dataConfiguration } = content.graphPointLayerModel
       const { showParentToggles: enableNumberToggle, showOnlyLastCase: numberToggleLastMode } = content
 
-      const captionAttributeID = dataConfiguration.attributeDescriptionForRole("caption")?.attributeID
-      const captionAttributeName = captionAttributeID ? dataset?.getAttribute(captionAttributeID)?.name : undefined
+      const _captionAttributeID = dataConfiguration.attributeDescriptionForRole("caption")?.attributeID
+      const captionAttributeID = maybeToV2Id(_captionAttributeID)
+      const captionAttributeName = _captionAttributeID ? dataset?.getAttribute(_captionAttributeID)?.name : undefined
 
-      const legendAttributeID = dataConfiguration.attributeDescriptionForRole("legend")?.attributeID
-      const legendAttributeName = legendAttributeID ? dataset?.getAttribute(legendAttributeID)?.name : undefined
+      const _legendAttributeID = dataConfiguration.attributeDescriptionForRole("legend")?.attributeID
+      const legendAttributeID = maybeToV2Id(_legendAttributeID)
+      const legendAttributeName = _legendAttributeID ? dataset?.getAttribute(_legendAttributeID)?.name : undefined
 
-      const rightSplitAttributeID = dataConfiguration.attributeDescriptionForRole("rightSplit")?.attributeID
-      const rightSplitAttributeName = rightSplitAttributeID
-        ? dataset?.getAttribute(rightSplitAttributeID)?.name
+      const _rightSplitAttributeID = dataConfiguration.attributeDescriptionForRole("rightSplit")?.attributeID
+      const rightSplitAttributeID = maybeToV2Id(_rightSplitAttributeID)
+      const rightSplitAttributeName = _rightSplitAttributeID
+        ? dataset?.getAttribute(_rightSplitAttributeID)?.name
         : undefined
 
-      const topSplitAttributeID = dataConfiguration.attributeDescriptionForRole("topSplit")?.attributeID
-      const topSplitAttributeName = topSplitAttributeID ? dataset?.getAttribute(topSplitAttributeID)?.name : undefined
+      const _topSplitAttributeID = dataConfiguration.attributeDescriptionForRole("topSplit")?.attributeID
+      const topSplitAttributeID = maybeToV2Id(_topSplitAttributeID)
+      const topSplitAttributeName = _topSplitAttributeID ? dataset?.getAttribute(_topSplitAttributeID)?.name : undefined
 
-      const xAttributeID = dataConfiguration.attributeDescriptionForRole("x")?.attributeID
-      const xAttributeName = xAttributeID ? dataset?.getAttribute(xAttributeID)?.name : undefined
+      const _xAttributeID = dataConfiguration.attributeDescriptionForRole("x")?.attributeID
+      const xAttributeID = maybeToV2Id(_xAttributeID)
+      const xAttributeName = _xAttributeID ? dataset?.getAttribute(_xAttributeID)?.name : undefined
       const xAxis = content.getAxis("bottom")
       const xNumericAxis = isNumericAxisModel(xAxis) ? xAxis : undefined
       const xLowerBound = xNumericAxis?.min
       const xUpperBound = xNumericAxis?.max
 
-      const yAttributeID = dataConfiguration.attributeDescriptionForRole("y")?.attributeID
-      const yAttributeName = yAttributeID ? dataset?.getAttribute(yAttributeID)?.name : undefined
+      const _yAttributeID = dataConfiguration.attributeDescriptionForRole("y")?.attributeID
+      const yAttributeID = maybeToV2Id(_yAttributeID)
+      const yAttributeName = _yAttributeID ? dataset?.getAttribute(_yAttributeID)?.name : undefined
       const yAxis = content.getAxis("left")
       const yNumericAxis = isNumericAxisModel(yAxis) ? yAxis : undefined
       const yLowerBound = yNumericAxis?.min
       const yUpperBound = yNumericAxis?.max
 
-      const y2AttributeID = dataConfiguration.attributeDescriptionForRole("rightNumeric")?.attributeID
-      const y2AttributeName = y2AttributeID ? dataset?.getAttribute(y2AttributeID)?.name : undefined
+      const _y2AttributeID = dataConfiguration.attributeDescriptionForRole("rightNumeric")?.attributeID
+      const y2AttributeID = maybeToV2Id(_y2AttributeID)
+      const y2AttributeName = _y2AttributeID ? dataset?.getAttribute(_y2AttributeID)?.name : undefined
       const y2Axis = content.getAxis("rightNumeric")
       const y2NumericAxis = isNumericAxisModel(y2Axis) ? y2Axis : undefined
       const y2LowerBound = y2NumericAxis?.min
