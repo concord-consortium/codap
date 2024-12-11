@@ -1,6 +1,6 @@
 import {addDisposer, getSnapshot, Instance, SnapshotIn, types} from "mobx-state-tree"
 import {comparer, reaction} from "mobx"
-import {AttributeType} from "../../../models/data/attribute"
+import {AttributeType} from "../../../models/data/attribute-types"
 import {IDataSet} from "../../../models/data/data-set"
 import {typedId} from "../../../utilities/js-utils"
 import { cachedFnFactory, cachedFnWithArgsFactory, safeGetSnapshot } from "../../../utilities/mst-utils"
@@ -604,8 +604,12 @@ export const GraphDataConfigurationModel = DataConfigurationModel
         self._setAttributeDescription(role, desc)
       }
     },
-    addYAttribute(desc: IAttributeDescriptionSnapshot) {
-      self._yAttributeDescriptions.push(desc)
+    addYAttribute(desc: IAttributeDescriptionSnapshot, index?: number) {
+      if (index != null && index >= 0) {
+        self._yAttributeDescriptions.splice(index, 0, desc)
+      } else {
+        self._yAttributeDescriptions.push(desc)
+      }
     },
     setY2Attribute(desc?: IAttributeDescriptionSnapshot) {
       self._setAttributeDescription('rightNumeric', desc)
@@ -616,8 +620,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
         existingFilteredCases?.invalidateCases()
       }
     },
-    removeYAttributeWithID(id: string) {
-      const index = self._yAttributeDescriptions.findIndex((aDesc) => aDesc.attributeID === id)
+    removeYAttributeAtIndex(index: number) {
       if (index >= 0) {
         self._yAttributeDescriptions.splice(index, 1)
         // remove and destroy the filtered cases for the y attribute
@@ -636,9 +639,17 @@ export const GraphDataConfigurationModel = DataConfigurationModel
         self._attributeDescriptions.get(role)?.setType(type)
       }
       self._setAttributeType(type, plotNumber)
-    },
+    }
   }))
   .actions(self => ({
+    replaceYAttribute(desc?: IAttributeDescriptionSnapshot, plotNumber = 0) {
+      if (self._yAttributeDescriptions[plotNumber]) self.removeYAttributeAtIndex(plotNumber)
+      if (desc) self.addYAttribute(desc, plotNumber)
+    },
+    removeYAttributeWithID(id: string) {
+      const index = self._yAttributeDescriptions.findIndex((aDesc) => aDesc.attributeID === id)
+      self.removeYAttributeAtIndex(index)
+    },
     clearGraphSpecificCasesCache() {
       self.allPlottedCases.invalidate()
       self.subPlotCases.invalidateAll()

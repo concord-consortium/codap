@@ -205,14 +205,11 @@ export class CodapV2Document {
       this.guidMap.set(guid, { type: "DG.Case", object: _case })
       // for level 0 (child-most collection), add items with their item ids and stash case ids
       if (level === 0) {
-        // FIXME: values can include objects not just the primitives defined by IValueType
-        // FIXME: should the itemID overwrite any __id__ returned by toCanonical?
-        let itemValues = { ...toCanonical(data, values as any), __id__: itemID }
+        let itemValues = { __id__: itemID, ...toCanonical(data, values) }
         // look up parent case attributes and add them to caseValues
         for (let parentCase = this.getParentCase(_case); parentCase; parentCase = this.getParentCase(parentCase)) {
           itemValues = {
-            // FIXME: see above
-            ...(parentCase.values ? toCanonical(data, parentCase.values as any) : undefined),
+            ...(parentCase.values ? toCanonical(data, parentCase.values) : undefined),
             ...itemValues
           }
         }

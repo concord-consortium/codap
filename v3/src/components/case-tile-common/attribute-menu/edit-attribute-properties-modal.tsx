@@ -3,7 +3,7 @@ import { Button, FormControl, FormLabel, HStack, Input, ModalBody, ModalCloseBut
 import React, { useEffect, useState } from "react"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
 import { logMessageWithReplacement } from "../../../lib/log-message"
-import { AttributeType, attributeTypes } from "../../../models/data/attribute"
+import { AttributeType, attributeTypes } from "../../../models/data/attribute-types"
 import { updateAttributesNotification } from "../../../models/data/data-set-notifications"
 import { DatePrecision } from "../../../utilities/date-utils"
 import { uniqueName } from "../../../utilities/js-utils"

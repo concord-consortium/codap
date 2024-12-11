@@ -1,9 +1,8 @@
 import { cloneDeep } from "lodash"
 import { reaction } from "mobx"
 import { getSnapshot } from "mobx-state-tree"
-import {
-  Attribute, IAttributeSnapshot, importValueToString, isAttributeType, isFormulaAttr, isValidFormulaAttr
-} from "./attribute"
+import { Attribute, IAttributeSnapshot, isFormulaAttr, isValidFormulaAttr } from "./attribute"
+import { isAttributeType, importValueToString } from "./attribute-types"
 
 describe("Attribute", () => {
 
@@ -47,6 +46,7 @@ describe("Attribute", () => {
     expect(importValueToString(1e-6)).toBe("0.000001")
     expect(importValueToString(true)).toBe("true")
     expect(importValueToString(false)).toBe("false")
+    expect(importValueToString({ foo: "bar" })).toBe(`{"foo":"bar"}`)
     expect(importValueToString(new Date(2020, 5, 14, 10, 13, 34, 123))).toBe("2020-06-14T10:13:34.123Z")
 
     const attr = Attribute.create({ name: "a" })

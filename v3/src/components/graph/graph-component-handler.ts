@@ -1,13 +1,17 @@
 import { getSnapshot } from "mobx-state-tree"
-import { V2Graph } from "../../data-interactive/data-interactive-component-types"
+import { V2GetGraph, V2Graph } from "../../data-interactive/data-interactive-component-types"
+import { DIValues } from "../../data-interactive/data-interactive-types"
 import { DIComponentHandler } from "../../data-interactive/handlers/component-handler"
 import { errorResult } from "../../data-interactive/handlers/di-results"
 import { appState } from "../../models/app-state"
+import { IAttribute } from "../../models/data/attribute"
 import { IDataSet } from "../../models/data/data-set"
 import { ISharedCaseMetadata } from "../../models/shared/shared-case-metadata"
 import { getSharedCaseMetadataFromDataset, getSharedDataSets } from "../../models/shared/shared-data-utils"
 import { ITileContentModel, ITileContentSnapshotWithType } from "../../models/tiles/tile-content"
+import { toV3AttrId, toV3DataSetId } from "../../utilities/codap-utils"
 import { t } from "../../utilities/translation/translate"
+import { AxisPlace } from "../axis/axis-types"
 import { isNumericAxisModel } from "../axis/models/axis-model"
 import { attrRoleToGraphPlace, GraphAttrRole } from "../data-display/data-display-types"
 import { IAttributeDescriptionSnapshot } from "../data-display/models/data-configuration-model"
@@ -18,27 +22,59 @@ import { GraphLayout } from "./models/graph-layout"
 import { syncModelWithAttributeConfiguration } from "./models/graph-model-utils"
 import { IGraphPointLayerModelSnapshot, kGraphPointLayerType } from "./models/graph-point-layer-model"
 
+interface AttributeInfo {
+  id?: string | null
+  name?: string | null
+}
+function packageAttribute(id?: string | null, name?: string | null): Maybe<AttributeInfo> {
+  if (id || id === null || name || name === null) {
+    return { id, name }
+  }
+}
+function getAttributeInfo(values?: DIValues): Record<string, Maybe<AttributeInfo>> {
+  const {
+    captionAttributeID, captionAttributeName, legendAttributeID, legendAttributeName, rightNumericAttributeID,
+    rightNumericAttributeName, rightSplitAttributeID, rightSplitAttributeName, topSplitAttributeID,
+    topSplitAttributeName, xAttributeID, xAttributeName, y2AttributeID, y2AttributeName
+  } = values as V2Graph
+  return {
+    caption: packageAttribute(captionAttributeID, captionAttributeName),
+    legend: packageAttribute(legendAttributeID, legendAttributeName),
+    rightNumeric: packageAttribute(rightNumericAttributeID, rightNumericAttributeName),
+    rightSplit: packageAttribute(rightSplitAttributeID, rightSplitAttributeName),
+    topSplit: packageAttribute(topSplitAttributeID, topSplitAttributeName),
+    x: packageAttribute(xAttributeID, xAttributeName),
+    y2: packageAttribute(y2AttributeID, y2AttributeName)
+  }
+}
+function getAttributeFromInfo(dataset: IDataSet, info?: AttributeInfo) {
+  let attribute: Maybe<IAttribute>
+  if (info?.id != null) {
+    attribute = dataset.getAttribute(toV3AttrId(info.id))
+  }
+  if (!attribute && info?.name != null) {
+    attribute = dataset.getAttributeByName(info.name)
+  }
+  return attribute
+}
+const roleFromAttrKey: Record<string, GraphAttrRole> = {
+  x: "x",
+  y: "y",
+  y2: "rightNumeric",
+  rightNumeric: "rightNumeric",
+  caption: "caption",
+  legend: "legend",
+  topSplit: "topSplit",
+  rightSplit: "rightSplit"
+}
+
 export const graphComponentHandler: DIComponentHandler = {
   create({ values }) {
     const {
-      captionAttributeName, dataContext: _dataContext, enableNumberToggle: showParentToggles, legendAttributeName,
-      numberToggleLastMode: showOnlyLastCase, rightNumericAttributeName, rightSplitAttributeName,
-      topSplitAttributeName, xAttributeName, yAttributeName, y2AttributeName
+      dataContext: _dataContext, enableNumberToggle: showParentToggles, numberToggleLastMode: showOnlyLastCase,
+      yAttributeID, yAttributeName,
     } = values as V2Graph
-    const attributeNames: Record<string, string | undefined> = {
-      captionAttributeName, legendAttributeName, rightNumericAttributeName, rightSplitAttributeName,
-      topSplitAttributeName, xAttributeName, y2AttributeName
-    }
-    const roleFromAttrKey: Record<string, GraphAttrRole> = {
-      xAttributeName: "x",
-      yAttributeName: "y",
-      y2AttributeName: "rightNumeric",
-      rightNumericAttributeName: "rightNumeric",
-      captionAttributeName: "caption",
-      legendAttributeName: "legend",
-      topSplitAttributeName: "topSplit",
-      rightSplitAttributeName: "rightSplit"
-    }
+    const attributeInfo = getAttributeInfo(values)
 
     let layerIndex = 0
     const layers: Array<IGraphPointLayerModelSnapshot> = []
@@ -54,24 +90,25 @@ export const graphComponentHandler: DIComponentHandler = {
         if (dataset.name === _dataContext) {
           provisionalDataSet = dataset
           provisionalMetadata = metadata
-          for (const attributeType in attributeNames) {
-            const attributeName = attributeNames[attributeType]
-            if (attributeName) {
-              const attribute = dataset.getAttributeByName(attributeName)
-              if (attribute) {
-                const attributeRole = roleFromAttrKey[attributeType]
-                if (attributeRole) {
-                  _attributeDescriptions[attributeRole] = { attributeID: attribute.id, type: attribute.type }
-                }
+          for (const attributeType in attributeInfo) {
+            const attribute = getAttributeFromInfo(dataset, attributeInfo[attributeType])
+            if (attribute) {
+              const attributeRole = roleFromAttrKey[attributeType]
+              if (attributeRole) {
+                _attributeDescriptions[attributeRole] = { attributeID: attribute.id, type: attribute.type }
               }
             }
           }
 
-          if (yAttributeName) {
-            const yAttribute = dataset.getAttributeByName(yAttributeName)
-            if (yAttribute) {
-              _yAttributeDescriptions.push({ attributeID: yAttribute.id, type: yAttribute.type })
-            }
+          let yAttribute: Maybe<IAttribute>
+          if (yAttributeID != null) {
+            yAttribute = dataset.getAttribute(toV3AttrId(yAttributeID))
+          }
+          if (!yAttribute && yAttributeName != null) {
+            yAttribute = dataset.getAttributeByName(yAttributeName)
+          }
+          if (yAttribute) {
+            _yAttributeDescriptions.push({ attributeID: yAttribute.id, type: yAttribute.type })
           }
 
           if (showOnlyLastCase) {
@@ -117,20 +154,20 @@ export const graphComponentHandler: DIComponentHandler = {
       const { dataset } = dataConfiguration
       if (dataset && dataset.name === _dataContext) {
         // Make sure all attributes can legally fulfill their specified roles
-        for (const attributeType in attributeNames) {
-          const attributeName = attributeNames[attributeType]
-          if (attributeName) {
-            const attribute = dataset.getAttributeByName(attributeName)
-            if (attribute) {
-              const attributeRole = roleFromAttrKey[attributeType]
-              const attributePlace = attrRoleToGraphPlace[attributeRole]
-              if (attributePlace && !dataConfiguration.placeCanAcceptAttributeIDDrop(
-                attributePlace, dataset, attribute.id, { allowSameAttr: true }
-              )) {
-                return errorResult(
-                  t("V3.DI.Error.illegalAttributeAssignment", { vars: [attributeName, attributeRole] })
-                )
-              }
+        for (const attributeType in attributeInfo) {
+          const attributePackage = attributeInfo[attributeType]
+          const attribute = getAttributeFromInfo(dataset, attributePackage)
+          if (attribute) {
+            const attributeRole = roleFromAttrKey[attributeType]
+            const attributePlace = attrRoleToGraphPlace[attributeRole]
+            if (attributePlace && !dataConfiguration.placeCanAcceptAttributeIDDrop(
+              attributePlace, dataset, attribute.id, { allowSameAttr: true }
+            )) {
+              return errorResult(
+                t("V3.DI.Error.illegalAttributeAssignment", {
+                  vars: [attributePackage?.id ?? attributePackage?.name ?? "", attributeRole]
+                })
+              )
             }
           }
         }
@@ -150,6 +187,7 @@ export const graphComponentHandler: DIComponentHandler = {
     }
     return { content: { ...getSnapshot(graphModel), layers: finalLayers } as ITileContentSnapshotWithType }
   },
+
   get(content: ITileContentModel) {
     if (isGraphContentModel(content)) {
       const dataset = content.dataset
@@ -157,34 +195,36 @@ export const graphComponentHandler: DIComponentHandler = {
       const { dataConfiguration } = content.graphPointLayerModel
       const { showParentToggles: enableNumberToggle, showOnlyLastCase: numberToggleLastMode } = content
 
-      const captionAttributeId = dataConfiguration.attributeDescriptionForRole("caption")?.attributeID
-      const captionAttributeName = captionAttributeId ? dataset?.getAttribute(captionAttributeId)?.name : undefined
+      const captionAttributeID = dataConfiguration.attributeDescriptionForRole("caption")?.attributeID
+      const captionAttributeName = captionAttributeID ? dataset?.getAttribute(captionAttributeID)?.name : undefined
 
-      const legendAttributeId = dataConfiguration.attributeDescriptionForRole("legend")?.attributeID
-      const legendAttributeName = legendAttributeId ? dataset?.getAttribute(legendAttributeId)?.name : undefined
+      const legendAttributeID = dataConfiguration.attributeDescriptionForRole("legend")?.attributeID
+      const legendAttributeName = legendAttributeID ? dataset?.getAttribute(legendAttributeID)?.name : undefined
 
-      const rightSplitId = dataConfiguration.attributeDescriptionForRole("rightSplit")?.attributeID
-      const rightSplitAttributeName = rightSplitId ? dataset?.getAttribute(rightSplitId)?.name : undefined
+      const rightSplitAttributeID = dataConfiguration.attributeDescriptionForRole("rightSplit")?.attributeID
+      const rightSplitAttributeName = rightSplitAttributeID
+        ? dataset?.getAttribute(rightSplitAttributeID)?.name
+        : undefined
 
-      const topSplitId = dataConfiguration.attributeDescriptionForRole("topSplit")?.attributeID
-      const topSplitAttributeName = topSplitId ? dataset?.getAttribute(topSplitId)?.name : undefined
+      const topSplitAttributeID = dataConfiguration.attributeDescriptionForRole("topSplit")?.attributeID
+      const topSplitAttributeName = topSplitAttributeID ? dataset?.getAttribute(topSplitAttributeID)?.name : undefined
 
-      const xAttributeId = dataConfiguration.attributeDescriptionForRole("x")?.attributeID
-      const xAttributeName = xAttributeId ? dataset?.getAttribute(xAttributeId)?.name : undefined
+      const xAttributeID = dataConfiguration.attributeDescriptionForRole("x")?.attributeID
+      const xAttributeName = xAttributeID ? dataset?.getAttribute(xAttributeID)?.name : undefined
       const xAxis = content.getAxis("bottom")
       const xNumericAxis = isNumericAxisModel(xAxis) ? xAxis : undefined
       const xLowerBound = xNumericAxis?.min
       const xUpperBound = xNumericAxis?.max
 
-      const yAttributeId = dataConfiguration.attributeDescriptionForRole("y")?.attributeID
-      const yAttributeName = yAttributeId ? dataset?.getAttribute(yAttributeId)?.name : undefined
+      const yAttributeID = dataConfiguration.attributeDescriptionForRole("y")?.attributeID
+      const yAttributeName = yAttributeID ? dataset?.getAttribute(yAttributeID)?.name : undefined
       const yAxis = content.getAxis("left")
       const yNumericAxis = isNumericAxisModel(yAxis) ? yAxis : undefined
       const yLowerBound = yNumericAxis?.min
       const yUpperBound = yNumericAxis?.max
 
-      const y2AttributeId = dataConfiguration.attributeDescriptionForRole("rightNumeric")?.attributeID
-      const y2AttributeName = y2AttributeId ? dataset?.getAttribute(y2AttributeId)?.name : undefined
+      const y2AttributeID = dataConfiguration.attributeDescriptionForRole("rightNumeric")?.attributeID
+      const y2AttributeName = y2AttributeID ? dataset?.getAttribute(y2AttributeID)?.name : undefined
       const y2Axis = content.getAxis("rightNumeric")
       const y2NumericAxis = isNumericAxisModel(y2Axis) ? y2Axis : undefined
       const y2LowerBound = y2NumericAxis?.min
@@ -192,12 +232,121 @@ export const graphComponentHandler: DIComponentHandler = {
 
       return {
         dataContext, enableNumberToggle, numberToggleLastMode,
-        captionAttributeName, legendAttributeName,
-        rightSplitAttributeName, topSplitAttributeName,
-        xAttributeName, xLowerBound, xUpperBound,
-        yAttributeName, yLowerBound, yUpperBound,
-        y2AttributeName, y2LowerBound, y2UpperBound
+        captionAttributeID, captionAttributeName, legendAttributeID, legendAttributeName,
+        rightSplitAttributeID, rightSplitAttributeName, topSplitAttributeID, topSplitAttributeName,
+        xAttributeID, xAttributeName, xLowerBound, xUpperBound,
+        yAttributeID, yAttributeName, yLowerBound, yUpperBound,
+        y2AttributeID, y2AttributeName, y2LowerBound, y2UpperBound
       }
     }
+  },
+
+  update(content: ITileContentModel, values: DIValues) {
+    if (!isGraphContentModel(content)) return { success: false }
+
+    const {
+      dataContext: _dataContext, enableNumberToggle: showParentToggles, numberToggleLastMode: showOnlyLastCase,
+      xLowerBound, xUpperBound, yAttributeID, yAttributeName, yLowerBound, yUpperBound, y2LowerBound, y2UpperBound
+    } = values as V2GetGraph
+    const attributeInfo = getAttributeInfo(values)
+
+    // Determine which dataset to work with
+    let dataSet: Maybe<IDataSet>
+    if (_dataContext) {
+      getSharedDataSets(appState.document).forEach(sharedDataSet => {
+        if (sharedDataSet.dataSet.name === _dataContext || sharedDataSet.dataSet.id === toV3DataSetId(_dataContext)) {
+          dataSet = sharedDataSet.dataSet
+        }
+      })
+    }
+    if (!dataSet) {
+      dataSet = content.dataset ?? getSharedDataSets(appState.document)[0].dataSet
+    }
+
+    // Ensure that all specified attributes are legal for their roles before we actually update anything
+    // NOTE: This isn't perfect. It compares each new attribute assignment to the current configuration, but
+    // other attributes changed at the same time could make an assignment illegal.
+    const updatedAttributes: Record<string, IAttribute | null> = {}
+    for (const attributeType in attributeInfo) {
+      const attributePackage = attributeInfo[attributeType]
+      if (attributePackage?.id === null || (attributePackage?.id === undefined && attributePackage?.name === null)) {
+        updatedAttributes[attributeType] = null
+      } else {
+        const attribute = getAttributeFromInfo(dataSet, attributePackage)
+        if (attribute) {
+          const role = roleFromAttrKey[attributeType]
+          const place = attrRoleToGraphPlace[role]
+          if (place && !content.dataConfiguration.placeCanAcceptAttributeIDDrop(
+            place, dataSet, attribute.id, { allowSameAttr: true }
+          )) {
+            return errorResult(
+              t("V3.DI.Error.illegalAttributeAssignment", {
+                vars: [attributePackage?.id ?? attributePackage?.name ?? "", role]
+              })
+            )
+          }
+          updatedAttributes[attributeType] = attribute
+        }
+      }
+    }
+
+    // Actually update dataSet (which will clear any old attribute assignments)
+    if (dataSet && dataSet !== content.dataset) {
+      content.setDataSet(dataSet.id)
+    }
+
+    // Actually update attributes
+    for (const attributeType in updatedAttributes) {
+      const attribute = updatedAttributes[attributeType]
+      const role = roleFromAttrKey[attributeType]
+      if (role) {
+        if (attribute) {
+          content.dataConfiguration.setAttribute(role, { attributeID: attribute.id })
+        } else {
+          content.dataConfiguration.setAttribute(role)
+        }
+      }
+    }
+
+    // Any attribute can be put on the y axis, so we don't check to make sure the attribute is legal first
+    // We don't use dataConfiguration.setAttribute() to make the change because that clears additional y attributes
+    if (yAttributeID !== undefined) {
+      if (yAttributeID) {
+        content.dataConfiguration.replaceYAttribute({ attributeID: toV3AttrId(yAttributeID) }, 0)
+      } else {
+        content.dataConfiguration.removeYAttributeAtIndex(0)
+      }
+    } else if (yAttributeName !== undefined) {
+      if (yAttributeName !== null) {
+        const attribute = dataSet?.getAttributeByName(yAttributeName)
+        if (attribute) content.dataConfiguration.replaceYAttribute({ attributeID: attribute.id }, 0)
+      } else {
+        content.dataConfiguration.removeYAttributeAtIndex(0)
+      }
+    }
+
+    // Update lower and upper bounds
+    const updateBounds = (place: AxisPlace, lower?: number, upper?: number) => {
+      if (lower != null || upper != null) {
+        const axis = content.getAxis(place)
+        if (isNumericAxisModel(axis)) {
+          if (lower != null) axis.setMinimum(lower)
+          if (upper != null) axis.setMaximum(upper)
+        }
+      }
+    }
+    updateBounds("bottom", xLowerBound, xUpperBound)
+    updateBounds("left", yLowerBound, yUpperBound)
+    updateBounds("rightNumeric", y2LowerBound, y2UpperBound)
+
+    // Update odd features
+    if (showParentToggles != null) {
+      content.setShowParentToggles(showParentToggles)
+    }
+    if (showOnlyLastCase != null) {
+      content.setShowOnlyLastCase(showOnlyLastCase)
+    }
+
+    return { success: true }
   }
 }

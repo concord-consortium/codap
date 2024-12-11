@@ -1,5 +1,5 @@
 import {useDndContext} from "@dnd-kit/core"
-import {AttributeType} from "../models/data/attribute"
+import {AttributeType} from "../models/data/attribute-types"
 import {getDragAttributeInfo} from "./use-drag-drop"
 import {GraphPlace} from "../components/axis-graph-shared"
 import {GraphAttrRole, attrRoleToGraphPlace} from "../components/data-display/data-display-types"

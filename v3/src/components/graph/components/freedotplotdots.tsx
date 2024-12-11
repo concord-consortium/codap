@@ -83,10 +83,10 @@ export const FreeDotPlotDots = observer(function FreeDotPlotDots(props: PlotProp
 
       const getBarStaticDimension = () => {
         // This function determines how much space is available for each bar on the non-primary axis by dividing the
-        // length of the non-primary axis by the number of cases in the subplot containing the most cases. This keeps
-        // the bars a uniform size across subplots.
+        // length of the non-primary axis by one more than the number of cases in the subplot containing the most cases.
+        // This keeps the bars a uniform size across subplots.
         const largestSubplotCount = Math.max(...Array.from(subPlotDetails.values()).map(sp => sp.cases.length))
-        return largestSubplotCount ? secondaryBandwidth / largestSubplotCount : 0
+        return largestSubplotCount ? secondaryBandwidth / (largestSubplotCount + 1) : 0
       }
 
       const getBarValueDimension = (anID: string) => {
