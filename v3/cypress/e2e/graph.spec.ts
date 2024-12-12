@@ -226,6 +226,8 @@ context("Graph UI", () => {
 
       cy.window().then((win: Window) => { // this gets the window globally within the graph element and exposes the PixiJS points
         const tileId: any = cy.get("[data-tile=graph-1]").invoke("id") // find the graph element and get the tileID from the graph element
+        // NOTE: the correct element to target is <div id=“GRPH413982760655623”> (the code above is wrong and we'd have to change the get
+        // argument to be something that picks up the right element)
         const pixiPoints = (win as any).pixiPointsMap[tileId] // within the PixiPoints map look up the PixiPoints for the graph element
         // here is where we want to get the number of points, iterate through the points, etc.
         // for every point, find its (x, y) position
