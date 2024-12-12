@@ -98,6 +98,14 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       return this.placeCanShowClickHereCue(place) &&
         !self.attributeID(graphPlaceToAttrRole[place === 'left' ? 'bottom' : 'left'])
     },
+    get allYAttributeDescriptions() {
+      const yAttributeDescriptions = getSnapshot(self._yAttributeDescriptions)
+      const _y2AttributeDescription = self._attributeDescriptions.get("rightNumeric")
+      const y2AttributeDescription = _y2AttributeDescription
+                                        ? { y2AttributeDescription: getSnapshot(_y2AttributeDescription) }
+                                        : undefined
+      return { yAttributeDescriptions, ...y2AttributeDescription }
+    }
   }))
   .views(self => {
     const baseRolesForAttribute = self.rolesForAttribute
@@ -144,6 +152,21 @@ export const GraphDataConfigurationModel = DataConfigurationModel
         self._attributeDescriptions.set(iRole, iDesc)
       } else {
         self._attributeDescriptions.delete(iRole)
+      }
+    },
+    synchronizeFilteredCases(descriptions?: {
+      yAttributeDescriptions: IAttributeDescriptionSnapshot[], y2AttributeDescription?: IAttributeDescriptionSnapshot
+    }) {
+      const { yAttributeDescriptions, y2AttributeDescription } = descriptions ?? self.allYAttributeDescriptions
+      const yAttrCount = yAttributeDescriptions.length + (y2AttributeDescription ? 1 : 0)
+      const filteredCasesRequired = Math.max(1, yAttrCount)
+      // remove any extraneous filteredCases
+      while (self.filteredCases.length > filteredCasesRequired) {
+        self.filteredCases.pop()?.destroy()
+      }
+      // add any required filteredCases
+      while (self.dataset && self.filteredCases.length < filteredCasesRequired) {
+        self._addNewFilteredCases()
       }
     }
   }))
@@ -646,6 +669,12 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       if (self._yAttributeDescriptions[plotNumber]) self.removeYAttributeAtIndex(plotNumber)
       if (desc) self.addYAttribute(desc, plotNumber)
     },
+    replaceYAttributes(descriptions: IAttributeDescriptionSnapshot[]) {
+      self._yAttributeDescriptions.clear()
+      descriptions.forEach(description => {
+        self.addYAttribute(description)
+      })
+    },
     removeYAttributeWithID(id: string) {
       const index = self._yAttributeDescriptions.findIndex((aDesc) => aDesc.attributeID === id)
       self.removeYAttributeAtIndex(index)
@@ -656,6 +685,12 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       self.rowCases.invalidateAll()
       self.columnCases.invalidateAll()
       self.cellCases.invalidateAll()
+    },
+    handleDataSetChange(data?: IDataSet) {
+      self.actionHandlerDisposer?.()
+      self.actionHandlerDisposer = undefined
+      self._clearFilteredCases(data)
+      self.synchronizeFilteredCases()
     }
   }))
   .actions(self => {
@@ -674,26 +709,9 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       afterCreate() {
         // synchronize filteredCases with attribute configuration
         addDisposer(self, reaction(
-          () => {
-            const yAttributeDescriptions = getSnapshot(self._yAttributeDescriptions)
-            const _y2AttributeDescription = self._attributeDescriptions.get("rightNumeric")
-            const y2AttributeDescription = _y2AttributeDescription
-                                              ? { y2AttributeDescription: getSnapshot(_y2AttributeDescription) }
-                                              : undefined
-            return { yAttributeDescriptions, ...y2AttributeDescription }
-          },
-          ({ yAttributeDescriptions, y2AttributeDescription }) => {
-            const yAttrCount = yAttributeDescriptions.length + (y2AttributeDescription ? 1 : 0)
-            const filteredCasesRequired = Math.max(1, yAttrCount)
-            // remove any extraneous filteredCases
-            while (self.filteredCases.length > filteredCasesRequired) {
-              self.filteredCases.pop()?.destroy()
-            }
-            // add any required filteredCases
-            while (self.dataset && self.filteredCases.length < filteredCasesRequired) {
-              self._addNewFilteredCases()
-            }
-          }, { name: "GraphDataConfigurationModel yAttrDescriptions reaction", equals: comparer.structural }
+          () => self.allYAttributeDescriptions,
+          (allYAttributeDescriptions) => self.synchronizeFilteredCases(allYAttributeDescriptions),
+          { name: "GraphDataConfigurationModel yAttrDescriptions reaction", equals: comparer.structural }
         ))
         addDisposer(self, reaction(
           () => self.getAllCellKeys(),
