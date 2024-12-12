@@ -55,7 +55,8 @@
         },
         "idCount": {
           "type": "number"
-        }
+        },
+        "_permissions": {}
       },
       "required": [
         "guid",
@@ -65,7 +66,8 @@
         "components",
         "contexts",
         "globalValues"
-      ]
+      ],
+      "additionalProperties": false
     },
     "CodapV2Component": {
       "anyOf": [
@@ -76,7 +78,7 @@
           "$ref": "#/definitions/ICodapV2CaseCardComponent"
         },
         {
-          "$ref": "#/definitions/ICodapGameViewComponent"
+          "$ref": "#/definitions/ICodapV2GameViewComponent"
         },
         {
           "$ref": "#/definitions/ICodapV2GraphComponent"
@@ -147,8 +149,39 @@
             },
             "zIndex": {
               "type": "number"
+            },
+            "right": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "bottom": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            },
+            "leftOrig": {
+              "type": "number"
+            },
+            "topOrig": {
+              "type": "number"
+            },
+            "widthOrig": {
+              "type": "number"
+            },
+            "heightOrig": {
+              "type": "number"
             }
-          }
+          },
+          "additionalProperties": false
         },
         "savedHeight": {
           "type": [
@@ -161,10 +194,12 @@
         "guid",
         "layout",
         "type"
-      ]
+      ],
+      "additionalProperties": false
     },
     "ICodapV2CalculatorStorage": {
       "type": "object",
+      "additionalProperties": false,
       "properties": {
         "title": {
           "type": "string"
@@ -216,8 +251,39 @@
             },
             "zIndex": {
               "type": "number"
+            },
+            "right": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "bottom": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            },
+            "leftOrig": {
+              "type": "number"
+            },
+            "topOrig": {
+              "type": "number"
+            },
+            "widthOrig": {
+              "type": "number"
+            },
+            "heightOrig": {
+              "type": "number"
             }
-          }
+          },
+          "additionalProperties": false
         },
         "savedHeight": {
           "type": [
@@ -231,7 +297,8 @@
         "guid",
         "layout",
         "type"
-      ]
+      ],
+      "additionalProperties": false
     },
     "ICodapV2CaseCardStorage": {
       "type": "object",
@@ -257,12 +324,26 @@
           },
           "required": [
             "context"
-          ]
+          ],
+          "additionalProperties": false
+        },
+        "isActive": {
+          "type": "boolean"
+        },
+        "columnWidthPct": {
+          "type": "string"
+        },
+        "columnWidthMap": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "number"
+          }
         }
       },
       "required": [
         "_links_"
-      ]
+      ],
+      "additionalProperties": false
     },
     "IGuidLink<\"DG.DataContextRecord\">": {
       "type": "object",
@@ -278,9 +359,10 @@
       "required": [
         "type",
         "id"
-      ]
+      ],
+      "additionalProperties": false
     },
-    "ICodapGameViewComponent": {
+    "ICodapV2GameViewComponent": {
       "type": "object",
       "properties": {
         "type": {
@@ -316,8 +398,39 @@
             },
             "zIndex": {
               "type": "number"
+            },
+            "right": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "bottom": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            },
+            "leftOrig": {
+              "type": "number"
+            },
+            "topOrig": {
+              "type": "number"
+            },
+            "widthOrig": {
+              "type": "number"
+            },
+            "heightOrig": {
+              "type": "number"
             }
-          }
+          },
+          "additionalProperties": false
         },
         "savedHeight": {
           "type": [
@@ -331,7 +444,8 @@
         "guid",
         "layout",
         "type"
-      ]
+      ],
+      "additionalProperties": false
     },
     "ICodapV2GameViewStorage": {
       "type": "object",
@@ -351,11 +465,45 @@
         "currentGameUrl": {
           "type": "string"
         },
-        "savedGameState": {}
+        "savedGameState": {},
+        "currentGameName": {
+          "type": "string"
+        },
+        "allowInitGameOverride": {
+          "type": "boolean"
+        },
+        "preventBringToFront": {
+          "type": "boolean"
+        },
+        "preventDataContextReorg": {
+          "type": "boolean"
+        },
+        "preventTopLevelReorg": {
+          "type": "boolean"
+        },
+        "preventAttributeDeletion": {
+          "type": "boolean"
+        },
+        "allowEmptyAttributeDeletion": {
+          "type": "boolean"
+        },
+        "_links_": {
+          "type": "object",
+          "properties": {
+            "context": {
+              "$ref": "#/definitions/IGuidLink%3C%22DG.DataContextRecord%22%3E"
+            }
+          },
+          "additionalProperties": false
+        },
+        "currentGameFormulas": {
+          "type": "null"
+        }
       },
       "required": [
         "currentGameUrl"
-      ]
+      ],
+      "additionalProperties": false
     },
     "ICodapV2GraphComponent": {
       "type": "object",
@@ -393,8 +541,39 @@
             },
             "zIndex": {
               "type": "number"
+            },
+            "right": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "bottom": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            },
+            "leftOrig": {
+              "type": "number"
+            },
+            "topOrig": {
+              "type": "number"
+            },
+            "widthOrig": {
+              "type": "number"
+            },
+            "heightOrig": {
+              "type": "number"
             }
-          }
+          },
+          "additionalProperties": false
         },
         "savedHeight": {
           "type": [
@@ -408,7 +587,8 @@
         "guid",
         "layout",
         "type"
-      ]
+      ],
+      "additionalProperties": false
     },
     "ICodapV2GraphStorage": {
       "type": "object",
@@ -433,7 +613,9 @@
             },
             "hiddenCases": {
               "type": "array",
-              "items": {}
+              "items": {
+                "$ref": "#/definitions/IGuidLink%3C%22DG.Case%22%3E"
+              }
             },
             "xColl": {
               "$ref": "#/definitions/IGuidLink%3C(%22DG.Collection%22%7C%22DG.CollectionRecord%22)%3E"
@@ -468,8 +650,21 @@
             },
             "rightAttr": {
               "$ref": "#/definitions/IGuidLink%3C%22DG.Attribute%22%3E"
+            },
+            "topColl": {
+              "$ref": "#/definitions/IGuidLink%3C%22DG.Collection%22%3E"
+            },
+            "topAttr": {
+              "$ref": "#/definitions/IGuidLink%3C%22DG.Attribute%22%3E"
+            },
+            "legendColl": {
+              "$ref": "#/definitions/IGuidLink%3C(%22DG.Collection%22%7C%22DG.CollectionRecord%22)%3E"
+            },
+            "legendAttr": {
+              "$ref": "#/definitions/IGuidLink%3C%22DG.Attribute%22%3E"
             }
-          }
+          },
+          "additionalProperties": false
         },
         "displayOnlySelected": {
           "type": "boolean"
@@ -516,7 +711,16 @@
         "plotBackgroundOpacity": {
           "type": "number"
         },
-        "plotBackgroundImageLockInfo": {},
+        "plotBackgroundImageLockInfo": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/ICodapV2GraphBackgroundLockInfo"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "plotBackgroundImage": {
           "type": [
             "string",
@@ -609,6 +813,27 @@
           "items": {
             "$ref": "#/definitions/ICodapV2PlotModel"
           }
+        },
+        "enableNumberToggle": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "numberToggleLastMode": {
+          "type": "boolean"
+        },
+        "enableMeasuresForSelection": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "hiddenCases": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
         }
       },
       "required": [
@@ -622,7 +847,25 @@
         "yAttributeType",
         "yAxisClass",
         "plotModels"
-      ]
+      ],
+      "additionalProperties": false
+    },
+    "IGuidLink<\"DG.Case\">": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "DG.Case"
+        },
+        "id": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "type",
+        "id"
+      ],
+      "additionalProperties": false
     },
     "IGuidLink<(\"DG.Collection\"|\"DG.CollectionRecord\")>": {
       "type": "object",
@@ -641,7 +884,8 @@
       "required": [
         "type",
         "id"
-      ]
+      ],
+      "additionalProperties": false
     },
     "IGuidLink<\"DG.Attribute\">": {
       "type": "object",
@@ -657,7 +901,8 @@
       "required": [
         "type",
         "id"
-      ]
+      ],
+      "additionalProperties": false
     },
     "IGuidLink<\"DG.Collection\">": {
       "type": "object",
@@ -673,7 +918,37 @@
       "required": [
         "type",
         "id"
-      ]
+      ],
+      "additionalProperties": false
+    },
+    "ICodapV2GraphBackgroundLockInfo": {
+      "type": "object",
+      "properties": {
+        "locked": {
+          "type": "boolean",
+          "const": true
+        },
+        "xAxisLowerBound": {
+          "type": "number"
+        },
+        "xAxisUpperBound": {
+          "type": "number"
+        },
+        "yAxisLowerBound": {
+          "type": "number"
+        },
+        "yAxisUpperBound": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "locked",
+        "xAxisLowerBound",
+        "xAxisUpperBound",
+        "yAxisLowerBound",
+        "yAxisUpperBound"
+      ],
+      "additionalProperties": false
     },
     "ICodapV2PlotModel": {
       "type": "object",
@@ -688,7 +963,8 @@
       "required": [
         "plotClass",
         "plotModelStorage"
-      ]
+      ],
+      "additionalProperties": false
     },
     "ICodapV2PlotStorage": {
       "type": "object",
@@ -711,7 +987,8 @@
               },
               "required": [
                 "isVisible"
-              ]
+              ],
+              "additionalProperties": false
             },
             "multipleMovableValues": {
               "type": "object",
@@ -743,7 +1020,8 @@
                     "required": [
                       "isVisible",
                       "value"
-                    ]
+                    ],
+                    "additionalProperties": false
                   }
                 },
                 "valueModels": {
@@ -767,7 +1045,8 @@
                     "required": [
                       "isVisible",
                       "values"
-                    ]
+                    ],
+                    "additionalProperties": false
                   }
                 }
               },
@@ -775,7 +1054,8 @@
                 "isShowingCount",
                 "isShowingPercent",
                 "isVisible"
-              ]
+              ],
+              "additionalProperties": false
             },
             "plottedBoxPlot": {
               "type": "object",
@@ -803,7 +1083,8 @@
                         "required": [
                           "proportionX",
                           "proportionY"
-                        ]
+                        ],
+                        "additionalProperties": false
                       },
                       {
                         "type": "object",
@@ -818,7 +1099,8 @@
                         "required": [
                           "proportionCenterX",
                           "proportionCenterY"
-                        ]
+                        ],
+                        "additionalProperties": false
                       },
                       {
                         "type": "null"
@@ -833,6 +1115,7 @@
                   "type": "boolean"
                 }
               },
+              "additionalProperties": false,
               "required": [
                 "isVisible"
               ]
@@ -856,6 +1139,7 @@
                   "type": "number"
                 }
               },
+              "additionalProperties": false,
               "required": [
                 "isVisible"
               ]
@@ -879,7 +1163,8 @@
               "required": [
                 "expression",
                 "isVisible"
-              ]
+              ],
+              "additionalProperties": false
             },
             "plottedMad": {
               "$ref": "#/definitions/ICodapV2UnivariateAdornment"
@@ -922,7 +1207,8 @@
                         "required": [
                           "proportionX",
                           "proportionY"
-                        ]
+                        ],
+                        "additionalProperties": false
                       },
                       {
                         "type": "object",
@@ -937,7 +1223,8 @@
                         "required": [
                           "proportionCenterX",
                           "proportionCenterY"
-                        ]
+                        ],
+                        "additionalProperties": false
                       },
                       {
                         "type": "null"
@@ -952,7 +1239,8 @@
               "required": [
                 "isVisible",
                 "numberOfStdErrs"
-              ]
+              ],
+              "additionalProperties": false
             },
             "plottedValue": {
               "type": "object",
@@ -973,15 +1261,62 @@
               "required": [
                 "expression",
                 "isVisible"
-              ]
+              ],
+              "additionalProperties": false
             }
-          }
+          },
+          "additionalProperties": false
         },
         "areSquaresVisible": {
           "type": "boolean"
         },
         "isLSRLVisible": {
           "type": "boolean"
+        },
+        "lsrLineStorage": {
+          "type": "object",
+          "properties": {
+            "isVisible": {
+              "type": "boolean"
+            },
+            "enableMeasuresForSelection": {
+              "type": "boolean"
+            },
+            "isInterceptLocked": {
+              "type": "boolean"
+            },
+            "equationCoords": {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "proportionCenterX": {
+                      "type": "number"
+                    },
+                    "proportionCenterY": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "proportionCenterX",
+                    "proportionCenterY"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "showConfidenceBands": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "isVisible",
+            "isInterceptLocked"
+          ],
+          "additionalProperties": false
         },
         "movableLineStorage": {
           "type": "object",
@@ -1010,7 +1345,8 @@
                   "required": [
                     "proportionCenterX",
                     "proportionCenterY"
-                  ]
+                  ],
+                  "additionalProperties": false
                 },
                 {
                   "type": "null"
@@ -1040,7 +1376,8 @@
             "slope",
             "isVertical",
             "xIntercept"
-          ]
+          ],
+          "additionalProperties": false
         },
         "movablePointStorage": {
           "type": "object",
@@ -1064,13 +1401,15 @@
               "required": [
                 "x",
                 "y"
-              ]
+              ],
+              "additionalProperties": false
             }
           },
           "required": [
             "isVisible",
             "coordinates"
-          ]
+          ],
+          "additionalProperties": false
         },
         "multipleLSRLsStorage": {
           "type": "object",
@@ -1119,7 +1458,8 @@
                         "required": [
                           "proportionCenterX",
                           "proportionCenterY"
-                        ]
+                        ],
+                        "additionalProperties": false
                       },
                       {
                         "type": "null"
@@ -1133,19 +1473,40 @@
                 "required": [
                   "isVisible",
                   "isInterceptLocked"
-                ]
+                ],
+                "additionalProperties": false
               }
             }
           },
           "required": [
             "isVisible",
             "isInterceptLocked"
-          ]
+          ],
+          "additionalProperties": false
         },
         "showMeasureLabels": {
           "type": "boolean"
+        },
+        "breakdownType": {
+          "type": "number"
+        },
+        "width": {
+          "type": "number"
+        },
+        "alignment": {
+          "type": "number"
+        },
+        "dotsAreFused": {
+          "type": "boolean"
+        },
+        "totalNumberOfBins": {
+          "type": "number"
+        },
+        "expression": {
+          "type": "string"
         }
-      }
+      },
+      "additionalProperties": false
     },
     "ICodapV2UnivariateAdornment": {
       "type": "object",
@@ -1173,7 +1534,8 @@
                 "required": [
                   "proportionX",
                   "proportionY"
-                ]
+                ],
+                "additionalProperties": false
               },
               {
                 "type": "object",
@@ -1188,7 +1550,8 @@
                 "required": [
                   "proportionCenterX",
                   "proportionCenterY"
-                ]
+                ],
+                "additionalProperties": false
               },
               {
                 "type": "null"
@@ -1197,6 +1560,7 @@
           }
         }
       },
+      "additionalProperties": false,
       "required": [
         "isVisible"
       ]
@@ -1237,8 +1601,39 @@
             },
             "zIndex": {
               "type": "number"
+            },
+            "right": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "bottom": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            },
+            "leftOrig": {
+              "type": "number"
+            },
+            "topOrig": {
+              "type": "number"
+            },
+            "widthOrig": {
+              "type": "number"
+            },
+            "heightOrig": {
+              "type": "number"
             }
-          }
+          },
+          "additionalProperties": false
         },
         "savedHeight": {
           "type": [
@@ -1252,7 +1647,8 @@
         "guid",
         "layout",
         "type"
-      ]
+      ],
+      "additionalProperties": false
     },
     "ICodapV2GuideStorage": {
       "type": "object",
@@ -1299,13 +1695,24 @@
             "required": [
               "itemTitle",
               "url"
-            ]
+            ],
+            "additionalProperties": false
           }
+        },
+        "currentURL": {
+          "type": "string"
+        },
+        "currentItemTitle": {
+          "type": [
+            "string",
+            "null"
+          ]
         }
       },
       "required": [
         "items"
-      ]
+      ],
+      "additionalProperties": false
     },
     "ICodapV2ImageComponent": {
       "type": "object",
@@ -1343,8 +1750,39 @@
             },
             "zIndex": {
               "type": "number"
+            },
+            "right": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "bottom": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            },
+            "leftOrig": {
+              "type": "number"
+            },
+            "topOrig": {
+              "type": "number"
+            },
+            "widthOrig": {
+              "type": "number"
+            },
+            "heightOrig": {
+              "type": "number"
             }
-          }
+          },
+          "additionalProperties": false
         },
         "savedHeight": {
           "type": [
@@ -1358,7 +1796,8 @@
         "guid",
         "layout",
         "type"
-      ]
+      ],
+      "additionalProperties": false
     },
     "ICodapV2ImageStorage": {
       "type": "object",
@@ -1383,7 +1822,8 @@
         "title",
         "URL",
         "name"
-      ]
+      ],
+      "additionalProperties": false
     },
     "ICodapV2MapComponent": {
       "type": "object",
@@ -1421,8 +1861,39 @@
             },
             "zIndex": {
               "type": "number"
+            },
+            "right": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "bottom": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            },
+            "leftOrig": {
+              "type": "number"
+            },
+            "topOrig": {
+              "type": "number"
+            },
+            "widthOrig": {
+              "type": "number"
+            },
+            "heightOrig": {
+              "type": "number"
             }
-          }
+          },
+          "additionalProperties": false
         },
         "savedHeight": {
           "type": [
@@ -1436,7 +1907,8 @@
         "guid",
         "layout",
         "type"
-      ]
+      ],
+      "additionalProperties": false
     },
     "ICodapV2MapStorage": {
       "anyOf": [
@@ -1461,11 +1933,18 @@
                 "context": {
                   "$ref": "#/definitions/IGuidLink%3C%22DG.DataContextRecord%22%3E"
                 },
+                "legendColl": {
+                  "$ref": "#/definitions/IGuidLink%3C%22DG.Collection%22%3E"
+                },
+                "legendAttr": {
+                  "$ref": "#/definitions/IGuidLink%3C%22DG.Attribute%22%3E"
+                },
                 "hiddenCases": {
                   "type": "array",
                   "items": {}
                 }
-              }
+              },
+              "additionalProperties": false
             },
             "legendRole": {
               "type": "number"
@@ -1506,7 +1985,8 @@
                       "required": [
                         "lat",
                         "lng"
-                      ]
+                      ],
+                      "additionalProperties": false
                     },
                     {
                       "type": "array",
@@ -1553,7 +2033,8 @@
                   "required": [
                     "gridMultiplier",
                     "visible"
-                  ]
+                  ],
+                  "additionalProperties": false
                 },
                 "areaColor": {
                   "type": "string"
@@ -1579,7 +2060,8 @@
                 "zoom",
                 "baseMapLayerName",
                 "grid"
-              ]
+              ],
+              "additionalProperties": false
             }
           },
           "required": [
@@ -1587,7 +2069,8 @@
             "legendRole",
             "legendAttributeType",
             "mapModelStorage"
-          ]
+          ],
+          "additionalProperties": false
         },
         {
           "$ref": "#/definitions/ICodapV2MapCurrentStorage"
@@ -1627,7 +2110,8 @@
                   "required": [
                     "lat",
                     "lng"
-                  ]
+                  ],
+                  "additionalProperties": false
                 },
                 {
                   "type": "array",
@@ -1668,12 +2152,14 @@
             "baseMapLayerName",
             "gridMultiplier",
             "layerModels"
-          ]
+          ],
+          "additionalProperties": false
         }
       },
       "required": [
         "mapModelStorage"
-      ]
+      ],
+      "additionalProperties": false
     },
     "ICodapV2MapLayerStorage": {
       "anyOf": [
@@ -1696,7 +2182,9 @@
             },
             "hiddenCases": {
               "type": "array",
-              "items": {}
+              "items": {
+                "$ref": "#/definitions/IGuidLink%3C%22DG.Case%22%3E"
+              }
             },
             "legendColl": {
               "$ref": "#/definitions/IGuidLink%3C%22DG.Collection%22%3E"
@@ -1713,11 +2201,16 @@
                   }
                 }
               ]
+            },
+            "tHiddenCases": {
+              "type": "array",
+              "items": {}
             }
           },
           "required": [
             "context"
-          ]
+          ],
+          "additionalProperties": false
         },
         "legendRole": {
           "type": "number"
@@ -1761,7 +2254,8 @@
           },
           "required": [
             "gridMultiplier"
-          ]
+          ],
+          "additionalProperties": false
         },
         "connectingLines": {
           "type": "object",
@@ -1775,7 +2269,11 @@
           },
           "required": [
             "isVisible"
-          ]
+          ],
+          "additionalProperties": false
+        },
+        "linesShouldBeVisible": {
+          "type": "boolean"
         }
       },
       "required": [
@@ -1791,7 +2289,8 @@
         "strokeColor",
         "strokeTransparency",
         "transparency"
-      ]
+      ],
+      "additionalProperties": false
     },
     "ICodapV2MapPolygonLayerStorage": {
       "type": "object",
@@ -1804,7 +2303,9 @@
             },
             "hiddenCases": {
               "type": "array",
-              "items": {}
+              "items": {
+                "$ref": "#/definitions/IGuidLink%3C%22DG.Case%22%3E"
+              }
             },
             "legendColl": {
               "$ref": "#/definitions/IGuidLink%3C%22DG.Collection%22%3E"
@@ -1821,11 +2322,16 @@
                   }
                 }
               ]
+            },
+            "tHiddenCases": {
+              "type": "array",
+              "items": {}
             }
           },
           "required": [
             "context"
-          ]
+          ],
+          "additionalProperties": false
         },
         "legendRole": {
           "type": "number"
@@ -1867,7 +2373,8 @@
         "isVisible",
         "legendAttributeType",
         "legendRole"
-      ]
+      ],
+      "additionalProperties": false
     },
     "ICodapV2SliderComponent": {
       "type": "object",
@@ -1905,8 +2412,39 @@
             },
             "zIndex": {
               "type": "number"
+            },
+            "right": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "bottom": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            },
+            "leftOrig": {
+              "type": "number"
+            },
+            "topOrig": {
+              "type": "number"
+            },
+            "widthOrig": {
+              "type": "number"
+            },
+            "heightOrig": {
+              "type": "number"
             }
-          }
+          },
+          "additionalProperties": false
         },
         "savedHeight": {
           "type": [
@@ -1920,7 +2458,8 @@
         "guid",
         "layout",
         "type"
-      ]
+      ],
+      "additionalProperties": false
     },
     "ICodapV2SliderStorage": {
       "type": "object",
@@ -1946,7 +2485,8 @@
           },
           "required": [
             "model"
-          ]
+          ],
+          "additionalProperties": false
         },
         "lowerBound": {
           "type": "number"
@@ -1978,7 +2518,8 @@
       },
       "required": [
         "_links_"
-      ]
+      ],
+      "additionalProperties": false
     },
     "IGuidLink<\"DG.GlobalValue\">": {
       "type": "object",
@@ -1994,7 +2535,8 @@
       "required": [
         "type",
         "id"
-      ]
+      ],
+      "additionalProperties": false
     },
     "ICodapV2TableComponent": {
       "type": "object",
@@ -2032,8 +2574,39 @@
             },
             "zIndex": {
               "type": "number"
+            },
+            "right": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "bottom": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            },
+            "leftOrig": {
+              "type": "number"
+            },
+            "topOrig": {
+              "type": "number"
+            },
+            "widthOrig": {
+              "type": "number"
+            },
+            "heightOrig": {
+              "type": "number"
             }
-          }
+          },
+          "additionalProperties": false
         },
         "savedHeight": {
           "type": [
@@ -2047,7 +2620,8 @@
         "guid",
         "layout",
         "type"
-      ]
+      ],
+      "additionalProperties": false
     },
     "ICodapV2TableStorage": {
       "type": "object",
@@ -2069,11 +2643,25 @@
           "properties": {
             "context": {
               "$ref": "#/definitions/IGuidLink%3C%22DG.DataContextRecord%22%3E"
+            },
+            "collapsedNodes": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/IGuidLink%3C%22DG.Case%22%3E"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/IGuidLink%3C%22DG.Case%22%3E"
+                  }
+                }
+              ]
             }
           },
           "required": [
             "context"
-          ]
+          ],
+          "additionalProperties": false
         },
         "attributeWidths": {
           "type": "array",
@@ -2089,7 +2677,8 @@
                 },
                 "required": [
                   "attr"
-                ]
+                ],
+                "additionalProperties": false
               },
               "width": {
                 "type": "number"
@@ -2097,10 +2686,52 @@
             },
             "required": [
               "_links_"
-            ]
+            ],
+            "additionalProperties": false
           }
+        },
+        "isActive": {
+          "type": "boolean"
+        },
+        "rowHeights": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ICodapV2RowHeight"
+          }
+        },
+        "horizontalScrollOffset": {
+          "type": "number"
+        },
+        "isIndexHidden": {
+          "type": "boolean"
         }
-      }
+      },
+      "additionalProperties": false
+    },
+    "ICodapV2RowHeight": {
+      "type": "object",
+      "properties": {
+        "_links_": {
+          "type": "object",
+          "properties": {
+            "collection": {
+              "$ref": "#/definitions/IGuidLink%3C%22DG.Collection%22%3E"
+            }
+          },
+          "required": [
+            "collection"
+          ],
+          "additionalProperties": false
+        },
+        "rowHeight": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "_links_",
+        "rowHeight"
+      ],
+      "additionalProperties": false
     },
     "ICodapV2TextComponent": {
       "type": "object",
@@ -2138,8 +2769,39 @@
             },
             "zIndex": {
               "type": "number"
+            },
+            "right": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "bottom": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            },
+            "leftOrig": {
+              "type": "number"
+            },
+            "topOrig": {
+              "type": "number"
+            },
+            "widthOrig": {
+              "type": "number"
+            },
+            "heightOrig": {
+              "type": "number"
             }
-          }
+          },
+          "additionalProperties": false
         },
         "savedHeight": {
           "type": [
@@ -2153,7 +2815,8 @@
         "guid",
         "layout",
         "type"
-      ]
+      ],
+      "additionalProperties": false
     },
     "ICodapV2TextStorage": {
       "type": "object",
@@ -2173,7 +2836,8 @@
         "text": {
           "type": "string"
         }
-      }
+      },
+      "additionalProperties": false
     },
     "ICodapV2WebViewComponent": {
       "type": "object",
@@ -2211,8 +2875,39 @@
             },
             "zIndex": {
               "type": "number"
+            },
+            "right": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "bottom": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            },
+            "leftOrig": {
+              "type": "number"
+            },
+            "topOrig": {
+              "type": "number"
+            },
+            "widthOrig": {
+              "type": "number"
+            },
+            "heightOrig": {
+              "type": "number"
             }
-          }
+          },
+          "additionalProperties": false
         },
         "savedHeight": {
           "type": [
@@ -2226,7 +2921,8 @@
         "guid",
         "layout",
         "type"
-      ]
+      ],
+      "additionalProperties": false
     },
     "ICodapV2WebViewStorage": {
       "type": "object",
@@ -2249,7 +2945,8 @@
       },
       "required": [
         "URL"
-      ]
+      ],
+      "additionalProperties": false
     },
     "CodapV2Context": {
       "anyOf": [
@@ -2310,13 +3007,44 @@
               "type": "null"
             }
           ]
-        }
+        },
+        "preventReorg": {
+          "type": "boolean"
+        },
+        "setAsideItems": {
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ICodapV2SetAsideItem"
+              }
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": [
+                    "number",
+                    "string"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "contextStorage": {
+          "$ref": "#/definitions/ICodapV2DataContextStorage"
+        },
+        "_permissions": {}
       },
       "required": [
         "type",
         "guid",
-        "collections"
-      ]
+        "collections",
+        "contextStorage"
+      ],
+      "additionalProperties": false
     },
     "ICodapV2Collection": {
       "type": "object",
@@ -2363,7 +3091,8 @@
             "yAttr": {
               "type": "string"
             }
-          }
+          },
+          "additionalProperties": false
         },
         "guid": {
           "type": "number"
@@ -2389,7 +3118,8 @@
             "setOfCasesWithArticle": {
               "type": "string"
             }
-          }
+          },
+          "additionalProperties": false
         },
         "name": {
           "type": "string"
@@ -2406,6 +3136,9 @@
         "type": {
           "type": "string",
           "const": "DG.Collection"
+        },
+        "areParentChildLinksConfigured": {
+          "type": "boolean"
         }
       },
       "required": [
@@ -2413,7 +3146,8 @@
         "cases",
         "guid",
         "name"
-      ]
+      ],
+      "additionalProperties": false
     },
     "ICodapV2Attribute": {
       "type": "object",
@@ -2493,12 +3227,16 @@
             "string",
             "null"
           ]
+        },
+        "decimals": {
+          "type": "string"
         }
       },
       "required": [
         "guid",
         "name"
-      ]
+      ],
+      "additionalProperties": false
     },
     "ICodapV2Case": {
       "type": "object",
@@ -2541,15 +3279,85 @@
       "required": [
         "guid",
         "values"
-      ]
+      ],
+      "additionalProperties": false
     },
     "ICodapV2DataContextMetadata": {
       "type": "object",
       "properties": {
         "description": {
           "type": "string"
+        },
+        "source": {
+          "type": "string"
+        },
+        "importDate": {
+          "type": "string"
+        },
+        "import date": {
+          "type": "string"
         }
-      }
+      },
+      "additionalProperties": false
+    },
+    "ICodapV2SetAsideItem": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "values": {
+          "type": "object",
+          "additionalProperties": {
+            "type": [
+              "number",
+              "string"
+            ]
+          }
+        }
+      },
+      "required": [
+        "id",
+        "values"
+      ],
+      "additionalProperties": false
+    },
+    "ICodapV2DataContextStorage": {
+      "type": "object",
+      "properties": {
+        "_links_": {
+          "type": "object",
+          "properties": {
+            "selectedCases": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ICodapV2DataContextSelectedCase"
+              }
+            }
+          },
+          "required": [
+            "selectedCases"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "ICodapV2DataContextSelectedCase": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "id": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "type",
+        "id"
+      ],
+      "additionalProperties": false
     },
     "ICodapV2GameContext": {
       "type": "object",
@@ -2594,12 +3402,38 @@
             }
           ]
         },
-        "type": {
-          "type": "string",
-          "const": "DG.GameContext"
+        "preventReorg": {
+          "type": "boolean"
+        },
+        "setAsideItems": {
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ICodapV2SetAsideItem"
+              }
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": [
+                    "number",
+                    "string"
+                  ]
+                }
+              }
+            }
+          ]
         },
         "contextStorage": {
           "$ref": "#/definitions/ICodapV2GameContextStorage"
+        },
+        "_permissions": {},
+        "type": {
+          "type": "string",
+          "const": "DG.GameContext"
         }
       },
       "required": [
@@ -2607,11 +3441,27 @@
         "contextStorage",
         "guid",
         "type"
-      ]
+      ],
+      "additionalProperties": false
     },
     "ICodapV2GameContextStorage": {
       "type": "object",
       "properties": {
+        "_links_": {
+          "type": "object",
+          "properties": {
+            "selectedCases": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ICodapV2DataContextSelectedCase"
+              }
+            }
+          },
+          "required": [
+            "selectedCases"
+          ],
+          "additionalProperties": false
+        },
         "gameName": {
           "type": [
             "string",
@@ -2624,37 +3474,9 @@
             "null"
           ]
         },
-        "gameState": {},
-        "_links_": {
-          "type": "object",
-          "properties": {
-            "selectedCases": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/ICodapV2GameContextSelectedCase"
-              }
-            }
-          },
-          "required": [
-            "selectedCases"
-          ]
-        }
-      }
-    },
-    "ICodapV2GameContextSelectedCase": {
-      "type": "object",
-      "properties": {
-        "type": {
-          "type": "string"
-        },
-        "id": {
-          "type": "number"
-        }
+        "gameState": {}
       },
-      "required": [
-        "type",
-        "id"
-      ]
+      "additionalProperties": false
     },
     "ICodapV2ExternalContext": {
       "type": "object",
@@ -2665,7 +3487,8 @@
       },
       "required": [
         "externalDocumentId"
-      ]
+      ],
+      "additionalProperties": false
     },
     "ICodapV2GlobalValue": {
       "type": "object",
@@ -2684,7 +3507,8 @@
         "name",
         "value",
         "guid"
-      ]
+      ],
+      "additionalProperties": false
     }
   }
 }
