@@ -32,7 +32,11 @@ ENV PATH /app/node_modules/.bin:$PATH
 # extn 레포 clone
 WORKDIR /
 RUN git clone https://github.com/concord-consortium/codap-data.git
-RUN git clone https://github.com/concord-consortium/codap-data-interactives.git
+RUN git clone https://github.com/team-monolith-product/codap-data-interactives.git
+
+# codap-data-interactives 레포 라이브러리 설치
+WORKDIR /codap-data-interactives
+RUN npm ci
 
 # set working directory
 WORKDIR /codap
