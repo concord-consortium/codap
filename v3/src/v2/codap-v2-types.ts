@@ -853,11 +853,12 @@ export interface ICodapV2BaseComponent {
     // based on the results for `right`, this must be optional
     y?: number
 
-    // these *Orig properties only occur in a single file in cfm-shared
-    leftOrig?: number
-    topOrig?: number
-    widthOrig?: number
-    heightOrig?: number
+    // These *Orig properties only occur in a single file in cfm-shared
+    // They are retained here incase we review the files in cfm-shared again
+    // leftOrig?: number
+    // topOrig?: number
+    // widthOrig?: number
+    // heightOrig?: number
   }
   savedHeight?: number | null
 }

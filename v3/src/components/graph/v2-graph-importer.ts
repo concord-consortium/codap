@@ -88,12 +88,9 @@ export function v2GraphImporter({v2Component, v2Document, sharedModelManager, in
         attribute = v2Document.getV3Attribute(v2AttrId),
         v3AttrId = attribute?.id ?? '',
         v2Role = v2Component.componentStorage[`${attrKey}Role`],
-        v2Type = v2Component.componentStorage[`${attrKey}AttributeType`],
-        // TODO_V2_IMPORT If v2Type is 0 then v3Type will be 0 and the if block below will be skipped
-        // v3TypeFromV2TypeIndex refers to a "type eNone === 0" which in v3 is supposed to be undefined.
-        // So perhaps we should handle a v2Type of 0, and enter the if block to create the attribute description?
-        v3Type = v2Type && v3TypeFromV2TypeIndex[v2Type]
-      if (v3AttrRole && v3AttrId && v3Type) {
+        v2Type = v2Component.componentStorage[`${attrKey}AttributeType`]
+      if (v2Type != null && v3AttrRole && v3AttrId) {
+        const v3Type = v3TypeFromV2TypeIndex[v2Type]
         const v2PrimaryNumeric = 1
         const v2PrimaryCategorical = 3
         if (["x", "y"].includes(attrKey) && (v2Role === v2PrimaryNumeric || v2Role === v2PrimaryCategorical)) {
