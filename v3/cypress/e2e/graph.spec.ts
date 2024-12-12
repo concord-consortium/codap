@@ -46,7 +46,7 @@ context("Graph UI", () => {
     cy.wait(2500)
   })
   describe("graph view", () => {
-    it.skip("should highlight a selected graph point", () => {
+    it("should highlight a selected graph point", () => {
       // This test is the outcome of a SPIKE to explore testing graph interactions.
       // It partially validates interactions but requires further PIXIJS-level support.
       // https://github.com/concord-consortium/codap/pull/1637
@@ -213,13 +213,25 @@ context("Graph UI", () => {
       // in the graph axis it might be possible to check the axis labels or scale
       cy.get("[data-testid=graph]").find("[data-testid=axis-bottom]").find(".tick").should("have.length", 29)
     })
-    it("hides and shows selected/unselected cases", () => {
+    it.only("hides and shows selected/unselected cases", () => {
       ah.openAxisAttributeMenu("bottom")
       ah.selectMenuAttribute("Sleep", "bottom") // Sleep => x-axis
       cy.wait(500)
       // TODO: Add more thorough checks to make sure the cases are actually hidden and shown once Cypress is
       // configured to interact with the PixiJS canvas. For now, we just check that the buttons are disabled
       // and enabled as expected.
+
+                  // this could live in a skipped test for now
+        // TODO: add a folder that has the specific tests
+
+      cy.window().then((win: Window) => { // this gets the window globally within the graph element and exposes the PixiJS points
+        const tileId: any = cy.get("[data-tile=graph-1]").invoke("id") // find the graph element and get the tileID from the graph element
+        const pixiPoints = (win as any).pixiPointsMap[tileId] // within the PixiPoints map look up the PixiPoints for the graph element
+        // here is where we want to get the number of points, iterate through the points, etc.
+        // for every point, find its (x, y) position
+        // color
+        // the points will be pixi Sprites with their Sprite properties, e.g. texture, or image (OK to experiment here)
+      })
       graph.getHideShowButton().click()
       cy.get("[data-testid=hide-selected-cases]").should("be.disabled")
       cy.get("[data-testid=hide-unselected-cases]").should("not.be.disabled")
@@ -566,6 +578,7 @@ context("Graph UI", () => {
       cy.get("[data-testid=graph-bin-alignment-setting]").find("input").should("exist").should("have.value", "2")
       // focus on the plot area
       cy.get("[data-testid=bin-ticks-graph-1]").click()
+
       cy.window().then((win: Window) => {
         cy.get("[data-testid=bin-ticks-graph-1]").find("path.draggable-bin-boundary-cover").eq(2)
           .trigger("mousedown", { which: 1, force: true, view: win })

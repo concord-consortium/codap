@@ -139,6 +139,7 @@ Various developer features can be enabled by adding a `debug` local storage key 
 - `history` this will: print some info to the console as the history system records changes, print the full history as JSON each time it is loaded from Firestore, and provide a `window.historyDocument` so you can inspect the document while navigating the history.
 - `logger` console log all messages sent to the logging service
 - `map` print info about interactions with the map component
+- `pixiPoints` this adds a map of tileId keys to PixiPoint instances as `window.pixiPointsMap`. This is also always available in Cypress.
 - `plugins` enable some extra plugins in the plugin menu and print information about interactions with plugins.
 - `undo` this will print information about each action that is added to the undo stack.
 
