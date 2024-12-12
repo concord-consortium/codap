@@ -41,7 +41,7 @@ describe("AttributeFormulaAdapter", () => {
     it("should store results in DataSet case values", () => {
       const { adapter, dataSet, attribute, context, extraMetadata } = getTestEnv()
       adapter.recalculateFormula(context, extraMetadata, "ALL_CASES")
-      expect(dataSet.getValueAtItemIndex(0, attribute.id)).toEqual("3")
+      expect(dataSet.getValueAtItemIndex(0, attribute.id)).toEqual(3)
     })
   })
 
@@ -113,7 +113,7 @@ describe("AttributeFormulaAdapter", () => {
 
       expect(dataSet.getValueAtItemIndex(0, attribute.id)).toEqual("")
       dataSet.moveAttributeToNewCollection(dataSet.attrIDFromName("bar")!)
-      expect(dataSet.getValueAtItemIndex(0, attribute.id)).toEqual("3") // formula has been recalculated
+      expect(dataSet.getValueAtItemIndex(0, attribute.id)).toEqual(3) // formula has been recalculated
     })
   })
 })
