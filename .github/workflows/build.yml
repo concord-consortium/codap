@@ -166,12 +166,11 @@ jobs:
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
-    - name: Extract Build Hash from Docker Image
-      id: extract-build-hash
+    - name: Extract Build Number
+      id: extract-build-number
       run: |
-        TAG=$(echo "${{ steps.tags.outputs.tags }}" | cut -d',' -f1)
-        HASH=$(docker run --rm $TAG /app/extract-build-hash.sh | tr -d '\n')
-        echo "hash=$HASH" >> $GITHUB_OUTPUT
+        BUILD_NUMBER=$(cat buildnumber.txt)
+        echo "number=$BUILD_NUMBER" >> $GITHUB_OUTPUT
 
     - name: Checkout jce-service-helm Repository
       uses: actions/checkout@v4
@@ -193,7 +192,7 @@ jobs:
             fi
           done
         done
-        CHANGES=$(echo $CHANGES | jq -c 'with_entries(.value += {"buildHash": "${{ steps.extract-build-hash.outputs.hash }}"})')
+        CHANGES=$(echo $CHANGES | jq -c 'with_entries(.value += {"buildNumber": "${{ steps.extract-build-number.outputs.number }}"})')
         echo "changes=$CHANGES" >> $GITHUB_OUTPUT
 
     - name: Update Image Version in the related HelmChart value file
