@@ -38,7 +38,7 @@
     "cloudfront:invalidations": "s3cmd cfinvalinfo cf://E6OL76123FRO6",
     "cloudfront:inval-root": "aws cloudfront create-invalidation --distribution-id E6OL76123FRO6 --paths /index.html",
     "codap:comment": "echo Usage: `npm run codap` launches sc-server. Point browser at http://localhost:4020/dg or `npm run open:dev`.",
-    "codap": "sproutcore server --host 0.0.0.0 --allow-from-ips='*.*.*.*'",
+    "codap": "sproutcore server --allow-from-ips='*.*.*.*'",
     "deploy:dev:comment": "echo Usage: `npm run deploy:dev -- {deployName}` builds and deploys CODAP to 'https://codap.concord.org/~user/deployName'",
     "deploy:dev": "npm run build:bundle-dev && ./bin/deployDevCodap",
     "link:slate": "npm link @concord-consortium/slate-editor",
