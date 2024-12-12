@@ -1,4 +1,4 @@
-import { getSnapshot } from "mobx-state-tree"
+import { destroy, getSnapshot } from "mobx-state-tree"
 import { V2GetGraph, V2Graph } from "../../data-interactive/data-interactive-component-types"
 import { DIValues } from "../../data-interactive/data-interactive-types"
 import { DIComponentHandler } from "../../data-interactive/handlers/component-handler"
@@ -197,7 +197,9 @@ export const graphComponentHandler: DIComponentHandler = {
         }
       })
     }
-    return { content: { ...getSnapshot(graphModel), layers: finalLayers } as ITileContentSnapshotWithType }
+    const result = { content: { ...getSnapshot(graphModel), layers: finalLayers } as ITileContentSnapshotWithType }
+    destroy(graphModel)
+    return result
   },
 
   get(content: ITileContentModel) {

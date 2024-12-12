@@ -662,6 +662,21 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       self.rowCases.invalidateAll()
       self.columnCases.invalidateAll()
       self.cellCases.invalidateAll()
+    },
+    handleDataSetChange(data?: IDataSet) {
+      self.actionHandlerDisposer?.()
+      self.actionHandlerDisposer = undefined
+      self._clearFilteredCases(data)
+      const yAttributeDescriptions = getSnapshot(self._yAttributeDescriptions)
+      const _y2AttributeDescription = self._attributeDescriptions.get("rightNumeric")
+      const y2AttributeDescription = _y2AttributeDescription
+        ? { y2AttributeDescription: getSnapshot(_y2AttributeDescription) }
+        : undefined
+      const yAttrCount = yAttributeDescriptions.length + (y2AttributeDescription ? 1 : 0)
+      const filteredCasesRequired = Math.max(1, yAttrCount)
+      while (self.dataset && self.filteredCases.length < filteredCasesRequired) {
+        self._addNewFilteredCases()
+      }
     }
   }))
   .actions(self => {
