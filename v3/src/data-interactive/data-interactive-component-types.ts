@@ -64,19 +64,30 @@ export interface V2Game extends V2Component {
   URL?: string
 }
 export interface V2Graph extends V2Component {
+  backgroundColor?: string
   captionAttributeID?: string | null
   captionAttributeName?: string | null
   dataContext?: string
+  displayOnlySelectedCases?: boolean
   enableNumberToggle?: boolean
+  filterFormula?: string
+  hiddenCases?: string[]
   legendAttributeID?: string | null
   legendAttributeName?: string | null
   numberToggleLastMode?: boolean
+  pointColor?: string
+  pointSize?: number
   rightNumericAttributeID?: string | null
   rightNumericAttributeName?: string | null
   rightSplitAttributeID?: string | null
   rightSplitAttributeName?: string | null
+  showMeasuresForSelection?: boolean
+  showParentToggles?: boolean
+  strokeColor?: string
+  strokeSameAsFill?: boolean
   topSplitAttributeID?: string | null
   topSplitAttributeName?: string | null
+  transparent?: boolean
   type: "graph"
   xAttributeID?: string | null
   xAttributeName?: string | null

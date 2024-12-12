@@ -9,7 +9,7 @@ import { IDataSet } from "../../models/data/data-set"
 import { ISharedCaseMetadata } from "../../models/shared/shared-case-metadata"
 import { getSharedCaseMetadataFromDataset, getSharedDataSets } from "../../models/shared/shared-data-utils"
 import { ITileContentModel, ITileContentSnapshotWithType } from "../../models/tiles/tile-content"
-import { toV3AttrId, toV3DataSetId } from "../../utilities/codap-utils"
+import { toV2Id, toV3AttrId, toV3DataSetId } from "../../utilities/codap-utils"
 import { t } from "../../utilities/translation/translate"
 import { AxisPlace } from "../axis/axis-types"
 import { isNumericAxisModel } from "../axis/models/axis-model"
@@ -230,9 +230,21 @@ export const graphComponentHandler: DIComponentHandler = {
       const y2LowerBound = y2NumericAxis?.min
       const y2UpperBound = y2NumericAxis?.max
 
+      const { pointDescription, showMeasuresForSelection, showParentToggles } = content
+      const { displayOnlySelectedCases } = dataConfiguration
+      const filterFormula = dataConfiguration.filterFormula?.display
+      const hiddenCases = dataConfiguration.hiddenCases.map(id => toV2Id(id))
+      const pointSize = pointDescription.pointSizeMultiplier
+      const strokeColor = pointDescription.pointStrokeColor
+      const { pointColor } = pointDescription
+      const strokeSameAsFill = pointDescription.pointStrokeSameAsFill
+      const backgroundColor = content.plotBackgroundColor
+      const transparent = content.isTransparent
+
       return {
-        dataContext, enableNumberToggle, numberToggleLastMode,
-        captionAttributeID, captionAttributeName, legendAttributeID, legendAttributeName,
+        backgroundColor, dataContext, displayOnlySelectedCases, enableNumberToggle, filterFormula, hiddenCases,
+        numberToggleLastMode, pointColor, pointSize, showMeasuresForSelection, showParentToggles, strokeColor,
+        strokeSameAsFill, transparent, captionAttributeID, captionAttributeName, legendAttributeID, legendAttributeName,
         rightSplitAttributeID, rightSplitAttributeName, topSplitAttributeID, topSplitAttributeName,
         xAttributeID, xAttributeName, xLowerBound, xUpperBound,
         yAttributeID, yAttributeName, yLowerBound, yUpperBound,
