@@ -768,6 +768,12 @@ DG.main = function main() {
           case "closedFile":
             cfmShowUserEntryView();
             break;
+          
+          case 'getEmptyContent':
+            resolveDocument(undefined).then(function(emptyContent) {
+              event.callback(emptyContent);
+            });
+            break;
 
           case 'getContent':
             DG.currDocumentController().captureCurrentDocumentState(true)
