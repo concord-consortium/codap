@@ -169,7 +169,8 @@ jobs:
     - name: Extract Build Number
       id: extract-build-number
       run: |
-        BUILD_NUMBER=$(cat buildnumber.txt)
+        TAG=$(echo "${{ steps.tags.outputs.tags }}" | cut -d',' -f1)
+        BUILD_NUMBER=$(docker run --rm $TAG 'cat /app/buildnumber.txt' | tr -d '\n')
         echo "number=$BUILD_NUMBER" >> $GITHUB_OUTPUT
 
     - name: Checkout jce-service-helm Repository
