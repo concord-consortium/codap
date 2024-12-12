@@ -198,6 +198,7 @@ export const graphComponentHandler: DIComponentHandler = {
       })
     }
     const result = { content: { ...getSnapshot(graphModel), layers: finalLayers } as ITileContentSnapshotWithType }
+    // After we get the snapshot, destroy the model to stop all reactions
     destroy(graphModel)
     return result
   },
