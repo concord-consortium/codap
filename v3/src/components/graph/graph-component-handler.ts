@@ -71,8 +71,10 @@ const roleFromAttrKey: Record<string, GraphAttrRole> = {
 export const graphComponentHandler: DIComponentHandler = {
   create({ values }) {
     const {
-      dataContext: _dataContext, enableNumberToggle: showParentToggles, numberToggleLastMode: showOnlyLastCase,
-      yAttributeID, yAttributeName,
+      backgroundColor, dataContext: _dataContext, displayOnlySelectedCases, enableNumberToggle: showParentToggles,
+      filterFormula, hiddenCases: _hiddenCases, numberToggleLastMode: showOnlyLastCase, pointColor, pointConfig,
+      pointsFusedIntoBars, pointSize, showMeasuresForSelection, strokeColor, strokeSameAsFill, transparent,
+      yAttributeID, yAttributeName
     } = values as V2Graph
     const attributeInfo = getAttributeInfo(values)
 
@@ -86,7 +88,7 @@ export const graphComponentHandler: DIComponentHandler = {
       if (metadata) {
         const _attributeDescriptions: Partial<Record<GraphAttrRole, IAttributeDescriptionSnapshot>> = {}
         const _yAttributeDescriptions: IAttributeDescriptionSnapshot[] = []
-        let hiddenCases: string[] = []
+        let hiddenCases = _hiddenCases?.map(id => toV3CaseId(id)) ?? []
         if (dataset.name === _dataContext) {
           provisionalDataSet = dataset
           provisionalMetadata = metadata
@@ -120,6 +122,8 @@ export const graphComponentHandler: DIComponentHandler = {
           dataConfiguration: {
             type: kGraphDataConfigurationType,
             dataset: dataset.id,
+            displayOnlySelectedCases,
+            filterFormula: { display: filterFormula },
             hiddenCases,
             metadata: metadata.id,
             _attributeDescriptions,
@@ -134,10 +138,21 @@ export const graphComponentHandler: DIComponentHandler = {
     // Create a GraphContentModel, call syncModelWithAttributeConfiguration to set up its primary role,
     // plot type, and axes properly, then use its snapshot
     const graphContent: IGraphContentModelSnapshot = {
-      type: kGraphTileType,
+      isTransparent: transparent,
       layers,
+      plotBackgroundColor: backgroundColor,
+      pointDescription: {
+        _itemColors: pointColor != null ? [pointColor] : undefined,
+        _itemStrokeColor: strokeColor,
+        _itemStrokeSameAsFill: strokeSameAsFill,
+        _pointSizeMultiplier: pointSize
+      },
+      pointDisplayType: pointConfig && isPointDisplayType(pointConfig) ? pointConfig : undefined,
+      pointsFusedIntoBars,
+      showMeasuresForSelection,
       showOnlyLastCase,
-      showParentToggles
+      showParentToggles,
+      type: kGraphTileType
     }
     // We use an environment with a provisionalDataSet and Metadata so the dummy model can be set up with
     // them, even though they are not part of the same MST tree.
