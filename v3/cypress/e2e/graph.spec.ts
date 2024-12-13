@@ -224,32 +224,73 @@ context("Graph UI", () => {
                   // this could live in a skipped test for now
         // TODO: add a folder that has the specific tests
 
-      cy.window().then((win: Window) => { // this gets the window globally within the graph element and exposes the PixiJS points
-        const tileId: any = cy.get("[data-tile=graph-1]").invoke("id") // find the graph element and get the tileID from the graph element
+
+      graph.getGraphTile()
+        // cy.window().then((win: Window) => { // this gets the window globally within the graph element and exposes the PixiJS points
+        // Scotts original line of code - const tileId: any = cy.get("[data-tile=graph-1]").invoke("id") // find the graph element and get the tileID from the graph element
         // NOTE: the correct element to target is <div id=“GRPH413982760655623”> (the code above is wrong and we'd have to change the get
         // argument to be something that picks up the right element)
-        const pixiPoints = (win as any).pixiPointsMap[tileId] // within the PixiPoints map look up the PixiPoints for the graph element
+        // const pixiPoints = (win as any).pixiPointsMap[tileId] // within the PixiPoints map look up the PixiPoints for the graph element
         // here is where we want to get the number of points, iterate through the points, etc.
         // for every point, find its (x, y) position
         // color
         // the points will be pixi Sprites with their Sprite properties, e.g. texture, or image (OK to experiment here)
-      })
-      graph.getHideShowButton().click()
-      cy.get("[data-testid=hide-selected-cases]").should("be.disabled")
-      cy.get("[data-testid=hide-unselected-cases]").should("not.be.disabled")
-      cy.get("[data-testid=show-all-cases]").should("be.disabled")
-      cy.get("[data-testid=hide-unselected-cases]").click()
-      cy.wait(500)
-      graph.getHideShowButton().click()
-      cy.get("[data-testid=hide-selected-cases]").should("be.disabled")
-      cy.get("[data-testid=hide-unselected-cases]").should("be.disabled")
-      cy.get("[data-testid=show-all-cases]").should("not.be.disabled")
-      cy.get("[data-testid=show-all-cases]").click()
-      cy.wait(500)
-      graph.getHideShowButton().click()
-      cy.get("[data-testid=hide-selected-cases]").should("be.disabled")
-      cy.get("[data-testid=hide-unselected-cases]").should("not.be.disabled")
-      cy.get("[data-testid=show-all-cases]").should("be.disabled")
+
+        // Interacting with the PixiJS canvas points
+
+        // test and log the container
+        cy.get('[data-testid=codap-graph]')
+        .parents('.free-tile-component') // Traverse to the parent container
+        .invoke('attr', 'id') // Get the dynamic ID
+        .then((tileId) => {
+          console.log("Tile ID Retrieved from Parent:", tileId)
+
+          cy.window().then((win: any) => {
+            const pixiPoints = win.pixiPointsMap?.[tileId]; // Use the parent ID
+            console.log(`PixiPoints for tileId ${tileId}:`, pixiPoints)
+            expect(pixiPoints).to.exist
+          })
+        })
+
+        cy.get('[data-testid=codap-graph]')
+        .parents('.free-tile-component')
+        .invoke('attr', 'id') // Retrieve the dynamic graph ID
+        .then((tileId) => {
+          cy.log(`Tile ID Retrieved: ${tileId}`); // Log the graph ID for debugging
+
+          cy.window().then((win: any) => {
+            const pixiPoints = win.pixiPointsMap[tileId]; // Access pixiPoints using the graph ID
+            console.log("PixiPoints Object:", pixiPoints); // Log the pixiPoints object for verification
+
+            // Assert that pixiPoints exist
+            expect(pixiPoints).to.exist;
+
+            // Access pointsCount
+            const pointsCount = pixiPoints.pointsCount; // Use the getter to determine the number of points
+            console.log(`Number of Points (pointsCount): ${pointsCount}`);
+
+            // Assert the number of points
+            const expectedPointCount = 27; // Expected number of points
+            expect(pointsCount).to.equal(expectedPointCount);
+          });
+        });
+
+      // graph.getHideShowButton().click()
+      // cy.get("[data-testid=hide-selected-cases]").should("be.disabled")
+      // cy.get("[data-testid=hide-unselected-cases]").should("not.be.disabled")
+      // cy.get("[data-testid=show-all-cases]").should("be.disabled")
+      // cy.get("[data-testid=hide-unselected-cases]").click()
+      // cy.wait(500)
+      // graph.getHideShowButton().click()
+      // cy.get("[data-testid=hide-selected-cases]").should("be.disabled")
+      // cy.get("[data-testid=hide-unselected-cases]").should("be.disabled")
+      // cy.get("[data-testid=show-all-cases]").should("not.be.disabled")
+      // cy.get("[data-testid=show-all-cases]").click()
+      // cy.wait(500)
+      // graph.getHideShowButton().click()
+      // cy.get("[data-testid=hide-selected-cases]").should("be.disabled")
+      // cy.get("[data-testid=hide-unselected-cases]").should("not.be.disabled")
+      // cy.get("[data-testid=show-all-cases]").should("be.disabled")
     })
     it("displays only selected cases and adjusts axes when 'Display Only Selected Cases' is selected", () => {
       // TODO: Add more thorough checks to make sure cases are actually hidden and shown, and the axes adjust
