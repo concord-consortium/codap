@@ -1,4 +1,23 @@
 # Changelog
+## Version 3.0.0-pre.2058 - December 13, 2024
+
+### ✨ Features & Improvements:
+- **PT-188646708:** A plugin can update an existing graph's attribute assignment
+- **PT-188614511:** Update v2 types to cover the majority of shared v2 documents (*Started*)
+- **PT-188613419:** v2 export of DataSets => DataContexts (*Finished*)
+- **PT-188616842:** Export Case Card and Case Table in v2 format. (*Started*)
+
+### 🐞 Bug Fixes:
+- **PT-188605717:** Bar chart with single bar fills whole graph (*Delivered*)
+
+### 🛠️ Under the Hood:
+- **PT-187950465:** Update to eslint v9 and the new flat config format
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  185542 bytes |                           -0.01% |
+|  index.js | 6347162 bytes |                           <0.00% |
 
 ## Version 3.0.0-pre.2046 - December 6, 2024
 
