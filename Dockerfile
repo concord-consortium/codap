@@ -41,9 +41,6 @@ RUN npm ci
 # set working directory
 WORKDIR /codap
 
-# Increase Node.js heap size
-# ENV NODE_OPTIONS="--max_old_space_size=4096"
-
 # install dependencies - ruby
 ADD Gemfile Gemfile.lock ./
 # 2.7 버전의 루비를 사용하기 위해 bundler 2.4.22 버전으로 설치
@@ -59,28 +56,31 @@ RUN npm ci --legacy-peer-deps
 # add app
 COPY . ./
 
-# makeCodap 실행을 위한 설정
-RUN TZ='Asia/Seoul' date +'%Y%m%d%H%M%S' > buildnumber.txt
+# BUILD_NUMBER 를 env 로 설정
+RUN BUILD_NUMBER=$(TZ='Asia/Seoul' date +'%Y%m%d%H%M%S')
+
+# makeCodap 명령이 local 환경에서 실행되는 것을 가정하고 있기 때문에,
+# 비슷한 환경을 만들어줍니다.
 RUN touch ~/.codap-build.rc
 RUN mkdir -p ../codap-data-interactives/target/build
 
-# Github Action에서 submodule을 checkout 과정에서 사용하고 있음
-# # add sproutcore app
-# RUN git submodule update --init
+
 
 FROM builder as builder-dev
 # bundle app
 RUN npm run build:bundle-dev
 
 # timestamp 로 buildnumber 를 설정
-RUN ./bin/makeCodap --languages=en,ko $(cat buildnumber.txt)
+RUN ./bin/makeCodap --languages=en,ko $BUILD_NUMBER
 
 FROM builder as builder-prd
 # bundle app
-RUN npm run build:bundle-prd
+RUN npm run build:bundle-prod
 
 # timestamp 로 buildnumber 를 설정
-RUN ./bin/makeCodap --languages=en,ko $(cat buildnumber.txt)
+RUN ./bin/makeCodap --languages=en,ko $BUILD_NUMBER
+
+
 
 ### Step 2 ###
 # Nginx 이미지로 전환하여 정적 파일 서빙
@@ -90,7 +90,6 @@ FROM bitnami/nginx:1.26.0-debian-12-r1 as dev
 
 # 빌드된 정적 파일 복사
 COPY --from=builder-dev /codap/dist /app/codap
-COPY --from=builder-dev /codap/buildnumber.txt /app/buildnumber.txt
 
 EXPOSE 80
 
@@ -99,7 +98,6 @@ FROM bitnami/nginx:1.26.0-debian-12-r1 as prd
 
 # 빌드된 정적 파일 복사
 COPY --from=builder-prd /codap/dist /app/codap
-COPY --from=builder-prd /codap/buildnumber.txt /app/buildnumber.txt
 
 # Nginx 포트 노출
 EXPOSE 80

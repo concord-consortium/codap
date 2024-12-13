@@ -7,7 +7,7 @@ on:
 jobs:
 
   build:
-    uses: team-monolith-product/codap/.github/workflows/build.yml@develop
+    uses: team-monolith-product/tmn-gh-actions/.github/workflows/build_v2.yml@main
     with:
       env: dev
       target: develop
