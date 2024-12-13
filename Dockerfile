@@ -75,7 +75,7 @@ RUN npm run build:bundle-dev
 RUN ./bin/makeCodap --languages=en,ko $BUILD_NUMBER
 
 # move up one level
-RUN mv "/codap/dist/$BUILD_NUMBER/*" /codap/dist/
+RUN mv /codap/dist/$BUILD_NUMBER/* /codap/dist/
 
 
 
@@ -87,7 +87,7 @@ RUN npm run build:bundle-prod
 RUN ./bin/makeCodap --languages=en,ko $BUILD_NUMBER
 
 # move up one level
-RUN mv "/codap/dist/$BUILD_NUMBER/*" /codap/dist/
+RUN mv /codap/dist/$BUILD_NUMBER/* /codap/dist/
 
 
 
