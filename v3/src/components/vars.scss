@@ -39,6 +39,9 @@ $label-font: 400 14px Montserrat, sans-serif;
 $empty-label-font: 12px Montserrat, sans-serif;
 $background-fill: #f9f9f9;
 
+$drag-over-highlight: yellow;
+$drag-over-highlight-border: 2px solid rgba(255, 216, 102, 0.5);
+
 :export {
   labelFont: $label-font;
   emptyLabelFont: $empty-label-font;

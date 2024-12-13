@@ -307,6 +307,7 @@ $table-body-font-size: 8pt;
           &.input-row {
             background-color: #bddfdf;
             justify-content: flex-start;
+            cursor: grab;
 
             svg {
               margin-left: -2px;
@@ -334,7 +335,7 @@ $table-body-font-size: 8pt;
           height: 14px;
         }
       }
-      
+
       .cell-span {
 
         &.numeric-format {
@@ -385,12 +386,25 @@ $table-body-font-size: 8pt;
 
   .codap-attribute-header-divider {
     position: absolute;
-    background: black;
+    background: vars.$drag-over-highlight;
     opacity: 0%;
     pointer-events: none;
 
     &.over {
-      opacity: 30%;
+      opacity: 1;
+    }
+  }
+
+  .codap-row-divider {
+    position: absolute;
+    pointer-events: none;
+    opacity: 0;
+    height: 7px;
+    background: vars.$drag-over-highlight;
+
+    &.over {
+      z-index: 50;
+      opacity: 1;
     }
   }
 }
