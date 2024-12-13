@@ -2,7 +2,7 @@ import { comparer } from "mobx"
 import { observer } from "mobx-react-lite"
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import DataGrid, { CellKeyboardEvent, DataGridHandle } from "react-data-grid"
-import { kCollectionTableBodyDropZoneBaseId } from "./case-table-drag-drop"
+import { kCollectionTableBodyDropZoneBaseId, useCollectionDroppable } from "./case-table-drag-drop"
 import {
   kInputRowKey, OnScrollClosestRowIntoViewFn, OnScrollRowRangeIntoViewFn, OnTableScrollFn,
   TCellKeyDownArgs, TRenderers, TRow
@@ -75,6 +75,8 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
   const [selectionStartRowIdx, setSelectionStartRowIdx] = useState<number | null>(null)
   const initialPointerDownPosition = useRef({ x: 0, y: 0 })
   const kPointerMovementThreshold = 3
+  const {active, over} = useCollectionDroppable(`${kCollectionTableBodyDropZoneBaseId}-${collectionId}`)
+
 
   useEffect(function setGridElement() {
     const element = gridRef.current?.element
@@ -93,6 +95,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
 
   // columns
   const indexColumn = useIndexColumn()
+  // const { indexColumn, handlePointerDown: handlePointerDownFromIndexColumn } = useIndexColumn()
   const columns = useColumns({ data, indexColumn })
 
   // rows
@@ -201,6 +204,25 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
       return _rows
     }
   }, [collectionTableModel?.rows, collectionTableModel?.inputRowIndex, showInputRow])
+
+  // const moveInputRow = useCallback(() => {
+  //   if (!active || !over || !rows) return;
+  //   // Ensure active row is the inputRow
+  //   if (active.id !== kInputRowKey) return;
+
+  //   // Calculate new index
+  //   const activeIndex = rows.findIndex(row => row.__id__ === kInputRowKey);
+  //   const overIndex = rows.findIndex(row => row.__id__ === over.id);
+
+  //   if (activeIndex !== overIndex) {
+  //     const updatedRows = [...rows];
+  //     const [movedRow] = updatedRows.splice(activeIndex, 1);
+  //     updatedRows.splice(overIndex, 0, movedRow);
+
+  //     // Update inputRowIndex in collectionTableModel
+  //     collectionTableModel?.setInputRowIndex(overIndex);
+  //   }
+  // }, [rows, collectionTableModel]);
 
   const { handleSelectedCellChange, navigateToNextRow } = useSelectedCell(gridRef, columns, rows)
 
@@ -312,19 +334,41 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
     }
   }, [])
 
+  const getCaseIdFromEvent = useCallback((event: React.PointerEvent) => {
+    let closestDataCell
+    const target = event.target as HTMLElement
+    if (target.classList.contains("cell-span")) {
+      closestDataCell = target.closest('.codap-data-cell')
+    }
+    if (target.classList.contains("codap-index-content")) {
+      //we are in the index column. we need to go to the parent and find the sibling data cell
+      const closestIndexCell = target.closest('.codap-index-cell')
+      if (closestIndexCell) {
+        closestDataCell = closestIndexCell.nextElementSibling
+      }
+    }
+    const caseId = closestDataCell?.className.split(" ").find(c => c.startsWith("rowId-"))?.split("-")[1]
+    return caseId
+  }, [])
+
   // Helper function to get the row index from a mouse event
   const getRowIndexFromEvent = useCallback((event: React.PointerEvent) => {
-    const target = event.target as HTMLElement
-    const closestDataCell = target.closest('.codap-data-cell')
-    const caseId = closestDataCell?.className.split(" ").find(c => c.startsWith("rowId-"))?.split("-")[1]
+    // const target = event.target as HTMLElement
+    // const closestDataCell = target.closest('.codap-data-cell')
+    // const caseId = closestDataCell?.className.split(" ").find(c => c.startsWith("rowId-"))?.split("-")[1]
+    const caseId = getCaseIdFromEvent(event)
     const rowIdx = caseId ? collectionCaseIndexFromId(caseId, data, collectionId) : null
     return rowIdx
-  }, [collectionId, data])
+  }, [collectionId, data, getCaseIdFromEvent])
 
    const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
     initialPointerDownPosition.current = { x: event.clientX, y: event.clientY }
+    console.log("startRowIdx", getRowIndexFromEvent(event))
     const startRowIdx = getRowIndexFromEvent(event)
-    if (startRowIdx != null) {
+    if (!startRowIdx) {
+      console.log("rowIdx is null, rowId is", getCaseIdFromEvent(event))
+    }
+    else if (startRowIdx != null) {
       setSelectionStartRowIdx(startRowIdx)
       setIsSelecting(true)
       startAutoScroll(event.clientY)
@@ -350,6 +394,8 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
           stopAutoScroll()
         }
       }
+    } else {
+      (active || over) && console.log("should be dragging active", active, "over", over)
     }
   }
 

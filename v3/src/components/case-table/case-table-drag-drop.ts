@@ -1,6 +1,11 @@
 import {
-  Collision, CollisionDetection, DroppableContainer, closestCenter, pointerWithin, rectIntersection
+  Active,
+  Collision, CollisionDetection, DroppableContainer, UseDraggableArguments, UseDroppableArguments, closestCenter, pointerWithin, rectIntersection,
+  useDndMonitor,
+  useDraggable,
+  useDroppable
 } from "@dnd-kit/core"
+import { IDragData } from "../../hooks/use-drag-drop"
 
 export const kNewCollectionDropZoneBaseId = "new-collection"
 export const kCollectionTableBodyDropZoneBaseId = "collection-table-body"
@@ -67,4 +72,46 @@ export const caseTableCollisionDetection: CollisionDetection = (args) => {
   }
 
   return []
+}
+
+// Input row dragging
+export interface IDragRowData extends IDragData {
+  type: "row"
+  rowId: string
+  collectionId: string
+  // dataSet: IDataSet | undefined
+  rowIdx?: number
+  isInputRow: boolean
+}
+export interface IUseDraggableRow extends Omit<UseDraggableArguments, "id"> {
+  prefix: string
+  rowId: string
+  collectionId: string
+  // dataSet?: IDataSet
+  rowIdx: number
+  isInputRow: boolean
+}
+export const useDraggableRow = ({ prefix, rowId, rowIdx, collectionId, isInputRow, ...others }: IUseDraggableRow) => {
+  const attributes = { tabIndex: -1 }
+  const data: IDragRowData = { type: "row", rowId, rowIdx, collectionId, isInputRow }
+  return useDraggable({ ...others, id: `${prefix}-${rowId}`, attributes, data })
+}
+
+// Collision-detection code keys on drop ids that match this convention.
+// Passes its dropProps argument to useDroppable and returns an object with the return value
+// of useDroppable plus the generated id.
+export const useCollectionDroppable = (
+  collectionId: string, onDrop?: (active: Active) => void, dropProps?: UseDroppableArguments
+) => {
+  const id = `${collectionId}-drop`
+  useRowDropHandler(id, onDrop)
+  return { id, ...useDroppable({ ...dropProps, id }) }
+}
+
+export const useRowDropHandler = (dropId: string, onDrop?: (active: Active) => void) => {
+  useDndMonitor({ onDragEnd: ({ active, over }) => {
+    // if (over?.id === dropId) {
+      onDrop?.(active)
+    // }
+  }})
 }
