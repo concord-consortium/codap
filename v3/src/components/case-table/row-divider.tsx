@@ -9,6 +9,8 @@ import { kInputRowKey } from "./case-table-types"
 
 import styles from "./case-table-shared.scss"
 
+const kTableDividerWidth = 5
+const kTableDividerOffset = Math.floor(kTableDividerWidth / 2)
 interface IRowDividerProps {
   before?: boolean
   rowId: string
@@ -23,12 +25,9 @@ export const RowDivider = ({ before = false, rowId }: IRowDividerProps) => {
   const [rowElt, setRowElt] = useState<HTMLElement | null>(null)
   const gridElt = document.querySelector(`[data-testid="collection-table-grid"]`)
   const gridWidth = gridElt?.getBoundingClientRect().width
-  console.log("gridTop", gridElt?.getBoundingClientRect().top)
 
   const { active, over, isOver, setNodeRef: setDropRef } = useCollectionDroppable(droppableId, _active => {
-
     if (!rows) return
-
     // Calculate new index
     const activeIndex = rows.findIndex(row => row.__id__ === kInputRowKey)
     const overIndex = rows.findIndex(row => row.__id__ === kInputRowKey)
@@ -45,26 +44,21 @@ export const RowDivider = ({ before = false, rowId }: IRowDividerProps) => {
     }
   })
 
-  // for every row, get the first cell and get that cell's top
   useEffect(() => {
-    const kTableDividerWidth = 7
-    const kTableDividerOffset = Math.floor(kTableDividerWidth / 2)
-
     if (!rows) return
-    const rowIdx = rows.findIndex(row => row.__id__ === rowId)
-    if (rowIdx === -1) return
-    setRowTop(rowIdx * (+styles.bodyRowHeight) + (+styles.headerRowHeight) - kTableDividerOffset)
-
+    const rowIdx = rows?.findIndex(row => row.__id__ === rowId)
     const rowElement = document.querySelector(`[aria-rowindex="${rowIdx + 1}"]`) as HTMLElement
     setRowElt(rowElement)
+    setRowTop(collectionTableModel?.getRowTop(rowIdx))
   }, [rowId, rows])
 
   const className = clsx("codap-row-divider", { over: isOver })
-  return rowElt
+  return (
+  rowElt
     ? createPortal((
-        <div ref={setDropRef} className={className}
-                style={{width: gridWidth, top: rowTop}}
-        />
-      ), rowElt)
+          <div ref={setDropRef} className={className}
+            style={{width: gridWidth, top: rowTop + (+styles.headerRowHeight) - kTableDividerOffset}}
+          />
+        ), rowElt)
     : null
-}
+)}

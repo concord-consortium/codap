@@ -399,7 +399,7 @@ $table-body-font-size: 8pt;
     position: absolute;
     pointer-events: none;
     opacity: 0;
-    height: 7px;
+    height: 5px;
     background: vars.$drag-over-highlight;
 
     &.over {
