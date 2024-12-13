@@ -81,7 +81,9 @@ export interface V2Graph extends V2Component {
   xAttributeID?: string | null
   xAttributeName?: string | null
   yAttributeID?: string | null
+  yAttributeIDs?: number[]
   yAttributeName?: string | null
+  yAttributeNames?: string[]
   y2AttributeID?: string | null
   y2AttributeName?: string | null
 }
