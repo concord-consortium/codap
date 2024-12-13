@@ -89,7 +89,8 @@ export class CodapV2Document {
   }
 
   getV2Attribute(v2Id: number) {
-    return this.guidMap.get(v2Id)
+    const entry = this.guidMap.get(v2Id)
+    return entry?.type === "DG.Attribute" ? entry.object as ICodapV2Attribute : undefined
   }
 
   getV3Attribute(v2Id: number) {

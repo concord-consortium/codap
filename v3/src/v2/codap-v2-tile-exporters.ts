@@ -7,7 +7,7 @@ import { CodapV2Component, CodapV2ComponentStorage } from "./codap-v2-types"
 
 export interface V2ExporterOutput {
   type: CodapV2Component["type"]
-  storage?: CodapV2ComponentStorage
+  componentStorage?: CodapV2ComponentStorage
 }
 
 export interface V2TileExportArgs {
@@ -49,7 +49,7 @@ export function exportV2Component(args: V2TileExportArgs): Maybe<CodapV2Componen
       // TODO_V2_EXPORT check this logic
       userSetTitle: !!args.tile._title && args.tile._title !== args.tile.name,
       // include the component-specific storage
-      ...output.storage
+      ...output.componentStorage
     },
     layout: {
       width: tileWidth,

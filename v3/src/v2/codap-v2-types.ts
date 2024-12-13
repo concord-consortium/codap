@@ -32,10 +32,6 @@ export interface ICodapV2Attribute {
   decimals?: string
 }
 
-export function isCodapV2Attribute(o: unknown): o is ICodapV2Attribute {
-  return !!o && typeof o === "object" && "type" in o && o.type === "DG.Attribute"
-}
-
 export const v3TypeFromV2TypeIndex: Array<AttributeType | undefined> = [
   // indices are numeric values of v2 types
   undefined, "numeric", "categorical", "date", "boundary", "color"
@@ -230,6 +226,10 @@ export interface ICodapV2GlobalValue {
 export interface IGuidLink<T extends string> {
   type: T
   id: number
+}
+
+export function guidLink<T extends string>(type: T, id: number) {
+  return { type, id }
 }
 
 export interface ICodapV2BaseComponentStorage {
