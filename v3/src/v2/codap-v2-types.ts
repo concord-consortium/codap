@@ -25,10 +25,11 @@ export interface ICodapV2Attribute {
   deletedFormula?: string
   precision?: number | string | null
   unit?: string | null
-}
-
-export function isCodapV2Attribute(o: any): o is ICodapV2Attribute {
-  return o.type === "DG.Attribute"
+  // TODO_V2_IMPORT decimals is not imported
+  // it occurs 604 times in 36 files in cfm-shared
+  // in 33 cases the value is "2"
+  // the rest of the cases the value is "0"
+  decimals?: string
 }
 
 export const v3TypeFromV2TypeIndex: Array<AttributeType | undefined> = [
@@ -88,6 +89,11 @@ export interface ICodapV2Collection {
   parent?: number
   title?: string | null
   type?: "DG.Collection"
+  // TODO_V2_IMPORT areParentChildLinksConfigured is not imported
+  // it is true 5,000 times in 2,812 files in cfm-shared
+  // it is false at least 20,000 times
+  // it might not be optional
+  areParentChildLinksConfigured?: boolean
 }
 // when exporting a v3 collection to v2
 type CollectionNotYetExported = "cases" | "caseName" | "childAttrName" | "collapseChildren"
@@ -101,11 +107,23 @@ export interface ICodapV2SetAsideItem {
   values: Record<string, number | string>
 }
 
+export const isV2SetAsideItem = (item: unknown): item is ICodapV2SetAsideItem =>
+  !!(item && typeof item === "object" && "id" in item && "values" in item)
+
 export interface ICodapV2ExternalContext {
   externalDocumentId: string
 }
 export interface ICodapV2DataContextMetadata {
   description?: string
+  // TODO_V2_IMPORT data context metadata source is not imported
+  // unknown how many instances in this location
+  source?: string
+  // TODO_V2_IMPORT data context metadata importDate is not imported
+  // at least 20,000 instances in cfm-shared
+  importDate?: string
+  // TODO_V2_IMPORT "import date" is not imported
+  // 2,025 instances in cfm-shared
+  "import date"?: string
 }
 export interface ICodapV2DataContext {
   type: "DG.DataContext"
@@ -123,23 +141,40 @@ export interface ICodapV2DataContext {
   collections: ICodapV2Collection[]
   description?: string
   metadata?: ICodapV2DataContextMetadata | null
-  // preventReorg: boolean
-  setAsideItems?: ICodapV2SetAsideItem[]
-  // contextStorage: this.contextStorage
+  // TODO_V2_IMPORT preventReorg is not imported
+  // it is false at least 20,000 times
+  // it is true 969 times in 316 files
+  preventReorg?: boolean
+  // setAsideItems sometimes just has the values directly
+  // as the items in the array
+  // There are more than 20,000 instances of "setAsideItems" in cfm-shared
+  // 3,526 of these arrays have a first object in with an "id" field
+  // more than 20,000 are empty arrays
+  // 259 of these arrays have a first object that doesn't have an "id" field
+  setAsideItems?: ICodapV2SetAsideItem[] | Record<string, number | string>[]
+  contextStorage: ICodapV2DataContextStorage
+  // TODO_V2_IMPORT we are ignoring _permissions. It seems like a CFM
+  // artifact
+  _permissions?: any
 }
 
-export interface ICodapV2GameContextSelectedCase {
+export interface ICodapV2DataContextSelectedCase {
   type: string
   id: number
 }
 
-export interface ICodapV2GameContextStorage {
+export interface ICodapV2DataContextStorage {
+  _links_?: {
+    // TODO_V2_IMPORT selectedCases is not imported
+    // they appear at lest 20,000 times perhaps both in game context and data context
+    // The value is an empty array 11,300 times
+    selectedCases: ICodapV2DataContextSelectedCase[]
+  }
+}
+export interface ICodapV2GameContextStorage extends ICodapV2DataContextStorage {
   gameName?: string | null
   gameUrl?: string | null
   gameState?: any
-  _links_?: {
-    selectedCases: ICodapV2GameContextSelectedCase[]
-  }
 }
 
 // TODO_V2_IMPORT: we don't fully handle the GameContext
@@ -175,7 +210,7 @@ export interface ICodapV2GameContext extends Omit<ICodapV2DataContext, "type"> {
 }
 
 // when exporting a v3 data set to v2 data context
-type DCNotYetExported = "flexibleGroupingChangeFlag"
+type DCNotYetExported = "flexibleGroupingChangeFlag" | "contextStorage"
 export interface ICodapV2DataContextV3
   extends SetOptional<Omit<ICodapV2DataContext, "collections">, DCNotYetExported> {
   collections: ICodapV2CollectionV3[]
@@ -191,6 +226,10 @@ export interface ICodapV2GlobalValue {
 export interface IGuidLink<T extends string> {
   type: T
   id: number
+}
+
+export function guidLink<T extends string>(type: T, id: number) {
+  return { type, id }
 }
 
 export interface ICodapV2BaseComponentStorage {
@@ -225,11 +264,21 @@ export interface ICodapV2SliderStorage extends ICodapV2BaseComponentStorage {
   userTitle?: boolean
 }
 
+export interface ICodapV2RowHeight {
+  _links_: {
+    collection: IGuidLink<"DG.Collection">
+  }
+  rowHeight: number
+}
 export interface ICodapV2TableStorage extends ICodapV2BaseComponentStorage {
   // There are some documents which have broken tables which are not linked to
   // a context
   _links_?: {
     context: IGuidLink<"DG.DataContextRecord">
+    // TODO_V2_IMPORT collapsedNodes is not imported
+    // it appears 1,518 times in cfm-shared
+    // none of those times are empty arrays
+    collapsedNodes?: IGuidLink<"DG.Case"> | IGuidLink<"DG.Case">[]
   }
   attributeWidths?: Array<{
     _links_: {
@@ -238,6 +287,24 @@ export interface ICodapV2TableStorage extends ICodapV2BaseComponentStorage {
     width?: number
   }>
   title?: string
+  // TODO_V2_IMPORT isActive is not imported
+  // it occurs in close to 11,0000 files in cfm-shared
+  // these are both in table and case card
+  // it might not be optional
+  isActive?: boolean
+  // TODO_V2_IMPORT rowHeights is not imported
+  // it occurs more than 20,000 times in cfm-shared
+  // more than 4,200 of those have non-empty arrays
+  // it might not be optional
+  rowHeights?: ICodapV2RowHeight[]
+  // TODO_V2_IMPORT horizontalScrollOffset is not imported
+  // it occurs more than 20,000 times in cfm-shared
+  // more than 20,000 of those times it has a value other than 0
+  horizontalScrollOffset?: number
+  // TODO_V2_IMPORT isIndexHidden is not imported
+  // it occurs more than 20,000 times in cfm-shared
+  // it is true 4,346 times
+  isIndexHidden?: boolean
 }
 
 export interface ICodapV2CaseCardStorage extends ICodapV2BaseComponentStorage {
@@ -245,6 +312,17 @@ export interface ICodapV2CaseCardStorage extends ICodapV2BaseComponentStorage {
     context: IGuidLink<"DG.DataContextRecord">
   }
   title?: string
+  // TODO_V2_IMPORT isActive is not imported
+  // it occurs in close to 11,0000 files in cfm-shared
+  // these are both in table and case card
+  // it might not be optional
+  isActive?: boolean
+  // TODO_V2_IMPORT columnWidthPct is not imported
+  // it occurs 39 times in cfm-shared
+  columnWidthPct?: string
+  // TODO_V2_IMPORT columnWidthMap is not imported
+  // it occurs 843 times in cfm-shared
+  columnWidthMap?: Record<string, number>
 }
 
 export interface ICodapV2ImageStorage extends ICodapV2BaseComponentStorage {
@@ -260,6 +338,47 @@ export interface ICodapV2WebViewStorage extends ICodapV2BaseComponentStorage {
 export interface ICodapV2GameViewStorage extends ICodapV2BaseComponentStorage {
   currentGameUrl: string
   savedGameState?: unknown
+  // TODO_V2_IMPORT currentGameName is not imported
+  // it occurs in 17,000 files in cfm-shared
+  // it might not be optional
+  currentGameName?: string
+  // TODO_V2_IMPORT allowInitGameOverride is not imported
+  // it occurs in at least 12,500 files in cfm-shared
+  // there are no instances of it being set to false
+  // it might not be optional
+  allowInitGameOverride?: boolean
+  // TODO_V2_IMPORT preventBringToFront is not imported
+  // it occurs in at least 19,7000 files in cfm-shared
+  // there are at least 8,000 instances where it is false
+  // it might not be optional
+  preventBringToFront?: boolean
+  // TODO_V2_IMPORT preventDataContextReorg is not imported
+  // there are at least 20,000 instances where it is false
+  // and at least 20,000 instances where it is true
+  // it might not be optional
+  preventDataContextReorg?: boolean
+  // TODO_V2_IMPORT preventTopLevelReorg is not imported
+  // there are only 11 instances in 9 files where it is true
+  // and at least 20,000 instances where it is false
+  // it might not be optional
+  preventTopLevelReorg?: boolean
+  // TODO_V2_IMPORT preventAttributeDeletion is not imported
+  // there are only 4 instances in 3 files where it is true
+  // and at least 20,000 instances where it is false
+  // it might not be optional
+  preventAttributeDeletion?: boolean
+  // TODO_V2_IMPORT allowEmptyAttributeDeletion is not imported
+  // there are only 41 instances in 33 files where it is true
+  // and at least 20,000 instances where it is false
+  // it might not be optional
+  allowEmptyAttributeDeletion?: boolean
+  // TODO_V2_IMPORT _links_ is not imported
+  // unknown how many times it is used in this location
+  _links_?: {
+    context?: IGuidLink<"DG.DataContextRecord">
+  }
+  // currentGameFormulas occurs 62 times in cfm-shared and is always null
+  currentGameFormulas?: null
 }
 
 interface ICodapV2Coordinates {
@@ -284,7 +403,7 @@ interface ICodapV2LegacyValueModel {
 
 // TODO_V2_IMPORT: enableMeasuresForSelection is not imported
 // There are 1,600 files in cfm-shared that have it set to true
-// It can be set in various places within a v2 documents
+// It can be set in various places within a v2 document
 
 interface ICodapV2ValueModel {
   isVisible: boolean
@@ -421,10 +540,34 @@ export interface ICodapV2PlotStorage {
   adornments?: ICodapV2AdornmentMap
   areSquaresVisible?: boolean
   isLSRLVisible?: boolean
+  // TODO_V2_IMPORT lsrLineStorage is not imported
+  // it occurs 57 times in cfm-shared
+  lsrLineStorage?: ICodapV2LSRL
   movableLineStorage?: ICodapV2MovableLineStorage
   movablePointStorage?: ICodapV2MovablePointStorage
   multipleLSRLsStorage?: ICodapV2MultipleLSRLsStorage
   showMeasureLabels?: boolean
+  // TODO_V2_IMPORT breakdownType is not imported
+  // it occurs 9,056 times in cfm-shared
+  // 5,825 times its value is 0
+  // 3,231 times its value is 1
+  breakdownType?: number
+  // TODO_V2_IMPORT plotModels[].width is not imported
+  // unknown how many times it occurs in cfm-shared
+  width?: number
+  // TODO_V2_IMPORT alignment is not imported
+  // it occurs 8,363 times in cfm-shared
+  alignment?: number
+  // TODO_V2_IMPORT dotsAreFused is not imported
+  // it occurs 8,363 times in cfm-shared
+  dotsAreFused?: boolean
+  // TODO_V2_IMPORT totalNumberOfBins is not imported
+  // it occurs 8,299 times in cfm-shared
+  totalNumberOfBins?: number
+  // expresssion at this level existed in a single file of 6,000 checked
+  // in cfm-shared. It is unknown how many times it occurs in all of
+  // of cfm-shared
+  expression?: string
 }
 
 export interface ICodapV2PlotModel {
@@ -432,11 +575,21 @@ export interface ICodapV2PlotModel {
   plotModelStorage: ICodapV2PlotStorage
 }
 
+export interface ICodapV2GraphBackgroundLockInfo {
+  locked: true
+  xAxisLowerBound: number
+  xAxisUpperBound: number
+  yAxisLowerBound: number
+  yAxisUpperBound: number
+}
+
 export interface ICodapV2GraphStorage extends ICodapV2BaseComponentStorage {
   _links_: {
     context?: IGuidLink<"DG.DataContextRecord">
     // TODO_V2_IMPORT: hiddenCases is not imported
-    hiddenCases?: any[]
+    // there are at least 12,064 instances at this level that are not
+    // empty arrays in cfm-shared
+    hiddenCases?: IGuidLink<"DG.Case">[]
     // TODO_V2_IMPORT: it doesn't seem like any of the *Coll fields are imported
     xColl?: IGuidLink<"DG.Collection" | "DG.CollectionRecord">
     xAttr?: IGuidLink<"DG.Attribute">
@@ -446,6 +599,10 @@ export interface ICodapV2GraphStorage extends ICodapV2BaseComponentStorage {
     y2Attr?: IGuidLink<"DG.Attribute">
     rightColl?: IGuidLink<"DG.Collection">
     rightAttr?: IGuidLink<"DG.Attribute">
+    topColl?: IGuidLink<"DG.Collection">
+    topAttr?: IGuidLink<"DG.Attribute">
+    legendColl?: IGuidLink<"DG.Collection" | "DG.CollectionRecord">
+    legendAttr?: IGuidLink<"DG.Attribute">
   }
   displayOnlySelected?: boolean
   legendRole: number
@@ -464,7 +621,7 @@ export interface ICodapV2GraphStorage extends ICodapV2BaseComponentStorage {
   plotBackgroundColor?: string | null
   // TODO_V2_IMPORT: plotBackgroundOpacity is not imported
   plotBackgroundOpacity?: number
-  plotBackgroundImageLockInfo?: any
+  plotBackgroundImageLockInfo?: ICodapV2GraphBackgroundLockInfo | null
   plotBackgroundImage?: string | null
 
   xRole: number
@@ -497,6 +654,26 @@ export interface ICodapV2GraphStorage extends ICodapV2BaseComponentStorage {
   rightAxisClass?: string
 
   plotModels: ICodapV2PlotModel[]
+
+  // TODO_V2_IMPORT enableNumberToggle is not imported
+  // There are 16,000 instances in cfm-shared
+  enableNumberToggle?: boolean | null
+
+  // TODO_V2_IMPORT numberToggleLastMode is not imported
+  // There are 14,879 instances in cfm-shared
+  // it must be optional based on the results for enableNumberToggle
+  numberToggleLastMode?: boolean
+
+  // See global `enableMeasuresForSelection` note
+  // it is unknown how many times this property occurs in this location
+  enableMeasuresForSelection?: boolean | null
+
+  // TODO_V2_IMPORT: hiddenCases is not imported
+  // there are at least 196 instances at this level that are empty arrays
+  // there are at least 11 instances at this level with number values
+  // Note: there are many more instances of this field inside of `_links_`
+  // and the type of the array items is different.
+  hiddenCases?: number[]
 }
 
 // This is differentiated from the current storage because it has no
@@ -505,6 +682,8 @@ interface ICodapV2MapLegacyStorage extends ICodapV2BaseComponentStorage {
   // [begin] legacy top-level properties ignored by current v2 code
   _links_: {
     context?: IGuidLink<"DG.DataContextRecord">
+    legendColl?: IGuidLink<"DG.Collection">
+    legendAttr?: IGuidLink<"DG.Attribute">
     hiddenCases?: any[]
   }
   legendRole: number
@@ -543,10 +722,17 @@ export function isV2MapLegacyStorage(obj: unknown): obj is ICodapV2MapCurrentSto
 interface ICodapV2MapLayerBaseStorage {
   _links_: {
     context: IGuidLink<"DG.DataContextRecord">
-    hiddenCases?: any[],
+    // TODO_V2_IMPORT hiddenCases are not imported
+    // this array was passed right into MST where it is typed as a string array
+    // There are 296 instances where this is a non-empty array in cfm-shared
+    hiddenCases?: IGuidLink<"DG.Case">[],
     legendColl?: IGuidLink<"DG.Collection">,
     // We sometimes see an array of links here
     legendAttr?: IGuidLink<"DG.Attribute"> | IGuidLink<"DG.Attribute">[],
+    // TODO_V2_IMPORT tHiddenCases
+    // this occurs 523 times in cfm-shared
+    // in all cases the value is `[]`
+    tHiddenCases?: unknown[]
   }
   legendRole: number
   legendAttributeType: number
@@ -572,6 +758,10 @@ export interface ICodapV2MapPointLayerStorage extends ICodapV2MapLayerBaseStorag
     // location
     enableMeasuresForSelection?: boolean
   }
+  // TODO_V2_IMPORT: linesShouldBeVisible is not imported
+  // It occurs 73 times within layerModels in cfm-shared
+  // It is false in every case
+  linesShouldBeVisible?: boolean
 }
 export function isV2MapPointLayerStorage(obj: unknown): obj is ICodapV2MapPointLayerStorage {
   return !!obj && typeof obj === "object" && "pointColor" in obj && obj.pointColor != null
@@ -615,10 +805,15 @@ export function isV2MapCurrentStorage(obj: unknown): obj is ICodapV2MapCurrentSt
 
 export type ICodapV2MapStorage = ICodapV2MapLegacyStorage | ICodapV2MapCurrentStorage
 
+// TODO_V2_IMPORT GuideStorage is not imported
 export interface ICodapV2GuideStorage extends ICodapV2BaseComponentStorage {
   currentItemIndex?: number | null
   isVisible?: boolean
   items: Array<{ itemTitle: string | null, url: string | null }>
+  // This appears 997 times in cfm-shared
+  currentURL?: string
+  // This appears 997 times in cfm-shared
+  currentItemTitle?: string | null
 }
 
 export interface ICodapV2TextStorage extends ICodapV2BaseComponentStorage {
@@ -632,7 +827,7 @@ export interface ICodapV2BaseComponent {
   type: string  // e.g. "DG.TableView", "DG.GraphView", "DG.GuideView", etc.
   guid: number
   id?: number
-  componentStorage?: Record<string, any> | null
+  componentStorage?: ICodapV2BaseComponentStorage | null
   layout: {
     // A GameView saved by build 0606 had no width or height
     width?: number
@@ -641,6 +836,29 @@ export interface ICodapV2BaseComponent {
     top?: number
     isVisible?: boolean
     zIndex?: number
+    // TODO_V2_IMPORT right is not imported
+    // appears more than 20,000 in cfm-shared
+    // this might not be optional
+    right?: number | null
+    // TODO_V2_IMPORT bottom is not imported
+    // appears more than 20,000 in cfm-shared
+    // this might not be optional
+    bottom?: number | null
+    // TODO_V2_IMPORT x is not imported
+    // appears 5,258 times in cfm-shared
+    // based on the results for `right`, this must be optional
+    x?: number
+    // TODO_V2_IMPORT y is not imported
+    // appears 5,258 times in cfm-shared
+    // based on the results for `right`, this must be optional
+    y?: number
+
+    // These *Orig properties only occur in a single file in cfm-shared
+    // They are retained here incase we review the files in cfm-shared again
+    // leftOrig?: number
+    // topOrig?: number
+    // widthOrig?: number
+    // heightOrig?: number
   }
   savedHeight?: number | null
 }
@@ -708,6 +926,8 @@ export interface ICodapV2MapComponent extends ICodapV2BaseComponent {
 export const isV2MapComponent = (component: ICodapV2BaseComponent): component is ICodapV2MapComponent =>
               component.type === "DG.MapView"
 
+// TODO_V2_IMPORT GuideView is not imported
+// it occurs 16,371 times in cfm-shared
 export interface ICodapV2GuideComponent extends ICodapV2BaseComponent {
   type: "DG.GuideView"
   componentStorage: ICodapV2GuideStorage
@@ -758,6 +978,9 @@ export interface ICodapV2DocumentJson {
   globalValues: ICodapV2GlobalValue[]
   lang?: string
   idCount?: number
+
+  // Ignored properties
+  _permissions?: any
 }
 
 export function isCodapV2Document(content: unknown): content is ICodapV2DocumentJson {

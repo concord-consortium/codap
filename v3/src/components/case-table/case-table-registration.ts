@@ -1,21 +1,24 @@
-import { SetRequired } from "type-fest"
-import { caseTableCardComponentHandler } from "../case-tile-common/case-tile-component-handler"
+import { SetOptional, SetRequired } from "type-fest"
+import TableIcon from "../../assets/icons/icon-table.svg"
 import { registerComponentHandler } from "../../data-interactive/handlers/component-handler"
 import { registerTileComponentInfo } from "../../models/tiles/tile-component-info"
+import { getTileDataSet } from "../../models/shared/shared-data-utils"
 import { registerTileContentInfo } from "../../models/tiles/tile-content-info"
 import { ITileModelSnapshotIn } from "../../models/tiles/tile-model"
+import { toV2Id, toV3AttrId, toV3Id } from "../../utilities/codap-utils"
+import { t } from "../../utilities/translation/translate"
+import { registerV2TileExporter } from "../../v2/codap-v2-tile-exporters"
+import { registerV2TileImporter } from "../../v2/codap-v2-tile-importers"
+import {
+  guidLink, ICodapV2BaseComponentStorage, ICodapV2TableStorage, isV2TableComponent
+} from "../../v2/codap-v2-types"
+import { caseTableCardComponentHandler } from "../case-tile-common/case-tile-component-handler"
+import { CaseTileTitleBar } from "../case-tile-common/case-tile-title-bar"
 import { CaseTableComponent } from "./case-table-component"
 import { kCaseTableTileType, kV2CaseTableType } from "./case-table-defs"
-import { CaseTableModel, ICaseTableSnapshot } from "./case-table-model"
-import { CaseTileTitleBar } from "../case-tile-common/case-tile-title-bar"
-import TableIcon from '../../assets/icons/icon-table.svg'
-import { toV3Id } from "../../utilities/codap-utils"
-import { registerV2TileImporter } from "../../v2/codap-v2-tile-importers"
-import { isCodapV2Attribute, isV2TableComponent } from "../../v2/codap-v2-types"
 import { CaseTableInspector } from "./case-table-inspector"
+import { CaseTableModel, ICaseTableSnapshot, isCaseTableModel } from "./case-table-model"
 import { CaseTableToolShelfButton } from "./case-table-tool-shelf-button"
-import { getTileDataSet } from "../../models/shared/shared-data-utils"
-import { t } from "../../utilities/translation/translate"
 import { kCaseTableDefaultWidth } from "./case-table-types"
 
 export const kCaseTableIdPrefix = "TABL"
@@ -51,6 +54,23 @@ registerTileComponentInfo({
   defaultHeight: 200
 })
 
+registerV2TileExporter(kCaseTableTileType, ({ tile }) => {
+  const tableContent = isCaseTableModel(tile.content) ? tile.content : undefined
+  let componentStorage: Maybe<SetOptional<ICodapV2TableStorage, keyof ICodapV2BaseComponentStorage>>
+  const dataSet = tableContent?.data
+  const attributeWidths = Array.from(tableContent?.columnWidths.entries() ?? []).map(([attrId, width]) => {
+    return { _links_: { attr: guidLink("DG.Attribute", toV2Id(attrId)) }, width }
+  })
+  if (dataSet) {
+    componentStorage = {
+      _links_: { context: guidLink("DG.DataContextRecord", toV2Id(dataSet.id)) },
+      attributeWidths,
+      title: tile._title
+    }
+  }
+  return { type: "DG.TableView", componentStorage }
+})
+
 registerV2TileImporter("DG.TableView", ({ v2Component, v2Document, sharedModelManager, insertTile }) => {
   if (!isV2TableComponent(v2Component)) return
 
@@ -69,10 +89,10 @@ registerV2TileImporter("DG.TableView", ({ v2Component, v2Document, sharedModelMa
   // stash the table's column widths in the content
   attributeWidths?.forEach(entry => {
     const v2Attr = v2Document.getV2Attribute(entry._links_.attr.id)
-    if (isCodapV2Attribute(v2Attr)) {
-      const attrId = data?.dataSet.attrIDFromName(v2Attr.name)
-      if (attrId && entry.width) {
-        content.columnWidths[attrId] = entry.width
+    if (v2Attr) {
+      const v3AttrId = toV3AttrId(v2Attr.guid)
+      if (v3AttrId && entry.width) {
+        content.columnWidths[v3AttrId] = entry.width
       }
     }
   })

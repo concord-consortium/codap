@@ -12,7 +12,8 @@ import {
 } from "../utilities/codap-utils"
 import {
   CodapV2Component, CodapV2Context, ICodapV2Attribute, ICodapV2Case, ICodapV2Collection, ICodapV2DocumentJson,
-  isV2ExternalContext, isV2InternalContext, ICodapV2SetAsideItem, v3TypeFromV2TypeString
+  isV2ExternalContext, isV2InternalContext, ICodapV2SetAsideItem, v3TypeFromV2TypeString,
+  isV2SetAsideItem
 } from "./codap-v2-types"
 
 interface V2CaseIdInfo {
@@ -88,7 +89,8 @@ export class CodapV2Document {
   }
 
   getV2Attribute(v2Id: number) {
-    return this.guidMap.get(v2Id)
+    const entry = this.guidMap.get(v2Id)
+    return entry?.type === "DG.Attribute" ? entry.object as ICodapV2Attribute : undefined
   }
 
   getV3Attribute(v2Id: number) {
@@ -235,12 +237,15 @@ export class CodapV2Document {
     }
   }
 
-  registerSetAsideItems(data: IDataSet, setAsideItems?: ICodapV2SetAsideItem[]) {
+  registerSetAsideItems(data: IDataSet, setAsideItems?: ICodapV2SetAsideItem[] | ICodapV2SetAsideItem["values"][]) {
     const itemsToAdd: IItem[] = []
     setAsideItems?.forEach(item => {
-      // some v2 documents don't store item ids, so we generate them if necessary
-      const { id = v3Id(kItemIdPrefix), values } = item
-      itemsToAdd.push({ __id__: id, ...toCanonical(data, values) })
+      if (isV2SetAsideItem(item)) {
+        const { id, values } = item
+        itemsToAdd.push({ __id__: id, ...toCanonical(data, values) })
+      } else {
+        itemsToAdd.push({ __id__: v3Id(kItemIdPrefix), ...toCanonical(data, item) })
+      }
     })
     if (itemsToAdd.length) {
       data.addCases(itemsToAdd)
