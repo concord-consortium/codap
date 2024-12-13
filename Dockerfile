@@ -57,7 +57,8 @@ RUN npm ci --legacy-peer-deps
 COPY . ./
 
 # BUILD_NUMBER 를 env 로 설정
-RUN BUILD_NUMBER=$(TZ='Asia/Seoul' date +'%Y%m%d%H%M%S')
+# 추후에 해당 숫자를 갖는 폴더는 경로에서 제거되므로, 임의의 숫자로 설정합니다.
+ENV BUILD_NUMBER 000000
 
 # makeCodap 명령이 local 환경에서 실행되는 것을 가정하고 있기 때문에,
 # 비슷한 환경을 만들어줍니다.
