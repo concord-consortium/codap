@@ -73,12 +73,20 @@ RUN npm run build:bundle-dev
 # timestamp 로 buildnumber 를 설정
 RUN ./bin/makeCodap --languages=en,ko $BUILD_NUMBER
 
+# move up one level
+RUN mv "/codap/dist/$BUILD_NUMBER/*" /codap/dist/
+
+
+
 FROM builder as builder-prd
 # bundle app
 RUN npm run build:bundle-prod
 
 # timestamp 로 buildnumber 를 설정
 RUN ./bin/makeCodap --languages=en,ko $BUILD_NUMBER
+
+# move up one level
+RUN mv "/codap/dist/$BUILD_NUMBER/*" /codap/dist/
 
 
 
@@ -92,6 +100,8 @@ FROM bitnami/nginx:1.26.0-debian-12-r1 as dev
 COPY --from=builder-dev /codap/dist /app/codap
 
 EXPOSE 80
+
+
 
 # bitnami/nginx 17.1.0 버전에서 사용하는 image tag
 FROM bitnami/nginx:1.26.0-debian-12-r1 as prd
