@@ -76,13 +76,14 @@ export interface V2Graph extends V2Component {
   legendAttributeName?: string | null
   numberToggleLastMode?: boolean
   pointColor?: string
+  pointConfig?: string
+  pointsFusedIntoBars?: boolean
   pointSize?: number
   rightNumericAttributeID?: string | null
   rightNumericAttributeName?: string | null
   rightSplitAttributeID?: string | null
   rightSplitAttributeName?: string | null
   showMeasuresForSelection?: boolean
-  showParentToggles?: boolean
   strokeColor?: string
   strokeSameAsFill?: boolean
   topSplitAttributeID?: string | null

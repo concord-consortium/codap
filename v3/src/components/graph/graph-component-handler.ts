@@ -9,11 +9,11 @@ import { IDataSet } from "../../models/data/data-set"
 import { ISharedCaseMetadata } from "../../models/shared/shared-case-metadata"
 import { getSharedCaseMetadataFromDataset, getSharedDataSets } from "../../models/shared/shared-data-utils"
 import { ITileContentModel, ITileContentSnapshotWithType } from "../../models/tiles/tile-content"
-import { toV2Id, toV3AttrId, toV3DataSetId } from "../../utilities/codap-utils"
+import { toV2Id, toV3AttrId, toV3CaseId, toV3DataSetId } from "../../utilities/codap-utils"
 import { t } from "../../utilities/translation/translate"
 import { AxisPlace } from "../axis/axis-types"
 import { isNumericAxisModel } from "../axis/models/axis-model"
-import { attrRoleToGraphPlace, GraphAttrRole } from "../data-display/data-display-types"
+import { attrRoleToGraphPlace, GraphAttrRole, isPointDisplayType } from "../data-display/data-display-types"
 import { IAttributeDescriptionSnapshot } from "../data-display/models/data-configuration-model"
 import { kGraphTileType } from "./graph-defs"
 import { GraphContentModel, IGraphContentModelSnapshot, isGraphContentModel } from "./models/graph-content-model"
@@ -230,10 +230,11 @@ export const graphComponentHandler: DIComponentHandler = {
       const y2LowerBound = y2NumericAxis?.min
       const y2UpperBound = y2NumericAxis?.max
 
-      const { pointDescription, showMeasuresForSelection, showParentToggles } = content
+      const { pointDescription, pointsFusedIntoBars, showMeasuresForSelection } = content
       const { displayOnlySelectedCases } = dataConfiguration
       const filterFormula = dataConfiguration.filterFormula?.display
       const hiddenCases = dataConfiguration.hiddenCases.map(id => toV2Id(id))
+      const pointConfig = content.pointDisplayType
       const pointSize = pointDescription.pointSizeMultiplier
       const strokeColor = pointDescription.pointStrokeColor
       const { pointColor } = pointDescription
@@ -243,9 +244,9 @@ export const graphComponentHandler: DIComponentHandler = {
 
       return {
         backgroundColor, dataContext, displayOnlySelectedCases, enableNumberToggle, filterFormula, hiddenCases,
-        numberToggleLastMode, pointColor, pointSize, showMeasuresForSelection, showParentToggles, strokeColor,
-        strokeSameAsFill, transparent, captionAttributeID, captionAttributeName, legendAttributeID, legendAttributeName,
-        rightSplitAttributeID, rightSplitAttributeName, topSplitAttributeID, topSplitAttributeName,
+        numberToggleLastMode, pointColor, pointConfig, pointsFusedIntoBars, pointSize, showMeasuresForSelection,
+        strokeColor, strokeSameAsFill, transparent, captionAttributeID, captionAttributeName, legendAttributeID,
+        legendAttributeName, rightSplitAttributeID, rightSplitAttributeName, topSplitAttributeID, topSplitAttributeName,
         xAttributeID, xAttributeName, xLowerBound, xUpperBound,
         yAttributeID, yAttributeName, yLowerBound, yUpperBound,
         y2AttributeID, y2AttributeName, y2LowerBound, y2UpperBound
@@ -257,10 +258,13 @@ export const graphComponentHandler: DIComponentHandler = {
     if (!isGraphContentModel(content)) return { success: false }
 
     const {
-      dataContext: _dataContext, enableNumberToggle: showParentToggles, numberToggleLastMode: showOnlyLastCase,
-      xLowerBound, xUpperBound, yAttributeID, yAttributeName, yLowerBound, yUpperBound, y2LowerBound, y2UpperBound
+      backgroundColor, dataContext: _dataContext, displayOnlySelectedCases, enableNumberToggle: showParentToggles,
+      filterFormula, hiddenCases, numberToggleLastMode: showOnlyLastCase, pointColor, pointConfig, pointsFusedIntoBars,
+      pointSize, showMeasuresForSelection, strokeColor, strokeSameAsFill, transparent, xLowerBound, xUpperBound,
+      yAttributeID, yAttributeName, yLowerBound, yUpperBound, y2LowerBound, y2UpperBound
     } = values as V2GetGraph
     const attributeInfo = getAttributeInfo(values)
+    const { dataConfiguration, pointDescription } = content
 
     // Determine which dataset to work with
     let dataSet: Maybe<IDataSet>
@@ -288,7 +292,7 @@ export const graphComponentHandler: DIComponentHandler = {
         if (attribute) {
           const role = roleFromAttrKey[attributeType]
           const place = attrRoleToGraphPlace[role]
-          if (place && !content.dataConfiguration.placeCanAcceptAttributeIDDrop(
+          if (place && !dataConfiguration.placeCanAcceptAttributeIDDrop(
             place, dataSet, attribute.id, { allowSameAttr: true }
           )) {
             return errorResult(
@@ -313,9 +317,9 @@ export const graphComponentHandler: DIComponentHandler = {
       const role = roleFromAttrKey[attributeType]
       if (role) {
         if (attribute) {
-          content.dataConfiguration.setAttribute(role, { attributeID: attribute.id })
+          dataConfiguration.setAttribute(role, { attributeID: attribute.id })
         } else {
-          content.dataConfiguration.setAttribute(role)
+          dataConfiguration.setAttribute(role)
         }
       }
     }
@@ -324,16 +328,16 @@ export const graphComponentHandler: DIComponentHandler = {
     // We don't use dataConfiguration.setAttribute() to make the change because that clears additional y attributes
     if (yAttributeID !== undefined) {
       if (yAttributeID) {
-        content.dataConfiguration.replaceYAttribute({ attributeID: toV3AttrId(yAttributeID) }, 0)
+        dataConfiguration.replaceYAttribute({ attributeID: toV3AttrId(yAttributeID) }, 0)
       } else {
-        content.dataConfiguration.removeYAttributeAtIndex(0)
+        dataConfiguration.removeYAttributeAtIndex(0)
       }
     } else if (yAttributeName !== undefined) {
       if (yAttributeName !== null) {
         const attribute = dataSet?.getAttributeByName(yAttributeName)
-        if (attribute) content.dataConfiguration.replaceYAttribute({ attributeID: attribute.id }, 0)
+        if (attribute) dataConfiguration.replaceYAttribute({ attributeID: attribute.id }, 0)
       } else {
-        content.dataConfiguration.removeYAttributeAtIndex(0)
+        dataConfiguration.removeYAttributeAtIndex(0)
       }
     }
 
@@ -352,12 +356,20 @@ export const graphComponentHandler: DIComponentHandler = {
     updateBounds("rightNumeric", y2LowerBound, y2UpperBound)
 
     // Update odd features
-    if (showParentToggles != null) {
-      content.setShowParentToggles(showParentToggles)
-    }
-    if (showOnlyLastCase != null) {
-      content.setShowOnlyLastCase(showOnlyLastCase)
-    }
+    if (backgroundColor != null) content.setPlotBackgroundColor(backgroundColor)
+    if (displayOnlySelectedCases != null) dataConfiguration.setDisplayOnlySelectedCases(displayOnlySelectedCases)
+    if (filterFormula != null) dataConfiguration.setFilterFormula(filterFormula)
+    if (hiddenCases != null) dataConfiguration.setHiddenCases(hiddenCases.map(id => toV3CaseId(id)))
+    if (pointColor != null) pointDescription.setPointColor(pointColor)
+    if (pointConfig != null && isPointDisplayType(pointConfig)) content.setPointConfig(pointConfig)
+    if (pointsFusedIntoBars != null) content.setPointsFusedIntoBars(pointsFusedIntoBars)
+    if (pointSize != null) pointDescription.setPointSizeMultiplier(pointSize)
+    if (showMeasuresForSelection != null) content.setShowMeasuresForSelection(showMeasuresForSelection)
+    if (showParentToggles != null) content.setShowParentToggles(showParentToggles)
+    if (showOnlyLastCase != null) content.setShowOnlyLastCase(showOnlyLastCase)
+    if (strokeColor != null) pointDescription.setPointStrokeColor(strokeColor)
+    if (strokeSameAsFill != null) pointDescription.setPointStrokeSameAsFill(strokeSameAsFill)
+    if (transparent != null) content.setIsTransparent(transparent)
 
     return { success: true }
   }
