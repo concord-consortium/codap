@@ -214,6 +214,34 @@ export const GraphContentModel = DataDisplayContentModel
         yScale
       }
     },
+    binDetails(options?: { initialize?: boolean }) {
+      const { initialize = false } = options ?? {}
+      const { dataset, primaryAttributeID } = self.dataConfiguration
+      const caseDataArray = self.dataConfiguration.getCaseDataArray(0)
+      const minValue = caseDataArray.reduce((min, aCaseData) => {
+        return Math.min(min, dataDisplayGetNumericValue(dataset, aCaseData.caseID, primaryAttributeID) ?? min)
+      }, Infinity)
+      const maxValue = caseDataArray.reduce((max, aCaseData) => {
+        return Math.max(max, dataDisplayGetNumericValue(dataset, aCaseData.caseID, primaryAttributeID) ?? max)
+      }, -Infinity)
+      const binWidth = (initialize || !self.binWidth)
+        ? self.binWidthFromData(minValue, maxValue) : self.binWidth
+      if (minValue === Infinity || maxValue === -Infinity || binWidth === undefined) {
+        return { binAlignment: 0, binWidth: undefined, minBinEdge: 0, maxBinEdge: 0, minValue: 0, maxValue: 0,
+          totalNumberOfBins: 0 }
+      }
+
+      const binAlignment = initialize || !self.binAlignment
+        ? Math.floor(minValue / binWidth) * binWidth
+        : self.binAlignment
+      const minBinEdge = binAlignment - Math.ceil((binAlignment - minValue) / binWidth) * binWidth
+      // Calculate the total number of bins needed to cover the range from the minimum data value
+      // to the maximum data value, adding a small constant to ensure the max value is contained.
+      const totalNumberOfBins = Math.ceil((maxValue - minBinEdge) / binWidth + 0.000001)
+      const maxBinEdge = minBinEdge + (totalNumberOfBins * binWidth)
+
+      return { binAlignment, binWidth, minBinEdge, maxBinEdge, minValue, maxValue, totalNumberOfBins }
+    },
   }))
   .actions(self => ({
     afterCreate() {
@@ -264,37 +292,6 @@ export const GraphContentModel = DataDisplayContentModel
   .actions(self => ({
     updateAfterSharedModelChanges(sharedModel: ISharedModel | undefined, type: SharedModelChangeType) {
     },
-    binDetails(options?: { initialize?: boolean }) {
-      const { initialize = false } = options ?? {}
-      const { dataset, primaryAttributeID } = self.dataConfiguration
-      const caseDataArray = self.dataConfiguration.getCaseDataArray(0)
-      const minValue = caseDataArray.reduce((min, aCaseData) => {
-        return Math.min(min, dataDisplayGetNumericValue(dataset, aCaseData.caseID, primaryAttributeID) ?? min)
-      }, Infinity)
-      const maxValue = caseDataArray.reduce((max, aCaseData) => {
-        return Math.max(max, dataDisplayGetNumericValue(dataset, aCaseData.caseID, primaryAttributeID) ?? max)
-      }, -Infinity)
-      if (initialize || !self.binWidth) {
-        self.setBinWidth(self.binWidthFromData(minValue, maxValue))
-      }
-      const binWidth = self.binWidth
-
-      if (minValue === Infinity || maxValue === -Infinity || binWidth === undefined) {
-        return { binAlignment: 0, binWidth: undefined, minBinEdge: 0, maxBinEdge: 0, minValue: 0, maxValue: 0,
-          totalNumberOfBins: 0 }
-      }
-
-      const binAlignment = initialize || !self.binAlignment
-        ? Math.floor(minValue / binWidth) * binWidth
-        : self.binAlignment
-      const minBinEdge = binAlignment - Math.ceil((binAlignment - minValue) / binWidth) * binWidth
-      // Calculate the total number of bins needed to cover the range from the minimum data value
-      // to the maximum data value, adding a small constant to ensure the max value is contained.
-      const totalNumberOfBins = Math.ceil((maxValue - minBinEdge) / binWidth + 0.000001)
-      const maxBinEdge = minBinEdge + (totalNumberOfBins * binWidth)
-
-      return { binAlignment, binWidth, minBinEdge, maxBinEdge, minValue, maxValue, totalNumberOfBins }
-    },
     setBinAlignment(alignment: number) {
       self._binAlignment = isFiniteNumber(alignment) ? alignment : undefined
       self.dynamicBinAlignment = undefined
@@ -305,7 +302,7 @@ export const GraphContentModel = DataDisplayContentModel
     binnedAxisTicks(formatter?: (value: number) => string): { tickValues: number[], tickLabels: string[] } {
       const tickValues: number[] = []
       const tickLabels: string[] = []
-      const { binWidth, totalNumberOfBins, minBinEdge } = this.binDetails()
+      const { binWidth, totalNumberOfBins, minBinEdge } = self.binDetails()
       if (binWidth !== undefined) {
         let currentStart = minBinEdge
         let binCount = 0
