@@ -1,4 +1,3 @@
-import * as PIXI from "pixi.js"
 import { GraphTileElements as graph } from "../support/elements/graph-tile"
 import { TableTileElements as table } from "../support/elements/table-tile"
 import { ComponentElements as c } from "../support/elements/component-elements"
@@ -7,60 +6,6 @@ import { CfmElements as cfm } from "../support/elements/cfm"
 import { ColorPickerPaletteElements as cpp} from "../support/elements/color-picker-palette"
 import { AxisHelper as ah } from "../support/helpers/axis-helper"
 import graphRules from '../fixtures/graph-rules.json'
-interface PixiObjectData {
-  type: string
-  [key: string]: unknown
-}
-
-type PixiObject = (PIXI.Container | PIXI.DisplayObject)
-  & { 'pixi-data'?: PixiObjectData }
-
-function getPixiApplicationStageRoot(): Cypress.Chainable<PixiObject> {
-  return cy.window().then((win) => {
-    if (!win.pixiApp) {
-      throw new Error('Pixi Application not attached to window.')
-    }
-    return win.pixiApp.stage as PixiObject
-  })
-}
-
-function pixiObjectMatches(
-  pixiObject: PixiObject, requiredPixiObjectData: PixiObjectData
-) {
-  const pixiObjectData = pixiObject['pixi-data']
-  if (!pixiObjectData) {
-    return false
-  }
-  return Object.entries(requiredPixiObjectData).every(([key, value]) => {
-    return pixiObjectData[key] === value || (pixiObject as any)[key] === value
-  })
-}
-
-function findPixiObject(
-  currentPixiObject: PixiObject | undefined,
-  requiredPixiObjectData: PixiObjectData
-): PixiObject | null {
-  if (!currentPixiObject) {
-    return null
-  }
-  if (pixiObjectMatches(currentPixiObject, requiredPixiObjectData)) {
-    return currentPixiObject
-  }
-  if ('children' in currentPixiObject) {
-    // currentPixiObject is of type PIXI.Container
-    for (let i = 0; i < currentPixiObject.children.length; i++) {
-      // recursion
-      const childPixiObject = findPixiObject(
-        currentPixiObject.children[i],
-        requiredPixiObjectData
-      )
-      if (childPixiObject) {
-        return childPixiObject
-      }
-    }
-  }
-  return null
-}
 
 const collectionName = "Mammals"
 const newCollectionName = "Animals"
@@ -101,74 +46,6 @@ context("Graph UI", () => {
     cy.wait(2500)
   })
   describe("graph view", () => {
-    it.only('Validates PixiJS Points and Metadata', () => {
-      // Step 1: Locate the graph element and retrieve its dynamic ID
-      cy.get('[data-testid=codap-graph]')
-        .parents('.free-tile-component')
-        .invoke('attr', 'id') // Retrieve the graph tile ID
-        .then((tileId) => {
-          if (!tileId) {
-            throw new Error("tileId is undefined or null.");
-          }
-          cy.log(`Tile ID Retrieved: ${tileId}`);
-
-          // Step 2: Access the PixiJS application stage root
-          getPixiApplicationStageRoot().then((stageRoot) => {
-            // Step 3: Define the required data for matching the PixiPoints object
-            const requiredPixiObjectData = { type: 'PixiPoints', id: tileId };
-
-            // Step 4: Find the PixiPoints object in the PixiJS rendering tree
-            const pixiPointsObject = findPixiObject(stageRoot, requiredPixiObjectData);
-
-            if (!pixiPointsObject) {
-              throw new Error("PixiPoints object not found in the PixiJS rendering tree.");
-            }
-
-            cy.log("PixiPoints Object Found:", pixiPointsObject);
-
-            // Step 5: Validate the pointMetadata map
-            if (pixiPointsObject.pointMetadata && pixiPointsObject.pointMetadata instanceof Map) {
-              const metadataCount = pixiPointsObject.pointMetadata.size;
-              cy.log(`pointMetadata Map Size: ${metadataCount}`);
-              expect(metadataCount).to.be.greaterThan(0);
-
-              // Iterate through pointMetadata entries and log the details
-              pixiPointsObject.pointMetadata.forEach((metadata, sprite) => {
-                cy.log(`Sprite: ${sprite}`);
-                cy.log(`Metadata: ${JSON.stringify(metadata)}`);
-              });
-            } else {
-              throw new Error("pointMetadata is not a Map or is unavailable.");
-            }
-          });
-        });
-    });
-    it("should highlight a selected graph point", () => {
-      // This test is the outcome of a SPIKE to explore testing graph interactions.
-      // It partially validates interactions but requires further PIXIJS-level support.
-      // https://github.com/concord-consortium/codap/pull/1637
-
-      // Select the target table cell
-      table.getGridCell(2, 2).should("contain", "African Elephant").click({ force: true })
-
-      // Verify the graph's component title matches the collection name
-      c.getComponentTitle("graph").should("contain", collectionName)
-
-      // Re-click the table cell to ensure interaction consistency
-      table.getGridCell(2, 2).click({ force: true })
-
-      // Future goal: Validate the highlighted graph point
-      // ChatGPT suggests this approach could work if PIXIJS exposes DOM elements
-      // or provides API/event hooks that allow direct verification of point states.
-      // cy.get('[data-testid="graph"] canvas')
-      //   .should('be.visible') // Ensure the canvas is rendered
-      // cy.get('[data-testid="graph"]')
-      //   .find('svg .below-points-group circle') // Intended to locate graph points
-      //   .then((elements) => {
-      // Debugging information (e.g. to find out point color or position of points)
-      //     cy.log('Highlighted point details:', elements)
-      // })
-    })
     it("updates graph title", () => {
       c.getComponentTitle("graph").should("have.text", collectionName)
       c.changeComponentTitle("graph", newCollectionName)
@@ -272,6 +149,8 @@ context("Graph UI", () => {
     })
   })
   describe("graph inspector panel", () => {
+    // This test is broken because of PT-#188601882
+    // Skipping for now
     it.skip("change points in table and check for autoscale", () => {
       // create a graph with Lifespan (x-axis) and Height (y-axis)
       c.getComponentTitle("graph").should("have.text", collectionName)
@@ -310,160 +189,28 @@ context("Graph UI", () => {
       // in the graph axis it might be possible to check the axis labels or scale
       cy.get("[data-testid=graph]").find("[data-testid=axis-bottom]").find(".tick").should("have.length", 29)
     })
-    it.only("hides and shows selected/unselected cases", () => {
+    it("hides and shows selected/unselected cases", () => {
       ah.openAxisAttributeMenu("bottom")
       ah.selectMenuAttribute("Sleep", "bottom") // Sleep => x-axis
       cy.wait(500)
-      // TODO: Add more thorough checks to make sure the cases are actually hidden and shown once Cypress is
-      // configured to interact with the PixiJS canvas. For now, we just check that the buttons are disabled
-      // and enabled as expected.
-
-                  // this could live in a skipped test for now
-        // TODO: add a folder that has the specific tests
-
 
       graph.getGraphTile()
-        // cy.window().then((win: Window) => { // this gets the window globally within the graph element and exposes the PixiJS points
-        // Scotts original line of code - const tileId: any = cy.get("[data-tile=graph-1]").invoke("id") // find the graph element and get the tileID from the graph element
-        // NOTE: the correct element to target is <div id=“GRPH413982760655623”> (the code above is wrong and we'd have to change the get
-        // argument to be something that picks up the right element)
-        // const pixiPoints = (win as any).pixiPointsMap[tileId] // within the PixiPoints map look up the PixiPoints for the graph element
-        // here is where we want to get the number of points, iterate through the points, etc.
-        // for every point, find its (x, y) position
-        // color
-        // the points will be pixi Sprites with their Sprite properties, e.g. texture, or image (OK to experiment here)
-
-        // Interacting with the PixiJS canvas points
-
-        // test and log the container
-        cy.log('pixiJS test 1: test and log the container')
-        cy.get('[data-testid=codap-graph]')
-        .parents('.free-tile-component') // Traverse to the parent container
-        .invoke('attr', 'id') // Get the dynamic ID
-        .then((tileId) => {
-          cy.log("Tile ID Retrieved from Parent:", tileId)
-
-          cy.window().then((win: any) => {
-            const pixiPoints = win.pixiPointsMap?.[tileId]; // Use the parent ID
-            cy.log(`PixiPoints for tileId ${tileId}:`, pixiPoints)
-            expect(pixiPoints).to.exist
-          })
-        })
-
-cy.log('test 2: pixiJS test: Validate pointMetadata size');
-
-cy.get('[data-testid=codap-graph]')
-  .parents('.free-tile-component')
-  .invoke('attr', 'id') // Retrieve the dynamic graph ID
-  .then((tileId) => {
-    if (!tileId) {
-      throw new Error("tileId is undefined or null.");
-    }
-    cy.log(`Tile ID Retrieved: ${tileId}`);
-
-    cy.window().then((win: any) => {
-      const pixiPoints = win.pixiPointsMap[tileId];
-
-      if (!pixiPoints) {
-        throw new Error(`PixiPoints not found for tileId: ${tileId}`);
-      }
-
-      // Log the full pixiPoints object for inspection
-      cy.log("Full pixiPoints Object:");
-      console.log(pixiPoints);
-
-      // Log available keys on pixiPoints
-      const pixiPointsKeys = Object.keys(pixiPoints);
-      cy.log("Available keys in pixiPoints:", pixiPointsKeys);
-
-      // Check for pointMetadata
-      if (pixiPoints.pointMetadata) {
-        if (pixiPoints.pointMetadata instanceof Map) {
-          const metadataCount = pixiPoints.pointMetadata.size;
-          cy.log("pointMetadata Map Size:", metadataCount);
-          expect(metadataCount).to.be.greaterThan(0);
-        } else {
-          cy.log("pointMetadata is not a Map. Logging type and value:");
-          cy.log(`Type: ${typeof pixiPoints.pointMetadata}`);
-          cy.log("Value:", pixiPoints.pointMetadata);
-        }
-      } else {
-        cy.log("pointMetadata is not present in pixiPoints.");
-        console.error("pointMetadata is not present in pixiPoints.");
-      }
-
-      // Validate and log caseDataToPoint
-      if (pixiPoints.caseDataToPoint) {
-        if (pixiPoints.caseDataToPoint instanceof Map) {
-          const caseDataCount = pixiPoints.caseDataToPoint.size;
-          cy.log("caseDataToPoint Map Size:", caseDataCount);
-          expect(caseDataCount).to.be.greaterThan(0);
-
-          cy.log("caseDataToPoint Entries:");
-          pixiPoints.caseDataToPoint.forEach((value: any, key: any) => {
-            cy.log(`Key: ${key}, Value: ${JSON.stringify(value)}`);
-          });
-        } else {
-          cy.log("caseDataToPoint is not a Map. Logging type and value:");
-          cy.log(`Type: ${typeof pixiPoints.caseDataToPoint}`);
-          cy.log("Value:", pixiPoints.caseDataToPoint);
-        }
-      } else {
-        cy.log("caseDataToPoint is not present in pixiPoints.");
-        console.error("caseDataToPoint is not present in pixiPoints.");
-      }
-    });
-  });
-      //   cy.log('test 3: get the pixijs free tile component interaction')
-      //   cy.get('[data-testid=codap-graph]')
-      //   .parents('.free-tile-component')
-      //   .invoke('attr', 'id') // Retrieve the dynamic graph ID
-      //   .then((tileId) => {
-      //   cy.window().then((win) => {
-      //     if (!win.pixiApp) {
-      //       throw new Error("Pixi Application not attached to window.")
-      //     }
-
-      //     const stage = win.pixiApp.stage; // Root of the PixiJS rendering tree
-      //     console.log("PixiJS Stage Object:", stage)
-
-      //     // Traverse the stage to count objects in pointMetadata
-      //     let pointCount = 0
-
-      //     function traversePixiTree(node) {
-      //       if (node['pixi-data']?.type === 'point') {
-      //         pointCount += 1 // Increment count if the node matches
-      //       }
-      //       if (node.children) {
-      //         node.children.forEach(traversePixiTree) // Recursively check children
-      //       }
-      //     }
-
-      //     traversePixiTree(stage)
-
-      //     // Assert the total count matches the expected value
-      //     const expectedPointCount = 27 // Adjust this value as needed
-      //     expect(pointCount).to.equal(expectedPointCount)
-      //     console.log(`Number of Points in Pixi Tree: ${pointCount}`)
-      //   })
-      // })
-
-      // graph.getHideShowButton().click()
-      // cy.get("[data-testid=hide-selected-cases]").should("be.disabled")
-      // cy.get("[data-testid=hide-unselected-cases]").should("not.be.disabled")
-      // cy.get("[data-testid=show-all-cases]").should("be.disabled")
-      // cy.get("[data-testid=hide-unselected-cases]").click()
-      // cy.wait(500)
-      // graph.getHideShowButton().click()
-      // cy.get("[data-testid=hide-selected-cases]").should("be.disabled")
-      // cy.get("[data-testid=hide-unselected-cases]").should("be.disabled")
-      // cy.get("[data-testid=show-all-cases]").should("not.be.disabled")
-      // cy.get("[data-testid=show-all-cases]").click()
-      // cy.wait(500)
-      // graph.getHideShowButton().click()
-      // cy.get("[data-testid=hide-selected-cases]").should("be.disabled")
-      // cy.get("[data-testid=hide-unselected-cases]").should("not.be.disabled")
-      // cy.get("[data-testid=show-all-cases]").should("be.disabled")
+      graph.getHideShowButton().click()
+      cy.get("[data-testid=hide-selected-cases]").should("be.disabled")
+      cy.get("[data-testid=hide-unselected-cases]").should("not.be.disabled")
+      cy.get("[data-testid=show-all-cases]").should("be.disabled")
+      cy.get("[data-testid=hide-unselected-cases]").click()
+      cy.wait(500)
+      graph.getHideShowButton().click()
+      cy.get("[data-testid=hide-selected-cases]").should("be.disabled")
+      cy.get("[data-testid=hide-unselected-cases]").should("be.disabled")
+      cy.get("[data-testid=show-all-cases]").should("not.be.disabled")
+      cy.get("[data-testid=show-all-cases]").click()
+      cy.wait(500)
+      graph.getHideShowButton().click()
+      cy.get("[data-testid=hide-selected-cases]").should("be.disabled")
+      cy.get("[data-testid=hide-unselected-cases]").should("not.be.disabled")
+      cy.get("[data-testid=show-all-cases]").should("be.disabled")
     })
     it("displays only selected cases and adjusts axes when 'Display Only Selected Cases' is selected", () => {
       // TODO: Add more thorough checks to make sure cases are actually hidden and shown, and the axes adjust
