@@ -1,7 +1,7 @@
 import {
   Box, Button, Flex, FormControl, FormLabel, Input, ModalBody, ModalCloseButton, ModalFooter, ModalHeader, Tooltip
 } from "@chakra-ui/react"
-import React, { useEffect, useState } from "react"
+import React, { useCallback, useEffect, useState } from "react"
 import { observer } from "mobx-react-lite"
 import { clsx } from "clsx"
 import { isCommandKeyDown } from "../../utilities/platform-utils"
@@ -11,6 +11,7 @@ import { FormulaEditorContext, useFormulaEditorState } from "./formula-editor-co
 import { CodapModal } from "../codap-modal"
 import { InsertFunctionMenu } from "./formula-insert-function-menu"
 import { InsertValuesMenu } from "./formula-insert-values-menu"
+import ResizeHandle from "../../assets/icons/icon-corner-resize-handle.svg"
 
 import "./edit-formula-modal.scss"
 
@@ -28,10 +29,14 @@ interface IProps {
 export const EditFormulaModal = observer(function EditFormulaModal({
   applyFormula, formulaPrompt, isOpen, onClose, titleInput, titleLabel, titlePlaceholder, value
 }: IProps) {
+  const minWidth = 400
+  const minHeight = 140
   const [showValuesMenu, setShowValuesMenu] = useState(false)
   const [showFunctionMenu, setShowFunctionMenu] = useState(false)
   const formulaEditorState = useFormulaEditorState(value ?? "")
   const { formula, setFormula } = formulaEditorState
+  const [dimension, setDimension] = useState({ width: minWidth, height: minHeight })
+
 
   useEffect(() => {
     setFormula(value || "")
@@ -47,6 +52,7 @@ export const EditFormulaModal = observer(function EditFormulaModal({
     setShowFunctionMenu(false)
     setFormula(value || "")
     onClose?.()
+    setDimension({ width: minWidth, height: minHeight })
   }
 
   const handleModalWhitespaceClick = () => {
@@ -86,20 +92,60 @@ export const EditFormulaModal = observer(function EditFormulaModal({
     event.stopPropagation()
   }
 
+  const handleResizeModal = useCallback((e: React.PointerEvent) => {
+    if (e.pointerId !== undefined) {
+      e.currentTarget.setPointerCapture(e.pointerId)
+    }
+
+    // const startWidth = dimension.width
+    // const startHeight = dimension.height
+    const modalRect = document.querySelector(".codap-modal-content")?.getBoundingClientRect()
+    console.log("modalRect", modalRect)
+    const startWidth = modalRect?.width ?? dimension.width
+    const startHeight = modalRect?.height ?? dimension.height
+    const startPosition = {x: e.pageX, y: e.pageY}
+    console.log("startWidth", startWidth, "startHeight", startHeight, "startPosition", startPosition)
+
+    let resizingWidth = startWidth, resizingHeight = startHeight
+    // Because user can start drag 8px within the border, the component's startPosition.x moves by number of pixels
+    // the pointer down event location, which moves the entire component to the right by the same number of pixels.
+    // So we force it to always be the left position of the component
+    // const startLeft = startPosition.x > tile.x ? tile.x : startPosition.x
+
+    const onPointerMove = (pointerMoveEvent: { pageX: number; pageY: number }) => {
+      const xDelta = pointerMoveEvent.pageX - startPosition.x
+      const yDelta = pointerMoveEvent.pageY - startPosition.y
+      console.log("pointerMoveEvent", pointerMoveEvent, "xDelta", xDelta, "yDelta", yDelta)
+      console.log("xDelta", xDelta, "yDelta", yDelta)
+      const addIfDefined = (x: number | undefined, delta: number) => x != null ? x + delta : x
+      resizingHeight = addIfDefined(startHeight, yDelta) ?? startHeight
+      resizingWidth = addIfDefined(startWidth, xDelta) ?? startWidth
+
+      console.log("resizingWidth", resizingWidth, "resizingHeight", resizingHeight)
+
+      setDimension({
+        // width: resizingWidth, height: resizingHeight,
+        width: Math.max(resizingWidth, minWidth), height: Math.max(resizingHeight, minHeight),
+      })
+    }
+    const onPointerUp = () => {
+      document.body.removeEventListener("pointermove", onPointerMove, { capture: true })
+      document.body.removeEventListener("pointerup", onPointerUp, { capture: true })
+    }
+    document.body.addEventListener("pointermove", onPointerMove, { capture: true })
+    document.body.addEventListener("pointerup", onPointerUp, { capture: true })
+  }, [dimension.height, dimension.width])
+
+  console.log("dimension", dimension)
   return (
     <FormulaEditorContext.Provider value={formulaEditorState}>
       <CodapModal
         isOpen={isOpen}
         onClose={closeModal}
-        modalWidth={"400px"}
-        modalHeight={"180px"}
+        modalWidth={`${dimension.width}px`}
+        modalHeight={`${dimension.height}px`}
         onClick={handleModalWhitespaceClick}
       >
-        <ModalHeader h="30" className="codap-modal-header" fontSize="md" data-testid="codap-modal-header">
-          <div className="codap-modal-icon-container" />
-          <div className="codap-header-title" />
-          <ModalCloseButton onClick={closeModal} data-testid="modal-close-button" />
-        </ModalHeader>
         <ModalBody className="formula-modal-body" onKeyDown={handleKeyDown}>
           <FormControl display="flex" flexDirection="column" className="formula-form-control">
             <FormLabel display="flex" flexDirection="row">
@@ -114,12 +160,12 @@ export const EditFormulaModal = observer(function EditFormulaModal({
               />
               <span>=</span>
             </FormLabel>
-            <FormLabel>
+            <FormLabel className="formula-editor-container">
               {formulaPrompt ?? t("DG.AttrFormView.formulaPrompt")}
               <FormulaEditor />
             </FormLabel>
           </FormControl>
-          <Flex flexDirection="row" justifyContent="flex-start">
+          <Flex className="formula-insert-buttons-container" flexDirection="row" justifyContent="flex-start">
             <Box position="relative">
               <Button className={clsx("formula-editor-button", "insert-value", {"menu-open": showValuesMenu})}
                       size="xs" ml="5" onClick={handleInsertValuesOpen} data-testid="formula-insert-value-button">
@@ -158,6 +204,9 @@ export const EditFormulaModal = observer(function EditFormulaModal({
             })
           }
         </ModalFooter>
+        <div className="codap-modal-corner bottom-right" onPointerDown={handleResizeModal}>
+            <ResizeHandle className="component-resize-handle"/>
+        </div>
       </CodapModal>
     </FormulaEditorContext.Provider>
   )
