@@ -46,13 +46,13 @@ export const CountAdornment = observer(function CountAdornment(props: IAdornment
       // movable values present at the same time.
       if (graphModel.pointDisplayType === "bins") {
         const { binWidth, minBinEdge, maxBinEdge, totalNumberOfBins } = graphModel.binDetails()
-        return [
+        return binWidth !== undefined ? [
           // Build and spread an array of numeric values corresponding to the bin boundaries. Using totalNumberOfBins
           // for length, start at minBinEdge and increment by binWidth using each bin's index. Afterward, add
           // maxBinEdge to complete the region boundaries array.
           ...Array.from({ length: totalNumberOfBins }, (_, i) => minBinEdge + i * binWidth),
           maxBinEdge
-        ]
+        ] : []
       }
       return adornmentsStore?.subPlotRegionBoundaries(instanceKey, scale) ?? []
   }, [adornmentsStore, graphModel, instanceKey, scale])

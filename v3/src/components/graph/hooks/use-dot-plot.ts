@@ -86,7 +86,7 @@ export const useDotPlot = (pixiPoints?: PixiPoints) => {
     const { primaryCoord, extraPrimaryCoord } = computePrimaryCoord(computePrimaryCoordProps)
     let primaryScreenCoord = primaryCoord + extraPrimaryCoord
 
-    if (graphModel.pointDisplayType !== "histogram") {
+    if (binWidth !== undefined && graphModel.pointDisplayType !== "histogram") {
       const caseValue = dataDisplayGetNumericValue(dataset, anID, primaryAttrID) ?? -1
       const binForCase = determineBinForCase(caseValue, binWidth, minBinEdge)
       primaryScreenCoord = adjustCoordForStacks({
@@ -111,7 +111,7 @@ export const useDotPlot = (pixiPoints?: PixiPoints) => {
     }
     let secondaryScreenCoord = computeSecondaryCoord(secondaryCoordProps)
 
-    if (graphModel.pointDisplayType !== "histogram") {
+    if (binWidth !== undefined && graphModel.pointDisplayType !== "histogram") {
       const onePixelOffset = primaryIsBottom ? -1 : 1
       const casePrimaryValue = dataDisplayGetNumericValue(dataset, anID, primaryAttrID) ?? -1
       const binForCase = determineBinForCase(casePrimaryValue, binWidth, minBinEdge)

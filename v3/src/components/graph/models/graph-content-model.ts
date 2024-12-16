@@ -120,6 +120,13 @@ export const GraphContentModel = DataDisplayContentModel
     setPointOverlap(overlap: number) {
       self.pointOverlap = overlap
     },
+    setBinWidth(width: number | undefined) {
+      self._binWidth = isFiniteNumber(width) ? width : undefined
+      self.dynamicBinWidth = undefined
+    },
+    setDynamicBinWidth(width: number) {
+      self.dynamicBinWidth = width
+    },
   }))
   .views(self => ({
     get graphPointLayerModel(): IGraphPointLayerModel {
@@ -177,8 +184,8 @@ export const GraphContentModel = DataDisplayContentModel
         clampPosMinAtZero: self.pointDisplayType === "bars" || self.pointsFusedIntoBars
       }
     },
-    binWidthFromData(minValue: number, maxValue: number): number {
-      if (minValue === Infinity || maxValue === -Infinity) return 1
+    binWidthFromData(minValue: number, maxValue: number) {
+      if (minValue === Infinity || maxValue === -Infinity || minValue === maxValue) return undefined
       const kDefaultNumberOfBins = 4
 
       const binRange = maxValue !== minValue
@@ -217,18 +224,16 @@ export const GraphContentModel = DataDisplayContentModel
       const maxValue = caseDataArray.reduce((max, aCaseData) => {
         return Math.max(max, dataDisplayGetNumericValue(dataset, aCaseData.caseID, primaryAttributeID) ?? max)
       }, -Infinity)
-
-      if (minValue === Infinity || maxValue === -Infinity) {
-        return { binAlignment: 0, binWidth: 1, minBinEdge: 0, maxBinEdge: 0, minValue: 0, maxValue: 0,
-                 totalNumberOfBins: 0 }
+      const binWidth = (initialize || !self.binWidth)
+        ? self.binWidthFromData(minValue, maxValue) : self.binWidth
+      if (minValue === Infinity || maxValue === -Infinity || binWidth === undefined) {
+        return { binAlignment: 0, binWidth: undefined, minBinEdge: 0, maxBinEdge: 0, minValue: 0, maxValue: 0,
+          totalNumberOfBins: 0 }
       }
 
-      const binWidth = initialize || !self.binWidth
-                         ? self.binWidthFromData(minValue, maxValue)
-                         : self.binWidth
       const binAlignment = initialize || !self.binAlignment
-                             ? Math.floor(minValue / binWidth) * binWidth
-                             : self.binAlignment
+        ? Math.floor(minValue / binWidth) * binWidth
+        : self.binAlignment
       const minBinEdge = binAlignment - Math.ceil((binAlignment - minValue) / binWidth) * binWidth
       // Calculate the total number of bins needed to cover the range from the minimum data value
       // to the maximum data value, adding a small constant to ensure the max value is contained.
@@ -236,7 +241,7 @@ export const GraphContentModel = DataDisplayContentModel
       const maxBinEdge = minBinEdge + (totalNumberOfBins * binWidth)
 
       return { binAlignment, binWidth, minBinEdge, maxBinEdge, minValue, maxValue, totalNumberOfBins }
-    }
+    },
   }))
   .actions(self => ({
     afterCreate() {
@@ -294,34 +299,28 @@ export const GraphContentModel = DataDisplayContentModel
     setDynamicBinAlignment(alignment: number) {
       self.dynamicBinAlignment = alignment
     },
-    setBinWidth(width: number) {
-      self._binWidth = isFiniteNumber(width) ? width : undefined
-      self.dynamicBinWidth = undefined
-    },
-    setDynamicBinWidth(width: number) {
-      self.dynamicBinWidth = width
-    },
     binnedAxisTicks(formatter?: (value: number) => string): { tickValues: number[], tickLabels: string[] } {
       const tickValues: number[] = []
       const tickLabels: string[] = []
       const { binWidth, totalNumberOfBins, minBinEdge } = self.binDetails()
+      if (binWidth !== undefined) {
+        let currentStart = minBinEdge
+        let binCount = 0
 
-      let currentStart = minBinEdge
-      let binCount = 0
-
-      while (binCount < totalNumberOfBins) {
-        const currentEnd = currentStart + binWidth
-        if (formatter) {
-          const formattedCurrentStart = formatter(currentStart)
-          const formattedCurrentEnd = formatter(currentEnd)
-          tickValues.push(currentStart + (binWidth / 2))
-          tickLabels.push(`[${formattedCurrentStart}, ${formattedCurrentEnd})`)
-        } else {
-          tickValues.push(currentStart + binWidth)
-          tickLabels.push(`${currentEnd}`)
+        while (binCount < totalNumberOfBins) {
+          const currentEnd = currentStart + binWidth
+          if (formatter) {
+            const formattedCurrentStart = formatter(currentStart)
+            const formattedCurrentEnd = formatter(currentEnd)
+            tickValues.push(currentStart + (binWidth / 2))
+            tickLabels.push(`[${formattedCurrentStart}, ${formattedCurrentEnd})`)
+          } else {
+            tickValues.push(currentStart + binWidth)
+            tickLabels.push(`${currentEnd}`)
+          }
+          currentStart += binWidth
+          binCount++
         }
-        currentStart += binWidth
-        binCount++
       }
       return { tickValues, tickLabels }
     },
@@ -343,17 +342,19 @@ export const GraphContentModel = DataDisplayContentModel
       const tickLabels: string[] = []
       const { binWidth, totalNumberOfBins, minBinEdge } = self.binDetails()
 
-      let currentStart = minBinEdge
-      let binCount = 0
+      if (binWidth !== undefined) {
+        let currentStart = minBinEdge
+        let binCount = 0
 
-      while (binCount < totalNumberOfBins) {
-        const currentEnd = currentStart + binWidth
-        const formattedCurrentStart = formatter(currentStart)
-        const formattedCurrentEnd = formatter(currentEnd)
-        tickValues.push(currentStart + (binWidth / 2))
-        tickLabels.push(`[${formattedCurrentStart}, ${formattedCurrentEnd})`)
-        currentStart += binWidth
-        binCount++
+        while (binCount < totalNumberOfBins) {
+          const currentEnd = currentStart + binWidth
+          const formattedCurrentStart = formatter(currentStart)
+          const formattedCurrentEnd = formatter(currentEnd)
+          tickValues.push(currentStart + (binWidth / 2))
+          tickLabels.push(`[${formattedCurrentStart}, ${formattedCurrentEnd})`)
+          currentStart += binWidth
+          binCount++
+        }
       }
       return { tickValues, tickLabels }
     },
@@ -374,12 +375,14 @@ export const GraphContentModel = DataDisplayContentModel
 
       if (self.pointDisplayType === "histogram") {
         const { binWidth, minBinEdge } = self.binDetails()
-        const binIndex = Math.floor((Number(value) - minBinEdge) / binWidth)
-        matchingCases = allCases?.filter(aCase => {
-          const caseValue = dataDisplayGetNumericValue(dataset, aCase.__id__, attrID) ?? 0
-          const bin = Math.floor((caseValue - minBinEdge) / binWidth)
-          return bin === binIndex
-        }) as ICase[] ?? []
+        if (binWidth !== undefined) {
+          const binIndex = Math.floor((Number(value) - minBinEdge) / binWidth)
+          matchingCases = allCases?.filter(aCase => {
+            const caseValue = dataDisplayGetNumericValue(dataset, aCase.__id__, attrID) ?? 0
+            const bin = Math.floor((caseValue - minBinEdge) / binWidth)
+            return bin === binIndex
+          }) as ICase[] ?? []
+        }
       } else if (attrID && value) {
         matchingCases = allCases?.filter(aCase => dataset?.getStrValue(aCase.__id__, attrID) === value) as ICase[] ?? []
       }
@@ -425,18 +428,20 @@ export const GraphContentModel = DataDisplayContentModel
           return true
         })
         const { binWidth, minBinEdge } = self.binDetails()
-        const binIndex = Math.floor((Number(casePrimaryValue) - minBinEdge) / binWidth)
-        const firstCount = allMatchingCases.length
-        const secondCount = casesInSubPlot.length
-        const percent = float(100 * firstCount / secondCount)
-        const minBinValue = minBinEdge + binIndex * binWidth
-        const maxBinValue = minBinEdge + (binIndex + 1) * binWidth
-        // "<n> of <total> (<p>%) are ≥ L and < U"
-        const attrArray = [ firstCount, secondCount, percent, minBinValue, maxBinValue ]
-        const translationKey = firstCount === 1
-                                 ? "DG.HistogramView.barTipNoLegendSingular"
-                                 : "DG.HistogramView.barTipNoLegendPlural"
-        tipText = t(translationKey, {vars: attrArray})
+        if (binWidth !== undefined) {
+          const binIndex = Math.floor((Number(casePrimaryValue) - minBinEdge) / binWidth)
+          const firstCount = allMatchingCases.length
+          const secondCount = casesInSubPlot.length
+          const percent = float(100 * firstCount / secondCount)
+          const minBinValue = minBinEdge + binIndex * binWidth
+          const maxBinValue = minBinEdge + (binIndex + 1) * binWidth
+          // "<n> of <total> (<p>%) are ≥ L and < U"
+          const attrArray = [firstCount, secondCount, percent, minBinValue, maxBinValue]
+          const translationKey = firstCount === 1
+            ? "DG.HistogramView.barTipNoLegendSingular"
+            : "DG.HistogramView.barTipNoLegendPlural"
+          tipText = t(translationKey, {vars: attrArray})
+        }
       } else {
         const topSplitMatches = self.matchingCasesForAttr(topSplitAttrID, caseTopSplitValue)
         const rightSplitMatches = self.matchingCasesForAttr(rightSplitAttrID, caseRightSplitValue)
@@ -645,7 +650,7 @@ export const GraphContentModel = DataDisplayContentModel
       const secondaryPlace = secondaryRole === "y" ? "left" : "bottom"
       const extraPrimAttrRole = primaryRole === "x" ? "topSplit" : "rightSplit"
       const extraSecAttrRole = primaryRole === "x" ? "rightSplit" : "topSplit"
-      const maxCellCaseCount = self.pointDisplayType === "histogram"
+      const maxCellCaseCount = (self.pointDisplayType === "histogram" && binWidth !== undefined)
         ? maxCellLength(extraPrimAttrRole, extraSecAttrRole, binWidth, minValue, totalNumberOfBins)
         : maxOverAllCells(extraPrimAttrRole, extraSecAttrRole)
       const countAxis = NumericAxisModel.create({
