@@ -20,6 +20,13 @@ export type V2TileExportFn = (args: V2TileExportArgs) => Maybe<V2ExporterOutput>
 // map from v2 component type to export function
 const gV2TileExporters = new Map<string, V2TileExportFn>()
 
+/**
+ * Take a v2 component type and remove the properties which
+ * exportV2Component will handle. This type is what the V2TileExportFn
+ * should return.
+ */
+export type V2ExportedComponent<ComponentType> = Omit<ComponentType, "layout" | "guid" | "id" | "savedHeight">
+
 // register a v2 exporter for the specified tile type
 export function registerV2TileExporter(tileType: string, exportFn: V2TileExportFn) {
   gV2TileExporters.set(tileType, exportFn)
