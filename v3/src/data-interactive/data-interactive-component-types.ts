@@ -92,12 +92,15 @@ export interface V2Graph extends V2Component {
   type: "graph"
   xAttributeID?: string | null
   xAttributeName?: string | null
+  xAttributeType?: string
   yAttributeID?: string | null
   yAttributeIDs?: number[]
   yAttributeName?: string | null
   yAttributeNames?: string[]
+  yAttributeType?: string
   y2AttributeID?: string | null
   y2AttributeName?: string | null
+  y2AttributeType?: string
 }
 export interface V2GetGraph extends V2Graph {
   xLowerBound?: number

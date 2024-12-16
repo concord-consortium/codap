@@ -236,7 +236,9 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
     let disposer: Maybe<IDisposer>
     if (graphModel) {
       disposer = onAnyAction(graphModel, action => {
-        const dataConfigActions = ["replaceYAttribute", "replaceYAttributes", "removeYAttributeAtIndex", "setAttribute"]
+        const dataConfigActions = [
+          "replaceYAttribute", "replaceYAttributes", "removeYAttributeAtIndex", "setAttribute", "setAttributeType"
+        ]
         if (dataConfigActions.includes(action.name) || isSetAttributeIDAction(action)) {
           startAnimation()
           graphController?.handleAttributeAssignment()

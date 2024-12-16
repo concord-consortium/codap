@@ -5,6 +5,7 @@ import { DIComponentHandler } from "../../data-interactive/handlers/component-ha
 import { errorResult } from "../../data-interactive/handlers/di-results"
 import { appState } from "../../models/app-state"
 import { IAttribute } from "../../models/data/attribute"
+import { isAttributeType } from "../../models/data/attribute-types"
 import { IDataSet } from "../../models/data/data-set"
 import { ISharedCaseMetadata } from "../../models/shared/shared-case-metadata"
 import { getSharedCaseMetadataFromDataset, getSharedDataSets } from "../../models/shared/shared-data-utils"
@@ -25,17 +26,18 @@ import { IGraphPointLayerModelSnapshot, kGraphPointLayerType } from "./models/gr
 interface AttributeInfo {
   id?: string | null
   name?: string | null
+  type?: string
 }
-function packageAttribute(id?: string | null, name?: string | null): Maybe<AttributeInfo> {
+function packageAttribute(id?: string | null, name?: string | null, type?: string): Maybe<AttributeInfo> {
   if (id || id === null || name || name === null) {
-    return { id, name }
+    return { id, name, type }
   }
 }
 function getAttributeInfo(values?: DIValues): Record<string, Maybe<AttributeInfo>> {
   const {
     captionAttributeID, captionAttributeName, legendAttributeID, legendAttributeName, rightNumericAttributeID,
     rightNumericAttributeName, rightSplitAttributeID, rightSplitAttributeName, topSplitAttributeID,
-    topSplitAttributeName, xAttributeID, xAttributeName, y2AttributeID, y2AttributeName
+    topSplitAttributeName, xAttributeID, xAttributeName, xAttributeType, y2AttributeID, y2AttributeName, y2AttributeType
   } = values as V2Graph
   return {
     caption: packageAttribute(captionAttributeID, captionAttributeName),
@@ -43,8 +45,8 @@ function getAttributeInfo(values?: DIValues): Record<string, Maybe<AttributeInfo
     rightNumeric: packageAttribute(rightNumericAttributeID, rightNumericAttributeName),
     rightSplit: packageAttribute(rightSplitAttributeID, rightSplitAttributeName),
     topSplit: packageAttribute(topSplitAttributeID, topSplitAttributeName),
-    x: packageAttribute(xAttributeID, xAttributeName),
-    y2: packageAttribute(y2AttributeID, y2AttributeName)
+    x: packageAttribute(xAttributeID, xAttributeName, xAttributeType),
+    y2: packageAttribute(y2AttributeID, y2AttributeName, y2AttributeType)
   }
 }
 function getAttributeFromInfo(dataset: IDataSet, info?: AttributeInfo) {
@@ -74,7 +76,7 @@ export const graphComponentHandler: DIComponentHandler = {
       backgroundColor, dataContext: _dataContext, displayOnlySelectedCases, enableNumberToggle: showParentToggles,
       filterFormula, hiddenCases: _hiddenCases, numberToggleLastMode: showOnlyLastCase, pointColor, pointConfig,
       pointsFusedIntoBars, pointSize, showMeasuresForSelection, strokeColor, strokeSameAsFill, transparent,
-      yAttributeID, yAttributeIDs, yAttributeName, yAttributeNames
+      yAttributeID, yAttributeIDs, yAttributeName, yAttributeNames, yAttributeType
     } = values as V2Graph
     const attributeInfo = getAttributeInfo(values)
 
@@ -97,20 +99,23 @@ export const graphComponentHandler: DIComponentHandler = {
             if (attribute) {
               const attributeRole = roleFromAttrKey[attributeType]
               if (attributeRole) {
-                _attributeDescriptions[attributeRole] = { attributeID: attribute.id, type: attribute.type }
+                const _type = attributeInfo[attributeType]?.type
+                const type = _type && isAttributeType(_type) ? _type : attribute.type
+                _attributeDescriptions[attributeRole] = { attributeID: attribute.id, type }
               }
             }
           }
 
+          const _yAttributeType = isAttributeType(yAttributeType) ? yAttributeType : undefined
           if (yAttributeIDs) {
             yAttributeIDs.forEach(id => {
               const attribute = dataset.getAttribute(toV3AttrId(id))
-              if (attribute) _yAttributeDescriptions.push({ attributeID: attribute.id })
+              if (attribute) _yAttributeDescriptions.push({ attributeID: attribute.id, type: _yAttributeType })
             })
           } else if (yAttributeNames) {
             yAttributeNames.forEach(name => {
               const attribute = dataset.getAttributeByName(name)
-              if (attribute) _yAttributeDescriptions.push({ attributeID: attribute.id })
+              if (attribute) _yAttributeDescriptions.push({ attributeID: attribute.id, type: _yAttributeType })
             })
           } else {
             let yAttribute: Maybe<IAttribute>
@@ -121,7 +126,7 @@ export const graphComponentHandler: DIComponentHandler = {
               yAttribute = dataset.getAttributeByName(yAttributeName)
             }
             if (yAttribute) {
-              _yAttributeDescriptions.push({ attributeID: yAttribute.id, type: yAttribute.type })
+              _yAttributeDescriptions.push({ attributeID: yAttribute.id, type: _yAttributeType })
             }
           }
 
@@ -243,25 +248,31 @@ export const graphComponentHandler: DIComponentHandler = {
       const topSplitAttributeID = maybeToV2Id(_topSplitAttributeID)
       const topSplitAttributeName = _topSplitAttributeID ? dataset?.getAttribute(_topSplitAttributeID)?.name : undefined
 
-      const _xAttributeID = dataConfiguration.attributeDescriptionForRole("x")?.attributeID
+      const xAttribute = dataConfiguration.attributeDescriptionForRole("x")
+      const _xAttributeID = xAttribute?.attributeID
       const xAttributeID = maybeToV2Id(_xAttributeID)
       const xAttributeName = _xAttributeID ? dataset?.getAttribute(_xAttributeID)?.name : undefined
+      const xAttributeType = xAttribute?.type
       const xAxis = content.getAxis("bottom")
       const xNumericAxis = isNumericAxisModel(xAxis) ? xAxis : undefined
       const xLowerBound = xNumericAxis?.min
       const xUpperBound = xNumericAxis?.max
 
-      const _yAttributeID = dataConfiguration.attributeDescriptionForRole("y")?.attributeID
+      const yAttribute = dataConfiguration.attributeDescriptionForRole("y")
+      const _yAttributeID = yAttribute?.attributeID
       const yAttributeID = maybeToV2Id(_yAttributeID)
       const yAttributeName = _yAttributeID ? dataset?.getAttribute(_yAttributeID)?.name : undefined
+      const yAttributeType = yAttribute?.type
       const yAxis = content.getAxis("left")
       const yNumericAxis = isNumericAxisModel(yAxis) ? yAxis : undefined
       const yLowerBound = yNumericAxis?.min
       const yUpperBound = yNumericAxis?.max
 
-      const _y2AttributeID = dataConfiguration.attributeDescriptionForRole("rightNumeric")?.attributeID
+      const y2Attribute = dataConfiguration.attributeDescriptionForRole("rightNumeric")
+      const _y2AttributeID = y2Attribute?.attributeID
       const y2AttributeID = maybeToV2Id(_y2AttributeID)
       const y2AttributeName = _y2AttributeID ? dataset?.getAttribute(_y2AttributeID)?.name : undefined
+      const y2AttributeType = y2Attribute?.type
       const y2Axis = content.getAxis("rightNumeric")
       const y2NumericAxis = isNumericAxisModel(y2Axis) ? y2Axis : undefined
       const y2LowerBound = y2NumericAxis?.min
@@ -289,9 +300,9 @@ export const graphComponentHandler: DIComponentHandler = {
         numberToggleLastMode, pointColor, pointConfig, pointsFusedIntoBars, pointSize, showMeasuresForSelection,
         strokeColor, strokeSameAsFill, transparent, captionAttributeID, captionAttributeName, legendAttributeID,
         legendAttributeName, rightSplitAttributeID, rightSplitAttributeName, topSplitAttributeID, topSplitAttributeName,
-        xAttributeID, xAttributeName, xLowerBound, xUpperBound,
-        yAttributeID, yAttributeName, yLowerBound, yUpperBound,
-        y2AttributeID, y2AttributeName, y2LowerBound, y2UpperBound,
+        xAttributeID, xAttributeName, xAttributeType, xLowerBound, xUpperBound,
+        yAttributeID, yAttributeName, yAttributeType, yLowerBound, yUpperBound,
+        y2AttributeID, y2AttributeName, y2AttributeType, y2LowerBound, y2UpperBound,
         yAttributeIDs, yAttributeNames
       }
     }
@@ -303,8 +314,9 @@ export const graphComponentHandler: DIComponentHandler = {
     const {
       backgroundColor, dataContext: _dataContext, displayOnlySelectedCases, enableNumberToggle: showParentToggles,
       filterFormula, hiddenCases, numberToggleLastMode: showOnlyLastCase, pointColor, pointConfig, pointsFusedIntoBars,
-      pointSize, showMeasuresForSelection, strokeColor, strokeSameAsFill, transparent, xLowerBound, xUpperBound,
-      yAttributeID, yAttributeIDs, yAttributeName, yAttributeNames, yLowerBound, yUpperBound, y2LowerBound, y2UpperBound
+      pointSize, showMeasuresForSelection, strokeColor, strokeSameAsFill, transparent, xAttributeType, xLowerBound,
+      xUpperBound, yAttributeID, yAttributeIDs, yAttributeName, yAttributeNames, yAttributeType, yLowerBound,
+      yUpperBound, y2AttributeType, y2LowerBound, y2UpperBound
     } = values as V2GetGraph
     const attributeInfo = getAttributeInfo(values)
     const { dataConfiguration, pointDescription } = content
@@ -391,6 +403,11 @@ export const graphComponentHandler: DIComponentHandler = {
         dataConfiguration.removeYAttributeAtIndex(0)
       }
     }
+
+    // Update attribute types
+    if (isAttributeType(xAttributeType)) dataConfiguration.setAttributeType("x", xAttributeType)
+    if (isAttributeType(yAttributeType)) dataConfiguration.setAttributeType("y", yAttributeType)
+    if (isAttributeType(y2AttributeType)) dataConfiguration.setAttributeType("rightNumeric", y2AttributeType)
 
     // Update lower and upper bounds
     const updateBounds = (place: AxisPlace, lower?: number, upper?: number) => {
