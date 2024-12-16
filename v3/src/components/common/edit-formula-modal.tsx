@@ -97,20 +97,12 @@ export const EditFormulaModal = observer(function EditFormulaModal({
       e.currentTarget.setPointerCapture(e.pointerId)
     }
 
-    // const startWidth = dimension.width
-    // const startHeight = dimension.height
     const modalRect = document.querySelector(".codap-modal-content")?.getBoundingClientRect()
-    console.log("modalRect", modalRect)
     const startWidth = modalRect?.width ?? dimension.width
     const startHeight = modalRect?.height ?? dimension.height
     const startPosition = {x: e.pageX, y: e.pageY}
-    console.log("startWidth", startWidth, "startHeight", startHeight, "startPosition", startPosition)
 
     let resizingWidth = startWidth, resizingHeight = startHeight
-    // Because user can start drag 8px within the border, the component's startPosition.x moves by number of pixels
-    // the pointer down event location, which moves the entire component to the right by the same number of pixels.
-    // So we force it to always be the left position of the component
-    // const startLeft = startPosition.x > tile.x ? tile.x : startPosition.x
 
     const onPointerMove = (pointerMoveEvent: { pageX: number; pageY: number }) => {
       const xDelta = pointerMoveEvent.pageX - startPosition.x
@@ -129,7 +121,6 @@ export const EditFormulaModal = observer(function EditFormulaModal({
     document.body.addEventListener("pointerup", onPointerUp, { capture: true })
   }, [dimension.height, dimension.width])
 
-  console.log("dimension", dimension)
   return (
     <FormulaEditorContext.Provider value={formulaEditorState}>
       <CodapModal
