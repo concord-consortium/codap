@@ -1,11 +1,17 @@
 @use "../vars";
 
 .codap-modal-content {
+  min-height: 180px;
+  min-width: 400px;
+
   .formula-modal-body {
     cursor: default;
     display: flex;
     flex-direction: column;
-    height: 100%;
+    height: inherit;
+    margin-bottom: 10px;
+    min-height: 72px;
+    min-width: 400px;
 
     .formula-form-control {
       display: flex;
@@ -61,11 +67,14 @@
   .formula-modal-footer {
     cursor: default;
     border-radius: 6px;
+    position: relative;
+    bottom: 0;
+    right: 0;
   }
 
   .codap-modal-corner {
     position: absolute;
-    bottom: -23px;
+    bottom: 0px;
     right: 0;
     height: 22px;
     width: 22px;

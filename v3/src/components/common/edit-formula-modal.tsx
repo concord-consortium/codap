@@ -30,7 +30,7 @@ export const EditFormulaModal = observer(function EditFormulaModal({
   applyFormula, formulaPrompt, isOpen, onClose, titleInput, titleLabel, titlePlaceholder, value
 }: IProps) {
   const minWidth = 400
-  const minHeight = 140
+  const minHeight = 180
   const [showValuesMenu, setShowValuesMenu] = useState(false)
   const [showFunctionMenu, setShowFunctionMenu] = useState(false)
   const formulaEditorState = useFormulaEditorState(value ?? "")
@@ -115,17 +115,10 @@ export const EditFormulaModal = observer(function EditFormulaModal({
     const onPointerMove = (pointerMoveEvent: { pageX: number; pageY: number }) => {
       const xDelta = pointerMoveEvent.pageX - startPosition.x
       const yDelta = pointerMoveEvent.pageY - startPosition.y
-      console.log("pointerMoveEvent", pointerMoveEvent, "xDelta", xDelta, "yDelta", yDelta)
-      console.log("xDelta", xDelta, "yDelta", yDelta)
-      const addIfDefined = (x: number | undefined, delta: number) => x != null ? x + delta : x
-      resizingHeight = addIfDefined(startHeight, yDelta) ?? startHeight
-      resizingWidth = addIfDefined(startWidth, xDelta) ?? startWidth
-
-      console.log("resizingWidth", resizingWidth, "resizingHeight", resizingHeight)
-
+      resizingWidth = Math.max(startWidth + xDelta, minWidth)
+      resizingHeight = Math.max(startHeight + yDelta, minHeight)
       setDimension({
-        // width: resizingWidth, height: resizingHeight,
-        width: Math.max(resizingWidth, minWidth), height: Math.max(resizingHeight, minHeight),
+        width: resizingWidth, height: resizingHeight,
       })
     }
     const onPointerUp = () => {
@@ -203,10 +196,10 @@ export const EditFormulaModal = observer(function EditFormulaModal({
               )
             })
           }
-        </ModalFooter>
-        <div className="codap-modal-corner bottom-right" onPointerDown={handleResizeModal}>
+          <div className="codap-modal-corner bottom-right" onPointerDown={handleResizeModal}>
             <ResizeHandle className="component-resize-handle"/>
-        </div>
+          </div>
+        </ModalFooter>
       </CodapModal>
     </FormulaEditorContext.Provider>
   )
