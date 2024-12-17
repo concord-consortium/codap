@@ -313,8 +313,30 @@ DG.main = function main() {
   }
 
   function cfmInit(iCloudFileManager, iViewConfig) {
+    var menu = [
+      { name: "DG.fileMenu.menuItem.importFile".loc(), action: "importDataDialog", },
+      {
+        name: "DG.fileMenu.menuItem.revertTo".loc(),
+        items: [
+          { name: "DG.fileMenu.menuItem.revertToOpened".loc(), action: "revertToLastOpenedDialog", },
+        ],
+      },
+      "separator",
+      { name: "DG.fileMenu.menuItem.saveDocument".loc(), action: "save" },
+      { name: "내보내기", action: "exportFile" },
+      {
+        name: "DG.fileMenu.menuItem.renameDocument".loc(), action: "renameDialog",
+      },
+    ];
+    var isEditMode = Boolean(DG.getQueryParam("is_edit_mode"));
+    if (isEditMode) {
+      menu.splice(0, 0, { name: "DG.fileMenu.menuItem.openDocument".loc(), action: "openFileDialog" });
+    }
+    var disableAutoSave = DG.getQueryParam("autosave") === "false";  
+
     var options = {
-          autoSaveInterval: 5,
+          // 자동저장은 기본으로 5초이고, 비활성화된 경우에는 undefined로 설정합니다.
+          autoSaveInterval: disableAutoSave ? undefined : 5,
           appName: DG.APPNAME,
           appVersion: DG.VERSION,
           appBuildNum: DG.BUILD_NUM,
@@ -337,39 +359,7 @@ DG.main = function main() {
                 }
               }
             },
-            menu: [
-              { name: 'DG.fileMenu.menuItem.newDocument'.loc(), action: 'newFileDialog' },
-              { name: 'DG.fileMenu.menuItem.openDocument'.loc(), action: 'openFileDialog' },
-              {
-                name: 'DG.fileMenu.menuItem.closeDocument'.loc(),
-                action: function () {
-                          DG.cfmClient.closeFileDialog(function () {
-                            SC.run(function() {
-                              DG.appController.closeAndNewDocument();
-                            });
-                          });
-                        }
-              },
-              { name: 'DG.fileMenu.menuItem.importFile'.loc(), action: 'importDataDialog' },
-              {
-                name: 'DG.fileMenu.menuItem.revertTo'.loc(),
-                items: [
-                  { name: 'DG.fileMenu.menuItem.revertToOpened'.loc(), action: 'revertToLastOpenedDialog'},
-                  { name: 'DG.fileMenu.menuItem.revertToShared'.loc(), action: 'revertToSharedDialog'}
-                ]
-              },
-              'separator',
-              { name: 'DG.fileMenu.menuItem.saveDocument'.loc(), action: 'saveFileAsDialog' },
-              { name: 'DG.fileMenu.menuItem.copyDocument'.loc(), action: 'createCopy' },
-              {
-                name: 'DG.fileMenu.menuItem.share'.loc(),
-                items: [
-                  { name: 'DG.fileMenu.menuItem.shareGetLink'.loc(), action: 'shareGetLink' },
-                  { name: 'DG.fileMenu.menuItem.shareUpdate'.loc(), action: 'shareUpdate' }
-                ]
-              },
-              { name: 'DG.fileMenu.menuItem.renameDocument'.loc(), action: 'renameDialog' }
-            ],
+            menu: menu
           },
           appSetsWindowTitle: true, // CODAP takes responsibility for the window title
           wrapFileContent: false,
@@ -395,50 +385,10 @@ DG.main = function main() {
               "src": DG.get('exampleListURL'),
               alphabetize: false
             },
-            {
-              "name": "lara",
-              "patch": true,
-              patchObjectHash: function(obj) {
-                return obj.guid || JSON.stringify(obj);
-              },
-              logLaraData: function(obj) {
-                handleLogLaraData(obj);
-              }
-            },
-            {
-              "name": "documentStore",
-              "displayName": "Concord Cloud",
-              "deprecationPhase": (function() { // IIFE to keep code localized
-                                    // queryParam overrides defaults for testing
-                                    var phase = DG.getQueryParam('deprecationPhase');
-                                    if (phase) return Number(phase);
-
-                                    var currDate = new Date(),
-                                        phase2Date = new Date(2016, 10, 15),
-                                        phase3Date = new Date(2017, 0, 1);
-                                    if (currDate >= phase3Date) return 3;
-                                    if (currDate >= phase2Date) return 2;
-                                    return 1;
-                                  }()),
-              "patch": true,
-              "patchObjectHash": function(obj) {
-                return obj.guid || JSON.stringify(obj);
-              }
-            },
-            "localFile"//,
-            //"localStorage"
+            "localFile",
+            "classRails"
           ]
         };
-    // only enable Google Drive if origin is ssl or localhost
-     if (document.location.protocol === 'https:' || document.location.hostname === 'localhost' || document.location.hostname === '127.0.0.1') {
-      options.providers.splice(1, 0, {
-        "name": "googleDrive",
-        "mimeType": "application/json",
-        "clientId": DG.get('googleDriveClientID'),
-        "apiKey": DG.get('googleDriveAPIKey'),
-        "appId": DG.get('googleDriveAppId'),
-      });
-     }
     if (DG.cfmConfigurationOverride) {
       options = Object.assign(options, DG.cfmConfigurationOverride);
     }
@@ -773,11 +723,6 @@ DG.main = function main() {
         switch (event.type) {
           case 'connected':
             DG.cfmClient = event.data.client;
-            DG.cfmClient.setProviderOptions("documentStore",
-                                            {appName: DG.APPNAME,
-                                             appVersion: DG.VERSION,
-                                             appBuildNum: DG.BUILD_NUM
-                                            });
             DG.cfmClient._ui.setMenuBarInfo("Version "+DG.VERSION+" ("+DG.BUILD_NUM+")");
 
             // synchronize document dirty state on document change
@@ -811,6 +756,12 @@ DG.main = function main() {
 
           case "closedFile":
             cfmShowUserEntryView();
+            break;
+          
+          case 'getEmptyContent':
+            resolveDocument(undefined).then(function(emptyContent) {
+              event.callback(emptyContent);
+            });
             break;
 
           case 'getContent':

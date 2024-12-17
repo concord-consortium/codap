@@ -2,7 +2,7 @@ SC.stringsFor("ko", {
               "DG.fileMenu.menuItem.newDocument": "새 문서",
               "DG.fileMenu.menuItem.openDocument": "불러오기",
               "DG.fileMenu.menuItem.closeDocument": "닫기",
-              "DG.fileMenu.menuItem.importFile": "가져오기",
+              "DG.fileMenu.menuItem.importFile": "데이터 가져오기",
               "DG.fileMenu.menuItem.revertTo": "되돌리기",
               "DG.fileMenu.menuItem.revertToOpened": "가장 최근에 불러온 상태로 되돌리기",
               "DG.fileMenu.menuItem.revertToShared": "공유 문서 보기",

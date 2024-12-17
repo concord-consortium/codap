@@ -15,3 +15,5 @@ cypress/screenshots
 cypress/videos
 cypress/downloads
 cypress/snapshots/*/__diff_output__/**
+# cfm
+app.js.LICENSE.txt
