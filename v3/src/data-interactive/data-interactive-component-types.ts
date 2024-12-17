@@ -109,6 +109,7 @@ export interface V2GetGraph extends V2Graph {
   yUpperBound?: number
   y2LowerBound?: number
   y2UpperBound?: number
+  exportPng?: boolean
 }
 export interface V2GuidePage {
   itemTitle: string

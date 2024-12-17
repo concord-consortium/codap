@@ -3,6 +3,7 @@ import {observer} from "mobx-react-lite"
 import React, {useEffect, useRef} from "react"
 import {useResizeDetector} from "react-resize-detector"
 import {useMemo} from 'use-memo-one'
+import { comparer } from 'mobx'
 import {ITileBaseProps} from '../../tiles/tile-base-props'
 import {useDataSet} from '../../../hooks/use-data-set'
 import {DataSetContext} from '../../../hooks/use-data-set-context'
@@ -24,12 +25,39 @@ import { graphCollisionDetection, kGraphIdBase } from './graph-drag-drop'
 import { kTitleBarHeight } from "../../constants"
 import {AttributeDragOverlay} from "../../drag-drop/attribute-drag-overlay"
 import "../register-adornment-types"
+// import { captureSVGElementsToImage, downloadBase64Image } from '../utilities/image-utils'
+// import { mstReaction } from '../../../utilities/mst-reaction'
+import { getTitle } from '../../../models/tiles/tile-content-info'
+import { DataDisplayRenderState } from '../../data-display/models/data-display-render-state'
+
+// const exportGraphImage = async (graphElement: HTMLDivElement, pixiPoints: any, title: string, download = true) => {
+//   const graphPlotParent = graphElement.parentElement
+//   if (!graphPlotParent) {
+//     console.error("Snapshot failed: no container")
+//     return
+//   }
+
+//   const width = graphPlotParent.getBoundingClientRect().width ?? 0
+//   const height = graphPlotParent.getBoundingClientRect().height ?? 0
+//   const graphImage = await captureSVGElementsToImage(graphPlotParent, width, height, title, true, pixiPoints)
+//   if (download) {
+//     downloadBase64Image(graphImage)
+//   } else {
+//     return graphImage
+//   }
+// }
+
+// const saveDataUri = async (graphModel: any, graphElement: HTMLDivElement, pixiPoints: any) => {
+//   const exportDataUri = await exportGraphImage(graphElement, pixiPoints, "", false)
+//   graphModel?.setExportDataUri(exportDataUri)
+//   console.log("graphModel", graphModel)
+// }
 
 registerTileCollisionDetection(kGraphIdBase, graphCollisionDetection)
 
 export const GraphComponent = observer(function GraphComponent({tile}: ITileBaseProps) {
   const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
-
+  const title = (tile && getTitle?.(tile)) || tile?.title || ""
   const instanceId = useNextInstanceId("graph")
   const {data} = useDataSet(graphModel?.dataset)
   const layout = useInitGraphLayout(graphModel)
@@ -49,6 +77,19 @@ export const GraphComponent = observer(function GraphComponent({tile}: ITileBase
 
   useGraphController({graphController, graphModel, pixiPointsArray})
 
+  const setGraphRef = (ref: HTMLDivElement | null) => {
+    graphRef.current = ref
+    const elementParent = ref?.parentElement
+    if (elementParent) {
+      const renderState = new DataDisplayRenderState(
+        pixiPointsArray,
+        elementParent,
+        () => title
+      )
+      graphModel?.setRenderState(renderState)
+    }
+  }
+
   useEffect(() => {
     (width != null) && width >= 0 && (height != null) &&
       height >= kTitleBarHeight && layout.setTileExtent(width, height)
@@ -59,6 +100,31 @@ export const GraphComponent = observer(function GraphComponent({tile}: ITileBase
       layout.cleanup()
     }
   }, [layout])
+
+  // This is just a proof of concept. It's not clear what the final implementation will be.
+  // useEffect(function setDataUri() {
+  //   return mstReaction(
+  //     () => graphModel,
+  //     () => {
+  //       console.log("reaction")
+  //       if (graphModel && graphRef.current) {
+  //         console.log("updating data URI")
+  //         saveDataUri(graphModel, graphRef.current, pixiPointsArray[0])
+  //       }
+  //     }, {name: "Graph.setDataUri", equals: comparer.structural, fireImmediately: true}, graphModel)
+  // }, [graphModel, pixiPointsArray])
+
+  // useEffect(function exportGraphPng() {
+  //   return mstReaction(
+  //     () => graphModel?.exportPng,
+  //     () => {
+  //       if (graphRef.current && graphModel?.exportPng) {
+  //         exportGraphImage(graphRef.current, pixiPointsArray[0], title)
+  //         graphModel.setExportPng(false)
+  //       }
+  //     }, {name: "Graph.exportGraphPng"}, graphModel
+  //   )
+  // }, [graphModel, pixiPointsArray, title])
 
   // used to determine when a dragged attribute is over the graph component
   const dropId = `${instanceId}-component-drop-overlay`
@@ -78,7 +144,7 @@ export const GraphComponent = observer(function GraphComponent({tile}: ITileBase
               <AxisProviderContext.Provider value={graphModel}>
                 <Graph
                   graphController={graphController}
-                  graphRef={graphRef}
+                  setGraphRef={setGraphRef}
                   pixiPointsArray={pixiPointsArray}
                 />
               </AxisProviderContext.Provider>
