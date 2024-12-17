@@ -202,10 +202,11 @@ export function convertDataSetToV2(dataSet: IDataSet, exportCases = false): ICod
     description,
     // metadata,
     // preventReorg,
-    // TODO_V2_EXPORT
+    // TODO_V2_EXPORT setAsideItems
     setAsideItems: [],
-    // TODO_V2_IMPORT, TODO_V2_EXPORT
-    contextStorage: { _links_: { selectedCases: [] } }
+    // TODO_V2_EXPORT contextStorage
+    // providing an empty object makes it possible for CODAPv2 to load more exported documents
+    contextStorage: {}
   }
 }
 

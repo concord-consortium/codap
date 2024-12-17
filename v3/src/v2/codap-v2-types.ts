@@ -210,9 +210,8 @@ export interface ICodapV2GameContext extends Omit<ICodapV2DataContext, "type"> {
 }
 
 // when exporting a v3 data set to v2 data context
-type DCNotYetExported = "flexibleGroupingChangeFlag"
 export interface ICodapV2DataContextV3
-  extends SetOptional<Omit<ICodapV2DataContext, "collections">, DCNotYetExported> {
+  extends Omit<ICodapV2DataContext, "collections"> {
   collections: ICodapV2CollectionV3[]
 }
 
@@ -340,9 +339,6 @@ export interface ICodapV2WebViewStorage extends ICodapV2BaseComponentStorage {
 export interface ICodapV2GameViewStorage extends ICodapV2BaseComponentStorage {
   currentGameUrl: string
   savedGameState?: unknown
-  // TODO_V2_IMPORT currentGameName is not imported
-  // it occurs in 17,000 files in cfm-shared
-  // it might not be optional
   currentGameName?: string
   // TODO_V2_IMPORT allowInitGameOverride is not imported
   // it occurs in at least 12,500 files in cfm-shared

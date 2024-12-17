@@ -2,6 +2,7 @@ import iframePhone from "iframe-phone"
 import { Instance, SnapshotIn, types } from "mobx-state-tree"
 import { DIMessage } from "../../data-interactive/iframe-phone-types"
 import { ITileContentModel, TileContentModel } from "../../models/tiles/tile-content"
+import { withoutUndo } from "../../models/history/without-undo"
 import { kWebViewTileType } from "./web-view-defs"
 
 export const kDefaultAllowEmptyAttributeDeletion = true
@@ -26,11 +27,11 @@ export const WebViewModel = TileContentModel
     preventBringToFront: kDefaultPreventBringToFront,
     preventDataContextReorg: kDefaultPreventDataContextReorg,
     preventTopLevelReorg: kDefaultPreventTopLevelReorg,
-    respectEditableItemAttribute: kDefaultRespectEditableItemAttribute
+    respectEditableItemAttribute: kDefaultRespectEditableItemAttribute,
+    isPlugin: false
   })
   .volatile(self => ({
     dataInteractiveController: undefined as iframePhone.IframePhoneRpcEndpoint | undefined,
-    isPlugin: false,
     version: kDefaultWebViewVersion
   }))
   .views(self => ({
@@ -43,6 +44,7 @@ export const WebViewModel = TileContentModel
       self.dataInteractiveController = controller
     },
     setIsPlugin(isPlugin: boolean) {
+      withoutUndo()
       self.isPlugin = isPlugin
     },
     setSavedState(state: unknown) {

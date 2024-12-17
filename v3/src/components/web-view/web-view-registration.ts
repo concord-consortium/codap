@@ -48,27 +48,53 @@ registerV2TileExporter(kWebViewTileType, ({ tile }) => {
   // the tile type is kWebViewTileType which is what isWebViewModel is using.
   const webViewContent = isWebViewModel(tile.content) ? tile.content : undefined
   const url = webViewContent?.url ?? ""
-  const v2WebView: V2ExportedComponent<ICodapV2WebViewComponent> = {
-    type: "DG.WebView",
-    componentStorage: {
-      URL: url
+  if (webViewContent?.isPlugin) {
+    const v2GameView: V2ExportedComponent<ICodapV2GameViewComponent> = {
+      type: "DG.GameView",
+      componentStorage: {
+        currentGameUrl: url,
+        // TODO_V2_EXPORT the exportV2Component function which calls this function, automatically adds
+        // a name property to componentStorage. This name property isn't set by CODAPv2 when saving
+        // a game view. This extra name field might cause problems in CODAPv2
+        currentGameName: tile.name,
+        savedGameState: webViewContent?.state ?? undefined
+        // TODO_V2_EXPORT add the rest of the game properties
+      }
     }
+    return v2GameView
+  } else {
+    const v2WebView: V2ExportedComponent<ICodapV2WebViewComponent> = {
+      type: "DG.WebView",
+      componentStorage: {
+        URL: url
+      }
+    }
+    return v2WebView
   }
-  return v2WebView
 })
 
-function addWebViewSnapshot(args: V2TileImportArgs, guid: number, url?: string, state?: unknown) {
+function addWebViewSnapshot(args: V2TileImportArgs, name?: string, url?: string, state?: unknown) {
   const { v2Component, insertTile } = args
-  const { name, title, userSetTitle } = v2Component.componentStorage || {}
+  const { guid } = v2Component
+  const { title, userSetTitle } = v2Component.componentStorage || {}
 
   const content: IWebViewSnapshot = {
     type: kWebViewTileType,
     state,
-    url
+    url,
+    isPlugin: isV2GameViewComponent(v2Component)
   }
   const webViewTileSnap: ITileModelSnapshotIn = {
     id: toV3Id(kWebViewIdPrefix, guid),
     name,
+    // Note: when a game view is imported the userSetTitle is often
+    // false, and often the title property is set to title which the plugin provided
+    // to CODAPv2. This value is also set in componentStorage.currentGameName. This
+    // currentGameName value is imported as the name field above.
+    // If round tripping a v2 document through v3 the title will be lost because
+    // of this. The name will be preserved though. Even when the name was not preserved
+    // CODAPv2 seemed to handle this correctly and updated the the title when the document
+    // is loaded.
     _title: (userSetTitle && title) || undefined,
     content
   }
@@ -81,10 +107,12 @@ function importWebView(args: V2TileImportArgs) {
   if (!isV2WebViewComponent(v2Component)) return
 
   // parse the v2 content
-  const { guid, componentStorage: { URL } } = v2Component
+  const { componentStorage: { name, URL } } = v2Component
 
   // create webView model
-  return addWebViewSnapshot(args, guid, URL)
+  // Note: a renamed WebView has the componentStorage.name set to the URL,
+  // only the componentStorage.title is updated
+  return addWebViewSnapshot(args, name, URL)
 }
 registerV2TileImporter("DG.WebView", importWebView)
 
@@ -93,10 +121,12 @@ function importGameView(args: V2TileImportArgs) {
   if (!isV2GameViewComponent(v2Component)) return
 
   // parse the v2 content
-  const { guid, componentStorage: { currentGameUrl, savedGameState} } = v2Component
+  const { componentStorage: { currentGameUrl, currentGameName, savedGameState} } = v2Component
 
   // create webView model
-  return addWebViewSnapshot(args, guid, processPluginUrl(currentGameUrl), savedGameState)
+  // Note: a renamed GameView has the componentStorage.currentGameName set to the value
+  // provided by the plugin, only the componentStorage.title is updated
+  return addWebViewSnapshot(args, currentGameName, processPluginUrl(currentGameUrl), savedGameState)
 }
 registerV2TileImporter("DG.GameView", importGameView)
 
