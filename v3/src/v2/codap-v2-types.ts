@@ -210,7 +210,7 @@ export interface ICodapV2GameContext extends Omit<ICodapV2DataContext, "type"> {
 }
 
 // when exporting a v3 data set to v2 data context
-type DCNotYetExported = "flexibleGroupingChangeFlag" | "contextStorage"
+type DCNotYetExported = "flexibleGroupingChangeFlag"
 export interface ICodapV2DataContextV3
   extends SetOptional<Omit<ICodapV2DataContext, "collections">, DCNotYetExported> {
   collections: ICodapV2CollectionV3[]
@@ -890,6 +890,8 @@ export interface ICodapV2CaseCardComponent extends ICodapV2BaseComponent {
   type: "DG.CaseCard"
   componentStorage: ICodapV2CaseCardStorage
 }
+export const isV2CaseCardComponent = (component: ICodapV2BaseComponent): component is ICodapV2CaseCardComponent =>
+  component.type === "DG.CaseCard"
 
 // TODO_V2_IMPORT: handle importing images
 // This is used 3,971 times in cfm-shared

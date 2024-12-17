@@ -203,8 +203,9 @@ export function convertDataSetToV2(dataSet: IDataSet, exportCases = false): ICod
     // metadata,
     // preventReorg,
     // TODO_V2_EXPORT
-    setAsideItems: []
-    // contextStorage
+    setAsideItems: [],
+    // TODO_V2_IMPORT, TODO_V2_EXPORT
+    contextStorage: { _links_: { selectedCases: [] } }
   }
 }
 

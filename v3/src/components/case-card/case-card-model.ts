@@ -12,7 +12,7 @@ export const CaseCardModel = TileContentModel
   .named("CaseCardModel")
   .props({
     type: types.optional(types.literal(kCaseCardTileType), kCaseCardTileType),
-    // key is collection id; value is width
+    // key is collection id; value is percentage width
     attributeColumnWidths: types.map(types.number),
   })
   .views(self => ({
@@ -22,6 +22,7 @@ export const CaseCardModel = TileContentModel
     get metadata() {
       return getTileCaseMetadata(self)
     },
+    // value is a percentage width
     attributeColumnWidth(collectionId: string) {
       return self.attributeColumnWidths.get(collectionId)
     }
