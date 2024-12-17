@@ -30,9 +30,9 @@ RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash - \
 ENV PATH /app/node_modules/.bin:$PATH
 
 # extn 레포 clone 및 빌드
-WORKDIR /
 
 # 1. codap-data
+WORKDIR /
 RUN git clone https://github.com/concord-consortium/codap-data.git
 WORKDIR /codap-data
 # 커밋 해쉬가 변경되면 캐시가 파기됩니다.
@@ -40,6 +40,7 @@ WORKDIR /codap-data
 RUN git checkout 7151186335a3e9e394c1b3fbd89d1a9a191e28e1
 
 # 2. codap-data-interactives
+WORKDIR /
 RUN git clone https://github.com/team-monolith-product/codap-data-interactives.git
 WORKDIR /codap-data-interactives
 # 커밋 해쉬가 변경되면 캐시가 파기됩니다.
