@@ -1,0 +1,33 @@
+name: Build Codap Dev
+
+on:
+  push:
+    branches: [ develop ]
+
+jobs:
+
+  build:
+    uses: team-monolith-product/tmn-gh-actions/.github/workflows/build_v2.yml@main
+    with:
+      env: dev
+      target: develop
+      propertyPath: nginx.image.tag
+      updateTargets: |
+        {
+          "aws": {
+            "imageName": "jce-ecr-codap-all-dev",
+            "valueFilePath": ["codap-nginx/dev.yaml"]
+          },
+          "ncp": {
+            "registry": "ped-cr-all-dev.ncr.gov-ntruss.com",
+            "imageName": "jce-codap",
+            "valueFilePath": ["codap-nginx/ncloud.yaml"]
+          }
+        }
+
+    secrets:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      NCP_ACCESS_KEY_ID: ${{ secrets.NCP_ACCESS_KEY_ID }}
+      NCP_SECRET_KEY: ${{ secrets.NCP_SECRET_KEY }}
+      MACHINE_TOKEN: ${{ secrets.MACHINE_TOKEN }}

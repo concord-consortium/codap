@@ -1,0 +1,153 @@
+#!/bin/bash
+
+# 이 파일은 makeCodapZip을 수정하여 작성하였습니다.
+
+# Make a deployment package for CODAP. This is a zip file that can be
+# unzipped in any web server accessible location and run from there.
+#
+# Expects a build number as an argument.
+PROGNAME=`basename $0`
+DIRNAME=`dirname $0`
+ROOTDIR=`dirname ${DIRNAME}`
+APPNAME=dg
+OPTIONS="[--logfile=path --minify=yes|no --mode=production|debug --root={path_fragment} --very-verbose]"
+
+function usage() {
+    echo "usage: $PROGNAME $OPTIONS buildnumber" 1>&2
+    exit 1
+}
+
+OPTS=
+BUILD_OPTS=
+DEFAULT_ROOT_SUBSTITUTION=../../../..
+ROOT_SUBSTITUTION=$DEFAULT_ROOT_SUBSTITUTION
+while true; do
+  case "$1" in
+    --very-verbose)
+      BUILD_OPTS="${BUILD_OPTS} $1";
+      shift;;
+    --logfile=*)
+      BUILD_OPTS="${BUILD_OPTS} $1";
+      shift;;
+    --mode=*)
+      BUILD_OPTS="${BUILD_OPTS} $1";
+      shift;;
+    --languages=*)
+      BUILD_OPTS="${BUILD_OPTS} $1";
+      shift;;
+    --root=*)
+      ROOT_SUBSTITUTION=`echo $1 | sed 's/^--root=//'`;
+      shift;;
+    --minify=*)
+      OPT=`echo $1 | sed 's/^--minify=//'`
+      [ "$OPT" == "no" ] && BUILD_OPTS="${BUILD_OPTS} --dont-minify";
+      shift;;
+    --*)
+      usage;
+      shift;;
+    *)
+      break;;
+   esac
+done
+
+if [ "$#" != 1 ] ; then
+    usage
+fi
+
+# Set up locations
+BUILD_NUM=$1
+TMP_ZIP=/tmp/codap_${BUILD_NUM}.zip.$$
+ZIP_FILE=codap_${BUILD_NUM}.zip
+WORK_DIR=${ROOTDIR}/dist/$BUILD_NUM
+INDEX_HTML=${WORK_DIR}/index.html
+
+REDIRECT_PATH_P1=./static/dg/
+REDIRECT_PATH_P2=/cert/index.html
+
+# BUILD_OPTS=${BUILD_OPTS} "--dont-minify"
+# BUILD_OPTS=${BUILD_OPTS} "--logfile=build.log"
+# BUILD_OPTS=${BUILD_OPTS} "--very-verbose"
+# BUILD_OPTS=${BUILD_OPTS} "--mode=debug"
+
+rm -rf ${WORK_DIR}
+mkdir -p ${WORK_DIR}
+
+#
+# Build to a temp directory
+sproutcore build ${BUILD_OPTS} ${APPNAME} --buildroot ${WORK_DIR} --build=cert
+
+LANG_ARRAY=\[`/bin/ls -m ${WORK_DIR}/static/dg|sed "s/[^, ][^, ]*/'&'/g"`\]
+
+${DIRNAME}/makeExtn "${WORK_DIR}/extn"
+
+#
+# Generate top level index.html redirector
+cat > ${INDEX_HTML} << END_DOC
+<!DOCTYPE html>
+<html>
+<head>
+<title>Redirect</title>
+<style>
+  body {
+    margin: 0; 
+    padding: 0;
+  }
+  iframe {
+    width: 100%;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+    border: none;
+    overflow: hidden;
+  }
+</style>
+
+</head>
+<body>
+<script type="text/javascript">
+  var supportedLangs = $LANG_ARRAY;
+  var browserLanguage = navigator.language && navigator.language.replace(/zh-CN/, 'zh-Hans');
+  var browserDigraph = browserLanguage.replace(/-.*$/, '');
+  var searchAndHash = window.location.search + window.location.hash;
+  var languageCode = supportedLangs.find(function (lang) {
+    return (lang === browserLanguage || lang === browserDigraph);
+  }) || 'en';
+  
+  window.location.replace("${REDIRECT_PATH_P1}" + languageCode + "${REDIRECT_PATH_P2}" + searchAndHash);
+  //var codapURL = "${REDIRECT_PATH_P1}" + languageCode + "${REDIRECT_PATH_P2}" + searchAndHash;
+  //var iFrame='<iframe width="100%" src="' + codapURL + '"></iframe>'
+  //document.body.innerHTML = iFrame;
+</script>
+</body>
+</html>
+END_DOC
+
+RS=${ROOT_SUBSTITUTION}
+DRS=${DEFAULT_ROOT_SUBSTITUTION}
+PATH_FIX="s%\"/static/%\"${RS}/static/%g;s%'/static/%'${RS}/static/%g"
+echo PATH_FIX="$PATH_FIX"
+RELPATH_FIX="s%\"/static/%\"${DRS}/static/%g;s%'/static/%'${DRS}/static/%g"
+echo RELPATH_FIX="$RELPATH_FIX"
+#
+# Fix absolute references in HTML and Javascript pages. These references
+# are changeable through a command line parameter.
+files=`find ${WORK_DIR}/static -type f \( -name "*.html" -o -name "*.js" \)`
+for t in ${files} ; do
+    sed "${PATH_FIX}" "${t}" > /tmp/${PROGNAME}_replace.$$ &&
+    mv /tmp/${PROGNAME}_replace.$$ "${t}"
+done
+# Fix absolute references in CSS. These references are not changeable through
+# command line parameter. The references are relative to the css file, not the
+# html which may have included them.
+files=`find ${WORK_DIR}/static -type f \( -name "*.css" \)`
+for t in ${files} ; do
+    sed "${RELPATH_FIX}" "${t}" > /tmp/${PROGNAME}_replace.$$ &&
+    mv /tmp/${PROGNAME}_replace.$$ "${t}"
+done
+
+#
+# Add an empty config file.
+cat > ${WORK_DIR}/codap-config.js << END_DOC
+DG = {
+};
+END_DOC
