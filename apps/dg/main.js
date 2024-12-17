@@ -313,7 +313,7 @@ DG.main = function main() {
   }
 
   function cfmInit(iCloudFileManager, iViewConfig) {
-    var menu = [
+    var viewModeMenu = [
       { name: "DG.fileMenu.menuItem.importFile".loc(), action: "importDataDialog", },
       {
         name: "DG.fileMenu.menuItem.revertTo".loc(),
@@ -328,10 +328,11 @@ DG.main = function main() {
         name: "DG.fileMenu.menuItem.renameDocument".loc(), action: "renameDialog",
       },
     ];
-    var isEditMode = Boolean(DG.getQueryParam("is_edit_mode"));
-    if (isEditMode) {
-      menu.splice(0, 0, { name: "DG.fileMenu.menuItem.openDocument".loc(), action: "openFileDialog" });
-    }
+    var editModeMenu = [
+      { name: "DG.fileMenu.menuItem.openDocument".loc(), action: "openFileDialog" },
+    ].concat(viewModeMenu);
+    var observeModeMenu = [{ name: "내보내기", action: "exportFile" }];
+    var mode = DG.getQueryParam("mode");
     var disableAutoSave = DG.getQueryParam("autosave") === "false";  
 
     var options = {
@@ -359,7 +360,12 @@ DG.main = function main() {
                 }
               }
             },
-            menu: menu
+            menu: 
+              mode === "edit" 
+                ? editModeMenu 
+                : mode === "observe" 
+                ? observeModeMenu 
+                : viewModeMenu,
           },
           appSetsWindowTitle: true, // CODAP takes responsibility for the window title
           wrapFileContent: false,
@@ -744,13 +750,18 @@ DG.main = function main() {
             break;
 
           case "ready":
+            /*
             if ( SC.empty(DG.startingDocUrl)) {
               cfmShowUserEntryView();
             }
+            */
             DG.splash.hideSplash();
             if (event.state.metadata && event.state.metadata.name) {
               DG.currDocumentController().set('documentName',
                   normalizeDocumentName(event.state.metadata.name));
+            } else {
+              // 열린 프로젝트가 없는 경우, 항상 새 프로젝트로 시작합니다.
+              DG.cfmClient.newFile();
             }
             break;
 
