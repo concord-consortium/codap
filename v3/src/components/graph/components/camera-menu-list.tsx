@@ -1,8 +1,12 @@
 import React, { useState } from "react"
 import { MenuItem, MenuList, useToast } from "@chakra-ui/react"
 import { t } from "../../../utilities/translation/translate"
+import { useTileModelContext } from "../../../hooks/use-tile-model-context"
+import { isGraphContentModel } from "../models/graph-content-model"
 
 export const CameraMenuList = () => {
+  const tile = useTileModelContext().tile
+  const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
   const [hasBackgroundImage, setHasBackgroundImage] = useState(false)
   const [imageLocked, setImageLocked] = useState(false)
   const toast = useToast()
@@ -42,6 +46,7 @@ export const CameraMenuList = () => {
 
   const handleExportPNG = () => {
     handleMenuItemClick("Export PNG Image clicked")
+    graphModel?.setExportPng(true)
   }
 
   const handleExportSVG = () => {

@@ -4,7 +4,7 @@
  */
 import {cloneDeep} from "lodash"
 import {when} from "mobx"
-import {addDisposer, IAnyStateTreeNode, Instance, SnapshotIn, types} from "mobx-state-tree"
+import {addDisposer, IAnyStateTreeNode, Instance, onSnapshot, SnapshotIn, types} from "mobx-state-tree"
 import { format } from "d3"
 import {IDataSet} from "../../../models/data/data-set"
 import {applyModelChange} from "../../../models/history/apply-model-change"
@@ -96,7 +96,9 @@ export const GraphContentModel = DataDisplayContentModel
     dynamicBinAlignment: undefined as number | undefined,
     dynamicBinWidth: undefined as number | undefined,
     prevDataSetId: "",
-    pointOverlap: 0,  // Set by plots so that it is accessible to adornments
+    pointOverlap: 0,  // Set by plots so that it is accessible to adornments,
+    exportPng: false,
+    exportDataUri: ""
   }))
   .preProcessSnapshot(snap => {
     // some properties were historically written out as null because NaN => null in JSON
@@ -127,6 +129,12 @@ export const GraphContentModel = DataDisplayContentModel
     setDynamicBinWidth(width: number) {
       self.dynamicBinWidth = width
     },
+    setExportPng(show: boolean) {
+      self.exportPng = show
+    },
+    setExportDataUri(dataUri: string) {
+      self.exportDataUri = dataUri
+    }
   }))
   .views(self => ({
     get graphPointLayerModel(): IGraphPointLayerModel {
@@ -256,6 +264,10 @@ export const GraphContentModel = DataDisplayContentModel
       if (!self.axes.get("left")) {
         self.axes.set("left", EmptyAxisModel.create({place: "left"}))
       }
+      onSnapshot(self, () => {
+        console.log("GraphContentModel.onSnapShot")
+        self.renderState?.updateSnapshot()
+      })
     }
   }))
   .actions(self => ({
@@ -275,6 +287,11 @@ export const GraphContentModel = DataDisplayContentModel
       )
 
       self.installSharedModelManagerSync()
+
+      // addDisposer(self, mstAutorun(function updateGraphSnapshot() {
+      //   console.log("updateGraphSnapshot")
+      //   self.renderState?.updateSnapshot()
+      // },{name: "GraphContentModel.afterAttachToDocument.reaction [dataset]" }, self.dataConfiguration))
 
       // update adornments when case data changes
       addDisposer(self, mstAutorun(function updateAdornments() {
