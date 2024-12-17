@@ -54,7 +54,6 @@ export const useIndexColumn = () => {
   const handlePointerDown = (e: React.PointerEvent | React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    console.log("pointer down", e)
   }
   // renderer
   const RenderIndexCell = useCallback(({ row }: TRenderCellProps) => {
@@ -134,7 +133,6 @@ export function IndexCell({ caseId, disableMenu, index, collapsedCases, onClick,
   const parentCellRef = useRef<HTMLElement | null>(null)
   const {attributes, listeners, setNodeRef: setDragNodeRef} = useDraggableRow(draggableOptions)
   const { active } = useDndContext()
-  // console.log("active", active)
   function setMenuButtonRef(elt: HTMLButtonElement | null) {
     setMenuButton(elt)
   }
@@ -221,13 +219,6 @@ export function IndexCell({ caseId, disableMenu, index, collapsedCases, onClick,
               {cellContents}
             </MenuButton>
         }
-        {/* <MenuButton ref={setMenuButtonRef} className={classes} data-testid="codap-index-content-button"
-                    onKeyDown={handleKeyDown} aria-describedby="sr-index-menu-instructions">
-          {isInputRow
-            ? renderInputRowIndexColumnCell()
-            : cellContents
-          }
-        </MenuButton> */}
         <VisuallyHidden id="sr-index-menu-instructions">
           Press Enter to open the menu.
         </VisuallyHidden>

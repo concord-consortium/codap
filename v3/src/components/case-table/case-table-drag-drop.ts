@@ -6,10 +6,12 @@ import {
   useDroppable
 } from "@dnd-kit/core"
 import { IDragData } from "../../hooks/use-drag-drop"
+import { useInstanceIdContext } from "../../hooks/use-instance-id-context"
 
 export const kNewCollectionDropZoneBaseId = "new-collection"
 export const kCollectionTableBodyDropZoneBaseId = "collection-table-body"
 export const kAttributeDividerDropZoneBaseId = "attribute-divider"
+export const kRowDividerDropZoneBaseId = "row-divider"
 
 export function dropZoneRegEx(baseId: string) {
   return new RegExp(`${baseId}.+drop$`)
@@ -18,10 +20,14 @@ export function dropZoneRegEx(baseId: string) {
 export const kNewCollectionDropZoneRegEx = dropZoneRegEx(kNewCollectionDropZoneBaseId)
 export const kCollectionTableBodyDropZoneRegEx = dropZoneRegEx(kCollectionTableBodyDropZoneBaseId)
 export const kAttributeDividerDropZoneRegEx = dropZoneRegEx(kAttributeDividerDropZoneBaseId)
+export const kRowDividerDropZoneRegEx = dropZoneRegEx(kRowDividerDropZoneBaseId)
 
 // filters the array of all containers down to those of a particular type
-export function filterContainers(containers: DroppableContainer[], regEx: RegExp) {
-  return containers.filter(container => regEx.test(`${container.id}`))
+export function filterContainers(containers: DroppableContainer[], regEx: RegExp[]) {
+  return containers.filter(container =>
+    regEx.some(rE => rE.test(`${container.id}`))
+  )
+  // return containers.filter(container => regEx.test(`${container.id}`))
 }
 
 // returns the first collision with a particular drop zone type
@@ -47,7 +53,8 @@ export const caseTableCollisionDetection: CollisionDetection = (args) => {
   if (withinNewCollection) return [withinNewCollection]
 
   // if the pointer is within the collection table body, find the nearest divider drop zone
-  const droppableDividers = filterContainers(args.droppableContainers, kAttributeDividerDropZoneRegEx)
+  const droppableDividers = filterContainers(args.droppableContainers, [kAttributeDividerDropZoneRegEx, kRowDividerDropZoneRegEx])
+  // const droppableRowDividers = filterContainers(args.droppableContainers, kRowDividerDropZoneRegEx)
   const withinTableBody = findCollision(withinCollisions, kCollectionTableBodyDropZoneRegEx)
   if (withinTableBody) {
     // use closestCenter among column dividers for moving attributes within table
@@ -67,7 +74,7 @@ export const caseTableCollisionDetection: CollisionDetection = (args) => {
     return [intersectCollisions[intersectNewCollectionIndex]]
   }
   if (intersectsTableBody) {
-    // use closestCenter among column dividers for moving attributes within table
+    // use closestCenter among column and row dividers for moving attributes within table
     return closestCenter({ ...args, droppableContainers: droppableDividers })
   }
 
@@ -101,17 +108,20 @@ export const useDraggableRow = ({ prefix, rowId, rowIdx, collectionId, isInputRo
 // Passes its dropProps argument to useDroppable and returns an object with the return value
 // of useDroppable plus the generated id.
 export const useCollectionDroppable = (
-  collectionId: string, onDrop?: (active: Active) => void, dropProps?: UseDroppableArguments
+  baseId: string, onDrop?: (active: Active) => void, dropProps?: UseDroppableArguments
 ) => {
-  const id = `${collectionId}-drop`
+  const instanceId = useInstanceIdContext()
+  const id = `${instanceId}-${baseId}-drop`
+
   useRowDropHandler(id, onDrop)
   return { id, ...useDroppable({ ...dropProps, id }) }
 }
 
 export const useRowDropHandler = (dropId: string, onDrop?: (active: Active) => void) => {
+  // console.log("in useRowDropHandler dropId", dropId)
   useDndMonitor({ onDragEnd: ({ active, over }) => {
-    // if (over?.id === dropId) {
+    if (over?.id === dropId) {
       onDrop?.(active)
-    // }
+    }
   }})
 }
