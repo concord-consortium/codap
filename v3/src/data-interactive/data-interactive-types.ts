@@ -181,6 +181,7 @@ export interface DIResources {
   dataContextList?: IDataSet[]
   error?: string
   global?: IGlobalValue
+  imageSnapshot?: DIComponent
   interactiveFrame?: ITileModel
   isDefaultDataContext?: boolean
   item?: ICase
