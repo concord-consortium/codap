@@ -26,7 +26,7 @@ describe("WebView registration", () =>  {
   })
 
   it("imports/exports v2 web view components", () => {
-    // Note: when a image is dropped on CODAPv2 it makes a DG.ImageComponentView not a
+    // Note: when an image is dropped on CODAPv2 it makes a DG.ImageComponentView not a
     // DG.WebView. This file was manually modified so the component is a DG.WebView
     const file = path.join(__dirname, "../../test/v2", "web-view-image.codap")
     const json = fs.readFileSync(file, "utf8")

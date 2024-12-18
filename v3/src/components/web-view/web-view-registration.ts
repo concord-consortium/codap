@@ -9,7 +9,7 @@ import { t } from "../../utilities/translation/translate"
 import { registerV2TileImporter, V2TileImportArgs } from "../../v2/codap-v2-tile-importers"
 import { registerV2TileExporter, V2ExportedComponent } from "../../v2/codap-v2-tile-exporters"
 import {
-  isV2WebViewComponent, isV2GameViewComponent, ICodapV2WebViewStorage, ICodapV2WebViewComponent
+  isV2WebViewComponent, isV2GameViewComponent, ICodapV2WebViewComponent
 } from "../../v2/codap-v2-types"
 import { kV2GameType, kV2WebViewType, kWebViewTileType } from "./web-view-defs"
 import { isWebViewModel, IWebViewSnapshot, WebViewModel } from "./web-view-model"
