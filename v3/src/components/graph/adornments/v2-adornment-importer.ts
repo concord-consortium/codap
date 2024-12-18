@@ -67,11 +67,11 @@ interface IInstanceKeysForAdornmentsProps {
 }
 
 const univariateMeasureInstances = (adornment: ICodapV2UnivariateAdornment, instanceKeys?: string[]) => {
-  // TODO_V2_IMPORT: most documents with an equationCoordsArray have multiple items in the array
+  // TODO_V2_IMPORT: [Story **#188695360**] most documents with an equationCoordsArray have multiple items in the array
   // we are only looking at the first item here
   const equationCoordsV2 = adornment.equationCoordsArray?.[0]
 
-  // TODO_V2_IMPORT: 93 files in cfm-shared have equationCoordsArray with values with
+  // TODO_V2_IMPORT: [Story: **#188695677**] 93 files in cfm-shared have equationCoordsArray with values with
   // proportionCenterX and proportionCenterY instead of proportionX and proportionY.
   // For now we are just skipping those and treating them as undefined
   // example doc: cfm-shared/1caDhoHFlpuNQgSfOdhh/file.json
@@ -223,7 +223,7 @@ export const v2AdornmentImporter = ({data, plotModels, attributeDescriptions, yA
     const lines: Record<string, IMovableLineInstanceSnapshot> = {}
     instanceKeys?.forEach((key: string) => {
       const lineInstance = {
-        // TODO_V2_IMPORT: equationCoords are not handled correctly, the model stores x and y
+        // TODO_V2_IMPORT: [Story: **#188695677**] equationCoords are not handled correctly, the model stores x and y
         // but the loaded equationCoords have proportionCenterX and proportionCenterY
         equationCoords: equationCoords ?? undefined, // The V2 default is null, but we want undefined
         intercept: movableLineAdornment.intercept,
@@ -249,7 +249,7 @@ export const v2AdornmentImporter = ({data, plotModels, attributeDescriptions, yA
       const lsrlInstances: ILSRLInstanceSnapshot[] = []
       lsrlAdornment.lsrls?.forEach((lsrl) => {
         const lsrlInstance = {
-          // TODO_V2_IMPORT: equationCoords are not handled correctly, the model stores x and y
+          // TODO_V2_IMPORT: [Story: **#188695677**] equationCoords are not handled correctly, the model stores x and y
           // but the loaded equationCoords have proportionCenterX and proportionCenterY
           equationCoords: lsrl.equationCoords ?? undefined // The V2 default is null, but we want undefined
         }
@@ -377,7 +377,7 @@ export const v2AdornmentImporter = ({data, plotModels, attributeDescriptions, yA
         plotValues.push(value.value)
       })
 
-      // TODO_V2_IMPORT: both valueModels and values might have `isVisible: false`
+      // [Story: #188699857] TODO_V2_IMPORT: both valueModels and values might have `isVisible: false`
       // we are currently just ignoring that
       values[key] = plotValues
     })
