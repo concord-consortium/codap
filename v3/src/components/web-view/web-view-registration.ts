@@ -7,7 +7,10 @@ import { ITileModelSnapshotIn } from "../../models/tiles/tile-model"
 import { toV3Id } from "../../utilities/codap-utils"
 import { t } from "../../utilities/translation/translate"
 import { registerV2TileImporter, V2TileImportArgs } from "../../v2/codap-v2-tile-importers"
-import { isV2WebViewComponent, isV2GameViewComponent } from "../../v2/codap-v2-types"
+import { registerV2TileExporter, V2ExportedComponent } from "../../v2/codap-v2-tile-exporters"
+import {
+  isV2WebViewComponent, isV2GameViewComponent, ICodapV2WebViewComponent
+} from "../../v2/codap-v2-types"
 import { kV2GameType, kV2WebViewType, kWebViewTileType } from "./web-view-defs"
 import { isWebViewModel, IWebViewSnapshot, WebViewModel } from "./web-view-model"
 import { WebViewComponent } from "./web-view"
@@ -38,6 +41,20 @@ registerTileComponentInfo({
   tileEltClass: "codap-web-view",
   defaultWidth: kDefaultWebViewWidth,
   defaultHeight: kDefaultWebViewHeight
+})
+
+registerV2TileExporter(kWebViewTileType, ({ tile }) => {
+  // This really should be a WebView Model. We shouldn't be called unless
+  // the tile type is kWebViewTileType which is what isWebViewModel is using.
+  const webViewContent = isWebViewModel(tile.content) ? tile.content : undefined
+  const url = webViewContent?.url ?? ""
+  const v2WebView: V2ExportedComponent<ICodapV2WebViewComponent> = {
+    type: "DG.WebView",
+    componentStorage: {
+      URL: url
+    }
+  }
+  return v2WebView
 })
 
 function addWebViewSnapshot(args: V2TileImportArgs, guid: number, url?: string, state?: unknown) {
