@@ -7,6 +7,7 @@ export const collectionNotFoundResult = errorResult(t("V3.DI.Error.collectionNot
 export const componentNotFoundResult = errorResult(t("V3.DI.Error.componentNotFound"))
 export const couldNotParseQueryResult = errorResult(t("V3.DI.Error.couldNotParseQuery"))
 export const dataContextNotFoundResult = errorResult(t("V3.DI.Error.dataContextNotFound"))
+export const dataDisplayNotFoundResult = errorResult(t("V3.DI.Error.dataDisplayNotFound"))
 export const itemNotFoundResult = errorResult(t("V3.DI.Error.itemNotFound"))
 export const valuesRequiredResult = errorResult(t("V3.DI.Error.valuesRequired"))
 
