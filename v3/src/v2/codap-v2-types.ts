@@ -25,7 +25,7 @@ export interface ICodapV2Attribute {
   deletedFormula?: string
   precision?: number | string | null
   unit?: string | null
-  // TODO_V2_IMPORT decimals is not imported
+  // TODO_V2_IMPORT [Story:#188701222] decimals is not imported
   // it occurs 604 times in 36 files in cfm-shared
   // in 33 cases the value is "2"
   // the rest of the cases the value is "0"
