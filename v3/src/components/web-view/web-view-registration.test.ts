@@ -4,7 +4,7 @@ import { getTileComponentInfo } from "../../models/tiles/tile-component-info"
 import { getTileContentInfo } from "../../models/tiles/tile-content-info"
 import { getSharedModelManager } from "../../models/tiles/tile-environment"
 import { ITileModelSnapshotIn } from "../../models/tiles/tile-model"
-import { safeJsonParse } from "../../utilities/js-utils"
+import { hasOwnProperty, safeJsonParse } from "../../utilities/js-utils"
 import { CodapV2Document } from "../../v2/codap-v2-document"
 import { exportV2Component } from "../../v2/codap-v2-tile-exporters"
 import { importV2Component } from "../../v2/codap-v2-tile-importers"
@@ -22,7 +22,7 @@ describe("WebView registration", () =>  {
     expect(contentInfo).toBeDefined()
     expect(getTileComponentInfo(kWebViewTileType)).toBeDefined()
     const defaultContent = contentInfo?.defaultContent()
-    expect(defaultContent).toBeDefined();
+    expect(defaultContent).toBeDefined()
   })
 
   it("imports/exports v2 web view components", () => {
@@ -102,7 +102,8 @@ describe("WebView registration", () =>  {
     const componentExport = exportV2Component({ tile, row, sharedModelManager })
     expect(componentExport?.type).toBe("DG.GameView")
     const contentStorage = componentExport?.componentStorage as ICodapV2GameViewStorage
-
+    // shouldn't write out `name` property for GameView components
+    expect(hasOwnProperty(contentStorage, "name")).toBe(false)
     expect(contentStorage.currentGameName).toBe("Microdata Portal")
     // Note: the value of the exported title can probably be anything here, but undefined seems
     // to be a safe value to make it clear to CODAPv2 that user hasn't set the title
