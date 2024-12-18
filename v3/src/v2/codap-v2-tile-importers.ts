@@ -1,3 +1,4 @@
+import { IFreeTileInRowOptions } from "../models/document/free-tile-row"
 import { ISharedModelManager } from "../models/shared/shared-model-manager"
 import { ITileModel, ITileModelSnapshotIn } from "../models/tiles/tile-model"
 import { CodapV2Document } from "./codap-v2-document"
@@ -7,14 +8,14 @@ import { ICodapV2BaseComponent } from "./codap-v2-types"
   Tiles that can be imported from components in v2 documents should register their
   importer functions here.
  */
-
 // the arguments passed to a v2 component importer function
+export type LayoutTransformFn = (layout: IFreeTileInRowOptions) => IFreeTileInRowOptions
 export interface V2TileImportArgs {
   v2Component: ICodapV2BaseComponent
   v2Document: CodapV2Document
   sharedModelManager?: ISharedModelManager
   // function to call to insert the imported tile into the document
-  insertTile: (tileSnap: ITileModelSnapshotIn) => ITileModel | undefined
+  insertTile: (tileSnap: ITileModelSnapshotIn, transform?: LayoutTransformFn) => ITileModel | undefined
 }
 export type V2TileImportFn = (args: V2TileImportArgs) => ITileModel | undefined
 

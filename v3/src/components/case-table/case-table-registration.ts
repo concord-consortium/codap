@@ -74,7 +74,7 @@ registerV2TileExporter(kCaseTableTileType, ({ tile }) => {
 registerV2TileImporter("DG.TableView", ({ v2Component, v2Document, sharedModelManager, insertTile }) => {
   if (!isV2TableComponent(v2Component)) return
 
-  const { guid, componentStorage: { name, title = "", _links_, attributeWidths } } = v2Component
+  const { guid, componentStorage: { name, title = "", _links_, isActive, attributeWidths } } = v2Component
 
   // Handle broken tables that don't have any links
   if (!_links_) return
@@ -103,7 +103,9 @@ registerV2TileImporter("DG.TableView", ({ v2Component, v2Document, sharedModelMa
   const tableTile = insertTile(tableTileSnap)
 
   // Make sure metadata knows this is the table tile and it is the last shown
-  metadata?.setLastShownTableOrCardTileId(tableTile?.id)
+  if (isActive) {
+    metadata?.setLastShownTableOrCardTileId(tableTile?.id)
+  }
   metadata?.setCaseTableTileId(tableTile?.id)
 
   // add links to shared models

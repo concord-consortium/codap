@@ -88,6 +88,16 @@ export class CodapV2Document {
     return parentCaseId != null ? this.guidMap.get(parentCaseId)?.object as ICodapV2Case | undefined : undefined
   }
 
+  getV2Collection(v2Id: number) {
+    const entry = this.guidMap.get(v2Id)
+    return entry?.type === "DG.Collection" ? entry.object as ICodapV2Collection : undefined
+  }
+
+  getV2CollectionByIndex(collectionIndex = 0, contextIndex = 0) {
+    const context = this.contexts[contextIndex]
+    return isV2InternalContext(context) ? context.collections[collectionIndex] : undefined
+  }
+
   getV2Attribute(v2Id: number) {
     const entry = this.guidMap.get(v2Id)
     return entry?.type === "DG.Attribute" ? entry.object as ICodapV2Attribute : undefined

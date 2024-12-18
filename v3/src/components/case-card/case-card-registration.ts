@@ -1,17 +1,28 @@
-import { caseTableCardComponentHandler } from "../case-tile-common/case-tile-component-handler"
+import { SetOptional, SetRequired } from "type-fest"
+import CardIcon from "../../assets/icons/icon-case-card.svg"
 import { registerComponentHandler } from "../../data-interactive/handlers/component-handler"
+import { IFreeTileInRowOptions } from "../../models/document/free-tile-row"
+import { getTileDataSet } from "../../models/shared/shared-data-utils"
 import { registerTileComponentInfo } from "../../models/tiles/tile-component-info"
 import { registerTileContentInfo } from "../../models/tiles/tile-content-info"
+import { ITileModelSnapshotIn } from "../../models/tiles/tile-model"
+import { toV2Id, toV3CollectionId, toV3Id } from "../../utilities/codap-utils"
+import { t } from "../../utilities/translation/translate"
+import { registerV2TileExporter } from "../../v2/codap-v2-tile-exporters"
+import { LayoutTransformFn, registerV2TileImporter } from "../../v2/codap-v2-tile-importers"
+import {
+  guidLink, ICodapV2BaseComponentStorage, ICodapV2CaseCardStorage, isV2CaseCardComponent
+} from "../../v2/codap-v2-types"
+import { caseTableCardComponentHandler } from "../case-tile-common/case-tile-component-handler"
+import { CaseTileTitleBar } from "../case-tile-common/case-tile-title-bar"
+import { CaseTileInspector } from "../case-tile-common/inspector-panel/case-tile-inspector"
 import { CaseCardComponent } from "./case-card-component"
 import { kCaseCardTileType, kV2CaseCardType } from "./case-card-defs"
-import { CaseCardModel } from "./case-card-model"
-import { CaseTileTitleBar } from "../case-tile-common/case-tile-title-bar"
-import CardIcon from '../../assets/icons/icon-case-card.svg'
-import { t } from "../../utilities/translation/translate"
-import { getTileDataSet } from "../../models/shared/shared-data-utils"
-import { CaseTileInspector } from "../case-tile-common/inspector-panel/case-tile-inspector"
+import { CaseCardModel, ICaseCardSnapshot, isCaseCardModel } from "./case-card-model"
 
 export const kCaseCardIdPrefix = "CARD"
+export const kCaseCardDefaultHeight = 400
+export const kCaseCardDefaultWidth = 350
 
 registerTileContentInfo({
   type: kCaseCardTileType,
@@ -32,41 +43,76 @@ registerTileComponentInfo({
   InspectorPanel: CaseTileInspector,
   tileEltClass: "codap-case-card",
   Icon: CardIcon,
-  defaultWidth: 350,
-  defaultHeight: 400
+  defaultWidth: kCaseCardDefaultWidth,
+  defaultHeight: kCaseCardDefaultHeight
 })
 
 registerComponentHandler(kV2CaseCardType, caseTableCardComponentHandler)
 
-/*
-registerV2TileImporter("DG.CardView", ({ v2Component, v2Document, sharedModelManager, insertTile }) => {
-  if (!isV2CardComponent(v2Component)) return
+registerV2TileExporter(kCaseCardTileType, ({ tile }) => {
+  const cardContent = isCaseCardModel(tile.content) ? tile.content : undefined
+  let componentStorage: Maybe<SetOptional<ICodapV2CaseCardStorage, keyof ICodapV2BaseComponentStorage>>
+  const dataSet = cardContent?.data
+  const columnWidthMap: Record<string, number> = {}
+  cardContent?.attributeColumnWidths.forEach((widthPct, collectionId) => {
+    columnWidthMap[String(toV2Id(String(collectionId)))] = widthPct
+  })
+  if (dataSet) {
+    componentStorage = {
+      _links_: { context: guidLink("DG.DataContextRecord", toV2Id(dataSet.id)) },
+      columnWidthMap,
+      title: tile._title
+    }
+  }
+  return { type: "DG.CaseCard", componentStorage }
+})
 
-  const { title = "", _links_, attributeWidths } = v2Component.componentStorage
+registerV2TileImporter("DG.CaseCard", ({ v2Component, v2Document, sharedModelManager, insertTile }) => {
+  if (!isV2CaseCardComponent(v2Component)) return
 
-  const content: SetRequired<ICaseCardSnapshot, "columnWidths"> = {
+  const {
+    guid,
+    componentStorage: { name, title = "", _links_, isActive, columnWidthPct, columnWidthMap }
+  } = v2Component
+
+  const content: SetRequired<ICaseCardSnapshot, "attributeColumnWidths"> = {
     type: kCaseCardTileType,
-    columnWidths: {}
+    attributeColumnWidths: {}
   }
   const contextId = _links_.context.id
   const { data, metadata } = v2Document.getDataAndMetadata(contextId)
 
-  // stash the card's column widths in the content
-  attributeWidths?.forEach(entry => {
-    const v2Attr = v2Document.getV2Attribute(entry._links_.attr.id)
-    if (isCodapV2Attribute(v2Attr)) {
-      const attrId = data?.dataSet.attrIDFromName(v2Attr.name)
-      if (attrId && entry.width) {
-        content.columnWidths[attrId] = entry.width
-      }
+  // some documents (presumably preceding hierarchy support) have a single percentage width
+  if (columnWidthPct != null) {
+    const collection = v2Document.getV2CollectionByIndex()
+    if (collection) {
+      content.attributeColumnWidths[toV3CollectionId(collection.guid)] = Number(columnWidthPct)
     }
-  })
+  }
+  // most documents have a map of collection id to percentage width
+  else if (columnWidthMap) {
+    Object.keys(columnWidthMap).forEach(collectionId => {
+      const columnWidth = columnWidthMap[collectionId]
+      if (columnWidth) {
+        content.attributeColumnWidths[toV3CollectionId(collectionId)] = columnWidth
+      }
+    })
+  }
 
-  const cardTileSnap: ITileModelSnapshotIn = { id: typedId(kCaseCardIdPrefix), title, content }
-  const cardTile = insertTile(cardTileSnap)
+  const cardTileSnap: ITileModelSnapshotIn = {
+    id: toV3Id(kCaseCardIdPrefix, guid), name, _title: title, content
+  }
+  const transform: LayoutTransformFn = (options: IFreeTileInRowOptions) => {
+    const { width, ...others } = options
+    // v3 case card is wider than v2
+    return width != null && width < kCaseCardDefaultWidth ? { width: kCaseCardDefaultWidth, ...others } : options
+  }
+  const cardTile = insertTile(cardTileSnap, transform)
 
-  // Make sure metadata knows this is the table tile and it is the last shown
-  metadata?.setLastShownTableOrCardTileId(cardTile?.id)
+  // Make sure metadata knows this is the case card tile and it is the last shown
+  if (isActive) {
+    metadata?.setLastShownTableOrCardTileId(cardTile?.id)
+  }
   metadata?.setCaseCardTileId(cardTile?.id)
 
   // add links to shared models
@@ -77,4 +123,3 @@ registerV2TileImporter("DG.CardView", ({ v2Component, v2Document, sharedModelMan
 
   return cardTile
 })
-*/

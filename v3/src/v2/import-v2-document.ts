@@ -4,7 +4,7 @@ import { getTileComponentInfo } from "../models/tiles/tile-component-info"
 import { getSharedModelManager } from "../models/tiles/tile-environment"
 import { ITileModel, ITileModelSnapshotIn } from "../models/tiles/tile-model"
 import { CodapV2Document } from "./codap-v2-document"
-import { importV2Component } from "./codap-v2-tile-importers"
+import { importV2Component, LayoutTransformFn } from "./codap-v2-tile-importers"
 import { IFreeTileInRowOptions, isFreeTileRow } from "../models/document/free-tile-row"
 
 export function importV2Document(v2Document: CodapV2Document) {
@@ -37,7 +37,7 @@ export function importV2Document(v2Document: CodapV2Document) {
   const row = content?.firstRow
   let maxZIndex = 0
   v2Document.components.forEach(v2Component => {
-    const insertTile = (tile: ITileModelSnapshotIn) => {
+    const insertTile = (tile: ITileModelSnapshotIn, transform?: LayoutTransformFn) => {
       let newTile: ITileModel | undefined
       if (row && tile) {
         const info = getTileComponentInfo(tile.content.type)
@@ -54,9 +54,10 @@ export function importV2Document(v2Document: CodapV2Document) {
           const _height = !info?.isFixedHeight ? { height } : {}
           const _zIndex = zIndex != null ? { zIndex } : {}
           if (zIndex != null && zIndex > maxZIndex) maxZIndex = zIndex
-          const layout: IFreeTileInRowOptions = {
+          const _layout: IFreeTileInRowOptions = {
             x: left, y: top, ..._width, ..._height, ..._zIndex, isHidden, isMinimized
           }
+          const layout = transform?.(_layout) ?? _layout
           newTile = content?.insertTileSnapshotInRow(tile, row, layout)
         }
       }
