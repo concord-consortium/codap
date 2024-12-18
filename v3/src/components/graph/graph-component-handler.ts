@@ -277,7 +277,6 @@ export const graphComponentHandler: DIComponentHandler = {
       const y2NumericAxis = isNumericAxisModel(y2Axis) ? y2Axis : undefined
       const y2LowerBound = y2NumericAxis?.min
       const y2UpperBound = y2NumericAxis?.max
-      const exportDataUri = content.renderState?.dataUri
 
       const yAttributeIDs = dataConfiguration._yAttributeDescriptions
         .map(description => toV2Id(description.attributeID))

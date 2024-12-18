@@ -1,7 +1,7 @@
 import {comparer} from "mobx"
 import {observer} from "mobx-react-lite"
 import {IDisposer, isAlive} from "mobx-state-tree"
-import React, {MutableRefObject, useCallback, useEffect, useMemo, useRef} from "react"
+import React, {useCallback, useEffect, useMemo, useRef} from "react"
 import {select} from "d3"
 import {clsx} from "clsx"
 import { logStringifiedObjectMessage } from "../../../lib/log-message"

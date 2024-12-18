@@ -253,10 +253,10 @@ export const GraphContentModel = DataDisplayContentModel
       if (!self.axes.get("left")) {
         self.axes.set("left", EmptyAxisModel.create({place: "left"}))
       }
-      onSnapshot(self, () => {
-        console.log("GraphContentModel.onSnapShot")
-        self.renderState?.updateSnapshot()
-      })
+      // onSnapshot(self, () => {
+      //   console.log("GraphContentModel.onSnapShot")
+      //   self.renderState?.updateSnapshot()
+      // })
     }
   }))
   .actions(self => ({
@@ -277,10 +277,9 @@ export const GraphContentModel = DataDisplayContentModel
 
       self.installSharedModelManagerSync()
 
-      // addDisposer(self, mstAutorun(function updateGraphSnapshot() {
-      //   console.log("updateGraphSnapshot")
-      //   self.renderState?.updateSnapshot()
-      // },{name: "GraphContentModel.afterAttachToDocument.reaction [dataset]" }, self.dataConfiguration))
+      addDisposer(self, mstAutorun(function updateGraphSnapshot() {
+        self.renderState?.updateSnapshot()
+      }, {name: "GraphContentModel.afterAttachToDocument.reaction [dataset]" }, self.dataConfiguration))
 
       // update adornments when case data changes
       addDisposer(self, mstAutorun(function updateAdornments() {

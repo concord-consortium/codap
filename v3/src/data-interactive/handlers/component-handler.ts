@@ -38,7 +38,7 @@ export interface DIComponentHandler {
 }
 
 // registry of tile component handlers -- key is v2 tile type
-const diComponentHandlers = new Map<string, DIComponentHandler>()
+export const diComponentHandlers = new Map<string, DIComponentHandler>()
 
 export function registerComponentHandler(type: string, handler: DIComponentHandler) {
   diComponentHandlers.set(type, handler)

@@ -3,7 +3,6 @@ import {observer} from "mobx-react-lite"
 import React, {useEffect, useRef} from "react"
 import {useResizeDetector} from "react-resize-detector"
 import {useMemo} from 'use-memo-one'
-import { comparer } from 'mobx'
 import {ITileBaseProps} from '../../tiles/tile-base-props'
 import {useDataSet} from '../../../hooks/use-data-set'
 import {DataSetContext} from '../../../hooks/use-data-set-context'
@@ -80,12 +79,9 @@ export const GraphComponent = observer(function GraphComponent({tile}: ITileBase
   const setGraphRef = (ref: HTMLDivElement | null) => {
     graphRef.current = ref
     const elementParent = ref?.parentElement
+    const dataUri = graphModel?.renderState?.dataUri ?? undefined
     if (elementParent) {
-      const renderState = new DataDisplayRenderState(
-        pixiPointsArray,
-        elementParent,
-        () => title
-      )
+      const renderState = new DataDisplayRenderState(pixiPointsArray, elementParent, () => title, dataUri)
       graphModel?.setRenderState(renderState)
     }
   }
@@ -100,19 +96,6 @@ export const GraphComponent = observer(function GraphComponent({tile}: ITileBase
       layout.cleanup()
     }
   }, [layout])
-
-  // This is just a proof of concept. It's not clear what the final implementation will be.
-  // useEffect(function setDataUri() {
-  //   return mstReaction(
-  //     () => graphModel,
-  //     () => {
-  //       console.log("reaction")
-  //       if (graphModel && graphRef.current) {
-  //         console.log("updating data URI")
-  //         saveDataUri(graphModel, graphRef.current, pixiPointsArray[0])
-  //       }
-  //     }, {name: "Graph.setDataUri", equals: comparer.structural, fireImmediately: true}, graphModel)
-  // }, [graphModel, pixiPointsArray])
 
   // useEffect(function exportGraphPng() {
   //   return mstReaction(
