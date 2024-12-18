@@ -11,6 +11,7 @@ import {useDataDisplayLayout} from "../../data-display/hooks/use-data-display-la
 import {usePixiPointerDownDeselect} from "../../data-display/hooks/use-pixi-pointer-down-deselect"
 import {MultiLegend} from "../../data-display/components/legend/multi-legend"
 import {usePixiPointsArray} from "../../data-display/hooks/use-pixi-points-array"
+import { DEBUG_PIXI_POINTS } from "../../../lib/debug"
 import {logStringifiedObjectMessage} from "../../../lib/log-message"
 import {DroppableMapArea} from "./droppable-map-area"
 import {MapBackground} from "./map-background"
@@ -22,6 +23,7 @@ import {MapGridSlider} from "./map-grid-slider"
 
 import "leaflet/dist/leaflet.css"
 import "./map.scss"
+import { useTileModelContext } from "../../../hooks/use-tile-model-context"
 
 interface IProps {
   mapRef: MutableRefObject<HTMLDivElement | null>
@@ -38,6 +40,14 @@ export const CodapMap = observer(function CodapMap({mapRef}: IProps) {
 
   // trigger an additional render once references have been fulfilled
   useEffect(() => forceUpdate(), [forceUpdate])
+  const { tile } = useTileModelContext()
+
+   // weak map?
+   if (((window as any).Cypress || DEBUG_PIXI_POINTS) && tile?.id) {
+    const pixiPointsMap: any = (window as any).pixiPointsMap  || ({} as Record<string, any>)
+    ;(window as any).pixiPointsMap = pixiPointsMap
+    pixiPointsMap[tile.id] = pixiPointsArray
+  }
 
   usePixiPointerDownDeselect(pixiPointsArray, mapModel)
 

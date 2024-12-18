@@ -2,7 +2,7 @@
 import { GraphTileElements as graph } from "../../support/elements/graph-tile"
 import { TableTileElements as table } from "../../support/elements/table-tile"
 import { ComponentElements as c } from "../../support/elements/component-elements"
-//import { ToolbarElements as toolbar } from "../../support/elements/toolbar-elements"
+import { ToolbarElements as toolbar } from "../../support/elements/toolbar-elements"
 import { CfmElements as cfm } from "../../support/elements/cfm"
 //import { ColorPickerPaletteElements as cpp} from "../../support/elements/color-picker-palette"
 import { GraphCanvasHelper as gch } from "../../support/helpers/graph-canvas-helper"
@@ -45,6 +45,9 @@ context("Graph UI with Pixi interaction", () => {
   })
   describe("graph view", () => {
     it("validates point count for univariate graphs with different hierarchies with pixi interaction", () => {
+
+      cy.log('opening the map will appear with the correct number of points')
+
       cy.log('Correct number of points in univariate graphs with missing data in cases')
 
       cy.log('Test for "Mass" univariate (27 points)')
@@ -110,82 +113,89 @@ context("Graph UI with Pixi interaction", () => {
         gch.validateGraphPointCount(tileId, 18) // 18 points in graph
       })
     })
-    // it.skip("should highlight a selected graph point with pixi interaction", () => {
-    //   // this is a spike to get interaction with point selection and texture
-    //   // it makes use of the texture call in the pixiPoint
-    //   // However, I'm pretty sure I've got the structure of the array wrong
-    //   // this code tries to log and verify the selected case ID and see how it
-    //   // interacts with the pixiPoint array
+    it.skip("should highlight a selected graph point with pixi interaction", () => {
+      // this is a spike to get interaction with point selection and texture
+      // it makes use of the texture call in the pixiPoint
+      // However, I'm pretty sure I've got the structure of the array wrong
+      // this code tries to log and verify the selected case ID and see how it
+      // interacts with the pixiPoint array
 
-    //   /**
-    //    * Helper function to check if a graph point is selected.
-    //    * @param pointMetadata - The `pointMetadata` map from `pixiPoints`.
-    //    * @param selectedCaseID - The case ID of the selected point.
-    //    * @param expectedColor - The expected color of the selected point.
-    //    * @returns True if the point matches the expected color, false otherwise.
-    //    */
-    //   const isPointSelected = (pointMetadata: Map<any, any>,
-    //     selectedCaseID: string, expectedColor: string): boolean => {
-    //     // Find the entry in `pointMetadata` matching the `selectedCaseID`
-    //     const selectedEntry = Array.from(pointMetadata.values()).find(
-    //       (entry: any) => entry.caseID === selectedCaseID
-    //     )
-    //     if (!selectedEntry) {
-    //       console.log('No entry found for selected case ID:', selectedCaseID)
-    //       return false
-    //     }
-    //     console.log('Selected Entry:', selectedEntry)
+      // /**
+      //  * Helper function to check if a graph point is selected.
+      //  * @param pointMetadata - The `pointMetadata` map from `pixiPoints`.
+      //  * @param selectedCaseID - The case ID of the selected point.
+      //  * @param expectedColor - The expected color of the selected point.
+      //  * @returns True if the point matches the expected color, false otherwise.
+      //  */
+      const collectionName = "newCollectionName"
 
-    //     // Check if the `style.fill` matches the expected color
-    //     const fillColor = selectedEntry.style?.fill
-    //     console.log('Extracted Fill Color:', fillColor)
-    //     return fillColor === expectedColor
-    //   }
+      const isPointSelected = (pointMetadata: Map<any, any>,
+        selectedCaseID: string, expectedColor: string): boolean => {
+        // Find the entry in `pointMetadata` matching the `selectedCaseID`
+        const selectedEntry = Array.from(pointMetadata.values()).find(
+          (entry: any) => entry.caseID === selectedCaseID
+        )
+        if (!selectedEntry) {
+          cy.log('No entry found for selected case ID:', selectedCaseID)
+          return false
+        }
+        cy.log('Selected Entry:', selectedEntry)
 
-    //   // Select the target table cell and dynamically retrieve the caseID
-    //   table.getGridCell(2, 2)
-    //     .should("contain", "African Elephant")
-    //     .invoke('attr', 'data-row-id')
-    //     .then((selectedCaseID) => {
-    //       cy.log('Selected Case ID:', selectedCaseID)
+        // Check if the `style.fill` matches the expected color
+        const fillColor = selectedEntry.style?.fill
+        cy.log('Extracted Fill Color:', fillColor)
+        return fillColor === expectedColor
+      }
 
-    //       // Verify the graph's component title matches the collection name
-    //       c.getComponentTitle("graph").should("contain", collectionName)
+      // Select the target table cell and dynamically retrieve the caseID
+      table.getGridCell(2, 2)
+        .should("contain", "African Elephant")
+        .invoke('attr', 'data-row-id')
+        .then((selectedCaseID) => {
+          cy.log(`Selected Case ID: ${selectedCaseID}`)
+          // extract the caseID from the data cell, which is in the div: <div role="gridcell" aria-colindex="2" aria-selected="false" tabindex="-1" class="rdg-cell cj343x07-0-0-beta-44 codap-data-cell rowId-CASE10141474223196" style="grid-column: 2 / 3;" data-cypress-el="true"><span class="cell-span">African Elephant</span></div>)
 
-    //       // Re-click the table cell to ensure interaction consistency
-    //       table.getGridCell(2, 2).click({ force: true })
+          // Verify the graph's component title matches the collection name
+          c.getComponentTitle("graph").should("contain", collectionName)
 
-    //       // Locate the graph and retrieve its dynamic tile ID
-    //       cy.get('[data-testid=codap-graph]')
-    //         .parents('.free-tile-component')
-    //         .invoke('attr', 'id')
-    //         .then((tileId) => {
-    //           if (!tileId) {
-    //             throw new Error("tileId is undefined or null.")
-    //           }
-    //           cy.log(`Graph Tile ID Retrieved: ${tileId}`)
+          // Re-click the table cell to ensure interaction consistency
+          table.getGridCell(2, 2).click({ force: true })
 
-    //           // Access PIXI metadata
-    //           cy.window().then((win: any) => {
-    //             const pixiPoints = win.pixiPointsMap[tileId]
-    //             cy.log('Full Pixi Points Object:', pixiPoints)
+          // for getting position
+          // pixiPointsMap[tileID][0].points[0].position.x
+          // pixiPointsMap[tileID][0].points[0].position.y
 
-    //             // Verify pixiPoints exists
-    //             expect(pixiPoints[0], 'Pixi points should exist').to.exist
+          // Locate the graph and retrieve its dynamic tile ID
+          cy.get('[data-testid=codap-graph]')
+            .parents('.free-tile-component')
+            .invoke('attr', 'id')
+            .then((tileId) => {
+              if (!tileId) {
+                throw new Error("tileId is undefined or null.")
+              }
+              cy.log(`Graph Tile ID Retrieved: ${tileId}`)
 
-    //             // Access `pointMetadata`
-    //             const pointMetadata = pixiPoints[0].pointMetadata
-    //             cy.log('Point Metadata Map:', pointMetadata)
+              // Access PIXI metadata
+              cy.window().then((win: any) => {
+                const pixiPoints = win.pixiPointsMap[tileId]
+                cy.log('Full Pixi Points Object:', pixiPoints)
 
-    //             // Verify the point is highlighted
-    //             const selectedColor = "#4682B4" // Expected color for a selected point
-    //             const isSelected = isPointSelected(pointMetadata, selectedCaseID, selectedColor)
+                // Verify pixiPoints exists
+                expect(pixiPoints[0], 'Pixi points should exist').to.exist
 
-    //             expect(isSelected, `Point with case ID ${selectedCaseID} should be highlighted`).to.be.true
-    //           })
-    //         })
-    //     })
-    // })
+                // Access `pointMetadata`
+                const pointMetadata = pixiPoints[0].pointMetadata
+                cy.log('Point Metadata Map:', pointMetadata)
+
+                // Verify the point is highlighted
+                const selectedColor = "#4682B4" // Expected color for a selected point
+                const isSelected = isPointSelected(pointMetadata, selectedCaseID, selectedColor)
+
+                expect(isSelected, `Point with case ID ${selectedCaseID} should be highlighted`).to.be.true
+              })
+            })
+        })
+    })
   })
   describe("case card graph interaction", () => {
     it("can drag attributes from the case card to the graph with pixijs interaction", () => {
