@@ -172,9 +172,6 @@ export function IndexCell({ caseId, disableMenu, index, collapsedCases, onClick,
       inputIndexCellRef.current = elt
       parentCellRef.current = cellElt
       setDragNodeRef(cellElt ?? elt)
-
-      // setDragNodeRef(parentCellRef.current ?? inputIndexCellRef.current)
-      console.log("Drag node ref set to:", parentCellRef.current ?? inputIndexCellRef.current)
     }
 
     return (

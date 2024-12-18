@@ -120,8 +120,15 @@ export const useCollectionDroppable = (
 export const useRowDropHandler = (dropId: string, onDrop?: (active: Active) => void) => {
   // console.log("in useRowDropHandler dropId", dropId)
   useDndMonitor({ onDragEnd: ({ active, over }) => {
+      console.log("in useRowDropHandler over?.id", over?.id)
+
     if (over?.id === dropId) {
       onDrop?.(active)
     }
   }})
+}
+
+export const getDragRowInfo = (active: Active | null) => {
+  console.log("in getDragRowInfo active", active)
+  return active && active.data.current
 }

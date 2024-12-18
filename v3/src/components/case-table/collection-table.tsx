@@ -39,6 +39,8 @@ import { useWhiteSpaceClick } from "./use-white-space-click"
 
 import "react-data-grid/lib/styles.css"
 import styles from "./case-table-shared.scss"
+import { RowDragOverlay } from "./row-drag-overlay"
+import { useResizeDetector } from "react-resize-detector"
 
 type OnNewCollectionDropFn = (dataSet: IDataSet, attrId: string, beforeCollectionId: string) => void
 
@@ -71,12 +73,31 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
     useSelectedRows({ gridRef, onScrollClosestRowIntoView, onScrollRowRangeIntoView })
   const { handleWhiteSpaceClick } = useWhiteSpaceClick({ gridRef })
   const { isTileSelected } = useTileModelContext()
+  const tileRef = useRef<HTMLDivElement | null>(null)
+  const collectionRef = useRef<HTMLDivElement | null>(null)
   const [isSelecting, setIsSelecting] = useState(false)
   const [selectionStartRowIdx, setSelectionStartRowIdx] = useState<number | null>(null)
   const initialPointerDownPosition = useRef({ x: 0, y: 0 })
   const kPointerMovementThreshold = 3
   const {active, over} = useCollectionDroppable(`${kCollectionTableBodyDropZoneBaseId}-${collectionId}`)
+  const [visibleCollectionWidth, setVisibleCollectionWidth] = useState<number | null>(null)
+  const contentRef = useRef<HTMLDivElement | null>(null)
+  useResizeDetector({ targetRef: tileRef })
+  tileRef.current = collectionRef.current?.closest(".codap-component") ?? null
+  contentRef.current = collectionRef.current?.closest(".collection-title-wrapper") ?? null
 
+  useEffect(() => {
+    const tileRect = tileRef.current?.getBoundingClientRect()
+    const contentRect = gridRef.current?.element?.getBoundingClientRect()
+    if (tileRect && contentRect) {
+      const rightPosition = window.innerWidth - contentRect.right
+      console.log("visibleCollectionWidth rightPosition", rightPosition)
+      console.log("visibleCollectionWidth contentRect", contentRect, "tileRect", tileRect)
+      const visibleWidth = rightPosition - tileRect.right
+      console.log("visibleCollectionWidth visibleWidth", visibleWidth)
+      setVisibleCollectionWidth(visibleWidth)
+    }
+  }, [])
 
   useEffect(function setGridElement() {
     const element = gridRef.current?.element
@@ -189,6 +210,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
     })
   }
 
+
   const showInputRow = !preventCollectionReorg(data, collectionId)
   const rows = useMemo(() => {
     if (collectionTableModel?.rows) {
@@ -204,25 +226,6 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
       return _rows
     }
   }, [collectionTableModel?.rows, collectionTableModel?.inputRowIndex, showInputRow])
-
-  // const moveInputRow = useCallback(() => {
-  //   if (!active || !over || !rows) return;
-  //   // Ensure active row is the inputRow
-  //   if (active.id !== kInputRowKey) return;
-
-  //   // Calculate new index
-  //   const activeIndex = rows.findIndex(row => row.__id__ === kInputRowKey);
-  //   const overIndex = rows.findIndex(row => row.__id__ === over.id);
-
-  //   if (activeIndex !== overIndex) {
-  //     const updatedRows = [...rows];
-  //     const [movedRow] = updatedRows.splice(activeIndex, 1);
-  //     updatedRows.splice(overIndex, 0, movedRow);
-
-  //     // Update inputRowIndex in collectionTableModel
-  //     collectionTableModel?.setInputRowIndex(overIndex);
-  //   }
-  // }, [rows, collectionTableModel]);
 
   const { handleSelectedCellChange, navigateToNextRow } = useSelectedCell(gridRef, columns, rows)
 
@@ -353,9 +356,6 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
 
   // Helper function to get the row index from a mouse event
   const getRowIndexFromEvent = useCallback((event: React.PointerEvent) => {
-    // const target = event.target as HTMLElement
-    // const closestDataCell = target.closest('.codap-data-cell')
-    // const caseId = closestDataCell?.className.split(" ").find(c => c.startsWith("rowId-"))?.split("-")[1]
     const caseId = getCaseIdFromEvent(event)
     const rowIdx = caseId ? collectionCaseIndexFromId(caseId, data, collectionId) : null
     return rowIdx
@@ -363,7 +363,6 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
 
    const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
     initialPointerDownPosition.current = { x: event.clientX, y: event.clientY }
-    console.log("startRowIdx", getRowIndexFromEvent(event))
     const startRowIdx = getRowIndexFromEvent(event)
     if (!startRowIdx) {
       console.log("rowIdx is null, rowId is", getCaseIdFromEvent(event))
@@ -405,13 +404,22 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
     stopAutoScroll()
   }, [stopAutoScroll])
 
+  const handleSetCollectionAndTitleRef = (elt: HTMLDivElement | null) => {
+    if (elt) {
+      if (collectionRef.current !== elt) {
+        collectionRef.current = elt
+      }
+      setNodeRef(elt)
+    }
+  }
+
   if (!data || !rows || !visibleAttributes.length) return null
 
   return (
-    <div className={`collection-table collection-${collectionId}`}>
+    <div className={`collection-table collection-${collectionId}`} ref={collectionRef}>
       <CollectionTableSpacer selectedFillColor={selectedFillColor}
         onWhiteSpaceClick={handleWhiteSpaceClick} onDrop={handleNewCollectionDrop} />
-      <div className="collection-table-and-title" ref={setNodeRef} onClick={handleClick}
+      <div className="collection-table-and-title" ref={handleSetCollectionAndTitleRef} onClick={handleClick}
             onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={handlePointerLeaveOrUp}
             onPointerLeave={handlePointerLeaveOrUp}>
         <CollectionTitle onAddNewAttribute={handleAddNewAttribute} showCount={true} />
@@ -422,6 +430,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
           onCellKeyDown={handleCellKeyDown} onRowsChange={handleRowsChange} onScroll={handleGridScroll}
           onSelectedCellChange={handleSelectedCellChange}/>
       </div>
+      <RowDragOverlay rows={rows} gridWidth={visibleCollectionWidth}/>
     </div>
   )
 })
