@@ -7,9 +7,9 @@ import { ITileModelSnapshotIn } from "../../models/tiles/tile-model"
 import { toV3Id } from "../../utilities/codap-utils"
 import { t } from "../../utilities/translation/translate"
 import { registerV2TileImporter, V2TileImportArgs } from "../../v2/codap-v2-tile-importers"
-import { registerV2TileExporter, V2ExportedComponent } from "../../v2/codap-v2-tile-exporters"
+import { registerV2TileExporter, V2ExportedComponent, V2TileExportFn } from "../../v2/codap-v2-tile-exporters"
 import {
-  isV2WebViewComponent, isV2GameViewComponent, ICodapV2WebViewComponent
+  isV2WebViewComponent, isV2GameViewComponent, ICodapV2WebViewComponent, ICodapV2GameViewComponent
 } from "../../v2/codap-v2-types"
 import { kV2GameType, kV2WebViewType, kWebViewTileType } from "./web-view-defs"
 import { isWebViewModel, IWebViewSnapshot, WebViewModel } from "./web-view-model"
@@ -43,7 +43,7 @@ registerTileComponentInfo({
   defaultHeight: kDefaultWebViewHeight
 })
 
-registerV2TileExporter(kWebViewTileType, ({ tile }) => {
+const exportFn: V2TileExportFn = ({ tile }) => {
   // This really should be a WebView Model. We shouldn't be called unless
   // the tile type is kWebViewTileType which is what isWebViewModel is using.
   const webViewContent = isWebViewModel(tile.content) ? tile.content : undefined
@@ -53,9 +53,6 @@ registerV2TileExporter(kWebViewTileType, ({ tile }) => {
       type: "DG.GameView",
       componentStorage: {
         currentGameUrl: url,
-        // TODO_V2_EXPORT the exportV2Component function which calls this function, automatically adds
-        // a name property to componentStorage. This name property isn't set by CODAPv2 when saving
-        // a game view. This extra name field might cause problems in CODAPv2
         currentGameName: tile.name,
         savedGameState: webViewContent?.state ?? undefined
         // TODO_V2_EXPORT add the rest of the game properties
@@ -71,7 +68,13 @@ registerV2TileExporter(kWebViewTileType, ({ tile }) => {
     }
     return v2WebView
   }
-})
+}
+exportFn.options = ({ tile }) => {
+  const webViewContent = isWebViewModel(tile.content) ? tile.content : undefined
+  // v2 doesn't write out a `name` property for game view components
+  return { suppressName: webViewContent?.isPlugin }
+}
+registerV2TileExporter(kWebViewTileType, exportFn)
 
 function addWebViewSnapshot(args: V2TileImportArgs, name?: string, url?: string, state?: unknown) {
   const { v2Component, insertTile } = args
