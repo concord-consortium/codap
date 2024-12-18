@@ -312,16 +312,8 @@ export interface ICodapV2CaseCardStorage extends ICodapV2BaseComponentStorage {
     context: IGuidLink<"DG.DataContextRecord">
   }
   title?: string
-  // TODO_V2_IMPORT isActive is not imported
-  // it occurs in close to 11,0000 files in cfm-shared
-  // these are both in table and case card
-  // it might not be optional
   isActive?: boolean
-  // TODO_V2_IMPORT columnWidthPct is not imported
-  // it occurs 39 times in cfm-shared
   columnWidthPct?: string
-  // TODO_V2_IMPORT columnWidthMap is not imported
-  // it occurs 843 times in cfm-shared
   columnWidthMap?: Record<string, number>
 }
 
@@ -884,8 +876,6 @@ export interface ICodapV2TableComponent extends ICodapV2BaseComponent {
 export const isV2TableComponent = (component: ICodapV2BaseComponent): component is ICodapV2TableComponent =>
   component.type === "DG.TableView"
 
-// TODO_V2_IMPORT: handle importing case cards:
-// https://www.pivotaltracker.com/story/show/188596023
 export interface ICodapV2CaseCardComponent extends ICodapV2BaseComponent {
   type: "DG.CaseCard"
   componentStorage: ICodapV2CaseCardStorage

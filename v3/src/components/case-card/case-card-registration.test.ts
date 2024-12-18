@@ -40,6 +40,10 @@ describe("Case card registration", () => {
     })
 
     const [v2TableComponent, v2GuideComponent, v2CardComponent] = v2Document.components
+    expect(v2TableComponent.type).toBe("DG.TableView")
+    expect(v2GuideComponent.type).toBe("DG.GuideView")
+    expect(v2CardComponent.type).toBe("DG.CaseCard")
+
     const tile = importV2Component({
       v2Component: v2CardComponent,
       v2Document,
