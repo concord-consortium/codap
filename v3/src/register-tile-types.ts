@@ -10,7 +10,6 @@ import "./components/calculator/calculator-registration"
 import "./components/text/text-registration"
 import "./components/map/map-registration"
 import "./components/web-view/web-view-registration"
-import "./components/data-display/components/data-display-registration"
 
 const gTileRegistration: Record<string, () => void> = {
   // "Table": () => Promise.all([

@@ -1,7 +1,8 @@
+import { DIDataDisplayHandler } from "../../data-interactive/handlers/data-display-handler"
 import { ITileContentModel } from "../../models/tiles/tile-content"
-import { isGraphContentModel } from "../../components/graph/models/graph-content-model"
+import { isGraphContentModel } from "./models/graph-content-model"
 
-export const componentImageSnapshotHandler: any = {
+export const graphDataDisplayHandler: DIDataDisplayHandler = {
   get(content: ITileContentModel) {
     const exportDataUri = isGraphContentModel(content)
       ? content?.renderState?.dataUri
