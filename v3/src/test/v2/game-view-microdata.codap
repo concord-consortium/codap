@@ -1,0 +1,61 @@
+{
+  "name": "Untitled Document",
+  "guid": 1,
+  "id": 1,
+  "components": [
+    {
+      "type": "DG.GameView",
+      "guid": 2,
+      "id": 2,
+      "componentStorage": {
+        "currentGameName": "Microdata Portal",
+        "currentGameUrl": "../../../../extn/plugins/sdlc/plugin/index.html",
+        "allowInitGameOverride": true,
+        "savedGameState": {
+          "sampleNumber": 1,
+          "sampleSize": 16,
+          "selectedYears": [
+            2020
+          ],
+          "selectedStates": [],
+          "selectedAttributes": [
+            "Sex",
+            "Age",
+            "Year",
+            "State",
+            "Boundaries"
+          ],
+          "keepExistingData": false,
+          "activityLog": [
+            {
+              "time": "12/17/2024, 9:08:16 AM",
+              "message": "Connection: /4g/false/50/10/"
+            }
+          ]
+        },
+        "title": "Microdata Portal",
+        "userSetTitle": false,
+        "cannotClose": false
+      },
+      "layout": {
+        "width": 380,
+        "height": 520,
+        "left": 5,
+        "top": 5,
+        "zIndex": 101,
+        "isVisible": true,
+        "right": 385,
+        "bottom": 525
+      },
+      "savedHeight": null
+    }
+  ],
+  "contexts": [],
+  "globalValues": [],
+  "appName": "DG",
+  "appVersion": "2.0",
+  "appBuildNum": "0730",
+  "lang": "en",
+  "idCount": 2,
+  "metadata": {}
+}
