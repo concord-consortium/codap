@@ -64,7 +64,7 @@ export function v2MapImporter({v2Component, v2Document, insertTile}: V2TileImpor
       const {
         pointColor, strokeColor, pointSizeMultiplier,
         grid, pointsShouldBeVisible, connectingLines
-        /* TODO_V2_IMPORT: Present in v2 layer model but not yet used in V3 layer model:
+        /* TODO_V2_IMPORT: [Story: #188694812] Present in v2 layer model but not yet used in V3 layer model:
         transparency, strokeTransparency
         */
       } = v2LayerModel
@@ -81,7 +81,7 @@ export function v2MapImporter({v2Component, v2Document, insertTile}: V2TileImpor
           dataset: data?.dataSet.id,
           metadata: metadata?.id,
           _attributeDescriptions,
-          // TODO_V2_IMPORT hiddenCases are not imported
+          // TODO_V2_IMPORT [Story: #188694826] hiddenCases are not imported
           // the array in a "modern" v2 document coming from `mapModelStorage.layerModels[]._links_.hiddenCases`
           // looks like { type: "DG.Case", id: number }
           // The MST type expects an array of strings.
@@ -106,7 +106,7 @@ export function v2MapImporter({v2Component, v2Document, insertTile}: V2TileImpor
     else if (isV2MapPolygonLayerStorage(v2LayerModel)) {
       const {
         areaColor, areaStrokeColor,
-        /* TODO_V2_IMPORT: Present in v2 layer model but not yet used in V3 layer model:
+        /* TODO_V2_IMPORT: [Story: #188694812] Present in v2 layer model but not yet used in V3 layer model:
         areaTransparency, areaStrokeTransparency
         */
       } = v2LayerModel

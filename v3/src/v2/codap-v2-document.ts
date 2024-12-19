@@ -116,8 +116,9 @@ export class CodapV2Document {
 
   registerContexts(contexts?: CodapV2Context[]) {
     contexts?.forEach(context => {
-      // TODO_V2_IMPORT: external contexts are not imported
+      // TODO_V2_IMPORT_IGNORE: external contexts are not imported
       // There are 75 cases of external contexts in cfm-shared
+      // This refers to an obsolescent form of document storage no longer used at all. Ignore!
       if (isV2ExternalContext(context)) return
       const { guid, type = "DG.DataContext", document, name = "", title, collections = [] } = context
       if (document && this.guidMap.get(document)?.type !== "DG.Document") {
