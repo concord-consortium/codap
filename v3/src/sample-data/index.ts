@@ -22,14 +22,19 @@ const sampleMap: Record<SampleType, string> = {
 export function importSample(sample: SampleType): Promise<IDataSet> {
   const dataUrl = sampleMap[sample]
   return new Promise((resolve, reject) => {
-    downloadCsvFile(dataUrl, (results: CsvParseResult) => {
-      const ds = convertParsedCsvToDataSet(results, sample)
-      if (ds) {
-        resolve(ds)
+    downloadCsvFile(dataUrl,
+      (results: CsvParseResult) => {
+        const ds = convertParsedCsvToDataSet(results, sample)
+        if (ds) {
+          resolve(ds)
+        }
+        else {
+          reject()
+        }
+      },
+      (error) => {
+        reject(error)
       }
-      else {
-        reject()
-      }
-    })
+    )
   })
 }
