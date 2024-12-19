@@ -277,7 +277,13 @@ $table-body-font-size: 8pt;
         }
       }
     }
-
+    .codap-index-cell-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      width: 100%;
+    }
     .rdg-cell {
       // RDG.beta.17 moved all CSS inside @layers, which decreased their priority
       // so that some of Chakra's CSS takes precedence, including the gridlines.
@@ -334,8 +340,14 @@ $table-body-font-size: 8pt;
           height: 14px;
         }
       }
-      
+
       .cell-span {
+        width: 100%;
+        height: 100%;
+        white-space: normal;
+        overflow-wrap: break-word;
+        overflow: hidden;
+        line-height: 1.5;
 
         &.numeric-format {
           width: 100%;
@@ -392,6 +404,14 @@ $table-body-font-size: 8pt;
     &.over {
       opacity: 30%;
     }
+  }
+
+  .codap-row-divider {
+    height: 9px;
+    position: absolute;
+    width: 52px;
+    cursor: row-resize;
+    z-index: 1;
   }
 }
 
