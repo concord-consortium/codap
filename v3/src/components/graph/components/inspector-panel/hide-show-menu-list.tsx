@@ -47,13 +47,7 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
 
   const displayOnlySelectedCases = () => {
     dataConfig?.applyModelChange(
-      () => {
-        dataConfig?.addNewHiddenCases(dataConfig?.unselectedCases ?? [])
-        dataConfig?.setDisplayOnlySelectedCases(true)
-        if (dataConfig?.selection.length > 0) {
-          graphModel?.rescale()
-        }
-      },
+      () => graphModel?.displayOnlySelectedCases(),
       {
         undoStringKey: "DG.Undo.displayOnlySelected",
         redoStringKey: "DG.Redo.displayOnlySelected",
@@ -64,11 +58,7 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
 
   const showAllCases = () => {
     dataConfig?.applyModelChange(
-      () => {
-        dataConfig?.clearHiddenCases()
-        dataConfig?.setDisplayOnlySelectedCases(false)
-        graphModel?.rescale()
-      },
+      () => graphModel?.showAllCases(),
       {
         undoStringKey: "DG.Undo.showAllCases",
         redoStringKey: "DG.Redo.showAllCases",
