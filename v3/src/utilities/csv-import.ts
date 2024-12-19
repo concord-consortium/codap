@@ -8,8 +8,11 @@ export function importCsvFile(file: File | null, onComplete: (results: CsvParseR
   parse(file, { comments: "#", header: true, complete: onComplete })
 }
 
-export function downloadCsvFile(dataUrl: string, onComplete: (results: CsvParseResult, aFile: any) => void) {
-  parse(dataUrl, { download: true, comments: "#", header: true, complete: onComplete })
+export function downloadCsvFile(dataUrl: string,
+  onComplete: (results: CsvParseResult, aFile: any) => void,
+  onError: (error: Error, file: string) => void
+) {
+  parse(dataUrl, { download: true, comments: "#", header: true, complete: onComplete, error: onError })
 }
 
 export function convertParsedCsvToDataSet(results: CsvParseResult, filename: string) {
