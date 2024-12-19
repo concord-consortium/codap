@@ -10,7 +10,7 @@ const kInvalidValuesError: DIErrorResult = {
   }
 }
 
-function getFilenameFromUrl(url: string) {
+export function getFilenameFromUrl(url: string) {
   return new URL(url, window.location.href).pathname.split("/").pop()
 }
 
