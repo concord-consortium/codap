@@ -644,6 +644,18 @@ export const GraphContentModel = DataDisplayContentModel
     }
   }))
   .actions(self => ({
+    displayOnlySelectedCases() {
+      self.dataConfiguration.addNewHiddenCases(self.dataConfiguration.unselectedCases ?? [])
+      self.dataConfiguration.setDisplayOnlySelectedCases(true)
+      if (self.dataConfiguration.selection.length > 0) {
+        self.rescale()
+      }
+    },
+    showAllCases() {
+      self.dataConfiguration.clearHiddenCases()
+      self.dataConfiguration.setDisplayOnlySelectedCases(false)
+      self.rescale()
+    },
     setBarCountAxis() {
       const { maxOverAllCells, maxCellLength, primaryRole, secondaryRole } = self.dataConfiguration
       const { binWidth, minValue, totalNumberOfBins } = self.binDetails()
@@ -663,7 +675,7 @@ export const GraphContentModel = DataDisplayContentModel
       })
       setNiceDomain([0, maxCellCaseCount], countAxis, {clampPosMinAtZero: true})
       self.setAxis(secondaryPlace, countAxis)
-    },
+    }
   }))
   .actions(self => ({
     setPointsFusedIntoBars(fuseIntoBars: boolean) {
