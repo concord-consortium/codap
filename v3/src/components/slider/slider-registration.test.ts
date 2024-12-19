@@ -1,13 +1,16 @@
-import { DocumentContentModel } from "../../models/document/document-content"
-import { FreeTileRow } from "../../models/document/free-tile-row"
+import { createCodapDocument } from "../../models/codap/create-codap-document"
+import { FreeTileRow, IFreeTileRow } from "../../models/document/free-tile-row"
 import { GlobalValue, IGlobalValueSnapshot } from "../../models/global/global-value"
 import { getTileComponentInfo } from "../../models/tiles/tile-component-info"
 import { getTileContentInfo } from "../../models/tiles/tile-content-info"
+import { getGlobalValueManager, getSharedModelManager } from "../../models/tiles/tile-environment"
 import { ITileModelSnapshotIn } from "../../models/tiles/tile-model"
 import { CodapV2Document } from "../../v2/codap-v2-document"
+import { exportV2Component } from "../../v2/codap-v2-tile-exporters"
 import { importV2Component } from "../../v2/codap-v2-tile-importers"
-import { ICodapV2DocumentJson } from "../../v2/codap-v2-types"
+import { ICodapV2DocumentJson, ICodapV2SliderStorage } from "../../v2/codap-v2-types"
 import { kSliderTileType } from "./slider-defs"
+import { isSliderModel } from "./slider-model"
 import "./slider-registration"
 
 const fs = require("fs")
@@ -34,35 +37,39 @@ describe("Slider registration", () => {
     expect(slider).toBeDefined()
     expect(mockGlobalValueManager.addValueSnapshot).toHaveBeenCalledTimes(1)
   })
-  it("imports v2 slider components", () => {
+  it("imports/exports v2 slider components", () => {
     const file = path.join(__dirname, "../../test/v2", "slider.codap")
     const sliderJson = fs.readFileSync(file, "utf8")
     const sliderDoc = JSON.parse(sliderJson) as ICodapV2DocumentJson
     const v2Document = new CodapV2Document(sliderDoc)
-    const mockGlobalValueManager = {
-      addValueSnapshot: jest.fn((snap: IGlobalValueSnapshot) => GlobalValue.create(snap))
-    }
-    const mockSharedModelManager = {
-      addTileSharedModel: jest.fn(),
-      getSharedModelsByType: () => [mockGlobalValueManager]
-    }
-
-    const docContent = DocumentContentModel.create()
+    const codapDoc = createCodapDocument()
+    const docContent = codapDoc.content!
     docContent.setRowCreator(() => FreeTileRow.create())
+    const sharedModelManager = getSharedModelManager(docContent)
+    const globalValueManager = getGlobalValueManager(sharedModelManager)
     const mockInsertTile = jest.fn((tileSnap: ITileModelSnapshotIn) => {
       return docContent?.insertTileSnapshotInDefaultRow(tileSnap)
     })
 
+    const [sliderComponent] = v2Document.components
+    expect(sliderComponent.type).toBe("DG.SliderView")
+
     const tile = importV2Component({
-      v2Component: v2Document.components[0],
+      v2Component: sliderComponent,
       v2Document,
-      sharedModelManager: mockSharedModelManager as any,
+      sharedModelManager,
       insertTile: mockInsertTile
-    })
+    })!
     expect(tile).toBeDefined()
-    expect(mockGlobalValueManager.addValueSnapshot).toHaveBeenCalledTimes(1)
-    expect(mockSharedModelManager.addTileSharedModel).toHaveBeenCalledTimes(1)
     expect(mockInsertTile).toHaveBeenCalledTimes(1)
+    expect(globalValueManager?.globals.size).toBe(1)
+
+    const sliderModel = isSliderModel(tile.content) ? tile.content : undefined
+    expect(sliderModel).toBeDefined()
+    expect(sliderModel?.animationDirection).toBe("lowToHigh")
+    expect(sliderModel?.animationMode).toBe("onceOnly")
+    expect(sliderModel?._animationRate).toBeUndefined()
+    expect(sliderModel?.multipleOf).toBeUndefined()
 
     const tileWithInvalidDocument = importV2Component({
       v2Component: {} as any,
@@ -72,10 +79,20 @@ describe("Slider registration", () => {
     expect(tileWithInvalidDocument).toBeUndefined()
 
     const tileWithNoSharedModel = importV2Component({
-      v2Component: v2Document.components[0],
+      v2Component: sliderComponent,
       v2Document,
       insertTile: mockInsertTile
     })
     expect(tileWithNoSharedModel).toBeUndefined()
+
+    const row = docContent.getRowByIndex(0) as IFreeTileRow
+    const sliderExport = exportV2Component({ tile, row, sharedModelManager })
+    expect(sliderExport?.type).toBe("DG.SliderView")
+    const sliderStorage = sliderExport!.componentStorage as ICodapV2SliderStorage
+    expect(sliderStorage._links_?.model).toBeDefined()
+    expect(sliderStorage.animationDirection).toBe(1)
+    expect(sliderStorage.animationMode).toBe(1)
+    expect(sliderStorage.maxPerSecond).toBeNull()
+    expect(sliderStorage.restrictToMultiplesOf).toBeNull()
   })
 })

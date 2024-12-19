@@ -261,6 +261,8 @@ export interface ICodapV2SliderStorage extends ICodapV2BaseComponentStorage {
   animationMode?: number
   restrictToMultiplesOf?: number | null
   maxPerSecond?: number | null
+  // NOTE: v2 writes out the `userTitle` property, but reads in property `userChangedTitle`.
+  // It is also redundant with the `userSetTitle` property shared by all components. ¯\_(ツ)_/¯
   userTitle?: boolean
 }
 
