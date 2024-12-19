@@ -71,6 +71,10 @@ class AppState {
     return this.document.treeManagerAPI as TreeManagerType | undefined
   }
 
+  alert(message: string, title: string | undefined, callback?: () => void) {
+    this.cfm?.client.alert(message, title, callback)
+  }
+
   /**
    * Check if this revisionId is the same as the current document's revisionId
    *
