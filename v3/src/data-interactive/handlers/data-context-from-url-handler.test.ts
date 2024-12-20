@@ -29,20 +29,15 @@ describe("DataInteractive DataContextHandler", () => {
   })
 
   describe("create" , () => {
-    it("handles invalid values", () => {
-      expect(handler.create?.({}).success).toBe(false)
-      expect(handler.create?.({}, 1).success).toBe(false)
-      expect(handler.create?.({}, ["hi"]).success).toBe(false)
-      expect(handler.create?.({}, {fake: "value"}).success).toBe(false)
+    it("handles invalid values", async () => {
+
+      expect(await handler.create?.({})).toMatchObject({success: false})
+      expect(await handler.create?.({}, 1)).toMatchObject({success: false})
+      expect(await handler.create?.({}, ["hi"])).toMatchObject({success: false})
+      expect(await handler.create?.({}, {fake: "value"})).toMatchObject({success: false})
     })
 
-    it("returns success true", () => {
-      const result = handler.create!({}, {URL: "https://example.com"})
-      expect(mockedDownloadCsvFile).toHaveBeenCalled()
-      expect(result.success).toBe(true)
-    })
-
-    it("handles onError from downloadCsvFile", () => {
+    it("handles onError from downloadCsvFile", async () => {
       mockedDownloadCsvFile.mockImplementation((url, onComplete, onError) => {
         onError({
             name: "",
@@ -50,13 +45,12 @@ describe("DataInteractive DataContextHandler", () => {
         }, "")
       })
 
-      const result = handler.create!({}, {URL: "https://example.com"})
+      const result = await handler.create!({}, {URL: "https://example.com"})
       expect(mockedDownloadCsvFile).toHaveBeenCalled()
-      expect(alertSpy).toHaveBeenCalled()
-      expect(result.success).toBe(true)
+      expect(result.success).toBe(false)
     })
 
-    it("creates a dataset", () => {
+    it("creates a dataset", async () => {
       gDataBroker.setSharedModelManager(getSharedModelManager(appState.document)!)
 
       mockedDownloadCsvFile.mockImplementation((url, onComplete, onError) => {
@@ -75,10 +69,9 @@ describe("DataInteractive DataContextHandler", () => {
       })
 
       expect(gDataBroker.length).toBe(0)
-      const result = handler.create!({}, {URL: "https://example.com"})
+      const result = await handler.create!({}, {URL: "https://example.com"})
       expect(gDataBroker.length).toBe(1)
       expect(mockedDownloadCsvFile).toHaveBeenCalled()
-      expect(alertSpy).not.toHaveBeenCalled()
       expect(result.success).toBe(true)
     })
   })
