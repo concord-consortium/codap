@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import DataGrid, { CellKeyboardEvent, DataGridHandle } from "react-data-grid"
 import { kCollectionTableBodyDropZoneBaseId } from "./case-table-drag-drop"
 import {
+  kDefaultRowHeight,
   kInputRowKey, OnScrollClosestRowIntoViewFn, OnScrollRowRangeIntoViewFn, OnTableScrollFn,
   TCellKeyDownArgs, TRenderers, TRow
 } from "./case-table-types"
@@ -75,6 +76,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
   const [selectionStartRowIdx, setSelectionStartRowIdx] = useState<number | null>(null)
   const initialPointerDownPosition = useRef({ x: 0, y: 0 })
   const kPointerMovementThreshold = 3
+  const rowHeight = collectionTableModel?.rowHeight ?? kDefaultRowHeight
 
   useEffect(function setGridElement() {
     const element = gridRef.current?.element
@@ -93,7 +95,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
 
   // columns
   const indexColumn = useIndexColumn()
-  const columns = useColumns({ data, indexColumn })
+  const columns = useColumns({ data, indexColumn, rowHeight })
 
   // rows
   const { handleRowsChange } = useRows(gridRef.current?.element ?? null)
@@ -279,8 +281,8 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
 
   const startAutoScroll = useCallback((clientY: number) => {
     const grid = gridRef.current?.element
-    const rowHeight = collectionTableModel?.rowHeight
-    if (!grid || !rowHeight) return
+    const rHeight = collectionTableModel?.rowHeight
+    if (!grid || !rHeight) return
 
     const scrollSpeed = 50
 
@@ -291,11 +293,11 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
       if (mouseY.current < top + kScrollMargin) {
         grid.scrollTop -= scrollSpeed
         const scrolledTop = grid.scrollTop
-        scrolledToRowIdx = Math.floor(scrolledTop / rowHeight)
+        scrolledToRowIdx = Math.floor(scrolledTop / rHeight)
       } else if (mouseY.current > bottom - kScrollMargin) {
         grid.scrollTop += scrollSpeed
         const scrolledBottom = grid.scrollTop + grid.clientHeight - 1
-        scrolledToRowIdx = Math.floor(scrolledBottom / rowHeight)
+        scrolledToRowIdx = Math.floor(scrolledBottom / rHeight)
 
       }
       if (scrolledToRowIdx != null && selectionStartRowIdx != null && scrolledToRowIdx >= 0 &&
@@ -371,7 +373,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
         <CollectionTitle onAddNewAttribute={handleAddNewAttribute} showCount={true} />
         <DataGrid ref={gridRef} className="rdg-light" data-testid="collection-table-grid" renderers={renderers}
           columns={columns} rows={rows} headerRowHeight={+styles.headerRowHeight} rowKeyGetter={rowKey}
-          rowHeight={+styles.bodyRowHeight} selectedRows={selectedRows} onSelectedRowsChange={setSelectedRows}
+          rowHeight={rowHeight} selectedRows={selectedRows} onSelectedRowsChange={setSelectedRows}
           columnWidths={columnWidths} onColumnResize={handleColumnResize} onCellClick={handleCellClick}
           onCellKeyDown={handleCellKeyDown} onRowsChange={handleRowsChange} onScroll={handleGridScroll}
           onSelectedCellChange={handleSelectedCellChange}/>
