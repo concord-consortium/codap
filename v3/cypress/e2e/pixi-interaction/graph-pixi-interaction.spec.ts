@@ -130,7 +130,7 @@ context("Graph UI with Pixi interaction", () => {
         })
       })
     })
-    it.skip("spike for point compression interaction", () => {
+    it.only("spike for point compression interaction", () => {
       // next steps are to debug what the compression does to the points
         // Open Four Seals
         cy.log("Open Four Seals from Hamburger menu")
@@ -167,6 +167,42 @@ context("Graph UI with Pixi interaction", () => {
         ah.treatAttributeAsNumeric("left")
         ah.openAxisAttributeMenu("left")
         ah.treatAttributeAsCategorical("left")
+        cy.wait(2000)
+
+        // Check that point positions are not the same
+        gch.getGraphTileId().then((tileId: string) => {
+          if (!tileId) {
+            throw new Error("Tile ID is undefined or null.")
+          }
+
+          cy.log(`Checking point positions for Tile ID: ${tileId}`)
+          cy.window().then((win: any) => {
+            const pixiPoints = win.pixiPointsMap[tileId]
+
+            if (!pixiPoints?.length) {
+              throw new Error(`PixiPoints for Tile ID ${tileId} are undefined or empty.`)
+            }
+
+            // Collect all point positions
+            const positions = pixiPoints[0].points.map((point: any) => point.position)
+
+            // Log the positions for debugging
+            positions.forEach((pos: { x: number; y: number }, index: number) => {
+              cy.log(`Point ${index}: x=${pos.x}, y=${pos.y}`)
+            });
+
+            // Verify positions are not the same
+            const uniquePositions = new Set(positions.map((pos: { x: number; y: number }) => `${pos.x}-${pos.y}`))
+            cy.log(`Total points: ${positions.length}, Unique positions: ${uniquePositions.size}`)
+
+            // Debug log unique positions
+            uniquePositions.forEach((position) => {
+              cy.log(`Unique position: ${position}`)
+            });
+
+            expect(uniquePositions.size).to.equal(positions.length, "All points should have unique positions")
+          })
+        })
     })
   })
   describe("case card graph interaction", () => {
