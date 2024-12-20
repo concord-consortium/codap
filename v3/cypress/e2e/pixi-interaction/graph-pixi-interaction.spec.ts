@@ -1,8 +1,10 @@
 // import * as PIXI from "pixi.js"
-import { GraphTileElements as graph } from "../../support/elements/graph-tile"
-import { TableTileElements as table } from "../../support/elements/table-tile"
 import { ComponentElements as c } from "../../support/elements/component-elements"
 import { CfmElements as cfm } from "../../support/elements/cfm"
+import { GraphLegendHelper as glh } from "../../support/helpers/graph-legend-helper"
+import { GraphTileElements as graph } from "../../support/elements/graph-tile"
+import { TableTileElements as table } from "../../support/elements/table-tile"
+import { ToolbarElements as toolbar } from "../../support/elements/toolbar-elements"
 //import { ColorPickerPaletteElements as cpp} from "../../support/elements/color-picker-palette"
 import { GraphCanvasHelper as gch } from "../../support/helpers/graph-canvas-helper"
 import { AxisHelper as ah } from "../../support/helpers/axis-helper"
@@ -42,8 +44,8 @@ context("Graph UI with Pixi interaction", () => {
     cy.visit(url)
     cy.wait(2500)
   })
-  describe("graph view", () => {
-    it("validates point count for univariate graphs with different hierarchies with pixi interaction", () => {
+  describe("graph point count with point count pixi interaction", () => {
+    it("validates point count for univariate graphs with different hierarchies", () => {
 
       cy.log('opening the map will appear with the correct number of points')
 
@@ -74,7 +76,7 @@ context("Graph UI with Pixi interaction", () => {
         gch.validateGraphPointCount(tileId, 5)
       })
     })
-    it("Checks count for hides and shows selected/unselected cases with pixijs interaction", () => {
+    it("checks graph point count for hides and shows selected/unselected cases", () => {
       ah.openAxisAttributeMenu("bottom")
       ah.selectMenuAttribute("Sleep", "bottom") // Sleep => x-axis
       cy.wait(500)
@@ -112,100 +114,8 @@ context("Graph UI with Pixi interaction", () => {
         gch.validateGraphPointCount(tileId, 18) // 18 points in graph
       })
     })
-    it.skip("should check position of a point with pixi interaction", () => {
-      ah.openAxisAttributeMenu("bottom")
-      ah.selectMenuAttribute("Sleep", "bottom") // Sleep => x-axis
-      cy.wait(500) // Wait for the graph to update
-
-      graph.getGraphTile() // Ensure graph tile is loaded
-
-      gch.getGraphTileId().then((tileId: string) => {
-        cy.log(`Retrieved Tile ID: ${tileId}`)
-        if (!tileId) {
-          throw new Error("Tile ID is undefined or null.")
-        }
-
-        gch.getPixiPointPosition(tileId, 0).then((position: { x: number; y: number }) => {
-          cy.log(`Point 0 Position: x=${position.x}, y=${position.y}`)
-        })
-      })
-    })
-    it.only("spike for point compression interaction", () => {
-      // next steps are to debug what the compression does to the points
-        // Open Four Seals
-        cy.log("Open Four Seals from Hamburger menu")
-        // hamburger menu is hidden initially
-        cfm.getHamburgerMenuButton().should("exist")
-        cfm.getHamburgerMenu().should("not.exist")
-        // hamburger menu is shows when button is clicked
-        cfm.getHamburgerMenuButton().click()
-        cfm.getHamburgerMenu().should("exist")
-        // clicking Open... item closes menu and shows Open dialog
-        cfm.getHamburgerMenu().contains("li", "Open...").click()
-        cfm.getHamburgerMenu().should("not.exist")
-        cfm.getModalDialog().contains(".modal-dialog-title", "Open")
-        // Example Documents should be selected by default
-        cfm.getModalDialog().contains(".tab-selected", "Example Documents")
-        cfm.getModalDialog().contains(".filelist div.selectable", "Mammals").should("exist")
-        cfm.getModalDialog().contains(".filelist div.selectable", "Four Seals").should("exist")
-        // Selecting Four Seals document should load the Four Seals example document
-        cfm.getModalDialog().contains(".filelist div.selectable", "Four Seals").click()
-        cfm.getModalDialog().contains(".buttons button", "Open").click()
-        cy.wait(1000)
-        // once loaded, Open dialog should be hidden and document content should be shown
-        cfm.getModalDialog().should("not.exist")
-        cy.get(".codap-component.codap-case-table").contains(".title-bar", "Tracks/Measurements").should("exist")
-
-        // Create a graph
-        graph.getGraphTile().click()
-        ah.openAxisAttributeMenu("bottom")
-        ah.selectMenuAttribute("date", "bottom") // Date => x-axis
-        cy.get('[data-testid="axis-legend-attribute-button-bottom"]').eq(0).should("have.text", "date")
-        ah.openAxisAttributeMenu("left")
-        ah.selectMenuAttribute("animal_id", "left") // animal_id => y-axis
-        ah.openAxisAttributeMenu("left")
-        ah.treatAttributeAsNumeric("left")
-        ah.openAxisAttributeMenu("left")
-        ah.treatAttributeAsCategorical("left")
-        cy.wait(2000)
-
-        // Check that point positions are not the same
-        gch.getGraphTileId().then((tileId: string) => {
-          if (!tileId) {
-            throw new Error("Tile ID is undefined or null.")
-          }
-
-          cy.log(`Checking point positions for Tile ID: ${tileId}`)
-          cy.window().then((win: any) => {
-            const pixiPoints = win.pixiPointsMap[tileId]
-
-            if (!pixiPoints?.length) {
-              throw new Error(`PixiPoints for Tile ID ${tileId} are undefined or empty.`)
-            }
-
-            // Collect all point positions
-            const positions = pixiPoints[0].points.map((point: any) => point.position)
-
-            // Log the positions for debugging
-            positions.forEach((pos: { x: number; y: number }, index: number) => {
-              cy.log(`Point ${index}: x=${pos.x}, y=${pos.y}`)
-            });
-
-            // Verify positions are not the same
-            const uniquePositions = new Set(positions.map((pos: { x: number; y: number }) => `${pos.x}-${pos.y}`))
-            cy.log(`Total points: ${positions.length}, Unique positions: ${uniquePositions.size}`)
-
-            // Debug log unique positions
-            uniquePositions.forEach((position) => {
-              cy.log(`Unique position: ${position}`)
-            });
-
-            expect(uniquePositions.size).to.equal(positions.length, "All points should have unique positions")
-          })
-        })
-    })
   })
-  describe("case card graph interaction", () => {
+  describe("case card graph interaction with point count pixi interaction", () => {
     it("can drag attributes from the case card to the graph with pixijs interaction", () => {
       const tableHeaderLeftSelector = ".codap-component.codap-case-table .component-title-bar .header-left"
       cy.get(tableHeaderLeftSelector).click()
@@ -219,8 +129,8 @@ context("Graph UI with Pixi interaction", () => {
       })
     })
   })
-  describe("graph inspector panel with pixijs interaction", () => {
-    it("shows warning if 'Display Only Selected Cases' is selected and no cases have been selected with pixijs", () => {
+  describe("graph inspector panel with point count pixi interaction", () => {
+    it("shows warning if 'Display Only Selected Cases' is selected and checks point count", () => {
       ah.openAxisAttributeMenu("bottom")
       ah.selectMenuAttribute("Sleep", "bottom") // Sleep => x-axis
       cy.wait(500)
@@ -240,7 +150,7 @@ context("Graph UI with Pixi interaction", () => {
         gch.validateGraphPointCount(tileId, 24) // 24 points in graph
       })
     })
-    it("shows parent visibility toggles when Show Parent Visibility Toggles option is selected with pixijs", () => {
+    it("shows parent visibility toggles when Show Parent Visibility Toggles option is selected and checks point count", () => {
       ah.openAxisAttributeMenu("bottom")
       ah.selectMenuAttribute("Sleep", "bottom") // Sleep => x-axis
       cy.wait(500)
@@ -346,7 +256,6 @@ context("Graph UI with Pixi interaction", () => {
       cy.wait(500)
       cy.get("[data-testid=show-parent-toggles]").should("exist").and("have.text", "Show Parent Visibility Toggles")
     })
-
     it("adds a banner to the graph when Show Measures for Selection is activated with pixijs interaction", () => {
       ah.openAxisAttributeMenu("bottom")
       ah.selectMenuAttribute("Sleep", "bottom") // Sleep => x-axis
@@ -371,5 +280,276 @@ context("Graph UI with Pixi interaction", () => {
     })
 
     // NOTE: Adornments are covered in graph-adornments.spec.ts (including Show Measures)
+  })
+  describe("checks for graph point position with pixi interaction", () => {
+    // use this test to debug point positions when running locally
+    it.skip("should check position of a point", () => {
+      ah.openAxisAttributeMenu("bottom")
+      ah.selectMenuAttribute("Sleep", "bottom") // Sleep => x-axis
+      cy.wait(500) // Wait for the graph to update
+
+      graph.getGraphTile() // Ensure graph tile is loaded
+
+      gch.getGraphTileId().then((tileId: string) => {
+        cy.log(`Retrieved Tile ID: ${tileId}`)
+        if (!tileId) {
+          throw new Error("Tile ID is undefined or null.")
+        }
+
+        gch.getPixiPointPosition(tileId, 0).then((position: { x: number
+          ; y: number }) => {
+          cy.log(`Point 0 Position: x=${position.x}, y=${position.y}`)
+        })
+      })
+    })
+    // this test will work when PT-#188601933 is delivered
+    it.skip("check for point compression interaction", () => {
+      // Open Four Seals
+      cy.log("Open Four Seals from Hamburger menu")
+      cfm.getHamburgerMenuButton().should("exist")
+      cfm.getHamburgerMenu().should("not.exist")
+      cfm.getHamburgerMenuButton().click()
+      cfm.getHamburgerMenu().should("exist")
+      cfm.getHamburgerMenu().contains("li", "Open...").click()
+      cfm.getHamburgerMenu().should("not.exist")
+      cfm.getModalDialog().contains(".modal-dialog-title", "Open")
+      cfm.getModalDialog().contains(".tab-selected", "Example Documents")
+      cfm.getModalDialog().contains(".filelist div.selectable", "Mammals").should("exist")
+      cfm.getModalDialog().contains(".filelist div.selectable", "Four Seals").should("exist")
+      cfm.getModalDialog().contains(".filelist div.selectable", "Four Seals").click()
+      cfm.getModalDialog().contains(".buttons button", "Open").click()
+      cy.wait(1000) // Add wait time only when necessary
+      cfm.getModalDialog().should("not.exist")
+      cy.get(".codap-component.codap-case-table").contains(".title-bar", "Tracks/Measurements").should("exist")
+
+      // Create a graph
+      graph.getGraphTile().click()
+      ah.openAxisAttributeMenu("bottom")
+      ah.selectMenuAttribute("date", "bottom") // Date => x-axis
+      cy.get('[data-testid="axis-legend-attribute-button-bottom"]').eq(0).should("have.text", "date")
+      ah.openAxisAttributeMenu("left")
+      ah.selectMenuAttribute("animal_id", "left") // animal_id => y-axis
+      ah.openAxisAttributeMenu("left")
+      ah.treatAttributeAsNumeric("left")
+      ah.openAxisAttributeMenu("left")
+      ah.treatAttributeAsCategorical("left")
+
+      // Check point positions are unique
+      gch.getGraphTileId().then((tileId: string) => {
+        gch.checkPointsHaveUniquePositions(tileId) // Call the helper function
+      })
+    })
+    it("no point compression after drawing categorical legend with categorical attribute on x axis and undo/redo", () => {
+      // Initial setup: Drag attributes to the x-axis and plot area, respectively
+      ah.openAxisAttributeMenu("bottom")
+      ah.selectMenuAttribute("Diet", "bottom") // Diet => x-axis
+      glh.dragAttributeToPlot("Habitat") // Habitat => plot area
+      gch.getGraphTileId().then((tileId) => {
+        gch.validateGraphPointCount(tileId, 27) // 27 points in graph
+      })
+
+      cy.log("test undo/redo for categorical legend with categorical attribute on x axis")
+      // Undo add legend to graph and verify removal
+      toolbar.getUndoTool().click()
+      cy.wait(2500)
+      // Check point positions are unique
+      gch.getGraphTileId().then((tileId: string) => {
+        gch.checkPointsHaveUniquePositions(tileId) // Call the helper function
+      })
+
+      // Redo add legend to graph and verify legend returns
+      toolbar.getRedoTool().click()
+      // Check point positions are unique
+      gch.getGraphTileId().then((tileId: string) => {
+        gch.checkPointsHaveUniquePositions(tileId) // Call the helper function
+      })
+    })
+    it("no point compression after drawing categorical legend with categorical attribute on y axis and undo/redo", () => {
+      // Drag attribute to the y-axis and drag another attribute to the plot area
+      ah.openAxisAttributeMenu("left")
+      ah.selectMenuAttribute("Diet", "left") // Diet => y-axis
+      glh.dragAttributeToPlot("Habitat") // Habitat => plot area
+
+      // Verify axis label and legend
+      ah.verifyAxisLabel("left", "Diet")
+      // Verify point count
+      gch.getGraphTileId().then((tileId) => {
+        gch.validateGraphPointCount(tileId, 27) // 27 points in graph
+      })
+
+      cy.log("test undo/redo for categorical legend with categorical attribute on y axis")
+      // Undo the removal of attributes from axis and legend
+      toolbar.getUndoTool().click() // Undo remove from legend
+      toolbar.getUndoTool().click() // Undo remove from axis
+      cy.wait(2500)
+      // Check point positions are unique
+      gch.getGraphTileId().then((tileId: string) => {
+        gch.checkPointsHaveUniquePositions(tileId) // Call the helper function
+      })
+
+      // Note: Redo button disables in Cypress at this step.
+      // The disable doesn't happen in CODAP though.
+      // Used force:true so that test can happen.
+      toolbar.getRedoTool().click({force: true})
+      toolbar.getRedoTool().click({force: true})
+      cy.wait(2500)
+      // Check point positions are unique
+      gch.getGraphTileId().then((tileId: string) => {
+        gch.checkPointsHaveUniquePositions(tileId) // Call the helper function
+      })
+    })
+    it("no point compression after drawing categorical legend with numerical attribute on x axis and test undo", () => {
+      // Initial setup: Drag attributes to the x-axis and plot area, respectively
+      ah.openAxisAttributeMenu("bottom")
+      ah.selectMenuAttribute("LifeSpan", "bottom") // LifeSpan => x-axis
+      glh.dragAttributeToPlot("Habitat") // Habitat => plot area
+      gch.getGraphTileId().then((tileId) => {
+        gch.validateGraphPointCount(tileId, 27) // 27 points in graph
+      })
+      glh.verifyLegendLabel("Habitat")
+
+      cy.log("test undo/redo for categorical legend with numerical attribute on x axis")
+      // Undo the removal of attributes
+      toolbar.getUndoTool().click() // Undo remove from legend
+      toolbar.getUndoTool().click() // Undo remove from axis
+      // Check point positions are unique
+      gch.getGraphTileId().then((tileId: string) => {
+        gch.checkPointsHaveUniquePositions(tileId) // Call the helper function
+      })
+
+      // Redo the removal of attributes
+      toolbar.getRedoTool().click({force: true}) // Redo remove from legend
+      toolbar.getRedoTool().click({force: true}) // Redo remove from axis
+      // Check point positions are unique
+      gch.getGraphTileId().then((tileId: string) => {
+        gch.checkPointsHaveUniquePositions(tileId) // Call the helper function
+      })
+    })
+    it("no point compression after drawing numeric legend with categorical attribute on x axis and test undo", () => {
+      // Initial setup: Drag attributes to the x-axis and plot area, respectively
+      ah.openAxisAttributeMenu("bottom")
+      ah.selectMenuAttribute("Habitat", "bottom") // Habitat => x-axis
+      glh.dragAttributeToPlot("LifeSpan") // LifeSpan => plot area
+      gch.getGraphTileId().then((tileId) => {
+        gch.validateGraphPointCount(tileId, 27) // 27 points in graph
+      })
+      glh.verifyLegendLabel("LifeSpan")
+
+      cy.log("test undo/redo for numeric legend with categorical attribute on x axis")
+      // Undo the removal of attributes
+      toolbar.getUndoTool().click() // Undo remove from legend
+      toolbar.getUndoTool().click() // Undo remove from axis
+      // Check point positions are unique
+      gch.getGraphTileId().then((tileId: string) => {
+        gch.checkPointsHaveUniquePositions(tileId) // Call the helper function
+      })
+
+      // Redo the removal of attributes
+      toolbar.getRedoTool().click() // Redo remove from legend
+      toolbar.getRedoTool().click() // Redo remove from axis
+      // Check point positions are unique
+      gch.getGraphTileId().then((tileId: string) => {
+        gch.checkPointsHaveUniquePositions(tileId) // Call the helper function
+      })
+    })
+    it("no point compression after drawing numeric legend with categorical attribute on y axis and test undo", () => {
+      // Drag attribute to the y-axis and drag another attribute to the plot area
+      ah.openAxisAttributeMenu("left")
+      ah.selectMenuAttribute("Diet", "left") // Diet => y-axis
+      glh.dragAttributeToPlot("LifeSpan") // LifeSpan => plot area
+
+      // Verify axis label and legend
+      ah.verifyAxisLabel("left", "Diet")
+      // Verify point count
+      gch.getGraphTileId().then((tileId) => {
+        gch.validateGraphPointCount(tileId, 27) // 27 points in graph
+      })
+
+      cy.log("test undo/redo for numeric legend with categorical attribute on y axis")
+      // Undo the removal of attributes
+      toolbar.getUndoTool().click() // Undo remove from legend
+      toolbar.getUndoTool().click() // Undo remove from axis
+      // Check point positions are unique
+      gch.getGraphTileId().then((tileId: string) => {
+        gch.checkPointsHaveUniquePositions(tileId) // Call the helper function
+      })
+
+      // Redo the removal of attributes
+      toolbar.getRedoTool().click({force: true}) // Redo remove from legend
+      toolbar.getRedoTool().click({force: true}) // Redo remove from axis
+      // Check point positions are unique
+      gch.getGraphTileId().then((tileId: string) => {
+        gch.checkPointsHaveUniquePositions(tileId) // Call the helper function
+      })
+    })
+    it("no point compression after drawing numeric legend with numerical attribute on x axis and test undo", () => {
+      // Drag attribute to the y-axis and drag another attribute to the plot area
+      ah.openAxisAttributeMenu("bottom")
+      ah.selectMenuAttribute("LifeSpan", "bottom") // LifeSpan => x-axis
+      glh.dragAttributeToPlot("Height") // Height => plot area
+
+      // Verify axis label and legend
+      ah.verifyAxisLabel("bottom", "LifeSpan")
+      // Verify point count
+      gch.getGraphTileId().then((tileId) => {
+        gch.validateGraphPointCount(tileId, 27) // 27 points in graph
+      })
+
+      cy.log("test undo/redo for numeric legend with numerical attributes on x axis")
+      // Undo the removal of attributes
+      toolbar.getUndoTool().click() // Undo remove from legend
+      toolbar.getUndoTool().click() // Undo remove from axis
+      // Check point positions are unique
+      gch.getGraphTileId().then((tileId: string) => {
+        gch.checkPointsHaveUniquePositions(tileId) // Call the helper function
+      })
+
+      cy.log("test undo/redo for numeric legend with numerical attribute on x axis")
+      // Redo the removal of attributes
+      // Note: Redo button disables in Cypress at this step.
+      // The disable doesn't happen in CODAP though.
+      // Used force:true so that test can happen.
+      toolbar.getRedoTool().click() // Redo remove from legend
+      toolbar.getRedoTool().click() // Redo remove from axis
+
+      // Check point positions are unique
+      gch.getGraphTileId().then((tileId: string) => {
+        gch.checkPointsHaveUniquePositions(tileId) // Call the helper function
+      })
+    })
+    it("will draw numeric legend with numerical attribute on y axis and test undo", () => {
+      // Drag attribute to the y-axis and drag another attribute to the plot area
+      ah.openAxisAttributeMenu("left")
+      ah.selectMenuAttribute("LifeSpan", "left") // LifeSpan => y-axis
+      glh.dragAttributeToPlot("Height") // Height => plot area
+
+      // Verify axis label and legend
+      ah.verifyAxisLabel("left", "LifeSpan")
+      // Verify point count
+      gch.getGraphTileId().then((tileId) => {
+        gch.validateGraphPointCount(tileId, 27) // 27 points in graph
+      })
+
+      cy.log("test undo/redo for draw numeric legend with numerical attribute on y axis")
+      // Undo the removal of attributes
+      toolbar.getUndoTool().click() // Undo remove from legend
+      toolbar.getUndoTool().click() // Undo remove from axis
+      // Check point positions are unique
+      gch.getGraphTileId().then((tileId: string) => {
+        gch.checkPointsHaveUniquePositions(tileId) // Call the helper function
+      })
+
+      // Note: Redo button disables in Cypress at this step.
+      // The disable doesn't happen in CODAP though.
+      // Used force:true so that test can happen.
+
+      // Redo the removal of attributes
+      toolbar.getRedoTool().click() // Redo remove from legend
+      toolbar.getRedoTool().click() // Redo remove from axis
+      // Check point positions are unique
+      gch.getGraphTileId().then((tileId: string) => {
+        gch.checkPointsHaveUniquePositions(tileId) // Call the helper function
+      })
+    })
   })
 })

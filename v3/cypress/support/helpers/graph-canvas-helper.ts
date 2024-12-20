@@ -52,6 +52,8 @@ export const GraphCanvasHelper = {
       expect(pointsCount).to.equal(expectedPointCount, "Point count matches expected value")
     })
   },
+  // Helper function to retrieve the position of a PixiPoint
+  // Useful for debugging and validating point positions
   getPixiPointPosition(tileId: string, pointIndex: number): Cypress.Chainable<{ x: number; y: number }> {
     cy.log("Get the PixiPoint position")
     return cy.window().then((win: any) => {
@@ -72,6 +74,33 @@ export const GraphCanvasHelper = {
 
       // Use cy.wrap to make the position Cypress-compatible
       return cy.wrap({ x: pointPosition.x, y: pointPosition.y })
+    })
+  },
+   // Checks if the points in a graph have unique positions.
+   // @param {string} tileId - The ID of the graph tile to check.
+  checkPointsHaveUniquePositions(tileId: string) {
+    cy.window().then((win: any) => {
+      const pixiPoints = win.pixiPointsMap[tileId]
+
+      if (!pixiPoints?.length) {
+        throw new Error(`PixiPoints for Tile ID ${tileId} are undefined or empty.`)
+      }
+
+      // Collect all point positions
+      const positions = pixiPoints[0].points.map((point: any) => point.position)
+
+      // Log the positions for debugging
+      positions.forEach((pos: { x: number
+        ; y: number }, index: number) => {
+        cy.log(`Point ${index}: x=${pos.x}, y=${pos.y}`)
+      })
+
+      // Verify positions are not the same
+      const uniquePositions = new Set(positions.map((pos: { x: number; y: number }) => `${pos.x}-${pos.y}`))
+      cy.log(`Total points: ${positions.length}, Unique positions: ${uniquePositions.size}`)
+
+      // Assert all points have unique positions
+      expect(uniquePositions.size).to.equal(positions.length, "All points should have unique positions")
     })
   }
 }
