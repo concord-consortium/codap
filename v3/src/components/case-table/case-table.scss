@@ -283,6 +283,7 @@ $table-body-font-size: 8pt;
       justify-content: center;
       height: 100%;
       width: 100%;
+      position: absolute;
     }
     .rdg-cell {
       // RDG.beta.17 moved all CSS inside @layers, which decreased their priority
@@ -329,6 +330,16 @@ $table-body-font-size: 8pt;
         background-color: var(--rdg-row-selected-background-color);
       }
 
+      &.codap-data-cell.multi-line {
+        white-space: normal;
+        overflow-wrap: break-word;
+
+        .cell-span, .rdg-text-editor {
+          line-height: 14.5px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+      }
       &.codap-data-cell.rowId-__input__ {
         cursor: text;
       }
@@ -344,10 +355,6 @@ $table-body-font-size: 8pt;
       .cell-span {
         width: 100%;
         height: 100%;
-        white-space: normal;
-        overflow-wrap: break-word;
-        overflow: hidden;
-        line-height: 1.5;
 
         &.numeric-format {
           width: 100%;
