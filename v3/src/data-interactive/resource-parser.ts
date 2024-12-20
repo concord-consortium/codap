@@ -79,7 +79,7 @@ export function resolveResources(
   const result: DIResources = { interactiveFrame }
 
   if (!resourceSelector.type || [
-    'component', 'componentList', 'dataContextList', 'document', 'formulaEngine', 'global', 'globalList',
+    'component', 'componentList', 'dataContextList', 'dataDisplay', 'document', 'formulaEngine', 'global', 'globalList',
     'interactiveFrame', 'logMessage', 'logMessageMonitor', 'undoableActionPerformed', 'undoChangeNotice'
   ].indexOf(resourceSelector.type) < 0) {
     // if no data context provided, and we are not creating one, the
@@ -101,6 +101,11 @@ export function resolveResources(
   if (resourceSelector.component) {
     const { component } = resourceSelector
     result.component = findTileFromNameOrId(component)
+  }
+
+  if (resourceSelector.dataDisplay) {
+    const { dataDisplay } = resourceSelector
+    result.component = findTileFromNameOrId(dataDisplay)
   }
 
   if (resourceSelector.global) {
