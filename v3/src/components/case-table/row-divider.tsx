@@ -17,6 +17,7 @@ interface IRowDividerProps {
 export const RowDivider = observer(function RowDivider({ rowId }: IRowDividerProps) {
   const collectionTableModel = useCollectionTableModel()
   const collectionId = useCollectionContext()
+  const collectionTable = collectionTableModel?.element
   const caseTableModel = useCaseTableModel()
   const rows = collectionTableModel?.rows
   const rowHeightRef = useRef(kDefaultRowHeight)
@@ -31,8 +32,9 @@ export const RowDivider = observer(function RowDivider({ rowId }: IRowDividerPro
   }
 
   useEffect(() => {
-    (rowIdx != null) && setRowElement(document.querySelector(`[aria-rowindex="${rowIdx + 2}"]`) as HTMLDivElement)
-  }, [rowIdx])
+    (rowIdx != null && collectionTable) &&
+      setRowElement(collectionTable.querySelector(`[aria-rowindex="${rowIdx + 2}"]`) as HTMLDivElement)
+  }, [collectionTable, rowIdx])
 
   useEffect(() => {
     if (!caseTableModel?.getRowHeightForCollection(collectionId)) {
