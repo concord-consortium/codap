@@ -22,12 +22,13 @@ export const diDataDisplayHandler: DIHandler = {
     const { component } = resources
     if (!component) return componentNotFoundResult
 
-    const { content, name: _name } = component
+    const { content } = component
 
     const v2Type = getTileContentInfo(content.type)?.getV2Type?.(content) ?? kComponentTypeV3ToV2Map[content.type]
     const handler = diDataDisplayHandlers.get(v2Type)
     const imgSnapshotRes = { ...handler?.get(component?.content) }
     const { exportDataUri, success } = imgSnapshotRes
+    console.log("exportDataUri 3", exportDataUri)
     const values = success
       ? { exportDataUri }
       : { error: t("V3.DI.Error.dataDisplayNotFound") }

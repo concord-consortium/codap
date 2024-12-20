@@ -4,7 +4,7 @@
  */
 import {cloneDeep} from "lodash"
 import {when} from "mobx"
-import {addDisposer, IAnyStateTreeNode, Instance, onSnapshot, SnapshotIn, types} from "mobx-state-tree"
+import {addDisposer, IAnyStateTreeNode, Instance, SnapshotIn, types} from "mobx-state-tree"
 import { format } from "d3"
 import {IDataSet} from "../../../models/data/data-set"
 import {applyModelChange} from "../../../models/history/apply-model-change"
@@ -288,9 +288,9 @@ export const GraphContentModel = DataDisplayContentModel
 
       self.installSharedModelManagerSync()
 
-      addDisposer(self, mstAutorun(function updateGraphSnapshot() {
-        self.renderState?.updateSnapshot()
-      }, {name: "GraphContentModel.afterAttachToDocument.reaction [dataset]" }, self.dataConfiguration))
+      // addDisposer(self, mstAutorun(function updateGraphSnapshot() {
+      //   self.renderState?.updateSnapshot()
+      // }, {name: "GraphContentModel.afterAttachToDocument.reaction [dataset]" }, self.dataConfiguration))
 
       // update adornments when case data changes
       addDisposer(self, mstAutorun(function updateAdornments() {
