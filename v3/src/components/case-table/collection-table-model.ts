@@ -2,10 +2,9 @@ import { action, computed, makeObservable, observable } from "mobx"
 import { symParent } from "../../models/data/data-set-types"
 import { getNumericCssVariable } from "../../utilities/css-utils"
 import { uniqueId } from "../../utilities/js-utils"
-import { IScrollOptions, TRow } from "./case-table-types"
+import { IScrollOptions, kDefaultRowHeight, TRow } from "./case-table-types"
 
-const kDefaultRowHeaderHeight = 30
-const kDefaultRowHeight = 18
+export const kDefaultRowHeaderHeight = 30
 const kDefaultRowCount = 12
 const kDefaultGridHeight = kDefaultRowHeaderHeight + (kDefaultRowCount * kDefaultRowHeight)
 
@@ -47,6 +46,8 @@ export class CollectionTableModel {
   // rows are passed directly to RDG for rendering
   @observable.shallow rows: TRow[] = []
 
+  @observable rowHeight = kDefaultRowHeight
+
   constructor(collectionId: string) {
     this.collectionId = collectionId
 
@@ -61,9 +62,6 @@ export class CollectionTableModel {
     return getNumericCssVariable(this.element, "--rdg-row-header-height") ?? kDefaultRowHeaderHeight
   }
 
-  get rowHeight() {
-    return getNumericCssVariable(this.element, "--rdg-row-height") ?? kDefaultRowHeight
-  }
 
   // visible height of the body of the grid, i.e. the rows excluding the header row
   get gridBodyHeight() {
@@ -74,8 +72,12 @@ export class CollectionTableModel {
     return rowIndex * this.rowHeight
   }
 
+  @computed get rowBottoms() {
+    return this.rows.map((_, rowIndex) => (rowIndex + 1) * this.rowHeight)
+  }
+
   getRowBottom(rowIndex: number) {
-    return (rowIndex + 1) * this.rowHeight
+    return this.rowBottoms[rowIndex]
   }
 
   get isSyncScrollingResponseDisabled() {
@@ -230,6 +232,10 @@ export class CollectionTableModel {
 
   @action setInputRowIndex(inputRowIndex: number) {
     this.inputRowIndex = inputRowIndex
+  }
+
+  @action setRowHeight(rowHeight: number) {
+    this.rowHeight = rowHeight
   }
 
   @action syncScrollTopFromEvent(event: React.UIEvent<HTMLDivElement, UIEvent>) {

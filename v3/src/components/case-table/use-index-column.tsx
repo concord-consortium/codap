@@ -18,6 +18,7 @@ import { IndexMenuList } from "../case-tile-common/index-menu-list"
 import { useParentChildFocusRedirect } from "../case-tile-common/use-parent-child-focus-redirect"
 import { kInputRowKey, TColSpanArgs, TColumn, TRenderCellProps } from "./case-table-types"
 import { ColumnHeader } from "./column-header"
+import { RowDivider } from "./row-divider"
 
 import DragIndicator from "../../assets/icons/drag-indicator.svg"
 
@@ -55,6 +56,7 @@ export const useIndexColumn = () => {
                             ? data.caseInfoMap.get(parentId)?.childCaseIds ?? []
                             : []
     const collapsedCaseCount = collapsedCases.length
+    const isInputRow = __id__ === kInputRowKey
 
     function handleClick(e: React.MouseEvent) {
       if (parentId && collapsedCaseCount) {
@@ -71,8 +73,11 @@ export const useIndexColumn = () => {
     }
 
     return (
-      <IndexCell caseId={__id__} disableMenu={disableMenu} index={index}
+      <div className="codap-index-cell-wrapper">
+        <IndexCell caseId={__id__} disableMenu={disableMenu} index={index}
         collapsedCases={collapsedCaseCount} onClick={handleClick} />
+        {(!isInputRow) && <RowDivider rowId={row.__id__} />}
+      </div>
     )
   }, [caseMetadata, data, disableMenu])
   const indexColumn = useRef<TColumn | undefined>()
