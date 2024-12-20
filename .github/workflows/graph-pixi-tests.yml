@@ -1,12 +1,10 @@
 name: Regression Label
 
 on:
-  pull_request:
-    types: [ labeled ]
+  push:
+
 jobs:
   re_run:
-    # only continue if a push or PR labeled with 'run regression'
-    if: github.event.label.name == 'graph-pixi-tests'
     runs-on: ubuntu-latest
     permissions:
       actions: write
@@ -17,6 +15,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # set repository so we don't have to check out all of the code
           GH_REPO: ${{github.repository}}
+
 cypress:
   runs-on: ubuntu-latest
   strategy:
@@ -37,34 +36,20 @@ cypress:
       uses: actions/cache/restore@v4
       with:
         path: v3/.cache/webpack/
-        # this key is different from the build job above because this is a dev build so its
-        # folder in the cache will be different and cached data is also likely different
         key: webpack-dev-build-${{ hashFiles('v3/webpack.config.js') }}
     - uses: cypress-io/github-action@v6
       with:
         working-directory: v3
         start: npm start
         wait-on: 'http://localhost:8080'
-        # add timeout of 5 minutes to start
         wait-on-timeout: 300
-        # only record the results to dashboard.cypress.io if CYPRESS_RECORD_KEY is set
         record: ${{ !!secrets.CYPRESS_RECORD_KEY }}
         browser: chrome
-        # specify the Pixi pattern for tests
         spec: cypress/e2e/pixi-interaction/**/*.ts
         group: 'Pixi Interaction Tests'
       env:
-        # pass the Dashboard record key as an environment variable
         CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
-        # pass GitHub token to allow accurately detecting a build vs a re-run build
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        # turn on code coverage when running npm start
-        # so far we've been using a webpack coverage-istanbul-loader for this
-        # but there has been work on using the code coverage support in the browser directly,
-        # which should be much faster
         CODE_COVERAGE: true
-        # Also turn on the code coverage tasks in cypress itself, these are disabled
-        # by default.
         CYPRESS_coverage: true
-        # Have webpack skip eslint checking, that was already done by the build step
         SKIP_ESLINT: true
