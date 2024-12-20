@@ -49,7 +49,7 @@ export const WebViewModel = TileContentModel
     setDataInteractiveController(controller?: iframePhone.IframePhoneRpcEndpoint) {
       self.dataInteractiveController = controller
     },
-    setSubType(subType: WebViewSubType) {
+    setSubType(subType?: WebViewSubType) {
       withoutUndo()
       self.subType = subType
     },
