@@ -3,7 +3,7 @@ import { Instance, SnapshotIn, types } from "mobx-state-tree"
 import { DIMessage } from "../../data-interactive/iframe-phone-types"
 import { ITileContentModel, TileContentModel } from "../../models/tiles/tile-content"
 import { withoutUndo } from "../../models/history/without-undo"
-import { kWebViewTileType } from "./web-view-defs"
+import { kWebViewTileType, WebViewSubType, webViewSubTypes } from "./web-view-defs"
 
 export const kDefaultAllowEmptyAttributeDeletion = true
 export const kDefaultBlockAPIRequestsWhileEditing = false
@@ -18,6 +18,7 @@ export const WebViewModel = TileContentModel
   .named("WebViewModel")
   .props({
     type: types.optional(types.literal(kWebViewTileType), kWebViewTileType),
+    subType: types.maybe(types.enumeration(webViewSubTypes)),
     url: "",
     state: types.frozen<unknown>(),
     // fields controlled by plugins (like Collaborative) via interactiveFrame requests
@@ -27,8 +28,7 @@ export const WebViewModel = TileContentModel
     preventBringToFront: kDefaultPreventBringToFront,
     preventDataContextReorg: kDefaultPreventDataContextReorg,
     preventTopLevelReorg: kDefaultPreventTopLevelReorg,
-    respectEditableItemAttribute: kDefaultRespectEditableItemAttribute,
-    isPlugin: false
+    respectEditableItemAttribute: kDefaultRespectEditableItemAttribute
   })
   .volatile(self => ({
     dataInteractiveController: undefined as iframePhone.IframePhoneRpcEndpoint | undefined,
@@ -37,15 +37,21 @@ export const WebViewModel = TileContentModel
   .views(self => ({
     get allowBringToFront() {
       return !self.preventBringToFront
+    },
+    get isGuide() {
+      return self.subType === "guide"
+    },
+    get isPlugin() {
+      return self.subType === "plugin"
     }
   }))
   .actions(self => ({
     setDataInteractiveController(controller?: iframePhone.IframePhoneRpcEndpoint) {
       self.dataInteractiveController = controller
     },
-    setIsPlugin(isPlugin: boolean) {
+    setSubType(subType: WebViewSubType) {
       withoutUndo()
-      self.isPlugin = isPlugin
+      self.subType = subType
     },
     setSavedState(state: unknown) {
       self.state = state

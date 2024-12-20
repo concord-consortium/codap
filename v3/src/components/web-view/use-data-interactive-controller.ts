@@ -36,7 +36,7 @@ export function useDataInteractiveController(iframeRef: React.RefObject<HTMLIFra
       const originUrl = extractOrigin(url) ?? ""
       const phone = new iframePhone.ParentEndpoint(iframeRef.current, originUrl,
         () => {
-          webViewModel?.setIsPlugin(true)
+          webViewModel?.setSubType("plugin")
           debugLog(DEBUG_PLUGINS, "connection with iframe established")
         })
       const handler: iframePhone.IframePhoneRpcEndpointHandlerFn =

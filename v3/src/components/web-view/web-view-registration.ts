@@ -11,7 +11,7 @@ import { registerV2TileExporter, V2ExportedComponent, V2TileExportFn } from "../
 import {
   isV2WebViewComponent, isV2GameViewComponent, ICodapV2WebViewComponent, ICodapV2GameViewComponent
 } from "../../v2/codap-v2-types"
-import { kV2GameType, kV2WebViewType, kWebViewTileType } from "./web-view-defs"
+import { kV2GameType, kV2WebViewType, kWebViewTileType, WebViewSubType } from "./web-view-defs"
 import { isWebViewModel, IWebViewSnapshot, WebViewModel } from "./web-view-model"
 import { WebViewComponent } from "./web-view"
 import { WebViewInspector } from "./web-view-inspector"
@@ -80,12 +80,16 @@ function addWebViewSnapshot(args: V2TileImportArgs, name?: string, url?: string,
   const { v2Component, insertTile } = args
   const { guid } = v2Component
   const { title, userSetTitle } = v2Component.componentStorage || {}
+  const subTypeMap: Record<string, WebViewSubType> = {
+    "DG.GameView": "plugin",
+    "DG.GuideView": "guide"
+  }
 
   const content: IWebViewSnapshot = {
     type: kWebViewTileType,
+    subType: subTypeMap[v2Component.type],
     state,
-    url,
-    isPlugin: isV2GameViewComponent(v2Component)
+    url
   }
   const webViewTileSnap: ITileModelSnapshotIn = {
     id: toV3Id(kWebViewIdPrefix, guid),
@@ -132,6 +136,8 @@ function importGameView(args: V2TileImportArgs) {
   return addWebViewSnapshot(args, currentGameName, processPluginUrl(currentGameUrl), savedGameState)
 }
 registerV2TileImporter("DG.GameView", importGameView)
+
+// TODO add importer for DG.GuideView
 
 const webViewComponentHandler: DIComponentHandler = {
   create({ values }) {
