@@ -245,6 +245,8 @@ export interface ICodapV2BaseComponentStorage {
   // In the CFM shared files there are more than 20,000 examples of cannotClose: true
   // and more 20,000 examples cannotClose: false
   cannotClose?: boolean
+  // allows v2 documents saved by v3 to contain v3-specific enhancements
+  v3?: object
 }
 
 export interface ICodapV2CalculatorStorage extends ICodapV2BaseComponentStorage {
@@ -261,7 +263,15 @@ export interface ICodapV2SliderStorage extends ICodapV2BaseComponentStorage {
   animationMode?: number
   restrictToMultiplesOf?: number | null
   maxPerSecond?: number | null
+  // NOTE: v2 writes out the `userTitle` property, but reads in property `userChangedTitle`.
+  // It is also redundant with the `userSetTitle` property shared by all components. ¯\_(ツ)_/¯
   userTitle?: boolean
+  // v3 enhancements
+  v3?: {
+    scaleType: "numeric" | "date",
+    multipleOf?: number
+    dateMultipleOfUnit?: string
+  }
 }
 
 export interface ICodapV2RowHeight {

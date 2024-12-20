@@ -8,9 +8,11 @@ import { getGlobalValueManager, getSharedModelManager } from "../../models/tiles
 import { ITileContentModel, TileContentModel } from "../../models/tiles/tile-content"
 import { DateUnit, dateUnits, unitsStringToMilliseconds } from "../../utilities/date-utils"
 import { kSliderTileType } from "./slider-defs"
-import {AnimationDirection, AnimationDirections, AnimationMode, AnimationModes, FixValueFn, ISliderScaleType,
+import {
+  AnimationDirection, AnimationDirections, AnimationMode, AnimationModes, FixValueFn, ISliderScaleType,
   kDefaultAnimationDirection, kDefaultAnimationMode, kDefaultAnimationRate, kDefaultDateMultipleOfUnit,
-  kDefaultSliderScaleType, SliderScaleTypes} from "./slider-types"
+  kDefaultSliderAxisMax, kDefaultSliderAxisMin, kDefaultSliderScaleType, SliderScaleTypes
+} from "./slider-types"
 
 export const SliderModel = TileContentModel
   .named("SliderModel")
@@ -25,7 +27,7 @@ export const SliderModel = TileContentModel
     _animationRate: types.maybe(types.number),  // frames per second
     scaleType: types.optional(types.enumeration([...SliderScaleTypes]), kDefaultSliderScaleType),
     axis: types.optional(types.union(NumericAxisModel, DateAxisModel),
-      () => NumericAxisModel.create({ place: 'bottom', min: -0.5, max: 11.5 }))
+      () => NumericAxisModel.create({ place: 'bottom', min: kDefaultSliderAxisMin, max: kDefaultSliderAxisMax }))
   })
   .views(self => ({
     get name() {
@@ -169,7 +171,8 @@ export const SliderModel = TileContentModel
       if (scaleType !== self.scaleType) {
         switch (scaleType) {
           case "numeric":
-            self.axis = NumericAxisModel.create({ place: 'bottom', min: -0.5, max: 11.5 })
+            self.axis = NumericAxisModel.create({
+                          place: 'bottom', min: kDefaultSliderAxisMin, max: kDefaultSliderAxisMax })
             self.setValue(0.5)
             break
           case "date": {

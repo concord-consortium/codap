@@ -1,4 +1,5 @@
-import { SetRequired } from "type-fest"
+import { SetOptional, SetRequired } from "type-fest"
+import SliderIcon from "../../assets/icons/icon-slider.svg"
 import { V2Slider } from "../../data-interactive/data-interactive-component-types"
 import { registerComponentHandler } from "../../data-interactive/handlers/component-handler"
 import { errorResult } from "../../data-interactive/handlers/di-results"
@@ -8,18 +9,25 @@ import { registerTileComponentInfo } from "../../models/tiles/tile-component-inf
 import { ITileLikeModel, registerTileContentInfo } from "../../models/tiles/tile-content-info"
 import { getGlobalValueManager } from "../../models/tiles/tile-environment"
 import { ITileModelSnapshotIn } from "../../models/tiles/tile-model"
-import { toV3GlobalId, toV3Id } from "../../utilities/codap-utils"
+import { toV2Id, toV3GlobalId, toV3Id } from "../../utilities/codap-utils"
+import { DateUnit, unitsStringToMilliseconds } from "../../utilities/date-utils"
+import { isFiniteNumber } from "../../utilities/math-utils"
 import { isAliveSafe } from "../../utilities/mst-utils"
 import { t } from "../../utilities/translation/translate"
+import { registerV2TileExporter } from "../../v2/codap-v2-tile-exporters"
 import { registerV2TileImporter } from "../../v2/codap-v2-tile-importers"
-import { isV2SliderComponent } from "../../v2/codap-v2-types"
+import {
+  guidLink, ICodapV2BaseComponentStorage, ICodapV2SliderStorage, isV2SliderComponent
+} from "../../v2/codap-v2-types"
 import { SliderComponent } from "./slider-component"
 import { SliderInspector } from "./slider-inspector"
 import { kSliderTileType, kSliderTileClass, kV2SliderType } from "./slider-defs"
 import { ISliderSnapshot, SliderModel, isSliderModel } from "./slider-model"
 import { SliderTitleBar } from "./slider-title-bar"
-import { AnimationDirections, AnimationModes, kDefaultAnimationDirection, kDefaultAnimationMode } from "./slider-types"
-import SliderIcon from '../../assets/icons/icon-slider.svg'
+import {
+  AnimationDirection, AnimationDirections, AnimationMode, AnimationModes,
+  kDefaultAnimationDirection, kDefaultAnimationMode, kDefaultSliderAxisMax, kDefaultSliderAxisMin
+} from "./slider-types"
 import { kDefaultSliderName, kDefaultSliderValue } from "./slider-utils"
 
 export const kSliderIdPrefix = "SLID"
@@ -65,7 +73,46 @@ registerTileComponentInfo({
   isFixedHeight: true,
   // must be in sync with rendered size for auto placement code
   defaultHeight: 73
+})
 
+registerV2TileExporter(kSliderTileType, ({ tile }) => {
+  const sliderModel = isSliderModel(tile.content) ? tile.content : undefined
+  if (!sliderModel) return
+  const {
+    domain: [lowerBound, upperBound],
+    animationDirection,
+    animationMode,
+    _animationRate,
+    multipleOf,
+    dateMultipleOfUnit,
+    scaleType
+  } = sliderModel
+
+  const domain = isFiniteNumber(lowerBound) && isFiniteNumber(upperBound) ? { lowerBound, upperBound } : undefined
+
+  const getAnimationDirectionIndex = (direction?: AnimationDirection) => {
+    return direction != null ? AnimationDirections.findIndex(_direction => _direction === direction) : 1
+  }
+  const getAnimationModeIndex = (mode?: AnimationMode) => {
+    return mode != null ? AnimationModes.findIndex(_mode => _mode === mode) : 1
+  }
+  // v2 doesn't support date-time sliders; convert to seconds instead
+  const restrictToMultiplesOf = scaleType === "date" && multipleOf != null
+                                  ? multipleOf * unitsStringToMilliseconds(dateMultipleOfUnit) / 1000
+                                  : multipleOf
+  // v3 extensions: ignored by v2, but allows full round-trip for v3 save/restore
+  const v3: ICodapV2SliderStorage["v3"] = { scaleType, multipleOf, dateMultipleOfUnit }
+
+  const componentStorage: SetOptional<ICodapV2SliderStorage, keyof ICodapV2BaseComponentStorage> = {
+    _links_: { model: guidLink("DG.GlobalValue", toV2Id(tile.id)) },
+    ...domain,
+    animationDirection: getAnimationDirectionIndex(animationDirection),
+    animationMode: getAnimationModeIndex(animationMode),
+    maxPerSecond: _animationRate ?? null,
+    restrictToMultiplesOf: restrictToMultiplesOf ?? null,
+    v3
+  }
+  return { type: "DG.SliderView", componentStorage }
 })
 
 registerV2TileImporter("DG.SliderView", ({ v2Component, v2Document, sharedModelManager, insertTile }) => {
@@ -79,7 +126,7 @@ registerV2TileImporter("DG.SliderView", ({ v2Component, v2Document, sharedModelM
     guid: componentGuid,
     componentStorage: {
       name, title: v2Title = "", _links_, lowerBound, upperBound, animationDirection, animationMode,
-      restrictToMultiplesOf, maxPerSecond, userTitle, userSetTitle
+      restrictToMultiplesOf, maxPerSecond, userTitle, userSetTitle, v3
     }
   } = v2Component
   const globalId = _links_.model.id
@@ -100,15 +147,20 @@ registerV2TileImporter("DG.SliderView", ({ v2Component, v2Document, sharedModelM
     return AnimationModes[mode] || kDefaultAnimationMode
   }
 
+  const axisType = v3?.scaleType ?? "numeric"
+  const axisMin = lowerBound ?? kDefaultSliderAxisMin
+  const axisMax = upperBound ?? kDefaultSliderAxisMax
+
   // create slider model
   const content: ISliderSnapshot = {
     type: kSliderTileType,
     globalValue: globalValue.id,
-    multipleOf: restrictToMultiplesOf ?? undefined,
+    multipleOf: v3?.multipleOf ?? restrictToMultiplesOf ?? undefined,
+    dateMultipleOfUnit: v3?.dateMultipleOfUnit as DateUnit ?? undefined,
     animationDirection: getAnimationDirectionStr(animationDirection),
     animationMode: getAnimationModeStr(animationMode),
     _animationRate: maxPerSecond ?? undefined,
-    axis: { type: "numeric", place: "bottom", min: lowerBound ?? 0, max: upperBound ?? 12 }
+    axis: { type: axisType, place: "bottom", min: axisMin, max: axisMax }
   }
   const title = v2Title && (userTitle || userSetTitle) ? v2Title : undefined
   const sliderTileSnap: ITileModelSnapshotIn = {
