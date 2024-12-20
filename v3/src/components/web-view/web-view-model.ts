@@ -2,7 +2,8 @@ import iframePhone from "iframe-phone"
 import { Instance, SnapshotIn, types } from "mobx-state-tree"
 import { DIMessage } from "../../data-interactive/iframe-phone-types"
 import { ITileContentModel, TileContentModel } from "../../models/tiles/tile-content"
-import { kWebViewTileType } from "./web-view-defs"
+import { withoutUndo } from "../../models/history/without-undo"
+import { kWebViewTileType, WebViewSubType, webViewSubTypes } from "./web-view-defs"
 
 export const kDefaultAllowEmptyAttributeDeletion = true
 export const kDefaultBlockAPIRequestsWhileEditing = false
@@ -17,6 +18,7 @@ export const WebViewModel = TileContentModel
   .named("WebViewModel")
   .props({
     type: types.optional(types.literal(kWebViewTileType), kWebViewTileType),
+    subType: types.maybe(types.enumeration(webViewSubTypes)),
     url: "",
     state: types.frozen<unknown>(),
     // fields controlled by plugins (like Collaborative) via interactiveFrame requests
@@ -30,20 +32,26 @@ export const WebViewModel = TileContentModel
   })
   .volatile(self => ({
     dataInteractiveController: undefined as iframePhone.IframePhoneRpcEndpoint | undefined,
-    isPlugin: false,
     version: kDefaultWebViewVersion
   }))
   .views(self => ({
     get allowBringToFront() {
       return !self.preventBringToFront
+    },
+    get isGuide() {
+      return self.subType === "guide"
+    },
+    get isPlugin() {
+      return self.subType === "plugin"
     }
   }))
   .actions(self => ({
     setDataInteractiveController(controller?: iframePhone.IframePhoneRpcEndpoint) {
       self.dataInteractiveController = controller
     },
-    setIsPlugin(isPlugin: boolean) {
-      self.isPlugin = isPlugin
+    setSubType(subType?: WebViewSubType) {
+      withoutUndo()
+      self.subType = subType
     },
     setSavedState(state: unknown) {
       self.state = state

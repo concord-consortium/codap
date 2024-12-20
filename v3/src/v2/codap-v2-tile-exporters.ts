@@ -15,7 +15,13 @@ export interface V2TileExportArgs {
   row?: IFreeTileRow
   sharedModelManager?: ISharedModelManager
 }
-export type V2TileExportFn = (args: V2TileExportArgs) => Maybe<V2ExporterOutput>
+interface V2TileExportFnOptions {
+  suppressName?: boolean
+}
+interface V2TileExportFnOptionsProp {
+  options?: (args: V2TileExportArgs) => V2TileExportFnOptions
+}
+export type V2TileExportFn = ((args: V2TileExportArgs) => Maybe<V2ExporterOutput>) & V2TileExportFnOptionsProp
 
 // map from v2 component type to export function
 const gV2TileExporters = new Map<string, V2TileExportFn>()
@@ -34,13 +40,16 @@ export function registerV2TileExporter(tileType: string, exportFn: V2TileExportF
 
 // export the specified v2 component using the appropriate registered exporter
 export function exportV2Component(args: V2TileExportArgs): Maybe<CodapV2Component> {
-  const output = gV2TileExporters.get(args.tile.content.type)?.(args)
+  const v2ExportFn = gV2TileExporters.get(args.tile.content.type)
+  const suppressName = v2ExportFn?.options?.(args).suppressName
+  const output = v2ExportFn?.(args)
   if (!output) return
 
   const layout = args.row?.getTileLayout(args.tile.id)
   if (!isFreeTileLayout(layout)) return
 
   const id = toV2Id(args.tile.id)
+  const name = suppressName ? undefined : { name: args.tile.name }
 
   const tileWidth = layout.width ?? kDefaultTileWidth
   const tileHeight = layout.height ?? kDefaultTileHeight
@@ -50,7 +59,7 @@ export function exportV2Component(args: V2TileExportArgs): Maybe<CodapV2Componen
     guid: id,
     id,
     componentStorage: {
-      name: args.tile.name,
+      ...name,
       title: args.tile._title,
       cannotClose: args.tile.cannotClose,
       // TODO_V2_EXPORT check this logic
