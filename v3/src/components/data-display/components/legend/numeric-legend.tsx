@@ -139,6 +139,6 @@ export const NumericLegend =
     }
   }, [setDesiredExtent, layerIndex])
 
-  return <svg className='legend-categories' ref={elt => setChoroplethElt(elt)} data-testid='legend-categories'>
-         </svg>
+  return <g className='legend-categories' ref={elt => setChoroplethElt(elt)} data-testid='legend-categories'>
+         </g>
 })

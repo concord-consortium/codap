@@ -24,33 +24,17 @@ import { graphCollisionDetection, kGraphIdBase } from './graph-drag-drop'
 import { kTitleBarHeight } from "../../constants"
 import {AttributeDragOverlay} from "../../drag-drop/attribute-drag-overlay"
 import "../register-adornment-types"
-// import { captureSVGElementsToImage, downloadBase64Image } from '../utilities/image-utils'
-// import { mstReaction } from '../../../utilities/mst-reaction'
+import { downloadGraphSnapshot } from '../utilities/image-utils'
 import { getTitle } from '../../../models/tiles/tile-content-info'
 import { DataDisplayRenderState } from '../../data-display/models/data-display-render-state'
+import { mstReaction } from '../../../utilities/mst-reaction'
 
-// const exportGraphImage = async (graphElement: HTMLDivElement, pixiPoints: any, title: string, download = true) => {
-//   const graphPlotParent = graphElement.parentElement
-//   if (!graphPlotParent) {
-//     console.error("Snapshot failed: no container")
-//     return
-//   }
+const exportGraphImage = async (graphModel: any) => {
+  if (!graphModel.renderState) return
 
-//   const width = graphPlotParent.getBoundingClientRect().width ?? 0
-//   const height = graphPlotParent.getBoundingClientRect().height ?? 0
-//   const graphImage = await captureSVGElementsToImage(graphPlotParent, width, height, title, true, pixiPoints)
-//   if (download) {
-//     downloadBase64Image(graphImage)
-//   } else {
-//     return graphImage
-//   }
-// }
-
-// const saveDataUri = async (graphModel: any, graphElement: HTMLDivElement, pixiPoints: any) => {
-//   const exportDataUri = await exportGraphImage(graphElement, pixiPoints, "", false)
-//   graphModel?.setExportDataUri(exportDataUri)
-//   console.log("graphModel", graphModel)
-// }
+  await graphModel.renderState.updateSnapshot()
+  downloadGraphSnapshot(graphModel.renderState.dataUri, "graph.png")
+}
 
 registerTileCollisionDetection(kGraphIdBase, graphCollisionDetection)
 
@@ -97,17 +81,17 @@ export const GraphComponent = observer(function GraphComponent({tile}: ITileBase
     }
   }, [layout])
 
-  // useEffect(function exportGraphPng() {
-  //   return mstReaction(
-  //     () => graphModel?.exportPng,
-  //     () => {
-  //       if (graphRef.current && graphModel?.exportPng) {
-  //         exportGraphImage(graphRef.current, pixiPointsArray[0], title)
-  //         graphModel.setExportPng(false)
-  //       }
-  //     }, {name: "Graph.exportGraphPng"}, graphModel
-  //   )
-  // }, [graphModel, pixiPointsArray, title])
+  useEffect(function exportGraphPng() {
+    return mstReaction(
+      () => graphModel?.exportPng,
+      () => {
+        if (graphRef.current && graphModel?.exportPng) {
+          exportGraphImage(graphModel)
+          graphModel.setExportPng(false)
+        }
+      }, {name: "Graph.exportGraphPng"}, graphModel
+    )
+  }, [graphModel, pixiPointsArray, title])
 
   // used to determine when a dragged attribute is over the graph component
   const dropId = `${instanceId}-component-drop-overlay`

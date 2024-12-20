@@ -1,4 +1,4 @@
-import { captureSVGElementsToImage } from "../../graph/utilities/image-utils"
+import { graphSnaphsot } from "../../graph/utilities/image-utils"
 import { PixiPointsArray } from "../pixi/pixi-points"
 
 export class DataDisplayRenderState {
@@ -30,7 +30,15 @@ export class DataDisplayRenderState {
 
     const width = this.displayElement.getBoundingClientRect().width ?? 0
     const height = this.displayElement.getBoundingClientRect().height ?? 0
-    const graphImage = await captureSVGElementsToImage(this.displayElement, width, height, title, true, pixiPoints)
+    const svgElementsToImageOptions = {
+      rootEl: this.displayElement,
+      graphWidth: width,
+      graphHeight: height,
+      graphTitle: title,
+      asDataURL: true,
+      pixiPoints
+    }
+    const graphImage = await graphSnaphsot(svgElementsToImageOptions)
     const dataUri = typeof graphImage === "string" ? graphImage : undefined
     if (dataUri) {
       this.setDataUri(dataUri)

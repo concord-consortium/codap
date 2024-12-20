@@ -1,36 +1,46 @@
+import { Point } from "../../data-display/data-display-types"
 import { PixiPoints } from "../../data-display/pixi/pixi-points"
 
-type Coords = { x: number; y: number }
-type Dimensions = { width: number; height: number }
-type Job = { element: Element; dimensions: Dimensions; coords: Coords }
+type Dimensions = {
+  width: number
+  height: number
+}
+type Job = {
+  coords: Point
+  dimensions: Dimensions
+  element: Element
+}
 
-/**
- * Creates a Blob from a base64 data URL.
- * @param dataURL The base64 data URL to convert.
- * @returns A Blob representing the base64 data URL.
- */
-const makeBlob = (dataURL: string): Blob => {
-  // Remove data URL prefix.
-  const base64 = dataURL.split(",")[1]
+interface IGraphSnapshotOptions {
+  rootEl: HTMLElement
+  graphWidth: number
+  graphHeight: number
+  graphTitle: string
+  asDataURL: boolean
+  pixiPoints: PixiPoints
+}
+
+export const base64ToBlob = (base64String: string): Blob => {
+  const mimeType = base64String.match(/data:([^;]+);base64,/)?.[1] || "application/octet-stream"
+  const base64Content = base64String.startsWith("data:")
+    ? base64String.split(",")[1]
+    : base64String
 
   // Decode base64 string into a binary buffer.
-  const binary = atob(base64)
+  const binary = atob(base64Content)
   const binaryLength = binary.length
   const arrayBuffer = new Uint8Array(binaryLength)
   for (let i = 0; i < binaryLength; i++) {
     arrayBuffer[i] = binary.charCodeAt(i)
   }
 
-  return new Blob([arrayBuffer], { type: "image/png" })
+  return new Blob([arrayBuffer], { type: mimeType })
 }
 
-/**
- * Initiates a download for a base64 image.
- * @param base64Data A base64 image string or Blob.
- * @param filename The name of the file to download.
- */
-export const downloadBase64Image = (base64Data: string | Blob, filename = "graph.png") => {
-  const blob  = typeof base64Data === "string" ? makeBlob(base64Data) : base64Data
+export const downloadGraphSnapshot = (graphSnapshot: string | Blob, filename = "graph.png") => {
+  const blob = typeof graphSnapshot === "string"
+    ? base64ToBlob(graphSnapshot)
+    : graphSnapshot
 
   // Create a temporary link element to trigger the download.
   // TODO: Use CFM's save dialog instead?
@@ -43,20 +53,10 @@ export const downloadBase64Image = (base64Data: string | Blob, filename = "graph
   document.body.removeChild(link)
 }
 
-export const captureSVGElementsToImage = (
-  rootEl: HTMLElement,
-  graphWidth: number,
-  graphHeight: number,
-  graphTitle: string,
-  asDataURL: boolean,
-  pixiPoints: PixiPoints
-): Promise<string | Blob> => {
+export const graphSnaphsot = (options: IGraphSnapshotOptions): Promise<string | Blob> => {
+  const { rootEl, graphWidth, graphHeight, graphTitle, asDataURL, pixiPoints } = options
 
-  /**
-   * Extracts all CSS rules from all stylesheets in the document.
-   * @returns {string} A string containing all CSS rules.
-   */
-  const getCSSText = (): string => {
+  const getCssText = (): string => {
     const text: string[] = []
     for (let ix = 0; ix < document.styleSheets.length; ix++) {
       try {
@@ -82,58 +82,62 @@ export const captureSVGElementsToImage = (
    */
   const imageFromPixiCanvas = (foreignObject: SVGForeignObjectElement): SVGImageElement | undefined => {
     const extractedCanvas = pixiPoints.renderer?.extract.canvas(pixiPoints.stage)
-    if (!extractedCanvas) return
+    if (!extractedCanvas?.toDataURL) return
 
-    const foWidth = foreignObject.getAttribute("width")
-    const foHeight = foreignObject.getAttribute("height")
-    const foX = foreignObject.getAttribute("x")
-    const foY = foreignObject.getAttribute("y")
-    const plotCanvas = document.createElement("canvas")
-    plotCanvas.width = foWidth ? parseInt(foWidth, 10) : extractedCanvas.width
-    plotCanvas.height = foHeight ? parseInt(foHeight, 10) : extractedCanvas.height
-    if (extractedCanvas.toDataURL) {
-      const dataURL = extractedCanvas.toDataURL("image/png")
-      const svgNS = "http://www.w3.org/2000/svg"
-      const image = document.createElementNS(svgNS, "image")
-      image.setAttributeNS(null, "href", dataURL)
-      image.setAttributeNS(null, "x", foX || "0")
-      image.setAttributeNS(null, "y", foY || "0")
-      image.setAttributeNS(null, "width", plotCanvas.width.toString())
-      image.setAttributeNS(null, "height", plotCanvas.height.toString())
+    const width = foreignObject.getAttribute("width") ?? extractedCanvas.width.toString()
+    const height = foreignObject.getAttribute("height") ?? extractedCanvas.height.toString()
+    const x = foreignObject.getAttribute("x") || "0"
+    const y = foreignObject.getAttribute("y") || "0"
+    const dataURL = extractedCanvas.toDataURL("image/png")
+    const image = document.createElementNS("http://www.w3.org/2000/svg", "image")
+    image.setAttributeNS(null, "href", dataURL)
+    image.setAttributeNS(null, "x", x)
+    image.setAttributeNS(null, "y", y)
+    image.setAttributeNS(null, "width", width)
+    image.setAttributeNS(null, "height", height)
 
-      return image
-    } else {
-      return undefined
-    }
+    return image
   }
 
-  const inlineAllStyles = (svgElement: SVGSVGElement) => {
-    const nodes = svgElement.querySelectorAll("*")
-    nodes.forEach(node => {
-      const computedStyles = window.getComputedStyle(node)
-      for (let i = 0; i < computedStyles.length; i++) {
-        const key = computedStyles[i]
-        ;(node as HTMLElement).style.setProperty(key, computedStyles.getPropertyValue(key))
+  // const inlineAllStyles = (svgElement: SVGSVGElement) => {
+  //   const nodes = svgElement.querySelectorAll("*")
+  //   nodes.forEach(node => {
+  //     const computedStyles = window.getComputedStyle(node)
+  //     for (let i = 0; i < computedStyles.length; i++) {
+  //       const key = computedStyles[i]
+  //       ;(node as HTMLElement).style.setProperty(key, computedStyles.getPropertyValue(key))
+  //     }
+  //   })
+  // }
+
+  const makeDataURLFromSVGElement = (svgEl: SVGSVGElement, dimensions: Dimensions): string => {
+    const svgClone = svgEl.cloneNode(true) as SVGSVGElement
+    svgClone.style.fill = "#f8f8f8"
+    // I don't think this is necessary. Using getCSSText() works better.
+    //inlineAllStyles(svgClone)
+
+    svgClone.setAttribute("width", dimensions.width.toString())
+    svgClone.setAttribute("height", dimensions.height.toString())
+
+    // grid lines are too dark
+    const lines = svgClone.querySelectorAll("line")
+    lines.forEach(line => {
+      const stroke = line.getAttribute("stroke")
+      if (stroke === "rgb(211, 211, 211)") {
+        line.setAttribute("stroke", "rgb(230, 230, 230)")
       }
     })
-  }
 
-  /**
-   * Converts an SVG element to a data URL.
-   * @param {SVGSVGElement} svgEl The SVG element to convert.
-   * @returns {string} A data URL representing the SVG element.
-   */
-  const makeDataURLFromSVGElement = (svgEl: SVGSVGElement): string => {
-    const svgClone = svgEl.cloneNode(true) as SVGSVGElement
-    svgClone.style.fill = "white"
-    inlineAllStyles(svgClone)
-  
-    // Add inline styles from document's CSS
     const css = document.createElement("style")
-    css.textContent = getCSSText()
-    // Append some custom rules -- hopefully we can make this unnecessary later.
+    css.textContent = getCssText()
+    // Append some custom rules to improve the output -- hopefully we can make this unnecessary later.
     css.textContent += `
-      line.divider {
+      .grid .tick line {
+        stroke: rgb(211, 211, 211);
+        stroke-opacity: 0.7;
+      }
+      line.divider, line.axis-line {
+        height: 1px;
         stroke: rgb(211, 211, 211);
       }
       text.category-label {
@@ -162,60 +166,22 @@ export const captureSVGElementsToImage = (
     return `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svgData)))}`
   }
 
-  /**
-   * Creates a new canvas element with a white background.
-   * @returns {HTMLCanvasElement} A new canvas element with a white background.
-   */
-  const makeCanvasEl = (): HTMLCanvasElement => {
+  const makeCanvas = (bgColor: string, x: number, y: number, width: number, height: number): HTMLCanvasElement => {
     const newCanvas = document.createElement("canvas")
-    newCanvas.width = graphWidth
-    newCanvas.height = graphHeight
+    newCanvas.width = width
+    newCanvas.height = height
     const ctx = newCanvas.getContext("2d")
+
     if (ctx) {
-      ctx.fillStyle = "white"
-      ctx.fillRect(0, 0, graphWidth, graphHeight)
+      ctx.fillStyle = bgColor
+      ctx.fillRect(x, y, width, height)
     }
+
     return newCanvas
   }
 
-  /**
-   * Adds an image to a canvas element. 
-   * @param cvs The canvas element to draw on. 
-   * @param image The image to draw
-   * @param x The x-coordinate of the image
-   * @param y The y-coordinate of the image
-   * @param w The width of the image
-   * @param h The height of the image
-   */
-  const addImgToCanvas = (cvs: HTMLCanvasElement, image: HTMLImageElement, coords: Coords, dimensions: Dimensions) => {
-    const { x, y } = coords
-    const { width, height } = dimensions
-    const ctx = cvs.getContext("2d")
-    ctx?.drawImage(image, x, y, width, height)
-  }
-
-  const drawRectToCanvas = (
-    cvs: HTMLCanvasElement,
-    color: string,
-    coords: Coords,
-    dimensions: Dimensions
-  ) => {
-    const { x, y } = coords
-    const { width, height } = dimensions
-    const ctx = cvs.getContext("2d")
-    if (ctx) {
-      ctx.fillStyle = color
-      ctx.fillRect(x, y, width, height)
-    }
-  }
-
-  /**
-   * Converts a canvas element to a blob.
-   * @param cvs The canvas element to convert.
-   * @returns {Blob} A blob representing the canvas element.
-   */
-  const makeCanvasBlob = (cvs: HTMLCanvasElement): Blob => {
-    const canvasDataURL = cvs.toDataURL("image/png")
+  const makeCanvasBlob = (canvas: HTMLCanvasElement): Blob => {
+    const canvasDataURL = canvas.toDataURL("image/png")
     const canvasData = atob(canvasDataURL.substring("data:image/png;base64,".length))
     const canvasAsArray = new Uint8Array(canvasData.length)
 
@@ -226,11 +192,6 @@ export const captureSVGElementsToImage = (
     return new Blob([canvasAsArray.buffer], { type: "image/png" })
   }
 
-  /**
-   * Converts an SVG element to a data URL.
-   * @param svgEl The SVG element to convert.
-   * @returns A data URL representing the SVG element.
-   */
   const makeSVGImage = (dataURL: string): Promise<HTMLImageElement> => {
     return new Promise((resolve, reject) => {
       try {
@@ -243,15 +204,8 @@ export const captureSVGElementsToImage = (
     })
   }
 
-  /**
-   * Appends a title to the canvas.
-   * @param cvs The canvas element to draw on.
-   * @param bgColor The background color of the title.
-   * @param fgColor The foreground color of the title.
-   * @param title The title to append.
-   */
-  const addTitle = (cvs: HTMLCanvasElement, bgColor: string, fgColor: string, title: string) => {
-    const ctx = cvs.getContext("2d")
+  const addTitle = (canvas: HTMLCanvasElement, bgColor: string, fgColor: string, title: string) => {
+    const ctx = canvas.getContext("2d")
     if (ctx) {
       ctx.fillStyle = bgColor
       ctx.fillRect(0, 0, graphWidth, 25)
@@ -266,121 +220,85 @@ export const captureSVGElementsToImage = (
     }
   }
 
-  /**
-   * Performs a given job.
-   * @param job The job to perform.
-   * @returns A promise that resolves to a data URL or a blob.
-   */
   const perform = async (job?: Job): Promise<string | Blob> => {
-
     if (!job) {
       if (graphTitle) {
-        addTitle(canvas, "transparent", "white", graphTitle)
+        addTitle(mainCanvas, "transparent", "white", graphTitle)
       }
-      return Promise.resolve(asDataURL ? canvas.toDataURL("image/png") : makeCanvasBlob(canvas))
+      return Promise.resolve(asDataURL ? mainCanvas.toDataURL("image/png") : makeCanvasBlob(mainCanvas))
     }
 
-    const { dimensions, coords } = job
-    const elType = job.element.nodeName.toLowerCase()
-
-    if (elType === "div") {
-      const classNames = job.element.className.split(" ")
-      const allowedDivClasses = [
-        "", // empty string should be considered valid
-        "adornment-spanner",
-        "adornment-wrapper",
-        "codap-component-border",
-        "codap-component-corner",
-        "component-title-bar",
-        "graph-adornments-grid",
-        "graph-adornments-grid__cell",
-        "graph-count",
-        "graph-plot",
-        "innerGrid",
-        //"legend",
-        "movable-line-equation-container",
-        //"multi-legend",
-        "title-bar",
-        "title-text"
-      ]
-      // const disallowedClasses = [
-      //   "axis-legend-attribute-menu",
-      //   "attribute-label-menu",
-      //   "chakra-menu__menu-list",
-      //   "css-1nesaxo", // or css-* somehow?
-      //   "droppable-axis",
-      //   "droppable-svg",
-      //   "header-right",
-      // ]
-
-      if (classNames.some((className) => allowedDivClasses.includes(className))) {
-        const bgColor = getComputedStyle(job.element).backgroundColor || "white"
-        drawRectToCanvas(canvas, bgColor, coords, dimensions)
+    const { coords, dimensions, element } = job
+    const { x, y } = coords
+    const { width, height } = dimensions
+    const elType = element.nodeName.toLowerCase()
+    const ctx = mainCanvas.getContext("2d")
+  
+    if (ctx) {
+      switch (elType) {
+        case "div": {
+          ctx.fillStyle = getComputedStyle(job.element).backgroundColor || "#f8f8f8"
+          ctx.fillRect(x, y, width, height)
+          break
+        }
+        case "svg": {
+          const svgEl = job.element as SVGSVGElement
+          const dataURL = makeDataURLFromSVGElement(svgEl, dimensions)
+          const svgImg = await makeSVGImage(dataURL)
+          ctx.drawImage(svgImg, x, y, width, height)
+          break
+        }
+        case "img": {
+          const img = job.element as HTMLImageElement
+          ctx.drawImage(img, x, y, width, height)
+          break
+        }
       }
-    } else if (elType === "svg") {
-      const dataURL = makeDataURLFromSVGElement(job.element as SVGSVGElement)
-      const img = await makeSVGImage(dataURL)
-      addImgToCanvas(canvas, img, coords, dimensions)
-    } else if (elType === "img") {
-      const img = job.element as HTMLImageElement
-      addImgToCanvas(canvas, img, coords, dimensions)
     }
   
     return perform(jobList[jobIx++])
   }
 
-  const disallowedClasses = [
+  const getClassNames = (element: Element): string[] => {
+    if (element instanceof HTMLElement || element instanceof SVGElement) {
+      return Array.from(element.classList)
+    }
+    return []
+  }
+
+  const isAllowedElement = (element: Element): boolean => {
+    const classNames = getClassNames(element)
+    return classNames.every((className) => !disallowedClasses.has(className))
+  }
+
+  const disallowedClasses = new Set([
     "axis-legend-attribute-menu",
     "attribute-label-menu",
+    "chakra-icon",
     "chakra-menu__menu-list",
     "codap-component-corner",
-    "css-1nesaxo", // or css-* somehow?
+    "component-minimize-icon",
+    "component-resize-handle",
     "droppable-axis",
     "droppable-svg",
     "header-right",
-    "legend-component",
-    "legend-categories"
-  ]
-  const elements = rootEl.querySelectorAll("div, svg")
-  // remove all elements that are not allowed
-  let allowedElements = Array.from(elements).filter((element) => {
-    if (element instanceof HTMLElement) {
-      const classNames = element.className.split(" ")
-      return classNames.every((className) => !disallowedClasses.includes(className))
-    }
-    return true
-  })
-  // remove all elements that are children of elements that are not allowed
-  allowedElements = allowedElements.filter((element) => {
-    let parent = element.parentElement
-    while (parent) {
-      if (parent instanceof HTMLElement) {
-        const classNames = parent.className.split(" ")
-        if (classNames.some((className) => disallowedClasses.includes(className))) {
-          return false
-        }
-      }
-      parent = parent.parentElement
-    }
-    return true
-  })
-  const canvas = makeCanvasEl()
+    "legend",
+    "multi-legend",
+  ])
+
+  const allElements = rootEl.querySelectorAll("div, svg")
+  const targetElements = Array.from(allElements).filter(isAllowedElement)
+  const mainCanvas = makeCanvas("#f8f8f8", 0, 0, graphWidth, graphHeight)
   const jobList: Job[] = []
   let jobIx = 0
 
-  allowedElements.forEach((element: Element) => {
+  targetElements.forEach((element: Element) => {
     const rect = element.getBoundingClientRect()
     const rootRect = rootEl.getBoundingClientRect()
-    // const hasInlineStyle = element instanceof HTMLElement && element.hasAttribute("style")
-    // const hasInlineStyleWidth = hasInlineStyle && element.style.width
-    // const hasInlineStyleHeight = hasInlineStyle && element.style.height
-    const isSvgElement = element instanceof SVGSVGElement
-    const width = isSvgElement ? element.width.baseVal.value : rect.width
-    const height = isSvgElement ? element.height.baseVal.value : rect.height
     const left = rect.left - rootRect.left
     const top = rect.top - rootRect.top
     const coords = { x: left, y: top }
-    const dimensions = { width, height }
+    const dimensions = { width: rect.width, height: rect.height }
 
     jobList.push({ element, dimensions, coords })
   })
