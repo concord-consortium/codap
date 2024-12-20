@@ -85,6 +85,7 @@ describe("Slider registration", () => {
     })
     expect(tileWithNoSharedModel).toBeUndefined()
 
+    // export numeric slider in v2 format
     const row = docContent.getRowByIndex(0) as IFreeTileRow
     const sliderExport = exportV2Component({ tile, row, sharedModelManager })
     expect(sliderExport?.type).toBe("DG.SliderView")
@@ -94,5 +95,19 @@ describe("Slider registration", () => {
     expect(sliderStorage.animationMode).toBe(1)
     expect(sliderStorage.maxPerSecond).toBeNull()
     expect(sliderStorage.restrictToMultiplesOf).toBeNull()
+
+    // change to date-time slider and export in v2 format
+    sliderModel!.setScaleType("date")
+    sliderModel!.setDateMultipleOfUnit("day")
+    const dateSliderExport = exportV2Component({ tile, row, sharedModelManager })
+    expect(dateSliderExport?.type).toBe("DG.SliderView")
+    const dateSliderStorage = dateSliderExport!.componentStorage as ICodapV2SliderStorage
+    expect(dateSliderStorage._links_?.model).toBeDefined()
+    expect(dateSliderStorage.animationDirection).toBe(1)
+    expect(dateSliderStorage.animationMode).toBe(1)
+    expect(dateSliderStorage.maxPerSecond).toBeNull()
+    expect(dateSliderStorage.restrictToMultiplesOf).toBeNull()
+    expect(dateSliderStorage.v3?.scaleType).toBe("date")
+    expect(dateSliderStorage.v3?.dateMultipleOfUnit).toBe("day")
   })
 })

@@ -10,6 +10,7 @@ import { ITileLikeModel, registerTileContentInfo } from "../../models/tiles/tile
 import { getGlobalValueManager } from "../../models/tiles/tile-environment"
 import { ITileModelSnapshotIn } from "../../models/tiles/tile-model"
 import { toV2Id, toV3GlobalId, toV3Id } from "../../utilities/codap-utils"
+import { DateUnit, unitsStringToMilliseconds } from "../../utilities/date-utils"
 import { isFiniteNumber } from "../../utilities/math-utils"
 import { isAliveSafe } from "../../utilities/mst-utils"
 import { t } from "../../utilities/translation/translate"
@@ -25,7 +26,7 @@ import { ISliderSnapshot, SliderModel, isSliderModel } from "./slider-model"
 import { SliderTitleBar } from "./slider-title-bar"
 import {
   AnimationDirection, AnimationDirections, AnimationMode, AnimationModes,
-  kDefaultAnimationDirection, kDefaultAnimationMode
+  kDefaultAnimationDirection, kDefaultAnimationMode, kDefaultSliderAxisMax, kDefaultSliderAxisMin
 } from "./slider-types"
 import { kDefaultSliderName, kDefaultSliderValue } from "./slider-utils"
 
@@ -74,7 +75,7 @@ registerTileComponentInfo({
   defaultHeight: 73
 })
 
-registerV2TileExporter((kSliderTileType), ({ tile }) => {
+registerV2TileExporter(kSliderTileType, ({ tile }) => {
   const sliderModel = isSliderModel(tile.content) ? tile.content : undefined
   if (!sliderModel) return
   const {
@@ -82,7 +83,9 @@ registerV2TileExporter((kSliderTileType), ({ tile }) => {
     animationDirection,
     animationMode,
     _animationRate,
-    multipleOf
+    multipleOf,
+    dateMultipleOfUnit,
+    scaleType
   } = sliderModel
 
   const domain = isFiniteNumber(lowerBound) && isFiniteNumber(upperBound) ? { lowerBound, upperBound } : undefined
@@ -93,6 +96,12 @@ registerV2TileExporter((kSliderTileType), ({ tile }) => {
   const getAnimationModeIndex = (mode?: AnimationMode) => {
     return mode != null ? AnimationModes.findIndex(_mode => _mode === mode) : 1
   }
+  // v2 doesn't support date-time sliders; convert to seconds instead
+  const restrictToMultiplesOf = scaleType === "date" && multipleOf != null
+                                  ? multipleOf * unitsStringToMilliseconds(dateMultipleOfUnit) / 1000
+                                  : multipleOf
+  // v3 extensions: ignored by v2, but allows full round-trip for v3 save/restore
+  const v3: ICodapV2SliderStorage["v3"] = { scaleType, multipleOf, dateMultipleOfUnit }
 
   const componentStorage: SetOptional<ICodapV2SliderStorage, keyof ICodapV2BaseComponentStorage> = {
     _links_: { model: guidLink("DG.GlobalValue", toV2Id(tile.id)) },
@@ -100,7 +109,8 @@ registerV2TileExporter((kSliderTileType), ({ tile }) => {
     animationDirection: getAnimationDirectionIndex(animationDirection),
     animationMode: getAnimationModeIndex(animationMode),
     maxPerSecond: _animationRate ?? null,
-    restrictToMultiplesOf: multipleOf ?? null
+    restrictToMultiplesOf: restrictToMultiplesOf ?? null,
+    v3
   }
   return { type: "DG.SliderView", componentStorage }
 })
@@ -116,7 +126,7 @@ registerV2TileImporter("DG.SliderView", ({ v2Component, v2Document, sharedModelM
     guid: componentGuid,
     componentStorage: {
       name, title: v2Title = "", _links_, lowerBound, upperBound, animationDirection, animationMode,
-      restrictToMultiplesOf, maxPerSecond, userTitle, userSetTitle
+      restrictToMultiplesOf, maxPerSecond, userTitle, userSetTitle, v3
     }
   } = v2Component
   const globalId = _links_.model.id
@@ -137,15 +147,20 @@ registerV2TileImporter("DG.SliderView", ({ v2Component, v2Document, sharedModelM
     return AnimationModes[mode] || kDefaultAnimationMode
   }
 
+  const axisType = v3?.scaleType ?? "numeric"
+  const axisMin = lowerBound ?? kDefaultSliderAxisMin
+  const axisMax = upperBound ?? kDefaultSliderAxisMax
+
   // create slider model
   const content: ISliderSnapshot = {
     type: kSliderTileType,
     globalValue: globalValue.id,
-    multipleOf: restrictToMultiplesOf ?? undefined,
+    multipleOf: v3?.multipleOf ?? restrictToMultiplesOf ?? undefined,
+    dateMultipleOfUnit: v3?.dateMultipleOfUnit as DateUnit ?? undefined,
     animationDirection: getAnimationDirectionStr(animationDirection),
     animationMode: getAnimationModeStr(animationMode),
     _animationRate: maxPerSecond ?? undefined,
-    axis: { type: "numeric", place: "bottom", min: lowerBound ?? 0, max: upperBound ?? 12 }
+    axis: { type: axisType, place: "bottom", min: axisMin, max: axisMax }
   }
   const title = v2Title && (userTitle || userSetTitle) ? v2Title : undefined
   const sliderTileSnap: ITileModelSnapshotIn = {
