@@ -338,6 +338,8 @@ $table-body-font-size: 8pt;
           line-height: 14.5px;
           overflow: hidden;
           text-overflow: ellipsis;
+          display: -webkit-box;
+          -webkit-box-orient: vertical;
         }
       }
       &.codap-data-cell.rowId-__input__ {

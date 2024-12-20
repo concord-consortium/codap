@@ -10,7 +10,7 @@ import { kDefaultRowHeaderHeight } from "./collection-table-model"
 
 const kTableRowDividerHeight = 13
 const kTableDividerOffset = Math.floor(kTableRowDividerHeight / 2)
-const kSnapToLineHeight = 14
+export const kSnapToLineHeight = 14
 interface IRowDividerProps {
   rowId: string
 }

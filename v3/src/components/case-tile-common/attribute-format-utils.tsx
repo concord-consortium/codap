@@ -9,8 +9,9 @@ import { parseColor } from "../../utilities/color-utils"
 import { isStdISODateString } from "../../utilities/date-iso-utils"
 import { parseDate } from "../../utilities/date-parser"
 import { formatDate } from "../../utilities/date-utils"
-import { kCaseTableBodyFont, kCaseTableHeaderFont, kMaxAutoColumnWidth,
+import { kCaseTableBodyFont, kCaseTableHeaderFont, kDefaultRowHeight, kMaxAutoColumnWidth,
           kMinAutoColumnWidth } from "../case-table/case-table-types"
+import { kSnapToLineHeight } from "../case-table/row-divider"
 
 // cache d3 number formatters so we don't have to generate them on every render
 type TNumberFormatter = (n: number) => string
@@ -25,9 +26,14 @@ export const getNumFormatter = (formatStr: string) => {
   return formatter
 }
 
-export function renderAttributeValue(str = "", num = NaN, showUnits = false, attr?: IAttribute, key?: number) {
+export function renderAttributeValue(str = "", num = NaN, showUnits = false, attr?: IAttribute,
+            key?: number, rowHeight: number = kDefaultRowHeight) {
   const { type, userType, numPrecision, datePrecision } = attr || {}
   let formatClass = ""
+  // [CC] https://css-tricks.com/almanac/properties/l/line-clamp/
+  const lineClamp = rowHeight > kDefaultRowHeight
+                      ? Math.ceil((rowHeight) / (kSnapToLineHeight + 1))
+                      : 0
 
   // boundaries
   if (type === "boundary") {
@@ -82,7 +88,9 @@ export function renderAttributeValue(str = "", num = NaN, showUnits = false, att
       const formattedDate = formatDate(date, datePrecision)
       return {
         value: str,
-        content: <span className="cell-span" key={key}>{formattedDate || `"${str}"`}</span>
+        content:  <span className="cell-span" key={key} style={{ WebkitLineClamp: lineClamp }}>
+                    {formattedDate || `"${str}"`}
+                  </span>
       }
     } else {
       // If the date is not valid, wrap it in quotes (CODAP V2 behavior).
@@ -92,7 +100,9 @@ export function renderAttributeValue(str = "", num = NaN, showUnits = false, att
 
   return {
     value: str,
-    content: <span className={clsx("cell-span", formatClass)} key={key}>{str}</span>
+    content:  <span className={clsx("cell-span", formatClass)} key={key} style={{ WebkitLineClamp: lineClamp }}>
+                {str}
+              </span>
   }
 }
 
