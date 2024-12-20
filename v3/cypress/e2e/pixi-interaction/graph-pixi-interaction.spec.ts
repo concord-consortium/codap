@@ -2,7 +2,6 @@
 import { GraphTileElements as graph } from "../../support/elements/graph-tile"
 import { TableTileElements as table } from "../../support/elements/table-tile"
 import { ComponentElements as c } from "../../support/elements/component-elements"
-import { ToolbarElements as toolbar } from "../../support/elements/toolbar-elements"
 import { CfmElements as cfm } from "../../support/elements/cfm"
 //import { ColorPickerPaletteElements as cpp} from "../../support/elements/color-picker-palette"
 import { GraphCanvasHelper as gch } from "../../support/helpers/graph-canvas-helper"
@@ -113,88 +112,61 @@ context("Graph UI with Pixi interaction", () => {
         gch.validateGraphPointCount(tileId, 18) // 18 points in graph
       })
     })
-    it.skip("should highlight a selected graph point with pixi interaction", () => {
-      // this is a spike to get interaction with point selection and texture
-      // it makes use of the texture call in the pixiPoint
-      // However, I'm pretty sure I've got the structure of the array wrong
-      // this code tries to log and verify the selected case ID and see how it
-      // interacts with the pixiPoint array
+    it.skip("should check position of a point with pixi interaction", () => {
+      ah.openAxisAttributeMenu("bottom")
+      ah.selectMenuAttribute("Sleep", "bottom") // Sleep => x-axis
+      cy.wait(500) // Wait for the graph to update
 
-      // /**
-      //  * Helper function to check if a graph point is selected.
-      //  * @param pointMetadata - The `pointMetadata` map from `pixiPoints`.
-      //  * @param selectedCaseID - The case ID of the selected point.
-      //  * @param expectedColor - The expected color of the selected point.
-      //  * @returns True if the point matches the expected color, false otherwise.
-      //  */
-      const collectionName = "newCollectionName"
+      graph.getGraphTile() // Ensure graph tile is loaded
 
-      const isPointSelected = (pointMetadata: Map<any, any>,
-        selectedCaseID: string, expectedColor: string): boolean => {
-        // Find the entry in `pointMetadata` matching the `selectedCaseID`
-        const selectedEntry = Array.from(pointMetadata.values()).find(
-          (entry: any) => entry.caseID === selectedCaseID
-        )
-        if (!selectedEntry) {
-          cy.log('No entry found for selected case ID:', selectedCaseID)
-          return false
+      gch.getGraphTileId().then((tileId: string) => {
+        cy.log(`Retrieved Tile ID: ${tileId}`)
+        if (!tileId) {
+          throw new Error("Tile ID is undefined or null.")
         }
-        cy.log('Selected Entry:', selectedEntry)
 
-        // Check if the `style.fill` matches the expected color
-        const fillColor = selectedEntry.style?.fill
-        cy.log('Extracted Fill Color:', fillColor)
-        return fillColor === expectedColor
-      }
-
-      // Select the target table cell and dynamically retrieve the caseID
-      table.getGridCell(2, 2)
-        .should("contain", "African Elephant")
-        .invoke('attr', 'data-row-id')
-        .then((selectedCaseID) => {
-          cy.log(`Selected Case ID: ${selectedCaseID}`)
-          // extract the caseID from the data cell, which is in the div: <div role="gridcell" aria-colindex="2" aria-selected="false" tabindex="-1" class="rdg-cell cj343x07-0-0-beta-44 codap-data-cell rowId-CASE10141474223196" style="grid-column: 2 / 3;" data-cypress-el="true"><span class="cell-span">African Elephant</span></div>)
-
-          // Verify the graph's component title matches the collection name
-          c.getComponentTitle("graph").should("contain", collectionName)
-
-          // Re-click the table cell to ensure interaction consistency
-          table.getGridCell(2, 2).click({ force: true })
-
-          // for getting position
-          // pixiPointsMap[tileID][0].points[0].position.x
-          // pixiPointsMap[tileID][0].points[0].position.y
-
-          // Locate the graph and retrieve its dynamic tile ID
-          cy.get('[data-testid=codap-graph]')
-            .parents('.free-tile-component')
-            .invoke('attr', 'id')
-            .then((tileId) => {
-              if (!tileId) {
-                throw new Error("tileId is undefined or null.")
-              }
-              cy.log(`Graph Tile ID Retrieved: ${tileId}`)
-
-              // Access PIXI metadata
-              cy.window().then((win: any) => {
-                const pixiPoints = win.pixiPointsMap[tileId]
-                cy.log('Full Pixi Points Object:', pixiPoints)
-
-                // Verify pixiPoints exists
-                expect(pixiPoints[0], 'Pixi points should exist').to.exist
-
-                // Access `pointMetadata`
-                const pointMetadata = pixiPoints[0].pointMetadata
-                cy.log('Point Metadata Map:', pointMetadata)
-
-                // Verify the point is highlighted
-                const selectedColor = "#4682B4" // Expected color for a selected point
-                const isSelected = isPointSelected(pointMetadata, selectedCaseID, selectedColor)
-
-                expect(isSelected, `Point with case ID ${selectedCaseID} should be highlighted`).to.be.true
-              })
-            })
+        gch.getPixiPointPosition(tileId, 0).then((position: { x: number; y: number }) => {
+          cy.log(`Point 0 Position: x=${position.x}, y=${position.y}`)
         })
+      })
+    })
+    it.skip("spike for point compression interaction", () => {
+      // next steps are to debug what the compression does to the points
+        // Open Four Seals
+        cy.log("Open Four Seals from Hamburger menu")
+        // hamburger menu is hidden initially
+        cfm.getHamburgerMenuButton().should("exist")
+        cfm.getHamburgerMenu().should("not.exist")
+        // hamburger menu is shows when button is clicked
+        cfm.getHamburgerMenuButton().click()
+        cfm.getHamburgerMenu().should("exist")
+        // clicking Open... item closes menu and shows Open dialog
+        cfm.getHamburgerMenu().contains("li", "Open...").click()
+        cfm.getHamburgerMenu().should("not.exist")
+        cfm.getModalDialog().contains(".modal-dialog-title", "Open")
+        // Example Documents should be selected by default
+        cfm.getModalDialog().contains(".tab-selected", "Example Documents")
+        cfm.getModalDialog().contains(".filelist div.selectable", "Mammals").should("exist")
+        cfm.getModalDialog().contains(".filelist div.selectable", "Four Seals").should("exist")
+        // Selecting Four Seals document should load the Four Seals example document
+        cfm.getModalDialog().contains(".filelist div.selectable", "Four Seals").click()
+        cfm.getModalDialog().contains(".buttons button", "Open").click()
+        cy.wait(1000)
+        // once loaded, Open dialog should be hidden and document content should be shown
+        cfm.getModalDialog().should("not.exist")
+        cy.get(".codap-component.codap-case-table").contains(".title-bar", "Tracks/Measurements").should("exist")
+
+        // Create a graph
+        graph.getGraphTile().click()
+        ah.openAxisAttributeMenu("bottom")
+        ah.selectMenuAttribute("date", "bottom") // Date => x-axis
+        cy.get('[data-testid="axis-legend-attribute-button-bottom"]').eq(0).should("have.text", "date")
+        ah.openAxisAttributeMenu("left")
+        ah.selectMenuAttribute("animal_id", "left") // animal_id => y-axis
+        ah.openAxisAttributeMenu("left")
+        ah.treatAttributeAsNumeric("left")
+        ah.openAxisAttributeMenu("left")
+        ah.treatAttributeAsCategorical("left")
     })
   })
   describe("case card graph interaction", () => {

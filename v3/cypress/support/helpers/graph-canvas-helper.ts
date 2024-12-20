@@ -51,5 +51,27 @@ export const GraphCanvasHelper = {
       // Assert the number of points
       expect(pointsCount).to.equal(expectedPointCount, "Point count matches expected value")
     })
+  },
+  getPixiPointPosition(tileId: string, pointIndex: number): Cypress.Chainable<{ x: number; y: number }> {
+    cy.log("Get the PixiPoint position")
+    return cy.window().then((win: any) => {
+      const pixiPoints = win.pixiPointsMap[tileId]
+      cy.log(`PixiPoints for Tile ID ${tileId}:`, pixiPoints)
+
+      // Use optional chaining to check if pixiPoints and pixiPoints[0] exist
+      if (!pixiPoints?.[0]) {
+        throw new Error(`PixiPoints for tile ID ${tileId} is undefined or empty.`)
+      }
+
+      // Retrieve the point position
+      const pointPosition = pixiPoints[0].points[pointIndex]?.position
+      if (!pointPosition) {
+        throw new Error(`Point at index ${pointIndex} does not exist for tile ID ${tileId}.`)
+      }
+      cy.log(`Point Position (Index ${pointIndex}): x=${pointPosition.x}, y=${pointPosition.y}`)
+
+      // Use cy.wrap to make the position Cypress-compatible
+      return cy.wrap({ x: pointPosition.x, y: pointPosition.y })
+    })
   }
 }
