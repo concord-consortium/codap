@@ -12,7 +12,8 @@ export const CaseTableModel = TileContentModel
     // key is attribute id; value is width
     columnWidths: types.map(types.number),
     // Only used for serialization; volatile property used during run time
-    horizontalScrollOffset: 0
+    horizontalScrollOffset: 0,
+    rowHeightForCollection: types.map(types.number)
   })
   .volatile(self => ({
     // entire hierarchical table scrolls as a unit horizontally
@@ -63,11 +64,19 @@ export const CaseTableModel = TileContentModel
     setColumnWidths(columnWidths: Map<string, number>) {
       self.columnWidths.replace(columnWidths)
     },
+    setRowHeightForCollection(collectionId: string, height: number) {
+      self.rowHeightForCollection.set(collectionId, height)
+    },
     updateAfterSharedModelChanges(sharedModel?: ISharedModel) {
       // TODO
     },
     setHorizontalScrollOffset(horizontalScrollOffset: number) {
       self._horizontalScrollOffset = horizontalScrollOffset
+    }
+  }))
+  .actions(self => ({
+    getRowHeightForCollection(collectionId: string) {
+      return self.rowHeightForCollection.get(collectionId)
     }
   }))
 export interface ICaseTableModel extends Instance<typeof CaseTableModel> {}
