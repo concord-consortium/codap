@@ -157,11 +157,13 @@ export function convertCollectionToV2(collection: ICollectionModel, options?: CC
     cases = {
       cases: collection.cases.map(aCase => {
         const v2CaseId = toV2Id(aCase.__id__)
+        const parentCase = dataSet?.getParentCase(aCase.__id__, collection.id)
+        const v2ParentCaseId = parentCase ? toV2Id(parentCase.groupedCase.__id__) : undefined
         const values: ICodapV2Case["values"] = {}
-        collection.allDataAttributes.forEach(attr => {
+        collection.dataAttributesArray.forEach(attr => {
           values[attr.name] = dataSet?.getValue(aCase.__id__, attr.id) ?? ""
         })
-        return { guid: v2CaseId, id: v2CaseId, values }
+        return { guid: v2CaseId, id: v2CaseId, parent: v2ParentCaseId, values }
       })
     }
   }
@@ -176,7 +178,7 @@ export function convertCollectionToV2(collection: ICollectionModel, options?: CC
     id: v2Id,
     labels,
     name,
-    // parent,
+    parent: collection.parent?.id ? toV2Id(collection.parent.id) : undefined,
     title,
     type: "DG.Collection"
   }
