@@ -425,7 +425,11 @@ export const graphComponentHandler: DIComponentHandler = {
 
     // Update odd features
     if (backgroundColor != null) content.setPlotBackgroundColor(backgroundColor)
-    if (displayOnlySelectedCases != null) dataConfiguration.setDisplayOnlySelectedCases(displayOnlySelectedCases)
+    if (displayOnlySelectedCases) {
+      content.displayOnlySelectedCases()
+    } else if (displayOnlySelectedCases != null) {
+      content.showAllCases()
+    }
     if (filterFormula != null) dataConfiguration.setFilterFormula(filterFormula)
     if (hiddenCases != null) dataConfiguration.setHiddenCases(hiddenCases.map(id => toV3CaseId(id)))
     if (pointColor != null) pointDescription.setPointColor(pointColor)
