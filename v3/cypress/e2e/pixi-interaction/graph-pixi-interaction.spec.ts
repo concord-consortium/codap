@@ -1,11 +1,9 @@
-// import * as PIXI from "pixi.js"
 import { ComponentElements as c } from "../../support/elements/component-elements"
 import { CfmElements as cfm } from "../../support/elements/cfm"
 import { GraphLegendHelper as glh } from "../../support/helpers/graph-legend-helper"
 import { GraphTileElements as graph } from "../../support/elements/graph-tile"
 import { TableTileElements as table } from "../../support/elements/table-tile"
 import { ToolbarElements as toolbar } from "../../support/elements/toolbar-elements"
-//import { ColorPickerPaletteElements as cpp} from "../../support/elements/color-picker-palette"
 import { GraphCanvasHelper as gch } from "../../support/helpers/graph-canvas-helper"
 import { AxisHelper as ah } from "../../support/helpers/axis-helper"
 import graphRules from '../../fixtures/graph-rules.json'
@@ -116,7 +114,7 @@ context("Graph UI with Pixi interaction", () => {
     })
   })
   describe("case card graph interaction with point count pixi interaction", () => {
-    it("can drag attributes from the case card to the graph with pixijs interaction", () => {
+    it("can drag attributes from the case card to the graph and check point count", () => {
       const tableHeaderLeftSelector = ".codap-component.codap-case-table .component-title-bar .header-left"
       cy.get(tableHeaderLeftSelector).click()
       cy.get(`${tableHeaderLeftSelector} .card-table-toggle-message`).click()
@@ -301,6 +299,29 @@ context("Graph UI with Pixi interaction", () => {
           cy.log(`Point 0 Position: x=${position.x}, y=${position.y}`)
         })
       })
+    })
+    it.skip("SPIKE: should check color of a point", () => {
+      ah.openAxisAttributeMenu("bottom")
+      ah.selectMenuAttribute("Diet", "bottom") // Diet => x-axis
+      glh.dragAttributeToPlot("Habitat") // Habitat => plot area
+      cy.wait(500) // Wait for the graph to update
+
+      ah.verifyAxisLabel("bottom", "Diet")
+      //glh.verifyCategoricalLegend("LifeSpan")
+
+      gch.getGraphTileId().then((tileId) => {
+        gch.validateGraphPointCount(tileId, 27) // 27 points in graph
+      })
+
+      graph.getGraphTile() // Ensure graph tile is loaded
+
+      gch.getGraphTileId().then((tileId: string) => {
+        gch.getPixiPointFillColorHardcoded(tileId, 0).then(({ fill }) => {
+          cy.log(`Retrieved Fill Color for Point 0: ${fill}`);
+          expect(fill).to.exist;
+          expect(fill).to.match(/^#[0-9a-fA-F]{6}$/, "Fill color should be a valid hex code");
+        });
+      });
     })
     // this test will work when PT-#188601933 is delivered
     it.skip("check for point compression interaction", () => {

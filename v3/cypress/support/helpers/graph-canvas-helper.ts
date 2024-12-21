@@ -102,5 +102,82 @@ export const GraphCanvasHelper = {
       // Assert all points have unique positions
       expect(uniquePositions.size).to.equal(positions.length, "All points should have unique positions")
     })
-  }
+  },
+  // getPixiPointFillColorHardcoded(tileId: string, pointIndex: number): Cypress.Chainable<{ fill?: string }> {
+  //   cy.log("Get the PixiPoint fill color (manual inspection)");
+  //   return cy.window().then((win: any) => {
+  //     const pixiPoints = win.pixiPointsMap[tileId];
+  //     const textures = pixiPoints[0].textures; // Access textures directly from PixiPoints
+
+  //     // Log basic info for debugging
+  //     cy.log("PixiPoints:", pixiPoints);
+  //     cy.log("Textures Object (Type):", typeof textures);
+
+  //     if (!textures) {
+  //       throw new Error("Textures object is undefined.");
+  //     }
+
+  //     // Check if textures is a Map-like structure
+  //     if (typeof textures.entries === "function") {
+  //       const textureEntries = Array.from(textures.entries());
+  //       cy.log("Texture Entries (from Map):", textureEntries);
+
+  //       // Manually log all entries to inspect them
+  //       textureEntries.forEach(([key, entry], index) => {
+  //         cy.log(`Texture Entry ${index} Key:`, key);
+  //         cy.log(`Texture Entry ${index} Properties:`, {
+  //           fill: entry.fill,
+  //           style: entry.style,
+  //         });
+  //       });
+
+  //       // Attempt to retrieve the first texture's fill property
+  //       const [textureKey, textureEntry] = textureEntries[0] || [];
+  //       if (!textureEntry) {
+  //         throw new Error(`Texture entry for key ${textureKey} is not found.`);
+  //       }
+
+  //       const fillColor = textureEntry.fill || textureEntry.style?.fill;
+  //       cy.log("Fill Color (From Map):", fillColor);
+
+  //       if (!fillColor) {
+  //         throw new Error("Fill color is undefined in the texture entry.");
+  //       }
+
+  //       return cy.wrap({ fill: fillColor });
+  //     }
+
+  //     // Handle case where textures is an object
+  //     const textureKeys = Object.keys(textures);
+  //     cy.log("Texture Keys (from Object):", textureKeys);
+
+  //     textureKeys.forEach((key, index) => {
+  //       const entry = textures[key];
+  //       cy.log(`Texture Entry ${index} Key:`, key);
+  //       cy.log(`Texture Entry ${index} Properties:`, {
+  //         fill: entry.fill,
+  //         style: entry.style,
+  //       });
+  //     });
+
+  //     const textureKey = textureKeys[0];
+  //     if (!textureKey) {
+  //       throw new Error("No texture keys found in the textures object.");
+  //     }
+
+  //     const textureEntry = textures[textureKey];
+  //     if (!textureEntry) {
+  //       throw new Error(`Texture entry for key ${textureKey} is not found.`);
+  //     }
+
+  //     const fillColor = textureEntry.fill || textureEntry.style?.fill;
+  //     cy.log("Fill Color (From Object):", fillColor);
+
+  //     if (!fillColor) {
+  //       throw new Error("Fill color is undefined in the texture entry.");
+  //     }
+
+  //     return cy.wrap({ fill: fillColor });
+  //   });
+  // }
 }
