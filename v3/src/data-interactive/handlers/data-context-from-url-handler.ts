@@ -1,28 +1,24 @@
 import { appState } from "../../models/app-state"
 import { convertParsedCsvToDataSet, CsvParseResult, downloadCsvFile } from "../../utilities/csv-import"
+import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
-import { DIErrorResult, DIHandler, diNotImplementedYet, DIResources, DIUrl, DIValues } from "../data-interactive-types"
-
-const kInvalidValuesError: DIErrorResult = {
-  success: false,
-  values: {
-    error: "dataContextFromURL requires a { URL: [url] } value"
-  }
-}
+import { DIHandler, DIResources, DIUrl, DIValues } from "../data-interactive-types"
+import { errorResult, fieldRequiredResult } from "./di-results"
 
 export function getFilenameFromUrl(url: string) {
   return new URL(url, window.location.href).pathname.split("/").pop()
 }
 
 export const diDataContextFromURLHandler: DIHandler = {
-
   // The API tester has a template for this under the dataContext section.
   // Because the download is async we won't know if this succeeded or failed until it
   // has been downloaded. As a first pass we always say it succeeds. And then when if
   // it fails we show an alert.
-  create(resources: DIResources, _values?: DIValues) {
+  create(_resources: DIResources, _values?: DIValues) {
     const values = _values as DIUrl | undefined
-    if (!values || !(typeof values === "object") || !values.URL) return kInvalidValuesError
+    if (!values || !(typeof values === "object") || !values.URL) {
+      return fieldRequiredResult("create", "dataContextFromURL", "URL")
+    }
 
     const url = values.URL
 
@@ -54,7 +50,7 @@ export const diDataContextFromURLHandler: DIHandler = {
 
       return { success: true }
     } catch (e) {
-      return { success: false, values: { error: "Failed to download CSV file"}}
+      return errorResult(t("V3.DI.Error.downloadCSV"))
     }
   }
 }
