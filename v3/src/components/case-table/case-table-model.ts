@@ -11,9 +11,10 @@ export const CaseTableModel = TileContentModel
     type: types.optional(types.literal(kCaseTableTileType), kCaseTableTileType),
     // key is attribute id; value is width
     columnWidths: types.map(types.number),
+    // key is collection id, value is row height for collection
+    rowHeights: types.map(types.number),
     // Only used for serialization; volatile property used during run time
-    horizontalScrollOffset: 0,
-    rowHeightForCollection: types.map(types.number)
+    horizontalScrollOffset: 0
   })
   .volatile(self => ({
     // entire hierarchical table scrolls as a unit horizontally
@@ -37,6 +38,9 @@ export const CaseTableModel = TileContentModel
     columnWidth(attrId: string) {
       return self.columnWidths.get(attrId)
     },
+    getRowHeightForCollection(collectionId: string) {
+      return self.rowHeights.get(collectionId)
+    }
   }))
   .views(self => {
     const collectionTableModels = new Map<string, CollectionTableModel>()
@@ -45,7 +49,8 @@ export const CaseTableModel = TileContentModel
       getCollectionTableModel(collectionId: string) {
         let collectionTableModel = collectionTableModels.get(collectionId)
         if (!collectionTableModel) {
-          collectionTableModel = new CollectionTableModel(collectionId)
+          const rowHeight = self.getRowHeightForCollection(collectionId)
+          collectionTableModel = new CollectionTableModel(collectionId, rowHeight)
           collectionTableModels.set(collectionId, collectionTableModel)
         }
         return collectionTableModel
@@ -65,18 +70,13 @@ export const CaseTableModel = TileContentModel
       self.columnWidths.replace(columnWidths)
     },
     setRowHeightForCollection(collectionId: string, height: number) {
-      self.rowHeightForCollection.set(collectionId, height)
+      self.rowHeights.set(collectionId, height)
     },
     updateAfterSharedModelChanges(sharedModel?: ISharedModel) {
       // TODO
     },
     setHorizontalScrollOffset(horizontalScrollOffset: number) {
       self._horizontalScrollOffset = horizontalScrollOffset
-    }
-  }))
-  .actions(self => ({
-    getRowHeightForCollection(collectionId: string) {
-      return self.rowHeightForCollection.get(collectionId)
     }
   }))
 export interface ICaseTableModel extends Instance<typeof CaseTableModel> {}

@@ -9,9 +9,10 @@ import { parseColor } from "../../utilities/color-utils"
 import { isStdISODateString } from "../../utilities/date-iso-utils"
 import { parseDate } from "../../utilities/date-parser"
 import { formatDate } from "../../utilities/date-utils"
-import { kCaseTableBodyFont, kCaseTableHeaderFont, kDefaultRowHeight, kMaxAutoColumnWidth,
-          kMinAutoColumnWidth } from "../case-table/case-table-types"
-import { kSnapToLineHeight } from "../case-table/row-divider"
+import {
+  kCaseTableBodyFont, kCaseTableHeaderFont, kDefaultRowHeight,
+  kMaxAutoColumnWidth, kMinAutoColumnWidth, kSnapToLineHeight
+} from "../case-table/case-table-types"
 
 // cache d3 number formatters so we don't have to generate them on every render
 type TNumberFormatter = (n: number) => string
@@ -30,9 +31,9 @@ export function renderAttributeValue(str = "", num = NaN, showUnits = false, att
             key?: number, rowHeight: number = kDefaultRowHeight) {
   const { type, userType, numPrecision, datePrecision } = attr || {}
   let formatClass = ""
-  // [CC] https://css-tricks.com/almanac/properties/l/line-clamp/
+  // https://css-tricks.com/almanac/properties/l/line-clamp/
   const lineClamp = rowHeight > kDefaultRowHeight
-                      ? Math.ceil((rowHeight) / (kSnapToLineHeight + 1))
+                      ? Math.ceil(rowHeight / (kSnapToLineHeight + 1))
                       : 0
 
   // boundaries

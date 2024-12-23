@@ -2,6 +2,7 @@ import {
   CalculatedColumn, CellClickArgs, CellKeyDownArgs, CellSelectArgs, ColSpanArgs, Column, RenderCellProps,
   RenderEditCellProps, Renderers, RenderHeaderCellProps, RenderRowProps, RowsChangeData
 } from "react-data-grid"
+import { DEBUG_CASE_IDS } from "../../lib/debug"
 import { IGroupedCase, symFirstChild } from "../../models/data/data-set-types"
 
 export const kCaseTableIdBase = "case-table"
@@ -55,7 +56,7 @@ export type OnScrollRowRangeIntoViewFn = (collectionId: string, rowIndices: numb
 export const kInputRowKey = "__input__"
 
 export const kDropzoneWidth = 30
-export const kIndexColumnWidth = 52
+export const kIndexColumnWidth = DEBUG_CASE_IDS ? 150 : 52
 export const kDefaultColumnWidth = 80
 export const kMinAutoColumnWidth = 50
 export const kMaxAutoColumnWidth = 600
@@ -67,4 +68,7 @@ export const kCaseTableHeaderFont = `bold ${kCaseTableFontSize} ${kCaseTableFont
 export const kCaseTableBodyFont = `${kCaseTableFontSize} ${kCaseTableFontFamily}`
 
 export const kCaseTableDefaultWidth = 580
+export const kDefaultRowHeaderHeight = 30
 export const kDefaultRowHeight = 18
+// used for row resizing
+export const kSnapToLineHeight = 14

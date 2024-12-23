@@ -93,7 +93,7 @@ export const useRows = (gridElement: HTMLDivElement | null) => {
         })
       })
     })
-  }, [collectionId, data, gridElement, setCachedDomAttr])
+  }, [collectionId, collectionTableModel, data, gridElement, setCachedDomAttr])
 
   const resetRowCacheAndSyncRows = useDebouncedCallback(() => {
     resetRowCache()

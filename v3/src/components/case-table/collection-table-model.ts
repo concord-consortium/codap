@@ -2,9 +2,8 @@ import { action, computed, makeObservable, observable } from "mobx"
 import { symParent } from "../../models/data/data-set-types"
 import { getNumericCssVariable } from "../../utilities/css-utils"
 import { uniqueId } from "../../utilities/js-utils"
-import { IScrollOptions, kDefaultRowHeight, TRow } from "./case-table-types"
+import { IScrollOptions, kDefaultRowHeaderHeight, kDefaultRowHeight, TRow } from "./case-table-types"
 
-export const kDefaultRowHeaderHeight = 30
 const kDefaultRowCount = 12
 const kDefaultGridHeight = kDefaultRowHeaderHeight + (kDefaultRowCount * kDefaultRowHeight)
 
@@ -46,10 +45,11 @@ export class CollectionTableModel {
   // rows are passed directly to RDG for rendering
   @observable.shallow rows: TRow[] = []
 
-  @observable rowHeight = kDefaultRowHeight
+  @observable rowHeight
 
-  constructor(collectionId: string) {
+  constructor(collectionId: string, rowHeight = kDefaultRowHeight) {
     this.collectionId = collectionId
+    this.rowHeight = rowHeight
 
     makeObservable(this)
   }
@@ -62,7 +62,6 @@ export class CollectionTableModel {
     return getNumericCssVariable(this.element, "--rdg-row-header-height") ?? kDefaultRowHeaderHeight
   }
 
-
   // visible height of the body of the grid, i.e. the rows excluding the header row
   get gridBodyHeight() {
     return (this.element?.getBoundingClientRect().height ?? kDefaultGridHeight) - kDefaultRowHeaderHeight
@@ -72,12 +71,8 @@ export class CollectionTableModel {
     return rowIndex * this.rowHeight
   }
 
-  @computed get rowBottoms() {
-    return this.rows.map((_, rowIndex) => (rowIndex + 1) * this.rowHeight)
-  }
-
   getRowBottom(rowIndex: number) {
-    return this.rowBottoms[rowIndex]
+    return (rowIndex + 1) * this.rowHeight
   }
 
   get isSyncScrollingResponseDisabled() {

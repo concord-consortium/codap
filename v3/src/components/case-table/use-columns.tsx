@@ -13,17 +13,19 @@ import { kDefaultColumnWidth, kDefaultRowHeight, TColumn } from "./case-table-ty
 import CellTextEditor from "./cell-text-editor"
 import ColorCellTextEditor from "./color-cell-text-editor"
 import { ColumnHeader } from "./column-header"
+import { useCollectionTableModel } from "./use-collection-table-model"
 
 interface IUseColumnsProps {
   data?: IDataSet
   indexColumn?: TColumn
-  rowHeight: number
 }
-export const useColumns = ({ data, indexColumn, rowHeight }: IUseColumnsProps) => {
+export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
   const caseMetadata = useCaseMetadata()
+  const collectionTableModel = useCollectionTableModel()
   const parentCollection = useParentCollectionContext()
   const collectionId = useCollectionContext()
   const [columns, setColumns] = useState<TColumn[]>([])
+  const rowHeight = collectionTableModel?.rowHeight ?? kDefaultRowHeight
 
   useEffect(() => {
     // rebuild column definitions when referenced properties change

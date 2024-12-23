@@ -4,8 +4,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import DataGrid, { CellKeyboardEvent, DataGridHandle } from "react-data-grid"
 import { kCollectionTableBodyDropZoneBaseId } from "./case-table-drag-drop"
 import {
-  kDefaultRowHeight,
-  kInputRowKey, OnScrollClosestRowIntoViewFn, OnScrollRowRangeIntoViewFn, OnTableScrollFn,
+  kDefaultRowHeight, kInputRowKey, OnScrollClosestRowIntoViewFn, OnScrollRowRangeIntoViewFn, OnTableScrollFn,
   TCellKeyDownArgs, TRenderers, TRow
 } from "./case-table-types"
 import { CollectionTableSpacer } from "./collection-table-spacer"
@@ -76,13 +75,8 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
   const [selectionStartRowIdx, setSelectionStartRowIdx] = useState<number | null>(null)
   const initialPointerDownPosition = useRef({ x: 0, y: 0 })
   const kPointerMovementThreshold = 3
-  const rowHeight = caseTableModel?.getRowHeightForCollection(collectionId) ??
-                    collectionTableModel?.rowHeight ??
-                    kDefaultRowHeight
+  const rowHeight = collectionTableModel?.rowHeight ?? kDefaultRowHeight
 
-  if (caseTableModel?.getRowHeightForCollection(collectionId)  !== collectionTableModel?.rowHeight) {
-    collectionTableModel?.setRowHeight(rowHeight)
-  }
   useEffect(function setGridElement() {
     const element = gridRef.current?.element
     if (element && collectionTableModel) {
@@ -100,7 +94,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
 
   // columns
   const indexColumn = useIndexColumn()
-  const columns = useColumns({ data, indexColumn, rowHeight })
+  const columns = useColumns({ data, indexColumn })
 
   // rows
   const { handleRowsChange } = useRows(gridRef.current?.element ?? null)

@@ -335,6 +335,7 @@ $table-body-font-size: 8pt;
         overflow-wrap: break-word;
 
         .cell-span, .rdg-text-editor {
+          // https://css-tricks.com/almanac/properties/l/line-clamp/
           line-height: 14.5px;
           overflow: hidden;
           text-overflow: ellipsis;
@@ -418,7 +419,6 @@ $table-body-font-size: 8pt;
   .codap-row-divider {
     height: 9px;
     position: absolute;
-    width: 52px;
     cursor: row-resize;
     z-index: 1;
   }
