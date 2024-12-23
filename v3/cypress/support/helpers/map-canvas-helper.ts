@@ -51,5 +51,55 @@ export const MapCanvasHelper = {
       // Assert the number of points
       expect(pointsCount).to.equal(expectedPointCount, "Point count matches expected value")
     })
+  },
+  // Checks if the points in a graph have unique fill colors.
+  getPixiPointFillColors(tileId: string): Cypress.Chainable<string[]> {
+    cy.log("Get all PixiPoint fill colors from textures")
+    return cy.window().then((win: any) => {
+      const pixiPoints = win.pixiPointsMap[tileId]
+      const textures = pixiPoints[0].textures // Access textures directly from PixiPoints
+
+      if (!textures) {
+        throw new Error("Textures object is undefined.")
+      }
+
+      // Array to store extracted fill colors
+      const fillColors: string[] = []
+
+      if (typeof textures.entries === "function") {
+        for (const [key] of textures.entries()) {
+          try {
+            // Parse the key to extract the `fill` color
+            const parsedKey = JSON.parse(key)
+            if (parsedKey.fill) {
+              fillColors.push(parsedKey.fill)
+            }
+          } catch (error) {
+            cy.log(`Error parsing texture key: ${key}`, error)
+          }
+        }
+      } else {
+        // If textures is an object
+        for (const key of Object.keys(textures)) {
+          try {
+            // Parse the key to extract the `fill` color
+            const parsedKey = JSON.parse(key)
+            if (parsedKey.fill) {
+              fillColors.push(parsedKey.fill)
+            }
+          } catch (error) {
+            cy.log(`Error parsing texture key: ${key}`, error)
+          }
+        }
+      }
+
+      cy.log("Extracted Fill Colors:", fillColors)
+
+      if (fillColors.length === 0) {
+        throw new Error("No fill colors found in the textures map.")
+      }
+
+      return cy.wrap(fillColors)
+    })
   }
 }

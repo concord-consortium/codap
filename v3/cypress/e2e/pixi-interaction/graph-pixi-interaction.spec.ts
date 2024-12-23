@@ -148,7 +148,7 @@ context("Graph UI with Pixi interaction", () => {
         gch.validateGraphPointCount(tileId, 24) // 24 points in graph
       })
     })
-    it("shows parent visibility toggles when Show Parent Visibility Toggles option is selected and checks point count", () => {
+    it("shows parent visibility toggles and verifies point count with Show Parent Visibility Toggles selected", () => {
       ah.openAxisAttributeMenu("bottom")
       ah.selectMenuAttribute("Sleep", "bottom") // Sleep => x-axis
       cy.wait(500)
@@ -279,8 +279,65 @@ context("Graph UI with Pixi interaction", () => {
 
     // NOTE: Adornments are covered in graph-adornments.spec.ts (including Show Measures)
   })
-  describe("checks for graph point position with pixi interaction", () => {
+  describe("graph colors and selection with point count pixi interaction", () => {
+    it("checks color of a point with Legend colors", () => {
+      ah.openAxisAttributeMenu("bottom")
+      ah.selectMenuAttribute("Diet", "bottom") // Diet => x-axis
+      glh.dragAttributeToPlot("Habitat") // Habitat => plot area
+      cy.wait(500) // Wait for the graph to update
+
+      ah.verifyAxisLabel("bottom", "Diet")
+      //glh.verifyCategoricalLegend("LifeSpan")
+
+      gch.getGraphTileId().then((tileId) => {
+        gch.validateGraphPointCount(tileId, 27) // 27 points in graph
+      })
+
+      graph.getGraphTile() // Ensure graph tile is loaded
+
+      gch.getGraphTileId().then((tileId: string) => {
+        gch.getPixiPointFillColors(tileId).then((colors) => {
+          cy.log(`Extracted Fill Colors: ${colors}`)
+          expect(colors).to.have.length.greaterThan(0)
+          colors.forEach((color) => {
+            expect(color).to.match(/^#[0-9a-fA-F]{6}$/, "Each color should be a valid hex code")
+          })
+        })
+      })
+    })
+    it("checks point selection using color of a point", () => {
+      ah.openAxisAttributeMenu("bottom")
+      ah.selectMenuAttribute("Diet", "bottom") // Diet => x-axis
+      cy.wait(500) // Wait for the graph to update
+
+      ah.verifyAxisLabel("bottom", "Diet")
+      //glh.verifyCategoricalLegend("LifeSpan")
+
+      gch.getGraphTileId().then((tileId) => {
+        gch.validateGraphPointCount(tileId, 27) // 27 points in graph
+      })
+
+      table.moveAttributeToParent("Diet", "newCollection")
+      table.getNumOfRows(1).should("contain", 5) // five rows: top, plants, meat, both, bottom
+      gch.setAxisAndRetrieveTileId("Diet", "bottom").then((tileId) => {
+        gch.validateGraphPointCount(tileId, 3)
+      })
+
+      table.getGridCell(2, 2).should("contain", "plants").click()
+      graph.getGraphTile() // Ensure graph tile is loaded
+
+      gch.getGraphTileId().then((tileId: string) => {
+        gch.getPixiPointFillColors(tileId).then((colors) => {
+          cy.log(`Extracted Fill Colors: ${colors}`)
+          expect(colors).to.have.length(2) // Verify there are exactly 2 colors
+          expect(colors).to.deep.equal(["#4682B4", "#E6805B"]) // Verify the colors are as expected
+        })
+      })
+    })
+  })
+  describe("checks for graph point position and color with pixi interaction", () => {
     // use this test to debug point positions when running locally
+    // skip this on the cloud because it's not necessary
     it.skip("should check position of a point", () => {
       ah.openAxisAttributeMenu("bottom")
       ah.selectMenuAttribute("Sleep", "bottom") // Sleep => x-axis
@@ -299,29 +356,6 @@ context("Graph UI with Pixi interaction", () => {
           cy.log(`Point 0 Position: x=${position.x}, y=${position.y}`)
         })
       })
-    })
-    it.skip("SPIKE: should check color of a point", () => {
-      ah.openAxisAttributeMenu("bottom")
-      ah.selectMenuAttribute("Diet", "bottom") // Diet => x-axis
-      glh.dragAttributeToPlot("Habitat") // Habitat => plot area
-      cy.wait(500) // Wait for the graph to update
-
-      ah.verifyAxisLabel("bottom", "Diet")
-      //glh.verifyCategoricalLegend("LifeSpan")
-
-      gch.getGraphTileId().then((tileId) => {
-        gch.validateGraphPointCount(tileId, 27) // 27 points in graph
-      })
-
-      graph.getGraphTile() // Ensure graph tile is loaded
-
-      gch.getGraphTileId().then((tileId: string) => {
-        gch.getPixiPointFillColorHardcoded(tileId, 0).then(({ fill }) => {
-          cy.log(`Retrieved Fill Color for Point 0: ${fill}`);
-          expect(fill).to.exist;
-          expect(fill).to.match(/^#[0-9a-fA-F]{6}$/, "Fill color should be a valid hex code");
-        });
-      });
     })
     // this test will work when PT-#188601933 is delivered
     it.skip("check for point compression interaction", () => {
@@ -360,7 +394,7 @@ context("Graph UI with Pixi interaction", () => {
         gch.checkPointsHaveUniquePositions(tileId) // Call the helper function
       })
     })
-    it("no point compression after drawing categorical legend with categorical attribute on x axis and undo/redo", () => {
+    it("verifies no point compression after drawing categorical legend on x-axis with undo/redo actions", () => {
       // Initial setup: Drag attributes to the x-axis and plot area, respectively
       ah.openAxisAttributeMenu("bottom")
       ah.selectMenuAttribute("Diet", "bottom") // Diet => x-axis
@@ -385,7 +419,7 @@ context("Graph UI with Pixi interaction", () => {
         gch.checkPointsHaveUniquePositions(tileId) // Call the helper function
       })
     })
-    it("no point compression after drawing categorical legend with categorical attribute on y axis and undo/redo", () => {
+    it("verifies no point compression after drawing categorical legend on y-axis with undo/redo actions", () => {
       // Drag attribute to the y-axis and drag another attribute to the plot area
       ah.openAxisAttributeMenu("left")
       ah.selectMenuAttribute("Diet", "left") // Diet => y-axis

@@ -103,81 +103,54 @@ export const GraphCanvasHelper = {
       expect(uniquePositions.size).to.equal(positions.length, "All points should have unique positions")
     })
   },
-  // getPixiPointFillColorHardcoded(tileId: string, pointIndex: number): Cypress.Chainable<{ fill?: string }> {
-  //   cy.log("Get the PixiPoint fill color (manual inspection)");
-  //   return cy.window().then((win: any) => {
-  //     const pixiPoints = win.pixiPointsMap[tileId];
-  //     const textures = pixiPoints[0].textures; // Access textures directly from PixiPoints
+  // Checks if the points in a graph have unique fill colors.
+  getPixiPointFillColors(tileId: string): Cypress.Chainable<string[]> {
+    cy.log("Get all PixiPoint fill colors from textures")
+    return cy.window().then((win: any) => {
+      const pixiPoints = win.pixiPointsMap[tileId]
+      const textures = pixiPoints[0].textures // Access textures directly from PixiPoints
 
-  //     // Log basic info for debugging
-  //     cy.log("PixiPoints:", pixiPoints);
-  //     cy.log("Textures Object (Type):", typeof textures);
+      if (!textures) {
+        throw new Error("Textures object is undefined.")
+      }
 
-  //     if (!textures) {
-  //       throw new Error("Textures object is undefined.");
-  //     }
+      // Array to store extracted fill colors
+      const fillColors: string[] = []
 
-  //     // Check if textures is a Map-like structure
-  //     if (typeof textures.entries === "function") {
-  //       const textureEntries = Array.from(textures.entries());
-  //       cy.log("Texture Entries (from Map):", textureEntries);
+      if (typeof textures.entries === "function") {
+        for (const [key] of textures.entries()) {
+          try {
+            // Parse the key to extract the `fill` color
+            const parsedKey = JSON.parse(key)
+            if (parsedKey.fill) {
+              fillColors.push(parsedKey.fill)
+            }
+          } catch (error) {
+            cy.log(`Error parsing texture key: ${key}`, error)
+          }
+        }
+      } else {
+        // If textures is an object
+        for (const key of Object.keys(textures)) {
+          try {
+            // Parse the key to extract the `fill` color
+            const parsedKey = JSON.parse(key)
+            if (parsedKey.fill) {
+              fillColors.push(parsedKey.fill)
+            }
+          } catch (error) {
+            cy.log(`Error parsing texture key: ${key}`, error)
+          }
+        }
+      }
 
-  //       // Manually log all entries to inspect them
-  //       textureEntries.forEach(([key, entry], index) => {
-  //         cy.log(`Texture Entry ${index} Key:`, key);
-  //         cy.log(`Texture Entry ${index} Properties:`, {
-  //           fill: entry.fill,
-  //           style: entry.style,
-  //         });
-  //       });
+      cy.log("Extracted Fill Colors:", fillColors)
 
-  //       // Attempt to retrieve the first texture's fill property
-  //       const [textureKey, textureEntry] = textureEntries[0] || [];
-  //       if (!textureEntry) {
-  //         throw new Error(`Texture entry for key ${textureKey} is not found.`);
-  //       }
+      if (fillColors.length === 0) {
+        throw new Error("No fill colors found in the textures map.")
+      }
 
-  //       const fillColor = textureEntry.fill || textureEntry.style?.fill;
-  //       cy.log("Fill Color (From Map):", fillColor);
-
-  //       if (!fillColor) {
-  //         throw new Error("Fill color is undefined in the texture entry.");
-  //       }
-
-  //       return cy.wrap({ fill: fillColor });
-  //     }
-
-  //     // Handle case where textures is an object
-  //     const textureKeys = Object.keys(textures);
-  //     cy.log("Texture Keys (from Object):", textureKeys);
-
-  //     textureKeys.forEach((key, index) => {
-  //       const entry = textures[key];
-  //       cy.log(`Texture Entry ${index} Key:`, key);
-  //       cy.log(`Texture Entry ${index} Properties:`, {
-  //         fill: entry.fill,
-  //         style: entry.style,
-  //       });
-  //     });
-
-  //     const textureKey = textureKeys[0];
-  //     if (!textureKey) {
-  //       throw new Error("No texture keys found in the textures object.");
-  //     }
-
-  //     const textureEntry = textures[textureKey];
-  //     if (!textureEntry) {
-  //       throw new Error(`Texture entry for key ${textureKey} is not found.`);
-  //     }
-
-  //     const fillColor = textureEntry.fill || textureEntry.style?.fill;
-  //     cy.log("Fill Color (From Object):", fillColor);
-
-  //     if (!fillColor) {
-  //       throw new Error("Fill color is undefined in the texture entry.");
-  //     }
-
-  //     return cy.wrap({ fill: fillColor });
-  //   });
-  // }
+      return cy.wrap(fillColors)
+    })
+  }
 }

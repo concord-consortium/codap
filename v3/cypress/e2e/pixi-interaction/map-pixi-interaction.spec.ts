@@ -11,7 +11,7 @@ context("Graph UI with Pixi interaction", () => {
     cy.visit(url)
     cy.wait(2500)
   })
-  describe("map view", () => {
+  describe("map point count with point count pixi interaction", () => {
     it("validates point count for map data on map component with pixi interaction", () => {
       cy.log('Correct number of points in maps')
       map.getMapTile().click()
@@ -70,5 +70,45 @@ context("Graph UI with Pixi interaction", () => {
     //    mch.validateMapPointCount(tileId, 858)
     //  })
     })
+  })
+  describe("map colors and selection with pixi interaction", () => {
+    it("validates point selection for map data on map component with pixi interaction", () => {
+      table.getGridCell(2, 2).should("contain", "546").click()
+
+      cy.log('Correct highlighting when points are selected')
+      map.getMapTile().click()
+      mch.getMapTileId().then((tileId) => {
+        mch.validateMapPointCount(tileId, 858)
+      })
+
+      mch.getMapTileId().then((tileId: string) => {
+        mch.getPixiPointFillColors(tileId).then((colors) => {
+          const upperCaseColors = colors.map(color => color.toUpperCase()) // Convert all colors to uppercase
+          cy.log(`Extracted Fill Colors (Uppercase): ${upperCaseColors}`)
+          expect(upperCaseColors).to.have.length(2) // Verify there are exactly 2 colors
+          expect(upperCaseColors).to.deep.equal(["#E6805B", "#4682B4"]) // Verify the colors are as expected
+        })
+      })
+    })
+    // This is a simple test case for maps with legends
+    // we'd need to get the target drag working for this to work
+    // it("validates map color data on map legend plot with pixi interaction", () => {
+    //   cy.dragAttributeToTarget("animal_id", "color", "map")
+
+    //   cy.log('Correct highlighting when points are selected')
+    //   map.getMapTile().click()
+    //   mch.getMapTileId().then((tileId) => {
+    //     mch.validateMapPointCount(tileId, 858)
+    //   })
+
+    //   mch.getMapTileId().then((tileId: string) => {
+    //     mch.getPixiPointFillColors(tileId).then((colors) => {
+    //       const upperCaseColors = colors.map(color => color.toUpperCase()) // Convert all colors to uppercase
+    //       cy.log(`Extracted Fill Colors (Uppercase): ${upperCaseColors}`)
+    //       expect(upperCaseColors).to.have.length(2) // Verify there are exactly 2 colors
+    //       expect(upperCaseColors).to.deep.equal(["#E6805B", "#4682B4"]) // Verify the colors are as expected
+    //     })
+    //   })
+    // })
   })
 })
