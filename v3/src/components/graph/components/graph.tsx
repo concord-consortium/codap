@@ -1,7 +1,7 @@
 import {comparer} from "mobx"
 import {observer} from "mobx-react-lite"
 import {IDisposer, isAlive} from "mobx-state-tree"
-import React, {MutableRefObject, useCallback, useEffect, useMemo, useRef} from "react"
+import React, {useCallback, useEffect, useMemo, useRef} from "react"
 import {select} from "d3"
 import {clsx} from "clsx"
 import { logStringifiedObjectMessage } from "../../../lib/log-message"
@@ -45,11 +45,11 @@ import "./graph.scss"
 
 interface IProps {
   graphController: GraphController
-  graphRef: MutableRefObject<HTMLDivElement | null>
+  setGraphRef: (ref: HTMLDivElement | null) => void
   pixiPointsArray: PixiPointsArray
 }
 
-export const Graph = observer(function Graph({graphController, graphRef, pixiPointsArray}: IProps) {
+export const Graph = observer(function Graph({graphController, setGraphRef, pixiPointsArray}: IProps) {
   const graphModel = useGraphContentModelContext(),
     {plotType} = graphModel,
     pixiPoints = pixiPointsArray[0],
@@ -65,13 +65,19 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
     pixiContainerRef = useRef<SVGForeignObjectElement>(null),
     prevAttrCollectionsMapRef = useRef<Record<string, string>>({}),
     xAttrID = graphModel.getAttributeID('x'),
-    yAttrID = graphModel.getAttributeID('y')
+    yAttrID = graphModel.getAttributeID('y'),
+    graphRef = useRef<HTMLDivElement | null>(null)
 
   if (pixiPoints?.canvas && pixiContainerRef.current && pixiContainerRef.current.children.length === 0) {
     pixiContainerRef.current.appendChild(pixiPoints.canvas)
     pixiPoints.setupBackgroundEventDistribution({
       elementToHide: pixiContainerRef.current
     })
+  }
+
+  const mySetGraphRef = (ref: HTMLDivElement | null) => {
+    graphRef.current = ref
+    setGraphRef(ref)
   }
 
   useEffect(function handleFilteredCasesChange() {
@@ -358,7 +364,7 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
 
   return (
     <GraphDataConfigurationContext.Provider value={graphModel.dataConfiguration}>
-      <div className={clsx(kGraphClass, kPortalClass)} ref={graphRef} data-testid="graph">
+      <div className={clsx(kGraphClass, kPortalClass)} ref={mySetGraphRef} data-testid="graph">
         {graphModel.showParentToggles && <ParentToggles/>}
         <svg className='graph-svg' ref={svgRef}>
           <Background
