@@ -1,5 +1,5 @@
 import {
-  Box, Button, Flex, FormControl, FormLabel, Input, ModalBody, ModalCloseButton, ModalFooter, ModalHeader, Tooltip
+  Box, Button, Flex, FormControl, FormLabel, Input, ModalBody, ModalFooter, Tooltip
 } from "@chakra-ui/react"
 import React, { useCallback, useEffect, useState } from "react"
 import { observer } from "mobx-react-lite"
@@ -13,7 +13,7 @@ import { InsertFunctionMenu } from "./formula-insert-function-menu"
 import { InsertValuesMenu } from "./formula-insert-values-menu"
 import ResizeHandle from "../../assets/icons/icon-corner-resize-handle.svg"
 
-import "./edit-formula-modal.scss"
+import styles from './edit-formula-modal.scss'
 
 interface IProps {
   applyFormula: (formula: string) => void
@@ -29,14 +29,19 @@ interface IProps {
 export const EditFormulaModal = observer(function EditFormulaModal({
   applyFormula, formulaPrompt, isOpen, onClose, titleInput, titleLabel, titlePlaceholder, value
 }: IProps) {
-  const minWidth = 400
-  const minHeight = 180
+  const minWidth = +styles.editFormulaModalMinWidth
+  const minHeight = +styles.editFormulaModalMinHeight
+  const headerHeight = 36
+  const footerHeight = 56
+  const insertButtonsHeight = 35
+
+  const modalContentRef = React.useRef<HTMLDivElement>(null)
   const [showValuesMenu, setShowValuesMenu] = useState(false)
   const [showFunctionMenu, setShowFunctionMenu] = useState(false)
   const formulaEditorState = useFormulaEditorState(value ?? "")
   const { formula, setFormula } = formulaEditorState
-  const [dimension, setDimension] = useState({ width: minWidth, height: minHeight })
-
+  const [dimensions, setDimensions] = useState({ width: minWidth, height: minHeight })
+  const editorHeight = dimensions.height - headerHeight - footerHeight - insertButtonsHeight
 
   useEffect(() => {
     setFormula(value || "")
@@ -52,7 +57,7 @@ export const EditFormulaModal = observer(function EditFormulaModal({
     setShowFunctionMenu(false)
     setFormula(value || "")
     onClose?.()
-    setDimension({ width: minWidth, height: minHeight })
+    setDimensions({ width: minWidth, height: minHeight })
   }
 
   const handleModalWhitespaceClick = () => {
@@ -97,9 +102,9 @@ export const EditFormulaModal = observer(function EditFormulaModal({
       e.currentTarget.setPointerCapture(e.pointerId)
     }
 
-    const modalRect = document.querySelector(".codap-modal-content")?.getBoundingClientRect()
-    const startWidth = modalRect?.width ?? dimension.width
-    const startHeight = modalRect?.height ?? dimension.height
+    const modalRect = modalContentRef.current?.getBoundingClientRect()
+    const startWidth = modalRect?.width ?? dimensions.width
+    const startHeight = modalRect?.height ?? dimensions.height
     const startPosition = {x: e.pageX, y: e.pageY}
 
     let resizingWidth = startWidth, resizingHeight = startHeight
@@ -109,9 +114,7 @@ export const EditFormulaModal = observer(function EditFormulaModal({
       const yDelta = pointerMoveEvent.pageY - startPosition.y
       resizingWidth = Math.max(startWidth + xDelta, minWidth)
       resizingHeight = Math.max(startHeight + yDelta, minHeight)
-      setDimension({
-        width: resizingWidth, height: resizingHeight,
-      })
+      setDimensions({width: Math.round(resizingWidth), height: Math.round(resizingHeight)})
     }
     const onPointerUp = () => {
       document.body.removeEventListener("pointermove", onPointerMove, { capture: true })
@@ -119,15 +122,15 @@ export const EditFormulaModal = observer(function EditFormulaModal({
     }
     document.body.addEventListener("pointermove", onPointerMove, { capture: true })
     document.body.addEventListener("pointerup", onPointerUp, { capture: true })
-  }, [dimension.height, dimension.width])
+  }, [dimensions.height, dimensions.width, minHeight, minWidth])
 
   return (
     <FormulaEditorContext.Provider value={formulaEditorState}>
       <CodapModal
         isOpen={isOpen}
         onClose={closeModal}
-        modalWidth={`${dimension.width}px`}
-        modalHeight={`${dimension.height}px`}
+        modalWidth={`${dimensions.width}px`}
+        modalHeight={`${dimensions.height}px`}
         onClick={handleModalWhitespaceClick}
       >
         <ModalBody className="formula-modal-body" onKeyDown={handleKeyDown}>
@@ -146,7 +149,7 @@ export const EditFormulaModal = observer(function EditFormulaModal({
             </FormLabel>
             <FormLabel className="formula-editor-container">
               {formulaPrompt ?? t("DG.AttrFormView.formulaPrompt")}
-              <FormulaEditor />
+              <FormulaEditor editorHeight={editorHeight}/>
             </FormLabel>
           </FormControl>
           <Flex className="formula-insert-buttons-container" flexDirection="row" justifyContent="flex-start">

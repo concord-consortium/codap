@@ -1,8 +1,18 @@
 @use "../vars";
+$edit-formula-modal-min-height: 180;
+$edit-formula-modal-min-height-px: #{$edit-formula-modal-min-height}px;
+$edit-formula-modal-min-width: 400;
+$edit-formula-modal-min-width-px: #{$edit-formula-modal-min-width}px;
+
+// https://mattferderer.com/use-sass-variables-in-typescript-and-javascript
+:export {
+  editFormulaModalMinHeight: $edit-formula-modal-min-height;
+  editFormulaModalMinWidth: $edit-formula-modal-min-width;
+}
 
 .codap-modal-content {
-  min-height: 180px;
-  min-width: 400px;
+  min-height: $edit-formula-modal-min-height-px;
+  min-width: $edit-formula-modal-min-width-px;
 
   .formula-modal-body {
     cursor: default;
@@ -32,9 +42,8 @@
         width: 100%;
 
         .formula-editor-input {
-          height: 100%;
-          width: 100%;
-          flex-grow: 1;
+          width: calc(100% - 50px);
+
           .cm-editor {
             height: 100%;
             width: 100%;
