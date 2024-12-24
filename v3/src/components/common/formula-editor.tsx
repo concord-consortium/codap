@@ -234,6 +234,7 @@ function cmExtensionsSetup() {
     cmDataSetState,
     cmOptionsState,
     drawSelection(),
+    EditorView.lineWrapping,
     syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
     closeBrackets(),
     formulaLanguageWithHighlighting,
