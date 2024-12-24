@@ -1,3 +1,4 @@
+import { getSnapshot } from "mobx-state-tree"
 import { createCodapDocument } from "../../models/codap/create-codap-document"
 import { FreeTileRow, IFreeTileRow } from "../../models/document/free-tile-row"
 import { GlobalValue, IGlobalValueSnapshot } from "../../models/global/global-value"
@@ -5,6 +6,7 @@ import { getTileComponentInfo } from "../../models/tiles/tile-component-info"
 import { getTileContentInfo } from "../../models/tiles/tile-content-info"
 import { getGlobalValueManager, getSharedModelManager } from "../../models/tiles/tile-environment"
 import { ITileModelSnapshotIn } from "../../models/tiles/tile-model"
+import { toV2Id } from "../../utilities/codap-utils"
 import { CodapV2Document } from "../../v2/codap-v2-document"
 import { exportV2Component } from "../../v2/codap-v2-tile-exporters"
 import { importV2Component } from "../../v2/codap-v2-tile-importers"
@@ -63,9 +65,12 @@ describe("Slider registration", () => {
     expect(tile).toBeDefined()
     expect(mockInsertTile).toHaveBeenCalledTimes(1)
     expect(globalValueManager?.globals.size).toBe(1)
+    const globalValue = Object.values(getSnapshot(globalValueManager!.globals))[0]
 
     const sliderModel = isSliderModel(tile.content) ? tile.content : undefined
     expect(sliderModel).toBeDefined()
+    expect(sliderModel?.name).toBe(globalValue.name)
+    expect(sliderModel?.value).toBeCloseTo(globalValue._value)
     expect(sliderModel?.animationDirection).toBe("lowToHigh")
     expect(sliderModel?.animationMode).toBe("onceOnly")
     expect(sliderModel?._animationRate).toBeUndefined()
@@ -90,7 +95,11 @@ describe("Slider registration", () => {
     const sliderExport = exportV2Component({ tile, row, sharedModelManager })
     expect(sliderExport?.type).toBe("DG.SliderView")
     const sliderStorage = sliderExport!.componentStorage as ICodapV2SliderStorage
-    expect(sliderStorage._links_?.model).toBeDefined()
+    expect(sliderStorage._links_?.model).toEqual({
+      type: "DG.GlobalValue",
+      id: toV2Id(globalValue.id)
+    })
+    expect(sliderStorage.name).toBe(globalValue.name)
     expect(sliderStorage.animationDirection).toBe(1)
     expect(sliderStorage.animationMode).toBe(1)
     expect(sliderStorage.maxPerSecond).toBeNull()
