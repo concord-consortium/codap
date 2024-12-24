@@ -79,6 +79,8 @@ registerV2TileExporter(kSliderTileType, ({ tile }) => {
   const sliderModel = isSliderModel(tile.content) ? tile.content : undefined
   if (!sliderModel) return
   const {
+    name,
+    globalValue,
     domain: [lowerBound, upperBound],
     animationDirection,
     animationMode,
@@ -104,7 +106,8 @@ registerV2TileExporter(kSliderTileType, ({ tile }) => {
   const v3: ICodapV2SliderStorage["v3"] = { scaleType, multipleOf, dateMultipleOfUnit }
 
   const componentStorage: SetOptional<ICodapV2SliderStorage, keyof ICodapV2BaseComponentStorage> = {
-    _links_: { model: guidLink("DG.GlobalValue", toV2Id(tile.id)) },
+    _links_: { model: guidLink("DG.GlobalValue", toV2Id(globalValue.id)) },
+    name, // override tile `name` with slider model `name` (i.e. global value `name`)
     ...domain,
     animationDirection: getAnimationDirectionIndex(animationDirection),
     animationMode: getAnimationModeIndex(animationMode),
