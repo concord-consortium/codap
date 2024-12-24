@@ -9,10 +9,11 @@ import { getCollectionAttrs } from "../../models/data/data-set-utils"
 import { mstReaction } from "../../utilities/mst-reaction"
 import { isCaseEditable } from "../../utilities/plugin-utils"
 import { AttributeValueCell } from "./attribute-value-cell"
-import { kDefaultColumnWidth, TColumn } from "./case-table-types"
+import { kDefaultColumnWidth, kDefaultRowHeight, TColumn } from "./case-table-types"
 import CellTextEditor from "./cell-text-editor"
 import ColorCellTextEditor from "./color-cell-text-editor"
 import { ColumnHeader } from "./column-header"
+import { useCollectionTableModel } from "./use-collection-table-model"
 
 interface IUseColumnsProps {
   data?: IDataSet
@@ -20,9 +21,11 @@ interface IUseColumnsProps {
 }
 export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
   const caseMetadata = useCaseMetadata()
+  const collectionTableModel = useCollectionTableModel()
   const parentCollection = useParentCollectionContext()
   const collectionId = useCollectionContext()
   const [columns, setColumns] = useState<TColumn[]>([])
+  const rowHeight = collectionTableModel?.rowHeight ?? kDefaultRowHeight
 
   useEffect(() => {
     // rebuild column definitions when referenced properties change
@@ -49,7 +52,8 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
                 resizable: true,
                 headerCellClass: `codap-column-header`,
                 renderHeaderCell: ColumnHeader,
-                cellClass: row => clsx("codap-data-cell", `rowId-${row.__id__}`, {"formula-column": hasFormula}),
+                cellClass: row => clsx("codap-data-cell", `rowId-${row.__id__}`,
+                                        {"formula-column": hasFormula, "multi-line": rowHeight > kDefaultRowHeight}),
                 renderCell: AttributeValueCell,
                 editable: row => isCaseEditable(data, row.__id__),
                 renderEditCell: isEditable
@@ -64,7 +68,7 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
       },
       { name: "useColumns [rebuild columns]", equals: comparer.structural, fireImmediately: true }, data
     )
-  }, [caseMetadata, collectionId, data, indexColumn, parentCollection])
+  }, [caseMetadata, collectionId, data, indexColumn, parentCollection, rowHeight])
 
   return columns
 }
