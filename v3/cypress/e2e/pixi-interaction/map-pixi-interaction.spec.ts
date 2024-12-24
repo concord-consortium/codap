@@ -2,7 +2,6 @@ import { TableTileElements as table } from "../../support/elements/table-tile"
 import { ComponentElements as c } from "../../support/elements/component-elements"
 import { MapTileElements as map } from "../../support/elements/map-tile"
 import { MapCanvasHelper as mch } from "../../support/helpers/map-canvas-helper"
-//import { FormulaHelper as fh } from "../../support/helpers/formula-helper"
 
 context("Graph UI with Pixi interaction", () => {
   beforeEach(function () {
