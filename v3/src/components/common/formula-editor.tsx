@@ -19,6 +19,8 @@ import { formulaLanguageWithHighlighting } from "../../models/formula/lezer/form
 import { getGlobalValueManager, getSharedModelManager } from "../../models/tiles/tile-environment"
 import { FormulaEditorApi, useFormulaEditorContext } from "./formula-editor-context"
 
+import styles from './edit-formula-modal.scss'
+
 interface ICompletionOptions {
   attributes: boolean
   boundaries: boolean
@@ -35,6 +37,7 @@ const kAllOptions: ICompletionOptions = {
 interface IProps {
   // options default to true if not specified
   options?: Partial<ICompletionOptions>
+  editorHeight?: number
 }
 
 /*
@@ -234,6 +237,7 @@ function cmExtensionsSetup() {
     cmDataSetState,
     cmOptionsState,
     drawSelection(),
+    EditorView.lineWrapping,
     syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
     closeBrackets(),
     formulaLanguageWithHighlighting,
@@ -254,7 +258,7 @@ function cmExtensionsSetup() {
   return extensions.filter(Boolean)
 }
 
-export function FormulaEditor({ options: _options }: IProps) {
+export function FormulaEditor({ options: _options, editorHeight = +styles.editFormulaModalMinHeight }: IProps) {
   const dataSet = useDataSetContext()
   const jsonOptions = JSON.stringify(_options ?? {})
   const options = useMemo(() => JSON.parse(jsonOptions), [jsonOptions])
@@ -282,6 +286,7 @@ export function FormulaEditor({ options: _options }: IProps) {
   // .input-element indicates to CodapModal not to drag the modal from within the element
   const classes = "formula-editor-input input-element"
   return <CodeMirror ref={cmRef} className={classes} data-testid="formula-editor-input" height="70px"
-                     basicSetup={false} extensions={extensions} onCreateEditor={handleCreateEditor}
+                     basicSetup={false} extensions={extensions} style={{height: editorHeight}}
+                     onCreateEditor={handleCreateEditor}
                      value={formula} onChange={handleFormulaChange} />
 }
