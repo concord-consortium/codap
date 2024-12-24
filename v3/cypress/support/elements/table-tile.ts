@@ -68,7 +68,7 @@ export const TableTileElements = {
       [data-testid=codap-index-content-button]`)
   },
   openIndexMenuForRow(rowNum: number, collectionIndex = 1) {
-    this.getIndexCellInRow(rowNum, collectionIndex).click("top")
+    this.getIndexCellInRow(rowNum, collectionIndex).click()
   },
   getIndexMenu() {
     return cy.get("[data-testid=index-menu-list]")
