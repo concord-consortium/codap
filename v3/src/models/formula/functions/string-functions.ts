@@ -251,7 +251,7 @@ export const stringFunctions = {
       })
       const [textRefArg, dataSetTitleArg, wordAttributeNameArg, ratingAttributeNameArg] =
         args as [MathNode, LookupStringConstantArg, LookupStringConstantArg, LookupStringConstantArg]
-      const text = evaluateNode(textRefArg, scope) as string
+      const text = String(evaluateNode(textRefArg, scope))
       const dataSetTitle = dataSetTitleArg?.value || ""
       const dataSet = scope.getDataSetByTitle(dataSetTitle)
       if (!dataSet) {
@@ -269,7 +269,7 @@ export const stringFunctions = {
       const ratingAttribute = ratingAttributeName ? dataSet.getAttributeByName(ratingAttributeName) : undefined
 
       const wordRatingMap: Record<string, number> = {}
-      wordAttribute.strValues.forEach((word, index) => wordRatingMap[word] = ratingAttribute?.numeric(index) ?? 1)
+      wordAttribute.strValues.forEach((word, index) => wordRatingMap[word] = ratingAttribute?.numValue(index) ?? 1)
 
       let result = 0
       wordAttribute.strValues.forEach(word => {

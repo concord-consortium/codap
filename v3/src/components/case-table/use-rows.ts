@@ -77,6 +77,7 @@ export const useRows = (gridElement: HTMLDivElement | null) => {
       domRows?.forEach(row => {
         const rowIndex = Number(row.getAttribute("aria-rowindex")) - 2
         const caseId = collection?.caseIds[rowIndex]
+        const rowHeight = collectionTableModel?.rowHeight
         const cells = row.querySelectorAll(".rdg-cell")
         cells.forEach(cell => {
           const colIndex = Number(cell.getAttribute("aria-colindex")) - 2
@@ -85,14 +86,14 @@ export const useRows = (gridElement: HTMLDivElement | null) => {
           if (data && caseId && attr && cellSpan) {
             const strValue = data.getStrValue(caseId, attr.id)
             const numValue = data.getNumeric(caseId, attr.id)
-            const { value } = renderAttributeValue(strValue, numValue, false, attr)
+            const { value } = renderAttributeValue(strValue, numValue, false, attr, rowHeight)
             cellSpan.textContent = value
             setCachedDomAttr(caseId, attr.id)
           }
         })
       })
     })
-  }, [collectionId, data, gridElement, setCachedDomAttr])
+  }, [collectionId, collectionTableModel, data, gridElement, setCachedDomAttr])
 
   const resetRowCacheAndSyncRows = useDebouncedCallback(() => {
     resetRowCache()

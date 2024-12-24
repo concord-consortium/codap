@@ -1,11 +1,8 @@
 
 $header-row-height: 30;
 $header-row-height-px: #{$header-row-height}px;
-$body-row-height: 18;
-$body-row-height-px: #{$body-row-height}px;
 
 // https://mattferderer.com/use-sass-variables-in-typescript-and-javascript
 :export {
   headerRowHeight: $header-row-height;
-  bodyRowHeight: $body-row-height;
 }

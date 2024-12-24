@@ -1,7 +1,7 @@
 import {ITileModelSnapshotIn} from "../../models/tiles/tile-model"
 import {toV3Id} from "../../utilities/codap-utils"
 import {V2TileImportArgs} from "../../v2/codap-v2-tile-importers"
-import {ICodapV2GraphStorage, IGuidLink, isV2GraphComponent, v3TypeFromV2TypeIndex} from "../../v2/codap-v2-types"
+import {IGuidLink, isV2GraphComponent, v3TypeFromV2TypeIndex} from "../../v2/codap-v2-types"
 import {GraphAttrRole, PrimaryAttrRole, axisPlaceToAttrRole} from "../data-display/data-display-types"
 import {kGraphIdPrefix, kGraphTileType} from "./graph-defs"
 import {PlotType} from "./graphing-types"
@@ -15,6 +15,26 @@ import {IAxisModelSnapshotUnion} from "../axis/models/axis-model"
 import {v2AdornmentImporter} from "./adornments/v2-adornment-importer"
 import {defaultBackgroundColor} from "../../utilities/color-utils"
 
+const attrKeys = ["x", "y", "y2", "legend", "top", "right"] as const
+type AttrKey = typeof attrKeys[number]
+function isAttrKey(key: string | undefined): key is AttrKey {
+  // attrKeys is made a more generic readonly string[] so we can
+  // call includes with any string
+  if (!key) return false
+  return (attrKeys as readonly string[]).includes(key)
+}
+
+const v2GraphPlaces = ["x", "y", "y2", "top", "right"] as const
+type V2GraphPlace = typeof v2GraphPlaces[number]
+
+const v2GraphPlacesWithBounds = ["x", "y", "y2"] as const
+type V2GraphPlaceWithBounds = typeof v2GraphPlacesWithBounds[number]
+function isV2PlaceWithBounds(place: V2GraphPlace): place is V2GraphPlaceWithBounds {
+  // v2GraphPlacesWithBounds is made a more generic readonly V2GraphPlace[] so we can
+  // call includes with any V2GraphPlace
+  return (v2GraphPlacesWithBounds as readonly V2GraphPlace[]).includes(place)
+}
+
 export function v2GraphImporter({v2Component, v2Document, sharedModelManager, insertTile}: V2TileImportArgs) {
   if (!isV2GraphComponent(v2Component)) return
 
@@ -27,7 +47,7 @@ export function v2GraphImporter({v2Component, v2Document, sharedModelManager, in
       pointColor, strokeColor, pointSizeMultiplier,
       strokeSameAsFill, isTransparent,
       plotBackgroundImageLockInfo,
-  /* The following are present in the componentStorage but not used in the V3 content model (yet):
+  /* TODO_V2_IMPORT: The following are present in the componentStorage but not used in the V3 content model (yet):
       displayOnlySelected, legendRole, legendAttributeType, numberOfLegendQuantiles,
       legendQuantilesAreLocked, plotBackgroundImage, transparency, strokeTransparency,
       plotBackgroundOpacity,
@@ -54,36 +74,36 @@ export function v2GraphImporter({v2Component, v2Document, sharedModelManager, in
   const _yAttributeDescriptions: IAttributeDescriptionSnapshot[] = []
 
     // configure attributes
-  ;(Object.keys(links) as TLinksKey[]).forEach((aKey: TLinksKey) => {
-    if (['xAttr', 'yAttr', 'y2Attr', 'legendAttr', 'topAttr', 'rightAttr'].includes(aKey)) {
-      const attrKey = aKey.match(/[a-z2]+/)?.[0]  // matches before the "Attr"
-      if (!attrKey) return
-      const
-        v3AttrRole = roleFromAttrKey[attrKey] || 'x',
-        v2AttrArray = (Array.isArray(links[aKey]) ? links[aKey] : [links[aKey]]) as IGuidLink<"DG.Attribute">[]
-      v2AttrArray.forEach((aLink: IGuidLink<"DG.Attribute">) => {
-        const v2AttrId = aLink.id,
-          attribute = v2Document.getV3Attribute(v2AttrId),
-          v3AttrId = attribute?.id ?? '',
-          attrRoleKey = `${attrKey}Role` as keyof ICodapV2GraphStorage,
-          v2Role = v2Component.componentStorage[attrRoleKey],
-          attrTypeKey = `${attrKey}AttributeType` as keyof ICodapV2GraphStorage,
-          v2Type = v2Component.componentStorage[attrTypeKey],
-          v3Type = v3TypeFromV2TypeIndex[v2Type]
-        if (v3AttrRole && v3AttrId && v3Type) {
-          const v2PrimaryNumeric = 1
-          const v2PrimaryCategorical = 3
-          if (["x", "y"].includes(attrKey) && (v2Role === v2PrimaryNumeric || v2Role === v2PrimaryCategorical)) {
-            primaryRole = attrKey as PrimaryAttrRole
-          }
-          if (["y", "yPlus"].includes(v3AttrRole)) {
-            _yAttributeDescriptions.push({attributeID: v3AttrId, type: v3Type})
-          } else {
-            _attributeDescriptions[v3AttrRole] = {attributeID: v3AttrId, type: v3Type}
-          }
+  ;(Object.keys(links) as TLinksKey[]).forEach((linksKey) => {
+    const attrKey = linksKey.match(/^([a-z2]+)Attr$/)?.[1] // matches before the "Attr"
+    if (!isAttrKey(attrKey) || !links[linksKey]) return
+
+    const aKey = linksKey as `${AttrKey}Attr`
+
+    const
+      v3AttrRole = roleFromAttrKey[attrKey] || 'x',
+      v2AttrArray = (Array.isArray(links[aKey]) ? links[aKey] : [links[aKey]]) as IGuidLink<"DG.Attribute">[]
+    v2AttrArray.forEach((aLink) => {
+      const v2AttrId = aLink.id,
+        attribute = v2Document.getV3Attribute(v2AttrId),
+        v3AttrId = attribute?.id ?? '',
+        v2Role = v2Component.componentStorage[`${attrKey}Role`],
+        v2Type = v2Component.componentStorage[`${attrKey}AttributeType`]
+      if (v2Type != null && v3AttrRole && v3AttrId) {
+        const v3Type = v3TypeFromV2TypeIndex[v2Type]
+        const v2PrimaryNumeric = 1
+        const v2PrimaryCategorical = 3
+        if (["x", "y"].includes(attrKey) && (v2Role === v2PrimaryNumeric || v2Role === v2PrimaryCategorical)) {
+          primaryRole = attrKey as PrimaryAttrRole
         }
-      })
-    }
+        if (["y", "yPlus"].includes(v3AttrRole)) {
+          _yAttributeDescriptions.push({attributeID: v3AttrId, type: v3Type})
+        } else {
+          _attributeDescriptions[v3AttrRole] = {attributeID: v3AttrId, type: v3Type}
+        }
+      }
+    })
+
   })
 
   // configure axes
@@ -100,18 +120,22 @@ export function v2GraphImporter({v2Component, v2Document, sharedModelManager, in
     return v3Place === "left" ? !!_yAttributeDescriptions[0] : !!_attributeDescriptions[role]
   }
 
-  ["x", "y", "y2", "top", "right"].forEach(v2Place => {
+  v2GraphPlaces.forEach(v2Place => {
     const v3Place = v3PlaceFromV2Place[v2Place]
-    const axisClass = v2Component.componentStorage[`${v2Place}AxisClass` as keyof ICodapV2GraphStorage]
-    const lowerBound = v2Component.componentStorage[`${v2Place}LowerBound` as keyof ICodapV2GraphStorage]
-    const upperBound = v2Component.componentStorage[`${v2Place}UpperBound` as keyof ICodapV2GraphStorage]
+    const axisClass = v2Component.componentStorage[`${v2Place}AxisClass`]
+    const hasBounds = isV2PlaceWithBounds(v2Place)
+    const lowerBound = hasBounds ? v2Component.componentStorage[`${v2Place}LowerBound`] : undefined
+    const upperBound = hasBounds ? v2Component.componentStorage[`${v2Place}UpperBound`] : undefined
     if (v3Place && axisClass && hasAttributeForV3Place(v3Place)) {
       switch (axisClass) {
         case "DG.CellAxisModel":
           axes[v3Place] = {place: v3Place, type: "categorical"}
           break
         case "DG.CellLinearAxisModel":
-          axes[v3Place] = {place: v3Place, type: "numeric", min: lowerBound, max: upperBound}
+          // TODO_V2_IMPORT when lowerBound or upperBound are undefined or null this is
+          // not handled correctly. It likely will cause an MST exception and failure to load.
+          // There are 966 instances of `xUpperBound: null` in cfm-shared
+          axes[v3Place] = {place: v3Place, type: "numeric", min: lowerBound as any, max: upperBound as any}
           break
       }
     }
@@ -147,7 +171,8 @@ export function v2GraphImporter({v2Component, v2Document, sharedModelManager, in
     plotBackgroundColor,
     // plotBackgroundOpacity,
     // plotBackgroundImage,
-    plotBackgroundImageLockInfo,
+    // V2 plotBackgroundImageLockInfo can be null, V3 only accepts undefined
+    plotBackgroundImageLockInfo: plotBackgroundImageLockInfo ?? undefined,
     isTransparent: isTransparent ?? false,
     /*
     * displayOnlySelected,legendRole, legendAttributeType, numberOfLegendQuantiles, legendQuantilesAreLocked,

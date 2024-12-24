@@ -49,6 +49,8 @@ export const Histogram = observer(function Histogram({ abovePointsGroupRef, pixi
       numExtraPrimaryBands, pointDiameter, primaryAttrID, primaryAxisScale, primaryPlace, secondaryAttrID,
       secondaryBandwidth, totalNumberOfBins
     }
+    if (binWidth === undefined) return
+
     const { bins } = computeBinPlacements(binPlacementProps)
     const primaryScaleDiff = primaryAxisScale(binWidth) - primaryAxisScale(0)
     const getWidth = () => primaryIsBottom ? primaryScaleDiff / numExtraPrimaryBands : secondaryNumericUnitLength

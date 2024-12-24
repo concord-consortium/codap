@@ -202,7 +202,7 @@ describe("DataSet collections", () => {
     const parentCase = { ...parentCases[0], aId: "4" }
     data.setCaseValues([parentCase])
     for (const caseId of data.collections[0].caseGroups[0].childItemIds) {
-      expect(data.getValue(caseId, "aId")).toBe("4")
+      expect(data.getValue(caseId, "aId")).toBe(4)
     }
   })
 

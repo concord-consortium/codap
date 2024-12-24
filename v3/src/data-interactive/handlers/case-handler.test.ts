@@ -63,7 +63,7 @@ describe("DataInteractive CaseHandler", () => {
     const caseId0 = dataset.items[0].__id__
     const result = handler.update?.({ dataContext: dataset }, { id: toV2Id(caseId0), values: { a3: 10 } } as DIValues)
     expect(result?.success).toBe(true)
-    expect(dataset.getAttributeByName("a3")?.value(0)).toBe("10")
+    expect(dataset.getAttributeByName("a3")?.value(0)).toBe(10)
     expect((result as DISuccessResult).caseIDs?.includes(toV2Id(caseId0))).toBe(true)
 
     // Update multiple cases

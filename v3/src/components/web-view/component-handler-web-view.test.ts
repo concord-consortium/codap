@@ -75,8 +75,8 @@ describe("DataInteractive ComponentHandler WebView and Game", () => {
     expect(tileLayout?.width).toBe(newValue)
 
     // Create game with url
-    const multidataUrl = "https://codap.concord.org/multidata-plugin/"
-    const result3 = handler.create!({}, { type: "game", URL: multidataUrl })
+    const multiDataUrl = "https://codap.concord.org/multidata-plugin/"
+    const result3 = handler.create!({}, { type: "game", URL: multiDataUrl })
     expect(result3.success).toBe(true)
     expect(documentContent.tileMap.size).toBe(2)
     const result3Values = result3.values as DIComponentInfo
@@ -84,10 +84,10 @@ describe("DataInteractive ComponentHandler WebView and Game", () => {
     expect(tile3).toBeDefined()
     expect(isWebViewModel(tile3.content)).toBe(true)
     const gameModel = tile3.content as IWebViewModel
-    expect(gameModel.url).toBe(multidataUrl)
+    expect(gameModel.url).toBe(multiDataUrl)
 
     // Get game
-    gameModel.setIsPlugin(true) // This would normally be set automatically when the plugin connects to codap
+    gameModel.setSubType("plugin") // This would normally be set automatically when the plugin connects to codap
     testGetComponent(tile3, handler, (gameTile, values) => {
       const { URL } = values as V2Game
       expect(URL).toBe((gameTile.content as IWebViewModel).url)

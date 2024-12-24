@@ -50,7 +50,8 @@ registerTileComponentInfo({
 registerV2TileImporter(kV2CalculatorDGType, ({ v2Component, insertTile }) => {
   if (!isV2CalculatorComponent(v2Component)) return
 
-  const { guid, componentStorage: { name = "", title = "" } } = v2Component
+  const { guid, componentStorage } = v2Component
+  const { name = "", title = "" } = componentStorage || {}
 
   const content: ICalculatorSnapshot = {
     type: kCalculatorTileType,

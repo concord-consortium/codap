@@ -1,0 +1,38 @@
+{
+  "name": "Untitled Document",
+  "guid": 1,
+  "id": 1,
+  "components": [
+    {
+      "type": "DG.WebView",
+      "guid": 2,
+      "id": 2,
+      "componentStorage": {
+        "title": "Walking Rates",
+        "URL": "https://codap-resources.concord.org/images/walkingrates-50-percent.png",
+        "name": "https://codap-resources.concord.org/images/walkingrates-50-percent.png",
+        "userSetTitle": true,
+        "cannotClose": false
+      },
+      "layout": {
+        "left": 145,
+        "top": 90,
+        "width": 450,
+        "height": 385,
+        "zIndex": 104,
+        "isVisible": true,
+        "right": 595,
+        "bottom": 475
+      },
+      "savedHeight": null
+    }
+  ],
+  "contexts": [],
+  "globalValues": [],
+  "appName": "DG",
+  "appVersion": "2.0",
+  "appBuildNum": "0730",
+  "lang": "en",
+  "idCount": 2,
+  "metadata": {}
+}

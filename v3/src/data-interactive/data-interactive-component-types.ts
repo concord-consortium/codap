@@ -64,18 +64,43 @@ export interface V2Game extends V2Component {
   URL?: string
 }
 export interface V2Graph extends V2Component {
-  captionAttributeName?: string
+  backgroundColor?: string
+  captionAttributeID?: string | null
+  captionAttributeName?: string | null
   dataContext?: string
+  displayOnlySelectedCases?: boolean
   enableNumberToggle?: boolean
-  legendAttributeName?: string
+  filterFormula?: string
+  hiddenCases?: string[]
+  legendAttributeID?: string | null
+  legendAttributeName?: string | null
   numberToggleLastMode?: boolean
-  rightNumericAttributeName?: string
-  rightSplitAttributeName?: string
-  topSplitAttributeName?: string
+  pointColor?: string
+  pointConfig?: string
+  pointsFusedIntoBars?: boolean
+  pointSize?: number
+  rightNumericAttributeID?: string | null
+  rightNumericAttributeName?: string | null
+  rightSplitAttributeID?: string | null
+  rightSplitAttributeName?: string | null
+  showMeasuresForSelection?: boolean
+  strokeColor?: string
+  strokeSameAsFill?: boolean
+  topSplitAttributeID?: string | null
+  topSplitAttributeName?: string | null
+  transparent?: boolean
   type: "graph"
-  xAttributeName?: string
-  yAttributeName?: string
-  y2AttributeName?: string
+  xAttributeID?: string | null
+  xAttributeName?: string | null
+  xAttributeType?: string
+  yAttributeID?: string | null
+  yAttributeIDs?: number[]
+  yAttributeName?: string | null
+  yAttributeNames?: string[]
+  yAttributeType?: string
+  y2AttributeID?: string | null
+  y2AttributeName?: string | null
+  y2AttributeType?: string
 }
 export interface V2GetGraph extends V2Graph {
   xLowerBound?: number

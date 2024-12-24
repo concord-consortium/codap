@@ -48,6 +48,7 @@ import {
 } from "mobx-state-tree"
 import pluralize from "pluralize"
 import { Attribute, IAttribute, IAttributeSnapshot } from "./attribute"
+import { importValueToString } from "./attribute-types"
 import {
   CollectionModel, ICollectionModel, ICollectionModelSnapshot, IItemData, isCollectionModel, syncCollectionLinks
 } from "./collection"
@@ -110,7 +111,7 @@ export function toCanonicalCase(ds: IDataSet, aCase: ICase | ICaseCreation): ICa
     if (key !== "__id__") {
       const id = ds.attrIDFromName(key)
       if (id) {
-        canonical[id] = aCase[key]
+        canonical[id] = importValueToString(aCase[key] ?? "")
       }
       else {
         console.warn(`Dataset.toCanonical failed to convert attribute: "${key}"`)
@@ -735,7 +736,7 @@ export const DataSet = V2Model.named("DataSet").props({
     const item: ICase = { __id__: itemID }
     self.attributes.forEach((attr) => {
       const key = canonical ? attr.id : attr.name
-      item[key] = numeric && attr.isNumeric(index) ? attr.numeric(index) : attr.value(index)
+      item[key] = numeric ? attr.value(index) : attr.strValue(index)
     })
     return item
   }
@@ -817,7 +818,7 @@ export const DataSet = V2Model.named("DataSet").props({
           }
         }
         const attr = self.getAttribute(attributeID)
-        return attr?.value(itemIndex) ?? ""
+        return attr?.strValue(itemIndex) ?? ""
       },
       getNumeric(caseID: string, attributeID: string): number | undefined {
         const index = self.getItemIndexForCaseOrItem(caseID)
@@ -832,7 +833,7 @@ export const DataSet = V2Model.named("DataSet").props({
           }
         }
         const attr = self.getAttribute(attributeID)
-        return attr?.numeric(index)
+        return attr?.numValue(index)
       },
       getItem,
       getItems,

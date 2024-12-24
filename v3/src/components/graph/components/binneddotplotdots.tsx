@@ -47,6 +47,8 @@ export const BinnedDotPlotDots = observer(function BinnedDotPlotDots(props: Plot
     const { binWidth, minBinEdge, totalNumberOfBins } = graphModel.binDetails()
     const binBoundariesArea = select(binBoundariesRef.current)
 
+    if (binWidth === undefined) return
+
     binBoundariesArea.selectAll("path").remove()
     for (let i = 1; i < totalNumberOfBins; i++) {
       const primaryBoundaryOrigin = primaryAxisScale(minBinEdge + i * binWidth)
@@ -82,9 +84,11 @@ export const BinnedDotPlotDots = observer(function BinnedDotPlotDots(props: Plot
     primaryAxisScaleCopy.current = primaryAxisScale.copy()
     graphModel.setDragBinIndex(binIndex)
     const { binWidth, minBinEdge } = graphModel.binDetails()
-    const newBinAlignment = minBinEdge + binIndex * binWidth
-    lowerBoundaryRef.current = primaryAxisScale(newBinAlignment)
-    graphModel.setDynamicBinAlignment(newBinAlignment)
+    if (binWidth !== undefined) {
+      const newBinAlignment = minBinEdge + binIndex * binWidth
+      lowerBoundaryRef.current = primaryAxisScale(newBinAlignment)
+      graphModel.setDynamicBinAlignment(newBinAlignment)
+    }
   }, [dataConfig, graphModel, primaryAxisScale])
 
   const handleDragBinBoundary = useCallback((event: MouseEvent) => {

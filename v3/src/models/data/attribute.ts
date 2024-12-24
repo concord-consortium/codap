@@ -28,7 +28,6 @@
 import { Instance, SnapshotIn, types } from "mobx-state-tree"
 import { kAttrIdPrefix, typeV3Id } from "../../utilities/codap-utils"
 import { parseColor } from "../../utilities/color-utils"
-import { formatStdISODateString } from "../../utilities/date-iso-utils"
 import { isDateString } from "../../utilities/date-parser"
 import { DatePrecision } from "../../utilities/date-utils"
 import { cachedFnFactory } from "../../utilities/mst-utils"
@@ -36,32 +35,13 @@ import { isBoundaryValue, kPolygonNames } from "../boundaries/boundary-types"
 import { Formula, IFormula } from "../formula/formula"
 import { applyModelChange } from "../history/apply-model-change"
 import { withoutUndo } from "../history/without-undo"
-import { isDevelopment, isProduction, IValueType } from "./attribute-types"
+import {
+  AttributeType, attributeTypes, importValueToString, isDevelopment, isProduction, IValueType
+} from "./attribute-types"
 import { V2Model } from "./v2-model"
 
 export interface ISetValueOptions {
   noInvalidate?: boolean
-}
-
-export function importValueToString(value: IValueType): string {
-  if (value == null) {
-    return ""
-  }
-  if (typeof value === "string") {
-    return value
-  }
-  if (value instanceof Date) {
-    return formatStdISODateString(value)
-  }
-  return value.toString()
-}
-
-export const attributeTypes = [
-  "categorical", "numeric", "date", "qualitative", "boundary", "checkbox", "color"
-] as const
-export type AttributeType = typeof attributeTypes[number]
-export function isAttributeType(type?: string | null): type is AttributeType {
-  return type != null && (attributeTypes as readonly string[]).includes(type)
 }
 
 export const Attribute = V2Model.named("Attribute").props({
@@ -263,17 +243,21 @@ export const Attribute = V2Model.named("Attribute").props({
     return self.editable && !self.hasFormula
   },
   value(index: number) {
-    return self.strValues[index]
+    const numValue = self.numValues[index]
+    return !isNaN(numValue) ? numValue : self.strValues[index]
   },
   isNumeric(index: number) {
     return !isNaN(self.numValues[index])
   },
-  numeric(index: number) {
+  numValue(index: number) {
     return self.numValues[index]
+  },
+  strValue(index: number) {
+    return self.strValues[index]
   },
   boolean(index: number) {
     return ["true", "yes"].includes(self.strValues[index].toLowerCase()) ||
-            (!isNaN(this.numeric(index)) ? this.numeric(index) !== 0 : false)
+            (!isNaN(this.numValue(index)) ? this.numValue(index) !== 0 : false)
   },
   derive(name?: string) {
     return { id: self.id, name: name || self.name, values: [] }

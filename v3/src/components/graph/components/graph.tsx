@@ -1,6 +1,6 @@
 import {comparer} from "mobx"
 import {observer} from "mobx-react-lite"
-import {isAlive} from "mobx-state-tree"
+import {IDisposer, isAlive} from "mobx-state-tree"
 import React, {MutableRefObject, useCallback, useEffect, useMemo, useRef} from "react"
 import {select} from "d3"
 import {clsx} from "clsx"
@@ -33,7 +33,7 @@ import {GraphPlace} from "../../axis-graph-shared"
 import {MarqueeState} from "../../data-display/models/marquee-state"
 import {DataTip} from "../../data-display/components/data-tip"
 import {MultiLegend} from "../../data-display/components/legend/multi-legend"
-import {AttributeType} from "../../../models/data/attribute"
+import {AttributeType} from "../../../models/data/attribute-types"
 import {IDataSet} from "../../../models/data/data-set"
 import {isUndoingOrRedoing} from "../../../models/history/tree-types"
 import {useDataDisplayAnimation} from "../../data-display/hooks/use-data-display-animation"
@@ -233,12 +233,18 @@ export const Graph = observer(function Graph({graphController, graphRef, pixiPoi
 
   // respond to assignment of new attribute ID
   useEffect(function handleNewAttributeID() {
-    const disposer = graphModel && onAnyAction(graphModel, action => {
-      if (isSetAttributeIDAction(action)) {
-        startAnimation()
-        graphController?.handleAttributeAssignment()
-      }
-    })
+    let disposer: Maybe<IDisposer>
+    if (graphModel) {
+      disposer = onAnyAction(graphModel, action => {
+        const dataConfigActions = [
+          "replaceYAttribute", "replaceYAttributes", "removeYAttributeAtIndex", "setAttribute", "setAttributeType"
+        ]
+        if (dataConfigActions.includes(action.name) || isSetAttributeIDAction(action)) {
+          startAnimation()
+          graphController?.handleAttributeAssignment()
+        }
+      })
+    }
     return () => disposer?.()
   }, [graphController, layout, graphModel, startAnimation])
 

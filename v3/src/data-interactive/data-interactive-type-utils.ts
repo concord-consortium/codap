@@ -8,7 +8,7 @@ import { IGlobalValue } from "../models/global/global-value"
 import { getSharedCaseMetadataFromDataset } from "../models/shared/shared-data-utils"
 import { kAttrIdPrefix, maybeToV2Id, toV2Id, toV3AttrId } from "../utilities/codap-utils"
 import {
-  ICodapV2Attribute, ICodapV2CollectionV3, ICodapV2DataContextV3, v3TypeFromV2TypeString
+  ICodapV2Attribute, ICodapV2Case, ICodapV2CollectionV3, ICodapV2DataContextV3, v3TypeFromV2TypeString
 } from "../v2/codap-v2-types"
 import { DIAttribute, DIGetCaseResult, DIResources, DISingleValues } from "./data-interactive-types"
 import { getCaseValues } from "./data-interactive-utils"
@@ -139,17 +139,38 @@ export function convertAttributeToV2FromResources(resources: DIResources) {
   }
 }
 
-export function convertCollectionToV2(collection: ICollectionModel, dataContext?: IDataSet): ICodapV2CollectionV3 {
+interface CCV2Options {
+  dataSet?: IDataSet
+  exportCases?: boolean
+}
+export function convertCollectionToV2(collection: ICollectionModel, options?: CCV2Options): ICodapV2CollectionV3 {
   const { name, title, id, labels: _labels } = collection
+  const { dataSet, exportCases } = options || {}
   const v2Id = toV2Id(id)
   const labels = _labels ? getSnapshot(_labels) : undefined
   const attrs = collection.attributes.map(attribute => {
-    if (attribute) return convertAttributeToV2(attribute, dataContext)
+    if (attribute) return convertAttributeToV2(attribute, dataSet)
   }).filter(attr => !!attr)
+
+  let cases: Maybe<{ cases: ICodapV2Case[] }>
+  if (exportCases) {
+    cases = {
+      cases: collection.cases.map(aCase => {
+        const v2CaseId = toV2Id(aCase.__id__)
+        const parentCase = dataSet?.getParentCase(aCase.__id__, collection.id)
+        const v2ParentCaseId = parentCase ? toV2Id(parentCase.groupedCase.__id__) : undefined
+        const values: ICodapV2Case["values"] = {}
+        collection.dataAttributesArray.forEach(attr => {
+          values[attr.name] = dataSet?.getValue(aCase.__id__, attr.id) ?? ""
+        })
+        return { guid: v2CaseId, id: v2CaseId, parent: v2ParentCaseId, values }
+      })
+    }
+  }
   return {
     // areParentChildLinksConfigured,
     attrs,
-    // cases,
+    ...cases,
     // caseName,
     // childAttrName,
     // collapseChildren,
@@ -157,22 +178,23 @@ export function convertCollectionToV2(collection: ICollectionModel, dataContext?
     id: v2Id,
     labels,
     name,
-    // parent,
+    parent: collection.parent?.id ? toV2Id(collection.parent.id) : undefined,
     title,
     type: "DG.Collection"
   }
 }
 
-export function convertDataSetToV2(dataSet: IDataSet, docId: number | string): ICodapV2DataContextV3 {
+export function convertDataSetToV2(dataSet: IDataSet, exportCases = false): ICodapV2DataContextV3 {
   const { name, title, id, description } = dataSet
   const v2Id = toV2Id(id)
+  dataSet.validateCases()
 
   const collections: ICodapV2CollectionV3[] =
-    dataSet.collections.map(collection => convertCollectionToV2(collection, dataSet))
+    dataSet.collections.map(collection => convertCollectionToV2(collection, { dataSet, exportCases }))
 
   return {
     type: "DG.DataContext",
-    document: docId,
+    document: 1,
     guid: v2Id,
     id: v2Id,
     // flexibleGroupChangeFlag,
@@ -182,9 +204,11 @@ export function convertDataSetToV2(dataSet: IDataSet, docId: number | string): I
     description,
     // metadata,
     // preventReorg,
-    // TODO_V2_EXPORT
-    setAsideItems: []
-    // contextStorage
+    // TODO_V2_EXPORT setAsideItems
+    setAsideItems: [],
+    // TODO_V2_EXPORT contextStorage
+    // providing an empty object makes it possible for CODAPv2 to load more exported documents
+    contextStorage: {}
   }
 }
 

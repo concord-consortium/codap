@@ -1,5 +1,47 @@
 # Changelog
 
+## Version 3.0.0-pre.2068 - December 23, 2024
+
+### ✨ Features & Improvements:
+- **PT-188673066:** Case card supports color value editing even when attribute is not typed as 'color'
+- **PT-188616842:** Export Case Card and Case Table in v2 format.
+- **PT-188616792:** Export WebView in v2 format.
+- **PT-188616810:** Export GameView in v2 format
+- **PT-188616852:** Export Slider in v2 format
+- **PT-188651857:** A plugin can get and update any top level graph feature
+- **PT-181846570:** Rows of the case table can be resized by clicking and dragging on the bottom of a row's index cell.
+
+### 🐞 Bug Fixes:
+- **PT-188590950:** Graph: crash on axis switch from categorical parent attribute to date child attribute
+- **PT-188713991:** Hierarchical DataSets exported from v3 do not import into v2 correctly
+- **PT-188719111:** Lookup functions should match user-set title
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  186170 bytes |                            0.03% |
+|  index.js | 6359249 bytes |                            0.01% |
+
+## Version 3.0.0-pre.2058 - December 13, 2024
+
+### ✨ Features & Improvements:
+- **PT-188646708:** A plugin can update an existing graph's attribute assignment
+- **PT-188614511:** Update v2 types to cover the majority of shared v2 documents (*Started*)
+- **PT-188613419:** v2 export of DataSets => DataContexts (*Finished*)
+- **PT-188616842:** Export Case Card and Case Table in v2 format. (*Started*)
+
+### 🐞 Bug Fixes:
+- **PT-188605717:** Bar chart with single bar fills whole graph (*Delivered*)
+
+### 🛠️ Under the Hood:
+- **PT-187950465:** Update to eslint v9 and the new flat config format
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  185542 bytes |                           -0.01% |
+|  index.js | 6347162 bytes |                           <0.00% |
+
 ## Version 3.0.0-pre.2046 - December 6, 2024
 
 ### ✨ Features & Improvements:
