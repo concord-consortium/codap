@@ -60,7 +60,7 @@ context("Graph UI", () => {
       toolbar.getRedoTool().click({force: true})
       c.getComponentTitle("graph").should("have.text", newCollectionName)
     })
-    it("tests creating graphs with undo/redo", () => {
+    it("tests creating multiple graphs with undo/redo", () => {
       // Function to count CODAP graphs and return the count
       const countCodapGraphs = () => {
         return cy.get('.codap-graph').its('length')
