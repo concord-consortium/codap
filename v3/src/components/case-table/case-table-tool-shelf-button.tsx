@@ -13,6 +13,7 @@ import {
 } from "../../models/data/data-set-notifications"
 import { kSharedDataSetType, SharedDataSet } from "../../models/shared/shared-data-set"
 import { getFormulaManager, getSharedModelManager } from "../../models/tiles/tile-environment"
+import { uniqueName } from "../../utilities/js-utils"
 import { t } from "../../utilities/translation/translate"
 import {
   createOrShowTableOrCardForDataset, createTableOrCardForDataset
@@ -31,7 +32,8 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
   const document = appState.document
   const content = document.content
   const manager = getSharedModelManager(document)
-  const datasets = manager?.getSharedModelsByType<typeof SharedDataSet>(kSharedDataSetType)
+  const datasets = manager?.getSharedModelsByType<typeof SharedDataSet>(kSharedDataSetType) ?? []
+  const datasetNames = datasets.map(data => data.dataSet.name)
   const { isOpen, onOpen, onClose } = useDisclosure()
   const [modalOpen, setModalOpen] = useState(false)
   const [dataSetIdToDeleteId, setDataSetIdToDelete] = useState("")
@@ -40,7 +42,9 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
 
   const handleCreateNewCaseTable = () => {
     document.applyModelChange(() => {
-      const ds = DataSet.create({ name: t("DG.AppController.createDataSet.name")})
+      const baseName = t("DG.AppController.createDataSet.name")
+      const newName = uniqueName(baseName, name => !datasetNames.includes(name), " ")
+      const ds = DataSet.create({ name: newName })
       ds.addAttribute({ name: t("DG.AppController.createDataSet.initialAttribute") })
       const options: INewTileOptions = { animateCreation: true }
       const tile = createDefaultTileOfType(kCaseTableTileType, options)
@@ -65,7 +69,7 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
   return (
     <>
       <MenuList>
-        {datasets?.map((dataset) => {
+        {datasets.map((dataset) => {
           // case table title reflects DataSet title
           const tileTitle = dataset.dataSet.title
           return (
