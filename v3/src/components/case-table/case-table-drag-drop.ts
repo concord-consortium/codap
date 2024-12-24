@@ -53,12 +53,20 @@ export const caseTableCollisionDetection: CollisionDetection = (args) => {
   if (withinNewCollection) return [withinNewCollection]
 
   // if the pointer is within the collection table body, find the nearest divider drop zone
-  const droppableDividers = filterContainers(args.droppableContainers, [kAttributeDividerDropZoneRegEx, kRowDividerDropZoneRegEx])
+  const droppableAttributeDividers = filterContainers(args.droppableContainers, [kAttributeDividerDropZoneRegEx])
   // const droppableRowDividers = filterContainers(args.droppableContainers, kRowDividerDropZoneRegEx)
   const withinTableBody = findCollision(withinCollisions, kCollectionTableBodyDropZoneRegEx)
   if (withinTableBody) {
     // use closestCenter among column dividers for moving attributes within table
-    return closestCenter({ ...args, droppableContainers: droppableDividers })
+    return closestCenter({ ...args, droppableContainers: droppableAttributeDividers })
+  }
+
+  const droppableRowDividers = filterContainers(args.droppableContainers, [kRowDividerDropZoneRegEx])
+  // const droppableRowDividers = filterContainers(args.droppableContainers, kRowDividerDropZoneRegEx)
+  const withinRowTableBody = findCollision(withinCollisions, kCollectionTableBodyDropZoneRegEx)
+  if (withinRowTableBody) {
+    // use closestCenter among column dividers for moving attributes within table
+    return closestCenter({ ...args, droppableContainers: droppableRowDividers })
   }
 
   // if the pointer within tests didn't find a target, try rectangle intersection
@@ -75,7 +83,7 @@ export const caseTableCollisionDetection: CollisionDetection = (args) => {
   }
   if (intersectsTableBody) {
     // use closestCenter among column and row dividers for moving attributes within table
-    return closestCenter({ ...args, droppableContainers: droppableDividers })
+    return closestCenter({ ...args, droppableContainers: droppableAttributeDividers })
   }
 
   return []
