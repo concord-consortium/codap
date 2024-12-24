@@ -236,7 +236,30 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
               selectCases([nextCaseId], data)
             }
           } else {
+            let caseIds = [nextCaseId]
             setSelectedCases([nextCaseId], data)
+            // loop through collections and scroll newly selected child cases into view
+            const collection = data?.getCollection(collectionId)
+            for (let childCollection = collection?.child; childCollection; childCollection = childCollection?.child) {
+              const childCaseIds: string[] = []
+              const childIndices: number[] = []
+              caseIds.forEach(id => {
+                const caseInfo = data?.caseInfoMap.get(id)
+                caseInfo?.childCaseIds?.forEach(childCaseId => {
+                  childCaseIds.push(childCaseId)
+                  const caseIndex = collectionCaseIndexFromId(childCaseId, data, childCollection.id)
+                  if (caseIndex != null) {
+                    childIndices.push(caseIndex)
+                  }
+                })
+              })
+              // scroll to newly selected child cases (if any)
+              if (childIndices.length) {
+                onScrollRowRangeIntoView(childCollection.id, childIndices, { disableScrollSync: true })
+              }
+              // advance to child cases in next collection
+              caseIds = childCaseIds
+            }
           }
         }
       }
