@@ -1,5 +1,3 @@
-// import { AxisHelper as ah } from "./axis-helper"
-
 export const MapCanvasHelper = {
   // Helper function to locate the graph element and retrieve its dynamic ID.
   getMapTileId(): Cypress.Chainable<string> {
@@ -15,18 +13,6 @@ export const MapCanvasHelper = {
         return Cypress.Promise.resolve(tileId) // Ensure Cypress compatibility
       })
   },
-  // // Helper function to set an attribute for the axis and retrieve the tile ID.
-  // setAxisAndRetrieveTileId (attribute: string, axis: "bottom" | "left") {
-  //   cy.log(`Set ${attribute} on ${axis} axis`)
-  //   ah.openAxisAttributeMenu(axis)
-  //   ah.selectMenuAttribute(attribute, axis)
-  //   cy.wait(500)
-
-  //   cy.log('Locate the graph element and retrieve its dynamic ID')
-  //   return cy.get('[data-testid=codap-graph]')
-  //     .parents('.free-tile-component')
-  //     .invoke('attr', 'id')
-  // },
   // Helper function to validate pixi metadata and point count.
   validateMapPointCount(tileId: string | undefined, expectedPointCount: number) {
     if (!tileId) {
