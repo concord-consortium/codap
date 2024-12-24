@@ -223,10 +223,14 @@ export function isErrorResult(result: unknown): result is DIErrorResult {
 }
 
 export type DIHandlerFn = (resources: DIResources, values?: DIValues, metadata?: DIMetadata) => DIHandlerFnResult
+export type DIHandlerAsyncFn = (...args: Parameters<DIHandlerFn>) => DIHandlerFnResult | Promise<DIHandlerFnResult>
 
 export const diNotImplementedYetResult = {success: false, values: {error: "not implemented (yet)"}} as const
 export const diNotImplementedYet: DIHandlerFn = () => diNotImplementedYetResult
 
+// This approach of defining both a synchronous and asynchronous handler makes it easier
+// for simple synchronous handlers to write tests. They don't need to await every call
+// when we know the calls are synchronous.
 interface DIBaseHandler {
   get?: DIHandlerFn
   create?: DIHandlerFn
@@ -239,6 +243,17 @@ interface DIBaseHandler {
 
 export type ActionName = keyof DIBaseHandler
 export type DIHandler = RequireAtLeastOne<DIBaseHandler, ActionName>
+
+interface DIBaseAsyncHandler {
+  get?: DIHandlerAsyncFn
+  create?: DIHandlerAsyncFn
+  update?: DIHandlerAsyncFn
+  delete?: DIHandlerAsyncFn
+  notify?: DIHandlerAsyncFn
+  register?: DIHandlerAsyncFn
+  unregister?: DIHandlerAsyncFn
+}
+export type DIAsyncHandler = RequireAtLeastOne<DIBaseAsyncHandler, ActionName>
 
 export interface DIResourceSelector {
   attribute?: string
