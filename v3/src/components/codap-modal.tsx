@@ -75,7 +75,9 @@ const DraggableModalContent = ({children, modalWidth, modalHeight, onClick, fRef
       if (interactiveTags.includes(targetElt.tagName) ||
           targetElt.getAttribute("contenteditable") === "true" ||
           // client can add .input-element to indicate that an element should be treated like an input
-          targetElt.closest(".input-element") != null) {
+          targetElt.closest(".input-element") != null ||
+          // Resizing the component
+          targetElt.closest(".component-resize-handle") != null) {
         return
       }
 
