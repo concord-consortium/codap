@@ -1,12 +1,11 @@
 import {
   Active,
-  Collision, CollisionDetection, DroppableContainer, UseDraggableArguments, UseDroppableArguments, closestCenter, pointerWithin, rectIntersection,
-  useDndMonitor,
+  Collision, CollisionDetection, DroppableContainer, UseDraggableArguments, UseDroppableArguments, closestCenter,
+  pointerWithin, rectIntersection,
   useDraggable,
-  useDroppable
 } from "@dnd-kit/core"
 import { IDragData } from "../../hooks/use-drag-drop"
-import { useInstanceIdContext } from "../../hooks/use-instance-id-context"
+import { kInputRowKey } from "./case-table-types"
 
 export const kNewCollectionDropZoneBaseId = "new-collection"
 export const kCollectionTableBodyDropZoneBaseId = "collection-table-body"
@@ -23,11 +22,8 @@ export const kAttributeDividerDropZoneRegEx = dropZoneRegEx(kAttributeDividerDro
 export const kRowDividerDropZoneRegEx = dropZoneRegEx(kRowDividerDropZoneBaseId)
 
 // filters the array of all containers down to those of a particular type
-export function filterContainers(containers: DroppableContainer[], regEx: RegExp[]) {
-  return containers.filter(container =>
-    regEx.some(rE => rE.test(`${container.id}`))
-  )
-  // return containers.filter(container => regEx.test(`${container.id}`))
+export function filterContainers(containers: DroppableContainer[], regEx: RegExp) {
+  return containers.filter(container => regEx.test(`${container.id}`))
 }
 
 // returns the first collision with a particular drop zone type
@@ -52,40 +48,39 @@ export const caseTableCollisionDetection: CollisionDetection = (args) => {
   const withinNewCollection = findCollision(withinCollisions, kNewCollectionDropZoneRegEx)
   if (withinNewCollection) return [withinNewCollection]
 
-  // if the pointer is within the collection table body, find the nearest divider drop zone
-  const droppableAttributeDividers = filterContainers(args.droppableContainers, [kAttributeDividerDropZoneRegEx])
-  // const droppableRowDividers = filterContainers(args.droppableContainers, kRowDividerDropZoneRegEx)
-  const withinTableBody = findCollision(withinCollisions, kCollectionTableBodyDropZoneRegEx)
-  if (withinTableBody) {
-    // use closestCenter among column dividers for moving attributes within table
-    return closestCenter({ ...args, droppableContainers: droppableAttributeDividers })
-  }
-
-  const droppableRowDividers = filterContainers(args.droppableContainers, [kRowDividerDropZoneRegEx])
-  // const droppableRowDividers = filterContainers(args.droppableContainers, kRowDividerDropZoneRegEx)
-  const withinRowTableBody = findCollision(withinCollisions, kCollectionTableBodyDropZoneRegEx)
-  if (withinRowTableBody) {
-    // use closestCenter among column dividers for moving attributes within table
-    return closestCenter({ ...args, droppableContainers: droppableRowDividers })
-  }
+  if (String(args.active.id).includes(kInputRowKey)) {
+    const droppableRowDividers = filterContainers(args.droppableContainers, kRowDividerDropZoneRegEx)
+    const withinRowTableBody = findCollision(withinCollisions, kCollectionTableBodyDropZoneRegEx)
+    if (withinRowTableBody) {
+      // use closestCenter among row dividers for moving attributes within table
+      return closestCenter({ ...args, droppableContainers: droppableRowDividers })
+    }
+  } else {
+    // if the pointer is within the collection table body, find the nearest divider drop zone
+    const droppableAttributeDividers = filterContainers(args.droppableContainers, kAttributeDividerDropZoneRegEx)
+    const withinTableBody = findCollision(withinCollisions, kCollectionTableBodyDropZoneRegEx)
+    if (withinTableBody) {
+      // use closestCenter among column dividers for moving attributes within table
+      return closestCenter({ ...args, droppableContainers: droppableAttributeDividers })
+    }
 
   // if the pointer within tests didn't find a target, try rectangle intersection
-  const intersectCollisions = rectIntersection(args)
-  // intersection collisions are ordered by percentage of overlap, so check order
-  const intersectNewCollectionIndex = findCollisionIndex(intersectCollisions, kNewCollectionDropZoneRegEx)
-  const intersectTableBodyIndex = findCollisionIndex(intersectCollisions, kCollectionTableBodyDropZoneRegEx)
-  const intersectsNewCollection = intersectNewCollectionIndex >= 0
-  const intersectsTableBody = intersectTableBodyIndex >= 0
+    const intersectCollisions = rectIntersection(args)
+    // intersection collisions are ordered by percentage of overlap, so check order
+    const intersectNewCollectionIndex = findCollisionIndex(intersectCollisions, kNewCollectionDropZoneRegEx)
+    const intersectTableBodyIndex = findCollisionIndex(intersectCollisions, kCollectionTableBodyDropZoneRegEx)
+    const intersectsNewCollection = intersectNewCollectionIndex >= 0
+    const intersectsTableBody = intersectTableBodyIndex >= 0
 
-  // return the new collection intersection if it's more salient than the collection body intersection
-  if (intersectsNewCollection && (!intersectsTableBody || intersectNewCollectionIndex < intersectTableBodyIndex)) {
-    return [intersectCollisions[intersectNewCollectionIndex]]
+    // return the new collection intersection if it's more salient than the collection body intersection
+    if (intersectsNewCollection && (!intersectsTableBody || intersectNewCollectionIndex < intersectTableBodyIndex)) {
+      return [intersectCollisions[intersectNewCollectionIndex]]
+    }
+    if (intersectsTableBody) {
+      // use closestCenter among column and row dividers for moving attributes within table
+      return closestCenter({ ...args, droppableContainers: droppableAttributeDividers })
+    }
   }
-  if (intersectsTableBody) {
-    // use closestCenter among column and row dividers for moving attributes within table
-    return closestCenter({ ...args, droppableContainers: droppableAttributeDividers })
-  }
-
   return []
 }
 
@@ -94,7 +89,6 @@ export interface IDragRowData extends IDragData {
   type: "row"
   rowId: string
   collectionId: string
-  // dataSet: IDataSet | undefined
   rowIdx?: number
   isInputRow: boolean
 }
@@ -102,7 +96,6 @@ export interface IUseDraggableRow extends Omit<UseDraggableArguments, "id"> {
   prefix: string
   rowId: string
   collectionId: string
-  // dataSet?: IDataSet
   rowIdx: number
   isInputRow: boolean
 }
@@ -112,31 +105,6 @@ export const useDraggableRow = ({ prefix, rowId, rowIdx, collectionId, isInputRo
   return useDraggable({ ...others, id: `${prefix}-${rowId}`, attributes, data })
 }
 
-// Collision-detection code keys on drop ids that match this convention.
-// Passes its dropProps argument to useDroppable and returns an object with the return value
-// of useDroppable plus the generated id.
-export const useCollectionDroppable = (
-  baseId: string, onDrop?: (active: Active) => void, dropProps?: UseDroppableArguments
-) => {
-  const instanceId = useInstanceIdContext()
-  const id = `${instanceId}-${baseId}-drop`
-
-  useRowDropHandler(id, onDrop)
-  return { id, ...useDroppable({ ...dropProps, id }) }
-}
-
-export const useRowDropHandler = (dropId: string, onDrop?: (active: Active) => void) => {
-  // console.log("in useRowDropHandler dropId", dropId)
-  useDndMonitor({ onDragEnd: ({ active, over }) => {
-      console.log("in useRowDropHandler over?.id", over?.id)
-
-    if (over?.id === dropId) {
-      onDrop?.(active)
-    }
-  }})
-}
-
 export const getDragRowInfo = (active: Active | null) => {
-  console.log("in getDragRowInfo active", active)
-  return active && active.data.current
+  return active?.data.current
 }

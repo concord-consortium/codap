@@ -6,7 +6,8 @@ import { useCollectionContext } from "../../hooks/use-collection-context"
 import { kDefaultRowHeaderHeight, kDefaultRowHeight, kIndexColumnWidth, kSnapToLineHeight } from "./case-table-types"
 import { useCaseTableModel } from "./use-case-table-model"
 import { useCollectionTableModel } from "./use-collection-table-model"
-import { kRowDividerDropZoneBaseId, useCollectionDroppable } from "../case-table/case-table-drag-drop"
+import { kRowDividerDropZoneBaseId } from "../case-table/case-table-drag-drop"
+import { useTileDroppable } from "../../hooks/use-drag-drop"
 
 const kTableRowDividerHeight = 13
 const kTableDividerOffset = Math.floor(kTableRowDividerHeight / 2)
@@ -16,7 +17,8 @@ interface IRowDividerProps {
 export const RowDivider = observer(function RowDivider({ rowId }: IRowDividerProps) {
   const collectionTableModel = useCollectionTableModel()
   const collectionId = useCollectionContext()
-  const droppableId = `${kRowDividerDropZoneBaseId}:${collectionId}:${rowId}`
+  const rowIdx = collectionTableModel?.rows.findIndex(row => row.__id__ === rowId)
+  const droppableId = `${kRowDividerDropZoneBaseId}:${collectionId}:${(rowIdx ?? 0) - 1}#${rowIdx}`
   const collectionTable = collectionTableModel?.element
   const caseTableModel = useCaseTableModel()
   const rows = collectionTableModel?.rows
@@ -24,33 +26,28 @@ export const RowDivider = observer(function RowDivider({ rowId }: IRowDividerPro
   const startY = useRef(0)
   const getRowHeight = () => collectionTableModel?.rowHeight ?? kDefaultRowHeight
   const initialHeight = useRef(getRowHeight())
-  const rowIdx = rows?.findIndex(row => row.__id__ === rowId)
   const [rowElement, setRowElement] = useState<HTMLDivElement | null>(null)
   const getRowBottom = () => {
     if (rowIdx === 0) return getRowHeight()
-    else return (rowIdx && collectionTableModel?.getRowBottom(rowIdx)) ?? kDefaultRowHeight
+    else return (rowIdx && collectionTableModel?.getRowBottom(rowIdx - 1)) ?? kDefaultRowHeight
   }
-  const gridElt = document.querySelector(`[data-testid="collection-table-grid"]`)
-  const gridWidth = gridElt?.getBoundingClientRect().width
-  const { over, isOver, setNodeRef: setRowDropRef } = useCollectionDroppable(droppableId, _active => {
+  const { active, over, isOver, setNodeRef: setRowDropRef } = useTileDroppable(droppableId, _active => {
     if (!rows) return
-    const overCaseId = String(over?.id).split(":")[2].split("-")[0]
-    // console.log("RowDivider onDrop overCaseId", overCaseId)
+    const overIndices = String(over?.id).split(":")[2].split("-")[0]
+    const overIndexBefore = Number(overIndices.split("#")[0])
+    const overIndexAfter = Number(overIndices.split("#")[1])
 
     // Calculate new index
     const activeIndex = rows.length
-    const overIndex = rows.findIndex(row => row.__id__ === overCaseId)
-// console.log("RowDivider activeIndes", activeIndex, "overIndex", overIndex)
-    if (activeIndex !== overIndex) {
+    if (activeIndex !== overIndexAfter) {
       const updatedRows = [...rows]
       const [movedRow] = updatedRows.splice(activeIndex, 1)
-      updatedRows.splice(overIndex, 0, movedRow)
+      updatedRows.splice(overIndexBefore, 0, movedRow)
 
       // Update inputRowIndex in collectionTableModel
-      collectionTableModel?.setInputRowIndex(overIndex)
+      collectionTableModel?.setInputRowIndex(overIndexAfter)
     }
   })
-
 
   useEffect(() => {
     (rowIdx != null && collectionTable) &&
@@ -93,15 +90,14 @@ export const RowDivider = observer(function RowDivider({ rowId }: IRowDividerPro
     document.removeEventListener("mouseup", handleMouseUp)
   }
 
-  const className = clsx("codap-row-divider", { over: isOver })
+  const className = clsx("codap-row-divider", { "over": isOver, "dragging": !!active})
   const top = getRowBottom() + kDefaultRowHeaderHeight - kTableDividerOffset
   const width = kIndexColumnWidth
   return (
     rowElement
       ? createPortal((
             <div ref={setRowDropRef} className={className} onMouseDown={handleMouseDown}
-                  data-testid={`row-divider-${rowIdx}`} style={{top, width}}
-            />
+                  data-testid={`row-divider-${rowIdx}`} style={{top, width}} />
           ), rowElement)
       : null
   )

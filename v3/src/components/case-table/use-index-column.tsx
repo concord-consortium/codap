@@ -178,7 +178,7 @@ export function IndexCell({ caseId, disableMenu, index, collapsedCases, onClick,
             data-testid="codap-index-content-button">
         <MenuButton ref={setMenuButtonRef} className={classes} data-testid="codap-index-content-button"
             onKeyDown={handleKeyDown} aria-describedby="sr-index-menu-instructions">
-          <div className={classes} ref={inputIndexCellRef} {...attributes} {...listeners}  onPointerDown={onPointerDown}
+          <div className={classes} ref={inputIndexCellRef} {...attributes} {...listeners} onPointerDown={onPointerDown}
             onMouseDown={onPointerDown}>
             <DragIndicator />
           </div>

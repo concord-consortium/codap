@@ -22,7 +22,6 @@ import { useCaseTableModel } from "./use-case-table-model"
 import { useSyncScrolling } from "./use-sync-scrolling"
 
 import "./case-table.scss"
-import { RowDragOverlay } from "./row-drag-overlay"
 
 interface IProps {
   setNodeRef: (element: HTMLElement | null) => void

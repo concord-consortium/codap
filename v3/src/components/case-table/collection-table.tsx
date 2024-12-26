@@ -2,9 +2,9 @@ import { comparer } from "mobx"
 import { observer } from "mobx-react-lite"
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import DataGrid, { CellKeyboardEvent, DataGridHandle } from "react-data-grid"
-import { kCollectionTableBodyDropZoneBaseId, useCollectionDroppable } from "./case-table-drag-drop"
+import { kCollectionTableBodyDropZoneBaseId } from "./case-table-drag-drop"
 import {
-  kDefaultRowHeight, kInputRowKey, OnScrollClosestRowIntoViewFn, OnScrollRowRangeIntoViewFn, OnTableScrollFn,
+  kDefaultRowHeight, kIndexColumnWidth, kInputRowKey, OnScrollClosestRowIntoViewFn, OnScrollRowRangeIntoViewFn, OnTableScrollFn,
   TCellKeyDownArgs, TRenderers, TRow
 } from "./case-table-types"
 import { CollectionTableSpacer } from "./collection-table-spacer"
@@ -80,25 +80,11 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
   const initialPointerDownPosition = useRef({ x: 0, y: 0 })
   const kPointerMovementThreshold = 3
   const rowHeight = collectionTableModel?.rowHeight ?? kDefaultRowHeight
-  const {active, over} = useCollectionDroppable(`${kCollectionTableBodyDropZoneBaseId}-${collectionId}`)
-  const [visibleCollectionWidth, setVisibleCollectionWidth] = useState<number | null>(null)
+  const {active, over} = useTileDroppable(`${kCollectionTableBodyDropZoneBaseId}-${collectionId}`)
   const contentRef = useRef<HTMLDivElement | null>(null)
   useResizeDetector({ targetRef: tileRef })
   tileRef.current = collectionRef.current?.closest(".codap-component") ?? null
   contentRef.current = collectionRef.current?.closest(".collection-title-wrapper") ?? null
-
-  useEffect(() => {
-    const tileRect = tileRef.current?.getBoundingClientRect()
-    const contentRect = gridRef.current?.element?.getBoundingClientRect()
-    if (tileRect && contentRect) {
-      const rightPosition = window.innerWidth - contentRect.right
-      console.log("visibleCollectionWidth rightPosition", rightPosition)
-      console.log("visibleCollectionWidth contentRect", contentRect, "tileRect", tileRect)
-      const visibleWidth = rightPosition - tileRect.right
-      console.log("visibleCollectionWidth visibleWidth", visibleWidth)
-      setVisibleCollectionWidth(visibleWidth)
-    }
-  }, [])
 
   useEffect(function setGridElement() {
     const element = gridRef.current?.element
@@ -117,7 +103,6 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
 
   // columns
   const indexColumn = useIndexColumn()
-  // const { indexColumn, handlePointerDown: handlePointerDownFromIndexColumn } = useIndexColumn()
   const columns = useColumns({ data, indexColumn })
 
   // rows
@@ -394,8 +379,6 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
           stopAutoScroll()
         }
       }
-    } else {
-      (active || over) && console.log("should be dragging active", active, "over", over)
     }
   }
 
@@ -430,8 +413,8 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
           columnWidths={columnWidths} onColumnResize={handleColumnResize} onCellClick={handleCellClick}
           onCellKeyDown={handleCellKeyDown} onRowsChange={handleRowsChange} onScroll={handleGridScroll}
           onSelectedCellChange={handleSelectedCellChange}/>
+        <RowDragOverlay rows={rows} width={kIndexColumnWidth}/>
       </div>
-      <RowDragOverlay rows={rows} gridWidth={visibleCollectionWidth}/>
     </div>
   )
 })

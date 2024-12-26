@@ -15,12 +15,12 @@ import styles from "./case-table-shared.scss"
 
 interface IProps {
   rows: TRows[]
-  gridWidth: number | null
+  width: number | null
 }
 
-export function RowDragOverlay ({ rows, gridWidth }: IProps) {
+export function RowDragOverlay ({ rows, width }: IProps) {
   const row = rows.find(r => r.__id__ === kInputRowKey)
-  const handleDropAnimation = (/*params: any*/) => {
+  const handleDropAnimation = () => {
     /**
      * If there has been no drop we would like to animate the overlay back to its original position.
      * Otherwise, we don't want to animate it at all.
@@ -34,7 +34,7 @@ export function RowDragOverlay ({ rows, gridWidth }: IProps) {
     }
   }
 
-  const style = { height: styles.bodyRowHeight, width: gridWidth ?? "100%" }
+  const style = { height: styles.bodyRowHeight, width: width ?? "100%" }
   return (
     <DragOverlay
       className="dnd-kit-drag-overlay"

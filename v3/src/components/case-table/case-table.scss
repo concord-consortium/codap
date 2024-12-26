@@ -408,33 +408,32 @@ $table-body-font-size: 8pt;
 
   .codap-attribute-header-divider {
     position: absolute;
-    background: vars.$drag-over-highlight;
+    background: black;
     opacity: 0%;
     pointer-events: none;
 
     &.over {
-      opacity: 1;
+      opacity: 30%;
     }
   }
 
   .codap-row-divider {
     position: absolute;
-    pointer-events: none;
     opacity: 0;
-    height: 5px;
-    background: vars.$drag-over-highlight;
+    height: 9px;
+    background: black;
+    cursor: row-resize;
+    z-index: 1;
 
     &.over {
       z-index: 50;
-      opacity: 1;
+      opacity: 30%;
+      pointer-events: none;
+      background: vars.$drag-over-highlight;
     }
-  }
-
-  .codap-row-divider {
-    height: 9px;
-    position: absolute;
-    cursor: row-resize;
-    z-index: 1;
+    &.dragging {
+      cursor: grab;
+    }
   }
 }
 
