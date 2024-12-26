@@ -21,7 +21,7 @@ $edit-formula-modal-min-width-px: #{$edit-formula-modal-min-width}px;
     height: inherit;
     margin-bottom: 10px;
     min-height: 72px;
-    min-width: 400px;
+    min-width: $edit-formula-modal-min-width-px;
 
     .formula-form-control {
       display: flex;
@@ -42,7 +42,7 @@ $edit-formula-modal-min-width-px: #{$edit-formula-modal-min-width}px;
         width: 100%;
 
         .formula-editor-input {
-          width: calc(100% - 50px);
+          width: calc(100% - 50px); //50px is to account for modal margins and paddings
 
           .cm-editor {
             height: 100%;
@@ -83,7 +83,7 @@ $edit-formula-modal-min-width-px: #{$edit-formula-modal-min-width}px;
 
   .codap-modal-corner {
     position: absolute;
-    bottom: 0px;
+    bottom: 0;
     right: 0;
     height: 22px;
     width: 22px;
