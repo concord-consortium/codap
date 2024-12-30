@@ -33,7 +33,8 @@ export class RequestQueue {
    * function for every item even if one of them is waiting for something to finish.
    *
    * The approach copying the array and then clearing it means the array is only
-   * updated one time. So if this function is observed, it will only trigger a single update.
+   * updated one time. So if this function is observed, it will only trigger a single
+   * update.
    *
    * @param processor
    */
