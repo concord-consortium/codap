@@ -13,6 +13,7 @@ import { uiState } from "../../models/ui-state"
 import { t } from "../../utilities/translation/translate"
 import { RequestQueue } from "./request-queue"
 import { isWebViewModel } from "./web-view-model"
+import { errorResult } from "../../data-interactive/handlers/di-results"
 
 function extractOrigin(url?: string) {
   if (!url) return
@@ -71,7 +72,6 @@ export function useDataInteractiveController(iframeRef: React.RefObject<HTMLIFra
           debugLog(DEBUG_PLUGINS, `Processing data-interactive: ${JSON.stringify(request)}`)
           let result: DIRequestResponse = { success: false }
 
-          const errorResult = (error: string) => ({ success: false, values: { error }} as const)
           const processAction = async (action: DIAction) => {
             if (!action) return errorResult(t("V3.DI.Error.noAction"))
             if (!tile) return errorResult(t("V3.DI.Error.noTile"))
