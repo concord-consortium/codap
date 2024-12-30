@@ -429,7 +429,8 @@ $table-body-font-size: 8pt;
       z-index: 50;
       opacity: 30%;
       pointer-events: none;
-      background: vars.$drag-over-highlight;
+      background: black;
+      cursor: grab;
     }
     &.dragging {
       cursor: grab;

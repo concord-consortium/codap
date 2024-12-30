@@ -48,11 +48,13 @@ export const useIndexColumn = () => {
   const collectionId = useCollectionContext()
   const collection = data?.getCollection(collectionId)
   const disableMenu = preventCollectionReorg(data, collectionId)
+  const {active} = useDndContext()
 
   const handlePointerDown = (e: React.PointerEvent | React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
   }
+
   // renderer
   const RenderIndexCell = useCallback(({ row }: TRenderCellProps) => {
     const { __id__, [symIndex]: _index, [symParent]: parentId } = row
@@ -62,7 +64,6 @@ export const useIndexColumn = () => {
                             ? data.caseInfoMap.get(parentId)?.childCaseIds ?? []
                             : []
     const collapsedCaseCount = collapsedCases.length
-    const isInputRow = __id__ === kInputRowKey
 
     function handleClick(e: React.MouseEvent) {
       if (parentId && collapsedCaseCount) {
@@ -82,7 +83,7 @@ export const useIndexColumn = () => {
       <div className="codap-index-cell-wrapper">
         <IndexCell caseId={__id__} disableMenu={disableMenu} index={index}
         collapsedCases={collapsedCaseCount} onClick={handleClick} onPointerDown={handlePointerDown}/>
-        {(!isInputRow) && <RowDivider rowId={row.__id__}/>}
+        <RowDivider rowId={row.__id__}/>
       </div>
     )
   }, [caseMetadata, collection?.caseIds.length, data, disableMenu])
@@ -178,8 +179,8 @@ export function IndexCell({ caseId, disableMenu, index, collapsedCases, onClick,
             data-testid="codap-index-content-button">
         <MenuButton ref={setMenuButtonRef} className={classes} data-testid="codap-index-content-button"
             onKeyDown={handleKeyDown} aria-describedby="sr-index-menu-instructions">
-          <div className={classes} ref={inputIndexCellRef} {...attributes} {...listeners} onPointerDown={onPointerDown}
-            onMouseDown={onPointerDown}>
+          <div className={classes} ref={inputIndexCellRef}
+              onPointerDown={onPointerDown} onMouseDown={onPointerDown}>
             <DragIndicator />
           </div>
         </MenuButton>
@@ -208,16 +209,16 @@ export function IndexCell({ caseId, disableMenu, index, collapsedCases, onClick,
   // normal index row
   return (
     <Menu isLazy>
-        {isInputRow
-          ? renderInputRowIndexColumnCell()
-          : <MenuButton ref={setMenuButtonRef} className={classes} data-testid="codap-index-content-button"
-                        onClick={handleClick} onKeyDown={handleKeyDown} aria-describedby="sr-index-menu-instructions">
-              {cellContents}
-            </MenuButton>
-        }
-        <VisuallyHidden id="sr-index-menu-instructions">
-          Press Enter to open the menu.
-        </VisuallyHidden>
+      {isInputRow
+        ? renderInputRowIndexColumnCell()
+        : <MenuButton ref={setMenuButtonRef} className={classes} data-testid="codap-index-content-button"
+                      onClick={handleClick} onKeyDown={handleKeyDown} aria-describedby="sr-index-menu-instructions">
+            {cellContents}
+          </MenuButton>
+      }
+      <VisuallyHidden id="sr-index-menu-instructions">
+        Press Enter to open the menu.
+      </VisuallyHidden>
       {portalElt && createPortal(<IndexMenuList caseId={caseId} index={index}/>, portalElt)}
     </Menu>
   )

@@ -4,8 +4,8 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import DataGrid, { CellKeyboardEvent, DataGridHandle } from "react-data-grid"
 import { kCollectionTableBodyDropZoneBaseId } from "./case-table-drag-drop"
 import {
-  kDefaultRowHeight, kIndexColumnWidth, kInputRowKey, OnScrollClosestRowIntoViewFn, OnScrollRowRangeIntoViewFn, OnTableScrollFn,
-  TCellKeyDownArgs, TRenderers, TRow
+  kDefaultRowHeight, kIndexColumnWidth, kInputRowKey, OnScrollClosestRowIntoViewFn,
+  OnScrollRowRangeIntoViewFn, OnTableScrollFn, TCellKeyDownArgs, TRenderers, TRow
 } from "./case-table-types"
 import { CollectionTableSpacer } from "./collection-table-spacer"
 import { CollectionTitle } from "../case-tile-common/collection-title"
@@ -36,11 +36,10 @@ import { t } from "../../utilities/translation/translate"
 import { useCaseTableModel } from "./use-case-table-model"
 import { useCollectionTableModel } from "./use-collection-table-model"
 import { useWhiteSpaceClick } from "./use-white-space-click"
+import { RowDragOverlay } from "./row-drag-overlay"
 
 import "react-data-grid/lib/styles.css"
 import styles from "./case-table-shared.scss"
-import { RowDragOverlay } from "./row-drag-overlay"
-import { useResizeDetector } from "react-resize-detector"
 
 type OnNewCollectionDropFn = (dataSet: IDataSet, attrId: string, beforeCollectionId: string) => void
 
@@ -73,18 +72,13 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
     useSelectedRows({ gridRef, onScrollClosestRowIntoView, onScrollRowRangeIntoView })
   const { handleWhiteSpaceClick } = useWhiteSpaceClick({ gridRef })
   const { isTileSelected } = useTileModelContext()
-  const tileRef = useRef<HTMLDivElement | null>(null)
   const collectionRef = useRef<HTMLDivElement | null>(null)
   const [isSelecting, setIsSelecting] = useState(false)
   const [selectionStartRowIdx, setSelectionStartRowIdx] = useState<number | null>(null)
   const initialPointerDownPosition = useRef({ x: 0, y: 0 })
   const kPointerMovementThreshold = 3
   const rowHeight = collectionTableModel?.rowHeight ?? kDefaultRowHeight
-  const {active, over} = useTileDroppable(`${kCollectionTableBodyDropZoneBaseId}-${collectionId}`)
-  const contentRef = useRef<HTMLDivElement | null>(null)
-  useResizeDetector({ targetRef: tileRef })
-  tileRef.current = collectionRef.current?.closest(".codap-component") ?? null
-  contentRef.current = collectionRef.current?.closest(".collection-title-wrapper") ?? null
+  const {active} = useTileDroppable(`${kCollectionTableBodyDropZoneBaseId}-${collectionId}`)
 
   useEffect(function setGridElement() {
     const element = gridRef.current?.element
@@ -246,7 +240,30 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
               selectCases([nextCaseId], data)
             }
           } else {
+            let caseIds = [nextCaseId]
             setSelectedCases([nextCaseId], data)
+            // loop through collections and scroll newly selected child cases into view
+            const collection = data?.getCollection(collectionId)
+            for (let childCollection = collection?.child; childCollection; childCollection = childCollection?.child) {
+              const childCaseIds: string[] = []
+              const childIndices: number[] = []
+              caseIds.forEach(id => {
+                const caseInfo = data?.caseInfoMap.get(id)
+                caseInfo?.childCaseIds?.forEach(childCaseId => {
+                  childCaseIds.push(childCaseId)
+                  const caseIndex = collectionCaseIndexFromId(childCaseId, data, childCollection.id)
+                  if (caseIndex != null) {
+                    childIndices.push(caseIndex)
+                  }
+                })
+              })
+              // scroll to newly selected child cases (if any)
+              if (childIndices.length) {
+                onScrollRowRangeIntoView(childCollection.id, childIndices, { disableScrollSync: true })
+              }
+              // advance to child cases in next collection
+              caseIds = childCaseIds
+            }
           }
         }
       }
@@ -413,7 +430,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
           columnWidths={columnWidths} onColumnResize={handleColumnResize} onCellClick={handleCellClick}
           onCellKeyDown={handleCellKeyDown} onRowsChange={handleRowsChange} onScroll={handleGridScroll}
           onSelectedCellChange={handleSelectedCellChange}/>
-        <RowDragOverlay rows={rows} width={kIndexColumnWidth}/>
+        {(String(active?.id)).includes(kInputRowKey) && <RowDragOverlay rows={rows} width={kIndexColumnWidth}/>}
       </div>
     </div>
   )

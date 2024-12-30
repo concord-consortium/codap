@@ -1,11 +1,9 @@
 import {
-  Active,
-  Collision, CollisionDetection, DroppableContainer, UseDraggableArguments, UseDroppableArguments, closestCenter,
-  pointerWithin, rectIntersection,
-  useDraggable,
+  Active, Collision, CollisionDetection, DroppableContainer, UseDraggableArguments,
+  closestCenter, pointerWithin, rectIntersection, useDraggable
 } from "@dnd-kit/core"
-import { IDragData } from "../../hooks/use-drag-drop"
 import { kInputRowKey } from "./case-table-types"
+import { IDragData } from "../../hooks/use-drag-drop"
 
 export const kNewCollectionDropZoneBaseId = "new-collection"
 export const kCollectionTableBodyDropZoneBaseId = "collection-table-body"
@@ -20,6 +18,11 @@ export const kNewCollectionDropZoneRegEx = dropZoneRegEx(kNewCollectionDropZoneB
 export const kCollectionTableBodyDropZoneRegEx = dropZoneRegEx(kCollectionTableBodyDropZoneBaseId)
 export const kAttributeDividerDropZoneRegEx = dropZoneRegEx(kAttributeDividerDropZoneBaseId)
 export const kRowDividerDropZoneRegEx = dropZoneRegEx(kRowDividerDropZoneBaseId)
+
+// filters containers by collectionId
+export function filterCollection(containers: DroppableContainer[], collectionId: string) {
+  return containers.filter(container => String(container.id).includes(collectionId))
+}
 
 // filters the array of all containers down to those of a particular type
 export function filterContainers(containers: DroppableContainer[], regEx: RegExp) {
@@ -45,18 +48,22 @@ export const caseTableCollisionDetection: CollisionDetection = (args) => {
 
   // if the pointer is within the new collection drop zone, then we're done
   const withinCollisions = pointerWithin(args)
-  const withinNewCollection = findCollision(withinCollisions, kNewCollectionDropZoneRegEx)
-  if (withinNewCollection) return [withinNewCollection]
-
   if (String(args.active.id).includes(kInputRowKey)) {
-    const droppableRowDividers = filterContainers(args.droppableContainers, kRowDividerDropZoneRegEx)
-    const withinRowTableBody = findCollision(withinCollisions, kCollectionTableBodyDropZoneRegEx)
-    if (withinRowTableBody) {
-      // use closestCenter among row dividers for moving attributes within table
-      return closestCenter({ ...args, droppableContainers: droppableRowDividers })
+    const dragRowInfo = getDragRowInfo(args.active)
+    if (dragRowInfo) {
+      const droppableCollection = filterCollection(args.droppableContainers, dragRowInfo.collectionId)
+      const droppableRowDividers = filterContainers(droppableCollection, kRowDividerDropZoneRegEx)
+      const withinRowTableBody = findCollision(withinCollisions, kCollectionTableBodyDropZoneRegEx)
+      if (withinRowTableBody) {
+        // use closestCenter among row dividers for moving attributes within table
+        return closestCenter({ ...args, droppableContainers: droppableRowDividers })
+      }
     }
   } else {
-    // if the pointer is within the collection table body, find the nearest divider drop zone
+    // if the pointer is within the collection table body, find the nearest attribute divider drop zone
+    const withinNewCollection = findCollision(withinCollisions, kNewCollectionDropZoneRegEx)
+    if (withinNewCollection) return [withinNewCollection]
+
     const droppableAttributeDividers = filterContainers(args.droppableContainers, kAttributeDividerDropZoneRegEx)
     const withinTableBody = findCollision(withinCollisions, kCollectionTableBodyDropZoneRegEx)
     if (withinTableBody) {
