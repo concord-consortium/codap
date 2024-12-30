@@ -4,8 +4,8 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import DataGrid, { CellKeyboardEvent, DataGridHandle } from "react-data-grid"
 import { kCollectionTableBodyDropZoneBaseId } from "./case-table-drag-drop"
 import {
-  kDefaultRowHeight, kInputRowKey, OnScrollClosestRowIntoViewFn, OnScrollRowRangeIntoViewFn, OnTableScrollFn,
-  TCellKeyDownArgs, TRenderers, TRow
+  kDefaultRowHeight, kIndexColumnWidth, kInputRowKey, OnScrollClosestRowIntoViewFn,
+  OnScrollRowRangeIntoViewFn, OnTableScrollFn, TCellKeyDownArgs, TRenderers, TRow
 } from "./case-table-types"
 import { CollectionTableSpacer } from "./collection-table-spacer"
 import { CollectionTitle } from "../case-tile-common/collection-title"
@@ -36,6 +36,7 @@ import { t } from "../../utilities/translation/translate"
 import { useCaseTableModel } from "./use-case-table-model"
 import { useCollectionTableModel } from "./use-collection-table-model"
 import { useWhiteSpaceClick } from "./use-white-space-click"
+import { RowDragOverlay } from "./row-drag-overlay"
 
 import "react-data-grid/lib/styles.css"
 import styles from "./case-table-shared.scss"
@@ -76,6 +77,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
   const initialPointerDownPosition = useRef({ x: 0, y: 0 })
   const kPointerMovementThreshold = 3
   const rowHeight = collectionTableModel?.rowHeight ?? kDefaultRowHeight
+  const {active} = useTileDroppable(`${kCollectionTableBodyDropZoneBaseId}-${collectionId}`)
 
   useEffect(function setGridElement() {
     const element = gridRef.current?.element
@@ -399,6 +401,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
           columnWidths={columnWidths} onColumnResize={handleColumnResize} onCellClick={handleCellClick}
           onCellKeyDown={handleCellKeyDown} onRowsChange={handleRowsChange} onScroll={handleGridScroll}
           onSelectedCellChange={handleSelectedCellChange}/>
+        {(String(active?.id)).includes(kInputRowKey) && <RowDragOverlay rows={rows} width={kIndexColumnWidth}/>}
       </div>
     </div>
   )

@@ -314,7 +314,7 @@ $table-body-font-size: 8pt;
           &.input-row {
             background-color: #bddfdf;
             justify-content: flex-start;
-
+            cursor: grab;
             svg {
               margin-left: -2px;
             }
@@ -421,6 +421,17 @@ $table-body-font-size: 8pt;
     position: absolute;
     cursor: row-resize;
     z-index: 1;
+    opacity: 1;
+    background: yellow;
+
+    &.over {
+      z-index: 50;
+      opacity: 1;
+      background: black;
+    }
+    &.dragging {
+      cursor: grab;
+    }
   }
 }
 
