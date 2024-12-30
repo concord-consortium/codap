@@ -1,5 +1,5 @@
 import iframePhone from "iframe-phone"
-import { autorun } from "mobx"
+import { reaction } from "mobx"
 import React, { useEffect } from "react"
 import { getDIHandler } from "../../data-interactive/data-interactive-handler"
 import {
@@ -13,6 +13,7 @@ import { uiState } from "../../models/ui-state"
 import { t } from "../../utilities/translation/translate"
 import { RequestQueue } from "./request-queue"
 import { isWebViewModel } from "./web-view-model"
+import { errorResult } from "../../data-interactive/handlers/di-results"
 
 function extractOrigin(url?: string) {
   if (!url) return
@@ -52,53 +53,64 @@ export function useDataInteractiveController(iframeRef: React.RefObject<HTMLIFra
       webViewModel?.setDataInteractiveController(rpcEndpoint)
       webViewModel?.applyModelChange(() => {}, {log: {message: "Plugin initialized", args:{}, category: "plugin"}})
 
-      const disposer = autorun(() => {
-        const canProcessRequest = !uiState.isEditingBlockingCell
-        if (canProcessRequest && requestQueue.length > 0) {
-          uiState.captureEditingStateBeforeInterruption()
-          let tableModified = false
-          while (requestQueue.length > 0) {
-            const { request, callback } = requestQueue.nextItem
-            debugLog(DEBUG_PLUGINS, `Processing data-interactive: ${JSON.stringify(request)}`)
-            let result: DIRequestResponse = { success: false }
-
-            const errorResult = (error: string) => ({ success: false, values: { error }} as const)
-            const processAction = (action: DIAction) => {
-              if (!action) return errorResult(t("V3.DI.Error.noAction"))
-              if (!tile) return errorResult(t("V3.DI.Error.noTile"))
-
-              const resourceSelector = parseResourceSelector(action.resource)
-              const resources = resolveResources(resourceSelector, action.action, tile)
-              const type = resourceSelector.type ?? ""
-              const a = action.action
-              const func = getDIHandler(type)?.[a as keyof DIHandler]
-              if (!func) return errorResult(t("V3.DI.Error.unsupportedAction", {vars: [a, type]}))
-
-              const actionResult = func?.(resources, action.values)
-              if (actionResult &&
-                ["create", "delete", "notify"].includes(a) &&
-                !["component", "global", "interactiveFrame"].includes(type)
-              ) {
-                // Increment request batches processed if a table may have been modified
-                tableModified = true
-              }
-              return actionResult ?? errorResult(t("V3.DI.Error.undefinedResponse"))
-            }
-            if (Array.isArray(request)) {
-              result = request.map(action => processAction(action))
-            } else {
-              result = processAction(request)
-            }
-
-            debugLog(DEBUG_PLUGINS, `Responding with`, result)
-            callback(result)
-            requestQueue.shift()
-          }
-          // TODO Only increment if a table may have changed
-          // - many actions and resources could be ignored
-          // - could specify which dataContext has been updated
-          if (tableModified) uiState.incrementInterruptionCount()
+      // A reaction is used here instead of an autorun so properties accessed by each handler are not
+      // observed. We only want to run the loop when a new request comes in, not when something changes
+      // that a handler accessed.
+      const disposer = reaction(() => {
+        return {
+          canProcessRequest: !uiState.isEditingBlockingCell,
+          queueLength: requestQueue.length
         }
+      },
+      ({ canProcessRequest, queueLength }) => {
+        if (!canProcessRequest || queueLength === 0) return
+
+        uiState.captureEditingStateBeforeInterruption()
+        let tableModified = false
+
+        requestQueue.processItems(async ({ request, callback }) => {
+          debugLog(DEBUG_PLUGINS, `Processing data-interactive: ${JSON.stringify(request)}`)
+          let result: DIRequestResponse = { success: false }
+
+          const processAction = async (action: DIAction) => {
+            if (!action) return errorResult(t("V3.DI.Error.noAction"))
+            if (!tile) return errorResult(t("V3.DI.Error.noTile"))
+
+            const resourceSelector = parseResourceSelector(action.resource)
+            const resources = resolveResources(resourceSelector, action.action, tile)
+            const type = resourceSelector.type ?? ""
+            const a = action.action
+            const func = getDIHandler(type)?.[a as keyof DIHandler]
+            if (!func) return errorResult(t("V3.DI.Error.unsupportedAction", {vars: [a, type]}))
+
+            const actionResult = await func?.(resources, action.values)
+            if (actionResult &&
+              ["create", "delete", "notify"].includes(a) &&
+              !["component", "global", "interactiveFrame"].includes(type)
+            ) {
+              // Increment request batches processed if a table may have been modified
+              tableModified = true
+            }
+            return actionResult ?? errorResult(t("V3.DI.Error.undefinedResponse"))
+          }
+          if (Array.isArray(request)) {
+            result = []
+            for (const action of request) {
+              result.push(await processAction(action))
+            }
+          } else {
+            result = await processAction(request)
+          }
+
+          debugLog(DEBUG_PLUGINS, `Responding with`, result)
+          callback(result)
+        })
+
+        // TODO Only increment if a table may have changed
+        // - many actions and resources could be ignored
+        // - could specify which dataContext has been updated
+        if (tableModified) uiState.incrementInterruptionCount()
+
       }, { name: "DataInteractiveController request processor autorun" })
 
       return () => {
