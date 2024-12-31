@@ -25,7 +25,8 @@ export interface ICodapV2Attribute {
   deletedFormula?: string
   precision?: number | string | null
   unit?: string | null
-  // TODO_V2_IMPORT decimals is not imported
+  // TODO_V2_IMPORT_CARRY_OVER [Story:#188701222] decimals is not imported
+  // Defined as `precision` in v3
   // it occurs 604 times in 36 files in cfm-shared
   // in 33 cases the value is "2"
   // the rest of the cases the value is "0"
@@ -58,17 +59,17 @@ export interface ICodapV2Case {
 export interface ICodapV2Collection {
   attrs: ICodapV2Attribute[]
   cases: ICodapV2Case[]
-  // TODO_V2_IMPORT: caseName is not imported
+  // TODO_V2_IMPORT_EXTRACT: caseName is not imported
   // There are 2,500 cases where this has a value in cfm-shared
   caseName?: string | null
-  // TODO_V2_IMPORT: childAttrName is not imported
+  // TODO_V2_IMPORT_EXTRACT: childAttrName is not imported
   // There are 8,592 cases where this has a value in cfm-shared
   childAttrName?: string | null
   cid?: string
-  // TODO_V2_IMPORT: collapseChildren is not imported
+  // TODO_V2_IMPORT_EXTRACT: collapseChildren is not imported
   // There are 250 cases where this is true in cfm-shared
   collapseChildren?: boolean | null
-  // TODO_V2_IMPORT: defaults does not seem to be imported
+  // TODO_V2_IMPORT_EXTRACT: defaults does not seem to be imported
   // There are 825 cases where it is defined in cfm-shared
   defaults?: {
     xAttr?: string
@@ -76,8 +77,9 @@ export interface ICodapV2Collection {
   }
   guid: number
   id?: number
-  // TODO_V2_IMPORT: labels seem to be handled by the plugin api, and stored in v3 structures but
+  // TODO_V2_IMPORT_CARRY_OVER: labels seem to be handled by the plugin api, and stored in v3 structures but
   // they don't seem to be imported when opening a v2 document
+  // There is a V3 interface for this — CollectionLabels
   labels?: {
     singleCase?: string
     pluralCase?: string
@@ -89,10 +91,10 @@ export interface ICodapV2Collection {
   parent?: number
   title?: string | null
   type?: "DG.Collection"
-  // TODO_V2_IMPORT areParentChildLinksConfigured is not imported
+  // TODO_V2_IMPORT_IGNORE areParentChildLinksConfigured is not imported
   // it is true 5,000 times in 2,812 files in cfm-shared
   // it is false at least 20,000 times
-  // it might not be optional
+  // According to V2 documentation it is no longer used
   areParentChildLinksConfigured?: boolean
 }
 // when exporting a v3 collection to v2
@@ -115,33 +117,37 @@ export interface ICodapV2ExternalContext {
 }
 export interface ICodapV2DataContextMetadata {
   description?: string
-  // TODO_V2_IMPORT data context metadata source is not imported
+  // TODO_V2_IMPORT_CARRY_OVER data context metadata source is not imported
   // unknown how many instances in this location
+  // In V3 this is stored as sourceName in dataset
   source?: string
-  // TODO_V2_IMPORT data context metadata importDate is not imported
+  // TODO_V2_IMPORT_CARRY_OVER G data context metadata importDate is not imported
   // at least 20,000 instances in cfm-shared
   importDate?: string
-  // TODO_V2_IMPORT "import date" is not imported
+  // TODO_V2_IMPORT_EXTRACT "import date" is not imported
   // 2,025 instances in cfm-shared
+  // Assume that it is the same as importDate and convert
   "import date"?: string
 }
 export interface ICodapV2DataContext {
   type: "DG.DataContext"
   document?: number // id of containing document
   guid: number
-  // TODO_V2_IMPORT do we need to import id so we can export it
-  // it again?
+  // TODO_V2_IMPORT_STORE do we need to import id so we can export it again?
   // It is not always present in v2 files.
   id?: number
-  // TODO_V2_IMPORT flexibleGroupingChangeFlag is not imported
+  // TODO_V2_IMPORT_DEFINE_AND_IMPLEMENT flexibleGroupingChangeFlag is not imported
   // This is set to true in 11,000 cfm-shared files
+  // This flag is used in interaction with plugin to indicate that the user
+  //   has moved an attribute in a way that invalidates the plugin's assumptions.
+  // V3 should define and implement, following the pattern set in V2
   flexibleGroupingChangeFlag?: boolean | null
   name?: string
   title?: string
   collections: ICodapV2Collection[]
   description?: string
   metadata?: ICodapV2DataContextMetadata | null
-  // TODO_V2_IMPORT preventReorg is not imported
+  // TODO_V2_IMPORT_DEFINE_AND_IMPLEMENT preventReorg is not imported
   // it is false at least 20,000 times
   // it is true 969 times in 316 files
   preventReorg?: boolean
@@ -153,7 +159,7 @@ export interface ICodapV2DataContext {
   // 259 of these arrays have a first object that doesn't have an "id" field
   setAsideItems?: ICodapV2SetAsideItem[] | Record<string, number | string>[]
   contextStorage: ICodapV2DataContextStorage
-  // TODO_V2_IMPORT we are ignoring _permissions. It seems like a CFM
+  // TODO_V2_IMPORT_IGNORE we are ignoring _permissions. It seems like a CFM
   // artifact
   _permissions?: any
 }
@@ -165,9 +171,10 @@ export interface ICodapV2DataContextSelectedCase {
 
 export interface ICodapV2DataContextStorage {
   _links_?: {
-    // TODO_V2_IMPORT selectedCases is not imported
+    // TODO_V2_IMPORT_EXTRACT selectedCases is not imported
     // they appear at lest 20,000 times perhaps both in game context and data context
     // The value is an empty array 11,300 times
+    // Note that V3 should be storing selection in V3 documents as well
     selectedCases: ICodapV2DataContextSelectedCase[]
   }
 }
@@ -190,6 +197,7 @@ export interface ICodapV2GameContextStorage extends ICodapV2DataContextStorage {
 // cfm-shared/0b5715a7dab0a92ef332c8407bf51c53cc3ae710/file.json
 // It has gameState in the GameContext
 // It restores the gameState in v2
+// NOTE: The plan is to reimplement Markov and other "legacy" data games plugins to use current API
 //
 // An example with Next Gen MW games:
 // cfm-shared/0b65185859c238170055bde1fef60830e52bd63d49bec96e0b1db84c65ea3356/file.json
@@ -210,9 +218,8 @@ export interface ICodapV2GameContext extends Omit<ICodapV2DataContext, "type"> {
 }
 
 // when exporting a v3 data set to v2 data context
-type DCNotYetExported = "flexibleGroupingChangeFlag"
 export interface ICodapV2DataContextV3
-  extends SetOptional<Omit<ICodapV2DataContext, "collections">, DCNotYetExported> {
+  extends Omit<ICodapV2DataContext, "collections"> {
   collections: ICodapV2CollectionV3[]
 }
 
@@ -238,13 +245,15 @@ export interface ICodapV2BaseComponentStorage {
   name?: string
   userSetTitle?: boolean
   // in a document saved by build 0441 this property didn't exist
-  // TODO_V2_IMPORT: this property seems to be ignored by the import code
+  // TODO_V2_IMPORT_CARRY_OVER: this property seems to be ignored by the import code
   // The v3 models do support it, but from what I can tell each component
   // importer needs to read this property from componentStorage and then
   // set it on the tile snapshot they pass to insertTile
   // In the CFM shared files there are more than 20,000 examples of cannotClose: true
   // and more 20,000 examples cannotClose: false
   cannotClose?: boolean
+  // allows v2 documents saved by v3 to contain v3-specific enhancements
+  v3?: object
 }
 
 export interface ICodapV2CalculatorStorage extends ICodapV2BaseComponentStorage {
@@ -261,7 +270,15 @@ export interface ICodapV2SliderStorage extends ICodapV2BaseComponentStorage {
   animationMode?: number
   restrictToMultiplesOf?: number | null
   maxPerSecond?: number | null
+  // NOTE: v2 writes out the `userTitle` property, but reads in property `userChangedTitle`.
+  // It is also redundant with the `userSetTitle` property shared by all components. ¯\_(ツ)_/¯
   userTitle?: boolean
+  // v3 enhancements
+  v3?: {
+    scaleType: "numeric" | "date",
+    multipleOf?: number
+    dateMultipleOfUnit?: string
+  }
 }
 
 export interface ICodapV2RowHeight {
@@ -275,7 +292,7 @@ export interface ICodapV2TableStorage extends ICodapV2BaseComponentStorage {
   // a context
   _links_?: {
     context: IGuidLink<"DG.DataContextRecord">
-    // TODO_V2_IMPORT collapsedNodes is not imported
+    // TODO_V2_IMPORT_CARRY_OVER collapsedNodes is not imported
     // it appears 1,518 times in cfm-shared
     // none of those times are empty arrays
     collapsedNodes?: IGuidLink<"DG.Case"> | IGuidLink<"DG.Case">[]
@@ -287,21 +304,21 @@ export interface ICodapV2TableStorage extends ICodapV2BaseComponentStorage {
     width?: number
   }>
   title?: string
-  // TODO_V2_IMPORT isActive is not imported
+  // TODO_V2_IMPORT_STORE isActive is not imported
   // it occurs in close to 11,0000 files in cfm-shared
   // these are both in table and case card
   // it might not be optional
   isActive?: boolean
-  // TODO_V2_IMPORT rowHeights is not imported
+  // TODO_V2_IMPORT_DEFINE_AND_IMPLEMENT rowHeights is not imported
   // it occurs more than 20,000 times in cfm-shared
   // more than 4,200 of those have non-empty arrays
   // it might not be optional
   rowHeights?: ICodapV2RowHeight[]
-  // TODO_V2_IMPORT horizontalScrollOffset is not imported
+  // TODO_V2_IMPORT_CARRY_OVER horizontalScrollOffset is not imported
   // it occurs more than 20,000 times in cfm-shared
   // more than 20,000 of those times it has a value other than 0
   horizontalScrollOffset?: number
-  // TODO_V2_IMPORT isIndexHidden is not imported
+  // TODO_V2_IMPORT_DEFINE_AND_IMPLEMENT isIndexHidden is not imported
   // it occurs more than 20,000 times in cfm-shared
   // it is true 4,346 times
   isIndexHidden?: boolean
@@ -330,9 +347,6 @@ export interface ICodapV2WebViewStorage extends ICodapV2BaseComponentStorage {
 export interface ICodapV2GameViewStorage extends ICodapV2BaseComponentStorage {
   currentGameUrl: string
   savedGameState?: unknown
-  // TODO_V2_IMPORT currentGameName is not imported
-  // it occurs in 17,000 files in cfm-shared
-  // it might not be optional
   currentGameName?: string
   // TODO_V2_IMPORT allowInitGameOverride is not imported
   // it occurs in at least 12,500 files in cfm-shared

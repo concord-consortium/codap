@@ -1,10 +1,33 @@
 @use "../vars";
+$edit-formula-modal-min-height: 180;
+$edit-formula-modal-min-height-px: #{$edit-formula-modal-min-height}px;
+$edit-formula-modal-min-width: 400;
+$edit-formula-modal-min-width-px: #{$edit-formula-modal-min-width}px;
+
+// https://mattferderer.com/use-sass-variables-in-typescript-and-javascript
+:export {
+  editFormulaModalMinHeight: $edit-formula-modal-min-height;
+  editFormulaModalMinWidth: $edit-formula-modal-min-width;
+}
 
 .codap-modal-content {
+  min-height: $edit-formula-modal-min-height-px;
+  min-width: $edit-formula-modal-min-width-px;
+
   .formula-modal-body {
     cursor: default;
+    display: flex;
+    flex-direction: column;
+    height: inherit;
+    margin-bottom: 10px;
+    min-height: 72px;
+    min-width: $edit-formula-modal-min-width-px;
 
     .formula-form-control {
+      display: flex;
+      flex-grow: 1;
+      align-items: flex-start;
+
       .title-label {
         width: 140px;
       }
@@ -13,24 +36,63 @@
         margin-right: 3px;
         margin-left: 0
       }
+      .formula-editor-container {
+        display: flex;
+        height: 100%;
+        width: 100%;
+
+        .formula-editor-input {
+          width: calc(100% - 50px); //50px is to account for modal margins and paddings
+
+          .cm-editor {
+            height: 100%;
+            width: 100%;
+          }
+        }
+      }
+
     }
 
-    .formula-editor-button {
-      padding: 0 10px;
-      &:hover {
-        background: vars.$codap-teal-lighter;
-      }
-      &:active, &.menu-open {
-        background: vars.$codap-teal-light;
-        color: white;
-      }
-      &.insert-value {
-        margin-left: 0;
+    .formula-insert-buttons-container {
+      position: relative;
+      bottom: 0;
+
+      .formula-editor-button {
+        padding: 0 10px;
+        &:hover {
+          background: vars.$codap-teal-lighter;
+        }
+        &:active, &.menu-open {
+          background: vars.$codap-teal-light;
+          color: white;
+        }
+        &.insert-value {
+          margin-left: 0;
+        }
       }
     }
   }
 
   .formula-modal-footer {
     cursor: default;
+    border-radius: 6px;
+    position: relative;
+    bottom: 0;
+    right: 0;
+  }
+
+  .codap-modal-corner {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    height: 22px;
+    width: 22px;
+    cursor: se-resize;
+  }
+  .component-resize-handle {
+    fill: #d3d3d3;
+    &:hover {
+      fill: white;
+    }
   }
 }

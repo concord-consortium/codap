@@ -9,6 +9,9 @@ export const kDefaultSliderAxisTop = 0
 export const kDefaultSliderAxisHeight = 24
 export const kDefaultSliderPadding = 10
 
+export const kDefaultSliderAxisMin = -0.5
+export const kDefaultSliderAxisMax = 11.5
+
 // values are translation string keys; indices are v2 values
 export const AnimationDirections = ["backAndForth", "lowToHigh", "highToLow"] as const
 export type AnimationDirection = typeof AnimationDirections[number]

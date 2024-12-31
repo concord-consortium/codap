@@ -106,6 +106,8 @@
     "V3.map.legendDrop": "Color regions by values of %@",
 
     // V3 digital interactive error messages.
+    // These should probably not be translated because plugins might be looking for specific
+    // values.
     "V3.DI.Error.noAction": "No action to process.",
     "V3.DI.Error.noTile": "No tile for action.",
     "V3.DI.Error.unsupportedAction": "Unsupported action: %@/%@",
@@ -117,6 +119,7 @@
     "V3.DI.Error.caseNotFound": "Case not found",
     "V3.DI.Error.collectionNotFound": "Collection not found",
     "V3.DI.Error.componentNotCreated": "Could not create component",
+    "V3.DI.Error.downloadCSV": "Failed to download and import CSV: %{url}",
     "V3.DI.Error.illegalAttributeAssignment": "Cannot assign %@1 to %@2",
     "V3.DI.Error.componentNotFound": "Component not found",
     "V3.DI.Error.unsupportedComponent": "Unsupported component type %@",

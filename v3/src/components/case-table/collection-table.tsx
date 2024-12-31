@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import DataGrid, { CellKeyboardEvent, DataGridHandle } from "react-data-grid"
 import { kCollectionTableBodyDropZoneBaseId } from "./case-table-drag-drop"
 import {
-  kInputRowKey, OnScrollClosestRowIntoViewFn, OnScrollRowRangeIntoViewFn, OnTableScrollFn,
+  kDefaultRowHeight, kInputRowKey, OnScrollClosestRowIntoViewFn, OnScrollRowRangeIntoViewFn, OnTableScrollFn,
   TCellKeyDownArgs, TRenderers, TRow
 } from "./case-table-types"
 import { CollectionTableSpacer } from "./collection-table-spacer"
@@ -75,6 +75,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
   const [selectionStartRowIdx, setSelectionStartRowIdx] = useState<number | null>(null)
   const initialPointerDownPosition = useRef({ x: 0, y: 0 })
   const kPointerMovementThreshold = 3
+  const rowHeight = collectionTableModel?.rowHeight ?? kDefaultRowHeight
 
   useEffect(function setGridElement() {
     const element = gridRef.current?.element
@@ -235,7 +236,30 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
               selectCases([nextCaseId], data)
             }
           } else {
+            let caseIds = [nextCaseId]
             setSelectedCases([nextCaseId], data)
+            // loop through collections and scroll newly selected child cases into view
+            const collection = data?.getCollection(collectionId)
+            for (let childCollection = collection?.child; childCollection; childCollection = childCollection?.child) {
+              const childCaseIds: string[] = []
+              const childIndices: number[] = []
+              caseIds.forEach(id => {
+                const caseInfo = data?.caseInfoMap.get(id)
+                caseInfo?.childCaseIds?.forEach(childCaseId => {
+                  childCaseIds.push(childCaseId)
+                  const caseIndex = collectionCaseIndexFromId(childCaseId, data, childCollection.id)
+                  if (caseIndex != null) {
+                    childIndices.push(caseIndex)
+                  }
+                })
+              })
+              // scroll to newly selected child cases (if any)
+              if (childIndices.length) {
+                onScrollRowRangeIntoView(childCollection.id, childIndices, { disableScrollSync: true })
+              }
+              // advance to child cases in next collection
+              caseIds = childCaseIds
+            }
           }
         }
       }
@@ -279,8 +303,8 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
 
   const startAutoScroll = useCallback((clientY: number) => {
     const grid = gridRef.current?.element
-    const rowHeight = collectionTableModel?.rowHeight
-    if (!grid || !rowHeight) return
+    const rHeight = collectionTableModel?.rowHeight
+    if (!grid || !rHeight) return
 
     const scrollSpeed = 50
 
@@ -291,11 +315,11 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
       if (mouseY.current < top + kScrollMargin) {
         grid.scrollTop -= scrollSpeed
         const scrolledTop = grid.scrollTop
-        scrolledToRowIdx = Math.floor(scrolledTop / rowHeight)
+        scrolledToRowIdx = Math.floor(scrolledTop / rHeight)
       } else if (mouseY.current > bottom - kScrollMargin) {
         grid.scrollTop += scrollSpeed
         const scrolledBottom = grid.scrollTop + grid.clientHeight - 1
-        scrolledToRowIdx = Math.floor(scrolledBottom / rowHeight)
+        scrolledToRowIdx = Math.floor(scrolledBottom / rHeight)
 
       }
       if (scrolledToRowIdx != null && selectionStartRowIdx != null && scrolledToRowIdx >= 0 &&
@@ -371,7 +395,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
         <CollectionTitle onAddNewAttribute={handleAddNewAttribute} showCount={true} />
         <DataGrid ref={gridRef} className="rdg-light" data-testid="collection-table-grid" renderers={renderers}
           columns={columns} rows={rows} headerRowHeight={+styles.headerRowHeight} rowKeyGetter={rowKey}
-          rowHeight={+styles.bodyRowHeight} selectedRows={selectedRows} onSelectedRowsChange={setSelectedRows}
+          rowHeight={rowHeight} selectedRows={selectedRows} onSelectedRowsChange={setSelectedRows}
           columnWidths={columnWidths} onColumnResize={handleColumnResize} onCellClick={handleCellClick}
           onCellKeyDown={handleCellKeyDown} onRowsChange={handleRowsChange} onScroll={handleGridScroll}
           onSelectedCellChange={handleSelectedCellChange}/>
