@@ -25,7 +25,7 @@ describe("DataInteractive DataContextHandler", () => {
     jest.clearAllMocks()
   })
 
-  describe("create" , () => {
+  describe("create", () => {
     it("handles invalid values", async () => {
 
       expect(await handler.create?.({})).toMatchObject({success: false})
@@ -66,10 +66,15 @@ describe("DataInteractive DataContextHandler", () => {
       })
 
       expect(gDataBroker.length).toBe(0)
-      const result = await handler.create!({}, {URL: "https://example.com"})
+      const result = await handler.create!({}, {URL: "https://example.com/"})
       expect(gDataBroker.length).toBe(1)
       expect(mockedDownloadCsvFile).toHaveBeenCalled()
       expect(result.success).toBe(true)
+      // There is also an id field, but that is harder to test.
+      expect(result.values).toMatchObject({
+        name: "https://example.com/",
+        title: "https://example.com/"
+      })
     })
   })
 })

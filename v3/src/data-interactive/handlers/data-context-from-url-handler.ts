@@ -2,6 +2,7 @@ import { appState } from "../../models/app-state"
 import { convertParsedCsvToDataSet, CsvParseResult, downloadCsvFile } from "../../utilities/csv-import"
 import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
+import { basicDataSetInfo } from "../data-interactive-type-utils"
 import { DIAsyncHandler, DIResources, DIUrl, DIValues } from "../data-interactive-types"
 import { errorResult, fieldRequiredResult } from "./di-results"
 
@@ -29,11 +30,13 @@ export const diDataContextFromURLHandler: DIAsyncHandler = {
         downloadCsvFile(url,
           (results: CsvParseResult) => {
             const filename = getFilenameFromUrl(url)
-            // TODO: look at v2 to figure out if it has a default name perhaps that is translated
-            const ds = convertParsedCsvToDataSet(results, filename || "Imported Data")
+            const ds = convertParsedCsvToDataSet(results, filename || url)
             if (ds) {
               appState.document.content?.importDataSet(ds, { createDefaultTile: true })
-              resolve({ success: true })
+              resolve({
+                success: true,
+                values: basicDataSetInfo(ds)
+              })
             }
             else {
               resolve(downloadFailedResult)
