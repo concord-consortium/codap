@@ -1,6 +1,7 @@
 import { base64ToBlob, downloadGraphSnapshot } from "./image-utils"
 
-const dataUri = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg=="
+const dataUri =
+  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg=="
 
 describe("base64ToBlob", () => {
   it("should convert a base64 string to a blob", () => {
@@ -13,7 +14,7 @@ describe("base64ToBlob", () => {
 })
 
 describe("downloadGraphSnapshot", () => {
-  global.URL.createObjectURL = jest.fn();
+  global.URL.createObjectURL = jest.fn()
   it("should download a graph snapshot", async () => {
     const downloadLinkSpy = jest.spyOn(document, "createElement").mockReturnValueOnce({
       click: jest.fn(),
@@ -21,8 +22,12 @@ describe("downloadGraphSnapshot", () => {
       download: "graph.png",
       style: {}
     } as any)
+    const appendChildSpy = jest.spyOn(document.body, "appendChild").mockImplementation()
+    const removeChildSpy = jest.spyOn(document.body, "removeChild").mockImplementation()
 
     downloadGraphSnapshot(dataUri, "graph.png")
-    expect(downloadLinkSpy).toBeCalledWith("a")
+    expect(downloadLinkSpy).toHaveBeenCalledWith("a")
+    expect(appendChildSpy).toHaveBeenCalled()
+    expect(removeChildSpy).toHaveBeenCalled()
   })
 })

@@ -3,7 +3,7 @@ import { getTileContentInfo } from "../../models/tiles/tile-content-info"
 import { t } from "../../utilities/translation/translate"
 import { kComponentTypeV3ToV2Map } from "../data-interactive-component-types"
 import { registerDIHandler } from "../data-interactive-handler"
-import { DIHandler, DIResources } from "../data-interactive-types"
+import { DIAsyncHandler, DIResources } from "../data-interactive-types"
 import { componentNotFoundResult } from "./di-results"
 
 export interface DIDataDisplayHandler {
@@ -17,25 +17,25 @@ export function registerDataDisplayHandler(type: string, handler: DIDataDisplayH
   diDataDisplayHandlers.set(type, handler)
 }
 
-export const diDataDisplayHandler: DIHandler = {
-  get(resources: DIResources) {
+export const diDataDisplayHandler: DIAsyncHandler = {
+  async get(resources: DIResources) {
     const { component } = resources
     if (!component) return componentNotFoundResult
 
-    const { content } = component
+    try {
+      const { content } = component
+      const v2Type = getTileContentInfo(content.type)?.getV2Type?.(content) ?? kComponentTypeV3ToV2Map[content.type]
+      const handler = diDataDisplayHandlers.get(v2Type)
+      const imgSnapshotRes = await handler?.get(component?.content)
+      const { exportDataUri, success } = imgSnapshotRes ?? {}
+      const values = success
+        ? { exportDataUri }
+        : { error: t("V3.DI.Error.dataDisplayNotFound") }
 
-    const v2Type = getTileContentInfo(content.type)?.getV2Type?.(content) ?? kComponentTypeV3ToV2Map[content.type]
-    const handler = diDataDisplayHandlers.get(v2Type)
-    const imgSnapshotRes = { ...handler?.get(component?.content) }
-    const { exportDataUri, success } = imgSnapshotRes
-    console.log("exportDataUri 3", exportDataUri)
-    const values = success
-      ? { exportDataUri }
-      : { error: t("V3.DI.Error.dataDisplayNotFound") }
-
-    return {
-      success,
-      values
+      return { success, values }
+    } catch (e) {
+      console.error("Error in diDataDisplayHandler", e)
+      return { success: false, values: { error: t("V3.DI.Error.dataDisplayNotFound") } }
     }
   }
 }
