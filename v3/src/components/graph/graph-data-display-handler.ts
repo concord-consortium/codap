@@ -7,7 +7,6 @@ export const graphDataDisplayHandler: DIDataDisplayHandler = {
 
     if (isGraphContentModel(content)) {
       await content?.renderState?.updateSnapshot()
-      
       const exportDataUri = content?.renderState?.dataUri
       return { exportDataUri, success: !!exportDataUri }
     } else {
