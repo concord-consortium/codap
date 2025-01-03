@@ -24,6 +24,7 @@ import { urlParams } from "../utilities/url-params"
 import { kWebViewTileType } from "./web-view/web-view-defs"
 import { isWebViewModel } from "./web-view/web-view-model"
 import { logStringifiedObjectMessage } from "../lib/log-message"
+import { CfmContext } from "../hooks/use-cfm-context"
 
 import "../models/shared/shared-case-metadata-registration"
 import "../models/shared/shared-data-set-registration"
@@ -123,11 +124,13 @@ export const App = observer(function App() {
   return (
     <CodapDndContext>
       <DocumentContentContext.Provider value={appState.document.content}>
-        <div className="codap-app" data-testid="codap-app">
-          <MenuBar/>
-          <ToolShelf document={appState.document}/>
-          <Container/>
-        </div>
+        <CfmContext.Provider value={cfm}>
+          <div className="codap-app" data-testid="codap-app">
+            <MenuBar/>
+            <ToolShelf document={appState.document}/>
+            <Container/>
+          </div>
+        </CfmContext.Provider>
       </DocumentContentContext.Provider>
     </CodapDndContext>
   )
