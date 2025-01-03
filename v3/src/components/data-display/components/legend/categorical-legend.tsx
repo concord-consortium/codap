@@ -12,7 +12,7 @@ import {measureText} from "../../../../hooks/use-measure-text"
 import {useDataConfigurationContext} from "../../hooks/use-data-configuration-context"
 import {useDataDisplayLayout} from "../../hooks/use-data-display-layout"
 import {getStringBounds} from "../../../axis/axis-utils"
-import {kDataDisplayFont, transitionDuration} from "../../data-display-types"
+import { kDataDisplayFont, kMain, transitionDuration } from "../../data-display-types"
 import {axisGap} from "../../../axis/axis-types"
 import { IBaseLegendProps } from "./legend-common"
 
@@ -130,7 +130,7 @@ export const CategoricalLegend = observer(
     const refreshKeys = useCallback(() => {
       categoriesRef.current = dataConfiguration?.categoryArrayForAttrRole('legend')
       const numCategories = categoriesRef.current?.length,
-        hasCategories = !(numCategories === 1 && categoriesRef.current?.[0] === "__main__"),
+        hasCategories = !(numCategories === 1 && categoriesRef.current?.[0] === kMain),
         catData = categoryData.current
       if (!hasCategories) {
         select(keysElt.current).selectAll('g').remove()
@@ -249,7 +249,7 @@ export const CategoricalLegend = observer(
     const setupKeys = useCallback(() => {
       categoriesRef.current = dataConfiguration?.categoryArrayForAttrRole('legend')
       const numCategories = categoriesRef.current?.length
-      const hasCategories = !(numCategories === 1 && categoriesRef.current?.[0] === "__main__")
+      const hasCategories = !(numCategories === 1 && categoriesRef.current?.[0] === kMain)
       if (keysElt.current && categoryData.current) {
         select(keysElt.current).selectAll('legend-key').remove() // start fresh
 

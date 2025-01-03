@@ -54,13 +54,11 @@ export const Adornments = observer(function Adornments() {
 
   const xAttrId = dataConfig?.attributeID("x")
   const xAttrType = dataConfig?.attributeType("x")
-  const xCatValues = layout.getAxisMultiScale('bottom').categoryValues
-  const xCats = xAttrType === "categorical" && xCatValues ? xCatValues : [""]
+  const xCats = xAttrType === "categorical" ? layout.getAxisMultiScale('bottom').categoryValues : [""]
   const yAttrId = dataConfig?.attributeID("y")
   const yAttrType = dataConfig?.attributeType("y")
-  const yCatValues = layout.getAxisMultiScale("left").categoryValues
   // yCats is the array of categorical values for the y axis (the one on the left)
-  const yCats = yAttrType === "categorical" && yCatValues ? yCatValues : [""]
+  const yCats = yAttrType === "categorical" ? layout.getAxisMultiScale('left').categoryValues : [""]
   const topAttrId = dataConfig?.attributeID("topSplit")
   const topCatValues = layout.getAxisMultiScale("top").categoryValues
   const topCats = topCatValues ?? [""]

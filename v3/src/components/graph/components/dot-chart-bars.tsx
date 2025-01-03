@@ -1,6 +1,7 @@
 import { observer } from "mobx-react-lite"
 import React, { useCallback, useEffect, useRef } from "react"
 import { createPortal } from "react-dom"
+import { kMain } from "../../data-display/data-display-types"
 import { IBarCover, PlotProps } from "../graphing-types"
 import { usePlotResponders } from "../hooks/use-plot"
 import { setPointCoordinates } from "../utilities/graph-utils"
@@ -50,9 +51,9 @@ export const DotChartBars = observer(function DotChartBars({ abovePointsGroupRef
         Object.entries(secCats).forEach(([secCat, primSplitCats]) => {
           Object.entries(primSplitCats).forEach(([primeSplitCat, secSplitCats]) => {
             Object.entries(secSplitCats).forEach(([secSplitCat, cellData]) => {
-              const secCatKey = secCat === "__main__" ? "" : secCat
-              const exPrimeCatKey = primeSplitCat === "__main__" ? "" : primeSplitCat
-              const exSecCatKey = secSplitCat === "__main__" ? "" : secSplitCat
+              const secCatKey = secCat === kMain ? "" : secCat
+              const exPrimeCatKey = primeSplitCat === kMain ? "" : primeSplitCat
+              const exSecCatKey = secSplitCat === kMain ? "" : secSplitCat
 
               if (legendAttrID && legendCats?.length > 0) {
                 let minInCell = 0

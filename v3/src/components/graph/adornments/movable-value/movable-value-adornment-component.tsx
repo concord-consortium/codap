@@ -69,7 +69,7 @@ export const MovableValueAdornment = observer(function MovableValueAdornment(pro
           : yScale(sortedValues[i]) / cellCounts.y
         const fillEnd = isVertical.current ? xScale(nextValue) / cellCounts.x : yScale(nextValue) / cellCounts.y
         const width = isVertical.current ? Math.abs(fillEnd - fillStart) : x1 + 3
-        const height = isVertical.current ? y2 - offsetTop : Math.abs(fillEnd - fillStart)
+        const height = Math.abs(isVertical.current ? y2 - offsetTop : fillEnd - fillStart)
         selection.append("rect")
           .attr("class", `movable-value-fill ${orientationClass}`)
           .attr("x", isVertical.current ? fillStart : 0)
