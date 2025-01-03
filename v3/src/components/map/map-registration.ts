@@ -28,6 +28,9 @@ import {
   boundaryAttributeFromDataSet, datasetHasBoundaryData, datasetHasLatLongData, latLongAttributesFromDataSet
 } from "./utilities/map-utils"
 import {v2MapImporter} from "./v2-map-importer"
+import { MapFilterFormulaAdapter } from "./models/map-filter-formula-adapter"
+
+MapFilterFormulaAdapter.register()
 
 registerTileContentInfo({
   type: kMapTileType,

@@ -1,12 +1,13 @@
 import {LatLngBounds, Layer, Map as LeafletMap, Polygon} from 'leaflet'
-import {comparer, reaction} from "mobx"
-import {addDisposer, getSnapshot, Instance, SnapshotIn, types} from "mobx-state-tree"
+import {comparer, reaction, when} from "mobx"
+import {addDisposer, getSnapshot, IAnyStateTreeNode, Instance, SnapshotIn, types} from "mobx-state-tree"
 import {ITileContentModel} from "../../../models/tiles/tile-content"
 import {applyModelChange} from "../../../models/history/apply-model-change"
 import {withoutUndo} from '../../../models/history/without-undo'
 import {IDataSet} from "../../../models/data/data-set"
 import {ISharedDataSet, kSharedDataSetType, SharedDataSet} from "../../../models/shared/shared-data-set"
 import {getSharedCaseMetadataFromDataset} from "../../../models/shared/shared-data-utils"
+import { getFormulaManager } from "../../../models/tiles/tile-environment"
 import {kMapModelName, kMapTileType} from "../map-defs"
 import {BaseMapKey, BaseMapKeys} from "../map-types"
 import {
@@ -19,10 +20,18 @@ import {isMapPointLayerModel, MapPointLayerModel} from "./map-point-layer-model"
 import {ILatLngSnapshot, LatLngModel} from '../map-model-types'
 import {LeafletMapState} from './leaflet-map-state'
 import {isMapLayerModel} from "./map-layer-model"
+import { MapFilterFormulaAdapter } from './map-filter-formula-adapter'
+import { typedId } from '../../../utilities/js-utils'
+import { IDataConfigurationModel } from '../../data-display/models/data-configuration-model'
+
+const getFormulaAdapters = (node?: IAnyStateTreeNode) => [
+  MapFilterFormulaAdapter.get(node)
+]
 
 export const MapContentModel = DataDisplayContentModel
   .named(kMapModelName)
   .props({
+    id: types.optional(types.identifier, () => typedId("MPCM")),
     type: types.optional(types.literal(kMapTileType), kMapTileType),
 
     // center and zoom are kept in sync with Leaflet's map state
@@ -79,6 +88,16 @@ export const MapContentModel = DataDisplayContentModel
         }
       })
       return datasets
+    },
+    get dataCongurationArrFromLayers(): IDataConfigurationModel[] {
+      const dataConfigurations: IDataConfigurationModel[] = []
+      self.layers.filter(isMapLayerModel).forEach(layer => {
+        const dataConfiguration = layer.dataConfiguration
+        if (dataConfiguration) {
+          dataConfigurations.push(dataConfiguration)
+        }
+      })
+      return dataConfigurations
     }
   }))
   .actions(self => ({
@@ -205,6 +224,15 @@ export const MapContentModel = DataDisplayContentModel
       ))
     },
     afterAttachToDocument() {
+      // register with the formula adapters once they've been initialized
+      when(
+        () => getFormulaManager(self)?.areAdaptersInitialized ?? false,
+        () => {
+          getFormulaAdapters(self).forEach(adapter => {
+            adapter?.addMapContentModel(self as IMapContentModel)
+          })
+        }
+      )
       // Monitor coming and going of shared datasets
       addDisposer(self, reaction(() => {
           const sharedModelManager = self.tileEnv?.sharedModelManager,
@@ -265,6 +293,11 @@ export const MapContentModel = DataDisplayContentModel
     setHasBeenInitialized() {
       withoutUndo()
       self.isLeafletMapInitialized = true
+    },
+    beforeDestroy() {
+      getFormulaAdapters(self).forEach(adapter => {
+        adapter?.removeMapContentModel(self.id)
+      })
     }
   }))
   .actions(self => ({
