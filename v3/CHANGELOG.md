@@ -1,5 +1,21 @@
 # Changelog
 
+## Version 3.0.0-pre.2076 - January 3, 2025
+
+### ✨ Features & Improvements:
+- **PT-188527686:** Formula Editor improvements
+- **PT-187738928:** DI Create DataContextFromURL
+- **PT-188712457:** Support async API handlers
+
+### 🐞 Bug Fixes:
+- **PT-188623852:** Selecting parent case using keyboard navigation does not cause child cases to scroll into view like they do when you click on a parent case to select it.
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  187430 bytes |                             0.6% |
+|  index.js | 6365219 bytes |                           <0.00% |
+
 ## Version 3.0.0-pre.2068 - December 23, 2024
 
 ### ✨ Features & Improvements:
