@@ -20,6 +20,7 @@ import {defaultBackgroundColor} from "../../../utilities/color-utils"
 import { MarqueeMode, PointDisplayTypes } from "../data-display-types"
 import { IGetTipTextProps } from "../data-tip-types"
 import { IAxisModel, isBaseNumericAxisModel } from "../../axis/models/axis-model"
+import { DataDisplayRenderState } from "./data-display-render-state"
 
 export const DataDisplayContentModel = TileContentModel
   .named("DataDisplayContentModel")
@@ -33,6 +34,7 @@ export const DataDisplayContentModel = TileContentModel
   .volatile(() => ({
     animationTimerId: 0,
     marqueeMode: 'unclicked' as MarqueeMode,
+    renderState: undefined as DataDisplayRenderState | undefined,
   }))
   .views(self => ({
     placeCanAcceptAttributeIDDrop(place: GraphPlace,
@@ -137,6 +139,9 @@ export const DataDisplayContentModel = TileContentModel
     },
     setMarqueeMode(mode: MarqueeMode) {
       self.marqueeMode = mode
+    },
+    setRenderState(renderState: DataDisplayRenderState) {
+      self.renderState = renderState
     }
   }))
 export interface IDataDisplayContentModel extends Instance<typeof DataDisplayContentModel> {}

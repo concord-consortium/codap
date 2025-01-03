@@ -23,12 +23,14 @@ import { graphCollisionDetection, kGraphIdBase } from './graph-drag-drop'
 import { kTitleBarHeight } from "../../constants"
 import {AttributeDragOverlay} from "../../drag-drop/attribute-drag-overlay"
 import "../register-adornment-types"
+import { getTitle } from '../../../models/tiles/tile-content-info'
+import { DataDisplayRenderState } from '../../data-display/models/data-display-render-state'
 
 registerTileCollisionDetection(kGraphIdBase, graphCollisionDetection)
 
 export const GraphComponent = observer(function GraphComponent({tile}: ITileBaseProps) {
   const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
-
+  const title = (tile && getTitle?.(tile)) || tile?.title || ""
   const instanceId = useNextInstanceId("graph")
   const {data} = useDataSet(graphModel?.dataset)
   const layout = useInitGraphLayout(graphModel)
@@ -41,6 +43,16 @@ export const GraphComponent = observer(function GraphComponent({tile}: ITileBase
   )
 
   useGraphController({graphController, graphModel, pixiPointsArray})
+
+  const setGraphRef = (ref: HTMLDivElement | null) => {
+    graphRef.current = ref
+    const elementParent = ref?.parentElement
+    const dataUri = graphModel?.renderState?.dataUri ?? undefined
+    if (elementParent) {
+      const renderState = new DataDisplayRenderState(pixiPointsArray, elementParent, () => title, dataUri)
+      graphModel?.setRenderState(renderState)
+    }
+  }
 
   useEffect(() => {
     (width != null) && width >= 0 && (height != null) &&
@@ -71,7 +83,7 @@ export const GraphComponent = observer(function GraphComponent({tile}: ITileBase
               <AxisProviderContext.Provider value={graphModel}>
                 <Graph
                   graphController={graphController}
-                  graphRef={graphRef}
+                  setGraphRef={setGraphRef}
                   pixiPointsArray={pixiPointsArray}
                 />
               </AxisProviderContext.Provider>
