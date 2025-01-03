@@ -7,7 +7,7 @@ import { registerTileContentInfo } from "../../models/tiles/tile-content-info"
 import { ITileModelSnapshotIn } from "../../models/tiles/tile-model"
 import { toV2Id, toV3AttrId, toV3Id } from "../../utilities/codap-utils"
 import { t } from "../../utilities/translation/translate"
-import { registerV2TileExporter } from "../../v2/codap-v2-tile-exporters"
+import { registerV2TileExporter, V2TileExportFn } from "../../v2/codap-v2-tile-exporters"
 import { registerV2TileImporter } from "../../v2/codap-v2-tile-importers"
 import {
   guidLink, ICodapV2BaseComponentStorage, ICodapV2TableStorage, isV2TableComponent
@@ -54,7 +54,7 @@ registerTileComponentInfo({
   defaultHeight: 200
 })
 
-registerV2TileExporter(kCaseTableTileType, ({ tile }) => {
+const v2TableExporter: V2TileExportFn = ({ tile }) => {
   const tableContent = isCaseTableModel(tile.content) ? tile.content : undefined
   let componentStorage: Maybe<SetOptional<ICodapV2TableStorage, keyof ICodapV2BaseComponentStorage>>
   const dataSet = tableContent?.data
@@ -69,7 +69,10 @@ registerV2TileExporter(kCaseTableTileType, ({ tile }) => {
     }
   }
   return { type: "DG.TableView", componentStorage }
-})
+}
+// don't write out an empty `name` property
+v2TableExporter.options = ({ tile }) => ({ suppressName: !tile.name })
+registerV2TileExporter(kCaseTableTileType, v2TableExporter)
 
 registerV2TileImporter("DG.TableView", ({ v2Component, v2Document, sharedModelManager, insertTile }) => {
   if (!isV2TableComponent(v2Component)) return
