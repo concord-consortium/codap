@@ -17,40 +17,7 @@ interface IGraphSnapshotOptions {
   graphHeight: number
   graphTitle: string
   asDataURL: boolean
-  pixiPoints: PixiPoints
-}
-
-export const base64ToBlob = (base64String: string): Blob => {
-  const mimeType = base64String.match(/data:([^;]+);base64,/)?.[1] || "application/octet-stream"
-  const base64Content = base64String.startsWith("data:")
-    ? base64String.split(",")[1]
-    : base64String
-
-  // Decode base64 string into a binary buffer.
-  const binary = atob(base64Content)
-  const binaryLength = binary.length
-  const arrayBuffer = new Uint8Array(binaryLength)
-  for (let i = 0; i < binaryLength; i++) {
-    arrayBuffer[i] = binary.charCodeAt(i)
-  }
-
-  return new Blob([arrayBuffer], { type: mimeType })
-}
-
-export const downloadGraphSnapshot = (graphSnapshot: string | Blob, filename = "graph.png") => {
-  const blob = typeof graphSnapshot === "string"
-    ? base64ToBlob(graphSnapshot)
-    : graphSnapshot
-
-  // Create a temporary link element to trigger the download.
-  // TODO: Use CFM's save dialog instead?
-  const link = document.createElement("a")
-  link.href = URL.createObjectURL(blob)
-  link.download = filename
-  link.style.display = "none"
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
+  pixiPoints?: PixiPoints
 }
 
 export const graphSnaphsot = (options: IGraphSnapshotOptions): Promise<string | Blob> => {
@@ -81,7 +48,7 @@ export const graphSnaphsot = (options: IGraphSnapshotOptions): Promise<string | 
    * @returns {SVGImageElement | undefined} An SVG image element representing the PixiJS canvas, or undefined.
    */
   const imageFromPixiCanvas = (foreignObject: SVGForeignObjectElement): SVGImageElement | undefined => {
-    const extractedCanvas = pixiPoints.renderer?.extract.canvas(pixiPoints.stage)
+    const extractedCanvas = pixiPoints?.renderer?.extract.canvas(pixiPoints.stage)
     if (!extractedCanvas?.toDataURL) return
 
     const width = foreignObject.getAttribute("width") ?? extractedCanvas.width.toString()
@@ -99,27 +66,13 @@ export const graphSnaphsot = (options: IGraphSnapshotOptions): Promise<string | 
     return image
   }
 
-  // const inlineAllStyles = (svgElement: SVGSVGElement) => {
-  //   const nodes = svgElement.querySelectorAll("*")
-  //   nodes.forEach(node => {
-  //     const computedStyles = window.getComputedStyle(node)
-  //     for (let i = 0; i < computedStyles.length; i++) {
-  //       const key = computedStyles[i]
-  //       ;(node as HTMLElement).style.setProperty(key, computedStyles.getPropertyValue(key))
-  //     }
-  //   })
-  // }
-
   const makeDataURLFromSVGElement = (svgEl: SVGSVGElement, dimensions: Dimensions): string => {
     const svgClone = svgEl.cloneNode(true) as SVGSVGElement
     svgClone.style.fill = "#f8f8f8"
-    // I don't think this is necessary. Using getCSSText() works better.
-    //inlineAllStyles(svgClone)
-
     svgClone.setAttribute("width", dimensions.width.toString())
     svgClone.setAttribute("height", dimensions.height.toString())
 
-    // grid lines are too dark
+    // grid lines are too dark without this tweak
     const lines = svgClone.querySelectorAll("line")
     lines.forEach(line => {
       const stroke = line.getAttribute("stroke")
@@ -266,12 +219,7 @@ export const graphSnaphsot = (options: IGraphSnapshotOptions): Promise<string | 
     return []
   }
 
-  const isAllowedElement = (element: Element): boolean => {
-    const classNames = getClassNames(element)
-    return classNames.every((className) => !disallowedClasses.has(className))
-  }
-
-  const disallowedClasses = new Set([
+  const disallowedElementClasses = new Set([
     "axis-legend-attribute-menu",
     "attribute-label-menu",
     "chakra-icon",
@@ -285,6 +233,11 @@ export const graphSnaphsot = (options: IGraphSnapshotOptions): Promise<string | 
     "legend",
     "multi-legend",
   ])
+
+  const isAllowedElement = (element: Element): boolean => {
+    const classNames = getClassNames(element)
+    return classNames.every((className) => !disallowedElementClasses.has(className))
+  }
 
   const allElements = rootEl.querySelectorAll("div, svg")
   const targetElements = Array.from(allElements).filter(isAllowedElement)

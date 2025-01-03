@@ -24,17 +24,8 @@ import { graphCollisionDetection, kGraphIdBase } from './graph-drag-drop'
 import { kTitleBarHeight } from "../../constants"
 import {AttributeDragOverlay} from "../../drag-drop/attribute-drag-overlay"
 import "../register-adornment-types"
-import { downloadGraphSnapshot } from '../utilities/image-utils'
 import { getTitle } from '../../../models/tiles/tile-content-info'
 import { DataDisplayRenderState } from '../../data-display/models/data-display-render-state'
-import { mstReaction } from '../../../utilities/mst-reaction'
-
-const exportGraphImage = async (graphModel: any) => {
-  if (!graphModel.renderState) return
-
-  await graphModel.renderState.updateSnapshot()
-  downloadGraphSnapshot(graphModel.renderState.dataUri, "graph.png")
-}
 
 registerTileCollisionDetection(kGraphIdBase, graphCollisionDetection)
 
@@ -80,18 +71,6 @@ export const GraphComponent = observer(function GraphComponent({tile}: ITileBase
       layout.cleanup()
     }
   }, [layout])
-
-  useEffect(function exportGraphPng() {
-    return mstReaction(
-      () => graphModel?.exportPng,
-      () => {
-        if (graphRef.current && graphModel?.exportPng) {
-          exportGraphImage(graphModel)
-          graphModel.setExportPng(false)
-        }
-      }, {name: "Graph.exportGraphPng"}, graphModel
-    )
-  }, [graphModel, pixiPointsArray, title])
 
   // used to determine when a dragged attribute is over the graph component
   const dropId = `${instanceId}-component-drop-overlay`
