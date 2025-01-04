@@ -19,6 +19,7 @@ const MAP_FILTER_FORMULA_ADAPTER = "MapFilterFormulaAdapter"
 
 export interface IMapFilterFormulaExtraMetadata extends IFormulaExtraMetadata {
   mapContentModelId: string
+  mapLayerId: string
 }
 
 export class MapFilterFormulaAdapter extends FormulaManagerAdapter implements IFormulaManagerAdapter {
@@ -42,8 +43,7 @@ export class MapFilterFormulaAdapter extends FormulaManagerAdapter implements IF
 
   @action
   addMapContentModel(mapContentModel: IMapContentModel) {
-    console.log(" map addMapContentModel", mapContentModel)
-    this.mapContentModels.set(mapContentModel.layers[0].id, mapContentModel)
+    this.mapContentModels.set(mapContentModel.id, mapContentModel)
   }
 
   @action
@@ -54,7 +54,6 @@ export class MapFilterFormulaAdapter extends FormulaManagerAdapter implements IF
   getMapContentModel(extraMetadata: IMapFilterFormulaExtraMetadata) {
     const { mapContentModelId } = extraMetadata
     const mapContentModel = this.mapContentModels.get(mapContentModelId)
-    console.log("getMapContentModel", mapContentModel)
     if (!mapContentModel) {
       throw new Error(`MapContentModel with id "${mapContentModelId}" not found`)
     }
@@ -62,28 +61,29 @@ export class MapFilterFormulaAdapter extends FormulaManagerAdapter implements IF
   }
 
   getDataConfiguration(extraMetadata: IMapFilterFormulaExtraMetadata) {
-    console.log("getDataConfiguration", this.getMapContentModel(extraMetadata).layers[0].dataConfiguration)
-    return this.getMapContentModel(extraMetadata).layers[0].dataConfiguration
+    const contentModel = this.getMapContentModel(extraMetadata)
+    const mapLayer = contentModel.layers.find(l => l.id === extraMetadata.mapLayerId)
+    return mapLayer?.dataConfiguration
   }
 
   getActiveFormulas(): ({ formula: IFormula, extraMetadata: IMapFilterFormulaExtraMetadata })[] {
-    console.log("map getActiveFormulas")
     const result: ({ formula: IFormula, extraMetadata: IMapFilterFormulaExtraMetadata })[] = []
     this.mapContentModels.forEach(mapContentModel => {
-      const dataConfig = mapContentModel.layers[0].dataConfiguration
-      console.log("map getActiveFormulas dataConfig", dataConfig)
-      const dataSet = dataConfig?.dataset
-      if (dataSet && isFilterFormulaDataConfiguration(dataConfig)) {
-        result.push({
-          formula: dataConfig.filterFormula,
-          extraMetadata: {
-            dataSetId: dataSet.id,
-            mapContentModelId: mapContentModel.layers[0].id
-          }
-        })
-      }
+      mapContentModel.layers.forEach(layer => {
+        const dataConfig = layer.dataConfiguration
+        const dataSet = dataConfig?.dataset
+        if (dataSet && isFilterFormulaDataConfiguration(dataConfig)) {
+          result.push({
+            formula: dataConfig.filterFormula,
+            extraMetadata: {
+              dataSetId: dataSet.id,
+              mapContentModelId: mapContentModel.id,
+              mapLayerId: layer.id
+            }
+          })
+        }
+      })
     })
-    console.log("map getActiveFormulas", result)
 
     return result
   }
@@ -91,7 +91,6 @@ export class MapFilterFormulaAdapter extends FormulaManagerAdapter implements IF
   recalculateFormula(formulaContext: IFormulaContext, extraMetadata: IMapFilterFormulaExtraMetadata,
     casesToRecalculateDesc: ICase[] | "ALL_CASES" = "ALL_CASES") {
     const dataConfig = this.getDataConfiguration(extraMetadata)
-      console.log("recalculateFormula", formulaContext, extraMetadata, casesToRecalculateDesc)
     if (formulaContext.formula.empty) {
       // if there is no filter formula, clear any filter results
       dataConfig?.updateFilterFormulaResults([], { replaceAll: true })
@@ -115,7 +114,6 @@ export class MapFilterFormulaAdapter extends FormulaManagerAdapter implements IF
     const { formula, dataSet } = formulaContext
     const { attributeId } = extraMetadata
     const dataConfig = this.getDataConfiguration(extraMetadata)
-console.log("computeFormula", formula, dataSet, attributeId, dataConfig)
     // Use visibleCaseIds to exclude hidden cases so they're not included in calculations,
     // such as aggregate functions like mean.
     const childMostCollectionCaseIds = dataConfig ? [...dataConfig.visibleCaseIds] : []
