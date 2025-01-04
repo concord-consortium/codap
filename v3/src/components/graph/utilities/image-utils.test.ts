@@ -10,6 +10,31 @@ const mockPixiPoints: Partial<PixiPoints> = {
   stage: {} as any
 }
 
+beforeAll(() => {
+  const mockImage = jest.fn(() => {
+    const img = document.createElement("img")
+    img.width = 100
+    img.height = 100
+    // Simulate async image loading.
+    Object.defineProperty(img, "src", {
+      set(url) {
+        setTimeout(() => {
+          if (img.onload) {
+            img.onload(new Event("load"))
+          }
+        }, 0)
+      },
+    })
+    return img
+  })
+
+  global.Image = mockImage as unknown as typeof Image
+})
+
+afterAll(() => {
+  delete (global as any).Image
+})
+
 const styleElt = document.createElement("style")
 styleElt.textContent = ".codap-graph { background-color: gray; height: 100px; width: 100px; }"
 const containerElt = document.createElement("div")

@@ -174,7 +174,7 @@ export const graphSnaphsot = (options: IGraphSnapshotOptions): Promise<string | 
   }
 
   const perform = async (job?: Job): Promise<string | Blob> => {
-    if (!job || jobIx >= jobList.length) {
+    if (!job) {
       if (graphTitle) {
         addTitle(mainCanvas, "transparent", "white", graphTitle)
       }
@@ -208,7 +208,7 @@ export const graphSnaphsot = (options: IGraphSnapshotOptions): Promise<string | 
         }
       }
     }
-  
+    
     return perform(jobList[jobIx++])
   }
 
