@@ -17,7 +17,7 @@ interface IGraphSnapshotOptions {
   graphHeight: number
   graphTitle: string
   asDataURL: boolean
-  pixiPoints?: PixiPoints
+  pixiPoints: PixiPoints
 }
 
 export const graphSnaphsot = (options: IGraphSnapshotOptions): Promise<string | Blob> => {
@@ -48,7 +48,7 @@ export const graphSnaphsot = (options: IGraphSnapshotOptions): Promise<string | 
    * @returns {SVGImageElement | undefined} An SVG image element representing the PixiJS canvas, or undefined.
    */
   const imageFromPixiCanvas = (foreignObject: SVGForeignObjectElement): SVGImageElement | undefined => {
-    const extractedCanvas = pixiPoints?.renderer?.extract.canvas(pixiPoints.stage)
+    const extractedCanvas = pixiPoints.renderer?.extract.canvas(pixiPoints.stage)
     if (!extractedCanvas?.toDataURL) return
 
     const width = foreignObject.getAttribute("width") ?? extractedCanvas.width.toString()
@@ -174,7 +174,7 @@ export const graphSnaphsot = (options: IGraphSnapshotOptions): Promise<string | 
   }
 
   const perform = async (job?: Job): Promise<string | Blob> => {
-    if (!job) {
+    if (!job || jobIx >= jobList.length) {
       if (graphTitle) {
         addTitle(mainCanvas, "transparent", "white", graphTitle)
       }

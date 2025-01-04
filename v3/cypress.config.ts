@@ -21,8 +21,22 @@ export default defineConfig({
     e2e: {
         // We've imported your old cypress plugins here.
         // You may want to clean this up later by importing these.
-        setupNodeEvents(on, config) {// promisified fs module
+        setupNodeEvents(on, config) {
+            on("task", {
+              fileExists(filePath) {
+                return fs.existsSync(filePath)
+              }
+            })
 
+            on("task", {
+              clearFolder(folderPath) {
+                fs.rmdirSync(folderPath, { recursive: true });
+                fs.mkdirSync(folderPath);
+                return null;
+              }
+            })
+            
+            // promisified fs module
             function getConfigurationByFile(file) {
                 const pathToConfigFile = path.resolve('.', 'cypress/config', `cypress.${file}.json`)
 
