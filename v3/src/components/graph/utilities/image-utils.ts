@@ -201,11 +201,6 @@ export const graphSnaphsot = (options: IGraphSnapshotOptions): Promise<string | 
           ctx.drawImage(svgImg, x, y, width, height)
           break
         }
-        case "img": {
-          const img = job.element as HTMLImageElement
-          ctx.drawImage(img, x, y, width, height)
-          break
-        }
       }
     }
     

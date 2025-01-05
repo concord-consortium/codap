@@ -4,7 +4,13 @@ import { graphSnaphsot } from "./image-utils"
 const mockPixiPoints: Partial<PixiPoints> = {
   renderer: {
     extract: {
-      canvas: jest.fn()
+      canvas: jest.fn(() => {
+        const canvas = document.createElement("canvas")
+        canvas.toDataURL = jest.fn(() => "data:image/png;base64,")
+        canvas.width = 100
+        canvas.height = 100
+        return canvas
+      })
     } as any,
   } as any,
   stage: {} as any
@@ -35,26 +41,28 @@ afterAll(() => {
   delete (global as any).Image
 })
 
-const styleElt = document.createElement("style")
-styleElt.textContent = ".codap-graph { background-color: gray; height: 100px; width: 100px; }"
-const containerElt = document.createElement("div")
-containerElt.classList.add("codap-graph")
-const graphElt = document.createElement("div")
-graphElt.classList.add("graph-plot")
-const svgElt = document.createElement("svg")
-svgElt.classList.add("graph-svg")
-const foreignObjectElt = document.createElement("foreignObject")
+const styleEl = document.createElement("style")
+styleEl.textContent = ".codap-graph { background-color: gray; height: 100px; width: 100px; }"
+const containerEl = document.createElement("div")
+containerEl.classList.add("codap-graph")
+const graphEl = document.createElement("div")
+graphEl.classList.add("graph-plot")
+const svgEl = document.createElementNS("http://www.w3.org/2000/svg", "svg")
+svgEl.classList.add("graph-svg")
+const foreignObjectEl = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject")
 const canvasElt = document.createElement("canvas")
 
-foreignObjectElt.appendChild(canvasElt)
-svgElt.appendChild(foreignObjectElt)
-graphElt.appendChild(svgElt)
-containerElt.appendChild(graphElt)
+foreignObjectEl.appendChild(canvasElt)
+svgEl.appendChild(foreignObjectEl)
+graphEl.appendChild(svgEl)
+containerEl.appendChild(graphEl)
+document.head.appendChild(styleEl)
+document.body.appendChild(containerEl)
 
 describe("graphSnaphsot", () => {
   it("should return a data URL string when `asDataUrl` is true", async () => {
     const svgElementsToImageOptions = {
-      rootEl: containerElt,
+      rootEl: containerEl,
       graphWidth: 100,
       graphHeight: 100,
       graphTitle: "Empty Test Graph",
@@ -67,7 +75,7 @@ describe("graphSnaphsot", () => {
   })
   it("should return a blob when `asDataUrl` is false", async () => {
     const svgElementsToImageOptions = {
-      rootEl: containerElt,
+      rootEl: containerEl,
       graphWidth: 100,
       graphHeight: 100,
       graphTitle: "Empty Test Graph",

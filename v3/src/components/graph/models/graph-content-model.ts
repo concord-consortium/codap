@@ -85,7 +85,7 @@ export const GraphContentModel = DataDisplayContentModel
     dynamicBinAlignment: undefined as number | undefined,
     dynamicBinWidth: undefined as number | undefined,
     prevDataSetId: "",
-    pointOverlap: 0,  // Set by plots so that it is accessible to adornments,
+    pointOverlap: 0,  // Set by plots so that it is accessible to adornments
   }))
   .preProcessSnapshot(snap => {
     // some properties were historically written out as null because NaN => null in JSON
@@ -115,7 +115,7 @@ export const GraphContentModel = DataDisplayContentModel
     },
     setDynamicBinWidth(width: number) {
       self.dynamicBinWidth = width
-    }
+    },
   }))
   .views(self => ({
     get graphPointLayerModel(): IGraphPointLayerModel {
