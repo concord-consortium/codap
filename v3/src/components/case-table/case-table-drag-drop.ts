@@ -1,9 +1,9 @@
 import {
-  Active, Collision, CollisionDetection, DroppableContainer, UseDraggableArguments,
+  Active, Collision, CollisionDescriptor, CollisionDetection, DroppableContainer, UseDraggableArguments,
   closestCenter, pointerWithin, rectIntersection, useDraggable
 } from "@dnd-kit/core"
-import { kInputRowKey } from "./case-table-types"
 import { IDragData } from "../../hooks/use-drag-drop"
+import { kInputRowKey } from "./case-table-types"
 
 export const kNewCollectionDropZoneBaseId = "new-collection"
 export const kCollectionTableBodyDropZoneBaseId = "collection-table-body"
@@ -48,30 +48,31 @@ export const caseTableCollisionDetection: CollisionDetection = (args) => {
 
   // if the pointer is within the new collection drop zone, then we're done
   const withinCollisions = pointerWithin(args)
-  if (String(args.active.id).includes(kInputRowKey)) {
+  const withinTableBody = findCollision(withinCollisions, kCollectionTableBodyDropZoneRegEx)
+
+  // input row drag
+  if (withinTableBody && String(args.active.id).includes(kInputRowKey)) {
     const dragRowInfo = getDragRowInfo(args.active)
     if (dragRowInfo) {
+      // use closestVerticalCenter among row dividers for dragging the input row
       const droppableCollection = filterCollection(args.droppableContainers, dragRowInfo.collectionId)
       const droppableRowDividers = filterContainers(droppableCollection, kRowDividerDropZoneRegEx)
-      const withinRowTableBody = findCollision(withinCollisions, kCollectionTableBodyDropZoneRegEx)
-      if (withinRowTableBody) {
-        // use closestCenter among row dividers for moving attributes within table
-        return closestCenter({ ...args, droppableContainers: droppableRowDividers })
-      }
+      return closestVerticalCenter({ ...args, droppableContainers: droppableRowDividers })
     }
-  } else {
+  }
+  // attribute drag
+  else {
     // if the pointer is within the collection table body, find the nearest attribute divider drop zone
     const withinNewCollection = findCollision(withinCollisions, kNewCollectionDropZoneRegEx)
     if (withinNewCollection) return [withinNewCollection]
 
-    const droppableAttributeDividers = filterContainers(args.droppableContainers, kAttributeDividerDropZoneRegEx)
-    const withinTableBody = findCollision(withinCollisions, kCollectionTableBodyDropZoneRegEx)
+    const droppableColumnDividers = filterContainers(args.droppableContainers, kAttributeDividerDropZoneRegEx)
     if (withinTableBody) {
       // use closestCenter among column dividers for moving attributes within table
-      return closestCenter({ ...args, droppableContainers: droppableAttributeDividers })
+      return closestCenter({ ...args, droppableContainers: droppableColumnDividers })
     }
 
-  // if the pointer within tests didn't find a target, try rectangle intersection
+    // if the pointer within tests didn't find a target, try rectangle intersection
     const intersectCollisions = rectIntersection(args)
     // intersection collisions are ordered by percentage of overlap, so check order
     const intersectNewCollectionIndex = findCollisionIndex(intersectCollisions, kNewCollectionDropZoneRegEx)
@@ -84,8 +85,8 @@ export const caseTableCollisionDetection: CollisionDetection = (args) => {
       return [intersectCollisions[intersectNewCollectionIndex]]
     }
     if (intersectsTableBody) {
-      // use closestCenter among column and row dividers for moving attributes within table
-      return closestCenter({ ...args, droppableContainers: droppableAttributeDividers })
+      // use closestCenter among column dividers for moving attributes within table
+      return closestCenter({ ...args, droppableContainers: droppableColumnDividers })
     }
   }
   return []
@@ -109,9 +110,37 @@ export interface IUseDraggableRow extends Omit<UseDraggableArguments, "id"> {
 export const useDraggableRow = ({ prefix, rowId, rowIdx, collectionId, isInputRow, ...others }: IUseDraggableRow) => {
   const attributes = { tabIndex: -1 }
   const data: IDragRowData = { type: "row", rowId, rowIdx, collectionId, isInputRow }
-  return useDraggable({ ...others, id: `${prefix}-${rowId}`, attributes, data })
+  return useDraggable({ ...others, id: `${prefix}-${collectionId}-${rowId}`, attributes, data })
 }
 
 export const getDragRowInfo = (active: Active | null) => {
   return active?.data.current
+}
+
+/**
+ * Returns the closest vertical center to the pointer position or collision rectangle.
+ */
+export const closestVerticalCenter: CollisionDetection = ({
+  collisionRect,
+  droppableRects,
+  droppableContainers,
+  pointerCoordinates
+}) => {
+  // use pointer coordinates if available; collisionRect seems off in some cases
+  const dragY = pointerCoordinates?.y ?? collisionRect.top + collisionRect.height / 2
+  const collisions: CollisionDescriptor[] = []
+
+  for (const droppableContainer of droppableContainers) {
+    const {id} = droppableContainer
+    const rect = droppableRects.get(id)
+
+    if (rect) {
+      const droppableY = rect.top + rect.height / 2
+      const distBetween = Math.abs(dragY - droppableY)
+
+      collisions.push({id, data: {droppableContainer, value: distBetween}})
+    }
+  }
+
+  return collisions.sort((a, b) => a.data.value - b.data.value)
 }

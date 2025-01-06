@@ -421,10 +421,14 @@ $table-body-font-size: 8pt;
     position: absolute;
     opacity: 0;
     height: 9px;
+    width: 100%;
     background: black;
     cursor: row-resize;
     z-index: 1;
 
+    &.no-row-resize {
+      cursor: auto;
+    }
     &.over {
       z-index: 50;
       opacity: 30%;

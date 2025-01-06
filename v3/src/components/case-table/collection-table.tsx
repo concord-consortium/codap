@@ -367,10 +367,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
    const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
     initialPointerDownPosition.current = { x: event.clientX, y: event.clientY }
     const startRowIdx = getRowIndexFromEvent(event)
-    if (!startRowIdx) {
-      console.log("rowIdx is null, rowId is", getCaseIdFromEvent(event))
-    }
-    else if (startRowIdx != null) {
+    if (startRowIdx != null) {
       setSelectionStartRowIdx(startRowIdx)
       setIsSelecting(true)
       startAutoScroll(event.clientY)
@@ -416,6 +413,9 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
 
   if (!data || !rows || !visibleAttributes.length) return null
 
+  const dragId = String(active?.id)
+  const showDragOverlay = dragId.includes(kInputRowKey) && dragId.includes(collectionId)
+
   return (
     <div className={`collection-table collection-${collectionId}`} ref={collectionRef}>
       <CollectionTableSpacer selectedFillColor={selectedFillColor}
@@ -430,7 +430,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
           columnWidths={columnWidths} onColumnResize={handleColumnResize} onCellClick={handleCellClick}
           onCellKeyDown={handleCellKeyDown} onRowsChange={handleRowsChange} onScroll={handleGridScroll}
           onSelectedCellChange={handleSelectedCellChange}/>
-        {(String(active?.id)).includes(kInputRowKey) && <RowDragOverlay rows={rows} width={kIndexColumnWidth}/>}
+        {showDragOverlay && <RowDragOverlay rows={rows} width={kIndexColumnWidth}/>}
       </div>
     </div>
   )

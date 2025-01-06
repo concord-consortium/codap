@@ -1,70 +1,56 @@
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
-import React, { useEffect, useRef, useState } from "react"
+import React, { useRef } from "react"
 import { createPortal } from "react-dom"
 import { useCollectionContext } from "../../hooks/use-collection-context"
-import { kDefaultRowHeaderHeight, kDefaultRowHeight, kIndexColumnWidth, kInputRowKey, kSnapToLineHeight }
-    from "./case-table-types"
-import { useCaseTableModel } from "./use-case-table-model"
-import { useCollectionTableModel } from "./use-collection-table-model"
 import { useTileDroppable } from "../../hooks/use-drag-drop"
 import { kRowDividerDropZoneBaseId } from "./case-table-drag-drop"
+import {
+  kDefaultRowHeaderHeight, kDefaultRowHeight, kInputRowKey, kSnapToLineHeight
+} from "./case-table-types"
+import { useCaseTableModel } from "./use-case-table-model"
+import { useCollectionTableModel } from "./use-collection-table-model"
 
-const kTableRowDividerHeight = 13
-const kTableDividerOffset = Math.floor(kTableRowDividerHeight / 2)
+const kTableRowDividerHeight = 9
+const kTableDividerOffset = Math.ceil(kTableRowDividerHeight / 2)
 interface IRowDividerProps {
   rowId: string
+  before?: boolean
 }
-export const RowDivider = observer(function RowDivider({ rowId }: IRowDividerProps) {
+export const RowDivider = observer(function RowDivider({ rowId, before }: IRowDividerProps) {
   const caseTableModel = useCaseTableModel()
   const collectionId = useCollectionContext()
   const collectionTableModel = useCollectionTableModel(collectionId)
-  const collectionTable = collectionTableModel?.element
+  const collectionTableElt = collectionTableModel?.element
   const caseRows = collectionTableModel?.rows
-  const inputRowIndex = collectionTableModel?.inputRowIndex !== -1
-                            ? collectionTableModel?.inputRowIndex : caseRows?.length
+  const _inputRowIndex = collectionTableModel?.inputRowIndex ?? -1
+  const inputRowIndex = _inputRowIndex >= 0 ? _inputRowIndex : caseRows?.length ?? -1
   const isResizing = useRef(false)
   const startY = useRef(0)
   const getRowHeight = () => collectionTableModel?.rowHeight ?? kDefaultRowHeight
   const initialHeight = useRef(getRowHeight())
   // recalculate row indices with input row index
-  const allRows = caseRows?.slice(0, inputRowIndex)
-                            .concat([{ __id__: kInputRowKey }])
-                            .concat(caseRows.slice(inputRowIndex))
+  const allRows = caseRows && inputRowIndex >= 0
+                    ? [...caseRows.slice(0, inputRowIndex), { __id__: kInputRowKey }, ...caseRows.slice(inputRowIndex)]
+                    : caseRows
   const rowIdx = allRows?.findIndex(row => row.__id__ === rowId)
-  const [rowElement, setRowElement] = useState<HTMLDivElement | null>(null)
-  const getRowBottom = () => {
-    if (rowIdx === 0) return getRowHeight()
-    else return (rowIdx && collectionTableModel?.getRowBottom(rowIdx - 1)) ?? kDefaultRowHeight
+  const getDividerTopOffset = () => {
+    if (before) return collectionTableModel?.getRowTop(rowIdx ?? 0) ?? 0
+    return collectionTableModel?.getRowBottom(rowIdx ?? 0) ?? getRowHeight()
   }
 
-  const droppableId = `${kRowDividerDropZoneBaseId}:${collectionId}:${rowIdx}`
-  const { active, over, setNodeRef: setRowDropRef } = useTileDroppable(droppableId, _active => {
-    if (!allRows) return
-    const overIndex = Number(String(over?.id).split(":")[2].split("-")[0])
-    const activeIndex = collectionTableModel?.inputRowIndex !== -1
-      ? collectionTableModel?.inputRowIndex
-      : allRows?.length ?? 0
-
-    // Calculate new index
-    if (overIndex === allRows.length - 1) {
-      collectionTableModel?.setInputRowIndex(allRows.length - 1)
-    } else
-    if (rowIdx && overIndex === rowIdx - 1) {
-      collectionTableModel?.setInputRowIndex(allRows.length - 2)
-    } else
-    if (activeIndex && activeIndex !== overIndex) {
-      collectionTableModel?.setInputRowIndex(overIndex - 1)
+  const droppableId = `${kRowDividerDropZoneBaseId}:${collectionId}:${rowId}:${before ? "before" : "after"}`
+  const { active, isOver, setNodeRef: setRowDropRef } = useTileDroppable(droppableId, _active => {
+    if (rowIdx != null && inputRowIndex >= 0) {
+      const offset = before ? 0 : 1
+      collectionTableModel?.setInputRowIndex(rowIdx < inputRowIndex ? rowIdx + offset : rowIdx)
     }
-  })
+    // disable drop target if there is no input row or we don't have a valid index
+  }, { disabled: rowIdx == null || inputRowIndex < 0 })
 
-  useEffect(() => {
-    (rowIdx != null && collectionTable) &&
-      setRowElement(collectionTable.querySelector(`[aria-rowindex="${rowIdx + 2}"]`) as HTMLDivElement)
-  }, [collectionTable, rowIdx])
-
-  // allow the user to drag the divider
+  // allow the user to drag the divider to resize the row
   const handleMouseDown = (e: React.MouseEvent) => {
+    if (before) return
     e.stopPropagation()
     isResizing.current = true
     startY.current = e.clientY
@@ -99,19 +85,16 @@ export const RowDivider = observer(function RowDivider({ rowId }: IRowDividerPro
     document.removeEventListener("mouseup", handleMouseUp)
   }
 
-  const indexToUse = over?.id && (Number(String(over?.id).split(":")[2].split("-")[0]))
-  const isOverWithOffset = rowIdx && (indexToUse === rowIdx + 2)
-  const className = clsx("codap-row-divider", { "over": isOverWithOffset, "dragging": !!active})
-  const top =  getRowBottom() + kDefaultRowHeaderHeight - kTableDividerOffset
-  const width = kIndexColumnWidth
+  const className = clsx("codap-row-divider", { "over": isOver, "dragging": !!active, "no-row-resize": before })
+  const top = getDividerTopOffset() + kDefaultRowHeaderHeight - kTableDividerOffset
+
   return (
-    rowElement
+    collectionTableElt
       ? createPortal((
             <div ref={setRowDropRef} className={className} onMouseDown={handleMouseDown}
-                  data-testid={`row-divider-${rowIdx}`} style={{top, width}}
-            >{rowIdx}
+                  data-testid={`row-divider-${rowIdx}`} style={{top}}>
             </div>
-          ), rowElement)
+          ), collectionTableElt)
       : null
   )
 })

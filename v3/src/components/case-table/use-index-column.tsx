@@ -48,7 +48,6 @@ export const useIndexColumn = () => {
   const collectionId = useCollectionContext()
   const collection = data?.getCollection(collectionId)
   const disableMenu = preventCollectionReorg(data, collectionId)
-  const {active} = useDndContext()
 
   const handlePointerDown = (e: React.PointerEvent | React.MouseEvent) => {
     e.preventDefault()
@@ -81,9 +80,11 @@ export const useIndexColumn = () => {
 
     return (
       <div className="codap-index-cell-wrapper">
+        {/* divider above the first row */}
+        {index === 0 && <RowDivider rowId={__id__} before={true}/>}
         <IndexCell caseId={__id__} disableMenu={disableMenu} index={index}
         collapsedCases={collapsedCaseCount} onClick={handleClick} onPointerDown={handlePointerDown}/>
-        <RowDivider rowId={row.__id__}/>
+        <RowDivider rowId={__id__}/>
       </div>
     )
   }, [caseMetadata, collection?.caseIds.length, data, disableMenu])
