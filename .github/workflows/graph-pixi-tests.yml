@@ -16,7 +16,7 @@ jobs:
           # set repository so we don't have to check out all of the code
           GH_REPO: ${{github.repository}}
 
-cypress:
+  cypress:
     runs-on: ubuntu-latest
     strategy:
       # when one test fails, DO NOT cancel the other
@@ -33,7 +33,7 @@ cypress:
           patterns: v3
       - name: Restore Webpack Cache
         id: restore-webpack-cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache@v4
         with:
           path: v3/.cache/webpack/
           key: webpack-dev-build-${{ hashFiles('v3/webpack.config.js') }}
