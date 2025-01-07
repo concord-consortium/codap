@@ -84,10 +84,10 @@ export function uniqueId(idLength = 16): string {
  *
  * returns a unique name from a given base name, adding a numeric suffix if necessary
  */
-export function uniqueName(base: string, isValid: (name: string) => boolean) {
+export function uniqueName(base: string, isValid: (name: string) => boolean, space = "") {
   if (isValid(base)) return base
   let name: string
-  for (let i = 2; !isValid(name = `${base}${i}`); ++i) {
+  for (let i = 2; !isValid(name = `${base}${space}${i}`); ++i) {
     // nothing to do
   }
   return name

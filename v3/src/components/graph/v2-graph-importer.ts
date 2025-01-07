@@ -47,7 +47,8 @@ export function v2GraphImporter({v2Component, v2Document, sharedModelManager, in
       pointColor, strokeColor, pointSizeMultiplier,
       strokeSameAsFill, isTransparent,
       plotBackgroundImageLockInfo,
-  /* TODO_V2_IMPORT: The following are present in the componentStorage but not used in the V3 content model (yet):
+  /* TODO_V2_IMPORT: [Story: #188694812]
+      The following are present in the componentStorage but not used in the V3 content model (yet):
       displayOnlySelected, legendRole, legendAttributeType, numberOfLegendQuantiles,
       legendQuantilesAreLocked, plotBackgroundImage, transparency, strokeTransparency,
       plotBackgroundOpacity,
@@ -132,7 +133,7 @@ export function v2GraphImporter({v2Component, v2Document, sharedModelManager, in
           axes[v3Place] = {place: v3Place, type: "categorical"}
           break
         case "DG.CellLinearAxisModel":
-          // TODO_V2_IMPORT when lowerBound or upperBound are undefined or null this is
+          // TODO_V2_IMPORT [Story:#188701144] when lowerBound or upperBound are undefined or null this is
           // not handled correctly. It likely will cause an MST exception and failure to load.
           // There are 966 instances of `xUpperBound: null` in cfm-shared
           axes[v3Place] = {place: v3Place, type: "numeric", min: lowerBound as any, max: upperBound as any}

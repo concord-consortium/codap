@@ -1,8 +1,8 @@
-import { DIHandler } from "./data-interactive-types"
+import { DIAsyncHandler, DIHandler } from "./data-interactive-types"
 
-const diHandlers: Map<string, DIHandler> = new Map()
+const diHandlers: Map<string, DIHandler | DIAsyncHandler> = new Map()
 
-export function registerDIHandler(resource: string, handler: DIHandler) {
+export function registerDIHandler(resource: string, handler: DIHandler | DIAsyncHandler) {
   diHandlers.set(resource, handler)
 }
 
