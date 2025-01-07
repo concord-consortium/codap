@@ -16,7 +16,7 @@ jobs:
         with:
           patterns: |
             v3
-            cypress/e2e/pixi-interaction/**
+            cypress/e2e/pixi-interaction
       - uses: actions/setup-node@v4
         with:
           node-version: 18
