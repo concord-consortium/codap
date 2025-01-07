@@ -2,8 +2,6 @@ import { action, makeObservable, observable } from "mobx"
 import { IAnyStateTreeNode } from "mobx-state-tree"
 import { DEBUG_FORMULAS, debugLog } from "../../../lib/debug"
 import { ICase } from "../../../models/data/data-set-types"
-import { IFormula } from "../../../models/formula/formula"
-import { registerFormulaAdapter } from "../../../models/formula/formula-adapter-registry"
 import {
   FormulaManagerAdapter, IFormulaAdapterApi, IFormulaContext, IFormulaExtraMetadata, IFormulaManagerAdapter
 } from "../../../models/formula/formula-manager-types"
@@ -12,44 +10,49 @@ import { math } from "../../../models/formula/functions/math"
 import { formulaError } from "../../../models/formula/utils/misc"
 import { getFormulaManager } from "../../../models/tiles/tile-environment"
 import { mstReaction } from "../../../utilities/mst-reaction"
-import { isFilterFormulaDataConfiguration } from "./data-configuration-model"
 import type { IDataDisplayContentModel } from "./data-display-content-model"
+import { IGraphContentModel } from "../../graph/models/graph-content-model"
+import { IMapContentModel } from "../../map/models/map-content-model"
 
-
+type DataDisplayContentModelTypes = IGraphContentModel | IMapContentModel
 export interface IDataDisplayFilterFormulaExtraMetadata extends IFormulaExtraMetadata {
   contentModelId: string
+  mapLayerId?: string
 }
 
 export class DataDisplayFilterFormulaAdapter extends FormulaManagerAdapter implements IFormulaManagerAdapter {
 
-  // static register() {
-  //   registerFormulaAdapter(api => new GraphFilterFormulaAdapter(api))
-  // }
-
-  // static get(node?: IAnyStateTreeNode) {
-  //   return getFormulaManager(node)?.adapters.find(({ type }) =>
-  //     type === GRAPH_FILTER_FORMULA_ADAPTER
-  //   ) as Maybe<GraphFilterFormulaAdapter>
-  // }
+  static get(adapterType: string, node?: IAnyStateTreeNode) {
+    return getFormulaManager(node)?.adapters.find(({ type }) =>
+      type === adapterType
+    ) as Maybe<DataDisplayFilterFormulaAdapter>
+  }
 
   @observable.shallow contentModels = new Map<string, IDataDisplayContentModel>()
 
-  // constructor(api: IFormulaAdapterApi) {
-  //   super(GRAPH_FILTER_FORMULA_ADAPTER, api)
-  //   makeObservable(this)
-  // }
+  constructor(type: string, api: IFormulaAdapterApi) {
+    super(type, api)
+    makeObservable(this)
+  }
 
-  // @action
-  // addContentModel(contentModel: IDataDisplayContentModel) {
-  //   if (contentModel.dataConfiguration) {
-  //     this.contentModels.set(contentModel.id, contentModel)
-  //   }
-  // }
+  @action
+  addContentModel(contentModel: DataDisplayContentModelTypes) {
+    this.contentModels.set(contentModel.id, contentModel)
+  }
 
-  // @action
-  // removeContentModel(contentModelId: string) {
-  //   this.contentModels.delete(contentModelId)
-  // }
+  @action
+  removeContentModel(contentModelId: string) {
+    this.contentModels.delete(contentModelId)
+  }
+
+  getContentModelId(contentModel: IMapContentModel) {
+    return contentModel.id
+  }
+
+  getDataConfiguration(extraMetadata: IDataDisplayFilterFormulaExtraMetadata): any {
+    // subclasses should override
+    return {}
+  }
 
   getContentModel(extraMetadata: IDataDisplayFilterFormulaExtraMetadata) {
     const { contentModelId } = extraMetadata
@@ -60,27 +63,11 @@ export class DataDisplayFilterFormulaAdapter extends FormulaManagerAdapter imple
     return contentModel
   }
 
-  getDataConfiguration(extraMetadata: IDataDisplayFilterFormulaExtraMetadata) {
-    return this.getContentModel(extraMetadata).dataConfiguration
-  }
-
-  getActiveFormulas(): ({ formula: IFormula, extraMetadata: IDataDisplayFilterFormulaExtraMetadata })[] {
-    const result: ({ formula: IFormula, extraMetadata: IDataDisplayFilterFormulaExtraMetadata })[] = []
-    this.contentModels.forEach(contentModel => {
-      const dataConfig = contentModel.dataConfiguration
-      const dataSet = dataConfig?.dataset
-      if (dataSet && isFilterFormulaDataConfiguration(dataConfig)) {
-        result.push({
-          formula: dataConfig.filterFormula,
-          extraMetadata: {
-            dataSetId: dataSet.id,
-            contentModelId: dataConfig.id
-          }
-        })
-      }
-    })
-    return result
-  }
+ createExtraMetadata(contentModel: IDataDisplayContentModel,
+                      dataSet: any) {
+  // subclasses should override
+  return {} as IDataDisplayFilterFormulaExtraMetadata
+}
 
   recalculateFormula(formulaContext: IFormulaContext, extraMetadata: IDataDisplayFilterFormulaExtraMetadata,
     casesToRecalculateDesc: ICase[] | "ALL_CASES" = "ALL_CASES") {
@@ -96,7 +83,7 @@ export class DataDisplayFilterFormulaAdapter extends FormulaManagerAdapter imple
     this.setFormulaError(formulaContext, extraMetadata, "")
 
     if (!dataConfig) {
-      throw new Error(`GraphContentModel with id "${extraMetadata.contentModelId}" not found`)
+      throw new Error(`ContentModel with id "${extraMetadata.contentModelId}" not found`)
     }
     const results = this.computeFormula(formulaContext, extraMetadata, casesToRecalculateDesc)
     if (results && results.length > 0) {
@@ -162,7 +149,8 @@ export class DataDisplayFilterFormulaAdapter extends FormulaManagerAdapter imple
   }
 
   // Error message is set as formula output, similarly as in CODAP V2.
-  setFormulaError(formulaContext: IFormulaContext, extraMetadata: IDataDisplayFilterFormulaExtraMetadata, errorMsg: string) {
+  setFormulaError(formulaContext: IFormulaContext, extraMetadata: IDataDisplayFilterFormulaExtraMetadata,
+                  errorMsg: string) {
     const dataConfig = this.getDataConfiguration(extraMetadata)
     dataConfig?.setFilterFormulaError(errorMsg)
   }

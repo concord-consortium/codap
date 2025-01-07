@@ -20,12 +20,13 @@ import {isMapPointLayerModel, MapPointLayerModel} from "./map-point-layer-model"
 import {ILatLngSnapshot, LatLngModel} from '../map-model-types'
 import {LeafletMapState} from './leaflet-map-state'
 import {isMapLayerModel} from "./map-layer-model"
-import { MapFilterFormulaAdapter } from './map-filter-formula-adapter'
-import { typedId } from '../../../utilities/js-utils'
-import { IDataConfigurationModel } from '../../data-display/models/data-configuration-model'
+import {MAP_FILTER_FORMULA_ADAPTER} from './map-filter-formula-adapter'
+import {typedId} from '../../../utilities/js-utils'
+import {IDataConfigurationModel} from '../../data-display/models/data-configuration-model'
+import {DataDisplayFilterFormulaAdapter} from '../../data-display/models/data-display-filter-formula-adapter'
 
 const getFormulaAdapters = (node?: IAnyStateTreeNode) => [
-  MapFilterFormulaAdapter.get(node)
+  DataDisplayFilterFormulaAdapter.get(MAP_FILTER_FORMULA_ADAPTER, node)
 ]
 
 export const MapContentModel = DataDisplayContentModel
@@ -229,7 +230,7 @@ export const MapContentModel = DataDisplayContentModel
         () => getFormulaManager(self)?.areAdaptersInitialized ?? false,
         () => {
           getFormulaAdapters(self).forEach(adapter => {
-            adapter?.addMapContentModel(self as IMapContentModel)
+            adapter?.addContentModel(self as IMapContentModel)
           })
         }
       )
@@ -296,7 +297,7 @@ export const MapContentModel = DataDisplayContentModel
     },
     beforeDestroy() {
       getFormulaAdapters(self).forEach(adapter => {
-        adapter?.removeMapContentModel(self.id)
+        adapter?.removeContentModel(self.id)
       })
     }
   }))
