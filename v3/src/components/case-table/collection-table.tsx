@@ -4,8 +4,8 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import DataGrid, { CellKeyboardEvent, DataGridHandle } from "react-data-grid"
 import { kCollectionTableBodyDropZoneBaseId } from "./case-table-drag-drop"
 import {
-  kDefaultRowHeight, kInputRowKey, OnScrollClosestRowIntoViewFn, OnScrollRowRangeIntoViewFn, OnTableScrollFn,
-  TCellKeyDownArgs, TRenderers, TRow
+  kDefaultRowHeight, kIndexColumnWidth, kInputRowKey, OnScrollClosestRowIntoViewFn,
+  OnScrollRowRangeIntoViewFn, OnTableScrollFn, TCellKeyDownArgs, TRenderers, TRow
 } from "./case-table-types"
 import { CollectionTableSpacer } from "./collection-table-spacer"
 import { CollectionTitle } from "../case-tile-common/collection-title"
@@ -36,6 +36,7 @@ import { t } from "../../utilities/translation/translate"
 import { useCaseTableModel } from "./use-case-table-model"
 import { useCollectionTableModel } from "./use-collection-table-model"
 import { useWhiteSpaceClick } from "./use-white-space-click"
+import { RowDragOverlay } from "./row-drag-overlay"
 
 import "react-data-grid/lib/styles.css"
 import styles from "./case-table-shared.scss"
@@ -71,11 +72,13 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
     useSelectedRows({ gridRef, onScrollClosestRowIntoView, onScrollRowRangeIntoView })
   const { handleWhiteSpaceClick } = useWhiteSpaceClick({ gridRef })
   const { isTileSelected } = useTileModelContext()
+  const collectionRef = useRef<HTMLDivElement | null>(null)
   const [isSelecting, setIsSelecting] = useState(false)
   const [selectionStartRowIdx, setSelectionStartRowIdx] = useState<number | null>(null)
   const initialPointerDownPosition = useRef({ x: 0, y: 0 })
   const kPointerMovementThreshold = 3
   const rowHeight = collectionTableModel?.rowHeight ?? kDefaultRowHeight
+  const {active} = useTileDroppable(`${kCollectionTableBodyDropZoneBaseId}-${collectionId}`)
 
   useEffect(function setGridElement() {
     const element = gridRef.current?.element
@@ -186,6 +189,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
               {name: "newAttr", collection: data?.getCollection(collectionId)?.name, formula: ""}, "data")
     })
   }
+
 
   const showInputRow = !preventCollectionReorg(data, collectionId)
   const rows = useMemo(() => {
@@ -336,19 +340,37 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
     }
   }, [])
 
+  const getCaseIdFromEvent = useCallback((event: React.PointerEvent) => {
+    let closestDataCell
+    const target = event.target as HTMLElement
+    if (target.classList.contains("cell-span")) {
+      closestDataCell = target.closest('.codap-data-cell')
+    }
+    if (target.classList.contains("codap-index-content")) {
+      //we are in the index column. we need to go to the parent and find the sibling data cell
+      const closestIndexCell = target.closest('.codap-index-cell')
+      if (closestIndexCell) {
+        closestDataCell = closestIndexCell.nextElementSibling
+      }
+    }
+    const caseId = closestDataCell?.className.split(" ").find(c => c.startsWith("rowId-"))?.split("-")[1]
+    return caseId
+  }, [])
+
   // Helper function to get the row index from a mouse event
   const getRowIndexFromEvent = useCallback((event: React.PointerEvent) => {
-    const target = event.target as HTMLElement
-    const closestDataCell = target.closest('.codap-data-cell')
-    const caseId = closestDataCell?.className.split(" ").find(c => c.startsWith("rowId-"))?.split("-")[1]
+    const caseId = getCaseIdFromEvent(event)
     const rowIdx = caseId ? collectionCaseIndexFromId(caseId, data, collectionId) : null
     return rowIdx
-  }, [collectionId, data])
+  }, [collectionId, data, getCaseIdFromEvent])
 
    const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
     initialPointerDownPosition.current = { x: event.clientX, y: event.clientY }
     const startRowIdx = getRowIndexFromEvent(event)
-    if (startRowIdx != null) {
+    if (!startRowIdx) {
+      console.log("rowIdx is null, rowId is", getCaseIdFromEvent(event))
+    }
+    else if (startRowIdx != null) {
       setSelectionStartRowIdx(startRowIdx)
       setIsSelecting(true)
       startAutoScroll(event.clientY)
@@ -383,13 +405,22 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
     stopAutoScroll()
   }, [stopAutoScroll])
 
+  const handleSetCollectionAndTitleRef = (elt: HTMLDivElement | null) => {
+    if (elt) {
+      if (collectionRef.current !== elt) {
+        collectionRef.current = elt
+      }
+      setNodeRef(elt)
+    }
+  }
+
   if (!data || !rows || !visibleAttributes.length) return null
 
   return (
-    <div className={`collection-table collection-${collectionId}`}>
+    <div className={`collection-table collection-${collectionId}`} ref={collectionRef}>
       <CollectionTableSpacer selectedFillColor={selectedFillColor}
         onWhiteSpaceClick={handleWhiteSpaceClick} onDrop={handleNewCollectionDrop} />
-      <div className="collection-table-and-title" ref={setNodeRef} onClick={handleClick}
+      <div className="collection-table-and-title" ref={handleSetCollectionAndTitleRef} onClick={handleClick}
             onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={handlePointerLeaveOrUp}
             onPointerLeave={handlePointerLeaveOrUp}>
         <CollectionTitle onAddNewAttribute={handleAddNewAttribute} showCount={true} />
@@ -399,6 +430,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
           columnWidths={columnWidths} onColumnResize={handleColumnResize} onCellClick={handleCellClick}
           onCellKeyDown={handleCellKeyDown} onRowsChange={handleRowsChange} onScroll={handleGridScroll}
           onSelectedCellChange={handleSelectedCellChange}/>
+        {(String(active?.id)).includes(kInputRowKey) && <RowDragOverlay rows={rows} width={kIndexColumnWidth}/>}
       </div>
     </div>
   )

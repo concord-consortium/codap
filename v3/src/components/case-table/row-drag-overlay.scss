@@ -1,0 +1,33 @@
+.row-drag-overlay {
+  cursor: grabbing;
+  border: none;
+  opacity: 75%;
+  background: #f9f9f9;    // --rdg-header-background-color
+  border: 1px solid #ddd; // --rdg-border-color
+  font-weight: bold;
+  color: #888;
+  display: flex;
+  // justify-content: center;
+  align-items: center;
+  position: relative;
+  left: 0;
+
+  .codap-index-content {
+    width: 50px;
+
+    &.input-row {
+      background-color: #bddfdf;
+      justify-content: flex-start;
+
+
+      svg {
+        margin-left: -2px;
+      }
+    }
+  }
+}
+
+.dnd-kit-drag-overlay {
+  // This element was preventing WebViewDropOverlays from receiving pointerenter, pointermove, and pointerleave events.
+  pointer-events: none;
+}
