@@ -1,7 +1,7 @@
 import {
   Box, Button, Flex, FormControl, FormLabel, Input, ModalBody, ModalFooter, Tooltip
 } from "@chakra-ui/react"
-import React, { useCallback, useEffect, useState } from "react"
+import React, { useCallback, useEffect, useRef, useState } from "react"
 import { observer } from "mobx-react-lite"
 import { clsx } from "clsx"
 import { isCommandKeyDown } from "../../utilities/platform-utils"
@@ -16,7 +16,7 @@ import ResizeHandle from "../../assets/icons/icon-corner-resize-handle.svg"
 import styles from './edit-formula-modal.scss'
 
 interface IProps {
-  applyFormula: (formula: string) => void
+  applyFormula: (formula: string, attrName: string) => void
   formulaPrompt?: string
   isOpen: boolean
   onClose?: () => void
@@ -42,13 +42,14 @@ export const EditFormulaModal = observer(function EditFormulaModal({
   const { formula, setFormula } = formulaEditorState
   const [dimensions, setDimensions] = useState({ width: minWidth, height: minHeight })
   const editorHeight = dimensions.height - headerHeight - footerHeight - insertButtonsHeight
+  const attrInputRef = useRef("")
 
   useEffect(() => {
     setFormula(value || "")
   }, [value, setFormula])
 
   const applyAndClose = () => {
-    applyFormula(formula)
+    applyFormula(formula, attrInputRef.current)
     closeModal()
   }
 
@@ -124,6 +125,11 @@ export const EditFormulaModal = observer(function EditFormulaModal({
     document.body.addEventListener("pointerup", onPointerUp, { capture: true })
   }, [dimensions.height, dimensions.width, minHeight, minWidth])
 
+  const handleAttributeNameInputBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const trimmedValue = (e.target.value).trim()
+    attrInputRef.current = trimmedValue
+  }
+
   return (
     <FormulaEditorContext.Provider value={formulaEditorState}>
       <CodapModal
@@ -135,15 +141,14 @@ export const EditFormulaModal = observer(function EditFormulaModal({
       >
         <ModalBody className="formula-modal-body" onKeyDown={handleKeyDown}>
           <FormControl display="flex" flexDirection="column" className="formula-form-control">
-            <FormLabel display="flex" flexDirection="row">
+            <FormLabel display="flex" flexDirection="row"
+                      className={clsx("attr-name-form-label", {"disabled": !titleInput})}>
               <span className="title-label">{titleLabel}</span>
-              <Input
-                size="xs"
-                ml={5}
-                placeholder={titlePlaceholder ?? ""}
-                value={titleInput ?? ""}
+              <input
+                className="attr-name-input"
+                defaultValue={titleInput}
                 data-testid="attr-name-input"
-                disabled
+                onBlur={handleAttributeNameInputBlur}
               />
               <span>=</span>
             </FormLabel>
