@@ -1,8 +1,8 @@
 import { Menu, MenuButton, VisuallyHidden } from "@chakra-ui/react"
+import { useDndContext } from "@dnd-kit/core"
 import { clsx } from "clsx"
 import React, { useCallback, useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
-import { useDndContext } from "@dnd-kit/core"
 import { useCaseMetadata } from "../../hooks/use-case-metadata"
 import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
@@ -48,7 +48,6 @@ export const useIndexColumn = () => {
   const collectionId = useCollectionContext()
   const collection = data?.getCollection(collectionId)
   const disableMenu = preventCollectionReorg(data, collectionId)
-  const {active} = useDndContext()
 
   const handlePointerDown = (e: React.PointerEvent | React.MouseEvent) => {
     e.preventDefault()
@@ -58,8 +57,9 @@ export const useIndexColumn = () => {
   // renderer
   const RenderIndexCell = useCallback(({ row }: TRenderCellProps) => {
     const { __id__, [symIndex]: _index, [symParent]: parentId } = row
-    const index = __id__ === kInputRowKey && !_index ? (collection?.caseIds.length ?? 0)
-                                                    : _index != null ? _index : data?.getItemIndex(__id__)
+    const index = __id__ === kInputRowKey
+                    ? -1
+                    : _index != null ? _index : data?.getItemIndex(__id__)
     const collapsedCases = data && parentId && caseMetadata?.isCollapsed(parentId)
                             ? data.caseInfoMap.get(parentId)?.childCaseIds ?? []
                             : []
@@ -81,12 +81,14 @@ export const useIndexColumn = () => {
 
     return (
       <div className="codap-index-cell-wrapper">
+        {/* divider above the first row */}
+        {index === 0 && <RowDivider rowId={__id__} before={true}/>}
         <IndexCell caseId={__id__} disableMenu={disableMenu} index={index}
         collapsedCases={collapsedCaseCount} onClick={handleClick} onPointerDown={handlePointerDown}/>
-        <RowDivider rowId={row.__id__}/>
+        <RowDivider rowId={__id__}/>
       </div>
     )
-  }, [caseMetadata, collection?.caseIds.length, data, disableMenu])
+  }, [caseMetadata, data, disableMenu])
   const indexColumn = useRef<TColumn | undefined>()
 
   useEffect(() => {
@@ -98,7 +100,7 @@ export const useIndexColumn = () => {
       width: kIndexColumnWidth,
       headerCellClass: "codap-column-header index",
       renderHeaderCell: ColumnHeader,
-      cellClass: "codap-index-cell",
+      cellClass: row => clsx("codap-index-cell", `rowId-${row.__id__}`),
       colSpan(args: TColSpanArgs) {
         return collection ? indexColumnSpan(args, { data, metadata: caseMetadata, collection }) : undefined
       },
@@ -129,8 +131,6 @@ export function IndexCell({ caseId, disableMenu, index, collapsedCases, onClick,
     collectionId: useCollectionContext(),
     isInputRow: caseId === kInputRowKey
   }
-  const inputIndexCellRef = useRef<HTMLDivElement | null>(null)
-  const parentCellRef = useRef<HTMLElement | null>(null)
   const {attributes, listeners, setNodeRef: setDragNodeRef} = useDraggableRow(draggableOptions)
   const { active } = useDndContext()
   function setMenuButtonRef(elt: HTMLButtonElement | null) {
@@ -168,18 +168,12 @@ export function IndexCell({ caseId, disableMenu, index, collapsedCases, onClick,
 
   // input row
   const renderInputRowIndexColumnCell = () => {
-    const setInputIndexCellRef = (elt: HTMLDivElement | null) => {
-      inputIndexCellRef.current = elt
-      parentCellRef.current = cellElt
-      setDragNodeRef(cellElt ?? elt)
-    }
-
     return (
-      <div className={classes} ref={setInputIndexCellRef} {...attributes} {...listeners}
+      <div className={classes} ref={setDragNodeRef} {...attributes} {...listeners}
             data-testid="codap-index-content-button">
         <MenuButton ref={setMenuButtonRef} className={classes} data-testid="codap-index-content-button"
             onKeyDown={handleKeyDown} aria-describedby="sr-index-menu-instructions">
-          <div className={classes} ref={inputIndexCellRef}
+          <div className={classes}
               onPointerDown={onPointerDown} onMouseDown={onPointerDown}>
             <DragIndicator />
           </div>
@@ -204,7 +198,6 @@ export function IndexCell({ caseId, disableMenu, index, collapsedCases, onClick,
       </div>
     )
   }
-
 
   // normal index row
   return (
