@@ -64,7 +64,7 @@ export const observeLocalAttributes = (formulaDependencies: IFormulaDependency[]
 }
 
 export const getLookupCasesToRecalculate = (cases: ICase[], dependency: ILookupDependency) =>
-  cases.some(c => isAttrDefined(c, dependency.attrId) || isAttrDefined(c, dependency.keyAttrId)) ? "ALL_CASES" : []
+  cases.some(c => isAttrDefined(c, dependency.attrId) || isAttrDefined(c, dependency.otherAttrId)) ? "ALL_CASES" : []
 
 export const observeLookupDependencies = (formulaDependencies: IFormulaDependency[], dataSets: Map<string, IDataSet>,
   recalculateCallback: (casesToRecalculate: CaseList) => void) => {

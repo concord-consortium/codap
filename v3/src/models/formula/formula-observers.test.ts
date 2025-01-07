@@ -68,7 +68,7 @@ describe("getLocalAttrCasesToRecalculate", () => {
 })
 
 describe("getLookupCasesToRecalculate", () => {
-  const dependency: ILookupDependency = { type: "lookup", dataSetId: "ds1", attrId: "attr1", keyAttrId: "attr2" }
+  const dependency: ILookupDependency = { type: "lookup", dataSetId: "ds1", attrId: "attr1", otherAttrId: "attr2" }
 
   it("returns 'ALL_CASES' if any case has the lookup attribute or the lookup key attribute", () => {
     expect(getLookupCasesToRecalculate([{ __id__: "1", attr1: 1 }], dependency)).toBe("ALL_CASES")
@@ -148,7 +148,7 @@ describe("observeLookupDependencies", () => {
   it("should call recalculateCallback with ALL_CASES when case is added, removed or updated", () => {
     const dataSet = DataSet.create({ id: "ds1" })
     const formulaDependencies: ILookupDependency[] = [
-      { type: "lookup", dataSetId: "ds1", attrId: "attr1", keyAttrId: "attr2" },
+      { type: "lookup", dataSetId: "ds1", attrId: "attr1", otherAttrId: "attr2" },
     ]
     const recalculateCallback = jest.fn()
     const dispose = observeLookupDependencies(formulaDependencies, new Map([["ds1", dataSet]]), recalculateCallback)

@@ -262,10 +262,10 @@ export class AttributeFormulaAdapter extends FormulaManagerAdapter implements IF
         if (isValidFormulaAttr(dependencyAttribute)) {
           stack.push(dependencyAttribute.formula.id)
         }
-        if (dependency.keyAttrId) {
-          const dependencyKeyAttribute = externalDataSet?.attrFromID(dependency.keyAttrId)
-          if (isValidFormulaAttr(dependencyKeyAttribute)) {
-            stack.push(dependencyKeyAttribute.formula.id)
+        if (dependency.otherAttrId) {
+          const dependencyOtherAttribute = externalDataSet?.attrFromID(dependency.otherAttrId)
+          if (isValidFormulaAttr(dependencyOtherAttribute)) {
+            stack.push(dependencyOtherAttribute.formula.id)
           }
         }
       }

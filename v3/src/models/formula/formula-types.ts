@@ -35,7 +35,7 @@ export interface ILookupDependency {
   type: "lookup"
   dataSetId: string
   attrId: string
-  keyAttrId?: string
+  otherAttrId?: string
 }
 
 export type IFormulaDependency = ILocalAttributeDependency | IBoundaryDependency |
