@@ -48,12 +48,12 @@ export class BaseGraphFormulaAdapter extends FormulaManagerAdapter implements IF
   }
 
   @action
-  addGraphContentModel(graphContentModel: IGraphContentModel) {
+  addContentModel(graphContentModel: IGraphContentModel) {
     this.graphContentModels.set(graphContentModel.id, graphContentModel)
   }
 
   @action
-  removeGraphContentModel(graphContentModelId: string) {
+  removeContentModel(graphContentModelId: string) {
     this.graphContentModels.delete(graphContentModelId)
   }
 

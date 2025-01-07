@@ -63,11 +63,6 @@ export class DataDisplayFilterFormulaAdapter extends FormulaManagerAdapter imple
     return contentModel
   }
 
- createExtraMetadata(contentModel: IDataDisplayContentModel,
-                      dataSet: any) {
-  // subclasses should override
-  return {} as IDataDisplayFilterFormulaExtraMetadata
-}
 
   recalculateFormula(formulaContext: IFormulaContext, extraMetadata: IDataDisplayFilterFormulaExtraMetadata,
     casesToRecalculateDesc: ICase[] | "ALL_CASES" = "ALL_CASES") {

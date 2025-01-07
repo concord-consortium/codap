@@ -55,13 +55,6 @@ export class MapFilterFormulaAdapter extends DataDisplayFilterFormulaAdapter imp
     return mapLayer?.dataConfiguration
   }
 
-  createExtraMetadata(contentModel: IMapContentModel, dataSet: any) {
-    return {
-      dataSetId: dataSet.id,
-      contentModelId: contentModel.id,
-      mapLayerId: contentModel.layers[0].id, //TODO: currently only returns the first layer id
-    }
-  }
 
   getMapContentModel(extraMetadata: IMapFilterFormulaExtraMetadata) {
     const { contentModelId } = extraMetadata

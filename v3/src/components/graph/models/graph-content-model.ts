@@ -43,10 +43,10 @@ import { ICase } from "../../../models/data/data-set-types"
 import { isFiniteNumber } from "../../../utilities/math-utils"
 import { t } from "../../../utilities/translation/translate"
 import { CaseData } from "../../data-display/d3-types"
-import { GraphFilterFormulaAdapter } from "./graph-filter-formula-adapter"
+import { GRAPH_FILTER_FORMULA_ADAPTER, GraphFilterFormulaAdapter } from "./graph-filter-formula-adapter"
 
 const getFormulaAdapters = (node?: IAnyStateTreeNode) => [
-  GraphFilterFormulaAdapter.get(node),
+  GraphFilterFormulaAdapter.get(GRAPH_FILTER_FORMULA_ADAPTER, node),
   PlottedFunctionFormulaAdapter.get(node),
   PlottedValueFormulaAdapter.get(node)
 ]
@@ -269,7 +269,7 @@ export const GraphContentModel = DataDisplayContentModel
         () => getFormulaManager(self)?.areAdaptersInitialized ?? false,
         () => {
           getFormulaAdapters(self).forEach(adapter => {
-            adapter?.addGraphContentModel(self as IGraphContentModel)
+            adapter?.addContentModel(self as IGraphContentModel)
           })
         }
       )
@@ -285,7 +285,7 @@ export const GraphContentModel = DataDisplayContentModel
     },
     beforeDestroy() {
       getFormulaAdapters(self).forEach(adapter => {
-        adapter?.removeGraphContentModel(self.id)
+        adapter?.removeContentModel(self.id)
       })
     }
   }))

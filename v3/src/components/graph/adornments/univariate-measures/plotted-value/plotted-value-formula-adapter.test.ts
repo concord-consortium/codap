@@ -63,7 +63,7 @@ const getTestEnv = () => {
     getFormulaContext: jest.fn(() => context),
   }
   const adapter = new PlottedValueFormulaAdapter(api)
-  adapter.addGraphContentModel(graphContentModel as any)
+  adapter.addContentModel(graphContentModel as any)
   return { adapter, adornment, graphContentModel, api, dataSet, attribute, formula, context, extraMetadata }
 }
 
