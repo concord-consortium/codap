@@ -7,7 +7,71 @@ on:
       - '.github/workflows/graph-pixi-tests.yml'
 
 jobs:
+  lint:
+    name: Run Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: snow-actions/sparse-checkout@v1.2.0
+        with:
+          patterns: v3
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+          cache-dependency-path: v3/package-lock.json
+      - name: Install Dependencies
+        working-directory: v3
+        run: npm ci
+      - name: Restore ESLint Cache
+        id: restore-eslint-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: v3/.cache/eslint/
+          key: eslint-${{ hashFiles('v3/package-lock.json', 'v3/.eslintrc.build.cjs', 'v3/.eslintrc.cjs') }}
+      - name: Run Lint Check
+        working-directory: v3
+        run: npm run lint:build
+      - name: Save ESLint Cache
+        uses: actions/cache/save@v4
+        if: github.ref_name == 'main' || steps.restore-eslint-cache.outputs.cache-hit != 'true'
+        with:
+          path: v3/.cache/eslint/
+          key: ${{ steps.restore-eslint-cache.outputs.cache-primary-key }}
+
+  jest:
+    name: Run Jest Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: snow-actions/sparse-checkout@v1.2.0
+        with:
+          patterns: v3
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+          cache-dependency-path: v3/package-lock.json
+      - name: Install Dependencies
+        working-directory: v3
+        run: npm ci
+      - name: Jest Cache
+        uses: actions/cache@v4
+        with:
+          path: /tmp/jest_rt
+          key: jest-${{ hashFiles('v3/package-lock.json') }}
+      - name: Get Number of CPU Cores
+        id: cpu-cores
+        uses: SimenB/github-actions-cpu-cores@v2
+      - name: Run Jest Tests
+        working-directory: v3
+        run: npm run test:coverage -- --maxWorkers=${{ steps.cpu-cores.outputs.count }}
+      - name: Upload Jest Coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          flags: jest
+
   cypress:
+    name: Run Cypress Pixi Tests
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -21,7 +85,7 @@ jobs:
         with:
           node-version: 18
           cache: 'npm'
-          cache-dependency-path: package-lock.json
+          cache-dependency-path: v3/package-lock.json
       - name: Install Dependencies
         working-directory: v3
         run: npm ci
@@ -56,8 +120,8 @@ jobs:
         with:
           path: v3/.cache/webpack/
           key: ${{ steps.restore-webpack-cache.outputs.cache-primary-key }}
-      - name: Upload coverage to Codecov
+      - name: Upload Cypress Coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          flags: pixi
+          flags: cypress
