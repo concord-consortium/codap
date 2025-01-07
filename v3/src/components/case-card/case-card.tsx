@@ -11,6 +11,7 @@ import { excludeDragOverlayRegEx } from "../case-tile-common/case-tile-types"
 // import { DGDataContext } from "../../models/v2/dg-data-context"
 import { AttributeDragOverlay } from "../drag-drop/attribute-drag-overlay"
 import { CardView } from "./card-view"
+import { FilterFormulaBar } from "../case-tile-common/filter-formula-bar"
 import { useCaseCardModel } from "./use-case-card-model"
 import { IDataSet } from "../../models/data/data-set"
 import { ICollectionModel } from "../../models/data/collection"
@@ -102,6 +103,7 @@ export const CaseCard = observer(function CaseCard({ setNodeRef }: IProps) {
     return (
       <>
         <div ref={mergeRefs} className="case-card react-data-card" data-testid="case-card">
+          {data.hasFilterFormula && <FilterFormulaBar />}
           <CardView onNewCollectionDrop={handleNewCollectionDrop}/>
           <AttributeDragOverlay activeDragId={getOverlayDragId(active, instanceId, excludeDragOverlayRegEx)}/>
         </div>

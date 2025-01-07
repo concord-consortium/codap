@@ -18,6 +18,7 @@ import { AttributeHeaderDividerContext } from "../case-tile-common/use-attribute
 import { AttributeDragOverlay } from "../drag-drop/attribute-drag-overlay"
 import { IScrollOptions } from "./case-table-types"
 import { CollectionTable } from "./collection-table"
+import { FilterFormulaBar } from "../case-tile-common/filter-formula-bar"
 import { useCaseTableModel } from "./use-case-table-model"
 import { useSyncScrolling } from "./use-sync-scrolling"
 
@@ -133,6 +134,7 @@ export const CaseTable = observer(function CaseTable({ setNodeRef }: IProps) {
 
     return (
       <div ref={setNodeRef} className="case-table" data-testid="case-table">
+        {data.hasFilterFormula && <FilterFormulaBar />}
         <div className="case-table-content" ref={contentRef} onScroll={handleHorizontalScroll}>
           <AttributeHeaderDividerContext.Provider value={contentRef}>
             {collections.map((collection, i) => {
