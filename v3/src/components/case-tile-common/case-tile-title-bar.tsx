@@ -61,6 +61,8 @@ export const CaseTileTitleBar =
     const cardTableToggleRef = useRef(null)
     const documentContent = useDocumentContent()
     const preventTitleChange = preventDataContextReorg(data)
+    const isNewCaseTile = data?.title === (t("DG.AppController.createDataSet.name") || "New Dataset") &&
+                            data.items.length === 0
 
     useOutsideClick({
       ref: cardTableToggleRef,
@@ -116,7 +118,7 @@ export const CaseTileTitleBar =
     return (
       <ComponentTitleBar tile={tile} {...others}
                          onHandleTitleChange={handleChangeTitle} onCloseTile={closeCaseTableOrCard}
-                         preventTitleChange={preventTitleChange}>
+                         preventTitleChange={preventTitleChange} isNewTile={isNewCaseTile}>
         <div className="header-left"
              title={caseTableOrCardToggleString}
              onClick={handleShowCardTableToggleMessage}

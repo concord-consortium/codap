@@ -13,6 +13,7 @@ export interface ITileTitleBarProps extends ITileBaseProps {
   onMinimizeTile?: () => void
   onCloseTile?: (tileId: string) => void
   preventTitleChange?: boolean
+  isNewTile?: boolean
 }
 
 export interface ITileInspectorPanelProps extends ITileBaseProps {
