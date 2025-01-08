@@ -13,6 +13,7 @@ import {MultiLegend} from "../../data-display/components/legend/multi-legend"
 import {usePixiPointsArray} from "../../data-display/hooks/use-pixi-points-array"
 import { DEBUG_PIXI_POINTS } from "../../../lib/debug"
 import {logStringifiedObjectMessage} from "../../../lib/log-message"
+import { useTileModelContext } from "../../../hooks/use-tile-model-context"
 import {DroppableMapArea} from "./droppable-map-area"
 import {MapBackground} from "./map-background"
 import {MapInterior} from "./map-interior"
@@ -23,8 +24,6 @@ import {MapGridSlider} from "./map-grid-slider"
 
 import "leaflet/dist/leaflet.css"
 import "./map.scss"
-import { useTileModelContext } from "../../../hooks/use-tile-model-context"
-
 interface IProps {
   mapRef: MutableRefObject<HTMLDivElement | null>
 }
