@@ -13,8 +13,7 @@ import { ITileModel, TileModel } from "../../models/tiles/tile-model"
 import "./case-table-registration"
 
 jest.mock("./case-table-shared.scss", () => ({
-  headerRowHeight: "30",
-  bodyRowHeight: "18"
+  headerRowHeight: "30"
 }))
 
 const UseKeyStatesWrapper = () => {

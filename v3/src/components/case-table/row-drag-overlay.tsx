@@ -1,24 +1,20 @@
 import { DragOverlay, Modifier } from "@dnd-kit/core"
-
-// Define TRows type
-type TRows = {
-  __id__: string;
-  [key: string]: any;
-}
 import React from "react"
-import { kInputRowKey } from "./case-table-types"
 import DragIndicator from "../../assets/icons/drag-indicator.svg"
+import { ICase } from "../../models/data/data-set-types"
+import { kDefaultRowHeight, kInputRowKey } from "./case-table-types"
+import { useCollectionTableModel } from "./use-collection-table-model"
 
 import "./row-drag-overlay.scss"
-import styles from "./case-table-shared.scss"
 
 
 interface IProps {
-  rows: TRows[]
+  rows: ICase[]
   width: number | null
 }
 
 export function RowDragOverlay ({ rows, width }: IProps) {
+  const collectionTableModel = useCollectionTableModel()
   const row = rows.find(r => r.__id__ === kInputRowKey)
   const handleDropAnimation = () => {
     /**
@@ -34,7 +30,8 @@ export function RowDragOverlay ({ rows, width }: IProps) {
     }
   }
 
-  const style = { height: styles.bodyRowHeight, width: width ?? "100%" }
+  const height = collectionTableModel?.rowHeight ?? kDefaultRowHeight
+  const style = { height, width: width ?? "100%" }
   return (
     <DragOverlay
       className="dnd-kit-drag-overlay"
