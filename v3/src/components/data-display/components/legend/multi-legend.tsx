@@ -3,7 +3,7 @@ import React, {createRef, RefObject, useCallback, useRef} from "react"
 import {Active} from "@dnd-kit/core"
 import {DroppableSvg} from "../droppable-svg"
 import {useInstanceIdContext} from "../../../../hooks/use-instance-id-context"
-import {useDataDisplayModelContext} from "../../hooks/use-data-display-model"
+import {useBaseDataDisplayModelContext} from "../../hooks/use-base-data-display-model"
 import {getDragAttributeInfo, useDropHandler} from "../../../../hooks/use-drag-drop"
 import {useDropHintString} from "../../../../hooks/use-drop-hint-string"
 import {IDataSet} from "../../../../models/data/data-set"
@@ -19,7 +19,7 @@ interface IMultiLegendProps {
 }
 
 export const MultiLegend = observer(function MultiLegend({divElt, onDropAttribute}: IMultiLegendProps) {
-  const dataDisplayModel = useDataDisplayModelContext(),
+  const dataDisplayModel = useBaseDataDisplayModelContext(),
     layout = useDataDisplayLayout(),
     legendRef = useRef() as React.RefObject<HTMLDivElement>,
     instanceId = useInstanceIdContext(),

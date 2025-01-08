@@ -3,7 +3,7 @@ import { MutableRefObject } from "react"
 import { measureTextExtent } from "../../../hooks/use-measure-text"
 import { otherPlace } from "../axis-types"
 import { AxisHelper, IAxisHelperArgs } from "./axis-helper"
-import { kAxisGap, kAxisTickLength, kDefaultFontHeight } from "../../graph/graphing-types"
+import { kAxisGap, kAxisTickLength, kDefaultFontHeight } from "../axis-constants"
 import { isDateAxisModel, IDateAxisModel } from "../models/axis-model"
 import { convertToDate, createDate, determineLevels, EDateTimeLevel, shortMonthNames }
   from "../../../utilities/date-utils"

@@ -20,6 +20,7 @@ import {defaultBackgroundColor} from "../../../utilities/color-utils"
 import { MarqueeMode, PointDisplayTypes } from "../data-display-types"
 import { IGetTipTextProps } from "../data-tip-types"
 import { IAxisModel, isBaseNumericAxisModel } from "../../axis/models/axis-model"
+import { IBaseDataDisplayModel } from "./base-data-display-content-model"
 
 export const DataDisplayContentModel = TileContentModel
   .named("DataDisplayContentModel")
@@ -140,3 +141,8 @@ export const DataDisplayContentModel = TileContentModel
     }
   }))
 export interface IDataDisplayContentModel extends Instance<typeof DataDisplayContentModel> {}
+
+export function isDataDisplayContentModel(model?: IBaseDataDisplayModel): model is IDataDisplayContentModel {
+  // Currently checking for any type is enough to ensure this is a IDataDisplayContentModel
+  return !!model?.type
+}

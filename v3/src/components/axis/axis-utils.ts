@@ -1,6 +1,6 @@
 import {ScaleLinear} from "d3"
 import { determineLevels } from "../../utilities/date-utils"
-import {kAxisGap, kAxisTickLength} from "../graph/graphing-types"
+import {kAxisGap, kAxisTickLength} from "./axis-constants"
 import {kDataDisplayFont} from "../data-display/data-display-types"
 import {AxisPlace} from "./axis-types"
 import {measureText, measureTextExtent} from "../../hooks/use-measure-text"

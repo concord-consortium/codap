@@ -1,21 +1,13 @@
-import { createContext, useContext } from "react"
-import { IDataDisplayContentModel } from "../models/data-display-content-model"
-import { IAxisModel, isBaseNumericAxisModel } from "../../axis/models/axis-model"
+import { Context, useContext } from "react"
+import { IDataDisplayContentModel, isDataDisplayContentModel } from "../models/data-display-content-model"
+import { BaseDataDisplayModelContext } from "./use-base-data-display-model"
 
-const kDefaultDataDisplayModel = {
-  // required by useDataDisplayAnimation
-  isAnimating: () => false,
-  startAnimation: () => undefined,
-  stopAnimation: () => undefined,
-  // required by AxisProviderContext
-  getAxis: () => undefined,
-  getNumericAxis: () => undefined,
-  hasDraggableNumericAxis: (axisModel: IAxisModel) => isBaseNumericAxisModel(axisModel),
-  nonDraggableAxisTicks: (formatter: (value: number) => string) => ({tickValues: [], tickLabels: []})
-} as unknown as IDataDisplayContentModel
-
-export const DataDisplayModelContext = createContext<IDataDisplayContentModel>(kDefaultDataDisplayModel)
+export const DataDisplayModelContext = BaseDataDisplayModelContext as Context<IDataDisplayContentModel | undefined>
 
 export const useDataDisplayModelContext = () => {
-  return useContext(DataDisplayModelContext)
+  const context = useContext(BaseDataDisplayModelContext)
+  if (!context || !isDataDisplayContentModel(context)) {
+    throw new Error("useDataDisplayModelContext must be used within a DataDisplayModelContextProvider")
+  }
+  return context
 }

@@ -38,10 +38,6 @@ export type CatMapType = Record<string, Record<string, Record<string, CellRecord
 export const PlotTypes = ["casePlot", "dotPlot", "dotChart", "scatterPlot"] as const
 export type PlotType = typeof PlotTypes[number]
 
-export const kAxisTickLength = 4,
-  kAxisGap = 2,
-  kDefaultFontHeight = 12
-
 export const kGraphClass = "graph-plot"
 export const kGraphClassSelector = `.${kGraphClass}`
 export const kGraphAdornmentsClass = "graph-adornments-grid"
