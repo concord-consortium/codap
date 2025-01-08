@@ -1,11 +1,11 @@
-import { graphSnaphsot } from "../../graph/utilities/image-utils"
+import { graphSnapshot } from "../../graph/utilities/image-utils"
 import { PixiPointsArray } from "../pixi/pixi-points"
 
 export class DataDisplayRenderState {
-  pixiPointsArray: PixiPointsArray | undefined
-  displayElement: HTMLElement | undefined
-  getTitle: (() => string | undefined) | undefined
-  dataUri: string | undefined
+  pixiPointsArray: PixiPointsArray
+  displayElement: HTMLElement
+  getTitle?: (() => string | undefined)
+  dataUri?: string
 
   constructor(
     pixiPointsArray: PixiPointsArray,
@@ -38,7 +38,7 @@ export class DataDisplayRenderState {
       asDataURL: true,
       pixiPoints
     }
-    const graphImage = await graphSnaphsot(svgElementsToImageOptions)
+    const graphImage = await graphSnapshot(svgElementsToImageOptions)
     const dataUri = typeof graphImage === "string" ? graphImage : undefined
     if (dataUri) {
       this.setDataUri(dataUri)

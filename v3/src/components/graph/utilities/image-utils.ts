@@ -20,7 +20,7 @@ interface IGraphSnapshotOptions {
   pixiPoints: PixiPoints
 }
 
-export const graphSnaphsot = (options: IGraphSnapshotOptions): Promise<string | Blob> => {
+export const graphSnapshot = (options: IGraphSnapshotOptions): Promise<string | Blob> => {
   const { rootEl, graphWidth, graphHeight, graphTitle, asDataURL, pixiPoints } = options
 
   const getCssText = (): string => {

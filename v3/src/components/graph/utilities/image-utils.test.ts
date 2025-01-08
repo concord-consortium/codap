@@ -1,5 +1,5 @@
 import { PixiPoints } from "../../data-display/pixi/pixi-points"
-import { graphSnaphsot } from "./image-utils"
+import { graphSnapshot } from "./image-utils"
 
 const mockPixiPoints: Partial<PixiPoints> = {
   renderer: {
@@ -69,7 +69,7 @@ describe("graphSnaphsot", () => {
       asDataURL: true,
       pixiPoints: mockPixiPoints as PixiPoints
     }
-    const result = await graphSnaphsot(svgElementsToImageOptions)
+    const result = await graphSnapshot(svgElementsToImageOptions)
     expect(typeof result).toBe("string")
     expect(result).toContain("data:image/png;base64,00")
   })
@@ -82,7 +82,7 @@ describe("graphSnaphsot", () => {
       asDataURL: false,
       pixiPoints: mockPixiPoints as PixiPoints
     }
-    const result = await graphSnaphsot(svgElementsToImageOptions)
+    const result = await graphSnapshot(svgElementsToImageOptions)
     expect(typeof result).toBe("object")
     expect(result).toBeInstanceOf(Blob)
   })

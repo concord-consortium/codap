@@ -203,8 +203,9 @@ export type DIValues = DISingleValues | DISingleValues[] | number | string[]
 
 // types returned as outputs by the API
 export type DIResultAttributes = { attrs: ICodapV2Attribute[] }
-export type DIResultSingleValues = DICase | DIComponentInfo |  DIGetCaseResult | DIGlobal | DIInteractiveFrame |
-  DIDataDisplay
+export type DIResultSingleValues = DICase | DIComponentInfo |  DIDataDisplay | DIGetCaseResult | DIGlobal
+  | DIInteractiveFrame
+  
 export type DIResultValues = DIResultSingleValues | DIResultSingleValues[] |
   DIAllCases | DIDeleteCollectionResult | DIUpdateItemResult | DIResultAttributes | number | number[]
 
