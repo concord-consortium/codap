@@ -53,7 +53,7 @@ export const CameraMenuList = () => {
 
     if (graphModel.renderState.dataUri) {
       const imageString = graphModel.renderState.dataUri.replace("data:image/png;base64,", "")
-      cfm?.client.saveSecondaryFileAsDialog(imageString, "png", "image/png")
+      cfm?.client.saveSecondaryFileAsDialog(imageString, "png", "image/png", () => null)
     } else {
       console.error("Error exporting PNG image.")
     }
