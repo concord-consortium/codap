@@ -126,7 +126,7 @@ export const EditFormulaModal = observer(function EditFormulaModal({
   }, [dimensions.height, dimensions.width, minHeight, minWidth])
 
   const handleAttributeNameInputBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-    const trimmedValue = (e.target.value).trim()
+    const trimmedValue = e.target.value.trim()
     attrInputRef.current = trimmedValue
   }
 
