@@ -13,6 +13,7 @@ import {GraphLayoutContext} from '../hooks/use-graph-layout-context'
 import {useInitGraphLayout} from '../hooks/use-init-graph-layout'
 import {InstanceIdContext, useNextInstanceId} from "../../../hooks/use-instance-id-context"
 import { registerTileCollisionDetection } from "../../../lib/dnd-kit/dnd-detect-collision"
+import {DEBUG_PIXI_POINTS} from '../../../lib/debug'
 import {AxisProviderContext} from '../../axis/hooks/use-axis-provider-context'
 import {AxisLayoutContext} from "../../axis/models/axis-layout-context"
 import {usePixiPointsArray} from '../../data-display/hooks/use-pixi-points-array'
@@ -39,6 +40,12 @@ export const GraphComponent = observer(function GraphComponent({tile}: ITileBase
     () => new GraphController({layout, instanceId}),
     [layout, instanceId]
   )
+
+  if (((window as any).Cypress || DEBUG_PIXI_POINTS) && tile?.id) {
+    const pixiPointsMap: any = (window as any).pixiPointsMap  || ({} as Record<string, any>)
+    ;(window as any).pixiPointsMap = pixiPointsMap
+    pixiPointsMap[tile.id] = pixiPointsArray
+  }
 
   useGraphController({graphController, graphModel, pixiPointsArray})
 

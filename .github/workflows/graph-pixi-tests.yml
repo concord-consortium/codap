@@ -1,0 +1,63 @@
+name: Graph Pixi Tests
+
+on:
+  push:
+    paths:
+      - 'cypress/e2e/pixi-interaction/**'
+      - '.github/workflows/graph-pixi-tests.yml'
+
+jobs:
+  cypress:
+    name: Run Cypress Pixi Tests
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+    steps:
+      - uses: snow-actions/sparse-checkout@v1.2.0
+        with:
+          patterns: |
+            v3
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+          cache-dependency-path: v3/package-lock.json
+      - name: Install Dependencies
+        working-directory: v3
+        run: npm ci
+      - uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: stable
+      - name: Restore Webpack Cache
+        id: restore-webpack-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: v3/.cache/webpack/
+          key: webpack-dev-build-${{ hashFiles('v3/webpack.config.js') }}
+      - uses: cypress-io/github-action@v6
+        with:
+          working-directory: v3
+          start: npm start
+          wait-on: 'http://localhost:8080'
+          wait-on-timeout: 300
+          record: ${{ !!secrets.CYPRESS_RECORD_KEY }}
+          browser: chrome
+          spec: cypress/e2e/pixi-interaction/**/*.ts
+          group: 'Pixi Interaction Tests'
+        env:
+          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CODE_COVERAGE: true
+          CYPRESS_coverage: true
+          SKIP_ESLINT: true
+      - name: Save Webpack Cache
+        uses: actions/cache/save@v4
+        if: github.ref_name == 'main' || steps.restore-webpack-cache.outputs.cache-hit != 'true'
+        with:
+          path: v3/.cache/webpack/
+          key: ${{ steps.restore-webpack-cache.outputs.cache-primary-key }}
+      - name: Upload Cypress Coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          flags: cypress
