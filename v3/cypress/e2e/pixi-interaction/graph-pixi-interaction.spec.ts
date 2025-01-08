@@ -10,7 +10,7 @@ import graphRules from '../../fixtures/graph-rules.json'
 
 const plots = graphRules.plots
 
-//these tests may be run locally if desired. they can take awhile for on the cloud
+// These tests may be run locally if desired. they can take awhile to run on the cloud
 context.skip("Test graph plot transitions", () => {
   beforeEach(function () {
     const queryParams = "?mouseSensor"
