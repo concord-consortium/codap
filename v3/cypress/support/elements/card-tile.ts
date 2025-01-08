@@ -43,6 +43,9 @@ export const CardTileElements = {
   getShowAllHiddenAttributesButton() {
     return cy.get('[data-testid="hide-show-menu-show-all-hidden-attributes"]')
   },
+  getAddFilterFormulaButton() {
+    return cy.get('[data-testid="hide-show-menu-add-filter-formula"]')
+  },
   getRulerButton() {
     return this.getInspectorPanel().find('[data-testid="ruler-button"]')
   },

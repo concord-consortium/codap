@@ -1,6 +1,7 @@
 import { TableTileElements as table } from "../support/elements/table-tile"
 import { CardTileElements as card } from "../support/elements/card-tile"
 import { ToolbarElements as toolbar } from "../support/elements/toolbar-elements"
+import { FormulaHelper as fh } from "../support/helpers/formula-helper"
 
 context("case card", () => {
   beforeEach(() => {
@@ -463,6 +464,30 @@ context("case card inspector panel", () => {
       cy.get('[data-testid="case-card-attr-value"]').eq(9).should("have.text", "Friendly, Unfriendly")
       cy.get('[data-testid="case-card-attr-value"] .formula-attr-value')
           .should("have.css", "background-color", "rgba(255, 255, 0, 0.2)")
+    })
+  })
+  describe("case card filter formula bar", () => {
+    it("displays the filter formula bar when a filter is applied", () => {
+      const filterFormula = "LifeSpan > 20"
+      table.toggleCaseView()
+      cy.wait(500)
+      cy.get('[data-testid="case-card-view"]').should("have.length", 1)
+      cy.get('[data-testid="filter-formula-bar"]').should("not.exist")
+      cy.get('[data-testid="case-card-view-index"]').should("contain", "27")
+      card.getHideShowButton().click()
+      card.getHideShowMenu().should("be.visible").should("be.visible")
+      card.getAddFilterFormulaButton().click()
+      fh.addFilterFormula(filterFormula)
+      cy.get(".codap-modal-content [data-testid=Apply-button]").should("be.visible").click()
+      cy.get('[data-testid="filter-formula-bar"]').should("exist")
+      cy.get('[data-testid="filter-formula-bar"]').should("contain", filterFormula)
+      cy.get('[data-testid="case-card-view-index"]').should("contain", "11")
+      cy.get('[data-testid="filter-formula-bar"]').click()
+  
+      fh.clearFormulaInput()
+      cy.get(".codap-modal-content [data-testid=Apply-button]").should("be.visible").click()
+      cy.get('[data-testid="filter-formula-bar"]').should("not.exist")
+      cy.get('[data-testid="case-card-view-index"]').should("contain", "27")
     })
   })
 })

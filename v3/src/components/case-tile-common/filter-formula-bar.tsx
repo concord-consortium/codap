@@ -35,7 +35,7 @@ export const FilterFormulaBar = () => {
 
   return (
     <>
-      <div className="filter-formula-container">
+      <div className="filter-formula-container" data-testid="filter-formula-bar">
         <span className="filter-formula-label">{t("DG.CaseTable.formulaFilterBar.label")}:</span>
         <span className="filter-formula-value" onClick={handleOpenEditFormulaModal}>
           {filterFormula}

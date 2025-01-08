@@ -65,6 +65,7 @@ export const HideShowMenuList = observer(function HideShowMenuList() {
       itemKey: data?.filterFormula && !data.filterFormula.empty
                 ? "V3.hideShowMenu.editFilterFormula"
                 : "V3.hideShowMenu.addFilterFormula",
+      dataTestId: "hide-show-menu-add-filter-formula",
       isEnabled: () => !!data,
       handleClick: handleEditFormulaOpen
     },
