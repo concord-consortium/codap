@@ -8,7 +8,7 @@ on:
 
 jobs:
   lint:
-    name: Run Lint
+    name: Lint
     runs-on: ubuntu-latest
     steps:
       - uses: snow-actions/sparse-checkout@v1.2.0
@@ -28,16 +28,65 @@ jobs:
         with:
           path: v3/.cache/eslint/
           key: eslint-${{ hashFiles('v3/package-lock.json', 'v3/.eslintrc.build.cjs', 'v3/.eslintrc.cjs') }}
-      - name: Run Lint Check
+      - name: Lint
         working-directory: v3
         run: npm run lint:build
       - name: Save ESLint Cache
         uses: actions/cache/save@v4
+        # Always save the cache on the main branch, it won't be built often and
+        # this way features branches will have an up-to-date main cache
         if: github.ref_name == 'main' || steps.restore-eslint-cache.outputs.cache-hit != 'true'
         with:
           path: v3/.cache/eslint/
-          key: ${{ steps.restore-eslint-cache.outputs.cache-primary-key }}
-
+          key: ${{steps.restore-eslint-cache.outputs.cache-primary-key}}  
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: snow-actions/sparse-checkout@v1.2.0
+        with:
+          patterns: v3
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+          cache-dependency-path: v3/package-lock.json
+      - name: Install Dependencies
+        working-directory: v3
+        run: npm ci
+      - name: Restore Webpack Cache
+        id: restore-webpack-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: v3/.cache/webpack/
+          key: webpack-build-${{ hashFiles('v3/webpack.config.js') }}
+      - uses: concord-consortium/s3-deploy-action/deploy-path@v1
+        id: s3-deploy-path
+      - name: Configure Environment
+        working-directory: v3
+        run: |
+          cat <<EOF > .env
+          GOOGLE_DRIVE_CLIENT_ID="${{ secrets.GOOGLE_DRIVE_CLIENT_ID }}"
+          GOOGLE_DRIVE_API_KEY="${{ secrets.GOOGLE_DRIVE_API_KEY }}"
+          GOOGLE_DRIVE_APP_ID="${{ secrets.GOOGLE_DRIVE_APP_ID }}"
+          EOF
+      - name: Build
+        working-directory: v3
+        run: npm run build:ci
+        env:
+          DEPLOY_PATH: ${{ steps.s3-deploy-path.outputs.deployPath }}
+      - name: Save Webpack Cache
+        uses: actions/cache/save@v4
+        # Always save the cache on the main branch, it won't be built often and
+        # this way features branches will have an up-to-date main cache
+        if: github.ref_name == 'main' || steps.restore-webpack-cache.outputs.cache-hit != 'true'
+        with:
+          path: v3/.cache/webpack/
+          key: ${{steps.restore-webpack-cache.outputs.cache-primary-key}}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: build
+          path: v3/dist/
   cypress:
     name: Run Cypress Pixi Tests
     runs-on: ubuntu-latest
