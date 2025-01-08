@@ -1,11 +1,12 @@
 import { SetRequired } from "type-fest"
-import { registerComponentHandler } from "../../data-interactive/handlers/component-handler"
+import MapIcon from "../../assets/icons/icon-map.svg"
 import { V2Map } from "../../data-interactive/data-interactive-component-types"
+import { registerComponentHandler } from "../../data-interactive/handlers/component-handler"
+import { appState } from "../../models/app-state"
 import {
   getDataSetByNameOrId, getSharedCaseMetadataFromDataset, getSharedDataSets
 } from "../../models/shared/shared-data-utils"
 import { registerTileComponentInfo } from "../../models/tiles/tile-component-info"
-import { appState } from "../../models/app-state"
 import { ITileLikeModel, registerTileContentInfo } from "../../models/tiles/tile-content-info"
 import { t } from "../../utilities/translation/translate"
 import {registerV2TileImporter} from "../../v2/codap-v2-tile-importers"
@@ -13,22 +14,21 @@ import { ComponentTitleBar } from "../component-title-bar"
 import {
   AttributeDescriptionsMapSnapshot, kDataConfigurationType
 } from "../data-display/models/data-configuration-model"
+import { MapComponent } from "./components/map-component"
+import { MapInspector } from "./components/map-inspector"
 import {kMapIdPrefix, kMapTileClass, kMapTileType, kV2MapType} from "./map-defs"
 import {kDefaultMapHeight, kDefaultMapWidth, kMapPointLayerType, kMapPolygonLayerType} from "./map-types"
-import MapIcon from "../../assets/icons/icon-map.svg"
 import { IMapBaseLayerModelSnapshot } from "./models/map-base-layer-model"
 import { IMapPointLayerModelSnapshot } from "./models/map-point-layer-model"
 import { IMapPolygonLayerModelSnapshot } from "./models/map-polygon-layer-model"
 import {
   createMapContentModel, IMapModelContentSnapshot, isMapContentModel, MapContentModel
 } from "./models/map-content-model"
-import {MapComponent} from "./components/map-component"
-import {MapInspector} from "./components/map-inspector"
+import { MapFilterFormulaAdapter } from "./models/map-filter-formula-adapter"
 import {
   boundaryAttributeFromDataSet, datasetHasBoundaryData, datasetHasLatLongData, latLongAttributesFromDataSet
 } from "./utilities/map-utils"
 import {v2MapImporter} from "./v2-map-importer"
-import { MapFilterFormulaAdapter } from "./models/map-filter-formula-adapter"
 
 MapFilterFormulaAdapter.register()
 
@@ -40,7 +40,8 @@ registerTileContentInfo({
   defaultName: () => t("DG.DocumentController.mapTitle"),
   getTitle: (tile: ITileLikeModel) => {
     return tile.title || t("DG.DocumentController.mapTitle")
-  }
+  },
+  getFormulaAdapters: (node) => [MapFilterFormulaAdapter.get(node)]
 })
 
 registerTileComponentInfo({

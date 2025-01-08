@@ -1,38 +1,32 @@
 import {LatLngBounds, Layer, Map as LeafletMap, Polygon} from 'leaflet'
 import {comparer, reaction, when} from "mobx"
-import {addDisposer, getSnapshot, IAnyStateTreeNode, Instance, SnapshotIn, types} from "mobx-state-tree"
-import {ITileContentModel} from "../../../models/tiles/tile-content"
-import {applyModelChange} from "../../../models/history/apply-model-change"
-import {withoutUndo} from '../../../models/history/without-undo'
+import {addDisposer, getSnapshot, Instance, SnapshotIn, types} from "mobx-state-tree"
 import {IDataSet} from "../../../models/data/data-set"
+import {applyModelChange} from "../../../models/history/apply-model-change"
+import {withoutUndo} from "../../../models/history/without-undo"
 import {ISharedDataSet, kSharedDataSetType, SharedDataSet} from "../../../models/shared/shared-data-set"
 import {getSharedCaseMetadataFromDataset} from "../../../models/shared/shared-data-utils"
+import {ITileContentModel} from "../../../models/tiles/tile-content"
 import { getFormulaManager } from "../../../models/tiles/tile-environment"
+import {typedId} from "../../../utilities/js-utils"
+import {GraphPlace} from "../../axis-graph-shared"
+import {IDataConfigurationModel} from "../../data-display/models/data-configuration-model"
+import {DataDisplayContentModel} from "../../data-display/models/data-display-content-model"
 import {kMapModelName, kMapTileType} from "../map-defs"
 import {BaseMapKey, BaseMapKeys} from "../map-types"
 import {
   datasetHasBoundaryData, datasetHasLatLongData, expandLatLngBounds, getLatLongBounds, latLongAttributesFromDataSet
 } from "../utilities/map-utils"
-import {GraphPlace} from '../../axis-graph-shared'
-import {DataDisplayContentModel} from "../../data-display/models/data-display-content-model"
-import {isMapPolygonLayerModel, MapPolygonLayerModel} from "./map-polygon-layer-model"
-import {isMapPointLayerModel, MapPointLayerModel} from "./map-point-layer-model"
-import {ILatLngSnapshot, LatLngModel} from '../map-model-types'
-import {LeafletMapState} from './leaflet-map-state'
+import {ILatLngSnapshot, LatLngModel} from "../map-model-types"
+import {LeafletMapState} from "./leaflet-map-state"
 import {isMapLayerModel} from "./map-layer-model"
-import {MAP_FILTER_FORMULA_ADAPTER} from './map-filter-formula-adapter'
-import {typedId} from '../../../utilities/js-utils'
-import {IDataConfigurationModel} from '../../data-display/models/data-configuration-model'
-import {DataDisplayFilterFormulaAdapter} from '../../data-display/models/data-display-filter-formula-adapter'
-
-const getFormulaAdapters = (node?: IAnyStateTreeNode) => [
-  DataDisplayFilterFormulaAdapter.get(MAP_FILTER_FORMULA_ADAPTER, node)
-]
+import {isMapPointLayerModel, MapPointLayerModel} from "./map-point-layer-model"
+import {isMapPolygonLayerModel, MapPolygonLayerModel} from "./map-polygon-layer-model"
 
 export const MapContentModel = DataDisplayContentModel
   .named(kMapModelName)
   .props({
-    id: types.optional(types.identifier, () => typedId("MPCM")),
+    id: types.optional(types.string, () => typedId("MPCM")),
     type: types.optional(types.literal(kMapTileType), kMapTileType),
 
     // center and zoom are kept in sync with Leaflet's map state
@@ -229,8 +223,8 @@ export const MapContentModel = DataDisplayContentModel
       when(
         () => getFormulaManager(self)?.areAdaptersInitialized ?? false,
         () => {
-          getFormulaAdapters(self).forEach(adapter => {
-            adapter?.addContentModel(self as IMapContentModel)
+          self.formulaAdapters.forEach(adapter => {
+            adapter?.addContentModel(self)
           })
         }
       )
@@ -296,7 +290,7 @@ export const MapContentModel = DataDisplayContentModel
       self.isLeafletMapInitialized = true
     },
     beforeDestroy() {
-      getFormulaAdapters(self).forEach(adapter => {
+      self.formulaAdapters.forEach(adapter => {
         adapter?.removeContentModel(self.id)
       })
     }

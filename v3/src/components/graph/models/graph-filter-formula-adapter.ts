@@ -1,15 +1,19 @@
 import { makeObservable } from "mobx"
+import { IAnyStateTreeNode } from "mobx-state-tree"
 import { IFormula } from "../../../models/formula/formula"
 import { registerFormulaAdapter } from "../../../models/formula/formula-adapter-registry"
 import {
   IFormulaAdapterApi, IFormulaContext, IFormulaManagerAdapter
 } from "../../../models/formula/formula-manager-types"
+import { ITileContentModel } from "../../../models/tiles/tile-content"
+import { getFormulaManager } from "../../../models/tiles/tile-environment"
 import { mstReaction } from "../../../utilities/mst-reaction"
 import { isFilterFormulaDataConfiguration } from "../../data-display/models/data-configuration-model"
-import type { IGraphContentModel } from "./graph-content-model"
-import { DataDisplayFilterFormulaAdapter, IDataDisplayFilterFormulaExtraMetadata }
-    from "../../data-display/models/data-display-filter-formula-adapter"
-import { kGraphTileType } from "../graph-defs"
+import { IDataDisplayContentModel } from "../../data-display/models/data-display-content-model"
+import {
+  DataDisplayFilterFormulaAdapter, IDataDisplayFilterFormulaExtraMetadata
+} from "../../data-display/models/data-display-filter-formula-adapter"
+import { isGraphContentModel, type IGraphContentModel } from "./graph-content-model"
 
 export const GRAPH_FILTER_FORMULA_ADAPTER = "GraphFilterFormulaAdapter"
 
@@ -22,36 +26,34 @@ export class GraphFilterFormulaAdapter extends DataDisplayFilterFormulaAdapter i
     registerFormulaAdapter(api => new GraphFilterFormulaAdapter(api))
   }
 
-
+  static get(node?: IAnyStateTreeNode) {
+    return getFormulaManager(node)?.adapters.find(({ type }) =>
+      type === GRAPH_FILTER_FORMULA_ADAPTER
+    ) as Maybe<GraphFilterFormulaAdapter>
+  }
 
   constructor(api: IFormulaAdapterApi) {
     super(GRAPH_FILTER_FORMULA_ADAPTER, api)
     makeObservable(this)
   }
 
+  isSuitableContentModel(contentModel: ITileContentModel): contentModel is IDataDisplayContentModel {
+    return isGraphContentModel(contentModel)
+  }
+
   get graphContentModels() {
     const graphContentModels: IGraphContentModel[] = []
     // find all the map content models from the contentModels
     this.contentModels.forEach(contentModel => {
-      if (contentModel.type === kGraphTileType) {
-        graphContentModels.push(contentModel as IGraphContentModel)
+      if (isGraphContentModel(contentModel)) {
+        graphContentModels.push(contentModel)
       }
-    }
-    )
+    })
     return graphContentModels
   }
 
-  getGraphContentModel(extraMetadata: IGraphFilterFormulaExtraMetadata) {
-    const { contentModelId } = extraMetadata
-    const graphContentModel = this.getContentModel(extraMetadata)
-    if (!graphContentModel) {
-      throw new Error(`GraphContentModel with id "${contentModelId}" not found`)
-    }
-    return graphContentModel
-  }
-
   getDataConfiguration(extraMetadata: IGraphFilterFormulaExtraMetadata) {
-    return this.getGraphContentModel(extraMetadata).dataConfiguration
+    return this.getContentModel(extraMetadata).dataConfiguration
   }
 
   getActiveFormulas(): ({ formula: IFormula, extraMetadata: IGraphFilterFormulaExtraMetadata })[] {
@@ -72,9 +74,7 @@ export class GraphFilterFormulaAdapter extends DataDisplayFilterFormulaAdapter i
     return result
   }
 
-
   // Error message is set as formula output, similarly as in CODAP V2.
-
 
   setupFormulaObservers(formulaContext: IFormulaContext, extraMetadata: IGraphFilterFormulaExtraMetadata) {
     const graphContent = this.contentModels.get(extraMetadata.contentModelId)

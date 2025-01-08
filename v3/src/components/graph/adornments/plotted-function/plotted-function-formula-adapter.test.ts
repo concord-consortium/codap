@@ -1,6 +1,7 @@
 import { IDataSet } from "../../../../models/data/data-set"
 import { createDataSet } from "../../../../models/data/data-set-conversion"
 import { localAttrIdToCanonical } from "../../../../models/formula/utils/name-mapping-utils"
+import { IGraphContentModel } from "../../models/graph-content-model"
 import { GraphDataConfigurationModel } from "../../models/graph-data-configuration-model"
 import { PlottedFunctionAdornmentModel } from "./plotted-function-adornment-model"
 import { PlottedFunctionFormulaAdapter } from "./plotted-function-formula-adapter"
@@ -34,8 +35,9 @@ const getTestEnv = () => {
   dataConfig.attributeType = (role: string) => mockData.type[role]
   ;(dataConfig as any).categoryArrayForAttrRole = (role: string) => mockData.categoryArrayForAttrRole[role]
 
-  const graphContentModel = {
+  const graphContentModel: Partial<IGraphContentModel> = {
     id: "fake-graph-content-model-id",
+    type: "Graph",
     adornments: [adornment],
     dataset: dataSet,
     dataConfiguration: dataConfig,

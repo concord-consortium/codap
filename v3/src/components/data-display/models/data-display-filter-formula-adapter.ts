@@ -1,5 +1,4 @@
 import { action, makeObservable, observable } from "mobx"
-import { IAnyStateTreeNode } from "mobx-state-tree"
 import { DEBUG_FORMULAS, debugLog } from "../../../lib/debug"
 import { ICase } from "../../../models/data/data-set-types"
 import {
@@ -8,25 +7,15 @@ import {
 import { FormulaMathJsScope } from "../../../models/formula/formula-mathjs-scope"
 import { math } from "../../../models/formula/functions/math"
 import { formulaError } from "../../../models/formula/utils/misc"
-import { getFormulaManager } from "../../../models/tiles/tile-environment"
+import { ITileContentModel } from "../../../models/tiles/tile-content"
 import { mstReaction } from "../../../utilities/mst-reaction"
 import type { IDataDisplayContentModel } from "./data-display-content-model"
-import { IGraphContentModel } from "../../graph/models/graph-content-model"
-import { IMapContentModel } from "../../map/models/map-content-model"
 
-type DataDisplayContentModelTypes = IGraphContentModel | IMapContentModel
 export interface IDataDisplayFilterFormulaExtraMetadata extends IFormulaExtraMetadata {
   contentModelId: string
-  mapLayerId?: string
 }
 
 export class DataDisplayFilterFormulaAdapter extends FormulaManagerAdapter implements IFormulaManagerAdapter {
-
-  static get(adapterType: string, node?: IAnyStateTreeNode) {
-    return getFormulaManager(node)?.adapters.find(({ type }) =>
-      type === adapterType
-    ) as Maybe<DataDisplayFilterFormulaAdapter>
-  }
 
   @observable.shallow contentModels = new Map<string, IDataDisplayContentModel>()
 
@@ -35,18 +24,20 @@ export class DataDisplayFilterFormulaAdapter extends FormulaManagerAdapter imple
     makeObservable(this)
   }
 
+  isSuitableContentModel(contentModel: ITileContentModel): contentModel is IDataDisplayContentModel {
+    return false
+  }
+
   @action
-  addContentModel(contentModel: DataDisplayContentModelTypes) {
-    this.contentModels.set(contentModel.id, contentModel)
+  addContentModel(contentModel: ITileContentModel) {
+    if (this.isSuitableContentModel(contentModel)) {
+      this.contentModels.set(contentModel.id, contentModel)
+    }
   }
 
   @action
   removeContentModel(contentModelId: string) {
     this.contentModels.delete(contentModelId)
-  }
-
-  getContentModelId(contentModel: IMapContentModel) {
-    return contentModel.id
   }
 
   getDataConfiguration(extraMetadata: IDataDisplayFilterFormulaExtraMetadata): any {
@@ -58,11 +49,10 @@ export class DataDisplayFilterFormulaAdapter extends FormulaManagerAdapter imple
     const { contentModelId } = extraMetadata
     const contentModel = this.contentModels.get(contentModelId)
     if (!contentModel) {
-      throw new Error(`GraphContentModel with id "${contentModelId}" not found`)
+      throw new Error(`DataDisplayContentModel with id "${contentModelId}" not found`)
     }
     return contentModel
   }
-
 
   recalculateFormula(formulaContext: IFormulaContext, extraMetadata: IDataDisplayFilterFormulaExtraMetadata,
     casesToRecalculateDesc: ICase[] | "ALL_CASES" = "ALL_CASES") {

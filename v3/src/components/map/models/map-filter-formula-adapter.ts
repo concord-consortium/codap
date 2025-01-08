@@ -1,15 +1,19 @@
 import { makeObservable } from "mobx"
+import { IAnyStateTreeNode } from "mobx-state-tree"
 import { IFormula } from "../../../models/formula/formula"
 import { registerFormulaAdapter } from "../../../models/formula/formula-adapter-registry"
 import {
   IFormulaAdapterApi, IFormulaContext, IFormulaManagerAdapter
 } from "../../../models/formula/formula-manager-types"
+import { getFormulaManager } from "../../../models/tiles/tile-environment"
 import { mstReaction } from "../../../utilities/mst-reaction"
 import { isFilterFormulaDataConfiguration } from "../../data-display/models/data-configuration-model"
-import type { IMapContentModel } from "./map-content-model"
-import { DataDisplayFilterFormulaAdapter, IDataDisplayFilterFormulaExtraMetadata }
-    from "../../data-display/models/data-display-filter-formula-adapter"
-import { kMapTileType } from "../map-defs"
+import {
+  DataDisplayFilterFormulaAdapter, IDataDisplayFilterFormulaExtraMetadata
+} from "../../data-display/models/data-display-filter-formula-adapter"
+import { isMapContentModel, type IMapContentModel } from "./map-content-model"
+import { ITileContentModel } from "../../../models/tiles/tile-content"
+import { IDataDisplayContentModel } from "../../data-display/models/data-display-content-model"
 
 export const MAP_FILTER_FORMULA_ADAPTER = "MapFilterFormulaAdapter"
 
@@ -23,20 +27,29 @@ export class MapFilterFormulaAdapter extends DataDisplayFilterFormulaAdapter imp
     registerFormulaAdapter(api => new MapFilterFormulaAdapter(api))
   }
 
+  static get(node?: IAnyStateTreeNode) {
+    return getFormulaManager(node)?.adapters.find(({ type }) =>
+      type === MAP_FILTER_FORMULA_ADAPTER
+    ) as Maybe<MapFilterFormulaAdapter>
+  }
+
   constructor(api: IFormulaAdapterApi) {
     super(MAP_FILTER_FORMULA_ADAPTER, api)
     makeObservable(this)
+  }
+
+  isSuitableContentModel(contentModel: ITileContentModel): contentModel is IDataDisplayContentModel {
+    return isMapContentModel(contentModel)
   }
 
   get mapContentModels() {
     const mapContentModels: IMapContentModel[] = []
     // find all the map content models from the contentModels
     this.contentModels.forEach(contentModel => {
-      if (contentModel.type === kMapTileType) {
-        mapContentModels.push(contentModel as IMapContentModel)
+      if (isMapContentModel(contentModel)) {
+        mapContentModels.push(contentModel)
       }
-    }
-    )
+    })
     return mapContentModels
   }
 
@@ -55,15 +68,6 @@ export class MapFilterFormulaAdapter extends DataDisplayFilterFormulaAdapter imp
     return mapLayer?.dataConfiguration
   }
 
-
-  getMapContentModel(extraMetadata: IMapFilterFormulaExtraMetadata) {
-    const { contentModelId } = extraMetadata
-    const mapContentModel = this.contentModels.get(contentModelId)
-    if (!mapContentModel) {
-      throw new Error(`MapContentModel with id "${contentModelId}" not found`)
-    }
-    return mapContentModel
-  }
 
   getActiveFormulas(): ({ formula: IFormula, extraMetadata: IMapFilterFormulaExtraMetadata })[] {
     const result: ({ formula: IFormula, extraMetadata: IMapFilterFormulaExtraMetadata })[] = []
