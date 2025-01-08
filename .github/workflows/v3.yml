@@ -16,7 +16,7 @@ jobs:
           patterns: v3
       - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
           cache: 'npm'
           cache-dependency-path: v3/package-lock.json
       - name: Install Dependencies
@@ -38,7 +38,7 @@ jobs:
         if: github.ref_name == 'main' || steps.restore-eslint-cache.outputs.cache-hit != 'true'
         with:
           path: v3/.cache/eslint/
-          key: ${{steps.restore-eslint-cache.outputs.cache-primary-key}}  
+          key: ${{steps.restore-eslint-cache.outputs.cache-primary-key}}
   build:
     name: Build
     runs-on: ubuntu-latest
@@ -48,7 +48,7 @@ jobs:
           patterns: v3
       - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
           cache: 'npm'
           cache-dependency-path: v3/package-lock.json
       - name: Install Dependencies
@@ -87,7 +87,7 @@ jobs:
         with:
           name: build
           path: v3/dist/
-      
+
   jest:
     name: Run Jest Tests
     runs-on: ubuntu-latest
@@ -97,7 +97,7 @@ jobs:
           patterns: v3
       - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
           cache: 'npm'
           cache-dependency-path: v3/package-lock.json
       - name: Install Dependencies
