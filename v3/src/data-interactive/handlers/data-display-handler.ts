@@ -4,7 +4,7 @@ import { t } from "../../utilities/translation/translate"
 import { kComponentTypeV3ToV2Map } from "../data-interactive-component-types"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIAsyncHandler, DIResources } from "../data-interactive-types"
-import { componentNotFoundResult } from "./di-results"
+import { componentNotFoundResult, dataDisplayNotFoundResult } from "./di-results"
 
 export interface DIDataDisplayHandler {
   get: (content: ITileContentModel) => Maybe<Record<string, any>>
@@ -30,12 +30,12 @@ export const diDataDisplayHandler: DIAsyncHandler = {
       const { exportDataUri, success } = imgSnapshotRes ?? {}
       const values = success
         ? { exportDataUri }
-        : { error: t("V3.DI.Error.dataDisplayNotFound") }
+        : { error: dataDisplayNotFoundResult }
 
       return { success, values }
     } catch (e) {
       console.error("Error in diDataDisplayHandler", e)
-      return { success: false, values: { error: t("V3.DI.Error.dataDisplayNotFound") } }
+      return { success: false, values: { error: dataDisplayNotFoundResult } }
     }
   }
 }
