@@ -1,6 +1,5 @@
 import { ITileContentModel } from "../../models/tiles/tile-content"
 import { getTileContentInfo } from "../../models/tiles/tile-content-info"
-import { t } from "../../utilities/translation/translate"
 import { kComponentTypeV3ToV2Map } from "../data-interactive-component-types"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIAsyncHandler, DIResources } from "../data-interactive-types"
