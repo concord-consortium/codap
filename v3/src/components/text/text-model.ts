@@ -1,36 +1,45 @@
 import {
   EditorValue, serializeValue, SlateExchangeValue, slateToText, textToSlate
 } from "@concord-consortium/slate-editor"
+import { cloneDeep, isEqual } from "lodash"
 import { Instance, SnapshotIn, types } from "mobx-state-tree"
 import { ITileContentModel, TileContentModel } from "../../models/tiles/tile-content"
 import { safeJsonParse } from "../../utilities/js-utils"
 import { kTextTileType } from "./text-defs"
 
 export function editorValueToModelValue(value: EditorValue) {
-  return JSON.stringify(serializeValue(value))
+  return cloneDeep(serializeValue(value))
 }
 
-export function modelValueToEditorValue(value?: string) {
-  const parsedValue = safeJsonParse<SlateExchangeValue>(value)
-  return parsedValue?.document?.children ?? textToSlate("")
+export function modelValueToEditorValue(value?: SlateExchangeValue) {
+  return cloneDeep(value?.document?.children) ?? textToSlate("")
 }
 
 export const TextModel = TileContentModel
   .named("TextModel")
   .props({
     type: types.optional(types.literal(kTextTileType), kTextTileType),
-    value: types.optional(types.string, () => editorValueToModelValue(textToSlate("")))
+    value: types.optional(types.frozen<SlateExchangeValue>(), () => editorValueToModelValue(textToSlate("")))
   })
   .volatile(self => ({
     isSettingValue: false
   }))
+  .preProcessSnapshot(snap => {
+    if (typeof snap.value === "string") {
+      const { value, ...others } = snap
+      return { value: safeJsonParse<SlateExchangeValue>(value), ...others }
+    }
+    return snap
+  })
+  .postProcessSnapshot(({ value, ...others }) => {
+    return { value: JSON.stringify(value), ...others }
+  })
   .views(self => ({
     isEquivalent(value: EditorValue) {
-      return self.value === editorValueToModelValue(value)
+      return isEqual(self.value, editorValueToModelValue(value))
     },
     get textContent() {
-      const slate = safeJsonParse<SlateExchangeValue>(self.value)
-      return slateToText(slate?.document?.children)
+      return slateToText(self.value?.document?.children)
     }
   }))
   .actions(self => ({

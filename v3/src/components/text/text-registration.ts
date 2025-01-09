@@ -1,5 +1,6 @@
 import { SlateExchangeValue, textToSlate } from "@concord-consortium/slate-editor"
 import { SetRequired } from "type-fest"
+import TextIcon from "../../assets/icons/icon-text.svg"
 import { V2Text } from "../../data-interactive/data-interactive-component-types"
 import { registerComponentHandler } from "../../data-interactive/handlers/component-handler"
 import { registerTileComponentInfo } from "../../models/tiles/tile-component-info"
@@ -8,13 +9,13 @@ import { ITileModelSnapshotIn } from "../../models/tiles/tile-model"
 import { toV3Id } from "../../utilities/codap-utils"
 import { safeJsonParse } from "../../utilities/js-utils"
 import { t } from "../../utilities/translation/translate"
+import { registerV2TileExporter } from "../../v2/codap-v2-tile-exporters"
 import { registerV2TileImporter } from "../../v2/codap-v2-tile-importers"
 import { isV2TextComponent } from "../../v2/codap-v2-types"
 import { ComponentTitleBar } from "../component-title-bar"
-import { kTextTileClass, kTextTileType, kV2TextType } from "./text-defs"
+import { kTextTileClass, kTextTileType, kV2TextDGType, kV2TextDIType } from "./text-defs"
 import { editorValueToModelValue, isTextModel, ITextSnapshot, modelValueToEditorValue, TextModel } from "./text-model"
 import { TextTile } from "./text-tile"
-import TextIcon from "../../assets/icons/icon-text.svg"
 
 export const kTextIdPrefix = "TEXT"
 
@@ -45,20 +46,31 @@ registerTileComponentInfo({
   defaultHeight: 100
 })
 
-function importTextToModelValue(text?: string | SlateExchangeValue) {
+function importTextToModelValue(text?: string | SlateExchangeValue): Maybe<SlateExchangeValue> {
   // According to a comment in the v2 code: "Prior to build 0535 this was simple text.
   // As of 0535 it is a JSON representation of the rich text content."
   // For v3, we make sure we're always dealing with rich-text JSON.
   if (typeof text === "string") {
-    const json = safeJsonParse(text)
-    return text != null && json != null && typeof json === "object"
-            ? text
+    const value = safeJsonParse<SlateExchangeValue>(text)
+    return text != null && value != null && typeof value === "object"
+            ? value
             : editorValueToModelValue(textToSlate(text))
   }
   return editorValueToModelValue(text?.document?.children ?? [])
 }
 
-registerV2TileImporter("DG.TextView", ({ v2Component, insertTile }) => {
+registerV2TileExporter(kTextTileType, ({ tile }) => {
+  const { content } = tile
+  if (!isTextModel(content)) return
+  return {
+    type: kV2TextDGType,
+    componentStorage: {
+      text: JSON.stringify(content.value)
+    }
+  }
+})
+
+registerV2TileImporter(kV2TextDGType, ({ v2Component, insertTile }) => {
   if (!isV2TextComponent(v2Component)) return
 
   const { guid, componentStorage: { title = "", text } } = v2Component
@@ -73,7 +85,7 @@ registerV2TileImporter("DG.TextView", ({ v2Component, insertTile }) => {
   return textTile
 })
 
-registerComponentHandler(kV2TextType, {
+registerComponentHandler(kV2TextDIType, {
   create({ values }) {
     const { text } = values as V2Text
     return {
@@ -86,7 +98,7 @@ registerComponentHandler(kV2TextType, {
   get(content) {
     if (isTextModel(content)) {
       return {
-        type: kV2TextType,
+        type: kV2TextDIType,
         text: content.value
       }
     }

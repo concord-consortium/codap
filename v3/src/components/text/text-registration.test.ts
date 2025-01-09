@@ -1,3 +1,4 @@
+import { textToSlate } from "@concord-consortium/slate-editor"
 import { V2Text } from "../../data-interactive/data-interactive-component-types"
 import { diComponentHandler } from "../../data-interactive/handlers/component-handler"
 import { testGetComponent, testUpdateComponent } from "../../data-interactive/handlers/component-handler-test-utils"
@@ -8,10 +9,11 @@ import { getTileComponentInfo } from "../../models/tiles/tile-component-info"
 import { getTileContentInfo } from "../../models/tiles/tile-content-info"
 import { ITileModelSnapshotIn } from "../../models/tiles/tile-model"
 import { CodapV2Document } from "../../v2/codap-v2-document"
+import { exportV2Component } from "../../v2/codap-v2-tile-exporters"
 import { importV2Component } from "../../v2/codap-v2-tile-importers"
-import { ICodapV2DocumentJson } from "../../v2/codap-v2-types"
-import { kTextTileType } from "./text-defs"
-import { isTextModel, ITextModel } from "./text-model"
+import { ICodapV2DocumentJson, isV2TextComponent } from "../../v2/codap-v2-types"
+import { kTextTileType, kV2TextDGType } from "./text-defs"
+import { editorValueToModelValue, isTextModel, ITextModel } from "./text-model"
 import "./text-registration"
 
 const fs = require("fs")
@@ -25,6 +27,7 @@ describe("Text registration", () => {
     const textContent = textContentInfo?.defaultContent()
     expect(textContent).toBeDefined()
   })
+
   it("imports v2 text components with simple text (legacy v2 format)", () => {
     const file = path.join(__dirname, "../../test/v2", "simple-text.codap")
     const textJson = fs.readFileSync(file, "utf8")
@@ -47,6 +50,7 @@ describe("Text registration", () => {
     expect(isTextModel(tile!.content)).toBe(true)
     expect((tile!.content as ITextModel).textContent).toBe("This is some simple text.")
   })
+
   it("imports v2 text components with rich text (newer v2 format)", () => {
     const file = path.join(__dirname, "../../test/v2", "rich-text.codap")
     const textJson = fs.readFileSync(file, "utf8")
@@ -69,6 +73,7 @@ describe("Text registration", () => {
     expect(isTextModel(tile!.content)).toBe(true)
     expect((tile!.content as ITextModel).textContent).toBe("This is some bold italic underlined deleted red rich text.")
   })
+
   it("doesn't import invalid v2 text components", () => {
     const file = path.join(__dirname, "../../test/v2", "simple-text.codap")
     const textJson = fs.readFileSync(file, "utf8")
@@ -87,6 +92,21 @@ describe("Text registration", () => {
       insertTile: mockInsertTile
     })
     expect(tileWithInvalidComponent).toBeUndefined()
+  })
+
+  it("exports v2 text components", () => {
+    const textContentInfo = getTileContentInfo(kTextTileType)!
+    const docContent = DocumentContentModel.create()
+    const freeTileRow = FreeTileRow.create()
+    docContent.setRowCreator(() => freeTileRow)
+    const tile = docContent.insertTileSnapshotInDefaultRow({
+      content: textContentInfo?.defaultContent()
+    })!
+    const output = exportV2Component({ tile, row: freeTileRow })
+    expect(output?.type).toBe(kV2TextDGType)
+    const textTileOutput = isV2TextComponent(output!) ? output : undefined
+    const expectedTextOutput = JSON.stringify(editorValueToModelValue(textToSlate("")))
+    expect(textTileOutput?.componentStorage?.text).toBe(expectedTextOutput)
   })
 })
 
