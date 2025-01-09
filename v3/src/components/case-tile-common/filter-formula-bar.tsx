@@ -1,8 +1,8 @@
 import React, { useState } from "react"
-import { useDataSetContext } from "../../hooks/use-data-set-context"
-import { EditFormulaModal } from "../common/edit-formula-modal"
 import { useDisclosure } from "@chakra-ui/react"
 import { t } from "../../utilities/translation/translate"
+import { useDataSetContext } from "../../hooks/use-data-set-context"
+import { EditFormulaModal } from "../common/edit-formula-modal"
 
 import "./filter-formula-bar.scss"
 
@@ -36,7 +36,7 @@ export const FilterFormulaBar = () => {
   return (
     <>
       <div className="filter-formula-container" data-testid="filter-formula-bar">
-        <span className="filter-formula-label">{t("DG.CaseTable.formulaFilterBar.label")}:</span>
+        <span className="filter-formula-label">{t("V3.CaseTable.formulaFilterBar.label")}:</span>
         <span className="filter-formula-value" onClick={handleOpenEditFormulaModal}>
           {filterFormula}
         </span>
@@ -46,7 +46,7 @@ export const FilterFormulaBar = () => {
           applyFormula={handleSubmitEditFormula}
           isOpen={formulaModal.isOpen}
           onClose={handleCloseModal}
-          titleLabel={t("DG.PlottedFunction.namePrompt")}
+          titleLabel={t("V3.hideShowMenu.filterFormulaPrompt")}
           value={filterFormula}
         />
       }
