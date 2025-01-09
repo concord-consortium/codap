@@ -1,7 +1,7 @@
 import { IAnyStateTreeNode } from "mobx-state-tree"
-import { IDataConfigurationModel } from "./data-configuration-model"
-import { GraphPlace } from "../../axis-graph-shared"
 import { IDataSet } from "../../../models/data/data-set"
+import { GraphPlace } from "../../axis-graph-shared"
+import { IDataConfigurationModel } from "./data-configuration-model"
 
 interface IBaseLayerModel {
   layerIndex: number,

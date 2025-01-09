@@ -9,12 +9,12 @@ export interface IAxisProvider {
   nonDraggableAxisTicks: (formatter: (value: number) => string) => { tickValues: number[], tickLabels: string[] }
 }
 
-export const AxisProviderContext = createContext<IAxisProvider | undefined>(undefined)
+export const AxisProviderContext = createContext<Maybe<IAxisProvider>>(undefined)
 
 export const useAxisProviderContext = () => {
   const context = useContext(AxisProviderContext)
   if (!context) {
-    throw new Error("useAxisProviderContext must be used within a AxisProviderContextProvider")
+    throw new Error("useAxisProviderContext must be used within an AxisProviderContextProvider")
   }
   return context
 }
