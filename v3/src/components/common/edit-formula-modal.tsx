@@ -1,5 +1,5 @@
 import {
-  Box, Button, Flex, FormControl, FormLabel, Input, ModalBody, ModalFooter, Tooltip
+  Box, Button, Flex, FormControl, FormLabel, ModalBody, ModalFooter, Tooltip
 } from "@chakra-ui/react"
 import React, { useCallback, useEffect, useRef, useState } from "react"
 import { observer } from "mobx-react-lite"

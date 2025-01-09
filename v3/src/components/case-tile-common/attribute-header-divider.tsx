@@ -24,8 +24,11 @@ export const AttributeHeaderDivider = ({ before = false, columnKey, cellElt, get
       if (!targetCollection || !dataSet || (dataSet !== dataset) || !dragAttrId) return
 
       const sourceCollection = dataSet.getCollectionForAttribute(dragAttrId)
+      // If the columnKey is the special kIndexColumnKey then we use undefined for
+      // afterAttrId. This means the attribute will be moved to the beginning
+      const maybeColumnKey = columnKey === kIndexColumnKey ? undefined : columnKey
       moveAttribute({
-        afterAttrId: before ? kIndexColumnKey : columnKey,
+        afterAttrId: before ? undefined : maybeColumnKey,
         attrId: dragAttrId,
         dataset,
         includeNotifications: true,

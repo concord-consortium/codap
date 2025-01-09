@@ -1,5 +1,4 @@
 import { isAlive } from "mobx-state-tree"
-import { kIndexColumnKey } from "../../components/case-tile-common/case-tile-types"
 import { logMessageWithReplacement } from "../../lib/log-message"
 import { AttributeFormulaAdapter } from "../formula/attribute-formula-adapter"
 import { FilterFormulaAdapter } from "../formula/filter-formula-adapter"
@@ -74,7 +73,7 @@ export function moveAttribute({
 }: IMoveAttributeParameters) {
   const firstAttr: IAttribute | undefined = getCollectionAttrs(targetCollection, dataset)[0]
   const options: IMoveAttributeOptions =
-    !afterAttrId || afterAttrId === kIndexColumnKey ? { before: firstAttr?.id } : { after: afterAttrId }
+    afterAttrId ? { after: afterAttrId }: { before: firstAttr?.id }
 
   // bail if we're moving the attribute before/after itself
   if (attrId === options.after || attrId === options.before) return
