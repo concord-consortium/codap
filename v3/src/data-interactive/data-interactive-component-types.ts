@@ -5,7 +5,7 @@ import { kCaseTableTileType, kV2CaseTableType } from "../components/case-table/c
 import { kGraphTileType, kV2GraphType } from "../components/graph/graph-defs"
 import { kMapTileType, kV2MapType } from "../components/map/map-defs"
 import { kSliderTileType, kV2SliderType } from "../components/slider/slider-defs"
-import { kTextTileType, kV2TextType } from "../components/text/text-defs"
+import { kTextTileType, kV2TextDIType } from "../components/text/text-defs"
 import { kV2GameType, kV2WebViewType, kWebViewTileType } from "../components/web-view/web-view-defs"
 
 // export const kV2ImageType = "image"
@@ -20,7 +20,7 @@ export const kComponentTypeV3ToV2Map: Record<string, string> = {
   // kV2ImageType
   [kMapTileType]: kV2MapType,
   [kSliderTileType]: kV2SliderType,
-  [kTextTileType]: kV2TextType,
+  [kTextTileType]: kV2TextDIType,
   [kWebViewTileType]: kV2WebViewType
 }
 
