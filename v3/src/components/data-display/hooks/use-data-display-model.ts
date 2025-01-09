@@ -11,3 +11,13 @@ export const useDataDisplayModelContext = () => {
   }
   return context
 }
+
+export const useDataDisplayModelContextMaybe = () => {
+  const context = useContext(BaseDataDisplayModelContext)
+  if (!context) return undefined
+
+  if (!isDataDisplayContentModel(context)) {
+    throw new Error("useDataDisplayModelContextMaybe found something other than a DataDisplayContentModel")
+  }
+  return context
+}

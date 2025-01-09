@@ -6,14 +6,16 @@ export interface IAxisProvider {
   getAxis: (place: AxisPlace) => IAxisModel | undefined
   getNumericAxis: (place: AxisPlace) => IBaseNumericAxisModel | undefined
 }
-const kDefaultAxisProvider = {
-  getAxis: () => undefined,
-  getNumericAxis: () => undefined
+
+export const AxisProviderContext = createContext<IAxisProvider | undefined>(undefined)
+
+export const useAxisProviderContext = () => {
+  const context = useContext(AxisProviderContext)
+  if (!context) {
+    throw new Error("useAxisProviderContext must be used within a AxisProviderContextProvider")
+  }
+  return context
 }
-
-export const AxisProviderContext = createContext<IAxisProvider>(kDefaultAxisProvider)
-
-export const useAxisProviderContext = () => useContext(AxisProviderContext)
 
 export function useAxisModel(place: AxisPlace) {
   return useAxisProviderContext().getAxis(place)

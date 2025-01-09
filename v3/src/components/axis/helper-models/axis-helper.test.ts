@@ -22,7 +22,9 @@ describe("AxisHelper", () => {
 
   beforeEach(() => {
     props = {
-      displayModel: {} as IDataDisplayContentModel,
+      displayModel: {
+        dataConfiguration: {}
+      } as IDataDisplayContentModel,
       subAxisIndex: 0,
       subAxisElt: document.createElementNS("http://www.w3.org/2000/svg", "g"),
       axisModel: { place: "left" } as IAxisModel,
@@ -50,7 +52,7 @@ describe("AxisHelper", () => {
   })
 
   it("should return correct dataConfig", () => {
-    expect(axisHelper.dataConfig).toBe(props.displayModel.dataConfiguration)
+    expect(axisHelper.dataConfig).toBe(props.displayModel?.dataConfiguration)
   })
 
   it("should return correct initialTransform", () => {

@@ -18,7 +18,7 @@ import { isAliveSafe } from "../../../utilities/mst-utils"
 import { computeNiceNumericBounds, setNiceDomain } from "../../graph/utilities/graph-utils"
 import { DragInfo } from "../axis-utils"
 import { useAxisProviderContext } from "./use-axis-provider-context"
-import { useDataDisplayModelContext } from "../../data-display/hooks/use-data-display-model"
+import { useDataDisplayModelContextMaybe } from "../../data-display/hooks/use-data-display-model"
 import { AxisHelper, EmptyAxisHelper } from "../helper-models/axis-helper"
 import { NumericAxisHelper } from "../helper-models/numeric-axis-helper"
 import { CatObject, CategoricalAxisHelper } from "../helper-models/categorical-axis-helper"
@@ -56,11 +56,11 @@ export const useSubAxis = ({
                              subAxisIndex, axisPlace, subAxisElt, showScatterPlotGridLines, centerCategoryLabels
                            }: IUseSubAxis) => {
   const layout = useAxisLayoutContext(),
-    displayModel = useDataDisplayModelContext(),
-    dataConfig = displayModel.dataConfiguration,
+    displayModel = useDataDisplayModelContextMaybe(),
+    dataConfig = displayModel?.dataConfiguration,
     {isAnimating, stopAnimation} = useDataDisplayAnimation(),
     axisProvider = useAxisProviderContext(),
-    axisModel = axisProvider.getAxis?.(axisPlace) as IAxisModel,
+    axisModel = axisProvider.getAxis(axisPlace),
     isNumeric = isNumericAxisModel(axisModel),
     isCategorical = isCategoricalAxisModel(axisModel),
     multiScaleChangeCount = layout.getAxisMultiScale(axisModel?.place ?? 'bottom')?.changeCount ?? 0,
@@ -144,7 +144,7 @@ export const useSubAxis = ({
       dI.indexOfCategory = -1 // so dragInfo won't influence category placement
       stopAnimation() // disable animation for final placement
       renderSubAxis()
-      displayModel.applyModelChange(() => {},
+      displayModel?.applyModelChange(() => {},
         { undoStringKey: "DG.Undo.graph.swapCategories",
           redoStringKey: "DG.Redo.graph.swapCategories",
           log: logMessageWithReplacement(
@@ -212,9 +212,10 @@ export const useSubAxis = ({
   useEffect(() => {
     let helper: Maybe<AxisHelper>
     let shouldRenderSubAxis = true
-    const helperProps =
-      {displayModel, subAxisIndex, subAxisElt, axisModel, layout, isAnimating}
     if (axisModel) {
+      const helperProps =
+        {displayModel, subAxisIndex, subAxisElt, axisModel, layout, isAnimating}
+
       switch (axisModel.type) {
         case 'empty':
           helper = new EmptyAxisHelper(helperProps)
@@ -235,10 +236,10 @@ export const useSubAxis = ({
           subAxisSelectionRef.current = subAxisElt ? select(subAxisElt) : undefined
           helper = new DateAxisHelper({ ...helperProps, showScatterPlotGridLines, subAxisSelectionRef })
       }
-    }
-    if (helper) {
-      setAxisHelper(axisModel, subAxisIndex, helper)
-      shouldRenderSubAxis && renderSubAxis()
+      if (helper) {
+        setAxisHelper(axisModel, subAxisIndex, helper)
+        shouldRenderSubAxis && renderSubAxis()
+      }
     }
   }, [axisModel, centerCategoryLabels, displayModel, isAnimating, layout, renderSubAxis,
             showScatterPlotGridLines, subAxisElt, subAxisIndex])

@@ -96,5 +96,20 @@ describe("useAxis", () => {
     expect(axisElt.querySelector(".axis")).toBeDefined()
     expect(axisElt.querySelector(".tick")).toBeDefined()
   })
+
+  it("works without a DataDisplayModel", () => {
+    renderHook(() => useAxis(useAxisOptions), {
+      wrapper: ({ children }: { children: React.ReactNode }) => (
+        <AxisProviderContext.Provider value={provider}>
+          <AxisLayoutContext.Provider value={layout}>
+            {children}
+          </AxisLayoutContext.Provider>
+        </AxisProviderContext.Provider>
+      )
+    })
+    expect(axisElt.querySelector(".axis")).toBeDefined()
+    expect(axisElt.querySelector(".tick")).toBeDefined()
+  })
+
 })
 /* eslint-enable testing-library/no-node-access */
