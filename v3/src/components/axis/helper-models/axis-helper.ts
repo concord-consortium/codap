@@ -5,9 +5,11 @@ import { IAxisModel } from "../models/axis-model"
 import { IDataDisplayContentModel } from "../../data-display/models/data-display-content-model"
 import { IAxisLayout } from "../models/axis-layout-context"
 import { MultiScale } from "../models/multi-scale"
+import { IAxisProvider } from "../hooks/use-axis-provider-context"
 
 export interface IAxisHelperArgs {
   displayModel?: IDataDisplayContentModel
+  axisProvider: IAxisProvider
   subAxisIndex: number
   subAxisElt: SVGGElement | null
   axisModel: IAxisModel
@@ -17,6 +19,7 @@ export interface IAxisHelperArgs {
 
 export class AxisHelper {
   displayModel?: IDataDisplayContentModel
+  axisProvider: IAxisProvider
   subAxisIndex: number
   subAxisElt: SVGGElement | null
   axisModel: IAxisModel
@@ -26,6 +29,7 @@ export class AxisHelper {
 
   constructor(props: IAxisHelperArgs) {
     this.displayModel = props.displayModel
+    this.axisProvider = props.axisProvider
     this.subAxisIndex = props.subAxisIndex
     this.subAxisElt = props.subAxisElt
     this.axisModel = props.axisModel

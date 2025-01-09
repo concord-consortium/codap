@@ -19,6 +19,12 @@ const TestAxisProvider = types.model("TestAxisProvider", {
   },
   getNumericAxis() {
     return self.axis
+  },
+  hasDraggableNumericAxis(axisModel: IAxisModel) {
+    return isBaseNumericAxisModel(axisModel)
+  },
+  nonDraggableAxisTicks(formatter: (value: number) => string) {
+    return {tickValues: [], tickLabels: []}
   }
 }))
 interface ITestAxisProvider extends Instance<typeof TestAxisProvider> {}
@@ -33,16 +39,7 @@ describe("useAxis", () => {
 
   const mockDataDisplayModel = {
     type: "mock-model",
-    // required by useDataDisplayAnimation
-    isAnimating: () => false,
-    startAnimation: () => undefined,
-    stopAnimation: () => undefined,
-    // required by AxisProviderContext
-    getAxis: () => undefined,
-    getNumericAxis: () => undefined,
-    hasDraggableNumericAxis: (model: IAxisModel) => isBaseNumericAxisModel(model),
-    nonDraggableAxisTicks: (formatter: (value: number) => string) => ({tickValues: [], tickLabels: []})
-  } as unknown as IDataDisplayContentModel
+  } as IDataDisplayContentModel
 
   const wrapper = ({ children }: { children: React.ReactNode }) => (
     <DataDisplayModelContext.Provider value={mockDataDisplayModel}>

@@ -1,6 +1,6 @@
 import { format, ScaleLinear, select } from "d3"
 import { between } from "../../../utilities/math-utils"
-import { isBaseNumericAxisModel, isNumericAxisModel } from "../models/axis-model"
+import { isNumericAxisModel } from "../models/axis-model"
 import { transitionDuration } from "../../data-display/data-display-types"
 import { computeBestNumberOfTicks } from "../axis-utils"
 import { AxisScaleType, otherPlace } from "../axis-types"
@@ -49,9 +49,7 @@ export class NumericAxisHelper extends AxisHelper {
     subAxisSelection.selectAll('*').remove()
     this.renderAxisLine()
 
-    const hasDraggableNumericAxis = this.displayModel
-      ? this.displayModel.hasDraggableNumericAxis(this.axisModel)
-      : isBaseNumericAxisModel(this.axisModel)
+    const hasDraggableNumericAxis = this.axisProvider.hasDraggableNumericAxis(this.axisModel)
 
     const axisScale = this.axis(numericScale).tickSizeOuter(0).tickFormat(format('.9'))
     const duration = this.isAnimating() ? transitionDuration : 0
@@ -59,7 +57,7 @@ export class NumericAxisHelper extends AxisHelper {
       axisScale.tickValues(numericScale.ticks(computeBestNumberOfTicks(numericScale)))
     } else if (!hasDraggableNumericAxis) {
       const formatter = (value: number) => this.multiScale?.formatValueForScale(value) ?? ""
-      const {tickValues, tickLabels} = this.displayModel?.nonDraggableAxisTicks(formatter) ||
+      const {tickValues, tickLabels} = this.axisProvider.nonDraggableAxisTicks(formatter) ||
         {tickValues: [], tickLabels: []}
       axisScale.tickValues(tickValues)
       axisScale.tickFormat((d, i) => tickLabels[i])

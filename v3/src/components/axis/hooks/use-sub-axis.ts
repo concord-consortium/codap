@@ -19,7 +19,7 @@ import { computeNiceNumericBounds, setNiceDomain } from "../../graph/utilities/g
 import { DragInfo } from "../axis-utils"
 import { useAxisProviderContext } from "./use-axis-provider-context"
 import { useDataDisplayModelContextMaybe } from "../../data-display/hooks/use-data-display-model"
-import { AxisHelper, EmptyAxisHelper } from "../helper-models/axis-helper"
+import { AxisHelper, EmptyAxisHelper, IAxisHelperArgs } from "../helper-models/axis-helper"
 import { NumericAxisHelper } from "../helper-models/numeric-axis-helper"
 import { CatObject, CategoricalAxisHelper } from "../helper-models/categorical-axis-helper"
 import { DateAxisHelper } from "../helper-models/date-axis-helper"
@@ -213,8 +213,8 @@ export const useSubAxis = ({
     let helper: Maybe<AxisHelper>
     let shouldRenderSubAxis = true
     if (axisModel) {
-      const helperProps =
-        {displayModel, subAxisIndex, subAxisElt, axisModel, layout, isAnimating}
+      const helperProps: IAxisHelperArgs =
+        {displayModel, axisProvider, subAxisIndex, subAxisElt, axisModel, layout, isAnimating}
 
       switch (axisModel.type) {
         case 'empty':
@@ -241,7 +241,7 @@ export const useSubAxis = ({
         shouldRenderSubAxis && renderSubAxis()
       }
     }
-  }, [axisModel, centerCategoryLabels, displayModel, isAnimating, layout, renderSubAxis,
+  }, [axisModel, axisProvider, centerCategoryLabels, displayModel, isAnimating, layout, renderSubAxis,
             showScatterPlotGridLines, subAxisElt, subAxisIndex])
 
   // update d3 scale and axis when scale type changes

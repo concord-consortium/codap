@@ -4,6 +4,7 @@ import { AxisHelper, IAxisHelperArgs } from "./axis-helper"
 import { IAxisModel } from "../models/axis-model"
 import { IDataDisplayContentModel } from "../../data-display/models/data-display-content-model"
 import { IAxisLayout } from "../models/axis-layout-context"
+import { IAxisProvider } from "../hooks/use-axis-provider-context"
 
 jest.mock("d3", () => ({
   select: jest.fn().mockReturnValue({
@@ -25,6 +26,7 @@ describe("AxisHelper", () => {
       displayModel: {
         dataConfiguration: {}
       } as IDataDisplayContentModel,
+      axisProvider: {} as IAxisProvider,
       subAxisIndex: 0,
       subAxisElt: document.createElementNS("http://www.w3.org/2000/svg", "g"),
       axisModel: { place: "left" } as IAxisModel,
