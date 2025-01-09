@@ -46,32 +46,6 @@ context("Graph UI", () => {
     cy.wait(2500)
   })
   describe("graph view", () => {
-    it.skip("should highlight a selected graph point", () => {
-      // This test is the outcome of a SPIKE to explore testing graph interactions.
-      // It partially validates interactions but requires further PIXIJS-level support.
-      // https://github.com/concord-consortium/codap/pull/1637
-
-      // Select the target table cell
-      table.getGridCell(2, 2).should("contain", "African Elephant").click({ force: true })
-
-      // Verify the graph's component title matches the collection name
-      c.getComponentTitle("graph").should("contain", collectionName)
-
-      // Re-click the table cell to ensure interaction consistency
-      table.getGridCell(2, 2).click({ force: true })
-
-      // Future goal: Validate the highlighted graph point
-      // ChatGPT suggests this approach could work if PIXIJS exposes DOM elements
-      // or provides API/event hooks that allow direct verification of point states.
-      // cy.get('[data-testid="graph"] canvas')
-      //   .should('be.visible') // Ensure the canvas is rendered
-      // cy.get('[data-testid="graph"]')
-      //   .find('svg .below-points-group circle') // Intended to locate graph points
-      //   .then((elements) => {
-      // Debugging information (e.g. to find out point color or position of points)
-      //     cy.log('Highlighted point details:', elements)
-      // })
-    })
     it("updates graph title", () => {
       c.getComponentTitle("graph").should("have.text", collectionName)
       c.changeComponentTitle("graph", newCollectionName)
@@ -86,7 +60,7 @@ context("Graph UI", () => {
       toolbar.getRedoTool().click({force: true})
       c.getComponentTitle("graph").should("have.text", newCollectionName)
     })
-    it("tests creating graphs with undo/redo", () => {
+    it("tests creating multiple graphs with undo/redo", () => {
       // Function to count CODAP graphs and return the count
       const countCodapGraphs = () => {
         return cy.get('.codap-graph').its('length')
@@ -175,6 +149,8 @@ context("Graph UI", () => {
     })
   })
   describe("graph inspector panel", () => {
+    // This test is broken because of PT-#188601882
+    // Skipping for now
     it.skip("change points in table and check for autoscale", () => {
       // create a graph with Lifespan (x-axis) and Height (y-axis)
       c.getComponentTitle("graph").should("have.text", collectionName)
@@ -217,9 +193,8 @@ context("Graph UI", () => {
       ah.openAxisAttributeMenu("bottom")
       ah.selectMenuAttribute("Sleep", "bottom") // Sleep => x-axis
       cy.wait(500)
-      // TODO: Add more thorough checks to make sure the cases are actually hidden and shown once Cypress is
-      // configured to interact with the PixiJS canvas. For now, we just check that the buttons are disabled
-      // and enabled as expected.
+
+      graph.getGraphTile()
       graph.getHideShowButton().click()
       cy.get("[data-testid=hide-selected-cases]").should("be.disabled")
       cy.get("[data-testid=hide-unselected-cases]").should("not.be.disabled")
@@ -566,6 +541,7 @@ context("Graph UI", () => {
       cy.get("[data-testid=graph-bin-alignment-setting]").find("input").should("exist").should("have.value", "2")
       // focus on the plot area
       cy.get("[data-testid=bin-ticks-graph-1]").click()
+
       cy.window().then((win: Window) => {
         cy.get("[data-testid=bin-ticks-graph-1]").find("path.draggable-bin-boundary-cover").eq(2)
           .trigger("mousedown", { which: 1, force: true, view: win })

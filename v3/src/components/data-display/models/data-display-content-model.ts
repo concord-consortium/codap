@@ -5,26 +5,30 @@
 import {comparer, reaction} from "mobx"
 import {addDisposer, Instance, types} from "mobx-state-tree"
 import { format } from "d3"
-import {TileContentModel} from "../../../models/tiles/tile-content"
 import {IDataSet} from "../../../models/data/data-set"
 import {ISharedCaseMetadata} from "../../../models/shared/shared-case-metadata"
 import {ISharedDataSet} from "../../../models/shared/shared-data-set"
 import {
   getAllTileCaseMetadata, getAllTileDataSets, getSharedDataSetFromDataSetId
 } from "../../../models/shared/shared-data-utils"
-import {DataDisplayLayerModelUnion} from "./data-display-layer-union"
-import {DisplayItemDescriptionModel} from "./display-item-description-model"
-import {GraphPlace} from "../../axis-graph-shared"
-import { IDataConfigurationModel } from "./data-configuration-model"
+import {TileContentModel} from "../../../models/tiles/tile-content"
+import { getTileContentInfo } from "../../../models/tiles/tile-content-info"
 import {defaultBackgroundColor} from "../../../utilities/color-utils"
+import { typedId } from "../../../utilities/js-utils"
+import {GraphPlace} from "../../axis-graph-shared"
+import { IAxisModel, isBaseNumericAxisModel } from "../../axis/models/axis-model"
 import { MarqueeMode, PointDisplayTypes } from "../data-display-types"
 import { IGetTipTextProps } from "../data-tip-types"
-import { IAxisModel, isBaseNumericAxisModel } from "../../axis/models/axis-model"
+import { IDataConfigurationModel } from "./data-configuration-model"
+import {DataDisplayLayerModelUnion} from "./data-display-layer-union"
+import {DisplayItemDescriptionModel} from "./display-item-description-model"
 import { IBaseDataDisplayModel } from "./base-data-display-content-model"
 
 export const DataDisplayContentModel = TileContentModel
   .named("DataDisplayContentModel")
   .props({
+    // expected to be overridden by derived models
+    id: types.optional(types.string, () => typedId("DDCM")),
     layers: types.array(DataDisplayLayerModelUnion),
     pointDescription: types.optional(DisplayItemDescriptionModel, () => DisplayItemDescriptionModel.create()),
     pointDisplayType: types.optional(types.enumeration([...PointDisplayTypes]), "points"),
@@ -55,6 +59,9 @@ export const DataDisplayContentModel = TileContentModel
     get datasetsArray(): IDataSet[] {
       // derived models should override
       return []
+    },
+    get formulaAdapters() {
+      return getTileContentInfo(self.type)?.getFormulaAdapters?.(self) ?? []
     },
     caseTipText(attributeIDs: string[], caseID: string, dataset?: IDataSet) {
       const float = format('.3~f')

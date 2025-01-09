@@ -1,20 +1,25 @@
+import { IAnyStateTreeNode } from "mobx-state-tree"
 import { SetRequired } from "type-fest"
+import GraphIcon from "../../assets/icons/icon-graph.svg"
 import { registerComponentHandler } from "../../data-interactive/handlers/component-handler"
 import { registerTileComponentInfo } from "../../models/tiles/tile-component-info"
 import { ITileLikeModel, registerTileContentInfo } from "../../models/tiles/tile-content-info"
-import { graphComponentHandler } from "./graph-component-handler"
-import { kGraphIdPrefix, kGraphTileClass, kGraphTileType, kV2GraphType } from "./graph-defs"
 import { SharedDataSet } from "../../models/shared/shared-data-set"
 import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-data-utils"
+import { registerV2TileImporter } from "../../v2/codap-v2-tile-importers"
 import { ComponentTitleBar } from "../component-title-bar"
+import { PlottedFunctionFormulaAdapter } from "./adornments/plotted-function/plotted-function-formula-adapter"
+import {
+  PlottedValueFormulaAdapter
+} from "./adornments/univariate-measures/plotted-value/plotted-value-formula-adapter"
+import { GraphComponent } from "./components/graph-component"
+import { GraphInspector } from "./components/graph-inspector"
+import { graphComponentHandler } from "./graph-component-handler"
+import { kGraphIdPrefix, kGraphTileClass, kGraphTileType, kV2GraphType } from "./graph-defs"
 import { GraphContentModel, IGraphContentModelSnapshot, isGraphContentModel } from "./models/graph-content-model"
 import { kGraphDataConfigurationType } from "./models/graph-data-configuration-model"
 import { GraphFilterFormulaAdapter } from "./models/graph-filter-formula-adapter"
 import { kGraphPointLayerType } from "./models/graph-point-layer-model"
-import { GraphComponent } from "./components/graph-component"
-import { GraphInspector } from "./components/graph-inspector"
-import GraphIcon from '../../assets/icons/icon-graph.svg'
-import { registerV2TileImporter } from "../../v2/codap-v2-tile-importers"
 import { v2GraphImporter } from "./v2-graph-importer"
 
 GraphFilterFormulaAdapter.register()
@@ -45,7 +50,12 @@ registerTileContentInfo({
   getTitle: (tile: ITileLikeModel) => {
     const data = isGraphContentModel(tile?.content) ? tile.content.dataset : undefined
     return tile.title || data?.title || ""
-  }
+  },
+  getFormulaAdapters: (node: IAnyStateTreeNode) => [
+    GraphFilterFormulaAdapter.get(node),
+    PlottedFunctionFormulaAdapter.get(node),
+    PlottedValueFormulaAdapter.get(node)
+  ]
 })
 
 registerTileComponentInfo({

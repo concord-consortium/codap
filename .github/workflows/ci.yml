@@ -5,6 +5,7 @@ on:
     paths-ignore: # don't run this workflow if it only contains v3 changes
       - 'v3/**'   # https://docs.github.com/en/actions/using-workflows/triggering-a-workflow#example-excluding-paths
       - '.github/workflows/v3.yml'
+      - '.github/workflows/graph-pixi-tests.yml'
       - '.github/workflows/build-num-increment.yml'
       - '.github/workflows/run-regression-label.yml'
       - '.github/workflows/v3-regression.yml'

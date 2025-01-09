@@ -2,10 +2,13 @@ import escapeStringRegexp from "escape-string-regexp"
 import { MathNode } from "mathjs"
 import { valueToString } from "../../../utilities/data-utils"
 import { t } from "../../../utilities/translation/translate"
-import { CurrentScope, FValue, LookupStringConstantArg } from "../formula-types"
+import { CurrentScope, DisplayNameMap, FValue, ILookupDependency, LookupStringConstantArg } from "../formula-types"
 import { isConstantStringNode } from "../utils/mathjs-utils"
+import { rmCanonicalPrefix } from "../utils/name-mapping-utils"
 import { unescapeBacktickString } from "../utils/string-utils"
 import { evaluateNode, getRootScope } from "./function-utils"
+
+type TWordListMatchesArgs = [MathNode, LookupStringConstantArg, LookupStringConstantArg, Maybe<LookupStringConstantArg>]
 
 export const stringFunctions = {
   // beginsWith(text, prefix) Returns true if text begins with prefix, otherwise false.
@@ -237,6 +240,30 @@ export const stringFunctions = {
   // ends with "/" it is treated as a regular expression and searched for with case sensitivity.
   wordListMatches: {
     numOfRequiredArguments: 3,
+    getDependency: (args: MathNode[]): ILookupDependency => {
+      const [_textRefArg, dataSetNameArg, wordListAttrNameArg, ratingsAttrNameArg] = args as TWordListMatchesArgs
+      return {
+        type: "lookup",
+        dataSetId: rmCanonicalPrefix(dataSetNameArg?.value),
+        attrId: rmCanonicalPrefix(wordListAttrNameArg?.value),
+        otherAttrId: rmCanonicalPrefix(ratingsAttrNameArg?.value)
+      }
+    },
+    canonicalize: (args: MathNode[], displayNameMap: DisplayNameMap) => {
+      const [_textRefArg, dataSetNameArg, wordListAttrNameArg, ratingsAttrNameArg] = args as TWordListMatchesArgs
+      const dataSetName = dataSetNameArg?.value || ""
+      if (dataSetNameArg) {
+        dataSetNameArg.value = displayNameMap.dataSet[dataSetName]?.id || dataSetName
+      }
+      const wordListAttrName = wordListAttrNameArg?.value || ""
+      if (wordListAttrNameArg) {
+        wordListAttrNameArg.value = displayNameMap.dataSet[dataSetName]?.attribute[wordListAttrName] || wordListAttrName
+      }
+      const ratingsAttrName = ratingsAttrNameArg?.value || ""
+      if (ratingsAttrNameArg) {
+        ratingsAttrNameArg.value = displayNameMap.dataSet[dataSetName]?.attribute[ratingsAttrName] || ratingsAttrName
+      }
+    },
     evaluateRaw: (args: MathNode[], _mathjs: any, currentScope: CurrentScope) => {
       const scope = getRootScope(currentScope)
       const functionName = "wordListMatches"
@@ -249,27 +276,23 @@ export const stringFunctions = {
           throw new Error(t("V3.formula.error.stringConstantArg", { vars: [ functionName, i + 1 ] }))
         }
       })
-      const [textRefArg, dataSetTitleArg, wordAttributeNameArg, ratingAttributeNameArg] =
-        args as [MathNode, LookupStringConstantArg, LookupStringConstantArg, LookupStringConstantArg]
+      const [textRefArg] = args as TWordListMatchesArgs
+      const { dataSetId, attrId, otherAttrId } = stringFunctions.wordListMatches.getDependency(args)
       const text = String(evaluateNode(textRefArg, scope))
-      const dataSetTitle = dataSetTitleArg?.value || ""
-      const dataSet = scope.getDataSetByTitle(dataSetTitle)
+      const dataSet = scope.getDataSet(dataSetId)
       if (!dataSet) {
-        throw new Error(t("DG.Formula.LookupDataSetError.description", { vars: [ dataSetTitle ] }))
+        throw new Error(t("DG.Formula.LookupDataSetError.description", { vars: [ dataSetId ] }))
       }
 
-      const wordAttributeName = wordAttributeNameArg?.value
-      const wordAttribute = wordAttributeName ? dataSet.getAttributeByName(wordAttributeName) : undefined
+      const wordAttribute = dataSet.attrFromID(attrId)
       if (!wordAttribute) {
-        throw new Error(t("DG.Formula.LookupAttrError.description",
-          { vars: [ wordAttributeName, dataSet.title || "" ] }))
+        throw new Error(t("DG.Formula.LookupAttrError.description", { vars: [ attrId, dataSet.title || "" ] }))
       }
 
-      const ratingAttributeName = ratingAttributeNameArg?.value
-      const ratingAttribute = ratingAttributeName ? dataSet.getAttributeByName(ratingAttributeName) : undefined
+      const ratingsAttribute = otherAttrId ? dataSet.attrFromID(otherAttrId) : undefined
 
       const wordRatingMap: Record<string, number> = {}
-      wordAttribute.strValues.forEach((word, index) => wordRatingMap[word] = ratingAttribute?.numValue(index) ?? 1)
+      wordAttribute.strValues.forEach((word, index) => wordRatingMap[word] = ratingsAttribute?.numValue(index) ?? 1)
 
       let result = 0
       wordAttribute.strValues.forEach(word => {

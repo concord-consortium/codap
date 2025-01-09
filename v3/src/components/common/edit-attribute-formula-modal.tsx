@@ -15,10 +15,13 @@ export const EditAttributeFormulaModal = observer(function EditAttributeFormulaM
   const attribute = dataSet?.attrFromID(attributeId)
   const value = attribute?.formula?.display
 
-  const applyFormula = (formula: string) => {
+  const applyFormula = (formula: string, attrName?: string) => {
     if (attribute) {
       dataSet?.applyModelChange(() => {
         attribute.setDisplayExpression(formula)
+        if (attrName && attrName !== attribute.name) {
+          dataSet.setAttributeName(attributeId, attrName)
+        }
       }, {
         // TODO Should also broadcast notify component edit formula notification
         notify: [

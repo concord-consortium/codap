@@ -12,6 +12,8 @@ const getFakeAdapter = (formula: IFormula, dataSet: IDataSet) => {
   const activeFormulas = observable.box([formula])
   return {
     type: "fakeAdapter",
+    addContentModel: jest.fn(),
+    removeContentModel: jest.fn(),
     getActiveFormulas: jest.fn(() => {
       return activeFormulas.get().map(f => ({ formula: f, extraMetadata: { dataSetId: dataSet.id } }))
     }),

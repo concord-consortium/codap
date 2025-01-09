@@ -28,13 +28,20 @@ $edit-formula-modal-min-width-px: #{$edit-formula-modal-min-width}px;
       flex-grow: 1;
       align-items: flex-start;
 
-      .title-label {
-        width: 140px;
+      .attr-name-form-label {
+        &.disabled {
+          opacity: 0.35;
+        }
       }
-      input {
-        max-width: 270px;
+
+      .title-label {
+        width: 90px;
+      }
+      .attr-name-input {
+        width: 270px;
         margin-right: 3px;
-        margin-left: 0
+        margin-left: 0;
+        padding-left: 5px;
       }
       .formula-editor-container {
         display: flex;

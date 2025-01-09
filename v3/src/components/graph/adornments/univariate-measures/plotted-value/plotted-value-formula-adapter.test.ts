@@ -1,6 +1,7 @@
 import { IDataSet } from "../../../../../models/data/data-set"
 import { createDataSet } from "../../../../../models/data/data-set-conversion"
 import { localAttrIdToCanonical } from "../../../../../models/formula/utils/name-mapping-utils"
+import { IGraphContentModel } from "../../../models/graph-content-model"
 import { GraphDataConfigurationModel } from "../../../models/graph-data-configuration-model"
 import { PlottedValueAdornmentModel } from "./plotted-value-adornment-model"
 import { PlottedValueFormulaAdapter } from "./plotted-value-formula-adapter"
@@ -33,14 +34,15 @@ const getTestEnv = () => {
   dataConfig.attributeID = (role: string) => mockData.id[role]
   dataConfig.attributeType = (role: string) => mockData.type[role]
   ;(dataConfig as any).categoryArrayForAttrRole = (role: string) => mockData.categoryArrayForAttrRole[role]
-  const graphContentModel = {
+  const graphContentModel: Partial<IGraphContentModel> = {
     id: "fake-graph-content-model-id",
+    type: "Graph",
     adornments: [adornment],
     dataset: dataSet,
     dataConfiguration: dataConfig,
     getUpdateCategoriesOptions: () => ({
       dataConfig
-    }),
+    })
   }
   const formula = adornment.formula
   const dataSets = new Map<string, IDataSet>([[dataSet.id, dataSet]])
@@ -63,7 +65,7 @@ const getTestEnv = () => {
     getFormulaContext: jest.fn(() => context),
   }
   const adapter = new PlottedValueFormulaAdapter(api)
-  adapter.addGraphContentModel(graphContentModel as any)
+  adapter.addContentModel(graphContentModel as any)
   return { adapter, adornment, graphContentModel, api, dataSet, attribute, formula, context, extraMetadata }
 }
 

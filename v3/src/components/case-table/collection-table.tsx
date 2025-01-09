@@ -4,8 +4,8 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import DataGrid, { CellKeyboardEvent, DataGridHandle } from "react-data-grid"
 import { kCollectionTableBodyDropZoneBaseId } from "./case-table-drag-drop"
 import {
-  kDefaultRowHeight, kInputRowKey, OnScrollClosestRowIntoViewFn, OnScrollRowRangeIntoViewFn, OnTableScrollFn,
-  TCellKeyDownArgs, TRenderers, TRow
+  kDefaultRowHeight, kIndexColumnWidth, kInputRowKey, OnScrollClosestRowIntoViewFn,
+  OnScrollRowRangeIntoViewFn, OnTableScrollFn, TCellKeyDownArgs, TRenderers, TRow
 } from "./case-table-types"
 import { CollectionTableSpacer } from "./collection-table-spacer"
 import { CollectionTitle } from "../case-tile-common/collection-title"
@@ -33,6 +33,7 @@ import { uniqueName } from "../../utilities/js-utils"
 import { mstReaction } from "../../utilities/mst-reaction"
 import { preventCollectionReorg } from "../../utilities/plugin-utils"
 import { t } from "../../utilities/translation/translate"
+import { RowDragOverlay } from "./row-drag-overlay"
 import { useCaseTableModel } from "./use-case-table-model"
 import { useCollectionTableModel } from "./use-collection-table-model"
 import { useWhiteSpaceClick } from "./use-white-space-click"
@@ -46,6 +47,24 @@ const kScrollMargin = 35
 
 // custom renderers for use with RDG
 const renderers: TRenderers = { renderRow: customRenderRow }
+
+// Helper function to get the row id from a mouse event
+function getCaseIdFromEvent(event: React.PointerEvent) {
+  const target = event.target as HTMLElement
+  const closestContentCell = target.closest<HTMLDivElement>(".codap-index-cell") ??
+                              target.closest<HTMLDivElement>(".codap-data-cell")
+  const classesIterator = closestContentCell?.classList.values()
+  let caseId = ""
+  if (classesIterator) {
+    for (const value of classesIterator) {
+      const rowIdPrefix = "rowId-"
+      if (value.startsWith(rowIdPrefix)) {
+        caseId = value.substring(rowIdPrefix.length)
+      }
+    }
+  }
+  return caseId
+}
 
 interface IProps {
   onMount: (collectionId: string) => void
@@ -76,6 +95,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
   const initialPointerDownPosition = useRef({ x: 0, y: 0 })
   const kPointerMovementThreshold = 3
   const rowHeight = collectionTableModel?.rowHeight ?? kDefaultRowHeight
+  const {active} = useTileDroppable(`${kCollectionTableBodyDropZoneBaseId}-${collectionId}`)
 
   useEffect(function setGridElement() {
     const element = gridRef.current?.element
@@ -337,13 +357,11 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
   }, [])
 
   // Helper function to get the row index from a mouse event
-  const getRowIndexFromEvent = useCallback((event: React.PointerEvent) => {
-    const target = event.target as HTMLElement
-    const closestDataCell = target.closest('.codap-data-cell')
-    const caseId = closestDataCell?.className.split(" ").find(c => c.startsWith("rowId-"))?.split("-")[1]
+  const getRowIndexFromEvent = (event: React.PointerEvent) => {
+    const caseId = getCaseIdFromEvent(event)
     const rowIdx = caseId ? collectionCaseIndexFromId(caseId, data, collectionId) : null
     return rowIdx
-  }, [collectionId, data])
+  }
 
    const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
     initialPointerDownPosition.current = { x: event.clientX, y: event.clientY }
@@ -385,6 +403,9 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
 
   if (!data || !rows || !visibleAttributes.length) return null
 
+  const dragId = String(active?.id)
+  const showDragOverlay = dragId.includes(kInputRowKey) && dragId.includes(collectionId)
+
   return (
     <div className={`collection-table collection-${collectionId}`}>
       <CollectionTableSpacer selectedFillColor={selectedFillColor}
@@ -399,6 +420,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
           columnWidths={columnWidths} onColumnResize={handleColumnResize} onCellClick={handleCellClick}
           onCellKeyDown={handleCellKeyDown} onRowsChange={handleRowsChange} onScroll={handleGridScroll}
           onSelectedCellChange={handleSelectedCellChange}/>
+        {showDragOverlay && <RowDragOverlay rows={rows} width={kIndexColumnWidth}/>}
       </div>
     </div>
   )

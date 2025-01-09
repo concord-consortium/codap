@@ -7,7 +7,8 @@ import {
 } from "../../../models/formula/formula-manager-types"
 import { FormulaMathJsScope } from "../../../models/formula/formula-mathjs-scope"
 import { localAttrIdToCanonical } from "../../../models/formula/utils/name-mapping-utils"
-import type { IGraphContentModel } from "../models/graph-content-model"
+import { ITileContentModel } from "../../../models/tiles/tile-content"
+import { isGraphContentModel, type IGraphContentModel } from "../models/graph-content-model"
 import { IAdornmentModel } from "./adornment-models"
 
 type GraphCellKey = Record<string, string>
@@ -48,12 +49,14 @@ export class BaseGraphFormulaAdapter extends FormulaManagerAdapter implements IF
   }
 
   @action
-  addGraphContentModel(graphContentModel: IGraphContentModel) {
-    this.graphContentModels.set(graphContentModel.id, graphContentModel)
+  addContentModel(contentModel: ITileContentModel) {
+    if (isGraphContentModel(contentModel)) {
+      this.graphContentModels.set(contentModel.id, contentModel)
+    }
   }
 
   @action
-  removeGraphContentModel(graphContentModelId: string) {
+  removeContentModel(graphContentModelId: string) {
     this.graphContentModels.delete(graphContentModelId)
   }
 

@@ -1,7 +1,9 @@
-import { ITileMetadataModel, TileMetadataModel } from "./tile-metadata"
-import { TileContentModel, ITileContentSnapshotWithType, ITileContentModel } from "./tile-content"
+import { IAnyStateTreeNode } from "mobx-state-tree"
+import { FormulaManagerAdapter } from "../formula/formula-manager-types"
 import { AppConfigModelType } from "../stores/app-config-model"
+import { TileContentModel, ITileContentSnapshotWithType, ITileContentModel } from "./tile-content"
 import { ITileEnvironment } from "./tile-environment"
+import { ITileMetadataModel, TileMetadataModel } from "./tile-metadata"
 
 // avoids circular dependency on ITileModel
 export interface ITileLikeModel {
@@ -36,13 +38,14 @@ export interface ITileContentInfo {
   getTitle: (tile: ITileLikeModel) => string | undefined;
   getV2Type?: (content: ITileContentModel) => string;
   metadataClass?: typeof TileMetadataModel;
-  isSingleton?: boolean; // Only one instance of a tile is open per document (calculator and guide)
+  isSingleton?: boolean; // Only one instance of a tile is open per document (e.g. calculator and guide)
   hideOnClose?: boolean;
   addSidecarNotes?: boolean;
   defaultHeight?: number;
   exportNonDefaultHeight?: boolean;
   tileSnapshotPreProcessor?: TileModelSnapshotPreProcessor;
   contentSnapshotPostProcessor?: TileContentSnapshotPostProcessor;
+  getFormulaAdapters?: (node: IAnyStateTreeNode) => Array<Maybe<FormulaManagerAdapter>>;
 }
 
 const gTileContentInfoMap: Record<string, ITileContentInfo> = {}

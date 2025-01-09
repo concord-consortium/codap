@@ -4,7 +4,7 @@
  */
 import {cloneDeep} from "lodash"
 import {when} from "mobx"
-import {addDisposer, IAnyStateTreeNode, Instance, SnapshotIn, types} from "mobx-state-tree"
+import {addDisposer, Instance, SnapshotIn, types} from "mobx-state-tree"
 import { format } from "d3"
 import {IDataSet} from "../../../models/data/data-set"
 import {applyModelChange} from "../../../models/history/apply-model-change"
@@ -32,10 +32,6 @@ import {setNiceDomain} from "../utilities/graph-utils"
 import {GraphPointLayerModel, IGraphPointLayerModel, kGraphPointLayerType} from "./graph-point-layer-model"
 import {IAdornmentModel, IUpdateCategoriesOptions} from "../adornments/adornment-models"
 import {AdornmentsStore} from "../adornments/adornments-store"
-import { PlottedFunctionFormulaAdapter } from "../adornments/plotted-function/plotted-function-formula-adapter"
-import {
-  PlottedValueFormulaAdapter
-} from "../adornments/univariate-measures/plotted-value/plotted-value-formula-adapter"
 import {
   AxisModelUnion, EmptyAxisModel, IAxisModelUnion, isBaseNumericAxisModel, NumericAxisModel
 } from "../../axis/models/axis-model"
@@ -43,13 +39,6 @@ import { ICase } from "../../../models/data/data-set-types"
 import { isFiniteNumber } from "../../../utilities/math-utils"
 import { t } from "../../../utilities/translation/translate"
 import { CaseData } from "../../data-display/d3-types"
-import { GraphFilterFormulaAdapter } from "./graph-filter-formula-adapter"
-
-const getFormulaAdapters = (node?: IAnyStateTreeNode) => [
-  GraphFilterFormulaAdapter.get(node),
-  PlottedFunctionFormulaAdapter.get(node),
-  PlottedValueFormulaAdapter.get(node)
-]
 
 export interface GraphProperties {
   axes: Record<string, IAxisModelUnion>
@@ -70,7 +59,7 @@ export const NumberToggleModel = types
 export const GraphContentModel = DataDisplayContentModel
   .named("GraphContentModel")
   .props({
-    id: types.optional(types.identifier, () => typedId("GRCM")),
+    id: types.optional(types.string, () => typedId("GRCM")),
     type: types.optional(types.literal(kGraphTileType), kGraphTileType),
     adornmentsStore: types.optional(AdornmentsStore, () => AdornmentsStore.create()),
     // keys are AxisPlaces
@@ -268,8 +257,8 @@ export const GraphContentModel = DataDisplayContentModel
       when(
         () => getFormulaManager(self)?.areAdaptersInitialized ?? false,
         () => {
-          getFormulaAdapters(self).forEach(adapter => {
-            adapter?.addGraphContentModel(self as IGraphContentModel)
+          self.formulaAdapters.forEach(adapter => {
+            adapter?.addContentModel(self)
           })
         }
       )
@@ -284,8 +273,8 @@ export const GraphContentModel = DataDisplayContentModel
       }, {name: "GraphContentModel.afterAttachToDocument.updateAdornments"}, self.dataConfiguration))
     },
     beforeDestroy() {
-      getFormulaAdapters(self).forEach(adapter => {
-        adapter?.removeGraphContentModel(self.id)
+      self.formulaAdapters.forEach(adapter => {
+        adapter?.removeContentModel(self.id)
       })
     }
   }))

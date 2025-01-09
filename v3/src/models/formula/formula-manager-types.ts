@@ -1,6 +1,7 @@
 import { BoundaryManager } from "../boundaries/boundary-manager"
 import { IDataSet } from "../data/data-set"
 import { IGlobalValueManager } from "../global/global-value-manager"
+import { ITileContentModel } from "../tiles/tile-content"
 import { IFormula } from "./formula"
 import { CaseList } from "./formula-types"
 
@@ -43,6 +44,14 @@ export class FormulaManagerAdapter implements IFormulaManagerAdapter {
     this.api = api
   }
 
+  addContentModel(tileContent: ITileContentModel) {
+    // subclasses should override if they deal with content models
+  }
+
+  removeContentModel(IMapContentModelId: string) {
+    // subclasses should override if they deal with content models
+  }
+
   getActiveFormulas() {
     // subclasses should override
     return [] as Array<{ formula: IFormula, extraMetadata: any }>
@@ -72,6 +81,8 @@ export interface IFormulaManagerAdapter {
   // This method returns all the formulas supported by this adapter. It should exclusively return formulas that need
   // active tracking and recalculation whenever any of their dependencies change. The adapter might opt not to return
   // formulas that currently shouldn't be recalculated, such as when the formula's adornment is hidden.
+  addContentModel: (contentModel: ITileContentModel) => void
+  removeContentModel: (IMapContentModelId: string) => void
   getActiveFormulas: () => ({ formula: IFormula, extraMetadata: any })[]
   recalculateFormula: (formulaContext: IFormulaContext, extraMetadata: any, casesToRecalculateDesc?: CaseList) => void
   getFormulaError: (formulaContext: IFormulaContext, extraMetadata: any) => Maybe<string>
