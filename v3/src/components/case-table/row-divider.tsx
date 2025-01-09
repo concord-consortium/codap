@@ -1,42 +1,56 @@
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
-import React, { useEffect, useRef, useState } from "react"
+import React, { useRef } from "react"
 import { createPortal } from "react-dom"
 import { useCollectionContext } from "../../hooks/use-collection-context"
-import { kDefaultRowHeaderHeight, kDefaultRowHeight, kIndexColumnWidth, kSnapToLineHeight } from "./case-table-types"
+import { useTileDroppable } from "../../hooks/use-drag-drop"
+import { kRowDividerDropZoneBaseId } from "./case-table-drag-drop"
+import {
+  kDefaultRowHeaderHeight, kDefaultRowHeight, kInputRowKey, kSnapToLineHeight
+} from "./case-table-types"
 import { useCaseTableModel } from "./use-case-table-model"
 import { useCollectionTableModel } from "./use-collection-table-model"
 
-const kTableRowDividerHeight = 13
-const kTableDividerOffset = Math.floor(kTableRowDividerHeight / 2)
+const kTableRowDividerHeight = 9
+const kTableDividerOffset = Math.ceil(kTableRowDividerHeight / 2)
 interface IRowDividerProps {
   rowId: string
+  before?: boolean
 }
-export const RowDivider = observer(function RowDivider({ rowId }: IRowDividerProps) {
-  const collectionTableModel = useCollectionTableModel()
-  const collectionId = useCollectionContext()
-  const collectionTable = collectionTableModel?.element
+export const RowDivider = observer(function RowDivider({ rowId, before }: IRowDividerProps) {
   const caseTableModel = useCaseTableModel()
-  const rows = collectionTableModel?.rows
+  const collectionId = useCollectionContext()
+  const collectionTableModel = useCollectionTableModel(collectionId)
+  const collectionTableElt = collectionTableModel?.element
+  const caseRows = collectionTableModel?.rows
+  const _inputRowIndex = collectionTableModel?.inputRowIndex ?? -1
+  const inputRowIndex = _inputRowIndex >= 0 ? _inputRowIndex : caseRows?.length ?? -1
   const isResizing = useRef(false)
   const startY = useRef(0)
   const getRowHeight = () => collectionTableModel?.rowHeight ?? kDefaultRowHeight
   const initialHeight = useRef(getRowHeight())
-  const rowIdx = rows?.findIndex(row => row.__id__ === rowId)
-  const [rowElement, setRowElement] = useState<HTMLDivElement | null>(null)
-  const getRowBottom = () => {
-    if (rowIdx === 0) return getRowHeight()
-    else return (rowIdx && collectionTableModel?.getRowBottom(rowIdx)) ?? kDefaultRowHeight
+  // recalculate row indices with input row index
+  const allRows = caseRows && inputRowIndex >= 0
+                    ? [...caseRows.slice(0, inputRowIndex), { __id__: kInputRowKey }, ...caseRows.slice(inputRowIndex)]
+                    : caseRows
+  const rowIdx = allRows?.findIndex(row => row.__id__ === rowId)
+  const getDividerTopOffset = () => {
+    if (before) return collectionTableModel?.getRowTop(rowIdx ?? 0) ?? 0
+    return collectionTableModel?.getRowBottom(rowIdx ?? 0) ?? getRowHeight()
   }
 
+  const droppableId = `${kRowDividerDropZoneBaseId}:${collectionId}:${rowId}:${before ? "before" : "after"}`
+  const { active, isOver, setNodeRef: setRowDropRef } = useTileDroppable(droppableId, _active => {
+    if (rowIdx != null && inputRowIndex >= 0) {
+      const offset = before ? 0 : 1
+      collectionTableModel?.setInputRowIndex(rowIdx < inputRowIndex ? rowIdx + offset : rowIdx)
+    }
+    // disable drop target if there is no input row or we don't have a valid index
+  }, { disabled: rowIdx == null || inputRowIndex < 0 })
 
-  useEffect(() => {
-    (rowIdx != null && collectionTable) &&
-      setRowElement(collectionTable.querySelector(`[aria-rowindex="${rowIdx + 2}"]`) as HTMLDivElement)
-  }, [collectionTable, rowIdx])
-
-  // allow the user to drag the divider
+  // allow the user to drag the divider to resize the row
   const handleMouseDown = (e: React.MouseEvent) => {
+    if (before) return
     e.stopPropagation()
     isResizing.current = true
     startY.current = e.clientY
@@ -71,16 +85,16 @@ export const RowDivider = observer(function RowDivider({ rowId }: IRowDividerPro
     document.removeEventListener("mouseup", handleMouseUp)
   }
 
-  const className = clsx("codap-row-divider")
-  const top = getRowBottom() + kDefaultRowHeaderHeight - kTableDividerOffset
-  const width = kIndexColumnWidth
+  const className = clsx("codap-row-divider", { "over": isOver, "dragging": !!active, "no-row-resize": before })
+  const top = getDividerTopOffset() + kDefaultRowHeaderHeight - kTableDividerOffset
+
   return (
-    rowElement
+    collectionTableElt
       ? createPortal((
-            <div className={className} onMouseDown={handleMouseDown}
-                  data-testid={`row-divider-${rowIdx}`} style={{top, width}}
-            />
-          ), rowElement)
+            <div ref={setRowDropRef} className={className} onMouseDown={handleMouseDown}
+                  data-testid={`row-divider-${rowIdx}`} style={{top}}>
+            </div>
+          ), collectionTableElt)
       : null
   )
 })

@@ -8,7 +8,7 @@ import { useInstanceIdContext } from "./use-instance-id-context"
 import { useTileModelContext } from "./use-tile-model-context"
 
 // list of draggable types
-export const DragTypes = ["attribute", "tile"] as const
+export const DragTypes = ["attribute", "row", "tile"] as const
 type DragType = typeof DragTypes[number]
 
 export interface IDragData {
@@ -63,7 +63,7 @@ export const useTileDropOverlay = (baseId: string, dropProps?: UseDroppableArgum
 // Passes its dropProps argument to useDroppable and returns an object with the return value
 // of useDroppable plus the generated id.
 export const useTileDroppable = (
-  baseId: string, onDrop?: (active: Active) => void, dropProps?: UseDroppableArguments
+  baseId: string, onDrop?: (active: Active) => void, dropProps?: Omit<UseDroppableArguments, "id">
 ) => {
   const instanceId = useInstanceIdContext()
   const id = `${instanceId}-${baseId}-drop`
@@ -120,7 +120,6 @@ export const useContainerDroppable = (
   baseId: string, onDrop: (event: DragEndEvent) => void, dropProps?: UseDroppableArguments
 ) => {
   const id = `${baseId}-drop`
-
   useTileDropHandler(id, onDrop)
   return { id, ...useDroppable({ ...dropProps, id }) }
 }
