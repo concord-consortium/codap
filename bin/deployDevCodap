@@ -1,9 +1,9 @@
 #!/bin/bash
 #
-# Builds and deploys a development version of CODAP, nominally, to 
+# Builds and deploys a development version of CODAP, nominally, to
 # the user's public_html directory on the CODAP server. The program
 # expects a version name as an argument. If the user's directory,
-# if properly configured, then, it will be accessible thought the 
+# if properly configured, then, it will be accessible thought the
 # web at http://codap.concord.org/~[username]/[version name].
 # As a side effect, a zip file containing the static site is created.
 #
