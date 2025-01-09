@@ -23,6 +23,7 @@ import { kGraphPointLayerType } from "./models/graph-point-layer-model"
 import { v2GraphImporter } from "./v2-graph-importer"
 import { registerDataDisplayHandler } from "../../data-interactive/handlers/data-display-handler"
 import { graphDataDisplayHandler } from "./graph-data-display-handler"
+import { CollectionTableSpacer } from "../case-table/collection-table-spacer"
 
 GraphFilterFormulaAdapter.register()
 
@@ -51,7 +52,8 @@ registerTileContentInfo({
   },
   getTitle: (tile: ITileLikeModel) => {
     const data = isGraphContentModel(tile?.content) ? tile.content.dataset : undefined
-    return tile.title || data?.title || ""
+    const numCollections = data?.collections.length || 0
+    return tile.title || data?.collections[numCollections -1].title || ""
   },
   getFormulaAdapters: (node: IAnyStateTreeNode) => [
     GraphFilterFormulaAdapter.get(node),
