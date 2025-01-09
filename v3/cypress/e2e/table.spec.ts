@@ -994,23 +994,26 @@ context("case table ui", () => {
     })
     it("creates tables with new collection name", () => {
       table.createNewTableFromToolShelf()
-
+      c.getComponentTitleInput("table", 1).type("{enter}")
       c.getComponentTitle("table").should("contain", collectionName)
       c.getComponentTitle("table", 1).should("contain", newCollectionName)
 
       table.createNewTableFromToolShelf()
-      c.getComponentTitle("table", 2).should("contain", newCollectionName)
+      c.getComponentTitleInput("table", 2).type("{enter}")
+      c.getComponentTitle("table", 2).should("contain", `${newCollectionName} 2`)
     })
     it("creates tables with new collection names when existing ones are closed", () => {
       c.closeComponent("table")
       c.checkComponentDoesNotExist("table")
       table.createNewTableFromToolShelf()
+      c.getComponentTitleInput("table").type("{enter}")
       c.getComponentTitle("table").should("contain", newCollectionName)
 
       c.closeComponent("table")
       c.checkComponentDoesNotExist("table")
       table.createNewTableFromToolShelf()
-      c.getComponentTitle("table").should("contain", newCollectionName)
+      c.getComponentTitleInput("table").type("{enter}")
+      c.getComponentTitle("table").should("contain", `${newCollectionName} 2`)
     })
     it("closes and reopens existing case tables with undo and redo", () => {
       c.closeComponent("table")

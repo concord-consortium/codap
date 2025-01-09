@@ -49,6 +49,9 @@ export const ComponentElements = {
   getComponentTitle(component: string, index = 0) {
     return this.getComponentTile(component, index).find("[data-testid=title-text]")
   },
+  getComponentTitleInput(component: string, index = 0) {
+    return this.getComponentTile(component, index).find("[data-testid=title-text-input]")
+  },
   changeComponentTitle(component: string, title: string, index = 0) {
     this.getComponentTitle(component, index).click()
     cy.get("[data-testid=title-text-input]").type(`${title}{enter}`)

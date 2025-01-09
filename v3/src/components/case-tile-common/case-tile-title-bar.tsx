@@ -61,7 +61,7 @@ export const CaseTileTitleBar =
     const cardTableToggleRef = useRef(null)
     const documentContent = useDocumentContent()
     const preventTitleChange = preventDataContextReorg(data)
-    const isNewCaseTile = data?.title === (t("DG.AppController.createDataSet.name") || "New Dataset") &&
+    const isNewCaseTile = data?.title.includes(t("DG.AppController.createDataSet.name") || "New Dataset") &&
                             data.items.length === 0
 
     useOutsideClick({
