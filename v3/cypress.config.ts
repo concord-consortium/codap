@@ -22,12 +22,25 @@ export default defineConfig({
         // We've imported your old cypress plugins here.
         // You may want to clean this up later by importing these.
         setupNodeEvents(on, config) {// promisified fs module
-
             function getConfigurationByFile(file) {
                 const pathToConfigFile = path.resolve('.', 'cypress/config', `cypress.${file}.json`)
 
                 return fs.readJson(pathToConfigFile)
             }
+
+            // Tasks for checking, clearing downloaded files.
+            on("task", {
+                fileExists(filePath) {
+                    return fs.existsSync(filePath)
+                }
+            })
+            on("task", {
+                clearFolder(folderPath) {
+                    fs.rmdirSync(folderPath, { recursive: true });
+                    fs.mkdirSync(folderPath);
+                    return null;
+                }
+            })
 
             const env = config.env.testEnv || 'local'
 

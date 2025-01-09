@@ -21,6 +21,8 @@ import { kGraphDataConfigurationType } from "./models/graph-data-configuration-m
 import { GraphFilterFormulaAdapter } from "./models/graph-filter-formula-adapter"
 import { kGraphPointLayerType } from "./models/graph-point-layer-model"
 import { v2GraphImporter } from "./v2-graph-importer"
+import { registerDataDisplayHandler } from "../../data-interactive/handlers/data-display-handler"
+import { graphDataDisplayHandler } from "./graph-data-display-handler"
 
 GraphFilterFormulaAdapter.register()
 
@@ -79,3 +81,4 @@ registerTileComponentInfo({
 registerV2TileImporter("DG.GraphView", v2GraphImporter)
 
 registerComponentHandler(kV2GraphType, graphComponentHandler)
+registerDataDisplayHandler(kV2GraphType, graphDataDisplayHandler)

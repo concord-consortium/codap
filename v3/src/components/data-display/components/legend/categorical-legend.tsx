@@ -349,7 +349,7 @@ export const CategoricalLegend = observer(
     }, [setDesiredExtent, layerIndex])
 
     return (
-      <svg className='legend-categories' ref={keysElt} data-testid='legend-categories'></svg>
+      <g className='legend-categories' ref={keysElt} data-testid='legend-categories'></g>
     )
   })
 CategoricalLegend.displayName = "CategoricalLegend"

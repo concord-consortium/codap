@@ -1,8 +1,14 @@
 import React, { useState } from "react"
 import { MenuItem, MenuList, useToast } from "@chakra-ui/react"
 import { t } from "../../../utilities/translation/translate"
+import { useTileModelContext } from "../../../hooks/use-tile-model-context"
+import { isGraphContentModel } from "../models/graph-content-model"
+import { useCfmContext } from "../../../hooks/use-cfm-context"
 
 export const CameraMenuList = () => {
+  const tile = useTileModelContext().tile
+  const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
+  const cfm = useCfmContext()
   const [hasBackgroundImage, setHasBackgroundImage] = useState(false)
   const [imageLocked, setImageLocked] = useState(false)
   const toast = useToast()
@@ -40,8 +46,17 @@ export const CameraMenuList = () => {
     handleMenuItemClick("Copy Image clicked")
   }
 
-  const handleExportPNG = () => {
-    handleMenuItemClick("Export PNG Image clicked")
+  const handleExportPNG = async () => {
+    if (!graphModel?.renderState) return
+
+    await graphModel.renderState.updateSnapshot()
+
+    if (graphModel.renderState.dataUri) {
+      const imageString = graphModel.renderState.dataUri.replace("data:image/png;base64,", "")
+      cfm?.client.saveSecondaryFileAsDialog(imageString, "png", "image/png", () => null)
+    } else {
+      console.error("Error exporting PNG image.")
+    }
   }
 
   const handleExportSVG = () => {

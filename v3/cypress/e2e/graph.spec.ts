@@ -457,6 +457,26 @@ context("Graph UI", () => {
           cy.get('input[type="checkbox"]').should('be.checked')
         })
     })
+    it("leads to a file download when the 'Export PNG Image' button is clicked", () => {
+      const fileName = "Untitled Document.png"
+      const downloadsFolder = Cypress.config("downloadsFolder")
+      graph.getCameraButton().click()
+      cy.get("[data-testid=export-png-image]").should("be.visible")
+      cy.get("[data-testid=export-png-image]").click()
+      cy.get("[data-testid=export-png-image]").should("not.exist")
+      cy.get("[data-testid=modal-dialog]").should("be.visible")
+      cy.get("[data-testid=modal-dialog-title]").should("have.text", "Export File As ...")
+      cy.get("[data-testid=modal-dialog-workspace]").find("li").contains("Local File").click()
+      cy.get("[data-testid=modal-dialog-workspace]").find(".buttons a[download]").contains("Download")
+        .should("be.visible").click()
+      cy.get("[data-testid=modal-dialog]").should("not.exist")
+
+      cy.task("fileExists", `${downloadsFolder}/${fileName}`).then((exists) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+        expect(exists).to.be.true
+        cy.task("clearFolder", downloadsFolder)
+      })
+    })
   })
   describe("graph bin configuration", () => {
     it("disables Point Size control when display type is bars", () => {

@@ -44,5 +44,5 @@ export const ColorLegend = observer(function ColorLegend({layerIndex, setDesired
     return () => setDesiredExtent(layerIndex, 0)
   }, [setDesiredExtent, layerIndex])
 
-  return <svg className='legend-categories' data-testid='legend-categories' />
+  return <g className='legend-categories' data-testid='legend-categories' />
 })
