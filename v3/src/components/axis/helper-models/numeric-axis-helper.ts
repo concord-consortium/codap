@@ -49,13 +49,16 @@ export class NumericAxisHelper extends AxisHelper {
     subAxisSelection.selectAll('*').remove()
     this.renderAxisLine()
 
+    const hasDraggableNumericAxis = this.axisProvider.hasDraggableNumericAxis(this.axisModel)
+
     const axisScale = this.axis(numericScale).tickSizeOuter(0).tickFormat(format('.9'))
     const duration = this.isAnimating() ? transitionDuration : 0
-    if (!this.isVertical && this.displayModel.hasDraggableNumericAxis(this.axisModel)) {
+    if (!this.isVertical && hasDraggableNumericAxis) {
       axisScale.tickValues(numericScale.ticks(computeBestNumberOfTicks(numericScale)))
-    } else if (!this.displayModel.hasDraggableNumericAxis(this.axisModel)) {
+    } else if (!hasDraggableNumericAxis) {
       const formatter = (value: number) => this.multiScale?.formatValueForScale(value) ?? ""
-      const {tickValues, tickLabels} = this.displayModel.nonDraggableAxisTicks(formatter)
+      const {tickValues, tickLabels} = this.axisProvider.nonDraggableAxisTicks(formatter) ||
+        {tickValues: [], tickLabels: []}
       axisScale.tickValues(tickValues)
       axisScale.tickFormat((d, i) => tickLabels[i])
     }

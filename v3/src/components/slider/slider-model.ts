@@ -1,6 +1,8 @@
 import { reaction } from "mobx"
 import { addDisposer, Instance, SnapshotIn, types} from "mobx-state-tree"
-import {DateAxisModel, IBaseNumericAxisModel, NumericAxisModel} from "../axis/models/axis-model"
+import {
+  DateAxisModel, IAxisModel, IBaseNumericAxisModel, isBaseNumericAxisModel, NumericAxisModel
+} from "../axis/models/axis-model"
 import { GlobalValue } from "../../models/global/global-value"
 import { applyModelChange } from "../../models/history/apply-model-change"
 import { ISharedModel } from "../../models/shared/shared-model"
@@ -84,7 +86,14 @@ export const SliderModel = TileContentModel
       if (value < self.axis.min) return belowMin(value)
       if (value > self.axis.max) return aboveMax(value)
       return value
-    }
+    },
+    hasDraggableNumericAxis(axisModel: IAxisModel) {
+      return isBaseNumericAxisModel(axisModel)
+    },
+    nonDraggableAxisTicks(formatter: (value: number) => string): { tickValues: number[], tickLabels: string[] } {
+      // derived models should override
+      return {tickValues: [], tickLabels: []}
+    },
   }))
   .actions(self => ({
     setDynamicValue(value: number) {

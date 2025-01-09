@@ -1,13 +1,15 @@
 import { select } from "d3"
 import { isVertical } from "../../axis-graph-shared"
-import { AxisBounds, axisPlaceToAxisFn } from "../axis-types"
+import { axisPlaceToAxisFn } from "../axis-types"
 import { IAxisModel } from "../models/axis-model"
 import { IDataDisplayContentModel } from "../../data-display/models/data-display-content-model"
 import { IAxisLayout } from "../models/axis-layout-context"
 import { MultiScale } from "../models/multi-scale"
+import { IAxisProvider } from "../hooks/use-axis-provider-context"
 
 export interface IAxisHelperArgs {
-  displayModel: IDataDisplayContentModel
+  displayModel?: IDataDisplayContentModel
+  axisProvider: IAxisProvider
   subAxisIndex: number
   subAxisElt: SVGGElement | null
   axisModel: IAxisModel
@@ -16,7 +18,8 @@ export interface IAxisHelperArgs {
 }
 
 export class AxisHelper {
-  displayModel: IDataDisplayContentModel
+  displayModel?: IDataDisplayContentModel
+  axisProvider: IAxisProvider
   subAxisIndex: number
   subAxisElt: SVGGElement | null
   axisModel: IAxisModel
@@ -26,6 +29,7 @@ export class AxisHelper {
 
   constructor(props: IAxisHelperArgs) {
     this.displayModel = props.displayModel
+    this.axisProvider = props.axisProvider
     this.subAxisIndex = props.subAxisIndex
     this.subAxisElt = props.subAxisElt
     this.axisModel = props.axisModel
@@ -39,11 +43,12 @@ export class AxisHelper {
   }
 
   get dataConfig() {
-    return this.displayModel.dataConfiguration
+    return this.displayModel?.dataConfiguration
   }
 
   get initialTransform() {
-    const axisBounds = this.layout.getComputedBounds(this.axisPlace) as AxisBounds
+    const axisBounds = this.layout.getComputedBounds(this.axisPlace)
+    if (!axisBounds) throw new Error("AxisLayout can't compute bounds")
     return (this.axisPlace === 'left')
       ? `translate(${axisBounds.left + axisBounds.width}, ${axisBounds.top})`
       : (this.axisPlace === 'top')

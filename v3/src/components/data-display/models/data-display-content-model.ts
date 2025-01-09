@@ -22,6 +22,7 @@ import { IGetTipTextProps } from "../data-tip-types"
 import { IDataConfigurationModel } from "./data-configuration-model"
 import {DataDisplayLayerModelUnion} from "./data-display-layer-union"
 import {DisplayItemDescriptionModel} from "./display-item-description-model"
+import { IBaseDataDisplayModel } from "./base-data-display-content-model"
 import { DataDisplayRenderState } from "./data-display-render-state"
 
 export const DataDisplayContentModel = TileContentModel
@@ -152,3 +153,8 @@ export const DataDisplayContentModel = TileContentModel
     }
   }))
 export interface IDataDisplayContentModel extends Instance<typeof DataDisplayContentModel> {}
+
+export function isDataDisplayContentModel(model?: IBaseDataDisplayModel): model is IDataDisplayContentModel {
+  // Currently checking for any type is enough to ensure this is a IDataDisplayContentModel
+  return !!model?.type
+}

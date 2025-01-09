@@ -1,9 +1,10 @@
 import { select, Selection } from "d3"
+import { MutableRefObject } from "react"
 import { DateAxisHelper, IDateAxisHelperArgs } from "./date-axis-helper"
 import { IDateAxisModel } from "../models/axis-model"
 import { IDataDisplayContentModel } from "../../data-display/models/data-display-content-model"
 import { IAxisLayout } from "../models/axis-layout-context"
-import { MutableRefObject } from "react"
+import { IAxisProvider } from "../hooks/use-axis-provider-context"
 
 jest.mock("d3", () => ({
   select: jest.fn().mockReturnValue({
@@ -30,6 +31,7 @@ describe("DateAxisHelper", () => {
           "g")) } as MutableRefObject<Selection<SVGGElement, any, any, any> | undefined>
     props = {
       displayModel: {} as IDataDisplayContentModel,
+      axisProvider: {} as IAxisProvider,
       subAxisIndex: 0,
       subAxisElt: document.createElementNS("http://www.w3.org/2000/svg", "g"),
       axisModel: {

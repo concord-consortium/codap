@@ -12,7 +12,7 @@ import { useAxisLayoutContext } from "../models/axis-layout-context"
 import { IAxisModel, isBaseNumericAxisModel, isDateAxisModel } from "../models/axis-model"
 import { collisionExists, getNumberOfLevelsForDateAxis, getStringBounds, isScaleLinear } from "../axis-utils"
 import { useAxisProviderContext } from "./use-axis-provider-context"
-import { useDataDisplayModelContext } from "../../data-display/hooks/use-data-display-model"
+import { useDataDisplayModelContextMaybe } from "../../data-display/hooks/use-data-display-model"
 import { IDataDisplayContentModel } from "../../data-display/models/data-display-content-model"
 import { MultiScale } from "../models/multi-scale"
 
@@ -27,7 +27,7 @@ export interface IUseAxis {
 interface IGetTicksProps {
   d3Scale: AxisScaleType | ScaleLinear<number, number>
   multiScale?: MultiScale
-  pointDisplayType: string
+  pointDisplayType?: string
   displayModel?: IDataDisplayContentModel
 }
 
@@ -51,9 +51,9 @@ const getTicks = (props: IGetTicksProps) => {
 
 export const useAxis = ({axisPlace, axisTitle = "", centerCategoryLabels}: IUseAxis) => {
   const layout = useAxisLayoutContext(),
-    displayModel = useDataDisplayModelContext(),
+    displayModel = useDataDisplayModelContextMaybe(),
     axisProvider = useAxisProviderContext(),
-    axisModel = axisProvider.getAxis?.(axisPlace),
+    axisModel = axisProvider.getAxis(axisPlace),
     isNumeric = axisModel && isBaseNumericAxisModel(axisModel),
     multiScale = layout.getAxisMultiScale(axisPlace)
   const
@@ -89,7 +89,7 @@ export const useAxis = ({axisPlace, axisTitle = "", centerCategoryLabels}: IUseA
       numbersHeight = getStringBounds('0').height,
       repetitions = multiScale?.repetitions ?? 1,
       d3Scale = multiScale?.scale ?? (type === 'numeric' ? scaleLinear() : scaleOrdinal()),
-      pointDisplayType = displayModel.pointDisplayType
+      pointDisplayType = displayModel?.pointDisplayType
     let desiredExtent = axisTitleHeight + 2 * axisGap
     let ticks: string[] = []
     switch (type) {
@@ -172,14 +172,14 @@ useEffect(() => {
 useEffect(() => {
   const disposer = reaction(
     () => {
-      return displayModel.pointDisplayType
+      return displayModel?.pointDisplayType
     },
     () => {
       layout.setDesiredExtent(axisPlace, computeDesiredExtent())
     }, {name: "useAxis [pointDisplayType]"}
   )
   return () => disposer()
-}, [axisModel, layout, axisPlace, computeDesiredExtent, displayModel.pointDisplayType])
+}, [axisModel, layout, axisPlace, computeDesiredExtent, displayModel?.pointDisplayType])
 
 // Set desired extent when things change
 useEffect(() => {

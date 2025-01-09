@@ -4,7 +4,7 @@ import { IDataSet } from "../../../models/data/data-set"
 import {kPortalClassSelector} from "../data-display-types"
 import { GraphPlace } from "../../axis-graph-shared"
 import { useDataDisplayLayout } from "../hooks/use-data-display-layout"
-import { useDataDisplayModelContext } from "../hooks/use-data-display-model"
+import { useBaseDataDisplayModelContext } from "../hooks/use-base-data-display-model"
 import { AxisOrLegendAttributeMenu } from "../../axis/components/axis-or-legend-attribute-menu"
 import { AttributeType } from "../../../models/data/attribute-types"
 import { mstAutorun } from "../../../utilities/mst-autorun"
@@ -23,8 +23,8 @@ export const AttributeLabel = forwardRef((props: IProps, labelRef: ForwardedRef<
   const { place, refreshLabel, onChangeAttribute, onRemoveAttribute, onTreatAttributeAs } = props
   // labelRef must be a MutableRefObject, not a function
   const labelElt = typeof labelRef !== "function" ? labelRef?.current ?? null : null
-  const portal = labelElt?.closest(kPortalClassSelector) as HTMLDivElement ?? null
-  const contentModel = useDataDisplayModelContext()
+  const portal = labelElt?.closest(kPortalClassSelector) as HTMLElement ?? null
+  const contentModel = useBaseDataDisplayModelContext()
   const layout = useDataDisplayLayout()
   const [ , setLayoutBounds] = useState("")
 

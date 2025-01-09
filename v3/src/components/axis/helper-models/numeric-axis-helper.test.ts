@@ -24,10 +24,13 @@ describe("NumericAxisHelper", () => {
 
   beforeEach(() => {
     props = {
-      displayModel: {
+      displayModel: {} as IDataDisplayContentModel,
+      axisProvider: {
         hasDraggableNumericAxis: jest.fn().mockReturnValue(true),
-        nonDraggableAxisTicks: jest.fn().mockReturnValue({ tickValues: [], tickLabels: [] })
-      } as unknown as IDataDisplayContentModel,
+        nonDraggableAxisTicks: jest.fn().mockReturnValue({ tickValues: [], tickLabels: [] }),
+        getAxis: jest.fn(),
+        getNumericAxis: jest.fn()
+      },
       subAxisIndex: 0,
       subAxisElt: document.createElementNS("http://www.w3.org/2000/svg", "g"),
       axisModel: { place: "left" } as IAxisModel,

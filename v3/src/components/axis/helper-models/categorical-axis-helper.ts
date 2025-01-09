@@ -1,7 +1,7 @@
 import { BaseType, Selection } from "d3"
 import { AxisHelper, IAxisHelperArgs } from "./axis-helper"
 import { MutableRefObject } from "react"
-import { kAxisTickLength } from "../../graph/graphing-types"
+import { kAxisTickLength } from "../axis-constants"
 import { otherPlace } from "../axis-types"
 import { axisPlaceToAttrRole, transitionDuration } from "../../data-display/data-display-types"
 import {
