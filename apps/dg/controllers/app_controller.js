@@ -356,7 +356,7 @@ DG.appController = SC.Object.create((function() // closure
         return {
           localize: true,
           title: submenuData["title-string"] ? submenuData["title-string"].loc() : submenuData.title,
-          subMenu: submenuData.subMenu.map((pluginData) => convertOnePluginMenuItem(pluginData))
+          subMenu: submenuData.subMenu.map(function (pluginData) { return convertOnePluginMenuItem(pluginData); })
         };
       }) : [];
       return items;

@@ -77,7 +77,7 @@
         "description": "Get data from the National Health and Nutrition Examination Survey.",
         "title-string": "DG.plugin.NHANES.title",
         "description-string": "DG.plugin.NHANES.description",
-        "path": "/data-science-worlds/nhanes/nhanes.html",
+        "path": "https://concord-consortium.github.io/codap-data-interactives/data-science-worlds/nhanes/nhanes.html?lang=en",
         "visible": true,
         "width": 380,
         "height": 520,
