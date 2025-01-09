@@ -22,6 +22,7 @@ import { IGetTipTextProps } from "../data-tip-types"
 import { IDataConfigurationModel } from "./data-configuration-model"
 import {DataDisplayLayerModelUnion} from "./data-display-layer-union"
 import {DisplayItemDescriptionModel} from "./display-item-description-model"
+import { DataDisplayRenderState } from "./data-display-render-state"
 
 export const DataDisplayContentModel = TileContentModel
   .named("DataDisplayContentModel")
@@ -37,6 +38,7 @@ export const DataDisplayContentModel = TileContentModel
   .volatile(() => ({
     animationTimerId: 0,
     marqueeMode: 'unclicked' as MarqueeMode,
+    renderState: undefined as DataDisplayRenderState | undefined,
   }))
   .views(self => ({
     placeCanAcceptAttributeIDDrop(place: GraphPlace,
@@ -144,6 +146,9 @@ export const DataDisplayContentModel = TileContentModel
     },
     setMarqueeMode(mode: MarqueeMode) {
       self.marqueeMode = mode
+    },
+    setRenderState(renderState: DataDisplayRenderState) {
+      self.renderState = renderState
     }
   }))
 export interface IDataDisplayContentModel extends Instance<typeof DataDisplayContentModel> {}

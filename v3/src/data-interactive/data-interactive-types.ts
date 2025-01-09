@@ -165,6 +165,9 @@ export interface DILogMessage {
 export interface DIUrl {
   URL: string
 }
+export interface DIDataDisplay {
+  exportDataUri?: string
+}
 
 export interface DIResources {
   attribute?: IAttribute
@@ -179,6 +182,7 @@ export interface DIResources {
   component?: DIComponent
   dataContext?: IDataSet
   dataContextList?: IDataSet[]
+  dataDisplay?: DIDataDisplay
   error?: string
   global?: IGlobalValue
   interactiveFrame?: ITileModel
@@ -198,7 +202,9 @@ export type DIValues = DISingleValues | DISingleValues[] | number | string[]
 
 // types returned as outputs by the API
 export type DIResultAttributes = { attrs: ICodapV2Attribute[] }
-export type DIResultSingleValues = DICase | DIComponentInfo |  DIGetCaseResult | DIGlobal | DIInteractiveFrame
+export type DIResultSingleValues = DICase | DIComponentInfo |  DIDataDisplay | DIGetCaseResult | DIGlobal
+  | DIInteractiveFrame
+  
 export type DIResultValues = DIResultSingleValues | DIResultSingleValues[] |
   DIAllCases | DIDeleteCollectionResult | DIUpdateItemResult | DIResultAttributes | number | number[]
 
@@ -272,6 +278,7 @@ export interface DIResourceSelector {
   component?: string
   dataContext?: string
   dataContextList?: string
+  dataDisplay?: string
   global?: string
   interactiveFrame?: string
   item?: string
