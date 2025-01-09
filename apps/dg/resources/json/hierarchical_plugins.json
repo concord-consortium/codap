@@ -163,7 +163,7 @@
         "description-string": "DG.plugin.Simmer.description",
         "width": 400,
         "height": 600,
-        "path": "/eepsmedia/plugins/simmer/index.html",
+        "path": "https://codap.xyz/plugins/simmer/",
         "visible": "true",
         "isStandard": "true",
         "categories": [
