@@ -176,12 +176,13 @@ DG.ComponentController = SC.Object.extend((function () // closure
       // If our content knows about a frame object, we'll get that frames layout and store it.
       var layout = this.getPath('view.layout'),
           modelLayout = this.model.get('layout');
-      layout.isVisible = this.getPath('view.isVisible');  // For views (like Guide) that need to restore visibility
+      if (layout)
+        layout.isVisible = this.getPath('view.isVisible');  // For views (like Guide) that need to restore visibility
       if( layout && (modelLayout && JSON.stringify(layout) !== JSON.stringify(modelLayout))) {
         this.model.set('layout', layout);
         return modelLayout;
       }
-      else if( !modelLayout) {
+      else if(layout && !modelLayout) {
         this.setPath('model.layout', layout);
       }
       return null;

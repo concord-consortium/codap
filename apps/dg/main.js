@@ -395,6 +395,15 @@ DG.main = function main() {
               "src": DG.get('exampleListURL'),
               alphabetize: false
             },
+/*
+            {
+              "name": "readOnly",
+              "displayName": "Community Examples",
+              "urlDisplayName": "examples",
+              "src": DG.get('exampleListURL'),
+              alphabetize: true
+            },
+*/
             {
               "name": "lara",
               "patch": true,

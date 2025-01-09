@@ -190,12 +190,13 @@ DG.appController = SC.Object.create((function() // closure
         this.pluginMenuPane = DG.MenuPane.create({
           init: function() {
             sc_super();
-            var pluginMetadataURL = DG.get('pluginMetadataURL');
+            var pluginMetadataURL = static_url('json/hierarchical_plugins.json');
             if(!pluginMetadataURL) {
               DG.logWarn('Plugin metadata URL absent.');
             }
             // Retrieve plugin metadata for later reference
             $.ajax(pluginMetadataURL, {
+              dataType: 'json',
               success: function(data) {
                 SC.run(function() {
                   DG.set('pluginMetadata', data);
@@ -328,14 +329,14 @@ DG.appController = SC.Object.create((function() // closure
       return menuItems;
     }.property(),
     pluginMenuItems: function() {
-      // DG.log('Making plugin menu items');
       var baseURL = DG.get('pluginURL');
       var pluginMetadata = DG.get('pluginMetadata');
-      var items = pluginMetadata ? pluginMetadata.map(function(pluginData) {
+
+      function convertOnePluginMenuItem(pluginData) {
         return {
           localize: true,
           title: pluginData["title-string"] ? pluginData["title-string"].loc() : pluginData.title,
-          url: baseURL + pluginData.path,
+          url: (pluginData.path.includes('http') ? '' : baseURL) + pluginData.path,
           target: this,
           toolTip: pluginData["description-string"] ? pluginData["description-string"].loc() : pluginData.description,
           dgAction: 'openPlugin',
@@ -343,9 +344,19 @@ DG.appController = SC.Object.create((function() // closure
             width: pluginData.width || 400,
             height: pluginData.height || 300
           },
-          icon: pluginData.icon ? baseURL + pluginData.icon : 'tile-icon-mediaTool',
+          icon: pluginData.icon
+                ? (pluginData.icon.includes('http') ? '' : baseURL) + pluginData.icon
+                : 'tile-icon-mediaTool',
           // replace spaces with hyphens when creating the id
           id: 'dg-pluginMenuItem-' + pluginData.title.replace(/ /g, '-')
+        };
+      }
+
+      var items = pluginMetadata ? pluginMetadata.map(function(submenuData) {
+        return {
+          localize: true,
+          title: submenuData["title-string"] ? submenuData["title-string"].loc() : submenuData.title,
+          subMenu: submenuData.subMenu.map((pluginData) => convertOnePluginMenuItem(pluginData))
         };
       }) : [];
       return items;
