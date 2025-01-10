@@ -3,6 +3,7 @@ import { DIFullCase, DIItem, DIUpdateItemResult } from "../data-interactive-type
 import { setupTestDataset } from "./handler-test-utils"
 import { diItemByIDHandler } from "./item-by-id-handler"
 
+import "../../models/history/register-app-history-service"
 
 describe("DataInteractive ItemByIDHandler", () => {
   const handler = diItemByIDHandler

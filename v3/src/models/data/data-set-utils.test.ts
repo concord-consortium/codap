@@ -3,6 +3,8 @@ import { ICollectionModel } from "./collection"
 import { DataSet, IDataSet } from "./data-set"
 import { getCollectionAttrs, moveAttribute } from "./data-set-utils"
 
+import "../history/register-app-history-service"
+
 function names(attrs: IAttribute[]) {
   return attrs.map(({ name }) => name)
 }

@@ -6,7 +6,7 @@ import {
   dragEndNotification, dragNotification, dragStartNotification, dragWithPositionNotification
 } from "../../lib/dnd-kit/dnd-notifications"
 import { IDataSet } from "../../models/data/data-set"
-import { INotification } from "../../models/history/apply-model-change"
+import { IFullNotification } from "../../data-interactive/notification-full-types"
 
 import "./web-view-drop-overlay.scss"
 
@@ -23,14 +23,14 @@ export function WebViewDropOverlay() {
   const mouseX = useRef<number|undefined>()
   const mouseY = useRef<number|undefined>()
 
-  const sendNotification = (notification: INotification) => {
+  const sendNotification = (notification: IFullNotification) => {
     const { message, callback } = notification
     tile?.content.broadcastMessage(message, callback ?? (() => null))
   }
 
   // Broadcast dragstart and dragend notifications
   const handleDragStartEnd = (
-    notification: (dataSet: IDataSet, attributeId: string) => INotification, _active: Active
+    notification: (dataSet: IDataSet, attributeId: string) => IFullNotification, _active: Active
   ) => {
     const _info = getDragAttributeInfo(_active)
     if (_info?.dataSet && _info.attributeId) {

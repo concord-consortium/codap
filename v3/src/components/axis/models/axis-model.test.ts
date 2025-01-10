@@ -1,8 +1,10 @@
+import {getSnapshot, types} from "mobx-state-tree"
 import {
   AxisModel, AxisModelUnion, CategoricalAxisModel, EmptyAxisModel, IAxisModelUnion,
   isCategoricalAxisModel, isEmptyAxisModel, isNumericAxisModel, NumericAxisModel
 } from "./axis-model"
-import {getSnapshot, types} from "mobx-state-tree"
+
+import "../../../models/history/register-app-history-service"
 
 describe("AxisModel", () => {
   it("should error if AxisModel is instantiated directly", () => {

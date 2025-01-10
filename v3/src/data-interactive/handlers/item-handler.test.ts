@@ -3,6 +3,8 @@ import { DIFullCase, DIItem, DISuccessResult, DIUpdateItemResult } from "../data
 import { setupTestDataset } from "./handler-test-utils"
 import { diItemHandler } from "./item-handler"
 
+import "../../models/history/register-app-history-service"
+
 
 describe("DataInteractive ItemHandler", () => {
   const handler = diItemHandler

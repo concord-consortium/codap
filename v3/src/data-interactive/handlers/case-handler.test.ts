@@ -3,6 +3,8 @@ import { DINewCase, DISuccessResult, DIValues } from "../data-interactive-types"
 import { diCaseHandler } from "./case-handler"
 import { setupTestDataset } from "./handler-test-utils"
 
+import "../../models/history/register-app-history-service"
+
 describe("DataInteractive CaseHandler", () => {
   const handler = diCaseHandler
 

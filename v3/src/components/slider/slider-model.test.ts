@@ -3,6 +3,8 @@ import { GlobalValue, IGlobalValue } from "../../models/global/global-value"
 import { isSliderModel, SliderModel } from "./slider-model"
 import { kDefaultAnimationDirection, kDefaultAnimationMode, kDefaultAnimationRate } from "./slider-types"
 
+import "../../models/history/register-app-history-service"
+
 describe("SliderModel", () => {
   const mockSharedModelManagerWithoutGlobalValueManager = {
     isReady: true,

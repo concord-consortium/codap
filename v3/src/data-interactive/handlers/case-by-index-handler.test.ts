@@ -3,6 +3,8 @@ import { DIGetCaseResult } from "../data-interactive-types"
 import { diCaseByIndexHandler } from "./case-by-index-handler"
 import { setupForCaseTest } from "./handler-test-utils"
 
+import "../../models/history/register-app-history-service"
+
 describe("DataInteractive CaseByIndexHandler", () => {
   const handler = diCaseByIndexHandler
 

@@ -12,9 +12,9 @@ import { excludeDragOverlayRegEx } from "../case-tile-common/case-tile-types"
 import { AttributeDragOverlay } from "../drag-drop/attribute-drag-overlay"
 import { CardView } from "./card-view"
 import { useCaseCardModel } from "./use-case-card-model"
+import { ICoreNotification } from "../../data-interactive/notification-core-types"
 import { IDataSet } from "../../models/data/data-set"
 import { ICollectionModel } from "../../models/data/collection"
-import { INotification } from "../../models/history/apply-model-change"
 import { createCollectionNotification, deleteCollectionNotification } from "../../models/data/data-set-notifications"
 import { logMessageWithReplacement } from "../../lib/log-message"
 
@@ -55,7 +55,7 @@ export const CaseCard = observer(function CaseCard({ setNodeRef }: IProps) {
         removedOldCollection = !!(oldCollectionId && !dataSet.getCollection(oldCollectionId))
       }, {
         notify: () => {
-          const notifications: INotification[] = []
+          const notifications: ICoreNotification[] = []
           if (removedOldCollection) notifications.push(deleteCollectionNotification(dataSet))
           if (collection) notifications.push(createCollectionNotification(collection, dataSet))
           return notifications

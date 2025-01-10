@@ -2,6 +2,8 @@ import { DIAllCases } from "../data-interactive-types"
 import { diAllCasesHandler } from "./all-cases-handler"
 import { setupTestDataset, testCases } from "./handler-test-utils"
 
+import "../../models/history/register-app-history-service"
+
 describe("DataInteractive AllCasesHandler", () => {
   const handler = diAllCasesHandler
 

@@ -3,6 +3,7 @@ import { DIFullCase } from "../data-interactive-types"
 import { setupTestDataset } from "./handler-test-utils"
 import { diItemSearchHandler } from "./item-search-handler"
 
+import "../../models/history/register-app-history-service"
 
 describe("DataInteractive ItemSearchHandler", () => {
   const handler = diItemSearchHandler

@@ -12,6 +12,8 @@ import { ISharedModelDocumentManager } from "./shared-model-document-manager"
 import { typedId } from "../../utilities/js-utils"
 import { t } from "../../utilities/translation/translate"
 
+import "../history/register-app-history-service"
+
 export const DocumentModel = Tree.named("Document")
   .props({
     key: types.optional(types.identifier, () => typedId("DOC_")),
