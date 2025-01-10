@@ -1,5 +1,5 @@
 import { Box, useOutsideClick } from "@chakra-ui/react"
-import React, { SVGProps, useCallback, useRef, useState } from "react"
+import React, { SVGProps, useCallback, useEffect, useRef, useState } from "react"
 import { observer } from "mobx-react-lite"
 import CardIcon from "../../assets/icons/icon-case-card.svg"
 import TableIcon from "../../assets/icons/icon-table.svg"
@@ -61,8 +61,12 @@ export const CaseTileTitleBar =
     const cardTableToggleRef = useRef(null)
     const documentContent = useDocumentContent()
     const preventTitleChange = preventDataContextReorg(data)
-    const isNewCaseTile = data?.title.includes(t("DG.AppController.createDataSet.name") || "New Dataset") &&
-                            data.items.length === 0
+    const isNewCaseTile = tile?.isNewlyCreated
+
+    useEffect(() => {
+      // once we've initiated the first edit, we no longer need the flag
+      tile?.setNewlyCreated(false)
+    }, [tile])
 
     useOutsideClick({
       ref: cardTableToggleRef,
@@ -118,7 +122,7 @@ export const CaseTileTitleBar =
     return (
       <ComponentTitleBar tile={tile} {...others}
                          onHandleTitleChange={handleChangeTitle} onCloseTile={closeCaseTableOrCard}
-                         preventTitleChange={preventTitleChange} isNewTile={isNewCaseTile}>
+                         preventTitleChange={preventTitleChange} initiateEditTitle={isNewCaseTile}>
         <div className="header-left"
              title={caseTableOrCardToggleString}
              onClick={handleShowCardTableToggleMessage}

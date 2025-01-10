@@ -67,6 +67,9 @@ export const TileModel = V2Model.named("TileModel")
     cannotClose: types.optional(types.boolean, false),
     transitionComplete: types.maybe(types.boolean)
   })
+  .volatile(self => ({
+    isNewlyCreated: false
+  }))
   .preProcessSnapshot(snapshot => {
     // early development versions of v3 had a `title` property
     const _title = snapshot._title ?? ((snapshot as any).title || undefined)
@@ -119,6 +122,9 @@ export const TileModel = V2Model.named("TileModel")
     }
   }))
   .actions(self => ({
+    setNewlyCreated(newlyCreated: boolean) {
+      self.isNewlyCreated = newlyCreated
+    },
     setCannotClose(cannotClose: boolean) {
       self.cannotClose = cannotClose
     },

@@ -21,7 +21,7 @@ context("codap toolbar", () => {
     c.clickIconFromToolShelf("table")
     toolbar.getNewCaseTable().click()
     table.getCollection().should("be.visible")
-    c.getComponentTitle("table").should("have.text", "New Dataset")
+    c.getComponentTitleInput("table").should("have.value", "New Dataset")
     c.getIconFromToolShelf("table").click()
     toolbar.getDatasetListedInToolShelf("New Dataset").should("be.visible")
   })

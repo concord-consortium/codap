@@ -11,6 +11,7 @@ export interface INewTileOptions {
   content?: ITileContentSnapshotWithType
   name?: string
   title?: string
+  markNewlyCreated?: boolean
   setSingletonHidden?: boolean // If undefined, singleton visibility will be toggled
   x?: number
   y?: number
@@ -32,5 +33,9 @@ export function createTileSnapshotOfType(tileType: string, env?: ITileEnvironmen
 
 export function createTileOfType(tileType: string, env?: ITileEnvironment, options?: INewTileOptions) {
   const snapshot = createTileSnapshotOfType(tileType, env, options)
-  return snapshot ? TileModel.create(snapshot) : undefined
+  const tile = snapshot ? TileModel.create(snapshot) : undefined
+  if (tile && options?.markNewlyCreated) {
+    tile.setNewlyCreated(true)
+  }
+  return tile
 }
