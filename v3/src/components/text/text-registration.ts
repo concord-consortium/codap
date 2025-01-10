@@ -1,4 +1,5 @@
-import { SlateExchangeValue, textToSlate } from "@concord-consortium/slate-editor"
+import { Descendant, EFormat, SlateExchangeValue, textToSlate } from "@concord-consortium/slate-editor"
+import { cloneDeep } from "lodash"
 import { SetRequired } from "type-fest"
 import TextIcon from "../../assets/icons/icon-text.svg"
 import { V2Text } from "../../data-interactive/data-interactive-component-types"
@@ -11,7 +12,7 @@ import { safeJsonParse } from "../../utilities/js-utils"
 import { t } from "../../utilities/translation/translate"
 import { registerV2TileExporter } from "../../v2/codap-v2-tile-exporters"
 import { registerV2TileImporter } from "../../v2/codap-v2-tile-importers"
-import { isV2TextComponent } from "../../v2/codap-v2-types"
+import { isV2TextComponent, V2SlateExchangeValue, V2TextObjTypesMap } from "../../v2/codap-v2-types"
 import { ComponentTitleBar } from "../component-title-bar"
 import { kTextTileClass, kTextTileType, kV2TextDGType, kV2TextDIType } from "./text-defs"
 import { editorValueToModelValue, isTextModel, ITextSnapshot, modelValueToEditorValue, TextModel } from "./text-model"
@@ -59,13 +60,52 @@ function importTextToModelValue(text?: string | SlateExchangeValue): Maybe<Slate
   return editorValueToModelValue(text?.document?.children ?? [])
 }
 
+const kObjTypes: V2TextObjTypesMap = {
+  // blocks
+  [EFormat.block]: "block",
+  [EFormat.blockQuote]: "block",
+  [EFormat.heading1]: "block",
+  [EFormat.heading2]: "block",
+  [EFormat.heading3]: "block",
+  [EFormat.heading4]: "block",
+  [EFormat.heading5]: "block",
+  [EFormat.heading6]: "block",
+  [EFormat.horizontalRule]: "block",
+  [EFormat.paragraph]: "block",
+  [EFormat.preformatted]: "block",
+  [EFormat.listItem]: "block",
+  [EFormat.numberedList]: "block",
+  [EFormat.bulletedList]: "block",
+  // inlines
+  [EFormat.inline]: "inline",
+  [EFormat.image]: "inline",
+  [EFormat.link]: "inline"
+}
+
+function addObjTypes(node: Descendant, objTypes: V2TextObjTypesMap) {
+  if (typeof node === "object") {
+    if ("type" in node && typeof node.type === "string" && !objTypes[node.type]) {
+      objTypes[node.type] = kObjTypes[node.type] ?? "block"
+    }
+    if ("children" in node && Array.isArray(node.children)) {
+      node.children.forEach(child => addObjTypes(child, objTypes))
+    }
+  }
+}
+
 registerV2TileExporter(kTextTileType, ({ tile }) => {
   const { content } = tile
   if (!isTextModel(content)) return
+  const value = cloneDeep(content.value) as V2SlateExchangeValue
+  const objTypes: Record<string, "block" | "inline"> = {}
+  if (value.document) {
+    value.document.children.forEach(node => addObjTypes(node, objTypes))
+    value.document.objTypes = objTypes
+  }
   return {
     type: kV2TextDGType,
     componentStorage: {
-      text: JSON.stringify(content.value)
+      text: JSON.stringify(value)
     }
   }
 })

@@ -11,7 +11,7 @@ import { ITileModelSnapshotIn } from "../../models/tiles/tile-model"
 import { CodapV2Document } from "../../v2/codap-v2-document"
 import { exportV2Component } from "../../v2/codap-v2-tile-exporters"
 import { importV2Component } from "../../v2/codap-v2-tile-importers"
-import { ICodapV2DocumentJson, isV2TextComponent } from "../../v2/codap-v2-types"
+import { ICodapV2DocumentJson, isV2TextComponent, V2SlateExchangeValue } from "../../v2/codap-v2-types"
 import { kTextTileType, kV2TextDGType } from "./text-defs"
 import { editorValueToModelValue, isTextModel, ITextModel } from "./text-model"
 import "./text-registration"
@@ -105,7 +105,9 @@ describe("Text registration", () => {
     const output = exportV2Component({ tile, row: freeTileRow })
     expect(output?.type).toBe(kV2TextDGType)
     const textTileOutput = isV2TextComponent(output!) ? output : undefined
-    const expectedTextOutput = JSON.stringify(editorValueToModelValue(textToSlate("")))
+    const expectedModelValue = editorValueToModelValue(textToSlate("")) as V2SlateExchangeValue
+    expectedModelValue.document.objTypes = { paragraph: "block" }
+    const expectedTextOutput = JSON.stringify(expectedModelValue)
     expect(textTileOutput?.componentStorage?.text).toBe(expectedTextOutput)
   })
 })

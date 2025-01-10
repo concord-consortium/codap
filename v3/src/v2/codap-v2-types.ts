@@ -1,3 +1,4 @@
+import { Descendant, SlateExchangeValue } from "@concord-consortium/slate-editor"
 import { SetOptional } from "type-fest"
 import { AttributeType } from "../models/data/attribute-types"
 
@@ -820,6 +821,16 @@ export interface ICodapV2GuideStorage extends ICodapV2BaseComponentStorage {
   currentURL?: string
   // This appears 997 times in cfm-shared
   currentItemTitle?: string | null
+}
+
+export type V2TextObjTypesMap = Record<string, "block" | "inline">
+
+export interface V2SlateExchangeValue extends Omit<SlateExchangeValue, "document"> {
+  document: {
+    children: Descendant[]
+    // legacy v2 documents require an objTypes map property
+    objTypes: V2TextObjTypesMap
+  }
 }
 
 export interface ICodapV2TextStorage extends ICodapV2BaseComponentStorage {
