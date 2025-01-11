@@ -1,5 +1,5 @@
 import { action, autorun, makeObservable, observable, ObservableSet, reaction } from "mobx"
-import { Instance, onAction, onPatch, onSnapshot, types } from "mobx-state-tree"
+import { getEnv, Instance, onAction, onPatch, onSnapshot, types } from "mobx-state-tree"
 
 describe("Mobx State Tree", () => {
 
@@ -336,4 +336,24 @@ describe("Mobx State Tree", () => {
     expect(setElementListener).toHaveBeenCalledTimes(1)
   })
 
+  it("adding a model with an environment to a container with a different environment fails", () => {
+    const Model = types.model("Model")
+    const Container = types.model("Container", {
+      model: types.maybe(Model)
+    })
+    .actions(self => ({
+      setModel(_model: any) {
+        self.model = _model
+      }
+    }))
+    const envModel = {}
+    const envContainer = {}
+    const model = Model.create(undefined, envModel)
+    expect(getEnv(model)).toBe(envModel)
+    const container = Container.create(undefined, envContainer)
+    expect(getEnv(container)).toBe(envContainer)
+    expect(() => {
+      container.setModel(model)
+    }).toThrow()
+  })
 })

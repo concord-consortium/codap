@@ -18,7 +18,7 @@ export function applyModelChange(self: IAnyStateTreeNode) {
     applyModelChange<TResult = unknown>(actionFn: () => TResult, options?: IApplyModelChangeOptions) {
       const result = actionFn()
 
-      getHistoryService(self).handleApplyModelChange(self, options)
+      getHistoryService(self).handleApplyModelChange(options)
 
       return result
     }
