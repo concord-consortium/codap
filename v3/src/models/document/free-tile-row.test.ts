@@ -1,6 +1,8 @@
 import { getSnapshot, onPatch } from "mobx-state-tree"
 import { FreeTileLayout, FreeTileRow, isFreeTileInRowOptions, isFreeTileRow } from "./free-tile-row"
 
+import "../history/register-app-history-service"
+
 describe("FreeTileLayout", () => {
   it("works as expected", () => {
     const layout = FreeTileLayout.create({ tileId: "aTileId", x: 0, y: 0 })

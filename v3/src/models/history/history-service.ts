@@ -17,6 +17,7 @@ export interface IApplyModelChangeOptions {
 
 export interface IHistoryService {
   handleApplyModelChange: (mstNode: IAnyStateTreeNode, options?: IApplyModelChangeOptions) => void
+  withoutUndo: (options?: { suppressWarning?: boolean }) => void
 }
 
 const gHistoryServiceRef: {ref?: IHistoryService} = {}

@@ -5,6 +5,8 @@ import { DataSet, fromCanonical, isFilterFormulaDataSet, toCanonical } from "./d
 import { createDataSet } from "./data-set-conversion"
 import { ICaseID } from "./data-set-types"
 
+import "../history/register-app-history-service"
+
 let message = () => ""
 
 // for use with lodash's isEqualWith function to implement toEqualWithUniqueIds custom jest matcher

@@ -4,6 +4,8 @@ import { getSnapshot } from "mobx-state-tree"
 import { Attribute, IAttributeSnapshot, isFormulaAttr, isValidFormulaAttr } from "./attribute"
 import { isAttributeType, importValueToString } from "./attribute-types"
 
+import "../history/register-app-history-service"
+
 describe("Attribute", () => {
 
   const origNodeEnv = process.env.NODE_ENV
