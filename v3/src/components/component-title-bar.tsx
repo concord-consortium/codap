@@ -31,6 +31,7 @@ export const ComponentTitleBar = observer(function ComponentTitleBar({
     if (tile != null && nextValue !== undefined) {
       tile.applyModelChange(() => {
         tile.setTitle(nextValue)
+        tile.setUserSetTitle(true)
       }, {
         log: logMessageWithReplacement("Title changed to: %@", {nextValue}, "component"),
         undoStringKey: "DG.Undo.component.componentTitleChange",

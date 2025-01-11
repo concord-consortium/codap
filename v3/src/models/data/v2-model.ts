@@ -5,7 +5,8 @@ export const V2Model = types.model("V2Model", {
   id: typeV3Id(""),
   // required for objects in documents
   name: "",
-  _title: types.maybe(types.string)
+  _title: types.maybe(types.string),
+  _userSetTitle: types.maybe(types.boolean)
 })
 .views(self => ({
   get title() {
@@ -18,6 +19,9 @@ export const V2Model = types.model("V2Model", {
             (self.id == toV3DataSetId(nameOrId)) ||
             (typeof nameOrId === "number" && toV2Id(self.id) === nameOrId)
     /* eslint-enable eqeqeq */
+  },
+  get userSetTitle() {
+    return self._userSetTitle
   }
 }))
 .actions(self => ({
@@ -27,6 +31,9 @@ export const V2Model = types.model("V2Model", {
   },
   setTitle(title?: string) {
     self._title = title
+  },
+  setUserSetTitle(userSet: boolean) {
+    self._userSetTitle = userSet
   }
 }))
 export interface IV2Model extends Instance<typeof V2Model> {}

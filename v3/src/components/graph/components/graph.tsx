@@ -35,7 +35,9 @@ import {DataTip} from "../../data-display/components/data-tip"
 import {MultiLegend} from "../../data-display/components/legend/multi-legend"
 import {AttributeType} from "../../../models/data/attribute-types"
 import {IDataSet} from "../../../models/data/data-set"
+import { idOfChildmostCollectionForAttributes } from "../../../models/data/data-set-utils"
 import {isUndoingOrRedoing} from "../../../models/history/tree-types"
+import { ITileModel } from "../../../models/tiles/tile-model"
 import {useDataDisplayAnimation} from "../../data-display/hooks/use-data-display-animation"
 import {Adornments} from "../adornments/adornments"
 import { t } from "../../../utilities/translation/translate"
@@ -47,9 +49,10 @@ interface IProps {
   graphController: GraphController
   setGraphRef: (ref: HTMLDivElement | null) => void
   pixiPointsArray: PixiPointsArray
+  tile?: ITileModel
 }
 
-export const Graph = observer(function Graph({graphController, setGraphRef, pixiPointsArray}: IProps) {
+export const Graph = observer(function Graph({graphController, setGraphRef, pixiPointsArray, tile}: IProps) {
   const graphModel = useGraphContentModelContext(),
     {plotType} = graphModel,
     pixiPoints = pixiPointsArray[0],
@@ -192,12 +195,21 @@ export const Graph = observer(function Graph({graphController, setGraphRef, pixi
 
   const handleChangeAttribute = useCallback((place: GraphPlace, dataSet: IDataSet, attrId: string,
            attrIdToRemove = "") => {
-    const computedPlace = place === 'plot' && graphModel.dataConfiguration.noAttributesAssigned ? 'bottom' : place
+    const noAttributesAssigned = graphModel.dataConfiguration.noAttributesAssigned
+    const computedPlace = place === 'plot' && noAttributesAssigned ? 'bottom' : place
     const attrRole = graphPlaceToAttrRole[computedPlace]
     const attrName = dataset?.getAttribute(attrId || attrIdToRemove)?.name
+    const childMostCollectionId =
+              idOfChildmostCollectionForAttributes(graphModel.dataConfiguration.uniqueAttributes, dataSet)
+    const childMostCollectionName = childMostCollectionId ? dataSet.getCollection(childMostCollectionId)?.name : ""
 
     graphModel.applyModelChange(
-      () => graphModel.setAttributeID(attrRole, dataSet.id, attrId),
+      () => {
+        graphModel.setAttributeID(attrRole, dataSet.id, attrId)
+        if (!tile?.userSetTitle && tile?.title !== childMostCollectionName) {
+          tile?.setTitle(childMostCollectionName)
+        }
+      },
       {
         undoStringKey: "DG.Undo.axisAttributeChange",
         redoStringKey: "DG.Redo.axisAttributeChange",
@@ -206,7 +218,7 @@ export const Graph = observer(function Graph({graphController, setGraphRef, pixi
               { attribute: attrName, axis: place }, "plot")
       }
     )
-  }, [dataset, graphModel])
+  }, [dataset, graphModel, tile])
 
   /**
    * Only in the case that place === 'y' and there is more than one attribute assigned to the y-axis
