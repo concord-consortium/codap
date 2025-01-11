@@ -65,7 +65,8 @@ export const TileModel = V2Model.named("TileModel")
     // e.g. "TextContentModel", ...
     content: TileContentUnion,
     cannotClose: types.optional(types.boolean, false),
-    transitionComplete: types.maybe(types.boolean)
+    transitionComplete: types.maybe(types.boolean),
+    userSetTitle: types.maybe(types.boolean)
   })
   .preProcessSnapshot(snapshot => {
     // early development versions of v3 had a `title` property
@@ -124,6 +125,9 @@ export const TileModel = V2Model.named("TileModel")
     },
     setTransitionComplete(complete: boolean) {
       self.transitionComplete = complete
+    },
+    setUserSetTitle(userSet: boolean) {
+      self.userSetTitle = userSet
     }
   }))
   .actions(self => ({
