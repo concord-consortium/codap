@@ -8,6 +8,8 @@ $table-body-font-size: 8pt;
   width: 100%;
   height: calc(100% - vars.$title-bar-height);
   background-color: white;
+  display: flex;
+  flex-direction: column;
 
   .case-table-content {
     width: 100%;

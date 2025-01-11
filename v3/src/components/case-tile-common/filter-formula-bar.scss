@@ -1,0 +1,25 @@
+
+.filter-formula-container {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  font: 12px "MuseoSans-500", sans-serif;
+  height: 20px;
+
+  .filter-formula-label {
+    background: lightgray;
+    cursor: pointer;
+    height: 100%;
+    padding: 2px 3px;
+    max-width: 40%;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  .filter-formula-value {
+    background: #fff;
+    cursor: text;
+    flex: 1;
+    padding: 0px 3px;
+  }
+}

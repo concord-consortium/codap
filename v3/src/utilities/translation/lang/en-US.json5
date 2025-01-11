@@ -37,6 +37,7 @@
     "DG.CaseTable.attribute.type.color": "color", // used dynamically (`DG.CaseTable.attribute.type.${type}`)
     "V3.CaseTable.colorPalette.setColor": "Set Color",
     "V3.CaseTable.colorPalette.cancel": "Cancel",
+    "V3.CaseTable.formulaFilterBar.label": "Show cases only if",
     "V3.Undo.caseTable.create": "Undo adding case table",
     "V3.Redo.caseTable.create": "Redo adding case table",
     "V3.Undo.caseTable.delete": "Undo deleting case table",
@@ -824,7 +825,6 @@
     "DG.CaseTable.dividerView.collapseAllTooltip": "collapse all groups",
     "DG.CaseTable.dividerView.collapseGroupTooltip": "collapse group",
     "DG.CaseTable.indexProto.tooltip": "Drag to place data entry row within this table",
-
     // DG.CaseTableController
     "DG.CaseTableController.allTables": "All tables",
 
