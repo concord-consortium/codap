@@ -12,6 +12,7 @@ export interface ITileTitleBarProps extends ITileBaseProps {
   onHandleTitleChange?: (newValue?: string) => void
   onMinimizeTile?: () => void
   onCloseTile?: (tileId: string) => void
+  initiateEditTitle?: boolean
   preventTitleChange?: boolean
 }
 

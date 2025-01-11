@@ -170,6 +170,7 @@ context("codap plugins", () => {
 
     cy.log("Broadcast dataContextCountChanged notifications when dataset is added to document")
     table.createNewTableFromToolShelf()
+    c.getComponentTitleInput("table", 1).type("{enter}")
     webView.confirmAPITesterResponseContains(/"operation":\s"dataContextCountChanged/)
     webView.clearAPITesterResponses()
 

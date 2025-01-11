@@ -13,11 +13,11 @@ import { logMessageWithReplacement } from "../lib/log-message"
 import "./component-title-bar.scss"
 
 export const ComponentTitleBar = observer(function ComponentTitleBar({
-  tile, children, onHandleTitleChange, onMinimizeTile, onCloseTile, preventTitleChange
+  tile, children, onHandleTitleChange, onMinimizeTile, onCloseTile, preventTitleChange, initiateEditTitle
 }: ITileTitleBarProps) {
   // perform all title-related model access here so only title is re-rendered when properties change
   const title = (tile && getTitle?.(tile)) || tile?.title || ""
-  const [isEditing, setIsEditing] = useState(false)
+  const [isEditing, setIsEditing] = useState(initiateEditTitle)
   const [editingTitle, setEditingTitle] = useState(title)
   const tileId = tile?.id || ""
   const tileType = tile?.content.type

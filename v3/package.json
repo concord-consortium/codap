@@ -84,6 +84,7 @@
     "test:cypress:dev": "cypress run --env testEnv=dev",
     "test:cypress:staging": "cypress run --env testEnv=staging",
     "test:cypress:open": "cypress open --browser chrome",
+    "test:cypress:open:canary": "cypress open --browser chrome:canary",
     "test:coverage:cypress:open": "cypress open --env coverage=true",
     "test:full": "npm-run-all test test:cypress"
   },
