@@ -1,5 +1,31 @@
 # Changelog
 
+## Version 3.0.0-pre.2090 - January 10, 2025
+
+### ✨ Features & Improvements:
+- **PT-188616842:** Export Case Card and Case Table in v2 format.
+- **PT-188565497:** Map respects filter formula
+- **PT-188688712:** Allow attribute rename in formula editor
+- **PT-188624629:** Input row does not have index menu
+- **PT-187958658:** Make **input row** draggable
+- **PT-188276475:** Case table and case card show **Filter Function** when one is present
+- **PT-187953018:** New case table has edit focus in dataset name
+
+### 🐞 Bug Fixes:
+- **PT-186293627:** Datasets are getting duplicate names
+- **PT-188590488:** Default display precision for **formulas** differs between CODAP V2/Plugins and CODAP V3
+- **PT-188749138:** wordListMatches function doesn't auto update
+- **PT-188623967:** Heading formatting in the text component doesn't work.
+
+### 🛠️ Under the Hood:
+- **PT-188651494:** Get Cypress to interact with PixiJS canvas
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  187430 bytes |                             0.6% |
+|  index.js | 6365219 bytes |                           <0.00% |
+
 ## Version 3.0.0-pre.2076 - January 3, 2025
 
 ### ✨ Features & Improvements:
