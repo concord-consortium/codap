@@ -7,6 +7,7 @@ import { CaseData } from "../../data-display/d3-types"
 import { IDataSet } from "../../../models/data/data-set"
 import { dataDisplayGetNumericValue } from "../../data-display/data-display-value-utils"
 import { IGraphDataConfigurationModel } from "../models/graph-data-configuration-model"
+import { kMain } from "../../data-display/data-display-types"
 import { GraphLayout } from "../models/graph-layout"
 import { AxisPlace } from "../../axis/axis-types"
 import { SubPlotCells } from "../models/sub-plot-cells"
@@ -96,7 +97,7 @@ export const computePrimaryCoord = (props: IComputePrimaryCoord) => {
     ? primaryAxisScale(binMidpoint)
     : primaryAxisScale(dataDisplayGetNumericValue(dataset, anID, primaryAttrID) ?? NaN) / numExtraPrimaryBands
   const extraPrimaryValue = dataset?.getStrValue(anID, extraPrimaryAttrID)
-  const extraPrimaryCoord = extraPrimaryValue ? extraPrimaryAxisScale(extraPrimaryValue ?? "__main__") ?? 0 : 0
+  const extraPrimaryCoord = extraPrimaryValue ? extraPrimaryAxisScale(extraPrimaryValue ?? kMain) ?? 0 : 0
   return { primaryCoord, extraPrimaryCoord }
 }
 
@@ -110,11 +111,11 @@ export const computeSecondaryCoord = (props: IComputeSecondaryCoord) => {
           layout, numExtraSecondaryBands, overlap, pointDiameter, primaryIsBottom, secondaryAxisExtent,
           secondaryAxisScale, secondaryBandwidth, secondaryCat, secondarySign, isHistogram = false } = props
   let catCoord = (
-    !!secondaryCat && secondaryCat !== "__main__"
+    !!secondaryCat && secondaryCat !== kMain
       ? secondaryAxisScale(secondaryCat) ?? 0
       : 0
     ) / numExtraSecondaryBands
-  let extraCoord = !!extraSecondaryCat && extraSecondaryCat !== "__main__"
+  let extraCoord = !!extraSecondaryCat && extraSecondaryCat !== kMain
     ? (extraSecondaryAxisScale(extraSecondaryCat) ?? 0) : 0
 
   const subPlotCells = layout && new SubPlotCells(layout, dataConfig)
@@ -159,9 +160,9 @@ export const computeBinPlacements = (props: IComputeBinPlacements) => {
       const bin = totalNumberOfBins
         ? determineBinForCase(caseValue, binWidth, minBinEdge)
         : Math.ceil((numerator ?? 0) / binWidth)
-      const category = dataset?.getStrValue(anID, secondaryAttrID) ?? "__main__"
-      const extraCategory = dataset?.getStrValue(anID, extraSecondaryAttrID) ?? "__main__"
-      const extraPrimaryCategory = dataset?.getStrValue(anID, extraPrimaryAttrID) ?? "__main__"
+      const category = dataset?.getStrValue(anID, secondaryAttrID) ?? kMain
+      const extraCategory = dataset?.getStrValue(anID, extraSecondaryAttrID) ?? kMain
+      const extraPrimaryCategory = dataset?.getStrValue(anID, extraPrimaryAttrID) ?? kMain
   
       if (!bins[category]) {
         bins[category] = {}

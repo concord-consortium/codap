@@ -3,7 +3,7 @@ import { AxisHelper, IAxisHelperArgs } from "./axis-helper"
 import { MutableRefObject } from "react"
 import { kAxisTickLength } from "../axis-constants"
 import { otherPlace } from "../axis-types"
-import { axisPlaceToAttrRole, transitionDuration } from "../../data-display/data-display-types"
+import { kMain, transitionDuration } from "../../data-display/data-display-types"
 import {
   collisionExists, DragInfo,
   getCategoricalLabelPlacement,
@@ -19,6 +19,7 @@ export interface CatObject {
 export interface ICategoricalAxisHelperArgs extends IAxisHelperArgs {
   subAxisSelectionRef: MutableRefObject<Selection<SVGGElement, any, any, any> | undefined>
   categoriesSelectionRef: MutableRefObject<Selection<SVGGElement | BaseType, CatObject, SVGGElement, any> | undefined>
+  categoriesRef: MutableRefObject<string[]>
   swapInProgress: MutableRefObject<boolean>
   centerCategoryLabels: boolean
   dragInfo: MutableRefObject<DragInfo>
@@ -27,6 +28,7 @@ export interface ICategoricalAxisHelperArgs extends IAxisHelperArgs {
 export class CategoricalAxisHelper extends AxisHelper {
   subAxisSelectionRef: MutableRefObject<Selection<SVGGElement, any, any, any> | undefined>
   categoriesSelectionRef: MutableRefObject<Selection<SVGGElement | BaseType, CatObject, SVGGElement, any> | undefined>
+  categoriesRef: MutableRefObject<string[]>
   swapInProgress: MutableRefObject<boolean>
   centerCategoryLabels: boolean
   dragInfo: MutableRefObject<DragInfo>
@@ -35,6 +37,7 @@ export class CategoricalAxisHelper extends AxisHelper {
     super(props)
     this.subAxisSelectionRef = props.subAxisSelectionRef
     this.categoriesSelectionRef = props.categoriesSelectionRef
+    this.categoriesRef = props.categoriesRef
     this.swapInProgress = props.swapInProgress
     this.centerCategoryLabels = props.centerCategoryLabels
     this.dragInfo = props.dragInfo
@@ -48,10 +51,9 @@ export class CategoricalAxisHelper extends AxisHelper {
       dividerLength = this.layout.getAxisLength(otherPlace(this.axisPlace)) ?? 0,
       isRightCat = this.axisPlace === 'rightCat',
       isTop = this.axisPlace === 'top',
-      role = axisPlaceToAttrRole[this.axisPlace],
-      categories: string[] = this.dataConfig?.categoryArrayForAttrRole(role) ?? [],
+      categories = this.categoriesRef.current,
       numCategories = categories.length,
-      hasCategories = !(categories.length === 1 && categories[0] === "__main__"),
+      hasCategories = !(categories.length === 1 && categories[0] === kMain),
       bandWidth = this.subAxisLength / numCategories,
       collision = collisionExists({bandWidth, categories, centerCategoryLabels}),
       {rotation, textAnchor} = getCategoricalLabelPlacement(this.axisPlace, this.centerCategoryLabels,
