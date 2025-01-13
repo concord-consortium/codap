@@ -25,6 +25,7 @@ registerTileContentInfo({
   prefix: kTextIdPrefix,
   modelClass: TextModel,
   defaultContent: () => ({ type: kTextTileType }),
+  defaultName: () => t("DG.DocumentController.textTitle"),
   getTitle: (tile: ITileLikeModel) => {
     return tile.title || t("DG.DocumentController.textTitle")
   }
