@@ -1,4 +1,5 @@
 import { IDataSet } from "../../models/data/data-set"
+import { selectCases, setSelectedCases } from "../../models/data/data-set-utils"
 import { toV2Id, toV3CaseId, toV3ItemId } from "../../utilities/codap-utils"
 import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
@@ -40,7 +41,8 @@ function updateSelection(
 export const diSelectionListHandler: DIHandler = {
   create(resources: DIResources, values?: DIValues) {
     const { dataContext } = resources
-    return updateSelection("Create", dataContext, values, dataContext?.setSelectedCases)
+    const applySelection = (caseIds: string[]) => setSelectedCases(caseIds, dataContext)
+    return updateSelection("Create", dataContext, values, applySelection)
   },
   get(resources: DIResources) {
     const { collection, dataContext } = resources
@@ -60,7 +62,8 @@ export const diSelectionListHandler: DIHandler = {
   },
   update(resources: DIResources, values?: DIValues) {
     const { dataContext } = resources
-    return updateSelection("Update", dataContext, values, dataContext?.selectCases)
+    const applySelection = (caseIds: string[]) => selectCases(caseIds, dataContext)
+    return updateSelection("Update", dataContext, values, applySelection)
   }
 }
 
