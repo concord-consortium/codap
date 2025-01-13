@@ -24,6 +24,8 @@ export const SubAxis = observer(function SubAxis({
     axisProvider = useAxisProviderContext(),
     axisModel = axisProvider.getAxis?.(axisPlace),
     subWrapperElt = useRef<SVGGElement | null>(null),
+    // Kirk notes that we sometimes use state to store refs so that we get an additional render.
+    // If we encounter "one-render-behind bugs in the axis world, we should consider this approach.
     subAxisEltRef = useRef<SVGGElement | null>(null)
 
   useSubAxis({

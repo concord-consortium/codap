@@ -97,6 +97,6 @@ export const graphPlaceToAttrRole: Record<GraphPlace, GraphAttrRole> = {
   yPlus: "yPlus"
 }
 
-export const kOther = '_other_' // Used as key to category map entry that stashes overflow of what
-                                          // doesn't fit on cell axis. Not likely to be an attribute value
+export const kOther = '__other__' // Used as key to category map entry that stashes overflow of what
+                                              // doesn't fit on cell axis. Not likely to be an attribute value
 export const kMain = '__main__' // When an axis has no categories, this is its pseudo-category

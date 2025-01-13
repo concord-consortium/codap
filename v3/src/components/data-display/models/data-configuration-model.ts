@@ -107,7 +107,7 @@ export const DataConfigurationModel = types
     filteredOutCaseIds: observable.set<string>(),
     filterFormulaError: "",
     // The following is set in useSubAxis:setupCategories based on how many fit in available space
-    numberOfCategoriesLimitByRole: observable.map<AttrRole, number | undefined>()
+    numberOfCategoriesLimitByRole: observable.map<AttrRole, Maybe<number>>()
   }))
   .views(self => ({
     get axisAttributeIDs() {

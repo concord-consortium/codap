@@ -293,8 +293,8 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       binWidth = 0, minValue = 0, totalNumberOfBins = 0
     ) {
       type BinMap = Record<string, Record<string, Record<string, Record<string, number>>>>
-      const hasExtraPrimary = (self.attributeID(extraPrimaryAttrRole) ?? '') !== '',
-        hasExtraSecondary = (self.attributeID(extraSecondaryAttrRole) ?? '') !== '',
+      const hasExtraPrimary = !!self.attributeID(extraPrimaryAttrRole),
+        hasExtraSecondary = !!self.attributeID(extraSecondaryAttrRole),
         valueQuads = (self.getCaseDataArray(0) || []).map((aCaseData: CaseData) => {
           return {
             primary: (self.primaryRole && this.categoricalValueForCaseInRole(aCaseData.caseID, self.primaryRole)) ?? '',
