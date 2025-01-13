@@ -193,22 +193,25 @@ export const Graph = observer(function Graph({graphController, setGraphRef, pixi
     )
   }, [dataset, graphController, graphModel])
 
+  useEffect(() => {
+    const childMostCollectionId =
+        idOfChildmostCollectionForAttributes(graphModel.dataConfiguration.uniqueAttributes, dataset)
+    const childMostCollectionName = childMostCollectionId ? dataset?.getCollection(childMostCollectionId)?.name : ""
+    if (!tile?.userSetTitle && tile?.title !== childMostCollectionName) {
+      tile?.setTitle(childMostCollectionName)
+    }
+}, [dataset, graphModel.dataConfiguration.uniqueAttributes, tile])
+
   const handleChangeAttribute = useCallback((place: GraphPlace, dataSet: IDataSet, attrId: string,
            attrIdToRemove = "") => {
     const noAttributesAssigned = graphModel.dataConfiguration.noAttributesAssigned
     const computedPlace = place === 'plot' && noAttributesAssigned ? 'bottom' : place
     const attrRole = graphPlaceToAttrRole[computedPlace]
     const attrName = dataset?.getAttribute(attrId || attrIdToRemove)?.name
-    const childMostCollectionId =
-              idOfChildmostCollectionForAttributes(graphModel.dataConfiguration.uniqueAttributes, dataSet)
-    const childMostCollectionName = childMostCollectionId ? dataSet.getCollection(childMostCollectionId)?.name : ""
 
     graphModel.applyModelChange(
       () => {
         graphModel.setAttributeID(attrRole, dataSet.id, attrId)
-        if (!tile?.userSetTitle && tile?.title !== childMostCollectionName) {
-          tile?.setTitle(childMostCollectionName)
-        }
       },
       {
         undoStringKey: "DG.Undo.axisAttributeChange",
@@ -218,7 +221,7 @@ export const Graph = observer(function Graph({graphController, setGraphRef, pixi
               { attribute: attrName, axis: place }, "plot")
       }
     )
-  }, [dataset, graphModel, tile])
+  }, [dataset, graphModel])
 
   /**
    * Only in the case that place === 'y' and there is more than one attribute assigned to the y-axis
