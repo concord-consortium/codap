@@ -29,6 +29,8 @@ import {
   boundaryAttributeFromDataSet, datasetHasBoundaryData, datasetHasLatLongData, latLongAttributesFromDataSet
 } from "./utilities/map-utils"
 import {v2MapImporter} from "./v2-map-importer"
+import { v2MapExporter } from "./map-V2-exporter"
+import { registerV2TileExporter } from "../../v2/codap-v2-tile-exporters"
 
 MapFilterFormulaAdapter.register()
 
@@ -62,6 +64,7 @@ registerTileComponentInfo({
   defaultHeight: kDefaultMapHeight
 })
 
+registerV2TileExporter(kMapTileType, v2MapExporter)
 registerV2TileImporter("DG.MapView", v2MapImporter)
 
 registerComponentHandler(kV2MapType, {
