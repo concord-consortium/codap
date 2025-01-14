@@ -11,8 +11,7 @@ import {applyModelChange} from "../../../models/history/apply-model-change"
 import {
   getDataSetFromId, getSharedCaseMetadataFromDataset, getTileCaseMetadata, getTileDataSet
 } from "../../../models/shared/shared-data-utils"
-import {ISharedModel} from "../../../models/shared/shared-model"
-import {SharedModelChangeType} from "../../../models/shared/shared-model-manager"
+import {ISharedModel, SharedModelChangeType} from "../../../models/shared/shared-model"
 import {ITileContentModel} from "../../../models/tiles/tile-content"
 import { getFormulaManager } from "../../../models/tiles/tile-environment"
 import {typedId} from "../../../utilities/js-utils"

@@ -44,8 +44,6 @@ export const UnknownSharedModel = types.snapshotProcessor(_UnknownSharedModel, {
   }
 })
 
-export type SharedModelChangeType = "link" | "change" | "unlink"
-
 /**
  * An instance of this interface should be provided to tiles so they can interact
  * with shared models.
