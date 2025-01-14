@@ -7,7 +7,7 @@ import { v3Id, typeV3Id } from "../../utilities/codap-utils"
 import { V2Model } from "../data/v2-model"
 import { DisplayUserTypeEnum } from "../stores/user-types"
 import { ITileContentModel } from "./tile-content"
-import { findMetadata, getTileContentInfo, ITileExportOptions } from "./tile-content-info"
+import { getTileContentInfo, ITileExportOptions } from "./tile-content-info"
 import { TileContentUnion } from "./tile-content-union"
 
 // generally negotiated with app, e.g. single column width for table
@@ -133,13 +133,6 @@ export const TileModel = V2Model.named("TileModel")
     }
   }))
   .actions(self => ({
-    afterCreate() {
-      const metadata = findMetadata(self.content.type, self.id)
-      const content = self.content
-      if (metadata && content.doPostCreate) {
-        content.doPostCreate(metadata)
-      }
-    },
     afterAttach() {
       // The afterAttach() method of the tile content gets called when the content is attached to the tile,
       // which often occurs before the tile has been attached to the document. Therefore, the tile model
@@ -159,10 +152,6 @@ export const TileModel = V2Model.named("TileModel")
     },
     willRemoveFromDocument() {
       return self.content.willRemoveFromDocument?.()
-    },
-    setDisabledFeatures(disabled: string[]) {
-      const metadata: any = findMetadata(self.content.type, self.id)
-      metadata?.setDisabledFeatures?.(disabled)
     }
   }))
   .actions(applyModelChange)
