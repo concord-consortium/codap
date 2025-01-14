@@ -446,7 +446,6 @@ export const TableTileElements = {
     fh.clearFormulaInput()
     fh.addFilterFormula(formula)
     cy.get(".codap-modal-content [data-testid=Apply-button]").should("be.visible").click()
-    cy.get("[data-testid=Apply-button]").click()
   },
   verifyFormulaValues(attribute: string, values: Array<any>, collectionIndex = 1) {
     for (let rowIndex = 0; rowIndex < values.length; rowIndex++) {

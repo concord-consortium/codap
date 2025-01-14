@@ -338,7 +338,7 @@ context("case table ui", () => {
       })
     })
 
-    it.skip("behaves as expected with a filter formula", () => {
+    it("behaves as expected with a filter formula", () => {
       let initialCaseCount = 0
 
       const caseCount = (rowCount?: string) => rowCount ? +rowCount - 2 : 0
