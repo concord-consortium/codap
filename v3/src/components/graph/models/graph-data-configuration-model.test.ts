@@ -2,6 +2,7 @@ import { reaction } from "mobx"
 import {Instance, types} from "mobx-state-tree"
 import { DataSet, toCanonical } from "../../../models/data/data-set"
 import {SharedCaseMetadata} from "../../../models/shared/shared-case-metadata"
+import { kMain } from "../../data-display/data-display-types"
 import {GraphDataConfigurationModel, isGraphDataConfigurationModel} from "./graph-data-configuration-model"
 
 const TreeModel = types.model("Tree", {
@@ -294,7 +295,7 @@ describe("DataConfigurationModel", () => {
 
     config.setAttribute("y")
     expect(config.valuesForAttrRole("y")).toEqual([])
-    expect(config.categoryArrayForAttrRole("y")).toEqual(["__main__"])
+    expect(config.categoryArrayForAttrRole("y")).toEqual([kMain])
   })
 
   it("returns an array of cases in a plot", () => {

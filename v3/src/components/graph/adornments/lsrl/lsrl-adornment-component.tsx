@@ -6,7 +6,7 @@ import { t } from "../../../../utilities/translation/translate"
 import { mstAutorun } from "../../../../utilities/mst-autorun"
 import { mstReaction } from "../../../../utilities/mst-reaction"
 import { safeGetSnapshot } from "../../../../utilities/mst-utils"
-import { Point } from "../../../data-display/data-display-types"
+import { kMain, Point } from "../../../data-display/data-display-types"
 import { IAxisIntercepts, calculateSumOfSquares, curveBasis, lineToAxisIntercepts,
          lsrlEquationString } from "../../utilities/graph-utils"
 import { IAdornmentComponentProps } from "../adornment-component-info"
@@ -132,7 +132,7 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
     for (let linesIndex = 0; linesIndex < lines.length; linesIndex++) {
       const category = lines[linesIndex].category
       const caseValues = model.getCaseValues(xAttrId, yAttrId, cellKey, dataConfig, category)
-      const color = category && category !== "__main__" ? dataConfig?.getLegendColorForCategory(category) : undefined
+      const color = category && category !== kMain ? dataConfig?.getLegendColorForCategory(category) : undefined
       const { slope, intercept, rSquared } = lines[linesIndex]
       if (slope == null || intercept == null) return
       const sumOfSquares = dataConfig && showSumSquares
@@ -255,7 +255,7 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
     for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
       const lineObj: ILineObject = {}
       const lineCategory = lines[lineIndex].category
-      const catColor = lineCategory && lineCategory !== "__main__"
+      const catColor = lineCategory && lineCategory !== kMain
         ? dataConfig?.getLegendColorForCategory(lineCategory)
         : undefined
       const { slope, intercept } = lines[lineIndex]

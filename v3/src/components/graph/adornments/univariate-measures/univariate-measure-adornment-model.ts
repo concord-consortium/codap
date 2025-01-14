@@ -83,6 +83,9 @@ export const UnivariateMeasureAdornmentModel = AdornmentModel
       if (measure) {
         measure.setValue(value)
       }
+      else {
+        this.addMeasure(value, key)
+      }
     },
     removeMeasure(key: string) {
       self.measures.delete(key)
