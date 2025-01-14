@@ -86,7 +86,7 @@ context("CloudFileManager", () => {
 
     // Close the document
     // Note: because we aren't changing the document we can close it without the dialog
-    cfm.closeDocument({discardChanges: true})
+    cfm.closeDocument()
 
     // Verify document was closed (table doesn't exist)
     c.checkComponentDoesNotExist("table")
@@ -101,7 +101,7 @@ context("CloudFileManager", () => {
 
     // Close the document
     // Note: because we aren't changing the document we can close it without the dialog
-    cfm.closeDocument({discardChanges: true})
+    cfm.closeDocument()
 
     // Verify document was closed (table doesn't exist)
     c.checkComponentDoesNotExist("table")

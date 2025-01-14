@@ -357,7 +357,7 @@ context("codap plugins", () => {
 
   it("will broadcoast deleteCollection when deleting the last attribute from a collection", () => {
     cy.log("Broadcast deleteCollection notifications when deleting the final attribute")
-    cfm.openExampleDocument("Four Seals", { discardChanges: true })
+    cfm.openExampleDocument("Four Seals")
     cy.wait(2000)
     table.getTableTile().should("contain.text", "Tracks/Measurements")
     table.deleteAttribute("species")
