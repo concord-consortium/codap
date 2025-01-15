@@ -24,7 +24,7 @@ export const v2MapExporter: V2TileExportFn = ({ tile }) => {
                                   : 0
     const legendCollection = legendAttributeId && dataset
               ? dataset.getCollectionForAttribute(legendAttributeId) : undefined
-              
+
     if (dataset) {
       if (layer.type === kMapPointLayerType) {
         const {displayItemDescription, gridModel, pointsAreVisible, connectingLinesAreVisible} = layer
@@ -79,7 +79,8 @@ export const v2MapExporter: V2TileExportFn = ({ tile }) => {
               ? guidLink("DG.Attribute", toV2Id(attributeDescriptions.legend?.attributeID)) : undefined,
           },
         }
-        v2LayerModels.push(polygonLayerModel)
+        // V2 needs polygon layers appear before the point layers
+        v2LayerModels.unshift(polygonLayerModel)
       }
     }
   })
