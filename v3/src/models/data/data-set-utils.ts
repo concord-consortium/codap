@@ -1,7 +1,5 @@
 import { isAlive } from "mobx-state-tree"
 import { logMessageWithReplacement } from "../../lib/log-message"
-import { AttributeFormulaAdapter } from "../formula/attribute-formula-adapter"
-import { FilterFormulaAdapter } from "../formula/filter-formula-adapter"
 import { INotify } from "../history/apply-model-change"
 import { getSharedCaseMetadataFromDataset } from "../shared/shared-data-utils"
 import { IAttribute } from "./attribute"
@@ -12,9 +10,6 @@ import {
   moveAttributeNotification, selectCasesNotification
 } from "./data-set-notifications"
 import { IAttributeChangeResult, IMoveAttributeOptions } from "./data-set-types"
-
-AttributeFormulaAdapter.register()
-FilterFormulaAdapter.register()
 
 export function getCollectionAttrs(collection: ICollectionModel, data?: IDataSet): IAttribute[] {
   if (collection && !isAlive(collection)) {

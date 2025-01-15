@@ -1,7 +1,7 @@
 import { IDataSet } from "../data/data-set"
 import { createDataSet } from "../data/data-set-conversion"
 import { FilterFormulaAdapter } from "./filter-formula-adapter"
-import { IFormulaAdapterApi } from "./formula-manager-types"
+import { IFormulaAdapterApi } from "./formula-manager-adapter"
 import { displayToCanonical } from "./utils/canonicalization-utils"
 import { getDisplayNameMap } from "./utils/name-mapping-utils"
 

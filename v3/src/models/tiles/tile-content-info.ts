@@ -1,5 +1,5 @@
 import { IAnyStateTreeNode } from "mobx-state-tree"
-import { FormulaManagerAdapter } from "../formula/formula-manager-types"
+import { FormulaManagerAdapter } from "../formula/formula-manager-adapter"
 import { AppConfigModelType } from "../stores/app-config-model"
 import { TileContentModel, ITileContentSnapshotWithType, ITileContentModel } from "./tile-content"
 import { ITileEnvironment } from "./tile-environment"

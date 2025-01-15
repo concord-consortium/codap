@@ -13,6 +13,8 @@ import {gDataBroker} from "../models/data/data-broker"
 import {IDataSet} from "../models/data/data-set"
 import { dataContextCountChangedNotification } from "../models/data/data-set-notifications"
 import { IImportDataSetOptions } from "../models/document/document-content"
+import { AttributeFormulaAdapter } from "../models/formula/attribute-formula-adapter"
+import { FilterFormulaAdapter } from "../models/formula/filter-formula-adapter"
 import { ISharedDataSet } from "../models/shared/shared-data-set"
 import { getSharedModelManager } from "../models/tiles/tile-environment"
 import { DocumentContentContext } from "../hooks/use-document-content"
@@ -30,6 +32,9 @@ import "../models/shared/shared-case-metadata-registration"
 import "../models/shared/shared-data-set-registration"
 
 import "./app.scss"
+
+AttributeFormulaAdapter.register()
+FilterFormulaAdapter.register()
 
 registerTileTypes([])
 

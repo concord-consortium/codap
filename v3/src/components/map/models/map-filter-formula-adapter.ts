@@ -2,9 +2,8 @@ import { makeObservable } from "mobx"
 import { IAnyStateTreeNode } from "mobx-state-tree"
 import { IFormula } from "../../../models/formula/formula"
 import { registerFormulaAdapter } from "../../../models/formula/formula-adapter-registry"
-import {
-  IFormulaAdapterApi, IFormulaContext, IFormulaManagerAdapter
-} from "../../../models/formula/formula-manager-types"
+import { IFormulaContext } from "../../../models/formula/formula-manager-types"
+import { IFormulaAdapterApi } from "../../../models/formula/formula-manager-adapter"
 import { getFormulaManager } from "../../../models/tiles/tile-environment"
 import { mstReaction } from "../../../utilities/mst-reaction"
 import { isFilterFormulaDataConfiguration } from "../../data-display/models/data-configuration-model"
@@ -21,7 +20,7 @@ export interface IMapFilterFormulaExtraMetadata extends IDataDisplayFilterFormul
   mapLayerId: string
 }
 
-export class MapFilterFormulaAdapter extends DataDisplayFilterFormulaAdapter implements IFormulaManagerAdapter {
+export class MapFilterFormulaAdapter extends DataDisplayFilterFormulaAdapter {
 
   static register() {
     registerFormulaAdapter(api => new MapFilterFormulaAdapter(api))

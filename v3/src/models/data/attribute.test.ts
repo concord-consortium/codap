@@ -1,6 +1,7 @@
 import { cloneDeep } from "lodash"
 import { reaction } from "mobx"
 import { getSnapshot } from "mobx-state-tree"
+import { FormulaManager } from "../formula/formula-manager"
 import { Attribute, IAttributeSnapshot, isFormulaAttr, isValidFormulaAttr } from "./attribute"
 import { isAttributeType, importValueToString } from "./attribute-types"
 
@@ -403,7 +404,8 @@ describe("Attribute", () => {
     expect(isFormulaAttr(undefined)).toBe(false)
     expect(isValidFormulaAttr(undefined)).toBe(false)
 
-    const attr = Attribute.create({ name: "foo" })
+    const formulaManager = new FormulaManager()
+    const attr = Attribute.create({ name: "foo" }, {formulaManager})
     expect(isFormulaAttr(attr)).toBe(false)
     expect(isValidFormulaAttr(attr)).toBe(false)
 

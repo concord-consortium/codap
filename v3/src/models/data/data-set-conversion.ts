@@ -62,7 +62,7 @@ export function isLegacyDataSetSnap(snap: IDataSetSnapshot): snap is ILegacyData
           isInitialItemsDataSetSnap(snap) || isHiddenItemIdsDataSetSnap(snap)
 }
 
-export function createDataSet(snap: IDataSetSnapshot | ILegacyDataSetSnap): IDataSet {
+export function createDataSet(snap: IDataSetSnapshot | ILegacyDataSetSnap, env?: any): IDataSet {
   // preProcessSnapshot handler will perform the necessary conversion internally
-  return DataSet.create(snap as IDataSetSnapshot)
+  return DataSet.create(snap as IDataSetSnapshot, env)
 }

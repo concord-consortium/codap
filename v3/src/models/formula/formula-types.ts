@@ -1,6 +1,5 @@
 import type { ConstantNode, MathNode } from "mathjs"
 import type { FormulaMathJsScope } from "./formula-mathjs-scope"
-import type { ICase } from "../data/data-set-types"
 
 export type LookupStringConstantArg = Maybe<ConstantNode<string>>
 
@@ -57,8 +56,6 @@ export type MathJSPartitionedMap = { a: CurrentScope, b: Map<string, any>}
 export type CurrentScope = MathJSPartitionedMap | FormulaMathJsScope
 
 export type EvaluateRawFunc = (args: MathNode[], mathjs: any, currentScope: CurrentScope) => FValueOrArray
-
-export type CaseList = ICase[] | "ALL_CASES"
 
 export interface IFormulaMathjsFunction {
   // Each function needs to specify number of required arguments, so the default argument can be provided if needed.
