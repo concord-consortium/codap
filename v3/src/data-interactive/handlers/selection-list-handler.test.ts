@@ -1,4 +1,5 @@
 import { DataSet, IDataSet } from "../../models/data/data-set"
+import { AppHistoryService } from "../../models/history/app-history-service"
 import { toV2Id } from "../../utilities/codap-utils"
 import { DICase, DIValues } from "../data-interactive-types"
 import { diSelectionListHandler } from "./selection-list-handler"
@@ -11,7 +12,7 @@ describe("DataInteractive SelectionListHandler", () => {
   const caseId2 = "case2"
   const caseIdUnused = "unused"
   beforeEach(function() {
-    dataset = DataSet.create({ name: "data" })
+    dataset = DataSet.create({ name: "data" }, {historyService: new AppHistoryService()})
     dataset.addCases([{ __id__: caseId1 }, { __id__: caseId2 }])
     dataset.validateCases()
   })

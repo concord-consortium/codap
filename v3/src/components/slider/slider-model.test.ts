@@ -2,6 +2,7 @@ import { destroy, types } from "mobx-state-tree"
 import { GlobalValue, IGlobalValue } from "../../models/global/global-value"
 import { isSliderModel, SliderModel } from "./slider-model"
 import { kDefaultAnimationDirection, kDefaultAnimationMode, kDefaultAnimationRate } from "./slider-types"
+import { AppHistoryService } from "../../models/history/app-history-service"
 
 describe("SliderModel", () => {
   const mockSharedModelManagerWithoutGlobalValueManager = {
@@ -91,7 +92,7 @@ describe("SliderModel", () => {
     const tree = Tree.create({
       globalValue: g1,
       sliderModel: { globalValue: g1.id }
-    })
+    }, {historyService: new AppHistoryService()})
     const slider = tree.sliderModel
     expect(slider.isUpdatingDynamically).toBe(false)
     const initialValue = slider.value

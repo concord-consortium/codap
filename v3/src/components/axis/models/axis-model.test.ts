@@ -1,8 +1,9 @@
+import {getSnapshot, types} from "mobx-state-tree"
 import {
   AxisModel, AxisModelUnion, CategoricalAxisModel, EmptyAxisModel, IAxisModelUnion,
   isCategoricalAxisModel, isEmptyAxisModel, isNumericAxisModel, NumericAxisModel
 } from "./axis-model"
-import {getSnapshot, types} from "mobx-state-tree"
+import { AppHistoryService } from "../../../models/history/app-history-service"
 
 describe("AxisModel", () => {
   it("should error if AxisModel is instantiated directly", () => {
@@ -53,7 +54,8 @@ describe("NumericAxisModel", () => {
     expect(NumericAxisModel.create({ place: "left", min: 0, max: 10 }).orientation).toBe("vertical")
   })
   it("should set domain without undo and with undo", () => {
-    const aModel = NumericAxisModel.create({ place: "bottom", min: 0, max: 10 })
+    const aModel = NumericAxisModel.create({ place: "bottom", min: 0, max: 10 },
+      {historyService: new AppHistoryService()})
     aModel.setDynamicDomain(10, 20)
     expect(aModel.isUpdatingDynamically).toBe(true)
     expect(aModel.domain).toEqual([10, 20])

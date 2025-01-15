@@ -8,6 +8,7 @@ import { DGDataContext } from "../../models/v2/dg-data-context"
 import { t } from "../../utilities/translation/translate"
 import "./case-card.v2"
 import { SharedCaseMetadata } from "../../models/shared/shared-case-metadata"
+import { AppHistoryService } from "../../models/history/app-history-service"
 const { CaseCard } = DG.React as any
 
 describe("CaseCard component", () => {
@@ -25,7 +26,7 @@ describe("CaseCard component", () => {
   it("renders a flat data set", async () => {
     const data = createDataSet({
       attributes: [{ id: "AttrId", name: "AttrName" }]
-    })
+    }, {historyService: new AppHistoryService()})
     data.addCases([{ __id__: "Case1", AttrId: "foo" }, { __id__: "Case2", AttrId: "bar" }])
     const context = new DGDataContext(data)
     const metadata = SharedCaseMetadata.create()
@@ -168,7 +169,7 @@ describe("CaseCard component", () => {
         { id: "Attr1Id", name: "Attr1Name" },
         { id: "Attr2Id", name: "Attr2Name" }
       ]
-    })
+    }, {historyService: new AppHistoryService()})
     const metadata = SharedCaseMetadata.create()
     data.addCases([
       { __id__: "Case1", Attr1Id: "foo", Attr2Id: 1 },

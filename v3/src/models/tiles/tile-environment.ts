@@ -1,18 +1,17 @@
-import iframePhone from "iframe-phone"
 import { getEnv, hasEnv, IAnyStateTreeNode } from "mobx-state-tree"
-import { DIMessage } from "../../data-interactive/iframe-phone-types"
-import { ILogMessage } from "../../lib/log-message"
+import { ILogFunctionEnv } from "../../lib/log-message"
 // There's nothing wrong in explicit ISharedModelManager interface, but probably dependency cycle could have been also
 // avoided using `import type { SharedModelManager } from ...`.
 import { ISharedModelManager } from "../shared/shared-model-manager"
 import type { IFormulaManager } from "../formula/formula-manager-types"
 import { IGlobalValueManager, kGlobalValueManagerType } from "../global/global-value-manager"
+import { ICoreNotifyFunctionEnv } from "../../data-interactive/notification-core-types"
 
-export interface ITileEnvironment {
+export interface ITileEnvironment extends
+  Partial<ILogFunctionEnv>, Partial<ICoreNotifyFunctionEnv>
+{
   sharedModelManager?: ISharedModelManager
   formulaManager?: IFormulaManager
-  log?: (message: ILogMessage) => void
-  notify?: (message: DIMessage, callback: iframePhone.ListenerCallback, targetTileId?: string) => void
 }
 
 export function getTileEnvironment(node?: IAnyStateTreeNode) {
