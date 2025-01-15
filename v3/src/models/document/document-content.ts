@@ -1,11 +1,9 @@
-import iframePhone from "iframe-phone"
 import { Instance, SnapshotIn } from "mobx-state-tree"
 import { BaseDocumentContentModel } from "./base-document-content"
 import { urlParams } from "../../utilities/url-params"
 import { isFreeTileLayout, isFreeTileRow } from "./free-tile-row"
 import { kTitleBarHeight } from "../../components/constants"
 import { kCaseTableTileType } from "../../components/case-table/case-table-defs"
-import { DIMessage } from "../../data-interactive/iframe-phone-types"
 import { getTileComponentInfo } from "../tiles/tile-component-info"
 import { getFormulaManager, getSharedModelManager, getTileEnvironment } from "../tiles/tile-environment"
 import { getTileContentInfo } from "../tiles/tile-content-info"
@@ -19,6 +17,7 @@ import { applyModelChange } from "../history/apply-model-change"
 import { SharedCaseMetadata } from "../shared/shared-case-metadata"
 import { ISharedDataSet, SharedDataSet, kSharedDataSetType } from "../shared/shared-data-set"
 import { getSharedDataSets, linkTileToDataSet } from "../shared/shared-data-utils"
+import { TileBroadcastCallback, TileBroadcastMessage } from "../tiles/tile-content"
 
 /**
  * The DocumentContentModel is the combination of 2 parts:
@@ -78,7 +77,7 @@ export const DocumentContentModel = BaseDocumentContentModel
       // complete serialization for each row
       self.rowMap.forEach(row => row.completeSnapshot())
     },
-    broadcastMessage(message: DIMessage, callback: iframePhone.ListenerCallback, targetTileId?: string) {
+    broadcastMessage(message: TileBroadcastMessage, callback: TileBroadcastCallback, targetTileId?: string) {
       const tileIds = self.tileMap.keys()
       if (tileIds) {
         Array.from(tileIds).forEach(tileId => {

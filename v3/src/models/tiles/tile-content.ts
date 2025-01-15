@@ -1,13 +1,13 @@
-import iframePhone from "iframe-phone"
 import { getSnapshot, Instance, SnapshotIn, types } from "mobx-state-tree"
 import { SetRequired } from "type-fest"
-import { DIMessage } from "../../data-interactive/iframe-phone-types"
 import { applyModelChange } from "../history/apply-model-change"
-import { ISharedModel } from "../shared/shared-model"
-import { SharedModelChangeType } from "../shared/shared-model-manager"
+import { ISharedModel, SharedModelChangeType } from "../shared/shared-model"
 import { getTileEnvironment, ITileEnvironment } from "./tile-environment"
 import { tileModelHooks } from "./tile-model-hooks"
 import { kUnknownTileType } from "./unknown-types"
+
+export type TileBroadcastMessage = any
+export type TileBroadcastCallback = (value: any) => void
 
 // Generic "super class" of all tile content models
 export const TileContentModel = types.model("TileContentModel", {
@@ -76,7 +76,7 @@ export const TileContentModel = types.model("TileContentModel", {
     updateAfterSharedModelChanges(sharedModel: ISharedModel | undefined, type: SharedModelChangeType) {
       console.warn("updateAfterSharedModelChanges not implemented for:", self.type)
     },
-    broadcastMessage(message: DIMessage, callback: iframePhone.ListenerCallback) {
+    broadcastMessage(message: TileBroadcastMessage, callback: TileBroadcastCallback) {
       // Override in derived models as appropriate
     }
   }))
