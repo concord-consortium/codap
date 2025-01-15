@@ -10,6 +10,7 @@ describe("V2Model", () => {
     expect(m._title).toBeUndefined()
     expect(m.title).toBe("")
     expect(m.matchNameOrId("")).toBe(false)
+    expect(m.matchTitleOrNameOrId("")).toBe(false)
 
     m.setName("name")
     expect(m.id).toBeDefined()
@@ -18,6 +19,8 @@ describe("V2Model", () => {
     expect(m.title).toBe("name")
     expect(m.matchNameOrId("")).toBe(false)
     expect(m.matchNameOrId("name")).toBe(true)
+    expect(m.matchTitleOrNameOrId("")).toBe(false)
+    expect(m.matchTitleOrNameOrId("name")).toBe(true)
 
     m.setTitle("title")
     expect(m.id).toBeDefined()
@@ -27,6 +30,9 @@ describe("V2Model", () => {
     expect(m.matchNameOrId("")).toBe(false)
     expect(m.matchNameOrId("name")).toBe(true)
     expect(m.matchNameOrId("title")).toBe(false)
+    expect(m.matchTitleOrNameOrId("")).toBe(false)
+    expect(m.matchTitleOrNameOrId("name")).toBe(true)
+    expect(m.matchTitleOrNameOrId("title")).toBe(true)
   })
 
   it("can be constructed with v2Id and name", () => {

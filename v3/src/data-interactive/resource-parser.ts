@@ -73,7 +73,7 @@ export function resolveResources(
     if (selector === '#default') {
       return dataSets[0]
     }
-    return dataSets.find(dataSet => dataSet.matchNameOrId(selector))
+    return dataSets.find(dataSet => dataSet.matchTitleOrNameOrId(selector))
   }
 
   const result: DIResources = { interactiveFrame }
