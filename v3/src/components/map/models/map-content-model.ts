@@ -8,6 +8,7 @@ import {ISharedDataSet, kSharedDataSetType, SharedDataSet} from "../../../models
 import {getSharedCaseMetadataFromDataset} from "../../../models/shared/shared-data-utils"
 import {ITileContentModel} from "../../../models/tiles/tile-content"
 import { getFormulaManager } from "../../../models/tiles/tile-environment"
+import { AttributeType } from '../../../models/data/attribute-types'
 import {typedId} from "../../../utilities/js-utils"
 import {GraphPlace} from "../../axis-graph-shared"
 import {IDataConfigurationModel} from "../../data-display/models/data-configuration-model"
@@ -98,10 +99,10 @@ export const MapContentModel = DataDisplayContentModel
   .actions(self => ({
     // Each layer can have one legend attribute. The layer that can handle the given legend attribute must already
     // be present in the layers array
-    setLegendAttributeID(datasetID: string, attributeID: string) {
+    setLegendAttribute(datasetID: string, attributeID: string, type?: AttributeType) {
       const foundLayer = self.layers.find(layer => layer.data?.id === datasetID)
       if (foundLayer) {
-        foundLayer.dataConfiguration.setAttribute('legend', {attributeID})
+        foundLayer.dataConfiguration.setAttribute('legend', {attributeID, type})
       }
     },
     setCenterAndZoom(center: ILatLngSnapshot, zoom: number) {
