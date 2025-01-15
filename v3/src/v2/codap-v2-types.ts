@@ -1,5 +1,6 @@
 import { SetOptional } from "type-fest"
 import { AttributeType } from "../models/data/attribute-types"
+import { BaseMapKey } from "../components/map/map-types"
 
 export interface ICodapV2Attribute {
   guid: number
@@ -996,4 +997,28 @@ export function isCodapV2Document(content: unknown): content is ICodapV2Document
   return ((hasV2AppName || hasNoAppName) &&
           "components" in content && Array.isArray(content.components) &&
           "contexts" in content && Array.isArray(content.contexts))
+}
+
+export function baseMapStringToV2BaseMapString(baseType: BaseMapKey) {
+  switch (baseType) {
+    case "oceans": return "Oceans"
+    case "topo": return "Topographic"
+    case "streets": return "Streets"
+  }
+}
+
+export function legendTypeToV2LegendType(legendType: string) {
+  switch (legendType) {
+    case "none": return 0
+    case "numeric": return 1
+    case "categorical": return 2
+  }
+}
+
+export function legendAttributeTypeToV2LegendAttributeType(legendAttributeType: AttributeType) {
+  switch (legendAttributeType) {
+    case "numeric": return 1
+    case "categorical": return 2
+    default: return 0
+  }
 }
