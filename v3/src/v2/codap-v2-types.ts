@@ -1007,18 +1007,13 @@ export function baseMapStringToV2BaseMapString(baseType: BaseMapKey) {
   }
 }
 
-export function legendTypeToV2LegendType(legendType: string) {
-  switch (legendType) {
-    case "none": return 0
-    case "numeric": return 1
-    case "categorical": return 2
-  }
-}
-
 export function legendAttributeTypeToV2LegendAttributeType(legendAttributeType: AttributeType) {
   switch (legendAttributeType) {
     case "numeric": return 1
     case "categorical": return 2
+    case "date": return 3
+    case "boundary": return 4
+    case "color": return 5
     default: return 0
   }
 }
