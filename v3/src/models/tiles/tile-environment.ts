@@ -5,12 +5,12 @@ import { ILogMessage } from "../../lib/log-message"
 // There's nothing wrong in explicit ISharedModelManager interface, but probably dependency cycle could have been also
 // avoided using `import type { SharedModelManager } from ...`.
 import { ISharedModelManager } from "../shared/shared-model-manager"
-import type { FormulaManager } from "../formula/formula-manager"
+import type { IFormulaManager } from "../formula/formula-manager-types"
 import { IGlobalValueManager, kGlobalValueManagerType } from "../global/global-value-manager"
 
 export interface ITileEnvironment {
   sharedModelManager?: ISharedModelManager
-  formulaManager?: FormulaManager
+  formulaManager?: IFormulaManager
   log?: (message: ILogMessage) => void
   notify?: (message: DIMessage, callback: iframePhone.ListenerCallback, targetTileId?: string) => void
 }

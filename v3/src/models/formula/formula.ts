@@ -1,9 +1,6 @@
-import { Instance, types } from "mobx-state-tree"
-import { parse } from "mathjs"
+import { Instance, SnapshotIn, types } from "mobx-state-tree"
 import { typedId } from "../../utilities/js-utils"
 import { getFormulaManager } from "../tiles/tile-environment"
-import { preprocessDisplayFormula } from "./utils/canonicalization-utils"
-import { isRandomFunctionPresent } from "./utils/misc"
 
 export const Formula = types.model("Formula", {
   id: types.optional(types.identifier, () => typedId("FORM")),
@@ -14,24 +11,25 @@ export const Formula = types.model("Formula", {
 }))
 .views(self => ({
   get formulaManager() {
-    return getFormulaManager(self)
+    const manager = getFormulaManager(self)
+    if (!manager) {
+      throw new Error("Using the Formula model requires a FormulaManger")
+    }
+    return manager
   },
   get empty() {
     return self.display.length === 0
   },
+}))
+.views(self => ({
   get syntaxError() {
-    try {
-      parse(preprocessDisplayFormula(self.display))
-    } catch (error: any) {
-      return error.message
-    }
-    return null
+    return self.formulaManager.getSyntaxError(self.display)
   },
   get valid() {
-    return !this.empty && !this.syntaxError
+    return !self.empty && !this.syntaxError
   },
   get isRandomFunctionPresent() {
-    return isRandomFunctionPresent(self.canonical)
+    return self.formulaManager.isRandomFunctionPresent(self.canonical)
   },
 }))
 .actions(self => ({
@@ -42,8 +40,9 @@ export const Formula = types.model("Formula", {
     self.canonical = canonicalExpression
   },
   rerandomize() {
-    self.formulaManager?.recalculateFormula(self.id)
+    self.formulaManager.rerandomize(self.id)
   }
 }))
 
 export interface IFormula extends Instance<typeof Formula> {}
+export interface IFormulaSnapshot extends SnapshotIn<typeof Formula> {}

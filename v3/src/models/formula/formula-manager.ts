@@ -1,23 +1,25 @@
 import { comparer, makeObservable, observable, reaction, action } from "mobx"
 import { addDisposer } from "mobx-state-tree"
+import { parse } from "mathjs"
 import { boundaryManager, BoundaryManager } from "../boundaries/boundary-manager"
 import { IDataSet } from "../data/data-set"
 import { ICase } from "../data/data-set-types"
 import { IGlobalValueManager } from "../global/global-value-manager"
 import { IFormula } from "./formula"
 import {
-  IFormulaAdapterApi, IFormulaExtraMetadata, IFormulaManagerAdapter, IFormulaMetadata
-} from "./formula-manager-types"
+  IFormulaExtraMetadata, IFormulaManagerAdapter, IFormulaMetadata,
+  IFormulaManager
+, CaseList } from "./formula-manager-types"
+import { IFormulaAdapterApi } from "./formula-manager-adapter"
 import {
   observeBoundaries, observeGlobalValues, observeLocalAttributes, observeLookupDependencies, observeSymbolNameChanges
 } from "./formula-observers"
-import { CaseList } from "./formula-types"
-import { canonicalToDisplay, displayToCanonical } from "./utils/canonicalization-utils"
+import { canonicalToDisplay, displayToCanonical, preprocessDisplayFormula } from "./utils/canonicalization-utils"
 import { getFormulaDependencies } from "./utils/formula-dependency-utils"
-import { formulaError } from "./utils/misc"
+import { formulaError, isRandomFunctionPresent } from "./utils/misc"
 import { getCanonicalNameMap, getDisplayNameMap } from "./utils/name-mapping-utils"
 
-export class FormulaManager {
+export class FormulaManager implements IFormulaManager {
   formulaMetadata = new Map<string, IFormulaMetadata>()
   extraMetadata = new Map<string, IFormulaExtraMetadata>()
 
@@ -320,4 +322,22 @@ export class FormulaManager {
       }
     })
   }
+
+  getSyntaxError(displayString: string) {
+    try {
+      parse(preprocessDisplayFormula(displayString))
+    } catch (error: any) {
+      return error.message
+    }
+    return null
+  }
+
+  isRandomFunctionPresent(canonicalString: string) {
+    return isRandomFunctionPresent(canonicalString)
+  }
+
+  rerandomize(formulaId: string) {
+    this.recalculateFormula(formulaId)
+  }
+
 }

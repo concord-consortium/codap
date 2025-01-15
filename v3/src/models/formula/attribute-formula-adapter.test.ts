@@ -1,6 +1,7 @@
 import { IDataSet } from "../data/data-set"
 import { createDataSet } from "../data/data-set-conversion"
 import { AttributeFormulaAdapter } from "./attribute-formula-adapter"
+import { FormulaManager } from "./formula-manager"
 import { localAttrIdToCanonical } from "./utils/name-mapping-utils"
 
 const getTestEnv = () => {
@@ -55,12 +56,13 @@ describe("AttributeFormulaAdapter", () => {
 
   describe("getFormulaError", () => {
     it("should detect dependency cycles", () => {
+      const formulaManager = new FormulaManager()
       const dataSet = createDataSet({
         attributes: [
           { name: "foo", formula: { display: "bar + 1" } },
           { name: "bar", formula: { display: "foo + 1" } }
         ]
-      })
+      }, {formulaManager})
       dataSet.attributes[0].formula!.setCanonicalExpression(
         `${localAttrIdToCanonical(dataSet.attrIDFromName("bar")!)} + 1`
       )

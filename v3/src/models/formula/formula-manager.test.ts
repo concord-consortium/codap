@@ -1,5 +1,6 @@
 import { observable, runInAction } from "mobx"
-import { IDataSet } from "../data/data-set"
+import { castToSnapshot, types } from "mobx-state-tree"
+import { DataSet, IDataSet } from "../data/data-set"
 import { createDataSet } from "../data/data-set-conversion"
 import { Formula, IFormula } from "./formula"
 import { FormulaManager } from "./formula-manager"
@@ -28,14 +29,23 @@ const getFakeAdapter = (formula: IFormula, dataSet: IDataSet) => {
   }
 }
 
+const Container = types.model("Container", {
+  dataSet: DataSet,
+  formula: Formula
+})
+
 const getManagerWithFakeAdapter = () => {
+  const formulaManager = new FormulaManager()
   const dataSet = createDataSet({ attributes: [{ name: "foo" }] })
   const formula = Formula.create({ display: formulaDisplay })
+  Container.create({
+    dataSet: castToSnapshot(dataSet),
+    formula
+  }, {formulaManager})
   const adapter = getFakeAdapter(formula, dataSet)
-  const manager = new FormulaManager()
-  manager.addDataSet(dataSet)
-  manager.addAdapters([adapter])
-  return { manager, adapter, formula, dataSet }
+  formulaManager.addDataSet(dataSet)
+  formulaManager.addAdapters([adapter])
+  return { manager: formulaManager, adapter, formula, dataSet }
 }
 
 describe("FormulaManager", () => {
@@ -79,20 +89,20 @@ describe("FormulaManager", () => {
 
   describe("when formula has a circular dependency", () => {
     it("registers formulas in a way that lets circular detection algorithm to work correctly", () => {
-      // This test is a bit specific ot the attribute formula adapter, but it's pretty important as it ensures
+      // This test is a bit specific to the attribute formula adapter, but it's pretty important as it ensures
       // that FormulaManager.registerAllFormulas is implemented in a way that delays error detection until all
       // the formulas are registered (necessary for circular dependency detection to work correctly).
+      const formulaManager = new FormulaManager()
       const dataSet = createDataSet({
         attributes: [
           { name: "foo", formula: { display: "bar + 1" } },
           { name: "bar", formula: { display: "foo + 1" } }
         ]
-      })
+      }, {formulaManager})
       dataSet.addCases([{ __id__: "1" }])
-      const manager = new FormulaManager()
-      const adapter = new AttributeFormulaAdapter(manager.getAdapterApi())
-      manager.addDataSet(dataSet)
-      manager.addAdapters([adapter])
+      const adapter = new AttributeFormulaAdapter(formulaManager.getAdapterApi())
+      formulaManager.addDataSet(dataSet)
+      formulaManager.addAdapters([adapter])
 
       expect(dataSet.getValueAtItemIndex(0, dataSet.attrFromName("foo")?.id || "")).toMatch(/Circular reference/)
       expect(dataSet.getValueAtItemIndex(0, dataSet.attrFromName("bar")?.id || "")).toMatch(/Circular reference/)

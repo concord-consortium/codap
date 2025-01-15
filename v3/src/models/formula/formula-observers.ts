@@ -7,8 +7,9 @@ import { SetCaseValuesAction } from "../data/data-set-actions"
 import { ICase } from "../data/data-set-types"
 import { IGlobalValueManager } from "../global/global-value-manager"
 import {
-  CaseList, IFormulaDependency, ILocalAttributeDependency, ILookupDependency
+  IFormulaDependency, ILocalAttributeDependency, ILookupDependency
 } from "./formula-types"
+import { CaseList } from "./formula-manager-types"
 
 export const isAttrDefined = (dataSetCase: ICase, attributeId?: string) =>
   !!attributeId && Object.prototype.hasOwnProperty.call(dataSetCase, attributeId)

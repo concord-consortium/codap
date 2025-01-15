@@ -4,17 +4,15 @@ import { isFilterFormulaDataSet } from "../data/data-set"
 import { ICase } from "../data/data-set-types"
 import { IFormula } from "./formula"
 import { registerFormulaAdapter } from "./formula-adapter-registry"
-import {
-  FormulaManagerAdapter,
-  type IFormulaAdapterApi, type IFormulaContext, type IFormulaExtraMetadata, type IFormulaManagerAdapter
-} from "./formula-manager-types"
+import { type IFormulaContext, type IFormulaExtraMetadata } from "./formula-manager-types"
+import { FormulaManagerAdapter, type IFormulaAdapterApi } from "./formula-manager-adapter"
 import { FormulaMathJsScope } from "./formula-mathjs-scope"
 import { math } from "./functions/math"
 import { formulaError } from "./utils/misc"
 
 const FILTER_FORMULA_ADAPTER = "FilterFormulaAdapter"
 
-export class FilterFormulaAdapter extends FormulaManagerAdapter implements IFormulaManagerAdapter {
+export class FilterFormulaAdapter extends FormulaManagerAdapter {
 
   static register() {
     registerFormulaAdapter(api => new FilterFormulaAdapter(api))
