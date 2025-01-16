@@ -9,6 +9,7 @@ describe("V2Model", () => {
     expect(m.name).toBe("")
     expect(m._title).toBeUndefined()
     expect(m.title).toBe("")
+    expect(m.userSetTitle).toBe(false)
     expect(m.matchNameOrId("")).toBe(false)
     expect(m.matchTitleOrNameOrId("")).toBe(false)
 
@@ -17,6 +18,7 @@ describe("V2Model", () => {
     expect(m.name).toBe("name")
     expect(m._title).toBeUndefined()
     expect(m.title).toBe("name")
+    expect(m.userSetTitle).toBe(false)
     expect(m.matchNameOrId("")).toBe(false)
     expect(m.matchNameOrId("name")).toBe(true)
     expect(m.matchTitleOrNameOrId("")).toBe(false)
@@ -27,6 +29,7 @@ describe("V2Model", () => {
     expect(m.name).toBe("name")
     expect(m._title).toBe("title")
     expect(m.title).toBe("title")
+    expect(m.userSetTitle).toBe(true)
     expect(m.matchNameOrId("")).toBe(false)
     expect(m.matchNameOrId("name")).toBe(true)
     expect(m.matchNameOrId("title")).toBe(false)

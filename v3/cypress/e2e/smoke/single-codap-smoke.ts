@@ -140,6 +140,14 @@ context("codap single smoke test", () => {
   })
   it("verify an empty CODAP document appears and components open", () => {
     cy.log("verifies that toolshelf items open")
+    // graphs with no associated data set should not have a title but show a blank space when hovered
+    // So we test this here before we create a new data set
+    cy.log("will open a blank graph")
+    c.clickIconFromToolShelf("graph")
+    c.getComponentTitleBar("graph").trigger("mouseover")
+    c.getComponentTitle("graph").should("have.text", "_____")
+    c.closeComponent("graph")
+
     cy.log("will open a new table")
     c.clickIconFromToolShelf("table")
     toolbar.getNewCaseTable().click()
@@ -149,14 +157,10 @@ context("codap single smoke test", () => {
     toolbar.getDatasetListedInToolShelf("New Dataset").should("be.visible")
     c.closeComponent("table")
 
-    cy.log("will open a graph")
+    cy.log("will open a graph with new dataset")
     c.clickIconFromToolShelf("graph")
     graph.getGraphTile().should("be.visible")
-    // graphs with no associated data set should not have a title but show a blank space when hovered
-    c.getComponentTitle("graph").should("have.text", "New Dataset")
-    // This is the expected behavior, but there's a bug. PT-#188439366
-    //c.getComponentTitleBar("graph").trigger("mouseover")
-    //c.getComponentTitle("graph").should("have.text", "_____")
+    c.getComponentTitle("graph").should("have.text", "Cases")
     c.closeComponent("graph")
 
     cy.log("will open a map")

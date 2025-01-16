@@ -7,7 +7,7 @@ import { ColorPickerPaletteElements as cpp} from "../support/elements/color-pick
 import { AxisHelper as ah } from "../support/helpers/axis-helper"
 import graphRules from '../fixtures/graph-rules.json'
 
-const collectionName = "Mammals"
+const collectionName = "Cases"
 const newCollectionName = "Animals"
 const plots = graphRules.plots
 

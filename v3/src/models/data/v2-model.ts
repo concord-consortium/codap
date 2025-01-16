@@ -11,6 +11,9 @@ export const V2Model = types.model("V2Model", {
   get title() {
     return self._title ?? self.name
   },
+  get userSetTitle() {
+    return self._title != null
+  },
   matchNameOrId(nameOrId: string | number) {
     /* eslint-disable eqeqeq */
     return (!!self.name && self.name == nameOrId) ||
