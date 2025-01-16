@@ -1,4 +1,5 @@
 import { DataSet } from "../../models/data/data-set"
+import { AppHistoryService } from "../../models/history/app-history-service"
 
 export const testCases = [
   { a1: "a", a2: "x", a3: 1, a4: -1 },
@@ -19,7 +20,7 @@ export const setupTestDataset = (options?: ITestDatasetOptions) => {
       { name: "collection2" },
       { name: "collection3" }
     ]
-  })
+  }, {historyService: new AppHistoryService()})
   const [c1, c2] = dataset.collections
   const a1 = dataset.addAttribute({ name: "a1" }, { collection: c1.id })
   const a2 = dataset.addAttribute({ name: "a2" }, { collection: c2.id })

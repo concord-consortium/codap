@@ -1,3 +1,4 @@
+import { IDragNotificationValue } from "../../data-interactive/notification-full-types"
 import { IDataSet } from "../../models/data/data-set"
 import { toV2Id } from "../../utilities/codap-utils"
 import { DEBUG_PLUGINS, debugLog } from "../debug"
@@ -32,7 +33,7 @@ export function dragNotification(
   }
 
   const resource = `dragDrop[attribute]`
-  const values = { operation, text, attribute, collection, context, ...extraValues }
+  const values: IDragNotificationValue = { operation, text, attribute, collection, context, ...extraValues }
   const callback = _callback ?? makeCallback(operation)
   return { message: { action, resource, values }, callback }
 }

@@ -1,7 +1,7 @@
 import { isAlive } from "mobx-state-tree"
 import { logMessageWithReplacement } from "../../lib/log-message"
-import { INotify } from "../history/apply-model-change"
 import { getSharedCaseMetadataFromDataset } from "../shared/shared-data-utils"
+import { INotify } from "../history/history-service"
 import { IAttribute } from "./attribute"
 import { ICollectionModel } from "./collection"
 import { IDataSet } from "./data-set"

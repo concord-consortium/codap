@@ -1,7 +1,4 @@
-import iframePhone from "iframe-phone"
 import { addDisposer, onAction } from "mobx-state-tree"
-import { DIMessage } from "../../data-interactive/iframe-phone-types"
-import { ILogMessage } from "../../lib/log-message"
 import { Logger } from "../../lib/logger"
 import { createFormulaAdapters } from "../formula/formula-adapter-registry"
 import { FormulaManager } from "../formula/formula-manager"
@@ -10,6 +7,8 @@ import { ITileEnvironment } from "../tiles/tile-environment"
 import { DocumentModel, IDocumentModelSnapshot } from "./document"
 import { IDocumentEnvironment } from "./document-environment"
 import { SharedModelDocumentManager } from "./shared-model-document-manager"
+import { AppHistoryService } from "../history/app-history-service"
+import { IHistoryServiceEnv } from "../history/history-service"
 
 /**
  * Create a DocumentModel and add a new sharedModelManager into its environment
@@ -21,9 +20,11 @@ export const createDocumentModel = (snapshot?: IDocumentModelSnapshot) => {
   const sharedModelManager = new SharedModelDocumentManager()
   const formulaManager = new FormulaManager()
   const adapterApi = formulaManager.getAdapterApi()
-  const fullEnvironment: ITileEnvironment & {documentEnv: IDocumentEnvironment} = {
+  const historyService = new AppHistoryService()
+  const fullEnvironment: ITileEnvironment & IHistoryServiceEnv & {documentEnv: IDocumentEnvironment} = {
     sharedModelManager,
     formulaManager,
+    historyService,
     documentEnv: {}
   }
 
@@ -49,16 +50,16 @@ export const createDocumentModel = (snapshot?: IDocumentModelSnapshot) => {
     .forEach((model: ISharedDataSet) => formulaManager.addDataSet(model.dataSet))
 
   // configure logging
-  fullEnvironment.log = function({ message, args, category }: ILogMessage) {
+  fullEnvironment.log = function({ message, args, category }) {
     Logger.log(message, args, category)
   }
 
   // configure notifications
-  fullEnvironment.notify = function(
-    message: DIMessage, callback: iframePhone.ListenerCallback, targetTileId?: string
-  ) {
+  fullEnvironment.notify = function(message, callback, targetTileId) {
     document.content?.broadcastMessage(message, callback, targetTileId)
   }
+
+  historyService.setDependencies(fullEnvironment)
 
   // In CLUE we handled exceptions thrown by DocumentModel.create and returned a document
   // with a contentError property. This way the document object would be treated like any
