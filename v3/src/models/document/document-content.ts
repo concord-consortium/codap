@@ -16,7 +16,8 @@ import { gDataBroker } from "../data/data-broker"
 import { applyModelChange } from "../history/apply-model-change"
 import { SharedCaseMetadata } from "../shared/shared-case-metadata"
 import { ISharedDataSet, SharedDataSet, kSharedDataSetType } from "../shared/shared-data-set"
-import { getSharedDataSets, linkTileToDataSet } from "../shared/shared-data-utils"
+import { getSharedDataSets } from "../shared/shared-data-utils"
+import { linkTileToDataSet } from "./data-set-linking"
 import { TileBroadcastCallback, TileBroadcastMessage } from "../tiles/tile-content"
 
 /**
