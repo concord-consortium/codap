@@ -5,11 +5,14 @@ export const V2Model = types.model("V2Model", {
   id: typeV3Id(""),
   // required for objects in documents
   name: "",
-  _title: types.maybe(types.string),
+  _title: types.maybe(types.string)
 })
 .views(self => ({
   get title() {
     return self._title ?? self.name
+  },
+  get userSetTitle() {
+    return self._title != null
   },
   matchNameOrId(nameOrId: string | number) {
     /* eslint-disable eqeqeq */
