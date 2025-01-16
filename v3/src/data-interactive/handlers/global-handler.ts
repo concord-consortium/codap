@@ -1,6 +1,7 @@
 import { kDefaultSliderName, kDefaultSliderValue } from "../../components/slider/slider-utils"
 import { appState } from "../../models/app-state"
-import { getGlobalValueManager, getSharedModelManager } from "../../models/tiles/tile-environment"
+import { getSharedModelManager } from "../../models/tiles/tile-environment"
+import { getGlobalValueManager } from "../../models/global/global-value-manager"
 import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIGlobal, DIHandler, DIResources, DIValues } from "../data-interactive-types"
