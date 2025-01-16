@@ -4,7 +4,6 @@ import { ILogFunctionEnv } from "../../lib/log-message"
 // avoided using `import type { SharedModelManager } from ...`.
 import { ISharedModelManager } from "../shared/shared-model-manager"
 import type { IFormulaManager } from "../formula/formula-manager-types"
-import { IGlobalValueManager, kGlobalValueManagerType } from "../global/global-value-manager"
 import { ICoreNotifyFunctionEnv } from "../../data-interactive/notification-core-types"
 
 export interface ITileEnvironment extends
@@ -24,8 +23,4 @@ export function getSharedModelManager(node?: IAnyStateTreeNode) {
 
 export function getFormulaManager(node?: IAnyStateTreeNode) {
   return getTileEnvironment(node)?.formulaManager
-}
-
-export function getGlobalValueManager(sharedModelManager?: ISharedModelManager) {
-  return sharedModelManager?.getSharedModelsByType(kGlobalValueManagerType)?.[0] as IGlobalValueManager | undefined
 }
