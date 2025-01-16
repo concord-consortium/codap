@@ -20,6 +20,11 @@ export const V2Model = types.model("V2Model", {
     /* eslint-enable eqeqeq */
   }
 }))
+.views(self => ({
+  matchTitleOrNameOrId(titleOrNameOrId: string | number) {
+    return (self.title && self.title === titleOrNameOrId) || self.matchNameOrId(titleOrNameOrId)
+  }
+}))
 .actions(self => ({
   // some models allow changing name
   setName(name: string) {

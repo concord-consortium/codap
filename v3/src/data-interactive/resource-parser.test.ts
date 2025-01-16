@@ -28,6 +28,9 @@ describe("DataInteractive ResourceParser", () => {
     expect(resolve("dataContext[data]").dataContext?.id).toBe(dataset.id)
     expect(resolve(`dataContext[${toV2Id(dataset.id)}]`).dataContext?.id).toBe(dataset.id)
     expect(resolve("dataContext[unknown]").dataContext).toBeUndefined()
+    // finds dataContext by user-set title
+    dataset.setTitle("NewTitle")
+    expect(resolve("dataContext[NewTitle]").dataContext?.id).toBe(dataset.id)
   })
 
   it("finds components", () => {
