@@ -6,12 +6,12 @@ import React from "react"
 import { CaseTableComponent } from "./case-table-component"
 import { CaseTableModel } from "./case-table-model"
 import { DataSetContext } from "../../hooks/use-data-set-context"
+import { ITileSelection, TileSelectionContext } from "../../hooks/use-tile-selection-context"
 import { useKeyStates } from "../../hooks/use-key-states"
 import { DataBroker } from "../../models/data/data-broker"
 import { DataSet, toCanonical } from "../../models/data/data-set"
 import { ITileModel, TileModel } from "../../models/tiles/tile-model"
 import "./case-table-registration"
-import { ITileSelection, TileSelectionContext } from "../../hooks/use-tile-selection-context"
 
 jest.mock("./case-table-shared.scss", () => ({
   headerRowHeight: "30"

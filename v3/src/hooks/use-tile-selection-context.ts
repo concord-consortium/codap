@@ -8,7 +8,7 @@ export interface ITileSelection {
 export const TileSelectionContext = createContext<ITileSelection | undefined>(undefined)
 
 /**
- * The methods of ITileSelection apply to the tile the current component
+ * The methods of ITileSelection apply to the component in which the hook is used
  *
  * @returns ITileSelection
  */

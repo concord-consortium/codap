@@ -4,6 +4,7 @@ import { isAlive } from "mobx-state-tree"
 import React, { useMemo, useRef } from "react"
 import { CodapComponentContext } from "../hooks/use-codap-component-context"
 import { TileModelContext } from "../hooks/use-tile-model-context"
+import { ITileSelection, TileSelectionContext } from "../hooks/use-tile-selection-context"
 import { InspectorPanelWrapper } from "./inspector-panel-wrapper"
 import { ITileBaseProps } from "./tiles/tile-base-props"
 import { getTileComponentInfo } from "../models/tiles/tile-component-info"
@@ -12,7 +13,6 @@ import { uiState } from "../models/ui-state"
 import ResizeHandle from "../assets/icons/icon-corner-resize-handle.svg"
 
 import "./codap-component.scss"
-import { ITileSelection, TileSelectionContext } from "../hooks/use-tile-selection-context"
 
 export interface IProps extends ITileBaseProps {
   tile: ITileModel
