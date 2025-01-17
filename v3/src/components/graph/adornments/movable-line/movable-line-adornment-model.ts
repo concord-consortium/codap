@@ -6,11 +6,12 @@ import { IAxisModel } from "../../../axis/models/axis-model"
 import { computeSlopeAndIntercept } from "../../utilities/graph-utils"
 import { kMovableLineType } from "./movable-line-adornment-types"
 import { ILineDescription } from "../shared-adornment-types"
+import { JsonNumber } from "../../../../utilities/json-number"
 
 export const MovableLineInstance = types.model("MovableLineInstance", {
   equationCoords: types.maybe(PointModel),
   intercept: types.number,
-  slope: types.number,
+  slope: JsonNumber,
 })
 .volatile(() => ({
   dynamicIntercept: undefined as number | undefined,
