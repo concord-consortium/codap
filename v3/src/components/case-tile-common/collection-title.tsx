@@ -8,7 +8,7 @@ import { clsx } from "clsx"
 import AddIcon from "../../assets/icons/icon-add-circle.svg"
 import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
-import { useTileModelContext } from "../../hooks/use-tile-model-context"
+import { useTileSelectionContext } from "../../hooks/use-tile-selection-context"
 import { logModelChangeFn } from "../../lib/log-message"
 import { updateCollectionNotification } from "../../models/data/data-set-notifications"
 import { preventCollectionReorg } from "../../utilities/plugin-utils"
@@ -24,7 +24,7 @@ export const CollectionTitle = observer(function CollectionTitle({onAddNewAttrib
   const collectionId = useCollectionContext()
   const collection = data?.getCollection(collectionId)
   const collectionName = collection?.name || t("DG.AppController.createDataSet.collectionName")
-  const { isTileSelected } = useTileModelContext()
+  const { isTileSelected } = useTileSelectionContext()
   const caseCount = data?.getCasesForCollection(collection?.id).length ?? 0
   const tileRef = useRef<HTMLDivElement | null>(null)
   const contentRef = useRef<HTMLDivElement | null>(null)

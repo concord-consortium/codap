@@ -1,11 +1,11 @@
 import { useEffect } from "react"
-import { useTileModelContext } from "../../../hooks/use-tile-model-context"
+import { useTileSelectionContext } from "../../../hooks/use-tile-selection-context"
 import { PixiPoints, PixiPointsArray } from "../pixi/pixi-points"
 
 type OnPointerDownCallback = (event: PointerEvent, pixiPoints: PixiPoints) => void
 
 export function usePixiPointerDown(pixiPointsArray: PixiPointsArray, onPointerDown: OnPointerDownCallback) {
-  const { isTileSelected } = useTileModelContext()
+  const { isTileSelected } = useTileSelectionContext()
 
   useEffect(() => {
     const handlePointerDownCapture = (event: PointerEvent) => {

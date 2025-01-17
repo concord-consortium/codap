@@ -5,7 +5,7 @@ import {
 import { kDragContainerClass } from "../components/container/container-constants"
 import { IDataSet } from "../models/data/data-set"
 import { useInstanceIdContext } from "./use-instance-id-context"
-import { useTileModelContext } from "./use-tile-model-context"
+import { useTileSelectionContext } from "./use-tile-selection-context"
 
 // list of draggable types
 export const DragTypes = ["attribute", "row", "tile"] as const
@@ -72,7 +72,7 @@ export const useTileDroppable = (
 }
 
 export const useDropHandler = (dropId: string, onDrop?: (active: Active) => void) => {
-  const { selectTile } = useTileModelContext()
+  const { selectTile } = useTileSelectionContext()
   useDndMonitor({ onDragEnd: ({ active, over }) => {
     // only call onDrop for the handler that registered it
     if (over?.id === dropId) {

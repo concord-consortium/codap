@@ -1,7 +1,7 @@
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import { isAlive } from "mobx-state-tree"
-import React, { useRef } from "react"
+import React, { useMemo, useRef } from "react"
 import { CodapComponentContext } from "../hooks/use-codap-component-context"
 import { TileModelContext } from "../hooks/use-tile-model-context"
 import { InspectorPanelWrapper } from "./inspector-panel-wrapper"
@@ -12,6 +12,7 @@ import { uiState } from "../models/ui-state"
 import ResizeHandle from "../assets/icons/icon-corner-resize-handle.svg"
 
 import "./codap-component.scss"
+import { ITileSelection, TileSelectionContext } from "../hooks/use-tile-selection-context"
 
 export interface IProps extends ITileBaseProps {
   tile: ITileModel
@@ -41,6 +42,15 @@ export const CodapComponent = observer(function CodapComponent({
     }
   }
 
+  const tileSelection = useMemo<ITileSelection>(() => ({
+    isTileSelected() {
+      return uiState.isFocusedTile(tile?.id)
+    },
+    selectTile() {
+      uiState.setFocusedTile(tile?.id)
+    }
+  }), [tile])
+
   if (!info) return null
 
   const { TitleBar, Component, tileEltClass, isFixedWidth, isFixedHeight } = info
@@ -48,30 +58,32 @@ export const CodapComponent = observer(function CodapComponent({
                     { shadowed: uiState.isFocusedTile(tile.id) || uiState.isHoveredTile(tile.id) })
   return (
     <TileModelContext.Provider value={tile}>
-      <CodapComponentContext.Provider value={codapComponentRef}>
-        <div className={classes} ref={codapComponentRef} key={tile.id} data-testid={tileEltClass}
-          onFocus={handleFocusTile} onPointerDownCapture={handleFocusTile}>
-          <TitleBar tile={tile} onMinimizeTile={onMinimizeTile} onCloseTile={onCloseTile}/>
-          <Component tile={tile} isMinimized={isMinimized} />
-          {onRightPointerDown && !isFixedWidth && !isMinimized &&
-            <div className="codap-component-border right" onPointerDown={onRightPointerDown}/>}
-          {onBottomPointerDown && !isFixedHeight && !isMinimized &&
-            <div className="codap-component-border bottom" onPointerDown={onBottomPointerDown}/>}
-          {onLeftPointerDown && !isFixedWidth && !isMinimized &&
-            <div className="codap-component-border left" onPointerDown={onLeftPointerDown}/>}
-          {onBottomLeftPointerDown && !(isFixedWidth && isFixedHeight) && !isMinimized &&
-            <div className="codap-component-corner bottom-left" onPointerDown={onBottomLeftPointerDown}/>
-          }
-          {onBottomRightPointerDown && !(isFixedWidth && isFixedHeight) && !isMinimized &&
-            <div className="codap-component-corner bottom-right" onPointerDown={onBottomRightPointerDown}>
-              {(uiState.isFocusedTile(tile.id)) && !isMinimized &&
-                <ResizeHandle className="component-resize-handle"/>}
-            </div>
-          }
+      <TileSelectionContext.Provider value={tileSelection}>
+        <CodapComponentContext.Provider value={codapComponentRef}>
+          <div className={classes} ref={codapComponentRef} key={tile.id} data-testid={tileEltClass}
+            onFocus={handleFocusTile} onPointerDownCapture={handleFocusTile}>
+            <TitleBar tile={tile} onMinimizeTile={onMinimizeTile} onCloseTile={onCloseTile}/>
+            <Component tile={tile} isMinimized={isMinimized} />
+            {onRightPointerDown && !isFixedWidth && !isMinimized &&
+              <div className="codap-component-border right" onPointerDown={onRightPointerDown}/>}
+            {onBottomPointerDown && !isFixedHeight && !isMinimized &&
+              <div className="codap-component-border bottom" onPointerDown={onBottomPointerDown}/>}
+            {onLeftPointerDown && !isFixedWidth && !isMinimized &&
+              <div className="codap-component-border left" onPointerDown={onLeftPointerDown}/>}
+            {onBottomLeftPointerDown && !(isFixedWidth && isFixedHeight) && !isMinimized &&
+              <div className="codap-component-corner bottom-left" onPointerDown={onBottomLeftPointerDown}/>
+            }
+            {onBottomRightPointerDown && !(isFixedWidth && isFixedHeight) && !isMinimized &&
+              <div className="codap-component-corner bottom-right" onPointerDown={onBottomRightPointerDown}>
+                {(uiState.isFocusedTile(tile.id)) && !isMinimized &&
+                  <ResizeHandle className="component-resize-handle"/>}
+              </div>
+            }
 
-        </div>
-        <InspectorPanelWrapper tile={tile} isMinimized={isMinimized} />
-      </CodapComponentContext.Provider>
+          </div>
+          <InspectorPanelWrapper tile={tile} isMinimized={isMinimized} />
+        </CodapComponentContext.Provider>
+      </TileSelectionContext.Provider>
     </TileModelContext.Provider>
   )
 })
