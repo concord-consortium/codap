@@ -883,6 +883,7 @@ export const DataSet = V2Model.named("DataSet").props({
         withoutUndo({ suppressWarning: true })
         self.collections.forEach(collection => collection.prepareSnapshot())
         self.attributes.forEach(attr => attr.prepareSnapshot())
+        self.snapSelection.replace(Array.from(self.selection))
       },
       // should be called after retrieving snapshot (post-serialization)
       completeSnapshot() {
@@ -1231,6 +1232,9 @@ export const DataSet = V2Model.named("DataSet").props({
     if (!self.collections.length) {
       self.addCollection({ name: t("DG.AppController.createDataSet.collectionName") })
     }
+
+    // initialize selection
+    self.selection.replace(self.snapSelection)
 
     // initialize setAsideItemIdsSet
     self.setAsideItemIdsSet.replace(self.setAsideItemIds)
