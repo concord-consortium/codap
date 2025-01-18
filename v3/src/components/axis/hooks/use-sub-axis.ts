@@ -177,9 +177,9 @@ export const useSubAxis = ({
       subAxisSelectionRef.current = select(subAxisElt)
       const sAS = subAxisSelectionRef.current
 
-      select(subAxisElt).selectAll('*').remove()  // start over
-
-      sAS.attr('class', 'axis').append('line')
+      if (sAS.select('line').empty()) {
+        sAS.append('line').attr('class', 'axis')
+      }
       categoriesSelectionRef.current = sAS.selectAll('g')
         .data(categoryData)
         .join(
@@ -196,19 +196,25 @@ export const useSubAxis = ({
       categoriesSelectionRef.current.each(function () {
         const catGroup = select(this)
         // ticks
-        catGroup.append('line')
-          .attr('class', 'tick')
-          .attr('data-testid', 'tick')
+        if (catGroup.select('.tick').empty()) {
+          catGroup.append('line')
+            .attr('class', 'tick')
+            .attr('data-testid', 'tick')
+        }
         // divider between groups
-        catGroup.append('line')
-          .attr('class', 'divider')
-          .attr('data-testid', 'divider')
+        if (catGroup.select('.divider').empty()) {
+          catGroup.append('line')
+            .attr('class', 'divider')
+            .attr('data-testid', 'divider')
+        }
         // labels
-        catGroup.append('text')
-          .attr('class', 'category-label')
-          .attr('data-testid', 'category-label')
-          .attr('x', 0)
-          .attr('y', 0)
+        if (catGroup.select('.category-label').empty()) {
+          catGroup.append('text')
+            .attr('class', 'category-label')
+            .attr('data-testid', 'category-label')
+            .attr('x', 0)
+            .attr('y', 0)
+        }
       })
 
       const multiScale = layout.getAxisMultiScale(axisPlace),
@@ -292,9 +298,17 @@ export const useSubAxis = ({
           multiScale?.setScaleType('linear')  // Make sure it's linear
           if (JSON.stringify(domain) !== JSON.stringify(multiScale?.numericScale?.domain())) {
             multiScale?.setNumericDomain(domain)
+            // We're now only rendering if the domains are different, but we used to render every time
+            // because apparently it's possible to get here in undo/redo situations where the domain
+            // hasn't actually changed, but we don't get the desired results without rerendering.
+            // If that bug still occurs, hopefully we can find a different way to fix it.
+            renderSubAxis()
           }
-          // Render regardless because we can get here during undo/redo with the domains identical
-          renderSubAxis()
+          else if (axisProvider.pointDisplayType === 'bars') {
+            // Special case because we have to insure bars have one end at zero and this doesn't happen just
+            // considering the domain.
+            renderSubAxis()
+          }
         }
       } else if (_axisModel) {
         console.warn("useSubAxis.installDomainSync skipping sync of defunct axis model")
@@ -329,6 +343,10 @@ export const useSubAxis = ({
     if (!attrID) {
       return // We don't have an attribute. We're a count axis, so we rely on other methods for domain updates
     }
+    const domainsAreDifferent = (domain1: readonly [number, number], domain2: readonly [number, number]) => {
+      return domain1[0] !== domain2[0] || domain1[1] !== domain2[1]
+    }
+
     if (isCategoricalAxisModel(axisModel)) {
       setupCategories()
       const categoryValues = categoriesRef.current,
@@ -336,6 +354,7 @@ export const useSubAxis = ({
         existingCategoryDomain = multiScale?.categoricalScale?.domain() ?? []
       if (JSON.stringify(categoryValues) === JSON.stringify(existingCategoryDomain)) return
       multiScale?.setCategoricalDomain(categoryValues)
+      renderSubAxis()
     } else if (isBaseNumericAxisModel(axisModel)) {
       const currentAxisDomain = axisModel.domain
       const multiScale = layout.getAxisMultiScale(axisPlace)
@@ -347,21 +366,14 @@ export const useSubAxis = ({
         niceBounds.min = Math.min(niceBounds.min, currentAxisDomain[0])
         niceBounds.max = Math.max(niceBounds.max, currentAxisDomain[1])
       }
-      multiScale?.setNumericDomain([niceBounds.min, niceBounds.max])
-      setNiceDomain(numericValues, axisModel)
+      if (domainsAreDifferent(currentAxisDomain, [niceBounds.min, niceBounds.max]) ||
+        domainsAreDifferent(multiScale?.numericDomain ?? [NaN, NaN], [niceBounds.min, niceBounds.max])) {
+        multiScale?.setNumericDomain([niceBounds.min, niceBounds.max])
+        setNiceDomain(numericValues, axisModel)
+        renderSubAxis()
+      }
     }
-    renderSubAxis()
   }, [axisModel, axisPlace, dataConfig, layout, renderSubAxis, setupCategories])
-
-  useEffect(function respondToSelectionChanges() {
-    if (dataConfig?.dataset) {
-      return mstReaction(
-        () => dataConfig.displayOnlySelectedCases && dataConfig?.dataset?.selectionChanges,
-        () => updateDomainAndRenderSubAxis(),
-        {name: "useSubAxis.respondToSelectionChanges"}, dataConfig
-      )
-    }
-  }, [dataConfig, updateDomainAndRenderSubAxis])
 
   useEffect(function respondToHiddenCasesChange() {
     if (dataConfig) {

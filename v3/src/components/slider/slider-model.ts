@@ -30,7 +30,8 @@ export const SliderModel = TileContentModel
     _animationRate: types.maybe(types.number),  // frames per second
     scaleType: types.optional(types.enumeration([...SliderScaleTypes]), kDefaultSliderScaleType),
     axis: types.optional(types.union(NumericAxisModel, DateAxisModel),
-      () => NumericAxisModel.create({ place: 'bottom', min: kDefaultSliderAxisMin, max: kDefaultSliderAxisMax }))
+      () => NumericAxisModel.create({ place: 'bottom', min: kDefaultSliderAxisMin, max: kDefaultSliderAxisMax })),
+    pointDisplayType: types.optional(types.string, "points"),
   })
   .views(self => ({
     get name() {

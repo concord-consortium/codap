@@ -11,7 +11,8 @@ import { IUseAxis, useAxis } from "./use-axis"
 import { AxisProviderContext } from "./use-axis-provider-context"
 
 const TestAxisProvider = types.model("TestAxisProvider", {
-  axis: NumericAxisModel
+  axis: NumericAxisModel,
+  pointDisplayType: "points"
 })
 .views(self => ({
   getAxis() {

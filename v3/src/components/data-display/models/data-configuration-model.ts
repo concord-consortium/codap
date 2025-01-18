@@ -228,8 +228,12 @@ export const DataConfigurationModel = types
     // This function can be called either here in this base class or in a subclass to handle the situation in which
     // caseArrayNumber === 0.
     _filterCase(data: IDataSet, caseID: string) {
-      // If the case is hidden or filtered out we don't plot it
-      if (self.hiddenCasesSet.has(caseID) || self.filteredOutCaseIds.has(caseID)) return false
+      // If the case is hidden or filtered out we don't plot it.
+      // Also, if displayOnlySelectedCases is true, we only plot selected cases.
+      if (self.hiddenCasesSet.has(caseID) || self.filteredOutCaseIds.has(caseID) ||
+        (self.displayOnlySelectedCases && self.dataset && !self.dataset.isCaseSelected(caseID))) {
+        return false
+      }
       return this._caseHasValidValuesForDescriptions(data, caseID, self.attributeDescriptions)
     },
   }))
