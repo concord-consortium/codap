@@ -298,10 +298,6 @@ export const useSubAxis = ({
           multiScale?.setScaleType('linear')  // Make sure it's linear
           if (JSON.stringify(domain) !== JSON.stringify(multiScale?.numericScale?.domain())) {
             multiScale?.setNumericDomain(domain)
-            // We're now only rendering if the domains are different, but we used to render every time
-            // because apparently it's possible to get here in undo/redo situations where the domain
-            // hasn't actually changed, but we don't get the desired results without rerendering.
-            // If that bug still occurs, hopefully we can find a different way to fix it.
             renderSubAxis()
           }
           else if (axisProvider.pointDisplayType === 'bars') {
