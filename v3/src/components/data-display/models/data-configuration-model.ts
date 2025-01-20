@@ -756,6 +756,9 @@ export const DataConfigurationModel = types
       categorySet?.setColorForCategory(cat, color)
     },
     setNumberOfCategoriesLimitForRole(role: AttrRole, limit: number | undefined) {
+      if (limit !== undefined && limit <= 0) {
+        limit = undefined
+      }
       self.numberOfCategoriesLimitByRole.set(role, limit)
       self.categoryArrayForAttrRole.invalidate(role)
     },
