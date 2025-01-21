@@ -1,7 +1,7 @@
 import { IButtonSpec, SlateToolbar, ToolbarTransform } from "@concord-consortium/slate-editor"
 import { observer } from "mobx-react-lite"
 import React from "react"
-import { useTileModelContext } from "../../hooks/use-tile-model-context"
+import { useTileSelectionContext } from "../../hooks/use-tile-selection-context"
 import { useDocumentContainerContext } from "../../hooks/use-document-container-context"
 
 const buttonOrder = [
@@ -41,7 +41,7 @@ export const transformToolbarButtons: ToolbarTransform = (buttons) => {
 
 export const TextToolbar = observer(function TextToolbar() {
   const documentContainerRef = useDocumentContainerContext()
-  const { isTileSelected } = useTileModelContext()
+  const { isTileSelected } = useTileSelectionContext()
 
   return (
     <div className="codap-toolbar-wrapper">

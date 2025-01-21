@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from "react"
 import { DataGridHandle } from "react-data-grid"
-import { useTileModelContext } from "../../hooks/use-tile-model-context"
+import { useTileSelectionContext } from "../../hooks/use-tile-selection-context"
 import { selectAllCases } from "../../models/data/data-set-utils"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useCodapComponentContext } from "../../hooks/use-codap-component-context"
@@ -16,7 +16,7 @@ export function useWhiteSpaceClick({ gridRef }: IProps) {
   // If user clicks on the whitespace of the table and the table is not focused,
   // then the table should be focused and the selection should not be cleared.
   // So we track if the table is in focus and if it was in focus before.
-  const { isTileSelected } = useTileModelContext()
+  const { isTileSelected } = useTileSelectionContext()
   const isFocusedTileRef = useRef(isTileSelected())
   const wasFocusedTileRef = useRef(isTileSelected())
   const isFocusedTile = isTileSelected()
