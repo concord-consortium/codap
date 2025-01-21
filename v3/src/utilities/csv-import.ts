@@ -19,7 +19,7 @@ export function convertParsedCsvToDataSet(results: CsvParseResult, filename: str
   // trim all values
   results.data.forEach(row => {
     for (const key in row) {
-      row[key] = row[key].trim()
+      row[key] = typeof row[key] === 'string' ? row[key].trim() : row[key]
     }
   })
 
