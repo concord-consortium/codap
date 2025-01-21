@@ -13,7 +13,7 @@ export function importValueToString(value: IValueType): string {
     return ""
   }
   if (typeof value === "string") {
-    return value
+    return value.trim()
   }
   if (value instanceof Date) {
     return formatStdISODateString(value)
