@@ -7,7 +7,6 @@ export interface IAxisProvider {
   getNumericAxis: (place: AxisPlace) => IBaseNumericAxisModel | undefined
   hasDraggableNumericAxis: (axisModel: IAxisModel) => boolean
   nonDraggableAxisTicks: (formatter: (value: number) => string) => { tickValues: number[], tickLabels: string[] }
-  pointDisplayType: string
 }
 
 export const AxisProviderContext = createContext<Maybe<IAxisProvider>>(undefined)

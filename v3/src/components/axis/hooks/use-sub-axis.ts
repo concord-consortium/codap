@@ -298,13 +298,9 @@ export const useSubAxis = ({
           multiScale?.setScaleType('linear')  // Make sure it's linear
           if (JSON.stringify(domain) !== JSON.stringify(multiScale?.numericScale?.domain())) {
             multiScale?.setNumericDomain(domain)
-            renderSubAxis()
           }
-          else if (axisProvider.pointDisplayType === 'bars') {
-            // Special case because we have to insure bars have one end at zero and this doesn't happen just
-            // considering the domain.
-            renderSubAxis()
-          }
+          // Render regardless because otherwise only the "master" subAxis renders
+          renderSubAxis()
         }
       } else if (_axisModel) {
         console.warn("useSubAxis.installDomainSync skipping sync of defunct axis model")

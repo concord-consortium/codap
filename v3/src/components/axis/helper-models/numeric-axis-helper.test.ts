@@ -29,8 +29,7 @@ describe("NumericAxisHelper", () => {
         hasDraggableNumericAxis: jest.fn().mockReturnValue(true),
         nonDraggableAxisTicks: jest.fn().mockReturnValue({ tickValues: [], tickLabels: [] }),
         getAxis: jest.fn(),
-        getNumericAxis: jest.fn(),
-        pointDisplayType: "points"
+        getNumericAxis: jest.fn()
       },
       subAxisIndex: 0,
       subAxisElt: document.createElementNS("http://www.w3.org/2000/svg", "g"),
