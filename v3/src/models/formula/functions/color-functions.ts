@@ -5,7 +5,13 @@ export const colorFunctions = {
   // rgb(red, green, blue)
   rgb: {
     numOfRequiredArguments: 3,
-    evaluate: (...args: FValue[]) => {return `rgb(${args.join(", ")})`}
+    evaluate: (...args: FValue[]) => {
+                if (args.some(arg => typeof arg !== "number")) {
+
+                  return ""
+                }
+                return `rgb(${args.join(", ")})`
+              }
   },
 
   // rgba(...args)

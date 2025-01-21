@@ -1,7 +1,9 @@
 import { create, all, MathNode } from "mathjs"
 import {
+  CODAPColorFunctionRegistry,
   CODAPMathjsFunctionRegistry, CurrentScope, EvaluateFunc, EvaluateFuncWithAggregateContextSupport, EvaluateRawFunc,
-  FValue, FValueOrArray
+  FValue, FValueOrArray,
+  isColorFunction
 } from "../formula-types"
 import { aggregateFunctions } from "./aggregate-functions"
 import { arithmeticFunctions } from "./arithmetic-functions"
@@ -15,6 +17,7 @@ import { otherFunctions } from "./other-functions"
 import { semiAggregateFunctions } from "./semi-aggregate-functions"
 import { stringFunctions } from "./string-functions"
 import { univariateStatsFunctions } from "./univariate-stats-functions"
+import { colorFunctions } from "./color-functions"
 
 export const math = create(all)
 
@@ -88,7 +91,9 @@ export const fnRegistry = {
 
   ...bivariateStatsFunctions,
 
-  ...semiAggregateFunctions
+  ...semiAggregateFunctions,
+
+  ...colorFunctions
 }
 
 export const typedFnRegistry: CODAPMathjsFunctionRegistry = fnRegistry
@@ -96,32 +101,34 @@ export const typedFnRegistry: CODAPMathjsFunctionRegistry = fnRegistry
 // import the new function in the Mathjs namespace
 Object.keys(typedFnRegistry).forEach((key) => {
   const fn = typedFnRegistry[key]
-  let evaluateRaw = fn.evaluateRaw
-  if (!evaluateRaw && fn.evaluate) {
-    // Some simpler functions can be defined with evaluate function instead of evaluateRaw. In that case, we need to
-    // convert evaluate function to evaluateRaw function.
-    evaluateRaw = evaluateToEvaluateRaw(evaluateWithAggregateContextSupport(fn.evaluate))
-  }
-  if (!fn.isOperator && !evaluateRaw) {
-    throw new Error("evaluateRaw or evaluate function must be defined for non-operator functions")
-  }
-  if (evaluateRaw) {
-    if (fn.isAggregate) {
-      evaluateRaw = evaluateRawWithAggregateContext(evaluateRaw)
+  if (!isColorFunction(fn)) {
+    let evaluateRaw = fn.evaluateRaw
+    if (!evaluateRaw && fn.evaluate) {
+      // Some simpler functions can be defined with evaluate function instead of evaluateRaw. In that case, we need to
+      // convert evaluate function to evaluateRaw function.
+      evaluateRaw = evaluateToEvaluateRaw(evaluateWithAggregateContextSupport(fn.evaluate))
     }
-    if (fn.cachedEvaluateFactory) {
-      // Use cachedEvaluateFactory if it's defined. Currently it's defined only for aggregate functions.
-      evaluateRaw = fn.cachedEvaluateFactory(key, evaluateRaw)
+    if (!fn.isOperator && !evaluateRaw) {
+      throw new Error("evaluateRaw or evaluate function must be defined for non-operator functions")
     }
-    if (fn.numOfRequiredArguments > 0) {
-      evaluateRaw = evaluateRawWithDefaultArg(evaluateRaw, fn.numOfRequiredArguments)
+    if (evaluateRaw) {
+      if (fn.isAggregate) {
+        evaluateRaw = evaluateRawWithAggregateContext(evaluateRaw)
+      }
+      if (fn.cachedEvaluateFactory) {
+        // Use cachedEvaluateFactory if it's defined. Currently it's defined only for aggregate functions.
+        evaluateRaw = fn.cachedEvaluateFactory(key, evaluateRaw)
+      }
+      if (fn.numOfRequiredArguments > 0) {
+        evaluateRaw = evaluateRawWithDefaultArg(evaluateRaw, fn.numOfRequiredArguments)
+      }
+      // MathJS expects rawArgs property to be set on the evaluate function
+      (evaluateRaw as any).rawArgs = true
     }
-    // MathJS expects rawArgs property to be set on the evaluate function
-    (evaluateRaw as any).rawArgs = true
+    math.import({
+      [key]: evaluateRaw || (fn.evaluateOperator && evaluateWithAggregateContextSupport(fn.evaluateOperator))
+    }, {
+      override: true // override functions already defined by mathjs
+    })
   }
-  math.import({
-    [key]: evaluateRaw || (fn.evaluateOperator && evaluateWithAggregateContextSupport(fn.evaluateOperator))
-  }, {
-    override: true // override functions already defined by mathjs
-  })
 })

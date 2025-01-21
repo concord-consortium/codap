@@ -57,9 +57,16 @@ export type CurrentScope = MathJSPartitionedMap | FormulaMathJsScope
 
 export type EvaluateRawFunc = (args: MathNode[], mathjs: any, currentScope: CurrentScope) => FValueOrArray
 
-export interface IFormulaMathjsFunction {
+interface IFormulaBaseFunction {
   // Each function needs to specify number of required arguments, so the default argument can be provided if needed.
   numOfRequiredArguments: number
+  // `evaluate` function accepts arguments already processed and evaluated by mathjs.
+  evaluate?: EvaluateFunc
+}
+
+export interface IFormulaMathjsFunction extends IFormulaBaseFunction {
+  // // Each function needs to specify number of required arguments, so the default argument can be provided if needed.
+  // numOfRequiredArguments: number
   rawArgs?: boolean
   // Value of isOperator is a boolean. When true, it means that the function is an operator.
   isOperator?: boolean
@@ -76,8 +83,8 @@ export interface IFormulaMathjsFunction {
   // Self reference might be used to define a formula that calculates the cumulative value, e.g.:
   // `CumulativeValue` attribute formula: `Value + prev(CumulativeValue, 0)`
   selfReferenceAllowed?: boolean
-  // `evaluate` function accepts arguments already processed and evaluated by mathjs.
-  evaluate?: EvaluateFunc
+  // // `evaluate` function accepts arguments already processed and evaluated by mathjs.
+  // evaluate?: EvaluateFunc
   // `evaluateRaw` function accepts raw arguments following convention defined by mathjs.
   // This lets us enable custom processing of arguments, caching, etc.
   evaluateRaw?: EvaluateRawFunc
@@ -89,4 +96,14 @@ export interface IFormulaMathjsFunction {
   cachedEvaluateFactory?: (fnName: string, evaluate: EvaluateRawFunc) => EvaluateRawFunc
 }
 
+export interface IFormulaColorFunction extends IFormulaBaseFunction {
+  isColorFunction: true
+}
+
 export type CODAPMathjsFunctionRegistry = Record<string, IFormulaMathjsFunction>
+export type CODAPColorFunctionRegistry = Record<string, IFormulaColorFunction>
+
+// Type guard for CODAPColorFunctionRegistry
+export function isColorFunction(fn: any): fn is IFormulaColorFunction {
+  return typeof fn === 'function' && fn.isColorFunction !== undefined
+}
