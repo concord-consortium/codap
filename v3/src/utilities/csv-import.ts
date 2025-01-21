@@ -16,13 +16,20 @@ export function downloadCsvFile(dataUrl: string,
 }
 
 export function convertParsedCsvToDataSet(results: CsvParseResult, filename: string) {
+  // trim all values
+  results.data.forEach(row => {
+    for (const key in row) {
+      row[key] = row[key].trim()
+    }
+  })
+
   // Remove extension
   // From https://stackoverflow.com/questions/4250364/how-to-trim-a-file-extension-from-a-string-in-javascript
   const name = filename.replace(/\.[^/.]+$/, "")
   const ds = DataSet.create({ name })
   // add attributes (extracted from first case)
   for (const pName in results.data[0]) {
-    ds.addAttribute({name: pName})
+    ds.addAttribute({name: pName.trim()})
   }
   // add cases
   ds.addCases(results.data, { canonicalize: true })
