@@ -2,8 +2,6 @@ import { Descendant, SlateExchangeValue } from "@concord-consortium/slate-editor
 import {
   ICodapV2CollectionV3, ICodapV2DataContext, ICodapV2DataContextStorage, ICodapV2ExternalContext
 } from "./codap-v2-data-set-types"
-import { BaseMapKey } from "../components/map/map-types"
-import { AttributeType } from "../models/data/attribute-types"
 
 export interface ICodapV2GameContextStorage extends ICodapV2DataContextStorage {
   gameName?: string | null
@@ -552,7 +550,7 @@ export function isV2MapLegacyStorage(obj: unknown): obj is ICodapV2MapCurrentSto
   return !!obj && typeof obj === "object" && "legendRole" in obj && obj.legendRole != null
 }
 
-interface ICodapV2MapLayerBaseStorage {
+export interface ICodapV2MapLayerBaseStorage {
   _links_: {
     context: IGuidLink<"DG.DataContextRecord">
     // TODO_V2_IMPORT hiddenCases are not imported
@@ -562,9 +560,10 @@ interface ICodapV2MapLayerBaseStorage {
     legendColl?: IGuidLink<"DG.Collection">,
     // We sometimes see an array of links here
     legendAttr?: IGuidLink<"DG.Attribute"> | IGuidLink<"DG.Attribute">[],
-    // TODO_V2_IMPORT tHiddenCases
+    // V2_IMPORT_IGNORE tHiddenCases
     // this occurs 523 times in cfm-shared
     // in all cases the value is `[]`
+    // seems like detritus from an earlier bug
     tHiddenCases?: unknown[]
   }
   legendRole: number
@@ -833,23 +832,4 @@ export function isCodapV2Document(content: unknown): content is ICodapV2Document
   return ((hasV2AppName || hasNoAppName) &&
           "components" in content && Array.isArray(content.components) &&
           "contexts" in content && Array.isArray(content.contexts))
-}
-
-export function baseMapStringToV2BaseMapString(baseType: BaseMapKey) {
-  switch (baseType) {
-    case "oceans": return "Oceans"
-    case "topo": return "Topographic"
-    case "streets": return "Streets"
-  }
-}
-
-export function legendAttributeTypeToV2LegendAttributeType(legendAttributeType: AttributeType) {
-  switch (legendAttributeType) {
-    case "numeric": return 1
-    case "categorical": return 2
-    case "date": return 3
-    case "boundary": return 4
-    case "color": return 5
-    default: return 0
-  }
 }

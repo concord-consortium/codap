@@ -1,6 +1,7 @@
-import {LatLngBounds, Layer, Map as LeafletMap, Polygon} from 'leaflet'
+import {LatLngBounds, Layer, Map as LeafletMap, Polygon} from "leaflet"
 import {comparer, reaction, when} from "mobx"
 import {addDisposer, getSnapshot, Instance, SnapshotIn, types} from "mobx-state-tree"
+import { AttributeType } from "../../../models/data/attribute-types"
 import {IDataSet} from "../../../models/data/data-set"
 import {applyModelChange} from "../../../models/history/apply-model-change"
 import {withoutUndo} from "../../../models/history/without-undo"
@@ -8,7 +9,6 @@ import {ISharedDataSet, kSharedDataSetType, SharedDataSet} from "../../../models
 import {getSharedCaseMetadataFromDataset} from "../../../models/shared/shared-data-utils"
 import {ITileContentModel} from "../../../models/tiles/tile-content"
 import { getFormulaManager } from "../../../models/tiles/tile-environment"
-import { AttributeType } from '../../../models/data/attribute-types'
 import {typedId} from "../../../utilities/js-utils"
 import {GraphPlace} from "../../axis-graph-shared"
 import {IDataConfigurationModel} from "../../data-display/models/data-configuration-model"
