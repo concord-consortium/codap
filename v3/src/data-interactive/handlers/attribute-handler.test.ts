@@ -1,6 +1,6 @@
 import { Attribute } from "../../models/data/attribute"
 import { diAttributeHandler } from "./attribute-handler"
-import { DIResultAttributes } from "../data-interactive-types"
+import { DIResultAttributes } from "../data-interactive-data-set-types"
 import { DataSet } from "../../models/data/data-set"
 import { setupTestDataset } from "./handler-test-utils"
 import { AppHistoryService } from "../../models/history/app-history-service"

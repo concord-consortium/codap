@@ -1,6 +1,6 @@
 import { IValueType } from "../models/data/attribute-types"
 import { ICollectionLabels } from "../models/data/collection"
-import { ICodapV2Attribute, ICodapV2Collection, ICodapV2DataContext } from "../v2/codap-v2-types"
+import { ICodapV2Attribute, ICodapV2Collection, ICodapV2DataContext } from "../v2/codap-v2-data-set-types"
 
 export type DICaseValue = IValueType
 export type DICaseValues = Record<string, DICaseValue>
@@ -58,19 +58,6 @@ export interface DINotifyDataContext {
   request?: string
   caseIDs?: number[]
 }
-export interface DIGetCaseResult {
-  case: {
-    id?: number
-    parent?: number
-    collection?: {
-      id?: number
-      name?: string
-    }
-    values?: DICaseValues
-    children?: number[]
-  }
-  caseIndex?: number
-}
 
 export type DIItem = DICaseValues
 export type DIItemValues = DIItem | { id?: string | number; values: DIItem}
@@ -90,17 +77,9 @@ export interface DINewCase {
 export interface DIUpdateCase {
   values: DICaseValues
 }
-export interface DIDeleteCollectionResult {
-  collections?: number[]
-}
 export interface DIUpdateCollection {
   title?: string
   labels?: DICollectionLabels
-}
-export interface DIUpdateItemResult {
-  changedCases?: number[]
-  createdCases?: number[]
-  deletedCases?: number[]
 }
 export interface DIUpdateDataContext extends DIDataContext {
   managingController?: string
@@ -108,4 +87,30 @@ export interface DIUpdateDataContext extends DIDataContext {
     attr?: string
     isDescending?: boolean
   }
+}
+
+// types returned as outputs by the API
+
+export type DIResultAttributes = { attrs: ICodapV2Attribute[]}
+
+export interface DIGetCaseResult {
+  case: {
+    id?: number
+    parent?: number
+    collection?: {
+      id?: number
+      name?: string
+    }
+    values?: DICaseValues
+    children?: number[]
+  }
+  caseIndex?: number
+}
+export interface DIUpdateItemResult {
+  changedCases?: number[]
+  createdCases?: number[]
+  deletedCases?: number[]
+}
+export interface DIDeleteCollectionResult {
+  collections?: number[]
 }

@@ -7,9 +7,10 @@ import { v2ModelSnapshotFromV2ModelStorage } from "../models/data/v2-model"
 import { IGlobalValue } from "../models/global/global-value"
 import { getSharedCaseMetadataFromDataset } from "../models/shared/shared-data-utils"
 import { kAttrIdPrefix, maybeToV2Id, toV2Id, toV3AttrId } from "../utilities/codap-utils"
+import { ICodapV2DataContextV3 } from "../v2/codap-v2-types"
 import {
-  ICodapV2Attribute, ICodapV2Case, ICodapV2CollectionV3, ICodapV2DataContextV3, v3TypeFromV2TypeString
-} from "../v2/codap-v2-types"
+  ICodapV2Attribute, ICodapV2Case, ICodapV2CollectionV3, v3TypeFromV2TypeString
+} from "../v2/codap-v2-data-set-types"
 import { DIResources, DISingleValues } from "./data-interactive-types"
 import { DIGetCaseResult, DIAttribute } from "./data-interactive-data-set-types"
 import { getCaseValues } from "./data-interactive-utils"

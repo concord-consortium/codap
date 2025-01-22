@@ -6,12 +6,11 @@ import { IDataSet } from "../models/data/data-set"
 import { ICase, ICaseID } from "../models/data/data-set-types"
 import { IGlobalValue } from "../models/global/global-value"
 import { ITileModel } from "../models/tiles/tile-model"
-import { ICodapV2Attribute } from "../v2/codap-v2-types"
 import { V2SpecificComponent } from "./data-interactive-component-types"
 import {
   DIAllCases, DIAttribute, DIAttributeLocationValues, DICase, DICreateCollection,
   DIDataContext, DIDeleteCollectionResult, DIGetCaseResult, DIItemValues, DINewCase,
-  DINotifyAttribute, DINotifyDataContext, DIUpdateCase, DIUpdateItemResult
+  DINotifyAttribute, DINotifyDataContext, DIResultAttributes, DIUpdateCase, DIUpdateItemResult
 } from "./data-interactive-data-set-types"
 
 export type DIComponent = ITileModel
@@ -99,7 +98,6 @@ export type DISingleValues = DIAttribute | DINotifyAttribute | DIAttributeLocati
 export type DIValues = DISingleValues | DISingleValues[] | number | string[]
 
 // types returned as outputs by the API
-export type DIResultAttributes = { attrs: ICodapV2Attribute[] }
 export type DIResultSingleValues = DICase | DIComponentInfo |  DIDataDisplay | DIGetCaseResult | DIGlobal
   | DIInteractiveFrame
 

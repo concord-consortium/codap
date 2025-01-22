@@ -2,9 +2,9 @@ import {ITileModelSnapshotIn} from "../../models/tiles/tile-model"
 import {toV3Id} from "../../utilities/codap-utils"
 import {V2TileImportArgs} from "../../v2/codap-v2-tile-importers"
 import {
-  isV2MapComponent, isV2MapCurrentStorage, isV2MapPointLayerStorage, isV2MapPolygonLayerStorage,
-  v3TypeFromV2TypeIndex
+  isV2MapComponent, isV2MapCurrentStorage, isV2MapPointLayerStorage, isV2MapPolygonLayerStorage
 } from "../../v2/codap-v2-types"
+import {v3TypeFromV2TypeIndex} from "../../v2/codap-v2-data-set-types"
 import {AttrRole} from "../data-display/data-display-types"
 import {IAttributeDescriptionSnapshot, kDataConfigurationType} from "../data-display/models/data-configuration-model"
 import {IMapModelContentSnapshot} from "./models/map-content-model"

@@ -1,7 +1,7 @@
 import { getSnapshot } from "mobx-state-tree"
 import { appState } from "../../models/app-state"
 import { getSharedCaseMetadataFromDataset, getSharedDataSets } from "../../models/shared/shared-data-utils"
-import { ICodapV2CollectionV3 } from "../../v2/codap-v2-types"
+import { ICodapV2CollectionV3 } from "../../v2/codap-v2-data-set-types"
 import { toV2Id, toV3CollectionId } from "../../utilities/codap-utils"
 import { DIValues } from "../data-interactive-types"
 import { DICollection, DIDeleteCollectionResult } from "../data-interactive-data-set-types"
