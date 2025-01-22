@@ -11,10 +11,13 @@ import {
   kItemIdPrefix, toV3AttrId, toV3CaseId, toV3CollectionId, toV3DataSetId, v3Id
 } from "../utilities/codap-utils"
 import {
-  CodapV2Component, CodapV2Context, ICodapV2Attribute, ICodapV2Case, ICodapV2Collection, ICodapV2DocumentJson,
-  isV2ExternalContext, isV2InternalContext, ICodapV2SetAsideItem, v3TypeFromV2TypeString,
+  CodapV2Component, CodapV2Context, ICodapV2DocumentJson,
+  isV2ExternalContext, isV2InternalContext
+  } from "./codap-v2-types"
+import {
+  ICodapV2Attribute, ICodapV2Case, ICodapV2Collection, ICodapV2SetAsideItem, v3TypeFromV2TypeString,
   isV2SetAsideItem
-} from "./codap-v2-types"
+} from "./codap-v2-data-set-types"
 
 interface V2CaseIdInfo {
   // cumulative list of ordered attribute names used for grouping
