@@ -1,6 +1,6 @@
 import { Descendant, SlateExchangeValue } from "@concord-consortium/slate-editor"
-import { ICodapV2CollectionV3, ICodapV2DataContext, ICodapV2DataContextStorage,
-  ICodapV2ExternalContext
+import {
+  ICodapV2CollectionV3, ICodapV2DataContext, ICodapV2DataContextStorage, ICodapV2ExternalContext
 } from "./codap-v2-data-set-types"
 
 export interface ICodapV2GameContextStorage extends ICodapV2DataContextStorage {
