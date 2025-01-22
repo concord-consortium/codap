@@ -1,5 +1,5 @@
 import { maybeToV2Id } from "../../utilities/codap-utils"
-import { DIGetCaseResult } from "../data-interactive-types"
+import { DIGetCaseResult } from "../data-interactive-data-set-types"
 import { diCaseByIDHandler } from "./case-by-id-handler"
 import { setupForCaseTest } from "./handler-test-utils"
 

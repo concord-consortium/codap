@@ -1,9 +1,8 @@
 import { updateCasesNotificationFromIds } from "../../models/data/data-set-notifications"
 import { ICase } from "../../models/data/data-set-types"
 import { toV2Id, toV3CaseId, toV3ItemId } from "../../utilities/codap-utils"
-import {
-  DICaseValues, DIFullCase, DIResources, DISuccessResult, DIUpdateCase, DIUpdateItemResult, DIValues
-} from "../data-interactive-types"
+import { DIResources, DISuccessResult, DIValues } from "../data-interactive-types"
+import { DICaseValues, DIFullCase, DIUpdateCase, DIUpdateItemResult } from "../data-interactive-data-set-types"
 import { getV2ItemResult, getCaseRequestResultValues } from "../data-interactive-type-utils"
 import { attrNamesToIds } from "../data-interactive-utils"
 import { caseNotFoundResult, dataContextNotFoundResult, fieldRequiredResult, itemNotFoundResult } from "./di-results"

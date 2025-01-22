@@ -1,6 +1,7 @@
 import { moveAttribute } from "../../models/data/data-set-utils"
 import { registerDIHandler } from "../data-interactive-handler"
-import { DIAttributeLocationValues, DIHandler, DIResources, DIValues } from "../data-interactive-types"
+import { DIHandler, DIResources, DIValues } from "../data-interactive-types"
+import { DIAttributeLocationValues } from "../data-interactive-data-set-types"
 import { getCollection } from "../data-interactive-utils"
 import { attributeNotFoundResult, collectionNotFoundResult, dataContextNotFoundResult } from "./di-results"
 

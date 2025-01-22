@@ -10,7 +10,8 @@ import { kAttrIdPrefix, maybeToV2Id, toV2Id, toV3AttrId } from "../utilities/cod
 import {
   ICodapV2Attribute, ICodapV2Case, ICodapV2CollectionV3, ICodapV2DataContextV3, v3TypeFromV2TypeString
 } from "../v2/codap-v2-types"
-import { DIAttribute, DIGetCaseResult, DIResources, DISingleValues } from "./data-interactive-types"
+import { DIResources, DISingleValues } from "./data-interactive-types"
+import { DIGetCaseResult, DIAttribute } from "./data-interactive-data-set-types"
 import { getCaseValues } from "./data-interactive-utils"
 
 export function convertValuesToAttributeSnapshot(_values: DISingleValues): IAttributeSnapshot | undefined {

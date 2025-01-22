@@ -7,7 +7,7 @@ import { v2NameTitleToV3Title } from "../../models/data/v2-model"
 import { ISharedCaseMetadata } from "../../models/shared/shared-case-metadata"
 import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-data-utils"
 import { hasOwnProperty } from "../../utilities/js-utils"
-import { DIAttribute, DICollection } from "../data-interactive-types"
+import { DIAttribute, DICollection } from "../data-interactive-data-set-types"
 import { convertValuesToAttributeSnapshot } from "../data-interactive-type-utils"
 
 export function createAttribute(value: DIAttribute, dataContext: IDataSet, collection?: ICollectionModel,

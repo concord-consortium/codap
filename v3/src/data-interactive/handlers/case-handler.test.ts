@@ -1,5 +1,6 @@
 import { toV2Id, toV3CaseId, toV3ItemId } from "../../utilities/codap-utils"
-import { DINewCase, DISuccessResult, DIValues } from "../data-interactive-types"
+import { DISuccessResult, DIValues } from "../data-interactive-types"
+import { DINewCase } from "../data-interactive-data-set-types"
 import { diCaseHandler } from "./case-handler"
 import { setupTestDataset } from "./handler-test-utils"
 
