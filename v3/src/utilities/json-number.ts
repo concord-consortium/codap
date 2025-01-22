@@ -1,6 +1,6 @@
-import { types } from "mobx-state-tree";
+import { types } from "mobx-state-tree"
 
-type SpecialNumbers = "NaN" | "Infinity" | "-Infinity";
+type SpecialNumbers = "NaN" | "Infinity" | "-Infinity"
 
 /**
  * This custom MST type handles NaN, Infinity, and -Infinity better than the built in
@@ -20,25 +20,25 @@ export const JsonNumber = types.custom<SpecialNumbers | number, number>({
     // how null is handled. By default `Number(null)` returns 0
     // If you want null to be invalid, change getValidationMessage
     if (snapshot === null) {
-      return NaN;
+      return NaN
     }
-    return Number(snapshot);
+    return Number(snapshot)
   },
   toSnapshot(value: number): SpecialNumbers | number {
     if (!isFinite(value)) {
-      return value.toString() as SpecialNumbers;
+      return value.toString() as SpecialNumbers
     }
-    return value;
+    return value
   },
   isTargetType(value: string | number): boolean {
-    return typeof value === "number";
+    return typeof value === "number"
   },
   getValidationMessage(snapshot: number | string): string {
-    const parsed = Number(snapshot);
+    const parsed = Number(snapshot)
     if (isNaN(parsed) && snapshot !== "NaN") {
-      return `'${snapshot}' can't be parsed as a number`;
+      return `'${snapshot}' can't be parsed as a number`
     } else {
-      return "";
+      return ""
     }
   }
-});
+})
