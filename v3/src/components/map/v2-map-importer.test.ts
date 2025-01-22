@@ -9,7 +9,7 @@ import { ICodapV2DocumentJson, ICodapV2MapLayerStorage, ICodapV2MapPointLayerSto
     from "../../v2/codap-v2-types"
 import { isMapContentModel } from "./models/map-content-model"
 import { v2MapImporter } from "./v2-map-importer"
-import { v2MapExporter } from "./v2-map-exporter"
+import { v2MapExporter } from "./map-V2-exporter"
 import "./map-registration"
 
 const fs = require("fs")
