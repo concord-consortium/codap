@@ -3,8 +3,8 @@ import { isMapContentModel } from "./models/map-content-model"
 import { kLatNames, kLongNames, kMapPointLayerType, kMapPolygonLayerType } from "./map-types"
 import { V2TileExportFn } from "../../v2/codap-v2-tile-exporters"
 import { baseMapStringToV2BaseMapString, guidLink, ICodapV2BaseComponentStorage,
-          ICodapV2MapLayerStorage, ICodapV2MapPointLayerStorage,ICodapV2MapPolygonLayerStorage,
-          ICodapV2MapStorage, legendAttributeTypeToV2LegendAttributeType} from "../../v2/codap-v2-types"
+          ICodapV2MapLayerStorage, ICodapV2MapPointLayerStorage, ICodapV2MapPolygonLayerStorage,
+          ICodapV2MapStorage, legendAttributeTypeToV2LegendAttributeType } from "../../v2/codap-v2-types"
 import { toV2Id } from "../../utilities/codap-utils"
 import { kPolygonNames } from "../../models/boundaries/boundary-types"
 import { IMapPointLayerModel } from "./models/map-point-layer-model"
@@ -125,7 +125,7 @@ export const v2MapExporter: V2TileExportFn = ({ tile }) => {
     mapModelStorage: {
       center: mapContent.center,
       zoom: mapContent.zoom,
-      baseMapLayerName: baseMapStringToV2BaseMapString(mapContent.baseMapLayerName),
+      baseMapLayerName: baseMapStringToV2BaseMapString(mapContent.baseMapLayerName) || "Topographic",
       gridMultiplier: 1,
       layerModels: v2LayerModels,
     },

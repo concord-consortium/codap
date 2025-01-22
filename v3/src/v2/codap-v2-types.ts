@@ -2,6 +2,8 @@ import { Descendant, SlateExchangeValue } from "@concord-consortium/slate-editor
 import {
   ICodapV2CollectionV3, ICodapV2DataContext, ICodapV2DataContextStorage, ICodapV2ExternalContext
 } from "./codap-v2-data-set-types"
+import { BaseMapKey } from "../components/map/map-types"
+import { AttributeType } from "../models/data/attribute-types"
 
 export interface ICodapV2GameContextStorage extends ICodapV2DataContextStorage {
   gameName?: string | null
