@@ -1,7 +1,8 @@
 import { createCasesNotification } from "../../models/data/data-set-notifications"
 import { toV2Id, toV3ItemId } from "../../utilities/codap-utils"
 import { registerDIHandler } from "../data-interactive-handler"
-import { DIHandler, DIItem, DIItemValues, DINewCase, DIResources, DIValues } from "../data-interactive-types"
+import { DIHandler, DIResources, DIValues } from "../data-interactive-types"
+import { DIItem, DIItemValues, DINewCase } from "../data-interactive-data-set-types"
 import { deleteItem, getItem, updateCaseBy, updateCasesBy } from "./handler-functions"
 import { dataContextNotFoundResult, valuesRequiredResult } from "./di-results"
 

@@ -1,65 +1,19 @@
 import { RequireAtLeastOne } from "type-fest"
 import { LoggableValue } from "../lib/log-message"
 import { IAttribute } from "../models/data/attribute"
-import { IValueType } from "../models/data/attribute-types"
-import { ICollectionLabels, ICollectionModel } from "../models/data/collection"
+import { ICollectionModel } from "../models/data/collection"
 import { IDataSet } from "../models/data/data-set"
 import { ICase, ICaseID } from "../models/data/data-set-types"
 import { IGlobalValue } from "../models/global/global-value"
 import { ITileModel } from "../models/tiles/tile-model"
-import { ICodapV2Attribute, ICodapV2Collection, ICodapV2DataContext } from "../v2/codap-v2-types"
+import { ICodapV2Attribute } from "../v2/codap-v2-types"
 import { V2SpecificComponent } from "./data-interactive-component-types"
+import {
+  DIAllCases, DIAttribute, DIAttributeLocationValues, DICase, DICreateCollection,
+  DIDataContext, DIDeleteCollectionResult, DIGetCaseResult, DIItemValues, DINewCase,
+  DINotifyAttribute, DINotifyDataContext, DIUpdateCase, DIUpdateItemResult
+} from "./data-interactive-data-set-types"
 
-export type DICaseValue = IValueType
-export type DICaseValues = Record<string, DICaseValue>
-export interface DIFullCase {
-  children?: number[]
-  context?: {
-    id?: number
-    name?: string
-  }
-  collection?: {
-    id?: number
-    name?: string
-    parent?: {
-      id?: number
-      name?: string
-    }
-  }
-  id?: number
-  itemId?: number
-  parent?: number
-  values?: DICaseValues
-}
-export interface DIAllCases {
-  cases?: {
-    case?: DIFullCase
-    caseIndex?: number
-  }[]
-  collection?: {
-    name?: string
-    id?: number
-  }
-}
-export type DIAttribute = Partial<ICodapV2Attribute>
-export interface DINotifyAttribute {
-  mouseX?: number
-  mouseY?: number
-  overlayHeight?: number
-  overlayWidth?: number
-  request?: string
-}
-export interface DIAttributeLocationValues {
-  collection?: string | number
-  position?: number
-}
-export interface DICase {
-  collectionID?: number
-  collectionName?: string
-  caseID?: number
-  itemID?: number
-}
-export type DICollection = Partial<ICodapV2Collection>
 export type DIComponent = ITileModel
 export interface DIComponentInfo {
   hidden?: boolean
@@ -71,25 +25,6 @@ export interface DIComponentInfo {
 export interface DIGlobal {
   name?: string
   value?: number
-}
-export type DIDataContext = Partial<ICodapV2DataContext>
-export interface DINotifyDataContext {
-  operation?: string
-  request?: string
-  caseIDs?: number[]
-}
-export interface DIGetCaseResult {
-  case: {
-    id?: number
-    parent?: number
-    collection?: {
-      id?: number
-      name?: string
-    }
-    values?: DICaseValues
-    children?: number[]
-  }
-  caseIndex?: number
 }
 export interface DIInteractiveFrame {
   allowEmptyAttributeDeletion?: boolean
@@ -112,43 +47,6 @@ export interface DIInteractiveFrame {
   standaloneUndoModeAvailable?: boolean
   title?: string
   version?: string
-}
-export type DIItem = DICaseValues
-export type DIItemValues = DIItem | { id?: string | number, values: DIItem }
-type DICollectionLabels = Partial<ICollectionLabels>
-export interface DICreateCollection {
-  labels?: DICollectionLabels
-  name?: string
-  title?: string
-  parent?: string
-  attributes?: DIAttribute[]
-  attrs?: DIAttribute[]
-}
-export interface DINewCase {
-  id?: number
-  itemID?: number
-}
-export interface DIUpdateCase {
-  values: DICaseValues
-}
-export interface DIDeleteCollectionResult {
-  collections?: number[]
-}
-export interface DIUpdateCollection {
-  title?: string
-  labels?: DICollectionLabels
-}
-export interface DIUpdateItemResult {
-  changedCases?: number[]
-  createdCases?: number[]
-  deletedCases?: number[]
-}
-export interface DIUpdateDataContext extends DIDataContext {
-  managingController?: string
-  sort?: {
-    attr?: string
-    isDescending?: boolean
-  }
 }
 export interface DINotification {
   request?: string
@@ -204,7 +102,7 @@ export type DIValues = DISingleValues | DISingleValues[] | number | string[]
 export type DIResultAttributes = { attrs: ICodapV2Attribute[] }
 export type DIResultSingleValues = DICase | DIComponentInfo |  DIDataDisplay | DIGetCaseResult | DIGlobal
   | DIInteractiveFrame
-  
+
 export type DIResultValues = DIResultSingleValues | DIResultSingleValues[] |
   DIAllCases | DIDeleteCollectionResult | DIUpdateItemResult | DIResultAttributes | number | number[]
 

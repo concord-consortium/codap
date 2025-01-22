@@ -11,9 +11,8 @@ import { toV3CaseId } from "../../utilities/codap-utils"
 import { hasOwnProperty } from "../../utilities/js-utils"
 import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
-import {
-  DIDataContext, DIHandler, DINotifyDataContext, DIResources, DIUpdateDataContext, DIValues
-} from "../data-interactive-types"
+import { DIHandler, DIResources, DIValues } from "../data-interactive-types"
+import { DIUpdateDataContext, DIDataContext, DINotifyDataContext } from "../data-interactive-data-set-types"
 import { basicDataSetInfo, convertDataSetToV2 } from "../data-interactive-type-utils"
 import { getAttribute } from "../data-interactive-utils"
 import { findTileFromNameOrId } from "../resource-parser-utils"

@@ -605,7 +605,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       ) {
         const role = graphPlaceToAttrRole[place],
           xType = self.attributeType('x') || '',
-          xIsNumericOrDate = ['date', 'numeric'].includes( xType),
+          xIsNumericOrDate = ['date', 'numeric'].includes(xType),
           existingID = self.attributeID(role),
           differentAttribute = options?.allowSameAttr || existingID !== idToDrop
         // only drops on left/bottom axes can change data set

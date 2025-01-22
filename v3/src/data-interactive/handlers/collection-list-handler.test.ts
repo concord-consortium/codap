@@ -1,5 +1,5 @@
 import { toV2Id } from "../../utilities/codap-utils"
-import { DICollection } from "../data-interactive-types"
+import { DICollection } from "../data-interactive-data-set-types"
 import { diCollectionListHandler } from "./collection-list-handler"
 import { setupTestDataset } from "./handler-test-utils"
 
