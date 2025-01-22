@@ -3,8 +3,7 @@ import { createCollectionNotification } from "../../models/data/data-set-notific
 import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-data-utils"
 import { toV2Id } from "../../utilities/codap-utils"
 import { registerDIHandler } from "../data-interactive-handler"
-import {
-  DIHandler, DIResources, DIValues} from "../data-interactive-types"
+import { DIHandler, DIResources, DIValues} from "../data-interactive-types"
 import { DICollection, DICreateCollection, DIUpdateCollection } from "../data-interactive-data-set-types"
 import { convertCollectionToV2 } from "../data-interactive-type-utils"
 import { getCollection } from "../data-interactive-utils"
