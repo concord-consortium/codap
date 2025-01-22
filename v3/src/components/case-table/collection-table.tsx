@@ -18,7 +18,7 @@ import { useSelectedRows } from "./use-selected-rows"
 import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useTileDroppable } from "../../hooks/use-drag-drop"
-import { useTileModelContext } from "../../hooks/use-tile-model-context"
+import { useTileSelectionContext } from "../../hooks/use-tile-selection-context"
 import { useVisibleAttributes } from "../../hooks/use-visible-attributes"
 import { registerCanAutoScrollCallback } from "../../lib/dnd-kit/dnd-can-auto-scroll"
 import { logStringifiedObjectMessage } from "../../lib/log-message"
@@ -89,7 +89,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
   const { selectedRows, setSelectedRows, handleCellClick } =
     useSelectedRows({ gridRef, onScrollClosestRowIntoView, onScrollRowRangeIntoView })
   const { handleWhiteSpaceClick } = useWhiteSpaceClick({ gridRef })
-  const { isTileSelected } = useTileModelContext()
+  const { isTileSelected } = useTileSelectionContext()
   const [isSelecting, setIsSelecting] = useState(false)
   const [selectionStartRowIdx, setSelectionStartRowIdx] = useState<number | null>(null)
   const initialPointerDownPosition = useRef({ x: 0, y: 0 })

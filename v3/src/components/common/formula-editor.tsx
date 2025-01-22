@@ -16,7 +16,8 @@ import { boundaryManager } from "../../models/boundaries/boundary-manager"
 import { IDataSet } from "../../models/data/data-set"
 import { typedFnRegistry } from "../../models/formula/functions/math"
 import { formulaLanguageWithHighlighting } from "../../models/formula/lezer/formula-language"
-import { getGlobalValueManager, getSharedModelManager } from "../../models/tiles/tile-environment"
+import { getSharedModelManager } from "../../models/tiles/tile-environment"
+import { getGlobalValueManager } from "../../models/global/global-value-manager"
 import { FormulaEditorApi, useFormulaEditorContext } from "./formula-editor-context"
 
 import styles from './edit-formula-modal.scss'

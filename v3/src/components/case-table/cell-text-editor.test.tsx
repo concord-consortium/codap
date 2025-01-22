@@ -4,6 +4,7 @@ import React from "react"
 import { DataSet } from "../../models/data/data-set"
 import { TCalculatedColumn } from "./case-table-types"
 import CellTextEditor from "./cell-text-editor"
+import { AppHistoryService } from "../../models/history/app-history-service"
 const mockUseDataSetContext = jest.fn()
 jest.mock("../../hooks/use-data-set-context", () => ({
   useDataSetContext: () => mockUseDataSetContext()
@@ -31,7 +32,7 @@ describe("CellTextEditor", () => {
 
   it("should render with dataset", async () => {
     const user = userEvent.setup()
-    const data = DataSet.create({ name: "data" })
+    const data = DataSet.create({ name: "data" }, {historyService: new AppHistoryService()})
     data.addAttribute({ id: "columnKey", name: "columnName" })
     data.addCases([{ columnKey: "1" }])
     mockUseDataSetContext.mockImplementation(() => data)

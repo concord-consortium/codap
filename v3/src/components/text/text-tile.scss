@@ -27,6 +27,14 @@ $text-toolbar-width: 52px;
     h3 {
       font-size: 1.4em;
     }
+
+    a {
+      color: blue;
+      text-decoration: underline;
+      &:visited {
+        color: purple;
+      }
+    }
   }
 }
 

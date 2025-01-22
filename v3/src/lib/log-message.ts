@@ -10,6 +10,10 @@ export interface ILogMessage {
   category?: AnalyticsCategory;
 }
 
+export interface ILogFunctionEnv {
+  log: (message: ILogMessage) => void
+}
+
 export type LogMessageFn = () => ILogMessage
 
 // e.g. logMessageWithReplacement("Moved category %@ into position of %@", { movedCat: string, targetCat: string })

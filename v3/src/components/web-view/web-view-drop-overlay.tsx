@@ -6,7 +6,7 @@ import {
   dragEndNotification, dragNotification, dragStartNotification, dragWithPositionNotification
 } from "../../lib/dnd-kit/dnd-notifications"
 import { IDataSet } from "../../models/data/data-set"
-import { INotification } from "../../models/history/apply-model-change"
+import { IFullNotification } from "../../data-interactive/notification-full-types"
 
 import "./web-view-drop-overlay.scss"
 
@@ -23,16 +23,20 @@ export function WebViewDropOverlay() {
   const mouseX = useRef<number|undefined>()
   const mouseY = useRef<number|undefined>()
 
+  const sendNotification = (notification: IFullNotification) => {
+    const { message, callback } = notification
+    tile?.content.broadcastMessage(message, callback ?? (() => null))
+  }
+
   // Broadcast dragstart and dragend notifications
   const handleDragStartEnd = (
-    notification: (dataSet: IDataSet, attributeId: string) => INotification, _active: Active
+    notification: (dataSet: IDataSet, attributeId: string) => IFullNotification, _active: Active
   ) => {
     const _info = getDragAttributeInfo(_active)
     if (_info?.dataSet && _info.attributeId) {
-      tile?.applyModelChange(() => {}, {
-        notify: notification(_info.dataSet, _info.attributeId),
-        notifyTileId: tileId
-      })
+      sendNotification(
+        notification(_info.dataSet, _info.attributeId)
+      )
     }
   }
 
@@ -45,10 +49,9 @@ export function WebViewDropOverlay() {
   useDropHandler(dropId, (_active: Active) => {
     const { dataSet: dropDataSet, attributeId: dropAttributeId } = getDragAttributeInfo(_active) || {}
     if (dropDataSet && dropAttributeId && mouseX.current != null && mouseY.current != null) {
-      tile?.applyModelChange(() => {}, {
-        notify: dragWithPositionNotification("drop", dropDataSet, dropAttributeId, mouseX.current, mouseY.current),
-        notifyTileId: tileId
-      })
+      sendNotification(
+        dragWithPositionNotification("drop", dropDataSet, dropAttributeId, mouseX.current, mouseY.current)
+      )
     }
   })
 
@@ -62,10 +65,9 @@ export function WebViewDropOverlay() {
     const y = event.clientY - top
 
     if (mouseX.current !== x || mouseY.current !== y) {
-      tile?.applyModelChange(() => {}, {
-        notify: dragWithPositionNotification("drag", dataSet, attributeId, x, y),
-        notifyTileId: tileId
-      })
+      sendNotification(
+        dragWithPositionNotification("drag", dataSet, attributeId, x, y)
+      )
       mouseX.current = x
       mouseY.current = y
     }
@@ -73,10 +75,9 @@ export function WebViewDropOverlay() {
 
   // Broadcast dragenter and dragleave notifications
   const handlePointerEnterLeave = (operation: string) => {
-    tile?.applyModelChange(() => {}, {
-      notify: dragNotification(operation, dataSet, attributeId),
-      notifyTileId: tileId
-    })
+    sendNotification(
+      dragNotification(operation, dataSet, attributeId)
+    )
   }
 
   const setRef = (ref: HTMLDivElement) => {

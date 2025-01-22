@@ -11,7 +11,8 @@ import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
 import { dataInteractiveState } from "../data-interactive-state"
 import { convertAttributeToV2, convertAttributeToV2FromResources } from "../data-interactive-type-utils"
-import { DIAttribute, DIHandler, DINotifyAttribute, DIResources, DIValues } from "../data-interactive-types"
+import { DIHandler, DIResources, DIValues } from "../data-interactive-types"
+import { DIAttribute, DINotifyAttribute } from "../data-interactive-data-set-types"
 import { createAttribute, updateAttribute } from "./di-handler-utils"
 import {
   attributeNotFoundResult, collectionNotFoundResult, dataContextNotFoundResult, errorResult, fieldRequiredResult
@@ -148,7 +149,7 @@ export const diAttributeHandler: DIHandler = {
       return { success: true }
     }
 
-    return errorResult(t("V3.DI.Error.unknownRequest", { vars: [request] })) 
+    return errorResult(t("V3.DI.Error.unknownRequest", { vars: [request] }))
   },
 
   update(resources: DIResources, _values?: DIValues) {

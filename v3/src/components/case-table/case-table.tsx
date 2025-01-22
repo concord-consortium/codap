@@ -1,6 +1,7 @@
 import { useDndContext } from "@dnd-kit/core"
 import { observer } from "mobx-react-lite"
 import React, { useCallback, useEffect, useRef } from "react"
+import { ICoreNotification } from "../../data-interactive/notification-core-types"
 import { CollectionContext, ParentCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { getOverlayDragId } from "../../hooks/use-drag-drop"
@@ -10,7 +11,6 @@ import { logMessageWithReplacement } from "../../lib/log-message"
 import { ICollectionModel } from "../../models/data/collection"
 import { IDataSet } from "../../models/data/data-set"
 import { createCollectionNotification, deleteCollectionNotification } from "../../models/data/data-set-notifications"
-import { INotification } from "../../models/history/apply-model-change"
 import { mstReaction } from "../../utilities/mst-reaction"
 import { prf } from "../../utilities/profiler"
 import { excludeDragOverlayRegEx } from "../case-tile-common/case-tile-types"
@@ -111,7 +111,7 @@ export const CaseTable = observer(function CaseTable({ setNodeRef }: IProps) {
         removedOldCollection = !!(oldCollectionId && !dataSet.getCollection(oldCollectionId))
       }, {
         notify: () => {
-          const notifications: INotification[] = []
+          const notifications: ICoreNotification[] = []
           if (removedOldCollection) notifications.push(deleteCollectionNotification(dataSet))
           if (collection) notifications.push(createCollectionNotification(collection, dataSet))
           return notifications

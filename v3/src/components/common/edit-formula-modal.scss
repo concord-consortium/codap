@@ -10,96 +10,91 @@ $edit-formula-modal-min-width-px: #{$edit-formula-modal-min-width}px;
   editFormulaModalMinWidth: $edit-formula-modal-min-width;
 }
 
-.codap-modal-content {
-  min-height: $edit-formula-modal-min-height-px;
+.formula-modal-body {
+  cursor: default;
+  display: flex;
+  flex-direction: column;
+  height: inherit;
+  margin-bottom: 10px;
+  min-height: 72px;
   min-width: $edit-formula-modal-min-width-px;
 
-  .formula-modal-body {
-    cursor: default;
+  .formula-form-control {
     display: flex;
-    flex-direction: column;
-    height: inherit;
-    margin-bottom: 10px;
-    min-height: 72px;
-    min-width: $edit-formula-modal-min-width-px;
+    flex-grow: 1;
+    align-items: flex-start;
 
-    .formula-form-control {
+    .attr-name-form-label {
+      &.disabled {
+        opacity: 0.35;
+      }
+    }
+
+    .title-label {
+      width: 97px;
+    }
+    .attr-name-input {
+      width: 270px;
+      margin-right: 3px;
+      margin-left: 0;
+      padding-left: 5px;
+    }
+    .formula-editor-container {
       display: flex;
-      flex-grow: 1;
-      align-items: flex-start;
+      height: 100%;
+      width: 100%;
 
-      .attr-name-form-label {
-        &.disabled {
-          opacity: 0.35;
-        }
-      }
+      .formula-editor-input {
+        width: calc(100% - 50px); //50px is to account for modal margins and paddings
 
-      .title-label {
-        width: 90px;
-      }
-      .attr-name-input {
-        width: 270px;
-        margin-right: 3px;
-        margin-left: 0;
-        padding-left: 5px;
-      }
-      .formula-editor-container {
-        display: flex;
-        height: 100%;
-        width: 100%;
-
-        .formula-editor-input {
-          width: calc(100% - 50px); //50px is to account for modal margins and paddings
-
-          .cm-editor {
-            height: 100%;
-            width: 100%;
-          }
-        }
-      }
-
-    }
-
-    .formula-insert-buttons-container {
-      position: relative;
-      bottom: 0;
-
-      .formula-editor-button {
-        padding: 0 10px;
-        &:hover {
-          background: vars.$codap-teal-lighter;
-        }
-        &:active, &.menu-open {
-          background: vars.$codap-teal-light;
-          color: white;
-        }
-        &.insert-value {
-          margin-left: 0;
+        .cm-editor {
+          height: 100%;
+          width: 100%;
         }
       }
     }
+
   }
 
-  .formula-modal-footer {
-    cursor: default;
-    border-radius: 6px;
+  .formula-insert-buttons-container {
     position: relative;
     bottom: 0;
-    right: 0;
-  }
 
-  .codap-modal-corner {
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    height: 22px;
-    width: 22px;
-    cursor: se-resize;
-  }
-  .component-resize-handle {
-    fill: #d3d3d3;
-    &:hover {
-      fill: white;
+    .formula-editor-button {
+      padding: 0 10px;
+      &:hover {
+        background: vars.$codap-teal-lighter;
+      }
+      &:active, &.menu-open {
+        background: vars.$codap-teal-light;
+        color: white;
+      }
+      &.insert-value {
+        margin-left: 0;
+      }
     }
+  }
+}
+
+.formula-modal-footer {
+  cursor: default;
+  border-radius: 6px;
+  position: relative;
+  bottom: 0;
+  right: 0;
+}
+
+.codap-modal-corner {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  height: 22px;
+  width: 22px;
+  cursor: se-resize;
+}
+.component-resize-handle {
+  fill: #d3d3d3;
+  &:hover {
+    fill: white;
   }
 }

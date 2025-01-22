@@ -11,8 +11,7 @@ import {applyModelChange} from "../../../models/history/apply-model-change"
 import {
   getDataSetFromId, getSharedCaseMetadataFromDataset, getTileCaseMetadata, getTileDataSet
 } from "../../../models/shared/shared-data-utils"
-import {ISharedModel} from "../../../models/shared/shared-model"
-import {SharedModelChangeType} from "../../../models/shared/shared-model-manager"
+import {ISharedModel, SharedModelChangeType} from "../../../models/shared/shared-model"
 import {ITileContentModel} from "../../../models/tiles/tile-content"
 import { getFormulaManager } from "../../../models/tiles/tile-environment"
 import {typedId} from "../../../utilities/js-utils"
@@ -22,8 +21,8 @@ import { dataDisplayGetNumericValue } from "../../data-display/data-display-valu
 import {IGraphDataConfigurationModel} from "./graph-data-configuration-model"
 import {DataDisplayContentModel} from "../../data-display/models/data-display-content-model"
 import {GraphPlace} from "../../axis-graph-shared"
-import { attrRoleToAxisPlace, axisPlaceToAttrRole, GraphAttrRole,
-         PointDisplayType } from "../../data-display/data-display-types"
+import { attrRoleToAxisPlace, axisPlaceToAttrRole, GraphAttrRole, kMain, kOther, PointDisplayType }
+  from "../../data-display/data-display-types"
 import { IGetTipTextProps } from "../../data-display/data-tip-types"
 import {AxisPlace, AxisPlaces, ScaleNumericBaseType} from "../../axis/axis-types"
 import {kGraphTileType} from "../graph-defs"
@@ -538,13 +537,14 @@ export const GraphContentModel = DataDisplayContentModel
 
       primaryAttrID && (dataConfig.getCaseDataArray(0) || []).forEach((aCaseData: CaseData) => {
         const anID = aCaseData.caseID,
-          hCat = dataset?.getStrValue(anID, primaryAttrID),
-          vCat = secondaryAttrID ? dataset?.getStrValue(anID, secondaryAttrID) : '__main__',
-          extraHCat = extraPrimaryAttrID ? dataset?.getStrValue(anID, extraPrimaryAttrID) : '__main__',
-          extraVCat = extraSecondaryAttrID ? dataset?.getStrValue(anID, extraSecondaryAttrID) : '__main__'
-        if (hCat && vCat && extraHCat && extraVCat &&
-          catMap[hCat]?.[vCat]?.[extraHCat]?.[extraVCat]) {
-          const mapEntry = catMap[hCat][vCat][extraHCat][extraVCat]
+          pValue = dataset?.getStrValue(anID, primaryAttrID) ?? '',
+          pCat = catMap[pValue] ? pValue : kOther,
+          sCat = secondaryAttrID ? dataset?.getStrValue(anID, secondaryAttrID) : kMain,
+          extraPCat = extraPrimaryAttrID ? dataset?.getStrValue(anID, extraPrimaryAttrID) : kMain,
+          extraSCat = extraSecondaryAttrID ? dataset?.getStrValue(anID, extraSecondaryAttrID) : kMain
+        if (pCat && sCat && extraPCat && extraSCat &&
+          catMap[pCat]?.[sCat]?.[extraPCat]?.[extraSCat]) {
+          const mapEntry = catMap[pCat][sCat][extraPCat][extraSCat]
           const numInCell = mapEntry.numSoFar++
           const row = self.pointsFusedIntoBars
                         ? Math.floor(numInCell)

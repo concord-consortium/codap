@@ -1,5 +1,5 @@
 import { toV2Id } from "../../utilities/codap-utils"
-import { DIFullCase, DIItem, DIUpdateItemResult } from "../data-interactive-types"
+import { DIFullCase, DIItem, DIUpdateItemResult } from "../data-interactive-data-set-types"
 import { setupTestDataset } from "./handler-test-utils"
 import { diItemByCaseIDHandler } from "./item-by-case-id-handler"
 

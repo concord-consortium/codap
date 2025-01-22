@@ -1,9 +1,8 @@
 import { IAnyStateTreeNode } from "mobx-state-tree"
-import { FormulaManagerAdapter } from "../formula/formula-manager-types"
+import { FormulaManagerAdapter } from "../formula/formula-manager-adapter"
 import { AppConfigModelType } from "../stores/app-config-model"
 import { TileContentModel, ITileContentSnapshotWithType, ITileContentModel } from "./tile-content"
 import { ITileEnvironment } from "./tile-environment"
-import { ITileMetadataModel, TileMetadataModel } from "./tile-metadata"
 
 // avoids circular dependency on ITileModel
 export interface ITileLikeModel {
@@ -37,7 +36,6 @@ export interface ITileContentInfo {
   titleBase?: string;
   getTitle: (tile: ITileLikeModel) => string | undefined;
   getV2Type?: (content: ITileContentModel) => string;
-  metadataClass?: typeof TileMetadataModel;
   isSingleton?: boolean; // Only one instance of a tile is open per document (e.g. calculator and guide)
   hideOnClose?: boolean;
   addSidecarNotes?: boolean;
@@ -97,24 +95,4 @@ export interface IDocumentExportOptions extends ITileExportOptions {
 
 export function isRegisteredTileType(type: string) {
   return !!getTileContentInfo(type)
-}
-
-/*
- * tile metadata
- */
-interface IPrivate {
-  metadata: Record<string, ITileMetadataModel>;
-}
-
-export const _private: IPrivate = {
-  metadata: {}
-}
-export function findMetadata(type: string, id: string) {
-  const MetadataType = getTileContentInfo(type)?.metadataClass
-  if (!MetadataType) return
-
-  if (!_private.metadata[id]) {
-    _private.metadata[id] = MetadataType.create({ id })
-  }
-  return _private.metadata[id]
 }

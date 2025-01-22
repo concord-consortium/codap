@@ -744,12 +744,18 @@ test("snapshot processing", () => {
   ds.addAttribute({ name: "num" })
   // const strAttrID = ds.attributes[0].id
   ds.addCases(toCanonical(ds, [{ str: "a", num: 1 }, { str: "b", num: 2 }, { str: "c", num: 3 }]))
+  const item0Id = ds.items[0].__id__
+  ds.selectCases([item0Id])
 
   ds.prepareSnapshot()
   const snap = getSnapshot(ds)
   ds.completeSnapshot()
   // TODO: validate the snapshot
   expect(snap).toBeDefined()
+  expect(snap.snapSelection).toEqual([item0Id])
+
+  const ds2 = DataSet.create(snap)
+  expect(ds2.selection.has(item0Id)).toBe(true)
 })
 
 test("DataSet client synchronization", (done) => {

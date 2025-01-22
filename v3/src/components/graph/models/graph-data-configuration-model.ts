@@ -8,7 +8,7 @@ import {AxisPlace} from "../../axis/axis-types"
 import {GraphPlace} from "../../axis-graph-shared"
 import {AttributeDescription, DataConfigurationModel, IAttributeDescriptionSnapshot, IDataConfigurationModel}
   from "../../data-display/models/data-configuration-model"
-import {AttrRole, GraphAttrRole, graphPlaceToAttrRole, ICaseSubsetDescription, PrimaryAttrRoles}
+import { AttrRole, GraphAttrRole, graphPlaceToAttrRole, ICaseSubsetDescription, kMain, kOther, PrimaryAttrRoles }
   from "../../data-display/data-display-types"
 import {updateCellKey} from "../adornments/adornment-utils"
 import { isFiniteNumber } from "../../../utilities/math-utils"
@@ -281,21 +281,29 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     }
   }))
   .views(self => ({
+    categoricalValueForCaseInRole(caseID: string, role: AttrRole) {
+      const attrID = self.attributeID(role),
+        categoryArray = self.categoryArrayForAttrRole(role),
+        strValue = attrID ? self.dataset?.getStrValue(caseID, attrID) : ""
+      return !attrID ? kMain
+        : strValue && (strValue === '' || categoryArray?.includes(strValue)) ? strValue : kOther
+    },
     cellMap(
       extraPrimaryAttrRole: AttrRole, extraSecondaryAttrRole: AttrRole,
       binWidth = 0, minValue = 0, totalNumberOfBins = 0
     ) {
       type BinMap = Record<string, Record<string, Record<string, Record<string, number>>>>
-      const primAttrID = self.primaryRole ? self.attributeID(self.primaryRole) : "",
-        secAttrID = self.secondaryRole ? self.attributeID(self.secondaryRole) : "",
-        extraPrimAttrID = self.attributeID(extraPrimaryAttrRole) ?? '',
-        extraSecAttrID = self.attributeID(extraSecondaryAttrRole) ?? '',
+      const hasExtraPrimary = !!self.attributeID(extraPrimaryAttrRole),
+        hasExtraSecondary = !!self.attributeID(extraSecondaryAttrRole),
         valueQuads = (self.getCaseDataArray(0) || []).map((aCaseData: CaseData) => {
           return {
-            primary: (primAttrID && self.dataset?.getValue(aCaseData.caseID, primAttrID)) ?? '',
-            secondary: (secAttrID && self.dataset?.getValue(aCaseData.caseID, secAttrID)) ?? '__main__',
-            extraPrimary: (extraPrimAttrID && self.dataset?.getValue(aCaseData.caseID, extraPrimAttrID)) ?? '__main__',
-            extraSecondary: (extraSecAttrID && self.dataset?.getValue(aCaseData.caseID, extraSecAttrID)) ?? '__main__'
+            primary: (self.primaryRole && this.categoricalValueForCaseInRole(aCaseData.caseID, self.primaryRole)) ?? '',
+            secondary: (self.secondaryRole &&
+                this.categoricalValueForCaseInRole(aCaseData.caseID, self.secondaryRole)) || kMain,
+            extraPrimary: (hasExtraPrimary &&
+              this.categoricalValueForCaseInRole(aCaseData.caseID, extraPrimaryAttrRole)) || kMain,
+            extraSecondary: (hasExtraSecondary &&
+              this.categoricalValueForCaseInRole(aCaseData.caseID, extraSecondaryAttrRole)) || kMain
           }
         }),
         bins: BinMap = {}
@@ -410,7 +418,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       const numOfKeys = Object.keys(cellKey).length
       let matchedValCount = 0
       Object.keys(cellKey).forEach(key => {
-        if (cellKey[key] === caseData[key]) matchedValCount++
+        if (cellKey[key] === kMain || cellKey[key] === caseData[key]) matchedValCount++
       })
       return matchedValCount === numOfKeys
     },
@@ -432,9 +440,9 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       const extraPrimaryAttrID = self.attributeID(extraPrimaryRole) ?? ""
       const extraSecondaryRole = primaryIsBottom ? "rightSplit" : "topSplit"
       const extraSecondaryAttrID = self.attributeID(extraSecondaryRole) ?? ""
-      const category = self.dataset?.getStrValue(anID, self.secondaryAttributeID) ?? "__main__"
-      const extraCategory = self.dataset?.getStrValue(anID, extraSecondaryAttrID) ?? "__main__"
-      const extraPrimaryCategory = self.dataset?.getStrValue(anID, extraPrimaryAttrID) ?? "__main__"
+      const category = self.dataset?.getStrValue(anID, self.secondaryAttributeID) ?? kMain
+      const extraCategory = self.dataset?.getStrValue(anID, extraSecondaryAttrID) ?? kMain
+      const extraPrimaryCategory = self.dataset?.getStrValue(anID, extraPrimaryAttrID) ?? kMain
       const key: Record<string, string> = {}
       self.secondaryAttributeID && (key[self.secondaryAttributeID] = category)
       extraSecondaryAttrID && (key[extraSecondaryAttrID] = extraCategory)
@@ -444,11 +452,34 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     subPlotCases: cachedFnWithArgsFactory({
       key: (cellKey: Record<string, string>) => JSON.stringify(cellKey),
       calculate: (cellKey: Record<string, string>) => {
-        return self.allPlottedCases().filter((caseId) => {
+        // Find attributes with value 'other' and add them to the list of attributes to filter by
+        const copyOfCellKey = {...cellKey}
+        const attributeIDsWithValueOther:string[] = []
+        Object.keys(copyOfCellKey).forEach(attrID => {
+          if (copyOfCellKey[attrID] === kOther) {
+            attributeIDsWithValueOther.push(attrID)
+          }
+        })
+        // Trim down cellKey to only include attributes with values other than 'other'
+        attributeIDsWithValueOther.forEach(attrID => {
+          delete copyOfCellKey[attrID]
+        })
+        // Find cases that are not affected by the 'other' attributes
+        let targetCases = self.allPlottedCases().filter((caseId) => {
           const itemData = self.dataset?.getFirstItemForCase(caseId, { numeric: false })
           const caseData = itemData || { __id__: caseId }
-          return self.isCaseInSubPlot(cellKey, caseData)
+          return self.isCaseInSubPlot(copyOfCellKey, caseData)
         })
+        // Winnow targetCases to include only those that belong to all the 'other' attributes
+        attributeIDsWithValueOther.forEach(attrID => {
+          const roleForThisOtherAttr = self.roleForAttributeWithCategoryLimit(attrID)
+          if (roleForThisOtherAttr) {
+            targetCases = targetCases.filter((caseId) => {
+              return self.categoricalValueForCaseInRole(caseId, roleForThisOtherAttr) === kOther
+            })
+          }
+        })
+        return targetCases
       }
     }),
     cellCases: cachedFnWithArgsFactory({
@@ -520,6 +551,15 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       }
     })
   }))
+  .actions(self => {
+    const baseSetNumberOfCategoriesLimitForRole = self.setNumberOfCategoriesLimitForRole
+    return {
+      setNumberOfCategoriesLimitForRole(role: AttrRole, limit: number) {
+        self.subPlotCases.invalidateAll()
+        baseSetNumberOfCategoriesLimitForRole.call(self, role, limit)
+      }
+    }
+  })
   .views(self => ({
     get caseDataWithSubPlot() {
       const allCaseData: CaseDataWithSubPlot[] = self.joinedCaseDataArrays
@@ -564,7 +604,8 @@ export const GraphDataConfigurationModel = DataConfigurationModel
         place: GraphPlace, dataSet?: IDataSet, idToDrop?: string, options?: ILegalAttributeOptions
       ) {
         const role = graphPlaceToAttrRole[place],
-          xIsNumeric = self.attributeType('x') === 'numeric',
+          xType = self.attributeType('x') || '',
+          xIsNumericOrDate = ['date', 'numeric'].includes(xType),
           existingID = self.attributeID(role),
           differentAttribute = options?.allowSameAttr || existingID !== idToDrop
         // only drops on left/bottom axes can change data set
@@ -576,9 +617,9 @@ export const GraphDataConfigurationModel = DataConfigurationModel
 
         const typeToDropIsNumeric = dataSet?.attrFromID(idToDrop)?.type === "numeric"
         if (place === 'yPlus') {
-          return xIsNumeric && typeToDropIsNumeric && !self.yAttributeIDs.includes(idToDrop)
+          return xIsNumericOrDate && typeToDropIsNumeric && !self.yAttributeIDs.includes(idToDrop)
         } else if (place === 'rightNumeric') {
-          return xIsNumeric && typeToDropIsNumeric && differentAttribute
+          return xIsNumericOrDate && typeToDropIsNumeric && differentAttribute
         } else if (['top', 'rightCat'].includes(place)) {
           return !typeToDropIsNumeric && differentAttribute
         } else {

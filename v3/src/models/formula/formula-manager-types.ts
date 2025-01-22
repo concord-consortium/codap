@@ -1,9 +1,9 @@
-import { BoundaryManager } from "../boundaries/boundary-manager"
 import { IDataSet } from "../data/data-set"
-import { IGlobalValueManager } from "../global/global-value-manager"
+import type { ICase } from "../data/data-set-types"
 import { ITileContentModel } from "../tiles/tile-content"
-import { IFormula } from "./formula"
-import { CaseList } from "./formula-types"
+import type { IFormula } from "./formula"
+
+export type CaseList = ICase[] | "ALL_CASES"
 
 export interface IFormulaMetadata {
   formula: IFormula
@@ -27,65 +27,27 @@ export interface IFormulaContext extends Partial<IFormulaMetadata> {
   formula: IFormula
 }
 
-export interface IFormulaAdapterApi {
-  getDatasets: () => Map<string, IDataSet>
-  getBoundaryManager: () => Maybe<BoundaryManager>
-  getGlobalValueManager: () => Maybe<IGlobalValueManager>
-  getFormulaContext(formulaId: string): IFormulaContext
-  getFormulaExtraMetadata(formulaId: string): IFormulaExtraMetadata
-}
-
-export class FormulaManagerAdapter implements IFormulaManagerAdapter {
-  type: string
-  api: IFormulaAdapterApi
-
-  constructor(type: string, api: IFormulaAdapterApi) {
-    this.type = type
-    this.api = api
-  }
-
-  addContentModel(tileContent: ITileContentModel) {
-    // subclasses should override if they deal with content models
-  }
-
-  removeContentModel(IMapContentModelId: string) {
-    // subclasses should override if they deal with content models
-  }
-
-  getActiveFormulas() {
-    // subclasses should override
-    return [] as Array<{ formula: IFormula, extraMetadata: any }>
-  }
-
-  recalculateFormula(formulaContext: IFormulaContext, extraMetadata: any, casesToRecalculateDesc?: CaseList) {
-    // subclasses should override
-  }
-
-  getFormulaError(formulaContext: IFormulaContext, extraMetadata: any): Maybe<string> {
-    // subclasses should override
-    return undefined
-  }
-
-  setFormulaError(formulaContext: IFormulaContext, extraMetadata: any, errorMsg: string) {
-    // subclasses should override
-  }
-
-  setupFormulaObservers(formulaContext: IFormulaContext, extraMetadata: any): () => void {
-    // subclasses should override
-    return () => undefined
-  }
-}
-
 export interface IFormulaManagerAdapter {
   type: string
+  addContentModel: (contentModel: ITileContentModel) => void
+  removeContentModel: (contentModelId: string) => void
   // This method returns all the formulas supported by this adapter. It should exclusively return formulas that need
   // active tracking and recalculation whenever any of their dependencies change. The adapter might opt not to return
   // formulas that currently shouldn't be recalculated, such as when the formula's adornment is hidden.
-  addContentModel: (contentModel: ITileContentModel) => void
-  removeContentModel: (IMapContentModelId: string) => void
   getActiveFormulas: () => ({ formula: IFormula, extraMetadata: any })[]
   recalculateFormula: (formulaContext: IFormulaContext, extraMetadata: any, casesToRecalculateDesc?: CaseList) => void
   getFormulaError: (formulaContext: IFormulaContext, extraMetadata: any) => Maybe<string>
   setFormulaError: (formulaContext: IFormulaContext, extraMetadata: any, errorMsg: string) => void
   setupFormulaObservers?: (formulaContext: IFormulaContext, extraMetadata: any) => () => void
+}
+
+export interface IFormulaManager {
+  adapters: IFormulaManagerAdapter[]
+  areAdaptersInitialized: boolean
+
+  addDataSet: (dataSet: IDataSet) => void
+  removeDataSet: (dataSetId: string) => void
+  getSyntaxError: (displayString: string) => any
+  isRandomFunctionPresent: (canonicalString: string) => boolean
+  rerandomize: (formulaId: string) => void
 }

@@ -4,12 +4,11 @@ import { isFormulaAttr, isValidFormulaAttr } from "../data/attribute"
 import { CaseInfo, ICase, IGroupedCase, symParent } from "../data/data-set-types"
 import { IFormula } from "./formula"
 import { registerFormulaAdapter } from "./formula-adapter-registry"
-import {
-  FormulaManagerAdapter, IFormulaAdapterApi, IFormulaContext, IFormulaExtraMetadata, IFormulaManagerAdapter
-} from "./formula-manager-types"
+import { IFormulaContext, IFormulaExtraMetadata, CaseList } from "./formula-manager-types"
+import { IFormulaAdapterApi, FormulaManagerAdapter } from "./formula-manager-adapter"
 import { FormulaMathJsScope, NO_PARENT_KEY } from "./formula-mathjs-scope"
 import { observeDatasetHierarchyChanges } from "./formula-observers"
-import { FValue, ILocalAttributeDependency, ILookupDependency, CaseList } from "./formula-types"
+import { FValue, ILocalAttributeDependency, ILookupDependency } from "./formula-types"
 import { math } from "./functions/math"
 import {
   getFormulaChildMostAggregateCollectionIndex, getIncorrectChildAttrReference, getIncorrectParentAttrReference
@@ -23,7 +22,7 @@ interface IAttrFormulaExtraMetadata extends IFormulaExtraMetadata {
   attributeId: string
 }
 
-export class AttributeFormulaAdapter extends FormulaManagerAdapter implements IFormulaManagerAdapter {
+export class AttributeFormulaAdapter extends FormulaManagerAdapter {
 
   static register() {
     registerFormulaAdapter(api => new AttributeFormulaAdapter(api))

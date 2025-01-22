@@ -7,7 +7,7 @@ import { Adornment } from "./adornment"
 import { getAdornmentContentInfo } from "./adornment-content-info"
 import { IAdornmentModel } from "./adornment-models"
 import { useInstanceIdContext } from "../../../hooks/use-instance-id-context"
-import { useTileModelContext } from "../../../hooks/use-tile-model-context"
+import { useTileSelectionContext } from "../../../hooks/use-tile-selection-context"
 import { useGraphContentModelContext } from "../hooks/use-graph-content-model-context"
 import { useGraphDataConfigurationContext } from "../hooks/use-graph-data-configuration-context"
 import { useGraphLayoutContext } from "../hooks/use-graph-layout-context"
@@ -23,7 +23,7 @@ export const Adornments = observer(function Adornments() {
   const dataConfig = useGraphDataConfigurationContext()
   const instanceId = useInstanceIdContext()
   const layout = useGraphLayoutContext()
-  const { isTileSelected } = useTileModelContext()
+  const { isTileSelected } = useTileSelectionContext()
   const adornments = graphModel.adornmentsStore.adornments
   const { left, top, width, height } = layout.computedBounds.plot
   const spannerRef = useRef<SVGSVGElement>(null)
@@ -54,13 +54,11 @@ export const Adornments = observer(function Adornments() {
 
   const xAttrId = dataConfig?.attributeID("x")
   const xAttrType = dataConfig?.attributeType("x")
-  const xCatValues = layout.getAxisMultiScale('bottom').categoryValues
-  const xCats = xAttrType === "categorical" && xCatValues ? xCatValues : [""]
+  const xCats = xAttrType === "categorical" ? layout.getAxisMultiScale('bottom').categoryValues : [""]
   const yAttrId = dataConfig?.attributeID("y")
   const yAttrType = dataConfig?.attributeType("y")
-  const yCatValues = layout.getAxisMultiScale("left").categoryValues
   // yCats is the array of categorical values for the y axis (the one on the left)
-  const yCats = yAttrType === "categorical" && yCatValues ? yCatValues : [""]
+  const yCats = yAttrType === "categorical" ? layout.getAxisMultiScale('left').categoryValues : [""]
   const topAttrId = dataConfig?.attributeID("topSplit")
   const topCatValues = layout.getAxisMultiScale("top").categoryValues
   const topCats = topCatValues ?? [""]

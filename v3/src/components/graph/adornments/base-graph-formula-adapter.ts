@@ -1,10 +1,8 @@
 import { action, makeObservable, observable } from "mobx"
 import { ICase } from "../../../models/data/data-set-types"
 import { IFormula } from "../../../models/formula/formula"
-import {
-  FormulaManagerAdapter,
-  type IFormulaAdapterApi, type IFormulaContext, type IFormulaExtraMetadata, type IFormulaManagerAdapter
-} from "../../../models/formula/formula-manager-types"
+import { type IFormulaContext, type IFormulaExtraMetadata } from "../../../models/formula/formula-manager-types"
+import { FormulaManagerAdapter, type IFormulaAdapterApi } from "../../../models/formula/formula-manager-adapter"
 import { FormulaMathJsScope } from "../../../models/formula/formula-mathjs-scope"
 import { localAttrIdToCanonical } from "../../../models/formula/utils/name-mapping-utils"
 import { ITileContentModel } from "../../../models/tiles/tile-content"
@@ -29,7 +27,7 @@ interface IFormulaSupportingAdornment extends IAdornmentModel {
   setError(errorMsg: string): void
 }
 
-export class BaseGraphFormulaAdapter extends FormulaManagerAdapter implements IFormulaManagerAdapter {
+export class BaseGraphFormulaAdapter extends FormulaManagerAdapter {
   // --- METHODS AND PROPS TO OVERRIDE/IMPLEMENT ---
 
   getAdornment(graphContentModel: IGraphContentModel): IFormulaSupportingAdornment | undefined {

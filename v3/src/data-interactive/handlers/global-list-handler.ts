@@ -1,5 +1,6 @@
 import { appState } from "../../models/app-state"
-import { getGlobalValueManager, getSharedModelManager } from "../../models/tiles/tile-environment"
+import { getSharedModelManager } from "../../models/tiles/tile-environment"
+import { getGlobalValueManager } from "../../models/global/global-value-manager"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIGlobal, DIHandler } from "../data-interactive-types"
 import { valuesFromGlobal } from "../data-interactive-type-utils"

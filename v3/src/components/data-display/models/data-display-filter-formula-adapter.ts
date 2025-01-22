@@ -1,9 +1,8 @@
 import { action, makeObservable, observable } from "mobx"
 import { DEBUG_FORMULAS, debugLog } from "../../../lib/debug"
 import { ICase } from "../../../models/data/data-set-types"
-import {
-  FormulaManagerAdapter, IFormulaAdapterApi, IFormulaContext, IFormulaExtraMetadata, IFormulaManagerAdapter
-} from "../../../models/formula/formula-manager-types"
+import { IFormulaContext, IFormulaExtraMetadata } from "../../../models/formula/formula-manager-types"
+import { IFormulaAdapterApi, FormulaManagerAdapter } from "../../../models/formula/formula-manager-adapter"
 import { FormulaMathJsScope } from "../../../models/formula/formula-mathjs-scope"
 import { math } from "../../../models/formula/functions/math"
 import { formulaError } from "../../../models/formula/utils/misc"
@@ -15,7 +14,7 @@ export interface IDataDisplayFilterFormulaExtraMetadata extends IFormulaExtraMet
   contentModelId: string
 }
 
-export class DataDisplayFilterFormulaAdapter extends FormulaManagerAdapter implements IFormulaManagerAdapter {
+export class DataDisplayFilterFormulaAdapter extends FormulaManagerAdapter {
 
   @observable.shallow contentModels = new Map<string, IDataDisplayContentModel>()
 

@@ -2,6 +2,8 @@ import { IAnyStateTreeNode } from "mobx-state-tree"
 import { SetRequired } from "type-fest"
 import GraphIcon from "../../assets/icons/icon-graph.svg"
 import { registerComponentHandler } from "../../data-interactive/handlers/component-handler"
+import { registerDataDisplayHandler } from "../../data-interactive/handlers/data-display-handler"
+import { idOfChildmostCollectionForAttributes } from "../../models/data/data-set-utils"
 import { registerTileComponentInfo } from "../../models/tiles/tile-component-info"
 import { ITileLikeModel, registerTileContentInfo } from "../../models/tiles/tile-content-info"
 import { SharedDataSet } from "../../models/shared/shared-data-set"
@@ -15,14 +17,13 @@ import {
 import { GraphComponent } from "./components/graph-component"
 import { GraphInspector } from "./components/graph-inspector"
 import { graphComponentHandler } from "./graph-component-handler"
+import { graphDataDisplayHandler } from "./graph-data-display-handler"
 import { kGraphIdPrefix, kGraphTileClass, kGraphTileType, kV2GraphType } from "./graph-defs"
 import { GraphContentModel, IGraphContentModelSnapshot, isGraphContentModel } from "./models/graph-content-model"
 import { kGraphDataConfigurationType } from "./models/graph-data-configuration-model"
 import { GraphFilterFormulaAdapter } from "./models/graph-filter-formula-adapter"
 import { kGraphPointLayerType } from "./models/graph-point-layer-model"
 import { v2GraphImporter } from "./v2-graph-importer"
-import { registerDataDisplayHandler } from "../../data-interactive/handlers/data-display-handler"
-import { graphDataDisplayHandler } from "./graph-data-display-handler"
 
 GraphFilterFormulaAdapter.register()
 
@@ -50,8 +51,14 @@ registerTileContentInfo({
     return graphTileSnapshot
   },
   getTitle: (tile: ITileLikeModel) => {
-    const data = isGraphContentModel(tile?.content) ? tile.content.dataset : undefined
-    return tile.title || data?.title || ""
+    const graphModel = isGraphContentModel(tile?.content) ? tile.content : undefined
+    const uniqueAttributes = graphModel?.dataConfiguration.uniqueAttributes ?? []
+    const data = graphModel ? graphModel.dataset : undefined
+    const childMostCollectionId = idOfChildmostCollectionForAttributes(uniqueAttributes, data)
+    const childMostCollectionTitle = childMostCollectionId ? data?.getCollection(childMostCollectionId)?.title : ""
+    const numCollections = data?.collections.length || 0
+    const lastCollectionTitle = numCollections ? data?.collections[numCollections - 1].title : ""
+    return tile.title || childMostCollectionTitle || lastCollectionTitle || ""
   },
   getFormulaAdapters: (node: IAnyStateTreeNode) => [
     GraphFilterFormulaAdapter.get(node),

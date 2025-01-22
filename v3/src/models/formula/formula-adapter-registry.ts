@@ -1,4 +1,5 @@
-import { IFormulaAdapterApi, IFormulaManagerAdapter } from "./formula-manager-types"
+import { IFormulaManagerAdapter } from "./formula-manager-types"
+import { IFormulaAdapterApi } from "./formula-manager-adapter"
 
 export type FormulaAdapterCreateFn = (api: IFormulaAdapterApi) => IFormulaManagerAdapter
 

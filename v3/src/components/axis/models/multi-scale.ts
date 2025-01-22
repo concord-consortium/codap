@@ -85,8 +85,8 @@ export class MultiScale {
         : undefined
   }
 
-  @computed get categoryValues() {
-    return this.categorySet?.valuesArray ?? []
+  get categoryValues() {
+    return this.categoricalScale?.domain() ?? []
   }
 
   @computed get cellLength() {

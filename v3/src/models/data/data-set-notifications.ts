@@ -1,10 +1,10 @@
 import { debugLog, DEBUG_PLUGINS } from "../../lib/debug"
-import { convertAttributeToV2, convertCaseToV2FullCase } from "../../data-interactive/data-interactive-type-utils"
 import { toV2Id } from "../../utilities/codap-utils"
 import { IAttribute } from "./attribute"
 import { IDataSet } from "./data-set"
 import { ICase } from "./data-set-types"
 import { ICollectionModel } from "./collection"
+import { getDataSetNotificationAdapter } from "./data-set-notification-adapter"
 
 const action = "notify"
 function makeCallback(operation: string, other?: any) {
@@ -65,9 +65,10 @@ export function updateCollectionNotification(collection?: ICollectionModel, data
 function attributeNotification(
   operation: string, data?: IDataSet, attrIDs?: string[], attrs?: IAttribute[]
 ) {
+  const adapter = getDataSetNotificationAdapter()
   const result = {
     success: true,
-    attrs: attrs?.map(attr => convertAttributeToV2(attr, data)),
+    attrs: attrs?.map(attr => adapter.convertAttribute(attr, data)),
     attrIDs: attrIDs?.map(attrID => toV2Id(attrID))
   }
   return notification(operation, result, data, makeCallback(operation, attrIDs))
@@ -122,11 +123,12 @@ export function moveCasesNotification(data: IDataSet, cases: ICase[] = []) {
 }
 
 export function updateCasesNotification(data: IDataSet, cases?: ICase[]) {
+  const adapter = getDataSetNotificationAdapter()
   const caseIDs = cases?.map(c => toV2Id(c.__id__))
   const result = {
     success: true,
     caseIDs,
-    cases: cases?.map(c => convertCaseToV2FullCase(c, data))
+    cases: cases?.map(c => adapter.convertCase(c, data))
   }
   return notification("updateCases", result, data)
 }
@@ -140,9 +142,10 @@ export function updateCasesNotificationFromIds(data: IDataSet, caseIds?: string[
 }
 
 export function deleteCasesNotification(data: IDataSet, cases?: ICase[]) {
+  const adapter = getDataSetNotificationAdapter()
   const result = {
     success: true,
-    cases: cases?.map(c => convertCaseToV2FullCase(c, data))
+    cases: cases?.map(c => adapter.convertCase(c, data))
   }
   return notification("deleteCases", result, data)
 }
@@ -164,6 +167,8 @@ export function selectCasesNotification(dataset: IDataSet, extend?: boolean) {
   const oldSelectedCaseIds = getSelectedCaseIds(oldSelectedItemIdSet)
   const oldSelectedCaseIdSet = new Set(oldSelectedCaseIds)
 
+  const adapter = getDataSetNotificationAdapter()
+
   return () => {
     const newSelectedItemIds = Array.from(dataset.selection)
     const newSelectedItemIdSet = new Set(newSelectedItemIds)
@@ -177,7 +182,7 @@ export function selectCasesNotification(dataset: IDataSet, extend?: boolean) {
 
     const convertCaseIdsToV2FullCases = (_caseIds: string[]) => {
       const caseGroups = _caseIds.map(caseId => dataset.caseInfoMap.get(caseId)?.groupedCase).filter(c => !!c)
-      return caseGroups.map(groupedCase => convertCaseToV2FullCase(groupedCase, dataset))
+      return caseGroups.map(groupedCase => adapter.convertCase(groupedCase, dataset))
     }
 
     const caseIds = extend ? addedCaseIds : newSelectedCaseIds

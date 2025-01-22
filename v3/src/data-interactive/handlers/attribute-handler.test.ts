@@ -1,8 +1,9 @@
 import { Attribute } from "../../models/data/attribute"
 import { diAttributeHandler } from "./attribute-handler"
-import { DIResultAttributes } from "../data-interactive-types"
+import { DIResultAttributes } from "../data-interactive-data-set-types"
 import { DataSet } from "../../models/data/data-set"
 import { setupTestDataset } from "./handler-test-utils"
+import { AppHistoryService } from "../../models/history/app-history-service"
 
 describe("DataInteractive AttributeHandler", () => {
   const handler = diAttributeHandler
@@ -95,7 +96,7 @@ describe("DataInteractive AttributeHandler", () => {
 
   it("delete works as expected", () => {
     const attribute = Attribute.create({ name: "name" })
-    const dataContext = DataSet.create({})
+    const dataContext = DataSet.create({}, {historyService: new AppHistoryService()})
     dataContext.addAttribute(attribute)
     expect(dataContext.attributes.length).toBe(1)
     expect(handler.delete?.({ dataContext }).success).toEqual(false)

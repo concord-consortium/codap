@@ -3,7 +3,8 @@ import { kWebViewTileType } from "../components/web-view/web-view-defs"
 import "../components/web-view/web-view-registration"
 import { appState } from "../models/app-state"
 import { SharedDataSet } from "../models/shared/shared-data-set"
-import { getGlobalValueManager, getSharedModelManager } from "../models/tiles/tile-environment"
+import { getSharedModelManager } from "../models/tiles/tile-environment"
+import { getGlobalValueManager } from "../models/global/global-value-manager"
 import { toV2Id } from "../utilities/codap-utils"
 import { setupTestDataset, testCases } from "./handlers/handler-test-utils"
 import { resolveResources } from "./resource-parser"
@@ -28,6 +29,9 @@ describe("DataInteractive ResourceParser", () => {
     expect(resolve("dataContext[data]").dataContext?.id).toBe(dataset.id)
     expect(resolve(`dataContext[${toV2Id(dataset.id)}]`).dataContext?.id).toBe(dataset.id)
     expect(resolve("dataContext[unknown]").dataContext).toBeUndefined()
+    // finds dataContext by user-set title
+    dataset.setTitle("NewTitle")
+    expect(resolve("dataContext[NewTitle]").dataContext?.id).toBe(dataset.id)
   })
 
   it("finds components", () => {

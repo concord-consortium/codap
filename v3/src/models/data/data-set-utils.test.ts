@@ -1,3 +1,4 @@
+import { AppHistoryService } from "../history/app-history-service"
 import { IAttribute } from "./attribute"
 import { ICollectionModel } from "./collection"
 import { DataSet, IDataSet } from "./data-set"
@@ -33,7 +34,7 @@ describe("DataSetUtils", () => {
   })
 
   it("moveAttribute works as expected", () => {
-    const data = DataSet.create()
+    const data = DataSet.create(undefined, {historyService: new AppHistoryService()})
     const parentCollection = data.addCollection({ id: "parentColl" })
     data.addAttribute({ id: "aAttr", name: "a" })
     data.addAttribute({ id: "bAttr", name: "b" })
