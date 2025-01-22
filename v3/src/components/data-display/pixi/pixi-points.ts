@@ -691,14 +691,18 @@ export class PixiPoints {
       const onDrag = (onDragEvent: PointerEvent) => {
         // bars cannot be dragged
         if (draggingActive && this.displayType !== "bars") {
-          this.onPointDrag?.(onDragEvent, sprite, this.getMetadata(sprite))
+          // Note that we don't call getMetadata here because the point can be removed by a click
+          const metadata = this.pointMetadata.get(sprite)
+          metadata && this.onPointDrag?.(onDragEvent, sprite, metadata)
         }
       }
 
       const onDragEnd = (pointerUpEvent: PointerEvent) => {
         if (draggingActive) {
           draggingActive = false
-          this.onPointDragEnd?.(pointerUpEvent, sprite, this.getMetadata(sprite))
+          // Note that we don't call getMetadata here because the point can be removed by a click
+          const metadata = this.pointMetadata.get(sprite)
+          metadata && this.onPointDragEnd?.(pointerUpEvent, sprite, metadata)
           window.removeEventListener("pointermove", onDrag)
           window.removeEventListener("pointerup", onDragEnd)
         }

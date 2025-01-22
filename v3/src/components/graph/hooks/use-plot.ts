@@ -177,16 +177,6 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
       return mstReaction(
         () => dataset?.selectionChanges,
         () => {
-          // If there are hidden cases in the graph that are then selected in a different tile, remove them from
-          // the hiddenCases array and make sure their positions are set.
-          if (dataConfiguration.displayOnlySelectedCases && dataConfiguration?.hiddenCases.length > 0) {
-            const selectedCases = Array.from(dataset.selection)
-            const allCases = dataset.items.map(c => c.__id__)
-            const updatedHiddenCases = allCases.filter(caseID => !selectedCases.includes(caseID))
-            dataConfiguration?.setHiddenCases(updatedHiddenCases)
-            callMatchCirclesToData()
-            callRefreshPointPositions(false)
-          }
           refreshPointSelection()
         },
         {name: "useSubAxis.respondToSelectionChanges"}, dataConfiguration

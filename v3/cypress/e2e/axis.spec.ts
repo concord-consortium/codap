@@ -343,7 +343,7 @@ context("Test graph axes with various attribute types", () => {
     // Switch back to points without undo/redo to clean up state
     cy.get("[data-testid=graph-display-config-button").click()
     cy.get("[data-testid=points-radio-button]").click()
-    ah.verifyAxisTickLabel("bottom", "−0.5", 0)
+    ah.verifyAxisTickLabel("bottom", "0", 0)
   })
 })
 
