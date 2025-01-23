@@ -22,7 +22,7 @@ export function convertParsedCsvToDataSet(results: CsvParseResult, filename: str
   const ds = DataSet.create({ name })
   // add attributes (extracted from first case)
   for (const pName in results.data[0]) {
-    ds.addAttribute({name: pName})
+    ds.addAttribute({name: pName.trim()})
   }
   // add cases
   ds.addCases(results.data, { canonicalize: true })

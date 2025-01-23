@@ -266,7 +266,7 @@ export const Attribute = V2Model.named("Attribute").props({
 }))
 .actions(self => ({
   setName(newName: string) {
-    self.name = newName
+    self.name = newName.trim()
   },
   setUnits(units?: string) {
     self.units = units
