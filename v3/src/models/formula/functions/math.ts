@@ -15,6 +15,7 @@ import { otherFunctions } from "./other-functions"
 import { semiAggregateFunctions } from "./semi-aggregate-functions"
 import { stringFunctions } from "./string-functions"
 import { univariateStatsFunctions } from "./univariate-stats-functions"
+import { colorFunctions } from "./color-functions"
 
 export const math = create(all)
 
@@ -89,6 +90,8 @@ export const fnRegistry = {
   ...bivariateStatsFunctions,
 
   ...semiAggregateFunctions,
+
+  ...colorFunctions
 }
 
 export const typedFnRegistry: CODAPMathjsFunctionRegistry = fnRegistry

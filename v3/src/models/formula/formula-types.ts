@@ -1,5 +1,6 @@
 import type { ConstantNode, MathNode } from "mathjs"
 import type { FormulaMathJsScope } from "./formula-mathjs-scope"
+import { AnyColor, Colord } from "colord"
 
 export type LookupStringConstantArg = Maybe<ConstantNode<string>>
 
@@ -40,7 +41,7 @@ export interface ILookupDependency {
 export type IFormulaDependency = ILocalAttributeDependency | IBoundaryDependency |
                                   IGlobalValueDependency | ILookupDependency
 
-export type FValue = string | number | boolean | Date | object
+export type FValue = string | number | boolean | Date | object | AnyColor | Colord
 
 export type FValueOrArray = FValue | FValue[]
 

@@ -2010,8 +2010,8 @@
           }
         ],
         "examples": [
-          "darken(#ff0000, 20%); returns a red darker by 20% of true red",
-          "darken(blue, Percent); returns a darker blue by Percent of true blue */"
+          "darken(#ff0000, 20%) returns a red darker by 20% of true red",
+          "darken(blue, Percent) returns a darker blue by Percent of true blue */"
         ]
       },
       { "displayName": "lighten",
@@ -2029,8 +2029,8 @@
           }
         ],
         "examples": [
-          "lighten(#ff0000, 20%); returns a red lighten by 20% of true red",
-          "lighten(blue, Percent); returns a lighten blue by Percent of true blue */"
+          "lighten(#ff0000, 20%) returns a red lighten by 20% of true red",
+          "lighten(blue, Percent) returns a lighten blue by Percent of true blue"
         ]
       }
 
