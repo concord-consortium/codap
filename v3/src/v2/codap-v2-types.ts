@@ -395,7 +395,7 @@ export interface ICodapV2PlotStorage {
   // TODO_V2_IMPORT totalNumberOfBins is not imported
   // it occurs 8,299 times in cfm-shared
   totalNumberOfBins?: number
-  // expresssion at this level existed in a single file of 6,000 checked
+  // expression at this level existed in a single file of 6,000 checked
   // in cfm-shared. It is unknown how many times it occurs in all of
   // of cfm-shared
   expression?: string
