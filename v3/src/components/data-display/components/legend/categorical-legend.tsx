@@ -4,10 +4,7 @@ import {comparer, reaction} from "mobx"
 import {drag, range, select} from "d3"
 import React, {useCallback, useEffect, useMemo, useRef} from "react"
 import { logMessageWithReplacement } from "../../../../lib/log-message"
-// import { setOrExtendSelection } from "../../../../models/data/data-set-utils"
-import {isSelectionAction} from "../../../../models/data/data-set-actions"
 import {missingColor} from "../../../../utilities/color-utils"
-import {onAnyAction} from "../../../../utilities/mst-utils"
 import {measureText} from "../../../../hooks/use-measure-text"
 import {useDataConfigurationContext} from "../../hooks/use-data-configuration-context"
 import {useDataDisplayLayout} from "../../hooks/use-data-display-layout"
@@ -63,7 +60,6 @@ const coordinatesToCatIndex = (lod: Layout, numCategories: number, localPoint: {
 export const CategoricalLegend = observer(
   function CategoricalLegend({layerIndex, setDesiredExtent}: IBaseLegendProps) {
     const dataConfiguration = useDataConfigurationContext(),
-      dataset = dataConfiguration?.dataset,
       tileWidth = useDataDisplayLayout().tileWidth,
       categoriesRef = useRef<string[] | undefined>(),
       categoryData = useRef<Key[]>([]),
@@ -290,12 +286,12 @@ export const CategoricalLegend = observer(
     }, [dataConfiguration, dragBehavior])
 
     useEffect(function respondToSelectionChange() {
-      return onAnyAction(dataset, action => {
-        if (isSelectionAction(action)) {
+      return mstReaction(
+        () => dataConfiguration?.selection,
+        () => {
           refreshKeys()
-        }
-      })
-    }, [refreshKeys, dataset, computeDesiredExtent])
+        }, {name: 'CategoricalLegend respondToSelectionChange'}, dataConfiguration)
+    }, [refreshKeys, dataConfiguration])
 
     useEffect(function respondToChangeCount() {
       return mstReaction(
