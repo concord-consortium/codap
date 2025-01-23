@@ -153,6 +153,7 @@ export const Attribute = V2Model.named("Attribute").props({
     self.getNumericCount.invalidate()
     self.getStrictColorCount.invalidate()
     self.getBoundaryCount.invalidate()
+    self.getDateCount.invalidate()
   },
   setCid(cid?: string) {
     self._cid = cid
@@ -161,9 +162,9 @@ export const Attribute = V2Model.named("Attribute").props({
 .actions(self => ({
   afterCreate() {
     // frozen properties are not modifiable in development (because MST freezes them with Object.freeze),
-    // so we copy the data to volatile properties during runtime. Clients must call preSerialize() before
-    // and postSerialize() after serialization for this to work under these conditions. MST doesn't
-    // actually freeze the values in production, so preSerialize()/postSerialize() are NOPs in production.
+    // so we copy the data to volatile properties during runtime. Clients must call prepareSnapshot() before
+    // and completeSnapshot() after serialization for this to work under these conditions. MST doesn't
+    // actually freeze the values in production, so prepareSnapshot()/completeSnapshot() are NOPs in production.
     if (isDevelopment()) {
       // copy the frozen values into volatile `strValues`
       self.strValues = [...(self.values || [])]
