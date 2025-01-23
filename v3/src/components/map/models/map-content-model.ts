@@ -1,6 +1,7 @@
-import {LatLngBounds, Layer, Map as LeafletMap, Polygon} from 'leaflet'
+import {LatLngBounds, Layer, Map as LeafletMap, Polygon} from "leaflet"
 import {comparer, reaction, when} from "mobx"
 import {addDisposer, getSnapshot, Instance, SnapshotIn, types} from "mobx-state-tree"
+import { AttributeType } from "../../../models/data/attribute-types"
 import {IDataSet} from "../../../models/data/data-set"
 import {applyModelChange} from "../../../models/history/apply-model-change"
 import {withoutUndo} from "../../../models/history/without-undo"
@@ -98,10 +99,10 @@ export const MapContentModel = DataDisplayContentModel
   .actions(self => ({
     // Each layer can have one legend attribute. The layer that can handle the given legend attribute must already
     // be present in the layers array
-    setLegendAttributeID(datasetID: string, attributeID: string) {
+    setLegendAttribute(datasetID: string, attributeID: string, type?: AttributeType) {
       const foundLayer = self.layers.find(layer => layer.data?.id === datasetID)
       if (foundLayer) {
-        foundLayer.dataConfiguration.setAttribute('legend', {attributeID})
+        foundLayer.dataConfiguration.setAttribute('legend', {attributeID, type})
       }
     },
     setCenterAndZoom(center: ILatLngSnapshot, zoom: number) {

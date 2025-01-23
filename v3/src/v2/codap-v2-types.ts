@@ -550,7 +550,7 @@ export function isV2MapLegacyStorage(obj: unknown): obj is ICodapV2MapCurrentSto
   return !!obj && typeof obj === "object" && "legendRole" in obj && obj.legendRole != null
 }
 
-interface ICodapV2MapLayerBaseStorage {
+export interface ICodapV2MapLayerBaseStorage {
   _links_: {
     context: IGuidLink<"DG.DataContextRecord">
     // TODO_V2_IMPORT hiddenCases are not imported
@@ -560,9 +560,10 @@ interface ICodapV2MapLayerBaseStorage {
     legendColl?: IGuidLink<"DG.Collection">,
     // We sometimes see an array of links here
     legendAttr?: IGuidLink<"DG.Attribute"> | IGuidLink<"DG.Attribute">[],
-    // TODO_V2_IMPORT tHiddenCases
+    // V2_IMPORT_IGNORE tHiddenCases
     // this occurs 523 times in cfm-shared
     // in all cases the value is `[]`
+    // seems like detritus from an earlier bug
     tHiddenCases?: unknown[]
   }
   legendRole: number
