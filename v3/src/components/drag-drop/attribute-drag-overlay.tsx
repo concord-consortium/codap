@@ -1,20 +1,31 @@
-import { DragOverlay, Modifier, Modifiers, useDndContext } from "@dnd-kit/core"
+import { Active, DragOverlay, Modifier, Modifiers, useDndContext } from "@dnd-kit/core"
 import React, { CSSProperties } from "react"
 import { getDragAttributeInfo } from "../../hooks/use-drag-drop"
 
 import "./attribute-drag-overlay.scss"
 
+function getOverlayDragId(active: Active | null, instanceId: string, excludeRegEx?: RegExp) {
+  const activeId = `${active?.id}`
+  return active && activeId.startsWith(instanceId) && !excludeRegEx?.test(activeId)
+    ? activeId : undefined
+}
+
 interface IProps {
-  activeDragId?: string
+  dragIdPrefix: string
+  dragIdExcludeRegEx?: RegExp
   overlayHeight?: number
   overlayWidth?: number
   xOffset?: number
   yOffset?: number
 }
 
-export function AttributeDragOverlay ({ activeDragId, overlayHeight, overlayWidth, xOffset, yOffset }: IProps) {
+export function AttributeDragOverlay ({
+  dragIdPrefix, dragIdExcludeRegEx, overlayHeight, overlayWidth, xOffset, yOffset
+}: IProps) {
   const { active } = useDndContext()
   const { dataSet, attributeId: dragAttrId } = getDragAttributeInfo(active) || {}
+
+  const activeDragId = getOverlayDragId(active, dragIdPrefix, dragIdExcludeRegEx)
   const attr = activeDragId && dragAttrId ? dataSet?.attrFromID(dragAttrId) : undefined
   const handleDropAnimation = (/*params: any*/) => {
     /**

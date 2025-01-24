@@ -1,12 +1,11 @@
 import { useMergeRefs } from "@chakra-ui/react"
-import { useDndContext } from "@dnd-kit/core"
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import React, { useCallback, useRef } from "react"
 import { dataInteractiveState } from "../../data-interactive/data-interactive-state"
 import { DocumentContainerContext } from "../../hooks/use-document-container-context"
 import { useDocumentContent } from "../../hooks/use-document-content"
-import { useContainerDroppable, getDragTileId, getOverlayDragId } from "../../hooks/use-drag-drop"
+import { useContainerDroppable, getDragTileId } from "../../hooks/use-drag-drop"
 import { logMessageWithReplacement, logStringifiedObjectMessage } from "../../lib/log-message"
 import { isFreeTileRow } from "../../models/document/free-tile-row"
 import { isMosaicTileRow } from "../../models/document/mosaic-tile-row"
@@ -28,7 +27,6 @@ export const Container: React.FC = observer(function Container() {
   const row = documentContent?.getRowByIndex(0)
   const getTile = useCallback((tileId: string) => documentContent?.getTile(tileId), [documentContent])
   const containerRef = useRef<HTMLDivElement>(null)
-  const { active } = useDndContext()
 
   const handleCloseTile = useCallback((tileId: string) => {
     const tile = getTile(tileId)
@@ -76,7 +74,7 @@ export const Container: React.FC = observer(function Container() {
           <FreeTileRowComponent row={row} getTile={getTile} onCloseTile={handleCloseTile}/>}
         <PluginAttributeDrag />
         <AttributeDragOverlay
-          activeDragId={getOverlayDragId(active, "plugin")}
+          dragIdPrefix="plugin"
           overlayHeight={dataInteractiveState.draggingOverlayHeight}
           overlayWidth={dataInteractiveState.draggingOverlayWidth}
           xOffset={dataInteractiveState.draggingXOffset}

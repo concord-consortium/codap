@@ -1,10 +1,8 @@
 import { useMergeRefs } from "@chakra-ui/react"
-import { useDndContext } from "@dnd-kit/core"
 import { observer } from "mobx-react-lite"
 import React, { useCallback, useRef } from "react"
 // import { useResizeDetector } from "react-resize-detector"
 import { useDataSet } from "../../hooks/use-data-set"
-import { getOverlayDragId } from "../../hooks/use-drag-drop"
 import { useInstanceIdContext } from "../../hooks/use-instance-id-context"
 import { prf } from "../../utilities/profiler"
 import { excludeDragOverlayRegEx } from "../case-tile-common/case-tile-types"
@@ -26,7 +24,6 @@ interface IProps {
   setNodeRef: (element: HTMLElement | null) => void
 }
 export const CaseCard = observer(function CaseCard({ setNodeRef }: IProps) {
-  const { active } = useDndContext()
   const instanceId = useInstanceIdContext() || "case-card"
   const {data} = useDataSet()
   const cardModel = useCaseCardModel()
@@ -105,7 +102,7 @@ export const CaseCard = observer(function CaseCard({ setNodeRef }: IProps) {
         {data.hasFilterFormula && <FilterFormulaBar />}
         <div ref={mergeRefs} className="case-card react-data-card" data-testid="case-card">
           <CardView onNewCollectionDrop={handleNewCollectionDrop}/>
-          <AttributeDragOverlay activeDragId={getOverlayDragId(active, instanceId, excludeDragOverlayRegEx)}/>
+          <AttributeDragOverlay dragIdPrefix={instanceId} dragIdExcludeRegEx={excludeDragOverlayRegEx}/>
         </div>
       </>
     )
