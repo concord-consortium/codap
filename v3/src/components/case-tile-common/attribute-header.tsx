@@ -150,6 +150,7 @@ export const AttributeHeader = observer(function AttributeHeader({
     }
     setEditingAttrId("")
     setEditingAttrName("")
+    setIsFocused(false)
     uiState.setAttrIdToEdit?.()
   }
   const handleRenameAttribute = () => {
