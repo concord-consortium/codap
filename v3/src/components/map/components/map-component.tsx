@@ -1,8 +1,7 @@
-import {useDndContext, useDroppable} from '@dnd-kit/core'
+import {useDroppable} from '@dnd-kit/core'
 import {observer} from "mobx-react-lite"
 import React, {useEffect, useRef} from "react"
 import {useResizeDetector} from "react-resize-detector"
-import { getOverlayDragId } from '../../../hooks/use-drag-drop'
 import {InstanceIdContext, useNextInstanceId} from "../../../hooks/use-instance-id-context"
 import {ITileBaseProps} from '../../tiles/tile-base-props'
 import {DataDisplayLayoutContext} from "../../data-display/hooks/use-data-display-layout"
@@ -29,8 +28,6 @@ export const MapComponent = observer(function MapComponent({tile}: ITileBaseProp
   const {setNodeRef} = useDroppable({id: dropId})
   setNodeRef(mapRef.current ?? null)
 
-  const {active} = useDndContext()
-
   if (!mapModel) return null
 
   return (
@@ -38,7 +35,7 @@ export const MapComponent = observer(function MapComponent({tile}: ITileBaseProp
       <DataDisplayLayoutContext.Provider value={layout}>
         <MapModelContext.Provider value={mapModel}>
           <CodapMap mapRef={mapRef}/>
-          <AttributeDragOverlay activeDragId={getOverlayDragId(active, instanceId)}/>
+          <AttributeDragOverlay dragIdPrefix={instanceId}/>
         </MapModelContext.Provider>
       </DataDisplayLayoutContext.Provider>
     </InstanceIdContext.Provider>

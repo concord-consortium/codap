@@ -1,31 +1,31 @@
-import {useDndContext, useDroppable} from '@dnd-kit/core'
-import {observer} from "mobx-react-lite"
-import React, {useEffect, useRef} from "react"
-import {useResizeDetector} from "react-resize-detector"
-import {useMemo} from 'use-memo-one'
-import {ITileBaseProps} from '../../tiles/tile-base-props'
-import {useDataSet} from '../../../hooks/use-data-set'
-import {DataSetContext} from '../../../hooks/use-data-set-context'
-import { getOverlayDragId } from '../../../hooks/use-drag-drop'
-import {GraphContentModelContext} from '../hooks/use-graph-content-model-context'
-import {useGraphController} from "../hooks/use-graph-controller"
-import {GraphLayoutContext} from '../hooks/use-graph-layout-context'
-import {useInitGraphLayout} from '../hooks/use-init-graph-layout'
-import {InstanceIdContext, useNextInstanceId} from "../../../hooks/use-instance-id-context"
+import { useDroppable } from '@dnd-kit/core'
+import { observer } from "mobx-react-lite"
+import React, { useCallback, useEffect, useRef } from "react"
+import { useResizeDetector } from "react-resize-detector"
+import { useMemo } from 'use-memo-one'
+import { DEBUG_PIXI_POINTS } from '../../../lib/debug'
 import { registerTileCollisionDetection } from "../../../lib/dnd-kit/dnd-detect-collision"
-import {DEBUG_PIXI_POINTS} from '../../../lib/debug'
-import {AxisProviderContext} from '../../axis/hooks/use-axis-provider-context'
-import {AxisLayoutContext} from "../../axis/models/axis-layout-context"
-import {usePixiPointsArray} from '../../data-display/hooks/use-pixi-points-array'
-import {GraphController} from "../models/graph-controller"
-import {isGraphContentModel} from "../models/graph-content-model"
-import {Graph} from "./graph"
-import { graphCollisionDetection, kGraphIdBase } from './graph-drag-drop'
-import { kTitleBarHeight } from "../../constants"
-import {AttributeDragOverlay} from "../../drag-drop/attribute-drag-overlay"
-import "../register-adornment-types"
+import { useDataSet } from '../../../hooks/use-data-set'
+import { DataSetContext } from '../../../hooks/use-data-set-context'
+import { InstanceIdContext, useNextInstanceId } from "../../../hooks/use-instance-id-context"
 import { getTitle } from '../../../models/tiles/tile-content-info'
+import { AxisProviderContext } from '../../axis/hooks/use-axis-provider-context'
+import { AxisLayoutContext } from "../../axis/models/axis-layout-context"
+import { kTitleBarHeight } from "../../constants"
+import { usePixiPointsArray } from '../../data-display/hooks/use-pixi-points-array'
 import { DataDisplayRenderState } from '../../data-display/models/data-display-render-state'
+import { AttributeDragOverlay } from "../../drag-drop/attribute-drag-overlay"
+import { ITileBaseProps } from '../../tiles/tile-base-props'
+import { GraphContentModelContext } from '../hooks/use-graph-content-model-context'
+import { useGraphController } from "../hooks/use-graph-controller"
+import { GraphLayoutContext } from '../hooks/use-graph-layout-context'
+import { useInitGraphLayout } from '../hooks/use-init-graph-layout'
+import { GraphController } from "../models/graph-controller"
+import { isGraphContentModel } from "../models/graph-content-model"
+import { Graph } from "./graph"
+import { graphCollisionDetection, kGraphIdBase } from './graph-drag-drop'
+
+import "../register-adornment-types"
 
 registerTileCollisionDetection(kGraphIdBase, graphCollisionDetection)
 
@@ -51,7 +51,7 @@ export const GraphComponent = observer(function GraphComponent({tile}: ITileBase
 
   useGraphController({graphController, graphModel, pixiPointsArray})
 
-  const setGraphRef = (ref: HTMLDivElement | null) => {
+  const setGraphRef = useCallback((ref: HTMLDivElement | null) => {
     graphRef.current = ref
     const elementParent = ref?.parentElement
     const dataUri = graphModel?.renderState?.dataUri ?? undefined
@@ -59,7 +59,7 @@ export const GraphComponent = observer(function GraphComponent({tile}: ITileBase
       const renderState = new DataDisplayRenderState(pixiPointsArray, elementParent, () => title, dataUri)
       graphModel?.setRenderState(renderState)
     }
-  }
+  }, [graphModel, pixiPointsArray, title])
 
   useEffect(() => {
     (width != null) && width >= 0 && (height != null) &&
@@ -77,8 +77,6 @@ export const GraphComponent = observer(function GraphComponent({tile}: ITileBase
   const {setNodeRef} = useDroppable({id: dropId})
   setNodeRef(graphRef.current ?? null)
 
-  const {active} = useDndContext()
-
   if (!graphModel) return null
 
   return (
@@ -94,7 +92,7 @@ export const GraphComponent = observer(function GraphComponent({tile}: ITileBase
                   pixiPointsArray={pixiPointsArray}
                 />
               </AxisProviderContext.Provider>
-              <AttributeDragOverlay activeDragId={getOverlayDragId(active, instanceId)}/>
+              <AttributeDragOverlay dragIdPrefix={instanceId}/>
             </GraphContentModelContext.Provider>
           </AxisLayoutContext.Provider>
         </GraphLayoutContext.Provider>
