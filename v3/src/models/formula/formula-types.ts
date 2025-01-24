@@ -60,8 +60,6 @@ export type EvaluateRawFunc = (args: MathNode[], mathjs: any, currentScope: Curr
 export interface IFormulaMathjsFunction {
   // Each function needs to specify number of required arguments, so the default argument can be provided if needed.
   numOfRequiredArguments: number
-  // `evaluate` function accepts arguments already processed and evaluated by mathjs.
-  evaluate?: EvaluateFunc
   // Each function needs to specify number of required arguments, so the default argument can be provided if needed.
   // numOfRequiredArguments: number
   rawArgs?: boolean
@@ -80,8 +78,8 @@ export interface IFormulaMathjsFunction {
   // Self reference might be used to define a formula that calculates the cumulative value, e.g.:
   // `CumulativeValue` attribute formula: `Value + prev(CumulativeValue, 0)`
   selfReferenceAllowed?: boolean
-  // // `evaluate` function accepts arguments already processed and evaluated by mathjs.
-  // evaluate?: EvaluateFunc
+  // `evaluate` function accepts arguments already processed and evaluated by mathjs.
+  evaluate?: EvaluateFunc
   // `evaluateRaw` function accepts raw arguments following convention defined by mathjs.
   // This lets us enable custom processing of arguments, caching, etc.
   evaluateRaw?: EvaluateRawFunc

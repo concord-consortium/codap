@@ -1,11 +1,12 @@
 import { create, all, MathNode } from "mathjs"
 import {
   CODAPMathjsFunctionRegistry, CurrentScope, EvaluateFunc, EvaluateFuncWithAggregateContextSupport, EvaluateRawFunc,
-  FValue, FValueOrArray,
+  FValue, FValueOrArray
 } from "../formula-types"
 import { aggregateFunctions } from "./aggregate-functions"
 import { arithmeticFunctions } from "./arithmetic-functions"
 import { bivariateStatsFunctions } from "./bivariate-stats-functions"
+import { colorFunctions } from "./color-functions"
 import { dateFunctions } from "./date-functions"
 import { evaluateNode, getRootScope } from "./function-utils"
 import { logicFunctions } from "./logic-functions"
@@ -15,7 +16,6 @@ import { otherFunctions } from "./other-functions"
 import { semiAggregateFunctions } from "./semi-aggregate-functions"
 import { stringFunctions } from "./string-functions"
 import { univariateStatsFunctions } from "./univariate-stats-functions"
-import { colorFunctions } from "./color-functions"
 
 export const math = create(all)
 
