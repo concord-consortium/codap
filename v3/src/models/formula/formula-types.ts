@@ -60,8 +60,6 @@ export type EvaluateRawFunc = (args: MathNode[], mathjs: any, currentScope: Curr
 export interface IFormulaMathjsFunction {
   // Each function needs to specify number of required arguments, so the default argument can be provided if needed.
   numOfRequiredArguments: number
-  // Each function needs to specify number of required arguments, so the default argument can be provided if needed.
-  // numOfRequiredArguments: number
   rawArgs?: boolean
   // Value of isOperator is a boolean. When true, it means that the function is an operator.
   isOperator?: boolean
