@@ -26,6 +26,11 @@ export enum PixiBackgroundPassThroughEvent {
 
 export type PixiPointsArray = Array<Maybe<PixiPoints>>
 
+// without this cast using TypeScript 5.7, we get the following error:
+// "Type 'FederatedPointerEvent' is missing the following properties
+// from type 'PointerEvent': altitudeAngle, azimuthAngle"
+const toPointerEvent = (event: PIXI.FederatedPointerEvent) => event as unknown as PointerEvent
+
 export type PixiPointEventHandler = (event: PointerEvent, point: PIXI.Sprite, metadata: IPixiPointMetadata) => void
 
 export interface IPixiPointMetadata extends CaseData {
@@ -650,9 +655,9 @@ export class PixiPoints {
         }, { duration: transitionDuration })
       }
       if (!draggingActive) {
-        this.onPointOver?.(pointerEvent, sprite, this.getMetadata(sprite))
+        this.onPointOver?.(toPointerEvent(pointerEvent), sprite, this.getMetadata(sprite))
       } else {
-        this.onPointLeave?.(pointerEvent, sprite, this.getMetadata(sprite))
+        this.onPointLeave?.(toPointerEvent(pointerEvent), sprite, this.getMetadata(sprite))
       }
     }
     const handlePointerLeave = (pointerEvent: PIXI.FederatedPointerEvent) => {
@@ -666,7 +671,7 @@ export class PixiPoints {
           this.setPointScale(sprite, 1)
         }, { duration: transitionDuration })
       }
-      this.onPointLeave?.(pointerEvent, sprite, this.getMetadata(sprite))
+      this.onPointLeave?.(toPointerEvent(pointerEvent), sprite, this.getMetadata(sprite))
     }
 
     // Hover effect
@@ -680,13 +685,13 @@ export class PixiPoints {
     })
 
     sprite.on("click", (clickEvent: PIXI.FederatedPointerEvent) => {
-      this.onPointClick?.(clickEvent, sprite, this.getMetadata(sprite))
+      this.onPointClick?.(toPointerEvent(clickEvent), sprite, this.getMetadata(sprite))
     })
 
     // Dragging
     sprite.on("pointerdown", (pointerDownEvent: PIXI.FederatedPointerEvent) => {
       draggingActive = true
-      this.onPointDragStart?.(pointerDownEvent, sprite, this.getMetadata(sprite))
+      this.onPointDragStart?.(toPointerEvent(pointerDownEvent), sprite, this.getMetadata(sprite))
 
       const onDrag = (onDragEvent: PointerEvent) => {
         // bars cannot be dragged
