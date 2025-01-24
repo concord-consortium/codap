@@ -1947,7 +1947,7 @@
         "examples": [
           "hsl(0, 100, 50) returns pure red",
            "hsl(150deg, 30, 60, 0.5) returns a teal at 50% transparency",
-           "hsl(0.6turn, 60, 45, 70) returns a blue at 70% transparency",
+           "hsl(0.6turn, 60, 45, 0.7) returns a blue at 70% transparency",
           "hsl(55, Saturation, 75, Alpha) returns a color at angle 55, Saturation attribute percentage, 75% lightness, and transparency of Alpha attribute."        ]
       },
       { "displayName": "darken",

@@ -57,15 +57,12 @@ export type CurrentScope = MathJSPartitionedMap | FormulaMathJsScope
 
 export type EvaluateRawFunc = (args: MathNode[], mathjs: any, currentScope: CurrentScope) => FValueOrArray
 
-interface IFormulaBaseFunction {
+export interface IFormulaMathjsFunction {
   // Each function needs to specify number of required arguments, so the default argument can be provided if needed.
   numOfRequiredArguments: number
   // `evaluate` function accepts arguments already processed and evaluated by mathjs.
   evaluate?: EvaluateFunc
-}
-
-export interface IFormulaMathjsFunction extends IFormulaBaseFunction {
-  // // Each function needs to specify number of required arguments, so the default argument can be provided if needed.
+  // Each function needs to specify number of required arguments, so the default argument can be provided if needed.
   // numOfRequiredArguments: number
   rawArgs?: boolean
   // Value of isOperator is a boolean. When true, it means that the function is an operator.
@@ -96,14 +93,4 @@ export interface IFormulaMathjsFunction extends IFormulaBaseFunction {
   cachedEvaluateFactory?: (fnName: string, evaluate: EvaluateRawFunc) => EvaluateRawFunc
 }
 
-export interface IFormulaColorFunction extends IFormulaBaseFunction {
-  isColorFunction: true
-}
-
 export type CODAPMathjsFunctionRegistry = Record<string, IFormulaMathjsFunction>
-export type CODAPColorFunctionRegistry = Record<string, IFormulaColorFunction>
-
-// Type guard for CODAPColorFunctionRegistry
-export function isColorFunction(fn: any): fn is IFormulaColorFunction {
-  return typeof fn === 'function' && fn.isColorFunction !== undefined
-}

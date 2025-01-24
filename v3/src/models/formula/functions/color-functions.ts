@@ -46,8 +46,8 @@ export const colorFunctions = {
       }
 
       const hue = args[0]
-      const saturation = typeof args[1] === 'number' ? `${args[1] < 1 ? args[1] * 100 : args[1]}%` : args[1]
-      const lightness = typeof args[2] === 'number' ? `${args[2] < 1 ? args[2] * 100 : args[2]}%` : args[2]
+      const saturation = typeof args[1] === 'number' ? `${args[1]}%` : args[1]
+      const lightness = typeof args[2] === 'number' ? `${args[2]}%` : args[2]
       let alpha = args.length === 4 ? args[3] : undefined
       if (alpha !== undefined) {
         alpha = isValidPercentage(alpha) && typeof alpha === "number" ? alpha > 1 ? alpha / 100 : alpha : ""
