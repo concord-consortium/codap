@@ -68,7 +68,8 @@ export const colorFunctions = {
       const [color, percentage] = args as [ColorFValue, FValue]
       const colorVal = typeof color === "string" ?  parseColorToHex(color, { colorNames: true }) : color
       if (typeof colorVal !== "string" || !colord(colorVal).isValid() || !isValidPercentage(percentage)) return ""
-      const darkenedColor = colord(colorVal).darken(parseFloat(percentage.toString()) / 100).toHex()
+      const percentageVal = typeof percentage === "number" ? percentage > 1 ? percentage / 100 : percentage : 0
+      const darkenedColor = colord(colorVal).darken(percentageVal).toHex()
       return darkenedColor
     }
   },
@@ -80,7 +81,8 @@ export const colorFunctions = {
       const [color, percentage] = args as [ColorFValue, FValue]
       const colorVal = typeof color === "string" ?  parseColorToHex(color, { colorNames: true }) : color
       if (typeof colorVal !== "string" || !colord(colorVal).isValid() || !isValidPercentage(percentage)) return ""
-      const lightenedColor = colord(colorVal).lighten(parseFloat(percentage.toString()) / 100).toHex()
+      const percentageVal = typeof percentage === "number" ? percentage > 1 ? percentage / 100 : percentage : 0
+      const lightenedColor = colord(colorVal).lighten(percentageVal).toHex()
       return lightenedColor
     }
   }
