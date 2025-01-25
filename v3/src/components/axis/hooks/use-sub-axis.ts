@@ -27,6 +27,7 @@ export interface IUseSubAxis {
   axisPlace: AxisPlace
   subAxisEltRef: MutableRefObject<SVGGElement | null>
   showScatterPlotGridLines: boolean
+  showZeroAxisLine: boolean
   centerCategoryLabels: boolean
 }
 
@@ -50,7 +51,8 @@ function setAxisHelper(axisModel: IAxisModel, subAxisIndex: number, axisHelper: 
 }
 
 export const useSubAxis = ({
-                             subAxisIndex, axisPlace, subAxisEltRef, showScatterPlotGridLines, centerCategoryLabels
+                             subAxisIndex, axisPlace, subAxisEltRef, showScatterPlotGridLines, centerCategoryLabels,
+                             showZeroAxisLine
                            }: IUseSubAxis) => {
   const layout = useAxisLayoutContext(),
     displayModel = useDataDisplayModelContextMaybe(),
@@ -240,7 +242,7 @@ export const useSubAxis = ({
           break
         case 'numeric':
           helper = new NumericAxisHelper(
-            { ...helperProps, showScatterPlotGridLines })
+            { ...helperProps, showScatterPlotGridLines, showZeroAxisLine })
           break
         case 'categorical':
           // It is necessary to call renderSubAxis in most cases, but doing so for a categorical axis causes
@@ -260,7 +262,7 @@ export const useSubAxis = ({
       }
     }
   }, [axisModel, axisProvider, centerCategoryLabels, displayModel, isAnimating, layout, renderSubAxis,
-            showScatterPlotGridLines, subAxisEltRef, subAxisIndex])
+            showScatterPlotGridLines, showZeroAxisLine, subAxisEltRef, subAxisIndex])
 
   // update d3 scale and axis when scale type changes
   useEffect(() => {

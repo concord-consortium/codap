@@ -11,11 +11,12 @@ import "./axis.scss"
 interface IProps {
   axisPlace: AxisPlace
   showScatterPlotGridLines?: boolean
+  showZeroAxisLine?: boolean
   centerCategoryLabels?: boolean
 }
 
 export const Axis = observer(function Axis ({
-                       axisPlace, showScatterPlotGridLines = false,
+                       axisPlace, showScatterPlotGridLines = false, showZeroAxisLine = false,
                        centerCategoryLabels = true,
                      }: IProps) {
   const
@@ -33,6 +34,7 @@ export const Axis = observer(function Axis ({
                       subAxisIndex={i}
                       axisPlace={axisPlace}
                       showScatterPlotGridLines={showScatterPlotGridLines}
+                      showZeroAxisLine={showZeroAxisLine}
                       centerCategoryLabels={centerCategoryLabels}
       />
     })

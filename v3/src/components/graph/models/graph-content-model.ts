@@ -161,6 +161,12 @@ export const GraphContentModel = DataDisplayContentModel
       return (self.plotType === 'scatterPlot' && ['left', 'bottom'].includes(place)) ||
              (self.pointDisplayType === "histogram")
     },
+    axisShouldShowZeroLine(place: AxisPlace) {
+      const otherPlace = place === "left" ? "bottom" : "left"
+      const otherPlaceRole = axisPlaceToAttrRole[otherPlace]
+      const attributeID = self.dataConfiguration.attributeID(otherPlaceRole)
+      return (self.plotType === 'dotPlot' && ['left', 'bottom'].includes(place)) && !!attributeID
+    },
     placeCanAcceptAttributeIDDrop(place: GraphPlace,
                                   dataset: IDataSet | undefined,
                                   attributeID: string | undefined): boolean {

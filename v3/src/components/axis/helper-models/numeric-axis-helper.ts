@@ -8,13 +8,16 @@ import { AxisHelper, IAxisHelperArgs } from "./axis-helper"
 
 export interface INumericAxisHelperArgs extends IAxisHelperArgs {
   showScatterPlotGridLines: boolean
+  showZeroAxisLine?: boolean
 }
 export class NumericAxisHelper extends AxisHelper {
   showScatterPlotGridLines: boolean
+  showZeroAxisLine?: boolean
 
   constructor(props: INumericAxisHelperArgs) {
     super(props)
     this.showScatterPlotGridLines = props.showScatterPlotGridLines
+    this.showZeroAxisLine = props.showZeroAxisLine
   }
 
   get newRange() {
@@ -30,6 +33,20 @@ export class NumericAxisHelper extends AxisHelper {
       .attr('class', 'grid')
       .call(this.axis(numericScale).tickSizeInner(-tickLength))
     select(this.subAxisElt).select('.grid').selectAll('text').remove()
+    if (between(0, numericScale.domain()[0], numericScale.domain()[1])) {
+      select(this.subAxisElt).append('g')
+        .attr('class', 'zero')
+        .call(this.axis(numericScale).tickSizeInner(-tickLength).tickValues([0]))
+      select(this.subAxisElt).select('.zero').selectAll('text').remove()
+    }
+  }
+
+  renderZeroAxisLine() {
+    const d3Scale: AxisScaleType = this.multiScale?.scale.copy().range(this.newRange) as AxisScaleType,
+      numericScale = d3Scale as unknown as ScaleLinear<number, number>
+    select(this.subAxisElt).selectAll('.zero, .grid').remove()
+    const tickLength = this.layout.getAxisLength(otherPlace(this.axisPlace)) ?? 0
+    console.log("in renderZeroAxisLine numericalScale: ", numericScale)
     if (between(0, numericScale.domain()[0], numericScale.domain()[1])) {
       select(this.subAxisElt).append('g')
         .attr('class', 'zero')
@@ -77,6 +94,7 @@ export class NumericAxisHelper extends AxisHelper {
       .style("stroke", "lightgrey")
       .style("stroke-opacity", "0.7")
 
-    this.showScatterPlotGridLines && this.renderScatterPlotGridLines()
+      this.showZeroAxisLine && this.renderZeroAxisLine()
+      this.showScatterPlotGridLines && this.renderScatterPlotGridLines()
   }
 }
