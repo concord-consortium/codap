@@ -1891,7 +1891,7 @@
     "displayName": "Color",
     "functions": [
       { "displayName": "rgb",
-        "description": "Specifies a color using the Red, Green, Blue components, and the optional alpha channel for transparency",
+        "description": "Specifies a color using the red, green, and blue parameters. A 4th, optional parameter specifies alpha for transparency",
         "args": [
           {
             "name": "red",
@@ -1911,47 +1911,48 @@
           {
             "name": "alpha (optional)",
             "type": "number",
-            "description": "The alpha value ranges from 0 (fully transparent) to 1 (fully opaque)."
+            "description": "The alpha value ranges from 0 (fully transparent) to 1 (fully opaque). The default is 1. Numbers between 1 and 100 are treated as percentages."
           }
         ],
         "examples": [
-          "rgb(43, 0, 255, 0.3) returns a blue swtach with transparency of 30%",
-          "rgb(43, 0, 255, 30) returns a blue swtach with transparency of 30%",
-          "rgb(34, GreenRange, 99, Transparency) returns the color value depending on the value of attribute GreenRange, with a transparency of the Transparency attribute"
+          "rgb(255, 0, 0) returns red",
+          "rgb(43, 0, 255, 0.3) returns a blue-ish color with transparency of 30%",
+          "rgb(43, 0, 255, 90) returns a blue-ish color with transparency of 90% (i.e. nearly opaque)",
+          "rgb(34, GreenRange, 99, Transparency) returns the color value depending on the value of attribute GreenRange, with a transparency determined by the value of the Transparency attribute"
         ]
       },
       { "displayName": "hsl",
-        "description": "Uses Hue, Saturation, and Lightness to define colors with an optional alpha channel for transparency",
+        "description": "Uses hue, saturation, and lightness to define colors with an optional alpha channel for transparency",
         "args": [
           {
             "name": "hue",
             "type": "number or string",
-            "description": "The angle (0–360°) that represents color on a color wheel."
+            "description": "A number representing degrees, typically 0–360. Also allowed are strings like '150deg' and '0.6turn' where 'turn' represents a full 360 degrees"
           },
           {
             "name": "saturation",
             "type": "number",
-            "description": "The intensity of the color in range from 0 - 100"
+            "description": "The saturation of a color in the range 0 - 100"
           },
           {
             "name": "lightness",
             "type": "number",
-            "description": "Determines how light or dark the color is in a range from 0 - 100"
+            "description": "Determines how light or dark the color is in a range from 0 - 100 where 0 is black and 100 is white"
           },
           {
             "name": "alpha",
             "type": "number",
-            "description": "The alpha value ranges from 0 (fully transparent) to 1 (fully opaque)."
+            "description": "The alpha value ranges from 0 (fully transparent) to 1 (fully opaque). Numbers between 1 and 100 are treated as percentages."
           }
         ],
         "examples": [
           "hsl(0, 100, 50) returns pure red",
-           "hsl(150deg, 30, 60, 0.5) returns a teal at 50% transparency",
-           "hsl(0.6turn, 60, 45, 0.7) returns a blue at 70% transparency",
-          "hsl(55, Saturation, 75, Alpha) returns a color at angle 55, Saturation attribute percentage, 75% lightness, and transparency of Alpha attribute."        ]
+           "hsl('150deg', 30, 60, 0.5) returns a teal at 50% transparency",
+           "hsl('0.6turn', 60, 45, 70) returns a blue at 70% transparency",
+          "hsl(55, Saturation, 75, Alpha) returns a color at angle 55, with saturation determined by the value of the attribute Saturation, 75% lightness, and transparency determined by the value of the attribute Alpha."        ]
       },
       { "displayName": "darken",
-        "description": "Decreases the lightness of a color by a given percentage.",
+        "description": "Decreases the lightness of a color by a given proportion or percentage.",
         "args": [
           {
             "name": "color",
@@ -1961,17 +1962,18 @@
           {
             "name": "percentage",
             "type": "number",
-            "description": "The percentage to darken the base color by.  It should be a number between 0 and 1."
+            "description": "The proportion to darken the base color by.  It should be a number between 0 and 1. Numbers between 1 and 100 are treated as percentages."
           }
         ],
         "examples": [
           "darken(#ff0000, 0.2) returns a red darker by 20% of true red",
-          "darken('blue', Percent) returns a darker blue by Percent of true blue",
-          "darken(ColorAttr, Percent) returns a darker version of a color attribute by Percent of true blue"
+          "darken('blue', howMuchDarker) returns a color darker than blue by the percent given by the value of howMuchDarker",
+          "darken(ColorAttr, howMuchDarker) returns a darker version of a color attribute darkened by the percent given by the value of howMuchDarker"
         ]
       },
       { "displayName": "lighten",
-        "description": "Increase the lightness of a color by a given percentage.",
+        "type": "number",
+        "description": "Increase the lightness of a color by a given proportion or percentage.",
         "args": [
           {
             "name": "color",
@@ -1981,13 +1983,13 @@
           {
             "name": "percentage",
             "type": "number",
-            "description": "The percentage to lighten the base color by. It should be a number between 0 and 1."
+            "description": "The proportion to lighten the base color by. It should be a number between 0 and 1. Numbers between 1 and 100 are treated as percentages."
           }
         ],
         "examples": [
-          "lighten(#ff0000, 0.2) returns a red lighten by 20% of true red",
-          "lighten('blue', Percent) returns a lighten blue by Percent of true blue",
-          "lighten(ColorAttr, Percent) returns a lighter version of a color attribute by Percent of true blue"
+          "lighten(#ff0000, 0.2) returns a red lightened by 20% of true red",
+          "lighten('blue', howMuchLighter) returns a blue lightened by the value of howMuchLighter",
+          "lighten(ColorAttr, howMuchLighter) returns a lighter version of a color attribute lightened by the percent given by the value of howMuchLighter"
         ]
       }
 
