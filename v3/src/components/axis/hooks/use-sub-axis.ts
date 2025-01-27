@@ -177,6 +177,10 @@ export const useSubAxis = ({
       if (!subAxisElt) return
       subAxisSelectionRef.current = select(subAxisElt)
       const sAS = subAxisSelectionRef.current
+      if (sAS.classed('numeric-axis')) {
+        sAS.selectAll('g').remove()
+        sAS.classed('numeric-axis', false)
+      }
 
       if (sAS.select('line').empty()) {
         sAS.append('line').attr('class', 'axis')
