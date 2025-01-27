@@ -30,8 +30,7 @@ describe("colorFunctions", () => {
   describe("hsl", () => {
     it("should return hex for valid hsl values", () => {
       expect(colorFunctions.hsl.evaluate(0, 100, 50)).toBe("#ff0000")
-      expect(colorFunctions.hsl.evaluate("120deg", 100, 50)).toBe("#00ff00")
-      expect(colorFunctions.hsl.evaluate("0.7turn", 100, 50)).toBe("#3300ff")
+      expect(colorFunctions.hsl.evaluate(120, 100, 50)).toBe("#00ff00")
     })
 
     it("should return hex for valid hsla values", () => {
@@ -54,10 +53,10 @@ describe("colorFunctions", () => {
 
   describe("darken", () => {
     it("should return hex for valid color and percentage", () => {
-      expect(colorFunctions.darken.evaluate("#ff0000", 0.5)).toBe(colord("#ff0000").darken(0.5).toHex())
-      expect(colorFunctions.darken.evaluate("#ff0000", 50)).toBe(colord("#ff0000").darken(0.5).toHex())
-      expect(colorFunctions.darken.evaluate("green", 0.5)).toBe(colord("#00ff00").darken(0.5).toHex())
-      expect(colorFunctions.darken.evaluate("rgb(0, 0, 255)", 0.5)).toBe(colord("#0000ff").darken(0.5).toHex())
+      expect(colorFunctions.darken.evaluate("#ff0000", 25)).toBe("#bf0000")
+      expect(colorFunctions.darken.evaluate("hsl(0, 100%, 50%)", 0.25)).toBe("#bf0000")
+      expect(colorFunctions.darken.evaluate("blue", 50)).toBe("#000080")
+      expect(colorFunctions.darken.evaluate("rgb(0, 0, 255)", 0.5)).toBe("#000080")
     })
 
     it("should return empty string for invalid color or percentage", () => {
@@ -69,10 +68,10 @@ describe("colorFunctions", () => {
 
   describe("lighten", () => {
     it("should return hex for valid color and percentage", () => {
-      expect(colorFunctions.lighten.evaluate("#ff0000", 0.5)).toBe(colord("#ff0000").lighten(0.5).toHex())
-      expect(colorFunctions.lighten.evaluate("#ff0000", 50)).toBe(colord("#ff0000").lighten(0.5).toHex())
-      expect(colorFunctions.lighten.evaluate("green", 0.5)).toBe(colord("#008000").lighten(0.5).toHex())
-      expect(colorFunctions.lighten.evaluate("rgb(0, 0, 255)", 0.5)).toBe(colord("#0000ff").lighten(0.5).toHex())
+      expect(colorFunctions.lighten.evaluate("#ff0000", 25)).toBe("#ff4040")
+      expect(colorFunctions.lighten.evaluate("hsl(0, 100%, 50%)", 0.25)).toBe("#ff4040")
+      expect(colorFunctions.lighten.evaluate("blue", 50)).toBe("#8080ff")
+      expect(colorFunctions.lighten.evaluate("rgb(0, 0, 255)", 0.5)).toBe("#8080ff")
     })
 
     it("should return empty string for invalid color or percentage", () => {

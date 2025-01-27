@@ -1927,7 +1927,7 @@
           {
             "name": "hue",
             "type": "number or string",
-            "description": "A number representing degrees, typically 0–360. Also allowed are strings like '150deg' and '0.6turn' where 'turn' represents a full 360 degrees"
+            "description": "A number representing degrees, typically 0–360."
           },
           {
             "name": "saturation",
