@@ -4,8 +4,10 @@
  */
 import {cloneDeep} from "lodash"
 import {when} from "mobx"
-import {addDisposer, Instance, SnapshotIn, types} from "mobx-state-tree"
 import { format } from "d3"
+import {addDisposer, Instance, SnapshotIn, types} from "mobx-state-tree"
+import { t } from "../../../utilities/translation/translate"
+import { mstReaction } from "../../../utilities/mst-reaction"
 import {IDataSet} from "../../../models/data/data-set"
 import {applyModelChange} from "../../../models/history/apply-model-change"
 import {
@@ -16,10 +18,16 @@ import {ITileContentModel} from "../../../models/tiles/tile-content"
 import { getFormulaManager } from "../../../models/tiles/tile-environment"
 import {typedId} from "../../../utilities/js-utils"
 import {mstAutorun} from "../../../utilities/mst-autorun"
+import { ICase } from "../../../models/data/data-set-types"
+import { isFiniteNumber } from "../../../utilities/math-utils"
+import { CaseData } from "../../data-display/d3-types"
 import { computePointRadius } from "../../data-display/data-display-utils"
 import { dataDisplayGetNumericValue } from "../../data-display/data-display-value-utils"
 import {IGraphDataConfigurationModel} from "./graph-data-configuration-model"
 import {DataDisplayContentModel} from "../../data-display/models/data-display-content-model"
+import {
+  AxisModelUnion, EmptyAxisModel, IAxisModelUnion, isBaseNumericAxisModel, NumericAxisModel
+} from "../../axis/models/axis-model"
 import {GraphPlace} from "../../axis-graph-shared"
 import { attrRoleToAxisPlace, axisPlaceToAttrRole, GraphAttrRole, kMain, kOther, PointDisplayType }
   from "../../data-display/data-display-types"
@@ -31,13 +39,6 @@ import {setNiceDomain} from "../utilities/graph-utils"
 import {GraphPointLayerModel, IGraphPointLayerModel, kGraphPointLayerType} from "./graph-point-layer-model"
 import {IAdornmentModel, IUpdateCategoriesOptions} from "../adornments/adornment-models"
 import {AdornmentsStore} from "../adornments/adornments-store"
-import {
-  AxisModelUnion, EmptyAxisModel, IAxisModelUnion, isBaseNumericAxisModel, NumericAxisModel
-} from "../../axis/models/axis-model"
-import { ICase } from "../../../models/data/data-set-types"
-import { isFiniteNumber } from "../../../utilities/math-utils"
-import { t } from "../../../utilities/translation/translate"
-import { CaseData } from "../../data-display/d3-types"
 
 export interface GraphProperties {
   axes: Record<string, IAxisModelUnion>
@@ -75,8 +76,7 @@ export const GraphContentModel = DataDisplayContentModel
     plotBackgroundLockInfo: types.maybe(types.frozen<BackgroundLockInfo>()),
     // numberToggleModel: types.optional(types.union(NumberToggleModel, null))
     showParentToggles: false,
-    showOnlyLastCase: types.maybe(types.boolean),
-    showMeasuresForSelection: false
+    showOnlyLastCase: types.maybe(types.boolean)
   })
   .volatile(() => ({
     changeCount: 0, // used to notify observers when something has changed that may require a re-computation/redraw
@@ -269,6 +269,17 @@ export const GraphContentModel = DataDisplayContentModel
         self.dataConfiguration.casesChangeCount // eslint-disable-line @typescript-eslint/no-unused-expressions
         const updateCategoriesOptions = self.getUpdateCategoriesOptions()
         self.adornmentsStore.updateAdornments(updateCategoriesOptions)
+      }, {name: "GraphContentModel.afterAttachToDocument.updateAdornments"}, self.dataConfiguration))
+
+      // When showMeasuresForSelection is true, update adornments when selection changes
+      addDisposer(self, mstReaction(() => {
+        return self.dataConfiguration.selection
+      },
+        () => {
+          if (self.dataConfiguration.showMeasuresForSelection) {
+            const updateCategoriesOptions = self.getUpdateCategoriesOptions()
+            self.adornmentsStore.updateAdornments(updateCategoriesOptions)
+          }
       }, {name: "GraphContentModel.afterAttachToDocument.updateAdornments"}, self.dataConfiguration))
     },
     beforeDestroy() {
@@ -628,9 +639,6 @@ export const GraphContentModel = DataDisplayContentModel
     setShowOnlyLastCase(show: boolean) {
       self.showOnlyLastCase = show
     },
-    setShowMeasuresForSelection(show: boolean) {
-      self.showMeasuresForSelection = show
-    }
   }))
   .actions(self => ({
     displayOnlySelectedCases() {

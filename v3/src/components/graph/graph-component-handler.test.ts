@@ -57,14 +57,13 @@ describe("DataInteractive ComponentHandler Graph", () => {
     const pointConfig = "bars"
     const pointsFusedIntoBars = true
     const pointSize = 2
-    const showMeasuresForSelection = true
     const strokeColor = "#FF0000"
     const transparent = true
     const yAttributeType = "numeric"
     const y2AttributeType = "categorical"
     const resultIds = create({}, {
       type: "graph", backgroundColor, cannotClose: true, dataContext: "data",
-      pointColor, pointConfig, pointsFusedIntoBars, pointSize, showMeasuresForSelection, strokeColor,
+      pointColor, pointConfig, pointsFusedIntoBars, pointSize, strokeColor,
       transparent, xAttributeID: toV2Id(a3.id), yAttributeID: toV2Id(a2.id), yAttributeType,
       legendAttributeID: toV2Id(a1.id), captionAttributeID: toV2Id(a2.id), y2AttributeID: toV2Id(a3.id),
       rightSplitAttributeID: toV2Id(a1.id), topSplitAttributeID: toV2Id(a2.id), topSplitAttributeName: "a3",
@@ -102,7 +101,6 @@ describe("DataInteractive ComponentHandler Graph", () => {
     expect(pointDescription.pointSizeMultiplier).toBe(pointSize)
     expect(pointDescription.pointStrokeColor).toBe(strokeColor)
     expect(tileContentIds.pointsFusedIntoBars).toBe(pointsFusedIntoBars)
-    expect(tileContentIds.showMeasuresForSelection).toBe(showMeasuresForSelection)
     expect(tileContentIds.isTransparent).toBe(transparent)
     // Delete the graph when we're finished
     handler.delete!({ component: tileIds })
@@ -292,7 +290,7 @@ describe("DataInteractive ComponentHandler Graph", () => {
     // Update many of a graph's options
     const updateResultOptions = update({ component: tile }, {
       backgroundColor, displayOnlySelectedCases, filterFormula, hiddenCases: _hiddenCases.map(id => toV2Id(id)),
-      pointColor, pointConfig, pointsFusedIntoBars, pointSize, showMeasuresForSelection, strokeColor,
+      pointColor, pointConfig, pointsFusedIntoBars, pointSize, strokeColor,
       transparent
     })
     expect(updateResultOptions.success).toBe(true)
@@ -307,7 +305,6 @@ describe("DataInteractive ComponentHandler Graph", () => {
     expect(tileContent.pointDisplayType).toBe(pointConfig)
     expect(tileContent.pointsFusedIntoBars).toBe(pointsFusedIntoBars)
     expect(pointDescription.pointSizeMultiplier).toBe(pointSize)
-    expect(tileContent.showMeasuresForSelection).toBe(showMeasuresForSelection)
     expect(tileContent.pointDescription.pointStrokeColor).toBe(strokeColor)
     expect(tileContent.isTransparent).toBe(transparent)
 
@@ -322,7 +319,7 @@ describe("DataInteractive ComponentHandler Graph", () => {
         enableNumberToggle, filterFormula: _filterFormula, hiddenCases: hc, numberToggleLastMode, captionAttributeID,
         captionAttributeName, legendAttributeID, legendAttributeName, pointColor: _pointColor,
         pointConfig: _pointConfig, pointsFusedIntoBars: _pointsFusedIntoBars, pointSize: _pointSize,
-        rightSplitAttributeID, rightSplitAttributeName, showMeasuresForSelection: _showMeasuresForSelection,
+        rightSplitAttributeID, rightSplitAttributeName,
         strokeColor: _strokeColor, strokeSameAsFill: _strokeSameAsFill, topSplitAttributeID, topSplitAttributeName,
         transparent: _transparent, xAttributeID, xAttributeName, xAttributeType: _xAttributeType, xLowerBound,
         xUpperBound, yAttributeID, yAttributeIDs, yAttributeName, yAttributeNames, yLowerBound, yUpperBound,
@@ -387,7 +384,6 @@ describe("DataInteractive ComponentHandler Graph", () => {
       expect(_pointConfig).toBe(pointConfig)
       expect(_pointsFusedIntoBars).toBe(pointsFusedIntoBars)
       expect(_pointSize).toBe(pointSize)
-      expect(_showMeasuresForSelection).toBe(showMeasuresForSelection)
       expect(_strokeColor).toBe(pointColor) // strokeSameAsFill overrides strokeColor
       expect(_strokeSameAsFill).toBe(strokeSameAsFill)
       expect(_transparent).toBe(transparent)

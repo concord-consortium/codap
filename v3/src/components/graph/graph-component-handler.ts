@@ -166,7 +166,6 @@ export const graphComponentHandler: DIComponentHandler = {
       },
       pointDisplayType: pointConfig && isPointDisplayType(pointConfig) ? pointConfig : undefined,
       pointsFusedIntoBars,
-      showMeasuresForSelection,
       showOnlyLastCase,
       showParentToggles,
       type: kGraphTileType
@@ -183,6 +182,7 @@ export const graphComponentHandler: DIComponentHandler = {
     const finalLayers: Array<IGraphPointLayerModelSnapshot> = []
     for (let i = 0; i < layers.length; i++) {
       const dataConfiguration = graphModel.layers[i].dataConfiguration as IGraphDataConfigurationModel
+      dataConfiguration.setShowMeasuresForSelection(showMeasuresForSelection ?? false)
       const { dataset } = dataConfiguration
       if (dataset && dataset.name === _dataContext) {
         // Make sure all attributes can legally fulfill their specified roles
@@ -283,8 +283,8 @@ export const graphComponentHandler: DIComponentHandler = {
       const yAttributeNames = dataConfiguration._yAttributeDescriptions
         .map(description => dataset?.getAttribute(description.attributeID)?.name).filter(name => name != null)
 
-      const { pointDescription, pointsFusedIntoBars, showMeasuresForSelection } = content
-      const { displayOnlySelectedCases } = dataConfiguration
+      const { pointDescription, pointsFusedIntoBars } = content
+      const { displayOnlySelectedCases, showMeasuresForSelection } = dataConfiguration
       const filterFormula = dataConfiguration.filterFormula?.display
       const hiddenCases = dataConfiguration.hiddenCases.map(id => toV2Id(id))
       const pointConfig = content.pointDisplayType
@@ -436,7 +436,7 @@ export const graphComponentHandler: DIComponentHandler = {
     if (pointConfig != null && isPointDisplayType(pointConfig)) content.setPointConfig(pointConfig)
     if (pointsFusedIntoBars != null) content.setPointsFusedIntoBars(pointsFusedIntoBars)
     if (pointSize != null) pointDescription.setPointSizeMultiplier(pointSize)
-    if (showMeasuresForSelection != null) content.setShowMeasuresForSelection(showMeasuresForSelection)
+    if (showMeasuresForSelection != null) dataConfiguration.setShowMeasuresForSelection(showMeasuresForSelection)
     if (showParentToggles != null) content.setShowParentToggles(showParentToggles)
     if (showOnlyLastCase != null) content.setShowOnlyLastCase(showOnlyLastCase)
     if (strokeColor != null) pointDescription.setPointStrokeColor(strokeColor)
