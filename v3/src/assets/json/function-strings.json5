@@ -1926,7 +1926,7 @@
         "args": [
           {
             "name": "hue",
-            "type": "number or string",
+            "type": "number",
             "description": "A number representing degrees, typically 0–360."
           },
           {
