@@ -4,17 +4,15 @@ import { AnyColor, Colord, colord } from "colord"
 
 type ColorFValue = AnyColor | Colord | string
 
-const isValidPercentage = (value: any) =>
-  (typeof value === "number" && value >=0 && value <= 100)
+const isValidPercentage = (value: FValue): value is number => typeof value === "number" && value >= 0 && value <= 100
 
-const getPercentage = (value: number) => {
-   return value > 1 ? value / 100 : value
-}
-const isValidAngle = (value: any) =>
-  typeof value === "number" && value >= 0 && value <= 360
-const isValidHslValue = (value: any) => typeof value === "number" && value >= 0 && value <= 100
+const getPercentage = (value: number) => value > 1 ? value / 100 : value
 
-const isValidRgbValue = (value: any) => typeof value === "number" && value >= 0 && value <= 255
+const isValidAngle = (value: FValue): value is number => typeof value === "number"
+
+const isValidHslValue = (value: FValue): value is number => typeof value === "number" && value >= 0 && value <= 100
+
+const isValidRgbValue = (value: FValue): value is number => typeof value === "number" && value >= 0 && value <= 255
 
 export const colorFunctions = {
   // rgb(red, green, blue, alpha (optional))
@@ -22,7 +20,7 @@ export const colorFunctions = {
     numOfRequiredArguments: 3,
     evaluate: (...args: FValue[]) => {
       if (args.length < 3 || args.length > 4) return ""
-      let [r, g, b, a] = args
+      let [r, g, b, a] = args as [FValue, FValue, FValue, Maybe<FValue>]
       if (!isValidRgbValue(r) || !isValidRgbValue(g) || !isValidRgbValue(b)) return ""
       if (a !== undefined) {
         if (typeof a === "number") {
@@ -30,9 +28,7 @@ export const colorFunctions = {
         }
         if (!isValidPercentage(a)) return ""
       }
-      const color = a !== undefined
-                      ? colord({ r: Number(r), g: Number(g), b: Number(b), a: Number(a) })
-                      : colord({ r: Number(r), g: Number(g), b: Number(b) })
+      const color = colord({ r, g, b, a })
       return color.isValid() ? color.toHex() : ""
     }
   },
@@ -42,7 +38,7 @@ export const colorFunctions = {
     numOfRequiredArguments: 3,
     evaluate: (...args: FValue[]) => {
       if (args.length < 3 || args.length > 4) return ""
-      let [hue, saturation, lightness, a] = args
+      let [hue, saturation, lightness, a] = args as [FValue, FValue, FValue, Maybe<FValue>]
       if (!isValidAngle(hue) || !isValidHslValue(saturation) || !isValidHslValue(lightness)) {
         return ""
       }
@@ -52,9 +48,8 @@ export const colorFunctions = {
         }
         if (!isValidPercentage(a)) return ""
       }
-      const hsl = a !== undefined
-                    ? colord({ h: Number(hue), s: Number(saturation), l: Number(lightness), a: Number(a) })
-                    : colord({ h: Number(hue), s: Number(saturation), l: Number(lightness) })
+      const h = hue % 360
+      const hsl = colord({ h, s: saturation, l: lightness, a })
       return hsl.isValid() ? hsl.toHex() : ""
     }
   },
@@ -74,7 +69,7 @@ export const colorFunctions = {
           percentage = getPercentage(percentage)
         }
         if (typeof colorHsl !== "object" || !colord(colorHsl).isValid() || !isValidPercentage(percentage)) return ""
-        return colord({h: hueVal, s: saturationVal, l: lightnessVal - (percentage * (100 - lightnessVal))}).toHex()
+        return colord({h: hueVal, s: saturationVal, l: lightnessVal - (percentage * lightnessVal)}).toHex()
       } else {
         return ""
       }
@@ -96,7 +91,7 @@ export const colorFunctions = {
           percentage = getPercentage(percentage)
         }
         if (typeof colorHsl !== "object" || !colord(colorHsl).isValid() || !isValidPercentage(percentage)) return ""
-        return colord({h: hueVal, s: saturationVal, l: (percentage * (100 - lightnessVal) + lightnessVal)}).toHex()
+        return colord({h: hueVal, s: saturationVal, l: lightnessVal + (percentage * (100 - lightnessVal))}).toHex()
       } else {
         return ""
       }

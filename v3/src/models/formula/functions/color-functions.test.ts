@@ -1,5 +1,4 @@
 import { colorFunctions } from "./color-functions"
-import { colord } from "colord"
 
 describe("colorFunctions", () => {
   describe("rgb", () => {
@@ -31,12 +30,14 @@ describe("colorFunctions", () => {
     it("should return hex for valid hsl values", () => {
       expect(colorFunctions.hsl.evaluate(0, 100, 50)).toBe("#ff0000")
       expect(colorFunctions.hsl.evaluate(120, 100, 50)).toBe("#00ff00")
+      expect(colorFunctions.hsl.evaluate(480, 100, 50)).toBe("#00ff00")
     })
 
     it("should return hex for valid hsla values", () => {
       expect(colorFunctions.hsl.evaluate(0, 100, 50, 0.5)).toBe("#ff000080")
       expect(colorFunctions.hsl.evaluate(120, 100, 50, 50)).toBe("#00ff0080")
       expect(colorFunctions.hsl.evaluate(240, 100, 50, 0.5)).toBe("#0000ff80")
+      expect(colorFunctions.hsl.evaluate(600, 100, 50, 0.5)).toBe("#0000ff80")
     })
 
     it("should return empty string for invalid hsl values", () => {
@@ -55,6 +56,7 @@ describe("colorFunctions", () => {
     it("should return hex for valid color and percentage", () => {
       expect(colorFunctions.darken.evaluate("#ff0000", 25)).toBe("#bf0000")
       expect(colorFunctions.darken.evaluate("hsl(0, 100%, 50%)", 0.25)).toBe("#bf0000")
+      expect(colorFunctions.darken.evaluate("hsl(0, 100%, 40%)", 0.25)).toBe("#990000")
       expect(colorFunctions.darken.evaluate("blue", 50)).toBe("#000080")
       expect(colorFunctions.darken.evaluate("rgb(0, 0, 255)", 0.5)).toBe("#000080")
     })
