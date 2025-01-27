@@ -75,6 +75,8 @@ export const fnRegistry = {
 
   ...logicFunctions,
 
+  ...colorFunctions,
+
   ...dateFunctions,
 
   ...stringFunctions,
@@ -89,9 +91,7 @@ export const fnRegistry = {
 
   ...bivariateStatsFunctions,
 
-  ...semiAggregateFunctions,
-
-  ...colorFunctions
+  ...semiAggregateFunctions
 }
 
 export const typedFnRegistry: CODAPMathjsFunctionRegistry = fnRegistry
