@@ -1,8 +1,8 @@
-import { Instance, SnapshotIn, types } from "mobx-state-tree"
 import { mean, std } from "mathjs"
-import {IGraphDataConfigurationModel} from "../../../models/graph-data-configuration-model"
-import { UnivariateMeasureAdornmentModel, IUnivariateMeasureAdornmentModel }
-  from "../univariate-measure-adornment-model"
+import { Instance, SnapshotIn, types } from "mobx-state-tree"
+import { IGraphDataConfigurationModel } from "../../../models/graph-data-configuration-model"
+import { IAdornmentModel } from "../../adornment-models"
+import { UnivariateMeasureAdornmentModel } from "../univariate-measure-adornment-model"
 import { kNormalCurveValueTitleKey, kNormalCurveType } from "./normal-curve-adornment-types"
 
 export const NormalCurveAdornmentModel = UnivariateMeasureAdornmentModel
@@ -72,7 +72,6 @@ export const NormalCurveAdornmentModel = UnivariateMeasureAdornmentModel
 
 export interface INormalCurveAdornmentModelSnapshot extends SnapshotIn<typeof NormalCurveAdornmentModel> {}
 export interface INormalCurveAdornmentModel extends Instance<typeof NormalCurveAdornmentModel> {}
-export function isNormalCurveAdornment(adornment: IUnivariateMeasureAdornmentModel):
-  adornment is INormalCurveAdornmentModel {
+export function isNormalCurveAdornment(adornment: IAdornmentModel): adornment is INormalCurveAdornmentModel {
   return adornment.type === kNormalCurveType
 }

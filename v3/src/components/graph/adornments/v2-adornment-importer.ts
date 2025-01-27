@@ -1,6 +1,6 @@
 import { ICodapV2PlotModel, ICodapV2UnivariateAdornment } from "../../../v2/codap-v2-types"
 import { IAttribute } from "../../../models/data/attribute"
-import { typedId } from "../../../utilities/js-utils"
+import { safeJsonParse } from "../../../utilities/js-utils"
 import { updateCellKey } from "./adornment-utils"
 import { kCountType } from "./count/count-adornment-types"
 import { kLSRLType } from "./lsrl/lsrl-adornment-types"
@@ -90,6 +90,19 @@ const univariateMeasureInstances = (adornment: ICodapV2UnivariateAdornment, inst
 
   return measures
 }
+
+// v2 ignores top and right split attributes when serializing adornments
+const firstSplitAttrId = (
+  attributeDescriptions: GraphAttributeDescriptionsMapSnapshot,
+  yAttributeDescriptions: IAttributeDescriptionSnapshot[]
+) => {
+  if (attributeDescriptions.x?.type === "categorical") return attributeDescriptions.x.attributeID
+  if (attributeDescriptions.y?.type === "categorical") return attributeDescriptions.y.attributeID
+  if (yAttributeDescriptions.length && yAttributeDescriptions[0].type === "categorical") {
+    return yAttributeDescriptions[0].attributeID
+  }
+}
+
 const instanceKey = (props: IInstanceKeyProps) => {
   // TODO: The code below is largely a copy of GraphDataConfigurationModel's cellKey view. It would be better
   // to utilize that view instead of duplicating code here. There isn't a straightforward way to do that as part of
@@ -179,16 +192,24 @@ export const v2AdornmentImporter = ({data, plotModels, attributeDescriptions, yA
   const v3Adornments: ImportableAdornmentSnapshots[] = []
   let interceptLocked = false
 
+  // In v2 file format, movable values "turn off" the count adornment, so we need to check
+  // the count and movable value adornments to determine how to import the count adornment.
+  const multipleMovableValues = v2Adornments?.multipleMovableValues
+  const isShowingMovableValues = !!multipleMovableValues?.isVisible &&
+                                  (!!multipleMovableValues?.values?.length ||
+                                    !!multipleMovableValues?.valueModels?.length)
+  const isShowingMovableValueCounts = isShowingMovableValues && !!multipleMovableValues?.isShowingCount
+  const isShowingMovableValuePercents = isShowingMovableValues && !!multipleMovableValues?.isShowingPercent
+
   // COUNT/PERCENT
   const countAdornment = v2Adornments?.plottedCount
-  const percentTypeMap: Record<string, string> = { 1: "cell", 2: "column", 3: "row" }
+  const percentTypeMap: Record<string, string> = { 0: "cell", 1: "row", 2: "column" }
   if (countAdornment) {
     const countAdornmentImport: ICountAdornmentModelSnapshot = {
-      id: typedId("ADRN"),
-      isVisible: countAdornment.isVisible,
+      isVisible: countAdornment.isVisible || isShowingMovableValueCounts || isShowingMovableValuePercents,
       percentType: countAdornment.percentKind != null ? percentTypeMap[countAdornment.percentKind] : undefined,
-      showCount: countAdornment.isShowingCount,
-      showPercent: countAdornment.isShowingPercent,
+      showCount: countAdornment.isShowingCount || isShowingMovableValueCounts,
+      showPercent: countAdornment.isShowingPercent || isShowingMovableValuePercents,
       type: kCountType
     }
     v3Adornments.push(countAdornmentImport)
@@ -208,7 +229,6 @@ export const v2AdornmentImporter = ({data, plotModels, attributeDescriptions, yA
       points[key] = movablePointAdornment.coordinates
     })
     const movablePointAdornmentImport: IMovablePointAdornmentModelSnapshot = {
-      id: typedId("ADRN"),
       isVisible: movablePointAdornment.isVisible,
       points,
       type: kMovablePointType
@@ -232,7 +252,6 @@ export const v2AdornmentImporter = ({data, plotModels, attributeDescriptions, yA
       lines[key] = lineInstance
     })
     const movableLineAdornmentImport: IMovableLineAdornmentModelSnapshot = {
-      id: typedId("ADRN"),
       isVisible: movableLineAdornment.isVisible,
       lines,
       type: kMovableLineType
@@ -258,7 +277,6 @@ export const v2AdornmentImporter = ({data, plotModels, attributeDescriptions, yA
       lines[key] = lsrlInstances
     })
     const lsrlAdornmentImport: ILSRLAdornmentModelSnapshot = {
-      id: typedId("ADRN"),
       isVisible: lsrlAdornment.isVisible,
       showConfidenceBands: lsrlAdornment.showConfidenceBands,
       type: kLSRLType,
@@ -273,7 +291,6 @@ export const v2AdornmentImporter = ({data, plotModels, attributeDescriptions, yA
   if (meanAdornment) {
     const measures = univariateMeasureInstances(meanAdornment, instanceKeys)
     const meanAdornmentImport: IMeanAdornmentModelSnapshot = {
-      id: typedId("ADRN"),
       isVisible: meanAdornment.isVisible,
       measures,
       type: kMeanType
@@ -286,7 +303,6 @@ export const v2AdornmentImporter = ({data, plotModels, attributeDescriptions, yA
   if (medianAdornment) {
     const measures = univariateMeasureInstances(medianAdornment, instanceKeys)
     const medianAdornmentImport: IMedianAdornmentModelSnapshot = {
-      id: typedId("ADRN"),
       isVisible: medianAdornment.isVisible,
       measures,
       type: kMedianType
@@ -299,7 +315,6 @@ export const v2AdornmentImporter = ({data, plotModels, attributeDescriptions, yA
   if (stDevAdornment) {
     const measures = univariateMeasureInstances(stDevAdornment, instanceKeys)
     const stDevAdornmentImport: IStandardDeviationAdornmentModelSnapshot = {
-      id: typedId("ADRN"),
       isVisible: stDevAdornment.isVisible,
       measures,
       type: kStandardDeviationType
@@ -312,7 +327,6 @@ export const v2AdornmentImporter = ({data, plotModels, attributeDescriptions, yA
   if (stErrAdornment) {
     const measures = univariateMeasureInstances(stErrAdornment, instanceKeys)
     const stErrAdornmentImport: IStandardErrorAdornmentModelSnapshot = {
-      id: typedId("ADRN"),
       isVisible: stErrAdornment.isVisible,
       measures,
       _numStErrs: stErrAdornment.numberOfStdErrs,
@@ -326,7 +340,6 @@ export const v2AdornmentImporter = ({data, plotModels, attributeDescriptions, yA
   if (madAdornment) {
     const measures = univariateMeasureInstances(madAdornment, instanceKeys)
     const madAdornmentImport: IMeanAbsoluteDeviationAdornmentModelSnapshot = {
-      id: typedId("ADRN"),
       isVisible: madAdornment.isVisible,
       measures,
       type: kMeanAbsoluteDeviationType
@@ -339,10 +352,10 @@ export const v2AdornmentImporter = ({data, plotModels, attributeDescriptions, yA
   if (boxPlotAdornment) {
     const measures = univariateMeasureInstances(boxPlotAdornment, instanceKeys)
     const boxPlotAdornmentImport: IBoxPlotAdornmentModelSnapshot = {
-      id: typedId("ADRN"),
       isVisible: boxPlotAdornment.isVisible,
       measures,
       showOutliers: boxPlotAdornment.showOutliers,
+      showICI: boxPlotAdornment.showICI,
       type: kBoxPlotType
     }
     v3Adornments.push(boxPlotAdornmentImport)
@@ -353,7 +366,6 @@ export const v2AdornmentImporter = ({data, plotModels, attributeDescriptions, yA
   if (normalCurveAdornment) {
     const measures = univariateMeasureInstances(normalCurveAdornment, instanceKeys)
     const normalCurveAdornmentImport: INormalCurveAdornmentModelSnapshot = {
-      id: typedId("ADRN"),
       isVisible: normalCurveAdornment.isVisible,
       measures,
       type: kNormalCurveType
@@ -364,12 +376,17 @@ export const v2AdornmentImporter = ({data, plotModels, attributeDescriptions, yA
   // MOVABLE VALUES
   const movableValuesAdornment = v2Adornments?.multipleMovableValues
   if (movableValuesAdornment) {
+    const splitAttrId = firstSplitAttrId(attributeDescriptions, yAttributeDescriptions)
     const values: Record<string, number[]> = {}
     instanceKeys?.forEach((key: string) => {
+      const parsedKey = safeJsonParse(key)
       const plotValues: number[] = []
 
       movableValuesAdornment.valueModels?.forEach((valueModel) => {
-        plotValues.push(valueModel.values._main)
+        const value = !splitAttrId
+                        ? valueModel.values._main
+                        : valueModel.values[parsedKey[splitAttrId]]
+        plotValues.push(value)
       })
       // Old files store the values in a value property with the form
       // "values":[{"isVisible":true,"value":15}]},
@@ -382,7 +399,6 @@ export const v2AdornmentImporter = ({data, plotModels, attributeDescriptions, yA
       values[key] = plotValues
     })
     const movableValuesAdornmentImport: IMovableValueAdornmentModelSnapshot = {
-      id: typedId("ADRN"),
       isVisible: movableValuesAdornment.isVisible,
       type: kMovableValueType,
       values
@@ -394,13 +410,11 @@ export const v2AdornmentImporter = ({data, plotModels, attributeDescriptions, yA
   const plottedValueAdornment = v2Adornments?.plottedValue
   if (plottedValueAdornment) {
     const formula = {
-      id: typedId("FORM"),
       display: plottedValueAdornment.expression,
       canonical: plottedValueAdornment.expression
     }
     const plottedValueAdornmentImport: IPlottedValueAdornmentModelSnapshot = {
       formula,
-      id: typedId("ADRN"),
       isVisible: plottedValueAdornment.isVisible,
       type: kPlottedValueType
     }
@@ -411,13 +425,11 @@ export const v2AdornmentImporter = ({data, plotModels, attributeDescriptions, yA
   const plottedFunctionAdornment = v2Adornments?.plottedFunction
   if (plottedFunctionAdornment) {
     const formula = {
-      id: typedId("FORM"),
       display: plottedFunctionAdornment.expression,
       canonical: plottedFunctionAdornment.expression
     }
     const plottedFunctionAdornmentImport: IPlottedFunctionAdornmentModelSnapshot = {
       formula,
-      id: typedId("ADRN"),
       isVisible: plottedFunctionAdornment.isVisible,
       type: kPlottedFunctionType
     }
@@ -425,7 +437,6 @@ export const v2AdornmentImporter = ({data, plotModels, attributeDescriptions, yA
   }
 
   return {
-    type: "Adornments Store",
     adornments: v3Adornments,
     interceptLocked,
     showConnectingLines,

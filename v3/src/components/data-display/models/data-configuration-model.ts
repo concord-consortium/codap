@@ -333,7 +333,7 @@ export const DataConfigurationModel = types
         return self.metadata.getCategorySet(attributeID)
       }
     },
-    categoricalRoles(): AttrRole[] {
+    get categoricalRoles(): AttrRole[] {
       return self.attributeType("legend") === "categorical" ? ["legend"] : []
     }
   }))
@@ -374,7 +374,7 @@ export const DataConfigurationModel = types
     }),
     get allCategoriesForRoles() {
       const categories: Map<AttrRole, string[]> = new Map()
-      const roles = self.categoricalRoles()
+      const roles = self.categoricalRoles
       roles.forEach(role => {
         const categorySet = self.categorySetForAttrRole(role)
         if (categorySet) {

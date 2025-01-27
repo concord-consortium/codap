@@ -136,7 +136,7 @@ describe("DataInteractive ComponentHandler Graph", () => {
     for (let i = 0; i < hiddenCases.length; i++) {
       expect(hiddenCases[i]).toBe(_hiddenCases[i])
     }
-    
+
     // Delete the graph when we're finished
     handler.delete!({ component: tileYIDs })
     expect(documentContent.tileMap.size).toBe(0)
@@ -304,7 +304,7 @@ describe("DataInteractive ComponentHandler Graph", () => {
     expect(tileContent.pointDescription.pointColor).toBe(pointColor)
     expect(tileContent.pointDisplayType).toBe(pointConfig)
     expect(tileContent.pointsFusedIntoBars).toBe(pointsFusedIntoBars)
-    expect(pointDescription.pointSizeMultiplier).toBe(pointSize)
+    expect(tileContent.pointDescription.pointSizeMultiplier).toBe(pointSize)
     expect(tileContent.pointDescription.pointStrokeColor).toBe(strokeColor)
     expect(tileContent.isTransparent).toBe(transparent)
 

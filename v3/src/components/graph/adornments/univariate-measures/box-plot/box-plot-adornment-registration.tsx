@@ -1,16 +1,20 @@
-import React from "react"
 import { FormControl, Checkbox } from "@chakra-ui/react"
-import { t } from "../../../../../utilities/translation/translate"
-import { getDocumentContentPropertyFromNode } from "../../../../../utilities/mst-utils"
-import { registerAdornmentComponentInfo } from "../../adornment-component-info"
-import { getAdornmentContentInfo, registerAdornmentContentInfo } from "../../adornment-content-info"
-import { BoxPlotAdornmentModel, IBoxPlotAdornmentModel } from "./box-plot-adornment-model"
-import { kBoxPlotClass, kBoxPlotLabelKey, kBoxPlotPrefix, kBoxPlotRedoAddKey, kBoxPlotRedoRemoveKey,
-         kBoxPlotType, kBoxPlotUndoAddKey, kBoxPlotUndoRemoveKey } from "./box-plot-adornment-types"
-import { useGraphContentModelContext } from "../../../hooks/use-graph-content-model-context"
-import { BoxPlotAdornmentComponent } from "./box-plot-adornment-component"
 import { observer } from "mobx-react-lite"
+import React from "react"
 import { logMessageWithReplacement } from "../../../../../lib/log-message"
+import { getDocumentContentPropertyFromNode } from "../../../../../utilities/mst-utils"
+import { t } from "../../../../../utilities/translation/translate"
+import { useGraphContentModelContext } from "../../../hooks/use-graph-content-model-context"
+import { registerAdornmentComponentInfo } from "../../adornment-component-info"
+import {
+  exportAdornmentBaseWithCoordsArray, getAdornmentContentInfo, registerAdornmentContentInfo
+} from "../../adornment-content-info"
+import { BoxPlotAdornmentComponent } from "./box-plot-adornment-component"
+import { BoxPlotAdornmentModel, IBoxPlotAdornmentModel, isBoxPlotAdornment } from "./box-plot-adornment-model"
+import {
+  kBoxPlotClass, kBoxPlotLabelKey, kBoxPlotPrefix, kBoxPlotRedoAddKey, kBoxPlotRedoRemoveKey,
+  kBoxPlotType, kBoxPlotUndoAddKey, kBoxPlotUndoRemoveKey
+} from "./box-plot-adornment-types"
 
 const Controls = observer(function Controls() {
   const graphModel = useGraphContentModelContext()
@@ -121,6 +125,18 @@ registerAdornmentContentInfo({
     redoAdd: kBoxPlotRedoAddKey,
     undoRemove: kBoxPlotUndoRemoveKey,
     redoRemove: kBoxPlotRedoRemoveKey,
+  },
+  exporter: (model, options) => {
+    const adornment = isBoxPlotAdornment(model) ? model : undefined
+    return adornment
+            ? {
+                plottedBoxPlot: {
+                  ...exportAdornmentBaseWithCoordsArray(model, options),
+                  showOutliers: adornment.showOutliers,
+                  showICI: adornment.showICI
+                }
+              }
+            : undefined
   }
 })
 

@@ -46,6 +46,7 @@ const adornmentTypeDispatcher = (adornmentSnap: IAdornmentModel) => {
   }
 }
 
+// TODO: build these unions from the registration info rather than statically
 export const AdornmentModelUnion = types.union({ dispatcher: adornmentTypeDispatcher },
   BoxPlotAdornmentModel, CountAdornmentModel, LSRLAdornmentModel, MeanAdornmentModel,
   MeanAbsoluteDeviationAdornmentModel, MedianAdornmentModel, MovableValueAdornmentModel, MovableLineAdornmentModel,
@@ -56,6 +57,3 @@ export type IAdornmentModelUnion = IBoxPlotAdornmentModel | ICountAdornmentModel
   IMovableLineAdornmentModel | IMovablePointAdornmentModel | INormalCurveAdornmentModel |
   IPlottedFunctionAdornmentModel | IPlottedValueAdornmentModel |
   IStandardDeviationAdornmentModel | IStandardErrorAdornmentModel | IUnknownAdornmentModel
-
-export const ParentAdornmentTypes = ["Univariate Measure"] as const
-export type ParentAdornmentType = typeof ParentAdornmentTypes[number]

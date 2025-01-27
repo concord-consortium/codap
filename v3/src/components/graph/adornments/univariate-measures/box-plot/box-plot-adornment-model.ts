@@ -11,10 +11,10 @@ export const BoxPlotAdornmentModel = UnivariateMeasureAdornmentModel
   .props({
     type: types.optional(types.literal(kBoxPlotType), kBoxPlotType),
     labelTitle: types.optional(types.literal(kBoxPlotValueTitleKey), kBoxPlotValueTitleKey),
-    showOutliers: types.optional(types.boolean, false),
+    showOutliers: false,
     // showICI can only be set to true when the ICI=yes url parameter is present. But, if present in a saved
     // document, the ICI will be shown.
-    showICI: types.optional(types.boolean, false),  // show informal confidence interval
+    showICI: false  // show informal confidence interval
   })
   .views(() => ({
     get hasRange() {

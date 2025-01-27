@@ -1,11 +1,13 @@
 import React from "react"
-import { registerAdornmentComponentInfo } from "../../adornment-component-info"
-import { registerAdornmentContentInfo } from "../../adornment-content-info"
-import { MedianAdornmentModel } from "./median-adornment-model"
-import { kMedianClass, kMedianLabelKey, kMedianPrefix, kMedianRedoAddKey, kMedianRedoRemoveKey,
-         kMedianType, kMedianUndoAddKey, kMedianUndoRemoveKey } from "./median-adornment-types"
 import { AdornmentCheckbox } from "../../adornment-checkbox"
+import { registerAdornmentComponentInfo } from "../../adornment-component-info"
+import { exportAdornmentBaseWithCoordsArray, registerAdornmentContentInfo } from "../../adornment-content-info"
 import { UnivariateMeasureAdornmentSimpleComponent } from "../univariate-measure-adornment-simple-component"
+import { isMedianAdornment, MedianAdornmentModel } from "./median-adornment-model"
+import {
+  kMedianClass, kMedianLabelKey, kMedianPrefix, kMedianRedoAddKey, kMedianRedoRemoveKey,
+  kMedianType, kMedianUndoAddKey, kMedianUndoRemoveKey
+} from "./median-adornment-types"
 
 const Controls = () => {
   return (
@@ -28,6 +30,12 @@ registerAdornmentContentInfo({
     redoAdd: kMedianRedoAddKey,
     undoRemove: kMedianUndoRemoveKey,
     redoRemove: kMedianRedoRemoveKey,
+  },
+  exporter: (model, options) => {
+    const adornment = isMedianAdornment(model) ? model : undefined
+    return adornment
+            ? { plottedMedian: { ...exportAdornmentBaseWithCoordsArray(model, options) } }
+            : undefined
   }
 })
 

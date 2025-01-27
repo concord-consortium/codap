@@ -2,9 +2,14 @@ import { SetRequired } from "type-fest"
 import { AttributeType } from "../../models/data/attribute-types"
 import { toV2Id } from "../../utilities/codap-utils"
 import { V2TileExportFn } from "../../v2/codap-v2-tile-exporters"
-import { guidLink, ICodapV2GraphStorage, IGuidLink } from "../../v2/codap-v2-types"
+import { guidLink, ICodapV2Adornment, ICodapV2GraphStorage, IGuidLink } from "../../v2/codap-v2-types"
 import { IAxisModel, isNumericAxisModel } from "../axis/models/axis-model"
 import { GraphAttrRole } from "../data-display/data-display-types"
+import { getAdornmentContentInfo, IAdornmentExporterOptions } from "./adornments/adornment-content-info"
+import { ICountAdornmentModel } from "./adornments/count/count-adornment-model"
+import { kCountType } from "./adornments/count/count-adornment-types"
+import { IMovableValueAdornmentModel } from "./adornments/movable-value/movable-value-adornment-model"
+import { kMovableValueType } from "./adornments/movable-value/movable-value-adornment-types"
 import { PlotType } from "./graphing-types"
 import { IGraphContentModel, isGraphContentModel } from "./models/graph-content-model"
 
@@ -148,10 +153,33 @@ function getAxisClassAndBounds(
 }
 
 function getPlotModels(graph: IGraphContentModel): Partial<ICodapV2GraphStorage> {
+  const { adornmentsStore, dataConfiguration: { categoricalAttrs }, showMeasuresForSelection } = graph
+  const countAdornment = adornmentsStore.findAdornmentOfType<ICountAdornmentModel>(kCountType)
+  const movableValuesAdornment = adornmentsStore.findAdornmentOfType<IMovableValueAdornmentModel>(kMovableValueType)
+  const isShowingCount = !!countAdornment?.isVisible && countAdornment.showCount
+  const isShowingPercent = !!countAdornment?.isVisible && countAdornment.showPercent
+  const isShowingMovableValues = !!movableValuesAdornment?.isVisible && movableValuesAdornment.hasValues
+  const options: IAdornmentExporterOptions = {
+    categoricalAttrs, isShowingCount, isShowingPercent, isShowingMovableValues, showMeasuresForSelection
+  }
+  const adornmentStorages = graph.adornmentsStore.adornments.map(adornment => {
+    const adornmentInfo = getAdornmentContentInfo(adornment.type)
+    // In v2, `enableMeasuresForSelection` is written out for every adornment,
+    // even though it's a graph-wide property that is the same for all of them.
+    return adornmentInfo.exporter?.(adornment, options)
+  })
+  // `connectingLine` is represented as an adornment in v2, but as a graph-wide property in v3
+  const connectingLine: ICodapV2Adornment = {
+    isVisible: graph.adornmentsStore.showConnectingLines,
+    enableMeasuresForSelection: showMeasuresForSelection
+  }
+  const connectingLineAdornment = connectingLine.isVisible ? { connectingLine } : {}
+  const adornments = Object.assign({}, connectingLineAdornment, ...adornmentStorages)
   const storage: SetRequired<Partial<ICodapV2GraphStorage>, "plotModels"> = {
     plotModels: [{
       plotClass: v2PlotClass[graph.plotType],
       plotModelStorage: {
+        adornments,
         verticalAxisIsY2: false
       }
     }]
@@ -161,6 +189,7 @@ function getPlotModels(graph: IGraphContentModel): Partial<ICodapV2GraphStorage>
     storage.plotModels.push({
       plotClass: v2PlotClass.scatterPlot,
       plotModelStorage: {
+        adornments,
         verticalAxisIsY2: false
       }
     })
@@ -170,6 +199,7 @@ function getPlotModels(graph: IGraphContentModel): Partial<ICodapV2GraphStorage>
     storage.plotModels.push({
       plotClass: v2PlotClass.scatterPlot,
       plotModelStorage: {
+        adornments,
         verticalAxisIsY2: true
       }
     })

@@ -1,11 +1,13 @@
 import React from "react"
-import { registerAdornmentComponentInfo } from "../../adornment-component-info"
-import { registerAdornmentContentInfo } from "../../adornment-content-info"
-import { MeanAdornmentModel } from "./mean-adornment-model"
-import { kMeanClass, kMeanLabelKey, kMeanType, kMeanPrefix, kMeanUndoAddKey, kMeanRedoAddKey,
-         kMeanUndoRemoveKey, kMeanRedoRemoveKey } from "./mean-adornment-types"
 import { AdornmentCheckbox } from "../../adornment-checkbox"
+import { registerAdornmentComponentInfo } from "../../adornment-component-info"
+import { exportAdornmentBaseWithCoordsArray, registerAdornmentContentInfo } from "../../adornment-content-info"
 import { UnivariateMeasureAdornmentSimpleComponent } from "../univariate-measure-adornment-simple-component"
+import { isMeanAdornment, MeanAdornmentModel } from "./mean-adornment-model"
+import {
+  kMeanClass, kMeanLabelKey, kMeanType, kMeanPrefix, kMeanUndoAddKey, kMeanRedoAddKey,
+  kMeanUndoRemoveKey, kMeanRedoRemoveKey
+} from "./mean-adornment-types"
 
 const Controls = () => {
   return (
@@ -28,6 +30,12 @@ registerAdornmentContentInfo({
     redoAdd: kMeanRedoAddKey,
     undoRemove: kMeanUndoRemoveKey,
     redoRemove: kMeanRedoRemoveKey,
+  },
+  exporter: (model, options) => {
+    const adornment = isMeanAdornment(model) ? model : undefined
+    return adornment
+            ? { plottedMean: { ...exportAdornmentBaseWithCoordsArray(model, options) } }
+            : undefined
   }
 })
 

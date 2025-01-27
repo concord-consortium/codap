@@ -88,6 +88,7 @@ export const AdornmentModel = types.model("AdornmentModel", {
     }
   }))
 export interface IAdornmentModel extends Instance<typeof AdornmentModel> {}
+export interface IAdornmentModelSnapshot extends SnapshotIn<typeof AdornmentModel> {}
 
 export const UnknownAdornmentModel = AdornmentModel
   .named("UnknownAdornmentModel")

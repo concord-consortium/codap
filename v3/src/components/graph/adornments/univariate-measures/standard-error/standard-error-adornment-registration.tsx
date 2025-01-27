@@ -1,19 +1,22 @@
+import {
+  Flex, NumberDecrementStepper, NumberIncrementStepper, NumberInput, NumberInputField, NumberInputStepper
+} from "@chakra-ui/react"
 import React, { useCallback, useEffect } from "react"
-import { Flex, NumberDecrementStepper, NumberIncrementStepper, NumberInput, NumberInputField, NumberInputStepper }
-  from "@chakra-ui/react"
+import { logMessageWithReplacement } from "../../../../../lib/log-message"
 import { translate } from "../../../../../utilities/translation/translate"
-import { AdornmentCheckbox } from "../../adornment-checkbox"
 import { useGraphContentModelContext } from "../../../hooks/use-graph-content-model-context"
+import { AdornmentCheckbox } from "../../adornment-checkbox"
 import { registerAdornmentComponentInfo } from "../../adornment-component-info"
-import { registerAdornmentContentInfo } from "../../adornment-content-info"
+import { exportAdornmentBaseWithCoordsArray, registerAdornmentContentInfo } from "../../adornment-content-info"
+import { StandardErrorAdornmentComponent } from "./standard-error-adornment-component"
+import {
+  isStandardErrorAdornment, IStandardErrorAdornmentModel, StandardErrorAdornmentModel
+} from "./standard-error-adornment-model"
 import {
   kStandardErrorClass, kStandardErrorLabelKey, kStandardErrorType, kStandardErrorPrefix,
   kStandardErrorUndoAddKey, kStandardErrorRedoAddKey, kStandardErrorRedoRemoveKey,
   kStandardErrorUndoRemoveKey
 } from "./standard-error-adornment-types"
-import { IStandardErrorAdornmentModel, StandardErrorAdornmentModel } from "./standard-error-adornment-model"
-import { StandardErrorAdornmentComponent } from "./standard-error-adornment-component"
-import { logMessageWithReplacement } from "../../../../../lib/log-message"
 
 const Controls = () => {
   const graphModel = useGraphContentModelContext()
@@ -103,6 +106,17 @@ registerAdornmentContentInfo({
     redoAdd: kStandardErrorRedoAddKey,
     undoRemove: kStandardErrorUndoRemoveKey,
     redoRemove: kStandardErrorRedoRemoveKey,
+  },
+  exporter: (model, options) => {
+    const adornment = isStandardErrorAdornment(model) ? model : undefined
+    return adornment
+            ? {
+                plottedStErr: {
+                  ...exportAdornmentBaseWithCoordsArray(model, options),
+                  numberOfStdErrs: adornment.numStErrs
+                }
+              }
+            : undefined
   }
 })
 

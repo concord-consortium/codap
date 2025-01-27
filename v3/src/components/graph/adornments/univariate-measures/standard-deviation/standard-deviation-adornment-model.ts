@@ -1,9 +1,8 @@
-import { Instance, SnapshotIn, types } from "mobx-state-tree"
 import { mean, std } from "mathjs"
+import { Instance, SnapshotIn, types } from "mobx-state-tree"
 import {IGraphDataConfigurationModel} from "../../../models/graph-data-configuration-model"
-import {
-  UnivariateMeasureAdornmentModel, IUnivariateMeasureAdornmentModel
-} from "../univariate-measure-adornment-model"
+import { IAdornmentModel } from "../../adornment-models"
+import { UnivariateMeasureAdornmentModel } from "../univariate-measure-adornment-model"
 import { kStandardDeviationValueTitleKey, kStandardDeviationType } from "./standard-deviation-adornment-types"
 
 export const StandardDeviationAdornmentModel = UnivariateMeasureAdornmentModel
@@ -38,7 +37,7 @@ export const StandardDeviationAdornmentModel = UnivariateMeasureAdornmentModel
 
 export interface IStandardDeviationAdornmentModelSnapshot extends SnapshotIn<typeof StandardDeviationAdornmentModel> {}
 export interface IStandardDeviationAdornmentModel extends Instance<typeof StandardDeviationAdornmentModel> {}
-export function isStandardDeviationAdornment(adornment: IUnivariateMeasureAdornmentModel):
+export function isStandardDeviationAdornment(adornment: IAdornmentModel):
   adornment is IStandardDeviationAdornmentModel {
   return adornment.type === kStandardDeviationType
 }

@@ -1,13 +1,14 @@
 import { Instance, SnapshotIn, types } from "mobx-state-tree"
+import { isNumericAxisModel } from "../../../axis/models/axis-model"
 import { AdornmentModel, IAdornmentModel, IUpdateCategoriesOptions } from "../adornment-models"
 import { kMovableValueType } from "./movable-value-adornment-types"
-import { IBaseNumericAxisModel } from "../../../axis/models/axis-model"
 
 export const MovableValueAdornmentModel = AdornmentModel
   .named("MovableValueAdornmentModel")
   .props({
     type: types.optional(types.literal(kMovableValueType), kMovableValueType),
-    values: types.map(types.array(types.number)),
+    // key is instanceKey (derived from cellKey); value is array of movable values for a given cell
+    values: types.map(types.array(types.number))
   })
   .volatile(() => ({
     axisMin: 0,
@@ -25,10 +26,10 @@ export const MovableValueAdornmentModel = AdornmentModel
     get hasValues() {
       return [...self.values.values()].some(valueArray => valueArray.length > 0)
     },
-    get firstValueArray() {
+    get firstValueArray(): number[] {
       return self.values.values().next().value
     },
-    valuesForKey(key="{}") {
+    valuesForKey(key = "{}") {
       const values = self.values.get(key) || []
       if (!self.isDragging || key !== self.dragKey) return values
       const latestValues = [...values]
@@ -43,7 +44,7 @@ export const MovableValueAdornmentModel = AdornmentModel
     }
   }))
   .views(self => ({
-    newValue(key="{}") {
+    newValue(key = "{}") {
       // New movable values are always placed within the largest gap existing between the
       // axis min, any existing movable values, and the axis max. The exact placement is
       // 1/3 of the way into the gap from the lower bound.
@@ -61,13 +62,13 @@ export const MovableValueAdornmentModel = AdornmentModel
   .actions(self => ({
     addValue(aValue?: number) {
       self.values.forEach((values, key) => {
-        const newValue = !aValue ? self.newValue(`${key}`) : aValue
+        const newValue = aValue == null ? self.newValue(`${key}`) : aValue
         const newValues = [...values]
         newValues.push(newValue)
         self.values.set(key, newValues)
       })
     },
-    replaceValue(aValue: number, key="{}", index=0) {
+    replaceValue(aValue: number, key = "{}", index = 0) {
       const newValues = [...self.valuesForKey(key)]
       newValues[index] = aValue
       self.values.set(key, newValues)
@@ -96,7 +97,7 @@ export const MovableValueAdornmentModel = AdornmentModel
     setAxisMax(aValue: number) {
       self.axisMax = aValue
     },
-    setInitialValue(aValue=10, key="{}") {
+    setInitialValue(aValue = 10, key = "{}") {
       self.deleteAllValues()
       self.values.set(key, [])
       self.addValue(aValue)
@@ -115,14 +116,13 @@ export const MovableValueAdornmentModel = AdornmentModel
   }))
   .actions(self => ({
     updateCategories(options: IUpdateCategoriesOptions) {
-      const { xAxis, yAxis, resetPoints, dataConfig } = options
-      const axisMin = xAxis?.isNumeric ? (xAxis as IBaseNumericAxisModel).min
-        : (yAxis as IBaseNumericAxisModel).min
-      const axisMax = xAxis?.isNumeric ? (xAxis as IBaseNumericAxisModel).max
-        : (yAxis as IBaseNumericAxisModel).max
+      const { xAxis, yAxis, dataConfig } = options
+      const [axisMin, axisMax] = isNumericAxisModel(xAxis)
+                                  ? xAxis.domain
+                                  : isNumericAxisModel(yAxis) ? yAxis.domain : []
 
-      self.setAxisMin(axisMin)
-      self.setAxisMax(axisMax)
+      if (axisMin != null) self.setAxisMin(axisMin)
+      if (axisMax != null) self.setAxisMax(axisMax)
 
       dataConfig.getAllCellKeys().forEach(cellKey => {
         const instanceKey = self.instanceKey(cellKey)
@@ -132,11 +132,6 @@ export const MovableValueAdornmentModel = AdornmentModel
         const existingValues = self.values.get(instanceKey) || self.firstValueArray || []
         self.values.set(instanceKey, [...existingValues])
       })
-
-      // If this action was triggered by the attributes changing (i.e., resetPoints is true), do not add a new value.
-      if (resetPoints) return
-
-      self.addValue()
     }
   }))
 
