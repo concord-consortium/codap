@@ -105,12 +105,12 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
   }, [callRefreshPointPositions, graphModel])
 
   useEffect(function respondToCategorySetChanges() {
-    return reaction(() => {
+    return mstReaction(() => {
       return dataConfiguration.allCategoriesForRoles
     }, () => {
       startAnimation()
       callRefreshPointPositions(false)
-    }, {name: "usePlot.respondToCategorySetChanges"})
+    }, {name: "usePlot.respondToCategorySetChanges", equals: comparer.structural}, dataConfiguration)
   }, [callRefreshPointPositions, dataConfiguration, startAnimation])
 
   // respond to attribute assignment changes
