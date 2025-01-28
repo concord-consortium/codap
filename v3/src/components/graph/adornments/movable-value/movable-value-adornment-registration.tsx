@@ -7,6 +7,7 @@ import { ICodapV2MovableValueAdornmentInstance } from "../../../../v2/codap-v2-t
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
 import { registerAdornmentComponentInfo } from "../adornment-component-info"
 import { exportAdornmentBase, getAdornmentContentInfo, registerAdornmentContentInfo } from "../adornment-content-info"
+import { IUpdateCategoriesOptions } from "../adornment-models"
 import { MovableValueAdornment } from "./movable-value-adornment-component"
 import {
   IMovableValueAdornmentModel, isMovableValueAdornment, MovableValueAdornmentModel
@@ -24,9 +25,10 @@ const Controls = () => {
     const existingAdornment = adornmentsStore.findAdornmentOfType<IMovableValueAdornmentModel>(kMovableValueType)
     const componentContentInfo = getAdornmentContentInfo(kMovableValueType)
     const adornment = existingAdornment ?? componentContentInfo.modelClass.create() as IMovableValueAdornmentModel
+    const options: IUpdateCategoriesOptions = { ...graphModel.getUpdateCategoriesOptions(), addMovableValue: true }
 
     graphModel.applyModelChange(
-      () => adornmentsStore.addAdornment(adornment, graphModel.getUpdateCategoriesOptions()),
+      () => adornmentsStore.addAdornment(adornment, options),
       {
         undoStringKey: kMovableValueUndoAddKey,
         redoStringKey: kMovableValueRedoAddKey,

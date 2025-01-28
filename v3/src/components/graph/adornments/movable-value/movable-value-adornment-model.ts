@@ -116,7 +116,7 @@ export const MovableValueAdornmentModel = AdornmentModel
   }))
   .actions(self => ({
     updateCategories(options: IUpdateCategoriesOptions) {
-      const { xAxis, yAxis, dataConfig } = options
+      const { xAxis, yAxis, addMovableValue, dataConfig } = options
       const [axisMin, axisMax] = isNumericAxisModel(xAxis)
                                   ? xAxis.domain
                                   : isNumericAxisModel(yAxis) ? yAxis.domain : []
@@ -132,6 +132,9 @@ export const MovableValueAdornmentModel = AdornmentModel
         const existingValues = self.values.get(instanceKey) || self.firstValueArray || []
         self.values.set(instanceKey, [...existingValues])
       })
+
+      // Add a new movable value when requested.
+      if (addMovableValue) self.addValue()
     }
   }))
 
