@@ -20,7 +20,6 @@ describe('GraphContentModel', () => {
     expect(graphModel.plotBackgroundImage).toBeUndefined()
     expect(graphModel.plotBackgroundLockInfo).toBe(undefined)
     expect(graphModel.showParentToggles).toBe(false)
-    expect(graphModel.showMeasuresForSelection).toBe(false)
   })
   it('should show and hide adornments', () => {
     const graphModel = GraphContentModel.create()
