@@ -135,15 +135,15 @@ export const operators = {
     evaluateOperator: (a: any, b: any) => {
       const subtractError = new Error(`Invalid arguments for subtract operator: ${a}, ${b}`)
 
-      const [isADate, aDate] = checkDate(a)
-      const [isBDate, bDate] = checkDate(b)
-      const [isANumber, aNumber] = checkNumber(a)
-      const [isBNumber, bNumber] = checkNumber(b)
-
       // Empty strings
       if (a === "" || b === "") {
         return ""
       }
+
+      const [isADate, aDate] = checkDate(a)
+      const [isBDate, bDate] = checkDate(b)
+      const [isANumber, aNumber] = checkNumber(a)
+      const [isBNumber, bNumber] = checkNumber(b)
 
       // Date objects
       if (isADate || isBDate) {
@@ -174,13 +174,13 @@ export const operators = {
     evaluateOperator: (a: any, b: any) => {
       const multiplyError = new Error(`Invalid arguments for multiply operator: ${a}, ${b}`)
 
-      const [isANumber, aNumber] = checkNumber(a)
-      const [isBNumber, bNumber] = checkNumber(b)
-
       // Empty strings
       if (a === "" || b === "") {
         return ""
       }
+
+      const [isANumber, aNumber] = checkNumber(a)
+      const [isBNumber, bNumber] = checkNumber(b)
 
       if (!isANumber || !isBNumber) {
         throw multiplyError
@@ -216,15 +216,15 @@ export const operators = {
     isOperator: true,
     numOfRequiredArguments: 2,
     evaluateOperator: (a: any, b: any) => {
-      const modError = new Error(`Invalid arguments for multiply operator: ${a}, ${b}`)
-
-      const [isANumber, aNumber] = checkNumber(a)
-      const [isBNumber, bNumber] = checkNumber(b)
+      const modError = new Error(`Invalid arguments for mod operator: ${a}, ${b}`)
 
       // Empty strings
       if (a === "" || b === "") {
         return ""
       }
+
+      const [isANumber, aNumber] = checkNumber(a)
+      const [isBNumber, bNumber] = checkNumber(b)
 
       if (!isANumber || !isBNumber) {
         throw modError
