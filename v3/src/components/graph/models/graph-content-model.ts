@@ -3,7 +3,7 @@
  * Its array of DataDisplayLayerModels has just one element, a GraphPointLayerModel.
  */
 import {cloneDeep} from "lodash"
-import {when} from "mobx"
+import { comparer, when } from "mobx"
 import { format } from "d3"
 import {addDisposer, Instance, SnapshotIn, types} from "mobx-state-tree"
 import { t } from "../../../utilities/translation/translate"
@@ -280,7 +280,8 @@ export const GraphContentModel = DataDisplayContentModel
             const updateCategoriesOptions = self.getUpdateCategoriesOptions()
             self.adornmentsStore.updateAdornments(updateCategoriesOptions)
           }
-      }, {name: "GraphContentModel.afterAttachToDocument.updateAdornments"}, self.dataConfiguration))
+      }, {name: "GraphContentModel.afterAttachToDocument.updateAdornments", equals: comparer.structural},
+        self.dataConfiguration))
     },
     beforeDestroy() {
       self.formulaAdapters.forEach(adapter => {
