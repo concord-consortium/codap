@@ -132,6 +132,7 @@ export const useSubAxis = ({
           dI.indexOfCategory = newCatIndex
           dI.categorySet?.move(dI.catName, catToMoveBefore)
           dI.currentDragPositionCatName = catToMoveBefore
+          categoriesRef.current = dI.categorySet?.valuesArray ?? []
         } else {
           renderSubAxis()
         }
@@ -326,7 +327,7 @@ export const useSubAxis = ({
           savedCategorySetValuesRef.current = values
           swapInProgress.current = false
         }
-      }, {name: "useSubAxis [categories]"})
+      }, {name: "useSubAxis [categories]", equals: comparer.structural})
       return () => disposer()
     }
   }, [axisModel, renderSubAxis, layout, isCategorical, setupCategories])
