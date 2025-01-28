@@ -23,7 +23,7 @@
   As in CODAP v2, attributes can be grouped into collections. Within collections, cases with
   identical values are grouped into pseudo-cases which represent multiple child cases. For
   historical reasons, in v2 the collections and their cases were primary, and the flat "items"
-  were constructed by combining the contents of the cases in each collection. In contract, v3
+  were constructed by combining the contents of the cases in each collection. In contrast, v3
   represents the flat cases by default and builds the collection-grouped pseudo-cases on the
   fly when necessary. Thus, "case" in v3 corresponds to "item" in v2, and "pseudo-case" in v3
   corresponds to "case" in v2.
@@ -342,6 +342,13 @@ export const DataSet = V2Model.named("DataSet").props({
   },
   get childCollection(): ICollectionModel {
     return self.collections[self.collections.length - 1]
+  },
+  get attrNameMap() {
+    const nameMap = observable.map<string, string>({}, { name: "attrNameMap" })
+    self.attributesMap.forEach(attr => {
+      nameMap.set(attr.name, attr.id)
+    })
+    return nameMap
   }
 }))
 .views(self => ({
@@ -883,6 +890,7 @@ export const DataSet = V2Model.named("DataSet").props({
         withoutUndo({ suppressWarning: true })
         self.collections.forEach(collection => collection.prepareSnapshot())
         self.attributes.forEach(attr => attr.prepareSnapshot())
+        self.snapSelection.replace(Array.from(self.selection))
       },
       // should be called after retrieving snapshot (post-serialization)
       completeSnapshot() {
@@ -909,9 +917,6 @@ export const DataSet = V2Model.named("DataSet").props({
         // add attribute to attributesMap
         let collection: ICollectionModel | undefined
         const attribute = self.attributesMap.put(snapshot)
-
-        // add attribute to attrNameMap
-        self.attrNameMap.set(attribute.name, attribute.id)
 
         // fill out any missing values
         // for (let i = attribute.strValues.length; i < self.cases.length; ++i) {
@@ -944,9 +949,7 @@ export const DataSet = V2Model.named("DataSet").props({
         if (attribute) {
           const nameStr = typeof name === "string" ? name : name()
           if (nameStr !== attribute.name) {
-            self.attrNameMap.delete(attribute.name)
             attribute.setName(nameStr)
-            self.attrNameMap.set(nameStr, attribute.id)
           }
         }
       },
@@ -968,8 +971,6 @@ export const DataSet = V2Model.named("DataSet").props({
             }
           }
 
-          // remove attribute from attrNameMap
-          self.attrNameMap.delete(attribute.name)
           // remove attribute from attributesMap
           self.attributesMap.delete(attribute.id)
         }
@@ -1212,11 +1213,6 @@ export const DataSet = V2Model.named("DataSet").props({
     const context: IEnvContext | Record<string, never> = hasEnv(self) ? getEnv(self) : {},
           { srcDataSet } = context
 
-    // build attrNameMap
-    self.attributesMap.forEach(attr => {
-      self.attrNameMap.set(attr.name, attr.id)
-    })
-
     // build itemIDMap
     self._itemIds.forEach((itemId, index) => {
       self.itemInfoMap.set(itemId, { index, caseIds: [], isHidden: self.isCaseOrItemHidden(itemId) })
@@ -1231,6 +1227,9 @@ export const DataSet = V2Model.named("DataSet").props({
     if (!self.collections.length) {
       self.addCollection({ name: t("DG.AppController.createDataSet.collectionName") })
     }
+
+    // initialize selection
+    self.selection.replace(self.snapSelection)
 
     // initialize setAsideItemIdsSet
     self.setAsideItemIdsSet.replace(self.setAsideItemIds)

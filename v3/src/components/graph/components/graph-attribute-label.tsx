@@ -9,7 +9,7 @@ import { IDataSet } from "../../../models/data/data-set"
 import { GraphPlace, isVertical } from "../../axis-graph-shared"
 import { AttributeLabel } from "../../data-display/components/attribute-label"
 import { graphPlaceToAttrRole } from "../../data-display/data-display-types"
-import { useTileModelContext } from "../../../hooks/use-tile-model-context"
+import { useTileSelectionContext } from "../../../hooks/use-tile-selection-context"
 import { getStringBounds } from "../../axis/axis-utils"
 
 import vars from "../../vars.scss"
@@ -29,7 +29,7 @@ export const GraphAttributeLabel =
     const graphModel = useGraphContentModelContext(),
       dataConfiguration = useGraphDataConfigurationContext(),
       layout = useGraphLayoutContext(),
-      {isTileSelected} = useTileModelContext(),
+      {isTileSelected} = useTileSelectionContext(),
       dataset = dataConfiguration?.dataset,
       labelRef = useRef<SVGGElement>(null)
 

@@ -6,6 +6,7 @@ import React from "react"
 import { CaseTableComponent } from "./case-table-component"
 import { CaseTableModel } from "./case-table-model"
 import { DataSetContext } from "../../hooks/use-data-set-context"
+import { ITileSelection, TileSelectionContext } from "../../hooks/use-tile-selection-context"
 import { useKeyStates } from "../../hooks/use-key-states"
 import { DataBroker } from "../../models/data/data-broker"
 import { DataSet, toCanonical } from "../../models/data/data-set"
@@ -40,17 +41,26 @@ describe("Case Table", () => {
   })
 
   it("renders table with data", () => {
+    const tileSelection: ITileSelection = {
+      isTileSelected() {
+        return false
+      },
+      selectTile() {
+      }
+    }
     const data = DataSet.create()
     data.addAttribute({ name: "a"})
     data.addAttribute({ name: "b" })
     data.addCases(toCanonical(data, [{ a: 1, b: 2 }, { a: 3, b: 4 }]))
     broker.addDataSet(data)
     render(
-      <DndContext>
-        <DataSetContext.Provider value={data}>
-          <CaseTableComponent tile={tile}/>
-        </DataSetContext.Provider>
-      </DndContext>)
+      <TileSelectionContext.Provider value={tileSelection}>
+        <DndContext>
+          <DataSetContext.Provider value={data}>
+            <CaseTableComponent tile={tile}/>
+          </DataSetContext.Provider>
+        </DndContext>
+      </TileSelectionContext.Provider>)
     expect(screen.getByTestId("case-table")).toBeInTheDocument()
   })
 

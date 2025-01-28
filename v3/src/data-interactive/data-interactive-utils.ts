@@ -2,7 +2,7 @@ import { ICollectionModel } from "../models/data/collection"
 import { IDataSet } from "../models/data/data-set"
 import { ICaseCreation } from "../models/data/data-set-types"
 import { toV2Id, toV3AttrId, toV3CollectionId } from "../utilities/codap-utils"
-import { DICaseValues } from "./data-interactive-types"
+import { DICaseValues } from "./data-interactive-data-set-types"
 
 export function canonicalizeAttributeName(name: string, iCanonicalize = true) {
   let tName = name ?? ""

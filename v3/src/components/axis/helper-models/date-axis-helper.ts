@@ -385,6 +385,7 @@ export class DateAxisHelper extends AxisHelper {
             refPoint.y = kAxisTickLength + kAxisGap + kDefaultFontHeight              // y-value
             refPoint.x = pixel
             sAS.append('line')
+              .attr("class", "tick")
               .attr('style', 'stroke: black')
               .attr('x1', refPoint.x)
               .attr('x2', refPoint.x)
@@ -395,6 +396,7 @@ export class DateAxisHelper extends AxisHelper {
             refPoint.x = -kAxisTickLength - kAxisGap
             refPoint.y = pixel
             sAS.append('line')
+              .attr("class", "tick")
               .attr('style', 'stroke: black')
               .attr('x1', 0)
               .attr('x2', -kAxisTickLength)
@@ -431,6 +433,7 @@ export class DateAxisHelper extends AxisHelper {
         const gridLength = this.layout.getAxisLength(otherPlace(this.axisPlace)) ?? 0
         forEachTickDo((worldTickCoord, screenTickCoord) => {
           sAS.append('line')
+            .attr("class", "grid")
             .attr('x1', isVertical ? 0 : screenTickCoord)
             .attr('x2', isVertical ? gridLength : screenTickCoord)
             .attr('y1', isVertical ? screenTickCoord : 0)

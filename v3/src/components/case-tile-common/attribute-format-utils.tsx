@@ -88,7 +88,7 @@ export function renderAttributeValue(str = "", num = NaN, showUnits = false, att
     if (date) {
       const formattedDate = formatDate(date, datePrecision)
       return {
-        value: str,
+        value: formattedDate || str,
         content:  <span className="cell-span" key={key} style={{ WebkitLineClamp: lineClamp }}>
                     {formattedDate || `"${str}"`}
                   </span>

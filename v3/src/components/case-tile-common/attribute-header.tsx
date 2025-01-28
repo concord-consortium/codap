@@ -101,7 +101,12 @@ export const AttributeHeader = observer(function AttributeHeader({
 
   // focus our content when the cell is focused
   useParentChildFocusRedirect(parentRef.current, menuButtonRef.current)
-  useOutsidePointerDown({ ref: inputRef, handler: () => handleClose(true) })
+  useOutsidePointerDown({ ref: inputRef, handler: () => {
+                                if (isFocused) {
+                                  handleClose(true)
+                                }
+                              }
+                        })
 
   const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     const { key } = e
@@ -145,6 +150,7 @@ export const AttributeHeader = observer(function AttributeHeader({
     }
     setEditingAttrId("")
     setEditingAttrName("")
+    setIsFocused(false)
     uiState.setAttrIdToEdit?.()
   }
   const handleRenameAttribute = () => {

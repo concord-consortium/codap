@@ -1,10 +1,9 @@
-import { useDndContext } from "@dnd-kit/core"
 import { observer } from "mobx-react-lite"
 import React, { useCallback, useEffect, useRef } from "react"
 import { ICoreNotification } from "../../data-interactive/notification-core-types"
 import { CollectionContext, ParentCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
-import { getOverlayDragId } from "../../hooks/use-drag-drop"
+import { useTileDropOverlay } from "../../hooks/use-drag-drop"
 import { useInstanceIdContext } from "../../hooks/use-instance-id-context"
 import { registerCanAutoScrollCallback } from "../../lib/dnd-kit/dnd-can-auto-scroll"
 import { logMessageWithReplacement } from "../../lib/log-message"
@@ -24,12 +23,10 @@ import { useSyncScrolling } from "./use-sync-scrolling"
 
 import "./case-table.scss"
 
-interface IProps {
-  setNodeRef: (element: HTMLElement | null) => void
-}
-export const CaseTable = observer(function CaseTable({ setNodeRef }: IProps) {
-  const { active } = useDndContext()
+export const CaseTable = observer(function CaseTable() {
   const instanceId = useInstanceIdContext() || "case-table"
+  // pass in the instance id since the context hasn't been provided yet
+  const { setNodeRef } = useTileDropOverlay(instanceId)
   const data = useDataSetContext()
   const tableModel = useCaseTableModel()
   const contentRef = useRef<HTMLDivElement>(null)
@@ -152,7 +149,7 @@ export const CaseTable = observer(function CaseTable({ setNodeRef }: IProps) {
               )
             })}
           </AttributeHeaderDividerContext.Provider>
-          <AttributeDragOverlay activeDragId={getOverlayDragId(active, instanceId, excludeDragOverlayRegEx)} />
+          <AttributeDragOverlay dragIdPrefix={instanceId} dragIdExcludeRegEx={excludeDragOverlayRegEx} />
         </div>
       </div>
     )

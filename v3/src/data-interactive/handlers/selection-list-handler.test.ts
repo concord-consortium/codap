@@ -1,7 +1,8 @@
 import { DataSet, IDataSet } from "../../models/data/data-set"
 import { AppHistoryService } from "../../models/history/app-history-service"
 import { toV2Id } from "../../utilities/codap-utils"
-import { DICase, DIValues } from "../data-interactive-types"
+import { DIValues } from "../data-interactive-types"
+import { DICase } from "../data-interactive-data-set-types"
 import { diSelectionListHandler } from "./selection-list-handler"
 
 describe("DataInteractive SelectionListHandler", () => {

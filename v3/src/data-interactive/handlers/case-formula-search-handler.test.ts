@@ -1,5 +1,5 @@
 import { toV2Id } from "../../utilities/codap-utils"
-import { DIFullCase } from "../data-interactive-types"
+import { DIFullCase } from "../data-interactive-data-set-types"
 import { diCaseFormulaSearchHandler } from "./case-formula-search-handler"
 import { setupTestDataset } from "./handler-test-utils"
 

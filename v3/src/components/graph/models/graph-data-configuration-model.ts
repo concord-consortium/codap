@@ -604,7 +604,8 @@ export const GraphDataConfigurationModel = DataConfigurationModel
         place: GraphPlace, dataSet?: IDataSet, idToDrop?: string, options?: ILegalAttributeOptions
       ) {
         const role = graphPlaceToAttrRole[place],
-          xIsNumeric = self.attributeType('x') === 'numeric',
+          xType = self.attributeType('x') || '',
+          xIsNumericOrDate = ['date', 'numeric'].includes(xType),
           existingID = self.attributeID(role),
           differentAttribute = options?.allowSameAttr || existingID !== idToDrop
         // only drops on left/bottom axes can change data set
@@ -616,9 +617,9 @@ export const GraphDataConfigurationModel = DataConfigurationModel
 
         const typeToDropIsNumeric = dataSet?.attrFromID(idToDrop)?.type === "numeric"
         if (place === 'yPlus') {
-          return xIsNumeric && typeToDropIsNumeric && !self.yAttributeIDs.includes(idToDrop)
+          return xIsNumericOrDate && typeToDropIsNumeric && !self.yAttributeIDs.includes(idToDrop)
         } else if (place === 'rightNumeric') {
-          return xIsNumeric && typeToDropIsNumeric && differentAttribute
+          return xIsNumericOrDate && typeToDropIsNumeric && differentAttribute
         } else if (['top', 'rightCat'].includes(place)) {
           return !typeToDropIsNumeric && differentAttribute
         } else {

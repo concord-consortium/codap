@@ -8,6 +8,7 @@ import { registerTileComponentInfo } from "../../models/tiles/tile-component-inf
 import { ITileLikeModel, registerTileContentInfo } from "../../models/tiles/tile-content-info"
 import { SharedDataSet } from "../../models/shared/shared-data-set"
 import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-data-utils"
+import { registerV2TileExporter } from "../../v2/codap-v2-tile-exporters"
 import { registerV2TileImporter } from "../../v2/codap-v2-tile-importers"
 import { ComponentTitleBar } from "../component-title-bar"
 import { PlottedFunctionFormulaAdapter } from "./adornments/plotted-function/plotted-function-formula-adapter"
@@ -23,6 +24,7 @@ import { GraphContentModel, IGraphContentModelSnapshot, isGraphContentModel } fr
 import { kGraphDataConfigurationType } from "./models/graph-data-configuration-model"
 import { GraphFilterFormulaAdapter } from "./models/graph-filter-formula-adapter"
 import { kGraphPointLayerType } from "./models/graph-point-layer-model"
+import { v2GraphExporter } from "./v2-graph-exporter"
 import { v2GraphImporter } from "./v2-graph-importer"
 
 GraphFilterFormulaAdapter.register()
@@ -85,6 +87,7 @@ registerTileComponentInfo({
   defaultHeight: 300
 })
 
+registerV2TileExporter(kGraphTileType, v2GraphExporter)
 registerV2TileImporter("DG.GraphView", v2GraphImporter)
 
 registerComponentHandler(kV2GraphType, graphComponentHandler)

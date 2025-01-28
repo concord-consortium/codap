@@ -51,8 +51,9 @@ export const CodapMap = observer(function CodapMap({mapRef}: IProps) {
   usePixiPointerDownDeselect(pixiPointsArray, mapModel)
 
   const handleChangeLegendAttribute = useCallback((dataSet: IDataSet, attrId: string) => {
+    const attrType = dataSet.attrFromID(attrId)?.type
     mapModel.applyModelChange(
-      () => mapModel.setLegendAttributeID(dataSet.id, attrId),
+      () => mapModel.setLegendAttribute(dataSet.id, attrId, attrType),
       {
         undoStringKey: "V3.Undo.mapLegendAttributeChange",
         redoStringKey: "V3.Redo.mapLegendAttributeChange",

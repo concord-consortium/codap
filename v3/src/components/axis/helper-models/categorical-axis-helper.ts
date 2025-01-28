@@ -116,7 +116,7 @@ export class CategoricalAxisHelper extends AxisHelper {
             .attr('class', 'category-label')
             .attr('x', (d, i) => fns.getLabelX(i))
             .attr('y', (d, i) => fns.getLabelY(i))
-            .text((catObject: CatObject) => String(catObject.cat))
+            .text((d: CatObject, i) => String(categories[i]))
           return update
         }
       )

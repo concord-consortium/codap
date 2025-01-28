@@ -3,7 +3,6 @@ import {comparer, reaction} from "mobx"
 import {observer} from "mobx-react-lite"
 import React, {useCallback, useEffect, useRef, useState} from "react"
 import { mstReaction } from "../../../../utilities/mst-reaction"
-import {isSelectionAction} from "../../../../models/data/data-set-actions"
 import { setOrExtendSelection } from "../../../../models/data/data-set-utils"
 import {axisGap} from "../../../axis/axis-types"
 import {getStringBounds} from "../../../axis/axis-utils"
@@ -101,13 +100,13 @@ export const NumericLegend =
     return () => disposer()
   }, [dataConfiguration, refreshScale])
 
-  useEffect(function respondToSelectionChange() {
-    return dataConfiguration?.onAction(action => {
-      if (isSelectionAction(action)) {
-        refreshScale()
-      }
-    })
-  }, [refreshScale, dataConfiguration])
+    useEffect(function respondToSelectionChange() {
+      return mstReaction(
+        () => dataConfiguration?.selection,
+        () => {
+          refreshScale()
+        }, {name: 'NumericLegend respondToSelectionChange'}, dataConfiguration)
+    }, [refreshScale, dataConfiguration])
 
   useEffect(function respondToHiddenCaseChange() {
   return mstReaction(

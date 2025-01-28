@@ -4,9 +4,15 @@ import { SharedModelDocumentManager } from "../../models/document/shared-model-d
 import { ITileModelSnapshotIn } from "../../models/tiles/tile-model"
 import { safeJsonParse } from "../../utilities/js-utils"
 import { CodapV2Document } from "../../v2/codap-v2-document"
-import { ICodapV2DocumentJson } from "../../v2/codap-v2-types"
+import {
+  ICodapV2DocumentJson, ICodapV2MapCurrentStorage, ICodapV2MapLayerStorage,
+  ICodapV2MapPointLayerStorage, ICodapV2MapPolygonLayerStorage, ICodapV2MapStorage,
+  isV2MapCurrentStorage, isV2MapPointLayerStorage, isV2MapPolygonLayerStorage
+} from "../../v2/codap-v2-types"
 import { isMapContentModel } from "./models/map-content-model"
+import { v2MapExporter } from "./v2-map-exporter"
 import { v2MapImporter } from "./v2-map-importer"
+
 import "./map-registration"
 
 const fs = require("fs")
@@ -62,7 +68,7 @@ describe("V2MapImporter imports legacy v2 map documents", () => {
   })
 })
 
-describe("V2MapImporter imports current v2 map documents", () => {
+describe("imports/exports to current v2 map documents", () => {
   // current v2 map document (0730)
   const rollerCoastersFile = path.join(__dirname, "../../test/v2", "roller-coasters-map.codap")
   const rollerCoastersJson = fs.readFileSync(rollerCoastersFile, "utf8")
@@ -115,5 +121,44 @@ describe("V2MapImporter imports current v2 map documents", () => {
     const mapModel = isMapContentModel(tile?.content) ? tile?.content : undefined
     expect(mapModel).toBeDefined()
     expect(mapModel?.layers.length).toBe(2)
+  })
+
+  it("imports a V2 map component and re-exports it correctly", () => {
+    const importedTile = v2MapImporter({
+      v2Component: firstMapComponent(v2Document),
+      v2Document,
+      insertTile: mockInsertTile
+    })
+
+    expect(importedTile).toBeDefined()
+    expect(isMapContentModel(importedTile?.content)).toBe(true)
+
+    // Step 2: Export to V2
+    const exportedV2Map = v2MapExporter({ tile: importedTile! })
+
+    expect(exportedV2Map).toBeDefined()
+    expect(exportedV2Map?.type).toBe("DG.MapView")
+    const mapStorage = exportedV2Map?.componentStorage as ICodapV2MapStorage
+    let mapModelStorage: Maybe<ICodapV2MapCurrentStorage["mapModelStorage"]>
+    let layerModels: ICodapV2MapLayerStorage[] = []
+    if (isV2MapCurrentStorage(mapStorage)) {
+      mapModelStorage = mapStorage.mapModelStorage
+      layerModels = mapModelStorage.layerModels
+    }
+    expect(mapModelStorage).toBeDefined()
+    expect(layerModels.length).toBe(2)
+
+    const polygonLayer = layerModels[0] as ICodapV2MapPolygonLayerStorage
+    const isFirstPolygon = isV2MapPolygonLayerStorage(polygonLayer)
+    expect(isFirstPolygon).toBe(true)
+    expect(polygonLayer.areaColor).toBeDefined()
+    expect(typeof polygonLayer.areaColor).toBe("string")
+
+    // Validate that the second layer is a Point Layer
+    const pointLayer = layerModels[1] as ICodapV2MapPointLayerStorage
+    const isSecondPoint = isV2MapPointLayerStorage(layerModels[1])
+    expect(isSecondPoint).toBe(true)
+    expect(pointLayer.pointColor).toBeDefined()
+    expect(typeof pointLayer.pointColor).toBe("string")
   })
 })

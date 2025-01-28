@@ -1,4 +1,4 @@
-import { DIDataContext } from "../data-interactive-types"
+import { DIDataContext } from "../data-interactive-data-set-types"
 import { diDataContextListHandler } from "./data-context-list-handler"
 import { setupTestDataset } from "./handler-test-utils"
 import { toV2Id } from "../../utilities/codap-utils"

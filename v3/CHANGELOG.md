@@ -1,5 +1,35 @@
 # Changelog
 
+## Version 3.0.0-pre.2128 - January 24, 2025
+
+### ✨ Features & Improvements:
+- **PT-188753758:** 3D Point/Case Select
+- **PT-188616819:** Export Text component in v2 format
+- **PT-181912260:** A categorical axis fits as many category labels as it can without overlap and then clumps the remaining categories into *OTHER*.
+- **PT-181904766:** Graph title
+- **PT-188794630:** Case selection is saved and restored
+- **PT-188616850:** Export Map in v2 format
+
+### 🐞 Bug Fixes:
+- **PT-188784911:** get dataContext[] should match on user-set `title` as well as internal `name`
+- **PT-188794430:** Vertical Movable Lines don't serialize
+- **PT-188794755:** Crash on categorical/categorical plot graph resize
+- **PT-188523118:** Cannot create multiple y axes in graph with date-time axis
+- **PT-188804884:** Values entered in case table/card are not being trimmed.
+- **PT-188801759:** Values and attribute names in an imported CSV should be trimmed
+- **PT-188719090:** displayOnlySelectedCases shows all cases after a click away
+- **PT-188773882:** Hyperlink text is formatted differently in v2 and v3
+- **PT-188767656:** Insert cases modal has unwanted white space on the right
+- **PT-188484850:** Date values are not automatically recognized as date-time attributes
+- **PT-188492167:** Selection of numeric legend key is not showing that the range is selected
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  188526 bytes |                           <0.00% |
+|  index.js | 6406785 bytes |                             0.2% |
+
+
 ## Version 3.0.0-pre.2090 - January 10, 2025
 
 ### ✨ Features & Improvements:

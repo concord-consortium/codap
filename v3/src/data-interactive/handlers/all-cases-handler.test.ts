@@ -1,4 +1,4 @@
-import { DIAllCases } from "../data-interactive-types"
+import { DIAllCases } from "../data-interactive-data-set-types"
 import { diAllCasesHandler } from "./all-cases-handler"
 import { setupTestDataset, testCases } from "./handler-test-utils"
 

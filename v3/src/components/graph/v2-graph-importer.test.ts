@@ -1,6 +1,4 @@
 import { getType } from "mobx-state-tree"
-import { CodapV2Document } from "../../v2/codap-v2-document"
-import { ICodapV2DocumentJson } from "../../v2/codap-v2-types"
 import { DataSet } from "../../models/data/data-set"
 import { DocumentContentModel, IDocumentContentModel } from "../../models/document/document-content"
 import { FreeTileRow } from "../../models/document/free-tile-row"
@@ -8,6 +6,9 @@ import { SharedCaseMetadata } from "../../models/shared/shared-case-metadata"
 import { getSharedDataSetFromDataSetId } from "../../models/shared/shared-data-utils"
 import { SharedModelDocumentManager } from "../../models/document/shared-model-document-manager"
 import { ITileModelSnapshotIn } from "../../models/tiles/tile-model"
+import { safeJsonParse } from "../../utilities/js-utils"
+import { CodapV2Document } from "../../v2/codap-v2-document"
+import { ICodapV2DocumentJson } from "../../v2/codap-v2-types"
 import {isGraphContentModel} from "./models/graph-content-model"
 import { IGraphPointLayerModel } from "./models/graph-point-layer-model"
 import { v2GraphImporter } from "./v2-graph-importer"
@@ -27,7 +28,7 @@ function graphComponentWithTitle(v2Document: CodapV2Document, title: string) {
 describe("V2GraphImporter", () => {
   const mammalsFile = path.join(__dirname, "../../test/v2", "mammals-graphs.codap")
   const mammalsJson = fs.readFileSync(mammalsFile, "utf8")
-  const mammalsDoc = JSON.parse(mammalsJson) as ICodapV2DocumentJson
+  const mammalsDoc = safeJsonParse<ICodapV2DocumentJson>(mammalsJson)!
 
   let v2Document: CodapV2Document
   let docContent: IDocumentContentModel | undefined

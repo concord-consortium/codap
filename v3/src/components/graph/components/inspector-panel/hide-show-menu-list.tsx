@@ -120,7 +120,7 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
     hideUnselectedIsDisabled = numUnselected === 0,
     hideUnselectedString = numUnselected === 1 ? t("DG.DataDisplayMenu.hideUnselectedSing")
       : t("DG.DataDisplayMenu.hideUnselectedPlural"),
-    showAllIsDisabled = dataConfig?.hiddenCases.length === 0,
+    showAllIsDisabled = dataConfig?.hiddenCases.length === 0 && !dataConfig?.displayOnlySelectedCases,
     parentToggleString = graphModel?.showParentToggles
       ? t("DG.DataDisplayMenu.disableNumberToggle")
       : t("DG.DataDisplayMenu.enableNumberToggle"),

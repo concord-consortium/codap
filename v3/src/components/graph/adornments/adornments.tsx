@@ -7,7 +7,7 @@ import { Adornment } from "./adornment"
 import { getAdornmentContentInfo } from "./adornment-content-info"
 import { IAdornmentModel } from "./adornment-models"
 import { useInstanceIdContext } from "../../../hooks/use-instance-id-context"
-import { useTileModelContext } from "../../../hooks/use-tile-model-context"
+import { useTileSelectionContext } from "../../../hooks/use-tile-selection-context"
 import { useGraphContentModelContext } from "../hooks/use-graph-content-model-context"
 import { useGraphDataConfigurationContext } from "../hooks/use-graph-data-configuration-context"
 import { useGraphLayoutContext } from "../hooks/use-graph-layout-context"
@@ -23,7 +23,7 @@ export const Adornments = observer(function Adornments() {
   const dataConfig = useGraphDataConfigurationContext()
   const instanceId = useInstanceIdContext()
   const layout = useGraphLayoutContext()
-  const { isTileSelected } = useTileModelContext()
+  const { isTileSelected } = useTileSelectionContext()
   const adornments = graphModel.adornmentsStore.adornments
   const { left, top, width, height } = layout.computedBounds.plot
   const spannerRef = useRef<SVGSVGElement>(null)

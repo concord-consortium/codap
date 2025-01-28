@@ -634,11 +634,7 @@ export const GraphContentModel = DataDisplayContentModel
   }))
   .actions(self => ({
     displayOnlySelectedCases() {
-      self.dataConfiguration.addNewHiddenCases(self.dataConfiguration.unselectedCases ?? [])
       self.dataConfiguration.setDisplayOnlySelectedCases(true)
-      if (self.dataConfiguration.selection.length > 0) {
-        self.rescale()
-      }
     },
     showAllCases() {
       self.dataConfiguration.clearHiddenCases()

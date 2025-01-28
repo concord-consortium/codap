@@ -3,7 +3,7 @@ import { observer } from "mobx-react-lite"
 import { addDisposer, onPatch } from "mobx-state-tree"
 import React, { useEffect, useRef, useState } from "react"
 import { useMemo } from "use-memo-one"
-import { useTileModelContext } from "../../hooks/use-tile-model-context"
+import { useTileSelectionContext } from "../../hooks/use-tile-selection-context"
 import { ITileBaseProps } from "../tiles/tile-base-props"
 import { mstReaction } from "../../utilities/mst-reaction"
 import { isTextModel, modelValueToEditorValue } from "./text-model"
@@ -14,7 +14,7 @@ import "./text-tile.scss"
 
 export const TextTile = observer(function TextTile({ tile }: ITileBaseProps) {
   const textModel = isTextModel(tile?.content) ? tile.content : undefined
-  const { isTileSelected } = useTileModelContext()
+  const { isTileSelected } = useTileSelectionContext()
   const textOnFocus = useRef("")
 
   const [initialValue, setInitialValue] = useState(() => modelValueToEditorValue(textModel?.value))
