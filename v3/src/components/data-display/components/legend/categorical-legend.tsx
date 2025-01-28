@@ -1,4 +1,3 @@
-import {observer} from "mobx-react-lite"
 import {drag, select} from "d3"
 import React, {useCallback, useEffect, useMemo, useRef, useState} from "react"
 import {mstReaction} from "../../../../utilities/mst-reaction"
@@ -12,6 +11,8 @@ import { CategoricalLegendModel, keySize, padding, labelHeight, Key } from "./ca
 
 import './legend.scss'
 
+// This is not an observing component because all of its real rendering happens in
+// a mstAutorun.
 export const CategoricalLegend =
   function CategoricalLegend({layerIndex, setDesiredExtent}: IBaseLegendProps) {
 
@@ -20,13 +21,15 @@ export const CategoricalLegend =
     const duration = useRef(0)
     const keysElt = useRef(null)
 
+    // useState guarantees the model will only be created once
+    // useMemo doesn't have that guarantee
     const [legendModel] = useState(
       () => new CategoricalLegendModel(dataConfiguration, dataDisplayLayout)
     )
 
     // This is outside of the main autorun because it only needs to run when
-    // number of categories changes or the maxWidth of a category changes
-    // Also the setDesiredExtent might cause extra re-renders so it only
+    // the number of categories changes or the max width of a category changes.
+    // Also the setDesiredExtent might cause extra re-renders, so it only
     // runs when the desiredExtent actually changes
     useEffect(function updateDesiredExtent() {
       return mstReaction(
