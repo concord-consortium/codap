@@ -46,7 +46,6 @@ export class NumericAxisHelper extends AxisHelper {
       numericScale = d3Scale as unknown as ScaleLinear<number, number>
     select(this.subAxisElt).selectAll('.zero, .grid').remove()
     const tickLength = this.layout.getAxisLength(otherPlace(this.axisPlace)) ?? 0
-    console.log("in renderZeroAxisLine numericalScale: ", numericScale)
     if (between(0, numericScale.domain()[0], numericScale.domain()[1])) {
       select(this.subAxisElt).append('g')
         .attr('class', 'zero')

@@ -162,10 +162,7 @@ export const GraphContentModel = DataDisplayContentModel
              (self.pointDisplayType === "histogram")
     },
     axisShouldShowZeroLine(place: AxisPlace) {
-      const otherPlace = place === "left" ? "bottom" : "left"
-      const otherPlaceRole = axisPlaceToAttrRole[otherPlace]
-      const attributeID = self.dataConfiguration.attributeID(otherPlaceRole)
-      return (self.plotType === 'dotPlot' && ['left', 'bottom'].includes(place)) && !!attributeID
+      return (self.plotType === 'dotPlot' && ['left', 'bottom'].includes(place)) && self.pointDisplayType === "bars"
     },
     placeCanAcceptAttributeIDDrop(place: GraphPlace,
                                   dataset: IDataSet | undefined,
