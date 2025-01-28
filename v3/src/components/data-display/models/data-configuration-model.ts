@@ -644,6 +644,9 @@ export const DataConfigurationModel = types
         categorySet.storeAllCurrentColors()
       }
     },
+    // This will only swap the categories if they are neighbors.
+    // If the categories are not next to each other the behavior is complex,
+    // so it is best to read the code to understand what will happen.
     swapCategoriesForAttrRole(role: AttrRole, catIndex1: number, catIndex2: number) {
       const categoryArray = self.categoryArrayForAttrRole(role),
         numCategories = categoryArray.length,
