@@ -153,7 +153,7 @@ function getAxisClassAndBounds(
 }
 
 function getPlotModels(graph: IGraphContentModel): Partial<ICodapV2GraphStorage> {
-  const { adornmentsStore, dataConfiguration: { categoricalAttrs }, showMeasuresForSelection } = graph
+  const { adornmentsStore, dataConfiguration: { categoricalAttrs, showMeasuresForSelection = false } } = graph
   const countAdornment = adornmentsStore.findAdornmentOfType<ICountAdornmentModel>(kCountType)
   const movableValuesAdornment = adornmentsStore.findAdornmentOfType<IMovableValueAdornmentModel>(kMovableValueType)
   const isShowingCount = !!countAdornment?.isVisible && countAdornment.showCount
