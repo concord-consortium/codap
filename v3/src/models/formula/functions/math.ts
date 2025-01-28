@@ -6,6 +6,7 @@ import {
 import { aggregateFunctions } from "./aggregate-functions"
 import { arithmeticFunctions } from "./arithmetic-functions"
 import { bivariateStatsFunctions } from "./bivariate-stats-functions"
+import { colorFunctions } from "./color-functions"
 import { dateFunctions } from "./date-functions"
 import { evaluateNode, getRootScope } from "./function-utils"
 import { logicFunctions } from "./logic-functions"
@@ -73,6 +74,8 @@ export const fnRegistry = {
   ...arithmeticFunctions,
 
   ...logicFunctions,
+
+  ...colorFunctions,
 
   ...dateFunctions,
 
