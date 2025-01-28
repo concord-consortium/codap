@@ -592,6 +592,336 @@
                 "bottom": 255
             },
             "savedHeight": null
+        },
+        {
+            "type": "DG.GraphView",
+            "guid": 48,
+            "id": 48,
+            "componentStorage": {
+                "_links_": {
+                    "context": {
+                        "type": "DG.DataContextRecord",
+                        "id": 2
+                    },
+                    "hiddenCases": [],
+                    "xColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "xAttr": {
+                        "type": "DG.Attribute",
+                        "id": 10
+                    },
+                    "yColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "yAttr": {
+                        "type": "DG.Attribute",
+                        "id": 12
+                    }
+                },
+                "displayOnlySelected": false,
+                "legendRole": 0,
+                "legendAttributeType": 0,
+                "numberOfLegendQuantiles": 5,
+                "legendQuantilesAreLocked": false,
+                "pointColor": "#e6805b",
+                "strokeColor": "white",
+                "pointSizeMultiplier": 1,
+                "transparency": 0.85,
+                "strokeTransparency": 0.4,
+                "strokeSameAsFill": false,
+                "isTransparent": false,
+                "plotBackgroundColor": null,
+                "plotBackgroundOpacity": 1,
+                "plotBackgroundImage": null,
+                "plotBackgroundImageLockInfo": null,
+                "xRole": 1,
+                "xAttributeType": 1,
+                "yRole": 4,
+                "yAttributeType": 2,
+                "y2Role": 0,
+                "y2AttributeType": 0,
+                "topRole": 0,
+                "topAttributeType": 0,
+                "rightRole": 0,
+                "rightAttributeType": 0,
+                "xAxisClass": "DG.CellLinearAxisModel",
+                "xLowerBound": -10,
+                "xUpperBound": 130,
+                "yAxisClass": "DG.CellAxisModel",
+                "y2AxisClass": "DG.AxisModel",
+                "topAxisClass": "DG.CellAxisModel",
+                "rightAxisClass": "DG.CellAxisModel",
+                "plotModels": [
+                    {
+                        "plotModelStorage": {
+                            "verticalAxisIsY2": false,
+                            "adornments": {
+                                "plottedCount": {
+                                    "isVisible": false,
+                                    "enableMeasuresForSelection": false,
+                                    "isShowingCount": false,
+                                    "isShowingPercent": false,
+                                    "percentKind": 1
+                                },
+                                "multipleMovableValues": {
+                                    "isVisible": true,
+                                    "enableMeasuresForSelection": false,
+                                    "isShowingCount": true,
+                                    "isShowingPercent": true,
+                                    "valueModels": [
+                                        {
+                                            "isVisible": true,
+                                            "enableMeasuresForSelection": false,
+                                            "values": {
+                                                "both": 4.2477876106194685,
+                                                "meat": 20,
+                                                "plants": 32.123893805309734
+                                            }
+                                        },
+                                        {
+                                            "isVisible": true,
+                                            "enableMeasuresForSelection": false,
+                                            "values": {
+                                                "both": 110.17699115044248,
+                                                "meat": 92.83185840707965,
+                                                "plants": 84.15929203539822
+                                            }
+                                        }
+                                    ]
+                                },
+                                "plottedMean": {
+                                    "isVisible": true,
+                                    "enableMeasuresForSelection": false,
+                                    "equationCoordsArray": []
+                                },
+                                "plottedMedian": {
+                                    "isVisible": true,
+                                    "enableMeasuresForSelection": false,
+                                    "equationCoordsArray": []
+                                },
+                                "plottedStDev": {
+                                    "isVisible": true,
+                                    "enableMeasuresForSelection": false,
+                                    "equationCoordsArray": []
+                                },
+                                "plottedStErr": {
+                                    "isVisible": true,
+                                    "enableMeasuresForSelection": false,
+                                    "equationCoordsArray": [],
+                                    "numberOfStdErrs": 1
+                                },
+                                "plottedMad": {
+                                    "isVisible": true,
+                                    "enableMeasuresForSelection": false,
+                                    "equationCoordsArray": []
+                                },
+                                "plottedBoxPlot": {
+                                    "isVisible": true,
+                                    "enableMeasuresForSelection": false,
+                                    "equationCoordsArray": [],
+                                    "showOutliers": true,
+                                    "showICI": false
+                                },
+                                "plottedNormal": {
+                                    "isVisible": true,
+                                    "enableMeasuresForSelection": false,
+                                    "equationCoordsArray": []
+                                },
+                                "plottedValue": {
+                                    "isVisible": true,
+                                    "enableMeasuresForSelection": false,
+                                    "adornmentKey": "plottedValue",
+                                    "expression": "mean() + 5"
+                                }
+                            },
+                            "showMeasureLabels": false
+                        },
+                        "plotClass": "DG.DotPlotModel"
+                    }
+                ],
+                "title": "Simple-Adornments-No-Labels-Split",
+                "userSetTitle": true,
+                "cannotClose": false
+            },
+            "layout": {
+                "width": 270,
+                "height": 260,
+                "zIndex": 167,
+                "left": 5,
+                "top": 260,
+                "isVisible": true,
+                "right": 275,
+                "bottom": 520
+            },
+            "savedHeight": null
+        },
+        {
+            "type": "DG.GraphView",
+            "guid": 49,
+            "id": 49,
+            "componentStorage": {
+                "_links_": {
+                    "context": {
+                        "type": "DG.DataContextRecord",
+                        "id": 2
+                    },
+                    "hiddenCases": [],
+                    "xColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "xAttr": {
+                        "type": "DG.Attribute",
+                        "id": 9
+                    },
+                    "yColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "yAttr": {
+                        "type": "DG.Attribute",
+                        "id": 12
+                    }
+                },
+                "displayOnlySelected": false,
+                "legendRole": 0,
+                "legendAttributeType": 0,
+                "numberOfLegendQuantiles": 5,
+                "legendQuantilesAreLocked": false,
+                "pointColor": "#e6805b",
+                "strokeColor": "white",
+                "pointSizeMultiplier": 1,
+                "transparency": 0.85,
+                "strokeTransparency": 0.4,
+                "strokeSameAsFill": false,
+                "isTransparent": false,
+                "plotBackgroundColor": null,
+                "plotBackgroundOpacity": 1,
+                "plotBackgroundImage": null,
+                "plotBackgroundImageLockInfo": null,
+                "xRole": 1,
+                "xAttributeType": 1,
+                "yRole": 4,
+                "yAttributeType": 2,
+                "y2Role": 0,
+                "y2AttributeType": 0,
+                "topRole": 0,
+                "topAttributeType": 0,
+                "rightRole": 0,
+                "rightAttributeType": 0,
+                "xAxisClass": "DG.CellLinearAxisModel",
+                "xLowerBound": -1,
+                "xUpperBound": 23,
+                "yAxisClass": "DG.CellAxisModel",
+                "y2AxisClass": "DG.AxisModel",
+                "topAxisClass": "DG.CellAxisModel",
+                "rightAxisClass": "DG.CellAxisModel",
+                "plotModels": [
+                    {
+                        "plotModelStorage": {
+                            "verticalAxisIsY2": false,
+                            "adornments": {
+                                "plottedCount": {
+                                    "isVisible": false,
+                                    "enableMeasuresForSelection": false,
+                                    "isShowingCount": false,
+                                    "isShowingPercent": false,
+                                    "percentKind": 1
+                                },
+                                "multipleMovableValues": {
+                                    "isVisible": true,
+                                    "enableMeasuresForSelection": false,
+                                    "isShowingCount": true,
+                                    "isShowingPercent": true,
+                                    "valueModels": [
+                                        {
+                                            "isVisible": true,
+                                            "enableMeasuresForSelection": false,
+                                            "values": {
+                                                "both": 2,
+                                                "meat": 2.2920353982300887,
+                                                "plants": 7
+                                            }
+                                        },
+                                        {
+                                            "isVisible": true,
+                                            "enableMeasuresForSelection": false,
+                                            "values": {
+                                                "both": 12.333333333333332,
+                                                "meat": 12.333333333333332,
+                                                "plants": 12.333333333333332
+                                            }
+                                        }
+                                    ]
+                                },
+                                "plottedMean": {
+                                    "isVisible": true,
+                                    "enableMeasuresForSelection": false,
+                                    "equationCoordsArray": []
+                                },
+                                "plottedMedian": {
+                                    "isVisible": true,
+                                    "enableMeasuresForSelection": false,
+                                    "equationCoordsArray": []
+                                },
+                                "plottedStDev": {
+                                    "isVisible": true,
+                                    "enableMeasuresForSelection": false,
+                                    "equationCoordsArray": []
+                                },
+                                "plottedStErr": {
+                                    "isVisible": true,
+                                    "enableMeasuresForSelection": false,
+                                    "equationCoordsArray": [],
+                                    "numberOfStdErrs": 1
+                                },
+                                "plottedMad": {
+                                    "isVisible": true,
+                                    "enableMeasuresForSelection": false,
+                                    "equationCoordsArray": []
+                                },
+                                "plottedBoxPlot": {
+                                    "isVisible": true,
+                                    "enableMeasuresForSelection": false,
+                                    "equationCoordsArray": [],
+                                    "showOutliers": true,
+                                    "showICI": false
+                                },
+                                "plottedNormal": {
+                                    "isVisible": true,
+                                    "enableMeasuresForSelection": false,
+                                    "equationCoordsArray": []
+                                },
+                                "plottedValue": {
+                                    "isVisible": true,
+                                    "enableMeasuresForSelection": false,
+                                    "adornmentKey": "plottedValue",
+                                    "expression": "mean() - 5"
+                                }
+                            },
+                            "showMeasureLabels": true
+                        },
+                        "plotClass": "DG.DotPlotModel"
+                    }
+                ],
+                "title": "Simple-Adornments-Labels-Split",
+                "userSetTitle": true,
+                "cannotClose": false
+            },
+            "layout": {
+                "width": 270,
+                "height": 260,
+                "zIndex": 182,
+                "left": 280,
+                "top": 260,
+                "isVisible": true,
+                "right": 550,
+                "bottom": 520
+            },
+            "savedHeight": null
         }
     ],
     "contexts": [
@@ -789,6 +1119,40 @@
                             "title": "Sleep",
                             "cid": "id:1AA95WOzoomQezL4",
                             "description": "The number of hours the animal sleeps in a 24 hour period",
+                            "_categoryMap": {
+                                "2": "#817066",
+                                "3": "#FF6800",
+                                "4": "#803E75",
+                                "5": "#FFB300",
+                                "6": "#00538A",
+                                "8": "#53377A",
+                                "10": "#CEA262",
+                                "11": "#FF8E00",
+                                "12": "#C10020",
+                                "13": "#007D34",
+                                "15": "#F13A13",
+                                "17": "#F4C800",
+                                "18": "#7F180D",
+                                "19": "#B32851",
+                                "20": "#A6BDD7",
+                                "__order": [
+                                    "2",
+                                    "3",
+                                    "4",
+                                    "5",
+                                    "6",
+                                    "8",
+                                    "10",
+                                    "11",
+                                    "12",
+                                    "13",
+                                    "15",
+                                    "17",
+                                    "18",
+                                    "19",
+                                    "20"
+                                ]
+                            },
                             "blockDisplayOfEmptyCategories": true,
                             "editable": true,
                             "hidden": false,
@@ -1397,6 +1761,6 @@
     "appVersion": "2.0",
     "appBuildNum": "0733",
     "lang": "en",
-    "idCount": 47,
+    "idCount": 50,
     "metadata": {}
 }
