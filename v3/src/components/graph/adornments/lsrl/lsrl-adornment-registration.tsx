@@ -1,16 +1,17 @@
-import React from "react"
 import { FormControl, Checkbox } from "@chakra-ui/react"
+import React from "react"
 import { observer } from "mobx-react-lite"
 import { logMessageWithReplacement } from "../../../../lib/log-message"
 import { t } from "../../../../utilities/translation/translate"
-import { registerAdornmentComponentInfo } from "../adornment-component-info"
-import { getAdornmentContentInfo, registerAdornmentContentInfo } from "../adornment-content-info"
-import { ILSRLAdornmentModel, LSRLAdornmentModel } from "./lsrl-adornment-model"
-import { kLSRLClass, kLSRLLabelKey, kLSRLPrefix, kLSRLRedoAddKey,
-         kLSRLRedoRemoveKey, kLSRLType, kLSRLUndoAddKey,
-         kLSRLUndoRemoveKey } from "./lsrl-adornment-types"
-import { LSRLAdornment } from "./lsrl-adornment-component"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
+import { registerAdornmentComponentInfo } from "../adornment-component-info"
+import { exportAdornmentBase, getAdornmentContentInfo, registerAdornmentContentInfo } from "../adornment-content-info"
+import { LSRLAdornment } from "./lsrl-adornment-component"
+import { ILSRLAdornmentModel, isLSRLAdornment, LSRLAdornmentModel } from "./lsrl-adornment-model"
+import {
+  kLSRLClass, kLSRLLabelKey, kLSRLPrefix, kLSRLRedoAddKey, kLSRLRedoRemoveKey, kLSRLType,
+  kLSRLUndoAddKey, kLSRLUndoRemoveKey
+} from "./lsrl-adornment-types"
 
 function logLSRLToggle(action: "hide" | "show") {
   return logMessageWithReplacement("toggleLSRL %@", { action })
@@ -97,6 +98,26 @@ registerAdornmentContentInfo({
     redoAdd: kLSRLRedoAddKey,
     undoRemove: kLSRLUndoRemoveKey,
     redoRemove: kLSRLRedoRemoveKey
+  },
+  exporter: (model, options) => {
+    const adornment = isLSRLAdornment(model) ? model : undefined
+    if (!adornment) return undefined
+    return {
+      isLSRLVisible: adornment.isVisible,
+      multipleLSRLsStorage: {
+        ...exportAdornmentBase(adornment, options),
+        isInterceptLocked: options.isInterceptLocked,
+        showSumSquares: options.showSumSquares,
+        showConfidenceBands: adornment.showConfidenceBands,
+        lsrls: options.legendCategories.map(cat => ({
+          ...exportAdornmentBase(adornment, options),
+          // TODO_V2_EXPORT export label/equation coordinates for adornments
+          equationCoords: null,
+          isInterceptLocked: options.isInterceptLocked,
+          showConfidenceBands: adornment.showConfidenceBands
+        }))
+      }
+    }
   }
 })
 

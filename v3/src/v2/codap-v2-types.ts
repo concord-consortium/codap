@@ -331,25 +331,24 @@ interface ICodapV2MovableLineAdornment extends ICodapV2Adornment {
   xIntercept: number | null
 }
 
-interface ICodapV2LSRLAdornment extends ICodapV2Adornment {
-  // TODO_V2_IMPORT: isInterceptLocked is not imported. Unknown how many files have it set to true
+interface ICodapV2LSRLInstance extends ICodapV2Adornment {
+  // this is a graph-wide property that is redundantly stored with each instance
   isInterceptLocked: boolean
   // TODO_V2_IMPORT: equationCoords are not handled correctly, the import code assumes they have
   // an x and y instead of proportionCenterX and proportionCenterY
   // There are 4,000 instances of this in cfm-shared
   // example: cfm-shared/00JG6PytJ4Zfhk3Yw4Xf/file.json
   equationCoords?: ICodapV2ProportionCenterEquationCoords | null,
-  // TODO_V2_IMPORT: showConfidenceBands is not imported. Unknown how many files have it set to true
+  // this is an adornment-wide property that is redundantly stored with each instance
   showConfidenceBands?: boolean
 }
 
-interface ICodapV2MultipleLSRLAdornments extends ICodapV2Adornment {
-  // TODO_V2_IMPORT: showSumSquares is not imported
-  // This is set to true in 900 files in cfm-shared
+export interface ICodapV2MultipleLSRLAdornments extends ICodapV2Adornment {
+  // seems to be redundant with the `areSquaresVisible` property stored in plotModelStorage
   showSumSquares?: boolean
   isInterceptLocked: boolean
   showConfidenceBands?: boolean
-  lsrls?: ICodapV2LSRLAdornment[]
+  lsrls?: ICodapV2LSRLInstance[]
 }
 
 export interface ICodapV2PlotStorage {
@@ -359,9 +358,9 @@ export interface ICodapV2PlotStorage {
   adornments?: ICodapV2SimpleAdornmentsMap
   areSquaresVisible?: boolean
   isLSRLVisible?: boolean
-  // TODO_V2_IMPORT lsrLineStorage is not imported
-  // it occurs 57 times in cfm-shared
-  lsrLineStorage?: ICodapV2LSRLAdornment
+  // lsrLineStorage is presumably a legacy format that predates multipleLSRLsStorage
+  // it does not appear to be imported by v2
+  lsrLineStorage?: ICodapV2LSRLInstance
   movableLineStorage?: ICodapV2MovableLineAdornment
   movablePointStorage?: ICodapV2MovablePointAdornment
   multipleLSRLsStorage?: ICodapV2MultipleLSRLAdornments

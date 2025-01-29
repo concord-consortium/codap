@@ -1,6 +1,12 @@
-import { ICodapV2PlotModel, ICodapV2UnivariateAdornment } from "../../../v2/codap-v2-types"
 import { IAttribute } from "../../../models/data/attribute"
+import { ISharedDataSet } from "../../../models/shared/shared-data-set"
 import { safeJsonParse } from "../../../utilities/js-utils"
+import {
+  ICodapV2MultipleLSRLAdornments, ICodapV2PlotModel, ICodapV2UnivariateAdornment
+} from "../../../v2/codap-v2-types"
+import {
+  GraphAttributeDescriptionsMapSnapshot, IAttributeDescriptionSnapshot
+} from "../../data-display/models/data-configuration-model"
 import { updateCellKey } from "./adornment-utils"
 import { kCountType } from "./count/count-adornment-types"
 import { kLSRLType } from "./lsrl/lsrl-adornment-types"
@@ -17,9 +23,6 @@ import { kPlottedValueType } from "./univariate-measures/plotted-value/plotted-v
 import { kStandardDeviationType } from "./univariate-measures/standard-deviation/standard-deviation-adornment-types"
 import { kStandardErrorType } from "./univariate-measures/standard-error/standard-error-adornment-types"
 import { kNormalCurveType } from "./univariate-measures/normal-curve/normal-curve-adornment-types"
-import { ISharedDataSet } from "../../../models/shared/shared-data-set"
-import { GraphAttributeDescriptionsMapSnapshot, IAttributeDescriptionSnapshot }
-  from "../../data-display/models/data-configuration-model"
 import { IMovablePointAdornmentModelSnapshot } from "./movable-point/movable-point-adornment-model"
 import { IPointModelSnapshot } from "./adornment-models"
 import { IMeasureInstanceSnapshot } from "./univariate-measures/univariate-measure-adornment-model"
@@ -261,7 +264,17 @@ export const v2AdornmentImporter = ({data, plotModels, attributeDescriptions, yA
   }
 
   // LSRL
-  const lsrlAdornment = plotModelStorage.multipleLSRLsStorage
+  // lsrLineStorage is presumably a legacy format that predates multipleLSRLsStorage
+  // it does not appear to be imported by v2
+  const { lsrLineStorage, multipleLSRLsStorage } = plotModelStorage
+  const lsrlAdornment: Maybe<ICodapV2MultipleLSRLAdornments> = multipleLSRLsStorage ??
+                          (lsrLineStorage
+                            ? {
+                                isVisible: lsrLineStorage.isVisible,
+                                isInterceptLocked: lsrLineStorage.isInterceptLocked,
+                                lsrls: [lsrLineStorage]
+                              }
+                            : undefined)
   if (lsrlAdornment) {
     const lines: Record<string, ILSRLInstanceSnapshot[]> = {}
     instanceKeys?.forEach((key: string) => {
