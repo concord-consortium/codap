@@ -1,3 +1,4 @@
+import { observable } from "mobx"
 import {
   IAnyStateTreeNode, IDisposer, isAlive, ISerializedActionCall, getParent, getType,
   IOnActionOptions, onAction, hasParent, types, getSnapshot
@@ -122,7 +123,13 @@ export function cachedFnWithArgsFactory<FunDef extends (...args: any[]) => any>(
   // with the same arguments as the calculate() function. It will work even if the client code completely skips
   // explicit type definition between < and >.
   const { key, calculate } = options
-  const cacheMap = new Map<string, ReturnType<FunDef>>()
+
+  // The map is observable so any observers will be triggered when the cache is updated
+  // The values within the map are not automatically made observable since
+  // cachedFnWithArgsFactory is usually used in cases where the values are large objects
+  // and usually a whole new value object is created by on each calculate call
+  const cacheMap = observable.map<string, ReturnType<FunDef>>({}, {deep: false})
+
   const getter = (...args: Parameters<FunDef>) => {
     const cacheKey = key(...args)
     if (!cacheMap.has(cacheKey)) {
