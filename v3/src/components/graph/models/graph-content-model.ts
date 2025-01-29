@@ -161,6 +161,9 @@ export const GraphContentModel = DataDisplayContentModel
       return (self.plotType === 'scatterPlot' && ['left', 'bottom'].includes(place)) ||
              (self.pointDisplayType === "histogram")
     },
+    axisShouldShowZeroLine(place: AxisPlace) {
+      return (self.plotType === 'dotPlot' && ['left', 'bottom'].includes(place)) && self.pointDisplayType === "bars"
+    },
     placeCanAcceptAttributeIDDrop(place: GraphPlace,
                                   dataset: IDataSet | undefined,
                                   attributeID: string | undefined): boolean {

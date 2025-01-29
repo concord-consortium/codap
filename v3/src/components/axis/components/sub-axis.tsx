@@ -13,11 +13,13 @@ interface ISubAxisProps {
   subAxisIndex: number
   axisPlace: AxisPlace
   showScatterPlotGridLines?: boolean
+  showZeroAxisLine?: boolean
   centerCategoryLabels?: boolean
 }
 
 export const SubAxis = observer(function SubAxis({
                                                numSubAxes, subAxisIndex, axisPlace, showScatterPlotGridLines = false,
+                                               showZeroAxisLine = false,
                                                centerCategoryLabels = true /*, getCategorySet*/
                                              }: ISubAxisProps) {
   const
@@ -29,7 +31,7 @@ export const SubAxis = observer(function SubAxis({
     subAxisEltRef = useRef<SVGGElement | null>(null)
 
   useSubAxis({
-    subAxisIndex, axisPlace, subAxisEltRef, showScatterPlotGridLines, centerCategoryLabels
+    subAxisIndex, axisPlace, subAxisEltRef, showScatterPlotGridLines, centerCategoryLabels, showZeroAxisLine
   })
 
   return (
