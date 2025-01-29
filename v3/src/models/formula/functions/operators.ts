@@ -135,6 +135,11 @@ export const operators = {
     evaluateOperator: (a: any, b: any) => {
       const subtractError = new Error(`Invalid arguments for subtract operator: ${a}, ${b}`)
 
+      // Empty strings
+      if (a === "" || b === "") {
+        return ""
+      }
+
       const [isADate, aDate] = checkDate(a)
       const [isBDate, bDate] = checkDate(b)
       const [isANumber, aNumber] = checkNumber(a)
@@ -160,6 +165,72 @@ export const operators = {
       }
 
       throw subtractError
+    }
+  },
+
+  multiply: {
+    isOperator: true,
+    numOfRequiredArguments: 2,
+    evaluateOperator: (a: any, b: any) => {
+      const multiplyError = new Error(`Invalid arguments for multiply operator: ${a}, ${b}`)
+
+      // Empty strings
+      if (a === "" || b === "") {
+        return ""
+      }
+
+      const [isANumber, aNumber] = checkNumber(a)
+      const [isBNumber, bNumber] = checkNumber(b)
+
+      if (!isANumber || !isBNumber) {
+        throw multiplyError
+      }
+
+      return aNumber * bNumber
+    }
+  },
+
+  divide: {
+    isOperator: true,
+    numOfRequiredArguments: 2,
+    evaluateOperator: (a: any, b: any) => {
+      const divideError = new Error(`Invalid arguments for divide operator: ${a}, ${b}`)
+
+      const [isANumber, aNumber] = checkNumber(a)
+      const [isBNumber, bNumber] = checkNumber(b)
+
+      // Empty strings
+      if (a === "" || b === "") {
+        return ""
+      }
+
+      if (!isANumber || !isBNumber) {
+        throw divideError
+      }
+
+      return aNumber / bNumber
+    }
+  },
+
+  mod: {
+    isOperator: true,
+    numOfRequiredArguments: 2,
+    evaluateOperator: (a: any, b: any) => {
+      const modError = new Error(`Invalid arguments for mod operator: ${a}, ${b}`)
+
+      // Empty strings
+      if (a === "" || b === "") {
+        return ""
+      }
+
+      const [isANumber, aNumber] = checkNumber(a)
+      const [isBNumber, bNumber] = checkNumber(b)
+
+      if (!isANumber || !isBNumber) {
+        throw modError
+      }
+
+      return aNumber % bNumber
     }
   }
 }
