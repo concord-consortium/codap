@@ -183,8 +183,8 @@
                                 "enableMeasuresForSelection": false,
                                 "isInterceptLocked": false,
                                 "equationCoords": null,
-                                "intercept": 4,
-                                "slope": 2.8,
+                                "intercept": -16.453907550077027,
+                                "slope": 3.2545312788906005,
                                 "isVertical": false,
                                 "xIntercept": null
                             }
@@ -199,7 +199,7 @@
             "layout": {
                 "width": 240,
                 "height": 230,
-                "zIndex": 242,
+                "zIndex": 345,
                 "left": 210,
                 "top": 5,
                 "isVisible": true,
@@ -399,8 +399,8 @@
                                 "enableMeasuresForSelection": false,
                                 "isInterceptLocked": false,
                                 "equationCoords": null,
-                                "intercept": 4,
-                                "slope": 2.8,
+                                "intercept": -49.56753194230166,
+                                "slope": 3.990389598717815,
                                 "isVertical": false,
                                 "xIntercept": null
                             }
@@ -430,7 +430,7 @@
             "layout": {
                 "width": 245,
                 "height": 230,
-                "zIndex": 240,
+                "zIndex": 347,
                 "left": 700,
                 "top": 5,
                 "isVisible": true,
@@ -655,8 +655,8 @@
                                 "enableMeasuresForSelection": false,
                                 "isInterceptLocked": false,
                                 "equationCoords": null,
-                                "intercept": 4,
-                                "slope": 2.8,
+                                "intercept": -49.24696435867603,
+                                "slope": 3.983265874637245,
                                 "isVertical": false,
                                 "xIntercept": null
                             }
@@ -686,7 +686,7 @@
             "layout": {
                 "width": 240,
                 "height": 225,
-                "zIndex": 248,
+                "zIndex": 349,
                 "left": 210,
                 "top": 240,
                 "isVisible": true,
@@ -785,8 +785,8 @@
                                 "isVisible": true,
                                 "enableMeasuresForSelection": false,
                                 "coordinates": {
-                                    "x": 61.666666666666664,
-                                    "y": 83.33333333333334
+                                    "x": 69.84276729559748,
+                                    "y": 85.33742331288343
                                 }
                             }
                         },
@@ -815,7 +815,7 @@
             "layout": {
                 "width": 240,
                 "height": 225,
-                "zIndex": 271,
+                "zIndex": 397,
                 "left": 455,
                 "top": 240,
                 "isVisible": true,
@@ -913,8 +913,8 @@
                                 "enableMeasuresForSelection": false,
                                 "isInterceptLocked": false,
                                 "equationCoords": null,
-                                "intercept": 4,
-                                "slope": 2.8,
+                                "intercept": -128.8543688118812,
+                                "slope": 5.752319306930693,
                                 "isVertical": false,
                                 "xIntercept": null
                             }
@@ -929,7 +929,7 @@
             "layout": {
                 "width": 245,
                 "height": 225,
-                "zIndex": 252,
+                "zIndex": 355,
                 "left": 700,
                 "top": 240,
                 "isVisible": true,
@@ -1026,8 +1026,8 @@
                                 "isVisible": true,
                                 "enableMeasuresForSelection": false,
                                 "coordinates": {
-                                    "x": 61.666666666666664,
-                                    "y": 83.33333333333334
+                                    "x": 50.882352941176464,
+                                    "y": 77.5
                                 }
                             }
                         },
@@ -1041,7 +1041,7 @@
             "layout": {
                 "width": 245,
                 "height": 225,
-                "zIndex": 312,
+                "zIndex": 403,
                 "left": 950,
                 "top": 240,
                 "isVisible": true,
@@ -1139,8 +1139,8 @@
                                 "enableMeasuresForSelection": false,
                                 "isInterceptLocked": false,
                                 "equationCoords": null,
-                                "intercept": 4,
-                                "slope": 2.8,
+                                "intercept": -27.083546548816656,
+                                "slope": 3.4907454788625922,
                                 "isVertical": false,
                                 "xIntercept": null
                             }
@@ -1155,7 +1155,7 @@
             "layout": {
                 "width": 240,
                 "height": 220,
-                "zIndex": 269,
+                "zIndex": 357,
                 "left": 210,
                 "top": 470,
                 "isVisible": true,
@@ -1252,8 +1252,8 @@
                                 "isVisible": true,
                                 "enableMeasuresForSelection": false,
                                 "coordinates": {
-                                    "x": 61.666666666666664,
-                                    "y": 83.33333333333334
+                                    "x": 56.92893401015228,
+                                    "y": 75
                                 }
                             }
                         },
@@ -1267,7 +1267,7 @@
             "layout": {
                 "width": 240,
                 "height": 220,
-                "zIndex": 287,
+                "zIndex": 405,
                 "left": 455,
                 "top": 470,
                 "isVisible": true,
@@ -1358,7 +1358,7 @@
                                 "isInterceptLocked": true,
                                 "equationCoords": null,
                                 "intercept": 0,
-                                "slope": 1.3333333333333333,
+                                "slope": 1.6343173813713758,
                                 "isVertical": false,
                                 "xIntercept": null
                             },
@@ -1374,7 +1374,7 @@
             "layout": {
                 "width": 245,
                 "height": 220,
-                "zIndex": 260,
+                "zIndex": 361,
                 "left": 700,
                 "top": 470,
                 "isVisible": true,
@@ -1471,7 +1471,7 @@
                                 "isInterceptLocked": true,
                                 "equationCoords": null,
                                 "intercept": 0,
-                                "slope": 1.3333333333333333,
+                                "slope": 1.6477024966190192,
                                 "isVertical": false,
                                 "xIntercept": null
                             },
@@ -1502,7 +1502,7 @@
             "layout": {
                 "width": 245,
                 "height": 220,
-                "zIndex": 262,
+                "zIndex": 365,
                 "left": 950,
                 "top": 470,
                 "isVisible": true,
@@ -1603,7 +1603,7 @@
                                 "isInterceptLocked": true,
                                 "equationCoords": null,
                                 "intercept": 0,
-                                "slope": 1.3333333333333333,
+                                "slope": 1.6364087587409697,
                                 "isVertical": false,
                                 "xIntercept": null
                             },
@@ -1634,7 +1634,7 @@
             "layout": {
                 "width": 240,
                 "height": 210,
-                "zIndex": 285,
+                "zIndex": 367,
                 "left": 210,
                 "top": 695,
                 "isVisible": true,
@@ -1732,8 +1732,8 @@
                                 "enableMeasuresForSelection": false,
                                 "isInterceptLocked": true,
                                 "equationCoords": null,
-                                "intercept": 0,
-                                "slope": 1.3333333333333333,
+                                "intercept": -1.4210854715202004e-14,
+                                "slope": 2.0886973446406225,
                                 "isVertical": false,
                                 "xIntercept": null
                             },
@@ -1749,7 +1749,7 @@
             "layout": {
                 "width": 240,
                 "height": 210,
-                "zIndex": 299,
+                "zIndex": 373,
                 "left": 455,
                 "top": 695,
                 "isVisible": true,
@@ -1848,7 +1848,7 @@
                                 "isInterceptLocked": true,
                                 "equationCoords": null,
                                 "intercept": 0,
-                                "slope": 1.3333333333333333,
+                                "slope": 1.6049750704192869,
                                 "isVertical": false,
                                 "xIntercept": null
                             },
@@ -1864,7 +1864,7 @@
             "layout": {
                 "width": 245,
                 "height": 210,
-                "zIndex": 310,
+                "zIndex": 375,
                 "left": 700,
                 "top": 695,
                 "isVisible": true,
@@ -1970,8 +1970,8 @@
                                 "enableMeasuresForSelection": false,
                                 "isInterceptLocked": false,
                                 "equationCoords": null,
-                                "intercept": 4,
-                                "slope": 2.8,
+                                "intercept": -4.98204697516867,
+                                "slope": 1.5939380196523056,
                                 "isVertical": false,
                                 "xIntercept": null
                             }
@@ -1986,7 +1986,7 @@
             "layout": {
                 "width": 245,
                 "height": 210,
-                "zIndex": 316,
+                "zIndex": 414,
                 "left": 950,
                 "top": 695,
                 "isVisible": true,
@@ -2204,6 +2204,126 @@
                 "top": 910,
                 "isVisible": true,
                 "right": 695,
+                "bottom": 1130
+            },
+            "savedHeight": null
+        },
+        {
+            "type": "DG.GraphView",
+            "guid": 63,
+            "id": 63,
+            "componentStorage": {
+                "_links_": {
+                    "context": {
+                        "type": "DG.DataContextRecord",
+                        "id": 2
+                    },
+                    "hiddenCases": [],
+                    "xColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "xAttr": {
+                        "type": "DG.Attribute",
+                        "id": 6
+                    },
+                    "yColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "yAttr": {
+                        "type": "DG.Attribute",
+                        "id": 10
+                    },
+                    "topColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "topAttr": {
+                        "type": "DG.Attribute",
+                        "id": 12
+                    },
+                    "rightColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "rightAttr": {
+                        "type": "DG.Attribute",
+                        "id": 11
+                    }
+                },
+                "displayOnlySelected": false,
+                "legendRole": 0,
+                "legendAttributeType": 0,
+                "numberOfLegendQuantiles": 5,
+                "legendQuantilesAreLocked": false,
+                "pointColor": "#e6805b",
+                "strokeColor": "white",
+                "pointSizeMultiplier": 1,
+                "transparency": 0.85,
+                "strokeTransparency": 0.4,
+                "strokeSameAsFill": false,
+                "isTransparent": false,
+                "plotBackgroundColor": null,
+                "plotBackgroundOpacity": 1,
+                "plotBackgroundImage": null,
+                "plotBackgroundImageLockInfo": null,
+                "xRole": 1,
+                "xAttributeType": 1,
+                "yRole": 4,
+                "yAttributeType": 1,
+                "y2Role": 0,
+                "y2AttributeType": 0,
+                "topRole": 0,
+                "topAttributeType": 2,
+                "rightRole": 0,
+                "rightAttributeType": 2,
+                "xAxisClass": "DG.CellLinearAxisModel",
+                "xLowerBound": -5,
+                "xUpperBound": 95,
+                "yAxisClass": "DG.CellLinearAxisModel",
+                "yLowerBound": -10,
+                "yUpperBound": 130,
+                "y2AxisClass": "DG.AxisModel",
+                "topAxisClass": "DG.CellAxisModel",
+                "rightAxisClass": "DG.CellAxisModel",
+                "plotModels": [
+                    {
+                        "plotModelStorage": {
+                            "verticalAxisIsY2": false,
+                            "adornments": {
+                                "plottedCount": {
+                                    "isVisible": false,
+                                    "enableMeasuresForSelection": false,
+                                    "isShowingCount": false,
+                                    "isShowingPercent": false,
+                                    "percentKind": 1
+                                }
+                            },
+                            "movablePointStorage": {
+                                "isVisible": true,
+                                "enableMeasuresForSelection": false,
+                                "coordinates": {
+                                    "x": 50.68862275449102,
+                                    "y": 70.23391812865496
+                                }
+                            }
+                        },
+                        "plotClass": "DG.ScatterPlotModel"
+                    }
+                ],
+                "title": "Mammals",
+                "userSetTitle": false,
+                "cannotClose": false
+            },
+            "layout": {
+                "width": 245,
+                "height": 220,
+                "zIndex": 443,
+                "left": 950,
+                "top": 910,
+                "isVisible": true,
+                "right": 1195,
                 "bottom": 1130
             },
             "savedHeight": null
@@ -3030,6 +3150,6 @@
     "appVersion": "2.0",
     "appBuildNum": "0733",
     "lang": "en",
-    "idCount": 62,
+    "idCount": 63,
     "metadata": {}
 }
