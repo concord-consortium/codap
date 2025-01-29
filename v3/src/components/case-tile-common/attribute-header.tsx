@@ -169,7 +169,6 @@ export const AttributeHeader = observer(function AttributeHeader({
   }
 
   const handleInputClick = (e: React.MouseEvent<HTMLInputElement>) => {
-    setIsFocused(false)
     const input = inputRef.current
     if (input) {
       const { selectionStart, selectionEnd } = input
