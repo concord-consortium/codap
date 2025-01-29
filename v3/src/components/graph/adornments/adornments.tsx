@@ -30,7 +30,7 @@ export const Adornments = observer(function Adornments() {
 
   useEffect(function handleAdornmentBannerCountChange() {
     return mstAutorun(() => {
-      let bannerCount = graphModel.showMeasuresForSelection ? 1 : 0
+      let bannerCount = dataConfig?.showMeasuresForSelection ? 1 : 0
       bannerCount += graphModel.adornmentsStore.activeBannerCount
       const bannersHeight = bannerCount * kGraphAdornmentsBannerHeight
       layout.setDesiredExtent("banners", bannersHeight)
@@ -38,7 +38,7 @@ export const Adornments = observer(function Adornments() {
     )
   }, [graphModel, layout])
 
-  if (!adornments?.length && !graphModel.showMeasuresForSelection) return null
+  if (!adornments?.length && !dataConfig?.showMeasuresForSelection) return null
 
   const adornmentBanners = adornments.map((adornment: IAdornmentModel) => {
     const componentContentInfo = getAdornmentContentInfo(adornment.type)
@@ -154,9 +154,9 @@ export const Adornments = observer(function Adornments() {
   )
   return (
     <>
-      {(adornmentBanners.length > 0 || graphModel.showMeasuresForSelection) &&
+      {(adornmentBanners.length > 0 || dataConfig?.showMeasuresForSelection) &&
         <div className="graph-adornments-banners" data-testid="graph-adornments-banners">
-          {graphModel.showMeasuresForSelection && <MeasuresForSelectionBanner />}
+          {dataConfig?.showMeasuresForSelection && <MeasuresForSelectionBanner />}
           {adornmentBanners}
         </div>
       }

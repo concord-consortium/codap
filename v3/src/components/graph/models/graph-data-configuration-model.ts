@@ -40,6 +40,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     primaryRole: types.maybe(types.enumeration([...PrimaryAttrRoles])),
     // all attributes for (left) y role
     _yAttributeDescriptions: types.array(AttributeDescription),
+    showMeasuresForSelection: types.maybe(types.boolean),
   })
   .views(self => ({
     get secondaryRole() {
@@ -168,6 +169,9 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       while (self.dataset && self.filteredCases.length < filteredCasesRequired) {
         self._addNewFilteredCases()
       }
+    },
+    setShowMeasuresForSelection(showMeasuresForSelection: boolean) {
+      self.showMeasuresForSelection = showMeasuresForSelection
     }
   }))
   .views(self => ({

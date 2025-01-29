@@ -101,13 +101,13 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
   }
 
   const handleMeasuresForSelectionChange = () => {
-    const [undoStringKey, redoStringKey] = graphModel?.showMeasuresForSelection
+    const [undoStringKey, redoStringKey] = dataConfig?.showMeasuresForSelection
       ? ["DG.Undo.disableMeasuresForSelection", "DG.Redo.disableMeasuresForSelection"]
       : ["DG.Undo.enableMeasuresForSelection", "DG.Redo.enableMeasuresForSelection"]
     dataConfig?.applyModelChange(
-      () => graphModel?.setShowMeasuresForSelection(!graphModel?.showMeasuresForSelection),
+      () => dataConfig?.setShowMeasuresForSelection(!dataConfig?.showMeasuresForSelection),
       { undoStringKey, redoStringKey,
-        log: graphModel?.showMeasuresForSelection ? "Disable Measures For Selection" : "Enable Measures For Selection"
+        log: dataConfig?.showMeasuresForSelection ? "Disable Measures For Selection" : "Enable Measures For Selection"
       }
     )
   }
@@ -124,7 +124,7 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
     parentToggleString = graphModel?.showParentToggles
       ? t("DG.DataDisplayMenu.disableNumberToggle")
       : t("DG.DataDisplayMenu.enableNumberToggle"),
-    measuresForSelectionString = graphModel?.showMeasuresForSelection
+    measuresForSelectionString = dataConfig?.showMeasuresForSelection
       ? t("DG.DataDisplayMenu.disableMeasuresForSelection")
       : t("DG.DataDisplayMenu.enableMeasuresForSelection"),
     displayOnlySelectedIsDisabled = dataConfig?.displayOnlySelectedCases

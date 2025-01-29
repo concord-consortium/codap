@@ -42,8 +42,12 @@ export const UnivariateMeasureAdornmentModel = AdornmentModel
     getCaseValues(attrId: string, cellKey: Record<string, string>, dataConfig: IGraphDataConfigurationModel) {
       const dataset = dataConfig?.dataset
       const casesInPlot = dataConfig.subPlotCases(cellKey)
+      const onlyIncludeIfSelected = dataConfig.showMeasuresForSelection
       const caseValues: number[] = []
       casesInPlot.forEach(caseId => {
+        if (onlyIncludeIfSelected && !dataset?.isCaseSelected(caseId)) {
+          return
+        }
         const caseValue = dataDisplayGetNumericValue(dataset, caseId, attrId)
         if (isFiniteNumber(caseValue)) {
           caseValues.push(caseValue)
