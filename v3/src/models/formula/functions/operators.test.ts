@@ -255,6 +255,15 @@ describe("- operator", () => {
     expect(fn.evaluate()).toEqual(new Date(2020, 0, 1))
   })
 
+  it("returns an empty string when either argument is an empty string", () => {
+    const fn1 = math.compile("10 - ''")
+    expect(fn1.evaluate()).toEqual("")
+    const fn2 = math.compile("'' - 10")
+    expect(fn2.evaluate()).toEqual("")
+    const fn3 = math.compile("'' - ''")
+    expect(fn3.evaluate()).toEqual("")
+  })
+
   it("throws an error when subtracting a date from a number", () => {
     const fn = math.compile("86400 - '1/2/2020'") // 1 day
     expect(() => fn.evaluate()).toThrow()
@@ -264,4 +273,84 @@ describe("- operator", () => {
     const fn = math.compile("'foo' - 'bar'")
     expect(() => fn.evaluate()).toThrow("Invalid arguments for subtract operator: foo, bar")
   })
+})
+
+describe("* operator", () => {
+  it("multiplies two numbers", () => {
+    const fn = math.compile("2 * 10")
+    expect(fn.evaluate()).toEqual(20)
+  })
+
+  it("multiplies two numeric strings", () => {
+    const fn = math.compile("'2' * '10'")
+    expect(fn.evaluate()).toEqual(20)
+  })
+
+  it("multiplies a number and a numeric string", () => {
+    const fn = math.compile("2 * '10'")
+    expect(fn.evaluate()).toEqual(20)
+  })
+
+  it("returns an empty string when either argument is an empty string", () => {
+    const fn1 = math.compile("10 * ''")
+    expect(fn1.evaluate()).toEqual("")
+    const fn2 = math.compile("'' * 10")
+    expect(fn2.evaluate()).toEqual("")
+    const fn3 = math.compile("'' * ''")
+    expect(fn3.evaluate()).toEqual("")
+  })
+
+  it("throws an error when multiplying a date by a number", () => {
+    const fn = math.compile("86400 * '1/2/2020'")
+    expect(() => fn.evaluate()).toThrow()
+  })
+
+  it("throws an error when multiplying strings", () => {
+    const fn = math.compile("'foo' * 'bar'")
+    expect(() => fn.evaluate()).toThrow("Invalid arguments for multiply operator: foo, bar")
+  })
+})
+
+describe("/ operator", () => {
+  it("divides two numbers", () => {
+    const fn = math.compile("2 / 10")
+    expect(fn.evaluate()).toEqual(0.2)
+  })
+
+  it("divides two numeric strings", () => {
+    const fn = math.compile("'2' / '10'")
+    expect(fn.evaluate()).toEqual(0.2)
+  })
+
+  it("divides a number and a numeric string", () => {
+    const fn = math.compile("2 / '10'")
+    expect(fn.evaluate()).toEqual(0.2)
+  })
+
+  it("returns an empty string when either argument is an empty string", () => {
+    const fn1 = math.compile("10 / ''")
+    expect(fn1.evaluate()).toEqual("")
+    const fn2 = math.compile("'' / 10")
+    expect(fn2.evaluate()).toEqual("")
+    const fn3 = math.compile("'' / ''")
+    expect(fn3.evaluate()).toEqual("")
+  })
+
+  it("throws an error when dividing a date by a number", () => {
+    const fn = math.compile("86400 / '1/2/2020'")
+    expect(() => fn.evaluate()).toThrow()
+  })
+
+  it("throws an error when dividing strings", () => {
+    const fn = math.compile("'foo' / 'bar'")
+    expect(() => fn.evaluate()).toThrow("Invalid arguments for divide operator: foo, bar")
+  })
+})
+
+describe("% operator", () => {
+  it("computes modulus of two numbers", () => {
+    const fn = math.compile("15 % 7")
+    expect(fn.evaluate()).toEqual(1)
+  })
+  // Trying to compute the modulus with strings is difficult so we punt on that for now
 })

@@ -194,7 +194,7 @@ export const operators = {
     isOperator: true,
     numOfRequiredArguments: 2,
     evaluateOperator: (a: any, b: any) => {
-      const divideError = new Error(`Invalid arguments for multiply operator: ${a}, ${b}`)
+      const divideError = new Error(`Invalid arguments for divide operator: ${a}, ${b}`)
 
       const [isANumber, aNumber] = checkNumber(a)
       const [isBNumber, bNumber] = checkNumber(b)
