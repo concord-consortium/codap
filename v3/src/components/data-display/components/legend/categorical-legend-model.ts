@@ -4,10 +4,11 @@ import { logMessageWithReplacement } from "../../../../lib/log-message"
 import { missingColor } from "../../../../utilities/color-utils"
 import { axisGap } from "../../../axis/axis-types"
 import { getStringBounds } from "../../../axis/axis-utils"
-import vars from "../../../vars.scss"
 import { kMain, kDataDisplayFont } from "../../data-display-types"
 import { IDataConfigurationModel } from "../../models/data-configuration-model"
 import { DataDisplayLayout } from "../../models/data-display-layout"
+
+import vars from "../../../vars.scss"
 
 export interface Key {
   category: string;
@@ -97,11 +98,10 @@ export class CategoricalLegendModel {
   }
 
   coordinatesToCatIndex(localPoint: { x: number; y: number; }) {
-    const lod = this.layoutData
     const { x, y } = localPoint
-    const col = Math.floor(x / lod.columnWidth)
+    const col = Math.floor(x / this.layoutData.columnWidth)
     const row = Math.floor(y / (keySize + padding))
-    const catIndex = row * lod.numColumns + col
+    const catIndex = row * this.layoutData.numColumns + col
 
     return catIndex >= 0 && catIndex < this.numCategories ? catIndex : -1
   }
@@ -109,7 +109,7 @@ export class CategoricalLegendModel {
   catLocation(categoryKey: Key) {
     return {
       x: axisGap + categoryKey.column * this.layoutData.columnWidth,
-      y: /*labelHeight + */ categoryKey.row * (keySize + padding)
+      y: categoryKey.row * (keySize + padding)
     }
   }
 

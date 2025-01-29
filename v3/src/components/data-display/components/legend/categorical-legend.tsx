@@ -37,8 +37,7 @@ export const CategoricalLegend =
           if (dataConfiguration?.placeCanHaveZeroExtent('legend')) {
             return 0
           }
-          const lod = legendModel.layoutData
-          return lod.numRows * (keySize + padding) + labelHeight + axisGap
+          return legendModel.layoutData.numRows * (keySize + padding) + labelHeight + axisGap
         },
         (desiredExtent) => {
           setDesiredExtent(layerIndex, desiredExtent)
@@ -129,7 +128,7 @@ export const CategoricalLegend =
         .attr('x', (d) => {
           return dI.category === d.category
             ? dI.currentDragPosition.x - dI.initialOffset.x
-            : axisGap + (d.column || 0)* legendModel.layoutData.columnWidth
+            : axisGap + (d.column || 0) * legendModel.layoutData.columnWidth
         })
         .attr('y', (d) => {
           return labelHeight + (dI.category === d.category
@@ -145,7 +144,7 @@ export const CategoricalLegend =
         .attr('x', (d) => {
           return keySize + 3 + (dI.category === d.category
             ? dI.currentDragPosition.x - dI.initialOffset.x
-            : axisGap + (d.column || 0)* legendModel.layoutData.columnWidth)
+            : axisGap + (d.column || 0) * legendModel.layoutData.columnWidth)
         })
         .attr('y', (d) => {
           return labelHeight + 0.8 * keySize + (dI.category === d.category
