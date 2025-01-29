@@ -87,6 +87,7 @@ export class NumericAxisHelper extends AxisHelper {
       })
     }
     subAxisSelection
+      .attr("class", "numeric-axis")
       .attr("transform", this.initialTransform)
       .transition().duration(duration)
       .call(axisScale).selectAll("line,path")
