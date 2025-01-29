@@ -70,7 +70,7 @@ export class NumericAxisHelper extends AxisHelper {
         return Number.isInteger(d) ? d.toString() : ""
       })
     }
-    subAxisSelection  //.append("g").attr("class", "numeric")
+    subAxisSelection
       .attr("class", "numeric-axis")
       .attr("transform", this.initialTransform)
       .transition().duration(duration)
