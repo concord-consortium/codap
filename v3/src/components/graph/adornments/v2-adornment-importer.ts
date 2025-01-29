@@ -242,15 +242,15 @@ export const v2AdornmentImporter = ({data, plotModels, attributeDescriptions, yA
   // MOVABLE LINE
   const movableLineAdornment = plotModelStorage.movableLineStorage
   if (movableLineAdornment) {
-    const equationCoords = movableLineAdornment.equationCoords
+    const { equationCoords, intercept, slope, isVertical, xIntercept } = movableLineAdornment
     const lines: Record<string, IMovableLineInstanceSnapshot> = {}
     instanceKeys?.forEach((key: string) => {
       const lineInstance = {
         // TODO_V2_IMPORT: [Story: **#188695677**] equationCoords are not handled correctly, the model stores x and y
         // but the loaded equationCoords have proportionCenterX and proportionCenterY
         equationCoords: equationCoords ?? undefined, // The V2 default is null, but we want undefined
-        intercept: movableLineAdornment.intercept,
-        slope: movableLineAdornment.slope
+        intercept: isVertical ? xIntercept : intercept,
+        slope: isVertical ? Infinity : slope
       }
       lines[key] = lineInstance
     })

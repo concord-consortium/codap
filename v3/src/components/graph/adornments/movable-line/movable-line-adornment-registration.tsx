@@ -1,12 +1,14 @@
 import React from "react"
-import { registerAdornmentComponentInfo } from "../adornment-component-info"
-import { registerAdornmentContentInfo } from "../adornment-content-info"
-import { MovableLineAdornmentModel } from "./movable-line-adornment-model"
-import { kMovableLineClass, kMovableLineLabelKey, kMovableLinePrefix, kMovableLineRedoAddKey,
-         kMovableLineRedoRemoveKey, kMovableLineType, kMovableLineUndoAddKey,
-         kMovableLineUndoRemoveKey } from "./movable-line-adornment-types"
-import { MovableLineAdornment } from "./movable-line-adornment-component"
+import { ICodapV2MovableLineAdornment } from "../../../../v2/codap-v2-types"
 import { AdornmentCheckbox } from "../adornment-checkbox"
+import { registerAdornmentComponentInfo } from "../adornment-component-info"
+import { exportAdornmentBase, registerAdornmentContentInfo } from "../adornment-content-info"
+import { MovableLineAdornment } from "./movable-line-adornment-component"
+import { isMovableLineAdornment, MovableLineAdornmentModel } from "./movable-line-adornment-model"
+import {
+  kMovableLineClass, kMovableLineLabelKey, kMovableLinePrefix, kMovableLineRedoAddKey,
+  kMovableLineRedoRemoveKey, kMovableLineType, kMovableLineUndoAddKey, kMovableLineUndoRemoveKey
+} from "./movable-line-adornment-types"
 
 const Controls = () => {
   return (
@@ -28,6 +30,26 @@ registerAdornmentContentInfo({
     redoAdd: kMovableLineRedoAddKey,
     undoRemove: kMovableLineUndoRemoveKey,
     redoRemove: kMovableLineRedoRemoveKey
+  },
+  exporter: (model, options) => {
+    const adornment = isMovableLineAdornment(model) ? model : undefined
+    if (!adornment) return undefined
+    const firstLineInstance = adornment.firstLineInstance
+    if (!firstLineInstance) return undefined
+    const isVertical = !isFinite(firstLineInstance.slope)
+    return {
+      // v2 never writes out more than one movable line instance
+      movableLineStorage: {
+        ...exportAdornmentBase(adornment, options),
+        isInterceptLocked: options.isInterceptLocked,
+        // TODO_V2_EXPORT export label/equation coordinates for adornments
+        equationCoords: null,
+        intercept: isVertical ? null : firstLineInstance.intercept,
+        slope: isVertical ? null : firstLineInstance.slope,
+        isVertical,
+        xIntercept: isVertical ? firstLineInstance.intercept : null
+      } as ICodapV2MovableLineAdornment
+    }
   }
 })
 

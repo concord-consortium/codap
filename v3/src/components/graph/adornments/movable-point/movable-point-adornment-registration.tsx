@@ -1,12 +1,13 @@
 import React from "react"
 import { registerAdornmentComponentInfo } from "../adornment-component-info"
-import { registerAdornmentContentInfo } from "../adornment-content-info"
-import { MovablePointAdornmentModel } from "./movable-point-adornment-model"
-import { kMovablePointClass, kMovablePointLabelKey, kMovablePointPrefix, kMovablePointRedoAddKey,
-         kMovablePointRedoRemoveKey, kMovablePointType, kMovablePointUndoAddKey, 
-         kMovablePointUndoRemoveKey} from "./movable-point-adornment-types"
-import { MovablePointAdornment } from "./movable-point-adornment-component"
 import { AdornmentCheckbox } from "../adornment-checkbox"
+import { exportAdornmentBase, registerAdornmentContentInfo } from "../adornment-content-info"
+import { MovablePointAdornment } from "./movable-point-adornment-component"
+import { isMovablePointAdornment, MovablePointAdornmentModel } from "./movable-point-adornment-model"
+import {
+  kMovablePointClass, kMovablePointLabelKey, kMovablePointPrefix, kMovablePointRedoAddKey,
+  kMovablePointRedoRemoveKey, kMovablePointType, kMovablePointUndoAddKey, kMovablePointUndoRemoveKey
+} from "./movable-point-adornment-types"
 
 const Controls = () => {
   return (
@@ -28,6 +29,19 @@ registerAdornmentContentInfo({
     redoAdd: kMovablePointRedoAddKey,
     undoRemove: kMovablePointUndoRemoveKey,
     redoRemove: kMovablePointRedoRemoveKey
+  },
+  exporter: (model, options) => {
+    const adornment = isMovablePointAdornment(model) ? model : undefined
+    if (!adornment) return undefined
+    const firstPoint = adornment.firstPoint
+    if (!firstPoint) return undefined
+    return {
+      // v2 never writes out more than one movable point instance
+      movablePointStorage: {
+        ...exportAdornmentBase(adornment, options),
+        coordinates: { x: firstPoint.x, y: firstPoint.y }
+      }
+    }
   }
 })
 
