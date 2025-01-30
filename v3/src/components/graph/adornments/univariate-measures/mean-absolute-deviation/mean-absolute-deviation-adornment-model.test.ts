@@ -7,12 +7,6 @@ describe("MeanAbsoluteDeviationModel", () => {
     expect(mean).toBeDefined()
     expect(mean.type).toEqual(kMeanAbsoluteDeviationType)
   })
-  it("can have its showLabels property set", () => {
-    const mean = MeanAbsoluteDeviationAdornmentModel.create()
-    expect(mean.showMeasureLabels).toBe(false)
-    mean.setShowMeasureLabels(true)
-    expect(mean.showMeasureLabels).toBe(true)
-  })
   it("can have a new mean absolute deviation value added to its measures map", () => {
     const adornment = MeanAbsoluteDeviationAdornmentModel.create()
     expect(adornment.measures.size).toBe(0)

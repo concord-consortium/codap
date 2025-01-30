@@ -12,7 +12,6 @@ import { ILabel } from "../univariate-measure-adornment-types"
 import { IStandardErrorAdornmentModel } from "./standard-error-adornment-model"
 import { IMeasureInstance } from "../univariate-measure-adornment-model"
 import { UnivariateMeasureAdornmentBaseComponent } from "../univariate-measure-adornment-base-component"
-import { useGraphOptions } from "../../hooks/use-graph-options"
 
 interface IStandardErrorSelections {
   errorBar?: Selection<SVGPathElement, unknown, null, undefined>
@@ -28,21 +27,19 @@ const kErrorBarPathClass = "standard-error-path",
 
 export const StandardErrorAdornmentComponent = observer(
   function StandardErrorAdornmentComponent(props: IAdornmentComponentProps) {
-    const {cellKey = {}, cellCoords, containerId, plotHeight, plotWidth,
-      xAxis, yAxis, spannerRef} = props
+    const {cellKey = {}, cellCoords, containerId, plotWidth, xAxis, yAxis, spannerRef} = props
     const model = props.model as IStandardErrorAdornmentModel
     const {
       dataConfig, layout, adornmentsStore,
       numericAttrId, showLabel, isVertical, valueRef,
       labelRef } = useAdornmentAttributes()
     const helper = useMemo(() => {
-      return new UnivariateMeasureAdornmentHelper(cellKey, layout, model, plotHeight, plotWidth, containerId)
-    }, [cellKey, containerId, layout, model, plotHeight, plotWidth])
+      return new UnivariateMeasureAdornmentHelper(cellKey, layout, model, containerId)
+    }, [cellKey, containerId, layout, model])
     const {cellCounts} = useAdornmentCells(model, cellKey)
     const isBlockingOtherMeasure = dataConfig &&
       helper.blocksOtherMeasure({adornmentsStore, attrId: numericAttrId, dataConfig, isVertical: isVertical.current})
     const valueObjRef = useRef<IStandardErrorSelections>({})
-    const {isGaussianFit} = useGraphOptions()
     const range = dataConfig
       ? model.computeMeasureRange(numericAttrId, cellKey, dataConfig) : {min: NaN, max: NaN}
     const rangeValue = range.max - range.min
@@ -83,14 +80,12 @@ export const StandardErrorAdornmentComponent = observer(
       if (!numericAttrId || !dataConfig) return
       const labelSelection = select(labelRef.current)
       const labelCoords = measure.labelCoords
-      const lineHeight = 20
-      const topOffset = lineHeight * (adornmentsStore?.getLabelLinesAboveAdornment(model, isGaussianFit) ?? 0)
       const labelLeft = labelCoords
-        ? labelCoords.x / cellCounts.x
+        ? labelCoords.x
         : isVertical.current
-          ? helper.xScale(plotValue) / cellCounts.x
+          ? helper.xScalePct(plotValue)
           : 0
-      const labelTop = labelCoords ? labelCoords.y : topOffset
+      const labelTop = labelCoords ? labelCoords.y : 0
       const labelId =
         `${helper.measureSlug}-measure-labels-tip-${containerId}${helper.classFromKey ? `-${helper.classFromKey}` : ""}`
       const labelClass = clsx("measure-labels-tip", `measure-labels-tip-${helper.measureSlug}`)
@@ -99,8 +94,8 @@ export const StandardErrorAdornmentComponent = observer(
         .attr("class", labelClass)
         .attr("id", labelId)
         .attr("data-testid", labelId)
-        .style("left", `${labelLeft}px`)
-        .style("top", `${labelTop}px`)
+        .style("left", `${100 * labelLeft}%`)
+        .style("top", `${100 * labelTop}%`)
         .html(textContent)
 
       labelObj.label.call(
@@ -115,8 +110,7 @@ export const StandardErrorAdornmentComponent = observer(
       selectionsObj.errorBarHoverCover?.on("mouseover", () => highlightLabel(labelId, true))
         .on("mouseout", () => highlightLabel(labelId, false))
 
-    }, [numericAttrId, dataConfig, labelRef, adornmentsStore, model, isGaussianFit, cellCounts.x,
-              isVertical, helper, containerId, highlightCovers, highlightLabel])
+    }, [numericAttrId, dataConfig, labelRef, isVertical, helper, containerId, highlightCovers, highlightLabel])
 
     const addTextTip = useCallback((plotValue: number, textContent: string, valueObj: IStandardErrorSelections) => {
       const measure = model?.measures.get(helper.instanceKey)

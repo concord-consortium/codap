@@ -31,8 +31,6 @@ export class UnivariateMeasureAdornmentHelper {
   layout: GraphLayout
   measureSlug = ""
   model: IUnivariateMeasureAdornmentModel
-  plotHeight = 0
-  plotWidth = 0
   xScale: ScaleNumericBaseType
   yScale: ScaleNumericBaseType
 
@@ -40,8 +38,6 @@ export class UnivariateMeasureAdornmentHelper {
     cellKey: Record<string, string>,
     layout: GraphLayout,
     model: IUnivariateMeasureAdornmentModel,
-    plotHeight: number,
-    plotWidth: number,
     containerId?: string
   ) {
     this.cellKey = cellKey
@@ -51,8 +47,6 @@ export class UnivariateMeasureAdornmentHelper {
     this.layout = layout
     this.measureSlug = model.type.toLowerCase().replace(/ /g, "-")
     this.model = model
-    this.plotHeight = plotHeight
-    this.plotWidth = plotWidth
     this.xScale = layout.getAxisScale("bottom") as ScaleNumericBaseType
     this.yScale = layout.getAxisScale("left") as ScaleNumericBaseType
   }
@@ -198,6 +192,16 @@ export class UnivariateMeasureAdornmentHelper {
     valueObj.rangeMaxCover = this.newLine(valueElement, rangeMaxCoverSpecs)
   }
 
+  xScalePct = (value: number) => {
+    const range = this.xScale.range()
+    return this.xScale(value) / (range[1] - range[0])
+  }
+
+  yScalePct = (value: number) => {
+    const range = this.yScale.range()
+    return this.yScale(value) / (range[1] - range[0])
+  }
+
   adornmentSpecs = (
     attrId: string, dataConfig: IDataConfigurationModel, value: number, isVertical: boolean,
     cellCounts: Record<string, number>, secondaryAxisX=0, secondaryAxisY=0
@@ -249,30 +253,40 @@ export class UnivariateMeasureAdornmentHelper {
     return isBlockingOtherMeasure
   }
 
-  handleMoveLabel(event: { x: number, y: number, dx: number, dy: number }, labelId: string) {
+  getProportions(event: { x: number, y: number, dx?: number, dy?: number }, labelId: string) {
     if (event.dx !== 0 || event.dy !== 0) {
       const label = select(`#${labelId}`)
-      const labelNode = label.node() as Element
-      const labelWidth = labelNode?.getBoundingClientRect().width || 0
-      const labelHeight = labelNode?.getBoundingClientRect().height || 0
+      const labelElt = label.node() as Element
+      const parentElt = labelElt.closest(".measure-labels")
+      if (!labelElt || !parentElt) return
+      const labelBounds = labelElt.getBoundingClientRect()
+      const labelWidth = labelBounds.width
+      const labelHeight = labelBounds.height
+      const parentBounds = parentElt.getBoundingClientRect()
+      const parentWidth = parentBounds.width
+      const parentHeight = parentBounds.height
       const left = event.x - labelWidth / 2
       const top = event.y - labelHeight / 2
+      const leftPct = 100 * left / parentWidth
+      const topPct = 100 * top / parentHeight
+      return { x: leftPct, y: topPct }
+    }
+  }
 
-      label.style('left', `${left}px`)
-        .style('top', `${top}px`)
+  handleMoveLabel(event: { x: number, y: number, dx: number, dy: number }, labelId: string) {
+    const proportions = this.getProportions(event, labelId)
+    if (proportions) {
+      const label = select(`#${labelId}`)
+      label.style('left', `${proportions.x}%`).style('top', `${proportions.y}%`)
     }
   }
 
   handleEndMoveLabel(event: Point, labelId: string) {
     const {measures} = this.model
-    const label = select(`#${labelId}`)
-    const labelNode = label.node() as Element
-    const labelWidth = labelNode?.getBoundingClientRect().width || 0
-    const labelHeight = labelNode?.getBoundingClientRect().height || 0
-    const x = event.x - labelWidth / 2
-    const y = event.y - labelHeight / 2
+    const proportions = this.getProportions(event, labelId)
+    if (!proportions) return
     const measure = measures.get(this.instanceKey)
-    measure?.setLabelCoords({x, y})
+    measure?.setLabelCoords({ x: proportions.x, y: proportions.y })
   }
 
   computeTextContentForStdErr(dataConfiguration: IGraphDataConfigurationModel, isVertical: boolean, stdErr: number,
@@ -289,10 +303,8 @@ export class UnivariateMeasureAdornmentHelper {
     const valueString = t(kStandardErrorValueTitleKey, {vars: substitutionVars}) +
       (inHTML ? (primaryAttributeUnits ? ` ${primaryAttributeUnits}` : "") : "")
     const unitsString = `${primaryAttributeUnits ? ` ${primaryAttributeUnits}` : ""}`
-    const unitsContent = inHTML ? `<span style="color:grey">${unitsString}</span>` : unitsString
-    const valueContent = inHTML
-      ? `<p style = "color:${kErrorBarStrokeColor};">${valueString}${unitsContent}</p>` : valueString
-    return `${valueContent}${(inHTML ? '' : unitsString)}`
+    const valueContent = inHTML ? `<p style = "color:${kErrorBarStrokeColor};">${valueString}</p>` : valueString
+    return `${valueContent}${inHTML ? '' : unitsString}`
   }
 
 }

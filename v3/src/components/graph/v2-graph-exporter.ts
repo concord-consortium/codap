@@ -156,6 +156,10 @@ function getAxisClassAndBounds(
 
 function getPlotModels(graph: IGraphContentModel): Partial<ICodapV2GraphStorage> {
   const { adornmentsStore, dataConfiguration: { categoricalAttrs, showMeasuresForSelection = false } } = graph
+  const xAttrType = graph.dataConfiguration.attributeType("x")
+  const xCategories = xAttrType === "categorical" ? graph.dataConfiguration.categoryArrayForAttrRole("x") : [""]
+  const yAttrType = graph.dataConfiguration.attributeType("y")
+  const yCategories = yAttrType === "categorical" ? graph.dataConfiguration.categoryArrayForAttrRole("y") : [""]
   const legendCategories = graph.dataConfiguration.categoryArrayForAttrRole("legend")
   const countAdornment = adornmentsStore.findAdornmentOfType<ICountAdornmentModel>(kCountType)
   const movableValuesAdornment = adornmentsStore.findAdornmentOfType<IMovableValueAdornmentModel>(kMovableValueType)
@@ -165,8 +169,8 @@ function getPlotModels(graph: IGraphContentModel): Partial<ICodapV2GraphStorage>
   const isShowingMovableValues = !!movableValuesAdornment?.isVisible && movableValuesAdornment.hasValues
   const showSumSquares = !!adornmentsStore.showSquaresOfResiduals
   const options: IAdornmentExporterOptions = {
-    categoricalAttrs, legendCategories, isInterceptLocked, isShowingCount, isShowingPercent, isShowingMovableValues,
-    showMeasuresForSelection, showSumSquares
+    categoricalAttrs, xCategories, yCategories, legendCategories, isInterceptLocked, isShowingCount,
+    isShowingPercent, isShowingMovableValues, showMeasuresForSelection, showSumSquares
   }
   const adornmentStorages = graph.adornmentsStore.adornments.map(adornment => {
     const adornmentInfo = getAdornmentContentInfo(adornment.type)
@@ -183,9 +187,8 @@ function getPlotModels(graph: IGraphContentModel): Partial<ICodapV2GraphStorage>
   const connectingLineAdornment = connectingLine.isVisible ? { connectingLine } : {}
   const nestedAdornmentStorages = adornmentStorages.filter(adornment => !isCodapV2TopLevelAdornment(adornment))
   const nestedAdornments = Object.assign({}, connectingLineAdornment, ...nestedAdornmentStorages)
-  const areSquaresVisible = adornmentsStore.showSquaresOfResiduals
-                              ? { areSquaresVisible: true }
-                              : undefined
+  const areSquaresVisible = adornmentsStore.showSquaresOfResiduals ? { areSquaresVisible: true } : undefined
+  const showMeasureLabels = adornmentsStore.showMeasureLabels ? { showMeasureLabels: true } : undefined
   const storage: SetRequired<Partial<ICodapV2GraphStorage>, "plotModels"> = {
     plotModels: [{
       plotClass: v2PlotClass[graph.plotType],
@@ -195,6 +198,7 @@ function getPlotModels(graph: IGraphContentModel): Partial<ICodapV2GraphStorage>
         // in v2 only the first plot model has the top-level adornments
         ...Object.assign({}, ...topAdornments),
         ...areSquaresVisible,
+        ...showMeasureLabels,
         verticalAxisIsY2: false
       }
     }]
