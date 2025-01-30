@@ -1,14 +1,17 @@
 import React, { useState } from "react"
 import { FormControl, Checkbox, RadioGroup, Radio } from "@chakra-ui/react"
-import { registerAdornmentComponentInfo } from "../adornment-component-info"
-import { getAdornmentContentInfo, registerAdornmentContentInfo } from "../adornment-content-info"
-import { CountAdornmentModel, ICountAdornmentModel, isCountAdornment } from "./count-adornment-model"
-import { kCountClass, kCountLabelKey, kCountPrefix, kCountType, kPercentLabelKey } from "./count-adornment-types"
-import { CountAdornment } from "./count-adornment-component"
+import { logMessageWithReplacement } from "../../../../lib/log-message"
 import { t } from "../../../../utilities/translation/translate"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
 import { useGraphDataConfigurationContext } from "../../hooks/use-graph-data-configuration-context"
-import { logMessageWithReplacement } from "../../../../lib/log-message"
+import { registerAdornmentComponentInfo } from "../adornment-component-info"
+import {
+  exportAdornmentBase, getAdornmentContentInfo, IAdornmentExporterOptions, registerAdornmentContentInfo
+} from "../adornment-content-info"
+import { IAdornmentModel } from "../adornment-models"
+import { CountAdornment } from "./count-adornment-component"
+import { CountAdornmentModel, ICountAdornmentModel, isCountAdornment } from "./count-adornment-model"
+import { kCountClass, kCountLabelKey, kCountPrefix, kCountType, kPercentLabelKey } from "./count-adornment-types"
 
 const Controls = () => {
   const graphModel = useGraphContentModelContext()
@@ -122,11 +125,32 @@ const Controls = () => {
   )
 }
 
+const v2PercentTypes: Record<string, number> = {
+  cell: 0,
+  row: 1,
+  column: 2
+}
+
 registerAdornmentContentInfo({
   type: kCountType,
   plots: ["casePlot", "dotChart", "dotPlot", "scatterPlot"],
   prefix: kCountPrefix,
-  modelClass: CountAdornmentModel
+  modelClass: CountAdornmentModel,
+  exporter: (model: IAdornmentModel, options: IAdornmentExporterOptions) => {
+    const adornment = isCountAdornment(model) ? model : undefined
+    // in v2 file format, showing movable values "turns off" the count adornment
+    const isVisible = model.isVisible && !options.isShowingMovableValues
+    return adornment
+            ? {
+                plottedCount: {
+                  ...exportAdornmentBase(model, { ...options, isVisible }),
+                  isShowingCount: adornment.showCount && !options.isShowingMovableValues,
+                  isShowingPercent: adornment.showPercent && !options.isShowingMovableValues,
+                  percentKind: v2PercentTypes[adornment.percentType]
+                }
+              }
+            : undefined
+  }
 })
 
 registerAdornmentComponentInfo({

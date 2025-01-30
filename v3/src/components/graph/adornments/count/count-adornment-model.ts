@@ -27,11 +27,11 @@ export const CountAdornmentModel = AdornmentModel
     type: types.optional(types.literal(kCountType), kCountType),
     showCount: false,
     showPercent: false,
-    percentType: types.optional(types.enumeration(["cell", "column", "row"]), "cell")
+    percentType: types.optional(types.enumeration(["cell", "column", "row"]), "row")
   })
   .views(self => ({
     percentValue(casesInPlot: number, cellKey: Record<string, string>, dataConfig?: IGraphDataConfigurationModel) {
-      // Percent type options are only available when there are two or more categorial attributes on perpendicular
+      // Percent type options are only available when there are two or more categorical attributes on perpendicular
       // axes, which creates a grid of subplots with multiple rows and columns. When percent type options are not
       // available, we default to the "cell" percent type (i.e. use `dataConfig?.cellCases.length ?? 0` as
       // the divisor)

@@ -1,11 +1,11 @@
-import { Instance, SnapshotIn, types } from "mobx-state-tree"
 import { mean } from "mathjs"
+import { Instance, SnapshotIn, types } from "mobx-state-tree"
 import {IGraphDataConfigurationModel} from "../../../models/graph-data-configuration-model"
+import { IAdornmentModel } from "../../adornment-models"
+import { UnivariateMeasureAdornmentModel } from "../univariate-measure-adornment-model"
 import {
-  UnivariateMeasureAdornmentModel, IUnivariateMeasureAdornmentModel
-} from "../univariate-measure-adornment-model"
-import { kMeanAbsoluteDeviationValueTitleKey,
-         kMeanAbsoluteDeviationType } from "./mean-absolute-deviation-adornment-types"
+  kMeanAbsoluteDeviationValueTitleKey, kMeanAbsoluteDeviationType
+} from "./mean-absolute-deviation-adornment-types"
 
 export const MeanAbsoluteDeviationAdornmentModel = UnivariateMeasureAdornmentModel
   .named("MeanAbsoluteDeviationAdornmentModel")
@@ -37,7 +37,7 @@ export const MeanAbsoluteDeviationAdornmentModel = UnivariateMeasureAdornmentMod
 export interface IMeanAbsoluteDeviationAdornmentModelSnapshot
   extends SnapshotIn<typeof MeanAbsoluteDeviationAdornmentModel> {}
 export interface IMeanAbsoluteDeviationAdornmentModel extends Instance<typeof MeanAbsoluteDeviationAdornmentModel> {}
-export function isMeanAbsoluteDeviationAdornment(adornment: IUnivariateMeasureAdornmentModel):
+export function isMeanAbsoluteDeviationAdornment(adornment: IAdornmentModel):
   adornment is IMeanAbsoluteDeviationAdornmentModel {
   return adornment.type === kMeanAbsoluteDeviationType
 }

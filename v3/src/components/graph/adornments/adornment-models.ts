@@ -34,6 +34,7 @@ export const kInfinitePoint = {x:NaN, y:NaN}
 export interface IUpdateCategoriesOptions {
   dataConfig: IGraphDataConfigurationModel
   interceptLocked?: boolean
+  addMovableValue?: boolean
   resetPoints?: boolean
   xAxis?: IAxisModel
   yAxis?: IAxisModel
@@ -88,6 +89,7 @@ export const AdornmentModel = types.model("AdornmentModel", {
     }
   }))
 export interface IAdornmentModel extends Instance<typeof AdornmentModel> {}
+export interface IAdornmentModelSnapshot extends SnapshotIn<typeof AdornmentModel> {}
 
 export const UnknownAdornmentModel = AdornmentModel
   .named("UnknownAdornmentModel")

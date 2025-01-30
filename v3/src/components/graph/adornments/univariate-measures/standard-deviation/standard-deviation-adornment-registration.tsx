@@ -1,12 +1,14 @@
 import React from "react"
-import { registerAdornmentComponentInfo } from "../../adornment-component-info"
-import { registerAdornmentContentInfo } from "../../adornment-content-info"
-import { StandardDeviationAdornmentModel } from "./standard-deviation-adornment-model"
-import { kStandardDeviationClass, kStandardDeviationLabelKey, kStandardDeviationType, kStandardDeviationPrefix, 
-         kStandardDeviationUndoAddKey, kStandardDeviationRedoAddKey, kStandardDeviationRedoRemoveKey,
-         kStandardDeviationUndoRemoveKey} from "./standard-deviation-adornment-types"
 import { AdornmentCheckbox } from "../../adornment-checkbox"
+import { registerAdornmentComponentInfo } from "../../adornment-component-info"
+import { exportAdornmentBaseWithCoordsArray, registerAdornmentContentInfo } from "../../adornment-content-info"
 import { UnivariateMeasureAdornmentSimpleComponent } from "../univariate-measure-adornment-simple-component"
+import { isStandardDeviationAdornment, StandardDeviationAdornmentModel } from "./standard-deviation-adornment-model"
+import {
+  kStandardDeviationClass, kStandardDeviationLabelKey, kStandardDeviationType, kStandardDeviationPrefix,
+  kStandardDeviationUndoAddKey, kStandardDeviationRedoAddKey, kStandardDeviationRedoRemoveKey,
+  kStandardDeviationUndoRemoveKey
+} from "./standard-deviation-adornment-types"
 
 const Controls = () => {
   return (
@@ -29,6 +31,12 @@ registerAdornmentContentInfo({
     redoAdd: kStandardDeviationRedoAddKey,
     undoRemove: kStandardDeviationUndoRemoveKey,
     redoRemove: kStandardDeviationRedoRemoveKey,
+  },
+  exporter: (model, options) => {
+    const adornment = isStandardDeviationAdornment(model) ? model : undefined
+    return adornment
+            ? { plottedStDev: { ...exportAdornmentBaseWithCoordsArray(model, options) } }
+            : undefined
   }
 })
 

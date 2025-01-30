@@ -43,10 +43,10 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     showMeasuresForSelection: types.maybe(types.boolean),
   })
   .views(self => ({
-    get secondaryRole() {
+    get secondaryRole(): Maybe<AttrRole> {
       return self.primaryRole === 'x' ? 'y'
         : self.primaryRole === 'y' ? 'x'
-          : ''
+          : undefined
     },
     get yAttributeDescriptionsExcludingY2() {
       return self._yAttributeDescriptions
@@ -253,10 +253,16 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       const attrTypes = self.attrTypes
       return Object.values(attrTypes).filter(a => a === "categorical").length
     },
-    categoricalRoles(): AttrRole[] {
+    get categoricalRoles(): AttrRole[] {
       return (["legend", "x", "y", "topSplit", "rightSplit"] as const).filter((role) => {
         return self.attributeType(role) === "categorical"
       })
+    },
+    get categoricalAttrs(): Array<{ role: AttrRole, attrId: string }> {
+      const roles: Array<Maybe<AttrRole>> = [self.primaryRole, self.secondaryRole, "topSplit", "rightSplit"]
+      return roles.filter(role => !!role).filter(role => {
+        return self.attributeType(role) === "categorical"
+      }).map(role => ({ role, attrId: self.attributeID(role) }))
     },
     get hasExactlyOneCategoricalAxis() {
       const attrTypes = self.attrTypes

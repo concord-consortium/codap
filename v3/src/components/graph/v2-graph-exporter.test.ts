@@ -73,7 +73,6 @@ describe("V2GraphImporter", () => {
     "isTransparent",
     "transparency",
     "strokeTransparency",
-    "adornments",
     "showMeasureLabels"
   ]
   const kIgnoreProps = [
@@ -90,6 +89,7 @@ describe("V2GraphImporter", () => {
     const { v2Document } = loadCodapDocument("mammals-all-graphs.codap")
     const v2GraphTiles = v2Document.components.filter(c => c.type === "DG.GraphView")
     v2GraphTiles.forEach(v2GraphTile => {
+      // console.log("v2GraphTile", v2GraphTile.componentStorage.title || v2GraphTile.componentStorage.name)
       const v3GraphTile = v2GraphImporter({
         v2Component: v2GraphTile,
         v2Document,
@@ -99,6 +99,7 @@ describe("V2GraphImporter", () => {
       const v2GraphTileOut = v2GraphExporter({ tile: v3GraphTile! })
       const v2GraphTileStorage = removePropertiesRecursive(v2GraphTile.componentStorage, kIgnoreProps)
       const v2GraphTileOutStorage = removePropertiesRecursive(v2GraphTileOut?.componentStorage, kIgnoreProps)
+      // console.log("v2GraphTileOutStorage", JSON.stringify(v2GraphTileOutStorage, null, 2))
       expect(v2GraphTileOutStorage).toEqual(v2GraphTileStorage)
     })
   })
@@ -107,6 +108,7 @@ describe("V2GraphImporter", () => {
     const { v2Document } = loadCodapDocument("mammals-all-diet-legends.codap")
     const v2GraphTiles = v2Document.components.filter(c => c.type === "DG.GraphView")
     v2GraphTiles.forEach(v2GraphTile => {
+      // console.log("v2GraphTile", v2GraphTile.componentStorage.title || v2GraphTile.componentStorage.name)
       const v3GraphTile = v2GraphImporter({
         v2Component: v2GraphTile,
         v2Document,
@@ -124,6 +126,25 @@ describe("V2GraphImporter", () => {
     const { v2Document } = loadCodapDocument("mammals-all-diet-legends.codap")
     const v2GraphTiles = v2Document.components.filter(c => c.type === "DG.GraphView")
     v2GraphTiles.forEach(v2GraphTile => {
+      // console.log("v2GraphTile", v2GraphTile.componentStorage.title || v2GraphTile.componentStorage.name)
+      const v3GraphTile = v2GraphImporter({
+        v2Component: v2GraphTile,
+        v2Document,
+        insertTile: mockInsertTile
+      })
+      // tests round-trip import/export of every graph component
+      const v2GraphTileOut = v2GraphExporter({ tile: v3GraphTile! })
+      const v2GraphTileStorage = removePropertiesRecursive(v2GraphTile.componentStorage, kIgnoreProps)
+      const v2GraphTileOutStorage = removePropertiesRecursive(v2GraphTileOut?.componentStorage, kIgnoreProps)
+      expect(v2GraphTileOutStorage).toEqual(v2GraphTileStorage)
+    })
+  })
+
+  it("exports graph components with simple adornments", () => {
+    const { v2Document } = loadCodapDocument("mammals-simple-adornments.codap")
+    const v2GraphTiles = v2Document.components.filter(c => c.type === "DG.GraphView")
+    v2GraphTiles.forEach(v2GraphTile => {
+      // console.log("v2GraphTile", v2GraphTile.componentStorage.title || v2GraphTile.componentStorage.name)
       const v3GraphTile = v2GraphImporter({
         v2Component: v2GraphTile,
         v2Document,

@@ -1,15 +1,15 @@
 import React from "react"
 import { AdornmentCheckbox } from "../../adornment-checkbox"
 import { registerAdornmentComponentInfo } from "../../adornment-component-info"
-import { registerAdornmentContentInfo } from "../../adornment-content-info"
+import { exportAdornmentBaseWithCoordsArray, registerAdornmentContentInfo } from "../../adornment-content-info"
 import { useGraphOptions } from "../../hooks/use-graph-options"
+import { NormalCurveAdornmentComponent } from "./normal-curve-adornment-component"
+import { isNormalCurveAdornment, NormalCurveAdornmentModel } from "./normal-curve-adornment-model"
 import {
   kNormalCurveClass, kNormalCurveLabelKey, kNormalCurveType, kNormalCurvePrefix,
   kNormalCurveUndoAddKey, kNormalCurveRedoAddKey, kNormalCurveRedoRemoveKey,
   kNormalCurveUndoRemoveKey, kGaussianFitLabelKey
 } from "./normal-curve-adornment-types"
-import { NormalCurveAdornmentModel } from "./normal-curve-adornment-model"
-import { NormalCurveAdornmentComponent } from "./normal-curve-adornment-component"
 
 const Controls = () => {
   const { isGaussianFit } = useGraphOptions()
@@ -34,6 +34,12 @@ registerAdornmentContentInfo({
     redoAdd: kNormalCurveRedoAddKey,
     undoRemove: kNormalCurveUndoRemoveKey,
     redoRemove: kNormalCurveRedoRemoveKey,
+  },
+  exporter: (model, options) => {
+    const adornment = isNormalCurveAdornment(model) ? model : undefined
+    return adornment
+            ? { plottedNormal: { ...exportAdornmentBaseWithCoordsArray(model, options) } }
+            : undefined
   }
 })
 

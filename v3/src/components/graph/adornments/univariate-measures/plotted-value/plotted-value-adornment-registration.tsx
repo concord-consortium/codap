@@ -1,13 +1,15 @@
 import React from "react"
-import { registerAdornmentComponentInfo } from "../../adornment-component-info"
-import { registerAdornmentContentInfo } from "../../adornment-content-info"
-import { PlottedValueAdornmentModel } from "./plotted-value-adornment-model"
-import { kPlottedValueClass, kPlottedValueLabelKey, kPlottedValuePrefix, kPlottedValueRedoAddKey,
-         kPlottedValueRedoRemoveKey, kPlottedValueType, kPlottedValueUndoAddKey,
-         kPlottedValueUndoRemoveKey} from "./plotted-value-adornment-types"
 import { AdornmentCheckbox } from "../../adornment-checkbox"
+import { registerAdornmentComponentInfo } from "../../adornment-component-info"
+import { exportAdornmentBase, registerAdornmentContentInfo } from "../../adornment-content-info"
 import { PlottedValueAdornmentBanner } from "./plotted-value-adornment-banner"
 import { PlottedValueComponent } from "./plotted-value-adornment-component"
+import { isPlottedValueAdornment, PlottedValueAdornmentModel } from "./plotted-value-adornment-model"
+import {
+  kPlottedValueClass, kPlottedValueLabelKey, kPlottedValuePrefix, kPlottedValueRedoAddKey,
+  kPlottedValueRedoRemoveKey, kPlottedValueType, kPlottedValueUndoAddKey,
+  kPlottedValueUndoRemoveKey
+} from "./plotted-value-adornment-types"
 import { PlottedValueFormulaAdapter } from "./plotted-value-formula-adapter"
 
 const Controls = () => {
@@ -33,6 +35,18 @@ registerAdornmentContentInfo({
     redoAdd: kPlottedValueRedoAddKey,
     undoRemove: kPlottedValueUndoRemoveKey,
     redoRemove: kPlottedValueRedoRemoveKey
+  },
+  exporter: (model, options) => {
+    const adornment = isPlottedValueAdornment(model) ? model : undefined
+    return adornment
+            ? {
+                plottedValue: {
+                  ...exportAdornmentBase(model, options),
+                  adornmentKey: "plottedValue",
+                  expression: adornment.expression
+                }
+              }
+            : undefined
   }
 })
 

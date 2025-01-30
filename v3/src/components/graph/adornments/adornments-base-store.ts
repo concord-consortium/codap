@@ -1,4 +1,4 @@
-import { Instance, types } from "mobx-state-tree"
+import { Instance, SnapshotIn, types } from "mobx-state-tree"
 import { getAdornmentComponentInfo } from "./adornment-component-info"
 import { AdornmentModelUnion, kDefaultFontSize } from "./adornment-types"
 import { IAdornmentModel, IUpdateCategoriesOptions } from "./adornment-models"
@@ -120,5 +120,5 @@ export const AdornmentsBaseStore = types.model("AdornmentsBaseStore", {
   },
 }))
 
-export interface IAdornmentsBaseStore extends Instance<typeof AdornmentsBaseStore> {
-}
+export interface IAdornmentsBaseStore extends Instance<typeof AdornmentsBaseStore> {}
+export interface IAdornmentsBaseStoreSnapshot extends SnapshotIn<typeof AdornmentsBaseStore> {}

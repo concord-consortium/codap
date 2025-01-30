@@ -1,11 +1,14 @@
 import React from "react"
-import { registerAdornmentComponentInfo } from "../../adornment-component-info"
-import { registerAdornmentContentInfo } from "../../adornment-content-info"
-import { MeanAbsoluteDeviationAdornmentModel } from "./mean-absolute-deviation-adornment-model"
-import { kMeanAbsoluteDeviationClass, kMeanAbsoluteDeviationLabelKey, kMeanAbsoluteDeviationType,
-         kMeanAbsoluteDeviationPrefix } from "./mean-absolute-deviation-adornment-types"
 import { AdornmentCheckbox } from "../../adornment-checkbox"
+import { registerAdornmentComponentInfo } from "../../adornment-component-info"
+import { exportAdornmentBaseWithCoordsArray, registerAdornmentContentInfo } from "../../adornment-content-info"
 import { UnivariateMeasureAdornmentSimpleComponent } from "../univariate-measure-adornment-simple-component"
+import {
+  isMeanAbsoluteDeviationAdornment, MeanAbsoluteDeviationAdornmentModel
+} from "./mean-absolute-deviation-adornment-model"
+import {
+  kMeanAbsoluteDeviationClass, kMeanAbsoluteDeviationLabelKey, kMeanAbsoluteDeviationPrefix, kMeanAbsoluteDeviationType
+} from "./mean-absolute-deviation-adornment-types"
 
 const Controls = () => {
   return (
@@ -22,7 +25,13 @@ registerAdornmentContentInfo({
   parentType: "Univariate Measure",
   plots: ["dotPlot"],
   prefix: kMeanAbsoluteDeviationPrefix,
-  modelClass: MeanAbsoluteDeviationAdornmentModel
+  modelClass: MeanAbsoluteDeviationAdornmentModel,
+  exporter: (model, options) => {
+    const adornment = isMeanAbsoluteDeviationAdornment(model) ? model : undefined
+    return adornment
+            ? { plottedMad: { ...exportAdornmentBaseWithCoordsArray(model, options) } }
+            : undefined
+  }
 })
 
 registerAdornmentComponentInfo({
