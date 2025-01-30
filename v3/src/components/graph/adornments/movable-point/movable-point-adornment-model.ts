@@ -1,6 +1,6 @@
 import { Instance, SnapshotIn, types } from "mobx-state-tree"
 import { Point } from "../../../data-display/data-display-types"
-import { AdornmentModel, IAdornmentModel, IUpdateCategoriesOptions, PointModel } from "../adornment-models"
+import { AdornmentModel, IAdornmentModel, IPointModel, IUpdateCategoriesOptions, PointModel } from "../adornment-models"
 import { IAxisModel, isNumericAxisModel } from "../../../axis/models/axis-model"
 import { kMovablePointType } from "./movable-point-adornment-types"
 
@@ -12,6 +12,9 @@ export const MovablePointAdornmentModel = AdornmentModel
     points: types.map(PointModel)
   })
   .views(self => ({
+    get firstPoint(): Maybe<IPointModel> {
+      return self.points.values().next().value
+    },
     getInitialPosition(axis?: IAxisModel) {
       if (!isNumericAxisModel(axis)) return 0
       const [min, max] = axis.domain

@@ -1,0 +1,3155 @@
+{
+    "name": "Mammals",
+    "guid": 1,
+    "id": 1,
+    "components": [
+        {
+            "type": "DG.TableView",
+            "guid": 40,
+            "id": 40,
+            "componentStorage": {
+                "isActive": false,
+                "_links_": {
+                    "context": {
+                        "type": "DG.DataContextRecord",
+                        "id": 2
+                    }
+                },
+                "attributeWidths": [
+                    {
+                        "_links_": {
+                            "attr": {
+                                "type": "DG.Attribute",
+                                "id": 12
+                            }
+                        },
+                        "width": 45
+                    }
+                ],
+                "rowHeights": [],
+                "title": "Mammals",
+                "name": "Mammals",
+                "userSetTitle": false,
+                "cannotClose": false
+            },
+            "layout": {
+                "width": 583,
+                "height": 237,
+                "left": 5,
+                "top": 5,
+                "isVisible": false,
+                "zIndex": 101,
+                "right": 588,
+                "bottom": 242
+            },
+            "savedHeight": null
+        },
+        {
+            "type": "DG.GuideView",
+            "guid": 41,
+            "id": 41,
+            "componentStorage": {
+                "title": "Mammals Sample Guide",
+                "items": [
+                    {
+                        "itemTitle": "Get Started",
+                        "url": "../../../../extn/example-documents/guides/Mammals/mammals_getstarted.html"
+                    }
+                ],
+                "currentItemIndex": 0,
+                "isVisible": false,
+                "name": "Mammals Sample Guide",
+                "userSetTitle": false,
+                "cannotClose": false
+            },
+            "layout": {
+                "left": 665,
+                "top": 10,
+                "width": 416,
+                "height": 510,
+                "isVisible": false,
+                "zIndex": 15,
+                "right": 1081,
+                "bottom": 520
+            },
+            "savedHeight": null
+        },
+        {
+            "type": "DG.CaseCard",
+            "guid": 42,
+            "id": 42,
+            "componentStorage": {
+                "isActive": true,
+                "_links_": {
+                    "context": {
+                        "type": "DG.DataContextRecord",
+                        "id": 2
+                    }
+                },
+                "title": "Mammals",
+                "userSetTitle": false,
+                "cannotClose": false
+            },
+            "layout": {
+                "top": 5,
+                "left": 5,
+                "width": 200,
+                "height": 399,
+                "zIndex": 102,
+                "isVisible": true,
+                "right": 205,
+                "bottom": 404
+            },
+            "savedHeight": null
+        },
+        {
+            "type": "DG.GraphView",
+            "guid": 43,
+            "id": 43,
+            "componentStorage": {
+                "_links_": {
+                    "context": {
+                        "type": "DG.DataContextRecord",
+                        "id": 2
+                    },
+                    "hiddenCases": [],
+                    "xColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "xAttr": {
+                        "type": "DG.Attribute",
+                        "id": 6
+                    },
+                    "yColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "yAttr": {
+                        "type": "DG.Attribute",
+                        "id": 10
+                    }
+                },
+                "displayOnlySelected": false,
+                "legendRole": 0,
+                "legendAttributeType": 0,
+                "numberOfLegendQuantiles": 5,
+                "legendQuantilesAreLocked": false,
+                "pointColor": "#e6805b",
+                "strokeColor": "white",
+                "pointSizeMultiplier": 1,
+                "transparency": 0.85,
+                "strokeTransparency": 0.4,
+                "strokeSameAsFill": false,
+                "isTransparent": false,
+                "plotBackgroundColor": null,
+                "plotBackgroundOpacity": 1,
+                "plotBackgroundImage": null,
+                "plotBackgroundImageLockInfo": null,
+                "xRole": 1,
+                "xAttributeType": 1,
+                "yRole": 4,
+                "yAttributeType": 1,
+                "y2Role": 0,
+                "y2AttributeType": 0,
+                "topRole": 0,
+                "topAttributeType": 0,
+                "rightRole": 0,
+                "rightAttributeType": 0,
+                "xAxisClass": "DG.CellLinearAxisModel",
+                "xLowerBound": -5,
+                "xUpperBound": 95,
+                "yAxisClass": "DG.CellLinearAxisModel",
+                "yLowerBound": -10,
+                "yUpperBound": 130,
+                "y2AxisClass": "DG.AxisModel",
+                "topAxisClass": "DG.CellAxisModel",
+                "rightAxisClass": "DG.CellAxisModel",
+                "plotModels": [
+                    {
+                        "plotModelStorage": {
+                            "verticalAxisIsY2": false,
+                            "adornments": {
+                                "plottedCount": {
+                                    "isVisible": false,
+                                    "enableMeasuresForSelection": false,
+                                    "isShowingCount": false,
+                                    "isShowingPercent": false,
+                                    "percentKind": 1
+                                }
+                            },
+                            "movableLineStorage": {
+                                "isVisible": true,
+                                "enableMeasuresForSelection": false,
+                                "isInterceptLocked": false,
+                                "equationCoords": null,
+                                "intercept": -16.453907550077027,
+                                "slope": 3.2545312788906005,
+                                "isVertical": false,
+                                "xIntercept": null
+                            }
+                        },
+                        "plotClass": "DG.ScatterPlotModel"
+                    }
+                ],
+                "title": "Simple-MovLine",
+                "userSetTitle": true,
+                "cannotClose": false
+            },
+            "layout": {
+                "width": 240,
+                "height": 230,
+                "zIndex": 345,
+                "left": 210,
+                "top": 5,
+                "isVisible": true,
+                "right": 450,
+                "bottom": 235
+            },
+            "savedHeight": null
+        },
+        {
+            "type": "DG.GraphView",
+            "guid": 44,
+            "id": 44,
+            "componentStorage": {
+                "_links_": {
+                    "context": {
+                        "type": "DG.DataContextRecord",
+                        "id": 2
+                    },
+                    "hiddenCases": [],
+                    "xColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "xAttr": {
+                        "type": "DG.Attribute",
+                        "id": 6
+                    },
+                    "yColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "yAttr": {
+                        "type": "DG.Attribute",
+                        "id": 10
+                    }
+                },
+                "displayOnlySelected": false,
+                "legendRole": 0,
+                "legendAttributeType": 0,
+                "numberOfLegendQuantiles": 5,
+                "legendQuantilesAreLocked": false,
+                "pointColor": "#e6805b",
+                "strokeColor": "white",
+                "pointSizeMultiplier": 1,
+                "transparency": 0.85,
+                "strokeTransparency": 0.4,
+                "strokeSameAsFill": false,
+                "isTransparent": false,
+                "plotBackgroundColor": null,
+                "plotBackgroundOpacity": 1,
+                "plotBackgroundImage": null,
+                "plotBackgroundImageLockInfo": null,
+                "xRole": 1,
+                "xAttributeType": 1,
+                "yRole": 4,
+                "yAttributeType": 1,
+                "y2Role": 0,
+                "y2AttributeType": 0,
+                "topRole": 0,
+                "topAttributeType": 0,
+                "rightRole": 0,
+                "rightAttributeType": 0,
+                "xAxisClass": "DG.CellLinearAxisModel",
+                "xLowerBound": -5,
+                "xUpperBound": 95,
+                "yAxisClass": "DG.CellLinearAxisModel",
+                "yLowerBound": -10,
+                "yUpperBound": 130,
+                "y2AxisClass": "DG.AxisModel",
+                "topAxisClass": "DG.CellAxisModel",
+                "rightAxisClass": "DG.CellAxisModel",
+                "plotModels": [
+                    {
+                        "plotModelStorage": {
+                            "verticalAxisIsY2": false,
+                            "adornments": {
+                                "plottedCount": {
+                                    "isVisible": false,
+                                    "enableMeasuresForSelection": false,
+                                    "isShowingCount": false,
+                                    "isShowingPercent": false,
+                                    "percentKind": 1
+                                }
+                            },
+                            "movablePointStorage": {
+                                "isVisible": true,
+                                "enableMeasuresForSelection": false,
+                                "coordinates": {
+                                    "x": 61.666666666666664,
+                                    "y": 83.33333333333334
+                                }
+                            }
+                        },
+                        "plotClass": "DG.ScatterPlotModel"
+                    }
+                ],
+                "title": "Simple-MovPoint",
+                "userSetTitle": true,
+                "cannotClose": false
+            },
+            "layout": {
+                "width": 240,
+                "height": 230,
+                "zIndex": 244,
+                "left": 455,
+                "top": 5,
+                "isVisible": true,
+                "right": 695,
+                "bottom": 235
+            },
+            "savedHeight": null
+        },
+        {
+            "type": "DG.GraphView",
+            "guid": 46,
+            "id": 46,
+            "componentStorage": {
+                "_links_": {
+                    "context": {
+                        "type": "DG.DataContextRecord",
+                        "id": 2
+                    },
+                    "hiddenCases": [],
+                    "xColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "xAttr": {
+                        "type": "DG.Attribute",
+                        "id": 6
+                    },
+                    "yColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "yAttr": [
+                        {
+                            "type": "DG.Attribute",
+                            "id": 10
+                        },
+                        {
+                            "type": "DG.Attribute",
+                            "id": 9
+                        }
+                    ]
+                },
+                "displayOnlySelected": false,
+                "legendRole": 0,
+                "legendAttributeType": 0,
+                "numberOfLegendQuantiles": 5,
+                "legendQuantilesAreLocked": false,
+                "pointColor": "#e6805b",
+                "strokeColor": "white",
+                "pointSizeMultiplier": 1,
+                "transparency": 0.85,
+                "strokeTransparency": 0.4,
+                "strokeSameAsFill": false,
+                "isTransparent": false,
+                "plotBackgroundColor": null,
+                "plotBackgroundOpacity": 1,
+                "plotBackgroundImage": null,
+                "plotBackgroundImageLockInfo": null,
+                "xRole": 1,
+                "xAttributeType": 1,
+                "yRole": 4,
+                "yAttributeType": 1,
+                "y2Role": 0,
+                "y2AttributeType": 0,
+                "topRole": 0,
+                "topAttributeType": 0,
+                "rightRole": 0,
+                "rightAttributeType": 0,
+                "xAxisClass": "DG.CellLinearAxisModel",
+                "xLowerBound": -5,
+                "xUpperBound": 95,
+                "yAxisClass": "DG.CellLinearAxisModel",
+                "yLowerBound": -10,
+                "yUpperBound": 130,
+                "y2AxisClass": "DG.AxisModel",
+                "topAxisClass": "DG.CellAxisModel",
+                "rightAxisClass": "DG.CellAxisModel",
+                "plotModels": [
+                    {
+                        "plotModelStorage": {
+                            "verticalAxisIsY2": false,
+                            "adornments": {
+                                "plottedCount": {
+                                    "isVisible": false,
+                                    "enableMeasuresForSelection": false,
+                                    "isShowingCount": false,
+                                    "isShowingPercent": false,
+                                    "percentKind": 1
+                                }
+                            },
+                            "movableLineStorage": {
+                                "isVisible": true,
+                                "enableMeasuresForSelection": false,
+                                "isInterceptLocked": false,
+                                "equationCoords": null,
+                                "intercept": -49.56753194230166,
+                                "slope": 3.990389598717815,
+                                "isVertical": false,
+                                "xIntercept": null
+                            }
+                        },
+                        "plotClass": "DG.ScatterPlotModel"
+                    },
+                    {
+                        "plotModelStorage": {
+                            "verticalAxisIsY2": false,
+                            "adornments": {
+                                "plottedCount": {
+                                    "isVisible": false,
+                                    "enableMeasuresForSelection": false,
+                                    "isShowingCount": false,
+                                    "isShowingPercent": false,
+                                    "percentKind": 1
+                                }
+                            }
+                        },
+                        "plotClass": "DG.ScatterPlotModel"
+                    }
+                ],
+                "title": "MultY-MovLine",
+                "userSetTitle": true,
+                "cannotClose": false
+            },
+            "layout": {
+                "width": 245,
+                "height": 230,
+                "zIndex": 347,
+                "left": 700,
+                "top": 5,
+                "isVisible": true,
+                "right": 945,
+                "bottom": 235
+            },
+            "savedHeight": null
+        },
+        {
+            "type": "DG.GraphView",
+            "guid": 47,
+            "id": 47,
+            "componentStorage": {
+                "_links_": {
+                    "context": {
+                        "type": "DG.DataContextRecord",
+                        "id": 2
+                    },
+                    "hiddenCases": [],
+                    "xColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "xAttr": {
+                        "type": "DG.Attribute",
+                        "id": 6
+                    },
+                    "yColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "yAttr": [
+                        {
+                            "type": "DG.Attribute",
+                            "id": 10
+                        },
+                        {
+                            "type": "DG.Attribute",
+                            "id": 9
+                        }
+                    ]
+                },
+                "displayOnlySelected": false,
+                "legendRole": 0,
+                "legendAttributeType": 0,
+                "numberOfLegendQuantiles": 5,
+                "legendQuantilesAreLocked": false,
+                "pointColor": "#e6805b",
+                "strokeColor": "white",
+                "pointSizeMultiplier": 1,
+                "transparency": 0.85,
+                "strokeTransparency": 0.4,
+                "strokeSameAsFill": false,
+                "isTransparent": false,
+                "plotBackgroundColor": null,
+                "plotBackgroundOpacity": 1,
+                "plotBackgroundImage": null,
+                "plotBackgroundImageLockInfo": null,
+                "xRole": 1,
+                "xAttributeType": 1,
+                "yRole": 4,
+                "yAttributeType": 1,
+                "y2Role": 0,
+                "y2AttributeType": 0,
+                "topRole": 0,
+                "topAttributeType": 0,
+                "rightRole": 0,
+                "rightAttributeType": 0,
+                "xAxisClass": "DG.CellLinearAxisModel",
+                "xLowerBound": -5,
+                "xUpperBound": 95,
+                "yAxisClass": "DG.CellLinearAxisModel",
+                "yLowerBound": -10,
+                "yUpperBound": 130,
+                "y2AxisClass": "DG.AxisModel",
+                "topAxisClass": "DG.CellAxisModel",
+                "rightAxisClass": "DG.CellAxisModel",
+                "plotModels": [
+                    {
+                        "plotModelStorage": {
+                            "verticalAxisIsY2": false,
+                            "adornments": {
+                                "plottedCount": {
+                                    "isVisible": false,
+                                    "enableMeasuresForSelection": false,
+                                    "isShowingCount": false,
+                                    "isShowingPercent": false,
+                                    "percentKind": 1
+                                }
+                            },
+                            "movablePointStorage": {
+                                "isVisible": true,
+                                "enableMeasuresForSelection": false,
+                                "coordinates": {
+                                    "x": 61.666666666666664,
+                                    "y": 83.33333333333334
+                                }
+                            }
+                        },
+                        "plotClass": "DG.ScatterPlotModel"
+                    },
+                    {
+                        "plotModelStorage": {
+                            "verticalAxisIsY2": false,
+                            "adornments": {
+                                "plottedCount": {
+                                    "isVisible": false,
+                                    "enableMeasuresForSelection": false,
+                                    "isShowingCount": false,
+                                    "isShowingPercent": false,
+                                    "percentKind": 1
+                                }
+                            }
+                        },
+                        "plotClass": "DG.ScatterPlotModel"
+                    }
+                ],
+                "title": "MultY-MovPoint",
+                "userSetTitle": true,
+                "cannotClose": false
+            },
+            "layout": {
+                "width": 245,
+                "height": 230,
+                "zIndex": 246,
+                "left": 950,
+                "top": 5,
+                "isVisible": true,
+                "right": 1195,
+                "bottom": 235
+            },
+            "savedHeight": null
+        },
+        {
+            "type": "DG.GraphView",
+            "guid": 48,
+            "id": 48,
+            "componentStorage": {
+                "_links_": {
+                    "context": {
+                        "type": "DG.DataContextRecord",
+                        "id": 2
+                    },
+                    "hiddenCases": [],
+                    "xColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "xAttr": {
+                        "type": "DG.Attribute",
+                        "id": 6
+                    },
+                    "yColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "yAttr": {
+                        "type": "DG.Attribute",
+                        "id": 10
+                    },
+                    "y2Coll": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "y2Attr": {
+                        "type": "DG.Attribute",
+                        "id": 9
+                    }
+                },
+                "displayOnlySelected": false,
+                "legendRole": 0,
+                "legendAttributeType": 0,
+                "numberOfLegendQuantiles": 5,
+                "legendQuantilesAreLocked": false,
+                "pointColor": "#e6805b",
+                "strokeColor": "white",
+                "pointSizeMultiplier": 1,
+                "transparency": 0.85,
+                "strokeTransparency": 0.4,
+                "strokeSameAsFill": false,
+                "isTransparent": false,
+                "plotBackgroundColor": null,
+                "plotBackgroundOpacity": 1,
+                "plotBackgroundImage": null,
+                "plotBackgroundImageLockInfo": null,
+                "xRole": 1,
+                "xAttributeType": 1,
+                "yRole": 4,
+                "yAttributeType": 1,
+                "y2Role": 0,
+                "y2AttributeType": 1,
+                "topRole": 0,
+                "topAttributeType": 0,
+                "rightRole": 0,
+                "rightAttributeType": 0,
+                "xAxisClass": "DG.CellLinearAxisModel",
+                "xLowerBound": -5,
+                "xUpperBound": 95,
+                "yAxisClass": "DG.CellLinearAxisModel",
+                "yLowerBound": -10,
+                "yUpperBound": 130,
+                "y2AxisClass": "DG.CellLinearAxisModel",
+                "y2LowerBound": -1,
+                "y2UpperBound": 23,
+                "topAxisClass": "DG.CellAxisModel",
+                "rightAxisClass": "DG.CellAxisModel",
+                "plotModels": [
+                    {
+                        "plotModelStorage": {
+                            "verticalAxisIsY2": false,
+                            "adornments": {
+                                "plottedCount": {
+                                    "isVisible": false,
+                                    "enableMeasuresForSelection": false,
+                                    "isShowingCount": false,
+                                    "isShowingPercent": false,
+                                    "percentKind": 1
+                                }
+                            },
+                            "movableLineStorage": {
+                                "isVisible": true,
+                                "enableMeasuresForSelection": false,
+                                "isInterceptLocked": false,
+                                "equationCoords": null,
+                                "intercept": -49.24696435867603,
+                                "slope": 3.983265874637245,
+                                "isVertical": false,
+                                "xIntercept": null
+                            }
+                        },
+                        "plotClass": "DG.ScatterPlotModel"
+                    },
+                    {
+                        "plotModelStorage": {
+                            "verticalAxisIsY2": true,
+                            "adornments": {
+                                "plottedCount": {
+                                    "isVisible": false,
+                                    "enableMeasuresForSelection": false,
+                                    "isShowingCount": false,
+                                    "isShowingPercent": false,
+                                    "percentKind": 1
+                                }
+                            }
+                        },
+                        "plotClass": "DG.ScatterPlotModel"
+                    }
+                ],
+                "title": "RightY-MovLine",
+                "userSetTitle": true,
+                "cannotClose": false
+            },
+            "layout": {
+                "width": 240,
+                "height": 225,
+                "zIndex": 349,
+                "left": 210,
+                "top": 240,
+                "isVisible": true,
+                "right": 450,
+                "bottom": 465
+            },
+            "savedHeight": null
+        },
+        {
+            "type": "DG.GraphView",
+            "guid": 49,
+            "id": 49,
+            "componentStorage": {
+                "_links_": {
+                    "context": {
+                        "type": "DG.DataContextRecord",
+                        "id": 2
+                    },
+                    "hiddenCases": [],
+                    "xColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "xAttr": {
+                        "type": "DG.Attribute",
+                        "id": 6
+                    },
+                    "yColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "yAttr": {
+                        "type": "DG.Attribute",
+                        "id": 10
+                    },
+                    "y2Coll": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "y2Attr": {
+                        "type": "DG.Attribute",
+                        "id": 9
+                    }
+                },
+                "displayOnlySelected": false,
+                "legendRole": 0,
+                "legendAttributeType": 0,
+                "numberOfLegendQuantiles": 5,
+                "legendQuantilesAreLocked": false,
+                "pointColor": "#e6805b",
+                "strokeColor": "white",
+                "pointSizeMultiplier": 1,
+                "transparency": 0.85,
+                "strokeTransparency": 0.4,
+                "strokeSameAsFill": false,
+                "isTransparent": false,
+                "plotBackgroundColor": null,
+                "plotBackgroundOpacity": 1,
+                "plotBackgroundImage": null,
+                "plotBackgroundImageLockInfo": null,
+                "xRole": 1,
+                "xAttributeType": 1,
+                "yRole": 4,
+                "yAttributeType": 1,
+                "y2Role": 0,
+                "y2AttributeType": 1,
+                "topRole": 0,
+                "topAttributeType": 0,
+                "rightRole": 0,
+                "rightAttributeType": 0,
+                "xAxisClass": "DG.CellLinearAxisModel",
+                "xLowerBound": -5,
+                "xUpperBound": 95,
+                "yAxisClass": "DG.CellLinearAxisModel",
+                "yLowerBound": -10,
+                "yUpperBound": 130,
+                "y2AxisClass": "DG.CellLinearAxisModel",
+                "y2LowerBound": -1,
+                "y2UpperBound": 23,
+                "topAxisClass": "DG.CellAxisModel",
+                "rightAxisClass": "DG.CellAxisModel",
+                "plotModels": [
+                    {
+                        "plotModelStorage": {
+                            "verticalAxisIsY2": false,
+                            "adornments": {
+                                "plottedCount": {
+                                    "isVisible": false,
+                                    "enableMeasuresForSelection": false,
+                                    "isShowingCount": false,
+                                    "isShowingPercent": false,
+                                    "percentKind": 1
+                                }
+                            },
+                            "movablePointStorage": {
+                                "isVisible": true,
+                                "enableMeasuresForSelection": false,
+                                "coordinates": {
+                                    "x": 69.84276729559748,
+                                    "y": 85.33742331288343
+                                }
+                            }
+                        },
+                        "plotClass": "DG.ScatterPlotModel"
+                    },
+                    {
+                        "plotModelStorage": {
+                            "verticalAxisIsY2": true,
+                            "adornments": {
+                                "plottedCount": {
+                                    "isVisible": false,
+                                    "enableMeasuresForSelection": false,
+                                    "isShowingCount": false,
+                                    "isShowingPercent": false,
+                                    "percentKind": 1
+                                }
+                            }
+                        },
+                        "plotClass": "DG.ScatterPlotModel"
+                    }
+                ],
+                "title": "RightY-MovPoint",
+                "userSetTitle": true,
+                "cannotClose": false
+            },
+            "layout": {
+                "width": 240,
+                "height": 225,
+                "zIndex": 397,
+                "left": 455,
+                "top": 240,
+                "isVisible": true,
+                "right": 695,
+                "bottom": 465
+            },
+            "savedHeight": null
+        },
+        {
+            "type": "DG.GraphView",
+            "guid": 50,
+            "id": 50,
+            "componentStorage": {
+                "_links_": {
+                    "context": {
+                        "type": "DG.DataContextRecord",
+                        "id": 2
+                    },
+                    "hiddenCases": [],
+                    "xColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "xAttr": {
+                        "type": "DG.Attribute",
+                        "id": 6
+                    },
+                    "yColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "yAttr": {
+                        "type": "DG.Attribute",
+                        "id": 10
+                    },
+                    "topColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "topAttr": {
+                        "type": "DG.Attribute",
+                        "id": 12
+                    }
+                },
+                "displayOnlySelected": false,
+                "legendRole": 0,
+                "legendAttributeType": 0,
+                "numberOfLegendQuantiles": 5,
+                "legendQuantilesAreLocked": false,
+                "pointColor": "#e6805b",
+                "strokeColor": "white",
+                "pointSizeMultiplier": 1,
+                "transparency": 0.85,
+                "strokeTransparency": 0.4,
+                "strokeSameAsFill": false,
+                "isTransparent": false,
+                "plotBackgroundColor": null,
+                "plotBackgroundOpacity": 1,
+                "plotBackgroundImage": null,
+                "plotBackgroundImageLockInfo": null,
+                "xRole": 1,
+                "xAttributeType": 1,
+                "yRole": 4,
+                "yAttributeType": 1,
+                "y2Role": 0,
+                "y2AttributeType": 0,
+                "topRole": 0,
+                "topAttributeType": 2,
+                "rightRole": 0,
+                "rightAttributeType": 0,
+                "xAxisClass": "DG.CellLinearAxisModel",
+                "xLowerBound": -5,
+                "xUpperBound": 95,
+                "yAxisClass": "DG.CellLinearAxisModel",
+                "yLowerBound": -10,
+                "yUpperBound": 130,
+                "y2AxisClass": "DG.AxisModel",
+                "topAxisClass": "DG.CellAxisModel",
+                "rightAxisClass": "DG.CellAxisModel",
+                "plotModels": [
+                    {
+                        "plotModelStorage": {
+                            "verticalAxisIsY2": false,
+                            "adornments": {
+                                "plottedCount": {
+                                    "isVisible": false,
+                                    "enableMeasuresForSelection": false,
+                                    "isShowingCount": false,
+                                    "isShowingPercent": false,
+                                    "percentKind": 1
+                                }
+                            },
+                            "movableLineStorage": {
+                                "isVisible": true,
+                                "enableMeasuresForSelection": false,
+                                "isInterceptLocked": false,
+                                "equationCoords": null,
+                                "intercept": -128.8543688118812,
+                                "slope": 5.752319306930693,
+                                "isVertical": false,
+                                "xIntercept": null
+                            }
+                        },
+                        "plotClass": "DG.ScatterPlotModel"
+                    }
+                ],
+                "title": "TopSplit-MovLine",
+                "userSetTitle": true,
+                "cannotClose": false
+            },
+            "layout": {
+                "width": 245,
+                "height": 225,
+                "zIndex": 355,
+                "left": 700,
+                "top": 240,
+                "isVisible": true,
+                "right": 945,
+                "bottom": 465
+            },
+            "savedHeight": null
+        },
+        {
+            "type": "DG.GraphView",
+            "guid": 51,
+            "id": 51,
+            "componentStorage": {
+                "_links_": {
+                    "context": {
+                        "type": "DG.DataContextRecord",
+                        "id": 2
+                    },
+                    "hiddenCases": [],
+                    "xColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "xAttr": {
+                        "type": "DG.Attribute",
+                        "id": 6
+                    },
+                    "yColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "yAttr": {
+                        "type": "DG.Attribute",
+                        "id": 10
+                    },
+                    "topColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "topAttr": {
+                        "type": "DG.Attribute",
+                        "id": 12
+                    }
+                },
+                "displayOnlySelected": false,
+                "legendRole": 0,
+                "legendAttributeType": 0,
+                "numberOfLegendQuantiles": 5,
+                "legendQuantilesAreLocked": false,
+                "pointColor": "#e6805b",
+                "strokeColor": "white",
+                "pointSizeMultiplier": 1,
+                "transparency": 0.85,
+                "strokeTransparency": 0.4,
+                "strokeSameAsFill": false,
+                "isTransparent": false,
+                "plotBackgroundColor": null,
+                "plotBackgroundOpacity": 1,
+                "plotBackgroundImage": null,
+                "plotBackgroundImageLockInfo": null,
+                "xRole": 1,
+                "xAttributeType": 1,
+                "yRole": 4,
+                "yAttributeType": 1,
+                "y2Role": 0,
+                "y2AttributeType": 0,
+                "topRole": 0,
+                "topAttributeType": 2,
+                "rightRole": 0,
+                "rightAttributeType": 0,
+                "xAxisClass": "DG.CellLinearAxisModel",
+                "xLowerBound": -5,
+                "xUpperBound": 95,
+                "yAxisClass": "DG.CellLinearAxisModel",
+                "yLowerBound": -10,
+                "yUpperBound": 130,
+                "y2AxisClass": "DG.AxisModel",
+                "topAxisClass": "DG.CellAxisModel",
+                "rightAxisClass": "DG.CellAxisModel",
+                "plotModels": [
+                    {
+                        "plotModelStorage": {
+                            "verticalAxisIsY2": false,
+                            "adornments": {
+                                "plottedCount": {
+                                    "isVisible": false,
+                                    "enableMeasuresForSelection": false,
+                                    "isShowingCount": false,
+                                    "isShowingPercent": false,
+                                    "percentKind": 1
+                                }
+                            },
+                            "movablePointStorage": {
+                                "isVisible": true,
+                                "enableMeasuresForSelection": false,
+                                "coordinates": {
+                                    "x": 50.882352941176464,
+                                    "y": 77.5
+                                }
+                            }
+                        },
+                        "plotClass": "DG.ScatterPlotModel"
+                    }
+                ],
+                "title": "TopSplit-MovPoint",
+                "userSetTitle": true,
+                "cannotClose": false
+            },
+            "layout": {
+                "width": 245,
+                "height": 225,
+                "zIndex": 403,
+                "left": 950,
+                "top": 240,
+                "isVisible": true,
+                "right": 1195,
+                "bottom": 465
+            },
+            "savedHeight": null
+        },
+        {
+            "type": "DG.GraphView",
+            "guid": 52,
+            "id": 52,
+            "componentStorage": {
+                "_links_": {
+                    "context": {
+                        "type": "DG.DataContextRecord",
+                        "id": 2
+                    },
+                    "legendColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "legendAttr": {
+                        "type": "DG.Attribute",
+                        "id": 12
+                    },
+                    "hiddenCases": [],
+                    "xColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "xAttr": {
+                        "type": "DG.Attribute",
+                        "id": 6
+                    },
+                    "yColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "yAttr": {
+                        "type": "DG.Attribute",
+                        "id": 10
+                    }
+                },
+                "displayOnlySelected": false,
+                "legendRole": 0,
+                "legendAttributeType": 2,
+                "numberOfLegendQuantiles": 5,
+                "legendQuantilesAreLocked": false,
+                "pointColor": "#e6805b",
+                "strokeColor": "lightgrey",
+                "pointSizeMultiplier": 1,
+                "transparency": 0.85,
+                "strokeTransparency": 0.4,
+                "strokeSameAsFill": false,
+                "isTransparent": false,
+                "plotBackgroundColor": null,
+                "plotBackgroundOpacity": 1,
+                "plotBackgroundImage": null,
+                "plotBackgroundImageLockInfo": null,
+                "xRole": 1,
+                "xAttributeType": 1,
+                "yRole": 4,
+                "yAttributeType": 1,
+                "y2Role": 0,
+                "y2AttributeType": 0,
+                "topRole": 0,
+                "topAttributeType": 0,
+                "rightRole": 0,
+                "rightAttributeType": 0,
+                "xAxisClass": "DG.CellLinearAxisModel",
+                "xLowerBound": -5,
+                "xUpperBound": 95,
+                "yAxisClass": "DG.CellLinearAxisModel",
+                "yLowerBound": -10,
+                "yUpperBound": 130,
+                "y2AxisClass": "DG.AxisModel",
+                "topAxisClass": "DG.CellAxisModel",
+                "rightAxisClass": "DG.CellAxisModel",
+                "plotModels": [
+                    {
+                        "plotModelStorage": {
+                            "verticalAxisIsY2": false,
+                            "adornments": {
+                                "plottedCount": {
+                                    "isVisible": false,
+                                    "enableMeasuresForSelection": false,
+                                    "isShowingCount": false,
+                                    "isShowingPercent": false,
+                                    "percentKind": 1
+                                }
+                            },
+                            "movableLineStorage": {
+                                "isVisible": true,
+                                "enableMeasuresForSelection": false,
+                                "isInterceptLocked": false,
+                                "equationCoords": null,
+                                "intercept": -27.083546548816656,
+                                "slope": 3.4907454788625922,
+                                "isVertical": false,
+                                "xIntercept": null
+                            }
+                        },
+                        "plotClass": "DG.ScatterPlotModel"
+                    }
+                ],
+                "title": "Simple-Legend-MovLine",
+                "userSetTitle": true,
+                "cannotClose": false
+            },
+            "layout": {
+                "width": 240,
+                "height": 220,
+                "zIndex": 357,
+                "left": 210,
+                "top": 470,
+                "isVisible": true,
+                "right": 450,
+                "bottom": 690
+            },
+            "savedHeight": null
+        },
+        {
+            "type": "DG.GraphView",
+            "guid": 53,
+            "id": 53,
+            "componentStorage": {
+                "_links_": {
+                    "context": {
+                        "type": "DG.DataContextRecord",
+                        "id": 2
+                    },
+                    "legendColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "legendAttr": {
+                        "type": "DG.Attribute",
+                        "id": 12
+                    },
+                    "hiddenCases": [],
+                    "xColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "xAttr": {
+                        "type": "DG.Attribute",
+                        "id": 6
+                    },
+                    "yColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "yAttr": {
+                        "type": "DG.Attribute",
+                        "id": 10
+                    }
+                },
+                "displayOnlySelected": false,
+                "legendRole": 0,
+                "legendAttributeType": 2,
+                "numberOfLegendQuantiles": 5,
+                "legendQuantilesAreLocked": false,
+                "pointColor": "#e6805b",
+                "strokeColor": "lightgrey",
+                "pointSizeMultiplier": 1,
+                "transparency": 0.85,
+                "strokeTransparency": 0.4,
+                "strokeSameAsFill": false,
+                "isTransparent": false,
+                "plotBackgroundColor": null,
+                "plotBackgroundOpacity": 1,
+                "plotBackgroundImage": null,
+                "plotBackgroundImageLockInfo": null,
+                "xRole": 1,
+                "xAttributeType": 1,
+                "yRole": 4,
+                "yAttributeType": 1,
+                "y2Role": 0,
+                "y2AttributeType": 0,
+                "topRole": 0,
+                "topAttributeType": 0,
+                "rightRole": 0,
+                "rightAttributeType": 0,
+                "xAxisClass": "DG.CellLinearAxisModel",
+                "xLowerBound": -5,
+                "xUpperBound": 95,
+                "yAxisClass": "DG.CellLinearAxisModel",
+                "yLowerBound": -10,
+                "yUpperBound": 130,
+                "y2AxisClass": "DG.AxisModel",
+                "topAxisClass": "DG.CellAxisModel",
+                "rightAxisClass": "DG.CellAxisModel",
+                "plotModels": [
+                    {
+                        "plotModelStorage": {
+                            "verticalAxisIsY2": false,
+                            "adornments": {
+                                "plottedCount": {
+                                    "isVisible": false,
+                                    "enableMeasuresForSelection": false,
+                                    "isShowingCount": false,
+                                    "isShowingPercent": false,
+                                    "percentKind": 1
+                                }
+                            },
+                            "movablePointStorage": {
+                                "isVisible": true,
+                                "enableMeasuresForSelection": false,
+                                "coordinates": {
+                                    "x": 56.92893401015228,
+                                    "y": 75
+                                }
+                            }
+                        },
+                        "plotClass": "DG.ScatterPlotModel"
+                    }
+                ],
+                "title": "Simple-Legend-MovPoint",
+                "userSetTitle": true,
+                "cannotClose": false
+            },
+            "layout": {
+                "width": 240,
+                "height": 220,
+                "zIndex": 405,
+                "left": 455,
+                "top": 470,
+                "isVisible": true,
+                "right": 695,
+                "bottom": 690
+            },
+            "savedHeight": null
+        },
+        {
+            "type": "DG.GraphView",
+            "guid": 54,
+            "id": 54,
+            "componentStorage": {
+                "_links_": {
+                    "context": {
+                        "type": "DG.DataContextRecord",
+                        "id": 2
+                    },
+                    "hiddenCases": [],
+                    "xColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "xAttr": {
+                        "type": "DG.Attribute",
+                        "id": 6
+                    },
+                    "yColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "yAttr": {
+                        "type": "DG.Attribute",
+                        "id": 10
+                    }
+                },
+                "displayOnlySelected": false,
+                "legendRole": 0,
+                "legendAttributeType": 0,
+                "numberOfLegendQuantiles": 5,
+                "legendQuantilesAreLocked": false,
+                "pointColor": "#e6805b",
+                "strokeColor": "white",
+                "pointSizeMultiplier": 1,
+                "transparency": 0.85,
+                "strokeTransparency": 0.4,
+                "strokeSameAsFill": false,
+                "isTransparent": false,
+                "plotBackgroundColor": null,
+                "plotBackgroundOpacity": 1,
+                "plotBackgroundImage": null,
+                "plotBackgroundImageLockInfo": null,
+                "xRole": 1,
+                "xAttributeType": 1,
+                "yRole": 4,
+                "yAttributeType": 1,
+                "y2Role": 0,
+                "y2AttributeType": 0,
+                "topRole": 0,
+                "topAttributeType": 0,
+                "rightRole": 0,
+                "rightAttributeType": 0,
+                "xAxisClass": "DG.CellLinearAxisModel",
+                "xLowerBound": -5,
+                "xUpperBound": 95,
+                "yAxisClass": "DG.CellLinearAxisModel",
+                "yLowerBound": -10,
+                "yUpperBound": 130,
+                "y2AxisClass": "DG.AxisModel",
+                "topAxisClass": "DG.CellAxisModel",
+                "rightAxisClass": "DG.CellAxisModel",
+                "plotModels": [
+                    {
+                        "plotModelStorage": {
+                            "verticalAxisIsY2": false,
+                            "adornments": {
+                                "plottedCount": {
+                                    "isVisible": false,
+                                    "enableMeasuresForSelection": false,
+                                    "isShowingCount": false,
+                                    "isShowingPercent": false,
+                                    "percentKind": 1
+                                }
+                            },
+                            "movableLineStorage": {
+                                "isVisible": true,
+                                "enableMeasuresForSelection": false,
+                                "isInterceptLocked": true,
+                                "equationCoords": null,
+                                "intercept": 0,
+                                "slope": 1.6343173813713758,
+                                "isVertical": false,
+                                "xIntercept": null
+                            },
+                            "areSquaresVisible": true
+                        },
+                        "plotClass": "DG.ScatterPlotModel"
+                    }
+                ],
+                "title": "Simple-MovLine-LockSquares",
+                "userSetTitle": true,
+                "cannotClose": false
+            },
+            "layout": {
+                "width": 245,
+                "height": 220,
+                "zIndex": 361,
+                "left": 700,
+                "top": 470,
+                "isVisible": true,
+                "right": 945,
+                "bottom": 690
+            },
+            "savedHeight": null
+        },
+        {
+            "type": "DG.GraphView",
+            "guid": 55,
+            "id": 55,
+            "componentStorage": {
+                "_links_": {
+                    "context": {
+                        "type": "DG.DataContextRecord",
+                        "id": 2
+                    },
+                    "hiddenCases": [],
+                    "xColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "xAttr": {
+                        "type": "DG.Attribute",
+                        "id": 6
+                    },
+                    "yColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "yAttr": [
+                        {
+                            "type": "DG.Attribute",
+                            "id": 10
+                        },
+                        {
+                            "type": "DG.Attribute",
+                            "id": 9
+                        }
+                    ]
+                },
+                "displayOnlySelected": false,
+                "legendRole": 0,
+                "legendAttributeType": 0,
+                "numberOfLegendQuantiles": 5,
+                "legendQuantilesAreLocked": false,
+                "pointColor": "#e6805b",
+                "strokeColor": "white",
+                "pointSizeMultiplier": 1,
+                "transparency": 0.85,
+                "strokeTransparency": 0.4,
+                "strokeSameAsFill": false,
+                "isTransparent": false,
+                "plotBackgroundColor": null,
+                "plotBackgroundOpacity": 1,
+                "plotBackgroundImage": null,
+                "plotBackgroundImageLockInfo": null,
+                "xRole": 1,
+                "xAttributeType": 1,
+                "yRole": 4,
+                "yAttributeType": 1,
+                "y2Role": 0,
+                "y2AttributeType": 0,
+                "topRole": 0,
+                "topAttributeType": 0,
+                "rightRole": 0,
+                "rightAttributeType": 0,
+                "xAxisClass": "DG.CellLinearAxisModel",
+                "xLowerBound": -5,
+                "xUpperBound": 95,
+                "yAxisClass": "DG.CellLinearAxisModel",
+                "yLowerBound": -10,
+                "yUpperBound": 130,
+                "y2AxisClass": "DG.AxisModel",
+                "topAxisClass": "DG.CellAxisModel",
+                "rightAxisClass": "DG.CellAxisModel",
+                "plotModels": [
+                    {
+                        "plotModelStorage": {
+                            "verticalAxisIsY2": false,
+                            "adornments": {
+                                "plottedCount": {
+                                    "isVisible": false,
+                                    "enableMeasuresForSelection": false,
+                                    "isShowingCount": false,
+                                    "isShowingPercent": false,
+                                    "percentKind": 1
+                                }
+                            },
+                            "movableLineStorage": {
+                                "isVisible": true,
+                                "enableMeasuresForSelection": false,
+                                "isInterceptLocked": true,
+                                "equationCoords": null,
+                                "intercept": 0,
+                                "slope": 1.6477024966190192,
+                                "isVertical": false,
+                                "xIntercept": null
+                            },
+                            "areSquaresVisible": true
+                        },
+                        "plotClass": "DG.ScatterPlotModel"
+                    },
+                    {
+                        "plotModelStorage": {
+                            "verticalAxisIsY2": false,
+                            "adornments": {
+                                "plottedCount": {
+                                    "isVisible": false,
+                                    "enableMeasuresForSelection": false,
+                                    "isShowingCount": false,
+                                    "isShowingPercent": false,
+                                    "percentKind": 1
+                                }
+                            }
+                        },
+                        "plotClass": "DG.ScatterPlotModel"
+                    }
+                ],
+                "title": "MultY-MovLine-LockSquares",
+                "userSetTitle": true,
+                "cannotClose": false
+            },
+            "layout": {
+                "width": 245,
+                "height": 220,
+                "zIndex": 365,
+                "left": 950,
+                "top": 470,
+                "isVisible": true,
+                "right": 1195,
+                "bottom": 690
+            },
+            "savedHeight": null
+        },
+        {
+            "type": "DG.GraphView",
+            "guid": 56,
+            "id": 56,
+            "componentStorage": {
+                "_links_": {
+                    "context": {
+                        "type": "DG.DataContextRecord",
+                        "id": 2
+                    },
+                    "hiddenCases": [],
+                    "xColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "xAttr": {
+                        "type": "DG.Attribute",
+                        "id": 6
+                    },
+                    "yColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "yAttr": {
+                        "type": "DG.Attribute",
+                        "id": 10
+                    },
+                    "y2Coll": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "y2Attr": {
+                        "type": "DG.Attribute",
+                        "id": 9
+                    }
+                },
+                "displayOnlySelected": false,
+                "legendRole": 0,
+                "legendAttributeType": 0,
+                "numberOfLegendQuantiles": 5,
+                "legendQuantilesAreLocked": false,
+                "pointColor": "#e6805b",
+                "strokeColor": "white",
+                "pointSizeMultiplier": 1,
+                "transparency": 0.85,
+                "strokeTransparency": 0.4,
+                "strokeSameAsFill": false,
+                "isTransparent": false,
+                "plotBackgroundColor": null,
+                "plotBackgroundOpacity": 1,
+                "plotBackgroundImage": null,
+                "plotBackgroundImageLockInfo": null,
+                "xRole": 1,
+                "xAttributeType": 1,
+                "yRole": 4,
+                "yAttributeType": 1,
+                "y2Role": 0,
+                "y2AttributeType": 1,
+                "topRole": 0,
+                "topAttributeType": 0,
+                "rightRole": 0,
+                "rightAttributeType": 0,
+                "xAxisClass": "DG.CellLinearAxisModel",
+                "xLowerBound": -5,
+                "xUpperBound": 95,
+                "yAxisClass": "DG.CellLinearAxisModel",
+                "yLowerBound": -10,
+                "yUpperBound": 130,
+                "y2AxisClass": "DG.CellLinearAxisModel",
+                "y2LowerBound": -1,
+                "y2UpperBound": 23,
+                "topAxisClass": "DG.CellAxisModel",
+                "rightAxisClass": "DG.CellAxisModel",
+                "plotModels": [
+                    {
+                        "plotModelStorage": {
+                            "verticalAxisIsY2": false,
+                            "adornments": {
+                                "plottedCount": {
+                                    "isVisible": false,
+                                    "enableMeasuresForSelection": false,
+                                    "isShowingCount": false,
+                                    "isShowingPercent": false,
+                                    "percentKind": 1
+                                }
+                            },
+                            "movableLineStorage": {
+                                "isVisible": true,
+                                "enableMeasuresForSelection": false,
+                                "isInterceptLocked": true,
+                                "equationCoords": null,
+                                "intercept": 0,
+                                "slope": 1.6364087587409697,
+                                "isVertical": false,
+                                "xIntercept": null
+                            },
+                            "areSquaresVisible": true
+                        },
+                        "plotClass": "DG.ScatterPlotModel"
+                    },
+                    {
+                        "plotModelStorage": {
+                            "verticalAxisIsY2": true,
+                            "adornments": {
+                                "plottedCount": {
+                                    "isVisible": false,
+                                    "enableMeasuresForSelection": false,
+                                    "isShowingCount": false,
+                                    "isShowingPercent": false,
+                                    "percentKind": 1
+                                }
+                            }
+                        },
+                        "plotClass": "DG.ScatterPlotModel"
+                    }
+                ],
+                "title": "RightY-MovLine-LockSquares",
+                "userSetTitle": true,
+                "cannotClose": false
+            },
+            "layout": {
+                "width": 240,
+                "height": 210,
+                "zIndex": 367,
+                "left": 210,
+                "top": 695,
+                "isVisible": true,
+                "right": 450,
+                "bottom": 905
+            },
+            "savedHeight": null
+        },
+        {
+            "type": "DG.GraphView",
+            "guid": 57,
+            "id": 57,
+            "componentStorage": {
+                "_links_": {
+                    "context": {
+                        "type": "DG.DataContextRecord",
+                        "id": 2
+                    },
+                    "hiddenCases": [],
+                    "xColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "xAttr": {
+                        "type": "DG.Attribute",
+                        "id": 6
+                    },
+                    "yColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "yAttr": {
+                        "type": "DG.Attribute",
+                        "id": 10
+                    },
+                    "topColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "topAttr": {
+                        "type": "DG.Attribute",
+                        "id": 12
+                    }
+                },
+                "displayOnlySelected": false,
+                "legendRole": 0,
+                "legendAttributeType": 0,
+                "numberOfLegendQuantiles": 5,
+                "legendQuantilesAreLocked": false,
+                "pointColor": "#e6805b",
+                "strokeColor": "white",
+                "pointSizeMultiplier": 1,
+                "transparency": 0.85,
+                "strokeTransparency": 0.4,
+                "strokeSameAsFill": false,
+                "isTransparent": false,
+                "plotBackgroundColor": null,
+                "plotBackgroundOpacity": 1,
+                "plotBackgroundImage": null,
+                "plotBackgroundImageLockInfo": null,
+                "xRole": 1,
+                "xAttributeType": 1,
+                "yRole": 4,
+                "yAttributeType": 1,
+                "y2Role": 0,
+                "y2AttributeType": 0,
+                "topRole": 0,
+                "topAttributeType": 2,
+                "rightRole": 0,
+                "rightAttributeType": 0,
+                "xAxisClass": "DG.CellLinearAxisModel",
+                "xLowerBound": -5,
+                "xUpperBound": 95,
+                "yAxisClass": "DG.CellLinearAxisModel",
+                "yLowerBound": -10,
+                "yUpperBound": 130,
+                "y2AxisClass": "DG.AxisModel",
+                "topAxisClass": "DG.CellAxisModel",
+                "rightAxisClass": "DG.CellAxisModel",
+                "plotModels": [
+                    {
+                        "plotModelStorage": {
+                            "verticalAxisIsY2": false,
+                            "adornments": {
+                                "plottedCount": {
+                                    "isVisible": false,
+                                    "enableMeasuresForSelection": false,
+                                    "isShowingCount": false,
+                                    "isShowingPercent": false,
+                                    "percentKind": 1
+                                }
+                            },
+                            "movableLineStorage": {
+                                "isVisible": true,
+                                "enableMeasuresForSelection": false,
+                                "isInterceptLocked": true,
+                                "equationCoords": null,
+                                "intercept": -1.4210854715202004e-14,
+                                "slope": 2.0886973446406225,
+                                "isVertical": false,
+                                "xIntercept": null
+                            },
+                            "areSquaresVisible": true
+                        },
+                        "plotClass": "DG.ScatterPlotModel"
+                    }
+                ],
+                "title": "TopSplit-MovLine-LockSquares",
+                "userSetTitle": true,
+                "cannotClose": false
+            },
+            "layout": {
+                "width": 240,
+                "height": 210,
+                "zIndex": 373,
+                "left": 455,
+                "top": 695,
+                "isVisible": true,
+                "right": 695,
+                "bottom": 905
+            },
+            "savedHeight": null
+        },
+        {
+            "type": "DG.GraphView",
+            "guid": 58,
+            "id": 58,
+            "componentStorage": {
+                "_links_": {
+                    "context": {
+                        "type": "DG.DataContextRecord",
+                        "id": 2
+                    },
+                    "legendColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "legendAttr": {
+                        "type": "DG.Attribute",
+                        "id": 12
+                    },
+                    "hiddenCases": [],
+                    "xColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "xAttr": {
+                        "type": "DG.Attribute",
+                        "id": 6
+                    },
+                    "yColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "yAttr": {
+                        "type": "DG.Attribute",
+                        "id": 10
+                    }
+                },
+                "displayOnlySelected": false,
+                "legendRole": 0,
+                "legendAttributeType": 2,
+                "numberOfLegendQuantiles": 5,
+                "legendQuantilesAreLocked": false,
+                "pointColor": "#e6805b",
+                "strokeColor": "lightgrey",
+                "pointSizeMultiplier": 1,
+                "transparency": 0.85,
+                "strokeTransparency": 0.4,
+                "strokeSameAsFill": false,
+                "isTransparent": false,
+                "plotBackgroundColor": null,
+                "plotBackgroundOpacity": 1,
+                "plotBackgroundImage": null,
+                "plotBackgroundImageLockInfo": null,
+                "xRole": 1,
+                "xAttributeType": 1,
+                "yRole": 4,
+                "yAttributeType": 1,
+                "y2Role": 0,
+                "y2AttributeType": 0,
+                "topRole": 0,
+                "topAttributeType": 0,
+                "rightRole": 0,
+                "rightAttributeType": 0,
+                "xAxisClass": "DG.CellLinearAxisModel",
+                "xLowerBound": -5,
+                "xUpperBound": 95,
+                "yAxisClass": "DG.CellLinearAxisModel",
+                "yLowerBound": -10,
+                "yUpperBound": 130,
+                "y2AxisClass": "DG.AxisModel",
+                "topAxisClass": "DG.CellAxisModel",
+                "rightAxisClass": "DG.CellAxisModel",
+                "plotModels": [
+                    {
+                        "plotModelStorage": {
+                            "verticalAxisIsY2": false,
+                            "adornments": {
+                                "plottedCount": {
+                                    "isVisible": false,
+                                    "enableMeasuresForSelection": false,
+                                    "isShowingCount": false,
+                                    "isShowingPercent": false,
+                                    "percentKind": 1
+                                }
+                            },
+                            "movableLineStorage": {
+                                "isVisible": true,
+                                "enableMeasuresForSelection": false,
+                                "isInterceptLocked": true,
+                                "equationCoords": null,
+                                "intercept": 0,
+                                "slope": 1.6049750704192869,
+                                "isVertical": false,
+                                "xIntercept": null
+                            },
+                            "areSquaresVisible": true
+                        },
+                        "plotClass": "DG.ScatterPlotModel"
+                    }
+                ],
+                "title": "Simple-Legend-MovLine-LockSquares",
+                "userSetTitle": true,
+                "cannotClose": false
+            },
+            "layout": {
+                "width": 245,
+                "height": 210,
+                "zIndex": 375,
+                "left": 700,
+                "top": 695,
+                "isVisible": true,
+                "right": 945,
+                "bottom": 905
+            },
+            "savedHeight": null
+        },
+        {
+            "type": "DG.GraphView",
+            "guid": 59,
+            "id": 59,
+            "componentStorage": {
+                "_links_": {
+                    "context": {
+                        "type": "DG.DataContextRecord",
+                        "id": 2
+                    },
+                    "hiddenCases": [],
+                    "xColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "xAttr": {
+                        "type": "DG.Attribute",
+                        "id": 6
+                    },
+                    "yColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "yAttr": {
+                        "type": "DG.Attribute",
+                        "id": 10
+                    },
+                    "topColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "topAttr": {
+                        "type": "DG.Attribute",
+                        "id": 12
+                    },
+                    "rightColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "rightAttr": {
+                        "type": "DG.Attribute",
+                        "id": 11
+                    }
+                },
+                "displayOnlySelected": false,
+                "legendRole": 0,
+                "legendAttributeType": 0,
+                "numberOfLegendQuantiles": 5,
+                "legendQuantilesAreLocked": false,
+                "pointColor": "#e6805b",
+                "strokeColor": "white",
+                "pointSizeMultiplier": 1,
+                "transparency": 0.85,
+                "strokeTransparency": 0.4,
+                "strokeSameAsFill": false,
+                "isTransparent": false,
+                "plotBackgroundColor": null,
+                "plotBackgroundOpacity": 1,
+                "plotBackgroundImage": null,
+                "plotBackgroundImageLockInfo": null,
+                "xRole": 1,
+                "xAttributeType": 1,
+                "yRole": 4,
+                "yAttributeType": 1,
+                "y2Role": 0,
+                "y2AttributeType": 0,
+                "topRole": 0,
+                "topAttributeType": 2,
+                "rightRole": 0,
+                "rightAttributeType": 2,
+                "xAxisClass": "DG.CellLinearAxisModel",
+                "xLowerBound": -5,
+                "xUpperBound": 95,
+                "yAxisClass": "DG.CellLinearAxisModel",
+                "yLowerBound": -10,
+                "yUpperBound": 130,
+                "y2AxisClass": "DG.AxisModel",
+                "topAxisClass": "DG.CellAxisModel",
+                "rightAxisClass": "DG.CellAxisModel",
+                "plotModels": [
+                    {
+                        "plotModelStorage": {
+                            "verticalAxisIsY2": false,
+                            "adornments": {
+                                "plottedCount": {
+                                    "isVisible": false,
+                                    "enableMeasuresForSelection": false,
+                                    "isShowingCount": false,
+                                    "isShowingPercent": false,
+                                    "percentKind": 1
+                                }
+                            },
+                            "movableLineStorage": {
+                                "isVisible": true,
+                                "enableMeasuresForSelection": false,
+                                "isInterceptLocked": false,
+                                "equationCoords": null,
+                                "intercept": -4.98204697516867,
+                                "slope": 1.5939380196523056,
+                                "isVertical": false,
+                                "xIntercept": null
+                            }
+                        },
+                        "plotClass": "DG.ScatterPlotModel"
+                    }
+                ],
+                "title": "TopRightSplit-MovLine",
+                "userSetTitle": true,
+                "cannotClose": false
+            },
+            "layout": {
+                "width": 245,
+                "height": 210,
+                "zIndex": 414,
+                "left": 950,
+                "top": 695,
+                "isVisible": true,
+                "right": 1195,
+                "bottom": 905
+            },
+            "savedHeight": null
+        },
+        {
+            "type": "DG.GraphView",
+            "guid": 60,
+            "id": 60,
+            "componentStorage": {
+                "_links_": {
+                    "context": {
+                        "type": "DG.DataContextRecord",
+                        "id": 2
+                    },
+                    "hiddenCases": [],
+                    "xColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "xAttr": {
+                        "type": "DG.Attribute",
+                        "id": 6
+                    },
+                    "yColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "yAttr": {
+                        "type": "DG.Attribute",
+                        "id": 10
+                    }
+                },
+                "displayOnlySelected": false,
+                "legendRole": 0,
+                "legendAttributeType": 0,
+                "numberOfLegendQuantiles": 5,
+                "legendQuantilesAreLocked": false,
+                "pointColor": "#e6805b",
+                "strokeColor": "white",
+                "pointSizeMultiplier": 1,
+                "transparency": 0.85,
+                "strokeTransparency": 0.4,
+                "strokeSameAsFill": false,
+                "isTransparent": false,
+                "plotBackgroundColor": null,
+                "plotBackgroundOpacity": 1,
+                "plotBackgroundImage": null,
+                "plotBackgroundImageLockInfo": null,
+                "xRole": 1,
+                "xAttributeType": 1,
+                "yRole": 4,
+                "yAttributeType": 1,
+                "y2Role": 0,
+                "y2AttributeType": 0,
+                "topRole": 0,
+                "topAttributeType": 0,
+                "rightRole": 0,
+                "rightAttributeType": 0,
+                "xAxisClass": "DG.CellLinearAxisModel",
+                "xLowerBound": -5,
+                "xUpperBound": 95,
+                "yAxisClass": "DG.CellLinearAxisModel",
+                "yLowerBound": -10,
+                "yUpperBound": 130,
+                "y2AxisClass": "DG.AxisModel",
+                "topAxisClass": "DG.CellAxisModel",
+                "rightAxisClass": "DG.CellAxisModel",
+                "plotModels": [
+                    {
+                        "plotModelStorage": {
+                            "verticalAxisIsY2": false,
+                            "adornments": {
+                                "plottedCount": {
+                                    "isVisible": false,
+                                    "enableMeasuresForSelection": false,
+                                    "isShowingCount": false,
+                                    "isShowingPercent": false,
+                                    "percentKind": 1
+                                }
+                            },
+                            "movableLineStorage": {
+                                "isVisible": true,
+                                "enableMeasuresForSelection": false,
+                                "isInterceptLocked": false,
+                                "equationCoords": null,
+                                "intercept": null,
+                                "slope": null,
+                                "isVertical": true,
+                                "xIntercept": 45
+                            }
+                        },
+                        "plotClass": "DG.ScatterPlotModel"
+                    }
+                ],
+                "title": "Simple-MovLine-Vertical",
+                "userSetTitle": true,
+                "cannotClose": false
+            },
+            "layout": {
+                "width": 240,
+                "height": 220,
+                "zIndex": 343,
+                "left": 210,
+                "top": 908.5,
+                "isVisible": true,
+                "right": 450,
+                "bottom": 1128.5
+            },
+            "savedHeight": null
+        },
+        {
+            "type": "DG.GraphView",
+            "guid": 61,
+            "id": 61,
+            "componentStorage": {
+                "_links_": {
+                    "context": {
+                        "type": "DG.DataContextRecord",
+                        "id": 2
+                    },
+                    "hiddenCases": [],
+                    "xColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "xAttr": {
+                        "type": "DG.Attribute",
+                        "id": 6
+                    },
+                    "yColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "yAttr": {
+                        "type": "DG.Attribute",
+                        "id": 10
+                    }
+                },
+                "displayOnlySelected": false,
+                "legendRole": 0,
+                "legendAttributeType": 0,
+                "numberOfLegendQuantiles": 5,
+                "legendQuantilesAreLocked": false,
+                "pointColor": "#e6805b",
+                "strokeColor": "white",
+                "pointSizeMultiplier": 1,
+                "transparency": 0.85,
+                "strokeTransparency": 0.4,
+                "strokeSameAsFill": false,
+                "isTransparent": false,
+                "plotBackgroundColor": null,
+                "plotBackgroundOpacity": 1,
+                "plotBackgroundImage": null,
+                "plotBackgroundImageLockInfo": null,
+                "xRole": 1,
+                "xAttributeType": 1,
+                "yRole": 4,
+                "yAttributeType": 1,
+                "y2Role": 0,
+                "y2AttributeType": 0,
+                "topRole": 0,
+                "topAttributeType": 0,
+                "rightRole": 0,
+                "rightAttributeType": 0,
+                "xAxisClass": "DG.CellLinearAxisModel",
+                "xLowerBound": -5,
+                "xUpperBound": 95,
+                "yAxisClass": "DG.CellLinearAxisModel",
+                "yLowerBound": -10,
+                "yUpperBound": 130,
+                "y2AxisClass": "DG.AxisModel",
+                "topAxisClass": "DG.CellAxisModel",
+                "rightAxisClass": "DG.CellAxisModel",
+                "plotModels": [
+                    {
+                        "plotModelStorage": {
+                            "verticalAxisIsY2": false,
+                            "adornments": {
+                                "plottedCount": {
+                                    "isVisible": false,
+                                    "enableMeasuresForSelection": false,
+                                    "isShowingCount": false,
+                                    "isShowingPercent": false,
+                                    "percentKind": 1
+                                }
+                            },
+                            "movableLineStorage": {
+                                "isVisible": true,
+                                "enableMeasuresForSelection": false,
+                                "isInterceptLocked": false,
+                                "equationCoords": null,
+                                "intercept": null,
+                                "slope": null,
+                                "isVertical": true,
+                                "xIntercept": 45
+                            },
+                            "areSquaresVisible": true
+                        },
+                        "plotClass": "DG.ScatterPlotModel"
+                    }
+                ],
+                "title": "Simple-MovLine-Vertical-Squares",
+                "userSetTitle": true,
+                "cannotClose": false
+            },
+            "layout": {
+                "width": 240,
+                "height": 220,
+                "zIndex": 338,
+                "left": 455,
+                "top": 910,
+                "isVisible": true,
+                "right": 695,
+                "bottom": 1130
+            },
+            "savedHeight": null
+        },
+        {
+            "type": "DG.GraphView",
+            "guid": 63,
+            "id": 63,
+            "componentStorage": {
+                "_links_": {
+                    "context": {
+                        "type": "DG.DataContextRecord",
+                        "id": 2
+                    },
+                    "hiddenCases": [],
+                    "xColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "xAttr": {
+                        "type": "DG.Attribute",
+                        "id": 6
+                    },
+                    "yColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "yAttr": {
+                        "type": "DG.Attribute",
+                        "id": 10
+                    },
+                    "topColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "topAttr": {
+                        "type": "DG.Attribute",
+                        "id": 12
+                    },
+                    "rightColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "rightAttr": {
+                        "type": "DG.Attribute",
+                        "id": 11
+                    }
+                },
+                "displayOnlySelected": false,
+                "legendRole": 0,
+                "legendAttributeType": 0,
+                "numberOfLegendQuantiles": 5,
+                "legendQuantilesAreLocked": false,
+                "pointColor": "#e6805b",
+                "strokeColor": "white",
+                "pointSizeMultiplier": 1,
+                "transparency": 0.85,
+                "strokeTransparency": 0.4,
+                "strokeSameAsFill": false,
+                "isTransparent": false,
+                "plotBackgroundColor": null,
+                "plotBackgroundOpacity": 1,
+                "plotBackgroundImage": null,
+                "plotBackgroundImageLockInfo": null,
+                "xRole": 1,
+                "xAttributeType": 1,
+                "yRole": 4,
+                "yAttributeType": 1,
+                "y2Role": 0,
+                "y2AttributeType": 0,
+                "topRole": 0,
+                "topAttributeType": 2,
+                "rightRole": 0,
+                "rightAttributeType": 2,
+                "xAxisClass": "DG.CellLinearAxisModel",
+                "xLowerBound": -5,
+                "xUpperBound": 95,
+                "yAxisClass": "DG.CellLinearAxisModel",
+                "yLowerBound": -10,
+                "yUpperBound": 130,
+                "y2AxisClass": "DG.AxisModel",
+                "topAxisClass": "DG.CellAxisModel",
+                "rightAxisClass": "DG.CellAxisModel",
+                "plotModels": [
+                    {
+                        "plotModelStorage": {
+                            "verticalAxisIsY2": false,
+                            "adornments": {
+                                "plottedCount": {
+                                    "isVisible": false,
+                                    "enableMeasuresForSelection": false,
+                                    "isShowingCount": false,
+                                    "isShowingPercent": false,
+                                    "percentKind": 1
+                                }
+                            },
+                            "movablePointStorage": {
+                                "isVisible": true,
+                                "enableMeasuresForSelection": false,
+                                "coordinates": {
+                                    "x": 50.68862275449102,
+                                    "y": 70.23391812865496
+                                }
+                            }
+                        },
+                        "plotClass": "DG.ScatterPlotModel"
+                    }
+                ],
+                "title": "Mammals",
+                "userSetTitle": false,
+                "cannotClose": false
+            },
+            "layout": {
+                "width": 245,
+                "height": 220,
+                "zIndex": 443,
+                "left": 950,
+                "top": 910,
+                "isVisible": true,
+                "right": 1195,
+                "bottom": 1130
+            },
+            "savedHeight": null
+        }
+    ],
+    "contexts": [
+        {
+            "type": "DG.DataContext",
+            "document": 1,
+            "guid": 2,
+            "id": 2,
+            "flexibleGroupingChangeFlag": false,
+            "name": "Mammals",
+            "title": "Mammals",
+            "collections": [
+                {
+                    "areParentChildLinksConfigured": false,
+                    "attrs": [
+                        {
+                            "name": "Mammal",
+                            "type": "none",
+                            "title": "Mammal",
+                            "cid": "id:ieEwC74uQH5H7j2A",
+                            "description": "The species of the mammal",
+                            "_categoryMap": {
+                                "__order": [
+                                    "African Elephant",
+                                    "Asian Elephant",
+                                    "Big Brown Bat",
+                                    "Bottlenose Dolphin",
+                                    "Cheetah",
+                                    "Chimpanzee",
+                                    "Domestic Cat",
+                                    "Donkey",
+                                    "Giraffe",
+                                    "Gray Wolf",
+                                    "Grey Seal",
+                                    "Ground Squirrel",
+                                    "Horse",
+                                    "House Mouse",
+                                    "Human",
+                                    "Jaguar",
+                                    "Killer Whale",
+                                    "Lion",
+                                    "N. American Opossum",
+                                    "Nine-Banded Armadillo",
+                                    "Owl Monkey",
+                                    "Patas Monkey",
+                                    "Pig",
+                                    "Pronghorn Antelope",
+                                    "Rabbit",
+                                    "Red Fox",
+                                    "Spotted Hyena"
+                                ],
+                                "African Elephant": "#FFB300",
+                                "Asian Elephant": "#803E75",
+                                "Big Brown Bat": "#FF6800",
+                                "Bottlenose Dolphin": "#A6BDD7",
+                                "Cheetah": "#C10020",
+                                "Chimpanzee": "#CEA262",
+                                "Domestic Cat": "#817066",
+                                "Donkey": "#007D34",
+                                "Giraffe": "#00538A",
+                                "Gray Wolf": "#F13A13",
+                                "Grey Seal": "#53377A",
+                                "Ground Squirrel": "#FF8E00",
+                                "Horse": "#B32851",
+                                "House Mouse": "#F4C800",
+                                "Human": "#7F180D",
+                                "Jaguar": "#93AA00",
+                                "Killer Whale": "#593315",
+                                "Lion": "#232C16",
+                                "N. American Opossum": "#FF7A5C",
+                                "Nine-Banded Armadillo": "#F6768E",
+                                "Owl Monkey": "#FFB300",
+                                "Patas Monkey": "#803E75",
+                                "Pig": "#FF6800",
+                                "Pronghorn Antelope": "#A6BDD7",
+                                "Rabbit": "#C10020",
+                                "Red Fox": "#CEA262",
+                                "Spotted Hyena": "#817066"
+                            },
+                            "blockDisplayOfEmptyCategories": true,
+                            "editable": true,
+                            "hidden": false,
+                            "renameable": true,
+                            "deleteable": true,
+                            "guid": 4,
+                            "id": 4,
+                            "precision": 2,
+                            "unit": null
+                        },
+                        {
+                            "name": "Order",
+                            "type": "none",
+                            "title": "Order",
+                            "cid": "id:GGomtqcqSG2E8Pyf",
+                            "description": "The order of the mammal",
+                            "blockDisplayOfEmptyCategories": true,
+                            "editable": true,
+                            "hidden": false,
+                            "renameable": true,
+                            "deleteable": true,
+                            "guid": 5,
+                            "id": 5,
+                            "precision": 2,
+                            "unit": null
+                        },
+                        {
+                            "name": "LifeSpan",
+                            "type": "numeric",
+                            "title": "LifeSpan",
+                            "cid": "id:B2eRuCrzCB2OM0L6",
+                            "description": "",
+                            "_categoryMap": {
+                                "3": "#00538A",
+                                "5": "#F4C800",
+                                "7": "#593315",
+                                "9": "#007D34",
+                                "10": "#7F180D",
+                                "12": "#93AA00",
+                                "14": "#A6BDD7",
+                                "15": "#B32851",
+                                "16": "#CEA262",
+                                "19": "#803E75",
+                                "20": "#53377A",
+                                "25": "#FF6800",
+                                "30": "#817066",
+                                "40": "#C10020",
+                                "50": "#FF8E00",
+                                "70": "#FFB300",
+                                "80": "#F13A13",
+                                "__order": [
+                                    "10",
+                                    "12",
+                                    "14",
+                                    "15",
+                                    "16",
+                                    "19",
+                                    "20",
+                                    "25",
+                                    "3",
+                                    "30",
+                                    "40",
+                                    "5",
+                                    "50",
+                                    "7",
+                                    "70",
+                                    "80",
+                                    "9"
+                                ]
+                            },
+                            "blockDisplayOfEmptyCategories": true,
+                            "editable": true,
+                            "hidden": false,
+                            "renameable": true,
+                            "deleteable": true,
+                            "guid": 6,
+                            "id": 6,
+                            "precision": 2,
+                            "unit": "years"
+                        },
+                        {
+                            "name": "Height",
+                            "type": "none",
+                            "title": "Height",
+                            "cid": "id:Ji01-XBgJ-gqAhZk",
+                            "description": "The average height of the mammal.",
+                            "blockDisplayOfEmptyCategories": true,
+                            "editable": true,
+                            "hidden": false,
+                            "renameable": true,
+                            "deleteable": true,
+                            "guid": 7,
+                            "id": 7,
+                            "precision": 2,
+                            "unit": "meters"
+                        },
+                        {
+                            "name": "Mass",
+                            "type": "numeric",
+                            "title": "Mass",
+                            "cid": "id:kvRxFNIrd83ypuRO",
+                            "description": "The mass of the mammal",
+                            "blockDisplayOfEmptyCategories": true,
+                            "editable": true,
+                            "hidden": false,
+                            "renameable": true,
+                            "deleteable": true,
+                            "guid": 8,
+                            "id": 8,
+                            "precision": 2,
+                            "unit": "kg"
+                        },
+                        {
+                            "name": "Sleep",
+                            "type": "numeric",
+                            "title": "Sleep",
+                            "cid": "id:OYULbihxf8r-mpyh",
+                            "description": "The number of hours the animal sleeps in a 24 hour period",
+                            "_categoryMap": {
+                                "2": "#817066",
+                                "3": "#FF6800",
+                                "4": "#803E75",
+                                "5": "#FFB300",
+                                "6": "#00538A",
+                                "8": "#53377A",
+                                "10": "#CEA262",
+                                "11": "#FF8E00",
+                                "12": "#C10020",
+                                "13": "#007D34",
+                                "15": "#F13A13",
+                                "17": "#F4C800",
+                                "18": "#7F180D",
+                                "19": "#B32851",
+                                "20": "#A6BDD7",
+                                "__order": [
+                                    "2",
+                                    "3",
+                                    "4",
+                                    "5",
+                                    "6",
+                                    "8",
+                                    "10",
+                                    "11",
+                                    "12",
+                                    "13",
+                                    "15",
+                                    "17",
+                                    "18",
+                                    "19",
+                                    "20"
+                                ]
+                            },
+                            "blockDisplayOfEmptyCategories": true,
+                            "editable": true,
+                            "hidden": false,
+                            "renameable": true,
+                            "deleteable": true,
+                            "guid": 9,
+                            "id": 9,
+                            "precision": 2,
+                            "unit": "hours"
+                        },
+                        {
+                            "name": "Speed",
+                            "type": "none",
+                            "title": "Speed",
+                            "cid": "id:GIDIufH8qY2Cha0Y",
+                            "description": "The average speed of the mammal.",
+                            "_categoryMap": {
+                                "1": "#B32851",
+                                "13": "#007D34",
+                                "18": "#7F180D",
+                                "19": "#CEA262",
+                                "37": "#803E75",
+                                "40": "#FF6800",
+                                "45": "#00538A",
+                                "48": "#53377A",
+                                "50": "#FFB300",
+                                "55": "#F4C800",
+                                "56": "#593315",
+                                "60": "#F13A13",
+                                "64": "#C10020",
+                                "69": "#817066",
+                                "80": "#FF8E00",
+                                "98": "#93AA00",
+                                "110": "#A6BDD7",
+                                "__order": [
+                                    "1",
+                                    "13",
+                                    "18",
+                                    "19",
+                                    "37",
+                                    "40",
+                                    "45",
+                                    "48",
+                                    "50",
+                                    "55",
+                                    "56",
+                                    "60",
+                                    "64",
+                                    "69",
+                                    "80",
+                                    "98",
+                                    "110"
+                                ]
+                            },
+                            "blockDisplayOfEmptyCategories": true,
+                            "editable": true,
+                            "hidden": false,
+                            "renameable": true,
+                            "deleteable": true,
+                            "guid": 10,
+                            "id": 10,
+                            "precision": 2,
+                            "unit": "km/h"
+                        },
+                        {
+                            "name": "Habitat",
+                            "type": null,
+                            "title": "Habitat",
+                            "cid": "id:CYauqVJgJxdWAyc2",
+                            "description": "",
+                            "_categoryMap": {
+                                "land": {
+                                    "h": 0.4444444444444444,
+                                    "s": 0.6666666666666666,
+                                    "b": 1,
+                                    "colorString": "rgb(85,255,198)"
+                                },
+                                "water": {
+                                    "h": 0.711111111111111,
+                                    "s": 0.6666666666666666,
+                                    "b": 1,
+                                    "colorString": "rgb(130,85,255)"
+                                },
+                                "both": {
+                                    "h": 0.9777777777777777,
+                                    "s": 0.6666666666666666,
+                                    "b": 1,
+                                    "colorString": "rgb(255,85,108)"
+                                },
+                                "__order": [
+                                    "land",
+                                    "water",
+                                    "both"
+                                ]
+                            },
+                            "blockDisplayOfEmptyCategories": true,
+                            "editable": true,
+                            "hidden": false,
+                            "renameable": true,
+                            "deleteable": true,
+                            "guid": 11,
+                            "id": 11,
+                            "precision": 2,
+                            "unit": null
+                        },
+                        {
+                            "name": "Diet",
+                            "type": null,
+                            "title": "Diet",
+                            "cid": "id:JpkBNmsi1a2mPgER",
+                            "description": "",
+                            "_categoryMap": {
+                                "__order": [
+                                    "both",
+                                    "meat",
+                                    "plants"
+                                ],
+                                "plants": "#FFB300",
+                                "meat": "#803E75",
+                                "both": "#FF6800"
+                            },
+                            "blockDisplayOfEmptyCategories": true,
+                            "editable": true,
+                            "hidden": false,
+                            "renameable": true,
+                            "deleteable": true,
+                            "guid": 12,
+                            "id": 12,
+                            "precision": 2,
+                            "unit": null
+                        }
+                    ],
+                    "cases": [
+                        {
+                            "guid": 13,
+                            "id": 13,
+                            "itemID": "id:otvFJcjL2Ge1lYaO",
+                            "values": {
+                                "Mammal": "African Elephant",
+                                "Order": "Proboscidae",
+                                "LifeSpan": 70,
+                                "Height": 4,
+                                "Mass": 6400,
+                                "Sleep": 3,
+                                "Speed": 40,
+                                "Habitat": "land",
+                                "Diet": "plants"
+                            }
+                        },
+                        {
+                            "guid": 14,
+                            "id": 14,
+                            "itemID": "id:SMowkUy8WEsJqgBt",
+                            "values": {
+                                "Mammal": "Asian Elephant",
+                                "Order": "Proboscidae",
+                                "LifeSpan": 70,
+                                "Height": 3,
+                                "Mass": 5000,
+                                "Sleep": 4,
+                                "Speed": 40,
+                                "Habitat": "land",
+                                "Diet": "plants"
+                            }
+                        },
+                        {
+                            "guid": 15,
+                            "id": 15,
+                            "itemID": "id:sVUr1pyFn28n-sXE",
+                            "values": {
+                                "Mammal": "Big Brown Bat",
+                                "Order": "Chiroptera",
+                                "LifeSpan": 19,
+                                "Height": 0.1,
+                                "Mass": 0.02,
+                                "Sleep": 20,
+                                "Speed": 40,
+                                "Habitat": "land",
+                                "Diet": "meat"
+                            }
+                        },
+                        {
+                            "guid": 16,
+                            "id": 16,
+                            "itemID": "id:Xe10MHytD0uBobKn",
+                            "values": {
+                                "Mammal": "Bottlenose Dolphin",
+                                "Order": "Cetacea",
+                                "LifeSpan": 25,
+                                "Height": 3.5,
+                                "Mass": 635,
+                                "Sleep": 5,
+                                "Speed": 37,
+                                "Habitat": "water",
+                                "Diet": "meat"
+                            }
+                        },
+                        {
+                            "guid": 17,
+                            "id": 17,
+                            "itemID": "id:DabKtXzwIDWbXL8Y",
+                            "values": {
+                                "Mammal": "Cheetah",
+                                "Order": "Carnivora",
+                                "LifeSpan": 14,
+                                "Height": 1.5,
+                                "Mass": 50,
+                                "Sleep": 12,
+                                "Speed": 110,
+                                "Habitat": "land",
+                                "Diet": "meat"
+                            }
+                        },
+                        {
+                            "guid": 18,
+                            "id": 18,
+                            "itemID": "id:4dOKy8iQ6_6KEF-O",
+                            "values": {
+                                "Mammal": "Chimpanzee",
+                                "Order": "Primate",
+                                "LifeSpan": 40,
+                                "Height": 1.5,
+                                "Mass": 68,
+                                "Sleep": 10,
+                                "Speed": "",
+                                "Habitat": "land",
+                                "Diet": "both"
+                            }
+                        },
+                        {
+                            "guid": 19,
+                            "id": 19,
+                            "itemID": "id:4C-JhUdwch7BOIab",
+                            "values": {
+                                "Mammal": "Domestic Cat",
+                                "Order": "Carnivora",
+                                "LifeSpan": 16,
+                                "Height": 0.8,
+                                "Mass": 4.5,
+                                "Sleep": 12,
+                                "Speed": 50,
+                                "Habitat": "land",
+                                "Diet": "meat"
+                            }
+                        },
+                        {
+                            "guid": 20,
+                            "id": 20,
+                            "itemID": "id:FgVp_msehBkXmKaZ",
+                            "values": {
+                                "Mammal": "Donkey",
+                                "Order": "Perissodactyla",
+                                "LifeSpan": 40,
+                                "Height": 1.2,
+                                "Mass": 187,
+                                "Sleep": 3,
+                                "Speed": 50,
+                                "Habitat": "land",
+                                "Diet": "plants"
+                            }
+                        },
+                        {
+                            "guid": 21,
+                            "id": 21,
+                            "itemID": "id:Y5O-iIWtA3YGzpiU",
+                            "values": {
+                                "Mammal": "Giraffe",
+                                "Order": "Artiodactyla",
+                                "LifeSpan": 25,
+                                "Height": 5,
+                                "Mass": 1100,
+                                "Sleep": 2,
+                                "Speed": 50,
+                                "Habitat": "land",
+                                "Diet": "plants"
+                            }
+                        },
+                        {
+                            "guid": 22,
+                            "id": 22,
+                            "itemID": "id:akHHu_FfD9Zma6FO",
+                            "values": {
+                                "Mammal": "Gray Wolf",
+                                "Order": "Carnivora",
+                                "LifeSpan": 16,
+                                "Height": 1.6,
+                                "Mass": 80,
+                                "Sleep": 13,
+                                "Speed": 64,
+                                "Habitat": "land",
+                                "Diet": "meat"
+                            }
+                        },
+                        {
+                            "guid": 23,
+                            "id": 23,
+                            "itemID": "id:wiVhp0p5rVEsxB-u",
+                            "values": {
+                                "Mammal": "Grey Seal",
+                                "Order": "Pinnipedia",
+                                "LifeSpan": 30,
+                                "Height": 2.1,
+                                "Mass": 275,
+                                "Sleep": 6,
+                                "Speed": 19,
+                                "Habitat": "both",
+                                "Diet": "meat"
+                            }
+                        },
+                        {
+                            "guid": 24,
+                            "id": 24,
+                            "itemID": "id:b8n-yO0Z9xPLmsTC",
+                            "values": {
+                                "Mammal": "Ground Squirrel",
+                                "Order": "Rodentia",
+                                "LifeSpan": 9,
+                                "Height": 0.3,
+                                "Mass": 0.1,
+                                "Sleep": 15,
+                                "Speed": 19,
+                                "Habitat": "land",
+                                "Diet": "both"
+                            }
+                        },
+                        {
+                            "guid": 25,
+                            "id": 25,
+                            "itemID": "id:HZluaX5NCLQD_mD6",
+                            "values": {
+                                "Mammal": "Horse",
+                                "Order": "Perissodactyla",
+                                "LifeSpan": 25,
+                                "Height": 1.5,
+                                "Mass": 521,
+                                "Sleep": 3,
+                                "Speed": 69,
+                                "Habitat": "land",
+                                "Diet": "plants"
+                            }
+                        },
+                        {
+                            "guid": 26,
+                            "id": 26,
+                            "itemID": "id:xw-d1DbBfP8RuYAt",
+                            "values": {
+                                "Mammal": "House Mouse",
+                                "Order": "Rodentia",
+                                "LifeSpan": 3,
+                                "Height": 0.1,
+                                "Mass": 0.03,
+                                "Sleep": 12,
+                                "Speed": 13,
+                                "Habitat": "land",
+                                "Diet": "both"
+                            }
+                        },
+                        {
+                            "guid": 27,
+                            "id": 27,
+                            "itemID": "id:iHJLtgDjPakPuhww",
+                            "values": {
+                                "Mammal": "Human",
+                                "Order": "Primate",
+                                "LifeSpan": 80,
+                                "Height": 1.9,
+                                "Mass": 80,
+                                "Sleep": 8,
+                                "Speed": 45,
+                                "Habitat": "land",
+                                "Diet": "both"
+                            }
+                        },
+                        {
+                            "guid": 28,
+                            "id": 28,
+                            "itemID": "id:oXpY4YcBawlPCVm9",
+                            "values": {
+                                "Mammal": "Jaguar",
+                                "Order": "Carnivora",
+                                "LifeSpan": 20,
+                                "Height": 1.8,
+                                "Mass": 115,
+                                "Sleep": 11,
+                                "Speed": 60,
+                                "Habitat": "land",
+                                "Diet": "meat"
+                            }
+                        },
+                        {
+                            "guid": 29,
+                            "id": 29,
+                            "itemID": "id:Afw9Y7567pT19-ui",
+                            "values": {
+                                "Mammal": "Killer Whale",
+                                "Order": "Cetacea",
+                                "LifeSpan": 50,
+                                "Height": 6.5,
+                                "Mass": 4000,
+                                "Sleep": "",
+                                "Speed": 48,
+                                "Habitat": "water",
+                                "Diet": "meat"
+                            }
+                        },
+                        {
+                            "guid": 30,
+                            "id": 30,
+                            "itemID": "id:NR81z3H58yHpTHDQ",
+                            "values": {
+                                "Mammal": "Lion",
+                                "Order": "Carnivora",
+                                "LifeSpan": 15,
+                                "Height": 2.5,
+                                "Mass": 250,
+                                "Sleep": 20,
+                                "Speed": 80,
+                                "Habitat": "land",
+                                "Diet": "meat"
+                            }
+                        },
+                        {
+                            "guid": 31,
+                            "id": 31,
+                            "itemID": "id:Upj78ktLdDZNg1Cy",
+                            "values": {
+                                "Mammal": "N. American Opossum",
+                                "Order": "Didelphimorphia",
+                                "LifeSpan": 5,
+                                "Height": 0.5,
+                                "Mass": 5,
+                                "Sleep": 19,
+                                "Speed": "",
+                                "Habitat": "land",
+                                "Diet": "both"
+                            }
+                        },
+                        {
+                            "guid": 32,
+                            "id": 32,
+                            "itemID": "id:URIU2cyiA5vr3pTF",
+                            "values": {
+                                "Mammal": "Nine-Banded Armadillo",
+                                "Order": "Xenarthra",
+                                "LifeSpan": 10,
+                                "Height": 0.6,
+                                "Mass": 7,
+                                "Sleep": 17,
+                                "Speed": 1,
+                                "Habitat": "land",
+                                "Diet": "meat"
+                            }
+                        },
+                        {
+                            "guid": 33,
+                            "id": 33,
+                            "itemID": "id:jvuPvlc-Kdg1-TA6",
+                            "values": {
+                                "Mammal": "Owl Monkey",
+                                "Order": "Primate",
+                                "LifeSpan": 12,
+                                "Height": 0.4,
+                                "Mass": 1,
+                                "Sleep": 17,
+                                "Speed": "",
+                                "Habitat": "land",
+                                "Diet": "both"
+                            }
+                        },
+                        {
+                            "guid": 34,
+                            "id": 34,
+                            "itemID": "id:sEkeGQRhXdWC5hKU",
+                            "values": {
+                                "Mammal": "Patas Monkey",
+                                "Order": "Primate",
+                                "LifeSpan": 20,
+                                "Height": 0.9,
+                                "Mass": 13,
+                                "Sleep": "",
+                                "Speed": 55,
+                                "Habitat": "land",
+                                "Diet": "both"
+                            }
+                        },
+                        {
+                            "guid": 35,
+                            "id": 35,
+                            "itemID": "id:ToKmU6iyTWvA0hIg",
+                            "values": {
+                                "Mammal": "Pig",
+                                "Order": "Artiodactyla",
+                                "LifeSpan": 10,
+                                "Height": 1,
+                                "Mass": 192,
+                                "Sleep": 8,
+                                "Speed": 18,
+                                "Habitat": "land",
+                                "Diet": "both"
+                            }
+                        },
+                        {
+                            "guid": 36,
+                            "id": 36,
+                            "itemID": "id:s8GPPAnOOfI7KmnG",
+                            "values": {
+                                "Mammal": "Pronghorn Antelope",
+                                "Order": "Artiodactyla",
+                                "LifeSpan": 10,
+                                "Height": 0.9,
+                                "Mass": 70,
+                                "Sleep": "",
+                                "Speed": 98,
+                                "Habitat": "land",
+                                "Diet": "plants"
+                            }
+                        },
+                        {
+                            "guid": 37,
+                            "id": 37,
+                            "itemID": "id:h82O5HhJwMy7jwav",
+                            "values": {
+                                "Mammal": "Rabbit",
+                                "Order": "Lagomorpha",
+                                "LifeSpan": 5,
+                                "Height": 0.5,
+                                "Mass": 3,
+                                "Sleep": 11,
+                                "Speed": 56,
+                                "Habitat": "land",
+                                "Diet": "plants"
+                            }
+                        },
+                        {
+                            "guid": 38,
+                            "id": 38,
+                            "itemID": "id:1s-aDt7BV_qgS1Ut",
+                            "values": {
+                                "Mammal": "Red Fox",
+                                "Order": "Carnivora",
+                                "LifeSpan": 7,
+                                "Height": 0.8,
+                                "Mass": 5,
+                                "Sleep": 10,
+                                "Speed": 48,
+                                "Habitat": "land",
+                                "Diet": "both"
+                            }
+                        },
+                        {
+                            "guid": 39,
+                            "id": 39,
+                            "itemID": "id:7fecF42sXsVTC0ar",
+                            "values": {
+                                "Mammal": "Spotted Hyena",
+                                "Order": "Carnivora",
+                                "LifeSpan": 25,
+                                "Height": 0.9,
+                                "Mass": 70,
+                                "Sleep": 18,
+                                "Speed": 64,
+                                "Habitat": "land",
+                                "Diet": "meat"
+                            }
+                        }
+                    ],
+                    "caseName": null,
+                    "childAttrName": null,
+                    "collapseChildren": null,
+                    "guid": 3,
+                    "id": 3,
+                    "name": "Mammals",
+                    "title": "Mammals",
+                    "type": "DG.Collection"
+                }
+            ],
+            "description": "",
+            "metadata": null,
+            "preventReorg": false,
+            "setAsideItems": [],
+            "contextStorage": {
+                "_links_": {
+                    "selectedCases": []
+                }
+            }
+        }
+    ],
+    "globalValues": [],
+    "appName": "DG",
+    "appVersion": "2.0",
+    "appBuildNum": "0733",
+    "lang": "en",
+    "idCount": 63,
+    "metadata": {}
+}

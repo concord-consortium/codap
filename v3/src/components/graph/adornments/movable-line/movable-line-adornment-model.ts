@@ -49,6 +49,9 @@ export const MovableLineAdornmentModel = AdornmentModel
   lines: types.map(MovableLineInstance)
 })
 .views(self => ({
+  get firstLineInstance(): Maybe<IMovableLineInstance> {
+    return self.lines.values().next().value
+  },
   get lineDescriptions() {
     const lineDescriptions: ILineDescription[] = []
     self.lines.forEach((line, key) => {

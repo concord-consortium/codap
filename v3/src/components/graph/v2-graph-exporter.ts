@@ -190,7 +190,9 @@ function getPlotModels(graph: IGraphContentModel): Partial<ICodapV2GraphStorage>
     plotModels: [{
       plotClass: v2PlotClass[graph.plotType],
       plotModelStorage: {
+        // in v2, every plot model has the exact same nested adornments
         adornments: nestedAdornments,
+        // in v2 only the first plot model has the top-level adornments
         ...Object.assign({}, ...topAdornments),
         ...areSquaresVisible,
         verticalAxisIsY2: false
@@ -202,7 +204,9 @@ function getPlotModels(graph: IGraphContentModel): Partial<ICodapV2GraphStorage>
     storage.plotModels.push({
       plotClass: v2PlotClass.scatterPlot,
       plotModelStorage: {
+        // in v2, every plot model has the exact same nested adornments
         adornments: nestedAdornments,
+        // in v2 only the first plot model has the top-level adornments
         verticalAxisIsY2: false
       }
     })
@@ -212,7 +216,9 @@ function getPlotModels(graph: IGraphContentModel): Partial<ICodapV2GraphStorage>
     storage.plotModels.push({
       plotClass: v2PlotClass.scatterPlot,
       plotModelStorage: {
+        // in v2, every plot model has the exact same nested adornments
         adornments: nestedAdornments,
+        // in v2 only the first plot model has the top-level adornments
         verticalAxisIsY2: true
       }
     })

@@ -27,6 +27,7 @@ export const PointModel = types.model("Point", {
       }
     }
   }))
+export interface IPointModel extends Instance<typeof PointModel> {}
 export interface IPointModelSnapshot extends SnapshotIn<typeof PointModel> {}
 
 export const kInfinitePoint = {x:NaN, y:NaN}

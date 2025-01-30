@@ -318,18 +318,30 @@ interface ICodapV2ProportionCenterEquationCoords {
   proportionCenterY: number
 }
 
-interface ICodapV2MovableLineAdornment extends ICodapV2Adornment {
+interface ICodapV2MovableLineAdornmentBase extends ICodapV2Adornment {
   isInterceptLocked: boolean
   // TODO_V2_IMPORT: equationCoords are not handled correctly, the import code assumes they have
   // an x and y instead of proportionCenterX and proportionCenterY
   // There are 2,000 instances of this in cfm-shared
   // example: cfm-shared/02RllCJzS0Nt4wX3c6XL/file.json
   equationCoords?: ICodapV2ProportionCenterEquationCoords | null
+}
+
+interface ICodapV2NormalMovableLineAdornment extends ICodapV2MovableLineAdornmentBase {
   intercept: number
   slope: number
-  isVertical: boolean
-  xIntercept: number | null
+  isVertical: false
+  xIntercept: null
 }
+
+interface ICodapV2VerticalMovableLineAdornment extends ICodapV2MovableLineAdornmentBase {
+  intercept: null
+  slope: null
+  isVertical: true
+  xIntercept: number
+}
+
+export type ICodapV2MovableLineAdornment = ICodapV2NormalMovableLineAdornment | ICodapV2VerticalMovableLineAdornment
 
 interface ICodapV2LSRLInstance extends ICodapV2Adornment {
   // this is a graph-wide property that is redundantly stored with each instance
