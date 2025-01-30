@@ -5,13 +5,20 @@ import { SharedModelDocumentManager } from "../../models/document/shared-model-d
 import { ITileModelSnapshotIn } from "../../models/tiles/tile-model"
 import { safeJsonParse } from "../../utilities/js-utils"
 import { CodapV2Document } from "../../v2/codap-v2-document"
-import { ICodapV2DocumentJson } from "../../v2/codap-v2-types"
+import { ICodapV2DocumentJson, ICodapV2GraphComponent } from "../../v2/codap-v2-types"
 import { v2GraphExporter } from "./v2-graph-exporter"
 import { v2GraphImporter } from "./v2-graph-importer"
 import "./graph-registration"
 
 const fs = require("fs")
 const path = require("path")
+
+// When working on these tests, it's critical to know what graph instance is failing.
+// Passing true logs the graph title and the last title logged is the failing graph.
+// Passing tests should be silent, however, so false is passed by default.
+function logGraphTitleMaybe(log: boolean, v2GraphTile: ICodapV2GraphComponent) {
+  log && console.log("v2GraphTile:", v2GraphTile.componentStorage.title || v2GraphTile.componentStorage.name)
+}
 
 function removePropertiesRecursive(obj: any, keysToRemove: string[]): any {
   if (Array.isArray(obj)) {
@@ -89,7 +96,7 @@ describe("V2GraphImporter", () => {
     const { v2Document } = loadCodapDocument("mammals-all-graphs.codap")
     const v2GraphTiles = v2Document.components.filter(c => c.type === "DG.GraphView")
     v2GraphTiles.forEach(v2GraphTile => {
-      // console.log("v2GraphTile", v2GraphTile.componentStorage.title || v2GraphTile.componentStorage.name)
+      logGraphTitleMaybe(false, v2GraphTile)
       const v3GraphTile = v2GraphImporter({
         v2Component: v2GraphTile,
         v2Document,
@@ -99,7 +106,6 @@ describe("V2GraphImporter", () => {
       const v2GraphTileOut = v2GraphExporter({ tile: v3GraphTile! })
       const v2GraphTileStorage = removePropertiesRecursive(v2GraphTile.componentStorage, kIgnoreProps)
       const v2GraphTileOutStorage = removePropertiesRecursive(v2GraphTileOut?.componentStorage, kIgnoreProps)
-      // console.log("v2GraphTileOutStorage", JSON.stringify(v2GraphTileOutStorage, null, 2))
       expect(v2GraphTileOutStorage).toEqual(v2GraphTileStorage)
     })
   })
@@ -108,7 +114,7 @@ describe("V2GraphImporter", () => {
     const { v2Document } = loadCodapDocument("mammals-all-diet-legends.codap")
     const v2GraphTiles = v2Document.components.filter(c => c.type === "DG.GraphView")
     v2GraphTiles.forEach(v2GraphTile => {
-      // console.log("v2GraphTile", v2GraphTile.componentStorage.title || v2GraphTile.componentStorage.name)
+      logGraphTitleMaybe(false, v2GraphTile)
       const v3GraphTile = v2GraphImporter({
         v2Component: v2GraphTile,
         v2Document,
@@ -126,7 +132,7 @@ describe("V2GraphImporter", () => {
     const { v2Document } = loadCodapDocument("mammals-all-diet-legends.codap")
     const v2GraphTiles = v2Document.components.filter(c => c.type === "DG.GraphView")
     v2GraphTiles.forEach(v2GraphTile => {
-      // console.log("v2GraphTile", v2GraphTile.componentStorage.title || v2GraphTile.componentStorage.name)
+      logGraphTitleMaybe(false, v2GraphTile)
       const v3GraphTile = v2GraphImporter({
         v2Component: v2GraphTile,
         v2Document,
@@ -144,7 +150,7 @@ describe("V2GraphImporter", () => {
     const { v2Document } = loadCodapDocument("mammals-simple-adornments.codap")
     const v2GraphTiles = v2Document.components.filter(c => c.type === "DG.GraphView")
     v2GraphTiles.forEach(v2GraphTile => {
-      // console.log("v2GraphTile", v2GraphTile.componentStorage.title || v2GraphTile.componentStorage.name)
+      logGraphTitleMaybe(false, v2GraphTile)
       const v3GraphTile = v2GraphImporter({
         v2Component: v2GraphTile,
         v2Document,
@@ -162,7 +168,7 @@ describe("V2GraphImporter", () => {
     const { v2Document } = loadCodapDocument("mammals-lsrl-adornment.codap")
     const v2GraphTiles = v2Document.components.filter(c => c.type === "DG.GraphView")
     v2GraphTiles.forEach(v2GraphTile => {
-      // console.log("v2GraphTile", v2GraphTile.componentStorage.title || v2GraphTile.componentStorage.name)
+      logGraphTitleMaybe(false, v2GraphTile)
       const v3GraphTile = v2GraphImporter({
         v2Component: v2GraphTile,
         v2Document,
@@ -180,7 +186,7 @@ describe("V2GraphImporter", () => {
     const { v2Document } = loadCodapDocument("mammals-movable-line-point-adornments.codap")
     const v2GraphTiles = v2Document.components.filter(c => c.type === "DG.GraphView")
     v2GraphTiles.forEach(v2GraphTile => {
-      // console.log("v2GraphTile", v2GraphTile.componentStorage.title || v2GraphTile.componentStorage.name)
+      logGraphTitleMaybe(false, v2GraphTile)
       const v3GraphTile = v2GraphImporter({
         v2Component: v2GraphTile,
         v2Document,
