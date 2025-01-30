@@ -5,7 +5,9 @@ import { V2TileExportFn } from "../../v2/codap-v2-tile-exporters"
 import { guidLink, ICodapV2Adornment, ICodapV2GraphStorage, IGuidLink } from "../../v2/codap-v2-types"
 import { IAxisModel, isNumericAxisModel } from "../axis/models/axis-model"
 import { GraphAttrRole } from "../data-display/data-display-types"
-import { getAdornmentContentInfo, IAdornmentExporterOptions } from "./adornments/adornment-content-info"
+import {
+  getAdornmentContentInfo, IAdornmentExporterOptions, isCodapV2TopLevelAdornment
+} from "./adornments/adornment-content-info"
 import { ICountAdornmentModel } from "./adornments/count/count-adornment-model"
 import { kCountType } from "./adornments/count/count-adornment-types"
 import { IMovableValueAdornmentModel } from "./adornments/movable-value/movable-value-adornment-model"
@@ -154,13 +156,17 @@ function getAxisClassAndBounds(
 
 function getPlotModels(graph: IGraphContentModel): Partial<ICodapV2GraphStorage> {
   const { adornmentsStore, dataConfiguration: { categoricalAttrs, showMeasuresForSelection = false } } = graph
+  const legendCategories = graph.dataConfiguration.categoryArrayForAttrRole("legend")
   const countAdornment = adornmentsStore.findAdornmentOfType<ICountAdornmentModel>(kCountType)
   const movableValuesAdornment = adornmentsStore.findAdornmentOfType<IMovableValueAdornmentModel>(kMovableValueType)
+  const isInterceptLocked = adornmentsStore.interceptLocked
   const isShowingCount = !!countAdornment?.isVisible && countAdornment.showCount
   const isShowingPercent = !!countAdornment?.isVisible && countAdornment.showPercent
   const isShowingMovableValues = !!movableValuesAdornment?.isVisible && movableValuesAdornment.hasValues
+  const showSumSquares = !!adornmentsStore.showSquaresOfResiduals
   const options: IAdornmentExporterOptions = {
-    categoricalAttrs, isShowingCount, isShowingPercent, isShowingMovableValues, showMeasuresForSelection
+    categoricalAttrs, legendCategories, isInterceptLocked, isShowingCount, isShowingPercent, isShowingMovableValues,
+    showMeasuresForSelection, showSumSquares
   }
   const adornmentStorages = graph.adornmentsStore.adornments.map(adornment => {
     const adornmentInfo = getAdornmentContentInfo(adornment.type)
@@ -173,13 +179,20 @@ function getPlotModels(graph: IGraphContentModel): Partial<ICodapV2GraphStorage>
     isVisible: graph.adornmentsStore.showConnectingLines,
     enableMeasuresForSelection: showMeasuresForSelection
   }
+  const topAdornments = adornmentStorages.filter(adornment => isCodapV2TopLevelAdornment(adornment))
   const connectingLineAdornment = connectingLine.isVisible ? { connectingLine } : {}
-  const adornments = Object.assign({}, connectingLineAdornment, ...adornmentStorages)
+  const nestedAdornmentStorages = adornmentStorages.filter(adornment => !isCodapV2TopLevelAdornment(adornment))
+  const nestedAdornments = Object.assign({}, connectingLineAdornment, ...nestedAdornmentStorages)
+  const areSquaresVisible = adornmentsStore.showSquaresOfResiduals
+                              ? { areSquaresVisible: true }
+                              : undefined
   const storage: SetRequired<Partial<ICodapV2GraphStorage>, "plotModels"> = {
     plotModels: [{
       plotClass: v2PlotClass[graph.plotType],
       plotModelStorage: {
-        adornments,
+        adornments: nestedAdornments,
+        ...Object.assign({}, ...topAdornments),
+        ...areSquaresVisible,
         verticalAxisIsY2: false
       }
     }]
@@ -189,7 +202,7 @@ function getPlotModels(graph: IGraphContentModel): Partial<ICodapV2GraphStorage>
     storage.plotModels.push({
       plotClass: v2PlotClass.scatterPlot,
       plotModelStorage: {
-        adornments,
+        adornments: nestedAdornments,
         verticalAxisIsY2: false
       }
     })
@@ -199,7 +212,7 @@ function getPlotModels(graph: IGraphContentModel): Partial<ICodapV2GraphStorage>
     storage.plotModels.push({
       plotClass: v2PlotClass.scatterPlot,
       plotModelStorage: {
-        adornments,
+        adornments: nestedAdornments,
         verticalAxisIsY2: true
       }
     })
