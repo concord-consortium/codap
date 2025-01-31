@@ -528,13 +528,13 @@ export const DataConfigurationModel = types
         if (collectionGroup) {
           const parentCases = dataset?.getCasesForCollection(collectionGroup.id)
           parentCases?.forEach((aCase: ICase) => {
-            if (dataset?.getValue(aCase.__id__, legendID || '') === aValue) {
+            if (dataset?.getStrValue(aCase.__id__, legendID || '') === aValue) {
               caseIDs?.push(aCase.__id__)
             }
           })
         } else {
           caseIDs = legendID ? self.getCaseDataArray(0).filter((aCaseData: CaseData) => {
-              return dataset?.getValue(aCaseData.caseID, legendID) === aValue
+              return dataset?.getStrValue(aCaseData.caseID, legendID) === aValue
             }).map((aCaseData: CaseData) => aCaseData.caseID)
             : []
         }
