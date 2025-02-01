@@ -1,8 +1,9 @@
 import React from "react"
 import { AdornmentCheckbox } from "../../adornment-checkbox"
 import { registerAdornmentComponentInfo } from "../../adornment-component-info"
-import { exportAdornmentBaseWithCoordsArray, registerAdornmentContentInfo } from "../../adornment-content-info"
+import { registerAdornmentContentInfo } from "../../adornment-content-info"
 import { UnivariateMeasureAdornmentSimpleComponent } from "../univariate-measure-adornment-simple-component"
+import { exportUnivariateMeasure } from "../univariate-measure-adornment-utils"
 import { isStandardDeviationAdornment, StandardDeviationAdornmentModel } from "./standard-deviation-adornment-model"
 import {
   kStandardDeviationClass, kStandardDeviationLabelKey, kStandardDeviationType, kStandardDeviationPrefix,
@@ -35,7 +36,7 @@ registerAdornmentContentInfo({
   exporter: (model, options) => {
     const adornment = isStandardDeviationAdornment(model) ? model : undefined
     return adornment
-            ? { plottedStDev: { ...exportAdornmentBaseWithCoordsArray(model, options) } }
+            ? { plottedStDev: { ...exportUnivariateMeasure(adornment, options) } }
             : undefined
   }
 })

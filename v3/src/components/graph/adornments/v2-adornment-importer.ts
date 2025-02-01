@@ -69,24 +69,67 @@ interface IInstanceKeysForAdornmentsProps {
   yAttributeDescriptions: IAttributeDescriptionSnapshot[]
 }
 
-const univariateMeasureInstances = (adornment: ICodapV2UnivariateAdornment, instanceKeys?: string[]) => {
-  // TODO_V2_IMPORT: [Story **#188695360**] most documents with an equationCoordsArray have multiple items in the array
-  // we are only looking at the first item here
-  const equationCoordsV2 = adornment.equationCoordsArray?.[0]
+interface IUnivariateMeasureInstancesProps {
+  splitAttrId?: string
+  xCats: string[]
+  yCats: string[]
+  instanceKeys?: string[]
+}
+function univariateMeasureInstances(adornment: ICodapV2UnivariateAdornment, props: IUnivariateMeasureInstancesProps) {
+  const { splitAttrId, xCats, yCats, instanceKeys } = props
+  const splitIndicesMap = new Map<string, number>()
+
+  const xCellCount = xCats.length
+  const yCellCount = yCats.length
 
   // TODO_V2_IMPORT: [Story: **#188695677**] 93 files in cfm-shared have equationCoordsArray with values with
   // proportionCenterX and proportionCenterY instead of proportionX and proportionY.
   // For now we are just skipping those and treating them as undefined
   // example doc: cfm-shared/1caDhoHFlpuNQgSfOdhh/file.json
-  const equationCoords = (equationCoordsV2 && ("proportionX" in equationCoordsV2))
-    ? equationCoordsV2
-    : { proportionX: NaN, proportionY: NaN }
+
+  // v2 stores the label coordinates in the equationCoordsArray in category order.
+  // We need to map the category index to the correct measure instances.
+  // TODO_V2_IMPORT: use the category order rather than assuming it is the same as the order in the instance keys.
   const measures: Record<string, IMeasureInstanceSnapshot> = {}
   instanceKeys?.forEach((key: string) => {
-    const { proportionX, proportionY } = equationCoords
-    const labelCoords = isFinite(proportionX) && isFinite(proportionY)
-      ? { x: proportionX, y: proportionY }
-      : undefined
+    let splitIndex
+    const parsedKey = safeJsonParse(key)
+    if (parsedKey && splitAttrId && parsedKey[splitAttrId] != null) {
+      splitIndex = splitIndicesMap.get(parsedKey[splitAttrId])
+      if (splitIndex == null) {
+        splitIndex = splitIndicesMap.size
+        splitIndicesMap.set(parsedKey[splitAttrId], splitIndex)
+      }
+    }
+    else {
+      splitIndex = 0
+    }
+    // v2 coords represent proportional position of top-left corner of label in _plot_ coordinates.
+    // v3 renders labels in _cell_ coordinates, so we need to convert the v2 coords to cell coords.
+    function mapPlotProportionToCellProportion(proportion: number, cellCount: number) {
+      const cellProportion = 1 / cellCount
+      // Think of the proportion as an absolute position in [0, 1] corresponding to the plot bounds.
+      // If there are three cells, mod maps position into [0, 0.33] corresponding to the cell bounds.
+      // Multiplication maps position from [0, 0.33] back to [0, 1], corresponding to proportional position in cell.
+      return proportion % cellProportion * cellCount
+    }
+    // TODO_V2_IMPORT: are proportionCenterX/proportionCenterY really possible here or is it a types error?
+    const equationCoords = adornment.equationCoordsArray?.[splitIndex]
+    const x = equationCoords
+                ? "proportionX" in equationCoords
+                  ? mapPlotProportionToCellProportion(equationCoords.proportionX, xCellCount)
+                  : "proportionCenterX" in equationCoords
+                    ? mapPlotProportionToCellProportion(equationCoords.proportionCenterX, xCellCount)
+                    : NaN
+                : NaN
+    const y = equationCoords
+                ? "proportionY" in equationCoords
+                  ? mapPlotProportionToCellProportion(equationCoords.proportionY, yCellCount)
+                  : "proportionCenterY" in equationCoords
+                    ? mapPlotProportionToCellProportion(equationCoords.proportionCenterY, yCellCount)
+                    : NaN
+                : NaN
+    const labelCoords = isFinite(x) && isFinite(y) ? { x, y } : undefined
     const measureInstance = { labelCoords }
     measures[key] = measureInstance
   })
@@ -95,7 +138,7 @@ const univariateMeasureInstances = (adornment: ICodapV2UnivariateAdornment, inst
 }
 
 // v2 ignores top and right split attributes when serializing adornments
-const firstSplitAttrId = (
+const v2SplitAttrId = (
   attributeDescriptions: GraphAttributeDescriptionsMapSnapshot,
   yAttributeDescriptions: IAttributeDescriptionSnapshot[]
 ) => {
@@ -139,20 +182,24 @@ const instanceKeysForAdornments = (props: IInstanceKeysForAdornmentsProps) => {
   // the data config to the tree before importing the graph and adornments so we could access the view, and then
   // removing it before completing the import.
   const { data, attributeDescriptions, yAttributeDescriptions } = props
-  if (!data || !attributeDescriptions || !yAttributeDescriptions) return ["{}"]
+  if (!data || !attributeDescriptions || !yAttributeDescriptions) {
+    return { instanceKeys: ["{}"], xCats: [""], yCats: [""], topCats: [""], rightCats: [""] }
+  }
   const { attributeID: xAttrId, type: xAttrType } = attributeDescriptions.x ?? { attributeID: null, type: null }
   const { attributeID: topAttrId } = attributeDescriptions.topSplit ?? { attributeID: null }
   const { attributeID: rightAttrId } = attributeDescriptions.rightSplit ?? { attributeID: null }
   const { attributeID: yAttrId, type: yAttrType } = yAttributeDescriptions[0] ?? { attributeID: null }
   const xAttr = data.dataSet.attributes.find((attr: IAttribute) => attr.id === xAttrId)
-  const xCats = xAttr && xAttrType !== "numeric" ? [...new Set(xAttr.strValues)] as string[] : [""]
+  // TODO_V2_IMPORT: these ...Cats computations assume category order is order in the table.
+  // If user has changed the order, the new order is stored in SharedCaseMetadata.
+  const xCats = xAttr && xAttrType !== "numeric" ? [...new Set(xAttr.strValues)] : [""]
   const yAttr = data.dataSet.attributes.find((attr: IAttribute) => attr.id === yAttrId)
-  const yCats = yAttr && yAttrType !== "numeric" ? [...new Set(yAttr.strValues)] as string[] : [""]
+  const yCats = yAttr && yAttrType !== "numeric" ? [...new Set(yAttr.strValues)] : [""]
   const topAttr = data.dataSet.attributes.find((attr: IAttribute) => attr.id === topAttrId)
-  const topCats = topAttr ? [...new Set(topAttr.strValues)] as string[] : [""]
+  const topCats = topAttr ? [...new Set(topAttr.strValues)] : [""]
   const topCatCount = topCats.length || 1
   const rightAttr = data.dataSet.attributes.find((attr: IAttribute) => attr.id === rightAttrId)
-  const rightCats = rightAttr ? [...new Set(rightAttr.strValues)] as string[] : [""]
+  const rightCats = rightAttr ? [...new Set(rightAttr.strValues)] : [""]
   const rightCatCount = rightCats.length || 1
   const yCatCount = yCats.length || 1
   const xCatCount = xCats.length || 1
@@ -174,7 +221,7 @@ const instanceKeysForAdornments = (props: IInstanceKeysForAdornmentsProps) => {
     }
     instanceKeys.push(instanceKey(cellKeyProps))
   }
-  return instanceKeys
+  return { instanceKeys, xCats, yCats, topCats, rightCats }
 }
 
 type ImportableAdornmentSnapshots = IBoxPlotAdornmentModelSnapshot |
@@ -186,7 +233,10 @@ type ImportableAdornmentSnapshots = IBoxPlotAdornmentModelSnapshot |
   IStandardDeviationAdornmentModelSnapshot | IStandardErrorAdornmentModelSnapshot
 
 export const v2AdornmentImporter = ({data, plotModels, attributeDescriptions, yAttributeDescriptions}: IProps) => {
-  const instanceKeys = instanceKeysForAdornments({data, attributeDescriptions, yAttributeDescriptions})
+  const instanceKeysForAdornmentsProps = {data, attributeDescriptions, yAttributeDescriptions}
+  const { instanceKeys, xCats, yCats } = instanceKeysForAdornments(instanceKeysForAdornmentsProps)
+  const splitAttrId = v2SplitAttrId(attributeDescriptions, yAttributeDescriptions)
+  // the first plot model contains all relevant adornments
   const plotModelStorage = plotModels?.[0].plotModelStorage
   const v2Adornments = plotModelStorage.adornments
   const showSquaresOfResiduals = plotModelStorage.areSquaresVisible
@@ -302,7 +352,7 @@ export const v2AdornmentImporter = ({data, plotModels, attributeDescriptions, yA
   // MEAN
   const meanAdornment = v2Adornments?.plottedMean
   if (meanAdornment) {
-    const measures = univariateMeasureInstances(meanAdornment, instanceKeys)
+    const measures = univariateMeasureInstances(meanAdornment, { splitAttrId, xCats, yCats, instanceKeys })
     const meanAdornmentImport: IMeanAdornmentModelSnapshot = {
       isVisible: meanAdornment.isVisible,
       measures,
@@ -314,7 +364,7 @@ export const v2AdornmentImporter = ({data, plotModels, attributeDescriptions, yA
   // MEDIAN
   const medianAdornment = v2Adornments?.plottedMedian
   if (medianAdornment) {
-    const measures = univariateMeasureInstances(medianAdornment, instanceKeys)
+    const measures = univariateMeasureInstances(medianAdornment, { splitAttrId, xCats, yCats, instanceKeys })
     const medianAdornmentImport: IMedianAdornmentModelSnapshot = {
       isVisible: medianAdornment.isVisible,
       measures,
@@ -326,7 +376,7 @@ export const v2AdornmentImporter = ({data, plotModels, attributeDescriptions, yA
   // STANDARD DEVIATION
   const stDevAdornment = v2Adornments?.plottedStDev
   if (stDevAdornment) {
-    const measures = univariateMeasureInstances(stDevAdornment, instanceKeys)
+    const measures = univariateMeasureInstances(stDevAdornment, { splitAttrId, xCats, yCats, instanceKeys })
     const stDevAdornmentImport: IStandardDeviationAdornmentModelSnapshot = {
       isVisible: stDevAdornment.isVisible,
       measures,
@@ -338,7 +388,7 @@ export const v2AdornmentImporter = ({data, plotModels, attributeDescriptions, yA
   // STANDARD ERROR
   const stErrAdornment = v2Adornments?.plottedStErr
   if (stErrAdornment) {
-    const measures = univariateMeasureInstances(stErrAdornment, instanceKeys)
+    const measures = univariateMeasureInstances(stErrAdornment, { splitAttrId, xCats, yCats, instanceKeys })
     const stErrAdornmentImport: IStandardErrorAdornmentModelSnapshot = {
       isVisible: stErrAdornment.isVisible,
       measures,
@@ -351,7 +401,7 @@ export const v2AdornmentImporter = ({data, plotModels, attributeDescriptions, yA
   // MEAN ABSOLUTE DEVIATION
   const madAdornment = v2Adornments?.plottedMad
   if (madAdornment) {
-    const measures = univariateMeasureInstances(madAdornment, instanceKeys)
+    const measures = univariateMeasureInstances(madAdornment, { splitAttrId, xCats, yCats, instanceKeys })
     const madAdornmentImport: IMeanAbsoluteDeviationAdornmentModelSnapshot = {
       isVisible: madAdornment.isVisible,
       measures,
@@ -363,7 +413,7 @@ export const v2AdornmentImporter = ({data, plotModels, attributeDescriptions, yA
   // BOX PLOT
   const boxPlotAdornment = v2Adornments?.plottedBoxPlot
   if (boxPlotAdornment) {
-    const measures = univariateMeasureInstances(boxPlotAdornment, instanceKeys)
+    const measures = univariateMeasureInstances(boxPlotAdornment, { splitAttrId, xCats, yCats, instanceKeys })
     const boxPlotAdornmentImport: IBoxPlotAdornmentModelSnapshot = {
       isVisible: boxPlotAdornment.isVisible,
       measures,
@@ -377,7 +427,7 @@ export const v2AdornmentImporter = ({data, plotModels, attributeDescriptions, yA
   // NORMAL CURVE
   const normalCurveAdornment = v2Adornments?.plottedNormal
   if (normalCurveAdornment) {
-    const measures = univariateMeasureInstances(normalCurveAdornment, instanceKeys)
+    const measures = univariateMeasureInstances(normalCurveAdornment, { splitAttrId, xCats, yCats, instanceKeys })
     const normalCurveAdornmentImport: INormalCurveAdornmentModelSnapshot = {
       isVisible: normalCurveAdornment.isVisible,
       measures,
@@ -389,7 +439,6 @@ export const v2AdornmentImporter = ({data, plotModels, attributeDescriptions, yA
   // MOVABLE VALUES
   const movableValuesAdornment = v2Adornments?.multipleMovableValues
   if (movableValuesAdornment) {
-    const splitAttrId = firstSplitAttrId(attributeDescriptions, yAttributeDescriptions)
     const values: Record<string, number[]> = {}
     instanceKeys?.forEach((key: string) => {
       const parsedKey = safeJsonParse(key)

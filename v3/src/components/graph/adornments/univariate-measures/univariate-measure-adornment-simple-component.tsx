@@ -11,7 +11,6 @@ import { UnivariateMeasureAdornmentHelper } from "./univariate-measure-adornment
 import { UnivariateMeasureAdornmentBaseComponent } from "./univariate-measure-adornment-base-component"
 import { useAdornmentAttributes } from "../../hooks/use-adornment-attributes"
 import { useAdornmentCells } from "../../hooks/use-adornment-cells"
-import { useGraphOptions } from "../hooks/use-graph-options"
 
 export const UnivariateMeasureAdornmentSimpleComponent = observer(
   function UnivariateMeasureAdornmentSimpleComponent (props: IAdornmentComponentProps) {
@@ -23,12 +22,11 @@ export const UnivariateMeasureAdornmentSimpleComponent = observer(
       labelRef } = useAdornmentAttributes()
     const { cellCounts } = useAdornmentCells(model, cellKey)
     const helper = useMemo(() => {
-      return new UnivariateMeasureAdornmentHelper(cellKey, layout, model, plotHeight, plotWidth, containerId)
-    }, [cellKey, containerId, layout, model, plotHeight, plotWidth])
+      return new UnivariateMeasureAdornmentHelper(cellKey, layout, model, containerId)
+    }, [cellKey, containerId, layout, model])
     const isBlockingOtherMeasure = dataConfig &&
       helper.blocksOtherMeasure({adornmentsStore, attrId: numericAttrId, dataConfig, isVertical: isVertical.current})
     const valueObjRef = useRef<IValue>({})
-    const {isGaussianFit} = useGraphOptions()
 
     const highlightCovers = useCallback((highlight: boolean) => {
       const covers = selectAll(`#${helper.measureSlug}-${containerId} .${helper.measureSlug}-cover`)
@@ -61,17 +59,13 @@ export const UnivariateMeasureAdornmentSimpleComponent = observer(
     ) => {
       const labelSelection = select(labelRef.current)
       const labelCoords = measure.labelCoords
-      const lineHeight = 20
-      // We have to pass isGaussianFit to getLabelLinesAboveAdornment because the Gaussian fit is a special case where
-      // if there is a gaussianFit (not just a normal curve), we need to add an extra line for the adornment title.
-      const topOffset = lineHeight * (adornmentsStore?.getLabelLinesAboveAdornment(model, isGaussianFit) ?? 0)
       let labelLeft = labelCoords
-        ? labelCoords.x / cellCounts.x
+        ? labelCoords.x
         : isVertical.current
-          ? helper.xScale(plotValue) / cellCounts.x
+          ? helper.xScalePct(plotValue)
           : 0
-      if ((range || range === 0) && isVertical.current) labelLeft = helper.xScale(range) / cellCounts.x
-      const labelTop = labelCoords ? labelCoords.y : topOffset
+      if (range != null && isVertical.current) labelLeft = helper.xScalePct(range)
+      const labelTop = labelCoords ? labelCoords.y : 0
       const labelId =
         `${helper.measureSlug}-measure-labels-tip-${containerId}${helper.classFromKey ? `-${helper.classFromKey}` : ""}`
       const labelClass = clsx("measure-labels-tip", `measure-labels-tip-${helper.measureSlug}`)
@@ -80,8 +74,8 @@ export const UnivariateMeasureAdornmentSimpleComponent = observer(
         .attr("class", labelClass)
         .attr("id", labelId)
         .attr("data-testid", labelId)
-        .style("left", `${labelLeft}px`)
-        .style("top", `${labelTop}px`)
+        .style("left", `${100 * labelLeft}%`)
+        .style("top", `${100 * labelTop}%`)
         .html(textContent)
 
       labelObj.label.call(
@@ -103,8 +97,7 @@ export const UnivariateMeasureAdornmentSimpleComponent = observer(
       valueObj.rangeMaxCover?.on("mouseover", () => highlightLabel(labelId, true))
         .on("mouseout", () => highlightLabel(labelId, false))
 
-    }, [adornmentsStore, cellCounts.x, containerId, helper, highlightCovers, highlightLabel, isGaussianFit,
-              isVertical, labelRef, model])
+    }, [containerId, helper, highlightCovers, highlightLabel, isVertical, labelRef])
 
     const addTextTip = useCallback((plotValue: number, textContent: string, valueObj: IValue, range?: number) => {
       const selection = select(valueRef.current)

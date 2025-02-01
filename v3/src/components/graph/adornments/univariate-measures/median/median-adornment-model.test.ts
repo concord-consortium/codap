@@ -7,12 +7,6 @@ describe("MedianAdornmentModel", () => {
     expect(median).toBeDefined()
     expect(median.type).toEqual(kMedianType)
   })
-  it("can have its showLabels property set", () => {
-    const mean = MedianAdornmentModel.create()
-    expect(mean.showMeasureLabels).toBe(false)
-    mean.setShowMeasureLabels(true)
-    expect(mean.showMeasureLabels).toBe(true)
-  })
   it("can have a new median value added to its measures map", () => {
     const adornment = MedianAdornmentModel.create()
     expect(adornment.measures.size).toBe(0)

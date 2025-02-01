@@ -1,8 +1,9 @@
 import React from "react"
 import { AdornmentCheckbox } from "../../adornment-checkbox"
 import { registerAdornmentComponentInfo } from "../../adornment-component-info"
-import { exportAdornmentBaseWithCoordsArray, registerAdornmentContentInfo } from "../../adornment-content-info"
+import { registerAdornmentContentInfo } from "../../adornment-content-info"
 import { UnivariateMeasureAdornmentSimpleComponent } from "../univariate-measure-adornment-simple-component"
+import { exportUnivariateMeasure } from "../univariate-measure-adornment-utils"
 import {
   isMeanAbsoluteDeviationAdornment, MeanAbsoluteDeviationAdornmentModel
 } from "./mean-absolute-deviation-adornment-model"
@@ -29,7 +30,7 @@ registerAdornmentContentInfo({
   exporter: (model, options) => {
     const adornment = isMeanAbsoluteDeviationAdornment(model) ? model : undefined
     return adornment
-            ? { plottedMad: { ...exportAdornmentBaseWithCoordsArray(model, options) } }
+            ? { plottedMad: { ...exportUnivariateMeasure(adornment, options) } }
             : undefined
   }
 })

@@ -7,12 +7,6 @@ describe("StandardErrorModel", () => {
     expect(mean).toBeDefined()
     expect(mean.type).toEqual(kStandardErrorType)
   })
-  it("can have its showLabels property set", () => {
-    const mean = StandardErrorAdornmentModel.create()
-    expect(mean.showMeasureLabels).toBe(false)
-    mean.setShowMeasureLabels(true)
-    expect(mean.showMeasureLabels).toBe(true)
-  })
   it("can have a new standard error value added to its measures map", () => {
     const adornment = StandardErrorAdornmentModel.create()
     expect(adornment.measures.size).toBe(0)

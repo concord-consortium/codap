@@ -1,8 +1,9 @@
 import React from "react"
 import { AdornmentCheckbox } from "../../adornment-checkbox"
 import { registerAdornmentComponentInfo } from "../../adornment-component-info"
-import { exportAdornmentBaseWithCoordsArray, registerAdornmentContentInfo } from "../../adornment-content-info"
+import { registerAdornmentContentInfo } from "../../adornment-content-info"
 import { UnivariateMeasureAdornmentSimpleComponent } from "../univariate-measure-adornment-simple-component"
+import { exportUnivariateMeasure } from "../univariate-measure-adornment-utils"
 import { isMeanAdornment, MeanAdornmentModel } from "./mean-adornment-model"
 import {
   kMeanClass, kMeanLabelKey, kMeanType, kMeanPrefix, kMeanUndoAddKey, kMeanRedoAddKey,
@@ -34,7 +35,7 @@ registerAdornmentContentInfo({
   exporter: (model, options) => {
     const adornment = isMeanAdornment(model) ? model : undefined
     return adornment
-            ? { plottedMean: { ...exportAdornmentBaseWithCoordsArray(model, options) } }
+            ? { plottedMean: { ...exportUnivariateMeasure(adornment, options) } }
             : undefined
   }
 })

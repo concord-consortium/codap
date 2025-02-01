@@ -44,8 +44,8 @@ export const NormalCurveAdornmentComponent = observer(
       labelRef
     } = useAdornmentAttributes()
     const helper = useMemo(() => {
-      return new UnivariateMeasureAdornmentHelper(cellKey, layout, model, plotHeight, plotWidth, containerId)
-    }, [cellKey, containerId, layout, model, plotHeight, plotWidth])
+      return new UnivariateMeasureAdornmentHelper(cellKey, layout, model, containerId)
+    }, [cellKey, containerId, layout, model])
     const isHistogram = graphModel.pointDisplayType === "histogram"
     const useGaussianFit = isHistogram && getDocumentContentPropertyFromNode(graphModel, "gaussianFitEnabled")
     const stdErrorAdorn = adornmentsStore.findAdornmentOfType(kStandardErrorType)
@@ -115,14 +115,12 @@ export const NormalCurveAdornmentComponent = observer(
       if (!numericAttrId || !dataConfig) return
       const labelSelection = select(labelRef.current)
       const labelCoords = measure.labelCoords
-      const lineHeight = 20
-      const topOffset = lineHeight * (adornmentsStore?.getLabelLinesAboveAdornment(model) ?? 0)
       const labelLeft = labelCoords
-        ? labelCoords.x / cellCounts.x
+        ? labelCoords.x
         : isVertical.current
-          ? helper.xScale(plotValue) / cellCounts.x
+          ? helper.xScalePct(plotValue)
           : 0
-      const labelTop = labelCoords ? labelCoords.y : topOffset
+      const labelTop = labelCoords ? labelCoords.y : 0
       const labelId =
         `${helper.measureSlug}-measure-labels-tip-${containerId}${helper.classFromKey ? `-${helper.classFromKey}` : ""}`
       const labelClass = clsx("measure-labels-tip", `measure-labels-tip-${helper.measureSlug}`)
@@ -131,8 +129,8 @@ export const NormalCurveAdornmentComponent = observer(
         .attr("class", labelClass)
         .attr("id", labelId)
         .attr("data-testid", labelId)
-        .style("left", `${labelLeft}px`)
-        .style("top", `${labelTop}px`)
+        .style("left", `${100 * labelLeft}%`)
+        .style("top", `${100 * labelTop}%`)
         .html(textContent)
 
       labelObj.label.call(
@@ -147,8 +145,7 @@ export const NormalCurveAdornmentComponent = observer(
       selectionsObj.normalCurveHoverCover?.on("mouseover", () => highlightLabel(labelId, true))
         .on("mouseout", () => highlightLabel(labelId, false))
 
-    }, [numericAttrId, dataConfig, labelRef, adornmentsStore, model, cellCounts.x, isVertical, helper,
-      containerId, highlightCovers, highlightLabel])
+    }, [numericAttrId, dataConfig, labelRef, isVertical, helper, containerId, highlightCovers, highlightLabel])
 
     const addTextTip = useCallback((plotValue: number, textContent: string, valueObj: INormalCurveSelections) => {
       const measure = model?.measures.get(helper.instanceKey)

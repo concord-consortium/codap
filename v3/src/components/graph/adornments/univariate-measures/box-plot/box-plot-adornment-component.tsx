@@ -40,8 +40,8 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
   const { xAttrId, yAttrId, xAttrType } = useAdornmentAttributes()
   const { cellCounts } = useAdornmentCells(model, cellKey)
   const helper = useMemo(() => {
-    return new UnivariateMeasureAdornmentHelper(cellKey, layout, model, plotHeight, plotWidth, containerId)
-  }, [cellKey, containerId, layout, model, plotHeight, plotWidth])
+    return new UnivariateMeasureAdornmentHelper(cellKey, layout, model, containerId)
+  }, [cellKey, containerId, layout, model])
   const attrId = xAttrId && xAttrType === "numeric" ? xAttrId : yAttrId
   const isVertical = useRef(!!(xAttrType && xAttrType === "numeric"))
   const boxPlotOffset = 5

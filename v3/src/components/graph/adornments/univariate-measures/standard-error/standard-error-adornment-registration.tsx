@@ -7,7 +7,8 @@ import { translate } from "../../../../../utilities/translation/translate"
 import { useGraphContentModelContext } from "../../../hooks/use-graph-content-model-context"
 import { AdornmentCheckbox } from "../../adornment-checkbox"
 import { registerAdornmentComponentInfo } from "../../adornment-component-info"
-import { exportAdornmentBaseWithCoordsArray, registerAdornmentContentInfo } from "../../adornment-content-info"
+import { registerAdornmentContentInfo } from "../../adornment-content-info"
+import { exportUnivariateMeasure } from "../univariate-measure-adornment-utils"
 import { StandardErrorAdornmentComponent } from "./standard-error-adornment-component"
 import {
   isStandardErrorAdornment, IStandardErrorAdornmentModel, StandardErrorAdornmentModel
@@ -112,7 +113,7 @@ registerAdornmentContentInfo({
     return adornment
             ? {
                 plottedStErr: {
-                  ...exportAdornmentBaseWithCoordsArray(model, options),
+                  ...exportUnivariateMeasure(adornment, options),
                   numberOfStdErrs: adornment.numStErrs
                 }
               }

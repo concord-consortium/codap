@@ -6,9 +6,8 @@ import { getDocumentContentPropertyFromNode } from "../../../../../utilities/mst
 import { t } from "../../../../../utilities/translation/translate"
 import { useGraphContentModelContext } from "../../../hooks/use-graph-content-model-context"
 import { registerAdornmentComponentInfo } from "../../adornment-component-info"
-import {
-  exportAdornmentBaseWithCoordsArray, getAdornmentContentInfo, registerAdornmentContentInfo
-} from "../../adornment-content-info"
+import { getAdornmentContentInfo, registerAdornmentContentInfo } from "../../adornment-content-info"
+import { exportUnivariateMeasure } from "../univariate-measure-adornment-utils"
 import { BoxPlotAdornmentComponent } from "./box-plot-adornment-component"
 import { BoxPlotAdornmentModel, IBoxPlotAdornmentModel, isBoxPlotAdornment } from "./box-plot-adornment-model"
 import {
@@ -131,7 +130,7 @@ registerAdornmentContentInfo({
     return adornment
             ? {
                 plottedBoxPlot: {
-                  ...exportAdornmentBaseWithCoordsArray(model, options),
+                  ...exportUnivariateMeasure(adornment, options),
                   showOutliers: adornment.showOutliers,
                   showICI: adornment.showICI
                 }

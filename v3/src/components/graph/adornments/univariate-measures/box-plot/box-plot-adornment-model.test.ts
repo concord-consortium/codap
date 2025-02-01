@@ -7,12 +7,6 @@ describe("BoxPlotModel", () => {
     expect(mean).toBeDefined()
     expect(mean.type).toEqual(kBoxPlotType)
   })
-  it("can have its showLabels property set", () => {
-    const mean = BoxPlotAdornmentModel.create()
-    expect(mean.showMeasureLabels).toBe(false)
-    mean.setShowMeasureLabels(true)
-    expect(mean.showMeasureLabels).toBe(true)
-  })
   it("can have a new box plot value added to its measures map", () => {
     const adornment = BoxPlotAdornmentModel.create()
     expect(adornment.measures.size).toBe(0)

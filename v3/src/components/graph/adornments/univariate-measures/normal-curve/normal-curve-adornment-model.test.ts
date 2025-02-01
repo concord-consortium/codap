@@ -7,12 +7,6 @@ describe("NormalCurveModel", () => {
     expect(mean).toBeDefined()
     expect(mean.type).toEqual(kNormalCurveType)
   })
-  it("can have its showLabels property set", () => {
-    const mean = NormalCurveAdornmentModel.create()
-    expect(mean.showMeasureLabels).toBe(false)
-    mean.setShowMeasureLabels(true)
-    expect(mean.showMeasureLabels).toBe(true)
-  })
   it("can have a new normal curve added to its measures map", () => {
     const adornment = NormalCurveAdornmentModel.create()
     expect(adornment.measures.size).toBe(0)
