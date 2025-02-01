@@ -1,5 +1,28 @@
 # Changelog
 
+## Version 3.0.0-pre.2144 - January 31, 2025
+
+### ✨ Features & Improvements:
+- **PT-181971417:** Display of **dates** in Case Card
+- **PT-188575507:** Color functions produce colors
+- **PT-187711050:** Adornments respond to Show Measures for Selection option
+- **PT-188517456:** You can use the "modulo" operator ('%') in formulas
+- **PT-188616847:** Export Graph in v2
+
+### 🐞 Bug Fixes:
+- **PT-188815937:** Cannot rearrange categories on a graph
+- **PT-188688258:** Zero line is missing on bar charts
+- **PT-188590675:** **Formula Editor** prev() and next () function produces invalid argument error in first cell
+- **PT-188819856:** Graph axis is incorrect when switching from numerical to categorical plots
+- **PT-188651787:** Attribute name fails to save in **case card** when clicking away
+- **PT-188820316:** Categorical legend causes an error when new categories are added
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  188526 bytes |                           <0.00% |
+|  index.js | 6436222 bytes |                             0.5% |
+
 ## Version 3.0.0-pre.2128 - January 24, 2025
 
 ### ✨ Features & Improvements:
