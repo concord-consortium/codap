@@ -1,10 +1,10 @@
 import { Instance, SnapshotIn, types } from "mobx-state-tree"
 import { Point } from "../../../data-display/data-display-types"
-import { AdornmentModel, IAdornmentModel, IUpdateCategoriesOptions, PointModel } from "../adornment-models"
 import { IDataConfigurationModel } from "../../../data-display/models/data-configuration-model"
 import {IGraphDataConfigurationModel} from "../../models/graph-data-configuration-model"
 import { isFiniteNumber } from "../../../../utilities/math-utils"
 import { dataDisplayGetNumericValue } from "../../../data-display/data-display-value-utils"
+import { AdornmentModel, IAdornmentModel, IUpdateCategoriesOptions, PointModel } from "../adornment-models"
 
 export const MeasureInstance = types.model("MeasureInstance", {
   labelCoords: types.maybe(PointModel)
@@ -41,13 +41,9 @@ export const UnivariateMeasureAdornmentModel = AdornmentModel
   .views(self => ({
     getCaseValues(attrId: string, cellKey: Record<string, string>, dataConfig: IGraphDataConfigurationModel) {
       const dataset = dataConfig?.dataset
-      const casesInPlot = dataConfig.subPlotCases(cellKey)
-      const onlyIncludeIfSelected = dataConfig.showMeasuresForSelection
+      const casesInPlot = dataConfig.filteredForShowMeasuresForSelection(dataConfig.subPlotCases(cellKey))
       const caseValues: number[] = []
       casesInPlot.forEach(caseId => {
-        if (onlyIncludeIfSelected && !dataset?.isCaseSelected(caseId)) {
-          return
-        }
         const caseValue = dataDisplayGetNumericValue(dataset, caseId, attrId)
         if (isFiniteNumber(caseValue)) {
           caseValues.push(caseValue)

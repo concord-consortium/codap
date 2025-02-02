@@ -559,7 +559,10 @@ export const GraphDataConfigurationModel = DataConfigurationModel
           return isBottomMatch && isTopMatch && isRightMatch
         })
       }
-    })
+    }),
+    filteredForShowMeasuresForSelection(caseIds: string[]) {
+      return self.showMeasuresForSelection ? caseIds.filter(caseId => self.dataset?.isCaseSelected(caseId)) : caseIds
+    }
   }))
   .actions(self => {
     const baseSetNumberOfCategoriesLimitForRole = self.setNumberOfCategoriesLimitForRole

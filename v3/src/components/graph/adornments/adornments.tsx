@@ -36,7 +36,7 @@ export const Adornments = observer(function Adornments() {
       layout.setDesiredExtent("banners", bannersHeight)
       }, { name: "Graph.handleAdornmentBannerCountChange" }, graphModel
     )
-  }, [dataConfig, graphModel, layout])
+  }, [dataConfig?.showMeasuresForSelection, graphModel, layout])
 
   if (!adornments?.length && !dataConfig?.showMeasuresForSelection) return null
 
