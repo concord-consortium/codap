@@ -41,7 +41,7 @@ export const NormalCurveAdornmentComponent = observer(
     const {
       dataConfig, layout, adornmentsStore,
       numericAttrId, showLabel, isVertical, valueRef,
-      labelRef
+      labelRef, defaultLabelTopOffset
     } = useAdornmentAttributes()
     const helper = useMemo(() => {
       return new UnivariateMeasureAdornmentHelper(cellKey, layout, model, containerId)
@@ -120,7 +120,7 @@ export const NormalCurveAdornmentComponent = observer(
         : isVertical.current
           ? helper.xScalePct(plotValue)
           : 0
-      const labelTop = labelCoords ? labelCoords.y : 0
+      const labelTop = labelCoords ? labelCoords.y : helper.yRangePct(defaultLabelTopOffset(model))
       const labelId =
         `${helper.measureSlug}-measure-labels-tip-${containerId}${helper.classFromKey ? `-${helper.classFromKey}` : ""}`
       const labelClass = clsx("measure-labels-tip", `measure-labels-tip-${helper.measureSlug}`)
@@ -145,7 +145,8 @@ export const NormalCurveAdornmentComponent = observer(
       selectionsObj.normalCurveHoverCover?.on("mouseover", () => highlightLabel(labelId, true))
         .on("mouseout", () => highlightLabel(labelId, false))
 
-    }, [numericAttrId, dataConfig, labelRef, isVertical, helper, containerId, highlightCovers, highlightLabel])
+    }, [containerId, dataConfig, defaultLabelTopOffset, helper, highlightCovers, highlightLabel,
+        isVertical, labelRef, model, numericAttrId])
 
     const addTextTip = useCallback((plotValue: number, textContent: string, valueObj: INormalCurveSelections) => {
       const measure = model?.measures.get(helper.instanceKey)

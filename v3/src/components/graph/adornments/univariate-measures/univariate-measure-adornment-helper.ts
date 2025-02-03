@@ -192,14 +192,22 @@ export class UnivariateMeasureAdornmentHelper {
     valueObj.rangeMaxCover = this.newLine(valueElement, rangeMaxCoverSpecs)
   }
 
+  // converts a world value to a percentage of the axis range
   xScalePct = (value: number) => {
     const range = this.xScale.range()
     return this.xScale(value) / (range[1] - range[0])
   }
 
+  // converts a world value to a percentage of the axis range
   yScalePct = (value: number) => {
     const range = this.yScale.range()
-    return this.yScale(value) / (range[1] - range[0])
+    return this.yScale(value) / (range[0] - range[1])
+  }
+
+  // converts a pixel value to a percentage of the axis range
+  yRangePct = (value: number) => {
+    const range = this.yScale.range()
+    return value / Math.abs(range[0] - range[1])
   }
 
   adornmentSpecs = (

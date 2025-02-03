@@ -19,7 +19,7 @@ export const UnivariateMeasureAdornmentSimpleComponent = observer(
     const {
       dataConfig, layout, adornmentsStore,
       numericAttrId, showLabel, isVertical, valueRef,
-      labelRef } = useAdornmentAttributes()
+      labelRef, defaultLabelTopOffset } = useAdornmentAttributes()
     const { cellCounts } = useAdornmentCells(model, cellKey)
     const helper = useMemo(() => {
       return new UnivariateMeasureAdornmentHelper(cellKey, layout, model, containerId)
@@ -65,7 +65,7 @@ export const UnivariateMeasureAdornmentSimpleComponent = observer(
           ? helper.xScalePct(plotValue)
           : 0
       if (range != null && isVertical.current) labelLeft = helper.xScalePct(range)
-      const labelTop = labelCoords ? labelCoords.y : 0
+      const labelTop = labelCoords ? labelCoords.y : helper.yRangePct(defaultLabelTopOffset(model))
       const labelId =
         `${helper.measureSlug}-measure-labels-tip-${containerId}${helper.classFromKey ? `-${helper.classFromKey}` : ""}`
       const labelClass = clsx("measure-labels-tip", `measure-labels-tip-${helper.measureSlug}`)
@@ -97,7 +97,7 @@ export const UnivariateMeasureAdornmentSimpleComponent = observer(
       valueObj.rangeMaxCover?.on("mouseover", () => highlightLabel(labelId, true))
         .on("mouseout", () => highlightLabel(labelId, false))
 
-    }, [containerId, helper, highlightCovers, highlightLabel, isVertical, labelRef])
+    }, [containerId, defaultLabelTopOffset, helper, highlightCovers, highlightLabel, isVertical, labelRef, model])
 
     const addTextTip = useCallback((plotValue: number, textContent: string, valueObj: IValue, range?: number) => {
       const selection = select(valueRef.current)
