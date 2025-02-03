@@ -261,31 +261,31 @@ export class UnivariateMeasureAdornmentHelper {
     return isBlockingOtherMeasure
   }
 
-  getProportions(event: { x: number, y: number, dx?: number, dy?: number }, labelId: string) {
-    if (event.dx !== 0 || event.dy !== 0) {
-      const label = select(`#${labelId}`)
-      const labelElt = label.node() as Element
-      const parentElt = labelElt.closest(".measure-labels")
-      if (!labelElt || !parentElt) return
-      const labelBounds = labelElt.getBoundingClientRect()
-      const labelWidth = labelBounds.width
-      const labelHeight = labelBounds.height
-      const parentBounds = parentElt.getBoundingClientRect()
-      const parentWidth = parentBounds.width
-      const parentHeight = parentBounds.height
-      const left = event.x - labelWidth / 2
-      const top = event.y - labelHeight / 2
-      const leftPct = 100 * left / parentWidth
-      const topPct = 100 * top / parentHeight
-      return { x: leftPct, y: topPct }
-    }
+  getProportions(event: { x: number, y: number }, labelId: string) {
+    const label = select(`#${labelId}`)
+    const labelElt = label.node() as Element
+    const parentElt = labelElt.closest(".measure-labels")
+    if (!labelElt || !parentElt) return
+    const labelBounds = labelElt.getBoundingClientRect()
+    const labelWidth = labelBounds.width
+    const labelHeight = labelBounds.height
+    const parentBounds = parentElt.getBoundingClientRect()
+    const parentWidth = parentBounds.width
+    const parentHeight = parentBounds.height
+    const left = event.x - labelWidth / 2
+    const top = event.y - labelHeight / 2
+    const leftPct = left / parentWidth
+    const topPct = top / parentHeight
+    return { x: leftPct, y: topPct }
   }
 
   handleMoveLabel(event: { x: number, y: number, dx: number, dy: number }, labelId: string) {
-    const proportions = this.getProportions(event, labelId)
-    if (proportions) {
-      const label = select(`#${labelId}`)
-      label.style('left', `${proportions.x}%`).style('top', `${proportions.y}%`)
+    if (event.dx !== 0 || event.dy !== 0) {
+      const proportions = this.getProportions(event, labelId)
+      if (proportions) {
+        const label = select(`#${labelId}`)
+        label.style('left', `${100 * proportions.x}%`).style('top', `${100 * proportions.y}%`)
+      }
     }
   }
 
