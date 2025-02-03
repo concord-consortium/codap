@@ -29,7 +29,8 @@ function setPrimaryRoleAndPlotType(graphModel: IGraphContentModel) {
   // the primaryRole, or, lastly, the newly assigned place
   primaryRole = attributeType === 'numeric' ? oldPrimaryRole
     : otherAttributeType === 'numeric' ? otherAttrRole
-      : attributeType !== 'empty' ? oldPrimaryRole : otherAttrRole
+      : otherAttributeType === 'date' ? otherAttrRole
+        : attributeType !== 'empty' ? oldPrimaryRole : otherAttrRole
   dataConfig?.setPrimaryRole(primaryRole)
   // TODO COLOR: treat color like categorical for now
   const typeOverrides: Record<string, string> = { color: 'categorical', date: 'numeric' },
