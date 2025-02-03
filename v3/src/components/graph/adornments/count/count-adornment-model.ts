@@ -37,11 +37,14 @@ export const CountAdornmentModel = AdornmentModel
       // the divisor)
       const categoricalAttrCount = dataConfig?.categoricalAttrCount ?? 0
       const hasPercentTypeOptions = categoricalAttrCount > 1
+      const rowCases = dataConfig?.filteredForShowMeasuresForSelection(dataConfig?.rowCases(cellKey) ?? []) ?? []
+      const columnCases = dataConfig?.filteredForShowMeasuresForSelection(dataConfig?.columnCases(cellKey) ?? []) ?? []
+      const cellCases = dataConfig?.filteredForShowMeasuresForSelection(dataConfig?.cellCases(cellKey) ?? []) ?? []
       const divisor = hasPercentTypeOptions && self.percentType === "row"
-        ? dataConfig?.rowCases(cellKey).length ?? 0
+        ? rowCases.length ?? 0
         : hasPercentTypeOptions && self.percentType === "column"
-          ? dataConfig?.columnCases(cellKey).length ?? 0
-          : dataConfig?.cellCases(cellKey).length ?? 0
+          ? columnCases.length ?? 0
+          : cellCases.length ?? 0
       const percentValue = casesInPlot / divisor
       return isFinite(percentValue) ? percentValue : 0
     },

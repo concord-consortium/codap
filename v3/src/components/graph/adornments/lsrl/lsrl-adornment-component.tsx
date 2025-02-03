@@ -64,7 +64,8 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
   const fixEndPoints = useCallback((iLine: Selection<SVGLineElement, unknown, null, undefined>) => {
     if (
       !Number.isFinite(pointsOnAxes.current.pt1.x) || !Number.isFinite(pointsOnAxes.current.pt2.x) ||
-      !Number.isFinite(pointsOnAxes.current.pt1.y) || !Number.isFinite(pointsOnAxes.current.pt2.y)
+      !Number.isFinite(pointsOnAxes.current.pt1.y) || !Number.isFinite(pointsOnAxes.current.pt2.y) ||
+      xScale.range().length === 0 || yScale.range().length === 0
     ) return
 
     iLine
