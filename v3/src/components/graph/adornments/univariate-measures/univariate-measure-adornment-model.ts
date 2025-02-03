@@ -41,7 +41,7 @@ export const UnivariateMeasureAdornmentModel = AdornmentModel
   .views(self => ({
     getCaseValues(attrId: string, cellKey: Record<string, string>, dataConfig: IGraphDataConfigurationModel) {
       const dataset = dataConfig?.dataset
-      const casesInPlot = dataConfig.filteredForShowMeasuresForSelection(dataConfig.subPlotCases(cellKey))
+      const casesInPlot = dataConfig.filterCasesForDisplay(dataConfig.subPlotCases(cellKey))
       const caseValues: number[] = []
       casesInPlot.forEach(caseId => {
         const caseValue = dataDisplayGetNumericValue(dataset, caseId, attrId)

@@ -104,7 +104,7 @@ export function scatterPlotFuncs(layout: GraphLayout, dataConfiguration?: IGraph
     lineDescriptions.forEach((lineDescription: ILineDescription) => {
       const { category, cellKey, intercept, slope } = lineDescription
       const casesInPlot =
-        dataConfiguration?.filteredForShowMeasuresForSelection(dataConfiguration.subPlotCases(cellKey)) || []
+        dataConfiguration?.filterCasesForDisplay(dataConfiguration.subPlotCases(cellKey)) || []
       casesInPlot.forEach(caseID => {
         addSquare(caseID, category, (id: string) => residualSquare(slope, intercept, id), squares)
       })
@@ -134,7 +134,7 @@ export function scatterPlotFuncs(layout: GraphLayout, dataConfiguration?: IGraph
       const func = plottedFunctionModel.plottedFunctions.get(instanceKey)?.formulaFunction
       if (func) {
         const casesInPlot =
-          dataConfiguration?.filteredForShowMeasuresForSelection(dataConfiguration.subPlotCases(cellKey)) || []
+          dataConfiguration?.filterCasesForDisplay(dataConfiguration.subPlotCases(cellKey)) || []
         casesInPlot.forEach(caseID => {
           addSquare(caseID, category, (id: string) => residualSquareForFunction(func, id), squares)
         })

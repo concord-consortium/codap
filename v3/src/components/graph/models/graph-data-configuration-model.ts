@@ -560,7 +560,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
         })
       }
     }),
-    filteredForShowMeasuresForSelection(caseIds: string[]) {
+    filterCasesForDisplay(caseIds: string[] = []) {
       return self.showMeasuresForSelection ? caseIds.filter(caseId => self.dataset?.isCaseSelected(caseId)) : caseIds
     }
   }))
