@@ -274,9 +274,7 @@ export class UnivariateMeasureAdornmentHelper {
     const parentHeight = parentBounds.height
     const left = event.x - labelWidth / 2
     const top = event.y - labelHeight / 2
-    const leftPct = left / parentWidth
-    const topPct = top / parentHeight
-    return { x: leftPct, y: topPct }
+    return { x: left / parentWidth, y: top / parentHeight }
   }
 
   handleMoveLabel(event: { x: number, y: number, dx: number, dy: number }, labelId: string) {
