@@ -7,6 +7,7 @@ import {CategoricalLegend} from "./categorical-legend"
 import { ColorLegend } from "./color-legend"
 import { IBaseLegendProps } from "./legend-common"
 import {NumericLegend} from "./numeric-legend"
+import { observer } from "mobx-react-lite"
 
 const legendComponentMap: Partial<Record<string, React.ComponentType<IBaseLegendProps>>> = {
   categorical: CategoricalLegend,
@@ -21,16 +22,15 @@ interface ILegendProps {
   onDropAttribute: (place: GraphPlace, dataSet: IDataSet, attrId: string) => void
 }
 
-export const Legend = function Legend({
+export const Legend = observer(function Legend({
                                         layerIndex, setDesiredExtent, onDropAttribute
                                       }: ILegendProps) {
   const dataConfiguration = useDataConfigurationContext(),
-    legendAttrID = dataConfiguration?.attributeID('legend'),
-    attrType = dataConfiguration?.dataset?.attrFromID(legendAttrID ?? '')?.type,
+    attrType = dataConfiguration?.attributeType('legend'),
     LegendComponent = attrType && legendComponentMap[attrType],
     legendRef = useRef() as React.RefObject<SVGSVGElement>
 
-  return legendAttrID ? (
+  return attrType ? (
     <>
       <svg ref={legendRef} className='legend-component' data-testid='legend-component'>
         <LegendAttributeLabel
@@ -40,5 +40,4 @@ export const Legend = function Legend({
       </svg>
     </>
   ) : null
-}
-Legend.displayName = "Legend"
+})
