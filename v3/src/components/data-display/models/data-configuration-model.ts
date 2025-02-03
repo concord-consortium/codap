@@ -528,13 +528,13 @@ export const DataConfigurationModel = types
         if (collectionGroup) {
           const parentCases = dataset?.getCasesForCollection(collectionGroup.id)
           parentCases?.forEach((aCase: ICase) => {
-            if (dataset?.getValue(aCase.__id__, legendID || '') === aValue) {
+            if (dataset?.getStrValue(aCase.__id__, legendID || '') === aValue) {
               caseIDs?.push(aCase.__id__)
             }
           })
         } else {
           caseIDs = legendID ? self.getCaseDataArray(0).filter((aCaseData: CaseData) => {
-              return dataset?.getValue(aCaseData.caseID, legendID) === aValue
+              return dataset?.getStrValue(aCaseData.caseID, legendID) === aValue
             }).map((aCaseData: CaseData) => aCaseData.caseID)
             : []
         }
@@ -546,7 +546,7 @@ export const DataConfigurationModel = types
           const dataset = self.dataset
           const legendID = self.attributeID('legend')
           const selection = (legendID && self.getCaseDataArray(0).filter((aCaseData: CaseData) =>
-            dataset?.getValue(aCaseData.caseID, legendID) === cat
+            dataset?.getStrValue(aCaseData.caseID, legendID) === cat
           ).map((aCaseData: CaseData) => aCaseData.caseID)) ?? []
           return selection.length > 0 && (selection as Array<string>).every(anID => dataset?.isCaseSelected(anID))
         }
