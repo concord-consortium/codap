@@ -1,13 +1,13 @@
-import React, {useRef} from "react"
-import {IDataSet} from "../../../../models/data/data-set"
-import {GraphPlace} from "../../../axis-graph-shared"
-import {useDataConfigurationContext} from "../../hooks/use-data-configuration-context"
-import {LegendAttributeLabel} from "./legend-attribute-label"
-import {CategoricalLegend} from "./categorical-legend"
+import React, { useRef } from "react"
+import { observer } from "mobx-react-lite"
+import { IDataSet } from "../../../../models/data/data-set"
+import { GraphPlace } from "../../../axis-graph-shared"
+import { useDataConfigurationContext } from "../../hooks/use-data-configuration-context"
+import { LegendAttributeLabel } from "./legend-attribute-label"
+import { CategoricalLegend } from "./categorical-legend"
 import { ColorLegend } from "./color-legend"
 import { IBaseLegendProps } from "./legend-common"
-import {NumericLegend} from "./numeric-legend"
-import { observer } from "mobx-react-lite"
+import { NumericLegend } from "./numeric-legend"
 
 const legendComponentMap: Partial<Record<string, React.ComponentType<IBaseLegendProps>>> = {
   categorical: CategoricalLegend,
