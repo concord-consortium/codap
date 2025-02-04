@@ -3,7 +3,7 @@ import { IDataSet } from "../../../models/data/data-set"
 import { GraphPlace } from "../../axis-graph-shared"
 import { IDataConfigurationModel } from "./data-configuration-model"
 
-interface IBaseLayerModel {
+export interface IBaseLayerModel {
   layerIndex: number,
   id: string,
   dataConfiguration: IDataConfigurationModel

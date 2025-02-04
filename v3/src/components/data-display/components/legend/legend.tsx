@@ -3,17 +3,26 @@ import { observer } from "mobx-react-lite"
 import { IDataSet } from "../../../../models/data/data-set"
 import { GraphPlace } from "../../../axis-graph-shared"
 import { useDataConfigurationContext } from "../../hooks/use-data-configuration-context"
+import { IDataConfigurationModel } from "../../models/data-configuration-model"
 import { LegendAttributeLabel } from "./legend-attribute-label"
 import { CategoricalLegend } from "./categorical-legend"
 import { ColorLegend } from "./color-legend"
 import { IBaseLegendProps } from "./legend-common"
 import { NumericLegend } from "./numeric-legend"
 
-const legendComponentMap: Partial<Record<string, React.ComponentType<IBaseLegendProps>>> = {
-  categorical: CategoricalLegend,
-  color: ColorLegend,
-  date: NumericLegend,
-  numeric: NumericLegend
+// This is exported so other users of CODAP can modify its behavior
+export const legendComponentManager = {
+  legendComponentMap: {
+    categorical: CategoricalLegend,
+    color: ColorLegend,
+    date: NumericLegend,
+    numeric: NumericLegend
+  } as Partial<Record<string, React.ComponentType<IBaseLegendProps>>>,
+
+  getLegendComponent(dataConfig: IDataConfigurationModel) {
+    const type = dataConfig.attributeType("legend")
+    return type && this.legendComponentMap[type]
+  }
 }
 
 interface ILegendProps {
@@ -27,9 +36,10 @@ export const Legend = observer(function Legend({
                                       }: ILegendProps) {
   const dataConfiguration = useDataConfigurationContext(),
     attrType = dataConfiguration?.attributeType('legend'),
-    LegendComponent = attrType && legendComponentMap[attrType],
+    LegendComponent = dataConfiguration && legendComponentManager.getLegendComponent(dataConfiguration),
     legendRef = useRef() as React.RefObject<SVGSVGElement>
 
+  // Only show the legend if there is a legend role specified in the dataConfiguration
   return attrType ? (
     <>
       <svg ref={legendRef} className='legend-component' data-testid='legend-component'>
