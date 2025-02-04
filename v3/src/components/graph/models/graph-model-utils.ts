@@ -27,10 +27,11 @@ function setPrimaryRoleAndPlotType(graphModel: IGraphContentModel) {
   // Numeric attributes get priority for primaryRole when present. First one that is already present
   // and then the newly assigned one. If there is an already assigned categorical then its place is
   // the primaryRole, or, lastly, the newly assigned place
-  primaryRole = attributeType === 'numeric' ? oldPrimaryRole
-    : otherAttributeType === 'numeric' ? otherAttrRole
-      : otherAttributeType === 'date' ? otherAttrRole
-        : attributeType !== 'empty' ? oldPrimaryRole : otherAttrRole
+  primaryRole = ['numeric', 'date'].includes(attributeType)
+                    ? oldPrimaryRole
+                    : ['numeric', 'date'].includes(otherAttributeType)
+                          ? otherAttrRole
+                          : attributeType !== 'empty' ? oldPrimaryRole : otherAttrRole
   dataConfig?.setPrimaryRole(primaryRole)
   // TODO COLOR: treat color like categorical for now
   const typeOverrides: Record<string, string> = { color: 'categorical', date: 'numeric' },
