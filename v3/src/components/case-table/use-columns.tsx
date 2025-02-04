@@ -1,5 +1,5 @@
 import { comparer } from "mobx"
-import { useEffect, useState } from "react"
+import React, { useEffect, useState } from "react"
 import { clsx } from "clsx"
 import { useCaseMetadata } from "../../hooks/use-case-metadata"
 import { useCollectionContext, useParentCollectionContext } from "../../hooks/use-collection-context"
@@ -11,6 +11,7 @@ import { isCaseEditable } from "../../utilities/plugin-utils"
 import { AttributeValueCell } from "./attribute-value-cell"
 import { kDefaultColumnWidth, kDefaultRowHeight, TColumn } from "./case-table-types"
 import CellTextEditor from "./cell-text-editor"
+import CheckboxCell from "./checkbox-cell"
 import ColorCellTextEditor from "./color-cell-text-editor"
 import { ColumnHeader } from "./column-header"
 import { useCollectionTableModel } from "./use-collection-table-model"
@@ -54,12 +55,16 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
                 renderHeaderCell: ColumnHeader,
                 cellClass: row => clsx("codap-data-cell", `rowId-${row.__id__}`,
                                         {"formula-column": hasFormula, "multi-line": rowHeight > kDefaultRowHeight}),
-                renderCell: AttributeValueCell,
+                renderCell: userType === "checkbox"
+                              ? ({ row }) => <CheckboxCell row={row} column={{ key: id, name }}/>
+                              : AttributeValueCell,
                 editable: row => isCaseEditable(data, row.__id__),
                 renderEditCell: isEditable
                                   // if users haven't assigned a non-color type, then color swatches
                                   // may be displayed and should be edited with swatches.
-                                  ? userType == null || userType === "color" ? ColorCellTextEditor : CellTextEditor
+                                  ? userType == null || userType === "color"
+                                      ? ColorCellTextEditor
+                                      : userType !== "checkbox" ? CellTextEditor : undefined
                                   : undefined
               }))
           ]

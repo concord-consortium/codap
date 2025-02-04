@@ -405,6 +405,14 @@ $table-body-font-size: 8pt;
           }
         }
       }
+
+      .checkbox-cell {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+      }
     }
   }
 
