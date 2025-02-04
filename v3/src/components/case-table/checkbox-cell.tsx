@@ -36,15 +36,9 @@ export default function CheckboxCell ({ row, column, onRowChange }: ICheckboxCel
       newValue = "indeterminate"
     }
     console.log("CheckboxCell handleChange onRowChange", onRowChange)
-    // onRowChange && onRowChange({ ...row, [column.key]: newValue }, true)
-    // setPendingLogMessage("editCellValue", logStringifiedObjectMessage("update checkbox state: %@",
-    //   {attrId: column.key, caseId: row.__id__, to: newValue }))
-    dataset?.applyModelChange(() => {
-      row[column.key] = newValue
-    }, {
-      log: logStringifiedObjectMessage("update checkbox state: %@",
-                                        {attrId: column.key, caseId: row.__id__, to: newValue })
-    })
+    onRowChange && onRowChange({ ...row, [column.key]: newValue }, true)
+    setPendingLogMessage("editCellValue", logStringifiedObjectMessage("update checkbox state: %@",
+      {attrId: column.key, caseId: row.__id__, to: newValue }))
     setValue(newValue)
   }
 
