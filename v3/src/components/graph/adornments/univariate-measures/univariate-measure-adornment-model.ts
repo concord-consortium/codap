@@ -7,6 +7,7 @@ import { isFiniteNumber } from "../../../../utilities/math-utils"
 import { dataDisplayGetNumericValue } from "../../../data-display/data-display-value-utils"
 
 export const MeasureInstance = types.model("MeasureInstance", {
+  // coords represent proportional position of top-left corner of label in cell coordinates
   labelCoords: types.maybe(PointModel)
 })
 .volatile(self => ({
@@ -30,7 +31,6 @@ export const UnivariateMeasureAdornmentModel = AdornmentModel
   .named("UnivariateMeasureAdornmentModel")
   .props({
     measures: types.map(MeasureInstance),
-    showMeasureLabels: false,
     type: types.optional(types.string, () => {
       throw "type must be overridden"
     }),
@@ -39,6 +39,9 @@ export const UnivariateMeasureAdornmentModel = AdornmentModel
     }),
   })
   .views(self => ({
+    get firstMeasure(): Maybe<IMeasureInstance> {
+      return self.measures.values().next().value
+    },
     getCaseValues(attrId: string, cellKey: Record<string, string>, dataConfig: IGraphDataConfigurationModel) {
       const dataset = dataConfig?.dataset
       const casesInPlot = dataConfig.subPlotCases(cellKey)
@@ -93,9 +96,6 @@ export const UnivariateMeasureAdornmentModel = AdornmentModel
     },
     removeMeasure(key: string) {
       self.measures.delete(key)
-    },
-    setShowMeasureLabels(showLabels: boolean) {
-      self.showMeasureLabels = showLabels
     },
     invalidateMeasures() {
       self.measures.forEach(measure => measure.setIsValid(false))

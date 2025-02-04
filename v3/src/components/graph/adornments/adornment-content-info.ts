@@ -15,6 +15,8 @@ export interface IAdornmentUndoRedoKeys {
 
 export interface IAdornmentExporterOptions {
   categoricalAttrs: Array<{ role: AttrRole, attrId: string }>
+  xCategories: string[]
+  yCategories: string[]
   legendCategories: string[]
   isInterceptLocked: boolean
   isShowingCount: boolean
@@ -51,14 +53,6 @@ export function exportAdornmentBase(model: IAdornmentModel, options: IAdornmentE
   return {
     isVisible: options.isVisible ?? model.isVisible,
     enableMeasuresForSelection: options.showMeasuresForSelection
-  }
-}
-
-export function exportAdornmentBaseWithCoordsArray(model: IAdornmentModel, options: IAdornmentExporterOptions) {
-  return {
-    ...exportAdornmentBase(model, options),
-    // TODO_V2_EXPORT export label/equation coordinates for adornments
-    equationCoordsArray: []
   }
 }
 

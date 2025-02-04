@@ -31,8 +31,6 @@ export class UnivariateMeasureAdornmentHelper {
   layout: GraphLayout
   measureSlug = ""
   model: IUnivariateMeasureAdornmentModel
-  plotHeight = 0
-  plotWidth = 0
   xScale: ScaleNumericBaseType
   yScale: ScaleNumericBaseType
 
@@ -40,8 +38,6 @@ export class UnivariateMeasureAdornmentHelper {
     cellKey: Record<string, string>,
     layout: GraphLayout,
     model: IUnivariateMeasureAdornmentModel,
-    plotHeight: number,
-    plotWidth: number,
     containerId?: string
   ) {
     this.cellKey = cellKey
@@ -51,8 +47,6 @@ export class UnivariateMeasureAdornmentHelper {
     this.layout = layout
     this.measureSlug = model.type.toLowerCase().replace(/ /g, "-")
     this.model = model
-    this.plotHeight = plotHeight
-    this.plotWidth = plotWidth
     this.xScale = layout.getAxisScale("bottom") as ScaleNumericBaseType
     this.yScale = layout.getAxisScale("left") as ScaleNumericBaseType
   }
@@ -198,6 +192,24 @@ export class UnivariateMeasureAdornmentHelper {
     valueObj.rangeMaxCover = this.newLine(valueElement, rangeMaxCoverSpecs)
   }
 
+  // converts a world value to a percentage of the axis range
+  xScalePct = (value: number) => {
+    const range = this.xScale.range()
+    return this.xScale(value) / (range[1] - range[0])
+  }
+
+  // converts a world value to a percentage of the axis range
+  yScalePct = (value: number) => {
+    const range = this.yScale.range()
+    return this.yScale(value) / (range[0] - range[1])
+  }
+
+  // converts a pixel value to a percentage of the axis range
+  yRangePct = (value: number) => {
+    const range = this.yScale.range()
+    return value / Math.abs(range[0] - range[1])
+  }
+
   adornmentSpecs = (
     attrId: string, dataConfig: IDataConfigurationModel, value: number, isVertical: boolean,
     cellCounts: Record<string, number>, secondaryAxisX=0, secondaryAxisY=0
@@ -249,30 +261,38 @@ export class UnivariateMeasureAdornmentHelper {
     return isBlockingOtherMeasure
   }
 
+  getProportions(event: { x: number, y: number }, labelId: string) {
+    const label = select(`#${labelId}`)
+    const labelElt = label.node() as Element
+    const parentElt = labelElt.closest(".measure-labels")
+    if (!labelElt || !parentElt) return
+    const labelBounds = labelElt.getBoundingClientRect()
+    const labelWidth = labelBounds.width
+    const labelHeight = labelBounds.height
+    const parentBounds = parentElt.getBoundingClientRect()
+    const parentWidth = parentBounds.width
+    const parentHeight = parentBounds.height
+    const left = event.x - labelWidth / 2
+    const top = event.y - labelHeight / 2
+    return { x: left / parentWidth, y: top / parentHeight }
+  }
+
   handleMoveLabel(event: { x: number, y: number, dx: number, dy: number }, labelId: string) {
     if (event.dx !== 0 || event.dy !== 0) {
-      const label = select(`#${labelId}`)
-      const labelNode = label.node() as Element
-      const labelWidth = labelNode?.getBoundingClientRect().width || 0
-      const labelHeight = labelNode?.getBoundingClientRect().height || 0
-      const left = event.x - labelWidth / 2
-      const top = event.y - labelHeight / 2
-
-      label.style('left', `${left}px`)
-        .style('top', `${top}px`)
+      const proportions = this.getProportions(event, labelId)
+      if (proportions) {
+        const label = select(`#${labelId}`)
+        label.style('left', `${100 * proportions.x}%`).style('top', `${100 * proportions.y}%`)
+      }
     }
   }
 
   handleEndMoveLabel(event: Point, labelId: string) {
     const {measures} = this.model
-    const label = select(`#${labelId}`)
-    const labelNode = label.node() as Element
-    const labelWidth = labelNode?.getBoundingClientRect().width || 0
-    const labelHeight = labelNode?.getBoundingClientRect().height || 0
-    const x = event.x - labelWidth / 2
-    const y = event.y - labelHeight / 2
+    const proportions = this.getProportions(event, labelId)
+    if (!proportions) return
     const measure = measures.get(this.instanceKey)
-    measure?.setLabelCoords({x, y})
+    measure?.setLabelCoords({ x: proportions.x, y: proportions.y })
   }
 
   computeTextContentForStdErr(dataConfiguration: IGraphDataConfigurationModel, isVertical: boolean, stdErr: number,
@@ -289,10 +309,8 @@ export class UnivariateMeasureAdornmentHelper {
     const valueString = t(kStandardErrorValueTitleKey, {vars: substitutionVars}) +
       (inHTML ? (primaryAttributeUnits ? ` ${primaryAttributeUnits}` : "") : "")
     const unitsString = `${primaryAttributeUnits ? ` ${primaryAttributeUnits}` : ""}`
-    const unitsContent = inHTML ? `<span style="color:grey">${unitsString}</span>` : unitsString
-    const valueContent = inHTML
-      ? `<p style = "color:${kErrorBarStrokeColor};">${valueString}${unitsContent}</p>` : valueString
-    return `${valueContent}${(inHTML ? '' : unitsString)}`
+    const valueContent = inHTML ? `<p style = "color:${kErrorBarStrokeColor};">${valueString}</p>` : valueString
+    return `${valueContent}${inHTML ? '' : unitsString}`
   }
 
 }

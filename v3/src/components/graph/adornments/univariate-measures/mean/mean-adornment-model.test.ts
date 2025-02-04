@@ -7,12 +7,6 @@ describe("MeanModel", () => {
     expect(mean).toBeDefined()
     expect(mean.type).toEqual(kMeanType)
   })
-  it("can have its showLabels property set", () => {
-    const mean = MeanAdornmentModel.create()
-    expect(mean.showMeasureLabels).toBe(false)
-    mean.setShowMeasureLabels(true)
-    expect(mean.showMeasureLabels).toBe(true)
-  })
   it("can have a new mean value added to its measures map", () => {
     const adornment = MeanAdornmentModel.create()
     expect(adornment.measures.size).toBe(0)

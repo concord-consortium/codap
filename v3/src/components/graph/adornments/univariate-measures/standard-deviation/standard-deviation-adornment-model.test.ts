@@ -7,12 +7,6 @@ describe("StandardDeviationModel", () => {
     expect(mean).toBeDefined()
     expect(mean.type).toEqual(kStandardDeviationType)
   })
-  it("can have its showLabels property set", () => {
-    const mean = StandardDeviationAdornmentModel.create()
-    expect(mean.showMeasureLabels).toBe(false)
-    mean.setShowMeasureLabels(true)
-    expect(mean.showMeasureLabels).toBe(true)
-  })
   it("can have a new standard deviation value added to its measures map", () => {
     const adornment = StandardDeviationAdornmentModel.create()
     expect(adornment.measures.size).toBe(0)
