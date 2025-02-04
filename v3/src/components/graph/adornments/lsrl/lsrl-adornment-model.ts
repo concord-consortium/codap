@@ -78,7 +78,7 @@ export const LSRLAdornmentModel = AdornmentModel
     if (!dataConfig) return []
     const dataset = dataConfig?.dataset
     const legendAttrId = dataConfig?.attributeID("legend")
-    const casesInPlot = dataConfig.subPlotCases(cellKey)
+    const casesInPlot = dataConfig?.filterCasesForDisplay(dataConfig.subPlotCases(cellKey))
     const caseValues: Point[] = []
     casesInPlot.forEach(caseId => {
       const caseValueX = dataDisplayGetNumericValue(dataset, caseId, xAttrId)
