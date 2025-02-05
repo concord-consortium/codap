@@ -191,7 +191,7 @@
   },
   "dependencies": {
     "@chakra-ui/icons": "^2.2.4",
-    "@chakra-ui/react": "~2.9.5",
+    "@chakra-ui/react": "~2.10.5",
     "@codemirror/autocomplete": "^6.18.2",
     "@codemirror/commands": "^6.7.1",
     "@codemirror/language": "^6.10.3",
