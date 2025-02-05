@@ -219,7 +219,7 @@
     "mime": "^4.0.4",
     "mobx": "=6.13.3",
     "mobx-react-lite": "^4.0.7",
-    "nanoid": "^5.0.8",
+    "nanoid": "^5.0.9",
     "papaparse": "^5.4.1",
     "pixi.js": "~8.5.2",
     "pluralize": "^8.0.0",
