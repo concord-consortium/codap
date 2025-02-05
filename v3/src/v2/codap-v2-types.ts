@@ -343,13 +343,9 @@ interface ICodapV2VerticalMovableLineAdornment extends ICodapV2MovableLineAdornm
 
 export type ICodapV2MovableLineAdornment = ICodapV2NormalMovableLineAdornment | ICodapV2VerticalMovableLineAdornment
 
-interface ICodapV2LSRLInstance extends ICodapV2Adornment {
+export interface ICodapV2LSRLInstance extends ICodapV2Adornment {
   // this is a graph-wide property that is redundantly stored with each instance
   isInterceptLocked: boolean
-  // TODO_V2_IMPORT: equationCoords are not handled correctly, the import code assumes they have
-  // an x and y instead of proportionCenterX and proportionCenterY
-  // There are 4,000 instances of this in cfm-shared
-  // example: cfm-shared/00JG6PytJ4Zfhk3Yw4Xf/file.json
   equationCoords?: ICodapV2ProportionCenterEquationCoords | null,
   // this is an adornment-wide property that is redundantly stored with each instance
   showConfidenceBands?: boolean
@@ -358,6 +354,7 @@ interface ICodapV2LSRLInstance extends ICodapV2Adornment {
 export interface ICodapV2MultipleLSRLAdornments extends ICodapV2Adornment {
   // seems to be redundant with the `areSquaresVisible` property stored in plotModelStorage
   showSumSquares?: boolean
+  // this is a graph-wide property that is redundantly stored with each adornment and instance
   isInterceptLocked: boolean
   showConfidenceBands?: boolean
   lsrls?: ICodapV2LSRLInstance[]

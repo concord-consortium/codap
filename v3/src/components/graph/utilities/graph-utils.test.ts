@@ -24,16 +24,17 @@ describe("equationString", () => {
 describe("lsrlEquationString", () => {
   const layout = new GraphLayout()
   const attrNames = {x: "Lifespan", y: "Speed"}
+  const units = {}
   it("should return a valid equation for a given slope and intercept", () => {
-    expect(lsrlEquationString({caseValues: [], slope: 1, intercept: 0, attrNames, layout}))
+    expect(lsrlEquationString({caseValues: [], slope: 1, intercept: 0, attrNames, units, layout}))
       .toBe('<span><em>Speed</em> = 1 (<em>Lifespan</em>)</span>')
   })
   it("should return an equation containing only the y attribute when the slope is 0", () => {
-    expect(lsrlEquationString({caseValues: [], slope: 0, intercept: 1, attrNames, layout}))
+    expect(lsrlEquationString({caseValues: [], slope: 0, intercept: 1, attrNames, units, layout}))
       .toBe('<span><em>Speed</em> = 1</span>')
   })
   it("should return an equation containing only the x attribute when the slope is Infinity", () => {
-    expect(lsrlEquationString({caseValues: [], slope: Infinity, intercept: 1, attrNames, layout}))
+    expect(lsrlEquationString({caseValues: [], slope: Infinity, intercept: 1, attrNames, units, layout}))
       .toBe('<span><em>Lifespan</em> = 1</span>')
   })
 })
