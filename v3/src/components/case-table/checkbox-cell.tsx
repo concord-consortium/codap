@@ -1,6 +1,5 @@
-import React, { useEffect, useRef, useState } from "react"
+import React, { useEffect, useRef } from "react"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
-import { IValueType } from "../../models/data/attribute-types"
 import { FValue } from "../../models/formula/formula-types"
 
 export const isBoolean = (value: FValue | undefined) => {
