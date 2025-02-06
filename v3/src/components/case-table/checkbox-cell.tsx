@@ -19,13 +19,13 @@ interface ICheckboxCellProps {
 export default function CheckboxCell ({ rowId, attrId }: ICheckboxCellProps) {
   const data = useDataSetContext()
   const checkRef = useRef<HTMLInputElement>(null)
-  const [value, setValue] = useState<IValueType>(data?.getValue(rowId, attrId))
+  const cellValue = data?.getValue(rowId, attrId)
 
   useEffect(() => {
     if (checkRef.current) {
-      if (isBoolean(value) && value !== "") {
-        if (typeof value === "string") {
-          if (value.toLowerCase() === "true") {
+      if (isBoolean(cellValue) && cellValue !== "") {
+        if (typeof cellValue === "string") {
+          if (cellValue.toLowerCase() === "true") {
             checkRef.current.checked = true
             checkRef.current.indeterminate = false }
           else {
@@ -38,7 +38,7 @@ export default function CheckboxCell ({ rowId, attrId }: ICheckboxCellProps) {
         checkRef.current.indeterminate = true
       }
     }
-  }, [value])
+  }, [cellValue])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.checked
@@ -47,12 +47,12 @@ export default function CheckboxCell ({ rowId, attrId }: ICheckboxCellProps) {
     }, {
       log: `update checkbox state: ${attrId} to ${newValue ? "checked" : "unchecked"}`
     })
-    setValue(newValue)
   }
 
   return (
     <span className="cell-checkbox">
-      <input type="checkbox" ref={checkRef} title={String(value)} onChange={handleChange}/>
+      <input type="checkbox" ref={checkRef}  onChange={handleChange}
+              title={String(cellValue) === "" ? "undefined" : String(cellValue)}/>
     </span>
   )
 }
