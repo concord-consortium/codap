@@ -28,15 +28,6 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
   const [columns, setColumns] = useState<TColumn[]>([])
   const rowHeight = collectionTableModel?.rowHeight ?? kDefaultRowHeight
 
-  const commitCheckboxChange = (row: any, column: any, id: string) => {
-    console.log("CheckboxCell handleChange onRowChange row", row, "column", column, "newValue", column[id])
-    data?.applyModelChange(() => {
-      row[column.key] = column[id]
-    }, {
-      // log: `update checkbox state: ${column.key} to ${column.key}`
-    })
-  }
-
   useEffect(() => {
     // rebuild column definitions when referenced properties change
     return mstReaction(
@@ -64,17 +55,14 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
                 renderHeaderCell: ColumnHeader,
                 cellClass: row => clsx("codap-data-cell", `rowId-${row.__id__}`,
                                         {"formula-column": hasFormula, "multi-line": rowHeight > kDefaultRowHeight}),
-                renderCell: userType === "checkbox"
-                              ? ({ row }) => <CheckboxCell row={row} column={{ key: id, name }}
-                                                onRowChange={(column) => commitCheckboxChange(row, column, id)}/>
-                              : AttributeValueCell,
+                renderCell: AttributeValueCell,
                 editable: row => isCaseEditable(data, row.__id__),
-                renderEditCell: isEditable
+                renderEditCell: isEditable && userType !== "checkbox"
                                   // if users haven't assigned a non-color type, then color swatches
                                   // may be displayed and should be edited with swatches.
                                   ? userType == null || userType === "color"
                                       ? ColorCellTextEditor
-                                      : userType !== "checkbox" ? CellTextEditor : undefined
+                                      : CellTextEditor
                                   : undefined
               }))
           ]

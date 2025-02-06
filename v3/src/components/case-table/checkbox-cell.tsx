@@ -1,62 +1,59 @@
 import React, { useEffect, useRef, useState } from "react"
-import { useLoggingContext } from "../../hooks/use-log-context"
-import { logStringifiedObjectMessage } from "../../lib/log-message"
-import { TColumn, TRow } from "./case-table-types"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
+import { IValueType } from "../../models/data/attribute-types"
+import { FValue } from "../../models/formula/formula-types"
 
-interface ICheckboxCellProps {
-  row: TRow
-  column: TColumn
-  onRowChange?: (row: TRow, commitChanges?: boolean) => void
+export const isBoolean = (value: FValue | undefined) => {
+  let v = value
+  if (typeof v === "string") {
+    v = v.toLowerCase()
+  }
+  return v === undefined || ["", "false", "true", false, true, null].includes(v as string | boolean | null)
 }
 
-export default function CheckboxCell ({ row, column, onRowChange }: ICheckboxCellProps) {
+interface ICheckboxCellProps {
+  rowId: string
+  attrId: string
+  hasFormula?: boolean
+}
+
+export default function CheckboxCell ({ rowId, attrId, hasFormula }: ICheckboxCellProps) {
+  const data = useDataSetContext()
   const checkRef = useRef<HTMLInputElement>(null)
-  const [value, setValue] = useState<"indeterminate" | "true" | "false">("indeterminate")
-  const { setPendingLogMessage } = useLoggingContext()
-  const dataset = useDataSetContext()
-
-  useEffect(() => {
-    if (row[column.key] === "true") {
-      setValue("true")
-    } else if (row[column.key] === "false") {
-      setValue("false")
-    } else {
-      setValue("indeterminate")
-    }
-  }, [row, column.key])
-
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    let newValue: "true" | "false" | "indeterminate" = "indeterminate"
-    if (value === "indeterminate" || value === "false") {
-      newValue = "true"
-    } else if (value === "true") {
-      newValue = "false"
-    } else {
-      newValue = "indeterminate"
-    }
-    console.log("CheckboxCell handleChange onRowChange", onRowChange)
-    onRowChange && onRowChange({ ...row, [column.key]: newValue }, true)
-    setPendingLogMessage("editCellValue", logStringifiedObjectMessage("update checkbox state: %@",
-      {attrId: column.key, caseId: row.__id__, to: newValue }))
-    setValue(newValue)
-  }
+  const [value, setValue] = useState<IValueType>(data?.getValue(rowId, attrId))
 
   useEffect(() => {
     if (checkRef.current) {
-      checkRef.current.indeterminate = value === "indeterminate"
-      checkRef.current.checked = value === "true"
+      if (isBoolean(value) && value !== "") {
+        if (typeof value === "string") {
+          if (value.toLowerCase() === "true") {
+            checkRef.current.checked = true
+            checkRef.current.indeterminate = false }
+          else {
+            checkRef.current.checked = false
+            checkRef.current.indeterminate = false
+          }
+        }
+      } else {
+        checkRef.current.checked = false
+        checkRef.current.indeterminate = true
+      }
     }
   }, [value])
 
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.checked
+    data?.applyModelChange(() => {
+      data.setCaseValues([{ __id__: rowId, [attrId]: newValue }])
+    }, {
+      log: `update checkbox state: ${attrId} to ${newValue ? "checked" : "unchecked"}`
+    })
+    setValue(newValue)
+  }
+
   return (
-    <span className="checkbox-cell">
-      <input
-        type="checkbox"
-        onChange={handleChange}
-        ref={checkRef}
-        title={value}
-      />
+    <span className="cell-checkbox">
+      <input type="checkbox" ref={checkRef} onChange={handleChange}/>
     </span>
   )
 }

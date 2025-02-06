@@ -13,6 +13,7 @@ import {
   kCaseTableBodyFont, kCaseTableHeaderFont, kDefaultRowHeight,
   kMaxAutoColumnWidth, kMinAutoColumnWidth, kSnapToLineHeight
 } from "../case-table/case-table-types"
+import CheckboxCell, {isBoolean} from "../case-table/checkbox-cell"
 
 // cache d3 number formatters so we don't have to generate them on every render
 type TNumberFormatter = (n: number) => string
@@ -28,8 +29,8 @@ export const getNumFormatter = (formatStr: string) => {
 }
 
 export function renderAttributeValue(str = "", num = NaN, showUnits = false, attr?: IAttribute,
-            key?: number, rowHeight: number = kDefaultRowHeight) {
-  const { type, userType, numPrecision, datePrecision } = attr || {}
+            key?: number, rowHeight: number = kDefaultRowHeight, rowId?: string) {
+  const { type, userType, numPrecision, datePrecision, id: attrId } = attr || {}
   let formatClass = ""
   // https://css-tricks.com/almanac/properties/l/line-clamp/
   const lineClamp = rowHeight > kDefaultRowHeight
@@ -62,6 +63,14 @@ export function renderAttributeValue(str = "", num = NaN, showUnits = false, att
           <div className="cell-color-swatch-interior" style={{ background: color }} />
         </div>
       )
+    }
+  }
+
+  // checkboxes
+  if (userType === "checkbox" && isBoolean(str)) {
+    return {
+      value: str,
+      content: <CheckboxCell rowId={rowId ?? ""} attrId={attrId ?? ""} />
     }
   }
 
