@@ -184,7 +184,8 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
 
   return (
     <ComponentWrapperContext.Provider value={componentRef}>
-      <div id={tileId} className={classes} style={style} key={tileId} ref={mergedComponentRef}>
+      <div id={tileId} className={classes} style={style} key={tileId} ref={mergedComponentRef}
+          data-tile-z-index={zIndex}>
         {tile && rowTile &&
           <CodapComponent tile={tile}
             isMinimized={rowTile.isMinimized}

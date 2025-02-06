@@ -1,3 +1,4 @@
+import { Portal } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
 import React, { useCallback, useEffect, useRef } from "react"
 import { ICoreNotification } from "../../data-interactive/notification-core-types"
@@ -5,6 +6,7 @@ import { CollectionContext, ParentCollectionContext } from "../../hooks/use-coll
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useTileDropOverlay } from "../../hooks/use-drag-drop"
 import { useInstanceIdContext } from "../../hooks/use-instance-id-context"
+import { useTileSelectionContext } from "../../hooks/use-tile-selection-context"
 import { registerCanAutoScrollCallback } from "../../lib/dnd-kit/dnd-can-auto-scroll"
 import { logMessageWithReplacement } from "../../lib/log-message"
 import { ICollectionModel } from "../../models/data/collection"
@@ -13,11 +15,11 @@ import { createCollectionNotification, deleteCollectionNotification } from "../.
 import { mstReaction } from "../../utilities/mst-reaction"
 import { prf } from "../../utilities/profiler"
 import { excludeDragOverlayRegEx } from "../case-tile-common/case-tile-types"
+import { FilterFormulaBar } from "../case-tile-common/filter-formula-bar"
 import { AttributeHeaderDividerContext } from "../case-tile-common/use-attribute-header-divider-context"
 import { AttributeDragOverlay } from "../drag-drop/attribute-drag-overlay"
 import { IScrollOptions } from "./case-table-types"
 import { CollectionTable } from "./collection-table"
-import { FilterFormulaBar } from "../case-tile-common/filter-formula-bar"
 import { useCaseTableModel } from "./use-case-table-model"
 import { useSyncScrolling } from "./use-sync-scrolling"
 
@@ -29,6 +31,7 @@ export const CaseTable = observer(function CaseTable() {
   const { setNodeRef } = useTileDropOverlay(instanceId)
   const data = useDataSetContext()
   const tableModel = useCaseTableModel()
+  const tileSelection = useTileSelectionContext()
   const contentRef = useRef<HTMLDivElement>(null)
   const lastNewCollectionDrop = useRef<{ newCollectionId: string, beforeCollectionId: string } | undefined>()
 
@@ -38,6 +41,13 @@ export const CaseTable = observer(function CaseTable() {
       return element !== contentRef.current || (direction && direction.y === 0)
     })
   }, [])
+
+  useEffect(() => {
+    return tileSelection.addFocusIgnoreFn(event => {
+      // disable table becoming selected on attribute drag
+      return event.target instanceof HTMLElement && event.target.closest(".codap-attribute-button") != null
+    })
+  }, [tileSelection])
 
   useEffect(() => {
     const updateScroll = (horizontalScrollOffset?: number) => {
@@ -149,7 +159,9 @@ export const CaseTable = observer(function CaseTable() {
               )
             })}
           </AttributeHeaderDividerContext.Provider>
-          <AttributeDragOverlay dragIdPrefix={instanceId} dragIdExcludeRegEx={excludeDragOverlayRegEx} />
+          <Portal>
+            <AttributeDragOverlay dragIdPrefix={instanceId} dragIdExcludeRegEx={excludeDragOverlayRegEx} />
+          </Portal>
         </div>
       </div>
     )
