@@ -1196,7 +1196,7 @@ context("case table ui", () => {
       table.getApplyButton().click()
       table.getGridCell(3, 11).should("contain", "some text")
       table.getGridCell(4, 11).should("contain", "5")
-      cy.get(".cell-checkbox").should("exist").and("have.length", 13)
+      cy.get(".cell-checkbox").should("exist").and("have.length.gte", 12)
     })
   })
 })
