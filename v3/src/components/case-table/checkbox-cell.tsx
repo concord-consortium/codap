@@ -18,25 +18,16 @@ interface ICheckboxCellProps {
 
 export default function CheckboxCell ({ rowId, attrId }: ICheckboxCellProps) {
   const data = useDataSetContext()
+  // We need checkRef to show indeterminate state
   const checkRef = useRef<HTMLInputElement>(null)
   const cellValue = data?.getValue(rowId, attrId)
 
   useEffect(() => {
     if (checkRef.current) {
-      if (isBoolean(cellValue) && cellValue !== "") {
-        if (typeof cellValue === "string") {
-          if (cellValue.toLowerCase() === "true") {
-            checkRef.current.checked = true
-            checkRef.current.indeterminate = false }
-          else {
-            checkRef.current.checked = false
-            checkRef.current.indeterminate = false
-          }
-        }
-      } else {
-        checkRef.current.checked = false
-        checkRef.current.indeterminate = true
-      }
+      const isBool = isBoolean(cellValue)
+      const isTrue = typeof cellValue === "string" && cellValue.toLowerCase() === "true"
+      checkRef.current.checked = isBool && isTrue
+      checkRef.current.indeterminate = !isBool || cellValue === ""
     }
   }, [cellValue])
 
@@ -48,7 +39,8 @@ export default function CheckboxCell ({ rowId, attrId }: ICheckboxCellProps) {
       log: `update checkbox state: ${attrId} to ${newValue ? "checked" : "unchecked"}`
     })
   }
-
+  // title is used to show the value of the cell when hovering over the checkbox
+  // When checkbox is in the indeterminate state, we want the tooltip to show "undefined"
   return (
     <span className="cell-checkbox">
       <input type="checkbox" ref={checkRef}  onChange={handleChange}
