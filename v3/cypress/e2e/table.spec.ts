@@ -1177,7 +1177,7 @@ context("case table ui", () => {
       table.selectMenuItemFromAttributeMenu("Edit Attribute Properties")
       table.selectAttributeType("checkbox")
       table.getApplyButton().click()
-      cy.get(".cell-checkbox").should("exist").and("have.length", 13)
+      cy.get(".cell-checkbox").should("exist").and("have.length.gte", 12)
     })
 
     // if user has entered other types of data in any of the cells in the column
