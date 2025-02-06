@@ -134,6 +134,10 @@ DG.GameView = DG.WebView.extend(
           } else {
             DG.logWarn("DG.GameView:iframeDidLoad no contentWindow\n");
           }
+          // For most GameViews, the loadingView could be left in place. But for the Simmer plugin, it gets in the
+          // way of Blockly's layout manipulation, so we destroy it.
+          var loadingView = this.getPath('parentView.loadingView');
+          if (loadingView) loadingView.destroy();
           sc_super();
         }
 
