@@ -1,32 +1,48 @@
-import { Instance, SnapshotIn, types } from "mobx-state-tree"
+import { getSnapshot, Instance, SnapshotIn, types } from "mobx-state-tree"
+import { isFiniteNumber } from "../../../../utilities/math-utils"
+import { ScaleNumericBaseType } from "../../../axis/axis-types"
 import { kMain, Point } from "../../../data-display/data-display-types"
 import { dataDisplayGetNumericValue } from "../../../data-display/data-display-value-utils"
-import { AdornmentModel, IAdornmentModel, IUpdateCategoriesOptions, PointModel } from "../adornment-models"
-import { leastSquaresLinearRegression, tAt0975ForDf } from "../../utilities/graph-utils"
-import { kLSRLType } from "./lsrl-adornment-types"
 import { IGraphDataConfigurationModel } from "../../models/graph-data-configuration-model"
-import { ScaleNumericBaseType } from "../../../axis/axis-types"
+import { leastSquaresLinearRegression, tAt0975ForDf } from "../../utilities/graph-utils"
+import { AdornmentModel, IAdornmentModel, IUpdateCategoriesOptions, PointModel } from "../adornment-models"
 import { ILineDescription } from "../shared-adornment-types"
-import { isFiniteNumber } from "../../../../utilities/math-utils"
+import { kLSRLType } from "./lsrl-adornment-types"
 
-interface ILSRLine {
+const kDefaultLabelHeight = 60
+
+interface ILSRLineSnap extends ILSRLInstanceSnapshot {
   category?: string
-  equationCoords?: Point
   intercept?: number
   rSquared?: number
   slope?: number
   sdResiduals?: number
 }
 
+interface IExtents {
+  labelWidth?: number
+  labelHeight?: number
+  plotWidth: number
+  plotHeight: number
+}
+
 export const LSRLInstance = types.model("LSRLInstance", {
-  equationCoords: types.maybe(PointModel)
+  // interpreted as proportional position of the center of the label in cell coordinates
+  equationCoords: types.maybe(PointModel),
+  // v2 used an iterative process which incorrectly factored in the plot height
+  isV2Coords: types.maybe(types.boolean)
 })
 .volatile(() => ({
-  category: undefined as string | undefined,
-  intercept: undefined as number | undefined,
-  rSquared: undefined as number | undefined,
-  slope: undefined as number | undefined,
-  sdResiduals: undefined as number | undefined
+  category: undefined as Maybe<string>,
+  intercept: undefined as Maybe<number>,
+  rSquared: undefined as Maybe<number>,
+  slope: undefined as Maybe<number>,
+  sdResiduals: undefined as Maybe<number>,
+  // used for coordinate transformations and exporting to v2
+  labelWidth: undefined as Maybe<number>,
+  labelHeight: undefined as Maybe<number>,
+  plotWidth: undefined as Maybe<number>,
+  plotHeight: undefined as Maybe<number>
 }))
 .views(self => ({
   get isValid() {
@@ -39,14 +55,55 @@ export const LSRLInstance = types.model("LSRLInstance", {
     const intercept = self.intercept
     const slope = self.slope
     return {intercept, slope}
+  },
+  get v2ToV3AdjustedHeight() {
+    const rawLabelHeight = self.labelHeight ?? kDefaultLabelHeight
+    if (!self.plotHeight || !self.equationCoords || !self.isV2Coords) return rawLabelHeight
+    const { y: yProportion } = self.equationCoords
+    // v2 used an iterative process which incorrectly factored in the plot height
+    const diffHeight = self.plotHeight - rawLabelHeight
+    return rawLabelHeight + (1 - yProportion) * diffHeight * 2
+  }
+}))
+.views(self => ({
+  get labelPosition() {
+    if (!self.equationCoords || !self.plotWidth || !self.plotHeight) return
+
+    const { x: xProportion, y: yProportion } = self.equationCoords
+    const labelWidthProportion = xProportion <= 0.5 ? 2 * xProportion : 2 * (1 - xProportion)
+    const kDefaultLabelWidth = labelWidthProportion * self.plotWidth + (self.isV2Coords ? 3 : 0)
+    const labelWidth = self.labelWidth ?? kDefaultLabelWidth
+    // apply correction factor for values imported from v2
+    const labelHeight = self.v2ToV3AdjustedHeight
+    return {
+      left: xProportion * self.plotWidth - labelWidth / 2,
+      top: yProportion * self.plotHeight - labelHeight / 2
+    }
+  },
+  get v2ExportCoords() {
+    if (!self.equationCoords) return
+    const { x: proportionCenterX, y: proportionCenterY } = self.equationCoords
+    const v2Coords = { proportionCenterX, proportionCenterY }
+    if (self.isV2Coords || !self.plotHeight) return v2Coords
+
+    const labelHeight = self.labelHeight ?? kDefaultLabelHeight
+    const heightDiff = self.plotHeight - labelHeight
+    // reverse the correction factor used when importing from v2
+    const _proportionCenterY = (proportionCenterY * self.plotHeight + heightDiff) / (self.plotHeight + heightDiff)
+    return {
+      proportionCenterX,
+      proportionCenterY: _proportionCenterY
+    }
   }
 }))
 .actions(self => ({
   setCategory(category?: string) {
     self.category = category
   },
+  // interpreted as proportional position of the center of the label in cell coordinates
   setEquationCoords(coords: Point) {
     self.equationCoords = PointModel.create(coords)
+    self.isV2Coords = undefined
   },
   setIntercept(intercept?: number) {
     self.intercept = intercept
@@ -59,18 +116,38 @@ export const LSRLInstance = types.model("LSRLInstance", {
   },
   setSdResiduals(sdResiduals?: number) {
     self.sdResiduals = sdResiduals
+  },
+  setExtents({ labelWidth, labelHeight, plotWidth, plotHeight }: IExtents) {
+    if (labelWidth) self.labelWidth = labelWidth
+    if (labelHeight) self.labelHeight = labelHeight
+    self.plotWidth = plotWidth
+    self.plotHeight = plotHeight
   }
 }))
 
+function createLSRLInstance(line: ILSRLineSnap) {
+  const instance = LSRLInstance.create(line)
+  instance.setCategory(line.category)
+  instance.setIntercept(line.intercept)
+  instance.setSlope(line.slope)
+  instance.setRSquared(line.rSquared)
+  instance.setSdResiduals(line.sdResiduals)
+  return instance
+}
 
 export const LSRLAdornmentModel = AdornmentModel
 .named("LSRLAdornmentModel")
 .props({
   type: types.optional(types.literal(kLSRLType), kLSRLType),
-  lines: types.map(types.array(LSRLInstance)),
-  showConfidenceBands: types.optional(types.boolean, false)
+  // first key is cell key; second key is legend category (or kMain)
+  lines: types.map(types.map(LSRLInstance)),
+  showConfidenceBands: false
 })
 .views(self => ({
+  // each cell contains a map of lines, where the key is the legend category (or kMain)
+  firstLineInstance(category = kMain): Maybe<ILSRLInstance> {
+    return self.lines.values().next().value?.get(category)
+  },
   getCaseValues(
     xAttrId: string, yAttrId: string, cellKey: Record<string, string>, dataConfig?: IGraphDataConfigurationModel,
     cat?: string
@@ -93,6 +170,9 @@ export const LSRLAdornmentModel = AdornmentModel
     })
     return caseValues
   },
+  getLegendCategories(dataConfig: IGraphDataConfigurationModel) {
+    return dataConfig.categoryArrayForAttrRole("legend")
+  },
   get lineDescriptions() {
     const lineDescriptions: ILineDescription[] = []
     self.lines.forEach((linesArray, key) => {
@@ -108,13 +188,12 @@ export const LSRLAdornmentModel = AdornmentModel
 }))
 .views(self => ({
   confidenceValues(
-    iX: number, caseValues: Point[], cellKey: Record<string, string>, lineIndex: number, isInterceptLocked=false
+    iX: number, caseValues: Point[], cellKey: Record<string, string>, legendCat = kMain, isInterceptLocked = false
   ) {
-    const lines = self.lines.get(self.instanceKey(cellKey))
-    const line = lines?.[lineIndex]
+    const line = self.lines.get(self.instanceKey(cellKey))?.get(legendCat)
     const { count, mse, xSumSquaredDeviations, xMean } = leastSquaresLinearRegression(caseValues, isInterceptLocked)
     if (
-      !line || line.intercept == null || line.slope == null || count == null || mse == null || xMean == null ||
+      line?.intercept == null || line.slope == null || count == null || mse == null || xMean == null ||
       xSumSquaredDeviations == null
     ) return
     const tAt0975ForD = tAt0975ForDf(count - 2)
@@ -127,13 +206,13 @@ export const LSRLAdornmentModel = AdornmentModel
 .views(self => ({
   confidenceBandsPoints(
     min: number, max: number, xCellCount: number, yCellCount: number, gap: number, caseValues: Point[],
-    xScale: ScaleNumericBaseType, yScale: ScaleNumericBaseType, cellKey: Record<string, string>, lineIndex: number
+    xScale: ScaleNumericBaseType, yScale: ScaleNumericBaseType, cellKey: Record<string, string>, legendCat = kMain
   ) {
     const upperPoints: Point[] = []
     const lowerPoints: Point[] = []
     for (let pixelX = min; pixelX <= max; pixelX += gap) {
       const tX = xScale.invert(pixelX * xCellCount)
-      const tYValues = self.confidenceValues(tX, caseValues, cellKey, lineIndex)
+      const tYValues = self.confidenceValues(tX, caseValues, cellKey, legendCat)
       if (!tYValues) continue
       upperPoints.push({ x: pixelX, y: yScale(tYValues.upper) / yCellCount })
       lowerPoints.unshift({ x: pixelX, y: yScale(tYValues.lower) / yCellCount })
@@ -142,21 +221,13 @@ export const LSRLAdornmentModel = AdornmentModel
   }
 }))
 .actions(self => ({
-  updateLines(line: ILSRLine, key:string, index: number) {
-    const { category, equationCoords, intercept, rSquared, sdResiduals, slope } = line
-    const existingLines = self.lines.get(key)
-    const newLines = existingLines ? [...existingLines] : []
-    // Remove any pre-existing line in newLines at specified index, otherwise we can end up with duplicates.
-    newLines.splice(index, 1)
-    const newLine = LSRLInstance.create(line)
-    newLine.setCategory(category)
-    newLine.setIntercept(intercept)
-    newLine.setRSquared(rSquared)
-    newLine.setSlope(slope)
-    newLine.setSdResiduals(sdResiduals)
-    equationCoords && newLine.setEquationCoords(equationCoords)
-    newLines[index] = newLine
-    self.lines.set(key, newLines)
+  updateLines(line: ILSRLineSnap, key: string, legendCat = kMain) {
+    let linesInCell = self.lines.get(key)
+    if (!linesInCell) {
+      self.lines.set(key, {})
+      linesInCell = self.lines.get(key)!
+    }
+    linesInCell.set(legendCat, createLSRLInstance(line))
   },
   setShowConfidenceBands(showConfidenceBands: boolean) {
     self.showConfidenceBands = showConfidenceBands
@@ -174,21 +245,19 @@ export const LSRLAdornmentModel = AdornmentModel
   updateCategories(options: IUpdateCategoriesOptions) {
     const { dataConfig, interceptLocked } = options
     const { xAttrId, yAttrId } = dataConfig.getCategoriesOptions()
-    const legendCats = dataConfig?.categoryArrayForAttrRole("legend")
+    const legendCats = self.getLegendCategories(dataConfig)
     dataConfig.getAllCellKeys().forEach(cellKey => {
       const instanceKey = self.instanceKey(cellKey)
       const lines = self.lines.get(instanceKey)
-      for (let j = 0; j < legendCats.length; ++j) {
-        const existingLine = lines?.[j]
-        const equationCoords = existingLine?.equationCoords?.isValid()
-          ? { x: existingLine.equationCoords.x, y: existingLine.equationCoords.y }
-          : undefined
-        const category = legendCats[j]
+      legendCats.forEach(legendCat => {
+        const existingLine = lines?.get(legendCat)
+        const existingLineProps = existingLine ? getSnapshot(existingLine) : undefined
         const { intercept, rSquared, slope, sdResiduals } = self.computeValues(
-          xAttrId, yAttrId, cellKey, dataConfig, interceptLocked, category
+          xAttrId, yAttrId, cellKey, dataConfig, interceptLocked, legendCat
         )
-        self.updateLines({category, equationCoords, intercept, rSquared, slope, sdResiduals}, instanceKey, j)
-      }
+        const lineProps = { ...existingLineProps, category: legendCat, intercept, rSquared, slope, sdResiduals }
+        self.updateLines(lineProps, instanceKey, legendCat)
+      })
     })
   }
 }))
@@ -201,16 +270,16 @@ export const LSRLAdornmentModel = AdornmentModel
     interceptLocked=false
   ) {
     const key = self.instanceKey(cellKey)
-    const lines = self.lines.get(key)
-    const legendCats = dataConfig?.categoryArrayForAttrRole("legend")
-    lines?.forEach((line, i) => {
-      const existingLine = lines?.[i]
-      const equationCoords = existingLine?.equationCoords?.isValid()
-        ? { x: existingLine.equationCoords.x, y: existingLine.equationCoords.y }
+    const linesInCell = self.lines.get(key)
+    const legendCats = self.getLegendCategories(dataConfig)
+    legendCats.forEach(legendCat => {
+      const existingLine = linesInCell?.get(legendCat)
+      const equationCoords = existingLine?.equationCoords
+        ? getSnapshot(existingLine.equationCoords)
         : undefined
-      if (!line.isValid) {
+      if (!existingLine?.isValid) {
         const { intercept, rSquared, slope, sdResiduals } = self.computeValues(
-          xAttrId, yAttrId, cellKey, dataConfig, interceptLocked, legendCats[i]
+          xAttrId, yAttrId, cellKey, dataConfig, interceptLocked, legendCat
         )
         if (
           !Number.isFinite(intercept) ||
@@ -218,10 +287,10 @@ export const LSRLAdornmentModel = AdornmentModel
           !Number.isFinite(slope) ||
           !Number.isFinite(sdResiduals)
         ) return
-        self.updateLines({category: legendCats[i], equationCoords, intercept, rSquared, slope, sdResiduals}, key, i)
+        self.updateLines({category: legendCat, equationCoords, intercept, rSquared, slope, sdResiduals}, key, legendCat)
       }
     })
-    return lines
+    return linesInCell
   }
 }))
 

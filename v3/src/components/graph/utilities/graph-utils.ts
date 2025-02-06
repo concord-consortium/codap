@@ -277,11 +277,13 @@ export function findNeededFractionDigits(slope: number, intercept: number, layou
   return { slopeDigits, interceptDigits }
 }
 
-function formatEquationValue(value: number, digits: number) {
+function formatEquationValue(value: number, digits: number, units = "", parenthesizeUnits = false) {
   const exponent = `e${digits}`
   const roundedValue = Math.round(parseFloat(`${value}${exponent}`))
   // Use D3's format() to add comma separators to the value.
-  return format(",")(Number(`${roundedValue}e-${digits}`))
+  const numStr = format(",")(Number(`${roundedValue}e-${digits}`))
+  const numUnitsStr = units ? `${numStr} ${units}` : numStr
+  return units && parenthesizeUnits ? `(${numUnitsStr})` : numUnitsStr
 }
 
 interface IEquationString {
@@ -319,6 +321,7 @@ export function equationString({ slope, intercept, attrNames, sumOfSquares, layo
 
 interface ILsrlEquationString {
   attrNames: { x: string, y: string }
+  units: { x?: string, y?: string }
   caseValues: Point[]
   color?: string
   intercept: number
@@ -331,15 +334,19 @@ interface ILsrlEquationString {
 }
 
 export const lsrlEquationString = (props: ILsrlEquationString) => {
-  const { slope, intercept, attrNames, caseValues, showConfidenceBands, rSquared, color, interceptLocked=false,
+  const { slope, intercept, attrNames, units, caseValues, showConfidenceBands, rSquared, color, interceptLocked=false,
           sumOfSquares, layout } = props
+  const slopeUnits = units.x && units.y
+                      ? `${units.y}/${units.x}`
+                      : units.y || (units.x ? `/${units.x}` : "")
+  const interceptUnits = units.y || ""
   const linearRegression = leastSquaresLinearRegression(caseValues, interceptLocked)
   const { count=0, sse=0, xSumSquaredDeviations=0 } = linearRegression
   const seSlope = Math.sqrt((sse / (count - 2)) / xSumSquaredDeviations)
   const slopeIsFinite = isFinite(slope) && slope !== 0
   const neededFractionDigits = findNeededFractionDigits(slopeIsFinite ? slope : 0, intercept, layout)
-  const formattedIntercept = formatEquationValue(intercept, neededFractionDigits.interceptDigits)
-  const formattedSlope = formatEquationValue(slope, neededFractionDigits.slopeDigits)
+  const formattedIntercept = formatEquationValue(intercept, neededFractionDigits.interceptDigits, interceptUnits)
+  const formattedSlope = formatEquationValue(slope, neededFractionDigits.slopeDigits, slopeUnits, true)
   const formattedSumOfSquares = formatEquationValue(sumOfSquares || 0, sumOfSquares && sumOfSquares > 100 ? 0 : 3)
   const formattedRSquared = formatEquationValue(rSquared || 0, 3)
   const formattedSeSlope = formatEquationValue(seSlope, 3)

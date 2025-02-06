@@ -1,4 +1,3 @@
-import { IAttribute } from "../../../models/data/attribute"
 import { ISharedDataSet } from "../../../models/shared/shared-data-set"
 import { safeJsonParse } from "../../../utilities/js-utils"
 import {
@@ -7,6 +6,7 @@ import {
 import {
   GraphAttributeDescriptionsMapSnapshot, IAttributeDescriptionSnapshot
 } from "../../data-display/models/data-configuration-model"
+import { kMain } from "../../data-display/data-display-types"
 import { updateCellKey } from "./adornment-utils"
 import { kCountType } from "./count/count-adornment-types"
 import { kLSRLType } from "./lsrl/lsrl-adornment-types"
@@ -174,6 +174,18 @@ const instanceKey = (props: IInstanceKeyProps) => {
   return JSON.stringify(cellKey)
 }
 
+type GetAttributeInfoResult = [Maybe<string>, string[]]
+function getAttributeInfo(
+  data: ISharedDataSet, attributeDesc?: IAttributeDescriptionSnapshot, defaultCat = ""
+): GetAttributeInfoResult {
+  const { attributeID: id, type } = attributeDesc || {}
+  const attr = id ? data.dataSet.getAttribute(id) : undefined
+  // TODO_V2_IMPORT: these ...Cats computations assume category order is order in the table.
+  // If user has changed the order, the new order is stored in SharedCaseMetadata.
+  const cats = attr && type === "categorical" ? [...new Set(attr.strValues)] : [defaultCat]
+  return [id, cats]
+}
+
 const instanceKeysForAdornments = (props: IInstanceKeysForAdornmentsProps) => {
   // TODO: The code below duplicates code in GraphDataConfigurationModel's getCategoriesOptions and getAllCellKeys
   // views. It would be better to utilize those views instead but there isn't a straightforward way to do that as
@@ -183,37 +195,26 @@ const instanceKeysForAdornments = (props: IInstanceKeysForAdornmentsProps) => {
   // removing it before completing the import.
   const { data, attributeDescriptions, yAttributeDescriptions } = props
   if (!data || !attributeDescriptions || !yAttributeDescriptions) {
-    return { instanceKeys: ["{}"], xCats: [""], yCats: [""], topCats: [""], rightCats: [""] }
+    // legendCats default to [kMain], others default to [""] for cell key computations
+    return { instanceKeys: ["{}"], xCats: [""], yCats: [""], topCats: [""], rightCats: [""], legendCats: [kMain] }
   }
-  const { attributeID: xAttrId, type: xAttrType } = attributeDescriptions.x ?? { attributeID: null, type: null }
-  const { attributeID: topAttrId } = attributeDescriptions.topSplit ?? { attributeID: null }
-  const { attributeID: rightAttrId } = attributeDescriptions.rightSplit ?? { attributeID: null }
-  const { attributeID: yAttrId, type: yAttrType } = yAttributeDescriptions[0] ?? { attributeID: null }
-  const xAttr = data.dataSet.attributes.find((attr: IAttribute) => attr.id === xAttrId)
-  // TODO_V2_IMPORT: these ...Cats computations assume category order is order in the table.
-  // If user has changed the order, the new order is stored in SharedCaseMetadata.
-  const xCats = xAttr && xAttrType !== "numeric" ? [...new Set(xAttr.strValues)] : [""]
-  const yAttr = data.dataSet.attributes.find((attr: IAttribute) => attr.id === yAttrId)
-  const yCats = yAttr && yAttrType !== "numeric" ? [...new Set(yAttr.strValues)] : [""]
-  const topAttr = data.dataSet.attributes.find((attr: IAttribute) => attr.id === topAttrId)
-  const topCats = topAttr ? [...new Set(topAttr.strValues)] : [""]
-  const topCatCount = topCats.length || 1
-  const rightAttr = data.dataSet.attributes.find((attr: IAttribute) => attr.id === rightAttrId)
-  const rightCats = rightAttr ? [...new Set(rightAttr.strValues)] : [""]
-  const rightCatCount = rightCats.length || 1
-  const yCatCount = yCats.length || 1
-  const xCatCount = xCats.length || 1
-  const columnCount = topCatCount * xCatCount
-  const rowCount = rightCatCount * yCatCount
+  const [xAttrId, xCats] = getAttributeInfo(data, attributeDescriptions.x)
+  const [yAttrId, yCats] = getAttributeInfo(data, yAttributeDescriptions[0])
+  // legendCats default to [kMain], others default to [""] for cell key computations
+  const [_legendAttrId, legendCats] = getAttributeInfo(data, attributeDescriptions.legend, kMain)
+  const [topAttrId, topCats] = getAttributeInfo(data, attributeDescriptions.topSplit)
+  const [rightAttrId, rightCats] = getAttributeInfo(data, attributeDescriptions.rightSplit)
+  const columnCount = topCats.length * xCats.length
+  const rowCount = rightCats.length * yCats.length
   const totalCount = rowCount * columnCount
   const instanceKeys: string[] = []
   for (let i = 0; i < totalCount; ++i) {
     const cellKeyProps = {
       index: i,
-      xAttrId: xAttr?.id,
-      yAttrId: yAttr?.id,
-      topAttrId: topAttr?.id,
-      rightAttrId: rightAttr?.id,
+      xAttrId,
+      yAttrId,
+      topAttrId,
+      rightAttrId,
       xCats,
       yCats,
       topCats,
@@ -221,7 +222,7 @@ const instanceKeysForAdornments = (props: IInstanceKeysForAdornmentsProps) => {
     }
     instanceKeys.push(instanceKey(cellKeyProps))
   }
-  return { instanceKeys, xCats, yCats, topCats, rightCats }
+  return { instanceKeys, xCats, yCats, legendCats, topCats, rightCats }
 }
 
 type ImportableAdornmentSnapshots = IBoxPlotAdornmentModelSnapshot |
@@ -234,7 +235,7 @@ type ImportableAdornmentSnapshots = IBoxPlotAdornmentModelSnapshot |
 
 export const v2AdornmentImporter = ({data, plotModels, attributeDescriptions, yAttributeDescriptions}: IProps) => {
   const instanceKeysForAdornmentsProps = {data, attributeDescriptions, yAttributeDescriptions}
-  const { instanceKeys, xCats, yCats } = instanceKeysForAdornments(instanceKeysForAdornmentsProps)
+  const { instanceKeys, xCats, yCats, legendCats } = instanceKeysForAdornments(instanceKeysForAdornmentsProps)
   const splitAttrId = v2SplitAttrId(attributeDescriptions, yAttributeDescriptions)
   // the first plot model contains all relevant adornments
   const plotModelStorage = plotModels?.[0].plotModelStorage
@@ -326,16 +327,22 @@ export const v2AdornmentImporter = ({data, plotModels, attributeDescriptions, yA
                               }
                             : undefined)
   if (lsrlAdornment) {
-    const lines: Record<string, ILSRLInstanceSnapshot[]> = {}
+    const lines: Record<string, Record<string, ILSRLInstanceSnapshot>> = {}
     instanceKeys?.forEach((key: string) => {
-      const lsrlInstances: ILSRLInstanceSnapshot[] = []
-      lsrlAdornment.lsrls?.forEach((lsrl) => {
-        const lsrlInstance = {
-          // TODO_V2_IMPORT: [Story: **#188695677**] equationCoords are not handled correctly, the model stores x and y
-          // but the loaded equationCoords have proportionCenterX and proportionCenterY
-          equationCoords: lsrl.equationCoords ?? undefined // The V2 default is null, but we want undefined
-        }
-        lsrlInstances.push(lsrlInstance)
+      const lsrlInstances: Record<string, ILSRLInstanceSnapshot> = {}
+      lsrlAdornment.lsrls?.forEach((lsrl, index) => {
+        const category = legendCats[index]
+        const { equationCoords: inEquationCoords } = lsrl
+        lsrlInstances[category] = inEquationCoords
+                                    ? {
+                                        equationCoords: {
+                                          x: inEquationCoords.proportionCenterX,
+                                          y: inEquationCoords.proportionCenterY
+                                        },
+                                        // v2 coordinates are idiosyncratic at times
+                                        isV2Coords: true
+                                      }
+                                    : {}
       })
       lines[key] = lsrlInstances
     })

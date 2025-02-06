@@ -21,7 +21,7 @@ import { useGraphLayoutContext } from "../../hooks/use-graph-layout-context"
 
 import "./lsrl-adornment-component.scss"
 
-function equationContainer(model: ILSRLAdornmentModel, cellKey: Record<string, string>, containerId: string) {
+function equationContainerDefs(model: ILSRLAdornmentModel, cellKey: Record<string, string>, containerId: string) {
   const classFromKey = model.classNameFromKey(cellKey)
   const equationContainerClass = `lsrl-equation-container-${classFromKey}`
   const equationContainerSelector = `#${containerId} .${equationContainerClass}`
@@ -29,6 +29,8 @@ function equationContainer(model: ILSRLAdornmentModel, cellKey: Record<string, s
 }
 
 interface ILineObject {
+  category: string
+  index: number
   confidenceBandCurve?: Selection<SVGPathElement, unknown, null, undefined>
   confidenceBandCover?: Selection<SVGPathElement, unknown, null, undefined>
   confidenceBandShading?: Selection<SVGPathElement, unknown, null, undefined>
@@ -51,9 +53,9 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
   const { xSubAxesCount, ySubAxesCount } = useAdornmentCategories()
   const showConfidenceBands = model.showConfidenceBands
   const interceptLocked = adornmentsStore?.interceptLocked
-  const { equationContainerClass, equationContainerSelector } = equationContainer(model, cellKey, containerId)
+  const { equationContainerClass, equationContainerSelector } = equationContainerDefs(model, cellKey, containerId)
   const lineRef = useRef() as React.RefObject<SVGSVGElement>
-  const lineObjectsRef = useRef<ILineObject[]>([])
+  const lineObjectsRef = useRef(new Map<string, ILineObject>())
   const pointsOnAxes = useRef<IAxisIntercepts>({pt1: {x: 0, y: 0}, pt2: {x: 0, y: 0}})
   const logFn = useRef<Maybe<LogMessageFn>>()
 
@@ -91,35 +93,48 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
     }
   }, [containerId])
 
-  const handleHighlightLineAndEquation = useCallback((isHighlighted: boolean, lineIndex: number) => {
-    const lineObj = lineObjectsRef.current[lineIndex]
+  const handleHighlightLineAndEquation = useCallback((isHighlighted: boolean, category = kMain) => {
+    const lineObj = lineObjectsRef.current.get(category)
+    const lineIndex = lineObj?.index ?? 0
     lineObj?.line?.classed("highlight", isHighlighted)
     lineObj?.equation?.selectAll("p").filter(`:nth-child(${lineIndex + 1})`).classed("highlight", isHighlighted)
   }, [])
 
   const handleMoveEquation = useCallback((
     event: { x: number, y: number, dx: number, dy: number },
-    isFinished=false, lineIndex: number
+    isFinished = false, category = kMain
   ) => {
     if (event.dx !== 0 || event.dy !== 0 || isFinished) {
-      const equation = select(`${equationContainerSelector}`).selectAll("p").filter(`:nth-child(${lineIndex + 1})`)
+      const lineObj = lineObjectsRef.current.get(category)
+      const lineIndex = lineObj?.index ?? 0
+      const equationContainer = select<HTMLDivElement, unknown>(equationContainerSelector)
+      const equation = equationContainer
+                        .selectAll<HTMLParagraphElement, unknown>("p")
+                        .filter(`:nth-child(${lineIndex + 1})`)
+      const equationBounds = equation.node()?.getBoundingClientRect()
       const equationLeft = equation.style("left") ? parseFloat(equation.style("left")) : 0
       const equationTop = equation.style("top") ? parseFloat(equation.style("top")) : 0
-      const left = equationLeft + event.dx
-      const top = equationTop + event.dy
-      equation.style("left", `${left}px`)
-        .style("top", `${top}px`)
+      if (equationBounds && equationLeft && equationTop) {
+        const left = equationLeft + event.dx
+        const top = equationTop + event.dy
+        equation.style("left", `${left}px`)
+          .style("top", `${top}px`)
 
-      if (isFinished) {
-        const lines = getLines()
-        graphModel.applyModelChange(
-          () => lines?.[lineIndex]?.setEquationCoords({x: left, y: top}),
-          {
-            undoStringKey: "DG.Undo.graph.repositionEquation",
-            redoStringKey: "DG.Redo.graph.repositionEquation",
-            log: logFn.current
-          }
-        )
+        const containerBounds = equationContainer.node()?.getBoundingClientRect()
+        if (containerBounds && isFinished) {
+          // compute proportional position of center of label within container
+          const x = (left + equationBounds.width / 2) / containerBounds.width
+          const y = (top + equationBounds.height / 2) / containerBounds.height
+          const lines = getLines()
+          graphModel.applyModelChange(
+            () => lines?.get(category)?.setEquationCoords({ x, y }),
+            {
+              undoStringKey: "DG.Undo.graph.repositionEquation",
+              redoStringKey: "DG.Redo.graph.repositionEquation",
+              log: logFn.current
+            }
+          )
+        }
       }
     }
   }, [equationContainerSelector, getLines, graphModel])
@@ -127,14 +142,17 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
   const updateEquations = useCallback(() => {
     const lines = getLines()
     if (!lines) return
-    const equationDiv = select(equationContainerSelector)
+    const xUnits = dataConfig?.dataset?.getAttribute(xAttrId)?.units
+    const yUnits = dataConfig?.dataset?.getAttribute(yAttrId)?.units
+    const equationDiv = select<HTMLDivElement, unknown>(equationContainerSelector)
     equationDiv.style("width", `${plotWidth}px`)
       .style("height", `${plotHeight}px`)
-    for (let linesIndex = 0; linesIndex < lines.length; linesIndex++) {
-      const category = lines[linesIndex].category
+    let linesIndex = 0
+    lines.forEach((line, _category) => {
+      const category = String(_category)
       const caseValues = model.getCaseValues(xAttrId, yAttrId, cellKey, dataConfig, category)
       const color = category && category !== kMain ? dataConfig?.getLegendColorForCategory(category) : undefined
-      const { slope, intercept, rSquared } = lines[linesIndex]
+      const { slope, intercept, rSquared } = line
       if (slope == null || intercept == null) return
       const sumOfSquares = dataConfig && showSumSquares
         ? calculateSumOfSquares({ cellKey, dataConfig, computeY: (x) => intercept + slope * x })
@@ -142,32 +160,42 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
       const screenX = xScale((pointsOnAxes.current.pt1.x + pointsOnAxes.current.pt2.x) / 2) / xSubAxesCount
       const screenY = yScale((pointsOnAxes.current.pt1.y + pointsOnAxes.current.pt2.y) / 2) / ySubAxesCount
       const attrNames = {x: xAttrName, y: yAttrName}
+      const units = {x: xUnits, y: yUnits}
       const string = lsrlEquationString({
-        attrNames, caseValues, color, intercept, interceptLocked, rSquared,
+        attrNames, units, caseValues, color, intercept, interceptLocked, rSquared,
         showConfidenceBands, slope, sumOfSquares, layout
       })
-      const equation = equationDiv.select(`#lsrl-equation-${model.classNameFromKey(cellKey)}-${linesIndex}`)
+      const equationSelector = `#lsrl-equation-${model.classNameFromKey(cellKey)}-${linesIndex}`
+      const equation = equationDiv.select<HTMLDivElement>(equationSelector)
       equation.html(string)
+
+      const equationBounds = equation.node()?.getBoundingClientRect()
+      // rendered extents are used for rendering and for exporting in v2 format
+      line.setExtents({
+        labelWidth: equationBounds?.width,
+        labelHeight: equationBounds?.height,
+        plotWidth,
+        plotHeight
+      })
 
       // The equation may have been unpinned from its associated line if the user dragged it away from the line.
       // Only move the equation if it is still pinned (i.e. equationCoords is not valid).
-      const equationCoords = lines[linesIndex]?.equationCoords
-      if (!equationCoords?.isValid()) {
+      const labelPos = line.labelPosition
+      if (!labelPos) {
         equation.style("left", `${screenX}px`)
           // If there are multiple lines and equations, we offset the equations slightly
           .style("top", `${screenY + linesIndex * 20}px`)
       } else {
-        const left = equationCoords.x
-        const top = equationCoords.y
-        equation.style("left", `${left}px`)
-          .style("top", `${top}px`)
+        equation.style("left", `${labelPos.left}px`)
+          .style("top", `${labelPos.top}px`)
       }
-    }
+      ++linesIndex
+    })
   }, [cellKey, dataConfig, equationContainerSelector, getLines, interceptLocked, layout, model, plotHeight,
       plotWidth, showConfidenceBands, showSumSquares, xAttrId, xAttrName, xScale, xSubAxesCount, yAttrId,
       yAttrName, yScale, ySubAxesCount])
 
-  const confidenceBandPaths = useCallback((caseValues: Point[], lineIndex: number) => {
+  const confidenceBandPaths = useCallback((caseValues: Point[], category = kMain) => {
     const xMin = xScale.domain()[0]
     const xMax = xScale.domain()[1]
     const tPixelMin = xScale(xMin)
@@ -176,7 +204,7 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
     let upperPath = ""
     let lowerPath = ""
     const { upperPoints, lowerPoints } = model.confidenceBandsPoints(
-      tPixelMin, tPixelMax, cellCounts.x, cellCounts.y, kPixelGap, caseValues, xScale, yScale, cellKey, lineIndex
+      tPixelMin, tPixelMax, cellCounts.x, cellCounts.y, kPixelGap, caseValues, xScale, yScale, cellKey, category
     )
     if (upperPoints.length > 0) {
       // Accomplish spline interpolation
@@ -188,9 +216,9 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
     return { upperPath, lowerPath, combinedPath }
   }, [cellCounts, cellKey, model, xScale, yScale])
 
-  const updateConfidenceBands = useCallback((lineIndex: number, line: ILSRLInstance) => {
+  const updateConfidenceBands = useCallback((line: ILSRLInstance, category = kMain) => {
     if (!dataConfig || !showConfidenceBands) return
-    const lineObj = lineObjectsRef.current[lineIndex]
+    const lineObj = lineObjectsRef.current.get(category)
 
     // If the Intercept Locked option is selected, we do not show confidence bands. So in that case we
     // simply clear the confidence band elements and return.
@@ -202,7 +230,7 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
     }
 
     const caseValues = model.getCaseValues(xAttrId, yAttrId, cellKey, dataConfig, line.category)
-    const { upperPath, lowerPath, combinedPath } = confidenceBandPaths(caseValues, lineIndex)
+    const { upperPath, lowerPath, combinedPath } = confidenceBandPaths(caseValues, line.category)
     lineObj?.confidenceBandCurve?.attr("d", `${upperPath}${lowerPath}`)
     lineObj?.confidenceBandCover?.attr("d", `${upperPath}${lowerPath}`)
     lineObj?.confidenceBandShading?.attr("d", combinedPath)
@@ -216,18 +244,19 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
     const lines = getLines()
     if (!lines) return
 
-    for (let lineIndex = 0; lineIndex < lineObjectsRef.current.length; lineIndex++) {
-      const lineObj = lineObjectsRef.current[lineIndex]
-      const line = lines[lineIndex]
+    lines.forEach((line, _category) => {
+      const category = String(_category)
+      const lineObj = lineObjectsRef.current.get(category)
       const { slope, intercept } = line
       const { xDomain, yDomain } = getAxisDomains(xAxis, yAxis)
-      if (!slope || !intercept) continue
-      pointsOnAxes.current = lineToAxisIntercepts(slope, intercept, xDomain, yDomain)
+      if (lineObj != null && slope != null && intercept != null) {
+        pointsOnAxes.current = lineToAxisIntercepts(slope, intercept, xDomain, yDomain)
 
-      lineObj.line && fixEndPoints(lineObj.line)
-      lineObj.cover && fixEndPoints(lineObj.cover)
-      updateConfidenceBands(lineIndex, line)
-    }
+        lineObj.line && fixEndPoints(lineObj.line)
+        lineObj.cover && fixEndPoints(lineObj.cover)
+        updateConfidenceBands(line)
+      }
+    })
   }, [fixEndPoints, getLines, updateConfidenceBands, xAxis, yAxis])
 
   const updateLSRL = useCallback(() => {
@@ -243,7 +272,7 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
     const selection = select(lineRef.current)
     selection.html(null)
     select(`#${containerId}`).selectAll("div").remove()
-    lineObjectsRef.current = []
+    lineObjectsRef.current = new Map()
 
     // Add a container for the equation boxes that will accompany each line
     const equationDiv = select(`#${containerId}`).append("div")
@@ -253,83 +282,86 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
       .style("height", `${plotHeight}px`)
 
     // Add a line for each item in the model's lines array
-    for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
-      const lineObj: ILineObject = {}
-      const lineCategory = lines[lineIndex].category
+    lines.forEach((line, _category) => {
+      line.setExtents({ plotWidth, plotHeight })
+      const lineIndex = lineObjectsRef.current.size
+      const lineCategory = String(_category)
+      const lineObj: ILineObject = { category: lineCategory, index: lineIndex }
       const catColor = lineCategory && lineCategory !== kMain
         ? dataConfig?.getLegendColorForCategory(lineCategory)
         : undefined
-      const { slope, intercept } = lines[lineIndex]
+      const { slope, intercept } = line
       const { xDomain, yDomain } = getAxisDomains(xAxis, yAxis)
-      if (slope == null || intercept == null) continue
-      pointsOnAxes.current = lineToAxisIntercepts(slope, intercept, xDomain, yDomain)
+      if (slope != null && intercept != null) {
+        pointsOnAxes.current = lineToAxisIntercepts(slope, intercept, xDomain, yDomain)
 
-      // Set up the confidence band elements. We add them before the line so they don't interfere
-      // with the line's mouseover behavior.
-      lineObj.confidenceBandCurve = selection.append("path")
-        .attr("class", `lsrl-confidence-band lsrl-confidence-band-${classFromKey}`)
-        .attr("data-testid", `lsrl-confidence-band${classFromKey ? `-${classFromKey}` : ""}`)
-      lineObj.confidenceBandCover = selection.append("path")
-        .attr("class", `lsrl-confidence-band-cover lsrl-confidence-band-cover-${classFromKey}`)
-        .attr("data-testid", `lsrl-confidence-band-cover${classFromKey ? `-${classFromKey}` : ""}`)
-      lineObj.confidenceBandShading = selection.append("path")
-        .attr("class", `lsrl-confidence-band-shading lsrl-confidence-band-shading-${classFromKey}`)
-        .attr("data-testid", `lsrl-confidence-band-shading${classFromKey ? `-${classFromKey}` : ""}`)
+        // Set up the confidence band elements. We add them before the line so they don't interfere
+        // with the line's mouseover behavior.
+        lineObj.confidenceBandCurve = selection.append("path")
+          .attr("class", `lsrl-confidence-band lsrl-confidence-band-${classFromKey}`)
+          .attr("data-testid", `lsrl-confidence-band${classFromKey ? `-${classFromKey}` : ""}`)
+        lineObj.confidenceBandCover = selection.append("path")
+          .attr("class", `lsrl-confidence-band-cover lsrl-confidence-band-cover-${classFromKey}`)
+          .attr("data-testid", `lsrl-confidence-band-cover${classFromKey ? `-${classFromKey}` : ""}`)
+        lineObj.confidenceBandShading = selection.append("path")
+          .attr("class", `lsrl-confidence-band-shading lsrl-confidence-band-shading-${classFromKey}`)
+          .attr("data-testid", `lsrl-confidence-band-shading${classFromKey ? `-${classFromKey}` : ""}`)
 
-      // Set up the line and its cover element
-      lineObj.line = selection.append("line")
-        .attr("class", `lsrl lsrl-${classFromKey}`)
-        .attr("data-testid", `lsrl${classFromKey ? `-${classFromKey}` : ""}`)
-      lineObj.cover = selection.append("line")
-        .attr("class", `lsrl-cover lsrl-cover-${classFromKey}`)
-        .attr("data-testid", `lsrl-cover${classFromKey ? `-${classFromKey}` : ""}`)
-      lineObj.cover.on("mouseover", () => { handleHighlightLineAndEquation(true, lineIndex) })
-        .on("mouseout", () => { handleHighlightLineAndEquation(false, lineIndex) })
+        // Set up the line and its cover element
+        lineObj.line = selection.append("line")
+          .attr("class", `lsrl lsrl-${classFromKey}`)
+          .attr("data-testid", `lsrl${classFromKey ? `-${classFromKey}` : ""}`)
+        lineObj.cover = selection.append("line")
+          .attr("class", `lsrl-cover lsrl-cover-${classFromKey}`)
+          .attr("data-testid", `lsrl-cover${classFromKey ? `-${classFromKey}` : ""}`)
+        lineObj.cover.on("mouseover", () => { handleHighlightLineAndEquation(true, lineCategory) })
+          .on("mouseout", () => { handleHighlightLineAndEquation(false, lineCategory) })
 
-      // Set the line's coordinates
-      fixEndPoints(lineObj?.line)
-      fixEndPoints(lineObj?.cover)
+        // Set the line's coordinates
+        fixEndPoints(lineObj?.line)
+        fixEndPoints(lineObj?.cover)
 
-      // If there is a categorical legend, use the associated category's color for the line and its confidence bands
-      catColor && lineObj?.line?.style("stroke", catColor)
-      catColor && lineObj?.confidenceBandCurve?.style("stroke", catColor)
-      catColor && lineObj?.confidenceBandShading?.style("fill", catColor)
+        // If there is a categorical legend, use the associated category's color for the line and its confidence bands
+        catColor && lineObj?.line?.style("stroke", catColor)
+        catColor && lineObj?.confidenceBandCurve?.style("stroke", catColor)
+        catColor && lineObj?.confidenceBandShading?.style("fill", catColor)
 
-      // Add the equation box for the line to the equation container
-      const equationP = equationDiv
-        .append("p")
-        .attr("class", "lsrl-equation")
-        .attr("id", `lsrl-equation-${model.classNameFromKey(cellKey)}-${lineIndex}`)
-        .attr("data-testid", `lsrl-equation-${model.classNameFromKey(cellKey)}`)
-        .on("mouseover", () => { handleHighlightLineAndEquation(true, lineIndex) })
-        .on("mouseout", () => { handleHighlightLineAndEquation(false, lineIndex) })
+        // Add the equation box for the line to the equation container
+        const equationP = equationDiv
+          .append("p")
+          .attr("class", "lsrl-equation")
+          .attr("id", `lsrl-equation-${model.classNameFromKey(cellKey)}-${lineIndex}`)
+          .attr("data-testid", `lsrl-equation-${model.classNameFromKey(cellKey)}`)
+          .on("mouseover", () => { handleHighlightLineAndEquation(true, lineCategory) })
+          .on("mouseout", () => { handleHighlightLineAndEquation(false, lineCategory) })
 
-      // If the equation is not pinned to the line, set its initial coordinates to the values specified in the model.
-      const equationCoords = lines[lineIndex]?.equationCoords
-      if (equationCoords?.isValid()) {
-        const left = equationCoords.x * 100
-        const top = equationCoords.y * 100
-        equationP.style("left", `${left}%`)
-          .style("top", `${top}%`)
+        // If the equation is not pinned to the line, set its initial coordinates to the values specified in the model.
+        const labelPos = line.labelPosition
+        if (labelPos) {
+          equationP
+            .style("left", `${labelPos.left}px`)
+            .style("top", `${labelPos.top}px`)
+        }
+
+        lineObj.equation = equationDiv
+        lineObjectsRef.current.set(lineCategory, lineObj)
+        updateEquations()
+        showConfidenceBands && updateConfidenceBands(line, lineCategory)
+
+        const equationDivSelector = `#lsrl-equation-${model.classNameFromKey(cellKey)}-${lineIndex}`
+        const equation = equationDiv.select<HTMLElement>(equationDivSelector)
+        equation?.call(
+          drag<HTMLElement, unknown>()
+            .on("start", (e) => {
+              logFn.current = logModelChangeFn(
+                                "Moved equation from (%@, %@) to (%@, %@)",
+                                () => safeGetSnapshot(line.equationCoords) ?? { x: "default", y: "default" })
+            })
+            .on("drag", (e) => handleMoveEquation(e, false, lineCategory))
+            .on("end", (e) => handleMoveEquation(e, true, lineCategory))
+        )
       }
-
-      lineObj.equation = equationDiv
-      lineObjectsRef.current = [...lineObjectsRef.current, lineObj]
-      updateEquations()
-      showConfidenceBands && updateConfidenceBands(lineIndex, lines[lineIndex])
-
-      const equation = equationDiv.select<HTMLElement>(`#lsrl-equation-${model.classNameFromKey(cellKey)}-${lineIndex}`)
-      equation?.call(
-        drag<HTMLElement, unknown>()
-          .on("start", (e) => {
-            logFn.current = logModelChangeFn(
-                              "Moved equation from (%@, %@) to (%@, %@)",
-                              () => safeGetSnapshot(lines[lineIndex].equationCoords) ?? { x: "default", y: "default" })
-          })
-          .on("drag", (e) => handleMoveEquation(e, false, lineIndex))
-          .on("end", (e) => handleMoveEquation(e, true, lineIndex))
-      )
-    }
+    })
 
   }, [cellKey, classFromKey, containerId, dataConfig, equationContainerClass, fixEndPoints, getLines,
       handleHighlightLineAndEquation, handleMoveEquation, model, plotHeight, plotWidth, showConfidenceBands,

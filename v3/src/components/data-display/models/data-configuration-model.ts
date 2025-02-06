@@ -347,10 +347,9 @@ export const DataConfigurationModel = types
       calculate: (role: AttrRole, emptyCategoryArray = [kMain]) => {
         const valuesSet = new Set(self.valuesForAttrRole(role)),
           categoryLimitForRole = self.numberOfCategoriesLimitByRole.get(role)
+        if (valuesSet.size === 0) return emptyCategoryArray
+
         let resultArray: string[] = []
-        if (valuesSet.size === 0) {
-          resultArray.push(kMain)
-        }
         // category set maintains the canonical order of categories
         const allCategorySet = self.categorySetForAttrRole(role)
         // if we don't have a category set just return the values

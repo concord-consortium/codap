@@ -1,6 +1,6 @@
 import { FormControl, Checkbox } from "@chakra-ui/react"
-import React from "react"
 import { observer } from "mobx-react-lite"
+import React from "react"
 import { logMessageWithReplacement } from "../../../../lib/log-message"
 import { t } from "../../../../utilities/translation/translate"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
@@ -109,13 +109,16 @@ registerAdornmentContentInfo({
         isInterceptLocked: options.isInterceptLocked,
         showSumSquares: options.showSumSquares,
         showConfidenceBands: adornment.showConfidenceBands,
-        lsrls: options.legendCategories.map(cat => ({
-          ...exportAdornmentBase(adornment, options),
-          // TODO_V2_EXPORT export label/equation coordinates for adornments
-          equationCoords: null,
-          isInterceptLocked: options.isInterceptLocked,
-          showConfidenceBands: adornment.showConfidenceBands
-        }))
+        // v2 ignores top and right splits
+        lsrls: options.legendCategories.map(cat => {
+          const lineInstance = adornment.firstLineInstance(cat)
+          return {
+            ...exportAdornmentBase(adornment, options),
+            equationCoords: lineInstance?.v2ExportCoords ?? null,
+            isInterceptLocked: options.isInterceptLocked,
+            showConfidenceBands: adornment.showConfidenceBands
+          }
+        })
       }
     }
   }
