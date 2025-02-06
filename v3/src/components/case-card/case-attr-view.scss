@@ -111,7 +111,9 @@
     .formula-attr-value {
       background-color: rgba(255, 255, 0, 0.2);
       font-style: italic;
-      pointer-events: none;
+      input {
+        pointer-events: none;
+      }
     }
   }
 }
