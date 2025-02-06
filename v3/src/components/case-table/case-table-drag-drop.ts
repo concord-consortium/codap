@@ -46,7 +46,6 @@ export const caseTableCollisionDetection: CollisionDetection = (args) => {
   // https://docs.dndkit.com/api-documentation/context-provider/collision-detection-algorithms#pointer-within
   // Therefore, we also provide fallback to rectangle intersection if pointer within doesn't fire.
 
-  // if the pointer is within the new collection drop zone, then we're done
   const withinCollisions = pointerWithin(args)
   const withinTableBody = findCollision(withinCollisions, kCollectionTableBodyDropZoneRegEx)
 
@@ -62,10 +61,11 @@ export const caseTableCollisionDetection: CollisionDetection = (args) => {
   }
   // attribute drag
   else {
-    // if the pointer is within the collection table body, find the nearest attribute divider drop zone
+    // if the pointer is within the new collection drop zone, then we're done
     const withinNewCollection = findCollision(withinCollisions, kNewCollectionDropZoneRegEx)
     if (withinNewCollection) return [withinNewCollection]
 
+    // if the pointer is within the collection table body, find the nearest attribute divider drop zone
     const droppableColumnDividers = filterContainers(args.droppableContainers, kAttributeDividerDropZoneRegEx)
     if (withinTableBody) {
       // use closestCenter among column dividers for moving attributes within table

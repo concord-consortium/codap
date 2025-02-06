@@ -32,7 +32,7 @@ describe("Case Table", () => {
     },
     selectTile() {
     },
-    addFocusFilter() {
+    addFocusIgnoreFn() {
       return () => null
     }
   }

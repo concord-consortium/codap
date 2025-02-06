@@ -16,7 +16,17 @@ export const registerTileCollisionDetection = (baseId: string, detect: Collision
   gTileCollisionDetectionRegistry.push({ baseId, overlayRegex, droppableRegex, detect })
 }
 
-export const dndDetectCollision: CollisionDetection = (args) => {
+export const dndDetectCollision: CollisionDetection = (_args) => {
+  // sort the containers by z-index of the tile
+  const sortedContainers = _args.droppableContainers.slice().sort((aContainer, bContainer) => {
+    const aTileNode = aContainer.node.current?.closest("[data-tile-z-index]")
+    const aTileZIndex = aTileNode ? parseInt(aTileNode.getAttribute("data-tile-z-index") || "0", 10) : 0
+    const bTileNode = bContainer.node.current?.closest("[data-tile-z-index]")
+    const bTileZIndex = bTileNode ? parseInt(bTileNode.getAttribute("data-tile-z-index") || "0", 10) : 0
+    return bTileZIndex - aTileZIndex
+  })
+  const args = { ..._args, droppableContainers: sortedContainers }
+
   // first determine the component we're in using pointerWithin (for pointer sensor) or
   // rectIntersection (for keyboard sensor)
   const collisions = args.pointerCoordinates ? pointerWithin(args) : rectIntersection(args)
@@ -28,12 +38,14 @@ export const dndDetectCollision: CollisionDetection = (args) => {
   }
 
   // check for registered tile-specific collision handlers
-  for (const entry of gTileCollisionDetectionRegistry) {
-    const { overlayRegex, droppableRegex, detect } = entry
-    // test the tile overlays to find the relevant tile
-    if (collisions.find(({id}) => overlayRegex.test(`${id}`))) {
+  for (const collision of collisions) {
+    const { id: collisionId } = collision
+    // find the first tile handler overlay that matches the collision
+    const handler = gTileCollisionDetectionRegistry.find(({overlayRegex}) => overlayRegex.test(`${collisionId}`))
+    if (handler) {
+      const { droppableRegex, detect } = handler
       // filter the drop zones to those appropriate for the relevant tile
-      const containers = args.droppableContainers.filter(({id}) => droppableRegex.test(`${id}`))
+      const containers = sortedContainers.filter(({id: containerId}) => droppableRegex.test(`${containerId}`))
       // apply the collection detection function specified by the tile
       return detect({ ...args, droppableContainers: containers })
     }

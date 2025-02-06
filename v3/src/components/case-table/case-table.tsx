@@ -43,7 +43,7 @@ export const CaseTable = observer(function CaseTable() {
   }, [])
 
   useEffect(() => {
-    return tileSelection.addFocusFilter(event => {
+    return tileSelection.addFocusIgnoreFn(event => {
       // disable table becoming selected on attribute drag
       return event.target instanceof HTMLElement && event.target.closest(".codap-attribute-button") != null
     })

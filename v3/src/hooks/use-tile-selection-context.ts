@@ -1,14 +1,14 @@
 import React, { createContext, useContext } from "react"
 
-export type FilterEventType = React.FocusEvent<HTMLDivElement> | React.PointerEvent<HTMLDivElement>
+export type FocusIgnoreEventType = React.FocusEvent<HTMLDivElement> | React.PointerEvent<HTMLDivElement>
 // return true to prevent tile focus
-export type FocusFilterFn = (event: FilterEventType) => Maybe<boolean>
+export type FocusIgnoreFn = (event: FocusIgnoreEventType) => Maybe<boolean>
 
 export interface ITileSelection {
   isTileSelected: () => boolean
   selectTile: () => void
   // returns disposer function for removing filter
-  addFocusFilter: (filter: FocusFilterFn) => () => void
+  addFocusIgnoreFn: (ignoreFn: FocusIgnoreFn) => () => void
 }
 
 export const TileSelectionContext = createContext<ITileSelection | undefined>(undefined)

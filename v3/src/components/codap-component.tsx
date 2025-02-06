@@ -6,7 +6,7 @@ import ResizeHandle from "../assets/icons/icon-corner-resize-handle.svg"
 import { CodapComponentContext } from "../hooks/use-codap-component-context"
 import { TileModelContext } from "../hooks/use-tile-model-context"
 import {
-  FilterEventType, FocusFilterFn, ITileSelection, TileSelectionContext
+  FocusIgnoreEventType, FocusIgnoreFn, ITileSelection, TileSelectionContext
 } from "../hooks/use-tile-selection-context"
 import { getTileComponentInfo } from "../models/tiles/tile-component-info"
 import { ITileModel } from "../models/tiles/tile-model"
@@ -31,7 +31,7 @@ export interface IProps extends ITileBaseProps {
 
 class TileSelectionHandler implements ITileSelection {
   tile: ITileModel
-  focusFilterMap = new Map<string, FocusFilterFn>()
+  focusIgnoreMap = new Map<string, FocusIgnoreFn>()
 
   constructor(tile: ITileModel) {
     this.tile = tile
@@ -46,7 +46,7 @@ class TileSelectionHandler implements ITileSelection {
   }
 
   handleFocusEvent = (event: React.FocusEvent<HTMLDivElement> | React.PointerEvent<HTMLDivElement>) => {
-    if (!Array.from(this.focusFilterMap.values()).some(filter => filter(event))) {
+    if (!Array.from(this.focusIgnoreMap.values()).some(filter => filter(event))) {
       if (isAlive(this.tile)) {
         this.selectTile()
       }
@@ -56,10 +56,10 @@ class TileSelectionHandler implements ITileSelection {
     }
   }
 
-  addFocusFilter = (filter: FocusFilterFn) => {
+  addFocusIgnoreFn = (ignoreFn: FocusIgnoreFn) => {
     const id = uniqueId()
-    this.focusFilterMap.set(id, filter)
-    return () => this.focusFilterMap.delete(id)
+    this.focusIgnoreMap.set(id, ignoreFn)
+    return () => this.focusIgnoreMap.delete(id)
   }
 }
 
@@ -73,7 +73,7 @@ export const CodapComponent = observer(function CodapComponent({
   // useState for guaranteed lifetime
   const [tileSelection] = useState<TileSelectionHandler>(() => new TileSelectionHandler(tile))
 
-  const handleFocusEvent = (event: FilterEventType) => tileSelection.handleFocusEvent(event)
+  const handleFocusEvent = (event: FocusIgnoreEventType) => tileSelection.handleFocusEvent(event)
 
   if (!info) return null
 
