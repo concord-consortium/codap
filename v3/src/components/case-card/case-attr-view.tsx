@@ -13,6 +13,7 @@ import { GetDividerBoundsFn } from "../case-tile-common/case-tile-types"
 import { applyCaseValueChanges } from "../case-tile-common/case-tile-utils"
 import { useCaseCardModel } from "./use-case-card-model"
 import ColorTextEditor from "../case-tile-common/color-text-editor"
+import { isBoolean } from "../case-table/checkbox-cell"
 
 import "./case-attr-view.scss"
 
@@ -36,7 +37,8 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
   const displayStrValue = cellValue ? String(cellValue) : ""
   const displayNumValue = cellValue ? Number(cellValue) : NaN
   const showUnitWithValue = isFiniteNumber(displayNumValue) && !!unit
-  const { value, content } = renderAttributeValue(displayStrValue, displayNumValue, showUnitWithValue, attr)
+  const { value, content } = renderAttributeValue(displayStrValue, displayNumValue, showUnitWithValue, attr,
+                                                   undefined, undefined, caseId)
   const [isEditing, setIsEditing] = useState(false)
   const [editingValue, setEditingValue] = useState(value)
 
@@ -87,6 +89,14 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
           />
         : <div className="case-card-attr-value-color" onClick={()=>setIsEditing(true)}>{ content }</div>
         )
+    }
+
+    if (attr?.userType === "checkbox" && isBoolean(value)) {
+      return (
+        <div className={clsx("case-card-attr-value-checkbox", {"formula-attr-value": attr?.hasFormula})}>
+          {content}
+        </div>
+      )
     }
 
     return (
