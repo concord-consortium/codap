@@ -25,29 +25,44 @@ const UseKeyStatesWrapper = () => {
 describe("Case Table", () => {
   let broker: DataBroker
   let tile: ITileModel
+
+  const tileSelection: ITileSelection = {
+    isTileSelected() {
+      return false
+    },
+    selectTile() {
+    },
+    addFocusFilter() {
+      return () => null
+    }
+  }
+
   beforeEach(() => {
     broker = new DataBroker()
     tile = TileModel.create({ content: getSnapshot(CaseTableModel.create()) })
   })
 
   it("renders nothing with no broker", () => {
-    render(<DndContext><CaseTableComponent tile={tile}/></DndContext>)
+    render(
+      <DndContext>
+        <TileSelectionContext.Provider value={tileSelection}>
+          <CaseTableComponent tile={tile}/>
+        </TileSelectionContext.Provider>
+      </DndContext>)
     expect(screen.queryByTestId("case-table")).not.toBeInTheDocument()
   })
 
   it("renders nothing with empty broker", () => {
-    render(<DndContext><CaseTableComponent tile={tile}/></DndContext>)
+    render(
+      <DndContext>
+        <TileSelectionContext.Provider value={tileSelection}>
+          <CaseTableComponent tile={tile}/>
+        </TileSelectionContext.Provider>
+      </DndContext>)
     expect(screen.queryByTestId("case-table")).not.toBeInTheDocument()
   })
 
   it("renders table with data", () => {
-    const tileSelection: ITileSelection = {
-      isTileSelected() {
-        return false
-      },
-      selectTile() {
-      }
-    }
     const data = DataSet.create()
     data.addAttribute({ name: "a"})
     data.addAttribute({ name: "b" })

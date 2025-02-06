@@ -1,16 +1,19 @@
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import { isAlive } from "mobx-state-tree"
-import React, { useMemo, useRef } from "react"
+import React, { useRef, useState } from "react"
+import ResizeHandle from "../assets/icons/icon-corner-resize-handle.svg"
 import { CodapComponentContext } from "../hooks/use-codap-component-context"
 import { TileModelContext } from "../hooks/use-tile-model-context"
-import { ITileSelection, TileSelectionContext } from "../hooks/use-tile-selection-context"
-import { InspectorPanelWrapper } from "./inspector-panel-wrapper"
-import { ITileBaseProps } from "./tiles/tile-base-props"
+import {
+  FilterEventType, FocusFilterFn, ITileSelection, TileSelectionContext
+} from "../hooks/use-tile-selection-context"
 import { getTileComponentInfo } from "../models/tiles/tile-component-info"
 import { ITileModel } from "../models/tiles/tile-model"
 import { uiState } from "../models/ui-state"
-import ResizeHandle from "../assets/icons/icon-corner-resize-handle.svg"
+import { uniqueId } from "../utilities/js-utils"
+import { InspectorPanelWrapper } from "./inspector-panel-wrapper"
+import { ITileBaseProps } from "./tiles/tile-base-props"
 
 import "./codap-component.scss"
 
@@ -26,6 +29,40 @@ export interface IProps extends ITileBaseProps {
   onLeftPointerDown?: (e: React.PointerEvent) => void
 }
 
+class TileSelectionHandler implements ITileSelection {
+  tile: ITileModel
+  focusFilterMap = new Map<string, FocusFilterFn>()
+
+  constructor(tile: ITileModel) {
+    this.tile = tile
+  }
+
+  isTileSelected = () => {
+    return uiState.isFocusedTile(this.tile.id)
+  }
+
+  selectTile = () => {
+    uiState.setFocusedTile(this.tile.id)
+  }
+
+  handleFocusEvent = (event: React.FocusEvent<HTMLDivElement> | React.PointerEvent<HTMLDivElement>) => {
+    if (!Array.from(this.focusFilterMap.values()).some(filter => filter(event))) {
+      if (isAlive(this.tile)) {
+        this.selectTile()
+      }
+      else {
+        console.warn("TileSelectionHandler.handleFocusEvent ignoring focus of defunct tile")
+      }
+    }
+  }
+
+  addFocusFilter = (filter: FocusFilterFn) => {
+    const id = uniqueId()
+    this.focusFilterMap.set(id, filter)
+    return () => this.focusFilterMap.delete(id)
+  }
+}
+
 export const CodapComponent = observer(function CodapComponent({
   tile, isMinimized, onMinimizeTile, onCloseTile, onBottomRightPointerDown, onBottomLeftPointerDown,
   onRightPointerDown, onBottomPointerDown, onLeftPointerDown
@@ -33,23 +70,10 @@ export const CodapComponent = observer(function CodapComponent({
   const info = getTileComponentInfo(tile.content.type)
   const codapComponentRef = useRef<HTMLDivElement | null>(null)
 
-  function handleFocusTile() {
-    if (isAlive(tile)) {
-      uiState.setFocusedTile(tile.id)
-    }
-    else {
-      console.warn("CodapComponent.handleFocusTile ignoring focus of defunct tile")
-    }
-  }
+  // useState for guaranteed lifetime
+  const [tileSelection] = useState<TileSelectionHandler>(() => new TileSelectionHandler(tile))
 
-  const tileSelection = useMemo<ITileSelection>(() => ({
-    isTileSelected() {
-      return uiState.isFocusedTile(tile?.id)
-    },
-    selectTile() {
-      uiState.setFocusedTile(tile?.id)
-    }
-  }), [tile])
+  const handleFocusEvent = (event: FilterEventType) => tileSelection.handleFocusEvent(event)
 
   if (!info) return null
 
@@ -61,7 +85,7 @@ export const CodapComponent = observer(function CodapComponent({
       <TileSelectionContext.Provider value={tileSelection}>
         <CodapComponentContext.Provider value={codapComponentRef}>
           <div className={classes} ref={codapComponentRef} key={tile.id} data-testid={tileEltClass}
-            onFocus={handleFocusTile} onPointerDownCapture={handleFocusTile}>
+            onFocus={handleFocusEvent} onPointerDownCapture={handleFocusEvent}>
             <TitleBar tile={tile} onMinimizeTile={onMinimizeTile} onCloseTile={onCloseTile}/>
             <Component tile={tile} isMinimized={isMinimized} />
             {onRightPointerDown && !isFixedWidth && !isMinimized &&
