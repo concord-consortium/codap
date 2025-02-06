@@ -14,10 +14,9 @@ export const isBoolean = (value: FValue | undefined) => {
 interface ICheckboxCellProps {
   rowId: string
   attrId: string
-  hasFormula?: boolean
 }
 
-export default function CheckboxCell ({ rowId, attrId, hasFormula }: ICheckboxCellProps) {
+export default function CheckboxCell ({ rowId, attrId }: ICheckboxCellProps) {
   const data = useDataSetContext()
   const checkRef = useRef<HTMLInputElement>(null)
   const [value, setValue] = useState<IValueType>(data?.getValue(rowId, attrId))
@@ -53,7 +52,7 @@ export default function CheckboxCell ({ rowId, attrId, hasFormula }: ICheckboxCe
 
   return (
     <span className="cell-checkbox">
-      <input type="checkbox" ref={checkRef} onChange={handleChange}/>
+      <input type="checkbox" ref={checkRef} title={String(value)} onChange={handleChange}/>
     </span>
   )
 }
