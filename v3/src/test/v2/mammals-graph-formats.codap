@@ -173,7 +173,7 @@
 			"layout": {
 				"width": 250,
 				"height": 235,
-				"zIndex": 218,
+				"zIndex": 323,
 				"left": 230,
 				"top": 5,
 				"isVisible": true,
@@ -251,7 +251,7 @@
 			"layout": {
 				"width": 245,
 				"height": 235,
-				"zIndex": 228,
+				"zIndex": 325,
 				"left": 485,
 				"top": 5,
 				"isVisible": true,
@@ -322,14 +322,14 @@
 						"plotClass": "DG.CasePlotModel"
 					}
 				],
-				"title": "Point Transparancy",
+				"title": "Point Opacity",
 				"userSetTitle": true,
 				"cannotClose": false
 			},
 			"layout": {
 				"width": 255,
 				"height": 235,
-				"zIndex": 232,
+				"zIndex": 344,
 				"left": 735,
 				"top": 5,
 				"isVisible": true,
@@ -407,7 +407,7 @@
 			"layout": {
 				"width": 265,
 				"height": 235,
-				"zIndex": 294,
+				"zIndex": 319,
 				"left": 995,
 				"top": 5,
 				"isVisible": true,
@@ -563,7 +563,7 @@
 			"layout": {
 				"width": 245,
 				"height": 240,
-				"zIndex": 307,
+				"zIndex": 317,
 				"left": 230,
 				"top": 245,
 				"isVisible": true,
@@ -641,7 +641,7 @@
 			"layout": {
 				"width": 250,
 				"height": 240,
-				"zIndex": 309,
+				"zIndex": 336,
 				"left": 480,
 				"top": 245,
 				"isVisible": true,
@@ -675,9 +675,9 @@
 				"transparency": 0.85,
 				"strokeTransparency": 0.4,
 				"strokeSameAsFill": false,
-				"isTransparent": false,
+				"isTransparent": true,
 				"plotBackgroundColor": "#ffee33",
-				"plotBackgroundOpacity": 0.3,
+				"plotBackgroundOpacity": 1,
 				"plotBackgroundImage": null,
 				"plotBackgroundImageLockInfo": null,
 				"xRole": 0,
@@ -719,11 +719,89 @@
 			"layout": {
 				"width": 255,
 				"height": 240,
-				"zIndex": 311,
+				"zIndex": 328,
 				"left": 735,
 				"top": 245,
 				"isVisible": true,
 				"right": 990,
+				"bottom": 485
+			},
+			"savedHeight": null
+		},
+		{
+			"type": "DG.GraphView",
+			"guid": 57,
+			"id": 57,
+			"componentStorage": {
+				"_links_": {
+					"context": {
+						"type": "DG.DataContextRecord",
+						"id": 2
+					},
+					"hiddenCases": [
+
+					]
+				},
+				"displayOnlySelected": false,
+				"legendRole": 0,
+				"legendAttributeType": 0,
+				"numberOfLegendQuantiles": 5,
+				"legendQuantilesAreLocked": false,
+				"pointColor": "#e6805b",
+				"strokeColor": "white",
+				"pointSizeMultiplier": 1,
+				"transparency": 0.85,
+				"strokeTransparency": 0.4,
+				"strokeSameAsFill": false,
+				"isTransparent": false,
+				"plotBackgroundColor": "#ffee33",
+				"plotBackgroundOpacity": 0.44,
+				"plotBackgroundImage": null,
+				"plotBackgroundImageLockInfo": null,
+				"xRole": 0,
+				"xAttributeType": 0,
+				"yRole": 0,
+				"yAttributeType": 0,
+				"y2Role": 0,
+				"y2AttributeType": 0,
+				"topRole": 0,
+				"topAttributeType": 0,
+				"rightRole": 0,
+				"rightAttributeType": 0,
+				"xAxisClass": "DG.AxisModel",
+				"yAxisClass": "DG.AxisModel",
+				"y2AxisClass": "DG.AxisModel",
+				"topAxisClass": "DG.CellAxisModel",
+				"rightAxisClass": "DG.CellAxisModel",
+				"plotModels": [
+					{
+						"plotModelStorage": {
+							"verticalAxisIsY2": false,
+							"adornments": {
+								"plottedCount": {
+									"isVisible": false,
+									"enableMeasuresForSelection": false,
+									"isShowingCount": false,
+									"isShowingPercent": false,
+									"percentKind": 1
+								}
+							}
+						},
+						"plotClass": "DG.CasePlotModel"
+					}
+				],
+				"title": "Plot Background Opacity",
+				"userSetTitle": true,
+				"cannotClose": false
+			},
+			"layout": {
+				"width": 255,
+				"height": 240,
+				"zIndex": 340,
+				"left": 995,
+				"top": 245,
+				"isVisible": true,
+				"right": 1250,
 				"bottom": 485
 			},
 			"savedHeight": null
@@ -1652,7 +1730,7 @@
 	"appVersion": "2.0",
 	"appBuildNum": "0733",
 	"lang": "en",
-	"idCount": 56,
+	"idCount": 57,
 	"metadata": {
 
 	}
