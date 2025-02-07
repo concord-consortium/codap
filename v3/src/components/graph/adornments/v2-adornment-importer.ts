@@ -7,12 +7,13 @@ import {
   GraphAttributeDescriptionsMapSnapshot, IAttributeDescriptionSnapshot
 } from "../../data-display/models/data-configuration-model"
 import { kMain } from "../../data-display/data-display-types"
-import { updateCellKey } from "./adornment-utils"
+import { updateCellKey } from "./utilities/adornment-utils"
 import { kCountType } from "./count/count-adornment-types"
 import { kLSRLType } from "./lsrl/lsrl-adornment-types"
 import { kMovableLineType } from "./movable-line/movable-line-adornment-types"
 import { kMovablePointType } from "./movable-point/movable-point-adornment-types"
 import { kMovableValueType } from "./movable-value/movable-value-adornment-types"
+import { IPointModelSnapshot } from "./point-model"
 import { kPlottedFunctionType } from "./plotted-function/plotted-function-adornment-types"
 import { kBoxPlotType } from "./univariate-measures/box-plot/box-plot-adornment-types"
 import { kMeanAbsoluteDeviationType }
@@ -24,7 +25,6 @@ import { kStandardDeviationType } from "./univariate-measures/standard-deviation
 import { kStandardErrorType } from "./univariate-measures/standard-error/standard-error-adornment-types"
 import { kNormalCurveType } from "./univariate-measures/normal-curve/normal-curve-adornment-types"
 import { IMovablePointAdornmentModelSnapshot } from "./movable-point/movable-point-adornment-model"
-import { IPointModelSnapshot } from "./adornment-models"
 import { IMeasureInstanceSnapshot } from "./univariate-measures/univariate-measure-adornment-model"
 import { IMovableLineAdornmentModelSnapshot, IMovableLineInstanceSnapshot }
   from "./movable-line/movable-line-adornment-model"
@@ -296,10 +296,15 @@ export const v2AdornmentImporter = ({data, plotModels, attributeDescriptions, yA
     const { equationCoords, intercept, slope, isVertical, xIntercept } = movableLineAdornment
     const lines: Record<string, IMovableLineInstanceSnapshot> = {}
     instanceKeys?.forEach((key: string) => {
-      const lineInstance = {
-        // TODO_V2_IMPORT: [Story: **#188695677**] equationCoords are not handled correctly, the model stores x and y
-        // but the loaded equationCoords have proportionCenterX and proportionCenterY
-        equationCoords: equationCoords ?? undefined, // The V2 default is null, but we want undefined
+      const lineInstance: IMovableLineInstanceSnapshot = {
+        equationCoords: equationCoords
+                          ? {
+                              x: equationCoords.proportionCenterX,
+                              y: equationCoords.proportionCenterY
+                            }
+                          : undefined,
+        // v2 coordinates are idiosyncratic at times
+        isV2Coords: equationCoords ? true : undefined,
         intercept: isVertical ? xIntercept : intercept,
         slope: isVertical ? Infinity : slope
       }

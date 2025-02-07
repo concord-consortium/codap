@@ -168,8 +168,8 @@
             },
             "layout": {
                 "width": 205,
-                "height": 240,
-                "zIndex": 248,
+                "height": 210,
+                "zIndex": 291,
                 "left": 210,
                 "top": 5,
                 "isVisible": true,
@@ -300,8 +300,8 @@
             },
             "layout": {
                 "width": 205,
-                "height": 240,
-                "zIndex": 250,
+                "height": 210,
+                "zIndex": 292,
                 "left": 420,
                 "top": 5,
                 "isVisible": true,
@@ -388,7 +388,7 @@
                                     "equationCoordsArray": [
                                         {
                                             "proportionX": -0.004444444444444473,
-                                            "proportionY": 0.8764044943820225
+                                            "proportionY": 0.8561342241117519
                                         }
                                     ]
                                 }
@@ -404,8 +404,8 @@
             },
             "layout": {
                 "width": 205,
-                "height": 240,
-                "zIndex": 252,
+                "height": 210,
+                "zIndex": 297,
                 "left": 630,
                 "top": 5,
                 "isVisible": true,
@@ -492,7 +492,7 @@
                                     "equationCoordsArray": [
                                         {
                                             "proportionX": 0.5045454545454546,
-                                            "proportionY": 0.8707865168539326
+                                            "proportionY": 0.8707865168539323
                                         }
                                     ]
                                 }
@@ -508,8 +508,8 @@
             },
             "layout": {
                 "width": 240,
-                "height": 240,
-                "zIndex": 254,
+                "height": 210,
+                "zIndex": 294,
                 "left": 840,
                 "top": 5,
                 "isVisible": true,
@@ -596,7 +596,7 @@
                                     "equationCoordsArray": [
                                         {
                                             "proportionX": 0.2285714285714286,
-                                            "proportionY": 0.4157303370786517
+                                            "proportionY": 0.4157303370786518
                                         }
                                     ]
                                 }
@@ -612,8 +612,8 @@
             },
             "layout": {
                 "width": 230,
-                "height": 240,
-                "zIndex": 226,
+                "height": 210,
+                "zIndex": 295,
                 "left": 1085,
                 "top": 5,
                 "isVisible": true,
@@ -733,9 +733,9 @@
             "layout": {
                 "width": 205,
                 "height": 220,
-                "zIndex": 224,
+                "zIndex": 298,
                 "left": 210,
-                "top": 250,
+                "top": 220,
                 "isVisible": true,
                 "right": 415,
                 "bottom": 470
@@ -845,9 +845,9 @@
             "layout": {
                 "width": 205,
                 "height": 220,
-                "zIndex": 183,
+                "zIndex": 299,
                 "left": 420,
-                "top": 250,
+                "top": 220,
                 "isVisible": true,
                 "right": 625,
                 "bottom": 470
@@ -973,9 +973,9 @@
             "layout": {
                 "width": 205,
                 "height": 220,
-                "zIndex": 193,
+                "zIndex": 300,
                 "left": 630,
-                "top": 250,
+                "top": 220,
                 "isVisible": true,
                 "right": 835,
                 "bottom": 470
@@ -1093,9 +1093,9 @@
             "layout": {
                 "width": 240,
                 "height": 220,
-                "zIndex": 266,
+                "zIndex": 301,
                 "left": 840,
-                "top": 250,
+                "top": 220,
                 "isVisible": true,
                 "right": 1080,
                 "bottom": 470
@@ -1228,9 +1228,9 @@
             "layout": {
                 "width": 230,
                 "height": 220,
-                "zIndex": 215,
+                "zIndex": 302,
                 "left": 1085,
-                "top": 250,
+                "top": 220,
                 "isVisible": true,
                 "right": 1315,
                 "bottom": 470
@@ -1344,9 +1344,9 @@
             "layout": {
                 "width": 205,
                 "height": 220,
-                "zIndex": 264,
+                "zIndex": 311,
                 "left": 210,
-                "top": 475,
+                "top": 445,
                 "isVisible": true,
                 "right": 415,
                 "bottom": 695
@@ -1460,9 +1460,9 @@
             "layout": {
                 "width": 205,
                 "height": 220,
-                "zIndex": 276,
+                "zIndex": 304,
                 "left": 420,
-                "top": 475,
+                "top": 445,
                 "isVisible": true,
                 "right": 625,
                 "bottom": 695
@@ -1604,9 +1604,9 @@
             "layout": {
                 "width": 205,
                 "height": 220,
-                "zIndex": 280,
+                "zIndex": 337,
                 "left": 630,
-                "top": 475,
+                "top": 445,
                 "isVisible": true,
                 "right": 835,
                 "bottom": 695
@@ -1728,12 +1728,464 @@
             "layout": {
                 "width": 240,
                 "height": 220,
-                "zIndex": 286,
+                "zIndex": 347,
                 "left": 840,
-                "top": 475,
+                "top": 445,
                 "isVisible": true,
                 "right": 1080,
                 "bottom": 695
+            },
+            "savedHeight": null
+        },
+        {
+            "type": "DG.GraphView",
+            "guid": 59,
+            "id": 59,
+            "componentStorage": {
+                "_links_": {
+                    "context": {
+                        "type": "DG.DataContextRecord",
+                        "id": 2
+                    },
+                    "hiddenCases": [],
+                    "xColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "xAttr": {
+                        "type": "DG.Attribute",
+                        "id": 6
+                    },
+                    "yColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "yAttr": {
+                        "type": "DG.Attribute",
+                        "id": 10
+                    }
+                },
+                "displayOnlySelected": false,
+                "legendRole": 0,
+                "legendAttributeType": 0,
+                "numberOfLegendQuantiles": 5,
+                "legendQuantilesAreLocked": false,
+                "pointColor": "#e6805b",
+                "strokeColor": "white",
+                "pointSizeMultiplier": 1,
+                "transparency": 0.85,
+                "strokeTransparency": 0.4,
+                "strokeSameAsFill": false,
+                "isTransparent": false,
+                "plotBackgroundColor": null,
+                "plotBackgroundOpacity": 1,
+                "plotBackgroundImage": null,
+                "plotBackgroundImageLockInfo": null,
+                "xRole": 1,
+                "xAttributeType": 1,
+                "yRole": 4,
+                "yAttributeType": 1,
+                "y2Role": 0,
+                "y2AttributeType": 0,
+                "topRole": 0,
+                "topAttributeType": 0,
+                "rightRole": 0,
+                "rightAttributeType": 0,
+                "xAxisClass": "DG.CellLinearAxisModel",
+                "xLowerBound": -5,
+                "xUpperBound": 95,
+                "yAxisClass": "DG.CellLinearAxisModel",
+                "yLowerBound": -10,
+                "yUpperBound": 130,
+                "y2AxisClass": "DG.AxisModel",
+                "topAxisClass": "DG.CellAxisModel",
+                "rightAxisClass": "DG.CellAxisModel",
+                "plotModels": [
+                    {
+                        "plotModelStorage": {
+                            "verticalAxisIsY2": false,
+                            "adornments": {
+                                "plottedCount": {
+                                    "isVisible": false,
+                                    "enableMeasuresForSelection": false,
+                                    "isShowingCount": false,
+                                    "isShowingPercent": false,
+                                    "percentKind": 1
+                                }
+                            },
+                            "movableLineStorage": {
+                                "isVisible": true,
+                                "enableMeasuresForSelection": false,
+                                "isInterceptLocked": false,
+                                "equationCoords": {
+                                    "proportionCenterX": 0.7407407407407407,
+                                    "proportionCenterY": 0.4873417721518988
+                                },
+                                "intercept": 4,
+                                "slope": 2.8,
+                                "isVertical": false,
+                                "xIntercept": null
+                            }
+                        },
+                        "plotClass": "DG.ScatterPlotModel"
+                    }
+                ],
+                "title": "MovLine-Label-TopRight",
+                "userSetTitle": true,
+                "cannotClose": false
+            },
+            "layout": {
+                "width": 205,
+                "height": 220,
+                "zIndex": 321,
+                "left": 210,
+                "top": 670,
+                "isVisible": true,
+                "right": 415,
+                "bottom": 890
+            },
+            "savedHeight": null
+        },
+        {
+            "type": "DG.GraphView",
+            "guid": 60,
+            "id": 60,
+            "componentStorage": {
+                "_links_": {
+                    "context": {
+                        "type": "DG.DataContextRecord",
+                        "id": 2
+                    },
+                    "hiddenCases": [],
+                    "xColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "xAttr": {
+                        "type": "DG.Attribute",
+                        "id": 6
+                    },
+                    "yColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "yAttr": {
+                        "type": "DG.Attribute",
+                        "id": 10
+                    }
+                },
+                "displayOnlySelected": false,
+                "legendRole": 0,
+                "legendAttributeType": 0,
+                "numberOfLegendQuantiles": 5,
+                "legendQuantilesAreLocked": false,
+                "pointColor": "#e6805b",
+                "strokeColor": "white",
+                "pointSizeMultiplier": 1,
+                "transparency": 0.85,
+                "strokeTransparency": 0.4,
+                "strokeSameAsFill": false,
+                "isTransparent": false,
+                "plotBackgroundColor": null,
+                "plotBackgroundOpacity": 1,
+                "plotBackgroundImage": null,
+                "plotBackgroundImageLockInfo": null,
+                "xRole": 1,
+                "xAttributeType": 1,
+                "yRole": 4,
+                "yAttributeType": 1,
+                "y2Role": 0,
+                "y2AttributeType": 0,
+                "topRole": 0,
+                "topAttributeType": 0,
+                "rightRole": 0,
+                "rightAttributeType": 0,
+                "xAxisClass": "DG.CellLinearAxisModel",
+                "xLowerBound": -5,
+                "xUpperBound": 95,
+                "yAxisClass": "DG.CellLinearAxisModel",
+                "yLowerBound": -10,
+                "yUpperBound": 130,
+                "y2AxisClass": "DG.AxisModel",
+                "topAxisClass": "DG.CellAxisModel",
+                "rightAxisClass": "DG.CellAxisModel",
+                "plotModels": [
+                    {
+                        "plotModelStorage": {
+                            "verticalAxisIsY2": false,
+                            "adornments": {
+                                "plottedCount": {
+                                    "isVisible": false,
+                                    "enableMeasuresForSelection": false,
+                                    "isShowingCount": false,
+                                    "isShowingPercent": false,
+                                    "percentKind": 1
+                                }
+                            },
+                            "movableLineStorage": {
+                                "isVisible": true,
+                                "enableMeasuresForSelection": false,
+                                "isInterceptLocked": false,
+                                "equationCoords": {
+                                    "proportionCenterX": 0.5030864197530864,
+                                    "proportionCenterY": 0.8765822784810127
+                                },
+                                "intercept": 4,
+                                "slope": 2.8,
+                                "isVertical": false,
+                                "xIntercept": null
+                            }
+                        },
+                        "plotClass": "DG.ScatterPlotModel"
+                    }
+                ],
+                "title": "MovLine-Label-BottomLeft",
+                "userSetTitle": true,
+                "cannotClose": false
+            },
+            "layout": {
+                "width": 205,
+                "height": 220,
+                "zIndex": 324,
+                "left": 420,
+                "top": 670,
+                "isVisible": true,
+                "right": 625,
+                "bottom": 890
+            },
+            "savedHeight": null
+        },
+        {
+            "type": "DG.GraphView",
+            "guid": 61,
+            "id": 61,
+            "componentStorage": {
+                "_links_": {
+                    "context": {
+                        "type": "DG.DataContextRecord",
+                        "id": 2
+                    },
+                    "legendColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "legendAttr": {
+                        "type": "DG.Attribute",
+                        "id": 12
+                    },
+                    "hiddenCases": [],
+                    "xColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "xAttr": {
+                        "type": "DG.Attribute",
+                        "id": 6
+                    },
+                    "yColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "yAttr": {
+                        "type": "DG.Attribute",
+                        "id": 10
+                    }
+                },
+                "displayOnlySelected": false,
+                "legendRole": 0,
+                "legendAttributeType": 2,
+                "numberOfLegendQuantiles": 5,
+                "legendQuantilesAreLocked": false,
+                "pointColor": "#e6805b",
+                "strokeColor": "lightgrey",
+                "pointSizeMultiplier": 1,
+                "transparency": 0.85,
+                "strokeTransparency": 0.4,
+                "strokeSameAsFill": false,
+                "isTransparent": false,
+                "plotBackgroundColor": null,
+                "plotBackgroundOpacity": 1,
+                "plotBackgroundImage": null,
+                "plotBackgroundImageLockInfo": null,
+                "xRole": 1,
+                "xAttributeType": 1,
+                "yRole": 4,
+                "yAttributeType": 1,
+                "y2Role": 0,
+                "y2AttributeType": 0,
+                "topRole": 0,
+                "topAttributeType": 0,
+                "rightRole": 0,
+                "rightAttributeType": 0,
+                "xAxisClass": "DG.CellLinearAxisModel",
+                "xLowerBound": -5,
+                "xUpperBound": 95,
+                "yAxisClass": "DG.CellLinearAxisModel",
+                "yLowerBound": -10,
+                "yUpperBound": 130,
+                "y2AxisClass": "DG.AxisModel",
+                "topAxisClass": "DG.CellAxisModel",
+                "rightAxisClass": "DG.CellAxisModel",
+                "plotModels": [
+                    {
+                        "plotModelStorage": {
+                            "verticalAxisIsY2": false,
+                            "adornments": {
+                                "plottedCount": {
+                                    "isVisible": false,
+                                    "enableMeasuresForSelection": false,
+                                    "isShowingCount": false,
+                                    "isShowingPercent": false,
+                                    "percentKind": 1
+                                }
+                            },
+                            "movableLineStorage": {
+                                "isVisible": true,
+                                "enableMeasuresForSelection": false,
+                                "isInterceptLocked": false,
+                                "equationCoords": {
+                                    "proportionCenterX": 0.5061728395061729,
+                                    "proportionCenterY": 0.6473214285714286
+                                },
+                                "intercept": 4,
+                                "slope": 2.8,
+                                "isVertical": false,
+                                "xIntercept": null
+                            }
+                        },
+                        "plotClass": "DG.ScatterPlotModel"
+                    }
+                ],
+                "title": "MovLine-Label-Legend",
+                "userSetTitle": true,
+                "cannotClose": false
+            },
+            "layout": {
+                "width": 205,
+                "height": 220,
+                "zIndex": 344,
+                "left": 630,
+                "top": 670,
+                "isVisible": true,
+                "right": 835,
+                "bottom": 890
+            },
+            "savedHeight": null
+        },
+        {
+            "type": "DG.GraphView",
+            "guid": 62,
+            "id": 62,
+            "componentStorage": {
+                "_links_": {
+                    "context": {
+                        "type": "DG.DataContextRecord",
+                        "id": 2
+                    },
+                    "hiddenCases": [],
+                    "xColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "xAttr": {
+                        "type": "DG.Attribute",
+                        "id": 6
+                    },
+                    "yColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "yAttr": {
+                        "type": "DG.Attribute",
+                        "id": 10
+                    },
+                    "topColl": {
+                        "type": "DG.Collection",
+                        "id": 3
+                    },
+                    "topAttr": {
+                        "type": "DG.Attribute",
+                        "id": 12
+                    }
+                },
+                "displayOnlySelected": false,
+                "legendRole": 0,
+                "legendAttributeType": 0,
+                "numberOfLegendQuantiles": 5,
+                "legendQuantilesAreLocked": false,
+                "pointColor": "#e6805b",
+                "strokeColor": "white",
+                "pointSizeMultiplier": 1,
+                "transparency": 0.85,
+                "strokeTransparency": 0.4,
+                "strokeSameAsFill": false,
+                "isTransparent": false,
+                "plotBackgroundColor": null,
+                "plotBackgroundOpacity": 1,
+                "plotBackgroundImage": null,
+                "plotBackgroundImageLockInfo": null,
+                "xRole": 1,
+                "xAttributeType": 1,
+                "yRole": 4,
+                "yAttributeType": 1,
+                "y2Role": 0,
+                "y2AttributeType": 0,
+                "topRole": 0,
+                "topAttributeType": 2,
+                "rightRole": 0,
+                "rightAttributeType": 0,
+                "xAxisClass": "DG.CellLinearAxisModel",
+                "xLowerBound": -5,
+                "xUpperBound": 95,
+                "yAxisClass": "DG.CellLinearAxisModel",
+                "yLowerBound": -10,
+                "yUpperBound": 130,
+                "y2AxisClass": "DG.AxisModel",
+                "topAxisClass": "DG.CellAxisModel",
+                "rightAxisClass": "DG.CellAxisModel",
+                "plotModels": [
+                    {
+                        "plotModelStorage": {
+                            "verticalAxisIsY2": false,
+                            "adornments": {
+                                "plottedCount": {
+                                    "isVisible": false,
+                                    "enableMeasuresForSelection": false,
+                                    "isShowingCount": false,
+                                    "isShowingPercent": false,
+                                    "percentKind": 1
+                                }
+                            },
+                            "movableLineStorage": {
+                                "isVisible": true,
+                                "enableMeasuresForSelection": false,
+                                "isInterceptLocked": false,
+                                "equationCoords": {
+                                    "proportionCenterX": 0.49242424242424243,
+                                    "proportionCenterY": 0.4956896551724138
+                                },
+                                "intercept": 4,
+                                "slope": 2.8,
+                                "isVertical": false,
+                                "xIntercept": null
+                            }
+                        },
+                        "plotClass": "DG.ScatterPlotModel"
+                    }
+                ],
+                "title": "MovLine-Labels-SplitTop",
+                "userSetTitle": true,
+                "cannotClose": false
+            },
+            "layout": {
+                "width": 240,
+                "height": 220,
+                "zIndex": 350,
+                "left": 840,
+                "top": 670,
+                "isVisible": true,
+                "right": 1080,
+                "bottom": 890
             },
             "savedHeight": null
         }
@@ -2525,6 +2977,6 @@
     "appVersion": "2.0",
     "appBuildNum": "0733",
     "lang": "en",
-    "idCount": 58,
+    "idCount": 62,
     "metadata": {}
 }

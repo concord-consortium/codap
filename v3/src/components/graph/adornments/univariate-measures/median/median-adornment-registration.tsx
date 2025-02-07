@@ -1,7 +1,7 @@
 import React from "react"
-import { AdornmentCheckbox } from "../../adornment-checkbox"
 import { registerAdornmentComponentInfo } from "../../adornment-component-info"
 import { registerAdornmentContentInfo } from "../../adornment-content-info"
+import { AdornmentCheckbox } from "../../components/adornment-checkbox"
 import { UnivariateMeasureAdornmentSimpleComponent } from "../univariate-measure-adornment-simple-component"
 import { exportUnivariateMeasure } from "../univariate-measure-adornment-utils"
 import { isMedianAdornment, MedianAdornmentModel } from "./median-adornment-model"

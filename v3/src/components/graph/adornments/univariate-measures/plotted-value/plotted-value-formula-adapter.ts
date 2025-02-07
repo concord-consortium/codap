@@ -8,7 +8,7 @@ import { math } from "../../../../../models/formula/functions/math"
 import { formulaError } from "../../../../../models/formula/utils/misc"
 import { getFormulaManager } from "../../../../../models/tiles/tile-environment"
 import type { IGraphContentModel } from "../../../models/graph-content-model"
-import { BaseGraphFormulaAdapter, IBaseGraphFormulaExtraMetadata } from "../../base-graph-formula-adapter"
+import { BaseGraphFormulaAdapter, IBaseGraphFormulaExtraMetadata } from "../../utilities/base-graph-formula-adapter"
 import { isPlottedValueAdornment } from "./plotted-value-adornment-model"
 import { kPlottedValueType } from "./plotted-value-adornment-types"
 

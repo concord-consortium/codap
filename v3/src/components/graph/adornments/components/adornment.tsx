@@ -1,12 +1,12 @@
-import React from "react"
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
+import React from "react"
 import { useDeepCompareMemo } from "use-deep-compare"
-import { IAdornmentModel } from "./adornment-models"
-import { useGraphContentModelContext } from "../hooks/use-graph-content-model-context"
-import { useSubplotExtent } from "../hooks/use-subplot-extent"
-import { getAdornmentComponentInfo } from "./adornment-component-info"
-import { transitionDuration } from "../../data-display/data-display-types"
+import { transitionDuration } from "../../../data-display/data-display-types"
+import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
+import { useSubplotExtent } from "../../hooks/use-subplot-extent"
+import { getAdornmentComponentInfo } from "../adornment-component-info"
+import { IAdornmentModel } from "../adornment-models"
 
 import "./adornment.scss"
 

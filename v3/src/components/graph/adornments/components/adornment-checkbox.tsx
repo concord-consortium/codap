@@ -1,10 +1,10 @@
-import React from "react"
 import { FormControl, Checkbox } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
-import { t } from "../../../utilities/translation/translate"
-import { useGraphContentModelContext } from "../hooks/use-graph-content-model-context"
-import { getAdornmentContentInfo } from "./adornment-content-info"
-import { logMessageWithReplacement } from "../../../lib/log-message"
+import React from "react"
+import { logMessageWithReplacement } from "../../../../lib/log-message"
+import { t } from "../../../../utilities/translation/translate"
+import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
+import { getAdornmentContentInfo } from "../adornment-content-info"
 
 interface IProps {
   classNameValue: string

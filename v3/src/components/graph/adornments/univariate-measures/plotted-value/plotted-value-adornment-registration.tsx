@@ -1,7 +1,7 @@
 import React from "react"
-import { AdornmentCheckbox } from "../../adornment-checkbox"
 import { registerAdornmentComponentInfo } from "../../adornment-component-info"
 import { exportAdornmentBase, registerAdornmentContentInfo } from "../../adornment-content-info"
+import { AdornmentCheckbox } from "../../components/adornment-checkbox"
 import { PlottedValueAdornmentBanner } from "./plotted-value-adornment-banner"
 import { PlottedValueComponent } from "./plotted-value-adornment-component"
 import { isPlottedValueAdornment, PlottedValueAdornmentModel } from "./plotted-value-adornment-model"

@@ -1,18 +1,20 @@
-import {addDisposer, getSnapshot, Instance, SnapshotIn, types} from "mobx-state-tree"
 import {comparer, reaction} from "mobx"
+import {addDisposer, getSnapshot, Instance, SnapshotIn, types} from "mobx-state-tree"
 import {AttributeType} from "../../../models/data/attribute-types"
 import {IDataSet} from "../../../models/data/data-set"
 import {typedId} from "../../../utilities/js-utils"
-import { cachedFnFactory, cachedFnWithArgsFactory, safeGetSnapshot } from "../../../utilities/mst-utils"
-import {AxisPlace} from "../../axis/axis-types"
-import {GraphPlace} from "../../axis-graph-shared"
-import {AttributeDescription, DataConfigurationModel, IAttributeDescriptionSnapshot, IDataConfigurationModel}
-  from "../../data-display/models/data-configuration-model"
-import { AttrRole, GraphAttrRole, graphPlaceToAttrRole, ICaseSubsetDescription, kMain, kOther, PrimaryAttrRoles }
-  from "../../data-display/data-display-types"
-import {updateCellKey} from "../adornments/adornment-utils"
 import { isFiniteNumber } from "../../../utilities/math-utils"
+import { cachedFnFactory, cachedFnWithArgsFactory, safeGetSnapshot } from "../../../utilities/mst-utils"
+import {GraphPlace} from "../../axis-graph-shared"
+import {AxisPlace} from "../../axis/axis-types"
 import { CaseData, CaseDataWithSubPlot } from "../../data-display/d3-types"
+import {
+  AttrRole, GraphAttrRole, graphPlaceToAttrRole, ICaseSubsetDescription, kMain, kOther, PrimaryAttrRoles
+} from "../../data-display/data-display-types"
+import {
+  AttributeDescription, DataConfigurationModel, IAttributeDescriptionSnapshot, IDataConfigurationModel
+} from "../../data-display/models/data-configuration-model"
+import {updateCellKey} from "../adornments/utilities/adornment-utils"
 
 export const kGraphDataConfigurationType = "graphDataConfigurationType"
 

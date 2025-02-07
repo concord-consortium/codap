@@ -1,36 +1,12 @@
 /*
   Adornment models are strictly MST. They keep track of the user modifications of the defaults.
  */
-
 import {Instance, SnapshotIn, types} from "mobx-state-tree"
-import { IAxisModel } from "../../axis/models/axis-model"
 import {safeDomIdentifier, typedId} from "../../../utilities/js-utils"
-import {Point} from "../../data-display/data-display-types"
-import {IGraphDataConfigurationModel} from "../models/graph-data-configuration-model"
-import { IAxisLayout } from "../../axis/models/axis-layout-context"
 import { ScaleNumericBaseType } from "../../axis/axis-types"
-
-export const PointModel = types.model("Point", {
-    x: types.optional(types.number, NaN),
-    y: types.optional(types.number, NaN)
-  })
-  .views(self=>({
-    isValid() {
-      return isFinite(self.x) && isFinite(self.y)
-    }
-  }))
-  .actions(self => ({
-    set(aPt:Point) {
-      if (aPt) {
-        self.x = aPt.x
-        self.y = aPt.y
-      }
-    }
-  }))
-export interface IPointModel extends Instance<typeof PointModel> {}
-export interface IPointModelSnapshot extends SnapshotIn<typeof PointModel> {}
-
-export const kInfinitePoint = {x:NaN, y:NaN}
+import { IAxisLayout } from "../../axis/models/axis-layout-context"
+import { IAxisModel } from "../../axis/models/axis-model"
+import {IGraphDataConfigurationModel} from "../models/graph-data-configuration-model"
 
 export interface IUpdateCategoriesOptions {
   dataConfig: IGraphDataConfigurationModel

@@ -2,26 +2,28 @@ import React, {useCallback, useEffect, useRef, useState} from "react"
 import {autorun} from "mobx"
 import { observer } from "mobx-react-lite"
 import {drag, select, Selection} from "d3"
-import { mstAutorun } from "../../../../utilities/mst-autorun"
-import {calculateSumOfSquares, computeSlopeAndIntercept, equationString, IAxisIntercepts,
-        lineToAxisIntercepts} from "../../utilities/graph-utils"
-import {useGraphDataConfigurationContext} from "../../hooks/use-graph-data-configuration-context"
 import {useInstanceIdContext} from "../../../../hooks/use-instance-id-context"
-import { IAdornmentComponentProps } from "../adornment-component-info"
-import { getAxisDomains } from "../adornment-utils"
-import { IMovableLineAdornmentModel } from "./movable-line-adornment-model"
-import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
-import { Point } from "../../../data-display/data-display-types"
+import { LogMessageFn, logModelChangeFn } from "../../../../lib/log-message"
+import { mstAutorun } from "../../../../utilities/mst-autorun"
+import { safeGetSnapshot } from "../../../../utilities/mst-utils"
 import { useAdornmentAttributes } from "../../hooks/use-adornment-attributes"
 import { useAdornmentCategories } from "../../hooks/use-adornment-categories"
 import { useAdornmentCells } from "../../hooks/use-adornment-cells"
+import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
+import {useGraphDataConfigurationContext} from "../../hooks/use-graph-data-configuration-context"
 import { useGraphLayoutContext } from "../../hooks/use-graph-layout-context"
-import { LogMessageFn, logModelChangeFn } from "../../../../lib/log-message"
-import { safeGetSnapshot } from "../../../../utilities/mst-utils"
+import {
+  calculateSumOfSquares, computeSlopeAndIntercept, equationString, IAxisIntercepts, lineToAxisIntercepts
+} from "../../utilities/graph-utils"
+import { IAdornmentComponentProps } from "../adornment-component-info"
+import { IAdornmentModel } from "../adornment-models"
+import { Point } from "../point-model"
+import { getAxisDomains } from "../utilities/adornment-utils"
+import { IMovableLineAdornmentModel } from "./movable-line-adornment-model"
 
 import "./movable-line-adornment-component.scss"
 
-function equationContainer(model: IMovableLineAdornmentModel, cellKey: Record<string, string>, containerId: string) {
+function equationContainerDefs(model: IAdornmentModel, cellKey: Record<string, string>, containerId: string) {
   const classFromKey = model.classNameFromKey(cellKey)
   const equationContainerClass = `movable-line-equation-container-${classFromKey}`
   const equationContainerSelector = `#${containerId} .${equationContainerClass}`
@@ -54,7 +56,7 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
   const showSumSquares = graphModel?.adornmentsStore.showSquaresOfResiduals
   const instanceId = useInstanceIdContext()
   const adornmentsStore = graphModel.adornmentsStore
-  const { xAttrName, yAttrName, xScale, yScale } = useAdornmentAttributes()
+  const { xAttrId, xAttrName, yAttrId, yAttrName, xScale, yScale } = useAdornmentAttributes()
   const { classFromKey, instanceKey } = useAdornmentCells(model, cellKey)
   const { xSubAxesCount, ySubAxesCount } = useAdornmentCategories()
   const xRange = xScale.range()
@@ -62,7 +64,7 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
   const kTolerance = 4 // pixels to snap to horizontal or vertical
   const kHandleSize = 12
   const interceptLocked = adornmentsStore?.interceptLocked
-  const {equationContainerClass, equationContainerSelector} = equationContainer(model, cellKey, containerId)
+  const {equationContainerClass, equationContainerSelector} = equationContainerDefs(model, cellKey, containerId)
   const lineRef = useRef() as React.RefObject<SVGSVGElement>
   const [lineObject, setLineObject] = useState<ILine>({})
   const pointsOnAxes = useRef<IAxisIntercepts>({pt1: {x: 0, y: 0}, pt2: {x: 0, y: 0}})
@@ -78,35 +80,45 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
   yScaleRef.current.range([plotHeight, 0])
 
   const refreshEquation = useCallback((slope: number, intercept: number) => {
-    const lineModel = model.lines.get(instanceKey)
+    const lineInstance = model.lines.get(instanceKey)
     const screenX = xScaleRef.current((pointsOnAxes.current.pt1.x + pointsOnAxes.current.pt2.x) / 2) / xSubAxesCount
     const screenY = yScaleRef.current((pointsOnAxes.current.pt1.y + pointsOnAxes.current.pt2.y) / 2) / ySubAxesCount
     const attrNames = {x: xAttrName, y: yAttrName}
+    const xUnits = dataConfig?.dataset?.getAttribute(xAttrId)?.units
+    const yUnits = dataConfig?.dataset?.getAttribute(yAttrId)?.units
+    const units = {x: xUnits, y: yUnits}
     const sumOfSquares = dataConfig && showSumSquares
       ? calculateSumOfSquares({ cellKey, dataConfig, computeY: (x) => intercept + slope * x })
       : undefined
-    const string = equationString({slope, intercept, attrNames, sumOfSquares, layout})
-    const equation = select(equationContainerSelector).select("p")
+    const string = equationString({slope, intercept, attrNames, units, sumOfSquares, layout})
+    const equation = select<HTMLDivElement, unknown>(equationContainerSelector).select<HTMLParagraphElement>("p")
 
     select(equationContainerSelector)
       .style("width", `${plotWidth}px`)
       .style("height", `${plotHeight}px`)
     equation.html(string)
+
+    const equationBounds = equation.node()?.getBoundingClientRect()
+    // rendered extents are used for rendering and for exporting in v2 format
+    lineInstance?.setExtents({
+      labelWidth: equationBounds?.width,
+      labelHeight: equationBounds?.height,
+      plotWidth,
+      plotHeight
+    })
+
     // The equation may have been unpinned from the line if the user dragged it away from the line.
     // Only move the equation if it is still pinned (i.e. equationCoords is not valid).
-    const equationCoords = lineModel?.equationCoords
-    if (!equationCoords?.isValid()) {
+    const labelPos = lineInstance?.labelPosition
+    if (!labelPos) {
       equation.style("left", `${screenX}px`)
         .style("top", `${screenY}px`)
     } else {
-      const left = equationCoords.x
-      const top = equationCoords.y
-      equation.style("left", `${left}px`)
-              .style("top", `${top}px`)
+      equation.style("left", `${labelPos.left}px`)
+              .style("top", `${labelPos.top}px`)
     }
-  }, [cellKey, dataConfig, equationContainerSelector, instanceKey, layout, model.lines, plotHeight,
-      plotWidth, showSumSquares, xAttrName, xSubAxesCount, yAttrName, ySubAxesCount])
-
+  }, [cellKey, dataConfig, equationContainerSelector, instanceKey, layout, model.lines, plotHeight, plotWidth,
+      showSumSquares, xAttrId, xAttrName, xSubAxesCount, yAttrId, yAttrName, ySubAxesCount])
 
   const breakPointCoords = useCallback((
     pixelPtsOnAxes: IPointsOnAxes, breakPointNum: number, _interceptLocked: boolean
@@ -305,24 +317,32 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
     isFinished=false
   ) => {
     if (event.dx !== 0 || event.dy !== 0 || isFinished) {
-      const equation = select(`${equationContainerSelector} p`)
+      const equationContainer = select<HTMLDivElement, unknown>(equationContainerSelector)
+      const equation = select<HTMLParagraphElement, unknown>(`${equationContainerSelector} p`)
+      const equationBounds = equation.node()?.getBoundingClientRect()
       const equationLeft = equation.style("left") ? parseFloat(equation.style("left")) : 0
       const equationTop = equation.style("top") ? parseFloat(equation.style("top")) : 0
-      const left = equationLeft + event.dx
-      const top = equationTop + event.dy
-      equation.style("left", `${left}px`)
-        .style("top", `${top}px`)
+      if (equationBounds && equationLeft && equationTop) {
+        const left = equationLeft + event.dx
+        const top = equationTop + event.dy
+        equation.style("left", `${left}px`)
+          .style("top", `${top}px`)
 
-      if (isFinished) {
-        const lineModel = model.lines.get(instanceKey)
-        graphModel.applyModelChange(
-          () => lineModel?.setEquationCoords({x: left, y: top}),
-          {
-            undoStringKey: "DG.Undo.graph.repositionEquation",
-            redoStringKey: "DG.Redo.graph.repositionEquation",
-            log: logFn.current
-          }
-        )
+        const containerBounds = equationContainer.node()?.getBoundingClientRect()
+        if (containerBounds && isFinished) {
+          const lineInstance = model.lines.get(instanceKey)
+          // compute proportional position of center of label within container
+          const x = (left + equationBounds.width / 2) / containerBounds.width
+          const y = (top + equationBounds.height / 2) / containerBounds.height
+          graphModel.applyModelChange(
+            () => lineInstance?.setEquationCoords({ x, y }),
+            {
+              undoStringKey: "DG.Undo.graph.repositionEquation",
+              redoStringKey: "DG.Redo.graph.repositionEquation",
+              log: logFn.current
+            }
+          )
+        }
       }
     }
   }, [equationContainerSelector, graphModel, instanceKey, model.lines])
@@ -359,6 +379,7 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
         .on("end", (e) => handleRotation(e, "upper", true)),
       equation: drag()
         .on("drag", (e) => {
+          // TODO: Seems like this would log continuously during the drag.
           logFn.current = logModelChangeFn(
             "Moved equation from (%@, %@) to (%@, %@)",
             () => safeGetSnapshot(model.lines?.get(instanceKey)?.equationCoords) ?? { x: "default", y: "default" })
@@ -410,14 +431,14 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
       .on("mouseover", () => { newLineObject.line?.style("stroke-width", 2) })
       .on("mouseout", () => { newLineObject.line?.style("stroke-width", 1) })
 
-    // If the equation is not pinned to the line, set its initial coordinates to
-    // the values specified in the model.
-    const equationCoords = model.lines?.get(instanceKey)?.equationCoords
-    if (equationCoords?.isValid()) {
-      const left = equationCoords.x
-      const top = equationCoords.y
-      equationP.style("left", `${left}px`)
-        .style("top", `${top}px`)
+    // If the equation is not pinned to the line, set its initial coordinates to the values specified in the model.
+    const lineInstance = model.lines?.get(instanceKey)
+    lineInstance?.setExtents({ plotWidth, plotHeight })
+    const labelPos = lineInstance?.labelPosition
+    if (labelPos) {
+      equationP
+        .style("left", `${labelPos.left}px`)
+        .style("top", `${labelPos.top}px`)
     }
 
     newLineObject.equation = equationDiv
@@ -441,7 +462,7 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
       yScaleRef.current = yScale.copy()
       xScaleRef.current.range([0, plotWidth])
       yScaleRef.current.range([plotHeight, 0])
-    }, { name: "LSRLAdornmentComponent.refreshAxisChange" }, model)
+    }, { name: "MovableLineAdornmentComponent.refreshAxisChange" }, model)
   }, [dataConfig, interceptLocked, model, xAxis, xScale, yAxis, yScale, updateLine, plotWidth, plotHeight])
 
   return (

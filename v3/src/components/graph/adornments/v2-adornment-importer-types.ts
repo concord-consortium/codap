@@ -1,4 +1,4 @@
-import { IAdornmentsBaseStore, IAdornmentsBaseStoreSnapshot } from "./adornments-base-store"
+import { IAdornmentsBaseStore, IAdornmentsBaseStoreSnapshot } from "./store/adornments-base-store"
 
 export type AdornmentPostProcessorFn = (store: IAdornmentsBaseStore) => void
 

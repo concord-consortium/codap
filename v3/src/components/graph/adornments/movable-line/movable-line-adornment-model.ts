@@ -1,17 +1,19 @@
 import { Instance, SnapshotIn, types } from "mobx-state-tree"
-import { Point } from "../../../data-display/data-display-types"
-import { AdornmentModel, IAdornmentModel, IUpdateCategoriesOptions, PointModel,
-         kInfinitePoint } from "../adornment-models"
-import { IAxisModel } from "../../../axis/models/axis-model"
-import { computeSlopeAndIntercept } from "../../utilities/graph-utils"
-import { kMovableLineType } from "./movable-line-adornment-types"
-import { ILineDescription } from "../shared-adornment-types"
 import { JsonNumber } from "../../../../utilities/json-number"
+import { IAxisModel } from "../../../axis/models/axis-model"
+import { Point } from "../../../data-display/data-display-types"
+import { computeSlopeAndIntercept } from "../../utilities/graph-utils"
+import { AdornmentModel, IAdornmentModel, IUpdateCategoriesOptions } from "../adornment-models"
+import { LineLabelInstance } from "../line-label-instance"
+import { kInfinitePoint, PointModel } from "../point-model"
+import { ILineDescription } from "../shared-adornment-types"
+import { kMovableLineType } from "./movable-line-adornment-types"
 
-export const MovableLineInstance = types.model("MovableLineInstance", {
-  equationCoords: types.maybe(PointModel),
+export const MovableLineInstance = LineLabelInstance
+.named("MovableLineInstance")
+.props({
   intercept: types.number,
-  slope: JsonNumber,
+  slope: JsonNumber
 })
 .volatile(() => ({
   dynamicIntercept: undefined as number | undefined,
@@ -46,6 +48,7 @@ export const MovableLineAdornmentModel = AdornmentModel
 .named("MovableLineAdornmentModel")
 .props({
   type: types.optional(types.literal(kMovableLineType), kMovableLineType),
+  // key is cell key
   lines: types.map(MovableLineInstance)
 })
 .views(self => ({

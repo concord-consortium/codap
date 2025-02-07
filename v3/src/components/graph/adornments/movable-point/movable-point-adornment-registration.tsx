@@ -1,7 +1,7 @@
 import React from "react"
 import { registerAdornmentComponentInfo } from "../adornment-component-info"
-import { AdornmentCheckbox } from "../adornment-checkbox"
 import { exportAdornmentBase, registerAdornmentContentInfo } from "../adornment-content-info"
+import { AdornmentCheckbox } from "../components/adornment-checkbox"
 import { MovablePointAdornment } from "./movable-point-adornment-component"
 import { isMovablePointAdornment, MovablePointAdornmentModel } from "./movable-point-adornment-model"
 import {

@@ -1,8 +1,8 @@
 import React from "react"
 import { ICodapV2MovableLineAdornment } from "../../../../v2/codap-v2-types"
-import { AdornmentCheckbox } from "../adornment-checkbox"
 import { registerAdornmentComponentInfo } from "../adornment-component-info"
 import { exportAdornmentBase, registerAdornmentContentInfo } from "../adornment-content-info"
+import { AdornmentCheckbox } from "../components/adornment-checkbox"
 import { MovableLineAdornment } from "./movable-line-adornment-component"
 import { isMovableLineAdornment, MovableLineAdornmentModel } from "./movable-line-adornment-model"
 import {
@@ -42,8 +42,7 @@ registerAdornmentContentInfo({
       movableLineStorage: {
         ...exportAdornmentBase(adornment, options),
         isInterceptLocked: options.isInterceptLocked,
-        // TODO_V2_EXPORT export label/equation coordinates for adornments
-        equationCoords: null,
+        equationCoords: firstLineInstance.v2ExportCoords ?? null,
         intercept: isVertical ? null : firstLineInstance.intercept,
         slope: isVertical ? null : firstLineInstance.slope,
         isVertical,

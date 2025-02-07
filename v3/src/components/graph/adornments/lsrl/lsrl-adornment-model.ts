@@ -5,11 +5,10 @@ import { kMain, Point } from "../../../data-display/data-display-types"
 import { dataDisplayGetNumericValue } from "../../../data-display/data-display-value-utils"
 import { IGraphDataConfigurationModel } from "../../models/graph-data-configuration-model"
 import { leastSquaresLinearRegression, tAt0975ForDf } from "../../utilities/graph-utils"
-import { AdornmentModel, IAdornmentModel, IUpdateCategoriesOptions, PointModel } from "../adornment-models"
+import { AdornmentModel, IAdornmentModel, IUpdateCategoriesOptions } from "../adornment-models"
+import { LineLabelInstance } from "../line-label-instance"
 import { ILineDescription } from "../shared-adornment-types"
 import { kLSRLType } from "./lsrl-adornment-types"
-
-const kDefaultLabelHeight = 60
 
 interface ILSRLineSnap extends ILSRLInstanceSnapshot {
   category?: string
@@ -19,30 +18,14 @@ interface ILSRLineSnap extends ILSRLInstanceSnapshot {
   sdResiduals?: number
 }
 
-interface IExtents {
-  labelWidth?: number
-  labelHeight?: number
-  plotWidth: number
-  plotHeight: number
-}
-
-export const LSRLInstance = types.model("LSRLInstance", {
-  // interpreted as proportional position of the center of the label in cell coordinates
-  equationCoords: types.maybe(PointModel),
-  // v2 used an iterative process which incorrectly factored in the plot height
-  isV2Coords: types.maybe(types.boolean)
-})
+export const LSRLInstance = LineLabelInstance
+.named("LSRLInstance")
 .volatile(() => ({
   category: undefined as Maybe<string>,
   intercept: undefined as Maybe<number>,
   rSquared: undefined as Maybe<number>,
   slope: undefined as Maybe<number>,
-  sdResiduals: undefined as Maybe<number>,
-  // used for coordinate transformations and exporting to v2
-  labelWidth: undefined as Maybe<number>,
-  labelHeight: undefined as Maybe<number>,
-  plotWidth: undefined as Maybe<number>,
-  plotHeight: undefined as Maybe<number>
+  sdResiduals: undefined as Maybe<number>
 }))
 .views(self => ({
   get isValid() {
@@ -55,55 +38,11 @@ export const LSRLInstance = types.model("LSRLInstance", {
     const intercept = self.intercept
     const slope = self.slope
     return {intercept, slope}
-  },
-  get v2ToV3AdjustedHeight() {
-    const rawLabelHeight = self.labelHeight ?? kDefaultLabelHeight
-    if (!self.plotHeight || !self.equationCoords || !self.isV2Coords) return rawLabelHeight
-    const { y: yProportion } = self.equationCoords
-    // v2 used an iterative process which incorrectly factored in the plot height
-    const diffHeight = self.plotHeight - rawLabelHeight
-    return rawLabelHeight + (1 - yProportion) * diffHeight * 2
-  }
-}))
-.views(self => ({
-  get labelPosition() {
-    if (!self.equationCoords || !self.plotWidth || !self.plotHeight) return
-
-    const { x: xProportion, y: yProportion } = self.equationCoords
-    const labelWidthProportion = xProportion <= 0.5 ? 2 * xProportion : 2 * (1 - xProportion)
-    const kDefaultLabelWidth = labelWidthProportion * self.plotWidth + (self.isV2Coords ? 3 : 0)
-    const labelWidth = self.labelWidth ?? kDefaultLabelWidth
-    // apply correction factor for values imported from v2
-    const labelHeight = self.v2ToV3AdjustedHeight
-    return {
-      left: xProportion * self.plotWidth - labelWidth / 2,
-      top: yProportion * self.plotHeight - labelHeight / 2
-    }
-  },
-  get v2ExportCoords() {
-    if (!self.equationCoords) return
-    const { x: proportionCenterX, y: proportionCenterY } = self.equationCoords
-    const v2Coords = { proportionCenterX, proportionCenterY }
-    if (self.isV2Coords || !self.plotHeight) return v2Coords
-
-    const labelHeight = self.labelHeight ?? kDefaultLabelHeight
-    const heightDiff = self.plotHeight - labelHeight
-    // reverse the correction factor used when importing from v2
-    const _proportionCenterY = (proportionCenterY * self.plotHeight + heightDiff) / (self.plotHeight + heightDiff)
-    return {
-      proportionCenterX,
-      proportionCenterY: _proportionCenterY
-    }
   }
 }))
 .actions(self => ({
   setCategory(category?: string) {
     self.category = category
-  },
-  // interpreted as proportional position of the center of the label in cell coordinates
-  setEquationCoords(coords: Point) {
-    self.equationCoords = PointModel.create(coords)
-    self.isV2Coords = undefined
   },
   setIntercept(intercept?: number) {
     self.intercept = intercept
@@ -116,12 +55,6 @@ export const LSRLInstance = types.model("LSRLInstance", {
   },
   setSdResiduals(sdResiduals?: number) {
     self.sdResiduals = sdResiduals
-  },
-  setExtents({ labelWidth, labelHeight, plotWidth, plotHeight }: IExtents) {
-    if (labelWidth) self.labelWidth = labelWidth
-    if (labelHeight) self.labelHeight = labelHeight
-    self.plotWidth = plotWidth
-    self.plotHeight = plotHeight
   }
 }))
 

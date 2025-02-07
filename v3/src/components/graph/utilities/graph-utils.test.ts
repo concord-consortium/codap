@@ -7,16 +7,17 @@ import { GraphLayout } from "../models/graph-layout"
 describe("equationString", () => {
   const layout = new GraphLayout()
   const attrNames = {x: "Lifespan", y: "Speed"}
+  const units = {}
   it("should return a valid equation for a given slope and intercept", () => {
-    expect(equationString({slope: 1, intercept: 0, attrNames, layout}))
+    expect(equationString({slope: 1, intercept: 0, attrNames, units, layout}))
       .toBe('<em>Speed</em> = 1 (<em>Lifespan</em>)')
   })
   it("should return an equation containing only the y attribute when the slope is 0", () => {
-    expect(equationString({slope: 0, intercept: 1, attrNames, layout}))
+    expect(equationString({slope: 0, intercept: 1, attrNames, units, layout}))
       .toBe('<em>Speed</em> = 1')
   })
   it("should return an equation containing only the x attribute when the slope is Infinity", () => {
-    expect(equationString({slope: Infinity, intercept: 1, attrNames, layout}))
+    expect(equationString({slope: Infinity, intercept: 1, attrNames, units, layout}))
       .toBe('<em>Lifespan</em> = 1')
   })
 })

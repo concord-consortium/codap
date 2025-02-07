@@ -1,12 +1,12 @@
-import { getAdornmentContentInfo, IAdornmentContentInfo } from "./adornment-content-info"
-import { getAdornmentComponentInfo, IAdornmentComponentInfo } from "./adornment-component-info"
-import { IMeasure, measures, RulerStateKey } from "./adornment-ui-types"
-import { kMovableLineType } from "./movable-line/movable-line-adornment-types"
-import { kLSRLType } from "./lsrl/lsrl-adornment-types"
-import { kPlottedFunctionType } from "./plotted-function/plotted-function-adornment-types"
-import { kCountType } from "./count/count-adornment-types"
+import { PlotType } from "../../graphing-types"
+import { getAdornmentComponentInfo, IAdornmentComponentInfo } from "../adornment-component-info"
+import { getAdornmentContentInfo, IAdornmentContentInfo } from "../adornment-content-info"
+import { IMeasure, measures, RulerStateKey } from "../adornment-ui-types"
+import { kCountType } from "../count/count-adornment-types"
+import { kLSRLType } from "../lsrl/lsrl-adornment-types"
+import { kMovableLineType } from "../movable-line/movable-line-adornment-types"
+import { kPlottedFunctionType } from "../plotted-function/plotted-function-adornment-types"
 import { IAdornmentsBaseStore } from "./adornments-base-store"
-import { PlotType } from "../graphing-types"
 
 export interface IMeasureMenuItem {
   checked: boolean

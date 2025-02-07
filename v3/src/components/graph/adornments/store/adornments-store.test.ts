@@ -1,8 +1,8 @@
+import { IGraphDataConfigurationModel } from "../../models/graph-data-configuration-model"
+import * as contentInfo from "../adornment-content-info"
+import { kCountType } from "../count/count-adornment-types"
+import { kMovableValueType } from "../movable-value/movable-value-adornment-types"
 import { AdornmentsStore } from "./adornments-store"
-import * as contentInfo from "./adornment-content-info"
-import { IGraphDataConfigurationModel } from "../models/graph-data-configuration-model"
-import { kMovableValueType } from "./movable-value/movable-value-adornment-types"
-import { kCountType } from "./count/count-adornment-types"
 
 jest.spyOn(contentInfo, "getAdornmentTypes").mockReturnValue(
   [

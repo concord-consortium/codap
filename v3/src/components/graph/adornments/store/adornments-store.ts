@@ -1,7 +1,7 @@
 import {Instance} from "mobx-state-tree"
+import { PlotType } from "../../graphing-types"
 import {AdornmentsBaseStore} from "./adornments-base-store"
 import {getAdornmentsMenuItemsFromTheStore} from "./adornments-store-utils"
-import { PlotType } from "../graphing-types"
 
 /**
  * The AdornmentsStore is a model that manages the adornments that are displayed on a graph. It provides methods for

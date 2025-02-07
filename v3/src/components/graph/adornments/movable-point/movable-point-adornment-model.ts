@@ -1,7 +1,8 @@
 import { Instance, SnapshotIn, types } from "mobx-state-tree"
-import { Point } from "../../../data-display/data-display-types"
-import { AdornmentModel, IAdornmentModel, IPointModel, IUpdateCategoriesOptions, PointModel } from "../adornment-models"
 import { IAxisModel, isNumericAxisModel } from "../../../axis/models/axis-model"
+import { Point } from "../../../data-display/data-display-types"
+import { AdornmentModel, IAdornmentModel, IUpdateCategoriesOptions } from "../adornment-models"
+import { IPointModel, PointModel } from "../point-model"
 import { kMovablePointType } from "./movable-point-adornment-types"
 
 

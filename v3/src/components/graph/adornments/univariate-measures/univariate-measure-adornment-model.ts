@@ -1,10 +1,10 @@
 import { Instance, SnapshotIn, types } from "mobx-state-tree"
-import { Point } from "../../../data-display/data-display-types"
-import { IDataConfigurationModel } from "../../../data-display/models/data-configuration-model"
-import {IGraphDataConfigurationModel} from "../../models/graph-data-configuration-model"
 import { isFiniteNumber } from "../../../../utilities/math-utils"
 import { dataDisplayGetNumericValue } from "../../../data-display/data-display-value-utils"
-import { AdornmentModel, IAdornmentModel, IUpdateCategoriesOptions, PointModel } from "../adornment-models"
+import { IDataConfigurationModel } from "../../../data-display/models/data-configuration-model"
+import {IGraphDataConfigurationModel} from "../../models/graph-data-configuration-model"
+import { AdornmentModel, IAdornmentModel, IUpdateCategoriesOptions } from "../adornment-models"
+import { Point, PointModel } from "../point-model"
 
 export const MeasureInstance = types.model("MeasureInstance", {
   // coords represent proportional position of top-left corner of label in cell coordinates
