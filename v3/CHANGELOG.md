@@ -1,5 +1,22 @@
 # Changelog
 
+## Version 3.0.0-pre.2157 - February 7, 2025
+
+### 🐞 Bug Fixes:
+- **PT-188820212:** Cannot select numeric keys in categorical legend.
+- **PT-188213272:** Changing graph legend from numerical to categorical does not change legend type
+- **PT-188601933:** Treat as Categorical causes points to move off plot
+- **PT-188790569:** Delay on drag of component and drag of attribute from case table
+- **PT-188514669:** Table often obscures other components, because it is becoming selected during attribute dragging action
+- **PT-188862999:** Insert value neglects to include backticks.
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  188541 bytes |                           <0.00% |
+|  index.js | 6443247 bytes |                             0.1% |
+
+
 ## Version 3.0.0-pre.2144 - January 31, 2025
 
 ### ✨ Features & Improvements:
