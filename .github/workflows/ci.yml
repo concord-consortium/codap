@@ -29,7 +29,7 @@ jobs:
           cd ../codap-data-interactives/onboarding
           npm install
           cd ../../codap
-          npm run build:travis
+          npm run build:ci
   #     - name: Run Tests
   #       run: npm run test -- --runInBand
   # cypress:
@@ -92,7 +92,13 @@ jobs:
           gem install s3_website -v 3.4.0
           npm ci --legacy-peer-deps
       - name: Build
-        run: npm run build
+        run: |
+          git clone https://github.com/concord-consortium/codap-data.git ../codap-data
+          git clone https://github.com/concord-consortium/codap-data-interactives.git ../codap-data-interactives
+          cd ../codap-data-interactives/onboarding
+          npm install
+          cd ../../codap
+          npm run build:ci
       - name: Deploy
         run: ./bin/s3_deploy.sh
         env:
