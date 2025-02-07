@@ -320,10 +320,6 @@ interface ICodapV2ProportionCenterEquationCoords {
 
 interface ICodapV2MovableLineAdornmentBase extends ICodapV2Adornment {
   isInterceptLocked: boolean
-  // TODO_V2_IMPORT: equationCoords are not handled correctly, the import code assumes they have
-  // an x and y instead of proportionCenterX and proportionCenterY
-  // There are 2,000 instances of this in cfm-shared
-  // example: cfm-shared/02RllCJzS0Nt4wX3c6XL/file.json
   equationCoords?: ICodapV2ProportionCenterEquationCoords | null
 }
 

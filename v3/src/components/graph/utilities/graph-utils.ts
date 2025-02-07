@@ -288,6 +288,7 @@ function formatEquationValue(value: number, digits: number, units = "", parenthe
 
 interface IEquationString {
   attrNames: { x: string, y: string }
+  units: { x?: string, y?: string }
   intercept: number
   layout: GraphLayout
   slope: number
@@ -301,11 +302,17 @@ export function residualsString(sumOfSquares: number, includeBreak = true) {
     ? `${includeBreak ? '<br />' : ''}${t("DG.ScatterPlotModel.sumSquares")} = ${formattedSumOfSquares}` : ""
 }
 
-export function equationString({ slope, intercept, attrNames, sumOfSquares, layout }: IEquationString) {
+export function equationString({ slope, intercept, attrNames, units, sumOfSquares, layout }: IEquationString) {
+  const slopeUnits = units.x && units.y
+                      ? `${units.y}/${units.x}`
+                      : units.y || (units.x ? `/${units.x}` : "")
+  const interceptUnits = units.y || ""
   const slopeIsFinite = isFinite(slope) && slope !== 0
   const neededFractionDigits = findNeededFractionDigits(slopeIsFinite ? slope : 0, intercept, layout)
-  const formattedIntercept = formatEquationValue(intercept, neededFractionDigits.interceptDigits)
-  const formattedSlope = slopeIsFinite ? formatEquationValue(slope, neededFractionDigits.slopeDigits) : 0
+  const formattedIntercept = formatEquationValue(intercept, neededFractionDigits.interceptDigits, interceptUnits)
+  const formattedSlope = slopeIsFinite
+                          ? formatEquationValue(slope, neededFractionDigits.slopeDigits, slopeUnits, true)
+                          : 0
   const squaresMaxDec = !sumOfSquares || sumOfSquares > 100 ? 0 : 3
   const formattedSumOfSquares = formatEquationValue(sumOfSquares || 0, squaresMaxDec)
   const xAttrString = attrNames.x.length > 1 ? `(<em>${attrNames.x}</em>)` : `<em>${attrNames.x}</em>`
@@ -319,18 +326,12 @@ export function equationString({ slope, intercept, attrNames, sumOfSquares, layo
     : `<em>${slope === 0 ? attrNames.y : attrNames.x}</em> = ${formattedIntercept}`
 }
 
-interface ILsrlEquationString {
-  attrNames: { x: string, y: string }
-  units: { x?: string, y?: string }
+interface ILsrlEquationString extends IEquationString {
   caseValues: Point[]
   color?: string
-  intercept: number
   interceptLocked?: boolean
-  layout: GraphLayout
   rSquared?: number
   showConfidenceBands?: boolean
-  slope: number
-  sumOfSquares?: number
 }
 
 export const lsrlEquationString = (props: ILsrlEquationString) => {

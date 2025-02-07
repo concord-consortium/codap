@@ -1,23 +1,25 @@
-import React, { useCallback, useEffect, useRef } from "react"
-import { observer } from "mobx-react-lite"
 import { drag, select, Selection } from "d3"
+import { observer } from "mobx-react-lite"
+import React, { useCallback, useEffect, useRef } from "react"
 import { LogMessageFn, logModelChangeFn } from "../../../../lib/log-message"
-import { t } from "../../../../utilities/translation/translate"
 import { mstAutorun } from "../../../../utilities/mst-autorun"
 import { mstReaction } from "../../../../utilities/mst-reaction"
 import { safeGetSnapshot } from "../../../../utilities/mst-utils"
-import { kMain, Point } from "../../../data-display/data-display-types"
-import { IAxisIntercepts, calculateSumOfSquares, curveBasis, lineToAxisIntercepts,
-         lsrlEquationString } from "../../utilities/graph-utils"
-import { IAdornmentComponentProps } from "../adornment-component-info"
-import { getAxisDomains } from "../adornment-utils"
-import { ILSRLAdornmentModel, ILSRLInstance } from "./lsrl-adornment-model"
+import { t } from "../../../../utilities/translation/translate"
+import { kMain } from "../../../data-display/data-display-types"
+import { useAdornmentAttributes } from "../../hooks/use-adornment-attributes"
+import { useAdornmentCategories } from "../../hooks/use-adornment-categories"
+import { useAdornmentCells } from "../../hooks/use-adornment-cells"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
 import { useGraphDataConfigurationContext } from "../../hooks/use-graph-data-configuration-context"
-import { useAdornmentAttributes } from "../../hooks/use-adornment-attributes"
-import { useAdornmentCells } from "../../hooks/use-adornment-cells"
-import { useAdornmentCategories } from "../../hooks/use-adornment-categories"
 import { useGraphLayoutContext } from "../../hooks/use-graph-layout-context"
+import {
+  IAxisIntercepts, calculateSumOfSquares, curveBasis, lineToAxisIntercepts, lsrlEquationString
+} from "../../utilities/graph-utils"
+import { IAdornmentComponentProps } from "../adornment-component-info"
+import { Point } from "../point-model"
+import { getAxisDomains } from "../utilities/adornment-utils"
+import { ILSRLAdornmentModel, ILSRLInstance } from "./lsrl-adornment-model"
 
 import "./lsrl-adornment-component.scss"
 
@@ -363,6 +365,8 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
       }
     })
 
+    // TODO: this effect seems to run continuously. The corresponding effect in MovableLineAdornmentComponent
+    // only runs once when the component mounts. Should we do the same here?
   }, [cellKey, classFromKey, containerId, dataConfig, equationContainerClass, fixEndPoints, getLines,
       handleHighlightLineAndEquation, handleMoveEquation, model, plotHeight, plotWidth, showConfidenceBands,
       updateConfidenceBands, updateEquations, xAxis, yAxis])

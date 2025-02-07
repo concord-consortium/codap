@@ -1,7 +1,7 @@
 import React from "react"
-import { AdornmentCheckbox } from "../../adornment-checkbox"
 import { registerAdornmentComponentInfo } from "../../adornment-component-info"
 import { registerAdornmentContentInfo } from "../../adornment-content-info"
+import { AdornmentCheckbox } from "../../components/adornment-checkbox"
 import { useGraphOptions } from "../../hooks/use-graph-options"
 import { exportUnivariateMeasure } from "../univariate-measure-adornment-utils"
 import { NormalCurveAdornmentComponent } from "./normal-curve-adornment-component"

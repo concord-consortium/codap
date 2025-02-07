@@ -38,7 +38,7 @@ import { CatMapType, CellType, IDomainOptions, PlotType, PlotTypes } from "../gr
 import {setNiceDomain} from "../utilities/graph-utils"
 import {GraphPointLayerModel, IGraphPointLayerModel, kGraphPointLayerType} from "./graph-point-layer-model"
 import {IAdornmentModel, IUpdateCategoriesOptions} from "../adornments/adornment-models"
-import {AdornmentsStore} from "../adornments/adornments-store"
+import {AdornmentsStore} from "../adornments/store/adornments-store"
 
 export interface GraphProperties {
   axes: Record<string, IAxisModelUnion>

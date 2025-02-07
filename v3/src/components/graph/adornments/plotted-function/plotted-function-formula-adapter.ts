@@ -10,7 +10,7 @@ import { getFormulaManager } from "../../../../models/tiles/tile-environment"
 import type { IGraphContentModel } from "../../models/graph-content-model"
 import {
   BaseGraphFormulaAdapter, IBaseGraphFormulaExtraMetadata, getDefaultArgument
-} from "../base-graph-formula-adapter"
+} from "../utilities/base-graph-formula-adapter"
 import { isPlottedFunctionAdornment } from "./plotted-function-adornment-model"
 import { FormulaFn, kPlottedFunctionType } from "./plotted-function-adornment-types"
 

@@ -1,9 +1,10 @@
 import { getSnapshot, types } from "mobx-state-tree"
-import { AdornmentModel, PointModel, UnknownAdornmentModel } from "./adornment-models"
+import { AdornmentModel, UnknownAdornmentModel } from "./adornment-models"
 import { AdornmentModelUnion, IAdornmentModelUnion } from "./adornment-types"
 import { MovableLineAdornmentModel, isMovableLineAdornment } from "./movable-line/movable-line-adornment-model"
 import { MovablePointAdornmentModel, isMovablePointAdornment } from "./movable-point/movable-point-adornment-model"
 import { MovableValueAdornmentModel, isMovableValueAdornment } from "./movable-value/movable-value-adornment-model"
+import { PointModel } from "./point-model"
 
 describe("PointModel", () => {
   it("is valid if x and y are finite", () => {

@@ -1,15 +1,15 @@
-import React from "react"
 import {Button, Icon, Flex} from "@chakra-ui/react"
 import {observer} from "mobx-react-lite"
-import {t} from "../../../../utilities/translation/translate"
-import {ITileModel} from "../../../../models/tiles/tile-model"
-import {isGraphContentModel} from "../../models/graph-content-model"
-import {GraphContentModelContext} from "../../hooks/use-graph-content-model-context"
-import {GraphDataConfigurationContext} from "../../hooks/use-graph-data-configuration-context"
-import {IGroupItem} from "../../adornments/adornments-store-utils"
-import {uiState} from "../../../../models/ui-state"
+import React from "react"
 import GoTriangleDown from "../../../../assets/icons/github-octicons/triangle-down.svg"
 import GoTriangleRight from "../../../../assets/icons/github-octicons/triangle-right.svg"
+import {ITileModel} from "../../../../models/tiles/tile-model"
+import {uiState} from "../../../../models/ui-state"
+import {t} from "../../../../utilities/translation/translate"
+import {IGroupItem} from "../../adornments/store/adornments-store-utils"
+import {GraphContentModelContext} from "../../hooks/use-graph-content-model-context"
+import {GraphDataConfigurationContext} from "../../hooks/use-graph-data-configuration-context"
+import {isGraphContentModel} from "../../models/graph-content-model"
 
 import './graph-measure-group.scss'
 

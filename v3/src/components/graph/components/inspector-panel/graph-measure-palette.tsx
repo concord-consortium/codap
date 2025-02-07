@@ -1,18 +1,16 @@
-import React from "react"
 import { Box, Checkbox, Flex, FormControl } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
-import { t } from "../../../../utilities/translation/translate"
+import React from "react"
+import ValuesIcon from "../../../../assets/icons/icon-values.svg"
 import { ITileModel } from "../../../../models/tiles/tile-model"
 import { getDocumentContentPropertyFromNode } from "../../../../utilities/mst-utils"
-import { isGraphContentModel } from "../../models/graph-content-model"
+import { t } from "../../../../utilities/translation/translate"
+import { InspectorPalette } from "../../../inspector-panel"
+import { isGroupItem, isMeasureMenuItem } from "../../adornments/store/adornments-store-utils"
 import { GraphContentModelContext } from "../../hooks/use-graph-content-model-context"
 import { GraphDataConfigurationContext } from "../../hooks/use-graph-data-configuration-context"
-import { InspectorPalette } from "../../../inspector-panel"
-import { isGroupItem, isMeasureMenuItem } from "../../adornments/adornments-store-utils"
+import { isGraphContentModel } from "../../models/graph-content-model"
 import { GraphMeasureGroup } from "./graph-measure-group"
-import ValuesIcon from "../../../../assets/icons/icon-values.svg"
-
-import "../../../data-display/inspector/inspector-panel.scss"
 
 interface IProps {
   tile?: ITileModel

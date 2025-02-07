@@ -1,13 +1,13 @@
 import { Instance, SnapshotIn, types } from "mobx-state-tree"
-import { getAdornmentComponentInfo } from "./adornment-component-info"
-import { AdornmentModelUnion, kDefaultFontSize } from "./adornment-types"
-import { IAdornmentModel, IUpdateCategoriesOptions } from "./adornment-models"
-import { IMovableValueAdornmentModel } from "./movable-value/movable-value-adornment-model"
-import { IUnivariateMeasureAdornmentModel } from "./univariate-measures/univariate-measure-adornment-model"
-import { ScaleNumericBaseType } from "../../axis/axis-types"
-import { kMovableValueType } from "./movable-value/movable-value-adornment-types"
-import { kNormalCurveType } from "./univariate-measures/normal-curve/normal-curve-adornment-types"
-import { kStandardErrorType } from "./univariate-measures/standard-error/standard-error-adornment-types"
+import { ScaleNumericBaseType } from "../../../axis/axis-types"
+import { getAdornmentComponentInfo } from "../adornment-component-info"
+import { AdornmentModelUnion, kDefaultFontSize } from "../adornment-types"
+import { IAdornmentModel, IUpdateCategoriesOptions } from "../adornment-models"
+import { IMovableValueAdornmentModel } from "../movable-value/movable-value-adornment-model"
+import { kMovableValueType } from "../movable-value/movable-value-adornment-types"
+import { IUnivariateMeasureAdornmentModel } from "../univariate-measures/univariate-measure-adornment-model"
+import { kNormalCurveType } from "../univariate-measures/normal-curve/normal-curve-adornment-types"
+import { kStandardErrorType } from "../univariate-measures/standard-error/standard-error-adornment-types"
 
 /**
  * The AdornmentsBaseStore is a model that manages the adornments that are displayed on a graph. It provides methods for

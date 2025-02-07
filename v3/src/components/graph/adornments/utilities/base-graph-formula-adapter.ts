@@ -1,13 +1,13 @@
 import { action, makeObservable, observable } from "mobx"
-import { ICase } from "../../../models/data/data-set-types"
-import { IFormula } from "../../../models/formula/formula"
-import { type IFormulaContext, type IFormulaExtraMetadata } from "../../../models/formula/formula-manager-types"
-import { FormulaManagerAdapter, type IFormulaAdapterApi } from "../../../models/formula/formula-manager-adapter"
-import { FormulaMathJsScope } from "../../../models/formula/formula-mathjs-scope"
-import { localAttrIdToCanonical } from "../../../models/formula/utils/name-mapping-utils"
-import { ITileContentModel } from "../../../models/tiles/tile-content"
-import { isGraphContentModel, type IGraphContentModel } from "../models/graph-content-model"
-import { IAdornmentModel } from "./adornment-models"
+import { ICase } from "../../../../models/data/data-set-types"
+import { IFormula } from "../../../../models/formula/formula"
+import { type IFormulaContext, type IFormulaExtraMetadata } from "../../../../models/formula/formula-manager-types"
+import { FormulaManagerAdapter, type IFormulaAdapterApi } from "../../../../models/formula/formula-manager-adapter"
+import { FormulaMathJsScope } from "../../../../models/formula/formula-mathjs-scope"
+import { localAttrIdToCanonical } from "../../../../models/formula/utils/name-mapping-utils"
+import { ITileContentModel } from "../../../../models/tiles/tile-content"
+import { isGraphContentModel, type IGraphContentModel } from "../../models/graph-content-model"
+import { IAdornmentModel } from "../adornment-models"
 
 type GraphCellKey = Record<string, string>
 
