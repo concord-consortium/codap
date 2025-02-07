@@ -77,15 +77,9 @@ describe("V2GraphImporter", () => {
   const kNotImplementedProps = [
     "numberOfLegendQuantiles",
     "legendQuantilesAreLocked",
-    // "pointColor",
-    // "pointSizeMultiplier",
-    // "plotBackgroundColor",
     "plotBackgroundImage",
     "plotBackgroundImageLockInfo",
     "plotBackgroundOpacity",
-    // "strokeColor",
-    // "strokeSameAsFill",
-    "isTransparent",
     "transparency",
     "strokeTransparency"
   ]

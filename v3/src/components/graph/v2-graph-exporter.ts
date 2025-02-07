@@ -244,6 +244,7 @@ export const v2GraphExporter: V2TileExportFn = ({ tile }) => {
     pointSizeMultiplier: graph.pointDescription.pointSizeMultiplier,
     strokeSameAsFill: graph.pointDescription.pointStrokeSameAsFill,
     plotBackgroundColor: graph.plotBackgroundColor === "#FFFFFF" ? null : graph.plotBackgroundColor,
+    isTransparent: graph.isTransparent,
     // attribute roles and types
     ...getAttrRoleAndType(graph, "x", "x"),
     ...getAttrRoleAndType(graph, "y", "y"),
