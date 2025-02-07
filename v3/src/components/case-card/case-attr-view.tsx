@@ -36,9 +36,8 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
   const isCollectionSummarized = !!cardModel?.summarizedCollections.includes(collection.id)
   const displayStrValue = cellValue ? String(cellValue) : ""
   const displayNumValue = cellValue ? Number(cellValue) : NaN
-  const showUnitWithValue = isFiniteNumber(displayNumValue) && !!unit
-  const { value, content } = renderAttributeValue(displayStrValue, displayNumValue, showUnitWithValue, attr,
-                                                   undefined, undefined, caseId)
+  const showUnits = isFiniteNumber(displayNumValue) && !!unit
+  const { value, content } = renderAttributeValue(displayStrValue, displayNumValue, attr, { caseId, showUnits })
   const [isEditing, setIsEditing] = useState(false)
   const [editingValue, setEditingValue] = useState(value)
 

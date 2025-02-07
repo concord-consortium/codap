@@ -19,8 +19,8 @@ export function AttributeValueCell({ column, row }: TRenderCellProps) {
   const isParentCollapsed = row[symParent] ? metadata?.isCollapsed(row[symParent]) : false
   const { value, content } = isParentCollapsed
                               ? { value: "", content: null }
-                              : renderAttributeValue(strValue, numValue, false, data?.attrFromID(column.key),
-                                                      key, rowHeight, row.__id__)
+                              : renderAttributeValue(strValue, numValue, data?.attrFromID(column.key),
+                                                      { key, rowHeight, caseId: row.__id__ })
   return (
     <Tooltip label={value} h="20px" fontSize="12px" color="white" data-testid="case-table-data-tip"
       openDelay={1000} placement="bottom" bottom="10px" left="15px">

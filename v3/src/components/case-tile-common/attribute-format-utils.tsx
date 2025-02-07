@@ -28,9 +28,16 @@ export const getNumFormatter = (formatStr: string) => {
   return formatter
 }
 
-export function renderAttributeValue(str = "", num = NaN, showUnits = false, attr?: IAttribute,
-            key?: number, rowHeight: number = kDefaultRowHeight, rowId?: string) {
+export interface IRenderAttributeValueOptions {
+  caseId?: string
+  key?: number
+  rowHeight?: number
+  showUnits?: boolean
+}
+
+export function renderAttributeValue(str = "", num = NaN, attr?: IAttribute, options?: IRenderAttributeValueOptions) {
   const { type, userType, numPrecision, datePrecision, id: attrId } = attr || {}
+  const { caseId, key, rowHeight = kDefaultRowHeight, showUnits } = options || {}
   let formatClass = ""
   // https://css-tricks.com/almanac/properties/l/line-clamp/
   const lineClamp = rowHeight > kDefaultRowHeight
@@ -70,7 +77,7 @@ export function renderAttributeValue(str = "", num = NaN, showUnits = false, att
   if (userType === "checkbox" && isBoolean(str)) {
     return {
       value: str,
-      content: <CheckboxCell rowId={rowId ?? ""} attrId={attrId ?? ""} />
+      content: <CheckboxCell rowId={caseId ?? ""} attrId={attrId ?? ""} />
     }
   }
 
@@ -123,7 +130,7 @@ export const findLongestContentWidth = (attr: IAttribute) => {
   let longestWidth = Math.max(kMinAutoColumnWidth, Math.ceil(3 + (headerWidth/2)))
   for (let i = 0; i < attr.length; ++i) {
     // use the formatted attribute value in content width calculation
-    const { value } = renderAttributeValue(attr.strValues[i], attr.numValues[i], false, attr)
+    const { value } = renderAttributeValue(attr.strValues[i], attr.numValues[i], attr)
     longestWidth = Math.max(longestWidth, measureText(value, kCaseTableBodyFont))
   }
   return Math.min(longestWidth, kMaxAutoColumnWidth)
