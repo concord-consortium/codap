@@ -77,17 +77,17 @@ describe("V2GraphImporter", () => {
   const kNotImplementedProps = [
     "numberOfLegendQuantiles",
     "legendQuantilesAreLocked",
-    "pointColor",
-    "pointSizeMultiplier",
-    "plotBackgroundColor",
+    // "pointColor",
+    // "pointSizeMultiplier",
+    // "plotBackgroundColor",
     "plotBackgroundImage",
     "plotBackgroundImageLockInfo",
-    "plotBackgroundOpacity",
-    "strokeColor",
-    "strokeSameAsFill",
+    // "plotBackgroundOpacity",
+    // "strokeColor",
+    // "strokeSameAsFill",
     "isTransparent",
-    "transparency",
-    "strokeTransparency"
+    // "transparency",
+    // "strokeTransparency"
   ]
   const kIgnoreProps = [
     // standard properties handled externally
@@ -212,6 +212,24 @@ describe("V2GraphImporter", () => {
 
   it("exports graph components with adornment labels", () => {
     const { v2Document } = loadCodapDocument("mammals-adornment-labels.codap")
+    const v2GraphTiles = v2Document.components.filter(c => c.type === "DG.GraphView")
+    v2GraphTiles.forEach(v2GraphTile => {
+      logGraphTitleMaybe(false, v2GraphTile)
+      const v3GraphTile = v2GraphImporter({
+        v2Component: v2GraphTile,
+        v2Document,
+        insertTile: mockInsertTile
+      })
+      // tests round-trip import/export of every graph component
+      const v2GraphTileOut = v2GraphExporter({ tile: v3GraphTile! })
+      const v2GraphTileStorage = transformObject(v2GraphTile.componentStorage, kIgnoreProps, kRoundProps)
+      const v2GraphTileOutStorage = transformObject(v2GraphTileOut?.componentStorage, kIgnoreProps, kRoundProps)
+      expect(v2GraphTileOutStorage).toEqual(v2GraphTileStorage)
+    })
+  })
+
+  it("exports graph components with plot formatting", () => {
+    const { v2Document } = loadCodapDocument("mammals-graph-formats.codap")
     const v2GraphTiles = v2Document.components.filter(c => c.type === "DG.GraphView")
     v2GraphTiles.forEach(v2GraphTile => {
       logGraphTitleMaybe(false, v2GraphTile)
