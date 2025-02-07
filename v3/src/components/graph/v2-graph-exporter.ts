@@ -237,6 +237,13 @@ export const v2GraphExporter: V2TileExportFn = ({ tile }) => {
   const componentStorage: Partial<ICodapV2GraphStorage> = {
     _links_: getLinks(graph),
     displayOnlySelected: !!graph.dataConfiguration.displayOnlySelectedCases,
+    pointColor: graph.pointDescription.pointColor,
+    strokeColor: graph.pointDescription.pointStrokeSameAsFill
+                    ? "white" // v2 uses white for stroke when stroke is same as fill
+                    : graph.pointDescription.pointStrokeColor,
+    pointSizeMultiplier: graph.pointDescription.pointSizeMultiplier,
+    strokeSameAsFill: graph.pointDescription.pointStrokeSameAsFill,
+    plotBackgroundColor: graph.plotBackgroundColor === "#FFFFFF" ? null : graph.plotBackgroundColor,
     // attribute roles and types
     ...getAttrRoleAndType(graph, "x", "x"),
     ...getAttrRoleAndType(graph, "y", "y"),

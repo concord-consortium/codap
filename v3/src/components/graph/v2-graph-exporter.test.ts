@@ -82,12 +82,12 @@ describe("V2GraphImporter", () => {
     // "plotBackgroundColor",
     "plotBackgroundImage",
     "plotBackgroundImageLockInfo",
-    // "plotBackgroundOpacity",
+    "plotBackgroundOpacity",
     // "strokeColor",
     // "strokeSameAsFill",
     "isTransparent",
-    // "transparency",
-    // "strokeTransparency"
+    "transparency",
+    "strokeTransparency"
   ]
   const kIgnoreProps = [
     // standard properties handled externally
@@ -232,7 +232,7 @@ describe("V2GraphImporter", () => {
     const { v2Document } = loadCodapDocument("mammals-graph-formats.codap")
     const v2GraphTiles = v2Document.components.filter(c => c.type === "DG.GraphView")
     v2GraphTiles.forEach(v2GraphTile => {
-      logGraphTitleMaybe(false, v2GraphTile)
+      logGraphTitleMaybe(true, v2GraphTile)
       const v3GraphTile = v2GraphImporter({
         v2Component: v2GraphTile,
         v2Document,
