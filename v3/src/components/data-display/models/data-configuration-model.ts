@@ -1,5 +1,5 @@
-import {scaleQuantile, ScaleQuantile} from "d3"
-import {comparer, observable, reaction} from "mobx"
+import {scaleQuantile} from "d3"
+import {comparer, observable, reaction, trace} from "mobx"
 import {
   addDisposer, getEnv, getSnapshot, hasEnv, IAnyStateTreeNode, Instance, ISerializedActionCall,
   resolveIdentifier, SnapshotIn, types
@@ -309,7 +309,8 @@ export const DataConfigurationModel = types
         const allCaseIDs = Array.from(self.visibleCaseIds)
         const allValues = attrID ? allCaseIDs.map((anID: string) => dataset?.getStrValue(anID, attrID)) : []
         return allValues.filter(aValue => aValue) as string[]
-      }
+      },
+      name: "valuesForAttrRole"
     })
   }))
   .views(self => ({
@@ -325,7 +326,8 @@ export const DataConfigurationModel = types
             return isFiniteNumber(value) ? value : null
           }) : []
         return allValues.filter(aValue => aValue != null)
-      }
+      },
+      name: "numericValuesForAttrRole"
     }),
     categorySetForAttrRole(role: AttrRole) {
       if (self.metadata) {
@@ -369,7 +371,8 @@ export const DataConfigurationModel = types
           }
         }
         return resultArray
-      }
+      },
+      name: "categoryArrayForAttrRole"
     }),
     get allCategoriesForRoles() {
       const categories: Map<AttrRole, string[]> = new Map()
@@ -414,7 +417,8 @@ export const DataConfigurationModel = types
           }
         }
         return caseDataArray
-      }
+      },
+      name: "getCaseDataArray"
     }),
     get joinedCaseDataArrays() {
       const joinedCaseData: CaseData[] = []
@@ -446,35 +450,33 @@ export const DataConfigurationModel = types
       )
     }
   }))
-  .extend(self => {
-    // TODO: This is a hack to get around the fact that MST doesn't seem to cache this as expected
-    // when implemented as simple view.
-    let quantileScale: ScaleQuantile<string> | undefined = undefined
-    let previousLowAttributeColor: string | undefined
-    let previousHighAttributeColor: string | undefined
-
-    return {
-      views: {
-        get legendQuantileScale() {
-          if (
-            !quantileScale ||
-            previousLowAttributeColor !== self.lowColor ||
-            previousHighAttributeColor !== self.highColor
-          ) {
-            previousLowAttributeColor = self.lowColor
-            previousHighAttributeColor = self.highColor
-            quantileScale = scaleQuantile(self.numericValuesForAttrRole('legend'), self.quantileScaleColors)
-          }
-          return quantileScale
-        },
-      },
-      actions: {
-        invalidateQuantileScale() {
-          quantileScale = undefined
-        }
+  .views(self => ({
+    get legendQuantileScale() {
+      /**
+       *  Adjust the value range displayed by the legend based on the data configuration model's properties:
+       *  1. If all cases are hidden, the legend displays no range.
+       *  2. If `displayOnlySelectedCases` is true and not all cases are visible, the legend displays the range of all
+       *     cases, both hidden and visible.
+       *  3. Otherwise, the legend displays the range of only the visible cases.
+       *
+       *  TODO: When `displayOnlySelectedCases` is true and all visible cases have the exact same value for the legend
+       *  attribute, the legend should only reflect the values of the case(s) shown.
+       */
+      const allCasesCount = self.dataset?.items.length ?? 0
+      const hiddenCasesCount = self.hiddenCases.length ?? 0
+      const allCasesHidden = hiddenCasesCount === allCasesCount
+      let values: number[]
+      if (allCasesHidden) {
+        values = []
+      } else if (self.displayOnlySelectedCases && hiddenCasesCount > 0) {
+        const attribute = self.dataset?.attrFromID(self.attributeID("legend"))
+        values = attribute?.numValues ?? []
+      } else {
+        values = self.numericValuesForAttrRole("legend") ?? []
       }
-    }
-  })
+      return scaleQuantile(values, self.quantileScaleColors)
+    },
+  }))
   .views(self => (
     {
       getLegendColorForCategory(cat: string): string {
@@ -548,7 +550,8 @@ export const DataConfigurationModel = types
             dataset?.getStrValue(aCaseData.caseID, legendID) === cat
           ).map((aCaseData: CaseData) => aCaseData.caseID)) ?? []
           return selection.length > 0 && (selection as Array<string>).every(anID => dataset?.isCaseSelected(anID))
-        }
+        },
+        name: "allCasesForCategoryAreSelected"
       }),
       getCasesForLegendQuantile(quantile: number) {
         const dataset = self.dataset,
@@ -663,7 +666,7 @@ export const DataConfigurationModel = types
     },
     handleSetCaseValues(actionCall: ISerializedActionCall, cases: IFilteredChangedCases) {
       if (!isSetCaseValuesAction(actionCall)) return
-      let [affectedCases, affectedAttrIDs] = actionCall.args
+      const [affectedCases] = actionCall.args
       // this is called by the FilteredCases object with additional information about
       // whether the value changes result in adding/removing any cases from the filtered set
       // a single call to setCaseValues can result in up to three calls to the handlers
@@ -679,23 +682,6 @@ export const DataConfigurationModel = types
         const changedCases = affectedCases.filter(aCase => idSet.has(aCase.__id__))
         self.handlers.forEach(handler => handler({name: "setCaseValues", args: [changedCases]}))
         ++self.casesChangeCount
-      }
-      // Changes to case values require that existing cached categorySets be wiped.
-      // But if we know the ids of the attributes involved, we can determine whether
-      // an attribute that has a cache is involved
-      if (!affectedAttrIDs && affectedCases.length === 1) {
-        affectedAttrIDs = Object.keys(affectedCases[0])
-      }
-      if (affectedAttrIDs) {
-        for (const [key, desc] of Object.entries(self.attributeDescriptions)) {
-          if (affectedAttrIDs.includes(desc.attributeID)) {
-            if (key === "legend") {
-              self.invalidateQuantileScale()
-            }
-          }
-        }
-      } else {
-        self.invalidateQuantileScale()
       }
     },
     _updateFilteredCasesCollectionID() {
@@ -846,7 +832,6 @@ export const DataConfigurationModel = types
       addDisposer(self, reaction(
         () => JSON.stringify(self.attributeDescriptionForRole("legend")),
         () => {
-          self.invalidateQuantileScale()
           self.clearCasesCache()
         },
         {name: "DataConfigurationModel.afterCreate.reaction [legend attribute]"}
