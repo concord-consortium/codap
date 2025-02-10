@@ -1,5 +1,5 @@
 import {scaleQuantile} from "d3"
-import {comparer, observable, reaction, trace} from "mobx"
+import {comparer, observable, reaction} from "mobx"
 import {
   addDisposer, getEnv, getSnapshot, hasEnv, IAnyStateTreeNode, Instance, ISerializedActionCall,
   resolveIdentifier, SnapshotIn, types
