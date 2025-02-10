@@ -37,7 +37,7 @@ export type IAttributeBinningType = typeof AttributeBinningTypes[number]
 // It is currently only used by the numeric legend to determine how to
 // construct the choropleth scale
 const AttributeScale = types.model("AttributeScale", {
-  binningType: types.enumeration(AttributeBinningTypes)
+  binningType: types.maybe(types.enumeration(AttributeBinningTypes))
 })
 
 export const SharedCaseMetadata = SharedModel
@@ -144,10 +144,11 @@ export const SharedCaseMetadata = SharedModel
     setAttributeBinningType(attrId: string, binningType: IAttributeBinningType) {
       let attributeScale = self.attributeScales.get(attrId)
       if (!attributeScale) {
-        attributeScale = AttributeScale.create({binningType: "quantile"})
+        attributeScale = AttributeScale.create({binningType})
         self.attributeScales.set(attrId, attributeScale)
+      } else {
+        attributeScale.binningType = binningType
       }
-      attributeScale.binningType = binningType
     }
   }))
   .actions(self => ({
