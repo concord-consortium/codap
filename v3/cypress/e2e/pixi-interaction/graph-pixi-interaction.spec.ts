@@ -357,8 +357,7 @@ context("Graph UI with Pixi interaction", () => {
         })
       })
     })
-    // this test will work when PT-#188601933 is delivered
-    it.skip("check for point compression interaction", () => {
+    it("check for point compression interaction", () => {
       // Open Four Seals
       cy.log("Open Four Seals from Hamburger menu")
       cfm.getHamburgerMenuButton().should("exist")
