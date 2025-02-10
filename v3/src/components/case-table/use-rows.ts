@@ -86,7 +86,9 @@ export const useRows = (gridElement: HTMLDivElement | null) => {
           if (data && caseId && attr && cellSpan) {
             const strValue = data.getStrValue(caseId, attr.id)
             const numValue = data.getNumeric(caseId, attr.id)
-            const { value } = renderAttributeValue(strValue, numValue, attr, { caseId, rowHeight })
+            // don't pass input row id to common code
+            const _caseId = caseId === kInputRowKey ? undefined : caseId
+            const { value } = renderAttributeValue(strValue, numValue, attr, { caseId: _caseId, rowHeight })
             cellSpan.textContent = value
             setCachedDomAttr(caseId, attr.id)
           }
