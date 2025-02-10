@@ -13,7 +13,7 @@ import {
   kCaseTableBodyFont, kCaseTableHeaderFont, kDefaultRowHeight,
   kMaxAutoColumnWidth, kMinAutoColumnWidth, kSnapToLineHeight
 } from "../case-table/case-table-types"
-import CheckboxCell, {isBoolean} from "../case-table/checkbox-cell"
+import {CheckboxCell, isBoolean} from "./checkbox-cell"
 
 // cache d3 number formatters so we don't have to generate them on every render
 type TNumberFormatter = (n: number) => string
@@ -77,7 +77,7 @@ export function renderAttributeValue(str = "", num = NaN, attr?: IAttribute, opt
   if (userType === "checkbox" && isBoolean(str)) {
     return {
       value: str,
-      content: <CheckboxCell rowId={caseId ?? ""} attrId={attrId ?? ""} />
+      content: <CheckboxCell caseId={caseId ?? ""} attrId={attrId ?? ""} />
     }
   }
 

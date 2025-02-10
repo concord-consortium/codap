@@ -56,7 +56,7 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
                                         {"formula-column": hasFormula, "multi-line": rowHeight > kDefaultRowHeight}),
                 renderCell: AttributeValueCell,
                 editable: row => isCaseEditable(data, row.__id__),
-                renderEditCell: isEditable && userType !== "checkbox"
+                renderEditCell: isEditable
                                   // if users haven't assigned a non-color type, then color swatches
                                   // may be displayed and should be edited with swatches.
                                   ? userType == null || userType === "color"

@@ -11,20 +11,20 @@ export const isBoolean = (value: FValue | undefined) => {
 }
 
 interface ICheckboxCellProps {
-  rowId: string
   attrId: string
+  caseId: string
 }
 
-export default function CheckboxCell ({ rowId, attrId }: ICheckboxCellProps) {
+export function CheckboxCell ({ caseId, attrId }: ICheckboxCellProps) {
   const data = useDataSetContext()
   // We need checkRef to show indeterminate state
   const checkRef = useRef<HTMLInputElement>(null)
-  const cellValue = data?.getValue(rowId, attrId)
+  const cellValue = data?.getValue(caseId, attrId)
 
   useEffect(() => {
     if (checkRef.current) {
       const isBool = isBoolean(cellValue)
-      const isTrue = typeof cellValue === "string" && cellValue.toLowerCase() === "true"
+      const isTrue = cellValue === true || typeof cellValue === "string" && cellValue.toLowerCase() === "true"
       checkRef.current.checked = isBool && isTrue
       checkRef.current.indeterminate = !isBool || cellValue === ""
     }
@@ -33,7 +33,7 @@ export default function CheckboxCell ({ rowId, attrId }: ICheckboxCellProps) {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.checked
     data?.applyModelChange(() => {
-      data.setCaseValues([{ __id__: rowId, [attrId]: newValue }])
+      data.setCaseValues([{ __id__: caseId, [attrId]: newValue }])
     }, {
       log: `update checkbox state: ${attrId} to ${newValue ? "checked" : "unchecked"}`
     })

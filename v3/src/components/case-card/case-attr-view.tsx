@@ -13,7 +13,7 @@ import { GetDividerBoundsFn } from "../case-tile-common/case-tile-types"
 import { applyCaseValueChanges } from "../case-tile-common/case-tile-utils"
 import { useCaseCardModel } from "./use-case-card-model"
 import ColorTextEditor from "../case-tile-common/color-text-editor"
-import { isBoolean } from "../case-table/checkbox-cell"
+import { isBoolean } from "../case-tile-common/checkbox-cell"
 
 import "./case-attr-view.scss"
 
