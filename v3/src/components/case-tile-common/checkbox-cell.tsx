@@ -30,6 +30,8 @@ export function CheckboxCell ({ caseId, attrId }: ICheckboxCellProps) {
     }
   }, [cellValue])
 
+  if (caseId === "__input__") return null // don't render the checkbox for the input row
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.checked
     data?.applyModelChange(() => {
