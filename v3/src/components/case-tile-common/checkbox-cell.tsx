@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from "react"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { FValue } from "../../models/formula/formula-types"
+import { updateCasesNotificationFromIds } from "../../models/data/data-set-notifications"
 
 export const isBoolean = (value: FValue | undefined) => {
   let v = value
@@ -37,6 +38,7 @@ export function CheckboxCell ({ caseId, attrId }: ICheckboxCellProps) {
     data?.applyModelChange(() => {
       data.setCaseValues([{ __id__: caseId, [attrId]: newValue }])
     }, {
+      notify: () => updateCasesNotificationFromIds(data, [caseId]),
       log: `update checkbox state: ${attrId} to ${newValue ? "checked" : "unchecked"}`
     })
   }
