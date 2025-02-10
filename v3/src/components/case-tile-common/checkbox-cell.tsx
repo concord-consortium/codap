@@ -47,7 +47,7 @@ export function CheckboxCell ({ caseId, attrId }: ICheckboxCellProps) {
   return (
     <span className="cell-checkbox">
       <input type="checkbox" ref={checkRef}  onChange={handleChange}
-              title={String(cellValue) === "" ? "undefined" : String(cellValue)}/>
+              title={String(cellValue)}/>
     </span>
   )
 }
