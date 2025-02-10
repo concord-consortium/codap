@@ -356,7 +356,9 @@ context("Graph UI", () => {
       cy.get("[data-testid=measures-for-selection-banner]").should("not.exist")
     })
 
-    // NOTE: Adornments are covered in graph-adornments.spec.ts (including Show Measures)
+    // NOTE:
+    // - Adornments are covered in graph-adornments.spec.ts (including Show Measures)
+    // - Legend colors and bins configuration is covered in graph-legend.spec.ts
     it("format panel interactions", () => {
       cy.log("check point size change")
 

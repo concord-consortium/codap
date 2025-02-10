@@ -27,6 +27,19 @@ const ColorRangeModel = types.model("ColorRangeModel", {
   }
 }))
 
+export const AttributeBinningTypes = ["quantize", "quantile"] as const
+export type IAttributeBinningType = typeof AttributeBinningTypes[number]
+
+// This is an object so it can be expanded in the future to store
+// things like:
+// - number of bins, or size of each bin
+// - scale to be used for bins or axis (linear, log, square...)
+// It is currently only used by the numeric legend to determine how to
+// construct the choropleth scale
+const AttributeScale = types.model("AttributeScale", {
+  binningType: types.enumeration(AttributeBinningTypes)
+})
+
 export const SharedCaseMetadata = SharedModel
   .named(kSharedCaseMetadataType)
   .props({
@@ -42,7 +55,9 @@ export const SharedCaseMetadata = SharedModel
     caseCardTileId: types.maybe(types.string),
     lastShownTableOrCardTileId: types.maybe(types.string), // used to restore the last shown tile both have been hidden
     // key is attribute id
-    attributeColorRanges: types.map(ColorRangeModel)
+    attributeColorRanges: types.map(ColorRangeModel),
+    // key is attribute id
+    attributeScales: types.map(AttributeScale)
   })
   .volatile(self => ({
     // CategorySets are generated whenever CODAP needs to treat an attribute categorically.
@@ -68,6 +83,10 @@ export const SharedCaseMetadata = SharedModel
         low: self.attributeColorRanges.get(attrId)?.lowColor ?? kDefaultLowAttributeColor,
         high: self.attributeColorRanges.get(attrId)?.highColor ?? kDefaultHighAttributeColor
       }
+    },
+    getAttributeBinningType(attrId: string) {
+      const scale = self.attributeScales.get(attrId)
+      return scale?.binningType || "quantile"
     }
   }))
   .actions(self => ({
@@ -121,6 +140,14 @@ export const SharedCaseMetadata = SharedModel
       } else {
         attributeColors.setLowColor(color)
       }
+    },
+    setAttributeBinningType(attrId: string, binningType: IAttributeBinningType) {
+      let attributeScale = self.attributeScales.get(attrId)
+      if (!attributeScale) {
+        attributeScale = AttributeScale.create({binningType: "quantile"})
+        self.attributeScales.set(attrId, attributeScale)
+      }
+      attributeScale.binningType = binningType
     }
   }))
   .actions(self => ({

@@ -240,10 +240,10 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
 
   useEffect(() => {
     return mstReaction(
-      () => graphModel.dataConfiguration.categorySetForAttrRole('legend')?.colorHash,
+      () => graphModel.dataConfiguration.legendColorDomain,
       () => {
         callRefreshPointPositions(false)
-      }, {name: "usePlot [categorySetChange]"}, graphModel)
+      }, {name: "usePlot [legendColorChange]"}, graphModel)
   }, [graphModel, callRefreshPointPositions])
 
   // respond to pointsNeedUpdating becoming false; that is when the points have been updated

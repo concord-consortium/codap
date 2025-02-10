@@ -797,3 +797,23 @@ context("Test changing legend colors", () => {
     })
   })
 })
+context("Test changing the legend bins", () => {
+  beforeEach(function () {
+    const queryParams = "?sample=mammals&dashboard&mouseSensor"
+    const url = `${Cypress.config("index")}${queryParams}`
+    cy.visit(url)
+    cy.wait(2500)
+  })
+
+  it("can be changed to a linear color scale", () => {
+    // Initial setup: Drag attributes to the x-axis and plot area for the first legend
+    cy.dragAttributeToTarget("table", "LifeSpan", "bottom") // LifeSpan => x-axis
+    glh.dragAttributeToPlot("Height") // Height => plot area = adds Height to legend
+
+    // open the format panel
+    graph.getDisplayStylesButton().click()
+
+    cy.get("[data-testid=legend-bins-type-select]").select("Linear")
+
+  })
+})
