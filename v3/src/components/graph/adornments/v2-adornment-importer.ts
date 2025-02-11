@@ -1,7 +1,7 @@
 import { ISharedDataSet } from "../../../models/shared/shared-data-set"
 import { safeJsonParse } from "../../../utilities/js-utils"
 import {
-  ICodapV2MultipleLSRLAdornments, ICodapV2PlotModel, ICodapV2UnivariateAdornment
+  ICodapV2MultipleLSRLAdornments, ICodapV2PlotModel, ICodapV2UnivariateAdornment, isV2ScatterPlotModel
 } from "../../../v2/codap-v2-types"
 import {
   GraphAttributeDescriptionsMapSnapshot, IAttributeDescriptionSnapshot
@@ -82,11 +82,6 @@ function univariateMeasureInstances(adornment: ICodapV2UnivariateAdornment, prop
   const xCellCount = xCats.length
   const yCellCount = yCats.length
 
-  // TODO_V2_IMPORT: [Story: **#188695677**] 93 files in cfm-shared have equationCoordsArray with values with
-  // proportionCenterX and proportionCenterY instead of proportionX and proportionY.
-  // For now we are just skipping those and treating them as undefined
-  // example doc: cfm-shared/1caDhoHFlpuNQgSfOdhh/file.json
-
   // v2 stores the label coordinates in the equationCoordsArray in category order.
   // We need to map the category index to the correct measure instances.
   // TODO_V2_IMPORT: use the category order rather than assuming it is the same as the order in the instance keys.
@@ -113,7 +108,8 @@ function univariateMeasureInstances(adornment: ICodapV2UnivariateAdornment, prop
       // Multiplication maps position from [0, 0.33] back to [0, 1], corresponding to proportional position in cell.
       return proportion % cellProportion * cellCount
     }
-    // TODO_V2_IMPORT: are proportionCenterX/proportionCenterY really possible here or is it a types error?
+    // v2 occasionally stored `proportionCenterX`/`proportionCenterY` instead of `proportionX`/`proportionY`.
+    // For now, we treat them identically.
     const equationCoords = adornment.equationCoordsArray?.[splitIndex]
     const x = equationCoords
                 ? "proportionX" in equationCoords
@@ -238,9 +234,11 @@ export const v2AdornmentImporter = ({data, plotModels, attributeDescriptions, yA
   const { instanceKeys, xCats, yCats, legendCats } = instanceKeysForAdornments(instanceKeysForAdornmentsProps)
   const splitAttrId = v2SplitAttrId(attributeDescriptions, yAttributeDescriptions)
   // the first plot model contains all relevant adornments
-  const plotModelStorage = plotModels?.[0].plotModelStorage
+  const firstPlotModel = plotModels?.[0]
+  const plotModelStorage = firstPlotModel.plotModelStorage
+  const scatterPlotStorage = isV2ScatterPlotModel(firstPlotModel) ? firstPlotModel.plotModelStorage : undefined
   const v2Adornments = plotModelStorage.adornments
-  const showSquaresOfResiduals = plotModelStorage.areSquaresVisible
+  const showSquaresOfResiduals = scatterPlotStorage?.areSquaresVisible ?? false
   const showMeasureLabels = plotModelStorage.showMeasureLabels
   let showConnectingLines = false
   const v3Adornments: ImportableAdornmentSnapshots[] = []
@@ -276,7 +274,7 @@ export const v2AdornmentImporter = ({data, plotModels, attributeDescriptions, yA
   }
 
   // MOVABLE POINT
-  const movablePointAdornment = plotModelStorage.movablePointStorage
+  const movablePointAdornment = scatterPlotStorage?.movablePointStorage
   if (movablePointAdornment) {
     const points: Record<string, IPointModelSnapshot> = {}
     instanceKeys?.forEach((key: string) => {
@@ -291,7 +289,7 @@ export const v2AdornmentImporter = ({data, plotModels, attributeDescriptions, yA
   }
 
   // MOVABLE LINE
-  const movableLineAdornment = plotModelStorage.movableLineStorage
+  const movableLineAdornment = scatterPlotStorage?.movableLineStorage
   if (movableLineAdornment) {
     const { equationCoords, intercept, slope, isVertical, xIntercept } = movableLineAdornment
     const lines: Record<string, IMovableLineInstanceSnapshot> = {}
@@ -322,7 +320,7 @@ export const v2AdornmentImporter = ({data, plotModels, attributeDescriptions, yA
   // LSRL
   // lsrLineStorage is presumably a legacy format that predates multipleLSRLsStorage
   // it does not appear to be imported by v2
-  const { lsrLineStorage, multipleLSRLsStorage } = plotModelStorage
+  const { lsrLineStorage, multipleLSRLsStorage } = scatterPlotStorage ?? {}
   const lsrlAdornment: Maybe<ICodapV2MultipleLSRLAdornments> = multipleLSRLsStorage ??
                           (lsrLineStorage
                             ? {
