@@ -505,8 +505,7 @@ export const DataConfigurationModel = types
         case "quantize": {
           const extents = extent(values)
           if (extents[0] == null || extents[1] == null) {
-            // TODO: what should we actually do here?
-            return scaleQuantize([0, 1], self.choroplethColors)
+            return scaleQuantize([], self.choroplethColors)
           }
           return scaleQuantize(extents, self.choroplethColors)
 

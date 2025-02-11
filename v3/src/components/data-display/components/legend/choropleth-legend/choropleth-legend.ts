@@ -29,7 +29,11 @@ export function getScaleThresholds(scale: ChoroplethScale) {
 }
 
 export function choroplethLegend(scale: ChoroplethScale, choroplethElt: SVGGElement, props: ChoroplethLegendProps) {
-  if (scale.domain().length === 0) {
+  // Handle invalid or not enough cases:
+  // - Quantile legends: the domain length will be 0
+  // - Quantize legends: the domain will be [NaN, NaN]
+  const domain = scale.domain()
+  if (domain.length === 0 || isNaN(domain[0])) {
     select(choroplethElt).selectAll("*").remove()
     return
   }
