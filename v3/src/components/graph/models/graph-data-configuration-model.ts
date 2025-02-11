@@ -492,7 +492,8 @@ export const GraphDataConfigurationModel = DataConfigurationModel
           }
         })
         return targetCases
-      }
+      },
+      name: "subPlotCases"
     }),
     cellCases: cachedFnWithArgsFactory({
       key: (cellKey: Record<string, string>) => JSON.stringify(cellKey),
@@ -512,7 +513,8 @@ export const GraphDataConfigurationModel = DataConfigurationModel
 
           return isRightMatch && isTopMatch
         })
-      }
+      },
+      name: "cellCases"
     }),
     rowCases: cachedFnWithArgsFactory({
       key: (cellKey: Record<string, string>) => JSON.stringify(cellKey),
@@ -536,7 +538,8 @@ export const GraphDataConfigurationModel = DataConfigurationModel
 
           return isLeftMatch && isRightMatch && isTopMatch
         })
-      }
+      },
+      name: "rowCases"
     }),
     columnCases: cachedFnWithArgsFactory({
       key: (cellKey: Record<string, string>) => JSON.stringify(cellKey),
@@ -560,7 +563,8 @@ export const GraphDataConfigurationModel = DataConfigurationModel
 
           return isBottomMatch && isTopMatch && isRightMatch
         })
-      }
+      },
+      name: "columnCases"
     }),
     filterCasesForDisplay(caseIds: string[] = []) {
       return self.showMeasuresForSelection ? caseIds.filter(caseId => self.dataset?.isCaseSelected(caseId)) : caseIds

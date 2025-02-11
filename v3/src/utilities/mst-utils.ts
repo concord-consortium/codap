@@ -116,19 +116,21 @@ export function cachedFnFactory<T>(calculate: () => T): (() => T) & { invalidate
  */
 export function cachedFnWithArgsFactory<FunDef extends (...args: any[]) => any>(options: {
   key: (...args: Parameters<FunDef>) => string,
-  calculate: FunDef
+  calculate: FunDef,
+  name: string
 }): ((...args: Parameters<FunDef>) => ReturnType<FunDef>)
   & { invalidate: (...args: Parameters<FunDef>) => void, invalidateAll: () => void } {
   // TypeScript generics are a bit complicated here. However, they ensure that invalidate() function is called
   // with the same arguments as the calculate() function. It will work even if the client code completely skips
   // explicit type definition between < and >.
-  const { key, calculate } = options
+  const { key, calculate, name } = options
 
   // The map is observable so any observers will be triggered when the cache is updated
   // The values within the map are not automatically made observable since
   // cachedFnWithArgsFactory is usually used in cases where the values are large objects
   // and usually a whole new value object is created by on each calculate call
-  const cacheMap = observable.map<string, ReturnType<FunDef>>({}, {deep: false})
+  const cacheMap = observable.map<string, ReturnType<FunDef>>({},
+    {name: name || "cachedFnWithArgs", deep: false})
 
   const getter = (...args: Parameters<FunDef>) => {
     const cacheKey = key(...args)

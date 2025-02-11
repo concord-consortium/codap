@@ -28,7 +28,7 @@ describe("cachedFnWithArgsFactory", () => {
   it("should return a function that lazily caches the value", () => {
     const calculate = jest.fn((a: number, b: number) => a + b)
     const key = jest.fn((a: number, b: number) => `${a}+${b}`)
-    const cachedFn = cachedFnWithArgsFactory({ key, calculate })
+    const cachedFn = cachedFnWithArgsFactory({ key, calculate, name: "testFn" })
     expect(key).not.toHaveBeenCalled()
     expect(calculate).not.toHaveBeenCalled()
     expect(cachedFn(1, 2)).toEqual(3)
@@ -46,7 +46,7 @@ describe("cachedFnWithArgsFactory", () => {
   it("should return a function that caches the value until invalidate() is called", () => {
     const calculate = jest.fn((a: number, b: number) => a + b)
     const key = jest.fn((a: number, b: number) => `${a}+${b}`)
-    const cachedFn = cachedFnWithArgsFactory({ key, calculate })
+    const cachedFn = cachedFnWithArgsFactory({ key, calculate, name: "testFn" })
     expect(cachedFn(1, 2)).toEqual(3)
     calculate.mockImplementation((a: number, b: number) => a * b)
     expect(cachedFn(1, 2)).toEqual(3)

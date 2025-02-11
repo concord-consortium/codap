@@ -306,7 +306,9 @@ export const DataSet = V2Model.named("DataSet").props({
   get itemsNotSetAside() {
     return self._itemIds.filter(itemId => !self.isItemSetAside(itemId))
   },
-  // ids of items that have not been hidden (set aside) or filtered by user
+  /**
+   * ids of items that have not been hidden (set aside) or filtered by user
+   */
   get itemIds() {
     return self._itemIds.filter(itemId => !self.isItemHidden(itemId))
   }
