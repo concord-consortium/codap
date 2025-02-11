@@ -47,7 +47,7 @@ const parseColorName = parsers.string[0][0]
 
 export interface ParseColorOptions {
   colorNames?: boolean
-  opacity?: number
+  alpha?: number
 }
 
 /**
@@ -68,7 +68,7 @@ export function parseColor(str: string, options?: ParseColorOptions) {
  * parseColorToHex
  *
  * @param str string to be parsed for its color
- * @param options { colorNames?: boolean, opacity: number } whether or not to recognize color names when parsing
+ * @param options { colorNames?: boolean, alpha: number } whether to recognize color names; optional alpha value
  * @returns canonicalized color string or empty string
  */
 export function parseColorToHex(str: string, options?: ParseColorOptions) {
@@ -83,10 +83,10 @@ export function parseColorToHex(str: string, options?: ParseColorOptions) {
       parsed = colord(str).toRgb()
     }
 
-    // If color is parsed successfully, apply optional opacity
+    // If color is parsed successfully, apply optional alpha value
     if (parsed) {
-      if (options?.opacity !== undefined) {
-        parsed.a = options.opacity
+      if (options?.alpha !== undefined) {
+        parsed.a = options.alpha
       }
       return colord(parsed).toHex()
     }
@@ -95,13 +95,13 @@ export function parseColorToHex(str: string, options?: ParseColorOptions) {
     return ""
 }
 
-export function getTransparency(color: string, type: string) {
+export function getAlpha(color: string) {
   const rgbaColor = colord(color).toRgb()
-  return rgbaColor.a ?? (type === "point" ? 0.84 : 1)
+  return rgbaColor.a
 }
 
 // remove the alpha channel from a hex color string
-export function removeTransparencyFromColor(colorStr: string)  {
+export function removeAlphaFromColor(colorStr: string)  {
   const colorHex = parseColorToHex(colorStr, { colorNames: true })
   if (colorHex.length === 9) return colorHex.slice(0, 7)
   return colorStr

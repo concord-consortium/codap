@@ -1,6 +1,8 @@
+import { colord } from "colord"
 import { SetRequired } from "type-fest"
 import { AttributeType } from "../../models/data/attribute-types"
 import { toV2Id } from "../../utilities/codap-utils"
+import { removeAlphaFromColor } from "../../utilities/color-utils"
 import { V2TileExportFn } from "../../v2/codap-v2-tile-exporters"
 import { guidLink, ICodapV2Adornment, ICodapV2GraphStorage, IGuidLink } from "../../v2/codap-v2-types"
 import { IAxisModel, isNumericAxisModel } from "../axis/models/axis-model"
@@ -14,7 +16,6 @@ import { IMovableValueAdornmentModel } from "./adornments/movable-value/movable-
 import { kMovableValueType } from "./adornments/movable-value/movable-value-adornment-types"
 import { PlotType } from "./graphing-types"
 import { IGraphContentModel, isGraphContentModel } from "./models/graph-content-model"
-import { getTransparency, removeTransparencyFromColor } from "../../utilities/color-utils"
 
 type V2GraphDimension = "x" | "y" | "y2" | "top" | "right" | "legend"
 
@@ -231,9 +232,14 @@ function getPlotModels(graph: IGraphContentModel): Partial<ICodapV2GraphStorage>
   return storage
 }
 
+const getTransparency = (color: string, type: "point" | "stroke") => {
+  const rgbaColor = colord(color).toRgb()
+  return rgbaColor.a ?? (type === "point" ? 0.84 : 1)
+}
+
 // v2 uses color names for default stroke colors
 const strokeColorStr = (color: string) => {
-  const colorHex = removeTransparencyFromColor(color).toLowerCase()
+  const colorHex = removeAlphaFromColor(color).toLowerCase()
   return colorHex === "#ffffff" ? "white"
             : colorHex === "#d3d3d3" ? "lightgrey"
             : colorHex
@@ -246,7 +252,7 @@ export const v2GraphExporter: V2TileExportFn = ({ tile }) => {
   const componentStorage: Partial<ICodapV2GraphStorage> = {
     _links_: getLinks(graph),
     displayOnlySelected: !!graph.dataConfiguration.displayOnlySelectedCases,
-    pointColor: removeTransparencyFromColor(graph.pointDescription.pointColor),
+    pointColor: removeAlphaFromColor(graph.pointDescription.pointColor),
     transparency: getTransparency(graph.pointDescription.pointColor, "point"),
     strokeColor: graph.pointDescription.pointStrokeSameAsFill
                     ? "white" // v2 uses white for stroke when stroke is same as fill
@@ -256,7 +262,7 @@ export const v2GraphExporter: V2TileExportFn = ({ tile }) => {
     pointSizeMultiplier: graph.pointDescription.pointSizeMultiplier,
     strokeSameAsFill: graph.pointDescription.pointStrokeSameAsFill,
     plotBackgroundColor: graph.plotBackgroundColor === "#FFFFFF"
-                              ? null : removeTransparencyFromColor(graph.plotBackgroundColor),
+                              ? null : removeAlphaFromColor(graph.plotBackgroundColor),
     plotBackgroundOpacity: getTransparency(graph.plotBackgroundColor, "stroke"),
     isTransparent: graph.isTransparent,
     // attribute roles and types

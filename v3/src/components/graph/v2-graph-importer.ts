@@ -1,5 +1,6 @@
 import {ITileModelSnapshotIn} from "../../models/tiles/tile-model"
 import {toV3Id} from "../../utilities/codap-utils"
+import {defaultBackgroundColor, parseColorToHex} from "../../utilities/color-utils"
 import {V2TileImportArgs} from "../../v2/codap-v2-tile-importers"
 import {IGuidLink, isV2GraphComponent} from "../../v2/codap-v2-types"
 import {v3TypeFromV2TypeIndex} from "../../v2/codap-v2-data-set-types"
@@ -14,7 +15,6 @@ import {GraphAttributeDescriptionsMapSnapshot, IAttributeDescriptionSnapshot}
 import {AxisPlace} from "../axis/axis-types"
 import {IAxisModelSnapshotUnion} from "../axis/models/axis-model"
 import {v2AdornmentImporter} from "./adornments/v2-adornment-importer"
-import {defaultBackgroundColor, parseColorToHex} from "../../utilities/color-utils"
 
 const attrKeys = ["x", "y", "y2", "legend", "top", "right"] as const
 type AttrKey = typeof attrKeys[number]
@@ -55,10 +55,10 @@ export function v2GraphImporter({v2Component, v2Document, sharedModelManager, in
   */
     }
   } = v2Component
-  const plotBackgroundOpacity: number = v2Component.componentStorage.plotBackgroundOpacity ?? 1
-  const plotBackgroundColor: string | null | undefined =
+  const plotBackgroundOpacity = v2Component.componentStorage.plotBackgroundOpacity ?? 1
+  const plotBackgroundColor =
             (v2Component.componentStorage.plotBackgroundColor &&
-                parseColorToHex(v2Component.componentStorage.plotBackgroundColor, {opacity: plotBackgroundOpacity})) ||
+                parseColorToHex(v2Component.componentStorage.plotBackgroundColor, {alpha: plotBackgroundOpacity})) ||
             defaultBackgroundColor
   type TLinksKey = keyof typeof links
   const contextId = links.context?.id
@@ -182,8 +182,8 @@ export function v2GraphImporter({v2Component, v2Document, sharedModelManager, in
     * displayOnlySelected,legendRole, legendAttributeType, numberOfLegendQuantiles, legendQuantilesAreLocked,
     * */
     pointDescription: {
-      _itemColors: pointColor ? [parseColorToHex(pointColor, {colorNames: true, opacity: transparency})] : [],
-      _itemStrokeColor: strokeColor ? parseColorToHex(strokeColor, {colorNames: true, opacity: strokeTransparency})
+      _itemColors: pointColor ? [parseColorToHex(pointColor, {colorNames: true, alpha: transparency})] : [],
+      _itemStrokeColor: strokeColor ? parseColorToHex(strokeColor, {colorNames: true, alpha: strokeTransparency})
                                     : strokeColor,
       _pointSizeMultiplier: pointSizeMultiplier,
       /*transparency, strokeTransparency*/
