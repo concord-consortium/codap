@@ -1,6 +1,6 @@
 import { Colord, colord, getFormat as getColorFormat } from "colord"
 import namesPlugin from "colord/plugins/names"
-import type { Parsers } from "colord/types"
+import type { Parsers, RgbaColor } from "colord/types"
 
 /*
   The following list of 20 colors are maximally visually distinct from each other.
@@ -47,6 +47,7 @@ const parseColorName = parsers.string[0][0]
 
 export interface ParseColorOptions {
   colorNames?: boolean
+  opacity?: number
 }
 
 /**
@@ -67,17 +68,31 @@ export function parseColor(str: string, options?: ParseColorOptions) {
  * parseColorToHex
  *
  * @param str string to be parsed for its color
- * @param options { colorNames?: boolean } whether or not to recognize color names when parsing
+ * @param options { colorNames?: boolean, opacity: number } whether or not to recognize color names when parsing
  * @returns canonicalized color string or empty string
  */
 export function parseColorToHex(str: string, options?: ParseColorOptions) {
-  // if it's a valid color name, return its hex equivalent
-  if (options?.colorNames) {
-    const parsed = parseColorName(str)
-    if (parsed) return colord(parsed).toHex()
-  }
-  // if it's a valid color string, return its hex equivalent
-  return getColorFormat(str) ? colord(str).toHex() : ""
+  let parsed: RgbaColor | null = null
+    // Check if the input is a valid color name
+    if (options?.colorNames) {
+      parsed = parseColorName(str)
+    }
+
+    // If not a named color, attempt to parse as a regular color string
+    if (!parsed && getColorFormat(str)) {
+      parsed = colord(str).toRgb()
+    }
+
+    // If color is parsed successfully, apply optional opacity
+    if (parsed) {
+      if (options?.opacity !== undefined) {
+        parsed.a = options.opacity
+      }
+      return colord(parsed).toHex()
+    }
+
+    // Return empty string if no valid color is found
+    return ""
 }
 
 /*
