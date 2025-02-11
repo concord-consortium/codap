@@ -327,6 +327,12 @@ $table-body-font-size: 8pt;
 
       &.formula-column {
         background-color: rgba(255, 255, 0, 0.2);
+        .cell-checkbox {
+          input {
+            pointer-events: none;
+            opacity: 0.5;
+          }
+        }
       }
 
       &.selected {
@@ -404,6 +410,13 @@ $table-body-font-size: 8pt;
             border: 1px solid gray;
           }
         }
+      }
+
+      .cell-checkbox {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        height: 100%;
       }
     }
   }

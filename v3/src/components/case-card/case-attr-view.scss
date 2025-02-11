@@ -43,11 +43,6 @@
         text-align: left;
       }
 
-      &.formula-attr-value {
-        background-color: rgba(255, 255, 0, 0.2);
-        font-style: italic;
-      }
-
       span {
         border-radius: 0;
         display: inline-block;
@@ -91,6 +86,17 @@
       }
     }
 
+    .case-card-attr-value-checkbox {
+      display: flex;
+      align-items: center;
+      height: 25px;
+      padding: 4px;
+
+      span {
+        height: 13px;
+      }
+    }
+
     .rdg-text-editor {
       display: inline-block;
       padding: 4px;
@@ -100,6 +106,14 @@
       display: inline-block;
       height: 25px;
       padding: 4px;
+    }
+
+    .formula-attr-value {
+      background-color: rgba(255, 255, 0, 0.2);
+      font-style: italic;
+      input {
+        pointer-events: none;
+      }
     }
   }
 }

@@ -1167,4 +1167,36 @@ context("case table ui", () => {
       cy.get(".cell-boundary-thumb").should("exist")
     })
   })
+
+  describe("table cells with checkboxes", () => {
+    it("displays checkboxes in cells with checkbox attribute type", () => {
+      table.getTableTile().click()
+      table.addNewAttribute()
+      table.renameAttribute("newAttr", "Checkbox")
+      table.openAttributeMenu("Checkbox")
+      table.selectMenuItemFromAttributeMenu("Edit Attribute Properties")
+      table.selectAttributeType("checkbox")
+      table.getApplyButton().click()
+      cy.get(".cell-checkbox").should("exist").and("have.length.gte", 12)
+    })
+
+    // if user has entered other types of data in any of the cells in the column
+    // before changing the attribute type to checkbox,
+    // we preserve that data and display checkboxes in the rest of the cells
+    it("displays other types in cells with checkbox attribute type", () => {
+      table.getTableTile().click()
+      table.addNewAttribute()
+      table.renameAttribute("newAttr", "Checkbox")
+      table.getGridCell(3, 11).dblclick({force: true})
+      table.getGridCell(3, 11).type("some text{enter}")
+      table.getGridCell(4, 11).type("5{enter}")
+      table.openAttributeMenu("Checkbox")
+      table.selectMenuItemFromAttributeMenu("Edit Attribute Properties")
+      table.selectAttributeType("checkbox")
+      table.getApplyButton().click()
+      table.getGridCell(3, 11).should("contain", "some text")
+      table.getGridCell(4, 11).should("contain", "5")
+      cy.get(".cell-checkbox").should("exist").and("have.length.gte", 12)
+    })
+  })
 })

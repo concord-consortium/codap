@@ -59,7 +59,9 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
                 renderEditCell: isEditable
                                   // if users haven't assigned a non-color type, then color swatches
                                   // may be displayed and should be edited with swatches.
-                                  ? userType == null || userType === "color" ? ColorCellTextEditor : CellTextEditor
+                                  ? userType == null || userType === "color"
+                                      ? ColorCellTextEditor
+                                      : CellTextEditor
                                   : undefined
               }))
           ]
