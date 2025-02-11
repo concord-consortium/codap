@@ -88,7 +88,7 @@ index 43bf414..635934c 100644
  exports.useRowSelection = useRowSelection;
  //# sourceMappingURL=bundle.cjs.map
 diff --git a/node_modules/react-data-grid/lib/bundle.js b/node_modules/react-data-grid/lib/bundle.js
-index 0214c29..63e9b92 100644
+index 0214c29..27015f7 100644
 --- a/node_modules/react-data-grid/lib/bundle.js
 +++ b/node_modules/react-data-grid/lib/bundle.js
 @@ -760,7 +760,7 @@ function useColumnWidths(columns, viewportColumns, templateColumns, gridRef, gri
@@ -193,7 +193,7 @@ index 0214c29..63e9b92 100644
    function isCellWithinSelectionBounds({
      idx,
      rowIdx
-@@ -2410,8 +2426,23 @@ function DataGrid(props, ref) {
+@@ -2410,8 +2426,19 @@ function DataGrid(props, ref) {
      });
    }
    function selectCell(position, enableEditor) {
@@ -207,18 +207,14 @@ index 0214c29..63e9b92 100644
 +        mode: 'SELECT'
 +      };
 +      if (!isSamePosition(selectedPosition, initialPosition)) {
-+        setSelectedPosition({
-+          idx: -1,
-+          rowIdx: minRowIdx - 1,
-+          mode: 'SELECT'
-+        });
++        setSelectedPosition(initialPosition);
 +      }
 +      return;
 +    }
      const row = rows[position.rowIdx];
      const samePosition = isSamePosition(selectedPosition, position);
      if (enableEditor && isCellEditable(position)) {
-@@ -3303,5 +3334,5 @@ function textEditor({
+@@ -3303,5 +3330,5 @@ function textEditor({
    });
  }
  
