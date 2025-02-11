@@ -55,8 +55,11 @@ export function v2GraphImporter({v2Component, v2Document, sharedModelManager, in
   */
     }
   } = v2Component
-  const plotBackgroundColor: string | null | undefined = v2Component.componentStorage.plotBackgroundColor ||
-    defaultBackgroundColor
+  const plotBackgroundOpacity: number = v2Component.componentStorage.plotBackgroundOpacity ?? 1
+  const plotBackgroundColor: string | null | undefined =
+            (v2Component.componentStorage.plotBackgroundColor &&
+                parseColorToHex(v2Component.componentStorage.plotBackgroundColor, {opacity: plotBackgroundOpacity})) ||
+            defaultBackgroundColor
   type TLinksKey = keyof typeof links
   const contextId = links.context?.id
   const {data, metadata} = v2Document.getDataAndMetadata(contextId)
@@ -170,7 +173,7 @@ export function v2GraphImporter({v2Component, v2Document, sharedModelManager, in
     axes,
     plotType,
     plotBackgroundColor,
-    // plotBackgroundOpacity,
+    plotBackgroundOpacity,
     // plotBackgroundImage,
     // V2 plotBackgroundImageLockInfo can be null, V3 only accepts undefined
     plotBackgroundImageLockInfo: plotBackgroundImageLockInfo ?? undefined,

@@ -14,6 +14,7 @@ import { IMovableValueAdornmentModel } from "./adornments/movable-value/movable-
 import { kMovableValueType } from "./adornments/movable-value/movable-value-adornment-types"
 import { PlotType } from "./graphing-types"
 import { IGraphContentModel, isGraphContentModel } from "./models/graph-content-model"
+import { getTransparency, removeTransparencyFromColor } from "../../utilities/color-utils"
 
 type V2GraphDimension = "x" | "y" | "y2" | "top" | "right" | "legend"
 
@@ -230,6 +231,14 @@ function getPlotModels(graph: IGraphContentModel): Partial<ICodapV2GraphStorage>
   return storage
 }
 
+// v2 uses color names for default stroke colors
+const strokeColorStr = (color: string) => {
+  const colorHex = removeTransparencyFromColor(color).toLowerCase()
+  return colorHex === "#ffffff" ? "white"
+            : colorHex === "#d3d3d3" ? "lightgrey"
+            : colorHex
+}
+
 export const v2GraphExporter: V2TileExportFn = ({ tile }) => {
   const graph = isGraphContentModel(tile.content) ? tile.content : undefined
   if (!graph) return
@@ -237,13 +246,18 @@ export const v2GraphExporter: V2TileExportFn = ({ tile }) => {
   const componentStorage: Partial<ICodapV2GraphStorage> = {
     _links_: getLinks(graph),
     displayOnlySelected: !!graph.dataConfiguration.displayOnlySelectedCases,
-    pointColor: graph.pointDescription.pointColor,
+    pointColor: removeTransparencyFromColor(graph.pointDescription.pointColor),
+    transparency: getTransparency(graph.pointDescription.pointColor, "point"),
     strokeColor: graph.pointDescription.pointStrokeSameAsFill
                     ? "white" // v2 uses white for stroke when stroke is same as fill
-                    : graph.pointDescription.pointStrokeColor,
+                    : strokeColorStr(graph.pointDescription.pointStrokeColor),
+    strokeTransparency: graph.pointDescription.pointStrokeSameAsFill
+                          ? 0.4 : getTransparency(graph.pointDescription.pointStrokeColor, "stroke"),
     pointSizeMultiplier: graph.pointDescription.pointSizeMultiplier,
     strokeSameAsFill: graph.pointDescription.pointStrokeSameAsFill,
-    plotBackgroundColor: graph.plotBackgroundColor === "#FFFFFF" ? null : graph.plotBackgroundColor,
+    plotBackgroundColor: graph.plotBackgroundColor === "#FFFFFF"
+                              ? null : removeTransparencyFromColor(graph.plotBackgroundColor),
+    plotBackgroundOpacity: getTransparency(graph.plotBackgroundColor, "stroke"),
     isTransparent: graph.isTransparent,
     // attribute roles and types
     ...getAttrRoleAndType(graph, "x", "x"),

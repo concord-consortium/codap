@@ -95,6 +95,18 @@ export function parseColorToHex(str: string, options?: ParseColorOptions) {
     return ""
 }
 
+export function getTransparency(color: string, type: string) {
+  const rgbaColor = colord(color).toRgb()
+  return rgbaColor.a ?? (type === "point" ? 0.84 : 1)
+}
+
+// remove the alpha channel from a hex color string
+export function removeTransparencyFromColor(colorStr: string)  {
+  const colorHex = parseColorToHex(colorStr, { colorNames: true })
+  if (colorHex.length === 9) return colorHex.slice(0, 7)
+  return colorStr
+}
+
 /*
  * TinyColor class, tinycolor function
  *

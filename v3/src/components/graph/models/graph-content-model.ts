@@ -634,6 +634,9 @@ export const GraphContentModel = DataDisplayContentModel
     setPlotBackgroundColor(color: string) {
       self.plotBackgroundColor = color
     },
+    setPlotBackgroundOpacity(opacity: number) {
+      self.plotBackgroundOpacity = opacity
+    },
     setIsTransparent(transparent: boolean) {
       self.isTransparent = transparent
     },

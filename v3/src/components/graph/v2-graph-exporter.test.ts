@@ -79,9 +79,6 @@ describe("V2GraphImporter", () => {
     "legendQuantilesAreLocked",
     "plotBackgroundImage",
     "plotBackgroundImageLockInfo",
-    "plotBackgroundOpacity",
-    "transparency",
-    "strokeTransparency"
   ]
   const kIgnoreProps = [
     // standard properties handled externally
