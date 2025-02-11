@@ -283,7 +283,7 @@ export const DataConfigurationModel = types
      * - cases filtered by the filter formula in the dataset should be excluded
      * - cases hidden in the visualization should be excluded
      * - cases filtered by the filter formula in the visualization should be excluded
-     * - cases that do not have valid values for the configured role attribute descriptions. And example is
+     * - cases that do not have valid values for the configured role attribute descriptions. An example is
      *   when a case has a non-numeric value for a numeric axis. If the case can be shown multiple times,
      *   all instances have to be invalid for it to be excluded.
      */
