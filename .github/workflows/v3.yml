@@ -55,12 +55,12 @@ jobs:
       - name: Install Dependencies
         working-directory: v3
         run: npm ci
-      - name: Restore Webpack Cache
-        id: restore-webpack-cache
-        uses: actions/cache/restore@v4
-        with:
-          path: v3/.cache/webpack/
-          key: webpack-build-${{ hashFiles('v3/webpack.config.js') }}
+#       - name: Restore Webpack Cache
+#         id: restore-webpack-cache
+#         uses: actions/cache/restore@v4
+#         with:
+#           path: v3/.cache/webpack/
+#           key: webpack-build-${{ hashFiles('v3/webpack.config.js') }}
       - uses: concord-consortium/s3-deploy-action/deploy-path@v1
         id: s3-deploy-path
       - name: Configure Environment
@@ -135,14 +135,25 @@ jobs:
       - uses: snow-actions/sparse-checkout@v1.2.0
         with:
           patterns: v3
-      - name: Restore Webpack Cache
-        id: restore-webpack-cache
-        uses: actions/cache/restore@v4
+      - uses: actions/setup-node@v4
         with:
-          path: v3/.cache/webpack/
-          # this key is different from the build job above because this is a dev build so its
-          # folder in the cache will be different and cached data is also likely different
-          key: webpack-dev-build-${{ hashFiles('v3/webpack.config.js') }}
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: v3/package-lock.json
+      - name: Install Dependencies
+        working-directory: v3
+        run: npm ci
+      - name: Validate Dependencies
+        working-directory: v3
+        run: npm ls @codemirror/state
+#       - name: Restore Webpack Cache
+#         id: restore-webpack-cache
+#         uses: actions/cache/restore@v4
+#         with:
+#           path: v3/.cache/webpack/
+#           # this key is different from the build job above because this is a dev build so its
+#           # folder in the cache will be different and cached data is also likely different
+#           key: webpack-dev-build-${{ hashFiles('v3/webpack.config.js') }}
       - uses: cypress-io/github-action@v6
         with:
           working-directory: v3
