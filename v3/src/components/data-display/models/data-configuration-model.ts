@@ -279,6 +279,16 @@ export const DataConfigurationModel = types
       // The first attribute is always assigned as 'caption'. So it's really no attributes assigned except for that
       return this.attributes.length <= 1
     },
+    /**
+     * Return all cases that are plotted at least once:
+     * - set aside cases in the dataset should be excluded
+     * - cases filtered by the filter formula in the dataset should be excluded
+     * - cases hidden in the visualization should be excluded
+     * - cases filtered by the filter formula in the visualization should be excluded
+     * - cases that do not have valid values for the configured role attribute descriptions. And example is
+     *   when a case has a non-numeric value for a numeric axis. If the case can be shown multiple times,
+     *   all instances have to be invalid for it to be excluded.
+     */
     get visibleCaseIds() {
       const allCaseIds = new Set<string>()
       self.filteredCases.forEach(aFilteredCases => {
@@ -296,6 +306,10 @@ export const DataConfigurationModel = types
       if (!self.dataset) return []
       return Array.from(this.visibleCaseIds).filter(caseId => self.dataset?.isCaseSelected(caseId))
     },
+    /**
+     * This returns an array of the visible cases that are unselected.
+     * If displayOnlySelectedCases is enabled, this will return an empty set.
+     */
     get unselectedCases() {
       if (!self.dataset) return []
       return Array.from(this.visibleCaseIds).filter(caseId => !self.dataset?.isCaseSelected(caseId))
@@ -316,6 +330,11 @@ export const DataConfigurationModel = types
     })
   }))
   .views(self => ({
+    /**
+     * This returns just values which can be converted to numbers for the
+     * attribute of this role. It does not include all cases, see `visibleCaseIds`.
+     * TODO: it seems better if this included unselected cases when displayOnlySelectedCases is enabled
+     */
     numericValuesForAttrRole: cachedFnWithArgsFactory({
       key: (role: AttrRole) => role,
       calculate: (role: AttrRole) => {
@@ -454,33 +473,33 @@ export const DataConfigurationModel = types
   }))
   .views(self => ({
     get legendNumericColorScale() {
-      /**
-       *  Adjust the value range displayed by the legend based on the data configuration model's properties:
-       *  1. If all cases are hidden, the legend displays no range.
-       *  2. If `displayOnlySelectedCases` is true and not all cases are visible, the legend displays the range of all
-       *     cases, both hidden and visible.
-       *  3. Otherwise, the legend displays the range of only the visible cases.
-       *
-       *  TODO: When `displayOnlySelectedCases` is true and all visible cases have the exact same value for the legend
-       *  attribute, the legend should only reflect the values of the case(s) shown.
-       */
+      // TODO: Handle the displayOnlySelectedCases better. What we would like to do is
+      // to basically ignore displayOnlySelectedCases when computing the legend bins.
+      // This way the legend will not jump around when the user is selecting different
+      // cases when in displayOnlySelectedCases mode.
+      // There are several criteria besides displayOnlySelectedCases which impact which
+      // cases are shown on the visualization:
+      // - set aside cases in the dataset should be excluded
+      // - cases filtered by the filter formula in the dataset should be excluded
+      // - cases hidden in the visualization should be excluded
+      // - cases filtered by the filter formula in the visualization should be excluded
+      // - cases that are not plottable on at least one of the plots of the visualization
+      //   should be excluded
+      // All of these criteria are handled by numericValuesForAttrRole("legend") but it also
+      // excludes unselected cases if displayOnlySelectedCases is enabled.
+      // It would make sense for numericValuesForAttrRole to ignore the
+      // displayOnlySelectedCases criteria. It is used here and also to compute the axis extents.
+      // The axes should also not jump around when using displayOnlySelectedCases.
+      // Implementing this is hard because of the last bullet. Handling the "not plottable"
+      // cases is done by the FilteredCases system which is overridden by the
+      // GraphDataConfigurationModel in order to handle graphs with multiple y axes. This
+      // FilterCases system is also what implements displayOnlySelectedCases.
+      // The best solution might be to separate the displayOnlySelectedCases from FilterCases,
+      // perhaps by renaming it PlottableCases and then apply the displayOnlySelectedCases
+      // criteria further up chain of filters.
+      const values = self.numericValuesForAttrRole("legend") ?? []
+
       const legendAttrId = self.attributeID("legend")
-      const allCasesCount = self.dataset?.items.length ?? 0
-      const hiddenCasesCount = self.hiddenCases.length ?? 0
-      const allCasesHidden = hiddenCasesCount === allCasesCount
-
-      // TODO: this code seems like it should be shared with the point rendering
-      // if a point is being rendered then it should be part of the legend scale
-      let values: number[]
-      if (allCasesHidden) {
-        values = []
-      } else if (self.displayOnlySelectedCases && hiddenCasesCount > 0) {
-        const attribute = self.dataset?.attrFromID(legendAttrId)
-        values = attribute?.numValues ?? []
-      } else {
-        values = self.numericValuesForAttrRole("legend") ?? []
-      }
-
       const binningType = self.metadata?.getAttributeBinningType(legendAttrId)
       switch (binningType) {
         case "quantize": {
