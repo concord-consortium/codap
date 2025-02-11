@@ -1,6 +1,6 @@
 import { reaction } from "mobx"
-import { useCallback, useEffect, useRef, useState, MouseEvent } from "react"
-import { DataGridHandle } from "react-data-grid"
+import { useCallback, useEffect, useRef, useState } from "react"
+import { CellMouseEvent, CLEAR_CELL_SELECTION_POSITION, DataGridHandle } from "react-data-grid"
 import { appState } from "../../models/app-state"
 import { isPartialSelectionAction, isSelectionAction } from "../../models/data/data-set-actions"
 import {
@@ -10,8 +10,9 @@ import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { onAnyAction } from "../../utilities/mst-utils"
 import { prf } from "../../utilities/profiler"
+import { kIndexColumnKey } from "../case-tile-common/case-tile-types"
 import {
-  OnScrollClosestRowIntoViewFn, OnScrollRowRangeIntoViewFn, TCellClickArgs
+  kInputRowKey, OnScrollClosestRowIntoViewFn, OnScrollRowRangeIntoViewFn, TCellClickArgs
 } from "./case-table-types"
 import { useCollectionTableModel } from "./use-collection-table-model"
 
@@ -22,7 +23,7 @@ interface UseSelectedRows {
 }
 
 export const useSelectedRows = (props: UseSelectedRows) => {
-  const { onScrollClosestRowIntoView, onScrollRowRangeIntoView } = props
+  const { gridRef, onScrollClosestRowIntoView, onScrollRowRangeIntoView } = props
   const data = useDataSetContext()
   const collectionId = useCollectionContext()
   const collectionTableModel = useCollectionTableModel()
@@ -111,8 +112,24 @@ export const useSelectedRows = (props: UseSelectedRows) => {
   // anchor row for shift-selection
   const anchorCase = useRef<string | null>(null)
 
-  const handleCellClick = useCallback(
-  ({ row: { __id__: caseId } }: TCellClickArgs, event: MouseEvent<HTMLDivElement>) => {
+  const handleCellClick = useCallback((cellClickArgs: TCellClickArgs, event: CellMouseEvent) => {
+    const { column, row: { __id__: caseId }, selectCell } = cellClickArgs
+
+    if (column.key !== kIndexColumnKey) {
+      // prevent the RDG default behavior so we can handle the click ourselves
+      event.preventGridDefault()
+
+      // single click on an input row cell initiates editing immediately
+      if (caseId === kInputRowKey) {
+        selectCell(true)
+        return
+      }
+
+      // single click on a non-input row clears the cell selection...
+      gridRef.current?.selectCell(CLEAR_CELL_SELECTION_POSITION)
+    }
+
+    // ...and selects the entire case (or extends the selection)
     const isCaseSelected = data?.isCaseSelected(caseId)
     const isExtending = event.shiftKey || event.altKey || event.metaKey
     if (event.shiftKey && anchorCase.current) {
@@ -165,7 +182,7 @@ export const useSelectedRows = (props: UseSelectedRows) => {
         caseIds = childCaseIds
       }
     }
-  }, [collectionId, data, onScrollRowRangeIntoView])
+  }, [collectionId, data, gridRef, onScrollRowRangeIntoView])
 
   return { selectedRows, setSelectedRows, handleCellClick }
 }

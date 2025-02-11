@@ -46,11 +46,11 @@ context("codap single smoke test", () => {
     table.getColumnHeaders().should("have.length.be.within", 9, 10)
     table.getColumnHeader(0).invoke("text").then(columnName => {
       // const columnNameArr = columnName.split()
-      table.getColumnHeader(0).rightclick({ force: true })
+      table.getColumnHeader(0).click({ force: true })
       // table.getColumnHeaderTooltip().should("contain", columnNameArr[0])
     })
     table.getColumnHeader(1).invoke("text").then(columnName => {
-      table.getColumnHeader(1).rightclick({ force: true })
+      table.getColumnHeader(1).click({ force: true })
     })
     table.getAttribute("Order").should('be.visible').and("have.text", "Order")
     table.getAttribute("LifeSpan").should('be.visible').and('have.text', 'LifeSpan(years)')
@@ -62,7 +62,7 @@ context("codap single smoke test", () => {
 
     cy.log("verify selecting cases in the table")
     table.getGridCell(2, 2).should("contain", "African Elephant").click()
-    table.getGridCell(2, 2).should('have.attr', 'aria-selected', 'true')
+    table.getGridCell(2, 2).should('have.attr', 'aria-selected', 'false')
     // TODO: Add more thorough checks to make sure graph points and table rows actually
     // change color when selected, once Cypress is configured to interact with the PixiJS canvas.
     // For now, we just check that the buttons in table are enabled upon selection.

@@ -207,6 +207,11 @@ export const TableTileElements = {
   getCell(column: number | string, row: number | string, collectionIndex = 1) {
     return this.getCollection(collectionIndex).find(`[aria-rowindex="${row}"] [aria-colindex="${column}"] .cell-span`)
   },
+  typeInCell(column: number, row: number, text: string, collectionIndex = 1) {
+    this.getGridCell(row, column, collectionIndex).dblclick()
+    cy.wait(100) // Wait for the editing input to appear
+    this.getGridCell(row, column, collectionIndex).find("[data-testid='cell-text-editor']").type(`${text}{enter}`)
+  },
   verifyCellSwatchColor(row: number, column: number, rgbColorStr: string, collection = 1) {
     this.getGridCell(row, column, collection).find(".cell-color-swatch-interior").then($el => {
       return window.getComputedStyle($el[0])
