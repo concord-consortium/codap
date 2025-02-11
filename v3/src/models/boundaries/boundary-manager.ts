@@ -1,9 +1,13 @@
-import { computed, makeObservable, observable } from "mobx"
+import { computed, makeObservable, observable, runInAction } from "mobx"
 import { kBoundariesRootUrl, kBoundariesSpecUrl, BoundaryInfo, isBoundaryInfo } from "./boundary-types"
 
 export class BoundaryManager {
   @observable.shallow
   private boundaryMap = new Map<string, BoundaryInfo>()
+
+  // set to true when the initial boundary specs have been loaded
+  @observable
+  boundariesLoaded = false
 
   // separate observable for remote boundaries for observability
   @observable.shallow
@@ -31,6 +35,10 @@ export class BoundaryManager {
           if (isBoundaryInfo(boundariesSpec)) {
             this.boundaryMap.set(boundariesSpec.name, boundariesSpec)
           }
+        })
+
+        runInAction(() => {
+          this.boundariesLoaded = true
         })
       }
     } catch (error) {

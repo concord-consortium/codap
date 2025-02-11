@@ -1,5 +1,6 @@
 import { EvalFunction } from "mathjs"
 import { DEBUG_FORMULAS, debugLog } from "../../lib/debug"
+import { boundaryManager } from "../boundaries/boundary-manager"
 import { isFormulaAttr, isValidFormulaAttr } from "../data/attribute"
 import { CaseInfo, ICase, IGroupedCase, symParent } from "../data/data-set-types"
 import { IFormula } from "./formula"
@@ -20,6 +21,7 @@ const ATTRIBUTE_FORMULA_ADAPTER = "AttributeFormulaAdapter"
 
 interface IAttrFormulaExtraMetadata extends IFormulaExtraMetadata {
   attributeId: string
+  boundariesLoaded?: boolean
 }
 
 export class AttributeFormulaAdapter extends FormulaManagerAdapter {
@@ -41,7 +43,8 @@ export class AttributeFormulaAdapter extends FormulaManagerAdapter {
             formula: attr.formula,
             extraMetadata: {
               dataSetId: dataSet.id,
-              attributeId: attr.id
+              attributeId: attr.id,
+              boundariesLoaded: boundaryManager.boundariesLoaded
             }
           })
         }

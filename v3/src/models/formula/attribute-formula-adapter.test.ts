@@ -14,7 +14,7 @@ const getTestEnv = () => {
   formula.setCanonicalExpression(formula.display)
   const dataSets = new Map<string, IDataSet>([[dataSet.id, dataSet]])
   const context = { dataSet, formula }
-  const extraMetadata = { dataSetId: dataSet.id, attributeId: attribute.id }
+  const extraMetadata = { dataSetId: dataSet.id, attributeId: attribute.id, boundariesLoaded: false }
   const api = {
     getDatasets: jest.fn(() => dataSets),
     getBoundaryManager: jest.fn(),
