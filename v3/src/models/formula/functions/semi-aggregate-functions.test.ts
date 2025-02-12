@@ -1,10 +1,70 @@
 import { FormulaMathJsScope } from "../formula-mathjs-scope"
-import { evaluate, evaluateForAllCases, getFormulaTestEnv } from "../test-utils/formula-test-utils"
-import { math } from "./math"
-import { getDisplayNameMap } from "../utils/name-mapping-utils"
+import {
+  evaluate, evaluateForAllCases, getFormulaTestEnv, IEvaluateForAllCasesOptions
+} from "../test-utils/formula-test-utils"
 import { displayToCanonical } from "../utils/canonicalization-utils"
+import { getDisplayNameMap } from "../utils/name-mapping-utils"
+import { math } from "./math"
 
 describe("semiAggregateFunctions", () => {
+
+  const dietSplitOptions: IEvaluateForAllCasesOptions = {
+    amendContext: data => {
+      // Move the Diet attribute to a new collection so that we can test grouping
+      data.moveAttributeToNewCollection(data.getAttributeByName("Diet")!.id)
+      data.validateCases()
+
+      const caseGroupId: Record<string, string> = {}
+      data.itemIds.forEach(id => {
+        const itemCaseIds = data.itemInfoMap.get(id)?.caseIds
+        const parentCaseId =  itemCaseIds ? itemCaseIds[0] : ""
+        if (parentCaseId) {
+          caseGroupId[id] = parentCaseId
+        }
+      })
+      return {
+        caseGroupId,
+        childMostAggregateCollectionIndex: 1
+      }
+    }
+  }
+
+  describe("first", () => {
+    it("should return the first value", () => {
+      expect(evaluateForAllCases("first(LifeSpan)"))
+        .toEqual([70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70,
+                  70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70])
+      expect(evaluateForAllCases("first(LifeSpan, Diet = 'both')"))
+        .toEqual([40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
+                  40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40])
+      // Note that the values are returned in original item order, not grouped by Diet
+      expect(evaluateForAllCases("first(LifeSpan)", dietSplitOptions))
+        .toEqual([70, 70, 19, 19, 19, 40, 19, 70, 70, 19, 19, 40, 70, 40,
+                  40, 19, 19, 19, 40, 19, 40, 40, 40, 70, 70, 40, 19])
+      expect(evaluateForAllCases("first(LifeSpan, not includes(Order, 'e'))", dietSplitOptions))
+        .toEqual([25, 25, 14, 14, 14, 10, 14, 25, 25, 14, 14, 10, 25, 10,
+                  10, 14, 14, 14, 10, 14, 10, 10, 10, 25, 25, 10, 14])
+    })
+  })
+
+  describe("last", () => {
+    it("should returns the last value", () => {
+      expect(evaluateForAllCases("last(LifeSpan)"))
+        .toEqual([25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25,
+                  25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25])
+      expect(evaluateForAllCases("last(LifeSpan, Diet = 'both')"))
+        .toEqual([7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
+                  7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7])
+      // Note that the values are returned in original item order, not grouped by Diet
+      expect(evaluateForAllCases("last(LifeSpan)", dietSplitOptions))
+        .toEqual([5, 5, 25, 25, 25, 7, 25, 5, 5, 25, 25, 7, 5, 7,
+                  7, 25, 25, 25, 7, 25, 7, 7, 7, 5, 5, 7, 25])
+      expect(evaluateForAllCases("last(LifeSpan, includes(Order, 'e'))", dietSplitOptions))
+        .toEqual([25, 25, 10, 10, 10, 20, 10, 25, 25, 10, 10, 20, 25, 20,
+                  20, 10, 10, 10, 20, 10, 20, 20, 20, 25, 25, 20, 10])
+    })
+  })
+
   describe("prev", () => {
     it("should returns the prev value", () => {
       expect(evaluate("prev(LifeSpan)", 0)).toBe("")
@@ -37,7 +97,8 @@ describe("semiAggregateFunctions", () => {
 
     it("supports self reference and recursion", () => {
       // Fibonacci sequence
-      expect(evaluateForAllCases("prev(LifeSpan, 1) + prev(prev(LifeSpan, 0))", "LifeSpan")).toEqual([
+      const options = { formulaAttrName: "LifeSpan" }
+      expect(evaluateForAllCases("prev(LifeSpan, 1) + prev(prev(LifeSpan, 0))", options)).toEqual([
         1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597, 2584, 4181, 6765, 10946, 17711, 28657,
         46368, 75025, 121393, 196418
       ])

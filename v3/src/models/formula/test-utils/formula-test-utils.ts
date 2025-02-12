@@ -1,9 +1,10 @@
 import { boundaryManager } from "../../boundaries/boundary-manager"
 import { createCodapDocument } from "../../codap/create-codap-document"
+import { IDataSet } from "../../data/data-set"
+import { getGlobalValueManager } from "../../global/global-value-manager"
 import { getSharedDataSets } from "../../shared/shared-data-utils"
 import { getSharedModelManager } from "../../tiles/tile-environment"
-import { getGlobalValueManager } from "../../global/global-value-manager"
-import { FormulaMathJsScope } from "../formula-mathjs-scope"
+import { FormulaMathJsScope, IFormulaMathjsScopeContext } from "../formula-mathjs-scope"
 import { math } from "../functions/math"
 import { displayToCanonical } from "../utils/canonicalization-utils"
 import { getDisplayNameMap } from "../utils/name-mapping-utils"
@@ -75,11 +76,22 @@ export const evaluate = (displayFormula: string, casePointer?: number) => {
   return math.evaluate(formula, scope)
 }
 
-export const evaluateForAllCases = (displayFormula: string, formulaAttrName?: string) => {
+export interface IEvaluateForAllCasesOptions {
+  formulaAttrName?: string
+  // can modify the data set and return additional context to be passed to the scope
+  amendContext?: (data: IDataSet) => Partial<IFormulaMathjsScopeContext>
+}
+
+export const evaluateForAllCases = (displayFormula: string, options?: IEvaluateForAllCasesOptions) => {
+  const { formulaAttrName, amendContext } = options || {}
   const { dataSetsByName, dataSets, globalValueManager } = getFormulaTestEnv()
   const localDataSet = dataSetsByName.Mammals
+  const amendments = amendContext?.(localDataSet)
   const caseIds = localDataSet.items.map(c => c.__id__)
   const formulaAttrId = formulaAttrName ? localDataSet.attrIDFromName(formulaAttrName) : undefined
+  const formulaCollectionIndex = formulaAttrId
+                                  ? localDataSet.getCollectionIndexForAttribute(formulaAttrId)
+                                  : undefined
   const scope = new FormulaMathJsScope({
     localDataSet,
     dataSets,
@@ -87,7 +99,9 @@ export const evaluateForAllCases = (displayFormula: string, formulaAttrName?: st
     globalValueManager,
     caseIds,
     childMostCollectionCaseIds: caseIds,
-    formulaAttrId
+    formulaAttrId,
+    formulaCollectionIndex,
+    ...amendments
   })
 
   const displayNameMap = getDisplayNameMap({
