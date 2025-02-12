@@ -42,14 +42,6 @@ export function ColumnHeader(props: TRenderHeaderCellProps) {
     cellElt?.setAttribute("aria-selected", "false")
   }, [cellElt])
 
-  if (props.column.idx === 0) {
-    return (
-      <div className="codap-column-header-content index-column">
-        <span>index</span>
-      </div>
-    )
-  }
-
   return <AttributeHeader attributeId={props.column.key}
             allowTwoLines={true}
             getDividerBounds={getDividerBounds}

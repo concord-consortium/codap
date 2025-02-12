@@ -4,18 +4,19 @@ import { autorun } from "mobx"
 import { observer } from "mobx-react-lite"
 import React, { useEffect, useMemo, useRef, useState } from "react"
 import { clsx } from "clsx"
+import { useAdjustHeaderForOverflow } from "../../hooks/use-adjust-header-overflow"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { IUseDraggableAttribute, useDraggableAttribute } from "../../hooks/use-drag-drop"
 import { useInstanceIdContext } from "../../hooks/use-instance-id-context"
+import { useOutsidePointerDown } from "../../hooks/use-outside-pointer-down"
 import { updateAttributesNotification } from "../../models/data/data-set-notifications"
 import { uiState } from "../../models/ui-state"
 import { uniqueName } from "../../utilities/js-utils"
+import { t } from "../../utilities/translation/translate"
 import { AttributeMenuList } from "./attribute-menu/attribute-menu-list"
 import { CaseTilePortal } from "./case-tile-portal"
 import { GetDividerBoundsFn, IDividerProps, kIndexColumnKey } from "./case-tile-types"
 import { useParentChildFocusRedirect } from "./use-parent-child-focus-redirect"
-import { useAdjustHeaderForOverflow } from "../../hooks/use-adjust-header-overflow"
-import { useOutsidePointerDown } from "../../hooks/use-outside-pointer-down"
 
 interface IProps {
   attributeId: string
@@ -218,7 +219,7 @@ export const AttributeHeader = observer(function AttributeHeader({
             <div className="codap-column-header-content" ref={setHeaderContentRef} {...attributes} {...listeners}
             data-testid="codap-column-header-content">
               { attributeId === kIndexColumnKey
-                ? null
+                ? <span>{t("DG.CaseTable.indexColumnName")}</span>
                 : editingAttrId
                   ? <Input ref={inputRef} value={editingAttrName} data-testid="column-name-input"
                             className="column-name-input" size="xs"
