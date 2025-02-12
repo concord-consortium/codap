@@ -37,12 +37,12 @@ context("case table ui", () => {
       table.getColumnHeaders().should("have.length.be.within", 9, 10)
       table.getColumnHeader(0).invoke("text").then(columnName => {
         // const columnNameArr = columnName.split()
-        table.getColumnHeader(0).rightclick({ force: true })
+        table.getColumnHeader(0).click({ force: true })
         // table.getColumnHeaderTooltip().should("contain", columnNameArr[0])
       })
       table.getColumnHeader(1).invoke("text").then(columnName => {
         // const columnNameArr = columnName.split(" ")
-        table.getColumnHeader(1).rightclick({ force: true })
+        table.getColumnHeader(1).click({ force: true })
         // table.getColumnHeaderTooltip().should("contain", columnNameArr[0])
       })
     })
@@ -738,7 +738,7 @@ context("case table ui", () => {
     it("verify insert 1 case at the bottom using input row", () => {
       table.getCaseTableGrid().scrollTo("bottom")
       table.getNumOfRows().should("equal", numOfCases)
-      table.getGridCell(lastRowIndex + 1, 2).dblclick()
+      table.getGridCell(lastRowIndex + 1, 2).click()
       table.getGridCell(lastRowIndex + 1, 2).find("input").type("Sloth{enter}")
       table.getNumOfRows().should("equal", `${Number(numOfCases) + 1}`)
     })
