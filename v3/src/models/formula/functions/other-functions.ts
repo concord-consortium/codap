@@ -28,8 +28,19 @@ export const otherFunctions: Record<string, IFormulaMathjsFunction> = {
   random: {
     numOfRequiredArguments: 0,
     isRandomFunction: true,
-    // Nothing to do here, Random.float() has exactly the same signature as CODAP V2 random() function.
-    evaluate: (...args: FValue[]) => randomGen.float(...args.map(arg => Number(arg)))
+    evaluate: (...args: FValue[]) => {
+      const [minOrMax, _max] = args
+      let min = 0
+      let max = 1
+      if (_max != null) {
+        min = Number(minOrMax)
+        max = Number(_max)
+      }
+      else if (minOrMax != null) {
+        max = Number(minOrMax)
+      }
+      return randomGen.float(min, max)
+    }
   },
 
   // randomNormal(mean, standard_deviation) Returns a random number drawn from a normal distribution which, by default,
