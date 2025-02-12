@@ -1,9 +1,8 @@
 import React, {useCallback, useEffect, useRef, useState} from "react"
-import {autorun} from "mobx"
 import { observer } from "mobx-react-lite"
 import {drag, select, Selection} from "d3"
 import {useInstanceIdContext} from "../../../../hooks/use-instance-id-context"
-import { LogMessageFn, logModelChangeFn } from "../../../../lib/log-message"
+import { LogMessageFn, logMessageWithReplacement, logModelChangeFn } from "../../../../lib/log-message"
 import { mstAutorun } from "../../../../utilities/mst-autorun"
 import { safeGetSnapshot } from "../../../../utilities/mst-utils"
 import { useAdornmentAttributes } from "../../hooks/use-adornment-attributes"
@@ -53,7 +52,6 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
   const graphModel = useGraphContentModelContext()
   const dataConfig = useGraphDataConfigurationContext()
   const layout = useGraphLayoutContext()
-  const showSumSquares = graphModel?.adornmentsStore.showSquaresOfResiduals
   const instanceId = useInstanceIdContext()
   const adornmentsStore = graphModel.adornmentsStore
   const { xAttrId, xAttrName, yAttrId, yAttrName, xScale, yScale } = useAdornmentAttributes()
@@ -79,18 +77,23 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
   xScaleRef.current.range([0, plotWidth])
   yScaleRef.current.range([plotHeight, 0])
 
-  const refreshEquation = useCallback((slope: number, intercept: number) => {
-    const lineInstance = model.lines.get(instanceKey)
-    const screenX = xScaleRef.current((pointsOnAxes.current.pt1.x + pointsOnAxes.current.pt2.x) / 2) / xSubAxesCount
-    const screenY = yScaleRef.current((pointsOnAxes.current.pt1.y + pointsOnAxes.current.pt2.y) / 2) / ySubAxesCount
+  const getEquationString = useCallback((slope: number, intercept: number, type: "display" | "log") => {
     const attrNames = {x: xAttrName, y: yAttrName}
     const xUnits = dataConfig?.dataset?.getAttribute(xAttrId)?.units
     const yUnits = dataConfig?.dataset?.getAttribute(yAttrId)?.units
     const units = {x: xUnits, y: yUnits}
-    const sumOfSquares = dataConfig && showSumSquares
+    // compute sum of squares for display but not for logging
+    const sumOfSquares = type === "display" && dataConfig && graphModel?.adornmentsStore.showSquaresOfResiduals
       ? calculateSumOfSquares({ cellKey, dataConfig, computeY: (x) => intercept + slope * x })
       : undefined
-    const string = equationString({slope, intercept, attrNames, units, sumOfSquares, layout})
+    return equationString({slope, intercept, attrNames, units, sumOfSquares, layout})
+  }, [cellKey, dataConfig, graphModel, layout, xAttrId, xAttrName, yAttrId, yAttrName])
+
+  const refreshEquation = useCallback((slope: number, intercept: number) => {
+    const lineInstance = model.lines.get(instanceKey)
+    const screenX = xScaleRef.current((pointsOnAxes.current.pt1.x + pointsOnAxes.current.pt2.x) / 2) / xSubAxesCount
+    const screenY = yScaleRef.current((pointsOnAxes.current.pt1.y + pointsOnAxes.current.pt2.y) / 2) / ySubAxesCount
+    const string = getEquationString(slope, intercept, "display")
     const equation = select<HTMLDivElement, unknown>(equationContainerSelector).select<HTMLParagraphElement>("p")
 
     select(equationContainerSelector)
@@ -117,8 +120,8 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
       equation.style("left", `${labelPos.left}px`)
               .style("top", `${labelPos.top}px`)
     }
-  }, [cellKey, dataConfig, equationContainerSelector, instanceKey, layout, model.lines, plotHeight, plotWidth,
-      showSumSquares, xAttrId, xAttrName, xSubAxesCount, yAttrId, yAttrName, ySubAxesCount])
+  }, [equationContainerSelector, getEquationString, instanceKey, model, plotHeight, plotWidth,
+      xSubAxesCount, ySubAxesCount])
 
   const breakPointCoords = useCallback((
     pixelPtsOnAxes: IPointsOnAxes, breakPointNum: number, _interceptLocked: boolean
@@ -217,12 +220,19 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
     // We don't want to save the values with every move of the line, but we do need to make the current values
     // available to other clients of the model via the volatile props.
     if (isFinished) {
-      const equationCoords = lineParams?.equationCoords
-      model.setLine({slope, intercept: newIntercept, equationCoords}, instanceKey)
+      const equation = getEquationString(slope, newIntercept, "log")
+      model.applyModelChange(() => {
+        const equationCoords = lineParams?.equationCoords
+        model.setLine({slope, intercept: newIntercept, equationCoords}, instanceKey)
+      }, {
+        log: logMessageWithReplacement("dragMovableLine: '%@'", {equation}, "plot"),
+        undoStringKey: "V3.Undo.graph.adjustMovableLine",
+        redoStringKey: "V3.Redo.graph.adjustMovableLine"
+      })
     } else {
       model.setVolatileLine({intercept: newIntercept, slope}, instanceKey)
     }
-  }, [instanceKey, interceptLocked, model, refreshEquation, updateLine, xAxis, yAxis])
+  }, [getEquationString, instanceKey, interceptLocked, model, refreshEquation, updateLine, xAxis, yAxis])
 
   const newSlopeAndIntercept = useCallback((
     pivot: Point, mousePosition: Point, lineSection: string, isVertical: boolean
@@ -295,22 +305,26 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
       // We don't want to save the values with every move of the line, but we do need to make the current values
       // available to other clients of the model via the volatile props.
       if (isFinished) {
-        model.setLine(
-          {
+        const equation = getEquationString(newSlope, newIntercept, "log")
+        model.applyModelChange(() => {
+          model.setLine({
             slope: newSlope,
             intercept: newIntercept,
             pivot1: lineSection === "lower" ? mousePosition : lineParams.pivot1,
             pivot2: lineSection === "lower" ? lineParams.pivot2 : mousePosition,
             equationCoords,
-          },
-          instanceKey
-        )
+          }, instanceKey)
+        }, {
+          log: logMessageWithReplacement("dragMovableLine: '%@'", {equation}, "plot"),
+          undoStringKey: "V3.Undo.graph.adjustMovableLine",
+          redoStringKey: "V3.Redo.graph.adjustMovableLine"
+        })
       } else {
         model.setVolatileLine({intercept: newIntercept, slope: newSlope}, instanceKey)
       }
     }
-  }, [model, instanceKey, interceptLocked, newSlopeAndIntercept, lineObject.lower, lineObject.upper, xAxis,
-      yAxis, updateLine, refreshEquation])
+  }, [getEquationString, instanceKey, interceptLocked, lineObject, model,
+      newSlopeAndIntercept, refreshEquation, updateLine, xAxis, yAxis])
 
   const handleMoveEquation = useCallback((
     event: { x: number, y: number, dx: number, dy: number },
@@ -334,7 +348,7 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
           // compute proportional position of center of label within container
           const x = (left + equationBounds.width / 2) / containerBounds.width
           const y = (top + equationBounds.height / 2) / containerBounds.height
-          graphModel.applyModelChange(
+          model.applyModelChange(
             () => lineInstance?.setEquationCoords({ x, y }),
             {
               undoStringKey: "DG.Undo.graph.repositionEquation",
@@ -345,11 +359,11 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
         }
       }
     }
-  }, [equationContainerSelector, graphModel, instanceKey, model.lines])
+  }, [equationContainerSelector, instanceKey, model])
 
   // Refresh the line
   useEffect(function refresh() {
-    const disposer = autorun(() => {
+    return mstAutorun(() => {
       const lineModel = model.lines.get(instanceKey)
       if (!lineObject.line || !lineModel) return
 
@@ -359,8 +373,7 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
       pointsOnAxes.current = lineToAxisIntercepts(slope, intercept, xDomain, yDomain)
       updateLine()
       refreshEquation(slope, intercept)
-    })
-    return () => disposer()
+    }, { name: "MovableLineAdornmentComponent.refreshLine" }, model)
   }, [instanceId, interceptLocked, pointsOnAxes, lineObject, plotHeight, plotWidth, model,
       model.lines, xAttrName, xSubAxesCount, xAxis, yAttrName, ySubAxesCount, yAxis, xRange,
       yRange, equationContainerSelector, cellKey, instanceKey, updateLine, refreshEquation])

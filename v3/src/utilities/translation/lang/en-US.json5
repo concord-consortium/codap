@@ -14,6 +14,8 @@
     "V3.Redo.graph.hideAllCases": "Redo hiding all cases",
     "V3.Undo.graph.showAllCases": "Undo showing all cases",
     "V3.Redo.graph.showAllCases": "Redo showing all cases",
+    "V3.Undo.graph.adjustMovableLine": "Undo adjusting movable line",
+    "V3.Redo.graph.adjustMovableLine": "Redo adjusting movable line",
     "V3.Undo.graph.showLastParentOnly": "Undo showing only last parent case",
     "V3.Redo.graph.showLastParentOnly": "Redo showing only last parent case",
     "V3.Undo.graph.uncheckLastParentOnly": "Undo unchecking \"Last\" checkbox",
