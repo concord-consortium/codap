@@ -235,12 +235,9 @@ interface ICodapV2LegacyValueModel {
   value: number
 }
 
-// TODO_V2_IMPORT: enableMeasuresForSelection is not imported
-// There are 1,600 files in cfm-shared that have it set to true
-// It can be set in various places within a v2 document
-
 export interface ICodapV2Adornment {
   isVisible: boolean
+  // graph-wide property that v2 writes out with every adornment _and_ at the graph level
   enableMeasuresForSelection?: boolean
 }
 
@@ -266,8 +263,6 @@ interface _ICodapV2MovableValueAdornment extends ICodapV2Adornment {
 type ICodapV2MovableValueAdornment = RequireExactlyOne<_ICodapV2MovableValueAdornment, "values" | "valueModels">
 
 export interface ICodapV2UnivariateAdornment extends ICodapV2Adornment {
-  // TODO_V2_IMPORT: there are 267 instances in cfm-shared where
-  // the equationCoordsArray has items with the type of ICodapV2ProportionCenterEquationCoords
   equationCoordsArray?: (ICodapV2ProportionCoordinates | ICodapV2ProportionCenterEquationCoords | null)[]
 }
 
@@ -356,11 +351,51 @@ export interface ICodapV2MultipleLSRLAdornments extends ICodapV2Adornment {
   lsrls?: ICodapV2LSRLInstance[]
 }
 
-export interface ICodapV2PlotStorage {
+export interface ICodapV2PlotStorageBase {
   // TODO_V2_IMPORT: verticalAxisIsY2 is not imported
   // it is true 2,859 times in cfm-shared
   verticalAxisIsY2?: boolean
   adornments?: ICodapV2SimpleAdornmentsMap
+  showMeasureLabels?: boolean
+}
+
+export interface ICodapV2BarChartStorage extends ICodapV2PlotStorageBase {
+  // TODO_V2_IMPORT breakdownType is not imported
+  // it occurs 9,056 times in cfm-shared
+  // 5,825 times its value is 0
+  // 3,231 times its value is 1
+  // For non-computed bar charts, whether to show count (0) or percent (1)
+  breakdownType?: number
+}
+
+export interface ICodapV2ComputedBarChartStorage extends ICodapV2BarChartStorage {
+  // TODO_V2_IMPORT computed bar chart expression for height of bar
+  // expression at this level existed in a single file of 6,000 checked
+  // in cfm-shared. It is unknown how many times it occurs in all of
+  // of cfm-shared
+  expression?: string
+}
+
+export interface ICodapV2BinnedPlotStorage extends ICodapV2PlotStorageBase {
+  // TODO_V2_IMPORT width is not imported
+  // unknown how many times it occurs in cfm-shared
+  // For binned dot plot, width of bins
+  width?: number
+  // TODO_V2_IMPORT alignment is not imported
+  // it occurs 8,363 times in cfm-shared
+  // For binned dot plot, alignment of bins
+  alignment?: number
+  // TODO_V2_IMPORT dotsAreFused is not imported
+  // it occurs 8,363 times in cfm-shared
+  // For binned dot plot, true for histogram, false for dot plot
+  dotsAreFused?: boolean
+  // TODO_V2_IMPORT totalNumberOfBins is not imported
+  // it occurs 8,299 times in cfm-shared
+  // For binned dot plot, number of bins required to contain the data; computable from data
+  totalNumberOfBins?: number
+}
+
+export interface ICodapV2ScatterPlotStorage extends ICodapV2PlotStorageBase {
   areSquaresVisible?: boolean
   isLSRLVisible?: boolean
   // lsrLineStorage is presumably a legacy format that predates multipleLSRLsStorage
@@ -369,33 +404,44 @@ export interface ICodapV2PlotStorage {
   movableLineStorage?: ICodapV2MovableLineAdornment
   movablePointStorage?: ICodapV2MovablePointAdornment
   multipleLSRLsStorage?: ICodapV2MultipleLSRLAdornments
-  showMeasureLabels?: boolean
-  // TODO_V2_IMPORT breakdownType is not imported
-  // it occurs 9,056 times in cfm-shared
-  // 5,825 times its value is 0
-  // 3,231 times its value is 1
-  breakdownType?: number
-  // TODO_V2_IMPORT plotModels[].width is not imported
-  // unknown how many times it occurs in cfm-shared
-  width?: number
-  // TODO_V2_IMPORT alignment is not imported
-  // it occurs 8,363 times in cfm-shared
-  alignment?: number
-  // TODO_V2_IMPORT dotsAreFused is not imported
-  // it occurs 8,363 times in cfm-shared
-  dotsAreFused?: boolean
-  // TODO_V2_IMPORT totalNumberOfBins is not imported
-  // it occurs 8,299 times in cfm-shared
-  totalNumberOfBins?: number
-  // expression at this level existed in a single file of 6,000 checked
-  // in cfm-shared. It is unknown how many times it occurs in all of
-  // of cfm-shared
-  expression?: string
 }
 
-export interface ICodapV2PlotModel {
+export interface ICodapV2PlotModelBase {
   plotClass: string
-  plotModelStorage: ICodapV2PlotStorage
+  plotModelStorage: ICodapV2PlotStorageBase
+}
+
+interface ICodapV2PlotModelType<
+  TClass extends string, TStorage extends ICodapV2PlotStorageBase> extends ICodapV2PlotModelBase {
+  plotClass: TClass
+  plotModelStorage: TStorage
+}
+
+export type ICodapV2BarChartModel = ICodapV2PlotModelType<"DG.BarChartModel", ICodapV2BarChartStorage>
+export type ICodapV2BinnedPlotModel = ICodapV2PlotModelType<"DG.BinnedPlotModel", ICodapV2BinnedPlotStorage>
+export type ICodapV2CasePlotModel = ICodapV2PlotModelType<"DG.CasePlotModel", ICodapV2PlotStorageBase>
+export type ICodapV2ComputedBarChartModel =
+  ICodapV2PlotModelType<"DG.ComputedBarChartModel", ICodapV2ComputedBarChartStorage>
+export type ICodapV2DotChartModel = ICodapV2PlotModelType<"DG.DotChartModel", ICodapV2PlotStorageBase>
+export type ICodapV2DotPlotModel = ICodapV2PlotModelType<"DG.DotPlotModel", ICodapV2PlotStorageBase>
+// for dot plots showing a bar for each point
+export type ICodapV2LinePlotModel = ICodapV2PlotModelType<"DG.LinePlotModel", ICodapV2PlotStorageBase>
+export type ICodapV2ScatterPlotModel = ICodapV2PlotModelType<"DG.ScatterPlotModel", ICodapV2ScatterPlotStorage>
+
+export type ICodapV2PlotModel =
+  | ICodapV2BarChartModel
+  | ICodapV2BinnedPlotModel
+  | ICodapV2CasePlotModel
+  | ICodapV2ComputedBarChartModel
+  | ICodapV2DotChartModel
+  | ICodapV2DotPlotModel
+  | ICodapV2LinePlotModel
+  | ICodapV2ScatterPlotModel
+
+export type CodapV2PlotType = ICodapV2PlotModel["plotClass"]
+
+export function isV2ScatterPlotModel(plotModel: ICodapV2PlotModel): plotModel is ICodapV2ScatterPlotModel {
+  return plotModel.plotClass === "DG.ScatterPlotModel"
 }
 
 export interface ICodapV2GraphBackgroundLockInfo {
@@ -487,8 +533,6 @@ export interface ICodapV2GraphStorage extends ICodapV2BaseComponentStorage {
   // it must be optional based on the results for enableNumberToggle
   numberToggleLastMode?: boolean
 
-  // See global `enableMeasuresForSelection` note
-  // it is unknown how many times this property occurs in this location
   // `enableMeasuresForSelection` is a graph-wide property, so storing it here is perfectly reasonable.
   // For implementation reasons, it is communicated to every adornment independently, where it is then
   // stored redundantly in the adornment's storage. All of the values of the `enableMeasuresForSelection`

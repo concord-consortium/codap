@@ -1,4 +1,4 @@
-import { ICodapV2PlotStorage, ICodapV2SimpleAdornmentsMap } from "../../../v2/codap-v2-types"
+import { ICodapV2ScatterPlotStorage, ICodapV2SimpleAdornmentsMap } from "../../../v2/codap-v2-types"
 import { AttrRole } from "../../data-display/data-display-types"
 import { PlotType } from "../graphing-types"
 import { AdornmentModel, IAdornmentModel } from "./adornment-models"
@@ -30,14 +30,14 @@ export interface IAdornmentExporterOptions {
 // In v2, some adornments are stored under `adornments` and some are stored at the top level of the plot storage.
 // The exporter is allowed to return either a set of top-level properties or a property under `adornments`, and
 // the caller will put the returned properties in the right place.
-type ICodapV2TopLevelAdornments = Pick<ICodapV2PlotStorage, "areSquaresVisible" | "isLSRLVisible" | "lsrLineStorage" |
-                                        "movableLineStorage" | "movablePointStorage" | "multipleLSRLsStorage">
-export function isCodapV2TopLevelAdornment(adornment: unknown): adornment is ICodapV2TopLevelAdornments {
+type ICodapV2ScatterPlotAdornments = Pick<ICodapV2ScatterPlotStorage, "areSquaresVisible" | "isLSRLVisible" |
+  "lsrLineStorage" | "movableLineStorage" | "movablePointStorage" | "multipleLSRLsStorage">
+export function isCodapV2TopLevelAdornment(adornment: unknown): adornment is ICodapV2ScatterPlotAdornments {
   return adornment != null && typeof adornment === "object" &&
     ("areSquaresVisible" in adornment || "isLSRLVisible" in adornment || "lsrLineStorage" in adornment ||
     "movableLineStorage" in adornment || "movablePointStorage" in adornment || "multipleLSRLsStorage" in adornment)
 }
-type V2AdornmentExportResult = ICodapV2TopLevelAdornments | ICodapV2SimpleAdornmentsMap
+type V2AdornmentExportResult = ICodapV2ScatterPlotAdornments | ICodapV2SimpleAdornmentsMap
 
 export interface IAdornmentContentInfo {
   modelClass: typeof AdornmentModel
@@ -52,6 +52,8 @@ export interface IAdornmentContentInfo {
 export function exportAdornmentBase(model: IAdornmentModel, options: IAdornmentExporterOptions) {
   return {
     isVisible: options.isVisible ?? model.isVisible,
+    // In v2, `enableMeasuresForSelection` is written out for every adornment,
+    // even though it's a graph-wide property that is the same for all of them.
     enableMeasuresForSelection: options.showMeasuresForSelection
   }
 }

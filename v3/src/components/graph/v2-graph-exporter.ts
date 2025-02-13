@@ -4,7 +4,7 @@ import { AttributeType } from "../../models/data/attribute-types"
 import { toV2Id } from "../../utilities/codap-utils"
 import { defaultBackgroundColor, removeAlphaFromColor } from "../../utilities/color-utils"
 import { V2TileExportFn } from "../../v2/codap-v2-tile-exporters"
-import { guidLink, ICodapV2Adornment, ICodapV2GraphStorage, IGuidLink } from "../../v2/codap-v2-types"
+import { CodapV2PlotType, guidLink, ICodapV2Adornment, ICodapV2GraphStorage, IGuidLink } from "../../v2/codap-v2-types"
 import { IAxisModel, isNumericAxisModel } from "../axis/models/axis-model"
 import { GraphAttrRole } from "../data-display/data-display-types"
 import {
@@ -42,7 +42,7 @@ const v2Roles: Record<string, number> = {
   // eHorizontalSplit: 8     // for attribute in place DG.GraphTypes.EPlace.eRightSplit
 }
 
-const v2PlotClass: Record<PlotType, string> = {
+const v2PlotClass: Record<PlotType, CodapV2PlotType> = {
   casePlot: "DG.CasePlotModel",
   dotPlot: "DG.DotPlotModel",
   dotChart: "DG.DotChartModel",
@@ -176,8 +176,6 @@ function getPlotModels(graph: IGraphContentModel): Partial<ICodapV2GraphStorage>
   }
   const adornmentStorages = graph.adornmentsStore.adornments.map(adornment => {
     const adornmentInfo = getAdornmentContentInfo(adornment.type)
-    // In v2, `enableMeasuresForSelection` is written out for every adornment,
-    // even though it's a graph-wide property that is the same for all of them.
     return adornmentInfo.exporter?.(adornment, options)
   })
   // `connectingLine` is represented as an adornment in v2, but as a graph-wide property in v3
