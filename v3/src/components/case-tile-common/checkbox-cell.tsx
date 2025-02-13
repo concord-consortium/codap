@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from "react"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { FValue } from "../../models/formula/formula-types"
-import { updateCasesNotificationFromIds } from "../../models/data/data-set-notifications"
+import { applyCaseValueChanges } from "./case-tile-utils"
 
 export const isBoolean = (value: FValue | undefined) => {
   let v = value
@@ -35,14 +35,8 @@ export function CheckboxCell ({ caseId, attrId }: ICheckboxCellProps) {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.checked
-    data?.applyModelChange(() => {
-      data.setCaseValues([{ __id__: caseId, [attrId]: newValue }])
-    }, {
-      notify: () => updateCasesNotificationFromIds(data, [caseId]),
-      undoStringKey: "DG.Undo.caseTable.editCellValue",
-      redoStringKey: "DG.Redo.caseTable.editCellValue",
-      log: `update checkbox case: ${caseId} state: ${attrId} to ${newValue ? "checked" : "unchecked"}`
-    })
+    const log = {message: `update checkbox case: ${caseId} state: ${attrId} to ${newValue ? "checked" : "unchecked"}`}
+    data && applyCaseValueChanges(data, [{ __id__: caseId, [attrId]: newValue }], log)
   }
   // title is used to show the value of the cell when hovering over the checkbox
   // When checkbox is in the indeterminate state, we want the tooltip to show "undefined"
