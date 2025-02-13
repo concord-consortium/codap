@@ -34,6 +34,7 @@ export const DataDisplayContentModel = TileContentModel
     pointDescription: types.optional(DisplayItemDescriptionModel, () => DisplayItemDescriptionModel.create()),
     pointDisplayType: types.optional(types.enumeration([...PointDisplayTypes]), "points"),
     plotBackgroundColor: defaultBackgroundColor,
+    plotBackgroundOpacity: 1,
     isTransparent: false,
   })
   .volatile(() => ({

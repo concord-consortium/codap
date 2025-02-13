@@ -1,5 +1,6 @@
 import {ITileModelSnapshotIn} from "../../models/tiles/tile-model"
 import {toV3Id} from "../../utilities/codap-utils"
+import {defaultBackgroundColor, parseColorToHex} from "../../utilities/color-utils"
 import {V2TileImportArgs} from "../../v2/codap-v2-tile-importers"
 import {IGuidLink, isV2GraphComponent} from "../../v2/codap-v2-types"
 import {v3TypeFromV2TypeIndex} from "../../v2/codap-v2-data-set-types"
@@ -14,7 +15,6 @@ import {GraphAttributeDescriptionsMapSnapshot, IAttributeDescriptionSnapshot}
 import {AxisPlace} from "../axis/axis-types"
 import {IAxisModelSnapshotUnion} from "../axis/models/axis-model"
 import {v2AdornmentImporter} from "./adornments/v2-adornment-importer"
-import {defaultBackgroundColor} from "../../utilities/color-utils"
 
 const attrKeys = ["x", "y", "y2", "legend", "top", "right"] as const
 type AttrKey = typeof attrKeys[number]
@@ -45,19 +45,21 @@ export function v2GraphImporter({v2Component, v2Document, sharedModelManager, in
     componentStorage: {
       name, title = "", _links_: links, plotModels,
 
-      pointColor, strokeColor, pointSizeMultiplier,
+      pointColor, transparency, strokeColor, strokeTransparency, pointSizeMultiplier,
       strokeSameAsFill, isTransparent,
       plotBackgroundImageLockInfo,
   /* TODO_V2_IMPORT: [Story: #188694812]
       The following are present in the componentStorage but not used in the V3 content model (yet):
       displayOnlySelected, legendRole, legendAttributeType, numberOfLegendQuantiles,
-      legendQuantilesAreLocked, plotBackgroundImage, transparency, strokeTransparency,
-      plotBackgroundOpacity,
+      legendQuantilesAreLocked, plotBackgroundImage, plotBackgroundOpacity,
   */
     }
   } = v2Component
-  const plotBackgroundColor: string | null | undefined = v2Component.componentStorage.plotBackgroundColor ||
-    defaultBackgroundColor
+  const plotBackgroundOpacity = v2Component.componentStorage.plotBackgroundOpacity ?? 1
+  const plotBackgroundColor =
+            (v2Component.componentStorage.plotBackgroundColor &&
+                parseColorToHex(v2Component.componentStorage.plotBackgroundColor, {alpha: plotBackgroundOpacity})) ||
+            defaultBackgroundColor
   type TLinksKey = keyof typeof links
   const contextId = links.context?.id
   const {data, metadata} = v2Document.getDataAndMetadata(contextId)
@@ -171,7 +173,7 @@ export function v2GraphImporter({v2Component, v2Document, sharedModelManager, in
     axes,
     plotType,
     plotBackgroundColor,
-    // plotBackgroundOpacity,
+    plotBackgroundOpacity,
     // plotBackgroundImage,
     // V2 plotBackgroundImageLockInfo can be null, V3 only accepts undefined
     plotBackgroundImageLockInfo: plotBackgroundImageLockInfo ?? undefined,
@@ -180,8 +182,9 @@ export function v2GraphImporter({v2Component, v2Document, sharedModelManager, in
     * displayOnlySelected,legendRole, legendAttributeType, numberOfLegendQuantiles, legendQuantilesAreLocked,
     * */
     pointDescription: {
-      _itemColors: pointColor ? [pointColor] : [],
-      _itemStrokeColor: strokeColor,
+      _itemColors: pointColor ? [parseColorToHex(pointColor, {colorNames: true, alpha: transparency})] : [],
+      _itemStrokeColor: strokeColor ? parseColorToHex(strokeColor, {colorNames: true, alpha: strokeTransparency})
+                                    : strokeColor,
       _pointSizeMultiplier: pointSizeMultiplier,
       /*transparency, strokeTransparency*/
       _itemStrokeSameAsFill: strokeSameAsFill

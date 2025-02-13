@@ -1,6 +1,6 @@
 import { Colord, colord, getFormat as getColorFormat } from "colord"
 import namesPlugin from "colord/plugins/names"
-import type { Parsers } from "colord/types"
+import type { Parsers, RgbaColor } from "colord/types"
 
 /*
   The following list of 20 colors are maximally visually distinct from each other.
@@ -47,6 +47,7 @@ const parseColorName = parsers.string[0][0]
 
 export interface ParseColorOptions {
   colorNames?: boolean
+  alpha?: number
 }
 
 /**
@@ -67,17 +68,43 @@ export function parseColor(str: string, options?: ParseColorOptions) {
  * parseColorToHex
  *
  * @param str string to be parsed for its color
- * @param options { colorNames?: boolean } whether or not to recognize color names when parsing
+ * @param options { colorNames?: boolean, alpha: number } whether to recognize color names; optional alpha value
  * @returns canonicalized color string or empty string
  */
 export function parseColorToHex(str: string, options?: ParseColorOptions) {
-  // if it's a valid color name, return its hex equivalent
-  if (options?.colorNames) {
-    const parsed = parseColorName(str)
-    if (parsed) return colord(parsed).toHex()
-  }
-  // if it's a valid color string, return its hex equivalent
-  return getColorFormat(str) ? colord(str).toHex() : ""
+  let parsed: RgbaColor | null = null
+    // Check if the input is a valid color name
+    if (options?.colorNames) {
+      parsed = parseColorName(str)
+    }
+
+    // If not a named color, attempt to parse as a regular color string
+    if (!parsed && getColorFormat(str)) {
+      parsed = colord(str).toRgb()
+    }
+
+    // If color is parsed successfully, apply optional alpha value
+    if (parsed) {
+      if (options?.alpha !== undefined) {
+        parsed.a = options.alpha
+      }
+      return colord(parsed).toHex()
+    }
+
+    // Return empty string if no valid color is found
+    return ""
+}
+
+export function getAlpha(color: string) {
+  const rgbaColor = colord(color).toRgb()
+  return rgbaColor.a
+}
+
+// remove the alpha channel from a hex color string
+export function removeAlphaFromColor(colorStr: string)  {
+  const colorHex = parseColorToHex(colorStr, { colorNames: true })
+  if (colorHex.length === 9) return colorHex.slice(0, 7)
+  return colorStr
 }
 
 /*

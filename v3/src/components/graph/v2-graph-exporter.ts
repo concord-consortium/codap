@@ -1,6 +1,8 @@
+import { colord } from "colord"
 import { SetRequired } from "type-fest"
 import { AttributeType } from "../../models/data/attribute-types"
 import { toV2Id } from "../../utilities/codap-utils"
+import { defaultBackgroundColor, removeAlphaFromColor } from "../../utilities/color-utils"
 import { V2TileExportFn } from "../../v2/codap-v2-tile-exporters"
 import { guidLink, ICodapV2Adornment, ICodapV2GraphStorage, IGuidLink } from "../../v2/codap-v2-types"
 import { IAxisModel, isNumericAxisModel } from "../axis/models/axis-model"
@@ -230,6 +232,19 @@ function getPlotModels(graph: IGraphContentModel): Partial<ICodapV2GraphStorage>
   return storage
 }
 
+const getTransparency = (color: string) => {
+  const rgbaColor = colord(color).toRgb()
+  return rgbaColor.a
+}
+
+// v2 uses color names for default stroke colors
+const strokeColorStr = (color: string) => {
+  const colorHex = removeAlphaFromColor(color).toLowerCase()
+  return colorHex === "#ffffff" ? "white"
+            : colorHex === "#d3d3d3" ? "lightgrey"
+            : colorHex
+}
+
 export const v2GraphExporter: V2TileExportFn = ({ tile }) => {
   const graph = isGraphContentModel(tile.content) ? tile.content : undefined
   if (!graph) return
@@ -237,6 +252,19 @@ export const v2GraphExporter: V2TileExportFn = ({ tile }) => {
   const componentStorage: Partial<ICodapV2GraphStorage> = {
     _links_: getLinks(graph),
     displayOnlySelected: !!graph.dataConfiguration.displayOnlySelectedCases,
+    pointColor: removeAlphaFromColor(graph.pointDescription.pointColor),
+    transparency: getTransparency(graph.pointDescription.pointColor),
+    strokeColor: graph.pointDescription.pointStrokeSameAsFill
+                    ? "white" // v2 uses white for stroke when stroke is same as fill
+                    : strokeColorStr(graph.pointDescription.pointStrokeColor),
+    strokeTransparency: graph.pointDescription.pointStrokeSameAsFill
+                          ? 0.4 : getTransparency(graph.pointDescription.pointStrokeColor),
+    pointSizeMultiplier: graph.pointDescription.pointSizeMultiplier,
+    strokeSameAsFill: graph.pointDescription.pointStrokeSameAsFill,
+    plotBackgroundColor: graph.plotBackgroundColor === defaultBackgroundColor
+                              ? null : removeAlphaFromColor(graph.plotBackgroundColor),
+    plotBackgroundOpacity: getTransparency(graph.plotBackgroundColor),
+    isTransparent: graph.isTransparent,
     // attribute roles and types
     ...getAttrRoleAndType(graph, "x", "x"),
     ...getAttrRoleAndType(graph, "y", "y"),
