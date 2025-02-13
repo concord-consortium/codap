@@ -46,7 +46,7 @@ export function CheckboxCell ({ caseId, attrId }: ICheckboxCellProps) {
   // When checkbox is in the indeterminate state, we want the tooltip to show "undefined"
   return (
     <span className="cell-checkbox">
-      <input type="checkbox" ref={checkRef}  onChange={handleChange}
+      <input type="checkbox" ref={checkRef}  onChange={handleChange} onClick={(e) => e.stopPropagation()}
               title={String(cellValue)}/>
     </span>
   )
