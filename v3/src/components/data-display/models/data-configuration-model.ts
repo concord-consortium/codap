@@ -21,7 +21,7 @@ import {
   kDefaultHighAttributeColor, kDefaultLowAttributeColor
 } from "../../../models/shared/shared-case-metadata-constants"
 import {hashStringSets, typedId, uniqueId} from "../../../utilities/js-utils"
-import {getCholorplethColors, missingColor, parseColor} from "../../../utilities/color-utils"
+import {getChoroplethColors, missingColor, parseColor} from "../../../utilities/color-utils"
 import { numericSortComparator } from "../../../utilities/data-utils"
 import {GraphPlace} from "../../axis-graph-shared"
 import { getScaleThresholds } from "../components/legend/choropleth-legend/choropleth-legend"
@@ -465,7 +465,7 @@ export const DataConfigurationModel = types
       return hashStringSets(self.filteredCases.map(cases => cases.caseIds))
     },
     get choroplethColors() {
-      return getCholorplethColors(
+      return getChoroplethColors(
         self.lowColor ?? kDefaultLowAttributeColor,
         self.highColor ?? kDefaultHighAttributeColor
       )
