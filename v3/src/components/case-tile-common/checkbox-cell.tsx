@@ -39,7 +39,9 @@ export function CheckboxCell ({ caseId, attrId }: ICheckboxCellProps) {
       data.setCaseValues([{ __id__: caseId, [attrId]: newValue }])
     }, {
       notify: () => updateCasesNotificationFromIds(data, [caseId]),
-      log: `update checkbox state: ${attrId} to ${newValue ? "checked" : "unchecked"}`
+      undoStringKey: "DG.Undo.caseTable.editCellValue",
+      redoStringKey: "DG.Redo.caseTable.editCellValue",
+      log: `update checkbox case: ${caseId} state: ${attrId} to ${newValue ? "checked" : "unchecked"}`
     })
   }
   // title is used to show the value of the cell when hovering over the checkbox
