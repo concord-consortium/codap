@@ -2,7 +2,7 @@ import { colord } from "colord"
 import { SetRequired } from "type-fest"
 import { AttributeType } from "../../models/data/attribute-types"
 import { toV2Id } from "../../utilities/codap-utils"
-import { removeAlphaFromColor } from "../../utilities/color-utils"
+import { defaultBackgroundColor, removeAlphaFromColor } from "../../utilities/color-utils"
 import { V2TileExportFn } from "../../v2/codap-v2-tile-exporters"
 import { guidLink, ICodapV2Adornment, ICodapV2GraphStorage, IGuidLink } from "../../v2/codap-v2-types"
 import { IAxisModel, isNumericAxisModel } from "../axis/models/axis-model"
@@ -232,9 +232,9 @@ function getPlotModels(graph: IGraphContentModel): Partial<ICodapV2GraphStorage>
   return storage
 }
 
-const getTransparency = (color: string, type: "point" | "stroke") => {
+const getTransparency = (color: string) => {
   const rgbaColor = colord(color).toRgb()
-  return rgbaColor.a ?? (type === "point" ? 0.84 : 1)
+  return rgbaColor.a
 }
 
 // v2 uses color names for default stroke colors
@@ -253,17 +253,17 @@ export const v2GraphExporter: V2TileExportFn = ({ tile }) => {
     _links_: getLinks(graph),
     displayOnlySelected: !!graph.dataConfiguration.displayOnlySelectedCases,
     pointColor: removeAlphaFromColor(graph.pointDescription.pointColor),
-    transparency: getTransparency(graph.pointDescription.pointColor, "point"),
+    transparency: getTransparency(graph.pointDescription.pointColor),
     strokeColor: graph.pointDescription.pointStrokeSameAsFill
                     ? "white" // v2 uses white for stroke when stroke is same as fill
                     : strokeColorStr(graph.pointDescription.pointStrokeColor),
     strokeTransparency: graph.pointDescription.pointStrokeSameAsFill
-                          ? 0.4 : getTransparency(graph.pointDescription.pointStrokeColor, "stroke"),
+                          ? 0.4 : getTransparency(graph.pointDescription.pointStrokeColor),
     pointSizeMultiplier: graph.pointDescription.pointSizeMultiplier,
     strokeSameAsFill: graph.pointDescription.pointStrokeSameAsFill,
-    plotBackgroundColor: graph.plotBackgroundColor === "#FFFFFF"
+    plotBackgroundColor: graph.plotBackgroundColor === defaultBackgroundColor
                               ? null : removeAlphaFromColor(graph.plotBackgroundColor),
-    plotBackgroundOpacity: getTransparency(graph.plotBackgroundColor, "stroke"),
+    plotBackgroundOpacity: getTransparency(graph.plotBackgroundColor),
     isTransparent: graph.isTransparent,
     // attribute roles and types
     ...getAttrRoleAndType(graph, "x", "x"),
