@@ -554,9 +554,14 @@ export const GraphContentModel = DataDisplayContentModel
         const anID = aCaseData.caseID,
           pValue = dataset?.getStrValue(anID, primaryAttrID) ?? '',
           pCat = catMap[pValue] ? pValue : kOther,
-          sCat = secondaryAttrID ? dataset?.getStrValue(anID, secondaryAttrID) : kMain,
-          extraPCat = extraPrimaryAttrID ? dataset?.getStrValue(anID, extraPrimaryAttrID) : kMain,
-          extraSCat = extraSecondaryAttrID ? dataset?.getStrValue(anID, extraSecondaryAttrID) : kMain
+          sValue = secondaryAttrID ? dataset?.getStrValue(anID, secondaryAttrID) ?? '' : '',
+          sCat = secondaryAttrID ? (catMap[pCat]?.[sValue] ? sValue : kOther) : kMain,
+          extraPValue = extraPrimaryAttrID ? dataset?.getStrValue(anID, extraPrimaryAttrID) ?? '' : '',
+          extraPCat = extraPrimaryAttrID ? (catMap[pCat]?.[sCat]?.[extraPValue] ? extraPValue : kOther) : kMain,
+          extraSCatValue = extraSecondaryAttrID ? dataset?.getStrValue(anID, extraSecondaryAttrID) ?? '' : '',
+          extraSCat = extraSecondaryAttrID ? (catMap[pCat]?.[sCat]?.[extraPCat]?.[extraSCatValue]
+                                                ? extraSCatValue : kOther)
+                                            : kMain
         if (pCat && sCat && extraPCat && extraSCat &&
           catMap[pCat]?.[sCat]?.[extraPCat]?.[extraSCat]) {
           const mapEntry = catMap[pCat][sCat][extraPCat][extraSCat]
