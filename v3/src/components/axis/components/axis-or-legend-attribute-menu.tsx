@@ -50,7 +50,11 @@ export const AxisOrLegendAttributeMenu = ({ place, target, portal,
   }
   const { attributes, listeners, setNodeRef: setDragNodeRef } = useDraggableAttribute(draggableOptions)
 
-  useOutsidePointerDown({ref: menuRef, handler: () => onCloseRef.current?.()})
+  useOutsidePointerDown({
+    ref: menuRef,
+    handler: () => onCloseRef.current?.(),
+    info: { name: "AxisOrLegendAttributeMenu", attrId, attrName: attribute?.name }
+  })
 
   return (
     <div className={`axis-legend-attribute-menu ${place}`} ref={menuRef}>
