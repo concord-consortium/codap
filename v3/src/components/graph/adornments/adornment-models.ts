@@ -2,6 +2,7 @@
   Adornment models are strictly MST. They keep track of the user modifications of the defaults.
  */
 import {Instance, SnapshotIn, types} from "mobx-state-tree"
+import { applyModelChange } from "../../../models/history/apply-model-change"
 import {safeDomIdentifier, typedId} from "../../../utilities/js-utils"
 import { ScaleNumericBaseType } from "../../axis/axis-types"
 import { IAxisLayout } from "../../axis/models/axis-layout-context"
@@ -65,6 +66,7 @@ export const AdornmentModel = types.model("AdornmentModel", {
       // derived models should override to update their models when categories change
     }
   }))
+  .actions(applyModelChange)
 export interface IAdornmentModel extends Instance<typeof AdornmentModel> {}
 export interface IAdornmentModelSnapshot extends SnapshotIn<typeof AdornmentModel> {}
 

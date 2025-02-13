@@ -24,7 +24,8 @@ const mockAdornment = {
   setVisibility: () => true,
   updateCategories: () => ({}),
   type: kCountType,
-  labelLines: 0
+  labelLines: 0,
+  applyModelChange: (fn: () => any) => fn()
 }
 const mockMovableValueAdornment = {
   cellCount: () => ({x: 1, y: 1}),
@@ -39,7 +40,8 @@ const mockMovableValueAdornment = {
   updateCategories: () => ({}),
   values: { "{}": [10] },
   type: kMovableValueType,
-  labelLines: 1
+  labelLines: 1,
+  applyModelChange: (fn: () => any) => fn()
 }
 const mockUpdateCategoriesOptions = {
   rightCats: [],
