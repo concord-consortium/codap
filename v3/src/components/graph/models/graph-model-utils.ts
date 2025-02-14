@@ -34,7 +34,7 @@ function setPrimaryRoleAndPlotType(graphModel: IGraphContentModel) {
                           : attributeType !== 'empty' ? oldPrimaryRole : otherAttrRole
   dataConfig?.setPrimaryRole(primaryRole)
   // TODO COLOR: treat color like categorical for now
-  const typeOverrides: Record<string, string> = { color: 'categorical', date: 'numeric' },
+  const typeOverrides: Record<string, string> = { color: 'categorical', date: 'numeric', checkbox: 'categorical' },
     primaryType = typeOverrides[attributeType] ?? attributeType,
     secondaryType = typeOverrides[otherAttributeType] ?? otherAttributeType
   // This doesn't actually necessarily index by [primary][secondary], but that doesn't matter.
@@ -70,7 +70,8 @@ function setupAxes(graphModel: IGraphContentModel, layout: GraphLayout) {
       }
         break
       case 'categorical':
-      case 'color': { // TODO COLOR: treat color like categorical for now
+      case 'color': // TODO COLOR: treat color like categorical for now
+      case 'checkbox': { // TODO CHECKBOX: treat checkbox like categorical for now
         if (currentType !== 'categorical') {
           const newAxisModel = CategoricalAxisModel.create({place})
           graphModel?.setAxis(place, newAxisModel)
