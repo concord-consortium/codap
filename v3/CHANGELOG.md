@@ -1,5 +1,28 @@
 # Changelog
 
+## Version 3.0.0-pre.2174 - February 14, 2025
+
+### ✨ Features & Improvements:
+- **PT-188463252:** Support Checkbox Attribute Type in **Case Table** and **Case Card**
+- **PT-188879551:** The plugin API supports **notify** for the formula engine
+
+### 🐞 Bug Fixes:
+- **PT-188781023:** Map boundary data does not display after creating a copy of the document
+- **PT-188364145:** "Chosen" Column Displays True/False Instead of Checkboxes in CODAP v3 – StoryQ Plugin 2.16-v3-pre.3
+- **PT-188883578:** Single-clicking a checkbox in the case table unintentionally selects the entire case
+- **PT-188872446:** "index" text is missing in case index column
+- **PT-188624240:** Cells are editable as soon as they are selected
+- **PT-188809846:** Unwanted point in top left corner for categorical and categorical plots
+- **PT-188883647:** Checkboxes should be included in the Undo/Redo stack
+- **PT-188571681:** Single click of graph Inspector Panel has become finicky
+- **PT-188872789:** Undo/redo issues with movable line
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  189010 bytes |                            0.20% |
+|  index.js | 6458550 bytes |                            0.20% |
+
 ## Version 3.0.0-pre.2157 - February 7, 2025
 
 ### 🐞 Bug Fixes:
