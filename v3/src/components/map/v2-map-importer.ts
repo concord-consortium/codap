@@ -14,6 +14,7 @@ import {IMapPointLayerModelSnapshot} from "./models/map-point-layer-model"
 import {BaseMapKey, kMapPointLayerType, kMapPolygonLayerType} from "./map-types"
 import {IMapBaseLayerModelSnapshot} from "./models/map-base-layer-model"
 import {IMapPolygonLayerModelSnapshot} from "./models/map-polygon-layer-model"
+import { parseColorToHex } from "../../utilities/color-utils"
 
 export function v2MapImporter({v2Component, v2Document, insertTile}: V2TileImportArgs) {
   if (!isV2MapComponent(v2Component)) return
@@ -63,10 +64,7 @@ export function v2MapImporter({v2Component, v2Document, insertTile}: V2TileImpor
     if (isV2MapPointLayerStorage(v2LayerModel)) {
       const {
         pointColor, strokeColor, pointSizeMultiplier,
-        grid, pointsShouldBeVisible, connectingLines
-        /* TODO_V2_IMPORT: [Story: #188694812] Present in v2 layer model but not yet used in V3 layer model:
-        transparency, strokeTransparency
-        */
+        grid, pointsShouldBeVisible, connectingLines, transparency, strokeTransparency,
       } = v2LayerModel
       // V2 point layers don't store their lat/long attributes, so we need to find them in the dataset
       const {latId, longId} = latLongAttributesFromDataSet(data.dataSet)
@@ -90,9 +88,11 @@ export function v2MapImporter({v2Component, v2Document, insertTile}: V2TileImpor
         },
         isVisible,
         displayItemDescription: {
-          _itemColors: pointColor ? [pointColor] : [],
-          _itemStrokeColor: strokeColor,
+          _itemColors: pointColor ? [parseColorToHex(pointColor, {colorNames: true, alpha: transparency})] : [],
+          _itemStrokeColor: strokeColor ? parseColorToHex(strokeColor, {colorNames: true, alpha: strokeTransparency})
+          : strokeColor,
           _pointSizeMultiplier: pointSizeMultiplier,
+          _itemStrokeSameAsFill: strokeSameAsFill
         },
         gridModel: {
           isVisible: grid.isVisible,
@@ -105,10 +105,7 @@ export function v2MapImporter({v2Component, v2Document, insertTile}: V2TileImpor
     }
     else if (isV2MapPolygonLayerStorage(v2LayerModel)) {
       const {
-        areaColor, areaStrokeColor,
-        /* TODO_V2_IMPORT: [Story: #188694812] Present in v2 layer model but not yet used in V3 layer model:
-        areaTransparency, areaStrokeTransparency
-        */
+        areaColor, areaStrokeColor, areaTransparency, areaStrokeTransparency
       } = v2LayerModel
       // V2 polygon layers don't store their boundary attribute, so we need to find it in the dataset
       _attributeDescriptions.polygon = {attributeID: boundaryAttributeFromDataSet(data.dataSet)}
@@ -123,13 +120,15 @@ export function v2MapImporter({v2Component, v2Document, insertTile}: V2TileImpor
         },
         isVisible,
         displayItemDescription: {
-          _itemColors: [areaColor || ''],
-          _itemStrokeColor: areaStrokeColor,
+          _itemColors: areaColor
+                          ? [parseColorToHex(areaColor,
+                                              {colorNames: true, alpha: Number(areaTransparency)})]
+                          : [areaColor],
+          _itemStrokeColor: areaStrokeColor
+                              ? parseColorToHex(areaStrokeColor,
+                                                {colorNames: true, alpha: Number(areaStrokeTransparency)})
+                              : areaStrokeColor,
           _itemStrokeSameAsFill: strokeSameAsFill,
-/*
-          areaTransparency,
-          areaStrokeTransparency
-*/
         }
       }
       layers.push(polygonLayerSnapshot)

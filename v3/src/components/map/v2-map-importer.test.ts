@@ -1,14 +1,12 @@
-import { DocumentContentModel, IDocumentContentModel } from "../../models/document/document-content"
+import { isObject, transform } from "lodash"
+import { DocumentContentModel } from "../../models/document/document-content"
 import { FreeTileRow } from "../../models/document/free-tile-row"
 import { SharedModelDocumentManager } from "../../models/document/shared-model-document-manager"
 import { ITileModelSnapshotIn } from "../../models/tiles/tile-model"
 import { safeJsonParse } from "../../utilities/js-utils"
 import { CodapV2Document } from "../../v2/codap-v2-document"
 import {
-  ICodapV2DocumentJson, ICodapV2MapCurrentStorage, ICodapV2MapLayerStorage,
-  ICodapV2MapPointLayerStorage, ICodapV2MapPolygonLayerStorage, ICodapV2MapStorage,
-  isV2MapCurrentStorage, isV2MapPointLayerStorage, isV2MapPolygonLayerStorage
-} from "../../v2/codap-v2-types"
+  ICodapV2DocumentJson, ICodapV2MapComponent } from "../../v2/codap-v2-types"
 import { isMapContentModel } from "./models/map-content-model"
 import { v2MapExporter } from "./v2-map-exporter"
 import { v2MapImporter } from "./v2-map-importer"
@@ -18,43 +16,72 @@ import "./map-registration"
 const fs = require("fs")
 const path = require("path")
 
+// Passing true logs the graph title and the last title logged is the failing graph.
+// Passing tests should be silent, however, so false is passed by default.
+function logMapTitleMaybe(log: boolean, v2MapTile: ICodapV2MapComponent) {
+  // eslint-disable-next-line no-console
+  log && console.log("v2MapTile:", v2MapTile.componentStorage.title || v2MapTile.componentStorage.name)
+}
+
+function transformObject(obj: any, keysToRemove: string[]): any {
+  if (Array.isArray(obj)) {
+    return obj.map(item => transformObject(item, keysToRemove))
+  }
+  if (isObject(obj)) {
+    return transform<any, any>(obj, (result, value, key) => {
+      // omit showMeasureLabels if false; v2 treats false/undefined interchangeably
+      const isFalseShowMeasureLabels = key === "showMeasureLabels" && !value
+      // properties in `keysToRound` are rounded to two decimal places for comparison
+      // if (keysToRound.includes(key) && typeof value === "number") {
+      //   result[key] = Math.round(100 * value) / 100
+      // }
+      // // properties we don't care to compare are removed before comparison
+      // else
+      if (!keysToRemove.includes(key) && !isFalseShowMeasureLabels) {
+        result[key] = transformObject(value, keysToRemove)
+      }
+    })
+  }
+  return obj
+};
+
+
+const mockInsertTile = jest.fn()
+
+function loadCodapDocument(fileName: string) {
+  const file = path.join(__dirname, "../../test/v2", fileName)
+  const json = fs.readFileSync(file, "utf8")
+  const parsed = safeJsonParse<ICodapV2DocumentJson>(json)!
+  const v2Document = new CodapV2Document(parsed)
+
+  const sharedModelManager = new SharedModelDocumentManager()
+  const docContent = DocumentContentModel.create({}, { sharedModelManager })
+  docContent.setRowCreator(() => FreeTileRow.create())
+  sharedModelManager.setDocument(docContent)
+
+  mockInsertTile.mockImplementation((tileSnap: ITileModelSnapshotIn) => {
+    const tile = docContent.insertTileSnapshotInDefaultRow(tileSnap)
+    return tile
+  })
+
+  // load shared models into sharedModelManager
+  v2Document.dataContexts.forEach(({ guid }) => {
+    const { data, metadata } = v2Document.getDataAndMetadata(guid)
+    data && sharedModelManager.addSharedModel(data)
+    metadata?.setData(data?.dataSet)
+    metadata && sharedModelManager.addSharedModel(metadata)
+  })
+
+  return { v2Document }
+}
+
 function firstMapComponent(v2Document: CodapV2Document) {
   return v2Document.components.find(c => c.type === "DG.MapView")!
 }
 
 describe("V2MapImporter imports legacy v2 map documents", () => {
-  // legacy v2 map document (0252)
-  const sealAndSharkFile = path.join(__dirname, "../../test/v2", "seal-and-shark-demo.codap")
-  const sealAndSharkJson = fs.readFileSync(sealAndSharkFile, "utf8")
-  const sealAndSharkDoc = safeJsonParse<ICodapV2DocumentJson>(sealAndSharkJson)!
-
-  let v2Document: CodapV2Document
-  let docContent: Maybe<IDocumentContentModel>
-  let sharedModelManager: Maybe<SharedModelDocumentManager>
-  const mockInsertTile = jest.fn((tileSnap: ITileModelSnapshotIn) => {
-    const tile = docContent!.insertTileSnapshotInDefaultRow(tileSnap)
-    return tile
-  })
-
-  beforeEach(() => {
-    v2Document = new CodapV2Document(sealAndSharkDoc)
-    sharedModelManager = new SharedModelDocumentManager()
-    docContent = DocumentContentModel.create({}, { sharedModelManager })
-    docContent.setRowCreator(() => FreeTileRow.create())
-    sharedModelManager.setDocument(docContent)
-
-    // load shared models into sharedModelManager
-    v2Document.dataContexts.forEach(({ guid }) => {
-      const { data, metadata } = v2Document.getDataAndMetadata(guid)
-      data && sharedModelManager!.addSharedModel(data)
-      metadata?.setData(data?.dataSet)
-      metadata && sharedModelManager!.addSharedModel(metadata)
-    })
-
-    mockInsertTile.mockClear()
-  })
-
   it("imports legacy v2 map components", () => {
+    const { v2Document } = loadCodapDocument("seal-and-shark-demo.codap")
     const tile = v2MapImporter({
       v2Component: firstMapComponent(v2Document),
       v2Document,
@@ -70,37 +97,18 @@ describe("V2MapImporter imports legacy v2 map documents", () => {
 
 describe("imports/exports to current v2 map documents", () => {
   // current v2 map document (0730)
-  const rollerCoastersFile = path.join(__dirname, "../../test/v2", "roller-coasters-map.codap")
-  const rollerCoastersJson = fs.readFileSync(rollerCoastersFile, "utf8")
-  const rollerCoastersDoc = safeJsonParse<ICodapV2DocumentJson>(rollerCoastersJson)!
-
-  let v2Document: CodapV2Document
-  let docContent: Maybe<IDocumentContentModel>
-  let sharedModelManager: Maybe<SharedModelDocumentManager>
-  const mockInsertTile = jest.fn((tileSnap: ITileModelSnapshotIn) => {
-    const tile = docContent!.insertTileSnapshotInDefaultRow(tileSnap)
-    return tile
-  })
+  const kIgnoreProps = [
+    // standard properties handled externally
+    "cannotClose", "name", "title", "userSetTitle",
+    // ...kNotImplementedProps
+  ]
 
   beforeEach(() => {
-    v2Document = new CodapV2Document(rollerCoastersDoc)
-    sharedModelManager = new SharedModelDocumentManager()
-    docContent = DocumentContentModel.create({}, { sharedModelManager })
-    docContent.setRowCreator(() => FreeTileRow.create())
-    sharedModelManager.setDocument(docContent)
-
-    // load shared models into sharedModelManager
-    v2Document.dataContexts.forEach(({ guid }) => {
-      const { data, metadata } = v2Document.getDataAndMetadata(guid)
-      data && sharedModelManager!.addSharedModel(data)
-      metadata?.setData(data?.dataSet)
-      metadata && sharedModelManager!.addSharedModel(metadata)
-    })
-
-    mockInsertTile.mockClear()
+    mockInsertTile.mockRestore()
   })
 
   it("handles empty components", () => {
+    const { v2Document } = loadCodapDocument("roller-coasters-map.codap")
     const noTile = v2MapImporter({
       v2Component: {} as any,
       v2Document,
@@ -111,54 +119,57 @@ describe("imports/exports to current v2 map documents", () => {
     expect(mapModel).not.toBeDefined()
   })
 
-  it("imports current v2 map components", () => {
-    const tile = v2MapImporter({
-      v2Component: firstMapComponent(v2Document),
-      v2Document,
-      insertTile: mockInsertTile
+  it("exports/imports default map component", () => {
+    const { v2Document } = loadCodapDocument("roller-coasters-map.codap")
+    const v2MapTiles = v2Document.components.filter(c => c.type === "DG.MapView")
+    v2MapTiles.forEach(v2MapTile => {
+      logMapTitleMaybe(false, v2MapTile)
+      const v3MapTile = v2MapImporter({
+        v2Component: v2MapTile,
+        v2Document,
+        insertTile: mockInsertTile
+      })
+      // tests round-trip import/export of every map component
+      const v2MapTileOut = v2MapExporter({ tile: v3MapTile! })
+      const v2MapTileStorage = transformObject(v2MapTile.componentStorage, kIgnoreProps)
+      const v2MapTileOutStorage = transformObject(v2MapTileOut?.componentStorage, kIgnoreProps)
+      expect(v2MapTileOutStorage).toEqual(v2MapTileStorage)
     })
-    expect(mockInsertTile).toHaveBeenCalledTimes(1)
-    const mapModel = isMapContentModel(tile?.content) ? tile?.content : undefined
-    expect(mapModel).toBeDefined()
-    expect(mapModel?.layers.length).toBe(2)
   })
 
-  it("imports a V2 map component and re-exports it correctly", () => {
-    const importedTile = v2MapImporter({
-      v2Component: firstMapComponent(v2Document),
-      v2Document,
-      insertTile: mockInsertTile
+  it("exports/imports map layer formats", () => {
+    const { v2Document } = loadCodapDocument("roller-coasters-map-layer-formats.codap")
+    const v2MapTiles = v2Document.components.filter(c => c.type === "DG.MapView")
+    v2MapTiles.forEach(v2MapTile => {
+      logMapTitleMaybe(false, v2MapTile)
+      const v3MapTile = v2MapImporter({
+        v2Component: v2MapTile,
+        v2Document,
+        insertTile: mockInsertTile
+      })
+      // tests round-trip import/export of every map component
+      const v2MapTileOut = v2MapExporter({ tile: v3MapTile! })
+      const v2MapTileStorage = transformObject(v2MapTile.componentStorage, kIgnoreProps)
+      const v2MapTileOutStorage = transformObject(v2MapTileOut?.componentStorage, kIgnoreProps)
+      expect(v2MapTileOutStorage).toEqual(v2MapTileStorage)
     })
+  })
 
-    expect(importedTile).toBeDefined()
-    expect(isMapContentModel(importedTile?.content)).toBe(true)
-
-    // Step 2: Export to V2
-    const exportedV2Map = v2MapExporter({ tile: importedTile! })
-
-    expect(exportedV2Map).toBeDefined()
-    expect(exportedV2Map?.type).toBe("DG.MapView")
-    const mapStorage = exportedV2Map?.componentStorage as ICodapV2MapStorage
-    let mapModelStorage: Maybe<ICodapV2MapCurrentStorage["mapModelStorage"]>
-    let layerModels: ICodapV2MapLayerStorage[] = []
-    if (isV2MapCurrentStorage(mapStorage)) {
-      mapModelStorage = mapStorage.mapModelStorage
-      layerModels = mapModelStorage.layerModels
-    }
-    expect(mapModelStorage).toBeDefined()
-    expect(layerModels.length).toBe(2)
-
-    const polygonLayer = layerModels[0] as ICodapV2MapPolygonLayerStorage
-    const isFirstPolygon = isV2MapPolygonLayerStorage(polygonLayer)
-    expect(isFirstPolygon).toBe(true)
-    expect(polygonLayer.areaColor).toBeDefined()
-    expect(typeof polygonLayer.areaColor).toBe("string")
-
-    // Validate that the second layer is a Point Layer
-    const pointLayer = layerModels[1] as ICodapV2MapPointLayerStorage
-    const isSecondPoint = isV2MapPointLayerStorage(layerModels[1])
-    expect(isSecondPoint).toBe(true)
-    expect(pointLayer.pointColor).toBeDefined()
-    expect(typeof pointLayer.pointColor).toBe("string")
+  it("exports/imports map measures", () => {
+    const { v2Document } = loadCodapDocument("roller-coasters-map-measures.codap")
+    const v2MapTiles = v2Document.components.filter(c => c.type === "DG.MapView")
+    v2MapTiles.forEach(v2MapTile => {
+      logMapTitleMaybe(false, v2MapTile)
+      const v3MapTile = v2MapImporter({
+        v2Component: v2MapTile,
+        v2Document,
+        insertTile: mockInsertTile
+      })
+      // tests round-trip import/export of every map component
+      const v2MapTileOut = v2MapExporter({ tile: v3MapTile! })
+      const v2MapTileStorage = transformObject(v2MapTile.componentStorage, kIgnoreProps)
+      const v2MapTileOutStorage = transformObject(v2MapTileOut?.componentStorage, kIgnoreProps)
+      expect(v2MapTileOutStorage).toEqual(v2MapTileStorage)
+    })
   })
 })
