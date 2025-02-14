@@ -59,8 +59,11 @@ export default function ColorTextEditor({attributeId, caseId, value, acceptValue
   const [placement, setPlacement ]= useState<"right" | "left">("right")
   const triggerButtonRef = useRef<HTMLButtonElement>(null)
   const colorEditorRef = useRef<HTMLDivElement>(null)
-  useOutsidePointerDown({ref: colorEditorRef as unknown as RefObject<HTMLElement>,
-                          handler: ()=> handleSubmit(inputValue as string)})
+  useOutsidePointerDown({
+    ref: colorEditorRef as unknown as RefObject<HTMLElement>,
+    handler: ()=> handleSubmit(inputValue as string),
+    info: { name: "ColorTextEditor", attributeId, attributeName: attribute?.name }
+  })
 
   const { isOpen: isPaletteOpen, onToggle: setOpenPopover, onClose } = useDisclosure()
 

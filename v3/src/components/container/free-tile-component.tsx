@@ -47,15 +47,20 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
       const draggedElement = document.getElementById(dragTileId)
       if (draggedElement) {
         // Capture pointer events for the dragged tile
-        draggedElement.addEventListener('pointermove', (event) => {
-          if (!draggedElement.hasPointerCapture(event.pointerId)) {
-            draggedElement.setPointerCapture(event.pointerId)
+        function pointerMove(event: any) {
+          if (!draggedElement?.hasPointerCapture(event.pointerId)) {
+            draggedElement?.setPointerCapture(event.pointerId)
           }
-        })
+        }
 
-        draggedElement.addEventListener('pointerup', (event) => {
-          draggedElement.releasePointerCapture(event.pointerId)
-        })
+        function pointerUp(event: any) {
+          draggedElement?.releasePointerCapture(event.pointerId)
+          draggedElement?.removeEventListener("pointermove", pointerMove)
+          draggedElement?.removeEventListener("pointerup", pointerUp)
+        }
+
+        draggedElement.addEventListener('pointermove', pointerMove)
+        draggedElement.addEventListener('pointerup', pointerUp)
       }
 
       if (isFreeTileRow(row)) {

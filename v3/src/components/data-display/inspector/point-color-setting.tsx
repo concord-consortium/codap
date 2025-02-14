@@ -18,7 +18,11 @@ export const PointColorSetting = observer(function PointColorSetting({ onColorCh
   const initialColorRef = useRef(swatchBackgroundColor)
   const pointColorSettingButtonRef = useRef<HTMLButtonElement>(null)
 
-  useOutsidePointerDown({ ref: popoverContainerRef, handler: () => setOpenPopover?.(null) })
+  useOutsidePointerDown({
+    ref: popoverContainerRef,
+    handler: () => setOpenPopover?.(null),
+    info: { name: "PointColorSetting", propertyLabel }
+   })
 
   const closePopover = useCallback(() => {
     setOpenPopover(null)

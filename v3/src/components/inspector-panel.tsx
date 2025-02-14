@@ -14,7 +14,12 @@ interface IProps {
 }
 
 export const InspectorPanel = forwardRef(({ component, show, setShowPalette, children }: IProps, ref) => {
-  useOutsidePointerDown({ref: ref as unknown as RefObject<HTMLElement>, handler: ()=> setShowPalette?.(undefined)})
+  useOutsidePointerDown({
+    ref: ref as unknown as RefObject<HTMLElement>,
+    handler: ()=> setShowPalette?.(undefined),
+    enabled: !!(show && ref && setShowPalette),
+    info: {name: "InspectorPanel", component}
+  })
   return (show
     ? <Box ref={ref} className={`inspector-panel ${component ?? "" }`} bg="tealDark" data-testid={"inspector-panel"}>
         {children}

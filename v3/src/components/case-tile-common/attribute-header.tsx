@@ -63,7 +63,14 @@ export const AttributeHeader = observer(function AttributeHeader({
     prefix: instanceId, dataSet: data, attributeId
   }
   const { attributes, listeners, setNodeRef: setDragNodeRef } = useDraggableAttribute(draggableOptions)
-  useOutsidePointerDown({ ref: menuListRef, handler: () => onCloseMenuRef.current?.() })
+  // TODO: we really should only enable the outside pointer down listener when the menu is open.
+  // However there doesn't seem to be simple way to do that.
+  // `isMenuOpen` is a ref so we won't be re-rendered when that changes.
+  useOutsidePointerDown({
+    ref: menuListRef,
+    handler: () => onCloseMenuRef.current?.(),
+    info: {name: "AttributeHeader menuList", attributeId, attrName}
+   })
 
   const setHeaderContentRef = (elt: HTMLDivElement | null) => {
     contentRef.current = elt
@@ -102,12 +109,16 @@ export const AttributeHeader = observer(function AttributeHeader({
 
   // focus our content when the cell is focused
   useParentChildFocusRedirect(parentRef.current, menuButtonRef.current)
-  useOutsidePointerDown({ ref: inputRef, handler: () => {
-                                if (isFocused) {
-                                  handleClose(true)
-                                }
-                              }
-                        })
+  useOutsidePointerDown({
+    ref: inputRef,
+    handler: () => {
+      if (isFocused) {
+        handleClose(true)
+      }
+    },
+    enabled: isFocused,
+    info: {name: "AttributeHeader input", attributeId, attrName}
+  })
 
   const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     const { key } = e
