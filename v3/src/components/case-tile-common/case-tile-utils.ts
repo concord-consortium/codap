@@ -65,10 +65,10 @@ export function createTableOrCardForDataset (
   caseMetadata.setLastShownTableOrCardTileId(tile.id)
 
   const numAttributes = sharedDataSet.dataSet.attributes.length
-  const width = Math.min(kCaseTableDefaultWidth,
+  const width = options?.width ?? Math.min(kCaseTableDefaultWidth,
                           (numAttributes * kDefaultColumnWidth) + kDropzoneWidth + kIndexColumnWidth)
 
-  const height = caseTableComponentInfo.defaultHeight || 0
+  const height = options?.height ?? (caseTableComponentInfo.defaultHeight || 0)
   let {x, y} = getPositionOfNewComponent({width, height})
   if (options?.x != null) x = options.x
   if (options?.y != null) y = options.y
