@@ -896,6 +896,7 @@ export const DataConfigurationModel = types
     setAttribute(role: AttrRole, desc?: IAttributeDescriptionSnapshot) {
       self._setAttributeDescription(role, desc)
       self.setPointsNeedUpdating(true)
+      self.numericValuesForAttrRole.invalidate(role)  // No harm in invalidating even if not numeric
     },
     setAttributeType(role: AttrRole, type: AttributeType, plotNumber = 0) {
       self._attributeDescriptions.get(role)?.setType(type)

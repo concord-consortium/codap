@@ -92,6 +92,7 @@ function setupAxes(graphModel: IGraphContentModel, layout: GraphLayout) {
           setNiceDomain(valuesInSeconds, newAxisModel, graphModel?.axisDomainOptions)
         }
         else {
+          currAxisModel.setAllowRangeToShrink(true)
           const valuesInSeconds = stringValuesToDateSeconds(attr?.strValues || [])
           setNiceDomain(valuesInSeconds, currAxisModel, graphModel?.axisDomainOptions)
         }

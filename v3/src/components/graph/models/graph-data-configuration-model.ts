@@ -665,7 +665,6 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       }
     },
     setAttribute(role: GraphAttrRole, desc?: IAttributeDescriptionSnapshot) {
-
       // For 'x' and 'y' roles, if the given attribute is already present on the other axis, then
       // move whatever attribute is assigned to the given role to that axis.
       if (['x', 'y'].includes(role)) {
@@ -686,6 +685,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       } else {
         self._setAttributeDescription(role, desc)
       }
+      self.numericValuesForAttrRole.invalidate(role)  // No harm in invalidating even if not numeric
     },
     addYAttribute(desc: IAttributeDescriptionSnapshot, index?: number) {
       if (index != null && index >= 0) {
