@@ -38,8 +38,10 @@ export class GraphController {
   }
 
   handleAttributeAssignment() {
+    console.group("GraphController:handleAttributeAssignment")
     const { graphModel, layout } = this
     if (graphModel) syncModelWithAttributeConfiguration(graphModel, layout)
+    console.groupEnd()
   }
 
   callMatchCirclesToData() {

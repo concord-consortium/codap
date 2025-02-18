@@ -9,8 +9,6 @@ import { ITileModel } from "../../../../models/tiles/tile-model"
 import { isGraphContentModel } from "../../models/graph-content-model"
 import { isPointDisplayType } from "../../../data-display/data-display-types"
 
-import "../../../data-display/inspector/inspector-panel.scss"
-
 type BinOption = "binWidth" | "binAlignment"
 
 interface IProps {
@@ -25,18 +23,16 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
   const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
   const pointDisplayType = graphModel?.pointDisplayType
   const pointsFusedIntoBars = graphModel?.pointsFusedIntoBars
-  const plotType = graphModel?.plotType
-  const plotHasExactlyOneCategoricalAxis = graphModel?.dataConfiguration.hasExactlyOneCategoricalAxis
-  const showPointDisplayType = plotType !== "dotChart" || !plotHasExactlyOneCategoricalAxis
-  const showFuseIntoBars = (plotType === "dotChart" && plotHasExactlyOneCategoricalAxis) ||
-                           (plotType === "dotPlot" && pointDisplayType === "bins") ||
-                           pointDisplayType === "histogram"
-  const showBarForEachPoint = plotType === "dotPlot" &&
+  const showPointDisplayType = graphModel?.plot?.showDisplayTypeSelection
+  const showFuseIntoBars = graphModel?.plot?.showFusePointsIntoBars
+  const showBarForEachPoint = graphModel?.plot?.isUnivariateNumeric &&
                             graphModel?.dataConfiguration.primaryAttributeType !== "date"
 
-  const handleSelection = (configType: string) => {
+  const handleDisplayTypeChange = (configType: string) => {
     if (isPointDisplayType(configType)) {
-      graphModel?.setPointConfig(configType)
+      const display = configType === "bars" ? "bars" : "points"
+      const isBinned = configType === "bins"
+      graphModel?.configureUnivariateNumericPlot(display, isBinned)
     }
   }
 
@@ -90,7 +86,7 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
       : ["DG.Undo.graph.dissolveRectanglesToDots", "DG.Redo.graph.dissolveRectanglesToDots"]
 
     graphModel?.applyModelChange(() => {
-        graphModel?.setPointsFusedIntoBars(fuseIntoBars)
+        graphModel?.fusePointsIntoBars(fuseIntoBars)
         graphModel?.pointDescription.setPointStrokeSameAsFill(fuseIntoBars)
       },
       { undoStringKey, redoStringKey,
@@ -109,13 +105,13 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
     >
       <Flex className="palette-form" direction="column">
       {showPointDisplayType && (
-        <RadioGroup defaultValue={pointDisplayType === "histogram" ? "bins" : pointDisplayType}>
+        <RadioGroup defaultValue={graphModel?.plot.isBinned ? "bins" : graphModel?.plot.displayType}>
           <Stack>
             <Radio
               size="md"
               value="points"
               data-testid="points-radio-button"
-              onChange={(e) => handleSelection(e.target.value)}
+              onChange={(e) => handleDisplayTypeChange(e.target.value)}
             >
               {t("DG.Inspector.graphPlotPoints")}
             </Radio>
@@ -123,7 +119,7 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
               size="md"
               value="bins"
               data-testid="bins-radio-button"
-              onChange={(e) => handleSelection(e.target.value)}
+              onChange={(e) => handleDisplayTypeChange(e.target.value)}
             >
               {t("DG.Inspector.graphGroupIntoBins")}
             </Radio>
@@ -132,7 +128,7 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
                   size="md"
                   value="bars"
                   data-testid="bars-radio-button"
-                  onChange={(e) => handleSelection(e.target.value)}
+                  onChange={(e) => handleDisplayTypeChange(e.target.value)}
                >
                  {t("DG.Inspector.graphBarForEachPoint")}
                </Radio>}

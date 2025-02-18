@@ -31,3 +31,10 @@ export type AttributeType = typeof attributeTypes[number]
 export function isAttributeType(type?: string | null): type is AttributeType {
   return type != null && (attributeTypes as readonly string[]).includes(type)
 }
+export function isCategoricalAttributeType(type?: AttributeType): boolean {
+  // treat color and checkbox as categorical for now
+  return type != null && ["categorical", "checkbox", "color"].includes(type)
+}
+export function isNumericAttributeType(type?: AttributeType): boolean {
+  return type === "numeric" || type === "date"
+}

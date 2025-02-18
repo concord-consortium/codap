@@ -13,10 +13,6 @@ export interface InternalizedData {
   cases:string[]
 }
 
-export interface IDomainOptions {
-  clampPosMinAtZero?: boolean
-}
-
 export interface IBarCover {
   caseIDs: string[]
   class: string
@@ -35,8 +31,23 @@ export type CellType = { p: number, s: number, ep: number, es: number }
 type CellRecordType = Record<string, { cell: CellType, numSoFar: number }>
 export type CatMapType = Record<string, Record<string, Record<string, CellRecordType>>>
 
-export const PlotTypes = ["casePlot", "dotPlot", "dotChart", "scatterPlot"] as const
+export const PlotTypes = [
+  "casePlot",
+  // categorical charts
+  "dotChart",
+  "barChart",
+  // univariate numeric plots
+  "dotPlot",
+  "binnedDotPlot",
+  "histogram",
+  "linePlot",
+  // bivariate numeric plots
+  "scatterPlot"
+] as const
 export type PlotType = typeof PlotTypes[number]
+
+export const BreakdownTypes = ["count", "percent"] as const
+export type BreakdownType = typeof BreakdownTypes[number]
 
 export const kGraphClass = "graph-plot"
 export const kGraphClassSelector = `.${kGraphClass}`

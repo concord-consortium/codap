@@ -119,6 +119,7 @@ export class GraphLayout extends DataDisplayLayout implements IAxisLayout {
   }
 
   @override setDesiredExtent(place: GraphExtentsPlace, extent: number) {
+    console.log("GraphLayout.setDesiredExtent", place, extent)
     this.desiredExtents.set(place, extent)
     this.updateScaleRanges(this.plotWidth, this.plotHeight)
   }

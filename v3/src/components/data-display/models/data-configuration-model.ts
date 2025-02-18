@@ -23,6 +23,7 @@ import {
 import {hashStringSets, typedId, uniqueId} from "../../../utilities/js-utils"
 import {getQuantileScale, missingColor, parseColor} from "../../../utilities/color-utils"
 import { numericSortComparator } from "../../../utilities/data-utils"
+import { AxisPlace } from "../../axis/axis-types"
 import {GraphPlace} from "../../axis-graph-shared"
 import {CaseData} from "../d3-types"
 import { AttrRole, GraphAttrRole, TipAttrRoles, graphPlaceToAttrRole, kOther, kMain, GraphSplitAttrRoles }
@@ -601,6 +602,15 @@ export const DataConfigurationModel = types
     }))
   .views(self => (
     {
+      /**
+       * Called to determine whether the categories on an axis should be centered.
+       * If the attribute is playing a primary role, then it should be centered.
+       * If it is a secondary role, then it should not be centered.
+       * 'top' and 'rightCat' are always centered.
+       */
+      categoriesForAxisShouldBeCentered(place: AxisPlace) {
+        return true
+      },
       placeCanHaveZeroExtent(place: GraphPlace) {
         return ['rightNumeric', 'legend', 'top', 'rightCat'].includes(place) &&
           !self.attributeID(graphPlaceToAttrRole[place])

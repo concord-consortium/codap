@@ -14,7 +14,7 @@ import { maybeToV2Id, toV2Id, toV3AttrId, toV3CaseId, toV3DataSetId } from "../.
 import { t } from "../../utilities/translation/translate"
 import { AxisPlace } from "../axis/axis-types"
 import { isNumericAxisModel } from "../axis/models/axis-model"
-import { attrRoleToGraphPlace, GraphAttrRole, isPointDisplayType } from "../data-display/data-display-types"
+import { attrRoleToGraphPlace, GraphAttrRole } from "../data-display/data-display-types"
 import { IAttributeDescriptionSnapshot } from "../data-display/models/data-configuration-model"
 import { kGraphTileType } from "./graph-defs"
 import { GraphContentModel, IGraphContentModelSnapshot, isGraphContentModel } from "./models/graph-content-model"
@@ -74,8 +74,8 @@ export const graphComponentHandler: DIComponentHandler = {
   create({ values }) {
     const {
       backgroundColor, dataContext: _dataContext, displayOnlySelectedCases, enableNumberToggle: showParentToggles,
-      filterFormula, hiddenCases: _hiddenCases, numberToggleLastMode: showOnlyLastCase, pointColor, pointConfig,
-      pointsFusedIntoBars, pointSize, showMeasuresForSelection, strokeColor, strokeSameAsFill, transparent,
+      filterFormula, hiddenCases: _hiddenCases, numberToggleLastMode: showOnlyLastCase, pointColor,
+      pointSize, showMeasuresForSelection, strokeColor, strokeSameAsFill, transparent,
       yAttributeID, yAttributeIDs, yAttributeName, yAttributeNames, yAttributeType
     } = values as V2Graph
     const attributeInfo = getAttributeInfo(values)
@@ -164,8 +164,8 @@ export const graphComponentHandler: DIComponentHandler = {
         _itemStrokeSameAsFill: strokeSameAsFill,
         _pointSizeMultiplier: pointSize
       },
-      pointDisplayType: pointConfig && isPointDisplayType(pointConfig) ? pointConfig : undefined,
-      pointsFusedIntoBars,
+      // pointDisplayType: pointConfig && isPointDisplayType(pointConfig) ? pointConfig : undefined,
+      // pointsFusedIntoBars,
       showOnlyLastCase,
       showParentToggles,
       type: kGraphTileType
@@ -313,7 +313,7 @@ export const graphComponentHandler: DIComponentHandler = {
 
     const {
       backgroundColor, dataContext: _dataContext, displayOnlySelectedCases, enableNumberToggle: showParentToggles,
-      filterFormula, hiddenCases, numberToggleLastMode: showOnlyLastCase, pointColor, pointConfig, pointsFusedIntoBars,
+      filterFormula, hiddenCases, numberToggleLastMode: showOnlyLastCase, pointColor,
       pointSize, showMeasuresForSelection, strokeColor, strokeSameAsFill, transparent, xAttributeType, xLowerBound,
       xUpperBound, yAttributeID, yAttributeIDs, yAttributeName, yAttributeNames, yAttributeType, yLowerBound,
       yUpperBound, y2AttributeType, y2LowerBound, y2UpperBound
@@ -433,8 +433,8 @@ export const graphComponentHandler: DIComponentHandler = {
     if (filterFormula != null) dataConfiguration.setFilterFormula(filterFormula)
     if (hiddenCases != null) dataConfiguration.setHiddenCases(hiddenCases.map(id => toV3CaseId(id)))
     if (pointColor != null) pointDescription.setPointColor(pointColor)
-    if (pointConfig != null && isPointDisplayType(pointConfig)) content.setPointConfig(pointConfig)
-    if (pointsFusedIntoBars != null) content.setPointsFusedIntoBars(pointsFusedIntoBars)
+    // if (pointConfig != null && isPointDisplayType(pointConfig)) content.setPointConfig(pointConfig)
+    // if (pointsFusedIntoBars != null) content.setPointsFusedIntoBars(pointsFusedIntoBars)
     if (pointSize != null) pointDescription.setPointSizeMultiplier(pointSize)
     if (showMeasuresForSelection != null) dataConfiguration.setShowMeasuresForSelection(showMeasuresForSelection)
     if (showParentToggles != null) content.setShowParentToggles(showParentToggles)

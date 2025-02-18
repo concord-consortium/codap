@@ -440,6 +440,14 @@ export type ICodapV2PlotModel =
 
 export type CodapV2PlotType = ICodapV2PlotModel["plotClass"]
 
+export function isV2BarChartModel(plotModel: ICodapV2PlotModel): plotModel is ICodapV2BarChartModel {
+  return ["DG.BarChartModel", "DG.ComputedBarChartModel"].includes(plotModel.plotClass)
+}
+
+export function isV2BinnedPlotModel(plotModel: ICodapV2PlotModel): plotModel is ICodapV2BinnedPlotModel {
+  return plotModel.plotClass === "DG.BinnedPlotModel"
+}
+
 export function isV2ScatterPlotModel(plotModel: ICodapV2PlotModel): plotModel is ICodapV2ScatterPlotModel {
   return plotModel.plotClass === "DG.ScatterPlotModel"
 }

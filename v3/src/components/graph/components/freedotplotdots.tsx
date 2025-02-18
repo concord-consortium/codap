@@ -187,7 +187,7 @@ export const FreeDotPlotDots = observer(function FreeDotPlotDots(props: PlotProp
       const primaryAxis = graphModel.getNumericAxis(primaryIsBottom ? "bottom" : "left")
       const numValues = graphModel.dataConfiguration.numericValuesForAttrRole(primaryIsBottom ? "x" : "y")
       if (primaryAxis) {
-        setNiceDomain(numValues, primaryAxis, graphModel.axisDomainOptions)
+        setNiceDomain(numValues, primaryAxis, graphModel.plot.axisDomainOptions)
       }
     }, {name: "respondToGraphPointDisplayType"}, graphModel)
   }, [dataset, graphModel, primaryIsBottom])

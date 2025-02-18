@@ -5,6 +5,7 @@ import { AxisPlace } from "../axis-types"
 export interface IAxisProvider {
   getAxis: (place: AxisPlace) => IAxisModel | undefined
   getNumericAxis: (place: AxisPlace) => IBaseNumericAxisModel | undefined
+  hasBinnedNumericAxis: (axisModel: IAxisModel) => boolean
   hasDraggableNumericAxis: (axisModel: IAxisModel) => boolean
   nonDraggableAxisTicks: (formatter: (value: number) => string) => { tickValues: number[], tickLabels: string[] }
 }

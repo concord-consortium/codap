@@ -7,8 +7,6 @@ import {InspectorPalette} from "../../../inspector-panel"
 import StylesIcon from "../../../../assets/icons/icon-styles.svg"
 import {DisplayItemFormatControl} from "../../../data-display/inspector/display-item-format-control"
 
-import "../../../data-display/inspector/inspector-panel.scss"
-
 interface IProps {
   tile?: ITileModel
   panelRect?: DOMRect
