@@ -5,7 +5,7 @@ import { toV2Id } from "../../utilities/codap-utils"
 import { defaultBackgroundColor, removeAlphaFromColor } from "../../utilities/color-utils"
 import { V2TileExportFn } from "../../v2/codap-v2-tile-exporters"
 import { CodapV2PlotType, guidLink, ICodapV2Adornment, ICodapV2GraphStorage, IGuidLink } from "../../v2/codap-v2-types"
-import { IAxisModel, isNumericAxisModel } from "../axis/models/axis-model"
+import { IAxisModel, isCategoricalAxisModel, isNumericAxisModel } from "../axis/models/axis-model"
 import { GraphAttrRole } from "../data-display/data-display-types"
 import {
   getAdornmentContentInfo, IAdornmentExporterOptions, isCodapV2TopLevelAdornment
@@ -14,8 +14,8 @@ import { ICountAdornmentModel } from "./adornments/count/count-adornment-model"
 import { kCountType } from "./adornments/count/count-adornment-types"
 import { IMovableValueAdornmentModel } from "./adornments/movable-value/movable-value-adornment-model"
 import { kMovableValueType } from "./adornments/movable-value/movable-value-adornment-types"
-import { PlotType } from "./graphing-types"
 import { IGraphContentModel, isGraphContentModel } from "./models/graph-content-model"
+import { isBarChartModel } from "./models/plot-model"
 
 type V2GraphDimension = "x" | "y" | "y2" | "top" | "right" | "legend"
 
@@ -42,11 +42,24 @@ const v2Roles: Record<string, number> = {
   // eHorizontalSplit: 8     // for attribute in place DG.GraphTypes.EPlace.eRightSplit
 }
 
-const v2PlotClass: Record<PlotType, CodapV2PlotType> = {
-  casePlot: "DG.CasePlotModel",
-  dotPlot: "DG.DotPlotModel",
-  dotChart: "DG.DotChartModel",
-  scatterPlot: "DG.ScatterPlotModel"
+function v2PlotClass(graph: IGraphContentModel): CodapV2PlotType {
+  const { plot } = graph
+
+  if (isBarChartModel(plot) && plot.hasExpression) {
+    return "DG.ComputedBarChartModel"
+  }
+
+  const plotTypeMap: Record<string, CodapV2PlotType> = {
+    casePlot: "DG.CasePlotModel",
+    dotChart: "DG.DotChartModel",
+    barChart: "DG.BarChartModel",
+    dotPlot: "DG.DotPlotModel",
+    binnedDotPlot: "DG.BinnedPlotModel",
+    histogram: "DG.BinnedPlotModel",
+    linePlot: "DG.LinePlotModel",
+    scatterPlot: "DG.ScatterPlotModel"
+  }
+  return plotTypeMap[graph.plotType] ?? "DG.CasePlotModel"
 }
 
 type AttributeRoleAndType = Partial<ICodapV2GraphStorage>
@@ -137,19 +150,28 @@ function getLinks(graph: IGraphContentModel): ICodapV2GraphStorage["_links_"] {
 type AxisClassAndBounds = Partial<ICodapV2GraphStorage>
 
 function getAxisClassAndBounds(
-  graph: IGraphContentModel, dim: V2GraphDimension, axis?: IAxisModel
+  graph: IGraphContentModel, dim: V2GraphDimension, axis?: IAxisModel, isPrimary = false
 ): AxisClassAndBounds {
-  const axisClass = axis?.isNumeric
-                      ? "DG.CellLinearAxisModel"
-                      : axis?.isCategorical || ["top", "right"].includes(dim)
-                        ? "DG.CellAxisModel"
-                        : "DG.AxisModel"
-  const axisBounds = isNumericAxisModel(axis)
-                      ? {
-                        [`${dim}LowerBound`]: axis.min,
-                        [`${dim}UpperBound`]: axis.max
-                      }
-                      : {}
+  let axisClass = "DG.AxisModel"
+  let axisBounds: Record<string, number> = {}
+
+  if (isNumericAxisModel(axis)) {
+    axisClass = !isPrimary && graph.plot.hasCountAxis
+                  ? graph.plot.hasExpression
+                    ? "DG.FormulaAxisModel"
+                    : "DG.CountAxisModel"
+                  : isPrimary && graph.plot.type === "binnedDotPlot"
+                    ? "DG.BinnedAxisModel"
+                    : "DG.CellLinearAxisModel"
+    axisBounds = {
+      [`${dim}LowerBound`]: axis.min,
+      [`${dim}UpperBound`]: axis.max
+    }
+  }
+  else if (isCategoricalAxisModel(axis) || ["top", "right"].includes(dim)) {
+    axisClass = "DG.CellAxisModel"
+  }
+
   return {
     [`${dim}AxisClass`]: axisClass,
     ...axisBounds
@@ -157,7 +179,10 @@ function getAxisClassAndBounds(
 }
 
 function getPlotModels(graph: IGraphContentModel): Partial<ICodapV2GraphStorage> {
-  const { adornmentsStore, dataConfiguration: { categoricalAttrs, showMeasuresForSelection = false } } = graph
+  const {
+    adornmentsStore, plot,
+    dataConfiguration: { categoricalAttrs, showMeasuresForSelection = false }
+  } = graph
   const xAttrType = graph.dataConfiguration.attributeType("x")
   const xCategories = xAttrType === "categorical" ? graph.dataConfiguration.categoryArrayForAttrRole("x") : [""]
   const yAttrType = graph.dataConfiguration.attributeType("y")
@@ -170,6 +195,14 @@ function getPlotModels(graph: IGraphContentModel): Partial<ICodapV2GraphStorage>
   const isShowingPercent = !!countAdornment?.isVisible && countAdornment.showPercent
   const isShowingMovableValues = !!movableValuesAdornment?.isVisible && movableValuesAdornment.hasValues
   const showSumSquares = !!adornmentsStore.showSquaresOfResiduals
+  const breakdownType = isBarChartModel(plot)
+                          ? { breakdownType: plot.breakdownType === "percent" ? 1 : 0 }
+                          : undefined
+  const expression = isBarChartModel(plot) && plot.expression && !plot.expression.empty
+                      ? { expression: plot.expression.display }
+                      : undefined
+  const binDetails = plot.isBinned ? { alignment: graph._binAlignment, width: graph._binWidth } : undefined
+  const dotsAreFused = plot.isBinned ? { dotsAreFused: plot.type === "histogram" } : undefined
   const options: IAdornmentExporterOptions = {
     categoricalAttrs, xCategories, yCategories, legendCategories, isInterceptLocked, isShowingCount,
     isShowingPercent, isShowingMovableValues, showMeasuresForSelection, showSumSquares
@@ -191,7 +224,7 @@ function getPlotModels(graph: IGraphContentModel): Partial<ICodapV2GraphStorage>
   const showMeasureLabels = adornmentsStore.showMeasureLabels ? { showMeasureLabels: true } : undefined
   const storage: SetRequired<Partial<ICodapV2GraphStorage>, "plotModels"> = {
     plotModels: [{
-      plotClass: v2PlotClass[graph.plotType],
+      plotClass: v2PlotClass(graph),
       plotModelStorage: {
         // in v2, every plot model has the exact same nested adornments
         adornments: nestedAdornments,
@@ -199,6 +232,10 @@ function getPlotModels(graph: IGraphContentModel): Partial<ICodapV2GraphStorage>
         ...Object.assign({}, ...topAdornments),
         ...areSquaresVisible,
         ...showMeasureLabels,
+        ...breakdownType,
+        ...expression,
+        ...binDetails,
+        ...dotsAreFused,
         verticalAxisIsY2: false
       }
     }]
@@ -206,7 +243,7 @@ function getPlotModels(graph: IGraphContentModel): Partial<ICodapV2GraphStorage>
   // in v2, additional Y attributes are represented as additional plot models
   for (let y = 1; y < graph.dataConfiguration.yAttributeDescriptionsExcludingY2.length; y++) {
     storage.plotModels.push({
-      plotClass: v2PlotClass.scatterPlot,
+      plotClass: "DG.ScatterPlotModel",
       plotModelStorage: {
         // in v2, every plot model has the exact same nested adornments
         adornments: nestedAdornments,
@@ -218,7 +255,7 @@ function getPlotModels(graph: IGraphContentModel): Partial<ICodapV2GraphStorage>
   // in v2, a rightNumeric attribute is represented as an additional plot model
   if (graph.getAttributeID("rightNumeric")) {
     storage.plotModels.push({
-      plotClass: v2PlotClass.scatterPlot,
+      plotClass: "DG.ScatterPlotModel",
       plotModelStorage: {
         // in v2, every plot model has the exact same nested adornments
         adornments: nestedAdornments,
@@ -271,8 +308,8 @@ export const v2GraphExporter: V2TileExportFn = ({ tile }) => {
     ...getAttrRoleAndType(graph, "topSplit", "top"),
     ...getAttrRoleAndType(graph, "legend", "legend"),
     // axis classes and bounds
-    ...getAxisClassAndBounds(graph, "x", graph.axes.get("bottom")),
-    ...getAxisClassAndBounds(graph, "y", graph.axes.get("left")),
+    ...getAxisClassAndBounds(graph, "x", graph.axes.get("bottom"), graph.primaryPlace === "bottom"),
+    ...getAxisClassAndBounds(graph, "y", graph.axes.get("left"), graph.primaryPlace === "left"),
     ...getAxisClassAndBounds(graph, "y2", graph.axes.get("rightNumeric")),
     ...getAxisClassAndBounds(graph, "top", graph.axes.get("topSplit")),
     ...getAxisClassAndBounds(graph, "right", graph.axes.get("rightSplit")),

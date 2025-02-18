@@ -373,10 +373,10 @@ export const useSubAxis = ({
       return mstReaction(
         () => dataConfig.caseDataHash,
         () => updateDomainAndRenderSubAxis(),
-        {name: "useSubAxis.respondToHiddenCasesChange"}, dataConfig
+        {name: "useSubAxis.respondToHiddenCasesChange"}, [axisModel, dataConfig]
       )
     }
-  }, [dataConfig, updateDomainAndRenderSubAxis])
+  }, [axisModel, dataConfig, updateDomainAndRenderSubAxis])
 
   // Render when axis length or number of sub-axes changes
   useEffect(() => {

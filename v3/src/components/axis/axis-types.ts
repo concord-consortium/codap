@@ -37,6 +37,10 @@ export interface AxisBounds {
   height: number
 }
 
+export interface IAxisDomainOptions {
+  clampPosMinAtZero?: boolean
+}
+
 export type ScaleNumericBaseType = ScaleContinuousNumeric<number, number>
 export type AxisScaleType = ScaleNumericBaseType | ScaleOrdinal<string, any> | ScaleBand<string>
 
@@ -54,4 +58,3 @@ export function selectDragRects(parent: SVGGElement | null, additionalClasses = 
     ? select(parent).selectAll<SVGRectElement, RectIndices>(`.dragRect${additionalClasses}`)
     : null
 }
-
