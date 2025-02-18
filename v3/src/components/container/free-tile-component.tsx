@@ -158,16 +158,16 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
     width, height, zIndex, transition: "none"}
 
   const style = tileId === resizingTileId
-  ? resizingTileStyle
-  : rowTile?.isMinimized
-    ? { left: active && movingStyle ? movingStyle.left : left,
-        top: active && movingStyle ? movingStyle.top : top,
-        transition: "none",
-        width, height: kTitleBarHeight, zIndex
-      }
-    : active && movingStyle
-      ? movingStyle
-      : tileStyle
+                  ? resizingTileStyle
+                  : rowTile?.isMinimized
+                    ? { left: active && movingStyle ? movingStyle.left : left,
+                        top: active && movingStyle ? movingStyle.top : top,
+                        transition: "none",
+                        width, height: kTitleBarHeight, zIndex
+                      }
+                    : active && movingStyle
+                      ? movingStyle
+                      : tileStyle
   // don't impose a width and height for fixed size components
   const info = getTileComponentInfo(tileType)
   if (info?.isFixedWidth) delete style?.width
