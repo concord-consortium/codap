@@ -16,7 +16,8 @@ export const legendComponentManager = {
     categorical: CategoricalLegend,
     color: ColorLegend,
     date: NumericLegend,
-    numeric: NumericLegend
+    numeric: NumericLegend,
+    checkbox: CategoricalLegend
   } as Partial<Record<string, React.ComponentType<IBaseLegendProps>>>,
 
   getLegendComponent(dataConfig: IDataConfigurationModel) {

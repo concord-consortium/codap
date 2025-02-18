@@ -640,6 +640,8 @@ export const DataConfigurationModel = types
             return self.getLegendColorForDateValue(legendValue)
           case 'color':
             return parseColor(legendValue, { colorNames: true }) ? legendValue : missingColor
+          case 'checkbox':
+            return self.getLegendColorForCategory(legendValue)
           default:
             return ''
         }
