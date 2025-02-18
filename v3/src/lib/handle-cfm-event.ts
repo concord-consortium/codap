@@ -52,7 +52,7 @@ export async function handleCFMEvent(cfmClient: CloudFileManagerClient, event: C
         cfmContent.metadata = { shared: cloneDeep(cfmSharedMetadata) }
       }
       event.callback(cfmContent)
-
+console.log("getContent", cfmContent)
       break
     }
     case "willOpenFile":
@@ -121,7 +121,6 @@ export async function handleCFMEvent(cfmClient: CloudFileManagerClient, event: C
       if (!appState.isCurrentRevision(content.revisionId)) {
         cfmClient.dirty(true)
       }
-
       // The filename might have changed when the document was saved
       const filename = event.state?.metadata?.filename
       if (filename) {

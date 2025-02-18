@@ -7,7 +7,7 @@ import { appState } from "../models/app-state"
 import { isCodapDocument } from "../models/codap/create-codap-document"
 import { gLocale } from "../utilities/translation/locale"
 import { t } from "../utilities/translation/translate"
-import { removeDevUrlParams, urlParams } from "../utilities/url-params"
+import { removeDevUrlParams, removeSearchParams, urlParams } from "../utilities/url-params"
 import { clientConnect, createCloudFileManager, renderRoot } from "./cfm-utils"
 import { CONFIG_SAVE_AS_V2 } from "./config"
 import { DEBUG_CFM_LOCAL_STORAGE, DEBUG_CFM_NO_AUTO_SAVE, DEBUG_SAVE_AS_V2 } from "./debug"
@@ -129,7 +129,15 @@ function getMenuConfig(cfm: CloudFileManager) {
     },
     'separator',
     { name: t('DG.fileMenu.menuItem.saveDocument'), action: 'saveFileAsDialog' },
-    { name: t('DG.fileMenu.menuItem.copyDocument'), action: 'createCopy' },
+    // { name: t('DG.fileMenu.menuItem.copyDocument'), action: 'createCopy' },
+    { name: t('DG.fileMenu.menuItem.copyDocument'),
+      action() {
+        console.log("in createCopy")
+        cfm.client.createCopy(function() {
+          removeSearchParams(["di", "di-override"])
+        })
+      }
+    },
     {
       name: t('DG.fileMenu.menuItem.share'),
       items: [
