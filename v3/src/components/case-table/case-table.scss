@@ -1,5 +1,6 @@
 @use "../vars.scss";
 @use "./case-table-shared.scss" as shared;
+@use "../case-tile-common/case-tile-vars" as caseTileVars;
 
 $table-body-font-size: 8pt;
 
@@ -35,6 +36,22 @@ $table-body-font-size: 8pt;
           display: flex;
           align-items: center;
           flex-shrink: 0;
+
+          &.color-cycle-1 {
+            background-color: caseTileVars.$color-cycle-1;
+          }
+          &.color-cycle-2 {
+            background-color: caseTileVars.$color-cycle-2;
+          }
+          &.color-cycle-3 {
+            background-color: caseTileVars.$color-cycle-3;
+          }
+          &.color-cycle-4 {
+            background-color: caseTileVars.$color-cycle-4;
+          }
+          &.color-cycle-5 {
+            background-color: caseTileVars.$color-cycle-5;
+          }
 
           .collection-title {
             position: absolute;

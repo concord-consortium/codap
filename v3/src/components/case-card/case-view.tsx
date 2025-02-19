@@ -11,6 +11,7 @@ import { createAttributesNotification } from "../../models/data/data-set-notific
 import { uiState } from "../../models/ui-state"
 import { uniqueName } from "../../utilities/js-utils"
 import { IDataSet } from "../../models/data/data-set"
+import { colorCycleClass } from "../case-tile-common/case-tile-utils"
 import { CaseCardCollectionSpacer } from "./case-card-collection-spacer"
 import { CaseCardHeader } from "./case-card-header"
 
@@ -24,12 +25,6 @@ interface ICaseViewProps {
   onSelectCases: (caseIds: string[]) => void
   displayedCaseLineage?: readonly string[]
   onNewCollectionDrop: (dataSet: IDataSet, attrId: string, beforeCollectionId: string) => void
-}
-
-const colorCycleClass = (level: number) => {
-  const colorCycleCount = 5
-  // e.g. `color-cycle-1`, `color-cycle-2`, etc.
-  return `color-cycle-${level % colorCycleCount + 1}`
 }
 
 export const CaseView = observer(function CaseView(props: ICaseViewProps) {
