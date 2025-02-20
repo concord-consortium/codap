@@ -1,5 +1,6 @@
 import {ITileModelSnapshotIn} from "../../models/tiles/tile-model"
 import {toV3Id} from "../../utilities/codap-utils"
+import { parseColorToHex } from "../../utilities/color-utils"
 import {V2TileImportArgs} from "../../v2/codap-v2-tile-importers"
 import {
   isV2MapComponent, isV2MapCurrentStorage, isV2MapPointLayerStorage, isV2MapPolygonLayerStorage
@@ -14,7 +15,7 @@ import {IMapPointLayerModelSnapshot} from "./models/map-point-layer-model"
 import {BaseMapKey, kMapPointLayerType, kMapPolygonLayerType} from "./map-types"
 import {IMapBaseLayerModelSnapshot} from "./models/map-base-layer-model"
 import {IMapPolygonLayerModelSnapshot} from "./models/map-polygon-layer-model"
-import { parseColorToHex } from "../../utilities/color-utils"
+
 
 export function v2MapImporter({v2Component, v2Document, insertTile}: V2TileImportArgs) {
   if (!isV2MapComponent(v2Component)) return

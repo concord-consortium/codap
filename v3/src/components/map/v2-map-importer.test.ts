@@ -32,11 +32,6 @@ function transformObject(obj: any, keysToRemove: string[]): any {
       // omit showMeasureLabels if false; v2 treats false/undefined interchangeably
       const isFalseShowMeasureLabels = key === "showMeasureLabels" && !value
       // properties in `keysToRound` are rounded to two decimal places for comparison
-      // if (keysToRound.includes(key) && typeof value === "number") {
-      //   result[key] = Math.round(100 * value) / 100
-      // }
-      // // properties we don't care to compare are removed before comparison
-      // else
       if (!keysToRemove.includes(key) && !isFalseShowMeasureLabels) {
         result[key] = transformObject(value, keysToRemove)
       }

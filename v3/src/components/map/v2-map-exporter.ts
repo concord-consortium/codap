@@ -16,12 +16,12 @@ import { IMapLayerModel } from "./models/map-layer-model"
 import { IMapPointLayerModel } from "./models/map-point-layer-model"
 import { IMapPolygonLayerModel } from "./models/map-polygon-layer-model"
 
-// These two contants are just for testing.
-// V2 test is expecting string versions of these values, though nothing suggests V2 cannot
+// These two constants are just for testing.
+// V2 serializes these default values as strings, though it can clearly
 // handle numeric values for these properties. In fact changing the values of these properties
 // in V2 assigns numeric values.
-const kV2DefaultAreaTransparencyStr = "0.5"
-const kV2DefaultAreaStrokeTransparencyStr = "0.6"
+const kV2DefaultAreaTransparency = 0.5
+const kV2DefaultAreaStrokeTransparency = 0.6
 
 function baseMapStringToV2BaseMapString(baseType: BaseMapKey) {
   switch (baseType) {
@@ -72,6 +72,7 @@ function exportMapBaseLayerStorage(layer: IMapLayerModel): ICodapV2MapLayerBaseS
 
 const getTransparency = (color: string) => {
   const rgbaColor = colord(color).toRgb()
+  //returns 1 if alpha channel or color is empty string
   return rgbaColor.a
 }
 
@@ -147,17 +148,19 @@ export const v2MapExporter: V2TileExportFn = ({ tile }) => {
         const polygonLayerModel = findLayerFromContent<IMapPolygonLayerModel>(dataSet.id, kMapPolygonLayerType)
         if (polygonLayerModel && !v2LayerModelIds.includes(polygonLayerModel.id)) {
           const {polygonDescription} = polygonLayerModel
-          const areaTransparency =  getTransparency(polygonDescription._itemColors[0])
-          const areaStrokeTransparency = getTransparency(polygonDescription.itemStrokeColor)
+          const areaTransparency =  getTransparency(polygonDescription._itemColors[0] ?? "")
+          const areaStrokeTransparency = getTransparency(polygonDescription.itemStrokeColor ?? "")
           const polygonLayer: ICodapV2MapPolygonLayerStorage = {
             ...exportMapBaseLayerStorage(polygonLayerModel),
             areaColor: removeAlphaFromColor(polygonDescription._itemColors[0]) ?? "",
-            areaTransparency: areaTransparency === 0.5 ? kV2DefaultAreaTransparencyStr : areaTransparency,
+            areaTransparency: areaTransparency === kV2DefaultAreaTransparency
+                                ? `${kV2DefaultAreaTransparency}` : areaTransparency,
             areaStrokeColor: polygonDescription.itemStrokeSameAsFill
                               ? "white" // v2 uses white for stroke when stroke is same as fill
                               : strokeColorStr(polygonDescription.itemStrokeColor) ?? "",
-            areaStrokeTransparency: polygonDescription.itemStrokeSameAsFill || areaStrokeTransparency === 0.6
-                                      ? kV2DefaultAreaStrokeTransparencyStr : areaStrokeTransparency,
+            areaStrokeTransparency: polygonDescription.itemStrokeSameAsFill ||
+                                      areaStrokeTransparency === kV2DefaultAreaStrokeTransparency
+                                        ? `${kV2DefaultAreaStrokeTransparency}` : areaStrokeTransparency,
             strokeSameAsFill: polygonDescription.itemStrokeSameAsFill ?? false
           }
           v2LayerModelIds.push(polygonLayerModel.id)
