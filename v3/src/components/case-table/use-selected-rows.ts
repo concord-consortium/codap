@@ -1,6 +1,6 @@
 import { reaction } from "mobx"
 import { useCallback, useEffect, useRef, useState } from "react"
-import { CellMouseEvent, CLEAR_CELL_SELECTION_POSITION, DataGridHandle } from "react-data-grid"
+import { CellMouseEvent, DataGridHandle } from "react-data-grid"
 import { appState } from "../../models/app-state"
 import { isPartialSelectionAction, isSelectionAction } from "../../models/data/data-set-actions"
 import {
@@ -23,7 +23,7 @@ interface UseSelectedRows {
 }
 
 export const useSelectedRows = (props: UseSelectedRows) => {
-  const { gridRef, onScrollClosestRowIntoView, onScrollRowRangeIntoView } = props
+  const { onScrollClosestRowIntoView, onScrollRowRangeIntoView } = props
   const data = useDataSetContext()
   const collectionId = useCollectionContext()
   const collectionTableModel = useCollectionTableModel()
@@ -115,18 +115,15 @@ export const useSelectedRows = (props: UseSelectedRows) => {
   const handleCellClick = useCallback((cellClickArgs: TCellClickArgs, event: CellMouseEvent) => {
     const { column, row: { __id__: caseId }, selectCell } = cellClickArgs
 
-    if (column.key !== kIndexColumnKey) {
+    if (column.key !== kIndexColumnKey && caseId === kInputRowKey) {
       // prevent the RDG default behavior so we can handle the click ourselves
       event.preventGridDefault()
 
-      // single click on an input row cell initiates editing immediately
-      if (caseId === kInputRowKey) {
-        selectCell(true)
-        return
-      }
+      // start editing immediately in the input row
+      selectCell(true)
 
-      // single click on a non-input row clears the cell selection...
-      gridRef.current?.selectCell(CLEAR_CELL_SELECTION_POSITION)
+      // exit without row/case selection on clicks in the input row
+      return
     }
 
     // ...and selects the entire case (or extends the selection)
@@ -182,7 +179,7 @@ export const useSelectedRows = (props: UseSelectedRows) => {
         caseIds = childCaseIds
       }
     }
-  }, [collectionId, data, gridRef, onScrollRowRangeIntoView])
+  }, [collectionId, data, onScrollRowRangeIntoView])
 
   return { selectedRows, setSelectedRows, handleCellClick }
 }
