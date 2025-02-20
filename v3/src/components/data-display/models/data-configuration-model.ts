@@ -219,6 +219,9 @@ export const DataConfigurationModel = types
         switch (self.attributeType(role as AttrRole)) {
           case "numeric":
             return isFiniteNumber(data.getNumeric(caseID, attributeID))
+          case "categorical":
+            // Treat 0 as a string and return true for all non-empty strings
+            return !!data.getStrValue(caseID, attributeID)
           default:
             // for now, all other types must just be non-empty
             return !!data.getValue(caseID, attributeID)
