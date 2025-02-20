@@ -1,5 +1,23 @@
 # Changelog
 
+## Version 3.0.0-pre.2183 - February 20, 2025
+
+### ✨ Features & Improvements:
+- **PT-188694812:** Import/export transparency and strokeTransparency for maps
+
+### 🐞 Bug Fixes:
+- **PT-188868683:** Checkbox type attributes do not graph correctly
+- **PT-188871479:** The api does not respect the width dimension when creating a caseTable
+- **PT-188623886:** When trying to drag a minimized component, it doesn't move until mouseUp.
+- **PT-188892243:** Attempt at arrow key navigation in case table causes crash
+- **CODAP-12** Categorical Plots should retain 0 as a category
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  189010 bytes |                           <0.00% |
+|  index.js | 6460492 bytes |                           <0.00% |
+
 ## Version 3.0.0-pre.2174 - February 14, 2025
 
 ### ✨ Features & Improvements:
