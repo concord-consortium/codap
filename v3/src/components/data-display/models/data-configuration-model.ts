@@ -217,11 +217,17 @@ export const DataConfigurationModel = types
         // can still plot the case without a caption or a legend
         if (["caption", "legend"].includes(role)) return true
         switch (self.attributeType(role as AttrRole)) {
+          // TODO: handle "date" type
           case "numeric":
             return isFiniteNumber(data.getNumeric(caseID, attributeID))
-          default:
+          case "categorical":
+            // Treat 0 as a string and return true for all non-empty strings
+            return !!data.getStrValue(caseID, attributeID)
+          default: {
             // for now, all other types must just be non-empty
-            return !!data.getValue(caseID, attributeID)
+            const value = data.getValue(caseID, attributeID)
+            return value != null && value !== ""
+          }
         }
       })
     },
