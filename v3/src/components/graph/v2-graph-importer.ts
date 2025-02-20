@@ -186,7 +186,6 @@ export function v2GraphImporter({v2Component, v2Document, sharedModelManager, in
       _itemStrokeColor: strokeColor ? parseColorToHex(strokeColor, {colorNames: true, alpha: strokeTransparency})
                                     : strokeColor,
       _pointSizeMultiplier: pointSizeMultiplier,
-      /*transparency, strokeTransparency*/
       _itemStrokeSameAsFill: strokeSameAsFill
     },
     layers: [{

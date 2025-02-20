@@ -272,7 +272,7 @@
                             "legendRole": 0,
                             "legendAttributeType": 0,
                             "isVisible": true,
-                            "areaColor": "#FF3E00",
+                            "areaColor": "#ff3e00",
                             "areaTransparency": "0.5",
                             "areaStrokeColor": "white",
                             "areaStrokeTransparency": "0.6",
