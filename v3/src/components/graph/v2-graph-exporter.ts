@@ -15,7 +15,8 @@ import { kCountType } from "./adornments/count/count-adornment-types"
 import { IMovableValueAdornmentModel } from "./adornments/movable-value/movable-value-adornment-model"
 import { kMovableValueType } from "./adornments/movable-value/movable-value-adornment-types"
 import { IGraphContentModel, isGraphContentModel } from "./models/graph-content-model"
-import { isBarChartModel } from "./models/plot-model"
+import { isBarChartModel } from "./plots/bar-chart/bar-chart-model"
+import { isBinnedPlotModel } from "./plots/histogram/histogram-model"
 
 type V2GraphDimension = "x" | "y" | "y2" | "top" | "right" | "legend"
 
@@ -201,7 +202,9 @@ function getPlotModels(graph: IGraphContentModel): Partial<ICodapV2GraphStorage>
   const expression = isBarChartModel(plot) && plot.expression && !plot.expression.empty
                       ? { expression: plot.expression.display }
                       : undefined
-  const binDetails = plot.isBinned ? { alignment: graph._binAlignment, width: graph._binWidth } : undefined
+  const _binDetails = isBinnedPlotModel(plot) ? plot.binDetails(graph.dataConfiguration) : undefined
+  const { binAlignment: alignment, binWidth: width, totalNumberOfBins } = _binDetails ?? {}
+  const binDetails = _binDetails ? { alignment, width, totalNumberOfBins } : undefined
   const dotsAreFused = plot.isBinned ? { dotsAreFused: plot.type === "histogram" } : undefined
   const options: IAdornmentExporterOptions = {
     categoricalAttrs, xCategories, yCategories, legendCategories, isInterceptLocked, isShowingCount,

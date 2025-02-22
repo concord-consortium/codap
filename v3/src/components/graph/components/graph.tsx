@@ -32,18 +32,18 @@ import {useGraphLayoutContext} from "../hooks/use-graph-layout-context"
 import {useGraphModel} from "../hooks/use-graph-model"
 import {GraphController} from "../models/graph-controller"
 // import { syncModelWithAttributeConfiguration } from "../models/graph-model-utils"
+import { BarChart } from "../plots/bar-chart/bar-chart"
+import { BinnedDotPlot } from "../plots/binned-dot-plot/binned-dot-plot"
+import {CasePlot} from "../plots/case-plot/case-plot"
+import { DotChart } from "../plots/dot-chart/dot-chart"
+import { DotLinePlot } from "../plots/dot-plot/dot-line-plot"
+import { Histogram } from "../plots/histogram/histogram"
+import {ScatterPlot} from "../plots/scatter-plot/scatter-plot"
 import {setNiceDomain} from "../utilities/graph-utils"
-import { BinnedDotPlotDots } from "./binneddotplotdots"
-import {CaseDots} from "./casedots"
-import { DotChartBars } from "./dot-chart-bars"
-import { DotChartPoints } from "./dot-chart-points"
 import {DroppableAddAttribute} from "./droppable-add-attribute"
 import {DroppablePlot} from "./droppable-plot"
-import { FreeDotPlotDots } from "./freedotplotdots"
 import {GraphAxis} from "./graph-axis"
-import { Histogram } from "./histogram"
 import { ParentToggles } from "./parent-toggles"
-import {ScatterDots} from "./scatterdots"
 
 import "./graph.scss"
 
@@ -274,14 +274,14 @@ export const Graph = observer(function Graph({graphController, setGraphRef, pixi
   const renderPlotComponent = () => {
     const props = {xAttrID, yAttrID, pixiPoints, abovePointsGroupRef},
       typeToPlotComponentMap: Record<PlotType, React.JSX.Element> = {
-        casePlot: <CaseDots {...props}/>,
-        dotChart: <DotChartPoints {...props}/>,
-        barChart: <DotChartBars {...props}/>,
-        dotPlot: <FreeDotPlotDots {...props}/>,
-        binnedDotPlot: <BinnedDotPlotDots {...props}/>,
+        casePlot: <CasePlot {...props}/>,
+        dotChart: <DotChart {...props}/>,
+        barChart: <BarChart {...props}/>,
+        dotPlot: <DotLinePlot {...props}/>,
+        binnedDotPlot: <BinnedDotPlot {...props}/>,
         histogram: <Histogram {...props}/>,
-        linePlot: <FreeDotPlotDots {...props}/>,
-        scatterPlot: <ScatterDots {...props}/>
+        linePlot: <DotLinePlot {...props}/>,
+        scatterPlot: <ScatterPlot {...props}/>
       }
     return typeToPlotComponentMap[plotType]
   }

@@ -1,10 +1,11 @@
-import React, { useRef } from "react"
-import { observer } from "mobx-react-lite"
 import { Checkbox, Flex, FormControl, FormLabel, Slider, SliderThumb, SliderTrack } from "@chakra-ui/react"
+import { observer } from "mobx-react-lite"
+import React, { useRef } from "react"
 import {
   kDefaultHighAttributeColor, kDefaultLowAttributeColor
 } from "../../../models/shared/shared-case-metadata-constants"
 import { t } from "../../../utilities/translation/translate"
+import { PointDisplayType } from "../data-display-types"
 import { IDataConfigurationModel } from "../models/data-configuration-model"
 import { IDisplayItemDescriptionModel } from "../models/display-item-description-model"
 import { PointColorSetting } from "./point-color-setting"
@@ -14,7 +15,7 @@ import "./inspector-panel.scss"
 interface IProps {
   dataConfiguration: IDataConfigurationModel
   displayItemDescription: IDisplayItemDescriptionModel
-  pointDisplayType?: string
+  pointDisplayType?: PointDisplayType
   isTransparent?: boolean
   onBackgroundTransparencyChange?: (isTransparent: boolean) => void
   plotBackgroundColor?: string

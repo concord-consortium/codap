@@ -1,19 +1,19 @@
 import {randomUniform} from "d3"
-import {mstReaction} from "../../../utilities/mst-reaction"
-import React, {useCallback, useEffect, useRef, useState} from "react"
 import * as PIXI from "pixi.js"
-import {CaseData} from "../../data-display/d3-types"
-import {handleClickOnCase, setPointSelection} from "../../data-display/data-display-utils"
-import {useDataDisplayAnimation} from "../../data-display/hooks/use-data-display-animation"
-import {usePixiDragHandlers, usePlotResponders} from "../hooks/use-plot"
-import {useGraphDataConfigurationContext} from "../hooks/use-graph-data-configuration-context"
-import {useDataSetContext} from "../../../hooks/use-data-set-context"
-import {useGraphContentModelContext} from "../hooks/use-graph-content-model-context"
-import {useGraphLayoutContext} from "../hooks/use-graph-layout-context"
-import {setPointCoordinates} from "../utilities/graph-utils"
-import {IPixiPointMetadata, PixiPoints} from "../../data-display/pixi/pixi-points"
+import React, {useCallback, useEffect, useRef, useState} from "react"
+import {useDataSetContext} from "../../../../hooks/use-data-set-context"
+import {mstReaction} from "../../../../utilities/mst-reaction"
+import {CaseData} from "../../../data-display/d3-types"
+import {handleClickOnCase, setPointSelection} from "../../../data-display/data-display-utils"
+import {useDataDisplayAnimation} from "../../../data-display/hooks/use-data-display-animation"
+import {IPixiPointMetadata, PixiPoints} from "../../../data-display/pixi/pixi-points"
+import {useGraphContentModelContext} from "../../hooks/use-graph-content-model-context"
+import {useGraphDataConfigurationContext} from "../../hooks/use-graph-data-configuration-context"
+import {useGraphLayoutContext} from "../../hooks/use-graph-layout-context"
+import {usePixiDragHandlers, usePlotResponders} from "../../hooks/use-plot"
+import {setPointCoordinates} from "../../utilities/graph-utils"
 
-export const CaseDots = function CaseDots(props: {
+export const CasePlot = function CasePlot(props: {
   pixiPoints?: PixiPoints
 }) {
   const {

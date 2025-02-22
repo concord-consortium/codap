@@ -1,7 +1,7 @@
 import { PlotType } from "../../graphing-types"
 import { getAdornmentComponentInfo, IAdornmentComponentInfo } from "../adornment-component-info"
 import { getAdornmentContentInfo, IAdornmentContentInfo } from "../adornment-content-info"
-import { IMeasure, measures, RulerStateKey } from "../adornment-ui-types"
+import { getMeasuresForPlot, IMeasure, RulerStateKey } from "../adornment-ui-types"
 import { kCountType } from "../count/count-adornment-types"
 import { kLSRLType } from "../lsrl/lsrl-adornment-types"
 import { kMovableLineType } from "../movable-line/movable-line-adornment-types"
@@ -73,7 +73,7 @@ export function getAdornmentsMenuItemsFromTheStore(theStore: IAdornmentsBaseStor
   // Populate the menu list from the items in `measures`. In addition to the adornments in `measures`, we separately add
   // items that either augment/adjust other adornments' behavior (e.g. Show Measure Labels, Intercept Locked), or need
   // special handling outside the realm of adornments (e.g. Connecting Lines, Squares of Residuals).
-  measures[plotType].map((measureOrGroup: IMeasure) => {
+  getMeasuresForPlot(plotType).map((measureOrGroup: IMeasure) => {
 
     // Add the Show Measure Labels option checkbox immediately before the first group item. Note that group items only
     // appear in the univariate plot's ruler.

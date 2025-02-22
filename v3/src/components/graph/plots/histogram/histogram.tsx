@@ -2,22 +2,23 @@ import { ScaleBand } from "d3"
 import { observer } from "mobx-react-lite"
 import React, { useCallback, useEffect, useRef } from "react"
 import { createPortal } from "react-dom"
-import { IBarCover, PlotProps } from "../graphing-types"
-import { usePlotResponders } from "../hooks/use-plot"
-import { setPointCoordinates } from "../utilities/graph-utils"
-import { mstAutorun } from "../../../utilities/mst-autorun"
-import { computeBinPlacements } from "../utilities/dot-plot-utils"
-import { useDotPlot } from "../hooks/use-dot-plot"
-import { useDotPlotResponders } from "../hooks/use-dot-plot-responders"
-import { renderBarCovers } from "../utilities/bar-utils"
-import { SubPlotCells } from "../models/sub-plot-cells"
+import { mstAutorun } from "../../../../utilities/mst-autorun"
+import { IBarCover, PlotProps } from "../../graphing-types"
+import { useBinnedPlotResponders } from "../../hooks/use-binned-plot-responders"
+import { useDotPlot } from "../../hooks/use-dot-plot"
+import { usePlotResponders } from "../../hooks/use-plot"
+import { isBinnedPlotModel } from "./histogram-model"
+import { SubPlotCells } from "../../models/sub-plot-cells"
+import { renderBarCovers } from "../../utilities/bar-utils"
+import { computeBinPlacements } from "../../utilities/dot-plot-utils"
+import { setPointCoordinates } from "../../utilities/graph-utils"
 
 export const Histogram = observer(function Histogram({ abovePointsGroupRef, pixiPoints }: PlotProps) {
   const { dataset, dataConfig, graphModel, isAnimating, layout, getPrimaryScreenCoord, getSecondaryScreenCoord,
           pointColor, pointStrokeColor, primaryAttrRole, primaryAxisScale, primaryIsBottom, primaryPlace,
           refreshPointSelection, secondaryAttrRole } = useDotPlot(pixiPoints)
+  const binnedPlot = isBinnedPlotModel(graphModel.plot) ? graphModel.plot : undefined
   const barCoversRef = useRef<SVGGElement>(null)
-  const pointDisplayType = "histogram"
 
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
     if (!dataConfig) return
@@ -40,7 +41,7 @@ export const Histogram = observer(function Histogram({ abovePointsGroupRef, pixi
       fullSecondaryBandwidth = secondaryAxisScale.bandwidth?.() ?? secondaryAxisExtent,
       numExtraSecondaryBands = Math.max(1, extraSecondaryAxisScale?.domain().length ?? 1),
       secondaryBandwidth = fullSecondaryBandwidth / numExtraSecondaryBands,
-      { binWidth, minBinEdge, totalNumberOfBins } = graphModel.binDetails(),
+      { binWidth, minBinEdge, totalNumberOfBins } = binnedPlot?.binDetails(dataConfig) || {},
       subPlotCells = new SubPlotCells(layout, dataConfig),
       { secondaryNumericUnitLength } = subPlotCells
 
@@ -105,14 +106,14 @@ export const Histogram = observer(function Histogram({ abovePointsGroupRef, pixi
       selectedPointRadius: graphModel.getPointRadius("select"),
       pixiPoints, selectedOnly, pointColor, pointStrokeColor, getWidth, getHeight,
       getScreenX, getScreenY, getLegendColor, getAnimationEnabled: isAnimating,
-      pointDisplayType, dataset, pointsFusedIntoBars: true
+      pointDisplayType: "bars", dataset, pointsFusedIntoBars: true
     })
-  }, [abovePointsGroupRef, dataConfig, dataset, getPrimaryScreenCoord, getSecondaryScreenCoord, graphModel,
-      isAnimating, layout, pixiPoints, pointColor, pointStrokeColor, primaryAttrRole, primaryAxisScale,
-      primaryIsBottom, primaryPlace, secondaryAttrRole])
+  }, [abovePointsGroupRef, binnedPlot, dataConfig, dataset, getPrimaryScreenCoord, getSecondaryScreenCoord,
+      graphModel, isAnimating, layout, pixiPoints, pointColor, pointStrokeColor,
+      primaryAttrRole, primaryAxisScale, primaryIsBottom, primaryPlace, secondaryAttrRole])
 
   usePlotResponders({pixiPoints, refreshPointPositions, refreshPointSelection})
-  useDotPlotResponders(refreshPointPositions)
+  useBinnedPlotResponders(refreshPointPositions)
 
   // when points are fused into bars, update pixiPoints and set the secondary axis scale type to linear
   useEffect(function handleFuseIntoBars() {

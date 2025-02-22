@@ -287,7 +287,7 @@ export const graphComponentHandler: DIComponentHandler = {
       const { displayOnlySelectedCases, showMeasuresForSelection } = dataConfiguration
       const filterFormula = dataConfiguration.filterFormula?.display
       const hiddenCases = dataConfiguration.hiddenCases.map(id => toV2Id(id))
-      const pointConfig = content.pointDisplayType
+      const pointConfig = content.plot.displayType
       const pointSize = pointDescription.pointSizeMultiplier
       const strokeColor = pointDescription.pointStrokeColor
       const { pointColor } = pointDescription

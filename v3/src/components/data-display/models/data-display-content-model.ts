@@ -15,6 +15,7 @@ import {TileContentModel} from "../../../models/tiles/tile-content"
 import { getTileContentInfo } from "../../../models/tiles/tile-content-info"
 import {defaultBackgroundColor} from "../../../utilities/color-utils"
 import { typedId } from "../../../utilities/js-utils"
+import { IAxisTicks, TickFormatter } from "../../axis/axis-types"
 import {GraphPlace} from "../../axis-graph-shared"
 import { IAxisModel, isBaseNumericAxisModel } from "../../axis/models/axis-model"
 import { MarqueeMode } from "../data-display-types"
@@ -51,7 +52,7 @@ export const DataDisplayContentModel = TileContentModel
       // derived models may override to provide additional constraints
       return isBaseNumericAxisModel(axisModel)
     },
-    nonDraggableAxisTicks(formatter: (value: number) => string): { tickValues: number[], tickLabels: string[] } {
+    nonDraggableAxisTicks(formatter: TickFormatter): IAxisTicks {
       // derived models should override
       return {tickValues: [], tickLabels: []}
     },
