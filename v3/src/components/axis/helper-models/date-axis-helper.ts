@@ -463,6 +463,7 @@ export class DateAxisHelper extends AxisHelper {
       {rangeMin, rangeMax} = this
 
     sAS.selectAll('*').remove()
+    sAS.attr("class", "date-axis")
 
     this.renderAxisLine()
     drawTicks()
