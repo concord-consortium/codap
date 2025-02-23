@@ -63,7 +63,6 @@ export const useSubAxis = ({
     isNumeric = isNumericAxisModel(axisModel),
     isCategorical = isCategoricalAxisModel(axisModel),
     multiScaleChangeCount = layout.getAxisMultiScale(axisModel?.place ?? 'bottom')?.changeCount ?? 0,
-    savedCategorySetValuesRef = useRef<string[]>([]),
     dragInfo = useRef<DragInfo>({
       indexOfCategory: -1,
       catName: '',
@@ -319,22 +318,16 @@ export const useSubAxis = ({
   useEffect(function installCategorySetSync() {
     if (isCategorical) {
       const disposer = reaction(() => {
-        const multiScale = layout.getAxisMultiScale(axisModel.place),
-          categoryValues = multiScale?.categoryValues
-        return Array.from(categoryValues ?? [])
-      }, (values) => {
-        // todo: The above reaction is detecting changes to the set of values even when they haven't changed. Why?
-        if (JSON.stringify(values) !== JSON.stringify(savedCategorySetValuesRef.current)) {
-          setupCategories()
-          swapInProgress.current = true
-          renderSubAxis()
-          savedCategorySetValuesRef.current = values
-          swapInProgress.current = false
-        }
+        return (dataConfig?.categorySetForAttrRole(axisPlaceToAttrRole[axisPlace]))?.valuesArray
+      }, () => {
+        setupCategories()
+        swapInProgress.current = true
+        renderSubAxis()
+        swapInProgress.current = false
       }, {name: "useSubAxis [categories]", equals: comparer.structural})
       return () => disposer()
     }
-  }, [axisModel, renderSubAxis, layout, isCategorical, setupCategories])
+  }, [renderSubAxis, isCategorical, setupCategories, dataConfig, axisPlace])
 
   const updateDomainAndRenderSubAxis = useCallback(() => {
     const role = axisPlaceToAttrRole[axisPlace],
