@@ -179,9 +179,10 @@ export const useSubAxis = ({
       if (!subAxisElt) return
       subAxisSelectionRef.current = select(subAxisElt)
       const sAS = subAxisSelectionRef.current
-      if (sAS.classed('numeric-axis')) {
-        sAS.selectAll('g').remove()
+      if (sAS.classed('numeric-axis') || sAS.classed('date-axis')) {
+        sAS.selectAll('*').remove()
         sAS.classed('numeric-axis', false)
+        sAS.classed('date-axis', false)
       }
 
       if (sAS.select('line').empty()) {
