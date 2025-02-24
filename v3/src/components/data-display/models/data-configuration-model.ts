@@ -381,7 +381,7 @@ export const DataConfigurationModel = types
         const allCategorySet = self.categorySetForAttrRole(role)
         // if we don't have a category set just return the values
         if (!allCategorySet && valuesSet.size > 0) {
-          resultArray = Array.from(valuesSet)
+          resultArray = Array.from(valuesSet).sort()
         }
         else {
           // return the categories in canonical order
@@ -390,6 +390,7 @@ export const DataConfigurationModel = types
               resultArray.push(category)
             }
           })
+          resultArray.sort()
           if (categoryLimitForRole && resultArray.length > categoryLimitForRole) {
             resultArray.length = categoryLimitForRole
             resultArray[categoryLimitForRole - 1] = kOther
