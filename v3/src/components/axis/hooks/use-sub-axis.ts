@@ -317,14 +317,14 @@ export const useSubAxis = ({
   // Refresh when category set, if any, changes
   useEffect(function installCategorySetSync() {
     if (isCategorical) {
-      const disposer = reaction(() => {
+      const disposer = mstReaction(() => {
         return (dataConfig?.categorySetForAttrRole(axisPlaceToAttrRole[axisPlace]))?.valuesArray
       }, () => {
         setupCategories()
         swapInProgress.current = true
         renderSubAxis()
         swapInProgress.current = false
-      }, {name: "useSubAxis [categories]", equals: comparer.structural})
+      }, {name: "useSubAxis [categories]", equals: comparer.structural}, dataConfig)
       return () => disposer()
     }
   }, [renderSubAxis, isCategorical, setupCategories, dataConfig, axisPlace])
