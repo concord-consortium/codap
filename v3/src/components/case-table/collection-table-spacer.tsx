@@ -16,6 +16,8 @@ import { kInputRowKey } from "./case-table-types"
 import { CurvedSpline } from "./curved-spline"
 import { useCollectionTableModel } from "./use-collection-table-model"
 
+const kRelationSelectedStrokeColor = '#66afe9' // blue
+
 interface IProps {
   selectedFillColor?: string
   onDrop?: (dataSet: IDataSet, attrId: string) => void
@@ -146,13 +148,14 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({
             <svg className="spacer-mid-layer lower-layer">
               {indexRanges?.map(({ id: parentCaseId, firstChildIndex, lastChildIndex }, index) => {
                 const fillColor = data.isCaseSelected(parentCaseId) ? selectedFillColor : undefined
+                const strokeColor = data.isCaseSelected(parentCaseId) ? kRelationSelectedStrokeColor : undefined
                 return <CurvedSpline key={`${parentCaseId}-${index}`}
                                       prevY1={parentTableModel.getTopOfRowModuloScroll(index)}
                                       y1={parentTableModel.getBottomOfRowModuloScroll(index)}
                                       prevY2={childTableModel.getTopOfRowModuloScroll(firstChildIndex)}
                                       y2={childTableModel.getBottomOfRowModuloScroll(lastChildIndex)}
-                                      even={(index + 1) % 2 === 0}
-                                      fillColor={fillColor}
+                                      even={(index + 1) % 2 === 0} lastChildCase={index ===  indexRanges.length - 1}
+                                      fillColor={fillColor} strokeColor={strokeColor}
                         />
               })}
             </svg>

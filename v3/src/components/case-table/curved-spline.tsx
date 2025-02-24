@@ -8,8 +8,10 @@ interface IProps {
   prevY1: number
   prevY2: number
   fillColor?: string
+  strokeColor?: string
+  lastChildCase?: boolean
 }
-export function CurvedSpline({ y1, y2, even, prevY1, prevY2, fillColor }: IProps) {
+export function CurvedSpline({ y1, y2, even, prevY1, prevY2, fillColor, strokeColor }: IProps) {
   const kDividerWidth = 48,
         kRelationParentMargin = 12,
         kRelationChildMargin = 4,
@@ -92,6 +94,7 @@ export function CurvedSpline({ y1, y2, even, prevY1, prevY2, fillColor }: IProps
     }
 
   const pathData = buildPathStr(y1, y2)
+  const prevPathData = buildPathStr(prevY1, prevY2)
   const fillData = buildFillPathStr(prevY1, prevY2, y1, y2)
   const finalFillColor = fillColor
                           ? even ? new Colord(fillColor).darken(0.05).toHex() : fillColor
@@ -99,9 +102,11 @@ export function CurvedSpline({ y1, y2, even, prevY1, prevY2, fillColor }: IProps
   return (
     finalFillColor
       ? <>
+          {strokeColor && <path d={prevPathData} fill="none" stroke={strokeColor} strokeWidth={strokeColor && 1.5}/>}
           <path d={fillData} fill={finalFillColor} stroke="none" />
-          <path d={pathData} fill="none" stroke={kRelationStrokeColor} />
+          <path d={pathData} fill="none" stroke={strokeColor ?? kRelationStrokeColor}
+              strokeWidth={strokeColor && 3}/>
         </>
-      : <path d={pathData} fill="none" stroke={kRelationStrokeColor} />
+      : <path d={pathData} fill="none" stroke={strokeColor ?? kRelationStrokeColor}  strokeWidth={strokeColor && 1.5}/>
   )
 }
