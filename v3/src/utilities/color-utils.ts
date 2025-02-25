@@ -145,7 +145,7 @@ export function interpolateColors(color1: string, color2: string, percentage: nu
 }
 
 // Returns an array of five colors transitioning between color1 and color2
-export function getQuantileScale(color1: string, color2: string) {
+export function getChoroplethColors(color1: string, color2: string) {
   const midColor = (percentage: number) => interpolateColors(color1, color2, percentage)
   return [color1, midColor(.25), midColor(.5), midColor(.75), color2]
 }
