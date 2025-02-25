@@ -1,67 +1,51 @@
 import { FormulaMathJsScope } from "../formula-mathjs-scope"
-import {
-  evaluate, evaluateForAllCases, getFormulaTestEnv, IEvaluateForAllCasesOptions
-} from "../test-utils/formula-test-utils"
+import { evaluate, evaluateForAllCases, getFormulaTestEnv } from "../test-utils/formula-test-utils"
 import { displayToCanonical } from "../utils/canonicalization-utils"
 import { getDisplayNameMap } from "../utils/name-mapping-utils"
+import { UNDEF_RESULT } from "./function-utils"
 import { math } from "./math"
 
-describe("semiAggregateFunctions", () => {
-
-  const dietSplitOptions: IEvaluateForAllCasesOptions = {
-    amendContext: data => {
-      // Move the Diet attribute to a new collection so that we can test grouping
-      data.moveAttributeToNewCollection(data.getAttributeByName("Diet")!.id)
-      data.validateCases()
-
-      const caseGroupId: Record<string, string> = {}
-      data.itemIds.forEach(id => {
-        const itemCaseIds = data.itemInfoMap.get(id)?.caseIds
-        const parentCaseId =  itemCaseIds ? itemCaseIds[0] : ""
-        if (parentCaseId) {
-          caseGroupId[id] = parentCaseId
-        }
-      })
-      return {
-        caseGroupId,
-        childMostAggregateCollectionIndex: 1
-      }
-    }
-  }
+describe("local lookup functions", () => {
 
   describe("first", () => {
-    it("should return the first value", () => {
-      expect(evaluateForAllCases("first(LifeSpan)"))
-        .toEqual([70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70,
-                  70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70])
-      expect(evaluateForAllCases("first(LifeSpan, Diet = 'both')"))
-        .toEqual([40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
-                  40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40])
-      // Note that the values are returned in original item order, not grouped by Diet
-      expect(evaluateForAllCases("first(LifeSpan)", dietSplitOptions))
-        .toEqual([70, 70, 19, 19, 19, 40, 19, 70, 70, 19, 19, 40, 70, 40,
-                  40, 19, 19, 19, 40, 19, 40, 40, 40, 70, 70, 40, 19])
-      expect(evaluateForAllCases("first(LifeSpan, not includes(Order, 'e'))", dietSplitOptions))
-        .toEqual([25, 25, 14, 14, 14, 10, 14, 25, 25, 14, 14, 10, 25, 10,
-                  10, 14, 14, 14, 10, 14, 10, 10, 10, 25, 25, 10, 14])
+    it("returns correct value", () => {
+      expect(evaluate("first(Order)")).toBe("Proboscidae")
+      expect(evaluate("first(LifeSpan)")).toBe(70)
+    })
+
+    it("supports filter expression", () => {
+      expect(evaluate("first(Order, Diet = 'plants')")).toBe("Proboscidae")
+      expect(evaluate("first(Order, Diet = 'meat')")).toBe("Chiroptera")
+      expect(evaluate("first(Order, Diet = 'both')")).toBe("Primate")
+      expect(evaluate("first(LifeSpan, Diet = 'plants')")).toBe(70)
+      expect(evaluate("first(LifeSpan, Diet = 'meat')")).toBe(19)
+      expect(evaluate("first(LifeSpan, Diet = 'both')")).toBe(40)
+    })
+
+    it("supports single value argument", () => {
+      expect(evaluate("first(1, true)")).toEqual(1)
+      expect(evaluate("first(1, false)")).toEqual(UNDEF_RESULT)
     })
   })
 
   describe("last", () => {
-    it("should returns the last value", () => {
-      expect(evaluateForAllCases("last(LifeSpan)"))
-        .toEqual([25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25,
-                  25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25])
-      expect(evaluateForAllCases("last(LifeSpan, Diet = 'both')"))
-        .toEqual([7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
-                  7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7])
-      // Note that the values are returned in original item order, not grouped by Diet
-      expect(evaluateForAllCases("last(LifeSpan)", dietSplitOptions))
-        .toEqual([5, 5, 25, 25, 25, 7, 25, 5, 5, 25, 25, 7, 5, 7,
-                  7, 25, 25, 25, 7, 25, 7, 7, 7, 5, 5, 7, 25])
-      expect(evaluateForAllCases("last(LifeSpan, includes(Order, 'e'))", dietSplitOptions))
-        .toEqual([25, 25, 10, 10, 10, 20, 10, 25, 25, 10, 10, 20, 25, 20,
-                  20, 10, 10, 10, 20, 10, 20, 20, 20, 25, 25, 20, 10])
+    it("returns correct value", () => {
+      expect(evaluate("last(Order)")).toBe("Carnivora")
+      expect(evaluate("last(LifeSpan)")).toBe(25)
+    })
+
+    it("supports filter expression", () => {
+      expect(evaluate("last(Order, Diet = 'plants')")).toBe("Lagomorpha")
+      expect(evaluate("last(Order, Diet = 'meat')")).toBe("Carnivora")
+      expect(evaluate("last(Order, Diet = 'both')")).toBe("Carnivora")
+      expect(evaluate("last(LifeSpan, Diet = 'plants')")).toBe(5)
+      expect(evaluate("last(LifeSpan, Diet = 'meat')")).toBe(25)
+      expect(evaluate("last(LifeSpan, Diet = 'both')")).toBe(7)
+    })
+
+    it("supports single value argument", () => {
+      expect(evaluate("last(1, true)")).toEqual(1)
+      expect(evaluate("last(1, false)")).toEqual(UNDEF_RESULT)
     })
   })
 
