@@ -390,6 +390,7 @@ export class PixiPoints {
     if (this.displayTypeTransitionState.isActive) {
       this.transitionPointDisplayType({ point, style, x, y })
     } else {
+      this.setPointAnchor(point, this.anchor.x, this.anchor.y)
       this.setPointPosition(point, x, y)
     }
   }

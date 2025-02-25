@@ -38,20 +38,20 @@ export const NumericLegend =
       if (!choroplethElt || !dataConfiguration) return
 
       setDesiredExtent(layerIndex, computeDesiredExtent())
-      choroplethLegend(dataConfiguration.legendQuantileScale, choroplethElt,
+      choroplethLegend(dataConfiguration.legendNumericColorScale, choroplethElt,
         {
           isDate: dataConfiguration.attributeType('legend') === 'date',
           width: tileWidth,
           marginLeft: 6, marginTop: labelHeight, marginRight: 6, ticks: 5,
-          clickHandler: (quantile: number, extend: boolean) => {
+          clickHandler: (bin: number, extend: boolean) => {
             const dataset = dataConfiguration.dataset
-            const quantileCases = dataConfiguration.getCasesForLegendQuantile(quantile)
-            if (quantileCases) {
-              setOrExtendSelection(quantileCases, dataset, extend)
+            const binCases = dataConfiguration.getCasesForLegendBin(bin)
+            if (binCases) {
+              setOrExtendSelection(binCases, dataset, extend)
             }
           },
-          casesInQuantileSelectedHandler: (quantile: number) => {
-            return !!dataConfiguration?.casesInQuantileAreSelected(quantile)
+          casesInBinSelectedHandler: (bin: number) => {
+            return !!dataConfiguration?.casesInBinAreSelected(bin)
           }
         })
     },

@@ -1,6 +1,6 @@
-import { axisBottom, format, max, min, NumberValue, range, scaleLinear, ScaleQuantile, select } from "d3"
+import { axisBottom, format, max, min, NumberValue, range, scaleLinear, ScaleQuantile, ScaleQuantize, select } from "d3"
 import { kChoroplethHeight } from "../../../data-display-types"
-import { neededSigDigitsArrayForQuantiles } from "../../../../../utilities/math-utils"
+import { neededSigDigitsArrayForBinBoundaries } from "../../../../../utilities/math-utils"
 import { DatePrecision, determineLevels, formatDate, mapLevelToPrecision } from "../../../../../utilities/date-utils"
 import { getStringBounds } from "../../../../axis/axis-utils"
 
@@ -14,14 +14,26 @@ export type ChoroplethLegendProps = {
   marginRight?: number,
   marginLeft?: number,
   ticks?: number,
-  clickHandler: (quantile: number, extend: boolean) => void,
-  casesInQuantileSelectedHandler: (quantile: number) => boolean
+  clickHandler: (bin: number, extend: boolean) => void,
+  casesInBinSelectedHandler: (bin: number) => boolean
 }
 
-type ChoroplethScale = ScaleQuantile<string>
+type ChoroplethScale = ScaleQuantile<string> | ScaleQuantize<string>
+
+function isScaleQuantile(scale: ChoroplethScale): scale is ScaleQuantile<string> {
+  return "quantiles" in scale
+}
+
+export function getScaleThresholds(scale: ChoroplethScale) {
+  return isScaleQuantile(scale) ? scale.quantiles() : scale.thresholds()
+}
 
 export function choroplethLegend(scale: ChoroplethScale, choroplethElt: SVGGElement, props: ChoroplethLegendProps) {
-  if (scale.domain().length === 0) {
+  // Handle invalid or not enough cases:
+  // - Quantile legends: the domain length will be 0
+  // - Quantize legends: the domain will be [NaN, NaN]
+  const domain = scale.domain()
+  if (domain.length === 0 || isNaN(domain[0])) {
     select(choroplethElt).selectAll("*").remove()
     return
   }
@@ -29,7 +41,7 @@ export function choroplethLegend(scale: ChoroplethScale, choroplethElt: SVGGElem
   const {
       isDate, tickSize = 6, transform = '', width = 320,
       marginTop = 0, marginRight = 0, marginLeft = 0,
-      ticks = 5, clickHandler, casesInQuantileSelectedHandler
+      ticks = 5, clickHandler, casesInBinSelectedHandler
     } = props,
     minValue = min(scale.domain()) ?? 0,
     maxValue = max(scale.domain()) ?? 0
@@ -43,10 +55,10 @@ export function choroplethLegend(scale: ChoroplethScale, choroplethElt: SVGGElem
     .style("overflow", "visible")
     .style("display", "block")
 
-  const thresholds = scale.quantiles(),
+  const thresholds = getScaleThresholds(scale),
     fullBoundaries = [minValue, ...thresholds, maxValue],
     domainValues = scale.domain(),
-    significantDigits = neededSigDigitsArrayForQuantiles(fullBoundaries, domainValues),
+    significantDigits = neededSigDigitsArrayForBinBoundaries(fullBoundaries, domainValues),
     dateLevels = isDate ? determineLevels(minValue, maxValue) : {increment: 1, outerLevel: 0, innerLevel: 0},
     datePrecision = isDate ? mapLevelToPrecision(dateLevels.innerLevel + 1) : DatePrecision.None
 
@@ -70,7 +82,7 @@ export function choroplethLegend(scale: ChoroplethScale, choroplethElt: SVGGElem
     .attr('class', 'choropleth-rect')
     .classed('legend-rect-selected',
       (color) => {
-        return casesInQuantileSelectedHandler(scale.range().indexOf(color))
+        return casesInBinSelectedHandler(scale.range().indexOf(color))
       })
     .attr('transform', transform)
     .attr("x", (d, i) => legendScale(i - 1))
@@ -83,8 +95,8 @@ export function choroplethLegend(scale: ChoroplethScale, choroplethElt: SVGGElem
     })
     .append('title')
     .text((color) => {
-      const quantile = scale.range().indexOf(color)
-      return `${thresholdFormat(fullBoundaries[quantile])} - ${thresholdFormat(fullBoundaries[quantile + 1])}`
+      const bin = scale.range().indexOf(color)
+      return `${thresholdFormat(fullBoundaries[bin])} - ${thresholdFormat(fullBoundaries[bin + 1])}`
     })
 
 

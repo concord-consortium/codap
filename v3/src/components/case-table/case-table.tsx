@@ -150,7 +150,7 @@ export const CaseTable = observer(function CaseTable() {
               return (
                 <ParentCollectionContext.Provider key={key} value={parent?.id}>
                   <CollectionContext.Provider value={collection.id}>
-                    <CollectionTable onMount={handleCollectionTableMount}
+                    <CollectionTable collectionIndex={i} onMount={handleCollectionTableMount}
                       onNewCollectionDrop={handleNewCollectionDrop} onTableScroll={handleTableScroll}
                       onScrollClosestRowIntoView={handleScrollClosestRowIntoView}
                       onScrollRowRangeIntoView={handleScrollRowRangeIntoView} />

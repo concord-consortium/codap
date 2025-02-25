@@ -1,4 +1,4 @@
-import {scaleQuantile} from "d3"
+import {extent, scaleQuantile, scaleQuantize} from "d3"
 import {comparer, observable, reaction} from "mobx"
 import {
   addDisposer, getEnv, getSnapshot, hasEnv, IAnyStateTreeNode, Instance, ISerializedActionCall,
@@ -21,12 +21,14 @@ import {
   kDefaultHighAttributeColor, kDefaultLowAttributeColor
 } from "../../../models/shared/shared-case-metadata-constants"
 import {hashStringSets, typedId, uniqueId} from "../../../utilities/js-utils"
-import {getQuantileScale, missingColor, parseColor} from "../../../utilities/color-utils"
+import {getChoroplethColors, missingColor, parseColor} from "../../../utilities/color-utils"
 import { numericSortComparator } from "../../../utilities/data-utils"
 import {GraphPlace} from "../../axis-graph-shared"
+import { getScaleThresholds } from "../components/legend/choropleth-legend/choropleth-legend"
 import {CaseData} from "../d3-types"
-import { AttrRole, GraphAttrRole, TipAttrRoles, graphPlaceToAttrRole, kOther, kMain, GraphSplitAttrRoles }
-  from "../data-display-types"
+import {
+  AttrRole, GraphAttrRole, TipAttrRoles, graphPlaceToAttrRole, kOther, kMain, GraphSplitAttrRoles
+} from "../data-display-types"
 
 export const AttributeDescription = types
   .model('AttributeDescription', {
@@ -468,15 +470,15 @@ export const DataConfigurationModel = types
     get caseDataHash() {
       return hashStringSets(self.filteredCases.map(cases => cases.caseIds))
     },
-    get quantileScaleColors() {
-      return getQuantileScale(
+    get choroplethColors() {
+      return getChoroplethColors(
         self.lowColor ?? kDefaultLowAttributeColor,
         self.highColor ?? kDefaultHighAttributeColor
       )
     }
   }))
   .views(self => ({
-    get legendQuantileScale() {
+    get legendNumericColorScale() {
       // TODO: Handle the displayOnlySelectedCases better. What we would like to do is
       // to basically ignore displayOnlySelectedCases when computing the legend bins.
       // This way the legend will not jump around when the user is selecting different
@@ -502,7 +504,22 @@ export const DataConfigurationModel = types
       // perhaps by renaming it PlottableCases and then apply the displayOnlySelectedCases
       // criteria further up chain of filters.
       const values = self.numericValuesForAttrRole("legend") ?? []
-      return scaleQuantile(values, self.quantileScaleColors)
+
+      const legendAttrId = self.attributeID("legend")
+      const binningType = self.metadata?.getAttributeBinningType(legendAttrId)
+      switch (binningType) {
+        case "quantize": {
+          const extents = extent(values)
+          if (extents[0] == null || extents[1] == null) {
+            return scaleQuantize([], self.choroplethColors)
+          }
+          return scaleQuantize(extents, self.choroplethColors)
+
+        }
+        case "quantile":
+        default:
+          return scaleQuantile(values, self.choroplethColors)
+      }
     },
   }))
   .views(self => (
@@ -513,12 +530,12 @@ export const DataConfigurationModel = types
       },
 
       getLegendColorForNumericValue(value: number): string {
-        return self.legendQuantileScale(value)
+        return self.legendNumericColorScale(value)
       },
 
       getLegendColorForDateValue(value: string): string {
         const dateValueArray = stringValuesToDateSeconds([value])
-        return self.legendQuantileScale(dateValueArray[0])
+        return self.legendNumericColorScale(dateValueArray[0])
       },
 
       getCasesForCategoryValues(
@@ -581,21 +598,32 @@ export const DataConfigurationModel = types
         },
         name: "allCasesForCategoryAreSelected"
       }),
-      getCasesForLegendQuantile(quantile: number) {
-        const dataset = self.dataset,
-          legendID = self.attributeID('legend'),
-          thresholds = self.legendQuantileScale.quantiles(),
-          min = quantile === 0 ? -Infinity : thresholds[quantile - 1],
-          max = quantile === thresholds.length ? Infinity : thresholds[quantile]
+      getCasesInLegendRange(min: number, max: number) {
+        const dataset = self.dataset
+        const legendID = self.attributeID('legend')
         return legendID
           ? self.getCaseDataArray(0).filter((aCaseData: CaseData) => {
             const value = dataDisplayGetNumericValue(dataset, aCaseData.caseID, legendID)
             return value !== undefined && value >= min && value < max
           }).map((aCaseData: CaseData) => aCaseData.caseID)
           : []
-      },
-      casesInQuantileAreSelected(quantile: number): boolean {
-        const selection = this.getCasesForLegendQuantile(quantile)
+
+      }
+    }))
+  .views(self => (
+    {
+      getCasesForLegendBin(bin: number) {
+        const scale = self.legendNumericColorScale
+        const thresholds = getScaleThresholds(scale)
+        const min = bin === 0 ? -Infinity : thresholds[bin - 1]
+        const max = bin === thresholds.length ? Infinity : thresholds[bin]
+        return self.getCasesInLegendRange(min, max)
+      }
+    }))
+  .views(self => (
+    {
+      casesInBinAreSelected(quantile: number): boolean {
+        const selection = self.getCasesForLegendBin(quantile)
         return !!(selection.length > 0 && selection?.every((anID: string) => self.dataset?.isCaseSelected(anID)))
       }
     }))
@@ -612,6 +640,30 @@ export const DataConfigurationModel = types
           return !desc || desc.attributeID !== idToDrop
         }
         return false
+      },
+      /**
+       * This is a domain which can be monitored by reactions without having to
+       * request the color for every case to see if the colors have changed.
+       * For numeric and date it is an actual d3 color scale.
+       * For categorical it is a map of categories to colors
+       * The color type is not handled yet.
+       */
+      get legendColorDomain() {
+        const legendType = self.attributeType('legend')
+        switch (legendType) {
+          case "categorical": {
+            const categorySet = self.categorySetForAttrRole('legend')
+            return categorySet?.colorMap
+          }
+          case "numeric":
+          case "date":
+            return self.legendNumericColorScale
+          case "color":
+            // TODO: we need to be watching for any changes to the legend attribute values
+            return 0
+          default:
+            return 0
+        }
       },
       getLegendColorForCase(id: string): string {
 

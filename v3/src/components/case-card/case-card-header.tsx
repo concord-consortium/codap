@@ -96,7 +96,7 @@ export const CaseCardHeader = observer(function CaseView(props: ICaseHeaderProps
   return (
     <div className="case-card-view-header" data-testid="case-card-view-header">
       <div className="case-card-view-title" data-testid="case-card-view-title">
-        <CollectionTitle showCount={false} />
+        <CollectionTitle showCount={false} collectionIndex={level}/>
       </div>
       <div className="case-card-controls">
         <button

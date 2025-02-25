@@ -173,3 +173,9 @@ export function applyCaseValueChanges(data: IDataSet, cases: ICase[], log?: ILog
     redoStringKey: "DG.Redo.caseTable.editCellValue"
   })
 }
+
+export const colorCycleClass = (level: number) => {
+  const colorCycleCount = 5
+  // e.g. `color-cycle-1`, `color-cycle-2`, etc.
+  return `color-cycle-${level % colorCycleCount + 1}`
+}

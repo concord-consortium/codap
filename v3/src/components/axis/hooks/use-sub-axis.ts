@@ -63,7 +63,6 @@ export const useSubAxis = ({
     isNumeric = isNumericAxisModel(axisModel),
     isCategorical = isCategoricalAxisModel(axisModel),
     multiScaleChangeCount = layout.getAxisMultiScale(axisModel?.place ?? 'bottom')?.changeCount ?? 0,
-    savedCategorySetValuesRef = useRef<string[]>([]),
     dragInfo = useRef<DragInfo>({
       indexOfCategory: -1,
       catName: '',
@@ -179,9 +178,10 @@ export const useSubAxis = ({
       if (!subAxisElt) return
       subAxisSelectionRef.current = select(subAxisElt)
       const sAS = subAxisSelectionRef.current
-      if (sAS.classed('numeric-axis')) {
-        sAS.selectAll('g').remove()
+      if (sAS.classed('numeric-axis') || sAS.classed('date-axis')) {
+        sAS.selectAll('*').remove()
         sAS.classed('numeric-axis', false)
+        sAS.classed('date-axis', false)
       }
 
       if (sAS.select('line').empty()) {
@@ -318,23 +318,17 @@ export const useSubAxis = ({
   // Refresh when category set, if any, changes
   useEffect(function installCategorySetSync() {
     if (isCategorical) {
-      const disposer = reaction(() => {
-        const multiScale = layout.getAxisMultiScale(axisModel.place),
-          categoryValues = multiScale?.categoryValues
-        return Array.from(categoryValues ?? [])
-      }, (values) => {
-        // todo: The above reaction is detecting changes to the set of values even when they haven't changed. Why?
-        if (JSON.stringify(values) !== JSON.stringify(savedCategorySetValuesRef.current)) {
-          setupCategories()
-          swapInProgress.current = true
-          renderSubAxis()
-          savedCategorySetValuesRef.current = values
-          swapInProgress.current = false
-        }
-      }, {name: "useSubAxis [categories]", equals: comparer.structural})
+      const disposer = mstReaction(() => {
+        return (dataConfig?.categorySetForAttrRole(axisPlaceToAttrRole[axisPlace]))?.valuesArray
+      }, () => {
+        setupCategories()
+        swapInProgress.current = true
+        renderSubAxis()
+        swapInProgress.current = false
+      }, {name: "useSubAxis [categories]", equals: comparer.structural}, dataConfig)
       return () => disposer()
     }
-  }, [axisModel, renderSubAxis, layout, isCategorical, setupCategories])
+  }, [renderSubAxis, isCategorical, setupCategories, dataConfig, axisPlace])
 
   const updateDomainAndRenderSubAxis = useCallback(() => {
     const role = axisPlaceToAttrRole[axisPlace],

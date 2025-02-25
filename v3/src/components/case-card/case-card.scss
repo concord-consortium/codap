@@ -1,5 +1,5 @@
 @use "../vars";
-@use "./case-card-vars" as cardVars;
+@use "../case-tile-common/case-tile-vars" as cardVars;
 
 .case-card.react-data-card {
   height: calc(100% - vars.$title-bar-height);
