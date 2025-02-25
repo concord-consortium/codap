@@ -67,6 +67,7 @@ function getCaseIdFromEvent(event: React.PointerEvent) {
 }
 
 interface IProps {
+  collectionIndex: number
   onMount: (collectionId: string) => void
   onNewCollectionDrop: OnNewCollectionDropFn
   onTableScroll: OnTableScrollFn
@@ -75,7 +76,7 @@ interface IProps {
 }
 export const CollectionTable = observer(function CollectionTable(props: IProps) {
   const {
-    onMount, onNewCollectionDrop, onScrollClosestRowIntoView, onScrollRowRangeIntoView, onTableScroll
+    collectionIndex, onMount, onNewCollectionDrop, onScrollClosestRowIntoView, onScrollRowRangeIntoView, onTableScroll
   } = props
   const data = useDataSetContext()
   const collectionId = useCollectionContext()
@@ -413,7 +414,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
       <div className="collection-table-and-title" ref={setNodeRef} onClick={handleClick}
             onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={handlePointerLeaveOrUp}
             onPointerLeave={handlePointerLeaveOrUp}>
-        <CollectionTitle onAddNewAttribute={handleAddNewAttribute} showCount={true} />
+        <CollectionTitle onAddNewAttribute={handleAddNewAttribute} showCount={true} collectionIndex={collectionIndex}/>
         <DataGrid ref={gridRef} className="rdg-light" data-testid="collection-table-grid" renderers={renderers}
           columns={columns} rows={rows} headerRowHeight={+styles.headerRowHeight} rowKeyGetter={rowKey}
           rowHeight={rowHeight} selectedRows={selectedRows} onSelectedRowsChange={setSelectedRows}
