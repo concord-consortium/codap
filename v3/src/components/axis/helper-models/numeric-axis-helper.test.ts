@@ -26,6 +26,7 @@ describe("NumericAxisHelper", () => {
     props = {
       displayModel: {} as IDataDisplayContentModel,
       axisProvider: {
+        hasBinnedNumericAxis: jest.fn().mockReturnValue(false),
         hasDraggableNumericAxis: jest.fn().mockReturnValue(true),
         nonDraggableAxisTicks: jest.fn().mockReturnValue({ tickValues: [], tickLabels: [] }),
         getAxis: jest.fn(),

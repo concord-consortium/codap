@@ -7,6 +7,7 @@ import { getDocumentContentPropertyFromNode } from "../../../../../utilities/mst
 import { measureText } from "../../../../../hooks/use-measure-text"
 import { fitGaussianGradientDescent, normal, sqrtTwoPi } from "../../../../../utilities/math-utils"
 import { useGraphContentModelContext } from "../../../hooks/use-graph-content-model-context"
+import { isBinnedPlotModel } from "../../../plots/histogram/histogram-model"
 import { curveBasis } from "../../../utilities/graph-utils"
 import { IAdornmentComponentProps } from "../../adornment-component-info"
 import { UnivariateMeasureAdornmentHelper } from "../univariate-measure-adornment-helper"
@@ -46,7 +47,8 @@ export const NormalCurveAdornmentComponent = observer(
     const helper = useMemo(() => {
       return new UnivariateMeasureAdornmentHelper(cellKey, layout, model, containerId)
     }, [cellKey, containerId, layout, model])
-    const isHistogram = graphModel.pointDisplayType === "histogram"
+    const isHistogram = graphModel.plotType === "histogram"
+    const binnedPlot = isBinnedPlotModel(graphModel.plot) ? graphModel.plot : undefined
     const useGaussianFit = isHistogram && getDocumentContentPropertyFromNode(graphModel, "gaussianFitEnabled")
     const stdErrorAdorn = adornmentsStore.findAdornmentOfType(kStandardErrorType)
     const displayStdErr = stdErrorAdorn?.isVisible
@@ -67,8 +69,8 @@ export const NormalCurveAdornmentComponent = observer(
           return {mean: sampleMean, stdDev: sampleStdDev, numStdErrs: 1, stdError: undefined}
         } else {
           const count = dataConfig ? model.getCaseCount(numericAttrId, cellKey, dataConfig) : 0,
-            binAlignment = graphModel?.binAlignment ?? 0,
-            binWidth = graphModel?.binWidth ?? 1,
+            binAlignment = binnedPlot?.binAlignment ?? 0,
+            binWidth = binnedPlot?.binWidth ?? 1,
             amp = (1 / (sampleStdDev * sqrtTwoPi)) * count * binWidth,
             points = dataConfig
               ? model.computeHistogram(binAlignment, binWidth, numericAttrId, cellKey, dataConfig) : [],
@@ -77,8 +79,8 @@ export const NormalCurveAdornmentComponent = observer(
           return {mean: mu, stdDev: sigma, numStdErrs: numStandardErrs,
             stdError: displayStdErr ? sigma / Math.sqrt(caseCount) : undefined}
         }
-      }, [caseCount, cellKey, dataConfig, displayStdErr, graphModel?.binAlignment, graphModel?.binWidth,
-                model, numericAttrId, stdErrorAdorn, useGaussianFit])
+      }, [binnedPlot, caseCount, cellKey, dataConfig, displayStdErr,
+          model, numericAttrId, stdErrorAdorn, useGaussianFit])
 
     const {mean, stdDev, numStdErrs, stdError} = computeMeanAndStdDev()
 
@@ -218,8 +220,7 @@ export const NormalCurveAdornmentComponent = observer(
           pointRadius = graphModel.getPointRadius(),
           numCellsNumeric = isVertical.current ? cellCounts.x : cellCounts.y,
           overlap = graphModel.pointOverlap,
-          binWidth = isHistogram ? graphModel.binWidth
-            : Math.abs(numericScale.invert(pointRadius * 2) - numericScale.invert(0))
+          binWidth = binnedPlot?.binWidth ?? Math.abs(numericScale.invert(pointRadius * 2) - numericScale.invert(0))
 
         if (!countAxisFunc || binWidth === undefined) return ""
 
@@ -293,8 +294,8 @@ export const NormalCurveAdornmentComponent = observer(
       .attr("id", `${helper.generateIdString("path")}`)
       .attr("data-testid", `${helper.measureSlug}-normal-curve`)
       .attr("d", theSymbolPath)
-  }, [caseCount, cellCounts.x, cellCounts.y, countScale, graphModel, helper, isHistogram,
-            isVertical, layout.plotHeight, mean, numStdErrs, numericScale, stdDev, stdError, valueRef])
+  }, [binnedPlot, caseCount, cellCounts, countScale, graphModel, helper, isHistogram, isVertical,
+      layout, mean, numStdErrs, numericScale, stdDev, stdError, valueRef])
 
     const addAdornmentElements = useCallback((measure: IMeasureInstance,
                                               selectionsObj: INormalCurveSelections, labelObj: ILabel) => {

@@ -9,7 +9,7 @@ import { useGraphContentModelContext } from "../../hooks/use-graph-content-model
 import { useGraphDataConfigurationContext } from "../../hooks/use-graph-data-configuration-context"
 import { useGraphLayoutContext } from "../../hooks/use-graph-layout-context"
 import { getAdornmentComponentInfo } from "../adornment-component-info"
-import { getAdornmentContentInfo } from "../adornment-content-info"
+import { getAdornmentContentInfo, isCompatibleWithPlotType } from "../adornment-content-info"
 import { IAdornmentModel } from "../adornment-models"
 import { kGraphAdornmentsBannerHeight } from "../adornment-types"
 import { updateCellKey } from "../utilities/adornment-utils"
@@ -124,8 +124,7 @@ export const Adornments = observer(function Adornments() {
               {
                 adornments.map((adornment: IAdornmentModel) => {
                   // skip adornments that don't support current plot type
-                  const adornmentContentInfo = getAdornmentContentInfo(adornment.type)
-                  if (!adornmentContentInfo.plots.includes(graphModel.plotType)) return
+                  if (!isCompatibleWithPlotType(adornment.type, graphModel.plotType)) return
                   return <Adornment
                           key={`graph-adornment-${adornment.id}-${yIndex}-${xIndex}-${rightIndex}-${topIndex}`}
                           adornment={adornment}

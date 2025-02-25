@@ -15,9 +15,10 @@ import {TileContentModel} from "../../../models/tiles/tile-content"
 import { getTileContentInfo } from "../../../models/tiles/tile-content-info"
 import {defaultBackgroundColor} from "../../../utilities/color-utils"
 import { typedId } from "../../../utilities/js-utils"
+import { IAxisTicks, TickFormatter } from "../../axis/axis-types"
 import {GraphPlace} from "../../axis-graph-shared"
 import { IAxisModel, isBaseNumericAxisModel } from "../../axis/models/axis-model"
-import { MarqueeMode, PointDisplayTypes } from "../data-display-types"
+import { MarqueeMode } from "../data-display-types"
 import { IGetTipTextProps } from "../data-tip-types"
 import { IDataConfigurationModel } from "./data-configuration-model"
 import {DataDisplayLayerModelUnion} from "./data-display-layer-union"
@@ -32,7 +33,6 @@ export const DataDisplayContentModel = TileContentModel
     id: types.optional(types.string, () => typedId("DDCM")),
     layers: types.array(DataDisplayLayerModelUnion),
     pointDescription: types.optional(DisplayItemDescriptionModel, () => DisplayItemDescriptionModel.create()),
-    pointDisplayType: types.optional(types.enumeration([...PointDisplayTypes]), "points"),
     plotBackgroundColor: defaultBackgroundColor,
     plotBackgroundOpacity: 1,
     isTransparent: false,
@@ -49,9 +49,10 @@ export const DataDisplayContentModel = TileContentModel
       return false
     },
     hasDraggableNumericAxis(axisModel: IAxisModel): boolean {
-      return isBaseNumericAxisModel(axisModel) && self.pointDisplayType !== "bins"
+      // derived models may override to provide additional constraints
+      return isBaseNumericAxisModel(axisModel)
     },
-    nonDraggableAxisTicks(formatter: (value: number) => string): { tickValues: number[], tickLabels: string[] } {
+    nonDraggableAxisTicks(formatter: TickFormatter): IAxisTicks {
       // derived models should override
       return {tickValues: [], tickLabels: []}
     },

@@ -615,9 +615,8 @@ export const GraphDataConfigurationModel = DataConfigurationModel
        * 'top' and 'rightCat' are always centered.
        */
       categoriesForAxisShouldBeCentered(place: AxisPlace) {
-        const role = graphPlaceToAttrRole[place],
-          primaryRole = self.primaryRole
-        return primaryRole === role || !['left', 'bottom'].includes(place)
+        const role = graphPlaceToAttrRole[place]
+        return role !== self.secondaryRole
       },
       placeCanAcceptAttributeIDDrop(
         place: GraphPlace, dataSet?: IDataSet, idToDrop?: string, options?: ILegalAttributeOptions
@@ -659,9 +658,12 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     }
   })
   .actions(self => ({
-    setPrimaryRole(role: GraphAttrRole) {
+    setPrimaryRole(role?: GraphAttrRole) {
       if (role === 'x' || role === 'y') {
         self.primaryRole = role
+      }
+      else {
+        self.primaryRole = undefined
       }
     },
     setAttribute(role: GraphAttrRole, desc?: IAttributeDescriptionSnapshot) {

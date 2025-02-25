@@ -98,7 +98,7 @@ export class PixiPoints {
   pointMetadata: Map<PIXI.Sprite, IPixiPointMetadata> = new Map()
   caseDataToPoint: Map<string, PIXI.Sprite> = new Map()
   textures = new Map<string, PIXI.Texture>()
-  displayType = "points"
+  displayType: "points" | "bars" = "points"
   pointsFusedIntoBars = false
   anchor = circleAnchor
   displayTypeTransitionState: IDisplayTypeTransitionState = {
@@ -719,14 +719,13 @@ export class PixiPoints {
     })
   }
 
-  matchPointsToData(datasetID:string, caseData: CaseDataWithSubPlot[], _displayType: string, style: IPixiPointStyle) {
+  matchPointsToData(
+    datasetID:string, caseData: CaseDataWithSubPlot[], displayType: "points" | "bars", style: IPixiPointStyle
+  ) {
     if (!this.renderer) {
       return
     }
     // If the display type has changed, we need to prepare for the transition between types
-    // For now, the only display type values PixiPoints supports are "points" and "bars", so
-    // all other display type values passed to this method will be treated as "points".
-    const displayType = _displayType !== "bars" && _displayType !== "histogram" ? "points" : "bars"
     if (this.displayType !== displayType && this.points.length > 0) {
       this.displayTypeTransitionState.isActive = true
       this.forEachPoint(point => {
@@ -743,7 +742,7 @@ export class PixiPoints {
     const texture = this.getPointTexture(style)
     // First, remove all the old sprites. Go backwards, so it's less likely we end up with O(n^2) behavior (although
     // still possible). If we expect to have a lot of points removed, we should just destroy and recreate everything.
-    // However, I believe that in most practical cases, we will only have a few points removed, so this is approach is
+    // However, I believe that in most practical cases, we will only have a few points removed, so this approach is
     // probably better.
     const newCaseDataSet = new Set<string>(caseData.map(cd => caseDataKey(cd)))
     const currentCaseDataSet = new Set<string>()

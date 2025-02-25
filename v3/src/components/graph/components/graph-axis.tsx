@@ -96,7 +96,6 @@ export const GraphAxis = observer(function GraphAxis(
         <Axis axisPlace={place}
               showScatterPlotGridLines={graphModel.axisShouldShowGridLines(place)}
               showZeroAxisLine={graphModel.axisShouldShowZeroLine(place)}
-              centerCategoryLabels={graphModel.dataConfiguration.categoriesForAxisShouldBeCentered(place)}
         />}
       <GraphAttributeLabel
         place={place}

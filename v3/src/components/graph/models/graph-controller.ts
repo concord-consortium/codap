@@ -48,7 +48,7 @@ export class GraphController {
       const { dataConfiguration } = graphModel,
         {pointColor, pointStrokeColor} = graphModel.pointDescription,
         pointRadius = graphModel.getPointRadius(),
-        pointDisplayType = graphModel.pointDisplayType,
+        pointDisplayType = graphModel.plot.displayType,
         startAnimation = graphModel.startAnimation
       dataConfiguration && matchCirclesToData({
         dataConfiguration, pixiPoints, pointDisplayType,

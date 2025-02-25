@@ -1,20 +1,20 @@
 import {extent, format} from "d3"
 import {isInteger} from "lodash"
 import * as PIXI from "pixi.js"
-import {IPixiPointMetadata, PixiPoints} from "../../data-display/pixi/pixi-points"
 import {IDataSet} from "../../../models/data/data-set"
+import {
+  defaultSelectedColor, defaultSelectedStroke, defaultSelectedStrokeWidth, defaultStrokeWidth
+} from "../../../utilities/color-utils"
+import { goodTickValue, isFiniteNumber } from "../../../utilities/math-utils"
+import { t } from "../../../utilities/translation/translate"
+import {IAxisModel, IBaseNumericAxisModel, isDateAxisModel, isNumericAxisModel} from "../../axis/models/axis-model"
+import {IAxisDomainOptions, ScaleNumericBaseType} from "../../axis/axis-types"
 import {CaseData} from "../../data-display/d3-types"
 import {Point, PointDisplayType, transitionDuration} from "../../data-display/data-display-types"
-import {IAxisModel, IBaseNumericAxisModel, isDateAxisModel, isNumericAxisModel} from "../../axis/models/axis-model"
-import {ScaleNumericBaseType} from "../../axis/axis-types"
-import {defaultSelectedColor, defaultSelectedStroke, defaultSelectedStrokeWidth, defaultStrokeWidth}
-  from "../../../utilities/color-utils"
 import {IDataConfigurationModel} from "../../data-display/models/data-configuration-model"
-import { goodTickValue, isFiniteNumber } from "../../../utilities/math-utils"
-import { IDomainOptions } from "../graphing-types"
+import {IPixiPointMetadata, PixiPoints} from "../../data-display/pixi/pixi-points"
 import { IGraphDataConfigurationModel } from "../models/graph-data-configuration-model"
 import { GraphLayout } from "../models/graph-layout"
-import { t } from "../../../utilities/translation/translate"
 
 /**
  * Utility routines having to do with graph entities
@@ -53,7 +53,7 @@ export function computeNiceNumericBounds(min: number, max: number): { min: numbe
   return bounds
 }
 
-export function setNiceDomain(values: number[], axisModel: IBaseNumericAxisModel, options?: IDomainOptions) {
+export function setNiceDomain(values: number[], axisModel: IBaseNumericAxisModel, options?: IAxisDomainOptions) {
   if (values.length === 0) return // leave things as they are
   if (isNumericAxisModel(axisModel)) {
     const [minValue, maxValue] = extent(values, d => d) as [number, number]
