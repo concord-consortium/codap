@@ -25,7 +25,7 @@ import {useDataDisplayAnimation} from "../../data-display/hooks/use-data-display
 import {isSetAttributeIDAction} from "../../data-display/models/display-model-actions"
 import {MarqueeState} from "../../data-display/models/marquee-state"
 import {Adornments} from "../adornments/components/adornments"
-import {kGraphClass, PlotType} from "../graphing-types"
+import {IPlotProps, kGraphClass, PlotType} from "../graphing-types"
 import {useGraphContentModelContext} from "../hooks/use-graph-content-model-context"
 import {GraphDataConfigurationContext} from "../hooks/use-graph-data-configuration-context"
 import {useGraphLayoutContext} from "../hooks/use-graph-layout-context"
@@ -68,8 +68,6 @@ export const Graph = observer(function Graph({graphController, setGraphRef, pixi
     backgroundSvgRef = useRef<SVGGElement>(null),
     pixiContainerRef = useRef<SVGForeignObjectElement>(null),
     prevAttrCollectionsMapRef = useRef<Record<string, string>>({}),
-    xAttrID = graphModel.getAttributeID('x'),
-    yAttrID = graphModel.getAttributeID('y'),
     graphRef = useRef<HTMLDivElement | null>(null)
 
   if (pixiPoints?.canvas && pixiContainerRef.current && pixiContainerRef.current.children.length === 0) {
@@ -258,21 +256,8 @@ export const Graph = observer(function Graph({graphController, setGraphRef, pixi
     return () => disposer?.()
   }, [graphController, layout, graphModel, startAnimation])
 
-  // useEffect(function handlePlotTypeChange() {
-  //   return mstReaction(
-  //     () => graphModel.plotType,
-  //     () => {
-  //       syncModelWithAttributeConfiguration(graphModel, layout)
-  //       if (graphModel.plot.hasCountAxis) {
-  //         graphModel.setBarCountAxis()
-  //       }
-  //     },
-  //     {name: "Graph.handlePlotTypeChange"}, graphModel
-  //   )
-  // }, [graphController, graphModel, layout])
-
   const renderPlotComponent = () => {
-    const props = {xAttrID, yAttrID, pixiPoints, abovePointsGroupRef},
+    const props: IPlotProps = {pixiPoints, abovePointsGroupRef},
       typeToPlotComponentMap: Record<PlotType, React.JSX.Element> = {
         casePlot: <CasePlot {...props}/>,
         dotChart: <DotChart {...props}/>,

@@ -604,9 +604,6 @@ export const DataConfigurationModel = types
     {
       /**
        * Called to determine whether the categories on an axis should be centered.
-       * If the attribute is playing a primary role, then it should be centered.
-       * If it is a secondary role, then it should not be centered.
-       * 'top' and 'rightCat' are always centered.
        */
       categoriesForAxisShouldBeCentered(place: AxisPlace) {
         return true

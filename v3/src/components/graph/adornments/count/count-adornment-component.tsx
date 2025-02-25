@@ -47,8 +47,9 @@ export const CountAdornment = observer(function CountAdornment(props: IAdornment
       // Sub plot regions can be defined by either bin boundaries when points are grouped into bins, or by
       // instances of the movable value adornment. It should not be possible to have both bin boundaries and
       // movable values present at the same time.
-      if (binnedDotPlot && dataConfig) {
-        const { binWidth, minBinEdge, maxBinEdge, totalNumberOfBins } = binnedDotPlot?.binDetails(dataConfig) ?? {}
+      // access plot type so the autorun below is triggered when the plot type changes
+      if (graphModel.plotType === "binnedDotPlot" && binnedDotPlot && dataConfig) {
+        const { binWidth, minBinEdge, maxBinEdge, totalNumberOfBins } = binnedDotPlot.binDetails(dataConfig) ?? {}
         return binWidth !== undefined ? [
           // Build and spread an array of numeric values corresponding to the bin boundaries. Using totalNumberOfBins
           // for length, start at minBinEdge and increment by binWidth using each bin's index. Afterward, add
@@ -58,7 +59,7 @@ export const CountAdornment = observer(function CountAdornment(props: IAdornment
         ] : []
       }
       return adornmentsStore?.subPlotRegionBoundaries(instanceKey, scale) ?? []
-  }, [adornmentsStore, binnedDotPlot, dataConfig, instanceKey, scale])
+  }, [adornmentsStore, binnedDotPlot, dataConfig, graphModel, instanceKey, scale])
 
   const subPlotRegionBoundariesRef = useRef(subPlotRegionBoundaries())
 

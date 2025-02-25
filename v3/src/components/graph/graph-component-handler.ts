@@ -24,11 +24,11 @@ import { syncModelWithAttributeConfiguration } from "./models/graph-model-utils"
 import { IGraphPointLayerModelSnapshot, kGraphPointLayerType } from "./models/graph-point-layer-model"
 
 interface AttributeInfo {
-  id?: string | null
+  id?: number | null
   name?: string | null
   type?: string
 }
-function packageAttribute(id?: string | null, name?: string | null, type?: string): Maybe<AttributeInfo> {
+function packageAttribute(id?: number | null, name?: string | null, type?: string): Maybe<AttributeInfo> {
   if (id || id === null || name || name === null) {
     return { id, name, type }
   }
@@ -164,8 +164,6 @@ export const graphComponentHandler: DIComponentHandler = {
         _itemStrokeSameAsFill: strokeSameAsFill,
         _pointSizeMultiplier: pointSize
       },
-      // pointDisplayType: pointConfig && isPointDisplayType(pointConfig) ? pointConfig : undefined,
-      // pointsFusedIntoBars,
       showOnlyLastCase,
       showParentToggles,
       type: kGraphTileType
@@ -223,7 +221,7 @@ export const graphComponentHandler: DIComponentHandler = {
     return result
   },
 
-  get(content: ITileContentModel) {
+  get(content: ITileContentModel): Maybe<V2Graph> {
     if (isGraphContentModel(content)) {
       const dataset = content.dataset
       const dataContext = dataset?.name
@@ -283,11 +281,11 @@ export const graphComponentHandler: DIComponentHandler = {
       const yAttributeNames = dataConfiguration._yAttributeDescriptions
         .map(description => dataset?.getAttribute(description.attributeID)?.name).filter(name => name != null)
 
-      const { pointDescription, pointsFusedIntoBars } = content
+      const { pointDescription } = content
       const { displayOnlySelectedCases, showMeasuresForSelection } = dataConfiguration
       const filterFormula = dataConfiguration.filterFormula?.display
       const hiddenCases = dataConfiguration.hiddenCases.map(id => toV2Id(id))
-      const pointConfig = content.plot.displayType
+      const plotType = content.plotType
       const pointSize = pointDescription.pointSizeMultiplier
       const strokeColor = pointDescription.pointStrokeColor
       const { pointColor } = pointDescription
@@ -297,13 +295,13 @@ export const graphComponentHandler: DIComponentHandler = {
 
       return {
         backgroundColor, dataContext, displayOnlySelectedCases, enableNumberToggle, filterFormula, hiddenCases,
-        numberToggleLastMode, pointColor, pointConfig, pointsFusedIntoBars, pointSize, showMeasuresForSelection,
-        strokeColor, strokeSameAsFill, transparent, captionAttributeID, captionAttributeName, legendAttributeID,
-        legendAttributeName, rightSplitAttributeID, rightSplitAttributeName, topSplitAttributeID, topSplitAttributeName,
+        numberToggleLastMode, plotType, pointColor, pointSize, showMeasuresForSelection,
+        strokeColor, strokeSameAsFill, transparent, captionAttributeID, captionAttributeName,
+        legendAttributeID, legendAttributeName, rightSplitAttributeID, rightSplitAttributeName,
+        topSplitAttributeID, topSplitAttributeName, type: "graph",
         xAttributeID, xAttributeName, xAttributeType, xLowerBound, xUpperBound,
-        yAttributeID, yAttributeName, yAttributeType, yLowerBound, yUpperBound,
-        y2AttributeID, y2AttributeName, y2AttributeType, y2LowerBound, y2UpperBound,
-        yAttributeIDs, yAttributeNames
+        yAttributeID, yAttributeIDs, yAttributeName, yAttributeNames, yAttributeType, yLowerBound, yUpperBound,
+        y2AttributeID, y2AttributeName, y2AttributeType, y2LowerBound, y2UpperBound
       }
     }
   },
@@ -433,8 +431,6 @@ export const graphComponentHandler: DIComponentHandler = {
     if (filterFormula != null) dataConfiguration.setFilterFormula(filterFormula)
     if (hiddenCases != null) dataConfiguration.setHiddenCases(hiddenCases.map(id => toV3CaseId(id)))
     if (pointColor != null) pointDescription.setPointColor(pointColor)
-    // if (pointConfig != null && isPointDisplayType(pointConfig)) content.setPointConfig(pointConfig)
-    // if (pointsFusedIntoBars != null) content.setPointsFusedIntoBars(pointsFusedIntoBars)
     if (pointSize != null) pointDescription.setPointSizeMultiplier(pointSize)
     if (showMeasuresForSelection != null) dataConfiguration.setShowMeasuresForSelection(showMeasuresForSelection)
     if (showParentToggles != null) content.setShowParentToggles(showParentToggles)

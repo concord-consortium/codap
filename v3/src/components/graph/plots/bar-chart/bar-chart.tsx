@@ -3,13 +3,13 @@ import React, { useCallback, useEffect, useRef } from "react"
 import { createPortal } from "react-dom"
 import { numericSortComparator } from "../../../../utilities/data-utils"
 import { kMain } from "../../../data-display/data-display-types"
-import { IBarCover, PlotProps } from "../../graphing-types"
+import { IBarCover, IPlotProps } from "../../graphing-types"
 import { useChartDots } from "../../hooks/use-chart-dots"
 import { usePlotResponders } from "../../hooks/use-plot"
 import { barCoverDimensions, renderBarCovers } from "../../utilities/bar-utils"
 import { setPointCoordinates } from "../../utilities/graph-utils"
 
-export const BarChart = observer(function BarChart({ abovePointsGroupRef, pixiPoints }: PlotProps) {
+export const BarChart = observer(function BarChart({ abovePointsGroupRef, pixiPoints }: IPlotProps) {
   const { dataset, graphModel, isAnimating, layout, primaryScreenCoord, secondaryScreenCoord,
           refreshPointSelection, subPlotCells } = useChartDots(pixiPoints)
   const barCoversRef = useRef<SVGGElement>(null)

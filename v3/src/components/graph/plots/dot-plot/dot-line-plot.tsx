@@ -4,7 +4,7 @@ import React, {useCallback, useEffect} from "react"
 import { mstAutorun } from "../../../../utilities/mst-autorun"
 import {mstReaction} from "../../../../utilities/mst-reaction"
 import { kMain } from "../../../data-display/data-display-types"
-import {PlotProps} from "../../graphing-types"
+import {IPlotProps} from "../../graphing-types"
 import {usePixiDragHandlers, usePlotResponders} from "../../hooks/use-plot"
 import {setNiceDomain, setPointCoordinates} from "../../utilities/graph-utils"
 import {circleAnchor, hBarAnchor, vBarAnchor} from "../../../data-display/pixi/pixi-points"
@@ -13,8 +13,7 @@ import { useDotPlotDragDrop } from "../../hooks/use-dot-plot-drag-drop"
 import { AxisPlace } from "../../../axis/axis-types"
 import { useDotPlot } from "../../hooks/use-dot-plot"
 
-export const DotLinePlot = observer(function DotLinePlot(props: PlotProps) {
-  const {pixiPoints} = props
+export const DotLinePlot = observer(function DotLinePlot({ pixiPoints }: IPlotProps) {
   const { dataset, dataConfig, graphModel, isAnimating, layout,
           pointColor, pointDisplayType, pointStrokeColor,
           primaryAttrRole, primaryIsBottom,

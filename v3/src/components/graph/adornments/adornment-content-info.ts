@@ -1,6 +1,6 @@
 import { ICodapV2ScatterPlotStorage, ICodapV2SimpleAdornmentsMap } from "../../../v2/codap-v2-types"
 import { AttrRole } from "../../data-display/data-display-types"
-import { PlotType } from "../graphing-types"
+import { isCategoricalPlotType, isUnivariateNumericPlotType, PlotType } from "../graphing-types"
 import { AdornmentModel, IAdornmentModel } from "./adornment-models"
 
 export const ParentAdornmentTypes = ["Univariate Measure"] as const
@@ -74,4 +74,11 @@ export function getAdornmentContentModels() {
 
 export function getAdornmentTypes() {
   return Object.values(gAdornmentContentInfoMap).map(({ parentType, type }) => ({ parentType, type }))
+}
+
+export function isCompatibleWithPlotType(adornmentType: string, plotType: PlotType) {
+  const info = getAdornmentContentInfo(adornmentType)
+  return info?.plots.includes(plotType) ||
+          (info?.plots.includes("dotChart") && isCategoricalPlotType(plotType)) ||
+          (info?.plots.includes("dotPlot") && isUnivariateNumericPlotType(plotType))
 }

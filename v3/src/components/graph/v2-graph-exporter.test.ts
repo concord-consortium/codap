@@ -79,6 +79,7 @@ describe("V2GraphImporter", () => {
     "legendQuantilesAreLocked",
     "plotBackgroundImage",
     "plotBackgroundImageLockInfo",
+    // computable from other properties, plus v2 writes out some unexpected values
     "totalNumberOfBins"
   ]
   const kIgnoreProps = [

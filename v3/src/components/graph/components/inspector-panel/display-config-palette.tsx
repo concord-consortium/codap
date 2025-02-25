@@ -23,6 +23,9 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
   const { buttonRect, panelRect, setShowPalette, tile } = props
   const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
   const binnedPlot = isBinnedPlotModel(graphModel?.plot) ? graphModel?.plot : undefined
+  const binDetails = graphModel?.dataConfiguration
+                      ? binnedPlot?.binDetails(graphModel.dataConfiguration)
+                      : { binWidth: undefined, binAlignment: undefined }
   const pointsFusedIntoBars = graphModel?.pointsFusedIntoBars
   const showPointDisplayType = graphModel?.plot?.showDisplayTypeSelection
   const showFuseIntoBars = graphModel?.plot?.showFusePointsIntoBars
@@ -149,7 +152,7 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
               <Input
                 className="form-input"
                 type="number"
-                defaultValue={binnedPlot?.binWidth}
+                defaultValue={binDetails?.binWidth}
                 onBlur={(e) => handleBinOptionBlur(e, "binWidth")}
                 onKeyDown={(e) => handleBinOptionKeyDown(e, "binWidth")}
               />
@@ -161,7 +164,7 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
               <Input
                 className="form-input"
                 type="number"
-                defaultValue={binnedPlot?.binAlignment}
+                defaultValue={binDetails?.binAlignment}
                 onBlur={(e) => handleBinOptionBlur(e, "binAlignment")}
                 onKeyDown={(e) => handleBinOptionKeyDown(e, "binAlignment")}
               />

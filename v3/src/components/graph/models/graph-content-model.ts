@@ -3,7 +3,7 @@
  * Its array of DataDisplayLayerModels has just one element, a GraphPointLayerModel.
  */
 import {isEqual} from "lodash"
-import { autorun, comparer, when } from "mobx"
+import { comparer, when } from "mobx"
 import {addDisposer, getSnapshot, Instance, SnapshotIn, types} from "mobx-state-tree"
 import { isNumericAttributeType } from "../../../models/data/attribute-types"
 import {IDataSet} from "../../../models/data/data-set"
@@ -178,10 +178,6 @@ export const GraphContentModel = DataDisplayContentModel
       if (!self.axes.get("left")) {
         self.axes.set("left", EmptyAxisModel.create({place: "left"}))
       }
-
-      addDisposer(self, autorun(() => {
-        console.log("GraphContentModel.plotTypeChanged:", self.plotType)
-      }))
     }
   }))
   .actions(self => ({
@@ -238,23 +234,18 @@ export const GraphContentModel = DataDisplayContentModel
       }
     },
     setPlot(newPlotSnap: IPlotModelUnionSnapshot) {
-      console.group("GraphContentModel.setPlot", "currType:", self.plot.type, "newType:", newPlotSnap.type)
       const currPlotSnap = getSnapshot(self.plot)
       if (!isEqual(newPlotSnap, currPlotSnap)) {
-        console.log("GraphContentModel.setPlot [setting new plot]")
         self.plot = PlotModelUnion.create({ ...currPlotSnap, ...newPlotSnap })
         if (self.dataConfiguration) {
           self.plot.resetSettings(self.dataConfiguration)
         }
       }
-      console.groupEnd()
     },
     setPlotType(type: PlotType) {
-      console.group("GraphContentModel.setPlotType:", type)
       if (type !== self.plot.type) {
         this.setPlot({ type })
       }
-      console.groupEnd()
     }
   }))
   .views(self => ({
@@ -421,7 +412,6 @@ export const GraphContentModel = DataDisplayContentModel
     },
     setAxis(place: AxisPlace, axis: IAxisModel) {
       if (isAxisModelInUnion(axis)) {
-        console.log("GraphContentModel.setAxis:", place, axis.type)
         self.axes.set(place, axis)
       }
     },
@@ -429,7 +419,6 @@ export const GraphContentModel = DataDisplayContentModel
       self.axes.delete(place)
     },
     setAttributeID(role: GraphAttrRole, dataSetID: string, id: string) {
-      console.group("GraphContentModel.setAttributeID:", role, id)
       self.setDataSet(dataSetID)
       if (role === 'yPlus') {
         self.dataConfiguration.addYAttribute({attributeID: id})
@@ -439,7 +428,6 @@ export const GraphContentModel = DataDisplayContentModel
       const updateCategoriesOptions = self.getUpdateCategoriesOptions(true)
       self.adornmentsStore.updateAdornments(updateCategoriesOptions)
       self.plot.resetSettings(self.dataConfiguration)
-      console.groupEnd()
     },
     setGraphProperties(props: GraphProperties) {
       (Object.keys(props.axes) as AxisPlace[]).forEach(aKey => {
@@ -447,20 +435,6 @@ export const GraphContentModel = DataDisplayContentModel
       })
       self.setPlotType(props.plotType)
     },
-    // setPointConfig(configType: PointDisplayType) {
-    //   self.pointDisplayType = configType
-    //   if (configType === "bins") {
-    //     const { binWidth, binAlignment } = self.binDetails({ initialize: true })
-    //     self.setBinWidth(binWidth)
-    //     self.setBinAlignment(binAlignment)
-    //     self.pointsAreBinned = true
-    //   } else if (configType !== "histogram") {
-    //     if (configType !== "bars" && isBarPlotModel(self.plot)) {
-    //       self.plot.setPointsFusedIntoBars(false)
-    //     }
-    //     self.pointsAreBinned = false
-    //   }
-    // },
     setPlotBackgroundColor(color: string) {
       self.plotBackgroundColor = color
     },
@@ -506,9 +480,7 @@ export const GraphContentModel = DataDisplayContentModel
     configureUnivariateNumericPlot(display: "points" | "bars", isBinned = false) {
       let newPlotType: Maybe<PlotType>
       if (isBinned) {
-        newPlotType = display === "points"
-                        ? "binnedDotPlot"
-                        : "histogram"
+        newPlotType = display === "points" ? "binnedDotPlot" : "histogram"
       }
       else if (display === "points") {
         newPlotType = "dotPlot"
@@ -516,9 +488,7 @@ export const GraphContentModel = DataDisplayContentModel
       else {
         newPlotType = "linePlot"
       }
-      console.group("GraphContentModel.configureUnivariateNumericPlot:", newPlotType)
       self.setPlotType(newPlotType)
-      console.groupEnd()
     },
     fusePointsIntoBars(fuseIntoBars: boolean) {
       if (fuseIntoBars !== (self.plot.displayType === "bars")) {
@@ -532,13 +502,14 @@ export const GraphContentModel = DataDisplayContentModel
         if (newPlotType) {
           self.setPlotType(newPlotType)
           if (fuseIntoBars) {
+            // There is no attribute configuration for which bars are the default,
+            // so it is sufficient to set the count axis here.
             self.setBarCountAxis()
           }
         }
       }
     },
     syncPrimaryRoleWithAttributeConfiguration() {
-      console.group("GraphContentModel.syncPrimaryRoleWithAttributeConfiguration")
       const currPrimaryRole = self.dataConfiguration.primaryRole ?? "x"
       const currSecondaryRole = self.dataConfiguration.secondaryRole ?? "y"
       const primaryAttributeType = currPrimaryRole
@@ -549,7 +520,7 @@ export const GraphContentModel = DataDisplayContentModel
                                       : undefined
       // Numeric attributes get priority for primaryRole when present. First one that is already present
       // and then the newly assigned one. If there is an already assigned categorical then its place is
-      // the primaryRole, or, lastly, the newly assigned place
+      // the primaryRole, or, lastly, the newly assigned place.
       const newPrimaryRole = isNumericAttributeType(primaryAttributeType)
                               ? currPrimaryRole
                               : isNumericAttributeType(secondaryAttributeType)
@@ -559,26 +530,19 @@ export const GraphContentModel = DataDisplayContentModel
                                     : secondaryAttributeType
                                       ? currSecondaryRole
                                       : undefined
-      console.log("GraphContentModel.syncPrimaryRoleWithAttributeConfiguration", currPrimaryRole, newPrimaryRole)
       if (newPrimaryRole !== self.dataConfiguration.primaryRole) {
-        console.group("GraphContentModel.syncPrimaryRoleWithAttributeConfiguration [setPrimaryRole]")
         self.dataConfiguration.setPrimaryRole(newPrimaryRole as Maybe<GraphAttrRole>)
-        console.groupEnd()
       }
-      console.groupEnd()
     },
     // returns true if the plot type changed
     syncPlotWithAttributeConfiguration(): boolean {
-      console.log("GraphContentModel.syncPlotWithAttributeConfiguration")
       const assignedAttrCount = PrimaryAttrRoles.map(role => !!self.dataConfiguration.attributeID(role))
                                   .filter(Boolean).length
       if (assignedAttrCount === 0) {
         if (self.plotType !== "casePlot") {
           self.setPlotType("casePlot")
-          console.groupEnd()
           return true
         }
-        console.groupEnd()
         return false
       }
 
@@ -606,28 +570,9 @@ export const GraphContentModel = DataDisplayContentModel
       }
       if (newPlotType) {
         self.setPlotType(newPlotType)
-        console.groupEnd()
         return true
       }
-      console.groupEnd()
       return false
-    },
-    syncAxesWithPlotConfiguration() {
-      // const primaryRole = self.dataConfiguration.primaryRole ?? "x"
-
-      // const primaryPlace = primaryRole === "x" ? "bottom" : "left"
-      // const primaryAxis = self.getAxis(primaryPlace)
-      // const newPrimaryAxis = self.plot.getValidPrimaryAxis(primaryPlace, primaryAxis)
-      // if (newPrimaryAxis !== primaryAxis) {
-      //   self.setAxis(primaryPlace, newPrimaryAxis)
-      // }
-
-      // const secondaryPlace = primaryRole === "x" ? "left" : "bottom"
-      // const secondaryAxis = self.getAxis(secondaryPlace)
-      // const newSecondaryAxis = self.plot.getValidSecondaryAxis(secondaryPlace, secondaryAxis)
-      // if (newSecondaryAxis !== secondaryAxis) {
-      //   self.setAxis(secondaryPlace, newSecondaryAxis)
-      // }
     }
   }))
   .views(self => ({

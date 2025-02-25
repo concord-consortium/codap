@@ -9,7 +9,7 @@ import { isFiniteNumber } from "../../../../utilities/math-utils"
 import { mstReaction } from "../../../../utilities/mst-reaction"
 import { t } from "../../../../utilities/translation/translate"
 import {circleAnchor} from "../../../data-display/pixi/pixi-points"
-import {PlotProps} from "../../graphing-types"
+import {IPlotProps} from "../../graphing-types"
 import { useBinnedPlotResponders } from "../../hooks/use-binned-plot-responders"
 import { useDotPlot } from "../../hooks/use-dot-plot"
 import { useDotPlotDragDrop } from "../../hooks/use-dot-plot-drag-drop"
@@ -25,8 +25,7 @@ const worldWidthToScreenWidth = (scale: ScaleLinear<number, number>, worldWidth:
   return Math.abs(scale(worldWidth) - scale(0))
 }
 
-export const BinnedDotPlot = observer(function BinnedDotPlot(props: PlotProps) {
-  const {pixiPoints, abovePointsGroupRef} = props
+export const BinnedDotPlot = observer(function BinnedDotPlot({pixiPoints, abovePointsGroupRef}: IPlotProps) {
   const { dataset, dataConfig, getPrimaryScreenCoord, getSecondaryScreenCoord, graphModel, isAnimating, layout,
           pointColor, pointDisplayType, pointStrokeColor, primaryAxisScale, primaryIsBottom, primaryPlace,
           refreshPointSelection } = useDotPlot(pixiPoints)

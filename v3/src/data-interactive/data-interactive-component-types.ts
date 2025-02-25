@@ -65,42 +65,47 @@ export interface V2Game extends V2Component {
 }
 export interface V2Graph extends V2Component {
   backgroundColor?: string
-  captionAttributeID?: string | null
+  captionAttributeID?: number | null
   captionAttributeName?: string | null
   dataContext?: string
   displayOnlySelectedCases?: boolean
   enableNumberToggle?: boolean
   filterFormula?: string
-  hiddenCases?: string[]
-  legendAttributeID?: string | null
+  hiddenCases?: number[]
+  legendAttributeID?: number | null
   legendAttributeName?: string | null
   numberToggleLastMode?: boolean
+  plotType?: string
   pointColor?: string
-  pointConfig?: string
-  pointsFusedIntoBars?: boolean
   pointSize?: number
-  rightNumericAttributeID?: string | null
+  rightNumericAttributeID?: number | null
   rightNumericAttributeName?: string | null
-  rightSplitAttributeID?: string | null
+  rightSplitAttributeID?: number | null
   rightSplitAttributeName?: string | null
   showMeasuresForSelection?: boolean
   strokeColor?: string
   strokeSameAsFill?: boolean
-  topSplitAttributeID?: string | null
+  topSplitAttributeID?: number | null
   topSplitAttributeName?: string | null
   transparent?: boolean
   type: "graph"
-  xAttributeID?: string | null
+  xAttributeID?: number | null
   xAttributeName?: string | null
   xAttributeType?: string
-  yAttributeID?: string | null
+  xLowerBound?: number
+  xUpperBound?: number
+  yAttributeID?: number | null
   yAttributeIDs?: number[]
   yAttributeName?: string | null
   yAttributeNames?: string[]
   yAttributeType?: string
-  y2AttributeID?: string | null
+  yLowerBound?: number
+  yUpperBound?: number
+  y2AttributeID?: number | null
   y2AttributeName?: string | null
   y2AttributeType?: string
+  y2LowerBound?: number
+  y2UpperBound?: number
 }
 export interface V2GetGraph extends V2Graph {
   xLowerBound?: number

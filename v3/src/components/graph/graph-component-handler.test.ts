@@ -53,57 +53,57 @@ describe("DataInteractive ComponentHandler Graph", () => {
 
     // Create a graph with ids
     const backgroundColor = "#000000"
+    const initialPlotType = "dotPlot"
+    const updatedPlotType = "scatterPlot"
     const pointColor = "#FFFFFF"
-    const pointConfig = "bars"
-    const pointsFusedIntoBars = true
     const pointSize = 2
     const strokeColor = "#FF0000"
     const transparent = true
-    const yAttributeType = "numeric"
+    const yAttributeType = "categorical"
     const y2AttributeType = "categorical"
-    const resultIds = create({}, {
+    const graphSnapshot: V2Graph = {
       type: "graph", backgroundColor, cannotClose: true, dataContext: "data",
-      pointColor, pointConfig, pointsFusedIntoBars, pointSize, strokeColor,
+      plotType: initialPlotType, pointColor, pointSize, strokeColor,
       transparent, xAttributeID: toV2Id(a3.id), yAttributeID: toV2Id(a2.id), yAttributeType,
       legendAttributeID: toV2Id(a1.id), captionAttributeID: toV2Id(a2.id), y2AttributeID: toV2Id(a3.id),
       rightSplitAttributeID: toV2Id(a1.id), topSplitAttributeID: toV2Id(a2.id), topSplitAttributeName: "a3",
       enableNumberToggle: true, numberToggleLastMode: true, y2AttributeType
-    })
+    }
+    const resultIds = create({}, graphSnapshot)
     expect(resultIds.success).toBe(true)
     expect(documentContent.tileMap.size).toBe(1)
     const resultIdsValues = resultIds.values as DIComponentInfo
-    const tileIds = documentContent.tileMap.get(toV3Id(kGraphIdPrefix, resultIdsValues.id!))!
-    expect(tileIds).toBeDefined()
-    expect(isGraphContentModel(tileIds.content)).toBe(true)
-    const tileContentIds = tileIds.content as IGraphContentModel
-    expect(tileIds.cannotClose).toBe(true)
-    expect(tileContentIds.dataConfiguration.attributeDescriptionForRole("x")?.attributeID).toBe(a3.id)
-    expect(tileContentIds.dataConfiguration.attributeDescriptionForRole("y")?.attributeID).toBe(a2.id)
-    expect(tileContentIds.dataConfiguration.attributeDescriptionForRole("y")?.type).toBe(yAttributeType)
-    expect(tileContentIds.dataConfiguration.attributeDescriptionForRole("legend")?.attributeID).toBe(a1.id)
-    expect(tileContentIds.dataConfiguration.attributeDescriptionForRole("caption")?.attributeID).toBe(a2.id)
-    expect(tileContentIds.dataConfiguration.attributeDescriptionForRole("rightNumeric")?.attributeID).toBe(a3.id)
-    expect(tileContentIds.dataConfiguration.attributeDescriptionForRole("rightNumeric")?.type).toBe(y2AttributeType)
-    expect(tileContentIds.dataConfiguration.attributeDescriptionForRole("rightSplit")?.attributeID).toBe(a1.id)
+    const tileModel = documentContent.tileMap.get(toV3Id(kGraphIdPrefix, resultIdsValues.id!))!
+    expect(tileModel).toBeDefined()
+    expect(isGraphContentModel(tileModel.content)).toBe(true)
+    const tileContentModel = tileModel.content as IGraphContentModel
+    expect(tileModel.cannotClose).toBe(true)
+    expect(tileContentModel.dataConfiguration.attributeDescriptionForRole("x")?.attributeID).toBe(a3.id)
+    expect(tileContentModel.dataConfiguration.attributeDescriptionForRole("y")?.attributeID).toBe(a2.id)
+    expect(tileContentModel.dataConfiguration.attributeDescriptionForRole("y")?.type).toBe(yAttributeType)
+    expect(tileContentModel.dataConfiguration.attributeDescriptionForRole("legend")?.attributeID).toBe(a1.id)
+    expect(tileContentModel.dataConfiguration.attributeDescriptionForRole("caption")?.attributeID).toBe(a2.id)
+    expect(tileContentModel.dataConfiguration.attributeDescriptionForRole("rightNumeric")?.attributeID).toBe(a3.id)
+    expect(tileContentModel.dataConfiguration.attributeDescriptionForRole("rightNumeric")?.type).toBe(y2AttributeType)
+    expect(tileContentModel.dataConfiguration.attributeDescriptionForRole("rightSplit")?.attributeID).toBe(a1.id)
     // Id should trump name for topSplit
-    expect(tileContentIds.dataConfiguration.attributeDescriptionForRole("topSplit")?.attributeID).toBe(a2.id)
-    expect(tileContentIds.showParentToggles).toBe(true)
+    expect(tileContentModel.dataConfiguration.attributeDescriptionForRole("topSplit")?.attributeID).toBe(a2.id)
+    expect(tileContentModel.plotType).toBe(initialPlotType)
+    expect(tileContentModel.showParentToggles).toBe(true)
     // Make sure numberToggleLastMode hid all appropriate cases
-    tileContentIds.layers.forEach(layer => {
+    tileContentModel.layers.forEach(layer => {
       const lastCaseId = dataset.itemIds[dataset.itemIds.length - 1]
       dataset.itemIds.forEach(itemId => {
         expect(layer.dataConfiguration.hiddenCases.includes(itemId)).toBe(itemId !== lastCaseId)
       })
     })
-    // expect(tileContentIds.pointDisplayType).toBe(pointConfig)
-    const pointDescription = tileContentIds.pointDescription
+    const pointDescription = tileContentModel.pointDescription
     expect(pointDescription.pointColor).toBe(pointColor)
     expect(pointDescription.pointSizeMultiplier).toBe(pointSize)
     expect(pointDescription.pointStrokeColor).toBe(strokeColor)
-    // expect(tileContentIds.pointsFusedIntoBars).toBe(pointsFusedIntoBars)
-    expect(tileContentIds.isTransparent).toBe(transparent)
+    expect(tileContentModel.isTransparent).toBe(transparent)
     // Delete the graph when we're finished
-    handler.delete!({ component: tileIds })
+    handler.delete!({ component: tileModel })
     expect(documentContent.tileMap.size).toBe(0)
 
     // Create a graph with multiple y attributes using ids
@@ -281,7 +281,7 @@ describe("DataInteractive ComponentHandler Graph", () => {
     expect(dataConfig._yAttributeDescriptions[0].attributeID).toBe(a4.id)
     expect(dataConfig._yAttributeDescriptions[1].attributeID).toBe(a3.id)
 
-    // Update to set y attributes with ids
+    // Update to set y attributes with ids; setting numeric y attribute results in scatter plot
     const updateResultYIDs = update({ component: tile }, { yAttributeIDs: [toV2Id(a3.id)] } as V2Graph)
     expect(updateResultYIDs.success).toBe(true)
     expect(dataConfig._yAttributeDescriptions.length).toBe(1)
@@ -290,8 +290,7 @@ describe("DataInteractive ComponentHandler Graph", () => {
     // Update many of a graph's options
     const updateResultOptions = update({ component: tile }, {
       backgroundColor, displayOnlySelectedCases, filterFormula, hiddenCases: _hiddenCases.map(id => toV2Id(id)),
-      pointColor, pointConfig, pointsFusedIntoBars, pointSize, strokeColor,
-      transparent
+      pointColor, pointSize, strokeColor, transparent
     })
     expect(updateResultOptions.success).toBe(true)
     expect(tileContent.plotBackgroundColor).toBe(backgroundColor)
@@ -301,9 +300,8 @@ describe("DataInteractive ComponentHandler Graph", () => {
     for (let i = 0; i < _hiddenCases.length; i++) {
       expect(dataConfig.hiddenCases[i]).toBe(_hiddenCases[i])
     }
+    expect(tileContent.plotType).toBe(updatedPlotType)
     expect(tileContent.pointDescription.pointColor).toBe(pointColor)
-    // expect(tileContent.pointDisplayType).toBe(pointConfig)
-    // expect(tileContent.pointsFusedIntoBars).toBe(pointsFusedIntoBars)
     expect(tileContent.pointDescription.pointSizeMultiplier).toBe(pointSize)
     expect(tileContent.pointDescription.pointStrokeColor).toBe(strokeColor)
     expect(tileContent.isTransparent).toBe(transparent)
@@ -318,7 +316,7 @@ describe("DataInteractive ComponentHandler Graph", () => {
         backgroundColor: _backgroundColor, dataContext, displayOnlySelectedCases: _displayOnlySelectedCases,
         enableNumberToggle, filterFormula: _filterFormula, hiddenCases: hc, numberToggleLastMode, captionAttributeID,
         captionAttributeName, legendAttributeID, legendAttributeName, pointColor: _pointColor,
-        pointConfig: _pointConfig, pointsFusedIntoBars: _pointsFusedIntoBars, pointSize: _pointSize,
+        plotType: _plotType, pointSize: _pointSize,
         rightSplitAttributeID, rightSplitAttributeName,
         strokeColor: _strokeColor, strokeSameAsFill: _strokeSameAsFill, topSplitAttributeID, topSplitAttributeName,
         transparent: _transparent, xAttributeID, xAttributeName, xAttributeType: _xAttributeType, xLowerBound,
@@ -380,9 +378,8 @@ describe("DataInteractive ComponentHandler Graph", () => {
       for (let i = 0; i < _hiddenCases.length; i++) {
         expect(hc?.[i]).toBe(toV2Id(_hiddenCases[i]))
       }
+      expect(_plotType).toBe(updatedPlotType)
       expect(_pointColor).toBe(pointColor)
-      // expect(_pointConfig).toBe(pointConfig)
-      // expect(_pointsFusedIntoBars).toBe(pointsFusedIntoBars)
       expect(_pointSize).toBe(pointSize)
       expect(_strokeColor).toBe(pointColor) // strokeSameAsFill overrides strokeColor
       expect(_strokeSameAsFill).toBe(strokeSameAsFill)
