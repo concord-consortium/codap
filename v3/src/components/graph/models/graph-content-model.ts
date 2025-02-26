@@ -241,10 +241,11 @@ export const GraphContentModel = DataDisplayContentModel
     setPlot(newPlotSnap: IPlotModelUnionSnapshot) {
       const currPlotSnap = getSnapshot(self.plot)
       if (!isEqual(newPlotSnap, currPlotSnap)) {
+        const prevPlotWasBinned = self.plot.isBinned
         self.plot = PlotModelUnion.create({ ...currPlotSnap, ...newPlotSnap })
         if (self.dataConfiguration) {
           self.plot.setDataConfiguration(self.dataConfiguration)
-          self.plot.resetSettings()
+          self.plot.resetSettings({ isBinnedPlotChanged: prevPlotWasBinned !== self.plot.isBinned })
         }
       }
     },
@@ -424,17 +425,24 @@ export const GraphContentModel = DataDisplayContentModel
     removeAxis(place: AxisPlace) {
       self.axes.delete(place)
     },
-    setAttributeID(role: GraphAttrRole, dataSetID: string, id: string) {
+    setAttributeID(role: GraphAttrRole, dataSetID: string, attributeID: string) {
+      const prevPrimaryRole = self.dataConfiguration.primaryRole
+      const prevPrimaryAttrId = prevPrimaryRole ? self.dataConfiguration.attributeID(prevPrimaryRole) : undefined
       self.setDataSet(dataSetID)
       if (role === 'yPlus') {
-        self.dataConfiguration.addYAttribute({attributeID: id})
+        self.dataConfiguration.addYAttribute({attributeID})
       } else {
-        self.dataConfiguration.setAttribute(role, {attributeID: id})
+        self.dataConfiguration.setAttribute(role, {attributeID})
       }
+      const newPrimaryRole = self.dataConfiguration.primaryRole
+      const newPrimaryAttrId = newPrimaryRole ? self.dataConfiguration.attributeID(newPrimaryRole) : undefined
+      self.plot.resetSettings({
+        primaryRoleChanged: prevPrimaryRole !== newPrimaryRole,
+        primaryAttrChanged: prevPrimaryAttrId !== newPrimaryAttrId
+      })
+
       const updateCategoriesOptions = self.getUpdateCategoriesOptions(true)
       self.adornmentsStore.updateAdornments(updateCategoriesOptions)
-      // TODO: under what circumstances do we need to reset here?
-      self.plot.resetSettings()
     },
     setGraphProperties(props: GraphProperties) {
       (Object.keys(props.axes) as AxisPlace[]).forEach(aKey => {

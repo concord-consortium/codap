@@ -26,6 +26,12 @@ export interface IBarTipTextProps {
   caseRightSplitValue?: string
 }
 
+export interface IResetSettingsOptions {
+  isBinnedPlotChanged?: boolean
+  primaryRoleChanged?: boolean
+  primaryAttrChanged?: boolean
+}
+
 export function typesPlotType(type: PlotType) {
   return types.optional(types.literal(type), type)
 }
@@ -148,7 +154,7 @@ export const PlotModel = types
     setDataConfiguration(dataConfiguration: IGraphDataConfigurationModel) {
       self.dataConfiguration = dataConfiguration
     },
-    resetSettings() {
+    resetSettings(options?: IResetSettingsOptions) {
       // derived models may override
     }
   }))

@@ -3,7 +3,7 @@ import { isFiniteNumber } from "../../../../utilities/math-utils"
 import { IAxisTicks, TickFormatter } from "../../../axis/axis-types"
 import { dataDisplayGetNumericValue } from "../../../data-display/data-display-value-utils"
 import { DotPlotModel } from "../dot-plot/dot-plot-model"
-import { IPlotModel, typesPlotType } from "../plot-model"
+import { IPlotModel, IResetSettingsOptions, typesPlotType } from "../plot-model"
 
 export const BinnedDotPlotModel = DotPlotModel
   .named("BinnedDotPlotModel")
@@ -175,13 +175,15 @@ export const BinnedDotPlotModel = DotPlotModel
     }
   }))
   .actions(self => ({
-    resetSettings() {
-      const { binAlignment, binWidth } = self.binDetails({ initialize: true })
-      if (binAlignment != null) {
-        self.setBinAlignment(binAlignment)
-      }
-      if (binWidth != null) {
-        self.setBinWidth(binWidth)
+    resetSettings({ isBinnedPlotChanged, primaryAttrChanged }: IResetSettingsOptions = {}) {
+      if (primaryAttrChanged || isBinnedPlotChanged) {
+        const { binAlignment, binWidth } = self.binDetails({ initialize: true })
+        if (binAlignment != null) {
+          self.setBinAlignment(binAlignment)
+        }
+        if (binWidth != null) {
+          self.setBinWidth(binWidth)
+        }
       }
     },
     endBinBoundaryDrag(binAlignment: number, binWidth: number) {
