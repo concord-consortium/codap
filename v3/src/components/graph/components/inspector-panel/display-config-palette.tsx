@@ -1,13 +1,14 @@
-import React from "react"
-import {observer} from "mobx-react-lite"
 import { Checkbox, Box, Flex, FormLabel, Input, Radio, RadioGroup, Stack } from "@chakra-ui/react"
-import { logMessageWithReplacement } from "../../../../lib/log-message"
-import { t } from "../../../../utilities/translation/translate"
-import { InspectorPalette } from "../../../inspector-panel"
+import {observer} from "mobx-react-lite"
+import React from "react"
 import BarChartIcon from "../../../../assets/icons/icon-segmented-bar-chart.svg"
+import { logMessageWithReplacement } from "../../../../lib/log-message"
 import { ITileModel } from "../../../../models/tiles/tile-model"
-import { isGraphContentModel } from "../../models/graph-content-model"
+import { t } from "../../../../utilities/translation/translate"
 import { isPointDisplayType } from "../../../data-display/data-display-types"
+import { InspectorPalette } from "../../../inspector-panel"
+import { isGraphContentModel } from "../../models/graph-content-model"
+import { isBinnedPlotModel } from "../../plots/histogram/histogram-model"
 
 type BinOption = "binWidth" | "binAlignment"
 
@@ -21,7 +22,7 @@ interface IProps {
 export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: IProps) {
   const { buttonRect, panelRect, setShowPalette, tile } = props
   const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
-  const pointDisplayType = graphModel?.pointDisplayType
+  const binnedPlot = isBinnedPlotModel(graphModel?.plot) ? graphModel?.plot : undefined
   const pointsFusedIntoBars = graphModel?.pointsFusedIntoBars
   const showPointDisplayType = graphModel?.plot?.showDisplayTypeSelection
   const showFuseIntoBars = graphModel?.plot?.showFusePointsIntoBars
@@ -29,7 +30,7 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
                             graphModel?.dataConfiguration.primaryAttributeType !== "date"
 
   const handleDisplayTypeChange = (configType: string) => {
-    if (isPointDisplayType(configType)) {
+    if (isPointDisplayType(configType) || configType === "bins") {
       const display = configType === "bars" ? "bars" : "points"
       const isBinned = configType === "bins"
       graphModel?.configureUnivariateNumericPlot(display, isBinned)
@@ -39,10 +40,10 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
   const setBinOption = (option: BinOption, value: number) => {
     switch (option) {
       case "binWidth":
-        graphModel?.setBinWidth(value)
+        binnedPlot?.setBinWidth(value)
         break
       case "binAlignment":
-        graphModel?.setBinAlignment(value)
+        binnedPlot?.setBinAlignment(value)
         break
       default:
         break
@@ -52,7 +53,7 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
   const handleBinOptionKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, option: BinOption) => {
     if (e.key === "Enter") {
       e.preventDefault()
-      const initialValue = graphModel?.[option]
+      const initialValue = binnedPlot?.[option]
       const value = Number((e.target as HTMLInputElement).value)
       graphModel?.applyModelChange(() => {
         setBinOption(option, value)
@@ -67,7 +68,7 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
   }
 
   const handleBinOptionBlur = (e: React.ChangeEvent<HTMLInputElement>, option: BinOption) => {
-    const initialValue = graphModel?.[option]
+    const initialValue = binnedPlot?.[option]
     const value = Number((e.target as HTMLInputElement).value)
     graphModel?.applyModelChange(() => {
       setBinOption(option, value)
@@ -104,38 +105,38 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
       buttonRect={buttonRect}
     >
       <Flex className="palette-form" direction="column">
-      {showPointDisplayType && (
-        <RadioGroup defaultValue={graphModel?.plot.isBinned ? "bins" : graphModel?.plot.displayType}>
-          <Stack>
-            <Radio
-              size="md"
-              value="points"
-              data-testid="points-radio-button"
-              onChange={(e) => handleDisplayTypeChange(e.target.value)}
-            >
-              {t("DG.Inspector.graphPlotPoints")}
-            </Radio>
-            <Radio
-              size="md"
-              value="bins"
-              data-testid="bins-radio-button"
-              onChange={(e) => handleDisplayTypeChange(e.target.value)}
-            >
-              {t("DG.Inspector.graphGroupIntoBins")}
-            </Radio>
-            {showBarForEachPoint &&
-               <Radio
-                  size="md"
-                  value="bars"
-                  data-testid="bars-radio-button"
-                  onChange={(e) => handleDisplayTypeChange(e.target.value)}
-               >
-                 {t("DG.Inspector.graphBarForEachPoint")}
-               </Radio>}
-          </Stack>
-        </RadioGroup>
-      )}
-        {showPointDisplayType && (pointDisplayType === "bins" || pointDisplayType === "histogram") && (
+        {showPointDisplayType && (
+          <RadioGroup defaultValue={graphModel?.plot.isBinned ? "bins" : graphModel?.plot.displayType}>
+            <Stack>
+              <Radio
+                size="md"
+                value="points"
+                data-testid="points-radio-button"
+                onChange={(e) => handleDisplayTypeChange(e.target.value)}
+              >
+                {t("DG.Inspector.graphPlotPoints")}
+              </Radio>
+              <Radio
+                size="md"
+                value="bins"
+                data-testid="bins-radio-button"
+                onChange={(e) => handleDisplayTypeChange(e.target.value)}
+              >
+                {t("DG.Inspector.graphGroupIntoBins")}
+              </Radio>
+              {showBarForEachPoint &&
+                <Radio
+                    size="md"
+                    value="bars"
+                    data-testid="bars-radio-button"
+                    onChange={(e) => handleDisplayTypeChange(e.target.value)}
+                >
+                  {t("DG.Inspector.graphBarForEachPoint")}
+                </Radio>}
+            </Stack>
+          </RadioGroup>
+        )}
+        {showPointDisplayType && graphModel?.plot.isBinned && (
           <Stack>
             <Box className="inline-input-group" data-testid="graph-bin-width-setting">
               <FormLabel className="form-label">
@@ -148,7 +149,7 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
               <Input
                 className="form-input"
                 type="number"
-                defaultValue={graphModel?.binWidth}
+                defaultValue={binnedPlot?.binWidth}
                 onBlur={(e) => handleBinOptionBlur(e, "binWidth")}
                 onKeyDown={(e) => handleBinOptionKeyDown(e, "binWidth")}
               />
@@ -160,7 +161,7 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
               <Input
                 className="form-input"
                 type="number"
-                defaultValue={graphModel?.binAlignment}
+                defaultValue={binnedPlot?.binAlignment}
                 onBlur={(e) => handleBinOptionBlur(e, "binAlignment")}
                 onKeyDown={(e) => handleBinOptionKeyDown(e, "binAlignment")}
               />

@@ -1,19 +1,19 @@
 import {ScaleBand, ScaleLinear} from "d3"
 import {observer} from "mobx-react-lite"
 import React, {useCallback, useEffect} from "react"
-import { mstAutorun } from "../../../utilities/mst-autorun"
-import {mstReaction} from "../../../utilities/mst-reaction"
-import { kMain } from "../../data-display/data-display-types"
-import {PlotProps} from "../graphing-types"
-import {usePixiDragHandlers, usePlotResponders} from "../hooks/use-plot"
-import {setNiceDomain, setPointCoordinates} from "../utilities/graph-utils"
-import {circleAnchor, hBarAnchor, vBarAnchor} from "../../data-display/pixi/pixi-points"
-import { computeBinPlacements, computePrimaryCoord, computeSecondaryCoord } from "../utilities/dot-plot-utils"
-import { useDotPlotDragDrop } from "../hooks/use-dot-plot-drag-drop"
-import { AxisPlace } from "../../axis/axis-types"
-import { useDotPlot } from "../hooks/use-dot-plot"
+import { mstAutorun } from "../../../../utilities/mst-autorun"
+import {mstReaction} from "../../../../utilities/mst-reaction"
+import { kMain } from "../../../data-display/data-display-types"
+import {PlotProps} from "../../graphing-types"
+import {usePixiDragHandlers, usePlotResponders} from "../../hooks/use-plot"
+import {setNiceDomain, setPointCoordinates} from "../../utilities/graph-utils"
+import {circleAnchor, hBarAnchor, vBarAnchor} from "../../../data-display/pixi/pixi-points"
+import { computeBinPlacements, computePrimaryCoord, computeSecondaryCoord } from "../../utilities/dot-plot-utils"
+import { useDotPlotDragDrop } from "../../hooks/use-dot-plot-drag-drop"
+import { AxisPlace } from "../../../axis/axis-types"
+import { useDotPlot } from "../../hooks/use-dot-plot"
 
-export const FreeDotPlotDots = observer(function FreeDotPlotDots(props: PlotProps) {
+export const DotLinePlot = observer(function DotLinePlot(props: PlotProps) {
   const {pixiPoints} = props
   const { dataset, dataConfig, graphModel, isAnimating, layout,
           pointColor, pointDisplayType, pointStrokeColor,
@@ -183,6 +183,10 @@ export const FreeDotPlotDots = observer(function FreeDotPlotDots(props: PlotProp
 
   // respond to pointDisplayType changes because the axis domain may need to be updated
   useEffect(function respondToGraphPointDisplayType() {
+    // TODO: Despite the comment above, this effect does not respond to pointDisplayType changes.
+    // In fact, the only observable property referenced by the autorun appears to be the domain
+    // that is being changed. So the entire effect of this would appear to be to reinstall the
+    // autorun when primaryIsBottom changes.
     return mstAutorun(() => {
       const primaryAxis = graphModel.getNumericAxis(primaryIsBottom ? "bottom" : "left")
       const numValues = graphModel.dataConfiguration.numericValuesForAttrRole(primaryIsBottom ? "x" : "y")

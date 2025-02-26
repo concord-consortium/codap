@@ -1,23 +1,24 @@
-import { useCallback } from "react"
 import { ScaleBand, ScaleLinear } from "d3"
+import { useCallback } from "react"
 import { useMemo } from "use-memo-one"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
-import { computePrimaryCoord, determineBinForCase, adjustCoordForStacks,
-         computeBinPlacements, computeSecondaryCoord} from "../utilities/dot-plot-utils"
-import { useGraphContentModelContext } from "./use-graph-content-model-context"
-import { useGraphDataConfigurationContext } from "./use-graph-data-configuration-context"
-import { useGraphLayoutContext } from "./use-graph-layout-context"
 import { AxisPlace } from "../../axis/axis-types"
 import { GraphAttrRole } from "../../data-display/data-display-types"
 import { setPointSelection } from "../../data-display/data-display-utils"
 import { dataDisplayGetNumericValue } from "../../data-display/data-display-value-utils"
 import { useDataDisplayAnimation } from "../../data-display/hooks/use-data-display-animation"
-import { SubPlotCells } from "../models/sub-plot-cells"
 import { PixiPoints } from "../../data-display/pixi/pixi-points"
+import { isBinnedPlotModel } from "../plots/histogram/histogram-model"
+import { SubPlotCells } from "../models/sub-plot-cells"
+import {
+  computePrimaryCoord, determineBinForCase, adjustCoordForStacks, computeBinPlacements, computeSecondaryCoord
+} from "../utilities/dot-plot-utils"
+import { useGraphContentModelContext } from "./use-graph-content-model-context"
+import { useGraphDataConfigurationContext } from "./use-graph-data-configuration-context"
+import { useGraphLayoutContext } from "./use-graph-layout-context"
 
 export const useDotPlot = (pixiPoints?: PixiPoints) => {
   const graphModel = useGraphContentModelContext()
-  const isHistogram = graphModel.pointDisplayType === "histogram"
   const dataConfig = useGraphDataConfigurationContext()
   const dataset = useDataSetContext()
   const layout = useGraphLayoutContext()
@@ -52,7 +53,10 @@ export const useDotPlot = (pixiPoints?: PixiPoints) => {
   const numExtraSecondaryBands = Math.max(1, extraSecondaryAxisScale?.domain().length ?? 1)
   const secondaryBandwidth = fullSecondaryBandwidth / numExtraSecondaryBands
   const extraSecondaryBandwidth = (extraSecondaryAxisScale.bandwidth?.() ?? secondaryAxisExtent)
-  const { binWidth, minBinEdge, totalNumberOfBins } = graphModel.binDetails()
+  const { binWidth, minBinEdge, totalNumberOfBins } =
+    dataConfig && isBinnedPlotModel(graphModel.plot)
+      ? graphModel.plot.binDetails(dataConfig)
+      : { binWidth: undefined, minBinEdge: undefined, totalNumberOfBins: 0 }
   const binPlacementProps = {
     binWidth, dataConfig, dataset, extraPrimaryAttrID, extraSecondaryAttrID, layout, minBinEdge,
     numExtraPrimaryBands, pointDiameter, primaryAttrID, primaryAxisScale, primaryPlace, secondaryAttrID,
@@ -65,7 +69,7 @@ export const useDotPlot = (pixiPoints?: PixiPoints) => {
   const secondarySign = primaryIsBottom ? -1 : 1
   const baseCoord = primaryIsBottom ? secondaryMax : 0
   const {pointColor, pointStrokeColor} = graphModel.pointDescription
-  const pointDisplayType = graphModel.pointDisplayType
+  const pointDisplayType = graphModel.plot.displayType
   const { isAnimating } = useDataDisplayAnimation()
 
   const refreshPointSelection = useCallback(() => {
@@ -86,7 +90,7 @@ export const useDotPlot = (pixiPoints?: PixiPoints) => {
     const { primaryCoord, extraPrimaryCoord } = computePrimaryCoord(computePrimaryCoordProps)
     let primaryScreenCoord = primaryCoord + extraPrimaryCoord
 
-    if (binWidth !== undefined && graphModel.pointDisplayType !== "histogram") {
+    if (binWidth !== undefined && graphModel.plotType !== "histogram") {
       const caseValue = dataDisplayGetNumericValue(dataset, anID, primaryAttrID) ?? -1
       const binForCase = determineBinForCase(caseValue, binWidth, minBinEdge)
       primaryScreenCoord = adjustCoordForStacks({
@@ -96,7 +100,7 @@ export const useDotPlot = (pixiPoints?: PixiPoints) => {
     }
 
     return primaryScreenCoord
-  }, [binMap, binWidth, bins, dataset, extraPrimaryAttrID, extraPrimaryAxisScale, graphModel.pointDisplayType,
+  }, [binMap, binWidth, bins, dataset, extraPrimaryAttrID, extraPrimaryAxisScale, graphModel,
       minBinEdge, numExtraPrimaryBands, pointDiameter, primaryAttrID, primaryAxisScale, primaryIsBottom,
       secondaryBandwidth, totalNumberOfBins])
 
@@ -107,11 +111,11 @@ export const useDotPlot = (pixiPoints?: PixiPoints) => {
     const secondaryCoordProps = {
       baseCoord, dataConfig, extraSecondaryAxisScale, extraSecondaryBandwidth, extraSecondaryCat, indexInBin, layout,
       numExtraSecondaryBands, overlap, pointDiameter, primaryIsBottom, secondaryAxisExtent, secondaryNumericScale,
-      secondaryAxisScale, secondaryBandwidth, secondaryCat, secondarySign, isHistogram
+      secondaryAxisScale, secondaryBandwidth, secondaryCat, secondarySign
     }
     let secondaryScreenCoord = computeSecondaryCoord(secondaryCoordProps)
 
-    if (binWidth !== undefined && graphModel.pointDisplayType !== "histogram") {
+    if (binWidth !== undefined && graphModel.plotType !== "histogram") {
       const onePixelOffset = primaryIsBottom ? -1 : 1
       const casePrimaryValue = dataDisplayGetNumericValue(dataset, anID, primaryAttrID) ?? -1
       const binForCase = determineBinForCase(casePrimaryValue, binWidth, minBinEdge)
@@ -123,7 +127,7 @@ export const useDotPlot = (pixiPoints?: PixiPoints) => {
     return secondaryScreenCoord
   }, [binMap, baseCoord, dataConfig, extraSecondaryAxisScale, extraSecondaryBandwidth, layout, numExtraSecondaryBands,
       pointDiameter, primaryIsBottom, secondaryAxisExtent, secondaryNumericScale, secondaryAxisScale,
-      secondaryBandwidth, secondarySign, isHistogram, graphModel.pointDisplayType, dataset, primaryAttrID, binWidth,
+      secondaryBandwidth, secondarySign, graphModel, dataset, primaryAttrID, binWidth,
       minBinEdge, bins])
 
   return {

@@ -2,7 +2,7 @@ import {ITileModelSnapshotIn} from "../../models/tiles/tile-model"
 import {toV3Id} from "../../utilities/codap-utils"
 import {defaultBackgroundColor, parseColorToHex} from "../../utilities/color-utils"
 import {V2TileImportArgs} from "../../v2/codap-v2-tile-importers"
-import {IGuidLink, isV2BinnedPlotModel, isV2GraphComponent} from "../../v2/codap-v2-types"
+import {IGuidLink, isV2GraphComponent} from "../../v2/codap-v2-types"
 import {v3TypeFromV2TypeIndex} from "../../v2/codap-v2-data-set-types"
 import {GraphAttrRole, PrimaryAttrRole, axisPlaceToAttrRole} from "../data-display/data-display-types"
 import {kGraphIdPrefix, kGraphTileType} from "./graph-defs"
@@ -156,11 +156,6 @@ export function v2GraphImporter({v2Component, v2Document, sharedModelManager, in
   // configure plot
   const primaryPlot = plotModels[0]
   const plot = v2PlotImporter(primaryPlot)
-  let binDetails: Partial<IGraphContentModelSnapshot> = {}
-  if (isV2BinnedPlotModel(primaryPlot)) {
-    const { width: _binWidth, alignment: _binAlignment } = primaryPlot.plotModelStorage
-    binDetails = { _binAlignment, _binWidth }
-  }
 
   // configure adornmentsStore
   const adornmentImporterProps = {
@@ -175,7 +170,6 @@ export function v2GraphImporter({v2Component, v2Document, sharedModelManager, in
     adornmentsStore,
     axes,
     plot,
-    ...binDetails,
     plotBackgroundColor,
     plotBackgroundOpacity,
     // plotBackgroundImage,

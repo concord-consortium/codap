@@ -67,7 +67,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
       dataConfiguration,
       pointRadius: graphModel.getPointRadius(),
       pointColor: graphModel.pointDescription.pointColor,
-      pointDisplayType: graphModel.pointDisplayType,
+      pointDisplayType: graphModel.plot.displayType,
       pointStrokeColor: graphModel.pointDescription.pointStrokeColor,
       pixiPoints,
       startAnimation, instanceId

@@ -1,5 +1,6 @@
 import { ICodapV2PlotModel } from "../../v2/codap-v2-types"
-import { IBarChartSnapshot, IPlotModelUnionSnapshot } from "./models/plot-model"
+import { IBarChartSnapshot } from "./plots/bar-chart/bar-chart-model"
+import { IPlotModelUnionSnapshot } from "./plots/plot-model-union"
 
 export function v2PlotImporter(plotModel: ICodapV2PlotModel): IPlotModelUnionSnapshot {
   switch (plotModel.plotClass) {
@@ -20,7 +21,8 @@ export function v2PlotImporter(plotModel: ICodapV2PlotModel): IPlotModelUnionSna
     case "DG.DotPlotModel":
       return { type: "dotPlot" }
     case "DG.BinnedPlotModel": {
-      return { type: plotModel.plotModelStorage?.dotsAreFused ? "histogram" : "binnedDotPlot" }
+      const { dotsAreFused, alignment: _binAlignment, width: _binWidth } = plotModel.plotModelStorage
+      return { type: dotsAreFused ? "histogram" : "binnedDotPlot", _binAlignment, _binWidth }
     }
     case "DG.LinePlotModel":
       return { type: "linePlot" }
