@@ -56,7 +56,7 @@ export const useDotPlot = (pixiPoints?: PixiPoints) => {
   const extraSecondaryBandwidth = (extraSecondaryAxisScale.bandwidth?.() ?? secondaryAxisExtent)
   const { binWidth, minBinEdge, totalNumberOfBins } =
     dataConfig && isBinnedPlotModel(graphModel.plot)
-      ? graphModel.plot.binDetails(dataConfig)
+      ? graphModel.plot.binDetails()
       : { binWidth: undefined, minBinEdge: undefined, totalNumberOfBins: 0 }
   const binPlacementProps = {
     binWidth, dataConfig, dataset, extraPrimaryAttrID, extraSecondaryAttrID, layout, minBinEdge,

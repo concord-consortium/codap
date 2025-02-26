@@ -24,7 +24,7 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
   const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
   const binnedPlot = isBinnedPlotModel(graphModel?.plot) ? graphModel?.plot : undefined
   const binDetails = graphModel?.dataConfiguration
-                      ? binnedPlot?.binDetails(graphModel.dataConfiguration)
+                      ? binnedPlot?.binDetails()
                       : { binWidth: undefined, binAlignment: undefined }
   const pointsFusedIntoBars = graphModel?.pointsFusedIntoBars
   const showPointDisplayType = graphModel?.plot?.showDisplayTypeSelection

@@ -26,7 +26,7 @@ export const GraphInspector = observer(function GraphInspector({tile, show}: ITi
   const buttonRef = useRef<HTMLDivElement>()
   const buttonRect = buttonRef.current?.getBoundingClientRect()
   const {active} = useDndContext()
-  const showDisplayConfig = graphModel?.plot.showDisplayConfig(graphModel.dataConfiguration)
+  const showDisplayConfig = graphModel?.plot.showDisplayConfig()
 
   useEffect(() => {
     !show && setShowPalette(undefined)

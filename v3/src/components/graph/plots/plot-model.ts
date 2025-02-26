@@ -36,6 +36,9 @@ export const PlotModel = types
       throw "type must be overridden"
     }),
   })
+  .volatile(self => ({
+    dataConfiguration: undefined as Maybe<IGraphDataConfigurationModel>,
+  }))
   .views(self => ({
     get displayType(): PointDisplayType {
       return "points"
@@ -64,7 +67,7 @@ export const PlotModel = types
     get isBivariateNumeric(): boolean {
       return false
     },
-    showDisplayConfig(dataConfig: IGraphDataConfigurationModel): boolean {
+    showDisplayConfig(): boolean {
       return false
     },
     get showDisplayTypeSelection(): boolean {
@@ -120,31 +123,32 @@ export const PlotModel = types
     getValidSecondaryAxis(place: AxisPlace, attrType?: AttributeType, axisModel?: IAxisModel): IAxisModel {
       return self.getValidEmptyAxis(place, attrType, axisModel)
     },
-    nonDraggableAxisTicks(dataConfiguration: IGraphDataConfigurationModel, formatter: TickFormatter): IAxisTicks {
+    nonDraggableAxisTicks(formatter: TickFormatter): IAxisTicks {
       return { tickValues: [], tickLabels: [] }
     }
   }))
   .views(self => ({
-    matchingCasesForAttr(
-      dataConfiguration: IGraphDataConfigurationModel, attrId?: string, value?: string, _allCases?: ICase[]
-    ) {
+    matchingCasesForAttr(attrId?: string, value?: string, _allCases?: ICase[]) {
       if (!attrId) return []
-      const dataset = dataConfiguration?.dataset
+      const dataset = self.dataConfiguration?.dataset
       const allCases = _allCases ?? dataset?.items
       return allCases?.filter(aCase => dataset?.getStrValue(aCase.__id__, attrId) === value) as ICase[] ?? []
     },
-    maxCellCaseCount(dataConfiguration: IGraphDataConfigurationModel) {
-      const { maxOverAllCells, primaryRole } = dataConfiguration
+    maxCellCaseCount() {
+      const { maxOverAllCells, primaryRole } = self.dataConfiguration || {}
       const primarySplitRole = primaryRole === "x" ? "topSplit" : "rightSplit"
       const secondarySplitRole = primaryRole === "x" ? "rightSplit" : "topSplit"
-      return maxOverAllCells(primarySplitRole, secondarySplitRole)
+      return maxOverAllCells?.(primarySplitRole, secondarySplitRole) ?? 0
     },
     barTipText() {
       return ""
     }
   }))
   .actions(self => ({
-    resetSettings(dataConfiguration: IGraphDataConfigurationModel) {
+    setDataConfiguration(dataConfiguration: IGraphDataConfigurationModel) {
+      self.dataConfiguration = dataConfiguration
+    },
+    resetSettings() {
       // derived models may override
     }
   }))

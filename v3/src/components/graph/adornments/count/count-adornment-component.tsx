@@ -49,7 +49,7 @@ export const CountAdornment = observer(function CountAdornment(props: IAdornment
       // movable values present at the same time.
       // access plot type so the autorun below is triggered when the plot type changes
       if (graphModel.plotType === "binnedDotPlot" && binnedDotPlot && dataConfig) {
-        const { binWidth, minBinEdge, maxBinEdge, totalNumberOfBins } = binnedDotPlot.binDetails(dataConfig) ?? {}
+        const { binWidth, minBinEdge, maxBinEdge, totalNumberOfBins } = binnedDotPlot.binDetails() ?? {}
         return binWidth !== undefined ? [
           // Build and spread an array of numeric values corresponding to the bin boundaries. Using totalNumberOfBins
           // for length, start at minBinEdge and increment by binWidth using each bin's index. Afterward, add

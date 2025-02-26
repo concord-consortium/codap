@@ -2,7 +2,6 @@ import { Instance, SnapshotIn, types } from "mobx-state-tree"
 import { isFiniteNumber } from "../../../../utilities/math-utils"
 import { IAxisTicks, TickFormatter } from "../../../axis/axis-types"
 import { dataDisplayGetNumericValue } from "../../../data-display/data-display-value-utils"
-import { IGraphDataConfigurationModel } from "../../models/graph-data-configuration-model"
 import { DotPlotModel } from "../dot-plot/dot-plot-model"
 import { IPlotModel, typesPlotType } from "../plot-model"
 
@@ -59,24 +58,30 @@ export const BinnedDotPlotModel = DotPlotModel
     }
   }))
   .views(self => ({
-    binDetails(dataConfiguration: IGraphDataConfigurationModel, options?: { initialize?: boolean }) {
+    binDetails(options?: { initialize?: boolean }) {
       const { initialize = false } = options ?? {}
-      const { dataset, primaryAttributeID } = dataConfiguration
-      const caseDataArray = dataConfiguration.getCaseDataArray(0)
+      const { dataset, primaryAttributeID } = self.dataConfiguration ?? {}
+      const caseDataArray = self.dataConfiguration?.getCaseDataArray(0) ?? []
       const minValue = caseDataArray.reduce((min, aCaseData) => {
-        return Math.min(min, dataDisplayGetNumericValue(dataset, aCaseData.caseID, primaryAttributeID) ?? min)
+        const value = primaryAttributeID
+                        ? dataDisplayGetNumericValue(dataset, aCaseData.caseID, primaryAttributeID)
+                        : min
+        return Math.min(min, value ?? min)
       }, Infinity)
       const maxValue = caseDataArray.reduce((max, aCaseData) => {
-        return Math.max(max, dataDisplayGetNumericValue(dataset, aCaseData.caseID, primaryAttributeID) ?? max)
+        const value = primaryAttributeID
+                        ? dataDisplayGetNumericValue(dataset, aCaseData.caseID, primaryAttributeID)
+                        : max
+        return Math.max(max, value ?? max)
       }, -Infinity)
-      const binWidth = (initialize || !self.binWidth)
+      const binWidth = initialize || !self.binWidth
         ? self.binWidthFromData(minValue, maxValue) : self.binWidth
-      if (minValue === Infinity || maxValue === -Infinity || binWidth === undefined) {
-        return { binAlignment: 0, binWidth: undefined, minBinEdge: 0, maxBinEdge: 0, minValue: 0, maxValue: 0,
-          totalNumberOfBins: 0 }
+      if (!isFinite(minValue) || !isFinite(maxValue) || binWidth == null) {
+        return { binAlignment: self.binAlignment, binWidth: self.binWidth,
+                  minBinEdge: 0, maxBinEdge: 0, minValue: 0, maxValue: 0, totalNumberOfBins: 0 }
       }
 
-      const binAlignment = initialize || !self.binAlignment
+      const binAlignment = initialize || self.binAlignment == null
         ? Math.floor(minValue / binWidth) * binWidth
         : self.binAlignment
       const minBinEdge = binAlignment - Math.ceil((binAlignment - minValue) / binWidth) * binWidth
@@ -91,24 +96,22 @@ export const BinnedDotPlotModel = DotPlotModel
   .views(self => {
     const baseMaxCellCaseCount = self.maxCellCaseCount
     return {
-      maxCellCaseCount(dataConfiguration: IGraphDataConfigurationModel) {
-        const { maxCellLength, primaryRole } = dataConfiguration
-        const { binWidth, minValue, totalNumberOfBins } = self.binDetails(dataConfiguration)
+      maxCellCaseCount() {
+        const { maxCellLength, primaryRole } = self.dataConfiguration || {}
+        const { binWidth, minValue, totalNumberOfBins } = self.binDetails()
         const primarySplitRole = primaryRole === "x" ? "topSplit" : "rightSplit"
         const secondarySplitRole = primaryRole === "x" ? "rightSplit" : "topSplit"
         return binWidth != null
-                ? maxCellLength(primarySplitRole, secondarySplitRole, binWidth, minValue, totalNumberOfBins)
-                : baseMaxCellCaseCount(dataConfiguration)
+                ? maxCellLength?.(primarySplitRole, secondarySplitRole, binWidth, minValue, totalNumberOfBins) ?? 0
+                : baseMaxCellCaseCount()
       }
     }
   })
   .views(self => ({
-    binnedAxisTicks(
-      dataConfiguration: IGraphDataConfigurationModel, formatter?: (value: number) => string
-    ): { tickValues: number[], tickLabels: string[] } {
+    binnedAxisTicks(formatter?: TickFormatter): IAxisTicks {
       const tickValues: number[] = []
       const tickLabels: string[] = []
-      const { binWidth, totalNumberOfBins, minBinEdge } = self.binDetails(dataConfiguration)
+      const { binWidth, totalNumberOfBins, minBinEdge } = self.binDetails()
       if (binWidth !== undefined) {
         let currentStart = minBinEdge
         let binCount = 0
@@ -130,10 +133,10 @@ export const BinnedDotPlotModel = DotPlotModel
       }
       return { tickValues, tickLabels }
     },
-    nonDraggableAxisTicks(dataConfiguration: IGraphDataConfigurationModel, formatter: TickFormatter): IAxisTicks {
+    nonDraggableAxisTicks(formatter: TickFormatter): IAxisTicks {
       const tickValues: number[] = []
       const tickLabels: string[] = []
-      const { binWidth, totalNumberOfBins, minBinEdge } = self.binDetails(dataConfiguration)
+      const { binWidth, totalNumberOfBins, minBinEdge } = self.binDetails()
 
       if (binWidth != null) {
         let currentStart = minBinEdge
@@ -172,10 +175,14 @@ export const BinnedDotPlotModel = DotPlotModel
     }
   }))
   .actions(self => ({
-    resetSettings(dataConfiguration: IGraphDataConfigurationModel) {
-      const { binAlignment, binWidth } = self.binDetails(dataConfiguration, { initialize: true })
-      self.setBinAlignment(binAlignment)
-      self.setBinWidth(binWidth)
+    resetSettings() {
+      const { binAlignment, binWidth } = self.binDetails({ initialize: true })
+      if (binAlignment != null) {
+        self.setBinAlignment(binAlignment)
+      }
+      if (binWidth != null) {
+        self.setBinWidth(binWidth)
+      }
     },
     endBinBoundaryDrag(binAlignment: number, binWidth: number) {
       self.setDragBinIndex(-1)

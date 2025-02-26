@@ -6,7 +6,6 @@ import { AxisPlace } from "../../../axis/axis-types"
 import { IAxisModel } from "../../../axis/models/axis-model"
 import { PointDisplayType } from "../../../data-display/data-display-types"
 import { dataDisplayGetNumericValue } from "../../../data-display/data-display-value-utils"
-import { IGraphDataConfigurationModel } from "../../models/graph-data-configuration-model"
 import { BinnedDotPlotModel, IBinnedDotPlotModel } from "../binned-dot-plot/binned-dot-plot-model"
 import { float1, IBarTipTextProps, IPlotModel, typesPlotType } from "../plot-model"
 
@@ -37,13 +36,11 @@ export const HistogramModel = BinnedDotPlotModel
     }
   }))
   .views(self => ({
-    matchingCasesForAttr(
-      dataConfiguration: IGraphDataConfigurationModel, attrID?: string, value?: string, _allCases?: ICase[]
-    ) {
+    matchingCasesForAttr(attrID?: string, value?: string, _allCases?: ICase[]) {
       if (!attrID) return []
-      const dataset = dataConfiguration?.dataset
+      const dataset = self.dataConfiguration?.dataset
       const allCases = _allCases ?? dataset?.items
-      const { binWidth, minBinEdge } = self.binDetails(dataConfiguration)
+      const { binWidth, minBinEdge } = self.binDetails()
       if (binWidth != null) {
         const binIndex = Math.floor((Number(value) - minBinEdge) / binWidth)
         return allCases?.filter(aCase => {
@@ -54,12 +51,12 @@ export const HistogramModel = BinnedDotPlotModel
       }
       return []
     },
-    barTipText(dataConfiguration: IGraphDataConfigurationModel, props: IBarTipTextProps) {
+    barTipText(props: IBarTipTextProps) {
       const {
         primaryMatches, casesInSubPlot, casePrimaryValue, topSplitAttrID: topSplitAttrId, caseTopSplitValue,
         rightSplitAttrID: rightSplitAttrId, caseRightSplitValue
       } = props
-      const dataset = dataConfiguration?.dataset
+      const dataset = self.dataConfiguration?.dataset
       const allMatchingCases = primaryMatches.filter(aCaseID => {
         if (topSplitAttrId) {
           const topSplitVal = dataset?.getStrValue(aCaseID.__id__, topSplitAttrId)
@@ -71,7 +68,7 @@ export const HistogramModel = BinnedDotPlotModel
         }
         return true
       })
-      const { binWidth, minBinEdge } = self.binDetails(dataConfiguration)
+      const { binWidth, minBinEdge } = self.binDetails()
       if (binWidth != null) {
         const binIndex = Math.floor((Number(casePrimaryValue) - minBinEdge) / binWidth)
         const firstCount = allMatchingCases.length

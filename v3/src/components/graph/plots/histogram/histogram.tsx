@@ -41,7 +41,7 @@ export const Histogram = observer(function Histogram({ abovePointsGroupRef, pixi
       fullSecondaryBandwidth = secondaryAxisScale.bandwidth?.() ?? secondaryAxisExtent,
       numExtraSecondaryBands = Math.max(1, extraSecondaryAxisScale?.domain().length ?? 1),
       secondaryBandwidth = fullSecondaryBandwidth / numExtraSecondaryBands,
-      { binWidth, minBinEdge, totalNumberOfBins } = binnedPlot?.binDetails(dataConfig) || {},
+      { binWidth, minBinEdge, totalNumberOfBins } = binnedPlot?.binDetails() || {},
       subPlotCells = new SubPlotCells(layout, dataConfig),
       { secondaryNumericUnitLength } = subPlotCells
 

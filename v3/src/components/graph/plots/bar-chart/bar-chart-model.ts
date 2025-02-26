@@ -7,7 +7,6 @@ import { AxisPlace } from "../../../axis/axis-types"
 import { IAxisModel } from "../../../axis/models/axis-model"
 import { PointDisplayType } from "../../../data-display/data-display-types"
 import { BreakdownTypes } from "../../graphing-types"
-import { IGraphDataConfigurationModel } from "../../models/graph-data-configuration-model"
 import { DotChartModel } from "../dot-chart/dot-chart-model"
 import { IBarTipTextProps, IPlotModel, typesPlotType } from "../plot-model"
 
@@ -37,16 +36,16 @@ export const BarChartModel = DotChartModel
     get showZeroLine() {
       return false
     },
-    barTipText(dataConfiguration: IGraphDataConfigurationModel, props: IBarTipTextProps) {
-      const { dataset } = dataConfiguration
+    barTipText(props: IBarTipTextProps) {
+      const { dataset } = self.dataConfiguration ?? {}
       const {
         primaryMatches, casesInSubPlot, casePrimaryValue, legendAttrID: legendAttrId, caseLegendValue,
         topSplitAttrID: topSplitAttrId, caseTopSplitValue, rightSplitAttrID: rightSplitAttrId, caseRightSplitValue
       } = props
-      const topSplitMatches = self.matchingCasesForAttr(dataConfiguration, topSplitAttrId, caseTopSplitValue)
-      const rightSplitMatches = self.matchingCasesForAttr(dataConfiguration, rightSplitAttrId, caseRightSplitValue)
+      const topSplitMatches = self.matchingCasesForAttr(topSplitAttrId, caseTopSplitValue)
+      const rightSplitMatches = self.matchingCasesForAttr(rightSplitAttrId, caseRightSplitValue)
       const bothSplitMatches = topSplitMatches.filter(aCase => rightSplitMatches.includes(aCase))
-      const legendMatches = self.matchingCasesForAttr(dataConfiguration, legendAttrId, caseLegendValue, primaryMatches)
+      const legendMatches = self.matchingCasesForAttr(legendAttrId, caseLegendValue, primaryMatches)
       const totalCases = [
         legendMatches.length,
         bothSplitMatches.length,

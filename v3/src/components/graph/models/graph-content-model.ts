@@ -178,6 +178,9 @@ export const GraphContentModel = DataDisplayContentModel
       if (!self.axes.get("left")) {
         self.axes.set("left", EmptyAxisModel.create({place: "left"}))
       }
+      if (!self.plot.dataConfiguration) {
+        self.plot.setDataConfiguration(self.dataConfiguration)
+      }
     }
   }))
   .actions(self => ({
@@ -238,7 +241,8 @@ export const GraphContentModel = DataDisplayContentModel
       if (!isEqual(newPlotSnap, currPlotSnap)) {
         self.plot = PlotModelUnion.create({ ...currPlotSnap, ...newPlotSnap })
         if (self.dataConfiguration) {
-          self.plot.resetSettings(self.dataConfiguration)
+          self.plot.setDataConfiguration(self.dataConfiguration)
+          self.plot.resetSettings()
         }
       }
     },
@@ -260,7 +264,7 @@ export const GraphContentModel = DataDisplayContentModel
       return isBaseNumericAxisModel(axisModel) && self.plot.hasDraggableNumericAxis
     },
     nonDraggableAxisTicks(formatter: TickFormatter): IAxisTicks {
-      return self.plot.nonDraggableAxisTicks(self.dataConfiguration, formatter)
+      return self.plot.nonDraggableAxisTicks(formatter)
     }
   }))
   .views(self => ({
@@ -283,10 +287,10 @@ export const GraphContentModel = DataDisplayContentModel
         ...(caseTopSplitValue && {[topSplitAttrID]: caseTopSplitValue}),
         ...(caseRightSplitValue && {[rightSplitAttrID]: caseRightSplitValue})
       }
-      const primaryMatches = self.plot.matchingCasesForAttr(dataConfig, primaryAttrID, casePrimaryValue)
+      const primaryMatches = self.plot.matchingCasesForAttr(primaryAttrID, casePrimaryValue)
       const casesInSubPlot = dataConfig?.subPlotCases(cellKey) ?? []
 
-      return self.plot.barTipText(dataConfig, {
+      return self.plot.barTipText({
         primaryMatches, casesInSubPlot, casePrimaryValue, legendAttrID, caseLegendValue,
         topSplitAttrID, caseTopSplitValue, rightSplitAttrID, caseRightSplitValue
       })
@@ -427,7 +431,8 @@ export const GraphContentModel = DataDisplayContentModel
       }
       const updateCategoriesOptions = self.getUpdateCategoriesOptions(true)
       self.adornmentsStore.updateAdornments(updateCategoriesOptions)
-      self.plot.resetSettings(self.dataConfiguration)
+      // TODO: under what circumstances do we need to reset here?
+      self.plot.resetSettings()
     },
     setGraphProperties(props: GraphProperties) {
       (Object.keys(props.axes) as AxisPlace[]).forEach(aKey => {
@@ -461,19 +466,17 @@ export const GraphContentModel = DataDisplayContentModel
       self.rescale()
     },
     setBarCountAxis() {
-      const { secondaryRole } = self.dataConfiguration
-      const secondaryPlace = secondaryRole === "y" ? "left" : "bottom"
-      const maxCellCaseCount = self.plot.maxCellCaseCount(self.dataConfiguration)
+      const maxCellCaseCount = self.plot.maxCellCaseCount()
       const countAxis = NumericAxisModel.create({
         scale: "linear",
-        place: secondaryPlace,
+        place: self.secondaryPlace,
         min: 0,
         max: maxCellCaseCount,
         lockZero: true,
         integersOnly: true
       })
       setNiceDomain([0, maxCellCaseCount], countAxis, {clampPosMinAtZero: true})
-      self.setAxis(secondaryPlace, countAxis)
+      self.setAxis(self.secondaryPlace, countAxis)
     }
   }))
   .actions(self => ({

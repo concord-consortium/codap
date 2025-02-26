@@ -202,7 +202,7 @@ function getPlotModels(graph: IGraphContentModel): Partial<ICodapV2GraphStorage>
   const expression = isBarChartModel(plot) && plot.expression && !plot.expression.empty
                       ? { expression: plot.expression.display }
                       : undefined
-  const _binDetails = isBinnedPlotModel(plot) ? plot.binDetails(graph.dataConfiguration) : undefined
+  const _binDetails = isBinnedPlotModel(plot) ? plot.binDetails() : undefined
   const { binAlignment: alignment, binWidth: width, totalNumberOfBins } = _binDetails ?? {}
   const binDetails = _binDetails ? { alignment, width, totalNumberOfBins } : undefined
   const dotsAreFused = plot.isBinned ? { dotsAreFused: plot.type === "histogram" } : undefined

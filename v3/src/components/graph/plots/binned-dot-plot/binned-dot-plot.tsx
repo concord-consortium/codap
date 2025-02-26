@@ -45,7 +45,7 @@ export const BinnedDotPlot = observer(function BinnedDotPlot({pixiPoints, aboveP
     const secondaryPlace = primaryIsBottom ? "left" : "bottom"
     const secondaryAxisScale = layout.getAxisScale(secondaryPlace) as ScaleBand<string>
     const secondaryAxisExtent = Math.abs(secondaryAxisScale.range()[0] - secondaryAxisScale.range()[1])
-    const { binWidth, minBinEdge, totalNumberOfBins } = binnedPlot.binDetails(dataConfig)
+    const { binWidth, minBinEdge, totalNumberOfBins } = binnedPlot.binDetails()
     const binBoundariesArea = select(binBoundariesRef.current)
 
     if (binWidth === undefined) return
@@ -84,7 +84,7 @@ export const BinnedDotPlot = observer(function BinnedDotPlot({pixiPoints, aboveP
                       () => ({ alignment: binnedPlot.binAlignment, width: binnedPlot.binWidth }))
     primaryAxisScaleCopy.current = primaryAxisScale.copy()
     binnedPlot.setDragBinIndex(binIndex)
-    const { binWidth, minBinEdge } = binnedPlot.binDetails(dataConfig)
+    const { binWidth, minBinEdge } = binnedPlot.binDetails()
     if (binWidth !== undefined) {
       const newBinAlignment = minBinEdge + binIndex * binWidth
       lowerBoundaryRef.current = primaryAxisScale(newBinAlignment)
@@ -133,7 +133,7 @@ export const BinnedDotPlot = observer(function BinnedDotPlot({pixiPoints, aboveP
     if (!dataConfig || !binnedPlot) return
 
     const primaryAxis = graphModel.getNumericAxis(primaryPlace)
-    const { maxBinEdge, minBinEdge } = binnedPlot.binDetails(dataConfig)
+    const { maxBinEdge, minBinEdge } = binnedPlot.binDetails()
 
     // Set the domain of the primary axis to the extent of the bins
     primaryAxis?.setDomain(minBinEdge, maxBinEdge)
