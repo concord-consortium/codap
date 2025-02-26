@@ -660,11 +660,9 @@ export const GraphDataConfigurationModel = DataConfigurationModel
   .actions(self => ({
     setPrimaryRole(role?: GraphAttrRole) {
       if (role === 'x' || role === 'y') {
-        console.log("setPrimaryRole:", role)
         self.primaryRole = role
       }
       else {
-        console.log("setPrimaryRole:", "undefined")
         self.primaryRole = undefined
       }
     },

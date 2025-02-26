@@ -9,7 +9,7 @@ import {
 } from "../../../../models/data/data-set-utils"
 import {ScaleNumericBaseType} from "../../../axis/axis-types"
 import {CaseData} from "../../../data-display/d3-types"
-import {PlotProps} from "../../graphing-types"
+import {IPlotProps} from "../../graphing-types"
 import { handleClickOnCase, setPointSelection } from "../../../data-display/data-display-utils"
 import { dataDisplayGetNumericValue } from "../../../data-display/data-display-value-utils"
 import {useDataDisplayAnimation} from "../../../data-display/hooks/use-data-display-animation"
@@ -33,9 +33,8 @@ import { useConnectingLines } from "../../../data-display/hooks/use-connecting-l
 import { transitionDuration } from "../../../data-display/data-display-types"
 import { scatterPlotFuncs } from "./scatter-plot-utils"
 
-export const ScatterPlot = observer(function ScatterPlot(props: PlotProps) {
-  const {pixiPoints} = props,
-    graphModel = useGraphContentModelContext(),
+export const ScatterPlot = observer(function ScatterPlot({ pixiPoints }: IPlotProps) {
+  const graphModel = useGraphContentModelContext(),
     instanceId = useInstanceIdContext(),
     dataConfiguration = useGraphDataConfigurationContext(),
     {isAnimating, startAnimation, stopAnimation} = useDataDisplayAnimation(),

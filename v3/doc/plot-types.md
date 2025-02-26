@@ -1,7 +1,7 @@
 ## Plot Types
 
 ### Before Refactor
-| V2 Model, View | V3 Type, Component | Attribute Configuration | pointDisplayType [5] pointsFusedIntoBars [6] binning [7] | UI |
+| V2 Model, View | V3 Type, Component | Attribute Configuration | pointDisplayType[5] pointsFusedIntoBars[6] binning[7] | UI |
 |----------------|--------------------|-------------------------|----------------------------------------------------------|----|
 | `DG.CasePlot` `DG.CasePlotView` | `casePlot` `CaseDots` | empty | `points` |
 | `DG.DotChart` `DG.DotChartView` | `dotChart` `DotChartPoints` | categorical | `points` | ❎ Fuse Dots into Bars |

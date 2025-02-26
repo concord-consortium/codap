@@ -4,12 +4,12 @@ import React, { useCallback, useEffect } from "react"
 import { mstReaction } from "../../../../utilities/mst-reaction"
 import { handleClickOnCase } from "../../../data-display/data-display-utils"
 import { IPixiPointMetadata, PixiPointEventHandler } from "../../../data-display/pixi/pixi-points"
-import { PlotProps } from "../../graphing-types"
+import { IPlotProps } from "../../graphing-types"
 import { useChartDots } from "../../hooks/use-chart-dots"
 import { usePlotResponders } from "../../hooks/use-plot"
 import { setPointCoordinates } from "../../utilities/graph-utils"
 
-export const DotChart = observer(function DotChart({ pixiPoints }: PlotProps) {
+export const DotChart = observer(function DotChart({ pixiPoints }: IPlotProps) {
   const { dataset, graphModel, isAnimating, primaryScreenCoord, secondaryScreenCoord,
           refreshPointSelection, subPlotCells } = useChartDots(pixiPoints)
 

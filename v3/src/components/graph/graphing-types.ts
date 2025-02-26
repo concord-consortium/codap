@@ -1,9 +1,8 @@
 import { PixiPoints } from "../data-display/pixi/pixi-points"
 
-export interface PlotProps {
+export interface IPlotProps {
   pixiPoints?: PixiPoints
-  belowPointsGroupRef?: React.RefObject<SVGGElement>
-  abovePointsGroupRef?: React.RefObject<SVGGElement>
+  abovePointsGroupRef: React.RefObject<SVGGElement>
 }
 
 // One element of the data array assigned to the points
@@ -45,6 +44,14 @@ export const PlotTypes = [
   "scatterPlot"
 ] as const
 export type PlotType = typeof PlotTypes[number]
+
+export function isCategoricalPlotType(plotType: PlotType): boolean {
+  return ["dotChart", "barChart"].includes(plotType)
+}
+
+export function isUnivariateNumericPlotType(plotType: PlotType): boolean {
+  return ["dotPlot", "binnedDotPlot", "histogram", "linePlot"].includes(plotType)
+}
 
 export const BreakdownTypes = ["count", "percent"] as const
 export type BreakdownType = typeof BreakdownTypes[number]

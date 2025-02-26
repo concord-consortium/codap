@@ -3,7 +3,7 @@ import { observer } from "mobx-react-lite"
 import React, { useCallback, useEffect, useRef } from "react"
 import { createPortal } from "react-dom"
 import { mstAutorun } from "../../../../utilities/mst-autorun"
-import { IBarCover, PlotProps } from "../../graphing-types"
+import { IBarCover, IPlotProps } from "../../graphing-types"
 import { useBinnedPlotResponders } from "../../hooks/use-binned-plot-responders"
 import { useDotPlot } from "../../hooks/use-dot-plot"
 import { usePlotResponders } from "../../hooks/use-plot"
@@ -13,7 +13,7 @@ import { renderBarCovers } from "../../utilities/bar-utils"
 import { computeBinPlacements } from "../../utilities/dot-plot-utils"
 import { setPointCoordinates } from "../../utilities/graph-utils"
 
-export const Histogram = observer(function Histogram({ abovePointsGroupRef, pixiPoints }: PlotProps) {
+export const Histogram = observer(function Histogram({ abovePointsGroupRef, pixiPoints }: IPlotProps) {
   const { dataset, dataConfig, graphModel, isAnimating, layout, getPrimaryScreenCoord, getSecondaryScreenCoord,
           pointColor, pointStrokeColor, primaryAttrRole, primaryAxisScale, primaryIsBottom, primaryPlace,
           refreshPointSelection, secondaryAttrRole } = useDotPlot(pixiPoints)

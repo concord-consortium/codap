@@ -52,8 +52,6 @@ export const useAxis = (axisPlace: AxisPlace) => {
     multiScale = layout.getAxisMultiScale(axisPlace),
     dataConfiguration = useDataConfigurationContext()
 
-  console.log("useAxis", axisPlace, axisModel?.type)
-
   const computeDesiredExtent = useCallback(() => {
     if (dataConfiguration?.placeCanHaveZeroExtent(axisPlace)) {
       return 0

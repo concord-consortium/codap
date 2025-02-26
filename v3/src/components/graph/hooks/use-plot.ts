@@ -101,7 +101,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
       },
       () => {
         callRefreshPointPositions(false)
-      }, {name: "usePlot [numeric domains]", fireImmediately: true}, graphModel
+      }, {name: "usePlot [numeric domains]", equals: comparer.structural, fireImmediately: true}, graphModel
     )
   }, [callRefreshPointPositions, graphModel])
 
@@ -119,12 +119,10 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     const disposer = mstReaction(
       () => GraphAttrRoles.map((aRole) => dataConfiguration?.attributeID(aRole)),
       () => {
-        console.group("usePlot:attributeAssignment")
         if (syncModelWithAttributeConfiguration(graphModel, layout)) {
           startAnimation()
           callRefreshPointPositions(false)
         }
-        console.groupEnd()
       }, {name: "usePlot [attribute assignment]"}, dataConfiguration
     )
     return () => disposer()
