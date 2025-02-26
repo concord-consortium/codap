@@ -67,7 +67,7 @@ export const PlotModel = types
     get isBivariateNumeric(): boolean {
       return false
     },
-    showDisplayConfig(): boolean {
+    get showDisplayConfig(): boolean {
       return false
     },
     get showDisplayTypeSelection(): boolean {

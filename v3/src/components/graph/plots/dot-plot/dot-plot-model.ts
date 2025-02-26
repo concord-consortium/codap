@@ -18,7 +18,7 @@ export const DotPlotModel = PlotModel
     getValidPrimaryAxis(place: AxisPlace, attrType?: AttributeType, axisModel?: IAxisModel): IAxisModel {
       return self.getValidNumericOrDateAxis(place, attrType, axisModel)
     },
-    showDisplayConfig(): boolean {
+    get showDisplayConfig(): boolean {
       const caseDataArray = self.dataConfiguration?.getCaseDataArray(0) ?? []
       return caseDataArray.length > 0
     },

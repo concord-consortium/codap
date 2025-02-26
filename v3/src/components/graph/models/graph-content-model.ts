@@ -3,7 +3,7 @@
  * Its array of DataDisplayLayerModels has just one element, a GraphPointLayerModel.
  */
 import {isEqual} from "lodash"
-import { comparer, when } from "mobx"
+import { comparer, reaction, when } from "mobx"
 import {addDisposer, getSnapshot, Instance, SnapshotIn, types} from "mobx-state-tree"
 import { isNumericAttributeType } from "../../../models/data/attribute-types"
 import {IDataSet} from "../../../models/data/data-set"
@@ -178,9 +178,11 @@ export const GraphContentModel = DataDisplayContentModel
       if (!self.axes.get("left")) {
         self.axes.set("left", EmptyAxisModel.create({place: "left"}))
       }
-      if (!self.plot.dataConfiguration) {
-        self.plot.setDataConfiguration(self.dataConfiguration)
-      }
+      addDisposer(self, reaction(
+        () => self.plotType,
+        () => self.plot.setDataConfiguration(self.dataConfiguration),
+        { name: "GraphContentModel.afterCreate.setDataConfiguration", fireImmediately: true }
+      ))
     }
   }))
   .actions(self => ({

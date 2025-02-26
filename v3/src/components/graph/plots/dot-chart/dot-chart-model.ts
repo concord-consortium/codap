@@ -15,7 +15,7 @@ export const DotChartModel = PlotModel
     getValidPrimaryAxis(place: AxisPlace, attrType?: AttributeType, axisModel?: IAxisModel): IAxisModel {
       return self.getValidCategoricalAxis(place, attrType, axisModel)
     },
-    showDisplayConfig(): boolean {
+    get showDisplayConfig(): boolean {
       return !!self.dataConfiguration?.hasExactlyOneCategoricalAxis
     },
     get showFusePointsIntoBars() {
