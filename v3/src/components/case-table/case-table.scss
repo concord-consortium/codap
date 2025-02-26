@@ -294,6 +294,16 @@ $table-body-font-size: 8pt;
         .codap-data-cell {
           background-color: var(--rdg-row-selected-background-color);
         }
+        &.selected.first-child {
+          .codap-data-cell {
+            border-top: 1px solid #66afe9;
+          }
+        }
+        &.selected.last-selected-row {
+          .codap-data-cell {
+            border-bottom: 2px solid #66afe9;
+          }
+        }
       }
     }
     .codap-index-cell-wrapper {

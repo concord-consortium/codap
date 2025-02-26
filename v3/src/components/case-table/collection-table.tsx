@@ -1,5 +1,6 @@
 import { comparer } from "mobx"
 import { observer } from "mobx-react-lite"
+import clsx from "clsx"
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import DataGrid, { CellKeyboardEvent, DataGridHandle } from "react-data-grid"
 import { kCollectionTableBodyDropZoneBaseId } from "./case-table-drag-drop"
@@ -15,7 +16,7 @@ import { useIndexColumn } from "./use-index-column"
 import { useRows } from "./use-rows"
 import { useSelectedCell } from "./use-selected-cell"
 import { useSelectedRows } from "./use-selected-rows"
-import { useCollectionContext } from "../../hooks/use-collection-context"
+import { useCollectionContext, useParentCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useTileDroppable } from "../../hooks/use-drag-drop"
 import { useTileSelectionContext } from "../../hooks/use-tile-selection-context"
@@ -364,7 +365,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
     return rowIdx
   }
 
-   const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+  const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
     initialPointerDownPosition.current = { x: event.clientX, y: event.clientY }
     const startRowIdx = getRowIndexFromEvent(event)
     if (startRowIdx != null) {
@@ -406,6 +407,17 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
 
   const dragId = String(active?.id)
   const showDragOverlay = dragId.includes(kInputRowKey) && dragId.includes(collectionId)
+  const parentIndexRanges = collectionTableModel?.parentIndexRanges
+  const rowClass = (row: TRow) => {
+    const caseIndex = collectionCaseIndexFromId(row.__id__, data, collectionId)
+    const firstChildIndex = parentIndexRanges?.find(range => range.firstChildIndex === caseIndex)
+    // check to see if it is the last selected row
+    const lastSelectedRow = Array.from(selectedRows)[selectedRows.size - 1]
+    return clsx({"selected": data.isCaseSelected(row.__id__),
+      "first-child": !!firstChildIndex,
+      "last-selected-row": row.__id__ === lastSelectedRow
+    })
+  }
 
   return (
     <div className={`collection-table collection-${collectionId}`}>
@@ -420,7 +432,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
           rowHeight={rowHeight} selectedRows={selectedRows} onSelectedRowsChange={setSelectedRows}
           columnWidths={columnWidths} onColumnResize={handleColumnResize} onCellClick={handleCellClick}
           onCellKeyDown={handleCellKeyDown} onRowsChange={handleRowsChange} onScroll={handleGridScroll}
-          onSelectedCellChange={handleSelectedCellChange}/>
+          onSelectedCellChange={handleSelectedCellChange} rowClass={rowClass}/>
         {showDragOverlay && <RowDragOverlay rows={rows} width={kIndexColumnWidth}/>}
       </div>
     </div>

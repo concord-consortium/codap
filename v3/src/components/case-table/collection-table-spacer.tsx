@@ -9,6 +9,7 @@ import { measureText } from "../../hooks/use-measure-text"
 import { useVisibleAttributes } from "../../hooks/use-visible-attributes"
 import { logMessageWithReplacement } from "../../lib/log-message"
 import { IDataSet } from "../../models/data/data-set"
+import { symParent } from "../../models/data/data-set-types"
 // import { getNumericCssVariable } from "../../utilities/css-utils"
 import { preventAttributeMove, preventCollectionReorg } from "../../utilities/plugin-utils"
 import { t } from "../../utilities/translation/translate"
@@ -147,14 +148,21 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({
           <div className="spacer-mid">
             <svg className="spacer-mid-layer lower-layer">
               {indexRanges?.map(({ id: parentCaseId, firstChildIndex, lastChildIndex }, index) => {
-                const fillColor = data.isCaseSelected(parentCaseId) ? selectedFillColor : undefined
-                const strokeColor = data.isCaseSelected(parentCaseId) ? kRelationSelectedStrokeColor : undefined
+                const nextCase = indexRanges[index + 1]?.id
+                const isNextCaseSelected = nextCase && data.isCaseSelected(nextCase)
+                const isCaseSelected = data.isCaseSelected(parentCaseId)
+                const childCasesPerParent = data.childCases().filter(childCase => childCase[symParent] === parentCaseId)
+                const childOfCaseIsSelected =
+                        childCasesPerParent.some(childCase => data.isCaseSelected(childCase.__id__))
+                const fillColor = isCaseSelected ? selectedFillColor : undefined
+                const strokeColor = isCaseSelected || childOfCaseIsSelected ? kRelationSelectedStrokeColor : undefined
+                const lastSelectedCase = isCaseSelected && !isNextCaseSelected
                 return <CurvedSpline key={`${parentCaseId}-${index}`}
                                       prevY1={parentTableModel.getTopOfRowModuloScroll(index)}
                                       y1={parentTableModel.getBottomOfRowModuloScroll(index)}
                                       prevY2={childTableModel.getTopOfRowModuloScroll(firstChildIndex)}
                                       y2={childTableModel.getBottomOfRowModuloScroll(lastChildIndex)}
-                                      even={(index + 1) % 2 === 0} lastChildCase={index ===  indexRanges.length - 1}
+                                      even={(index + 1) % 2 === 0} lastSelectedCase={lastSelectedCase}
                                       fillColor={fillColor} strokeColor={strokeColor}
                         />
               })}
