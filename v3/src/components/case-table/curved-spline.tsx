@@ -100,15 +100,18 @@ export function CurvedSpline({ y1, y2, even, prevY1, prevY2, fillColor, strokeCo
                           ? even ? new Colord(fillColor).darken(0.05).toHex() : fillColor
                           : even ? kRelationFillColor : undefined
   return (
-    finalFillColor
-      ? <>
-          <path d={fillData} fill={finalFillColor} stroke="none"/>
-          {strokeColor && <path d={prevPathData} fill="none" stroke={strokeColor}
-            strokeWidth={strokeColor ? 1.5 : "none"}/>}
-          <path d={pathData} fill="none" stroke={strokeColor ?? kRelationStrokeColor}
-              strokeWidth={(strokeColor && lastSelectedCase) ? 3 : strokeColor ? 1.5 : "none"}/>
-        </>
-      : <path d={pathData} fill="none" stroke={strokeColor ?? kRelationStrokeColor}
-            strokeWidth={strokeColor ? 1.5 : "none"}/>
+    <>
+    {finalFillColor && <path d={fillData} fill={finalFillColor} stroke="none"/>}
+    {strokeColor
+          ? <>
+              {strokeColor && <path d={prevPathData} fill="none" stroke={strokeColor}
+                strokeWidth={strokeColor ? 1.5 : "none"}/>}
+              <path d={pathData} fill="none" stroke={strokeColor ?? kRelationStrokeColor}
+                  strokeWidth={(strokeColor && lastSelectedCase) ? 3 : strokeColor ? 1.5 : "none"}/>
+            </>
+          : <path d={pathData} fill="none" stroke={strokeColor ?? kRelationStrokeColor}
+              strokeWidth={strokeColor ? 1.5 : "none"}/>
+    }
+    </>
   )
 }

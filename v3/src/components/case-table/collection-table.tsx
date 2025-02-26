@@ -16,7 +16,7 @@ import { useIndexColumn } from "./use-index-column"
 import { useRows } from "./use-rows"
 import { useSelectedCell } from "./use-selected-cell"
 import { useSelectedRows } from "./use-selected-rows"
-import { useCollectionContext, useParentCollectionContext } from "../../hooks/use-collection-context"
+import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useTileDroppable } from "../../hooks/use-drag-drop"
 import { useTileSelectionContext } from "../../hooks/use-tile-selection-context"
@@ -411,11 +411,15 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
   const rowClass = (row: TRow) => {
     const caseIndex = collectionCaseIndexFromId(row.__id__, data, collectionId)
     const firstChildIndex = parentIndexRanges?.find(range => range.firstChildIndex === caseIndex)
+    // are any of this case's children selected so we can add highlights to this case
+    const isAChildSelected = data.isChildInTreeSelected(row.__id__)
+    const hasChildren = (data?.caseInfoMap.get(row.__id__)?.childCaseIds?.length ?? 0) > 0
     // check to see if it is the last selected row
-    const lastSelectedRow = Array.from(selectedRows)[selectedRows.size - 1]
-    return clsx({"selected": data.isCaseSelected(row.__id__),
-      "first-child": !!firstChildIndex,
-      "last-selected-row": row.__id__ === lastSelectedRow
+    const isLastSelectedRow = Array.from(selectedRows)[selectedRows.size - 1] === row.__id__
+
+    return clsx({"has-selected-item": data.isCaseSelected(row.__id__) || isAChildSelected,
+      "first-child": !!firstChildIndex || (isAChildSelected && hasChildren),
+      "last-selected-row": isLastSelectedRow || (isAChildSelected && hasChildren)
     })
   }
 

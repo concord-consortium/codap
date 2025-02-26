@@ -147,24 +147,45 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({
           </div>
           <div className="spacer-mid">
             <svg className="spacer-mid-layer lower-layer">
+              {/* Draw all fills first */}
+              {indexRanges?.map(({ id: parentCaseId, firstChildIndex, lastChildIndex }, index) => {
+                const isCaseSelected = data.isCaseSelected(parentCaseId)
+                const fillColor = isCaseSelected ? selectedFillColor : undefined
+                return (
+                  <CurvedSpline
+                    key={`fill-${parentCaseId}-${index}`}
+                    prevY1={parentTableModel.getTopOfRowModuloScroll(index)}
+                    y1={parentTableModel.getBottomOfRowModuloScroll(index)}
+                    prevY2={childTableModel.getTopOfRowModuloScroll(firstChildIndex)}
+                    y2={childTableModel.getBottomOfRowModuloScroll(lastChildIndex)}
+                    even={(index + 1) % 2 === 0}
+                    lastSelectedCase={false}  // Ensure it does not affect stroke logic
+                    fillColor={fillColor}
+                    strokeColor={undefined}   // Only render fill
+                  />
+                )
+              })}
+              {/* Draw all strokes on top */}
               {indexRanges?.map(({ id: parentCaseId, firstChildIndex, lastChildIndex }, index) => {
                 const nextCase = indexRanges[index + 1]?.id
                 const isNextCaseSelected = nextCase && data.isCaseSelected(nextCase)
                 const isCaseSelected = data.isCaseSelected(parentCaseId)
-                const childCasesPerParent = data.childCases().filter(childCase => childCase[symParent] === parentCaseId)
-                const childOfCaseIsSelected =
-                        childCasesPerParent.some(childCase => data.isCaseSelected(childCase.__id__))
-                const fillColor = isCaseSelected ? selectedFillColor : undefined
-                const strokeColor = isCaseSelected || childOfCaseIsSelected ? kRelationSelectedStrokeColor : undefined
-                const lastSelectedCase = isCaseSelected && !isNextCaseSelected
-                return <CurvedSpline key={`${parentCaseId}-${index}`}
-                                      prevY1={parentTableModel.getTopOfRowModuloScroll(index)}
-                                      y1={parentTableModel.getBottomOfRowModuloScroll(index)}
-                                      prevY2={childTableModel.getTopOfRowModuloScroll(firstChildIndex)}
-                                      y2={childTableModel.getBottomOfRowModuloScroll(lastChildIndex)}
-                                      even={(index + 1) % 2 === 0} lastSelectedCase={lastSelectedCase}
-                                      fillColor={fillColor} strokeColor={strokeColor}
-                        />
+                const isAChildSelected = data.isChildInTreeSelected(parentCaseId)
+                const strokeColor = isCaseSelected || isAChildSelected ? kRelationSelectedStrokeColor : undefined
+                const lastSelectedCase = (isCaseSelected && !isNextCaseSelected) || isAChildSelected
+                return (
+                  <CurvedSpline
+                    key={`stroke-${parentCaseId}-${index}`}
+                    prevY1={parentTableModel.getTopOfRowModuloScroll(index)}
+                    y1={parentTableModel.getBottomOfRowModuloScroll(index)}
+                    prevY2={childTableModel.getTopOfRowModuloScroll(firstChildIndex)}
+                    y2={childTableModel.getBottomOfRowModuloScroll(lastChildIndex)}
+                    even={(index + 1) % 2 === 0}
+                    lastSelectedCase={lastSelectedCase}
+                    fillColor={undefined}  // Only render stroke
+                    strokeColor={strokeColor}
+                  />
+                )
               })}
             </svg>
             <div className="spacer-mid-layer">
