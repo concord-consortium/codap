@@ -66,13 +66,13 @@ export const BinnedDotPlotModel = DotPlotModel
         const value = primaryAttributeID
                         ? dataDisplayGetNumericValue(dataset, aCaseData.caseID, primaryAttributeID)
                         : min
-        return Math.min(min, value ?? min)
+        return isFiniteNumber(value) ? Math.min(min, value ?? min) : min
       }, Infinity)
       const maxValue = caseDataArray.reduce((max, aCaseData) => {
         const value = primaryAttributeID
                         ? dataDisplayGetNumericValue(dataset, aCaseData.caseID, primaryAttributeID)
                         : max
-        return Math.max(max, value ?? max)
+        return isFiniteNumber(value) ? Math.max(max, value ?? max) : max
       }, -Infinity)
       const binWidth = initialize || !self.binWidth
         ? self.binWidthFromData(minValue, maxValue) : self.binWidth
