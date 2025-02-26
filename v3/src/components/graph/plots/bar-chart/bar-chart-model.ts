@@ -26,6 +26,9 @@ export const BarChartModel = DotChartModel
     get hasCountAxis(): boolean {
       return true
     },
+    get hasDraggableNumericAxis() {
+      return true
+    },
     get hasExpression() {
       return !!self.expression && !self.expression.empty
     },
