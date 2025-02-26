@@ -28,8 +28,7 @@ export const HistogramModel = BinnedDotPlotModel
       return true
     },
     getValidSecondaryAxis(place: AxisPlace, attrType?: AttributeType, axisModel?: IAxisModel): IAxisModel {
-      // count axis
-      return self.getValidNumericAxis(place, attrType, axisModel)
+      return self.getValidCountAxis(place, attrType, axisModel)
     },
     get showGridLines() {
       return true

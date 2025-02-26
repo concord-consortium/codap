@@ -139,12 +139,14 @@ export function v2GraphImporter({v2Component, v2Document, sharedModelManager, in
         case "DG.BinnedAxisModel":
         case "DG.CellLinearAxisModel":
         case "DG.CountAxisModel":
-        case "DG.FormulaAxisModel":
+        case "DG.FormulaAxisModel": {
+          const type = ["DG.CountAxisModel", "DG.FormulaAxisModel"].includes(axisClass) ? "count" : "numeric"
           // TODO_V2_IMPORT [Story:#188701144] when lowerBound or upperBound are undefined or null this is
           // not handled correctly. It likely will cause an MST exception and failure to load.
           // There are 966 instances of `xUpperBound: null` in cfm-shared
-          axes[v3Place] = {place: v3Place, type: "numeric", min: lowerBound as any, max: upperBound as any}
+          axes[v3Place] = {place: v3Place, type, min: lowerBound as any, max: upperBound as any}
           break
+        }
       }
     }
   })

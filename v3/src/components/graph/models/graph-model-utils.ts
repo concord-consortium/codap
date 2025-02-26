@@ -1,12 +1,12 @@
 import { AttributeType, isCategoricalAttributeType } from "../../../models/data/attribute-types"
 import { stringValuesToDateSeconds } from "../../../utilities/date-utils"
+import { setNiceDomain } from "../../axis/axis-domain-utils"
+import { AxisPlace, AxisPlaces, IScaleType } from "../../axis/axis-types"
 import {
   CategoricalAxisModel, DateAxisModel, EmptyAxisModel, IAxisModel, isBaseNumericAxisModel, isCategoricalAxisModel,
   isDateAxisModel, isEmptyAxisModel, isNumericAxisModel, NumericAxisModel
 } from "../../axis/models/axis-model"
-import { AxisPlace, AxisPlaces, IScaleType } from "../../axis/axis-types"
 import { graphPlaceToAttrRole } from "../../data-display/data-display-types"
-import { setNiceDomain } from "../utilities/graph-utils"
 import { IGraphContentModel } from "./graph-content-model"
 import { GraphLayout } from "./graph-layout"
 

@@ -64,10 +64,11 @@ export const useAxis = (axisPlace: AxisPlace) => {
       axisTitleHeight = getStringBounds("Xy", labelFont).height,
       numbersHeight = getStringBounds('0').height,
       repetitions = multiScale?.repetitions ?? 1,
-      d3Scale = multiScale?.scale ?? (axisType === 'numeric' ? scaleLinear() : scaleOrdinal())
+      d3Scale = multiScale?.scale ?? (isNumeric ? scaleLinear() : scaleOrdinal())
     let desiredExtent = axisTitleHeight + 2 * axisGap
     let ticks: string[] = []
     switch (axisType) {
+      case 'count':
       case 'numeric': {
         ticks = getTicks({d3Scale, isBinned, multiScale, displayModel})
         desiredExtent += ['left', 'rightNumeric'].includes(axisPlace)
@@ -95,7 +96,7 @@ export const useAxis = (axisPlace: AxisPlace) => {
       }
     }
     return desiredExtent
-  }, [axisModel, axisPlace, axisProvider, dataConfiguration, displayModel, layout, multiScale])
+  }, [axisModel, axisPlace, axisProvider, dataConfiguration, displayModel, isNumeric, layout, multiScale])
 
   // update d3 scale and axis when scale type changes
   useEffect(() => {

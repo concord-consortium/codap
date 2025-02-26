@@ -3,10 +3,11 @@ import { Instance, types } from "mobx-state-tree"
 import { AttributeType } from "../../../models/data/attribute-types"
 import { ICase } from "../../../models/data/data-set-types"
 import { applyModelChange } from "../../../models/history/apply-model-change"
+import { setNiceDomain } from "../../axis/axis-domain-utils"
 import { AxisPlace, IAxisDomainOptions, IAxisTicks, TickFormatter } from "../../axis/axis-types"
 import {
-  CategoricalAxisModel, DateAxisModel, EmptyAxisModel, IAxisModel, isCategoricalAxisModel, isDateAxisModel,
-  isEmptyAxisModel, isNumericAxisModel, NumericAxisModel
+  CategoricalAxisModel, CountAxisModel, DateAxisModel, EmptyAxisModel, IAxisModel, isCategoricalAxisModel,
+  isCountAxisModel, isDateAxisModel, isEmptyAxisModel, isNumericAxisModel, NumericAxisModel
 } from "../../axis/models/axis-model"
 import { PointDisplayType } from "../../data-display/data-display-types"
 import { PlotType } from "../graphing-types"
@@ -90,6 +91,23 @@ export const PlotModel = types
     }
   }))
   .views(self => ({
+    matchingCasesForAttr(attrId?: string, value?: string, _allCases?: ICase[]) {
+      if (!attrId) return []
+      const dataset = self.dataConfiguration?.dataset
+      const allCases = _allCases ?? dataset?.items
+      return allCases?.filter(aCase => dataset?.getStrValue(aCase.__id__, attrId) === value) as ICase[] ?? []
+    },
+    maxCellCaseCount() {
+      const { maxOverAllCells, primaryRole } = self.dataConfiguration || {}
+      const primarySplitRole = primaryRole === "x" ? "topSplit" : "rightSplit"
+      const secondarySplitRole = primaryRole === "x" ? "rightSplit" : "topSplit"
+      return maxOverAllCells?.(primarySplitRole, secondarySplitRole) ?? 0
+    },
+    barTipText(props: IBarTipTextProps) {
+      return ""
+    }
+  }))
+  .views(self => ({
     get axisDomainOptions(): IAxisDomainOptions {
       return {
         // When displaying bars, the domain should start at 0 unless there are negative values.
@@ -106,11 +124,12 @@ export const PlotModel = types
               ? axisModel
               : CategoricalAxisModel.create({ place })
     },
-    getValidNumericAxis(place: AxisPlace, attrType?: AttributeType, axisModel?: IAxisModel): IAxisModel {
-      // count axis
-      return isNumericAxisModel(axisModel)
-              ? axisModel
-              : NumericAxisModel.create({ place, min: 0, max: 1 })
+    getValidCountAxis(place: AxisPlace, attrType?: AttributeType, axisModel?: IAxisModel): IAxisModel {
+      if (isCountAxisModel(axisModel)) return axisModel
+      const maxCellCaseCount = self.maxCellCaseCount()
+      const countAxis = CountAxisModel.create({ place, min: 0, max: maxCellCaseCount })
+      setNiceDomain([0, maxCellCaseCount], countAxis, { clampPosMinAtZero: true })
+      return countAxis
     },
     getValidNumericOrDateAxis(place: AxisPlace, attrType?: AttributeType, axisModel?: IAxisModel): IAxisModel {
       if (attrType === "date" && isDateAxisModel(axisModel) ||
@@ -131,23 +150,6 @@ export const PlotModel = types
     },
     nonDraggableAxisTicks(formatter: TickFormatter): IAxisTicks {
       return { tickValues: [], tickLabels: [] }
-    }
-  }))
-  .views(self => ({
-    matchingCasesForAttr(attrId?: string, value?: string, _allCases?: ICase[]) {
-      if (!attrId) return []
-      const dataset = self.dataConfiguration?.dataset
-      const allCases = _allCases ?? dataset?.items
-      return allCases?.filter(aCase => dataset?.getStrValue(aCase.__id__, attrId) === value) as ICase[] ?? []
-    },
-    maxCellCaseCount() {
-      const { maxOverAllCells, primaryRole } = self.dataConfiguration || {}
-      const primarySplitRole = primaryRole === "x" ? "topSplit" : "rightSplit"
-      const secondarySplitRole = primaryRole === "x" ? "rightSplit" : "topSplit"
-      return maxOverAllCells?.(primarySplitRole, secondarySplitRole) ?? 0
-    },
-    barTipText() {
-      return ""
     }
   }))
   .actions(self => ({

@@ -1,6 +1,6 @@
 import {AxisPlace, AxisPlaces} from "../../axis/axis-types"
 import {
-  EmptyAxisModel, isCategoricalAxisModel, isEmptyAxisModel, isNumericAxisModel
+  EmptyAxisModel, isBaseNumericAxisModel, isCategoricalAxisModel, isEmptyAxisModel
 } from "../../axis/models/axis-model"
 import { axisPlaceToAttrRole } from "../../data-display/data-display-types"
 import {matchCirclesToData} from "../../data-display/data-display-utils"
@@ -76,7 +76,7 @@ export class GraphController {
             axisMultiScale.setCategoricalDomain(dataConfig.categoryArrayForAttrRole(attrRole))
             axisMultiScale.setCategorySet(dataConfig.categorySetForAttrRole(attrRole))
           }
-          if (isNumericAxisModel(axisModel)) {
+          if (isBaseNumericAxisModel(axisModel)) {
             axisMultiScale.setNumericDomain(axisModel.domain)
           }
         }

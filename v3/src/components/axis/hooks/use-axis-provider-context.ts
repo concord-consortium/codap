@@ -1,5 +1,5 @@
 import { createContext, useContext } from "react"
-import { IBaseNumericAxisModel, IAxisModel, isNumericAxisModel } from "../models/axis-model"
+import { IBaseNumericAxisModel, IAxisModel } from "../models/axis-model"
 import { AxisPlace } from "../axis-types"
 
 export interface IAxisProvider {
@@ -22,9 +22,4 @@ export const useAxisProviderContext = () => {
 
 export function useAxisModel(place: AxisPlace) {
   return useAxisProviderContext().getAxis(place)
-}
-
-export function useNumericAxisModel(place: AxisPlace) {
-  const axisModel = useAxisModel(place)
-  return isNumericAxisModel(axisModel) ? axisModel : undefined
 }

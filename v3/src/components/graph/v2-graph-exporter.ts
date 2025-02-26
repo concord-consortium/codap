@@ -5,7 +5,7 @@ import { toV2Id } from "../../utilities/codap-utils"
 import { defaultBackgroundColor, removeAlphaFromColor } from "../../utilities/color-utils"
 import { V2TileExportFn } from "../../v2/codap-v2-tile-exporters"
 import { CodapV2PlotType, guidLink, ICodapV2Adornment, ICodapV2GraphStorage, IGuidLink } from "../../v2/codap-v2-types"
-import { IAxisModel, isCategoricalAxisModel, isNumericAxisModel } from "../axis/models/axis-model"
+import { IAxisModel, isBaseNumericAxisModel, isCategoricalAxisModel, isCountAxisModel } from "../axis/models/axis-model"
 import { GraphAttrRole } from "../data-display/data-display-types"
 import {
   getAdornmentContentInfo, IAdornmentExporterOptions, isCodapV2TopLevelAdornment
@@ -156,8 +156,8 @@ function getAxisClassAndBounds(
   let axisClass = "DG.AxisModel"
   let axisBounds: Record<string, number> = {}
 
-  if (isNumericAxisModel(axis)) {
-    axisClass = !isPrimary && graph.plot.hasCountAxis
+  if (isBaseNumericAxisModel(axis)) {
+    axisClass = isCountAxisModel(axis)
                   ? graph.plot.hasExpression
                     ? "DG.FormulaAxisModel"
                     : "DG.CountAxisModel"

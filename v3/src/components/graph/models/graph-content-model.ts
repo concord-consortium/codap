@@ -17,12 +17,13 @@ import { getFormulaManager } from "../../../models/tiles/tile-environment"
 import {typedId} from "../../../utilities/js-utils"
 import {mstAutorun} from "../../../utilities/mst-autorun"
 import { mstReaction } from "../../../utilities/mst-reaction"
+import { setNiceDomain } from "../../axis/axis-domain-utils"
+import {GraphPlace} from "../../axis-graph-shared"
 import {AxisPlace, AxisPlaces, IAxisTicks, ScaleNumericBaseType, TickFormatter} from "../../axis/axis-types"
 import {
-  AxisModelUnion, EmptyAxisModel, IAxisModel, IAxisModelUnion, isAxisModelInUnion,
-  isBaseNumericAxisModel, NumericAxisModel
+  AxisModelUnion, EmptyAxisModel, IAxisModel, IAxisModelSnapshot, IAxisModelUnion,
+  INumericAxisModelSnapshot, isAxisModelInUnion, isBaseNumericAxisModel
 } from "../../axis/models/axis-model"
-import {GraphPlace} from "../../axis-graph-shared"
 import { CaseData } from "../../data-display/d3-types"
 import {DataDisplayContentModel} from "../../data-display/models/data-display-content-model"
 import {
@@ -36,7 +37,6 @@ import {kGraphTileType} from "../graph-defs"
 import { CatMapType, CellType, PlotType } from "../graphing-types"
 import { CasePlotModel } from "../plots/case-plot/case-plot-model"
 import { IPlotModelUnionSnapshot, PlotModelUnion } from "../plots/plot-model-union"
-import {setNiceDomain} from "../utilities/graph-utils"
 import {IGraphDataConfigurationModel} from "./graph-data-configuration-model"
 import {GraphPointLayerModel, IGraphPointLayerModel, kGraphPointLayerType} from "./graph-point-layer-model"
 
@@ -474,19 +474,6 @@ export const GraphContentModel = DataDisplayContentModel
       self.dataConfiguration.clearHiddenCases()
       self.dataConfiguration.setDisplayOnlySelectedCases(false)
       self.rescale()
-    },
-    setBarCountAxis() {
-      const maxCellCaseCount = self.plot.maxCellCaseCount()
-      const countAxis = NumericAxisModel.create({
-        scale: "linear",
-        place: self.secondaryPlace,
-        min: 0,
-        max: maxCellCaseCount,
-        lockZero: true,
-        integersOnly: true
-      })
-      setNiceDomain([0, maxCellCaseCount], countAxis, {clampPosMinAtZero: true})
-      self.setAxis(self.secondaryPlace, countAxis)
     }
   }))
   .actions(self => ({
@@ -514,10 +501,14 @@ export const GraphContentModel = DataDisplayContentModel
         const newPlotType = transformMap[self.plotType]
         if (newPlotType) {
           self.setPlotType(newPlotType)
-          if (fuseIntoBars) {
-            // There is no attribute configuration for which bars are the default,
-            // so it is sufficient to set the count axis here.
-            self.setBarCountAxis()
+          const secondaryRole = self.dataConfiguration.secondaryRole
+          const secondaryPlace = self.secondaryPlace
+          const secondaryType = secondaryRole ? self.dataConfiguration.attributeType(secondaryRole) : undefined
+          const secondaryAxis = self.getAxis(secondaryPlace)
+          const newSecondaryAxis = self.plot.getValidSecondaryAxis(secondaryPlace, secondaryType, secondaryAxis)
+          // add/remove count axis if necessary
+          if (newSecondaryAxis !== secondaryAxis) {
+            self.setAxis(secondaryPlace, newSecondaryAxis)
           }
         }
       }
@@ -631,6 +622,10 @@ interface LegacyGraphContentModelSnapshot extends Omit<SnapshotIn<typeof GraphCo
   pointsFusedIntoBars?: boolean
 }
 
+function isLegacyCountAxis(axis?: IAxisModelSnapshot): axis is INumericAxisModelSnapshot {
+  return axis?.type === "numeric" && "lockZero" in axis && !!axis.lockZero
+}
+
 function isLegacyGraphContentModelSnapshot(snap: unknown): snap is LegacyGraphContentModelSnapshot {
   return !!snap && typeof snap === "object" &&
           ("plotType" in snap || "pointDisplayType" in snap) &&
@@ -643,7 +638,7 @@ function preProcessSnapshot(
   let newSnap: IGraphContentModelSnapshot = snap
   if (isLegacyGraphContentModelSnapshot(snap)) {
     const {
-      pointDisplayType, plotType, _binAlignment, _binWidth, pointsAreBinned, pointsFusedIntoBars, ...others
+      axes, pointDisplayType, plotType, _binAlignment, _binWidth, pointsAreBinned, pointsFusedIntoBars, ...others
     } = snap
     switch (plotType) {
       case "dotPlot": {
@@ -683,6 +678,13 @@ function preProcessSnapshot(
           ...others,
           plot: { type: "casePlot" }
       }
+    }
+    // convert legacy count axes to current count axes
+    if (isLegacyCountAxis(newSnap.axes?.x)) {
+      newSnap.axes.x = { ...newSnap.axes.x, type: "count" }
+    }
+    if (isLegacyCountAxis(newSnap.axes?.y)) {
+      newSnap.axes.y = { ...newSnap.axes.y, type: "count" }
     }
   }
   return newSnap
