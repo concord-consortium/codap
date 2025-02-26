@@ -12,7 +12,7 @@ import { isBinnedPlotModel } from "../plots/histogram/histogram-model"
 import { SubPlotCells } from "../models/sub-plot-cells"
 import {
   computePrimaryCoord, determineBinForCase, adjustCoordForStacks, computeBinPlacements, computeSecondaryCoord
-} from "../utilities/dot-plot-utils"
+} from "../plots/dot-plot/dot-plot-utils"
 import { useGraphContentModelContext } from "./use-graph-content-model-context"
 import { useGraphDataConfigurationContext } from "./use-graph-data-configuration-context"
 import { useGraphLayoutContext } from "./use-graph-layout-context"

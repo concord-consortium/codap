@@ -9,9 +9,9 @@ import { useDotPlot } from "../../hooks/use-dot-plot"
 import { usePlotResponders } from "../../hooks/use-plot"
 import { isBinnedPlotModel } from "./histogram-model"
 import { SubPlotCells } from "../../models/sub-plot-cells"
-import { renderBarCovers } from "../../utilities/bar-utils"
-import { computeBinPlacements } from "../../utilities/dot-plot-utils"
 import { setPointCoordinates } from "../../utilities/graph-utils"
+import { renderBarCovers } from "../bar-utils"
+import { computeBinPlacements } from "../dot-plot/dot-plot-utils"
 
 export const Histogram = observer(function Histogram({ abovePointsGroupRef, pixiPoints }: IPlotProps) {
   const { dataset, dataConfig, graphModel, isAnimating, layout, getPrimaryScreenCoord, getSecondaryScreenCoord,

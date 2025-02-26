@@ -6,8 +6,8 @@ import { kMain } from "../../../data-display/data-display-types"
 import { IBarCover, IPlotProps } from "../../graphing-types"
 import { useChartDots } from "../../hooks/use-chart-dots"
 import { usePlotResponders } from "../../hooks/use-plot"
-import { barCoverDimensions, renderBarCovers } from "../../utilities/bar-utils"
 import { setPointCoordinates } from "../../utilities/graph-utils"
+import { barCoverDimensions, renderBarCovers } from "../bar-utils"
 
 export const BarChart = observer(function BarChart({ abovePointsGroupRef, pixiPoints }: IPlotProps) {
   const { dataset, graphModel, isAnimating, layout, primaryScreenCoord, secondaryScreenCoord,
