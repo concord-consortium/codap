@@ -24,6 +24,7 @@ interface IProps {
 export const CollectionTitle =
                 observer(function CollectionTitle({onAddNewAttribute, showCount, collectionIndex}: IProps) {
   const data = useDataSetContext()
+  const collectionCount = data?.collections.length ?? 1
   const collectionId = useCollectionContext()
   const collection = data?.getCollection(collectionId)
   const collectionName = collection?.name || t("DG.AppController.createDataSet.collectionName")
@@ -112,7 +113,7 @@ export const CollectionTitle =
   const addIconClass = clsx("add-icon", { focused: isTileInFocus })
 
   return (
-    <div className={`collection-title-wrapper ${colorCycleClass(collectionIndex)}`} ref={titleRef}>
+    <div className={`collection-title-wrapper ${colorCycleClass(collectionIndex, collectionCount)}`} ref={titleRef}>
       <div className="collection-title" style={titleStyle}>
         <Editable value={isEditing ? editingName : displayName}
             onEdit={() => setIsEditing(true)} onSubmit={handleSubmit} onCancel={handleCancel}

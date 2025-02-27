@@ -31,6 +31,7 @@ export const CaseView = observer(function CaseView(props: ICaseViewProps) {
   const {cases, level, onSelectCases, onNewCollectionDrop, displayedCaseLineage = []} = props
   const cardModel = useCaseCardModel()
   const data = cardModel?.data
+  const collectionCount = data?.collections.length ?? 1
   const collectionId = useCollectionContext()
   const collection = data?.getCollection(collectionId)
   const initialSelectedCase = collection?.cases.find(c => c.__id__ === displayedCaseLineage[level])
@@ -80,7 +81,7 @@ export const CaseView = observer(function CaseView(props: ICaseViewProps) {
 
   return (
     <>
-    <div className={`case-card-view fadeIn ${colorCycleClass(level)}`} data-testid="case-card-view">
+    <div className={`case-card-view fadeIn ${colorCycleClass(level, collectionCount)}`} data-testid="case-card-view">
       {level === 0 && <CaseCardCollectionSpacer onDrop={handleNewCollectionDrop} collectionId={collectionId}/>}
       <CaseCardHeader cases={cases} level={level}/>
       <div className="case-card-attributes">
