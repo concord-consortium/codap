@@ -300,6 +300,8 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       return !attrID ? kMain
         : strValue && (strValue === '' || categoryArray?.includes(strValue)) ? strValue : kOther
     },
+  }))
+  .views(self => ({
     cellMap(
       extraPrimaryAttrRole: AttrRole, extraSecondaryAttrRole: AttrRole,
       binWidth = 0, minValue = 0, totalNumberOfBins = 0
@@ -309,13 +311,13 @@ export const GraphDataConfigurationModel = DataConfigurationModel
         hasExtraSecondary = !!self.attributeID(extraSecondaryAttrRole),
         valueQuads = (self.getCaseDataArray(0) || []).map((aCaseData: CaseData) => {
           return {
-            primary: (self.primaryRole && this.categoricalValueForCaseInRole(aCaseData.caseID, self.primaryRole)) ?? '',
+            primary: (self.primaryRole && self.categoricalValueForCaseInRole(aCaseData.caseID, self.primaryRole)) ?? '',
             secondary: (self.secondaryRole &&
-                this.categoricalValueForCaseInRole(aCaseData.caseID, self.secondaryRole)) || kMain,
+                self.categoricalValueForCaseInRole(aCaseData.caseID, self.secondaryRole)) || kMain,
             extraPrimary: (hasExtraPrimary &&
-              this.categoricalValueForCaseInRole(aCaseData.caseID, extraPrimaryAttrRole)) || kMain,
+              self.categoricalValueForCaseInRole(aCaseData.caseID, extraPrimaryAttrRole)) || kMain,
             extraSecondary: (hasExtraSecondary &&
-              this.categoricalValueForCaseInRole(aCaseData.caseID, extraSecondaryAttrRole)) || kMain
+              self.categoricalValueForCaseInRole(aCaseData.caseID, extraSecondaryAttrRole)) || kMain
           }
         }),
         bins: BinMap = {}
@@ -660,7 +662,10 @@ export const GraphDataConfigurationModel = DataConfigurationModel
   .actions(self => ({
     setPrimaryRole(role?: GraphAttrRole) {
       if (role === 'x' || role === 'y') {
-        self.primaryRole = role
+        if (role !== self.primaryRole) {
+          self.primaryRole = role
+          self.clearCasesCache()
+        }
       }
       else {
         self.primaryRole = undefined
@@ -769,6 +774,12 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     const baseRemoveAttributeFromRole = self.removeAttributeFromRole
     return {
       afterCreate() {
+        // clear caches when primary role changes, since many caches are role-dependent
+        addDisposer(self, reaction(
+          () => self.primaryRole,
+          () => self.clearCasesCache(),
+          { name: "GraphDataConfigurationModel primaryRole reaction" }
+        ))
         // synchronize filteredCases with attribute configuration
         addDisposer(self, reaction(
           () => self.allYAttributeDescriptions,
