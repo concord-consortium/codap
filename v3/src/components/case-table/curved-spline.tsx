@@ -10,8 +10,10 @@ interface IProps {
   fillColor?: string
   strokeColor?: string
   lastSelectedCase?: boolean
+  renderFill?: boolean
 }
-export function CurvedSpline({ y1, y2, even, prevY1, prevY2, fillColor, strokeColor, lastSelectedCase }: IProps) {
+export function CurvedSpline({ y1, y2, even, prevY1, prevY2, fillColor, strokeColor, lastSelectedCase,
+                                renderFill }: IProps) {
   const kDividerWidth = 48,
         kRelationParentMargin = 12,
         kRelationChildMargin = 4,
@@ -98,20 +100,20 @@ export function CurvedSpline({ y1, y2, even, prevY1, prevY2, fillColor, strokeCo
   const fillData = buildFillPathStr(prevY1, prevY2, y1, y2)
   const finalFillColor = fillColor
                           ? even ? new Colord(fillColor).darken(0.05).toHex() : fillColor
-                          : even ? kRelationFillColor : undefined
+                          : even ? kRelationFillColor : "none"
   return (
     <>
-    {finalFillColor && <path d={fillData} fill={finalFillColor} stroke="none"/>}
-    {strokeColor
-          ? <>
-              {strokeColor && <path d={prevPathData} fill="none" stroke={strokeColor}
-                strokeWidth={strokeColor ? 1.5 : "none"}/>}
-              <path d={pathData} fill="none" stroke={strokeColor ?? kRelationStrokeColor}
-                  strokeWidth={(strokeColor && lastSelectedCase) ? 3 : strokeColor ? 1.5 : "none"}/>
-            </>
-          : <path d={pathData} fill="none" stroke={strokeColor ?? kRelationStrokeColor}
-              strokeWidth={strokeColor ? 1.5 : "none"}/>
-    }
+      {renderFill && <path d={fillData} fill={finalFillColor} stroke="none"/>}
+      {!fillColor && (lastSelectedCase
+            ? <>
+                {strokeColor && <path d={prevPathData} fill="none" stroke={strokeColor}
+                  strokeWidth={strokeColor ? 1.5 : "none"}/>}
+                <path d={pathData} fill="none" stroke={strokeColor ?? kRelationStrokeColor}
+                    strokeWidth={(strokeColor && lastSelectedCase) ? 3 : strokeColor ? 1.5 : "none"}/>
+              </>
+            : <path d={pathData} fill="none" stroke={strokeColor ?? kRelationStrokeColor}
+                strokeWidth={strokeColor ? 1.5 : "none"}/>
+      )}
     </>
   )
 }

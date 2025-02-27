@@ -159,9 +159,8 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({
                     prevY2={childTableModel.getTopOfRowModuloScroll(firstChildIndex)}
                     y2={childTableModel.getBottomOfRowModuloScroll(lastChildIndex)}
                     even={(index + 1) % 2 === 0}
-                    lastSelectedCase={false}  // Ensure it does not affect stroke logic
                     fillColor={fillColor}
-                    strokeColor={undefined}   // Only render fill
+                    renderFill={true}
                   />
                 )
               })}
@@ -172,7 +171,7 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({
                 const isCaseSelected = data.isCaseSelected(parentCaseId)
                 const isAChildSelected = data.isChildInTreeSelected(parentCaseId)
                 const strokeColor = isCaseSelected || isAChildSelected ? kRelationSelectedStrokeColor : undefined
-                const lastSelectedCase = (isCaseSelected && !isNextCaseSelected) || isAChildSelected
+                const lastSelectedCase = (isCaseSelected  || isAChildSelected) && !isNextCaseSelected
                 return (
                   <CurvedSpline
                     key={`stroke-${parentCaseId}-${index}`}
@@ -182,7 +181,6 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({
                     y2={childTableModel.getBottomOfRowModuloScroll(lastChildIndex)}
                     even={(index + 1) % 2 === 0}
                     lastSelectedCase={lastSelectedCase}
-                    fillColor={undefined}  // Only render stroke
                     strokeColor={strokeColor}
                   />
                 )
