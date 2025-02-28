@@ -1,6 +1,6 @@
 import {AxisPlace, AxisPlaces} from "../../axis/axis-types"
 import {
-  EmptyAxisModel, isCategoricalAxisModel, isEmptyAxisModel, isNumericAxisModel
+  EmptyAxisModel, isBaseNumericAxisModel, isCategoricalAxisModel, isEmptyAxisModel
 } from "../../axis/models/axis-model"
 import { axisPlaceToAttrRole } from "../../data-display/data-display-types"
 import {matchCirclesToData} from "../../data-display/data-display-utils"
@@ -48,7 +48,7 @@ export class GraphController {
       const { dataConfiguration } = graphModel,
         {pointColor, pointStrokeColor} = graphModel.pointDescription,
         pointRadius = graphModel.getPointRadius(),
-        pointDisplayType = graphModel.pointDisplayType,
+        pointDisplayType = graphModel.plot.displayType,
         startAnimation = graphModel.startAnimation
       dataConfiguration && matchCirclesToData({
         dataConfiguration, pixiPoints, pointDisplayType,
@@ -76,7 +76,7 @@ export class GraphController {
             axisMultiScale.setCategoricalDomain(dataConfig.categoryArrayForAttrRole(attrRole))
             axisMultiScale.setCategorySet(dataConfig.categorySetForAttrRole(attrRole))
           }
-          if (isNumericAxisModel(axisModel)) {
+          if (isBaseNumericAxisModel(axisModel)) {
             axisMultiScale.setNumericDomain(axisModel.domain)
           }
         }

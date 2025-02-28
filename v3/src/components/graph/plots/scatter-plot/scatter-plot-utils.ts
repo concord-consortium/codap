@@ -1,11 +1,11 @@
 import { ScaleBand, ScaleLinear } from "d3"
-import { IGraphDataConfigurationModel } from "../models/graph-data-configuration-model"
-import { GraphLayout } from "../models/graph-layout"
-import { ILineDescription, ISquareOfResidual } from "../adornments/shared-adornment-types"
-import { FormulaFn } from "../adornments/plotted-function/plotted-function-adornment-types"
-import { ICaseSubsetDescription, IConnectingLineDescription } from "../../data-display/data-display-types"
-import { dataDisplayGetNumericValue } from "../../data-display/data-display-value-utils"
-import { IPlottedFunctionAdornmentModel } from "../adornments/plotted-function/plotted-function-adornment-model"
+import { IGraphDataConfigurationModel } from "../../models/graph-data-configuration-model"
+import { GraphLayout } from "../../models/graph-layout"
+import { ILineDescription, ISquareOfResidual } from "../../adornments/shared-adornment-types"
+import { FormulaFn } from "../../adornments/plotted-function/plotted-function-adornment-types"
+import { ICaseSubsetDescription, IConnectingLineDescription } from "../../../data-display/data-display-types"
+import { dataDisplayGetNumericValue } from "../../../data-display/data-display-value-utils"
+import { IPlottedFunctionAdornmentModel } from "../../adornments/plotted-function/plotted-function-adornment-model"
 
 export function scatterPlotFuncs(layout: GraphLayout, dataConfiguration?: IGraphDataConfigurationModel) {
   const { dataset: data, yAttributeIDs: yAttrIDs = [], hasY2Attribute, numberOfPlots = 1 } = dataConfiguration || {}

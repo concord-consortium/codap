@@ -3,7 +3,7 @@ import { getDocumentContentPropertyFromNode } from "../../../../utilities/mst-ut
 
 export const useGraphOptions = () => {
   const graphModel = useGraphContentModelContext()
-  const isGaussianFit = graphModel?.pointDisplayType === "histogram" &&
+  const isGaussianFit = graphModel?.plotType === "histogram" &&
     getDocumentContentPropertyFromNode(graphModel, "gaussianFitEnabled")
   return {isGaussianFit}
 }

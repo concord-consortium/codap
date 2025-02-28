@@ -1,26 +1,26 @@
 import { MutableRefObject, useCallback, useEffect, useMemo, useRef } from "react"
 import { BaseType, drag, extent, select, Selection } from "d3"
 import { comparer, reaction } from "mobx"
+import { logMessageWithReplacement } from "../../../lib/log-message"
 import { mstAutorun } from "../../../utilities/mst-autorun"
 import { mstReaction } from "../../../utilities/mst-reaction"
+import { isAliveSafe } from "../../../utilities/mst-utils"
 import { translate } from "../../../utilities/translation/translate"
+import { isVertical } from "../../axis-graph-shared"
 import { axisPlaceToAttrRole, kOther } from "../../data-display/data-display-types"
 import { useDataDisplayAnimation } from "../../data-display/hooks/use-data-display-animation"
-import { AxisPlace } from "../axis-types"
-import { kDefaultFontHeight } from "../axis-constants"
-import { useAxisLayoutContext } from "../models/axis-layout-context"
-import {IAxisModel, isBaseNumericAxisModel, isCategoricalAxisModel, isNumericAxisModel} from "../models/axis-model"
-import { isVertical } from "../../axis-graph-shared"
-import { isAliveSafe } from "../../../utilities/mst-utils"
-import { computeNiceNumericBounds, setNiceDomain } from "../../graph/utilities/graph-utils"
-import { DragInfo } from "../axis-utils"
-import { useAxisProviderContext } from "./use-axis-provider-context"
 import { useDataDisplayModelContextMaybe } from "../../data-display/hooks/use-data-display-model"
+import { kDefaultFontHeight } from "../axis-constants"
+import { computeNiceNumericBounds, setNiceDomain } from "../axis-domain-utils"
+import { AxisPlace } from "../axis-types"
+import { DragInfo } from "../axis-utils"
 import { AxisHelper, EmptyAxisHelper, IAxisHelperArgs } from "../helper-models/axis-helper"
-import { NumericAxisHelper } from "../helper-models/numeric-axis-helper"
 import { CatObject, CategoricalAxisHelper } from "../helper-models/categorical-axis-helper"
 import { DateAxisHelper } from "../helper-models/date-axis-helper"
-import { logMessageWithReplacement } from "../../../lib/log-message"
+import { NumericAxisHelper } from "../helper-models/numeric-axis-helper"
+import { useAxisLayoutContext } from "../models/axis-layout-context"
+import {IAxisModel, isBaseNumericAxisModel, isCategoricalAxisModel} from "../models/axis-model"
+import { useAxisProviderContext } from "./use-axis-provider-context"
 
 export interface IUseSubAxis {
   subAxisIndex: number
@@ -60,7 +60,6 @@ export const useSubAxis = ({
     {isAnimating, stopAnimation} = useDataDisplayAnimation(),
     axisProvider = useAxisProviderContext(),
     axisModel = axisProvider.getAxis(axisPlace),
-    isNumeric = isNumericAxisModel(axisModel),
     isCategorical = isCategoricalAxisModel(axisModel),
     multiScaleChangeCount = layout.getAxisMultiScale(axisModel?.place ?? 'bottom')?.changeCount ?? 0,
     dragInfo = useRef<DragInfo>({
@@ -245,6 +244,7 @@ export const useSubAxis = ({
         case 'empty':
           helper = new EmptyAxisHelper(helperProps)
           break
+        case 'count':
         case 'numeric':
           helper = new NumericAxisHelper(
             { ...helperProps, showScatterPlotGridLines, showZeroAxisLine })
@@ -279,7 +279,7 @@ export const useSubAxis = ({
       }, {name: "useSubAxis [scaleType]"}
     )
     return () => disposer()
-  }, [axisModel, axisPlace, isNumeric, layout, renderSubAxis])
+  }, [axisModel, axisPlace, layout, renderSubAxis])
 
   // Install reaction to bring about rerender when layout's computedBounds changes
   useEffect(() => {
@@ -373,10 +373,10 @@ export const useSubAxis = ({
       return mstReaction(
         () => dataConfig.caseDataHash,
         () => updateDomainAndRenderSubAxis(),
-        {name: "useSubAxis.respondToHiddenCasesChange"}, dataConfig
+        {name: "useSubAxis.respondToHiddenCasesChange"}, [axisModel, dataConfig]
       )
     }
-  }, [dataConfig, updateDomainAndRenderSubAxis])
+  }, [axisModel, dataConfig, updateDomainAndRenderSubAxis])
 
   // Render when axis length or number of sub-axes changes
   useEffect(() => {

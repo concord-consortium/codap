@@ -1,9 +1,8 @@
 import { PixiPoints } from "../data-display/pixi/pixi-points"
 
-export interface PlotProps {
+export interface IPlotProps {
   pixiPoints?: PixiPoints
-  belowPointsGroupRef?: React.RefObject<SVGGElement>
-  abovePointsGroupRef?: React.RefObject<SVGGElement>
+  abovePointsGroupRef: React.RefObject<SVGGElement>
 }
 
 // One element of the data array assigned to the points
@@ -11,10 +10,6 @@ export interface InternalizedData {
   xAttributeID: string,
   yAttributeID: string,
   cases:string[]
-}
-
-export interface IDomainOptions {
-  clampPosMinAtZero?: boolean
 }
 
 export interface IBarCover {
@@ -35,8 +30,31 @@ export type CellType = { p: number, s: number, ep: number, es: number }
 type CellRecordType = Record<string, { cell: CellType, numSoFar: number }>
 export type CatMapType = Record<string, Record<string, Record<string, CellRecordType>>>
 
-export const PlotTypes = ["casePlot", "dotPlot", "dotChart", "scatterPlot"] as const
+export const PlotTypes = [
+  "casePlot",
+  // categorical charts
+  "dotChart",
+  "barChart",
+  // univariate numeric plots
+  "dotPlot",
+  "binnedDotPlot",
+  "histogram",
+  "linePlot",
+  // bivariate numeric plots
+  "scatterPlot"
+] as const
 export type PlotType = typeof PlotTypes[number]
+
+export function isCategoricalPlotType(plotType: PlotType): boolean {
+  return ["dotChart", "barChart"].includes(plotType)
+}
+
+export function isUnivariateNumericPlotType(plotType: PlotType): boolean {
+  return ["dotPlot", "binnedDotPlot", "histogram", "linePlot"].includes(plotType)
+}
+
+export const BreakdownTypes = ["count", "percent"] as const
+export type BreakdownType = typeof BreakdownTypes[number]
 
 export const kGraphClass = "graph-plot"
 export const kGraphClassSelector = `.${kGraphClass}`

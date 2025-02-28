@@ -7,8 +7,6 @@ import {InspectorPalette} from "../../../inspector-panel"
 import StylesIcon from "../../../../assets/icons/icon-styles.svg"
 import {DisplayItemFormatControl} from "../../../data-display/inspector/display-item-format-control"
 
-import "../../../data-display/inspector/inspector-panel.scss"
-
 interface IProps {
   tile?: ITileModel
   panelRect?: DOMRect
@@ -51,7 +49,7 @@ export const PointFormatPalette = observer(function PointFormatPalette({tile, pa
       <DisplayItemFormatControl
         dataConfiguration={graphModel.dataConfiguration}
         displayItemDescription={graphModel.pointDescription}
-        pointDisplayType={graphModel.pointDisplayType}
+        pointDisplayType={graphModel.plot.displayType}
         isTransparent={graphModel.isTransparent}
         plotBackgroundColor={graphModel.plotBackgroundColor}
         onBackgroundTransparencyChange={handleBackgroundTransparencyChange}

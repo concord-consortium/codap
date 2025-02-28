@@ -20,15 +20,13 @@ import { CameraMenuList } from "./camera-menu-list"
 
 export const GraphInspector = observer(function GraphInspector({tile, show}: ITileInspectorPanelProps) {
   const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
-  const caseDataArray = graphModel?.dataConfiguration?.getCaseDataArray(0) ?? []
   const [showPalette, setShowPalette] = useState<string | undefined>(undefined)
   const panelRef = useRef<HTMLDivElement>()
   const panelRect = panelRef.current?.getBoundingClientRect()
   const buttonRef = useRef<HTMLDivElement>()
   const buttonRect = buttonRef.current?.getBoundingClientRect()
   const {active} = useDndContext()
-  const showDisplayConfig = (caseDataArray.length > 0 && graphModel?.plotType === "dotPlot") ||
-    (graphModel?.plotType === "dotChart" && graphModel?.dataConfiguration.hasExactlyOneCategoricalAxis)
+  const showDisplayConfig = graphModel?.plot.showDisplayConfig
 
   useEffect(() => {
     !show && setShowPalette(undefined)

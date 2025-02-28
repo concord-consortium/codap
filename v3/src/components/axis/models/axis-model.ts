@@ -19,18 +19,6 @@ export const AxisModel = types.model("AxisModel", {
       return ['left', 'rightCat', 'rightNumeric'].includes(self.place)
         ? "vertical" : "horizontal"
     },
-    get isNumeric() {
-      return self.type === "numeric"
-    },
-    get isCategorical() {
-      return self.type === "categorical"
-    },
-    get isDate() {
-      return self.type === "date"
-    },
-    get isBaseNumeric() {
-      return this.isNumeric || this.isDate
-    },
     get isUpdatingDynamically() {
       return false
     }
@@ -46,15 +34,13 @@ export const AxisModel = types.model("AxisModel", {
   // performs the specified action so that response actions are included and undo/redo strings assigned
   .actions(applyModelChange)
 
-export interface IAxisModel extends Instance<typeof AxisModel> {
-}
+export interface IAxisModel extends Instance<typeof AxisModel> {}
+export interface IAxisModelSnapshot extends SnapshotIn<typeof AxisModel> {}
 
 export const EmptyAxisModel = AxisModel
   .named("EmptyAxisModel")
   .props({
-    type: types.optional(types.literal("empty"), "empty"),
-    min: 0,
-    max: 0
+    type: types.optional(types.literal("empty"), "empty")
   })
 export interface IEmptyAxisModel extends Instance<typeof EmptyAxisModel> {}
 export interface IEmptyAxisModelSnapshot extends SnapshotIn<typeof EmptyAxisModel> {}
@@ -73,14 +59,13 @@ export interface ICategoricalAxisModel extends Instance<typeof CategoricalAxisMo
 export interface ICategoricalAxisModelSnapshot extends SnapshotIn<typeof CategoricalAxisModel> {}
 
 export function isCategoricalAxisModel(axisModel?: IAxisModel): axisModel is ICategoricalAxisModel {
-  return !!axisModel?.isCategorical
+  return axisModel?.type === "categorical"
 }
 
 export const BaseNumericAxisModel = AxisModel
   .named("BaseNumericAxisModel")
   .props({
     scale: types.optional(types.enumeration([...ScaleTypes]), "linear"),
-    lockZero: false,
     min: types.number,
     max: types.number
   })
@@ -90,6 +75,12 @@ export const BaseNumericAxisModel = AxisModel
     allowRangeToShrink: false
   }))
   .views(self => ({
+    get integersOnly() {
+      return false
+    },
+    get lockZero() {
+      return false
+    },
     get domain() {
       if (!isAlive(self)) {
         console.warn("AxisModel.domain called for defunct axis model")
@@ -140,9 +131,6 @@ export const BaseNumericAxisModel = AxisModel
         self.dynamicMax = undefined
       }
     },
-    setLockZero(lockZero: boolean) {
-      self.lockZero = lockZero
-    },
     setAllowRangeToShrink(allowRangeToShrink: boolean) {
       self.allowRangeToShrink = allowRangeToShrink
     }
@@ -151,15 +139,10 @@ export const BaseNumericAxisModel = AxisModel
 export interface IBaseNumericAxisModel extends Instance<typeof BaseNumericAxisModel> {}
 export interface IBaseNumericAxisModelSnapshot extends SnapshotIn<typeof BaseNumericAxisModel> {}
 
-export function isBaseNumericAxisModel(axisModel?: IAxisModel): axisModel is IBaseNumericAxisModel {
-  return !!axisModel?.isBaseNumeric
-}
-
 export const NumericAxisModel = BaseNumericAxisModel
   .named("NumericAxisModel")
   .props({
-    type: types.optional(types.literal("numeric"), "numeric"),
-    integersOnly: false
+    type: types.optional(types.literal("numeric"), "numeric")
   })
   .views(self => ({
     get minDisplay() {
@@ -176,7 +159,30 @@ export interface INumericAxisModel extends Instance<typeof NumericAxisModel> {}
 export interface INumericAxisModelSnapshot extends SnapshotIn<typeof NumericAxisModel> {}
 
 export function isNumericAxisModel(axisModel?: IAxisModel): axisModel is INumericAxisModel {
-  return !!axisModel?.isNumeric
+  return axisModel?.type === "numeric"
+}
+
+export const CountAxisModel = BaseNumericAxisModel
+  .named("CountAxisModel")
+  .props({
+    type: types.optional(types.literal("count"), "count")
+  })
+  .views(self => ({
+    get integersOnly() {
+      return true
+    },
+    get lockZero() {
+      return true
+    },
+  }))
+export interface ICountAxisModel extends Instance<typeof CountAxisModel> {}
+export interface ICountAxisModelSnapshot extends SnapshotIn<typeof CountAxisModel> {}
+export function isCountAxisModel(axisModel?: IAxisModel): axisModel is ICountAxisModel {
+  return axisModel?.type === "count"
+}
+
+export function isNumericOrCountAxisModel(axisModel?: IAxisModel): axisModel is INumericAxisModel | IDateAxisModel {
+  return isNumericAxisModel(axisModel) || isCountAxisModel(axisModel)
 }
 
 export const DateAxisModel = BaseNumericAxisModel
@@ -200,10 +206,21 @@ export interface IDateAxisModel extends Instance<typeof DateAxisModel> {}
 export interface IDateAxisModelSnapshot extends SnapshotIn<typeof DateAxisModel> {}
 
 export function isDateAxisModel(axisModel?: IAxisModel): axisModel is IDateAxisModel {
-  return !!axisModel?.isDate
+  return axisModel?.type === "date"
 }
 
-export const AxisModelUnion = types.union(EmptyAxisModel, CategoricalAxisModel, NumericAxisModel, DateAxisModel)
-export type IAxisModelUnion = IEmptyAxisModel | ICategoricalAxisModel | INumericAxisModel | IDateAxisModel
-export type IAxisModelSnapshotUnion =
-  IEmptyAxisModelSnapshot | ICategoricalAxisModelSnapshot | INumericAxisModelSnapshot | IDateAxisModelSnapshot
+export function isBaseNumericAxisModel(axisModel?: IAxisModel): axisModel is INumericAxisModel | IDateAxisModel {
+  return isNumericAxisModel(axisModel) || isCountAxisModel(axisModel) || isDateAxisModel(axisModel)
+}
+
+export const AxisModelUnion =
+  types.union(EmptyAxisModel, CategoricalAxisModel, NumericAxisModel, CountAxisModel, DateAxisModel)
+export type IAxisModelUnion =
+  IEmptyAxisModel | ICategoricalAxisModel | INumericAxisModel | ICountAxisModel | IDateAxisModel
+export type IAxisModelSnapshotUnion = IEmptyAxisModelSnapshot | ICategoricalAxisModelSnapshot |
+  INumericAxisModelSnapshot | ICountAxisModelSnapshot | IDateAxisModelSnapshot
+
+export function isAxisModelInUnion(model: IAxisModel): model is IAxisModelUnion {
+  return isEmptyAxisModel(model) || isCategoricalAxisModel(model) ||
+          isNumericAxisModel(model) || isCountAxisModel(model) || isDateAxisModel(model)
+}
