@@ -1,4 +1,5 @@
-import { kRelativePluginRoot, kRootPluginUrl, processPluginUrl } from "./web-view-utils"
+import { kRootPluginUrl } from "../../constants"
+import { kRelativePluginRoot, processPluginUrl } from "./web-view-utils"
 
 describe('WebView Utilities', () => {
   it('processPluginUrl works', () => {

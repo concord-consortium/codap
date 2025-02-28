@@ -851,9 +851,12 @@ export interface ICodapV2DocumentJson {
   _permissions?: any
 }
 
+// short for DataGames, the name of the project under which CODAP development began
+export const kV2AppName = "DG"
+
 export function isCodapV2Document(content: unknown): content is ICodapV2DocumentJson {
   if (!content || typeof content !== "object") return false
-  const hasV2AppName = "appName" in content && content.appName === "DG"
+  const hasV2AppName = "appName" in content && content.appName === kV2AppName
   const hasNoAppName = !("appName" in content) || !content.appName
   return ((hasV2AppName || hasNoAppName) &&
           "components" in content && Array.isArray(content.components) &&

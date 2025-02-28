@@ -94,6 +94,12 @@ export interface UrlParams {
    */
   noDataTips?: string | null
   /*
+   * [v2/v3] Specifies the url of the folder from which to load plugins.
+   * Useful for testing/debugging plugins from alternate locations.
+   * value: url string
+   */
+  pluginURL?: string | null
+  /*
    * For testing -- specifies a built-in sample document to be loaded on startup.
    * Useful for automated tests; often combined with `dashboard`.
    * value: "abalone" | "cats" | "coasters" | "colors" | "four" | "mammals"
