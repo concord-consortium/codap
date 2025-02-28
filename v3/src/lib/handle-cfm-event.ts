@@ -5,6 +5,7 @@ import { removeDevUrlParams, urlParams } from "../utilities/url-params"
 import { wrapCfmCallback } from "./cfm-utils"
 import { t } from "../utilities/translation/translate"
 import { DEBUG_CFM_EVENTS } from "./debug"
+import { hideSplashScreen } from "./splash-screen"
 
 import build from "../../build_number.json"
 import pkg from "../../package.json"
@@ -32,10 +33,10 @@ export async function handleCFMEvent(cfmClient: CloudFileManagerClient, event: C
         cfmClient.openUrlFile(urlParams.url)
       }
       break
-    // case "requiresUserInteraction":
-    //   break
-    // case "ready":
-    //   break
+    case "requiresUserInteraction":
+    case "ready":
+      hideSplashScreen()
+      break
     // case "closedFile":
     //   break
     case "getContent": {
@@ -59,6 +60,10 @@ export async function handleCFMEvent(cfmClient: CloudFileManagerClient, event: C
       removeDevUrlParams()
       break
     // case "newedFile":
+    //   // This was hiding the splashscreen on v2. However I think "ready" will be called
+    //   // anyhow, so it doesn't seem necessary to hide the splashscreen here too.
+    //   // If the splashscreen continued to show for some time even after the app was loaded,
+    //   // then it would make since to hide it here, so the user doesn't have to wait again.
     //   break
     case "openedFile": {
       const rawContent = event.data.content as unknown

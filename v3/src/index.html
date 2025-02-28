@@ -24,6 +24,27 @@
     </script>
   </head>
   <body>
+    <%
+     // We might want to add a slight delay to showing the splash screen otherwise it will flash even on a
+     // fast load. Perhaps the delay should be 1s?
+    %>
+    <div id="splash-screen" class="modal">
+      <div class="modal-background" style="z-index: 10; width: 100vw; height: 100vh;"></div>
+      <div class="modal-content" style="z-index: 11; width: 100vw; height: 100vh;">
+        <div class="modal-dialog">
+          <div class="splash-container" style="position: relative;">
+            <img src="<%= require('./assets/codap-splash-screen.png') %>"/>
+            <% // in v2 the spinner did not show up right away there was a small delay %>
+            <img src="<%= require('./assets/spinner.gif') %>" style="
+              position: absolute;
+              bottom: 5px;
+              left: 50%;
+              transform: translate(-50%, 0);
+            "/>
+          </div>
+        </div>
+      </div>
+    </div>
     <div id="codap-app-id"></div>
   </body>
 </html>
