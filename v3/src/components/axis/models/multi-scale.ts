@@ -37,10 +37,10 @@ export const scaleTypeToD3Scale = (iScaleType: IScaleType) => {
 export type AxisExtent = [number, number]
 
 /**
- * This class is used to by plots to compute screen coordinates from data coordinates. It can also invert
+ * This class is used by plots to compute screen coordinates from data coordinates. It can also invert
  * the process, computing data coordinates from screen coordinates.
  * One instance is assigned to each axis place. Only 'left', 'bottom' and 'rightNumeric' places ever have
- * more than one repetition, and these only when a 'rightCat' or 'top' axis is present.
+ * more than one repetition, and these only when a 'rightCat' or 'top' attribute is present.
  */
 export class MultiScale {
   @observable scaleType: IScaleType
