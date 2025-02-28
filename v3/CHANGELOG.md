@@ -1,5 +1,23 @@
 # Changelog
 
+## Version 3.0.0-pre.2190 - February 28, 2025
+
+### ✨ Features & Improvements:
+- **PT-188810519:** **first** and **last** functions
+- **PT-188877776:** basic linear numeric color legend
+
+### 🐞 Bug Fixes:
+- **PT-188848789:** Bar chart is not rendering correctly in shared documents
+- **PT-188819773:** Graph axes and scaling are incorrect when switching from a date attribute to another date attribute
+- **PT-188919673:** Replacing date axis with categorical attribute doesn't work properly
+- **PT-188914180:** Graph axis doesn't update when initial checkbox value changes
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  189725 bytes |                            0.38% |
+|  index.js | 6462717 bytes |                           <0.00% |
+
 ## Version 3.0.0-pre.2183 - February 20, 2025
 
 ### ✨ Features & Improvements:

@@ -285,7 +285,7 @@ context("Slider UI", () => {
     cy.log("set the minimum value and verify it is displayed correctly")
     cy.get('[data-testid="slider-minimum"]')
     .clear()
-    .type(minValue)
+    .type(minValue, { delay: 100 })
     .should('have.value', minValue)
 
     // Set the maximum value and verify it’s displayed correctly
