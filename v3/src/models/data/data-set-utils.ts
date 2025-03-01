@@ -33,6 +33,14 @@ export function collectionCaseIndexFromId(caseId: string, data?: IDataSet, colle
   return found >= 0 ? found : undefined
 }
 
+export function isAnyChildSelected(data: IDataSet, caseId: string): boolean {
+  const caseInfo = data.caseInfoMap.get(caseId)
+  const { childCaseIds, childItemIds = [] } = caseInfo || {}
+  return childCaseIds?.length
+          ? childCaseIds.some(childCaseId => isAnyChildSelected(data, childCaseId))
+          : childItemIds?.some(childItemId => data.isCaseSelected(childItemId))
+}
+
 /**
  * Returns the collection containing the attribute from the given array that is closest to the
  * root of the data set. If there is an attribute that is not in any collection, then we return undefined

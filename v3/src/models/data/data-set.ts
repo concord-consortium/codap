@@ -1208,12 +1208,7 @@ export const DataSet = V2Model.named("DataSet").props({
       }
     })
     return values
-  },
-  isChildInTreeSelected(caseId: string) {
-    const caseChildren = self.caseInfoMap.get(caseId)?.childItemIds || []
-    const selectedCaseChildren = caseChildren.filter(childId => self.isCaseSelected(childId))
-    return selectedCaseChildren.length > 0
-  },
+  }
 }))
 .actions(self => ({
   afterCreate() {

@@ -9,23 +9,29 @@ import { measureText } from "../../hooks/use-measure-text"
 import { useVisibleAttributes } from "../../hooks/use-visible-attributes"
 import { logMessageWithReplacement } from "../../lib/log-message"
 import { IDataSet } from "../../models/data/data-set"
-import { symParent } from "../../models/data/data-set-types"
-// import { getNumericCssVariable } from "../../utilities/css-utils"
+import { isAnyChildSelected } from "../../models/data/data-set-utils"
+import { getStringCssVariable } from "../../utilities/css-utils"
 import { preventAttributeMove, preventCollectionReorg } from "../../utilities/plugin-utils"
 import { t } from "../../utilities/translation/translate"
 import { kInputRowKey } from "./case-table-types"
-import { CurvedSpline } from "./curved-spline"
+import { CurvedSplineFill } from "./curved-spline-fill"
+import { CurvedSplineStroke } from "./curved-spline-stroke"
 import { useCollectionTableModel } from "./use-collection-table-model"
 
-const kRelationSelectedStrokeColor = '#66afe9' // blue
+const kRelationDefaultFillColor = "#ffffff" // white
+// these stroke color defaults are only used if the grid's CSS variables are not set
+const kRelationDefaultStrokeColor = "#ddd" // light gray
+const kRelationSelectedStrokeColor = "#66afe9" // blue
+const kRelationStrokeWidth = 1
+const kRelationSelectedStrokeWidth = 3
 
 interface IProps {
-  selectedFillColor?: string
+  gridElt?: HTMLDivElement | null
   onDrop?: (dataSet: IDataSet, attrId: string) => void
   onWhiteSpaceClick?: () => void
 }
 export const CollectionTableSpacer = observer(function CollectionTableSpacer({
-  selectedFillColor, onDrop, onWhiteSpaceClick
+  gridElt, onDrop, onWhiteSpaceClick
 }: IProps) {
   const data = useDataSetContext()
   const caseMetadata = useCaseMetadata()
@@ -62,7 +68,7 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({
     { bottom: divHeight && dropMessageWidth ? (divHeight - dropMessageWidth) / 2 - kMargin : undefined }
   const parentCases = parentCollection ? data?.getCasesForCollection(parentCollection.id) : []
   const indexRanges = useMemo(() => {
-    const _indexRanges = childTableModel?.parentIndexRanges
+    const _indexRanges = childTableModel?.parentIndexRanges ?? []
 
     // Add curve information for the parent input row
     if (_indexRanges && parentTableModel?.inputRowIndex != null) {
@@ -136,6 +142,12 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({
 
   const topTooltipKey = `DG.CaseTable.dividerView.${everyCaseIsCollapsed ? 'expandAllTooltip' : 'collapseAllTooltip'}`
   const topButtonTooltip = t(topTooltipKey)
+  const relationSelectedFillColor = getStringCssVariable(gridElt, "--rdg-row-selected-background-color") ||
+                                      kRelationDefaultFillColor
+  const relationDefaultStrokeColor = getStringCssVariable(gridElt, "--rdg-border-color") ||
+                                      kRelationDefaultStrokeColor
+  const relationSelectedStrokeColor = getStringCssVariable(gridElt, "--rdg-selection-color") ||
+                                      kRelationSelectedStrokeColor
 
   return (
     <div className={classes} ref={handleRef} onClick={handleBackgroundClick}>
@@ -147,12 +159,12 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({
           </div>
           <div className="spacer-mid">
             <svg className="spacer-mid-layer lower-layer">
-              {/* Draw all fills first */}
+              {/* Draw all fills */}
               {indexRanges?.map(({ id: parentCaseId, firstChildIndex, lastChildIndex }, index) => {
                 const isCaseSelected = data.isCaseSelected(parentCaseId)
-                const fillColor = isCaseSelected ? selectedFillColor : undefined
+                const fillColor = isCaseSelected ? relationSelectedFillColor : kRelationDefaultFillColor
                 return (
-                  <CurvedSpline
+                  <CurvedSplineFill
                     key={`fill-${parentCaseId}-${index}`}
                     prevY1={parentTableModel.getTopOfRowModuloScroll(index)}
                     y1={parentTableModel.getBottomOfRowModuloScroll(index)}
@@ -160,29 +172,43 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({
                     y2={childTableModel.getBottomOfRowModuloScroll(lastChildIndex)}
                     even={(index + 1) % 2 === 0}
                     fillColor={fillColor}
-                    renderFill={true}
                   />
                 )
               })}
-              {/* Draw all strokes on top */}
-              {indexRanges?.map(({ id: parentCaseId, firstChildIndex, lastChildIndex }, index) => {
-                const nextCase = indexRanges[index + 1]?.id
-                const isNextCaseSelected = nextCase && data.isCaseSelected(nextCase)
-                const isCaseSelected = data.isCaseSelected(parentCaseId)
-                const isAChildSelected = data.isChildInTreeSelected(parentCaseId)
-                const strokeColor = isCaseSelected || isAChildSelected ? kRelationSelectedStrokeColor : undefined
-                const lastSelectedCase = (isCaseSelected  || isAChildSelected) && !isNextCaseSelected
+              {/* Draw all strokes */}
+              {indexRanges.map(({ id: parentCaseId, firstChildIndex, lastChildIndex }, parentIndex) => {
+                const nextParentCaseId = parentIndex < indexRanges.length ? indexRanges[parentIndex + 1]?.id : undefined
+                const nextParentHasSelectedChild = !!nextParentCaseId && isAnyChildSelected(data, nextParentCaseId)
+                const hasSelectedChild = isAnyChildSelected(data, parentCaseId)
+                const strokeColor = hasSelectedChild || nextParentHasSelectedChild
+                                      ? relationSelectedStrokeColor : relationDefaultStrokeColor
+                const strokeWidth = hasSelectedChild && !nextParentHasSelectedChild
+                                      ? kRelationSelectedStrokeWidth : kRelationStrokeWidth
+                const y1Bottom = parentTableModel.getBottomOfRowModuloScroll(parentIndex)
+                let y2Bottom = childTableModel.getBottomOfRowModuloScroll(lastChildIndex)
+                if (hasSelectedChild && !nextParentHasSelectedChild) {
+                  // subtract one so the thicker relation lines line up with the bottom border of the cells
+                  --y2Bottom
+                }
                 return (
-                  <CurvedSpline
-                    key={`stroke-${parentCaseId}-${index}`}
-                    prevY1={parentTableModel.getTopOfRowModuloScroll(index)}
-                    y1={parentTableModel.getBottomOfRowModuloScroll(index)}
-                    prevY2={childTableModel.getTopOfRowModuloScroll(firstChildIndex)}
-                    y2={childTableModel.getBottomOfRowModuloScroll(lastChildIndex)}
-                    even={(index + 1) % 2 === 0}
-                    lastSelectedCase={lastSelectedCase}
-                    strokeColor={strokeColor}
-                  />
+                  <>
+                    {parentIndex === 0 && hasSelectedChild
+                      ? <CurvedSplineStroke
+                          key={`stroke-${parentCaseId}-top`}
+                          y1={parentTableModel.getTopOfRowModuloScroll(parentIndex)}
+                          y2={childTableModel.getTopOfRowModuloScroll(firstChildIndex)}
+                          strokeColor={strokeColor}
+                          strokeWidth={kRelationStrokeWidth}
+                        />
+                      : null}
+                    <CurvedSplineStroke
+                      key={`stroke-${parentCaseId}-${parentIndex}`}
+                      y1={y1Bottom}
+                      y2={y2Bottom}
+                      strokeColor={strokeColor}
+                      strokeWidth={strokeWidth}
+                    />
+                  </>
                 )
               })}
             </svg>
