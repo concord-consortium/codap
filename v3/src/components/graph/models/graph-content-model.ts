@@ -21,7 +21,7 @@ import { setNiceDomain } from "../../axis/axis-domain-utils"
 import {GraphPlace} from "../../axis-graph-shared"
 import {AxisPlace, AxisPlaces, IAxisTicks, ScaleNumericBaseType, TickFormatter} from "../../axis/axis-types"
 import {
-  AxisModelUnion, EmptyAxisModel, IAxisModel, IAxisModelSnapshot, IAxisModelUnion,
+  AxisModelUnion, EmptyAxisModel, IAxisModel, IAxisModelSnapshot, IAxisModelSnapshotUnion, IAxisModelUnion,
   INumericAxisModelSnapshot, isAxisModelInUnion, isBaseNumericAxisModel
 } from "../../axis/models/axis-model"
 import { CaseData } from "../../data-display/d3-types"
@@ -680,12 +680,14 @@ function preProcessSnapshot(
       }
     }
     // convert legacy count axes to current count axes
-    if (isLegacyCountAxis(newSnap.axes?.x)) {
-      newSnap.axes.x = { ...newSnap.axes.x, type: "count" }
+    const newAxes: Partial<Record<AxisPlace, IAxisModelSnapshotUnion>> = {}
+    if (isLegacyCountAxis(axes?.left)) {
+      newAxes.left = { ...axes.left, type: "count" }
     }
-    if (isLegacyCountAxis(newSnap.axes?.y)) {
-      newSnap.axes.y = { ...newSnap.axes.y, type: "count" }
+    if (isLegacyCountAxis(axes?.bottom)) {
+      newAxes.bottom = { ...axes.bottom, type: "count" }
     }
+    newSnap.axes = { ...axes, ...newAxes }
   }
   return newSnap
 }
