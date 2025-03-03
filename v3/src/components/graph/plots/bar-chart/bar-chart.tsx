@@ -107,7 +107,7 @@ export const BarChart = observer(function BarChart({ abovePointsGroupRef, pixiPo
                   minInCell = maxInCell
                 })
               } else {
-                const maxInCell = bins[primeCat]?.[secCatKey]?.[exPrimeCatKey]?.[exSecCatKey] ?? 0
+                const maxInCell = bins[primeCat]?.[secCat]?.[primeSplitCat]?.[secSplitCat] ?? 0
                 const { x, y, barWidth, barHeight } = barCoverDimensions({
                   subPlotCells, cellIndices: cellData.cell, layout, primCatsCount, maxInCell
                 })
