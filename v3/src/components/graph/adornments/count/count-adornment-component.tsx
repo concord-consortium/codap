@@ -108,7 +108,7 @@ export const CountAdornment = observer(function CountAdornment(props: IAdornment
       // Points whose values match a region's upper boundary are treated differently based on what defines the regions.
       // For regions defined by bins, points matching the upper boundary are placed into the next bin. So we set
       // `inclusiveMax` to false. Otherwise, such points are considered within the boundary and `inclusiveMax` is true.
-      inclusiveMax: !!binnedDotPlot,
+      inclusiveMax: !binnedDotPlot,
       plotHeight,
       plotWidth,
       scale,
