@@ -3,14 +3,14 @@
  */
 
 import { ScaleBand, ScaleLinear, max, range } from "d3"
-import { CaseData } from "../../data-display/d3-types"
-import { IDataSet } from "../../../models/data/data-set"
-import { dataDisplayGetNumericValue } from "../../data-display/data-display-value-utils"
-import { IGraphDataConfigurationModel } from "../models/graph-data-configuration-model"
-import { kMain } from "../../data-display/data-display-types"
-import { GraphLayout } from "../models/graph-layout"
-import { AxisPlace } from "../../axis/axis-types"
-import { SubPlotCells } from "../models/sub-plot-cells"
+import { IDataSet } from "../../../../models/data/data-set"
+import { AxisPlace } from "../../../axis/axis-types"
+import { CaseData } from "../../../data-display/d3-types"
+import { kMain } from "../../../data-display/data-display-types"
+import { dataDisplayGetNumericValue } from "../../../data-display/data-display-value-utils"
+import { IGraphDataConfigurationModel } from "../../models/graph-data-configuration-model"
+import { GraphLayout } from "../../models/graph-layout"
+import { SubPlotCells } from "../../models/sub-plot-cells"
 
 export interface IComputeBinPlacements {
   binWidth?: number
@@ -163,7 +163,7 @@ export const computeBinPlacements = (props: IComputeBinPlacements) => {
       const category = dataset?.getStrValue(anID, secondaryAttrID) ?? kMain
       const extraCategory = dataset?.getStrValue(anID, extraSecondaryAttrID) ?? kMain
       const extraPrimaryCategory = dataset?.getStrValue(anID, extraPrimaryAttrID) ?? kMain
-  
+
       if (!bins[category]) {
         bins[category] = {}
       }

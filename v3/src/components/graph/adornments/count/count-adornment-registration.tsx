@@ -19,7 +19,7 @@ const Controls = () => {
   const adornmentsStore = graphModel.adornmentsStore
   const existingAdornment = adornmentsStore.findAdornmentOfType<ICountAdornmentModel>(kCountType)
   const shouldShowPercentOption = dataConfig?.categoricalAttrCount || adornmentsStore.subPlotsHaveRegions ||
-                                  graphModel.pointDisplayType === "bins"
+                                  graphModel.plotType === "binnedDotPlot"
   const categoricalAttrCount = dataConfig?.categoricalAttrCount ?? 0
   const shouldShowPercentTypeOptions = categoricalAttrCount > 1
   const [enablePercentOptions, setEnablePercentOptions] = useState(existingAdornment?.showPercent)

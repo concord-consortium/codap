@@ -1,10 +1,10 @@
 import {useEffect} from "react"
 import {onAnyAction} from "../../../utilities/mst-utils"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
-import { dataDisplayGetNumericValue } from "../../data-display/data-display-value-utils"
-import {setNiceDomain} from "../utilities/graph-utils"
-import {IGraphContentModel} from "../models/graph-content-model"
+import { setNiceDomain } from "../../axis/axis-domain-utils"
 import {IBaseNumericAxisModel} from "../../axis/models/axis-model"
+import { dataDisplayGetNumericValue } from "../../data-display/data-display-value-utils"
+import {IGraphContentModel} from "../models/graph-content-model"
 
 interface IProps {
   graphModel: IGraphContentModel
