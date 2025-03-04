@@ -135,6 +135,7 @@ Various developer features can be enabled by adding a `debug` local storage key 
 - `cfmLocalStorage` enable the CFM local storage provider so documents can be saved and loaded from the browser's local storage
 - `cfmNoAutoSave` disable CFM auto-save for any document loaded by the CFM
 - `document` this will add the active document as `window.currentDocument`, you can use `currentDocument.toJSON()` to views the current documents content. You can also use `currentDocument.treeManagerAPI.document.toJSON()` to inspect the history of the document.
+- `eventModification` print warnings with stack traces when code is modifying default browser event behavior. See `debug-event-modification.ts` for the list of methods that are monitored.
 - `formulas` print info about recalculating formulas
 - `history` this will: print some info to the console as the history system records changes, print the full history as JSON each time it is loaded from Firestore, and provide a `window.historyDocument` so you can inspect the document while navigating the history.
 - `logger` console log all messages sent to the logging service
