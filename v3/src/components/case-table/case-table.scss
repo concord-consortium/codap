@@ -295,6 +295,22 @@ $table-body-font-size: 8pt;
           background-color: var(--rdg-row-selected-background-color);
         }
       }
+      &.highlight-border-top {
+        .codap-data-cell, .codap-index-cell {
+          border-top: 1px solid var(--rdg-selection-color);
+        }
+      }
+      &.highlight-border-bottom {
+        .codap-data-cell, .codap-index-cell {
+          border-bottom-color: var(--rdg-selection-color);
+        }
+      }
+      &.last-child-case {
+        .codap-data-cell, .codap-index-cell {
+          border-bottom-width: 2px;
+        }
+      }
+
     }
     .codap-index-cell-wrapper {
       display: flex;
