@@ -1,8 +1,17 @@
 import { getSnapshot } from "mobx-state-tree"
+import { kCaseTableTileType } from "../../components/case-table/case-table-defs"
+import { kCaseTableDefaultHeight, kCaseTableDefaultWidth } from "../../components/case-table/case-table-types"
 import { kWebViewTileType } from "../../components/web-view/web-view-defs"
 import { IWebViewSnapshot } from "../../components/web-view/web-view-model"
 import { getPluginsRootUrl } from "../../constants"
 import { createCodapDocument } from "../../models/codap/create-codap-document"
+import { IDocumentModelSnapshot } from "../../models/document/document"
+import { IDocumentMetadata } from "../../models/document/document-metadata"
+import { IFreeTileInRowOptions } from "../../models/document/free-tile-row"
+import { serializeCodapV3Document } from "../../models/document/serialize-document"
+import { addDataSetAndMetadata } from "../../models/shared/shared-data-utils"
+import { ITileModelSnapshotIn } from "../../models/tiles/tile-model"
+import { convertParsedCsvToDataSet, importCsvContent } from "../../utilities/csv-import"
 import { safeJsonParse } from "../../utilities/js-utils"
 import { t } from "../../utilities/translation/translate"
 import { ICodapV2Case, ICodapV2DataContext } from "../../v2/codap-v2-data-set-types"
@@ -12,9 +21,6 @@ import {
   isV2ExternalContext, isV2InternalContext, kV2AppName
 } from "../../v2/codap-v2-types"
 import { importV2Document } from "../../v2/import-v2-document"
-import { IDocumentMetadata } from "../../models/document/document-metadata"
-import { IDocumentModelSnapshot } from "../../models/document/document"
-import { IFreeTileInRowOptions } from "../../models/document/free-tile-row"
 
 const kImporterPluginUrl = "/Importer/index.html?lang=en-US"
 
@@ -66,15 +72,22 @@ function makePluginDocument(gameState: unknown, pluginName: string, pluginPath: 
   return result
 }
 
-function makeCSVDocument(contents: unknown, urlString: string, datasetName: string): IDocumentModelSnapshot {
-  const gameState = {
-    contentType: 'text/csv',
-    url: urlString,
-    text: contents,
-    datasetName,
-    showCaseTable: true
-  }
-  return makePluginDocument(gameState, 'Import CSV', kImporterPluginUrl)
+function makeCSVDocument(contents: string, urlString: string, dataSetName: string): Promise<IDocumentModelSnapshot> {
+  return new Promise<IDocumentModelSnapshot>(function(resolve, reject) {
+    importCsvContent(contents, async (results) => {
+      const dataSet = convertParsedCsvToDataSet(results, dataSetName)
+      const doc = createCodapDocument()
+      const tileSnap: ITileModelSnapshotIn = { content: { type: kCaseTableTileType } }
+      const options: IFreeTileInRowOptions = {
+        x: 5, y: 5, width: kCaseTableDefaultWidth, height: kCaseTableDefaultHeight
+      }
+      const tableTile = doc.content?.insertTileSnapshotInDefaultRow(tileSnap, options)
+      if (tableTile) {
+        addDataSetAndMetadata(tableTile, dataSet, true)
+        resolve(serializeCodapV3Document(doc))
+      }
+    })
+  })
 }
 
 function makeGeoJSONDocument(contents: unknown, urlString: string, datasetName: string): IDocumentModelSnapshot {

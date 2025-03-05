@@ -19,7 +19,7 @@ import { kCaseTableTileType, kV2CaseTableType } from "./case-table-defs"
 import { CaseTableInspector } from "./case-table-inspector"
 import { CaseTableModel, ICaseTableSnapshot, isCaseTableModel } from "./case-table-model"
 import { CaseTableToolShelfButton } from "./case-table-tool-shelf-button"
-import { kCaseTableDefaultWidth } from "./case-table-types"
+import { kCaseTableDefaultHeight, kCaseTableDefaultWidth } from "./case-table-types"
 
 export const kCaseTableIdPrefix = "TABL"
 
@@ -51,7 +51,7 @@ registerTileComponentInfo({
     redoStringKey: "V3.Redo.caseTable.create"
   },
   defaultWidth: kCaseTableDefaultWidth,
-  defaultHeight: 200
+  defaultHeight: kCaseTableDefaultHeight
 })
 
 const v2TableExporter: V2TileExportFn = ({ tile }) => {
