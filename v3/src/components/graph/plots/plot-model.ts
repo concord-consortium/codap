@@ -50,6 +50,9 @@ export const PlotModel = types
     get displayType(): PointDisplayType {
       return "points"
     },
+    get hasPointsFusedIntoBars(): boolean {
+      return false
+    },
     get hasCountAxis(): boolean {
       return false
     },

@@ -23,6 +23,9 @@ export const BarChartModel = DotChartModel
     get displayType(): PointDisplayType {
       return "bars"
     },
+    get hasPointsFusedIntoBars(): boolean {
+      return true
+    },
     get hasCountAxis(): boolean {
       return true
     },
@@ -36,7 +39,7 @@ export const BarChartModel = DotChartModel
       return self.getValidCountAxis(place, attrType, axisModel)
     },
     get showZeroLine() {
-      return false
+      return true
     },
     barTipText(props: IBarTipTextProps) {
       const { dataset } = self.dataConfiguration ?? {}

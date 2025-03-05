@@ -18,6 +18,9 @@ export const HistogramModel = BinnedDotPlotModel
     get displayType(): PointDisplayType {
       return "bars"
     },
+    get hasPointsFusedIntoBars(): boolean {
+      return true
+    },
     get hasCountAxis(): boolean {
       return true
     },
