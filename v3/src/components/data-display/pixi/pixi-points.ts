@@ -197,7 +197,7 @@ export class PixiPoints {
     this.renderer?.render(this.stage)
   }
 
-  resize(width: number, height: number, numColumns?: number, numRows?: number) {
+  resize(width: number, height: number, xCats = 1, yCats = 1, topCats = 1, rightCats = 1) {
     // We only set the background size if the width and height are valid. If we ever set width/height of background to
     // negative values, the background won't be able to detect pointer events.
     if (width > 0 && height > 0) {
@@ -207,22 +207,26 @@ export class PixiPoints {
       this.startRendering()
     }
 
-    if (numColumns !== undefined && numRows !== undefined) {
-      this.subPlotMasks = []
-      const maskWidth = width / numColumns
-      const maskHeight = height / numRows
-      // These two for loops follow order of the subPlots ordering. Subplots seem to be ordered by columns first (left
-      // to right), then rows (bottom to top).
-      for (let c = 0; c < numColumns; c++) {
-        for (let r = numRows - 1; r >= 0; r--) {
-          const mask = new PIXI.Graphics()
-            .rect(c * maskWidth, r * maskHeight, maskWidth, maskHeight)
-            .fill(0xffffff)
-          this.subPlotMasks.push(mask)
+    const maskWidth = width / (xCats * topCats)
+    const maskHeight = height / (yCats * rightCats)
+
+    // masks are pushed into the array so that their index corresponds to the cellKey index in the data configuration
+
+    this.subPlotMasks = []
+    for (let top = 0; top < topCats; ++top) {
+      // vertical axis categories are rendered bottom to top, but coords are top to bottom
+      for (let right = rightCats - 1; right >= 0; --right) {
+        for (let left = yCats - 1; left >= 0; --left) {
+          for (let bottom = 0; bottom < xCats; ++bottom) {
+            const r = right * yCats + left
+            const c = top * xCats + bottom
+            const mask = new PIXI.Graphics()
+              .rect(c * maskWidth, r * maskHeight, maskWidth, maskHeight)
+              .fill(0xffffff)
+            this.subPlotMasks.push(mask)
+          }
         }
       }
-    } else {
-      this.subPlotMasks = []
     }
   }
 
