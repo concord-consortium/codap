@@ -11,5 +11,8 @@ export const LinePlotModel = DotPlotModel
   .views(() => ({
     get displayType(): PointDisplayType {
       return "bars"
+    },
+    get showZeroLine() {
+      return true
     }
   }))

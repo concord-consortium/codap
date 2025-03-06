@@ -93,7 +93,7 @@ export const GraphContentModel = DataDisplayContentModel
       return self.plot.type
     },
     get pointsFusedIntoBars() {
-      return self.plot.displayType === "bars"
+      return self.plot.hasPointsFusedIntoBars
     },
     get graphPointLayerModel(): IGraphPointLayerModel {
       return self.layers[0] as IGraphPointLayerModel
