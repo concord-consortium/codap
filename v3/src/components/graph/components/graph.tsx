@@ -115,7 +115,10 @@ export const Graph = observer(function Graph({graphController, setGraphRef, pixi
         .attr("width", `${Math.max(0, layout.plotWidth)}px`)
         .attr("height", `${Math.max(0, layout.plotHeight)}px`)
 
-      pixiPoints?.resize(layout.plotWidth, layout.plotHeight, layout.numColumns, layout.numRows)
+      const { xCats, yCats, topCats, rightCats } = graphModel.dataConfiguration.getCategoriesOptions()
+      const xCellCount = xCats.length * topCats.length
+      const yCellCount = yCats.length * rightCats.length
+      pixiPoints?.resize(layout.plotWidth, layout.plotHeight, xCellCount, yCellCount)
       pixiPoints?.setPointsMask(graphModel.dataConfiguration.caseDataWithSubPlot)
     }
   }, [dataset, graphModel.dataConfiguration, layout, layout.plotHeight, layout.plotWidth, pixiPoints, xScale])
