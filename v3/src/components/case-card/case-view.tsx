@@ -11,6 +11,7 @@ import { createAttributesNotification } from "../../models/data/data-set-notific
 import { uiState } from "../../models/ui-state"
 import { uniqueName } from "../../utilities/js-utils"
 import { IDataSet } from "../../models/data/data-set"
+import { colorCycleClass } from "../case-tile-common/case-tile-utils"
 import { CaseCardCollectionSpacer } from "./case-card-collection-spacer"
 import { CaseCardHeader } from "./case-card-header"
 
@@ -26,16 +27,11 @@ interface ICaseViewProps {
   onNewCollectionDrop: (dataSet: IDataSet, attrId: string, beforeCollectionId: string) => void
 }
 
-const colorCycleClass = (level: number) => {
-  const colorCycleCount = 5
-  // e.g. `color-cycle-1`, `color-cycle-2`, etc.
-  return `color-cycle-${level % colorCycleCount + 1}`
-}
-
 export const CaseView = observer(function CaseView(props: ICaseViewProps) {
   const {cases, level, onSelectCases, onNewCollectionDrop, displayedCaseLineage = []} = props
   const cardModel = useCaseCardModel()
   const data = cardModel?.data
+  const collectionCount = data?.collections.length ?? 1
   const collectionId = useCollectionContext()
   const collection = data?.getCollection(collectionId)
   const initialSelectedCase = collection?.cases.find(c => c.__id__ === displayedCaseLineage[level])
@@ -85,7 +81,7 @@ export const CaseView = observer(function CaseView(props: ICaseViewProps) {
 
   return (
     <>
-    <div className={`case-card-view fadeIn ${colorCycleClass(level)}`} data-testid="case-card-view">
+    <div className={`case-card-view fadeIn ${colorCycleClass(level, collectionCount)}`} data-testid="case-card-view">
       {level === 0 && <CaseCardCollectionSpacer onDrop={handleNewCollectionDrop} collectionId={collectionId}/>}
       <CaseCardHeader cases={cases} level={level}/>
       <div className="case-card-attributes">

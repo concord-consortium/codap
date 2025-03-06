@@ -1,3 +1,4 @@
+import { clsx } from "clsx"
 import { comparer } from "mobx"
 import { observer } from "mobx-react-lite"
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
@@ -26,7 +27,7 @@ import { IAttribute } from "../../models/data/attribute"
 import { IDataSet } from "../../models/data/data-set"
 import { createAttributesNotification } from "../../models/data/data-set-notifications"
 import {
-  collectionCaseIdFromIndex, collectionCaseIndexFromId, selectCases, setSelectedCases
+  collectionCaseIdFromIndex, collectionCaseIndexFromId, isAnyChildSelected, selectCases, setSelectedCases
 } from "../../models/data/data-set-utils"
 import { uiState } from "../../models/ui-state"
 import { uniqueName } from "../../utilities/js-utils"
@@ -67,6 +68,7 @@ function getCaseIdFromEvent(event: React.PointerEvent) {
 }
 
 interface IProps {
+  collectionIndex: number
   onMount: (collectionId: string) => void
   onNewCollectionDrop: OnNewCollectionDropFn
   onTableScroll: OnTableScrollFn
@@ -75,16 +77,14 @@ interface IProps {
 }
 export const CollectionTable = observer(function CollectionTable(props: IProps) {
   const {
-    onMount, onNewCollectionDrop, onScrollClosestRowIntoView, onScrollRowRangeIntoView, onTableScroll
+    collectionIndex, onMount, onNewCollectionDrop, onScrollClosestRowIntoView, onScrollRowRangeIntoView, onTableScroll
   } = props
   const data = useDataSetContext()
   const collectionId = useCollectionContext()
+  const collection = data?.getCollection(collectionId)
   const caseTableModel = useCaseTableModel()
   const collectionTableModel = useCollectionTableModel()
   const gridRef = useRef<DataGridHandle>(null)
-  const selectedFillColor = gridRef.current?.element &&
-                              getComputedStyle(gridRef.current.element)
-                                .getPropertyValue("--rdg-row-selected-background-color") || undefined
   const visibleAttributes = useVisibleAttributes(collectionId)
   const { selectedRows, setSelectedRows, handleCellClick } =
     useSelectedRows({ gridRef, onScrollClosestRowIntoView, onScrollRowRangeIntoView })
@@ -259,7 +259,6 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
             let caseIds = [nextCaseId]
             setSelectedCases([nextCaseId], data)
             // loop through collections and scroll newly selected child cases into view
-            const collection = data?.getCollection(collectionId)
             for (let childCollection = collection?.child; childCollection; childCollection = childCollection?.child) {
               const childCaseIds: string[] = []
               const childIndices: number[] = []
@@ -363,7 +362,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
     return rowIdx
   }
 
-   const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+  const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
     initialPointerDownPosition.current = { x: event.clientX, y: event.clientY }
     const startRowIdx = getRowIndexFromEvent(event)
     if (startRowIdx != null) {
@@ -405,21 +404,39 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
 
   const dragId = String(active?.id)
   const showDragOverlay = dragId.includes(kInputRowKey) && dragId.includes(collectionId)
+  const rowClass = (row: TRow) => {
+    const caseIndex = collectionCaseIndexFromId(row.__id__, data, collectionId)
+    const prevCaseIndex = caseIndex != null ? caseIndex - 1 : undefined
+    const prevCaseId = prevCaseIndex != null ? collection?.caseIds[prevCaseIndex] : undefined
+    const nextCaseIndex = caseIndex != null ? caseIndex + 1 : undefined
+    const nextCaseId = nextCaseIndex != null ? collection?.caseIds[nextCaseIndex] : undefined
+    const prevCaseHasSelectedChild = !!prevCaseId && isAnyChildSelected(data, prevCaseId)
+    const hasSelectedChild = isAnyChildSelected(data, row.__id__)
+    const nextCaseHasSelectedChild = !!nextCaseId && isAnyChildSelected(data, nextCaseId)
+    const parentCaseChildren = data?.getParentCase(row.__id__, collectionId)?.childCaseIds ?? []
+    const isLastChild = parentCaseChildren[parentCaseChildren.length - 1] === row.__id__
+
+    return clsx({
+      "highlight-border-top": hasSelectedChild && !prevCaseHasSelectedChild,
+      "highlight-border-bottom": hasSelectedChild && !nextCaseHasSelectedChild,
+      "last-child-case": isLastChild
+    })
+  }
 
   return (
     <div className={`collection-table collection-${collectionId}`}>
-      <CollectionTableSpacer selectedFillColor={selectedFillColor}
+      <CollectionTableSpacer gridElt={gridRef.current?.element}
         onWhiteSpaceClick={handleWhiteSpaceClick} onDrop={handleNewCollectionDrop} />
       <div className="collection-table-and-title" ref={setNodeRef} onClick={handleClick}
             onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={handlePointerLeaveOrUp}
             onPointerLeave={handlePointerLeaveOrUp}>
-        <CollectionTitle onAddNewAttribute={handleAddNewAttribute} showCount={true} />
+        <CollectionTitle onAddNewAttribute={handleAddNewAttribute} showCount={true} collectionIndex={collectionIndex}/>
         <DataGrid ref={gridRef} className="rdg-light" data-testid="collection-table-grid" renderers={renderers}
           columns={columns} rows={rows} headerRowHeight={+styles.headerRowHeight} rowKeyGetter={rowKey}
           rowHeight={rowHeight} selectedRows={selectedRows} onSelectedRowsChange={setSelectedRows}
           columnWidths={columnWidths} onColumnResize={handleColumnResize} onCellClick={handleCellClick}
           onCellKeyDown={handleCellKeyDown} onRowsChange={handleRowsChange} onScroll={handleGridScroll}
-          onSelectedCellChange={handleSelectedCellChange}/>
+          onSelectedCellChange={handleSelectedCellChange} rowClass={rowClass}/>
         {showDragOverlay && <RowDragOverlay rows={rows} width={kIndexColumnWidth}/>}
       </div>
     </div>

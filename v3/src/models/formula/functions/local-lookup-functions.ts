@@ -1,77 +1,26 @@
 import { MathNode } from "mathjs"
 import { CODAPMathjsFunctionRegistry, CurrentScope, FValue } from "../formula-types"
+import { aggregateFnWithFilterFactory, cachedAggregateFnFactory } from "./aggregate-functions"
 import { UNDEF_RESULT, evaluateNode, getRootScope, isValueTruthy } from "./function-utils"
 
-export const semiAggregateFunctions: CODAPMathjsFunctionRegistry = {
-  // first(expression, filter)
+export const localLookupFunctions: CODAPMathjsFunctionRegistry = {
+  // first(expression, filterExpression)
   first: {
     numOfRequiredArguments: 1,
-    // expression and filter are evaluated as aggregate symbols
-    isSemiAggregate: [true, true],
-    evaluateRaw: (args: MathNode[], mathjs: any, currentScope: CurrentScope) => {
-      const [ expression, filter ] = args
-
-      const scope = getRootScope(currentScope)
-      const caseCount = scope.getNumberOfCases()
-      const caseGroupId = scope.getCaseGroupId()
-      const cacheKey = `first(${args.toString()})-${caseGroupId}`
-      let result = scope.getCached<Maybe<FValue>>(cacheKey)
-
-      if (result == null) {
-        // loop until we have a valid result (or reach the end)
-        for (let index = 0; result == null && index < caseCount; ++index) {
-          scope.withCustomCasePointer(() => {
-            if (scope.getCaseGroupId() === caseGroupId) {
-              const filterValue = filter ? evaluateNode(filter, scope) : true
-              if (isValueTruthy(filterValue)) {
-                result = evaluateNode(expression, scope)
-              }
-            }
-          }, index)
-        }
-        if (result != null) {
-          scope.setCached(cacheKey, result)
-        }
-      }
-
-      return result ?? UNDEF_RESULT
-    }
+    isAggregate: true,
+    cachedEvaluateFactory: cachedAggregateFnFactory,
+    evaluateRaw: aggregateFnWithFilterFactory(values => values[0])
   },
-  // last(expression, filter)
+
+  // last(expression, filterExpression)
   last: {
     numOfRequiredArguments: 1,
-    // expression and filter are evaluated as aggregate symbols
-    isSemiAggregate: [true, true],
-    evaluateRaw: (args: MathNode[], mathjs: any, currentScope: CurrentScope) => {
-      const [ expression, filter ] = args
-
-      const scope = getRootScope(currentScope)
-      const caseCount = scope.getNumberOfCases()
-      const caseGroupId = scope.getCaseGroupId()
-      const cacheKey = `last(${args.toString()})-${caseGroupId}`
-      let result = scope.getCached<Maybe<FValue>>(cacheKey)
-
-      if (result == null) {
-        // loop until the end, tracking the last valid result
-        for (let index = 0; index < caseCount; ++index) {
-          scope.withCustomCasePointer(() => {
-            if (scope.getCaseGroupId() === caseGroupId) {
-              const filterValue = filter ? evaluateNode(filter, scope) : true
-              if (isValueTruthy(filterValue)) {
-                result = evaluateNode(expression, scope)
-              }
-            }
-          }, index)
-        }
-        if (result != null) {
-          scope.setCached(cacheKey, result)
-        }
-      }
-
-      return result ?? UNDEF_RESULT
-    }
+    isAggregate: true,
+    cachedEvaluateFactory: cachedAggregateFnFactory,
+    evaluateRaw: aggregateFnWithFilterFactory(values => values[values.length - 1])
   },
-  // next(expression, defaultValue, filter)
+
+  // next(expression, defaultValue, filterExpression)
   next: {
     numOfRequiredArguments: 1,
     // expression and filter are evaluated as aggregate symbols, defaultValue is not - it depends on case index
@@ -136,7 +85,7 @@ export const semiAggregateFunctions: CODAPMathjsFunctionRegistry = {
     }
   },
 
-  // prev(expression, defaultValue, filter)
+  // prev(expression, defaultValue, filterExpression)
   prev: {
     numOfRequiredArguments: 1,
     // Circular reference might be used to define a formula that calculates the cumulative value, e.g.:

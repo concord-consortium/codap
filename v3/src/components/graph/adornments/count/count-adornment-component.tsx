@@ -9,6 +9,7 @@ import { useAdornmentAttributes } from "../../hooks/use-adornment-attributes"
 import { useAdornmentCells } from "../../hooks/use-adornment-cells"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
 import { useGraphDataConfigurationContext } from "../../hooks/use-graph-data-configuration-context"
+import { isBinnedDotPlotModel } from "../../plots/binned-dot-plot/binned-dot-plot-model"
 import { percentString } from "../../utilities/graph-utils"
 import { IAdornmentComponentProps } from "../adornment-component-info"
 import { kDefaultFontSize } from "../adornment-types"
@@ -25,6 +26,7 @@ export const CountAdornment = observer(function CountAdornment(props: IAdornment
   const { xScale, yScale } = useAdornmentAttributes()
   const dataConfig = useGraphDataConfigurationContext()
   const graphModel = useGraphContentModelContext()
+  const binnedDotPlot = isBinnedDotPlotModel(graphModel.plot) ? graphModel.plot : undefined
   const adornmentsStore = graphModel?.adornmentsStore
   const primaryAttrRole = dataConfig?.primaryRole ?? "x"
   const scale = primaryAttrRole === "x" ? xScale : yScale
@@ -45,8 +47,9 @@ export const CountAdornment = observer(function CountAdornment(props: IAdornment
       // Sub plot regions can be defined by either bin boundaries when points are grouped into bins, or by
       // instances of the movable value adornment. It should not be possible to have both bin boundaries and
       // movable values present at the same time.
-      if (graphModel.pointDisplayType === "bins") {
-        const { binWidth, minBinEdge, maxBinEdge, totalNumberOfBins } = graphModel.binDetails()
+      // access plot type so the autorun below is triggered when the plot type changes
+      if (graphModel.plotType === "binnedDotPlot" && binnedDotPlot && dataConfig) {
+        const { binWidth, minBinEdge, maxBinEdge, totalNumberOfBins } = binnedDotPlot.binDetails() ?? {}
         return binWidth !== undefined ? [
           // Build and spread an array of numeric values corresponding to the bin boundaries. Using totalNumberOfBins
           // for length, start at minBinEdge and increment by binWidth using each bin's index. Afterward, add
@@ -56,7 +59,7 @@ export const CountAdornment = observer(function CountAdornment(props: IAdornment
         ] : []
       }
       return adornmentsStore?.subPlotRegionBoundaries(instanceKey, scale) ?? []
-  }, [adornmentsStore, graphModel, instanceKey, scale])
+  }, [adornmentsStore, binnedDotPlot, dataConfig, graphModel, instanceKey, scale])
 
   const subPlotRegionBoundariesRef = useRef(subPlotRegionBoundaries())
 
@@ -93,7 +96,7 @@ export const CountAdornment = observer(function CountAdornment(props: IAdornment
     //
     // It should not be possible to have both bin boundaries and movable values present at the same time.
 
-    if (subPlotRegionBoundariesRef.current.length < 3 || graphModel.plotType !== "dotPlot") {
+    if (subPlotRegionBoundariesRef.current.length < 3 || !graphModel.plot.isUnivariateNumeric) {
       // If there are no bin boundaries or movable values present, we just show a single case count.
       setDisplayCount(<div>{textContent}</div>)
       return
@@ -105,7 +108,7 @@ export const CountAdornment = observer(function CountAdornment(props: IAdornment
       // Points whose values match a region's upper boundary are treated differently based on what defines the regions.
       // For regions defined by bins, points matching the upper boundary are placed into the next bin. So we set
       // `inclusiveMax` to false. Otherwise, such points are considered within the boundary and `inclusiveMax` is true.
-      inclusiveMax: graphModel.pointDisplayType !== "bins",
+      inclusiveMax: !binnedDotPlot,
       plotHeight,
       plotWidth,
       scale,
@@ -115,7 +118,7 @@ export const CountAdornment = observer(function CountAdornment(props: IAdornment
     const className = clsx("sub-count",
       {"x-axis": primaryAttrRole === "x"},
       {"y-axis": primaryAttrRole === "y"},
-      {"binned-points-count": graphModel.pointDisplayType === "bins"}
+      {"binned-points-count": !!binnedDotPlot}
     )
     setDisplayCount(
       <>
@@ -131,8 +134,8 @@ export const CountAdornment = observer(function CountAdornment(props: IAdornment
         })}
       </>
     )
-  }, [casesInPlot, cellKey, dataConfig, graphModel.plotType, graphModel.pointDisplayType, model, plotHeight,
-      plotWidth, primaryAttrRole, scale, textContent])
+  }, [binnedDotPlot, casesInPlot, cellKey, dataConfig, graphModel, model,
+      plotHeight, plotWidth, primaryAttrRole, scale, textContent])
 
   useEffect(function resizeTextOnCellWidthChange() {
     return mstAutorun(() => {
@@ -152,22 +155,22 @@ export const CountAdornment = observer(function CountAdornment(props: IAdornment
 
   useEffect(function refreshOnSubPlotRegionChange() {
     return mstReaction(
-      () => graphModel.binWidth,
+      () => binnedDotPlot?.binWidth,
       () => {
-        if (graphModel.pointDisplayType === "bins") {
+        if (binnedDotPlot) {
           resizeText()
           prevSubPlotRegionWidth.current = plotWidth / subPlotRegionBoundariesRef.current.length
         }
-      }, { name: "CountAdornment.refreshOnSubPlotRegionChange" }, graphModel
+      }, { name: "CountAdornment.refreshOnSubPlotRegionChange" }, binnedDotPlot
     )
-  }, [graphModel, plotWidth, resizeText])
+  }, [binnedDotPlot, plotWidth, resizeText])
 
   useEffect(function refreshShowPercentOption() {
     return mstAutorun(
       () => {
         // set showPercent to false if attributes change to a configuration that doesn't support percent
         const shouldShowPercentOption = !!dataConfig?.categoricalAttrCount || adornmentsStore.subPlotsHaveRegions ||
-                                        graphModel.pointDisplayType === "bins"
+                                        !!binnedDotPlot
         if (!shouldShowPercentOption && model?.showPercent) {
           graphModel.applyModelChange(() => {
             model.setShowPercent(false)
@@ -178,7 +181,7 @@ export const CountAdornment = observer(function CountAdornment(props: IAdornment
           })
         }
      }, { name: "CountAdornment.refreshPercentOption"}, model)
-  }, [adornmentsStore, dataConfig, graphModel, model])
+  }, [adornmentsStore, binnedDotPlot, dataConfig, graphModel, model])
   prf.end("CountAdornment.render")
   return (
     <div

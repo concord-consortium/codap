@@ -1,15 +1,15 @@
 import { observer } from "mobx-react-lite"
 import React, { useCallback, useEffect, useRef } from "react"
 import { createPortal } from "react-dom"
-import { kMain } from "../../data-display/data-display-types"
-import { IBarCover, PlotProps } from "../graphing-types"
-import { usePlotResponders } from "../hooks/use-plot"
-import { setPointCoordinates } from "../utilities/graph-utils"
-import { useChartDots } from "../hooks/use-chart-dots"
-import { numericSortComparator } from "../../../utilities/data-utils"
-import { barCoverDimensions, renderBarCovers } from "../utilities/bar-utils"
+import { numericSortComparator } from "../../../../utilities/data-utils"
+import { kMain } from "../../../data-display/data-display-types"
+import { IBarCover, IPlotProps } from "../../graphing-types"
+import { useChartDots } from "../../hooks/use-chart-dots"
+import { usePlotResponders } from "../../hooks/use-plot"
+import { setPointCoordinates } from "../../utilities/graph-utils"
+import { barCoverDimensions, renderBarCovers } from "../bar-utils"
 
-export const DotChartBars = observer(function DotChartBars({ abovePointsGroupRef, pixiPoints }: PlotProps) {
+export const BarChart = observer(function BarChart({ abovePointsGroupRef, pixiPoints }: IPlotProps) {
   const { dataset, graphModel, isAnimating, layout, primaryScreenCoord, secondaryScreenCoord,
           refreshPointSelection, subPlotCells } = useChartDots(pixiPoints)
   const barCoversRef = useRef<SVGGElement>(null)
@@ -107,7 +107,7 @@ export const DotChartBars = observer(function DotChartBars({ abovePointsGroupRef
                   minInCell = maxInCell
                 })
               } else {
-                const maxInCell = bins[primeCat]?.[secCatKey]?.[exPrimeCatKey]?.[exSecCatKey] ?? 0
+                const maxInCell = bins[primeCat]?.[secCat]?.[primeSplitCat]?.[secSplitCat] ?? 0
                 const { x, y, barWidth, barHeight } = barCoverDimensions({
                   subPlotCells, cellIndices: cellData.cell, layout, primCatsCount, maxInCell
                 })

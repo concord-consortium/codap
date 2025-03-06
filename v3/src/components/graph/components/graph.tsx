@@ -12,8 +12,9 @@ import {isUndoingOrRedoing} from "../../../models/history/tree-types"
 import {mstReaction} from "../../../utilities/mst-reaction"
 import {onAnyAction} from "../../../utilities/mst-utils"
 import { t } from "../../../utilities/translation/translate"
+import { setNiceDomain } from "../../axis/axis-domain-utils"
 import {GraphPlace} from "../../axis-graph-shared"
-import { EmptyAxisModel, IBaseNumericAxisModel, isNumericAxisModel } from "../../axis/models/axis-model"
+import { IBaseNumericAxisModel } from "../../axis/models/axis-model"
 import {AxisPlace, AxisPlaces} from "../../axis/axis-types"
 import {PixiPointsArray} from "../../data-display/pixi/pixi-points"
 import {Background} from "../../data-display/components/background"
@@ -25,21 +26,23 @@ import {useDataDisplayAnimation} from "../../data-display/hooks/use-data-display
 import {isSetAttributeIDAction} from "../../data-display/models/display-model-actions"
 import {MarqueeState} from "../../data-display/models/marquee-state"
 import {Adornments} from "../adornments/components/adornments"
-import {kGraphClass} from "../graphing-types"
+import {IPlotProps, kGraphClass, PlotType} from "../graphing-types"
 import {useGraphContentModelContext} from "../hooks/use-graph-content-model-context"
 import {GraphDataConfigurationContext} from "../hooks/use-graph-data-configuration-context"
 import {useGraphLayoutContext} from "../hooks/use-graph-layout-context"
 import {useGraphModel} from "../hooks/use-graph-model"
 import {GraphController} from "../models/graph-controller"
-import {setNiceDomain} from "../utilities/graph-utils"
-import {CaseDots} from "./casedots"
-import {DotChart} from "./dot-chart"
-import {DotPlotDots} from "./dotplotdots"
+import { BarChart } from "../plots/bar-chart/bar-chart"
+import { BinnedDotPlot } from "../plots/binned-dot-plot/binned-dot-plot"
+import {CasePlot} from "../plots/case-plot/case-plot"
+import { DotChart } from "../plots/dot-chart/dot-chart"
+import { DotLinePlot } from "../plots/dot-plot/dot-line-plot"
+import { Histogram } from "../plots/histogram/histogram"
+import {ScatterPlot} from "../plots/scatter-plot/scatter-plot"
 import {DroppableAddAttribute} from "./droppable-add-attribute"
 import {DroppablePlot} from "./droppable-plot"
 import {GraphAxis} from "./graph-axis"
 import { ParentToggles } from "./parent-toggles"
-import {ScatterDots} from "./scatterdots"
 
 import "./graph.scss"
 
@@ -64,8 +67,6 @@ export const Graph = observer(function Graph({graphController, setGraphRef, pixi
     backgroundSvgRef = useRef<SVGGElement>(null),
     pixiContainerRef = useRef<SVGForeignObjectElement>(null),
     prevAttrCollectionsMapRef = useRef<Record<string, string>>({}),
-    xAttrID = graphModel.getAttributeID('x'),
-    yAttrID = graphModel.getAttributeID('y'),
     graphRef = useRef<HTMLDivElement | null>(null)
 
   if (pixiPoints?.canvas && pixiContainerRef.current && pixiContainerRef.current.children.length === 0) {
@@ -217,7 +218,7 @@ export const Graph = observer(function Graph({graphController, setGraphRef, pixi
       graphModel.dataConfiguration.removeYAttributeWithID(idOfAttributeToRemove)
       const yAxisModel = graphModel.getAxis('left') as IBaseNumericAxisModel
       const yValues = graphModel.dataConfiguration.numericValuesForAttrRole('y') ?? []
-      setNiceDomain(yValues, yAxisModel, graphModel.axisDomainOptions)
+      setNiceDomain(yValues, yAxisModel, graphModel.plot.axisDomainOptions)
     } else {
       dataset && handleChangeAttribute(place, dataset, '', idOfAttributeToRemove)
     }
@@ -254,36 +255,17 @@ export const Graph = observer(function Graph({graphController, setGraphRef, pixi
     return () => disposer?.()
   }, [graphController, layout, graphModel, startAnimation])
 
-  useEffect(function handlePointsFusedIntoBars() {
-    return mstReaction(
-      () => graphModel.pointsFusedIntoBars,
-      (pointsFusedIntoBars) => {
-        const dataConfiguration = graphModel.dataConfiguration
-        const { secondaryRole } = dataConfiguration
-        const secondaryPlace = secondaryRole === "y" ? "left" : "bottom"
-        if (pointsFusedIntoBars) {
-          graphModel.setPointConfig(graphModel.plotType !== "dotPlot" ? "bars" : "histogram")
-          layout.setAxisScaleType(secondaryPlace, "linear")
-          graphModel.setBarCountAxis()
-        }
-        else {
-          graphModel.setPointConfig(graphModel.pointsAreBinned ? "bins" : "points")
-          if (isNumericAxisModel(graphModel.getAxis(secondaryPlace))) {
-            graphModel.setAxis(secondaryPlace, EmptyAxisModel.create({ place: secondaryPlace }))
-          }
-        }
-      },
-      {name: "Graph.handlePointsFusedIntoBars"}, graphModel
-    )
-  }, [graphController, graphModel, layout])
-
   const renderPlotComponent = () => {
-    const props = {xAttrID, yAttrID, pixiPoints, abovePointsGroupRef},
-      typeToPlotComponentMap = {
-        casePlot: <CaseDots {...props}/>,
+    const props: IPlotProps = {pixiPoints, abovePointsGroupRef},
+      typeToPlotComponentMap: Record<PlotType, React.JSX.Element> = {
+        casePlot: <CasePlot {...props}/>,
         dotChart: <DotChart {...props}/>,
-        dotPlot: <DotPlotDots {...props}/>,
-        scatterPlot: <ScatterDots {...props}/>
+        barChart: <BarChart {...props}/>,
+        dotPlot: <DotLinePlot {...props}/>,
+        binnedDotPlot: <BinnedDotPlot {...props}/>,
+        histogram: <Histogram {...props}/>,
+        linePlot: <DotLinePlot {...props}/>,
+        scatterPlot: <ScatterPlot {...props}/>
       }
     return typeToPlotComponentMap[plotType]
   }

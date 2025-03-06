@@ -9,11 +9,11 @@ import { bivariateStatsFunctions } from "./bivariate-stats-functions"
 import { colorFunctions } from "./color-functions"
 import { dateFunctions } from "./date-functions"
 import { evaluateNode, getRootScope } from "./function-utils"
+import { localLookupFunctions } from "./local-lookup-functions"
 import { logicFunctions } from "./logic-functions"
 import { lookupFunctions } from "./lookup-functions"
 import { operators } from "./operators"
 import { otherFunctions } from "./other-functions"
-import { semiAggregateFunctions } from "./semi-aggregate-functions"
 import { stringFunctions } from "./string-functions"
 import { univariateStatsFunctions } from "./univariate-stats-functions"
 
@@ -81,6 +81,8 @@ export const fnRegistry = {
 
   ...stringFunctions,
 
+  ...localLookupFunctions,
+
   ...lookupFunctions,
 
   ...otherFunctions,
@@ -89,9 +91,7 @@ export const fnRegistry = {
 
   ...univariateStatsFunctions,
 
-  ...bivariateStatsFunctions,
-
-  ...semiAggregateFunctions
+  ...bivariateStatsFunctions
 }
 
 export const typedFnRegistry: CODAPMathjsFunctionRegistry = fnRegistry

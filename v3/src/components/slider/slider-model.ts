@@ -88,6 +88,9 @@ export const SliderModel = TileContentModel
       if (value > self.axis.max) return aboveMax(value)
       return value
     },
+    hasBinnedNumericAxis(axisModel: IAxisModel) {
+      return false
+    },
     hasDraggableNumericAxis(axisModel: IAxisModel) {
       return isBaseNumericAxisModel(axisModel)
     },

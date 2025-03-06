@@ -1,15 +1,15 @@
 import { observer } from "mobx-react-lite"
 import * as PIXI from "pixi.js"
 import React, { useCallback, useEffect } from "react"
-import { mstReaction } from "../../../utilities/mst-reaction"
-import { handleClickOnCase } from "../../data-display/data-display-utils"
-import { PlotProps } from "../graphing-types"
-import { useChartDots } from "../hooks/use-chart-dots"
-import { usePlotResponders } from "../hooks/use-plot"
-import { setPointCoordinates } from "../utilities/graph-utils"
-import { IPixiPointMetadata, PixiPointEventHandler } from "../../data-display/pixi/pixi-points"
+import { mstReaction } from "../../../../utilities/mst-reaction"
+import { handleClickOnCase } from "../../../data-display/data-display-utils"
+import { IPixiPointMetadata, PixiPointEventHandler } from "../../../data-display/pixi/pixi-points"
+import { IPlotProps } from "../../graphing-types"
+import { useChartDots } from "../../hooks/use-chart-dots"
+import { usePlotResponders } from "../../hooks/use-plot"
+import { setPointCoordinates } from "../../utilities/graph-utils"
 
-export const DotChartPoints = observer(function DotChartPoints({ pixiPoints }: PlotProps) {
+export const DotChart = observer(function DotChart({ pixiPoints }: IPlotProps) {
   const { dataset, graphModel, isAnimating, primaryScreenCoord, secondaryScreenCoord,
           refreshPointSelection, subPlotCells } = useChartDots(pixiPoints)
 

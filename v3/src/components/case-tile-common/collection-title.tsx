@@ -13,14 +13,18 @@ import { logModelChangeFn } from "../../lib/log-message"
 import { updateCollectionNotification } from "../../models/data/data-set-notifications"
 import { preventCollectionReorg } from "../../utilities/plugin-utils"
 import { t } from "../../utilities/translation/translate"
+import { colorCycleClass } from "./case-tile-utils"
 
 interface IProps {
+  collectionIndex: number
   showCount: boolean
   onAddNewAttribute?: () => void
 }
 
-export const CollectionTitle = observer(function CollectionTitle({onAddNewAttribute, showCount}: IProps) {
+export const CollectionTitle =
+                observer(function CollectionTitle({onAddNewAttribute, showCount, collectionIndex}: IProps) {
   const data = useDataSetContext()
+  const collectionCount = data?.collections.length ?? 1
   const collectionId = useCollectionContext()
   const collection = data?.getCollection(collectionId)
   const collectionName = collection?.name || t("DG.AppController.createDataSet.collectionName")
@@ -109,7 +113,7 @@ export const CollectionTitle = observer(function CollectionTitle({onAddNewAttrib
   const addIconClass = clsx("add-icon", { focused: isTileInFocus })
 
   return (
-    <div className="collection-title-wrapper" ref={titleRef}>
+    <div className={`collection-title-wrapper ${colorCycleClass(collectionIndex, collectionCount)}`} ref={titleRef}>
       <div className="collection-title" style={titleStyle}>
         <Editable value={isEditing ? editingName : displayName}
             onEdit={() => setIsEditing(true)} onSubmit={handleSubmit} onCancel={handleCancel}

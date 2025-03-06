@@ -1,0 +1,5705 @@
+{
+	"name": "roller-coasters-map-measures",
+	"guid": 1,
+	"id": 1,
+	"components": [
+		{
+			"type": "DG.TableView",
+			"guid": 176,
+			"id": 176,
+			"componentStorage": {
+				"isActive": false,
+				"horizontalScrollOffset": 0,
+				"_links_": {
+					"context": {
+						"type": "DG.DataContextRecord",
+						"id": 2
+					}
+				},
+				"attributeWidths": [
+					{
+						"_links_": {
+							"attr": {
+								"type": "DG.Attribute",
+								"id": 4
+							}
+						},
+						"width": 94
+					},
+					{
+						"_links_": {
+							"attr": {
+								"type": "DG.Attribute",
+								"id": 5
+							}
+						},
+						"width": 60
+					},
+					{
+						"_links_": {
+							"attr": {
+								"type": "DG.Attribute",
+								"id": 6
+							}
+						},
+						"width": 45
+					},
+					{
+						"_links_": {
+							"attr": {
+								"type": "DG.Attribute",
+								"id": 7
+							}
+						},
+						"width": 60
+					},
+					{
+						"_links_": {
+							"attr": {
+								"type": "DG.Attribute",
+								"id": 8
+							}
+						},
+						"width": 60
+					},
+					{
+						"_links_": {
+							"attr": {
+								"type": "DG.Attribute",
+								"id": 9
+							}
+						},
+						"width": 60
+					},
+					{
+						"_links_": {
+							"attr": {
+								"type": "DG.Attribute",
+								"id": 10
+							}
+						},
+						"width": 55
+					},
+					{
+						"_links_": {
+							"attr": {
+								"type": "DG.Attribute",
+								"id": 11
+							}
+						},
+						"width": 67
+					},
+					{
+						"_links_": {
+							"attr": {
+								"type": "DG.Attribute",
+								"id": 12
+							}
+						},
+						"width": 66
+					},
+					{
+						"_links_": {
+							"attr": {
+								"type": "DG.Attribute",
+								"id": 13
+							}
+						},
+						"width": 45
+					},
+					{
+						"_links_": {
+							"attr": {
+								"type": "DG.Attribute",
+								"id": 14
+							}
+						},
+						"width": 49
+					},
+					{
+						"_links_": {
+							"attr": {
+								"type": "DG.Attribute",
+								"id": 15
+							}
+						},
+						"width": 56
+					},
+					{
+						"_links_": {
+							"attr": {
+								"type": "DG.Attribute",
+								"id": 16
+							}
+						},
+						"width": 60
+					},
+					{
+						"_links_": {
+							"attr": {
+								"type": "DG.Attribute",
+								"id": 17
+							}
+						},
+						"width": 45
+					},
+					{
+						"_links_": {
+							"attr": {
+								"type": "DG.Attribute",
+								"id": 18
+							}
+						},
+						"width": 55
+					},
+					{
+						"_links_": {
+							"attr": {
+								"type": "DG.Attribute",
+								"id": 45812
+							}
+						},
+						"width": 60
+					},
+					{
+						"_links_": {
+							"attr": {
+								"type": "DG.Attribute",
+								"id": 45813
+							}
+						},
+						"width": 45
+					}
+				],
+				"rowHeights": [
+
+				],
+				"title": "Sample of US Roller Coasters Across Years",
+				"name": "Sample of US Roller Coasters Across Years",
+				"userSetTitle": false,
+				"cannotClose": false
+			},
+			"layout": {
+				"top": 5,
+				"left": 5,
+				"width": 925,
+				"height": 245,
+				"zIndex": 509,
+				"isVisible": false,
+				"right": 930,
+				"bottom": 250
+			},
+			"savedHeight": null
+		},
+		{
+			"type": "DG.CaseCard",
+			"guid": 45916,
+			"id": 45916,
+			"componentStorage": {
+				"isActive": true,
+				"_links_": {
+					"context": {
+						"type": "DG.DataContextRecord",
+						"id": 2
+					}
+				},
+				"title": "Sample of US Roller Coasters Across Years",
+				"name": "Sample of US Roller Coasters Across Years",
+				"userSetTitle": false,
+				"cannotClose": false
+			},
+			"layout": {
+				"top": 5,
+				"left": 5,
+				"width": 200,
+				"height": 399,
+				"zIndex": 510,
+				"isVisible": true,
+				"right": 205,
+				"bottom": 404
+			},
+			"savedHeight": null
+		},
+		{
+			"type": "DG.GuideView",
+			"guid": 45968,
+			"id": 45968,
+			"componentStorage": {
+				"title": "Roller Coasters Guide",
+				"items": [
+					{
+						"itemTitle": "Getting Started",
+						"url": "https://fi-esteem.s3.amazonaws.com/codap_documents/157coasters_getstarted_page1.html"
+					}
+				],
+				"currentItemIndex": 0,
+				"isVisible": false,
+				"userSetTitle": false,
+				"cannotClose": false
+			},
+			"layout": {
+				"left": 765,
+				"top": 105,
+				"width": 365,
+				"height": 400,
+				"zIndex": 508,
+				"isVisible": false,
+				"right": 1345,
+				"bottom": 405
+			},
+			"savedHeight": null
+		},
+		{
+			"type": "DG.MapView",
+			"guid": 46033,
+			"id": 46033,
+			"componentStorage": {
+				"mapModelStorage": {
+					"center": {
+						"lat": 38.46201671708125,
+						"lng": -97.51606877895227
+					},
+					"zoom": 2.789383909482255,
+					"baseMapLayerName": "Topographic",
+					"gridMultiplier": 0.3350000000000001,
+					"layerModels": [
+						{
+							"_links_": {
+								"hiddenCases": [
+
+								],
+								"context": {
+									"type": "DG.DataContextRecord",
+									"id": 2
+								}
+							},
+							"legendRole": 0,
+							"legendAttributeType": 0,
+							"isVisible": true,
+							"areaColor": "#81c57a",
+							"areaTransparency": 1,
+							"areaStrokeColor": "white",
+							"areaStrokeTransparency": "0.6",
+							"strokeSameAsFill": false
+						},
+						{
+							"_links_": {
+								"hiddenCases": [
+
+								],
+								"context": {
+									"type": "DG.DataContextRecord",
+									"id": 2
+								}
+							},
+							"legendRole": 0,
+							"legendAttributeType": 0,
+							"isVisible": true,
+							"pointColor": "#e6805b",
+							"strokeColor": "white",
+							"pointSizeMultiplier": 1,
+							"transparency": 0.85,
+							"strokeTransparency": 0.4,
+							"strokeSameAsFill": false,
+							"pointsShouldBeVisible": true,
+							"grid": {
+								"gridMultiplier": 0.3350000000000001,
+								"isVisible": true
+							},
+							"connectingLines": {
+								"isVisible": false,
+								"enableMeasuresForSelection": false
+							}
+						}
+					]
+				},
+				"title": "Grid Min",
+				"name": "Map",
+				"userSetTitle": true,
+				"cannotClose": false
+			},
+			"layout": {
+				"width": 305,
+				"height": 185,
+				"zIndex": 622,
+				"left": 210,
+				"top": 5,
+				"isVisible": true,
+				"right": 535,
+				"bottom": 615
+			},
+			"savedHeight": null
+		},
+		{
+			"type": "DG.MapView",
+			"guid": 46034,
+			"id": 46034,
+			"componentStorage": {
+				"mapModelStorage": {
+					"center": {
+						"lat": 37.48070319663654,
+						"lng": -98.64135560652574
+					},
+					"zoom": 2.6336263641526383,
+					"baseMapLayerName": "Topographic",
+					"gridMultiplier": 1.9975,
+					"layerModels": [
+						{
+							"_links_": {
+								"hiddenCases": [
+
+								],
+								"context": {
+									"type": "DG.DataContextRecord",
+									"id": 2
+								}
+							},
+							"legendRole": 0,
+							"legendAttributeType": 0,
+							"isVisible": true,
+							"areaColor": "#ff3e00",
+							"areaTransparency": "0.5",
+							"areaStrokeColor": "#81c57a",
+							"areaStrokeTransparency": 1,
+							"strokeSameAsFill": false
+						},
+						{
+							"_links_": {
+								"hiddenCases": [
+
+								],
+								"context": {
+									"type": "DG.DataContextRecord",
+									"id": 2
+								}
+							},
+							"legendRole": 0,
+							"legendAttributeType": 0,
+							"isVisible": true,
+							"pointColor": "#e6805b",
+							"strokeColor": "white",
+							"pointSizeMultiplier": 1,
+							"transparency": 0.85,
+							"strokeTransparency": 0.4,
+							"strokeSameAsFill": false,
+							"pointsShouldBeVisible": true,
+							"grid": {
+								"gridMultiplier": 1.9975,
+								"isVisible": true
+							},
+							"connectingLines": {
+								"isVisible": false,
+								"enableMeasuresForSelection": false
+							}
+						}
+					]
+				},
+				"title": "Grid Max",
+				"name": "Map",
+				"userSetTitle": true,
+				"cannotClose": false
+			},
+			"layout": {
+				"width": 305,
+				"height": 185,
+				"zIndex": 624,
+				"left": 520,
+				"top": 5,
+				"isVisible": true,
+				"right": 825,
+				"bottom": 190
+			},
+			"savedHeight": null
+		},
+		{
+			"type": "DG.MapView",
+			"guid": 46035,
+			"id": 46035,
+			"componentStorage": {
+				"mapModelStorage": {
+					"center": {
+						"lat": 37.607032952109016,
+						"lng": -99.44331104117646
+					},
+					"zoom": 1,
+					"baseMapLayerName": "Topographic",
+					"gridMultiplier": 1,
+					"layerModels": [
+						{
+							"_links_": {
+								"hiddenCases": [
+
+								],
+								"context": {
+									"type": "DG.DataContextRecord",
+									"id": 2
+								}
+							},
+							"legendRole": 0,
+							"legendAttributeType": 0,
+							"isVisible": true,
+							"areaColor": "#ff3e00",
+							"areaTransparency": "0.5",
+							"areaStrokeColor": "white",
+							"areaStrokeTransparency": "0.6",
+							"strokeSameAsFill": true
+						},
+						{
+							"_links_": {
+								"hiddenCases": [
+
+								],
+								"context": {
+									"type": "DG.DataContextRecord",
+									"id": 2
+								}
+							},
+							"legendRole": 0,
+							"legendAttributeType": 0,
+							"isVisible": true,
+							"pointColor": "#e6805b",
+							"strokeColor": "white",
+							"pointSizeMultiplier": 1,
+							"transparency": 0.85,
+							"strokeTransparency": 0.4,
+							"strokeSameAsFill": false,
+							"pointsShouldBeVisible": true,
+							"grid": {
+								"gridMultiplier": 1,
+								"isVisible": true
+							},
+							"connectingLines": {
+								"isVisible": false,
+								"enableMeasuresForSelection": false
+							}
+						}
+					]
+				},
+				"title": "Grid Zoom Out",
+				"name": "Map",
+				"userSetTitle": true,
+				"cannotClose": false
+			},
+			"layout": {
+				"width": 305,
+				"height": 185,
+				"zIndex": 634,
+				"left": 830,
+				"top": 5,
+				"isVisible": true,
+				"right": 1135,
+				"bottom": 190
+			},
+			"savedHeight": null
+		},
+		{
+			"type": "DG.MapView",
+			"guid": 46036,
+			"id": 46036,
+			"componentStorage": {
+				"mapModelStorage": {
+					"center": {
+						"lat": 35.49810420876885,
+						"lng": -98.24480369181984
+					},
+					"zoom": 6.633626364152638,
+					"baseMapLayerName": "Topographic",
+					"gridMultiplier": 1,
+					"layerModels": [
+						{
+							"_links_": {
+								"hiddenCases": [
+
+								],
+								"context": {
+									"type": "DG.DataContextRecord",
+									"id": 2
+								}
+							},
+							"legendRole": 0,
+							"legendAttributeType": 0,
+							"isVisible": true,
+							"areaColor": "#ff3e00",
+							"areaTransparency": "0.5",
+							"areaStrokeColor": "white",
+							"areaStrokeTransparency": "0.6",
+							"strokeSameAsFill": false
+						},
+						{
+							"_links_": {
+								"hiddenCases": [
+
+								],
+								"context": {
+									"type": "DG.DataContextRecord",
+									"id": 2
+								}
+							},
+							"legendRole": 0,
+							"legendAttributeType": 0,
+							"isVisible": true,
+							"pointColor": "#e6805b",
+							"strokeColor": "white",
+							"pointSizeMultiplier": 1.7249999999999999,
+							"transparency": 0.85,
+							"strokeTransparency": 0.4,
+							"strokeSameAsFill": false,
+							"pointsShouldBeVisible": true,
+							"grid": {
+								"gridMultiplier": 1,
+								"isVisible": true
+							},
+							"connectingLines": {
+								"isVisible": false,
+								"enableMeasuresForSelection": false
+							}
+						}
+					]
+				},
+				"title": "Grid Zoom In",
+				"name": "Map",
+				"userSetTitle": true,
+				"cannotClose": false
+			},
+			"layout": {
+				"width": 305,
+				"height": 185,
+				"zIndex": 652,
+				"left": 210,
+				"top": 195,
+				"isVisible": true,
+				"right": 515,
+				"bottom": 380
+			},
+			"savedHeight": null
+		},
+		{
+			"type": "DG.MapView",
+			"guid": 46042,
+			"id": 46042,
+			"componentStorage": {
+				"mapModelStorage": {
+					"center": {
+						"lat": 38.09906325649706,
+						"lng": -100.65155515629597
+					},
+					"zoom": 2.6336263641526383,
+					"baseMapLayerName": "Topographic",
+					"gridMultiplier": 1,
+					"layerModels": [
+						{
+							"_links_": {
+								"hiddenCases": [
+
+								],
+								"context": {
+									"type": "DG.DataContextRecord",
+									"id": 2
+								}
+							},
+							"legendRole": 0,
+							"legendAttributeType": 0,
+							"isVisible": true,
+							"areaColor": "#ff3e00",
+							"areaTransparency": "0.5",
+							"areaStrokeColor": "white",
+							"areaStrokeTransparency": "0.6",
+							"strokeSameAsFill": false
+						},
+						{
+							"_links_": {
+								"hiddenCases": [
+
+								],
+								"context": {
+									"type": "DG.DataContextRecord",
+									"id": 2
+								}
+							},
+							"legendRole": 0,
+							"legendAttributeType": 0,
+							"isVisible": true,
+							"pointColor": "#e6805b",
+							"strokeColor": "white",
+							"pointSizeMultiplier": 1,
+							"transparency": 0.85,
+							"strokeTransparency": 0.4,
+							"strokeSameAsFill": false,
+							"pointsShouldBeVisible": true,
+							"grid": {
+								"gridMultiplier": 1,
+								"isVisible": false
+							},
+							"connectingLines": {
+								"isVisible": true,
+								"enableMeasuresForSelection": false
+							}
+						}
+					]
+				},
+				"title": "Map",
+				"name": "Map",
+				"userSetTitle": false,
+				"cannotClose": false
+			},
+			"layout": {
+				"width": 310,
+				"height": 185,
+				"zIndex": 659,
+				"left": 520,
+				"top": 195,
+				"isVisible": true,
+				"right": 830,
+				"bottom": 380
+			},
+			"savedHeight": null
+		}
+	],
+	"contexts": [
+		{
+			"type": "DG.DataContext",
+			"document": 1,
+			"guid": 2,
+			"id": 2,
+			"flexibleGroupingChangeFlag": true,
+			"name": "157USrollercoasters",
+			"title": "Sample of US Roller Coasters Across Years",
+			"collections": [
+				{
+					"areParentChildLinksConfigured": false,
+					"attrs": [
+						{
+							"name": "State",
+							"type": "nominal",
+							"title": "State",
+							"cid": "id:b7FIvNN0csIAtJdq",
+							"description": "State where the roller coaster is located",
+							"_categoryMap": {
+								"__order": [
+									"Alabama",
+									"Arkansas",
+									"California",
+									"Colorado",
+									"Connecticut",
+									"Florida",
+									"Georgia",
+									"Idaho",
+									"Illinois",
+									"Indiana",
+									"Iowa",
+									"Kentucky",
+									"Louisiana",
+									"Maine",
+									"Maryland",
+									"Massachusetts",
+									"Minnesota",
+									"Missouri",
+									"Nevada",
+									"New Jersey",
+									"New Mexico",
+									"New York",
+									"North Carolina",
+									"Ohio",
+									"Oklahoma",
+									"Pennsylvania",
+									"South Carolina",
+									"Tennessee",
+									"Texas",
+									"Virginia",
+									"Washington",
+									"Wisconsin"
+								],
+								"Tennessee": "#FFB300",
+								"Texas": "#803E75",
+								"Pennsylvania": "#FF6800",
+								"California": "#A6BDD7",
+								"Connecticut": "#C10020",
+								"Washington": "#CEA262",
+								"Colorado": "#817066",
+								"New York": "#007D34",
+								"Florida": "#00538A",
+								"South Carolina": "#F13A13",
+								"Ohio": "#53377A",
+								"Georgia": "#FF8E00",
+								"Missouri": "#B32851",
+								"Illinois": "#F4C800",
+								"Virginia": "#7F180D",
+								"Oklahoma": "#93AA00",
+								"Maryland": "#593315",
+								"Minnesota": "#232C16",
+								"New Jersey": "#FF7A5C",
+								"Idaho": "#F6768E",
+								"Indiana": "#FFB300",
+								"Iowa": "#803E75",
+								"Nevada": "#FF6800",
+								"Wisconsin": "#A6BDD7",
+								"Kentucky": "#C10020",
+								"Maine": "#CEA262",
+								"Arkansas": "#817066",
+								"Massachusetts": "#007D34",
+								"New Mexico": "#00538A",
+								"Louisiana": "#F13A13",
+								"Alabama": "#53377A",
+								"North Carolina": "#FF8E00"
+							},
+							"blockDisplayOfEmptyCategories": true,
+							"editable": true,
+							"hidden": false,
+							"renameable": true,
+							"deleteable": true,
+							"guid": 7,
+							"id": 7,
+							"precision": null,
+							"unit": null
+						},
+						{
+							"name": "Boundary",
+							"type": null,
+							"title": "Boundary",
+							"cid": "id:nxS2FMl7sJ_vNl8Z",
+							"description": "",
+							"blockDisplayOfEmptyCategories": true,
+							"editable": true,
+							"hidden": true,
+							"renameable": true,
+							"deleteable": true,
+							"formula": "lookupBoundary(US_state_boundaries,State)",
+							"guid": 45970,
+							"id": 45970,
+							"precision": 2,
+							"unit": null
+						}
+					],
+					"cases": [
+						{
+							"guid": 46001,
+							"id": 46001,
+							"itemID": "id:RBArxvcJGO5Tl0Jl",
+							"values": {
+								"State": "Alabama"
+							}
+						},
+						{
+							"guid": 45999,
+							"id": 45999,
+							"itemID": "id:aj-oam-DU3GEfjL6",
+							"values": {
+								"State": "Arkansas"
+							}
+						},
+						{
+							"guid": 45974,
+							"id": 45974,
+							"itemID": "id:3BMN7mV-NyKzGPy3",
+							"values": {
+								"State": "California"
+							}
+						},
+						{
+							"guid": 45983,
+							"id": 45983,
+							"itemID": "id:SRcKwllKNk7OiTg5",
+							"values": {
+								"State": "Colorado"
+							}
+						},
+						{
+							"guid": 45981,
+							"id": 45981,
+							"itemID": "id:DXnjLu2wIP4_-S74",
+							"values": {
+								"State": "Connecticut"
+							}
+						},
+						{
+							"guid": 45977,
+							"id": 45977,
+							"itemID": "id:rXWvtjYdFhUaIyaa",
+							"values": {
+								"State": "Florida"
+							}
+						},
+						{
+							"guid": 45978,
+							"id": 45978,
+							"itemID": "id:NdwuofvWyjl4RZ6u",
+							"values": {
+								"State": "Georgia"
+							}
+						},
+						{
+							"guid": 45992,
+							"id": 45992,
+							"itemID": "id:9JKYZKKlN2Omqtgr",
+							"values": {
+								"State": "Idaho"
+							}
+						},
+						{
+							"guid": 45986,
+							"id": 45986,
+							"itemID": "id:oI7o6xu9hvuvi7ds",
+							"values": {
+								"State": "Illinois"
+							}
+						},
+						{
+							"guid": 45993,
+							"id": 45993,
+							"itemID": "id:MNhCDon3BqbOzQrG",
+							"values": {
+								"State": "Indiana"
+							}
+						},
+						{
+							"guid": 45997,
+							"id": 45997,
+							"itemID": "id:4DNu_TUzgxNjiV09",
+							"values": {
+								"State": "Iowa"
+							}
+						},
+						{
+							"guid": 45998,
+							"id": 45998,
+							"itemID": "id:wlFty2ZhrVrOxChU",
+							"values": {
+								"State": "Kentucky"
+							}
+						},
+						{
+							"guid": 46004,
+							"id": 46004,
+							"itemID": "id:8YSVGdhwWn-asz5T",
+							"values": {
+								"State": "Louisiana"
+							}
+						},
+						{
+							"guid": 45994,
+							"id": 45994,
+							"itemID": "id:py2a2a3m4C-PvR6d",
+							"values": {
+								"State": "Maine"
+							}
+						},
+						{
+							"guid": 45990,
+							"id": 45990,
+							"itemID": "id:rtZEhY4JYH8JNs0o",
+							"values": {
+								"State": "Maryland"
+							}
+						},
+						{
+							"guid": 46003,
+							"id": 46003,
+							"itemID": "id:aLG_qKw9S6_9dpoe",
+							"values": {
+								"State": "Massachusetts"
+							}
+						},
+						{
+							"guid": 45995,
+							"id": 45995,
+							"itemID": "id:OTyxAdUKxSNIGKrr",
+							"values": {
+								"State": "Minnesota"
+							}
+						},
+						{
+							"guid": 45979,
+							"id": 45979,
+							"itemID": "id:c9skxZI9t27W0tVS",
+							"values": {
+								"State": "Missouri"
+							}
+						},
+						{
+							"guid": 45996,
+							"id": 45996,
+							"itemID": "id:s5q_4-jAC_ccQGDb",
+							"values": {
+								"State": "Nevada"
+							}
+						},
+						{
+							"guid": 45989,
+							"id": 45989,
+							"itemID": "id:HaiPl6jq2KpmFusu",
+							"values": {
+								"State": "New Jersey"
+							}
+						},
+						{
+							"guid": 46000,
+							"id": 46000,
+							"itemID": "id:-ByBhji1HUrU97_R",
+							"values": {
+								"State": "New Mexico"
+							}
+						},
+						{
+							"guid": 45987,
+							"id": 45987,
+							"itemID": "id:9JBt8ssxMgxLjXRb",
+							"values": {
+								"State": "New York"
+							}
+						},
+						{
+							"guid": 46002,
+							"id": 46002,
+							"itemID": "id:ugbSN5g902NakuEu",
+							"values": {
+								"State": "North Carolina"
+							}
+						},
+						{
+							"guid": 45975,
+							"id": 45975,
+							"itemID": "id:EknG6lcFM68VPITW",
+							"values": {
+								"State": "Ohio"
+							}
+						},
+						{
+							"guid": 45988,
+							"id": 45988,
+							"itemID": "id:roLwioOZp-mfuPUk",
+							"values": {
+								"State": "Oklahoma"
+							}
+						},
+						{
+							"guid": 45973,
+							"id": 45973,
+							"itemID": "id:2Gb_uD-jEH5gxuaS",
+							"values": {
+								"State": "Pennsylvania"
+							}
+						},
+						{
+							"guid": 45984,
+							"id": 45984,
+							"itemID": "id:q0hM7FtVjAv5KKKm",
+							"values": {
+								"State": "South Carolina"
+							}
+						},
+						{
+							"guid": 45980,
+							"id": 45980,
+							"itemID": "id:-v1HIbNN1aZDzX8Y",
+							"values": {
+								"State": "Tennessee"
+							}
+						},
+						{
+							"guid": 45976,
+							"id": 45976,
+							"itemID": "id:qfFIt8d7ElZPShje",
+							"values": {
+								"State": "Texas"
+							}
+						},
+						{
+							"guid": 45985,
+							"id": 45985,
+							"itemID": "id:h3mFt-UVJAYlDoV7",
+							"values": {
+								"State": "Virginia"
+							}
+						},
+						{
+							"guid": 45982,
+							"id": 45982,
+							"itemID": "id:0Ed9QuAbTsfCp2pF",
+							"values": {
+								"State": "Washington"
+							}
+						},
+						{
+							"guid": 45991,
+							"id": 45991,
+							"itemID": "id:uFa__aLX5lIkjaIV",
+							"values": {
+								"State": "Wisconsin"
+							}
+						}
+					],
+					"caseName": null,
+					"childAttrName": null,
+					"collapseChildren": null,
+					"guid": 45972,
+					"id": 45972,
+					"name": "States",
+					"title": "States",
+					"type": "DG.Collection"
+				},
+				{
+					"areParentChildLinksConfigured": false,
+					"attrs": [
+						{
+							"name": "Coaster",
+							"type": "nominal",
+							"title": "Coaster",
+							"cid": "id:pLhACNgo8GUidOT-",
+							"description": "Name of the roller coaster",
+							"_categoryMap": {
+								"__order": [
+									"Afterburner",
+									"Alpengeist",
+									"American Eagle",
+									"Anaconda",
+									"Apollos Chariot",
+									"Arkansas Twister",
+									"Batman And Robin; The Chiller",
+									"Batman Knight Flight",
+									"Batman The Escape",
+									"Batman The Ride",
+									"Batman: The Ride",
+									"Beast",
+									"Big Bad John",
+									"Big Bad Wolf",
+									"Big Bend",
+									"Blue Streak",
+									"Bobsleds",
+									"Boss",
+									"Boulder Dash",
+									"California Screamin",
+									"Cannon Ball",
+									"Canyon Blaster",
+									"Chang",
+									"Cheetah",
+									"Coaster Thrill Ride",
+									"Colossus",
+									"Comet",
+									"Corkscrew",
+									"Cyclone",
+									"Cyclops",
+									"Deja Vu",
+									"Demon",
+									"Desperado",
+									"Diamond Back",
+									"Dominator",
+									"Dragon",
+									"Dueling Dragons",
+									"Excalibur",
+									"Face/Off",
+									"Fury 325",
+									"Gemini",
+									"Georgia Cyclone",
+									"Georgia Scorcher",
+									"GhostRider",
+									"Giant Dipper",
+									"Goliath",
+									"Great American Scream Machine",
+									"Great Bear",
+									"Great NorEaster",
+									"Great White",
+									"High Speed Thrill Coaster",
+									"Hurricane",
+									"HyperSonic XLC",
+									"Incredible Hulk",
+									"Intimidator",
+									"Invertigo",
+									"Iron Wolf",
+									"Jack Rabbit",
+									"Jaguar!",
+									"Joker",
+									"Joker's Jinx",
+									"Judge Roy Scream",
+									"Kraken",
+									"Kumba",
+									"Leap The Dips",
+									"Lightning Rod",
+									"Loch Ness Monster",
+									"Magnum XL-200",
+									"Mamba",
+									"Manhattan Express",
+									"Mantis",
+									"Mean Streak",
+									"Medusa",
+									"Millennium Force",
+									"Montezooma's Revenge",
+									"Montu",
+									"New Mexico Rattler",
+									"Nitro",
+									"Pegasus",
+									"Phantoms Revenge",
+									"Phoenix",
+									"Raging Bull",
+									"Rampage",
+									"Raptor",
+									"Rattler",
+									"Raven",
+									"Revolution",
+									"Ricochet",
+									"Riddlers Revenge",
+									"River King Mine Train",
+									"Scream!",
+									"Screamer",
+									"Screamin Eagle",
+									"Sidewinder",
+									"Silver Bullet",
+									"Silver Comet",
+									"Skyliner",
+									"Son Of Beast",
+									"Starliner",
+									"Steel Eel",
+									"Steel Force",
+									"Steel Venom",
+									"StormChaser",
+									"Superman - Ride Of Steel",
+									"Superman - Ultimate Flight",
+									"Superman The Escape",
+									"Superman: Krypton Coaster",
+									"Swamp Fox",
+									"Talon",
+									"Tennessee Tornado",
+									"Texas Cyclone",
+									"Texas Giant",
+									"Thunderbolt",
+									"Thunderhawk",
+									"Timber Wolf",
+									"Titan",
+									"Top Gun",
+									"Top Thrill Dragster",
+									"Tremors",
+									"Twister",
+									"Two-Face: The Flip Side",
+									"Ultra Twister",
+									"Vapor Trail",
+									"Viper",
+									"Volcano, The Blast Coaster",
+									"Vortex",
+									"Whirlwind",
+									"Whizzer",
+									"Wicked Twister",
+									"Wild One",
+									"Wild Thing",
+									"Wildcat",
+									"Wildfire",
+									"X",
+									"Zeus",
+									"Zippin Pippin",
+									"Zonga"
+								],
+								"Zippin Pippin": "#FFB300",
+								"Revolution": "#803E75",
+								"Tennessee Tornado": "#FF6800",
+								"Lightning Rod": "#A6BDD7",
+								"Judge Roy Scream": "#C10020",
+								"Batman The Ride": "#CEA262",
+								"Big Bend": "#817066",
+								"Texas Cyclone": "#007D34",
+								"Texas Giant": "#00538A",
+								"Ultra Twister": "#F13A13",
+								"Rattler": "#53377A",
+								"Batman The Escape": "#FF8E00",
+								"Great White": "#B32851",
+								"Steel Eel": "#F4C800",
+								"Titan": "#7F180D",
+								"Superman: Krypton Coaster": "#93AA00",
+								"Jack Rabbit": "#593315",
+								"Thunderhawk": "#232C16",
+								"Thunderbolt": "#FF7A5C",
+								"Comet": "#F6768E",
+								"High Speed Thrill Coaster": "#FFB300",
+								"Phoenix": "#803E75",
+								"Skyliner": "#FF6800",
+								"Whirlwind": "#A6BDD7",
+								"Wildcat": "#C10020",
+								"Cyclone": "#CEA262",
+								"Steel Force": "#817066",
+								"Great Bear": "#007D34",
+								"Vapor Trail": "#00538A",
+								"Leap The Dips": "#F13A13",
+								"Twister": "#53377A",
+								"Phantoms Revenge": "#FF8E00",
+								"Talon": "#B32851",
+								"Giant Dipper": "#F4C800",
+								"Demon": "#7F180D",
+								"Colossus": "#93AA00",
+								"Montezooma's Revenge": "#593315",
+								"Viper": "#232C16",
+								"Top Gun": "#FF7A5C",
+								"Jaguar!": "#F6768E",
+								"Screamer": "#FFB300",
+								"Superman The Escape": "#803E75",
+								"GhostRider": "#FF6800",
+								"Invertigo": "#A6BDD7",
+								"Riddlers Revenge": "#C10020",
+								"Goliath": "#CEA262",
+								"Medusa": "#817066",
+								"California Screamin": "#007D34",
+								"X": "#00538A",
+								"Scream!": "#F13A13",
+								"Zonga": "#53377A",
+								"Boulder Dash": "#FF8E00",
+								"Coaster Thrill Ride": "#B32851",
+								"Wild Thing": "#F4C800",
+								"Sidewinder": "#7F180D",
+								"Bobsleds": "#93AA00",
+								"Silver Comet": "#593315",
+								"Superman - Ride Of Steel": "#232C16",
+								"Starliner": "#FF7A5C",
+								"Kumba": "#F6768E",
+								"Montu": "#FFB300",
+								"Dueling Dragons": "#803E75",
+								"Incredible Hulk": "#FF6800",
+								"Kraken": "#A6BDD7",
+								"Swamp Fox": "#C10020",
+								"Hurricane": "#CEA262",
+								"Blue Streak": "#817066",
+								"Gemini": "#007D34",
+								"Beast": "#00538A",
+								"Vortex": "#F13A13",
+								"Magnum XL-200": "#53377A",
+								"Mean Streak": "#FF8E00",
+								"Raptor": "#B32851",
+								"Mantis": "#F4C800",
+								"Face/Off": "#7F180D",
+								"Batman Knight Flight": "#93AA00",
+								"Millennium Force": "#593315",
+								"Son Of Beast": "#232C16",
+								"Wicked Twister": "#FF7A5C",
+								"Top Thrill Dragster": "#F6768E",
+								"Cannon Ball": "#FFB300",
+								"Great American Scream Machine": "#803E75",
+								"Georgia Cyclone": "#FF6800",
+								"Georgia Scorcher": "#A6BDD7",
+								"Cheetah": "#C10020",
+								"Deja Vu": "#CEA262",
+								"Superman - Ultimate Flight": "#817066",
+								"River King Mine Train": "#007D34",
+								"Screamin Eagle": "#00538A",
+								"Timber Wolf": "#F13A13",
+								"Mamba": "#53377A",
+								"Boss": "#FF8E00",
+								"Wildfire": "#B32851",
+								"Whizzer": "#F4C800",
+								"American Eagle": "#7F180D",
+								"Iron Wolf": "#93AA00",
+								"Raging Bull": "#593315",
+								"Loch Ness Monster": "#232C16",
+								"Big Bad Wolf": "#FF7A5C",
+								"Anaconda": "#F6768E",
+								"Alpengeist": "#FFB300",
+								"Volcano, The Blast Coaster": "#803E75",
+								"Apollos Chariot": "#FF6800",
+								"HyperSonic XLC": "#A6BDD7",
+								"Ricochet": "#C10020",
+								"Dominator": "#CEA262",
+								"Silver Bullet": "#817066",
+								"Diamond Back": "#007D34",
+								"Wild One": "#00538A",
+								"Two-Face: The Flip Side": "#F13A13",
+								"Joker's Jinx": "#53377A",
+								"Excalibur": "#FF8E00",
+								"Steel Venom": "#B32851",
+								"Great NorEaster": "#F4C800",
+								"Batman And Robin; The Chiller": "#7F180D",
+								"Nitro": "#93AA00",
+								"Joker": "#593315",
+								"Corkscrew": "#232C16",
+								"Tremors": "#FF7A5C",
+								"Afterburner": "#F6768E",
+								"Raven": "#FFB300",
+								"Dragon": "#803E75",
+								"Canyon Blaster": "#FF6800",
+								"Desperado": "#A6BDD7",
+								"Manhattan Express": "#C10020",
+								"Cyclops": "#CEA262",
+								"Pegasus": "#817066",
+								"Zeus": "#007D34",
+								"Chang": "#00538A",
+								"StormChaser": "#F13A13",
+								"Arkansas Twister": "#53377A",
+								"Big Bad John": "#FF8E00",
+								"New Mexico Rattler": "#B32851",
+								"Batman: The Ride": "#F4C800",
+								"Rampage": "#7F180D",
+								"Intimidator": "#93AA00",
+								"Fury 325": "#593315"
+							},
+							"blockDisplayOfEmptyCategories": true,
+							"editable": true,
+							"hidden": false,
+							"renameable": true,
+							"deleteable": true,
+							"guid": 4,
+							"id": 4,
+							"precision": null,
+							"unit": null
+						},
+						{
+							"name": "Park",
+							"type": "nominal",
+							"title": "Park",
+							"cid": "id:eCcXb9YRtJj7LN1l",
+							"description": "Name of the park where the roller coaster is located",
+							"blockDisplayOfEmptyCategories": true,
+							"editable": true,
+							"hidden": false,
+							"renameable": true,
+							"deleteable": true,
+							"guid": 5,
+							"id": 5,
+							"precision": null,
+							"unit": null
+						},
+						{
+							"name": "Top_Speed",
+							"type": "numeric",
+							"title": "Top_Speed",
+							"cid": "id:QCgc4i82CH0y9r-B",
+							"description": "Maximum speed of roller coaster",
+							"_categoryMap": {
+								"23": "#CEA262",
+								"25": "#F4C800",
+								"27": "#593315",
+								"35": "#F6768E",
+								"37": "#7F180D",
+								"38": "#CEA262",
+								"40": "#FFB300",
+								"41": "#803E75",
+								"42": "#93AA00",
+								"44": "#00538A",
+								"45": "#B32851",
+								"46": "#FFB300",
+								"47": "#A6BDD7",
+								"48": "#A6BDD7",
+								"50": "#F13A13",
+								"52": "#817066",
+								"53": "#C10020",
+								"54": "#B32851",
+								"55": "#803E75",
+								"56": "#803E75",
+								"57": "#00538A",
+								"58": "#93AA00",
+								"60": "#C10020",
+								"61": "#F6768E",
+								"62": "#FF7A5C",
+								"63": "#FF6800",
+								"65": "#007D34",
+								"66": "#F4C800",
+								"67": "#817066",
+								"68": "#FF7A5C",
+								"70": "#FF8E00",
+								"72": "#007D34",
+								"73": "#A6BDD7",
+								"74": "#232C16",
+								"75": "#7F180D",
+								"76": "#FF6800",
+								"77": "#FF6800",
+								"78": "#53377A",
+								"80": "#593315",
+								"82": "#232C16",
+								"85": "#53377A",
+								"93": "#F13A13",
+								"95": "#C10020",
+								"100": "#FFB300",
+								"120": "#FF8E00",
+								"__order": [
+									"23",
+									"25",
+									"27",
+									"35",
+									"37",
+									"38",
+									"40",
+									"41",
+									"42",
+									"44",
+									"45",
+									"46",
+									"47",
+									"48",
+									"50",
+									"52",
+									"53",
+									"54",
+									"55",
+									"56",
+									"57",
+									"58",
+									"60",
+									"61",
+									"62",
+									"63",
+									"65",
+									"66",
+									"67",
+									"68",
+									"70",
+									"72",
+									"73",
+									"74",
+									"75",
+									"76",
+									"77",
+									"78",
+									"80",
+									"82",
+									"85",
+									"93",
+									"95",
+									"100",
+									"120"
+								]
+							},
+							"blockDisplayOfEmptyCategories": true,
+							"editable": true,
+							"hidden": false,
+							"renameable": true,
+							"deleteable": true,
+							"guid": 11,
+							"id": 11,
+							"precision": "",
+							"unit": "mph"
+						},
+						{
+							"name": "Max_Height",
+							"type": "numeric",
+							"title": "Max_Height",
+							"cid": "id:SXkIGTBcHDhTirTT",
+							"description": "Highest point of roller coaster",
+							"_categoryMap": {
+								"18": "#FF7A5C",
+								"31": "#FF6800",
+								"32": "#803E75",
+								"37": "#232C16",
+								"40": "#7F180D",
+								"41": "#CEA262",
+								"43": "#C10020",
+								"52": "#B32851",
+								"55": "#FFB300",
+								"56": "#803E75",
+								"60": "#FFB300",
+								"64": "#803E75",
+								"65": "#FF6800",
+								"70": "#FFB300",
+								"71": "#FF6800",
+								"75": "#00538A",
+								"78": "#F6768E",
+								"79": "#93AA00",
+								"80": "#93AA00",
+								"81": "#C10020",
+								"83": "#F4C800",
+								"84": "#593315",
+								"85": "#F6768E",
+								"90": "#F13A13",
+								"92": "#F6768E",
+								"93": "#CEA262",
+								"94": "#803E75",
+								"95": "#C10020",
+								"97": "#007D34",
+								"98": "#7F180D",
+								"100": "#FF6800",
+								"102": "#817066",
+								"105": "#232C16",
+								"107": "#FF7A5C",
+								"108": "#53377A",
+								"110": "#817066",
+								"115": "#FF7A5C",
+								"118": "#F4C800",
+								"120": "#A6BDD7",
+								"121": "#A6BDD7",
+								"122": "#A6BDD7",
+								"125": "#F13A13",
+								"127": "#C10020",
+								"128": "#007D34",
+								"130": "#817066",
+								"135": "#00538A",
+								"137": "#53377A",
+								"142": "#F6768E",
+								"143": "#817066",
+								"145": "#FF8E00",
+								"148": "#53377A",
+								"149": "#007D34",
+								"150": "#FF8E00",
+								"154": "#C10020",
+								"155": "#F13A13",
+								"156": "#93AA00",
+								"157": "#B32851",
+								"160": "#007D34",
+								"161": "#7F180D",
+								"163": "#803E75",
+								"165": "#FF8E00",
+								"168": "#F4C800",
+								"170": "#53377A",
+								"173": "#FF7A5C",
+								"175": "#232C16",
+								"180": "#00538A",
+								"185": "#232C16",
+								"188": "#FF8E00",
+								"192": "#FFB300",
+								"195": "#00538A",
+								"200": "#A6BDD7",
+								"202": "#CEA262",
+								"203": "#A6BDD7",
+								"205": "#F13A13",
+								"207": "#593315",
+								"208": "#CEA262",
+								"209": "#FF6800",
+								"215": "#93AA00",
+								"218": "#7F180D",
+								"230": "#FFB300",
+								"232": "#CEA262",
+								"235": "#593315",
+								"245": "#B32851",
+								"310": "#F4C800",
+								"325": "#817066",
+								"415": "#B32851",
+								"420": "#593315",
+								"__order": [
+									"18",
+									"31",
+									"32",
+									"37",
+									"40",
+									"41",
+									"43",
+									"52",
+									"55",
+									"56",
+									"60",
+									"64",
+									"65",
+									"70",
+									"71",
+									"75",
+									"78",
+									"79",
+									"80",
+									"81",
+									"83",
+									"84",
+									"85",
+									"90",
+									"92",
+									"93",
+									"94",
+									"95",
+									"97",
+									"98",
+									"100",
+									"102",
+									"105",
+									"107",
+									"108",
+									"110",
+									"115",
+									"118",
+									"120",
+									"121",
+									"122",
+									"125",
+									"127",
+									"128",
+									"130",
+									"135",
+									"137",
+									"142",
+									"143",
+									"145",
+									"148",
+									"149",
+									"150",
+									"154",
+									"155",
+									"156",
+									"157",
+									"160",
+									"161",
+									"163",
+									"165",
+									"168",
+									"170",
+									"173",
+									"175",
+									"180",
+									"185",
+									"188",
+									"192",
+									"195",
+									"200",
+									"202",
+									"203",
+									"205",
+									"207",
+									"208",
+									"209",
+									"215",
+									"218",
+									"230",
+									"232",
+									"235",
+									"245",
+									"310",
+									"325",
+									"415",
+									"420"
+								]
+							},
+							"blockDisplayOfEmptyCategories": true,
+							"editable": true,
+							"hidden": false,
+							"renameable": true,
+							"deleteable": true,
+							"guid": 12,
+							"id": 12,
+							"precision": "",
+							"unit": "ft"
+						},
+						{
+							"name": "Drop",
+							"type": "numeric",
+							"title": "Drop",
+							"cid": "id:IAil12X6-KXq8rS6",
+							"description": "Length of largest gap between high and low points of roller coaster",
+							"blockDisplayOfEmptyCategories": true,
+							"editable": true,
+							"hidden": false,
+							"renameable": true,
+							"deleteable": true,
+							"guid": 13,
+							"id": 13,
+							"precision": "",
+							"unit": "ft"
+						},
+						{
+							"name": "Length",
+							"type": "numeric",
+							"title": "Length",
+							"cid": "id:l131HdDrfnIPlFZG",
+							"description": "Length of roller coaster track",
+							"blockDisplayOfEmptyCategories": true,
+							"editable": true,
+							"hidden": false,
+							"renameable": true,
+							"deleteable": true,
+							"guid": 14,
+							"id": 14,
+							"precision": "",
+							"unit": "ft"
+						},
+						{
+							"name": "Duration",
+							"type": "numeric",
+							"title": "Duration",
+							"cid": "id:So_3zOGlHPaPwtWg",
+							"description": "Time length of roller coaster ride",
+							"blockDisplayOfEmptyCategories": true,
+							"editable": true,
+							"hidden": false,
+							"renameable": true,
+							"deleteable": true,
+							"guid": 15,
+							"id": 15,
+							"precision": "",
+							"unit": "sec"
+						},
+						{
+							"name": "Type",
+							"type": "nominal",
+							"title": "Type",
+							"cid": "id:6_VaY1EK9tauPL6H",
+							"description": "Material of track (Steel or Wooden)",
+							"_categoryMap": {
+								"Wooden": {
+									"h": 0.9523809523809523,
+									"s": 0.6666666666666666,
+									"b": 1,
+									"colorString": "#ff5586"
+								},
+								"Steel": {
+									"h": 0.3523809523809525,
+									"s": 0.6666666666666666,
+									"b": 1,
+									"colorString": "#55ff68"
+								},
+								"__order": [
+									"Wooden",
+									"Steel"
+								]
+							},
+							"blockDisplayOfEmptyCategories": true,
+							"editable": true,
+							"hidden": false,
+							"renameable": true,
+							"deleteable": true,
+							"guid": 8,
+							"id": 8,
+							"precision": null,
+							"unit": null
+						},
+						{
+							"name": "Design",
+							"type": "nominal",
+							"title": "Design",
+							"cid": "id:D_-BcrmTX-3ZIqJW",
+							"description": "How a passenger is positioned in the roller coaster (Bobsled, Flying, Inverted, Pipeline, Sit down, Stand up, Suspended, Wing)",
+							"_categoryMap": {
+								"__order": [
+									"4th Dimension",
+									"Flying",
+									"Inverted",
+									"Pipeline",
+									"Sit Down",
+									"Stand Up",
+									"Suspended",
+									"Wing"
+								],
+								"Sit Down": "#FFB300",
+								"Inverted": "#803E75",
+								"Stand Up": "#FF6800",
+								"4th Dimension": "#A6BDD7",
+								"Wing": "#C10020",
+								"Pipeline": "#CEA262",
+								"Suspended": "#817066",
+								"Flying": "#007D34"
+							},
+							"blockDisplayOfEmptyCategories": true,
+							"editable": true,
+							"hidden": false,
+							"renameable": true,
+							"deleteable": true,
+							"guid": 9,
+							"id": 9,
+							"precision": null,
+							"unit": null
+						},
+						{
+							"name": "Year_Opened",
+							"type": "numeric",
+							"title": "Year_Opened",
+							"cid": "id:6Pu7T61bTBThKgxJ",
+							"description": "Year when roller coaster opened",
+							"blockDisplayOfEmptyCategories": true,
+							"editable": true,
+							"hidden": false,
+							"renameable": true,
+							"deleteable": true,
+							"guid": 10,
+							"id": 10,
+							"precision": "",
+							"unit": null
+						},
+						{
+							"name": "Age_Group",
+							"type": "nominal",
+							"title": "Age_Group",
+							"cid": "id:572iMBAe2ATwYbzg",
+							"description": "Built [Older (1900-1979), Recent (1980-1999), or Newest (2000-current)]",
+							"_categoryMap": {
+								"__order": [
+									"older",
+									"recent",
+									"newest"
+								],
+								"older": "#FFB300",
+								"recent": "#803E75",
+								"newest": "#FF6800"
+							},
+							"blockDisplayOfEmptyCategories": true,
+							"editable": true,
+							"hidden": false,
+							"renameable": true,
+							"deleteable": true,
+							"guid": 18,
+							"id": 18,
+							"precision": null,
+							"unit": null
+						},
+						{
+							"name": "Inversions",
+							"type": "nominal",
+							"title": "Inversions",
+							"cid": "id:t351EzQYwQbCXLVp",
+							"description": "Whether or not roller coaster flips passengers at any point (Yes or No)",
+							"blockDisplayOfEmptyCategories": true,
+							"editable": true,
+							"hidden": false,
+							"renameable": true,
+							"deleteable": true,
+							"guid": 16,
+							"id": 16,
+							"precision": null,
+							"unit": null
+						},
+						{
+							"name": "Num_of_Inversions",
+							"type": "numeric",
+							"title": "Num_of_Inversions",
+							"cid": "id:W-tegVnqz7V8ACy6",
+							"description": "Number of times roller coaster flips passengers",
+							"blockDisplayOfEmptyCategories": true,
+							"editable": true,
+							"hidden": false,
+							"renameable": true,
+							"deleteable": true,
+							"guid": 17,
+							"id": 17,
+							"precision": null,
+							"unit": null
+						},
+						{
+							"name": "City",
+							"type": "nominal",
+							"title": "City",
+							"cid": "id:lEikmOOaXfiOcJDH",
+							"description": "City where the roller coaster is located",
+							"blockDisplayOfEmptyCategories": true,
+							"editable": true,
+							"hidden": false,
+							"renameable": true,
+							"deleteable": true,
+							"guid": 6,
+							"id": 6,
+							"precision": null,
+							"unit": null
+						},
+						{
+							"name": "latitude",
+							"type": null,
+							"title": "latitude",
+							"cid": "id:dL17OpsHAzGJZM7q",
+							"description": "",
+							"blockDisplayOfEmptyCategories": true,
+							"editable": true,
+							"hidden": true,
+							"renameable": true,
+							"deleteable": true,
+							"guid": 45812,
+							"id": 45812,
+							"precision": 2,
+							"unit": null
+						},
+						{
+							"name": "longitude",
+							"type": null,
+							"title": "longitude",
+							"cid": "id:kY4gNk_C2wiUlT7H",
+							"description": "",
+							"blockDisplayOfEmptyCategories": true,
+							"editable": true,
+							"hidden": true,
+							"renameable": true,
+							"deleteable": true,
+							"guid": 45813,
+							"id": 45813,
+							"precision": 2,
+							"unit": null
+						}
+					],
+					"cases": [
+						{
+							"parent": 46001,
+							"guid": 161,
+							"id": 161,
+							"itemID": "id:RBArxvcJGO5Tl0Jl",
+							"values": {
+								"Coaster": "Rampage",
+								"Park": "VisionLand",
+								"Top_Speed": 56,
+								"Max_Height": 120,
+								"Drop": 102,
+								"Length": 3500,
+								"Duration": "",
+								"Type": "Wooden",
+								"Design": "Sit Down",
+								"Year_Opened": 2003,
+								"Age_Group": "newest",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Bessemer",
+								"latitude": 33.40178,
+								"longitude": -86.95444
+							}
+						},
+						{
+							"parent": 45999,
+							"guid": 132,
+							"id": 132,
+							"itemID": "id:aj-oam-DU3GEfjL6",
+							"values": {
+								"Coaster": "Arkansas Twister",
+								"Park": "Magic Springs and Crystal Falls",
+								"Top_Speed": "",
+								"Max_Height": 95,
+								"Drop": 92,
+								"Length": 3340,
+								"Duration": "",
+								"Type": "Wooden",
+								"Design": "Sit Down",
+								"Year_Opened": 2000,
+								"Age_Group": "newest",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Hot Springs",
+								"latitude": 34.5037,
+								"longitude": -93.05518
+							}
+						},
+						{
+							"parent": 45999,
+							"guid": 154,
+							"id": 154,
+							"itemID": "id:3TSDjsftPgyqGGjg",
+							"values": {
+								"Coaster": "Big Bad John",
+								"Park": "Magic Springs and Crystal Falls",
+								"Top_Speed": 37,
+								"Max_Height": 32,
+								"Drop": 41,
+								"Length": 2349,
+								"Duration": 180,
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 2002,
+								"Age_Group": "newest",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Hot Springs",
+								"latitude": 34.5037,
+								"longitude": -93.05518
+							}
+						},
+						{
+							"parent": 45974,
+							"guid": 159,
+							"id": 159,
+							"itemID": "id:3BMN7mV-NyKzGPy3",
+							"values": {
+								"Coaster": "X",
+								"Park": "Six Flags Magic Mountain",
+								"Top_Speed": 76,
+								"Max_Height": 175,
+								"Drop": 215,
+								"Length": 3610,
+								"Duration": "",
+								"Type": "Steel",
+								"Design": "4th Dimension",
+								"Year_Opened": 2002,
+								"Age_Group": "newest",
+								"Inversions": "Y",
+								"Num_of_Inversions": 2,
+								"City": "Valencia",
+								"latitude": "34.45",
+								"longitude": "-118.57"
+							}
+						},
+						{
+							"parent": 45974,
+							"guid": 22,
+							"id": 22,
+							"itemID": "id:GxjjYZpI-cJK2gxg",
+							"values": {
+								"Coaster": "Giant Dipper",
+								"Park": "Santa Cruz Beach Boardwalk",
+								"Top_Speed": 55,
+								"Max_Height": 70,
+								"Drop": 65,
+								"Length": 2640,
+								"Duration": 112,
+								"Type": "Wooden",
+								"Design": "Sit Down",
+								"Year_Opened": 1924,
+								"Age_Group": "older",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Santa Cruz",
+								"latitude": 36.97412,
+								"longitude": -122.0308
+							}
+						},
+						{
+							"parent": 45974,
+							"guid": 43,
+							"id": 43,
+							"itemID": "id:lXhX03VWXbsDN9wi",
+							"values": {
+								"Coaster": "Colossus",
+								"Park": "Six Flags Magic Mountain",
+								"Top_Speed": 62,
+								"Max_Height": 125,
+								"Drop": 115,
+								"Length": 4325,
+								"Duration": 150,
+								"Type": "Wooden",
+								"Design": "Sit Down",
+								"Year_Opened": 1978,
+								"Age_Group": "older",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Valencia",
+								"latitude": "34.45",
+								"longitude": "-118.5712"
+							}
+						},
+						{
+							"parent": 45974,
+							"guid": 39,
+							"id": 39,
+							"itemID": "id:ZDqIzzobHkPXosSd",
+							"values": {
+								"Coaster": "Demon",
+								"Park": "Paramounts Great America",
+								"Top_Speed": 50,
+								"Max_Height": 102,
+								"Drop": 90,
+								"Length": 2130,
+								"Duration": 105,
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 1976,
+								"Age_Group": "older",
+								"Inversions": "Y",
+								"Num_of_Inversions": 4,
+								"City": "Santa Clara",
+								"latitude": 37.35411,
+								"longitude": -121.95524
+							}
+						},
+						{
+							"parent": 45974,
+							"guid": 46,
+							"id": 46,
+							"itemID": "id:EtBGxHcD433_aGkI",
+							"values": {
+								"Coaster": "Montezooma's Revenge",
+								"Park": "Knotts Berry Farm",
+								"Top_Speed": 55,
+								"Max_Height": 148,
+								"Drop": 137,
+								"Length": 800,
+								"Duration": 36,
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 1978,
+								"Age_Group": "older",
+								"Inversions": "Y",
+								"Num_of_Inversions": 1,
+								"City": "Buena Park",
+								"latitude": 33.86751,
+								"longitude": -117.99812
+							}
+						},
+						{
+							"parent": 45974,
+							"guid": 113,
+							"id": 113,
+							"itemID": "id:CODq2LErURFPtxbx",
+							"values": {
+								"Coaster": "Riddlers Revenge",
+								"Park": "Six Flags Magic Mountain",
+								"Top_Speed": 65,
+								"Max_Height": 156,
+								"Drop": 146,
+								"Length": 4370,
+								"Duration": 180,
+								"Type": "Steel",
+								"Design": "Stand Up",
+								"Year_Opened": 1998,
+								"Age_Group": "recent",
+								"Inversions": "Y",
+								"Num_of_Inversions": 6,
+								"City": "Valencia",
+								"latitude": "34.45",
+								"longitude": "-118.57"
+							}
+						},
+						{
+							"parent": 45974,
+							"guid": 109,
+							"id": 109,
+							"itemID": "id:qd4TBH0hbLP9L8hG",
+							"values": {
+								"Coaster": "GhostRider",
+								"Park": "Knotts Berry Farm",
+								"Top_Speed": 56,
+								"Max_Height": 118,
+								"Drop": 108,
+								"Length": 4533,
+								"Duration": 160,
+								"Type": "Wooden",
+								"Design": "Sit Down",
+								"Year_Opened": 1998,
+								"Age_Group": "recent",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Buena Park",
+								"latitude": 33.86751,
+								"longitude": -117.99812
+							}
+						},
+						{
+							"parent": 45974,
+							"guid": 67,
+							"id": 67,
+							"itemID": "id:EkNDB5XS4WKXOeqp",
+							"values": {
+								"Coaster": "Viper",
+								"Park": "Six Flags Magic Mountain",
+								"Top_Speed": 70,
+								"Max_Height": 188,
+								"Drop": 171,
+								"Length": 3830,
+								"Duration": 150,
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 1990,
+								"Age_Group": "recent",
+								"Inversions": "Y",
+								"Num_of_Inversions": 7,
+								"City": "Valencia",
+								"latitude": "34.45",
+								"longitude": "-118.57"
+							}
+						},
+						{
+							"parent": 45974,
+							"guid": 86,
+							"id": 86,
+							"itemID": "id:H_CJ5qNLQHmKk_8t",
+							"values": {
+								"Coaster": "Jaguar!",
+								"Park": "Knotts Berry Farm",
+								"Top_Speed": 35,
+								"Max_Height": 65,
+								"Drop": 45,
+								"Length": 2602,
+								"Duration": 120,
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 1995,
+								"Age_Group": "recent",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Buena Park",
+								"latitude": 33.86751,
+								"longitude": -117.99812
+							}
+						},
+						{
+							"parent": 45974,
+							"guid": 88,
+							"id": 88,
+							"itemID": "id:4UHnr5bDFIvjYYUM",
+							"values": {
+								"Coaster": "Screamer",
+								"Park": "Scandia Amusement Park",
+								"Top_Speed": 50,
+								"Max_Height": 90,
+								"Drop": 80,
+								"Length": 2600,
+								"Duration": 116,
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 1995,
+								"Age_Group": "recent",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Ontario",
+								"latitude": 34.06334,
+								"longitude": -117.65089
+							}
+						},
+						{
+							"parent": 45974,
+							"guid": 103,
+							"id": 103,
+							"itemID": "id:P9S4P3CtEO6TVLVf",
+							"values": {
+								"Coaster": "Superman The Escape",
+								"Park": "Six Flags Magic Mountain",
+								"Top_Speed": 100,
+								"Max_Height": 415,
+								"Drop": 328,
+								"Length": 1235,
+								"Duration": 28,
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 1997,
+								"Age_Group": "recent",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Valencia",
+								"latitude": "34.45",
+								"longitude": "-118.57"
+							}
+						},
+						{
+							"parent": 45974,
+							"guid": 79,
+							"id": 79,
+							"itemID": "id:xbbCc-mrgGjQRXxa",
+							"values": {
+								"Coaster": "Top Gun",
+								"Park": "Paramounts Great America",
+								"Top_Speed": 50,
+								"Max_Height": 102,
+								"Drop": 91,
+								"Length": 2260,
+								"Duration": 146,
+								"Type": "Steel",
+								"Design": "Inverted",
+								"Year_Opened": 1993,
+								"Age_Group": "recent",
+								"Inversions": "Y",
+								"Num_of_Inversions": 3,
+								"City": "Santa Clara",
+								"latitude": 37.35411,
+								"longitude": -121.95524
+							}
+						},
+						{
+							"parent": 45974,
+							"guid": 111,
+							"id": 111,
+							"itemID": "id:dMAvheEzxW9q104X",
+							"values": {
+								"Coaster": "Invertigo",
+								"Park": "Paramounts Great America",
+								"Top_Speed": 50,
+								"Max_Height": 161,
+								"Drop": 138,
+								"Length": 1014,
+								"Duration": 90,
+								"Type": "Steel",
+								"Design": "Inverted",
+								"Year_Opened": 1998,
+								"Age_Group": "recent",
+								"Inversions": "Y",
+								"Num_of_Inversions": 3,
+								"City": "Santa Clara",
+								"latitude": 37.35411,
+								"longitude": -121.95524
+							}
+						},
+						{
+							"parent": 45974,
+							"guid": 136,
+							"id": 136,
+							"itemID": "id:L0hC90J193qP1BAS",
+							"values": {
+								"Coaster": "Goliath",
+								"Park": "Six Flags Magic Mountain",
+								"Top_Speed": 85,
+								"Max_Height": 235,
+								"Drop": 255,
+								"Length": 4500,
+								"Duration": 180,
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 2000,
+								"Age_Group": "newest",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Valencia",
+								"latitude": "34.45",
+								"longitude": "-118.57"
+							}
+						},
+						{
+							"parent": 45974,
+							"guid": 139,
+							"id": 139,
+							"itemID": "id:dm0BQlcZ1PCtg8Vn",
+							"values": {
+								"Coaster": "Medusa",
+								"Park": "Six Flags Marine World",
+								"Top_Speed": 65,
+								"Max_Height": 150,
+								"Drop": 150,
+								"Length": 3937,
+								"Duration": 195,
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 2000,
+								"Age_Group": "newest",
+								"Inversions": "Y",
+								"Num_of_Inversions": 7,
+								"City": "Vallejo",
+								"latitude": 38.10409,
+								"longitude": -122.25664
+							}
+						},
+						{
+							"parent": 45974,
+							"guid": 144,
+							"id": 144,
+							"itemID": "id:ejCZpyAR0FJmtViQ",
+							"values": {
+								"Coaster": "California Screamin",
+								"Park": "Disneys California Adventure",
+								"Top_Speed": 55,
+								"Max_Height": "",
+								"Drop": 108,
+								"Length": 6072,
+								"Duration": 156,
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 2001,
+								"Age_Group": "newest",
+								"Inversions": "Y",
+								"Num_of_Inversions": 1,
+								"City": "Anaheim",
+								"latitude": 33.83529,
+								"longitude": -117.9145
+							}
+						},
+						{
+							"parent": 45974,
+							"guid": 162,
+							"id": 162,
+							"itemID": "id:MmSc1-PucJBqcawI",
+							"values": {
+								"Coaster": "Scream!",
+								"Park": "Six Flags Magic Mountain",
+								"Top_Speed": 63,
+								"Max_Height": 150,
+								"Drop": 141,
+								"Length": 3985,
+								"Duration": 180,
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 2003,
+								"Age_Group": "newest",
+								"Inversions": "Y",
+								"Num_of_Inversions": 7,
+								"City": "Valencia",
+								"latitude": "34.45",
+								"longitude": "-118.57"
+							}
+						},
+						{
+							"parent": 45974,
+							"guid": 167,
+							"id": 167,
+							"itemID": "id:fj01tVEoGEw_puYJ",
+							"values": {
+								"Coaster": "Zonga",
+								"Park": "Six Flags Marine World",
+								"Top_Speed": 62,
+								"Max_Height": 115,
+								"Drop": 98,
+								"Length": 3675,
+								"Duration": "",
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 2003,
+								"Age_Group": "newest",
+								"Inversions": "Y",
+								"Num_of_Inversions": 4,
+								"City": "Vallejo",
+								"latitude": 38.10409,
+								"longitude": -122.25664
+							}
+						},
+						{
+							"parent": 45983,
+							"guid": 26,
+							"id": 26,
+							"itemID": "id:SRcKwllKNk7OiTg5",
+							"values": {
+								"Coaster": "Cyclone",
+								"Park": "Lakeside",
+								"Top_Speed": "",
+								"Max_Height": 90,
+								"Drop": 89,
+								"Length": 2800,
+								"Duration": 120,
+								"Type": "Wooden",
+								"Design": "Sit Down",
+								"Year_Opened": 1940,
+								"Age_Group": "older",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Denver",
+								"latitude": 39.73915,
+								"longitude": -104.9847
+							}
+						},
+						{
+							"parent": 45983,
+							"guid": 89,
+							"id": 89,
+							"itemID": "id:3YYzymm1Hqg2R50d",
+							"values": {
+								"Coaster": "Sidewinder",
+								"Park": "Six Flags Elitch Gardens",
+								"Top_Speed": 45,
+								"Max_Height": 56,
+								"Drop": 47,
+								"Length": 635,
+								"Duration": 66,
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 1995,
+								"Age_Group": "recent",
+								"Inversions": "Y",
+								"Num_of_Inversions": 1,
+								"City": "Denver",
+								"latitude": 39.73915,
+								"longitude": -104.9847
+							}
+						},
+						{
+							"parent": 45981,
+							"guid": 24,
+							"id": 24,
+							"itemID": "id:DXnjLu2wIP4_-S74",
+							"values": {
+								"Coaster": "Wildcat",
+								"Park": "Lake Compounce",
+								"Top_Speed": 48,
+								"Max_Height": 85,
+								"Drop": 78,
+								"Length": 2746,
+								"Duration": 75,
+								"Type": "Wooden",
+								"Design": "Sit Down",
+								"Year_Opened": 1927,
+								"Age_Group": "older",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Bristol",
+								"latitude": 41.67176,
+								"longitude": -72.94927
+							}
+						},
+						{
+							"parent": 45981,
+							"guid": 135,
+							"id": 135,
+							"itemID": "id:4c-ONFR3RYD7K3pa",
+							"values": {
+								"Coaster": "Boulder Dash",
+								"Park": "Lake Compounce",
+								"Top_Speed": 60,
+								"Max_Height": "",
+								"Drop": 115,
+								"Length": 4725,
+								"Duration": 150,
+								"Type": "Wooden",
+								"Design": "Sit Down",
+								"Year_Opened": 2000,
+								"Age_Group": "newest",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Bristol",
+								"latitude": 41.67176,
+								"longitude": -72.94927
+							}
+						},
+						{
+							"parent": 45977,
+							"guid": 31,
+							"id": 31,
+							"itemID": "id:rXWvtjYdFhUaIyaa",
+							"values": {
+								"Coaster": "Starliner",
+								"Park": "Miracle Strip Amusement Park",
+								"Top_Speed": 55,
+								"Max_Height": 70,
+								"Drop": 76,
+								"Length": 2640,
+								"Duration": "",
+								"Type": "Wooden",
+								"Design": "Sit Down",
+								"Year_Opened": 1963,
+								"Age_Group": "older",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Panama City Beach",
+								"latitude": 30.17659,
+								"longitude": -85.80549
+							}
+						},
+						{
+							"parent": 45977,
+							"guid": 78,
+							"id": 78,
+							"itemID": "id:AWP56DqWYD5VmYF5",
+							"values": {
+								"Coaster": "Kumba",
+								"Park": "Busch Gardens Tampa",
+								"Top_Speed": 60,
+								"Max_Height": 143,
+								"Drop": 135,
+								"Length": 3978,
+								"Duration": 174,
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 1993,
+								"Age_Group": "recent",
+								"Inversions": "Y",
+								"Num_of_Inversions": 7,
+								"City": "Tampa",
+								"latitude": 27.94752,
+								"longitude": -82.45843
+							}
+						},
+						{
+							"parent": 45977,
+							"guid": 121,
+							"id": 121,
+							"itemID": "id:LMP15ugAK2PVcQl5",
+							"values": {
+								"Coaster": "Incredible Hulk",
+								"Park": "Universal Studios Islands of Adventure",
+								"Top_Speed": 67,
+								"Max_Height": 110,
+								"Drop": 105,
+								"Length": 3700,
+								"Duration": 135,
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 1999,
+								"Age_Group": "recent",
+								"Inversions": "Y",
+								"Num_of_Inversions": 7,
+								"City": "Orlando",
+								"latitude": 28.53834,
+								"longitude": -81.37924
+							}
+						},
+						{
+							"parent": 45977,
+							"guid": 93,
+							"id": 93,
+							"itemID": "id:IjyS6w58PsYkOxxs",
+							"values": {
+								"Coaster": "Montu",
+								"Park": "Busch Gardens Tampa",
+								"Top_Speed": 60,
+								"Max_Height": 150,
+								"Drop": 128,
+								"Length": 3983,
+								"Duration": 180,
+								"Type": "Steel",
+								"Design": "Inverted",
+								"Year_Opened": 1996,
+								"Age_Group": "recent",
+								"Inversions": "Y",
+								"Num_of_Inversions": 7,
+								"City": "Tampa",
+								"latitude": 27.94752,
+								"longitude": -82.45843
+							}
+						},
+						{
+							"parent": 45977,
+							"guid": 117,
+							"id": 117,
+							"itemID": "id:WAWauJohWbSoaCjk",
+							"values": {
+								"Coaster": "Dueling Dragons",
+								"Park": "Universal Studios Islands of Adventure",
+								"Top_Speed": 60,
+								"Max_Height": 125,
+								"Drop": 115,
+								"Length": 3200,
+								"Duration": 145,
+								"Type": "Steel",
+								"Design": "Inverted",
+								"Year_Opened": 1999,
+								"Age_Group": "recent",
+								"Inversions": "Y",
+								"Num_of_Inversions": 5,
+								"City": "Orlando",
+								"latitude": 28.53834,
+								"longitude": -81.37924
+							}
+						},
+						{
+							"parent": 45977,
+							"guid": 118,
+							"id": 118,
+							"itemID": "id:e5LZN2HKxp9N_S-a",
+							"values": {
+								"Coaster": "Dueling Dragons",
+								"Park": "Universal Studios Islands of Adventure",
+								"Top_Speed": 55,
+								"Max_Height": 125,
+								"Drop": 95,
+								"Length": 3200,
+								"Duration": 145,
+								"Type": "Steel",
+								"Design": "Inverted",
+								"Year_Opened": 1999,
+								"Age_Group": "recent",
+								"Inversions": "Y",
+								"Num_of_Inversions": 5,
+								"City": "Orlando",
+								"latitude": 28.53834,
+								"longitude": -81.37924
+							}
+						},
+						{
+							"parent": 45977,
+							"guid": 138,
+							"id": 138,
+							"itemID": "id:l_TWLroEF6Ww8FuF",
+							"values": {
+								"Coaster": "Kraken",
+								"Park": "SeaWorld Orlando",
+								"Top_Speed": 65,
+								"Max_Height": 149,
+								"Drop": 144,
+								"Length": 4177,
+								"Duration": 122,
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 2000,
+								"Age_Group": "newest",
+								"Inversions": "Y",
+								"Num_of_Inversions": 7,
+								"City": "Orlando",
+								"latitude": 28.53834,
+								"longitude": -81.37924
+							}
+						},
+						{
+							"parent": 45978,
+							"guid": 34,
+							"id": 34,
+							"itemID": "id:NdwuofvWyjl4RZ6u",
+							"values": {
+								"Coaster": "Cannon Ball",
+								"Park": "Lake Winnepesaukah",
+								"Top_Speed": 50,
+								"Max_Height": 70,
+								"Drop": 70,
+								"Length": 2272,
+								"Duration": "",
+								"Type": "Wooden",
+								"Design": "Sit Down",
+								"Year_Opened": 1967,
+								"Age_Group": "older",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Rossville",
+								"latitude": 34.98313,
+								"longitude": -85.28607
+							}
+						},
+						{
+							"parent": 45978,
+							"guid": 37,
+							"id": 37,
+							"itemID": "id:jLap-eTONzlDbc4i",
+							"values": {
+								"Coaster": "Great American Scream Machine",
+								"Park": "Six Flags Over Georgia",
+								"Top_Speed": 57,
+								"Max_Height": 105,
+								"Drop": 89,
+								"Length": 3450,
+								"Duration": 120,
+								"Type": "Wooden",
+								"Design": "Sit Down",
+								"Year_Opened": 1973,
+								"Age_Group": "older",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Austell",
+								"latitude": 33.82028,
+								"longitude": -84.64427
+							}
+						},
+						{
+							"parent": 45978,
+							"guid": 63,
+							"id": 63,
+							"itemID": "id:PdnE6AmscdurnaNQ",
+							"values": {
+								"Coaster": "Georgia Cyclone",
+								"Park": "Six Flags Over Georgia",
+								"Top_Speed": 50,
+								"Max_Height": 95,
+								"Drop": 79,
+								"Length": 2970,
+								"Duration": 108,
+								"Type": "Wooden",
+								"Design": "Sit Down",
+								"Year_Opened": 1990,
+								"Age_Group": "recent",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Austell",
+								"latitude": 33.82028,
+								"longitude": -84.64427
+							}
+						},
+						{
+							"parent": 45978,
+							"guid": 120,
+							"id": 120,
+							"itemID": "id:hmpOXqRHKV7yo7hL",
+							"values": {
+								"Coaster": "Georgia Scorcher",
+								"Park": "Six Flags Over Georgia",
+								"Top_Speed": 54,
+								"Max_Height": 107,
+								"Drop": 101,
+								"Length": 3000,
+								"Duration": 84,
+								"Type": "Steel",
+								"Design": "Stand Up",
+								"Year_Opened": 1999,
+								"Age_Group": "recent",
+								"Inversions": "Y",
+								"Num_of_Inversions": 2,
+								"City": "Austell",
+								"latitude": 33.82028,
+								"longitude": -84.64427
+							}
+						},
+						{
+							"parent": 45978,
+							"guid": 145,
+							"id": 145,
+							"itemID": "id:Kd6l1E_3GXbfujqO",
+							"values": {
+								"Coaster": "Cheetah",
+								"Park": "Wild Adventures",
+								"Top_Speed": 52,
+								"Max_Height": 92,
+								"Drop": 90,
+								"Length": 2680,
+								"Duration": "",
+								"Type": "Wooden",
+								"Design": "Sit Down",
+								"Year_Opened": 2001,
+								"Age_Group": "newest",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Valdosta",
+								"latitude": 30.8327,
+								"longitude": -83.27849
+							}
+						},
+						{
+							"parent": 45978,
+							"guid": 147,
+							"id": 147,
+							"itemID": "id:HcuIFm7breBp5TJ_",
+							"values": {
+								"Coaster": "Deja Vu",
+								"Park": "Six Flags Over Georgia",
+								"Top_Speed": 66,
+								"Max_Height": 192,
+								"Drop": 177,
+								"Length": 1204,
+								"Duration": 92,
+								"Type": "Steel",
+								"Design": "Inverted",
+								"Year_Opened": 2001,
+								"Age_Group": "newest",
+								"Inversions": "Y",
+								"Num_of_Inversions": 3,
+								"City": "Austell",
+								"latitude": 33.82028,
+								"longitude": -84.64427
+							}
+						},
+						{
+							"parent": 45978,
+							"guid": 157,
+							"id": 157,
+							"itemID": "id:yluIxIGukx1eP35f",
+							"values": {
+								"Coaster": "Superman - Ultimate Flight",
+								"Park": "Six Flags Over Georgia",
+								"Top_Speed": "",
+								"Max_Height": 115,
+								"Drop": 100,
+								"Length": 2760,
+								"Duration": 120,
+								"Type": "Steel",
+								"Design": "Flying",
+								"Year_Opened": 2002,
+								"Age_Group": "newest",
+								"Inversions": "Y",
+								"Num_of_Inversions": 2,
+								"City": "Austell",
+								"latitude": 33.82028,
+								"longitude": -84.64427
+							}
+						},
+						{
+							"parent": 45992,
+							"guid": 129,
+							"id": 129,
+							"itemID": "id:9JKYZKKlN2Omqtgr",
+							"values": {
+								"Coaster": "Tremors",
+								"Park": "Silverwood Theme Park",
+								"Top_Speed": 60,
+								"Max_Height": 100,
+								"Drop": 103,
+								"Length": 3000,
+								"Duration": 100,
+								"Type": "Wooden",
+								"Design": "Sit Down",
+								"Year_Opened": 1999,
+								"Age_Group": "recent",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Athol",
+								"latitude": 47.94796,
+								"longitude": -116.70797
+							}
+						},
+						{
+							"parent": 45992,
+							"guid": 62,
+							"id": 62,
+							"itemID": "id:P-a34XavH4hxA-RB",
+							"values": {
+								"Coaster": "Corkscrew",
+								"Park": "Silverwood Theme Park",
+								"Top_Speed": 46,
+								"Max_Height": 70,
+								"Drop": 62,
+								"Length": 1250,
+								"Duration": "",
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 1990,
+								"Age_Group": "recent",
+								"Inversions": "Y",
+								"Num_of_Inversions": 2,
+								"City": "Athol",
+								"latitude": 47.94796,
+								"longitude": -116.70797
+							}
+						},
+						{
+							"parent": 45986,
+							"guid": 38,
+							"id": 38,
+							"itemID": "id:oI7o6xu9hvuvi7ds",
+							"values": {
+								"Coaster": "Demon",
+								"Park": "Six Flags Great America",
+								"Top_Speed": 50,
+								"Max_Height": 102,
+								"Drop": 90,
+								"Length": 2130,
+								"Duration": 105,
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 1976,
+								"Age_Group": "older",
+								"Inversions": "Y",
+								"Num_of_Inversions": 4,
+								"City": "Gurnee",
+								"latitude": 42.3703,
+								"longitude": -87.90202
+							}
+						},
+						{
+							"parent": 45986,
+							"guid": 42,
+							"id": 42,
+							"itemID": "id:wTx6frWNcb7vMrSv",
+							"values": {
+								"Coaster": "Whizzer",
+								"Park": "Six Flags Great America",
+								"Top_Speed": 42,
+								"Max_Height": 70,
+								"Drop": 64,
+								"Length": 3100,
+								"Duration": 120,
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 1976,
+								"Age_Group": "older",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Gurnee",
+								"latitude": 42.3703,
+								"longitude": -87.90202
+							}
+						},
+						{
+							"parent": 45986,
+							"guid": 51,
+							"id": 51,
+							"itemID": "id:rKM8vexlpbCizOR6",
+							"values": {
+								"Coaster": "American Eagle",
+								"Park": "Six Flags Great America",
+								"Top_Speed": 66,
+								"Max_Height": 127,
+								"Drop": 147,
+								"Length": 4650,
+								"Duration": 143,
+								"Type": "Wooden",
+								"Design": "Sit Down",
+								"Year_Opened": 1981,
+								"Age_Group": "recent",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Gurnee",
+								"latitude": 42.3703,
+								"longitude": -87.90202
+							}
+						},
+						{
+							"parent": 45986,
+							"guid": 90,
+							"id": 90,
+							"itemID": "id:O7TwLUqYz73hpLJA",
+							"values": {
+								"Coaster": "Viper",
+								"Park": "Six Flags Great America",
+								"Top_Speed": 50,
+								"Max_Height": 100,
+								"Drop": 80,
+								"Length": 3458,
+								"Duration": 105,
+								"Type": "Wooden",
+								"Design": "Sit Down",
+								"Year_Opened": 1995,
+								"Age_Group": "recent",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Gurnee",
+								"latitude": 42.3703,
+								"longitude": -87.90202
+							}
+						},
+						{
+							"parent": 45986,
+							"guid": 124,
+							"id": 124,
+							"itemID": "id:IBL2bIK-VMrx5RzL",
+							"values": {
+								"Coaster": "Raging Bull",
+								"Park": "Six Flags Great America",
+								"Top_Speed": 73,
+								"Max_Height": 202,
+								"Drop": 208,
+								"Length": 5057,
+								"Duration": 150,
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 1999,
+								"Age_Group": "recent",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Gurnee",
+								"latitude": 42.3703,
+								"longitude": -87.90202
+							}
+						},
+						{
+							"parent": 45986,
+							"guid": 64,
+							"id": 64,
+							"itemID": "id:XIMVA-WgaGlpG3Io",
+							"values": {
+								"Coaster": "Iron Wolf",
+								"Park": "Six Flags Great America",
+								"Top_Speed": 55,
+								"Max_Height": 100,
+								"Drop": 90,
+								"Length": 2900,
+								"Duration": 120,
+								"Type": "Steel",
+								"Design": "Stand Up",
+								"Year_Opened": 1990,
+								"Age_Group": "recent",
+								"Inversions": "Y",
+								"Num_of_Inversions": 2,
+								"City": "Gurnee",
+								"latitude": 42.3703,
+								"longitude": -87.90202
+							}
+						},
+						{
+							"parent": 45986,
+							"guid": 146,
+							"id": 146,
+							"itemID": "id:BL8A_SMhXtlox-2U",
+							"values": {
+								"Coaster": "Deja Vu",
+								"Park": "Six Flags Great America",
+								"Top_Speed": 66,
+								"Max_Height": 192,
+								"Drop": 177,
+								"Length": 1204,
+								"Duration": 92,
+								"Type": "Steel",
+								"Design": "Inverted",
+								"Year_Opened": 2001,
+								"Age_Group": "newest",
+								"Inversions": "Y",
+								"Num_of_Inversions": 3,
+								"City": "Gurnee",
+								"latitude": 42.3703,
+								"longitude": -87.90202
+							}
+						},
+						{
+							"parent": 45986,
+							"guid": 164,
+							"id": 164,
+							"itemID": "id:UlwPKM0qH8A75T93",
+							"values": {
+								"Coaster": "Superman - Ultimate Flight",
+								"Park": "Six Flags Great America",
+								"Top_Speed": 50,
+								"Max_Height": 115,
+								"Drop": 109,
+								"Length": 2798,
+								"Duration": 180,
+								"Type": "Steel",
+								"Design": "Flying",
+								"Year_Opened": 2003,
+								"Age_Group": "newest",
+								"Inversions": "Y",
+								"Num_of_Inversions": 2,
+								"City": "Gurnee",
+								"latitude": 42.3703,
+								"longitude": -87.90202
+							}
+						},
+						{
+							"parent": 45993,
+							"guid": 87,
+							"id": 87,
+							"itemID": "id:MNhCDon3BqbOzQrG",
+							"values": {
+								"Coaster": "Raven",
+								"Park": "Holiday World",
+								"Top_Speed": 48,
+								"Max_Height": 80,
+								"Drop": 110,
+								"Length": 2731,
+								"Duration": 90,
+								"Type": "Wooden",
+								"Design": "Sit Down",
+								"Year_Opened": 1995,
+								"Age_Group": "recent",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Santa Claus",
+								"latitude": 38.12005,
+								"longitude": -86.91416
+							}
+						},
+						{
+							"parent": 45993,
+							"guid": 68,
+							"id": 68,
+							"itemID": "id:5XDYFWvXV4HgiU9z",
+							"values": {
+								"Coaster": "Afterburner",
+								"Park": "Fun Spot",
+								"Top_Speed": 45,
+								"Max_Height": 56,
+								"Drop": 47,
+								"Length": 635,
+								"Duration": 66,
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 1991,
+								"Age_Group": "recent",
+								"Inversions": "Y",
+								"Num_of_Inversions": 1,
+								"City": "Angola",
+								"latitude": 41.63477,
+								"longitude": -84.99941
+							}
+						},
+						{
+							"parent": 45997,
+							"guid": 70,
+							"id": 70,
+							"itemID": "id:4DNu_TUzgxNjiV09",
+							"values": {
+								"Coaster": "Dragon",
+								"Park": "Adventureland",
+								"Top_Speed": "",
+								"Max_Height": 90,
+								"Drop": 85,
+								"Length": 2250,
+								"Duration": 90,
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 1991,
+								"Age_Group": "recent",
+								"Inversions": "Y",
+								"Num_of_Inversions": 2,
+								"City": "Altoona",
+								"latitude": 41.64416,
+								"longitude": -93.46466
+							}
+						},
+						{
+							"parent": 45998,
+							"guid": 98,
+							"id": 98,
+							"itemID": "id:wlFty2ZhrVrOxChU",
+							"values": {
+								"Coaster": "Chang",
+								"Park": "Six Flags Kentucky Kingdom",
+								"Top_Speed": 63,
+								"Max_Height": 154,
+								"Drop": 144,
+								"Length": 4155,
+								"Duration": 150,
+								"Type": "Steel",
+								"Design": "Stand Up",
+								"Year_Opened": 1997,
+								"Age_Group": "recent",
+								"Inversions": "Y",
+								"Num_of_Inversions": 5,
+								"City": "Louisville",
+								"latitude": 38.25424,
+								"longitude": -85.75941
+							}
+						},
+						{
+							"parent": 45998,
+							"guid": 172,
+							"id": 172,
+							"itemID": "id:g3tCkH723ZjUa64B",
+							"values": {
+								"Coaster": "StormChaser",
+								"Park": "Kentucky Kingdom",
+								"Top_Speed": 52,
+								"Max_Height": 100,
+								"Drop": "",
+								"Length": 2744,
+								"Duration": 100,
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 2016,
+								"Age_Group": "newest",
+								"Inversions": "Y",
+								"Num_of_Inversions": 3,
+								"City": "Louisville",
+								"latitude": 38.25424,
+								"longitude": -85.75941
+							}
+						},
+						{
+							"parent": 46004,
+							"guid": 160,
+							"id": 160,
+							"itemID": "id:8YSVGdhwWn-asz5T",
+							"values": {
+								"Coaster": "Batman: The Ride",
+								"Park": "Six Flags New Orleans",
+								"Top_Speed": 50,
+								"Max_Height": 105,
+								"Drop": 80,
+								"Length": 2693,
+								"Duration": 120,
+								"Type": "Steel",
+								"Design": "Inverted",
+								"Year_Opened": 2003,
+								"Age_Group": "newest",
+								"Inversions": "Y",
+								"Num_of_Inversions": 5,
+								"City": "New Orleans",
+								"latitude": 29.95465,
+								"longitude": -90.07507
+							}
+						},
+						{
+							"parent": 45994,
+							"guid": 108,
+							"id": 108,
+							"itemID": "id:py2a2a3m4C-PvR6d",
+							"values": {
+								"Coaster": "Excalibur",
+								"Park": "Funtown Splashtown U.S.A.",
+								"Top_Speed": 55,
+								"Max_Height": 100,
+								"Drop": 82,
+								"Length": 2700,
+								"Duration": 118,
+								"Type": "Wooden",
+								"Design": "Sit Down",
+								"Year_Opened": 1998,
+								"Age_Group": "recent",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Saco",
+								"latitude": 43.50092,
+								"longitude": -70.44283
+							}
+						},
+						{
+							"parent": 45990,
+							"guid": 55,
+							"id": 55,
+							"itemID": "id:rtZEhY4JYH8JNs0o",
+							"values": {
+								"Coaster": "Wild One",
+								"Park": "Six Flags America",
+								"Top_Speed": 53,
+								"Max_Height": 98,
+								"Drop": 88,
+								"Length": 4000,
+								"Duration": 112,
+								"Type": "Wooden",
+								"Design": "Sit Down",
+								"Year_Opened": 1986,
+								"Age_Group": "recent",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Upper Marlboro",
+								"latitude": 38.81595,
+								"longitude": -76.74969
+							}
+						},
+						{
+							"parent": 45990,
+							"guid": 175,
+							"id": 175,
+							"itemID": "id:KKspalvGh5LQ4fWs",
+							"values": {
+								"Coaster": "Joker's Jinx",
+								"Park": "Six Flags America",
+								"Top_Speed": 60,
+								"Max_Height": 79,
+								"Drop": "",
+								"Length": 2750,
+								"Duration": 56,
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 1999,
+								"Age_Group": "recent",
+								"Inversions": "Y",
+								"Num_of_Inversions": 4,
+								"City": "Upper Marlboro",
+								"latitude": 38.81595,
+								"longitude": -76.74969
+							}
+						},
+						{
+							"parent": 45990,
+							"guid": 131,
+							"id": 131,
+							"itemID": "id:3C52CR98yBtXU_q-",
+							"values": {
+								"Coaster": "Two-Face: The Flip Side",
+								"Park": "Six Flags America",
+								"Top_Speed": 50,
+								"Max_Height": 161,
+								"Drop": 138,
+								"Length": 1014,
+								"Duration": 90,
+								"Type": "Steel",
+								"Design": "Inverted",
+								"Year_Opened": 1999,
+								"Age_Group": "recent",
+								"Inversions": "Y",
+								"Num_of_Inversions": 3,
+								"City": "Upper Marlboro",
+								"latitude": 38.81595,
+								"longitude": -76.74969
+							}
+						},
+						{
+							"parent": 45990,
+							"guid": 143,
+							"id": 143,
+							"itemID": "id:bl0rSBtU1Vo0rMwS",
+							"values": {
+								"Coaster": "Superman - Ride Of Steel",
+								"Park": "Six Flags America",
+								"Top_Speed": 73,
+								"Max_Height": 200,
+								"Drop": 190,
+								"Length": 5350,
+								"Duration": 130,
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 2000,
+								"Age_Group": "newest",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Upper Marlboro",
+								"latitude": 38.81595,
+								"longitude": -76.74969
+							}
+						},
+						{
+							"parent": 46003,
+							"guid": 142,
+							"id": 142,
+							"itemID": "id:aLG_qKw9S6_9dpoe",
+							"values": {
+								"Coaster": "Superman - Ride Of Steel",
+								"Park": "Six Flags New England",
+								"Top_Speed": 77,
+								"Max_Height": 208,
+								"Drop": 221,
+								"Length": 5400,
+								"Duration": 155,
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 2000,
+								"Age_Group": "newest",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Agawam",
+								"latitude": "42.07",
+								"longitude": "-72.61"
+							}
+						},
+						{
+							"parent": 45995,
+							"guid": 58,
+							"id": 58,
+							"itemID": "id:OTyxAdUKxSNIGKrr",
+							"values": {
+								"Coaster": "Excalibur",
+								"Park": "Valleyfair!",
+								"Top_Speed": 55,
+								"Max_Height": 100,
+								"Drop": 105,
+								"Length": 2415,
+								"Duration": 137,
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 1989,
+								"Age_Group": "recent",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Shakopee",
+								"latitude": 44.79802,
+								"longitude": -93.5269
+							}
+						},
+						{
+							"parent": 45995,
+							"guid": 95,
+							"id": 95,
+							"itemID": "id:aQq8Dmr25qzkvx8T",
+							"values": {
+								"Coaster": "Wild Thing",
+								"Park": "Valleyfair!",
+								"Top_Speed": 74,
+								"Max_Height": 207,
+								"Drop": 196,
+								"Length": 5460,
+								"Duration": 180,
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 1996,
+								"Age_Group": "recent",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Shakopee",
+								"latitude": 44.79802,
+								"longitude": -93.5269
+							}
+						},
+						{
+							"parent": 45995,
+							"guid": 163,
+							"id": 163,
+							"itemID": "id:QxxVS76rWLHNgT18",
+							"values": {
+								"Coaster": "Steel Venom",
+								"Park": "Valleyfair!",
+								"Top_Speed": 68,
+								"Max_Height": 185,
+								"Drop": 175,
+								"Length": 630,
+								"Duration": "",
+								"Type": "Steel",
+								"Design": "Inverted",
+								"Year_Opened": 2003,
+								"Age_Group": "newest",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Shakopee",
+								"latitude": 44.79802,
+								"longitude": -93.5269
+							}
+						},
+						{
+							"parent": 45979,
+							"guid": 40,
+							"id": 40,
+							"itemID": "id:c9skxZI9t27W0tVS",
+							"values": {
+								"Coaster": "Screamin Eagle",
+								"Park": "Six Flags St. Louis",
+								"Top_Speed": 62,
+								"Max_Height": 110,
+								"Drop": 92,
+								"Length": 3872,
+								"Duration": 150,
+								"Type": "Wooden",
+								"Design": "Sit Down",
+								"Year_Opened": 1976,
+								"Age_Group": "older",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Eureka",
+								"latitude": 38.50255,
+								"longitude": -90.6279
+							}
+						},
+						{
+							"parent": 45979,
+							"guid": 35,
+							"id": 35,
+							"itemID": "id:lsnYVZCdC1KqiMLy",
+							"values": {
+								"Coaster": "River King Mine Train",
+								"Park": "Six Flags St. Louis",
+								"Top_Speed": 37,
+								"Max_Height": 32,
+								"Drop": 41,
+								"Length": 2500,
+								"Duration": 180,
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 1971,
+								"Age_Group": "older",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Eureka",
+								"latitude": 38.50255,
+								"longitude": -90.6279
+							}
+						},
+						{
+							"parent": 45979,
+							"guid": 61,
+							"id": 61,
+							"itemID": "id:ZL8YyNjXEzCt2wmW",
+							"values": {
+								"Coaster": "Timber Wolf",
+								"Park": "Worlds of Fun",
+								"Top_Speed": 53,
+								"Max_Height": 100,
+								"Drop": 95,
+								"Length": 4230,
+								"Duration": 133,
+								"Type": "Wooden",
+								"Design": "Sit Down",
+								"Year_Opened": 1989,
+								"Age_Group": "recent",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Kansas City",
+								"latitude": 39.12513,
+								"longitude": -94.55103
+							}
+						},
+						{
+							"parent": 45979,
+							"guid": 112,
+							"id": 112,
+							"itemID": "id:iDl1doUVZEIbEKh6",
+							"values": {
+								"Coaster": "Mamba",
+								"Park": "Worlds of Fun",
+								"Top_Speed": 75,
+								"Max_Height": 205,
+								"Drop": 205,
+								"Length": 5600,
+								"Duration": 180,
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 1998,
+								"Age_Group": "recent",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Kansas City",
+								"latitude": 39.12513,
+								"longitude": -94.55103
+							}
+						},
+						{
+							"parent": 45979,
+							"guid": 134,
+							"id": 134,
+							"itemID": "id:VBpZ-5qlSbfKFCEc",
+							"values": {
+								"Coaster": "Boss",
+								"Park": "Six Flags St. Louis",
+								"Top_Speed": 66,
+								"Max_Height": 122,
+								"Drop": 150,
+								"Length": 5051,
+								"Duration": "",
+								"Type": "Wooden",
+								"Design": "Sit Down",
+								"Year_Opened": 2000,
+								"Age_Group": "newest",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Eureka",
+								"latitude": 38.50255,
+								"longitude": -90.6279
+							}
+						},
+						{
+							"parent": 45979,
+							"guid": 153,
+							"id": 153,
+							"itemID": "id:AnQAZ6COLGN8yA6t",
+							"values": {
+								"Coaster": "Wildfire",
+								"Park": "Silver Dollar City",
+								"Top_Speed": 66,
+								"Max_Height": 120,
+								"Drop": 155,
+								"Length": 3073,
+								"Duration": 136,
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 2001,
+								"Age_Group": "newest",
+								"Inversions": "Y",
+								"Num_of_Inversions": 5,
+								"City": "Branson",
+								"latitude": 36.6452,
+								"longitude": -93.26411
+							}
+						},
+						{
+							"parent": 45996,
+							"guid": 76,
+							"id": 76,
+							"itemID": "id:s5q_4-jAC_ccQGDb",
+							"values": {
+								"Coaster": "Canyon Blaster",
+								"Park": "Adventuredome",
+								"Top_Speed": 41,
+								"Max_Height": 94,
+								"Drop": 66,
+								"Length": 2423,
+								"Duration": 90,
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 1993,
+								"Age_Group": "recent",
+								"Inversions": "Y",
+								"Num_of_Inversions": 4,
+								"City": "Las Vegas",
+								"latitude": 36.17497,
+								"longitude": -115.13722
+							}
+						},
+						{
+							"parent": 45996,
+							"guid": 82,
+							"id": 82,
+							"itemID": "id:8B1WRo-gTS0GIc1g",
+							"values": {
+								"Coaster": "Desperado",
+								"Park": "Buffalo Bills Resort & Casino",
+								"Top_Speed": 80,
+								"Max_Height": 209,
+								"Drop": 225,
+								"Length": 5843,
+								"Duration": 163,
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 1994,
+								"Age_Group": "recent",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Primm",
+								"latitude": "35.61",
+								"longitude": "-115.39"
+							}
+						},
+						{
+							"parent": 45996,
+							"guid": 101,
+							"id": 101,
+							"itemID": "id:cH5ydwMw3RPKrmaq",
+							"values": {
+								"Coaster": "Manhattan Express",
+								"Park": "New York, New York Hotel & Casino",
+								"Top_Speed": 67,
+								"Max_Height": 203,
+								"Drop": 144,
+								"Length": 4777,
+								"Duration": 160,
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 1997,
+								"Age_Group": "recent",
+								"Inversions": "Y",
+								"Num_of_Inversions": 2,
+								"City": "Las Vegas",
+								"latitude": 36.17497,
+								"longitude": -115.13722
+							}
+						},
+						{
+							"parent": 45989,
+							"guid": 91,
+							"id": 91,
+							"itemID": "id:HaiPl6jq2KpmFusu",
+							"values": {
+								"Coaster": "Great White",
+								"Park": "Moreys Piers",
+								"Top_Speed": 50,
+								"Max_Height": 110,
+								"Drop": 100,
+								"Length": 3300,
+								"Duration": 120,
+								"Type": "Wooden",
+								"Design": "Sit Down",
+								"Year_Opened": 1996,
+								"Age_Group": "recent",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Wildwood",
+								"latitude": 38.99178,
+								"longitude": -74.81489
+							}
+						},
+						{
+							"parent": 45989,
+							"guid": 59,
+							"id": 59,
+							"itemID": "id:o5JROCQ59InGZhff",
+							"values": {
+								"Coaster": "Great American Scream Machine",
+								"Park": "Six Flags Great Adventure",
+								"Top_Speed": 68,
+								"Max_Height": 173,
+								"Drop": 155,
+								"Length": 3800,
+								"Duration": 140,
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 1989,
+								"Age_Group": "recent",
+								"Inversions": "Y",
+								"Num_of_Inversions": 7,
+								"City": "Jackson",
+								"latitude": 40.0908,
+								"longitude": -74.36126
+							}
+						},
+						{
+							"parent": 45989,
+							"guid": 106,
+							"id": 106,
+							"itemID": "id:2PF6Gf1fTOkyq_W3",
+							"values": {
+								"Coaster": "Batman And Robin; The Chiller",
+								"Park": "Six Flags Great Adventure",
+								"Top_Speed": 70,
+								"Max_Height": 200,
+								"Drop": 139,
+								"Length": 1137,
+								"Duration": 32,
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 1998,
+								"Age_Group": "recent",
+								"Inversions": "Y",
+								"Num_of_Inversions": 2,
+								"City": "Jackson",
+								"latitude": 40.0908,
+								"longitude": -74.36126
+							}
+						},
+						{
+							"parent": 45989,
+							"guid": 107,
+							"id": 107,
+							"itemID": "id:8CjKV68Nj2hMzUUe",
+							"values": {
+								"Coaster": "Batman And Robin; The Chiller",
+								"Park": "Six Flags Great Adventure",
+								"Top_Speed": 70,
+								"Max_Height": 200,
+								"Drop": 105,
+								"Length": 1229,
+								"Duration": 48,
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 1998,
+								"Age_Group": "recent",
+								"Inversions": "Y",
+								"Num_of_Inversions": 3,
+								"City": "Jackson",
+								"latitude": 40.0908,
+								"longitude": -74.36126
+							}
+						},
+						{
+							"parent": 45989,
+							"guid": 123,
+							"id": 123,
+							"itemID": "id:VDU3T1f0DIxBmZa0",
+							"values": {
+								"Coaster": "Medusa",
+								"Park": "Six Flags Great Adventure",
+								"Top_Speed": 61,
+								"Max_Height": 142,
+								"Drop": 132,
+								"Length": 3985,
+								"Duration": 140,
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 1999,
+								"Age_Group": "recent",
+								"Inversions": "Y",
+								"Num_of_Inversions": 7,
+								"City": "Jackson",
+								"latitude": 40.0908,
+								"longitude": -74.36126
+							}
+						},
+						{
+							"parent": 45989,
+							"guid": 85,
+							"id": 85,
+							"itemID": "id:GKVapNHOMswjen8j",
+							"values": {
+								"Coaster": "Great NorEaster",
+								"Park": "Moreys Piers",
+								"Top_Speed": 55,
+								"Max_Height": 115,
+								"Drop": 95,
+								"Length": 2170,
+								"Duration": 125,
+								"Type": "Steel",
+								"Design": "Inverted",
+								"Year_Opened": 1995,
+								"Age_Group": "recent",
+								"Inversions": "Y",
+								"Num_of_Inversions": 5,
+								"City": "Wildwood",
+								"latitude": 38.99178,
+								"longitude": -74.81489
+							}
+						},
+						{
+							"parent": 45989,
+							"guid": 165,
+							"id": 165,
+							"itemID": "id:gZZHg6GMnyE4TJvd",
+							"values": {
+								"Coaster": "Superman - Ultimate Flight",
+								"Park": "Six Flags Great Adventure",
+								"Top_Speed": 60,
+								"Max_Height": 115,
+								"Drop": 100,
+								"Length": 2759,
+								"Duration": 126,
+								"Type": "Steel",
+								"Design": "Flying",
+								"Year_Opened": 2003,
+								"Age_Group": "newest",
+								"Inversions": "Y",
+								"Num_of_Inversions": 2,
+								"City": "Jackson",
+								"latitude": 40.0908,
+								"longitude": -74.36126
+							}
+						},
+						{
+							"parent": 45989,
+							"guid": 149,
+							"id": 149,
+							"itemID": "id:zk8XRIPeUjt_xQdQ",
+							"values": {
+								"Coaster": "Nitro",
+								"Park": "Six Flags Great Adventure",
+								"Top_Speed": 80,
+								"Max_Height": 230,
+								"Drop": 215,
+								"Length": 5394,
+								"Duration": 140,
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 2001,
+								"Age_Group": "newest",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Jackson",
+								"latitude": 40.0908,
+								"longitude": -74.36126
+							}
+						},
+						{
+							"parent": 45989,
+							"guid": 174,
+							"id": 174,
+							"itemID": "id:5U39InmgoN3IcTWC",
+							"values": {
+								"Coaster": "Joker",
+								"Park": "Six Flags Great Adventure",
+								"Top_Speed": 38,
+								"Max_Height": 120,
+								"Drop": 54,
+								"Length": 1019,
+								"Duration": "",
+								"Type": "Steel",
+								"Design": "Wing",
+								"Year_Opened": 2016,
+								"Age_Group": "newest",
+								"Inversions": "Y",
+								"Num_of_Inversions": 6,
+								"City": "Jackson",
+								"latitude": 40.0908,
+								"longitude": -74.36126
+							}
+						},
+						{
+							"parent": 46000,
+							"guid": 155,
+							"id": 155,
+							"itemID": "id:-ByBhji1HUrU97_R",
+							"values": {
+								"Coaster": "New Mexico Rattler",
+								"Park": "Cliffs Amusement Park",
+								"Top_Speed": 47,
+								"Max_Height": 80,
+								"Drop": 75,
+								"Length": 2750,
+								"Duration": 75,
+								"Type": "Wooden",
+								"Design": "Sit Down",
+								"Year_Opened": 2002,
+								"Age_Group": "newest",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Albuquerque",
+								"latitude": 35.08449,
+								"longitude": -106.65114
+							}
+						},
+						{
+							"parent": 45987,
+							"guid": 30,
+							"id": 30,
+							"itemID": "id:9JBt8ssxMgxLjXRb",
+							"values": {
+								"Coaster": "Bobsleds",
+								"Park": "Seabreeze",
+								"Top_Speed": 23,
+								"Max_Height": 31,
+								"Drop": 16,
+								"Length": 1240,
+								"Duration": "",
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 1962,
+								"Age_Group": "older",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Rochester",
+								"latitude": 43.15478,
+								"longitude": -77.61556
+							}
+						},
+						{
+							"parent": 45987,
+							"guid": 81,
+							"id": 81,
+							"itemID": "id:ZMJfMnCKZIpGzM5T",
+							"values": {
+								"Coaster": "Comet",
+								"Park": "Great Escape",
+								"Top_Speed": 55,
+								"Max_Height": 95,
+								"Drop": 87,
+								"Length": 4197,
+								"Duration": 120,
+								"Type": "Wooden",
+								"Design": "Sit Down",
+								"Year_Opened": 1994,
+								"Age_Group": "recent",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Lake George",
+								"latitude": 43.42618,
+								"longitude": -73.71234
+							}
+						},
+						{
+							"parent": 45987,
+							"guid": 125,
+							"id": 125,
+							"itemID": "id:JZAXL1bX3_zeszeu",
+							"values": {
+								"Coaster": "Silver Comet",
+								"Park": "Martins Fantasy Island",
+								"Top_Speed": 50,
+								"Max_Height": "",
+								"Drop": 82,
+								"Length": 2800,
+								"Duration": 105,
+								"Type": "Wooden",
+								"Design": "Sit Down",
+								"Year_Opened": 1999,
+								"Age_Group": "recent",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Grand Island",
+								"latitude": 43.0179,
+								"longitude": -78.96266
+							}
+						},
+						{
+							"parent": 45987,
+							"guid": 52,
+							"id": 52,
+							"itemID": "id:u8RdbExSAJlfnOLs",
+							"values": {
+								"Coaster": "Viper",
+								"Park": "Six Flags Darien Lake",
+								"Top_Speed": 50,
+								"Max_Height": 121,
+								"Drop": 75,
+								"Length": 3100,
+								"Duration": 124,
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 1982,
+								"Age_Group": "recent",
+								"Inversions": "Y",
+								"Num_of_Inversions": 5,
+								"City": "Darien Lake",
+								"latitude": "42.93",
+								"longitude": "-78.38"
+							}
+						},
+						{
+							"parent": 45987,
+							"guid": 127,
+							"id": 127,
+							"itemID": "id:g0OWIRLetsfO0YRI",
+							"values": {
+								"Coaster": "Superman - Ride Of Steel",
+								"Park": "Six Flags Darien Lake",
+								"Top_Speed": 73,
+								"Max_Height": 208,
+								"Drop": 205,
+								"Length": 5400,
+								"Duration": 122,
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 1999,
+								"Age_Group": "recent",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Darien Lake",
+								"latitude": "42.93",
+								"longitude": "-78.31"
+							}
+						},
+						{
+							"parent": 46002,
+							"guid": 169,
+							"id": 169,
+							"itemID": "id:ugbSN5g902NakuEu",
+							"values": {
+								"Coaster": "Intimidator",
+								"Park": "Carowinds",
+								"Top_Speed": 75,
+								"Max_Height": 232,
+								"Drop": 211,
+								"Length": 5316,
+								"Duration": 213,
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 2010,
+								"Age_Group": "newest",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Charlotte",
+								"latitude": 35.22709,
+								"longitude": -80.84313
+							}
+						},
+						{
+							"parent": 46002,
+							"guid": 170,
+							"id": 170,
+							"itemID": "id:oHKiZ-pl3XCwlJh5",
+							"values": {
+								"Coaster": "Fury 325",
+								"Park": "Carowinds",
+								"Top_Speed": 95,
+								"Max_Height": 325,
+								"Drop": 320,
+								"Length": 6602,
+								"Duration": 205,
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 2015,
+								"Age_Group": "newest",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Charlotte",
+								"latitude": 35.22709,
+								"longitude": -80.84313
+							}
+						},
+						{
+							"parent": 45975,
+							"guid": 33,
+							"id": 33,
+							"itemID": "id:EknG6lcFM68VPITW",
+							"values": {
+								"Coaster": "Blue Streak",
+								"Park": "Cedar Point",
+								"Top_Speed": 40,
+								"Max_Height": 78,
+								"Drop": 72,
+								"Length": 2558,
+								"Duration": 105,
+								"Type": "Wooden",
+								"Design": "Sit Down",
+								"Year_Opened": 1964,
+								"Age_Group": "older",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Sandusky",
+								"latitude": 40.86351,
+								"longitude": -82.82257
+							}
+						},
+						{
+							"parent": 45975,
+							"guid": 47,
+							"id": 47,
+							"itemID": "id:jH53sgJHluWYwCPG",
+							"values": {
+								"Coaster": "Beast",
+								"Park": "Paramounts Kings Island",
+								"Top_Speed": 65,
+								"Max_Height": 110,
+								"Drop": 141,
+								"Length": 7359,
+								"Duration": 250,
+								"Type": "Wooden",
+								"Design": "Sit Down",
+								"Year_Opened": 1979,
+								"Age_Group": "older",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Kings Mills",
+								"latitude": 39.35561,
+								"longitude": -84.24855
+							}
+						},
+						{
+							"parent": 45975,
+							"guid": 44,
+							"id": 44,
+							"itemID": "id:_IUOoZIqbn9SGApr",
+							"values": {
+								"Coaster": "Gemini",
+								"Park": "Cedar Point",
+								"Top_Speed": 60,
+								"Max_Height": 125,
+								"Drop": 118,
+								"Length": 3935,
+								"Duration": 140,
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 1978,
+								"Age_Group": "older",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Sandusky",
+								"latitude": 40.86351,
+								"longitude": -82.82257
+							}
+						},
+						{
+							"parent": 45975,
+							"guid": 71,
+							"id": 71,
+							"itemID": "id:7V-RXMoTAboZJNqn",
+							"values": {
+								"Coaster": "Mean Streak",
+								"Park": "Cedar Point",
+								"Top_Speed": 65,
+								"Max_Height": 161,
+								"Drop": 155,
+								"Length": 5427,
+								"Duration": 193,
+								"Type": "Wooden",
+								"Design": "Sit Down",
+								"Year_Opened": 1991,
+								"Age_Group": "recent",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Sandusky",
+								"latitude": 40.86351,
+								"longitude": -82.82257
+							}
+						},
+						{
+							"parent": 45975,
+							"guid": 57,
+							"id": 57,
+							"itemID": "id:bIa_LSw2ZeZUfbFR",
+							"values": {
+								"Coaster": "Vortex",
+								"Park": "Paramounts Kings Island",
+								"Top_Speed": 55,
+								"Max_Height": 148,
+								"Drop": 138,
+								"Length": 3800,
+								"Duration": 150,
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 1987,
+								"Age_Group": "recent",
+								"Inversions": "Y",
+								"Num_of_Inversions": 6,
+								"City": "Kings Mills",
+								"latitude": 39.35561,
+								"longitude": -84.24855
+							}
+						},
+						{
+							"parent": 45975,
+							"guid": 60,
+							"id": 60,
+							"itemID": "id:415pty01NTwYBf7o",
+							"values": {
+								"Coaster": "Magnum XL-200",
+								"Park": "Cedar Point",
+								"Top_Speed": 72,
+								"Max_Height": 205,
+								"Drop": 195,
+								"Length": 5106,
+								"Duration": 120,
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 1989,
+								"Age_Group": "recent",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Sandusky",
+								"latitude": 40.86351,
+								"longitude": -82.82257
+							}
+						},
+						{
+							"parent": 45975,
+							"guid": 83,
+							"id": 83,
+							"itemID": "id:_nGleYlQ9tiCtWLP",
+							"values": {
+								"Coaster": "Raptor",
+								"Park": "Cedar Point",
+								"Top_Speed": 57,
+								"Max_Height": 137,
+								"Drop": 119,
+								"Length": 3790,
+								"Duration": 136,
+								"Type": "Steel",
+								"Design": "Inverted",
+								"Year_Opened": 1994,
+								"Age_Group": "recent",
+								"Inversions": "Y",
+								"Num_of_Inversions": 6,
+								"City": "Sandusky",
+								"latitude": 40.86351,
+								"longitude": -82.82257
+							}
+						},
+						{
+							"parent": 45975,
+							"guid": 119,
+							"id": 119,
+							"itemID": "id:5C8mUZnqikP7gvLR",
+							"values": {
+								"Coaster": "Face/Off",
+								"Park": "Paramounts Kings Island",
+								"Top_Speed": 50,
+								"Max_Height": 161,
+								"Drop": 138,
+								"Length": 1014,
+								"Duration": 90,
+								"Type": "Steel",
+								"Design": "Inverted",
+								"Year_Opened": 1999,
+								"Age_Group": "recent",
+								"Inversions": "Y",
+								"Num_of_Inversions": 3,
+								"City": "Kings Mills",
+								"latitude": 39.35561,
+								"longitude": -84.24855
+							}
+						},
+						{
+							"parent": 45975,
+							"guid": 92,
+							"id": 92,
+							"itemID": "id:6Gva6_SC00S9Bvnw",
+							"values": {
+								"Coaster": "Mantis",
+								"Park": "Cedar Point",
+								"Top_Speed": 60,
+								"Max_Height": 145,
+								"Drop": 137,
+								"Length": 3900,
+								"Duration": 160,
+								"Type": "Steel",
+								"Design": "Stand Up",
+								"Year_Opened": 1996,
+								"Age_Group": "recent",
+								"Inversions": "Y",
+								"Num_of_Inversions": 4,
+								"City": "Sandusky",
+								"latitude": 40.86351,
+								"longitude": -82.82257
+							}
+						},
+						{
+							"parent": 45975,
+							"guid": 141,
+							"id": 141,
+							"itemID": "id:6Ys1nku_Fy-u4ppN",
+							"values": {
+								"Coaster": "Son Of Beast",
+								"Park": "Paramounts Kings Island",
+								"Top_Speed": 78,
+								"Max_Height": 218,
+								"Drop": 214,
+								"Length": 7032,
+								"Duration": 140,
+								"Type": "Wooden",
+								"Design": "Sit Down",
+								"Year_Opened": 2000,
+								"Age_Group": "newest",
+								"Inversions": "Y",
+								"Num_of_Inversions": 1,
+								"City": "Kings Mills",
+								"latitude": 39.35561,
+								"longitude": -84.24855
+							}
+						},
+						{
+							"parent": 45975,
+							"guid": 133,
+							"id": 133,
+							"itemID": "id:w9A0QObxIuziQEAY",
+							"values": {
+								"Coaster": "Batman Knight Flight",
+								"Park": "Six Flags Worlds of Adventure",
+								"Top_Speed": 65,
+								"Max_Height": 157,
+								"Drop": 148,
+								"Length": 4210,
+								"Duration": "",
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 2000,
+								"Age_Group": "newest",
+								"Inversions": "Y",
+								"Num_of_Inversions": 5,
+								"City": "Aurora",
+								"latitude": 41.31755,
+								"longitude": -81.34539
+							}
+						},
+						{
+							"parent": 45975,
+							"guid": 140,
+							"id": 140,
+							"itemID": "id:S6i3nUDHojmG7OEw",
+							"values": {
+								"Coaster": "Millennium Force",
+								"Park": "Cedar Point",
+								"Top_Speed": 93,
+								"Max_Height": 310,
+								"Drop": 300,
+								"Length": 6595,
+								"Duration": 140,
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 2000,
+								"Age_Group": "newest",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Sandusky",
+								"latitude": 40.86351,
+								"longitude": -82.82257
+							}
+						},
+						{
+							"parent": 45975,
+							"guid": 166,
+							"id": 166,
+							"itemID": "id:ASZDqusq1WY9hb3r",
+							"values": {
+								"Coaster": "Top Thrill Dragster",
+								"Park": "Cedar Point",
+								"Top_Speed": 120,
+								"Max_Height": 420,
+								"Drop": 400,
+								"Length": 2800,
+								"Duration": 30,
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 2003,
+								"Age_Group": "newest",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Sandusky",
+								"latitude": 40.86351,
+								"longitude": -82.82257
+							}
+						},
+						{
+							"parent": 45975,
+							"guid": 158,
+							"id": 158,
+							"itemID": "id:hOMbXipd4bkv0c11",
+							"values": {
+								"Coaster": "Wicked Twister",
+								"Park": "Cedar Point",
+								"Top_Speed": 72,
+								"Max_Height": 215,
+								"Drop": 206,
+								"Length": "",
+								"Duration": "",
+								"Type": "Steel",
+								"Design": "Inverted",
+								"Year_Opened": 2002,
+								"Age_Group": "newest",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Sandusky",
+								"latitude": 40.86351,
+								"longitude": -82.82257
+							}
+						},
+						{
+							"parent": 45988,
+							"guid": 49,
+							"id": 49,
+							"itemID": "id:roLwioOZp-mfuPUk",
+							"values": {
+								"Coaster": "Silver Bullet",
+								"Park": "Frontier City",
+								"Top_Speed": 55,
+								"Max_Height": 83,
+								"Drop": 75,
+								"Length": 1942,
+								"Duration": "",
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 1979,
+								"Age_Group": "older",
+								"Inversions": "Y",
+								"Num_of_Inversions": 1,
+								"City": "Oklahoma City",
+								"latitude": 35.46708,
+								"longitude": -97.51366
+							}
+						},
+						{
+							"parent": 45988,
+							"guid": 72,
+							"id": 72,
+							"itemID": "id:7XpI-qzPSahu3v9w",
+							"values": {
+								"Coaster": "Wildcat",
+								"Park": "Frontier City",
+								"Top_Speed": 60,
+								"Max_Height": 75,
+								"Drop": 65,
+								"Length": 2653,
+								"Duration": 130,
+								"Type": "Wooden",
+								"Design": "Sit Down",
+								"Year_Opened": 1991,
+								"Age_Group": "recent",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Oklahoma City",
+								"latitude": 35.46708,
+								"longitude": -97.51366
+							}
+						},
+						{
+							"parent": 45988,
+							"guid": 77,
+							"id": 77,
+							"itemID": "id:MaMamRMNQ4TgyirS",
+							"values": {
+								"Coaster": "Diamond Back",
+								"Park": "Frontier City",
+								"Top_Speed": 45,
+								"Max_Height": 56,
+								"Drop": 47,
+								"Length": 635,
+								"Duration": 66,
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 1993,
+								"Age_Group": "recent",
+								"Inversions": "Y",
+								"Num_of_Inversions": 1,
+								"City": "Oklahoma City",
+								"latitude": 35.46708,
+								"longitude": -97.51366
+							}
+						},
+						{
+							"parent": 45973,
+							"guid": 20,
+							"id": 20,
+							"itemID": "id:2Gb_uD-jEH5gxuaS",
+							"values": {
+								"Coaster": "Jack Rabbit",
+								"Park": "Kennywood Park",
+								"Top_Speed": 45,
+								"Max_Height": 40,
+								"Drop": 70,
+								"Length": 2132,
+								"Duration": 96,
+								"Type": "Wooden",
+								"Design": "Sit Down",
+								"Year_Opened": 1921,
+								"Age_Group": "older",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "West Mifflin",
+								"latitude": 40.3634,
+								"longitude": -79.86644
+							}
+						},
+						{
+							"parent": 45973,
+							"guid": 110,
+							"id": 110,
+							"itemID": "id:L6bZruDVmoqBYDvM",
+							"values": {
+								"Coaster": "Great Bear",
+								"Park": "Hersheypark",
+								"Top_Speed": 58,
+								"Max_Height": 90,
+								"Drop": 124,
+								"Length": 2800,
+								"Duration": 175,
+								"Type": "Steel",
+								"Design": "Inverted",
+								"Year_Opened": 1998,
+								"Age_Group": "recent",
+								"Inversions": "Y",
+								"Num_of_Inversions": 4,
+								"City": "Hershey",
+								"latitude": 40.28592,
+								"longitude": -76.65025
+							}
+						},
+						{
+							"parent": 45973,
+							"guid": 29,
+							"id": 29,
+							"itemID": "id:w3GEQbY2T85U67tZ",
+							"values": {
+								"Coaster": "High Speed Thrill Coaster",
+								"Park": "Knoebels",
+								"Top_Speed": 40,
+								"Max_Height": 18,
+								"Drop": 12,
+								"Length": 200,
+								"Duration": "",
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 1955,
+								"Age_Group": "older",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Elysburg",
+								"latitude": 40.86453,
+								"longitude": -76.55246
+							}
+						},
+						{
+							"parent": 45973,
+							"guid": 21,
+							"id": 21,
+							"itemID": "id:O4OC1_tO7FOpDOT3",
+							"values": {
+								"Coaster": "Thunderhawk",
+								"Park": "Dorney Park",
+								"Top_Speed": 45,
+								"Max_Height": 80,
+								"Drop": 65,
+								"Length": 2767,
+								"Duration": 78,
+								"Type": "Wooden",
+								"Design": "Sit Down",
+								"Year_Opened": 1923,
+								"Age_Group": "older",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Allentown",
+								"latitude": 40.60843,
+								"longitude": -75.49018
+							}
+						},
+						{
+							"parent": 45973,
+							"guid": 23,
+							"id": 23,
+							"itemID": "id:H8zREOGu9JUFogEV",
+							"values": {
+								"Coaster": "Thunderbolt",
+								"Park": "Kennywood Park",
+								"Top_Speed": 55,
+								"Max_Height": 70,
+								"Drop": 95,
+								"Length": 2887,
+								"Duration": 101,
+								"Type": "Wooden",
+								"Design": "Sit Down",
+								"Year_Opened": 1924,
+								"Age_Group": "older",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "West Mifflin",
+								"latitude": 40.3634,
+								"longitude": -79.86644
+							}
+						},
+						{
+							"parent": 45973,
+							"guid": 27,
+							"id": 27,
+							"itemID": "id:iTiThT8yXwc-ffQF",
+							"values": {
+								"Coaster": "Comet",
+								"Park": "Hersheypark",
+								"Top_Speed": 50,
+								"Max_Height": 84,
+								"Drop": 78,
+								"Length": 3360,
+								"Duration": 105,
+								"Type": "Wooden",
+								"Design": "Sit Down",
+								"Year_Opened": 1946,
+								"Age_Group": "older",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Hershey",
+								"latitude": 40.28592,
+								"longitude": -76.65025
+							}
+						},
+						{
+							"parent": 45973,
+							"guid": 28,
+							"id": 28,
+							"itemID": "id:oGSSnj1bR6zXn6_1",
+							"values": {
+								"Coaster": "Comet",
+								"Park": "Waldameer Park",
+								"Top_Speed": 25,
+								"Max_Height": 37,
+								"Drop": 25,
+								"Length": 1300,
+								"Duration": 84,
+								"Type": "Wooden",
+								"Design": "Sit Down",
+								"Year_Opened": 1951,
+								"Age_Group": "older",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Erie",
+								"latitude": 42.12922,
+								"longitude": -80.08506
+							}
+						},
+						{
+							"parent": 45973,
+							"guid": 54,
+							"id": 54,
+							"itemID": "id:XJVzyH1HoGiiml1M",
+							"values": {
+								"Coaster": "Phoenix",
+								"Park": "Knoebels",
+								"Top_Speed": 45,
+								"Max_Height": 78,
+								"Drop": 72,
+								"Length": 3200,
+								"Duration": 120,
+								"Type": "Wooden",
+								"Design": "Sit Down",
+								"Year_Opened": 1985,
+								"Age_Group": "recent",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Elysburg",
+								"latitude": 40.86453,
+								"longitude": -76.55246
+							}
+						},
+						{
+							"parent": 45973,
+							"guid": 56,
+							"id": 56,
+							"itemID": "id:pmZ6tTfqUsWyEHzu",
+							"values": {
+								"Coaster": "Skyliner",
+								"Park": "Lakemont Park",
+								"Top_Speed": "",
+								"Max_Height": 60,
+								"Drop": 45,
+								"Length": 2400,
+								"Duration": "",
+								"Type": "Wooden",
+								"Design": "Sit Down",
+								"Year_Opened": 1987,
+								"Age_Group": "recent",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Altoona",
+								"latitude": 40.51868,
+								"longitude": -78.39474
+							}
+						},
+						{
+							"parent": 45973,
+							"guid": 96,
+							"id": 96,
+							"itemID": "id:AEq3W4ldDzKL3MFu",
+							"values": {
+								"Coaster": "Wildcat",
+								"Park": "Hersheypark",
+								"Top_Speed": 50,
+								"Max_Height": 90,
+								"Drop": 85,
+								"Length": 3183,
+								"Duration": "",
+								"Type": "Wooden",
+								"Design": "Sit Down",
+								"Year_Opened": 1996,
+								"Age_Group": "recent",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Hershey",
+								"latitude": 40.28592,
+								"longitude": -76.65025
+							}
+						},
+						{
+							"parent": 45973,
+							"guid": 99,
+							"id": 99,
+							"itemID": "id:M8pdFW7S9PaplH6Y",
+							"values": {
+								"Coaster": "Cyclone",
+								"Park": "Williams Grove Park",
+								"Top_Speed": "",
+								"Max_Height": 65,
+								"Drop": 60,
+								"Length": 2300,
+								"Duration": "",
+								"Type": "Wooden",
+								"Design": "Sit Down",
+								"Year_Opened": 1997,
+								"Age_Group": "recent",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Mechanicsburg",
+								"latitude": 40.21426,
+								"longitude": -77.00859
+							}
+						},
+						{
+							"parent": 45973,
+							"guid": 122,
+							"id": 122,
+							"itemID": "id:_bQkHGEHP6NKcomN",
+							"values": {
+								"Coaster": "Leap The Dips",
+								"Park": "Lakemont Park",
+								"Top_Speed": "",
+								"Max_Height": 41,
+								"Drop": 9,
+								"Length": 1452,
+								"Duration": 60,
+								"Type": "Wooden",
+								"Design": "Sit Down",
+								"Year_Opened": 1999,
+								"Age_Group": "recent",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Altoona",
+								"latitude": 40.51868,
+								"longitude": -78.39474
+							}
+						},
+						{
+							"parent": 45973,
+							"guid": 130,
+							"id": 130,
+							"itemID": "id:DiFHhTQkWQNZLUFP",
+							"values": {
+								"Coaster": "Twister",
+								"Park": "Knoebels",
+								"Top_Speed": 52,
+								"Max_Height": 102,
+								"Drop": 90,
+								"Length": 3900,
+								"Duration": 130,
+								"Type": "Wooden",
+								"Design": "Sit Down",
+								"Year_Opened": 1999,
+								"Age_Group": "recent",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Elysburg",
+								"latitude": 40.86453,
+								"longitude": -76.55246
+							}
+						},
+						{
+							"parent": 45973,
+							"guid": 80,
+							"id": 80,
+							"itemID": "id:swYt5yp4KJX3Yhz9",
+							"values": {
+								"Coaster": "Whirlwind",
+								"Park": "Knoebels",
+								"Top_Speed": "",
+								"Max_Height": 64,
+								"Drop": 48,
+								"Length": 1200,
+								"Duration": "",
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 1993,
+								"Age_Group": "recent",
+								"Inversions": "Y",
+								"Num_of_Inversions": 2,
+								"City": "Elysburg",
+								"latitude": 40.86453,
+								"longitude": -76.55246
+							}
+						},
+						{
+							"parent": 45973,
+							"guid": 102,
+							"id": 102,
+							"itemID": "id:coABnWpdWUdbCJZo",
+							"values": {
+								"Coaster": "Steel Force",
+								"Park": "Dorney Park",
+								"Top_Speed": 75,
+								"Max_Height": 200,
+								"Drop": 205,
+								"Length": 5600,
+								"Duration": 180,
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 1997,
+								"Age_Group": "recent",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Allentown",
+								"latitude": 40.60843,
+								"longitude": -75.49018
+							}
+						},
+						{
+							"parent": 45973,
+							"guid": 114,
+							"id": 114,
+							"itemID": "id:8SyQ76jHC3v_RnsK",
+							"values": {
+								"Coaster": "Vapor Trail",
+								"Park": "Sesame Place",
+								"Top_Speed": 27,
+								"Max_Height": 43,
+								"Drop": 56,
+								"Length": 1300,
+								"Duration": 180,
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 1998,
+								"Age_Group": "recent",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Langhorne",
+								"latitude": 40.17455,
+								"longitude": -74.92267
+							}
+						},
+						{
+							"parent": 45973,
+							"guid": 150,
+							"id": 150,
+							"itemID": "id:I9Mih-bfvgo118pB",
+							"values": {
+								"Coaster": "Phantoms Revenge",
+								"Park": "Kennywood Park",
+								"Top_Speed": 82,
+								"Max_Height": 160,
+								"Drop": 228,
+								"Length": 3200,
+								"Duration": 117,
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 2001,
+								"Age_Group": "newest",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "West Mifflin",
+								"latitude": 40.3634,
+								"longitude": -79.86644
+							}
+						},
+						{
+							"parent": 45973,
+							"guid": 151,
+							"id": 151,
+							"itemID": "id:rpLCl4F21_B2GcpL",
+							"values": {
+								"Coaster": "Talon",
+								"Park": "Dorney Park",
+								"Top_Speed": 58,
+								"Max_Height": 135,
+								"Drop": 120,
+								"Length": 3110,
+								"Duration": "",
+								"Type": "Steel",
+								"Design": "Inverted",
+								"Year_Opened": 2001,
+								"Age_Group": "newest",
+								"Inversions": "Y",
+								"Num_of_Inversions": 4,
+								"City": "Allentown",
+								"latitude": 40.60843,
+								"longitude": -75.49018
+							}
+						},
+						{
+							"parent": 45984,
+							"guid": 32,
+							"id": 32,
+							"itemID": "id:q0hM7FtVjAv5KKKm",
+							"values": {
+								"Coaster": "Swamp Fox",
+								"Park": "Family Kingdom Amusement Park",
+								"Top_Speed": 50,
+								"Max_Height": 75,
+								"Drop": 65,
+								"Length": 2400,
+								"Duration": "",
+								"Type": "Wooden",
+								"Design": "Sit Down",
+								"Year_Opened": 1963,
+								"Age_Group": "older",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Myrtle Beach",
+								"latitude": 33.68906,
+								"longitude": -78.88669
+							}
+						},
+						{
+							"parent": 45984,
+							"guid": 137,
+							"id": 137,
+							"itemID": "id:dt8WFWdK8NhpQeCr",
+							"values": {
+								"Coaster": "Hurricane",
+								"Park": "Myrtle Beach Pavilion",
+								"Top_Speed": 55,
+								"Max_Height": 102,
+								"Drop": 100,
+								"Length": 3800,
+								"Duration": 120,
+								"Type": "Wooden",
+								"Design": "Sit Down",
+								"Year_Opened": 2000,
+								"Age_Group": "newest",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Myrtle Beach",
+								"latitude": 33.68906,
+								"longitude": -78.88669
+							}
+						},
+						{
+							"parent": 45980,
+							"guid": 19,
+							"id": 19,
+							"itemID": "id:-v1HIbNN1aZDzX8Y",
+							"values": {
+								"Coaster": "Zippin Pippin",
+								"Park": "Libertyland",
+								"Top_Speed": 40,
+								"Max_Height": 70,
+								"Drop": 70,
+								"Length": 2865,
+								"Duration": 90,
+								"Type": "Wooden",
+								"Design": "Sit Down",
+								"Year_Opened": 1915,
+								"Age_Group": "older",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Memphis",
+								"latitude": 35.14953,
+								"longitude": -90.04898
+							}
+						},
+						{
+							"parent": 45980,
+							"guid": 48,
+							"id": 48,
+							"itemID": "id:3gHIGEAam4yvIsJK",
+							"values": {
+								"Coaster": "Revolution",
+								"Park": "Libertyland",
+								"Top_Speed": 55,
+								"Max_Height": 70,
+								"Drop": 65,
+								"Length": 1565,
+								"Duration": 80,
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 1979,
+								"Age_Group": "older",
+								"Inversions": "Y",
+								"Num_of_Inversions": 3,
+								"City": "Memphis",
+								"latitude": 35.14953,
+								"longitude": -90.04898
+							}
+						},
+						{
+							"parent": 45980,
+							"guid": 128,
+							"id": 128,
+							"itemID": "id:6To1jsIpHdvcPBvX",
+							"values": {
+								"Coaster": "Tennessee Tornado",
+								"Park": "Dollywood",
+								"Top_Speed": 63,
+								"Max_Height": 163,
+								"Drop": 128,
+								"Length": 2682,
+								"Duration": 108,
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 1999,
+								"Age_Group": "recent",
+								"Inversions": "Y",
+								"Num_of_Inversions": 3,
+								"City": "Pigeon Forge",
+								"latitude": 35.78842,
+								"longitude": -83.55433
+							}
+						},
+						{
+							"parent": 45980,
+							"guid": 171,
+							"id": 171,
+							"itemID": "id:OWnoAa0PXC8RLeQl",
+							"values": {
+								"Coaster": "Lightning Rod",
+								"Park": "Dollywood",
+								"Top_Speed": 73,
+								"Max_Height": "",
+								"Drop": 165,
+								"Length": 3800,
+								"Duration": 192,
+								"Type": "Wooden",
+								"Design": "Sit Down",
+								"Year_Opened": 2016,
+								"Age_Group": "newest",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Pigeon Forge",
+								"latitude": 35.78842,
+								"longitude": -83.55433
+							}
+						},
+						{
+							"parent": 45976,
+							"guid": 41,
+							"id": 41,
+							"itemID": "id:qfFIt8d7ElZPShje",
+							"values": {
+								"Coaster": "Texas Cyclone",
+								"Park": "Six Flags AstroWorld",
+								"Top_Speed": "",
+								"Max_Height": 93,
+								"Drop": 80,
+								"Length": 3180,
+								"Duration": 135,
+								"Type": "Wooden",
+								"Design": "Sit Down",
+								"Year_Opened": 1976,
+								"Age_Group": "older",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Houston",
+								"latitude": 29.78664,
+								"longitude": -95.3909
+							}
+						},
+						{
+							"parent": 45976,
+							"guid": 36,
+							"id": 36,
+							"itemID": "id:S1RUo8zomnORQW3K",
+							"values": {
+								"Coaster": "Big Bend",
+								"Park": "Six Flags Over Texas",
+								"Top_Speed": 52,
+								"Max_Height": 81,
+								"Drop": "",
+								"Length": 2876,
+								"Duration": 98,
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 1971,
+								"Age_Group": "older",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Arlington",
+								"latitude": 32.73569,
+								"longitude": -97.10807
+							}
+						},
+						{
+							"parent": 45976,
+							"guid": 66,
+							"id": 66,
+							"itemID": "id:tOxNX3E5t-AM4Dod",
+							"values": {
+								"Coaster": "Ultra Twister",
+								"Park": "Six Flags AstroWorld",
+								"Top_Speed": 44,
+								"Max_Height": 97,
+								"Drop": 92,
+								"Length": 1421,
+								"Duration": 100,
+								"Type": "Steel",
+								"Design": "Pipeline",
+								"Year_Opened": 1990,
+								"Age_Group": "recent",
+								"Inversions": "Y",
+								"Num_of_Inversions": 3,
+								"City": "Houston",
+								"latitude": 29.78664,
+								"longitude": -95.3909
+							}
+						},
+						{
+							"parent": 45976,
+							"guid": 50,
+							"id": 50,
+							"itemID": "id:cAG0vf95aTmj6Xi1",
+							"values": {
+								"Coaster": "Judge Roy Scream",
+								"Park": "Six Flags Over Texas",
+								"Top_Speed": 53,
+								"Max_Height": 71,
+								"Drop": 65,
+								"Length": 2670,
+								"Duration": 90,
+								"Type": "Wooden",
+								"Design": "Sit Down",
+								"Year_Opened": 1980,
+								"Age_Group": "recent",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Arlington",
+								"latitude": 32.73569,
+								"longitude": -97.10807
+							}
+						},
+						{
+							"parent": 45976,
+							"guid": 65,
+							"id": 65,
+							"itemID": "id:jjb0qgtPyCJlHQUl",
+							"values": {
+								"Coaster": "Texas Giant",
+								"Park": "Six Flags Over Texas",
+								"Top_Speed": 65,
+								"Max_Height": 143,
+								"Drop": 137,
+								"Length": 4920,
+								"Duration": 120,
+								"Type": "Wooden",
+								"Design": "Sit Down",
+								"Year_Opened": 1990,
+								"Age_Group": "recent",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Arlington",
+								"latitude": 32.73569,
+								"longitude": -97.10807
+							}
+						},
+						{
+							"parent": 45976,
+							"guid": 73,
+							"id": 73,
+							"itemID": "id:WAElS-r_TKC5k9OE",
+							"values": {
+								"Coaster": "Rattler",
+								"Park": "Six Flags Fiesta Texas",
+								"Top_Speed": 65,
+								"Max_Height": 180,
+								"Drop": 124,
+								"Length": 5080,
+								"Duration": "",
+								"Type": "Wooden",
+								"Design": "Sit Down",
+								"Year_Opened": 1992,
+								"Age_Group": "recent",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "San Antonio",
+								"latitude": 29.4724,
+								"longitude": -98.52514
+							}
+						},
+						{
+							"parent": 45976,
+							"guid": 126,
+							"id": 126,
+							"itemID": "id:RRnm0dTFLLd8sxCM",
+							"values": {
+								"Coaster": "Steel Eel",
+								"Park": "SeaWorld Of Texas",
+								"Top_Speed": 65,
+								"Max_Height": 150,
+								"Drop": 150,
+								"Length": 3700,
+								"Duration": 100,
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 1999,
+								"Age_Group": "recent",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "San Antonio",
+								"latitude": 29.4724,
+								"longitude": -98.52514
+							}
+						},
+						{
+							"parent": 45976,
+							"guid": 100,
+							"id": 100,
+							"itemID": "id:akKcK5BanZUBYFse",
+							"values": {
+								"Coaster": "Great White",
+								"Park": "SeaWorld Of Texas",
+								"Top_Speed": 50,
+								"Max_Height": 108,
+								"Drop": 81,
+								"Length": 2562,
+								"Duration": 120,
+								"Type": "Steel",
+								"Design": "Inverted",
+								"Year_Opened": 1997,
+								"Age_Group": "recent",
+								"Inversions": "Y",
+								"Num_of_Inversions": 5,
+								"City": "San Antonio",
+								"latitude": 29.4724,
+								"longitude": -98.52514
+							}
+						},
+						{
+							"parent": 45976,
+							"guid": 74,
+							"id": 74,
+							"itemID": "id:Qp4spkScGAoBmdyx",
+							"values": {
+								"Coaster": "Batman The Escape",
+								"Park": "Six Flags AstroWorld",
+								"Top_Speed": 55,
+								"Max_Height": 90,
+								"Drop": 85,
+								"Length": 2300,
+								"Duration": "",
+								"Type": "Steel",
+								"Design": "Stand Up",
+								"Year_Opened": 1993,
+								"Age_Group": "recent",
+								"Inversions": "Y",
+								"Num_of_Inversions": 1,
+								"City": "Houston",
+								"latitude": 29.78664,
+								"longitude": -95.3909
+							}
+						},
+						{
+							"parent": 45976,
+							"guid": 75,
+							"id": 75,
+							"itemID": "id:jmOzDSkHVEOll6fx",
+							"values": {
+								"Coaster": "Batman The Ride",
+								"Park": "Six Flags Fiesta Texas",
+								"Top_Speed": 38,
+								"Max_Height": 120,
+								"Drop": 54,
+								"Length": 1019,
+								"Duration": "",
+								"Type": "Steel",
+								"Design": "Wing",
+								"Year_Opened": 2015,
+								"Age_Group": "newest",
+								"Inversions": "Y",
+								"Num_of_Inversions": 6,
+								"City": "San Antonio",
+								"latitude": 29.4724,
+								"longitude": -98.52514
+							}
+						},
+						{
+							"parent": 45976,
+							"guid": 152,
+							"id": 152,
+							"itemID": "id:YGy0grGBx0VjxUrF",
+							"values": {
+								"Coaster": "Titan",
+								"Park": "Six Flags Over Texas",
+								"Top_Speed": 85,
+								"Max_Height": 245,
+								"Drop": 255,
+								"Length": 5312,
+								"Duration": 210,
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 2001,
+								"Age_Group": "newest",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Arlington",
+								"latitude": 32.73569,
+								"longitude": -97.10807
+							}
+						},
+						{
+							"parent": 45976,
+							"guid": 173,
+							"id": 173,
+							"itemID": "id:K037CHcGCP8vHKzH",
+							"values": {
+								"Coaster": "Superman: Krypton Coaster",
+								"Park": "Six Flags Fiesta Texas",
+								"Top_Speed": 70,
+								"Max_Height": 168,
+								"Drop": 163,
+								"Length": 4025,
+								"Duration": 155,
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 2000,
+								"Age_Group": "newest",
+								"Inversions": "Y",
+								"Num_of_Inversions": 6,
+								"City": "San Antonio",
+								"latitude": 29.4724,
+								"longitude": -98.52514
+							}
+						},
+						{
+							"parent": 45985,
+							"guid": 45,
+							"id": 45,
+							"itemID": "id:h3mFt-UVJAYlDoV7",
+							"values": {
+								"Coaster": "Loch Ness Monster",
+								"Park": "Busch Gardens Williamsburg",
+								"Top_Speed": 60,
+								"Max_Height": 130,
+								"Drop": 114,
+								"Length": 3240,
+								"Duration": 130,
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 1978,
+								"Age_Group": "older",
+								"Inversions": "Y",
+								"Num_of_Inversions": 2,
+								"City": "Williamsburg",
+								"latitude": 37.2707,
+								"longitude": -76.70746
+							}
+						},
+						{
+							"parent": 45985,
+							"guid": 53,
+							"id": 53,
+							"itemID": "id:AqD0g9B0DMLkgB1R",
+							"values": {
+								"Coaster": "Big Bad Wolf",
+								"Park": "Busch Gardens Williamsburg",
+								"Top_Speed": 48,
+								"Max_Height": 100,
+								"Drop": 80,
+								"Length": 2800,
+								"Duration": 180,
+								"Type": "Steel",
+								"Design": "Suspended",
+								"Year_Opened": 1984,
+								"Age_Group": "recent",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Williamsburg",
+								"latitude": 37.2707,
+								"longitude": -76.70746
+							}
+						},
+						{
+							"parent": 45985,
+							"guid": 69,
+							"id": 69,
+							"itemID": "id:ITDAcJ4f4DOo-4NN",
+							"values": {
+								"Coaster": "Anaconda",
+								"Park": "Paramounts Kings Dominion",
+								"Top_Speed": 50,
+								"Max_Height": 128,
+								"Drop": 144,
+								"Length": 2700,
+								"Duration": 110,
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 1991,
+								"Age_Group": "recent",
+								"Inversions": "Y",
+								"Num_of_Inversions": 4,
+								"City": "Doswell",
+								"latitude": "37.86",
+								"longitude": "-77.46"
+							}
+						},
+						{
+							"parent": 45985,
+							"guid": 116,
+							"id": 116,
+							"itemID": "id:rrjZUkaYtFmlTg-U",
+							"values": {
+								"Coaster": "Apollos Chariot",
+								"Park": "Busch Gardens Williamsburg",
+								"Top_Speed": 73,
+								"Max_Height": 170,
+								"Drop": 210,
+								"Length": 4882,
+								"Duration": 135,
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 1999,
+								"Age_Group": "recent",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Williamsburg",
+								"latitude": 37.2707,
+								"longitude": -76.70746
+							}
+						},
+						{
+							"parent": 45985,
+							"guid": 97,
+							"id": 97,
+							"itemID": "id:ch-qgNO5KzU_flRt",
+							"values": {
+								"Coaster": "Alpengeist",
+								"Park": "Busch Gardens Williamsburg",
+								"Top_Speed": 67,
+								"Max_Height": 195,
+								"Drop": 170,
+								"Length": 3828,
+								"Duration": 190,
+								"Type": "Steel",
+								"Design": "Inverted",
+								"Year_Opened": 1997,
+								"Age_Group": "recent",
+								"Inversions": "",
+								"Num_of_Inversions": "",
+								"City": "Williamsburg",
+								"latitude": 37.2707,
+								"longitude": -76.70746
+							}
+						},
+						{
+							"parent": 45985,
+							"guid": 115,
+							"id": 115,
+							"itemID": "id:ZMHNrOHGrK8WnYxO",
+							"values": {
+								"Coaster": "Volcano, The Blast Coaster",
+								"Park": "Paramounts Kings Dominion",
+								"Top_Speed": 70,
+								"Max_Height": 155,
+								"Drop": 80,
+								"Length": 2757,
+								"Duration": "",
+								"Type": "Steel",
+								"Design": "Inverted",
+								"Year_Opened": 1998,
+								"Age_Group": "recent",
+								"Inversions": "Y",
+								"Num_of_Inversions": 4,
+								"City": "Doswell",
+								"latitude": "37.86",
+								"longitude": "-77.46"
+							}
+						},
+						{
+							"parent": 45985,
+							"guid": 148,
+							"id": 148,
+							"itemID": "id:H195KKL9GQiUFly2",
+							"values": {
+								"Coaster": "HyperSonic XLC",
+								"Park": "Paramounts Kings Dominion",
+								"Top_Speed": 80,
+								"Max_Height": 165,
+								"Drop": 133,
+								"Length": 1560,
+								"Duration": "",
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 2001,
+								"Age_Group": "newest",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Doswell",
+								"latitude": "37.86",
+								"longitude": "-77.46"
+							}
+						},
+						{
+							"parent": 45985,
+							"guid": 156,
+							"id": 156,
+							"itemID": "id:MFtKEMXDmZdjSgJw",
+							"values": {
+								"Coaster": "Ricochet",
+								"Park": "Paramounts Kings Dominion",
+								"Top_Speed": 35,
+								"Max_Height": 52,
+								"Drop": 50,
+								"Length": 1340,
+								"Duration": 180,
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 2002,
+								"Age_Group": "newest",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Doswell",
+								"latitude": "37.86",
+								"longitude": "-77.46"
+							}
+						},
+						{
+							"parent": 45985,
+							"guid": 168,
+							"id": 168,
+							"itemID": "id:OB9CVejtBSpmFleC",
+							"values": {
+								"Coaster": "Dominator",
+								"Park": "Kings Dominion",
+								"Top_Speed": 65,
+								"Max_Height": 157,
+								"Drop": 148,
+								"Length": 4210,
+								"Duration": 126,
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 2008,
+								"Age_Group": "newest",
+								"Inversions": "Y",
+								"Num_of_Inversions": 5,
+								"City": "Doswell",
+								"latitude": "37.86",
+								"longitude": "-77.46"
+							}
+						},
+						{
+							"parent": 45982,
+							"guid": 25,
+							"id": 25,
+							"itemID": "id:0Ed9QuAbTsfCp2pF",
+							"values": {
+								"Coaster": "Coaster Thrill Ride",
+								"Park": "Puyallup Fair",
+								"Top_Speed": 50,
+								"Max_Height": 55,
+								"Drop": 52,
+								"Length": 2650,
+								"Duration": 105,
+								"Type": "Wooden",
+								"Design": "Sit Down",
+								"Year_Opened": 1935,
+								"Age_Group": "older",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Puyallup",
+								"latitude": 47.18538,
+								"longitude": -122.2929
+							}
+						},
+						{
+							"parent": 45982,
+							"guid": 104,
+							"id": 104,
+							"itemID": "id:qjYAZjltbl4yBZDX",
+							"values": {
+								"Coaster": "Wild Thing",
+								"Park": "Wild Waves and Enchanted Village",
+								"Top_Speed": "",
+								"Max_Height": "",
+								"Drop": 64,
+								"Length": "",
+								"Duration": 60,
+								"Type": "Steel",
+								"Design": "Sit Down",
+								"Year_Opened": 1997,
+								"Age_Group": "recent",
+								"Inversions": "Y",
+								"Num_of_Inversions": 3,
+								"City": "Federal Way",
+								"latitude": 47.32232,
+								"longitude": -122.31262
+							}
+						},
+						{
+							"parent": 45991,
+							"guid": 84,
+							"id": 84,
+							"itemID": "id:uFa__aLX5lIkjaIV",
+							"values": {
+								"Coaster": "Cyclops",
+								"Park": "Big Chief Carts And Coasters",
+								"Top_Speed": 58,
+								"Max_Height": 70,
+								"Drop": 75,
+								"Length": 1900,
+								"Duration": 60,
+								"Type": "Wooden",
+								"Design": "Sit Down",
+								"Year_Opened": 1995,
+								"Age_Group": "recent",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Wisconsin Dells",
+								"latitude": 43.63836,
+								"longitude": -89.77576
+							}
+						},
+						{
+							"parent": 45991,
+							"guid": 94,
+							"id": 94,
+							"itemID": "id:KwqxQUMXtxGD_fQr",
+							"values": {
+								"Coaster": "Pegasus",
+								"Park": "Big Chief Carts And Coasters",
+								"Top_Speed": "",
+								"Max_Height": 60,
+								"Drop": 45,
+								"Length": "",
+								"Duration": "",
+								"Type": "Wooden",
+								"Design": "Sit Down",
+								"Year_Opened": 1996,
+								"Age_Group": "recent",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Wisconsin Dells",
+								"latitude": 43.63836,
+								"longitude": -89.77576
+							}
+						},
+						{
+							"parent": 45991,
+							"guid": 105,
+							"id": 105,
+							"itemID": "id:NNMGIDSz54qYR0Ux",
+							"values": {
+								"Coaster": "Zeus",
+								"Park": "Big Chief Carts And Coasters",
+								"Top_Speed": 60,
+								"Max_Height": 90,
+								"Drop": 85,
+								"Length": 2900,
+								"Duration": 85,
+								"Type": "Wooden",
+								"Design": "Sit Down",
+								"Year_Opened": 1997,
+								"Age_Group": "recent",
+								"Inversions": "N",
+								"Num_of_Inversions": 0,
+								"City": "Wisconsin Dells",
+								"latitude": 43.63836,
+								"longitude": -89.77576
+							}
+						}
+					],
+					"caseName": null,
+					"childAttrName": null,
+					"collapseChildren": null,
+					"guid": 3,
+					"id": 3,
+					"name": "Roller Coasters",
+					"parent": 45972,
+					"title": "Roller Coasters",
+					"type": "DG.Collection"
+				}
+			],
+			"description": "",
+			"metadata": null,
+			"preventReorg": false,
+			"setAsideItems": [
+
+			],
+			"contextStorage": {
+				"_links_": {
+					"selectedCases": [
+
+					]
+				}
+			}
+		}
+	],
+	"globalValues": [
+
+	],
+	"appName": "DG",
+	"appVersion": "2.0",
+	"appBuildNum": "0733",
+	"lang": "en",
+	"idCount": 46042,
+	"metadata": {
+
+	}
+}

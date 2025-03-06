@@ -7,7 +7,6 @@ import { kellyColors } from "../../utilities/color-utils"
 import { onAnyAction } from "../../utilities/mst-utils"
 import { Attribute, IAttribute } from "./attribute"
 import { IDataSet } from "./data-set"
-import { hashStringSet } from "../../utilities/js-utils"
 
 interface ICategoryMove {
   value: string     // category value
@@ -180,6 +179,25 @@ export const CategorySet = types.model("CategorySet", {
   }
 })
 .views(self => ({
+  get colorMap() {
+    const colorForCategory = (category: string) => {
+      const userColor = self.colors.get(category)
+      if (userColor) {
+        return userColor
+      }
+      const catIndex = self.index(category)
+      return catIndex != null ? kellyColors[catIndex % kellyColors.length] : undefined
+    }
+
+    // We intentionally create a new non-observable map here.
+    // This way this map object can be observed and if it changes a user knows the
+    // colors or categories have changed
+    const map: Record<string, string | undefined> = {}
+    self.values.forEach(category => map[category] = colorForCategory(category))
+    return map
+  }
+}))
+.views(self => ({
   get valuesArray() {
     return Array.from(self.values)
   },
@@ -194,17 +212,7 @@ export const CategorySet = types.model("CategorySet", {
             : undefined
   },
   colorForCategory(category: string) {
-    const userColor = self.colors.get(category)
-    if (userColor) {
-      return userColor
-    }
-    const catIndex = self.index(category)
-    return catIndex != null ? kellyColors[catIndex % kellyColors.length] : undefined
-  }
-}))
-.views(self => ({
-  get colorHash() {
-    return hashStringSet(self.valuesArray.map(category => `${category}:${self.colorForCategory(category) ?? ''}`))
+    return self.colorMap[category]
   }
 }))
 .actions(self => ({

@@ -42,7 +42,7 @@ export interface UrlParams {
    */
   ICI?: string | null
   /*
-   * Indicates CODAP is running in the Activity Player. Used by the CFM and to configure 
+   * Indicates CODAP is running in the Activity Player. Used by the CFM and to configure
    * the CFM.
    * value: ignored
    */
@@ -65,6 +65,12 @@ export interface UrlParams {
    * value: "free" (default) | "mosaic"
    */
   layout?: string | null
+  /*
+   * [v3] Specifies whether collection header colors should be assigned from parent-to-child
+   * (default) or child-to-parent.
+   * value: "parent-child" (default) | "child-parent"
+   */
+  levelColors?: string | null
   /*
    * [v3] Specifies a url that can be used to add additional items to the Plugins menu.
    * See useRemotePluginsConfig() hook for more details, including format of remote document.

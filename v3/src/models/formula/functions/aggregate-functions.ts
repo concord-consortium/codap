@@ -92,7 +92,6 @@ export const aggregateFnWithFilterFactory = (fn: ClientFn) => {
       filterValues = [ filterValues ]
     }
     expressionValues = expressionValues.filter((v: FValue, i: number) =>
-      // Numeric aggregate functions should ignore non-numeric values.
       isValueNonEmpty(v) && (filterValues ? isValueTruthy(filterValues[i]) : true)
     )
     return expressionValues.length > 0 ? fn(expressionValues, args, scope) : UNDEF_RESULT

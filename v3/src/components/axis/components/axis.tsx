@@ -12,19 +12,14 @@ interface IProps {
   axisPlace: AxisPlace
   showScatterPlotGridLines?: boolean
   showZeroAxisLine?: boolean
-  centerCategoryLabels?: boolean
 }
 
 export const Axis = observer(function Axis ({
                        axisPlace, showScatterPlotGridLines = false, showZeroAxisLine = false,
-                       centerCategoryLabels = true,
                      }: IProps) {
-  const
-    layout = useAxisLayoutContext()
+  const layout = useAxisLayoutContext()
 
-  useAxis({
-    axisPlace, centerCategoryLabels
-  })
+  useAxis(axisPlace)
 
   const renderSubAxes = () => {
     const numRepetitions = layout.getAxisMultiScale(axisPlace)?.repetitions ?? 1
@@ -35,7 +30,6 @@ export const Axis = observer(function Axis ({
                       axisPlace={axisPlace}
                       showScatterPlotGridLines={showScatterPlotGridLines}
                       showZeroAxisLine={showZeroAxisLine}
-                      centerCategoryLabels={centerCategoryLabels}
       />
     })
   }

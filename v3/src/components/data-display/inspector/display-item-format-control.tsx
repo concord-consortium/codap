@@ -1,10 +1,12 @@
-import React, { useRef } from "react"
+import { Checkbox, Flex, FormControl, FormLabel, Select, Slider, SliderThumb, SliderTrack } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
-import { Checkbox, Flex, FormControl, FormLabel, Slider, SliderThumb, SliderTrack } from "@chakra-ui/react"
+import React, { useRef } from "react"
 import {
   kDefaultHighAttributeColor, kDefaultLowAttributeColor
 } from "../../../models/shared/shared-case-metadata-constants"
+import { AttributeBinningTypes, IAttributeBinningType } from "../../../models/shared/shared-case-metadata"
 import { t } from "../../../utilities/translation/translate"
+import { PointDisplayType } from "../data-display-types"
 import { IDataConfigurationModel } from "../models/data-configuration-model"
 import { IDisplayItemDescriptionModel } from "../models/display-item-description-model"
 import { PointColorSetting } from "./point-color-setting"
@@ -14,7 +16,7 @@ import "./inspector-panel.scss"
 interface IProps {
   dataConfiguration: IDataConfigurationModel
   displayItemDescription: IDisplayItemDescriptionModel
-  pointDisplayType?: string
+  pointDisplayType?: PointDisplayType
   isTransparent?: boolean
   onBackgroundTransparencyChange?: (isTransparent: boolean) => void
   plotBackgroundColor?: string
@@ -27,7 +29,7 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
     isTransparent, onBackgroundTransparencyChange, plotBackgroundColor, onBackgroundColorChange
   } = props
   const legendAttrID = dataConfiguration.attributeID("legend")
-  const attrType = dataConfiguration?.dataset?.attrFromID(legendAttrID ?? "")?.type
+  const attrType = dataConfiguration.attributeType("legend")
   const categoriesRef = useRef<string[] | undefined>()
   categoriesRef.current = dataConfiguration?.categoryArrayForAttrRole('legend')
   const metadata = dataConfiguration.metadata
@@ -59,6 +61,16 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
       undoStringKey: "DG.Undo.graph.changeAttributeColor",
       redoStringKey: "DG.Redo.graph.changeAttributeColor",
       log: "Changed attribute color"
+    })
+  }
+
+  const handleAttributeBinningTypeChange = (_scaleType: IAttributeBinningType) => {
+    metadata?.applyModelChange(() => {
+      metadata.setAttributeBinningType(legendAttrID, _scaleType)
+    }, {
+      undoStringKey: "DG.Undo.graph.changeAttributeBinningType",
+      redoStringKey: "DG.Redo.graph.changeAttributeBinningType",
+      log: "Changed attribute binning type"
     })
   }
 
@@ -140,6 +152,7 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
   }
 
   const colorRange = metadata?.getAttributeColorRange(legendAttrID)
+  const binningType = metadata?.getAttributeBinningType(legendAttrID)
   return (
     <Flex className="palette-form" direction="column">
 
@@ -214,6 +227,20 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
           {t("DG.Inspector.strokeSameAsFill")}
         </Checkbox>
       </FormControl>
+      {attrType === "numeric" &&
+        <FormControl>
+          <Flex>
+            <FormLabel className="form-label legend-bins-menu">{t("DG.Inspector.legendBins")}</FormLabel>
+            <Select size="xs" data-testid="legend-bins-type-select" value={binningType}
+              onChange={e => handleAttributeBinningTypeChange(e.target.value as IAttributeBinningType)}
+            >
+              { AttributeBinningTypes.map(_binningType =>
+                <option key={_binningType} value={_binningType}>{t(`DG.Inspector.legendBins.${_binningType}`)}</option>
+              )}
+            </Select>
+          </Flex>
+        </FormControl>
+      }
       {renderPlotControlsIfAny()}
     </Flex>
   )

@@ -271,7 +271,7 @@ describe("DataConfigurationModel", () => {
     config.setPrimaryRole('y')
     expect(config.primaryRole).toBe("y")
     config.setPrimaryRole('caption')
-    expect(config.primaryRole).toBe("y")
+    expect(config.primaryRole).toBeUndefined()
   })
 
   it("returns an attribute values array and category set that ignore empty values", () => {

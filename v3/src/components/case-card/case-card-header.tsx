@@ -6,6 +6,7 @@ import { useCollectionContext } from "../../hooks/use-collection-context"
 import { createCasesNotification } from "../../models/data/data-set-notifications"
 import { t } from "../../utilities/translation/translate"
 import { IGroupedCase } from "../../models/data/data-set-types"
+import { setSelectedCases } from "../../models/data/data-set-utils"
 
 import Arrow from "../../assets/icons/arrow.svg"
 import AddIcon from "../../assets/icons/add-data-icon.svg"
@@ -68,7 +69,7 @@ export const CaseCardHeader = observer(function CaseView(props: ICaseHeaderProps
                                 : displayedCaseIndex + delta
     const newCase = cases[selectedCaseIndex]
     if (!newCase.__id__) return
-    data?.setSelectedCases([newCase.__id__])
+    setSelectedCases([newCase.__id__], data)
   }
 
   const handleAddNewCase = () => {
@@ -96,7 +97,7 @@ export const CaseCardHeader = observer(function CaseView(props: ICaseHeaderProps
   return (
     <div className="case-card-view-header" data-testid="case-card-view-header">
       <div className="case-card-view-title" data-testid="case-card-view-title">
-        <CollectionTitle showCount={false} />
+        <CollectionTitle showCount={false} collectionIndex={level}/>
       </div>
       <div className="case-card-controls">
         <button

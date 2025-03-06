@@ -1,10 +1,11 @@
 import { createContext, useContext } from "react"
-import { IBaseNumericAxisModel, IAxisModel, isNumericAxisModel } from "../models/axis-model"
+import { IBaseNumericAxisModel, IAxisModel } from "../models/axis-model"
 import { AxisPlace } from "../axis-types"
 
 export interface IAxisProvider {
   getAxis: (place: AxisPlace) => IAxisModel | undefined
   getNumericAxis: (place: AxisPlace) => IBaseNumericAxisModel | undefined
+  hasBinnedNumericAxis: (axisModel: IAxisModel) => boolean
   hasDraggableNumericAxis: (axisModel: IAxisModel) => boolean
   nonDraggableAxisTicks: (formatter: (value: number) => string) => { tickValues: number[], tickLabels: string[] }
 }
@@ -21,9 +22,4 @@ export const useAxisProviderContext = () => {
 
 export function useAxisModel(place: AxisPlace) {
   return useAxisProviderContext().getAxis(place)
-}
-
-export function useNumericAxisModel(place: AxisPlace) {
-  const axisModel = useAxisModel(place)
-  return isNumericAxisModel(axisModel) ? axisModel : undefined
 }

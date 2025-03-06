@@ -31,8 +31,6 @@ export class UnivariateMeasureAdornmentHelper {
   layout: GraphLayout
   measureSlug = ""
   model: IUnivariateMeasureAdornmentModel
-  xScale: ScaleNumericBaseType
-  yScale: ScaleNumericBaseType
 
   constructor (
     cellKey: Record<string, string>,
@@ -47,8 +45,21 @@ export class UnivariateMeasureAdornmentHelper {
     this.layout = layout
     this.measureSlug = model.type.toLowerCase().replace(/ /g, "-")
     this.model = model
-    this.xScale = layout.getAxisScale("bottom") as ScaleNumericBaseType
-    this.yScale = layout.getAxisScale("left") as ScaleNumericBaseType
+  }
+
+  // There is a convenient fiction in the types of these scales in that one of them is _actually_
+  // numeric, but the other will generally _not_ be numeric. The logic below (e.g. `isVertical`)
+  // is designed to guarantee that only the numeric scale will be asked to perform numeric
+  // calculations, but that functions like `range()` can be called for either scale.
+  // This could probably be rewritten in terms of `primaryScale()` and `secondaryScale()`
+  // which would make the code clearer and could be correctly typed.
+
+  get xScale() {
+    return this.layout.getAxisScale("bottom") as ScaleNumericBaseType
+  }
+
+  get yScale() {
+    return this.layout.getAxisScale("left") as ScaleNumericBaseType
   }
 
   generateIdString = (elementType: string) => {

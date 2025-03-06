@@ -1,18 +1,19 @@
 import { useCallback, useEffect } from "react"
 import { comparer, reaction } from "mobx"
 import {isAlive} from "mobx-state-tree"
-import {onAnyAction} from "../../../utilities/mst-utils"
+import {useDebouncedCallback} from "use-debounce"
+import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
+import {isSetCaseValuesAction} from "../../../models/data/data-set-actions"
 import {mstAutorun} from "../../../utilities/mst-autorun"
 import {mstReaction} from "../../../utilities/mst-reaction"
-import {useDebouncedCallback} from "use-debounce"
-import {isSetCaseValuesAction} from "../../../models/data/data-set-actions"
+import {onAnyAction} from "../../../utilities/mst-utils"
+import {IAxisModel} from "../../axis/models/axis-model"
 import {GraphAttrRoles} from "../../data-display/data-display-types"
 import {matchCirclesToData} from "../../data-display/data-display-utils"
+import { PixiPointEventHandler, PixiPoints } from "../../data-display/pixi/pixi-points"
+import { syncModelWithAttributeConfiguration } from "../models/graph-model-utils"
 import {useGraphContentModelContext} from "./use-graph-content-model-context"
 import {useGraphLayoutContext} from "./use-graph-layout-context"
-import {IAxisModel} from "../../axis/models/axis-model"
-import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
-import { PixiPointEventHandler, PixiPoints } from "../../data-display/pixi/pixi-points"
 
 export interface IPixiDragHandlers {
   start: PixiPointEventHandler
@@ -66,7 +67,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
       dataConfiguration,
       pointRadius: graphModel.getPointRadius(),
       pointColor: graphModel.pointDescription.pointColor,
-      pointDisplayType: graphModel.pointDisplayType,
+      pointDisplayType: graphModel.plot.displayType,
       pointStrokeColor: graphModel.pointDescription.pointStrokeColor,
       pixiPoints,
       startAnimation, instanceId
@@ -100,7 +101,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
       },
       () => {
         callRefreshPointPositions(false)
-      }, {name: "usePlot [numeric domains]", fireImmediately: true}, graphModel
+      }, {name: "usePlot [numeric domains]", equals: comparer.structural, fireImmediately: true}, graphModel
     )
   }, [callRefreshPointPositions, graphModel])
 
@@ -118,34 +119,14 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     const disposer = mstReaction(
       () => GraphAttrRoles.map((aRole) => dataConfiguration?.attributeID(aRole)),
       () => {
-        // if plot is not univariate and the attribute type changes, we need to update the pointConfig
-        if (graphModel?.plotType !== "dotPlot" && !graphModel?.pointsFusedIntoBars) {
-          graphModel?.setPointConfig("points")
-        // if the attribute change results in a univariate plot, make sure points are only fused into bars
-        // if the pointDisplayType is histogram
-        } else if (graphModel?.plotType === "dotPlot" && graphModel?.pointDisplayType !== "histogram") {
-          graphModel?.setPointsFusedIntoBars(false)
+        if (syncModelWithAttributeConfiguration(graphModel, layout)) {
+          startAnimation()
+          callRefreshPointPositions(false)
         }
-        // If points are fused into bars and a secondary attribute is added or the primary attribute is removed,
-        // un-fuse the points. Otherwise, if a primary attribute exists, make sure the bar graph's count axis gets
-        // updated.
-        const { primaryRole } = dataConfiguration
-        const primaryAttrID = primaryRole && dataConfiguration.attributeID(primaryRole)
-        const secondaryRole = primaryRole === "x" ? "y" : "x"
-        const secondaryAttrID = dataConfiguration.attributeID(secondaryRole)
-        if (graphModel.pointsFusedIntoBars) {
-          if (secondaryAttrID || !primaryAttrID) {
-            graphModel.setPointsFusedIntoBars(false)
-          } else if (primaryAttrID) {
-            graphModel.setBarCountAxis()
-          }
-        }
-        startAnimation()
-        callRefreshPointPositions(false)
       }, {name: "usePlot [attribute assignment]"}, dataConfiguration
     )
     return () => disposer()
-  }, [callRefreshPointPositions, dataConfiguration, graphModel, startAnimation])
+  }, [callRefreshPointPositions, dataConfiguration, graphModel, layout, startAnimation])
 
   useEffect(function respondToHiddenCasesChange() {
     const disposer = mstReaction(
@@ -190,7 +171,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
       const disposer = onAnyAction(dataset, action => {
         if (isSetCaseValuesAction(action)) {
           // If we're caching then only selected cases need to be updated in scatterplots. But for dotplots
-          // we need to update all points because the unselecte points positions change.
+          // we need to update all points because the unselected points positions change.
           callRefreshPointPositions(dataset.isCaching() && graphModel.plotType !== "dotPlot")
           // TODO: handling of add/remove cases was added specifically for the case plot.
           // Bill has expressed a desire to refactor the case plot to behave more like the
@@ -204,31 +185,10 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     }
   }, [dataset, callRefreshPointPositions, graphModel.plotType])
 
-  // respond to added or removed cases or change in attribute type or change in collection groups
-  useEffect(function handleDataConfigurationActions() {
-    const disposer = dataConfiguration?.onAction(action => {
-      if (!pixiPoints) {
-        return
-      }
-      if (['addCases', 'removeCases', 'setAttributeType', 'invalidateCollectionGroups'].includes(action.name)) {
-        // there  are no longer any cases in the dataset, or if plot is not univariate and the attribute type changes,
-        // we need to set the pointConfig to points
-        const caseDataArray = dataConfiguration?.getCaseDataArray(0) ?? []
-        if (caseDataArray.length === 0 || graphModel?.plotType !== "dotPlot") {
-          graphModel?.setPointConfig("points")
-        }
-
-        callMatchCirclesToData()
-        callRefreshPointPositions(false)
-      }
-    }) || (() => true)
-    return () => disposer()
-  }, [callMatchCirclesToData, dataset, dataConfiguration, graphModel, callRefreshPointPositions, pixiPoints])
-
-  // respond to pointDisplayType changes
+  // respond to plotType changes
   useEffect(function respondToPointConfigChange() {
     return mstReaction(
-      () => graphModel.pointDisplayType,
+      () => graphModel.plotType,
       () => {
         if (!pixiPoints) return
 
@@ -240,10 +200,10 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
 
   useEffect(() => {
     return mstReaction(
-      () => graphModel.dataConfiguration.categorySetForAttrRole('legend')?.colorHash,
+      () => graphModel.dataConfiguration.legendColorDomain,
       () => {
         callRefreshPointPositions(false)
-      }, {name: "usePlot [categorySetChange]"}, graphModel)
+      }, {name: "usePlot [legendColorChange]"}, graphModel)
   }, [graphModel, callRefreshPointPositions])
 
   // respond to pointsNeedUpdating becoming false; that is when the points have been updated

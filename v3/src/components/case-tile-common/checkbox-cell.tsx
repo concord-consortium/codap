@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react"
+import React, { forwardRef, useEffect, useRef } from "react"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { FValue } from "../../models/formula/formula-types"
 import { applyCaseValueChanges } from "./case-tile-utils"
@@ -16,7 +16,7 @@ interface ICheckboxCellProps {
   caseId: string
 }
 
-export function CheckboxCell ({ caseId, attrId }: ICheckboxCellProps) {
+const CheckboxCell = forwardRef<HTMLInputElement, ICheckboxCellProps>(({ caseId, attrId }, ref) => {
   const data = useDataSetContext()
   // We need checkRef to show indeterminate state
   const checkRef = useRef<HTMLInputElement>(null)
@@ -39,11 +39,15 @@ export function CheckboxCell ({ caseId, attrId }: ICheckboxCellProps) {
     data && applyCaseValueChanges(data, [{ __id__: caseId, [attrId]: newValue }], log)
   }
   // title is used to show the value of the cell when hovering over the checkbox
-  // When checkbox is in the indeterminate state, we want the tooltip to show "undefined"
+
   return (
     <span className="cell-checkbox">
       <input type="checkbox" ref={checkRef}  onChange={handleChange} onClick={(e) => e.stopPropagation()}
               title={String(cellValue)}/>
     </span>
   )
-}
+})
+
+CheckboxCell.displayName = "CheckboxCell"
+
+export { CheckboxCell }

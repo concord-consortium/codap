@@ -1,6 +1,6 @@
 {
   "name": "codap3",
-  "version": "3.0.0-pre.2174",
+  "version": "3.0.0-pre.2190",
   "description": "Common Online Data Analysis Platform v3",
   "main": "index.js",
   "browser": {
@@ -54,13 +54,16 @@
   "scripts": {
     "start": "webpack serve --server-type http",
     "start:clean": "npm run clean:cache && npm start",
+    "start:clean:all": "npm run clean:all && npm start",
     "start:secure": "webpack serve",
     "start:secure:no-certs": "webpack serve --no-server-options-request-cert",
     "build": "npm-run-all lint:build build:cypress build:webpack",
     "build:ci": "npm-run-all build:cypress build:webpack",
     "build:cypress": "tsc -p ./cypress/tsconfig.json",
     "build:webpack": "webpack --mode production",
+    "clean:all": "npm run clean:cache && npm run clean:patches && npm install",
     "clean:cache": "rimraf .cache",
+    "clean:patches": "rimraf node_modules/@dnd-kit node_modules/react-data-grid",
     "lezer:generate": "lezer-generator src/models/formula/lezer/formula.grammar -o src/models/formula/lezer/parser.js",
     "lint": "eslint --cache --cache-strategy content --cache-location \".cache/eslint/default\" -c \"eslint.config.mjs\" \"./src/**/*.{js,jsx,mjs,ts,tsx}\" \"./cypress/**/*.{js,jsx,ts,tsx}\"",
     "lint:build": "eslint --cache --cache-strategy content --cache-location \".cache/eslint/build\" -c \"eslint.build.config.mjs\" \"./src/**/*.{js,jsx,mjs,ts,tsx}\" \"./cypress/**/*.{js,jsx,mjs,ts,tsx}\"",

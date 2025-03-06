@@ -6,7 +6,6 @@ import {IGuidLink, isV2GraphComponent} from "../../v2/codap-v2-types"
 import {v3TypeFromV2TypeIndex} from "../../v2/codap-v2-data-set-types"
 import {GraphAttrRole, PrimaryAttrRole, axisPlaceToAttrRole} from "../data-display/data-display-types"
 import {kGraphIdPrefix, kGraphTileType} from "./graph-defs"
-import {PlotType} from "./graphing-types"
 import {IGraphContentModelSnapshot} from "./models/graph-content-model"
 import {kGraphDataConfigurationType} from "./models/graph-data-configuration-model"
 import {kGraphPointLayerType} from "./models/graph-point-layer-model"
@@ -15,6 +14,7 @@ import {GraphAttributeDescriptionsMapSnapshot, IAttributeDescriptionSnapshot}
 import {AxisPlace} from "../axis/axis-types"
 import {IAxisModelSnapshotUnion} from "../axis/models/axis-model"
 import {v2AdornmentImporter} from "./adornments/v2-adornment-importer"
+import { v2PlotImporter } from "./v2-plot-importer"
 
 const attrKeys = ["x", "y", "y2", "legend", "top", "right"] as const
 type AttrKey = typeof attrKeys[number]
@@ -44,7 +44,6 @@ export function v2GraphImporter({v2Component, v2Document, sharedModelManager, in
 
     componentStorage: {
       name, title = "", _links_: links, plotModels,
-
       pointColor, transparency, strokeColor, strokeTransparency, pointSizeMultiplier,
       strokeSameAsFill, isTransparent,
       plotBackgroundImageLockInfo,
@@ -119,7 +118,9 @@ export function v2GraphImporter({v2Component, v2Document, sharedModelManager, in
     right: "rightCat"
   }
 
-  function hasAttributeForV3Place(v3Place: AxisPlace) {
+  function requiresAxisForV3Place(v3Place: AxisPlace, axisClass?: string) {
+    if (!axisClass) return false
+    if (["DG.CountAxisModel", "DG.FormulaAxisModel"].includes(axisClass)) return true
     const role = axisPlaceToAttrRole[v3Place]
     return v3Place === "left" ? !!_yAttributeDescriptions[0] : !!_attributeDescriptions[role]
   }
@@ -130,17 +131,22 @@ export function v2GraphImporter({v2Component, v2Document, sharedModelManager, in
     const hasBounds = isV2PlaceWithBounds(v2Place)
     const lowerBound = hasBounds ? v2Component.componentStorage[`${v2Place}LowerBound`] : undefined
     const upperBound = hasBounds ? v2Component.componentStorage[`${v2Place}UpperBound`] : undefined
-    if (v3Place && axisClass && hasAttributeForV3Place(v3Place)) {
+    if (v3Place && requiresAxisForV3Place(v3Place, axisClass)) {
       switch (axisClass) {
         case "DG.CellAxisModel":
           axes[v3Place] = {place: v3Place, type: "categorical"}
           break
+        case "DG.BinnedAxisModel":
         case "DG.CellLinearAxisModel":
+        case "DG.CountAxisModel":
+        case "DG.FormulaAxisModel": {
+          const type = ["DG.CountAxisModel", "DG.FormulaAxisModel"].includes(axisClass) ? "count" : "numeric"
           // TODO_V2_IMPORT [Story:#188701144] when lowerBound or upperBound are undefined or null this is
           // not handled correctly. It likely will cause an MST exception and failure to load.
           // There are 966 instances of `xUpperBound: null` in cfm-shared
-          axes[v3Place] = {place: v3Place, type: "numeric", min: lowerBound as any, max: upperBound as any}
+          axes[v3Place] = {place: v3Place, type, min: lowerBound as any, max: upperBound as any}
           break
+        }
       }
     }
   })
@@ -150,14 +156,8 @@ export function v2GraphImporter({v2Component, v2Document, sharedModelManager, in
   })
 
   // configure plot
-
-  // keys are [primaryAxisType][secondaryAxisType]
-  const plotChoices: Record<string, Record<string, PlotType>> = {
-    empty: {empty: 'casePlot', numeric: 'dotPlot', categorical: 'dotChart'},
-    numeric: {empty: 'dotPlot', numeric: 'scatterPlot', categorical: 'dotPlot'},
-    categorical: {empty: 'dotChart', numeric: 'dotPlot', categorical: 'dotChart'}
-  }
-  const plotType = plotChoices[axes.bottom?.type ?? "empty"][axes.left?.type ?? "empty"]
+  const primaryPlot = plotModels[0]
+  const plot = v2PlotImporter(primaryPlot)
 
   // configure adornmentsStore
   const adornmentImporterProps = {
@@ -171,7 +171,7 @@ export function v2GraphImporter({v2Component, v2Document, sharedModelManager, in
     type: kGraphTileType,
     adornmentsStore,
     axes,
-    plotType,
+    plot,
     plotBackgroundColor,
     plotBackgroundOpacity,
     // plotBackgroundImage,
@@ -186,7 +186,6 @@ export function v2GraphImporter({v2Component, v2Document, sharedModelManager, in
       _itemStrokeColor: strokeColor ? parseColorToHex(strokeColor, {colorNames: true, alpha: strokeTransparency})
                                     : strokeColor,
       _pointSizeMultiplier: pointSizeMultiplier,
-      /*transparency, strokeTransparency*/
       _itemStrokeSameAsFill: strokeSameAsFill
     },
     layers: [{

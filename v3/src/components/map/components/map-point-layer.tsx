@@ -262,9 +262,9 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
 
   useEffect(() => {
     return mstReaction(
-      () => dataConfiguration?.categorySetForAttrRole('legend')?.colorHash,
+      () => dataConfiguration?.legendColorDomain,
       () => refreshPoints(false),
-      {name: "MapPointLayer [categorySetChange]", fireImmediately: true}, dataConfiguration)
+      {name: "MapPointLayer [legendColorChange]", fireImmediately: true}, dataConfiguration)
   }, [dataConfiguration, refreshPoints])
 
   // Changes in layout or map pan/zoom require repositioning points

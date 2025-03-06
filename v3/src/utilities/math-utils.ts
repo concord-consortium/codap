@@ -83,11 +83,11 @@ export function neededSignificantDigitsArray(numbers: number[]) {
 }
 
 /**
- * Given an array of quantile boundary values and an array of numbers, return a new array of significant digits
- * needed for each quantile boundary value to distinguish it from the numbers on either side of it in the array.
- * Both the array of quantile boundary values and the array of numbers is assumed to be sorted.
+ * Given an array of bin boundary values and an array of numbers, return a new array of significant digits
+ * needed for each bin boundary value to distinguish it from the numbers on either side of it in the array.
+ * Both the array of bin boundary values and the array of numbers is assumed to be sorted.
  */
-export function neededSigDigitsArrayForQuantiles(quantiles: number[], values: number[]) {
+export function neededSigDigitsArrayForBinBoundaries(binBoundaries: number[], values: number[]) {
 
   const sigDigits = (n1: number, n2: number, operator: '<' | '>' | '<=' | '>=') => {
     let significantDigits = 0,
@@ -118,15 +118,15 @@ export function neededSigDigitsArrayForQuantiles(quantiles: number[], values: nu
 
   }
 
-  const lastQuantileIndex = quantiles.length - 1,
+  const lastBinBoundaryIndex = binBoundaries.length - 1,
     lastValuesIndex = values.length - 1
-  return quantiles.map((boundaryValue, index) => {
+  return binBoundaries.map((boundaryValue, index) => {
     const
       leftValue = index === 0 ? boundaryValue
         : values.find((value, i) => {
           return i < lastValuesIndex && value < boundaryValue && values[i + 1] >= boundaryValue
         }),
-      rightValue = index === lastQuantileIndex ? boundaryValue
+      rightValue = index === lastBinBoundaryIndex ? boundaryValue
         : values.find((value, i) => {
           return i > 0 && value > boundaryValue && values[i - 1] <= boundaryValue
         })
@@ -134,7 +134,7 @@ export function neededSigDigitsArrayForQuantiles(quantiles: number[], values: nu
       leftDigits = leftValue !== undefined ? sigDigits(leftValue, boundaryValue,
         index === 0 ? '<=' : '<') : 0,
       rightDigits = rightValue !== undefined ? sigDigits(rightValue, boundaryValue,
-        index === lastQuantileIndex ? '>=' : '>') : 0
+        index === lastBinBoundaryIndex ? '>=' : '>') : 0
     return Math.max(leftDigits, rightDigits)
   })
 }

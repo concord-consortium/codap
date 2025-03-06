@@ -23,7 +23,7 @@ export const GraphMeasurePalette = observer(function GraphMeasurePalette({
   tile, panelRect, buttonRect, setShowPalette
 }: IProps) {
   const graphModel = isGraphContentModel(tile?.content) ? tile.content : undefined
-  const useGaussianOptions = graphModel?.pointDisplayType === "histogram" &&
+  const useGaussianOptions = graphModel?.plotType === "histogram" &&
     getDocumentContentPropertyFromNode(graphModel, "gaussianFitEnabled")
   const measures =
     graphModel?.adornmentsStore.getAdornmentsMenuItems(graphModel.plotType, useGaussianOptions)

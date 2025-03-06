@@ -12,24 +12,18 @@ describe("AxisModel", () => {
 
   it("should identify numeric and categorical axes", () => {
     const empty = EmptyAxisModel.create({ place: "bottom" })
-    expect(empty.isNumeric).toBe(false)
-    expect(empty.isCategorical).toBe(false)
     expect(empty.isUpdatingDynamically).toBe(false)
     expect(isEmptyAxisModel(empty)).toBe(true)
     expect(isNumericAxisModel(empty)).toBe(false)
     expect(isCategoricalAxisModel(empty)).toBe(false)
 
     const numeric = NumericAxisModel.create({ place: "bottom", min: 0, max: 1 })
-    expect(numeric.isNumeric).toBe(true)
-    expect(numeric.isCategorical).toBe(false)
     expect(numeric.isUpdatingDynamically).toBe(false)
     expect(isEmptyAxisModel(numeric)).toBe(false)
     expect(isNumericAxisModel(numeric)).toBe(true)
     expect(isCategoricalAxisModel(numeric)).toBe(false)
 
     const categorical = CategoricalAxisModel.create({ place: "bottom" })
-    expect(categorical.isNumeric).toBe(false)
-    expect(categorical.isCategorical).toBe(true)
     expect(categorical.isUpdatingDynamically).toBe(false)
     expect(isEmptyAxisModel(categorical)).toBe(false)
     expect(isNumericAxisModel(categorical)).toBe(false)
