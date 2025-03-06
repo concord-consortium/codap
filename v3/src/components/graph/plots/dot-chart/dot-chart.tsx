@@ -3,7 +3,7 @@ import * as PIXI from "pixi.js"
 import React, { useCallback, useEffect } from "react"
 import { mstReaction } from "../../../../utilities/mst-reaction"
 import { handleClickOnCase } from "../../../data-display/data-display-utils"
-import { IPixiPointMetadata, PixiPointEventHandler } from "../../../data-display/pixi/pixi-points"
+import { circleAnchor, IPixiPointMetadata, PixiPointEventHandler } from "../../../data-display/pixi/pixi-points"
 import { IPlotProps } from "../../graphing-types"
 import { useChartDots } from "../../hooks/use-chart-dots"
 import { usePlotResponders } from "../../hooks/use-plot"
@@ -27,8 +27,9 @@ export const DotChart = observer(function DotChart({ pixiPoints }: IPlotProps) {
     const getScreenX = primaryIsBottom ? getPrimaryScreenCoord : getSecondaryScreenCoord
     const getScreenY = primaryIsBottom ? getSecondaryScreenCoord : getPrimaryScreenCoord
 
+    const anchor = circleAnchor
     setPointCoordinates({
-      dataset, pointRadius, selectedPointRadius: graphModel.getPointRadius('select'), pixiPoints, selectedOnly,
+      anchor, dataset, pointRadius, selectedPointRadius: graphModel.getPointRadius('select'), pixiPoints, selectedOnly,
       pointColor, pointStrokeColor, getScreenX, getScreenY, getLegendColor, getAnimationEnabled: isAnimating
     })
   }, [dataset, graphModel, isAnimating, pixiPoints, primaryScreenCoord, secondaryScreenCoord, subPlotCells])
