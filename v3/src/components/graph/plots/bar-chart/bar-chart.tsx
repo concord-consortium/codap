@@ -3,6 +3,7 @@ import React, { useCallback, useEffect, useRef } from "react"
 import { createPortal } from "react-dom"
 import { numericSortComparator } from "../../../../utilities/data-utils"
 import { kMain } from "../../../data-display/data-display-types"
+import { circleAnchor } from "../../../data-display/pixi/pixi-points"
 import { IBarCover, IPlotProps } from "../../graphing-types"
 import { useChartDots } from "../../hooks/use-chart-dots"
 import { usePlotResponders } from "../../hooks/use-plot"
@@ -129,8 +130,9 @@ export const BarChart = observer(function BarChart({ abovePointsGroupRef, pixiPo
       renderBarCovers({ barCovers, barCoversRef, dataConfig, primaryAttrRole })
     }
 
+    const anchor = circleAnchor
     setPointCoordinates({
-      dataset, pointRadius, selectedPointRadius: graphModel.getPointRadius('select'),
+      anchor, dataset, pointRadius, selectedPointRadius: graphModel.getPointRadius('select'),
       pixiPoints, selectedOnly, pointColor, pointStrokeColor, pointDisplayType,
       getScreenX, getScreenY, getLegendColor, getAnimationEnabled: isAnimating, getWidth, getHeight,
       pointsFusedIntoBars: graphModel?.pointsFusedIntoBars
