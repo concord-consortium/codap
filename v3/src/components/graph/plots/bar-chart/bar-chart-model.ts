@@ -64,7 +64,8 @@ export const BarChartModel = DotChartModel
       const secondCount = legendAttrId ? casesInSubPlot.length : totalCases
       const percent = float1(100 * firstCount / secondCount)
       // <n> of <m> <category> (<p>%) are <legend category>
-      const attrArray = [ firstCount, secondCount, caseCategoryString, percent, caseLegendCategoryString ].filter((a) => a !== "")
+      const attrArray = [ firstCount, secondCount, caseCategoryString, percent, caseLegendCategoryString ]
+        .filter((a) => a !== "")
       const translationKey = legendAttrId
         ? firstCount === 1 ? "DG.BarChartModel.cellTipSingular" : "DG.BarChartModel.cellTipPlural"
         : firstCount === 1 ? "DG.BarChartModel.cellTipNoLegendSingular" : "DG.BarChartModel.cellTipNoLegendPlural"
