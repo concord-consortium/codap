@@ -449,5 +449,17 @@ describe("DataConfigurationModel", () => {
     expect(cellKeys.length).toEqual(16)
     expect(cellKeys[0]).toEqual({abc123: "pizza", def456: "red", ghi789: "medium", jkl012: "hot"})
     expect(cellKeys[15]).toEqual({abc123: "salad", def456: "green", ghi789: "large", jkl012: "cold"})
+
+    let index = 0
+    for (const top of mockData.categoryArrayForAttrRole.topSplit) {
+      for (const right of mockData.categoryArrayForAttrRole.rightSplit) {
+        for (const y of mockData.categoryArrayForAttrRole.y) {
+          for (const x of mockData.categoryArrayForAttrRole.x) {
+            expect(config.cellKey(index)).toEqual({abc123: x, def456: y, ghi789: top, jkl012: right})
+            ++index
+          }
+        }
+      }
+    }
   })
 })
