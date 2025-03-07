@@ -1,7 +1,7 @@
 import { cloneDeep } from "lodash"
 import { CloudFileManagerClient, CloudFileManagerClientEvent } from "@concord-consortium/cloud-file-manager"
 import { appState } from "../models/app-state"
-import { removeDevUrlParams, urlParams, removeSearchParams } from "../utilities/url-params"
+import { removeDevUrlParams, urlParams } from "../utilities/url-params"
 import { wrapCfmCallback } from "./cfm-utils"
 import { t } from "../utilities/translation/translate"
 import { DEBUG_CFM_EVENTS } from "./debug"
@@ -53,7 +53,7 @@ export async function handleCFMEvent(cfmClient: CloudFileManagerClient, event: C
         cfmContent.metadata = { shared: cloneDeep(cfmSharedMetadata) }
       }
       event.callback(cfmContent)
-console.log("getContent", cfmContent)
+
       break
     }
     case "willOpenFile":
@@ -126,6 +126,7 @@ console.log("getContent", cfmContent)
       if (!appState.isCurrentRevision(content.revisionId)) {
         cfmClient.dirty(true)
       }
+
       // The filename might have changed when the document was saved
       const filename = event.state?.metadata?.filename
       if (filename) {
