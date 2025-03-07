@@ -5,7 +5,6 @@ import {
 import { ICategorySet } from "../../../models/data/category-set"
 import { DatePrecision, formatDate } from "../../../utilities/date-utils"
 import { mstReaction } from "../../../utilities/mst-reaction"
-import { kDefaultDateMultipleOfUnit } from "../../slider/slider-types"
 import { AxisScaleType, IScaleType, ScaleNumericBaseType } from "../axis-types"
 
 interface IDataCoordinate {
@@ -191,7 +190,7 @@ export class MultiScale {
    *   If isDate is true, the value is the number of seconds since the epoch.
    * **/
   formatValueForScale(value: number, isDate = false,
-                      dateMultipleOfUnit: DatePrecision | string = kDefaultDateMultipleOfUnit): string {
+                      dateMultipleOfUnit: DatePrecision | string = ""): string {
     const formatNumber = (n: number): string => {
       const resolution = this.resolution ?? 1
       // Calculate the number of significant digits based on domain and range
