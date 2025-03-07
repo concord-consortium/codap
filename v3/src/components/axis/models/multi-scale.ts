@@ -190,7 +190,8 @@ export class MultiScale {
    *   the value for one screen pixel from the value for the adjacent screen pixel.
    *   If isDate is true, the value is the number of seconds since the epoch.
    * **/
-  formatValueForScale(value: number, isDate = false, dateMultipleOfUnit = kDefaultDateMultipleOfUnit): string {
+  formatValueForScale(value: number, isDate = false,
+                      dateMultipleOfUnit: DatePrecision | string = kDefaultDateMultipleOfUnit): string {
     const formatNumber = (n: number): string => {
       const resolution = this.resolution ?? 1
       // Calculate the number of significant digits based on domain and range
@@ -207,11 +208,13 @@ export class MultiScale {
       return format('.9')(roundedNumber)
     }
 
+    const formatDatePrecisionArr = [DatePrecision.Year, DatePrecision.Month, DatePrecision.Day, DatePrecision.Hour]
     const formatSliderInputDate = (n: number): string => {
-      if (isDate) {
+      if (isDate && formatDatePrecisionArr.includes(dateMultipleOfUnit as DatePrecision)) {
         return formatDate(n * 1000, dateMultipleOfUnit as DatePrecision) ?? ''
-      } else { return ''}
+      } else { return formatDate(n * 1000, DatePrecision.Minute) ?? '' }
     }
+
     return isDate
              ? formatSliderInputDate(value)
              : this.resolution ? formatNumber(value) : String(value)
