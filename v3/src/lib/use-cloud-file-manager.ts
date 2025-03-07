@@ -129,15 +129,7 @@ function getMenuConfig(cfm: CloudFileManager) {
     },
     'separator',
     { name: t('DG.fileMenu.menuItem.saveDocument'), action: 'saveFileAsDialog' },
-    // { name: t('DG.fileMenu.menuItem.copyDocument'), action: 'createCopy' },
-    { name: t('DG.fileMenu.menuItem.copyDocument'),
-      action() {
-        console.log("in createCopy")
-        cfm.client.createCopy(function() {
-          removeSearchParams(["di", "di-override"])
-        })
-      }
-    },
+    { name: t('DG.fileMenu.menuItem.copyDocument'), action: 'createCopy' },
     {
       name: t('DG.fileMenu.menuItem.share'),
       items: [

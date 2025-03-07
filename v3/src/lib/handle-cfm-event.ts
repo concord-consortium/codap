@@ -1,7 +1,7 @@
 import { cloneDeep } from "lodash"
 import { CloudFileManagerClient, CloudFileManagerClientEvent } from "@concord-consortium/cloud-file-manager"
 import { appState } from "../models/app-state"
-import { removeDevUrlParams, urlParams } from "../utilities/url-params"
+import { removeDevUrlParams, urlParams, removeSearchParams } from "../utilities/url-params"
 import { wrapCfmCallback } from "./cfm-utils"
 import { t } from "../utilities/translation/translate"
 import { DEBUG_CFM_EVENTS } from "./debug"
@@ -131,6 +131,7 @@ console.log("getContent", cfmContent)
       if (filename) {
         appState.document.setTitleFromFilename(filename)
       }
+      removeSearchParams(['di', 'di-override'])
       break
     }
     case "sharedFile":

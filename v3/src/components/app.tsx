@@ -26,7 +26,7 @@ import { registerTileTypes } from "../register-tile-types"
 import { importSample, sampleData } from "../sample-data"
 import { urlParams } from "../utilities/url-params"
 import { kWebViewTileType } from "./web-view/web-view-defs"
-import { isWebViewModel } from "./web-view/web-view-model"
+import { isWebViewModel, IWebViewModel } from "./web-view/web-view-model"
 import { logStringifiedObjectMessage } from "../lib/log-message"
 import { CfmContext } from "../hooks/use-cfm-context"
 
@@ -114,6 +114,16 @@ export const App = observer(function App() {
 
       const { di } = urlParams
       if (typeof di === "string") {
+        const webviewTiles = appState.document.content?.getTilesOfType(kWebViewTileType)
+        if (webviewTiles) {
+          const webviews = webviewTiles.map(wV => wV.content) as IWebViewModel[]
+          const plugins = webviews.filter(wV => wV.isPlugin)
+          // if any of the plugins are already showing the specified data interactive,
+          // don't create a new one
+          if (plugins.length > 0 && plugins.some(pI => pI.url === di)) {
+            return
+          }
+        }
         // setTimeout ensures that other components have been rendered,
         // which is necessary to properly position the plugin.
         setTimeout(() => {
