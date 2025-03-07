@@ -1,5 +1,26 @@
 # Changelog
 
+## Version 3.0.0-pre.2202 - March 7, 2025
+
+### ✨ Features & Improvements:
+- **CODAP-2:** Splash Screen when launching CODAPv3 in AP
+- **CODAP-4:** Relationship (squiggly) lines for tables
+- **CODAP-48:** When a date-time slider is restricted to multiples of some unit the value of the slider should be rounded accordingly
+
+### 🐞 Bug Fixes:
+- **PT-188914441:** Graph adornments are not rendering correctly in restored documents
+- **PT-188932078:** Clicking on bar chart is not selecting cases
+- **CODAP-53:** Circular ref error
+- **CODAP-122:** Line plot not showing data tips and is missing zero line
+- **CODAP-129:** Missing data with 2nd categorical axes
+- **CODAP-132:** Switching from a line plot to a dot or bar chart results in dots/bars being rendered off-center
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  190227 bytes |                            0.26% |
+|  index.js | 6472331 bytes |                            0.15% |
+
 ## Version 3.0.0-pre.2190 - February 28, 2025
 
 ### ✨ Features & Improvements:
