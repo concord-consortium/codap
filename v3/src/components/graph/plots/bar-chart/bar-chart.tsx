@@ -127,7 +127,7 @@ export const BarChart = observer(function BarChart({ abovePointsGroupRef, pixiPo
           })
         })
       })
-      renderBarCovers({ barCovers, barCoversRef, dataConfig, primaryAttrRole })
+      renderBarCovers({ barCovers, barCoversRef, graphModel, primaryAttrRole })
     }
 
     const anchor = circleAnchor
