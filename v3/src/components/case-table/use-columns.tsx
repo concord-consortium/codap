@@ -33,10 +33,6 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
       () => {
         const collection = data?.getCollection(collectionId)
         const attrs: IAttribute[] = collection ? getCollectionAttrs(collection, data) : []
-        // if attribute is the only attribute in the collection and it is hidden, make the attribute visible
-        if (attrs.length === 1 && caseMetadata?.isHidden(attrs[0].id)) {
-          caseMetadata?.setIsHidden(attrs[0].id, false)
-        }
         const visible: IAttribute[] = attrs.filter(attr => attr && !caseMetadata?.isHidden(attr.id))
         return visible.map(({ id, name, type, userType, isEditable, hasFormula, precision }) =>
                   ({ id, name, type, userType, isEditable, hasFormula, precision }))
