@@ -182,7 +182,7 @@ context("Graph adornments", () => {
   })
   it("allows adding a plotted function to the graph by entering a value into the plotted function UI", () => {
     c.selectTile("graph", 0)
-    cy.dragAttributeToTarget("table", "Sleep", "bottom")
+    cy.dragAttributeToTarget("table", "Speed", "bottom")
     cy.dragAttributeToTarget("table", "Mass", "left")
     graph.getDisplayValuesButton().click()
     graph.getInspectorPalette().find("[data-testid=adornment-checkbox-plotted-function]").click()
