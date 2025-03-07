@@ -1,11 +1,12 @@
-import { mstReaction } from "../../../utilities/mst-reaction"
 import { action, comparer, computed, makeObservable, observable } from "mobx"
 import {
   format, NumberValue, ScaleBand, scaleBand, scaleLinear, scaleLog, ScaleOrdinal, scaleOrdinal
 } from "d3"
-import { formatDate } from "../../../utilities/date-utils"
-import { AxisScaleType, IScaleType, ScaleNumericBaseType } from "../axis-types"
 import { ICategorySet } from "../../../models/data/category-set"
+import { DatePrecision, formatDate } from "../../../utilities/date-utils"
+import { mstReaction } from "../../../utilities/mst-reaction"
+import { kDefaultDateMultipleOfUnit } from "../../slider/slider-types"
+import { AxisScaleType, IScaleType, ScaleNumericBaseType } from "../axis-types"
 
 interface IDataCoordinate {
   cell: number
@@ -189,7 +190,7 @@ export class MultiScale {
    *   the value for one screen pixel from the value for the adjacent screen pixel.
    *   If isDate is true, the value is the number of seconds since the epoch.
    * **/
-  formatValueForScale(value: number, isDate = false): string {
+  formatValueForScale(value: number, isDate = false, dateMultipleOfUnit = kDefaultDateMultipleOfUnit): string {
     const formatNumber = (n: number): string => {
       const resolution = this.resolution ?? 1
       // Calculate the number of significant digits based on domain and range
@@ -205,8 +206,14 @@ export class MultiScale {
       // Use D3 format to generate a string with the appropriate number of decimal places
       return format('.9')(roundedNumber)
     }
+
+    const formatSliderInputDate = (n: number): string => {
+      if (isDate) {
+        return formatDate(n * 1000, dateMultipleOfUnit as DatePrecision) ?? ''
+      } else { return ''}
+    }
     return isDate
-             ? formatDate(value * 1000) ?? ''
+             ? formatSliderInputDate(value)
              : this.resolution ? formatNumber(value) : String(value)
   }
 }
