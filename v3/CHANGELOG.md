@@ -5,6 +5,7 @@
 ### ✨ Features & Improvements:
 - **CODAP-2:** Splash Screen when launching CODAPv3 in AP
 - **CODAP-4:** Relationship (squiggly) lines for tables
+- **CODAP-48:** When a date-time slider is restricted to multiples of some unit the value of the slider should be rounded accordingly
 
 ### 🐞 Bug Fixes:
 - **PT-188914441:** Graph adornments are not rendering correctly in restored documents
