@@ -131,7 +131,6 @@ console.log("getContent", cfmContent)
       if (filename) {
         appState.document.setTitleFromFilename(filename)
       }
-      removeSearchParams(['di', 'di-override'])
       break
     }
     case "sharedFile":
