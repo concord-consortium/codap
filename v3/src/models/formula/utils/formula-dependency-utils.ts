@@ -46,7 +46,10 @@ export const getFormulaDependencies = (formulaCanonical: string, formulaAttribut
       const isSelfReference = ifSelfReference(dependency, formulaAttributeId)
       // Note that when self reference is allowed, we should NOT add the attribute to the dependency list.
       // This would create cycle in observers and trigger an error even earlier, when we check for this scenario.
-      if (dependency && (!isSelfReference || !isSelfReferenceAllowed)) {
+      // Todo: Fix this TS error
+      // @ts-expect-error does-not-exist
+      const isPresent = result.some((dep) => dep.attrId === dependency?.attrId)
+      if (dependency && (!isSelfReference || !isSelfReferenceAllowed) && !isPresent) {
         result.push(dependency)
       }
     }
