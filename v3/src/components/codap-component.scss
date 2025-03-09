@@ -27,6 +27,7 @@ $corner-drag-size: calc($border-drag-width * 2);
   margin: 0;
   user-select: none;
   z-index: 11;
+  touch-action: none;
   &.right {
     bottom: $corner-drag-size;
     right: 0;
@@ -57,6 +58,7 @@ $corner-drag-size: calc($border-drag-width * 2);
   margin: 0;
   user-select: none;
   z-index: 11;
+  touch-action: none;
   &.bottom-left {
     bottom: 0;
     left: 0;
