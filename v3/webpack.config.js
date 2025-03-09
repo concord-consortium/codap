@@ -55,6 +55,7 @@ module.exports = (env, argv) => {
   return {
     context: __dirname, // to automatically find tsconfig.json
     devServer: {
+      allowedHosts: 'all',
       static: 'dist',
       hot: true,
       server: {
