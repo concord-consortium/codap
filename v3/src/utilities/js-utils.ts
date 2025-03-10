@@ -170,8 +170,9 @@ export function hashStringSet(strings: string[]) {
 export function hashStringSets(stringSets: Array<string[]>) {
   return stringSets
     .map(hashStringSet)
+    // XOR all individual hashes with an index-based multiplier and a large initial value
     // eslint-disable-next-line no-bitwise
-    .reduce((acc, hash, index) => acc ^ (hash * (index + 1)), 0x9e3779b9) // XOR all individual hashes with an index-based multiplier and a large initial value
+    .reduce((acc, hash, index) => acc ^ (hash * (index + 1)), 0x9e3779b9)
 }
 
 /*

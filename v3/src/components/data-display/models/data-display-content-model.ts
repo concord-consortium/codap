@@ -72,7 +72,7 @@ export const DataDisplayContentModel = TileContentModel
     },
     caseTipText(attributeIDs: string[], caseID: string, dataset?: IDataSet) {
 
-      const getValueToDisplay = (numValue:number | undefined, value: IValueType, attribute: IAttribute | undefined) => {
+      const getValueToDisplay = (numValue: number | undefined, value: IValueType, attribute?: IAttribute) => {
         if (!attribute) return ''
         switch (attribute.type) {
           case 'numeric': {
