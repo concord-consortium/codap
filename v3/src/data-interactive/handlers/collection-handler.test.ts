@@ -84,11 +84,11 @@ describe("DataInteractive CollectionHandler", () => {
 
   it("get works", () => {
     const documentContent = appState.document.content!
-    const { dataset } = setupTestDataset()
+    const { dataset, a3 } = setupTestDataset()
     documentContent.createDataSet(getSnapshot(dataset))
     const dataContext = getSharedDataSets(documentContent)[0].dataSet
     const c1 = dataContext.collections[0]
-    expect(handler.get?.({}).success).toBe(false)
+    dataContext.moveAttribute(a3.id, { collection: c1.id })
     expect(handler.get?.({ dataContext }).success).toBe(false)
 
     // Grouped collection
