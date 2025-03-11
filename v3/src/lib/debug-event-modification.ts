@@ -7,7 +7,8 @@ const eventMethods = [
 ] as const
 
 const elementMethods = [
-  "setPointerCapture"
+  "setPointerCapture",
+  "releasePointerCapture"
 ] as const
 
 function instrumentEventMethod(
