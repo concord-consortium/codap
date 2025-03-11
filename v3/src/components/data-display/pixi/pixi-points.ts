@@ -96,6 +96,11 @@ export class PixiPoints {
   tickerStopTimeoutId: number | undefined
   // For bar charts and histograms, we need events to be passed to the "cover" rectangles that
   // overlay the pixi sprites. This happens seamlessly in Chrome and Firefox, but not in Safari.
+  // TODO: Rather than using browser-detection, a better approach would be to runtime-detect the
+  // problematic behavior and use that to determine whether to use the workaround. For instance,
+  // if the problem is really that the bar cover SVGs never receive pointer events, then the
+  // handler for those pointer events could be used to disable the Safari-specific event dispatch.
+  // This would allow the code to continue to work once Safari fixes the underlying issue.
   isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
   // To dispatch to Safari for 'mouseout' we need the element we are leaving, computable from the event's x,y coords.
   mostRecentSvgElement: SVGElement | null = null
@@ -647,7 +652,7 @@ export class PixiPoints {
    * Dispatches events to the SVG elements lying on top of the PixiJS canvas. This is necessary for Safari,
    * as it does not pass events through the canvas to the elements above it.
    */
-  dispatchForSafari(event: PIXI.FederatedPointerEvent, eventType:string) {
+  dispatchForSafari(event: PIXI.FederatedPointerEvent, eventType: string) {
     const x = event.clientX
     const y = event.clientY
     const canvas = this.renderer?.view.canvas
