@@ -13,8 +13,8 @@ import { App } from "./app"
 let cfm: CloudFileManager | undefined
 let spySetMenuBarInfo: jest.SpyInstance | undefined
 
-jest.mock("../lib/cfm-utils", () => {
-  const cfmUtils = jest.requireActual("../lib/cfm-utils")
+jest.mock("../lib/cfm/cfm-utils", () => {
+  const cfmUtils = jest.requireActual("../lib/cfm/cfm-utils")
 
   return {
     createCloudFileManager() {

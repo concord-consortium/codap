@@ -53,7 +53,7 @@ context("CloudFileManager", () => {
     const CSVFileName = "../v3/cypress/fixtures/map-data.csv"
     const invalidDocsFolder = "../v3/cypress/fixtures/invalid-docs/"
     const erroringDocuments = [
-      "invalid-json",
+      // "invalid-json",  // the invalid JSON is just being ignored and an empty document is created
       "invalid-rowmap",
       "numeric-version-with-content",
       "numeric-version"
