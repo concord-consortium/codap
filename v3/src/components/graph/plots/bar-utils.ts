@@ -56,8 +56,7 @@ export const barCoverDimensions = (props: IBarCoverDimensionsProps) => {
 
 export const renderBarCovers = (props: IRenderBarCoverProps) => {
   const { barCovers, barCoversRef, graphModel } = props
-  const dataConfig = graphModel.dataConfiguration
-  const { showDataTip, hideDataTip } = graphModel
+  const { dataConfiguration: dataConfig, showDataTip, hideDataTip } = graphModel
   select(barCoversRef.current).selectAll("rect").remove()
   select(barCoversRef.current).selectAll("rect")
     .data(barCovers)

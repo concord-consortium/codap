@@ -11,6 +11,6 @@ export interface IGetTipTextProps {
 
 export interface IShowDataTipProps {
   event: PointerEvent
-  caseID:string
-  plotNum:number
+  caseID: string
+  plotNum: number
 }
