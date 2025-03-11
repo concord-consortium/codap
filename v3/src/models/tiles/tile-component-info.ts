@@ -19,6 +19,11 @@ export interface ITileComponentInfo {
   tileEltClass: string;
   Icon?: React.FC<SVGProps<SVGSVGElement>>;
   shelf?: IToolShelfOptions;
+  /*
+   * If true, hidden tiles will be rendered in the DOM (but not visible).
+   * Otherwise, hidden tiles will be removed from the DOM.
+   */
+  renderWhenHidden?: boolean;
   /**
    * By default the tool tile wrapper TileComponent will handle the selection of the
    * the tile when it gets a mouse down or touch start.
