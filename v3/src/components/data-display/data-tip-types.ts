@@ -8,3 +8,9 @@ export interface IGetTipTextProps {
   dataset?: IDataSet
   legendAttrID?: string
 }
+
+export interface IShowDataTipProps {
+  event: PointerEvent
+  caseID: string
+  plotNum: number
+}

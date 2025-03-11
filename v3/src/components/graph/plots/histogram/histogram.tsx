@@ -98,7 +98,7 @@ export const Histogram = observer(function Histogram({ abovePointsGroupRef, pixi
         })
       })
       const barCovers: IBarCover[] = Array.from(uniqueBarCovers.entries()).map(([_, cover]) => cover)
-      renderBarCovers({ barCovers, barCoversRef, dataConfig, primaryAttrRole })
+      renderBarCovers({ barCovers, barCoversRef, graphModel, primaryAttrRole })
     }
 
     setPointCoordinates({

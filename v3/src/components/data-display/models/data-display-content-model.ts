@@ -22,7 +22,7 @@ import { IAxisTicks, TickFormatter } from "../../axis/axis-types"
 import {GraphPlace} from "../../axis-graph-shared"
 import { IAxisModel, isBaseNumericAxisModel } from "../../axis/models/axis-model"
 import { MarqueeMode } from "../data-display-types"
-import { IGetTipTextProps } from "../data-tip-types"
+import { IGetTipTextProps, IShowDataTipProps } from "../data-tip-types"
 import { IDataConfigurationModel } from "./data-configuration-model"
 import {DataDisplayLayerModelUnion} from "./data-display-layer-union"
 import {DisplayItemDescriptionModel} from "./display-item-description-model"
@@ -44,6 +44,8 @@ export const DataDisplayContentModel = TileContentModel
     animationTimerId: 0,
     marqueeMode: 'unclicked' as MarqueeMode,
     renderState: undefined as DataDisplayRenderState | undefined,
+    showDataTip: (props: IShowDataTipProps) => {},
+    hideDataTip: (event: MouseEvent) => {}
   }))
   .views(self => ({
     placeCanAcceptAttributeIDDrop(place: GraphPlace,
@@ -180,6 +182,12 @@ export const DataDisplayContentModel = TileContentModel
     },
     setRenderState(renderState: DataDisplayRenderState) {
       self.renderState = renderState
+    },
+    setShowDataTip: (showDataTip: (props: IShowDataTipProps) => void) => {
+      self.showDataTip = showDataTip
+    },
+    setHideDataTip: (hideDataTip: (event: MouseEvent) => void) => {
+      self.hideDataTip = hideDataTip
     }
   }))
 export interface IDataDisplayContentModel extends Instance<typeof DataDisplayContentModel> {}
