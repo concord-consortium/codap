@@ -577,8 +577,12 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     const baseSetNumberOfCategoriesLimitForRole = self.setNumberOfCategoriesLimitForRole
     return {
       setNumberOfCategoriesLimitForRole(role: AttrRole, limit: number) {
-        self.subPlotCases.invalidateAll()
-        baseSetNumberOfCategoriesLimitForRole.call(self, role, limit)
+        if (self.numberOfCategoriesLimitByRole.get(role) !== limit) {
+          self.subPlotCases.invalidateAll()
+          baseSetNumberOfCategoriesLimitForRole.call(self, role, limit)
+          self.categoryArrayForAttrRole.invalidate(role)
+          self.categoryArrayForAttrRole.invalidate(role, [])
+        }
       }
     }
   })
