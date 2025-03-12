@@ -46,7 +46,7 @@ registerTileTypes([])
 export const App = observer(function App() {
   useKeyStates()
 
-  const cfm = useCloudFileManager({
+  const { cfm, cfmReadyPromise } = useCloudFileManager({
     appOrMenuElemId: kMenuBarElementId
   })
 
@@ -126,7 +126,9 @@ export const App = observer(function App() {
         }
         // setTimeout ensures that other components have been rendered,
         // which is necessary to properly position the plugin.
-        setTimeout(() => {
+        setTimeout(async () => {
+          // wait for CFM to complete its initialization
+          await cfmReadyPromise
           appState.document.content?.applyModelChange(() => {
             const plugin = appState.document.content?.createTile?.(kWebViewTileType)
             if (isWebViewModel(plugin?.content)) plugin.content.setUrl(di)
@@ -139,7 +141,7 @@ export const App = observer(function App() {
     }
 
     initialize()
-  }, [])
+  }, [cfmReadyPromise])
 
   return (
     <CodapDndContext>
