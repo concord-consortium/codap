@@ -211,15 +211,16 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
         return coords.y
       },
       layerIsVisible = mapLayerModel.isVisible,
-      pointsAreVisible = mapLayerModel.pointsAreVisible
+      pointsAreVisible = mapLayerModel.pointsAreVisible,
+      displayPoints = mapLayerModel.pointType === "points"
     if (!pixiPoints || !dataset) {
       return
     }
-    if (!(layerIsVisible && pointsAreVisible && pixiPoints.isVisible)) {
+    if (!(layerIsVisible && pointsAreVisible && displayPoints && pixiPoints.isVisible)) {
       pixiPoints?.setVisibility(false)
       return
     }
-    if (layerIsVisible && pointsAreVisible && !pixiPoints.isVisible) {
+    if (layerIsVisible && pointsAreVisible && displayPoints && !pixiPoints.isVisible) {
       pixiPoints?.setVisibility(true)
     }
     const pointRadius = computePointRadius(dataConfiguration.getCaseDataArray(0).length, pointSizeMultiplier)
@@ -315,14 +316,18 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
   // respond to change in layer visibility
   useEffect(function respondToLayerVisibilityChange() {
     return mstReaction(() => {
-        return { layerIsVisible: mapLayerModel.isVisible, pointsAreVisible: mapLayerModel.pointsAreVisible}
+        return {
+          displayPoints: mapLayerModel.pointType === "points",
+          layerIsVisible: mapLayerModel.isVisible,
+          pointsAreVisible: mapLayerModel.pointsAreVisible
+        }
       },
-      ({layerIsVisible, pointsAreVisible}) => {
-        if (layerIsVisible && pointsAreVisible && !pixiPoints?.isVisible) {
+      ({ displayPoints, layerIsVisible, pointsAreVisible }) => {
+        if (layerIsVisible && pointsAreVisible && displayPoints && !pixiPoints?.isVisible) {
           pixiPoints?.setVisibility(true)
           refreshPoints(false)
         }
-        else if (!(layerIsVisible && pointsAreVisible) && pixiPoints?.isVisible) {
+        else if (!(layerIsVisible && pointsAreVisible && displayPoints) && pixiPoints?.isVisible) {
           pixiPoints?.setVisibility(false)
         }
       },
