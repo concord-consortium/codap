@@ -1,10 +1,11 @@
 import React, { useCallback, useRef, useState } from "react"
 import { observer } from "mobx-react-lite"
 import { clsx } from "clsx"
+import { useCaseMetadata } from "../../hooks/use-case-metadata"
 import { IValueType } from "../../models/data/attribute-types"
 import { IGroupedCase } from "../../models/data/data-set-types"
 import { ICollectionModel } from "../../models/data/collection"
-import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-data-utils"
+import { getCollectionAttrs } from "../../models/data/data-set-utils"
 import { AttributeHeader } from "../case-tile-common/attribute-header"
 import { AttributeHeaderDivider } from "../case-tile-common/attribute-header-divider"
 import { kIndexColumnKey } from "../case-tile-common/case-tile-types"
@@ -29,6 +30,7 @@ function getDividerBounds(containerBounds: DOMRect, cellBounds: DOMRect) {
 
 export const CaseAttrsView = observer(function CaseAttrsView({caseItem, collection}: ICaseAttrsViewProps) {
   const cardModel = useCaseCardModel()
+  const caseMetadata = useCaseMetadata()
   const data = cardModel?.data
   const displayValues = useCaseCardModel()?.displayValues
   const isCollectionSummarized = collection?.cases && collection.cases.length > 0 &&
@@ -47,7 +49,8 @@ export const CaseAttrsView = observer(function CaseAttrsView({caseItem, collecti
   }, [])
 
   const tableClassName = clsx("case-card-attrs", "fadeIn", {"summary-view": isCollectionSummarized})
-
+  const attrs = collection ? getCollectionAttrs(collection, data) : []
+  const visibleAttrs = attrs ? attrs.filter(attr => attr && !caseMetadata?.isHidden(attr.id)) : []
   return (
     <table className={tableClassName} data-testid="case-card-attrs">
       <tbody>
@@ -62,9 +65,7 @@ export const CaseAttrsView = observer(function CaseAttrsView({caseItem, collecti
             />
           </td>
         </tr>
-        {collection?.attributes.map((attr, index: number) => {
-            const metadata = data && getSharedCaseMetadataFromDataset(data)
-            if (!attr || metadata?.isHidden(attr.id)) return null
+        {collection && visibleAttrs.map((attr, index: number) => {
             return (
               <CaseAttrView
                 key={isCollectionSummarized ? `${attr.id}-summary` : attr.id}
