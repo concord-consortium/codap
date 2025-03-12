@@ -360,37 +360,22 @@ export interface ICodapV2PlotStorageBase {
 }
 
 export interface ICodapV2BarChartStorage extends ICodapV2PlotStorageBase {
-  // TODO_V2_IMPORT breakdownType is not imported
-  // it occurs 9,056 times in cfm-shared
-  // 5,825 times its value is 0
-  // 3,231 times its value is 1
   // For non-computed bar charts, whether to show count (0) or percent (1)
   breakdownType?: number
 }
 
 export interface ICodapV2ComputedBarChartStorage extends ICodapV2BarChartStorage {
-  // TODO_V2_IMPORT computed bar chart expression for height of bar
-  // expression at this level existed in a single file of 6,000 checked
-  // in cfm-shared. It is unknown how many times it occurs in all of
-  // of cfm-shared
+  // For computed bar charts, the formula to compute the value of each bar
   expression?: string
 }
 
 export interface ICodapV2BinnedPlotStorage extends ICodapV2PlotStorageBase {
-  // TODO_V2_IMPORT width is not imported
-  // unknown how many times it occurs in cfm-shared
   // For binned dot plot, width of bins
   width?: number
-  // TODO_V2_IMPORT alignment is not imported
-  // it occurs 8,363 times in cfm-shared
   // For binned dot plot, alignment of bins
   alignment?: number
-  // TODO_V2_IMPORT dotsAreFused is not imported
-  // it occurs 8,363 times in cfm-shared
   // For binned dot plot, true for histogram, false for dot plot
   dotsAreFused?: boolean
-  // TODO_V2_IMPORT totalNumberOfBins is not imported
-  // it occurs 8,299 times in cfm-shared
   // For binned dot plot, number of bins required to contain the data; computable from data
   totalNumberOfBins?: number
 }
@@ -489,14 +474,11 @@ export interface ICodapV2GraphStorage extends ICodapV2BaseComponentStorage {
   pointColor?: string
   strokeColor?: string
   pointSizeMultiplier?: number
-  // TODO_V2_IMPORT: transparency is not imported
   transparency?: number
-  // TODO_V2_IMPORT: strokeTransparency is not imported
   strokeTransparency?: number
   strokeSameAsFill?: boolean
   isTransparent?: boolean
   plotBackgroundColor?: string | null
-  // TODO_V2_IMPORT: plotBackgroundOpacity is not imported
   plotBackgroundOpacity?: number
   plotBackgroundImageLockInfo?: ICodapV2GraphBackgroundLockInfo | null
   plotBackgroundImage?: string | null
@@ -634,14 +616,11 @@ export interface ICodapV2MapPointLayerStorage extends ICodapV2MapLayerBaseStorag
   }
   connectingLines: {
     isVisible: boolean,
-    // TODO_V2_IMPORT: as noted above enableMeasuresForSelection is not imported
-    // There are 0 cases in cfm-shared where enableMeasuresForSelection is `true` in this
-    // location
+    // `enableMeasuresForSelection` is a graph property that isn't relevant to the map.
+    // Presumably, it is sharing a model with the graph which is responsible for serialization.
     enableMeasuresForSelection?: boolean
   }
-  // TODO_V2_IMPORT: linesShouldBeVisible is not imported
-  // It occurs 73 times within layerModels in cfm-shared
-  // It is false in every case
+  // v2 saves/restores this value, but never uses it
   linesShouldBeVisible?: boolean
 }
 export function isV2MapPointLayerStorage(obj: unknown): obj is ICodapV2MapPointLayerStorage {
@@ -650,10 +629,8 @@ export function isV2MapPointLayerStorage(obj: unknown): obj is ICodapV2MapPointL
 
 export interface ICodapV2MapPolygonLayerStorage extends ICodapV2MapLayerBaseStorage {
   areaColor: string
-  // TODO_V2_IMPORT: areaTransparency is not be imported
   areaTransparency: number | string // e.g. "0.5"
   areaStrokeColor: string
-  // TODO_V2_IMPORT: areaStrokeTransparency is not imported
   areaStrokeTransparency: number | string // e.g. "0.6"
 }
 export function isV2MapPolygonLayerStorage(obj: unknown): obj is ICodapV2MapPolygonLayerStorage {
