@@ -32,6 +32,7 @@ import { CfmContext } from "../hooks/use-cfm-context"
 
 import "../models/shared/shared-case-metadata-registration"
 import "../models/shared/shared-data-set-registration"
+import "../lib/debug-event-modification"
 
 import "./app.scss"
 
