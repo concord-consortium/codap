@@ -1,4 +1,3 @@
-import { IAdornmentModel } from "../components/graph/adornments/adornment-models"
 import { isGraphContentModel } from "../components/graph/models/graph-content-model"
 import { appState } from "../models/app-state"
 import { IAttribute } from "../models/data/attribute"
@@ -150,10 +149,7 @@ export function resolveResources(
   }
 
   if ("adornmentList" in resourceSelector && isGraphContentModel(result.component?.content)) {
-    const allAdornments = result.component?.content.adornmentsStore.adornments ?? []
-    result.adornmentList = resourceSelector.adornmentList
-      ? allAdornments.filter(a => a.type === resourceSelector.adornmentList)
-      : allAdornments
+    result.adornmentList = result.component?.content.adornmentsStore.adornments ?? []
   }
 
   const getCaseById = (caseId: string) =>
