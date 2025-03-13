@@ -4,6 +4,7 @@ import { observer } from "mobx-react-lite"
 import { isAlive } from "mobx-state-tree"
 import * as PIXI from "pixi.js"
 import {useMap} from "react-leaflet"
+import simpleheat from "simpleheat"
 import {useDebouncedCallback} from "use-debounce"
 import {isSelectionAction, isSetCaseValuesAction} from "../../../models/data/data-set-actions"
 import { firstVisibleParentAttribute, idOfChildmostCollectionForAttributes } from "../../../models/data/data-set-utils"
@@ -27,6 +28,8 @@ import {MapPointGrid} from "./map-point-grid"
 import { useInstanceIdContext } from "../../../hooks/use-instance-id-context"
 import { useConnectingLines } from "../../data-display/hooks/use-connecting-lines"
 
+import "./map-point-layer.scss"
+
 interface IProps {
   mapLayerModel: IMapPointLayerModel
   setPixiPointsLayer: (pixiPoints: PixiPoints, layerIndex: number) => void
@@ -43,7 +46,9 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
     [pixiPoints, setPixiPoints] = useState<PixiPoints>(),
     showConnectingLines = mapLayerModel.connectingLinesAreVisible,
     connectingLinesRef = useRef<SVGGElement>(null),
-    connectingLinesActivatedRef = useRef(false)
+    connectingLinesActivatedRef = useRef(false),
+    heatmapCanvasRef = useRef<HTMLCanvasElement|null>(null),
+    simpleheatRef = useRef<simpleheat.Instance>()
 
   const connectingLine = useCallback((caseID: string) => {
     if (!dataset) return
@@ -123,6 +128,62 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
     }
   }, [mapLayerModel.layerIndex, setPixiPointsLayer])
 
+  // TODO: Deleted attributes should be removed from the DataConfiguration, in
+  // which case the additional validation via the DataSet would be unnecessary.
+  const legendAttributeId = dataConfiguration.attributeID('legend')
+  const legendAttribute = dataset?.getAttribute(legendAttributeId)
+  const getLegendColor = legendAttribute ? dataConfiguration?.getLegendColorForCase : undefined
+  const lookupLegendColor = (aCaseData: CaseData) => {
+    return dataConfiguration.getLegendColorForCase(aCaseData.caseID) || pointDescription.pointColor
+  }
+
+  const refreshHeatmap = useDebouncedCallback(() => {
+    if (!heatmapCanvasRef.current || !dataset) return
+
+    // Initialize the simpleheat instance if necessary
+    if (!simpleheatRef.current) {
+      simpleheatRef.current = simpleheat(heatmapCanvasRef.current)
+      // Add shutterbug support. See: shutterbug-support.ts.
+      heatmapCanvasRef.current.classList.add("canvas-3d")
+    }
+
+    // Reset the heatmap
+    simpleheatRef.current.clear()
+    simpleheatRef.current.resize()
+    // TODO Figure out initial zoom
+    const zoom = mapModel.leafletMapState.zoom ?? 1
+    simpleheatRef.current.radius(1.5 * zoom, .75 * zoom)
+    console.log(`--- zoom`, mapModel.leafletMapState.zoom)
+
+    // Add points (but only if we should draw the heatmap)
+    if (legendAttributeId && mapLayerModel.pointType === "heatmap") {
+      // Find the min and max values
+      let min = Infinity
+      let max = -Infinity
+      dataConfiguration.joinedCaseDataArrays.forEach(c => {
+        const { caseID } = c
+        const value = dataset.getNumeric(caseID, legendAttributeId)
+        max = Math.max(max, value ?? -Infinity)
+        min = Math.min(min, value ?? Infinity)
+      })
+
+      // Add all points to the heatmap
+      const { latId, longId } = latLongAttributesFromDataSet(dataset)
+      dataConfiguration.joinedCaseDataArrays.forEach(c => {
+        const { caseID } = c
+        const value = dataset.getNumeric(caseID, legendAttributeId) || min
+        const normalizedValue = (value - min) / (max - min)
+        const long = dataset.getNumeric(caseID, longId) || 0
+        const lat = dataset.getNumeric(caseID, latId) || 0
+        const point = leafletMap.latLngToContainerPoint([lat, long])
+        simpleheatRef.current?.add([point.x, point.y, normalizedValue])
+      })
+    }
+
+    // Draw the heatmap
+    simpleheatRef.current.draw()
+  }, 10)
+
   useEffect(() => {
     if (!pixiPoints) {
       return
@@ -186,15 +247,6 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
     })
   }, [pointDescription, mapLayerModel, dataConfiguration, pixiPoints])
 
-  // TODO: Deleted attributes should be removed from the DataConfiguration, in
-  // which case the additional validation via the DataSet would be unnecessary.
-  const legendAttributeId = dataConfiguration.attributeID('legend')
-  const legendAttribute = dataset?.getAttribute(legendAttributeId)
-  const getLegendColor = legendAttribute ? dataConfiguration?.getLegendColorForCase : undefined
-  const lookupLegendColor = (aCaseData: CaseData) => {
-      return dataConfiguration.getLegendColorForCase(aCaseData.caseID) || pointDescription.pointColor
-    }
-
   const refreshPoints = useDebouncedCallback(async (selectedOnly: boolean) => {
     const {pointSizeMultiplier, pointStrokeColor} = pointDescription,
       getCoords = (anID: string) => {
@@ -253,20 +305,25 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
         } else if (isSetCaseValuesAction(action)) {
           // assumes that if we're caching then only selected cases are being updated
           refreshPoints(dataset.isCaching())
+          refreshHeatmap()
         } else if (["addCases", "removeCases"].includes(action.name)) {
           refreshPoints(false)
+          refreshHeatmap()
         }
       })
       return () => disposer()
     }
-  }, [dataset, refreshPoints, refreshPointSelection])
+  }, [dataset, refreshPoints, refreshHeatmap, refreshPointSelection])
 
   useEffect(() => {
     return mstReaction(
       () => dataConfiguration?.legendColorDomain,
-      () => refreshPoints(false),
+      () => {
+        refreshPoints(false)
+        refreshHeatmap()
+      },
       {name: "MapPointLayer [legendColorChange]", fireImmediately: true}, dataConfiguration)
-  }, [dataConfiguration, refreshPoints])
+  }, [dataConfiguration, refreshHeatmap, refreshPoints])
 
   // Changes in layout or map pan/zoom require repositioning points
   useEffect(function setupResponsesToLayoutChanges() {
@@ -279,9 +336,10 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
       () => {
         refreshPoints(false)
         refreshConnectingLines()
+        refreshHeatmap()
       }, {name: "MapPointLayer.respondToLayoutChanges", equals: comparer.structural}
     )
-  }, [layout, mapModel.leafletMapState, refreshConnectingLines, refreshPoints])
+  }, [layout, mapModel.leafletMapState, refreshConnectingLines, refreshHeatmap, refreshPoints])
 
   // respond to attribute assignment changes
   useEffect(function setupResponseToLegendAttributeChange() {
@@ -330,10 +388,11 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
         else if (!(layerIsVisible && pointsAreVisible && displayPoints) && pixiPoints?.isVisible) {
           pixiPoints?.setVisibility(false)
         }
+        refreshHeatmap()
       },
       {name: "MapPointLayer.respondToLayerVisibilityChange"}, mapLayerModel
     )
-  }, [mapLayerModel, refreshPoints, pixiPoints])
+  }, [mapLayerModel, refreshHeatmap, refreshPoints, pixiPoints])
 
   // respond to point properties change
   useEffect(function respondToPointVisualChange() {
@@ -369,6 +428,9 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
       </svg>
       <div ref={pixiContainerRef} className="map-dot-area"/>
       <MapPointGrid mapLayerModel={mapLayerModel} />
+      <div className="heatmap-area">
+        <canvas ref={heatmapCanvasRef} className="heatmap-canvas"/>
+      </div>
       <DataTip
         dataset={dataset}
         getTipAttrs={getTipAttrs}
