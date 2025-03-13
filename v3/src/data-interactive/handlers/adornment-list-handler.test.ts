@@ -28,5 +28,4 @@ describe("DataInteractive AdornmentListHandler", () => {
     const result = handler.get?.({})
     expect(result?.success).toBe(false)
   })
-
 })
