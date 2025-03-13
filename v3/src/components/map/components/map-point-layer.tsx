@@ -150,16 +150,18 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
     // Reset the heatmap
     simpleheatRef.current.clear()
     simpleheatRef.current.resize()
-    // TODO Figure out initial zoom
-    const zoom = mapModel.leafletMapState.zoom ?? 1
-    simpleheatRef.current.radius(1.5 * zoom, .75 * zoom)
-    console.log(`--- zoom`, mapModel.leafletMapState.zoom)
+    // const maxZoom = 18
+    const minZoom = .25
+    const _zoom = mapModel.leafletMapState.zoom ?? (mapModel.zoom >= 0 ? mapModel.zoom : 1)
+    const zoom = Math.max(_zoom, minZoom)
+    const radius = 1.5 * zoom
+    simpleheatRef.current.radius(radius, 1 * zoom)
 
     // Update the gradient
     const colors = dataConfiguration.choroplethColors
     const gradient: Record<number, string> = {}
     colors.forEach((color, i) => {
-      gradient[i / colors.length] = color
+      gradient[.5 + (i / colors.length * 1 / 2)] = color
     })
     simpleheatRef.current.gradient(gradient)
 
@@ -184,7 +186,10 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
         const long = dataset.getNumeric(caseID, longId) || 0
         const lat = dataset.getNumeric(caseID, latId) || 0
         const point = leafletMap.latLngToContainerPoint([lat, long])
-        simpleheatRef.current?.add([point.x, point.y, normalizedValue])
+        // TODO why do we need these?
+        const xMultiplier = .8
+        const yMultiplier = .95
+        simpleheatRef.current?.add([point.x * xMultiplier, point.y * yMultiplier, normalizedValue])
       })
     }
 
