@@ -1,3 +1,4 @@
+import "./handlers/adornment-list-handler"
 import "./handlers/all-cases-handler"
 import "./handlers/attribute-handler"
 import "./handlers/attribute-list-handler"

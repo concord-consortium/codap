@@ -12,6 +12,7 @@ import {
   DIDataContext, DIDeleteCollectionResult, DIGetCaseResult, DIItemValues, DINewCase,
   DINotifyAttribute, DINotifyDataContext, DIResultAttributes, DIUpdateCase, DIUpdateItemResult
 } from "./data-interactive-data-set-types"
+import { IAdornmentModel } from "../components/graph/adornments/adornment-models"
 
 export type DIComponent = ITileModel
 export interface DIComponentInfo {
@@ -67,6 +68,7 @@ export interface DIDataDisplay {
 }
 
 export interface DIResources {
+  adornmentList?: IAdornmentModel[]
   attribute?: IAttribute
   attributeList?: IAttribute[]
   attributeLocation?: IAttribute
