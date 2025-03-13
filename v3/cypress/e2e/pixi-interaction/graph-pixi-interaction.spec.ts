@@ -10,6 +10,24 @@ import graphRules from '../../fixtures/graph-rules.json'
 
 const plots = graphRules.plots
 
+const arrayOfAttributes = [ "Mammal", "Order", "LifeSpan", "Height", "Mass", "Sleep", "Speed", "Habitat", "Diet" ]
+
+// The `values` here are arrays of expected axis tick labels. When written there was an assumption
+// that the set of labels would not be dependent on the axis, but since the bottom axis is longer
+// than the left axis, recent labeling changes make that no longer the case. So now, these axis
+// labels are only correct if the attribute in question is placed on the "correct" axis.
+const arrayOfValues = [
+  { attribute: "Mammal", values: [ ]},
+  { attribute: "Order", values: [ ]},
+  { attribute: "LifeSpan", values: [...Array(21).keys()].map(i => `${5 * i - 5}`)},   // X
+  { attribute: "Height", values: [...Array(17).keys()].map(i => `${0.5 * i - 0.5}`)}, // X
+  { attribute: "Mass", values: [ "0", "1000", "2000", "3000", "4000", "5000", "6000", "7000" ]},  // Y
+  { attribute: "Sleep", values: [...Array(12).keys()].map(i => `${2 * i}`)},  // Y
+  { attribute: "Speed", values: [ ]},
+  { attribute: "Habitat", values: [ "land", "water", "both" ]},
+  { attribute: "Diet", values: [ "plants", "meat", "both" ]},
+]
+
 // These tests may be run locally if desired. they can take awhile to run on the cloud
 context.skip("Test graph plot transitions", () => {
   beforeEach(function () {
@@ -254,7 +272,7 @@ context("Graph UI with Pixi interaction", () => {
       cy.wait(500)
       cy.get("[data-testid=show-parent-toggles]").should("exist").and("have.text", "Show Parent Visibility Toggles")
     })
-    it("adds a banner to the graph when Show Measures for Selection is activated with pixijs interaction", () => {
+    it("should add a banner to the graph when Show Measures for Selection is activated with pixijs interaction", () => {
       ah.openAxisAttributeMenu("bottom")
       ah.selectMenuAttribute("Sleep", "bottom") // Sleep => x-axis
       cy.get("[data-testid=measures-for-selection-banner]").should("not.exist")
@@ -276,9 +294,21 @@ context("Graph UI with Pixi interaction", () => {
       cy.wait(500)
       cy.get("[data-testid=measures-for-selection-banner]").should("not.exist")
     })
-
-    // NOTE: Adornments are covered in graph-adornments.spec.ts (including Show Measures)
-  })
+    it("has the correct point count and no compression in graphs with numerical y axis, categorical x axis, and categorical y2 axis", () => {
+      ah.openAxisAttributeMenu("bottom")
+      ah.selectMenuAttribute("Diet", "bottom") // Diet => bottom
+      cy.get("[data-testid=graph]").find("[data-testid=axis-bottom]").find(".sub-axis-wrapper").should("have.length", 1)
+      cy.dragAttributeToTarget("table", arrayOfAttributes[4], "left") // Mass => y axis
+      cy.get("[data-testid=graph]").find("[data-testid=axis-left]").find(".sub-axis-wrapper").should("have.length", 1)
+      cy.dragAttributeToTarget("table", arrayOfAttributes[7], "right") // Habitat => y2 axis
+      cy.get("[data-testid=graph]").find("[data-testid=axis-rightCat]").find(".sub-axis-wrapper").should("have.length", 1)
+      cy.get("[data-testid=graph]").find("[data-testid=axis-left]").find(".sub-axis-wrapper").should("have.length", 3)  
+      gch.getGraphTileId().then((tileId) => {
+        gch.validateGraphPointCount(tileId, 27) // 27 points in graph
+      })
+     // TODO: add a check for points in correct position
+    })
+})
   describe("graph colors and selection with point count pixi interaction", () => {
     it("checks color of a point with Legend colors", () => {
       ah.openAxisAttributeMenu("bottom")
@@ -338,7 +368,7 @@ context("Graph UI with Pixi interaction", () => {
   describe("checks for graph point position and color with pixi interaction", () => {
     // use this test to debug point positions when running locally
     // skip this on the cloud because it's not necessary
-    it.skip("should check position of a point", () => {
+    it.skip("checks position of a point", () => {
       ah.openAxisAttributeMenu("bottom")
       ah.selectMenuAttribute("Sleep", "bottom") // Sleep => x-axis
       cy.wait(500) // Wait for the graph to update
@@ -357,7 +387,7 @@ context("Graph UI with Pixi interaction", () => {
         })
       })
     })
-    it("check for point compression interaction", () => {
+    it("checks for point compression interaction", () => {
       // Open Four Seals
       cy.log("Open Four Seals from Hamburger menu")
       cfm.getHamburgerMenuButton().should("exist")
