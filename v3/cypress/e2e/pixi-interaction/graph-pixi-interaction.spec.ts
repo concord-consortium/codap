@@ -12,22 +12,6 @@ const plots = graphRules.plots
 
 const arrayOfAttributes = [ "Mammal", "Order", "LifeSpan", "Height", "Mass", "Sleep", "Speed", "Habitat", "Diet" ]
 
-// The `values` here are arrays of expected axis tick labels. When written there was an assumption
-// that the set of labels would not be dependent on the axis, but since the bottom axis is longer
-// than the left axis, recent labeling changes make that no longer the case. So now, these axis
-// labels are only correct if the attribute in question is placed on the "correct" axis.
-const arrayOfValues = [
-  { attribute: "Mammal", values: [ ]},
-  { attribute: "Order", values: [ ]},
-  { attribute: "LifeSpan", values: [...Array(21).keys()].map(i => `${5 * i - 5}`)},   // X
-  { attribute: "Height", values: [...Array(17).keys()].map(i => `${0.5 * i - 0.5}`)}, // X
-  { attribute: "Mass", values: [ "0", "1000", "2000", "3000", "4000", "5000", "6000", "7000" ]},  // Y
-  { attribute: "Sleep", values: [...Array(12).keys()].map(i => `${2 * i}`)},  // Y
-  { attribute: "Speed", values: [ ]},
-  { attribute: "Habitat", values: [ "land", "water", "both" ]},
-  { attribute: "Diet", values: [ "plants", "meat", "both" ]},
-]
-
 // These tests may be run locally if desired. they can take awhile to run on the cloud
 context.skip("Test graph plot transitions", () => {
   beforeEach(function () {
@@ -294,19 +278,50 @@ context("Graph UI with Pixi interaction", () => {
       cy.wait(500)
       cy.get("[data-testid=measures-for-selection-banner]").should("not.exist")
     })
-    it("has the correct point count and no compression in graphs with numerical y axis, categorical x axis, and categorical y2 axis", () => {
+    it("should have correct point count and position with numerical y, categorical x, and y2 axes", () => {
       ah.openAxisAttributeMenu("bottom")
       ah.selectMenuAttribute("Diet", "bottom") // Diet => bottom
       cy.get("[data-testid=graph]").find("[data-testid=axis-bottom]").find(".sub-axis-wrapper").should("have.length", 1)
       cy.dragAttributeToTarget("table", arrayOfAttributes[4], "left") // Mass => y axis
       cy.get("[data-testid=graph]").find("[data-testid=axis-left]").find(".sub-axis-wrapper").should("have.length", 1)
       cy.dragAttributeToTarget("table", arrayOfAttributes[7], "right") // Habitat => y2 axis
-      cy.get("[data-testid=graph]").find("[data-testid=axis-rightCat]").find(".sub-axis-wrapper").should("have.length", 1)
+      cy.get("[data-testid=graph]")
+        .find("[data-testid=axis-rightCat]")
+        .find(".sub-axis-wrapper")
+        .should("have.length", 1)
       cy.get("[data-testid=graph]").find("[data-testid=axis-left]").find(".sub-axis-wrapper").should("have.length", 3)  
       gch.getGraphTileId().then((tileId) => {
         gch.validateGraphPointCount(tileId, 27) // 27 points in graph
       })
-     // TODO: add a check for points in correct position
+      // Check point positions are unique
+      gch.getGraphTileId().then((tileId: string) => {
+        gch.checkPointsHaveUniquePositions(tileId) // Call the helper function
+      })
+      // here we check that some points are in the position we expect
+      gch.getGraphTileId().then((tileId: string) => {
+        // Known inputs:
+        const pointIndex = 3
+        const expectedX = 165.990234375
+        const expectedY = 144.93375
+    
+        gch.checkPointPosition(tileId, pointIndex, expectedX, expectedY)
+      })
+      gch.getGraphTileId().then((tileId: string) => {
+        // Known inputs:
+        const pointIndex = 8
+        const expectedX = 7
+        const expectedY = 218.4
+    
+        gch.checkPointPosition(tileId, pointIndex, expectedX, expectedY)
+      })
+      gch.getGraphTileId().then((tileId: string) => {
+        // Known inputs:
+        const pointIndex = 20
+        const expectedX = 384.98046875
+        const expectedY = 229.11525
+    
+        gch.checkPointPosition(tileId, pointIndex, expectedX, expectedY)
+      })
     })
 })
   describe("graph colors and selection with point count pixi interaction", () => {

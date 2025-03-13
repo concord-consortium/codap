@@ -537,7 +537,7 @@ context("Graph UI", () => {
       cy.get("[data-testid=bin-ticks-graph-1]").find("path.draggable-bin-boundary").should("have.length", 4)
       cy.get("[data-testid=bin-ticks-graph-1]").find("path.draggable-bin-boundary-cover").should("have.length", 4)
     })
-    it("should revert bin width and bin alignment to default values for new value range when attribute is changed", () => {
+    it("should reset bin width and alignment to default for new value range when attribute changes", () => {
       ah.openAxisAttributeMenu("bottom")
       ah.selectMenuAttribute("Sleep", "bottom") // Sleep => x-axis
       graph.getDisplayConfigButton().click()
