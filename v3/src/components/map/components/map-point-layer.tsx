@@ -155,6 +155,14 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
     simpleheatRef.current.radius(1.5 * zoom, .75 * zoom)
     console.log(`--- zoom`, mapModel.leafletMapState.zoom)
 
+    // Update the gradient
+    const colors = dataConfiguration.choroplethColors
+    const gradient: Record<number, string> = {}
+    colors.forEach((color, i) => {
+      gradient[i / colors.length] = color
+    })
+    simpleheatRef.current.gradient(gradient)
+
     // Add points (but only if we should draw the heatmap)
     if (legendAttributeId && mapLayerModel.pointType === "heatmap") {
       // Find the min and max values
