@@ -3,7 +3,7 @@ import { autorun } from "mobx"
 import { observer } from "mobx-react-lite"
 import { isAlive } from "mobx-state-tree"
 import React, { useState, useEffect } from "react"
-import { convertToDate } from "../../utilities/date-utils"
+import { convertToDate, DatePrecision } from "../../utilities/date-utils"
 import { MultiScale } from "../axis/models/multi-scale"
 import { ISliderModel } from "./slider-model"
 import { valueChangeNotification } from "./slider-utils"
@@ -25,8 +25,13 @@ export const EditableSliderValue = observer(function EditableSliderValue({slider
       // trigger update on domain change
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const domain = sliderModel.domain
+      const dateMultipleToUse =
+              sliderModel.multipleOf !== undefined
+                ? sliderModel.multipleOf === 1 && sliderModel.dateMultipleOfUnit === DatePrecision.Year
+                    ? DatePrecision.Day : sliderModel.dateMultipleOfUnit
+                : undefined
       setCandidate(multiScale.formatValueForScale(sliderModel.value, sliderModel.scaleType === "date",
-                                    sliderModel.multipleOf !== undefined ? sliderModel.dateMultipleOfUnit : undefined))
+                                                    dateMultipleToUse))
     })
   }, [multiScale, sliderModel])
 
