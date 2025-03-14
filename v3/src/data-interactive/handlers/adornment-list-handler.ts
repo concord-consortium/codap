@@ -1,12 +1,12 @@
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIHandler, DIResources } from "../data-interactive-types"
-import { collectionNotFoundResult } from "./di-results"
+import { adornmentListNotFoundResult } from "./di-results"
 
 
 export const diAdornmentListHandler: DIHandler = {
   get(resources: DIResources) {
     const { adornmentList } = resources
-    if (!adornmentList) return collectionNotFoundResult
+    if (!adornmentList) return adornmentListNotFoundResult
 
     return {
       success: true,
