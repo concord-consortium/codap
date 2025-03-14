@@ -29,13 +29,4 @@ describe("DataInteractive AdornmentListHandler", () => {
     expect(result?.success).toBe(false)
   })
 
-  it("filters by type when provided with a type", () => {
-    const result = handler.get?.({ adornmentList }, { type: "Median" })
-    expect(result?.success).toBe(true)
-    const values = result?.values as any[]
-    expect(values.length).toBe(1)
-    expect(values[0].id).toBe(adornment2.id)
-    expect(values[0].type).toBe(adornment2.type)
-    expect(values[0].isVisible).toBe(adornment2.isVisible)
-  })
 })

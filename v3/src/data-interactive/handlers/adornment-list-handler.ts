@@ -1,25 +1,20 @@
 import { registerDIHandler } from "../data-interactive-handler"
-import { DIHandler, DIResources, DIValues } from "../data-interactive-types"
+import { DIHandler, DIResources } from "../data-interactive-types"
 import { collectionNotFoundResult } from "./di-results"
 
-const isDIAttribute = (val: unknown): val is { type: string | null } => {
-  return typeof val === "object" && val !== null && "type" in val
-}
 
 export const diAdornmentListHandler: DIHandler = {
-  get(resources: DIResources, values?: DIValues) {
+  get(resources: DIResources) {
     const { adornmentList } = resources
-    if (!adornmentList) return collectionNotFoundResult // replace with new adornmentNotFoundResult?
-
-    const typeRequested = isDIAttribute(values) ? values.type : undefined
-    const filterByType = () => adornmentList.filter(adornment => adornment.type === typeRequested)
+    if (!adornmentList) return collectionNotFoundResult
 
     return {
       success: true,
-      values: (typeRequested ? filterByType() : adornmentList)
-                .map(({ id, type, isVisible }) => ({ id, type, isVisible }))
-    }
-    
+      values: adornmentList.map(adornment => {
+        const { id, type, isVisible } = adornment
+        return { id, type, isVisible }
+      })
+    } 
   }
 }
 
