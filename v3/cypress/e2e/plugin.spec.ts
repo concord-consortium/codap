@@ -4,6 +4,8 @@ import { SliderTileElements as slider } from "../support/elements/slider-tile"
 import { TableTileElements as table } from "../support/elements/table-tile"
 import { ToolbarElements as toolbar } from "../support/elements/toolbar-elements"
 import { WebViewTileElements as webView } from "../support/elements/web-view-tile"
+import { AxisHelper as ah } from "../support/helpers/axis-helper"
+import { GraphTileElements as graph } from "../support/elements/graph-tile"
 
 context("codap plugins", () => {
   beforeEach(function () {
@@ -145,6 +147,56 @@ context("codap plugins", () => {
       webView.confirmAPITesterResponseContains(/"success":\s*true/)
       webView.clearAPITesterResponses()
       c.checkComponentDoesNotExist("table")
+    })
+  })
+
+  it('will handle adornment-related requests', () => {
+
+    // Activate the Mean adornment on the graph.
+    c.selectTile("graph", 0)
+    ah.openAxisAttributeMenu("bottom")
+    ah.selectMenuAttribute("Sleep", "bottom")
+    graph.getDisplayValuesButton().click()
+    graph.getInspectorPalette().find("[data-testid=adornment-checkbox-mean]").click()
+
+    openAPITester()
+    cy.log("Handle get adornmentList request")
+  
+    // Get the graph tile ID.
+    const cmd1 = `{
+      "action": "get",
+      "resource": "componentList"
+    }`
+    webView.sendAPITesterCommand(cmd1)
+    webView.confirmAPITesterResponseContains(/"success":\s*true/)
+    webView.getAPITesterResponse().then((value: any) => {
+      const response = JSON.parse(value.eq(1).text())
+      const graphInfo = response.values.find((info: any) => info.type === "graph")
+      const graphId = graphInfo.id
+
+      cy.wrap(graphId).as('graphId')
+    })
+    webView.clearAPITesterResponses()
+  
+    // Get the graph tile's adornment list.
+    cy.get('@graphId').then((graphId) => {
+      const resource = `component[${graphId}].adornmentList`
+      const cmd2 = `{
+        "action": "get",
+        "resource": "${resource}"
+      }`
+      webView.sendAPITesterCommand(cmd2, cmd1)
+      webView.confirmAPITesterResponseContains(/"success":\s*true/)
+      webView.getAPITesterResponse().then((value: any) => {
+        const response = JSON.parse(value.eq(1).text())
+        const meanInfo = response.values[0]
+
+        expect(response.values.length).to.equal(1)
+        expect(meanInfo.type).to.equal("Mean")
+        expect(meanInfo.isVisible).to.equal(true)
+
+      })
+      webView.clearAPITesterResponses()
     })
   })
 
