@@ -280,7 +280,7 @@ context("Test graph axes with various attribute types", () => {
     ah.removeAttributeFromAxis(arrayOfAttributes[7], "top")
     cy.get("[data-testid=graph]").find("[data-testid=axis-bottom]").find(".sub-axis-wrapper").should("have.length", 1)
   })
-  it("will create a graph with categorical x-axis, categorical y2-axis, and numerical y-axis", () => {
+  it("will create a graph with categorical x-axis, categorical right-axis, and numerical y-axis", () => {
     ah.openAxisAttributeMenu("bottom")
     ah.selectMenuAttribute("Diet", "bottom") // Diet => bottom
     cy.get("[data-testid=graph]").find("[data-testid=axis-bottom]").find(".sub-axis-wrapper").should("have.length", 1)
