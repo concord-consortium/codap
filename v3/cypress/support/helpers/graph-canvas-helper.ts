@@ -1,5 +1,3 @@
-/// <reference types="Cypress" />
-
 import { AxisHelper as ah } from "./axis-helper"
 
 export const GraphCanvasHelper = {
