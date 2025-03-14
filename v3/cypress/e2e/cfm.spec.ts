@@ -53,13 +53,11 @@ context("CloudFileManager", () => {
     const CSVFileName = "../v3/cypress/fixtures/map-data.csv"
     const invalidDocsFolder = "../v3/cypress/fixtures/invalid-docs/"
     const erroringDocuments = [
-      // "invalid-json",  // the invalid JSON is just being ignored and an empty document is created
+      "invalid-content",
+      "invalid-json",
       "invalid-rowmap",
       "numeric-version-with-content",
       "numeric-version"
-    ]
-    const shouldBeErroringDocuments = [
-      "invalid-content"
     ]
 
     cy.log("Opens a CODAP document from a local file using CFM dialog")
@@ -129,14 +127,6 @@ context("CloudFileManager", () => {
 
       cy.title().should("equal", "Untitled Document - CODAP")
     }
-
-    // If these documents start showing errors, update this test
-    cy.log("Doesn't show errors for certain invalid documents")
-    for (const docFileName of shouldBeErroringDocuments) {
-      cfm.openLocalDoc(`${invalidDocsFolder}${docFileName}.codap`)
-      cy.title().should("equal", `${docFileName} - CODAP`)
-    }
-
   })
   it("verify language menu is present", () => {
     visitEmptyCodap()

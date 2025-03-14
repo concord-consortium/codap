@@ -72,7 +72,9 @@ export async function handleCFMEvent(cfmClient: CloudFileManagerClient, event: C
       try {
         // Pull the shared metadata out of the content if it exists
         // Otherwise use the shared metadata passed from the CFM
-        const cfmSharedMetadata = content?.metadata?.shared || metadata?.shared || {}
+        const cfmSharedMetadata = (!!content && typeof content === "object"
+                                    ? content.metadata?.shared
+                                    : undefined) ?? metadata?.shared ?? {}
 
         // Clone this metadata because that is what CODAPv2 did so we do the
         // same to be safe
@@ -103,7 +105,9 @@ export async function handleCFMEvent(cfmClient: CloudFileManagerClient, event: C
         // Have the CFM show an error dialog
         event.callback(t("DG.AppController.openDocument.error.general"))
         // Clear the dirty state so the red "unsaved" badge isn't visible behind the error message
-        event.state.dirty = false
+        if ("state" in event && typeof event.state === "object") {
+          event.state.dirty = false
+        }
         // Close the file so the title resets, and any residual metadata or content are not
         // preserved by the CFM
         cfmClient.closeFile()

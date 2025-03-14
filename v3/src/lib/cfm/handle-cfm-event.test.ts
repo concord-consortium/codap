@@ -127,9 +127,11 @@ describe("handleCFMEvent", () => {
   })
 
   it("handles the `openedFile` message with a v2 document", async () => {
-    const mockCfmClient = {} as CloudFileManagerClient
+    const mockCfmClient = { closeFile: jest.fn() } as unknown as CloudFileManagerClient
     const mockV2Document: ICodapV2DocumentJson = {
       appName: "DG",
+      appVersion: "2.0.0",
+      appBuildNum: "555",
       components: [],
       contexts: []
     } as unknown as ICodapV2DocumentJson
@@ -152,7 +154,7 @@ describe("handleCFMEvent", () => {
   })
 
   it("handles the `openedFile` message with a v3 document", async () => {
-    const mockCfmClient = {} as CloudFileManagerClient
+    const mockCfmClient = { closeFile: jest.fn() } as unknown as CloudFileManagerClient
     const v3Document = createCodapDocument()
     const cfmEvent = {
       type: "openedFile",
@@ -173,7 +175,7 @@ describe("handleCFMEvent", () => {
   })
 
   it("handles the `openedFile` message with sharing info", async () => {
-    const mockCfmClient = {} as CloudFileManagerClient
+    const mockCfmClient = { closeFile: jest.fn() } as unknown as CloudFileManagerClient
     const v3Document = createCodapDocument()
     // This is not real metadata for sharing. Our CFM handler should
     // not care and just return it whatever it is.

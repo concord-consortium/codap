@@ -4,7 +4,7 @@ import { kCaseTableDefaultHeight, kCaseTableDefaultWidth } from "../../component
 import { kWebViewTileType } from "../../components/web-view/web-view-defs"
 import { IWebViewSnapshot } from "../../components/web-view/web-view-model"
 import { getPluginsRootUrl } from "../../constants"
-import { createCodapDocument } from "../../models/codap/create-codap-document"
+import { createCodapDocument, isCodapDocument } from "../../models/codap/create-codap-document"
 import { IDocumentModelSnapshot } from "../../models/document/document"
 import { IDocumentMetadata } from "../../models/document/document-metadata"
 import { IFreeTileInRowOptions } from "../../models/document/free-tile-row"
@@ -12,6 +12,9 @@ import { serializeCodapV3Document } from "../../models/document/serialize-docume
 import { addDataSetAndMetadata } from "../../models/shared/shared-data-utils"
 import { ITileModelSnapshotIn } from "../../models/tiles/tile-model"
 import { convertParsedCsvToDataSet, importCsvContent } from "../../utilities/csv-import"
+import { safeJsonParse } from "../../utilities/js-utils"
+import { ICodapV2Case } from "../../v2/codap-v2-data-set-types"
+import { ICodapV2DocumentJson, isCodapV2Document, isV2InternalContext, kV2AppName } from "../../v2/codap-v2-types"
 
 const kImporterPluginUrl = "/Importer/index.html?lang=en-US"
 
@@ -165,68 +168,66 @@ function makeGeoJSONDocument(contents: unknown, urlString: string, datasetName: 
 //   })
 // }
 
-// function v2RemoveDuplicateCaseIDs(content: ICodapV2DocumentJson): ICodapV2DocumentJson {
-//   const cases: Record<number, ICodapV2Case> = {}
-//   let duplicates: Record<number, ICodapV2Case> = {}
+function v2RemoveDuplicateCaseIDs(content: ICodapV2DocumentJson): ICodapV2DocumentJson {
+  const cases: Record<number, ICodapV2Case> = {}
+  let duplicates: Record<number, ICodapV2Case> = {}
 
-//   if (content.contexts) {
-//     content.contexts.forEach(function(context) {
-//       if (isV2InternalContext(context)) {
-//         if (context.collections) {
-//           context.collections.forEach(function(collection) {
-//             if (collection.cases) {
-//               collection.cases.forEach(function(iCase) {
-//                 const id = iCase.guid
-//                 if (!cases[id]) {
-//                   cases[id] = iCase
-//                 }
-//                 else {
-//                   duplicates[id] = iCase
-//                 }
-//               })
-//             }
-//             Object.entries(duplicates).forEach(function([id, aCase]) {
-//               const found = collection.cases.indexOf(aCase)
-//               if (found >= 0) {
-//                 collection.cases.splice(found, 1)
-//                 console.warn("validateDocument: removed case with duplicate ID: '%@'", id)
-//               }
-//             })
-//             duplicates = {}
-//           })
-//         }
-//       }
-//     })
-//   }
-//   return content
-// }
+  if (content.contexts) {
+    content.contexts.forEach(function(context) {
+      if (isV2InternalContext(context)) {
+        if (context.collections) {
+          context.collections.forEach(function(collection) {
+            if (collection.cases) {
+              collection.cases.forEach(function(iCase) {
+                const id = iCase.guid
+                if (!cases[id]) {
+                  cases[id] = iCase
+                }
+                else {
+                  duplicates[id] = iCase
+                }
+              })
+            }
+            Object.entries(duplicates).forEach(function([id, aCase]) {
+              const found = collection.cases.indexOf(aCase)
+              if (found >= 0) {
+                collection.cases.splice(found, 1)
+                console.warn("validateDocument: removed case with duplicate ID: '%@'", id)
+              }
+            })
+            duplicates = {}
+          })
+        }
+      }
+    })
+  }
+  return content
+}
 
-// function validateV2Document(_content: unknown): Maybe<ICodapV2DocumentJson> {
-//   if (typeof _content === 'string') {
-//     _content = safeJsonParse(_content)
-//   }
-//   if (!_content || !isCodapV2Document(_content)) return
+function validateV2Document(_content: unknown): Maybe<ICodapV2DocumentJson> {
+  if (typeof _content === 'string') {
+    _content = safeJsonParse(_content)
+  }
+  if (!_content || !isCodapV2Document(_content)) return
 
-//   // October, 2017: There have been as-yet-unexplained occurrences of documents
-//   // with duplicate cases. Rather than failing outright, we eliminate the
-//   // duplicate cases, logging their existence so that (1) users can continue to
-//   // use the previously corrupt documents and (2) the logs can be used to try
-//   // to narrow down the circumstances under which the corruption occurs.
-//   const content = v2RemoveDuplicateCaseIDs(_content)
+  // October, 2017: There have been as-yet-unexplained occurrences of documents
+  // with duplicate cases. Rather than failing outright, we eliminate the
+  // duplicate cases, logging their existence so that (1) users can continue to
+  // use the previously corrupt documents and (2) the logs can be used to try
+  // to narrow down the circumstances under which the corruption occurs.
+  const content = v2RemoveDuplicateCaseIDs(_content)
 
-//   // Legacy documents created manually using scripts can have empty metadata fields.
-//   // We grandfather these documents in by requiring that the metadata fields exist and are empty.
-//   // We log when these files are encountered, however, in hopes that they eventually get fixed.
-//   if ((content.appName === "") && (content.appVersion === "") && (content.appBuildNum === "")) {
-//     console.warn(`File '${content.name}' bypassed validation with empty metadata.` +
-//                 " This file should be re-saved with valid metadata.")
-//     return content
-//   }
+  // Legacy documents created manually using scripts can have empty metadata fields.
+  // We grandfather these documents in by requiring that the metadata fields exist and are empty.
+  // We log when these files are encountered, however, in hopes that they eventually get fixed.
+  if ((content.appName === "") && (content.appVersion === "") && (content.appBuildNum === "")) {
+    console.warn(`File '${content.name}' bypassed validation with empty metadata.` +
+                " This file should be re-saved with valid metadata.")
+    return content
+  }
 
-//   return (content.appName === kV2AppName) && !!content.appVersion && !!content.appBuildNum ? content : undefined
-// }
-
-const supportedMimeTypes = ["application/csv", "application/vnd.codap+json", "application/vnd.geo+json"]
+  return (content.appName === kV2AppName) && !!content.appVersion && !!content.appBuildNum ? content : undefined
+}
 
 export function resolveDocument(iDocContents: any, iMetadata: IDocumentMetadata): Promise<IDocumentModelSnapshot> {
   return new Promise(function (resolve, reject) {
@@ -238,9 +239,7 @@ export function resolveDocument(iDocContents: any, iMetadata: IDocumentMetadata)
     const datasetName = urlPath ? urlPath.replace(/.*\//g, '').replace(/\..*/, '') : 'data'
     let contentType
 
-    if (expectedContentType && supportedMimeTypes.includes(expectedContentType)) {
-      contentType = expectedContentType
-    } else if (expectedContentType === 'application/json' || typeof iDocContents === 'object') {
+    if (expectedContentType?.includes('json')) {
       if (typeof iDocContents === 'string') {
         try {
           iDocContents = JSON.parse(iDocContents)
@@ -250,12 +249,14 @@ export function resolveDocument(iDocContents: any, iMetadata: IDocumentMetadata)
           return
         }
       }
-      if (iDocContents.appName != null &&
-          iDocContents.appVersion != null) {
+      const isV2Doc = isCodapV2Document(iDocContents)
+      const isV3Doc = isCodapDocument(iDocContents)
+      if (isV2Doc || isV3Doc) {
+        if (isV2Doc) {
+          iDocContents = validateV2Document(iDocContents)
+        }
         contentType = 'application/vnd.codap+json'
-      } else if (iDocContents.type &&
-          (iDocContents.type === 'FeatureCollection' ||
-              iDocContents.type === 'Topology')) {
+      } else if (['FeatureCollection', 'Topology'].includes(`${iDocContents.type}`)) {
         contentType = 'application/vnd.geo+json'
       }
     } else {
