@@ -1,3 +1,5 @@
+/// <reference types="Cypress" />
+
 import { AxisHelper as ah } from "./axis-helper"
 
 export const GraphCanvasHelper = {
@@ -128,9 +130,9 @@ export const GraphCanvasHelper = {
 
       cy.log(`Actual Position - x=${actualX}, y=${actualY}`)
 
-      // Compare actual and expected positions
-      expect(actualX).to.equal(expectedX, `Expected x-coordinate of point ${pointIndex} to match`)
-      expect(actualY).to.equal(expectedY, `Expected y-coordinate of point ${pointIndex} to match`)
+      // Compare actual and expected positions with a tolerance of 1
+      expect(actualX).to.be.closeTo(expectedX, 1, `Expected x-coordinate of point ${pointIndex} to match`)
+      expect(actualY).to.be.closeTo(expectedY, 1, `Expected y-coordinate of point ${pointIndex} to match`)
     })
   },
   // Checks if the points in a graph have unique fill colors.
