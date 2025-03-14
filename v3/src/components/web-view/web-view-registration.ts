@@ -40,7 +40,9 @@ registerTileComponentInfo({
   InspectorPanel: WebViewInspector,
   tileEltClass: "codap-web-view",
   defaultWidth: kDefaultWebViewWidth,
-  defaultHeight: kDefaultWebViewHeight
+  defaultHeight: kDefaultWebViewHeight,
+  // plugins must still be able to communicate when hidden
+  renderWhenHidden: true
 })
 
 const exportFn: V2TileExportFn = ({ tile }) => {

@@ -1,12 +1,11 @@
 import { renderHook, waitFor } from "@testing-library/react"
-import { codapResourcesUrl } from "../constants"
 import { useRemotePluginsConfig } from "./use-remote-plugins-config"
 
 // mock urlParams to have a morePlugins parameter
-// url doesn't matter since response is mocked below
 jest.mock("../utilities/url-params", () => ({
   urlParams: {
-    morePlugins: codapResourcesUrl("plugins/published-plugins.json")
+    // url doesn't matter since response is mocked below
+    morePlugins: "https://plugins.concord.org/published-plugins.json"
   }
 }))
 

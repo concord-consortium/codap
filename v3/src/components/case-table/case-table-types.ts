@@ -68,6 +68,7 @@ export const kCaseTableHeaderFont = `bold ${kCaseTableFontSize} ${kCaseTableFont
 export const kCaseTableBodyFont = `${kCaseTableFontSize} ${kCaseTableFontFamily}`
 
 export const kCaseTableDefaultWidth = 580
+export const kCaseTableDefaultHeight = 200
 export const kDefaultRowHeaderHeight = 30
 export const kDefaultRowHeight = 18
 // used for row resizing

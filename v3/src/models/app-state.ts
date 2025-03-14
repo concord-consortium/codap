@@ -6,33 +6,28 @@
   in performance-critical contexts, e.g. during a drag. The properties of this class will
   generally be MobX-observable.
  */
-import { cloneDeep } from "lodash"
+import { CloudFileManager } from "@concord-consortium/cloud-file-manager"
 import { action, autorun, computed, makeObservable, observable, reaction, flow } from "mobx"
 import { getSnapshot } from "mobx-state-tree"
-import { CloudFileManager } from "@concord-consortium/cloud-file-manager"
-import { createCodapDocument } from "./codap/create-codap-document"
-import { gDataBroker } from "./data/data-broker"
-import { IDocumentModel, IDocumentModelSnapshot } from "./document/document"
-import { serializeDocument } from "./document/serialize-document"
-import { ISharedDataSet, kSharedDataSetType, SharedDataSet } from "./shared/shared-data-set"
-import { getSharedModelManager } from "./tiles/tile-environment"
+import { DEBUG_DOCUMENT } from "../lib/debug"
 import { Logger } from "../lib/logger"
 import { t } from "../utilities/translation/translate"
-import { CONFIG_SAVE_AS_V2 } from "../lib/config"
-import { DEBUG_DOCUMENT } from "../lib/debug"
-import { TreeManagerType } from "./history/tree-manager"
-import { ICodapV2DocumentJson, isCodapV2Document } from "../v2/codap-v2-types"
 import { CodapV2Document } from "../v2/codap-v2-document"
-import { exportV2Document } from "../v2/export-v2-document"
+import { isCodapV2Document } from "../v2/codap-v2-types"
 import { importV2Document } from "../v2/import-v2-document"
+import { createCodapDocument } from "./codap/create-codap-document"
+import { gDataBroker } from "./data/data-broker"
+import { IDocumentModel } from "./document/document"
+import {
+  ISerializedDocument, ISerializedV3Document, serializeCodapDocument, serializeDocument
+} from "./document/serialize-document"
+import { TreeManagerType } from "./history/tree-manager"
+import { ISharedDataSet, kSharedDataSetType, SharedDataSet } from "./shared/shared-data-set"
+import { getSharedModelManager } from "./tiles/tile-environment"
 
 const kAppName = "CODAP"
 
 type AppMode = "normal" | "performance"
-
-type ISerializedV3Document = IDocumentModelSnapshot & {revisionId?: string}
-type ISerializedV2Document = ICodapV2DocumentJson & {revisionId?: string}
-type ISerializedDocument = ISerializedV3Document | ISerializedV2Document
 
 class AppState {
   @observable
@@ -86,12 +81,7 @@ class AppState {
   }
 
   async getDocumentSnapshot(): Promise<ISerializedDocument> {
-    const serializeFn = CONFIG_SAVE_AS_V2
-                          // export as v2 if configured to do so
-                          ? (doc: IDocumentModel) => exportV2Document(doc) as ISerializedDocument
-                          // use cloneDeep because MST snapshots are immutable
-                          : (doc: IDocumentModel) => cloneDeep(getSnapshot(doc)) as ISerializedDocument
-    const snapshot = await serializeDocument(this.currentDocument, serializeFn)
+    const snapshot = await serializeCodapDocument(this.currentDocument)
     const revisionId = this.treeManager?.revisionId
     if (revisionId) {
       snapshot.revisionId = revisionId
