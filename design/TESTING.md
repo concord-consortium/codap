@@ -291,59 +291,214 @@ cy.dragAttributeToTarget('attribute-name', 'target-selector');
 
 ### Test Fixtures
 
-Use test fixtures for shared test data:
+We use a structured approach to test fixtures in CODAP v3, with dedicated files for different types of test data:
 
 ```typescript
-// src/test/fixtures/datasets.ts
-export const sampleDataset = {
-  name: 'Sample Dataset',
-  attributes: [
-    { name: 'id', type: 'numeric' },
-    { name: 'name', type: 'string' }
+// src/test/fixtures/datasets.ts - Dataset fixtures
+export const numericDataset = () => createTestDataset(
+  'numeric-dataset',
+  'Numeric Dataset',
+  [
+    { id: 'x', name: 'X' },
+    { id: 'y', name: 'Y' }
   ],
-  cases: [
-    { id: 1, name: 'Item 1' },
-    { id: 2, name: 'Item 2' }
+  [
+    { x: 1, y: 10 },
+    { x: 2, y: 20 },
+    { x: 3, y: 30 }
+  ]
+);
+
+// src/test/fixtures/documents.ts - Document fixtures
+export const sampleDocument = {
+  name: 'Sample Document',
+  title: 'Sample Document',
+  description: 'A sample document for testing',
+  metadata: {
+    author: 'Test User',
+    created: '2023-01-01T00:00:00.000Z',
+    modified: '2023-01-02T00:00:00.000Z',
+    version: '1.0.0'
+  },
+  datasets: [
+    sampleDataset
+  ],
+  components: [
+    // Component definitions...
   ]
 };
 
-// Using the fixture
-import { sampleDataset } from '../test/fixtures/datasets';
+// Using the fixtures
+import { numericDataset } from '../test/fixtures/datasets';
 
 test('should render dataset', () => {
-  const { getByText } = render(<DatasetView dataset={sampleDataset} />);
-  expect(getByText('Item 1')).toBeInTheDocument();
+  const dataset = numericDataset();
+  const { getByText } = render(<DatasetView dataset={dataset} />);
+  expect(getByText('X')).toBeInTheDocument();
 });
 ```
 
 ### Factory Functions
 
-Use factory functions to create test data with variations:
+We use factory functions to create test data with variations, allowing for flexible test data creation:
 
 ```typescript
-// src/test/fixtures/datasetFactory.ts
-export function createDataset(overrides = {}) {
+// Dataset factory function
+export function createTestDataset(
+  id: string = 'test-dataset',
+  name: string = 'Test Dataset',
+  attributes: Array<{id: string, name: string}> = [],
+  cases: Array<Record<string, any>> = []
+) {
+  // Create the dataset
+  const dataset = DataSet.create({
+    id,
+    name,
+    sourceID: 'test'
+  });
+  
+  // Add attributes
+  attributes.forEach(attr => {
+    dataset.addAttribute(Attribute.create({
+      id: attr.id,
+      name: attr.name
+    }));
+  });
+  
+  // Add cases
+  if (cases.length > 0) {
+    const casesToAdd: ICaseCreation[] = cases.map((caseData, index) => {
+      return {
+        __id__: `case-${index + 1}`,
+        ...caseData
+      };
+    });
+    
+    dataset.addCases(casesToAdd);
+  }
+  
+  return dataset;
+}
+
+// Component factory function
+export function createComponent(
+  type: 'table' | 'graph' | 'text' | 'map',
+  overrides: Record<string, any> = {}
+) {
+  const baseComponent = {
+    id: `comp${Math.floor(Math.random() * 10000)}`,
+    title: `${type.charAt(0).toUpperCase() + type.slice(1)} Component`,
+    position: { x: 0, y: 0, width: 400, height: 300 }
+  };
+
+  // Add type-specific properties
+  let typeSpecificProps = {};
+  
+  switch (type) {
+    case 'table':
+      typeSpecificProps = {
+        type: 'table',
+        datasetId: sampleDataset.name
+      };
+      break;
+    case 'graph':
+      typeSpecificProps = {
+        type: 'graph',
+        datasetId: sampleDataset.name,
+        graphConfig: {
+          plotType: 'scatter',
+          xAttributeId: 'attr1',
+          yAttributeId: 'attr3'
+        }
+      };
+      break;
+    // Other component types...
+  }
+
   return {
-    name: 'Sample Dataset',
-    attributes: [
-      { name: 'id', type: 'numeric' },
-      { name: 'name', type: 'string' }
-    ],
-    cases: [
-      { id: 1, name: 'Item 1' },
-      { id: 2, name: 'Item 2' }
-    ],
+    ...baseComponent,
+    ...typeSpecificProps,
     ...overrides
   };
 }
 
-// Using the factory
-import { createDataset } from '../test/fixtures/datasetFactory';
+// Using the factory functions
+import { createTestDataset } from '../test/fixtures/datasets';
 
-test('should render dataset with custom name', () => {
-  const dataset = createDataset({ name: 'Custom Dataset' });
+test('should render custom dataset', () => {
+  const dataset = createTestDataset(
+    'custom-id',
+    'Custom Dataset',
+    [
+      { id: 'name', name: 'Name' },
+      { id: 'score', name: 'Score' }
+    ],
+    [
+      { name: 'Alice', score: 95 },
+      { name: 'Bob', score: 87 }
+    ]
+  );
+  
   const { getByText } = render(<DatasetView dataset={dataset} />);
-  expect(getByText('Custom Dataset')).toBeInTheDocument();
+  expect(getByText('Name')).toBeInTheDocument();
+});
+```
+
+### Test Data Organization
+
+Our test data is organized as follows:
+
+1. **Basic Fixtures**: Simple, static data objects for common testing scenarios
+2. **Factory Functions**: Functions that create customizable test data
+3. **Predefined Instances**: Functions that return preconfigured instances for specific testing scenarios
+
+Each type of test data is stored in a dedicated file in the `src/test/fixtures` directory:
+
+- `datasets.ts`: Dataset-related test data
+- `documents.ts`: Document-related test data
+- `components.ts`: UI component-related test data
+
+### Best Practices for Test Data
+
+1. **Keep it Simple**: Test data should be as simple as possible while still being realistic
+2. **Make it Readable**: Test data should be easy to understand at a glance
+3. **Avoid Duplication**: Use factory functions to avoid duplicating test data
+4. **Isolate Tests**: Each test should have its own instance of test data to avoid cross-test contamination
+5. **Document Assumptions**: Document any assumptions made about the test data
+
+### Accessing Test Data
+
+To use test data in your tests:
+
+```typescript
+// Import predefined datasets
+import { numericDataset, mixedTypeDataset } from '../test/fixtures/datasets';
+
+// Import factory functions
+import { createTestDataset } from '../test/fixtures/datasets';
+import { createComponent } from '../test/fixtures/documents';
+
+// Use predefined datasets
+test('should render numeric dataset', () => {
+  const dataset = numericDataset();
+  // Test with the dataset...
+});
+
+// Use factory functions
+test('should render custom dataset', () => {
+  const dataset = createTestDataset(
+    'custom-id',
+    'Custom Dataset',
+    [
+      { id: 'name', name: 'Name' },
+      { id: 'score', name: 'Score' }
+    ],
+    [
+      { name: 'Alice', score: 95 },
+      { name: 'Bob', score: 87 }
+    ]
+  );
+  // Test with the custom dataset...
 });
 ```
 
