@@ -9,48 +9,6 @@
     "path": false
   },
   "browserslist": "> 0.2%, last 5 versions, Firefox ESR, not dead, not ie > 0",
-  "jest": {
-    "preset": "ts-jest/presets/js-with-ts",
-    "resolver": "<rootDir>/src/test/jest-resolver.js",
-    "transform": {
-      "^.+\\.json5$": "@talabes/json5-jest",
-      "^.+\\.tsx?$": [
-        "ts-jest",
-        {
-          "isolatedModules": true
-        }
-      ]
-    },
-    "transformIgnorePatterns": [
-      "/comments/ESM-only (https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c) modules that should not be transformed by ts-jest",
-      "/node_modules/(?!(d3|d3-(.+)|decode-uri-component|delaunator|escape-string-regexp|filter-obj|internmap|mime|nanoid|query-string|random|@?react-leaflet|robust-predicates|split-on-first)/)"
-    ],
-    "setupFilesAfterEnv": [
-      "<rootDir>/src/test/setupTests.ts"
-    ],
-    "testEnvironment": "jsdom",
-    "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
-    "testPathIgnorePatterns": [
-      "/node_modules/",
-      "/cypress/"
-    ],
-    "coveragePathIgnorePatterns": [
-      "/node_modules/",
-      "src/test/"
-    ],
-    "moduleNameMapper": {
-      "\\.(csv|jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/__mocks__/fileMock.js",
-      "\\.(css|less|sass|scss)$": "identity-obj-proxy",
-      "^mobx-state-tree$": "@concord-consortium/mobx-state-tree"
-    },
-    "moduleFileExtensions": [
-      "ts",
-      "tsx",
-      "js",
-      "jsx",
-      "json"
-    ]
-  },
   "scripts": {
     "start": "webpack serve --server-type http",
     "start:clean": "npm run clean:cache && npm start",
@@ -76,20 +34,23 @@
     "strings:push:usage": "echo Usage: `npm run strings:push -- -a <poeditor_api_key>`",
     "strings:push": "./scripts/strings-push-project.sh",
     "strings:update": "npm-run-all strings:push strings:pull",
-    "test": "jest",
+    "test": "jest --config=jest.config.js",
     "test:all": "npm-run-all build test start",
     "test:clean": "jest --clearCache",
-    "test:coverage": "jest --coverage",
-    "test:debug": "node --nolazy --inspect-brk ./node_modules/.bin/jest --runInBand --no-cache",
-    "test:watch": "jest --watch",
-    "test:coverage:watch": "jest --coverage --watchAll",
+    "test:coverage": "jest --coverage --config=jest.config.js",
+    "test:debug": "node --nolazy --inspect-brk ./node_modules/.bin/jest --runInBand --no-cache --config=jest.config.js",
+    "test:watch": "jest --watch --config=jest.config.js",
+    "test:coverage:watch": "jest --coverage --watchAll --config=jest.config.js",
     "test:cypress": "cypress run --browser chrome",
     "test:cypress:dev": "cypress run --env testEnv=dev",
     "test:cypress:staging": "cypress run --env testEnv=staging",
     "test:cypress:open": "cypress open --browser chrome",
     "test:cypress:open:canary": "cypress open --browser chrome:canary",
     "test:coverage:cypress:open": "cypress open --env coverage=true",
-    "test:full": "npm-run-all test test:cypress"
+    "test:full": "npm-run-all test test:cypress",
+    "test:models": "jest --config=jest.config.js \"src/models/.*\\.test\\.ts\"",
+    "test:components": "jest --config=jest.config.js \"src/components/.*\\.test\\.tsx\"",
+    "test:fixtures": "jest --config=jest.config.js \"src/test/fixtures/.*\\.test\\.ts\""
   },
   "repository": {
     "type": "git",
