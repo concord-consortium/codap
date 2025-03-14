@@ -284,7 +284,7 @@ context("Graph UI with Pixi interaction", () => {
       cy.get("[data-testid=graph]").find("[data-testid=axis-bottom]").find(".sub-axis-wrapper").should("have.length", 1)
       cy.dragAttributeToTarget("table", arrayOfAttributes[4], "left") // Mass => y axis
       cy.get("[data-testid=graph]").find("[data-testid=axis-left]").find(".sub-axis-wrapper").should("have.length", 1)
-      cy.dragAttributeToTarget("table", arrayOfAttributes[7], "right") // Habitat => y2 axis
+      cy.dragAttributeToTarget("table", arrayOfAttributes[7], "right") // Habitat => right axis
       cy.get("[data-testid=graph]")
         .find("[data-testid=axis-rightCat]")
         .find(".sub-axis-wrapper")
