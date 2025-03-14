@@ -107,7 +107,7 @@
     "mobx-state-tree": "npm:@concord-consortium/mobx-state-tree"
   },
   "devDependencies": {
-    "@cypress/code-coverage": "^3.13.5",
+    "@cypress/code-coverage": "^3.13.12",
     "@cypress/webpack-preprocessor": "^6.0.2",
     "@eslint/compat": "^1.2.4",
     "@eslint/eslintrc": "^3.2.0",
@@ -141,8 +141,8 @@
     "caniuse-lite": "^1.0.30001676",
     "clean-webpack-plugin": "^4.0.0",
     "css-loader": "^7.1.2",
-    "cypress": "^13.15.1",
-    "cypress-real-events": "^1.13.0",
+    "cypress": "^14.2.0",
+    "cypress-real-events": "^1.14.0",
     "dotenv-webpack": "^8.1.0",
     "eslint": "^9.19.0",
     "eslint-config-react": "^1.1.7",
