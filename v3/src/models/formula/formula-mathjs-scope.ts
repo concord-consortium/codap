@@ -119,7 +119,7 @@ export class FormulaMathJsScope {
   //     based on: // https://github.com/josdejong/mathjs/blob/develop/examples/advanced/custom_scope_objects.js ---
 
   get(key: string): FValue {
-    return this.extraScope?.has(key) ? this.extraScope.get(key) : this.dataStorage[key]
+    return this.extraScope?.get(key) ?? this.dataStorage[key]
   }
 
   set() {
