@@ -49,7 +49,8 @@ describe("useCloudFileManager", () => {
 
     let cfm: CloudFileManager | undefined
     renderHook(() => {
-      cfm = useCloudFileManager({ appOrMenuElemId: "container-div" })
+      const { cfm: _cfm } = useCloudFileManager({ appOrMenuElemId: "container-div" })
+      cfm = _cfm
     })
     expect(cfm).toBeDefined()
     await waitFor(() => {

@@ -47,7 +47,7 @@ registerTileTypes([])
 export const App = observer(function App() {
   useKeyStates()
 
-  const cfm = useCloudFileManager({
+  const { cfm, cfmReadyPromise } = useCloudFileManager({
     appOrMenuElemId: kMenuBarElementId
   })
 
@@ -115,6 +115,9 @@ export const App = observer(function App() {
 
       const { di } = urlParams
       if (typeof di === "string") {
+        // wait for CFM to complete its initialization
+        await cfmReadyPromise
+
         const webviewTiles = appState.document.content?.getTilesOfType(kWebViewTileType)
         if (webviewTiles) {
           const webviews = webviewTiles.map(wV => wV.content) as IWebViewModel[]
@@ -140,7 +143,7 @@ export const App = observer(function App() {
     }
 
     initialize()
-  }, [])
+  }, [cfmReadyPromise])
 
   return (
     <CodapDndContext>

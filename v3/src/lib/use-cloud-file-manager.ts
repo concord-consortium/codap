@@ -145,6 +145,10 @@ export function useCloudFileManager(optionsArg: CFMAppOptions) {
   const options = useRef(optionsArg)
   const root = useRef<Root | undefined>()
   const cfm = useMemo(() => createCloudFileManager(), [])
+  const cfmReadyResolver = useRef<() => void>()
+  const cfmReadyPromise = useMemo(() => new Promise<void>((resolve) => {
+    cfmReadyResolver.current = resolve
+  }), [])
 
   useEffect(function initCfm() {
 
@@ -248,10 +252,14 @@ export function useCloudFileManager(optionsArg: CFMAppOptions) {
 
     clientConnect(cfm, function cfmEventCallback(event: CloudFileManagerClientEvent) {
       handleCFMEvent(cfm.client, event)
+      const cfmReadyEvents = ["fileOpened", "ready"]
+      if (cfmReadyEvents.includes(event.type)) {
+        cfmReadyResolver.current?.()
+      }
     })
 
     appState.setCFM(cfm)
   }, [cfm])
 
-  return cfm
+  return { cfm, cfmReadyPromise }
 }
