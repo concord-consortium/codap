@@ -114,3 +114,5 @@ export interface DIUpdateItemResult {
 export interface DIDeleteCollectionResult {
   collections?: number[]
 }
+
+export type DICategoryColorMap = Record<string, string | undefined>
