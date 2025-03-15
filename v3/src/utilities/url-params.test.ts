@@ -5,7 +5,7 @@ describe("urlParams", () => {
 
   const mockWindowLocation = (newLocation: Location | URL) => {
     delete (window as any).location
-    window.location = newLocation as Location
+    window.location = newLocation as any
   }
 
   const setLocation = (url: string) => {
