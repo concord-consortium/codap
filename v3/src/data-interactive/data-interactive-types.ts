@@ -89,12 +89,13 @@ export interface DIResources {
   itemByID?: ICase
   itemCount?: number
   itemSearch?: ICaseID[]
+  colorMap?: DICategoryColorMap
 }
 
 // types for values accepted as inputs by the API
 export type DISingleValues = DIAttribute | DINotifyAttribute | DIAttributeLocationValues | DICase | DIDataContext |
   DINotifyDataContext | DIGlobal | DIInteractiveFrame | DIItemValues | DICreateCollection | DINewCase | DIUpdateCase |
-  DINotification | DIItemSearchNotify | DILogMessage | DIUrl | V2SpecificComponent | DICategoryColorMap 
+  DINotification | DIItemSearchNotify | DILogMessage | DIUrl | V2SpecificComponent | DICategoryColorMap
 export type DIValues = DISingleValues | DISingleValues[] | number | string[]
 
 // types returned as outputs by the API

@@ -53,11 +53,12 @@ describe("DataInteractive ColorMapHandler", () => {
 
     const resources = {
       dataContext: contextTree.data,
-      collection: contextTree.data.collections[0] ?? undefined
+      collection: contextTree.data.collections[0],
+      attribute: contextTree.data.attributes[0]
     }
     expect(resources.dataContext).toBeDefined()
     expect(resources.collection).toBeDefined()
-    const result = handler.get?.(resources, { name: "a", metadata: contextTree.metadata })
+    const result = handler.get?.(resources, { metadata: contextTree.metadata })
     expect(result?.success).toBe(true)
     expect((result?.values as Record<string, string | undefined>))
             .toStrictEqual({"1": "#FF6800", "2": "#803E75", "3": "#A6BDD7"})
@@ -66,17 +67,15 @@ describe("DataInteractive ColorMapHandler", () => {
   it("create works as expected", () => {
     const resources = {
       dataContext: contextTree.data,
-      collection: contextTree.data.collections[0] ?? undefined
+      collection: contextTree.data.collections[0],
+      attribute: contextTree.data.attributes[0]
     }
+    const colorMap = {"1": "#FF68AA", "2": "#803EAA", "3": "#A6BDAA"}
     expect(resources.dataContext).toBeDefined()
     expect(resources.collection).toBeDefined()
-    const result = handler.get?.(resources, { name: "a", metadata: contextTree.metadata})
-    console.log("result", result)
-
+    const result = handler.create?.(resources, { colorMap, metadata: contextTree.metadata})
     expect(result?.success).toBe(true)
-    expect((result?.values as Record<string, string | undefined>))
-            .toStrictEqual({"1": "#FF6800", "2": "#803E75", "3": "#A6BDD7"})
-
+    expect(result?.values).toStrictEqual(colorMap)
   })
 
   it("update works as expected", () => {
@@ -84,13 +83,13 @@ describe("DataInteractive ColorMapHandler", () => {
     const newColorMap = {"1": "#FF68FF", "2": "#803EFF", "3": "#A6BDFF"}
     const resources = {
       dataContext: contextTree.data,
-      collection: contextTree.data.collections[0] ?? undefined
+      collection: contextTree.data.collections[0],
+      attribute: contextTree.data.attributes[0]
     }
     expect(resources.dataContext).toBeDefined()
     expect(resources.collection).toBeDefined()
-    const result = handler.update?.(resources, { name: "a", colorMap: newColorMap, metadata: contextTree.metadata })
+    const result = handler.update?.(resources, { colorMap: newColorMap, metadata: contextTree.metadata })
     expect(result?.success).toBe(true)
-    expect((result?.values as Record<string, string | undefined>))
-            .toStrictEqual({"1": "#FF68FF", "2": "#803EFF", "3": "#A6BDFF"})
+    expect(result?.values).toStrictEqual(newColorMap)
   })
 })

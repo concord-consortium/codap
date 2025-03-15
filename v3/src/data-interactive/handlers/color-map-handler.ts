@@ -8,21 +8,24 @@ import {
 } from "./di-results"
 
 export const diCategoryColorMapHandler: DIHandler = {
-  create(resources: DIResources, _values?: DIValues) {
-    const { dataContext, collection } = resources
+  create(resources: DIResources, _values?: DIValues & { metadata?: any }) {
+    const { dataContext, collection, attribute } = resources
     if (!dataContext) return dataContextNotFoundResult
-
-    const metadata = getSharedCaseMetadataFromDataset(dataContext)
+    const metadata = getSharedCaseMetadataFromDataset(dataContext) ?? _values?.metadata
     if (!metadata) return errorResult("Metadata not found")
-
     if (!collection) return collectionNotFoundResult
-    const attributeName = typeof _values === 'object' && 'name' in _values ? _values.name as string : undefined
-    const attribute = attributeName && collection.getAttributeByName(attributeName)
-    const attributeId = attribute && typeof attribute !== 'string' ? attribute.id : undefined
+    const attributeId = attribute && typeof attribute === 'object' ? attribute.id : undefined
     if (!attributeId) return attributeNotFoundResult
-
+    const createColorMap = (_values && 'colorMap' in _values) ? _values.colorMap as DICategoryColorMap : undefined
+    if (!createColorMap) return errorResult("New color map not found")
     const categorySet = createProvisionalCategorySet(dataContext, attributeId)
+    metadata.promoteProvisionalCategorySet(categorySet)
+    if (!categorySet) return errorResult("Category set not found")
+    Object.entries(createColorMap || {}).forEach(([category, color]) => {
+      categorySet.setColorForCategory(category, color ?? categoryColorMap[category] ?? "")
+    })
     categorySet.storeAllCurrentColors()
+    metadata.promoteProvisionalCategorySet(categorySet)
     const categoryColorMap: Record<string, string | undefined> = categorySet?.colorMap || {}
     if (!categoryColorMap) return errorResult("Category color map not found")
 
@@ -34,18 +37,14 @@ export const diCategoryColorMapHandler: DIHandler = {
   },
 
   get(resources: DIResources, _values?: DIValues & { metadata?: any }) {
-    const { dataContext, collection } = resources
+    const { dataContext, collection, attribute } = resources
     if (!dataContext) return dataContextNotFoundResult
+    if (!attribute) return attributeNotFoundResult
+    if (!collection) return collectionNotFoundResult
 
     const metadata = getSharedCaseMetadataFromDataset(dataContext) ?? _values?.metadata
     if (!metadata) return errorResult("Metadata not found")
-
-    if (!collection) return collectionNotFoundResult
-    const attributeName = typeof _values === 'object' && 'name' in _values ? _values.name as string : undefined
-    const attribute = attributeName && collection.getAttributeByName(attributeName)
-    const attributeId = attribute && typeof attribute !== 'string' ? attribute.id : undefined
-    if (!attributeId) return attributeNotFoundResult
-
+    const attributeId = attribute.id
     const categorySet = metadata.getCategorySet(attributeId)
     const categoryColorMap: Record<string, string | undefined> = categorySet?.colorMap || {}
     if (!categoryColorMap) return errorResult("Category color map not found")
@@ -57,16 +56,13 @@ export const diCategoryColorMapHandler: DIHandler = {
   },
 
   update(resources: DIResources, _values?: DIValues & { metadata?: any }) {
-    const { dataContext, collection } = resources
+    const { dataContext, collection, attribute } = resources
     if (!dataContext) return dataContextNotFoundResult
 
     const metadata = getSharedCaseMetadataFromDataset(dataContext) ?? _values?.metadata
     if (!metadata) return errorResult("Metadata not found")
-
     if (!collection) return collectionNotFoundResult
-    const attributeName = typeof _values === 'object' && 'name' in _values ? _values.name as string : undefined
-    const attribute = attributeName && collection.getAttributeByName(attributeName)
-    const attributeId = attribute && typeof attribute !== 'string' ? attribute.id : undefined
+    const attributeId = attribute && typeof attribute === 'object' ? attribute.id : undefined
     if (!attributeId) return attributeNotFoundResult
     const newColorMap = (_values && 'colorMap' in _values) ? _values.colorMap as DICategoryColorMap : undefined
     if (!newColorMap) return errorResult("New color map not found")
