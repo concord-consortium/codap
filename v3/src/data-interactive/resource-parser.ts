@@ -148,6 +148,14 @@ export function resolveResources(
     result.attributeList = attributeList
   }
 
+  if ("adornment" in resourceSelector && isGraphContentModel(result.component?.content)) {
+    const adornmentNameOrId = resourceSelector.adornment
+    const adornments = result.component.content.adornmentsStore.adornments
+    result.adornment = adornments.find((adornment) => {
+      return adornment.id === adornmentNameOrId || adornment.type === adornmentNameOrId
+    })
+  }
+
   if ("adornmentList" in resourceSelector && isGraphContentModel(result.component?.content)) {
     result.adornmentList = result.component.content.adornmentsStore.adornments ?? []
   }

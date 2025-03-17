@@ -1,6 +1,7 @@
 import { t } from "../../utilities/translation/translate"
 
 export const errorResult = (error: string) => ({ success: false as const, values: { error } })
+export const adornmentNotFoundResult = errorResult(t("V3.DI.Error.adornmentNotFound"))
 export const adornmentListNotFoundResult = errorResult(t("V3.DI.Error.adornmentListNotFound"))
 export const attributeNotFoundResult = errorResult(t("V3.DI.Error.attributeNotFound"))
 export const caseNotFoundResult = errorResult(t("V3.DI.Error.caseNotFound"))
