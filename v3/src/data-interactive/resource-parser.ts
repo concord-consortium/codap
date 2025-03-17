@@ -149,10 +149,10 @@ export function resolveResources(
   }
 
   if ("adornment" in resourceSelector && isGraphContentModel(result.component?.content)) {
-    const adornmentNameOrId = resourceSelector.adornment
+    const adornmentTypeOrId = resourceSelector.adornment
     const adornments = result.component.content.adornmentsStore.adornments
     result.adornment = adornments.find((adornment) => {
-      return adornment.id === adornmentNameOrId || adornment.type === adornmentNameOrId
+      return adornment.id === adornmentTypeOrId || adornment.type === adornmentTypeOrId
     })
   }
 
