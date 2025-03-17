@@ -1,3 +1,4 @@
+import { isGraphContentModel } from "../components/graph/models/graph-content-model"
 import { appState } from "../models/app-state"
 import { IAttribute } from "../models/data/attribute"
 import { isCollectionModel } from "../models/data/collection"
@@ -145,6 +146,10 @@ export function resolveResources(
       if (attribute) attributeList.push(attribute)
     })
     result.attributeList = attributeList
+  }
+
+  if ("adornmentList" in resourceSelector && isGraphContentModel(result.component?.content)) {
+    result.adornmentList = result.component.content.adornmentsStore.adornments ?? []
   }
 
   const getCaseById = (caseId: string) =>
