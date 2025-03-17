@@ -152,15 +152,15 @@ context("codap plugins", () => {
 
   it('will handle adornment-related requests', () => {
 
-    // Activate the Mean adornment on the graph.
+    // Activate the Count and Mean adornments on the graph.
     c.selectTile("graph", 0)
     ah.openAxisAttributeMenu("bottom")
     ah.selectMenuAttribute("Sleep", "bottom")
     graph.getDisplayValuesButton().click()
+    graph.getInspectorPalette().find("[data-testid=adornment-checkbox-count-count]").click()
     graph.getInspectorPalette().find("[data-testid=adornment-checkbox-mean]").click()
 
     openAPITester()
-    cy.log("Handle get adornmentList request")
   
     // Get the graph tile ID.
     const cmd1 = `{
@@ -178,25 +178,64 @@ context("codap plugins", () => {
     })
     webView.clearAPITesterResponses()
   
-    // Get the graph tile's adornment list.
     cy.get('@graphId').then((graphId) => {
-      const resource = `component[${graphId}].adornmentList`
+      cy.log("Handle get adornmentList request")
       const cmd2 = `{
         "action": "get",
-        "resource": "${resource}"
+        "resource": "component[${graphId}].adornmentList"
       }`
       webView.sendAPITesterCommand(cmd2, cmd1)
       webView.confirmAPITesterResponseContains(/"success":\s*true/)
       webView.getAPITesterResponse().then((value: any) => {
         const response = JSON.parse(value.eq(1).text())
-        const meanInfo = response.values[0]
-
-        expect(response.values.length).to.equal(1)
+        expect(response.values.length).to.equal(2)
+        const countInfo = response.values[0]
+        const meanInfo = response.values[1]
+        expect(countInfo.type).to.equal("Count")
+        expect(countInfo.isVisible).to.equal(true)
         expect(meanInfo.type).to.equal("Mean")
         expect(meanInfo.isVisible).to.equal(true)
-
+        const meanId = meanInfo.id
+        cy.wrap(meanId).as('meanId')
       })
       webView.clearAPITesterResponses()
+
+      cy.log("Handle get adornment by type request")
+      const cmd3 = `{
+        "action": "get",
+        "resource": "component[${graphId}].adornment[Count]"
+      }`
+      webView.sendAPITesterCommand(cmd3, cmd2)
+      webView.confirmAPITesterResponseContains(/"success":\s*true/)
+      webView.getAPITesterResponse().then((value: any) => {
+        const response = JSON.parse(value.eq(1).text())
+        const countInfo = response.values
+        expect(countInfo.type).to.equal("Count")
+        expect(countInfo.isVisible).to.equal(true)
+        expect(countInfo.showCount).to.equal(true)
+        expect(countInfo.showPercent).to.equal(false)
+        expect(countInfo.percentType).to.equal("row")
+      })
+      webView.clearAPITesterResponses()
+
+      cy.log("Handle get adornment by ID request")
+      cy.get('@meanId').then((meanId) => {
+        const cmd4 = `{
+          "action": "get",
+          "resource": "component[${graphId}].adornment[${meanId}]"
+        }`
+        webView.sendAPITesterCommand(cmd4, cmd3)
+        webView.confirmAPITesterResponseContains(/"success":\s*true/)
+        webView.getAPITesterResponse().then((value: any) => {
+          const response = JSON.parse(value.eq(1).text())
+          const meanInfo = response.values
+          expect(meanInfo.type).to.equal("Mean")
+          expect(meanInfo.isVisible).to.equal(true)
+          expect(meanInfo.measures).to.deep.equal({"{}": {}})
+          expect(meanInfo.labelTitle).to.equal("mean=")
+        })
+        webView.clearAPITesterResponses()
+      })
     })
   })
 
