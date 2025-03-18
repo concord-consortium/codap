@@ -9,6 +9,7 @@ export const couldNotParseQueryResult = errorResult(t("V3.DI.Error.couldNotParse
 export const dataContextNotFoundResult = errorResult(t("V3.DI.Error.dataContextNotFound"))
 export const dataDisplayNotFoundResult = errorResult(t("V3.DI.Error.dataDisplayNotFound"))
 export const itemNotFoundResult = errorResult(t("V3.DI.Error.itemNotFound"))
+export const sharedCaseMetadaNotFoundResult = errorResult(t("V3.DI.Error.sharedCaseMetadatanotFound"))
 export const valuesRequiredResult = errorResult(t("V3.DI.Error.valuesRequired"))
 
 export function fieldRequiredResult(action: string, resource: string, field: string) {

@@ -76,6 +76,7 @@ export interface DIResources {
   caseSearch?: ICase[]
   collection?: ICollectionModel
   collectionList?: ICollectionModel[]
+  colorMap?: DICategoryColorMap
   component?: DIComponent
   dataContext?: IDataSet
   dataContextList?: IDataSet[]
@@ -89,7 +90,6 @@ export interface DIResources {
   itemByID?: ICase
   itemCount?: number
   itemSearch?: ICaseID[]
-  colorMap?: DICategoryColorMap
 }
 
 // types for values accepted as inputs by the API

@@ -7,7 +7,7 @@ import { v2NameTitleToV3Title } from "../../models/data/v2-model"
 import { ISharedCaseMetadata } from "../../models/shared/shared-case-metadata"
 import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-data-utils"
 import { hasOwnProperty } from "../../utilities/js-utils"
-import { DIAttribute, DICollection } from "../data-interactive-data-set-types"
+import { DIAttribute, DICategoryColorMap, DICollection } from "../data-interactive-data-set-types"
 import { convertValuesToAttributeSnapshot } from "../data-interactive-type-utils"
 
 export function createAttribute(value: DIAttribute, dataContext: IDataSet, collection?: ICollectionModel,
@@ -17,6 +17,12 @@ export function createAttribute(value: DIAttribute, dataContext: IDataSet, colle
     const attribute = dataContext.addAttribute(attributeSnapshot, { collection: collection?.id })
     if (value.formula) attribute.formula?.setDisplayExpression(value.formula)
     metadata?.setIsHidden(attribute.id, !!value.hidden)
+    if (value.colormap != null && metadata) {
+        const categorySet = metadata.getCategorySet(attribute.id)
+        Object.entries(value.colormap as DICategoryColorMap || {}).forEach(([category, color]) => {
+          categorySet?.setColorForCategory(category, color ?? (categorySet.colorMap[category] || ""))
+        })
+    }
     return attribute
   }
 }
@@ -53,6 +59,15 @@ export function updateAttribute(attribute: IAttribute, value: DIAttribute, dataC
     if (dataContext) {
       const metadata = getSharedCaseMetadataFromDataset(dataContext)
       metadata?.setIsHidden(attribute.id, value.hidden)
+    }
+  }
+  if (value?.colormap != null) {
+    if (dataContext) {
+      const metadata = getSharedCaseMetadataFromDataset(dataContext)
+      const categorySet = metadata?.getCategorySet(attribute.id)
+      Object.entries(value?.colormap as DICategoryColorMap || {}).forEach(([category, color]) => {
+        categorySet?.setColorForCategory(category, color || categorySet.colorMap[category] || "")
+      })
     }
   }
 }

@@ -115,7 +115,7 @@ export function convertAttributeToV2(attribute: IAttribute, dataContext?: IDataS
     type,
     title,
     cid,
-    // colorMap
+    colormap: metadata?.getCategorySet(attribute.id)?.colorMap || {},
     // defaultMin: self.defaultMin, // TODO Where should this come from?
     // defaultMax: self.defaultMax, // TODO Where should this come from?
     description,

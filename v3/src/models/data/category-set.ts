@@ -275,9 +275,7 @@ export const CategorySet = types.model("CategorySet", {
     self.invalidate()
   },
   setColorForCategory(value: string, color: string) {
-    if (self.index(value) != null) {
-      self.colors.set(value, color)
-    }
+    self.colors.set(value, color)
   },
   storeCurrentColorForCategory(value: string) {
     const color = self.colorForCategory(value)
