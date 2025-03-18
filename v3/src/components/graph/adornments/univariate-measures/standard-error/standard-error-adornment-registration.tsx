@@ -18,6 +18,8 @@ import {
   kStandardErrorUndoAddKey, kStandardErrorRedoAddKey, kStandardErrorRedoRemoveKey,
   kStandardErrorUndoRemoveKey
 } from "./standard-error-adornment-types"
+import { registerAdornmentHandler } from "../../../../../data-interactive/handlers/adornment-handler"
+import { standardErrorAdornmentHandler } from "./standard-error-adornment-handler"
 
 const Controls = () => {
   const graphModel = useGraphContentModelContext()
@@ -129,3 +131,5 @@ registerAdornmentComponentInfo({
   order: 10,
   type: kStandardErrorType
 })
+
+registerAdornmentHandler(kStandardErrorType, standardErrorAdornmentHandler)

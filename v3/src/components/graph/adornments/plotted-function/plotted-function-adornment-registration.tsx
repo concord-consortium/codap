@@ -10,6 +10,8 @@ import {
   kPlottedFunctionRedoRemoveKey, kPlottedFunctionType, kPlottedFunctionUndoAddKey, kPlottedFunctionUndoRemoveKey
 } from "./plotted-function-adornment-types"
 import { PlottedFunctionFormulaAdapter } from "./plotted-function-formula-adapter"
+import { registerAdornmentHandler } from "../../../../data-interactive/handlers/adornment-handler"
+import { plottedFunctionAdornmentHandler } from "./plotted-function-adornment-handler"
 
 const Controls = () => {
   return (
@@ -57,3 +59,5 @@ registerAdornmentComponentInfo({
   order: 10,
   type: kPlottedFunctionType
 })
+
+registerAdornmentHandler(kPlottedFunctionType, plottedFunctionAdornmentHandler)

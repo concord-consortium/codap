@@ -1,21 +1,25 @@
 import { DIAdornmentHandler } from "../../../../../data-interactive/handlers/adornment-handler"
 import { IAdornmentModel } from "../../adornment-models"
-import { isMeanAdornment } from "./mean-adornment-model"
+import { isStandardErrorAdornment } from "./standard-error-adornment-model"
 import { IGraphContentModel } from "../../../models/graph-content-model"
 import { AdornmentData, cellKeyToCategories } from "../../utilities/adornment-handler-utils"
 
-export const meanAdornmentHandler: DIAdornmentHandler = {
+export const standardErrorAdornmentHandler: DIAdornmentHandler = {
   get(adornment: IAdornmentModel, graphContent: IGraphContentModel) {
-    if (!isMeanAdornment(adornment)) return { success: false, values: { error: "Not a mean adornment" } }
+    if (!isStandardErrorAdornment(adornment)) {
+      return { success: false, values: { error: "Not a standard error adornment" } }
+    }
 
     const dataConfig = graphContent.dataConfiguration
     const cellKeys = dataConfig?.getAllCellKeys()
     const data: AdornmentData<any>[] = []
 
     for (const cellKey of cellKeys) {
+      const primaryAttrId = dataConfig?.primaryAttributeID
       const cellKeyString = JSON.stringify(cellKey)
-      const mean = adornment.measures.get(cellKeyString)?.value ?? NaN
-      const dataItem: AdornmentData<any> = { mean }
+      const standardError = adornment.measures.get(cellKeyString)?.value ?? NaN
+      const { min, max } = adornment.computeMeasureRange(primaryAttrId, cellKey, dataConfig)
+      const dataItem: AdornmentData<any> = { standardError, min, max }
     
       if (Object.keys(cellKey).length > 0) {
         dataItem.categories = cellKeyToCategories(cellKey, dataConfig)

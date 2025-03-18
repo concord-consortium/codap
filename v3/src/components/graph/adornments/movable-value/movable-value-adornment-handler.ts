@@ -1,13 +1,13 @@
 import { DIAdornmentHandler } from "../../../../data-interactive/handlers/adornment-handler"
-import { IAdornmentModel } from "../adornment-models"
-import { isLSRLAdornment } from "./lsrl-adornment-model"
 import { IGraphContentModel } from "../../models/graph-content-model"
+import { IAdornmentModel } from "../adornment-models"
+import { isMovableValueAdornment } from "./movable-value-adornment-model"
 import { AdornmentData, cellKeyToCategories } from "../utilities/adornment-handler-utils"
 
-export const lsrlAdornmentHandler: DIAdornmentHandler = {
+export const movableValueAdornmentHandler: DIAdornmentHandler = {
   get(adornment: IAdornmentModel, graphContent: IGraphContentModel) {
-    if (!isLSRLAdornment(adornment)) {
-      return { success: false, values: { error: "Not a least squares line adornment" } }
+    if (!isMovableValueAdornment(adornment)) {
+      return { success: false, values: { error: "Not a movable value adornment" } }
     }
 
     const dataConfig = graphContent.dataConfiguration
@@ -16,20 +16,9 @@ export const lsrlAdornmentHandler: DIAdornmentHandler = {
 
     for (const cellKey of cellKeys) {
       const cellKeyString = JSON.stringify(cellKey)
-      const linesMap = adornment.lines.get(cellKeyString)
-      if (!linesMap) continue
-    
-      const line = linesMap.get("__main__")
-      if (!line) continue
-    
-      const { category, intercept, rSquared, sdResiduals, slope } = line
-      const dataItem: AdornmentData<any> = {
-        category,
-        intercept,
-        rSquared,
-        sdResiduals,
-        slope
-      }
+      const movableValues = adornment.values.get(cellKeyString)
+      const values = movableValues ? Object.values(movableValues).map(value => value) : []
+      const dataItem: AdornmentData<any> = { movableValues: values }
     
       if (Object.keys(cellKey).length > 0) {
         dataItem.categories = cellKeyToCategories(cellKey, dataConfig)
@@ -41,4 +30,3 @@ export const lsrlAdornmentHandler: DIAdornmentHandler = {
     return { id: adornment.id, data }
   }
 }
-

@@ -10,6 +10,8 @@ import {
 import {
   kMeanAbsoluteDeviationClass, kMeanAbsoluteDeviationLabelKey, kMeanAbsoluteDeviationPrefix, kMeanAbsoluteDeviationType
 } from "./mean-absolute-deviation-adornment-types"
+import { registerAdornmentHandler } from "../../../../../data-interactive/handlers/adornment-handler"
+import { meanAbsoluteDeviationAdornmentHandler } from "./mean-absolute-deviation-adornment-handler"
 
 const Controls = () => {
   return (
@@ -43,3 +45,5 @@ registerAdornmentComponentInfo({
   order: 10,
   type: kMeanAbsoluteDeviationType
 })
+
+registerAdornmentHandler(kMeanAbsoluteDeviationType, meanAbsoluteDeviationAdornmentHandler)

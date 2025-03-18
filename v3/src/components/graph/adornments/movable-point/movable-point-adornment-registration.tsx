@@ -8,6 +8,8 @@ import {
   kMovablePointClass, kMovablePointLabelKey, kMovablePointPrefix, kMovablePointRedoAddKey,
   kMovablePointRedoRemoveKey, kMovablePointType, kMovablePointUndoAddKey, kMovablePointUndoRemoveKey
 } from "./movable-point-adornment-types"
+import { registerAdornmentHandler } from "../../../../data-interactive/handlers/adornment-handler"
+import { movablePointAdornmentHandler } from "./movable-point-adornment-handler"
 
 const Controls = () => {
   return (
@@ -53,3 +55,5 @@ registerAdornmentComponentInfo({
   order: 10,
   type: kMovablePointType
 })
+
+registerAdornmentHandler(kMovablePointType, movablePointAdornmentHandler)

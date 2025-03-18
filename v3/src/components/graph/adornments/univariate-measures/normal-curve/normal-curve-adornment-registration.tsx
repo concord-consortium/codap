@@ -11,6 +11,8 @@ import {
   kNormalCurveUndoAddKey, kNormalCurveRedoAddKey, kNormalCurveRedoRemoveKey,
   kNormalCurveUndoRemoveKey, kGaussianFitLabelKey
 } from "./normal-curve-adornment-types"
+import { registerAdornmentHandler } from "../../../../../data-interactive/handlers/adornment-handler"
+import { normalCurveAdornmentHandler } from "./normal-curve-adornment-handler"
 
 const Controls = () => {
   const { isGaussianFit } = useGraphOptions()
@@ -52,3 +54,5 @@ registerAdornmentComponentInfo({
   order: 10,
   type: kNormalCurveType
 })
+
+registerAdornmentHandler(kNormalCurveType, normalCurveAdornmentHandler)

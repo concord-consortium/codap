@@ -1,14 +1,12 @@
 import { DIAdornmentHandler } from "../../../../data-interactive/handlers/adornment-handler"
-import { IAdornmentModel } from "../adornment-models"
-import { isLSRLAdornment } from "./lsrl-adornment-model"
 import { IGraphContentModel } from "../../models/graph-content-model"
+import { IAdornmentModel } from "../adornment-models"
+import { isMovableLineAdornment } from "./movable-line-adornment-model"
 import { AdornmentData, cellKeyToCategories } from "../utilities/adornment-handler-utils"
 
-export const lsrlAdornmentHandler: DIAdornmentHandler = {
+export const movableLineAdornmentHandler: DIAdornmentHandler = {
   get(adornment: IAdornmentModel, graphContent: IGraphContentModel) {
-    if (!isLSRLAdornment(adornment)) {
-      return { success: false, values: { error: "Not a least squares line adornment" } }
-    }
+    if (!isMovableLineAdornment(adornment)) return { success: false, values: { error: "Not a movable line adornment" } }
 
     const dataConfig = graphContent.dataConfiguration
     const cellKeys = dataConfig?.getAllCellKeys()
@@ -16,20 +14,11 @@ export const lsrlAdornmentHandler: DIAdornmentHandler = {
 
     for (const cellKey of cellKeys) {
       const cellKeyString = JSON.stringify(cellKey)
-      const linesMap = adornment.lines.get(cellKeyString)
-      if (!linesMap) continue
-    
-      const line = linesMap.get("__main__")
+      const line = adornment.lines.get(cellKeyString)
       if (!line) continue
     
-      const { category, intercept, rSquared, sdResiduals, slope } = line
-      const dataItem: AdornmentData<any> = {
-        category,
-        intercept,
-        rSquared,
-        sdResiduals,
-        slope
-      }
+      const { intercept, slope } = line
+      const dataItem: AdornmentData<any> = { intercept, slope }
     
       if (Object.keys(cellKey).length > 0) {
         dataItem.categories = cellKeyToCategories(cellKey, dataConfig)
@@ -41,4 +30,3 @@ export const lsrlAdornmentHandler: DIAdornmentHandler = {
     return { id: adornment.id, data }
   }
 }
-

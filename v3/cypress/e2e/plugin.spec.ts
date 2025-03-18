@@ -210,11 +210,9 @@ context("codap plugins", () => {
       webView.getAPITesterResponse().then((value: any) => {
         const response = JSON.parse(value.eq(1).text())
         const countInfo = response.values
-        expect(countInfo.type).to.equal("Count")
-        expect(countInfo.isVisible).to.equal(true)
-        expect(countInfo.showCount).to.equal(true)
-        expect(countInfo.showPercent).to.equal(false)
-        expect(countInfo.percentType).to.equal("row")
+        expect(countInfo.id).to.be.a("string")
+        expect(countInfo.data[0]).to.haveOwnProperty("count")
+        expect(countInfo.data[0].count).to.be.a("number")
       })
       webView.clearAPITesterResponses()
 
@@ -229,10 +227,9 @@ context("codap plugins", () => {
         webView.getAPITesterResponse().then((value: any) => {
           const response = JSON.parse(value.eq(1).text())
           const meanInfo = response.values
-          expect(meanInfo.type).to.equal("Mean")
-          expect(meanInfo.isVisible).to.equal(true)
-          expect(meanInfo.measures).to.deep.equal({"{}": {}})
-          expect(meanInfo.labelTitle).to.equal("mean=")
+          expect(meanInfo.id).to.be.a("string")
+          expect(meanInfo.data[0]).to.haveOwnProperty("mean")
+          expect(meanInfo.data[0].mean).to.be.a("number")
         })
         webView.clearAPITesterResponses()
       })

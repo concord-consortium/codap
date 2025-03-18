@@ -9,6 +9,8 @@ import {
   kMovableLineClass, kMovableLineLabelKey, kMovableLinePrefix, kMovableLineRedoAddKey,
   kMovableLineRedoRemoveKey, kMovableLineType, kMovableLineUndoAddKey, kMovableLineUndoRemoveKey
 } from "./movable-line-adornment-types"
+import { registerAdornmentHandler } from "../../../../data-interactive/handlers/adornment-handler"
+import { movableLineAdornmentHandler } from "./movable-line-adornment-handler"
 
 const Controls = () => {
   return (
@@ -60,3 +62,5 @@ registerAdornmentComponentInfo({
   order: 20,
   type: kMovableLineType
 })
+
+registerAdornmentHandler(kMovableLineType, movableLineAdornmentHandler)

@@ -11,6 +11,8 @@ import {
   kPlottedValueUndoRemoveKey
 } from "./plotted-value-adornment-types"
 import { PlottedValueFormulaAdapter } from "./plotted-value-formula-adapter"
+import { registerAdornmentHandler } from "../../../../../data-interactive/handlers/adornment-handler"
+import { plottedValueAdornmentHandler } from "./plotted-value-adornment-handler"
 
 const Controls = () => {
   return (
@@ -59,3 +61,5 @@ registerAdornmentComponentInfo({
   order: 10,
   type: kPlottedValueType
 })
+
+registerAdornmentHandler(kPlottedValueType, plottedValueAdornmentHandler)

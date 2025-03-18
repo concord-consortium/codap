@@ -16,6 +16,8 @@ import {
   kMovableValueClass, kMovableValueLabelKey, kMovableValuePrefix, kMovableValueRedoAddKey,
   kMovableValueRedoRemoveKey, kMovableValueType, kMovableValueUndoAddKey, kMovableValueUndoRemoveKey
 } from "./movable-value-adornment-types"
+import { registerAdornmentHandler } from "../../../../data-interactive/handlers/adornment-handler"
+import { movableValueAdornmentHandler } from "./movable-value-adornment-handler"
 
 const Controls = () => {
   const graphModel = useGraphContentModelContext()
@@ -127,3 +129,5 @@ registerAdornmentComponentInfo({
   order: 100,
   type: kMovableValueType
 })
+
+registerAdornmentHandler(kMovableValueType, movableValueAdornmentHandler)

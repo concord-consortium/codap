@@ -14,6 +14,8 @@ import {
   kBoxPlotClass, kBoxPlotLabelKey, kBoxPlotPrefix, kBoxPlotRedoAddKey, kBoxPlotRedoRemoveKey,
   kBoxPlotType, kBoxPlotUndoAddKey, kBoxPlotUndoRemoveKey
 } from "./box-plot-adornment-types"
+import { registerAdornmentHandler } from "../../../../../data-interactive/handlers/adornment-handler"
+import { boxPlotAdornmentHandler } from "./box-plot-adornment-handler"
 
 const Controls = observer(function Controls() {
   const graphModel = useGraphContentModelContext()
@@ -147,3 +149,5 @@ registerAdornmentComponentInfo({
   order: 10,
   type: kBoxPlotType
 })
+
+registerAdornmentHandler(kBoxPlotType, boxPlotAdornmentHandler)
