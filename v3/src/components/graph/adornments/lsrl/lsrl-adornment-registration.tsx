@@ -12,6 +12,8 @@ import {
   kLSRLClass, kLSRLLabelKey, kLSRLPrefix, kLSRLRedoAddKey, kLSRLRedoRemoveKey, kLSRLType,
   kLSRLUndoAddKey, kLSRLUndoRemoveKey
 } from "./lsrl-adornment-types"
+import { registerAdornmentHandler } from "../../../../data-interactive/handlers/adornment-handler"
+import { lsrlAdornmentHandler } from "./lsrl-adornment-handler"
 
 function logLSRLToggle(action: "hide" | "show") {
   return logMessageWithReplacement("toggleLSRL %@", { action })
@@ -132,3 +134,5 @@ registerAdornmentComponentInfo({
   order: 20,
   type: kLSRLType
 })
+
+registerAdornmentHandler(kLSRLType, lsrlAdornmentHandler)

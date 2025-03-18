@@ -9,6 +9,8 @@ import {
   kMeanClass, kMeanLabelKey, kMeanType, kMeanPrefix, kMeanUndoAddKey, kMeanRedoAddKey,
   kMeanUndoRemoveKey, kMeanRedoRemoveKey
 } from "./mean-adornment-types"
+import { registerAdornmentHandler } from "../../../../../data-interactive/handlers/adornment-handler"
+import { meanAdornmentHandler } from "./mean-adornment-handler"
 
 const Controls = () => {
   return (
@@ -48,3 +50,5 @@ registerAdornmentComponentInfo({
   order: 10,
   type: kMeanType
 })
+
+registerAdornmentHandler(kMeanType, meanAdornmentHandler)

@@ -9,6 +9,8 @@ import {
   kMedianClass, kMedianLabelKey, kMedianPrefix, kMedianRedoAddKey, kMedianRedoRemoveKey,
   kMedianType, kMedianUndoAddKey, kMedianUndoRemoveKey
 } from "./median-adornment-types"
+import { registerAdornmentHandler } from "../../../../../data-interactive/handlers/adornment-handler"
+import { medianAdornmentHandler } from "./median-adornment-handler"
 
 const Controls = () => {
   return (
@@ -48,3 +50,5 @@ registerAdornmentComponentInfo({
   order: 10,
   type: kMedianType
 })
+
+registerAdornmentHandler(kMedianType, medianAdornmentHandler)

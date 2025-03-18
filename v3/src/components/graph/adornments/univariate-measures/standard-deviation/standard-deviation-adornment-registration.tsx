@@ -10,6 +10,8 @@ import {
   kStandardDeviationUndoAddKey, kStandardDeviationRedoAddKey, kStandardDeviationRedoRemoveKey,
   kStandardDeviationUndoRemoveKey
 } from "./standard-deviation-adornment-types"
+import { registerAdornmentHandler } from "../../../../../data-interactive/handlers/adornment-handler"
+import { standardDeviationAdornmentHandler } from "./standard-deviation-adornment-handler"
 
 const Controls = () => {
   return (
@@ -49,3 +51,5 @@ registerAdornmentComponentInfo({
   order: 10,
   type: kStandardDeviationType
 })
+
+registerAdornmentHandler(kStandardDeviationType, standardDeviationAdornmentHandler)

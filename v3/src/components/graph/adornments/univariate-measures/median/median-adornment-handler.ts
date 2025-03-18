@@ -1,0 +1,24 @@
+import { getSnapshot } from "@concord-consortium/mobx-state-tree"
+import { DIAdornmentHandler } from "../../../../../data-interactive/handlers/adornment-handler"
+import { IAdornmentModel } from "../../adornment-models"
+import { isMedianAdornment } from "./median-adornment-model"
+import { t } from "../../../../../utilities/translation/translate"
+
+export const medianAdornmentHandler: DIAdornmentHandler = {
+  get(adornment: IAdornmentModel) {
+    if (!isMedianAdornment(adornment)) return { success: false, values: { error: "Not a median adornment" } }
+
+    const fullAdornmentSnapshot = {
+      ...getSnapshot(adornment),
+      // Add volatile measure values to snapshot.
+      measures: Object.fromEntries(
+        Array.from(adornment.measures.entries()).map(([key, measure]) => 
+          [key, { ...getSnapshot(measure), value: measure.value }]
+        )
+      ),
+      labelTitle: t(adornment.labelTitle)
+    }
+
+    return fullAdornmentSnapshot
+  }
+}

@@ -1,32 +1,34 @@
-import { getSnapshot } from "@concord-consortium/mobx-state-tree"
+import { IAdornmentModel } from "../../components/graph/adornments/adornment-models"
+import { IGraphContentModel, isGraphContentModel } from "../../components/graph/models/graph-content-model"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIHandler, DIResources } from "../data-interactive-types"
 import { adornmentNotFoundResult } from "./di-results"
-import { t } from "../../utilities/translation/translate"
 
+export interface DIAdornmentHandler {
+  get: (adornment: IAdornmentModel, component: IGraphContentModel) => Maybe<Record<string, any>>
+}
+
+const diAdornmentHandlers = new Map<string, DIAdornmentHandler>()
+
+export const registerAdornmentHandler = (type: string, handler: DIAdornmentHandler) => {
+  diAdornmentHandlers.set(type, handler)
+}
 
 export const diAdornmentHandler: DIHandler = {
   get(resources: DIResources) {
-    const { adornment } = resources
+    const { adornment, component } = resources
     if (!adornment) return adornmentNotFoundResult
+    if (!isGraphContentModel(component?.content)) return { success: false, values: { error: "Not a graph component" } }
 
-    const adornmentSnapshot = getSnapshot(adornment)
+    let values: Maybe<Record<string, any>> 
+    const handler = diAdornmentHandlers.get(adornment.type)
 
-    // Translate `labelTitle` if it exists.
-    if ("labelTitle" in adornmentSnapshot && typeof adornmentSnapshot.labelTitle === "string") {
-      return {
-        success: true,
-        values: {
-          ...adornmentSnapshot,
-          labelTitle: t(adornmentSnapshot.labelTitle)
-        }
-      }
+    if (handler) {
+      values = handler?.get(adornment, component.content)
     }
 
-    return {
-      success: true,
-      values: adornmentSnapshot
-    } 
+    if (values) return { success: true, values }
+    return { success: false, values: { error: "Unsupported adornment type" } }
   }
 }
 

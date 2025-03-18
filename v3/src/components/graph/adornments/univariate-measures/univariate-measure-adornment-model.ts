@@ -71,8 +71,9 @@ export const UnivariateMeasureAdornmentModel = AdornmentModel
       // derived models should override if they have a range
       return {min: NaN, max: NaN}
     },
-    computeMeasureValue(attrId: string, cellKey: Record<string, string>, dataConfig: IDataConfigurationModel) {
+    computeMeasureValue(attrId: string, cellKey: Record<string, string>, dataConfig: IDataConfigurationModel): number {
       // derived models should override to compute their respective values
+      throw new Error("computeMeasureValue must be implemented in derived models")
     }
   }))
   .actions(self => ({

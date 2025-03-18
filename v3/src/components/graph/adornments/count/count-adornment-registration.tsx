@@ -12,6 +12,8 @@ import { IAdornmentModel } from "../adornment-models"
 import { CountAdornment } from "./count-adornment-component"
 import { CountAdornmentModel, ICountAdornmentModel, isCountAdornment } from "./count-adornment-model"
 import { kCountClass, kCountLabelKey, kCountPrefix, kCountType, kPercentLabelKey } from "./count-adornment-types"
+import { registerAdornmentHandler } from "../../../../data-interactive/handlers/adornment-handler"
+import { countAdornmentHandler } from "./count-adornment-handler"
 
 const Controls = () => {
   const graphModel = useGraphContentModelContext()
@@ -161,3 +163,5 @@ registerAdornmentComponentInfo({
   order: 10,
   type: kCountType
 })
+
+registerAdornmentHandler(kCountType, countAdornmentHandler)
