@@ -150,26 +150,39 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
     // Reset the heatmap
     simpleheatRef.current.clear()
     simpleheatRef.current.resize()
-    // const maxZoom = 18
-    const minZoom = .25
-    const _zoom = mapModel.leafletMapState.zoom ?? (mapModel.zoom >= 0 ? mapModel.zoom : 1)
-    const zoom = Math.max(_zoom, minZoom)
-    const radius = 1.5 * zoom
-    simpleheatRef.current.radius(radius, 1 * zoom)
 
-    // Update the gradient
-    const colors = dataConfiguration.choroplethColors
-    const gradient: Record<number, string> = {}
-    colors.forEach((color, i) => {
-      gradient[.5 + (i / colors.length * 1 / 2)] = color
-    })
-    simpleheatRef.current.gradient(gradient)
-
-    // Add points (but only if we should draw the heatmap)
+    // Actually update simpleheat (but only if we should draw the heatmap)
     if (legendAttributeId && mapLayerModel.pointType === "heatmap") {
+      // For some reason, the simpleheat canvas always changes to 300x150, so we have to scale the positions.
+      const mapContainer = leafletMap.getContainer()
+      const mapRect = mapContainer.getBoundingClientRect()
+      const scaleX = 300 / mapRect.width
+      const scaleY = 150 / mapRect.height
+      const averageScale = (scaleX + scaleY) / 2
+
+      // TODO Scale the radius based on point size
+      // const maxZoom = 18
+      const minZoom = .25
+      // When a Codap document first loads, leaflet does not have a zoom, so we use the model zoom instead.
+      // At other times the model zoom is one frame behind so the leaflet zoom is generally preferable.
+      const _zoom = mapModel.leafletMapState.zoom ?? (mapModel.zoom >= 0 ? mapModel.zoom : 1)
+      const zoom = Math.max(_zoom, minZoom)
+      const radiusScale = zoom * averageScale
+      const radius = 1.5 * radiusScale
+      simpleheatRef.current.radius(radius, 1 * radiusScale)
+
+      // Update the gradient
+      const colors = dataConfiguration.choroplethColors
+      const gradient: Record<number, string> = {}
+      colors.forEach((color, i) => {
+        gradient[.5 + (i / colors.length * 1 / 2)] = color
+      })
+      simpleheatRef.current.gradient(gradient)
+
       // Find the min and max values
       let min = Infinity
       let max = -Infinity
+      const { latId, longId } = latLongAttributesFromDataSet(dataset)
       dataConfiguration.joinedCaseDataArrays.forEach(c => {
         const { caseID } = c
         const value = dataset.getNumeric(caseID, legendAttributeId)
@@ -177,8 +190,7 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
         min = Math.min(min, value ?? Infinity)
       })
 
-      // Add all points to the heatmap
-      const { latId, longId } = latLongAttributesFromDataSet(dataset)
+      // Add the data to the heatmap
       dataConfiguration.joinedCaseDataArrays.forEach(c => {
         const { caseID } = c
         const value = dataset.getNumeric(caseID, legendAttributeId) || min
@@ -186,10 +198,7 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
         const long = dataset.getNumeric(caseID, longId) || 0
         const lat = dataset.getNumeric(caseID, latId) || 0
         const point = leafletMap.latLngToContainerPoint([lat, long])
-        // TODO why do we need these?
-        const xMultiplier = .8
-        const yMultiplier = .95
-        simpleheatRef.current?.add([point.x * xMultiplier, point.y * yMultiplier, normalizedValue])
+        simpleheatRef.current?.add([point.x * scaleX, point.y * scaleY, normalizedValue])
       })
     }
 
@@ -442,7 +451,7 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
       <div ref={pixiContainerRef} className="map-dot-area"/>
       <MapPointGrid mapLayerModel={mapLayerModel} />
       <div className="heatmap-area">
-        <canvas ref={heatmapCanvasRef} className="heatmap-canvas"/>
+        <canvas ref={heatmapCanvasRef} className="heatmap-canvas" />
       </div>
       <DataTip
         dataset={dataset}
