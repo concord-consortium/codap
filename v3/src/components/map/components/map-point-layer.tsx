@@ -147,55 +147,57 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
       heatmapCanvasRef.current.classList.add("canvas-3d")
     }
 
-    // Reset the heatmap
+    // Reset simpleheat
     simpleheatRef.current.clear()
     simpleheatRef.current.resize()
 
-    // Actually update simpleheat (but only if we should draw the heatmap)
+    // If we should draw the heatmap, update simpleheat
     const { isVisible, pointsAreVisible, pointType } = mapLayerModel
     if (legendAttributeId && pointType === "heatmap" && pointsAreVisible && isVisible) {
-      // For some reason, the simpleheat canvas always changes to 300x150, so we have to scale the positions.
+      // For some reason, the simpleheat canvas always changes to 300x150, so we have to scale the positions accordingly
       const mapContainer = leafletMap.getContainer()
       const mapRect = mapContainer.getBoundingClientRect()
       const scaleX = 300 / mapRect.width
       const scaleY = 150 / mapRect.height
       const averageScale = (scaleX + scaleY) / 2
 
-      // TODO Scale the radius based on point size
-      // const maxZoom = 18
-      const minZoom = .25
+      // Update the radius
+      const minRadius = .25 // simpleheat will crash with a radius less than ~.25
       // When a Codap document first loads, leaflet does not have a zoom, so we use the model zoom instead.
       // At other times the model zoom is one frame behind so the leaflet zoom is generally preferable.
-      const _zoom = mapModel.leafletMapState.zoom ?? (mapModel.zoom >= 0 ? mapModel.zoom : 1)
-      const zoom = Math.max(_zoom, minZoom)
-      const radiusScale = zoom * averageScale
-      const radius = 1.5 * radiusScale
-      simpleheatRef.current.radius(radius, 1 * radiusScale)
+      const zoom = mapModel.leafletMapState.zoom ?? (mapModel.zoom >= 0 ? mapModel.zoom : 1)
+      const pointRadius = Math.max(minRadius,
+        computePointRadius(dataConfiguration.getCaseDataArray(0).length, pointDescription.pointSizeMultiplier))
+      const baseMultiplier = .5
+      const radius = pointRadius * baseMultiplier * zoom * averageScale
+      const blurMultiplier = 2 / 3
+      simpleheatRef.current.radius(radius, radius * blurMultiplier)
 
       // Update the gradient
       const colors = dataConfiguration.choroplethColors
       const gradient: Record<number, string> = {}
       colors.forEach((color, i) => {
-        gradient[.5 + (i / colors.length * 1 / 2)] = color
+        // Low values have low opacity, so we start at .5 to make sure the low color is actually visible
+        gradient[.5 + (i / colors.length / 2)] = color
       })
       simpleheatRef.current.gradient(gradient)
 
       // Find the min and max values
-      let min = Infinity
-      let max = -Infinity
-      const { latId, longId } = latLongAttributesFromDataSet(dataset)
+      let minValue = Infinity
+      let maxValue = -Infinity
       dataConfiguration.joinedCaseDataArrays.forEach(c => {
         const { caseID } = c
         const value = dataset.getNumeric(caseID, legendAttributeId)
-        max = Math.max(max, value ?? -Infinity)
-        min = Math.min(min, value ?? Infinity)
+        maxValue = Math.max(maxValue, value ?? -Infinity)
+        minValue = Math.min(minValue, value ?? Infinity)
       })
 
       // Add the data to the heatmap
+      const { latId, longId } = latLongAttributesFromDataSet(dataset)
       dataConfiguration.joinedCaseDataArrays.forEach(c => {
         const { caseID } = c
-        const value = dataset.getNumeric(caseID, legendAttributeId) || min
-        const normalizedValue = (value - min) / (max - min)
+        const value = dataset.getNumeric(caseID, legendAttributeId) || minValue
+        const normalizedValue = (value - minValue) / (maxValue - minValue)
         const long = dataset.getNumeric(caseID, longId) || 0
         const lat = dataset.getNumeric(caseID, latId) || 0
         const point = leafletMap.latLngToContainerPoint([lat, long])
@@ -368,11 +370,14 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
   useEffect(function setupResponseToLegendAttributeChange() {
     const disposer = mstReaction(
       () => [dataConfiguration?.attributeID('legend'), dataConfiguration?.attributeType('legend')],
-      () => refreshPoints(false),
+      () => {
+        refreshPoints(false)
+        refreshHeatmap()
+      },
       {name: "MapPointLayer.respondToLegendAttributeChange", equals: comparer.structural}, dataConfiguration
     )
     return () => disposer()
-  }, [refreshPoints, dataConfiguration])
+  }, [refreshHeatmap, refreshPoints, dataConfiguration])
 
   useEffect(function setupResponseToChangeInCases() {
     return mstReaction(
@@ -380,19 +385,21 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
       () => {
         callMatchCirclesToData()
         refreshPoints(false)
+        refreshHeatmap()
       }, {name: "MapPointLayer.setupResponseToChangeInCases", fireImmediately: true}, dataConfiguration
     )
-  }, [callMatchCirclesToData, dataConfiguration, refreshPoints])
+  }, [callMatchCirclesToData, dataConfiguration, refreshHeatmap, refreshPoints])
 
   // respond to visual item properties change
   useEffect(function respondToDisplayItemVisualPropsAction() {
     const disposer = onAnyAction(mapLayerModel, action => {
       if (isDisplayItemVisualPropsAction(action)) {
         refreshPoints(false)
+        refreshHeatmap()
       }
     })
     return () => disposer()
-  }, [refreshPoints, mapLayerModel])
+  }, [refreshHeatmap, refreshPoints, mapLayerModel])
 
   // respond to change in layer visibility
   useEffect(function respondToLayerVisibilityChange() {
@@ -424,10 +431,13 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
           mapLayerModel.pointDescription
         return [pointColor, pointStrokeColor, pointStrokeSameAsFill, pointSizeMultiplier]
       },
-      () => refreshPoints(false),
+      () => {
+        refreshPoints(false)
+        refreshHeatmap()
+      },
       {name: "MapPointLayer.respondToPointVisualChange"}, mapLayerModel
     )
-  }, [mapLayerModel, refreshPoints])
+  }, [mapLayerModel, refreshHeatmap, refreshPoints])
 
   // Call refreshConnectingLines when Connecting Lines option is switched on and when all
   // points are selected.
