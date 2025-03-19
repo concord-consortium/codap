@@ -13,7 +13,7 @@ export const lsrlAdornmentHandler: DIAdornmentHandler = {
 
     const dataConfig = graphContent.dataConfiguration
     const cellKeys = dataConfig?.getAllCellKeys()
-    const data: AdornmentData<any>[] = []
+    const data: AdornmentData[] = []
 
     for (const cellKey of cellKeys) {
       const cellKeyString = JSON.stringify(cellKey)
@@ -24,7 +24,7 @@ export const lsrlAdornmentHandler: DIAdornmentHandler = {
       if (!line) continue
     
       const { category, intercept, rSquared, sdResiduals, slope } = line
-      const dataItem: AdornmentData<any> = {
+      const dataItem: AdornmentData = {
         category,
         intercept,
         rSquared,

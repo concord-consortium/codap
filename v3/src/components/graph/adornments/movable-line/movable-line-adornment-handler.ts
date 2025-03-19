@@ -13,7 +13,7 @@ export const movableLineAdornmentHandler: DIAdornmentHandler = {
 
     const dataConfig = graphContent.dataConfiguration
     const cellKeys = dataConfig?.getAllCellKeys()
-    const data: AdornmentData<any>[] = []
+    const data: AdornmentData[] = []
 
     for (const cellKey of cellKeys) {
       const cellKeyString = JSON.stringify(cellKey)
@@ -21,7 +21,7 @@ export const movableLineAdornmentHandler: DIAdornmentHandler = {
       if (!line) continue
     
       const { intercept, slope } = line
-      const dataItem: AdornmentData<any> = { intercept, slope }
+      const dataItem: AdornmentData = { intercept, slope }
     
       if (Object.keys(cellKey).length > 0) {
         dataItem.categories = cellKeyToCategories(cellKey, dataConfig)

@@ -11,7 +11,7 @@ export const boxPlotAdornmentHandler: DIAdornmentHandler = {
 
     const dataConfig = graphContent.dataConfiguration
     const cellKeys = dataConfig?.getAllCellKeys()
-    const data: AdornmentData<any>[] = []
+    const data: AdornmentData[] = []
 
     for (const cellKey of cellKeys) {
       const primaryAttrId = dataConfig?.primaryAttributeID
@@ -23,7 +23,7 @@ export const boxPlotAdornmentHandler: DIAdornmentHandler = {
       const lowerQuartile = adornment.lowerQuartile(cellCaseValues)
       const upperQuartile = adornment.upperQuartile(cellCaseValues)
       const interquartileRange = upperQuartile - lowerQuartile
-      const dataItem: AdornmentData<any> = {
+      const dataItem: AdornmentData = {
         interquartileRange,
         lower,
         lowerQuartile,

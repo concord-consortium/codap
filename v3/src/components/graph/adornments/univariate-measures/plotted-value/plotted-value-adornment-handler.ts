@@ -13,12 +13,12 @@ export const plottedValueAdornmentHandler: DIAdornmentHandler = {
 
     const dataConfig = graphContent.dataConfiguration
     const cellKeys = dataConfig?.getAllCellKeys()
-    const data: AdornmentData<any>[] = []
+    const data: AdornmentData[] = []
 
     for (const cellKey of cellKeys) {
       const cellKeyString = JSON.stringify(cellKey)
       const plottedValue = adornment.measures.get(cellKeyString)?.value ?? NaN
-      const dataItem: AdornmentData<any> = { plottedValue }
+      const dataItem: AdornmentData = { plottedValue }
     
       if (Object.keys(cellKey).length > 0) {
         dataItem.categories = cellKeyToCategories(cellKey, dataConfig)

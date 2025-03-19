@@ -13,14 +13,14 @@ export const meanAbsoluteDeviationAdornmentHandler: DIAdornmentHandler = {
 
     const dataConfig = graphContent.dataConfiguration
     const cellKeys = dataConfig?.getAllCellKeys()
-    const data: AdornmentData<any>[] = []
+    const data: AdornmentData[] = []
 
     for (const cellKey of cellKeys) {
       const primaryAttrId = dataConfig?.primaryAttributeID
       const cellKeyString = JSON.stringify(cellKey)
       const mean = adornment.measures.get(cellKeyString)?.value ?? NaN
       const { min, max } = adornment.computeMeasureRange(primaryAttrId, cellKey, dataConfig)
-      const dataItem: AdornmentData<any> = { mean, min, max }
+      const dataItem: AdornmentData = { mean, min, max }
     
       if (Object.keys(cellKey).length > 0) {
         dataItem.categories = cellKeyToCategories(cellKey, dataConfig)

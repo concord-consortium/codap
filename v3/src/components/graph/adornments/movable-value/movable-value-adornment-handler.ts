@@ -13,13 +13,13 @@ export const movableValueAdornmentHandler: DIAdornmentHandler = {
 
     const dataConfig = graphContent.dataConfiguration
     const cellKeys = dataConfig?.getAllCellKeys()
-    const data: AdornmentData<any>[] = []
+    const data: AdornmentData[] = []
 
     for (const cellKey of cellKeys) {
       const cellKeyString = JSON.stringify(cellKey)
       const movableValues = adornment.values.get(cellKeyString)
       const values = movableValues ? Object.values(movableValues).map(value => value) : []
-      const dataItem: AdornmentData<any> = { movableValues: values }
+      const dataItem: AdornmentData = { movableValues: values }
     
       if (Object.keys(cellKey).length > 0) {
         dataItem.categories = cellKeyToCategories(cellKey, dataConfig)

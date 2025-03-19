@@ -20,7 +20,7 @@ export const movablePointAdornmentHandler: DIAdornmentHandler = {
     const yAttr = allAttributes?.find(attr => attr.id === yAttrId)
     const xAttrName = xAttr?.name ?? ""
     const yAttrName = yAttr?.name ?? ""
-    const data: AdornmentData<any>[] = []
+    const data: AdornmentData[] = []
 
     for (const cellKey of cellKeys) {
       const cellKeyString = JSON.stringify(cellKey)
@@ -28,7 +28,7 @@ export const movablePointAdornmentHandler: DIAdornmentHandler = {
       if (!point) continue
     
       const { x, y } = point
-      const dataItem: AdornmentData<any> = { [xAttrName]: x, [yAttrName]: y }
+      const dataItem: AdornmentData = { [xAttrName]: x, [yAttrName]: y }
     
       if (Object.keys(cellKey).length > 0) {
         dataItem.categories = cellKeyToCategories(cellKey, dataConfig)

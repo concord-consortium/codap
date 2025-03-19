@@ -13,14 +13,14 @@ export const normalCurveAdornmentHandler: DIAdornmentHandler = {
 
     const dataConfig = graphContent.dataConfiguration
     const cellKeys = dataConfig?.getAllCellKeys()
-    const data: AdornmentData<any>[] = []
+    const data: AdornmentData[] = []
 
     for (const cellKey of cellKeys) {
       const primaryAttrId = dataConfig?.primaryAttributeID
       const mean = adornment.computeMean(primaryAttrId, cellKey, dataConfig)
       const standardDeviation = adornment.computeStandardDeviation(primaryAttrId, cellKey, dataConfig)
       const standardError = adornment.computeStandardError(primaryAttrId, cellKey, dataConfig)
-      const dataItem: AdornmentData<any> = { mean, standardDeviation, standardError }
+      const dataItem: AdornmentData = { mean, standardDeviation, standardError }
     
       if (Object.keys(cellKey).length > 0) {
         dataItem.categories = cellKeyToCategories(cellKey, dataConfig)

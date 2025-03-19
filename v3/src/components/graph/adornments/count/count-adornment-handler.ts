@@ -12,11 +12,11 @@ export const countAdornmentHandler: DIAdornmentHandler = {
 
     const dataConfig = graphContent.dataConfiguration
     const cellKeys = dataConfig?.getAllCellKeys()
-    const data: AdornmentData<any>[] = []
+    const data: AdornmentData[] = []
 
     for (const cellKey of cellKeys) {
       const subPlotCases = dataConfig.subPlotCases(cellKey)
-      const dataItem: AdornmentData<any> = {
+      const dataItem: AdornmentData = {
         count: subPlotCases.length,
         percent: percentString(adornment.percentValue(subPlotCases.length, cellKey, dataConfig))
       }

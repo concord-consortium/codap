@@ -13,14 +13,14 @@ export const standardErrorAdornmentHandler: DIAdornmentHandler = {
 
     const dataConfig = graphContent.dataConfiguration
     const cellKeys = dataConfig?.getAllCellKeys()
-    const data: AdornmentData<any>[] = []
+    const data: AdornmentData[] = []
 
     for (const cellKey of cellKeys) {
       const primaryAttrId = dataConfig?.primaryAttributeID
       const cellKeyString = JSON.stringify(cellKey)
       const standardError = adornment.measures.get(cellKeyString)?.value ?? NaN
       const { min, max } = adornment.computeMeasureRange(primaryAttrId, cellKey, dataConfig)
-      const dataItem: AdornmentData<any> = { standardError, min, max }
+      const dataItem: AdornmentData = { standardError, min, max }
     
       if (Object.keys(cellKey).length > 0) {
         dataItem.categories = cellKeyToCategories(cellKey, dataConfig)

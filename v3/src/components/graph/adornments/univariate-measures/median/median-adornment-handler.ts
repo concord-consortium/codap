@@ -11,12 +11,12 @@ export const medianAdornmentHandler: DIAdornmentHandler = {
 
     const dataConfig = graphContent.dataConfiguration
     const cellKeys = dataConfig?.getAllCellKeys()
-    const data: AdornmentData<any>[] = []
+    const data: AdornmentData[] = []
 
     for (const cellKey of cellKeys) {
       const cellKeyString = JSON.stringify(cellKey)
       const median = adornment.measures.get(cellKeyString)?.value ?? NaN
-      const dataItem: AdornmentData<any> = { median }
+      const dataItem: AdornmentData = { median }
     
       if (Object.keys(cellKey).length > 0) {
         dataItem.categories = cellKeyToCategories(cellKey, dataConfig)
