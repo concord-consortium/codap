@@ -3,6 +3,7 @@
 ## Version 3.0.0-pre.2224
 ### ✨ Features & Improvements:
 - **CODAP-74:** Get adornment list for a particular graph
+- **PT-188928484:** "url" url parameter supports csv import
 
 ### 🐞 Bug Fixes:
 - **CODAP-337:** Some points in the graph become invisible after being manipulated for several times. 
