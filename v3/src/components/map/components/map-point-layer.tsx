@@ -152,7 +152,8 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
     simpleheatRef.current.resize()
 
     // Actually update simpleheat (but only if we should draw the heatmap)
-    if (legendAttributeId && mapLayerModel.pointType === "heatmap") {
+    const { isVisible, pointsAreVisible, pointType } = mapLayerModel
+    if (legendAttributeId && pointType === "heatmap" && pointsAreVisible && isVisible) {
       // For some reason, the simpleheat canvas always changes to 300x150, so we have to scale the positions.
       const mapContainer = leafletMap.getContainer()
       const mapRect = mapContainer.getBoundingClientRect()
