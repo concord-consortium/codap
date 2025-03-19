@@ -1,6 +1,6 @@
-import { useCallback, useEffect } from "react"
 import { comparer, reaction } from "mobx"
 import {isAlive} from "mobx-state-tree"
+import { useCallback, useEffect } from "react"
 import {useDebouncedCallback} from "use-debounce"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 import {isSetCaseValuesAction} from "../../../models/data/data-set-actions"
@@ -12,6 +12,7 @@ import {GraphAttrRoles} from "../../data-display/data-display-types"
 import {matchCirclesToData} from "../../data-display/data-display-utils"
 import { PixiPointEventHandler, PixiPoints } from "../../data-display/pixi/pixi-points"
 import { syncModelWithAttributeConfiguration } from "../models/graph-model-utils"
+import { updateCellMasks } from "../utilities/graph-utils"
 import {useGraphContentModelContext} from "./use-graph-content-model-context"
 import {useGraphLayoutContext} from "./use-graph-layout-context"
 
@@ -58,7 +59,15 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     metadata = dataConfiguration?.metadata,
     instanceId = useInstanceIdContext()
 
-  const callRefreshPointPositions = useDebouncedCallback((selectedOnly: boolean) => {
+  interface IRefreshProps {
+    selectedOnly?: boolean
+    updateMasks?: boolean
+  }
+  const callRefreshPointPositions = useDebouncedCallback((_props?: IRefreshProps) => {
+    const { selectedOnly = false, updateMasks = false } = _props || {}
+    if (updateMasks) {
+      updateCellMasks({ dataConfig: dataConfiguration, layout, pixiPoints, resize: true })
+    }
     refreshPointPositions(selectedOnly)
   })
 
@@ -80,7 +89,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
   // (a dependency of refreshPointPositions) are updated. useDebouncedCallback doesn't seem to declare any
   // dependencies, and I'd imagine it returns a stable result (?).
   useEffect(() => {
-    callRefreshPointPositions(false)
+    callRefreshPointPositions()
   }, [callRefreshPointPositions, pixiPoints])
 
   // respond to numeric axis domain changes (e.g. axis dragging)
@@ -100,7 +109,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
         return [xDomain, yDomain, v2Domain]
       },
       () => {
-        callRefreshPointPositions(false)
+        callRefreshPointPositions()
       }, {name: "usePlot [numeric domains]", equals: comparer.structural, fireImmediately: true}, graphModel
     )
   }, [callRefreshPointPositions, graphModel])
@@ -110,7 +119,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
       return dataConfiguration.allCategoriesForRoles
     }, () => {
       startAnimation()
-      callRefreshPointPositions(false)
+      callRefreshPointPositions({ updateMasks: true })
     }, {name: "usePlot.respondToCategorySetChanges", equals: comparer.structural}, dataConfiguration)
   }, [callRefreshPointPositions, dataConfiguration, startAnimation])
 
@@ -121,7 +130,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
       () => {
         if (syncModelWithAttributeConfiguration(graphModel, layout)) {
           startAnimation()
-          callRefreshPointPositions(false)
+          callRefreshPointPositions()
         }
       }, {name: "usePlot [attribute assignment]"}, dataConfiguration
     )
@@ -136,7 +145,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
           return
         }
         callMatchCirclesToData()
-        callRefreshPointPositions(false)
+        callRefreshPointPositions()
       }, {name: "respondToHiddenCasesChange"}, dataConfiguration
     )
     return () => disposer()
@@ -147,7 +156,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     return reaction(
       () => [layout.getAxisLength('left'), layout.getAxisLength('bottom')],
       () => {
-        callRefreshPointPositions(false)
+        callRefreshPointPositions()
       }, {name: "usePlot [axis range]"}
     )
   }, [layout, callRefreshPointPositions])
@@ -172,13 +181,13 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
         if (isSetCaseValuesAction(action)) {
           // If we're caching then only selected cases need to be updated in scatterplots. But for dotplots
           // we need to update all points because the unselected points positions change.
-          callRefreshPointPositions(dataset.isCaching() && graphModel.plotType !== "dotPlot")
+          callRefreshPointPositions({ selectedOnly: dataset.isCaching() && graphModel.plotType !== "dotPlot" })
           // TODO: handling of add/remove cases was added specifically for the case plot.
           // Bill has expressed a desire to refactor the case plot to behave more like the
           // other plots, which already handle removal of cases (and perhaps addition of cases?)
           // without this. Should check to see whether this is necessary down the road.
         } else if (["addCases", "removeCases"].includes(action.name)) {
-          callRefreshPointPositions(false)
+          callRefreshPointPositions()
         }
       })
       return () => disposer()
@@ -193,7 +202,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
         if (!pixiPoints) return
 
         callMatchCirclesToData()
-        callRefreshPointPositions(false)
+        callRefreshPointPositions()
       }, {name: "usePlot [pointDisplayType]"}, graphModel
     )
   }, [callMatchCirclesToData, callRefreshPointPositions, graphModel, pixiPoints])
@@ -202,7 +211,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     return mstReaction(
       () => graphModel.dataConfiguration.legendColorDomain,
       () => {
-        callRefreshPointPositions(false)
+        callRefreshPointPositions()
       }, {name: "usePlot [legendColorChange]"}, graphModel)
   }, [graphModel, callRefreshPointPositions])
 
@@ -211,7 +220,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
   useEffect(() => {
     return mstAutorun(
       () => {
-        !graphModel.dataConfiguration.pointsNeedUpdating && callRefreshPointPositions(false)
+        !graphModel.dataConfiguration.pointsNeedUpdating && callRefreshPointPositions()
       }, {name: "usePlot [callRefreshPointPositions]"}, graphModel)
   }, [graphModel, callRefreshPointPositions])
 
@@ -222,7 +231,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
         graphModel.pointDescription
       return [pointColor, pointStrokeColor, pointStrokeSameAsFill, pointSizeMultiplier]
     },
-      () => callRefreshPointPositions(false),
+      () => callRefreshPointPositions(),
       {name: "respondToPointVisualChange", equals: comparer.structural}, graphModel
     )
   }, [callRefreshPointPositions, graphModel])
@@ -231,7 +240,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
   useEffect(function respondToColorChange() {
     return mstReaction(
       () => metadata?.getAttributeColorRange(legendAttrID),
-      () => callRefreshPointPositions(false),
+      () => callRefreshPointPositions(),
       { name: "usePlotResponders respondToColorChange", equals: comparer.structural }, metadata
     )
   }, [callRefreshPointPositions, legendAttrID, metadata])

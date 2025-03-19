@@ -39,6 +39,7 @@ import { DotChart } from "../plots/dot-chart/dot-chart"
 import { DotLinePlot } from "../plots/dot-plot/dot-line-plot"
 import { Histogram } from "../plots/histogram/histogram"
 import {ScatterPlot} from "../plots/scatter-plot/scatter-plot"
+import { updateCellMasks } from "../utilities/graph-utils"
 import {DroppableAddAttribute} from "./droppable-add-attribute"
 import {DroppablePlot} from "./droppable-plot"
 import {GraphAxis} from "./graph-axis"
@@ -115,10 +116,7 @@ export const Graph = observer(function Graph({graphController, setGraphRef, pixi
         .attr("width", `${Math.max(0, layout.plotWidth)}px`)
         .attr("height", `${Math.max(0, layout.plotHeight)}px`)
 
-      const { xCats, yCats, topCats, rightCats } = graphModel.dataConfiguration.getCategoriesOptions()
-      pixiPoints?.resize(layout.plotWidth, layout.plotHeight,
-                        xCats.length || 1, yCats.length || 1, topCats.length || 1, rightCats.length || 1)
-      pixiPoints?.setPointsMask(graphModel.dataConfiguration.caseDataWithSubPlot)
+      updateCellMasks({ dataConfig: graphModel.dataConfiguration, layout, pixiPoints, resize: true })
     }
   }, [dataset, graphModel.dataConfiguration, layout, layout.plotHeight, layout.plotWidth, pixiPoints, xScale])
 
@@ -126,10 +124,10 @@ export const Graph = observer(function Graph({graphController, setGraphRef, pixi
     return mstReaction(
       () => graphModel.dataConfiguration.caseDataWithSubPlot,
       () => {
-        pixiPoints?.setPointsMask(graphModel.dataConfiguration.caseDataWithSubPlot)
+        updateCellMasks({ dataConfig: graphModel.dataConfiguration, layout, pixiPoints })
       }, {name: "Graph.handleSubPlotsUpdate"}, graphModel
     )
-  }, [graphModel, graphModel.dataConfiguration, pixiPoints])
+  }, [graphModel, layout, pixiPoints])
 
   useEffect(function handleAttributeConfigurationChange() {
     // Handles attribute configuration changes from undo/redo, for instance, among others.
