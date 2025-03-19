@@ -1,13 +1,13 @@
 import { format } from "d3-format"
-import { Instance, types } from "mobx-state-tree"
+import { IJsonPatch, Instance, types } from "mobx-state-tree"
 import { AttributeType } from "../../../models/data/attribute-types"
 import { ICase } from "../../../models/data/data-set-types"
 import { applyModelChange } from "../../../models/history/apply-model-change"
 import { setNiceDomain } from "../../axis/axis-domain-utils"
 import { AxisPlace, IAxisDomainOptions, IAxisTicks, TickFormatter } from "../../axis/axis-types"
-import {
-  CategoricalAxisModel, CountAxisModel, DateAxisModel, EmptyAxisModel, IAxisModel, isCategoricalAxisModel,
-  isCountAxisModel, isDateAxisModel, isEmptyAxisModel, isNumericAxisModel, NumericAxisModel
+import { CategoricalAxisModel, CountAxisModel, DateAxisModel, EmptyAxisModel, IAxisModel, isCategoricalAxisModel,
+  isCountAxisModel, isDateAxisModel, isEmptyAxisModel, isNumericAxisModel, isPercentAxisModel,
+  NumericAxisModel, PercentAxisModel
 } from "../../axis/models/axis-model"
 import { PointDisplayType } from "../../data-display/data-display-types"
 import { PlotType } from "../graphing-types"
@@ -53,8 +53,11 @@ export const PlotModel = types
     get hasPointsFusedIntoBars(): boolean {
       return false
     },
-    get hasCountAxis(): boolean {
+    get hasCountPercentFormulaAxis(): boolean {
       return false
+    },
+    get countPercentFormulaAxisLabel(): string {
+      throw new Error("countPercentFormulaAxisLabel should not be called for the base class")
     },
     get hasBinnedNumericAxis(): boolean {
       return false
@@ -86,6 +89,9 @@ export const PlotModel = types
     get showFusePointsIntoBars(): boolean {
       return false
     },
+    get showBreakdownTypes(): boolean {
+      return false
+    },
     get showGridLines(): boolean {
       return false
     },
@@ -106,8 +112,18 @@ export const PlotModel = types
       const secondarySplitRole = primaryRole === "x" ? "rightSplit" : "topSplit"
       return maxOverAllCells?.(primarySplitRole, secondarySplitRole) ?? 0
     },
+    maxCellPercent() {
+      const { maxPercentAllCells, primaryRole } = self.dataConfiguration || {}
+      const primarySplitRole = primaryRole === "x" ? "topSplit" : "rightSplit"
+      const secondarySplitRole = primaryRole === "x" ? "rightSplit" : "topSplit"
+      return maxPercentAllCells?.(primarySplitRole, secondarySplitRole) ?? 0
+    },
     barTipText(props: IBarTipTextProps) {
       return ""
+    },
+    newSecondaryAxisRequired(patch: IJsonPatch): false | IAxisModel {
+      // Derived classes may override to return true if a new secondary axis is required
+      return false
     }
   }))
   .views(self => ({
@@ -128,11 +144,26 @@ export const PlotModel = types
               : CategoricalAxisModel.create({ place })
     },
     getValidCountAxis(place: AxisPlace, attrType?: AttributeType, axisModel?: IAxisModel): IAxisModel {
-      if (isCountAxisModel(axisModel)) return axisModel
       const maxCellCaseCount = self.maxCellCaseCount()
+      if (isCountAxisModel(axisModel)) {
+        // Even though we already have a count axis, it might need its bounds adjusted
+        setNiceDomain([0, maxCellCaseCount], axisModel, { clampPosMinAtZero: true })
+        return axisModel
+      }
       const countAxis = CountAxisModel.create({ place, min: 0, max: maxCellCaseCount })
       setNiceDomain([0, maxCellCaseCount], countAxis, { clampPosMinAtZero: true })
       return countAxis
+    },
+    getValidPercentAxis(place: AxisPlace, attrType?: AttributeType, axisModel?: IAxisModel): IAxisModel {
+      const maxCellCasePercent = self.maxCellPercent()
+      if (isPercentAxisModel(axisModel)) {
+        // Even though we already have a percent axis, it might need its bounds adjusted
+        setNiceDomain([0, maxCellCasePercent], axisModel, { clampPosMinAtZero: true })
+        return axisModel
+      }
+      const percentAxis = PercentAxisModel.create({ place, min: 0, max: maxCellCasePercent })
+      setNiceDomain([0, maxCellCasePercent], percentAxis, { clampPosMinAtZero: true })
+      return percentAxis
     },
     getValidNumericOrDateAxis(place: AxisPlace, attrType?: AttributeType, axisModel?: IAxisModel): IAxisModel {
       if (attrType === "date" && isDateAxisModel(axisModel) ||

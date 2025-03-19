@@ -162,18 +162,36 @@ export function isNumericAxisModel(axisModel?: IAxisModel): axisModel is INumeri
   return axisModel?.type === "numeric"
 }
 
+export const PercentAxisModel = BaseNumericAxisModel
+  .named("PercentAxisModel")
+  .props({
+    type: types.optional(types.literal("percent"), "percent")
+  })
+  .views(self => ({
+    get lockZero() {
+      return true
+    },
+  }))
+export interface IPercentAxisModel extends Instance<typeof PercentAxisModel> {}
+export interface IPercentAxisModelSnapshot extends SnapshotIn<typeof PercentAxisModel> {}
+export function isPercentAxisModel(axisModel?: IAxisModel): axisModel is IPercentAxisModel {
+  return axisModel?.type === "percent"
+}
+
+// ToDo: It _should_ be possible to have CountAxisModel inherit from PercentAxisModel and get rid of lockZero
+//  but it causes a strange typescript error in graph-content-model.ts
 export const CountAxisModel = BaseNumericAxisModel
   .named("CountAxisModel")
   .props({
     type: types.optional(types.literal("count"), "count")
   })
   .views(self => ({
-    get integersOnly() {
-      return true
-    },
     get lockZero() {
       return true
     },
+    get integersOnly() {
+      return true
+    }
   }))
 export interface ICountAxisModel extends Instance<typeof CountAxisModel> {}
 export interface ICountAxisModelSnapshot extends SnapshotIn<typeof CountAxisModel> {}
@@ -181,8 +199,9 @@ export function isCountAxisModel(axisModel?: IAxisModel): axisModel is ICountAxi
   return axisModel?.type === "count"
 }
 
-export function isNumericOrCountAxisModel(axisModel?: IAxisModel): axisModel is INumericAxisModel | IDateAxisModel {
-  return isNumericAxisModel(axisModel) || isCountAxisModel(axisModel)
+export function isNumericOrCountOrPercentAxisModel(axisModel?: IAxisModel):
+    axisModel is INumericAxisModel | IDateAxisModel {
+  return isNumericAxisModel(axisModel) || isCountAxisModel(axisModel) || isPercentAxisModel(axisModel)
 }
 
 export const DateAxisModel = BaseNumericAxisModel
@@ -210,17 +229,18 @@ export function isDateAxisModel(axisModel?: IAxisModel): axisModel is IDateAxisM
 }
 
 export function isBaseNumericAxisModel(axisModel?: IAxisModel): axisModel is INumericAxisModel | IDateAxisModel {
-  return isNumericAxisModel(axisModel) || isCountAxisModel(axisModel) || isDateAxisModel(axisModel)
+  return isNumericAxisModel(axisModel) || isCountAxisModel(axisModel) || isPercentAxisModel(axisModel) ||
+    isDateAxisModel(axisModel)
 }
 
 export const AxisModelUnion =
-  types.union(EmptyAxisModel, CategoricalAxisModel, NumericAxisModel, CountAxisModel, DateAxisModel)
+  types.union(EmptyAxisModel, CategoricalAxisModel, NumericAxisModel, CountAxisModel, PercentAxisModel, DateAxisModel)
 export type IAxisModelUnion =
-  IEmptyAxisModel | ICategoricalAxisModel | INumericAxisModel | ICountAxisModel | IDateAxisModel
+  IEmptyAxisModel | ICategoricalAxisModel | INumericAxisModel | ICountAxisModel | IPercentAxisModel | IDateAxisModel
 export type IAxisModelSnapshotUnion = IEmptyAxisModelSnapshot | ICategoricalAxisModelSnapshot |
-  INumericAxisModelSnapshot | ICountAxisModelSnapshot | IDateAxisModelSnapshot
+  INumericAxisModelSnapshot | ICountAxisModelSnapshot | IPercentAxisModelSnapshot | IDateAxisModelSnapshot
 
 export function isAxisModelInUnion(model: IAxisModel): model is IAxisModelUnion {
   return isEmptyAxisModel(model) || isCategoricalAxisModel(model) ||
-          isNumericAxisModel(model) || isCountAxisModel(model) || isDateAxisModel(model)
+          isNumericAxisModel(model) || isCountAxisModel(model) || isPercentAxisModel(model) || isDateAxisModel(model)
 }

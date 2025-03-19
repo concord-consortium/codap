@@ -53,7 +53,7 @@ export function isUnivariateNumericPlotType(plotType: PlotType): boolean {
   return ["dotPlot", "binnedDotPlot", "histogram", "linePlot"].includes(plotType)
 }
 
-export const BreakdownTypes = ["count", "percent"] as const
+export const BreakdownTypes = ["count", "percent", "formula"] as const
 export type BreakdownType = typeof BreakdownTypes[number]
 
 export const kGraphClass = "graph-plot"
