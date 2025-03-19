@@ -3,10 +3,11 @@ import { IAdornmentModel } from "../../adornment-models"
 import { isBoxPlotAdornment } from "./box-plot-adornment-model"
 import { IGraphContentModel } from "../../../models/graph-content-model"
 import { AdornmentData, cellKeyToCategories } from "../../utilities/adornment-handler-utils"
+import { kBoxPlotType } from "./box-plot-adornment-types"
 
 export const boxPlotAdornmentHandler: DIAdornmentHandler = {
   get(adornment: IAdornmentModel, graphContent: IGraphContentModel) {
-    if (!isBoxPlotAdornment(adornment)) return { success: false, values: { error: "Not a box plot adornment" } }
+    if (!isBoxPlotAdornment(adornment)) return { success: false, values: { error: `Not a ${kBoxPlotType} adornment` } }
 
     const dataConfig = graphContent.dataConfiguration
     const cellKeys = dataConfig?.getAllCellKeys()

@@ -3,11 +3,12 @@ import { IGraphContentModel } from "../../models/graph-content-model"
 import { IAdornmentModel } from "../adornment-models"
 import { isMovableValueAdornment } from "./movable-value-adornment-model"
 import { AdornmentData, cellKeyToCategories } from "../utilities/adornment-handler-utils"
+import { kMovableValueType } from "./movable-value-adornment-types"
 
 export const movableValueAdornmentHandler: DIAdornmentHandler = {
   get(adornment: IAdornmentModel, graphContent: IGraphContentModel) {
     if (!isMovableValueAdornment(adornment)) {
-      return { success: false, values: { error: "Not a movable value adornment" } }
+      return { success: false, values: { error: `Not a ${kMovableValueType} adornment` } }
     }
 
     const dataConfig = graphContent.dataConfiguration

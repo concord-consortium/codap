@@ -3,11 +3,12 @@ import { IAdornmentModel } from "../../adornment-models"
 import { isStandardErrorAdornment } from "./standard-error-adornment-model"
 import { IGraphContentModel } from "../../../models/graph-content-model"
 import { AdornmentData, cellKeyToCategories } from "../../utilities/adornment-handler-utils"
+import { kStandardErrorType } from "./standard-error-adornment-types"
 
 export const standardErrorAdornmentHandler: DIAdornmentHandler = {
   get(adornment: IAdornmentModel, graphContent: IGraphContentModel) {
     if (!isStandardErrorAdornment(adornment)) {
-      return { success: false, values: { error: "Not a standard error adornment" } }
+      return { success: false, values: { error: `Not a ${kStandardErrorType} adornment` } }
     }
 
     const dataConfig = graphContent.dataConfiguration

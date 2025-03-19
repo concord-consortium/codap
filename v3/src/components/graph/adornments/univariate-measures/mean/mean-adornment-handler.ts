@@ -3,10 +3,11 @@ import { IAdornmentModel } from "../../adornment-models"
 import { isMeanAdornment } from "./mean-adornment-model"
 import { IGraphContentModel } from "../../../models/graph-content-model"
 import { AdornmentData, cellKeyToCategories } from "../../utilities/adornment-handler-utils"
+import { kMeanType } from "./mean-adornment-types"
 
 export const meanAdornmentHandler: DIAdornmentHandler = {
   get(adornment: IAdornmentModel, graphContent: IGraphContentModel) {
-    if (!isMeanAdornment(adornment)) return { success: false, values: { error: "Not a mean adornment" } }
+    if (!isMeanAdornment(adornment)) return { success: false, values: { error: `Not a ${kMeanType} adornment` } }
 
     const dataConfig = graphContent.dataConfiguration
     const cellKeys = dataConfig?.getAllCellKeys()

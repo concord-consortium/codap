@@ -3,11 +3,12 @@ import { IGraphContentModel } from "../../../models/graph-content-model"
 import { IAdornmentModel } from "../../adornment-models"
 import { AdornmentData, cellKeyToCategories } from "../../utilities/adornment-handler-utils"
 import { isStandardDeviationAdornment } from "./standard-deviation-adornment-model"
+import { kStandardDeviationType } from "./standard-deviation-adornment-types"
 
 export const standardDeviationAdornmentHandler: DIAdornmentHandler = {
   get(adornment: IAdornmentModel, graphContent: IGraphContentModel) {
     if (!isStandardDeviationAdornment(adornment)) {
-      return { success: false, values: { error: "Not a standard deviation adornment" } }
+      return { success: false, values: { error: `Not a ${kStandardDeviationType} adornment` } }
     }
 
     const dataConfig = graphContent.dataConfiguration

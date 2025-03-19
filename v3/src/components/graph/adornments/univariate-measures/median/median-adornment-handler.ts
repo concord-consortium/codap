@@ -3,10 +3,11 @@ import { IAdornmentModel } from "../../adornment-models"
 import { isMedianAdornment } from "./median-adornment-model"
 import { IGraphContentModel } from "../../../models/graph-content-model"
 import { AdornmentData, cellKeyToCategories } from "../../utilities/adornment-handler-utils"
+import { kMedianType } from "./median-adornment-types"
 
 export const medianAdornmentHandler: DIAdornmentHandler = {
   get(adornment: IAdornmentModel, graphContent: IGraphContentModel) {
-    if (!isMedianAdornment(adornment)) return { success: false, values: { error: "Not a median adornment" } }
+    if (!isMedianAdornment(adornment)) return { success: false, values: { error: `Not a ${kMedianType} adornment` } }
 
     const dataConfig = graphContent.dataConfiguration
     const cellKeys = dataConfig?.getAllCellKeys()

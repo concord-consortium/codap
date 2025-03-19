@@ -3,11 +3,12 @@ import { IAdornmentModel } from "../../adornment-models"
 import { isPlottedValueAdornment } from "./plotted-value-adornment-model"
 import { IGraphContentModel } from "../../../models/graph-content-model"
 import { AdornmentData, cellKeyToCategories } from "../../utilities/adornment-handler-utils"
+import { kPlottedValueType } from "./plotted-value-adornment-types"
 
 export const plottedValueAdornmentHandler: DIAdornmentHandler = {
   get(adornment: IAdornmentModel, graphContent: IGraphContentModel) {
     if (!isPlottedValueAdornment(adornment)) {
-      return { success: false, values: { error: "Not a plotted value adornment" } }
+      return { success: false, values: { error: `Not a ${kPlottedValueType} adornment` } }
     }
 
     const dataConfig = graphContent.dataConfiguration
