@@ -1,4 +1,20 @@
 # Changelog
+## Version 3.0.0-pre.2219 - March 14, 2025
+
+### 🐞 Bug Fixes:
+- **CODAP-89:** Component reposition and resize in iPadOS
+- **CODAP-329:** Unable to hide selected cases in graphs with multiple y-axes
+- **CODAP-300:** Date values not showing on date-time slider
+- **CODAP-123:** Bar chart selection misbehaves in Safari
+
+### 🛠️ Under the Hood:
+- **CODAP-130:** Automation - Missing data with 2nd categorical axes
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  190281 bytes |                           <0.00% |
+|  index.js | 6476957 bytes |                           <0.00% |
 
 ## Version 3.0.0-pre.2202 - March 7, 2025
 

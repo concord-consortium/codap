@@ -4,6 +4,10 @@ import { DataSet } from "../models/data/data-set"
 type RowType = Record<string, string>
 export type CsvParseResult = ParseResult<RowType>
 
+export function importCsvContent(content: string, onComplete: (results: CsvParseResult) => void) {
+  parse(content, { comments: "#", header: true, complete: onComplete })
+}
+
 export function importCsvFile(file: File | null, onComplete: (results: CsvParseResult, aFile: any) => void) {
   parse(file, { comments: "#", header: true, complete: onComplete })
 }

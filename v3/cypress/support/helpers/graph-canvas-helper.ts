@@ -103,6 +103,36 @@ export const GraphCanvasHelper = {
       expect(uniquePositions.size).to.equal(positions.length, "All points should have unique positions")
     })
   },
+  // Check if a specific point matches the expected x and y coordinates
+  checkPointPosition(tileId: string, pointIndex: number, expectedX: number, expectedY: number) {
+    cy.log(
+      `Checking Point Position - Tile ID: ${tileId}, Index: ${pointIndex}, X: ${expectedX}, Y: ${expectedY}`
+      )
+
+    cy.window().then((win: any) => {
+      const pixiPoints = win.pixiPointsMap[tileId]
+
+      if (!pixiPoints?.length) {
+        throw new Error(`PixiPoints for Tile ID ${tileId} are undefined or empty.`)
+      }
+
+      // Get the point at the specified index
+      const point = pixiPoints[0]?.points[pointIndex]
+      if (!point) {
+        throw new Error(`Point at index ${pointIndex} is undefined for tile ID ${tileId}.`)
+      }
+
+      // Get the actual position
+      const actualX = point.position?.x
+      const actualY = point.position?.y
+
+      cy.log(`Actual Position - x=${actualX}, y=${actualY}`)
+
+      // Compare actual and expected positions with a tolerance of 1
+      expect(actualX).to.be.closeTo(expectedX, 1, `Expected x-coordinate of point ${pointIndex} to match`)
+      expect(actualY).to.be.closeTo(expectedY, 1, `Expected y-coordinate of point ${pointIndex} to match`)
+    })
+  },
   // Checks if the points in a graph have unique fill colors.
   getPixiPointFillColors(tileId: string): Cypress.Chainable<string[]> {
     cy.log("Get all PixiPoint fill colors from textures")

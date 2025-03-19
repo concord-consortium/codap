@@ -46,7 +46,7 @@ context("Graph UI", () => {
     cy.wait(2500)
   })
   describe("graph view", () => {
-    it("updates graph title", () => {
+    it("should update graph title", () => {
       c.getComponentTitle("graph").should("have.text", collectionName)
       c.changeComponentTitle("graph", newCollectionName)
       c.getComponentTitle("graph").should("have.text", newCollectionName)
@@ -60,7 +60,7 @@ context("Graph UI", () => {
       toolbar.getRedoTool().click({force: true})
       c.getComponentTitle("graph").should("have.text", newCollectionName)
     })
-    it("tests creating multiple graphs with undo/redo", () => {
+    it("should create multiple graphs with undo/redo", () => {
       // Function to count CODAP graphs and return the count
       const countCodapGraphs = () => {
         return cy.get('.codap-graph').its('length')
@@ -86,7 +86,7 @@ context("Graph UI", () => {
         countCodapGraphs().should('eq', initialCount + 1)
       })
     })
-    it("creates graphs with new collection names when existing ones are closed", () => {
+    it("should create graphs with new collection names when existing ones are closed", () => {
       c.closeComponent("graph")
       c.checkComponentDoesNotExist("graph")
       c.getIconFromToolShelf("graph").click()
@@ -97,7 +97,7 @@ context("Graph UI", () => {
       c.getIconFromToolShelf("graph").click()
       c.getComponentTitle("graph").should("contain", collectionName)
     })
-    it("checks all graph tooltips", () => {
+    it("should check all graph tooltips", () => {
       c.selectTile("graph", 0)
       toolbar.getToolShelfIcon("graph").then($element => {
         c.checkToolTip($element, c.tooltips.graphToolShelfIcon)
@@ -138,7 +138,7 @@ context("Graph UI", () => {
     })
   })
   describe("case card graph interaction", () => {
-    it("can drag attributes from the case card to the graph", () => {
+    it("should drag attributes from the case card to the graph", () => {
       const tableHeaderLeftSelector = ".codap-component.codap-case-table .component-title-bar .header-left"
       cy.get(tableHeaderLeftSelector).click()
       cy.get(`${tableHeaderLeftSelector} .card-table-toggle-message`).click()
@@ -151,7 +151,7 @@ context("Graph UI", () => {
   describe("graph inspector panel", () => {
     // This test is broken because of PT-#188601882
     // Skipping for now
-    it.skip("change points in table and check for autoscale", () => {
+    it.skip("should change points in table and check for autoscale", () => {
       // create a graph with Lifespan (x-axis) and Height (y-axis)
       c.getComponentTitle("graph").should("have.text", collectionName)
       ah.openAxisAttributeMenu("bottom")
@@ -189,7 +189,7 @@ context("Graph UI", () => {
       // in the graph axis it might be possible to check the axis labels or scale
       cy.get("[data-testid=graph]").find("[data-testid=axis-bottom]").find(".tick").should("have.length", 29)
     })
-    it("hides and shows selected/unselected cases", () => {
+    it("should hide and show selected/unselected cases", () => {
       ah.openAxisAttributeMenu("bottom")
       ah.selectMenuAttribute("Sleep", "bottom") // Sleep => x-axis
       cy.wait(500)
@@ -212,7 +212,7 @@ context("Graph UI", () => {
       cy.get("[data-testid=hide-unselected-cases]").should("not.be.disabled")
       cy.get("[data-testid=show-all-cases]").should("be.disabled")
     })
-    it("displays only selected cases and adjusts axes when 'Display Only Selected Cases' is selected", () => {
+    it("should display only selected cases and adjusts axes when 'Display Only Selected Cases' is selected", () => {
       // TODO: Add more thorough checks to make sure cases are actually hidden and shown, and the axes adjust
       // once Cypress is configured to interact with the PixiJS canvas. For now, we just check that the buttons
       // are disabled and enabled as expected.
@@ -233,7 +233,7 @@ context("Graph UI", () => {
       cy.get("[data-testid=display-selected-cases]").should("not.be.disabled")
       cy.get("[data-testid=show-all-cases]").should("be.disabled")
     })
-    it("shows a warning when 'Display Only Selected Cases' is selected and no cases have been selected", () => {
+    it("should show a warning when 'Display Only Selected Cases' is selected and no cases have been selected", () => {
       ah.openAxisAttributeMenu("bottom")
       ah.selectMenuAttribute("Sleep", "bottom") // Sleep => x-axis
       cy.wait(500)
@@ -247,7 +247,7 @@ context("Graph UI", () => {
       cy.get("[data-testid=show-all-cases]").click({force: true})
       cy.get("[data-testid=display-only-selected-warning]").should("not.exist")
     })
-    it("shows parent visibility toggles when Show Parent Visibility Toggles option is selected", () => {
+    it("should show parent visibility toggles when Show Parent Visibility Toggles option is selected", () => {
       ah.openAxisAttributeMenu("bottom")
       ah.selectMenuAttribute("Sleep", "bottom") // Sleep => x-axis
       cy.wait(500)
@@ -339,7 +339,7 @@ context("Graph UI", () => {
       cy.get("[data-testid=show-parent-toggles]").should("exist").and("have.text", "Show Parent Visibility Toggles")
     })
 
-    it("It adds a banner to the graph when Show Measures for Selection is activated", () => {
+    it("should add a banner to the graph when Show Measures for Selection is activated", () => {
       ah.openAxisAttributeMenu("bottom")
       ah.selectMenuAttribute("Sleep", "bottom") // Sleep => x-axis
       cy.get("[data-testid=measures-for-selection-banner]").should("not.exist")
@@ -359,7 +359,7 @@ context("Graph UI", () => {
     // NOTE:
     // - Adornments are covered in graph-adornments.spec.ts (including Show Measures)
     // - Legend colors and bins configuration is covered in graph-legend.spec.ts
-    it("format panel interactions", () => {
+    it("should format panel interactions", () => {
       cy.log("check point size change")
 
       // get rid of aria-valuenow div in the Slider component
@@ -459,7 +459,7 @@ context("Graph UI", () => {
           cy.get('input[type="checkbox"]').should('be.checked')
         })
     })
-    it("leads to a file download when the 'Export PNG Image' button is clicked", () => {
+    it("should lead to a file download when the 'Export PNG Image' button is clicked", () => {
       const fileName = "Untitled Document.png"
       const downloadsFolder = Cypress.config("downloadsFolder")
       graph.getCameraButton().click()
@@ -481,7 +481,7 @@ context("Graph UI", () => {
     })
   })
   describe("graph bin configuration", () => {
-    it("disables Point Size control when display type is bars", () => {
+    it("should disable Point Size control when display type is bars", () => {
       ah.openAxisAttributeMenu("bottom")
       ah.selectMenuAttribute("Sleep", "bottom") // Sleep => x-axis
       cy.wait(500)
@@ -494,7 +494,7 @@ context("Graph UI", () => {
       graph.getDisplayStylesButton().click()
       cy.get("[data-testid=point-size-slider]").should("have.attr", "aria-disabled", "true")
     })
-    it("adds bin boundaries to plot when 'Group into Bins' is selected", () => {
+    it("should add bin boundaries to plot when 'Group into Bins' is selected", () => {
       ah.openAxisAttributeMenu("bottom")
       ah.selectMenuAttribute("Sleep", "bottom") // Sleep => x-axis
       cy.wait(500)
@@ -505,7 +505,7 @@ context("Graph UI", () => {
       cy.wait(500)
       cy.get("[data-testid=bin-ticks-graph-1]").should("exist")
     })
-    it("enables bin width and alignment options when 'Group into Bins' is selected", () => {
+    it("should enable bin width and alignment options when 'Group into Bins' is selected", () => {
       ah.openAxisAttributeMenu("bottom")
       ah.selectMenuAttribute("Sleep", "bottom") // Sleep => x-axis
       graph.getDisplayConfigButton().click()
@@ -520,7 +520,7 @@ context("Graph UI", () => {
       cy.get("[data-testid=graph-bin-alignment-setting]").find("label").should("exist").and("have.text", "Alignment")
       cy.get("[data-testid=graph-bin-alignment-setting]").find("input").should("exist").should("have.value", "2")
     })
-    it("updates bin configuration when bin width and bin alignment values are changed", () => {
+    it("should update bin configuration when bin width and bin alignment values are changed", () => {
       ah.openAxisAttributeMenu("bottom")
       ah.selectMenuAttribute("Sleep", "bottom") // Sleep => x-axis
       graph.getDisplayConfigButton().click()
@@ -537,7 +537,7 @@ context("Graph UI", () => {
       cy.get("[data-testid=bin-ticks-graph-1]").find("path.draggable-bin-boundary").should("have.length", 4)
       cy.get("[data-testid=bin-ticks-graph-1]").find("path.draggable-bin-boundary-cover").should("have.length", 4)
     })
-    it("reverts bin width and bin alignment to default values for new value range when attribute is changed", () => {
+    it("should reset bin width and alignment to default for new value range when attribute changes", () => {
       ah.openAxisAttributeMenu("bottom")
       ah.selectMenuAttribute("Sleep", "bottom") // Sleep => x-axis
       graph.getDisplayConfigButton().click()
@@ -583,7 +583,7 @@ context("Graph UI", () => {
         expect(valueNum).to.be.closeTo(4, 0.1)
       })
     })
-    it("shows a bar graph for categorical attr on primary axis with 'Fuse Dots into Bars' checked", () => {
+    it("should show a bar graph for categorical attr on primary axis with 'Fuse Dots into Bars' checked", () => {
       ah.openAxisAttributeMenu("bottom")
       ah.selectMenuAttribute("Habitat", "bottom") // Habitat => x-axis
       cy.get("[data-testid=bar-cover]").should("not.exist")
@@ -626,7 +626,7 @@ context("Graph UI", () => {
       cy.get("[data-testid=bar-cover]").should("not.exist")
     })
   })
-  it("shows a histogram when 'Group into Bins' and 'Fuse Dots into Bars' are both checked", () => {
+  it("should show a histogram when 'Group into Bins' and 'Fuse Dots into Bars' are both checked", () => {
     ah.openAxisAttributeMenu("bottom")
     ah.selectMenuAttribute("Height", "bottom") // Height => x-axis
     cy.get("[data-testid=bar-cover]").should("not.exist")

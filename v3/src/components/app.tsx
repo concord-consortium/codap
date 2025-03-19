@@ -5,7 +5,7 @@ import { Container } from "./container/container"
 import { ToolShelf } from "./tool-shelf/tool-shelf"
 import { kCodapAppElementId } from "./constants"
 import { MenuBar, kMenuBarElementId } from "./menu-bar/menu-bar"
-import { useCloudFileManager } from "../lib/use-cloud-file-manager"
+import { useCloudFileManager } from "../lib/cfm/use-cloud-file-manager"
 import { Logger } from "../lib/logger"
 import { appState } from "../models/app-state"
 import { addDefaultComponents } from "../models/codap/add-default-content"
@@ -32,6 +32,7 @@ import { CfmContext } from "../hooks/use-cfm-context"
 
 import "../models/shared/shared-case-metadata-registration"
 import "../models/shared/shared-data-set-registration"
+import "../lib/debug-event-modification"
 
 import "./app.scss"
 
@@ -46,7 +47,7 @@ registerTileTypes([])
 export const App = observer(function App() {
   useKeyStates()
 
-  const cfm = useCloudFileManager({
+  const { cfm, cfmReadyPromise } = useCloudFileManager({
     appOrMenuElemId: kMenuBarElementId
   })
 
@@ -114,6 +115,9 @@ export const App = observer(function App() {
 
       const { di } = urlParams
       if (typeof di === "string") {
+        // wait for CFM to complete its initialization
+        await cfmReadyPromise
+
         const webviewTiles = appState.document.content?.getTilesOfType(kWebViewTileType)
         if (webviewTiles) {
           const webviews = webviewTiles.map(wV => wV.content) as IWebViewModel[]
@@ -139,7 +143,7 @@ export const App = observer(function App() {
     }
 
     initialize()
-  }, [])
+  }, [cfmReadyPromise])
 
   return (
     <CodapDndContext>

@@ -1,8 +1,8 @@
 diff --git a/node_modules/@dnd-kit/core/dist/core.cjs.development.js b/node_modules/@dnd-kit/core/dist/core.cjs.development.js
-index c07336f..8a241b0 100644
+index 2685024..57dba94 100644
 --- a/node_modules/@dnd-kit/core/dist/core.cjs.development.js
 +++ b/node_modules/@dnd-kit/core/dist/core.cjs.development.js
-@@ -1790,10 +1790,6 @@ function useAutoScroller(_ref) {
+@@ -1825,10 +1825,6 @@ function useAutoScroller(_ref) {
      }
  
      for (const scrollContainer of sortedScrollableAncestors) {
@@ -13,7 +13,7 @@ index c07336f..8a241b0 100644
        const index = scrollableAncestors.indexOf(scrollContainer);
        const scrollContainerRect = scrollableAncestorRects[index];
  
-@@ -1806,6 +1802,10 @@ function useAutoScroller(_ref) {
+@@ -1841,6 +1837,10 @@ function useAutoScroller(_ref) {
          speed
        } = getScrollDirectionAndSpeed(scrollContainer, scrollContainerRect, rect, acceleration, threshold);
  
@@ -25,10 +25,10 @@ index c07336f..8a241b0 100644
          if (!scrollIntent[axis][direction[axis]]) {
            speed[axis] = 0;
 diff --git a/node_modules/@dnd-kit/core/dist/core.esm.js b/node_modules/@dnd-kit/core/dist/core.esm.js
-index ed699d9..6aa2da3 100644
+index 1577c25..0678b61 100644
 --- a/node_modules/@dnd-kit/core/dist/core.esm.js
 +++ b/node_modules/@dnd-kit/core/dist/core.esm.js
-@@ -1789,10 +1789,6 @@ function useAutoScroller(_ref) {
+@@ -1824,10 +1824,6 @@ function useAutoScroller(_ref) {
      }
  
      for (const scrollContainer of sortedScrollableAncestors) {
@@ -39,7 +39,7 @@ index ed699d9..6aa2da3 100644
        const index = scrollableAncestors.indexOf(scrollContainer);
        const scrollContainerRect = scrollableAncestorRects[index];
  
-@@ -1805,6 +1801,10 @@ function useAutoScroller(_ref) {
+@@ -1840,6 +1836,10 @@ function useAutoScroller(_ref) {
          speed
        } = getScrollDirectionAndSpeed(scrollContainer, scrollContainerRect, rect, acceleration, threshold);
  
@@ -50,28 +50,6 @@ index ed699d9..6aa2da3 100644
        for (const axis of ['x', 'y']) {
          if (!scrollIntent[axis][direction[axis]]) {
            speed[axis] = 0;
-@@ -2353,18 +2353,10 @@ function useRects(elements, measure) {
-   const resizeObserver = useResizeObserver({
-     callback: measureRects
-   });
--
--  if (elements.length > 0 && rects === defaultValue$2) {
--    measureRects();
--  }
--
-   useIsomorphicLayoutEffect(() => {
--    if (elements.length) {
--      elements.forEach(element => resizeObserver == null ? void 0 : resizeObserver.observe(element));
--    } else {
--      resizeObserver == null ? void 0 : resizeObserver.disconnect();
--      measureRects();
--    }
-+    resizeObserver == null ? void 0 : resizeObserver.disconnect();
-+    measureRects();
-+    elements.forEach(element => resizeObserver == null ? void 0 : resizeObserver.observe(element));
-   }, [elements]);
-   return rects;
- 
 diff --git a/node_modules/@dnd-kit/core/dist/hooks/utilities/useAutoScroller.d.ts b/node_modules/@dnd-kit/core/dist/hooks/utilities/useAutoScroller.d.ts
 index 3159f04..01f66e3 100644
 --- a/node_modules/@dnd-kit/core/dist/hooks/utilities/useAutoScroller.d.ts

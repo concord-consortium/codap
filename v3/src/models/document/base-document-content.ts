@@ -169,7 +169,7 @@ export const BaseDocumentContentModel = types
         self.insertTileInRow(tile, row)
       }
     },
-    insertTileSnapshotInDefaultRow(tileSnap: ITileModelSnapshotIn): ITileModel | undefined {
+    insertTileSnapshotInDefaultRow(tileSnap: ITileModelSnapshotIn, options?: ITileInRowOptions): Maybe<ITileModel> {
       const rowOrIndex = self.defaultInsertRow
       const requiresNewRow = typeof rowOrIndex === "number"
       const row = requiresNewRow ? self.rowCreator?.() : rowOrIndex
@@ -177,7 +177,7 @@ export const BaseDocumentContentModel = types
         if (requiresNewRow) {
           self.insertRow(row, rowOrIndex)
         }
-        const tile = self.insertTileSnapshotInRow(tileSnap, row)
+        const tile = self.insertTileSnapshotInRow(tileSnap, row, options)
         return tile
       }
     },
