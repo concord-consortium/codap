@@ -49,4 +49,16 @@ describe("DataInteractive CountAdornmentHandler", () => {
     expect(mockDataConfig.getAllCellKeys).toHaveBeenCalled()
     expect(mockDataConfig.subPlotCases).toHaveBeenCalled()
   })
+
+  it("get only returns a count when showCount is true and showPercent is false", () => {
+    mockCountAdornment.showPercent = false
+    const result = handler.get?.(mockCountAdornment, mockGraphContent)
+    expect(result?.data[0]).toMatchObject({ count: 2 })
+  })
+
+  it("get only returns a percent when showCount is false and showPercent is true", () => {
+    mockCountAdornment.showCount = false
+    const result = handler.get?.(mockCountAdornment, mockGraphContent)
+    expect(result?.data[0]).toMatchObject({ percent: "50%" })
+  })
 })

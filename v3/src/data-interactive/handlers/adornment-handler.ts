@@ -17,7 +17,7 @@ export const registerAdornmentHandler = (type: string, handler: DIAdornmentHandl
 export const diAdornmentHandler: DIHandler = {
   get(resources: DIResources) {
     const { adornment, component } = resources
-    if (!adornment) return adornmentNotFoundResult
+    if (!adornment?.isVisible) return adornmentNotFoundResult
     if (!isGraphContentModel(component?.content)) return { success: false, values: { error: "Not a graph component" } }
 
     let values: Maybe<Record<string, any>> 

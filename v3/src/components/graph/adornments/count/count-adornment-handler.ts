@@ -10,15 +10,22 @@ export const countAdornmentHandler: DIAdornmentHandler = {
   get(adornment: IAdornmentModel, graphContent: IGraphContentModel) {
     if (!isCountAdornment(adornment)) return { success: false, values: { error: `Not a ${kCountType} adornment` } }
 
+    const { id, showCount, showPercent } = adornment
+
     const dataConfig = graphContent.dataConfiguration
     const cellKeys = dataConfig?.getAllCellKeys()
     const data: AdornmentData[] = []
 
     for (const cellKey of cellKeys) {
       const subPlotCases = dataConfig.subPlotCases(cellKey)
-      const dataItem: AdornmentData = {
-        count: subPlotCases.length,
-        percent: percentString(adornment.percentValue(subPlotCases.length, cellKey, dataConfig))
+      const dataItem: AdornmentData = {}
+      
+      if (showCount) {
+        dataItem.count = subPlotCases.length
+      }
+
+      if (showPercent) {
+        dataItem.percent = percentString(adornment.percentValue(subPlotCases.length, cellKey, dataConfig))
       }
     
       if (Object.keys(cellKey).length > 0) {
@@ -28,6 +35,6 @@ export const countAdornmentHandler: DIAdornmentHandler = {
       data.push(dataItem)
     }
 
-    return { id: adornment.id, data }
+    return { id, data }
   }
 }
