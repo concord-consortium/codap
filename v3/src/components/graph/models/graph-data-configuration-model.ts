@@ -274,6 +274,12 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     },
   }))
   .views(self => ({
+    get categoricalAttrsWithChangeCounts() {
+      return self.categoricalAttrs.map(attrEntry => {
+        const attr = self.dataset?.getAttribute(attrEntry.attrId)
+        return { ...attrEntry, changeCount: attr?.changeCount ?? 0 }
+      })
+    },
     getCategoriesOptions() {
       // Helper used often by adornments that usually ask about the same categories and their specifics.
       const xAttrType = self.attributeType("x")
@@ -792,7 +798,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
           { name: "GraphDataConfigurationModel yAttrDescriptions reaction", equals: comparer.structural }
         ))
         addDisposer(self, reaction(
-          () => self.getAllCellKeys(),
+          () => self.categoricalAttrsWithChangeCounts,
           () => self.clearGraphSpecificCasesCache(),
           { name: "GraphDataConfigurationModel getCellKeys reaction", equals: comparer.structural }
         ))

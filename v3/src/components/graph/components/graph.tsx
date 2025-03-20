@@ -122,7 +122,7 @@ export const Graph = observer(function Graph({graphController, setGraphRef, pixi
 
   useEffect(function handleSubPlotsUpdate() {
     return mstReaction(
-      () => graphModel.dataConfiguration.caseDataWithSubPlot,
+      () => graphModel.dataConfiguration.categoricalAttrsWithChangeCounts,
       () => {
         updateCellMasks({ dataConfig: graphModel.dataConfiguration, layout, pixiPoints })
       }, {name: "Graph.handleSubPlotsUpdate"}, graphModel
