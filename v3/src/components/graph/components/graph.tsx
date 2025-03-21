@@ -116,7 +116,7 @@ export const Graph = observer(function Graph({graphController, setGraphRef, pixi
         .attr("width", `${Math.max(0, layout.plotWidth)}px`)
         .attr("height", `${Math.max(0, layout.plotHeight)}px`)
 
-      updateCellMasks({ dataConfig: graphModel.dataConfiguration, layout, pixiPoints, resize: true })
+      updateCellMasks({ dataConfig: graphModel.dataConfiguration, layout, pixiPoints })
     }
   }, [dataset, graphModel.dataConfiguration, layout, layout.plotHeight, layout.plotWidth, pixiPoints, xScale])
 
@@ -125,7 +125,7 @@ export const Graph = observer(function Graph({graphController, setGraphRef, pixi
       () => graphModel.dataConfiguration.categoricalAttrsWithChangeCounts,
       () => {
         updateCellMasks({ dataConfig: graphModel.dataConfiguration, layout, pixiPoints })
-      }, {name: "Graph.handleSubPlotsUpdate"}, graphModel
+      }, {name: "Graph.handleSubPlotsUpdate", equals: comparer.structural}, graphModel
     )
   }, [graphModel, layout, pixiPoints])
 

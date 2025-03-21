@@ -324,14 +324,11 @@ interface IUpdateCellMasks {
   dataConfig: IGraphDataConfigurationModel
   layout: GraphLayout
   pixiPoints?: PixiPoints
-  resize?: boolean
 }
-export function updateCellMasks({ dataConfig, layout, pixiPoints, resize }: IUpdateCellMasks) {
-  if (resize) {
-    const { xCats, yCats, topCats, rightCats } = dataConfig.getCategoriesOptions()
-    pixiPoints?.resize(layout.plotWidth, layout.plotHeight,
-                      xCats.length || 1, yCats.length || 1, topCats.length || 1, rightCats.length || 1)
-  }
+export function updateCellMasks({ dataConfig, layout, pixiPoints }: IUpdateCellMasks) {
+  const { xCats, yCats, topCats, rightCats } = dataConfig.getCategoriesOptions()
+  pixiPoints?.resize(layout.plotWidth, layout.plotHeight,
+                    xCats.length || 1, yCats.length || 1, topCats.length || 1, rightCats.length || 1)
   pixiPoints?.setPointsMask(dataConfig.caseDataWithSubPlot)
 }
 

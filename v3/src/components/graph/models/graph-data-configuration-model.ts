@@ -775,8 +775,8 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     const baseClearCasesCache = self.clearCasesCache
     return {
       clearCasesCache() {
-        self.clearGraphSpecificCasesCache()
         baseClearCasesCache()
+        self.clearGraphSpecificCasesCache()
       }
     }
   })
@@ -799,7 +799,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
         ))
         addDisposer(self, reaction(
           () => self.categoricalAttrsWithChangeCounts,
-          () => self.clearGraphSpecificCasesCache(),
+          () => self.clearCasesCache(),
           { name: "GraphDataConfigurationModel getCellKeys reaction", equals: comparer.structural }
         ))
         baseAfterCreate()
