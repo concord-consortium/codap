@@ -1,17 +1,17 @@
 import React from "react"
+import { registerAdornmentHandler } from "../../../../../data-interactive/handlers/adornment-handler"
 import { registerAdornmentComponentInfo } from "../../adornment-component-info"
 import { registerAdornmentContentInfo } from "../../adornment-content-info"
 import { AdornmentCheckbox } from "../../components/adornment-checkbox"
 import { UnivariateMeasureAdornmentSimpleComponent } from "../univariate-measure-adornment-simple-component"
 import { exportUnivariateMeasure } from "../univariate-measure-adornment-utils"
+import { meanAbsoluteDeviationAdornmentHandler } from "./mean-absolute-deviation-adornment-handler"
 import {
   isMeanAbsoluteDeviationAdornment, MeanAbsoluteDeviationAdornmentModel
 } from "./mean-absolute-deviation-adornment-model"
 import {
   kMeanAbsoluteDeviationClass, kMeanAbsoluteDeviationLabelKey, kMeanAbsoluteDeviationPrefix, kMeanAbsoluteDeviationType
 } from "./mean-absolute-deviation-adornment-types"
-import { registerAdornmentHandler } from "../../../../../data-interactive/handlers/adornment-handler"
-import { meanAbsoluteDeviationAdornmentHandler } from "./mean-absolute-deviation-adornment-handler"
 
 const Controls = () => {
   return (

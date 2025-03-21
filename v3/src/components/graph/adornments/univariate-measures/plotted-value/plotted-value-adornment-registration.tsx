@@ -1,9 +1,11 @@
 import React from "react"
+import { registerAdornmentHandler } from "../../../../../data-interactive/handlers/adornment-handler"
 import { registerAdornmentComponentInfo } from "../../adornment-component-info"
 import { exportAdornmentBase, registerAdornmentContentInfo } from "../../adornment-content-info"
 import { AdornmentCheckbox } from "../../components/adornment-checkbox"
 import { PlottedValueAdornmentBanner } from "./plotted-value-adornment-banner"
 import { PlottedValueComponent } from "./plotted-value-adornment-component"
+import { plottedValueAdornmentHandler } from "./plotted-value-adornment-handler"
 import { isPlottedValueAdornment, PlottedValueAdornmentModel } from "./plotted-value-adornment-model"
 import {
   kPlottedValueClass, kPlottedValueLabelKey, kPlottedValuePrefix, kPlottedValueRedoAddKey,
@@ -11,8 +13,6 @@ import {
   kPlottedValueUndoRemoveKey
 } from "./plotted-value-adornment-types"
 import { PlottedValueFormulaAdapter } from "./plotted-value-formula-adapter"
-import { registerAdornmentHandler } from "../../../../../data-interactive/handlers/adornment-handler"
-import { plottedValueAdornmentHandler } from "./plotted-value-adornment-handler"
 
 const Controls = () => {
   return (

@@ -1,19 +1,19 @@
 import { FormControl, Checkbox } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
 import React from "react"
+import { registerAdornmentHandler } from "../../../../data-interactive/handlers/adornment-handler"
 import { logMessageWithReplacement } from "../../../../lib/log-message"
 import { t } from "../../../../utilities/translation/translate"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
 import { registerAdornmentComponentInfo } from "../adornment-component-info"
 import { exportAdornmentBase, getAdornmentContentInfo, registerAdornmentContentInfo } from "../adornment-content-info"
 import { LSRLAdornment } from "./lsrl-adornment-component"
+import { lsrlAdornmentHandler } from "./lsrl-adornment-handler"
 import { ILSRLAdornmentModel, isLSRLAdornment, LSRLAdornmentModel } from "./lsrl-adornment-model"
 import {
   kLSRLClass, kLSRLLabelKey, kLSRLPrefix, kLSRLRedoAddKey, kLSRLRedoRemoveKey, kLSRLType,
   kLSRLUndoAddKey, kLSRLUndoRemoveKey
 } from "./lsrl-adornment-types"
-import { registerAdornmentHandler } from "../../../../data-interactive/handlers/adornment-handler"
-import { lsrlAdornmentHandler } from "./lsrl-adornment-handler"
 
 function logLSRLToggle(action: "hide" | "show") {
   return logMessageWithReplacement("toggleLSRL %@", { action })

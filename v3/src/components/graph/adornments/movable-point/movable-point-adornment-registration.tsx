@@ -1,15 +1,15 @@
 import React from "react"
+import { registerAdornmentHandler } from "../../../../data-interactive/handlers/adornment-handler"
 import { registerAdornmentComponentInfo } from "../adornment-component-info"
 import { exportAdornmentBase, registerAdornmentContentInfo } from "../adornment-content-info"
 import { AdornmentCheckbox } from "../components/adornment-checkbox"
 import { MovablePointAdornment } from "./movable-point-adornment-component"
+import { movablePointAdornmentHandler } from "./movable-point-adornment-handler"
 import { isMovablePointAdornment, MovablePointAdornmentModel } from "./movable-point-adornment-model"
 import {
   kMovablePointClass, kMovablePointLabelKey, kMovablePointPrefix, kMovablePointRedoAddKey,
   kMovablePointRedoRemoveKey, kMovablePointType, kMovablePointUndoAddKey, kMovablePointUndoRemoveKey
 } from "./movable-point-adornment-types"
-import { registerAdornmentHandler } from "../../../../data-interactive/handlers/adornment-handler"
-import { movablePointAdornmentHandler } from "./movable-point-adornment-handler"
 
 const Controls = () => {
   return (

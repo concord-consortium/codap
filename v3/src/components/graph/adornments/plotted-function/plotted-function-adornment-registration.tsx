@@ -1,17 +1,17 @@
 import React from "react"
+import { registerAdornmentHandler } from "../../../../data-interactive/handlers/adornment-handler"
 import { registerAdornmentComponentInfo } from "../adornment-component-info"
 import { exportAdornmentBase, registerAdornmentContentInfo } from "../adornment-content-info"
 import { AdornmentCheckbox } from "../components/adornment-checkbox"
 import { PlottedFunctionAdornmentBanner } from "./plotted-function-adornment-banner"
 import { PlottedFunctionAdornmentComponent } from "./plotted-function-adornment-component"
+import { plottedFunctionAdornmentHandler } from "./plotted-function-adornment-handler"
 import { isPlottedFunctionAdornment, PlottedFunctionAdornmentModel } from "./plotted-function-adornment-model"
 import {
   kPlottedFunctionClass, kPlottedFunctionLabelKey, kPlottedFunctionPrefix, kPlottedFunctionRedoAddKey,
   kPlottedFunctionRedoRemoveKey, kPlottedFunctionType, kPlottedFunctionUndoAddKey, kPlottedFunctionUndoRemoveKey
 } from "./plotted-function-adornment-types"
 import { PlottedFunctionFormulaAdapter } from "./plotted-function-formula-adapter"
-import { registerAdornmentHandler } from "../../../../data-interactive/handlers/adornment-handler"
-import { plottedFunctionAdornmentHandler } from "./plotted-function-adornment-handler"
 
 const Controls = () => {
   return (

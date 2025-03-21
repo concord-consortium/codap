@@ -1,17 +1,17 @@
 import React from "react"
+import { registerAdornmentHandler } from "../../../../../data-interactive/handlers/adornment-handler"
 import { registerAdornmentComponentInfo } from "../../adornment-component-info"
 import { registerAdornmentContentInfo } from "../../adornment-content-info"
 import { AdornmentCheckbox } from "../../components/adornment-checkbox"
 import { UnivariateMeasureAdornmentSimpleComponent } from "../univariate-measure-adornment-simple-component"
 import { exportUnivariateMeasure } from "../univariate-measure-adornment-utils"
+import { standardDeviationAdornmentHandler } from "./standard-deviation-adornment-handler"
 import { isStandardDeviationAdornment, StandardDeviationAdornmentModel } from "./standard-deviation-adornment-model"
 import {
   kStandardDeviationClass, kStandardDeviationLabelKey, kStandardDeviationType, kStandardDeviationPrefix,
   kStandardDeviationUndoAddKey, kStandardDeviationRedoAddKey, kStandardDeviationRedoRemoveKey,
   kStandardDeviationUndoRemoveKey
 } from "./standard-deviation-adornment-types"
-import { registerAdornmentHandler } from "../../../../../data-interactive/handlers/adornment-handler"
-import { standardDeviationAdornmentHandler } from "./standard-deviation-adornment-handler"
 
 const Controls = () => {
   return (

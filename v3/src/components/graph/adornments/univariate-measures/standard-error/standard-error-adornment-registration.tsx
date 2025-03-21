@@ -2,6 +2,7 @@ import {
   Flex, NumberDecrementStepper, NumberIncrementStepper, NumberInput, NumberInputField, NumberInputStepper
 } from "@chakra-ui/react"
 import React, { useCallback, useEffect } from "react"
+import { registerAdornmentHandler } from "../../../../../data-interactive/handlers/adornment-handler"
 import { logMessageWithReplacement } from "../../../../../lib/log-message"
 import { translate } from "../../../../../utilities/translation/translate"
 import { useGraphContentModelContext } from "../../../hooks/use-graph-content-model-context"
@@ -10,6 +11,7 @@ import { registerAdornmentContentInfo } from "../../adornment-content-info"
 import { AdornmentCheckbox } from "../../components/adornment-checkbox"
 import { exportUnivariateMeasure } from "../univariate-measure-adornment-utils"
 import { StandardErrorAdornmentComponent } from "./standard-error-adornment-component"
+import { standardErrorAdornmentHandler } from "./standard-error-adornment-handler"
 import {
   isStandardErrorAdornment, IStandardErrorAdornmentModel, StandardErrorAdornmentModel
 } from "./standard-error-adornment-model"
@@ -18,8 +20,6 @@ import {
   kStandardErrorUndoAddKey, kStandardErrorRedoAddKey, kStandardErrorRedoRemoveKey,
   kStandardErrorUndoRemoveKey
 } from "./standard-error-adornment-types"
-import { registerAdornmentHandler } from "../../../../../data-interactive/handlers/adornment-handler"
-import { standardErrorAdornmentHandler } from "./standard-error-adornment-handler"
 
 const Controls = () => {
   const graphModel = useGraphContentModelContext()
