@@ -213,6 +213,16 @@ export interface ICodapV2GameViewStorage extends ICodapV2BaseComponentStorage {
   currentGameFormulas?: null
 }
 
+export interface ICodapV2GuideViewStorage extends ICodapV2BaseComponentStorage {
+  items: [
+    { itemTitle: string,
+      url: string
+    }
+  ],
+  currentItemIndex: number,
+  isVisible: boolean
+}
+
 interface ICodapV2Coordinates {
   x: number
   y: number
@@ -663,7 +673,6 @@ export function isV2MapCurrentStorage(obj: unknown): obj is ICodapV2MapCurrentSt
 
 export type ICodapV2MapStorage = ICodapV2MapLegacyStorage | ICodapV2MapCurrentStorage
 
-// TODO_V2_IMPORT GuideStorage is not imported
 export interface ICodapV2GuideStorage extends ICodapV2BaseComponentStorage {
   currentItemIndex?: number | null
   isVisible?: boolean
@@ -779,6 +788,13 @@ export interface ICodapV2GameViewComponent extends ICodapV2BaseComponent {
 }
 export const isV2GameViewComponent =
   (component: ICodapV2BaseComponent): component is ICodapV2GameViewComponent => component.type === "DG.GameView"
+
+export interface ICodapV2GuideViewComponent extends ICodapV2BaseComponent {
+  type: "DG.GuideView"
+  componentStorage: ICodapV2GuideViewStorage
+}
+export const isV2GuideViewComponent =
+  (component: ICodapV2BaseComponent): component is ICodapV2GuideViewComponent => component.type === "DG.GuideView"
 
 export interface ICodapV2GraphComponent extends ICodapV2BaseComponent {
   type: "DG.GraphView"
