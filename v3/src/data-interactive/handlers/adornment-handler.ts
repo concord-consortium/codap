@@ -39,7 +39,17 @@ export const diAdornmentHandler: DIHandler = {
       values = handler?.get(adornment, component.content)
     }
 
-    if (values) return { success: true, values }
+    if (values) {
+      return {
+        success: true,
+        values: {
+          id: adornment.id,
+          type: adornment.type,
+          isVisible: adornment.isVisible,
+          ...values
+        }
+      }
+    }
     return { success: false, values: { error: "Unsupported adornment type" } }
   }
 }

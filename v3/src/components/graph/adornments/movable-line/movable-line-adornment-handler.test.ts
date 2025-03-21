@@ -3,7 +3,6 @@ import { kMovableLineType } from "./movable-line-adornment-types"
 
 describe("DataInteractive movableLineAdornmentHandler", () => {
   const handler = movableLineAdornmentHandler
-  const adornmentId = "ADRN123"
 
   let mockGraphContent: any
   let mockDataConfig: any
@@ -23,7 +22,7 @@ describe("DataInteractive movableLineAdornmentHandler", () => {
     }
     
     mockMovableLineAdornment = {
-      id: adornmentId,
+      id: "ADRN123",
       isVisible: true,
       lines: mockLinesMap,
       type: kMovableLineType
@@ -43,7 +42,6 @@ describe("DataInteractive movableLineAdornmentHandler", () => {
 
   it("get returns the expected data when movable line adornment provided", () => {
     const result = handler.get?.(mockMovableLineAdornment, mockGraphContent)
-    expect(result?.id).toBe(adornmentId)
     expect(Array.isArray(result?.data)).toBe(true)
     expect(result?.data).toHaveLength(1)
     expect(result?.data[0]).toMatchObject({ intercept: 1, slope: 0.5 })

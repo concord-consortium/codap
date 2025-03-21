@@ -18,7 +18,7 @@ export const movableValueAdornmentHandler: DIAdornmentHandler = {
     for (const cellKey of cellKeys) {
       const cellKeyString = JSON.stringify(cellKey)
       const movableValues = adornment.values.get(cellKeyString)
-      const values = movableValues ? Object.values(movableValues).map(value => value) : []
+      const values = movableValues ? Object.values(movableValues) : []
       const dataItem: AdornmentData = { movableValues: values }
     
       if (Object.keys(cellKey).length > 0) {
@@ -28,6 +28,6 @@ export const movableValueAdornmentHandler: DIAdornmentHandler = {
       data.push(dataItem)
     }
 
-    return { id: adornment.id, data }
+    return { data }
   }
 }

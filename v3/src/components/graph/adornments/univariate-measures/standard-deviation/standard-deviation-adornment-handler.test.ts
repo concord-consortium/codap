@@ -3,7 +3,6 @@ import { kStandardDeviationType } from "./standard-deviation-adornment-types"
 
 describe("DataInteractive standardDeviationAdornmentHandler", () => {
   const handler = standardDeviationAdornmentHandler
-  const adornmentId = "ADRN123"
 
   let mockGraphContent: any
   let mockDataConfig: any
@@ -24,7 +23,7 @@ describe("DataInteractive standardDeviationAdornmentHandler", () => {
     
     mockStandardDeviationAdornment = {
       computeMeasureRange: jest.fn(() => { return {min: 0, max: 20} }),
-      id: adornmentId,
+      id: "ADRN123",
       isVisible: true,
       measures: mockMeasuresMap,
       type: kStandardDeviationType
@@ -44,7 +43,6 @@ describe("DataInteractive standardDeviationAdornmentHandler", () => {
 
   it("get returns the expected data when standard deviation adornment provided", () => {
     const result = handler.get?.(mockStandardDeviationAdornment, mockGraphContent)
-    expect(result?.id).toBe(adornmentId)
     expect(Array.isArray(result?.data)).toBe(true)
     expect(result?.data).toHaveLength(1)
     expect(result?.data[0]).toMatchObject({ mean: 10, min: 0, max: 20 })

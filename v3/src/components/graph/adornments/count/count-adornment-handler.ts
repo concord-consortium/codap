@@ -10,8 +10,7 @@ export const countAdornmentHandler: DIAdornmentHandler = {
   get(adornment: IAdornmentModel, graphContent: IGraphContentModel) {
     if (!isCountAdornment(adornment)) return { success: false, values: { error: `Not a ${kCountType} adornment` } }
 
-    const { id, showCount, showPercent } = adornment
-
+    const { percentType, showCount, showPercent } = adornment
     const dataConfig = graphContent.dataConfiguration
     const cellKeys = dataConfig?.getAllCellKeys()
     const data: AdornmentData[] = []
@@ -35,6 +34,6 @@ export const countAdornmentHandler: DIAdornmentHandler = {
       data.push(dataItem)
     }
 
-    return { id, data }
+    return { data, percentType, showCount, showPercent }
   }
 }

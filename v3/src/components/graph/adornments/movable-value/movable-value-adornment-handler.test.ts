@@ -3,7 +3,6 @@ import { kMovableValueType } from "./movable-value-adornment-types"
 
 describe("DataInteractive movableValueAdornmentHandler", () => {
   const handler = movableValueAdornmentHandler
-  const adornmentId = "ADRN123"
 
   let mockGraphContent: any
   let mockDataConfig: any
@@ -23,7 +22,7 @@ describe("DataInteractive movableValueAdornmentHandler", () => {
     }
     
     mockMovableValueAdornment = {
-      id: adornmentId,
+      id: "ADRN123",
       isVisible: true,
       type: kMovableValueType,
       values: mockValuesMap
@@ -43,7 +42,6 @@ describe("DataInteractive movableValueAdornmentHandler", () => {
 
   it("get returns the expected data when movable value adornment provided", () => {
     const result = handler.get?.(mockMovableValueAdornment, mockGraphContent)
-    expect(result?.id).toBe(adornmentId)
     expect(Array.isArray(result?.data)).toBe(true)
     expect(result?.data).toHaveLength(1)
     expect(result?.data[0]).toMatchObject({movableValues: [1, 3000000]})

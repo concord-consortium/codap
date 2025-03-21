@@ -37,6 +37,6 @@ export const movablePointAdornmentHandler: DIAdornmentHandler = {
       data.push(dataItem)
     }
 
-    return { id: adornment.id, data }
+    return { data }
   }
 }

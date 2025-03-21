@@ -1,10 +1,8 @@
-import { getCaseValues } from "../../../../../data-interactive/data-interactive-utils"
 import { boxPlotAdornmentHandler } from "./box-plot-adornment-handler"
 import { kBoxPlotType } from "./box-plot-adornment-types"
 
 describe("DataInteractive boxPlotAdornmentHandler", () => {
   const handler = boxPlotAdornmentHandler
-  const adornmentId = "ADRN123"
 
   let mockGraphContent: any
   let mockDataConfig: any
@@ -24,13 +22,15 @@ describe("DataInteractive boxPlotAdornmentHandler", () => {
     }
     
     mockBoxPlotAdornment = {
-      id: adornmentId,
+      id: "ADRN123",
       isVisible: true,
       getCaseValues: jest.fn(() => [1, 2, 3, 4, 5, 10, 15, 20]),
       lowerQuartile: jest.fn(() => 5),
       measures: mockMeasuresMap,
       minWhiskerValue: jest.fn(() => 0),
       maxWhiskerValue: jest.fn(() => 20),
+      showICI: false,
+      showOutliers: true,
       type: kBoxPlotType,
       upperQuartile: jest.fn(() => 15),
     }
@@ -49,7 +49,6 @@ describe("DataInteractive boxPlotAdornmentHandler", () => {
 
   it("get returns the expected data when box plot adornment provided", () => {
     const result = handler.get?.(mockBoxPlotAdornment, mockGraphContent)
-    expect(result?.id).toBe(adornmentId)
     expect(Array.isArray(result?.data)).toBe(true)
     expect(result?.data).toHaveLength(1)
     expect(result?.data[0]).toMatchObject({
@@ -60,6 +59,8 @@ describe("DataInteractive boxPlotAdornmentHandler", () => {
       upper: 20,
       upperQuartile: 15
     })
+    expect(result?.showICI).toBe(false)
+    expect(result?.showOutliers).toBe(true)
     expect(mockDataConfig.getAllCellKeys).toHaveBeenCalled()
   })
 })

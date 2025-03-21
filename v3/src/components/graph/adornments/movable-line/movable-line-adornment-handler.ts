@@ -30,6 +30,6 @@ export const movableLineAdornmentHandler: DIAdornmentHandler = {
       data.push(dataItem)
     }
 
-    return { id: adornment.id, data }
+    return { data }
   }
 }

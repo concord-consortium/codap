@@ -9,6 +9,7 @@ export const boxPlotAdornmentHandler: DIAdornmentHandler = {
   get(adornment: IAdornmentModel, graphContent: IGraphContentModel) {
     if (!isBoxPlotAdornment(adornment)) return { success: false, values: { error: `Not a ${kBoxPlotType} adornment` } }
 
+    const { showICI, showOutliers } = adornment
     const dataConfig = graphContent.dataConfiguration
     const cellKeys = dataConfig?.getAllCellKeys()
     const data: AdornmentData[] = []
@@ -39,6 +40,6 @@ export const boxPlotAdornmentHandler: DIAdornmentHandler = {
       data.push(dataItem)
     }
 
-    return { id: adornment.id, data }
+    return { data, showICI, showOutliers }
   }
 }

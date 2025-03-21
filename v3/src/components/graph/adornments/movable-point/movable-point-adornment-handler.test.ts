@@ -3,7 +3,6 @@ import { kMovablePointType } from "./movable-point-adornment-types"
 
 describe("DataInteractive movablePointAdornmentHandler", () => {
   const handler = movablePointAdornmentHandler
-  const adornmentId = "ADRN123"
 
   let mockGraphContent: any
   let mockDataConfig: any
@@ -26,7 +25,7 @@ describe("DataInteractive movablePointAdornmentHandler", () => {
     }
     
     mockMovablePointAdornment = {
-      id: adornmentId,
+      id: "ADRN123",
       isVisible: true,
       points: mockPointsMap,
       type: kMovablePointType
@@ -46,7 +45,6 @@ describe("DataInteractive movablePointAdornmentHandler", () => {
 
   it("get returns the expected data when movable point adornment provided", () => {
     const result = handler.get?.(mockMovablePointAdornment, mockGraphContent)
-    expect(result?.id).toBe(adornmentId)
     expect(Array.isArray(result?.data)).toBe(true)
     expect(result?.data).toHaveLength(1)
     expect(result?.data[0]).toMatchObject({ lifeSpan: 1, mass: 2 })

@@ -10,9 +10,9 @@ export const plottedFunctionAdornmentHandler: DIAdornmentHandler = {
       return { success: false, values: { error: `Not a ${kPlottedFunctionType} adornment` } }
     }
 
-    const { formula: _formula, id } = adornment
-    const formula = JSON.stringify(_formula.canonical)
+    const { error, formula: _formula } = adornment
+    const formula = JSON.stringify(_formula.display)
 
-    return { formula, id }
+    return { error, formula }
   }
 }

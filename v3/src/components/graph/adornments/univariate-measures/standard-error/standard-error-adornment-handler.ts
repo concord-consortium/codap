@@ -11,6 +11,7 @@ export const standardErrorAdornmentHandler: DIAdornmentHandler = {
       return { success: false, values: { error: `Not a ${kStandardErrorType} adornment` } }
     }
 
+    const { _numStErrs } = adornment
     const dataConfig = graphContent.dataConfiguration
     const cellKeys = dataConfig?.getAllCellKeys()
     const data: AdornmentData[] = []
@@ -29,6 +30,6 @@ export const standardErrorAdornmentHandler: DIAdornmentHandler = {
       data.push(dataItem)
     }
 
-    return { id: adornment.id, data }
+    return { data, _numStErrs }
   }
 }

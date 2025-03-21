@@ -3,7 +3,6 @@ import { kCountType } from "./count-adornment-types"
 
 describe("DataInteractive CountAdornmentHandler", () => {
   const handler = countAdornmentHandler
-  const adornmentId = "ADRN123"
 
   let mockGraphContent: any
   let mockDataConfig: any
@@ -20,9 +19,10 @@ describe("DataInteractive CountAdornmentHandler", () => {
     }
     
     mockCountAdornment = {
-      id: adornmentId,
+      id: "ADRN123",
       isVisible: true,
       percentValue: jest.fn(() => 0.5),
+      percentType: "cell",
       showCount: true,
       showPercent: true,
       type: kCountType
@@ -42,10 +42,12 @@ describe("DataInteractive CountAdornmentHandler", () => {
 
   it("get returns the expected data when count adornment provided", () => {
     const result = handler.get?.(mockCountAdornment, mockGraphContent)
-    expect(result?.id).toBe(adornmentId)
     expect(Array.isArray(result?.data)).toBe(true)
     expect(result?.data).toHaveLength(1)
     expect(result?.data[0]).toMatchObject({ count: 2, percent: "50%" })
+    expect(result?.percentType).toBe("cell")
+    expect(result?.showCount).toBe(true)
+    expect(result?.showPercent).toBe(true)
     expect(mockDataConfig.getAllCellKeys).toHaveBeenCalled()
     expect(mockDataConfig.subPlotCases).toHaveBeenCalled()
   })

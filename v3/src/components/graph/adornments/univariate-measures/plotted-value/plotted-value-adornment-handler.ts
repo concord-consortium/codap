@@ -11,6 +11,8 @@ export const plottedValueAdornmentHandler: DIAdornmentHandler = {
       return { success: false, values: { error: `Not a ${kPlottedValueType} adornment` } }
     }
 
+    const { error, formula: _formula } = adornment
+    const formula = JSON.stringify(_formula.display)
     const dataConfig = graphContent.dataConfiguration
     const cellKeys = dataConfig?.getAllCellKeys()
     const data: AdornmentData[] = []
@@ -27,6 +29,6 @@ export const plottedValueAdornmentHandler: DIAdornmentHandler = {
       data.push(dataItem)
     }
 
-    return { id: adornment.id, data }
+    return { data, error, formula }
   }
 }

@@ -3,14 +3,14 @@ import { kPlottedValueType } from "./plotted-value-adornment-types"
 
 describe("DataInteractive plottedValueAdornmentHandler", () => {
   const handler = plottedValueAdornmentHandler
-  const adornmentId = "ADRN123"
+  const formula = { display: "y = 2x" }
 
   let mockGraphContent: any
   let mockDataConfig: any
   let mockPlottedValueAdornment: any
   let mockInvalidAdornment: any
   const mockPlottedValuesMap = new Map([
-    ["{}", {value: 1}]
+    ["{}", { value: 1 }]
   ])
 
   beforeEach(() => {
@@ -23,7 +23,9 @@ describe("DataInteractive plottedValueAdornmentHandler", () => {
     }
     
     mockPlottedValueAdornment = {
-      id: adornmentId,
+      error: "",
+      formula,
+      id: "ADRN123",
       isVisible: true,
       measures: mockPlottedValuesMap,
       type: kPlottedValueType
@@ -43,10 +45,11 @@ describe("DataInteractive plottedValueAdornmentHandler", () => {
 
   it("get returns the expected data when plotted value adornment provided", () => {
     const result = handler.get?.(mockPlottedValueAdornment, mockGraphContent)
-    expect(result?.id).toBe(adornmentId)
     expect(Array.isArray(result?.data)).toBe(true)
     expect(result?.data).toHaveLength(1)
-    expect(result?.data[0]).toMatchObject({plottedValue: 1})
+    expect(result?.data[0]).toMatchObject({ plottedValue: 1 })
+    expect(result?.error).toBe("")
+    expect(result?.formula).toBe(JSON.stringify(formula.display))
     expect(mockDataConfig.getAllCellKeys).toHaveBeenCalled()
   })
 })

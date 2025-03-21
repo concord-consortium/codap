@@ -3,7 +3,6 @@ import { kMeanType } from "./mean-adornment-types"
 
 describe("DataInteractive meanAdornmentHandler", () => {
   const handler = meanAdornmentHandler
-  const adornmentId = "ADRN123"
 
   let mockGraphContent: any
   let mockDataConfig: any
@@ -23,7 +22,7 @@ describe("DataInteractive meanAdornmentHandler", () => {
     }
     
     mockMeanAdornment = {
-      id: adornmentId,
+      id: "ADRN123",
       isVisible: true,
       measures: mockMeasuresMap,
       type: kMeanType
@@ -43,7 +42,6 @@ describe("DataInteractive meanAdornmentHandler", () => {
 
   it("get returns the expected data when mean adornment provided", () => {
     const result = handler.get?.(mockMeanAdornment, mockGraphContent)
-    expect(result?.id).toBe(adornmentId)
     expect(Array.isArray(result?.data)).toBe(true)
     expect(result?.data).toHaveLength(1)
     expect(result?.data[0]).toMatchObject({ mean: 10 })

@@ -3,8 +3,7 @@ import { kPlottedFunctionType } from "./plotted-function-adornment-types"
 
 describe("DataInteractive plottedFunctionAdornmentHandler", () => {
   const handler = plottedFunctionAdornmentHandler
-  const adornmentId = "ADRN123"
-  const formula = { canonical: "y = 2x" }
+  const formula = { display: "y = 2x" }
 
   let mockGraphContent: any
   let mockDataConfig: any
@@ -21,8 +20,9 @@ describe("DataInteractive plottedFunctionAdornmentHandler", () => {
     }
     
     mockPlottedFunctionAdornment = {
+      adornmentId: "ADRN123",
+      error: "",
       formula,
-      id: adornmentId,
       isVisible: true,
       type: kPlottedFunctionType
     }
@@ -41,7 +41,7 @@ describe("DataInteractive plottedFunctionAdornmentHandler", () => {
 
   it("get returns the expected data when plotted function adornment provided", () => {
     const result = handler.get?.(mockPlottedFunctionAdornment, mockGraphContent)
-    expect(result?.id).toBe(adornmentId)
-    expect(result?.formula).toBe(JSON.stringify(formula.canonical))
+    expect(result?.error).toBe("")
+    expect(result?.formula).toBe(JSON.stringify(formula.display))
   })
 })

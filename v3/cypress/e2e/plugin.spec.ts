@@ -211,6 +211,8 @@ context("codap plugins", () => {
         const response = JSON.parse(value.eq(1).text())
         const countInfo = response.values
         expect(countInfo.id).to.be.a("string")
+        expect(countInfo.isVisible).to.be.a("boolean")
+        expect(countInfo.type).to.eq("Count")
         expect(countInfo.data[0]).to.haveOwnProperty("count")
         expect(countInfo.data[0].count).to.be.a("number")
       })

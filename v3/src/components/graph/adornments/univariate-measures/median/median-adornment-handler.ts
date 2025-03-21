@@ -25,6 +25,6 @@ export const medianAdornmentHandler: DIAdornmentHandler = {
       data.push(dataItem)
     }
 
-    return { id: adornment.id, data }
+    return { data }
   }
 }

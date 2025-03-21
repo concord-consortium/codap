@@ -3,7 +3,6 @@ import { kLSRLType } from "./lsrl-adornment-types"
 
 describe("DataInteractive lsrlAdornmentHandler", () => {
   const handler = lsrlAdornmentHandler
-  const adornmentId = "ADRN123"
 
   let mockGraphContent: any
   let mockDataConfig: any
@@ -25,9 +24,10 @@ describe("DataInteractive lsrlAdornmentHandler", () => {
     }
     
     mockLSRLAdornment = {
-      id: adornmentId,
+      id: "ADRN123",
       isVisible: true,
       lines: mockLinesMap,
+      showConfidenceBands: true,
       type: kLSRLType
     }
 
@@ -45,12 +45,12 @@ describe("DataInteractive lsrlAdornmentHandler", () => {
 
   it("get returns the expected data when LSRL adornment provided", () => {
     const result = handler.get?.(mockLSRLAdornment, mockGraphContent)
-    expect(result?.id).toBe(adornmentId)
     expect(Array.isArray(result?.data)).toBe(true)
     expect(result?.data).toHaveLength(1)
     expect(result?.data[0]).toMatchObject({
       category: "category", intercept: 1, rSquared: 0.5, sdResiduals: 0.5, slope: 0.5
     })
+    expect(result?.showConfidenceBands).toBe(true)
     expect(mockDataConfig.getAllCellKeys).toHaveBeenCalled()
   })
 })

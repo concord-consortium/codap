@@ -11,6 +11,7 @@ export const lsrlAdornmentHandler: DIAdornmentHandler = {
       return { success: false, values: { error: `Not an ${kLSRLType} adornment` } }
     }
 
+    const { showConfidenceBands } = adornment
     const dataConfig = graphContent.dataConfiguration
     const cellKeys = dataConfig?.getAllCellKeys()
     const data: AdornmentData[] = []
@@ -39,7 +40,7 @@ export const lsrlAdornmentHandler: DIAdornmentHandler = {
       data.push(dataItem)
     }
 
-    return { id: adornment.id, data }
+    return { data, showConfidenceBands }
   }
 }
 

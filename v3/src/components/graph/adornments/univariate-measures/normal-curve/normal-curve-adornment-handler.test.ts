@@ -3,7 +3,6 @@ import { kNormalCurveType } from "./normal-curve-adornment-types"
 
 describe("DataInteractive normalCurveAdornmentHandler", () => {
   const handler = normalCurveAdornmentHandler
-  const adornmentId = "ADRN123"
 
   let mockGraphContent: any
   let mockDataConfig: any
@@ -26,7 +25,7 @@ describe("DataInteractive normalCurveAdornmentHandler", () => {
       computeMean: jest.fn(() => 24),
       computeStandardDeviation: jest.fn(() => 20),
       computeStandardError: jest.fn(() => 4),
-      id: adornmentId,
+      id: "ADRN123",
       isVisible: true,
       measures: mockMeasuresMap,
       type: kNormalCurveType
@@ -46,7 +45,6 @@ describe("DataInteractive normalCurveAdornmentHandler", () => {
 
   it("get returns the expected data when normalCurve adornment provided", () => {
     const result = handler.get?.(mockNormalCurveAdornment, mockGraphContent)
-    expect(result?.id).toBe(adornmentId)
     expect(Array.isArray(result?.data)).toBe(true)
     expect(result?.data).toHaveLength(1)
     expect(result?.data[0]).toMatchObject({

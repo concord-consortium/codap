@@ -3,7 +3,6 @@ import { kStandardErrorType } from "./standard-error-adornment-types"
 
 describe("DataInteractive standardErrorAdornmentHandler", () => {
   const handler = standardErrorAdornmentHandler
-  const adornmentId = "ADRN123"
 
   let mockGraphContent: any
   let mockDataConfig: any
@@ -23,8 +22,9 @@ describe("DataInteractive standardErrorAdornmentHandler", () => {
     }
     
     mockStandardErrorAdornment = {
+      _numStErrs: 1,
       computeMeasureRange: jest.fn(() => { return {min: 20, max: 28} }),
-      id: adornmentId,
+      id: "ADRN123",
       isVisible: true,
       measures: mockMeasuresMap,
       type: kStandardErrorType
@@ -44,7 +44,7 @@ describe("DataInteractive standardErrorAdornmentHandler", () => {
 
   it("get returns the expected data when standard error adornment provided", () => {
     const result = handler.get?.(mockStandardErrorAdornment, mockGraphContent)
-    expect(result?.id).toBe(adornmentId)
+    expect(result?._numStErrs).toBe(1)
     expect(Array.isArray(result?.data)).toBe(true)
     expect(result?.data).toHaveLength(1)
     expect(result?.data[0]).toMatchObject({ standardError: 4, min: 20, max: 28 })
