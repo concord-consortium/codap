@@ -34,7 +34,7 @@ export const diAttributeHandler: DIHandler = {
       return { success: true }
     }).filter(error => !error.success)
     if (attributeErrors.length > 0) return attributeErrors[0]
-    if (!metadata && !Array.isArray(values) && 'colormap' in values && values.colormap) {
+    if (attributeValues.some(attribute => !!attribute.colormap) && !metadata) {
       return sharedCaseMetadaNotFoundResult
     }
     // Create the attributes

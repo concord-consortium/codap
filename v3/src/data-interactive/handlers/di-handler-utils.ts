@@ -10,6 +10,15 @@ import { hasOwnProperty } from "../../utilities/js-utils"
 import { DIAttribute, DICategoryColorMap, DICollection } from "../data-interactive-data-set-types"
 import { convertValuesToAttributeSnapshot } from "../data-interactive-type-utils"
 
+function applyColormap(attributeId: string, colormap: DICategoryColorMap, metadata?: ISharedCaseMetadata) {
+  if (metadata) {
+    const categorySet = metadata.getCategorySet(attributeId)
+    Object.entries(colormap).forEach(([category, color]) => {
+      categorySet?.setColorForCategory(category, color)
+    })
+  }
+}
+
 export function createAttribute(value: DIAttribute, dataContext: IDataSet, collection?: ICollectionModel,
                                 metadata?: ISharedCaseMetadata) {
   const attributeSnapshot = convertValuesToAttributeSnapshot(value)
@@ -17,11 +26,8 @@ export function createAttribute(value: DIAttribute, dataContext: IDataSet, colle
     const attribute = dataContext.addAttribute(attributeSnapshot, { collection: collection?.id })
     if (value.formula) attribute.formula?.setDisplayExpression(value.formula)
     metadata?.setIsHidden(attribute.id, !!value.hidden)
-    if (value.colormap != null && metadata) {
-        const categorySet = metadata.getCategorySet(attribute.id)
-        Object.entries(value.colormap as DICategoryColorMap || {}).forEach(([category, color]) => {
-          categorySet?.setColorForCategory(category, color ?? (categorySet.colorMap[category] || ""))
-        })
+    if (value.colormap) {
+      applyColormap(attribute.id, value.colormap as DICategoryColorMap, metadata)
     }
     return attribute
   }
@@ -43,6 +49,8 @@ export function createCollection(v2collection: DICollection, dataContext: IDataS
 }
 
 export function updateAttribute(attribute: IAttribute, value: DIAttribute, dataContext?: IDataSet) {
+  const metadata = dataContext ? getSharedCaseMetadataFromDataset(dataContext) : undefined
+
   if (value?.cid != null) attribute.setCid(value.cid)
   if (value?.deleteable != null) attribute.setDeleteable(value.deleteable)
   if (value?.description != null) attribute.setDescription(value.description)
@@ -56,18 +64,9 @@ export function updateAttribute(attribute: IAttribute, value: DIAttribute, dataC
   if (isAttributeType(value?.type)) attribute.setUserType(value.type)
   if (value?.unit != null) attribute.setUnits(value.unit)
   if (value?.hidden != null) {
-    if (dataContext) {
-      const metadata = getSharedCaseMetadataFromDataset(dataContext)
-      metadata?.setIsHidden(attribute.id, value.hidden)
-    }
+    metadata?.setIsHidden(attribute.id, value.hidden)
   }
   if (value?.colormap != null) {
-    if (dataContext) {
-      const metadata = getSharedCaseMetadataFromDataset(dataContext)
-      const categorySet = metadata?.getCategorySet(attribute.id)
-      Object.entries(value?.colormap as DICategoryColorMap || {}).forEach(([category, color]) => {
-        categorySet?.setColorForCategory(category, color || categorySet.colorMap[category] || "")
-      })
-    }
+    applyColormap(attribute.id, value.colormap as DICategoryColorMap, metadata)
   }
 }

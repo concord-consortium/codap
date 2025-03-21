@@ -115,4 +115,4 @@ export interface DIDeleteCollectionResult {
   collections?: number[]
 }
 
-export type DICategoryColorMap = Record<string, string | undefined>
+export type DICategoryColorMap = Record<string, string>

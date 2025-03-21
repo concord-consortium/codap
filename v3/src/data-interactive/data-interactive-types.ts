@@ -8,7 +8,7 @@ import { IGlobalValue } from "../models/global/global-value"
 import { ITileModel } from "../models/tiles/tile-model"
 import { V2SpecificComponent } from "./data-interactive-component-types"
 import {
-  DIAllCases, DIAttribute, DIAttributeLocationValues, DICase, DICategoryColorMap, DICreateCollection,
+  DIAllCases, DIAttribute, DIAttributeLocationValues, DICase, DICreateCollection,
   DIDataContext, DIDeleteCollectionResult, DIGetCaseResult, DIItemValues, DINewCase,
   DINotifyAttribute, DINotifyDataContext, DIResultAttributes, DIUpdateCase, DIUpdateItemResult
 } from "./data-interactive-data-set-types"
@@ -76,7 +76,6 @@ export interface DIResources {
   caseSearch?: ICase[]
   collection?: ICollectionModel
   collectionList?: ICollectionModel[]
-  colorMap?: DICategoryColorMap
   component?: DIComponent
   dataContext?: IDataSet
   dataContextList?: IDataSet[]
@@ -95,14 +94,14 @@ export interface DIResources {
 // types for values accepted as inputs by the API
 export type DISingleValues = DIAttribute | DINotifyAttribute | DIAttributeLocationValues | DICase | DIDataContext |
   DINotifyDataContext | DIGlobal | DIInteractiveFrame | DIItemValues | DICreateCollection | DINewCase | DIUpdateCase |
-  DINotification | DIItemSearchNotify | DILogMessage | DIUrl | V2SpecificComponent | DICategoryColorMap
+  DINotification | DIItemSearchNotify | DILogMessage | DIUrl | V2SpecificComponent
 export type DIValues = DISingleValues | DISingleValues[] | number | string[]
 
 // types returned as outputs by the API
 export type DIResultSingleValues = DICase | DIComponentInfo |  DIDataDisplay | DIGetCaseResult | DIGlobal
   | DIInteractiveFrame
 
-export type DIResultValues = DIResultSingleValues | DIResultSingleValues[] | DICategoryColorMap |
+export type DIResultValues = DIResultSingleValues | DIResultSingleValues[] |
   DIAllCases | DIDeleteCollectionResult | DIUpdateItemResult | DIResultAttributes | number | number[]
 
 export interface DIMetadata {
