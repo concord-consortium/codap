@@ -964,7 +964,10 @@ DG.DocumentController = SC.Object.extend(
               },
               position: iComponent && iComponent.position,
               title: tGameName,
-              useLayout: !!tLayout,
+              // In the early days we always wanted a plugin (game) to appear at the topLeft of the document,
+              // but that is no longer the case, so we do not set useLayout this way because it prevents positioning
+              // of plugin components to take place by finding available space.
+              // useLayout: !!tLayout,
               positionOnCreate: true
             });
             if (!tIsVisible) {
