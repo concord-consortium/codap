@@ -111,7 +111,7 @@ export function findTileFromNameOrId(nameOrId: string) {
   const { content } = appState.document
   if (content) {
     return Array.from(content.tileMap.values()).find(tile => {
-      if (tile.name === nameOrId || tile.id === nameOrId) return true
+      if (tile.matchTitleOrNameOrId(nameOrId)) return true
       const { content: { type } } = tile
       const tileInfo = getTileContentInfo(type)
       if (tileInfo?.prefix && tile.id === toV3Id(tileInfo.prefix, nameOrId)) return true
