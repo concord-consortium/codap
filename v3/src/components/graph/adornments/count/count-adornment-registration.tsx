@@ -1,5 +1,6 @@
 import React, { useState } from "react"
 import { FormControl, Checkbox, RadioGroup, Radio } from "@chakra-ui/react"
+import { registerAdornmentHandler } from "../../../../data-interactive/handlers/adornment-handler"
 import { logMessageWithReplacement } from "../../../../lib/log-message"
 import { t } from "../../../../utilities/translation/translate"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
@@ -10,6 +11,7 @@ import {
 } from "../adornment-content-info"
 import { IAdornmentModel } from "../adornment-models"
 import { CountAdornment } from "./count-adornment-component"
+import { countAdornmentHandler } from "./count-adornment-handler"
 import { CountAdornmentModel, ICountAdornmentModel, isCountAdornment } from "./count-adornment-model"
 import { kCountClass, kCountLabelKey, kCountPrefix, kCountType, kPercentLabelKey } from "./count-adornment-types"
 
@@ -161,3 +163,5 @@ registerAdornmentComponentInfo({
   order: 10,
   type: kCountType
 })
+
+registerAdornmentHandler(kCountType, countAdornmentHandler, "Percent")

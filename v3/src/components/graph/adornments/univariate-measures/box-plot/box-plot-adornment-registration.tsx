@@ -1,6 +1,7 @@
 import { FormControl, Checkbox } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
 import React from "react"
+import { registerAdornmentHandler } from "../../../../../data-interactive/handlers/adornment-handler"
 import { logMessageWithReplacement } from "../../../../../lib/log-message"
 import { getDocumentContentPropertyFromNode } from "../../../../../utilities/mst-utils"
 import { t } from "../../../../../utilities/translation/translate"
@@ -9,6 +10,7 @@ import { registerAdornmentComponentInfo } from "../../adornment-component-info"
 import { getAdornmentContentInfo, registerAdornmentContentInfo } from "../../adornment-content-info"
 import { exportUnivariateMeasure } from "../univariate-measure-adornment-utils"
 import { BoxPlotAdornmentComponent } from "./box-plot-adornment-component"
+import { boxPlotAdornmentHandler } from "./box-plot-adornment-handler"
 import { BoxPlotAdornmentModel, IBoxPlotAdornmentModel, isBoxPlotAdornment } from "./box-plot-adornment-model"
 import {
   kBoxPlotClass, kBoxPlotLabelKey, kBoxPlotPrefix, kBoxPlotRedoAddKey, kBoxPlotRedoRemoveKey,
@@ -147,3 +149,5 @@ registerAdornmentComponentInfo({
   order: 10,
   type: kBoxPlotType
 })
+
+registerAdornmentHandler(kBoxPlotType, boxPlotAdornmentHandler)

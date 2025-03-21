@@ -68,6 +68,9 @@ export const NormalCurveAdornmentModel = UnivariateMeasureAdornmentModel
       }
       return results
     },
+    computeMeasureValue(attrId: string, cellKey: Record<string, string>, dataConfig: IGraphDataConfigurationModel) {
+      // no op
+    }
   }))
 
 export interface INormalCurveAdornmentModelSnapshot extends SnapshotIn<typeof NormalCurveAdornmentModel> {}
