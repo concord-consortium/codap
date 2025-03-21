@@ -13,9 +13,9 @@ export const boxPlotAdornmentHandler: DIAdornmentHandler = {
     const dataConfig = graphContent.dataConfiguration
     const cellKeys = dataConfig?.getAllCellKeys()
     const data: AdornmentData[] = []
+    const primaryAttrId = dataConfig?.primaryAttributeID
 
     for (const cellKey of cellKeys) {
-      const primaryAttrId = dataConfig?.primaryAttributeID
       const cellKeyString = JSON.stringify(cellKey)
       const cellCaseValues = adornment.getCaseValues(primaryAttrId, cellKey, dataConfig)
       const median = adornment.measures.get(cellKeyString)?.value ?? NaN

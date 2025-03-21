@@ -10,12 +10,11 @@ export const movablePointAdornmentHandler: DIAdornmentHandler = {
     if (!isMovablePointAdornment(adornment)) return adornmentMismatchResult(kMovablePointType)
 
     const dataConfig = graphContent.dataConfiguration
-    const cellKeys = dataConfig?.getAllCellKeys()
-    const allAttributes = dataConfig?.dataset?.attributes
-    const xAttrId = dataConfig?.attributeID("x") || ""
-    const yAttrId = dataConfig?.attributeID("y") || ""
-    const xAttr = allAttributes?.find(attr => attr.id === xAttrId)
-    const yAttr = allAttributes?.find(attr => attr.id === yAttrId)
+    const cellKeys = dataConfig.getAllCellKeys()
+    const xAttrId = dataConfig.attributeID("x") || ""
+    const yAttrId = dataConfig.attributeID("y") || ""
+    const xAttr = dataConfig.dataset?.getAttribute(xAttrId)
+    const yAttr = dataConfig.dataset?.getAttribute(yAttrId)
     const xAttrName = xAttr?.name ?? ""
     const yAttrName = yAttr?.name ?? ""
     const data: AdornmentData[] = []

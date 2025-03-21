@@ -15,7 +15,10 @@ describe("DataInteractive movablePointAdornmentHandler", () => {
   beforeEach(() => {
     mockDataConfig = {
       attributeID: jest.fn((axis) => axis === "x" ? "idX" : "idY"),
-      dataset: { attributes: [{ id: "idX", name: "lifeSpan" }, { id: "idY", name: "mass" }] },
+      dataset: {
+        attributes: [{ id: "idX", name: "lifeSpan" }, { id: "idY", name: "mass" }],
+        getAttribute: jest.fn((id) => ({ id, name: id === "idX" ? "lifeSpan" : "mass" }))
+      },
       getAllCellKeys: jest.fn(() => [{}]),
       getAttribute: jest.fn((axis) => axis === "x" ? "lifeSpan" : "mass"),
       subPlotCases: jest.fn(() => [{ id: "case1" }, { id: "case2" }])
