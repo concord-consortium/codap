@@ -38,7 +38,7 @@ describe("DataInteractive standardDeviationAdornmentHandler", () => {
   it("get returns an error when an invalid adornment provided", () => {
     const result = handler.get?.(mockInvalidAdornment, mockGraphContent)
     expect(result?.success).toBe(false)
-    expect(result?.values.error).toBe(`Not a ${kStandardDeviationType} adornment`)
+    expect(result?.values.error).toBe(`Not a(n) ${kStandardDeviationType} adornment.`)
   })
 
   it("get returns the expected data when standard deviation adornment provided", () => {

@@ -1,4 +1,4 @@
-import { cellKeyToCategories } from "./adornment-handler-utils"
+import { adornmentMismatchResult, cellKeyToCategories } from "./adornment-handler-utils"
 
 describe("cellKeyToCategories", () => {
   let mockDataConfig: any
@@ -26,5 +26,17 @@ describe("cellKeyToCategories", () => {
     const cellKey2 = { ATTR1: "category value 2" }
     const result2 = cellKeyToCategories(cellKey2, mockDataConfig)
     expect(result2).toEqual({"Category Name": "category value 2"})
+  })
+})
+
+describe("adornmentMismatchResult", () => {
+  it("should return an error message", () => {
+    const result = adornmentMismatchResult("mockAdornmentType")
+    expect(result).toEqual({
+      success: false,
+      values: {
+        error: "Not a(n) mockAdornmentType adornment."
+      }
+    })
   })
 })

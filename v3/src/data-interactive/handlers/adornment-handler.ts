@@ -1,8 +1,9 @@
 import { IAdornmentModel } from "../../components/graph/adornments/adornment-models"
 import { IGraphContentModel, isGraphContentModel } from "../../components/graph/models/graph-content-model"
+import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIHandler, DIResources } from "../data-interactive-types"
-import { adornmentNotFoundResult } from "./di-results"
+import { adornmentNotFoundResult, adornmentNotSupportedResult, errorResult } from "./di-results"
 
 export interface DIAdornmentHandler {
   get: (adornment: IAdornmentModel, component: IGraphContentModel) => Maybe<Record<string, any>>
@@ -29,8 +30,10 @@ export const resolveAdornmentType = (typeOrAlias: unknown) => {
 export const diAdornmentHandler: DIHandler = {
   get(resources: DIResources) {
     const { adornment, component } = resources
-    if (!adornment?.isVisible) return adornmentNotFoundResult
-    if (!isGraphContentModel(component?.content)) return { success: false, values: { error: "Not a graph component" } }
+    if (!isGraphContentModel(component?.content)) {
+      return errorResult(t("V3.DI.Error.unsupportedComponent", { vars: [component?.content.type] }))
+    }
+    if (!adornment) return adornmentNotFoundResult
 
     let values: Maybe<Record<string, any>>
     const handler = diAdornmentHandlers.get(adornment.type)
@@ -50,7 +53,8 @@ export const diAdornmentHandler: DIHandler = {
         }
       }
     }
-    return { success: false, values: { error: "Unsupported adornment type" } }
+
+    return adornmentNotSupportedResult
   }
 }
 

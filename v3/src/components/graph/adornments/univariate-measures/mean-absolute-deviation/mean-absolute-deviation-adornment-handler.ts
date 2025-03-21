@@ -1,15 +1,13 @@
 import { DIAdornmentHandler } from "../../../../../data-interactive/handlers/adornment-handler"
 import { IGraphContentModel } from "../../../models/graph-content-model"
 import { IAdornmentModel } from "../../adornment-models"
-import { AdornmentData, cellKeyToCategories } from "../../utilities/adornment-handler-utils"
+import { AdornmentData, adornmentMismatchResult, cellKeyToCategories } from "../../utilities/adornment-handler-utils"
 import { isMeanAbsoluteDeviationAdornment } from "./mean-absolute-deviation-adornment-model"
 import { kMeanAbsoluteDeviationType } from "./mean-absolute-deviation-adornment-types"
 
 export const meanAbsoluteDeviationAdornmentHandler: DIAdornmentHandler = {
   get(adornment: IAdornmentModel, graphContent: IGraphContentModel) {
-    if (!isMeanAbsoluteDeviationAdornment(adornment)) {
-      return { success: false, values: { error: `Not a ${kMeanAbsoluteDeviationType} adornment` } }
-    }
+    if (!isMeanAbsoluteDeviationAdornment(adornment)) return adornmentMismatchResult(kMeanAbsoluteDeviationType)
 
     const dataConfig = graphContent.dataConfiguration
     const cellKeys = dataConfig?.getAllCellKeys()

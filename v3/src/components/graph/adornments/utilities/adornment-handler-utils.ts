@@ -1,3 +1,5 @@
+import { errorResult } from "../../../../data-interactive/handlers/di-results"
+import { t } from "../../../../utilities/translation/translate"
 import { IDataConfigurationModel } from "../../../data-display/models/data-configuration-model"
 
 export type AdornmentData = {
@@ -12,4 +14,8 @@ export const cellKeyToCategories = (cellKey: Record<string, string>, dataConfig:
   }
 
   return categories
+}
+
+export const adornmentMismatchResult = (adornmentType: string) => {
+  return errorResult(t("V3.DI.Error.adornmentMismatch", { vars: [adornmentType] }))
 }

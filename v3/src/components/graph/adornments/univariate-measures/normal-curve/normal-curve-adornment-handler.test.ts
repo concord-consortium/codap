@@ -40,7 +40,7 @@ describe("DataInteractive normalCurveAdornmentHandler", () => {
   it("get returns an error when an invalid adornment provided", () => {
     const result = handler.get?.(mockInvalidAdornment, mockGraphContent)
     expect(result?.success).toBe(false)
-    expect(result?.values.error).toBe(`Not a ${kNormalCurveType} adornment`)
+    expect(result?.values.error).toBe(`Not a(n) ${kNormalCurveType} adornment.`)
   })
 
   it("get returns the expected data when normalCurve adornment provided", () => {

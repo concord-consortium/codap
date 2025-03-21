@@ -38,7 +38,7 @@ describe("DataInteractive meanAbsoluteDeviationAdornmentHandler", () => {
   it("get returns an error when a an invalid adornment provided", () => {
     const result = handler.get?.(mockInvalidAdornment, mockGraphContent)
     expect(result?.success).toBe(false)
-    expect(result?.values.error).toBe(`Not a ${kMeanAbsoluteDeviationType} adornment`)
+    expect(result?.values.error).toBe(`Not a(n) ${kMeanAbsoluteDeviationType} adornment.`)
   })
 
   it("get returns the expected data when mean absolute deviation adornment provided", () => {

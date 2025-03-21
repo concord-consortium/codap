@@ -37,7 +37,7 @@ describe("DataInteractive CountAdornmentHandler", () => {
   it("get returns an error when an invalid adornment provided", () => {
     const result = handler.get?.(mockInvalidAdornment, mockGraphContent)
     expect(result?.success).toBe(false)
-    expect(result?.values.error).toBe(`Not a ${kCountType} adornment`)
+    expect(result?.values.error).toBe(`Not a(n) ${kCountType} adornment.`)
   })
 
   it("get returns the expected data when count adornment provided", () => {

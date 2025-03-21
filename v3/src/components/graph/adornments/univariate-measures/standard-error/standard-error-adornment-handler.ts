@@ -2,14 +2,12 @@ import { DIAdornmentHandler } from "../../../../../data-interactive/handlers/ado
 import { IAdornmentModel } from "../../adornment-models"
 import { isStandardErrorAdornment } from "./standard-error-adornment-model"
 import { IGraphContentModel } from "../../../models/graph-content-model"
-import { AdornmentData, cellKeyToCategories } from "../../utilities/adornment-handler-utils"
+import { AdornmentData, adornmentMismatchResult, cellKeyToCategories } from "../../utilities/adornment-handler-utils"
 import { kStandardErrorType } from "./standard-error-adornment-types"
 
 export const standardErrorAdornmentHandler: DIAdornmentHandler = {
   get(adornment: IAdornmentModel, graphContent: IGraphContentModel) {
-    if (!isStandardErrorAdornment(adornment)) {
-      return { success: false, values: { error: `Not a ${kStandardErrorType} adornment` } }
-    }
+    if (!isStandardErrorAdornment(adornment)) return adornmentMismatchResult(kStandardErrorType)
 
     const { _numStErrs } = adornment
     const dataConfig = graphContent.dataConfiguration

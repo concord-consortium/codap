@@ -2,14 +2,12 @@ import { DIAdornmentHandler } from "../../../../../data-interactive/handlers/ado
 import { IAdornmentModel } from "../../adornment-models"
 import { isNormalCurveAdornment } from "./normal-curve-adornment-model"
 import { IGraphContentModel } from "../../../models/graph-content-model"
-import { AdornmentData, cellKeyToCategories } from "../../utilities/adornment-handler-utils"
+import { AdornmentData, adornmentMismatchResult, cellKeyToCategories } from "../../utilities/adornment-handler-utils"
 import { kNormalCurveType } from "./normal-curve-adornment-types"
 
 export const normalCurveAdornmentHandler: DIAdornmentHandler = {
   get(adornment: IAdornmentModel, graphContent: IGraphContentModel) {
-    if (!isNormalCurveAdornment(adornment)) {
-      return { success: false, values: { error: `Not a ${kNormalCurveType} adornment` } }
-    }
+    if (!isNormalCurveAdornment(adornment)) return adornmentMismatchResult(kNormalCurveType)
 
     const dataConfig = graphContent.dataConfiguration
     const cellKeys = dataConfig?.getAllCellKeys()

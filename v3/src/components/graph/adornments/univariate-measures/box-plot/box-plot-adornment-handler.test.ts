@@ -44,7 +44,7 @@ describe("DataInteractive boxPlotAdornmentHandler", () => {
   it("get returns an error when a an invalid adornment provided", () => {
     const result = handler.get?.(mockInvalidAdornment, mockGraphContent)
     expect(result?.success).toBe(false)
-    expect(result?.values.error).toBe(`Not a ${kBoxPlotType} adornment`)
+    expect(result?.values.error).toBe(`Not a(n) ${kBoxPlotType} adornment.`)
   })
 
   it("get returns the expected data when box plot adornment provided", () => {

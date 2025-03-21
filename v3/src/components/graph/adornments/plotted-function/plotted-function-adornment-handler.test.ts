@@ -36,7 +36,7 @@ describe("DataInteractive plottedFunctionAdornmentHandler", () => {
   it("get returns an error when an invalid adornment provided", () => {
     const result = handler.get?.(mockInvalidAdornment, mockGraphContent)
     expect(result?.success).toBe(false)
-    expect(result?.values.error).toBe(`Not a ${kPlottedFunctionType} adornment`)
+    expect(result?.values.error).toBe(`Not a(n) ${kPlottedFunctionType} adornment.`)
   })
 
   it("get returns the expected data when plotted function adornment provided", () => {

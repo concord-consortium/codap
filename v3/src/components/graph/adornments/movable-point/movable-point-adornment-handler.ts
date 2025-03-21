@@ -2,14 +2,12 @@ import { DIAdornmentHandler } from "../../../../data-interactive/handlers/adornm
 import { IGraphContentModel } from "../../models/graph-content-model"
 import { IAdornmentModel } from "../adornment-models"
 import { isMovablePointAdornment } from "./movable-point-adornment-model"
-import { AdornmentData, cellKeyToCategories } from "../utilities/adornment-handler-utils"
+import { AdornmentData, adornmentMismatchResult, cellKeyToCategories } from "../utilities/adornment-handler-utils"
 import { kMovablePointType } from "./movable-point-adornment-types"
 
 export const movablePointAdornmentHandler: DIAdornmentHandler = {
   get(adornment: IAdornmentModel, graphContent: IGraphContentModel) {
-    if (!isMovablePointAdornment(adornment)) {
-      return { success: false, values: { error: `Not a ${kMovablePointType} adornment` } }
-    }
+    if (!isMovablePointAdornment(adornment)) return adornmentMismatchResult(kMovablePointType)
 
     const dataConfig = graphContent.dataConfiguration
     const cellKeys = dataConfig?.getAllCellKeys()

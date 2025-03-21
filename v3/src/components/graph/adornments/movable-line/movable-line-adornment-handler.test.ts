@@ -37,7 +37,7 @@ describe("DataInteractive movableLineAdornmentHandler", () => {
   it("get returns an error when an invalid adornment provided", () => {
     const result = handler.get?.(mockInvalidAdornment, mockGraphContent)
     expect(result?.success).toBe(false)
-    expect(result?.values.error).toBe(`Not a ${kMovableLineType} adornment`)
+    expect(result?.values.error).toBe(`Not a(n) ${kMovableLineType} adornment.`)
   })
 
   it("get returns the expected data when movable line adornment provided", () => {

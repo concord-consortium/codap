@@ -37,7 +37,7 @@ describe("DataInteractive meanAdornmentHandler", () => {
   it("get returns an error when an invalid adornment provided", () => {
     const result = handler.get?.(mockInvalidAdornment, mockGraphContent)
     expect(result?.success).toBe(false)
-    expect(result?.values.error).toBe(`Not a ${kMeanType} adornment`)
+    expect(result?.values.error).toBe(`Not a(n) ${kMeanType} adornment.`)
   })
 
   it("get returns the expected data when mean adornment provided", () => {

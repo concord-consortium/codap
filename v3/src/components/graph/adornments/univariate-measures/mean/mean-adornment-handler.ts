@@ -2,12 +2,12 @@ import { DIAdornmentHandler } from "../../../../../data-interactive/handlers/ado
 import { IAdornmentModel } from "../../adornment-models"
 import { isMeanAdornment } from "./mean-adornment-model"
 import { IGraphContentModel } from "../../../models/graph-content-model"
-import { AdornmentData, cellKeyToCategories } from "../../utilities/adornment-handler-utils"
+import { AdornmentData, adornmentMismatchResult, cellKeyToCategories } from "../../utilities/adornment-handler-utils"
 import { kMeanType } from "./mean-adornment-types"
 
 export const meanAdornmentHandler: DIAdornmentHandler = {
   get(adornment: IAdornmentModel, graphContent: IGraphContentModel) {
-    if (!isMeanAdornment(adornment)) return { success: false, values: { error: `Not a ${kMeanType} adornment` } }
+    if (!isMeanAdornment(adornment)) return adornmentMismatchResult(kMeanType)
 
     const dataConfig = graphContent.dataConfiguration
     const cellKeys = dataConfig?.getAllCellKeys()

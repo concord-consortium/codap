@@ -3,12 +3,12 @@ import { IGraphContentModel } from "../../models/graph-content-model"
 import { IAdornmentModel } from "../adornment-models"
 import { isCountAdornment } from "./count-adornment-model"
 import { percentString } from "../../utilities/graph-utils"
-import { AdornmentData, cellKeyToCategories } from "../utilities/adornment-handler-utils"
+import { AdornmentData, adornmentMismatchResult, cellKeyToCategories } from "../utilities/adornment-handler-utils"
 import { kCountType } from "./count-adornment-types"
 
 export const countAdornmentHandler: DIAdornmentHandler = {
   get(adornment: IAdornmentModel, graphContent: IGraphContentModel) {
-    if (!isCountAdornment(adornment)) return { success: false, values: { error: `Not a ${kCountType} adornment` } }
+    if (!isCountAdornment(adornment)) return adornmentMismatchResult(kCountType)
 
     const { percentType, showCount, showPercent } = adornment
     const dataConfig = graphContent.dataConfiguration

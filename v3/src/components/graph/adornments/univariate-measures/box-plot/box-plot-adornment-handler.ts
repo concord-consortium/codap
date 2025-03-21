@@ -2,12 +2,12 @@ import { DIAdornmentHandler } from "../../../../../data-interactive/handlers/ado
 import { IAdornmentModel } from "../../adornment-models"
 import { isBoxPlotAdornment } from "./box-plot-adornment-model"
 import { IGraphContentModel } from "../../../models/graph-content-model"
-import { AdornmentData, cellKeyToCategories } from "../../utilities/adornment-handler-utils"
+import { AdornmentData, adornmentMismatchResult, cellKeyToCategories } from "../../utilities/adornment-handler-utils"
 import { kBoxPlotType } from "./box-plot-adornment-types"
 
 export const boxPlotAdornmentHandler: DIAdornmentHandler = {
   get(adornment: IAdornmentModel, graphContent: IGraphContentModel) {
-    if (!isBoxPlotAdornment(adornment)) return { success: false, values: { error: `Not a ${kBoxPlotType} adornment` } }
+    if (!isBoxPlotAdornment(adornment)) return adornmentMismatchResult(kBoxPlotType)
 
     const { showICI, showOutliers } = adornment
     const dataConfig = graphContent.dataConfiguration
