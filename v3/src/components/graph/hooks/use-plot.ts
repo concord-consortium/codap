@@ -66,7 +66,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
   const callRefreshPointPositions = useDebouncedCallback((_props?: IRefreshProps) => {
     const { selectedOnly = false, updateMasks = false } = _props || {}
     if (updateMasks) {
-      updateCellMasks({ dataConfig: dataConfiguration, layout, pixiPoints, resize: true })
+      updateCellMasks({ dataConfig: dataConfiguration, layout, pixiPoints })
     }
     refreshPointPositions(selectedOnly)
   })
