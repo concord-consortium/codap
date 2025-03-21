@@ -234,6 +234,26 @@ context("codap plugins", () => {
           expect(meanInfo.data[0].mean).to.be.a("number")
         })
         webView.clearAPITesterResponses()
+
+        cy.log("Handle get adornmentList requests after plot type change")
+        ah.openAxisAttributeMenu("left")
+        ah.selectMenuAttribute("LifeSpan", "left")
+        const cmd5 = `{
+          "action": "get",
+          "resource": "component[${graphId}].adornmentList"
+        }`
+        webView.sendAPITesterCommand(cmd5, cmd4)
+        webView.confirmAPITesterResponseContains(/"success":\s*true/)
+        webView.getAPITesterResponse().then((value: any) => {
+          const response = JSON.parse(value.eq(1).text())
+          // The previously activated Mean and Movable Value adornments should not be listed
+          // since they do not support scatter plots.
+          expect(response.values.length).to.equal(1)
+          const countInfo = response.values[0]
+          expect(countInfo.type).to.equal("Count")
+          expect(countInfo.isVisible).to.equal(true)
+        })
+        webView.clearAPITesterResponses()
       })
     })
   })
