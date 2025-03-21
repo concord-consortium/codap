@@ -10,8 +10,20 @@ export interface DIAdornmentHandler {
 
 const diAdornmentHandlers = new Map<string, DIAdornmentHandler>()
 
-export const registerAdornmentHandler = (type: string, handler: DIAdornmentHandler) => {
+const diAdornmentTypeAliases = new Map<string, string>()
+
+export const registerAdornmentHandler = (type: string, handler: DIAdornmentHandler, alias?: string) => {
   diAdornmentHandlers.set(type, handler)
+  if (alias) diAdornmentTypeAliases.set(alias, type)
+  const trimType = type.replace(/\s/g, "")
+  // register trimmed (without spaces) types as aliases
+  if (trimType !== type) diAdornmentTypeAliases.set(trimType, type)
+}
+
+export const resolveAdornmentType = (typeOrAlias: unknown) => {
+  return typeof typeOrAlias === "string"
+          ? diAdornmentTypeAliases.get(typeOrAlias) ?? typeOrAlias
+          : typeOrAlias
 }
 
 export const diAdornmentHandler: DIHandler = {
@@ -20,7 +32,7 @@ export const diAdornmentHandler: DIHandler = {
     if (!adornment?.isVisible) return adornmentNotFoundResult
     if (!isGraphContentModel(component?.content)) return { success: false, values: { error: "Not a graph component" } }
 
-    let values: Maybe<Record<string, any>> 
+    let values: Maybe<Record<string, any>>
     const handler = diAdornmentHandlers.get(adornment.type)
 
     if (handler) {

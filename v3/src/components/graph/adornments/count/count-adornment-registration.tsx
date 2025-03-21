@@ -164,4 +164,4 @@ registerAdornmentComponentInfo({
   type: kCountType
 })
 
-registerAdornmentHandler(kCountType, countAdornmentHandler)
+registerAdornmentHandler(kCountType, countAdornmentHandler, "Percent")

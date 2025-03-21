@@ -8,6 +8,7 @@ import { ITileModel } from "../models/tiles/tile-model"
 import { toV3CaseId, toV3GlobalId, toV3ItemId } from "../utilities/codap-utils"
 import { ActionName, DIResources, DIResourceSelector, DIParsedOperand } from "./data-interactive-types"
 import { getAttribute, getCollection } from "./data-interactive-utils"
+import { resolveAdornmentType } from "./handlers/adornment-handler"
 import { evaluateCaseFormula, findTileFromNameOrId, parseSearchQuery } from "./resource-parser-utils"
 
 /**
@@ -152,7 +153,7 @@ export function resolveResources(
     const adornmentTypeOrId = resourceSelector.adornment
     const adornments = result.component.content.adornmentsStore.adornments
     result.adornment = adornments.find((adornment) => {
-      return adornment.id === adornmentTypeOrId || adornment.type === adornmentTypeOrId
+      return adornment.id === adornmentTypeOrId || adornment.type === resolveAdornmentType(adornmentTypeOrId)
     })
   }
 
