@@ -116,7 +116,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
 
   useEffect(function respondToCategorySetChanges() {
     return mstReaction(() => {
-      return dataConfiguration.categoricalAttrsWithChangeCounts
+      return [dataConfiguration.allCategoriesForRoles, dataConfiguration.categoricalAttrsWithChangeCounts]
     }, () => {
       startAnimation()
       callRefreshPointPositions({ updateMasks: true })
