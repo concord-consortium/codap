@@ -15,6 +15,7 @@ export const MapPointLayerModel = MapLayerModel
     gridModel: types.optional(MapGridModel, () => MapGridModel.create()),
     pointsAreVisible: true, // This is different than layer visibility
     connectingLinesAreVisible: false,
+    pointType: types.optional(types.string, "points"), // "points" or "heatmap"
   })
   .actions(self => ({
     afterCreate() {
@@ -31,6 +32,11 @@ export const MapPointLayerModel = MapLayerModel
     },
     setConnectingLinesAreVisible(isVisible: boolean) {
       self.connectingLinesAreVisible = isVisible
+    },
+    setPointType(pointType: string) {
+      if (["points", "heatmap"].includes(pointType)) {
+        self.pointType = pointType
+      }
     }
   }))
   .views(self => ({

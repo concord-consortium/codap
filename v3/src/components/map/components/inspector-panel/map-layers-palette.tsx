@@ -1,15 +1,16 @@
 import React from "react"
 import {observer} from "mobx-react-lite"
 import {Checkbox} from "@chakra-ui/react"
+import LayersIcon from "../../../../assets/icons/icon-layers.svg"
+import { logMessageWithReplacement } from "../../../../lib/log-message"
 import {t} from "../../../../utilities/translation/translate"
 import {ITileModel} from "../../../../models/tiles/tile-model"
-import {InspectorPalette} from "../../../inspector-panel"
-import LayersIcon from "../../../../assets/icons/icon-layers.svg"
-import {isMapContentModel} from "../../models/map-content-model"
-import {MapBaseLayerControl} from "./map-base-layer-control"
 import {DisplayItemFormatControl} from "../../../data-display/inspector/display-item-format-control"
+import {InspectorPalette} from "../../../inspector-panel"
+import {isMapContentModel} from "../../models/map-content-model"
 import {IMapLayerModel, isMapLayerModel} from "../../models/map-layer-model"
-import { logMessageWithReplacement } from "../../../../lib/log-message"
+import { isMapPointLayerModel } from "../../models/map-point-layer-model"
+import {MapBaseLayerControl} from "./map-base-layer-control"
 
 import "./map-inspector.scss"
 
@@ -28,10 +29,12 @@ export const MapLayersPalette = observer(function MapLayersPalette(
   const renderLayersFormattingControls = () => {
 
     const renderOneFormatControl = (layer: IMapLayerModel) => {
+      const mapPointLayerModel = isMapPointLayerModel(layer) ? layer : undefined
       return (
         <DisplayItemFormatControl
           dataConfiguration={layer.dataConfiguration}
           displayItemDescription={layer.displayItemDescription}
+          mapPointLayerModel={mapPointLayerModel}
         >
         </DisplayItemFormatControl>)
     }

@@ -1,4 +1,6 @@
-import { Checkbox, Flex, FormControl, FormLabel, Select, Slider, SliderThumb, SliderTrack } from "@chakra-ui/react"
+import {
+  Checkbox, Flex, FormControl, FormLabel, Radio, RadioGroup, Select, Slider, SliderThumb, SliderTrack, Stack
+} from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
 import React, { useRef } from "react"
 import {
@@ -6,6 +8,7 @@ import {
 } from "../../../models/shared/shared-case-metadata-constants"
 import { AttributeBinningTypes, IAttributeBinningType } from "../../../models/shared/shared-case-metadata"
 import { t } from "../../../utilities/translation/translate"
+import { IMapPointLayerModel } from "../../map/models/map-point-layer-model"
 import { PointDisplayType } from "../data-display-types"
 import { IDataConfigurationModel } from "../models/data-configuration-model"
 import { IDisplayItemDescriptionModel } from "../models/display-item-description-model"
@@ -16,6 +19,7 @@ import "./inspector-panel.scss"
 interface IProps {
   dataConfiguration: IDataConfigurationModel
   displayItemDescription: IDisplayItemDescriptionModel
+  mapPointLayerModel?: IMapPointLayerModel
   pointDisplayType?: PointDisplayType
   isTransparent?: boolean
   onBackgroundTransparencyChange?: (isTransparent: boolean) => void
@@ -25,7 +29,7 @@ interface IProps {
 
 export const DisplayItemFormatControl = observer(function PointFormatControl(props: IProps) {
   const {
-    dataConfiguration, displayItemDescription, pointDisplayType,
+    dataConfiguration, displayItemDescription, mapPointLayerModel, pointDisplayType,
     isTransparent, onBackgroundTransparencyChange, plotBackgroundColor, onBackgroundColorChange
   } = props
   const legendAttrID = dataConfiguration.attributeID("legend")
@@ -98,6 +102,17 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
     )
   }
 
+  const handlePointTypeChange = (pointType: string) => {
+    mapPointLayerModel?.applyModelChange(
+      () => mapPointLayerModel.setPointType(pointType),
+      {
+        undoStringKey: "V3.Undo.map.inspector.changePointType",
+        redoStringKey: "V3.Redo.map.inspector.changePointType",
+        log: "Changed point type"
+      }
+    )
+  }
+
   const renderPlotControlsIfAny = () => {
     if (onBackgroundTransparencyChange && onBackgroundColorChange) {
       return (
@@ -155,6 +170,28 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
   const binningType = metadata?.getAttributeBinningType(legendAttrID)
   return (
     <Flex className="palette-form" direction="column">
+      {mapPointLayerModel && legendAttrID && (
+        <RadioGroup defaultValue={mapPointLayerModel.pointType}>
+          <Stack>
+            <Radio
+              size="md"
+              value="points"
+              data-testid="point-type-points-radio-button"
+              onChange={(e) => handlePointTypeChange(e.target.value)}
+            >
+              {t("V3.map.inspector.displayAsPoints")}
+            </Radio>
+            <Radio
+              size="md"
+              value="heatmap"
+              data-testid="point-type-heatmap-radio-button"
+              onChange={(e) => handlePointTypeChange(e.target.value)}
+            >
+              {t("V3.map.inspector.displayAsHeatmap")}
+            </Radio>
+          </Stack>
+        </RadioGroup>
+      )}
 
       { renderSliderControlIfAny() }
 
