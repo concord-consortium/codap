@@ -56,6 +56,22 @@
     "title": "Getting Data",
     "subMenu": [
       {
+        "title": "Day Length",
+        "description": "Get day lengths for any location on Earth plus an astronomical simulation",
+        "title-string": "DG.plugin.DayLength.title",
+        "description-string": "DG.plugin.DayLength.description",
+        "width": 380,
+        "height": 490,
+        "path": "https://models-resources.concord.org/codap-day-length-plugin-3/index.html",
+        "icon": "https://models-resources.concord.org/codap-day-length-plugin-3/day-length.svg",
+        "visible": "true",
+        "isStandard": "true",
+        "categories": [
+          "Partners",
+          "Portals"
+        ]
+      },
+      {
         "title": "Microdata Portal",
         "description": "Investigate populations from the US census at the individual level.",
         "title-string": "DG.plugin.MicrodataPortal.title",
@@ -66,6 +82,22 @@
         "visible": true,
         "width": 380,
         "height": 520,
+        "isStandard": "true",
+        "categories": [
+          "Partners",
+          "Portals"
+        ]
+      },
+      {
+        "title": "NASA: Earth, Air, and Water",
+        "description": "Get global data from NASA",
+        "title-string": "DG.plugin.NASA-data.title",
+        "description-string": "DG.plugin.NASA-data.description",
+        "width": 380,
+        "height": 490,
+        "path": "https://models-resources.concord.org/nasa-codap-plugin/index.html",
+        "icon": "https://models-resources.concord.org/nasa-codap-plugin/nasa-earth-air-and-water.svg",
+        "visible": "true",
         "isStandard": "true",
         "categories": [
           "Partners",
@@ -102,38 +134,6 @@
           "Partners",
           "Portals"
         ]
-      },
-      {
-        "title": "NASA Earth, Air and Water",
-        "description": "Get global data from NASA",
-        "title-string": "DG.plugin.NASA-data.title",
-        "description-string": "DG.plugin.NASA-data.description",
-        "width": 380,
-        "height": 490,
-        "path": "https://models-resources.concord.org/nasa-codap-plugin/index.html",
-        "icon": "https://models-resources.concord.org/nasa-codap-plugin/nasa-earth-air-and-water.svg",
-        "visible": "true",
-        "isStandard": "true",
-        "categories": [
-          "Partners",
-          "Portals"
-        ]
-      },
-      {
-        "title": "Day Length",
-        "description": "Get day lengths for any location on Earth plus an astronomical simulation",
-        "title-string": "DG.plugin.DayLength.title",
-        "description-string": "DG.plugin.DayLength.description",
-        "width": 380,
-        "height": 490,
-        "path": "https://models-resources.concord.org/codap-day-length-plugin-3/index.html",
-        "icon": "https://models-resources.concord.org/codap-day-length-plugin-3/day-length.svg",
-        "visible": "true",
-        "isStandard": "true",
-        "categories": [
-          "Partners",
-          "Portals"
-        ]
       }
     ]
   },
@@ -147,8 +147,8 @@
         "description-string": "DG.plugin.Sampler.description",
         "width": 232,
         "height": 400,
-        "path": "/TP-Sampler/index.html",
-        "icon": "/TP-Sampler/icon-sampler.svg",
+        "path": "http://sampler.concord.org/",
+        "icon": "http://sampler.concord.org/icon-sampler.svg",
         "visible": "true",
         "aegis": "ESTEEM",
         "isStandard": "true",
