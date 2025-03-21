@@ -1132,5 +1132,15 @@ SC.stringsFor("ja", {
               "DG.plugin.Sampler.measures.name-label": "測定値に名前を付けます。",
               "DG.plugin.Testimate.name": "推定する",
               "DG.plugin.Testimate.description": "古典的な推論手法を使用して仮説を検証します。",
-              "DG.plugin.PurpleAir.title": "パープル　エア"
+              "DG.plugin.PurpleAir.title": "パープル　エア",
+              "DG.plugin.Sonify.title": "Sonify",
+              "DG.plugin.Sonify.description": "Listen to your data",
+              "DG.plugin.NHANES.title": "NHANES Portal",
+              "DG.plugin.NHANES.description": "Get data from the National Health and Nutrition Examination Survey.",
+              "DG.plugin.NASA-data.title": "NASA Earth, Air and Water",
+              "DG.plugin.NASA-data.description": "Get global data from NASA",
+              "DG.plugin.DayLength.title": "DayLength",
+              "DG.plugin.DayLength.description": "Get day lengths for any location on Earth plus an astronomical simulation",
+              "DG.plugin.Simmer.name": "Simmer",
+              "DG.plugin.Simmer.description": "Create block programmed simulations that generate data."
 });
