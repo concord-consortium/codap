@@ -128,6 +128,7 @@ export interface V2Guide extends V2Component {
 export interface V2Map extends V2Component {
   center?: [number, number]
   dataContext?: string
+  geotiffUrl?: string
   legendAttributeName?: string
   type: "map"
   zoom?: number

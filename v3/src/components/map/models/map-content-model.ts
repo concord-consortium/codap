@@ -40,6 +40,8 @@ export const MapContentModel = DataDisplayContentModel
     // Changes the visibility of the layer in Leaflet with the opacity parameter
     baseMapLayerIsVisible: true,
     plotBackgroundColor: '#FFFFFF01',
+
+    geotiffUrl: "",
   })
   .volatile(() => ({
     leafletMap: undefined as LeafletMap | undefined,
@@ -109,6 +111,9 @@ export const MapContentModel = DataDisplayContentModel
       self.center = center
       self.zoom = zoom
     },
+    setGeotiffUrl(url: string) {
+      self.geotiffUrl = url
+    }
   }))
   // performs the specified action so that response actions are included and undo/redo strings assigned
   .actions(applyModelChange)
