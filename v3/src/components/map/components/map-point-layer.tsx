@@ -137,23 +137,28 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
     return dataConfiguration.getLegendColorForCase(aCaseData.caseID) || pointDescription.pointColor
   }
 
-  const refreshHeatmap = useDebouncedCallback(() => {
-    if (!heatmapCanvasRef.current || !dataset) return
-
-    // Initialize the simpleheat instance if necessary
-    if (!simpleheatRef.current) {
+  // Manage the heatmap
+  const { isVisible: layerIsVisible, pointsAreVisible, displayType } = mapLayerModel
+  const displayHeatmap = displayType === "heatmap" && pointsAreVisible && layerIsVisible && legendAttributeId
+  // Since the canvas is only rendered when the heatmap is visible,
+  // we need to initizlize simpleheat with it whenever displayHeatmap becomes true.
+  useEffect(() => {
+    if (displayHeatmap && heatmapCanvasRef.current) {
       simpleheatRef.current = simpleheat(heatmapCanvasRef.current)
       // Add shutterbug support. See: shutterbug-support.ts.
       heatmapCanvasRef.current.classList.add("canvas-3d")
     }
+  }, [displayHeatmap])
+  // Actually update the heatmap
+  const refreshHeatmap = useDebouncedCallback(() => {
+    if (!(heatmapCanvasRef.current && dataset && simpleheatRef.current)) return
 
     // Reset simpleheat
     simpleheatRef.current.clear()
     simpleheatRef.current.resize()
 
     // If we should draw the heatmap, update simpleheat
-    const { isVisible, pointsAreVisible, displayType } = mapLayerModel
-    if (legendAttributeId && displayType === "heatmap" && pointsAreVisible && isVisible) {
+    if (displayHeatmap) {
       // For some reason, the simpleheat canvas always changes to 300x150, so we have to scale the positions accordingly
       const mapContainer = leafletMap.getContainer()
       const mapRect = mapContainer.getBoundingClientRect()
@@ -272,6 +277,7 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
     })
   }, [pointDescription, mapLayerModel, dataConfiguration, pixiPoints])
 
+  const displayPoints = displayType === "points" && pointsAreVisible && layerIsVisible
   const refreshPoints = useDebouncedCallback(async (selectedOnly: boolean) => {
     const {pointSizeMultiplier, pointStrokeColor} = pointDescription,
       getCoords = (anID: string) => {
@@ -286,18 +292,15 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
       getScreenY = (anID: string) => {
         const coords = getCoords(anID)
         return coords.y
-      },
-      layerIsVisible = mapLayerModel.isVisible,
-      pointsAreVisible = mapLayerModel.pointsAreVisible,
-      displayPoints = mapLayerModel.displayType === "points"
+      }
     if (!pixiPoints || !dataset) {
       return
     }
-    if (!(layerIsVisible && pointsAreVisible && displayPoints && pixiPoints.isVisible)) {
+    if (!(displayPoints && pixiPoints.isVisible)) {
       pixiPoints?.setVisibility(false)
       return
     }
-    if (layerIsVisible && pointsAreVisible && displayPoints && !pixiPoints.isVisible) {
+    if (displayPoints && !pixiPoints.isVisible) {
       pixiPoints?.setVisibility(true)
     }
     const pointRadius = computePointRadius(dataConfiguration.getCaseDataArray(0).length, pointSizeMultiplier)
@@ -405,17 +408,19 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
   useEffect(function respondToLayerVisibilityChange() {
     return mstReaction(() => {
         return {
-          displayPoints: mapLayerModel.displayType === "points",
-          layerIsVisible: mapLayerModel.isVisible,
-          pointsAreVisible: mapLayerModel.pointsAreVisible
+          reactionDisplayPoints: mapLayerModel.displayType === "points",
+          reactionLayerIsVisible: mapLayerModel.isVisible,
+          reactionPointsAreVisible: mapLayerModel.pointsAreVisible
         }
       },
-      ({ displayPoints, layerIsVisible, pointsAreVisible }) => {
-        if (layerIsVisible && pointsAreVisible && displayPoints && !pixiPoints?.isVisible) {
+      ({ reactionDisplayPoints, reactionLayerIsVisible, reactionPointsAreVisible }) => {
+        if (reactionLayerIsVisible && reactionPointsAreVisible && reactionDisplayPoints && !pixiPoints?.isVisible) {
           pixiPoints?.setVisibility(true)
           refreshPoints(false)
         }
-        else if (!(layerIsVisible && pointsAreVisible && displayPoints) && pixiPoints?.isVisible) {
+        else if (
+          !(reactionLayerIsVisible && reactionPointsAreVisible && reactionDisplayPoints) && pixiPoints?.isVisible
+        ) {
           pixiPoints?.setVisibility(false)
         }
         refreshHeatmap()
@@ -461,9 +466,11 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
       </svg>
       <div ref={pixiContainerRef} className="map-dot-area"/>
       <MapPointGrid mapLayerModel={mapLayerModel} />
-      <div className="heatmap-area">
-        <canvas ref={heatmapCanvasRef} className="heatmap-canvas" />
-      </div>
+      {displayHeatmap && (
+        <div className="heatmap-area">
+          <canvas ref={heatmapCanvasRef} className="heatmap-canvas" />
+        </div>
+      )}
       <DataTip
         dataset={dataset}
         getTipAttrs={getTipAttrs}
