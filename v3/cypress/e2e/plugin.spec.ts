@@ -152,7 +152,7 @@ context("codap plugins", () => {
 
   it('will handle adornment-related requests', () => {
 
-    // Activate the Count and Mean adornments on the graph.
+    // Activate the Count/Percent and Mean adornments on the graph.
     c.selectTile("graph", 0)
     ah.openAxisAttributeMenu("bottom")
     ah.selectMenuAttribute("Sleep", "bottom")
@@ -188,11 +188,14 @@ context("codap plugins", () => {
       webView.confirmAPITesterResponseContains(/"success":\s*true/)
       webView.getAPITesterResponse().then((value: any) => {
         const response = JSON.parse(value.eq(1).text())
-        expect(response.values.length).to.equal(2)
+        expect(response.values.length).to.equal(3)
         const countInfo = response.values[0]
-        const meanInfo = response.values[1]
+        const percentInfo = response.values[1]
+        const meanInfo = response.values[2]
         expect(countInfo.type).to.equal("Count")
         expect(countInfo.isVisible).to.equal(true)
+        expect(percentInfo.type).to.equal("Percent")
+        expect(percentInfo.isVisible).to.equal(false)
         expect(meanInfo.type).to.equal("Mean")
         expect(meanInfo.isVisible).to.equal(true)
         const meanId = meanInfo.id
@@ -232,6 +235,29 @@ context("codap plugins", () => {
           expect(meanInfo.id).to.be.a("string")
           expect(meanInfo.data[0]).to.haveOwnProperty("mean")
           expect(meanInfo.data[0].mean).to.be.a("number")
+        })
+        webView.clearAPITesterResponses()
+
+        cy.log("Handle get adornmentList requests after plot type change")
+        ah.openAxisAttributeMenu("left")
+        ah.selectMenuAttribute("LifeSpan", "left")
+        const cmd5 = `{
+          "action": "get",
+          "resource": "component[${graphId}].adornmentList"
+        }`
+        webView.sendAPITesterCommand(cmd5, cmd4)
+        webView.confirmAPITesterResponseContains(/"success":\s*true/)
+        webView.getAPITesterResponse().then((value: any) => {
+          const response = JSON.parse(value.eq(1).text())
+          // The previously activated Mean and Movable Value adornments should not be listed
+          // since they do not support scatter plots.
+          expect(response.values.length).to.equal(2)
+          const countInfo = response.values[0]
+          const percentInfo = response.values[1]
+          expect(countInfo.type).to.equal("Count")
+          expect(countInfo.isVisible).to.equal(true)
+          expect(percentInfo.type).to.equal("Percent")
+          expect(percentInfo.isVisible).to.equal(false)
         })
         webView.clearAPITesterResponses()
       })
