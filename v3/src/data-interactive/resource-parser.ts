@@ -1,3 +1,7 @@
+import { getAdornmentContentInfo } from "../components/graph/adornments/adornment-content-info"
+import { IAdornmentModel } from "../components/graph/adornments/adornment-models"
+import { isCountAdornment } from "../components/graph/adornments/count/count-adornment-model"
+import { kPercentType } from "../components/graph/adornments/count/count-adornment-types"
 import { isGraphContentModel } from "../components/graph/models/graph-content-model"
 import { appState } from "../models/app-state"
 import { IAttribute } from "../models/data/attribute"
@@ -158,7 +162,29 @@ export function resolveResources(
   }
 
   if ("adornmentList" in resourceSelector && isGraphContentModel(result.component?.content)) {
-    result.adornmentList = result.component.content.adornmentsStore.adornments ?? []
+    const graphPlotType = result.component?.content.plotType
+    const adornmentList = result.component.content.adornmentsStore.adornments.reduce((list, adornment) => {
+      if (isCountAdornment(adornment)) {
+        // If the Count adornment is present, we add a separate Percent adornment item to the list. Even though
+        // Percent is part of the Count adornment, clients may not be aware of that since the UI presents them
+        // as separate entities.
+        const percentAdornment = {
+          ...adornment,
+          isVisible: adornment.showPercent,
+          type: kPercentType
+        }
+        list.push(adornment, percentAdornment)
+      } else {
+        const adornmentPlotTypes = getAdornmentContentInfo(adornment.type)?.plots
+        const isGraphPlotTypeSupported = adornmentPlotTypes?.includes(graphPlotType)
+        if (isGraphPlotTypeSupported) {
+          list.push(adornment)
+        }
+      }
+      return list
+    }, [] as IAdornmentModel[])
+
+    result.adornmentList = adornmentList
   }
 
   const getCaseById = (caseId: string) =>
