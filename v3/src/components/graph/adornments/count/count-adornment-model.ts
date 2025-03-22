@@ -3,6 +3,7 @@ import { AdornmentModel, IAdornmentModel } from "../adornment-models"
 import { kCountType } from "./count-adornment-types"
 import {IGraphDataConfigurationModel} from "../../models/graph-data-configuration-model"
 import { ScaleNumericBaseType } from "../../../axis/axis-types"
+import { percentString } from "../../utilities/graph-utils"
 
 export interface IRegionCount {
   bottomOffset: number
@@ -15,9 +16,12 @@ export interface IRegionCountParams {
   cellKey: Record<string, string>
   dataConfig?: IGraphDataConfigurationModel
   inclusiveMax: boolean
+  isBinnedDotPlot?: boolean
   plotHeight: number
   plotWidth: number
   scale: ScaleNumericBaseType
+  showCount?: boolean
+  showPercent?: boolean
   subPlotRegionBoundaries: number[]
 }
 
@@ -82,6 +86,48 @@ export const CountAdornmentModel = AdornmentModel
 
       return counts
     }
+  }))
+  .views(self => ({
+    computeRegionCounts({
+      cellKey, dataConfig, plotHeight, plotWidth, scale, subPlotRegionBoundaries, isBinnedDotPlot,
+      showCount, showPercent
+    }: IRegionCountParams) {
+      const totalCases = dataConfig?.filterCasesForDisplay(dataConfig?.subPlotCases(cellKey)).length ?? 0
+      if (subPlotRegionBoundaries.length < 3) {
+        const casesInPlot = dataConfig?.filterCasesForDisplay(dataConfig.subPlotCases(cellKey)).length ?? 0
+        const percent = percentString(casesInPlot / totalCases)
+        return [{
+          count: showCount ? casesInPlot : undefined,
+          percent: showPercent ? percent : undefined
+        }]
+      }
+    
+      const counts: IRegionCount[] = self.regionCounts({
+        cellKey,
+        dataConfig,
+        // Points whose values match a region's upper boundary are treated differently based on
+        // what defines the regions. For regions defined by bins, points matching the upper boundary
+        // are placed into the next bin. So we set `inclusiveMax` to false. Otherwise, such points
+        // are considered within the boundary and `inclusiveMax` is true.
+        inclusiveMax: !isBinnedDotPlot,
+        plotHeight,
+        plotWidth,
+        scale,
+        subPlotRegionBoundaries
+      })
+    
+      return counts.map((c) => {
+        const regionPercent = percentString(c.count / totalCases)
+        return {
+          bottomOffset: c.bottomOffset,
+          count: c.count,
+          height: c.height,
+          leftOffset: c.leftOffset,
+          percent: regionPercent,
+          width: c.width
+        }
+      })
+    }    
   }))
   .actions(self => ({
     setShowCount(showCount: boolean) {
