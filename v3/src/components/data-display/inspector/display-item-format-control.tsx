@@ -8,7 +8,7 @@ import {
 } from "../../../models/shared/shared-case-metadata-constants"
 import { AttributeBinningTypes, IAttributeBinningType } from "../../../models/shared/shared-case-metadata"
 import { t } from "../../../utilities/translation/translate"
-import { IMapPointLayerModel } from "../../map/models/map-point-layer-model"
+import { IMapPointLayerModel, isMapPointDisplayType } from "../../map/models/map-point-layer-model"
 import { PointDisplayType } from "../data-display-types"
 import { IDataConfigurationModel } from "../models/data-configuration-model"
 import { IDisplayItemDescriptionModel } from "../models/display-item-description-model"
@@ -103,8 +103,10 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
   }
 
   const handlePointTypeChange = (pointType: string) => {
+    if (!isMapPointDisplayType(pointType)) return
+
     mapPointLayerModel?.applyModelChange(
-      () => mapPointLayerModel.setPointType(pointType),
+      () => mapPointLayerModel.setDisplayType(pointType),
       {
         undoStringKey: "V3.Undo.map.inspector.changePointType",
         redoStringKey: "V3.Redo.map.inspector.changePointType",
@@ -171,7 +173,7 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
   return (
     <Flex className="palette-form" direction="column">
       {mapPointLayerModel && legendAttrID && (
-        <RadioGroup defaultValue={mapPointLayerModel.pointType}>
+        <RadioGroup defaultValue={mapPointLayerModel.displayType}>
           <Stack>
             <Radio
               size="md"

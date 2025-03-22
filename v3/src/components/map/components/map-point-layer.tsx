@@ -152,8 +152,8 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
     simpleheatRef.current.resize()
 
     // If we should draw the heatmap, update simpleheat
-    const { isVisible, pointsAreVisible, pointType } = mapLayerModel
-    if (legendAttributeId && pointType === "heatmap" && pointsAreVisible && isVisible) {
+    const { isVisible, pointsAreVisible, displayType } = mapLayerModel
+    if (legendAttributeId && displayType === "heatmap" && pointsAreVisible && isVisible) {
       // For some reason, the simpleheat canvas always changes to 300x150, so we have to scale the positions accordingly
       const mapContainer = leafletMap.getContainer()
       const mapRect = mapContainer.getBoundingClientRect()
@@ -289,7 +289,7 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
       },
       layerIsVisible = mapLayerModel.isVisible,
       pointsAreVisible = mapLayerModel.pointsAreVisible,
-      displayPoints = mapLayerModel.pointType === "points"
+      displayPoints = mapLayerModel.displayType === "points"
     if (!pixiPoints || !dataset) {
       return
     }
@@ -405,7 +405,7 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
   useEffect(function respondToLayerVisibilityChange() {
     return mstReaction(() => {
         return {
-          displayPoints: mapLayerModel.pointType === "points",
+          displayPoints: mapLayerModel.displayType === "points",
           layerIsVisible: mapLayerModel.isVisible,
           pointsAreVisible: mapLayerModel.pointsAreVisible
         }

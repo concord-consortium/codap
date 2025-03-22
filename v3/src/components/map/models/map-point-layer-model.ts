@@ -8,6 +8,12 @@ import {computePointRadius} from "../../data-display/data-display-utils"
 import {latLongAttributesFromDataSet} from "../utilities/map-utils"
 import {MapGridModel} from "./map-grid-model"
 
+export const MapPointDisplayTypes = ["points", "heatmap"] as const
+export type MapPointDisplayType = typeof MapPointDisplayTypes[number]
+export function isMapPointDisplayType(value: any): value is MapPointDisplayType {
+  return MapPointDisplayTypes.includes(value)
+}
+
 export const MapPointLayerModel = MapLayerModel
   .named('MapPointLayerModel')
   .props({
@@ -15,7 +21,7 @@ export const MapPointLayerModel = MapLayerModel
     gridModel: types.optional(MapGridModel, () => MapGridModel.create()),
     pointsAreVisible: true, // This is different than layer visibility
     connectingLinesAreVisible: false,
-    pointType: types.optional(types.string, "points"), // "points" or "heatmap"
+    displayType: types.optional(types.enumeration([...MapPointDisplayTypes]), "points"),
   })
   .actions(self => ({
     afterCreate() {
@@ -33,10 +39,8 @@ export const MapPointLayerModel = MapLayerModel
     setConnectingLinesAreVisible(isVisible: boolean) {
       self.connectingLinesAreVisible = isVisible
     },
-    setPointType(pointType: string) {
-      if (["points", "heatmap"].includes(pointType)) {
-        self.pointType = pointType
-      }
+    setDisplayType(displayType: MapPointDisplayType) {
+      self.displayType = displayType
     }
   }))
   .views(self => ({
