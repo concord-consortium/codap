@@ -45,7 +45,7 @@ Cypress.Commands.add("dragAttributeToTarget", (source, attribute, target, target
     rightAxisLabel: ".codap-graph [data-testid^=axis-legend-attribute-button-right]",
     yPlusAxis: ".codap-graph [data-testid^=add-attribute-drop-yPlus]",
     mapTile: ".codap-map .leaflet-container",
-    mapLegend: ".codap-map .legend",
+    mapLegend: ".codap-map .map-container",
     newCollection: ".collection-table-spacer.parentMost",
     prevCollection: ".collection-table:nth-child(1) .codap-column-header:nth-child(2)",
     newTopCardCollection: ".case-card-collection-spacer.parentMost",

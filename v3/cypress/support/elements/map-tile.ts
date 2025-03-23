@@ -26,6 +26,9 @@ export const MapTileElements = {
   getInspectorPalette() {
     return c.getInspectorPanel().find("[data-testid=codap-inspector-palette]")
   },
+  getHeatmapBullet(type: "heatmap" | "points" = "heatmap") {
+    return this.getInspectorPalette().contains(`Display as ${type}`)
+  },
   getZoomInButton() {
     return this.getMapTile().find(".leaflet-control-zoom-in")
   },
@@ -44,6 +47,9 @@ export const MapTileElements = {
   },
   getHideUnselectedCases() {
     return c.getInspectorPanel().find("[data-testid=hide-unselected-cases]")
+  },
+  getHeatmapCanvas() {
+    return this.getMapTile().find(".heatmap-canvas")
   },
   selectHideUnselectedCases() {
     c.getInspectorPanel().find("[data-testid=hide-show-menu-list]").should("be.visible").then(() => {
