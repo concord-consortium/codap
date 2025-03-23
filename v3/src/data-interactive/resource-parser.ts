@@ -1,7 +1,7 @@
 import { getAdornmentContentInfo } from "../components/graph/adornments/adornment-content-info"
 import { IAdornmentModel } from "../components/graph/adornments/adornment-models"
 import { isCountAdornment } from "../components/graph/adornments/count/count-adornment-model"
-import { kPercentType } from "../components/graph/adornments/count/count-adornment-types"
+import { kCountType, kPercentType } from "../components/graph/adornments/count/count-adornment-types"
 import { isGraphContentModel } from "../components/graph/models/graph-content-model"
 import { appState } from "../models/app-state"
 import { IAttribute } from "../models/data/attribute"
@@ -165,15 +165,20 @@ export function resolveResources(
     const graphPlotType = result.component?.content.plotType
     const adornmentList = result.component.content.adornmentsStore.adornments.reduce((list, adornment) => {
       if (isCountAdornment(adornment)) {
-        // If the Count adornment is present, we add a separate Percent adornment item to the list. Even though
-        // Percent is part of the Count adornment, clients may not be aware of that since the UI presents them
-        // as separate entities.
+        // If the Count adornment is present, we add separate Count and Percent adornment items to the list.
+        // Even though Percent is part of the Count adornment, clients may not be aware of that since the UI
+        // presents them as separate entities.
+        const countAdornment = {
+          ...adornment,
+          isVisible: adornment.showCount && adornment.isVisible,
+          type: kCountType
+        }
         const percentAdornment = {
           ...adornment,
-          isVisible: adornment.showPercent,
+          isVisible: adornment.showPercent && adornment.isVisible,
           type: kPercentType
         }
-        list.push(adornment, percentAdornment)
+        list.push(countAdornment, percentAdornment)
       } else {
         const adornmentPlotTypes = getAdornmentContentInfo(adornment.type)?.plots
         const isGraphPlotTypeSupported = adornmentPlotTypes?.includes(graphPlotType)
