@@ -110,9 +110,7 @@ export const CountAdornment = observer(function CountAdornment(props: IAdornment
       plotWidth,
       scale,
       subPlotRegionBoundaries: subPlotRegionBoundariesRef.current,
-      isBinnedDotPlot: !!binnedDotPlot,
-      showCount: model.showCount,
-      showPercent: model.showPercent
+      isBinnedDotPlot: !!binnedDotPlot
     })
   
     // If there are no bin boundaries or movable values present, we just show a single case count.
@@ -126,7 +124,7 @@ export const CountAdornment = observer(function CountAdornment(props: IAdornment
     } else {
       setDisplayCount(
         <>
-          {regionCounts.map((c: any, i: number) => {
+          {regionCounts.map((c: IRegionCount, i: number) => {
             const className = clsx("sub-count",
               {"x-axis": primaryAttrRole === "x"},
               {"y-axis": primaryAttrRole === "y"},
