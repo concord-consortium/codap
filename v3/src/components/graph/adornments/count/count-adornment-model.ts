@@ -4,12 +4,12 @@ import { kCountType } from "./count-adornment-types"
 import {IGraphDataConfigurationModel} from "../../models/graph-data-configuration-model"
 import { ScaleNumericBaseType } from "../../../axis/axis-types"
 import { percentString } from "../../utilities/graph-utils"
-
 export interface IRegionCount {
   bottomOffset: number
-  count: number
+  count?: number
   height: number
   leftOffset: number
+  percent?: string
   width: number
 }
 export interface IRegionCountParams {
@@ -89,16 +89,18 @@ export const CountAdornmentModel = AdornmentModel
   }))
   .views(self => ({
     computeRegionCounts({
-      cellKey, dataConfig, plotHeight, plotWidth, scale, subPlotRegionBoundaries, isBinnedDotPlot,
-      showCount, showPercent
+      cellKey, dataConfig, plotHeight, plotWidth, scale, subPlotRegionBoundaries, isBinnedDotPlot
     }: IRegionCountParams) {
       const totalCases = dataConfig?.filterCasesForDisplay(dataConfig?.subPlotCases(cellKey)).length ?? 0
       if (subPlotRegionBoundaries.length < 3) {
-        const casesInPlot = dataConfig?.filterCasesForDisplay(dataConfig.subPlotCases(cellKey)).length ?? 0
-        const percent = percentString(casesInPlot / totalCases)
+        const percent = totalCases > 0 ? "100%" : "0%"
         return [{
-          count: showCount ? casesInPlot : undefined,
-          percent: showPercent ? percent : undefined
+          bottomOffset: 0,
+          count: self.showCount ? totalCases : undefined,
+          height: plotHeight,
+          leftOffset: 0,
+          percent: self.showPercent ? percent : undefined,
+          width: plotWidth
         }]
       }
     
@@ -117,7 +119,7 @@ export const CountAdornmentModel = AdornmentModel
       })
     
       return counts.map((c) => {
-        const regionPercent = percentString(c.count / totalCases)
+        const regionPercent = percentString((c.count ?? 0) / totalCases)
         return {
           bottomOffset: c.bottomOffset,
           count: c.count,

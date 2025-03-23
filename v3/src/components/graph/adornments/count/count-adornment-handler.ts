@@ -1,11 +1,12 @@
+import { scaleLinear } from "d3"
 import { DIAdornmentHandler } from "../../../../data-interactive/handlers/adornment-handler"
+import { errorResult } from "../../../../data-interactive/handlers/di-results"
 import { IGraphContentModel } from "../../models/graph-content-model"
 import { IAdornmentModel } from "../adornment-models"
 import { isCountAdornment } from "./count-adornment-model"
 import { AdornmentData, adornmentMismatchResult, cellKeyToCategories } from "../utilities/adornment-handler-utils"
 import { kCountType } from "./count-adornment-types"
 import { IGraphDataConfigurationModel } from "../../models/graph-data-configuration-model"
-import { scaleLinear } from "d3"
 
 const createScale = (dataConfig: IGraphDataConfigurationModel) => {
   const primaryRole = dataConfig?.primaryRole ?? "x"
@@ -38,7 +39,7 @@ export const countAdornmentHandler: DIAdornmentHandler = {
 
     for (const cellKey of cellKeys) {
       const dataItem: AdornmentData = {}
-      if (!scale) return { success: false, values: { error: "Failed to create scale" } }
+      if (!scale) return errorResult("Failed to create scale")
 
       const subPlotRegionBoundaries =
         graphContent.adornmentsStore?.subPlotRegionBoundaries(JSON.stringify(cellKey), scale)
@@ -51,9 +52,7 @@ export const countAdornmentHandler: DIAdornmentHandler = {
         plotWidth: 0,
         scale,
         subPlotRegionBoundaries,
-        isBinnedDotPlot: false,
-        showCount,
-        showPercent
+        isBinnedDotPlot: false
       })
 
       const regionCountValues = regionCounts.map(c => c.count)
