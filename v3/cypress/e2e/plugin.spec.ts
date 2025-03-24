@@ -190,7 +190,7 @@ context("codap plugins", () => {
       webView.confirmAPITesterResponseContains(/"success":\s*true/)
       webView.getAPITesterResponse().then((value: any) => {
         const response = JSON.parse(value.eq(1).text())
-        expect(response.values.length).to.equal(3)
+        expect(response.values.length).to.equal(4)
         const countInfo = response.values[0]
         const percentInfo = response.values[1]
         const meanInfo = response.values[2]
