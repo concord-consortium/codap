@@ -127,4 +127,24 @@ describe("DataInteractive CountAdornmentHandler", () => {
     expect(result?.data[0]).toMatchObject({ percent: "50%" })
   })
 
+  it("update returns an error when count adornment not found", () => {
+    mockGraphContent.adornmentsStore.findAdornmentOfType.mockReturnValue(null)
+    const result = handler.update?.({ graphContent: mockGraphContent })
+    expect(result?.success).toBe(false)
+    const values = result?.values as any
+    expect(values.error).toBe("Adornment not found.")
+  })
+
+  it("update successfully updates count adornment properties", () => {
+    mockGraphContent.adornmentsStore.findAdornmentOfType.mockReturnValue(mockCountAdornment)
+    const updateValues = {
+      showCount: false,
+      showPercent: true,
+      percentType: "column",
+      isVisible: true
+    }
+    const result = handler.update?.({ graphContent: mockGraphContent, values: updateValues })
+    expect(result?.success).toBe(true)
+  })
+
 })

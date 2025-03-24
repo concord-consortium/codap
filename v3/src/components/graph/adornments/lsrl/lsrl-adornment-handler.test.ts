@@ -98,4 +98,21 @@ describe("DataInteractive lsrlAdornmentHandler", () => {
     expect(result?.showConfidenceBands).toBe(true)
     expect(mockDataConfig.getAllCellKeys).toHaveBeenCalled()
   })
+
+  it("update returns an error when LSRL adornment not found", () => {
+    mockGraphContent.adornmentsStore.findAdornmentOfType.mockReturnValue(null)
+    const result = handler.update?.({ graphContent: mockGraphContent })
+    expect(result?.success).toBe(false)
+    const values = result?.values as any
+    expect(values.error).toBe("Adornment not found.")
+  })
+
+  it("update successfully updates count adornment properties", () => {
+    mockGraphContent.adornmentsStore.findAdornmentOfType.mockReturnValue(mockLSRLAdornment)
+    const updateValues = {
+      showConfidenceBands: true
+    }
+    const result = handler.update?.({ graphContent: mockGraphContent, values: updateValues })
+    expect(result?.success).toBe(true)
+  })
 })

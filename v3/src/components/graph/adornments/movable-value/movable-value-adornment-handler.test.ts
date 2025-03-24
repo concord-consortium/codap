@@ -61,6 +61,7 @@ describe("DataInteractive movableValueAdornmentHandler", () => {
     mockMovableValueAdornment = {
       id: "ADRN123",
       isVisible: true,
+      replaceValue: jest.fn(),
       type: kMovableValueType,
       values: mockValuesMap
     }
@@ -97,5 +98,23 @@ describe("DataInteractive movableValueAdornmentHandler", () => {
     expect(result?.data).toHaveLength(1)
     expect(result?.data[0]).toMatchObject({movableValues: [1, 3000000]})
     expect(mockDataConfig.getAllCellKeys).toHaveBeenCalled()
+  })
+
+  it("update returns an error when Movable Value adornment not found", () => {
+    mockGraphContent.adornmentsStore.findAdornmentOfType.mockReturnValue(null)
+    const result = handler.update?.({ graphContent: mockGraphContent })
+    expect(result?.success).toBe(false)
+    const values = result?.values as any
+    expect(values.error).toBe("Adornment not found.")
+  })
+
+  it("update successfully updates count adornment properties", () => {
+    mockGraphContent.adornmentsStore.findAdornmentOfType.mockReturnValue(mockMovableValueAdornment)
+    const updateValues = {
+      values: [["{}", 5]]
+    }
+    const result = handler.update?.({ graphContent: mockGraphContent, values: updateValues })
+    expect(result?.success).toBe(true)
+    expect(mockMovableValueAdornment.replaceValue).toHaveBeenCalledWith(5, "{}")
   })
 })
