@@ -182,7 +182,7 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({
                 const hasSelectedChild = isAnyChildSelected(data, parentCaseId)
                 const strokeColor = hasSelectedChild || nextParentHasSelectedChild
                                       ? relationSelectedStrokeColor : relationDefaultStrokeColor
-                const strokeWidth = hasSelectedChild && !nextParentHasSelectedChild
+                const strokeWidth = hasSelectedChild !== nextParentHasSelectedChild
                                       ? kRelationSelectedStrokeWidth : kRelationStrokeWidth
                 const y1Bottom = parentTableModel.getBottomOfRowModuloScroll(parentIndex)
                 let y2Bottom = childTableModel.getBottomOfRowModuloScroll(lastChildIndex)
