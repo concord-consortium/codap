@@ -53,11 +53,13 @@ export const CountAdornmentModel = AdornmentModel
       const primaryAttrRole = dataConfig?.primaryRole ?? "x"
       const attrId = dataConfig?.attributeID(primaryAttrRole)
       if (!attrId) return []
+
       let width = 0
       let height = 0
       let prevWidth = 0
       let prevHeight = 0
       const counts: IRegionCount[] = []
+
       // Set scale copy range. The scale copy is used when computing the coordinates of each region's upper and lower
       // boundaries. We modify the range of the scale copy to match the sub plot's width and height so they are computed
       // correctly. The original scales use the entire plot's width and height, which won't work when there are multiple
@@ -72,21 +74,21 @@ export const CountAdornmentModel = AdornmentModel
       }
 
       for (let i = 0; i < subPlotRegionBoundaries.length - 1; i++) {
-        const [domainMin, domainMax] = scaleCopy?.domain() ?? [0, 0]
-        const lowerBoundary = subPlotRegionBoundaries[i] === -Infinity
-          ? domainMin
-          : subPlotRegionBoundaries[i]
-        const upperBoundary = subPlotRegionBoundaries[i + 1] === Infinity
-          ? domainMax
-          : subPlotRegionBoundaries[i + 1]        
+        // For case counts, use the actual boundaries (-Infinity/Infinity).
+        const lowerBoundary = subPlotRegionBoundaries[i]
+        const upperBoundary = subPlotRegionBoundaries[i + 1]
         const casesInRange = dataConfig?.casesInRange(lowerBoundary, upperBoundary, attrId, cellKey, inclusiveMax) ?? []
         const count = casesInRange.length
+
+        // For pixel calculations, use the scale's domain.
         if (scaleCopy) {
-          const pixelMin = scaleCopy(lowerBoundary)
-          const pixelMax = scaleCopy(upperBoundary)
+          const [domainMin, domainMax] = scaleCopy.domain()
+          const pixelMin = scaleCopy(Math.max(lowerBoundary === -Infinity ? domainMin : lowerBoundary, domainMin))
+          const pixelMax = scaleCopy(Math.min(upperBoundary === Infinity ? domainMax : upperBoundary, domainMax))
           width = primaryAttrRole === "x" ? Math.abs(pixelMax - pixelMin) : 0
           height = primaryAttrRole === "x" ? 0 : Math.abs(pixelMax - pixelMin)
         }
+
         const leftOffset = prevWidth
         const bottomOffset = prevHeight
         prevWidth += width
