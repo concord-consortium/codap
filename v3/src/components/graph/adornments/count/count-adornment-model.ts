@@ -16,10 +16,9 @@ export interface IRegionCountParams {
   cellKey: Record<string, string>
   dataConfig?: IGraphDataConfigurationModel
   inclusiveMax: boolean
-  isBinnedDotPlot?: boolean
   plotHeight: number
   plotWidth: number
-  scale: ScaleNumericBaseType
+  scale?: ScaleNumericBaseType
   showCount?: boolean
   showPercent?: boolean
   subPlotRegionBoundaries: number[]
@@ -54,6 +53,8 @@ export const CountAdornmentModel = AdornmentModel
       const primaryAttrRole = dataConfig?.primaryRole ?? "x"
       const attrId = dataConfig?.attributeID(primaryAttrRole)
       if (!attrId) return []
+      let width = 0
+      let height = 0
       let prevWidth = 0
       let prevHeight = 0
       const counts: IRegionCount[] = []
@@ -61,22 +62,26 @@ export const CountAdornmentModel = AdornmentModel
       // boundaries. We modify the range of the scale copy to match the sub plot's width and height so they are computed
       // correctly. The original scales use the entire plot's width and height, which won't work when there are multiple
       // subplots.
-      const scaleCopy = scale.copy()
-      if (primaryAttrRole === "x") {
-        scaleCopy.range([0, plotWidth])
-      } else {
-        scaleCopy.range([plotHeight, 0])
+      const scaleCopy = scale?.copy()
+      if (scaleCopy) {
+        if (primaryAttrRole === "x") {
+          scaleCopy.range([0, plotWidth])
+        } else {
+          scaleCopy.range([plotHeight, 0])
+        }
       }
 
       for (let i = 0; i < subPlotRegionBoundaries.length - 1; i++) {
         const lowerBoundary = subPlotRegionBoundaries[i]
         const upperBoundary = subPlotRegionBoundaries[i + 1]
-        const pixelMin = scaleCopy(lowerBoundary)
-        const pixelMax = scaleCopy(upperBoundary)
         const casesInRange = dataConfig?.casesInRange(lowerBoundary, upperBoundary, attrId, cellKey, inclusiveMax) ?? []
         const count = casesInRange.length
-        const width = primaryAttrRole === "x" ? Math.abs(pixelMax - pixelMin) : 0
-        const height = primaryAttrRole === "x" ? 0 : Math.abs(pixelMax - pixelMin)
+        if (scaleCopy) {
+          const pixelMin = scaleCopy(lowerBoundary)
+          const pixelMax = scaleCopy(upperBoundary)
+          width = primaryAttrRole === "x" ? Math.abs(pixelMax - pixelMin) : 0
+          height = primaryAttrRole === "x" ? 0 : Math.abs(pixelMax - pixelMin)
+        }
         const leftOffset = prevWidth
         const bottomOffset = prevHeight
         prevWidth += width
@@ -89,7 +94,7 @@ export const CountAdornmentModel = AdornmentModel
   }))
   .views(self => ({
     computeRegionCounts({
-      cellKey, dataConfig, plotHeight, plotWidth, scale, subPlotRegionBoundaries, isBinnedDotPlot
+      cellKey, dataConfig, plotHeight, plotWidth, scale, subPlotRegionBoundaries, inclusiveMax
     }: IRegionCountParams) {
       const totalCases = dataConfig?.filterCasesForDisplay(dataConfig?.subPlotCases(cellKey)).length ?? 0
       if (subPlotRegionBoundaries.length < 3) {
@@ -103,21 +108,17 @@ export const CountAdornmentModel = AdornmentModel
           width: plotWidth
         }]
       }
-    
+
       const counts: IRegionCount[] = self.regionCounts({
         cellKey,
         dataConfig,
-        // Points whose values match a region's upper boundary are treated differently based on
-        // what defines the regions. For regions defined by bins, points matching the upper boundary
-        // are placed into the next bin. So we set `inclusiveMax` to false. Otherwise, such points
-        // are considered within the boundary and `inclusiveMax` is true.
-        inclusiveMax: !isBinnedDotPlot,
+        inclusiveMax,
         plotHeight,
         plotWidth,
         scale,
         subPlotRegionBoundaries
       })
-    
+
       return counts.map((c) => {
         const regionPercent = percentString((c.count ?? 0) / totalCases)
         return {
@@ -129,7 +130,7 @@ export const CountAdornmentModel = AdornmentModel
           width: c.width
         }
       })
-    }    
+    }
   }))
   .actions(self => ({
     setShowCount(showCount: boolean) {

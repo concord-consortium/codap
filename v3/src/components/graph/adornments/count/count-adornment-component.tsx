@@ -64,8 +64,8 @@ export const CountAdornment = observer(function CountAdornment(props: IAdornment
           maxBinEdge
         ] : []
       }
-      return adornmentsStore?.subPlotRegionBoundaries(instanceKey, scale) ?? []
-  }, [adornmentsStore, binnedDotPlot, dataConfig, graphModel, instanceKey, scale])
+      return adornmentsStore?.subPlotRegionBoundaries(instanceKey) ?? []
+  }, [adornmentsStore, binnedDotPlot, dataConfig, graphModel, instanceKey])
 
   const subPlotRegionBoundariesRef = useRef(subPlotRegionBoundaries())
 
@@ -105,14 +105,17 @@ export const CountAdornment = observer(function CountAdornment(props: IAdornment
     const regionCounts = model.computeRegionCounts({
       cellKey,
       dataConfig,
+      // Points whose values match a region's upper boundary are treated differently based on
+      // what defines the regions. For regions defined by bins, points matching the upper boundary
+      // are placed into the next bin. So we set `inclusiveMax` to false. Otherwise, such points
+      // are considered within the boundary and `inclusiveMax` is true.
       inclusiveMax: !binnedDotPlot,
       plotHeight,
       plotWidth,
       scale,
-      subPlotRegionBoundaries: subPlotRegionBoundariesRef.current,
-      isBinnedDotPlot: !!binnedDotPlot
+      subPlotRegionBoundaries: subPlotRegionBoundariesRef.current
     })
-  
+
     // If there are no bin boundaries or movable values present, we just show a single case count.
     if (regionCounts.length === 1) {
       const regionTextContent = regionText(regionCounts[0])
