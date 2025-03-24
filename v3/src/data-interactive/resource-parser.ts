@@ -1,3 +1,7 @@
+import { getAdornmentContentInfo } from "../components/graph/adornments/adornment-content-info"
+import { IAdornmentModel } from "../components/graph/adornments/adornment-models"
+import { isCountAdornment } from "../components/graph/adornments/count/count-adornment-model"
+import { kCountType, kPercentType } from "../components/graph/adornments/count/count-adornment-types"
 import { isGraphContentModel } from "../components/graph/models/graph-content-model"
 import { appState } from "../models/app-state"
 import { IAttribute } from "../models/data/attribute"
@@ -8,6 +12,7 @@ import { ITileModel } from "../models/tiles/tile-model"
 import { toV3CaseId, toV3GlobalId, toV3ItemId } from "../utilities/codap-utils"
 import { ActionName, DIResources, DIResourceSelector, DIParsedOperand } from "./data-interactive-types"
 import { getAttribute, getCollection } from "./data-interactive-utils"
+import { resolveAdornmentType } from "./handlers/adornment-handler"
 import { evaluateCaseFormula, findTileFromNameOrId, parseSearchQuery } from "./resource-parser-utils"
 
 /**
@@ -152,12 +157,39 @@ export function resolveResources(
     const adornmentTypeOrId = resourceSelector.adornment
     const adornments = result.component.content.adornmentsStore.adornments
     result.adornment = adornments.find((adornment) => {
-      return adornment.id === adornmentTypeOrId || adornment.type === adornmentTypeOrId
+      return adornment.id === adornmentTypeOrId || adornment.type === resolveAdornmentType(adornmentTypeOrId)
     })
   }
 
   if ("adornmentList" in resourceSelector && isGraphContentModel(result.component?.content)) {
-    result.adornmentList = result.component.content.adornmentsStore.adornments ?? []
+    const graphPlotType = result.component?.content.plotType
+    const adornmentList = result.component.content.adornmentsStore.adornments.reduce((list, adornment) => {
+      if (isCountAdornment(adornment)) {
+        // If the Count adornment is present, we add separate Count and Percent adornment items to the list.
+        // Even though Percent is part of the Count adornment, clients may not be aware of that since the UI
+        // presents them as separate entities.
+        const countAdornment = {
+          ...adornment,
+          isVisible: adornment.showCount && adornment.isVisible,
+          type: kCountType
+        }
+        const percentAdornment = {
+          ...adornment,
+          isVisible: adornment.showPercent && adornment.isVisible,
+          type: kPercentType
+        }
+        list.push(countAdornment, percentAdornment)
+      } else {
+        const adornmentPlotTypes = getAdornmentContentInfo(adornment.type)?.plots
+        const isGraphPlotTypeSupported = adornmentPlotTypes?.includes(graphPlotType)
+        if (isGraphPlotTypeSupported) {
+          list.push(adornment)
+        }
+      }
+      return list
+    }, [] as IAdornmentModel[])
+
+    result.adornmentList = adornmentList
   }
 
   const getCaseById = (caseId: string) =>
