@@ -1,5 +1,4 @@
 import { Instance, SnapshotIn, types } from "mobx-state-tree"
-import { ScaleNumericBaseType } from "../../../axis/axis-types"
 import { getAdornmentComponentInfo } from "../adornment-component-info"
 import { AdornmentModelUnion, kDefaultFontSize } from "../adornment-types"
 import { IAdornmentModel, IUpdateCategoriesOptions } from "../adornment-models"
@@ -89,15 +88,13 @@ export const AdornmentsBaseStore = types.model("AdornmentsBaseStore", {
     const movableValues = movableValueAdornment?.values
     return !!movableValues?.size
   },
-  subPlotRegionBoundaries(key: string, scale: ScaleNumericBaseType) {
+  subPlotRegionBoundaries(key: string) {
     // When Movable Values are present, they define regions within a sub-plot which may affect the behavior of other
     // adornments. The Count/Percent adornment, for example, will show a count/percent per region. This view can be
-    // used by those adornments to determine the sub-region boundaries. The boundaries are simply the numeric values
-    // of each movable value in addition to the primary axis' min and max values.
-    const [axisMin, axisMax] = scale.domain() as [number, number]
+    // used by those adornments to determine the sub-region boundaries.
     const movableValueAdornment = self.findAdornmentOfType<IMovableValueAdornmentModel>(kMovableValueType)
     const movableValues = movableValueAdornment?.valuesForKey(key) ?? []
-    return [axisMin, ...movableValues, axisMax].sort((a: number, b: number) => a - b)
+    return [-Infinity, ...movableValues, Infinity].sort((a: number, b: number) => a - b)
   },
   get activeBannerCount() {
     return self.adornments.filter(adornment => {
