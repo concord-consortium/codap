@@ -1,5 +1,21 @@
 # Changelog
 
+## Version 3.0.0-pre.2233
+
+### ✨ Features & Improvements:
+- **CODAP-326:** Symmetric case table relation lines
+- **CODAP-9:** Heatmap on Maps
+
+### 🐞 Bug Fixes:
+- **CODAP-342:** Switching to another plot type results in confusing error handling in the API Tester
+- **CODAP-341:** Moving axis labels won't move the corresponding points in graphs
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  190454 bytes |                           <0.00% |
+|  index.js | 6514500 bytes |                            0.44% |
+
 ## Version 3.0.0-pre.2224
 ### ✨ Features & Improvements:
 - **CODAP-74:** Get adornment list for a particular graph
@@ -11,8 +27,8 @@
 ### Asset Sizes
 |      File |          Size | % Increase from Previous Release |
 |-----------|---------------|----------------------------------|
-|  main.css |  190281 bytes |                          <0.00% |
-|  index.js | 6485505 bytes |                           0.13% |
+|  main.css |  190281 bytes |                           <0.00% |
+|  index.js | 6485505 bytes |                            0.13% |
 
 ## Version 3.0.0-pre.2219 - March 14, 2025
 
