@@ -72,8 +72,13 @@ export const CountAdornmentModel = AdornmentModel
       }
 
       for (let i = 0; i < subPlotRegionBoundaries.length - 1; i++) {
-        const lowerBoundary = subPlotRegionBoundaries[i]
-        const upperBoundary = subPlotRegionBoundaries[i + 1]
+        const [domainMin, domainMax] = scaleCopy?.domain() ?? [0, 0]
+        const lowerBoundary = subPlotRegionBoundaries[i] === -Infinity
+          ? domainMin
+          : subPlotRegionBoundaries[i]
+        const upperBoundary = subPlotRegionBoundaries[i + 1] === Infinity
+          ? domainMax
+          : subPlotRegionBoundaries[i + 1]        
         const casesInRange = dataConfig?.casesInRange(lowerBoundary, upperBoundary, attrId, cellKey, inclusiveMax) ?? []
         const count = casesInRange.length
         if (scaleCopy) {
