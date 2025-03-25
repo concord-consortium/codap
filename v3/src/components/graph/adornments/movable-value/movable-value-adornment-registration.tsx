@@ -1,5 +1,6 @@
 import { Button, Flex } from "@chakra-ui/react"
 import React from "react"
+import { registerAdornmentHandler } from "../../../../data-interactive/handlers/adornment-handler"
 import { safeJsonParse } from "../../../../utilities/js-utils"
 import { isFiniteNumber } from "../../../../utilities/math-utils"
 import { t } from "../../../../utilities/translation/translate"
@@ -9,6 +10,7 @@ import { registerAdornmentComponentInfo } from "../adornment-component-info"
 import { exportAdornmentBase, getAdornmentContentInfo, registerAdornmentContentInfo } from "../adornment-content-info"
 import { IUpdateCategoriesOptions } from "../adornment-models"
 import { MovableValueAdornment } from "./movable-value-adornment-component"
+import { movableValueAdornmentHandler } from "./movable-value-adornment-handler"
 import {
   IMovableValueAdornmentModel, isMovableValueAdornment, MovableValueAdornmentModel
 } from "./movable-value-adornment-model"
@@ -127,3 +129,5 @@ registerAdornmentComponentInfo({
   order: 100,
   type: kMovableValueType
 })
+
+registerAdornmentHandler(kMovableValueType, movableValueAdornmentHandler)

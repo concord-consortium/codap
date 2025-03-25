@@ -68,6 +68,7 @@ export interface DIDataDisplay {
 }
 
 export interface DIResources {
+  adornment?: IAdornmentModel
   adornmentList?: IAdornmentModel[]
   attribute?: IAttribute
   attributeList?: IAttribute[]

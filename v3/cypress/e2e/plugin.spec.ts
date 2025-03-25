@@ -152,15 +152,17 @@ context("codap plugins", () => {
 
   it('will handle adornment-related requests', () => {
 
-    // Activate the Mean adornment on the graph.
+    // Activate the Count/Percent, Mean, and Movable Value adornments on the graph.
     c.selectTile("graph", 0)
     ah.openAxisAttributeMenu("bottom")
     ah.selectMenuAttribute("Sleep", "bottom")
     graph.getDisplayValuesButton().click()
+    graph.getInspectorPalette().find("[data-testid=adornment-checkbox-count-count]").click()
     graph.getInspectorPalette().find("[data-testid=adornment-checkbox-mean]").click()
+    graph.getInspectorPalette().find("[data-testid=adornment-toggle-otherValues]").click()
+    graph.getInspectorPalette().find("[data-testid=adornment-button-movable-value--add]").click()
 
     openAPITester()
-    cy.log("Handle get adornmentList request")
   
     // Get the graph tile ID.
     const cmd1 = `{
@@ -178,25 +180,95 @@ context("codap plugins", () => {
     })
     webView.clearAPITesterResponses()
   
-    // Get the graph tile's adornment list.
     cy.get('@graphId').then((graphId) => {
-      const resource = `component[${graphId}].adornmentList`
+      cy.log("Handle get adornmentList request")
       const cmd2 = `{
         "action": "get",
-        "resource": "${resource}"
+        "resource": "component[${graphId}].adornmentList"
       }`
       webView.sendAPITesterCommand(cmd2, cmd1)
       webView.confirmAPITesterResponseContains(/"success":\s*true/)
       webView.getAPITesterResponse().then((value: any) => {
         const response = JSON.parse(value.eq(1).text())
-        const meanInfo = response.values[0]
-
-        expect(response.values.length).to.equal(1)
+        expect(response.values.length).to.equal(4)
+        const countInfo = response.values[0]
+        const percentInfo = response.values[1]
+        const meanInfo = response.values[2]
+        const movableValueInfo = response.values[3]
+        expect(countInfo.type).to.equal("Count")
+        expect(countInfo.isVisible).to.equal(true)
+        expect(percentInfo.type).to.equal("Percent")
+        expect(percentInfo.isVisible).to.equal(false)
         expect(meanInfo.type).to.equal("Mean")
         expect(meanInfo.isVisible).to.equal(true)
-
+        expect(movableValueInfo.type).to.equal("Movable Value")
+        expect(movableValueInfo.isVisible).to.equal(true)
+        const meanId = meanInfo.id
+        cy.wrap(meanId).as('meanId')
       })
       webView.clearAPITesterResponses()
+
+      cy.log("Handle get adornment by type request")
+      const cmd3 = `{
+        "action": "get",
+        "resource": "component[${graphId}].adornment[Count]"
+      }`
+      webView.sendAPITesterCommand(cmd3, cmd2)
+      webView.confirmAPITesterResponseContains(/"success":\s*true/)
+      webView.getAPITesterResponse().then((value: any) => {
+        const response = JSON.parse(value.eq(1).text())
+        const countInfo = response.values
+        expect(countInfo.id).to.be.a("string")
+        expect(countInfo.isVisible).to.be.a("boolean")
+        expect(countInfo.type).to.eq("Count")
+        // Since there is a Movable Value present, the count should be an array containing two numbers.
+        expect(countInfo.data[0].count).to.be.a("array")
+        expect(countInfo.data[0].count).to.have.length(2)
+        expect(countInfo.data[0].count[0]).to.be.a("number")
+        expect(countInfo.data[0].count[1]).to.be.a("number")
+      })
+      webView.clearAPITesterResponses()
+
+      cy.log("Handle get adornment by ID request")
+      cy.get('@meanId').then((meanId) => {
+        const cmd4 = `{
+          "action": "get",
+          "resource": "component[${graphId}].adornment[${meanId}]"
+        }`
+        webView.sendAPITesterCommand(cmd4, cmd3)
+        webView.confirmAPITesterResponseContains(/"success":\s*true/)
+        webView.getAPITesterResponse().then((value: any) => {
+          const response = JSON.parse(value.eq(1).text())
+          const meanInfo = response.values
+          expect(meanInfo.id).to.be.a("string")
+          expect(meanInfo.data[0]).to.haveOwnProperty("mean")
+          expect(meanInfo.data[0].mean).to.be.a("number")
+        })
+        webView.clearAPITesterResponses()
+
+        cy.log("Handle get adornmentList requests after plot type change")
+        ah.openAxisAttributeMenu("left")
+        ah.selectMenuAttribute("LifeSpan", "left")
+        const cmd5 = `{
+          "action": "get",
+          "resource": "component[${graphId}].adornmentList"
+        }`
+        webView.sendAPITesterCommand(cmd5, cmd4)
+        webView.confirmAPITesterResponseContains(/"success":\s*true/)
+        webView.getAPITesterResponse().then((value: any) => {
+          const response = JSON.parse(value.eq(1).text())
+          // The previously activated Mean and Movable Value adornments should not be listed
+          // since they do not support scatter plots.
+          expect(response.values.length).to.equal(2)
+          const countInfo = response.values[0]
+          const percentInfo = response.values[1]
+          expect(countInfo.type).to.equal("Count")
+          expect(countInfo.isVisible).to.equal(true)
+          expect(percentInfo.type).to.equal("Percent")
+          expect(percentInfo.isVisible).to.equal(false)
+        })
+        webView.clearAPITesterResponses()
+      })
     })
   })
 

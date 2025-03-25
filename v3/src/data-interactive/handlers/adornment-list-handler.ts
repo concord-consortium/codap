@@ -2,7 +2,6 @@ import { registerDIHandler } from "../data-interactive-handler"
 import { DIHandler, DIResources } from "../data-interactive-types"
 import { adornmentListNotFoundResult } from "./di-results"
 
-
 export const diAdornmentListHandler: DIHandler = {
   get(resources: DIResources) {
     const { adornmentList } = resources

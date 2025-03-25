@@ -1,10 +1,12 @@
 import React from "react"
+import { registerAdornmentHandler } from "../../../../../data-interactive/handlers/adornment-handler"
 import { registerAdornmentComponentInfo } from "../../adornment-component-info"
 import { registerAdornmentContentInfo } from "../../adornment-content-info"
 import { AdornmentCheckbox } from "../../components/adornment-checkbox"
 import { useGraphOptions } from "../../hooks/use-graph-options"
 import { exportUnivariateMeasure } from "../univariate-measure-adornment-utils"
 import { NormalCurveAdornmentComponent } from "./normal-curve-adornment-component"
+import { normalCurveAdornmentHandler } from "./normal-curve-adornment-handler"
 import { isNormalCurveAdornment, NormalCurveAdornmentModel } from "./normal-curve-adornment-model"
 import {
   kNormalCurveClass, kNormalCurveLabelKey, kNormalCurveType, kNormalCurvePrefix,
@@ -52,3 +54,5 @@ registerAdornmentComponentInfo({
   order: 10,
   type: kNormalCurveType
 })
+
+registerAdornmentHandler(kNormalCurveType, normalCurveAdornmentHandler)
