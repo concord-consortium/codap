@@ -34,15 +34,21 @@ export const MapInterior = observer(function MapInterior({setPixiPointsLayer}: I
   useEffect(function addGeoTIFFLayer() {
     if (!mapModel.geotiffUrl) return
 
-    createGeoTIFFLayer(mapModel.geotiffUrl).then(layer => {
-      if (layer && mapModel.leafletMap) {
+    // Remove existing GeoTIFF layer
+    mapModel.setGeoraster()
+    if (mapModel.geotiffLayer) {
+      mapModel.geotiffLayer.remove()
+      mapModel.setGeotiffLayer()
+    }
+
+    // Add new GeoTIFF layer if possible
+    createGeoTIFFLayer(mapModel.geotiffUrl).then(result => {
+      if (!result) return
+      const { georaster, layer } = result
+      if (georaster && layer && mapModel.leafletMap) {
         layer.addTo(mapModel.leafletMap)
-        // Store the layer reference so we can remove it later
-        return () => {
-          if (mapModel.leafletMap) {
-            layer.remove()
-          }
-        }
+        mapModel.setGeotiffLayer(layer)
+        mapModel.setGeoraster(georaster)
       }
     })
   }, [mapModel.geotiffUrl, mapModel.leafletMap])
