@@ -46,7 +46,7 @@ context("codap plugins", () => {
       "action": "fake",
       "resource": "dataContext[Mammals].collection[Cases].attribute[Order]"
     }`
-    webView.sendAPITesterCommand(cmd2, cmd1)
+    webView.sendAPITesterCommand(cmd2)
     webView.confirmAPITesterResponseContains(/"Unsupported action: fake\/attribute"/)
     webView.clearAPITesterResponses()
 
@@ -59,7 +59,7 @@ context("codap plugins", () => {
       }
     }`
     table.getAttributeHeader().contains("Order").should("be.visible")
-    webView.sendAPITesterCommand(cmd3, cmd2)
+    webView.sendAPITesterCommand(cmd3)
     table.getAttributeHeader().contains("Order").should("not.exist")
     webView.clearAPITesterResponses()
 
@@ -74,7 +74,7 @@ context("codap plugins", () => {
       ]
     }`
     table.getAttributeHeader().contains("Heartrate").should("not.exist")
-    webView.sendAPITesterCommand(cmd4, cmd3)
+    webView.sendAPITesterCommand(cmd4)
     table.getAttributeHeader().contains("Heartrate").should("exist")
     webView.clearAPITesterResponses()
 
@@ -84,7 +84,7 @@ context("codap plugins", () => {
       "resource": "dataContext[Mammals].collection[Cases].attribute[Heartrate]"
     }`
     table.getAttributeHeader().contains("Heartrate").should("exist")
-    webView.sendAPITesterCommand(cmd5, cmd4)
+    webView.sendAPITesterCommand(cmd5)
     table.getAttributeHeader().contains("Heartrate").should("not.exist")
     webView.clearAPITesterResponses()
 
@@ -93,7 +93,7 @@ context("codap plugins", () => {
       "action": "get",
       "resource": "collection[Cases].attribute[Order]"
     }`
-    webView.sendAPITesterCommand(cmd6, cmd5)
+    webView.sendAPITesterCommand(cmd6)
     webView.confirmAPITesterResponseContains(/"success":\s*true/)
     webView.clearAPITesterResponses()
 
@@ -102,7 +102,7 @@ context("codap plugins", () => {
       "action": "get",
       "resource": "dataContextList"
     }`
-    webView.sendAPITesterCommand(cmd7, cmd6)
+    webView.sendAPITesterCommand(cmd7)
     webView.confirmAPITesterResponseContains(/"values":\s\[\s{\s"name":\s*"Mammals"/)
     webView.clearAPITesterResponses()
   })
@@ -133,7 +133,7 @@ context("codap plugins", () => {
         }
       }`
       webView.clearAPITesterResponses()
-      webView.sendAPITesterCommand(cmd2, cmd1)
+      webView.sendAPITesterCommand(cmd2)
       webView.confirmAPITesterResponseContains(/"success":\s*true/)
       webView.clearAPITesterResponses()
       c.checkComponentFocused("table")
@@ -143,7 +143,7 @@ context("codap plugins", () => {
         "action": "delete",
         "resource": "component[${tableId}]"
       }`
-      webView.sendAPITesterCommand(cmd3, cmd2)
+      webView.sendAPITesterCommand(cmd3)
       webView.confirmAPITesterResponseContains(/"success":\s*true/)
       webView.clearAPITesterResponses()
       c.checkComponentDoesNotExist("table")
@@ -186,7 +186,7 @@ context("codap plugins", () => {
         "action": "get",
         "resource": "component[${graphId}].adornmentList"
       }`
-      webView.sendAPITesterCommand(cmd2, cmd1)
+      webView.sendAPITesterCommand(cmd2)
       webView.confirmAPITesterResponseContains(/"success":\s*true/)
       webView.getAPITesterResponse().then((value: any) => {
         const response = JSON.parse(value.eq(1).text())
@@ -213,7 +213,7 @@ context("codap plugins", () => {
         "action": "get",
         "resource": "component[${graphId}].adornment[Count]"
       }`
-      webView.sendAPITesterCommand(cmd3, cmd2)
+      webView.sendAPITesterCommand(cmd3)
       webView.confirmAPITesterResponseContains(/"success":\s*true/)
       webView.getAPITesterResponse().then((value: any) => {
         const response = JSON.parse(value.eq(1).text())
@@ -235,7 +235,7 @@ context("codap plugins", () => {
           "action": "get",
           "resource": "component[${graphId}].adornment[${meanId}]"
         }`
-        webView.sendAPITesterCommand(cmd4, cmd3)
+        webView.sendAPITesterCommand(cmd4)
         webView.confirmAPITesterResponseContains(/"success":\s*true/)
         webView.getAPITesterResponse().then((value: any) => {
           const response = JSON.parse(value.eq(1).text())
@@ -253,7 +253,7 @@ context("codap plugins", () => {
           "action": "get",
           "resource": "component[${graphId}].adornmentList"
         }`
-        webView.sendAPITesterCommand(cmd5, cmd4)
+        webView.sendAPITesterCommand(cmd5)
         webView.confirmAPITesterResponseContains(/"success":\s*true/)
         webView.getAPITesterResponse().then((value: any) => {
           const response = JSON.parse(value.eq(1).text())

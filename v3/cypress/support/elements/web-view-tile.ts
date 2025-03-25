@@ -4,7 +4,7 @@ export const WebViewTileElements = {
   },
   enterUrl(url: string) {
     cy.get(`[data-testid=web-view-url-input]`).clear()
-    cy.get(`[data-testid=web-view-url-input]`).type(url)
+    cy.get(`[data-testid=web-view-url-input]`).type(url, { delay: 0 })
     cy.get(`[data-testid=OK-button]`).click()
   },
   getIFrame() {
@@ -41,12 +41,8 @@ export const WebViewTileElements = {
   // Data Interactive API Tester Functions
   // These will only work if you've opened the API Tester plugin, which can be found here:
   // https://concord-consortium.github.io/codap-data-interactives/DataInteractiveAPITester/index.html?lang=en
-  sendAPITesterCommand(command: string, oldCommand?: string) {
-    // Delete the old command if it's provided
-    if (oldCommand) {
-      WebViewTileElements.getIFrame().find(`.di-message-area`).clear()
-    }
-    WebViewTileElements.getIFrame().find(`.di-message-area`).type(command)
+  sendAPITesterCommand(command: string) {
+    WebViewTileElements.getIFrame().find(`.di-message-area`).clear().type(command, { delay: 0 })
     WebViewTileElements.getIFrame().find(`.di-send-button`).click()
   },
   getAPITesterResponse() {
