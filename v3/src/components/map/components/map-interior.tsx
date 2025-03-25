@@ -10,6 +10,7 @@ import {isMapPolygonLayerModel} from "../models/map-polygon-layer-model"
 import {MapPolygonLayer} from "./map-polygon-layer"
 import { DataConfigurationContext } from "../../data-display/hooks/use-data-configuration-context"
 import { useTileModelContext } from "../../../hooks/use-tile-model-context"
+import { createGeoTIFFLayer } from "../utilities/geotiff-utils"
 
 interface IProps {
   setPixiPointsLayer: (pixiPoints: PixiPoints, layerIndex: number) => void
@@ -28,6 +29,23 @@ export const MapInterior = observer(function MapInterior({setPixiPointsLayer}: I
       mapModel.rescale()
     }
   }, [tileTransitionComplete, mapModel])
+
+  // Add GeoTIFF layer when URL changes
+  useEffect(function addGeoTIFFLayer() {
+    if (!mapModel.geotiffUrl) return
+
+    createGeoTIFFLayer(mapModel.geotiffUrl).then(layer => {
+      if (layer && mapModel.leafletMap) {
+        layer.addTo(mapModel.leafletMap)
+        // Store the layer reference so we can remove it later
+        return () => {
+          if (mapModel.leafletMap) {
+            layer.remove()
+          }
+        }
+      }
+    })
+  }, [mapModel.geotiffUrl, mapModel.leafletMap])
 
   /**
    * Note that we don't have to worry about layer order because polygons will be sent to the back
