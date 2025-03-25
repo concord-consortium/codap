@@ -24,7 +24,7 @@ const kImporterPluginUrl = "/Importer/index.html?lang=en-US"
  * @param url
  * @return mimeType
  */
-function getExpectedContentType(mimeType?: string, url?: string) {
+export function getExpectedContentType(mimeType?: string, url?: string) {
   if (mimeType) {
     return mimeType
   }
@@ -232,14 +232,14 @@ function validateV2Document(_content: unknown): Maybe<ICodapV2DocumentJson> {
 export function resolveDocument(iDocContents: any, iMetadata: IDocumentMetadata): Promise<IDocumentModelSnapshot> {
   return new Promise(function (resolve, reject) {
     const metadata = iMetadata || {}
-    const urlString = metadata.url || (`file:${metadata.filename}`)
+    const urlString = metadata.url || (metadata.filename ? `file:${metadata.filename}` : "")
     const expectedContentType = getExpectedContentType(metadata.contentType, urlString)
-    const url = new URL(urlString)
+    const url = urlString ? new URL(urlString) : undefined
     const urlPath = url?.pathname
     const datasetName = urlPath ? urlPath.replace(/.*\//g, '').replace(/\..*/, '') : 'data'
     let contentType
 
-    if (expectedContentType?.includes('json')) {
+    if (!expectedContentType || expectedContentType.includes('json')) {
       if (typeof iDocContents === 'string') {
         try {
           iDocContents = JSON.parse(iDocContents)
