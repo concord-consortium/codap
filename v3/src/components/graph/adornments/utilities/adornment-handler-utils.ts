@@ -4,7 +4,7 @@ import { IDataConfigurationModel } from "../../../data-display/models/data-confi
 
 export type AdornmentData = {
   categories?: Record<string, string>;
-} & Record<string, number | number[] | string | string[] | undefined | null | ((x: number) => void)>
+} & Record<string, number | number[] | string | undefined | null | ((x: number) => void)>
 
 export const cellKeyToCategories = (cellKey: Record<string, string>, dataConfig: IDataConfigurationModel) => {
   const categories: Record<string, string> = {}

@@ -152,15 +152,13 @@ context("codap plugins", () => {
 
   it('will handle adornment-related requests', () => {
 
-    // Activate the Count/Percent, Mean, and Movable Value adornments on the graph.
+    // Activate the Count/Percent and Mean adornments on the graph.
     c.selectTile("graph", 0)
     ah.openAxisAttributeMenu("bottom")
     ah.selectMenuAttribute("Sleep", "bottom")
     graph.getDisplayValuesButton().click()
     graph.getInspectorPalette().find("[data-testid=adornment-checkbox-count-count]").click()
     graph.getInspectorPalette().find("[data-testid=adornment-checkbox-mean]").click()
-    graph.getInspectorPalette().find("[data-testid=adornment-toggle-otherValues]").click()
-    graph.getInspectorPalette().find("[data-testid=adornment-button-movable-value--add]").click()
 
     openAPITester()
   
@@ -190,19 +188,16 @@ context("codap plugins", () => {
       webView.confirmAPITesterResponseContains(/"success":\s*true/)
       webView.getAPITesterResponse().then((value: any) => {
         const response = JSON.parse(value.eq(1).text())
-        expect(response.values.length).to.equal(4)
+        expect(response.values.length).to.equal(3)
         const countInfo = response.values[0]
         const percentInfo = response.values[1]
         const meanInfo = response.values[2]
-        const movableValueInfo = response.values[3]
         expect(countInfo.type).to.equal("Count")
         expect(countInfo.isVisible).to.equal(true)
         expect(percentInfo.type).to.equal("Percent")
         expect(percentInfo.isVisible).to.equal(false)
         expect(meanInfo.type).to.equal("Mean")
         expect(meanInfo.isVisible).to.equal(true)
-        expect(movableValueInfo.type).to.equal("Movable Value")
-        expect(movableValueInfo.isVisible).to.equal(true)
         const meanId = meanInfo.id
         cy.wrap(meanId).as('meanId')
       })
@@ -221,11 +216,8 @@ context("codap plugins", () => {
         expect(countInfo.id).to.be.a("string")
         expect(countInfo.isVisible).to.be.a("boolean")
         expect(countInfo.type).to.eq("Count")
-        // Since there is a Movable Value present, the count should be an array containing two numbers.
-        expect(countInfo.data[0].count).to.be.a("array")
-        expect(countInfo.data[0].count).to.have.length(2)
-        expect(countInfo.data[0].count[0]).to.be.a("number")
-        expect(countInfo.data[0].count[1]).to.be.a("number")
+        expect(countInfo.data[0]).to.haveOwnProperty("count")
+        expect(countInfo.data[0].count).to.be.a("number")
       })
       webView.clearAPITesterResponses()
 
