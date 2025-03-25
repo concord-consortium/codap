@@ -165,6 +165,7 @@ function importGuideView(args: V2TileImportArgs) {
 }
 
 registerV2TileImporter("DG.GuideView", importGuideView)
+
 const webViewComponentHandler: DIComponentHandler = {
   create({ values }) {
     const { URL } = values as V2WebView

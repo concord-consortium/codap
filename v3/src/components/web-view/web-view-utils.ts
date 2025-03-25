@@ -1,7 +1,7 @@
 import { kRootGuideUrl, kRootPluginUrl } from "../../constants"
 
 export const kRelativePluginRoot = "../../../../extn/plugins"
-export const kRelativeGuideRoot = "%_url_%/guides"
+export const kRelativeGuideRoot = "../../../../extn/example-documents/guides"
 
 export function processPluginUrl(url: string) {
   let updatedUrl = url
