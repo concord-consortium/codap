@@ -1,10 +1,22 @@
 # Changelog
 
-## Version 3.0.0-pre.2233
+## Version 3.0.0-pre.2233 - March 25, 2025
+
+### 🐞 Bug Fixes:
+- **CODAP-353:** Percent adornment is displaying all 100% in categorical axis plots
+- **CODAP-348:** CODAP is not embedding in the Activity Player
+
+## Version 3.0.0-pre.2233 - March 24, 2025
 
 ### ✨ Features & Improvements:
 - **CODAP-326:** Symmetric case table relation lines
 - **CODAP-9:** Heatmap on Maps
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  190454 bytes |                           <0.00% |
+|  index.js | 6512860 bytes |                           <0.00% |
 
 ### 🐞 Bug Fixes:
 - **CODAP-342:** Switching to another plot type results in confusing error handling in the API Tester
@@ -16,7 +28,7 @@
 |  main.css |  190454 bytes |                           <0.00% |
 |  index.js | 6514500 bytes |                            0.44% |
 
-## Version 3.0.0-pre.2224
+## Version 3.0.0-pre.2224 - March 21, 2025
 ### ✨ Features & Improvements:
 - **CODAP-74:** Get adornment list for a particular graph
 - **PT-188928484:** "url" url parameter supports csv import
