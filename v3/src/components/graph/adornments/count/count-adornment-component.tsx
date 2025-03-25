@@ -43,12 +43,6 @@ export const CountAdornment = observer(function CountAdornment(props: IAdornment
   const prevSubPlotRegionWidth = useRef(plotWidth)
   const [displayCount, setDisplayCount] = useState(<div>{textContent}</div>)
 
-  const regionText = useCallback((regionCount: Partial<IRegionCount>) => {
-    const regionPercent = percentString((regionCount.count ?? 0) / casesInPlot)
-    const regionDisplayPercent = model.showCount ? ` (${regionPercent})` : regionPercent
-    return `${model.showCount ? regionCount.count : ""}${model.showPercent ? regionDisplayPercent : ""}`
-  }, [casesInPlot, model.showCount, model.showPercent])
-
   const subPlotRegionBoundaries = useCallback(() => {
       // Sub plot regions can be defined by either bin boundaries when points are grouped into bins, or by
       // instances of the movable value adornment. It should not be possible to have both bin boundaries and
@@ -68,6 +62,14 @@ export const CountAdornment = observer(function CountAdornment(props: IAdornment
   }, [adornmentsStore, binnedDotPlot, dataConfig, graphModel, instanceKey])
 
   const subPlotRegionBoundariesRef = useRef(subPlotRegionBoundaries())
+
+  const regionText = useCallback((regionCount: Partial<IRegionCount>) => {
+    const regionPercent = subPlotRegionBoundariesRef.current.length < 3
+      ? percentString(model.percentValue(casesInPlot, cellKey, dataConfig))
+      : regionCount.percent ?? "0%"
+    const regionDisplayPercent = model.showCount ? ` (${regionPercent})` : regionPercent
+    return `${model.showCount ? regionCount.count : ""}${model.showPercent ? regionDisplayPercent : ""}`
+  }, [casesInPlot, cellKey, dataConfig, model])
 
   const resizeText = useCallback(() => {
     const minFontSize = 3
