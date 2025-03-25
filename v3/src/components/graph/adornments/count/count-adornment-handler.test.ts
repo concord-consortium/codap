@@ -11,12 +11,6 @@ describe("DataInteractive CountAdornmentHandler", () => {
 
   beforeEach(() => {
     mockDataConfig = {
-      attributeID: jest.fn(() => "attr1"),
-      attributeType: jest.fn(() => "numeric"),
-      dataset: {
-        getCasesForAttributes: jest.fn(() => [1, 1]),
-        getNumeric: jest.fn(() => 1)
-      },
       getAllCellKeys: jest.fn(() => [{}]),
       subPlotCases: jest.fn(() => [{ id: "case1" }, { id: "case2" }])
     }
@@ -25,7 +19,6 @@ describe("DataInteractive CountAdornmentHandler", () => {
     }
     
     mockCountAdornment = {
-      computeRegionCounts: jest.fn(() => [{ count: 2, percent: "50%" }]),
       id: "ADRN123",
       isVisible: true,
       percentValue: jest.fn(() => 0.5),
@@ -56,6 +49,7 @@ describe("DataInteractive CountAdornmentHandler", () => {
     expect(result?.showCount).toBe(true)
     expect(result?.showPercent).toBe(true)
     expect(mockDataConfig.getAllCellKeys).toHaveBeenCalled()
+    expect(mockDataConfig.subPlotCases).toHaveBeenCalled()
   })
 
   it("get only returns a count when showCount is true and showPercent is false", () => {

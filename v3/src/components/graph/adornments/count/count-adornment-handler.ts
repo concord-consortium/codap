@@ -2,6 +2,7 @@ import { DIAdornmentHandler } from "../../../../data-interactive/handlers/adornm
 import { IGraphContentModel } from "../../models/graph-content-model"
 import { IAdornmentModel } from "../adornment-models"
 import { isCountAdornment } from "./count-adornment-model"
+import { percentString } from "../../utilities/graph-utils"
 import { AdornmentData, adornmentMismatchResult, cellKeyToCategories } from "../utilities/adornment-handler-utils"
 import { kCountType } from "./count-adornment-types"
 
@@ -11,42 +12,25 @@ export const countAdornmentHandler: DIAdornmentHandler = {
 
     const { percentType, showCount, showPercent } = adornment
     const dataConfig = graphContent.dataConfiguration
-    const cellKeys = dataConfig.getAllCellKeys()
+    const cellKeys = dataConfig?.getAllCellKeys()
     const data: AdornmentData[] = []
 
     for (const cellKey of cellKeys) {
+      const subPlotCases = dataConfig.subPlotCases(cellKey)
       const dataItem: AdornmentData = {}
-
-      const subPlotRegionBoundaries = graphContent.adornmentsStore?.subPlotRegionBoundaries(JSON.stringify(cellKey))
-
-      const regionCounts = adornment.computeRegionCounts({
-        cellKey,
-        dataConfig,
-        inclusiveMax: false,
-        plotHeight: 0,
-        plotWidth: 0,
-        subPlotRegionBoundaries
-      })
-
-      const regionCountValues = regionCounts.map(c => c.count)
-      const regionPercentValues = regionCounts.map(c => c.percent)
-
+      
       if (showCount) {
-        dataItem.count = regionCountValues.length > 1
-          ? regionCountValues.filter((value): value is number => value !== undefined)
-          : regionCountValues[0]
+        dataItem.count = subPlotCases.length
       }
 
       if (showPercent) {
-        dataItem.percent = regionPercentValues.length > 1
-          ? regionPercentValues.filter((value): value is string => value !== undefined)
-          : regionPercentValues[0]
+        dataItem.percent = percentString(adornment.percentValue(subPlotCases.length, cellKey, dataConfig))
       }
-
+    
       if (Object.keys(cellKey).length > 0) {
         dataItem.categories = cellKeyToCategories(cellKey, dataConfig)
       }
-
+    
       data.push(dataItem)
     }
 
