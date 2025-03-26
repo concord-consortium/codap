@@ -13,7 +13,7 @@ export interface ICodapV2Attribute {
   description?: string | null
   categoryMap?: any
   _categoryMap?: any
-  colormap?: any
+  colormap?: Record<string, string>
   _colormap?: any
   blockDisplayOfEmptyCategories?: boolean
   // plugin bugs have led to documents in the field with values like `[true]`

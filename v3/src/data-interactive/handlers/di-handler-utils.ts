@@ -27,7 +27,7 @@ export function createAttribute(value: DIAttribute, dataContext: IDataSet, colle
     if (value.formula) attribute.formula?.setDisplayExpression(value.formula)
     metadata?.setIsHidden(attribute.id, !!value.hidden)
     if (value.colormap) {
-      applyColormap(attribute.id, value.colormap as DICategoryColorMap, metadata)
+      applyColormap(attribute.id, value.colormap, metadata)
     }
     return attribute
   }
