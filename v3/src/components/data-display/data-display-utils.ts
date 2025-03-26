@@ -90,6 +90,7 @@ export interface IMatchCirclesProps {
 export function matchCirclesToData(props: IMatchCirclesProps) {
   const { dataConfiguration, pixiPoints, startAnimation, pointRadius, pointColor, pointStrokeColor,
           pointDisplayType = "points" } = props
+  // TODO: eliminate dependence on GraphDataConfigurationModel
   const allCaseData: CaseDataWithSubPlot[] = isGraphDataConfigurationModel(dataConfiguration)
     ? dataConfiguration.caseDataWithSubPlot
     : dataConfiguration.joinedCaseDataArrays

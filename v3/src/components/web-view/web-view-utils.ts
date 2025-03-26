@@ -1,6 +1,5 @@
-import { codapResourcesUrl } from "../../constants"
+import { kRootPluginUrl } from "../../constants"
 
-export const kRootPluginUrl = codapResourcesUrl("plugins")
 export const kRelativePluginRoot = "../../../../extn/plugins"
 
 export function processPluginUrl(url: string) {

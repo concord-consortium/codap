@@ -11,6 +11,7 @@ export interface ICodapV2Attribute {
   defaultMin?: number
   defaultMax?: number
   description?: string | null
+  // TODO_V2_IMPORT_EXPORT
   categoryMap?: any
   _categoryMap?: any
   colormap?: Record<string, string>

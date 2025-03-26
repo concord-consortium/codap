@@ -1,5 +1,66 @@
 # Changelog
 
+## Version 3.0.0-pre.2233 - March 25, 2025
+
+### 🐞 Bug Fixes:
+- **CODAP-353:** Percent adornment is displaying all 100% in categorical axis plots
+- **CODAP-348:** CODAP is not embedding in the Activity Player
+
+## Version 3.0.0-pre.2233 - March 24, 2025
+
+### ✨ Features & Improvements:
+- **CODAP-326:** Symmetric case table relation lines
+- **CODAP-9:** Heatmap on Maps
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  190454 bytes |                           <0.00% |
+|  index.js | 6512860 bytes |                           <0.00% |
+
+### 🐞 Bug Fixes:
+- **CODAP-342:** Switching to another plot type results in confusing error handling in the API Tester
+- **CODAP-341:** Moving axis labels won't move the corresponding points in graphs
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  190454 bytes |                           <0.00% |
+|  index.js | 6514500 bytes |                            0.44% |
+
+## Version 3.0.0-pre.2224 - March 21, 2025
+### ✨ Features & Improvements:
+- **CODAP-74:** Get adornment list for a particular graph
+- **PT-188928484:** "url" url parameter supports csv import
+
+### 🐞 Bug Fixes:
+- **CODAP-337:** Some points in the graph become invisible after being manipulated for several times. 
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  190281 bytes |                           <0.00% |
+|  index.js | 6485505 bytes |                            0.13% |
+
+## Version 3.0.0-pre.2219 - March 14, 2025
+
+### 🐞 Bug Fixes:
+- **CODAP-31:** `di` url param should load plugin alongside `#example` document
+- **CODAP-41:** Hidden levels cause issues in the table display.
+- **CODAP-89:** Component reposition and resize in iPadOS
+- **CODAP-329:** Unable to hide selected cases in graphs with multiple y-axes
+- **CODAP-300:** Date values not showing on date-time slider
+- **CODAP-123:** Bar chart selection misbehaves in Safari
+
+### 🛠️ Under the Hood:
+- **CODAP-130:** Automation - Missing data with 2nd categorical axes
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  190281 bytes |                           <0.00% |
+|  index.js | 6476957 bytes |                           <0.00% |
+
 ## Version 3.0.0-pre.2202 - March 7, 2025
 
 ### ✨ Features & Improvements:

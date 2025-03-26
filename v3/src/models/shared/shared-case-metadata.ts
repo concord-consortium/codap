@@ -1,5 +1,5 @@
-import { observable } from "mobx"
-import { getSnapshot, getType, Instance, ISerializedActionCall, types } from "mobx-state-tree"
+import { observable, reaction, comparer } from "mobx"
+import { getSnapshot, getType, Instance, ISerializedActionCall, types, addDisposer } from "mobx-state-tree"
 import { onAnyAction } from "../../utilities/mst-utils"
 import { CategorySet, createProvisionalCategorySet, ICategorySet } from "../data/category-set"
 import { DataSet, IDataSet } from "../data/data-set"
@@ -192,6 +192,31 @@ export const SharedCaseMetadata = SharedModel
         })
       }
       return categorySet
+    }
+  }))
+  .actions(self => ({
+    afterCreate() {
+      // respond to change of collections by showing hidden attributes if all attributes are hidden
+      addDisposer(self, reaction(
+        () => {
+          return {
+            hiddenAttrs: Array.from(self.hidden.keys()),
+            collections: self.data?.collections.map(collection => collection.attributes.map(attr => attr?.id)) || []
+          }
+        },
+        ({hiddenAttrs}) => {
+          self.data?.collections.forEach(collection => {
+            const attrs = collection.attributes
+            if (attrs && attrs.every(attr => attr && hiddenAttrs.includes(attr.id))) {
+              attrs.forEach(attr => attr && self.setIsHidden(attr.id, false))
+            }
+          })
+        },
+        { name: "DataConfigurationModel.afterCreate.reaction [show all hidden attributes in a collection]",
+          fireImmediately: true,
+          equals: comparer.structural
+        }
+      ))
     }
   }))
   .actions(applyModelChange)

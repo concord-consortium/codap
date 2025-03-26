@@ -1,9 +1,11 @@
 import React from "react"
+import { registerAdornmentHandler } from "../../../../../data-interactive/handlers/adornment-handler"
 import { registerAdornmentComponentInfo } from "../../adornment-component-info"
 import { registerAdornmentContentInfo } from "../../adornment-content-info"
 import { AdornmentCheckbox } from "../../components/adornment-checkbox"
 import { UnivariateMeasureAdornmentSimpleComponent } from "../univariate-measure-adornment-simple-component"
 import { exportUnivariateMeasure } from "../univariate-measure-adornment-utils"
+import { medianAdornmentHandler } from "./median-adornment-handler"
 import { isMedianAdornment, MedianAdornmentModel } from "./median-adornment-model"
 import {
   kMedianClass, kMedianLabelKey, kMedianPrefix, kMedianRedoAddKey, kMedianRedoRemoveKey,
@@ -48,3 +50,5 @@ registerAdornmentComponentInfo({
   order: 10,
   type: kMedianType
 })
+
+registerAdornmentHandler(kMedianType, medianAdornmentHandler)

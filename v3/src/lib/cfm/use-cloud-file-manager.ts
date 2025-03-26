@@ -2,15 +2,15 @@ import { CFMAppOptions, CloudFileManager, CloudFileManagerClientEvent } from "@c
 import { useEffect, useRef } from "react"
 import { Root, createRoot } from "react-dom/client"
 import { useMemo } from "use-memo-one"
-import { codapResourcesUrl } from "../constants"
-import { appState } from "../models/app-state"
-import { isCodapDocument } from "../models/codap/create-codap-document"
-import { gLocale } from "../utilities/translation/locale"
-import { t } from "../utilities/translation/translate"
-import { removeDevUrlParams, urlParams } from "../utilities/url-params"
+import { codapResourcesUrl } from "../../constants"
+import { appState } from "../../models/app-state"
+import { isCodapDocument } from "../../models/codap/create-codap-document"
+import { gLocale } from "../../utilities/translation/locale"
+import { t } from "../../utilities/translation/translate"
+import { removeDevUrlParams, urlParams } from "../../utilities/url-params"
 import { clientConnect, createCloudFileManager, renderRoot } from "./cfm-utils"
-import { CONFIG_SAVE_AS_V2 } from "./config"
-import { DEBUG_CFM_LOCAL_STORAGE, DEBUG_CFM_NO_AUTO_SAVE, DEBUG_SAVE_AS_V2 } from "./debug"
+import { CONFIG_SAVE_AS_V2 } from "../config"
+import { DEBUG_CFM_LOCAL_STORAGE, DEBUG_CFM_NO_AUTO_SAVE, DEBUG_SAVE_AS_V2 } from "../debug"
 import { handleCFMEvent } from "./handle-cfm-event"
 
 const locales = [
@@ -145,6 +145,10 @@ export function useCloudFileManager(optionsArg: CFMAppOptions) {
   const options = useRef(optionsArg)
   const root = useRef<Root | undefined>()
   const cfm = useMemo(() => createCloudFileManager(), [])
+  const cfmReadyResolver = useRef<() => void>()
+  const cfmReadyPromise = useMemo(() => new Promise<void>((resolve) => {
+    cfmReadyResolver.current = resolve
+  }), [])
 
   useEffect(function initCfm() {
 
@@ -248,10 +252,14 @@ export function useCloudFileManager(optionsArg: CFMAppOptions) {
 
     clientConnect(cfm, function cfmEventCallback(event: CloudFileManagerClientEvent) {
       handleCFMEvent(cfm.client, event)
+      const cfmReadyEvents = ["fileOpened", "ready"]
+      if (cfmReadyEvents.includes(event.type)) {
+        cfmReadyResolver.current?.()
+      }
     })
 
     appState.setCFM(cfm)
   }, [cfm])
 
-  return cfm
+  return { cfm, cfmReadyPromise }
 }

@@ -163,6 +163,49 @@ context("Map UI", () => {
     map.getHideUnselectedCases().should("not.be.disabled")
     map.getShowAllCases().should("be.disabled")
   })
+  it("checks heatmap", () => {
+    cfm.openLocalDoc(filename1)
+    c.getIconFromToolShelf("map").click()
+    c.selectTile("map", 0)
+
+    // Can't show heatmap without a legend attribute
+    map.getHeatmapCanvas().should("not.exist")
+    map.getDisplayConfigButton().click()
+    map.getHeatmapBullet().should("not.exist")
+
+    // Turn on heatmap
+    mlh.dragAttributeToLegend("Length")
+    map.getDisplayConfigButton().click()
+    map.getHeatmapBullet().should("exist")
+    map.getHeatmapBullet().click()
+    map.getHeatmapCanvas().should("exist")
+
+    // Hidden when layer is hidden
+    map.getInspectorPalette().contains("RollerCoastersWithLatLong").click()
+    map.getHeatmapCanvas().should("not.exist")
+    map.getInspectorPalette().contains("RollerCoastersWithLatLong").click()
+    map.getHeatmapCanvas().should("exist")
+
+    // Hidden when points are hidden
+    map.getDisplayValuesButton().click()
+    map.getInspectorPalette().contains("Points").click()
+    map.getHeatmapCanvas().should("not.exist")
+    map.getInspectorPalette().contains("Points").click()
+    map.getHeatmapCanvas().should("exist")
+
+    // Hidden when points are toggled
+    map.getDisplayConfigButton().click()
+    map.getHeatmapBullet("points").should("exist")
+    map.getHeatmapBullet("points").click()
+    map.getHeatmapCanvas().should("not.exist")
+    map.getHeatmapBullet().click()
+    map.getHeatmapCanvas().should("exist")
+
+    // Hidden when legend is removed
+    mlh.openLegendMenu()
+    mlh.removeAttributeFromLegend("Length")
+    map.getHeatmapCanvas().should("not.exist")
+  })
   // flaky test skipped in PR #1239, see PT #187534790
   it.skip("checks show/hide map boundaries with legend selections", () => {
     cfm.openLocalDoc(filename2)

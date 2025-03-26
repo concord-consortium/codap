@@ -148,12 +148,12 @@ export const Attribute = V2Model.named("Attribute").props({
 }))
 .actions(self => ({
   incChangeCount() {
-    ++self.changeCount
     self.getEmptyCount.invalidate()
     self.getNumericCount.invalidate()
     self.getStrictColorCount.invalidate()
     self.getBoundaryCount.invalidate()
     self.getDateCount.invalidate()
+    ++self.changeCount
   },
   setCid(cid?: string) {
     self._cid = cid

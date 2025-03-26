@@ -281,10 +281,11 @@ context("Slider UI", () => {
     cy.get('[data-testid="slider-variable-value-text-input"]')
     .invoke('val') // Get the value of the input
     .should('include', today) // Check if today's date is included
+    cy.get('.codap-inspector-palette-header-title').click() // Close the scale type dropdown
 
     cy.log("set the minimum value and verify it is displayed correctly")
     cy.get('[data-testid="slider-minimum"]')
-    .clear()
+    .clear({force: true})
     .type(minValue, { delay: 100 })
     .should('have.value', minValue)
 

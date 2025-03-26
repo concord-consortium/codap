@@ -1,14 +1,14 @@
-import { cloneDeep } from "lodash"
 import { CloudFileManagerClient, CloudFileManagerClientEvent } from "@concord-consortium/cloud-file-manager"
-import { appState } from "../models/app-state"
-import { removeDevUrlParams, urlParams } from "../utilities/url-params"
+import { cloneDeep } from "lodash"
+import build from "../../../build_number.json"
+import pkg from "../../../package.json"
+import { appState } from "../../models/app-state"
+import { t } from "../../utilities/translation/translate"
+import { removeDevUrlParams, urlParams } from "../../utilities/url-params"
+import { DEBUG_CFM_EVENTS } from "../debug"
 import { wrapCfmCallback } from "./cfm-utils"
-import { t } from "../utilities/translation/translate"
-import { DEBUG_CFM_EVENTS } from "./debug"
+import { resolveDocument } from "./resolve-document"
 import { hideSplashScreen } from "./splash-screen"
-
-import build from "../../build_number.json"
-import pkg from "../../package.json"
 
 export async function handleCFMEvent(cfmClient: CloudFileManagerClient, event: CloudFileManagerClientEvent) {
   if (DEBUG_CFM_EVENTS) {
@@ -66,27 +66,23 @@ export async function handleCFMEvent(cfmClient: CloudFileManagerClient, event: C
     //   // then it would make since to hide it here, so the user doesn't have to wait again.
     //   break
     case "openedFile": {
-      const rawContent = event.data.content as unknown
+      const content = event.data.content
       const metadata = event.data.metadata
 
-
       try {
-        // The content could be either an object or a string
-        // We don't currently handle strings
-        if (typeof rawContent === "string") {
-          throw new Error(`Content from CFM is a string: ${rawContent}`)
-        }
-        const content = rawContent as any
-
         // Pull the shared metadata out of the content if it exists
         // Otherwise use the shared metadata passed from the CFM
-        const cfmSharedMetadata = content?.metadata?.shared || metadata?.shared || {}
+        const cfmSharedMetadata = (!!content && typeof content === "object"
+                                    ? content.metadata?.shared
+                                    : undefined) ?? metadata?.shared ?? {}
 
         // Clone this metadata because that is what CODAPv2 did so we do the
         // same to be safe
         const clonedCfmSharedMetadata = cloneDeep(cfmSharedMetadata)
 
-        await appState.setDocument(content, metadata)
+        const resolvedDocument = await resolveDocument(content, metadata)
+
+        await appState.setDocument(resolvedDocument, metadata)
 
         // acknowledge a successful open and return shared metadata
         event.callback(null, clonedCfmSharedMetadata)
@@ -109,7 +105,9 @@ export async function handleCFMEvent(cfmClient: CloudFileManagerClient, event: C
         // Have the CFM show an error dialog
         event.callback(t("DG.AppController.openDocument.error.general"))
         // Clear the dirty state so the red "unsaved" badge isn't visible behind the error message
-        event.state.dirty = false
+        if ("state" in event && typeof event.state === "object") {
+          event.state.dirty = false
+        }
         // Close the file so the title resets, and any residual metadata or content are not
         // preserved by the CFM
         cfmClient.closeFile()

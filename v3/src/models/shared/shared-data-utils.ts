@@ -3,6 +3,7 @@ import { toV2Id } from "../../utilities/codap-utils"
 import { IDataSet } from "../data/data-set"
 import { ITileContentModel } from "../tiles/tile-content"
 import { getSharedModelManager } from "../tiles/tile-environment"
+import { ITileModel } from "../tiles/tile-model"
 import {
   ISharedCaseMetadata, isSharedCaseMetadata, kSharedCaseMetadataType, SharedCaseMetadata
 } from "./shared-case-metadata"
@@ -58,4 +59,23 @@ export function getTileCaseMetadata(tile: ITileContentModel) {
 
 export function getAllTileCaseMetadata(tile: ITileContentModel): ISharedCaseMetadata[] {
   return getTileSharedModels(tile).filter(m => isSharedCaseMetadata(m))
+}
+
+export function addDataSetAndMetadata(tile: ITileModel, dataSet: IDataSet, isProvider = true) {
+  const sharedModelManager = getSharedModelManager(tile)
+  if (sharedModelManager) {
+    const sharedModel = SharedDataSet.create({ providerId: tile.id })
+    sharedModel.setDataSet(dataSet)
+    // so values are captured in undo/redo patches
+    dataSet.prepareSnapshot()
+    sharedModelManager?.addTileSharedModel(tile.content, sharedModel, isProvider)
+
+    const caseMetadata = SharedCaseMetadata.create()
+    caseMetadata.setData(dataSet)
+    sharedModelManager?.addSharedModel(caseMetadata)
+
+    dataSet.completeSnapshot()
+
+    return { sharedData: sharedModel, caseMetadata }
+  }
 }

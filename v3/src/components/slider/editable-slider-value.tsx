@@ -25,7 +25,8 @@ export const EditableSliderValue = observer(function EditableSliderValue({slider
       // trigger update on domain change
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const domain = sliderModel.domain
-      setCandidate(multiScale.formatValueForScale(sliderModel.value, sliderModel.scaleType === "date"))
+      setCandidate(multiScale.formatValueForScale(sliderModel.value, sliderModel.scaleType === "date",
+                                    sliderModel.multipleOf !== undefined ? sliderModel.dateMultipleOfUnit : undefined))
     })
   }, [multiScale, sliderModel])
 

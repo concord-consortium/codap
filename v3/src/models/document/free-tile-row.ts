@@ -74,7 +74,10 @@ export type IFreeTileInRowOptions = ITileInRowOptions & Omit<IFreeTileLayoutSnap
   animateCreation?: boolean
 }
 export const isFreeTileInRowOptions = (options?: ITileInRowOptions): options is IFreeTileInRowOptions =>
-              !!options && ("x" in options && options.x != null) && ("y" in options && options.y != null)
+              !!options &&
+                (("x" in options && options.x != null) && ("y" in options && options.y != null) ||
+                ("isHidden" in options && options.isHidden != null) ||
+                ("isMinimized" in options && options.isMinimized != null))
 
 /*
   Tiles are represented as a map of layouts and an array of tile ids representing the order.

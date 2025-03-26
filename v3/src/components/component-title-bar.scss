@@ -94,6 +94,7 @@
 .title-bar {
   width: 100%;
   cursor: grab !important;
+  touch-action: none;
 }
 .title-text {
   display: flex !important;

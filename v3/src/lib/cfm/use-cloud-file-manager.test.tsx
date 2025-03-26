@@ -6,8 +6,8 @@ import { useCloudFileManager } from "./use-cloud-file-manager"
 
 let spySetMenuBarInfo: jest.SpyInstance | undefined
 
-jest.mock("../lib/cfm-utils", () => {
-  const cfmUtils = jest.requireActual("../lib/cfm-utils")
+jest.mock("./cfm-utils", () => {
+  const cfmUtils = jest.requireActual("./cfm-utils")
 
   return {
     createCloudFileManager() {
@@ -49,7 +49,8 @@ describe("useCloudFileManager", () => {
 
     let cfm: CloudFileManager | undefined
     renderHook(() => {
-      cfm = useCloudFileManager({ appOrMenuElemId: "container-div" })
+      const { cfm: _cfm } = useCloudFileManager({ appOrMenuElemId: "container-div" })
+      cfm = _cfm
     })
     expect(cfm).toBeDefined()
     await waitFor(() => {

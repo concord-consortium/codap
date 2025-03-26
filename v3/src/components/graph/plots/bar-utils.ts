@@ -1,14 +1,14 @@
 import { select } from "d3"
 import { handleClickOnBar } from "../../data-display/data-display-utils"
-import { IDataConfigurationModel } from "../../data-display/models/data-configuration-model"
 import { CellType, IBarCover } from "../graphing-types"
 import { GraphLayout } from "../models/graph-layout"
 import { SubPlotCells } from "../models/sub-plot-cells"
+import { IGraphContentModel } from "../models/graph-content-model"
 
 interface IRenderBarCoverProps {
   barCovers: IBarCover[]
   barCoversRef: React.RefObject<SVGGElement>
-  dataConfig: IDataConfigurationModel
+  graphModel: IGraphContentModel
   primaryAttrRole: "x" | "y"
 }
 
@@ -55,7 +55,8 @@ export const barCoverDimensions = (props: IBarCoverDimensionsProps) => {
 }
 
 export const renderBarCovers = (props: IRenderBarCoverProps) => {
-  const { barCovers, barCoversRef, dataConfig } = props
+  const { barCovers, barCoversRef, graphModel } = props
+  const { dataConfiguration: dataConfig, showDataTip, hideDataTip } = graphModel
   select(barCoversRef.current).selectAll("rect").remove()
   select(barCoversRef.current).selectAll("rect")
     .data(barCovers)
@@ -66,8 +67,14 @@ export const renderBarCovers = (props: IRenderBarCoverProps) => {
       .attr("y", (d) => d.y)
       .attr("width", (d) => d.width)
       .attr("height", (d) => d.height)
-      .on("mouseover", function() { select(this).classed("active", true) })
-      .on("mouseout", function() { select(this).classed("active", false) })
+      .on("mouseover", function(event, d) {
+        select(this).classed("active", true)
+        showDataTip({event, caseID: d.caseIDs[0], plotNum: 0})
+      })
+      .on("mouseout", function(event) {
+        select(this).classed("active", false)
+        hideDataTip(event)
+      })
       .on("click", function(event, d) {
         dataConfig && handleClickOnBar({event, dataConfig, barCover: d})
       })

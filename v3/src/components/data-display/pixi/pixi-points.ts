@@ -94,6 +94,16 @@ export class PixiPoints {
   subPlotMasks: PIXI.Graphics[] = []
   ticker = new PIXI.Ticker()
   tickerStopTimeoutId: number | undefined
+  // For bar charts and histograms, we need events to be passed to the "cover" rectangles that
+  // overlay the pixi sprites. This happens seamlessly in Chrome and Firefox, but not in Safari.
+  // TODO: Rather than using browser-detection, a better approach would be to runtime-detect the
+  // problematic behavior and use that to determine whether to use the workaround. For instance,
+  // if the problem is really that the bar cover SVGs never receive pointer events, then the
+  // handler for those pointer events could be used to disable the Safari-specific event dispatch.
+  // This would allow the code to continue to work once Safari fixes the underlying issue.
+  isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
+  // To dispatch to Safari for 'mouseout' we need the element we are leaving, computable from the event's x,y coords.
+  mostRecentSvgElement: SVGElement | null = null
 
   pointMetadata: Map<PIXI.Sprite, IPixiPointMetadata> = new Map()
   caseDataToPoint: Map<string, PIXI.Sprite> = new Map()
@@ -642,6 +652,32 @@ export class PixiPoints {
     }
   }
 
+  /**
+   * Dispatches events to the SVG elements lying on top of the PixiJS canvas. This is necessary for Safari,
+   * as it does not pass events through the canvas to the elements above it.
+   */
+  dispatchForSafari(event: PIXI.FederatedPointerEvent, eventType: string) {
+    const x = event.clientX
+    const y = event.clientY
+    const canvas = this.renderer?.view.canvas
+    if (canvas) {
+      const canvasStyle = canvas.style as CSSStyleDeclaration
+      canvasStyle.visibility = 'hidden'
+      const svgElement = (eventType === 'mouseout') ? this.mostRecentSvgElement : document.elementFromPoint(x, y)
+      canvasStyle.visibility = 'visible'
+      if (svgElement && svgElement.tagName === 'rect') {
+        const mouseEvent = new MouseEvent(eventType, {
+          bubbles: true,
+          cancelable: true,
+          clientX: x,
+          clientY: y,
+        })
+        svgElement.dispatchEvent(mouseEvent)
+        this.mostRecentSvgElement = svgElement as SVGElement
+      }
+    }
+  }
+
   setupSpriteInteractivity(sprite: PIXI.Sprite) {
     sprite.eventMode = "static"
     sprite.cursor = "pointer"
@@ -654,13 +690,16 @@ export class PixiPoints {
           const newStyle = { ...this.getMetadata(sprite).style, stroke: strokeColorHover }
           this.setPointStyle(sprite, newStyle)
         }
+        else if (this.isSafari) {
+          this.dispatchForSafari(pointerEvent, 'mouseover')
+        }
       } else {
         this.transition(() => {
           this.setPointScale(sprite, hoverRadiusFactor)
         }, { duration: transitionDuration })
       }
       if (!draggingActive) {
-        this.onPointOver?.(toPointerEvent(pointerEvent), sprite, this.getMetadata(sprite))
+        !this.pointsFusedIntoBars && this.onPointOver?.(toPointerEvent(pointerEvent), sprite, this.getMetadata(sprite))
       } else {
         this.onPointLeave?.(toPointerEvent(pointerEvent), sprite, this.getMetadata(sprite))
       }
@@ -671,12 +710,15 @@ export class PixiPoints {
           const newStyle = { ...this.getMetadata(sprite).style, stroke: strokeColor }
           this.setPointStyle(sprite, newStyle)
         }
+        else if (this.isSafari) {
+          this.dispatchForSafari(pointerEvent, 'mouseout')
+        }
       } else {
         this.transition(() => {
           this.setPointScale(sprite, 1)
         }, { duration: transitionDuration })
       }
-      this.onPointLeave?.(toPointerEvent(pointerEvent), sprite, this.getMetadata(sprite))
+      !this.pointsFusedIntoBars && this.onPointLeave?.(toPointerEvent(pointerEvent), sprite, this.getMetadata(sprite))
     }
 
     // Hover effect
@@ -690,7 +732,12 @@ export class PixiPoints {
     })
 
     sprite.on("click", (clickEvent: PIXI.FederatedPointerEvent) => {
-      this.onPointClick?.(toPointerEvent(clickEvent), sprite, this.getMetadata(sprite))
+      if (this.displayType === "bars" && this.pointsFusedIntoBars && this.isSafari) {
+        this.dispatchForSafari(clickEvent, 'click')
+      }
+      else {
+        this.onPointClick?.(toPointerEvent(clickEvent), sprite, this.getMetadata(sprite))
+      }
     })
 
     // Dragging

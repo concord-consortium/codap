@@ -3,14 +3,14 @@ import {
   ClientEventCallback, CloudFileManagerClient, CloudFileManagerClientEvent
 } from "@concord-consortium/cloud-file-manager"
 import { getSnapshot } from "mobx-state-tree"
-import { appState } from "../models/app-state"
-import { createCodapDocument, isCodapDocument } from "../models/codap/create-codap-document"
-import { ICodapV2DocumentJson } from "../v2/codap-v2-types"
-import * as ImportV2Document from "../v2/import-v2-document"
+import { appState } from "../../models/app-state"
+import { createCodapDocument, isCodapDocument } from "../../models/codap/create-codap-document"
+import { ICodapV2DocumentJson } from "../../v2/codap-v2-types"
+import * as ImportV2Document from "../../v2/import-v2-document"
 import { handleCFMEvent } from "./handle-cfm-event"
-import { Logger } from "./logger"
+import { Logger } from "../logger"
 
-const urlParamsModule = require("../utilities/url-params")
+const urlParamsModule = require("../../utilities/url-params")
 
 describe("handleCFMEvent", () => {
 
@@ -127,16 +127,21 @@ describe("handleCFMEvent", () => {
   })
 
   it("handles the `openedFile` message with a v2 document", async () => {
-    const mockCfmClient = {} as CloudFileManagerClient
+    const mockCfmClient = { closeFile: jest.fn() } as unknown as CloudFileManagerClient
     const mockV2Document: ICodapV2DocumentJson = {
       appName: "DG",
+      appVersion: "2.0.0",
+      appBuildNum: "555",
       components: [],
       contexts: []
     } as unknown as ICodapV2DocumentJson
     const cfmEvent = {
       type: "openedFile",
       data: {
-        content: mockV2Document
+        content: mockV2Document,
+        metadata: {
+          filename: "file.codap"
+        }
       },
       callback: jest.fn() as ClientEventCallback
     } as CloudFileManagerClientEvent
@@ -149,12 +154,15 @@ describe("handleCFMEvent", () => {
   })
 
   it("handles the `openedFile` message with a v3 document", async () => {
-    const mockCfmClient = {} as CloudFileManagerClient
+    const mockCfmClient = { closeFile: jest.fn() } as unknown as CloudFileManagerClient
     const v3Document = createCodapDocument()
     const cfmEvent = {
       type: "openedFile",
       data: {
-        content: getSnapshot(v3Document)
+        content: getSnapshot(v3Document),
+        metadata: {
+          filename: "file.codap3"
+        }
       },
       callback: jest.fn() as ClientEventCallback
     } as CloudFileManagerClientEvent
@@ -167,7 +175,7 @@ describe("handleCFMEvent", () => {
   })
 
   it("handles the `openedFile` message with sharing info", async () => {
-    const mockCfmClient = {} as CloudFileManagerClient
+    const mockCfmClient = { closeFile: jest.fn() } as unknown as CloudFileManagerClient
     const v3Document = createCodapDocument()
     // This is not real metadata for sharing. Our CFM handler should
     // not care and just return it whatever it is.
@@ -181,7 +189,10 @@ describe("handleCFMEvent", () => {
     const cfmEvent = {
       type: "openedFile",
       data: {
-        content
+        content,
+        metadata: {
+          filename: "file.codap3"
+        }
       },
       callback: jest.fn() as ClientEventCallback
     } as CloudFileManagerClientEvent
@@ -197,7 +208,7 @@ describe("handleCFMEvent", () => {
     let setDocumentSpy: jest.SpyInstance
     let mockCfmClient: CloudFileManagerClient
     let cfmEvent: CloudFileManagerClientEvent
-    let consoleSpys: jest.SpyInstance[]
+    let consoleSpies: jest.SpyInstance[]
 
     beforeEach(() => {
       mockCfmClient = {
@@ -210,14 +221,14 @@ describe("handleCFMEvent", () => {
         callback: jest.fn() as ClientEventCallback
       } as CloudFileManagerClientEvent
       setDocumentSpy = jest.spyOn(appState, "setDocument")
-      consoleSpys = ["error", "log", "groupCollapsed", "groupEnd"].map(method => {
+      consoleSpies = ["error", "log", "groupCollapsed", "groupEnd"].map(method => {
         return jest.spyOn(console, method as any).mockImplementation(() => null)
       })
     })
 
     afterEach(() => {
       setDocumentSpy?.mockRestore()
-      for (const spy of consoleSpys) {
+      for (const spy of consoleSpies) {
         spy.mockRestore()
       }
     })
@@ -226,23 +237,20 @@ describe("handleCFMEvent", () => {
       cfmEvent.data.content = "foo bar"
       await handleCFMEvent(mockCfmClient, cfmEvent)
       expect(setDocumentSpy).toHaveBeenCalledTimes(0)
-      // No error and the sharing info is returned
       expect(cfmEvent.callback).toHaveBeenCalledWith("Unable to open document")
     })
 
     it("errors with an invalid version type", async () => {
       cfmEvent.data.content = {version: 1234}
       await handleCFMEvent(mockCfmClient, cfmEvent)
-      expect(setDocumentSpy).toHaveBeenCalledTimes(1)
-      // No error and the sharing info is returned
+      expect(setDocumentSpy).toHaveBeenCalledTimes(0)
       expect(cfmEvent.callback).toHaveBeenCalledWith("Unable to open document")
     })
 
     it("errors with an invalid rowMap type", async () => {
       cfmEvent.data.content = {content: {rowMap: "invalid"}}
       await handleCFMEvent(mockCfmClient, cfmEvent)
-      expect(setDocumentSpy).toHaveBeenCalledTimes(1)
-      // No error and the sharing info is returned
+      expect(setDocumentSpy).toHaveBeenCalledTimes(0)
       expect(cfmEvent.callback).toHaveBeenCalledWith("Unable to open document")
     })
 
@@ -250,9 +258,8 @@ describe("handleCFMEvent", () => {
     it("doesn't error with unknown field", async () => {
       cfmEvent.data.content = {invalid: "value"}
       await handleCFMEvent(mockCfmClient, cfmEvent)
-      expect(setDocumentSpy).toHaveBeenCalledTimes(1)
-      // No error and the sharing info is returned
-      expect(cfmEvent.callback).toHaveBeenCalledWith(null, {})
+      expect(setDocumentSpy).toHaveBeenCalledTimes(0)
+      expect(cfmEvent.callback).toHaveBeenCalledWith("Unable to open document")
     })
 
   })

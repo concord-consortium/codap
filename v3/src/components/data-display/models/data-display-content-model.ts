@@ -5,6 +5,9 @@
 import {comparer, reaction} from "mobx"
 import {addDisposer, Instance, types} from "mobx-state-tree"
 import { format } from "d3"
+import { formatDate } from "../../../utilities/date-utils"
+import { IValueType } from "../../../models/data/attribute-types"
+import { IAttribute } from "../../../models/data/attribute"
 import {IDataSet} from "../../../models/data/data-set"
 import {ISharedCaseMetadata} from "../../../models/shared/shared-case-metadata"
 import {ISharedDataSet} from "../../../models/shared/shared-data-set"
@@ -19,7 +22,7 @@ import { IAxisTicks, TickFormatter } from "../../axis/axis-types"
 import {GraphPlace} from "../../axis-graph-shared"
 import { IAxisModel, isBaseNumericAxisModel } from "../../axis/models/axis-model"
 import { MarqueeMode } from "../data-display-types"
-import { IGetTipTextProps } from "../data-tip-types"
+import { IGetTipTextProps, IShowDataTipProps } from "../data-tip-types"
 import { IDataConfigurationModel } from "./data-configuration-model"
 import {DataDisplayLayerModelUnion} from "./data-display-layer-union"
 import {DisplayItemDescriptionModel} from "./display-item-description-model"
@@ -41,6 +44,8 @@ export const DataDisplayContentModel = TileContentModel
     animationTimerId: 0,
     marqueeMode: 'unclicked' as MarqueeMode,
     renderState: undefined as DataDisplayRenderState | undefined,
+    showDataTip: (props: IShowDataTipProps) => {},
+    hideDataTip: (event: MouseEvent) => {}
   }))
   .views(self => ({
     placeCanAcceptAttributeIDDrop(place: GraphPlace,
@@ -68,14 +73,39 @@ export const DataDisplayContentModel = TileContentModel
       return getTileContentInfo(self.type)?.getFormulaAdapters?.(self) ?? []
     },
     caseTipText(attributeIDs: string[], caseID: string, dataset?: IDataSet) {
+
+      const getValueToDisplay = (numValue: number | undefined, value: IValueType, attribute?: IAttribute) => {
+        if (!attribute) return ''
+        switch (attribute.type) {
+          case 'numeric': {
+            const numPrecision = attribute.numPrecision
+            const showUnits = attribute.units && attribute.units !== ""
+            const unitsString = showUnits ? ` ${attribute.units}` : ""
+            if (numValue && isFinite(numValue) && numPrecision) {
+              const formatStr = `.${attribute.numPrecision}~f`
+              const formatter = format(formatStr)
+              return `${formatter ? `${formatter(numValue)}` : `${numValue}`}${unitsString}`
+            }
+            return `${value}${unitsString}`
+          }
+          case 'date': {
+            const datePrecision = attribute.datePrecision
+            return value && datePrecision ? formatDate(String(value), datePrecision) : value
+          }
+          default:
+            return value
+        }
+      }
+
       const float = format('.3~f')
       const attrArray = (attributeIDs?.map(attrID => {
         const attribute = dataset?.attrFromID(attrID),
           name = attribute?.name,
           numValue = dataset?.getNumeric(caseID, attrID),
           value = numValue != null && isFinite(numValue) ? float(numValue)
-            : dataset?.getValue(caseID, attrID)
-        return value ? `${name}: ${value}` : ''
+            : dataset?.getValue(caseID, attrID),
+          displayedValue = getValueToDisplay(numValue, value, attribute)
+        return value ? `${name}: ${displayedValue}` : ''
       }))
       // Caption attribute can also be one of the plotted attributes, so we remove dups and join into html string
       return Array.from(new Set(attrArray)).filter(anEntry => anEntry !== '').join('<br>')
@@ -152,6 +182,12 @@ export const DataDisplayContentModel = TileContentModel
     },
     setRenderState(renderState: DataDisplayRenderState) {
       self.renderState = renderState
+    },
+    setShowDataTip: (showDataTip: (props: IShowDataTipProps) => void) => {
+      self.showDataTip = showDataTip
+    },
+    setHideDataTip: (hideDataTip: (event: MouseEvent) => void) => {
+      self.hideDataTip = hideDataTip
     }
   }))
 export interface IDataDisplayContentModel extends Instance<typeof DataDisplayContentModel> {}

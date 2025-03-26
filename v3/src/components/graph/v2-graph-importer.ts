@@ -49,8 +49,7 @@ export function v2GraphImporter({v2Component, v2Document, sharedModelManager, in
       plotBackgroundImageLockInfo,
   /* TODO_V2_IMPORT: [Story: #188694812]
       The following are present in the componentStorage but not used in the V3 content model (yet):
-      displayOnlySelected, legendRole, legendAttributeType, numberOfLegendQuantiles,
-      legendQuantilesAreLocked, plotBackgroundImage, plotBackgroundOpacity,
+      displayOnlySelected, numberOfLegendQuantiles, legendQuantilesAreLocked, plotBackgroundImage
   */
     }
   } = v2Component
