@@ -1,6 +1,5 @@
 import { SetOptional } from "type-fest"
 import { AttributeType } from "../models/data/attribute-types"
-import { TCategoryColorMap } from "../models/data/category-set"
 
 type ColorString = string // e.g. "#ff5586" or "rgb(85,85,255)"
 type ICodapV2CategoryOrder = { __order: string[] }

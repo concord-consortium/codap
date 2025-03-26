@@ -1,6 +1,5 @@
 import { IAttribute } from "../../models/data/attribute"
 import { isAttributeType } from "../../models/data/attribute-types"
-import { TCategoryColorMap } from "../../models/data/category-set"
 import { ICollectionModel } from "../../models/data/collection"
 import { IDataSet } from "../../models/data/data-set"
 import { IAddCollectionOptions } from "../../models/data/data-set-types"
@@ -8,14 +7,16 @@ import { v2NameTitleToV3Title } from "../../models/data/v2-model"
 import { ISharedCaseMetadata } from "../../models/shared/shared-case-metadata"
 import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-data-utils"
 import { hasOwnProperty } from "../../utilities/js-utils"
+import { CodapV2ColorMap } from "../../v2/codap-v2-data-set-types"
 import { DIAttribute, DICollection } from "../data-interactive-data-set-types"
 import { convertValuesToAttributeSnapshot } from "../data-interactive-type-utils"
 
-function applyColormap(attributeId: string, colormap: TCategoryColorMap, metadata?: ISharedCaseMetadata) {
+function applyColormap(attributeId: string, colormap: CodapV2ColorMap, metadata?: ISharedCaseMetadata) {
   if (metadata) {
     const categorySet = metadata.getCategorySet(attributeId)
     Object.entries(colormap).forEach(([category, color]) => {
-      categorySet?.setColorForCategory(category, color)
+      const _color = (typeof color === "string") ? color : color.colorString
+      categorySet?.setColorForCategory(category, _color)
     })
   }
 }
