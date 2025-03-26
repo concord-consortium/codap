@@ -1,5 +1,6 @@
 import { getSnapshot } from "mobx-state-tree"
 import { IAttribute, IAttributeSnapshot } from "../models/data/attribute"
+import { TCategoryColorMap } from "../models/data/category-set"
 import { ICollectionModel } from "../models/data/collection"
 import { IDataSet } from "../models/data/data-set"
 import { ICase } from "../models/data/data-set-types"
@@ -112,7 +113,7 @@ export function convertAttributeToV2(attribute: IAttribute, dataContext?: IDataS
   const v2Id = toV2Id(id)
   const rawColorMap = metadata?.getCategorySet(attribute.id)?.colorMap ?? {}
   const entries = Object.entries(rawColorMap).filter((entry): entry is [string, string] => entry[1] !== undefined)
-  const colormap: Record<string, string> = Object.fromEntries(entries)
+  const colormap: TCategoryColorMap = Object.fromEntries(entries)
 
   return {
     name,

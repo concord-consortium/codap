@@ -296,3 +296,5 @@ export const CategorySet = types.model("CategorySet", {
   }
 }))
 export interface ICategorySet extends Instance<typeof CategorySet> {}
+
+export type TCategoryColorMap = Record<string, string>

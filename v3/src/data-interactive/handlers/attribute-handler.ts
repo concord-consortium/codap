@@ -16,7 +16,7 @@ import { DIAttribute, DINotifyAttribute } from "../data-interactive-data-set-typ
 import { createAttribute, updateAttribute } from "./di-handler-utils"
 import {
   attributeNotFoundResult, collectionNotFoundResult, dataContextNotFoundResult, errorResult, fieldRequiredResult,
-  sharedCaseMetadaNotFoundResult
+  noColorMapAccessResult
 } from "./di-results"
 
 export const diAttributeHandler: DIHandler = {
@@ -35,7 +35,7 @@ export const diAttributeHandler: DIHandler = {
     }).filter(error => !error.success)
     if (attributeErrors.length > 0) return attributeErrors[0]
     if (attributeValues.some(attribute => !!attribute.colormap) && !metadata) {
-      return sharedCaseMetadaNotFoundResult
+      return noColorMapAccessResult
     }
     // Create the attributes
     const attributes: IAttribute[] = []
