@@ -63,10 +63,10 @@ export const CountAdornment = observer(function CountAdornment(props: IAdornment
 
   const subPlotRegionBoundariesRef = useRef(subPlotRegionBoundaries())
 
-  const regionText = useCallback((regionCount: Partial<IRegionCount>) => {
-    const regionPercent = subPlotRegionBoundariesRef.current.length < 3
-      ? percentString(model.percentValue(casesInPlot, cellKey, dataConfig))
-      : regionCount.percent ?? "0%"
+  const regionText = useCallback((regionCount: Partial<IRegionCount>, regionIndex = 0) => {
+    const regionPercent = percentString(
+      model.percentValue(casesInPlot, cellKey, dataConfig, subPlotRegionBoundariesRef.current, regionIndex)
+    )
     const regionDisplayPercent = model.showCount ? ` (${regionPercent})` : regionPercent
     return `${model.showCount ? regionCount.count : ""}${model.showPercent ? regionDisplayPercent : ""}`
   }, [casesInPlot, cellKey, dataConfig, model])
@@ -138,7 +138,7 @@ export const CountAdornment = observer(function CountAdornment(props: IAdornment
             const style = primaryAttrRole === "x"
               ? { left: `${c.leftOffset}px`, width: `${c.width}px` }
               : { bottom: `${c.bottomOffset}px`, height: `${c.height}px` }
-            const regionTextContent = regionText(c)
+            const regionTextContent = regionText(c, i)
             return (
               <div key={`count-instance-${i}`} className={className} style={style}>
                 {regionTextContent}
