@@ -154,6 +154,8 @@ export function v2GraphImporter({v2Component, v2Document, sharedModelManager, in
     if (!axes[place]) axes[place] = {place, type: "empty"}
   })
 
+  const hiddenCaseIds = links.hiddenCases?.map(hiddenCase => hiddenCase.id) ?? []
+  const hiddenCases = hiddenCaseIds.map(id => `CASE${id}`)
   // configure plot
   const primaryPlot = plotModels[0]
   const plot = v2PlotImporter(primaryPlot)
@@ -196,6 +198,7 @@ export function v2GraphImporter({v2Component, v2Document, sharedModelManager, in
         type: kGraphDataConfigurationType,
         dataset: data?.dataSet.id,
         metadata: metadata?.id,
+        hiddenCases,
         primaryRole,
         _attributeDescriptions,
         _yAttributeDescriptions,
