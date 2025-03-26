@@ -45,7 +45,7 @@ export function v2GraphImporter({v2Component, v2Document, sharedModelManager, in
     componentStorage: {
       name, title = "", _links_: links, plotModels,
       pointColor, transparency, strokeColor, strokeTransparency, pointSizeMultiplier,
-      strokeSameAsFill, isTransparent,
+      strokeSameAsFill, isTransparent, displayOnlySelected,
       plotBackgroundImageLockInfo,
   /* TODO_V2_IMPORT: [Story: #188694812]
       The following are present in the componentStorage but not used in the V3 content model (yet):
@@ -195,7 +195,8 @@ export function v2GraphImporter({v2Component, v2Document, sharedModelManager, in
         metadata: metadata?.id,
         primaryRole,
         _attributeDescriptions,
-        _yAttributeDescriptions
+        _yAttributeDescriptions,
+        displayOnlySelectedCases: displayOnlySelected
       }
     }]
   }
