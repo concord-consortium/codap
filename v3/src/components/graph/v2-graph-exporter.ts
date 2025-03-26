@@ -303,6 +303,9 @@ export const v2GraphExporter: V2TileExportFn = ({ tile }) => {
                               ? null : removeAlphaFromColor(graph.plotBackgroundColor),
     plotBackgroundOpacity: getTransparency(graph.plotBackgroundColor),
     isTransparent: graph.isTransparent,
+    enableNumberToggle: graph.showParentToggles,
+    // TODO_V2_Export: The setting is exported correctly, but the data is not showing the correct state
+    numberToggleLastMode: graph.showOnlyLastCase,
     // attribute roles and types
     ...getAttrRoleAndType(graph, "x", "x"),
     ...getAttrRoleAndType(graph, "y", "y"),

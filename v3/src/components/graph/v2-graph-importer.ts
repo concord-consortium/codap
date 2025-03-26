@@ -45,11 +45,11 @@ export function v2GraphImporter({v2Component, v2Document, sharedModelManager, in
     componentStorage: {
       name, title = "", _links_: links, plotModels,
       pointColor, transparency, strokeColor, strokeTransparency, pointSizeMultiplier,
-      strokeSameAsFill, isTransparent, displayOnlySelected,
+      strokeSameAsFill, isTransparent, displayOnlySelected, enableNumberToggle, numberToggleLastMode,
       plotBackgroundImageLockInfo,
   /* TODO_V2_IMPORT: [Story: #188694812]
       The following are present in the componentStorage but not used in the V3 content model (yet):
-      displayOnlySelected, numberOfLegendQuantiles, legendQuantilesAreLocked, plotBackgroundImage
+      numberOfLegendQuantiles, legendQuantilesAreLocked, plotBackgroundImage
   */
     }
   } = v2Component
@@ -177,8 +177,11 @@ export function v2GraphImporter({v2Component, v2Document, sharedModelManager, in
     // V2 plotBackgroundImageLockInfo can be null, V3 only accepts undefined
     plotBackgroundImageLockInfo: plotBackgroundImageLockInfo ?? undefined,
     isTransparent: isTransparent ?? false,
+    showParentToggles: enableNumberToggle ?? undefined, //enableNumberToggle can be boolean | null | undefined
+     // TODO_V2_Import: The setting is imported correctly, but the data is not showing the correct state
+    showOnlyLastCase: numberToggleLastMode,
     /*
-    * displayOnlySelected,legendRole, legendAttributeType, numberOfLegendQuantiles, legendQuantilesAreLocked,
+    * legendRole, legendAttributeType, numberOfLegendQuantiles, legendQuantilesAreLocked,
     * */
     pointDescription: {
       _itemColors: pointColor ? [parseColorToHex(pointColor, {colorNames: true, alpha: transparency})] : [],
