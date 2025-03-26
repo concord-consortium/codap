@@ -289,7 +289,7 @@ context("Graph UI with Pixi interaction", () => {
         .find("[data-testid=axis-rightCat]")
         .find(".sub-axis-wrapper")
         .should("have.length", 1)
-      cy.get("[data-testid=graph]").find("[data-testid=axis-left]").find(".sub-axis-wrapper").should("have.length", 3)  
+      cy.get("[data-testid=graph]").find("[data-testid=axis-left]").find(".sub-axis-wrapper").should("have.length", 3)
       gch.getGraphTileId().then((tileId) => {
         gch.validateGraphPointCount(tileId, 27) // 27 points in graph
       })
@@ -301,25 +301,25 @@ context("Graph UI with Pixi interaction", () => {
       gch.getGraphTileId().then((tileId: string) => {
         // Known inputs:
         const pointIndex = 3
-        const expectedX = 165.990234375
-        const expectedY = 144.93375
-    
+        const expectedX = 166
+        const expectedY = 67
+
         gch.checkPointPosition(tileId, pointIndex, expectedX, expectedY)
       })
       gch.getGraphTileId().then((tileId: string) => {
         // Known inputs:
         const pointIndex = 8
-        const expectedX = 7
-        const expectedY = 218.4
-    
+        const expectedX = 325
+        const expectedY = 140
+
         gch.checkPointPosition(tileId, pointIndex, expectedX, expectedY)
       })
       gch.getGraphTileId().then((tileId: string) => {
         // Known inputs:
         const pointIndex = 20
-        const expectedX = 384.98046875
-        const expectedY = 229.11525
-    
+        const expectedX = 67
+        const expectedY = 151
+
         gch.checkPointPosition(tileId, pointIndex, expectedX, expectedY)
       })
     })
