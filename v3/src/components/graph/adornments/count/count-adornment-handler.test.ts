@@ -81,6 +81,12 @@ describe("DataInteractive CountAdornmentHandler", () => {
     }
   })
 
+  it("get returns an error when an invalid adornment provided", () => {
+    const result = handler.get?.(mockInvalidAdornment, mockGraphContent)
+    expect(result?.success).toBe(false)
+    expect(result?.values.error).toBe(`Not a(n) ${kCountType} adornment.`)
+  })
+
   it("create returns the expected data when count adornment created", () => {
     const createRequestValues = {
       type: kCountType,
@@ -96,12 +102,6 @@ describe("DataInteractive CountAdornmentHandler", () => {
     expect(values.showCount).toBe(true)
     expect(values.showPercent).toBe(false)
     expect(values.percentType).toBe("column")
-  })
-
-  it("get returns an error when an invalid adornment provided", () => {
-    const result = handler.get?.(mockInvalidAdornment, mockGraphContent)
-    expect(result?.success).toBe(false)
-    expect(result?.values.error).toBe(`Not a(n) ${kCountType} adornment.`)
   })
 
   it("get returns the expected data when count adornment provided", () => {

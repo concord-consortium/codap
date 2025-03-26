@@ -3,11 +3,10 @@ import { DIAdornmentHandler } from "../../../../../data-interactive/handlers/ado
 import { adornmentNotFoundResult, adornmentNotSupportedByPlotTypeResult }
   from "../../../../../data-interactive/handlers/di-results"
 import { IGraphContentModel } from "../../../models/graph-content-model"
-import { getAdornmentContentInfo } from "../../adornment-content-info"
+import { getAdornmentContentInfo, isCompatibleWithPlotType } from "../../adornment-content-info"
 import { IAdornmentModel } from "../../adornment-models"
 import { IAdornmentsBaseStore } from "../../store/adornments-base-store"
-import { AdornmentData, adornmentMismatchResult, cellKeyToCategories, isAdornmentSupportedByPlotType }
-  from "../../utilities/adornment-handler-utils"
+import { AdornmentData, adornmentMismatchResult, cellKeyToCategories } from "../../utilities/adornment-handler-utils"
 import { kMeanType } from "../mean/mean-adornment-types"
 import { IMedianAdornmentModel, isMedianAdornment } from "./median-adornment-model"
 import { kMedianType } from "./median-adornment-types"
@@ -15,7 +14,7 @@ import { kMedianType } from "./median-adornment-types"
 export const medianAdornmentHandler: DIAdornmentHandler = {
   create(args) {
     const { graphContent } = args
-    const isAdornmentSupported = isAdornmentSupportedByPlotType(kMeanType, graphContent.plotType)
+    const isAdornmentSupported = isCompatibleWithPlotType(kMeanType, graphContent.plotType)
     if (!isAdornmentSupported) return adornmentNotSupportedByPlotTypeResult
 
     const adornmentsStore = graphContent.adornmentsStore as IAdornmentsBaseStore
@@ -76,7 +75,7 @@ export const medianAdornmentHandler: DIAdornmentHandler = {
     const existingMeanAdornment = adornmentsStore.findAdornmentOfType<IAdornmentModel>(kMedianType)
     if (!existingMeanAdornment) return adornmentNotFoundResult
 
-    if (isAdornmentValues(values) && "isVisible" in values && values.isVisible !== undefined) {
+    if (isAdornmentValues(values) && "isVisible" in values && values.isVisible != null) {
       existingMeanAdornment.setVisibility(values.isVisible)
     }
 

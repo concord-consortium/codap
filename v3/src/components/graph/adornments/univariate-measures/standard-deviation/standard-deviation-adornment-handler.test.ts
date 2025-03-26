@@ -3,7 +3,7 @@ import { standardDeviationAdornmentHandler } from "./standard-deviation-adornmen
 import { kStandardDeviationType } from "./standard-deviation-adornment-types"
 
 jest.mock("../../adornment-content-info", () => {
-  const mockStandardDeviationModel = types.model("StandardDeviationAdornmentModel", {
+  const mockMeanModel = types.model("StandardDeviationAdornmentModel", {
     id: types.optional(types.string, "ADRN123"),
     measures: types.map(types.model({ value: types.number })),
     type: types.optional(types.string, "Standard Deviation"),
@@ -17,14 +17,20 @@ jest.mock("../../adornment-content-info", () => {
     }
   }))
 
+  const mockContentInfo = {
+    modelClass: mockMeanModel,
+    plots: ["dotPlot"],
+    prefix: "standard-deviation",
+    type: "Standard Deviation",
+  }
+
   return {
     ...jest.requireActual("../../adornment-content-info"),
-    getAdornmentContentInfo: jest.fn().mockReturnValue({
-      modelClass: mockStandardDeviationModel,
-      plots: ["dotPlot"],
-      prefix: "standard-deviation",
-      type: "Standard Deviation",
-    }),
+    getAdornmentContentInfo: jest.fn().mockReturnValue(mockContentInfo),
+    isCompatibleWithPlotType: jest.fn().mockImplementation((adornmentType: string, plotType: string) => {
+      const info = mockContentInfo
+      return info.plots.includes(plotType)
+    })
   }
 })
 
@@ -83,6 +89,17 @@ describe("DataInteractive standardDeviationAdornmentHandler", () => {
     expect(result?.values).toBeDefined()
     const values = result?.values as any
     expect(values.type).toBe(kStandardDeviationType)
+  })
+
+  it("create returns error when plot type is not compatible", () => {
+    mockGraphContent.plotType = "scatterPlot"
+    const createRequestValues = {
+      type: kStandardDeviationType,
+    }
+    const result = handler.create!({ graphContent: mockGraphContent, values: createRequestValues })
+    expect(result?.success).toBe(false)
+    const values = result?.values as { error: string }
+    expect(values.error).toBe("Adornment not supported by plot type.")
   })
 
   it("get returns an error when an invalid adornment provided", () => {

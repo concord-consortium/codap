@@ -3,30 +3,68 @@ import { movableValueAdornmentHandler } from "./movable-value-adornment-handler"
 import { kMovableValueType } from "./movable-value-adornment-types"
 
 jest.mock("../adornment-content-info", () => {
-  const mockCountModel = types.model("LSRLAdornmentModel", {
+  const mockLsrlModel = types.model("MovableValueAdornmentModel", {
     id: types.optional(types.string, "ADRN123"),
-    showConfidenceBands: types.optional(types.boolean, false),
-    type: types.optional(types.string, "LSRL"),
+    type: types.optional(types.string, "Movable Value"),
     isVisible: types.optional(types.boolean, false),
+    values: types.map(types.array(types.number))
   }).actions(self => ({
-    setShowConfidenceBands(show: boolean) {
-      self.showConfidenceBands = show
+    addValue(value: number) {
+      self.values.set("{}", [value])
+    },
+    replaceValue(value: number, key: string) {
+      self.values.set(key, [value])
     },
     setVisibility(isVisible: boolean) {
       self.isVisible = isVisible
     }
   }))
 
+  const mockContentInfo = {
+    modelClass: mockLsrlModel,
+    plots: ["dotPlot"],
+    prefix: "movable-value",
+    type: "Movable Value",
+  }
+
   return {
     ...jest.requireActual("../adornment-content-info"),
-    getAdornmentContentInfo: jest.fn().mockReturnValue({
-      modelClass: mockCountModel,
-      plots: ["scatterPlot"],
-      prefix: "lsrl",
-      type: "LSRL",
-    }),
+    getAdornmentContentInfo: jest.fn().mockReturnValue(mockContentInfo),
+    isCompatibleWithPlotType: jest.fn().mockImplementation((adornmentType: string, plotType: string) => {
+      const info = mockContentInfo
+      return info.plots.includes(plotType)
+    })
   }
 })
+
+// jest.mock("../adornment-content-info", () => {
+//   const mockCountModel = types.model("MovableValueAdornmentModel", {
+//     id: types.optional(types.string, "ADRN123"),
+//     type: types.optional(types.string, "Movable Value"),
+//     isVisible: types.optional(types.boolean, false),
+//     values: types.map(types.number)
+//   }).actions(self => ({
+//     addValue(value: number) {
+//       self.values.set("{}", value)
+//     },
+//     replaceValue(value: number, key: string) {
+//       self.values.set(key, value)
+//     },
+//     setVisibility(isVisible: boolean) {
+//       self.isVisible = isVisible
+//     }
+//   }))
+
+//   return {
+//     ...jest.requireActual("../adornment-content-info"),
+//     getAdornmentContentInfo: jest.fn().mockReturnValue({
+//       modelClass: mockCountModel,
+//       plots: ["dotPlot"],
+//       prefix: "movable-value",
+//       type: "Movable Value",
+//     }),
+//   }
+// })
 
 describe("DataInteractive movableValueAdornmentHandler", () => {
   const handler = movableValueAdornmentHandler
@@ -51,11 +89,13 @@ describe("DataInteractive movableValueAdornmentHandler", () => {
         addAdornment: jest.fn((adornment: any, options: any) => null),
         findAdornmentOfType: jest.fn()
       },
-      dataConfiguration: mockDataConfig
+      dataConfiguration: mockDataConfig,
+      getUpdateCategoriesOptions: jest.fn(() => ({})),
+      plotType: "dotPlot"
     }
   
     mockWrongGraphContent = {
-      plotType: "linePlot"
+      plotType: "scatterPlot"
     }
 
     mockMovableValueAdornment = {
@@ -77,6 +117,19 @@ describe("DataInteractive movableValueAdornmentHandler", () => {
     expect(result?.success).toBe(false)
     const values = result?.values as any
     expect(values.error).toBe(`Adornment not supported by plot type.`)
+  })
+
+  it("create returns the expected data when Movable Value adornment created", () => {
+    const createRequestValues = {
+      type: kMovableValueType,
+      values: [["{}", 5]]
+    }
+    const result = handler.create!({ graphContent: mockGraphContent, values: createRequestValues })
+    expect(result?.success).toBe(true)
+    expect(result?.values).toBeDefined()
+    const values = result?.values as any
+    expect(values.type).toBe(kMovableValueType)
+    expect(values.data).toEqual([{"movableValues": [5]}])
   })
 
   it("delete returns an error when the movable value adornment is not found", () => {

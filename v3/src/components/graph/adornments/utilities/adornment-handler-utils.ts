@@ -21,8 +21,3 @@ export const cellKeyToCategories = (cellKey: Record<string, string>, dataConfig:
 export const adornmentMismatchResult = (adornmentType: string) => {
   return errorResult(t("V3.DI.Error.adornmentMismatch", { vars: [adornmentType] }))
 }
-
-export const isAdornmentSupportedByPlotType = (type: string, plotType: PlotType) => {
-  const info = getAdornmentContentInfo(type)
-  return info.plots.find(plot => plotType === plot)
-}

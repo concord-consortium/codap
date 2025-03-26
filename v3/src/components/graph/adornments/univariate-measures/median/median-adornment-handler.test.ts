@@ -3,7 +3,7 @@ import { medianAdornmentHandler } from "./median-adornment-handler"
 import { kMedianType } from "./median-adornment-types"
 
 jest.mock("../../adornment-content-info", () => {
-  const mockMedianModel = types.model("MedianAdornmentModel", {
+  const mockMeanModel = types.model("MedianAdornmentModel", {
     id: types.optional(types.string, "ADRN123"),
     measures: types.map(types.model({ value: types.number })),
     type: types.optional(types.string, "Median"),
@@ -14,14 +14,20 @@ jest.mock("../../adornment-content-info", () => {
     }
   }))
 
+  const mockContentInfo = {
+    modelClass: mockMeanModel,
+    plots: ["dotPlot"],
+    prefix: "median",
+    type: "Median",
+  }
+
   return {
     ...jest.requireActual("../../adornment-content-info"),
-    getAdornmentContentInfo: jest.fn().mockReturnValue({
-      modelClass: mockMedianModel,
-      plots: ["dotPlot"],
-      prefix: "median",
-      type: "Median",
-    }),
+    getAdornmentContentInfo: jest.fn().mockReturnValue(mockContentInfo),
+    isCompatibleWithPlotType: jest.fn().mockImplementation((adornmentType: string, plotType: string) => {
+      const info = mockContentInfo
+      return info.plots.includes(plotType)
+    })
   }
 })
 
@@ -81,6 +87,17 @@ describe("DataInteractive medianAdornmentHandler", () => {
     expect(values.type).toBe(kMedianType)
   })
 
+  it("create returns error when plot type is not compatible", () => {
+    mockGraphContent.plotType = "scatterPlot"
+    const createRequestValues = {
+      type: kMedianType,
+    }
+    const result = handler.create!({ graphContent: mockGraphContent, values: createRequestValues })
+    expect(result?.success).toBe(false)
+    const values = result?.values as { error: string }
+    expect(values.error).toBe("Adornment not supported by plot type.")
+  })
+  
   it("get returns an error when an invalid adornment provided", () => {
     const result = handler.get?.(mockInvalidAdornment, mockGraphContent)
     expect(result?.success).toBe(false)

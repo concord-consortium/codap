@@ -73,7 +73,7 @@ const Controls = () => {
 
 registerAdornmentContentInfo({
   type: kMovableValueType,
-  plots: ['dotPlot'],
+  plots: ['dotPlot', 'linePlot'],
   prefix: kMovableValuePrefix,
   modelClass: MovableValueAdornmentModel,
   exporter: (model, options) => {

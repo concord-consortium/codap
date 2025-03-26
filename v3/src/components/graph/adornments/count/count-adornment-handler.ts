@@ -14,16 +14,16 @@ import { kCountType } from "./count-adornment-types"
 const setAdornmentProperties = (adornment: ICountAdornmentModel, values: DIAdornmentValues) => {
   if (isAdornmentValues(values)) {
     const { isVisible, showCount, showPercent, percentType } = values as DICountAdornmentValues
-    if (isVisible !== undefined) {
+    if (isVisible != null) {
       adornment.setVisibility(isVisible)
     }
-    if (showCount !== undefined) {
+    if (showCount != null) {
       adornment.setShowCount(showCount)
     }
-    if (showPercent !== undefined) {
+    if (showPercent != null) {
       adornment.setShowPercent(showPercent)
     }
-    if (percentType !== undefined) {
+    if (percentType != null) {
       adornment.setPercentType(percentType)
     }
   }
@@ -41,14 +41,13 @@ export const countAdornmentHandler: DIAdornmentHandler = {
     const adornment = existingCountAdornment ?? componentContentInfo.modelClass.create() as ICountAdornmentModel
 
     if (isAdornmentValues(values)) {
-      setAdornmentProperties(adornment, values)
+      const createValues = { ...values, isVisible: true }
+      setAdornmentProperties(adornment, createValues)
     }
 
     if (!existingCountAdornment) {
       adornmentsStore.addAdornment(adornment, { dataConfig })
     }
-
-    adornment.setVisibility(true)
 
     const { id, isVisible, showCount, showPercent, percentType, type } = adornment
 
@@ -101,13 +100,13 @@ export const countAdornmentHandler: DIAdornmentHandler = {
 
       if (showCount) {
         dataItem.count = regionCountValues.length > 1
-          ? regionCountValues.filter((value): value is number => value !== undefined)
+          ? regionCountValues.filter((value): value is number => value != null)
           : regionCountValues[0]
       }
 
       if (showPercent) {
         dataItem.percent = regionPercentValues.length > 1
-          ? regionPercentValues.filter((value): value is string => value !== undefined)
+          ? regionPercentValues.filter((value): value is string => value != null)
           : regionPercentValues[0]
       }
 

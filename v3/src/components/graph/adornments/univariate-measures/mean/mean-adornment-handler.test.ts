@@ -14,14 +14,20 @@ jest.mock("../../adornment-content-info", () => {
     }
   }))
 
+  const mockContentInfo = {
+    modelClass: mockMeanModel,
+    plots: ["dotPlot"],
+    prefix: "mean",
+    type: "Mean",
+  }
+
   return {
     ...jest.requireActual("../../adornment-content-info"),
-    getAdornmentContentInfo: jest.fn().mockReturnValue({
-      modelClass: mockMeanModel,
-      plots: ["dotPlot"],
-      prefix: "mean",
-      type: "Mean",
-    }),
+    getAdornmentContentInfo: jest.fn().mockReturnValue(mockContentInfo),
+    isCompatibleWithPlotType: jest.fn().mockImplementation((adornmentType: string, plotType: string) => {
+      const info = mockContentInfo
+      return info.plots.includes(plotType)
+    })
   }
 })
 
@@ -79,6 +85,17 @@ describe("DataInteractive meanAdornmentHandler", () => {
     expect(result?.values).toBeDefined()
     const values = result?.values as any
     expect(values.type).toBe(kMeanType)
+  })
+
+  it("create returns error when plot type is not compatible", () => {
+    mockGraphContent.plotType = "scatterPlot"
+    const createRequestValues = {
+      type: kMeanType,
+    }
+    const result = handler.create!({ graphContent: mockGraphContent, values: createRequestValues })
+    expect(result?.success).toBe(false)
+    const values = result?.values as { error: string }
+    expect(values.error).toBe("Adornment not supported by plot type.")
   })
 
   it("get returns an error when an invalid adornment provided", () => {

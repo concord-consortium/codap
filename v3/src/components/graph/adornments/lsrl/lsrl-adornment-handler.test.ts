@@ -3,7 +3,7 @@ import { lsrlAdornmentHandler } from "./lsrl-adornment-handler"
 import { kLSRLType } from "./lsrl-adornment-types"
 
 jest.mock("../adornment-content-info", () => {
-  const mockCountModel = types.model("LSRLAdornmentModel", {
+  const mockLsrlModel = types.model("LSRLAdornmentModel", {
     id: types.optional(types.string, "ADRN123"),
     showConfidenceBands: types.optional(types.boolean, false),
     type: types.optional(types.string, "LSRL"),
@@ -17,14 +17,20 @@ jest.mock("../adornment-content-info", () => {
     }
   }))
 
+  const mockContentInfo = {
+    modelClass: mockLsrlModel,
+    plots: ["scatterPlot"],
+    prefix: "lsrl",
+    type: "LSRL",
+  }
+
   return {
     ...jest.requireActual("../adornment-content-info"),
-    getAdornmentContentInfo: jest.fn().mockReturnValue({
-      modelClass: mockCountModel,
-      plots: ["scatterPlot"],
-      prefix: "lsrl",
-      type: "LSRL",
-    }),
+    getAdornmentContentInfo: jest.fn().mockReturnValue(mockContentInfo),
+    isCompatibleWithPlotType: jest.fn().mockImplementation((adornmentType: string, plotType: string) => {
+      const info = mockContentInfo
+      return info.plots.includes(plotType)
+    })
   }
 })
 
@@ -67,6 +73,17 @@ describe("DataInteractive lsrlAdornmentHandler", () => {
       id: "ADRN456",
       type: "invalid"
     }
+  })
+
+  it("create returns error when plot type is not compatible", () => {
+    mockGraphContent.plotType = "dotPlot"
+    const createRequestValues = {
+      type: kLSRLType,
+    }
+    const result = handler.create!({ graphContent: mockGraphContent, values: createRequestValues })
+    expect(result?.success).toBe(false)
+    const values = result?.values as { error: string }
+    expect(values.error).toBe("Adornment not supported by plot type.")
   })
 
   it("create returns the expected data when LSRL adornment created", () => {

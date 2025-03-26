@@ -2,19 +2,20 @@ import { DIAdornmentHandler } from "../../../../data-interactive/handlers/adornm
 import { adornmentNotFoundResult, adornmentNotSupportedByPlotTypeResult,
   invalidValuesProvidedeResult, valuesRequiredResult } from "../../../../data-interactive/handlers/di-results"
 import { IGraphContentModel } from "../../models/graph-content-model"
-import { getAdornmentContentInfo } from "../adornment-content-info"
+import { getAdornmentContentInfo, isCompatibleWithPlotType } from "../adornment-content-info"
 import { IAdornmentModel, IUpdateCategoriesOptions } from "../adornment-models"
 import { IAdornmentsBaseStore } from "../store/adornments-base-store"
-import { AdornmentData, adornmentMismatchResult, cellKeyToCategories, isAdornmentSupportedByPlotType }
-  from "../utilities/adornment-handler-utils"
+import { AdornmentData, adornmentMismatchResult, cellKeyToCategories } from "../utilities/adornment-handler-utils"
 import { IMovableValueAdornmentModel, isMovableValueAdornment } from "./movable-value-adornment-model"
 import { kMovableValueType } from "./movable-value-adornment-types"
 
 export const movableValueAdornmentHandler: DIAdornmentHandler = {
   create(args) {
-    const { graphContent } = args
-    const isAdornmentSupported = isAdornmentSupportedByPlotType(kMovableValueType, graphContent.plotType)
-    if (!isAdornmentSupported) return adornmentNotSupportedByPlotTypeResult
+    const { graphContent, values } = args
+
+    if (!isCompatibleWithPlotType(kMovableValueType, graphContent.plotType)) {
+      return adornmentNotSupportedByPlotTypeResult
+    }
 
     const adornmentsStore = graphContent.adornmentsStore as IAdornmentsBaseStore
     const dataConfig = graphContent.dataConfiguration
@@ -25,13 +26,29 @@ export const movableValueAdornmentHandler: DIAdornmentHandler = {
     const componentContentInfo = getAdornmentContentInfo(kMovableValueType)
     const adornment =
       existingMovableValueAdornment ?? componentContentInfo.modelClass.create() as IMovableValueAdornmentModel
+    const valuePairs = (typeof values === "object" && "values" in values && Array.isArray(values.values))
+      ? values.values
+      : null
 
-    if (!existingMovableValueAdornment) {
-      const options: IUpdateCategoriesOptions = { ...graphContent.getUpdateCategoriesOptions(), addMovableValue: true }
-      adornmentsStore.addAdornment(adornment, options)
+    const options: IUpdateCategoriesOptions = {
+      ...graphContent.getUpdateCategoriesOptions(),
+      addMovableValue: !valuePairs // add a movable value with default value if value(s) not provided in request
     }
 
+    adornmentsStore.addAdornment(adornment, options)
     adornment.setVisibility(true)
+
+    if (valuePairs) {
+      try {
+        const updates = new Map<string, number>(valuePairs)
+
+        updates.forEach((newValue) => {
+          adornment.addValue(newValue)
+        })
+      } catch {
+        return invalidValuesProvidedeResult
+      }
+    }
 
     for (const cellKey of cellKeys) {
       const cellKeyString = JSON.stringify(cellKey)
