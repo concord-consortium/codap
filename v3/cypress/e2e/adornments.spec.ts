@@ -4,6 +4,8 @@ import { AxisElements as ae } from "../support/elements/axis-elements"
 import { ToolbarElements as toolbar } from "../support/elements/toolbar-elements"
 import { FormulaHelper as fh } from "../support/helpers/formula-helper"
 
+const expectedPercents = ["0", "100", "0", "0", "100", "0", "29.17", "33.33", "37.5"]
+
 context("Graph adornments", () => {
   beforeEach(function () {
     const queryParams = "?sample=mammals&dashboard&mouseSensor"
@@ -113,6 +115,13 @@ context("Graph adornments", () => {
     // Verify that at least one percent value is shown
     cy.get("[data-testid^=graph-count]").should("have.length.at.least", 1)
     cy.get("[data-testid^=graph-count]").first().should("contain.text", "%")
+
+    // Verify the approximate values of the percentages
+    cy.get("[data-testid^=graph-count]").should("have.length", expectedPercents.length)
+      .each(($el, index) => {
+        const expected = expectedPercents[index]
+        cy.wrap($el).invoke("text").should("contain", expected)
+      })
   
     // Hide the percent values
     graph.getInspectorPalette()
