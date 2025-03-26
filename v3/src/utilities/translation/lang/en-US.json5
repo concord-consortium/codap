@@ -140,6 +140,7 @@
     "V3.DI.Error.interactiveFrameNotFound": "Interactive Frame not found",
     "V3.DI.Error.itemNotFound": "Item not found",
     "V3.DI.Error.notFound": "Not found",
+    "V3.DI.Error.colorMapAccess": "Internal error prevented color map access",
     "V3.DI.Error.selectionListIllegalValues": "%@1 selectionList requires a list of case IDs.",
     "V3.DI.Error.valuesRequired": "A values object is required for this request.",
     "V3.DI.Error.invalidEvaluationRecord": "Invalid record for evaluation",

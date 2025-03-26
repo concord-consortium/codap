@@ -1,5 +1,6 @@
 import { SetOptional } from "type-fest"
 import { AttributeType } from "../models/data/attribute-types"
+import { TCategoryColorMap } from "../models/data/category-set"
 
 export interface ICodapV2Attribute {
   guid: number
@@ -14,8 +15,7 @@ export interface ICodapV2Attribute {
   // TODO_V2_IMPORT_EXPORT
   categoryMap?: any
   _categoryMap?: any
-  // TODO_V2_IMPORT_EXPORT
-  colormap?: any
+  colormap?: TCategoryColorMap
   _colormap?: any
   blockDisplayOfEmptyCategories?: boolean
   // plugin bugs have led to documents in the field with values like `[true]`
