@@ -208,6 +208,7 @@
     "@lezer/common": "^1.2.3",
     "@lezer/highlight": "^1.2.1",
     "@lezer/lr": "^1.4.2",
+    "@nedb/binary-search-tree": "^2.1.5",
     "@uiw/react-codemirror": "^4.23.10",
     "clsx": "^2.1.1",
     "colord": "^2.9.3",

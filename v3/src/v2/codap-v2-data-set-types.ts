@@ -2,6 +2,28 @@ import { SetOptional } from "type-fest"
 import { AttributeType } from "../models/data/attribute-types"
 import { TCategoryColorMap } from "../models/data/category-set"
 
+type ColorString = string // e.g. "#ff5586" or "rgb(85,85,255)"
+type ICodapV2CategoryOrder = { __order: string[] }
+
+interface ICodapV2CategoryColor {
+  colorString: ColorString
+}
+interface ICodapV2HSBCategoryColor extends ICodapV2CategoryColor {
+  h: number // hue
+  s: number // saturation
+  b: number // brightness
+}
+type CodapV2CategoryColor = ICodapV2HSBCategoryColor | ICodapV2CategoryColor | ColorString
+
+export type CodapV2ColorMap = Record<string, CodapV2CategoryColor>
+
+export type ICodapV2CategoryMap = CodapV2ColorMap & ICodapV2CategoryOrder
+
+export function isV2CategoryMap(obj: unknown): obj is ICodapV2CategoryMap {
+  return !!obj && typeof obj === "object" && "__order" in obj
+}
+
+
 export interface ICodapV2Attribute {
   guid: number
   id?: number
@@ -13,10 +35,9 @@ export interface ICodapV2Attribute {
   defaultMax?: number
   description?: string | null
   // TODO_V2_IMPORT_EXPORT
-  categoryMap?: any
-  _categoryMap?: any
-  colormap?: TCategoryColorMap
-  _colormap?: any
+  _categoryMap?: ICodapV2CategoryMap
+  // TODO_V2_IMPORT_EXPORT
+  colormap?: CodapV2ColorMap
   blockDisplayOfEmptyCategories?: boolean
   // plugin bugs have led to documents in the field with values like `[true]`
   editable?: boolean | unknown
@@ -27,11 +48,6 @@ export interface ICodapV2Attribute {
   deletedFormula?: string
   precision?: number | string | null
   unit?: string | null
-  // TODO_V2_IMPORT_CARRY_OVER [Story:#188701222] decimals is not imported
-  // Defined as `precision` in v3
-  // it occurs 604 times in 36 files in cfm-shared
-  // in 33 cases the value is "2"
-  // the rest of the cases the value is "0"
   decimals?: string
 }
 

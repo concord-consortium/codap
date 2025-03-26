@@ -160,7 +160,7 @@ export function v2GraphImporter({v2Component, v2Document, sharedModelManager, in
 
   // configure adornmentsStore
   const adornmentImporterProps = {
-    data, plotModels,
+    data, metadata, plotModels,
     attributeDescriptions: _attributeDescriptions,
     yAttributeDescriptions: _yAttributeDescriptions
   }
