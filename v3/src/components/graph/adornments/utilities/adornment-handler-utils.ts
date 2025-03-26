@@ -1,8 +1,6 @@
 import { errorResult } from "../../../../data-interactive/handlers/di-results"
 import { t } from "../../../../utilities/translation/translate"
 import { IDataConfigurationModel } from "../../../data-display/models/data-configuration-model"
-import { PlotType } from "../../graphing-types"
-import { getAdornmentContentInfo } from "../adornment-content-info"
 
 export type AdornmentData = {
   categories?: Record<string, string>;
