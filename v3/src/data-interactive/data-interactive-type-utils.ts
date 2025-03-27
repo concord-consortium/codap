@@ -1,6 +1,5 @@
 import { getSnapshot } from "mobx-state-tree"
 import { IAttribute, IAttributeSnapshot } from "../models/data/attribute"
-import { TCategoryColorMap } from "../models/data/category-set"
 import { ICollectionModel } from "../models/data/collection"
 import { IDataSet } from "../models/data/data-set"
 import { ICase } from "../models/data/data-set-types"
@@ -10,10 +9,10 @@ import { getSharedCaseMetadataFromDataset } from "../models/shared/shared-data-u
 import { kAttrIdPrefix, maybeToV2Id, toV2Id, toV3AttrId } from "../utilities/codap-utils"
 import { ICodapV2DataContextV3 } from "../v2/codap-v2-types"
 import {
-  ICodapV2Attribute, ICodapV2Case, ICodapV2CollectionV3, v3TypeFromV2TypeString
+  CodapV2ColorMap, ICodapV2Attribute, ICodapV2Case, ICodapV2CollectionV3, v3TypeFromV2TypeString
 } from "../v2/codap-v2-data-set-types"
-import { DIResources, DISingleValues } from "./data-interactive-types"
 import { DIGetCaseResult, DIAttribute } from "./data-interactive-data-set-types"
+import { DIResources, DISingleValues } from "./data-interactive-types"
 import { getCaseValues } from "./data-interactive-utils"
 
 export function convertValuesToAttributeSnapshot(_values: DISingleValues): IAttributeSnapshot | undefined {
@@ -113,7 +112,7 @@ export function convertAttributeToV2(attribute: IAttribute, dataContext?: IDataS
   const v2Id = toV2Id(id)
   const rawColorMap = metadata?.getCategorySet(attribute.id)?.colorMap ?? {}
   const entries = Object.entries(rawColorMap).filter((entry): entry is [string, string] => entry[1] !== undefined)
-  const colormap: TCategoryColorMap = Object.fromEntries(entries)
+  const colormap: CodapV2ColorMap = Object.fromEntries(entries)
 
   return {
     name,

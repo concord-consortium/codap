@@ -1,3 +1,4 @@
+import { ISharedCaseMetadata } from "../../../models/shared/shared-case-metadata"
 import { ISharedDataSet } from "../../../models/shared/shared-data-set"
 import { safeJsonParse } from "../../../utilities/js-utils"
 import {
@@ -46,6 +47,7 @@ import { INormalCurveAdornmentModelSnapshot } from "./univariate-measures/normal
 
 interface IProps {
   data?: ISharedDataSet
+  metadata?: ISharedCaseMetadata
   plotModels: ICodapV2PlotModel[]
   attributeDescriptions: GraphAttributeDescriptionsMapSnapshot
   yAttributeDescriptions: IAttributeDescriptionSnapshot[]
@@ -65,6 +67,7 @@ interface IInstanceKeyProps {
 
 interface IInstanceKeysForAdornmentsProps {
   data?: ISharedDataSet
+  metadata?: ISharedCaseMetadata
   attributeDescriptions: GraphAttributeDescriptionsMapSnapshot
   yAttributeDescriptions: IAttributeDescriptionSnapshot[]
 }
@@ -83,8 +86,6 @@ function univariateMeasureInstances(adornment: ICodapV2UnivariateAdornment, prop
   const yCellCount = yCats.length
 
   // v2 stores the label coordinates in the equationCoordsArray in category order.
-  // We need to map the category index to the correct measure instances.
-  // TODO_V2_IMPORT: use the category order rather than assuming it is the same as the order in the instance keys.
   const measures: Record<string, IMeasureInstanceSnapshot> = {}
   instanceKeys?.forEach((key: string) => {
     let splitIndex
@@ -172,14 +173,15 @@ const instanceKey = (props: IInstanceKeyProps) => {
 
 type GetAttributeInfoResult = [Maybe<string>, string[]]
 function getAttributeInfo(
-  data: ISharedDataSet, attributeDesc?: IAttributeDescriptionSnapshot, defaultCat = ""
+  data: ISharedDataSet, metadata?: ISharedCaseMetadata, attributeDesc?: IAttributeDescriptionSnapshot, defaultCat = ""
 ): GetAttributeInfoResult {
   const { attributeID: id, type } = attributeDesc || {}
-  const attr = id ? data.dataSet.getAttribute(id) : undefined
-  // TODO_V2_IMPORT: these ...Cats computations assume category order is order in the table.
-  // If user has changed the order, the new order is stored in SharedCaseMetadata.
-  const cats = attr && type === "categorical" ? [...new Set(attr.strValues)] : [defaultCat]
-  return [id, cats]
+  let categories = [defaultCat]
+  if (id && type === "categorical") {
+    const attr = data.dataSet.getAttribute(id)
+    categories = metadata?.getCategorySet(id)?.valuesArray.slice() ?? [...new Set(attr?.strValues)]
+  }
+  return [id, categories]
 }
 
 const instanceKeysForAdornments = (props: IInstanceKeysForAdornmentsProps) => {
@@ -189,17 +191,17 @@ const instanceKeysForAdornments = (props: IInstanceKeysForAdornmentsProps) => {
   // tree of the V3 document we're creating to get accurate data from the view. That would require temporarily adding
   // the data config to the tree before importing the graph and adornments so we could access the view, and then
   // removing it before completing the import.
-  const { data, attributeDescriptions, yAttributeDescriptions } = props
+  const { data, metadata, attributeDescriptions, yAttributeDescriptions } = props
   if (!data || !attributeDescriptions || !yAttributeDescriptions) {
     // legendCats default to [kMain], others default to [""] for cell key computations
     return { instanceKeys: ["{}"], xCats: [""], yCats: [""], topCats: [""], rightCats: [""], legendCats: [kMain] }
   }
-  const [xAttrId, xCats] = getAttributeInfo(data, attributeDescriptions.x)
-  const [yAttrId, yCats] = getAttributeInfo(data, yAttributeDescriptions[0])
+  const [xAttrId, xCats] = getAttributeInfo(data, metadata, attributeDescriptions.x)
+  const [yAttrId, yCats] = getAttributeInfo(data, metadata, yAttributeDescriptions[0])
   // legendCats default to [kMain], others default to [""] for cell key computations
-  const [_legendAttrId, legendCats] = getAttributeInfo(data, attributeDescriptions.legend, kMain)
-  const [topAttrId, topCats] = getAttributeInfo(data, attributeDescriptions.topSplit)
-  const [rightAttrId, rightCats] = getAttributeInfo(data, attributeDescriptions.rightSplit)
+  const [_legendAttrId, legendCats] = getAttributeInfo(data, metadata, attributeDescriptions.legend, kMain)
+  const [topAttrId, topCats] = getAttributeInfo(data, metadata, attributeDescriptions.topSplit)
+  const [rightAttrId, rightCats] = getAttributeInfo(data, metadata, attributeDescriptions.rightSplit)
   const columnCount = topCats.length * xCats.length
   const rowCount = rightCats.length * yCats.length
   const totalCount = rowCount * columnCount
@@ -229,8 +231,10 @@ type ImportableAdornmentSnapshots = IBoxPlotAdornmentModelSnapshot |
   IPlottedFunctionAdornmentModelSnapshot | IPlottedValueAdornmentModelSnapshot |
   IStandardDeviationAdornmentModelSnapshot | IStandardErrorAdornmentModelSnapshot
 
-export const v2AdornmentImporter = ({data, plotModels, attributeDescriptions, yAttributeDescriptions}: IProps) => {
-  const instanceKeysForAdornmentsProps = {data, attributeDescriptions, yAttributeDescriptions}
+export const v2AdornmentImporter = ({
+  data, metadata, plotModels, attributeDescriptions, yAttributeDescriptions
+}: IProps) => {
+  const instanceKeysForAdornmentsProps = {data, metadata, attributeDescriptions, yAttributeDescriptions}
   const { instanceKeys, xCats, yCats, legendCats } = instanceKeysForAdornments(instanceKeysForAdornmentsProps)
   const splitAttrId = v2SplitAttrId(attributeDescriptions, yAttributeDescriptions)
   // the first plot model contains all relevant adornments

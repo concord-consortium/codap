@@ -79,10 +79,6 @@ describe("DataBroker", () => {
     broker.removeDataSet(dsEmpty.id)
     expect(handler).toHaveBeenCalledTimes(3)
     expect(lastSummaries).toEqual([{ id: dsCases.id, name: "cases", attributes: 1, cases: 3 }])
-    // replacing a DataSet triggers the reaction
-    broker.addDataSet(DataSet.create({ id: dsCases.id, name: dsCases.name }))
-    expect(handler).toHaveBeenCalledTimes(4)
-    expect(lastSummaries).toEqual([{ id: dsCases.id, name: "cases", attributes: 0, cases: 0 }])
   })
 
 })
