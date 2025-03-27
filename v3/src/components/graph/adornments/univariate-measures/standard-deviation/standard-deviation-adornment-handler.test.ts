@@ -3,7 +3,7 @@ import { standardDeviationAdornmentHandler } from "./standard-deviation-adornmen
 import { kStandardDeviationType } from "./standard-deviation-adornment-types"
 
 jest.mock("../../adornment-content-info", () => {
-  const mockMeanModel = types.model("StandardDeviationAdornmentModel", {
+  const mockStandardDeviationModel = types.model("StandardDeviationAdornmentModel", {
     id: types.optional(types.string, "ADRN123"),
     measures: types.map(types.model({ value: types.number })),
     type: types.optional(types.string, "Standard Deviation"),
@@ -18,7 +18,7 @@ jest.mock("../../adornment-content-info", () => {
   }))
 
   const mockContentInfo = {
-    modelClass: mockMeanModel,
+    modelClass: mockStandardDeviationModel,
     plots: ["dotPlot"],
     prefix: "standard-deviation",
     type: "Standard Deviation",

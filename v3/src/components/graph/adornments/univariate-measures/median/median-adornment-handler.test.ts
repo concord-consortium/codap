@@ -3,7 +3,7 @@ import { medianAdornmentHandler } from "./median-adornment-handler"
 import { kMedianType } from "./median-adornment-types"
 
 jest.mock("../../adornment-content-info", () => {
-  const mockMeanModel = types.model("MedianAdornmentModel", {
+  const mockMedianModel = types.model("MedianAdornmentModel", {
     id: types.optional(types.string, "ADRN123"),
     measures: types.map(types.model({ value: types.number })),
     type: types.optional(types.string, "Median"),
@@ -15,7 +15,7 @@ jest.mock("../../adornment-content-info", () => {
   }))
 
   const mockContentInfo = {
-    modelClass: mockMeanModel,
+    modelClass: mockMedianModel,
     plots: ["dotPlot"],
     prefix: "median",
     type: "Median",

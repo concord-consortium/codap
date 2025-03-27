@@ -3,7 +3,7 @@ import { movableValueAdornmentHandler } from "./movable-value-adornment-handler"
 import { kMovableValueType } from "./movable-value-adornment-types"
 
 jest.mock("../adornment-content-info", () => {
-  const mockLsrlModel = types.model("MovableValueAdornmentModel", {
+  const mockMovableValueModel = types.model("MovableValueAdornmentModel", {
     id: types.optional(types.string, "ADRN123"),
     type: types.optional(types.string, "Movable Value"),
     isVisible: types.optional(types.boolean, false),
@@ -21,7 +21,7 @@ jest.mock("../adornment-content-info", () => {
   }))
 
   const mockContentInfo = {
-    modelClass: mockLsrlModel,
+    modelClass: mockMovableValueModel,
     plots: ["dotPlot"],
     prefix: "movable-value",
     type: "Movable Value",
