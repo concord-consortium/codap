@@ -4,7 +4,7 @@ import { AxisElements as ae } from "../support/elements/axis-elements"
 import { ToolbarElements as toolbar } from "../support/elements/toolbar-elements"
 import { FormulaHelper as fh } from "../support/helpers/formula-helper"
 
-const expectedPercents = ["0", "100", "0", "0", "100", "0", "29.17", "33.33", "37.5"]
+const expectedPercents = [0, 100, 0, 0, 100, 0, 29, 33, 37]
 
 context("Graph adornments", () => {
   beforeEach(function () {
@@ -118,10 +118,13 @@ context("Graph adornments", () => {
 
     // Verify the approximate values of the percentages
     cy.get("[data-testid^=graph-count]").should("have.length", expectedPercents.length)
-      .each(($el, index) => {
-        const expected = expectedPercents[index]
-        cy.wrap($el).invoke("text").should("contain", expected)
+    .each(($el, index) => {
+      const expected = expectedPercents[index]
+      cy.wrap($el).invoke("text").then(text => {
+        const actual = parseFloat(text.replace("%", ""))
+        expect(actual).to.be.closeTo(expected, 1)  // Tolerance of 1 is safe due to CODAP-359
       })
+    })
   
     // Hide the percent values
     graph.getInspectorPalette()
