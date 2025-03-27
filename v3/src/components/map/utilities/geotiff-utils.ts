@@ -138,3 +138,10 @@ export async function createGeoTIFFLayer2(url: string) {
     console.error("Error initializing GeoTIFFLayer", error)
   }
 }
+
+export function createImageLayer(url: string) {
+  const latLongBounds = L.latLngBounds([[-90, -180], [90, 180]])
+  return L.imageOverlay(url, latLongBounds, {
+    opacity: 0.5
+  })
+}
