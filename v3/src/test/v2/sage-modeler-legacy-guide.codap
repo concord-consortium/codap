@@ -1,0 +1,212 @@
+{
+  "name": null,
+  "guid": 1,
+  "components": [
+    {
+      "type": "DG.GameView",
+      "guid": 2,
+      "componentStorage": {
+        "currentGameName": "SageModeler",
+        "currentGameUrl": "https://sage.concord.org/sage.html",
+        "allowInitGameOverride": true,
+        "_links_": {
+          "context": {
+            "type": "DG.DataContextRecord",
+            "id": 3
+          }
+        },
+        "title": "SageModeler"
+      },
+      "layout": {
+        "width": 816,
+        "height": 637,
+        "left": 5,
+        "top": 5,
+        "isVisible": true
+      },
+      "savedHeight": null
+    },
+    {
+      "type": "DG.GuideView",
+      "guid": 8,
+      "componentStorage": {
+        "title": "SageModeler Quick Intro",
+        "items": [
+          {
+            "itemTitle": null,
+            "url": "https://building-models-resources.concord.org/SageIntro/sageIntro.html"
+          }
+        ],
+        "currentURL": "https://building-models-resources.concord.org/SageIntro/sageIntro.html",
+        "currentItemTitle": null,
+        "isVisible": false
+      },
+      "layout": {
+        "left": 825,
+        "top": 5,
+        "width": 370,
+        "height": 390,
+        "zIndex": 7,
+        "isVisible": false
+      },
+      "savedHeight": null
+    }
+  ],
+  "contexts": [
+    {
+      "type": "DG.GameContext",
+      "document": 1,
+      "guid": 3,
+      "flexibleGroupingChangeFlag": false,
+      "name": "context3",
+      "title": "Simulation",
+      "collections": [
+        {
+          "areParentChildLinksConfigured": true,
+          "attrs": [
+            {
+              "name": "run",
+              "type": "nominal",
+              "title": "run",
+              "description": "",
+              "colormap": {},
+              "blockDisplayOfEmptyCategories": true,
+              "editable": false,
+              "formula": "caseIndex",
+              "guid": 5,
+              "precision": 2,
+              "unit": null
+            },
+            {
+              "name": "steps",
+              "type": "numeric",
+              "title": "steps",
+              "description": "Number of steps in the simulation.",
+              "colormap": {},
+              "blockDisplayOfEmptyCategories": true,
+              "editable": false,
+              "formula": "count(Steps)",
+              "guid": 6,
+              "precision": 0,
+              "unit": null
+            }
+          ],
+          "cases": [],
+          "caseName": null,
+          "childAttrName": null,
+          "collapseChildren": null,
+          "guid": 4,
+          "name": "Simulation",
+          "title": "Simulation",
+          "type": "DG.Collection"
+        }
+      ],
+      "contextStorage": {
+        "gameName": "SageModeler",
+        "gameUrl": "https://sage.concord.org/sage.html",
+        "gameState": {
+          "version": "1.14.0",
+          "filename": "New Model",
+          "palette": [
+            {
+              "id": "1",
+              "title": "",
+              "image": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACoAAAAqCAYAAADFw8lbAAADZElEQVRYR+2Zz2scZRjHP887M9niyUNSkppW4pYYPcW0hSr50VtASNuLqBfxLlVvSQ/6F4RAqDkIBS9KST00aQ+WQqnGSOshaw/a9pBdpYlQbU8ebDe77/vI+0432dUGCp1sQOZlYXeH3Xm/83mfHzPfV5xaBcP87TJzyyUqv9+nvvEI5xzGGBTFv7aGaf6S+WdRiAsJxQPdnDo6xFuvvgRYRFX14yvX+eraDQQQMai68O7UBSGbxzKX9YQTagRSI4gh5t2xI8yOH0Xm71T01BeXMEYpFns42NlJkiSIEdS1oGyHTNQI1doG5fsPqJTXcXXDZ+9PIKOfz+utX+8xUOyhf383xrZFz/aTRALOIpLw82/rlNfu0d/Xjez7dE7r1Srjw4MUIoNItElyN6iquLDqEcLfNcs3129SKOxBuqamQzJNHBvC2K1E8SL9aCx/u0R7oV5PyA0ci0slRBTpOj2tQszEyCCxRNhdiMvmOFABI4I4xcWWhas3kcgiXZOzKlLn+OghnKGF6q5Fa6SoE5A6F78rgSapUEyNk2NHUJsud2O0a7lbq7QjaJQE6za49P3KY6FTM6EGnRg5vGsAWyaOfFn0Bd4gkXLh2k8YX9c7p2Z8WAShIeN0ZzvPU9HwCaUm6Lm4VAqNMRf6VOS2+1FO9JnwPeHPOdGcaF6eMoqBPJkyArl1N5S30IyR5jGaMVByojnRvIVmFAN5MmUE8v/SQmf9EzTHRwfTCwrP0/9F5P2gdvilfm5vLUSazre4XEoNib2TM6rGcWLs9fQALjVxt3Xydtag8PP74bBEJmbh25XUzds7Oa1qYk6OvdZCrOE7NexHZx0SGfiXP5V1eFqxmOCQmuDqLSytpABf+GROaxsPGX9jiEIcBxvFj+DnN9nj7TLJjTeS1Yb1r9brXP5xhY7kOWT47Nd6Z3WNgYO9DPT2BKqbNJvUtcvZ8zEaOcEldX65+4DV8hovF3uRc7dW9cMvF8MNS3/fixR7nieO402qzRZkyLWdNno1omofUvnjL1Yrd1E1nHnvzXT75qPLNzi39APitjLeb9kEYY+3cLKOxW3PJy7AMCYB53jn2GFmx0e8A62hGp2/XebMcony+p/Y6qOWEiW+NGkjDnY26/0FdMQd9B3o5oPhQd5+pS/E6z+L2JZk3yjhCQAAAABJRU5ErkJggg==",
+              "metadata": {
+                "source": "internal",
+                "title": "Blank",
+                "link": null,
+                "license": "public domain"
+              },
+              "key": "img/nodes/blank.png",
+              "uuid": "63dbc691-e9b2-4b01-999b-dbffecf988b0"
+            }
+          ],
+          "nodes": [
+            {
+              "data": {
+                "title": "Mass",
+                "x": 148,
+                "y": 178,
+                "paletteItem": "63dbc691-e9b2-4b01-999b-dbffecf988b0",
+                "initialValue": 50,
+                "min": 0,
+                "max": 100,
+                "isAccumulator": false,
+                "valueDefinedSemiQuantitatively": true,
+                "frames": []
+              },
+              "key": "Node-1"
+            },
+            {
+              "data": {
+                "title": "Kinetic Energy",
+                "x": 370,
+                "y": 173,
+                "paletteItem": "63dbc691-e9b2-4b01-999b-dbffecf988b0",
+                "initialValue": 50,
+                "min": 0,
+                "max": 100,
+                "isAccumulator": false,
+                "valueDefinedSemiQuantitatively": true,
+                "frames": []
+              },
+              "key": "Node-2"
+            },
+            {
+              "data": {
+                "title": "Speed",
+                "x": 202,
+                "y": 76,
+                "paletteItem": "63dbc691-e9b2-4b01-999b-dbffecf988b0",
+                "initialValue": 50,
+                "min": 0,
+                "max": 100,
+                "isAccumulator": false,
+                "valueDefinedSemiQuantitatively": true,
+                "frames": []
+              },
+              "key": "Node-3"
+            }
+          ],
+          "links": [
+            {
+              "title": "",
+              "color": "#777",
+              "sourceNode": "Node-3",
+              "sourceTerminal": "b",
+              "targetNode": "Node-2",
+              "targetTerminal": "b",
+              "relation": {
+                "text": "increase more and more",
+                "formula": "1 * min(exp(in/21.7)-1, maxOut)",
+                "customData": null
+              }
+            }
+          ],
+          "settings": {
+            "relationshipSymbols": false,
+            "simulation": {
+              "duration": 10,
+              "stepUnits": "STEP",
+              "speed": 4,
+              "capNodeValues": false
+            },
+            "showingMinigraphs": true
+          }
+        }
+      }
+    }
+  ],
+  "globalValues": [],
+  "appName": "DG",
+  "appVersion": "2.0",
+  "appBuildNum": "0352",
+  "_permissions": 1,
+  "metadata": {
+    "shared": {
+      "_permissions": 1
+    },
+    "changeCount": 41
+  }
+}
