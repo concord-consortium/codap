@@ -8,7 +8,9 @@ import { hasOwnProperty, safeJsonParse } from "../../utilities/js-utils"
 import { CodapV2Document } from "../../v2/codap-v2-document"
 import { exportV2Component } from "../../v2/codap-v2-tile-exporters"
 import { importV2Component } from "../../v2/codap-v2-tile-importers"
-import { ICodapV2DocumentJson, ICodapV2GameViewStorage, ICodapV2GuideViewStorage, ICodapV2WebViewStorage } from "../../v2/codap-v2-types"
+import {
+  ICodapV2DocumentJson, ICodapV2GameViewStorage, ICodapV2GuideViewStorage, ICodapV2WebViewStorage
+} from "../../v2/codap-v2-types"
 import { kWebViewTileType } from "./web-view-defs"
 import { isWebViewModel } from "./web-view-model"
 import "./web-view-registration"
@@ -151,7 +153,7 @@ describe("WebView registration", () =>  {
     expect(hasOwnProperty(contentStorage, "name")).toBe(true)
     expect(contentStorage.name).toBe("Roller Coasters Guide")
     expect(contentStorage.items).toBeDefined()
-    expect(contentStorage.items[0].itemTitle).toBe("Roller Coasters Guide")
+    expect(contentStorage.items[0].itemTitle).toBe("Getting Started")
     expect(contentStorage.items[0].url).toBe("https://fi-esteem.s3.amazonaws.com/codap_documents/157coasters_getstarted_page1.html")
   })
 
@@ -191,7 +193,7 @@ describe("WebView registration", () =>  {
     expect(hasOwnProperty(contentStorage, "name")).toBe(true)
     expect(contentStorage.name).toBe("Mammals Sample Guide")
     expect(contentStorage.items).toBeDefined()
-    expect(contentStorage.items[0].itemTitle).toBe("Mammals Sample Guide")
+    expect(contentStorage.items[0].itemTitle).toBe("Get Started")
     expect(contentStorage.items[0].url).toBe("https://codap-resources.concord.org/example-documents/guides/Mammals/mammals_getstarted.html")
   })
 })
