@@ -448,11 +448,9 @@ export interface ICodapV2GraphBackgroundLockInfo {
 export interface ICodapV2GraphStorage extends ICodapV2BaseComponentStorage {
   _links_: {
     context?: IGuidLink<"DG.DataContextRecord">
-    // TODO_V2_IMPORT: hiddenCases is not imported
-    // there are at least 12,064 instances at this level that are not
-    // empty arrays in cfm-shared
     hiddenCases?: IGuidLink<"DG.Case">[]
-    // TODO_V2_IMPORT: it doesn't seem like any of the *Coll fields are imported
+    // In V2, *Coll is used to find the attribute, so we need to export them.
+    // In V3, we use the attribute ID directly so we don't need to import them.
     xColl?: IGuidLink<"DG.Collection" | "DG.CollectionRecord">
     xAttr?: IGuidLink<"DG.Attribute">
     yColl?: IGuidLink<"DG.Collection" | "DG.CollectionRecord">

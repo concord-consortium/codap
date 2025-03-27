@@ -180,7 +180,6 @@ export function v2GraphImporter({v2Component, v2Document, sharedModelManager, in
     plotBackgroundImageLockInfo: plotBackgroundImageLockInfo ?? undefined,
     isTransparent: isTransparent ?? false,
     showParentToggles: enableNumberToggle ?? undefined, //enableNumberToggle can be boolean | null | undefined
-     // TODO_V2_Import: The setting is imported correctly, but the data is not showing the correct state
     showOnlyLastCase: numberToggleLastMode,
     /*
     * legendRole, legendAttributeType, numberOfLegendQuantiles, legendQuantilesAreLocked,
