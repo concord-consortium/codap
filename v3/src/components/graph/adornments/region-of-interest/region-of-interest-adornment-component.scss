@@ -1,0 +1,11 @@
+.region-of-interest-container {
+  height: 100%;
+  position: absolute;
+  width: 100%;
+}
+
+.region-of-interest {
+  fill: rgba(0, 0, 255, 0.2);
+  stroke: #2e96ff;
+  stroke-width: 1px;
+}
