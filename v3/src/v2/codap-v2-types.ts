@@ -580,7 +580,8 @@ export interface ICodapV2MapLayerBaseStorage {
     context: IGuidLink<"DG.DataContextRecord">
     hiddenCases?: IGuidLink<"DG.Case">[],
     legendColl?: IGuidLink<"DG.Collection">,
-    // We sometimes see an array of links here
+    // From the shared documents archive, it appears that when this is an array, it's a two-
+    // element array with two identical items, so simply using the first item is sufficient.
     legendAttr?: IGuidLink<"DG.Attribute"> | IGuidLink<"DG.Attribute">[],
     // tHiddenCases was briefly used in lieu of hiddenCases
     tHiddenCases?: IGuidLink<"DG.Case">[]
@@ -661,7 +662,8 @@ export interface V2SlateExchangeValue extends Omit<SlateExchangeValue, "document
 export interface ICodapV2TextStorage extends ICodapV2BaseComponentStorage {
   text?: string
   // v2's TextController.restoreComponentStorage references an `apiText` property,
-  // but TextController.createComponentStorage doesn't write one out. ¯\_(ツ)_/¯
+  // but TextController.createComponentStorage doesn't write one out and there are
+  // no instances of such a property in the shared documents archive. ¯\_(ツ)_/¯
   // apiText: string
 }
 
@@ -809,8 +811,9 @@ export interface ICodapV2DocumentJson {
   lang?: string
   idCount?: number
 
-  // Ignored properties
-  _permissions?: any
+  // Ignored - appears to be 1 if shared, 0 if not shared
+  // a comment in the code suggests that it might have mattered to the document-store
+  _permissions?: number
 }
 
 // short for DataGames, the name of the project under which CODAP development began
