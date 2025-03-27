@@ -1,0 +1,12 @@
+export const kRegionOfInterestClass = "region-of-interest"
+export const kRegionOfInterestType = "Region of Interest"
+export const kRegionOfInterestPrefix = "ADRN"
+export const kRegionOfInterestLabelKey = "V3.Inspector.graphRegionOfInterest"
+export const kRegionOfInterestUndoAddKey = "V3.Undo.graph.addRegionOfInterest"
+export const kRegionOfInterestRedoAddKey = "V3.Redo.graph.addRegionOfInterest"
+export const kRegionOfInterestUndoRemoveKey = "V3.Undo.graph.removeRegionOfInterest"
+export const kRegionOfInterestRedoRemoveKey = "V3.Redo.graph.moveRegionOfInterest"
+export const kDefaultHeight = 100
+export const kDefaultWidth = 100
+export const kDefaultX = 0
+export const kDefaultY = 0

@@ -153,6 +153,13 @@
     "V3.DI.Error.adornmentNotSupportedByPlotType": "Adornment not supported by plot type.",
     "V3.DI.Error.adornmentRequestNotSupported": "The %@1 adornment does not currently support %@2 requests.",
 
+    // V3 adornment strings not present in V2
+    "V3.Inspector.graphRegionOfInterest": "Region of Interest",
+    "V3.Undo.graph.addRegionOfInterest": "Undo showing region of interest",
+    "V3.Redo.graph.addRegionOfInterest": "Redo showing region of interest",
+    "V3.Undo.graph.removeRegionOfInterest": "Undo hiding region of interest",
+    "V3.Redo.graph.moveRegionOfInterest": "Redo hiding region of interest",
+
     // CFM/File menu
     "DG.fileMenu.menuItem.newDocument": "New",
     "DG.fileMenu.menuItem.openDocument": "Open...",
