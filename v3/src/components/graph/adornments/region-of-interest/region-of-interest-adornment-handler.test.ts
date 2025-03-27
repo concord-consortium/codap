@@ -76,7 +76,6 @@ describe("DataInteractive regionOfInterestAdornmentHandler", () => {
       },
       dataConfiguration: mockDataConfig
     }
-
     mockRegionOfInterestAdornment = {
       height: 100,
       id: "ADRN123",
