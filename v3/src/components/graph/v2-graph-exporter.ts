@@ -304,6 +304,8 @@ export const v2GraphExporter: V2TileExportFn = ({ tile }) => {
     isTransparent: graph.isTransparent,
     enableNumberToggle: graph.showParentToggles,
     numberToggleLastMode: graph.showOnlyLastCase,
+    numberOfLegendQuantiles: graph.numberOfLegendQuantiles,
+    legendQuantilesAreLocked: graph.legendQuantilesAreLocked,
     // attribute roles and types
     ...getAttrRoleAndType(graph, "x", "x"),
     ...getAttrRoleAndType(graph, "y", "y"),
