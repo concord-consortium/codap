@@ -1,16 +1,17 @@
+import { colord } from "colord"
+import { kellyColors } from "../../utilities/color-utils"
 import { compareValues } from "../../utilities/data-utils"
 import { gLocale } from "../../utilities/translation/locale"
 import { CodapV2ColorMap, ICodapV2CategoryMap, isV2CategoryMap } from "../../v2/codap-v2-data-set-types"
 import { IAttribute } from "./attribute"
 import { ICategoryMove, ICategorySetSnapshot } from "./category-set"
-import { kellyColors } from "../../utilities/color-utils"
-import { colord } from "colord"
 import { MinimalMovesFinder } from "./minimal-moves-finder"
 
 export type V2CategorySetInput = CodapV2ColorMap | ICodapV2CategoryMap
 
 export function importV2CategorySet(attribute: IAttribute, input: V2CategorySetInput): Maybe<ICategorySetSnapshot> {
   let moves: ICategoryMove[] = []
+  // map from category string to hex color string
   const colors: Record<string, string> = {}
 
   let colorMap: CodapV2ColorMap = {}
