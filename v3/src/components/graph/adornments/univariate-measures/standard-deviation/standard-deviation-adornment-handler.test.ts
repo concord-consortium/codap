@@ -1,4 +1,4 @@
-import { types } from "@concord-consortium/mobx-state-tree"
+import { types } from "mobx-state-tree"
 import { standardDeviationAdornmentHandler } from "./standard-deviation-adornment-handler"
 import { kStandardDeviationType } from "./standard-deviation-adornment-types"
 

@@ -1,4 +1,4 @@
-import { types } from "@concord-consortium/mobx-state-tree"
+import { types } from "mobx-state-tree"
 import { meanAdornmentHandler } from "./mean-adornment-handler"
 import { kMeanType } from "./mean-adornment-types"
 

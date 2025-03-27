@@ -1,4 +1,4 @@
-import { types } from "@concord-consortium/mobx-state-tree"
+import { types } from "mobx-state-tree"
 import { medianAdornmentHandler } from "./median-adornment-handler"
 import { kMedianType } from "./median-adornment-types"
 

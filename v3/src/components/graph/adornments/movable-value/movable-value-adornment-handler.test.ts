@@ -1,4 +1,4 @@
-import { types } from "@concord-consortium/mobx-state-tree"
+import { types } from "mobx-state-tree"
 import { movableValueAdornmentHandler } from "./movable-value-adornment-handler"
 import { kMovableValueType } from "./movable-value-adornment-types"
 
@@ -36,35 +36,6 @@ jest.mock("../adornment-content-info", () => {
     })
   }
 })
-
-// jest.mock("../adornment-content-info", () => {
-//   const mockCountModel = types.model("MovableValueAdornmentModel", {
-//     id: types.optional(types.string, "ADRN123"),
-//     type: types.optional(types.string, "Movable Value"),
-//     isVisible: types.optional(types.boolean, false),
-//     values: types.map(types.number)
-//   }).actions(self => ({
-//     addValue(value: number) {
-//       self.values.set("{}", value)
-//     },
-//     replaceValue(value: number, key: string) {
-//       self.values.set(key, value)
-//     },
-//     setVisibility(isVisible: boolean) {
-//       self.isVisible = isVisible
-//     }
-//   }))
-
-//   return {
-//     ...jest.requireActual("../adornment-content-info"),
-//     getAdornmentContentInfo: jest.fn().mockReturnValue({
-//       modelClass: mockCountModel,
-//       plots: ["dotPlot"],
-//       prefix: "movable-value",
-//       type: "Movable Value",
-//     }),
-//   }
-// })
 
 describe("DataInteractive movableValueAdornmentHandler", () => {
   const handler = movableValueAdornmentHandler
