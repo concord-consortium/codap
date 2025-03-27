@@ -1,10 +1,24 @@
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const parseGeoraster = require("georaster")
+
 import GeoRasterLayer from "georaster-layer-for-leaflet"
 
 import L from "leaflet"
 import "leaflet-geotiff-2"
-import { fromArrayBuffer } from "geotiff"
+
+async function getGeoraster(url: string) {
+  try {
+    const response = await fetch(url)
+    console.log(`--- response`, response)
+    const arrayBuffer = await response.arrayBuffer()
+    console.log(` -- arrayBuffer`, arrayBuffer)
+    const georaster = await parseGeoraster(arrayBuffer)
+    console.log(` -- georaster`, georaster)
+    return georaster
+  } catch (error) {
+    console.error("Error fetching and processing geoTIFF", error)
+  }
+}
 
 /**
  * Creates a GeoTIFF layer from a URL
@@ -13,12 +27,7 @@ import { fromArrayBuffer } from "geotiff"
  */
 export async function createGeoTIFFLayer(url: string) {
   try {
-    const response = await fetch(url)
-    console.log(`--- response`, response)
-    const arrayBuffer = await response.arrayBuffer()
-    console.log(` -- arrayBuffer`, arrayBuffer)
-    const georaster = await parseGeoraster(arrayBuffer)
-    console.log(` -- georaster`, georaster)
+    const georaster = await getGeoraster(url)
 
     return {
       georaster,
@@ -32,7 +41,7 @@ export async function createGeoTIFFLayer(url: string) {
   }
 }
 
-type ColorArray = [number, number, number][]
+type ColorArray = [number, number, number, number][]
 
 // Modified version of leaflet-geotiff-rgb
 class ColorMapRenderer extends (L as any).LeafletGeotiffRenderer {
@@ -49,11 +58,11 @@ class ColorMapRenderer extends (L as any).LeafletGeotiffRenderer {
     this.name = "Color Map Canvas Renderer"
   }
 
-    getColor(value: number): [number, number, number, number] {
-      const color = this.colors[value]
-      if (!color) return [0, 0, 0, 0] // transparent
-      return [...color, 255]
-    }
+  getColor(value: number): [number, number, number, number] {
+    const color = this.colors[value]
+    if (!color) return [0, 0, 0, 0] // transparent
+    return [...color]
+  }
 
   render(raster: any, _canvas: any, ctx: any, args: any) {
     const rasterImageData = ctx.createImageData(raster.width, raster.height)
@@ -92,6 +101,7 @@ class ColorMapRenderer extends (L as any).LeafletGeotiffRenderer {
     function scale(val: number) {
       return Math.round((val / scaleMax) * 255)
     }
+
     for (let i = 0, j = 0; i < rasterImageData.data.length; i += 4, j += 1) {
       if (this.colors) {
         const color = this.getColor(raster.data[0][j])
@@ -114,31 +124,8 @@ class ColorMapRenderer extends (L as any).LeafletGeotiffRenderer {
 
 export async function createGeoTIFFLayer2(url: string) {
   try {
-    const response = await fetch(url)
-    console.log(`--- response`, response)
-    const arrayBuffer = await response.arrayBuffer()
-    console.log(` -- arrayBuffer`, arrayBuffer)
-    const tiff = await fromArrayBuffer(arrayBuffer)
-    console.log(` -- georaster`, tiff)
-    const image = await tiff.getImage()
-    console.log(` -- image`, image)
-    const colorMap = image.fileDirectory.ColorMap
-
-    const colors: ColorArray = []
-
-    if (colorMap) {
-      const nColors = colorMap.length / 3
-      for (let i = 0; i < nColors; i++) {
-        colors.push([
-          // eslint-disable-next-line no-bitwise
-          colorMap[i] >> 8,
-          // eslint-disable-next-line no-bitwise
-          colorMap[i + nColors] >> 8,
-          // eslint-disable-next-line no-bitwise
-          colorMap[i + 2 * nColors] >> 8
-        ])
-      }
-    }
+    const georaster = await getGeoraster(url)
+    const colors = georaster.palette
 
     const layer = L.leafletGeotiff(url, {
       renderer: new ColorMapRenderer({ colors }),
