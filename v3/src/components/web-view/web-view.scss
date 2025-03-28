@@ -39,5 +39,12 @@
       height: 100%;
       width: 100%;
     }
+
+    .codap-web-view-image {
+      height: 100%;
+      width: 100%;
+      object-fit: contain;
+      background-color: white;
+    }
   }
 }

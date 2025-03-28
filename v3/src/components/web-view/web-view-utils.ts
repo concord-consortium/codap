@@ -2,10 +2,12 @@ import { kRootGuideUrl, kRootPluginUrl } from "../../constants"
 
 export const kRelativePluginRoot = "../../../../extn/plugins"
 export const kRelativeGuideRoot = "../../../../extn/example-documents/guides"
+export const kRelativeURLRoot = "%_url_%/guides"
+
 
 export function processWebViewUrl(url: string) {
   let updatedUrl = url
-
+console.log("processWebViewUrl before", updatedUrl, updatedUrl.startsWith(kRelativeGuideRoot))
   // Some plugins relied on index.html being the default file loaded when pointing to a directory.
   // This is no longer the case with our S3 hosted plugins, so we have to modify the path to point to the
   // correct file in this case.
@@ -23,9 +25,15 @@ export function processWebViewUrl(url: string) {
     updatedUrl = `${kRootGuideUrl}${updatedUrl.slice(kRelativeGuideRoot.length)}`
   }
 
+  if (updatedUrl.startsWith(kRelativeURLRoot)) {
+    updatedUrl = `${kRootGuideUrl}${updatedUrl.slice(kRelativeURLRoot.length)}`
+  }
+
   // Some plugins were referenced with "http://", but this is no longer secure enough in the world of https.
   const http = "http://"
   if (updatedUrl.startsWith(http)) updatedUrl = `https://${updatedUrl.slice(http.length)}`
+
+  console.log("processWebViewUrl after", updatedUrl)
 
   return updatedUrl
 }
