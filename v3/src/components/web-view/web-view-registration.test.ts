@@ -196,4 +196,87 @@ describe("WebView registration", () =>  {
     expect(contentStorage.items[0].itemTitle).toBe("Get Started")
     expect(contentStorage.items[0].url).toBe("https://codap-resources.concord.org/example-documents/guides/Mammals/mammals_getstarted.html")
   })
+
+  it("imports/exports v2 guide view components of legacy documents", () => {
+    const file = path.join(__dirname, "../../test/v2", "ramp-game-multi-guide.codap")
+    const json = fs.readFileSync(file, "utf8")
+    const doc = safeJsonParse<ICodapV2DocumentJson>(json)!
+    const v2Document = new CodapV2Document(doc)
+
+    const codapDoc = createCodapDocument()
+    const docContent = codapDoc.content!
+    docContent.setRowCreator(() => FreeTileRow.create())
+    const sharedModelManager = getSharedModelManager(docContent)
+    const mockInsertTile = jest.fn((tileSnap: ITileModelSnapshotIn) => {
+      return docContent?.insertTileSnapshotInDefaultRow(tileSnap)
+    })
+
+    const tile = importV2Component({
+      v2Component: v2Document.components[3],
+      v2Document,
+      sharedModelManager,
+      insertTile: mockInsertTile
+    })!
+
+    expect(tile).toBeDefined()
+
+    expect(mockInsertTile).toHaveBeenCalledTimes(1)
+    const content = isWebViewModel(tile?.content) ? tile?.content : undefined
+    expect(getTileContentInfo(kWebViewTileType)!.getTitle(tile)).toBe("Ramp Game")
+    expect(content?.url).toBe("https://inquiryspace-resources.concord.org/guides/how-to-guide/1.html")
+    expect(content?.isGuide).toBe(true)
+
+    const row = docContent.getRowByIndex(0) as IFreeTileRow
+    const componentExport = exportV2Component({ tile, row, sharedModelManager })
+    expect(componentExport?.type).toBe("DG.GuideView")
+    const contentStorage = componentExport?.componentStorage as ICodapV2GuideViewStorage
+
+    expect(hasOwnProperty(contentStorage, "name")).toBe(true)
+    expect(contentStorage.name).toBe("Ramp Game")
+    expect(contentStorage.items).toBeDefined()
+    expect(contentStorage.items[0].itemTitle).toBe("- How-to Guide: new vocabulary")
+    expect(contentStorage.items[0].url).toBe("https://inquiryspace-resources.concord.org/guides/how-to-guide/1.html")
+  })
+
+  it("imports/exports v2 guide view component with multi-page guide", () => {
+    const file = path.join(__dirname, "../../test/v2", "ramp-game-multi-guide.codap")
+    const json = fs.readFileSync(file, "utf8")
+    const doc = safeJsonParse<ICodapV2DocumentJson>(json)!
+    const v2Document = new CodapV2Document(doc)
+
+    const codapDoc = createCodapDocument()
+    const docContent = codapDoc.content!
+    docContent.setRowCreator(() => FreeTileRow.create())
+    const sharedModelManager = getSharedModelManager(docContent)
+    const mockInsertTile = jest.fn((tileSnap: ITileModelSnapshotIn) => {
+      return docContent?.insertTileSnapshotInDefaultRow(tileSnap)
+    })
+
+    const tile = importV2Component({
+      v2Component: v2Document.components[3],
+      v2Document,
+      sharedModelManager,
+      insertTile: mockInsertTile
+    })!
+
+    expect(tile).toBeDefined()
+
+    expect(mockInsertTile).toHaveBeenCalledTimes(1)
+    const content = isWebViewModel(tile?.content) ? tile?.content : undefined
+    expect(getTileContentInfo(kWebViewTileType)!.getTitle(tile)).toBe("Ramp Game")
+    expect(content?.url).toBe("https://inquiryspace-resources.concord.org/guides/how-to-guide/1.html")
+    expect(content?.isGuide).toBe(true)
+
+    const row = docContent.getRowByIndex(0) as IFreeTileRow
+    const componentExport = exportV2Component({ tile, row, sharedModelManager })
+    expect(componentExport?.type).toBe("DG.GuideView")
+    const contentStorage = componentExport?.componentStorage as ICodapV2GuideViewStorage
+
+    expect(hasOwnProperty(contentStorage, "name")).toBe(true)
+    expect(contentStorage.name).toBe("Ramp Game")
+    expect(contentStorage.items).toBeDefined()
+    expect(contentStorage.items).toHaveLength(9)
+    expect(contentStorage.items[8].itemTitle).toBe("How do I enter formulas?")
+    expect(contentStorage.items[8].url).toBe("https://inquiryspace-resources.concord.org/guides/how-to-guide/9.html")
+  })
 })
