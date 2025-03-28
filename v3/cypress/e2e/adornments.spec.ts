@@ -4,7 +4,7 @@ import { AxisElements as ae } from "../support/elements/axis-elements"
 import { ToolbarElements as toolbar } from "../support/elements/toolbar-elements"
 import { FormulaHelper as fh } from "../support/helpers/formula-helper"
 
-const expectedPercents = [0, 100, 0, 0, 100, 0, 29, 33, 37]
+const expectedPercents = [0, 100, 0, 37, 33, 29, 0, 100, 0]
 
 context("Graph adornments", () => {
   beforeEach(function () {
@@ -97,21 +97,21 @@ context("Graph adornments", () => {
     c.selectTile("graph", 0)
     cy.dragAttributeToTarget("table", "Diet", "bottom")
     cy.dragAttributeToTarget("table", "Habitat", "left")
-  
+
     graph.getDisplayValuesButton().click()
     graph.getInspectorPalette().should("be.visible")
     graph.getInspectorPalette()
       .find("[data-testid=adornment-checkbox-count-percent]")
       .should("be.visible")
       .click()
-  
+
     // Wait for adornments to render
     cy.get("[data-testid=graph-adornments-grid]").should("exist")
     cy.get("[data-testid=adornment-wrapper]").should("have.length", 9)
     cy.get("[data-testid=adornment-wrapper]").each(($el) => {
       cy.wrap($el).should("have.class", "visible")
     })
-  
+
     // Verify that at least one percent value is shown
     cy.get("[data-testid^=graph-count]").should("have.length.at.least", 1)
     cy.get("[data-testid^=graph-count]").first().should("contain.text", "%")
@@ -125,7 +125,7 @@ context("Graph adornments", () => {
         expect(actual).to.be.closeTo(expected, 1)  // Tolerance of 1 is safe due to CODAP-359
       })
     })
-  
+
     // Hide the percent values
     graph.getInspectorPalette()
       .find("[data-testid=adornment-checkbox-count-percent]")
@@ -133,14 +133,14 @@ context("Graph adornments", () => {
     cy.get("[data-testid=adornment-wrapper]").each(($el) => {
       cy.wrap($el).should("have.class", "hidden")
     })
-  
+
     // Undo: percent should return
     toolbar.getUndoTool().click()
     cy.get("[data-testid=adornment-wrapper]").each(($el) => {
       cy.wrap($el).should("have.class", "visible")
     })
     cy.get("[data-testid^=graph-count]").first().should("contain.text", "%")
-  
+
     // Redo: percent should be hidden again
     toolbar.getRedoTool().click()
     cy.get("[data-testid=adornment-wrapper]").each(($el) => {
