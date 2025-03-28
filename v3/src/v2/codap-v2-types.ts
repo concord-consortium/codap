@@ -709,7 +709,7 @@ export interface ICodapV2BaseComponent {
     y?: number
 
     // These *Orig properties only occur in a single file in cfm-shared
-    // They are retained here incase we review the files in cfm-shared again
+    // They are retained here for completeness but we will not import/export them.
     // leftOrig?: number
     // topOrig?: number
     // widthOrig?: number
