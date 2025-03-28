@@ -1,0 +1,740 @@
+{
+  "name": "Mammals Sample",
+  "guid": 1,
+  "components": [
+    {
+      "type": "DG.TableView",
+      "guid": 40,
+      "componentStorage": {
+        "_links_": {
+          "context": {
+            "type": "DG.DataContextRecord",
+            "id": 2
+          }
+        },
+        "attributeWidths": []
+      },
+      "layout": {
+        "width": 585,
+        "height": 237,
+        "left": 5,
+        "top": 5,
+        "isVisible": true
+      },
+      "savedHeight": null
+    },
+    {
+      "type": "DG.GuideView",
+      "guid": 41,
+      "componentStorage": {
+        "title": "Mammals Sample Guide",
+        "items": [
+          {
+            "itemTitle": "Get Started",
+            "url": "../../../../extn/example-documents/guides/Mammals/mammals_getstarted.html"
+          }
+        ],
+        "currentItemTitle": "Get Started",
+        "isVisible": true
+      },
+      "layout": {
+        "left": 665,
+        "top": 10,
+        "width": 416,
+        "height": 510,
+        "isVisible": true
+      },
+      "savedHeight": null
+    },
+    {
+      "type": "DG.GraphView",
+      "guid": 42,
+      "componentStorage": {
+        "_links_": {
+          "context": {
+            "type": "DG.DataContextRecord",
+            "id": 2
+          },
+          "hiddenCases": [],
+          "yColl": {
+            "type": "DG.Collection",
+            "id": 3
+          },
+          "yAttr": {
+            "type": "DG.Attribute",
+            "id": 4
+          }
+        },
+        "legendRole": 0,
+        "legendAttributeType": 0,
+        "pointColor": "#e6805b",
+        "strokeColor": "white",
+        "pointSizeMultiplier": 1,
+        "transparency": 0.85,
+        "strokeTransparency": 0.4,
+        "isTransparent": false,
+        "xRole": 4,
+        "xAttributeType": 0,
+        "yRole": 3,
+        "yAttributeType": 2,
+        "y2Role": 0,
+        "y2AttributeType": 0,
+        "xAxisClass": "DG.AxisModel",
+        "yAxisClass": "DG.CellAxisModel",
+        "y2AxisClass": "DG.AxisModel",
+        "plotModels": [
+          {
+            "plotModelStorage": {
+              "verticalAxisIsY2": false
+            },
+            "plotClass": "DG.DotChartModel"
+          }
+        ],
+        "title": "Mammal Names"
+      },
+      "layout": {
+        "width": 180,
+        "height": 337,
+        "left": 5,
+        "top": 245,
+        "isVisible": true
+      },
+      "savedHeight": null
+    },
+    {
+      "type": "DG.GraphView",
+      "guid": 43,
+      "componentStorage": {
+        "_links_": {
+          "context": {
+            "type": "DG.DataContextRecord",
+            "id": 2
+          },
+          "hiddenCases": [],
+          "yColl": {
+            "type": "DG.Collection",
+            "id": 3
+          },
+          "yAttr": {
+            "type": "DG.Attribute",
+            "id": 6
+          }
+        },
+        "legendRole": 0,
+        "legendAttributeType": 0,
+        "pointColor": "#e6805b",
+        "strokeColor": "white",
+        "pointSizeMultiplier": 1,
+        "transparency": 0.85,
+        "strokeTransparency": 0.4,
+        "isTransparent": false,
+        "xRole": 4,
+        "xAttributeType": 0,
+        "yRole": 1,
+        "yAttributeType": 1,
+        "y2Role": 0,
+        "y2AttributeType": 0,
+        "xAxisClass": "DG.AxisModel",
+        "yAxisClass": "DG.CellLinearAxisModel",
+        "yLowerBound": -5,
+        "yUpperBound": 95,
+        "y2AxisClass": "DG.AxisModel",
+        "plotModels": [
+          {
+            "plotModelStorage": {
+              "verticalAxisIsY2": false
+            },
+            "plotClass": "DG.DotPlotModel"
+          }
+        ],
+        "title": "Lifespan"
+      },
+      "layout": {
+        "width": 115,
+        "height": 337,
+        "left": 190,
+        "top": 245,
+        "isVisible": true
+      },
+      "savedHeight": null
+    },
+    {
+      "type": "DG.GraphView",
+      "guid": 44,
+      "componentStorage": {
+        "_links_": {
+          "context": {
+            "type": "DG.DataContextRecord",
+            "id": 2
+          },
+          "legendColl": {
+            "type": "DG.Collection",
+            "id": 3
+          },
+          "legendAttr": {
+            "type": "DG.Attribute",
+            "id": 11
+          },
+          "hiddenCases": [],
+          "xColl": {
+            "type": "DG.Collection",
+            "id": 3
+          },
+          "xAttr": {
+            "type": "DG.Attribute",
+            "id": 12
+          }
+        },
+        "legendRole": 0,
+        "legendAttributeType": 2,
+        "pointColor": "#e6805b",
+        "strokeColor": "white",
+        "pointSizeMultiplier": 1,
+        "transparency": 0.85,
+        "strokeTransparency": 0.4,
+        "isTransparent": false,
+        "xRole": 3,
+        "xAttributeType": 2,
+        "yRole": 4,
+        "yAttributeType": 0,
+        "y2Role": 0,
+        "y2AttributeType": 0,
+        "xAxisClass": "DG.CellAxisModel",
+        "yAxisClass": "DG.AxisModel",
+        "y2AxisClass": "DG.AxisModel",
+        "plotModels": [
+          {
+            "plotModelStorage": {
+              "verticalAxisIsY2": false
+            },
+            "plotClass": "DG.DotChartModel"
+          }
+        ],
+        "title": "Diet"
+      },
+      "layout": {
+        "width": 316,
+        "height": 337,
+        "left": 310,
+        "top": 245,
+        "isVisible": true
+      },
+      "savedHeight": null
+    }
+  ],
+  "contexts": [
+    {
+      "type": "DG.DataContext",
+      "document": 1,
+      "guid": 2,
+      "collections": [
+        {
+          "areParentChildLinksConfigured": false,
+          "attrs": [
+            {
+              "name": "Mammal",
+              "type": null,
+              "description": "",
+              "colormap": {},
+              "editable": false,
+              "guid": 4,
+              "cid": "MammalCID",
+              "precision": 2,
+              "unit": null
+            },
+            {
+              "name": "Order",
+              "type": null,
+              "description": "",
+              "colormap": {},
+              "editable": false,
+              "guid": 5,
+              "precision": 2,
+              "unit": null
+            },
+            {
+              "name": "LifeSpan",
+              "type": null,
+              "description": "",
+              "colormap": {},
+              "editable": false,
+              "guid": 6,
+              "precision": 2,
+              "unit": null
+            },
+            {
+              "name": "Height",
+              "type": null,
+              "description": "",
+              "colormap": {},
+              "editable": false,
+              "guid": 7,
+              "precision": 2,
+              "unit": null
+            },
+            {
+              "name": "Mass",
+              "type": null,
+              "description": "",
+              "colormap": {},
+              "editable": false,
+              "guid": 8,
+              "precision": 2,
+              "unit": null
+            },
+            {
+              "name": "Sleep",
+              "type": null,
+              "description": "",
+              "colormap": {},
+              "editable": false,
+              "guid": 9,
+              "precision": 2,
+              "unit": null
+            },
+            {
+              "name": "Speed",
+              "type": null,
+              "description": "",
+              "colormap": {},
+              "editable": false,
+              "guid": 10,
+              "precision": 2,
+              "unit": null
+            },
+            {
+              "name": "Habitat",
+              "type": null,
+              "description": "",
+              "colormap": {
+                "land": {
+                  "h": 0.4444444444444444,
+                  "s": 0.6666666666666666,
+                  "b": 1,
+                  "colorString": "rgb(85,255,198)"
+                },
+                "water": {
+                  "h": 0.711111111111111,
+                  "s": 0.6666666666666666,
+                  "b": 1,
+                  "colorString": "rgb(130,85,255)"
+                },
+                "both": {
+                  "h": 0.9777777777777777,
+                  "s": 0.6666666666666666,
+                  "b": 1,
+                  "colorString": "rgb(255,85,108)"
+                }
+              },
+              "editable": false,
+              "guid": 11,
+              "precision": 2,
+              "unit": null
+            },
+            {
+              "name": "Diet",
+              "type": null,
+              "description": "",
+              "colormap": {},
+              "editable": false,
+              "guid": 12,
+              "precision": 2,
+              "unit": null
+            }
+          ],
+          "cases": [
+            {
+              "guid": 13,
+              "values": {
+                "Mammal": "African Elephant",
+                "Order": "Proboscidae",
+                "LifeSpan": 70,
+                "Height": 4,
+                "Mass": 6400,
+                "Sleep": 3,
+                "Speed": 40,
+                "Habitat": "land",
+                "Diet": "plants"
+              }
+            },
+            {
+              "guid": 14,
+              "values": {
+                "Mammal": "Asian Elephant",
+                "Order": "Proboscidae",
+                "LifeSpan": 70,
+                "Height": 3,
+                "Mass": 5000,
+                "Sleep": 4,
+                "Speed": 40,
+                "Habitat": "land",
+                "Diet": "plants"
+              }
+            },
+            {
+              "guid": 15,
+              "values": {
+                "Mammal": "Big Brown Bat",
+                "Order": "Chiroptera",
+                "LifeSpan": 19,
+                "Height": 0.1,
+                "Mass": 0.02,
+                "Sleep": 20,
+                "Speed": 40,
+                "Habitat": "land",
+                "Diet": "meat"
+              }
+            },
+            {
+              "guid": 16,
+              "values": {
+                "Mammal": "Bottlenose Dolphin",
+                "Order": "Cetacea",
+                "LifeSpan": 25,
+                "Height": 3.5,
+                "Mass": 635,
+                "Sleep": 5,
+                "Speed": 37,
+                "Habitat": "water",
+                "Diet": "meat"
+              }
+            },
+            {
+              "guid": 17,
+              "values": {
+                "Mammal": "Cheetah",
+                "Order": "Carnivora",
+                "LifeSpan": 14,
+                "Height": 1.5,
+                "Mass": 50,
+                "Sleep": 12,
+                "Speed": 110,
+                "Habitat": "land",
+                "Diet": "meat"
+              }
+            },
+            {
+              "guid": 18,
+              "values": {
+                "Mammal": "Chimpanzee",
+                "Order": "Primate",
+                "LifeSpan": 40,
+                "Height": 1.5,
+                "Mass": 68,
+                "Sleep": 10,
+                "Speed": "",
+                "Habitat": "land",
+                "Diet": "both"
+              }
+            },
+            {
+              "guid": 19,
+              "values": {
+                "Mammal": "Domestic Cat",
+                "Order": "Carnivora",
+                "LifeSpan": 16,
+                "Height": 0.8,
+                "Mass": 4.5,
+                "Sleep": 12,
+                "Speed": 50,
+                "Habitat": "land",
+                "Diet": "meat"
+              }
+            },
+            {
+              "guid": 20,
+              "values": {
+                "Mammal": "Donkey",
+                "Order": "Perissodactyla",
+                "LifeSpan": 40,
+                "Height": 1.2,
+                "Mass": 187,
+                "Sleep": 3,
+                "Speed": 50,
+                "Habitat": "land",
+                "Diet": "plants"
+              }
+            },
+            {
+              "guid": 21,
+              "values": {
+                "Mammal": "Giraffe",
+                "Order": "Artiodactyla",
+                "LifeSpan": 25,
+                "Height": 5,
+                "Mass": 1100,
+                "Sleep": 2,
+                "Speed": 50,
+                "Habitat": "land",
+                "Diet": "plants"
+              }
+            },
+            {
+              "guid": 22,
+              "values": {
+                "Mammal": "Gray Wolf",
+                "Order": "Carnivora",
+                "LifeSpan": 16,
+                "Height": 1.6,
+                "Mass": 80,
+                "Sleep": 13,
+                "Speed": 64,
+                "Habitat": "land",
+                "Diet": "meat"
+              }
+            },
+            {
+              "guid": 23,
+              "values": {
+                "Mammal": "Grey Seal",
+                "Order": "Pinnipedia",
+                "LifeSpan": 30,
+                "Height": 2.1,
+                "Mass": 275,
+                "Sleep": 6,
+                "Speed": 19,
+                "Habitat": "both",
+                "Diet": "meat"
+              }
+            },
+            {
+              "guid": 24,
+              "values": {
+                "Mammal": "Ground Squirrel",
+                "Order": "Rodentia",
+                "LifeSpan": 9,
+                "Height": 0.3,
+                "Mass": 0.1,
+                "Sleep": 15,
+                "Speed": 19,
+                "Habitat": "land",
+                "Diet": "both"
+              }
+            },
+            {
+              "guid": 25,
+              "values": {
+                "Mammal": "Horse",
+                "Order": "Perissodactyla",
+                "LifeSpan": 25,
+                "Height": 1.5,
+                "Mass": 521,
+                "Sleep": 3,
+                "Speed": 69,
+                "Habitat": "land",
+                "Diet": "plants"
+              }
+            },
+            {
+              "guid": 26,
+              "values": {
+                "Mammal": "House Mouse",
+                "Order": "Rodentia",
+                "LifeSpan": 3,
+                "Height": 0.1,
+                "Mass": 0.03,
+                "Sleep": 12,
+                "Speed": 13,
+                "Habitat": "land",
+                "Diet": "both"
+              }
+            },
+            {
+              "guid": 27,
+              "values": {
+                "Mammal": "Human",
+                "Order": "Primate",
+                "LifeSpan": 80,
+                "Height": 1.9,
+                "Mass": 80,
+                "Sleep": 8,
+                "Speed": 45,
+                "Habitat": "land",
+                "Diet": "both"
+              }
+            },
+            {
+              "guid": 28,
+              "values": {
+                "Mammal": "Jaguar",
+                "Order": "Carnivora",
+                "LifeSpan": 20,
+                "Height": 1.8,
+                "Mass": 115,
+                "Sleep": 11,
+                "Speed": 60,
+                "Habitat": "land",
+                "Diet": "meat"
+              }
+            },
+            {
+              "guid": 29,
+              "values": {
+                "Mammal": "Killer Whale",
+                "Order": "Cetacea",
+                "LifeSpan": 50,
+                "Height": 6.5,
+                "Mass": 4000,
+                "Sleep": "",
+                "Speed": 48,
+                "Habitat": "water",
+                "Diet": "meat"
+              }
+            },
+            {
+              "guid": 30,
+              "values": {
+                "Mammal": "Lion",
+                "Order": "Carnivora",
+                "LifeSpan": 15,
+                "Height": 2.5,
+                "Mass": 250,
+                "Sleep": 20,
+                "Speed": 80,
+                "Habitat": "land",
+                "Diet": "meat"
+              }
+            },
+            {
+              "guid": 31,
+              "values": {
+                "Mammal": "N. American Opossum",
+                "Order": "Didelphimorphia",
+                "LifeSpan": 5,
+                "Height": 0.5,
+                "Mass": 5,
+                "Sleep": 19,
+                "Speed": "",
+                "Habitat": "land",
+                "Diet": "both"
+              }
+            },
+            {
+              "guid": 32,
+              "values": {
+                "Mammal": "Nine-Banded Armadillo",
+                "Order": "Xenarthra",
+                "LifeSpan": 10,
+                "Height": 0.6,
+                "Mass": 7,
+                "Sleep": 17,
+                "Speed": 1,
+                "Habitat": "land",
+                "Diet": "meat"
+              }
+            },
+            {
+              "guid": 33,
+              "values": {
+                "Mammal": "Owl Monkey",
+                "Order": "Primate",
+                "LifeSpan": 12,
+                "Height": 0.4,
+                "Mass": 1,
+                "Sleep": 17,
+                "Speed": "",
+                "Habitat": "land",
+                "Diet": "both"
+              }
+            },
+            {
+              "guid": 34,
+              "values": {
+                "Mammal": "Patas Monkey",
+                "Order": "Primate",
+                "LifeSpan": 20,
+                "Height": 0.9,
+                "Mass": 13,
+                "Sleep": "",
+                "Speed": 55,
+                "Habitat": "land",
+                "Diet": "both"
+              }
+            },
+            {
+              "guid": 35,
+              "values": {
+                "Mammal": "Pig",
+                "Order": "Artiodactyla",
+                "LifeSpan": 10,
+                "Height": 1,
+                "Mass": 192,
+                "Sleep": 8,
+                "Speed": 18,
+                "Habitat": "land",
+                "Diet": "both"
+              }
+            },
+            {
+              "guid": 36,
+              "values": {
+                "Mammal": "Pronghorn Antelope",
+                "Order": "Artiodactyla",
+                "LifeSpan": 10,
+                "Height": 0.9,
+                "Mass": 70,
+                "Sleep": "",
+                "Speed": 98,
+                "Habitat": "land",
+                "Diet": "plants"
+              }
+            },
+            {
+              "guid": 37,
+              "values": {
+                "Mammal": "Rabbit",
+                "Order": "Lagomorpha",
+                "LifeSpan": 5,
+                "Height": 0.5,
+                "Mass": 3,
+                "Sleep": 11,
+                "Speed": 56,
+                "Habitat": "land",
+                "Diet": "plants"
+              }
+            },
+            {
+              "guid": 38,
+              "values": {
+                "Mammal": "Red Fox",
+                "Order": "Carnivora",
+                "LifeSpan": 7,
+                "Height": 0.8,
+                "Mass": 5,
+                "Sleep": 10,
+                "Speed": 48,
+                "Habitat": "land",
+                "Diet": "both"
+              }
+            },
+            {
+              "guid": 39,
+              "values": {
+                "Mammal": "Spotted Hyena",
+                "Order": "Carnivora",
+                "LifeSpan": 25,
+                "Height": 0.9,
+                "Mass": 70,
+                "Sleep": 18,
+                "Speed": 64,
+                "Habitat": "land",
+                "Diet": "meat"
+              }
+            }
+          ],
+          "caseName": null,
+          "childAttrName": null,
+          "collapseChildren": null,
+          "guid": 3,
+          "name": "Mammals",
+          "type": "DG.Collection"
+        }
+      ],
+      "contextStorage": {}
+    }
+  ],
+  "globalValues": [],
+  "appName": "",
+  "appVersion": "",
+  "appBuildNum": ""
+}

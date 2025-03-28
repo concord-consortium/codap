@@ -213,6 +213,21 @@ export interface ICodapV2GameViewStorage extends ICodapV2BaseComponentStorage {
   currentGameFormulas?: null
 }
 
+export interface ICodapV2GuideViewItem {
+  itemTitle: string | null
+  url: string | null
+}
+
+export interface ICodapV2GuideViewStorage extends ICodapV2BaseComponentStorage {
+  // null occurs when the items array is empty
+  currentItemIndex?: number | null
+  // older versions used these properties rather than currentItemIndex
+  currentItemTitle?: string | null
+  currentURL?: string | null
+  isVisible?: boolean
+  items: ICodapV2GuideViewItem[]
+}
+
 interface ICodapV2Coordinates {
   x: number
   y: number
@@ -663,17 +678,6 @@ export function isV2MapCurrentStorage(obj: unknown): obj is ICodapV2MapCurrentSt
 
 export type ICodapV2MapStorage = ICodapV2MapLegacyStorage | ICodapV2MapCurrentStorage
 
-// TODO_V2_IMPORT GuideStorage is not imported
-export interface ICodapV2GuideStorage extends ICodapV2BaseComponentStorage {
-  currentItemIndex?: number | null
-  isVisible?: boolean
-  items: Array<{ itemTitle: string | null, url: string | null }>
-  // This appears 997 times in cfm-shared
-  currentURL?: string
-  // This appears 997 times in cfm-shared
-  currentItemTitle?: string | null
-}
-
 export type V2TextObjTypesMap = Record<string, "block" | "inline">
 
 export interface V2SlateExchangeValue extends Omit<SlateExchangeValue, "document"> {
@@ -780,6 +784,13 @@ export interface ICodapV2GameViewComponent extends ICodapV2BaseComponent {
 export const isV2GameViewComponent =
   (component: ICodapV2BaseComponent): component is ICodapV2GameViewComponent => component.type === "DG.GameView"
 
+export interface ICodapV2GuideViewComponent extends ICodapV2BaseComponent {
+  type: "DG.GuideView"
+  componentStorage: ICodapV2GuideViewStorage
+}
+export const isV2GuideViewComponent = (component: ICodapV2BaseComponent): component is ICodapV2GuideViewComponent =>
+              component.type === "DG.GuideView"
+
 export interface ICodapV2GraphComponent extends ICodapV2BaseComponent {
   type: "DG.GraphView"
   componentStorage: ICodapV2GraphStorage
@@ -794,15 +805,6 @@ export interface ICodapV2MapComponent extends ICodapV2BaseComponent {
 export const isV2MapComponent = (component: ICodapV2BaseComponent): component is ICodapV2MapComponent =>
               component.type === "DG.MapView"
 
-// TODO_V2_IMPORT GuideView is not imported
-// it occurs 16,371 times in cfm-shared
-export interface ICodapV2GuideComponent extends ICodapV2BaseComponent {
-  type: "DG.GuideView"
-  componentStorage: ICodapV2GuideStorage
-}
-export const isV2GuideComponent = (component: ICodapV2BaseComponent): component is ICodapV2GuideComponent =>
-              component.type === "DG.GuideView"
-
 export interface ICodapV2TextComponent extends ICodapV2BaseComponent {
   type: "DG.TextView"
   componentStorage: ICodapV2TextStorage
@@ -815,7 +817,7 @@ export type CodapV2Component =
   ICodapV2CaseCardComponent|
   ICodapV2GameViewComponent |
   ICodapV2GraphComponent |
-  ICodapV2GuideComponent |
+  ICodapV2GuideViewComponent |
   ICodapV2ImageComponent |
   ICodapV2MapComponent |
   ICodapV2SliderComponent |
