@@ -1,5 +1,40 @@
+import { types } from "mobx-state-tree"
 import { countAdornmentHandler } from "./count-adornment-handler"
 import { kCountType } from "./count-adornment-types"
+
+jest.mock("../adornment-content-info", () => {
+  const mockCountModel = types.model("CountAdornmentModel", {
+    id: types.optional(types.string, "ADRN123"),
+    type: types.optional(types.string, "Count"),
+    showCount: types.optional(types.boolean, false),
+    showPercent: types.optional(types.boolean, false),
+    percentType: types.optional(types.string, "row"),
+    isVisible: types.optional(types.boolean, false),
+  }).actions(self => ({
+    setShowCount(showCount: boolean) {
+      self.showCount = showCount
+    },
+    setShowPercent(showPercent: boolean) {
+      self.showPercent = showPercent
+    },
+    setPercentType(percentType: string) {
+      self.percentType = percentType
+    },
+    setVisibility(isVisible: boolean) {
+      self.isVisible = isVisible
+    }
+  }))
+
+  return {
+    ...jest.requireActual("../adornment-content-info"),
+    getAdornmentContentInfo: jest.fn().mockReturnValue({
+      modelClass: mockCountModel,
+      plots: ["scatterPlot"],
+      prefix: "count",
+      type: "Count",
+    }),
+  }
+})
 
 describe("DataInteractive CountAdornmentHandler", () => {
   const handler = countAdornmentHandler
@@ -21,6 +56,11 @@ describe("DataInteractive CountAdornmentHandler", () => {
       subPlotCases: jest.fn(() => [{ id: "case1" }, { id: "case2" }])
     }
     mockGraphContent = {
+      adornmentsStore: {
+        addAdornment: jest.fn((adornment: any, options: any) => null),
+        findAdornmentOfType: jest.fn(),
+        subPlotRegionBoundaries: jest.fn(() => [1, 2])
+      },
       dataConfiguration: mockDataConfig
     }
     
@@ -47,6 +87,23 @@ describe("DataInteractive CountAdornmentHandler", () => {
     expect(result?.values.error).toBe(`Not a(n) ${kCountType} adornment.`)
   })
 
+  it("create returns the expected data when count adornment created", () => {
+    const createRequestValues = {
+      type: kCountType,
+      showCount: true,
+      showPercent: false,
+      percentType: "column"
+    }
+    const result = handler.create!({ graphContent: mockGraphContent, values: createRequestValues })
+    expect(result?.success).toBe(true)
+    expect(result?.values).toBeDefined()
+    const values = result?.values as any
+    expect(values.type).toBe(kCountType)
+    expect(values.showCount).toBe(true)
+    expect(values.showPercent).toBe(false)
+    expect(values.percentType).toBe("column")
+  })
+
   it("get returns the expected data when count adornment provided", () => {
     const result = handler.get?.(mockCountAdornment, mockGraphContent)
     expect(Array.isArray(result?.data)).toBe(true)
@@ -69,4 +126,25 @@ describe("DataInteractive CountAdornmentHandler", () => {
     const result = handler.get?.(mockCountAdornment, mockGraphContent)
     expect(result?.data[0]).toMatchObject({ percent: "50%" })
   })
+
+  it("update returns an error when count adornment not found", () => {
+    mockGraphContent.adornmentsStore.findAdornmentOfType.mockReturnValue(null)
+    const result = handler.update?.({ graphContent: mockGraphContent })
+    expect(result?.success).toBe(false)
+    const values = result?.values as any
+    expect(values.error).toBe("Adornment not found.")
+  })
+
+  it("update successfully updates count adornment properties", () => {
+    mockGraphContent.adornmentsStore.findAdornmentOfType.mockReturnValue(mockCountAdornment)
+    const updateValues = {
+      showCount: false,
+      showPercent: true,
+      percentType: "column",
+      isVisible: true
+    }
+    const result = handler.update?.({ graphContent: mockGraphContent, values: updateValues })
+    expect(result?.success).toBe(true)
+  })
+
 })
