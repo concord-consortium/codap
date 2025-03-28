@@ -14,7 +14,7 @@ import { percentString } from "../../utilities/graph-utils"
 import { IAdornmentComponentProps } from "../adornment-component-info"
 import { kDefaultFontSize } from "../adornment-types"
 import { getAxisDomains } from "../utilities/adornment-utils"
-import { ICountAdornmentModel, IRegionCount, IRegionCountParams } from "./count-adornment-model"
+import { ICountAdornmentModel, IRegionCount } from "./count-adornment-model"
 
 import "./count-adornment-component.scss"
 
@@ -58,10 +58,18 @@ export const CountAdornment = observer(function CountAdornment(props: IAdornment
           maxBinEdge
         ] : []
       }
-      return adornmentsStore?.subPlotRegionBoundaries(instanceKey, scale) ?? []
-  }, [adornmentsStore, binnedDotPlot, dataConfig, graphModel, instanceKey, scale])
+      return adornmentsStore?.subPlotRegionBoundaries(instanceKey) ?? []
+  }, [adornmentsStore, binnedDotPlot, dataConfig, graphModel, instanceKey])
 
   const subPlotRegionBoundariesRef = useRef(subPlotRegionBoundaries())
+
+  const regionText = useCallback((regionCount: Partial<IRegionCount>, regionIndex = 0) => {
+    const regionPercent = percentString(
+      model.percentValue(casesInPlot, cellKey, dataConfig, subPlotRegionBoundariesRef.current, regionIndex)
+    )
+    const regionDisplayPercent = model.showCount ? ` (${regionPercent})` : regionPercent
+    return `${model.showCount ? regionCount.count : ""}${model.showPercent ? regionDisplayPercent : ""}`
+  }, [casesInPlot, cellKey, dataConfig, model])
 
   const resizeText = useCallback(() => {
     const minFontSize = 3
@@ -96,46 +104,51 @@ export const CountAdornment = observer(function CountAdornment(props: IAdornment
     //
     // It should not be possible to have both bin boundaries and movable values present at the same time.
 
-    if (subPlotRegionBoundariesRef.current.length < 3 || !graphModel.plot.isUnivariateNumeric) {
-      // If there are no bin boundaries or movable values present, we just show a single case count.
-      setDisplayCount(<div>{textContent}</div>)
-      return
-    }
-
-    const regionCountParams: IRegionCountParams = {
+    const regionCounts = model.computeRegionCounts({
       cellKey,
       dataConfig,
-      // Points whose values match a region's upper boundary are treated differently based on what defines the regions.
-      // For regions defined by bins, points matching the upper boundary are placed into the next bin. So we set
-      // `inclusiveMax` to false. Otherwise, such points are considered within the boundary and `inclusiveMax` is true.
+      // Points whose values match a region's upper boundary are treated differently based on
+      // what defines the regions. For regions defined by bins, points matching the upper boundary
+      // are placed into the next bin. So we set `inclusiveMax` to false. Otherwise, such points
+      // are considered within the boundary and `inclusiveMax` is true.
       inclusiveMax: !binnedDotPlot,
       plotHeight,
       plotWidth,
       scale,
-      subPlotRegionBoundaries: subPlotRegionBoundariesRef.current,
-    }
-    const counts: IRegionCount[] = model.regionCounts(regionCountParams)
-    const className = clsx("sub-count",
-      {"x-axis": primaryAttrRole === "x"},
-      {"y-axis": primaryAttrRole === "y"},
-      {"binned-points-count": !!binnedDotPlot}
-    )
-    setDisplayCount(
-      <>
-        {counts.map((c, i) => {
-          const style = primaryAttrRole === "x"
-            ? { left: `${c.leftOffset}px`, width: `${c.width}px` }
-            : { bottom: `${c.bottomOffset}px`, height: `${c.height}px` }
-          const regionPercent = percentString(c.count / casesInPlot)
-          const regionDisplayPercent = model.showCount ? ` (${regionPercent})` : regionPercent
-          const regionTextContent = `${model.showCount ? c.count : ""}${model.showPercent ? regionDisplayPercent : ""}`
+      subPlotRegionBoundaries: subPlotRegionBoundariesRef.current
+    })
 
-          return <div key={`count-instance-${i}`} className={className} style={style}>{regionTextContent}</div>
-        })}
-      </>
-    )
-  }, [binnedDotPlot, casesInPlot, cellKey, dataConfig, graphModel, model,
-      plotHeight, plotWidth, primaryAttrRole, scale, textContent])
+    // If there are no bin boundaries or movable values present, we just show a single case count.
+    if (regionCounts.length === 1) {
+      const regionTextContent = regionText(regionCounts[0])
+      setDisplayCount(
+        <div>
+          {regionTextContent}
+        </div>
+      )
+    } else {
+      setDisplayCount(
+        <>
+          {regionCounts.map((c: IRegionCount, i: number) => {
+            const className = clsx("sub-count",
+              {"x-axis": primaryAttrRole === "x"},
+              {"y-axis": primaryAttrRole === "y"},
+              {"binned-points-count": !!binnedDotPlot}
+            )
+            const style = primaryAttrRole === "x"
+              ? { left: `${c.leftOffset}px`, width: `${c.width}px` }
+              : { bottom: `${c.bottomOffset}px`, height: `${c.height}px` }
+            const regionTextContent = regionText(c, i)
+            return (
+              <div key={`count-instance-${i}`} className={className} style={style}>
+                {regionTextContent}
+              </div>
+            )
+          })}
+        </>
+      )
+    }
+  }, [binnedDotPlot, cellKey, dataConfig, model, plotHeight, plotWidth, primaryAttrRole, regionText, scale])
 
   useEffect(function resizeTextOnCellWidthChange() {
     return mstAutorun(() => {

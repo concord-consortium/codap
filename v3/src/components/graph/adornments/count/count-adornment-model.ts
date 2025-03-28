@@ -3,12 +3,13 @@ import { AdornmentModel, IAdornmentModel } from "../adornment-models"
 import { kCountType } from "./count-adornment-types"
 import {IGraphDataConfigurationModel} from "../../models/graph-data-configuration-model"
 import { ScaleNumericBaseType } from "../../../axis/axis-types"
-
+import { percentString } from "../../utilities/graph-utils"
 export interface IRegionCount {
   bottomOffset: number
-  count: number
+  count?: number
   height: number
   leftOffset: number
+  percent?: string
   width: number
 }
 export interface IRegionCountParams {
@@ -17,7 +18,9 @@ export interface IRegionCountParams {
   inclusiveMax: boolean
   plotHeight: number
   plotWidth: number
-  scale: ScaleNumericBaseType
+  scale?: ScaleNumericBaseType
+  showCount?: boolean
+  showPercent?: boolean
   subPlotRegionBoundaries: number[]
 }
 
@@ -30,11 +33,25 @@ export const CountAdornmentModel = AdornmentModel
     percentType: types.optional(types.enumeration(["cell", "column", "row"]), "row")
   })
   .views(self => ({
-    percentValue(casesInPlot: number, cellKey: Record<string, string>, dataConfig?: IGraphDataConfigurationModel) {
-      // Percent type options are only available when there are two or more categorical attributes on perpendicular
-      // axes, which creates a grid of subplots with multiple rows and columns. When percent type options are not
-      // available, we default to the "cell" percent type (i.e. use `dataConfig?.cellCases.length ?? 0` as
-      // the divisor)
+    percentValue(
+      casesInPlot: number, cellKey: Record<string, string>, dataConfig?: IGraphDataConfigurationModel,
+      subPlotRegionBoundaries?: number[], regionIndex = 0
+    ) {
+  
+      // If there are movable values present, we need to calculate the percent based on cases in each sub-plot
+      // region defined by the movable values and the min and max of the primary axis.
+      if (subPlotRegionBoundaries && subPlotRegionBoundaries.length > 2) {
+        const primaryAttrRole = dataConfig?.primaryRole ?? "x"
+        const attrId = dataConfig?.attributeID(primaryAttrRole)
+        if (!attrId) return 0
+
+        const lowerBoundary = subPlotRegionBoundaries[regionIndex]
+        const upperBoundary = subPlotRegionBoundaries[regionIndex + 1]
+        const casesInRange = dataConfig?.casesInRange(lowerBoundary, upperBoundary, attrId, cellKey, true) ?? []
+        const totalCases = dataConfig?.filterCasesForDisplay(dataConfig?.subPlotCases(cellKey)).length ?? 0
+        return totalCases > 0 ? casesInRange.length / totalCases : 0
+      }
+
       const categoricalAttrCount = dataConfig?.categoricalAttrCount ?? 0
       const hasPercentTypeOptions = categoricalAttrCount > 1
       const rowCases = dataConfig?.filterCasesForDisplay(dataConfig?.rowCases(cellKey)) ?? []
@@ -50,29 +67,42 @@ export const CountAdornmentModel = AdornmentModel
       const primaryAttrRole = dataConfig?.primaryRole ?? "x"
       const attrId = dataConfig?.attributeID(primaryAttrRole)
       if (!attrId) return []
+
+      let width = 0
+      let height = 0
       let prevWidth = 0
       let prevHeight = 0
       const counts: IRegionCount[] = []
+
       // Set scale copy range. The scale copy is used when computing the coordinates of each region's upper and lower
       // boundaries. We modify the range of the scale copy to match the sub plot's width and height so they are computed
       // correctly. The original scales use the entire plot's width and height, which won't work when there are multiple
       // subplots.
-      const scaleCopy = scale.copy()
-      if (primaryAttrRole === "x") {
-        scaleCopy.range([0, plotWidth])
-      } else {
-        scaleCopy.range([plotHeight, 0])
+      const scaleCopy = scale?.copy()
+      if (scaleCopy) {
+        if (primaryAttrRole === "x") {
+          scaleCopy.range([0, plotWidth])
+        } else {
+          scaleCopy.range([plotHeight, 0])
+        }
       }
 
       for (let i = 0; i < subPlotRegionBoundaries.length - 1; i++) {
+        // For case counts, use the actual boundaries (-Infinity/Infinity).
         const lowerBoundary = subPlotRegionBoundaries[i]
         const upperBoundary = subPlotRegionBoundaries[i + 1]
-        const pixelMin = scaleCopy(lowerBoundary)
-        const pixelMax = scaleCopy(upperBoundary)
         const casesInRange = dataConfig?.casesInRange(lowerBoundary, upperBoundary, attrId, cellKey, inclusiveMax) ?? []
         const count = casesInRange.length
-        const width = primaryAttrRole === "x" ? Math.abs(pixelMax - pixelMin) : 0
-        const height = primaryAttrRole === "x" ? 0 : Math.abs(pixelMax - pixelMin)
+
+        // For pixel calculations, use the scale's domain.
+        if (scaleCopy) {
+          const [domainMin, domainMax] = scaleCopy.domain()
+          const pixelMin = scaleCopy(Math.max(lowerBoundary === -Infinity ? domainMin : lowerBoundary, domainMin))
+          const pixelMax = scaleCopy(Math.min(upperBoundary === Infinity ? domainMax : upperBoundary, domainMax))
+          width = primaryAttrRole === "x" ? Math.abs(pixelMax - pixelMin) : 0
+          height = primaryAttrRole === "x" ? 0 : Math.abs(pixelMax - pixelMin)
+        }
+
         const leftOffset = prevWidth
         const bottomOffset = prevHeight
         prevWidth += width
@@ -81,6 +111,48 @@ export const CountAdornmentModel = AdornmentModel
       }
 
       return counts
+    }
+  }))
+  .views(self => ({
+    computeRegionCounts({
+      cellKey, dataConfig, plotHeight, plotWidth, scale, subPlotRegionBoundaries, inclusiveMax
+    }: IRegionCountParams) {
+      const totalCases = dataConfig?.filterCasesForDisplay(dataConfig?.subPlotCases(cellKey)).length ?? 0
+      if (subPlotRegionBoundaries.length < 3) {
+        const percent = percentString(self.percentValue(totalCases, cellKey, dataConfig))
+        return [{
+          bottomOffset: 0,
+          count: self.showCount ? totalCases : undefined,
+          height: plotHeight,
+          leftOffset: 0,
+          percent: self.showPercent ? percent : undefined,
+          width: plotWidth
+        }]
+      }
+
+      const counts: IRegionCount[] = self.regionCounts({
+        cellKey,
+        dataConfig,
+        inclusiveMax,
+        plotHeight,
+        plotWidth,
+        scale,
+        subPlotRegionBoundaries
+      })
+
+      return counts.map((c, i) => {
+        const regionPercent = percentString(
+          self.percentValue(c.count ?? 0, cellKey, dataConfig, subPlotRegionBoundaries, i)
+        )
+        return {
+          bottomOffset: c.bottomOffset,
+          count: c.count,
+          height: c.height,
+          leftOffset: c.leftOffset,
+          percent: regionPercent,
+          width: c.width
+        }
+      })
     }
   }))
   .actions(self => ({
