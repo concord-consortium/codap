@@ -701,21 +701,11 @@ export interface ICodapV2BaseComponent {
     top?: number
     isVisible?: boolean
     zIndex?: number
-    // TODO_V2_IMPORT right is not imported
-    // appears more than 20,000 in cfm-shared
-    // this might not be optional
+    // Skipping import of right and bottom because it is not used in existing V2 documents
     right?: number | null
-    // TODO_V2_IMPORT bottom is not imported
-    // appears more than 20,000 in cfm-shared
-    // this might not be optional
     bottom?: number | null
-    // TODO_V2_IMPORT x is not imported
-    // appears 5,258 times in cfm-shared
-    // based on the results for `right`, this must be optional
+    // There are some V2 documents that use x and y instead of left and top
     x?: number
-    // TODO_V2_IMPORT y is not imported
-    // appears 5,258 times in cfm-shared
-    // based on the results for `right`, this must be optional
     y?: number
 
     // These *Orig properties only occur in a single file in cfm-shared
