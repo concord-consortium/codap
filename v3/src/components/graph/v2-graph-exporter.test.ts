@@ -75,8 +75,6 @@ describe("V2GraphImporter", () => {
 
   // to be implemented in future PRs
   const kNotImplementedProps = [
-    "numberOfLegendQuantiles",
-    "legendQuantilesAreLocked",
     "plotBackgroundImage",
     "plotBackgroundImageLockInfo",
     // computable from other properties, plus v2 writes out some unexpected values
