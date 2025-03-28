@@ -120,10 +120,6 @@ export interface ICodapV2TableStorage extends ICodapV2BaseComponentStorage {
     width?: number
   }>
   title?: string
-  // TODO_V2_IMPORT_STORE isActive is not imported
-  // it occurs in close to 11,0000 files in cfm-shared
-  // these are both in table and case card
-  // it might not be optional
   isActive?: boolean
   rowHeights?: ICodapV2RowHeight[]
   horizontalScrollOffset?: number

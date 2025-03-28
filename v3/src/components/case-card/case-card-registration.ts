@@ -52,7 +52,7 @@ registerComponentHandler(kV2CaseCardType, caseTableCardComponentHandler)
 registerV2TileExporter(kCaseCardTileType, ({ tile }) => {
   const cardContent = isCaseCardModel(tile.content) ? tile.content : undefined
   let componentStorage: Maybe<SetOptional<ICodapV2CaseCardStorage, keyof ICodapV2BaseComponentStorage>>
-  const dataSet = cardContent?.data
+  const { data: dataSet, metadata } = cardContent || {}
   const columnWidthMap: Record<string, number> = {}
   cardContent?.attributeColumnWidths.forEach((widthPct, collectionId) => {
     columnWidthMap[String(toV2Id(String(collectionId)))] = widthPct
@@ -61,6 +61,7 @@ registerV2TileExporter(kCaseCardTileType, ({ tile }) => {
     componentStorage = {
       _links_: { context: guidLink("DG.DataContextRecord", toV2Id(dataSet.id)) },
       columnWidthMap,
+      isActive: metadata?.lastShownTableOrCardTileId === tile.id,
       title: tile._title
     }
   }

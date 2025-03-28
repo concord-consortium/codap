@@ -82,6 +82,7 @@ const v2TableExporter: V2TileExportFn = ({ tile }) => {
       attributeWidths,
       ...(_rowHeights.length ? { rowHeights: _rowHeights } : {}),
       horizontalScrollOffset,
+      isActive: metadata?.lastShownTableOrCardTileId === tile.id,
       isIndexHidden,
       title: tile._title
     }
