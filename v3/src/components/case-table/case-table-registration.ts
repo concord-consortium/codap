@@ -77,7 +77,7 @@ registerV2TileExporter(kCaseTableTileType, v2TableExporter)
 registerV2TileImporter("DG.TableView", ({ v2Component, v2Document, sharedModelManager, insertTile }) => {
   if (!isV2TableComponent(v2Component)) return
 
-  const { guid, componentStorage: { name, title = "", _links_, isActive, attributeWidths } } = v2Component
+  const { guid, componentStorage: { name, title = "", _links_, isActive, attributeWidths, cannotClose } } = v2Component
 
   // Handle broken tables that don't have any links
   if (!_links_) return
@@ -101,7 +101,7 @@ registerV2TileImporter("DG.TableView", ({ v2Component, v2Document, sharedModelMa
   })
 
   const tableTileSnap: ITileModelSnapshotIn = {
-    id: toV3Id(kCaseTableIdPrefix, guid), name, _title: title, content
+    id: toV3Id(kCaseTableIdPrefix, guid), name, _title: title, content, cannotClose: cannotClose ?? false
   }
   const tableTile = insertTile(tableTileSnap)
 
