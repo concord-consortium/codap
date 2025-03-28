@@ -70,13 +70,6 @@ export interface ICodapV2BaseComponentStorage {
   title?: string
   name?: string
   userSetTitle?: boolean
-  // in a document saved by build 0441 this property didn't exist
-  // TODO_V2_IMPORT_CARRY_OVER: this property seems to be ignored by the import code
-  // The v3 models do support it, but from what I can tell each component
-  // importer needs to read this property from componentStorage and then
-  // set it on the tile snapshot they pass to insertTile
-  // In the CFM shared files there are more than 20,000 examples of cannotClose: true
-  // and more 20,000 examples cannotClose: false
   cannotClose?: boolean
   // allows v2 documents saved by v3 to contain v3-specific enhancements
   v3?: object
