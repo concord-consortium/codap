@@ -1,6 +1,6 @@
 import { format, ScaleLinear, select } from "d3"
 import { between } from "../../../utilities/math-utils"
-import { isNumericOrCountAxisModel } from "../models/axis-model"
+import { isNumericOrCountOrPercentAxisModel } from "../models/axis-model"
 import { transitionDuration } from "../../data-display/data-display-types"
 import { computeBestNumberOfTicks } from "../axis-utils"
 import { AxisScaleType, otherPlace } from "../axis-types"
@@ -58,7 +58,7 @@ export class NumericAxisHelper extends AxisHelper {
     const numericScale = this.multiScale?.scaleType === "linear"
       ? this.multiScale.numericScale?.copy().range(this.newRange) as ScaleLinear<number, number>
       : undefined
-    if (!isNumericOrCountAxisModel(this.axisModel) || !numericScale || !this.subAxisElt) return
+    if (!isNumericOrCountOrPercentAxisModel(this.axisModel) || !numericScale || !this.subAxisElt) return
 
     const subAxisSelection = select(this.subAxisElt)
     // Simplest if we remove everything and start again. Without this, #188523090 caused trouble

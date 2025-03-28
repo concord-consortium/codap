@@ -8,7 +8,7 @@ import { IBarCover, IPlotProps } from "../../graphing-types"
 import { useChartDots } from "../../hooks/use-chart-dots"
 import { usePlotResponders } from "../../hooks/use-plot"
 import { setPointCoordinates } from "../../utilities/graph-utils"
-import { barCoverDimensions, renderBarCovers } from "../bar-utils"
+import { barCompressionFactorForCase, barCoverDimensions, renderBarCovers } from "../bar-utils"
 
 export const BarChart = observer(function BarChart({ abovePointsGroupRef, pixiPoints }: IPlotProps) {
   const { dataset, graphModel, isAnimating, layout, primaryScreenCoord, secondaryScreenCoord,
@@ -32,12 +32,16 @@ export const BarChart = observer(function BarChart({ abovePointsGroupRef, pixiPo
     const getScreenX = primaryIsBottom ? getPrimaryScreenCoord : getSecondaryScreenCoord
     const getScreenY = primaryIsBottom ? getSecondaryScreenCoord : getPrimaryScreenCoord
 
-    const getWidth = () => primaryIsBottom
-      ? primaryCellWidth / 2
-      : secondaryNumericUnitLength
-    const getHeight = () => primaryIsBottom
-      ? secondaryNumericUnitLength
-      : primaryCellWidth / 2
+    const getWidth = (anID:string) => {
+      return primaryIsBottom
+        ? primaryCellWidth / 2
+        : secondaryNumericUnitLength * barCompressionFactorForCase(anID, graphModel)
+    }
+    const getHeight = (anID:string) => {
+      return primaryIsBottom
+        ? secondaryNumericUnitLength * barCompressionFactorForCase(anID, graphModel)
+        : primaryCellWidth / 2
+    }
 
     // build and render bar cover elements that will handle click events for the fused points
     if (dataConfig && abovePointsGroupRef?.current) {
@@ -92,7 +96,9 @@ export const BarChart = observer(function BarChart({ abovePointsGroupRef, pixiPo
                   const maxInCell = minInCell + matchingCases.length
                   if (maxInCell !== minInCell) {
                     const { x, y, barWidth, barHeight } = barCoverDimensions({
-                      subPlotCells, cellIndices: cellData.cell, layout, primCatsCount, maxInCell, minInCell
+                      subPlotCells, cellIndices: cellData.cell, layout, primCatsCount, maxInCell, minInCell,
+                      isPercentAxis: graphModel.secondaryAxisIsPercent,
+                      numInSubPlot: dataConfig.numCasesInSubPlotGivenCategories(primeSplitCat, secSplitCat)
                     })
                     const caseIDs = dataConfig.getCasesForCategoryValues(
                       primaryAttrRole, primeCat, secCat, primeSplitCat, secSplitCat, legendCat
@@ -108,9 +114,11 @@ export const BarChart = observer(function BarChart({ abovePointsGroupRef, pixiPo
                   minInCell = maxInCell
                 })
               } else {
-                const maxInCell = bins[primeCat]?.[secCat]?.[primeSplitCat]?.[secSplitCat] ?? 0
+                const maxInCell = bins[primeSplitCat]?.[secSplitCat]?.[primeCat]?.[secCat] ?? 0
                 const { x, y, barWidth, barHeight } = barCoverDimensions({
-                  subPlotCells, cellIndices: cellData.cell, layout, primCatsCount, maxInCell
+                  subPlotCells, cellIndices: cellData.cell, layout, primCatsCount, maxInCell,
+                  isPercentAxis: graphModel.secondaryAxisIsPercent,
+                  numInSubPlot: dataConfig.numCasesInSubPlotGivenCategories(primeSplitCat, secSplitCat)
                 })
                 const caseIDs = dataConfig.getCasesForCategoryValues(
                   primaryAttrRole, primeCat, secCat, primeSplitCat, secSplitCat

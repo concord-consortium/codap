@@ -494,7 +494,7 @@
     "DG.Undo.graph.dissolveRectanglesToDots": "Undo dissolving rectangles into dots",
     "DG.Redo.graph.dissolveRectanglesToDots": "Redo dissolving rectangles into dots",
     "DG.Undo.graph.changeBreakdownType": "Undo changing scale type",
-    "DG.Redo.graph.changeBreakdownType": "Undo changing scale type",
+    "DG.Redo.graph.changeBreakdownType": "Redo changing scale type",
     "DG.Undo.graph.showAsBinnedPlot": "Undo grouping dots into bins",
     "DG.Redo.graph.showAsBinnedPlot": "Redo grouping dots into bins",
     "DG.Undo.graph.showAsDotPlot": "Undo ungrouping dots from bins",

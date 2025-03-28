@@ -7,8 +7,10 @@ import { ITileModel } from "../../../../models/tiles/tile-model"
 import { t } from "../../../../utilities/translation/translate"
 import { isPointDisplayType } from "../../../data-display/data-display-types"
 import { InspectorPalette } from "../../../inspector-panel"
+import { BreakdownType, BreakdownTypes } from "../../graphing-types"
 import { isGraphContentModel } from "../../models/graph-content-model"
 import { isBinnedPlotModel } from "../../plots/histogram/histogram-model"
+import { isBarChartModel } from "../../plots/bar-chart/bar-chart-model"
 
 type BinOption = "binWidth" | "binAlignment"
 
@@ -23,12 +25,14 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
   const { buttonRect, panelRect, setShowPalette, tile } = props
   const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
   const binnedPlot = isBinnedPlotModel(graphModel?.plot) ? graphModel?.plot : undefined
+  const barChart = isBarChartModel(graphModel?.plot) ? graphModel?.plot : undefined
   const binDetails = graphModel?.dataConfiguration
                       ? binnedPlot?.binDetails()
                       : { binWidth: undefined, binAlignment: undefined }
   const pointsFusedIntoBars = graphModel?.pointsFusedIntoBars
   const showPointDisplayType = graphModel?.plot?.showDisplayTypeSelection
   const showFuseIntoBars = graphModel?.plot?.showFusePointsIntoBars
+  const showBreakdownTypes = graphModel?.plot?.showBreakdownTypes
   const showBarForEachPoint = graphModel?.plot?.isUnivariateNumeric &&
                             graphModel?.dataConfiguration.primaryAttributeType !== "date"
 
@@ -97,6 +101,16 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
         log: logMessageWithReplacement("toggleShowAs: %@", { type: fuseIntoBars ? "BarChart" : "DotChart" })
       }
     )
+  }
+
+  const handleBreakdownTypeChange = (breakdownType: BreakdownType) => {
+    barChart?.applyModelChange(() => barChart?.setBreakdownType(breakdownType), {
+      log: logMessageWithReplacement(
+                  "Changed %@ from %@ to %@",
+                  { option: "breakdownType", [`breakdownTypeInitial`]: barChart?.breakdownType, breakdownType }),
+      undoStringKey: "DG.Undo.graph.changeBreakdownType",
+      redoStringKey: "DG.Redo.graph.changeBreakdownType"
+    })
   }
 
   return (
@@ -171,7 +185,8 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
             </Box>
           </Stack>
         )}
-      {showFuseIntoBars &&
+      {showFuseIntoBars && (
+        <Stack>
           <Checkbox
             data-testid="bar-chart-checkbox"
             mt="6px" isChecked={pointsFusedIntoBars}
@@ -179,7 +194,34 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
           >
             {t("DG.Inspector.graphBarChart")}
           </Checkbox>
-       }
+          {showBreakdownTypes && (
+            <Stack>
+              <Box className="form-title">{t("DG.Inspector.displayShow")}</Box>
+              <RadioGroup defaultValue={barChart?.breakdownType}>
+                <Stack>
+                  {BreakdownTypes.map((type) => {
+                    return (
+                      <Radio
+                        key={type}
+                        size="md"
+                        value={type}
+                        data-testid={`${type}-radio-button`}
+                        onChange={(e) => {
+                          const value = e.target.value as BreakdownType
+                          handleBreakdownTypeChange(value)
+                        }}
+                      >
+                        {t(`DG.Inspector.graph${type.charAt(0).toUpperCase() + type.slice(1)}`)}
+                      </Radio>
+                    )
+                  })
+                  }
+                </Stack>
+              </RadioGroup>
+            </Stack>
+          )}
+        </Stack>
+       )}
       </Flex>
     </InspectorPalette>
   )

@@ -37,7 +37,7 @@ export const GraphMeasurePalette = observer(function GraphMeasurePalette({
       buttonRect={buttonRect}
     >
       <Flex className="palette-form" direction="column">
-        <Box className="form-title">Show ...</Box>
+        <Box className="form-title">{t("DG.Inspector.displayShow")}</Box>
         {graphModel && measures?.map(measureOrGroup => {
           if (isGroupItem(measureOrGroup)) {
             return (
