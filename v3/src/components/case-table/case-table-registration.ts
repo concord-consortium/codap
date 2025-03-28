@@ -5,12 +5,12 @@ import { registerTileComponentInfo } from "../../models/tiles/tile-component-inf
 import { getTileDataSet } from "../../models/shared/shared-data-utils"
 import { registerTileContentInfo } from "../../models/tiles/tile-content-info"
 import { ITileModelSnapshotIn } from "../../models/tiles/tile-model"
-import { toV2Id, toV3AttrId, toV3Id } from "../../utilities/codap-utils"
+import { toV2Id, toV3AttrId, toV3CaseId, toV3Id } from "../../utilities/codap-utils"
 import { t } from "../../utilities/translation/translate"
 import { registerV2TileExporter, V2TileExportFn } from "../../v2/codap-v2-tile-exporters"
 import { registerV2TileImporter } from "../../v2/codap-v2-tile-importers"
 import {
-  guidLink, ICodapV2BaseComponentStorage, ICodapV2TableStorage, isV2TableComponent
+  guidLink, ICodapV2BaseComponentStorage, ICodapV2TableStorage, IGuidLink, isV2TableComponent
 } from "../../v2/codap-v2-types"
 import { caseTableCardComponentHandler } from "../case-tile-common/case-tile-component-handler"
 import { CaseTileTitleBar } from "../case-tile-common/case-tile-title-bar"
@@ -57,13 +57,23 @@ registerTileComponentInfo({
 const v2TableExporter: V2TileExportFn = ({ tile }) => {
   const tableContent = isCaseTableModel(tile.content) ? tile.content : undefined
   let componentStorage: Maybe<SetOptional<ICodapV2TableStorage, keyof ICodapV2BaseComponentStorage>>
-  const dataSet = tableContent?.data
+  const { data: dataSet, metadata } = tableContent || {}
   const attributeWidths = Array.from(tableContent?.columnWidths.entries() ?? []).map(([attrId, width]) => {
     return { _links_: { attr: guidLink("DG.Attribute", toV2Id(attrId)) }, width }
   })
+  const collapsedNodes: IGuidLink<"DG.Case">[] = []
+  if (metadata) {
+    metadata.collections.forEach(collection => {
+      Array.from(collection.collapsed.keys())
+        .forEach(caseId => collapsedNodes.push(guidLink("DG.Case", toV2Id(caseId))))
+    })
+  }
   if (dataSet) {
     componentStorage = {
-      _links_: { context: guidLink("DG.DataContextRecord", toV2Id(dataSet.id)) },
+      _links_: {
+        context: guidLink("DG.DataContextRecord", toV2Id(dataSet.id)),
+        ...(collapsedNodes.length ? { collapsedNodes } : {})
+      },
       attributeWidths,
       title: tile._title
     }
@@ -86,8 +96,16 @@ registerV2TileImporter("DG.TableView", ({ v2Component, v2Document, sharedModelMa
     type: kCaseTableTileType,
     columnWidths: {}
   }
-  const contextId = _links_.context.id
-  const { data, metadata } = v2Document.getDataAndMetadata(contextId)
+  const { collapsedNodes = [], context } = _links_
+  const { data, metadata } = v2Document.getDataAndMetadata(context.id)
+  const collapsedCases = Array.isArray(collapsedNodes) ? collapsedNodes : [collapsedNodes]
+
+  collapsedCases.forEach(({ id }) => {
+    const caseId = toV3CaseId(id)
+    if (caseId) {
+      metadata?.setIsCollapsed(caseId, true)
+    }
+  })
 
   // stash the table's column widths in the content
   attributeWidths?.forEach(entry => {

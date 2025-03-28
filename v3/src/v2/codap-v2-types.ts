@@ -111,9 +111,6 @@ export interface ICodapV2TableStorage extends ICodapV2BaseComponentStorage {
   // a context
   _links_?: {
     context: IGuidLink<"DG.DataContextRecord">
-    // TODO_V2_IMPORT_CARRY_OVER collapsedNodes is not imported
-    // it appears 1,518 times in cfm-shared
-    // none of those times are empty arrays
     collapsedNodes?: IGuidLink<"DG.Case"> | IGuidLink<"DG.Case">[]
   }
   attributeWidths?: Array<{
