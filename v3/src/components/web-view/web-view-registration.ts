@@ -193,7 +193,7 @@ function importImageComponentView(args: V2TileImportArgs) {
   // create webView model
   // Note: a renamed WebView has the componentStorage.name set to the URL,
   // only the componentStorage.title is updated
-  return addWebViewSnapshot(args, name, { url:  processWebViewUrl(URL) })
+  return addWebViewSnapshot(args, name, { url: URL.includes("data:image") ? URL : processWebViewUrl(URL) })
 }
 registerV2TileImporter("DG.ImageComponentView", importImageComponentView)
 
@@ -205,7 +205,11 @@ const webViewComponentHandler: DIComponentHandler = {
 
   get(content) {
     if (isWebViewModel(content)) {
-      const type = content.isPlugin ? kV2GameType : content.isGuide ? kV2GuideViewType : kV2WebViewType
+      const type = content.isPlugin
+                    ? kV2GameType
+                    : content.isGuide
+                      ? kV2GuideViewType
+                      : content.isImage ? kV2ImageComponentViewType : kV2WebViewType
       return { type, URL: content.url } as V2Game | V2Guide | V2WebView
     }
   },
