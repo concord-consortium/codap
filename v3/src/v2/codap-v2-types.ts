@@ -791,6 +791,13 @@ export interface ICodapV2GuideViewComponent extends ICodapV2BaseComponent {
 export const isV2GuideViewComponent = (component: ICodapV2BaseComponent): component is ICodapV2GuideViewComponent =>
               component.type === "DG.GuideView"
 
+export interface ICodapV2ImageViewComponent extends ICodapV2BaseComponent {
+  type: "DG.ImageComponentView"
+  componentStorage: ICodapV2WebViewStorage
+}
+export const isV2ImageViewComponent = (component: ICodapV2BaseComponent): component is ICodapV2ImageViewComponent =>
+              component.type === "DG.ImageComponentView"
+
 export interface ICodapV2GraphComponent extends ICodapV2BaseComponent {
   type: "DG.GraphView"
   componentStorage: ICodapV2GraphStorage

@@ -11,9 +11,10 @@ import { registerV2TileImporter, V2TileImportArgs } from "../../v2/codap-v2-tile
 import { registerV2TileExporter, V2ExportedComponent, V2TileExportFn } from "../../v2/codap-v2-tile-exporters"
 import {
   ICodapV2GameViewComponent, ICodapV2GuideViewComponent, ICodapV2WebViewComponent,
-  isV2GameViewComponent, isV2GuideViewComponent, isV2WebViewComponent
+  isV2GameViewComponent, isV2GuideViewComponent, isV2ImageViewComponent, isV2WebViewComponent
 } from "../../v2/codap-v2-types"
-import { kV2GameType, kV2GuideViewType, kV2WebViewType, kWebViewTileType, WebViewSubType } from "./web-view-defs"
+import { kV2GameType, kV2GuideViewType, kV2ImageComponentViewType, kV2WebViewType, kWebViewTileType,
+          WebViewSubType } from "./web-view-defs"
 import { isWebViewModel, IWebViewSnapshot, WebViewModel } from "./web-view-model"
 import { WebViewComponent } from "./web-view"
 import { WebViewInspector } from "./web-view-inspector"
@@ -101,7 +102,8 @@ function addWebViewSnapshot(args: V2TileImportArgs, name?: string, _content?: Pa
   const { title, userSetTitle } = v2Component.componentStorage || {}
   const subTypeMap: Record<string, WebViewSubType> = {
     "DG.GameView": "plugin",
-    "DG.GuideView": "guide"
+    "DG.GuideView": "guide",
+    "DG.ImageComponentView": "image"
   }
 
   const content: IWebViewSnapshot = {
@@ -179,8 +181,21 @@ function importGuideView(args: V2TileImportArgs) {
   }
   return addWebViewSnapshot(args, title, { url: processWebViewUrl(pages[pageIndex]?.url ?? ""), pageIndex, pages })
 }
-
 registerV2TileImporter("DG.GuideView", importGuideView)
+
+
+function importImageComponentView(args: V2TileImportArgs) {
+  const { v2Component } = args
+  if (!isV2ImageViewComponent(v2Component)) return
+  // parse the v2 content
+  const { componentStorage: { name, URL } } = v2Component
+
+  // create webView model
+  // Note: a renamed WebView has the componentStorage.name set to the URL,
+  // only the componentStorage.title is updated
+  return addWebViewSnapshot(args, name, { url:  processWebViewUrl(URL) })
+}
+registerV2TileImporter("DG.ImageComponentView", importImageComponentView)
 
 const webViewComponentHandler: DIComponentHandler = {
   create({ values }) {
@@ -206,4 +221,5 @@ const webViewComponentHandler: DIComponentHandler = {
 }
 registerComponentHandler(kV2GameType, webViewComponentHandler)
 registerComponentHandler(kV2GuideViewType, webViewComponentHandler)
+registerComponentHandler(kV2ImageComponentViewType, webViewComponentHandler)
 registerComponentHandler(kV2WebViewType, webViewComponentHandler)
