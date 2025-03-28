@@ -198,10 +198,10 @@ export const GraphContentModel = DataDisplayContentModel
       // At the plot level we can't install a new axis. But a plot can change in such a way that it
       // requires a new secondary axis. When our plot is patched, we pass the patch to it and allow it to
       // tell us about any required new secondary axis.
+      // Todo: Kirk will figure out how to do the right thing with disposing stuff
       addDisposer(self, onPatch(self.plot, (patch) => {
         const newSecondaryAxis = self.plot.newSecondaryAxisRequired(patch)
         if (newSecondaryAxis) {
-          console.log("installing new secondary axis")
           this.setAxis(self.secondaryPlace, newSecondaryAxis)
         }
       }))
