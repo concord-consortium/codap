@@ -126,12 +126,12 @@ class ColorMapRenderer extends (L as any).LeafletGeotiffRenderer {
 
 export async function createGeoTIFFLayerWithLeafletGeottif2(url: string) {
   try {
-    const georaster = await getGeoraster(url)
-    const colors = georaster.palette
+    // const georaster = await getGeoraster(url)
+    // const colors = georaster.palette
 
     const layer = L.leafletGeotiff(url, {
-      renderer: new ColorMapRenderer({ colors }),
-      // renderer: new ColorMapRenderer({}),
+      // renderer: new ColorMapRenderer({ colors }),
+      renderer: new ColorMapRenderer({}),
       opacity: 0.7
     })
 
