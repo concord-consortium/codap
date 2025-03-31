@@ -42,8 +42,23 @@ describe("DataInteractive AdornmentHandler", () => {
   })
 
   it("update returns an error when type provided but matching adornment not found", () => {
-    const result = handler.update?.({}, { type: "Count" })
+    const mockGraphContent = {
+      adornmentsStore: {
+        addAdornment: jest.fn((adornment: any, options: any) => null),
+        findAdornmentOfType: jest.fn(),
+      },
+      type: "Graph"
+    } as any
+
+    const mockComponent = {
+      content: mockGraphContent,
+      type: "Graph",
+    } as any
+
+    const result = handler.update?.({component: mockComponent}, { type: "Mean" })
     expect(result?.success).toBe(false)
+    const values = result?.values as any
+    expect(values.error).toBe("Adornment not found.")
   })
 
 })

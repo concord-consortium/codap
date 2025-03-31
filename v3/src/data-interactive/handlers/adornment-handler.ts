@@ -132,6 +132,11 @@ export const diAdornmentHandler: DIHandler = {
     if (isTypeSpecified(values) && values.type) {
       const { type } = values as any
       const resolvedType = resolveAdornmentType(type) ?? type
+      const existingCountAdornment = graphContent.adornmentsStore.findAdornmentOfType<IAdornmentModel>(resolvedType)
+      if (!existingCountAdornment) {
+        return errorResult(t("V3.DI.Error.adornmentNotFound"))
+      }
+
       const handler = diAdornmentHandlers.get(resolvedType)
       if (handler?.update) {
         return handler.update({graphContent, values})
