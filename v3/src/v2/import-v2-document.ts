@@ -55,7 +55,7 @@ export function importV2Document(v2Document: CodapV2Document) {
           const _zIndex = zIndex != null ? { zIndex } : {}
           if (zIndex != null && zIndex > maxZIndex) maxZIndex = zIndex
           const _layout: IFreeTileInRowOptions = {
-            x: x ?? left, y: y ?? top, ..._width, ..._height, ..._zIndex, isHidden, isMinimized
+            x: left ?? x, y: top ?? y, ..._width, ..._height, ..._zIndex, isHidden, isMinimized
           }
           const layout = transform?.(_layout) ?? _layout
           newTile = content?.insertTileSnapshotInRow(tile, row, layout)
