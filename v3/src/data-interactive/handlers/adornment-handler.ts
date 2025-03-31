@@ -34,10 +34,10 @@ export const registerAdornmentHandler = (type: string, handler: DIAdornmentHandl
   if (trimType !== type) diAdornmentTypeAliases.set(trimType, type)
 }
 
-export const resolveAdornmentType = (typeOrAlias: unknown) => {
+export const resolveAdornmentType = (typeOrAlias: unknown): string => {
   return typeof typeOrAlias === "string"
           ? diAdornmentTypeAliases.get(typeOrAlias) ?? typeOrAlias
-          : typeOrAlias
+          : String(typeOrAlias)
 }
 
 export const diAdornmentHandler: DIHandler = {
@@ -52,7 +52,9 @@ export const diAdornmentHandler: DIHandler = {
     const graphContent = component.content
     if (isTypeSpecified(values) && values.type) {
       const { type } = values
-      const handler = diAdornmentHandlers.get(type)
+      const resolvedType = resolveAdornmentType(type) ?? type
+      const handler = diAdornmentHandlers.get(resolvedType)
+
       if (handler?.create) {
         return handler.create({graphContent, values})
       }
@@ -71,20 +73,21 @@ export const diAdornmentHandler: DIHandler = {
     }
   
     const { type } = values
+    const resolvedType = resolveAdornmentType(type) ?? type
     const graphContent = component.content
     const adornmentsStore = graphContent.adornmentsStore
-    const adornment = adornmentsStore.findAdornmentOfType<IAdornmentModel>(type)
+    const adornment = adornmentsStore.findAdornmentOfType<IAdornmentModel>(resolvedType)
   
     if (!adornment) return adornmentNotFoundResult
   
-    const handler = diAdornmentHandlers.get(type)
+    const handler = diAdornmentHandlers.get(resolvedType)
   
     if (handler?.delete) {
       return handler.delete({ graphContent })
     }
   
     // If the adornment doesn't have a delete handler, we just hide the adornment.
-    adornmentsStore.hideAdornment(type)
+    adornmentsStore.hideAdornment(resolvedType)
     return { success: true }
   },
 
@@ -128,7 +131,8 @@ export const diAdornmentHandler: DIHandler = {
     const graphContent = component.content
     if (isTypeSpecified(values) && values.type) {
       const { type } = values as any
-      const handler = diAdornmentHandlers.get(type)
+      const resolvedType = resolveAdornmentType(type) ?? type
+      const handler = diAdornmentHandlers.get(resolvedType)
       if (handler?.update) {
         return handler.update({graphContent, values})
       } else {

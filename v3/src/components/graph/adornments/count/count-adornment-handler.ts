@@ -1,8 +1,10 @@
 import { DIAdornmentValues, DICountAdornmentValues, isAdornmentValues }
   from "../../../../data-interactive/data-interactive-adornment-types"
 import { DIAdornmentHandler } from "../../../../data-interactive/handlers/adornment-handler"
-import { adornmentNotFoundResult } from "../../../../data-interactive/handlers/di-results"
+import { adornmentNotFoundResult, errorResult } from "../../../../data-interactive/handlers/di-results"
+import { t } from "../../../../utilities/translation/translate"
 import { IGraphContentModel } from "../../models/graph-content-model"
+import { isBinnedDotPlotModel } from "../../plots/binned-dot-plot/binned-dot-plot-model"
 import { percentString } from "../../utilities/graph-utils"
 import { IAdornmentModel } from "../adornment-models"
 import { getAdornmentContentInfo } from "../adornment-content-info"
@@ -29,11 +31,24 @@ const setAdornmentProperties = (adornment: ICountAdornmentModel, values: DIAdorn
   }
 }
 
+const isPercentSupported = (graphContent: IGraphContentModel) => {
+  const adornmentsStore = graphContent.adornmentsStore as IAdornmentsBaseStore
+  const dataConfig = graphContent.dataConfiguration
+
+  return !!dataConfig?.categoricalAttrCount || adornmentsStore.subPlotsHaveRegions ||
+         !!isBinnedDotPlotModel(graphContent.plot)
+}
+
 export const countAdornmentHandler: DIAdornmentHandler = {
   create(args) {
     const { graphContent, values } = args
     const adornmentsStore = graphContent.adornmentsStore as IAdornmentsBaseStore
     const dataConfig = graphContent.dataConfiguration
+
+    if (!isPercentSupported(graphContent) && (values as DICountAdornmentValues)?.showPercent) {
+      return errorResult(t("V3.DI.Error.countAdornmentPercentNotSupported"))
+    }
+
     const cellKeys = dataConfig?.getAllCellKeys()
     const data: AdornmentData[] = []
     const existingCountAdornment = adornmentsStore.findAdornmentOfType<ICountAdornmentModel>(kCountType)
@@ -125,6 +140,10 @@ export const countAdornmentHandler: DIAdornmentHandler = {
     const adornmentsStore = graphContent.adornmentsStore as IAdornmentsBaseStore
     const existingCountAdornment = adornmentsStore.findAdornmentOfType<ICountAdornmentModel>(kCountType)
     if (!existingCountAdornment) return adornmentNotFoundResult
+
+    if (!isPercentSupported(graphContent) && (values as DICountAdornmentValues)?.showPercent) {
+      return errorResult(t("V3.DI.Error.countAdornmentPercentNotSupported"))
+    }
 
     if (isAdornmentValues(values)) {
       setAdornmentProperties(existingCountAdornment, values)

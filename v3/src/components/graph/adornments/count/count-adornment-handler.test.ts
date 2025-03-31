@@ -1,6 +1,6 @@
 import { types } from "mobx-state-tree"
 import { countAdornmentHandler } from "./count-adornment-handler"
-import { kCountType } from "./count-adornment-types"
+import { kCountType, kPercentType } from "./count-adornment-types"
 
 jest.mock("../adornment-content-info", () => {
   const mockCountModel = types.model("CountAdornmentModel", {
@@ -59,7 +59,8 @@ describe("DataInteractive CountAdornmentHandler", () => {
       adornmentsStore: {
         addAdornment: jest.fn((adornment: any, options: any) => null),
         findAdornmentOfType: jest.fn(),
-        subPlotRegionBoundaries: jest.fn(() => [1, 2])
+        subPlotsHaveRegions: true,
+        subPlotRegionBoundaries: jest.fn(() => [1, 2, 3])
       },
       dataConfiguration: mockDataConfig
     }
@@ -81,10 +82,20 @@ describe("DataInteractive CountAdornmentHandler", () => {
     }
   })
 
-  it("get returns an error when an invalid adornment provided", () => {
-    const result = handler.get?.(mockInvalidAdornment, mockGraphContent)
+  it("create does not allow Percent to be added when plot does not support Percent", () => {
+    const createRequestValues = {
+      type: kPercentType,
+      showCount: false,
+      showPercent: true,
+      percentType: "column"
+    }
+    const mockGraphContentNoPercent = {
+      adornmentsStore: { subPlotsHaveRegions: false }
+    } as any
+    const result = handler.create!({ graphContent: mockGraphContentNoPercent, values: createRequestValues })
     expect(result?.success).toBe(false)
-    expect(result?.values.error).toBe(`Not a(n) ${kCountType} adornment.`)
+    const values = result?.values as any
+    expect(values.error).toBe("The current plot type does not support Percent.")
   })
 
   it("create returns the expected data when count adornment created", () => {
@@ -102,6 +113,12 @@ describe("DataInteractive CountAdornmentHandler", () => {
     expect(values.showCount).toBe(true)
     expect(values.showPercent).toBe(false)
     expect(values.percentType).toBe("column")
+  })
+
+  it("get returns an error when an invalid adornment provided", () => {
+    const result = handler.get?.(mockInvalidAdornment, mockGraphContent)
+    expect(result?.success).toBe(false)
+    expect(result?.values.error).toBe(`Not a(n) ${kCountType} adornment.`)
   })
 
   it("get returns the expected data when count adornment provided", () => {
