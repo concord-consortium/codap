@@ -9,7 +9,7 @@ createRegionOfInterest( x-axis%, y-axis%, width-in-x-axis%, height-in-y-axis%)
 
 or some mixed and matched version of the above.
 One question would be about graphs with multiple attributes on the same y-axis or on two different y axes.
-Perhaps the call needs to include the attributes to refer to. 
+Perhaps the call needs to include the attributes to refer to.
 
 For single univariate plot along the x-axis:
 
@@ -19,11 +19,11 @@ or if vertical distribution:
 
 createRegionOfInterest(y-axis-value, width-in-y-axis-value)
 
-or any of the above in % of axis value. (edited) 
+or any of the above in % of axis value. (edited)
 
 For numerical x and categorical y it seems we will assume a rectangle that could extend across all
 categories, but also might just be a rectangle within one of the categorical distribution plots. So in the
-case of a categorical axis, if we specify a % of a category, then should it assume a % of the width or 
+case of a categorical axis, if we specify a % of a category, then should it assume a % of the width or
 height of the graph?
 
 For DST we need a percent of the width or height of the graph not the individual category.
@@ -41,8 +41,8 @@ annotation in each vertical set of sub-plots? For example if I specified Lifespa
 Diet as the y-attribute, then when I set the x-pos and width to a lifespan value, that happens in each of
 the habitat categories.
 
-I think that could work so it gives us the flexibility to use categorical attributes for both x and y if we 
-want to use positioning by graph % width and height, and if we specify a repeated numerical attribute, then 
+I think that could work so it gives us the flexibility to use categorical attributes for both x and y if we
+want to use positioning by graph % width and height, and if we specify a repeated numerical attribute, then
 the annotation would be repeated.
 
 */
@@ -79,10 +79,12 @@ export const RegionOfInterestAdornment = observer(function RegionOfInterestAdorn
   const model = props.model as IRegionOfInterestAdornmentModel
   const dataConfig = useGraphDataConfigurationContext()
   const { xAttrId: _aAttrId, yAttrId: _yAttrId, xScale, yScale } = useAdornmentAttributes()
+
   const {
     xAttribute, yAttribute, height: _height, width: _width,
     xPosition: _xPosition, yPosition: _yPosition
   } = model
+
   const roiXAttr = dataConfig?.dataset?.getAttributeByName(xAttribute) || xAttribute
   const roiYAttr = dataConfig?.dataset?.getAttributeByName(yAttribute) || yAttribute
   const xAttrId = roiXAttr || _aAttrId
@@ -120,7 +122,7 @@ export const RegionOfInterestAdornment = observer(function RegionOfInterestAdorn
     if (!selection) return
 
     selection.select(".region-of-interest")
-      .attr("x", xPosition)
+      .attr("x", (xPosition - (width / 2)) < 0 ? 0 : (xPosition - (width / 2)))
       .attr("y", yPosition)
       .attr("width", width)
       .attr("height", height)
@@ -140,7 +142,7 @@ export const RegionOfInterestAdornment = observer(function RegionOfInterestAdorn
   //     .attr("y", model.y)
   //     .attr("width", model.width)
   //     .attr("height", model.height)
-    
+
   //   initialPlotWidthRef.current = plotWidth
   //   initialPlotHeightRef.current = plotHeight
   // }, [plotWidth, plotHeight, model, dataConfig, regionBounds, selection])
