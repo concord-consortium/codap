@@ -60,8 +60,10 @@ export const MovableValueAdornmentModel = AdornmentModel
     }
   }))
   .actions(self => ({
-    addValue(aValue?: number) {
+    addValue(aValue?: number, aKey?: string) {
       self.values.forEach((values, key) => {
+        if (aKey && key !== aKey) return
+
         const newValue = aValue == null ? self.newValue(`${key}`) : aValue
         const newValues = [...values]
         newValues.push(newValue)

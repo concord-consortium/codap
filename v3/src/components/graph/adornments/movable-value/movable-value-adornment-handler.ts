@@ -1,11 +1,14 @@
 import { DIAdornmentHandler } from "../../../../data-interactive/handlers/adornment-handler"
 import { adornmentNotFoundResult, adornmentNotSupportedByPlotTypeResult,
+  errorResult,
   invalidValuesProvidedeResult, valuesRequiredResult } from "../../../../data-interactive/handlers/di-results"
+import { t } from "../../../../utilities/translation/translate"
 import { IGraphContentModel } from "../../models/graph-content-model"
 import { getAdornmentContentInfo, isCompatibleWithPlotType } from "../adornment-content-info"
 import { IAdornmentModel, IUpdateCategoriesOptions } from "../adornment-models"
 import { IAdornmentsBaseStore } from "../store/adornments-base-store"
-import { AdornmentData, adornmentMismatchResult, cellKeyToCategories } from "../utilities/adornment-handler-utils"
+import { AdornmentData, adornmentMismatchResult, cellKeyToCategories, normalizeCellKey }
+  from "../utilities/adornment-handler-utils"
 import { IMovableValueAdornmentModel, isMovableValueAdornment } from "./movable-value-adornment-model"
 import { kMovableValueType } from "./movable-value-adornment-types"
 
@@ -41,9 +44,9 @@ export const movableValueAdornmentHandler: DIAdornmentHandler = {
     if (valuePairs) {
       try {
         const updates = new Map<string, number>(valuePairs)
-
-        updates.forEach((newValue) => {
-          adornment.addValue(newValue)
+        updates.forEach((newValue, requestCellKey) => {
+          const cellKey = normalizeCellKey(requestCellKey, graphContent.dataConfiguration)
+          adornment.addValue(newValue, cellKey)
         })
       } catch {
         return invalidValuesProvidedeResult
@@ -114,21 +117,15 @@ export const movableValueAdornmentHandler: DIAdornmentHandler = {
     try {
       const updates = new Map<string, number>(valuePairs)
   
-      updates.forEach((newValue, cellKey) => {
+      updates.forEach((newValue, requestCellKey) => {
         if (typeof newValue !== "number") return
   
-        if (cellKey === "{}") {
-          adornment.replaceValue(newValue, cellKey)
-          return
+        const cellKey = normalizeCellKey(requestCellKey, graphContent.dataConfiguration)
+        if (!cellKey) {
+          return errorResult(t("V3.DI.Error.invalidCellKey", { vars: [requestCellKey] }))
         }
-  
-        const keyObj = JSON.parse(cellKey)
-        const [attrName] = Object.keys(keyObj)
-        const attrId = graphContent.dataConfiguration?.dataset?.getAttributeByName(attrName)?.id
-        if (!attrId) return
 
-        const internalKey = JSON.stringify({ [attrId]: keyObj[attrName] })
-        adornment.replaceValue(newValue, internalKey)
+        adornment.replaceValue(newValue, cellKey)
       })
   
       return { success: true }
