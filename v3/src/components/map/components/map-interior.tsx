@@ -10,7 +10,9 @@ import {isMapPolygonLayerModel} from "../models/map-polygon-layer-model"
 import {MapPolygonLayer} from "./map-polygon-layer"
 import { DataConfigurationContext } from "../../data-display/hooks/use-data-configuration-context"
 import { useTileModelContext } from "../../../hooks/use-tile-model-context"
-import { createGeoTIFFLayer, createGeoTIFFLayer2, createImageLayer } from "../utilities/geotiff-utils"
+import {
+  createGeoTIFFLayerWithGeorasterLayerForLeaflet, createGeoTIFFLayerWithLeafletGeottif2, createImageLayer
+} from "../utilities/geotiff-utils"
 
 interface IProps {
   setPixiPointsLayer: (pixiPoints: PixiPoints, layerIndex: number) => void
@@ -42,17 +44,21 @@ export const MapInterior = observer(function MapInterior({setPixiPointsLayer}: I
     }
 
     // Add new GeoTIFF layer if possible
-    // createGeoTIFFLayer(mapModel.geotiffUrl).then(result => {
-    //   if (!result) return
-    //   const { georaster, layer } = result
-    //   if (georaster && layer && mapModel.leafletMap) {
-    //     layer.addTo(mapModel.leafletMap)
-    //     mapModel.setGeotiffLayer(layer)
-    //     mapModel.setGeoraster(georaster)
-    //   }
-    // })
+    // Only use one of the following methods
 
-    // createGeoTIFFLayer2(mapModel.geotiffUrl).then(layer => {
+    // Add the GeoTIFF using the georaster-layer-for-leaflet library
+    createGeoTIFFLayerWithGeorasterLayerForLeaflet(mapModel.geotiffUrl).then(result => {
+      if (!result) return
+      const { georaster, layer } = result
+      if (georaster && layer && mapModel.leafletMap) {
+        layer.addTo(mapModel.leafletMap)
+        mapModel.setGeotiffLayer(layer)
+        mapModel.setGeoraster(georaster)
+      }
+    })
+
+    // Add the GeoTIFF using the leaflet-geotiff-2 library
+    // createGeoTIFFLayerWithLeafletGeottif2(mapModel.geotiffUrl).then(layer => {
     //   if (!layer) return
     //   if (mapModel.leafletMap) {
     //     layer.addTo(mapModel.leafletMap)
@@ -60,11 +66,12 @@ export const MapInterior = observer(function MapInterior({setPixiPointsLayer}: I
     //   }
     // })
 
-    const imageLayer = createImageLayer(mapModel.geotiffUrl)
-    if (imageLayer && mapModel.leafletMap) {
-      imageLayer.addTo(mapModel.leafletMap)
-      mapModel.setGeotiffLayer(imageLayer)
-    }
+    // Add a PNG or JPEG image layer
+    // const imageLayer = createImageLayer(mapModel.geotiffUrl)
+    // if (imageLayer && mapModel.leafletMap) {
+    //   imageLayer.addTo(mapModel.leafletMap)
+    //   mapModel.setGeotiffLayer(imageLayer)
+    // }
   }, [mapModel.geotiffUrl, mapModel.leafletMap])
 
   /**

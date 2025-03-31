@@ -25,7 +25,7 @@ async function getGeoraster(url: string) {
  * @param url The URL of the GeoTIFF file
  * @returns A promise that resolves to a Leaflet layer or undefined if there's an error
  */
-export async function createGeoTIFFLayer(url: string) {
+export async function createGeoTIFFLayerWithGeorasterLayerForLeaflet(url: string) {
   try {
     const georaster = await getGeoraster(url)
 
@@ -67,7 +67,7 @@ class ColorMapRenderer extends (L as any).LeafletGeotiffRenderer {
   render(raster: any, _canvas: any, ctx: any, args: any) {
     const rasterImageData = ctx.createImageData(raster.width, raster.height)
 
-    // compute max band max value if not set yet
+    // This code is taken from leaflet-geotiff-rgb and is used to render in grayscale
     if (!this.options.bandMaxVal) {
       let maxVal = 0
       for (let i = 0; i < raster.data.length; i++) {
@@ -102,6 +102,7 @@ class ColorMapRenderer extends (L as any).LeafletGeotiffRenderer {
       return Math.round((val / scaleMax) * 255)
     }
 
+    // Determine colors for each pixel
     for (let i = 0, j = 0; i < rasterImageData.data.length; i += 4, j += 1) {
       if (this.colors) {
         const color = this.getColor(raster.data[0][j])
@@ -117,12 +118,13 @@ class ColorMapRenderer extends (L as any).LeafletGeotiffRenderer {
         rasterImageData.data[i + 3] = raster.data[3][j] ?? 255 // A value
       }
     }
+
     const imageData = this.parent.transform(rasterImageData, args)
     ctx.putImageData(imageData, args.xStart, args.yStart)
   }
 }
 
-export async function createGeoTIFFLayer2(url: string) {
+export async function createGeoTIFFLayerWithLeafletGeottif2(url: string) {
   try {
     const georaster = await getGeoraster(url)
     const colors = georaster.palette
@@ -139,6 +141,7 @@ export async function createGeoTIFFLayer2(url: string) {
   }
 }
 
+// Creates a layer to display a PNG or JPEG
 export function createImageLayer(url: string) {
   const latLongBounds = L.latLngBounds([[-90, -180], [90, 180]])
   return L.imageOverlay(url, latLongBounds, {
