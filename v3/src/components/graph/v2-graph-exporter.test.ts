@@ -21,22 +21,33 @@ function logGraphTitleMaybe(log: boolean, v2GraphTile: ICodapV2GraphComponent) {
   log && console.log("v2GraphTile:", v2GraphTile.componentStorage.title || v2GraphTile.componentStorage.name)
 }
 
-function transformObject(obj: any, keysToRemove: string[], keysToRound: string[]): any {
+function transformObject(obj: any, keysToRemove: string[], keysToRound: string[],
+                           keysWithOptionalBooleans: string[], keysWithOptionalNull: string[]): any {
   if (Array.isArray(obj)) {
-    return obj.map(item => transformObject(item, keysToRemove, keysToRound))
+    return obj.map(item =>
+              transformObject(item, keysToRemove, keysToRound, keysWithOptionalBooleans, keysWithOptionalNull))
   }
   if (isObject(obj)) {
     return transform<any, any>(obj, (result, value, key) => {
       // omit showMeasureLabels if false; v2 treats false/undefined interchangeably
       const isFalseShowMeasureLabels = key === "showMeasureLabels" && !value
+      // Handle optional booleans: treat false and undefined as equivalent
+      if (keysWithOptionalBooleans.includes(key) && (value === false || value === undefined)) {
+        return { ...result, [key]: false } // Normalize to `false`
+      }
+      // treat null and undefined as equivalent
+      if (keysWithOptionalNull.includes(key) && (value === null || value === undefined)) {
+        return { ...result, [key]: null } // Normalize to `null`
+      }
       // properties in `keysToRound` are rounded to two decimal places for comparison
       if (keysToRound.includes(key) && typeof value === "number") {
         result[key] = Math.round(100 * value) / 100
       }
       // properties we don't care to compare are removed before comparison
       else if (!keysToRemove.includes(key) && !isFalseShowMeasureLabels) {
-        result[key] = transformObject(value, keysToRemove, keysToRound)
+        result[key] = transformObject(value, keysToRemove, keysToRound, keysWithOptionalBooleans, keysWithOptionalNull)
       }
+
     })
   }
   return obj
@@ -75,8 +86,6 @@ describe("V2GraphImporter", () => {
 
   // to be implemented in future PRs
   const kNotImplementedProps = [
-    "plotBackgroundImage",
-    "plotBackgroundImageLockInfo",
     // computable from other properties, plus v2 writes out some unexpected values
     "totalNumberOfBins"
   ]
@@ -88,6 +97,10 @@ describe("V2GraphImporter", () => {
 
   // keys rounded to two decimal places for comparison
   const kRoundProps = ["proportionX", "proportionY"]
+  // keys that are booleans but can be undefined
+  const kOptionalBooleans = [ "enableNumberToggle", "numberToggleLastMode",]
+  // keys that are booleans but can be null
+  const kOptionalNull = ["plotBackgroundImage", "plotBackgroundImageLockInfo"]
 
   beforeEach(() => {
     mockInsertTile.mockRestore()
@@ -105,8 +118,11 @@ describe("V2GraphImporter", () => {
       })
       // tests round-trip import/export of every graph component
       const v2GraphTileOut = v2GraphExporter({ tile: v3GraphTile! })
-      const v2GraphTileStorage = transformObject(v2GraphTile.componentStorage, kIgnoreProps, kRoundProps)
-      const v2GraphTileOutStorage = transformObject(v2GraphTileOut?.componentStorage, kIgnoreProps, kRoundProps)
+      const v2GraphTileStorage =
+              transformObject(v2GraphTile.componentStorage, kIgnoreProps, kRoundProps, kOptionalBooleans, kOptionalNull)
+      const v2GraphTileOutStorage =
+              transformObject(v2GraphTileOut?.componentStorage, kIgnoreProps, kRoundProps, kOptionalBooleans,
+                                kOptionalNull)
       expect(v2GraphTileOutStorage).toEqual(v2GraphTileStorage)
     })
   })
@@ -123,8 +139,11 @@ describe("V2GraphImporter", () => {
       })
       // tests round-trip import/export of every graph component
       const v2GraphTileOut = v2GraphExporter({ tile: v3GraphTile! })
-      const v2GraphTileStorage = transformObject(v2GraphTile.componentStorage, kIgnoreProps, kRoundProps)
-      const v2GraphTileOutStorage = transformObject(v2GraphTileOut?.componentStorage, kIgnoreProps, kRoundProps)
+      const v2GraphTileStorage =
+              transformObject(v2GraphTile.componentStorage, kIgnoreProps, kRoundProps, kOptionalBooleans, kOptionalNull)
+      const v2GraphTileOutStorage =
+              transformObject(v2GraphTileOut?.componentStorage, kIgnoreProps, kRoundProps, kOptionalBooleans,
+                                kOptionalNull)
       expect(v2GraphTileOutStorage).toEqual(v2GraphTileStorage)
     })
   })
@@ -141,8 +160,11 @@ describe("V2GraphImporter", () => {
       })
       // tests round-trip import/export of every graph component
       const v2GraphTileOut = v2GraphExporter({ tile: v3GraphTile! })
-      const v2GraphTileStorage = transformObject(v2GraphTile.componentStorage, kIgnoreProps, kRoundProps)
-      const v2GraphTileOutStorage = transformObject(v2GraphTileOut?.componentStorage, kIgnoreProps, kRoundProps)
+      const v2GraphTileStorage =
+              transformObject(v2GraphTile.componentStorage, kIgnoreProps, kRoundProps, kOptionalBooleans, kOptionalNull)
+      const v2GraphTileOutStorage =
+              transformObject(v2GraphTileOut?.componentStorage, kIgnoreProps, kRoundProps, kOptionalBooleans,
+                                kOptionalNull)
       expect(v2GraphTileOutStorage).toEqual(v2GraphTileStorage)
     })
   })
@@ -159,8 +181,11 @@ describe("V2GraphImporter", () => {
       })
       // tests round-trip import/export of every graph component
       const v2GraphTileOut = v2GraphExporter({ tile: v3GraphTile! })
-      const v2GraphTileStorage = transformObject(v2GraphTile.componentStorage, kIgnoreProps, kRoundProps)
-      const v2GraphTileOutStorage = transformObject(v2GraphTileOut?.componentStorage, kIgnoreProps, kRoundProps)
+      const v2GraphTileStorage =
+              transformObject(v2GraphTile.componentStorage, kIgnoreProps, kRoundProps, kOptionalBooleans, kOptionalNull)
+      const v2GraphTileOutStorage =
+              transformObject(v2GraphTileOut?.componentStorage, kIgnoreProps, kRoundProps, kOptionalBooleans,
+                                kOptionalNull)
       expect(v2GraphTileOutStorage).toEqual(v2GraphTileStorage)
     })
   })
@@ -177,8 +202,11 @@ describe("V2GraphImporter", () => {
       })
       // tests round-trip import/export of every graph component
       const v2GraphTileOut = v2GraphExporter({ tile: v3GraphTile! })
-      const v2GraphTileStorage = transformObject(v2GraphTile.componentStorage, kIgnoreProps, kRoundProps)
-      const v2GraphTileOutStorage = transformObject(v2GraphTileOut?.componentStorage, kIgnoreProps, kRoundProps)
+      const v2GraphTileStorage =
+              transformObject(v2GraphTile.componentStorage, kIgnoreProps, kRoundProps, kOptionalBooleans, kOptionalNull)
+      const v2GraphTileOutStorage =
+              transformObject(v2GraphTileOut?.componentStorage, kIgnoreProps, kRoundProps, kOptionalBooleans,
+                                kOptionalNull)
       expect(v2GraphTileOutStorage).toEqual(v2GraphTileStorage)
     })
   })
@@ -195,8 +223,11 @@ describe("V2GraphImporter", () => {
       })
       // tests round-trip import/export of every graph component
       const v2GraphTileOut = v2GraphExporter({ tile: v3GraphTile! })
-      const v2GraphTileStorage = transformObject(v2GraphTile.componentStorage, kIgnoreProps, kRoundProps)
-      const v2GraphTileOutStorage = transformObject(v2GraphTileOut?.componentStorage, kIgnoreProps, kRoundProps)
+      const v2GraphTileStorage =
+              transformObject(v2GraphTile.componentStorage, kIgnoreProps, kRoundProps, kOptionalBooleans, kOptionalNull)
+      const v2GraphTileOutStorage =
+              transformObject(v2GraphTileOut?.componentStorage, kIgnoreProps, kRoundProps, kOptionalBooleans,
+                                kOptionalNull)
       expect(v2GraphTileOutStorage).toEqual(v2GraphTileStorage)
     })
   })
@@ -213,8 +244,11 @@ describe("V2GraphImporter", () => {
       })
       // tests round-trip import/export of every graph component
       const v2GraphTileOut = v2GraphExporter({ tile: v3GraphTile! })
-      const v2GraphTileStorage = transformObject(v2GraphTile.componentStorage, kIgnoreProps, kRoundProps)
-      const v2GraphTileOutStorage = transformObject(v2GraphTileOut?.componentStorage, kIgnoreProps, kRoundProps)
+      const v2GraphTileStorage =
+              transformObject(v2GraphTile.componentStorage, kIgnoreProps, kRoundProps, kOptionalBooleans, kOptionalNull)
+      const v2GraphTileOutStorage =
+              transformObject(v2GraphTileOut?.componentStorage, kIgnoreProps, kRoundProps, kOptionalBooleans,
+                                kOptionalNull)
       expect(v2GraphTileOutStorage).toEqual(v2GraphTileStorage)
     })
   })
@@ -231,8 +265,11 @@ describe("V2GraphImporter", () => {
       })
       // tests round-trip import/export of every graph component
       const v2GraphTileOut = v2GraphExporter({ tile: v3GraphTile! })
-      const v2GraphTileStorage = transformObject(v2GraphTile.componentStorage, kIgnoreProps, kRoundProps)
-      const v2GraphTileOutStorage = transformObject(v2GraphTileOut?.componentStorage, kIgnoreProps, kRoundProps)
+      const v2GraphTileStorage =
+              transformObject(v2GraphTile.componentStorage, kIgnoreProps, kRoundProps, kOptionalBooleans, kOptionalNull)
+      const v2GraphTileOutStorage =
+              transformObject(v2GraphTileOut?.componentStorage, kIgnoreProps, kRoundProps, kOptionalBooleans,
+                kOptionalNull)
       expect(v2GraphTileOutStorage).toEqual(v2GraphTileStorage)
     })
   })
@@ -249,8 +286,11 @@ describe("V2GraphImporter", () => {
       })
       // tests round-trip import/export of every graph component
       const v2GraphTileOut = v2GraphExporter({ tile: v3GraphTile! })
-      const v2GraphTileStorage = transformObject(v2GraphTile.componentStorage, kIgnoreProps, kRoundProps)
-      const v2GraphTileOutStorage = transformObject(v2GraphTileOut?.componentStorage, kIgnoreProps, kRoundProps)
+      const v2GraphTileStorage =
+              transformObject(v2GraphTile.componentStorage, kIgnoreProps, kRoundProps, kOptionalBooleans, kOptionalNull)
+      const v2GraphTileOutStorage =
+              transformObject(v2GraphTileOut?.componentStorage, kIgnoreProps, kRoundProps, kOptionalBooleans,
+                                kOptionalNull)
       expect(v2GraphTileOutStorage).toEqual(v2GraphTileStorage)
     })
   })
@@ -267,8 +307,11 @@ describe("V2GraphImporter", () => {
       })
       // tests round-trip import/export of every graph component
       const v2GraphTileOut = v2GraphExporter({ tile: v3GraphTile! })
-      const v2GraphTileStorage = transformObject(v2GraphTile.componentStorage, kIgnoreProps, kRoundProps)
-      const v2GraphTileOutStorage = transformObject(v2GraphTileOut?.componentStorage, kIgnoreProps, kRoundProps)
+      const v2GraphTileStorage =
+              transformObject(v2GraphTile.componentStorage, kIgnoreProps, kRoundProps, kOptionalBooleans, kOptionalNull)
+      const v2GraphTileOutStorage =
+              transformObject(v2GraphTileOut?.componentStorage, kIgnoreProps, kRoundProps, kOptionalBooleans,
+                                kOptionalNull)
       expect(v2GraphTileOutStorage).toEqual(v2GraphTileStorage)
     })
   })

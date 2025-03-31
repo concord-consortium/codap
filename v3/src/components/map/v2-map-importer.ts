@@ -36,9 +36,10 @@ export function v2MapImporter({v2Component, v2Document, insertTile}: V2TileImpor
                           : []
   v2LayerModels?.forEach((v2LayerModel, layerIndex) => {
     // Pull out stuff from _links_ and decide if it's a point layer or polygon layer
+    const combinedHiddenCases = v2LayerModel._links_.hiddenCases ?? v2LayerModel._links_.tHiddenCases ?? []
     const contextId = v2LayerModel._links_.context.id,
       _attributeDescriptions: Partial<Record<AttrRole, IAttributeDescriptionSnapshot>> = {},
-      hiddenCaseIds = v2LayerModel._links_.hiddenCases?.map(hiddenCase => hiddenCase.id) ?? [],
+      hiddenCaseIds = combinedHiddenCases?.map(hiddenCase => hiddenCase.id) ?? [],
       // legendCollectionId = v2LayerModel._links_.legendColl?.id,
       v2LegendAttribute = Array.isArray(v2LayerModel._links_.legendAttr)
         ? v2LayerModel._links_.legendAttr[0] : v2LayerModel._links_.legendAttr,

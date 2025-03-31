@@ -301,6 +301,8 @@ export const v2GraphExporter: V2TileExportFn = ({ tile }) => {
     plotBackgroundColor: graph.plotBackgroundColor === defaultBackgroundColor
                               ? null : removeAlphaFromColor(graph.plotBackgroundColor),
     plotBackgroundOpacity: getTransparency(graph.plotBackgroundColor),
+    plotBackgroundImage: graph.plotBackgroundImage,
+    plotBackgroundImageLockInfo: graph.plotBackgroundImageLockInfo,
     isTransparent: graph.isTransparent,
     enableNumberToggle: graph.showParentToggles,
     numberToggleLastMode: graph.showOnlyLastCase,
