@@ -1,6 +1,6 @@
 import { Instance, SnapshotIn, types } from "mobx-state-tree"
 import { AdornmentModel, IAdornmentModel } from "../adornment-models"
-import { kDefaultHeight, kDefaultWidth, kDefaultX, kDefaultY, kRegionOfInterestType }
+import { kDefaultX, kDefaultY, kRegionOfInterestType }
   from "./region-of-interest-adornment-types"
 
 export type RoiPositionUnit = "coordinate" | "percent" | "%"
@@ -14,8 +14,8 @@ export const RegionOfInterestAdornmentModel = AdornmentModel
   .named("RegionOfInterestAdornmentModel")
   .props({
     type: types.optional(types.literal(kRegionOfInterestType), kRegionOfInterestType),
-    height: types.optional(types.number, kDefaultHeight),
-    width: types.optional(types.number, kDefaultWidth),
+    height: types.maybe(types.number),
+    width: types.maybe(types.number),
     xAttribute: types.optional(types.string, ""),
     xPosition: types.optional(RoiPositionModel, { unit: "coordinate", value: kDefaultX }),
     yAttribute: types.optional(types.string, ""),
