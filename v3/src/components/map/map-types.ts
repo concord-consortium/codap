@@ -12,6 +12,7 @@ export const kMapUrls: Record<BaseMapKey, string> = {
 
 export const kMapPolygonLayerType = "mapPolygonLayer"
 export const kMapPointLayerType = "mapPointLayer"
+export const kMapPinLayerType = "mapPinLayer"
 
 export const kMapClass = "codap-map"
 export const kMapClassSelector = `.${kMapClass}`
@@ -46,7 +47,12 @@ export const
 
 
   kLatNames = ['latitude', 'lat', 'latitud', 'breitengrad', '緯度', 'عرض جغرافیایی'],
-  kLongNames = ['longitude', 'long', 'lng', 'lon', 'longitud', 'längengrad', '経度', 'طول جغرافیایی']
+  kLongNames = ['longitude', 'long', 'lng', 'lon', 'longitud', 'längengrad', '経度', 'طول جغرافیایی'],
+
+  kPinLatNames = ['pinlatitude', 'pinlat', 'pinlatitud', 'pinbreitengrad', 'pin緯度', 'pinعرض جغرافیایی'],
+  kPinLongNames = [
+    'pinlongitude', 'pinlong', 'pinlng', 'pinlon', 'pinlongitud', 'pinlängengrad', 'pin経度', 'pinطول جغرافیایی'
+  ]
 
 export const MapPlaces = ['map', 'legend'] as const
 export type MapPlace = typeof MapPlaces[number]
