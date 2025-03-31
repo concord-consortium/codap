@@ -1,30 +1,11 @@
 import { DIAdornmentHandler } from "../../../../../data-interactive/handlers/adornment-handler"
-import { IAdornmentModel } from "../../adornment-models"
 import { isMedianAdornment } from "./median-adornment-model"
-import { IGraphContentModel } from "../../../models/graph-content-model"
-import { AdornmentData, adornmentMismatchResult, cellKeyToCategories } from "../../utilities/adornment-handler-utils"
 import { kMedianType } from "./median-adornment-types"
+import { univariateMeasureAdornmentBaseHandler } from "../univariate-measure-adornment-base-handler"
 
-export const medianAdornmentHandler: DIAdornmentHandler = {
-  get(adornment: IAdornmentModel, graphContent: IGraphContentModel) {
-    if (!isMedianAdornment(adornment)) return adornmentMismatchResult(kMedianType)
-
-    const dataConfig = graphContent.dataConfiguration
-    const cellKeys = dataConfig?.getAllCellKeys()
-    const data: AdornmentData[] = []
-
-    for (const cellKey of cellKeys) {
-      const cellKeyString = JSON.stringify(cellKey)
-      const median = adornment.measures.get(cellKeyString)?.value ?? NaN
-      const dataItem: AdornmentData = { median }
-    
-      if (Object.keys(cellKey).length > 0) {
-        dataItem.categories = cellKeyToCategories(cellKey, dataConfig)
-      }
-    
-      data.push(dataItem)
-    }
-
-    return { data }
-  }
-}
+export const medianAdornmentHandler: DIAdornmentHandler = univariateMeasureAdornmentBaseHandler({
+  adornmentType: kMedianType,
+  getMeasureValue: (adornment, cellKeyString) => adornment.measures.get(cellKeyString)?.value ?? NaN,
+  isAdornmentOfType: isMedianAdornment,
+  measureName: "median"
+})

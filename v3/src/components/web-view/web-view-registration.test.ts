@@ -8,7 +8,9 @@ import { hasOwnProperty, safeJsonParse } from "../../utilities/js-utils"
 import { CodapV2Document } from "../../v2/codap-v2-document"
 import { exportV2Component } from "../../v2/codap-v2-tile-exporters"
 import { importV2Component } from "../../v2/codap-v2-tile-importers"
-import { ICodapV2DocumentJson, ICodapV2GameViewStorage, ICodapV2WebViewStorage } from "../../v2/codap-v2-types"
+import {
+  ICodapV2DocumentJson, ICodapV2GameViewStorage, ICodapV2GuideViewStorage, ICodapV2WebViewStorage
+} from "../../v2/codap-v2-types"
 import { kWebViewTileType } from "./web-view-defs"
 import { isWebViewModel } from "./web-view-model"
 import "./web-view-registration"
@@ -113,5 +115,168 @@ describe("WebView registration", () =>  {
     // Note: we do not convert the URL back to the relative one that is used by CODAPv2
     // this seems OK to do.
     expect(contentStorage.currentGameUrl).toBe("https://codap-resources.concord.org/plugins/sdlc/plugin/index.html")
+  })
+
+  it("imports/exports v2 guide view components with external url", () => {
+    const file = path.join(__dirname, "../../test/v2", "roller-coasters-map.codap")
+    const json = fs.readFileSync(file, "utf8")
+    const doc = safeJsonParse<ICodapV2DocumentJson>(json)!
+    const v2Document = new CodapV2Document(doc)
+
+    const codapDoc = createCodapDocument()
+    const docContent = codapDoc.content!
+    docContent.setRowCreator(() => FreeTileRow.create())
+    const sharedModelManager = getSharedModelManager(docContent)
+    const mockInsertTile = jest.fn((tileSnap: ITileModelSnapshotIn) => {
+      return docContent?.insertTileSnapshotInDefaultRow(tileSnap)
+    })
+
+    const tile = importV2Component({
+      v2Component: v2Document.components[2],
+      v2Document,
+      sharedModelManager,
+      insertTile: mockInsertTile
+    })!
+    expect(tile).toBeDefined()
+    expect(mockInsertTile).toHaveBeenCalledTimes(1)
+    const content = isWebViewModel(tile?.content) ? tile?.content : undefined
+    expect(getTileContentInfo(kWebViewTileType)!.getTitle(tile)).toBe("Roller Coasters Guide")
+    expect(content?.url).toBe("https://fi-esteem.s3.amazonaws.com/codap_documents/157coasters_getstarted_page1.html")
+    expect(content?.isGuide).toBe(true)
+
+    const row = docContent.getRowByIndex(0) as IFreeTileRow
+
+    const componentExport = exportV2Component({ tile, row, sharedModelManager })
+    expect(componentExport?.type).toBe("DG.GuideView")
+    const contentStorage = componentExport?.componentStorage as ICodapV2GuideViewStorage
+
+    expect(hasOwnProperty(contentStorage, "name")).toBe(true)
+    expect(contentStorage.name).toBe("Roller Coasters Guide")
+    expect(contentStorage.items).toBeDefined()
+    expect(contentStorage.items[0].itemTitle).toBe("Getting Started")
+    expect(contentStorage.items[0].url).toBe("https://fi-esteem.s3.amazonaws.com/codap_documents/157coasters_getstarted_page1.html")
+  })
+
+  it("imports/exports v2 guide view components with relative url", () => {
+    const file = path.join(__dirname, "../../test/v2", "mammals-relative-guide.codap")
+    const json = fs.readFileSync(file, "utf8")
+    const doc = safeJsonParse<ICodapV2DocumentJson>(json)!
+    const v2Document = new CodapV2Document(doc)
+
+    const codapDoc = createCodapDocument()
+    const docContent = codapDoc.content!
+    docContent.setRowCreator(() => FreeTileRow.create())
+    const sharedModelManager = getSharedModelManager(docContent)
+    const mockInsertTile = jest.fn((tileSnap: ITileModelSnapshotIn) => {
+      return docContent?.insertTileSnapshotInDefaultRow(tileSnap)
+    })
+
+    const tile = importV2Component({
+      v2Component: v2Document.components[1],
+      v2Document,
+      sharedModelManager,
+      insertTile: mockInsertTile
+    })!
+    expect(tile).toBeDefined()
+
+    expect(mockInsertTile).toHaveBeenCalledTimes(1)
+    const content = isWebViewModel(tile?.content) ? tile?.content : undefined
+    expect(getTileContentInfo(kWebViewTileType)!.getTitle(tile)).toBe("Mammals Sample Guide")
+    expect(content?.url).toBe("https://codap-resources.concord.org/example-documents/guides/Mammals/mammals_getstarted.html")
+    expect(content?.isGuide).toBe(true)
+
+    const row = docContent.getRowByIndex(0) as IFreeTileRow
+    const componentExport = exportV2Component({ tile, row, sharedModelManager })
+    expect(componentExport?.type).toBe("DG.GuideView")
+    const contentStorage = componentExport?.componentStorage as ICodapV2GuideViewStorage
+
+    expect(hasOwnProperty(contentStorage, "name")).toBe(true)
+    expect(contentStorage.name).toBe("Mammals Sample Guide")
+    expect(contentStorage.items).toBeDefined()
+    expect(contentStorage.items[0].itemTitle).toBe("Get Started")
+    expect(contentStorage.items[0].url).toBe("https://codap-resources.concord.org/example-documents/guides/Mammals/mammals_getstarted.html")
+  })
+
+  it("imports/exports v2 guide view components of legacy documents", () => {
+    const file = path.join(__dirname, "../../test/v2", "ramp-game-multi-guide.codap")
+    const json = fs.readFileSync(file, "utf8")
+    const doc = safeJsonParse<ICodapV2DocumentJson>(json)!
+    const v2Document = new CodapV2Document(doc)
+
+    const codapDoc = createCodapDocument()
+    const docContent = codapDoc.content!
+    docContent.setRowCreator(() => FreeTileRow.create())
+    const sharedModelManager = getSharedModelManager(docContent)
+    const mockInsertTile = jest.fn((tileSnap: ITileModelSnapshotIn) => {
+      return docContent?.insertTileSnapshotInDefaultRow(tileSnap)
+    })
+
+    const tile = importV2Component({
+      v2Component: v2Document.components[3],
+      v2Document,
+      sharedModelManager,
+      insertTile: mockInsertTile
+    })!
+
+    expect(tile).toBeDefined()
+
+    expect(mockInsertTile).toHaveBeenCalledTimes(1)
+    const content = isWebViewModel(tile?.content) ? tile?.content : undefined
+    expect(getTileContentInfo(kWebViewTileType)!.getTitle(tile)).toBe("Ramp Game")
+    expect(content?.url).toBe("https://inquiryspace-resources.concord.org/guides/how-to-guide/1.html")
+    expect(content?.isGuide).toBe(true)
+
+    const row = docContent.getRowByIndex(0) as IFreeTileRow
+    const componentExport = exportV2Component({ tile, row, sharedModelManager })
+    expect(componentExport?.type).toBe("DG.GuideView")
+    const contentStorage = componentExport?.componentStorage as ICodapV2GuideViewStorage
+
+    expect(hasOwnProperty(contentStorage, "name")).toBe(true)
+    expect(contentStorage.name).toBe("Ramp Game")
+    expect(contentStorage.items).toBeDefined()
+    expect(contentStorage.items[0].itemTitle).toBe("- How-to Guide: new vocabulary")
+    expect(contentStorage.items[0].url).toBe("https://inquiryspace-resources.concord.org/guides/how-to-guide/1.html")
+  })
+
+  it("imports/exports v2 guide view component with multi-page guide", () => {
+    const file = path.join(__dirname, "../../test/v2", "ramp-game-multi-guide.codap")
+    const json = fs.readFileSync(file, "utf8")
+    const doc = safeJsonParse<ICodapV2DocumentJson>(json)!
+    const v2Document = new CodapV2Document(doc)
+
+    const codapDoc = createCodapDocument()
+    const docContent = codapDoc.content!
+    docContent.setRowCreator(() => FreeTileRow.create())
+    const sharedModelManager = getSharedModelManager(docContent)
+    const mockInsertTile = jest.fn((tileSnap: ITileModelSnapshotIn) => {
+      return docContent?.insertTileSnapshotInDefaultRow(tileSnap)
+    })
+
+    const tile = importV2Component({
+      v2Component: v2Document.components[3],
+      v2Document,
+      sharedModelManager,
+      insertTile: mockInsertTile
+    })!
+
+    expect(tile).toBeDefined()
+
+    expect(mockInsertTile).toHaveBeenCalledTimes(1)
+    const content = isWebViewModel(tile?.content) ? tile?.content : undefined
+    expect(getTileContentInfo(kWebViewTileType)!.getTitle(tile)).toBe("Ramp Game")
+    expect(content?.url).toBe("https://inquiryspace-resources.concord.org/guides/how-to-guide/1.html")
+    expect(content?.isGuide).toBe(true)
+
+    const row = docContent.getRowByIndex(0) as IFreeTileRow
+    const componentExport = exportV2Component({ tile, row, sharedModelManager })
+    expect(componentExport?.type).toBe("DG.GuideView")
+    const contentStorage = componentExport?.componentStorage as ICodapV2GuideViewStorage
+
+    expect(hasOwnProperty(contentStorage, "name")).toBe(true)
+    expect(contentStorage.name).toBe("Ramp Game")
+    expect(contentStorage.items).toBeDefined()
+    expect(contentStorage.items).toHaveLength(9)
+    expect(contentStorage.items[8].itemTitle).toBe("How do I enter formulas?")
+    expect(contentStorage.items[8].url).toBe("https://inquiryspace-resources.concord.org/guides/how-to-guide/9.html")
   })
 })

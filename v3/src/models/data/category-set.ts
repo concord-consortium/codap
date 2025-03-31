@@ -1,14 +1,17 @@
+import { uniq } from "lodash"
 import { observable, runInAction } from "mobx"
 import {
   addDisposer, getEnv, hasEnv, IAnyStateTreeNode, IDisposer, Instance, ISerializedActionCall, isValidReference,
-  resolveIdentifier, types
+  resolveIdentifier, SnapshotIn, types
 } from "mobx-state-tree"
 import { kellyColors } from "../../utilities/color-utils"
+import { compareValues } from "../../utilities/data-utils"
 import { onAnyAction } from "../../utilities/mst-utils"
+import { gLocale } from "../../utilities/translation/locale"
 import { Attribute, IAttribute } from "./attribute"
 import { IDataSet } from "./data-set"
 
-interface ICategoryMove {
+export interface ICategoryMove {
   value: string     // category value
   fromIndex: number // original index of category
   toIndex: number   // new index of category
@@ -71,7 +74,7 @@ export const CategorySet = types.model("CategorySet", {
   // map from category value to index
   const _indexMap = new Map<string, number>()
   const observableValues = observable.array<string>()
-  let _values = [] as string[]
+  let _values: string[] = []
   const _isValid = observable.box(false)
 
   function rebuildIndexMap() {
@@ -96,17 +99,10 @@ export const CategorySet = types.model("CategorySet", {
 
   function refresh() {
     if (!_isValid.get()) {
-      _indexMap.clear()
-      _values = []
-
-      // build default category set order (order of occurrence)
-      // could default to alphameric sort order if desired instead
-      self.attribute.strValues.forEach(value => {
-        if (value !== '' && _indexMap.get(value) == null) {
-          _indexMap.set(value, _values.length)
-          _values.push(value)
-        }
-      })
+      // build default category set order (sorted alphanumerically)
+      _values = uniq(self.attribute.strValues.filter(value => value != null && value !== ""))
+      _values.sort((a, b) => compareValues(a, b, gLocale.compareStrings))
+      rebuildIndexMap()
 
       // apply category moves
       self.moves.forEach(move => {
@@ -275,8 +271,10 @@ export const CategorySet = types.model("CategorySet", {
     self.invalidate()
   },
   setColorForCategory(value: string, color: string) {
-    if (self.index(value) != null) {
+    if (color) {
       self.colors.set(value, color)
+    } else {
+      self.colors.delete(value)
     }
   },
   storeCurrentColorForCategory(value: string) {
@@ -294,3 +292,4 @@ export const CategorySet = types.model("CategorySet", {
   }
 }))
 export interface ICategorySet extends Instance<typeof CategorySet> {}
+export interface ICategorySetSnapshot extends SnapshotIn<typeof CategorySet> {}

@@ -1,5 +1,6 @@
 import { RequireAtLeastOne } from "type-fest"
 import { LoggableValue } from "../lib/log-message"
+import { IAdornmentModel } from "../components/graph/adornments/adornment-models"
 import { IAttribute } from "../models/data/attribute"
 import { ICollectionModel } from "../models/data/collection"
 import { IDataSet } from "../models/data/data-set"
@@ -8,11 +9,11 @@ import { IGlobalValue } from "../models/global/global-value"
 import { ITileModel } from "../models/tiles/tile-model"
 import { V2SpecificComponent } from "./data-interactive-component-types"
 import {
-  DIAllCases, DIAttribute, DIAttributeLocationValues, DICase, DICreateCollection,
-  DIDataContext, DIDeleteCollectionResult, DIGetCaseResult, DIItemValues, DINewCase,
-  DINotifyAttribute, DINotifyDataContext, DIResultAttributes, DIUpdateCase, DIUpdateItemResult
+  DIAllCases, DIAttribute, DIAttributeLocationValues, DICase, DICreateAdornment, DICreateCollection,
+  DIDataContext, DIDeleteAdornment, DIDeleteCollectionResult, DIGetCaseResult, DIItemValues, DINewCase,
+  DINotifyAttribute, DINotifyDataContext, DIResultAttributes, DIUpdateAdornment, DIUpdateCase, DIUpdateItemResult
 } from "./data-interactive-data-set-types"
-import { IAdornmentModel } from "../components/graph/adornments/adornment-models"
+import { DIAdornmentValues } from "./data-interactive-adornment-types"
 
 export type DIComponent = ITileModel
 export interface DIComponentInfo {
@@ -97,7 +98,7 @@ export interface DIResources {
 // types for values accepted as inputs by the API
 export type DISingleValues = DIAttribute | DINotifyAttribute | DIAttributeLocationValues | DICase | DIDataContext |
   DINotifyDataContext | DIGlobal | DIInteractiveFrame | DIItemValues | DICreateCollection | DINewCase | DIUpdateCase |
-  DINotification | DIItemSearchNotify | DILogMessage | DIUrl | V2SpecificComponent
+  DINotification | DIItemSearchNotify | DILogMessage | DIUrl | V2SpecificComponent | DIAdornmentValues
 export type DIValues = DISingleValues | DISingleValues[] | number | string[]
 
 // types returned as outputs by the API
@@ -105,7 +106,8 @@ export type DIResultSingleValues = DICase | DIComponentInfo |  DIDataDisplay | D
   | DIInteractiveFrame
 
 export type DIResultValues = DIResultSingleValues | DIResultSingleValues[] |
-  DIAllCases | DIDeleteCollectionResult | DIUpdateItemResult | DIResultAttributes | number | number[]
+  DIAllCases | DIDeleteCollectionResult | DIUpdateItemResult | DIResultAttributes | number | number[] |
+  DICreateAdornment | DIDeleteAdornment | DIUpdateAdornment | number | number[]
 
 export interface DIMetadata {
   dirtyDocument?: boolean

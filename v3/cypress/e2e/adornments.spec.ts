@@ -4,6 +4,8 @@ import { AxisElements as ae } from "../support/elements/axis-elements"
 import { ToolbarElements as toolbar } from "../support/elements/toolbar-elements"
 import { FormulaHelper as fh } from "../support/helpers/formula-helper"
 
+const expectedPercents = [0, 100, 0, 37, 33, 29, 0, 100, 0]
+
 context("Graph adornments", () => {
   beforeEach(function () {
     const queryParams = "?sample=mammals&dashboard&mouseSensor"
@@ -91,45 +93,59 @@ context("Graph adornments", () => {
     toolbar.getRedoTool().click()
     cy.get("[data-testid=adornment-wrapper]").should("have.class", "hidden")
   })
-  // TODO: Reinstate this skipped test. Even though it passes locally, it fails in CI with an error saying
-  // the element with data-testid of `graph-adornments-grid__cell` cannot be found.
-  it.skip("adds a percent to graph when Percent checkbox is checked", () => {
+  it("should add a percent to graph when Percent checkbox is checked with undo/redo", () => {
     c.selectTile("graph", 0)
     cy.dragAttributeToTarget("table", "Diet", "bottom")
     cy.dragAttributeToTarget("table", "Habitat", "left")
+
     graph.getDisplayValuesButton().click()
     graph.getInspectorPalette().should("be.visible")
-    graph.getInspectorPalette().find("[data-testid=adornment-checkbox-count-percent]").should("be.visible").click()
-    cy.wait(250)
-    cy.get("[data-testid=graph-adornments-grid]").should("exist")
-    cy.get("[data-testid=graph-adornments-grid]")
-      .find("[data-testid=graph-adornments-grid__cell]").should("have.length", 9)
-    cy.get("[data-testid=adornment-wrapper]").should("have.length", 9)
-    cy.get("[data-testid=adornment-wrapper]").should("have.class", "visible")
-    cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid^=graph-count]").should("exist")
-    cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid^=graph-count]").first().should("have.text", "0%")
-    cy.wait(250)
-    graph.getInspectorPalette().find("[data-testid=adornment-checkbox-count-percent]").click()
-    cy.wait(250)
-    cy.get("[data-testid=adornment-wrapper]").should("have.class", "hidden")
+    graph.getInspectorPalette()
+      .find("[data-testid=adornment-checkbox-count-percent]")
+      .should("be.visible")
+      .click()
 
-    // add tests for undo and redo for percent checkbox
+    // Wait for adornments to render
+    cy.get("[data-testid=graph-adornments-grid]").should("exist")
+    cy.get("[data-testid=adornment-wrapper]").should("have.length", 9)
+    cy.get("[data-testid=adornment-wrapper]").each(($el) => {
+      cy.wrap($el).should("have.class", "visible")
+    })
+
+    // Verify that at least one percent value is shown
+    cy.get("[data-testid^=graph-count]").should("have.length.at.least", 1)
+    cy.get("[data-testid^=graph-count]").first().should("contain.text", "%")
+
+    // Verify the approximate values of the percentages
+    cy.get("[data-testid^=graph-count]").should("have.length", expectedPercents.length)
+    .each(($el, index) => {
+      const expected = expectedPercents[index]
+      cy.wrap($el).invoke("text").then(text => {
+        const actual = parseFloat(text.replace("%", ""))
+        expect(actual).to.be.closeTo(expected, 1)  // Tolerance of 1 is safe due to CODAP-359
+      })
+    })
+
+    // Hide the percent values
+    graph.getInspectorPalette()
+      .find("[data-testid=adornment-checkbox-count-percent]")
+      .click()
+    cy.get("[data-testid=adornment-wrapper]").each(($el) => {
+      cy.wrap($el).should("have.class", "hidden")
+    })
+
+    // Undo: percent should return
     toolbar.getUndoTool().click()
-    cy.wait(250)
+    cy.get("[data-testid=adornment-wrapper]").each(($el) => {
+      cy.wrap($el).should("have.class", "visible")
+    })
+    cy.get("[data-testid^=graph-count]").first().should("contain.text", "%")
 
-    // The percent should be visible again after an undo
-    cy.get("[data-testid=graph-adornments-grid]").should("exist")
-    cy.get("[data-testid=graph-adornments-grid]")
-      .find("[data-testid=graph-adornments-grid__cell]").should("have.length", 9)
-    cy.get("[data-testid=adornment-wrapper]").should("have.length", 9)
-    cy.get("[data-testid=adornment-wrapper]").should("have.class", "visible")
-    cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid^=graph-count]").should("exist")
-    cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid^=graph-count]").first().should("have.text", "0%")
-
-    // The percent should be hidden after a redo
+    // Redo: percent should be hidden again
     toolbar.getRedoTool().click()
-    cy.wait(250)
-    cy.get("[data-testid=adornment-wrapper]").should("have.class", "hidden")
+    cy.get("[data-testid=adornment-wrapper]").each(($el) => {
+      cy.wrap($el).should("have.class", "hidden")
+    })
   })
   it("adds mean adornment to graph when Mean checkbox is checked", () => {
     c.selectTile("graph", 0)

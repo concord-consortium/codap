@@ -1,8 +1,9 @@
-import { kRootPluginUrl } from "../../constants"
+import { kRootGuideUrl, kRootPluginUrl } from "../../constants"
 
 export const kRelativePluginRoot = "../../../../extn/plugins"
+export const kRelativeGuideRoot = "../../../../extn/example-documents/guides"
 
-export function processPluginUrl(url: string) {
+export function processWebViewUrl(url: string) {
   let updatedUrl = url
 
   // Some plugins relied on index.html being the default file loaded when pointing to a directory.
@@ -14,6 +15,12 @@ export function processPluginUrl(url: string) {
   // These references need to be changed to point to the S3 bucket we now use to host plugins.
   if (updatedUrl.startsWith(kRelativePluginRoot)) {
     updatedUrl = `${kRootPluginUrl}${updatedUrl.slice(kRelativePluginRoot.length)}`
+  }
+
+  // Some example document guides were packaged with CODAP v2, then referenced relatively.
+  // These references need to be changed to point to the S3 bucket we now use to host guides.
+  if (updatedUrl.startsWith(kRelativeGuideRoot)) {
+    updatedUrl = `${kRootGuideUrl}${updatedUrl.slice(kRelativeGuideRoot.length)}`
   }
 
   // Some plugins were referenced with "http://", but this is no longer secure enough in the world of https.

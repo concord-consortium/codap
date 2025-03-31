@@ -1,5 +1,38 @@
+import { types } from "mobx-state-tree"
 import { lsrlAdornmentHandler } from "./lsrl-adornment-handler"
 import { kLSRLType } from "./lsrl-adornment-types"
+
+jest.mock("../adornment-content-info", () => {
+  const mockLsrlModel = types.model("LSRLAdornmentModel", {
+    id: types.optional(types.string, "ADRN123"),
+    showConfidenceBands: types.optional(types.boolean, false),
+    type: types.optional(types.string, "LSRL"),
+    isVisible: types.optional(types.boolean, false),
+  }).actions(self => ({
+    setShowConfidenceBands(show: boolean) {
+      self.showConfidenceBands = show
+    },
+    setVisibility(isVisible: boolean) {
+      self.isVisible = isVisible
+    }
+  }))
+
+  const mockContentInfo = {
+    modelClass: mockLsrlModel,
+    plots: ["scatterPlot"],
+    prefix: "lsrl",
+    type: "LSRL",
+  }
+
+  return {
+    ...jest.requireActual("../adornment-content-info"),
+    getAdornmentContentInfo: jest.fn().mockReturnValue(mockContentInfo),
+    isCompatibleWithPlotType: jest.fn().mockImplementation((adornmentType: string, plotType: string) => {
+      const info = mockContentInfo
+      return info.plots.includes(plotType)
+    })
+  }
+})
 
 describe("DataInteractive lsrlAdornmentHandler", () => {
   const handler = lsrlAdornmentHandler
@@ -20,7 +53,12 @@ describe("DataInteractive lsrlAdornmentHandler", () => {
       subPlotCases: jest.fn(() => [{ id: "case1" }, { id: "case2" }])
     }
     mockGraphContent = {
-      dataConfiguration: mockDataConfig
+      adornmentsStore: {
+        addAdornment: jest.fn((adornment: any, options: any) => null),
+        findAdornmentOfType: jest.fn()
+      },
+      dataConfiguration: mockDataConfig,
+      plotType: "scatterPlot"
     }
     
     mockLSRLAdornment = {
@@ -35,6 +73,30 @@ describe("DataInteractive lsrlAdornmentHandler", () => {
       id: "ADRN456",
       type: "invalid"
     }
+  })
+
+  it("create returns error when plot type is not compatible", () => {
+    mockGraphContent.plotType = "dotPlot"
+    const createRequestValues = {
+      type: kLSRLType,
+    }
+    const result = handler.create!({ graphContent: mockGraphContent, values: createRequestValues })
+    expect(result?.success).toBe(false)
+    const values = result?.values as { error: string }
+    expect(values.error).toBe("Adornment not supported by plot type.")
+  })
+
+  it("create returns the expected data when LSRL adornment created", () => {
+    const createRequestValues = {
+      type: kLSRLType,
+      showConfidenceBands: true
+    }
+    const result = handler.create!({ graphContent: mockGraphContent, values: createRequestValues })
+    expect(result?.success).toBe(true)
+    expect(result?.values).toBeDefined()
+    const values = result?.values as any
+    expect(values.type).toBe(kLSRLType)
+    expect(values.showConfidenceBands).toBe(true)
   })
 
   it("get returns an error when an invalid adornment provided", () => {
@@ -52,5 +114,22 @@ describe("DataInteractive lsrlAdornmentHandler", () => {
     })
     expect(result?.showConfidenceBands).toBe(true)
     expect(mockDataConfig.getAllCellKeys).toHaveBeenCalled()
+  })
+
+  it("update returns an error when LSRL adornment not found", () => {
+    mockGraphContent.adornmentsStore.findAdornmentOfType.mockReturnValue(null)
+    const result = handler.update?.({ graphContent: mockGraphContent })
+    expect(result?.success).toBe(false)
+    const values = result?.values as any
+    expect(values.error).toBe("Adornment not found.")
+  })
+
+  it("update successfully updates count adornment properties", () => {
+    mockGraphContent.adornmentsStore.findAdornmentOfType.mockReturnValue(mockLSRLAdornment)
+    const updateValues = {
+      showConfidenceBands: true
+    }
+    const result = handler.update?.({ graphContent: mockGraphContent, values: updateValues })
+    expect(result?.success).toBe(true)
   })
 })

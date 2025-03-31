@@ -1,6 +1,7 @@
 import { SetRequired } from "type-fest"
-import { V2Game, V2WebView } from "../../data-interactive/data-interactive-component-types"
+import { V2Game, V2Guide, V2WebView } from "../../data-interactive/data-interactive-component-types"
 import { DIComponentHandler, registerComponentHandler } from "../../data-interactive/handlers/component-handler"
+import { IFreeTileLayout } from "../../models/document/free-tile-row"
 import { registerTileComponentInfo } from "../../models/tiles/tile-component-info"
 import { registerTileContentInfo } from "../../models/tiles/tile-content-info"
 import { ITileModelSnapshotIn } from "../../models/tiles/tile-model"
@@ -9,14 +10,15 @@ import { t } from "../../utilities/translation/translate"
 import { registerV2TileImporter, V2TileImportArgs } from "../../v2/codap-v2-tile-importers"
 import { registerV2TileExporter, V2ExportedComponent, V2TileExportFn } from "../../v2/codap-v2-tile-exporters"
 import {
-  isV2WebViewComponent, isV2GameViewComponent, ICodapV2WebViewComponent, ICodapV2GameViewComponent
+  ICodapV2GameViewComponent, ICodapV2GuideViewComponent, ICodapV2WebViewComponent,
+  isV2GameViewComponent, isV2GuideViewComponent, isV2WebViewComponent
 } from "../../v2/codap-v2-types"
-import { kV2GameType, kV2WebViewType, kWebViewTileType, WebViewSubType } from "./web-view-defs"
+import { kV2GameType, kV2GuideViewType, kV2WebViewType, kWebViewTileType, WebViewSubType } from "./web-view-defs"
 import { isWebViewModel, IWebViewSnapshot, WebViewModel } from "./web-view-model"
 import { WebViewComponent } from "./web-view"
 import { WebViewInspector } from "./web-view-inspector"
 import { WebViewTitleBar } from "./web-view-title-bar"
-import { processPluginUrl } from "./web-view-utils"
+import { processWebViewUrl } from "./web-view-utils"
 
 export const kWebViewIdPrefix = "WEBV"
 
@@ -45,7 +47,7 @@ registerTileComponentInfo({
   renderWhenHidden: true
 })
 
-const exportFn: V2TileExportFn = ({ tile }) => {
+const exportFn: V2TileExportFn = ({ tile, row }) => {
   // This really should be a WebView Model. We shouldn't be called unless
   // the tile type is kWebViewTileType which is what isWebViewModel is using.
   const webViewContent = isWebViewModel(tile.content) ? tile.content : undefined
@@ -61,6 +63,21 @@ const exportFn: V2TileExportFn = ({ tile }) => {
       }
     }
     return v2GameView
+  } else if (webViewContent?.isGuide) {
+    const { pageIndex, pages } = webViewContent
+    const tileLayout = row?.getTileLayout(tile.id) as Maybe<IFreeTileLayout>
+    const v2GuideView: V2ExportedComponent<ICodapV2GuideViewComponent> = {
+      type: "DG.GuideView",
+      componentStorage: {
+        items: pages.map((p) => ({
+          itemTitle: p.title ?? null,
+          url: p.url ?? null
+        })),
+        currentItemIndex: pages.length > 0 ? pageIndex : null,
+        isVisible: tileLayout ? !tileLayout.isHidden : true
+      }
+    }
+    return v2GuideView
   } else {
     const v2WebView: V2ExportedComponent<ICodapV2WebViewComponent> = {
       type: "DG.WebView",
@@ -78,7 +95,7 @@ exportFn.options = ({ tile }) => {
 }
 registerV2TileExporter(kWebViewTileType, exportFn)
 
-function addWebViewSnapshot(args: V2TileImportArgs, name?: string, url?: string, state?: unknown) {
+function addWebViewSnapshot(args: V2TileImportArgs, name?: string, _content?: Partial<IWebViewSnapshot>) {
   const { v2Component, insertTile } = args
   const { guid } = v2Component
   const { title, userSetTitle } = v2Component.componentStorage || {}
@@ -90,8 +107,7 @@ function addWebViewSnapshot(args: V2TileImportArgs, name?: string, url?: string,
   const content: IWebViewSnapshot = {
     type: kWebViewTileType,
     subType: subTypeMap[v2Component.type],
-    state,
-    url
+    ..._content
   }
   const webViewTileSnap: ITileModelSnapshotIn = {
     id: toV3Id(kWebViewIdPrefix, guid),
@@ -121,7 +137,7 @@ function importWebView(args: V2TileImportArgs) {
   // create webView model
   // Note: a renamed WebView has the componentStorage.name set to the URL,
   // only the componentStorage.title is updated
-  return addWebViewSnapshot(args, name, URL)
+  return addWebViewSnapshot(args, name, { url: URL })
 }
 registerV2TileImporter("DG.WebView", importWebView)
 
@@ -135,11 +151,36 @@ function importGameView(args: V2TileImportArgs) {
   // create webView model
   // Note: a renamed GameView has the componentStorage.currentGameName set to the value
   // provided by the plugin, only the componentStorage.title is updated
-  return addWebViewSnapshot(args, currentGameName, processPluginUrl(currentGameUrl), savedGameState)
+  return addWebViewSnapshot(args, currentGameName, { state: savedGameState, url: processWebViewUrl(currentGameUrl) })
 }
 registerV2TileImporter("DG.GameView", importGameView)
 
-// TODO add importer for DG.GuideView
+function importGuideView(args: V2TileImportArgs) {
+  const { v2Component } = args
+  if (!isV2GuideViewComponent(v2Component)) return
+
+  // parse the v2 content
+  const {componentStorage: {title, items, currentItemIndex, currentItemTitle, currentURL}} = v2Component
+  // create webView model
+  const pages = items?.map((i) => ({
+    title: i.itemTitle ?? undefined,
+    url: i.url ? processWebViewUrl(i.url) : undefined
+  })) ?? []
+  let pageIndex = currentItemIndex
+  // older versions saved currentURL and currentItemTitle instead of currentItemIndex
+  if (pageIndex == null && currentURL != null) {
+    pageIndex = items.findIndex((i) => i.url === currentURL)
+  }
+  if (pageIndex == null && currentItemTitle != null) {
+    pageIndex = items.findIndex((i) => i.itemTitle === currentItemTitle)
+  }
+  if (pageIndex == null) {
+    pageIndex = 0 // fallback to first page
+  }
+  return addWebViewSnapshot(args, title, { url: processWebViewUrl(pages[pageIndex]?.url ?? ""), pageIndex, pages })
+}
+
+registerV2TileImporter("DG.GuideView", importGuideView)
 
 const webViewComponentHandler: DIComponentHandler = {
   create({ values }) {
@@ -149,8 +190,8 @@ const webViewComponentHandler: DIComponentHandler = {
 
   get(content) {
     if (isWebViewModel(content)) {
-      const type = content.isPlugin ? kV2GameType : kV2WebViewType
-      return { type, URL: content.url } as V2Game | V2WebView
+      const type = content.isPlugin ? kV2GameType : content.isGuide ? kV2GuideViewType : kV2WebViewType
+      return { type, URL: content.url } as V2Game | V2Guide | V2WebView
     }
   },
 
@@ -164,4 +205,5 @@ const webViewComponentHandler: DIComponentHandler = {
   }
 }
 registerComponentHandler(kV2GameType, webViewComponentHandler)
+registerComponentHandler(kV2GuideViewType, webViewComponentHandler)
 registerComponentHandler(kV2WebViewType, webViewComponentHandler)

@@ -5,6 +5,21 @@ import { diAdornmentHandler } from "./adornment-handler"
 describe("DataInteractive AdornmentHandler", () => {
   const handler = diAdornmentHandler
 
+  it("create returns an error when no values provided", () => {
+    const result = handler.create?.({})
+    expect(result?.success).toBe(false)
+  })
+
+  it("delete returns an error when no type provided", () => {
+    const result = handler.delete?.({})
+    expect(result?.success).toBe(false)
+  })
+
+  it("delete returns an error when type provided but matching adornment not found", () => {
+    const result = handler.delete?.({}, { type: "Count" })
+    expect(result?.success).toBe(false)
+  })
+
   it("get returns an error when no adornment provided", () => {
     const result = handler.get?.({})
     expect(result?.success).toBe(false)
@@ -18,6 +33,16 @@ describe("DataInteractive AdornmentHandler", () => {
     } as IAdornmentModel
     const mockResource: DIResources = { adornment: mockAdornment }
     const result = handler.get?.(mockResource)
+    expect(result?.success).toBe(false)
+  })
+
+  it("update returns an error when no values provided", () => {
+    const result = handler.update?.({})
+    expect(result?.success).toBe(false)
+  })
+
+  it("update returns an error when type provided but matching adornment not found", () => {
+    const result = handler.update?.({}, { type: "Count" })
     expect(result?.success).toBe(false)
   })
 

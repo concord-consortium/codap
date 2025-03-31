@@ -1,6 +1,6 @@
 {
   "name": "codap3",
-  "version": "3.0.0-pre.2233",
+  "version": "3.0.0-pre.2236",
   "description": "Common Online Data Analysis Platform v3",
   "main": "index.js",
   "browser": {
@@ -208,6 +208,7 @@
     "@lezer/common": "^1.2.3",
     "@lezer/highlight": "^1.2.1",
     "@lezer/lr": "^1.4.2",
+    "@nedb/binary-search-tree": "^2.1.5",
     "@uiw/react-codemirror": "^4.23.10",
     "clsx": "^2.1.1",
     "colord": "^2.9.3",

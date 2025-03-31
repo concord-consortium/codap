@@ -14,12 +14,21 @@ export const kDefaultPreventTopLevelReorg = false
 export const kDefaultRespectEditableItemAttribute = false
 export const kDefaultWebViewVersion = ""
 
+export const WebPageModel = types.model("WebPageModel", {
+  title: types.maybe(types.string),
+  url: types.maybe(types.string)
+})
+
 export const WebViewModel = TileContentModel
   .named("WebViewModel")
   .props({
     type: types.optional(types.literal(kWebViewTileType), kWebViewTileType),
     subType: types.maybe(types.enumeration(webViewSubTypes)),
     url: "",
+    // for guides
+    pageIndex: 0,
+    pages: types.array(WebPageModel),
+    // for games/plugins
     state: types.frozen<unknown>(),
     // fields controlled by plugins (like Collaborative) via interactiveFrame requests
     allowEmptyAttributeDeletion: kDefaultAllowEmptyAttributeDeletion,

@@ -46,7 +46,7 @@ context("codap plugins", () => {
       "action": "fake",
       "resource": "dataContext[Mammals].collection[Cases].attribute[Order]"
     }`
-    webView.sendAPITesterCommand(cmd2, cmd1)
+    webView.sendAPITesterCommand(cmd2)
     webView.confirmAPITesterResponseContains(/"Unsupported action: fake\/attribute"/)
     webView.clearAPITesterResponses()
 
@@ -59,7 +59,7 @@ context("codap plugins", () => {
       }
     }`
     table.getAttributeHeader().contains("Order").should("be.visible")
-    webView.sendAPITesterCommand(cmd3, cmd2)
+    webView.sendAPITesterCommand(cmd3)
     table.getAttributeHeader().contains("Order").should("not.exist")
     webView.clearAPITesterResponses()
 
@@ -74,7 +74,7 @@ context("codap plugins", () => {
       ]
     }`
     table.getAttributeHeader().contains("Heartrate").should("not.exist")
-    webView.sendAPITesterCommand(cmd4, cmd3)
+    webView.sendAPITesterCommand(cmd4)
     table.getAttributeHeader().contains("Heartrate").should("exist")
     webView.clearAPITesterResponses()
 
@@ -84,7 +84,7 @@ context("codap plugins", () => {
       "resource": "dataContext[Mammals].collection[Cases].attribute[Heartrate]"
     }`
     table.getAttributeHeader().contains("Heartrate").should("exist")
-    webView.sendAPITesterCommand(cmd5, cmd4)
+    webView.sendAPITesterCommand(cmd5)
     table.getAttributeHeader().contains("Heartrate").should("not.exist")
     webView.clearAPITesterResponses()
 
@@ -93,7 +93,7 @@ context("codap plugins", () => {
       "action": "get",
       "resource": "collection[Cases].attribute[Order]"
     }`
-    webView.sendAPITesterCommand(cmd6, cmd5)
+    webView.sendAPITesterCommand(cmd6)
     webView.confirmAPITesterResponseContains(/"success":\s*true/)
     webView.clearAPITesterResponses()
 
@@ -102,7 +102,7 @@ context("codap plugins", () => {
       "action": "get",
       "resource": "dataContextList"
     }`
-    webView.sendAPITesterCommand(cmd7, cmd6)
+    webView.sendAPITesterCommand(cmd7)
     webView.confirmAPITesterResponseContains(/"values":\s\[\s{\s"name":\s*"Mammals"/)
     webView.clearAPITesterResponses()
   })
@@ -133,7 +133,7 @@ context("codap plugins", () => {
         }
       }`
       webView.clearAPITesterResponses()
-      webView.sendAPITesterCommand(cmd2, cmd1)
+      webView.sendAPITesterCommand(cmd2)
       webView.confirmAPITesterResponseContains(/"success":\s*true/)
       webView.clearAPITesterResponses()
       c.checkComponentFocused("table")
@@ -143,7 +143,7 @@ context("codap plugins", () => {
         "action": "delete",
         "resource": "component[${tableId}]"
       }`
-      webView.sendAPITesterCommand(cmd3, cmd2)
+      webView.sendAPITesterCommand(cmd3)
       webView.confirmAPITesterResponseContains(/"success":\s*true/)
       webView.clearAPITesterResponses()
       c.checkComponentDoesNotExist("table")
@@ -161,6 +161,7 @@ context("codap plugins", () => {
     graph.getInspectorPalette().find("[data-testid=adornment-checkbox-mean]").click()
     graph.getInspectorPalette().find("[data-testid=adornment-toggle-otherValues]").click()
     graph.getInspectorPalette().find("[data-testid=adornment-button-movable-value--add]").click()
+    graph.getInspectorPalette().find("[data-testid=adornment-checkbox-count-percent]").click()
 
     openAPITester()
   
@@ -186,7 +187,7 @@ context("codap plugins", () => {
         "action": "get",
         "resource": "component[${graphId}].adornmentList"
       }`
-      webView.sendAPITesterCommand(cmd2, cmd1)
+      webView.sendAPITesterCommand(cmd2)
       webView.confirmAPITesterResponseContains(/"success":\s*true/)
       webView.getAPITesterResponse().then((value: any) => {
         const response = JSON.parse(value.eq(1).text())
@@ -198,7 +199,7 @@ context("codap plugins", () => {
         expect(countInfo.type).to.equal("Count")
         expect(countInfo.isVisible).to.equal(true)
         expect(percentInfo.type).to.equal("Percent")
-        expect(percentInfo.isVisible).to.equal(false)
+        expect(percentInfo.isVisible).to.equal(true)
         expect(meanInfo.type).to.equal("Mean")
         expect(meanInfo.isVisible).to.equal(true)
         expect(movableValueInfo.type).to.equal("Movable Value")
@@ -213,7 +214,7 @@ context("codap plugins", () => {
         "action": "get",
         "resource": "component[${graphId}].adornment[Count]"
       }`
-      webView.sendAPITesterCommand(cmd3, cmd2)
+      webView.sendAPITesterCommand(cmd3)
       webView.confirmAPITesterResponseContains(/"success":\s*true/)
       webView.getAPITesterResponse().then((value: any) => {
         const response = JSON.parse(value.eq(1).text())
@@ -226,6 +227,12 @@ context("codap plugins", () => {
         expect(countInfo.data[0].count).to.have.length(2)
         expect(countInfo.data[0].count[0]).to.be.a("number")
         expect(countInfo.data[0].count[1]).to.be.a("number")
+        const percents = countInfo.data[0].percent
+        expect(percents).to.be.an("array").with.length(2)
+        percents.forEach((p: string) => expect(p).to.match(/^\d+(\.\d+)?%$/))
+        // The sum of all percent values should be ~100%
+        const total = percents.reduce((sum: number, p: string) => sum + parseFloat(p), 0)
+        expect(total).to.be.closeTo(100, 0.1)
       })
       webView.clearAPITesterResponses()
 
@@ -235,7 +242,7 @@ context("codap plugins", () => {
           "action": "get",
           "resource": "component[${graphId}].adornment[${meanId}]"
         }`
-        webView.sendAPITesterCommand(cmd4, cmd3)
+        webView.sendAPITesterCommand(cmd4)
         webView.confirmAPITesterResponseContains(/"success":\s*true/)
         webView.getAPITesterResponse().then((value: any) => {
           const response = JSON.parse(value.eq(1).text())
@@ -253,7 +260,7 @@ context("codap plugins", () => {
           "action": "get",
           "resource": "component[${graphId}].adornmentList"
         }`
-        webView.sendAPITesterCommand(cmd5, cmd4)
+        webView.sendAPITesterCommand(cmd5)
         webView.confirmAPITesterResponseContains(/"success":\s*true/)
         webView.getAPITesterResponse().then((value: any) => {
           const response = JSON.parse(value.eq(1).text())
@@ -265,7 +272,7 @@ context("codap plugins", () => {
           expect(countInfo.type).to.equal("Count")
           expect(countInfo.isVisible).to.equal(true)
           expect(percentInfo.type).to.equal("Percent")
-          expect(percentInfo.isVisible).to.equal(false)
+          expect(percentInfo.isVisible).to.equal(true)
         })
         webView.clearAPITesterResponses()
       })

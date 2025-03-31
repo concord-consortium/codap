@@ -8,7 +8,7 @@ import { DEBUG_PLUGINS } from "../../lib/debug"
 import { t } from "../../utilities/translation/translate"
 import { kWebViewTileType } from "../web-view/web-view-defs"
 import { isWebViewModel } from "../web-view/web-view-model"
-import { processPluginUrl } from "../web-view/web-view-utils"
+import { processWebViewUrl } from "../web-view/web-view-utils"
 import { ToolShelfButtonTag } from "./tool-shelf-button"
 import { PluginData, PluginMenuConfig } from "./plugin-config-types"
 import { logMessageWithReplacement } from "../../lib/log-message"
@@ -32,7 +32,7 @@ function PluginItem({ pluginData }: IPluginItemProps) {
       () => {
         const url = URL.canParse(pluginData.path)
                       ? pluginData.path
-                      : processPluginUrl(`${kRootPluginUrl}${pluginData.path}`)
+                      : processWebViewUrl(`${kRootPluginUrl}${pluginData.path}`)
         const options = { height: pluginData.height, width: pluginData.width }
         const tile = documentContent?.createOrShowTile?.(kWebViewTileType, options)
         if (isWebViewModel(tile?.content)) tile.content.setUrl(url)

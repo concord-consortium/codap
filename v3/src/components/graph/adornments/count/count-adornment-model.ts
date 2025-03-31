@@ -33,11 +33,25 @@ export const CountAdornmentModel = AdornmentModel
     percentType: types.optional(types.enumeration(["cell", "column", "row"]), "row")
   })
   .views(self => ({
-    percentValue(casesInPlot: number, cellKey: Record<string, string>, dataConfig?: IGraphDataConfigurationModel) {
-      // Percent type options are only available when there are two or more categorical attributes on perpendicular
-      // axes, which creates a grid of subplots with multiple rows and columns. When percent type options are not
-      // available, we default to the "cell" percent type (i.e. use `dataConfig?.cellCases.length ?? 0` as
-      // the divisor)
+    percentValue(
+      casesInPlot: number, cellKey: Record<string, string>, dataConfig?: IGraphDataConfigurationModel,
+      subPlotRegionBoundaries?: number[], regionIndex = 0
+    ) {
+  
+      // If there are movable values present, we need to calculate the percent based on cases in each sub-plot
+      // region defined by the movable values and the min and max of the primary axis.
+      if (subPlotRegionBoundaries && subPlotRegionBoundaries.length > 2) {
+        const primaryAttrRole = dataConfig?.primaryRole ?? "x"
+        const attrId = dataConfig?.attributeID(primaryAttrRole)
+        if (!attrId) return 0
+
+        const lowerBoundary = subPlotRegionBoundaries[regionIndex]
+        const upperBoundary = subPlotRegionBoundaries[regionIndex + 1]
+        const casesInRange = dataConfig?.casesInRange(lowerBoundary, upperBoundary, attrId, cellKey, true) ?? []
+        const totalCases = dataConfig?.filterCasesForDisplay(dataConfig?.subPlotCases(cellKey)).length ?? 0
+        return totalCases > 0 ? casesInRange.length / totalCases : 0
+      }
+
       const categoricalAttrCount = dataConfig?.categoricalAttrCount ?? 0
       const hasPercentTypeOptions = categoricalAttrCount > 1
       const rowCases = dataConfig?.filterCasesForDisplay(dataConfig?.rowCases(cellKey)) ?? []
@@ -105,7 +119,7 @@ export const CountAdornmentModel = AdornmentModel
     }: IRegionCountParams) {
       const totalCases = dataConfig?.filterCasesForDisplay(dataConfig?.subPlotCases(cellKey)).length ?? 0
       if (subPlotRegionBoundaries.length < 3) {
-        const percent = totalCases > 0 ? "100%" : "0%"
+        const percent = percentString(self.percentValue(totalCases, cellKey, dataConfig))
         return [{
           bottomOffset: 0,
           count: self.showCount ? totalCases : undefined,
@@ -126,8 +140,10 @@ export const CountAdornmentModel = AdornmentModel
         subPlotRegionBoundaries
       })
 
-      return counts.map((c) => {
-        const regionPercent = percentString((c.count ?? 0) / totalCases)
+      return counts.map((c, i) => {
+        const regionPercent = percentString(
+          self.percentValue(c.count ?? 0, cellKey, dataConfig, subPlotRegionBoundaries, i)
+        )
         return {
           bottomOffset: c.bottomOffset,
           count: c.count,

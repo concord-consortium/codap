@@ -1,13 +1,30 @@
 import { observable, reaction, comparer } from "mobx"
-import { getSnapshot, getType, Instance, ISerializedActionCall, types, addDisposer } from "mobx-state-tree"
+import {
+  addDisposer, getEnv, getSnapshot, getType, hasEnv, IAnyStateTreeNode, Instance, ISerializedActionCall,
+  resolveIdentifier, types
+} from "mobx-state-tree"
 import { onAnyAction } from "../../utilities/mst-utils"
-import { CategorySet, createProvisionalCategorySet, ICategorySet } from "../data/category-set"
+import { CategorySet, createProvisionalCategorySet, ICategorySet, ICategorySetSnapshot } from "../data/category-set"
 import { DataSet, IDataSet } from "../data/data-set"
 import { applyModelChange } from "../history/apply-model-change"
 import { kDefaultHighAttributeColor, kDefaultLowAttributeColor } from "./shared-case-metadata-constants"
 import { ISharedModel, SharedModel } from "./shared-model"
 
 export const kSharedCaseMetadataType = "SharedCaseMetadata"
+
+interface IProvisionalEnvironment {
+  provisionalDataSet?: IDataSet
+}
+
+export function getProvisionalDataSet(node: IAnyStateTreeNode | null) {
+  const env = node && hasEnv(node) ? getEnv<IProvisionalEnvironment>(node) : {}
+  return env.provisionalDataSet
+}
+
+// Creates a SharedCaseMetadata instance that can access its DataSet before being added to the document.
+export function createSharedCaseMetadata(data: IDataSet) {
+  return SharedCaseMetadata.create({ data: data.id }, { provisionalDataSet: data })
+}
 
 export const CollectionTableMetadata = types.model("CollectionTable", {
   // key is valueJson; value is true (false values are deleted)
@@ -44,7 +61,16 @@ export const SharedCaseMetadata = SharedModel
   .named(kSharedCaseMetadataType)
   .props({
     type: types.optional(types.literal(kSharedCaseMetadataType), kSharedCaseMetadataType),
-    data: types.safeReference(DataSet),
+    data: types.safeReference(DataSet, {
+      get(identifier: string, parent: IAnyStateTreeNode | null): IDataSet {
+        // support access to the DataSet before being added to the document if provisional environment was provided
+        const provisionalDataSet = getProvisionalDataSet(parent)
+        return provisionalDataSet ?? resolveIdentifier<typeof DataSet>(DataSet, parent, identifier) as IDataSet
+      },
+      set(data: IDataSet) {
+        return data.id
+      }
+    }),
     // key is collection id
     collections: types.map(CollectionTableMetadata),
     // key is attribute id
@@ -64,8 +90,8 @@ export const SharedCaseMetadata = SharedModel
     // CategorySets only need to be saved, however, when they contain user modifications, e.g.
     // reordering categories or assigning colors to categories. Therefore, CategorySets
     // created automatically before any user modifications are treated as "provisional"
-    // categories, which are then elevated to normal categories when they are modified by
-    // the user. This also keeps them from cluttering up the undo history.
+    // categories, which are then elevated to full-fledged categories when they are modified
+    // by the user. This also keeps them from cluttering up the undo history.
     provisionalCategories: observable.map<string, ICategorySet>()
   }))
   .views(self => ({
@@ -152,6 +178,9 @@ export const SharedCaseMetadata = SharedModel
     }
   }))
   .actions(self => ({
+    setCategorySet(attrId: string, categorySet: ICategorySetSnapshot) {
+      self.categories.set(attrId, categorySet)
+    },
     removeCategorySet(attrId: string) {
       self.categories.delete(attrId)
       self.provisionalCategories.delete(attrId)
@@ -212,7 +241,7 @@ export const SharedCaseMetadata = SharedModel
             }
           })
         },
-        { name: "DataConfigurationModel.afterCreate.reaction [show all hidden attributes in a collection]",
+        { name: "SharedCaseMetadata.afterCreate.reaction [show remaining hidden attributes in a collection]",
           fireImmediately: true,
           equals: comparer.structural
         }

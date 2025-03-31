@@ -3,6 +3,7 @@ import { IAttribute } from "../models/data/attribute"
 import { ICollectionModel, ICollectionModelSnapshot } from "../models/data/collection"
 import { IDataSet, toCanonical } from "../models/data/data-set"
 import { ICaseCreation, IItem } from "../models/data/data-set-types"
+import { importV2CategorySet, V2CategorySetInput } from "../models/data/v2-category-set-importer"
 import { v2NameTitleToV3Title } from "../models/data/v2-model"
 import { ISharedCaseMetadata } from "../models/shared/shared-case-metadata"
 import { kItemIdPrefix, toV3AttrId, toV3CaseId, toV3CollectionId, v3Id } from "../utilities/codap-utils"
@@ -60,6 +61,7 @@ export class CodapV2DataSetImporter {
       this.v2CaseIdInfoArray[level] = { groupAttrNames: [], groupKeyCaseIds: new Map() }
       this.registerAttributes(data, caseMetadata, attrs, level)
       this.registerCases(data, cases, level)
+      this.registerCategories(data, caseMetadata, attrs)
 
       const attributes = attrs.map(attr => {
         const attrModel = data.attrFromName(attr.name)
@@ -93,7 +95,7 @@ export class CodapV2DataSetImporter {
     attributes.forEach(v2Attr => {
       const {
         cid: _cid, guid, description: v2Description, name = "", title: v2Title, type: v2Type, formula: v2Formula,
-        editable: v2Editable, unit: v2Unit, precision: v2Precision
+        editable: v2Editable, unit: v2Unit, precision: v2Precision, decimals
       } = v2Attr
       if (!v2Formula) {
         v2CaseIdInfo.groupAttrNames.push(name)
@@ -103,7 +105,11 @@ export class CodapV2DataSetImporter {
       const userType = v3TypeFromV2TypeString(v2Type)
       const formula = v2Formula ? { display: v2Formula } : undefined
       const editable = v2Editable == null || !!v2Editable
-      const precision = v2Precision == null || v2Precision === "" ? undefined : +v2Precision
+      const precision = v2Precision != null && v2Precision !== ""
+                          ? +v2Precision
+                          : decimals != null && decimals !== ""
+                            ? +decimals
+                            : undefined
       const units = v2Unit ?? undefined
       this.guidMap.set(guid, { type: "DG.Attribute", object: v2Attr })
       const attribute = data.addAttribute({
@@ -113,6 +119,25 @@ export class CodapV2DataSetImporter {
         this.v3AttrMap.set(guid, attribute)
         if (v2Attr.hidden) {
           caseMetadata.setIsHidden(attribute.id, true)
+        }
+      }
+    })
+  }
+
+  registerCategories(data: IDataSet, caseMetadata: ISharedCaseMetadata, attributes: ICodapV2Attribute[]) {
+    attributes.forEach(v2Attr => {
+      const {
+        guid, colormap, _categoryMap
+      } = v2Attr
+      const attribute = data.getAttribute(toV3AttrId(guid))
+      if (attribute) {
+        const categorySetInput: Maybe<V2CategorySetInput> = _categoryMap || colormap
+        if (categorySetInput) {
+          // create CategorySet if necessary
+          const categorySetSnap = importV2CategorySet(attribute, categorySetInput)
+          if (categorySetSnap) {
+            caseMetadata.setCategorySet(attribute.id, categorySetSnap)
+          }
         }
       }
     })

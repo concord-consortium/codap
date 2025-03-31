@@ -1,3 +1,4 @@
+import { IAdornmentModelSnapshot } from "../components/graph/adornments/adornment-models"
 import { IValueType } from "../models/data/attribute-types"
 import { ICollectionLabels } from "../models/data/collection"
 import { ICodapV2Attribute, ICodapV2Collection, ICodapV2DataContext } from "../v2/codap-v2-data-set-types"
@@ -113,4 +114,13 @@ export interface DIUpdateItemResult {
 }
 export interface DIDeleteCollectionResult {
   collections?: number[]
+}
+export interface DICreateAdornment {
+  adornment: IAdornmentModelSnapshot
+}
+export interface DIDeleteAdornment {
+  type: string
+}
+export interface DIUpdateAdornment {
+  adornment: IAdornmentModelSnapshot
 }
