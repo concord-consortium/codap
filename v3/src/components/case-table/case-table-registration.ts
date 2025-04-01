@@ -57,7 +57,9 @@ registerTileComponentInfo({
 const v2TableExporter: V2TileExportFn = ({ tile }) => {
   const tableContent = isCaseTableModel(tile.content) ? tile.content : undefined
   let componentStorage: Maybe<SetOptional<ICodapV2TableStorage, keyof ICodapV2BaseComponentStorage>>
-  const { columnWidths, rowHeights, horizontalScrollOffset, data: dataSet, metadata } = tableContent || {}
+  const {
+    columnWidths, rowHeights, horizontalScrollOffset, isIndexHidden, data: dataSet, metadata
+  } = tableContent || {}
   const attributeWidths = Array.from(columnWidths?.entries() ?? []).map(([attrId, width]) => {
     return { _links_: { attr: guidLink("DG.Attribute", toV2Id(attrId)) }, width }
   })
@@ -80,6 +82,7 @@ const v2TableExporter: V2TileExportFn = ({ tile }) => {
       attributeWidths,
       ...(_rowHeights.length ? { rowHeights: _rowHeights } : {}),
       horizontalScrollOffset,
+      isIndexHidden,
       title: tile._title
     }
   }
@@ -95,7 +98,8 @@ registerV2TileImporter("DG.TableView", ({ v2Component, v2Document, sharedModelMa
   const {
     guid,
     componentStorage: {
-      name, title = "", _links_, isActive, attributeWidths, cannotClose, rowHeights, horizontalScrollOffset
+      name, title = "", _links_, isActive, attributeWidths, cannotClose, rowHeights,
+      horizontalScrollOffset, isIndexHidden
     }
   } = v2Component
 
@@ -106,7 +110,8 @@ registerV2TileImporter("DG.TableView", ({ v2Component, v2Document, sharedModelMa
     type: kCaseTableTileType,
     columnWidths: {},
     rowHeights: {},
-    horizontalScrollOffset
+    horizontalScrollOffset,
+    isIndexHidden
   }
   const { collapsedNodes = [], context } = _links_
   const { data, metadata } = v2Document.getDataAndMetadata(context.id)

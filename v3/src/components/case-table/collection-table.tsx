@@ -114,7 +114,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
 
   // columns
   const indexColumn = useIndexColumn()
-  const columns = useColumns({ data, indexColumn })
+  const columns = useColumns({ data, indexColumn: caseTableModel?.isIndexHidden ? undefined : indexColumn })
 
   // rows
   const { handleRowsChange } = useRows(gridRef.current?.element ?? null)
