@@ -574,10 +574,7 @@ export interface ICodapV2MapLayerBaseStorage {
     legendColl?: IGuidLink<"DG.Collection">,
     // We sometimes see an array of links here
     legendAttr?: IGuidLink<"DG.Attribute"> | IGuidLink<"DG.Attribute">[],
-    // tHiddenCases was used in lieu of hiddenCases
-    // this occurs 523 times in cfm-shared
-    // in all cases the value is `[]`
-    // seems like detritus from an earlier bug
+    // tHiddenCases was briefly used in lieu of hiddenCases
     tHiddenCases?: IGuidLink<"DG.Case">[]
   }
   legendRole: number

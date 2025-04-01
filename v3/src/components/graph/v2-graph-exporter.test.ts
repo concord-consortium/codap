@@ -99,7 +99,7 @@ describe("V2GraphImporter", () => {
   const kRoundProps = ["proportionX", "proportionY"]
   // keys that are booleans but can be undefined
   const kOptionalBooleans = [ "enableNumberToggle", "numberToggleLastMode",]
-  // keys that are booleans but can be null
+  // keys that are null but can be undefined
   const kOptionalNull = ["plotBackgroundImage", "plotBackgroundImageLockInfo"]
 
   beforeEach(() => {
