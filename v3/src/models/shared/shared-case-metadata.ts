@@ -1,7 +1,7 @@
 import { observable, reaction, comparer } from "mobx"
 import {
   addDisposer, getEnv, getSnapshot, getType, hasEnv, IAnyStateTreeNode, Instance, ISerializedActionCall,
-  resolveIdentifier, types
+  resolveIdentifier, SnapshotIn, types
 } from "mobx-state-tree"
 import { onAnyAction } from "../../utilities/mst-utils"
 import { CategorySet, createProvisionalCategorySet, ICategorySet, ICategorySetSnapshot } from "../data/category-set"
@@ -26,8 +26,8 @@ export function createSharedCaseMetadata(data: IDataSet) {
   return SharedCaseMetadata.create({ data: data.id }, { provisionalDataSet: data })
 }
 
-export const CollectionTableMetadata = types.model("CollectionTable", {
-  // key is valueJson; value is true (false values are deleted)
+export const CollectionMetadata = types.model("CollectionMetadata", {
+  // key is case id; value is true (false values are deleted)
   collapsed: types.map(types.boolean)
 })
 
@@ -72,7 +72,7 @@ export const SharedCaseMetadata = SharedModel
       }
     }),
     // key is collection id
-    collections: types.map(CollectionTableMetadata),
+    collections: types.map(CollectionMetadata),
     // key is attribute id
     categories: types.map(CategorySet),
     // key is attribute id; value is true (false values are deleted)
@@ -97,8 +97,9 @@ export const SharedCaseMetadata = SharedModel
   .views(self => ({
     // true if passed the id of a parent/pseudo-case whose child cases have been collapsed, false otherwise
     isCollapsed(caseId: string) {
-      const { collectionId, groupKey: valuesJson } = self.data?.caseInfoMap.get(caseId) || {}
-      return (collectionId && valuesJson && self.collections.get(collectionId)?.collapsed.get(valuesJson)) ?? false
+      const { collectionId } = self.data?.caseInfoMap.get(caseId) || {}
+      const collection = collectionId ? self.collections.get(collectionId) : undefined
+      return collection?.collapsed.get(caseId) ?? false
     },
     // true if passed the id of a hidden attribute, false otherwise
     isHidden(attrId: string) {
@@ -129,18 +130,18 @@ export const SharedCaseMetadata = SharedModel
       self.lastShownTableOrCardTileId = tileId
     },
     setIsCollapsed(caseId: string, isCollapsed: boolean) {
-      const { collectionId, groupKey } = self.data?.caseInfoMap.get(caseId) || {}
-      if (collectionId && groupKey) {
-        let tableCollection = self.collections.get(collectionId)
+      const { collectionId } = self.data?.caseInfoMap.get(caseId) || {}
+      if (collectionId) {
+        let collectionMetadata = self.collections.get(collectionId)
         if (isCollapsed) {
-          if (!tableCollection) {
-            tableCollection = CollectionTableMetadata.create()
-            self.collections.set(collectionId, tableCollection)
+          if (!collectionMetadata) {
+            collectionMetadata = CollectionMetadata.create()
+            self.collections.set(collectionId, collectionMetadata)
           }
-          tableCollection.collapsed.set(groupKey, true)
+          collectionMetadata.collapsed.set(caseId, true)
         }
-        else if (tableCollection) {
-          tableCollection.collapsed.delete(groupKey)
+        else if (collectionMetadata) {
+          collectionMetadata.collapsed.delete(caseId)
         }
       }
     },
@@ -251,6 +252,7 @@ export const SharedCaseMetadata = SharedModel
   .actions(applyModelChange)
 
 export interface ISharedCaseMetadata extends Instance<typeof SharedCaseMetadata> {}
+export interface ISharedCaseMetadataSnapshot extends SnapshotIn<typeof SharedCaseMetadata> {}
 
 export function isSharedCaseMetadata(model?: ISharedModel): model is ISharedCaseMetadata {
   return model ? getType(model) === SharedCaseMetadata : false

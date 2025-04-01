@@ -217,7 +217,7 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({
                 if (id !== kInputRowKey) {
                   return <ExpandCollapseButton key={id} isCollapsed={!!caseMetadata?.isCollapsed(id)}
                     onClick={() => handleExpandCollapseClick(id)}
-                    styles={{ left: '3px', top: `${((index * childTableModel.rowHeight) - parentScrollTop) + 4}px`}}
+                    styles={{ left: '3px', top: `${((index * parentTableModel.rowHeight) - parentScrollTop) + 4}px`}}
                   />
                 }
               })}

@@ -1211,9 +1211,26 @@ export const DataSet = V2Model.named("DataSet").props({
   }
 }))
 .actions(self => ({
+  syncCollectionLinks() {
+    // update parent/child links and provide access to item data
+    const itemData: IItemData = {
+      itemIds: () => self._itemIds,
+      isHidden: (itemId) => self.isCaseOrItemHidden(itemId),
+      getValue: (itemId, attrId) => self.getStrValue(itemId, attrId) ?? "",
+      addItemInfo: (itemId, caseId) => self.addItemInfo(itemId, caseId),
+      invalidate: () => self.invalidateCases()
+    }
+    syncCollectionLinks(self.collections, itemData)
+    self.incSyncCollectionLinksCount()
+    self.invalidateCases()
+  }
+}))
+.actions(self => ({
   afterCreate() {
     const context: IEnvContext | Record<string, never> = hasEnv(self) ? getEnv(self) : {},
           { srcDataSet } = context
+
+    self.syncCollectionLinks()
 
     // build itemIDMap
     self._itemIds.forEach((itemId, index) => {
@@ -1257,19 +1274,7 @@ export const DataSet = V2Model.named("DataSet").props({
       // when collections change...
       addDisposer(self, reaction(
         () => self.collectionIds,
-        () => {
-          // update parent/child links and provide access to item data
-          const itemData: IItemData = {
-            itemIds: () => self._itemIds,
-            isHidden: (itemId) => self.isCaseOrItemHidden(itemId),
-            getValue: (itemId, attrId) => self.getStrValue(itemId, attrId) ?? "",
-            addItemInfo: (itemId, caseId) => self.addItemInfo(itemId, caseId),
-            invalidate: () => self.invalidateCases()
-          }
-          syncCollectionLinks(self.collections, itemData)
-          self.incSyncCollectionLinksCount()
-          self.invalidateCases()
-        },
+        () => self.syncCollectionLinks(),
         { name: "DataSet.collections", equals: comparer.structural, fireImmediately: true }
       ))
 

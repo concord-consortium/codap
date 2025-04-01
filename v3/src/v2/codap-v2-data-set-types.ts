@@ -182,6 +182,39 @@ export interface ICodapV2DataContext {
   _permissions?: any
 }
 
+// TODO_V2_IMPORT: we don't fully handle the GameContext
+// It seems it is legacy version of the DataContext specific for plugins.
+// v2 can open documents with GameContext objects.
+// There are about 4,000 documents in cfm-shared with a GameContext.
+// If v2 opens a document with a GameContext it will preserve it when
+// saving the document.
+// In v3 the "dataset" of the GameContext will be loaded but the
+// plugin state will be ignored.
+//
+// Here is an example document using the Markov plugin:
+// cfm-shared/0b5715a7dab0a92ef332c8407bf51c53cc3ae710/file.json
+// It has gameState in the GameContext
+// It restores the gameState in v2
+// NOTE: The plan is to reimplement Markov and other "legacy" data games plugins to use current API
+//
+// An example with Next Gen MW games:
+// cfm-shared/0b65185859c238170055bde1fef60830e52bd63d49bec96e0b1db84c65ea3356/file.json
+// - this document cannot be opened by CODAP build 0730
+//
+// Here is one with the CartWeight plugin:
+// cfm-shared/1d38b1c8597644dfee50687adc66661a55b0ca21/file.json
+// It opens in v2 and has saved game state and saved cases (you need to open the table)
+//
+// Here is one with Sage Modeler:
+// cfm-shared/003a3f0c482fdda8c9d3a7ac77ddfcbb9375420b/file.json
+//
+// There are also documents that are just GameContext nothing else:
+// cfm-shared/19a5cbdb252a03e168d5b7541f70189ff6b47381ec70842e1bd4a7beef0bb42f/file.json
+export interface ICodapV2GameContext extends Omit<ICodapV2DataContext, "type"> {
+  type: "DG.GameContext"
+  contextStorage: ICodapV2GameContextStorage
+}
+
 export interface ICodapV2DataContextSelectedCase {
   type: string
   id: number
@@ -196,3 +229,15 @@ export interface ICodapV2DataContextStorage {
     selectedCases: ICodapV2DataContextSelectedCase[]
   }
 }
+
+export interface ICodapV2GameContextStorage extends ICodapV2DataContextStorage {
+  gameName?: string | null
+  gameUrl?: string | null
+  gameState?: any
+}
+
+export type CodapV2Context = ICodapV2DataContext | ICodapV2GameContext | ICodapV2ExternalContext
+export const isV2ExternalContext = (context: CodapV2Context): context is ICodapV2ExternalContext =>
+  !("type" in context) && ("externalDocumentId" in context)
+export const isV2InternalContext = (context: CodapV2Context): context is ICodapV2DataContext | ICodapV2GameContext =>
+  ("type" in context)

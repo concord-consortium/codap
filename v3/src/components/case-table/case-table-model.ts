@@ -14,7 +14,9 @@ export const CaseTableModel = TileContentModel
     // key is collection id, value is row height for collection
     rowHeights: types.map(types.number),
     // Only used for serialization; volatile property used during run time
-    horizontalScrollOffset: 0
+    horizontalScrollOffset: 0,
+    // true if the index column is hidden
+    isIndexHidden: types.maybe(types.boolean)
   })
   .volatile(self => ({
     // entire hierarchical table scrolls as a unit horizontally
