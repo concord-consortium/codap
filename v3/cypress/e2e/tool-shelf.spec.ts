@@ -109,11 +109,12 @@ context("codap toolbar", () => {
     cy.visit("#file=examples:Four%20Seals")
     toolbar.getTilesButton().click()
     toolbar.getTilesListMenu().should("be.visible")
-    toolbar.getTilesListMenuItem().should("have.length", 4)
+    toolbar.getTilesListMenuItem().should("have.length", 5)
     toolbar.getTilesListMenuItem().eq(0).should("have.text", "Tracks/Measurements")
     toolbar.getTilesListMenuItem().eq(1).should("have.text", "Measurements")
     toolbar.getTilesListMenuItem().eq(2).should("have.text", "Measurements")
     toolbar.getTilesListMenuItem().eq(3).should("have.text", "Getting Started")
+    toolbar.getTilesListMenuItem().eq(4).should("have.text", "Getting Started")
   })
   it('will show the help pages list', ()=>{
     cy.visit("#file=examples:Four%20Seals")
