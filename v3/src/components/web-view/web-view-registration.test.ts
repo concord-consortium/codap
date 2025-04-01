@@ -311,8 +311,8 @@ describe("WebView registration", () =>  {
     const tile = importV2Component({
       v2Component: v2Document.components[1],
       v2Document,
-      sharedModelManager,
-      insertTile: mockInsertTile
+      insertTile: mockInsertTile,
+      ...mockImportArgs
     })!
     expect(tile).toBeDefined()
 
@@ -349,8 +349,8 @@ describe("WebView registration", () =>  {
     const tile = importV2Component({
       v2Component: v2Document.components[0],
       v2Document,
-      sharedModelManager,
-      insertTile: mockInsertTile
+      insertTile: mockInsertTile,
+      ...mockImportArgs
     })!
     expect(tile).toBeDefined()
 
