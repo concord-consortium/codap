@@ -190,7 +190,6 @@ function importImageComponentView(args: V2TileImportArgs) {
   if (!isV2ImageViewComponent(v2Component)) return
   // parse the v2 content
   const { componentStorage: { name, URL } } = v2Component
-console.log("importImageComponentView", JSON.parse(JSON.stringify(v2Component)))
   // create webView model
   // The componentStorage.name is set to the title when original image component was created,
   // Only the componentStorage.title is updated when user renames the image component.
