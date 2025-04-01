@@ -44,9 +44,8 @@ export const movableValueAdornmentHandler: DIAdornmentHandler = {
     if (valuePairs) {
       try {
         const updates = new Map<string, number>(valuePairs)
-        updates.forEach((newValue, requestCellKey) => {
-          const cellKey = normalizeCellKey(requestCellKey, graphContent.dataConfiguration)
-          adornment.addValue(newValue, cellKey)
+        updates.forEach((newValue) => {
+          adornment.addValue(newValue)
         })
       } catch {
         return invalidValuesProvidedeResult
