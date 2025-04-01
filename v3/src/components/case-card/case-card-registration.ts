@@ -68,7 +68,7 @@ registerV2TileExporter(kCaseCardTileType, ({ tile }) => {
   return { type: "DG.CaseCard", componentStorage }
 })
 
-registerV2TileImporter("DG.CaseCard", ({ v2Component, v2Document, sharedModelManager, insertTile }) => {
+registerV2TileImporter("DG.CaseCard", ({ v2Component, v2Document, getCaseData, insertTile, linkSharedModel }) => {
   if (!isV2CaseCardComponent(v2Component)) return
 
   const {
@@ -81,7 +81,7 @@ registerV2TileImporter("DG.CaseCard", ({ v2Component, v2Document, sharedModelMan
     attributeColumnWidths: {}
   }
   const contextId = _links_.context.id
-  const { data, metadata } = v2Document.getDataAndMetadata(contextId)
+  const { data, metadata } = getCaseData(contextId)
 
   // some documents (presumably preceding hierarchy support) have a single percentage width
   if (columnWidthPct != null) {
@@ -118,8 +118,8 @@ registerV2TileImporter("DG.CaseCard", ({ v2Component, v2Document, sharedModelMan
 
   // add links to shared models
   if (cardTile) {
-    data && sharedModelManager?.addTileSharedModel(cardTile.content, data, true)
-    metadata && sharedModelManager?.addTileSharedModel(cardTile.content, metadata, true)
+    linkSharedModel(cardTile.content, data)
+    linkSharedModel(cardTile.content, metadata)
   }
 
   return cardTile

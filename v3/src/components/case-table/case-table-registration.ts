@@ -93,7 +93,7 @@ const v2TableExporter: V2TileExportFn = ({ tile }) => {
 v2TableExporter.options = ({ tile }) => ({ suppressName: !tile.name })
 registerV2TileExporter(kCaseTableTileType, v2TableExporter)
 
-registerV2TileImporter("DG.TableView", ({ v2Component, v2Document, sharedModelManager, insertTile }) => {
+registerV2TileImporter("DG.TableView", ({ v2Component, v2Document, getCaseData, insertTile, linkSharedModel }) => {
   if (!isV2TableComponent(v2Component)) return
 
   const {
@@ -115,7 +115,7 @@ registerV2TileImporter("DG.TableView", ({ v2Component, v2Document, sharedModelMa
     isIndexHidden
   }
   const { collapsedNodes = [], context } = _links_
-  const { data, metadata } = v2Document.getDataAndMetadata(context.id)
+  const { data, metadata } = getCaseData(context.id)
   const collapsedCases = Array.isArray(collapsedNodes) ? collapsedNodes : [collapsedNodes]
 
   collapsedCases.forEach(({ id }) => {
@@ -154,8 +154,8 @@ registerV2TileImporter("DG.TableView", ({ v2Component, v2Document, sharedModelMa
 
   // add links to shared models
   if (tableTile) {
-    data && sharedModelManager?.addTileSharedModel(tableTile.content, data, true)
-    metadata && sharedModelManager?.addTileSharedModel(tableTile.content, metadata, true)
+    linkSharedModel(tableTile.content, data, true)
+    linkSharedModel(tableTile.content, metadata, true)
   }
 
   return tableTile

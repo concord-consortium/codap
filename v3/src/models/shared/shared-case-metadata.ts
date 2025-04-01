@@ -1,7 +1,7 @@
 import { observable, reaction, comparer } from "mobx"
 import {
   addDisposer, getEnv, getSnapshot, getType, hasEnv, IAnyStateTreeNode, Instance, ISerializedActionCall,
-  resolveIdentifier, types
+  resolveIdentifier, SnapshotIn, types
 } from "mobx-state-tree"
 import { onAnyAction } from "../../utilities/mst-utils"
 import { CategorySet, createProvisionalCategorySet, ICategorySet, ICategorySetSnapshot } from "../data/category-set"
@@ -98,7 +98,8 @@ export const SharedCaseMetadata = SharedModel
     // true if passed the id of a parent/pseudo-case whose child cases have been collapsed, false otherwise
     isCollapsed(caseId: string) {
       const { collectionId } = self.data?.caseInfoMap.get(caseId) || {}
-      return (collectionId && self.collections.get(collectionId)?.collapsed.get(caseId)) ?? false
+      const collection = collectionId ? self.collections.get(collectionId) : undefined
+      return collection?.collapsed.get(caseId) ?? false
     },
     // true if passed the id of a hidden attribute, false otherwise
     isHidden(attrId: string) {
@@ -251,6 +252,7 @@ export const SharedCaseMetadata = SharedModel
   .actions(applyModelChange)
 
 export interface ISharedCaseMetadata extends Instance<typeof SharedCaseMetadata> {}
+export interface ISharedCaseMetadataSnapshot extends SnapshotIn<typeof SharedCaseMetadata> {}
 
 export function isSharedCaseMetadata(model?: ISharedModel): model is ISharedCaseMetadata {
   return model ? getType(model) === SharedCaseMetadata : false

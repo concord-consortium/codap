@@ -1,5 +1,5 @@
 import {ITileModelSnapshotIn} from "../../models/tiles/tile-model"
-import {toV3Id} from "../../utilities/codap-utils"
+import {toV3AttrId, toV3Id} from "../../utilities/codap-utils"
 import { parseColorToHex } from "../../utilities/color-utils"
 import {V2TileImportArgs} from "../../v2/codap-v2-tile-importers"
 import {
@@ -17,7 +17,7 @@ import {IMapBaseLayerModelSnapshot} from "./models/map-base-layer-model"
 import {IMapPolygonLayerModelSnapshot} from "./models/map-polygon-layer-model"
 
 
-export function v2MapImporter({v2Component, v2Document, insertTile}: V2TileImportArgs) {
+export function v2MapImporter({v2Component, v2Document, getCaseData, insertTile}: V2TileImportArgs) {
   if (!isV2MapComponent(v2Component)) return
 
   const { guid, componentStorage: { name, title = "", mapModelStorage, cannotClose } } = v2Component
@@ -43,20 +43,13 @@ export function v2MapImporter({v2Component, v2Document, insertTile}: V2TileImpor
       // legendCollectionId = v2LayerModel._links_.legendColl?.id,
       v2LegendAttribute = Array.isArray(v2LayerModel._links_.legendAttr)
         ? v2LayerModel._links_.legendAttr[0] : v2LayerModel._links_.legendAttr,
-      legendAttributeId = v2LegendAttribute?.id,
-      legendAttribute = legendAttributeId ? v2Document.getV3Attribute(legendAttributeId) : undefined,
-      v3LegendAttrId = legendAttribute?.id ?? '',
-      {data, metadata} = v2Document.getDataAndMetadata(contextId),
-      {
-        isVisible, legendAttributeType, strokeSameAsFill,
-/*      Present in v2 layer model but not yet used in V3 layer model:
-        legendRole
-*/
-      } = v2LayerModel,
+      v3LegendAttrId = v2LegendAttribute ? toV3AttrId(v2LegendAttribute.id) : undefined,
+      {data, metadata} = getCaseData(contextId),
+      { isVisible, legendAttributeType, strokeSameAsFill } = v2LayerModel,
       v3LegendType = v3TypeFromV2TypeIndex[legendAttributeType]
     if (!data?.dataSet) return
 
-    if (legendAttributeId) {
+    if (v3LegendAttrId) {
       _attributeDescriptions.legend = {
         attributeID: v3LegendAttrId,
         type: v3LegendType

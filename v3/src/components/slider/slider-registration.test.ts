@@ -20,6 +20,19 @@ const fs = require("fs")
 const path = require("path")
 
 describe("Slider registration", () => {
+  const mockGetGlobalValues = jest.fn()
+  const mockGetCaseData = jest.fn()
+  const mockLinkSharedModel = jest.fn()
+  const mockImportArgs = {
+    getCaseData: mockGetCaseData,
+    getGlobalValues: mockGetGlobalValues,
+    linkSharedModel: mockLinkSharedModel,
+  }
+
+  beforeEach(() => {
+    jest.restoreAllMocks()
+  })
+
   it("registers content and component info", () => {
     const sliderContentInfo = getTileContentInfo(kSliderTileType)
     expect(sliderContentInfo).toBeDefined()
@@ -60,8 +73,9 @@ describe("Slider registration", () => {
     const tile = importV2Component({
       v2Component: sliderComponent,
       v2Document,
-      sharedModelManager,
-      insertTile: mockInsertTile
+      insertTile: mockInsertTile,
+      ...mockImportArgs,
+      getGlobalValues: () => globalValueManager
     })!
     expect(tile).toBeDefined()
     expect(mockInsertTile).toHaveBeenCalledTimes(1)
@@ -80,14 +94,17 @@ describe("Slider registration", () => {
     const tileWithInvalidDocument = importV2Component({
       v2Component: {} as any,
       v2Document,
-      insertTile: mockInsertTile
+      insertTile: mockInsertTile,
+      ...mockImportArgs,
+      getGlobalValues: () => globalValueManager
     })
     expect(tileWithInvalidDocument).toBeUndefined()
 
     const tileWithNoSharedModel = importV2Component({
       v2Component: sliderComponent,
       v2Document,
-      insertTile: mockInsertTile
+      insertTile: mockInsertTile,
+      ...mockImportArgs
     })
     expect(tileWithNoSharedModel).toBeUndefined()
 
