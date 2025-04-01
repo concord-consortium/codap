@@ -3,6 +3,7 @@ import { observer } from "mobx-react-lite"
 import React from "react"
 import AddIcon from "../assets/add-location-marker-icon.svg"
 import RemoveIcon from "../assets/remove-location-marker-icon.svg"
+import { kPinColors } from "../map-types"
 import { isMapPinLayerModel } from "../models/map-pin-layer-model"
 import { useMapModelContext } from "../hooks/use-map-model-context"
 import "./pin-controls.scss"
@@ -30,18 +31,20 @@ export const PinControls = observer(function PinControls() {
   const mapModel = useMapModelContext()
   const pinLayer = mapModel?.layers.find((layer) => isMapPinLayerModel(layer))
   const dataset = pinLayer?.dataConfiguration?.dataset
-  console.log(`--- dataset`, dataset)
-  const selectionSize = dataset?.selection?.size ?? 0
 
-  const addButtonDisabled = selectionSize >= 10
-  const removeButtonDisabled = !selectionSize
+  const addButtonDisabled = (dataset?.items?.length ?? 0) >= kPinColors.length
+  const removeButtonDisabled = !dataset?.selection?.size
 
   const handleRemoveButtonClick = () => {
     dataset?.removeCases(Array.from(dataset?.selection))
   }
   return (
     <div className="pin-controls">
-      <ControlButton className="top-button" disabled={addButtonDisabled} Icon={AddIcon} />
+      <ControlButton
+        className="top-button"
+        disabled={addButtonDisabled}
+        Icon={AddIcon}
+      />
       <ControlButton
         className="bottom-button"
         disabled={removeButtonDisabled}

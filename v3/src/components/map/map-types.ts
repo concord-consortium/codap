@@ -52,6 +52,9 @@ export const
   kPinLatNames = ['pinlatitude', 'pinlat', 'pinlatitud', 'pinbreitengrad', 'pin緯度', 'pinعرض جغرافیایی'],
   kPinLongNames = [
     'pinlongitude', 'pinlong', 'pinlng', 'pinlon', 'pinlongitud', 'pinlängengrad', 'pin経度', 'pinطول جغرافیایی'
+  ],
+  kPinColors = [
+    '#0068EA', '#E86B11', '#16A76A', '#E40029', '#2A31A4', '#D51EFF', '#4769A1', '#800000', '#949494', '#000000'
   ]
 
 export const MapPlaces = ['map', 'legend'] as const
