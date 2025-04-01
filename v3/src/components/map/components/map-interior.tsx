@@ -11,6 +11,7 @@ import {MapPolygonLayer} from "./map-polygon-layer"
 import { DataConfigurationContext } from "../../data-display/hooks/use-data-configuration-context"
 import { useTileModelContext } from "../../../hooks/use-tile-model-context"
 import { isMapPinLayerModel } from "../models/map-pin-layer-model"
+import { MapPinLayer } from "./map-pin-layer"
 import { PinControls } from "./pin-controls"
 
 interface IProps {
@@ -60,7 +61,12 @@ export const MapInterior = observer(function MapInterior({setPixiPointsLayer}: I
   return (
     <>
       {renderMapLayerComponents()}
-      {pinLayer && <PinControls />}
+      {pinLayer && (
+        <>
+          <MapPinLayer mapLayerModel={pinLayer} />
+          <PinControls />
+        </>
+      )}
     </>
   )
 })

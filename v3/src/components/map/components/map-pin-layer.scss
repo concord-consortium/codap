@@ -1,0 +1,23 @@
+.map-pin-layer {
+  height: 100%;
+  position: absolute;
+  width: 100%;
+  // FIX-ME: Why does this need to be >= 10?
+  z-index: 10;
+
+  .map-pin {
+    border: none;
+    margin: 0;
+    position: absolute;
+
+    .selection-outline {
+      fill: none;
+    }
+
+    &.selected-pin {
+      .selection-outline {
+        fill: red;
+      }
+    }
+  }
+}

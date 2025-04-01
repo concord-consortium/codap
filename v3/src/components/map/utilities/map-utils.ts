@@ -47,7 +47,6 @@ export const datasetHasPinData = (dataset: IDataSet) => {
   while (attrNames.length > 0 && (!hasPinLatAttribute || !hasPinLngAttribute)) {
     const attrName = attrNames.pop()
     if (attrName) {
-      console.log(` .. att`, attrName)
       if (kPinLatNames.includes(attrName)) {
         hasPinLatAttribute = true
       } else if (kPinLongNames.includes(attrName)) {
@@ -55,7 +54,6 @@ export const datasetHasPinData = (dataset: IDataSet) => {
       }
     }
   }
-  console.log(`  . final`, hasPinLatAttribute, hasPinLngAttribute)
   return hasPinLatAttribute && hasPinLngAttribute
 }
 
