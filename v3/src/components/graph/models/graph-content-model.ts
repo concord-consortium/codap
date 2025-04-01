@@ -71,7 +71,11 @@ export const GraphContentModel = DataDisplayContentModel
     plotBackgroundLockInfo: types.maybe(types.frozen<BackgroundLockInfo>()),
     // numberToggleModel: types.optional(types.union(NumberToggleModel, null))
     showParentToggles: false,
-    showOnlyLastCase: types.maybe(types.boolean)
+    showOnlyLastCase: types.maybe(types.boolean),
+    // TODO: numberOfLegendQuantiles and legendQuantilesAreLocked are imported from V2
+    // but have not been implemented in V3
+    numberOfLegendQuantiles: types.maybe(types.number),
+    legendQuantilesAreLocked: types.maybe(types.boolean)
   })
   .volatile(() => ({
     changeCount: 0, // used to notify observers when something has changed that may require a re-computation/redraw

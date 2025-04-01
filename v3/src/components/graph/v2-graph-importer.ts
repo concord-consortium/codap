@@ -43,14 +43,10 @@ export function v2GraphImporter({v2Component, v2Document, sharedModelManager, in
     guid,
 
     componentStorage: {
-      name, title = "", _links_: links, plotModels, cannotClose,
+      name, title = "", _links_: links, plotModels, hiddenCases: _hiddenCaseIds, cannotClose,
       pointColor, transparency, strokeColor, strokeTransparency, pointSizeMultiplier,
-      strokeSameAsFill, isTransparent,
-      plotBackgroundImageLockInfo,
-  /* TODO_V2_IMPORT: [Story: #188694812]
-      The following are present in the componentStorage but not used in the V3 content model (yet):
-      displayOnlySelected, numberOfLegendQuantiles, legendQuantilesAreLocked, plotBackgroundImage
-  */
+      strokeSameAsFill, isTransparent, displayOnlySelected, enableNumberToggle, numberToggleLastMode,
+      plotBackgroundImage, plotBackgroundImageLockInfo, numberOfLegendQuantiles, legendQuantilesAreLocked
     }
   } = v2Component
   const plotBackgroundOpacity = v2Component.componentStorage.plotBackgroundOpacity ?? 1
@@ -140,10 +136,9 @@ export function v2GraphImporter({v2Component, v2Document, sharedModelManager, in
         case "DG.CountAxisModel":
         case "DG.FormulaAxisModel": {
           const type = ["DG.CountAxisModel", "DG.FormulaAxisModel"].includes(axisClass) ? "count" : "numeric"
-          // TODO_V2_IMPORT [Story:#188701144] when lowerBound or upperBound are undefined or null this is
-          // not handled correctly. It likely will cause an MST exception and failure to load.
-          // There are 966 instances of `xUpperBound: null` in cfm-shared
-          axes[v3Place] = {place: v3Place, type, min: lowerBound as any, max: upperBound as any}
+          // V2 lowerBound or upperBound can be undefined or null, which will cause an MST exception and
+          // failure to load. So we assign a default value of lowerBound = 0 and upperBound = 10 if they are undefined.
+          axes[v3Place] = {place: v3Place, type, min: lowerBound ?? 0, max: upperBound ?? 10}
           break
         }
       }
@@ -154,6 +149,9 @@ export function v2GraphImporter({v2Component, v2Document, sharedModelManager, in
     if (!axes[place]) axes[place] = {place, type: "empty"}
   })
 
+  const hiddenCaseIds = links.hiddenCases?.map(hiddenCase => hiddenCase.id) ?? []
+  const combinedHiddenCaseIds = [...hiddenCaseIds, ...(_hiddenCaseIds ?? [])]
+  const hiddenCases = combinedHiddenCaseIds.map(id => `CASE${id}`)
   // configure plot
   const primaryPlot = plotModels[0]
   const plot = v2PlotImporter(primaryPlot)
@@ -173,13 +171,14 @@ export function v2GraphImporter({v2Component, v2Document, sharedModelManager, in
     plot,
     plotBackgroundColor,
     plotBackgroundOpacity,
-    // plotBackgroundImage,
-    // V2 plotBackgroundImageLockInfo can be null, V3 only accepts undefined
+    // V2 plotBackgroundImage, plotBackgroundImageLockInfo & enableNumberToggle can be null, V3 only accepts undefined
+    plotBackgroundImage: plotBackgroundImage ?? undefined,
     plotBackgroundImageLockInfo: plotBackgroundImageLockInfo ?? undefined,
     isTransparent: isTransparent ?? false,
-    /*
-    * displayOnlySelected,legendRole, legendAttributeType, numberOfLegendQuantiles, legendQuantilesAreLocked,
-    * */
+    showParentToggles: enableNumberToggle ?? undefined,
+    showOnlyLastCase: numberToggleLastMode,
+    numberOfLegendQuantiles,
+    legendQuantilesAreLocked,
     pointDescription: {
       _itemColors: pointColor ? [parseColorToHex(pointColor, {colorNames: true, alpha: transparency})] : [],
       _itemStrokeColor: strokeColor ? parseColorToHex(strokeColor, {colorNames: true, alpha: strokeTransparency})
@@ -193,9 +192,11 @@ export function v2GraphImporter({v2Component, v2Document, sharedModelManager, in
         type: kGraphDataConfigurationType,
         dataset: data?.dataSet.id,
         metadata: metadata?.id,
+        hiddenCases,
         primaryRole,
         _attributeDescriptions,
-        _yAttributeDescriptions
+        _yAttributeDescriptions,
+        displayOnlySelectedCases: displayOnlySelected
       }
     }]
   }

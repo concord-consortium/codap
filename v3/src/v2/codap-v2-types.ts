@@ -456,11 +456,9 @@ export interface ICodapV2GraphBackgroundLockInfo {
 export interface ICodapV2GraphStorage extends ICodapV2BaseComponentStorage {
   _links_: {
     context?: IGuidLink<"DG.DataContextRecord">
-    // TODO_V2_IMPORT: hiddenCases is not imported
-    // there are at least 12,064 instances at this level that are not
-    // empty arrays in cfm-shared
     hiddenCases?: IGuidLink<"DG.Case">[]
-    // TODO_V2_IMPORT: it doesn't seem like any of the *Coll fields are imported
+    // In V2, *Coll is used to find the attribute, so we need to export them.
+    // In V3, we use the attribute ID directly so we don't need to import them.
     xColl?: IGuidLink<"DG.Collection" | "DG.CollectionRecord">
     xAttr?: IGuidLink<"DG.Attribute">
     yColl?: IGuidLink<"DG.Collection" | "DG.CollectionRecord">
@@ -521,14 +519,7 @@ export interface ICodapV2GraphStorage extends ICodapV2BaseComponentStorage {
   rightAxisClass?: string
 
   plotModels: ICodapV2PlotModel[]
-
-  // TODO_V2_IMPORT enableNumberToggle is not imported
-  // There are 16,000 instances in cfm-shared
   enableNumberToggle?: boolean | null
-
-  // TODO_V2_IMPORT numberToggleLastMode is not imported
-  // There are 14,879 instances in cfm-shared
-  // it must be optional based on the results for enableNumberToggle
   numberToggleLastMode?: boolean
 
   // `enableMeasuresForSelection` is a graph-wide property, so storing it here is perfectly reasonable.
@@ -538,11 +529,6 @@ export interface ICodapV2GraphStorage extends ICodapV2BaseComponentStorage {
   // individual adornments. On export, it should be written out redundantly for all adornments.
   enableMeasuresForSelection?: boolean | null
 
-  // TODO_V2_IMPORT: hiddenCases is not imported
-  // there are at least 196 instances at this level that are empty arrays
-  // there are at least 11 instances at this level with number values
-  // Note: there are many more instances of this field inside of `_links_`
-  // and the type of the array items is different.
   hiddenCases?: number[]
 }
 
@@ -592,18 +578,12 @@ export function isV2MapLegacyStorage(obj: unknown): obj is ICodapV2MapCurrentSto
 export interface ICodapV2MapLayerBaseStorage {
   _links_: {
     context: IGuidLink<"DG.DataContextRecord">
-    // TODO_V2_IMPORT hiddenCases are not imported
-    // this array was passed right into MST where it is typed as a string array
-    // There are 296 instances where this is a non-empty array in cfm-shared
     hiddenCases?: IGuidLink<"DG.Case">[],
     legendColl?: IGuidLink<"DG.Collection">,
     // We sometimes see an array of links here
     legendAttr?: IGuidLink<"DG.Attribute"> | IGuidLink<"DG.Attribute">[],
-    // V2_IMPORT_IGNORE tHiddenCases
-    // this occurs 523 times in cfm-shared
-    // in all cases the value is `[]`
-    // seems like detritus from an earlier bug
-    tHiddenCases?: unknown[]
+    // tHiddenCases was briefly used in lieu of hiddenCases
+    tHiddenCases?: IGuidLink<"DG.Case">[]
   }
   legendRole: number
   legendAttributeType: number
@@ -652,9 +632,6 @@ export interface ICodapV2MapCurrentStorage extends ICodapV2BaseComponentStorage 
     center: { lat: number, lng: number } | [lat: number, lng: number]
     zoom: number
     baseMapLayerName: string
-    // TODO_V2_IMPORT: gridMultiplier is not imported at this level
-    // It appears 8,612 times in cfm-shared either here or
-    // inside of the grid object
     gridMultiplier: number
     layerModels: ICodapV2MapLayerStorage[]
   }
