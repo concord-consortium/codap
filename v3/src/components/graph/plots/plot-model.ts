@@ -121,9 +121,9 @@ export const PlotModel = types
     barTipText(props: IBarTipTextProps) {
       return ""
     },
-    newSecondaryAxisRequired(patch: IJsonPatch): false | IAxisModel {
+    newSecondaryAxisRequired(patch: IJsonPatch): undefined | IAxisModel {
       // Derived classes may override to return true if a new secondary axis is required
-      return false
+      return undefined
     }
   }))
   .views(self => ({

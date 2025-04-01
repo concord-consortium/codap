@@ -200,7 +200,7 @@ export function isCountAxisModel(axisModel?: IAxisModel): axisModel is ICountAxi
 }
 
 export function isNumericOrCountOrPercentAxisModel(axisModel?: IAxisModel):
-    axisModel is INumericAxisModel | IDateAxisModel | ICountAxisModel | IPercentAxisModel {
+    axisModel is INumericAxisModel | ICountAxisModel | IPercentAxisModel {
   return isNumericAxisModel(axisModel) || isCountAxisModel(axisModel) || isPercentAxisModel(axisModel)
 }
 

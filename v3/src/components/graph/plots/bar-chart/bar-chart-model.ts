@@ -22,6 +22,7 @@ export const BarChartModel = DotChartModel
   .actions(self => ({
     setBreakdownType(type: BreakdownType) {
       self.breakdownType = type
+      if (type !== 'formula') self.expression = undefined
     },
     setExpression(expression: IFormula) {
       self.expression = expression
