@@ -16,15 +16,16 @@ const mapPinHeight = 35
 const mapPinWidth = 25
 
 interface IMapPinProps {
+  color?: string
   key?: string
   selected?: boolean
   x: number
   y: number
 }
-function MapPin({ selected, x, y }: IMapPinProps) {
+function MapPin({ color="#0068EA", selected, x, y }: IMapPinProps) {
   return (
     <button className={clsx("map-pin", { "selected-pin": selected })} style={{ left: x, top: y }}>
-      <PlacedLocationMarker />
+      <PlacedLocationMarker color={color} />
     </button>
   )
 }
@@ -41,6 +42,7 @@ export const MapPinLayer = observer(function MapPinLayer({ mapLayerModel }: IMap
   const { dataConfiguration } = mapLayerModel
   const dataset = dataConfiguration?.dataset
   const { pinLatId, pinLongId } = dataset ? pinAttributesFromDataSet(dataset) : { pinLatId: "", pinLongId: "" }
+  const colorId = dataset?.attributes.find(attr => attr.type === "color")?.id
 
   // Force a rerender when any relevant values change
   useEffect(() => {
@@ -69,7 +71,16 @@ export const MapPinLayer = observer(function MapPinLayer({ mapLayerModel }: IMap
         const pinX = x - mapPinWidth / 2
         const pinY = y - mapPinHeight
         
-        return <MapPin selected={dataset?.isCaseSelected(__id__)} key={`pin-${__id__}`} x={pinX} y={pinY} />
+        const color = colorId ? dataset.getStrValue(__id__, colorId) : undefined
+        return (
+          <MapPin
+            color={color}
+            key={`pin-${__id__}`}
+            selected={dataset?.isCaseSelected(__id__)}
+            x={pinX}
+            y={pinY}
+          />
+        )
       })}
     </div>
   )
