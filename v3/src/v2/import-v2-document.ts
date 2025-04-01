@@ -43,7 +43,7 @@ export function importV2Document(v2Document: CodapV2Document) {
         const info = getTileComponentInfo(tile.content.type)
         if (info) {
           const {
-            layout: { left = 0, top = 0, width, height: v2Height, isVisible, zIndex }, savedHeight
+            layout: { left = 0, top = 0, width, height: v2Height, isVisible, zIndex, x, y }, savedHeight
           } = v2Component
           const isHidden = isVisible === false
           const v2Minimized = (!!savedHeight && v2Height != null && savedHeight >= v2Height) || undefined
@@ -55,7 +55,7 @@ export function importV2Document(v2Document: CodapV2Document) {
           const _zIndex = zIndex != null ? { zIndex } : {}
           if (zIndex != null && zIndex > maxZIndex) maxZIndex = zIndex
           const _layout: IFreeTileInRowOptions = {
-            x: left, y: top, ..._width, ..._height, ..._zIndex, isHidden, isMinimized
+            x: left ?? x, y: top ?? y, ..._width, ..._height, ..._zIndex, isHidden, isMinimized
           }
           const layout = transform?.(_layout) ?? _layout
           newTile = content?.insertTileSnapshotInRow(tile, row, layout)

@@ -72,7 +72,7 @@ registerV2TileImporter("DG.CaseCard", ({ v2Component, v2Document, sharedModelMan
 
   const {
     guid,
-    componentStorage: { name, title = "", _links_, isActive, columnWidthPct, columnWidthMap }
+    componentStorage: { name, title = "", _links_, isActive, columnWidthPct, columnWidthMap, cannotClose }
   } = v2Component
 
   const content: SetRequired<ICaseCardSnapshot, "attributeColumnWidths"> = {
@@ -100,7 +100,7 @@ registerV2TileImporter("DG.CaseCard", ({ v2Component, v2Document, sharedModelMan
   }
 
   const cardTileSnap: ITileModelSnapshotIn = {
-    id: toV3Id(kCaseCardIdPrefix, guid), name, _title: title, content
+    id: toV3Id(kCaseCardIdPrefix, guid), name, _title: title, content, cannotClose
   }
   const transform: LayoutTransformFn = (options: IFreeTileInRowOptions) => {
     const { width, ...others } = options
