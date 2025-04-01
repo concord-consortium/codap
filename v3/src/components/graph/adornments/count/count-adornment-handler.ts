@@ -15,15 +15,18 @@ import { kCountType } from "./count-adornment-types"
 
 const setAdornmentProperties = (adornment: ICountAdornmentModel, values: DIAdornmentValues) => {
   if (isAdornmentValues(values)) {
-    const { isVisible, showCount, showPercent, percentType } = values as DICountAdornmentValues
+    const { isVisible, percentType, showCount: _showCount, showPercent: _showPercent,
+            type } = values as DICountAdornmentValues
+    const hasShowCountOrPercent = _showCount !== undefined || _showPercent !== undefined
+    const showCount = _showCount || (type === "Count" && !hasShowCountOrPercent)
+    const showPercent = _showPercent ||
+                        (type === "Percent" as string && !hasShowCountOrPercent)
+    
+    adornment.setShowCount(showCount)
+    adornment.setShowPercent(showPercent)
+
     if (isVisible != null) {
       adornment.setVisibility(isVisible)
-    }
-    if (showCount != null) {
-      adornment.setShowCount(showCount)
-    }
-    if (showPercent != null) {
-      adornment.setShowPercent(showPercent)
     }
     if (percentType != null) {
       adornment.setPercentType(percentType)
