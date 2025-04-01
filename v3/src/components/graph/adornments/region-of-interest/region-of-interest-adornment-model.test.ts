@@ -1,4 +1,4 @@
-import { RegionOfInterestAdornmentModel, RoiPositionModel }
+import { RegionOfInterestAdornmentModel, RoiUnitValueModel }
   from "./region-of-interest-adornment-model"
 
 describe("RegionOfInterestAdornmentModel", () => {
@@ -20,8 +20,8 @@ describe("RegionOfInterestAdornmentModel", () => {
   })
 
   it("should set position", () => {
-    const xPosition = RoiPositionModel.create({ unit: "coordinate", value: 100 })
-    const yPosition = RoiPositionModel.create({ unit: "coordinate", value: 150 })
+    const xPosition = RoiUnitValueModel.create({ unit: "coordinate", value: 100 })
+    const yPosition = RoiUnitValueModel.create({ unit: "coordinate", value: 150 })
     const model = RegionOfInterestAdornmentModel.create()
     model.setPosition(xPosition, yPosition)
     expect(model.xPosition).toBe(xPosition)

@@ -60,9 +60,9 @@ export const regionOfInterestAdornmentHandler: DIAdornmentHandler = {
       values: {
         id,
         isVisible,
-        height,
+        height: JSON.stringify(height),
         type,
-        width,
+        width: JSON.stringify(width),
         xPosition: JSON.stringify(xPosition),
         yPosition: JSON.stringify(yPosition)
       }
@@ -72,14 +72,9 @@ export const regionOfInterestAdornmentHandler: DIAdornmentHandler = {
     if (!isRegionOfInterestAdornment(adornment)) return adornmentMismatchResult(kRegionOfInterestType)
 
     const { id, isVisible, height, type, width, xPosition, yPosition } = adornment
-    return { 
-      id, 
-      isVisible, 
-      height, 
-      type, 
-      width, 
-      xPosition: JSON.stringify(xPosition), 
-      yPosition: JSON.stringify(yPosition) 
+    return {
+      id, isVisible, height: JSON.stringify(height),
+      type, width: JSON.stringify(width), xPosition: JSON.stringify(xPosition), yPosition: JSON.stringify(yPosition)
     }
   },
   update(args) {
