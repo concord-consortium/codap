@@ -5,7 +5,7 @@ import { registerTileComponentInfo } from "../../models/tiles/tile-component-inf
 import { getTileDataSet } from "../../models/shared/shared-data-utils"
 import { registerTileContentInfo } from "../../models/tiles/tile-content-info"
 import { ITileModelSnapshotIn } from "../../models/tiles/tile-model"
-import { toV2Id, toV3AttrId, toV3CaseId, toV3Id } from "../../utilities/codap-utils"
+import { toV2Id, toV3AttrId, toV3CaseId, toV3CollectionId, toV3Id } from "../../utilities/codap-utils"
 import { t } from "../../utilities/translation/translate"
 import { registerV2TileExporter, V2TileExportFn } from "../../v2/codap-v2-tile-exporters"
 import { registerV2TileImporter } from "../../v2/codap-v2-tile-importers"
@@ -57,9 +57,12 @@ registerTileComponentInfo({
 const v2TableExporter: V2TileExportFn = ({ tile }) => {
   const tableContent = isCaseTableModel(tile.content) ? tile.content : undefined
   let componentStorage: Maybe<SetOptional<ICodapV2TableStorage, keyof ICodapV2BaseComponentStorage>>
-  const { data: dataSet, metadata } = tableContent || {}
-  const attributeWidths = Array.from(tableContent?.columnWidths.entries() ?? []).map(([attrId, width]) => {
+  const { columnWidths, rowHeights, data: dataSet, metadata } = tableContent || {}
+  const attributeWidths = Array.from(columnWidths?.entries() ?? []).map(([attrId, width]) => {
     return { _links_: { attr: guidLink("DG.Attribute", toV2Id(attrId)) }, width }
+  })
+  const _rowHeights = Array.from(rowHeights?.entries() ?? []).map(([collectionId, rowHeight]) => {
+    return { _links_: { collection: guidLink("DG.Collection", toV2Id(collectionId)) }, rowHeight }
   })
   const collapsedNodes: IGuidLink<"DG.Case">[] = []
   if (metadata) {
@@ -75,6 +78,7 @@ const v2TableExporter: V2TileExportFn = ({ tile }) => {
         ...(collapsedNodes.length ? { collapsedNodes } : {})
       },
       attributeWidths,
+      ...(_rowHeights.length ? { rowHeights: _rowHeights } : {}),
       title: tile._title
     }
   }
@@ -87,14 +91,17 @@ registerV2TileExporter(kCaseTableTileType, v2TableExporter)
 registerV2TileImporter("DG.TableView", ({ v2Component, v2Document, sharedModelManager, insertTile }) => {
   if (!isV2TableComponent(v2Component)) return
 
-  const { guid, componentStorage: { name, title = "", _links_, isActive, attributeWidths, cannotClose } } = v2Component
+  const {
+    guid, componentStorage: { name, title = "", _links_, isActive, attributeWidths, cannotClose, rowHeights }
+  } = v2Component
 
   // Handle broken tables that don't have any links
   if (!_links_) return
 
-  const content: SetRequired<ICaseTableSnapshot, "columnWidths"> = {
+  const content: SetRequired<ICaseTableSnapshot, "columnWidths" | "rowHeights"> = {
     type: kCaseTableTileType,
-    columnWidths: {}
+    columnWidths: {},
+    rowHeights: {},
   }
   const { collapsedNodes = [], context } = _links_
   const { data, metadata } = v2Document.getDataAndMetadata(context.id)
@@ -116,6 +123,11 @@ registerV2TileImporter("DG.TableView", ({ v2Component, v2Document, sharedModelMa
         content.columnWidths[v3AttrId] = entry.width
       }
     }
+  })
+
+  // stash the table's row heights in the content
+  rowHeights?.forEach(({ _links_: { collection: { id } }, rowHeight}) => {
+    content.rowHeights[toV3CollectionId(id)] = rowHeight
   })
 
   const tableTileSnap: ITileModelSnapshotIn = {

@@ -125,10 +125,6 @@ export interface ICodapV2TableStorage extends ICodapV2BaseComponentStorage {
   // these are both in table and case card
   // it might not be optional
   isActive?: boolean
-  // TODO_V2_IMPORT_DEFINE_AND_IMPLEMENT rowHeights is not imported
-  // it occurs more than 20,000 times in cfm-shared
-  // more than 4,200 of those have non-empty arrays
-  // it might not be optional
   rowHeights?: ICodapV2RowHeight[]
   // TODO_V2_IMPORT_CARRY_OVER horizontalScrollOffset is not imported
   // it occurs more than 20,000 times in cfm-shared
