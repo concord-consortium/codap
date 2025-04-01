@@ -1,12 +1,12 @@
 import { format } from "d3-format"
-import { Instance, SnapshotIn, types } from "mobx-state-tree"
+import { IJsonPatch, Instance, SnapshotIn, types } from "mobx-state-tree"
 import { AttributeType } from "../../../../models/data/attribute-types"
-import { Formula } from "../../../../models/formula/formula"
+import { Formula, IFormula } from "../../../../models/formula/formula"
 import { t } from "../../../../utilities/translation/translate"
 import { AxisPlace } from "../../../axis/axis-types"
 import { IAxisModel } from "../../../axis/models/axis-model"
 import { PointDisplayType } from "../../../data-display/data-display-types"
-import { BreakdownTypes } from "../../graphing-types"
+import { BreakdownType, BreakdownTypes } from "../../graphing-types"
 import { DotChartModel } from "../dot-chart/dot-chart-model"
 import { IBarTipTextProps, IPlotModel, typesPlotType } from "../plot-model"
 
@@ -16,9 +16,18 @@ export const BarChartModel = DotChartModel
   .named("BarChartModel")
   .props({
     type: typesPlotType("barChart"),
-    breakdownType: types.maybe(types.enumeration([...BreakdownTypes])),
+    breakdownType: types.optional(types.enumeration([...BreakdownTypes]), "count"),
     expression: types.maybe(Formula)
   })
+  .actions(self => ({
+    setBreakdownType(type: BreakdownType) {
+      self.breakdownType = type
+      if (type !== 'formula') self.expression = undefined
+    },
+    setExpression(expression: IFormula) {
+      self.expression = expression
+    }
+  }))
   .views(self => ({
     get displayType(): PointDisplayType {
       return "bars"
@@ -26,8 +35,20 @@ export const BarChartModel = DotChartModel
     get hasPointsFusedIntoBars(): boolean {
       return true
     },
-    get hasCountAxis(): boolean {
+    get hasCountPercentFormulaAxis(): boolean {
       return true
+    },
+    get countPercentFormulaAxisLabel(): string {
+      switch (self.breakdownType) {
+        case "count":
+          return t("DG.CountAxisView.countLabel")
+        case "percent":
+          return t("DG.CountAxisView.percentLabel")
+        case "formula":
+          return self.expression?.display ?? ""
+        default:
+          return ''
+      }
     },
     get hasDraggableNumericAxis() {
       return true
@@ -36,10 +57,27 @@ export const BarChartModel = DotChartModel
       return !!self.expression && !self.expression.empty
     },
     getValidSecondaryAxis(place: AxisPlace, attrType?: AttributeType, axisModel?: IAxisModel): IAxisModel {
-      return self.getValidCountAxis(place, attrType, axisModel)
+      switch (self.breakdownType) {
+        case "count":
+          return self.getValidCountAxis(place, attrType, axisModel)
+        case "percent":
+          return self.getValidPercentAxis(place, attrType, axisModel)
+        default:
+          return self.getValidNumericOrDateAxis(place, attrType, axisModel)
+      }
     },
     get showZeroLine() {
       return true
+    },
+    get showBreakdownTypes(): boolean {
+      return true
+    },
+    newSecondaryAxisRequired(patch: IJsonPatch): false | IAxisModel {
+      if (patch.path.includes("breakdownType")) {
+        const secondaryPlace = self.dataConfiguration?.secondaryRole === "x" ? "bottom" : "left"
+        return this.getValidSecondaryAxis(secondaryPlace)
+      }
+      return false
     },
     barTipText(props: IBarTipTextProps) {
       const { dataset } = self.dataConfiguration ?? {}
@@ -78,6 +116,6 @@ export const BarChartModel = DotChartModel
   }))
 export interface IBarChartModel extends Instance<typeof BarChartModel> {}
 export interface IBarChartSnapshot extends SnapshotIn<typeof BarChartModel> {}
-export function isBarChartModel(model: IPlotModel): model is IBarChartModel {
-  return model.type === "barChart"
+export function isBarChartModel(model?: IPlotModel): model is IBarChartModel {
+  return model?.type === "barChart"
 }

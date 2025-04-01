@@ -135,8 +135,7 @@ function getLinks(graph: IGraphContentModel): ICodapV2GraphStorage["_links_"] {
   if (dataset) {
     return {
       context: guidLink("DG.DataContextRecord", toV2Id(dataset.id)),
-      // TODO: hiddenCases
-      hiddenCases: [],
+      hiddenCases: graph.dataConfiguration.hiddenCases.map(hiddenCase => guidLink("DG.Case", toV2Id(hiddenCase))),
       ...getAttrLinksForRole(graph, "x", "x"),
       ...getAttrLinksForRole(graph, "y", "y"),
       ...getAttrLinksForRole(graph, "rightNumeric", "y2"),
@@ -302,7 +301,13 @@ export const v2GraphExporter: V2TileExportFn = ({ tile }) => {
     plotBackgroundColor: graph.plotBackgroundColor === defaultBackgroundColor
                               ? null : removeAlphaFromColor(graph.plotBackgroundColor),
     plotBackgroundOpacity: getTransparency(graph.plotBackgroundColor),
+    plotBackgroundImage: graph.plotBackgroundImage,
+    plotBackgroundImageLockInfo: graph.plotBackgroundImageLockInfo,
     isTransparent: graph.isTransparent,
+    enableNumberToggle: graph.showParentToggles,
+    numberToggleLastMode: graph.showOnlyLastCase,
+    numberOfLegendQuantiles: graph.numberOfLegendQuantiles,
+    legendQuantilesAreLocked: graph.legendQuantilesAreLocked,
     // attribute roles and types
     ...getAttrRoleAndType(graph, "x", "x"),
     ...getAttrRoleAndType(graph, "y", "y"),
