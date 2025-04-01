@@ -64,7 +64,7 @@ export const TileModel = V2Model.named("TileModel")
     display: DisplayUserTypeEnum,
     // e.g. "TextContentModel", ...
     content: TileContentUnion,
-    cannotClose: types.optional(types.boolean, false),
+    cannotClose: types.maybe(types.boolean),
     transitionComplete: types.maybe(types.boolean)
   })
   .volatile(self => ({
@@ -125,7 +125,7 @@ export const TileModel = V2Model.named("TileModel")
     setNewlyCreated(newlyCreated: boolean) {
       self.isNewlyCreated = newlyCreated
     },
-    setCannotClose(cannotClose: boolean) {
+    setCannotClose(cannotClose?: boolean) {
       self.cannotClose = cannotClose
     },
     setTransitionComplete(complete: boolean) {

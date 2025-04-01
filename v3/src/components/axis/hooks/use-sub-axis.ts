@@ -245,6 +245,7 @@ export const useSubAxis = ({
           helper = new EmptyAxisHelper(helperProps)
           break
         case 'count':
+        case 'percent':
         case 'numeric':
           helper = new NumericAxisHelper(
             { ...helperProps, showScatterPlotGridLines, showZeroAxisLine })

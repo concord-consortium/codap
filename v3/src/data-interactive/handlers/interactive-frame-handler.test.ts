@@ -60,7 +60,7 @@ describe("DataInteractive InteractiveFrameHandler", () => {
     expect(handler.update?.({}, values).success).toBe(false)
 
     expect(webViewContent.allowEmptyAttributeDeletion).toBe(kDefaultAllowEmptyAttributeDeletion)
-    expect(tile.cannotClose).toBe(false)
+    expect(tile.cannotClose).toBeUndefined()
     expect(webViewContent.preventAttributeDeletion).toBe(kDefaultPreventAttributeDeletion)
     expect(webViewContent.preventBringToFront).toBe(kDefaultPreventBringToFront)
     expect(webViewContent.preventDataContextReorg).toBe(kDefaultPreventDataContextReorg)

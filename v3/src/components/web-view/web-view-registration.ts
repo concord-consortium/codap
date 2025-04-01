@@ -99,7 +99,7 @@ registerV2TileExporter(kWebViewTileType, exportFn)
 function addWebViewSnapshot(args: V2TileImportArgs, name?: string, _content?: Partial<IWebViewSnapshot>) {
   const { v2Component, insertTile } = args
   const { guid } = v2Component
-  const { title, userSetTitle } = v2Component.componentStorage || {}
+  const { title, userSetTitle, cannotClose } = v2Component.componentStorage || {}
   const subTypeMap: Record<string, WebViewSubType> = {
     "DG.GameView": "plugin",
     "DG.GuideView": "guide",
@@ -123,7 +123,8 @@ function addWebViewSnapshot(args: V2TileImportArgs, name?: string, _content?: Pa
     // CODAPv2 seemed to handle this correctly and updated the the title when the document
     // is loaded.
     _title: (userSetTitle && title) || undefined,
-    content
+    content,
+    cannotClose
   }
   const webViewTile = insertTile(webViewTileSnap)
 

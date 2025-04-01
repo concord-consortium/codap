@@ -69,6 +69,7 @@ export const useAxis = (axisPlace: AxisPlace) => {
     let ticks: string[] = []
     switch (axisType) {
       case 'count':
+      case 'percent':
       case 'numeric': {
         ticks = getTicks({d3Scale, isBinned, multiScale, displayModel})
         desiredExtent += ['left', 'rightNumeric'].includes(axisPlace)
