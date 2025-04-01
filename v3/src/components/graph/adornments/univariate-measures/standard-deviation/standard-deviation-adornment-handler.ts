@@ -1,32 +1,17 @@
 import { DIAdornmentHandler } from "../../../../../data-interactive/handlers/adornment-handler"
-import { IGraphContentModel } from "../../../models/graph-content-model"
-import { IAdornmentModel } from "../../adornment-models"
-import { AdornmentData, adornmentMismatchResult, cellKeyToCategories } from "../../utilities/adornment-handler-utils"
 import { isStandardDeviationAdornment } from "./standard-deviation-adornment-model"
 import { kStandardDeviationType } from "./standard-deviation-adornment-types"
+import { univariateMeasureAdornmentBaseHandler } from "../univariate-measure-adornment-base-handler"
 
-export const standardDeviationAdornmentHandler: DIAdornmentHandler = {
-  get(adornment: IAdornmentModel, graphContent: IGraphContentModel) {
-    if (!isStandardDeviationAdornment(adornment)) return adornmentMismatchResult(kStandardDeviationType)
-
-    const dataConfig = graphContent.dataConfiguration
-    const cellKeys = dataConfig?.getAllCellKeys()
-    const data: AdornmentData[] = []
-
-    for (const cellKey of cellKeys) {
+export const standardDeviationAdornmentHandler: DIAdornmentHandler = univariateMeasureAdornmentBaseHandler({
+  adornmentType: kStandardDeviationType,
+  getAdditionalData: (adornment, cellKey, dataConfig) => {
+    if (isStandardDeviationAdornment(adornment)) {
       const primaryAttrId = dataConfig?.primaryAttributeID
-      const cellKeyString = JSON.stringify(cellKey)
-      const mean = adornment.measures.get(cellKeyString)?.value ?? NaN
-      const { min, max } = adornment.computeMeasureRange(primaryAttrId, cellKey, dataConfig)
-      const dataItem: AdornmentData = { mean, min, max }
-    
-      if (Object.keys(cellKey).length > 0) {
-        dataItem.categories = cellKeyToCategories(cellKey, dataConfig)
-      }
-    
-      data.push(dataItem)
+      return adornment.computeMeasureRange(primaryAttrId, cellKey, dataConfig)
     }
-
-    return { data }
-  }
-}
+  },
+  getMeasureValue: (adornment, cellKeyString) => adornment.measures.get(cellKeyString)?.value ?? NaN,
+  isAdornmentOfType: isStandardDeviationAdornment,
+  measureName: "mean"
+})

@@ -1,3 +1,4 @@
+import { mstReaction } from "../../../utilities/mst-reaction"
 import {AxisPlace, AxisPlaces} from "../../axis/axis-types"
 import {
   EmptyAxisModel, isBaseNumericAxisModel, isCategoricalAxisModel, isEmptyAxisModel
@@ -19,10 +20,15 @@ export class GraphController {
   pixiPoints?: PixiPoints
   layout: GraphLayout
   instanceId: string
+  axisReactionDisposer?: () => void
 
   constructor({layout, instanceId}: IGraphControllerProps) {
     this.layout = layout
     this.instanceId = instanceId
+  }
+
+  cleanup() {
+    this.axisReactionDisposer?.()
   }
 
   setProperties(graphModel: IGraphContentModel, pixiPoints?: PixiPoints) {
@@ -34,7 +40,21 @@ export class GraphController {
       this.graphModel.dataConfiguration.setDataset(dataset, metadata)
     }
 
+    this.installAxisReaction()
     this.syncAxisScalesWithModel()
+  }
+
+  installAxisReaction() {
+    this.axisReactionDisposer?.()
+
+    if (this.graphModel) {
+      this.axisReactionDisposer = mstReaction(
+        () => [this.graphModel?.getAxis("left"), this.graphModel?.getAxis("bottom")],
+        () => {
+          this.syncAxisScalesWithModel(false)
+        }, {name: "graphModel [axisChange]"}, this.graphModel
+      )
+    }
   }
 
   handleAttributeAssignment() {
@@ -59,7 +79,7 @@ export class GraphController {
 
   // Called after restore from document or undo/redo, i.e. the models are all configured
   // appropriately but the scales and other non-serialized properties need to be synced.
-  syncAxisScalesWithModel() {
+  syncAxisScalesWithModel(alsoCallMatchCirclesToData = true) {
     const {graphModel, layout} = this,
       dataConfig = graphModel?.dataConfiguration
     if (dataConfig && layout) {
@@ -85,7 +105,7 @@ export class GraphController {
           layout.resetAxisScale(axisPlace)
         }
       })
-      this.callMatchCirclesToData()
+      alsoCallMatchCirclesToData && this.callMatchCirclesToData()
     }
   }
 

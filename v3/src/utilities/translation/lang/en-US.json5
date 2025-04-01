@@ -140,8 +140,10 @@
     "V3.DI.Error.interactiveFrameNotFound": "Interactive Frame not found",
     "V3.DI.Error.itemNotFound": "Item not found",
     "V3.DI.Error.notFound": "Not found",
+    "V3.DI.Error.colorMapAccess": "Internal error prevented color map access",
     "V3.DI.Error.selectionListIllegalValues": "%@1 selectionList requires a list of case IDs.",
     "V3.DI.Error.valuesRequired": "A values object is required for this request.",
+    "V3.DI.Error.invalidValuesProvided": "Invalid values provided for update.",
     "V3.DI.Error.invalidEvaluationRecord": "Invalid record for evaluation",
     "V3.DI.Error.couldNotParseQuery": "Unable to parse query.",
     "V3.DI.Error.unknownRequest": "unknown request: %@",
@@ -149,6 +151,8 @@
     "V3.DI.Error.adornmentNotSupported": "Unsupported adornment type",
     "V3.DI.Error.adornmentListNotFound": "Adornment list not found.",
     "V3.DI.Error.adornmentMismatch": "Not a(n) %@1 adornment.",
+    "V3.DI.Error.adornmentNotSupportedByPlotType": "Adornment not supported by plot type.",
+    "V3.DI.Error.adornmentRequestNotSupported": "The %@1 adornment does not currently support %@2 requests.",
 
     // CFM/File menu
     "DG.fileMenu.menuItem.newDocument": "New",
@@ -490,7 +494,7 @@
     "DG.Undo.graph.dissolveRectanglesToDots": "Undo dissolving rectangles into dots",
     "DG.Redo.graph.dissolveRectanglesToDots": "Redo dissolving rectangles into dots",
     "DG.Undo.graph.changeBreakdownType": "Undo changing scale type",
-    "DG.Redo.graph.changeBreakdownType": "Undo changing scale type",
+    "DG.Redo.graph.changeBreakdownType": "Redo changing scale type",
     "DG.Undo.graph.showAsBinnedPlot": "Undo grouping dots into bins",
     "DG.Redo.graph.showAsBinnedPlot": "Redo grouping dots into bins",
     "DG.Undo.graph.showAsDotPlot": "Undo ungrouping dots from bins",

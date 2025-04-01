@@ -19,10 +19,13 @@ export interface IBarCoverDimensionsProps {
   maxInCell: number
   minInCell?: number
   primCatsCount: number
+  isPercentAxis: boolean
+  numInSubPlot: number
 }
 
 export const barCoverDimensions = (props: IBarCoverDimensionsProps) => {
-  const { subPlotCells, cellIndices, maxInCell, minInCell = 0, primCatsCount } = props
+  const { subPlotCells, cellIndices, maxInCell, minInCell = 0, primCatsCount,
+    isPercentAxis, numInSubPlot} = props
   const { numPrimarySplitBands, numSecondarySplitBands, primaryCellWidth, primaryIsBottom, primarySplitCellWidth,
           secondaryCellHeight, secondaryNumericScale } = subPlotCells
   const { p: primeCatIndex, ep: primeSplitCatIndex, es: secSplitCatIndex } = cellIndices
@@ -34,8 +37,10 @@ export const barCoverDimensions = (props: IBarCoverDimensionsProps) => {
   const offsetPrimary = primaryIsBottom
           ? primeCatIndex * primaryCellWidth + offsetPrimarySplit
           : primaryInvertedIndex * primaryCellWidth + offsetPrimarySplit
-  const secondaryCoord = secondaryNumericScale?.(maxInCell) ?? 0
-  const secondaryBaseCoord = secondaryNumericScale?.(minInCell) ?? 0
+  const maxValue = isPercentAxis ? 100 * maxInCell / numInSubPlot : maxInCell
+  const minValue = isPercentAxis ? 100 * minInCell / numInSubPlot : minInCell
+  const secondaryCoord = secondaryNumericScale?.(maxValue) ?? 0
+  const secondaryBaseCoord = secondaryNumericScale?.(minValue) ?? 0
   const secondaryIndex = primaryIsBottom
           ? numSecondarySplitBands - 1 - secSplitCatIndex
           : secSplitCatIndex
@@ -79,4 +84,12 @@ export const renderBarCovers = (props: IRenderBarCoverProps) => {
         dataConfig && handleClickOnBar({event, dataConfig, barCover: d})
       })
     )
+}
+
+export const barCompressionFactorForCase = (caseID: string, graphModel?: IGraphContentModel) => {
+
+  const getNumSubPlotCases = () => {
+    return graphModel?.dataConfiguration.subPlotCases(graphModel?.dataConfiguration.subPlotKey(caseID)).length ?? 0
+  }
+  return graphModel?.secondaryAxisIsPercent ? 100 / getNumSubPlotCases() : 1
 }

@@ -43,7 +43,7 @@ export function v2GraphImporter({v2Component, v2Document, sharedModelManager, in
     guid,
 
     componentStorage: {
-      name, title = "", _links_: links, plotModels, hiddenCases: _hiddenCaseIds,
+      name, title = "", _links_: links, plotModels, hiddenCases: _hiddenCaseIds, cannotClose,
       pointColor, transparency, strokeColor, strokeTransparency, pointSizeMultiplier,
       strokeSameAsFill, isTransparent, displayOnlySelected, enableNumberToggle, numberToggleLastMode,
       plotBackgroundImage, plotBackgroundImageLockInfo, numberOfLegendQuantiles, legendQuantilesAreLocked
@@ -158,7 +158,7 @@ export function v2GraphImporter({v2Component, v2Document, sharedModelManager, in
 
   // configure adornmentsStore
   const adornmentImporterProps = {
-    data, plotModels,
+    data, metadata, plotModels,
     attributeDescriptions: _attributeDescriptions,
     yAttributeDescriptions: _yAttributeDescriptions
   }
@@ -201,7 +201,8 @@ export function v2GraphImporter({v2Component, v2Document, sharedModelManager, in
     }]
   }
 
-  const graphTileSnap: ITileModelSnapshotIn = { id: toV3Id(kGraphIdPrefix, guid), name, _title: title, content }
+  const graphTileSnap: ITileModelSnapshotIn =
+      { id: toV3Id(kGraphIdPrefix, guid), name, _title: title, content, cannotClose }
   const graphTile = insertTile(graphTileSnap)
 
   // link shared model

@@ -5,6 +5,7 @@ import { setPointSelection } from "../../data-display/data-display-utils"
 import { useDataDisplayAnimation } from "../../data-display/hooks/use-data-display-animation"
 import { SubPlotCells } from "../models/sub-plot-cells"
 import { PixiPoints } from "../../data-display/pixi/pixi-points"
+import { barCompressionFactorForCase } from "../plots/bar-utils"
 import { useGraphContentModelContext } from "./use-graph-content-model-context"
 import { useGraphDataConfigurationContext } from "./use-graph-data-configuration-context"
 import { useGraphLayoutContext } from "./use-graph-layout-context"
@@ -60,9 +61,10 @@ export const useChartDots = (pixiPoints?: PixiPoints) => {
     const cellIndex = cellIndices[anID]
     if (!cellIndex) return 0
 
+    const barHeightFactor = barCompressionFactorForCase(anID, graphModel)
     const { row } = cellIndices[anID]
     const { s, es } = cellIndices[anID].cell
-    const barHeight = secondaryNumericUnitLength
+    const barHeight = secondaryNumericUnitLength * barHeightFactor
     const baseHeight = pointsFusedIntoBars
       ? (row + baselineOffset) * barHeight - barHeight
       : (row + baselineOffset) * pointDiameter + row * overlap

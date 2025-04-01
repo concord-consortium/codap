@@ -1,13 +1,13 @@
 import { IAttribute } from "../models/data/attribute"
 import { IDocumentMetadata } from "../models/document/document-metadata"
-import { ISharedCaseMetadata, SharedCaseMetadata } from "../models/shared/shared-case-metadata"
+import { createSharedCaseMetadata, ISharedCaseMetadata } from "../models/shared/shared-case-metadata"
 import { ISharedDataSet, SharedDataSet } from "../models/shared/shared-data-set"
 import { toV3DataSetId } from "../utilities/codap-utils"
+import { CodapV2DataSetImporter } from "./codap-v2-data-set-importer"
+import { ICodapV2Attribute, ICodapV2Case, ICodapV2Collection } from "./codap-v2-data-set-types"
 import {
   CodapV2Component, CodapV2Context, ICodapV2DocumentJson, isV2ExternalContext, isV2InternalContext
 } from "./codap-v2-types"
-import { ICodapV2Attribute, ICodapV2Case, ICodapV2Collection } from "./codap-v2-data-set-types"
-import { CodapV2DataSetImporter } from "./codap-v2-data-set-importer"
 
 interface V2CaseIdInfo {
   // cumulative list of ordered attribute names used for grouping
@@ -121,7 +121,7 @@ export class CodapV2Document {
       const dataSetId = toV3DataSetId(guid)
       const sharedDataSet = SharedDataSet.create({ dataSet: { id: dataSetId, name, _title: title } })
       this.dataMap.set(guid, sharedDataSet)
-      const caseMetadata = SharedCaseMetadata.create({ data: dataSetId })
+      const caseMetadata = createSharedCaseMetadata(sharedDataSet.dataSet)
       this.caseMetadataMap.set(guid, caseMetadata)
 
       const dataSetImporter = new CodapV2DataSetImporter(this.guidMap, this.v3AttrMap)

@@ -15,8 +15,8 @@ const arrayOfValues = [
   { attribute: "Mass", values: [ "0", "1000", "2000", "3000", "4000", "5000", "6000", "7000" ]},  // Y
   { attribute: "Sleep", values: [...Array(12).keys()].map(i => `${2 * i}`)},  // Y
   { attribute: "Speed", values: [ ]},
-  { attribute: "Habitat", values: [ "land", "water", "both" ]},
-  { attribute: "Diet", values: [ "plants", "meat", "both" ]},
+  { attribute: "Habitat", values: [ "both", "land", "water" ]},
+  { attribute: "Diet", values: [ "both", "meat", "plants"]},
 ]
 
 context("Test graph axes with various attribute types", () => {
@@ -288,7 +288,7 @@ context("Test graph axes with various attribute types", () => {
     cy.get("[data-testid=graph]").find("[data-testid=axis-left]").find(".sub-axis-wrapper").should("have.length", 1)
     cy.dragAttributeToTarget("table", arrayOfAttributes[7], "right") // Habitat => right axis
     cy.get("[data-testid=graph]").find("[data-testid=axis-rightCat]").find(".sub-axis-wrapper").should("have.length", 1)
-    cy.get("[data-testid=graph]").find("[data-testid=axis-left]").find(".sub-axis-wrapper").should("have.length", 3) 
+    cy.get("[data-testid=graph]").find("[data-testid=axis-left]").find(".sub-axis-wrapper").should("have.length", 3)
   })
   it("will test graph with numeric x-axis and two numeric y-attributes", () => {
     ah.openAxisAttributeMenu("bottom")

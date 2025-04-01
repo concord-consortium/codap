@@ -1,4 +1,6 @@
-import { getType, Instance, SnapshotIn, types } from "mobx-state-tree"
+import {
+  applySnapshot, clone, getEnv, getSnapshot, getType, hasEnv, Instance, SnapshotIn, types
+} from "mobx-state-tree"
 import { ISharedModel, SharedModel } from "../shared/shared-model"
 import { isPlaceholderTile } from "../tiles/placeholder/placeholder-content"
 import { ITileModel, ITileModelSnapshotIn, TileModel } from "../tiles/tile-model"
@@ -215,8 +217,15 @@ export const BaseDocumentContentModel = types
       let sharedModelEntry = self.sharedModelMap.get(sharedModel.id)
 
       if (!sharedModelEntry) {
-        sharedModelEntry = SharedModelEntry.create({sharedModel})
+        // shared models with provisional environments must be cloned to avoid incompatible environment error
+        const shouldClone = hasEnv(sharedModel) && getEnv(sharedModel) !== getEnv(self)
+        const sharedModelToAdd = shouldClone ? clone(sharedModel, false) : sharedModel
+        sharedModelEntry = SharedModelEntry.create({ sharedModel: sharedModelToAdd })
         self.sharedModelMap.set(sharedModel.id, sharedModelEntry)
+        if (shouldClone) {
+          // apply the snapshot after it's been added to the tree so references resolve
+          applySnapshot(sharedModelToAdd, getSnapshot(sharedModel))
+        }
       }
 
       return sharedModelEntry

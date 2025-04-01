@@ -1,0 +1,172 @@
+{
+  "name": "Ramp Game",
+  "guid": 16,
+  "components": [
+    {
+      "type": "DG.GameView",
+      "guid": 126,
+      "componentStorage": {
+        "currentGameName": "Ramp Game",
+        "currentGameUrl": "https://inquiryspace-resources.concord.org/rampgame-state-saving/rampgame.html",
+        "_links_": {
+          "context": {
+            "type": "DG.DataContextRecord",
+            "id": 405
+          }
+        }
+      },
+      "layout": {
+        "width": 791,
+        "height": 482,
+        "left": 5,
+        "top": 5
+      }
+    },
+    {
+      "type": "DG.TableView",
+      "guid": 127,
+      "componentStorage": {
+        "_links_": {
+          "context": {
+            "type": "DG.DataContextRecord",
+            "id": 405
+          }
+        }
+      },
+      "layout": {
+        "width": 542,
+        "height": 164,
+        "left": 681,
+        "top": 5
+      }
+    },
+    {
+      "type": "DG.GraphView",
+      "guid": 128,
+      "componentStorage": {
+        "_links_": {
+          "context": {
+            "type": "DG.DataContextRecord",
+            "id": 405
+          },
+          "legendColl": {
+            "type": "DG.CollectionRecord",
+            "id": 609
+          },
+          "legendAttr": {
+            "type": "DG.Attribute",
+            "id": 1024
+          },
+          "hiddenCases": [],
+          "xColl": {
+            "type": "DG.CollectionRecord",
+            "id": 609
+          },
+          "xAttr": {
+            "type": "DG.Attribute",
+            "id": 1026
+          },
+          "yColl": {
+            "type": "DG.CollectionRecord",
+            "id": 609
+          },
+          "yAttr": {
+            "type": "DG.Attribute",
+            "id": 1029
+          }
+        },
+        "legendRole": 0,
+        "legendAttributeType": 2,
+        "xRole": 1,
+        "xAttributeType": 1,
+        "yRole": 4,
+        "yAttributeType": 1,
+        "y2Role": 0,
+        "y2AttributeType": 2,
+        "xAxisClass": "DG.CellLinearAxisModel",
+        "xLowerBound": -0.05,
+        "xUpperBound": 1.05,
+        "yAxisClass": "DG.CellLinearAxisModel",
+        "yLowerBound": -0.25,
+        "yUpperBound": 4.25,
+        "y2AxisClass": "DG.AxisModel",
+        "plotModels": [
+          {
+            "plotModelStorage": {},
+            "plotClass": "DG.ScatterPlotModel"
+          }
+        ]
+      },
+      "layout": {
+        "width": 409,
+        "height": 318,
+        "left": 681,
+        "top": 166
+      }
+    },
+    {
+      "type": "DG.GuideView",
+      "guid": 133,
+      "componentStorage": {
+        "title": "Ramp Game",
+        "items": [
+          {
+            "itemTitle": "- How-to Guide: new vocabulary",
+            "url": "https://inquiryspace-resources.concord.org/guides/how-to-guide/1.html"
+          },
+          {
+            "itemTitle": "How do I use the data table?",
+            "url": "https://inquiryspace-resources.concord.org/guides/how-to-guide/2.html"
+          },
+          {
+            "itemTitle": "Saving documents",
+            "url": "https://inquiryspace-resources.concord.org/guides/how-to-guide/3.html"
+          },
+          {
+            "itemTitle": "How do I make a graph?",
+            "url": "https://inquiryspace-resources.concord.org/guides/how-to-guide/4.html"
+          },
+          {
+            "itemTitle": "How do I read the values of a point? ",
+            "url": "https://inquiryspace-resources.concord.org/guides/how-to-guide/5.html"
+          },
+          {
+            "itemTitle": "How can I look at only part of my data?",
+            "url": "https://inquiryspace-resources.concord.org/guides/how-to-guide/6.html"
+          },
+          {
+            "itemTitle": "How can I remove bad data?",
+            "url": "https://inquiryspace-resources.concord.org/guides/how-to-guide/7.html"
+          },
+          {
+            "itemTitle": "How can I look for patterns?",
+            "url": "https://inquiryspace-resources.concord.org/guides/how-to-guide/8.html"
+          },
+          {
+            "itemTitle": "How do I enter formulas?",
+            "url": "https://inquiryspace-resources.concord.org/guides/how-to-guide/9.html"
+          }
+        ],
+        "currentURL": "https://inquiryspace-resources.concord.org/guides/how-to-guide/1.html",
+        "currentItemTitle": "Part 1",
+        "isVisible": true
+      },
+      "layout": {
+        "left": 4,
+        "top": 478,
+        "width": 467,
+        "height": 224
+      }
+    }
+  ],
+  "contexts": [
+    {
+      "externalDocumentId": "691"
+    }
+  ],
+  "globalValues": [],
+  "appName": "DG",
+  "appVersion": "1.1",
+  "appBuildNum": "0271",
+  "_permissions": 1
+}

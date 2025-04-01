@@ -93,16 +93,23 @@ export class SharedModelDocumentManager implements ISharedModelDocumentManager {
       console.warn("removeSharedModel has no document or data set ID. this will have no effect")
       return
     }
+    const sharedModelsToRemove: ISharedModel[] = []
+    let sharedDataSetToDelete: Maybe<ISharedModel>
     const sharedDatasets = this.document.getSharedModelsByType<typeof SharedDataSet>("SharedDataSet")
-    const sharedMetadatas = this.document.getSharedModelsByType<typeof SharedCaseMetadata>("SharedCaseMetadata")
+    const sharedMetadata = this.document.getSharedModelsByType<typeof SharedCaseMetadata>("SharedCaseMetadata")
     const dataSetToDeleteIndex = sharedDatasets.map(model => model.dataSet.id).indexOf(dataSetId)
-    const metadataToDeleteIndex = sharedMetadatas.map(model => model.data?.id).indexOf(dataSetId)
-    const sharedModelToDelete = sharedDatasets[dataSetToDeleteIndex]
-    const sharedCaseMetadataToDelete = sharedMetadatas[metadataToDeleteIndex]
+    if (dataSetToDeleteIndex >= 0) {
+      sharedDataSetToDelete = sharedDatasets[dataSetToDeleteIndex]
+      sharedModelsToRemove.push(sharedDataSetToDelete)
+    }
+    const metadataToDeleteIndex = sharedMetadata.map(model => model.data?.id).indexOf(dataSetId)
+    if (metadataToDeleteIndex >= 0) {
+      sharedModelsToRemove.push(sharedMetadata[metadataToDeleteIndex])
+    }
     // remove table associated with data set from document
-    const tilesToRemove = this.getSharedModelTiles(sharedModelToDelete)
+    const tilesToRemove = this.getSharedModelTiles(sharedDataSetToDelete)
                               .filter(tile => tile.content.type === kCaseTableTileType)
-    this.document.removeSharedModelsAndTiles([sharedModelToDelete, sharedCaseMetadataToDelete], tilesToRemove)
+    this.document.removeSharedModelsAndTiles(sharedModelsToRemove, tilesToRemove)
   }
 
   addTileSharedModel(tileContentModel: IAnyStateTreeNode, sharedModel: ISharedModel, isProvider = false): void {

@@ -1,0 +1,102 @@
+diff --git a/node_modules/@nedb/binary-search-tree/lib/avltree.js b/node_modules/@nedb/binary-search-tree/lib/avltree.js
+index 4ef0162..ca5bc40 100644
+--- a/node_modules/@nedb/binary-search-tree/lib/avltree.js
++++ b/node_modules/@nedb/binary-search-tree/lib/avltree.js
+@@ -14,6 +14,8 @@ const customUtils = require('./customUtils');
+  */
+ function AVLTree(options) {
+   this.tree = new _AVLTree(options);
++  // [cc] maintain pointer to the longest node
++  this.longest = this.tree
+ }
+ 
+ /**
+@@ -293,7 +295,7 @@ _AVLTree.prototype.rebalanceAlongPath = function (path) {
+  * Insert a key, value pair in the tree while maintaining the AVL tree height constraint
+  * Return a pointer to the root node, which may have changed
+  */
+-_AVLTree.prototype.insert = function (key, value) {
++_AVLTree.prototype.insert = function (key, value, state, prepend = false) {
+   const insertPath = [];
+   let currentNode = this;
+   // Empty tree, insert as root
+@@ -301,6 +303,7 @@ _AVLTree.prototype.insert = function (key, value) {
+     this.key = key;
+     this.data.push(value);
+     this.height = 1;
++    state.node = this;
+     return this;
+   }
+ 
+@@ -316,8 +319,14 @@ _AVLTree.prototype.insert = function (key, value) {
+         throw err;
+       } else {
+         if (this.vkUnique && currentNode.data.includes(value)) return;
+-        currentNode.data.push(value);
++        // [CC] If requested, prepend value to the array
++        if (prepend) {
++          currentNode.data.unshift(value);
++        } else {
++          currentNode.data.push(value);
++        }
+       }
++      state.node = currentNode;
+       return this;
+     }
+ 
+@@ -342,8 +351,14 @@ _AVLTree.prototype.insert = function (key, value) {
+ };
+ 
+ // Insert in the internal tree, update the pointer to the root if needed
+-AVLTree.prototype.insert = function (key, value) {
+-  const newTree = this.tree.insert(key, value);
++AVLTree.prototype.insert = function (key, value, prepend = false) {
++  const state = { node: null };
++  const newTree = this.tree.insert(key, value, state, prepend);
++
++  // Update longest node if necessary
++  if (state.node && state.node.data.length > this.longest.data.length) {
++    this.longest = state.node;
++  }
+ 
+   // If newTree is undefined, that means its structure was not modified
+   if (newTree) {
+@@ -356,7 +371,7 @@ AVLTree.prototype.insert = function (key, value) {
+  * @param {Key} key
+  * @param {Value} value Optional. If not set, the whole key is deleted. If set, only this value is deleted
+  */
+-_AVLTree.prototype.delete = function (key, value) {
++_AVLTree.prototype.delete = function (key, value, state) {
+   const newData = [];
+   let replaceWith;
+   const self = this;
+@@ -391,6 +406,8 @@ _AVLTree.prototype.delete = function (key, value) {
+     }
+   }
+ 
++  state.node = currentNode;
++
+   // Delete only a value (no tree modification)
+   if (currentNode.data.length > 1 && value !== undefined) {
+     currentNode.data.forEach((d) => {
+@@ -481,7 +498,19 @@ _AVLTree.prototype.delete = function (key, value) {
+ 
+ // Delete a value
+ AVLTree.prototype.delete = function (key, value) {
+-  const newTree = this.tree.delete(key, value);
++  const state = { node: null };
++  const newTree = this.tree.delete(key, value, state);
++
++  // Update longest node if necessary
++  if (state.node === this.longest) {
++    let longest = this.tree;
++    this.tree.executeOnEveryNode((node) => {
++      if (node.data.length > longest.data.length) {
++        longest = node;
++      }
++    });
++    this.longest = longest;
++  }
+ 
+   // If newTree is undefined, that means its structure was not modified
+   if (newTree) {

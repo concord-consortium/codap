@@ -62,15 +62,14 @@ export const GraphAttributeLabel =
       }
       const attrIDs = getAttributeIDs()
       const secondaryPlace = dataConfiguration?.secondaryRole === "x" ? "bottom" : "left"
-      if (graphModel.pointsFusedIntoBars && place === secondaryPlace) {
-        return t("DG.CountAxisView.countLabel")
+      if (place === secondaryPlace && graphModel?.plot.hasCountPercentFormulaAxis) {
+        return graphModel?.plot.countPercentFormulaAxisLabel || ''
       }
       return attrIDs.map(anID => dataset?.attrFromID(anID))
                     .filter(attr => attr?.name !== '')
                     .map(attr => `${attr?.name}${attr?.units ? ` (${attr?.units})` : ""}`.trim())
                     .join(', ')
-    }, [dataConfiguration?.secondaryRole, dataset, getAttributeIDs, getClickHereCue,
-      graphModel.pointsFusedIntoBars, place])
+    }, [dataConfiguration?.secondaryRole, dataset, getAttributeIDs, getClickHereCue, graphModel?.plot, place])
 
     const refreshAxisTitle = useCallback(() => {
 
