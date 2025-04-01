@@ -26,7 +26,10 @@ export const WebViewComponent = observer(function WebViewComponent({ tile }: ITi
         </div>
       )}
       <div className="codap-web-view-iframe-wrapper">
-        <iframe className="codap-web-view-iframe" ref={iframeRef} src={webViewModel.url} />
+        { webViewModel.isImage
+            ? <img className="codap-web-view-image" src={webViewModel.url} alt="Image" />
+            : <iframe className="codap-web-view-iframe" ref={iframeRef} src={webViewModel.url} />
+        }
       </div>
       <WebViewDropOverlay />
     </div>
