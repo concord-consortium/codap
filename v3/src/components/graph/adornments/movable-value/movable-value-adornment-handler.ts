@@ -35,7 +35,7 @@ export const movableValueAdornmentHandler: DIAdornmentHandler = {
 
     const options: IUpdateCategoriesOptions = {
       ...graphContent.getUpdateCategoriesOptions(),
-      addMovableValue: !valuePairs // add a movable value with default value if value(s) not provided in request
+      addMovableValue: true
     }
 
     adornmentsStore.addAdornment(adornment, options)
@@ -44,8 +44,15 @@ export const movableValueAdornmentHandler: DIAdornmentHandler = {
     if (valuePairs) {
       try {
         const updates = new Map<string, number>(valuePairs)
-        updates.forEach((newValue) => {
-          adornment.addValue(newValue)
+        updates.forEach((newValue, requestCellKey) => {
+          if (typeof newValue !== "number") return
+
+          const cellKey = normalizeCellKey(requestCellKey, graphContent.dataConfiguration)
+          if (!cellKey) {
+            return errorResult(t("V3.DI.Error.invalidCellKey", { vars: [requestCellKey] }))
+          }
+
+          adornment.replaceValue(newValue, cellKey)
         })
       } catch {
         return invalidValuesProvidedeResult
