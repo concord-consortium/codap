@@ -8,15 +8,17 @@ describe("RegionOfInterestAdornmentModel", () => {
   })
 
   it("should set height", () => {
+    const heightProp = RoiUnitValueModel.create({ unit: "coordinate", value: 0 })
     const model = RegionOfInterestAdornmentModel.create()
-    model.setHeight(100)
-    expect(model.height).toBe(100)
+    model.setHeight(heightProp)
+    expect(model.height).toBe(heightProp)
   })
 
   it("should set width", () => {
+    const widthProp = RoiUnitValueModel.create({ unit: "coordinate", value: 0})
     const model = RegionOfInterestAdornmentModel.create()
-    model.setWidth(100)
-    expect(model.width).toBe(100)
+    model.setWidth(widthProp)
+    expect(model.width).toBe(widthProp)
   })
 
   it("should set position", () => {
@@ -29,9 +31,11 @@ describe("RegionOfInterestAdornmentModel", () => {
   })
 
   it("should set size", () => {
+    const heightProp = RoiUnitValueModel.create({ unit: "coordinate", value: 0 })
+    const widthProp = RoiUnitValueModel.create({ unit: "coordinate", value: 0})
     const model = RegionOfInterestAdornmentModel.create()
-    model.setSize(100, 150)
-    expect(model.width).toBe(100)
-    expect(model.height).toBe(150)
+    model.setSize(widthProp, heightProp)
+    expect(model.width).toBe(widthProp)
+    expect(model.height).toBe(heightProp)
   })
 })
