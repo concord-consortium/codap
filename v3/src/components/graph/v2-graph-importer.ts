@@ -201,7 +201,7 @@ export function v2GraphImporter({v2Component, v2Document, sharedModelManager, in
   }
 
   const graphTileSnap: ITileModelSnapshotIn =
-      { id: toV3Id(kGraphIdPrefix, guid), name, _title: title, content, cannotClose: cannotClose ?? false }
+      { id: toV3Id(kGraphIdPrefix, guid), name, _title: title, content, cannotClose }
   const graphTile = insertTile(graphTileSnap)
 
   // link shared model

@@ -121,7 +121,7 @@ registerV2TileImporter(kV2TextDGType, ({ v2Component, insertTile }) => {
     value: importTextToModelValue(text)
   }
   const textTileSnap: ITileModelSnapshotIn =
-          { id: toV3Id(kTextIdPrefix, guid), _title: title, content, cannotClose: cannotClose ?? false }
+          { id: toV3Id(kTextIdPrefix, guid), _title: title, content, cannotClose }
   const textTile = insertTile(textTileSnap)
 
   return textTile

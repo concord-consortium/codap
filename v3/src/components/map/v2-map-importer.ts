@@ -142,6 +142,6 @@ export function v2MapImporter({v2Component, v2Document, insertTile}: V2TileImpor
   }
 
   const mapTileSnap: ITileModelSnapshotIn =
-          { id: toV3Id(kMapIdPrefix, guid), name, _title: title, content, cannotClose: cannotClose ?? false }
+          { id: toV3Id(kMapIdPrefix, guid), name, _title: title, content, cannotClose }
   return insertTile(mapTileSnap)
 }

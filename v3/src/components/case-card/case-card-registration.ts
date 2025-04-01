@@ -100,7 +100,7 @@ registerV2TileImporter("DG.CaseCard", ({ v2Component, v2Document, sharedModelMan
   }
 
   const cardTileSnap: ITileModelSnapshotIn = {
-    id: toV3Id(kCaseCardIdPrefix, guid), name, _title: title, content, cannotClose: cannotClose ?? false
+    id: toV3Id(kCaseCardIdPrefix, guid), name, _title: title, content, cannotClose
   }
   const transform: LayoutTransformFn = (options: IFreeTileInRowOptions) => {
     const { width, ...others } = options

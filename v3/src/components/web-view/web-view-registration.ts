@@ -122,7 +122,7 @@ function addWebViewSnapshot(args: V2TileImportArgs, name?: string, _content?: Pa
     // is loaded.
     _title: (userSetTitle && title) || undefined,
     content,
-    cannotClose: cannotClose ?? false,
+    cannotClose
   }
   const webViewTile = insertTile(webViewTileSnap)
 

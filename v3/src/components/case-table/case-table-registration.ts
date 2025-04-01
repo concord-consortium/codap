@@ -101,7 +101,7 @@ registerV2TileImporter("DG.TableView", ({ v2Component, v2Document, sharedModelMa
   })
 
   const tableTileSnap: ITileModelSnapshotIn = {
-    id: toV3Id(kCaseTableIdPrefix, guid), name, _title: title, content, cannotClose: cannotClose ?? false
+    id: toV3Id(kCaseTableIdPrefix, guid), name, _title: title, content, cannotClose
   }
   const tableTile = insertTile(tableTileSnap)
 

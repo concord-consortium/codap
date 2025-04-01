@@ -166,8 +166,7 @@ registerV2TileImporter("DG.SliderView", ({ v2Component, v2Document, sharedModelM
   }
   const title = v2Title && (userTitle || userSetTitle) ? v2Title : undefined
   const sliderTileSnap: ITileModelSnapshotIn = {
-    id: toV3Id(kSliderIdPrefix, componentGuid), name, _title: title, content,
-    cannotClose: cannotClose ?? false
+    id: toV3Id(kSliderIdPrefix, componentGuid), name, _title: title, content, cannotClose
   }
   const sliderTile = insertTile(sliderTileSnap)
 
