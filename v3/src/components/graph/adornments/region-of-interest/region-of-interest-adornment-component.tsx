@@ -1,6 +1,6 @@
 import { select } from "d3"
 import { observer } from "mobx-react-lite"
-import { useEffect } from "react"
+import { useCallback, useEffect, useRef } from "react"
 import { mstAutorun } from "../../../../utilities/mst-autorun"
 import { ScaleNumericBaseType } from "../../../axis/axis-types"
 import { useAdornmentAttributes } from "../../hooks/use-adornment-attributes"
@@ -50,6 +50,31 @@ export const calculatePixelDimension = (
   }
 }
 
+const calculatePixelPosition = (
+  attrId: string | undefined,
+  plotSize: number,
+  scale: ScaleNumericBaseType,
+  position: { unit?: RoiPositionUnit; value?: number } | undefined,
+  pixelDimension: number,
+  isYAxis: boolean = false
+) => {
+  const posUnit = position?.unit ?? "coordinate"
+  const posValue = position?.value ?? 0
+
+  if (attrId) {
+    return scaleValueToGraph(plotSize, scale, posUnit, posValue) - (isYAxis ? pixelDimension : 0)
+  }
+
+  if (posUnit === "percent" || posUnit === "%") {
+    return isYAxis
+      ? (plotSize * (100 - posValue) / 100) - pixelDimension
+      : (plotSize * posValue / 100)
+  }
+
+  return isYAxis ? plotSize - pixelDimension : 0
+}
+
+
 export const RegionOfInterestAdornment = observer(function RegionOfInterestAdornment(props: IAdornmentComponentProps) {
   const { plotHeight, plotWidth, spannerRef, xAxis, yAxis } = props
   const model = props.model as IRegionOfInterestAdornmentModel
@@ -60,85 +85,42 @@ export const RegionOfInterestAdornment = observer(function RegionOfInterestAdorn
   const roiYAttr = dataConfig?.dataset?.getAttributeByName(yAttribute) || yAttribute
   const xAttrId = roiXAttr || _aAttrId
   const yAttrId = roiYAttr || _yAttrId
-  const yScaleDomain = yAttrId ? yScale.domain() : [0, plotHeight]
+  const roiRect = useRef<any>(null)
 
-  const pixelHeight = calculatePixelDimension(height, yAttrId?.toString(), yScale, plotHeight, true)
-  const pixelWidth = calculatePixelDimension(width, xAttrId?.toString(), xScale, plotWidth)
+   useEffect(() => {
+    if (!spannerRef?.current) return
+    const selection = select(spannerRef.current)
+    let rectSel = selection.select<SVGRectElement>(".region-of-interest")
+    if (rectSel.empty()) {
+      rectSel = selection.append("rect")
+        .attr("class", "region-of-interest")
+        .attr("data-testid", "region-of-interest")
+    }
+    roiRect.current = rectSel
+  }, [spannerRef])
 
-  const xPosUnit = xPosition?.unit ?? "coordinate"
-  const xPosValue = xPosition?.value ?? 0
-  const xPixelPosition = xAttrId
-    ? scaleValueToGraph(plotWidth, xScale, xPosUnit, xPosValue)
-    : 0
+  const updateRectangle = useCallback(() => {
+    if (!roiRect?.current) return
 
-  const yPosUnit = yPosition?.unit ?? "coordinate"
-  const yPosValue = yPosition?.value ?? 0
-  const yPixelPosition = yAttrId
-    ? scaleValueToGraph(plotHeight, yScale, yPosUnit, yPosValue) - pixelHeight
-    : yScale(yScaleDomain[1]) - pixelHeight
+    const pixelHeight = calculatePixelDimension(height, yAttrId.toString(), yScale, plotHeight, true)
+    const pixelWidth  = calculatePixelDimension(width,  xAttrId.toString(), xScale, plotWidth)
 
-  const selection = spannerRef && select(spannerRef.current)
+    const xPixelPosition = calculatePixelPosition(xAttrId.toString(), plotWidth, xScale, xPosition, pixelWidth)
+    const yPixelPosition = calculatePixelPosition(yAttrId.toString(), plotHeight, yScale, yPosition, pixelHeight, true)
 
-  // Refresh ROI position and dimensions when the model changes.
-  useEffect(function updateRectangle() {
-    if (!selection) return
-
-    selection.select(".region-of-interest")
-      .attr("x", xPixelPosition)
+    roiRect.current.attr("x", xPixelPosition)
       .attr("y", yPixelPosition)
       .attr("width", pixelWidth)
       .attr("height", pixelHeight)
+  }, [height, yScale, plotHeight, width, xScale, plotWidth, xPosition, yPosition, xAttrId, yAttrId])
 
-  }, [pixelHeight, xPixelPosition, yPixelPosition, pixelWidth, selection])
-
-  // Refresh ROI position and dimensions when the plot size changes.
-  // useEffect(function updateRectangle() {
-  //   if (!selection) return
-
-  //   const { newWidth, newHeight, newX, newY } = regionBounds()
-  //   model.setSize(newWidth, newHeight)
-  //   model.setPosition(newX, newY)
-
-  //   selection.select(".region-of-interest")
-  //     .attr("x", model.x)
-  //     .attr("y", model.y)
-  //     .attr("width", model.width)
-  //     .attr("height", model.height)
-
-  //   initialPlotWidthRef.current = plotWidth
-  //   initialPlotHeightRef.current = plotHeight
-  // }, [plotWidth, plotHeight, model, dataConfig, regionBounds, selection])
-
-  // const regionBounds = useCallback(() => {
-  //   const newWidth = { unit: width?.unit ?? "coordinate", value: pixelWidth }
-  //   const newHeight = { unit: height?.unit ?? "coordinate", value: pixelHeight }
-  //   const newX = { unit: xPosition?.unit ?? "coordinate", value: xPixelPosition }
-  //   const newY = { unit: yPosition?.unit ?? "coordinate", value: yPixelPosition }
-  //   return { newWidth, newHeight, newX, newY }
-  // }, [height?.unit, pixelHeight, pixelWidth, width?.unit, xPixelPosition, xPosition?.unit, yPixelPosition,
-  //     yPosition?.unit])
-
-  // Refresh ROI position and dimensions when the axis changes.
-  useEffect(function refreshAxisChange() {
-    return mstAutorun(() => {
+  useEffect(() => {
+    const disposer = mstAutorun(() => {
       getAxisDomains(xAxis, yAxis)
-      // const { newWidth,  newHeight, newX, newY } = regionBounds()
-      // model.setSize(newWidth, newHeight)
-      // model.setPosition(newX, newY)
-    }, { name: "RegionOfInterest.refreshAxisChange" }, model)
-  }, [dataConfig, model, plotHeight, plotWidth, xAxis, yAxis])
-
-  useEffect(function addRectangle() {
-    if (!selection || selection.select(".region-of-interest").size() > 0) return
-
-    selection.append("rect")
-      .attr("class", "region-of-interest")
-      .attr("data-testid", "region-of-interest")
-      .attr("x", xPixelPosition)
-      .attr("y", yPixelPosition)
-      .attr("width", pixelWidth)
-      .attr("height", pixelHeight)
-  }, [selection, xPixelPosition, yPixelPosition, pixelWidth, pixelHeight])
+      updateRectangle()
+    }, { name: "RegionOfInterestAdornment.refreshAxisChange" }, model)
+    return disposer
+  }, [model, xAxis, yAxis, plotWidth, plotHeight, updateRectangle])
 
   // The ROI is rendered in spannerRef, so we don't need to render anything here.
   return null
