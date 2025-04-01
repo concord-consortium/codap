@@ -10,7 +10,11 @@ jest.mock("../adornment-content-info", () => {
     showPercent: types.optional(types.boolean, false),
     percentType: types.optional(types.string, "row"),
     isVisible: types.optional(types.boolean, false),
-  }).actions(self => ({
+  }).views(self => ({
+    percentValue() {
+      return 0.5
+    }
+  })).actions(self => ({
     setShowCount(showCount: boolean) {
       self.showCount = showCount
     },
@@ -113,6 +117,46 @@ describe("DataInteractive CountAdornmentHandler", () => {
     expect(values.showCount).toBe(true)
     expect(values.showPercent).toBe(false)
     expect(values.percentType).toBe("column")
+  })
+
+  it("create sets default `showCount` and `showPercent` based on type when values not provided", () => {
+    const countRequestValues = { type: kCountType }
+    const countResult = handler.create!({ graphContent: mockGraphContent, values: countRequestValues })
+    expect(countResult?.success).toBe(true)
+    const countValues = countResult?.values as any
+    expect(countValues.showCount).toBe(true)
+    expect(countValues.showPercent).toBe(false)
+
+    const percentRequestValues = { type: kPercentType }
+    const percentResult = handler.create!({ graphContent: mockGraphContent, values: percentRequestValues })
+    expect(percentResult?.success).toBe(true)
+    const percentValues = percentResult?.values as any
+    expect(percentValues.showCount).toBe(false)
+    expect(percentValues.showPercent).toBe(true)
+  })
+
+  it("create respects explicitly provided showCount and showPercent values", () => {
+    const bothTrueValues = {
+      type: kCountType,
+      showCount: true,
+      showPercent: true
+    }
+    const bothTrueResult = handler.create!({ graphContent: mockGraphContent, values: bothTrueValues })
+    expect(bothTrueResult?.success).toBe(true)
+    const bothTrueResultValues = bothTrueResult?.values as any
+    expect(bothTrueResultValues.showCount).toBe(true)
+    expect(bothTrueResultValues.showPercent).toBe(true)
+
+    const bothFalseValues = {
+      type: kCountType,
+      showCount: false,
+      showPercent: false
+    }
+    const bothFalseResult = handler.create!({ graphContent: mockGraphContent, values: bothFalseValues })
+    expect(bothFalseResult?.success).toBe(true)
+    const bothFalseResultValues = bothFalseResult?.values as any
+    expect(bothFalseResultValues.showCount).toBe(false)
+    expect(bothFalseResultValues.showPercent).toBe(false)
   })
 
   it("get returns an error when an invalid adornment provided", () => {
