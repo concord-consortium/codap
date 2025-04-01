@@ -7,33 +7,35 @@ jest.mock("../adornment-content-info", () => {
     id: types.optional(types.string, "ADRN123"),
     type: types.optional(types.string, "Region of Interest"),
     isVisible: types.optional(types.boolean, false),
-    height: types.optional(types.number, 100),
-    width: types.optional(types.number, 150),
+    height: types.maybe(types.frozen<Record<string, number | string>>()),
+    width:types.maybe(types.frozen<Record<string, number | string>>()),
     xAttribute: types.optional(types.string, ""),
-    xPosition: types.optional(
-      types.frozen<Record<string, number | string>>(), { unit: "coordinate", value: 10 }
-    ),
+    xPosition: types.maybe(types.frozen<Record<string, number | string>>()),
     yAttribute: types.optional(types.string, ""),
-    yPosition: types.optional(
-      types.frozen<Record<string, number | string>>(), { unit: "coordinate", value: 15 }
-    )
+    yPosition: types.maybe(types.frozen<Record<string, number | string>>())
   }).actions(self => ({
-    setHeight(height: number) {
+    setHeight(height: Record<string, number | string>) {
       self.height = height
     },
-    setWidth(width: number) {
+    setWidth(width: Record<string, number | string>) {
       self.width = width
     },
     setPosition(x: Record<string, number | string>, y: Record<string, number | string>) {
       self.xPosition = x
       self.yPosition = y
     },
-    setSize(width: number, height: number) {
+    setSize(width: Record<string, number | string>, height: Record<string, number | string>) {
       self.width = width
       self.height = height
     },
     setVisibility(isVisible: boolean) {
       self.isVisible = isVisible
+    },
+    setXPosition(x: Record<string, number | string>) {
+      self.xPosition = x
+    },
+    setYPosition(y: Record<string, number | string>) {
+      self.yPosition = y
     }
   }))
 
@@ -74,7 +76,7 @@ describe("DataInteractive regionOfInterestAdornmentHandler", () => {
       },
       dataConfiguration: mockDataConfig
     }
-    
+
     mockRegionOfInterestAdornment = {
       height: 100,
       id: "ADRN123",
@@ -94,7 +96,11 @@ describe("DataInteractive regionOfInterestAdornmentHandler", () => {
 
   it("create returns the expected data when Region of Interest adornment created", () => {
     const createRequestValues = {
-      type: kRegionOfInterestType
+      type: kRegionOfInterestType,
+      xPosition: { unit: "coordinate", value: 10 },
+      yPosition: { unit: "coordinate", value: 15 },
+      width: { unit: "coordinate", value: 150 },
+      height: { unit: "coordinate", value: 100 },
     }
     const result = handler.create!({ graphContent: mockGraphContent, values: createRequestValues })
     expect(result?.success).toBe(true)
@@ -103,8 +109,8 @@ describe("DataInteractive regionOfInterestAdornmentHandler", () => {
     expect(values.type).toBe(kRegionOfInterestType)
     expect(values.id).toBe("ADRN123")
     expect(values.isVisible).toBe(true)
-    expect(values.height).toBe(100)
-    expect(values.width).toBe(150)
+    expect(values.height).toBe(JSON.stringify({ unit: "coordinate", value: 100 }))
+    expect(values.width).toBe(JSON.stringify({ unit: "coordinate", value: 150 }))
     expect(values.xPosition).toBe(JSON.stringify({ unit: "coordinate", value: 10 }))
     expect(values.yPosition).toBe(JSON.stringify({ unit: "coordinate", value: 15 }))
   })
