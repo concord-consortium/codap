@@ -1,11 +1,10 @@
 import { Instance, SnapshotIn, types } from "mobx-state-tree"
 import { AdornmentModel, IAdornmentModel } from "../adornment-models"
-import { kDefaultX, kDefaultY, kRegionOfInterestType }
-  from "./region-of-interest-adornment-types"
+import { kRegionOfInterestType } from "./region-of-interest-adornment-types"
 
 export type RoiPositionUnit = "coordinate" | "percent" | "%"
 
-export const RoiPositionModel = types.model("RoiPositionModel", {
+export const RoiUnitValueModel = types.model("RoiPositionModel", {
   unit: types.enumeration<RoiPositionUnit>("unit", ["coordinate", "percent", "%"]),
   value: types.number
 })
@@ -14,18 +13,18 @@ export const RegionOfInterestAdornmentModel = AdornmentModel
   .named("RegionOfInterestAdornmentModel")
   .props({
     type: types.optional(types.literal(kRegionOfInterestType), kRegionOfInterestType),
-    height: types.maybe(types.number),
-    width: types.maybe(types.number),
+    height: types.maybe(RoiUnitValueModel),
+    width: types.maybe(RoiUnitValueModel),
     xAttribute: types.optional(types.string, ""),
-    xPosition: types.optional(RoiPositionModel, { unit: "coordinate", value: kDefaultX }),
+    xPosition: types.maybe(RoiUnitValueModel),
     yAttribute: types.optional(types.string, ""),
-    yPosition: types.optional(RoiPositionModel, { unit: "coordinate", value: kDefaultY })
+    yPosition: types.maybe(RoiUnitValueModel)
   })
   .actions(self => ({
-    setHeight(height: number) {
+    setHeight(height: IRoiPositionModel) {
       self.height = height
     },
-    setWidth(width: number) {
+    setWidth(width: IRoiPositionModel) {
       self.width = width
     },
     setXPosition(xPos: IRoiPositionModel) {
@@ -38,13 +37,13 @@ export const RegionOfInterestAdornmentModel = AdornmentModel
       self.xPosition = x
       self.yPosition = y
     },
-    setSize(width: number, height: number) {
+    setSize(width: IRoiPositionModel, height: IRoiPositionModel) {
       self.width = width
       self.height = height
     }
   }))
 
-export interface IRoiPositionModel extends Instance<typeof RoiPositionModel> {}
+export interface IRoiPositionModel extends Instance<typeof RoiUnitValueModel> {}
 export interface IRegionOfInterestAdornmentModelSnapshot extends SnapshotIn<typeof RegionOfInterestAdornmentModel> {}
 export interface IRegionOfInterestAdornmentModel extends Instance<typeof RegionOfInterestAdornmentModel> {}
 
