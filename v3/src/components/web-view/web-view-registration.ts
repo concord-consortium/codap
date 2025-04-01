@@ -211,7 +211,7 @@ const webViewComponentHandler: DIComponentHandler = {
         image: kV2ImageComponentViewType,
         plugin: kV2GameType
       }
-      const type = subTypeToV2TypeMap[content.type as keyof typeof subTypeToV2TypeMap] ?? kV2WebViewType
+      const type =  (content.subType && subTypeToV2TypeMap[content.subType]) ?? kV2WebViewType
       return { type, URL: content.url } as V2Game | V2Guide | V2WebView
     }
   },
