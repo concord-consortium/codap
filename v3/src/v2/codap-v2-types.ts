@@ -723,13 +723,6 @@ export interface ICodapV2CaseCardComponent extends ICodapV2BaseComponent {
 export const isV2CaseCardComponent = (component: ICodapV2BaseComponent): component is ICodapV2CaseCardComponent =>
   component.type === "DG.CaseCard"
 
-// TODO_V2_IMPORT: handle importing images
-// This is used 3,971 times in cfm-shared
-export interface ICodapV2ImageComponent extends ICodapV2BaseComponent {
-  type: "DG.ImageComponentView"
-  componentStorage: ICodapV2ImageComponentStorage
-}
-
 export interface ICodapV2WebViewComponent extends ICodapV2BaseComponent {
   type: "DG.WebView"
   componentStorage: ICodapV2WebViewStorage
@@ -753,7 +746,7 @@ export const isV2GuideViewComponent = (component: ICodapV2BaseComponent): compon
 
 export interface ICodapV2ImageViewComponent extends ICodapV2BaseComponent {
   type: "DG.ImageComponentView"
-  componentStorage: ICodapV2WebViewStorage
+  componentStorage: ICodapV2ImageComponentStorage
 }
 export const isV2ImageViewComponent = (component: ICodapV2BaseComponent): component is ICodapV2ImageViewComponent =>
               component.type === "DG.ImageComponentView"
@@ -785,7 +778,7 @@ export type CodapV2Component =
   ICodapV2GameViewComponent |
   ICodapV2GraphComponent |
   ICodapV2GuideViewComponent |
-  ICodapV2ImageComponent |
+  ICodapV2ImageViewComponent |
   ICodapV2MapComponent |
   ICodapV2SliderComponent |
   ICodapV2TableComponent |
