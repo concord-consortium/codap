@@ -88,6 +88,7 @@ export const BarChart = observer(function BarChart({ abovePointsGroupRef, pixiPo
                     return numericSortComparator({a: Number(cat1), b: Number(cat2), order: "desc"})
                   })
                 }
+                const cellMap = dataConfig.cellMap(primarySplitAttrRole, secondarySplitAttrRole)
 
                 // For each legend value, create a bar cover
                 legendCats.forEach((legendCat: string) => {
@@ -95,9 +96,10 @@ export const BarChart = observer(function BarChart({ abovePointsGroupRef, pixiPo
                     caseGroups.get(`${legendCat}-${primeCat}-${exPrimeCatKey}-${exSecCatKey}`) ?? []
                   const maxInCell = minInCell + matchingCases.length
                   if (maxInCell !== minInCell) {
+                    const numInBar = cellMap[primeSplitCat]?.[secSplitCat]?.[primeCat]?.[secCat] ?? 1
                     const { x, y, barWidth, barHeight } = barCoverDimensions({
                       subPlotCells, cellIndices: cellData.cell, layout, primCatsCount, maxInCell, minInCell,
-                      isPercentAxis: graphModel.secondaryAxisIsPercent,
+                      numInBar, isPercentAxis: graphModel.secondaryAxisIsPercent, hasLegend: true,
                       numInSubPlot: dataConfig.numCasesInSubPlotGivenCategories(primeSplitCat, secSplitCat)
                     })
                     const caseIDs = dataConfig.getCasesForCategoryValues(
@@ -117,7 +119,7 @@ export const BarChart = observer(function BarChart({ abovePointsGroupRef, pixiPo
                 const maxInCell = bins[primeSplitCat]?.[secSplitCat]?.[primeCat]?.[secCat] ?? 0
                 const { x, y, barWidth, barHeight } = barCoverDimensions({
                   subPlotCells, cellIndices: cellData.cell, layout, primCatsCount, maxInCell,
-                  isPercentAxis: graphModel.secondaryAxisIsPercent,
+                  isPercentAxis: graphModel.secondaryAxisIsPercent, hasLegend: false,
                   numInSubPlot: dataConfig.numCasesInSubPlotGivenCategories(primeSplitCat, secSplitCat)
                 })
                 const caseIDs = dataConfig.getCasesForCategoryValues(

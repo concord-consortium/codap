@@ -306,49 +306,62 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       return !attrID ? kMain
         : strValue && (strValue === '' || categoryArray?.includes(strValue)) ? strValue : kOther
     },
+    categorySpecForCase(caseID: string, extraPrimaryAttrRole: AttrRole, extraSecondaryAttrRole: AttrRole,
+                        hasExtraPrimary: boolean, hasExtraSecondary: boolean) {
+      return {
+        primary: (self.primaryRole && this.categoricalValueForCaseInRole(caseID, self.primaryRole)) ?? '',
+        secondary: (self.secondaryRole &&
+          this.categoricalValueForCaseInRole(caseID, self.secondaryRole)) || kMain,
+        extraPrimary: (hasExtraPrimary &&
+          this.categoricalValueForCaseInRole(caseID, extraPrimaryAttrRole)) || kMain,
+        extraSecondary: (hasExtraSecondary &&
+          this.categoricalValueForCaseInRole(caseID, extraSecondaryAttrRole)) || kMain
+      }
+    },
   }))
   .views(self => ({
-    cellMap(
-      extraPrimaryAttrRole: AttrRole, extraSecondaryAttrRole: AttrRole,
-      binWidth = 0, minValue = 0, totalNumberOfBins = 0
-    ) {
-      type BinMap = Record<string, Record<string, Record<string, Record<string, number>>>>
-      const hasExtraPrimary = !!self.attributeID(extraPrimaryAttrRole),
-        hasExtraSecondary = !!self.attributeID(extraSecondaryAttrRole),
-        valueQuads = (self.getCaseDataArray(0) || []).map((aCaseData: CaseData) => {
-          return {
-            primary: (self.primaryRole && self.categoricalValueForCaseInRole(aCaseData.caseID, self.primaryRole)) ?? '',
-            secondary: (self.secondaryRole &&
-                self.categoricalValueForCaseInRole(aCaseData.caseID, self.secondaryRole)) || kMain,
-            extraPrimary: (hasExtraPrimary &&
-              self.categoricalValueForCaseInRole(aCaseData.caseID, extraPrimaryAttrRole)) || kMain,
-            extraSecondary: (hasExtraSecondary &&
-              self.categoricalValueForCaseInRole(aCaseData.caseID, extraSecondaryAttrRole)) || kMain
+    cellMap: cachedFnWithArgsFactory({
+      key: (extraPrimaryAttrRole: AttrRole, extraSecondaryAttrRole: AttrRole,
+            binWidth = 0, minValue = 0, totalNumberOfBins = 0) => {
+        return JSON.stringify({
+          ep: extraPrimaryAttrRole, es: extraSecondaryAttrRole,
+          bw: binWidth, min: minValue, tnb: totalNumberOfBins
+        })
+      },
+      calculate: (extraPrimaryAttrRole: AttrRole, extraSecondaryAttrRole: AttrRole,
+                  binWidth = 0, minValue = 0, totalNumberOfBins = 0) => {
+        type BinMap = Record<string, Record<string, Record<string, Record<string, number>>>>
+        const hasExtraPrimary = !!self.attributeID(extraPrimaryAttrRole),
+          hasExtraSecondary = !!self.attributeID(extraSecondaryAttrRole),
+          valueQuads = (self.getCaseDataArray(0) || []).map((aCaseData: CaseData) => {
+            return self.categorySpecForCase(aCaseData.caseID, extraPrimaryAttrRole, extraSecondaryAttrRole,
+              hasExtraPrimary, hasExtraSecondary)
+          }),
+          bins: BinMap = {}
+
+        valueQuads?.forEach((aValue: any) => {
+          const primaryValue = totalNumberOfBins > 0
+            ? Math.floor((Number(aValue.primary) - minValue) / binWidth)
+            : aValue.primary
+          if (bins[aValue.extraPrimary] === undefined) {
+            bins[aValue.extraPrimary] = {}
           }
-        }),
-        bins: BinMap = {}
+          if (bins[aValue.extraPrimary][aValue.extraSecondary] === undefined) {
+            bins[aValue.extraPrimary][aValue.extraSecondary] = {}
+          }
+          if (bins[aValue.extraPrimary][aValue.extraSecondary][primaryValue] === undefined) {
+            bins[aValue.extraPrimary][aValue.extraSecondary][primaryValue] = {}
+          }
+          if (bins[aValue.extraPrimary][aValue.extraSecondary][primaryValue][aValue.secondary] === undefined) {
+            bins[aValue.extraPrimary][aValue.extraSecondary][primaryValue][aValue.secondary] = 0
+          }
+          bins[aValue.extraPrimary][aValue.extraSecondary][primaryValue][aValue.secondary]++
+        })
 
-      valueQuads?.forEach((aValue: any) => {
-        const primaryValue = totalNumberOfBins > 0
-                               ? Math.floor((Number(aValue.primary) - minValue) / binWidth)
-                               : aValue.primary
-        if (bins[aValue.extraPrimary] === undefined) {
-          bins[aValue.extraPrimary] = {}
-        }
-        if (bins[aValue.extraPrimary][aValue.extraSecondary] === undefined) {
-          bins[aValue.extraPrimary][aValue.extraSecondary] = {}
-        }
-        if (bins[aValue.extraPrimary][aValue.extraSecondary][primaryValue] === undefined) {
-          bins[aValue.extraPrimary][aValue.extraSecondary][primaryValue] = {}
-        }
-        if (bins[aValue.extraPrimary][aValue.extraSecondary][primaryValue][aValue.secondary] === undefined) {
-          bins[aValue.extraPrimary][aValue.extraSecondary][primaryValue][aValue.secondary] = 0
-        }
-        bins[aValue.extraPrimary][aValue.extraSecondary][primaryValue][aValue.secondary]++
-      })
-
-      return bins
-    }
+        return bins
+      },
+      name: 'cellMap'
+    })
   }))
   .views(self => ({
     maxOverAllCells(extraPrimaryAttrRole: AttrRole, extraSecondaryAttrRole: AttrRole) {
@@ -545,6 +558,18 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     numCasesInSubPlotGivenCategories(extraPrimaryCategory: string, extraSecondaryCategory: string) {
       return this.subPlotCases(this.subPlotKeyFromExtraCategories(extraPrimaryCategory, extraSecondaryCategory)).length
     },
+    numPrimaryCategoryCases(caseID: string) {
+      // Determine the sub-plot to which this case belongs and return the number of cases within that sub-plot
+      // that belong to the case's primary category
+      const extraPrimaryAttrRole = self.primaryRole === "x" ? "topSplit" : "rightSplit",
+        extraSecondaryAttrRole = self.primaryRole === "x" ? "rightSplit" : "topSplit",
+        hasExtraPrimary = !!self.attributeID(extraPrimaryAttrRole),
+        hasExtraSecondary = !!self.attributeID(extraSecondaryAttrRole),
+        cellMap = self.cellMap(extraPrimaryAttrRole, extraSecondaryAttrRole),
+        cellSpec = self.categorySpecForCase(caseID, extraPrimaryAttrRole, extraSecondaryAttrRole,
+          hasExtraPrimary, hasExtraSecondary)
+      return cellMap[cellSpec.extraPrimary]?.[cellSpec.extraSecondary]?.[cellSpec.primary]?.[cellSpec.secondary] ?? 0
+    },
     cellCases: cachedFnWithArgsFactory({
       key: (cellKey: Record<string, string>) => JSON.stringify(cellKey),
       calculate: (cellKey: Record<string, string>) => {
@@ -626,6 +651,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       setNumberOfCategoriesLimitForRole(role: AttrRole, limit: number) {
         if (self.numberOfCategoriesLimitByRole.get(role) !== limit) {
           self.subPlotCases.invalidateAll()
+          self.cellMap.invalidateAll()
           baseSetNumberOfCategoriesLimitForRole.call(self, role, limit)
           self.categoryArrayForAttrRole.invalidate(role)
           self.categoryArrayForAttrRole.invalidate(role, [])
@@ -745,6 +771,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
         self._setAttributeDescription(role, desc)
       }
       self.numericValuesForAttrRole.invalidate(role)  // No harm in invalidating even if not numeric
+      self.cellMap.invalidateAll()
     },
     addYAttribute(desc: IAttributeDescriptionSnapshot, index?: number) {
       if (index != null && index >= 0) {
@@ -804,6 +831,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       self.rowCases.invalidateAll()
       self.columnCases.invalidateAll()
       self.cellCases.invalidateAll()
+      self.cellMap.invalidateAll()
     },
     handleDataSetChange(data?: IDataSet) {
       self.actionHandlerDisposer?.()

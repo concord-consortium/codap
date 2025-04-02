@@ -18,14 +18,16 @@ export interface IBarCoverDimensionsProps {
   layout: GraphLayout
   maxInCell: number
   minInCell?: number
+  numInBar?: number
   primCatsCount: number
   isPercentAxis: boolean
+  hasLegend: boolean
   numInSubPlot: number
 }
 
 export const barCoverDimensions = (props: IBarCoverDimensionsProps) => {
-  const { subPlotCells, cellIndices, maxInCell, minInCell = 0, primCatsCount,
-    isPercentAxis, numInSubPlot} = props
+  const { subPlotCells, cellIndices, maxInCell, minInCell = 0, numInBar = 1, primCatsCount,
+    isPercentAxis, hasLegend, numInSubPlot} = props
   const { numPrimarySplitBands, numSecondarySplitBands, primaryCellWidth, primaryIsBottom, primarySplitCellWidth,
           secondaryCellHeight, secondaryNumericScale } = subPlotCells
   const { p: primeCatIndex, ep: primeSplitCatIndex, es: secSplitCatIndex } = cellIndices
@@ -37,8 +39,9 @@ export const barCoverDimensions = (props: IBarCoverDimensionsProps) => {
   const offsetPrimary = primaryIsBottom
           ? primeCatIndex * primaryCellWidth + offsetPrimarySplit
           : primaryInvertedIndex * primaryCellWidth + offsetPrimarySplit
-  const maxValue = isPercentAxis ? 100 * maxInCell / numInSubPlot : maxInCell
-  const minValue = isPercentAxis ? 100 * minInCell / numInSubPlot : minInCell
+  const denominator = hasLegend ? numInBar : numInSubPlot
+  const maxValue = (isPercentAxis ? 100 * maxInCell / denominator : maxInCell)
+  const minValue = (isPercentAxis ? 100 * minInCell / denominator : minInCell)
   const secondaryCoord = secondaryNumericScale?.(maxValue) ?? 0
   const secondaryBaseCoord = secondaryNumericScale?.(minValue) ?? 0
   const secondaryIndex = primaryIsBottom
@@ -55,7 +58,6 @@ export const barCoverDimensions = (props: IBarCoverDimensionsProps) => {
   const primaryCoord = offsetPrimary + (primaryCellWidth / 2 - primaryDimension / 2)
   const x = primaryIsBottom ? primaryCoord : adjustedSecondaryCoord
   const y = primaryIsBottom ? adjustedSecondaryCoord : primaryCoord
-
   return { x, y, barWidth, barHeight }
 }
 
@@ -87,9 +89,22 @@ export const renderBarCovers = (props: IRenderBarCoverProps) => {
 }
 
 export const barCompressionFactorForCase = (caseID: string, graphModel?: IGraphContentModel) => {
+  const dataConfiguration = graphModel?.dataConfiguration,
+    hasLegend = !!dataConfiguration?.attributeID('legend')
+  /**
+   * If the axis not percent, return 1; i.e. no compression.
+   * In the presence of a legend, all the cases belonging to the primary category in this sub-plot will be
+   *    spread from 0 to 100%, so we compress by 100 over the number of cases in the primary category in this sub-plot
+   * If there is no legend, then we compress by 100 over the number of cases in the sub-plot
+   */
+
+  const getNumPrimaryCategoryCases = () => {
+    return dataConfiguration?.numPrimaryCategoryCases(caseID) ?? 1
+  }
 
   const getNumSubPlotCases = () => {
-    return graphModel?.dataConfiguration.subPlotCases(graphModel?.dataConfiguration.subPlotKey(caseID)).length ?? 0
+    return dataConfiguration?.subPlotCases(dataConfiguration?.subPlotKey(caseID)).length ?? 1
   }
-  return graphModel?.secondaryAxisIsPercent ? 100 / getNumSubPlotCases() : 1
+  return graphModel?.secondaryAxisIsPercent
+    ? (hasLegend ? 100 / getNumPrimaryCategoryCases() : 100 / getNumSubPlotCases()) : 1
 }
