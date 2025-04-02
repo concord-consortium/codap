@@ -103,6 +103,10 @@ export const BarChartModel = DotChartModel
     get showBreakdownTypes(): boolean {
       return true
     },
+    get maxCellPercent() {
+      // Override base class to handle situation in which there is a legend
+      return self.dataConfiguration?.attributeID("legend") ? 100 : self._maxCellPercent
+    },
     axisLabelClickHandler(role: GraphAttrRole): Maybe<() => void> {
       if (self.breakdownType === "formula" && self.hasExpression && role === self.dataConfiguration?.secondaryRole) {
         return () => {
