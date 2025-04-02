@@ -278,7 +278,6 @@ export const useSubAxis = ({
         numCategoriesLimit = Math.floor(axisLength / kDefaultColorSwatchHeight)
       dataConfig?.setNumberOfCategoriesLimitForRole(axisPlaceToAttrRole[axisPlace], numCategoriesLimit)
       const colorArray = (dataConfig?.categoryArrayForAttrRole(axisPlaceToAttrRole[axisPlace]) ?? []).slice()
-      console.log("catArray", colorArray)
       if (colorArray[colorArray.length - 1] === kOther) {
         colorArray[colorArray.length - 1] = translate("DG.CellAxis.other")
       }
@@ -407,7 +406,6 @@ export const useSubAxis = ({
               subAxisSelectionRef, categoriesSelectionRef, categoriesRef, swapInProgress })
           break
         case 'color':
-          console.log("subaxis color axis model", JSON.parse(JSON.stringify(axisModel)))
           shouldRenderSubAxis = false
           helper = new ColorAxisHelper(
             { ...helperProps, centerNonNumericLabels, dragInfo,

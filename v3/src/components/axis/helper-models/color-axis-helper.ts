@@ -123,7 +123,7 @@ export class ColorAxisHelper extends AxisHelper {
           update.select('rect')
             .attr('class', 'color-label')
             .attr('x', (d, i) => fns.getLabelX(i) - ((bandWidth * 2 / 3) / 2))
-            .attr('y', (d, i) => fns.getLabelY(i) - (kDefaultColorSwatchHeight / (isVertical ? 2 : 1)))
+            .attr('y', (d, i) => Math.max(6.5, fns.getLabelY(i) - (kDefaultColorSwatchHeight / (isVertical ? 2 : 1))))
             .style("fill", (d: ColorObject) => d.color)
             .style("width", (bandWidth * 2)/3)
             .style("height", `${kDefaultColorSwatchHeight}px`)

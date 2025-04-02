@@ -3,7 +3,7 @@ import { stringValuesToDateSeconds } from "../../../utilities/date-utils"
 import { setNiceDomain } from "../../axis/axis-domain-utils"
 import { AxisPlace, AxisPlaces, IScaleType } from "../../axis/axis-types"
 import {
-  BaseCategoricalAxisModel, DateAxisModel, EmptyAxisModel, IAxisModel, isBaseNumericAxisModel, isCategoricalAxisModel,
+  BaseCategoricalAxisModel, CategoricalAxisModel, ColorAxisModel, DateAxisModel, EmptyAxisModel, IAxisModel, isBaseNumericAxisModel, isCategoricalAxisModel,
   isCategoricalOrColorAxisModel,
   isColorAxisModel,
   isDateAxisModel, isEmptyAxisModel, isNumericAxisModel, NumericAxisModel
@@ -76,9 +76,15 @@ function setupAxes(graphModel: IGraphContentModel, layout: GraphLayout) {
                         : currAxisModel ?? EmptyAxisModel.create({ place })
       // create secondary categorical axis model if necessary
       if (isEmptyAxisModel(newAxisModel) && isSecondaryPlace && attributeType) {
-        newAxisModel = isCategoricalOrColorAxisModel(currAxisModel)
-                        ? currAxisModel
-                        : BaseCategoricalAxisModel.create({ place })
+        if (attributeType === "color" && isColorAxisModel(currAxisModel) ||
+            attributeType === "categorical" && isCategoricalAxisModel(currAxisModel)) {
+          newAxisModel = currAxisModel
+        }
+        else {
+          newAxisModel = attributeType === "color"
+                          ? ColorAxisModel.create({ place })
+                          : CategoricalAxisModel.create({ place })
+    }
       }
     }
     else if (place === "rightNumeric") {
@@ -96,9 +102,15 @@ function setupAxes(graphModel: IGraphContentModel, layout: GraphLayout) {
     }
     else {
       if (attributeType) {
-        newAxisModel = isCategoricalOrColorAxisModel(currAxisModel)
-                        ? currAxisModel
-                        : BaseCategoricalAxisModel.create({ place })
+        if (attributeType === "color" && isColorAxisModel(currAxisModel) ||
+            attributeType === "categorical" && isCategoricalAxisModel(currAxisModel)) {
+          newAxisModel = currAxisModel
+        }
+        else {
+          newAxisModel = attributeType === "color"
+                          ? ColorAxisModel.create({ place })
+                          : CategoricalAxisModel.create({ place })
+        }
       }
     }
 
