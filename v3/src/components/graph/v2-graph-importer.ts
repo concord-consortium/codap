@@ -1,5 +1,5 @@
 import {ITileModelSnapshotIn} from "../../models/tiles/tile-model"
-import {toV3Id} from "../../utilities/codap-utils"
+import {toV3AttrId, toV3Id} from "../../utilities/codap-utils"
 import {defaultBackgroundColor, parseColorToHex} from "../../utilities/color-utils"
 import {V2TileImportArgs} from "../../v2/codap-v2-tile-importers"
 import {IGuidLink, isV2GraphComponent} from "../../v2/codap-v2-types"
@@ -36,7 +36,7 @@ function isV2PlaceWithBounds(place: V2GraphPlace): place is V2GraphPlaceWithBoun
   return (v2GraphPlacesWithBounds as readonly V2GraphPlace[]).includes(place)
 }
 
-export function v2GraphImporter({v2Component, v2Document, sharedModelManager, insertTile}: V2TileImportArgs) {
+export function v2GraphImporter({v2Component, v2Document, getCaseData, insertTile, linkSharedModel}: V2TileImportArgs) {
   if (!isV2GraphComponent(v2Component)) return
 
   const {
@@ -56,7 +56,7 @@ export function v2GraphImporter({v2Component, v2Document, sharedModelManager, in
             defaultBackgroundColor
   type TLinksKey = keyof typeof links
   const contextId = links.context?.id
-  const {data, metadata} = v2Document.getDataAndMetadata(contextId)
+  const {data, metadata} = contextId ? getCaseData(contextId) : {}
 
   const roleFromAttrKey: Record<string, GraphAttrRole> = {
     x: "x",
@@ -83,8 +83,7 @@ export function v2GraphImporter({v2Component, v2Document, sharedModelManager, in
       v2AttrArray = (Array.isArray(links[aKey]) ? links[aKey] : [links[aKey]]) as IGuidLink<"DG.Attribute">[]
     v2AttrArray.forEach((aLink) => {
       const v2AttrId = aLink.id,
-        attribute = v2Document.getV3Attribute(v2AttrId),
-        v3AttrId = attribute?.id ?? '',
+        v3AttrId = v2AttrId ? toV3AttrId(v2AttrId) : undefined,
         v2Role = v2Component.componentStorage[`${attrKey}Role`],
         v2Type = v2Component.componentStorage[`${attrKey}AttributeType`]
       if (v2Type != null && v3AttrRole && v3AttrId) {
@@ -206,9 +205,9 @@ export function v2GraphImporter({v2Component, v2Document, sharedModelManager, in
   const graphTile = insertTile(graphTileSnap)
 
   // link shared model
-  if (sharedModelManager && graphTile) {
-    data && sharedModelManager.addTileSharedModel(graphTile.content, data, false)
-    metadata && sharedModelManager.addTileSharedModel(graphTile.content, metadata, false)
+  if (graphTile) {
+    linkSharedModel(graphTile.content, data, false)
+    linkSharedModel(graphTile.content, metadata, false)
   }
 
   return graphTile

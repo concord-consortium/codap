@@ -26,7 +26,9 @@ export function AttributeValueCell({ column, row }: TRenderCellProps) {
   return (
     <Tooltip label={value} h="20px" fontSize="12px" color="white" data-testid="case-table-data-tip"
       openDelay={1000} placement="bottom" bottom="10px" left="15px">
-      {content}
+      <>
+        {content}
+      </>
     </Tooltip>
   )
 }

@@ -20,6 +20,19 @@ const fs = require("fs")
 const path = require("path")
 
 describe("Text registration", () => {
+  const mockGetGlobalValues = jest.fn()
+  const mockGetCaseData = jest.fn()
+  const mockLinkSharedModel = jest.fn()
+  const mockImportArgs = {
+    getCaseData: mockGetCaseData,
+    getGlobalValues: mockGetGlobalValues,
+    linkSharedModel: mockLinkSharedModel,
+  }
+
+  beforeEach(() => {
+    jest.restoreAllMocks()
+  })
+
   it("registers content and component info", () => {
     const textContentInfo = getTileContentInfo(kTextTileType)
     expect(textContentInfo).toBeDefined()
@@ -43,7 +56,8 @@ describe("Text registration", () => {
     const tile = importV2Component({
       v2Component: v2Document.components[0],
       v2Document,
-      insertTile: mockInsertTile
+      insertTile: mockInsertTile,
+      ...mockImportArgs
     })
     expect(tile).toBeDefined()
     expect(mockInsertTile).toHaveBeenCalledTimes(1)
@@ -66,7 +80,8 @@ describe("Text registration", () => {
     const tile = importV2Component({
       v2Component: v2Document.components[0],
       v2Document,
-      insertTile: mockInsertTile
+      insertTile: mockInsertTile,
+      ...mockImportArgs
     })
     expect(tile).toBeDefined()
     expect(mockInsertTile).toHaveBeenCalledTimes(1)
@@ -89,7 +104,8 @@ describe("Text registration", () => {
     const tileWithInvalidComponent = importV2Component({
       v2Component: {} as any,
       v2Document,
-      insertTile: mockInsertTile
+      insertTile: mockInsertTile,
+      ...mockImportArgs
     })
     expect(tileWithInvalidComponent).toBeUndefined()
   })

@@ -20,6 +20,19 @@ const path = require("path")
 const fs = require("fs")
 
 describe("WebView registration", () =>  {
+  const mockGetGlobalValues = jest.fn()
+  const mockGetCaseData = jest.fn()
+  const mockLinkSharedModel = jest.fn()
+  const mockImportArgs = {
+    getCaseData: mockGetCaseData,
+    getGlobalValues: mockGetGlobalValues,
+    linkSharedModel: mockLinkSharedModel,
+  }
+
+  beforeEach(() => {
+    jest.restoreAllMocks()
+  })
+
   it("registers content and component info", () => {
     const contentInfo = getTileContentInfo(kWebViewTileType)
     expect(contentInfo).toBeDefined()
@@ -47,8 +60,8 @@ describe("WebView registration", () =>  {
     const tile = importV2Component({
       v2Component: v2Document.components[0],
       v2Document,
-      sharedModelManager,
-      insertTile: mockInsertTile
+      insertTile: mockInsertTile,
+      ...mockImportArgs
     })!
     expect(tile).toBeDefined()
     expect(mockInsertTile).toHaveBeenCalledTimes(1)
@@ -86,8 +99,8 @@ describe("WebView registration", () =>  {
     const tile = importV2Component({
       v2Component: v2Document.components[0],
       v2Document,
-      sharedModelManager,
-      insertTile: mockInsertTile
+      insertTile: mockInsertTile,
+      ...mockImportArgs
     })!
     expect(tile).toBeDefined()
     expect(mockInsertTile).toHaveBeenCalledTimes(1)
@@ -135,8 +148,8 @@ describe("WebView registration", () =>  {
     const tile = importV2Component({
       v2Component: v2Document.components[2],
       v2Document,
-      sharedModelManager,
-      insertTile: mockInsertTile
+      insertTile: mockInsertTile,
+      ...mockImportArgs
     })!
     expect(tile).toBeDefined()
     expect(mockInsertTile).toHaveBeenCalledTimes(1)
@@ -175,8 +188,8 @@ describe("WebView registration", () =>  {
     const tile = importV2Component({
       v2Component: v2Document.components[1],
       v2Document,
-      sharedModelManager,
-      insertTile: mockInsertTile
+      insertTile: mockInsertTile,
+      ...mockImportArgs
     })!
     expect(tile).toBeDefined()
 
@@ -215,8 +228,8 @@ describe("WebView registration", () =>  {
     const tile = importV2Component({
       v2Component: v2Document.components[3],
       v2Document,
-      sharedModelManager,
-      insertTile: mockInsertTile
+      insertTile: mockInsertTile,
+      ...mockImportArgs
     })!
 
     expect(tile).toBeDefined()
@@ -256,8 +269,8 @@ describe("WebView registration", () =>  {
     const tile = importV2Component({
       v2Component: v2Document.components[3],
       v2Document,
-      sharedModelManager,
-      insertTile: mockInsertTile
+      insertTile: mockInsertTile,
+      ...mockImportArgs
     })!
 
     expect(tile).toBeDefined()
@@ -298,8 +311,8 @@ describe("WebView registration", () =>  {
     const tile = importV2Component({
       v2Component: v2Document.components[1],
       v2Document,
-      sharedModelManager,
-      insertTile: mockInsertTile
+      insertTile: mockInsertTile,
+      ...mockImportArgs
     })!
     expect(tile).toBeDefined()
 
@@ -336,8 +349,8 @@ describe("WebView registration", () =>  {
     const tile = importV2Component({
       v2Component: v2Document.components[0],
       v2Document,
-      sharedModelManager,
-      insertTile: mockInsertTile
+      insertTile: mockInsertTile,
+      ...mockImportArgs
     })!
     expect(tile).toBeDefined()
 

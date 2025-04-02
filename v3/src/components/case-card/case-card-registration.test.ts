@@ -1,10 +1,13 @@
 import { createCodapDocument } from "../../models/codap/create-codap-document"
 import { FreeTileRow, IFreeTileRow } from "../../models/document/free-tile-row"
+import { ISharedModel } from "../../models/shared/shared-model"
 import { getTileComponentInfo } from "../../models/tiles/tile-component-info"
+import { ITileContentModel } from "../../models/tiles/tile-content"
 import { getTileContentInfo } from "../../models/tiles/tile-content-info"
 import { getSharedModelManager } from "../../models/tiles/tile-environment"
 import { ITileModelSnapshotIn } from "../../models/tiles/tile-model"
 import { safeJsonParse } from "../../utilities/js-utils"
+import { CodapV2DataSetImporter, getCaseDataFromV2ContextGuid } from "../../v2/codap-v2-data-set-importer"
 import { CodapV2Document } from "../../v2/codap-v2-document"
 import { exportV2Component } from "../../v2/codap-v2-tile-exporters"
 import { importV2Component } from "../../v2/codap-v2-tile-importers"
@@ -35,8 +38,24 @@ describe("Case card registration", () => {
     const docContent = codapDoc.content!
     docContent.setRowCreator(() => FreeTileRow.create())
     const sharedModelManager = getSharedModelManager(docContent)
+
+    // load shared models into sharedModelManager
+    const dataSetImporter = new CodapV2DataSetImporter(v2Document.guidMap)
+    v2Document.dataContexts.forEach((context) => {
+      dataSetImporter.importContext(context, sharedModelManager)
+    })
+
+    const getCaseData = (dataContextGuid: number) => {
+      return getCaseDataFromV2ContextGuid(dataContextGuid, sharedModelManager)
+    }
     const mockInsertTile = jest.fn((tileSnap: ITileModelSnapshotIn) => {
       return docContent?.insertTileSnapshotInDefaultRow(tileSnap)
+    })
+    const mockLinkSharedModel = jest.fn(
+      (tileContent: ITileContentModel, sharedModel?: ISharedModel, isProvider?: boolean) => {
+        if (sharedModel) {
+          sharedModelManager?.addTileSharedModel(tileContent, sharedModel, isProvider)
+        }
     })
 
     const [v2TableComponent, v2GuideComponent, v2CardComponent] = v2Document.components
@@ -47,8 +66,10 @@ describe("Case card registration", () => {
     const tile = importV2Component({
       v2Component: v2CardComponent,
       v2Document,
-      sharedModelManager,
-      insertTile: mockInsertTile
+      getCaseData,
+      getGlobalValues: jest.fn(),
+      insertTile: mockInsertTile,
+      linkSharedModel: mockLinkSharedModel
     })!
     expect(tile).toBeDefined()
     expect(mockInsertTile).toHaveBeenCalledTimes(1)
@@ -60,7 +81,10 @@ describe("Case card registration", () => {
     const tileWithInvalidComponent = importV2Component({
       v2Component: {} as any,
       v2Document,
-      insertTile: mockInsertTile
+      getCaseData,
+      getGlobalValues: jest.fn(),
+      insertTile: mockInsertTile,
+      linkSharedModel: mockLinkSharedModel
     })
     expect(tileWithInvalidComponent).toBeUndefined()
 

@@ -13,8 +13,8 @@ import { addDataSetAndMetadata } from "../../models/shared/shared-data-utils"
 import { ITileModelSnapshotIn } from "../../models/tiles/tile-model"
 import { convertParsedCsvToDataSet, importCsvContent } from "../../utilities/csv-import"
 import { safeJsonParse } from "../../utilities/js-utils"
-import { ICodapV2Case } from "../../v2/codap-v2-data-set-types"
-import { ICodapV2DocumentJson, isCodapV2Document, isV2InternalContext, kV2AppName } from "../../v2/codap-v2-types"
+import { ICodapV2Case, isV2InternalContext } from "../../v2/codap-v2-data-set-types"
+import { ICodapV2DocumentJson, isCodapV2Document, kV2AppName } from "../../v2/codap-v2-types"
 
 const kImporterPluginUrl = "/Importer/index.html?lang=en-US"
 

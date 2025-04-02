@@ -37,7 +37,10 @@ describe("Calculator registration", () => {
     const tile = importV2Component({
       v2Component: v2Document.components[0],
       v2Document,
-      insertTile: mockInsertTile
+      getCaseData: jest.fn(),
+      getGlobalValues: jest.fn(),
+      insertTile: mockInsertTile,
+      linkSharedModel: jest.fn()
     })
     expect(tile).toBeDefined()
     expect(mockInsertTile).toHaveBeenCalledTimes(1)
@@ -45,7 +48,10 @@ describe("Calculator registration", () => {
     const tileWithInvalidComponent = importV2Component({
       v2Component: {} as any,
       v2Document,
-      insertTile: mockInsertTile
+      getCaseData: jest.fn(),
+      getGlobalValues: jest.fn(),
+      insertTile: mockInsertTile,
+      linkSharedModel: jest.fn()
     })
     expect(tileWithInvalidComponent).toBeUndefined()
   })

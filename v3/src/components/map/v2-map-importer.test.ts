@@ -4,9 +4,9 @@ import { FreeTileRow } from "../../models/document/free-tile-row"
 import { SharedModelDocumentManager } from "../../models/document/shared-model-document-manager"
 import { ITileModelSnapshotIn } from "../../models/tiles/tile-model"
 import { safeJsonParse } from "../../utilities/js-utils"
+import { CodapV2DataSetImporter, getCaseDataFromV2ContextGuid } from "../../v2/codap-v2-data-set-importer"
 import { CodapV2Document } from "../../v2/codap-v2-document"
-import {
-  ICodapV2DocumentJson, ICodapV2MapComponent } from "../../v2/codap-v2-types"
+import { ICodapV2DocumentJson, ICodapV2MapComponent } from "../../v2/codap-v2-types"
 import { isMapContentModel } from "./models/map-content-model"
 import { v2MapExporter } from "./v2-map-exporter"
 import { v2MapImporter } from "./v2-map-importer"
@@ -40,8 +40,22 @@ function transformObject(obj: any, keysToRemove: string[]): any {
   return obj
 };
 
-
+const mockGetCaseData = jest.fn()
+const mockGetGlobalValues = jest.fn()
 const mockInsertTile = jest.fn()
+const mockLinkSharedModel = jest.fn()
+const mockImporterArgs = {
+  getCaseData: mockGetCaseData,
+  getGlobalValues: mockGetGlobalValues,
+  insertTile: mockInsertTile,
+  linkSharedModel: mockLinkSharedModel
+}
+const resetMocks = () => {
+  mockGetCaseData.mockReset()
+  mockGetGlobalValues.mockReset()
+  mockInsertTile.mockReset()
+  mockLinkSharedModel.mockReset()
+}
 
 function loadCodapDocument(fileName: string) {
   const file = path.join(__dirname, "../../test/v2", fileName)
@@ -54,17 +68,20 @@ function loadCodapDocument(fileName: string) {
   docContent.setRowCreator(() => FreeTileRow.create())
   sharedModelManager.setDocument(docContent)
 
+  mockGetCaseData.mockImplementation((dataContextGuid: number) => {
+    // This function simulates retrieving case data from a shared model based on the data context GUID
+    return getCaseDataFromV2ContextGuid(dataContextGuid, sharedModelManager)
+  })
+
   mockInsertTile.mockImplementation((tileSnap: ITileModelSnapshotIn) => {
     const tile = docContent.insertTileSnapshotInDefaultRow(tileSnap)
     return tile
   })
 
   // load shared models into sharedModelManager
-  v2Document.dataContexts.forEach(({ guid }) => {
-    const { data, metadata } = v2Document.getDataAndMetadata(guid)
-    data && sharedModelManager.addSharedModel(data)
-    metadata?.setData(data?.dataSet)
-    metadata && sharedModelManager.addSharedModel(metadata)
+  const dataSetImporter = new CodapV2DataSetImporter(v2Document.guidMap)
+  v2Document.dataContexts.forEach((context) => {
+    dataSetImporter.importContext(context, sharedModelManager)
   })
 
   return { v2Document }
@@ -75,12 +92,16 @@ function firstMapComponent(v2Document: CodapV2Document) {
 }
 
 describe("V2MapImporter imports legacy v2 map documents", () => {
+  beforeEach(() => {
+    resetMocks()
+  })
+
   it("imports legacy v2 map components", () => {
     const { v2Document } = loadCodapDocument("seal-and-shark-demo.codap")
     const tile = v2MapImporter({
       v2Component: firstMapComponent(v2Document),
       v2Document,
-      insertTile: mockInsertTile
+      ...mockImporterArgs
     })
     expect(mockInsertTile).toHaveBeenCalledTimes(1)
     const mapModel = isMapContentModel(tile?.content) ? tile?.content : undefined
@@ -99,7 +120,7 @@ describe("imports/exports to current v2 map documents", () => {
   ]
 
   beforeEach(() => {
-    mockInsertTile.mockRestore()
+    resetMocks()
   })
 
   it("handles empty components", () => {
@@ -107,7 +128,7 @@ describe("imports/exports to current v2 map documents", () => {
     const noTile = v2MapImporter({
       v2Component: {} as any,
       v2Document,
-      insertTile: mockInsertTile
+      ...mockImporterArgs
     })
     expect(mockInsertTile).toHaveBeenCalledTimes(0)
     const mapModel = isMapContentModel(noTile?.content) ? noTile?.content : undefined
@@ -122,7 +143,7 @@ describe("imports/exports to current v2 map documents", () => {
       const v3MapTile = v2MapImporter({
         v2Component: v2MapTile,
         v2Document,
-        insertTile: mockInsertTile
+        ...mockImporterArgs
       })
       // tests round-trip import/export of every map component
       const v2MapTileOut = v2MapExporter({ tile: v3MapTile! })
@@ -140,7 +161,7 @@ describe("imports/exports to current v2 map documents", () => {
       const v3MapTile = v2MapImporter({
         v2Component: v2MapTile,
         v2Document,
-        insertTile: mockInsertTile
+        ...mockImporterArgs
       })
       // tests round-trip import/export of every map component
       const v2MapTileOut = v2MapExporter({ tile: v3MapTile! })
@@ -158,7 +179,7 @@ describe("imports/exports to current v2 map documents", () => {
       const v3MapTile = v2MapImporter({
         v2Component: v2MapTile,
         v2Document,
-        insertTile: mockInsertTile
+        ...mockImporterArgs
       })
       // tests round-trip import/export of every map component
       const v2MapTileOut = v2MapExporter({ tile: v3MapTile! })

@@ -117,11 +117,11 @@ registerV2TileExporter(kSliderTileType, ({ tile }) => {
   return { type: "DG.SliderView", componentStorage }
 })
 
-registerV2TileImporter("DG.SliderView", ({ v2Component, v2Document, sharedModelManager, insertTile }) => {
+registerV2TileImporter("DG.SliderView", ({ v2Component, v2Document, getGlobalValues, insertTile, linkSharedModel }) => {
   if (!isV2SliderComponent(v2Component)) return
 
-  const globalValueManager = getGlobalValueManager(sharedModelManager)
-  if (!sharedModelManager || !globalValueManager) return
+  const globalValueManager = getGlobalValues()
+  if (!globalValueManager) return
 
   // parse the v2 content
   const {
@@ -172,7 +172,7 @@ registerV2TileImporter("DG.SliderView", ({ v2Component, v2Document, sharedModelM
 
   // link tile to global value manager
   if (sliderTile) {
-    sharedModelManager.addTileSharedModel(sliderTile.content, globalValueManager)
+    linkSharedModel(sliderTile.content, globalValueManager)
   }
 
   return sliderTile

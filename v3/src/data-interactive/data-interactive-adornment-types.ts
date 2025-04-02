@@ -23,7 +23,8 @@ export type DIStandardDeviationAdornmentValues = Partial<SnapshotIn<typeof Stand
 export type DIAdornmentValues = DICountAdornmentValues | DILsrlAdornmentValues | DIMeanAdornmentValues |
   DIMedianAdornmentValues | DIMovableValueAdornmentValues | DIStandardDeviationAdornmentValues
 
-const adornmentTypes = new Set([kCountType, kLSRLType, kMeanType, kMedianType, kMovableValueType, kStandardDeviationType])
+const kAdornmentTypes = [kCountType, kLSRLType, kMeanType, kMedianType, kMovableValueType, kStandardDeviationType]
+const adornmentTypes = new Set(kAdornmentTypes)
 
 export const isAdornmentValues = (val: unknown): val is DIAdornmentValues => {
   return typeof val === "object" && val !== null && adornmentTypes.has((val as any).type)
