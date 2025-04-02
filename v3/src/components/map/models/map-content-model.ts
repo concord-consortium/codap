@@ -40,6 +40,8 @@ export const MapContentModel = DataDisplayContentModel
     // Changes the visibility of the layer in Leaflet with the opacity parameter
     baseMapLayerIsVisible: true,
     plotBackgroundColor: '#FFFFFF01',
+
+    geotiffUrl: "",
   })
   .volatile(() => ({
     leafletMap: undefined as LeafletMap | undefined,
@@ -50,6 +52,9 @@ export const MapContentModel = DataDisplayContentModel
     syncFromLeafletCount: 0,
     syncFromLeafletResponseCount: 0,
     _ignoreLeafletClicks: false,
+
+    geotiffLayer: undefined as Layer | undefined,
+    georaster: undefined as any | undefined
   }))
   .views(self => ({
     get latLongBounds() {
@@ -109,6 +114,15 @@ export const MapContentModel = DataDisplayContentModel
       self.center = center
       self.zoom = zoom
     },
+    setGeotiffUrl(url: string) {
+      self.geotiffUrl = url
+    },
+    setGeoraster(georaster?: any) {
+      self.georaster = georaster
+    },
+    setGeotiffLayer(layer?: Layer) {
+      self.geotiffLayer = layer
+    }
   }))
   // performs the specified action so that response actions are included and undo/redo strings assigned
   .actions(applyModelChange)
