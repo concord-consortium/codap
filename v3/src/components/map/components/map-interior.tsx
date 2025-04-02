@@ -64,7 +64,7 @@ export const MapInterior = observer(function MapInterior({setPixiPointsLayer}: I
       {pinLayer && (
         <>
           <MapPinLayer mapLayerModel={pinLayer} />
-          <PinControls />
+          <PinControls mapLayerModel={pinLayer} />
         </>
       )}
     </>

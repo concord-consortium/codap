@@ -21,6 +21,9 @@ export const MapPinLayerModel = MapLayerModel
     gridModel: types.optional(MapGridModel, () => MapGridModel.create()),
     pinsAreVisible: true, // This is different than layer visibility
   })
+  .volatile(self => ({
+    addMode: false
+  }))
   .actions(self => ({
     afterCreate() {
       self.gridModel.setDataConfiguration(self.dataConfiguration)
@@ -33,6 +36,9 @@ export const MapPinLayerModel = MapLayerModel
     },
     setPinsAreVisible(isVisible: boolean) {
       self.pinsAreVisible = isVisible
+    },
+    setAddMode(addMode: boolean) {
+      self.addMode = addMode
     }
   }))
   .views(self => ({

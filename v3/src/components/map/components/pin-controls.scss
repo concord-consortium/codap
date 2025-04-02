@@ -17,6 +17,10 @@
     padding: 0;
     width: 35px;
 
+    &.active {
+      background-color: #b9dfe5;
+    }
+
     &:disabled {
       .icon {
         opacity: .4;

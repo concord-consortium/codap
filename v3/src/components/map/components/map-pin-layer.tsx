@@ -1,12 +1,14 @@
 import clsx from "clsx"
 import { observer } from "mobx-react-lite"
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import { useMap } from "react-leaflet"
 import { isSetCaseValuesAction } from "../../../models/data/data-set-actions"
+import { ICaseCreation } from "../../../models/data/data-set-types"
 import { onAnyAction } from "../../../utilities/mst-utils"
 import { useDataDisplayLayout } from "../../data-display/hooks/use-data-display-layout"
 import PlacedLocationMarker from "../assets/placed-location-marker.svg"
 import { useMapModelContext } from "../hooks/use-map-model-context"
+import { kPinColors } from "../map-types"
 import { IMapPinLayerModel } from "../models/map-pin-layer-model"
 import { pinAttributesFromDataSet } from "../utilities/map-utils"
 import "./map-pin-layer.scss"
@@ -35,6 +37,7 @@ interface IMapPinLayerProps {
 }
 export const MapPinLayer = observer(function MapPinLayer({ mapLayerModel }: IMapPinLayerProps) {
   const [_forceRerender, setForceRerender] = useState(0)
+  const layerRef = useRef<HTMLDivElement>(null)
   const map = useMap()
   const mapModel = useMapModelContext()
   const layout = useDataDisplayLayout()
@@ -59,9 +62,28 @@ export const MapPinLayer = observer(function MapPinLayer({ mapLayerModel }: IMap
   const { contentWidth: _contentWidth, contentHeight: _contentHeight } = layout
   const { center: _center, zoom: _zoom } = mapModel.leafletMapState
 
-  const renderPins = mapLayerModel?.isVisible
+  const handleClick = (e: React.MouseEvent) => {
+    if (mapLayerModel.addMode) {
+      e.stopPropagation()
+      mapLayerModel.setAddMode(false)
+
+      const layerBB = layerRef.current?.getBoundingClientRect()
+      if (!layerBB) return
+      const { lat, lng } = map.containerPointToLatLng([e.clientX - layerBB.x, e.clientY - layerBB.y])
+      const color = kPinColors[(dataset?.items.length ?? 0) % kPinColors.length]
+      const newItem: ICaseCreation = { [pinLatId]: lat, [pinLongId]: lng }
+      if (colorId) newItem[colorId] = color
+      dataset?.addCases([newItem])
+    }
+  }
+
+  const renderPins = mapLayerModel.isVisible
   return (
-    <div className="map-pin-layer">
+    <div
+      className={clsx("map-pin-layer", { "add-mode": mapLayerModel.addMode })}
+      onClick={handleClick}
+      ref={layerRef}
+    >
       {renderPins && dataset?.items.map(({ __id__ }) => {
         const lat = Number(dataset.getValue(__id__, pinLatId))
         const long = Number(dataset.getValue(__id__, pinLongId))

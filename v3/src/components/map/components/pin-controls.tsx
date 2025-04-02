@@ -4,20 +4,20 @@ import React from "react"
 import AddIcon from "../assets/add-location-marker-icon.svg"
 import RemoveIcon from "../assets/remove-location-marker-icon.svg"
 import { kPinColors } from "../map-types"
-import { isMapPinLayerModel } from "../models/map-pin-layer-model"
-import { useMapModelContext } from "../hooks/use-map-model-context"
+import { IMapPinLayerModel } from "../models/map-pin-layer-model"
 import "./pin-controls.scss"
 
 interface IControlButtonProps {
+  active?: boolean
   className?: string
   disabled?: boolean
   Icon?: any
   onClick?: () => void
 }
-function ControlButton({ className, disabled, Icon, onClick }: IControlButtonProps) {
+function ControlButton({ active, className, disabled, Icon, onClick }: IControlButtonProps) {
   return (
     <button
-      className={clsx("map-control-button", className, { disabled })}
+      className={clsx("map-control-button", className, { active, disabled })}
       disabled={disabled}
       onClick={onClick}
       type="button"
@@ -27,23 +27,25 @@ function ControlButton({ className, disabled, Icon, onClick }: IControlButtonPro
   )
 }
 
-export const PinControls = observer(function PinControls() {
-  const mapModel = useMapModelContext()
-  const pinLayer = mapModel?.layers.find((layer) => isMapPinLayerModel(layer))
-  const dataset = pinLayer?.dataConfiguration?.dataset
+interface IPinControlsProps {
+  mapLayerModel: IMapPinLayerModel
+}
+export const PinControls = observer(function PinControls({ mapLayerModel }: IPinControlsProps) {
+  const dataset = mapLayerModel.dataConfiguration.dataset
 
-  const addButtonDisabled = (dataset?.items?.length ?? 0) >= kPinColors.length
-  const removeButtonDisabled = !dataset?.selection?.size
+  const addButtonDisabled = (dataset?.items.length ?? 0) >= kPinColors.length
+  const removeButtonDisabled = !dataset?.selection.size
 
-  const handleRemoveButtonClick = () => {
-    dataset?.removeCases(Array.from(dataset?.selection))
-  }
+  const handleAddButtonClick = () => mapLayerModel.setAddMode(!mapLayerModel.addMode)
+  const handleRemoveButtonClick = () => dataset?.removeCases(Array.from(dataset?.selection))
   return (
     <div className="pin-controls">
       <ControlButton
+        active={mapLayerModel.addMode}
         className="top-button"
         disabled={addButtonDisabled}
         Icon={AddIcon}
+        onClick={handleAddButtonClick}
       />
       <ControlButton
         className="bottom-button"
