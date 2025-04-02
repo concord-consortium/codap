@@ -10,16 +10,17 @@ import { isVertical } from "../../axis-graph-shared"
 import { axisPlaceToAttrRole, kOther } from "../../data-display/data-display-types"
 import { useDataDisplayAnimation } from "../../data-display/hooks/use-data-display-animation"
 import { useDataDisplayModelContextMaybe } from "../../data-display/hooks/use-data-display-model"
-import { kDefaultFontHeight } from "../axis-constants"
+import { kDefaultColorSwatchHeight, kDefaultFontHeight } from "../axis-constants"
 import { computeNiceNumericBounds, setNiceDomain } from "../axis-domain-utils"
 import { AxisPlace } from "../axis-types"
 import { DragInfo } from "../axis-utils"
 import { AxisHelper, EmptyAxisHelper, IAxisHelperArgs } from "../helper-models/axis-helper"
 import { CatObject, CategoricalAxisHelper } from "../helper-models/categorical-axis-helper"
+import { ColorObject, ColorAxisHelper } from "../helper-models/color-axis-helper"
 import { DateAxisHelper } from "../helper-models/date-axis-helper"
 import { NumericAxisHelper } from "../helper-models/numeric-axis-helper"
 import { useAxisLayoutContext } from "../models/axis-layout-context"
-import {IAxisModel, isBaseNumericAxisModel, isCategoricalAxisModel} from "../models/axis-model"
+import {IAxisModel, isBaseNumericAxisModel, isCategoricalAxisModel, isColorAxisModel} from "../models/axis-model"
 import { useAxisProviderContext } from "./use-axis-provider-context"
 
 export interface IUseSubAxis {
@@ -28,7 +29,7 @@ export interface IUseSubAxis {
   subAxisEltRef: MutableRefObject<SVGGElement | null>
   showScatterPlotGridLines: boolean
   showZeroAxisLine: boolean
-  centerCategoryLabels: boolean
+  centerNonNumericLabels: boolean
 }
 
 // associate axis helpers with axis models
@@ -51,7 +52,7 @@ function setAxisHelper(axisModel: IAxisModel, subAxisIndex: number, axisHelper: 
 }
 
 export const useSubAxis = ({
-                             subAxisIndex, axisPlace, subAxisEltRef, showScatterPlotGridLines, centerCategoryLabels,
+                             subAxisIndex, axisPlace, subAxisEltRef, showScatterPlotGridLines, centerNonNumericLabels,
                              showZeroAxisLine
                            }: IUseSubAxis) => {
   const layout = useAxisLayoutContext(),
@@ -61,6 +62,7 @@ export const useSubAxis = ({
     axisProvider = useAxisProviderContext(),
     axisModel = axisProvider.getAxis(axisPlace),
     isCategorical = isCategoricalAxisModel(axisModel),
+    isColor = isColorAxisModel(axisModel),
     multiScaleChangeCount = layout.getAxisMultiScale(axisModel?.place ?? 'bottom')?.changeCount ?? 0,
     dragInfo = useRef<DragInfo>({
       indexOfCategory: -1,
@@ -78,6 +80,8 @@ export const useSubAxis = ({
     subAxisSelectionRef = useRef<Selection<SVGGElement, any, any, any>>(),
     categoriesSelectionRef = useRef<Selection<SVGGElement | BaseType, CatObject, SVGGElement, any>>(),
     categoriesRef = useRef<string[]>([]),
+    colorsSelectionRef = useRef<Selection<SVGGElement | BaseType, ColorObject, SVGGElement, any>>(),
+    colorsRef = useRef<string[]>([]),
 
     renderSubAxis = useCallback(() => {
       const _axisModel = axisProvider.getAxis?.(axisPlace)
@@ -223,12 +227,157 @@ export const useSubAxis = ({
         }
       })
 
+      categoriesSelectionRef.current = sAS.selectAll('g')
+        .data(categoryData)
+        .join(
+          (enter) => {
+            return enter
+              .append('g')
+              .attr('class', 'category-group')
+              .attr('data-testid', 'category-on-axis')
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              // @ts-ignore
+              .call(dragBehavior)
+          }
+        )
+      categoriesSelectionRef.current.each(function () {
+        const catGroup = select(this)
+        // ticks
+        if (catGroup.select('.tick').empty()) {
+          catGroup.append('line')
+            .attr('class', 'tick')
+            .attr('data-testid', 'tick')
+        }
+        // divider between groups
+        if (catGroup.select('.divider').empty()) {
+          catGroup.append('line')
+            .attr('class', 'divider')
+            .attr('data-testid', 'divider')
+        }
+        // labels
+        if (catGroup.select('.category-label').empty()) {
+          catGroup.append('text')
+            .attr('class', 'category-label')
+            .attr('data-testid', 'category-label')
+            .attr('x', 0)
+            .attr('y', 0)
+        }
+      })
+
       const multiScale = layout.getAxisMultiScale(axisPlace),
         existingCategoryDomain = multiScale?.categoricalScale?.domain() ?? []
       if (JSON.stringify(categories) !== JSON.stringify(existingCategoryDomain)) {
         multiScale?.setCategoricalDomain(categories)
       }
       categoriesRef.current = catArray
+    }, [axisPlace, dataConfig, dragBehavior, layout, subAxisEltRef]),
+
+    setupColors = useCallback(() => {
+      const subAxisElt = subAxisEltRef.current,
+        axisLength = layout.getAxisLength(axisPlace),
+        numCategoriesLimit = Math.floor(axisLength / kDefaultColorSwatchHeight)
+      dataConfig?.setNumberOfCategoriesLimitForRole(axisPlaceToAttrRole[axisPlace], numCategoriesLimit)
+      const colorArray = (dataConfig?.categoryArrayForAttrRole(axisPlaceToAttrRole[axisPlace]) ?? []).slice()
+      console.log("catArray", colorArray)
+      if (colorArray[colorArray.length - 1] === kOther) {
+        colorArray[colorArray.length - 1] = translate("DG.CellAxis.other")
+      }
+      const categories = colorArray,
+        categoryData: ColorObject[] = categories.map((cat, index) =>
+          ({color: cat, index: isVertical(axisPlace) ? categories.length - index - 1 : index}))
+
+      if (!subAxisElt) return
+      subAxisSelectionRef.current = select(subAxisElt)
+      const sAS = subAxisSelectionRef.current
+      if (sAS.classed('numeric-axis') || sAS.classed('date-axis')) {
+        sAS.selectAll('*').remove()
+        sAS.classed('numeric-axis', false)
+        sAS.classed('date-axis', false)
+      }
+
+      if (sAS.select('line').empty()) {
+        sAS.append('line').attr('class', 'axis')
+      }
+      colorsSelectionRef.current = sAS.selectAll('g')
+        .data(categoryData)
+        .join(
+          (enter) => {
+            return enter
+              .append('g')
+              .attr('class', 'category-group')
+              .attr('data-testid', 'category-on-axis')
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              // @ts-ignore
+              .call(dragBehavior)
+          }
+        )
+      colorsSelectionRef.current.each(function () {
+        const catGroup = select(this)
+        // ticks
+        if (catGroup.select('.tick').empty()) {
+          catGroup.append('line')
+            .attr('class', 'tick')
+            .attr('data-testid', 'tick')
+        }
+        // divider between groups
+        if (catGroup.select('.divider').empty()) {
+          catGroup.append('line')
+            .attr('class', 'divider')
+            .attr('data-testid', 'divider')
+        }
+        // labels
+        if (catGroup.select('.category-label').empty()) {
+          catGroup.append('text')
+            .attr('class', 'category-label')
+            .attr('data-testid', 'category-label')
+            .attr('x', 0)
+            .attr('y', 0)
+        }
+      })
+
+      colorsSelectionRef.current = sAS.selectAll('g')
+        .data(categoryData)
+        .join(
+          (enter) => {
+            return enter
+              .append('g')
+              .attr('class', 'category-group')
+              .attr('data-testid', 'category-on-axis')
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              // @ts-ignore
+              .call(dragBehavior)
+          }
+        )
+        colorsSelectionRef.current.each(function () {
+        const catGroup = select(this)
+        // ticks
+        if (catGroup.select('.tick').empty()) {
+          catGroup.append('line')
+            .attr('class', 'tick')
+            .attr('data-testid', 'tick')
+        }
+        // divider between groups
+        if (catGroup.select('.divider').empty()) {
+          catGroup.append('line')
+            .attr('class', 'divider')
+            .attr('data-testid', 'divider')
+        }
+        // labels
+        if (catGroup.select('.color-label').empty()) {
+          catGroup.append('rect')
+            .attr('class', 'color-label')
+            .attr('data-testid', 'color-label')
+            .attr('x', 0)
+            .attr('y', 0)
+        }
+      })
+
+      const multiScale = layout.getAxisMultiScale(axisPlace),
+        existingCategoryDomain = multiScale?.categoricalScale?.domain() ?? []
+      if (JSON.stringify(categories) !== JSON.stringify(existingCategoryDomain)) {
+        multiScale?.setCategoricalDomain(categories)
+      }
+      colorsRef.current = colorArray
     }, [axisPlace, dataConfig, dragBehavior, layout, subAxisEltRef])
 
   // update axis helper
@@ -254,8 +403,15 @@ export const useSubAxis = ({
           // a crash on redo. So we only do it for non-categorical axes.
           shouldRenderSubAxis = false
           helper = new CategoricalAxisHelper(
-            { ...helperProps, centerCategoryLabels, dragInfo,
+            { ...helperProps, centerNonNumericLabels, dragInfo,
               subAxisSelectionRef, categoriesSelectionRef, categoriesRef, swapInProgress })
+          break
+        case 'color':
+          console.log("subaxis color axis model", JSON.parse(JSON.stringify(axisModel)))
+          shouldRenderSubAxis = false
+          helper = new ColorAxisHelper(
+            { ...helperProps, centerNonNumericLabels, dragInfo,
+              subAxisSelectionRef, colorsSelectionRef, colorsRef, swapInProgress })
           break
         case 'date':
           subAxisSelectionRef.current = subAxisElt ? select(subAxisElt) : undefined
@@ -266,7 +422,7 @@ export const useSubAxis = ({
         shouldRenderSubAxis && renderSubAxis()
       }
     }
-  }, [axisModel, axisProvider, centerCategoryLabels, displayModel, isAnimating, layout, renderSubAxis,
+  }, [axisModel, axisProvider, centerNonNumericLabels, displayModel, isAnimating, layout, renderSubAxis,
             showScatterPlotGridLines, showZeroAxisLine, subAxisEltRef, subAxisIndex])
 
   // update d3 scale and axis when scale type changes
@@ -287,12 +443,13 @@ export const useSubAxis = ({
       () => layout.getComputedBounds(axisPlace),
       () => {
         isCategorical && setupCategories()
+        isColor && setupColors()
         renderSubAxis()
       },
       {name: "useSubAxis [layout.getComputedBounds()"}
     )
     return () => disposer()
-  }, [axisPlace, layout, isCategorical, renderSubAxis, setupCategories])
+  }, [axisPlace, layout, isCategorical, renderSubAxis, setupCategories, setupColors, isColor])
 
   // update d3 scale and axis when axis domain changes
   useEffect(function installDomainSync() {
@@ -328,7 +485,18 @@ export const useSubAxis = ({
       }, {name: "useSubAxis [categories]", equals: comparer.structural}, dataConfig)
       return () => disposer()
     }
-  }, [renderSubAxis, isCategorical, setupCategories, dataConfig, axisPlace])
+    else if (isColor) {
+      const disposer = mstReaction(() => {
+        return (dataConfig?.categorySetForAttrRole(axisPlaceToAttrRole[axisPlace]))?.valuesArray
+      }, () => {
+        setupColors()
+        swapInProgress.current = true
+        renderSubAxis()
+        swapInProgress.current = false
+      }, {name: "useSubAxis [color]", equals: comparer.structural}, dataConfig)
+      return () => disposer()
+    }
+  }, [renderSubAxis, isCategorical, setupCategories, dataConfig, axisPlace, isColor, setupColors])
 
   const updateDomainAndRenderSubAxis = useCallback(() => {
     const role = axisPlaceToAttrRole[axisPlace],
@@ -342,6 +510,14 @@ export const useSubAxis = ({
 
     if (isCategoricalAxisModel(axisModel)) {
       setupCategories()
+      const categoryValues = categoriesRef.current,
+        multiScale = layout.getAxisMultiScale(axisPlace),
+        existingCategoryDomain = multiScale?.categoricalScale?.domain() ?? []
+      if (JSON.stringify(categoryValues) === JSON.stringify(existingCategoryDomain)) return
+      multiScale?.setCategoricalDomain(categoryValues)
+      renderSubAxis()
+    } else if (isColorAxisModel(axisModel)) {
+      setupColors()
       const categoryValues = categoriesRef.current,
         multiScale = layout.getAxisMultiScale(axisPlace),
         existingCategoryDomain = multiScale?.categoricalScale?.domain() ?? []
@@ -366,7 +542,7 @@ export const useSubAxis = ({
         renderSubAxis()
       }
     }
-  }, [axisModel, axisPlace, dataConfig, layout, renderSubAxis, setupCategories])
+  }, [axisModel, axisPlace, dataConfig, layout, renderSubAxis, setupCategories, setupColors])
 
   useEffect(function respondToHiddenCasesChange() {
     if (dataConfig) {
@@ -395,8 +571,9 @@ export const useSubAxis = ({
   // update on multiScaleChangeCount change
   useEffect(() => {
     isCategorical && setupCategories()
+    isColor && setupColors()
     renderSubAxis()
-  }, [renderSubAxis, multiScaleChangeCount, isCategorical, setupCategories])
+  }, [renderSubAxis, multiScaleChangeCount, isCategorical, setupCategories, isColor, setupColors])
 
   // We only need to do this for categorical axes
   useEffect(function setup() {
@@ -404,6 +581,10 @@ export const useSubAxis = ({
       setupCategories()
       renderSubAxis()
     }
-  }, [isCategorical, setupCategories, renderSubAxis])
+    if (isColor) {
+      setupColors()
+      renderSubAxis()
+    }
+  }, [isCategorical, setupCategories, renderSubAxis, isColor, setupColors])
 
 }
