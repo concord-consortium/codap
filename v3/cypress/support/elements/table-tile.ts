@@ -392,12 +392,12 @@ export const TableTileElements = {
       })
     }
   },
-  addNewAttribute(collectionIndex = 1, atttributeName?: string) {
+  addNewAttribute(collectionIndex = 1, attributeName?: string) {
     this.getCollection(collectionIndex).find("[data-testid=collection-add-attribute-icon-button] svg")
       .click({force:true})
-    if (atttributeName) {
+    if (attributeName) {
       cy.wait(100)
-      this.getAttributeInput(collectionIndex).type(`${atttributeName}{enter}`)
+      this.getAttributeInput(collectionIndex).type(`${attributeName}{enter}`)
     } else {
       cy.get("[data-testid=column-name-input]").type("{enter}{enter}")
     }

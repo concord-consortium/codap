@@ -49,6 +49,7 @@ export const
   kLatNames = ['latitude', 'lat', 'latitud', 'breitengrad', '緯度', 'عرض جغرافیایی'],
   kLongNames = ['longitude', 'long', 'lng', 'lon', 'longitud', 'längengrad', '経度', 'طول جغرافیایی'],
 
+  // TODO: Figure out a better names for these in languages that don't use the latin alphabet.
   kPinLatNames = ['pinlatitude', 'pinlat', 'pinlatitud', 'pinbreitengrad', 'pin緯度', 'pinعرض جغرافیایی'],
   kPinLongNames = [
     'pinlongitude', 'pinlong', 'pinlng', 'pinlon', 'pinlongitud', 'pinlängengrad', 'pin経度', 'pinطول جغرافیایی'

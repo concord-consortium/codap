@@ -8,12 +8,6 @@ import {latLongAttributesFromDataSet} from "../utilities/map-utils"
 import {MapGridModel} from "./map-grid-model"
 import {MapLayerModel} from "./map-layer-model"
 
-export const MapPointDisplayTypes = ["points", "heatmap"] as const
-export type MapPointDisplayType = typeof MapPointDisplayTypes[number]
-export function isMapPointDisplayType(value: any): value is MapPointDisplayType {
-  return MapPointDisplayTypes.includes(value)
-}
-
 export const MapPinLayerModel = MapLayerModel
   .named('MapPinLayerModel')
   .props({

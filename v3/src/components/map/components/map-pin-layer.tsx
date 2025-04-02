@@ -1,11 +1,13 @@
 import clsx from "clsx"
 import { observer } from "mobx-react-lite"
-import React, { useEffect, useRef, useState } from "react"
+import React, { useEffect, useRef } from "react"
 import { useMap } from "react-leaflet"
+import { useForceUpdate } from "../../../hooks/use-force-update"
 import { IDataSet } from "../../../models/data/data-set"
 import { isSetCaseValuesAction } from "../../../models/data/data-set-actions"
 import { ICaseCreation } from "../../../models/data/data-set-types"
 import { insertCasesWithCustomUndoRedo } from "../../../models/data/data-set-undo"
+import { selectCases, setSelectedCases } from "../../../models/data/data-set-utils"
 import { onAnyAction } from "../../../utilities/mst-utils"
 import { useDataDisplayLayout } from "../../data-display/hooks/use-data-display-layout"
 import PlacedLocationMarker from "../assets/placed-location-marker.svg"
@@ -14,9 +16,7 @@ import { kPinColors } from "../map-types"
 import { IMapPinLayerModel } from "../models/map-pin-layer-model"
 import { pinAttributesFromDataSet } from "../utilities/map-utils"
 import "./map-pin-layer.scss"
-import { selectCases, setSelectedCases } from "../../../models/data/data-set-utils"
 
-// FIX-ME: Can we get these numbers dynamically?
 const mapPinHeight = 35
 const mapPinWidth = 25
 
@@ -54,7 +54,7 @@ interface IMapPinLayerProps {
   mapLayerModel: IMapPinLayerModel
 }
 export const MapPinLayer = observer(function MapPinLayer({ mapLayerModel }: IMapPinLayerProps) {
-  const [_forceRerender, setForceRerender] = useState(0)
+  const forceUpdate = useForceUpdate()
   const layerRef = useRef<HTMLDivElement>(null)
   const map = useMap()
   const mapModel = useMapModelContext()
@@ -70,11 +70,11 @@ export const MapPinLayer = observer(function MapPinLayer({ mapLayerModel }: IMap
     if (dataset) {
       return onAnyAction(dataset, action => {
         if (isSetCaseValuesAction(action)) {
-          setForceRerender((prev) => prev + 1)
+          forceUpdate()
         }
       })
     }
-  }, [dataset])
+  }, [dataset, forceUpdate])
 
   // Force a rerender when the map is resized, panned, or zoomed
   const { contentWidth: _contentWidth, contentHeight: _contentHeight } = layout
@@ -103,9 +103,9 @@ export const MapPinLayer = observer(function MapPinLayer({ mapLayerModel }: IMap
       ref={layerRef}
     >
       {renderPins && dataset?.items.map(({ __id__ }, index) => {
-        const lat = Number(dataset.getValue(__id__, pinLatId))
-        const long = Number(dataset.getValue(__id__, pinLongId))
-        if (!isFinite(lat) || !isFinite(long)) return null
+        const lat = dataset.getNumeric(__id__, pinLatId)
+        const long = dataset.getNumeric(__id__, pinLongId)
+        if (lat == null || long == null || !isFinite(lat) || !isFinite(long)) return null
 
         const { x, y } = map.latLngToContainerPoint([lat, long])
         const pinX = x - mapPinWidth / 2
