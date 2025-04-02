@@ -111,6 +111,10 @@ export const BarChartModel = DotChartModel
       }
       return undefined
     },
+    get maxCellPercent() {
+      // Override base class to handle situation in which there is a legend
+      return self.dataConfiguration?.attributeID("legend") ? 100 : self._maxCellPercent
+    },
     newSecondaryAxisRequired(patch: IJsonPatch): false | IAxisModel {
       if (patch.path.includes("breakdownType")) {
         const secondaryPlace = self.dataConfiguration?.secondaryRole === "x" ? "bottom" : "left"
