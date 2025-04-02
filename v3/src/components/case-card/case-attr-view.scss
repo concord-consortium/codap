@@ -20,7 +20,7 @@
 
     .codap-column-header-content {
       &:hover {
-        color: #1b5798 !important;
+        color: #1b5798 !important; // overrides Charkraui default color
         span {
           text-decoration: underline;
         }
