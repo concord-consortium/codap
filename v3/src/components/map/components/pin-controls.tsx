@@ -1,6 +1,7 @@
 import clsx from "clsx"
 import { observer } from "mobx-react-lite"
 import React from "react"
+import { removeCasesWithCustomUndoRedo } from "../../../models/data/data-set-undo"
 import AddIcon from "../assets/add-location-marker-icon.svg"
 import RemoveIcon from "../assets/remove-location-marker-icon.svg"
 import { kPinColors } from "../map-types"
@@ -39,7 +40,11 @@ export const PinControls = observer(function PinControls({ mapLayerModel }: IPin
   const removeButtonDisabled = !dataset?.selection.size
 
   const handleAddButtonClick = () => mapLayerModel.setAddMode(!mapLayerModel.addMode)
-  const handleRemoveButtonClick = () => dataset?.removeCases(Array.from(dataset?.selection))
+  const handleRemoveButtonClick = () => {
+    if (dataset) {
+      removeCasesWithCustomUndoRedo(dataset, Array.from(dataset.selection))
+    }
+  }
   return (
     <div className="pin-controls">
       <ControlButton
