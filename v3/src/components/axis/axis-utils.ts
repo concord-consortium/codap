@@ -14,7 +14,7 @@ export const getStringBounds = (s = 'Wy', font = kDataDisplayFont) => {
 interface ICollisionProps {
   bandWidth: number
   categories: string[]
-  centerCategoryLabels: boolean
+  centerNonNumericLabels: boolean
 }
 
 export const collisionExists = (props: ICollisionProps) => {
@@ -22,10 +22,10 @@ export const collisionExists = (props: ICollisionProps) => {
    * This can occur when labels are centered on the tick, or when they are left-aligned.
    * The former requires computation of two adjacent label widths.
    */
-  const {bandWidth, categories, centerCategoryLabels} = props,
+  const {bandWidth, categories, centerNonNumericLabels} = props,
     narrowedBandwidth = bandWidth - 5,
     labelWidths = categories.map(category => getStringBounds(category).width)
-  return centerCategoryLabels ? labelWidths.some((width, i) => {
+  return centerNonNumericLabels ? labelWidths.some((width, i) => {
     return i > 0 && width / 2 + labelWidths[i - 1] / 2 > narrowedBandwidth
   }) : labelWidths.some(width => width > narrowedBandwidth)
 }
@@ -40,7 +40,7 @@ type CollisionOptions = "collision" | "fit"
 type CenterCollisionPlacementMap = Record<CenterOptions, Record<CollisionOptions, ILabelPlacement>>
 
 export const getCategoricalLabelPlacement = (
-  axisPlace: AxisPlace, centerCategoryLabels: boolean, collision: boolean) => {
+  axisPlace: AxisPlace, centerNonNumericLabels: boolean, collision: boolean) => {
 
   const rotation = 'rotate(-90)'  // the only rotation value we use
   const labelPlacementMap: Partial<Record<AxisPlace, CenterCollisionPlacementMap>> = {
@@ -91,7 +91,7 @@ export const getCategoricalLabelPlacement = (
     }
   }
 
-  const centerOrJustify = centerCategoryLabels ? "center" : "justify"
+  const centerOrJustify = centerNonNumericLabels ? "center" : "justify"
   const collisionOrFit = collision ? "collision" : "fit"
   const labelPlacement = labelPlacementMap[axisPlace]?.[centerOrJustify][collisionOrFit]
   return {rotation: '', textAnchor: 'none', ...labelPlacement}
@@ -113,7 +113,7 @@ export interface DragInfo {
 
 export interface IGetCoordFunctionsProps {
   numCategories: number
-  centerCategoryLabels: boolean
+  centerNonNumericLabels: boolean
   collision: boolean
   axisIsVertical: boolean
   rangeMin: number
@@ -134,13 +134,13 @@ interface ICoordFunctions {
 }
 
 export const getCoordFunctions = (props: IGetCoordFunctionsProps): ICoordFunctions => {
-  const {numCategories, centerCategoryLabels, collision,
+  const {numCategories, centerNonNumericLabels, collision,
     axisIsVertical,
     rangeMin, rangeMax, subAxisLength,
     isRightCat, isTop, dragInfo} = props,
     bandWidth = subAxisLength / numCategories,
     labelTextHeight = getStringBounds('12px sans-serif').height,
-    indexOffset = centerCategoryLabels ? 0.5 : 0/*(axisIsVertical ? 1 : 0)*/,
+    indexOffset = centerNonNumericLabels ? 0.5 : 0/*(axisIsVertical ? 1 : 0)*/,
     dI = dragInfo.current
   let labelXOffset = 0, labelYOffset = 0
   const getTickCoord = (i: number, rangeVal:number, sign: 1 | -1) => {

@@ -6,7 +6,8 @@ import { applyModelChange } from "../../../models/history/apply-model-change"
 import { setNiceDomain } from "../../axis/axis-domain-utils"
 import { AxisPlace, IAxisDomainOptions, IAxisTicks, TickFormatter } from "../../axis/axis-types"
 import {
-  CategoricalAxisModel, CountAxisModel, DateAxisModel, EmptyAxisModel, IAxisModel, isCategoricalAxisModel,
+  CategoricalAxisModel, ColorAxisModel, CountAxisModel, DateAxisModel, EmptyAxisModel, IAxisModel,
+  isCategoricalAxisModel, isColorAxisModel,
   isCountAxisModel, isDateAxisModel, isEmptyAxisModel, isNumericAxisModel, NumericAxisModel
 } from "../../axis/models/axis-model"
 import { PointDisplayType } from "../../data-display/data-display-types"
@@ -121,6 +122,11 @@ export const PlotModel = types
       return isEmptyAxisModel(axisModel)
               ? axisModel
               : EmptyAxisModel.create({ place })
+    },
+    getValidColorAxis(place: AxisPlace, attrType?: AttributeType, axisModel?: IAxisModel): IAxisModel {
+      return isColorAxisModel(axisModel)
+              ? axisModel
+              : ColorAxisModel.create({ place })
     },
     getValidCategoricalAxis(place: AxisPlace, attrType?: AttributeType, axisModel?: IAxisModel): IAxisModel {
       return isCategoricalAxisModel(axisModel)

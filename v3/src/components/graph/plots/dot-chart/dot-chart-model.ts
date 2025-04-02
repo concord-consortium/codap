@@ -13,7 +13,9 @@ export const DotChartModel = PlotModel
       return true
     },
     getValidPrimaryAxis(place: AxisPlace, attrType?: AttributeType, axisModel?: IAxisModel): IAxisModel {
-      return self.getValidCategoricalAxis(place, attrType, axisModel)
+      return attrType === "color"
+                ? self.getValidColorAxis(place, attrType, axisModel)
+                : self.getValidCategoricalAxis(place, attrType, axisModel)
     },
     get showDisplayConfig(): boolean {
       return !!self.dataConfiguration?.hasExactlyOneCategoricalAxis

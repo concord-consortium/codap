@@ -3,7 +3,9 @@ import { stringValuesToDateSeconds } from "../../../utilities/date-utils"
 import { setNiceDomain } from "../../axis/axis-domain-utils"
 import { AxisPlace, AxisPlaces, IScaleType } from "../../axis/axis-types"
 import {
-  CategoricalAxisModel, DateAxisModel, EmptyAxisModel, IAxisModel, isBaseNumericAxisModel, isCategoricalAxisModel,
+  BaseCategoricalAxisModel, DateAxisModel, EmptyAxisModel, IAxisModel, isBaseNumericAxisModel, isCategoricalAxisModel,
+  isCategoricalOrColorAxisModel,
+  isColorAxisModel,
   isDateAxisModel, isEmptyAxisModel, isNumericAxisModel, NumericAxisModel
 } from "../../axis/models/axis-model"
 import { graphPlaceToAttrRole } from "../../data-display/data-display-types"
@@ -17,7 +19,6 @@ function setPrimaryRoleAndPlotType(graphModel: IGraphContentModel) {
 }
 
 function setupAxes(graphModel: IGraphContentModel, layout: GraphLayout) {
-
   function syncAttributeTypeWithAxis(place: AxisPlace, attributeType?: AttributeType, axisModel?: IAxisModel) {
     if (!attributeType || !axisModel) return
 
@@ -29,6 +30,10 @@ function setupAxes(graphModel: IGraphContentModel, layout: GraphLayout) {
     else if (isNumericAxisModel(axisModel)) {
       if (attributeType === "numeric") return
       newAttributeType = "numeric"
+    }
+    else if (isColorAxisModel(axisModel)) {
+      if (attributeType === "color") return
+      newAttributeType = "color"
     }
     else if (isCategoricalAxisModel(axisModel)) {
       if (isCategoricalAttributeType(attributeType)) return
@@ -71,9 +76,9 @@ function setupAxes(graphModel: IGraphContentModel, layout: GraphLayout) {
                         : currAxisModel ?? EmptyAxisModel.create({ place })
       // create secondary categorical axis model if necessary
       if (isEmptyAxisModel(newAxisModel) && isSecondaryPlace && attributeType) {
-        newAxisModel = isCategoricalAxisModel(currAxisModel)
+        newAxisModel = isCategoricalOrColorAxisModel(currAxisModel)
                         ? currAxisModel
-                        : CategoricalAxisModel.create({ place })
+                        : BaseCategoricalAxisModel.create({ place })
       }
     }
     else if (place === "rightNumeric") {
@@ -91,9 +96,9 @@ function setupAxes(graphModel: IGraphContentModel, layout: GraphLayout) {
     }
     else {
       if (attributeType) {
-        newAxisModel = isCategoricalAxisModel(currAxisModel)
+        newAxisModel = isCategoricalOrColorAxisModel(currAxisModel)
                         ? currAxisModel
-                        : CategoricalAxisModel.create({ place })
+                        : BaseCategoricalAxisModel.create({ place })
       }
     }
 
@@ -112,7 +117,7 @@ function setupAxes(graphModel: IGraphContentModel, layout: GraphLayout) {
         setNiceDomain(values, newAxisModel, graphModel.plot.axisDomainOptions)
       }
 
-      if (isCategoricalAxisModel(newAxisModel)) {
+      if (isCategoricalOrColorAxisModel(newAxisModel)) {
         const categorySet = dataConfig.categorySetForAttrRole(attributeRole)
         layout.getAxisMultiScale(place)?.setCategorySet(categorySet)
       }

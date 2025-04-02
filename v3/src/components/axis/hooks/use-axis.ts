@@ -81,9 +81,17 @@ export const useAxis = (axisPlace: AxisPlace) => {
         // from the multiScale. This is because during restore the multiScale has not been set up yet.
         const axisLength = layout.getAxisLength(axisPlace),
           categories = dataConfiguration?.categoryArrayForAttrRole(attrRole) ?? [],
-          centerCategoryLabels = dataConfiguration?.categoriesForAxisShouldBeCentered(axisPlace) ?? true,
+          centerNonNumericLabels = dataConfiguration?.categoriesForAxisShouldBeCentered(axisPlace) ?? true,
           bandWidth = axisLength / categories.length / repetitions,
-          collision = collisionExists({bandWidth, categories, centerCategoryLabels})
+          collision = collisionExists({bandWidth, categories, centerNonNumericLabels})
+        desiredExtent += collision ? maxWidthOfStringsD3(categories) : getStringBounds().height
+        break
+      }
+      case 'color': {
+        const categories = dataConfiguration?.categoryArrayForAttrRole(attrRole) ?? [],
+          centerNonNumericLabels = dataConfiguration?.categoriesForAxisShouldBeCentered(axisPlace) ?? true,
+          bandWidth = layout.getAxisLength(axisPlace) / categories.length / repetitions,
+          collision = collisionExists({bandWidth, categories, centerNonNumericLabels})
         desiredExtent += collision ? maxWidthOfStringsD3(categories) : getStringBounds().height
         break
       }
