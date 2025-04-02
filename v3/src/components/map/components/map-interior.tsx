@@ -47,24 +47,24 @@ export const MapInterior = observer(function MapInterior({setPixiPointsLayer}: I
     // Only use one of the following methods
 
     // Add the GeoTIFF using the georaster-layer-for-leaflet library
-    // createGeoTIFFLayerWithGeorasterLayerForLeaflet(mapModel.geotiffUrl).then(result => {
-    //   if (!result) return
-    //   const { georaster, layer } = result
-    //   if (georaster && layer && mapModel.leafletMap) {
-    //     layer.addTo(mapModel.leafletMap)
-    //     mapModel.setGeotiffLayer(layer)
-    //     mapModel.setGeoraster(georaster)
-    //   }
-    // })
-
-    // Add the GeoTIFF using the leaflet-geotiff-2 library
-    createGeoTIFFLayerWithLeafletGeottif2(mapModel.geotiffUrl).then(layer => {
-      if (!layer) return
-      if (mapModel.leafletMap) {
+    createGeoTIFFLayerWithGeorasterLayerForLeaflet(mapModel.geotiffUrl).then(result => {
+      if (!result) return
+      const { georaster, layer } = result
+      if (georaster && layer && mapModel.leafletMap) {
         layer.addTo(mapModel.leafletMap)
         mapModel.setGeotiffLayer(layer)
+        mapModel.setGeoraster(georaster)
       }
     })
+
+    // Add the GeoTIFF using the leaflet-geotiff-2 library
+    // createGeoTIFFLayerWithLeafletGeottif2(mapModel.geotiffUrl).then(layer => {
+    //   if (!layer) return
+    //   if (mapModel.leafletMap) {
+    //     layer.addTo(mapModel.leafletMap)
+    //     mapModel.setGeotiffLayer(layer)
+    //   }
+    // })
 
     // Add a PNG or JPEG image layer
     // const imageLayer = createImageLayer(mapModel.geotiffUrl)
