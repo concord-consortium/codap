@@ -13,11 +13,13 @@ interface IControlButtonProps {
   disabled?: boolean
   Icon?: any
   onClick?: () => void
+  testId?: string
 }
-function ControlButton({ active, className, disabled, Icon, onClick }: IControlButtonProps) {
+function ControlButton({ active, className, disabled, Icon, onClick, testId }: IControlButtonProps) {
   return (
     <button
       className={clsx("map-control-button", className, { active, disabled })}
+      data-testid={testId}
       disabled={disabled}
       onClick={onClick}
       type="button"
@@ -46,12 +48,14 @@ export const PinControls = observer(function PinControls({ mapLayerModel }: IPin
         disabled={addButtonDisabled}
         Icon={AddIcon}
         onClick={handleAddButtonClick}
+        testId="add-pin-button"
       />
       <ControlButton
         className="bottom-button"
         disabled={removeButtonDisabled}
         Icon={RemoveIcon}
         onClick={handleRemoveButtonClick}
+        testId="remove-pin-button"
       />
     </div>
   )
