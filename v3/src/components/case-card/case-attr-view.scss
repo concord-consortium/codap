@@ -17,6 +17,15 @@
     padding: 1px 8px 2px 4px;
     position: relative;
     white-space: nowrap;
+
+    .codap-column-header-content {
+      &:hover {
+        color: #1b5798 !important;
+        span {
+          text-decoration: underline;
+        }
+      }
+    }
   }
 
   .case-card-attr-value {

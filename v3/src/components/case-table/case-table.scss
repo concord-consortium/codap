@@ -226,6 +226,10 @@ $table-body-font-size: 8pt;
           align-items: center;
           justify-content: center;
           color: #555555 !important;
+          &:hover {
+            text-decoration: underline;
+            color: #1b5798 !important;
+          }
 
           input {
             height: calc(100% - 6px)
