@@ -209,7 +209,7 @@ context("Map UI", () => {
   })
   it("checks map pins", () => {
     c.getIconFromToolShelf("table").click()
-    cy.contains("-- new --").click()
+    toolbar.getNewCaseTable().click()
     c.getResizeControl("table")
       .realMouseDown({ position: "center" })
       .realMouseMove(350, 0)
