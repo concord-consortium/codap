@@ -75,6 +75,8 @@ describe("DataInteractive CountAdornmentHandler", () => {
       isVisible: true,
       percentValue: jest.fn(() => 0.5),
       percentType: "cell",
+      setPercentType: jest.fn(),
+      setVisibility: jest.fn(),
       showCount: true,
       showPercent: true,
       type: kCountType
@@ -135,30 +137,6 @@ describe("DataInteractive CountAdornmentHandler", () => {
     expect(percentValues.showPercent).toBe(true)
   })
 
-  it("create respects explicitly provided showCount and showPercent values", () => {
-    const bothTrueValues = {
-      type: kCountType,
-      showCount: true,
-      showPercent: true
-    }
-    const bothTrueResult = handler.create!({ graphContent: mockGraphContent, values: bothTrueValues })
-    expect(bothTrueResult?.success).toBe(true)
-    const bothTrueResultValues = bothTrueResult?.values as any
-    expect(bothTrueResultValues.showCount).toBe(true)
-    expect(bothTrueResultValues.showPercent).toBe(true)
-
-    const bothFalseValues = {
-      type: kCountType,
-      showCount: false,
-      showPercent: false
-    }
-    const bothFalseResult = handler.create!({ graphContent: mockGraphContent, values: bothFalseValues })
-    expect(bothFalseResult?.success).toBe(true)
-    const bothFalseResultValues = bothFalseResult?.values as any
-    expect(bothFalseResultValues.showCount).toBe(false)
-    expect(bothFalseResultValues.showPercent).toBe(false)
-  })
-
   it("get returns an error when an invalid adornment provided", () => {
     const result = handler.get?.(mockInvalidAdornment, mockGraphContent)
     expect(result?.success).toBe(false)
@@ -199,10 +177,9 @@ describe("DataInteractive CountAdornmentHandler", () => {
   it("update successfully updates count adornment properties", () => {
     mockGraphContent.adornmentsStore.findAdornmentOfType.mockReturnValue(mockCountAdornment)
     const updateValues = {
-      showCount: false,
-      showPercent: true,
       percentType: "column",
-      isVisible: true
+      isVisible: true,
+      type: kPercentType
     }
     const result = handler.update?.({ graphContent: mockGraphContent, values: updateValues })
     expect(result?.success).toBe(true)

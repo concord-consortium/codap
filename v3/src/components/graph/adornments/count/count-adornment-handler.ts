@@ -1,4 +1,4 @@
-import { DIAdornmentValues, DICountAdornmentValues, isAdornmentValues }
+import { DICountAdornmentValues, isAdornmentValues }
   from "../../../../data-interactive/data-interactive-adornment-types"
 import { DIAdornmentHandler } from "../../../../data-interactive/handlers/adornment-handler"
 import { adornmentNotFoundResult, errorResult } from "../../../../data-interactive/handlers/di-results"
@@ -11,28 +11,7 @@ import { getAdornmentContentInfo } from "../adornment-content-info"
 import { IAdornmentsBaseStore } from "../store/adornments-base-store"
 import { AdornmentData, adornmentMismatchResult, cellKeyToCategories } from "../utilities/adornment-handler-utils"
 import { ICountAdornmentModel, isCountAdornment } from "./count-adornment-model"
-import { kCountType } from "./count-adornment-types"
-
-const setAdornmentProperties = (adornment: ICountAdornmentModel, values: DIAdornmentValues) => {
-  if (isAdornmentValues(values)) {
-    const { isVisible, percentType, showCount: _showCount, showPercent: _showPercent,
-            type } = values as DICountAdornmentValues
-    const hasShowCountOrPercent = _showCount !== undefined || _showPercent !== undefined
-    const showCount = _showCount || (type === "Count" && !hasShowCountOrPercent)
-    const showPercent = _showPercent ||
-                        (type === "Percent" as string && !hasShowCountOrPercent)
-    
-    adornment.setShowCount(showCount)
-    adornment.setShowPercent(showPercent)
-
-    if (isVisible != null) {
-      adornment.setVisibility(isVisible)
-    }
-    if (percentType != null) {
-      adornment.setPercentType(percentType)
-    }
-  }
-}
+import { kCountType, kPercentType } from "./count-adornment-types"
 
 const isPercentSupported = (graphContent: IGraphContentModel) => {
   const adornmentsStore = graphContent.adornmentsStore as IAdornmentsBaseStore
@@ -48,7 +27,14 @@ export const countAdornmentHandler: DIAdornmentHandler = {
     const adornmentsStore = graphContent.adornmentsStore as IAdornmentsBaseStore
     const dataConfig = graphContent.dataConfiguration
 
-    if (!isPercentSupported(graphContent) && (values as DICountAdornmentValues)?.showPercent) {
+    if (!isAdornmentValues(values)) {
+      return errorResult(t("V3.DI.Error.invalidValuesProvided"))
+    }
+
+    const { type, percentType, isVisible } = values as DICountAdornmentValues
+    const requestType = type as "Count" | "Percent" | undefined
+
+    if (requestType === kPercentType && !isPercentSupported(graphContent)) {
       return errorResult(t("V3.DI.Error.countAdornmentPercentNotSupported"))
     }
 
@@ -58,16 +44,25 @@ export const countAdornmentHandler: DIAdornmentHandler = {
     const componentContentInfo = getAdornmentContentInfo(kCountType)
     const adornment = existingCountAdornment ?? componentContentInfo.modelClass.create() as ICountAdornmentModel
 
-    if (isAdornmentValues(values)) {
-      const createValues = { ...values, isVisible: true }
-      setAdornmentProperties(adornment, createValues)
+
+    if (requestType === kCountType) {
+      adornment.setShowCount(true)
+    } else if (requestType === kPercentType) {
+      adornment.setShowPercent(true)
+      if (percentType != null) {
+        adornment.setPercentType(percentType)
+      }
+    }
+
+    if (isVisible != null) {
+      adornment.setVisibility(isVisible)
     }
 
     if (!existingCountAdornment) {
       adornmentsStore.addAdornment(adornment, { dataConfig })
     }
 
-    const { id, isVisible, showCount, showPercent, percentType, type } = adornment
+    const { id, showCount, showPercent } = adornment
 
     for (const cellKey of cellKeys) {
       const subPlotCases = dataConfig.subPlotCases(cellKey)
@@ -89,6 +84,28 @@ export const countAdornmentHandler: DIAdornmentHandler = {
     }
 
     return { success: true, values: { id, isVisible, showCount, showPercent, percentType, type, data }}
+  },
+
+  delete(args) {
+    const { graphContent, values } = args
+    const adornmentsStore = graphContent.adornmentsStore as IAdornmentsBaseStore
+    const existingCountAdornment = adornmentsStore.findAdornmentOfType<ICountAdornmentModel>(kCountType)
+    if (!existingCountAdornment) return adornmentNotFoundResult
+
+    if (typeof values !== "object" || !("type" in values)) {
+      return errorResult(t("V3.DI.Error.invalidValuesProvided"))
+    }
+
+    const { type } = values as { type: string }
+    const requestType = type as "Count" | "Percent" | undefined
+
+    if (requestType === kCountType) {
+      existingCountAdornment.setShowCount(false)
+    } else if (requestType === kPercentType) {
+      existingCountAdornment.setShowPercent(false)
+    }
+
+    return { success: true }
   },
 
   get(adornment: IAdornmentModel, graphContent: IGraphContentModel) {
@@ -144,12 +161,18 @@ export const countAdornmentHandler: DIAdornmentHandler = {
     const existingCountAdornment = adornmentsStore.findAdornmentOfType<ICountAdornmentModel>(kCountType)
     if (!existingCountAdornment) return adornmentNotFoundResult
 
-    if (!isPercentSupported(graphContent) && (values as DICountAdornmentValues)?.showPercent) {
-      return errorResult(t("V3.DI.Error.countAdornmentPercentNotSupported"))
+    if (!isAdornmentValues(values)) {
+      return errorResult(t("V3.DI.Error.invalidValuesProvided"))
     }
 
-    if (isAdornmentValues(values)) {
-      setAdornmentProperties(existingCountAdornment, values)
+    const { percentType, isVisible } = values as DICountAdornmentValues
+
+    if (percentType != null) {
+      existingCountAdornment.setPercentType(percentType)
+    }
+
+    if (isVisible != null) {
+      existingCountAdornment.setVisibility(isVisible)
     }
 
     return { success: true }

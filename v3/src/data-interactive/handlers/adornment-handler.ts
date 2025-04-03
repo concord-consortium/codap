@@ -83,7 +83,7 @@ export const diAdornmentHandler: DIHandler = {
     const handler = diAdornmentHandlers.get(resolvedType)
   
     if (handler?.delete) {
-      return handler.delete({ graphContent })
+      return handler.delete({ graphContent, values })
     }
   
     // If the adornment doesn't have a delete handler, we just hide the adornment.
