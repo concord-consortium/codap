@@ -99,8 +99,7 @@ export const BarChart = observer(function BarChart({ abovePointsGroupRef, pixiPo
                     const numInBar = cellMap[primeSplitCat]?.[secSplitCat]?.[primeCat]?.[secCat] ?? 1
                     const { x, y, barWidth, barHeight } = barCoverDimensions({
                       subPlotCells, cellIndices: cellData.cell, layout, primCatsCount, maxInCell, minInCell,
-                      numInBar, isPercentAxis: graphModel.secondaryAxisIsPercent, hasLegend: true,
-                      numInSubPlot: dataConfig.numCasesInSubPlotGivenCategories(primeSplitCat, secSplitCat)
+                      denominator: numInBar, isPercentAxis: graphModel.secondaryAxisIsPercent
                     })
                     const caseIDs = dataConfig.getCasesForCategoryValues(
                       primaryAttrRole, primeCat, secCat, primeSplitCat, secSplitCat, legendCat
@@ -119,8 +118,8 @@ export const BarChart = observer(function BarChart({ abovePointsGroupRef, pixiPo
                 const maxInCell = bins[primeSplitCat]?.[secSplitCat]?.[primeCat]?.[secCat] ?? 0
                 const { x, y, barWidth, barHeight } = barCoverDimensions({
                   subPlotCells, cellIndices: cellData.cell, layout, primCatsCount, maxInCell,
-                  isPercentAxis: graphModel.secondaryAxisIsPercent, hasLegend: false,
-                  numInSubPlot: dataConfig.numCasesInSubPlotGivenCategories(primeSplitCat, secSplitCat)
+                  denominator: dataConfig.numCasesInSubPlotGivenCategories(primeSplitCat, secSplitCat),
+                  isPercentAxis: graphModel.secondaryAxisIsPercent
                 })
                 const caseIDs = dataConfig.getCasesForCategoryValues(
                   primaryAttrRole, primeCat, secCat, primeSplitCat, secSplitCat

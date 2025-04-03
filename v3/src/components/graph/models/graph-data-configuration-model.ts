@@ -306,8 +306,9 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       return !attrID ? kMain
         : strValue && (strValue === '' || categoryArray?.includes(strValue)) ? strValue : kOther
     },
-    categorySpecForCase(caseID: string, extraPrimaryAttrRole: AttrRole, extraSecondaryAttrRole: AttrRole,
-                        hasExtraPrimary: boolean, hasExtraSecondary: boolean) {
+    categorySpecForCase(caseID: string, extraPrimaryAttrRole: AttrRole, extraSecondaryAttrRole: AttrRole) {
+      const hasExtraPrimary = !!self.attributeID(extraPrimaryAttrRole),
+        hasExtraSecondary = !!self.attributeID(extraSecondaryAttrRole)
       return {
         primary: (self.primaryRole && this.categoricalValueForCaseInRole(caseID, self.primaryRole)) ?? '',
         secondary: (self.secondaryRole &&
@@ -331,11 +332,8 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       calculate: (extraPrimaryAttrRole: AttrRole, extraSecondaryAttrRole: AttrRole,
                   binWidth = 0, minValue = 0, totalNumberOfBins = 0) => {
         type BinMap = Record<string, Record<string, Record<string, Record<string, number>>>>
-        const hasExtraPrimary = !!self.attributeID(extraPrimaryAttrRole),
-          hasExtraSecondary = !!self.attributeID(extraSecondaryAttrRole),
-          valueQuads = (self.getCaseDataArray(0) || []).map((aCaseData: CaseData) => {
-            return self.categorySpecForCase(aCaseData.caseID, extraPrimaryAttrRole, extraSecondaryAttrRole,
-              hasExtraPrimary, hasExtraSecondary)
+        const valueQuads = (self.getCaseDataArray(0) || []).map((aCaseData: CaseData) => {
+            return self.categorySpecForCase(aCaseData.caseID, extraPrimaryAttrRole, extraSecondaryAttrRole)
           }),
           bins: BinMap = {}
 
@@ -563,11 +561,8 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       // that belong to the case's primary category
       const extraPrimaryAttrRole = self.primaryRole === "x" ? "topSplit" : "rightSplit",
         extraSecondaryAttrRole = self.primaryRole === "x" ? "rightSplit" : "topSplit",
-        hasExtraPrimary = !!self.attributeID(extraPrimaryAttrRole),
-        hasExtraSecondary = !!self.attributeID(extraSecondaryAttrRole),
         cellMap = self.cellMap(extraPrimaryAttrRole, extraSecondaryAttrRole),
-        cellSpec = self.categorySpecForCase(caseID, extraPrimaryAttrRole, extraSecondaryAttrRole,
-          hasExtraPrimary, hasExtraSecondary)
+        cellSpec = self.categorySpecForCase(caseID, extraPrimaryAttrRole, extraSecondaryAttrRole)
       return cellMap[cellSpec.extraPrimary]?.[cellSpec.extraSecondary]?.[cellSpec.primary]?.[cellSpec.secondary] ?? 0
     },
     cellCases: cachedFnWithArgsFactory({
