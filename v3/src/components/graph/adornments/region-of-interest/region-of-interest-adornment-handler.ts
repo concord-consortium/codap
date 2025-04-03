@@ -12,23 +12,18 @@ import { DIAdornmentValues, DIRegionOfInterestAdornmentValues, isAdornmentValues
 
 const setAdornmentProperties = (adornment: IRegionOfInterestAdornmentModel, values: DIAdornmentValues) => {
   if (isAdornmentValues(values)) {
-    const { height, isVisible, xPosition, yPosition, width } = values as DIRegionOfInterestAdornmentValues
+    const { isVisible, primary, secondary } = values as DIRegionOfInterestAdornmentValues
     if (isVisible != null) {
       adornment.setVisibility(isVisible)
     }
-    if (height != null) {
-      adornment.setHeight(height)
+    if (primary != null) {
+      const { position, extent } = primary
+      adornment.setPrimary({position, extent})
     }
-    if (width != null) {
-      adornment.setWidth(width)
+    if (secondary != null) {
+      const { position, extent, axis } = secondary
+      adornment.setSecondary({position, extent, axis})
     }
-    if (xPosition != null) {
-      adornment.setXPosition(xPosition)
-    }
-    if (yPosition != null) {
-      adornment.setYPosition(yPosition)
-    }
-
     // adornment.setPosition(x ?? adornment.xPosition, y ?? adornment.yPosition)
   }
 }
@@ -54,27 +49,28 @@ export const regionOfInterestAdornmentHandler: DIAdornmentHandler = {
       adornmentsStore.addAdornment(adornment, { dataConfig })
     }
 
-    const { id, isVisible, height, type, width, xPosition, yPosition } = adornment
+    const { id, isVisible, type, primary, secondary } = adornment
     return {
       success: true,
       values: {
         id,
         isVisible,
-        height: JSON.stringify(height),
         type,
-        width: JSON.stringify(width),
-        xPosition: JSON.stringify(xPosition),
-        yPosition: JSON.stringify(yPosition)
+        primary: JSON.stringify(primary),
+        secondary: JSON.stringify(secondary)
       }
     }
   },
   get(adornment: IAdornmentModel, graphContent: IGraphContentModel) {
     if (!isRegionOfInterestAdornment(adornment)) return adornmentMismatchResult(kRegionOfInterestType)
 
-    const { id, isVisible, height, type, width, xPosition, yPosition } = adornment
+    const { id, isVisible, type, primary, secondary } = adornment
     return {
-      id, isVisible, height: JSON.stringify(height),
-      type, width: JSON.stringify(width), xPosition: JSON.stringify(xPosition), yPosition: JSON.stringify(yPosition)
+      id,
+      isVisible,
+      type,
+      primary: JSON.stringify(primary),
+      secondary: JSON.stringify(secondary)
     }
   },
   update(args) {
