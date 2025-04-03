@@ -111,6 +111,9 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
       undoStringKey: "DG.Undo.graph.changeBreakdownType",
       redoStringKey: "DG.Redo.graph.changeBreakdownType"
     })
+    if (breakdownType === "formula") {
+      barChart?.setFormulaEditorIsOpen(true)
+    }
   }
 
   return (

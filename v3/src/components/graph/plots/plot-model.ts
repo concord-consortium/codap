@@ -9,7 +9,7 @@ import { CategoricalAxisModel, CountAxisModel, DateAxisModel, EmptyAxisModel, IA
   isCountAxisModel, isDateAxisModel, isEmptyAxisModel, isNumericAxisModel, isPercentAxisModel,
   NumericAxisModel, PercentAxisModel
 } from "../../axis/models/axis-model"
-import { PointDisplayType } from "../../data-display/data-display-types"
+import { GraphAttrRole, PointDisplayType } from "../../data-display/data-display-types"
 import { PlotType } from "../graphing-types"
 import { IGraphDataConfigurationModel } from "../models/graph-data-configuration-model"
 
@@ -97,6 +97,9 @@ export const PlotModel = types
     },
     get showZeroLine(): boolean {
       return false
+    },
+    axisLabelClickHandler(role: GraphAttrRole):undefined | (() => void) {
+      return undefined
     }
   }))
   .views(self => ({
