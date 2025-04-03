@@ -1,6 +1,6 @@
 import { observable, reaction, comparer } from "mobx"
 import {
-  addDisposer, getEnv, getSnapshot, getType, hasEnv, IAnyStateTreeNode, Instance, ISerializedActionCall,
+  addDisposer, applySnapshot, getEnv, getSnapshot, getType, hasEnv, IAnyStateTreeNode, Instance, ISerializedActionCall,
   resolveIdentifier, SnapshotIn, types
 } from "mobx-state-tree"
 import { onAnyAction } from "../../utilities/mst-utils"
@@ -45,7 +45,7 @@ const ColorRangeModel = types.model("ColorRangeModel", {
 }))
 
 export const AttributeBinningTypes = ["quantize", "quantile"] as const
-export type IAttributeBinningType = typeof AttributeBinningTypes[number]
+export type AttributeBinningType = typeof AttributeBinningTypes[number]
 
 // This is an object so it can be expanded in the future to store
 // things like:
@@ -55,6 +55,13 @@ export type IAttributeBinningType = typeof AttributeBinningTypes[number]
 // construct the choropleth scale
 const AttributeScale = types.model("AttributeScale", {
   binningType: types.maybe(types.enumeration(AttributeBinningTypes))
+})
+
+export const AttributeMetadata = types.model("AttributeMetadata", {
+  categories: types.maybe(CategorySet),
+  hidden: types.maybe(types.boolean),
+  colorRange: types.maybe(ColorRangeModel),
+  scale: types.maybe(AttributeScale)
 })
 
 export const SharedCaseMetadata = SharedModel
@@ -74,16 +81,11 @@ export const SharedCaseMetadata = SharedModel
     // key is collection id
     collections: types.map(CollectionMetadata),
     // key is attribute id
-    categories: types.map(CategorySet),
-    // key is attribute id; value is true (false values are deleted)
-    hidden: types.map(types.boolean),
+    attributes: types.map(AttributeMetadata),
+    // case table/card metadata
     caseTableTileId: types.maybe(types.string),
     caseCardTileId: types.maybe(types.string),
-    lastShownTableOrCardTileId: types.maybe(types.string), // used to restore the last shown tile both have been hidden
-    // key is attribute id
-    attributeColorRanges: types.map(ColorRangeModel),
-    // key is attribute id
-    attributeScales: types.map(AttributeScale)
+    lastShownTableOrCardTileId: types.maybe(types.string) // used to restore the last shown tile both have been hidden
   })
   .volatile(self => ({
     // CategorySets are generated whenever CODAP needs to treat an attribute categorically.
@@ -103,22 +105,58 @@ export const SharedCaseMetadata = SharedModel
     },
     // true if passed the id of a hidden attribute, false otherwise
     isHidden(attrId: string) {
-      return self.hidden.get(attrId) ?? false
+      return self.attributes.get(attrId)?.hidden ?? false
     },
     getAttributeColorRange(attrId: string) {
+      const colorRange = self.attributes.get(attrId)?.colorRange
       return {
-        low: self.attributeColorRanges.get(attrId)?.lowColor ?? kDefaultLowAttributeColor,
-        high: self.attributeColorRanges.get(attrId)?.highColor ?? kDefaultHighAttributeColor
+        low: colorRange?.lowColor ?? kDefaultLowAttributeColor,
+        high: colorRange?.highColor ?? kDefaultHighAttributeColor
       }
     },
     getAttributeBinningType(attrId: string) {
-      const scale = self.attributeScales.get(attrId)
-      return scale?.binningType || "quantile"
+      return self.attributes.get(attrId)?.scale?.binningType || "quantile"
     }
   }))
   .actions(self => ({
     setData(data?: IDataSet) {
       self.data = data
+    },
+    removeCollectionMetadata(collectionId: string) {
+      self.collections.delete(collectionId)
+    },
+    removeAttributeMetadata(attrId: string) {
+      self.attributes.delete(attrId)
+      // also remove any provisional category set associated with this attribute
+      self.provisionalCategories.delete(attrId)
+    }
+  }))
+  .actions(self => ({
+    requireCollectionMetadata(collectionId: string) {
+      let collectionMetadata = self.collections.get(collectionId)
+      if (!collectionMetadata) {
+        collectionMetadata = CollectionMetadata.create({})
+        self.collections.set(collectionId, collectionMetadata)
+      }
+      const collection = self.data?.getCollection(collectionId)
+      if (collection) {
+        // remove the metadata when the collection is removed from the dataset
+        addDisposer(collection, () => self.removeCollectionMetadata(collectionId))
+      }
+      return collectionMetadata
+    },
+    requireAttributeMetadata(attrId: string) {
+      let attrMetadata = self.attributes.get(attrId)
+      if (!attrMetadata) {
+        attrMetadata = AttributeMetadata.create({})
+        self.attributes.set(attrId, attrMetadata)
+      }
+      const attribute = self.data?.getAttribute(attrId)
+      if (attribute) {
+        // remove the metadata when the attribute is removed from the dataset
+        addDisposer(attribute, () => self.removeAttributeMetadata(attrId))
+      }
+      return attrMetadata
     },
     setCaseTableTileId(tileId?: string) {
       self.caseTableTileId = tileId
@@ -128,16 +166,14 @@ export const SharedCaseMetadata = SharedModel
     },
     setLastShownTableOrCardTileId(tileId?: string) {
       self.lastShownTableOrCardTileId = tileId
-    },
+    }
+  }))
+  .actions(self => ({
     setIsCollapsed(caseId: string, isCollapsed: boolean) {
       const { collectionId } = self.data?.caseInfoMap.get(caseId) || {}
       if (collectionId) {
-        let collectionMetadata = self.collections.get(collectionId)
+        const collectionMetadata = self.requireCollectionMetadata(collectionId)
         if (isCollapsed) {
-          if (!collectionMetadata) {
-            collectionMetadata = CollectionMetadata.create()
-            self.collections.set(collectionId, collectionMetadata)
-          }
           collectionMetadata.collapsed.set(caseId, true)
         }
         else if (collectionMetadata) {
@@ -146,65 +182,70 @@ export const SharedCaseMetadata = SharedModel
       }
     },
     setIsHidden(attrId: string, hidden: boolean) {
-      if (hidden) {
-        self.hidden.set(attrId, true)
-      }
-      else {
-        self.hidden.delete(attrId)
-      }
+      self.requireAttributeMetadata(attrId).hidden = hidden || undefined
     },
     showAllAttributes() {
-      self.hidden.clear()
+      self.attributes.forEach(attr => {
+        attr.hidden = undefined
+      })
     },
     setAttributeColor(attrId: string, color: string, selector: "low" | "high") {
-      let attributeColors = self.attributeColorRanges.get(attrId)
-      if (!attributeColors) {
-        attributeColors = ColorRangeModel.create()
-        self.attributeColorRanges.set(attrId, attributeColors)
+      const attrMetadata = self.requireAttributeMetadata(attrId)
+      let colorRange = attrMetadata.colorRange
+      if (!colorRange) {
+        colorRange = ColorRangeModel.create({})
+        attrMetadata.colorRange = colorRange
       }
       if (selector === "high") {
-        attributeColors.setHighColor(color)
+        colorRange.setHighColor(color)
       } else {
-        attributeColors.setLowColor(color)
+        colorRange.setLowColor(color)
       }
     },
-    setAttributeBinningType(attrId: string, binningType: IAttributeBinningType) {
-      let attributeScale = self.attributeScales.get(attrId)
-      if (!attributeScale) {
-        attributeScale = AttributeScale.create({binningType})
-        self.attributeScales.set(attrId, attributeScale)
+    setAttributeBinningType(attrId: string, binningType: AttributeBinningType) {
+      const attrMetadata = self.requireAttributeMetadata(attrId)
+      let scale = attrMetadata.scale
+      if (!scale) {
+        scale = AttributeScale.create({ binningType })
+        attrMetadata.scale = scale
       } else {
-        attributeScale.binningType = binningType
+        scale.binningType = binningType
       }
     }
   }))
   .actions(self => ({
-    setCategorySet(attrId: string, categorySet: ICategorySetSnapshot) {
-      self.categories.set(attrId, categorySet)
-    },
     removeCategorySet(attrId: string) {
-      self.categories.delete(attrId)
+      const attrMetadata = self.attributes.get(attrId)
+      if (attrMetadata) {
+        attrMetadata.categories = undefined
+      }
       self.provisionalCategories.delete(attrId)
+    }
+  }))
+  .actions(self => ({
+    setCategorySet(attrId: string, categorySet: ICategorySetSnapshot) {
+      const attrMetadata = self.requireAttributeMetadata(attrId)
+      if (attrMetadata.categories) {
+        applySnapshot(attrMetadata.categories, categorySet)
+      }
+      else {
+        attrMetadata.categories = CategorySet.create(categorySet)
+      }
     }
   }))
   .actions(self => ({
     // moves a category set from the provisional map to the official one
     promoteProvisionalCategorySet(categorySet: ICategorySet) {
       const attrId = categorySet.attribute.id
-      // add category set to official map
-      self.categories.set(attrId, CategorySet.create(getSnapshot(categorySet)))
+      self.setCategorySet(attrId, getSnapshot(categorySet))
       // remove category set from provisional categories map
       self.provisionalCategories.delete(attrId)
-      // remove category sets from map when attribute references are invalidated
-      categorySet.onAttributeInvalidated(function(invalidAttrId: string) {
-        self.removeCategorySet(invalidAttrId)
-      })
     }
   }))
   .views(self => ({
     // returns an existing category set (if available) or creates a new provisional one (for valid attributes)
     getCategorySet(attrId: string) {
-      let categorySet = self.categories.get(attrId) ?? self.provisionalCategories.get(attrId)
+      let categorySet = self.attributes.get(attrId)?.categories ?? self.provisionalCategories.get(attrId)
       if (!categorySet && self.data?.attrFromID(attrId)) {
         categorySet = createProvisionalCategorySet(self.data, attrId)
 
@@ -226,19 +267,18 @@ export const SharedCaseMetadata = SharedModel
   }))
   .actions(self => ({
     afterCreate() {
-      // respond to change of collections by showing hidden attributes if all attributes are hidden
+      // if all attributes in a collection are hidden, show the remaining attributes
       addDisposer(self, reaction(
-        () => {
-          return {
-            hiddenAttrs: Array.from(self.hidden.keys()),
-            collections: self.data?.collections.map(collection => collection.attributes.map(attr => attr?.id)) || []
-          }
-        },
-        ({hiddenAttrs}) => {
-          self.data?.collections.forEach(collection => {
-            const attrs = collection.attributes
-            if (attrs && attrs.every(attr => attr && hiddenAttrs.includes(attr.id))) {
-              attrs.forEach(attr => attr && self.setIsHidden(attr.id, false))
+        () => self.data?.collections.map(collection => {
+          return collection.attributes.map(attr => ({
+            attrId: attr?.id,
+            isHidden: attr?.id ? self.isHidden(attr.id) : false
+          }))
+        }) ?? [],
+        (collections) => {
+          collections.forEach(collection => {
+            if (collection.length > 0 && collection.every(({ isHidden }) => isHidden)) {
+              collection.forEach(({ attrId }) => attrId && self.setIsHidden(attrId, false))
             }
           })
         },

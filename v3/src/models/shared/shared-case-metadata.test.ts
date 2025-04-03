@@ -1,8 +1,12 @@
+import { cloneDeep } from "lodash"
 import { getSnapshot, Instance, types } from "mobx-state-tree"
-import { DataSet } from "../data/data-set"
-import { isSetIsCollapsedAction, isSharedCaseMetadata, SharedCaseMetadata } from "./shared-case-metadata"
-import { SharedModel } from "./shared-model"
 import { onAnyAction } from "../../utilities/mst-utils"
+import { ICategorySetSnapshot } from "../data/category-set"
+import { DataSet } from "../data/data-set"
+import {
+  createSharedCaseMetadata, isSetIsCollapsedAction, isSharedCaseMetadata, SharedCaseMetadata
+} from "./shared-case-metadata"
+import { SharedModel } from "./shared-model"
 
 // eslint-disable-next-line no-var
 var mockNodeIdCount = 0
@@ -52,26 +56,44 @@ describe("SharedCaseMetadata", () => {
     expect(categories).toBeUndefined()
   })
 
+  it("createSharedCaseMetadata creates a new instance with a provisional data set", () => {
+    const data = DataSet.create()
+    const metadata = createSharedCaseMetadata(data)
+    expect(metadata.data).toBe(data)
+  })
+
   it("implements isSharedCaseMetadata", () => {
     expect(isSharedCaseMetadata()).toBe(false)
     expect(isSharedCaseMetadata(SharedModel.create())).toBe(false)
     expect(isSharedCaseMetadata(tree.metadata)).toBe(true)
   })
 
-  it("stores column widths and hidden attributes", () => {
-    expect(tree.metadata.isHidden("foo")).toBe(false)
-    tree.metadata.setIsHidden("foo", true)
-    expect(tree.metadata.isHidden("foo")).toBe(true)
-    tree.metadata.setIsHidden("foo", false)
-    expect(tree.metadata.isHidden("foo")).toBe(false)
-    // falsy values are removed from map
-    expect(tree.metadata.hidden.size).toBe(0)
+  it("stores hidden attributes", () => {
+    expect(tree.metadata.isHidden("aId")).toBe(false)
+    tree.metadata.setIsHidden("aId", true)
+    expect(tree.metadata.isHidden("aId")).toBe(true)
+    tree.metadata.setIsHidden("aId", false)
+    expect(tree.metadata.isHidden("aId")).toBe(false)
+    // falsy values are set to undefined
+    expect(tree.metadata.attributes.get("aId")?.hidden).toBeUndefined()
     // can show all hidden attributes
-    tree.metadata.setIsHidden("foo", true)
-    expect(tree.metadata.isHidden("foo")).toBe(true)
+    tree.metadata.setIsHidden("aId", true)
+    expect(tree.metadata.isHidden("aId")).toBe(true)
     tree.metadata.showAllAttributes()
-    expect(tree.metadata.isHidden("foo")).toBe(false)
-    expect(tree.metadata.hidden.size).toBe(0)
+    expect(tree.metadata.isHidden("aId")).toBe(false)
+    expect(tree.metadata.attributes.get("aId")?.hidden).toBeUndefined()
+
+    // hiding the last attribute in a collection shows all attributes
+    tree.metadata.setIsHidden("aId", true)
+    tree.metadata.setIsHidden("bId", true)
+    expect(tree.metadata.isHidden("aId")).toBe(true)
+    expect(tree.metadata.isHidden("bId")).toBe(true)
+    expect(tree.metadata.isHidden("cId")).toBe(false)
+
+    tree.metadata.setIsHidden("cId", true)
+    expect(tree.metadata.isHidden("aId")).toBe(false)
+    expect(tree.metadata.isHidden("bId")).toBe(false)
+    expect(tree.metadata.isHidden("cId")).toBe(false)
   })
 
   it("responds appropriately when no DataSet is associated", () => {
@@ -102,6 +124,9 @@ describe("SharedCaseMetadata", () => {
     expect(tree.metadata.isCollapsed(case0.__id__)).toBe(false)
     expect(tree.metadata.collections.size).toBe(1)
     expect(tree.metadata.collections.get(collection.id)?.collapsed.size).toBe(0)
+    // move attr "a" back to child collection
+    tree.data.moveAttribute("aId", { collection: tree.data.collections[1].id })
+    expect(tree.metadata.collections.size).toBe(0)
   })
 
   it("recognizes SetIsCollapsedActions", () => {
@@ -119,10 +144,10 @@ describe("SharedCaseMetadata", () => {
   })
 
   it("supports CategorySets", () => {
-    expect(tree.metadata.categories.size).toBe(0)
-    expect(tree.metadata.categories.get("aId")).toBeUndefined()
+    expect(tree.metadata.attributes.size).toBe(0)
+    expect(tree.metadata.attributes.get("aId")).toBeUndefined()
     const set1 = tree.metadata.getCategorySet("aId")
-    expect(tree.metadata.categories.size).toBe(0)
+    expect(tree.metadata.attributes.size).toBe(0)
     expect(tree.metadata.provisionalCategories.size).toBe(1)
     expect(tree.metadata.provisionalCategories.get("aId")).toBe(set1)
     const set2 = tree.metadata.getCategorySet("aId")
@@ -131,29 +156,83 @@ describe("SharedCaseMetadata", () => {
     expect(set1).toBe(set2)
     const noSet = tree.metadata.getCategorySet("zId")
     expect(noSet).toBeUndefined()
-    expect(tree.metadata.categories.size).toBe(0)
+    expect(tree.metadata.attributes.size).toBe(0)
     expect(tree.metadata.provisionalCategories.size).toBe(1)
-    expect(tree.metadata.categories.get("zId")).toBeUndefined()
+    expect(tree.metadata.attributes.get("zId")).toBeUndefined()
     expect(tree.metadata.provisionalCategories.get("zId")).toBeUndefined()
 
     const bSet = tree.metadata.getCategorySet("bId")
-    expect(tree.metadata.categories.size).toBe(0)
+    expect(tree.metadata.attributes.size).toBe(0)
     expect(tree.metadata.provisionalCategories.size).toBe(2)
     expect(tree.metadata.provisionalCategories.get("bId")).toBe(bSet)
 
     // promotes provisional category sets when modified
     set1!.setColorForCategory("1", "red")
     expect(set1!.colorForCategory("1")).toBe("red")
-    expect(tree.metadata.categories.size).toBe(1)
+    expect(tree.metadata.attributes.size).toBe(1)
     expect(tree.metadata.provisionalCategories.size).toBe(1)
     expect(tree.metadata.getCategorySet("aId")?.colorForCategory("1")).toBe("red")
 
+    // can replace category set with updated snapshot
+    const set1Snap = cloneDeep(getSnapshot(tree.metadata.getCategorySet("aId")!)) as ICategorySetSnapshot
+    set1Snap.colors!["2"] = "blue" // set color for category "1"
+    tree.metadata.setCategorySet("aId", set1Snap)
+    expect(tree.metadata.getCategorySet("aId")?.colorForCategory("1")).toBe("red")
+    expect(tree.metadata.getCategorySet("aId")?.colorForCategory("2")).toBe("blue")
+
     // removes set from map when its attribute is invalidated
     tree.data.removeAttribute("aId")
-    expect(tree.metadata.categories.size).toBe(0)
+    expect(tree.metadata.attributes.size).toBe(0)
     expect(tree.metadata.provisionalCategories.size).toBe(1)
     tree.data.removeAttribute("bId")
-    expect(tree.metadata.categories.size).toBe(0)
+    expect(tree.metadata.attributes.size).toBe(0)
     expect(tree.metadata.provisionalCategories.size).toBe(0)
+  })
+
+  it("supports attribute color range models", () => {
+    expect(tree.metadata.attributes.size).toBe(0)
+
+    // Set color range
+    tree.metadata.setAttributeColor("aId", "#000000", "low")
+    expect(tree.metadata.attributes.size).toBe(1)
+    expect(tree.metadata.getAttributeColorRange("aId").low).toBe("#000000")
+    tree.metadata.setAttributeColor("aId", "#ffffff", "high")
+    expect(tree.metadata.attributes.size).toBe(1)
+    expect(tree.metadata.getAttributeColorRange("aId").high).toBe("#ffffff")
+
+    // Remove attribute and check color range is removed
+    tree.data.removeAttribute("aId")
+    expect(tree.metadata.attributes.size).toBe(0)
+  })
+
+  it("supports attribute binning types", () => {
+    expect(tree.metadata.attributes.size).toBe(0)
+
+    // Set binning types
+    tree.metadata.setAttributeBinningType("aId", "quantize")
+    expect(tree.metadata.attributes.size).toBe(1)
+    expect(tree.metadata.getAttributeBinningType("aId")).toBe("quantize")
+
+    tree.metadata.setAttributeBinningType("aId", "quantile")
+    expect(tree.metadata.attributes.size).toBe(1)
+    expect(tree.metadata.getAttributeBinningType("aId")).toBe("quantile")
+
+    // Remove attribute and check binning type is removed
+    tree.data.removeAttribute("aId")
+    expect(tree.metadata.attributes.size).toBe(0)
+  })
+
+  it("supports case table and case card id management", () => {
+    expect(tree.metadata.caseTableTileId).toBeUndefined()
+    expect(tree.metadata.caseCardTileId).toBeUndefined()
+    expect(tree.metadata.lastShownTableOrCardTileId).toBeUndefined()
+
+    tree.metadata.setCaseTableTileId("foo-table")
+    tree.metadata.setCaseCardTileId("foo-card")
+    tree.metadata.setLastShownTableOrCardTileId("foo-table")
+
+    expect(tree.metadata.caseTableTileId).toBe("foo-table")
+    expect(tree.metadata.caseCardTileId).toBe("foo-card")
+    expect(tree.metadata.lastShownTableOrCardTileId).toBe("foo-table")
   })
 })

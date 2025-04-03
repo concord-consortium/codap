@@ -126,7 +126,7 @@ export function convertAttributeToV2(attribute: IAttribute, dataContext?: IDataS
     // _categoryMap, // TODO This is incomplete
     // blockDisplayOfEmptyCategories: self.blockDisplayOfEmptyCategories, // TODO What?
     editable,
-    hidden: (attribute && metadata?.hidden.get(attribute.id)) ?? false,
+    hidden: (attribute && metadata?.isHidden(attribute.id)) ?? false,
     renameable: true, // TODO What should this be?
     deleteable,
     formula: attribute.formula?.display,
