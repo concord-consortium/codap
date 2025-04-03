@@ -83,7 +83,6 @@ describe("createCodapDocument", () => {
                   clientKey: "",
                   id: "test-8",
                   name: "a",
-                  deleteable: true,
                   editable: true,
                   values: ["1", "2", "3"]
                 }

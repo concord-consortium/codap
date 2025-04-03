@@ -25,7 +25,7 @@ interface IProps {
   onModalOpen: (open: boolean) => void
 }
 
-const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
+const AttributeMenuListComponent = forwardRef<HTMLDivElement, IProps>(
     ({ attributeId, onRenameAttribute, onModalOpen }, ref) => {
   const data = useDataSetContext()
   const caseMetadata = useCaseMetadata()
@@ -157,7 +157,7 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
     {
       itemKey: "DG.TableController.headerMenuItems.deleteAttribute",
       isEnabled: () => {
-        if (!attribute?.deleteable || !data) return false
+        if (!caseMetadata?.isDeleteProtected(attributeId) || !data) return false
 
         // If preventTopLevelReorg is true...
         if (preventTopLevelReorg(data)) {
@@ -214,6 +214,6 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
   )
 })
 
-AttributeMenuListComp.displayName = "AttributeMenuList"
+AttributeMenuListComponent.displayName = "AttributeMenuList"
 
-export const AttributeMenuList = observer(AttributeMenuListComp)
+export const AttributeMenuList = observer(AttributeMenuListComponent)

@@ -31,7 +31,7 @@ export function convertValuesToAttributeSnapshot(_values: DISingleValues): IAttr
       editable: values.editable == null || !!values.editable,
       // hidden is part of metadata, not the attribute model
       // renameable: values.renameable, // TODO renameable not part of IAttribute yet
-      deleteable: values.deleteable,
+      // deleteable: values.deleteable,
       formula: values.formula ? { display: values.formula } : undefined,
       // deletedFormula: values.deletedFormula, // TODO deletedFormula not part of IAttribute. Should it be?
       precision: values.precision == null || values.precision === "" ? undefined : +values.precision,
@@ -108,7 +108,7 @@ export function getCaseRequestResultValues(c: ICase, dataContext: IDataSet): DIG
 
 export function convertAttributeToV2(attribute: IAttribute, dataContext?: IDataSet): ICodapV2Attribute {
   const metadata = dataContext && getSharedCaseMetadataFromDataset(dataContext)
-  const { cid, name, type, title, description, deleteable, editable, id, precision } = attribute
+  const { cid, name, type, title, description, editable, id, precision } = attribute
   const v2Id = toV2Id(id)
   const rawColorMap = metadata?.getCategorySet(attribute.id)?.colorMap ?? {}
   const entries = Object.entries(rawColorMap).filter((entry): entry is [string, string] => entry[1] !== undefined)
@@ -127,8 +127,8 @@ export function convertAttributeToV2(attribute: IAttribute, dataContext?: IDataS
     // blockDisplayOfEmptyCategories: self.blockDisplayOfEmptyCategories, // TODO What?
     editable,
     hidden: (attribute && metadata?.isHidden(attribute.id)) ?? false,
-    renameable: true, // TODO What should this be?
-    deleteable,
+    renameable: (attribute && metadata?.isRenameProtected(attribute.id)) ?? true,
+    deleteable: (attribute && metadata?.isDeleteProtected(attribute.id)) ?? true,
     formula: attribute.formula?.display,
     // deletedFormula: self.deletedFormula, // TODO What should this be?
     guid: v2Id,

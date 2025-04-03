@@ -34,7 +34,12 @@ export interface DIAllCases {
     id?: number
   }
 }
-export type DIAttribute = Partial<ICodapV2Attribute>
+export interface DIAttribute extends Partial<ICodapV2Attribute> {
+  // v3 addition: whether the attribute is protected from deletion
+  deleteProtected?: boolean
+  // v3 addition: whether the attribute is protected from renaming
+  renameProtected?: boolean
+}
 export interface DINotifyAttribute {
   mouseX?: number
   mouseY?: number

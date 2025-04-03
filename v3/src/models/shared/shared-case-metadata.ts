@@ -58,8 +58,12 @@ const AttributeScale = types.model("AttributeScale", {
 })
 
 export const AttributeMetadata = types.model("AttributeMetadata", {
-  categories: types.maybe(CategorySet),
+  // boolean properties
   hidden: types.maybe(types.boolean),
+  deleteProtected: types.maybe(types.boolean),  // cannot be deleted
+  renameProtected: types.maybe(types.boolean),  // cannot be renamed
+  // model properties
+  categories: types.maybe(CategorySet),
   colorRange: types.maybe(ColorRangeModel),
   scale: types.maybe(AttributeScale)
 })
@@ -106,6 +110,14 @@ export const SharedCaseMetadata = SharedModel
     // true if passed the id of a hidden attribute, false otherwise
     isHidden(attrId: string) {
       return self.attributes.get(attrId)?.hidden ?? false
+    },
+    // true if the attribute is protected from deletion
+    isDeleteProtected(attrId: string) {
+      return self.attributes.get(attrId)?.deleteProtected ?? false
+    },
+    // true if the attribute is protected from renaming
+    isRenameProtected(attrId: string) {
+      return self.attributes.get(attrId)?.renameProtected ?? false
     },
     getAttributeColorRange(attrId: string) {
       const colorRange = self.attributes.get(attrId)?.colorRange
@@ -181,8 +193,14 @@ export const SharedCaseMetadata = SharedModel
         }
       }
     },
-    setIsHidden(attrId: string, hidden: boolean) {
-      self.requireAttributeMetadata(attrId).hidden = hidden || undefined
+    setIsHidden(attrId: string, isHidden?: boolean) {
+      self.requireAttributeMetadata(attrId).hidden = isHidden || undefined
+    },
+    setIsDeleteProtected(attrId: string, isProtected?: boolean) {
+      self.requireAttributeMetadata(attrId).deleteProtected = isProtected || undefined
+    },
+    setIsRenameProtected(attrId: string, isNameProtected?: boolean) {
+      self.requireAttributeMetadata(attrId).renameProtected = isNameProtected || undefined
     },
     showAllAttributes() {
       self.attributes.forEach(attr => {

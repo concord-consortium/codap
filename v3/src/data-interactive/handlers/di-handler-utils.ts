@@ -54,7 +54,12 @@ export function updateAttribute(attribute: IAttribute, value: DIAttribute, dataC
   const metadata = dataContext ? getSharedCaseMetadataFromDataset(dataContext) : undefined
 
   if (value?.cid != null) attribute.setCid(value.cid)
-  if (value?.deleteable != null) attribute.setDeleteable(value.deleteable)
+  if (value?.deleteProtected != null || value?.deleteable != null) {
+    metadata?.setIsDeleteProtected(attribute.id, value.deleteProtected ?? !value.deleteable)
+  }
+  if (value?.renameProtected != null || value?.renameable != null) {
+    metadata?.setIsRenameProtected(attribute.id, value.renameProtected ?? !value.renameable)
+  }
   if (value?.description != null) attribute.setDescription(value.description)
   if (value?.editable != null) attribute.setEditable(!!value.editable)
   if (value?.formula != null) attribute.setDisplayExpression(value.formula)
