@@ -18,13 +18,12 @@ const setAdornmentProperties = (adornment: IRegionOfInterestAdornmentModel, valu
     }
     if (primary != null) {
       const { position, extent } = primary
-      adornment.setPrimary({position, extent})
+      adornment.setPrimary({ position, extent })
     }
     if (secondary != null) {
       const { position, extent, axis } = secondary
-      adornment.setSecondary({position, extent, axis})
+      adornment.setSecondary({ position, extent, axis })
     }
-    // adornment.setPosition(x ?? adornment.xPosition, y ?? adornment.yPosition)
   }
 }
 
@@ -61,6 +60,7 @@ export const regionOfInterestAdornmentHandler: DIAdornmentHandler = {
       }
     }
   },
+
   get(adornment: IAdornmentModel, graphContent: IGraphContentModel) {
     if (!isRegionOfInterestAdornment(adornment)) return adornmentMismatchResult(kRegionOfInterestType)
 
@@ -73,6 +73,7 @@ export const regionOfInterestAdornmentHandler: DIAdornmentHandler = {
       secondary: JSON.stringify(secondary)
     }
   },
+
   update(args) {
     const { graphContent, values } = args
     const adornmentsStore = graphContent.adornmentsStore as IAdornmentsBaseStore
