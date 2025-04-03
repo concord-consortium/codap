@@ -76,6 +76,8 @@ describe("DataInteractive CountAdornmentHandler", () => {
       percentValue: jest.fn(() => 0.5),
       percentType: "cell",
       setPercentType: jest.fn(),
+      setShowCount: jest.fn(),
+      setShowPercent: jest.fn(),
       setVisibility: jest.fn(),
       showCount: true,
       showPercent: true,
@@ -135,6 +137,27 @@ describe("DataInteractive CountAdornmentHandler", () => {
     const percentValues = percentResult?.values as any
     expect(percentValues.showCount).toBe(false)
     expect(percentValues.showPercent).toBe(true)
+  })
+
+  it("delete returns an error when count adornment not found", () => {
+    mockGraphContent.adornmentsStore.findAdornmentOfType.mockReturnValue(null)
+    const result = handler.delete?.({ graphContent: mockGraphContent, values: { type: kCountType } })
+    expect(result?.success).toBe(false)
+    const values = result?.values as any
+    expect(values.error).toBe("Adornment not found.")
+  })
+
+  it("delete successfully deletes count adornment properties", () => {
+    mockGraphContent.adornmentsStore.findAdornmentOfType.mockReturnValue(mockCountAdornment)
+    const result = handler.delete?.({ graphContent: mockGraphContent, values: { type: kCountType } })
+    expect(result?.success).toBe(true)
+  })
+
+  it("delete returns an error when invalid type provided", () => {
+    const result = handler.delete?.({ graphContent: mockGraphContent, values: { type: "invalid" } })
+    expect(result?.success).toBe(false)
+    const values = result?.values as any
+    expect(values.error).toBe("Adornment not found.")
   })
 
   it("get returns an error when an invalid adornment provided", () => {

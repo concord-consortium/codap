@@ -1,42 +1,64 @@
-import { adornmentMismatchResult, cellKeyToCategories } from "./adornment-handler-utils"
+import { adornmentMismatchResult, cellKeyToCategories, normalizeCellKey } from "./adornment-handler-utils"
 
-describe("cellKeyToCategories", () => {
+describe("adornment-handler-utils", () => {
   let mockDataConfig: any
 
   beforeEach(() => {
     mockDataConfig = {
       dataset: {
-        getAttribute: jest.fn(() => { return { name: "Category Name" } })
+        getAttribute: jest.fn(() => ({ id: "ATTR1", name: "Category Name" })),
+        getAttributeByName: jest.fn((name: string) => {
+          const attributes = [{ id: "ATTR1", name: "Category Name" }]
+          return attributes.find(attr => attr.name === name)
+        })
       },
-      getAllCellKeys: jest.fn(() => [{}, { "ATTR1": "category value 1" }]),
+      getAllCellKeys: jest.fn(() => [{}, { ATTR1: "category value 1" }]),
       subPlotCases: jest.fn(() => [{ id: "case1" }, { id: "case2" }])
     }
   })
 
-  it("should return an empty array if the cellKey is empty", () => {
-    const cellKey = {}
-    const result = cellKeyToCategories(cellKey, mockDataConfig)
-    expect(result).toEqual({})
+  describe("cellKeyToCategories", () => {
+    it("returns an empty object if the cellKey is empty", () => {
+      expect(cellKeyToCategories({}, mockDataConfig)).toEqual({})
+    })
+
+    it("returns a map of category name to value if cellKey contains an attribute ID", () => {
+      const result = cellKeyToCategories({ ATTR1: "category value 1" }, mockDataConfig)
+      expect(result).toEqual({ "Category Name": "category value 1" })
+    })
+
+    it("returns a map of category name to value for different values", () => {
+      const result = cellKeyToCategories({ ATTR1: "category value 2" }, mockDataConfig)
+      expect(result).toEqual({ "Category Name": "category value 2" })
+    })
   })
 
-  it("should return an array of categories if the cellKey is not empty", () => {
-    const cellKey1 = { ATTR1: "category value 1" }
-    const result1 = cellKeyToCategories(cellKey1, mockDataConfig)
-    expect(result1).toEqual({"Category Name": "category value 1"})
-    const cellKey2 = { ATTR1: "category value 2" }
-    const result2 = cellKeyToCategories(cellKey2, mockDataConfig)
-    expect(result2).toEqual({"Category Name": "category value 2"})
-  })
-})
+  describe("normalizeCellKey", () => {
+    it("returns the original cellKey string if it already uses an attribute ID", () => {
+      const cellKey = JSON.stringify({ ATTR1: "category value 1" })
+      expect(normalizeCellKey(cellKey, mockDataConfig)).toEqual(cellKey)
+    })
 
-describe("adornmentMismatchResult", () => {
-  it("should return an error message", () => {
-    const result = adornmentMismatchResult("mockAdornmentType")
-    expect(result).toEqual({
-      success: false,
-      values: {
-        error: "Not a(n) mockAdornmentType adornment."
-      }
+    it("returns a normalized cellKey string if the request key uses an attribute name", () => {
+      const cellKey = JSON.stringify({ "Category Name": "category value 1" })
+      expect(normalizeCellKey(cellKey, mockDataConfig)).toEqual("{\"ATTR1\":\"category value 1\"}")
+    })
+
+    it("returns undefined if the attribute name cannot be resolved to an ID", () => {
+      const cellKey = JSON.stringify({ "Invalid Attribute": "category value 1" })
+      const result = normalizeCellKey(cellKey, mockDataConfig)
+      expect(result).toBeUndefined()
+    })
+  })
+
+  describe("adornmentMismatchResult", () => {
+    it("returns an error result for a mismatched adornment type", () => {
+      expect(adornmentMismatchResult("mockAdornmentType")).toEqual({
+        success: false,
+        values: {
+          error: "Not a(n) mockAdornmentType adornment."
+        }
+      })
     })
   })
 })
