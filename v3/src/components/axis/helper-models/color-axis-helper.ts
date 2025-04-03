@@ -91,20 +91,7 @@ console.log("coloraxishelper colorsRef", this.colorsRef.current)
 
     hasCategories && this.colorsSelectionRef.current
       .join(
-        enter => {
-          return enter.append('rect')
-            .attr('class', 'color-label')
-            .attr('x', (d, i) => fns.getLabelX(i) - ((bandWidth * 2 / 3) / 2))
-            .attr('y', (d, i) => fns.getLabelY(i) - kDefaultColorSwatchHeight / 2)
-            .attr('width', bandWidth * 2 / 3)
-            .attr('height', kDefaultColorSwatchHeight)
-            .attr('transform', (d, i) => isVertical
-                                          ? `rotate(90, ${fns.getLabelX(i)}, ${fns.getLabelY(i)})` : null)
-            .style("fill", (d: ColorObject) => d.color)
-            .style('opacity', 0.85)
-            .style('stroke', '#315b7d')
-            .style('stroke-width', 1)
-        },
+        enter => enter,
         update => {
           update.select('.tick')
             .attr('x1', (d, i) => fns.getTickX(i))
@@ -128,7 +115,7 @@ console.log("coloraxishelper colorsRef", this.colorsRef.current)
             .attr('class', 'color-label')
             .attr('x', (d, i) => fns.getLabelX(i) - ((bandWidth * 2 / 3) / 2))
             .attr('y', (d, i) => Math.max(6.5, fns.getLabelY(i) - (kDefaultColorSwatchHeight / (isVertical ? 2 : 1))))
-            .style("fill", (d: ColorObject) => d.color)
+            .style("fill", (d: ColorObject, i) => categories[i])
             .style("width", (bandWidth * 2)/3)
             .style("height", `${kDefaultColorSwatchHeight}px`)
             .attr('transform', `${rotation}`)
