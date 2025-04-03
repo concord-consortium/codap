@@ -10,9 +10,8 @@ import {isMapPolygonLayerModel} from "../models/map-polygon-layer-model"
 import {MapPolygonLayer} from "./map-polygon-layer"
 import { DataConfigurationContext } from "../../data-display/hooks/use-data-configuration-context"
 import { useTileModelContext } from "../../../hooks/use-tile-model-context"
-import { IMapPinLayerModel, isMapPinLayerModel } from "../models/map-pin-layer-model"
+import { isMapPinLayerModel } from "../models/map-pin-layer-model"
 import { MapPinLayer } from "./map-pin-layer"
-import { PinControls } from "./pin-controls"
 
 interface IProps {
   setPixiPointsLayer: (pixiPoints: PixiPoints, layerIndex: number) => void
@@ -21,7 +20,6 @@ interface IProps {
 export const MapInterior = observer(function MapInterior({setPixiPointsLayer}: IProps) {
   const mapModel = useMapModelContext()
   const { transitionComplete: tileTransitionComplete } = useTileModelContext()
-  let pinLayer: IMapPinLayerModel | undefined
 
   useMapModel()
 
@@ -56,7 +54,6 @@ export const MapInterior = observer(function MapInterior({setPixiPointsLayer}: I
         />
       }
       else if (isMapPinLayerModel(layerModel)) {
-        pinLayer = layerModel
         return <MapPinLayer
           key={`${kMapPinLayerType}-${index}`}
           mapLayerModel={layerModel}
@@ -65,10 +62,5 @@ export const MapInterior = observer(function MapInterior({setPixiPointsLayer}: I
     })
   }
 
-  return (
-    <>
-      {renderMapLayerComponents()}
-      {pinLayer && <PinControls mapLayerModel={pinLayer} />}
-    </>
-  )
+  return renderMapLayerComponents()
 })

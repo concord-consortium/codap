@@ -15,6 +15,7 @@ import { useMapModelContext } from "../hooks/use-map-model-context"
 import { kPinColors } from "../map-types"
 import { IMapPinLayerModel } from "../models/map-pin-layer-model"
 import { pinAttributesFromDataSet } from "../utilities/map-utils"
+import { PinControls } from "./pin-controls"
 import "./map-pin-layer.scss"
 
 const mapPinHeight = 35
@@ -124,6 +125,7 @@ export const MapPinLayer = observer(function MapPinLayer({ mapLayerModel }: IMap
           />
         )
       })}
+      <PinControls mapLayerModel={mapLayerModel} />
     </div>
   )
 })

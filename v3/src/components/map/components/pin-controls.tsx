@@ -13,7 +13,7 @@ interface IControlButtonProps {
   className?: string
   disabled?: boolean
   Icon?: any
-  onClick?: () => void
+  onClick?: React.MouseEventHandler<HTMLButtonElement>
   testId?: string
 }
 function ControlButton({ active, className, disabled, Icon, onClick, testId }: IControlButtonProps) {
@@ -39,8 +39,12 @@ export const PinControls = observer(function PinControls({ mapLayerModel }: IPin
   const addButtonDisabled = (dataset?.items.length ?? 0) >= kPinColors.length
   const removeButtonDisabled = !dataset?.selection.size
 
-  const handleAddButtonClick = () => mapLayerModel.setAddMode(!mapLayerModel.addMode)
-  const handleRemoveButtonClick = () => {
+  const handleAddButtonClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    mapLayerModel.setAddMode(!mapLayerModel.addMode)
+  }
+  const handleRemoveButtonClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
     if (dataset) {
       removeCasesWithCustomUndoRedo(dataset, Array.from(dataset.selection))
     }
