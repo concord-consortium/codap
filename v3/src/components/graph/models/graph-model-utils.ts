@@ -3,9 +3,8 @@ import { stringValuesToDateSeconds } from "../../../utilities/date-utils"
 import { setNiceDomain } from "../../axis/axis-domain-utils"
 import { AxisPlace, AxisPlaces, IScaleType } from "../../axis/axis-types"
 import {
-  BaseCategoricalAxisModel, CategoricalAxisModel, ColorAxisModel, DateAxisModel, EmptyAxisModel, IAxisModel, isBaseNumericAxisModel, isCategoricalAxisModel,
-  isCategoricalOrColorAxisModel,
-  isColorAxisModel,
+  CategoricalAxisModel, ColorAxisModel, DateAxisModel, EmptyAxisModel, IAxisModel,
+  isBaseNumericAxisModel, isCategoricalAxisModel, isCategoricalOrColorAxisModel, isColorAxisModel,
   isDateAxisModel, isEmptyAxisModel, isNumericAxisModel, NumericAxisModel
 } from "../../axis/models/axis-model"
 import { graphPlaceToAttrRole } from "../../data-display/data-display-types"
@@ -50,7 +49,7 @@ function setupAxes(graphModel: IGraphContentModel, layout: GraphLayout) {
     if (isBaseNumericAxisModel(axisModel)) {
       scaleType = "linear"
     }
-    else if (isCategoricalAxisModel(axisModel)) {
+    else if (isCategoricalOrColorAxisModel(axisModel)) {
       scaleType = "band"
     }
     layout.setAxisScaleType(place, scaleType)

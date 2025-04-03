@@ -45,7 +45,8 @@ export class ColorAxisHelper extends AxisHelper {
 
   render() {
     if (!(this.subAxisSelectionRef.current && this.colorsSelectionRef.current)) return
-
+console.log("coloraxishelper colorsSelectionRef", this.colorsSelectionRef.current)
+console.log("coloraxishelper colorsRef", this.colorsRef.current)
     const {isVertical, centerNonNumericLabels, dragInfo} = this,
       categorySet = this.multiScale?.categorySet,
       dividerLength = this.layout.getAxisLength(otherPlace(this.axisPlace)) ?? 0,
@@ -56,10 +57,13 @@ export class ColorAxisHelper extends AxisHelper {
       hasCategories = !(categories.length === 1 && categories[0] === kMain),
       bandWidth = this.subAxisLength / numCategories,
       collision = collisionExists({bandWidth, categories, centerNonNumericLabels}),
-      {rotation, textAnchor} = getCategoricalLabelPlacement(this.axisPlace, this.centerNonNumericLabels,
+      {rotation} = getCategoricalLabelPlacement(this.axisPlace, this.centerNonNumericLabels,
         collision),
       duration = (this.isAnimating() && !this.swapInProgress.current &&
         dragInfo.current.indexOfCategory === -1) ? transitionDuration : 0
+
+    // console.log("categorySet", categorySet)
+    // console.log("categories", categories)
     // Fill out dragInfo for use in drag callbacks
     const dI = dragInfo.current
     dI.categorySet = categorySet
@@ -120,15 +124,16 @@ export class ColorAxisHelper extends AxisHelper {
           // labels
           update.select('.category-label')
             .remove()
-          update.select('rect')
+          update.select('.color-label')
             .attr('class', 'color-label')
             .attr('x', (d, i) => fns.getLabelX(i) - ((bandWidth * 2 / 3) / 2))
             .attr('y', (d, i) => Math.max(6.5, fns.getLabelY(i) - (kDefaultColorSwatchHeight / (isVertical ? 2 : 1))))
             .style("fill", (d: ColorObject) => d.color)
             .style("width", (bandWidth * 2)/3)
             .style("height", `${kDefaultColorSwatchHeight}px`)
-            .attr('transform', (d, i) => isVertical
-                                          ? `rotate(90, ${fns.getLabelX(i)}, ${fns.getLabelY(i)})` : null)
+            .attr('transform', `${rotation}`)
+            .attr('transform-origin', (d, i) => {return `${fns.getLabelX(i)} ${fns.getLabelY(i)}`})
+            .transition().duration(duration)
             .style('opacity', 0.85)
             .style('stroke', '#315b7d')
           return update

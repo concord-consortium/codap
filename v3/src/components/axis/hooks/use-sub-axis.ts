@@ -82,6 +82,7 @@ export const useSubAxis = ({
     categoriesRef = useRef<string[]>([]),
     colorsSelectionRef = useRef<Selection<SVGGElement | BaseType, ColorObject, SVGGElement, any>>(),
     colorsRef = useRef<string[]>([]),
+    refToUse = isColor ? colorsRef : categoriesRef,
 
     renderSubAxis = useCallback(() => {
       const _axisModel = axisProvider.getAxis?.(axisPlace)
@@ -96,6 +97,7 @@ export const useSubAxis = ({
     }, [axisPlace, axisProvider, layout, subAxisIndex]),
 
     onDragStart = useCallback((event: any) => {
+      // console.log("in onDragStart dragInfo.current", dragInfo.current)
       const dI = dragInfo.current
       dI.currentDragPosition = dI.axisOrientation === 'horizontal' ? event.x : event.y
       dI.indexOfCategory = dI.axisOrientation === 'horizontal'
@@ -113,6 +115,7 @@ export const useSubAxis = ({
      * revisiting this at some point.
      */
     onDrag = useCallback((event: any) => {
+      console.log("in onDrag dragInfo.current", dragInfo.current)
       const dI = dragInfo.current,
         delta = dI.axisOrientation === 'horizontal' ? event.dx : event.dy
       if (delta !== 0) {
@@ -122,6 +125,7 @@ export const useSubAxis = ({
           cellIndex = Math.floor(newDragPosition / dI.bandwidth),
           newCatIndex = dI.axisOrientation === 'horizontal' ? cellIndex
             : dI.categories.length - cellIndex - 1
+
         dI.currentOffset += delta
         if (newCatIndex >= 0 && newCatIndex !== dI.indexOfCategory && newCatIndex < dI.categories.length) {
           dI.currentOffset = newDragPosition - (cellIndex + 0.5) * dI.bandwidth - dI.initialOffset
@@ -134,15 +138,18 @@ export const useSubAxis = ({
           dI.indexOfCategory = newCatIndex
           dI.categorySet?.move(dI.catName, catToMoveBefore)
           dI.currentDragPositionCatName = catToMoveBefore
-          categoriesRef.current = dI.categorySet?.valuesArray ?? []
+          // console.log("dI.categorySet?.valuesArray", dI.categorySet?.valuesArray)
+          refToUse.current = dI.categorySet?.valuesArray ?? []
+          console.log("in onDrag refToUse.current", refToUse.current)
         } else {
           renderSubAxis()
         }
         dI.currentDragPosition = newDragPosition
       }
-    }, [renderSubAxis]),
+    }, [refToUse, renderSubAxis]),
 
     onDragEnd = useCallback(() => {
+      // console.log("in onDragEnd dragInfo.current", dragInfo.current)
       const dI = dragInfo.current
       dI.indexOfCategory = -1 // so dragInfo won't influence category placement
       stopAnimation() // disable animation for final placement
@@ -227,43 +234,6 @@ export const useSubAxis = ({
         }
       })
 
-      categoriesSelectionRef.current = sAS.selectAll('g')
-        .data(categoryData)
-        .join(
-          (enter) => {
-            return enter
-              .append('g')
-              .attr('class', 'category-group')
-              .attr('data-testid', 'category-on-axis')
-              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-              // @ts-ignore
-              .call(dragBehavior)
-          }
-        )
-      categoriesSelectionRef.current.each(function () {
-        const catGroup = select(this)
-        // ticks
-        if (catGroup.select('.tick').empty()) {
-          catGroup.append('line')
-            .attr('class', 'tick')
-            .attr('data-testid', 'tick')
-        }
-        // divider between groups
-        if (catGroup.select('.divider').empty()) {
-          catGroup.append('line')
-            .attr('class', 'divider')
-            .attr('data-testid', 'divider')
-        }
-        // labels
-        if (catGroup.select('.category-label').empty()) {
-          catGroup.append('text')
-            .attr('class', 'category-label')
-            .attr('data-testid', 'category-label')
-            .attr('x', 0)
-            .attr('y', 0)
-        }
-      })
-
       const multiScale = layout.getAxisMultiScale(axisPlace),
         existingCategoryDomain = multiScale?.categoricalScale?.domain() ?? []
       if (JSON.stringify(categories) !== JSON.stringify(existingCategoryDomain)) {
@@ -271,19 +241,87 @@ export const useSubAxis = ({
       }
       categoriesRef.current = catArray
     }, [axisPlace, dataConfig, dragBehavior, layout, subAxisEltRef]),
+    //   const subAxisElt = subAxisEltRef.current,
+    //     axisLength = layout.getAxisLength(axisPlace),
+    //     numCategoriesLimit = Math.floor(axisLength / kDefaultFontHeight)
+    //   dataConfig?.setNumberOfCategoriesLimitForRole(axisPlaceToAttrRole[axisPlace], numCategoriesLimit)
+    //   const catArray = (dataConfig?.categoryArrayForAttrRole(axisPlaceToAttrRole[axisPlace]) ?? []).slice()
+    //   if (catArray[catArray.length - 1] === kOther) {
+    //     catArray[catArray.length - 1] = translate("DG.CellAxis.other")
+    //   }
+    //   const categories = catArray,
+    //     categoryData: CatObject[] = categories.map((cat, index) =>
+    //       ({cat, index: isVertical(axisPlace) ? categories.length - index - 1 : index}))
+
+    //   if (!subAxisElt) return
+    //   subAxisSelectionRef.current = select(subAxisElt)
+    //   const sAS = subAxisSelectionRef.current
+    //   if (sAS.classed('numeric-axis') || sAS.classed('date-axis')) {
+    //     sAS.selectAll('*').remove()
+    //     sAS.classed('numeric-axis', false)
+    //     sAS.classed('date-axis', false)
+    //   }
+
+    //   if (sAS.select('line').empty()) {
+    //     sAS.append('line').attr('class', 'axis')
+    //   }
+    //   categoriesSelectionRef.current = sAS.selectAll('g')
+    //     .data(categoryData)
+    //     .join(
+    //       (enter) => {
+    //         return enter
+    //           .append('g')
+    //           .attr('class', 'category-group')
+    //           .attr('data-testid', 'category-on-axis')
+    //           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //           // @ts-ignore
+    //           .call(dragBehavior)
+    //       }
+    //     )
+    //   categoriesSelectionRef.current.each(function () {
+    //     const catGroup = select(this)
+    //     // ticks
+    //     if (catGroup.select('.tick').empty()) {
+    //       catGroup.append('line')
+    //         .attr('class', 'tick')
+    //         .attr('data-testid', 'tick')
+    //     }
+    //     // divider between groups
+    //     if (catGroup.select('.divider').empty()) {
+    //       catGroup.append('line')
+    //         .attr('class', 'divider')
+    //         .attr('data-testid', 'divider')
+    //     }
+    //     // labels
+    //     if (catGroup.select('.category-label').empty()) {
+    //       catGroup.append('text')
+    //         .attr('class', 'category-label')
+    //         .attr('data-testid', 'category-label')
+    //         .attr('x', 0)
+    //         .attr('y', 0)
+    //     }
+    //   })
+
+    //   const multiScale = layout.getAxisMultiScale(axisPlace),
+    //     existingCategoryDomain = multiScale?.categoricalScale?.domain() ?? []
+    //   if (JSON.stringify(categories) !== JSON.stringify(existingCategoryDomain)) {
+    //     multiScale?.setCategoricalDomain(categories)
+    //   }
+    //   categoriesRef.current = catArray
+    // }, [axisPlace, dataConfig, dragBehavior, layout, subAxisEltRef]),
 
     setupColors = useCallback(() => {
       const subAxisElt = subAxisEltRef.current,
         axisLength = layout.getAxisLength(axisPlace),
-        numCategoriesLimit = Math.floor(axisLength / kDefaultColorSwatchHeight)
-      dataConfig?.setNumberOfCategoriesLimitForRole(axisPlaceToAttrRole[axisPlace], numCategoriesLimit)
+        numColorsLimit = Math.floor(axisLength / kDefaultColorSwatchHeight)
+      dataConfig?.setNumberOfCategoriesLimitForRole(axisPlaceToAttrRole[axisPlace], numColorsLimit)
       const colorArray = (dataConfig?.categoryArrayForAttrRole(axisPlaceToAttrRole[axisPlace]) ?? []).slice()
       if (colorArray[colorArray.length - 1] === kOther) {
         colorArray[colorArray.length - 1] = translate("DG.CellAxis.other")
       }
-      const categories = colorArray,
-        categoryData: ColorObject[] = categories.map((cat, index) =>
-          ({color: cat, index: isVertical(axisPlace) ? categories.length - index - 1 : index}))
+      const colors = colorArray,
+        colorData: ColorObject[] = colors.map((cat, index) =>
+          ({color: cat, index: isVertical(axisPlace) ? colors.length - index - 1 : index}))
 
       if (!subAxisElt) return
       subAxisSelectionRef.current = select(subAxisElt)
@@ -297,45 +335,9 @@ export const useSubAxis = ({
       if (sAS.select('line').empty()) {
         sAS.append('line').attr('class', 'axis')
       }
-      colorsSelectionRef.current = sAS.selectAll('g')
-        .data(categoryData)
-        .join(
-          (enter) => {
-            return enter
-              .append('g')
-              .attr('class', 'category-group')
-              .attr('data-testid', 'category-on-axis')
-              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-              // @ts-ignore
-              .call(dragBehavior)
-          }
-        )
-      colorsSelectionRef.current.each(function () {
-        const catGroup = select(this)
-        // ticks
-        if (catGroup.select('.tick').empty()) {
-          catGroup.append('line')
-            .attr('class', 'tick')
-            .attr('data-testid', 'tick')
-        }
-        // divider between groups
-        if (catGroup.select('.divider').empty()) {
-          catGroup.append('line')
-            .attr('class', 'divider')
-            .attr('data-testid', 'divider')
-        }
-        // labels
-        if (catGroup.select('.category-label').empty()) {
-          catGroup.append('text')
-            .attr('class', 'category-label')
-            .attr('data-testid', 'category-label')
-            .attr('x', 0)
-            .attr('y', 0)
-        }
-      })
 
       colorsSelectionRef.current = sAS.selectAll('g')
-        .data(categoryData)
+        .data(colorData)
         .join(
           (enter) => {
             return enter
@@ -348,33 +350,33 @@ export const useSubAxis = ({
           }
         )
         colorsSelectionRef.current.each(function () {
-        const catGroup = select(this)
-        // ticks
-        if (catGroup.select('.tick').empty()) {
-          catGroup.append('line')
-            .attr('class', 'tick')
-            .attr('data-testid', 'tick')
-        }
-        // divider between groups
-        if (catGroup.select('.divider').empty()) {
-          catGroup.append('line')
-            .attr('class', 'divider')
-            .attr('data-testid', 'divider')
-        }
-        // labels
-        if (catGroup.select('.color-label').empty()) {
-          catGroup.append('rect')
-            .attr('class', 'color-label')
-            .attr('data-testid', 'color-label')
-            .attr('x', 0)
-            .attr('y', 0)
-        }
-      })
+          const catGroup = select(this)
+          // ticks
+          if (catGroup.select('.tick').empty()) {
+            catGroup.append('line')
+              .attr('class', 'tick')
+              .attr('data-testid', 'tick')
+          }
+          // divider between groups
+          if (catGroup.select('.divider').empty()) {
+            catGroup.append('line')
+              .attr('class', 'divider')
+              .attr('data-testid', 'divider')
+          }
+          // labels
+          if (catGroup.select('.color-label').empty()) {
+            catGroup.append('rect')
+              .attr('class', 'color-label')
+              .attr('data-testid', 'color-label')
+              .attr('x', 0)
+              .attr('y', 0)
+          }
+        })
 
       const multiScale = layout.getAxisMultiScale(axisPlace),
         existingCategoryDomain = multiScale?.categoricalScale?.domain() ?? []
-      if (JSON.stringify(categories) !== JSON.stringify(existingCategoryDomain)) {
-        multiScale?.setCategoricalDomain(categories)
+      if (JSON.stringify(colors) !== JSON.stringify(existingCategoryDomain)) {
+        multiScale?.setCategoricalDomain(colors)
       }
       colorsRef.current = colorArray
     }, [axisPlace, dataConfig, dragBehavior, layout, subAxisEltRef])
@@ -472,6 +474,7 @@ export const useSubAxis = ({
 
   // Refresh when category set, if any, changes
   useEffect(function installCategorySetSync() {
+    console.log("in installCategorySetSync useEffect")
     if (isCategorical) {
       const disposer = mstReaction(() => {
         return (dataConfig?.categorySetForAttrRole(axisPlaceToAttrRole[axisPlace]))?.valuesArray
@@ -484,6 +487,7 @@ export const useSubAxis = ({
       return () => disposer()
     }
     else if (isColor) {
+      console.log("useSubAxis.installCategorySetSync", dataConfig?.categorySetForAttrRole(axisPlaceToAttrRole[axisPlace]))
       const disposer = mstReaction(() => {
         return (dataConfig?.categorySetForAttrRole(axisPlaceToAttrRole[axisPlace]))?.valuesArray
       }, () => {
@@ -516,11 +520,11 @@ export const useSubAxis = ({
       renderSubAxis()
     } else if (isColorAxisModel(axisModel)) {
       setupColors()
-      const categoryValues = categoriesRef.current,
+      const colorValues = colorsRef.current,
         multiScale = layout.getAxisMultiScale(axisPlace),
         existingCategoryDomain = multiScale?.categoricalScale?.domain() ?? []
-      if (JSON.stringify(categoryValues) === JSON.stringify(existingCategoryDomain)) return
-      multiScale?.setCategoricalDomain(categoryValues)
+      if (JSON.stringify(colorValues) === JSON.stringify(existingCategoryDomain)) return
+      multiScale?.setCategoricalDomain(colorValues)
       renderSubAxis()
     } else if (isBaseNumericAxisModel(axisModel)) {
       const currentAxisDomain = axisModel.domain
