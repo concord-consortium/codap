@@ -121,8 +121,11 @@ export const PlotModel = types
       const secondarySplitRole = primaryRole === "x" ? "rightSplit" : "topSplit"
       return maxOverAllCells?.(primarySplitRole, secondarySplitRole) ?? 0
     },
-    get maxCellPercent() {
-      return self._maxCellPercent
+    maxCellPercent() {
+      const { maxPercentAllCells, primaryRole } = self.dataConfiguration || {}
+      const primarySplitRole = primaryRole === "x" ? "topSplit" : "rightSplit"
+      const secondarySplitRole = primaryRole === "x" ? "rightSplit" : "topSplit"
+      return maxPercentAllCells?.(primarySplitRole, secondarySplitRole) ?? 0
     },
     barTipText(props: IBarTipTextProps) {
       return ""
@@ -164,7 +167,7 @@ export const PlotModel = types
       return countAxis
     },
     getValidPercentAxis(place: AxisPlace, attrType?: AttributeType, axisModel?: IAxisModel): IAxisModel {
-      const maxCellCasePercent = self.maxCellPercent
+      const maxCellCasePercent = self.maxCellPercent()
       if (isPercentAxisModel(axisModel)) {
         // Even though we already have a percent axis, it might need its bounds adjusted
         setNiceDomain([0, maxCellCasePercent], axisModel, { clampPosMinAtZero: true })

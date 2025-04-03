@@ -36,7 +36,6 @@ export const barCoverDimensions = (props: IBarCoverDimensionsProps) => {
   const offsetPrimary = primaryIsBottom
           ? primeCatIndex * primaryCellWidth + offsetPrimarySplit
           : primaryInvertedIndex * primaryCellWidth + offsetPrimarySplit
-  const denominator = hasLegend ? numInBar : numInSubPlot
   const maxValue = (isPercentAxis ? 100 * maxInCell / denominator : maxInCell)
   const minValue = (isPercentAxis ? 100 * minInCell / denominator : minInCell)
   const secondaryCoord = secondaryNumericScale?.(maxValue) ?? 0
