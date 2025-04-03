@@ -1,6 +1,7 @@
 import React, { useState } from "react"
 import { Button, FormControl, FormLabel, Input, ModalBody, ModalCloseButton, ModalFooter, ModalHeader, Textarea,
   Tooltip } from "@chakra-ui/react"
+import { useCaseMetadata } from "../../../hooks/use-case-metadata"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
 import { updateDataContextNotification } from "../../../models/data/data-set-notifications"
 import { t } from "../../../utilities/translation/translate"
@@ -15,17 +16,18 @@ interface IProps {
 
 export const DatasetInfoModal = ({showInfoModal, setShowInfoModal}: IProps) => {
   const data = useDataSetContext()
+  const metadata = useCaseMetadata()
   const [datasetName, setDataSetName] = useState(data?.title || "")
-  const [sourceName, setSourceName] = useState(data?.sourceName || "")
-  const [importDate, setImportDate] = useState(data?.importDate || "")
-  const [description, setDescription] = useState(data?.description || "")
+  const [description, setDescription] = useState(metadata?.description || "")
+  const [source, setSource] = useState(metadata?.source || "")
+  const [importDate, setImportDate] = useState(metadata?.importDate || "")
 
   const handleCloseInfoModal = () => {
     data?.applyModelChange(() => {
       data.setName(datasetName)
-      data.setSourceName(sourceName)
-      data.setImportDate(importDate)
-      data.setDescription(description)
+      metadata?.setDescription(description)
+      metadata?.setSource(source)
+      metadata?.setImportDate(importDate)
       setShowInfoModal(false)
     }, {
       notify: () => updateDataContextNotification(data)
@@ -61,8 +63,8 @@ export const DatasetInfoModal = ({showInfoModal, setShowInfoModal}: IProps) => {
             />
           </FormLabel>
           <FormLabel display="flex" flexDirection="row">{t("DG.CaseTable.datasetMetadata.url")}
-            <Input size="xs" ml={5} placeholder="source" value={sourceName} onFocus={(e) => e.target.select()}
-                  onChange={event => setSourceName(event.target.value)} data-testid="dataset-source-input"
+            <Input size="xs" ml={5} placeholder="source" value={source} onFocus={(e) => e.target.select()}
+                  onChange={event => setSource(event.target.value)} data-testid="dataset-source-input"
                   onKeyDown={(e) => e.stopPropagation()}
             />
           </FormLabel>

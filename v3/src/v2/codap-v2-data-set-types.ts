@@ -35,7 +35,7 @@ export interface ICodapV2Attribute {
   description?: string | null
   // TODO_V2_IMPORT_EXPORT
   _categoryMap?: ICodapV2CategoryMap
-  // TODO_V2_IMPORT_EXPORT
+  // legacy property; replaced by _categoryMap
   colormap?: CodapV2ColorMap
   blockDisplayOfEmptyCategories?: boolean
   // plugin bugs have led to documents in the field with values like `[true]`
@@ -163,6 +163,7 @@ export interface ICodapV2DataContext {
   name?: string
   title?: string
   collections: ICodapV2Collection[]
+  // deprecated in favor of metadata.description
   description?: string
   metadata?: ICodapV2DataContextMetadata | null
   // TODO_V2_IMPORT_DEFINE_AND_IMPLEMENT preventReorg is not imported
@@ -179,7 +180,7 @@ export interface ICodapV2DataContext {
   contextStorage: ICodapV2DataContextStorage
   // TODO_V2_IMPORT_IGNORE we are ignoring _permissions. It seems like a CFM
   // artifact
-  _permissions?: any
+  _permissions?: number
 }
 
 // TODO_V2_IMPORT: we don't fully handle the GameContext

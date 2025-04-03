@@ -145,11 +145,9 @@ describe("DataInteractive DataContextHandler", () => {
     expect(update({}, values).success).toBe(false)
 
     expect(dataContext.title === title).toBe(false)
-    expect(dataContext.description === description).toBe(false)
     expect(dataContext.managingControllerId).toBe("")
     expect(update({ dataContext }, values).success).toBe(true)
     expect(dataContext.title).toEqual(title)
-    expect(dataContext.description).toEqual(description)
     expect(dataContext.managingControllerId).toBe(tile.id)
 
     expect(update({ dataContext }, { managingController: "__none__" }).success).toBe(true)

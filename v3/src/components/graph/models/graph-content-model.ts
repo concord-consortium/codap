@@ -8,9 +8,8 @@ import { addDisposer, getSnapshot, Instance, onPatch, SnapshotIn, types } from "
 import { isNumericAttributeType } from "../../../models/data/attribute-types"
 import {IDataSet} from "../../../models/data/data-set"
 import {applyModelChange} from "../../../models/history/apply-model-change"
-import {
-  getDataSetFromId, getSharedCaseMetadataFromDataset, getTileCaseMetadata, getTileDataSet
-} from "../../../models/shared/shared-data-utils"
+import { getTileCaseMetadata, getTileDataSet } from "../../../models/shared/shared-data-tile-utils"
+import { getDataSetFromId, getSharedCaseMetadataFromDataset } from "../../../models/shared/shared-data-utils"
 import {ISharedModel, SharedModelChangeType} from "../../../models/shared/shared-model"
 import {ITileContentModel} from "../../../models/tiles/tile-content"
 import { getFormulaManager } from "../../../models/tiles/tile-environment"

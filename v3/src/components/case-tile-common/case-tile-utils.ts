@@ -13,7 +13,8 @@ import {
   ISharedCaseMetadata, kSharedCaseMetadataType, SharedCaseMetadata
 } from "../../models/shared/shared-case-metadata"
 import { ISharedDataSet } from "../../models/shared/shared-data-set"
-import { getSharedDataSetFromDataSetId, getTileCaseMetadata } from "../../models/shared/shared-data-utils"
+import { getTileCaseMetadata } from "../../models/shared/shared-data-tile-utils"
+import { getSharedDataSetFromDataSetId } from "../../models/shared/shared-data-utils"
 import { getTileComponentInfo } from "../../models/tiles/tile-component-info"
 import { ITileContentModel } from "../../models/tiles/tile-content"
 import { getSharedModelManager, getTileEnvironment } from "../../models/tiles/tile-environment"

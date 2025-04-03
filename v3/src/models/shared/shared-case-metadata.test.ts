@@ -96,6 +96,20 @@ describe("SharedCaseMetadata", () => {
     expect(tree.metadata.isHidden("cId")).toBe(false)
   })
 
+  it("stores attribute protections", () => {
+    expect(tree.metadata.isDeleteProtected("aId")).toBe(false)
+    expect(tree.metadata.isRenameProtected("aId")).toBe(false)
+
+    tree.metadata.setIsDeleteProtected("aId", true)
+    expect(tree.metadata.isDeleteProtected("aId")).toBe(true)
+    tree.metadata.setIsRenameProtected("aId", true)
+    expect(tree.metadata.isRenameProtected("aId")).toBe(true)
+    tree.metadata.setIsDeleteProtected("aId", false)
+    expect(tree.metadata.isDeleteProtected("aId")).toBe(false)
+    tree.metadata.setIsRenameProtected("aId", false)
+    expect(tree.metadata.isRenameProtected("aId")).toBe(false)
+  })
+
   it("responds appropriately when no DataSet is associated", () => {
     tree.metadata.setData()
     // ignores collapse calls before DataSet is associated

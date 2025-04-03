@@ -12,7 +12,7 @@ import { AxisPlace } from "../../axis/axis-types"
 const mockGetDataSet = jest.fn()
 const mockGetMetadata = jest.fn()
 
-jest.mock("../../../models/shared/shared-data-utils", () => ({
+jest.mock("../../../models/shared/shared-data-tile-utils", () => ({
   getDataSetFromId: () => mockGetDataSet(),
   getTileDataSet: () => mockGetDataSet(),
   getTileCaseMetadata: () => mockGetMetadata()

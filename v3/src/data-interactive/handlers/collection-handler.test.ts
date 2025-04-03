@@ -93,7 +93,7 @@ describe("DataInteractive CollectionHandler", () => {
 
     // Grouped collection
     const metadata = getSharedCaseMetadataFromDataset(dataContext)
-    metadata.setIsHidden(c1.attributes[0]!.id, true)
+    metadata?.setIsHidden(c1.attributes[0]!.id, true)
     c1.setLabels({ singleCase: "singleCase" })
     const groupedResult = handler.get?.({ dataContext, collection: c1 })
     expect(groupedResult?.success).toBe(true)

@@ -3,7 +3,7 @@ import {
   addDisposer, applySnapshot, getEnv, getSnapshot, getType, hasEnv, IAnyStateTreeNode, Instance, ISerializedActionCall,
   resolveIdentifier, SnapshotIn, types
 } from "mobx-state-tree"
-import { onAnyAction } from "../../utilities/mst-utils"
+import { onAnyAction, typeOptionalBoolean } from "../../utilities/mst-utils"
 import { CategorySet, createProvisionalCategorySet, ICategorySet, ICategorySetSnapshot } from "../data/category-set"
 import { DataSet, IDataSet } from "../data/data-set"
 import { applyModelChange } from "../history/apply-model-change"
@@ -82,9 +82,19 @@ export const SharedCaseMetadata = SharedModel
         return data.id
       }
     }),
-    // key is collection id
+    // DataSet-wide metadata
+    description: types.maybe(types.string),
+    source: types.maybe(types.string),
+    importDate: types.maybe(types.string),
+    // indicates whether the attribute configuration has been changed in a way that affects plugins
+    // corresponds to v2's `flexibleGroupingChangeFlag` property
+    attrConfigChanged: typeOptionalBoolean(),
+    // prevents reorganization of the dataset (e.g. moving attributes or collections)
+    // corresponds to v2's `preventReorg` property
+    attrConfigProtected: typeOptionalBoolean(),
+    // Collection metadata (key is collection id)
     collections: types.map(CollectionMetadata),
-    // key is attribute id
+    // Attribute metadata (key is attribute id)
     attributes: types.map(AttributeMetadata),
     // case table/card metadata
     caseTableTileId: types.maybe(types.string),
@@ -101,6 +111,15 @@ export const SharedCaseMetadata = SharedModel
     provisionalCategories: observable.map<string, ICategorySet>()
   }))
   .views(self => ({
+    get hasDataContextMetadata() {
+      return !!self.description || !!self.source || !!self.importDate
+    },
+    get isAttrConfigChanged() {
+      return !!self.attrConfigProtected
+    },
+    get isAttrConfigProtected() {
+      return !!self.attrConfigProtected
+    },
     // true if passed the id of a parent/pseudo-case whose child cases have been collapsed, false otherwise
     isCollapsed(caseId: string) {
       const { collectionId } = self.data?.caseInfoMap.get(caseId) || {}
@@ -133,6 +152,21 @@ export const SharedCaseMetadata = SharedModel
   .actions(self => ({
     setData(data?: IDataSet) {
       self.data = data
+    },
+    setDescription(description = "") {
+      self.description = description
+    },
+    setSource(source = "") {
+      self.source = source
+    },
+    setImportDate(date = "") {
+      self.importDate = date
+    },
+    setIsAttrConfigChanged(isChanged?: boolean) {
+      self.attrConfigChanged = isChanged || undefined
+    },
+    setIsAttrConfigProtected(isProtected?: boolean) {
+      self.attrConfigProtected = isProtected || undefined
     },
     removeCollectionMetadata(collectionId: string) {
       self.collections.delete(collectionId)

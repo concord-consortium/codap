@@ -11,9 +11,8 @@ import { IAttribute } from "../../../models/data/attribute"
 import {IDataSet} from "../../../models/data/data-set"
 import {ISharedCaseMetadata} from "../../../models/shared/shared-case-metadata"
 import {ISharedDataSet} from "../../../models/shared/shared-data-set"
-import {
-  getAllTileCaseMetadata, getAllTileDataSets, getSharedDataSetFromDataSetId
-} from "../../../models/shared/shared-data-utils"
+import { getAllTileCaseMetadata, getAllTileDataSets } from "../../../models/shared/shared-data-tile-utils"
+import { getSharedDataSetFromDataSetId } from "../../../models/shared/shared-data-utils"
 import {TileContentModel} from "../../../models/tiles/tile-content"
 import { getTileContentInfo } from "../../../models/tiles/tile-content-info"
 import {defaultBackgroundColor} from "../../../utilities/color-utils"

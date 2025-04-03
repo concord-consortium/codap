@@ -1,13 +1,14 @@
 import { createCodapDocument } from "../codap/create-codap-document"
 import { SharedCaseMetadata } from "../shared/shared-case-metadata"
 import { SharedDataSet } from "../shared/shared-data-set"
-import { getDataSetFromId, getTileCaseMetadata, getTileDataSet, getTileSharedModels } from "../shared/shared-data-utils"
+import { getTileCaseMetadata, getTileDataSet, getTileSharedModels } from "../shared/shared-data-tile-utils"
+import { getDataSetFromId } from "../shared/shared-data-utils"
 import { isTileLinkedToDataSet, unlinkTileFromDataSets, linkTileToDataSet } from "./data-set-linking"
 import { TileContentModel } from "../tiles/tile-content"
 import { registerTileContentInfo } from "../tiles/tile-content-info"
+import { getSharedModelManager } from "../tiles/tile-environment"
 import { TileModel } from "../tiles/tile-model"
 import { IDocumentModel } from "./document"
-import { getSharedModelManager } from "../tiles/tile-environment"
 
 const TestTileContent = TileContentModel
   .named("TestTile")

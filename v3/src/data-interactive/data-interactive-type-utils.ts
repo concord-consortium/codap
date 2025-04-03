@@ -191,25 +191,29 @@ export function convertCollectionToV2(collection: ICollectionModel, options?: CC
 }
 
 export function convertDataSetToV2(dataSet: IDataSet, exportCases = false): ICodapV2DataContextV3 {
-  const { name, title, id, description } = dataSet
+  const { name, title, id } = dataSet
+  const v3Metadata = getSharedCaseMetadataFromDataset(dataSet)
+  const { description, source, importDate, isAttrConfigChanged, isAttrConfigProtected } = v3Metadata || {}
   const v2Id = toV2Id(id)
   dataSet.validateCases()
 
   const collections: ICodapV2CollectionV3[] =
     dataSet.collections.map(collection => convertCollectionToV2(collection, { dataSet, exportCases }))
+  const v2Metadata = v3Metadata?.hasDataContextMetadata
+                    ? { metadata: { description, source, importDate} }
+                    : undefined
 
   return {
     type: "DG.DataContext",
     document: 1,
     guid: v2Id,
     id: v2Id,
-    // flexibleGroupChangeFlag,
     name,
     title,
     collections,
-    description,
-    // metadata,
-    // preventReorg,
+    ...v2Metadata,
+    flexibleGroupingChangeFlag: isAttrConfigChanged,
+    preventReorg: isAttrConfigProtected,
     // TODO_V2_EXPORT setAsideItems
     setAsideItems: [],
     // TODO_V2_EXPORT contextStorage

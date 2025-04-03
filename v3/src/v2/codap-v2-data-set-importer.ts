@@ -49,13 +49,37 @@ export class CodapV2DataSetImporter {
     sharedModelManager?.addSharedModel(caseMetadata)
     caseMetadata.setData(sharedDataSet.dataSet)
 
-    this.registerCollections(sharedDataSet.dataSet, caseMetadata, collections)
-    this.registerSetAsideItems(sharedDataSet.dataSet, context.setAsideItems)
+    this.importProperties(sharedDataSet.dataSet, caseMetadata, context)
+
+    this.importCollections(sharedDataSet.dataSet, caseMetadata, collections)
+    this.importSetAsideItems(sharedDataSet.dataSet, context.setAsideItems)
     sharedDataSet.dataSet.syncCollectionLinks()
     sharedDataSet.dataSet.validateCases()
   }
 
-  registerCollections(data: IDataSet, caseMetadata: ISharedCaseMetadata, collections: ICodapV2Collection[]) {
+  importProperties(data: IDataSet, caseMetadata: ISharedCaseMetadata, context: ImportableContext) {
+    const { description: legacyDescription, metadata, flexibleGroupingChangeFlag, preventReorg } = context
+    const { description, source, importDate, "import date": legacyImportDate} = metadata ?? {}
+
+    // Set the metadata for shared case metadata
+    if (description || legacyDescription) {
+      caseMetadata.setDescription(description || legacyDescription)
+    }
+    if (source) {
+      caseMetadata.setSource(source)
+    }
+    if (importDate || legacyImportDate) {
+      caseMetadata.setImportDate(importDate || legacyImportDate)
+    }
+    if (flexibleGroupingChangeFlag != null) {
+      caseMetadata.setIsAttrConfigChanged(flexibleGroupingChangeFlag)
+    }
+    if (preventReorg != null) {
+      caseMetadata.setIsAttrConfigProtected(preventReorg)
+    }
+  }
+
+  importCollections(data: IDataSet, caseMetadata: ISharedCaseMetadata, collections: ICodapV2Collection[]) {
     let prevCollection: ICollectionModel | undefined
     collections.forEach((collection, index) => {
       const { attrs = [], cases = [], guid, name = "", title } = collection
@@ -64,9 +88,9 @@ export class CodapV2DataSetImporter {
       // assumes hierarchical collections are in order parent => child
       const level = collections.length - index - 1  // 0 === child-most
       this.v2CaseIdInfoArray[level] = { groupAttrNames: [], groupKeyCaseIds: new Map() }
-      this.registerAttributes(data, caseMetadata, attrs, level)
-      this.registerCases(data, cases, level)
-      this.registerCategories(data, caseMetadata, attrs)
+      this.importAttributes(data, caseMetadata, attrs, level)
+      this.importCases(data, cases, level)
+      this.importCategories(data, caseMetadata, attrs)
 
       const attributes = attrs.map(attr => {
         const attrModel = data.attrFromName(attr.name)
@@ -89,7 +113,7 @@ export class CodapV2DataSetImporter {
     })
   }
 
-  registerAttributes(data: IDataSet, caseMetadata: ISharedCaseMetadata,
+  importAttributes(data: IDataSet, caseMetadata: ISharedCaseMetadata,
                       attributes: ICodapV2Attribute[], level: number) {
     const v2CaseIdInfo = this.v2CaseIdInfoArray[level]
     const v2ParentCaseIdInfo = this.v2CaseIdInfoArray[level + 1]
@@ -127,7 +151,7 @@ export class CodapV2DataSetImporter {
     })
   }
 
-  registerCategories(data: IDataSet, caseMetadata: ISharedCaseMetadata, attributes: ICodapV2Attribute[]) {
+  importCategories(data: IDataSet, caseMetadata: ISharedCaseMetadata, attributes: ICodapV2Attribute[]) {
     attributes.forEach(v2Attr => {
       const {
         guid, colormap, _categoryMap
@@ -146,7 +170,7 @@ export class CodapV2DataSetImporter {
     })
   }
 
-  registerCases(data: IDataSet, cases: ICodapV2Case[], level: number) {
+  importCases(data: IDataSet, cases: ICodapV2Case[], level: number) {
     const itemsToAdd: ICaseCreation[] = []
     const v2CollectionInfo = this.v2CaseIdInfoArray[level]
     const groupKeyCaseIds = v2CollectionInfo.groupKeyCaseIds
@@ -187,7 +211,7 @@ export class CodapV2DataSetImporter {
     }
   }
 
-  registerSetAsideItems(data: IDataSet, setAsideItems?: ICodapV2SetAsideItem[] | ICodapV2SetAsideItem["values"][]) {
+  importSetAsideItems(data: IDataSet, setAsideItems?: ICodapV2SetAsideItem[] | ICodapV2SetAsideItem["values"][]) {
     const itemsToAdd: IItem[] = []
     setAsideItems?.forEach(item => {
       if (isV2SetAsideItem(item)) {

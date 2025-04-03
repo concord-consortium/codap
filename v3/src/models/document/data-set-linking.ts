@@ -1,7 +1,7 @@
 import { IDataSet } from "../data/data-set"
 import { SharedCaseMetadata, kSharedCaseMetadataType, ISharedCaseMetadata } from "../shared/shared-case-metadata"
 import { SharedDataSet, kSharedDataSetType, ISharedDataSet, isSharedDataSet } from "../shared/shared-data-set"
-import { getTileSharedModels } from "../shared/shared-data-utils"
+import { getTileSharedModels } from "../shared/shared-data-tile-utils"
 import { ITileContentModel } from "../tiles/tile-content"
 import { getSharedModelManager } from "../tiles/tile-environment"
 import { ITileModel } from "../tiles/tile-model"
