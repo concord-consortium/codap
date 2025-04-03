@@ -92,10 +92,6 @@ export const countAdornmentHandler: DIAdornmentHandler = {
     const existingCountAdornment = adornmentsStore.findAdornmentOfType<ICountAdornmentModel>(kCountType)
     if (!existingCountAdornment) return adornmentNotFoundResult
 
-    if (typeof values !== "object" || !("type" in values)) {
-      return errorResult(t("V3.DI.Error.invalidValuesProvided"))
-    }
-
     const { type } = values as { type: string }
     const requestType = type as "Count" | "Percent" | undefined
 

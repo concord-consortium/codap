@@ -106,12 +106,9 @@ describe("DataInteractive CountAdornmentHandler", () => {
     expect(values.error).toBe("The current plot type does not support Percent.")
   })
 
-  it("create returns the expected data when count adornment created", () => {
+  it("create returns the expected data for Count request", () => {
     const createRequestValues = {
-      type: kCountType,
-      showCount: true,
-      showPercent: false,
-      percentType: "column"
+      type: kCountType
     }
     const result = handler.create!({ graphContent: mockGraphContent, values: createRequestValues })
     expect(result?.success).toBe(true)
@@ -119,7 +116,19 @@ describe("DataInteractive CountAdornmentHandler", () => {
     const values = result?.values as any
     expect(values.type).toBe(kCountType)
     expect(values.showCount).toBe(true)
-    expect(values.showPercent).toBe(false)
+  })
+
+  it("create returns the expected data for Percent request", () => {
+    const createRequestValues = {
+      type: kPercentType,
+      percentType: "column"
+    }
+    const result = handler.create!({ graphContent: mockGraphContent, values: createRequestValues })
+    expect(result?.success).toBe(true)
+    expect(result?.values).toBeDefined()
+    const values = result?.values as any
+    expect(values.type).toBe(kPercentType)
+    expect(values.showPercent).toBe(true)
     expect(values.percentType).toBe("column")
   })
 
@@ -139,7 +148,7 @@ describe("DataInteractive CountAdornmentHandler", () => {
     expect(percentValues.showPercent).toBe(true)
   })
 
-  it("delete returns an error when count adornment not found", () => {
+  it("delete returns an error when adornment not found", () => {
     mockGraphContent.adornmentsStore.findAdornmentOfType.mockReturnValue(null)
     const result = handler.delete?.({ graphContent: mockGraphContent, values: { type: kCountType } })
     expect(result?.success).toBe(false)
@@ -147,7 +156,7 @@ describe("DataInteractive CountAdornmentHandler", () => {
     expect(values.error).toBe("Adornment not found.")
   })
 
-  it("delete successfully deletes count adornment properties", () => {
+  it("delete successfully deletes adornment", () => {
     mockGraphContent.adornmentsStore.findAdornmentOfType.mockReturnValue(mockCountAdornment)
     const result = handler.delete?.({ graphContent: mockGraphContent, values: { type: kCountType } })
     expect(result?.success).toBe(true)
@@ -166,7 +175,7 @@ describe("DataInteractive CountAdornmentHandler", () => {
     expect(result?.values.error).toBe(`Not a(n) ${kCountType} adornment.`)
   })
 
-  it("get returns the expected data when count adornment provided", () => {
+  it("get returns the expected data when valid adornment provided", () => {
     const result = handler.get?.(mockCountAdornment, mockGraphContent)
     expect(Array.isArray(result?.data)).toBe(true)
     expect(result?.data).toHaveLength(1)
@@ -189,7 +198,7 @@ describe("DataInteractive CountAdornmentHandler", () => {
     expect(result?.data[0]).toMatchObject({ percent: "50%" })
   })
 
-  it("update returns an error when count adornment not found", () => {
+  it("update returns an error when adornment not found", () => {
     mockGraphContent.adornmentsStore.findAdornmentOfType.mockReturnValue(null)
     const result = handler.update?.({ graphContent: mockGraphContent })
     expect(result?.success).toBe(false)
@@ -197,7 +206,15 @@ describe("DataInteractive CountAdornmentHandler", () => {
     expect(values.error).toBe("Adornment not found.")
   })
 
-  it("update successfully updates count adornment properties", () => {
+  it("update returns an error when invalid properties provided", () => {
+    mockGraphContent.adornmentsStore.findAdornmentOfType.mockReturnValue(null)
+    const result = handler.update?.({ graphContent: mockGraphContent, values: { invalidProperty: "invalid" } })
+    expect(result?.success).toBe(false)
+    const values = result?.values as any
+    expect(values.error).toBe("Adornment not found.")
+  })
+
+  it("update successfully updates adornment properties", () => {
     mockGraphContent.adornmentsStore.findAdornmentOfType.mockReturnValue(mockCountAdornment)
     const updateValues = {
       percentType: "column",
