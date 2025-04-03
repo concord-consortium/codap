@@ -14,7 +14,7 @@ import PlacedLocationMarker from "../assets/placed-location-marker.svg"
 import { useMapModelContext } from "../hooks/use-map-model-context"
 import { kPinColors } from "../map-types"
 import { IMapPinLayerModel } from "../models/map-pin-layer-model"
-import { pinAttributesFromDataSet } from "../utilities/map-utils"
+import { datasetHasPinData, pinAttributesFromDataSet } from "../utilities/map-utils"
 import { PinControls } from "./pin-controls"
 import "./map-pin-layer.scss"
 
@@ -63,8 +63,6 @@ export const MapPinLayer = observer(function MapPinLayer({ mapLayerModel }: IMap
 
   const { dataConfiguration } = mapLayerModel
   const dataset = dataConfiguration?.dataset
-  const { pinLatId, pinLongId } = dataset ? pinAttributesFromDataSet(dataset) : { pinLatId: "", pinLongId: "" }
-  const colorId = dataset?.attributes.find(attr => attr.type === "color")?.id
 
   // Force a rerender when any relevant values change
   useEffect(() => {
@@ -80,6 +78,12 @@ export const MapPinLayer = observer(function MapPinLayer({ mapLayerModel }: IMap
   // Force a rerender when the map is resized, panned, or zoomed
   const { contentWidth: _contentWidth, contentHeight: _contentHeight } = layout
   const { center: _center, zoom: _zoom } = mapModel.leafletMapState
+
+  // Bail if the dataset doesn't have the data we need
+  if (!dataset || !datasetHasPinData(dataset)) return
+
+  const { pinLatId, pinLongId } = pinAttributesFromDataSet(dataset)
+  const colorId = dataset.attributes.find(attr => attr.type === "color")?.id
 
   const handleClick = (e: React.MouseEvent) => {
     if (mapLayerModel.addMode) {
@@ -103,7 +107,7 @@ export const MapPinLayer = observer(function MapPinLayer({ mapLayerModel }: IMap
       onClick={handleClick}
       ref={layerRef}
     >
-      {renderPins && dataset?.items.map(({ __id__ }, index) => {
+      {renderPins && dataset.items.map(({ __id__ }, index) => {
         const lat = dataset.getNumeric(__id__, pinLatId)
         const long = dataset.getNumeric(__id__, pinLongId)
         if (lat == null || long == null || !isFinite(lat) || !isFinite(long)) return null
