@@ -4,20 +4,18 @@ import { useCallback, useEffect, useRef } from "react"
 import { mstAutorun } from "../../../../utilities/mst-autorun"
 import { ScaleNumericBaseType } from "../../../axis/axis-types"
 import { useAdornmentAttributes } from "../../hooks/use-adornment-attributes"
-import { useGraphDataConfigurationContext } from "../../hooks/use-graph-data-configuration-context"
 import { IAdornmentComponentProps } from "../adornment-component-info"
 import { getAxisDomains } from "../utilities/adornment-utils"
-import { IRegionOfInterestAdornmentModel, RoiPositionUnit } from "./region-of-interest-adornment-model"
+import { IRegionOfInterestAdornmentModel } from "./region-of-interest-adornment-model"
 
 import "./region-of-interest-adornment-component.scss"
 
 export const scaleValueToGraph = (
-  plotSize: number, scale: ScaleNumericBaseType, unit: RoiPositionUnit, value: number
+  plotSize: number, scale: ScaleNumericBaseType, unit: "coordinate" | "percent", value: number
 ) => {
   if (value === null || value === undefined) return 0
 
   switch (unit) {
-    case "%":
     case "percent":
       return (value / 100) * plotSize
     case "coordinate":
@@ -28,44 +26,75 @@ export const scaleValueToGraph = (
 }
 
 export const calculatePixelDimension = (
-  dimension: { unit: RoiPositionUnit; value: number } | undefined,
+  extent: number | string | undefined,
   attrId: string | undefined,
   scale: ScaleNumericBaseType,
   plotSize: number,
   isYAxis: boolean = false
 ) => {
-  if (!dimension) return plotSize
+  if (!extent) return plotSize
 
-  switch (dimension.unit) {
-    case "coordinate":
-      if (!attrId) return plotSize
-      return isYAxis
-        ? scale(0) - scale(dimension.value)
-        : scale(dimension.value) - scale(0)
-    case "percent":
-    case "%":
-      return (plotSize * dimension.value) / 100
-    default:
-      return plotSize
+  const parseExtent = (value: string) => {
+    if (value.endsWith("%")) {
+      const percentValue = parseFloat(value.replace("%", "").trim())
+      return isNaN(percentValue) ? plotSize : (plotSize * percentValue) / 100
+    }
+    const parsedValue = parseFloat(value)
+    return isNaN(parsedValue) || !attrId
+      ? plotSize
+      : isYAxis
+      ? scale(0) - scale(parsedValue)
+      : scale(parsedValue) - scale(0)
   }
+
+  return typeof extent === "number"
+    ? attrId
+      ? isYAxis
+        ? scale(0) - scale(extent)
+        : scale(extent) - scale(0)
+      : plotSize
+    : parseExtent(extent.toString())
 }
 
 const calculatePixelPosition = (
   attrId: string | undefined,
   plotSize: number,
   scale: ScaleNumericBaseType,
-  position: { unit?: RoiPositionUnit; value?: number } | undefined,
+  position: number|string|undefined,
   pixelDimension: number,
   isYAxis: boolean = false
 ) => {
-  const posUnit = position?.unit ?? "coordinate"
-  const posValue = position?.value ?? 0
+
+  let posValue = 0
+  let posUnit: "coordinate" | "percent" = "coordinate"
+
+  if (typeof position === "number") {
+    posValue = position
+  } else if (typeof position === "string") {
+    const processStringToNumber = (str: string) => {
+      const parsed = parseFloat(str)
+      return isNaN(parsed) ? 0 : parsed
+    }
+    if (position.endsWith("%")) {
+      posValue = processStringToNumber(position.replace("%", "").trim())
+      posUnit = "percent"
+    } else {
+      posValue = processStringToNumber(position.trim())
+    }
+  }
+
 
   if (attrId) {
     return scaleValueToGraph(plotSize, scale, posUnit, posValue) - (isYAxis ? pixelDimension : 0)
   }
 
-  if (posUnit === "percent" || posUnit === "%") {
+  if (typeof position === "string" && position.endsWith("%")) {
+    const percentValue = parseFloat(position.replace("%", "").trim())
+    if (isNaN(percentValue)) {
+      return isYAxis
+        ? plotSize - pixelDimension
+        : 0
+    }
     return isYAxis
       ? (plotSize * (100 - posValue) / 100) - pixelDimension
       : (plotSize * posValue / 100)
@@ -78,13 +107,8 @@ const calculatePixelPosition = (
 export const RegionOfInterestAdornment = observer(function RegionOfInterestAdornment(props: IAdornmentComponentProps) {
   const { plotHeight, plotWidth, spannerRef, xAxis, yAxis } = props
   const model = props.model as IRegionOfInterestAdornmentModel
-  const dataConfig = useGraphDataConfigurationContext()
-  const { xAttrId: _aAttrId, yAttrId: _yAttrId, xScale, yScale } = useAdornmentAttributes()
-  const { xAttribute, yAttribute, height, width, xPosition, yPosition } = model
-  const roiXAttr = dataConfig?.dataset?.getAttributeByName(xAttribute) || xAttribute
-  const roiYAttr = dataConfig?.dataset?.getAttributeByName(yAttribute) || yAttribute
-  const xAttrId = roiXAttr || _aAttrId
-  const yAttrId = roiYAttr || _yAttrId
+  const { xAttrId, yAttrId, xScale, yScale } = useAdornmentAttributes()
+  const { primary, secondary } = model
   const roiRect = useRef<any>(null)
 
    useEffect(() => {
@@ -101,18 +125,20 @@ export const RegionOfInterestAdornment = observer(function RegionOfInterestAdorn
 
   const updateRectangle = useCallback(() => {
     if (!roiRect?.current) return
+    const { position: primaryPos, extent: primaryExtent } = primary
+    const { position: secondaryPos, extent: secondaryExtent } = secondary
 
-    const pixelHeight = calculatePixelDimension(height, yAttrId.toString(), yScale, plotHeight, true)
-    const pixelWidth  = calculatePixelDimension(width,  xAttrId.toString(), xScale, plotWidth)
+    const pixelWidth  = calculatePixelDimension(primaryExtent,  xAttrId, xScale, plotWidth)
+    const pixelHeight = calculatePixelDimension(secondaryExtent, yAttrId, yScale, plotHeight, true)
 
-    const xPixelPosition = calculatePixelPosition(xAttrId.toString(), plotWidth, xScale, xPosition, pixelWidth)
-    const yPixelPosition = calculatePixelPosition(yAttrId.toString(), plotHeight, yScale, yPosition, pixelHeight, true)
+    const xPixelPosition = calculatePixelPosition(xAttrId, plotWidth, xScale, primaryPos, pixelWidth)
+    const yPixelPosition = calculatePixelPosition(yAttrId, plotHeight, yScale, secondaryPos, pixelHeight, true)
 
     roiRect.current.attr("x", xPixelPosition)
       .attr("y", yPixelPosition)
       .attr("width", pixelWidth)
       .attr("height", pixelHeight)
-  }, [height, yScale, plotHeight, width, xScale, plotWidth, xPosition, yPosition, xAttrId, yAttrId])
+  }, [yScale, plotHeight, xScale, plotWidth, xAttrId, yAttrId, primary, secondary])
 
   useEffect(() => {
     const disposer = mstAutorun(() => {
