@@ -97,6 +97,9 @@ export const PlotModel = types
     },
     get showZeroLine(): boolean {
       return false
+    },
+    axisLabelClickHandler(role: GraphAttrRole):undefined | (() => void) {
+      return undefined
     }
   }))
   .views(self => ({

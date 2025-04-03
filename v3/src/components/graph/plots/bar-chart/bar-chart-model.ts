@@ -17,7 +17,7 @@ export const BarChartModel = DotChartModel
   .props({
     type: typesPlotType("barChart"),
     breakdownType: types.optional(types.enumeration([...BreakdownTypes]), "count"),
-    formula: types.maybe(Formula)
+    formula: types.optional(Formula, () => Formula.create()),
   })
   .volatile(self => ({
     formulaEditorIsOpen: false,
