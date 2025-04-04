@@ -20,6 +20,9 @@ import { BoxPlotAdornmentModel, IBoxPlotAdornmentModel } from "./univariate-meas
 import { PlottedFunctionAdornmentModel, IPlottedFunctionAdornmentModel }
   from "./plotted-function/plotted-function-adornment-model"
 import { ILSRLAdornmentModel, LSRLAdornmentModel } from "./lsrl/lsrl-adornment-model"
+import { IRegionOfInterestAdornmentModel, RegionOfInterestAdornmentModel }
+  from "./region-of-interest/region-of-interest-adornment-model"
+
 export const kDefaultFontSize = 12
 export const kGraphAdornmentsBannerHeight = 22
 
@@ -36,6 +39,7 @@ const adornmentTypeDispatcher = (adornmentSnap: IAdornmentModel) => {
     case "Movable Value": return MovableValueAdornmentModel
     case "Plotted Function": return PlottedFunctionAdornmentModel
     case "Plotted Value": return PlottedValueAdornmentModel
+    case "Region of Interest": return RegionOfInterestAdornmentModel
     case "Standard Deviation": return StandardDeviationAdornmentModel
     case "Standard Error": return StandardErrorAdornmentModel
     case "Normal Curve": return NormalCurveAdornmentModel
@@ -51,9 +55,9 @@ export const AdornmentModelUnion = types.union({ dispatcher: adornmentTypeDispat
   BoxPlotAdornmentModel, CountAdornmentModel, LSRLAdornmentModel, MeanAdornmentModel,
   MeanAbsoluteDeviationAdornmentModel, MedianAdornmentModel, MovableValueAdornmentModel, MovableLineAdornmentModel,
   MovablePointAdornmentModel, NormalCurveAdornmentModel, PlottedFunctionAdornmentModel, PlottedValueAdornmentModel,
-  StandardDeviationAdornmentModel, StandardErrorAdornmentModel, UnknownAdornmentModel)
+  StandardDeviationAdornmentModel, StandardErrorAdornmentModel, RegionOfInterestAdornmentModel, UnknownAdornmentModel)
 export type IAdornmentModelUnion = IBoxPlotAdornmentModel | ICountAdornmentModel | ILSRLAdornmentModel |
   IMeanAdornmentModel | IMeanAbsoluteDeviationAdornmentModel | IMedianAdornmentModel | IMovableValueAdornmentModel |
   IMovableLineAdornmentModel | IMovablePointAdornmentModel | INormalCurveAdornmentModel |
-  IPlottedFunctionAdornmentModel | IPlottedValueAdornmentModel |
-  IStandardDeviationAdornmentModel | IStandardErrorAdornmentModel | IUnknownAdornmentModel
+  IPlottedFunctionAdornmentModel | IPlottedValueAdornmentModel | IStandardDeviationAdornmentModel |
+  IStandardErrorAdornmentModel | IRegionOfInterestAdornmentModel | IUnknownAdornmentModel
