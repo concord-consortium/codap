@@ -58,5 +58,22 @@ describe("DataInteractive ComponentHandler Map", () => {
       const { dataContext } = values as V2Map
       expect(dataContext).toBe((mapTile.content as IMapContentModel).dataConfiguration?.dataset?.name)
     })
+
+    const updateResult = handler.update!({ component: tile }, {
+      center: [30, 34], zoom: 4, legendAttributeName: "a2"
+    })
+    expect(updateResult.success).toBe(true)
+    expect(tileContent.center.lat).toBe(30)
+    expect(tileContent.center.lng).toBe(34)
+    expect(tileContent.zoom).toBe(4)
+    // TODO Test that the legend attribute is updated. See above TODO for more details.
+    // expect(tileContent.dataConfiguration?.attributeDescriptionForRole("legend")?.attributeID).toBe("a2")
+
+    // Can update just the zoom without modifying the center
+    const updateResult2 = handler.update!({ component: tile }, { zoom: 5 })
+    expect(updateResult2.success).toBe(true)
+    expect(tileContent.center.lat).toBe(30)
+    expect(tileContent.center.lng).toBe(34)
+    expect(tileContent.zoom).toBe(5)
   })
 })
