@@ -11,57 +11,58 @@ import { IRegionOfInterestAdornmentModel } from "./region-of-interest-adornment-
 import "./region-of-interest-adornment-component.scss"
 
 const isPercent = (value: string|number) => {
-  if (typeof value === "number") {
-    return false
-  }
+  if (typeof value === "number") return false
+
   return value.trim().endsWith("%")
 }
 
-export const calculatePixelAttributes = (
-  extent: number | string,
-  position: number | string,
-  scale: ScaleNumericBaseType | undefined,
-  plotSize: number,
-  isYAxis: boolean = false
-) => {
-  const extentValue = (typeof extent === 'number') ? extent : parseFloat(extent) || 0
-  const positionValue = (typeof position === 'number') ? position : parseFloat(position) || 0
+interface ICalculatePixelRange {
+  extent: number | string;
+  isYAxis?: boolean;
+  plotSize: number;
+  position: number | string;
+  scale?: ScaleNumericBaseType;
+}
 
-  let dimensionPxValue = plotSize
-  let positionPxValue = isYAxis ? plotSize : 0
-  const positionOffset = isYAxis ? dimensionPxValue : 0
+const calculatePixelRange = (props: ICalculatePixelRange) => {
+  const { extent, position, plotSize, scale, isYAxis = false } = props
+  const extentValue = typeof extent === "number" ? extent : parseFloat(extent) || 0
+  const positionValue = typeof position === "number" ? position : parseFloat(position) || 0
 
-  if (isPercent(extent)) {
-    dimensionPxValue = (plotSize * extentValue) / 100
-  } else if (scale) {
-    const scaled = scale(extentValue)
-    const zero = scale(0)
-    dimensionPxValue = isYAxis ? zero - scaled : scaled - zero
-  }
+  const dimensionPx = isPercent(extent)
+    ? (plotSize * extentValue) / 100
+    : scale
+      ? Math.abs(scale(extentValue) - scale(0))
+      : plotSize
 
+  let positionPx = 0
   if (isPercent(position)) {
-    const pctPlot = (plotSize * positionValue) / 100
-    positionPxValue = isYAxis ? (plotSize - pctPlot) : pctPlot
+    const pct = (plotSize * positionValue) / 100
+    positionPx = isYAxis ? plotSize - dimensionPx - pct : pct
   } else if (scale) {
-    positionPxValue = scale(positionValue)
+    const scaled = scale(positionValue)
+    positionPx = isYAxis ? scaled - dimensionPx : scaled
+  } else {
+    positionPx = isYAxis ? plotSize - dimensionPx : 0
   }
 
   return {
-    dimension: dimensionPxValue,
-    position: positionPxValue - positionOffset
+    dimension: dimensionPx,
+    position: positionPx
   }
 }
 
 export const RegionOfInterestAdornment = observer(function RegionOfInterestAdornment(props: IAdornmentComponentProps) {
   const { plotHeight, plotWidth, spannerRef, xAxis, yAxis } = props
   const model = props.model as IRegionOfInterestAdornmentModel
-  const { dataConfig, xAttrId, yAttrId, xScale, yScale } = useAdornmentAttributes()
+  const { dataConfig, xScale, yScale } = useAdornmentAttributes()
   const { primary, secondary } = model
   const roiRect = useRef<any>(null)
   const primaryAttrRole = dataConfig?.primaryRole ?? "x"
 
   useEffect(() => {
     if (!spannerRef?.current) return
+
     const selection = select(spannerRef.current)
     let rectSel = selection.select<SVGRectElement>(".region-of-interest")
     if (rectSel.empty()) {
@@ -74,37 +75,35 @@ export const RegionOfInterestAdornment = observer(function RegionOfInterestAdorn
 
   const updateRectangle = useCallback(() => {
     if (!roiRect?.current) return
+
     const { position: primaryPos, extent: primaryExtent } = primary
     const { position: secondaryPos, extent: secondaryExtent } = secondary
-
     const isYPrimary = primaryAttrRole === "y"
-
     const primaryScale = isYPrimary? yScale : xScale
     const secondaryScale = isYPrimary ? undefined : yScale
-
     const primaryPlotExtent = isYPrimary ? plotHeight : plotWidth
     const secondaryPlotExtent = isYPrimary ? plotWidth : plotHeight
 
-    // Calculate dimensions based on primary axis
-    const {dimension: primaryDimension, position: primaryPosition} = calculatePixelAttributes(
-      primaryExtent || 0,
-      primaryPos || 0,
-      primaryScale,
-      primaryPlotExtent,
-      isYPrimary
-    )
+    const primaryProps = {
+      extent: primaryExtent || 0,
+      position: primaryPos || 0,
+      plotSize: primaryPlotExtent,
+      scale: primaryScale,
+      isYAxis: isYPrimary
+    }
+    const {dimension: primaryDimension, position: primaryPosition} = calculatePixelRange(primaryProps)
 
-    const {dimension: secondaryDimension, position: secondaryPosition} = calculatePixelAttributes(
-      secondaryExtent || 0,
-      secondaryPos || 0,
-      secondaryScale,
-      secondaryPlotExtent,
-      !isYPrimary
-    )
+    const secondaryProps = {
+      extent: secondaryExtent || 0,
+      position: secondaryPos || 0,
+      plotSize: secondaryPlotExtent,
+      scale: secondaryScale,
+      isYAxis: !isYPrimary
+    }
+    const {dimension: secondaryDimension, position: secondaryPosition} = calculatePixelRange(secondaryProps)
 
     // Set rectangle attributes based on primary axis
     if (isYPrimary) {
-      // When primary is Y-axis, swap width/height and x/y
       roiRect.current
         .attr("x", secondaryPosition)
         .attr("y", primaryPosition)
@@ -117,14 +116,15 @@ export const RegionOfInterestAdornment = observer(function RegionOfInterestAdorn
         .attr("width", primaryDimension)
         .attr("height", secondaryDimension)
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [primary, secondary, primaryAttrRole, plotWidth, plotHeight, xScale, yScale, xAttrId, yAttrId])
+
+  }, [primary, secondary, primaryAttrRole, plotWidth, plotHeight, xScale, yScale])
 
   useEffect(() => {
     const disposer = mstAutorun(() => {
       getAxisDomains(xAxis, yAxis)
       updateRectangle()
     }, { name: "RegionOfInterestAdornment.refreshAxisChange" }, model)
+  
     return disposer
   }, [model, xAxis, yAxis, plotWidth, plotHeight, updateRectangle])
 
