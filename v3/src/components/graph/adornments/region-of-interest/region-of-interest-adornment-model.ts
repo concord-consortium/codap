@@ -28,12 +28,7 @@ export const RegionOfInterestAdornmentModel = AdornmentModel
       self.primary = primary
     },
     setSecondary(secondary: ISecondaryAxisRange) {
-      const { position, extent, axis } = secondary
-      self.secondary = {
-        position,
-        extent,
-        axis
-      }
+      self.secondary = secondary
     }
   }))
 

@@ -4,7 +4,7 @@ import { kRegionOfInterestClass, kRegionOfInterestPrefix, kRegionOfInterestType 
   from "./region-of-interest-adornment-types"
 import "./region-of-interest-adornment-registration"
 
-describe("Movable value registration", () => {
+describe("Region of Interest registration", () => {
   it("Registers content and component info", () => {
     const movableValueContentInfo = getAdornmentContentInfo(kRegionOfInterestType)
     expect(movableValueContentInfo).toBeDefined()

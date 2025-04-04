@@ -1,14 +1,15 @@
-import { DIAdornmentHandler } from "../../../../data-interactive/handlers/adornment-handler"
-import { IGraphContentModel } from "../../models/graph-content-model"
-import { IAdornmentModel } from "../adornment-models"
-import { IRegionOfInterestAdornmentModel, isRegionOfInterestAdornment } from "./region-of-interest-adornment-model"
-import { adornmentMismatchResult } from "../utilities/adornment-handler-utils"
-import { kRegionOfInterestType } from "./region-of-interest-adornment-types"
-import { adornmentNotFoundResult } from "../../../../data-interactive/handlers/di-results"
-import { getAdornmentContentInfo } from "../adornment-content-info"
-import { IAdornmentsBaseStore } from "../store/adornments-base-store"
 import { DIAdornmentValues, DIRegionOfInterestAdornmentValues, isAdornmentValues }
   from "../../../../data-interactive/data-interactive-adornment-types"
+import { DIAdornmentHandler } from "../../../../data-interactive/handlers/adornment-handler"
+import { adornmentNotFoundResult } from "../../../../data-interactive/handlers/di-results"
+import { IGraphContentModel } from "../../models/graph-content-model"
+import { getAdornmentContentInfo } from "../adornment-content-info"
+import { IAdornmentModel } from "../adornment-models"
+import { IAdornmentsBaseStore } from "../store/adornments-base-store"
+import { adornmentMismatchResult } from "../utilities/adornment-handler-utils"
+import { IRegionOfInterestAdornmentModel, isRegionOfInterestAdornment } from "./region-of-interest-adornment-model"
+import { kRegionOfInterestType } from "./region-of-interest-adornment-types"
+
 
 const setAdornmentProperties = (adornment: IRegionOfInterestAdornmentModel, values: DIAdornmentValues) => {
   if (isAdornmentValues(values)) {
