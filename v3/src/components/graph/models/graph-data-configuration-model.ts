@@ -330,6 +330,8 @@ export const GraphDataConfigurationModel = DataConfigurationModel
           })      },
       calculate: (extraPrimaryAttrRole: AttrRole, extraSecondaryAttrRole: AttrRole,
                   binWidth = 0, minValue = 0, totalNumberOfBins = 0) => {
+        // console.log(`cellMap: ${extraPrimaryAttrRole}, ${extraSecondaryAttrRole}, ${binWidth},
+        // ${minValue}, ${totalNumberOfBins}`)
         type BinMap = Record<string, Record<string, Record<string, Record<string, number>>>>
         const valueQuads = (self.getCaseDataArray(0) || []).map((aCaseData: CaseData) => {
             return self.categorySpecForCase(aCaseData.caseID, extraPrimaryAttrRole, extraSecondaryAttrRole)
