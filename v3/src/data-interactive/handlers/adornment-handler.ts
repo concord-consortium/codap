@@ -42,7 +42,7 @@ export const diAdornmentHandler: DIHandler = {
     const graphContent = component.content
     if (isDIAdornmentValuesBase(values) && values.type) {
       const { type } = values
-      const resolvedType = resolveAdornmentType(type) ?? type
+      const resolvedType = resolveAdornmentType(type)
       const handler = diAdornmentHandlers.get(resolvedType)
 
       if (handler?.create) {
@@ -63,7 +63,7 @@ export const diAdornmentHandler: DIHandler = {
     }
 
     const { type } = values
-    const resolvedType = resolveAdornmentType(type) ?? type
+    const resolvedType = resolveAdornmentType(type)
     const graphContent = component.content
     const adornmentsStore = graphContent.adornmentsStore
     const adornment = adornmentsStore.findAdornmentOfType<IAdornmentModel>(resolvedType)
@@ -121,7 +121,7 @@ export const diAdornmentHandler: DIHandler = {
     const graphContent = component.content
     if (isDIAdornmentValuesBase(values) && values.type) {
       const { type } = values as any
-      const resolvedType = resolveAdornmentType(type) ?? type
+      const resolvedType = resolveAdornmentType(type)
       const existingCountAdornment = graphContent.adornmentsStore.findAdornmentOfType<IAdornmentModel>(resolvedType)
       if (!existingCountAdornment) {
         return errorResult(t("V3.DI.Error.adornmentNotFound"))
