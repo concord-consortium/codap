@@ -4,8 +4,8 @@ import { onAnyAction } from "../../utilities/mst-utils"
 import { ICategorySetSnapshot } from "../data/category-set"
 import { DataSet } from "../data/data-set"
 import {
-  createSharedCaseMetadata, isSetIsCollapsedAction, isSharedCaseMetadata, SharedCaseMetadata
-} from "./shared-case-metadata"
+  createDataSetMetadata, DataSetMetadata, isDataSetMetadata, isSetIsCollapsedAction
+} from "./data-set-metadata"
 import { SharedModel } from "./shared-model"
 
 // eslint-disable-next-line no-var
@@ -16,11 +16,11 @@ jest.mock("../../utilities/js-utils", () => ({
   uniqueOrderedId: () => `order-${++mockNodeIdCount}`
 }))
 
-describe("SharedCaseMetadata", () => {
+describe("DataSetMetadata", () => {
 
   const TreeModel = types.model("Tree", {
     data: DataSet,
-    metadata: SharedCaseMetadata
+    metadata: DataSetMetadata
   })
 
   let tree: Instance<typeof TreeModel>
@@ -41,7 +41,7 @@ describe("SharedCaseMetadata", () => {
 
     tree = TreeModel.create({
       data: getSnapshot(DataSet.create()),
-      metadata: getSnapshot(SharedCaseMetadata.create())
+      metadata: getSnapshot(DataSetMetadata.create())
     })
     tree.data.addAttribute({ id: "aId", name: "a" })
     tree.data.addAttribute({ id: "bId", name: "b" })
@@ -51,21 +51,21 @@ describe("SharedCaseMetadata", () => {
   })
 
   it("behaves appropriately without a DataSet", () => {
-    const metadata = SharedCaseMetadata.create()
+    const metadata = DataSetMetadata.create()
     const categories = metadata.getCategorySet("foo")
     expect(categories).toBeUndefined()
   })
 
-  it("createSharedCaseMetadata creates a new instance with a provisional data set", () => {
+  it("createDataSetMetadata creates a new instance with a provisional data set", () => {
     const data = DataSet.create()
-    const metadata = createSharedCaseMetadata(data)
+    const metadata = createDataSetMetadata(data)
     expect(metadata.data).toBe(data)
   })
 
-  it("implements isSharedCaseMetadata", () => {
-    expect(isSharedCaseMetadata()).toBe(false)
-    expect(isSharedCaseMetadata(SharedModel.create())).toBe(false)
-    expect(isSharedCaseMetadata(tree.metadata)).toBe(true)
+  it("implements isDataSetMetadata", () => {
+    expect(isDataSetMetadata()).toBe(false)
+    expect(isDataSetMetadata(SharedModel.create())).toBe(false)
+    expect(isDataSetMetadata(tree.metadata)).toBe(true)
   })
 
   it("stores hidden attributes", () => {

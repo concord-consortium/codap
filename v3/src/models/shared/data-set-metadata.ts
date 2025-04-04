@@ -7,10 +7,10 @@ import { onAnyAction, typeOptionalBoolean } from "../../utilities/mst-utils"
 import { CategorySet, createProvisionalCategorySet, ICategorySet, ICategorySetSnapshot } from "../data/category-set"
 import { DataSet, IDataSet } from "../data/data-set"
 import { applyModelChange } from "../history/apply-model-change"
-import { kDefaultHighAttributeColor, kDefaultLowAttributeColor } from "./shared-case-metadata-constants"
+import { kDefaultHighAttributeColor, kDefaultLowAttributeColor } from "./data-set-metadata-constants"
 import { ISharedModel, SharedModel } from "./shared-model"
 
-export const kSharedCaseMetadataType = "SharedCaseMetadata"
+export const kDataSetMetadataType = "SharedCaseMetadata"
 
 interface IProvisionalEnvironment {
   provisionalDataSet?: IDataSet
@@ -21,9 +21,9 @@ export function getProvisionalDataSet(node: IAnyStateTreeNode | null) {
   return env.provisionalDataSet
 }
 
-// Creates a SharedCaseMetadata instance that can access its DataSet before being added to the document.
-export function createSharedCaseMetadata(data: IDataSet) {
-  return SharedCaseMetadata.create({ data: data.id }, { provisionalDataSet: data })
+// Creates a DataSetMetadata instance that can access its DataSet before being added to the document.
+export function createDataSetMetadata(data: IDataSet) {
+  return DataSetMetadata.create({ data: data.id }, { provisionalDataSet: data })
 }
 
 export const CollectionMetadata = types.model("CollectionMetadata", {
@@ -68,10 +68,10 @@ export const AttributeMetadata = types.model("AttributeMetadata", {
   scale: types.maybe(AttributeScale)
 })
 
-export const SharedCaseMetadata = SharedModel
-  .named(kSharedCaseMetadataType)
+export const DataSetMetadata = SharedModel
+  .named(kDataSetMetadataType)
   .props({
-    type: types.optional(types.literal(kSharedCaseMetadataType), kSharedCaseMetadataType),
+    type: types.optional(types.literal(kDataSetMetadataType), kDataSetMetadataType),
     data: types.safeReference(DataSet, {
       get(identifier: string, parent: IAnyStateTreeNode | null): IDataSet {
         // support access to the DataSet before being added to the document if provisional environment was provided
@@ -334,7 +334,7 @@ export const SharedCaseMetadata = SharedModel
             }
           })
         },
-        { name: "SharedCaseMetadata.afterCreate.reaction [show remaining hidden attributes in a collection]",
+        { name: "DataSetMetadata.afterCreate.reaction [show remaining hidden attributes in a collection]",
           fireImmediately: true,
           equals: comparer.structural
         }
@@ -343,11 +343,11 @@ export const SharedCaseMetadata = SharedModel
   }))
   .actions(applyModelChange)
 
-export interface ISharedCaseMetadata extends Instance<typeof SharedCaseMetadata> {}
-export interface ISharedCaseMetadataSnapshot extends SnapshotIn<typeof SharedCaseMetadata> {}
+export interface IDataSetMetadata extends Instance<typeof DataSetMetadata> {}
+export interface IDataSetMetadataSnapshot extends SnapshotIn<typeof DataSetMetadata> {}
 
-export function isSharedCaseMetadata(model?: ISharedModel): model is ISharedCaseMetadata {
-  return model ? getType(model) === SharedCaseMetadata : false
+export function isDataSetMetadata(model?: ISharedModel): model is IDataSetMetadata {
+  return model ? getType(model) === DataSetMetadata : false
 }
 
 export interface SetIsCollapsedAction extends ISerializedActionCall {

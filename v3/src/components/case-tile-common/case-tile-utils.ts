@@ -10,8 +10,8 @@ import { setCaseValuesWithCustomUndoRedo } from "../../models/data/data-set-undo
 import { IDocumentContentModel } from "../../models/document/document-content"
 import { isFreeTileLayout } from "../../models/document/free-tile-row"
 import {
-  ISharedCaseMetadata, kSharedCaseMetadataType, SharedCaseMetadata
-} from "../../models/shared/shared-case-metadata"
+  IDataSetMetadata, kDataSetMetadataType, DataSetMetadata
+} from "../../models/shared/data-set-metadata"
 import { ISharedDataSet } from "../../models/shared/shared-data-set"
 import { getTileCaseMetadata } from "../../models/shared/shared-data-tile-utils"
 import { getSharedDataSetFromDataSetId } from "../../models/shared/shared-data-utils"
@@ -30,7 +30,7 @@ export type kCardOrTableTileType = typeof kCaseTableTileType | typeof kCaseCardT
 
 export interface ICaseTileContentModel extends ITileContentModel {
   data?: IDataSet
-  metadata?: ISharedCaseMetadata
+  metadata?: IDataSetMetadata
 }
 
 export function isCaseTileContentModel(tile?: ITileContentModel): tile is ICaseTileContentModel {
@@ -38,7 +38,7 @@ export function isCaseTileContentModel(tile?: ITileContentModel): tile is ICaseT
 }
 
 export function createTableOrCardForDataset (
-  sharedDataSet: ISharedDataSet, caseMetadata: ISharedCaseMetadata, tileType: kCardOrTableTileType = kCaseTableTileType,
+  sharedDataSet: ISharedDataSet, sharedMetadata: IDataSetMetadata, tileType: kCardOrTableTileType = kCaseTableTileType,
   options?: INewTileOptions
 ) {
   const document = appState.document
@@ -48,7 +48,7 @@ export function createTableOrCardForDataset (
   const caseTableComponentInfo = getTileComponentInfo(kCaseTableTileType)
   if (!content || !row || !caseTableComponentInfo) return
 
-  const caseTableTileId = caseMetadata.caseTableTileId
+  const caseTableTileId = sharedMetadata.caseTableTileId
   if (caseTableTileId) {
     content?.toggleNonDestroyableTileVisibility(caseTableTileId)
     return
@@ -58,13 +58,13 @@ export function createTableOrCardForDataset (
   if (!tile) return
 
   manager?.addTileSharedModel(tile.content, sharedDataSet, true)
-  manager?.addTileSharedModel(tile.content, caseMetadata, true)
+  manager?.addTileSharedModel(tile.content, sharedMetadata, true)
   if (tileType === kCaseTableTileType) {
-    caseMetadata.setCaseTableTileId(tile.id)
+    sharedMetadata.setCaseTableTileId(tile.id)
   } else {
-    caseMetadata.setCaseCardTileId(tile.id)
+    sharedMetadata.setCaseCardTileId(tile.id)
   }
-  caseMetadata.setLastShownTableOrCardTileId(tile.id)
+  sharedMetadata.setLastShownTableOrCardTileId(tile.id)
 
   const numAttributes = sharedDataSet.dataSet.attributes.length
   const width = options?.width ?? Math.min(kCaseTableDefaultWidth,
@@ -87,7 +87,7 @@ export function createOrShowTableOrCardForDataset (
   const document = appState.document
   const { content } = document
   const manager = getSharedModelManager(document)
-  const caseMetadatas = manager?.getSharedModelsByType<typeof SharedCaseMetadata>(kSharedCaseMetadataType)
+  const caseMetadatas = manager?.getSharedModelsByType<typeof DataSetMetadata>(kDataSetMetadataType)
   const caseMetadata = caseMetadatas?.find(cm => cm.data?.id === sharedDataSet?.dataSet.id)
   if (!sharedDataSet || !caseMetadata) return
 

@@ -1,6 +1,6 @@
 import { ICollectionModel } from "../../models/data/collection"
 import { createCollectionNotification } from "../../models/data/data-set-notifications"
-import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-data-utils"
+import { getMetadataFromDataSet } from "../../models/shared/shared-data-utils"
 import { toV2Id } from "../../utilities/codap-utils"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIHandler, DIResources, DIValues} from "../data-interactive-types"
@@ -16,7 +16,7 @@ export const diCollectionHandler: DIHandler = {
     if (!dataContext) return dataContextNotFoundResult
     if (!values) return valuesRequiredResult
 
-    const metadata = getSharedCaseMetadataFromDataset(dataContext)
+    const metadata = getMetadataFromDataSet(dataContext)
     const collections = Array.isArray(values) ? values : [values]
     const returnValues: DICollection[] = []
 

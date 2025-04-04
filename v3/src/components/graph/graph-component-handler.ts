@@ -7,8 +7,8 @@ import { appState } from "../../models/app-state"
 import { IAttribute } from "../../models/data/attribute"
 import { isAttributeType } from "../../models/data/attribute-types"
 import { IDataSet } from "../../models/data/data-set"
-import { ISharedCaseMetadata } from "../../models/shared/shared-case-metadata"
-import { getSharedCaseMetadataFromDataset, getSharedDataSets } from "../../models/shared/shared-data-utils"
+import { IDataSetMetadata } from "../../models/shared/data-set-metadata"
+import { getMetadataFromDataSet, getSharedDataSets } from "../../models/shared/shared-data-utils"
 import { ITileContentModel, ITileContentSnapshotWithType } from "../../models/tiles/tile-content"
 import { maybeToV2Id, toV2Id, toV3AttrId, toV3CaseId, toV3DataSetId } from "../../utilities/codap-utils"
 import { t } from "../../utilities/translation/translate"
@@ -83,10 +83,10 @@ export const graphComponentHandler: DIComponentHandler = {
     let layerIndex = 0
     const layers: Array<IGraphPointLayerModelSnapshot> = []
     let provisionalDataSet: IDataSet | undefined
-    let provisionalMetadata: ISharedCaseMetadata | undefined
+    let provisionalMetadata: IDataSetMetadata | undefined
     getSharedDataSets(appState.document).forEach(sharedDataSet => {
       const dataset = sharedDataSet.dataSet
-      const metadata = getSharedCaseMetadataFromDataset(dataset)
+      const metadata = getMetadataFromDataSet(dataset)
       if (metadata) {
         const _attributeDescriptions: Partial<Record<GraphAttrRole, IAttributeDescriptionSnapshot>> = {}
         const _yAttributeDescriptions: IAttributeDescriptionSnapshot[] = []

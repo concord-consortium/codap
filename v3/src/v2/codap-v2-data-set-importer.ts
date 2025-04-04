@@ -4,7 +4,7 @@ import { IDataSet, toCanonical } from "../models/data/data-set"
 import { ICaseCreation, IItem } from "../models/data/data-set-types"
 import { importV2CategorySet, V2CategorySetInput } from "../models/data/v2-category-set-importer"
 import { v2NameTitleToV3Title } from "../models/data/v2-model"
-import { ISharedCaseMetadata, kSharedCaseMetadataType, SharedCaseMetadata } from "../models/shared/shared-case-metadata"
+import { IDataSetMetadata, kDataSetMetadataType, DataSetMetadata } from "../models/shared/data-set-metadata"
 import { kSharedDataSetType, SharedDataSet } from "../models/shared/shared-data-set"
 import { ISharedModelManager } from "../models/shared/shared-model-manager"
 import { kItemIdPrefix, toV3AttrId, toV3CaseId, toV3CollectionId, toV3DataSetId, v3Id } from "../utilities/codap-utils"
@@ -45,7 +45,7 @@ export class CodapV2DataSetImporter {
     // add shared models
     const sharedDataSet = SharedDataSet.create({ dataSet: { id: dataSetId, name, _title: title } })
     sharedModelManager?.addSharedModel(sharedDataSet)
-    const caseMetadata = SharedCaseMetadata.create()
+    const caseMetadata = DataSetMetadata.create()
     sharedModelManager?.addSharedModel(caseMetadata)
     caseMetadata.setData(sharedDataSet.dataSet)
 
@@ -57,7 +57,7 @@ export class CodapV2DataSetImporter {
     sharedDataSet.dataSet.validateCases()
   }
 
-  importProperties(data: IDataSet, caseMetadata: ISharedCaseMetadata, context: ImportableContext) {
+  importProperties(data: IDataSet, caseMetadata: IDataSetMetadata, context: ImportableContext) {
     const { description: legacyDescription, metadata, flexibleGroupingChangeFlag, preventReorg } = context
     const { description, source, importDate, "import date": legacyImportDate} = metadata ?? {}
 
@@ -79,7 +79,7 @@ export class CodapV2DataSetImporter {
     }
   }
 
-  importCollections(data: IDataSet, caseMetadata: ISharedCaseMetadata, collections: ICodapV2Collection[]) {
+  importCollections(data: IDataSet, caseMetadata: IDataSetMetadata, collections: ICodapV2Collection[]) {
     let prevCollection: ICollectionModel | undefined
     collections.forEach((collection, index) => {
       const { attrs = [], cases = [], guid, name = "", title } = collection
@@ -113,7 +113,7 @@ export class CodapV2DataSetImporter {
     })
   }
 
-  importAttributes(data: IDataSet, caseMetadata: ISharedCaseMetadata,
+  importAttributes(data: IDataSet, caseMetadata: IDataSetMetadata,
                       attributes: ICodapV2Attribute[], level: number) {
     const v2CaseIdInfo = this.v2CaseIdInfoArray[level]
     const v2ParentCaseIdInfo = this.v2CaseIdInfoArray[level + 1]
@@ -151,7 +151,7 @@ export class CodapV2DataSetImporter {
     })
   }
 
-  importCategories(data: IDataSet, caseMetadata: ISharedCaseMetadata, attributes: ICodapV2Attribute[]) {
+  importCategories(data: IDataSet, caseMetadata: IDataSetMetadata, attributes: ICodapV2Attribute[]) {
     attributes.forEach(v2Attr => {
       const {
         guid, colormap, _categoryMap
@@ -233,7 +233,7 @@ export function getCaseDataFromV2ContextGuid(dataContextGuid?: number, sharedMod
   const dataSetId = dataContextGuid ? toV3DataSetId(dataContextGuid) : undefined
   const sharedDataSets = sharedModelManager?.getSharedModelsByType<typeof SharedDataSet>(kSharedDataSetType)
   const data = sharedDataSets?.find(shared => shared.dataSet.id === dataSetId)
-  const caseMetadata = sharedModelManager?.getSharedModelsByType<typeof SharedCaseMetadata>(kSharedCaseMetadataType)
+  const caseMetadata = sharedModelManager?.getSharedModelsByType<typeof DataSetMetadata>(kDataSetMetadataType)
   const metadata = caseMetadata?.find(shared => shared.data?.id === dataSetId)
   return { data, metadata }
 }

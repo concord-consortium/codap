@@ -1,11 +1,12 @@
 import { action, computed, makeObservable, observable } from "mobx"
-import { createSharedCaseMetadata, ISharedCaseMetadata } from "../shared/shared-case-metadata"
+import { createDataSetMetadata, IDataSetMetadata } from "../shared/data-set-metadata"
 import { ISharedDataSet, SharedDataSet, kSharedDataSetType } from "../shared/shared-data-set"
 import { ISharedModelManager } from "../shared/shared-model-manager"
 import { IDataSet } from "./data-set"
 import { t } from "../../utilities/translation/translate"
+
+import "../shared/data-set-metadata-registration"
 import "../shared/shared-data-set-registration"
-import "../shared/shared-case-metadata-registration"
 
 export interface IDataSetSummary {
   id: string;
@@ -99,7 +100,7 @@ export class DataBroker {
     ds.prepareSnapshot()
     this.sharedModelManager?.addSharedModel(sharedModel)
 
-    const caseMetadata = createSharedCaseMetadata(ds)
+    const caseMetadata = createDataSetMetadata(ds)
     this.sharedModelManager?.addSharedModel(caseMetadata)
 
     this.addSharedDataSet(sharedModel)
@@ -109,7 +110,7 @@ export class DataBroker {
   }
 
   @action
-  addDataAndMetadata(data: ISharedDataSet, metadata: ISharedCaseMetadata) {
+  addDataAndMetadata(data: ISharedDataSet, metadata: IDataSetMetadata) {
     this.sharedModelManager?.addSharedModel(data)
     metadata.setData(data.dataSet)
     this.sharedModelManager?.addSharedModel(metadata)

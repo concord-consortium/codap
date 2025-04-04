@@ -1,4 +1,4 @@
-import { ISharedCaseMetadata } from "../../../models/shared/shared-case-metadata"
+import { IDataSetMetadata } from "../../../models/shared/data-set-metadata"
 import { ISharedDataSet } from "../../../models/shared/shared-data-set"
 import { safeJsonParse } from "../../../utilities/js-utils"
 import {
@@ -47,7 +47,7 @@ import { INormalCurveAdornmentModelSnapshot } from "./univariate-measures/normal
 
 interface IProps {
   data?: ISharedDataSet
-  metadata?: ISharedCaseMetadata
+  metadata?: IDataSetMetadata
   plotModels: ICodapV2PlotModel[]
   attributeDescriptions: GraphAttributeDescriptionsMapSnapshot
   yAttributeDescriptions: IAttributeDescriptionSnapshot[]
@@ -67,7 +67,7 @@ interface IInstanceKeyProps {
 
 interface IInstanceKeysForAdornmentsProps {
   data?: ISharedDataSet
-  metadata?: ISharedCaseMetadata
+  metadata?: IDataSetMetadata
   attributeDescriptions: GraphAttributeDescriptionsMapSnapshot
   yAttributeDescriptions: IAttributeDescriptionSnapshot[]
 }
@@ -173,7 +173,7 @@ const instanceKey = (props: IInstanceKeyProps) => {
 
 type GetAttributeInfoResult = [Maybe<string>, string[]]
 function getAttributeInfo(
-  data: ISharedDataSet, metadata?: ISharedCaseMetadata, attributeDesc?: IAttributeDescriptionSnapshot, defaultCat = ""
+  data: ISharedDataSet, metadata?: IDataSetMetadata, attributeDesc?: IAttributeDescriptionSnapshot, defaultCat = ""
 ): GetAttributeInfoResult {
   const { attributeID: id, type } = attributeDesc || {}
   let categories = [defaultCat]

@@ -2,7 +2,7 @@ import { IAnyStateTreeNode } from "mobx-state-tree"
 import { toV2Id } from "../../utilities/codap-utils"
 import { IDataSet } from "../data/data-set"
 import { getSharedModelManager } from "../tiles/tile-environment"
-import { ISharedCaseMetadata, kSharedCaseMetadataType, SharedCaseMetadata } from "./shared-case-metadata"
+import { IDataSetMetadata, kDataSetMetadataType, DataSetMetadata } from "./data-set-metadata"
 import { ISharedDataSet, kSharedDataSetType, SharedDataSet } from "./shared-data-set"
 
 export function getSharedDataSets(node: IAnyStateTreeNode): ISharedDataSet[] {
@@ -27,9 +27,9 @@ export function getDataSetFromId(node: IAnyStateTreeNode, id: string): Maybe<IDa
   return sharedDataSet?.dataSet
 }
 
-export function getSharedCaseMetadataFromDataset(dataset: IDataSet): Maybe<ISharedCaseMetadata> {
+export function getMetadataFromDataSet(dataset: IDataSet): Maybe<IDataSetMetadata> {
   const sharedModelManager = getSharedModelManager(dataset)
-  const sharedCaseMetadata = sharedModelManager?.getSharedModelsByType<typeof SharedCaseMetadata>(
-    kSharedCaseMetadataType).find(model => model.data?.id === dataset.id)
+  const sharedCaseMetadata = sharedModelManager?.getSharedModelsByType<typeof DataSetMetadata>(
+    kDataSetMetadataType).find(model => model.data?.id === dataset.id)
   return sharedCaseMetadata
 }

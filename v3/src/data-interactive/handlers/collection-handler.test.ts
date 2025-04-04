@@ -1,6 +1,6 @@
 import { getSnapshot } from "mobx-state-tree"
 import { appState } from "../../models/app-state"
-import { getSharedCaseMetadataFromDataset, getSharedDataSets } from "../../models/shared/shared-data-utils"
+import { getMetadataFromDataSet, getSharedDataSets } from "../../models/shared/shared-data-utils"
 import { ICodapV2CollectionV3 } from "../../v2/codap-v2-data-set-types"
 import { toV2Id, toV3CollectionId } from "../../utilities/codap-utils"
 import { DIValues } from "../data-interactive-types"
@@ -92,7 +92,7 @@ describe("DataInteractive CollectionHandler", () => {
     expect(handler.get?.({ dataContext }).success).toBe(false)
 
     // Grouped collection
-    const metadata = getSharedCaseMetadataFromDataset(dataContext)
+    const metadata = getMetadataFromDataSet(dataContext)
     metadata?.setIsHidden(c1.attributes[0]!.id, true)
     c1.setLabels({ singleCase: "singleCase" })
     const groupedResult = handler.get?.({ dataContext, collection: c1 })

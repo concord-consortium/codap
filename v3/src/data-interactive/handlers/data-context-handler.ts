@@ -6,7 +6,7 @@ import {
 } from "../../models/data/data-set-notifications"
 import { sortItemsWithCustomUndoRedo } from "../../models/data/data-set-undo"
 import { addSetAsideCases, replaceSetAsideCases, restoreSetAsideCases } from "../../models/data/data-set-utils"
-import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-data-utils"
+import { getMetadataFromDataSet } from "../../models/shared/shared-data-utils"
 import { getFormulaManager } from "../../models/tiles/tile-environment"
 import { toV3CaseId } from "../../utilities/codap-utils"
 import { hasOwnProperty } from "../../utilities/js-utils"
@@ -119,7 +119,7 @@ export const diDataContextHandler: DIHandler = {
     const { dataContext } = resources
     if (!dataContext) return dataContextNotFoundResult
 
-    const v3Metadata = getSharedCaseMetadataFromDataset(dataContext)
+    const v3Metadata = getMetadataFromDataSet(dataContext)
 
     const values = _values as DIUpdateDataContext
     if (values) {

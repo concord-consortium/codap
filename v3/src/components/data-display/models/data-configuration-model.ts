@@ -4,32 +4,32 @@ import {
   addDisposer, getEnv, getSnapshot, hasEnv, IAnyStateTreeNode, Instance, ISerializedActionCall,
   resolveIdentifier, SnapshotIn, types
 } from "mobx-state-tree"
-import {applyModelChange} from "../../../models/history/apply-model-change"
-import {cachedFnWithArgsFactory} from "../../../utilities/mst-utils"
-import { isFiniteNumber } from "../../../utilities/math-utils"
-import { stringValuesToDateSeconds } from "../../../utilities/date-utils"
 import {AttributeType, attributeTypes} from "../../../models/data/attribute-types"
 import {DataSet, IDataSet} from "../../../models/data/data-set"
+import {isSetCaseValuesAction} from "../../../models/data/data-set-actions"
 import {ICase} from "../../../models/data/data-set-types"
 import {idOfChildmostCollectionForAttributes} from "../../../models/data/data-set-utils"
-import { dataDisplayGetNumericValue } from "../data-display-value-utils"
-import {ISharedCaseMetadata, SharedCaseMetadata} from "../../../models/shared/shared-case-metadata"
-import {isSetCaseValuesAction} from "../../../models/data/data-set-actions"
 import {FilteredCases, IFilteredChangedCases} from "../../../models/data/filtered-cases"
 import {Formula, IFormula} from "../../../models/formula/formula"
+import {applyModelChange} from "../../../models/history/apply-model-change"
+import {IDataSetMetadata, DataSetMetadata} from "../../../models/shared/data-set-metadata"
 import {
   kDefaultHighAttributeColor, kDefaultLowAttributeColor
-} from "../../../models/shared/shared-case-metadata-constants"
-import {hashStringSets, typedId, uniqueId} from "../../../utilities/js-utils"
+} from "../../../models/shared/data-set-metadata-constants"
 import {getChoroplethColors, missingColor, parseColor} from "../../../utilities/color-utils"
+import { stringValuesToDateSeconds } from "../../../utilities/date-utils"
+import {hashStringSets, typedId, uniqueId} from "../../../utilities/js-utils"
+import { isFiniteNumber } from "../../../utilities/math-utils"
+import {cachedFnWithArgsFactory} from "../../../utilities/mst-utils"
+import { dataDisplayGetNumericValue } from "../data-display-value-utils"
 import { numericSortComparator } from "../../../utilities/data-utils"
 import { AxisPlace } from "../../axis/axis-types"
 import {GraphPlace} from "../../axis-graph-shared"
 import { getScaleThresholds } from "../components/legend/choropleth-legend/choropleth-legend"
-import {CaseData} from "../d3-types"
 import {
   AttrRole, GraphAttrRole, TipAttrRoles, graphPlaceToAttrRole, kOther, kMain, GraphSplitAttrRoles
 } from "../data-display-types"
+import {CaseData} from "../d3-types"
 
 export const AttributeDescription = types
   .model('AttributeDescription', {
@@ -60,7 +60,7 @@ export const kDataConfigurationType = "dataConfigurationType"
 // referencing the dataset and metadata as necessary, outside the main MST tree.
 interface IProvisionalEnvironment {
   provisionalDataSet?: IDataSet
-  provisionalMetadata?: ISharedCaseMetadata
+  provisionalMetadata?: IDataSetMetadata
 }
 
 export function getProvisionalDataSet(node: IAnyStateTreeNode | null) {
@@ -87,12 +87,12 @@ export const DataConfigurationModel = types
         return dataSet.id
       }
     }),
-    metadata: types.safeReference(SharedCaseMetadata, {
+    metadata: types.safeReference(DataSetMetadata, {
       get(identifier: string, parent: IAnyStateTreeNode | null): any {
         return getProvisionalMetadata(parent) ??
-          resolveIdentifier<typeof SharedCaseMetadata>(SharedCaseMetadata, parent, identifier)
+          resolveIdentifier<typeof DataSetMetadata>(DataSetMetadata, parent, identifier)
       },
-      set(metadata: ISharedCaseMetadata) {
+      set(metadata: IDataSetMetadata) {
         return metadata.id
       }
     }),
@@ -953,7 +953,7 @@ export const DataConfigurationModel = types
         { name: "DataConfigurationModel.afterCreate.reaction [childmost collection]" }
       ))
     },
-    setDataset(dataset: IDataSet | undefined, metadata: ISharedCaseMetadata | undefined) {
+    setDataset(dataset: IDataSet | undefined, metadata: IDataSetMetadata | undefined) {
       self.dataset = dataset
       self.metadata = metadata
     },

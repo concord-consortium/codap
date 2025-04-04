@@ -2,7 +2,7 @@ import { IDataSet } from "../data/data-set"
 import { ITileContentModel } from "../tiles/tile-content"
 import { getSharedModelManager } from "../tiles/tile-environment"
 import { ITileModel } from "../tiles/tile-model"
-import { ISharedCaseMetadata, isSharedCaseMetadata, SharedCaseMetadata } from "./shared-case-metadata"
+import { IDataSetMetadata, isDataSetMetadata, DataSetMetadata } from "./data-set-metadata"
 import { ISharedDataSet, isSharedDataSet, SharedDataSet } from "./shared-data-set"
 
 export function getTileSharedModels(tile: ITileContentModel) {
@@ -20,12 +20,12 @@ export function getAllTileDataSets(tile: ITileContentModel): ISharedDataSet[] {
 }
 
 export function getTileCaseMetadata(tile: ITileContentModel) {
-  const sharedCaseMetadata = getTileSharedModels(tile).find(m => isSharedCaseMetadata(m))
-  return isSharedCaseMetadata(sharedCaseMetadata) ? sharedCaseMetadata : undefined
+  const sharedCaseMetadata = getTileSharedModels(tile).find(m => isDataSetMetadata(m))
+  return isDataSetMetadata(sharedCaseMetadata) ? sharedCaseMetadata : undefined
 }
 
-export function getAllTileCaseMetadata(tile: ITileContentModel): ISharedCaseMetadata[] {
-  return getTileSharedModels(tile).filter(m => isSharedCaseMetadata(m))
+export function getAllTileCaseMetadata(tile: ITileContentModel): IDataSetMetadata[] {
+  return getTileSharedModels(tile).filter(m => isDataSetMetadata(m))
 }
 
 export function addDataSetAndMetadata(tile: ITileModel, dataSet: IDataSet, isProvider = true) {
@@ -37,7 +37,7 @@ export function addDataSetAndMetadata(tile: ITileModel, dataSet: IDataSet, isPro
     dataSet.prepareSnapshot()
     sharedModelManager?.addTileSharedModel(tile.content, sharedModel, isProvider)
 
-    const caseMetadata = SharedCaseMetadata.create()
+    const caseMetadata = DataSetMetadata.create()
     caseMetadata.setData(dataSet)
     sharedModelManager?.addSharedModel(caseMetadata)
 

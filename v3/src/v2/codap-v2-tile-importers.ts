@@ -1,6 +1,6 @@
 import { IFreeTileInRowOptions } from "../models/document/free-tile-row"
 import { IGlobalValueManager } from "../models/global/global-value-manager"
-import { ISharedCaseMetadata } from "../models/shared/shared-case-metadata"
+import { IDataSetMetadata } from "../models/shared/data-set-metadata"
 import { ISharedDataSet } from "../models/shared/shared-data-set"
 import { ISharedModel } from "../models/shared/shared-model"
 import { ITileContentModel } from "../models/tiles/tile-content"
@@ -17,7 +17,7 @@ export type LayoutTransformFn = (layout: IFreeTileInRowOptions) => IFreeTileInRo
 export interface V2TileImportArgs {
   v2Component: ICodapV2BaseComponent
   v2Document: CodapV2Document
-  getCaseData: (dataContextGuid: number) => { data?: ISharedDataSet, metadata?: ISharedCaseMetadata }
+  getCaseData: (dataContextGuid: number) => { data?: ISharedDataSet, metadata?: IDataSetMetadata }
   getGlobalValues: () => Maybe<IGlobalValueManager>
   // function to call to insert the imported tile into the document
   insertTile: (tileSnap: ITileModelSnapshotIn, transform?: LayoutTransformFn) => ITileModel | undefined

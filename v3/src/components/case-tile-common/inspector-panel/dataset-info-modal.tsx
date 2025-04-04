@@ -1,8 +1,8 @@
 import React, { useState } from "react"
 import { Button, FormControl, FormLabel, Input, ModalBody, ModalCloseButton, ModalFooter, ModalHeader, Textarea,
   Tooltip } from "@chakra-ui/react"
-import { useCaseMetadata } from "../../../hooks/use-case-metadata"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
+import { useDataSetMetadata } from "../../../hooks/use-data-set-metadata"
 import { updateDataContextNotification } from "../../../models/data/data-set-notifications"
 import { t } from "../../../utilities/translation/translate"
 import { CodapModal } from "../../codap-modal"
@@ -16,7 +16,7 @@ interface IProps {
 
 export const DatasetInfoModal = ({showInfoModal, setShowInfoModal}: IProps) => {
   const data = useDataSetContext()
-  const metadata = useCaseMetadata()
+  const metadata = useDataSetMetadata()
   const [datasetName, setDataSetName] = useState(data?.title || "")
   const [description, setDescription] = useState(metadata?.description || "")
   const [source, setSource] = useState(metadata?.source || "")

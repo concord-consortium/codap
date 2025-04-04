@@ -1,6 +1,6 @@
 import { debugLog, DEBUG_PLUGINS } from "../../lib/debug"
 import { toV2Id } from "../../utilities/codap-utils"
-import { getSharedCaseMetadataFromDataset } from "../shared/shared-data-utils"
+import { getMetadataFromDataSet } from "../shared/shared-data-utils"
 import { IAttribute } from "./attribute"
 import { ICollectionModel } from "./collection"
 import { IDataSet } from "./data-set"
@@ -30,7 +30,7 @@ export function dataContextDeletedNotification(dataSet: IDataSet) {
 }
 
 export function updateDataContextNotification(dataSet: IDataSet) {
-  const metadata = getSharedCaseMetadataFromDataset(dataSet)
+  const metadata = getMetadataFromDataSet(dataSet)
   const result = {
     success: true,
     properties: {

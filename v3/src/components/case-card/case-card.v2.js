@@ -2,7 +2,7 @@ import createReactClass from "create-react-class"
 import PropTypes from 'prop-types'
 import React from 'react'
 import ReactDOMFactories from "react-dom-factories"
-import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-data-utils"
+import { getMetadataFromDataSet } from "../../models/shared/shared-data-utils"
 import { uiState } from "../../models/ui-state"
 import { preventCollectionReorg } from "../../utilities/plugin-utils"
 import { createReactFactory, DG } from "../../v2/dg-compat.v2"
@@ -860,7 +860,7 @@ return tResult
                     return tParents
                   }
 
-                  var tCaseMetadata = getSharedCaseMetadataFromDataset(tContext.data),
+                  var tCaseMetadata = getMetadataFromDataSet(tContext.data),
                       tCollClient = tContext.getCollectionByID(iCollection.get('id')),
                       tCollectionName = tCollClient.get('name'),
                       tSelectedCases = tCollClient ? tCollClient.getPath('casesController.selection').toArray() : null,

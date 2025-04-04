@@ -4,7 +4,7 @@ import { DIValues } from "../../data-interactive/data-interactive-types"
 import { DIComponentHandler } from "../../data-interactive/handlers/component-handler"
 import { appState } from "../../models/app-state"
 import {
-  getDataSetByNameOrId, getSharedCaseMetadataFromDataset, getSharedDataSets
+  getDataSetByNameOrId, getMetadataFromDataSet, getSharedDataSets
 } from "../../models/shared/shared-data-utils"
 import { ITileContentModel } from "../../models/tiles/tile-content"
 import {
@@ -32,7 +32,7 @@ export const mapComponentHandler: DIComponentHandler = {
     let layerIndex = 0
     getSharedDataSets(document).forEach(sharedDataSet => {
       const dataset = sharedDataSet.dataSet
-      const metadata = getSharedCaseMetadataFromDataset(dataset)
+      const metadata = getMetadataFromDataSet(dataset)
       if (metadata) {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const LayerTypes = [kMapPointLayerType, kMapPolygonLayerType] as const

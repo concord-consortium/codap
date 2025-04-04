@@ -5,7 +5,7 @@ import { IDataSet } from "../models/data/data-set"
 import { ICase } from "../models/data/data-set-types"
 import { v2ModelSnapshotFromV2ModelStorage } from "../models/data/v2-model"
 import { IGlobalValue } from "../models/global/global-value"
-import { getSharedCaseMetadataFromDataset } from "../models/shared/shared-data-utils"
+import { getMetadataFromDataSet } from "../models/shared/shared-data-utils"
 import { kAttrIdPrefix, maybeToV2Id, toV2Id, toV3AttrId } from "../utilities/codap-utils"
 import { ICodapV2DataContextV3 } from "../v2/codap-v2-types"
 import {
@@ -29,9 +29,6 @@ export function convertValuesToAttributeSnapshot(_values: DISingleValues): IAttr
       // categoryMap: values._categoryMap, // TODO categoryMap not part of IAttribute. Should it be?
       // blockDisplayOfEmptyCategories: values.blockDisplayOfEmptyCategories, // TODO Not part of IAttribute yet
       editable: values.editable == null || !!values.editable,
-      // hidden is part of metadata, not the attribute model
-      // renameable: values.renameable, // TODO renameable not part of IAttribute yet
-      // deleteable: values.deleteable,
       formula: values.formula ? { display: values.formula } : undefined,
       // deletedFormula: values.deletedFormula, // TODO deletedFormula not part of IAttribute. Should it be?
       precision: values.precision == null || values.precision === "" ? undefined : +values.precision,
@@ -107,7 +104,7 @@ export function getCaseRequestResultValues(c: ICase, dataContext: IDataSet): DIG
 }
 
 export function convertAttributeToV2(attribute: IAttribute, dataContext?: IDataSet): ICodapV2Attribute {
-  const metadata = dataContext && getSharedCaseMetadataFromDataset(dataContext)
+  const metadata = dataContext && getMetadataFromDataSet(dataContext)
   const { cid, name, type, title, description, editable, id, precision } = attribute
   const v2Id = toV2Id(id)
   const rawColorMap = metadata?.getCategorySet(attribute.id)?.colorMap ?? {}
@@ -192,7 +189,7 @@ export function convertCollectionToV2(collection: ICollectionModel, options?: CC
 
 export function convertDataSetToV2(dataSet: IDataSet, exportCases = false): ICodapV2DataContextV3 {
   const { name, title, id } = dataSet
-  const v3Metadata = getSharedCaseMetadataFromDataset(dataSet)
+  const v3Metadata = getMetadataFromDataSet(dataSet)
   const { description, source, importDate, isAttrConfigChanged, isAttrConfigProtected } = v3Metadata || {}
   const v2Id = toV2Id(id)
   dataSet.validateCases()

@@ -1,8 +1,8 @@
 import { comparer } from "mobx"
 import { useEffect, useState } from "react"
 import { clsx } from "clsx"
-import { useCaseMetadata } from "../../hooks/use-case-metadata"
 import { useCollectionContext, useParentCollectionContext } from "../../hooks/use-collection-context"
+import { useDataSetMetadata } from "../../hooks/use-data-set-metadata"
 import { IAttribute } from "../../models/data/attribute"
 import { IDataSet } from "../../models/data/data-set"
 import { getCollectionAttrs } from "../../models/data/data-set-utils"
@@ -20,7 +20,7 @@ interface IUseColumnsProps {
   indexColumn?: TColumn
 }
 export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
-  const caseMetadata = useCaseMetadata()
+  const caseMetadata = useDataSetMetadata()
   const collectionTableModel = useCollectionTableModel()
   const parentCollection = useParentCollectionContext()
   const collectionId = useCollectionContext()

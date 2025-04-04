@@ -5,7 +5,7 @@ import {
   createAttributesNotification, hideAttributeNotification, removeAttributesNotification, deleteCollectionNotification
 } from "../../models/data/data-set-notifications"
 import { setCaseValuesWithCustomUndoRedo } from "../../models/data/data-set-undo"
-import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-data-utils"
+import { getMetadataFromDataSet } from "../../models/shared/shared-data-utils"
 
 DG.DataContextUtilities = {
 
@@ -256,7 +256,7 @@ DG.DataContextUtilities = {
    * @param iAttrID {number}
    */
   hideAttribute (iContext, iAttrID) {
-    const tCaseMetadata = getSharedCaseMetadataFromDataset(iContext.data)
+    const tCaseMetadata = getMetadataFromDataSet(iContext.data)
     tCaseMetadata?.applyModelChange(
       () => tCaseMetadata?.setIsHidden(iAttrID, true),
       {

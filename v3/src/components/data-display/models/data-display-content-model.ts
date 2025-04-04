@@ -9,7 +9,7 @@ import { formatDate } from "../../../utilities/date-utils"
 import { IValueType } from "../../../models/data/attribute-types"
 import { IAttribute } from "../../../models/data/attribute"
 import {IDataSet} from "../../../models/data/data-set"
-import {ISharedCaseMetadata} from "../../../models/shared/shared-case-metadata"
+import {IDataSetMetadata} from "../../../models/shared/data-set-metadata"
 import {ISharedDataSet} from "../../../models/shared/shared-data-set"
 import { getAllTileCaseMetadata, getAllTileDataSets } from "../../../models/shared/shared-data-tile-utils"
 import { getSharedDataSetFromDataSetId } from "../../../models/shared/shared-data-utils"
@@ -165,7 +165,7 @@ export const DataDisplayContentModel = TileContentModel
             })
             // add links to connected shared metadata
             layerMetadataIds.forEach(id => {
-              const sharedMetadata = sharedModelManager.getSharedModelById<ISharedCaseMetadata>(id)
+              const sharedMetadata = sharedModelManager.getSharedModelById<IDataSetMetadata>(id)
               sharedMetadata && sharedModelManager.addTileSharedModel(self, sharedMetadata)
             })
           }

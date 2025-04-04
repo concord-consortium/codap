@@ -2,13 +2,14 @@
 import { render, screen } from "@testing-library/react"
 import { userEvent } from '@testing-library/user-event'
 import React from "react"
-import { DG } from "../../v2/dg-compat.v2"
 import { createDataSet } from "../../models/data/data-set-conversion"
+import { AppHistoryService } from "../../models/history/app-history-service"
+import { DataSetMetadata } from "../../models/shared/data-set-metadata"
 import { DGDataContext } from "../../models/v2/dg-data-context"
 import { t } from "../../utilities/translation/translate"
+import { DG } from "../../v2/dg-compat.v2"
+
 import "./case-card.v2"
-import { SharedCaseMetadata } from "../../models/shared/shared-case-metadata"
-import { AppHistoryService } from "../../models/history/app-history-service"
 const { CaseCard } = DG.React as any
 
 describe("CaseCard component", () => {
@@ -29,7 +30,7 @@ describe("CaseCard component", () => {
     }, {historyService: new AppHistoryService()})
     data.addCases([{ __id__: "Case1", AttrId: "foo" }, { __id__: "Case2", AttrId: "bar" }])
     const context = new DGDataContext(data)
-    const metadata = SharedCaseMetadata.create()
+    const metadata = DataSetMetadata.create()
     const columnWidthMap: Record<string, number> = {}
     const mockIsSelected = jest.fn()
     const mockOnResizeColumn = jest.fn()
@@ -170,7 +171,7 @@ describe("CaseCard component", () => {
         { id: "Attr2Id", name: "Attr2Name" }
       ]
     }, {historyService: new AppHistoryService()})
-    const metadata = SharedCaseMetadata.create()
+    const metadata = DataSetMetadata.create()
     data.addCases([
       { __id__: "Case1", Attr1Id: "foo", Attr2Id: 1 },
       { __id__: "Case2", Attr1Id: "foo", Attr2Id: 2 },

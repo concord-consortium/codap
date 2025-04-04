@@ -2,7 +2,7 @@ import { getSnapshot, types } from "mobx-state-tree"
 import { omitUndefined } from "../../test/test-utils"
 import { toCanonical } from "../data/data-set"
 import { createCodapDocument } from "./create-codap-document"
-import "../shared/shared-case-metadata-registration"
+import "../shared/data-set-metadata-registration"
 import "../shared/shared-data-set-registration"
 
 // eslint-disable-next-line no-var

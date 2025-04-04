@@ -1,9 +1,9 @@
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import React, { useMemo, useRef } from "react"
-import { useCaseMetadata } from "../../hooks/use-case-metadata"
 import { useCollectionContext, useParentCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
+import { useDataSetMetadata } from "../../hooks/use-data-set-metadata"
 import { getDragAttributeInfo, useTileDroppable } from "../../hooks/use-drag-drop"
 import { measureText } from "../../hooks/use-measure-text"
 import { useVisibleAttributes } from "../../hooks/use-visible-attributes"
@@ -34,7 +34,7 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({
   gridElt, onDrop, onWhiteSpaceClick
 }: IProps) {
   const data = useDataSetContext()
-  const caseMetadata = useCaseMetadata()
+  const caseMetadata = useDataSetMetadata()
   const parentCollectionId = useParentCollectionContext()
   const parentCollection = parentCollectionId ? data?.getCollection(parentCollectionId) : undefined
   const parentTableModel = useCollectionTableModel(parentCollectionId)

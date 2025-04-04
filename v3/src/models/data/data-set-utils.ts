@@ -1,6 +1,6 @@
 import { isAlive } from "mobx-state-tree"
 import { logMessageWithReplacement } from "../../lib/log-message"
-import { getSharedCaseMetadataFromDataset } from "../shared/shared-data-utils"
+import { getMetadataFromDataSet } from "../shared/shared-data-utils"
 import { INotify } from "../history/history-service"
 import { IAttribute } from "./attribute"
 import { ICollectionModel } from "./collection"
@@ -57,7 +57,7 @@ export function idOfChildmostCollectionForAttributes(attrIDs: string[], data?: I
 
 export function firstVisibleParentAttribute(data?: IDataSet, collectionId?: string): IAttribute | undefined {
   if (!collectionId) return
-  const metadata = data && getSharedCaseMetadataFromDataset(data)
+  const metadata = data && getMetadataFromDataSet(data)
   const parentCollection = data?.getParentCollection(collectionId)
   return parentCollection?.attributes.find(attr => attr && !metadata?.isHidden(attr.id))
 }

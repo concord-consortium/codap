@@ -1,7 +1,7 @@
 import React, { useCallback, useRef, useState } from "react"
 import { observer } from "mobx-react-lite"
 import { clsx } from "clsx"
-import { useCaseMetadata } from "../../hooks/use-case-metadata"
+import { useDataSetMetadata } from "../../hooks/use-data-set-metadata"
 import { IValueType } from "../../models/data/attribute-types"
 import { IGroupedCase } from "../../models/data/data-set-types"
 import { ICollectionModel } from "../../models/data/collection"
@@ -30,7 +30,7 @@ function getDividerBounds(containerBounds: DOMRect, cellBounds: DOMRect) {
 
 export const CaseAttrsView = observer(function CaseAttrsView({caseItem, collection}: ICaseAttrsViewProps) {
   const cardModel = useCaseCardModel()
-  const caseMetadata = useCaseMetadata()
+  const caseMetadata = useDataSetMetadata()
   const data = cardModel?.data
   const displayValues = useCaseCardModel()?.displayValues
   const isCollectionSummarized = collection?.cases && collection.cases.length > 0 &&

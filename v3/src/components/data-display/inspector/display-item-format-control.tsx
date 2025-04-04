@@ -3,10 +3,10 @@ import {
 } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
 import React, { useRef } from "react"
+import { AttributeBinningTypes, AttributeBinningType } from "../../../models/shared/data-set-metadata"
 import {
   kDefaultHighAttributeColor, kDefaultLowAttributeColor
-} from "../../../models/shared/shared-case-metadata-constants"
-import { AttributeBinningTypes, AttributeBinningType } from "../../../models/shared/shared-case-metadata"
+} from "../../../models/shared/data-set-metadata-constants"
 import { t } from "../../../utilities/translation/translate"
 import { IMapPointLayerModel, isMapPointDisplayType } from "../../map/models/map-point-layer-model"
 import { PointDisplayType } from "../data-display-types"
