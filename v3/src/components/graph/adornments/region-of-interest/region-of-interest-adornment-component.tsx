@@ -117,7 +117,8 @@ export const RegionOfInterestAdornment = observer(function RegionOfInterestAdorn
         .attr("width", primaryDimension)
         .attr("height", secondaryDimension)
     }
-  }, [primary, secondary, primaryAttrRole, plotWidth, plotHeight, xScale, yScale])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [primary, secondary, primaryAttrRole, plotWidth, plotHeight, xScale, yScale, xAttrId, yAttrId])
 
   useEffect(() => {
     const disposer = mstAutorun(() => {
@@ -125,7 +126,7 @@ export const RegionOfInterestAdornment = observer(function RegionOfInterestAdorn
       updateRectangle()
     }, { name: "RegionOfInterestAdornment.refreshAxisChange" }, model)
     return disposer
-  }, [model, xAxis, yAxis, plotWidth, plotHeight, xAttrId, yAttrId, updateRectangle])
+  }, [model, xAxis, yAxis, plotWidth, plotHeight, updateRectangle])
 
   // The ROI is rendered in spannerRef, so we don't need to render anything here.
   return null
