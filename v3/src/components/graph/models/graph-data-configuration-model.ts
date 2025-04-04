@@ -324,13 +324,14 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     cellMap: cachedFnWithArgsFactory({
       key: (extraPrimaryAttrRole: AttrRole, extraSecondaryAttrRole: AttrRole,
             binWidth = 0, minValue = 0, totalNumberOfBins = 0) => {
-        return JSON.stringify({
-          ep: extraPrimaryAttrRole, es: extraSecondaryAttrRole,
-          bw: binWidth, min: minValue, tnb: totalNumberOfBins
-        })
-      },
+        return totalNumberOfBins === 0 ? kMain
+          : JSON.stringify({
+            bw: binWidth, min: minValue, tnb: totalNumberOfBins
+          })      },
       calculate: (extraPrimaryAttrRole: AttrRole, extraSecondaryAttrRole: AttrRole,
                   binWidth = 0, minValue = 0, totalNumberOfBins = 0) => {
+        // console.log(`cellMap: ${extraPrimaryAttrRole}, ${extraSecondaryAttrRole}, ${binWidth},
+        // ${minValue}, ${totalNumberOfBins}`)
         type BinMap = Record<string, Record<string, Record<string, Record<string, number>>>>
         const valueQuads = (self.getCaseDataArray(0) || []).map((aCaseData: CaseData) => {
             return self.categorySpecForCase(aCaseData.caseID, extraPrimaryAttrRole, extraSecondaryAttrRole)
