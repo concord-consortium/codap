@@ -28,6 +28,15 @@ export const BarChartModel = DotChartModel
       self.expression = expression
     }
   }))
+  .views(self => {
+    const baseMaxCellPercent = self.maxCellPercent
+    return {
+      maxCellPercent(): number {
+        // Override base class to handle situation in which there is a legend
+        return self.dataConfiguration?.attributeID("legend") ? 100 : baseMaxCellPercent()
+      }
+    }
+  })
   .views(self => ({
     get displayType(): PointDisplayType {
       return "bars"
