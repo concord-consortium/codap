@@ -61,7 +61,7 @@ export type GraphAttrRole = typeof GraphAttrRoles[number]
 export const GraphSplitAttrRoles = [...PrimaryAttrRoles, 'topSplit', 'rightSplit'] as const
 export type GraphSplitAttrRole = typeof GraphSplitAttrRoles[number]
 
-export const MapAttrRoles = ['lat', 'long', 'pinLat', 'pinLong', 'polygon'] as const
+export const MapAttrRoles = ['lat', 'long', 'polygon'] as const
 export type MapAttrRole = typeof MapAttrRoles[number]
 
 export const AttrRoles = [...GraphAttrRoles, ...MapAttrRoles] as const

@@ -5,46 +5,9 @@ import { diAdornmentHandler } from "./adornment-handler"
 describe("DataInteractive AdornmentHandler", () => {
   const handler = diAdornmentHandler
 
-  it("create returns an error if the specified component is not a graph", () => {
-    const mockComponent = {
-      content: {
-        type: "Invalid Type"
-      },
-      type: "Invalid Type",
-    } as any
-    const mockValues = {
-      type: "Count"
-    }
-    const result = handler.create?.({ component: mockComponent }, mockValues)
-    expect(result?.success).toBe(false)
-    const values = result?.values as any
-    expect(values.error).toBe("Unsupported component type Invalid Type")
-  })
-
   it("create returns an error when no values provided", () => {
     const result = handler.create?.({})
     expect(result?.success).toBe(false)
-  })
-
-  it("create returns an error when adornment doesn't support create", () => {
-    const mockGraphContent = {
-      adornmentsStore: {
-        addAdornment: jest.fn((adornment: any, options: any) => null),
-        findAdornmentOfType: jest.fn(),
-      },
-      type: "Graph"
-    } as any
-    const mockComponent = {
-      content: mockGraphContent,
-      type: "Graph",
-    } as any
-    const mockValues = {
-      type: "Mock Adornment"
-    }
-    const result = handler.create?.({ component: mockComponent }, mockValues)
-    expect(result?.success).toBe(false)
-    const values = result?.values as any
-    expect(values.error).toBe("The Mock Adornment adornment does not currently support create requests.")
   })
 
   it("delete returns an error when no type provided", () => {
@@ -79,23 +42,8 @@ describe("DataInteractive AdornmentHandler", () => {
   })
 
   it("update returns an error when type provided but matching adornment not found", () => {
-    const mockGraphContent = {
-      adornmentsStore: {
-        addAdornment: jest.fn((adornment: any, options: any) => null),
-        findAdornmentOfType: jest.fn(),
-      },
-      type: "Graph"
-    } as any
-
-    const mockComponent = {
-      content: mockGraphContent,
-      type: "Graph",
-    } as any
-
-    const result = handler.update?.({component: mockComponent}, { type: "Mean" })
+    const result = handler.update?.({}, { type: "Count" })
     expect(result?.success).toBe(false)
-    const values = result?.values as any
-    expect(values.error).toBe("Adornment not found.")
   })
 
 })

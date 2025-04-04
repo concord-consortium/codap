@@ -392,15 +392,10 @@ export const TableTileElements = {
       })
     }
   },
-  addNewAttribute(collectionIndex = 1, attributeName?: string) {
+  addNewAttribute(collectionIndex = 1) {
     this.getCollection(collectionIndex).find("[data-testid=collection-add-attribute-icon-button] svg")
       .click({force:true})
-    if (attributeName) {
-      cy.wait(100)
-      this.getAttributeInput(collectionIndex).type(`${attributeName}{enter}`)
-    } else {
-      cy.get("[data-testid=column-name-input]").type("{enter}{enter}")
-    }
+    cy.get("[data-testid=column-name-input]").type("{enter}{enter}")
   },
   deleteAttribute(attributeName: string, collectionIndex = 1) {
     this.openAttributeMenu(attributeName, collectionIndex)

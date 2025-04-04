@@ -35,21 +35,6 @@ export const MapTileElements = {
   getZoomOutButton() {
     return this.getMapTile().find(".leaflet-control-zoom-out")
   },
-  getAddPinButton() {
-    return this.getMapTile().find("[data-testid=add-pin-button]")
-  },
-  getRemovePinButton() {
-    return this.getMapTile().find("[data-testid=remove-pin-button]")
-  },
-  getPinLayer() {
-    return this.getMapTile().find(".map-pin-layer")
-  },
-  getMapPins() {
-    return this.getPinLayer().find(".map-pin")
-  },
-  getMapPin(index=0) {
-    return this.getMapPins().eq(index)
-  },
   getHideSelectedCases() {
     return c.getInspectorPanel().find("[data-testid=hide-selected-cases]")
   },

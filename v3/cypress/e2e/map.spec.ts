@@ -3,7 +3,6 @@ import { ComponentElements as c } from "../support/elements/component-elements"
 import { ToolbarElements as toolbar } from "../support/elements/toolbar-elements"
 import { CfmElements as cfm } from "../support/elements/cfm"
 import { MapLegendHelper as mlh } from "../support/helpers/map-legend-helper"
-import { TableTileElements as table } from "../support/elements/table-tile"
 
 const filename1 = "cypress/fixtures/RollerCoastersWithLatLong.csv"
 const filename2 = "cypress/fixtures/map-data.csv"
@@ -206,59 +205,6 @@ context("Map UI", () => {
     mlh.openLegendMenu()
     mlh.removeAttributeFromLegend("Length")
     map.getHeatmapCanvas().should("not.exist")
-  })
-  it("checks map pins", () => {
-    c.getIconFromToolShelf("table").click()
-    toolbar.getNewCaseTable().click()
-    c.getResizeControl("table")
-      .realMouseDown({ position: "center" })
-      .realMouseMove(350, 0)
-      .realMouseUp()
-    table.addNewAttribute(1, "pinLat")
-    table.addNewAttribute(1, "pinLong")
-    // TODO: Test colors. I wasn't able to figure out how to set the type to color.
-    // table.addNewAttribute(1, "pinColor")
-    // table.editAttributeProperties("pinColor", "", null, "color")
-
-    c.getIconFromToolShelf("map").click()
-    map.getMapTile().should("exist")
-    map.getPinLayer().should("exist")
-    map.getAddPinButton().should("exist")
-    map.getRemovePinButton().should("exist").should("be.disabled")
-
-    // Can add a pin
-    table.getNumOfRows().should("eq", "2") // Headers + input row
-    map.getAddPinButton().click()
-    map.getAddPinButton().should("have.class", "active")
-    map.getPinLayer().click()
-    map.getAddPinButton().should("not.have.class", "active")
-    map.getMapPin().should("exist")
-    table.getNumOfRows().should("eq", "3")
-
-    // Can select a pin
-    table.getSelectedRows().should("have.length", 0)
-    map.getMapPin().should("not.have.class", "selected-pin")
-    map.getMapPin().click()
-    map.getMapPin().should("have.class", "selected-pin")
-    table.getSelectedRows().should("have.length", 1)
-
-    // Can deselect a pin by shift+clicking
-    map.getMapPin().click({ shiftKey: true })
-    map.getMapPin().should("not.have.class", "selected-pin")
-    table.getSelectedRows().should("have.length", 0)
-
-    // Pin is selected when the table row is selected
-    table.getCell(2, 2).click()
-    map.getMapPin().should("have.class", "selected-pin")
-    table.getSelectedRows().should("have.length", 1)
-
-    // Can remove a pin using the remove pin button
-    c.getComponentTitleBar("map").click()
-    map.getRemovePinButton().should("not.be.disabled")
-    map.getRemovePinButton().click()
-    map.getRemovePinButton().should("be.disabled")
-    map.getMapPins().should("not.exist")
-    table.getNumOfRows().should("eq", "2") // Headers + input row
   })
   // flaky test skipped in PR #1239, see PT #187534790
   it.skip("checks show/hide map boundaries with legend selections", () => {

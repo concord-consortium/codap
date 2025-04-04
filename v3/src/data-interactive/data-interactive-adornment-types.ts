@@ -1,4 +1,4 @@
-import { SnapshotIn } from "mobx-state-tree"
+import { SnapshotIn } from "@concord-consortium/mobx-state-tree"
 import { CountAdornmentModel } from "../components/graph/adornments/count/count-adornment-model"
 import { kCountType } from "../components/graph/adornments/count/count-adornment-types"
 import { LSRLAdornmentModel } from "../components/graph/adornments/lsrl/lsrl-adornment-model"
@@ -34,5 +34,5 @@ const kAdornmentTypes = [kCountType, kLSRLType, kMeanType, kMedianType, kMovable
 const adornmentTypes = new Set(kAdornmentTypes)
 
 export const isAdornmentValues = (val: unknown): val is DIAdornmentValues => {
-  return isDIAdornmentValuesBase(val) && adornmentTypes.has(resolveAdornmentType(val.type))
+  return typeof val === "object" && val !== null && adornmentTypes.has((val as any).type)
 }

@@ -80,8 +80,7 @@ export const GraphContentModel = DataDisplayContentModel
   .volatile(() => ({
     changeCount: 0, // used to notify observers when something has changed that may require a re-computation/redraw
     prevDataSetId: "",
-    pointOverlap: 0,  // Set by plots so that it is accessible to adornments,
-    onPatchDisposer: undefined as Maybe<() => void>
+    pointOverlap: 0,  // Set by plots so that it is accessible to adornments
   }))
   // cast required to avoid self-reference in model definition error
   .preProcessSnapshot(preProcessSnapshot as any)
@@ -199,24 +198,16 @@ export const GraphContentModel = DataDisplayContentModel
         self.axes.set(place, axis)
       }
     },
-    disposePlotOnPatchHandler() {
-      self.onPatchDisposer?.()
-      self.onPatchDisposer = undefined
-    },
-    installPlotOnPatchHandler() {
+    installPlotPatchDisposer() {
       // At the plot level we can't install a new axis. But a plot can change in such a way that it
       // requires a new secondary axis. When our plot is patched, we pass the patch to it and allow it to
       // tell us about any required new secondary axis.
-      this.disposePlotOnPatchHandler()
-      self.onPatchDisposer = onPatch(self.plot, (patch) => {
+      addDisposer(self, onPatch(self.plot, (patch) => {
         const newSecondaryAxis = self.plot.newSecondaryAxisRequired(patch)
         if (newSecondaryAxis) {
           this.setAxis(self.secondaryPlace, newSecondaryAxis)
         }
-      })
-      // dispose of onPatch handler when either the plot or the content model is destroyed
-      addDisposer(self, () => this.disposePlotOnPatchHandler())
-      addDisposer(self.plot, () => this.disposePlotOnPatchHandler())
+      }))
     },
     async afterAttachToDocument() {
       if (!self.tileEnv?.sharedModelManager?.isReady) {
@@ -234,7 +225,7 @@ export const GraphContentModel = DataDisplayContentModel
       )
 
       self.installSharedModelManagerSync()
-      this.installPlotOnPatchHandler()
+      this.installPlotPatchDisposer()
 
       // update adornments when case data changes
       addDisposer(self, mstAutorun(function updateAdornments() {
@@ -282,7 +273,7 @@ export const GraphContentModel = DataDisplayContentModel
           self.plot.resetSettings({ isBinnedPlotChanged: prevPlotWasBinned !== self.plot.isBinned })
         }
       }
-      self.installPlotOnPatchHandler()
+      self.installPlotPatchDisposer()
 
     },
     setPlotType(type: PlotType) {
