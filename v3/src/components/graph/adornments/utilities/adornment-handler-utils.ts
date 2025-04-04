@@ -23,7 +23,7 @@ export const adornmentMismatchResult = (adornmentType: string) => {
 /**
  * Converts a cell key that uses an attribute name to one that uses the associated attribute ID instead.
  * Example: given a cell key of { "Diet": "plants" }, it returns { "ATTR123": "plants" }.
- * 
+ *
  * @param requestCellKey: the cell key string value specified in an API request
  * @param dataset: the dataset associated with the graph
  * @returns a cell key string value with an attribute ID instead of a name, or undefined if the conversion fails
@@ -33,17 +33,12 @@ export const normalizeCellKey = (requestCellKey: string, dataConfig: IDataConfig
   const normalizedCellKey: Record<string, string> = {}
 
   for (const [attrNameOrId, value] of Object.entries(cellKey)) {
-    // If the key is already an ID, keep it as is.
-    if (/^ATTR\d+$/.test(attrNameOrId)) {
-      normalizedCellKey[attrNameOrId] = value
+    const foundAttr = dataConfig.dataset?.attributes.find(attr => attr.matchTitleOrNameOrId(attrNameOrId))
+    if (foundAttr) {
+      normalizedCellKey[foundAttr.id] = value
     } else {
-      const attrId = dataConfig.dataset?.getAttributeByName(attrNameOrId)?.id
-      if (attrId) {
-        normalizedCellKey[attrId] = value
-      } else {
-        // If any attribute name cannot be resolved to an ID, return undefined.
-        return undefined
-      }
+      // If any attribute name cannot be resolved to an ID, return undefined.
+      return undefined
     }
   }
 

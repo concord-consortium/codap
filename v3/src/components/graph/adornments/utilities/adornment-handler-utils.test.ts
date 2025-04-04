@@ -1,16 +1,15 @@
+import { Attribute } from "../../../../models/data/attribute"
 import { adornmentMismatchResult, cellKeyToCategories, normalizeCellKey } from "./adornment-handler-utils"
 
 describe("adornment-handler-utils", () => {
   let mockDataConfig: any
 
   beforeEach(() => {
+    const attributes = [Attribute.create({ id: "ATTR1", name: "Category Name" })]
     mockDataConfig = {
       dataset: {
-        getAttribute: jest.fn(() => ({ id: "ATTR1", name: "Category Name" })),
-        getAttributeByName: jest.fn((name: string) => {
-          const attributes = [{ id: "ATTR1", name: "Category Name" }]
-          return attributes.find(attr => attr.name === name)
-        })
+        attributes,
+        getAttribute: jest.fn((id: string) => attributes.find(attr => attr.id === id))
       },
       getAllCellKeys: jest.fn(() => [{}, { ATTR1: "category value 1" }]),
       subPlotCases: jest.fn(() => [{ id: "case1" }, { id: "case2" }])

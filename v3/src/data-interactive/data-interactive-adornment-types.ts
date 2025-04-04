@@ -1,6 +1,6 @@
-import { SnapshotIn } from "@concord-consortium/mobx-state-tree"
+import { SnapshotIn } from "mobx-state-tree"
 import { CountAdornmentModel } from "../components/graph/adornments/count/count-adornment-model"
-import { kCountType, kPercentType } from "../components/graph/adornments/count/count-adornment-types"
+import { kCountType } from "../components/graph/adornments/count/count-adornment-types"
 import { LSRLAdornmentModel } from "../components/graph/adornments/lsrl/lsrl-adornment-model"
 import { kLSRLType } from "../components/graph/adornments/lsrl/lsrl-adornment-types"
 import { MeanAdornmentModel } from "../components/graph/adornments/univariate-measures/mean/mean-adornment-model"
@@ -13,6 +13,7 @@ import { StandardDeviationAdornmentModel }
   from "../components/graph/adornments/univariate-measures/standard-deviation/standard-deviation-adornment-model"
 import { kStandardDeviationType }
   from "../components/graph/adornments/univariate-measures/standard-deviation/standard-deviation-adornment-types"
+import { isDIAdornmentValuesBase, resolveAdornmentType } from "./data-interactive-adornment-base-types"
 
 export type DICountAdornmentValues = Partial<SnapshotIn<typeof CountAdornmentModel>>
 export type DILsrlAdornmentValues = Partial<SnapshotIn<typeof LSRLAdornmentModel>>
@@ -23,9 +24,9 @@ export type DIStandardDeviationAdornmentValues = Partial<SnapshotIn<typeof Stand
 export type DIAdornmentValues = DICountAdornmentValues | DILsrlAdornmentValues | DIMeanAdornmentValues |
   DIMedianAdornmentValues | DIMovableValueAdornmentValues | DIStandardDeviationAdornmentValues
 
-const kAdornmentTypes = [kCountType, kLSRLType, kMeanType, kMedianType, kMovableValueType, kPercentType, kStandardDeviationType]
+const kAdornmentTypes = [kCountType, kLSRLType, kMeanType, kMedianType, kMovableValueType, kStandardDeviationType]
 const adornmentTypes = new Set(kAdornmentTypes)
 
 export const isAdornmentValues = (val: unknown): val is DIAdornmentValues => {
-  return typeof val === "object" && val !== null && adornmentTypes.has((val as any).type)
+  return isDIAdornmentValuesBase(val) && adornmentTypes.has(resolveAdornmentType(val.type))
 }

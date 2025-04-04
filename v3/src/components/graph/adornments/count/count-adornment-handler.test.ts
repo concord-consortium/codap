@@ -2,6 +2,9 @@ import { types } from "mobx-state-tree"
 import { countAdornmentHandler } from "./count-adornment-handler"
 import { kCountType, kPercentType } from "./count-adornment-types"
 
+// register adornment type aliases
+import "./count-adornment-registration"
+
 jest.mock("../adornment-content-info", () => {
   const mockCountModel = types.model("CountAdornmentModel", {
     id: types.optional(types.string, "ADRN123"),
@@ -68,7 +71,7 @@ describe("DataInteractive CountAdornmentHandler", () => {
       },
       dataConfiguration: mockDataConfig
     }
-    
+
     mockCountAdornment = {
       computeRegionCounts: jest.fn(() => [{ count: 2, percent: "50%" }]),
       id: "ADRN123",
