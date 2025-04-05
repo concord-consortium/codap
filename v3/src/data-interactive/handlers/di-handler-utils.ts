@@ -7,7 +7,7 @@ import { v2NameTitleToV3Title } from "../../models/data/v2-model"
 import { IDataSetMetadata } from "../../models/shared/data-set-metadata"
 import { getMetadataFromDataSet } from "../../models/shared/shared-data-utils"
 import { hasOwnProperty } from "../../utilities/js-utils"
-import { CodapV2ColorMap } from "../../v2/codap-v2-data-set-types"
+import { CodapV2ColorMap } from "../../v2/codap-v2-data-context-types"
 import { DIAttribute, DICollection } from "../data-interactive-data-set-types"
 import { convertValuesToAttributeSnapshot } from "../data-interactive-type-utils"
 
@@ -61,7 +61,9 @@ export function updateAttribute(attribute: IAttribute, value: DIAttribute, dataC
     metadata?.setIsRenameProtected(attribute.id, value.renameProtected ?? !value.renameable)
   }
   if (value?.description != null) attribute.setDescription(value.description)
-  if (value?.editable != null) attribute.setEditable(!!value.editable)
+  if (value?.editable != null) {
+    metadata?.setIsEditProtected(attribute.id, !!value.editable)
+  }
   if (value?.formula != null) attribute.setDisplayExpression(value.formula)
   if (value?.name != null) dataContext?.setAttributeName(attribute.id, value.name)
   if (hasOwnProperty(value, "precision")) {

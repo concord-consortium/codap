@@ -37,6 +37,7 @@ export interface ICodapV2Attribute {
   _categoryMap?: ICodapV2CategoryMap
   // legacy property; replaced by _categoryMap
   colormap?: CodapV2ColorMap
+  // Ignored: defaults to true in v2 but never seems to be set to false
   blockDisplayOfEmptyCategories?: boolean
   // plugin bugs have led to documents in the field with values like `[true]`
   editable?: boolean | unknown

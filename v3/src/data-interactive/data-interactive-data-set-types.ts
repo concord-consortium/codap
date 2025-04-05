@@ -1,7 +1,7 @@
 import { IAdornmentModelSnapshot } from "../components/graph/adornments/adornment-models"
 import { IValueType } from "../models/data/attribute-types"
 import { ICollectionLabels } from "../models/data/collection"
-import { ICodapV2Attribute, ICodapV2Collection, ICodapV2DataContext } from "../v2/codap-v2-data-set-types"
+import { ICodapV2Attribute, ICodapV2Collection, ICodapV2DataContext } from "../v2/codap-v2-data-context-types"
 
 export type DICaseValue = IValueType
 export type DICaseValues = Record<string, DICaseValue>

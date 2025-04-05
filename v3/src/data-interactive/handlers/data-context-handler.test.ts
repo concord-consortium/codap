@@ -5,11 +5,12 @@ import { createDefaultTileOfType } from "../../models/codap/add-default-content"
 import { gDataBroker } from "../../models/data/data-broker"
 import { getSharedModelManager } from "../../models/tiles/tile-environment"
 import { toV2Id } from "../../utilities/codap-utils"
-import { ICodapV2DataContext } from "../../v2/codap-v2-data-set-types"
+import { ICodapV2DataContext } from "../../v2/codap-v2-data-context-types"
 import { DIValues } from "../data-interactive-types"
 import { DIDataContext, DIUpdateDataContext } from "../data-interactive-data-set-types"
 import { diDataContextHandler } from "./data-context-handler"
 import { setupTestDataset } from "./handler-test-utils"
+
 import "../../components/web-view/web-view-registration"
 
 describe("DataInteractive DataContextHandler", () => {

@@ -11,7 +11,7 @@ import { kItemIdPrefix, toV3AttrId, toV3CaseId, toV3CollectionId, toV3DataSetId,
 import {
   ICodapV2Attribute, ICodapV2Case, ICodapV2Collection, ICodapV2DataContext, ICodapV2GameContext, ICodapV2SetAsideItem,
   isV2SetAsideItem, v3TypeFromV2TypeString
-} from "./codap-v2-data-set-types"
+} from "./codap-v2-data-context-types"
 
 interface V2CaseIdInfo {
   // cumulative list of ordered attribute names used for grouping
@@ -113,8 +113,7 @@ export class CodapV2DataSetImporter {
     })
   }
 
-  importAttributes(data: IDataSet, caseMetadata: IDataSetMetadata,
-                      attributes: ICodapV2Attribute[], level: number) {
+  importAttributes(data: IDataSet, metadata: IDataSetMetadata, attributes: ICodapV2Attribute[], level: number) {
     const v2CaseIdInfo = this.v2CaseIdInfoArray[level]
     const v2ParentCaseIdInfo = this.v2CaseIdInfoArray[level + 1]
     if (v2ParentCaseIdInfo) {
@@ -124,7 +123,7 @@ export class CodapV2DataSetImporter {
     attributes.forEach(v2Attr => {
       const {
         cid: _cid, guid, description: v2Description, name = "", title: v2Title, type: v2Type, formula: v2Formula,
-        editable: v2Editable, unit: v2Unit, precision: v2Precision, decimals
+        editable: v2Editable, unit: v2Unit, precision: v2Precision, decimals, renameable, deleteable, deletedFormula
       } = v2Attr
       if (!v2Formula) {
         v2CaseIdInfo.groupAttrNames.push(name)
@@ -141,11 +140,23 @@ export class CodapV2DataSetImporter {
                             : undefined
       const units = v2Unit ?? undefined
       const attribute = data.addAttribute({
-        id: toV3AttrId(guid), _cid, name, description, formula, _title, userType, editable, units, precision
+        id: toV3AttrId(guid), _cid, name, description, formula, _title, userType, units, precision
       })
       if (attribute) {
         if (v2Attr.hidden) {
-          caseMetadata.setIsHidden(attribute.id, true)
+          metadata.setIsHidden(attribute.id, true)
+        }
+        if (!editable) {
+          metadata.setIsEditProtected(attribute.id, true)
+        }
+        if (renameable != null && !renameable) {
+          metadata.setIsRenameProtected(attribute.id, false)
+        }
+        if (deleteable != null && !deleteable) {
+          metadata.setIsDeleteProtected(attribute.id, false)
+        }
+        if (deletedFormula) {
+          metadata.setDeletedFormula(deletedFormula)
         }
       }
     })

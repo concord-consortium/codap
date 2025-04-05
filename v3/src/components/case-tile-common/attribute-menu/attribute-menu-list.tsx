@@ -72,6 +72,7 @@ const AttributeMenuListComponent = forwardRef<HTMLDivElement, IProps>(
   const menuItems: IMenuItem[] = [
     {
       itemKey: "DG.TableController.headerMenuItems.renameAttribute",
+      isEnabled: () => !metadata?.isRenameProtected(attributeId),
       handleClick: onRenameAttribute
     },
     {
@@ -100,7 +101,7 @@ const AttributeMenuListComponent = forwardRef<HTMLDivElement, IProps>(
     },
     {
       itemKey: "DG.TableController.headerMenuItems.deleteFormula",
-      isEnabled: () => !!(attribute?.editable && attribute?.hasFormula),
+      isEnabled: () => !metadata?.isEditProtected(attributeId),
       handleClick: () => {
         data?.applyModelChange(() => {
           attribute?.clearFormula()

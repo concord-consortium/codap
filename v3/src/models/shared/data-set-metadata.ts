@@ -4,6 +4,7 @@ import {
   resolveIdentifier, SnapshotIn, types
 } from "mobx-state-tree"
 import { onAnyAction, typeOptionalBoolean } from "../../utilities/mst-utils"
+import { IAttribute } from "../data/attribute"
 import { CategorySet, createProvisionalCategorySet, ICategorySet, ICategorySetSnapshot } from "../data/category-set"
 import { DataSet, IDataSet } from "../data/data-set"
 import { applyModelChange } from "../history/apply-model-change"
@@ -59,12 +60,14 @@ const AttributeScale = types.model("AttributeScale", {
 
 export const AttributeMetadata = types.model("AttributeMetadata", {
   // boolean properties
-  hidden: types.maybe(types.boolean),
-  deleteProtected: types.maybe(types.boolean),  // cannot be deleted
-  renameProtected: types.maybe(types.boolean),  // cannot be renamed
+  hidden: typeOptionalBoolean(),
+  deleteProtected: typeOptionalBoolean(), // cannot be deleted
+  editProtected: typeOptionalBoolean(),   // cannot be edited
+  renameProtected: typeOptionalBoolean(), // cannot be renamed
   // model properties
   categories: types.maybe(CategorySet),
   colorRange: types.maybe(ColorRangeModel),
+  deletedFormula: types.maybe(types.string),
   scale: types.maybe(AttributeScale)
 })
 
@@ -111,6 +114,11 @@ export const DataSetMetadata = SharedModel
     provisionalCategories: observable.map<string, ICategorySet>()
   }))
   .views(self => ({
+    getAttribute(attrId: string): Maybe<IAttribute> {
+      return self.data?.getAttribute(attrId)
+    }
+  }))
+  .views(self => ({
     get hasDataContextMetadata() {
       return !!self.description || !!self.source || !!self.importDate
     },
@@ -126,6 +134,9 @@ export const DataSetMetadata = SharedModel
       const collection = collectionId ? self.collections.get(collectionId) : undefined
       return collection?.collapsed.get(caseId) ?? false
     },
+    isEditable(attrId: string) {
+      return !self.attributes.get(attrId)?.editProtected && !self.getAttribute(attrId)?.hasFormula
+    },
     // true if passed the id of a hidden attribute, false otherwise
     isHidden(attrId: string) {
       return self.attributes.get(attrId)?.hidden ?? false
@@ -133,6 +144,10 @@ export const DataSetMetadata = SharedModel
     // true if the attribute is protected from deletion
     isDeleteProtected(attrId: string) {
       return self.attributes.get(attrId)?.deleteProtected ?? false
+    },
+    // true if the attribute is protected from deletion
+    isEditProtected(attrId: string) {
+      return self.attributes.get(attrId)?.editProtected ?? false
     },
     // true if the attribute is protected from renaming
     isRenameProtected(attrId: string) {
@@ -233,6 +248,9 @@ export const DataSetMetadata = SharedModel
     setIsDeleteProtected(attrId: string, isProtected?: boolean) {
       self.requireAttributeMetadata(attrId).deleteProtected = isProtected || undefined
     },
+    setIsEditProtected(attrId: string, isProtected?: boolean) {
+      self.requireAttributeMetadata(attrId).editProtected = isProtected || undefined
+    },
     setIsRenameProtected(attrId: string, isNameProtected?: boolean) {
       self.requireAttributeMetadata(attrId).renameProtected = isNameProtected || undefined
     },
@@ -263,6 +281,10 @@ export const DataSetMetadata = SharedModel
       } else {
         scale.binningType = binningType
       }
+    },
+    setDeletedFormula(attrId: string, formula?: string) {
+      const attrMetadata = self.requireAttributeMetadata(attrId)
+      attrMetadata.deletedFormula = formula || undefined
     }
   }))
   .actions(self => ({

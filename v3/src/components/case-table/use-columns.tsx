@@ -1,7 +1,7 @@
 import { comparer } from "mobx"
 import { useEffect, useState } from "react"
 import { clsx } from "clsx"
-import { useCollectionContext, useParentCollectionContext } from "../../hooks/use-collection-context"
+import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetMetadata } from "../../hooks/use-data-set-metadata"
 import { IAttribute } from "../../models/data/attribute"
 import { IDataSet } from "../../models/data/data-set"
@@ -20,22 +20,22 @@ interface IUseColumnsProps {
   indexColumn?: TColumn
 }
 export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
-  const caseMetadata = useDataSetMetadata()
+  const metadata = useDataSetMetadata()
   const collectionTableModel = useCollectionTableModel()
-  const parentCollection = useParentCollectionContext()
   const collectionId = useCollectionContext()
   const [columns, setColumns] = useState<TColumn[]>([])
   const rowHeight = collectionTableModel?.rowHeight ?? kDefaultRowHeight
 
   useEffect(() => {
     // rebuild column definitions when referenced properties change
+    const isEditableAttr = (attrId: string) => metadata?.isEditable(attrId) ?? true
     return mstReaction(
       () => {
         const collection = data?.getCollection(collectionId)
         const attrs: IAttribute[] = collection ? getCollectionAttrs(collection, data) : []
-        const visible: IAttribute[] = attrs.filter(attr => attr && !caseMetadata?.isHidden(attr.id))
-        return visible.map(({ id, name, type, userType, isEditable, hasFormula, precision }) =>
-                  ({ id, name, type, userType, isEditable, hasFormula, precision }))
+        const visible: IAttribute[] = attrs.filter(attr => attr && !metadata?.isHidden(attr.id))
+        return visible.map(({ id, name, type, userType, hasFormula, precision }) =>
+                  ({ id, name, type, userType, isEditable: isEditableAttr(id), hasFormula, precision }))
       },
       entries => {
         // column definitions
@@ -70,7 +70,7 @@ export const useColumns = ({ data, indexColumn }: IUseColumnsProps) => {
       },
       { name: "useColumns [rebuild columns]", equals: comparer.structural, fireImmediately: true }, data
     )
-  }, [caseMetadata, collectionId, data, indexColumn, parentCollection, rowHeight])
+  }, [collectionId, data, indexColumn, metadata, rowHeight])
 
   return columns
 }

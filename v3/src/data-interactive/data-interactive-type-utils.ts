@@ -10,7 +10,7 @@ import { kAttrIdPrefix, maybeToV2Id, toV2Id, toV3AttrId } from "../utilities/cod
 import { ICodapV2DataContextV3 } from "../v2/codap-v2-types"
 import {
   CodapV2ColorMap, ICodapV2Attribute, ICodapV2Case, ICodapV2CollectionV3, v3TypeFromV2TypeString
-} from "../v2/codap-v2-data-set-types"
+} from "../v2/codap-v2-data-context-types"
 import { DIGetCaseResult, DIAttribute } from "./data-interactive-data-set-types"
 import { DIResources, DISingleValues } from "./data-interactive-types"
 import { getCaseValues } from "./data-interactive-utils"
@@ -23,14 +23,8 @@ export function convertValuesToAttributeSnapshot(_values: DISingleValues): IAttr
       ...v2ModelSnapshotFromV2ModelStorage(kAttrIdPrefix, values),
       id,
       userType: v3TypeFromV2TypeString(values.type),
-      // defaultMin: values.defaultMin, // TODO defaultMin not a part of IAttribute yet
-      // defaultMax: values.defaultMax, // TODO defaultMax not a part of IAttribute yet
       description: values.description ?? undefined,
-      // categoryMap: values._categoryMap, // TODO categoryMap not part of IAttribute. Should it be?
-      // blockDisplayOfEmptyCategories: values.blockDisplayOfEmptyCategories, // TODO Not part of IAttribute yet
-      editable: values.editable == null || !!values.editable,
       formula: values.formula ? { display: values.formula } : undefined,
-      // deletedFormula: values.deletedFormula, // TODO deletedFormula not part of IAttribute. Should it be?
       precision: values.precision == null || values.precision === "" ? undefined : +values.precision,
       units: values.unit ?? undefined
     }
@@ -105,7 +99,7 @@ export function getCaseRequestResultValues(c: ICase, dataContext: IDataSet): DIG
 
 export function convertAttributeToV2(attribute: IAttribute, dataContext?: IDataSet): ICodapV2Attribute {
   const metadata = dataContext && getMetadataFromDataSet(dataContext)
-  const { cid, name, type, title, description, editable, id, precision } = attribute
+  const { cid, name, type, title, description, id, precision } = attribute
   const v2Id = toV2Id(id)
   const rawColorMap = metadata?.getCategorySet(attribute.id)?.colorMap ?? {}
   const entries = Object.entries(rawColorMap).filter((entry): entry is [string, string] => entry[1] !== undefined)
@@ -121,11 +115,10 @@ export function convertAttributeToV2(attribute: IAttribute, dataContext?: IDataS
     // defaultMax: self.defaultMax, // TODO Where should this come from?
     description,
     // _categoryMap, // TODO This is incomplete
-    // blockDisplayOfEmptyCategories: self.blockDisplayOfEmptyCategories, // TODO What?
-    editable,
+    editable: (attribute && !metadata?.isEditProtected(attribute.id)) ?? true,
     hidden: (attribute && metadata?.isHidden(attribute.id)) ?? false,
-    renameable: (attribute && metadata?.isRenameProtected(attribute.id)) ?? true,
-    deleteable: (attribute && metadata?.isDeleteProtected(attribute.id)) ?? true,
+    renameable: (attribute && !metadata?.isRenameProtected(attribute.id)) ?? true,
+    deleteable: (attribute && !metadata?.isDeleteProtected(attribute.id)) ?? true,
     formula: attribute.formula?.display,
     // deletedFormula: self.deletedFormula, // TODO What should this be?
     guid: v2Id,
