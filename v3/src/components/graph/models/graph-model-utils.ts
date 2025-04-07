@@ -85,9 +85,6 @@ function setupAxes(graphModel: IGraphContentModel, layout: GraphLayout) {
                             : CategoricalAxisModel.create({ place })
           }
         }
-        // newAxisModel = isCategoricalAxisModel(currAxisModel)
-        //                 ? currAxisModel
-        //                 : CategoricalAxisModel.create({ place })
       }
     }
     else if (place === "rightNumeric") {
@@ -113,9 +110,6 @@ function setupAxes(graphModel: IGraphContentModel, layout: GraphLayout) {
                           ? ColorAxisModel.create({ place })
                           : CategoricalAxisModel.create({ place })
         }
-        // newAxisModel = isCategoricalAxisModel(currAxisModel)
-        //                 ? currAxisModel
-        //                 : CategoricalAxisModel.create({ place })
       }
     }
 
