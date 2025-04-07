@@ -5,7 +5,8 @@ import { ICase } from "../../../models/data/data-set-types"
 import { applyModelChange } from "../../../models/history/apply-model-change"
 import { setNiceDomain } from "../../axis/axis-domain-utils"
 import { AxisPlace, IAxisDomainOptions, IAxisTicks, TickFormatter } from "../../axis/axis-types"
-import { CategoricalAxisModel, CountAxisModel, DateAxisModel, EmptyAxisModel, IAxisModel, isCategoricalAxisModel,
+import { CategoricalAxisModel, ColorAxisModel, CountAxisModel, DateAxisModel, EmptyAxisModel, IAxisModel,
+  isCategoricalAxisModel, isColorAxisModel,
   isCountAxisModel, isDateAxisModel, isEmptyAxisModel, isNumericAxisModel, isPercentAxisModel,
   NumericAxisModel, PercentAxisModel
 } from "../../axis/models/axis-model"
@@ -142,6 +143,11 @@ export const PlotModel = types
       return isCategoricalAxisModel(axisModel)
               ? axisModel
               : CategoricalAxisModel.create({ place })
+    },
+    getValidColorAxis(place: AxisPlace, attrType?: AttributeType, axisModel?: IAxisModel): IAxisModel {
+      return isColorAxisModel(axisModel)
+              ? axisModel
+              : ColorAxisModel.create({ place })
     },
     getValidCountAxis(place: AxisPlace, attrType?: AttributeType, axisModel?: IAxisModel): IAxisModel {
       const maxCellCaseCount = self.maxCellCaseCount()

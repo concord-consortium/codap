@@ -1,7 +1,7 @@
 import { BaseType, Selection } from "d3"
 import { AxisHelper, IAxisHelperArgs } from "./axis-helper"
 import { MutableRefObject } from "react"
-import { kAxisTickLength } from "../axis-constants"
+import { kAxisTickLength, kDefaultColorSwatchHeight } from "../axis-constants"
 import { otherPlace } from "../axis-types"
 import { kMain, transitionDuration } from "../../data-display/data-display-types"
 import {
@@ -23,6 +23,7 @@ export interface ICategoricalAxisHelperArgs extends IAxisHelperArgs {
   swapInProgress: MutableRefObject<boolean>
   centerCategoryLabels: boolean
   dragInfo: MutableRefObject<DragInfo>
+  isColorAxis?: boolean
 }
 
 export class CategoricalAxisHelper extends AxisHelper {
@@ -32,6 +33,7 @@ export class CategoricalAxisHelper extends AxisHelper {
   swapInProgress: MutableRefObject<boolean>
   centerCategoryLabels: boolean
   dragInfo: MutableRefObject<DragInfo>
+  isColorAxis: boolean
 
   constructor(props: ICategoricalAxisHelperArgs) {
     super(props)
@@ -41,12 +43,12 @@ export class CategoricalAxisHelper extends AxisHelper {
     this.swapInProgress = props.swapInProgress
     this.centerCategoryLabels = props.centerCategoryLabels
     this.dragInfo = props.dragInfo
+    this.isColorAxis = props.isColorAxis ?? false
   }
 
   render() {
     if (!(this.subAxisSelectionRef.current && this.categoriesSelectionRef.current)) return
-
-    const {isVertical, centerCategoryLabels, dragInfo} = this,
+    const {isVertical, centerCategoryLabels, dragInfo, isColorAxis} = this,
       categorySet = this.multiScale?.categorySet,
       dividerLength = this.layout.getAxisLength(otherPlace(this.axisPlace)) ?? 0,
       isRightCat = this.axisPlace === 'rightCat',
@@ -106,17 +108,33 @@ export class CategoricalAxisHelper extends AxisHelper {
             .attr('y2', (d, i) => isVertical
               ? fns.getDividerY(i) : (isTop ? 1 : -1) * dividerLength)
           // labels
-          update.select('.category-label')
-            .attr('transform', `${rotation}`)
-            .attr('text-anchor', textAnchor)
-            .attr('transform-origin', (d, i) => {
-              return `${fns.getLabelX(i)} ${fns.getLabelY(i)}`
-            })
-            .transition().duration(duration)
-            .attr('class', 'category-label')
-            .attr('x', (d, i) => fns.getLabelX(i))
-            .attr('y', (d, i) => fns.getLabelY(i))
-            .text((d: CatObject, i) => String(categories[i]))
+          if (isColorAxis) {
+            // Render color swatches
+            update.select('.category-label')
+              .attr('class', 'category-label')
+              .attr('x', (d, i) => fns.getLabelX(i) - ((bandWidth * 2 / 3) / 2))
+              .attr('y', (d, i) => Math.max(6.5, fns.getLabelY(i) - (kDefaultColorSwatchHeight / (isVertical ? 2 : 1))))
+              .style("fill", (d, i) => categories[i])
+              .style("width", (bandWidth * 2)/3)
+              .style("height", `${kDefaultColorSwatchHeight}px`)
+              .attr('transform', `${rotation}`)
+              .attr('transform-origin', (d, i) => {return `${fns.getLabelX(i)} ${fns.getLabelY(i)}`})
+              .transition().duration(duration)
+              .style('opacity', 0.85)
+              .style('stroke', '#315b7d')
+          } else {
+            update.select('.category-label')
+              .attr('transform', `${rotation}`)
+              .attr('text-anchor', textAnchor)
+              .attr('transform-origin', (d, i) => {
+                return `${fns.getLabelX(i)} ${fns.getLabelY(i)}`
+              })
+              .transition().duration(duration)
+              .attr('class', 'category-label')
+              .attr('x', (d, i) => fns.getLabelX(i))
+              .attr('y', (d, i) => fns.getLabelY(i))
+              .text((d: CatObject, i) => String(categories[i]))
+            }
           return update
         }
       )

@@ -19,7 +19,8 @@ import { CatObject, CategoricalAxisHelper } from "../helper-models/categorical-a
 import { DateAxisHelper } from "../helper-models/date-axis-helper"
 import { NumericAxisHelper } from "../helper-models/numeric-axis-helper"
 import { useAxisLayoutContext } from "../models/axis-layout-context"
-import {IAxisModel, isBaseNumericAxisModel, isCategoricalAxisModel} from "../models/axis-model"
+import {IAxisModel, isBaseNumericAxisModel, isCategoricalAxisModel, isCategoricalOrColorAxisModel,
+        isColorAxisModel} from "../models/axis-model"
 import { useAxisProviderContext } from "./use-axis-provider-context"
 
 export interface IUseSubAxis {
@@ -61,6 +62,7 @@ export const useSubAxis = ({
     axisProvider = useAxisProviderContext(),
     axisModel = axisProvider.getAxis(axisPlace),
     isCategorical = isCategoricalAxisModel(axisModel),
+    isColorAxis = isColorAxisModel(axisModel),
     multiScaleChangeCount = layout.getAxisMultiScale(axisModel?.place ?? 'bottom')?.changeCount ?? 0,
     dragInfo = useRef<DragInfo>({
       indexOfCategory: -1,
@@ -215,11 +217,19 @@ export const useSubAxis = ({
         }
         // labels
         if (catGroup.select('.category-label').empty()) {
-          catGroup.append('text')
-            .attr('class', 'category-label')
-            .attr('data-testid', 'category-label')
-            .attr('x', 0)
-            .attr('y', 0)
+          if (isColorAxis) {
+            catGroup.append('rect')
+              .attr('class', 'category-label')
+              .attr('data-testid', 'color-label')
+              .attr('x', 0)
+              .attr('y', 0)
+          } else {
+            catGroup.append('text')
+              .attr('class', 'category-label')
+              .attr('data-testid', 'category-label')
+              .attr('x', 0)
+              .attr('y', 0)
+          }
         }
       })
 
@@ -229,7 +239,7 @@ export const useSubAxis = ({
         multiScale?.setCategoricalDomain(categories)
       }
       categoriesRef.current = catArray
-    }, [axisPlace, dataConfig, dragBehavior, layout, subAxisEltRef])
+    }, [axisPlace, dataConfig, dragBehavior, isColorAxis, layout, subAxisEltRef])
 
   // update axis helper
   useEffect(() => {
@@ -256,7 +266,7 @@ export const useSubAxis = ({
           shouldRenderSubAxis = false
           helper = new CategoricalAxisHelper(
             { ...helperProps, centerCategoryLabels, dragInfo,
-              subAxisSelectionRef, categoriesSelectionRef, categoriesRef, swapInProgress })
+              subAxisSelectionRef, categoriesSelectionRef, categoriesRef, swapInProgress, isColorAxis })
           break
         case 'date':
           subAxisSelectionRef.current = subAxisElt ? select(subAxisElt) : undefined
@@ -267,8 +277,8 @@ export const useSubAxis = ({
         shouldRenderSubAxis && renderSubAxis()
       }
     }
-  }, [axisModel, axisProvider, centerCategoryLabels, displayModel, isAnimating, layout, renderSubAxis,
-            showScatterPlotGridLines, showZeroAxisLine, subAxisEltRef, subAxisIndex])
+  }, [axisModel, axisProvider, centerCategoryLabels, displayModel, isAnimating, isColorAxis, layout,
+      renderSubAxis, showScatterPlotGridLines, showZeroAxisLine, subAxisEltRef, subAxisIndex])
 
   // update d3 scale and axis when scale type changes
   useEffect(() => {
@@ -341,7 +351,7 @@ export const useSubAxis = ({
       return domain1[0] !== domain2[0] || domain1[1] !== domain2[1]
     }
 
-    if (isCategoricalAxisModel(axisModel)) {
+    if (isCategoricalOrColorAxisModel(axisModel)) {
       setupCategories()
       const categoryValues = categoriesRef.current,
         multiScale = layout.getAxisMultiScale(axisPlace),

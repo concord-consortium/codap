@@ -10,6 +10,7 @@ export const AxisModel = types.model("AxisModel", {
   }),
   place: types.enumeration([...AxisPlaces]),
   scale: types.optional(types.enumeration([...ScaleTypes]), "ordinal"),
+  subType: types.optional(types.string, ""),
 })
   .volatile(self => ({
     transitionDuration: 0
@@ -61,6 +62,23 @@ export interface ICategoricalAxisModelSnapshot extends SnapshotIn<typeof Categor
 export function isCategoricalAxisModel(axisModel?: IAxisModel): axisModel is ICategoricalAxisModel {
   return axisModel?.type === "categorical"
 }
+
+export const ColorAxisModel = CategoricalAxisModel
+  .named("ColorAxisModel")
+  .props({
+    subType: types.optional(types.literal("color"), "color")
+  })
+  export interface IColorAxisModel extends Instance<typeof ColorAxisModel> {}
+  export interface IColorAxisModelSnapshot extends SnapshotIn<typeof ColorAxisModel> {}
+
+  export function isColorAxisModel(axisModel?: IAxisModel): axisModel is IColorAxisModel {
+    return axisModel?.type === "categorical" && axisModel?.subType === "color"
+  }
+
+  export function isCategoricalOrColorAxisModel(axisModel?: IAxisModel):
+                                  axisModel is ICategoricalAxisModel | IColorAxisModel {
+    return isCategoricalAxisModel(axisModel) || isColorAxisModel(axisModel)
+  }
 
 export const BaseNumericAxisModel = AxisModel
   .named("BaseNumericAxisModel")
@@ -234,13 +252,17 @@ export function isBaseNumericAxisModel(axisModel?: IAxisModel): axisModel is INu
 }
 
 export const AxisModelUnion =
-  types.union(EmptyAxisModel, CategoricalAxisModel, NumericAxisModel, CountAxisModel, PercentAxisModel, DateAxisModel)
+  types.union(EmptyAxisModel, CategoricalAxisModel, ColorAxisModel,
+              NumericAxisModel, CountAxisModel, PercentAxisModel, DateAxisModel)
 export type IAxisModelUnion =
-  IEmptyAxisModel | ICategoricalAxisModel | INumericAxisModel | ICountAxisModel | IPercentAxisModel | IDateAxisModel
-export type IAxisModelSnapshotUnion = IEmptyAxisModelSnapshot | ICategoricalAxisModelSnapshot |
+  IEmptyAxisModel | ICategoricalAxisModel | IColorAxisModel |
+  INumericAxisModel | ICountAxisModel | IPercentAxisModel | IDateAxisModel
+export type IAxisModelSnapshotUnion = IEmptyAxisModelSnapshot |
+  ICategoricalAxisModelSnapshot | IColorAxisModelSnapshot |
   INumericAxisModelSnapshot | ICountAxisModelSnapshot | IPercentAxisModelSnapshot | IDateAxisModelSnapshot
 
+
 export function isAxisModelInUnion(model: IAxisModel): model is IAxisModelUnion {
-  return isEmptyAxisModel(model) || isCategoricalAxisModel(model) ||
+  return isEmptyAxisModel(model) || isCategoricalAxisModel(model) || isColorAxisModel(model) ||
           isNumericAxisModel(model) || isCountAxisModel(model) || isPercentAxisModel(model) || isDateAxisModel(model)
 }
