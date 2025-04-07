@@ -54,7 +54,7 @@ export const PlotModel = types
     get hasPointsFusedIntoBars(): boolean {
       return false
     },
-    get hasCountAxis(): boolean {
+    get hasCountPercentFormulaAxis(): boolean {
       return false
     },
     get countPercentFormulaAxisLabel(): string {
@@ -138,11 +138,6 @@ export const PlotModel = types
       return isEmptyAxisModel(axisModel)
               ? axisModel
               : EmptyAxisModel.create({ place })
-    },
-    getValidColorAxis(place: AxisPlace, attrType?: AttributeType, axisModel?: IAxisModel): IAxisModel {
-      return isColorAxisModel(axisModel)
-              ? axisModel
-              : ColorAxisModel.create({ place })
     },
     getValidCategoricalAxis(place: AxisPlace, attrType?: AttributeType, axisModel?: IAxisModel): IAxisModel {
       return isCategoricalAxisModel(axisModel)

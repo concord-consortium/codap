@@ -1,6 +1,6 @@
 import {getSnapshot, types} from "mobx-state-tree"
 import {
-  AxisModel, AxisModelUnion, BaseCategoricalAxisModel, CategoricalAxisModel, EmptyAxisModel, IAxisModelUnion,
+  AxisModel, AxisModelUnion, CategoricalAxisModel, EmptyAxisModel, IAxisModelUnion,
   isCategoricalAxisModel, isEmptyAxisModel, isNumericAxisModel, NumericAxisModel
 } from "./axis-model"
 import { AppHistoryService } from "../../../models/history/app-history-service"
@@ -23,7 +23,7 @@ describe("AxisModel", () => {
     expect(isNumericAxisModel(numeric)).toBe(true)
     expect(isCategoricalAxisModel(numeric)).toBe(false)
 
-    const categorical = BaseCategoricalAxisModel.create({ place: "bottom" })
+    const categorical = CategoricalAxisModel.create({ place: "bottom" })
     expect(categorical.isUpdatingDynamically).toBe(false)
     expect(isEmptyAxisModel(categorical)).toBe(false)
     expect(isNumericAxisModel(categorical)).toBe(false)
