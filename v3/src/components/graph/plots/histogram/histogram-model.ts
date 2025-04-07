@@ -21,8 +21,11 @@ export const HistogramModel = BinnedDotPlotModel
     get hasPointsFusedIntoBars(): boolean {
       return true
     },
-    get hasCountAxis(): boolean {
+    get hasCountPercentFormulaAxis(): boolean {
       return true
+    },
+    get countPercentFormulaAxisLabel(): string {
+      return t("DG.CountAxisView.countLabel")
     },
     get hasBinnedNumericAxis(): boolean {
       return false

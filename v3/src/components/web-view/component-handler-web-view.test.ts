@@ -50,7 +50,7 @@ describe("DataInteractive ComponentHandler WebView and Game", () => {
     })
 
     // Update webView
-    expect(tile2.cannotClose).toBe(false)
+    expect(tile2.cannotClose).toBeUndefined()
     expect(tile2.title).toBe("Web Page")
     const row = appState.document.content?.findRowContainingTile(tile2.id)
     const freeTileRow = row && isFreeTileRow(row) ? row : undefined

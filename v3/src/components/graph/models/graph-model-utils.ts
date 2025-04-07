@@ -3,8 +3,9 @@ import { stringValuesToDateSeconds } from "../../../utilities/date-utils"
 import { setNiceDomain } from "../../axis/axis-domain-utils"
 import { AxisPlace, AxisPlaces, IScaleType } from "../../axis/axis-types"
 import {
-  CategoricalAxisModel, ColorAxisModel, DateAxisModel, EmptyAxisModel, IAxisModel,
-  isBaseNumericAxisModel, isCategoricalAxisModel, isCategoricalOrColorAxisModel, isColorAxisModel,
+  CategoricalAxisModel, ColorAxisModel, DateAxisModel, EmptyAxisModel, IAxisModel, isBaseNumericAxisModel, isCategoricalAxisModel,
+  isCategoricalOrColorAxisModel,
+  isColorAxisModel,
   isDateAxisModel, isEmptyAxisModel, isNumericAxisModel, NumericAxisModel
 } from "../../axis/models/axis-model"
 import { graphPlaceToAttrRole } from "../../data-display/data-display-types"
@@ -31,7 +32,7 @@ function setupAxes(graphModel: IGraphContentModel, layout: GraphLayout) {
       newAttributeType = "numeric"
     }
     else if (isColorAxisModel(axisModel)) {
-      if (attributeType === "color") return
+      if (isCategoricalAttributeType(attributeType)) return
       newAttributeType = "color"
     }
     else if (isCategoricalAxisModel(axisModel)) {
@@ -75,15 +76,19 @@ function setupAxes(graphModel: IGraphContentModel, layout: GraphLayout) {
                         : currAxisModel ?? EmptyAxisModel.create({ place })
       // create secondary categorical axis model if necessary
       if (isEmptyAxisModel(newAxisModel) && isSecondaryPlace && attributeType) {
-        if (attributeType === "color" && isColorAxisModel(currAxisModel) ||
-            attributeType === "categorical" && isCategoricalAxisModel(currAxisModel)) {
-          newAxisModel = currAxisModel
+        if (attributeType) {
+          if (attributeType === "color" && isColorAxisModel(currAxisModel) ||
+              attributeType === "categorical" && isCategoricalAxisModel(currAxisModel)) {
+            newAxisModel = currAxisModel
+          } else {
+            newAxisModel = attributeType === "color"
+                            ? ColorAxisModel.create({ place })
+                            : CategoricalAxisModel.create({ place })
+          }
         }
-        else {
-          newAxisModel = attributeType === "color"
-                          ? ColorAxisModel.create({ place })
-                          : CategoricalAxisModel.create({ place })
-    }
+        // newAxisModel = isCategoricalAxisModel(currAxisModel)
+        //                 ? currAxisModel
+        //                 : CategoricalAxisModel.create({ place })
       }
     }
     else if (place === "rightNumeric") {
@@ -102,14 +107,16 @@ function setupAxes(graphModel: IGraphContentModel, layout: GraphLayout) {
     else {
       if (attributeType) {
         if (attributeType === "color" && isColorAxisModel(currAxisModel) ||
-            attributeType === "categorical" && isCategoricalAxisModel(currAxisModel)) {
+          attributeType === "categorical" && isCategoricalAxisModel(currAxisModel)) {
           newAxisModel = currAxisModel
-        }
-        else {
+        } else {
           newAxisModel = attributeType === "color"
                           ? ColorAxisModel.create({ place })
                           : CategoricalAxisModel.create({ place })
         }
+        // newAxisModel = isCategoricalAxisModel(currAxisModel)
+        //                 ? currAxisModel
+        //                 : CategoricalAxisModel.create({ place })
       }
     }
 

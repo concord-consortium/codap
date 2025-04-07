@@ -1,47 +1,6 @@
 import { Descendant, SlateExchangeValue } from "@concord-consortium/slate-editor"
 import { RequireExactlyOne } from "type-fest"
-import {
-  ICodapV2CollectionV3, ICodapV2DataContext, ICodapV2DataContextStorage, ICodapV2ExternalContext
-} from "./codap-v2-data-set-types"
-
-export interface ICodapV2GameContextStorage extends ICodapV2DataContextStorage {
-  gameName?: string | null
-  gameUrl?: string | null
-  gameState?: any
-}
-
-// TODO_V2_IMPORT: we don't fully handle the GameContext
-// It seems it is legacy version of the DataContext specific for plugins.
-// v2 can open documents with GameContext objects.
-// There are about 4,000 documents in cfm-shared with a GameContext.
-// If v2 opens a document with a GameContext it will preserve it when
-// saving the document.
-// In v3 the "dataset" of the GameContext will be loaded but the
-// plugin state will be ignored.
-//
-// Here is an example document using the Markov plugin:
-// cfm-shared/0b5715a7dab0a92ef332c8407bf51c53cc3ae710/file.json
-// It has gameState in the GameContext
-// It restores the gameState in v2
-// NOTE: The plan is to reimplement Markov and other "legacy" data games plugins to use current API
-//
-// An example with Next Gen MW games:
-// cfm-shared/0b65185859c238170055bde1fef60830e52bd63d49bec96e0b1db84c65ea3356/file.json
-// - this document cannot be opened by CODAP build 0730
-//
-// Here is one with the CartWeight plugin:
-// cfm-shared/1d38b1c8597644dfee50687adc66661a55b0ca21/file.json
-// It opens in v2 and has saved game state and saved cases (you need to open the table)
-//
-// Here is one with Sage Modeler:
-// cfm-shared/003a3f0c482fdda8c9d3a7ac77ddfcbb9375420b/file.json
-//
-// There are also documents that are just GameContext nothing else:
-// cfm-shared/19a5cbdb252a03e168d5b7541f70189ff6b47381ec70842e1bd4a7beef0bb42f/file.json
-export interface ICodapV2GameContext extends Omit<ICodapV2DataContext, "type"> {
-  type: "DG.GameContext"
-  contextStorage: ICodapV2GameContextStorage
-}
+import { CodapV2Context, ICodapV2CollectionV3, ICodapV2DataContext } from "./codap-v2-data-set-types"
 
 // when exporting a v3 data set to v2 data context
 export interface ICodapV2DataContextV3
@@ -70,13 +29,6 @@ export interface ICodapV2BaseComponentStorage {
   title?: string
   name?: string
   userSetTitle?: boolean
-  // in a document saved by build 0441 this property didn't exist
-  // TODO_V2_IMPORT_CARRY_OVER: this property seems to be ignored by the import code
-  // The v3 models do support it, but from what I can tell each component
-  // importer needs to read this property from componentStorage and then
-  // set it on the tile snapshot they pass to insertTile
-  // In the CFM shared files there are more than 20,000 examples of cannotClose: true
-  // and more 20,000 examples cannotClose: false
   cannotClose?: boolean
   // allows v2 documents saved by v3 to contain v3-specific enhancements
   v3?: object
@@ -118,9 +70,6 @@ export interface ICodapV2TableStorage extends ICodapV2BaseComponentStorage {
   // a context
   _links_?: {
     context: IGuidLink<"DG.DataContextRecord">
-    // TODO_V2_IMPORT_CARRY_OVER collapsedNodes is not imported
-    // it appears 1,518 times in cfm-shared
-    // none of those times are empty arrays
     collapsedNodes?: IGuidLink<"DG.Case"> | IGuidLink<"DG.Case">[]
   }
   attributeWidths?: Array<{
@@ -130,23 +79,9 @@ export interface ICodapV2TableStorage extends ICodapV2BaseComponentStorage {
     width?: number
   }>
   title?: string
-  // TODO_V2_IMPORT_STORE isActive is not imported
-  // it occurs in close to 11,0000 files in cfm-shared
-  // these are both in table and case card
-  // it might not be optional
   isActive?: boolean
-  // TODO_V2_IMPORT_DEFINE_AND_IMPLEMENT rowHeights is not imported
-  // it occurs more than 20,000 times in cfm-shared
-  // more than 4,200 of those have non-empty arrays
-  // it might not be optional
   rowHeights?: ICodapV2RowHeight[]
-  // TODO_V2_IMPORT_CARRY_OVER horizontalScrollOffset is not imported
-  // it occurs more than 20,000 times in cfm-shared
-  // more than 20,000 of those times it has a value other than 0
   horizontalScrollOffset?: number
-  // TODO_V2_IMPORT_DEFINE_AND_IMPLEMENT isIndexHidden is not imported
-  // it occurs more than 20,000 times in cfm-shared
-  // it is true 4,346 times
   isIndexHidden?: boolean
 }
 
@@ -160,7 +95,7 @@ export interface ICodapV2CaseCardStorage extends ICodapV2BaseComponentStorage {
   columnWidthMap?: Record<string, number>
 }
 
-export interface ICodapV2ImageStorage extends ICodapV2BaseComponentStorage {
+export interface ICodapV2ImageComponentStorage extends ICodapV2BaseComponentStorage {
   title: string
   URL: string
   name: string
@@ -463,11 +398,9 @@ export interface ICodapV2GraphBackgroundLockInfo {
 export interface ICodapV2GraphStorage extends ICodapV2BaseComponentStorage {
   _links_: {
     context?: IGuidLink<"DG.DataContextRecord">
-    // TODO_V2_IMPORT: hiddenCases is not imported
-    // there are at least 12,064 instances at this level that are not
-    // empty arrays in cfm-shared
     hiddenCases?: IGuidLink<"DG.Case">[]
-    // TODO_V2_IMPORT: it doesn't seem like any of the *Coll fields are imported
+    // In V2, *Coll is used to find the attribute, so we need to export them.
+    // In V3, we use the attribute ID directly so we don't need to import them.
     xColl?: IGuidLink<"DG.Collection" | "DG.CollectionRecord">
     xAttr?: IGuidLink<"DG.Attribute">
     yColl?: IGuidLink<"DG.Collection" | "DG.CollectionRecord">
@@ -528,14 +461,7 @@ export interface ICodapV2GraphStorage extends ICodapV2BaseComponentStorage {
   rightAxisClass?: string
 
   plotModels: ICodapV2PlotModel[]
-
-  // TODO_V2_IMPORT enableNumberToggle is not imported
-  // There are 16,000 instances in cfm-shared
   enableNumberToggle?: boolean | null
-
-  // TODO_V2_IMPORT numberToggleLastMode is not imported
-  // There are 14,879 instances in cfm-shared
-  // it must be optional based on the results for enableNumberToggle
   numberToggleLastMode?: boolean
 
   // `enableMeasuresForSelection` is a graph-wide property, so storing it here is perfectly reasonable.
@@ -545,11 +471,6 @@ export interface ICodapV2GraphStorage extends ICodapV2BaseComponentStorage {
   // individual adornments. On export, it should be written out redundantly for all adornments.
   enableMeasuresForSelection?: boolean | null
 
-  // TODO_V2_IMPORT: hiddenCases is not imported
-  // there are at least 196 instances at this level that are empty arrays
-  // there are at least 11 instances at this level with number values
-  // Note: there are many more instances of this field inside of `_links_`
-  // and the type of the array items is different.
   hiddenCases?: number[]
 }
 
@@ -599,18 +520,13 @@ export function isV2MapLegacyStorage(obj: unknown): obj is ICodapV2MapCurrentSto
 export interface ICodapV2MapLayerBaseStorage {
   _links_: {
     context: IGuidLink<"DG.DataContextRecord">
-    // TODO_V2_IMPORT hiddenCases are not imported
-    // this array was passed right into MST where it is typed as a string array
-    // There are 296 instances where this is a non-empty array in cfm-shared
     hiddenCases?: IGuidLink<"DG.Case">[],
     legendColl?: IGuidLink<"DG.Collection">,
-    // We sometimes see an array of links here
+    // From the shared documents archive, it appears that when this is an array, it's a two-
+    // element array with two identical items, so simply using the first item is sufficient.
     legendAttr?: IGuidLink<"DG.Attribute"> | IGuidLink<"DG.Attribute">[],
-    // V2_IMPORT_IGNORE tHiddenCases
-    // this occurs 523 times in cfm-shared
-    // in all cases the value is `[]`
-    // seems like detritus from an earlier bug
-    tHiddenCases?: unknown[]
+    // tHiddenCases was briefly used in lieu of hiddenCases
+    tHiddenCases?: IGuidLink<"DG.Case">[]
   }
   legendRole: number
   legendAttributeType: number
@@ -659,9 +575,6 @@ export interface ICodapV2MapCurrentStorage extends ICodapV2BaseComponentStorage 
     center: { lat: number, lng: number } | [lat: number, lng: number]
     zoom: number
     baseMapLayerName: string
-    // TODO_V2_IMPORT: gridMultiplier is not imported at this level
-    // It appears 8,612 times in cfm-shared either here or
-    // inside of the grid object
     gridMultiplier: number
     layerModels: ICodapV2MapLayerStorage[]
   }
@@ -691,7 +604,8 @@ export interface V2SlateExchangeValue extends Omit<SlateExchangeValue, "document
 export interface ICodapV2TextStorage extends ICodapV2BaseComponentStorage {
   text?: string
   // v2's TextController.restoreComponentStorage references an `apiText` property,
-  // but TextController.createComponentStorage doesn't write one out. ¯\_(ツ)_/¯
+  // but TextController.createComponentStorage doesn't write one out and there are
+  // no instances of such a property in the shared documents archive. ¯\_(ツ)_/¯
   // apiText: string
 }
 
@@ -708,25 +622,15 @@ export interface ICodapV2BaseComponent {
     top?: number
     isVisible?: boolean
     zIndex?: number
-    // TODO_V2_IMPORT right is not imported
-    // appears more than 20,000 in cfm-shared
-    // this might not be optional
+    // Skipping import of right and bottom because it is not used in existing V2 documents
     right?: number | null
-    // TODO_V2_IMPORT bottom is not imported
-    // appears more than 20,000 in cfm-shared
-    // this might not be optional
     bottom?: number | null
-    // TODO_V2_IMPORT x is not imported
-    // appears 5,258 times in cfm-shared
-    // based on the results for `right`, this must be optional
+    // There are some V2 documents that use x and y instead of left and top
     x?: number
-    // TODO_V2_IMPORT y is not imported
-    // appears 5,258 times in cfm-shared
-    // based on the results for `right`, this must be optional
     y?: number
 
     // These *Orig properties only occur in a single file in cfm-shared
-    // They are retained here incase we review the files in cfm-shared again
+    // They are retained here for completeness but we will not import/export them.
     // leftOrig?: number
     // topOrig?: number
     // widthOrig?: number
@@ -763,13 +667,6 @@ export interface ICodapV2CaseCardComponent extends ICodapV2BaseComponent {
 export const isV2CaseCardComponent = (component: ICodapV2BaseComponent): component is ICodapV2CaseCardComponent =>
   component.type === "DG.CaseCard"
 
-// TODO_V2_IMPORT: handle importing images
-// This is used 3,971 times in cfm-shared
-export interface ICodapV2ImageComponent extends ICodapV2BaseComponent {
-  type: "DG.ImageComponentView"
-  componentStorage: ICodapV2ImageStorage
-}
-
 export interface ICodapV2WebViewComponent extends ICodapV2BaseComponent {
   type: "DG.WebView"
   componentStorage: ICodapV2WebViewStorage
@@ -790,6 +687,13 @@ export interface ICodapV2GuideViewComponent extends ICodapV2BaseComponent {
 }
 export const isV2GuideViewComponent = (component: ICodapV2BaseComponent): component is ICodapV2GuideViewComponent =>
               component.type === "DG.GuideView"
+
+export interface ICodapV2ImageViewComponent extends ICodapV2BaseComponent {
+  type: "DG.ImageComponentView"
+  componentStorage: ICodapV2ImageComponentStorage
+}
+export const isV2ImageViewComponent = (component: ICodapV2BaseComponent): component is ICodapV2ImageViewComponent =>
+              component.type === "DG.ImageComponentView"
 
 export interface ICodapV2GraphComponent extends ICodapV2BaseComponent {
   type: "DG.GraphView"
@@ -818,20 +722,13 @@ export type CodapV2Component =
   ICodapV2GameViewComponent |
   ICodapV2GraphComponent |
   ICodapV2GuideViewComponent |
-  ICodapV2ImageComponent |
+  ICodapV2ImageViewComponent |
   ICodapV2MapComponent |
   ICodapV2SliderComponent |
   ICodapV2TableComponent |
   ICodapV2TextComponent |
   ICodapV2WebViewComponent
 export type CodapV2ComponentStorage = CodapV2Component["componentStorage"]
-
-export type CodapV2Context = ICodapV2DataContext | ICodapV2GameContext | ICodapV2ExternalContext
-export const isV2ExternalContext = (context: CodapV2Context): context is ICodapV2ExternalContext =>
-  !("type" in context) && ("externalDocumentId" in context)
-export const isV2InternalContext = (context: CodapV2Context): context is ICodapV2DataContext | ICodapV2GameContext =>
-  ("type" in context)
-
 
 export interface ICodapV2DocumentJson {
   type?: string         // "DG.Document"
@@ -849,8 +746,9 @@ export interface ICodapV2DocumentJson {
   lang?: string
   idCount?: number
 
-  // Ignored properties
-  _permissions?: any
+  // Ignored - appears to be 1 if shared, 0 if not shared
+  // a comment in the code suggests that it might have mattered to the document-store
+  _permissions?: number
 }
 
 // short for DataGames, the name of the project under which CODAP development began

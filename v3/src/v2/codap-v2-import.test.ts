@@ -1,6 +1,7 @@
 import { kV2CalculatorDGType } from "../components/calculator/calculator-defs"
+import { isV2ExternalContext } from "./codap-v2-data-set-types"
 import { CodapV2Document } from "./codap-v2-document"
-import { ICodapV2DocumentJson, isCodapV2Document, isV2ExternalContext } from "./codap-v2-types"
+import { ICodapV2DocumentJson, isCodapV2Document } from "./codap-v2-types"
 
 const fs = require("fs")
 const path = require("path")
@@ -39,7 +40,6 @@ describe(`V2 "calculator.codap"`, () => {
     expect(calculator.components.length).toBe(1)
     expect(calculator.contexts.length).toBe(0)
     expect(calculator.globalValues.length).toBe(0)
-    expect(calculator.dataSets.length).toBe(0)
 
     expect(calculator.components.map(c => c.type)).toEqual([kV2CalculatorDGType])
   })
@@ -69,20 +69,11 @@ describe(`V2 "mammals.codap"`, () => {
     expect(mammals.components.length).toBe(5)
     expect(mammals.contexts.length).toBe(1)
     expect(mammals.globalValues.length).toBe(0)
-    expect(mammals.dataSets.length).toBe(1)
 
     // numeric ids are converted to strings on import
     const context = mammals.dataContexts[0]
+    if (isV2ExternalContext(context)) throw new Error("Context is external")
     const collection = context.collections[0]
-    const data = mammals.dataSets[0].dataSet
-    data.validateCases()
-    expect(data.id).toBe(`DATA${context.guid}`)
-    expect(data.collections[0].id).toBe(`COLL${collection.guid}`)
-    expect(data.collections[0].caseIds[0]).toBe(`CASE${collection.cases[0].guid}`)
-    expect(data.attributes.length).toBe(9)
-    expect(data.attributes[0].id).toBe(`ATTR${collection.attrs[0].guid}`)
-    expect(data.attributes[0].cid).toBe(collection.attrs[0].cid)
-    expect(data.items.length).toBe(27)
     // note: mammals doesn't contain item ids
 
     // mammals has no parent cases
@@ -120,31 +111,24 @@ describe(`V2 "24cats.codap"`, () => {
     expect(cats.components.length).toBe(5)
     expect(cats.contexts.length).toBe(1)
     expect(cats.globalValues.length).toBe(0)
-    expect(cats.dataSets.length).toBe(1)
 
     // numeric ids are converted to strings on import
     const context = cats.dataContexts[0]
+    if (isV2ExternalContext(context)) throw new Error("Context is external")
     const [v2ParentCollection, v2ChildCollection] = context.collections
-    const data = cats.dataSets[0].dataSet
-    data.validateCases()
-    expect(data.collections.length).toBe(2)
-    expect(data.collections[0].attributes.length).toBe(1)
-    expect(data.attributes.length).toBe(9)
-    expect(data.items.length).toBe(24)
+    expect(v2ParentCollection.attrs.length).toBe(1)
+    expect(v2ParentCollection.cases.length).toBe(2)
+    expect(v2ChildCollection.attrs.length).toBe(8)
+    expect(v2ChildCollection.cases.length).toBe(24)
 
     // sex attribute should be in parent collection
     const v2SexAttr = v2ParentCollection.attrs?.[0]
     expect(cats.getV2Attribute(v2SexAttr.guid)).toBeDefined()
-    const dsSexAttr = data.collections[0].attributes[0]
-    expect(dsSexAttr!.id).toBe(`ATTR${v2SexAttr.guid}`)
-    expect(dsSexAttr!.name).toBe(v2SexAttr.name)
-    expect(dsSexAttr!.title).toBe(v2SexAttr.title)
 
     // should be able to look up parent cases for child cases
     const firstParentCase = v2ParentCollection.cases[0]
+    expect(firstParentCase).toBeDefined()
     const firstChildCase = v2ChildCollection.cases[0]
-    expect(data.collections[0].caseIds[0]).toBe(`CASE${firstParentCase.guid}`)
-    expect(data.collections[1].caseIds[0]).toBe(`CASE${firstChildCase.guid}`)
     expect(cats.getParentCase(firstChildCase)).toBeDefined()
 
     expect(cats.components.map(c => c.type))

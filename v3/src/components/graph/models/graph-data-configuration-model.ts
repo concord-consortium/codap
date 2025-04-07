@@ -1,6 +1,6 @@
 import {comparer, reaction} from "mobx"
 import {addDisposer, getSnapshot, Instance, SnapshotIn, types} from "mobx-state-tree"
-import {AttributeType} from "../../../models/data/attribute-types"
+import {AttributeType, isCategoricalAttributeType} from "../../../models/data/attribute-types"
 import {IDataSet} from "../../../models/data/data-set"
 import {typedId} from "../../../utilities/js-utils"
 import { isFiniteNumber } from "../../../utilities/math-utils"
@@ -45,7 +45,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     showMeasuresForSelection: types.maybe(types.boolean),
   })
   .views(self => ({
-    get secondaryRole(): Maybe<AttrRole> {
+    get secondaryRole(): Maybe<'x' | 'y'> {
       return self.primaryRole === 'x' ? 'y'
         : self.primaryRole === 'y' ? 'x'
           : undefined
@@ -257,7 +257,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     },
     get categoricalRoles(): AttrRole[] {
       return (["legend", "x", "y", "topSplit", "rightSplit"] as const).filter((role) => {
-        return self.attributeType(role) === "categorical"
+        return isCategoricalAttributeType(self.attributeType(role))
       })
     },
     get categoricalAttrs(): Array<{ role: AttrRole, attrId: string }> {
@@ -332,19 +332,19 @@ export const GraphDataConfigurationModel = DataConfigurationModel
         const primaryValue = totalNumberOfBins > 0
                                ? Math.floor((Number(aValue.primary) - minValue) / binWidth)
                                : aValue.primary
-        if (bins[primaryValue] === undefined) {
-          bins[primaryValue] = {}
+        if (bins[aValue.extraPrimary] === undefined) {
+          bins[aValue.extraPrimary] = {}
         }
-        if (bins[primaryValue][aValue.secondary] === undefined) {
-          bins[primaryValue][aValue.secondary] = {}
+        if (bins[aValue.extraPrimary][aValue.extraSecondary] === undefined) {
+          bins[aValue.extraPrimary][aValue.extraSecondary] = {}
         }
-        if (bins[primaryValue][aValue.secondary][aValue.extraPrimary] === undefined) {
-          bins[primaryValue][aValue.secondary][aValue.extraPrimary] = {}
+        if (bins[aValue.extraPrimary][aValue.extraSecondary][primaryValue] === undefined) {
+          bins[aValue.extraPrimary][aValue.extraSecondary][primaryValue] = {}
         }
-        if (bins[primaryValue][aValue.secondary][aValue.extraPrimary][aValue.extraSecondary] === undefined) {
-          bins[primaryValue][aValue.secondary][aValue.extraPrimary][aValue.extraSecondary] = 0
+        if (bins[aValue.extraPrimary][aValue.extraSecondary][primaryValue][aValue.secondary] === undefined) {
+          bins[aValue.extraPrimary][aValue.extraSecondary][primaryValue][aValue.secondary] = 0
         }
-        bins[primaryValue][aValue.secondary][aValue.extraPrimary][aValue.extraSecondary]++
+        bins[aValue.extraPrimary][aValue.extraSecondary][primaryValue][aValue.secondary]++
       })
 
       return bins
@@ -354,15 +354,41 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     maxOverAllCells(extraPrimaryAttrRole: AttrRole, extraSecondaryAttrRole: AttrRole) {
       const bins = self.cellMap(extraPrimaryAttrRole, extraSecondaryAttrRole)
       // Find and return the maximum value in the bins
-      return Object.keys(bins).reduce((hMax, hKey) => {
-        return Math.max(hMax, Object.keys(bins[hKey]).reduce((vMax, vKey) => {
-          return Math.max(vMax, Object.keys(bins[hKey][vKey]).reduce((epMax, epKey) => {
-            return Math.max(epMax, Object.keys(bins[hKey][vKey][epKey]).reduce((esMax, esKey) => {
-              return Math.max(esMax, bins[hKey][vKey][epKey][esKey])
+      return Object.keys(bins).reduce((epMax, epKey) => {
+        return Math.max(epMax, Object.keys(bins[epKey]).reduce((esMax, esKey) => {
+          return Math.max(esMax, Object.keys(bins[epKey][esKey]).reduce((pMax, pKey) => {
+            return Math.max(pMax, Object.keys(bins[epKey][esKey][pKey]).reduce((sMax, sKey) => {
+              return Math.max(sMax, bins[epKey][esKey][pKey][sKey])
             }, 0))
           }, 0))
         }, 0))
       }, 0)
+    },
+    maxPercentAllCells(extraPrimaryAttrRole: AttrRole, extraSecondaryAttrRole: AttrRole) {
+      if (self.attributeID('legend')) return 100  // because we divide the full bar into categories
+      const bins = self.cellMap(extraPrimaryAttrRole, extraSecondaryAttrRole)
+      // Each ep/es pair defines a "subPlot" with a total number of cases and a cell with a max percentage
+      let maxPercent = 0
+      for (const epKey in bins) {
+        const epBin = bins[epKey]
+        for (const esKey in epBin) {
+          const esBin = epBin[esKey]
+          let numCasesInSubPlot = 0
+          let maxCasesInCell = 0
+          for (const pKey in esBin) {
+            const pBin = esBin[pKey]
+            for (const sKey in pBin) {
+              const sBin = pBin[sKey]
+              numCasesInSubPlot += sBin
+              maxCasesInCell = Math.max(maxCasesInCell, sBin)
+            }
+          }
+          const subPlotMaxPercent = numCasesInSubPlot === 0 ? 0
+            : Math.max(maxPercent, 100 * maxCasesInCell / numCasesInSubPlot)
+          maxPercent = Math.max(maxPercent, subPlotMaxPercent)
+        }
+      }
+      return maxPercent
     },
     maxCellLength(
       extraPrimaryAttrRole: AttrRole, extraSecondaryAttrRole: AttrRole,
@@ -371,15 +397,15 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       const bins = self.cellMap(extraPrimaryAttrRole, extraSecondaryAttrRole, binWidth, minValue, totalNumberOfBins)
       // Find and return the length of the record in bins with the most elements
       let maxInBin = 0
-      for (const pKey in bins) {
-        const pBin = bins[pKey]
-        for (const sKey in pBin) {
-          const sBin = pBin[sKey]
-          for (const epKey in sBin) {
-            const epBin = sBin[epKey]
-            for (const esKey in epBin) {
-              const esBin = epBin[esKey]
-              maxInBin = Math.max(maxInBin, esBin)
+      for (const epKey in bins) {
+        const epBin = bins[epKey]
+        for (const esKey in epBin) {
+          const esBin = epBin[esKey]
+          for (const pKey in esBin) {
+            const pBin = esBin[pKey]
+            for (const sKey in pBin) {
+              const sBin = pBin[sKey]
+              maxInBin = Math.max(maxInBin, sBin)
             }
           }
         }
@@ -504,6 +530,21 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       },
       name: "subPlotCases"
     }),
+    subPlotKeyFromExtraCategories(extraPrimaryCategory: string, extraSecondaryCategory: string) {
+      const primaryAttrRole = self.primaryRole ?? "x"
+      const primaryIsBottom = primaryAttrRole === "x"
+      const extraPrimaryRole = primaryIsBottom ? "topSplit" : "rightSplit"
+      const extraPrimaryAttrID = self.attributeID(extraPrimaryRole) ?? ""
+      const extraSecondaryRole = primaryIsBottom ? "rightSplit" : "topSplit"
+      const extraSecondaryAttrID = self.attributeID(extraSecondaryRole) ?? ""
+      const key: Record<string, string> = {}
+      extraSecondaryAttrID && (key[extraSecondaryAttrID] = extraSecondaryCategory)
+      extraPrimaryAttrID && (key[extraPrimaryAttrID] = extraPrimaryCategory)
+      return key
+    },
+    numCasesInSubPlotGivenCategories(extraPrimaryCategory: string, extraSecondaryCategory: string) {
+      return this.subPlotCases(this.subPlotKeyFromExtraCategories(extraPrimaryCategory, extraSecondaryCategory)).length
+    },
     cellCases: cachedFnWithArgsFactory({
       key: (cellKey: Record<string, string>) => JSON.stringify(cellKey),
       calculate: (cellKey: Record<string, string>) => {

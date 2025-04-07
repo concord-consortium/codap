@@ -52,6 +52,9 @@ export const WebViewModel = TileContentModel
     },
     get isPlugin() {
       return self.subType === "plugin"
+    },
+    get isImage() {
+      return self.subType === "image"
     }
   }))
   .actions(self => ({

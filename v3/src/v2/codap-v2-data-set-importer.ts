@@ -1,14 +1,15 @@
 import { SetRequired } from "type-fest"
-import { IAttribute } from "../models/data/attribute"
 import { ICollectionModel, ICollectionModelSnapshot } from "../models/data/collection"
 import { IDataSet, toCanonical } from "../models/data/data-set"
 import { ICaseCreation, IItem } from "../models/data/data-set-types"
 import { importV2CategorySet, V2CategorySetInput } from "../models/data/v2-category-set-importer"
 import { v2NameTitleToV3Title } from "../models/data/v2-model"
-import { ISharedCaseMetadata } from "../models/shared/shared-case-metadata"
-import { kItemIdPrefix, toV3AttrId, toV3CaseId, toV3CollectionId, v3Id } from "../utilities/codap-utils"
+import { ISharedCaseMetadata, kSharedCaseMetadataType, SharedCaseMetadata } from "../models/shared/shared-case-metadata"
+import { kSharedDataSetType, SharedDataSet } from "../models/shared/shared-data-set"
+import { ISharedModelManager } from "../models/shared/shared-model-manager"
+import { kItemIdPrefix, toV3AttrId, toV3CaseId, toV3CollectionId, toV3DataSetId, v3Id } from "../utilities/codap-utils"
 import {
-  ICodapV2Attribute, ICodapV2Case, ICodapV2Collection, ICodapV2DataContext, ICodapV2SetAsideItem,
+  ICodapV2Attribute, ICodapV2Case, ICodapV2Collection, ICodapV2DataContext, ICodapV2GameContext, ICodapV2SetAsideItem,
   isV2SetAsideItem, v3TypeFromV2TypeString
 } from "./codap-v2-data-set-types"
 
@@ -20,21 +21,16 @@ interface V2CaseIdInfo {
 }
 
 // This supports importing ICodapV2DataContext and ICodapV2GameContext
-type ImportableContext = Pick<ICodapV2DataContext, "collections" | "setAsideItems">
+type ImportableContext = ICodapV2DataContext | ICodapV2GameContext
 
 export class CodapV2DataSetImporter {
   private guidMap
-  private v3AttrMap
 
   // index into the array is `level`
   private v2CaseIdInfoArray: V2CaseIdInfo[] = []
 
-  constructor(
-    guidMap: Map<number, { type: string, object: any }>,
-    v3AttrMap: Map<number, IAttribute>
-  ) {
+  constructor(guidMap: Map<number, { type: string, object: any }>) {
     this.guidMap = guidMap
-    this.v3AttrMap = v3AttrMap
   }
 
   getParentCase(aCase: ICodapV2Case) {
@@ -42,19 +38,28 @@ export class CodapV2DataSetImporter {
     return parentCaseId != null ? this.guidMap.get(parentCaseId)?.object as ICodapV2Case | undefined : undefined
   }
 
-  importContext(context: ImportableContext, dataSet: IDataSet, caseMetadata: ISharedCaseMetadata) {
-    const { collections = [] } = context
+  importContext(context: ImportableContext, sharedModelManager?: ISharedModelManager) {
+    const { collections = [], guid, name = "", title } = context
+    const dataSetId = toV3DataSetId(guid)
 
-    this.registerCollections(dataSet, caseMetadata, collections)
-    this.registerSetAsideItems(dataSet, context.setAsideItems)
+    // add shared models
+    const sharedDataSet = SharedDataSet.create({ dataSet: { id: dataSetId, name, _title: title } })
+    sharedModelManager?.addSharedModel(sharedDataSet)
+    const caseMetadata = SharedCaseMetadata.create()
+    sharedModelManager?.addSharedModel(caseMetadata)
+    caseMetadata.setData(sharedDataSet.dataSet)
+
+    this.registerCollections(sharedDataSet.dataSet, caseMetadata, collections)
+    this.registerSetAsideItems(sharedDataSet.dataSet, context.setAsideItems)
+    sharedDataSet.dataSet.syncCollectionLinks()
+    sharedDataSet.dataSet.validateCases()
   }
 
   registerCollections(data: IDataSet, caseMetadata: ISharedCaseMetadata, collections: ICodapV2Collection[]) {
     let prevCollection: ICollectionModel | undefined
     collections.forEach((collection, index) => {
-      const { attrs = [], cases = [], guid, name = "", title, type = "DG.Collection" } = collection
+      const { attrs = [], cases = [], guid, name = "", title } = collection
       const _title = v2NameTitleToV3Title(name, title)
-      this.guidMap.set(guid, { type, object: collection })
 
       // assumes hierarchical collections are in order parent => child
       const level = collections.length - index - 1  // 0 === child-most
@@ -111,12 +116,10 @@ export class CodapV2DataSetImporter {
                             ? +decimals
                             : undefined
       const units = v2Unit ?? undefined
-      this.guidMap.set(guid, { type: "DG.Attribute", object: v2Attr })
       const attribute = data.addAttribute({
         id: toV3AttrId(guid), _cid, name, description, formula, _title, userType, editable, units, precision
       })
       if (attribute) {
-        this.v3AttrMap.set(guid, attribute)
         if (v2Attr.hidden) {
           caseMetadata.setIsHidden(attribute.id, true)
         }
@@ -151,7 +154,6 @@ export class CodapV2DataSetImporter {
       // some v2 documents don't store item ids, so we generate them if necessary
       const { guid, itemID = v3Id(kItemIdPrefix), values } = _case
       const v3CaseId = toV3CaseId(guid)
-      this.guidMap.set(guid, { type: "DG.Case", object: _case })
       // for level 0 (child-most collection), add items with their item ids and stash case ids
       if (level === 0) {
         let itemValues = { __id__: itemID, ...toCanonical(data, values) }
@@ -200,4 +202,14 @@ export class CodapV2DataSetImporter {
       data.hideCasesOrItems(itemsToAdd.map(item => item.__id__))
     }
   }
+}
+
+export function getCaseDataFromV2ContextGuid(dataContextGuid?: number, sharedModelManager?: ISharedModelManager) {
+  // This function will return the shared data set and case metadata for a given data context
+  const dataSetId = dataContextGuid ? toV3DataSetId(dataContextGuid) : undefined
+  const sharedDataSets = sharedModelManager?.getSharedModelsByType<typeof SharedDataSet>(kSharedDataSetType)
+  const data = sharedDataSets?.find(shared => shared.dataSet.id === dataSetId)
+  const caseMetadata = sharedModelManager?.getSharedModelsByType<typeof SharedCaseMetadata>(kSharedCaseMetadataType)
+  const metadata = caseMetadata?.find(shared => shared.data?.id === dataSetId)
+  return { data, metadata }
 }

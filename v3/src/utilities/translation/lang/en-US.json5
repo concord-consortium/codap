@@ -153,6 +153,15 @@
     "V3.DI.Error.adornmentMismatch": "Not a(n) %@1 adornment.",
     "V3.DI.Error.adornmentNotSupportedByPlotType": "Adornment not supported by plot type.",
     "V3.DI.Error.adornmentRequestNotSupported": "The %@1 adornment does not currently support %@2 requests.",
+    "V3.DI.Error.countAdornmentPercentNotSupported": "The current plot type does not support Percent.",
+    "V3.DI.Error.invalidCellKey": "%@1 contains an invalid attribute name or ID.",
+
+    // V3 adornment strings not present in V2
+    "V3.Inspector.graphRegionOfInterest": "Region of Interest",
+    "V3.Undo.graph.addRegionOfInterest": "Undo showing region of interest",
+    "V3.Redo.graph.addRegionOfInterest": "Redo showing region of interest",
+    "V3.Undo.graph.removeRegionOfInterest": "Undo hiding region of interest",
+    "V3.Redo.graph.removeRegionOfInterest": "Redo hiding region of interest",
 
     // CFM/File menu
     "DG.fileMenu.menuItem.newDocument": "New",
@@ -494,7 +503,7 @@
     "DG.Undo.graph.dissolveRectanglesToDots": "Undo dissolving rectangles into dots",
     "DG.Redo.graph.dissolveRectanglesToDots": "Redo dissolving rectangles into dots",
     "DG.Undo.graph.changeBreakdownType": "Undo changing scale type",
-    "DG.Redo.graph.changeBreakdownType": "Undo changing scale type",
+    "DG.Redo.graph.changeBreakdownType": "Redo changing scale type",
     "DG.Undo.graph.showAsBinnedPlot": "Undo grouping dots into bins",
     "DG.Redo.graph.showAsBinnedPlot": "Redo grouping dots into bins",
     "DG.Undo.graph.showAsDotPlot": "Undo ungrouping dots from bins",

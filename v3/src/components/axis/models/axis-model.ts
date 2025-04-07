@@ -10,6 +10,7 @@ export const AxisModel = types.model("AxisModel", {
   }),
   place: types.enumeration([...AxisPlaces]),
   scale: types.optional(types.enumeration([...ScaleTypes]), "ordinal"),
+  subType: types.optional(types.string, ""),
 })
   .volatile(self => ({
     transitionDuration: 0
@@ -49,18 +50,11 @@ export function isEmptyAxisModel(axisModel?: IAxisModel): axisModel is IEmptyAxi
   return axisModel?.type === "empty"
 }
 
-export const BaseCategoricalAxisModel = AxisModel
-  .named("CategoricalAxisModel")
-  .props({
-    scale: "band"
-  })
-export interface IBaseCategoricalAxisModel extends Instance<typeof BaseCategoricalAxisModel> {}
-export interface IBaseCategoricalAxisModelSnapshot extends SnapshotIn<typeof BaseCategoricalAxisModel> {}
-
-export const CategoricalAxisModel = BaseCategoricalAxisModel
+export const CategoricalAxisModel = AxisModel
   .named("CategoricalAxisModel")
   .props({
     type: types.optional(types.literal("categorical"), "categorical"),
+    scale: "band"
   })
 export interface ICategoricalAxisModel extends Instance<typeof CategoricalAxisModel> {}
 export interface ICategoricalAxisModelSnapshot extends SnapshotIn<typeof CategoricalAxisModel> {}
@@ -69,22 +63,22 @@ export function isCategoricalAxisModel(axisModel?: IAxisModel): axisModel is ICa
   return axisModel?.type === "categorical"
 }
 
-export const ColorAxisModel = BaseCategoricalAxisModel
+export const ColorAxisModel = CategoricalAxisModel
   .named("ColorAxisModel")
   .props({
-    type: types.optional(types.literal("color"), "color"),
+    subType: types.optional(types.literal("color"), "color")
   })
-export interface IColorAxisModel extends Instance<typeof ColorAxisModel> {}
-export interface IColorAxisModelSnapshot extends SnapshotIn<typeof ColorAxisModel> {}
+  export interface IColorAxisModel extends Instance<typeof ColorAxisModel> {}
+  export interface IColorAxisModelSnapshot extends SnapshotIn<typeof ColorAxisModel> {}
 
-export function isColorAxisModel(axisModel?: IAxisModel): axisModel is IColorAxisModel {
-  return axisModel?.type === "color"
-}
+  export function isColorAxisModel(axisModel?: IAxisModel): axisModel is IColorAxisModel {
+    return axisModel?.type === "categorical" && axisModel?.subType === "color"
+  }
 
-export function isCategoricalOrColorAxisModel(axisModel?: IAxisModel):
-                                axisModel is ICategoricalAxisModel | IColorAxisModel {
-  return isCategoricalAxisModel(axisModel) || isColorAxisModel(axisModel)
-}
+  export function isCategoricalOrColorAxisModel(axisModel?: IAxisModel):
+                                  axisModel is ICategoricalAxisModel | IColorAxisModel {
+    return isCategoricalAxisModel(axisModel) || isColorAxisModel(axisModel)
+  }
 
 export const BaseNumericAxisModel = AxisModel
   .named("BaseNumericAxisModel")
@@ -186,18 +180,36 @@ export function isNumericAxisModel(axisModel?: IAxisModel): axisModel is INumeri
   return axisModel?.type === "numeric"
 }
 
+export const PercentAxisModel = BaseNumericAxisModel
+  .named("PercentAxisModel")
+  .props({
+    type: types.optional(types.literal("percent"), "percent")
+  })
+  .views(self => ({
+    get lockZero() {
+      return true
+    },
+  }))
+export interface IPercentAxisModel extends Instance<typeof PercentAxisModel> {}
+export interface IPercentAxisModelSnapshot extends SnapshotIn<typeof PercentAxisModel> {}
+export function isPercentAxisModel(axisModel?: IAxisModel): axisModel is IPercentAxisModel {
+  return axisModel?.type === "percent"
+}
+
+// ToDo: It _should_ be possible to have CountAxisModel inherit from PercentAxisModel and get rid of lockZero
+//  but it causes a strange typescript error in graph-content-model.ts
 export const CountAxisModel = BaseNumericAxisModel
   .named("CountAxisModel")
   .props({
     type: types.optional(types.literal("count"), "count")
   })
   .views(self => ({
-    get integersOnly() {
-      return true
-    },
     get lockZero() {
       return true
     },
+    get integersOnly() {
+      return true
+    }
   }))
 export interface ICountAxisModel extends Instance<typeof CountAxisModel> {}
 export interface ICountAxisModelSnapshot extends SnapshotIn<typeof CountAxisModel> {}
@@ -205,8 +217,9 @@ export function isCountAxisModel(axisModel?: IAxisModel): axisModel is ICountAxi
   return axisModel?.type === "count"
 }
 
-export function isNumericOrCountAxisModel(axisModel?: IAxisModel): axisModel is INumericAxisModel | IDateAxisModel {
-  return isNumericAxisModel(axisModel) || isCountAxisModel(axisModel)
+export function isNumericOrCountOrPercentAxisModel(axisModel?: IAxisModel):
+    axisModel is INumericAxisModel | ICountAxisModel | IPercentAxisModel {
+  return isNumericAxisModel(axisModel) || isCountAxisModel(axisModel) || isPercentAxisModel(axisModel)
 }
 
 export const DateAxisModel = BaseNumericAxisModel
@@ -234,17 +247,22 @@ export function isDateAxisModel(axisModel?: IAxisModel): axisModel is IDateAxisM
 }
 
 export function isBaseNumericAxisModel(axisModel?: IAxisModel): axisModel is INumericAxisModel | IDateAxisModel {
-  return isNumericAxisModel(axisModel) || isCountAxisModel(axisModel) || isDateAxisModel(axisModel)
+  return isNumericAxisModel(axisModel) || isCountAxisModel(axisModel) || isPercentAxisModel(axisModel) ||
+    isDateAxisModel(axisModel)
 }
 
 export const AxisModelUnion =
-  types.union(EmptyAxisModel, CategoricalAxisModel, ColorAxisModel, NumericAxisModel, CountAxisModel, DateAxisModel)
+  types.union(EmptyAxisModel, CategoricalAxisModel, ColorAxisModel,
+              NumericAxisModel, CountAxisModel, PercentAxisModel, DateAxisModel)
 export type IAxisModelUnion =
-  IEmptyAxisModel | ICategoricalAxisModel | IColorAxisModel | INumericAxisModel | ICountAxisModel | IDateAxisModel
-export type IAxisModelSnapshotUnion = IEmptyAxisModelSnapshot | ICategoricalAxisModelSnapshot |
-  IColorAxisModelSnapshot | INumericAxisModelSnapshot | ICountAxisModelSnapshot | IDateAxisModelSnapshot
+  IEmptyAxisModel | ICategoricalAxisModel | IColorAxisModel |
+  INumericAxisModel | ICountAxisModel | IPercentAxisModel | IDateAxisModel
+export type IAxisModelSnapshotUnion = IEmptyAxisModelSnapshot |
+  ICategoricalAxisModelSnapshot | IColorAxisModelSnapshot |
+  INumericAxisModelSnapshot | ICountAxisModelSnapshot | IPercentAxisModelSnapshot | IDateAxisModelSnapshot
+
 
 export function isAxisModelInUnion(model: IAxisModel): model is IAxisModelUnion {
   return isEmptyAxisModel(model) || isCategoricalAxisModel(model) || isColorAxisModel(model) ||
-          isNumericAxisModel(model) || isCountAxisModel(model) || isDateAxisModel(model)
+          isNumericAxisModel(model) || isCountAxisModel(model) || isPercentAxisModel(model) || isDateAxisModel(model)
 }

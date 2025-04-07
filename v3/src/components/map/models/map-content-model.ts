@@ -16,11 +16,13 @@ import {DataDisplayContentModel} from "../../data-display/models/data-display-co
 import {kMapModelName, kMapTileType} from "../map-defs"
 import {BaseMapKey, BaseMapKeys} from "../map-types"
 import {
-  datasetHasBoundaryData, datasetHasLatLongData, expandLatLngBounds, getLatLongBounds, latLongAttributesFromDataSet
+  datasetHasBoundaryData, datasetHasLatLongData, datasetHasPinData, expandLatLngBounds, getLatLongBounds,
+  latLongAttributesFromDataSet, pinAttributesFromDataSet
 } from "../utilities/map-utils"
 import {ILatLngSnapshot, LatLngModel} from "../map-model-types"
 import {LeafletMapState} from "./leaflet-map-state"
 import {isMapLayerModel} from "./map-layer-model"
+import { isMapPinLayerModel, MapPinLayerModel } from "./map-pin-layer-model"
 import {isMapPointLayerModel, MapPointLayerModel} from "./map-point-layer-model"
 import {isMapPolygonLayerModel, MapPolygonLayerModel} from "./map-polygon-layer-model"
 
@@ -163,6 +165,16 @@ export const MapContentModel = DataDisplayContentModel
       newPolygonLayer.setDataset(dataSet)
       return newPolygonLayer
     },
+    addPinLayer(dataSet: IDataSet) {
+      const newPinLayer = MapPinLayerModel.create()
+      self.layers.push(newPinLayer) // We have to do this first so safe references will work
+      const dataConfiguration = newPinLayer.dataConfiguration,
+        { pinLatId, pinLongId } = pinAttributesFromDataSet(dataSet)
+      dataConfiguration.setDataset(dataSet, getSharedCaseMetadataFromDataset(dataSet))
+      dataConfiguration.setAttribute('pinLat', {attributeID: pinLatId})
+      dataConfiguration.setAttribute('pinLong', {attributeID: pinLongId})
+      return newPinLayer
+    },
     afterCreate() {
       addDisposer(self, () => self.leafletMapState.destroy())
 
@@ -270,6 +282,18 @@ export const MapContentModel = DataDisplayContentModel
               } else {
                 // Add a new layer for this dataset
                 this.addPolygonLayer(sharedDataSet.dataSet)
+              }
+            }
+            if (datasetHasPinData(sharedDataSet.dataSet)) {
+              const pinLayer = layersToCheck.find(layer => {
+                return layer.data === sharedDataSet.dataSet && isMapPinLayerModel(layer)
+              })
+              if (isMapPinLayerModel(pinLayer)) {
+                pinLayer.setDataset(sharedDataSet.dataSet)
+                layersToCheck.splice(layersToCheck.indexOf(pinLayer), 1)
+              } else {
+                // Add a new layer for this dataset
+                this.addPinLayer(sharedDataSet.dataSet)
               }
             }
           })

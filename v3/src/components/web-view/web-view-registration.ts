@@ -11,9 +11,10 @@ import { registerV2TileImporter, V2TileImportArgs } from "../../v2/codap-v2-tile
 import { registerV2TileExporter, V2ExportedComponent, V2TileExportFn } from "../../v2/codap-v2-tile-exporters"
 import {
   ICodapV2GameViewComponent, ICodapV2GuideViewComponent, ICodapV2WebViewComponent,
-  isV2GameViewComponent, isV2GuideViewComponent, isV2WebViewComponent
+  isV2GameViewComponent, isV2GuideViewComponent, isV2ImageViewComponent, isV2WebViewComponent
 } from "../../v2/codap-v2-types"
-import { kV2GameType, kV2GuideViewType, kV2WebViewType, kWebViewTileType, WebViewSubType } from "./web-view-defs"
+import { kV2GameType, kV2GuideViewType, kV2ImageComponentViewType, kV2WebViewType, kWebViewTileType,
+          WebViewSubType } from "./web-view-defs"
 import { isWebViewModel, IWebViewSnapshot, WebViewModel } from "./web-view-model"
 import { WebViewComponent } from "./web-view"
 import { WebViewInspector } from "./web-view-inspector"
@@ -98,10 +99,11 @@ registerV2TileExporter(kWebViewTileType, exportFn)
 function addWebViewSnapshot(args: V2TileImportArgs, name?: string, _content?: Partial<IWebViewSnapshot>) {
   const { v2Component, insertTile } = args
   const { guid } = v2Component
-  const { title, userSetTitle } = v2Component.componentStorage || {}
+  const { title, userSetTitle, cannotClose } = v2Component.componentStorage || {}
   const subTypeMap: Record<string, WebViewSubType> = {
     "DG.GameView": "plugin",
-    "DG.GuideView": "guide"
+    "DG.GuideView": "guide",
+    "DG.ImageComponentView": "image"
   }
 
   const content: IWebViewSnapshot = {
@@ -121,7 +123,8 @@ function addWebViewSnapshot(args: V2TileImportArgs, name?: string, _content?: Pa
     // CODAPv2 seemed to handle this correctly and updated the the title when the document
     // is loaded.
     _title: (userSetTitle && title) || undefined,
-    content
+    content,
+    cannotClose
   }
   const webViewTile = insertTile(webViewTileSnap)
 
@@ -179,8 +182,20 @@ function importGuideView(args: V2TileImportArgs) {
   }
   return addWebViewSnapshot(args, title, { url: processWebViewUrl(pages[pageIndex]?.url ?? ""), pageIndex, pages })
 }
-
 registerV2TileImporter("DG.GuideView", importGuideView)
+
+
+function importImageComponentView(args: V2TileImportArgs) {
+  const { v2Component } = args
+  if (!isV2ImageViewComponent(v2Component)) return
+  // parse the v2 content
+  const { componentStorage: { name, URL } } = v2Component
+  // create webView model
+  // The componentStorage.name is set to the title when original image component was created,
+  // Only the componentStorage.title is updated when user renames the image component.
+  return addWebViewSnapshot(args, name, { url: URL.includes("data:image") ? URL : processWebViewUrl(URL) })
+}
+registerV2TileImporter("DG.ImageComponentView", importImageComponentView)
 
 const webViewComponentHandler: DIComponentHandler = {
   create({ values }) {
@@ -190,7 +205,12 @@ const webViewComponentHandler: DIComponentHandler = {
 
   get(content) {
     if (isWebViewModel(content)) {
-      const type = content.isPlugin ? kV2GameType : content.isGuide ? kV2GuideViewType : kV2WebViewType
+      const subTypeToV2TypeMap: Record<WebViewSubType, string> = {
+        guide: kV2GuideViewType,
+        image: kV2ImageComponentViewType,
+        plugin: kV2GameType
+      }
+      const type =  (content.subType && subTypeToV2TypeMap[content.subType]) ?? kV2WebViewType
       return { type, URL: content.url } as V2Game | V2Guide | V2WebView
     }
   },
@@ -206,4 +226,5 @@ const webViewComponentHandler: DIComponentHandler = {
 }
 registerComponentHandler(kV2GameType, webViewComponentHandler)
 registerComponentHandler(kV2GuideViewType, webViewComponentHandler)
+registerComponentHandler(kV2ImageComponentViewType, webViewComponentHandler)
 registerComponentHandler(kV2WebViewType, webViewComponentHandler)

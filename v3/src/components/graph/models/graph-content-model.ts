@@ -4,7 +4,7 @@
  */
 import {isEqual} from "lodash"
 import { comparer, reaction, when } from "mobx"
-import {addDisposer, getSnapshot, Instance, SnapshotIn, types} from "mobx-state-tree"
+import { addDisposer, getSnapshot, Instance, onPatch, SnapshotIn, types } from "mobx-state-tree"
 import { isNumericAttributeType } from "../../../models/data/attribute-types"
 import {IDataSet} from "../../../models/data/data-set"
 import {applyModelChange} from "../../../models/history/apply-model-change"
@@ -22,7 +22,7 @@ import {GraphPlace} from "../../axis-graph-shared"
 import {AxisPlace, AxisPlaces, IAxisTicks, ScaleNumericBaseType, TickFormatter} from "../../axis/axis-types"
 import {
   AxisModelUnion, EmptyAxisModel, IAxisModel, IAxisModelSnapshot, IAxisModelSnapshotUnion, IAxisModelUnion,
-  INumericAxisModelSnapshot, isAxisModelInUnion, isBaseNumericAxisModel
+  INumericAxisModelSnapshot, isAxisModelInUnion, isBaseNumericAxisModel, isPercentAxisModel
 } from "../../axis/models/axis-model"
 import { CaseData } from "../../data-display/d3-types"
 import {DataDisplayContentModel} from "../../data-display/models/data-display-content-model"
@@ -71,12 +71,17 @@ export const GraphContentModel = DataDisplayContentModel
     plotBackgroundLockInfo: types.maybe(types.frozen<BackgroundLockInfo>()),
     // numberToggleModel: types.optional(types.union(NumberToggleModel, null))
     showParentToggles: false,
-    showOnlyLastCase: types.maybe(types.boolean)
+    showOnlyLastCase: types.maybe(types.boolean),
+    // TODO: numberOfLegendQuantiles and legendQuantilesAreLocked are imported from V2
+    // but have not been implemented in V3
+    numberOfLegendQuantiles: types.maybe(types.number),
+    legendQuantilesAreLocked: types.maybe(types.boolean)
   })
   .volatile(() => ({
     changeCount: 0, // used to notify observers when something has changed that may require a re-computation/redraw
     prevDataSetId: "",
-    pointOverlap: 0,  // Set by plots so that it is accessible to adornments
+    pointOverlap: 0,  // Set by plots so that it is accessible to adornments,
+    onPatchDisposer: undefined as Maybe<() => void>
   }))
   // cast required to avoid self-reference in model definition error
   .preProcessSnapshot(preProcessSnapshot as any)
@@ -126,6 +131,9 @@ export const GraphContentModel = DataDisplayContentModel
     },
     get secondaryAxis() {
       return this.getAxis(this.secondaryPlace)
+    },
+    get secondaryAxisIsPercent() {
+      return isPercentAxisModel(this.secondaryAxis)
     },
     getAxis(place: AxisPlace) {
       return self.axes.get(place)
@@ -186,6 +194,30 @@ export const GraphContentModel = DataDisplayContentModel
     }
   }))
   .actions(self => ({
+    setAxis(place: AxisPlace, axis: IAxisModel) {
+      if (isAxisModelInUnion(axis)) {
+        self.axes.set(place, axis)
+      }
+    },
+    disposePlotOnPatchHandler() {
+      self.onPatchDisposer?.()
+      self.onPatchDisposer = undefined
+    },
+    installPlotOnPatchHandler() {
+      // At the plot level we can't install a new axis. But a plot can change in such a way that it
+      // requires a new secondary axis. When our plot is patched, we pass the patch to it and allow it to
+      // tell us about any required new secondary axis.
+      this.disposePlotOnPatchHandler()
+      self.onPatchDisposer = onPatch(self.plot, (patch) => {
+        const newSecondaryAxis = self.plot.newSecondaryAxisRequired(patch)
+        if (newSecondaryAxis) {
+          this.setAxis(self.secondaryPlace, newSecondaryAxis)
+        }
+      })
+      // dispose of onPatch handler when either the plot or the content model is destroyed
+      addDisposer(self, () => this.disposePlotOnPatchHandler())
+      addDisposer(self.plot, () => this.disposePlotOnPatchHandler())
+    },
     async afterAttachToDocument() {
       if (!self.tileEnv?.sharedModelManager?.isReady) {
         await when(() => !!self.tileEnv?.sharedModelManager?.isReady)
@@ -202,6 +234,7 @@ export const GraphContentModel = DataDisplayContentModel
       )
 
       self.installSharedModelManagerSync()
+      this.installPlotOnPatchHandler()
 
       // update adornments when case data changes
       addDisposer(self, mstAutorun(function updateAdornments() {
@@ -221,6 +254,7 @@ export const GraphContentModel = DataDisplayContentModel
           }
       }, {name: "GraphContentModel.afterAttachToDocument.updateAdornments", equals: comparer.structural},
         self.dataConfiguration))
+
     },
     beforeDestroy() {
       self.formulaAdapters.forEach(adapter => {
@@ -248,6 +282,8 @@ export const GraphContentModel = DataDisplayContentModel
           self.plot.resetSettings({ isBinnedPlotChanged: prevPlotWasBinned !== self.plot.isBinned })
         }
       }
+      self.installPlotOnPatchHandler()
+
     },
     setPlotType(type: PlotType) {
       if (type !== self.plot.type) {
@@ -417,11 +453,6 @@ export const GraphContentModel = DataDisplayContentModel
         })
       }
     },
-    setAxis(place: AxisPlace, axis: IAxisModel) {
-      if (isAxisModelInUnion(axis)) {
-        self.axes.set(place, axis)
-      }
-    },
     removeAxis(place: AxisPlace) {
       self.axes.delete(place)
     },
@@ -446,7 +477,7 @@ export const GraphContentModel = DataDisplayContentModel
     },
     setGraphProperties(props: GraphProperties) {
       (Object.keys(props.axes) as AxisPlace[]).forEach(aKey => {
-        this.setAxis(aKey, props.axes[aKey])
+        self.setAxis(aKey, props.axes[aKey])
       })
       self.setPlotType(props.plotType)
     },
@@ -554,11 +585,15 @@ export const GraphContentModel = DataDisplayContentModel
         const attrType = self.dataConfiguration.attributeType(role)
         return !!attrType && ["numeric", "date"].includes(attrType)
       }
+      function isCategoricalRole(role?: GraphAttrRole) {
+        return role && self.dataConfiguration.attributeType(role) === 'categorical'
+      }
       const numericAttrCount = PrimaryAttrRoles.map(role => isNumericRole(role))
                                   .filter(Boolean).length
       let newPlotType: Maybe<PlotType>
       if (numericAttrCount === 0) {
-        if (!self.plot.isCategorical) {
+        const secondaryAttrIsCategorical = isCategoricalRole(self.dataConfiguration.secondaryRole)
+        if (!self.plot.isCategorical || (self.plotType === "barChart" && secondaryAttrIsCategorical)) {
           newPlotType = "dotChart"
         }
       }

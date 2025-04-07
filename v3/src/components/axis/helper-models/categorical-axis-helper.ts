@@ -1,7 +1,7 @@
 import { BaseType, Selection } from "d3"
 import { AxisHelper, IAxisHelperArgs } from "./axis-helper"
 import { MutableRefObject } from "react"
-import { kAxisTickLength } from "../axis-constants"
+import { kAxisTickLength, kDefaultColorSwatchHeight } from "../axis-constants"
 import { otherPlace } from "../axis-types"
 import { kMain, transitionDuration } from "../../data-display/data-display-types"
 import {
@@ -21,8 +21,9 @@ export interface ICategoricalAxisHelperArgs extends IAxisHelperArgs {
   categoriesSelectionRef: MutableRefObject<Selection<SVGGElement | BaseType, CatObject, SVGGElement, any> | undefined>
   categoriesRef: MutableRefObject<string[]>
   swapInProgress: MutableRefObject<boolean>
-  centerNonNumericLabels: boolean
+  centerCategoryLabels: boolean
   dragInfo: MutableRefObject<DragInfo>
+  isColorAxis?: boolean
 }
 
 export class CategoricalAxisHelper extends AxisHelper {
@@ -30,8 +31,9 @@ export class CategoricalAxisHelper extends AxisHelper {
   categoriesSelectionRef: MutableRefObject<Selection<SVGGElement | BaseType, CatObject, SVGGElement, any> | undefined>
   categoriesRef: MutableRefObject<string[]>
   swapInProgress: MutableRefObject<boolean>
-  centerNonNumericLabels: boolean
+  centerCategoryLabels: boolean
   dragInfo: MutableRefObject<DragInfo>
+  isColorAxis: boolean
 
   constructor(props: ICategoricalAxisHelperArgs) {
     super(props)
@@ -39,14 +41,14 @@ export class CategoricalAxisHelper extends AxisHelper {
     this.categoriesSelectionRef = props.categoriesSelectionRef
     this.categoriesRef = props.categoriesRef
     this.swapInProgress = props.swapInProgress
-    this.centerNonNumericLabels = props.centerNonNumericLabels
+    this.centerCategoryLabels = props.centerCategoryLabels
     this.dragInfo = props.dragInfo
+    this.isColorAxis = props.isColorAxis ?? false
   }
 
   render() {
     if (!(this.subAxisSelectionRef.current && this.categoriesSelectionRef.current)) return
-
-    const {isVertical, centerNonNumericLabels, dragInfo} = this,
+    const {isVertical, centerCategoryLabels, dragInfo, isColorAxis} = this,
       categorySet = this.multiScale?.categorySet,
       dividerLength = this.layout.getAxisLength(otherPlace(this.axisPlace)) ?? 0,
       isRightCat = this.axisPlace === 'rightCat',
@@ -55,8 +57,8 @@ export class CategoricalAxisHelper extends AxisHelper {
       numCategories = categories.length,
       hasCategories = !(categories.length === 1 && categories[0] === kMain),
       bandWidth = this.subAxisLength / numCategories,
-      collision = collisionExists({bandWidth, categories, centerNonNumericLabels}),
-      {rotation, textAnchor} = getCategoricalLabelPlacement(this.axisPlace, this.centerNonNumericLabels,
+      collision = collisionExists({bandWidth, categories, centerCategoryLabels}),
+      {rotation, textAnchor} = getCategoricalLabelPlacement(this.axisPlace, this.centerCategoryLabels,
         collision),
       duration = (this.isAnimating() && !this.swapInProgress.current &&
         dragInfo.current.indexOfCategory === -1) ? transitionDuration : 0
@@ -81,7 +83,7 @@ export class CategoricalAxisHelper extends AxisHelper {
       .attr('y2', isVertical ? rangeMax : 0)
 
     const props: IGetCoordFunctionsProps = {
-        numCategories, centerNonNumericLabels, collision, axisIsVertical: isVertical, rangeMin, rangeMax,
+        numCategories, centerCategoryLabels, collision, axisIsVertical: isVertical, rangeMin, rangeMax,
         subAxisLength, isRightCat, isTop, dragInfo
       },
       fns = getCoordFunctions(props)
@@ -106,17 +108,33 @@ export class CategoricalAxisHelper extends AxisHelper {
             .attr('y2', (d, i) => isVertical
               ? fns.getDividerY(i) : (isTop ? 1 : -1) * dividerLength)
           // labels
-          update.select('.category-label')
-            .attr('transform', `${rotation}`)
-            .attr('text-anchor', textAnchor)
-            .attr('transform-origin', (d, i) => {
-              return `${fns.getLabelX(i)} ${fns.getLabelY(i)}`
-            })
-            .transition().duration(duration)
-            .attr('class', 'category-label')
-            .attr('x', (d, i) => fns.getLabelX(i))
-            .attr('y', (d, i) => fns.getLabelY(i))
-            .text((d: CatObject, i) => String(categories[i]))
+          if (isColorAxis) {
+            // Render color swatches
+            update.select('.category-label')
+              .attr('class', 'category-label')
+              .attr('x', (d, i) => fns.getLabelX(i) - ((bandWidth * 2 / 3) / 2))
+              .attr('y', (d, i) => Math.max(6.5, fns.getLabelY(i) - (kDefaultColorSwatchHeight / (isVertical ? 2 : 1))))
+              .style("fill", (d, i) => categories[i])
+              .style("width", (bandWidth * 2)/3)
+              .style("height", `${kDefaultColorSwatchHeight}px`)
+              .attr('transform', `${rotation}`)
+              .attr('transform-origin', (d, i) => {return `${fns.getLabelX(i)} ${fns.getLabelY(i)}`})
+              .transition().duration(duration)
+              .style('opacity', 0.85)
+              .style('stroke', '#315b7d')
+          } else {
+            update.select('.category-label')
+              .attr('transform', `${rotation}`)
+              .attr('text-anchor', textAnchor)
+              .attr('transform-origin', (d, i) => {
+                return `${fns.getLabelX(i)} ${fns.getLabelY(i)}`
+              })
+              .transition().duration(duration)
+              .attr('class', 'category-label')
+              .attr('x', (d, i) => fns.getLabelX(i))
+              .attr('y', (d, i) => fns.getLabelY(i))
+              .text((d: CatObject, i) => String(categories[i]))
+            }
           return update
         }
       )

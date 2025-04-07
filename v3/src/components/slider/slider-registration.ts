@@ -117,18 +117,18 @@ registerV2TileExporter(kSliderTileType, ({ tile }) => {
   return { type: "DG.SliderView", componentStorage }
 })
 
-registerV2TileImporter("DG.SliderView", ({ v2Component, v2Document, sharedModelManager, insertTile }) => {
+registerV2TileImporter("DG.SliderView", ({ v2Component, v2Document, getGlobalValues, insertTile, linkSharedModel }) => {
   if (!isV2SliderComponent(v2Component)) return
 
-  const globalValueManager = getGlobalValueManager(sharedModelManager)
-  if (!sharedModelManager || !globalValueManager) return
+  const globalValueManager = getGlobalValues()
+  if (!globalValueManager) return
 
   // parse the v2 content
   const {
     guid: componentGuid,
     componentStorage: {
       name, title: v2Title = "", _links_, lowerBound, upperBound, animationDirection, animationMode,
-      restrictToMultiplesOf, maxPerSecond, userTitle, userSetTitle, v3
+      restrictToMultiplesOf, maxPerSecond, userTitle, userSetTitle, cannotClose, v3
     }
   } = v2Component
   const globalId = _links_.model.id
@@ -166,13 +166,13 @@ registerV2TileImporter("DG.SliderView", ({ v2Component, v2Document, sharedModelM
   }
   const title = v2Title && (userTitle || userSetTitle) ? v2Title : undefined
   const sliderTileSnap: ITileModelSnapshotIn = {
-    id: toV3Id(kSliderIdPrefix, componentGuid), name, _title: title, content
+    id: toV3Id(kSliderIdPrefix, componentGuid), name, _title: title, content, cannotClose
   }
   const sliderTile = insertTile(sliderTileSnap)
 
   // link tile to global value manager
   if (sliderTile) {
-    sharedModelManager.addTileSharedModel(sliderTile.content, globalValueManager)
+    linkSharedModel(sliderTile.content, globalValueManager)
   }
 
   return sliderTile

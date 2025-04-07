@@ -1,10 +1,11 @@
 ### CODAP v3 Environments
-- Production (Will start being available when we release to production)
+- [Production](https://codap3.concord.org/)
 - [Staging](https://codap3.concord.org/index-staging.html)
 
 ### Versions
 |      Version    |          Release Date |
 |-----------------|-----------------------|
+| [3.0.0-pre.2256](https://codap3.concord.org/version/3.0.0-pre.2256/) | April 4, 2025 |
 | [3.0.0-pre.2236](https://codap3.concord.org/version/3.0.0-pre.2236/) | March 25, 2025 |
 | [3.0.0-pre.2233](https://codap3.concord.org/version/3.0.0-pre.2233/) | March 24, 2025 |
 | [3.0.0-pre.2224](https://codap3.concord.org/version/3.0.0-pre.2224/) | March 19, 2025 |

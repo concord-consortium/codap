@@ -2,11 +2,14 @@ import { getType } from "mobx-state-tree"
 import { DataSet } from "../../models/data/data-set"
 import { DocumentContentModel, IDocumentContentModel } from "../../models/document/document-content"
 import { FreeTileRow } from "../../models/document/free-tile-row"
+import { SharedModelDocumentManager } from "../../models/document/shared-model-document-manager"
 import { SharedCaseMetadata } from "../../models/shared/shared-case-metadata"
 import { getSharedDataSetFromDataSetId } from "../../models/shared/shared-data-utils"
-import { SharedModelDocumentManager } from "../../models/document/shared-model-document-manager"
+import { ISharedModel } from "../../models/shared/shared-model"
+import { ITileContentModel } from "../../models/tiles/tile-content"
 import { ITileModelSnapshotIn } from "../../models/tiles/tile-model"
 import { safeJsonParse } from "../../utilities/js-utils"
+import { CodapV2DataSetImporter, getCaseDataFromV2ContextGuid } from "../../v2/codap-v2-data-set-importer"
 import { CodapV2Document } from "../../v2/codap-v2-document"
 import { ICodapV2DocumentJson } from "../../v2/codap-v2-types"
 import {isGraphContentModel} from "./models/graph-content-model"
@@ -33,10 +36,27 @@ describe("V2GraphImporter", () => {
   let v2Document: CodapV2Document
   let docContent: IDocumentContentModel | undefined
   let sharedModelManager: SharedModelDocumentManager | undefined
+  const mockGetCaseData = jest.fn((dataContextGuid: number) => {
+    return getCaseDataFromV2ContextGuid(dataContextGuid, sharedModelManager)
+  })
+  const mockGetGlobalValues = jest.fn()
   const mockInsertTile = jest.fn((tileSnap: ITileModelSnapshotIn) => {
     const tile = docContent!.insertTileSnapshotInDefaultRow(tileSnap)
     return tile
   })
+  const mockLinkSharedModel = jest.fn(
+    (tileContent: ITileContentModel, sharedModel?: ISharedModel, isProvider?: boolean) => {
+      if (sharedModel) {
+        sharedModelManager?.addTileSharedModel(tileContent, sharedModel, isProvider)
+      }
+    }
+  )
+  const mockImportArgs = {
+    getCaseData: mockGetCaseData,
+    getGlobalValues: mockGetGlobalValues,
+    insertTile: mockInsertTile,
+    linkSharedModel: mockLinkSharedModel
+  }
 
   beforeEach(() => {
     v2Document = new CodapV2Document(mammalsDoc)
@@ -46,11 +66,9 @@ describe("V2GraphImporter", () => {
     sharedModelManager.setDocument(docContent)
 
     // load shared models into sharedModelManager
-    v2Document.dataContexts.forEach(({ guid }) => {
-      const { data, metadata } = v2Document.getDataAndMetadata(guid)
-      data && sharedModelManager!.addSharedModel(data)
-      metadata?.setData(data?.dataSet)
-      metadata && sharedModelManager!.addSharedModel(metadata)
+    const importer = new CodapV2DataSetImporter(v2Document.guidMap)
+    v2Document.dataContexts.forEach(context => {
+      importer.importContext(context, sharedModelManager)
     })
 
     mockInsertTile.mockClear()
@@ -60,7 +78,7 @@ describe("V2GraphImporter", () => {
     const noTile = v2GraphImporter({
       v2Component: {} as any,
       v2Document,
-      insertTile: mockInsertTile
+      ...mockImportArgs
     })
     expect(mockInsertTile).toHaveBeenCalledTimes(0)
     const graphModel = isGraphContentModel(noTile?.content) ? noTile?.content : undefined
@@ -81,7 +99,7 @@ describe("V2GraphImporter", () => {
     const tile = v2GraphImporter({
       v2Component: firstGraphComponent(v2Document),
       v2Document,
-      insertTile: mockInsertTile
+      ...mockImportArgs
     })
     expect(mockInsertTile).toHaveBeenCalledTimes(1)
     const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
@@ -100,7 +118,7 @@ describe("V2GraphImporter", () => {
     const tile = v2GraphImporter({
       v2Component: graphComponentWithTitle(v2Document, "Empty"),
       v2Document,
-      insertTile: mockInsertTile
+      ...mockImportArgs
     })
     expect(mockInsertTile).toHaveBeenCalledTimes(1)
     const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
@@ -119,7 +137,7 @@ describe("V2GraphImporter", () => {
     const tile = v2GraphImporter({
       v2Component: graphComponentWithTitle(v2Document, "NumX"),
       v2Document,
-      insertTile: mockInsertTile
+      ...mockImportArgs
     })
     expect(mockInsertTile).toHaveBeenCalledTimes(1)
     const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
@@ -149,7 +167,7 @@ describe("V2GraphImporter", () => {
     const tile = v2GraphImporter({
       v2Component: graphComponentWithTitle(v2Document, "NumY"),
       v2Document,
-      insertTile: mockInsertTile
+      ...mockImportArgs
     })
     expect(mockInsertTile).toHaveBeenCalledTimes(1)
     const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
@@ -179,7 +197,7 @@ describe("V2GraphImporter", () => {
     const tile = v2GraphImporter({
       v2Component: graphComponentWithTitle(v2Document, "2NumXNumYLegendCatRight"),
       v2Document,
-      insertTile: mockInsertTile
+      ...mockImportArgs
     })
     expect(mockInsertTile).toHaveBeenCalledTimes(1)
     const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
@@ -210,7 +228,7 @@ describe("V2GraphImporter", () => {
     const tile = v2GraphImporter({
       v2Component: graphComponentWithTitle(v2Document, "CatXCatY"),
       v2Document,
-      insertTile: mockInsertTile
+      ...mockImportArgs
     })
     expect(mockInsertTile).toHaveBeenCalledTimes(1)
     const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
@@ -240,7 +258,7 @@ describe("V2GraphImporter", () => {
     const tile = v2GraphImporter({
       v2Component: graphComponentWithTitle(v2Document, "CatXCatYCatTop"),
       v2Document,
-      insertTile: mockInsertTile
+      ...mockImportArgs
     })
     expect(mockInsertTile).toHaveBeenCalledTimes(1)
     const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
@@ -271,7 +289,7 @@ describe("V2GraphImporter", () => {
     const tile = v2GraphImporter({
       v2Component: graphComponentWithTitle(v2Document, "CatXCatYCatRight"),
       v2Document,
-      insertTile: mockInsertTile
+      ...mockImportArgs
     })
     expect(mockInsertTile).toHaveBeenCalledTimes(1)
     const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined

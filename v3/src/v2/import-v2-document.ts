@@ -1,16 +1,21 @@
 import { createCodapDocument } from "../models/codap/create-codap-document"
-import { gDataBroker } from "../models/data/data-broker"
+import { IFreeTileInRowOptions, isFreeTileRow } from "../models/document/free-tile-row"
+import { getGlobalValueManager } from "../models/global/global-value-manager"
+import { ISharedCaseMetadata } from "../models/shared/shared-case-metadata"
+import { ISharedDataSet } from "../models/shared/shared-data-set"
+import { ISharedModel } from "../models/shared/shared-model"
 import { getTileComponentInfo } from "../models/tiles/tile-component-info"
+import { ITileContentModel } from "../models/tiles/tile-content"
 import { getSharedModelManager } from "../models/tiles/tile-environment"
 import { ITileModel, ITileModelSnapshotIn } from "../models/tiles/tile-model"
+import { CodapV2DataSetImporter, getCaseDataFromV2ContextGuid } from "./codap-v2-data-set-importer"
+import { isV2ExternalContext } from "./codap-v2-data-set-types"
 import { CodapV2Document } from "./codap-v2-document"
 import { importV2Component, LayoutTransformFn } from "./codap-v2-tile-importers"
-import { IFreeTileInRowOptions, isFreeTileRow } from "../models/document/free-tile-row"
 
 export function importV2Document(v2Document: CodapV2Document) {
   const v3Document = createCodapDocument(undefined, { layout: "free" })
   const sharedModelManager = getSharedModelManager(v3Document)
-  sharedModelManager && gDataBroker.setSharedModelManager(sharedModelManager)
 
   const documentMetadata = v2Document.getDocumentMetadata()
   if (documentMetadata) {
@@ -27,10 +32,25 @@ export function importV2Document(v2Document: CodapV2Document) {
   // the v3 document is initialized
 
   // add shared models (data sets and case metadata)
-  v2Document.dataSets.forEach((data, key) => {
-    const metadata = v2Document.caseMetadata[key]
-    gDataBroker.addDataAndMetadata(data, metadata)
+  const dataSetImporter = new CodapV2DataSetImporter(v2Document.guidMap)
+  v2Document.contexts.forEach(context => {
+    if (!isV2ExternalContext(context)) {
+      dataSetImporter.importContext(context, sharedModelManager)
+    }
   })
+
+  // This function will return the shared data set and case metadata for a given data context
+  const getCaseData = (dataContextGuid: number): { data?: ISharedDataSet, metadata?: ISharedCaseMetadata } => {
+    return getCaseDataFromV2ContextGuid(dataContextGuid, sharedModelManager)
+  }
+
+  const getGlobalValues = () => getGlobalValueManager(sharedModelManager)
+
+  const linkSharedModel = (tileContent: ITileContentModel, sharedModel?: ISharedModel, isProvider?: boolean) => {
+    if (sharedModelManager && sharedModel) {
+      sharedModelManager.addTileSharedModel(tileContent, sharedModel, isProvider)
+    }
+  }
 
   // add components
   const { content } = v3Document
@@ -43,7 +63,7 @@ export function importV2Document(v2Document: CodapV2Document) {
         const info = getTileComponentInfo(tile.content.type)
         if (info) {
           const {
-            layout: { left = 0, top = 0, width, height: v2Height, isVisible, zIndex }, savedHeight
+            layout: { left = 0, top = 0, width, height: v2Height, isVisible, zIndex, x, y }, savedHeight
           } = v2Component
           const isHidden = isVisible === false
           const v2Minimized = (!!savedHeight && v2Height != null && savedHeight >= v2Height) || undefined
@@ -55,7 +75,7 @@ export function importV2Document(v2Document: CodapV2Document) {
           const _zIndex = zIndex != null ? { zIndex } : {}
           if (zIndex != null && zIndex > maxZIndex) maxZIndex = zIndex
           const _layout: IFreeTileInRowOptions = {
-            x: left, y: top, ..._width, ..._height, ..._zIndex, isHidden, isMinimized
+            x: left ?? x, y: top ?? y, ..._width, ..._height, ..._zIndex, isHidden, isMinimized
           }
           const layout = transform?.(_layout) ?? _layout
           newTile = content?.insertTileSnapshotInRow(tile, row, layout)
@@ -63,7 +83,7 @@ export function importV2Document(v2Document: CodapV2Document) {
       }
       return newTile
     }
-    importV2Component({ v2Component, v2Document, sharedModelManager, insertTile })
+    importV2Component({ v2Component, v2Document, getCaseData, getGlobalValues, insertTile, linkSharedModel })
   })
   if (isFreeTileRow(row) && maxZIndex > 0) {
     row.setMaxZIndex(maxZIndex)

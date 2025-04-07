@@ -1,5 +1,5 @@
 import {ITileModelSnapshotIn} from "../../models/tiles/tile-model"
-import {toV3Id} from "../../utilities/codap-utils"
+import {toV3AttrId, toV3Id} from "../../utilities/codap-utils"
 import { parseColorToHex } from "../../utilities/color-utils"
 import {V2TileImportArgs} from "../../v2/codap-v2-tile-importers"
 import {
@@ -17,10 +17,10 @@ import {IMapBaseLayerModelSnapshot} from "./models/map-base-layer-model"
 import {IMapPolygonLayerModelSnapshot} from "./models/map-polygon-layer-model"
 
 
-export function v2MapImporter({v2Component, v2Document, insertTile}: V2TileImportArgs) {
+export function v2MapImporter({v2Component, v2Document, getCaseData, insertTile}: V2TileImportArgs) {
   if (!isV2MapComponent(v2Component)) return
 
-  const { guid, componentStorage: { name, title = "", mapModelStorage } } = v2Component
+  const { guid, componentStorage: { name, title = "", mapModelStorage, cannotClose } } = v2Component
   const { center, zoom, baseMapLayerName: v2BaseMapLayerName } = mapModelStorage
   const baseMapKeyMap: Record<string, BaseMapKey> = { Topographic: 'topo', Streets: 'streets', Oceans: 'oceans' }
   const baseMapLayerName = baseMapKeyMap[v2BaseMapLayerName]
@@ -36,31 +36,27 @@ export function v2MapImporter({v2Component, v2Document, insertTile}: V2TileImpor
                           : []
   v2LayerModels?.forEach((v2LayerModel, layerIndex) => {
     // Pull out stuff from _links_ and decide if it's a point layer or polygon layer
+    const combinedHiddenCases = v2LayerModel._links_.hiddenCases ?? v2LayerModel._links_.tHiddenCases ?? []
     const contextId = v2LayerModel._links_.context.id,
       _attributeDescriptions: Partial<Record<AttrRole, IAttributeDescriptionSnapshot>> = {},
-      // hiddenCases = v2LayerModel._links_.hiddenCases,
+      hiddenCaseIds = combinedHiddenCases?.map(hiddenCase => hiddenCase.id) ?? [],
       // legendCollectionId = v2LayerModel._links_.legendColl?.id,
       v2LegendAttribute = Array.isArray(v2LayerModel._links_.legendAttr)
         ? v2LayerModel._links_.legendAttr[0] : v2LayerModel._links_.legendAttr,
-      legendAttributeId = v2LegendAttribute?.id,
-      legendAttribute = legendAttributeId ? v2Document.getV3Attribute(legendAttributeId) : undefined,
-      v3LegendAttrId = legendAttribute?.id ?? '',
-      {data, metadata} = v2Document.getDataAndMetadata(contextId),
-      {
-        isVisible, legendAttributeType, strokeSameAsFill,
-/*      Present in v2 layer model but not yet used in V3 layer model:
-        legendRole
-*/
-      } = v2LayerModel,
+      v3LegendAttrId = v2LegendAttribute ? toV3AttrId(v2LegendAttribute.id) : undefined,
+      {data, metadata} = getCaseData(contextId),
+      { isVisible, legendAttributeType, strokeSameAsFill } = v2LayerModel,
       v3LegendType = v3TypeFromV2TypeIndex[legendAttributeType]
     if (!data?.dataSet) return
 
-    if (legendAttributeId) {
+    if (v3LegendAttrId) {
       _attributeDescriptions.legend = {
         attributeID: v3LegendAttrId,
         type: v3LegendType
       }
     }
+
+    const hiddenCases = hiddenCaseIds.map(id => `CASE${id}`)
 
     if (isV2MapPointLayerStorage(v2LayerModel)) {
       const {
@@ -80,12 +76,7 @@ export function v2MapImporter({v2Component, v2Document, insertTile}: V2TileImpor
           dataset: data?.dataSet.id,
           metadata: metadata?.id,
           _attributeDescriptions,
-          // TODO_V2_IMPORT [Story: #188694826] hiddenCases are not imported
-          // the array in a "modern" v2 document coming from `mapModelStorage.layerModels[]._links_.hiddenCases`
-          // looks like { type: "DG.Case", id: number }
-          // The MST type expects an array of strings.
-          // There are 296 instances where this is a non-empty array in cfm-shared
-          // hiddenCases,
+          hiddenCases,
         },
         isVisible,
         displayItemDescription: {
@@ -117,7 +108,8 @@ export function v2MapImporter({v2Component, v2Document, insertTile}: V2TileImpor
           type: kDataConfigurationType,
           dataset: data?.dataSet.id,
           metadata: metadata?.id,
-          _attributeDescriptions
+          _attributeDescriptions,
+          hiddenCases
         },
         isVisible,
         displayItemDescription: {
@@ -141,6 +133,7 @@ export function v2MapImporter({v2Component, v2Document, insertTile}: V2TileImpor
     center, zoom, baseMapLayerName, baseMapLayerIsVisible: true, layers
   }
 
-  const mapTileSnap: ITileModelSnapshotIn = { id: toV3Id(kMapIdPrefix, guid), name, _title: title, content }
+  const mapTileSnap: ITileModelSnapshotIn =
+          { id: toV3Id(kMapIdPrefix, guid), name, _title: title, content, cannotClose }
   return insertTile(mapTileSnap)
 }

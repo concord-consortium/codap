@@ -20,7 +20,8 @@ import { ColorObject, ColorAxisHelper } from "../helper-models/color-axis-helper
 import { DateAxisHelper } from "../helper-models/date-axis-helper"
 import { NumericAxisHelper } from "../helper-models/numeric-axis-helper"
 import { useAxisLayoutContext } from "../models/axis-layout-context"
-import {IAxisModel, isBaseNumericAxisModel, isCategoricalAxisModel, isColorAxisModel} from "../models/axis-model"
+import {IAxisModel, isBaseNumericAxisModel, isCategoricalAxisModel, isCategoricalOrColorAxisModel,
+        isColorAxisModel} from "../models/axis-model"
 import { useAxisProviderContext } from "./use-axis-provider-context"
 
 export interface IUseSubAxis {
@@ -29,7 +30,7 @@ export interface IUseSubAxis {
   subAxisEltRef: MutableRefObject<SVGGElement | null>
   showScatterPlotGridLines: boolean
   showZeroAxisLine: boolean
-  centerNonNumericLabels: boolean
+  centerCategoryLabels: boolean
 }
 
 // associate axis helpers with axis models
@@ -52,7 +53,7 @@ function setAxisHelper(axisModel: IAxisModel, subAxisIndex: number, axisHelper: 
 }
 
 export const useSubAxis = ({
-                             subAxisIndex, axisPlace, subAxisEltRef, showScatterPlotGridLines, centerNonNumericLabels,
+                             subAxisIndex, axisPlace, subAxisEltRef, showScatterPlotGridLines, centerCategoryLabels,
                              showZeroAxisLine
                            }: IUseSubAxis) => {
   const layout = useAxisLayoutContext(),
@@ -62,7 +63,7 @@ export const useSubAxis = ({
     axisProvider = useAxisProviderContext(),
     axisModel = axisProvider.getAxis(axisPlace),
     isCategorical = isCategoricalAxisModel(axisModel),
-    isColor = isColorAxisModel(axisModel),
+    isColorAxis = isColorAxisModel(axisModel),
     multiScaleChangeCount = layout.getAxisMultiScale(axisModel?.place ?? 'bottom')?.changeCount ?? 0,
     dragInfo = useRef<DragInfo>({
       indexOfCategory: -1,
@@ -80,9 +81,6 @@ export const useSubAxis = ({
     subAxisSelectionRef = useRef<Selection<SVGGElement, any, any, any>>(),
     categoriesSelectionRef = useRef<Selection<SVGGElement | BaseType, CatObject, SVGGElement, any>>(),
     categoriesRef = useRef<string[]>([]),
-    colorsSelectionRef = useRef<Selection<SVGGElement | BaseType, ColorObject, SVGGElement, any>>(),
-    colorsRef = useRef<string[]>([]),
-    refToUse = isColor ? colorsRef : categoriesRef,
 
     renderSubAxis = useCallback(() => {
       const _axisModel = axisProvider.getAxis?.(axisPlace)
@@ -97,7 +95,6 @@ export const useSubAxis = ({
     }, [axisPlace, axisProvider, layout, subAxisIndex]),
 
     onDragStart = useCallback((event: any) => {
-      // console.log("in onDragStart dragInfo.current", dragInfo.current)
       const dI = dragInfo.current
       dI.currentDragPosition = dI.axisOrientation === 'horizontal' ? event.x : event.y
       dI.indexOfCategory = dI.axisOrientation === 'horizontal'
@@ -124,7 +121,6 @@ export const useSubAxis = ({
           cellIndex = Math.floor(newDragPosition / dI.bandwidth),
           newCatIndex = dI.axisOrientation === 'horizontal' ? cellIndex
             : dI.categories.length - cellIndex - 1
-
         dI.currentOffset += delta
         if (newCatIndex >= 0 && newCatIndex !== dI.indexOfCategory && newCatIndex < dI.categories.length) {
           dI.currentOffset = newDragPosition - (cellIndex + 0.5) * dI.bandwidth - dI.initialOffset
@@ -137,15 +133,13 @@ export const useSubAxis = ({
           dI.indexOfCategory = newCatIndex
           dI.categorySet?.move(dI.catName, catToMoveBefore)
           dI.currentDragPositionCatName = catToMoveBefore
-          // console.log("dI.categorySet?.valuesArray", dI.categorySet?.valuesArray)
-          refToUse.current = dI.categorySet?.valuesArray ?? []
-          console.log("in onDrag refToUse.current", refToUse.current)
+          categoriesRef.current = dI.categorySet?.valuesArray ?? []
         } else {
           renderSubAxis()
         }
         dI.currentDragPosition = newDragPosition
       }
-    }, [refToUse, renderSubAxis]),
+    }, [renderSubAxis]),
 
     onDragEnd = useCallback(() => {
       const dI = dragInfo.current
@@ -224,11 +218,19 @@ export const useSubAxis = ({
         }
         // labels
         if (catGroup.select('.category-label').empty()) {
-          catGroup.append('text')
-            .attr('class', 'category-label')
-            .attr('data-testid', 'category-label')
-            .attr('x', 0)
-            .attr('y', 0)
+          if (isColorAxis) {
+            catGroup.append('rect')
+              .attr('class', 'category-label')
+              .attr('data-testid', 'color-label')
+              .attr('x', 0)
+              .attr('y', 0)
+          } else {
+            catGroup.append('text')
+              .attr('class', 'category-label')
+              .attr('data-testid', 'category-label')
+              .attr('x', 0)
+              .attr('y', 0)
+          }
         }
       })
 
@@ -238,78 +240,7 @@ export const useSubAxis = ({
         multiScale?.setCategoricalDomain(categories)
       }
       categoriesRef.current = catArray
-    }, [axisPlace, dataConfig, dragBehavior, layout, subAxisEltRef]),
-
-    setupColors = useCallback(() => {
-      const subAxisElt = subAxisEltRef.current,
-        axisLength = layout.getAxisLength(axisPlace),
-        numColorsLimit = Math.floor(axisLength / kDefaultColorSwatchHeight)
-      dataConfig?.setNumberOfCategoriesLimitForRole(axisPlaceToAttrRole[axisPlace], numColorsLimit)
-      const colorArray = (dataConfig?.categoryArrayForAttrRole(axisPlaceToAttrRole[axisPlace]) ?? []).slice()
-      if (colorArray[colorArray.length - 1] === kOther) {
-        colorArray[colorArray.length - 1] = translate("DG.CellAxis.other")
-      }
-      const colors = colorArray,
-        colorData: ColorObject[] = colors.map((cat, index) =>
-          ({color: cat, index: isVertical(axisPlace) ? colors.length - index - 1 : index}))
-
-      if (!subAxisElt) return
-      subAxisSelectionRef.current = select(subAxisElt)
-      const sAS = subAxisSelectionRef.current
-      if (sAS.classed('numeric-axis') || sAS.classed('date-axis')) {
-        sAS.selectAll('*').remove()
-        sAS.classed('numeric-axis', false)
-        sAS.classed('date-axis', false)
-      }
-
-      if (sAS.select('line').empty()) {
-        sAS.append('line').attr('class', 'axis')
-      }
-
-      colorsSelectionRef.current = sAS.selectAll('g')
-        .data(colorData)
-        .join(
-          enter => {
-            return enter
-              .append('g')
-              .attr('class', 'category-group')
-              .attr('data-testid', 'category-on-axis')
-              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-              // @ts-ignore
-              .call(dragBehavior)
-          }
-        )
-        colorsSelectionRef.current.each(function () {
-          const catGroup = select(this)
-          // ticks
-          if (catGroup.select('.tick').empty()) {
-            catGroup.append('line')
-              .attr('class', 'tick')
-              .attr('data-testid', 'tick')
-          }
-          // divider between groups
-          if (catGroup.select('.divider').empty()) {
-            catGroup.append('line')
-              .attr('class', 'divider')
-              .attr('data-testid', 'divider')
-          }
-          // labels
-          if (catGroup.select('.color-label').empty()) {
-            catGroup.append('rect')
-              .attr('class', 'color-label')
-              .attr('data-testid', 'color-label')
-              .attr('x', 0)
-              .attr('y', 0)
-          }
-        })
-
-      const multiScale = layout.getAxisMultiScale(axisPlace),
-        existingCategoryDomain = multiScale?.categoricalScale?.domain() ?? []
-      if (JSON.stringify(colors) !== JSON.stringify(existingCategoryDomain)) {
-        multiScale?.setCategoricalDomain(colors)
-      }
-      colorsRef.current = colorArray
-    }, [axisPlace, dataConfig, dragBehavior, layout, subAxisEltRef])
+    }, [axisPlace, dataConfig, dragBehavior, isColorAxis, layout, subAxisEltRef])
 
   // update axis helper
   useEffect(() => {
@@ -325,6 +256,7 @@ export const useSubAxis = ({
           helper = new EmptyAxisHelper(helperProps)
           break
         case 'count':
+        case 'percent':
         case 'numeric':
           helper = new NumericAxisHelper(
             { ...helperProps, showScatterPlotGridLines, showZeroAxisLine })
@@ -334,14 +266,8 @@ export const useSubAxis = ({
           // a crash on redo. So we only do it for non-categorical axes.
           shouldRenderSubAxis = false
           helper = new CategoricalAxisHelper(
-            { ...helperProps, centerNonNumericLabels, dragInfo,
-              subAxisSelectionRef, categoriesSelectionRef, categoriesRef, swapInProgress })
-          break
-        case 'color':
-          shouldRenderSubAxis = false
-          helper = new ColorAxisHelper(
-            { ...helperProps, centerNonNumericLabels, dragInfo,
-              subAxisSelectionRef, colorsSelectionRef, colorsRef, swapInProgress })
+            { ...helperProps, centerCategoryLabels, dragInfo,
+              subAxisSelectionRef, categoriesSelectionRef, categoriesRef, swapInProgress, isColorAxis })
           break
         case 'date':
           subAxisSelectionRef.current = subAxisElt ? select(subAxisElt) : undefined
@@ -352,8 +278,8 @@ export const useSubAxis = ({
         shouldRenderSubAxis && renderSubAxis()
       }
     }
-  }, [axisModel, axisProvider, centerNonNumericLabels, displayModel, isAnimating, layout, renderSubAxis,
-            showScatterPlotGridLines, showZeroAxisLine, subAxisEltRef, subAxisIndex])
+  }, [axisModel, axisProvider, centerCategoryLabels, displayModel, isAnimating, isColorAxis, layout,
+      renderSubAxis, showScatterPlotGridLines, showZeroAxisLine, subAxisEltRef, subAxisIndex])
 
   // update d3 scale and axis when scale type changes
   useEffect(() => {
@@ -373,13 +299,12 @@ export const useSubAxis = ({
       () => layout.getComputedBounds(axisPlace),
       () => {
         isCategorical && setupCategories()
-        isColor && setupColors()
         renderSubAxis()
       },
       {name: "useSubAxis [layout.getComputedBounds()"}
     )
     return () => disposer()
-  }, [axisPlace, layout, isCategorical, renderSubAxis, setupCategories, setupColors, isColor])
+  }, [axisPlace, layout, isCategorical, renderSubAxis, setupCategories])
 
   // update d3 scale and axis when axis domain changes
   useEffect(function installDomainSync() {
@@ -415,18 +340,7 @@ export const useSubAxis = ({
       }, {name: "useSubAxis [categories]", equals: comparer.structural}, dataConfig)
       return () => disposer()
     }
-    else if (isColor) {
-      const disposer = mstReaction(() => {
-        return (dataConfig?.categorySetForAttrRole(axisPlaceToAttrRole[axisPlace]))?.valuesArray
-      }, () => {
-        setupColors()
-        swapInProgress.current = true
-        renderSubAxis()
-        swapInProgress.current = false
-      }, {name: "useSubAxis [color]", equals: comparer.structural}, dataConfig)
-      return () => disposer()
-    }
-  }, [renderSubAxis, isCategorical, setupCategories, dataConfig, axisPlace, isColor, setupColors])
+  }, [renderSubAxis, isCategorical, setupCategories, dataConfig, axisPlace])
 
   const updateDomainAndRenderSubAxis = useCallback(() => {
     const role = axisPlaceToAttrRole[axisPlace],
@@ -438,21 +352,13 @@ export const useSubAxis = ({
       return domain1[0] !== domain2[0] || domain1[1] !== domain2[1]
     }
 
-    if (isCategoricalAxisModel(axisModel)) {
+    if (isCategoricalOrColorAxisModel(axisModel)) {
       setupCategories()
       const categoryValues = categoriesRef.current,
         multiScale = layout.getAxisMultiScale(axisPlace),
         existingCategoryDomain = multiScale?.categoricalScale?.domain() ?? []
       if (JSON.stringify(categoryValues) === JSON.stringify(existingCategoryDomain)) return
       multiScale?.setCategoricalDomain(categoryValues)
-      renderSubAxis()
-    } else if (isColorAxisModel(axisModel)) {
-      setupColors()
-      const colorValues = colorsRef.current,
-        multiScale = layout.getAxisMultiScale(axisPlace),
-        existingCategoryDomain = multiScale?.categoricalScale?.domain() ?? []
-      if (JSON.stringify(colorValues) === JSON.stringify(existingCategoryDomain)) return
-      multiScale?.setCategoricalDomain(colorValues)
       renderSubAxis()
     } else if (isBaseNumericAxisModel(axisModel)) {
       const currentAxisDomain = axisModel.domain
@@ -472,7 +378,7 @@ export const useSubAxis = ({
         renderSubAxis()
       }
     }
-  }, [axisModel, axisPlace, dataConfig, layout, renderSubAxis, setupCategories, setupColors])
+  }, [axisModel, axisPlace, dataConfig, layout, renderSubAxis, setupCategories])
 
   useEffect(function respondToHiddenCasesChange() {
     if (dataConfig) {
@@ -501,9 +407,8 @@ export const useSubAxis = ({
   // update on multiScaleChangeCount change
   useEffect(() => {
     isCategorical && setupCategories()
-    isColor && setupColors()
     renderSubAxis()
-  }, [renderSubAxis, multiScaleChangeCount, isCategorical, setupCategories, isColor, setupColors])
+  }, [renderSubAxis, multiScaleChangeCount, isCategorical, setupCategories])
 
   // We only need to do this for categorical axes
   useEffect(function setup() {
@@ -511,10 +416,6 @@ export const useSubAxis = ({
       setupCategories()
       renderSubAxis()
     }
-    if (isColor) {
-      setupColors()
-      renderSubAxis()
-    }
-  }, [isCategorical, setupCategories, renderSubAxis, isColor, setupColors])
+  }, [isCategorical, setupCategories, renderSubAxis])
 
 }

@@ -9,7 +9,8 @@ import { CodapV2Document } from "../../v2/codap-v2-document"
 import { exportV2Component } from "../../v2/codap-v2-tile-exporters"
 import { importV2Component } from "../../v2/codap-v2-tile-importers"
 import {
-  ICodapV2DocumentJson, ICodapV2GameViewStorage, ICodapV2GuideViewStorage, ICodapV2WebViewStorage
+  ICodapV2DocumentJson, ICodapV2GameViewStorage, ICodapV2GuideViewStorage, ICodapV2ImageComponentStorage,
+  ICodapV2WebViewStorage
 } from "../../v2/codap-v2-types"
 import { kWebViewTileType } from "./web-view-defs"
 import { isWebViewModel } from "./web-view-model"
@@ -19,6 +20,19 @@ const path = require("path")
 const fs = require("fs")
 
 describe("WebView registration", () =>  {
+  const mockGetGlobalValues = jest.fn()
+  const mockGetCaseData = jest.fn()
+  const mockLinkSharedModel = jest.fn()
+  const mockImportArgs = {
+    getCaseData: mockGetCaseData,
+    getGlobalValues: mockGetGlobalValues,
+    linkSharedModel: mockLinkSharedModel,
+  }
+
+  beforeEach(() => {
+    jest.restoreAllMocks()
+  })
+
   it("registers content and component info", () => {
     const contentInfo = getTileContentInfo(kWebViewTileType)
     expect(contentInfo).toBeDefined()
@@ -46,8 +60,8 @@ describe("WebView registration", () =>  {
     const tile = importV2Component({
       v2Component: v2Document.components[0],
       v2Document,
-      sharedModelManager,
-      insertTile: mockInsertTile
+      insertTile: mockInsertTile,
+      ...mockImportArgs
     })!
     expect(tile).toBeDefined()
     expect(mockInsertTile).toHaveBeenCalledTimes(1)
@@ -85,8 +99,8 @@ describe("WebView registration", () =>  {
     const tile = importV2Component({
       v2Component: v2Document.components[0],
       v2Document,
-      sharedModelManager,
-      insertTile: mockInsertTile
+      insertTile: mockInsertTile,
+      ...mockImportArgs
     })!
     expect(tile).toBeDefined()
     expect(mockInsertTile).toHaveBeenCalledTimes(1)
@@ -134,8 +148,8 @@ describe("WebView registration", () =>  {
     const tile = importV2Component({
       v2Component: v2Document.components[2],
       v2Document,
-      sharedModelManager,
-      insertTile: mockInsertTile
+      insertTile: mockInsertTile,
+      ...mockImportArgs
     })!
     expect(tile).toBeDefined()
     expect(mockInsertTile).toHaveBeenCalledTimes(1)
@@ -174,8 +188,8 @@ describe("WebView registration", () =>  {
     const tile = importV2Component({
       v2Component: v2Document.components[1],
       v2Document,
-      sharedModelManager,
-      insertTile: mockInsertTile
+      insertTile: mockInsertTile,
+      ...mockImportArgs
     })!
     expect(tile).toBeDefined()
 
@@ -214,8 +228,8 @@ describe("WebView registration", () =>  {
     const tile = importV2Component({
       v2Component: v2Document.components[3],
       v2Document,
-      sharedModelManager,
-      insertTile: mockInsertTile
+      insertTile: mockInsertTile,
+      ...mockImportArgs
     })!
 
     expect(tile).toBeDefined()
@@ -255,8 +269,8 @@ describe("WebView registration", () =>  {
     const tile = importV2Component({
       v2Component: v2Document.components[3],
       v2Document,
-      sharedModelManager,
-      insertTile: mockInsertTile
+      insertTile: mockInsertTile,
+      ...mockImportArgs
     })!
 
     expect(tile).toBeDefined()
@@ -278,5 +292,81 @@ describe("WebView registration", () =>  {
     expect(contentStorage.items).toHaveLength(9)
     expect(contentStorage.items[8].itemTitle).toBe("How do I enter formulas?")
     expect(contentStorage.items[8].url).toBe("https://inquiryspace-resources.concord.org/guides/how-to-guide/9.html")
+  })
+
+  it("imports/exports v2 image component view with url", () => {
+    const file = path.join(__dirname, "../../test/v2", "four-seals-image-url.codap")
+    const json = fs.readFileSync(file, "utf8")
+    const doc = safeJsonParse<ICodapV2DocumentJson>(json)!
+    const v2Document = new CodapV2Document(doc)
+
+    const codapDoc = createCodapDocument()
+    const docContent = codapDoc.content!
+    docContent.setRowCreator(() => FreeTileRow.create())
+    const sharedModelManager = getSharedModelManager(docContent)
+    const mockInsertTile = jest.fn((tileSnap: ITileModelSnapshotIn) => {
+      return docContent?.insertTileSnapshotInDefaultRow(tileSnap)
+    })
+
+    const tile = importV2Component({
+      v2Component: v2Document.components[1],
+      v2Document,
+      insertTile: mockInsertTile,
+      ...mockImportArgs
+    })!
+    expect(tile).toBeDefined()
+
+    expect(mockInsertTile).toHaveBeenCalledTimes(1)
+    const content = isWebViewModel(tile?.content) ? tile?.content : undefined
+    expect(getTileContentInfo(kWebViewTileType)!.getTitle(tile)).toBe("Getting Started")
+    expect(content?.url).toBe("https://codap-resources.concord.org/example-documents/guides/images/edc-oceans-of-data-logo.png")
+    expect(content?.isImage).toBe(true)
+
+    const row = docContent.getRowByIndex(0) as IFreeTileRow
+    const componentExport = exportV2Component({ tile, row, sharedModelManager })
+    expect(componentExport?.type).toBe("DG.WebView")
+    const contentStorage = componentExport?.componentStorage as ICodapV2ImageComponentStorage
+
+    expect(hasOwnProperty(contentStorage, "name")).toBe(true)
+    expect(contentStorage.name).toBe("Oceans of Data")
+    expect(contentStorage.URL).toBe("https://codap-resources.concord.org/example-documents/guides/images/edc-oceans-of-data-logo.png")
+  })
+
+  it("imports/exports v2 image component view with image data", () => {
+    const file = path.join(__dirname, "../../test/v2", "png-doc.codap")
+    const json = fs.readFileSync(file, "utf8")
+    const doc = safeJsonParse<ICodapV2DocumentJson>(json)!
+    const v2Document = new CodapV2Document(doc)
+
+    const codapDoc = createCodapDocument()
+    const docContent = codapDoc.content!
+    docContent.setRowCreator(() => FreeTileRow.create())
+    const sharedModelManager = getSharedModelManager(docContent)
+    const mockInsertTile = jest.fn((tileSnap: ITileModelSnapshotIn) => {
+      return docContent?.insertTileSnapshotInDefaultRow(tileSnap)
+    })
+
+    const tile = importV2Component({
+      v2Component: v2Document.components[0],
+      v2Document,
+      insertTile: mockInsertTile,
+      ...mockImportArgs
+    })!
+    expect(tile).toBeDefined()
+
+    expect(mockInsertTile).toHaveBeenCalledTimes(1)
+    const content = isWebViewModel(tile?.content) ? tile?.content : undefined
+    expect(getTileContentInfo(kWebViewTileType)!.getTitle(tile)).toBe("forest fire slider.png")
+    expect(content?.url).toContain("data:image/png;base64")
+    expect(content?.isImage).toBe(true)
+
+    const row = docContent.getRowByIndex(0) as IFreeTileRow
+    const componentExport = exportV2Component({ tile, row, sharedModelManager })
+    expect(componentExport?.type).toBe("DG.WebView")
+    const contentStorage = componentExport?.componentStorage as ICodapV2ImageComponentStorage
+
+    expect(hasOwnProperty(contentStorage, "name")).toBe(true)
+    expect(contentStorage.name).toBe("forest fire slider.png")
+    expect(contentStorage.URL).toContain("data:image/png;base64")
   })
 })
