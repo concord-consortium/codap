@@ -57,7 +57,8 @@ export class CategoricalAxisHelper extends AxisHelper {
       numCategories = categories.length,
       hasCategories = !(categories.length === 1 && categories[0] === kMain),
       bandWidth = this.subAxisLength / numCategories,
-      collision = collisionExists({bandWidth, categories, centerCategoryLabels}),
+      // we don't rotate the color swatches axis labels
+      collision = isColorAxis ? false : collisionExists({bandWidth, categories, centerCategoryLabels}),
       {rotation, textAnchor} = getCategoricalLabelPlacement(this.axisPlace, this.centerCategoryLabels,
         collision),
       duration = (this.isAnimating() && !this.swapInProgress.current &&
@@ -116,10 +117,10 @@ export class CategoricalAxisHelper extends AxisHelper {
               .attr('x', (d, i) => fns.getLabelX(i) - ((bandWidth * 2 / 3) / 2))
               .attr('y', (d, i) => Math.max(6.5, fns.getLabelY(i) - (kDefaultColorSwatchHeight / (isVertical ? 2 : 1))))
               .style("fill", (d, i) => categories[i])
-              .style("width", (bandWidth * 2)/3)
+              .style("width", bandWidth * 2 / 3)
               .style("height", `${kDefaultColorSwatchHeight}px`)
               .attr('transform', `${rotation}`)
-              .attr('transform-origin', (d, i) => {return `${fns.getLabelX(i)} ${fns.getLabelY(i)}`})
+              .attr('transform-origin', (d, i) => `${fns.getLabelX(i)} ${fns.getLabelY(i)}`)
               .transition().duration(duration)
               .style('opacity', 0.85)
               .style('stroke', '#315b7d')
