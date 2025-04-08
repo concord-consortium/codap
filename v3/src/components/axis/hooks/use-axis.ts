@@ -4,17 +4,18 @@ import { isAlive } from "mobx-state-tree"
 import { useCallback, useEffect } from "react"
 import { mstAutorun } from "../../../utilities/mst-autorun"
 import { mstReaction } from "../../../utilities/mst-reaction"
-import { graphPlaceToAttrRole } from "../../data-display/data-display-types"
+import { axisPlaceToAttrRole, graphPlaceToAttrRole } from "../../data-display/data-display-types"
 import { maxWidthOfStringsD3 } from "../../data-display/data-display-utils"
 import { useDataConfigurationContext } from "../../data-display/hooks/use-data-configuration-context"
 import { AxisPlace, AxisScaleType, axisGap } from "../axis-types"
 import { useAxisLayoutContext } from "../models/axis-layout-context"
-import { isBaseNumericAxisModel, isDateAxisModel } from "../models/axis-model"
+import { isBaseNumericAxisModel, isColorAxisModel, isDateAxisModel } from "../models/axis-model"
 import { collisionExists, getNumberOfLevelsForDateAxis, getStringBounds, isScaleLinear } from "../axis-utils"
 import { useAxisProviderContext } from "./use-axis-provider-context"
 import { useDataDisplayModelContextMaybe } from "../../data-display/hooks/use-data-display-model"
 import { IDataDisplayContentModel } from "../../data-display/models/data-display-content-model"
 import { MultiScale } from "../models/multi-scale"
+import { kColorAxisExtent } from "../axis-constants"
 
 import vars from "../../vars.scss"
 
@@ -50,8 +51,10 @@ export const useAxis = (axisPlace: AxisPlace) => {
     axisModel = axisProvider.getAxis(axisPlace),
     isNumeric = axisModel && isBaseNumericAxisModel(axisModel),
     multiScale = layout.getAxisMultiScale(axisPlace),
-    dataConfiguration = useDataConfigurationContext()
-
+    dataConfiguration = useDataConfigurationContext(),
+    attrId = dataConfiguration?.attributeID(axisPlaceToAttrRole[axisPlace]) || "",
+    axisAttribute = dataConfiguration?.dataset?.getAttribute(attrId),
+    axisAttributeType = axisAttribute?.type
   const computeDesiredExtent = useCallback(() => {
     if (dataConfiguration?.placeCanHaveZeroExtent(axisPlace)) {
       return 0
@@ -59,6 +62,7 @@ export const useAxis = (axisPlace: AxisPlace) => {
     const _axisModel = axisProvider?.getNumericAxis?.(axisPlace)
     const attrRole = graphPlaceToAttrRole[axisPlace]
     const axisType = axisModel?.type ?? 'empty'
+    const isColor = (axisModel && isColorAxisModel(axisModel)) || axisAttributeType === 'color'
     const isBinned = axisModel ? axisProvider?.hasBinnedNumericAxis(axisModel) : false
     const labelFont = vars.labelFont,
       axisTitleHeight = getStringBounds("Xy", labelFont).height,
@@ -85,7 +89,8 @@ export const useAxis = (axisPlace: AxisPlace) => {
           centerCategoryLabels = dataConfiguration?.categoriesForAxisShouldBeCentered(axisPlace) ?? true,
           bandWidth = axisLength / categories.length / repetitions,
           collision = collisionExists({bandWidth, categories, centerCategoryLabels})
-        desiredExtent += collision ? maxWidthOfStringsD3(categories) : getStringBounds().height
+        desiredExtent += isColor ? kColorAxisExtent
+                                  : collision ? maxWidthOfStringsD3(categories) : getStringBounds().height
         break
       }
       case 'date': {
