@@ -1,12 +1,13 @@
 import { Selection } from "d3"
 import { MutableRefObject } from "react"
 import { measureTextExtent } from "../../../hooks/use-measure-text"
-import { otherPlace } from "../axis-types"
-import { AxisHelper, IAxisHelperArgs } from "./axis-helper"
+import {
+  convertToDate, createDate, determineLevels, EDateTimeLevel, shortMonthNames
+} from "../../../utilities/date-utils"
 import { kAxisGap, kAxisTickLength, kDefaultFontHeight } from "../axis-constants"
-import { isDateAxisModel, IDateAxisModel } from "../models/axis-model"
-import { convertToDate, createDate, determineLevels, EDateTimeLevel, shortMonthNames }
-  from "../../../utilities/date-utils"
+import { otherPlace } from "../axis-types"
+import { isDateAxisModel, IDateAxisModel } from "../models/numeric-axis-models"
+import { AxisHelper, IAxisHelperArgs } from "./axis-helper"
 
 type ILabelDateAndString = {
   labelDate: Date
@@ -293,7 +294,7 @@ export class DateAxisHelper extends AxisHelper {
             .attr('x', isVertical ? iRefPoint.x : iCoord)
             .attr('y', isVertical ? iCoord : iRefPoint.y)
             .attr('text-anchor', iAnchor)
-            .attr('transform', `rotate(${iRotation}, ${isVertical ? iRefPoint.x + kDefaultFontHeight : iCoord}, 
+            .attr('transform', `rotate(${iRotation}, ${isVertical ? iRefPoint.x + kDefaultFontHeight : iCoord},
                       ${isVertical ? iCoord : iRefPoint.y})`)
             .text(iLabelString)
         }

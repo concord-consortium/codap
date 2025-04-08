@@ -4,11 +4,11 @@ import { comparer, reaction } from "mobx"
 import {drag, ScaleContinuousNumeric, select} from "d3"
 import { logMessageWithReplacement } from "../../../lib/log-message"
 import { t } from "../../../utilities/translation/translate"
+import {isVertical} from "../../axis-graph-shared"
 import {RectIndices, selectDragRects} from "../axis-types"
 import {useAxisLayoutContext} from "../models/axis-layout-context"
-import {IBaseNumericAxisModel} from "../models/axis-model"
-import {isVertical} from "../../axis-graph-shared"
 import {MultiScale} from "../models/multi-scale"
+import { IBaseNumericAxisModel } from "../models/numeric-axis-models"
 
 import "./axis.scss"
 

@@ -58,9 +58,8 @@ export class CategoricalAxisHelper extends AxisHelper {
       hasCategories = !(categories.length === 1 && categories[0] === kMain),
       bandWidth = this.subAxisLength / numCategories,
       // we don't rotate the color swatches axis labels
-      collision = isColorAxis ? false : collisionExists({bandWidth, categories, centerCategoryLabels}),
-      {rotation, textAnchor} = getCategoricalLabelPlacement(this.axisPlace, this.centerCategoryLabels,
-        collision),
+      collision = !isColorAxis && collisionExists({bandWidth, categories, centerCategoryLabels}),
+      {rotation, textAnchor} = getCategoricalLabelPlacement(this.axisPlace, this.centerCategoryLabels, collision),
       duration = (this.isAnimating() && !this.swapInProgress.current &&
         dragInfo.current.indexOfCategory === -1) ? transitionDuration : 0
 
