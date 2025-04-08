@@ -21,14 +21,20 @@ export const BarChartModel = DotChartModel
   })
   .volatile(self => ({
     formulaEditorIsOpen: false,
+    fallbackBreakdownType: "count" as ("count" | "percent"),
   }))
   .actions(self => ({
     setBreakdownType(type: BreakdownType) {
       self.breakdownType = type
-      if (type !== 'formula') self.formula.setDisplayExpression('')
+      if (type !== 'formula') self.fallbackBreakdownType = type
     },
     setExpression(expression: string) {
       self.formula.setDisplayExpression(expression)
+      if (expression) {
+        this.setBreakdownType("formula")
+      } else {
+        this.setBreakdownType(self.fallbackBreakdownType)
+      }
     },
     setFormulaEditorIsOpen(isOpen: boolean) {
       self.formulaEditorIsOpen = isOpen
