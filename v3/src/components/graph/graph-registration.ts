@@ -23,11 +23,13 @@ import { kGraphIdPrefix, kGraphTileClass, kGraphTileType, kV2GraphType } from ".
 import { GraphContentModel, IGraphContentModelSnapshot, isGraphContentModel } from "./models/graph-content-model"
 import { kGraphDataConfigurationType } from "./models/graph-data-configuration-model"
 import { GraphFilterFormulaAdapter } from "./models/graph-filter-formula-adapter"
+import { BarChartFormulaAdapter } from "./plots/bar-chart/bar-chart-formula-adapter"
 import { kGraphPointLayerType } from "./models/graph-point-layer-model"
 import { v2GraphExporter } from "./v2-graph-exporter"
 import { v2GraphImporter } from "./v2-graph-importer"
 
 GraphFilterFormulaAdapter.register()
+BarChartFormulaAdapter.register()
 
 registerTileContentInfo({
   type: kGraphTileType,
@@ -65,7 +67,8 @@ registerTileContentInfo({
   getFormulaAdapters: (node: IAnyStateTreeNode) => [
     GraphFilterFormulaAdapter.get(node),
     PlottedFunctionFormulaAdapter.get(node),
-    PlottedValueFormulaAdapter.get(node)
+    PlottedValueFormulaAdapter.get(node),
+    BarChartFormulaAdapter.get(node)
   ]
 })
 

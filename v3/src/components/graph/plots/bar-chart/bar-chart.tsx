@@ -1,16 +1,14 @@
-import { useDisclosure } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
 import React, { useCallback, useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
-import { logStringifiedObjectMessage } from "../../../../lib/log-message"
 import { useDisclosure } from "@chakra-ui/react"
-import { t } from "../../../../utilities/translation/translate"
 import { logStringifiedObjectMessage } from "../../../../lib/log-message"
 import { numericSortComparator } from "../../../../utilities/data-utils"
 import { t } from "../../../../utilities/translation/translate"
 import { kMain } from "../../../data-display/data-display-types"
 import { circleAnchor } from "../../../data-display/pixi/pixi-points"
 import { EditFormulaModal } from "../../../common/edit-formula-modal"
+import { useGraphLayoutContext } from "../../hooks/use-graph-layout-context"
 import { IBarCover, IPlotProps } from "../../graphing-types"
 import { useChartDots } from "../../hooks/use-chart-dots"
 import { usePlotResponders } from "../../hooks/use-plot"
@@ -21,14 +19,14 @@ import { isBarChartModel } from "./bar-chart-model"
 export const BarChart = observer(function BarChart({ abovePointsGroupRef, pixiPoints }: IPlotProps) {
   const { dataset, graphModel, isAnimating, layout, primaryScreenCoord, secondaryScreenCoord,
           refreshPointSelection, subPlotCells } = useChartDots(pixiPoints)
+  const graphLayout = useGraphLayoutContext()
   const barChartModel = graphModel.plot
   const barCoversRef = useRef<SVGGElement>(null)
   const [, setModalIsOpen] = useState(false)
   const formulaModal = useDisclosure()
 
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
-    // todo: We're not yet ready to support formula-based bar charts
-    if (!isBarChartModel(barChartModel) || barChartModel.breakdownType === 'formula') return
+    if (!isBarChartModel(barChartModel)) return
     const {
       dataConfig, primaryAttrRole, primaryCellWidth, primaryCellHeight, primaryIsBottom,
       primarySplitAttrRole, secondarySplitAttrRole, secondaryNumericUnitLength } = subPlotCells
@@ -39,6 +37,7 @@ export const BarChart = observer(function BarChart({ abovePointsGroupRef, pixiPo
     const legendAttrID = dataConfig?.attributeID('legend')
     const getLegendColor = legendAttrID ? dataConfig?.getLegendColorForCase : undefined
     const pointDisplayType = "bars"
+    const isFormulaDriven = barChartModel.breakdownType === "formula"
 
     const getPrimaryScreenCoord = (anID: string) => primaryScreenCoord({cellIndices, numPointsInRow}, anID)
     const getSecondaryScreenCoord = (anID: string) => secondaryScreenCoord({cellIndices}, anID)
@@ -48,12 +47,33 @@ export const BarChart = observer(function BarChart({ abovePointsGroupRef, pixiPo
     const getWidth = (anID:string) => {
       return primaryIsBottom
         ? primaryCellWidth / 2
-        : secondaryNumericUnitLength * barCompressionFactorForCase(anID, graphModel)
+        : Math.abs(secondaryNumericUnitLength * barCompressionFactorForCase(anID, graphModel))
     }
     const getHeight = (anID:string) => {
       return primaryIsBottom
-        ? secondaryNumericUnitLength * barCompressionFactorForCase(anID, graphModel)
+        ? Math.abs(secondaryNumericUnitLength * barCompressionFactorForCase(anID, graphModel))
         : primaryCellWidth / 2
+    }
+
+    const adjustCoverForBar = (cover:IBarCover) => {
+      // When there is a formula we have to compute the length of the bar using that formula. And we have to
+      // adjust the position coordinate depending on whether the formula value is positive or negative.
+      if (!isFormulaDriven || !isBarChartModel(barChartModel) || !dataConfig) return cover
+
+      const barSpec = barChartModel.getBarSpec(dataConfig.graphCellKeyFromCaseID(cover.caseIDs[0]))
+      const value = barSpec?.value ?? 0
+      const numericScale = graphLayout.getNumericScale(primaryIsBottom ? 'left' : 'bottom')
+      const zeroCoord = numericScale?.(0) ?? 0
+      const valueCoord = numericScale?.(value) ?? 0
+      if (primaryIsBottom) {
+        cover.y = `${value > 0 ? valueCoord : zeroCoord}`
+        cover.height = `${Math.abs(zeroCoord - valueCoord)}`
+      }
+      else {
+        cover.x = `${value > 0 ? zeroCoord : valueCoord}`
+        cover.width = `${Math.abs(zeroCoord - valueCoord)}`
+      }
+      return cover
     }
 
     // build and render bar cover elements that will handle click events for the fused points
@@ -72,8 +92,7 @@ export const BarChart = observer(function BarChart({ abovePointsGroupRef, pixiPo
               const secCatKey = secCat === kMain ? "" : secCat
               const exPrimeCatKey = primeSplitCat === kMain ? "" : primeSplitCat
               const exSecCatKey = secSplitCat === kMain ? "" : secSplitCat
-
-              if (legendAttrID && legendCats?.length > 0) {
+              if (legendAttrID && legendCats?.length > 0 && !isFormulaDriven) {
                 let minInCell = 0
 
                 // Create a map of cases grouped by legend value, so we don't need to filter all cases per value when
@@ -137,13 +156,13 @@ export const BarChart = observer(function BarChart({ abovePointsGroupRef, pixiPo
                 const caseIDs = dataConfig.getCasesForCategoryValues(
                   primaryAttrRole, primeCat, secCat, primeSplitCat, secSplitCat
                 )
-                barCovers.push({
+                barCovers.push(adjustCoverForBar({
                   caseIDs,
                   class: `bar-cover ${primeCat} ${secCatKey} ${exPrimeCatKey} ${exSecCatKey}`,
                   primeCat, secCat, primeSplitCat, secSplitCat,
                   x: x.toString(), y: y.toString(),
                   width: barWidth.toString(), height: barHeight.toString()
-                })
+                }))
               }
             })
           })
@@ -159,7 +178,7 @@ export const BarChart = observer(function BarChart({ abovePointsGroupRef, pixiPo
       getScreenX, getScreenY, getLegendColor, getAnimationEnabled: isAnimating, getWidth, getHeight,
       pointsFusedIntoBars: graphModel?.pointsFusedIntoBars
     })
-  }, [abovePointsGroupRef, barChartModel, dataset, graphModel, isAnimating, layout,
+  }, [abovePointsGroupRef, barChartModel, dataset, graphLayout, graphModel, isAnimating, layout,
     pixiPoints, primaryScreenCoord, secondaryScreenCoord, subPlotCells])
 
   usePlotResponders({pixiPoints, refreshPointPositions, refreshPointSelection})
@@ -170,7 +189,7 @@ export const BarChart = observer(function BarChart({ abovePointsGroupRef, pixiPo
     }
   }, [pixiPoints, graphModel.pointsFusedIntoBars])
 
-  if (!isBarChartModel(barChartModel))  return
+  if (!isBarChartModel(barChartModel))  return null
 
   const handleModalOpen = (open: boolean) => {
     setModalIsOpen(open)

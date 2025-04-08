@@ -97,15 +97,6 @@ export const PlotModel = types
     },
     get showZeroLine(): boolean {
       return false
-    },
-    get _maxCellPercent() {
-      const { maxPercentAllCells, primaryRole } = self.dataConfiguration || {}
-      const primarySplitRole = primaryRole === "x" ? "topSplit" : "rightSplit"
-      const secondarySplitRole = primaryRole === "x" ? "rightSplit" : "topSplit"
-      return maxPercentAllCells?.(primarySplitRole, secondarySplitRole) ?? 0
-    },
-    axisLabelClickHandler(role: GraphAttrRole):undefined | (() => void) {
-      return undefined
     }
   }))
   .views(self => ({

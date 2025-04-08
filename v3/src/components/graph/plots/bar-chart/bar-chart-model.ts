@@ -1,15 +1,21 @@
 import { format } from "d3-format"
-import { IJsonPatch, Instance, SnapshotIn, types } from "mobx-state-tree"
+import { observable, reaction } from "mobx"
+import { addDisposer, IJsonPatch, Instance, SnapshotIn, types } from "mobx-state-tree"
 import { AttributeType } from "../../../../models/data/attribute-types"
 import { Formula } from "../../../../models/formula/formula"
 import { t } from "../../../../utilities/translation/translate"
 import { AxisPlace } from "../../../axis/axis-types"
-import { IAxisModel, isNumericAxisModel } from "../../../axis/models/axis-model"
+import { IAxisModel, IDateAxisModel, INumericAxisModel, isNumericAxisModel } from "../../../axis/models/axis-model"
 import { GraphAttrRole, PointDisplayType } from "../../../data-display/data-display-types"
-import { BreakdownType, BreakdownTypes } from "../../graphing-types"
+import { setNiceDomain } from "../../../axis/axis-domain-utils"
+import { BreakdownType, BreakdownTypes, GraphCellKey } from "../../graphing-types"
 import { DotChartModel } from "../dot-chart/dot-chart-model"
 import { IBarTipTextProps, IPlotModel, typesPlotType } from "../plot-model"
 
+export interface IBarSpec {
+  value: number
+  numCases: number
+}
 const float1 = format('.1~f')
 
 export const BarChartModel = DotChartModel
@@ -17,11 +23,13 @@ export const BarChartModel = DotChartModel
   .props({
     type: typesPlotType("barChart"),
     breakdownType: types.optional(types.enumeration([...BreakdownTypes]), "count"),
-    formula: types.optional(Formula, () => Formula.create()),
+    formula: types.maybe(Formula)
   })
   .volatile(self => ({
     formulaEditorIsOpen: false,
-    fallbackBreakdownType: self.breakdownType === "percent" ? "percent" : "count" as Exclude<BreakdownType, "formula">
+    fallbackBreakdownType: self.breakdownType === "percent" ? "percent" : "count" as Exclude<BreakdownType, "formula">,
+    barSpecs: observable.map<string, IBarSpec>(),
+    getSecondaryNumericAxis: ():INumericAxisModel | IDateAxisModel | undefined => { return undefined },
   }))
   .actions(self => ({
     setBreakdownType(type: BreakdownType) {
@@ -37,9 +45,15 @@ export const BarChartModel = DotChartModel
         this.setBreakdownType(self.fallbackBreakdownType)
       }
     },
+    setSecondaryNumericAxisAccessor(getter: () => INumericAxisModel | IDateAxisModel | undefined) {
+      self.getSecondaryNumericAxis = getter
+    },
     setFormulaEditorIsOpen(isOpen: boolean) {
       self.formulaEditorIsOpen = isOpen
     },
+    setBarSpec(key: GraphCellKey, value: number, numCases: number) {
+      self.barSpecs.set(JSON.stringify(key), { value, numCases })
+    }
   }))
   .views(self => {
     const baseMaxCellPercent = self.maxCellPercent
@@ -78,11 +92,29 @@ export const BarChartModel = DotChartModel
     get hasExpression() {
       return !!self.formula && !self.formula.empty
     },
+    getMinMaxOfFormulaValues() {
+      const barSpecs = self.barSpecs
+      if (barSpecs.size === 0) {
+        return { min: 0, max: 100 }
+      }
+      let min = Number.MAX_VALUE
+      let max = -Number.MAX_VALUE
+      barSpecs.forEach(({ value}) => {
+        if (value < min) {
+          min = value
+        }
+        if (value > max) {
+          max = value
+        }
+      })
+      return { min, max }
+    },
     getValidFormulaAxis(axisModel?: IAxisModel): IAxisModel {
       const secondaryPlace = self.dataConfiguration?.secondaryRole === "x" ? "bottom" : "left"
       const resultAxisModel = self.getValidNumericOrDateAxis(secondaryPlace, undefined, axisModel)
-      // todo: Once we can evaluate the formula, use min and max computed from it
-      isNumericAxisModel(resultAxisModel) && resultAxisModel.setDomain(0, 100)
+      const {min, max} = this.getMinMaxOfFormulaValues()
+      isNumericAxisModel(resultAxisModel) &&
+        setNiceDomain([min, max], resultAxisModel, { clampPosMinAtZero: true })
       return resultAxisModel
     },
     getValidSecondaryAxis(place: AxisPlace, attrType?: AttributeType, axisModel?: IAxisModel): IAxisModel {
@@ -103,9 +135,8 @@ export const BarChartModel = DotChartModel
     get showBreakdownTypes(): boolean {
       return true
     },
-    get maxCellPercent() {
-      // Override base class to handle situation in which there is a legend
-      return self.dataConfiguration?.attributeID("legend") ? 100 : self._maxCellPercent
+    getBarSpec(key: GraphCellKey): IBarSpec | undefined {
+      return self.barSpecs.get(JSON.stringify(key))
     },
     axisLabelClickHandler(role: GraphAttrRole): Maybe<() => void> {
       if (self.breakdownType === "formula" && self.hasExpression && role === self.dataConfiguration?.secondaryRole) {
@@ -115,10 +146,6 @@ export const BarChartModel = DotChartModel
       }
       return undefined
     },
-    get maxCellPercent() {
-      // Override base class to handle situation in which there is a legend
-      return self.dataConfiguration?.attributeID("legend") ? 100 : self._maxCellPercent
-    },
     newSecondaryAxisRequired(patch: IJsonPatch): false | IAxisModel {
       if (patch.path.includes("breakdownType")) {
         const secondaryPlace = self.dataConfiguration?.secondaryRole === "x" ? "bottom" : "left"
@@ -127,6 +154,18 @@ export const BarChartModel = DotChartModel
       return false
     },
     barTipText(props: IBarTipTextProps) {
+
+      const computeTipForFormulaBar = (caseID: string, category: string) => {
+        const barSpec = this.getBarSpec(self.dataConfiguration?.graphCellKeyFromCaseID(caseID) || {})
+        if (barSpec) {
+          const { value} = barSpec
+          return t("DG.ComputedBarChartModel.cellTip", {
+            vars: [category, float1(value)]
+          })
+        }
+        return ""
+      }
+
       const { dataset } = self.dataConfiguration ?? {}
       const {
         primaryMatches, casesInSubPlot, casePrimaryValue, legendAttrID: legendAttrId, caseLegendValue,
@@ -148,17 +187,37 @@ export const BarChartModel = DotChartModel
         :  0
       const caseCategoryString = caseLegendValue ? casePrimaryValue : ""
       const caseLegendCategoryString = caseLegendValue || casePrimaryValue
-      const firstCount = legendAttrId ? legendMatchesInSubplot : casesInSubPlot.length
-      const secondCount = legendAttrId ? casesInSubPlot.length : totalCases
-      const percent = float1(100 * firstCount / secondCount)
-      // <n> of <m> <category> (<p>%) are <legend category>
-      const vars = [ firstCount, secondCount, percent, caseLegendCategoryString ]
-      // data tips have an additional variable when there's a legend
-      caseCategoryString && vars.splice(2, 0, caseCategoryString)
-      const translationKey = legendAttrId
-        ? firstCount === 1 ? "DG.BarChartModel.cellTipSingular" : "DG.BarChartModel.cellTipPlural"
-        : firstCount === 1 ? "DG.BarChartModel.cellTipNoLegendSingular" : "DG.BarChartModel.cellTipNoLegendPlural"
-      return t(translationKey, {vars})
+      if (self.breakdownType === "formula") {
+        return computeTipForFormulaBar(casesInSubPlot[0], casePrimaryValue || "")
+      } else {
+        const firstCount = legendAttrId ? legendMatchesInSubplot : casesInSubPlot.length
+        const secondCount = legendAttrId ? casesInSubPlot.length : totalCases
+        const percent = float1(100 * firstCount / secondCount)
+        // <n> of <m> <category> (<p>%) are <legend category>
+        const vars = [firstCount, secondCount, percent, caseLegendCategoryString]
+        // data tips have an additional variable when there's a legend
+        caseCategoryString && vars.splice(2, 0, caseCategoryString)
+        const translationKey = legendAttrId
+          ? firstCount === 1 ? "DG.BarChartModel.cellTipSingular" : "DG.BarChartModel.cellTipPlural"
+          : firstCount === 1 ? "DG.BarChartModel.cellTipNoLegendSingular" : "DG.BarChartModel.cellTipNoLegendPlural"
+        return t(translationKey, {vars})
+      }
+    }
+  }))
+  .actions(self => ({
+    afterCreate() {
+      addDisposer(self, reaction(
+        () => self.getMinMaxOfFormulaValues(),
+        ({min, max}) => {
+          const secondaryNumericAxis = self.getSecondaryNumericAxis()
+          secondaryNumericAxis &&
+            setNiceDomain([min, max], secondaryNumericAxis, { clampPosMinAtZero: true })
+        },
+        { name: "BarChartModel.afterCreate.reactToBarSpecMinMaxChanges" }
+      ))
+    },
+    beforeDestroy() {
+      self.barSpecs.clear()
     }
   }))
 export interface IBarChartModel extends Instance<typeof BarChartModel> {}

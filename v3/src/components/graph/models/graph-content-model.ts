@@ -35,6 +35,7 @@ import {AdornmentsStore} from "../adornments/store/adornments-store"
 import {kGraphTileType} from "../graph-defs"
 import { CatMapType, CellType, PlotType } from "../graphing-types"
 import { CasePlotModel } from "../plots/case-plot/case-plot-model"
+import { isBarChartModel } from "../plots/bar-chart/bar-chart-model"
 import { IPlotModelUnionSnapshot, PlotModelUnion } from "../plots/plot-model-union"
 import {IGraphDataConfigurationModel} from "./graph-data-configuration-model"
 import {GraphPointLayerModel, IGraphPointLayerModel, kGraphPointLayerType} from "./graph-point-layer-model"
@@ -158,6 +159,9 @@ export const GraphContentModel = DataDisplayContentModel
     }
   }))
   .views(self => ({
+    getSecondaryNumericAxis() {
+      return self.getNumericAxis(self.dataConfiguration.secondaryRole === "x" ? "bottom" : "left")
+    },
     getUpdateCategoriesOptions(
       resetPoints = false, xScale?: ScaleNumericBaseType, yScale?: ScaleNumericBaseType
     ): IUpdateCategoriesOptions {
@@ -184,6 +188,10 @@ export const GraphContentModel = DataDisplayContentModel
       }
       if (!self.axes.get("left")) {
         self.axes.set("left", EmptyAxisModel.create({place: "left"}))
+      }
+      // If our plot is a bar chart, we need to give it a secondary axis accessor
+      if (isBarChartModel(self.plot)) {
+        self.plot.setSecondaryNumericAxisAccessor(self.getSecondaryNumericAxis)
       }
       addDisposer(self, reaction(
         () => self.plotType,
@@ -279,6 +287,9 @@ export const GraphContentModel = DataDisplayContentModel
         if (self.dataConfiguration) {
           self.plot.setDataConfiguration(self.dataConfiguration)
           self.plot.resetSettings({ isBinnedPlotChanged: prevPlotWasBinned !== self.plot.isBinned })
+        }
+        if (isBarChartModel(self.plot)) {
+          self.plot.setSecondaryNumericAxisAccessor(self.getSecondaryNumericAxis)
         }
       }
       self.installPlotOnPatchHandler()
