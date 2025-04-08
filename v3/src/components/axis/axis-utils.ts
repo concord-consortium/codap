@@ -40,7 +40,7 @@ type CollisionOptions = "collision" | "fit"
 type CenterCollisionPlacementMap = Record<CenterOptions, Record<CollisionOptions, ILabelPlacement>>
 
 export const getCategoricalLabelPlacement = (
-  axisPlace: AxisPlace, centerNonNumericLabels: boolean, collision: boolean) => {
+  axisPlace: AxisPlace, centerCategoryLabels: boolean, collision: boolean) => {
 
   const rotation = 'rotate(-90)'  // the only rotation value we use
   const labelPlacementMap: Partial<Record<AxisPlace, CenterCollisionPlacementMap>> = {
@@ -91,7 +91,7 @@ export const getCategoricalLabelPlacement = (
     }
   }
 
-  const centerOrJustify = centerNonNumericLabels ? "center" : "justify"
+  const centerOrJustify = centerCategoryLabels ? "center" : "justify"
   const collisionOrFit = collision ? "collision" : "fit"
   const labelPlacement = labelPlacementMap[axisPlace]?.[centerOrJustify][collisionOrFit]
   return {rotation: '', textAnchor: 'none', ...labelPlacement}
