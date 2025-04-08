@@ -144,11 +144,6 @@ export const PlotModel = types
               ? axisModel
               : CategoricalAxisModel.create({ place })
     },
-    getValidColorAxis(place: AxisPlace, attrType?: AttributeType, axisModel?: IAxisModel): IAxisModel {
-      return isColorAxisModel(axisModel)
-              ? axisModel
-              : ColorAxisModel.create({ place })
-    },
     getValidCountAxis(place: AxisPlace, attrType?: AttributeType, axisModel?: IAxisModel): IAxisModel {
       const maxCellCaseCount = self.maxCellCaseCount()
       if (isCountAxisModel(axisModel)) {

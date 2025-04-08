@@ -167,7 +167,6 @@ export const useSubAxis = ({
      * Make sure there is a group element for each category and that the text elements have drag behavior
      */
     setupCategories = useCallback(() => {
-      console.log("setupCategories axisAttributeType", axisAttributeType)
       const subAxisElt = subAxisEltRef.current,
         axisLength = layout.getAxisLength(axisPlace),
         numCategoriesLimit = Math.floor(axisLength / kDefaultFontHeight)
@@ -222,14 +221,12 @@ export const useSubAxis = ({
         // labels
         if (catGroup.select('.category-label').empty()) {
           if (isColorAxis) {
-            console.log("in subaxis append color label")
             catGroup.append('rect')
               .attr('class', 'category-label')
               .attr('data-testid', 'color-label')
               .attr('x', 0)
               .attr('y', 0)
           } else {
-            console.log("in subaxis append text label")
             catGroup.append('text')
               .attr('class', 'category-label')
               .attr('data-testid', 'category-label')
@@ -269,7 +266,6 @@ export const useSubAxis = ({
         case 'categorical':
           // It is necessary to call renderSubAxis in most cases, but doing so for a categorical axis causes
           // a crash on redo. So we only do it for non-categorical axes.
-          console.log(" in update axis helper useEffect isColorAxis", isColorAxis)
           shouldRenderSubAxis = false
           helper = new CategoricalAxisHelper(
             { ...helperProps, centerCategoryLabels, dragInfo,
