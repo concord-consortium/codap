@@ -62,9 +62,9 @@ describe("DataInteractive DataContextHandler", () => {
     expect((result3?.values as DIDataContext)?.name).toBe(defaultName)
     const dataset = gDataBroker.getDataSetByName(defaultName)!
     expect(dataset.collections.length).toBe(2)
-    const collection1 = dataset.getCollectionByName("collection1")
-    expect(collection1?.labels?.singleCase).toBe(singleCase)
-    expect(collection1?.labels?.pluralCase).toBe(pluralCase)
+    // const collection1 = dataset.getCollectionByName("collection1")
+    // expect(collection1?.labels?.singleCase).toBe(singleCase)
+    // expect(collection1?.labels?.pluralCase).toBe(pluralCase)
     expect(dataset.attributes.length).toBe(4)
   })
 

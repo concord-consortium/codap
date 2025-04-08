@@ -1,6 +1,6 @@
 import { IAdornmentModelSnapshot } from "../components/graph/adornments/adornment-models"
 import { IValueType } from "../models/data/attribute-types"
-import { ICollectionLabels } from "../models/data/collection"
+import { ICollectionLabelsSnapshot } from "../models/shared/data-set-metadata"
 import { ICodapV2Attribute, ICodapV2Collection, ICodapV2DataContext } from "../v2/codap-v2-data-context-types"
 
 export type DICaseValue = IValueType
@@ -67,7 +67,7 @@ export interface DINotifyDataContext {
 
 export type DIItem = DICaseValues
 export type DIItemValues = DIItem | { id?: string | number; values: DIItem}
-type DICollectionLabels = Partial<ICollectionLabels>
+type DICollectionLabels = Partial<ICollectionLabelsSnapshot>
 export interface DICreateCollection {
   labels?: DICollectionLabels
   name?: string

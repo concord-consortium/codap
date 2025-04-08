@@ -1,10 +1,10 @@
 import { getSnapshot } from "mobx-state-tree"
 import { appState } from "../../models/app-state"
-import { getMetadataFromDataSet, getSharedDataSets } from "../../models/shared/shared-data-utils"
+import * as SharedDataUtils from "../../models/shared/shared-data-utils"
 import { toV2Id, toV3CollectionId } from "../../utilities/codap-utils"
 import { ICodapV2CollectionV3 } from "../../v2/codap-v2-data-context-types"
-import { DIValues } from "../data-interactive-types"
 import { DICollection, DIDeleteCollectionResult } from "../data-interactive-data-set-types"
+import { DIValues } from "../data-interactive-types"
 import { diCollectionHandler } from "./collection-handler"
 import { setupTestDataset } from "./handler-test-utils"
 
@@ -12,8 +12,10 @@ describe("DataInteractive CollectionHandler", () => {
   const handler = diCollectionHandler
 
   it("create works", () => {
-    const { dataset, c1, c2 } = setupTestDataset()
+    const { dataset, metadata, c1, c2 } = setupTestDataset()
+    const spy = jest.spyOn(SharedDataUtils, "getMetadataFromDataSet").mockReturnValue(metadata)
     const dataContext = dataset
+
     expect(handler.create?.({}, {}).success).toBe(false)
     expect(handler.create?.({ dataContext }).success).toBe(false)
 
@@ -60,16 +62,20 @@ describe("DataInteractive CollectionHandler", () => {
     expect(dataset.collections.length).toBe(7)
     expect(dataset.collections[3].name).toBe("c3")
     expect(dataset.collections[3].attributes.length).toBe(0)
-    expect(dataset.collections[3].labels?.singleCase).toBe("single")
-    expect(dataset.collections[3].labels?.pluralCase).toBe("plural")
+    expect(metadata?.collections.get(dataset.collections[3].id)?.labels?.singleCase).toBe("single")
+    expect(metadata?.collections.get(dataset.collections[3].id)?.labels?.pluralCase).toBe("plural")
     expect(dataset.collections[4].name).toBe("c4")
     expect(dataset.collections[4].attributes.length).toBe(2)
     expect(dataset.collections[4].attributes[0]?.name).toBe("a6")
     expect(dataset.collections[4].attributes[1]?.name).toBe("a7")
+
+    spy.mockRestore()
   })
 
   it("delete works", () => {
-    const { dataset: dataContext, c1: collection } = setupTestDataset()
+    const { dataset: dataContext, metadata, c1: collection } = setupTestDataset()
+    const spy = jest.spyOn(SharedDataUtils, "getMetadataFromDataSet").mockReturnValue(metadata)
+
     expect(handler.delete?.({ dataContext }).success).toBe(false)
     expect(handler.delete?.({ collection }).success).toBe(false)
 
@@ -80,21 +86,23 @@ describe("DataInteractive CollectionHandler", () => {
     expect(dataContext.attributes.length).toBe(3)
     expect(dataContext.collections.length).toBe(2)
     expect(dataContext.getCollection(collectionId)).toBeUndefined()
+
+    spy.mockRestore()
   })
 
   it("get works", () => {
     const documentContent = appState.document.content!
     const { dataset, a3 } = setupTestDataset()
     documentContent.createDataSet(getSnapshot(dataset))
-    const dataContext = getSharedDataSets(documentContent)[0].dataSet
+    const dataContext = SharedDataUtils.getSharedDataSets(documentContent)[0].dataSet
+    const metadata = SharedDataUtils.getMetadataFromDataSet(dataContext)
     const c1 = dataContext.collections[0]
     dataContext.moveAttribute(a3.id, { collection: c1.id })
     expect(handler.get?.({ dataContext }).success).toBe(false)
 
     // Grouped collection
-    const metadata = getMetadataFromDataSet(dataContext)
     metadata?.setIsHidden(c1.attributes[0]!.id, true)
-    c1.setLabels({ singleCase: "singleCase" })
+    metadata?.setCollectionLabels(c1.id, { singleCase: "singleCase" })
     const groupedResult = handler.get?.({ dataContext, collection: c1 })
     expect(groupedResult?.success).toBe(true)
     const groupedValues = groupedResult?.values as ICodapV2CollectionV3
@@ -115,7 +123,9 @@ describe("DataInteractive CollectionHandler", () => {
   })
 
   it("update works", () => {
-    const { dataset: dataContext, c1: collection } = setupTestDataset()
+    const { dataset: dataContext, metadata, c1: collection } = setupTestDataset()
+    const spy = jest.spyOn(SharedDataUtils, "getMetadataFromDataSet").mockReturnValue(metadata)
+
     expect(handler.update?.({ dataContext }).success).toBe(false)
     expect(handler.update?.({ collection }).success).toBe(false)
     expect(handler.update?.({ dataContext, collection }).success).toBe(true)
@@ -124,6 +134,8 @@ describe("DataInteractive CollectionHandler", () => {
       { dataContext, collection }, { title: "newTitle", labels: { singleCase: "singleCase" } } as DIValues
     ).success).toBe(true)
     expect(collection._title).toBe("newTitle")
-    expect(collection.labels?.singleCase).toBe("singleCase")
+    expect(metadata?.collections.get(collection.id)?.labels?.singleCase).toBe("singleCase")
+
+    spy.mockRestore()
   })
 })

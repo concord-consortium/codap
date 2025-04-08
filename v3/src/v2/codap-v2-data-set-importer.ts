@@ -4,13 +4,15 @@ import { IDataSet, toCanonical } from "../models/data/data-set"
 import { ICaseCreation, IItem } from "../models/data/data-set-types"
 import { importV2CategorySet, V2CategorySetInput } from "../models/data/v2-category-set-importer"
 import { v2NameTitleToV3Title } from "../models/data/v2-model"
-import { IDataSetMetadata, kDataSetMetadataType, DataSetMetadata } from "../models/shared/data-set-metadata"
+import {
+  DataSetMetadata, ICollectionLabelsSnapshot, IDataSetMetadata, isNonEmptyCollectionLabels, kDataSetMetadataType
+} from "../models/shared/data-set-metadata"
 import { kSharedDataSetType, SharedDataSet } from "../models/shared/shared-data-set"
 import { ISharedModelManager } from "../models/shared/shared-model-manager"
 import { kItemIdPrefix, toV3AttrId, toV3CaseId, toV3CollectionId, toV3DataSetId, v3Id } from "../utilities/codap-utils"
 import {
-  ICodapV2Attribute, ICodapV2Case, ICodapV2Collection, ICodapV2DataContext, ICodapV2GameContext, ICodapV2SetAsideItem,
-  isV2SetAsideItem, v3TypeFromV2TypeString
+  ICodapV2Attribute, ICodapV2Case, ICodapV2Collection, ICodapV2DataContext, ICodapV2DataContextStorage,
+  ICodapV2GameContext, ICodapV2SetAsideItem, isV2SetAsideItem, v3TypeFromV2TypeString
 } from "./codap-v2-data-context-types"
 
 interface V2CaseIdInfo {
@@ -39,7 +41,7 @@ export class CodapV2DataSetImporter {
   }
 
   importContext(context: ImportableContext, sharedModelManager?: ISharedModelManager) {
-    const { collections = [], guid, name = "", title } = context
+    const { collections = [], guid, name = "", title, contextStorage, setAsideItems } = context
     const dataSetId = toV3DataSetId(guid)
 
     // add shared models
@@ -52,9 +54,11 @@ export class CodapV2DataSetImporter {
     this.importProperties(sharedDataSet.dataSet, caseMetadata, context)
 
     this.importCollections(sharedDataSet.dataSet, caseMetadata, collections)
-    this.importSetAsideItems(sharedDataSet.dataSet, context.setAsideItems)
+    this.importSetAsideItems(sharedDataSet.dataSet, setAsideItems)
     sharedDataSet.dataSet.syncCollectionLinks()
     sharedDataSet.dataSet.validateCases()
+
+    this.importSelectedCases(sharedDataSet.dataSet, contextStorage)
   }
 
   importProperties(data: IDataSet, caseMetadata: IDataSetMetadata, context: ImportableContext) {
@@ -79,18 +83,24 @@ export class CodapV2DataSetImporter {
     }
   }
 
-  importCollections(data: IDataSet, caseMetadata: IDataSetMetadata, collections: ICodapV2Collection[]) {
+  importCollections(data: IDataSet, metadata: IDataSetMetadata, collections: ICodapV2Collection[]) {
     let prevCollection: ICollectionModel | undefined
     collections.forEach((collection, index) => {
-      const { attrs = [], cases = [], guid, name = "", title } = collection
+      const { attrs = [], cases = [], guid, name = "", title, caseName, labels: v2Labels } = collection
       const _title = v2NameTitleToV3Title(name, title)
+      const v3Labels: ICollectionLabelsSnapshot = { ...v2Labels }
+      if (caseName && !v3Labels.singleCase) v3Labels.singleCase = caseName
+
+      if (isNonEmptyCollectionLabels(v3Labels)) {
+        metadata.setCollectionLabels(toV3CollectionId(guid), v3Labels)
+      }
 
       // assumes hierarchical collections are in order parent => child
       const level = collections.length - index - 1  // 0 === child-most
       this.v2CaseIdInfoArray[level] = { groupAttrNames: [], groupKeyCaseIds: new Map() }
-      this.importAttributes(data, caseMetadata, attrs, level)
+      this.importAttributes(data, metadata, attrs, level)
       this.importCases(data, cases, level)
-      this.importCategories(data, caseMetadata, attrs)
+      this.importCategories(data, metadata, attrs)
 
       const attributes = attrs.map(attr => {
         const attrModel = data.attrFromName(attr.name)
@@ -123,7 +133,8 @@ export class CodapV2DataSetImporter {
     attributes.forEach(v2Attr => {
       const {
         cid: _cid, guid, description: v2Description, name = "", title: v2Title, type: v2Type, formula: v2Formula,
-        editable: v2Editable, unit: v2Unit, precision: v2Precision, decimals, renameable, deleteable, deletedFormula
+        editable: v2Editable, unit: v2Unit, precision: v2Precision, decimals, defaultMin, defaultMax,
+        renameable, deleteable, deletedFormula
       } = v2Attr
       if (!v2Formula) {
         v2CaseIdInfo.groupAttrNames.push(name)
@@ -154,6 +165,9 @@ export class CodapV2DataSetImporter {
         }
         if (deleteable != null && !deleteable) {
           metadata.setIsDeleteProtected(attribute.id, false)
+        }
+        if (defaultMin != null || defaultMax != null) {
+          metadata.setAttributeDefaultRange(attribute.id, defaultMin, defaultMax)
         }
         if (deletedFormula) {
           metadata.setDeletedFormula(deletedFormula)
@@ -222,19 +236,32 @@ export class CodapV2DataSetImporter {
     }
   }
 
-  importSetAsideItems(data: IDataSet, setAsideItems?: ICodapV2SetAsideItem[] | ICodapV2SetAsideItem["values"][]) {
+  importSetAsideItems(data: IDataSet, setAsideItems?: ICodapV2SetAsideItem[]) {
     const itemsToAdd: IItem[] = []
     setAsideItems?.forEach(item => {
       if (isV2SetAsideItem(item)) {
         const { id, values } = item
         itemsToAdd.push({ __id__: id, ...toCanonical(data, values) })
-      } else {
-        itemsToAdd.push({ __id__: v3Id(kItemIdPrefix), ...toCanonical(data, item) })
       }
     })
     if (itemsToAdd.length) {
       data.addCases(itemsToAdd)
       data.hideCasesOrItems(itemsToAdd.map(item => item.__id__))
+    }
+  }
+
+  importSelectedCases(data: IDataSet, contextStorage?: ICodapV2DataContextStorage) {
+    const { _links_: { selectedCases = [] } = {} } = contextStorage || {}
+    const selectedCaseIds: string[] = []
+    selectedCases.forEach(selectedCase => {
+      const { id: v2CaseId } = selectedCase
+      const v3CaseId = toV3CaseId(v2CaseId)
+      if (data.caseInfoMap.get(v3CaseId)) {
+        selectedCaseIds.push(v3CaseId)
+      }
+    })
+    if (selectedCaseIds.length) {
+      data.setSelectedCases(selectedCaseIds)
     }
   }
 }

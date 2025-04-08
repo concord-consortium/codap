@@ -1,15 +1,16 @@
 import { cloneDeep } from "lodash"
 import { getSnapshot, Instance, types } from "mobx-state-tree"
-import { onAnyAction } from "../../utilities/mst-utils"
+import { onAnyAction, safeGetSnapshot } from "../../utilities/mst-utils"
 import { ICategorySetSnapshot } from "../data/category-set"
 import { DataSet } from "../data/data-set"
 import {
-  createDataSetMetadata, DataSetMetadata, isDataSetMetadata, isSetIsCollapsedAction
+  createDataSetMetadata, DataSetMetadata, ICollectionLabelsSnapshot, isDataSetMetadata,
+  isNonEmptyCollectionLabels, isSetIsCollapsedAction
 } from "./data-set-metadata"
+import { kDefaultHighAttributeColor, kDefaultLowAttributeColor } from "./data-set-metadata-constants"
 import { SharedModel } from "./shared-model"
 
-// eslint-disable-next-line no-var
-var mockNodeIdCount = 0
+let mockNodeIdCount = 0
 jest.mock("../../utilities/js-utils", () => ({
   ...jest.requireActual("../../utilities/js-utils"),
   typedId: () => `test-${++mockNodeIdCount}`,
@@ -68,6 +69,75 @@ describe("DataSetMetadata", () => {
     expect(isDataSetMetadata(tree.metadata)).toBe(true)
   })
 
+  it("stores DataSet-level metadata", () => {
+    expect(tree.metadata.description).toBeUndefined()
+    expect(tree.metadata.source).toBeUndefined()
+    expect(tree.metadata.importDate).toBeUndefined()
+    expect(tree.metadata.hasDataContextMetadata).toBe(false)
+    expect(tree.metadata.attrConfigChanged).toBeUndefined()
+    expect(tree.metadata.isAttrConfigChanged).toBe(false)
+    expect(tree.metadata.isAttrConfigProtected).toBe(false)
+
+    tree.metadata.setDescription("foo")
+    expect(tree.metadata.description).toBe("foo")
+    tree.metadata.setSource("bar")
+    expect(tree.metadata.source).toBe("bar")
+    tree.metadata.setImportDate("baz")
+    expect(tree.metadata.importDate).toBe("baz")
+    expect(tree.metadata.hasDataContextMetadata).toBe(true)
+    tree.metadata.setIsAttrConfigChanged(true)
+    expect(tree.metadata.isAttrConfigChanged).toBe(true)
+    tree.metadata.setIsAttrConfigProtected(true)
+    expect(tree.metadata.isAttrConfigProtected).toBe(true)
+  })
+
+  it("stores collection labels", () => {
+    tree.metadata.setCollectionLabels("aId", { singleCase: "single", pluralCase: "plural" })
+    const collectionMetadata = tree.metadata.collections.get("aId")
+    expect(collectionMetadata).toBeDefined()
+    expect(collectionMetadata?.labels?.isEmpty).toBe(false)
+    expect(collectionMetadata?.labels?.isNonEmpty).toBe(true)
+    expect(isNonEmptyCollectionLabels(collectionMetadata?.labels)).toBe(true)
+    expect(safeGetSnapshot(collectionMetadata?.labels)).toEqual({ singleCase: "single", pluralCase: "plural" })
+
+    const allLabels: ICollectionLabelsSnapshot = {
+      singleCase: "single",
+      pluralCase: "plural",
+      singleCaseWithArticle: "a single",
+      setOfCases: "set",
+      setOfCasesWithArticle: "a set"
+    }
+    tree.metadata.setCollectionLabels("aId", allLabels)
+    expect(tree.metadata.collections.get("aId")?.labels?.isEmpty).toBe(false)
+    expect(tree.metadata.collections.get("aId")?.labels?.isNonEmpty).toBe(true)
+    expect(tree.metadata.collections.get("aId")?.labels).toEqual(allLabels)
+
+    tree.metadata.removeCollectionLabels("aId")
+    expect(tree.metadata.collections.get("aId")?.labels).toBeUndefined()
+    tree.metadata.setSingleCase("aId", "single")
+    expect(tree.metadata.collections.get("aId")?.labels).toEqual({ singleCase: "single"})
+
+    tree.metadata.removeCollectionLabels("aId")
+    expect(tree.metadata.collections.get("aId")?.labels).toBeUndefined()
+    tree.metadata.setPluralCase("aId", "plural")
+    expect(tree.metadata.collections.get("aId")?.labels).toEqual({ pluralCase: "plural"})
+
+    tree.metadata.removeCollectionLabels("aId")
+    expect(tree.metadata.collections.get("aId")?.labels).toBeUndefined()
+    tree.metadata.setSingleCaseWithArticle("aId", "a single")
+    expect(tree.metadata.collections.get("aId")?.labels).toEqual({ singleCaseWithArticle: "a single"})
+
+    tree.metadata.removeCollectionLabels("aId")
+    expect(tree.metadata.collections.get("aId")?.labels).toBeUndefined()
+    tree.metadata.setSetOfCases("aId", "set")
+    expect(tree.metadata.collections.get("aId")?.labels).toEqual({ setOfCases: "set"})
+
+    tree.metadata.removeCollectionLabels("aId")
+    expect(tree.metadata.collections.get("aId")?.labels).toBeUndefined()
+    tree.metadata.setSetOfCasesWithArticle("aId", "a set")
+    expect(tree.metadata.collections.get("aId")?.labels).toEqual({ setOfCasesWithArticle: "a set"})
+  })
+
   it("stores hidden attributes", () => {
     expect(tree.metadata.isHidden("aId")).toBe(false)
     tree.metadata.setIsHidden("aId", true)
@@ -97,17 +167,50 @@ describe("DataSetMetadata", () => {
   })
 
   it("stores attribute protections", () => {
+    expect(tree.metadata.isEditProtected("aId")).toBe(false)
+    expect(tree.metadata.isEditable("aId")).toBe(true)
     expect(tree.metadata.isDeleteProtected("aId")).toBe(false)
     expect(tree.metadata.isRenameProtected("aId")).toBe(false)
 
+    tree.metadata.setIsEditProtected("aId", true)
+    expect(tree.metadata.isEditProtected("aId")).toBe(true)
+    expect(tree.metadata.isEditable("aId")).toBe(false)
     tree.metadata.setIsDeleteProtected("aId", true)
     expect(tree.metadata.isDeleteProtected("aId")).toBe(true)
     tree.metadata.setIsRenameProtected("aId", true)
     expect(tree.metadata.isRenameProtected("aId")).toBe(true)
+
+    tree.metadata.setIsEditProtected("aId", false)
+    expect(tree.metadata.isEditProtected("aId")).toBe(false)
+    expect(tree.metadata.isEditable("aId")).toBe(true)
     tree.metadata.setIsDeleteProtected("aId", false)
     expect(tree.metadata.isDeleteProtected("aId")).toBe(false)
     tree.metadata.setIsRenameProtected("aId", false)
     expect(tree.metadata.isRenameProtected("aId")).toBe(false)
+  })
+
+  it("stores other attribute properties", () => {
+    const defaultColors = { low: kDefaultLowAttributeColor, high: kDefaultHighAttributeColor }
+    expect(tree.metadata.getAttributeColorRange("aId")).toEqual(defaultColors)
+    expect(tree.metadata.getAttributeDefaultRange("aId")).toBeUndefined()
+    expect(tree.metadata.getAttributeBinningType("aId")).toBe("quantile")
+
+    tree.metadata.setAttributeColor("aId", "#000000", "low")
+    expect(tree.metadata.getAttributeColorRange("aId")).toEqual({ low: "#000000", high: defaultColors.high })
+    tree.metadata.setAttributeColor("aId", "#ffffff", "high")
+    expect(tree.metadata.getAttributeColorRange("aId")).toEqual({ low: "#000000", high: "#ffffff" })
+
+    tree.metadata.setAttributeDefaultRange("aId", 0, 1)
+    expect(tree.metadata.getAttributeDefaultRange("aId")).toEqual([0, 1])
+
+    tree.metadata.setAttributeBinningType("aId", "quantize")
+    expect(tree.metadata.getAttributeBinningType("aId")).toBe("quantize")
+    tree.metadata.setAttributeBinningType("aId", "quantile")
+    expect(tree.metadata.getAttributeBinningType("aId")).toBe("quantile")
+
+    expect(tree.metadata.attributes.get("aId")?.deletedFormula).toBeUndefined()
+    tree.metadata.setDeletedFormula("aId", "foo")
+    expect(tree.metadata.attributes.get("aId")?.deletedFormula).toBe("foo")
   })
 
   it("responds appropriately when no DataSet is associated", () => {

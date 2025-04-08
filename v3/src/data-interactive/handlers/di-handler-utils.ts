@@ -4,7 +4,7 @@ import { ICollectionModel } from "../../models/data/collection"
 import { IDataSet } from "../../models/data/data-set"
 import { IAddCollectionOptions } from "../../models/data/data-set-types"
 import { v2NameTitleToV3Title } from "../../models/data/v2-model"
-import { IDataSetMetadata } from "../../models/shared/data-set-metadata"
+import { IDataSetMetadata, isNonEmptyCollectionLabels } from "../../models/shared/data-set-metadata"
 import { getMetadataFromDataSet } from "../../models/shared/shared-data-utils"
 import { hasOwnProperty } from "../../utilities/js-utils"
 import { CodapV2ColorMap } from "../../v2/codap-v2-data-context-types"
@@ -35,16 +35,20 @@ export function createAttribute(value: DIAttribute, dataContext: IDataSet, colle
   }
 }
 
-export function createCollection(v2collection: DICollection, dataContext: IDataSet, metadata?: IDataSetMetadata) {
+export function createCollection(v2collection: DICollection, data: IDataSet, metadata: IDataSetMetadata) {
   // TODO How should we handle duplicate names?
   // TODO How should we handle missing names?
   const { attrs, cid, labels, name: collectionName, title: collectionTitle } = v2collection
   const _title = v2NameTitleToV3Title(collectionName ?? "", collectionTitle)
-  const options: IAddCollectionOptions = { after: dataContext.childCollection?.id }
-  const collection = dataContext.addCollection({ id: cid, labels, name: collectionName, _title }, options)
+  const options: IAddCollectionOptions = { after: data.childCollection?.id }
+  const collection = data.addCollection({ id: cid, name: collectionName, _title }, options)
+
+  if (isNonEmptyCollectionLabels(labels)) {
+    metadata.setCollectionLabels(collection.id, labels)
+  }
 
   attrs?.forEach(attr => {
-    createAttribute(attr, dataContext, collection, metadata)
+    createAttribute(attr, data, collection, metadata)
   })
 
   return collection

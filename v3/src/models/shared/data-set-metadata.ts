@@ -27,7 +27,32 @@ export function createDataSetMetadata(data: IDataSet) {
   return DataSetMetadata.create({ data: data.id }, { provisionalDataSet: data })
 }
 
+export const CollectionLabels = types.model("CollectionLabels", {
+  singleCase: types.maybe(types.string),
+  pluralCase: types.maybe(types.string),
+  singleCaseWithArticle: types.maybe(types.string),
+  setOfCases: types.maybe(types.string),
+  setOfCasesWithArticle: types.maybe(types.string)
+})
+.views(self => ({
+  get isEmpty() {
+    return !self.singleCase && !self.pluralCase && !self.singleCaseWithArticle &&
+            !self.setOfCases && !self.setOfCasesWithArticle
+  },
+  get isNonEmpty() {
+    return !this.isEmpty
+  }
+}))
+export interface ICollectionLabels extends Instance<typeof CollectionLabels> {}
+export interface ICollectionLabelsSnapshot extends SnapshotIn<typeof CollectionLabels> {}
+
+export function isNonEmptyCollectionLabels(labels?: ICollectionLabelsSnapshot): labels is ICollectionLabelsSnapshot {
+  return !!(labels?.singleCase || labels?.pluralCase || labels?.singleCaseWithArticle ||
+            labels?.setOfCases || labels?.setOfCasesWithArticle)
+}
+
 export const CollectionMetadata = types.model("CollectionMetadata", {
+  labels: types.maybe(CollectionLabels),
   // key is case id; value is true (false values are deleted)
   collapsed: types.map(types.boolean)
 })
@@ -67,6 +92,8 @@ export const AttributeMetadata = types.model("AttributeMetadata", {
   // model properties
   categories: types.maybe(CategorySet),
   colorRange: types.maybe(ColorRangeModel),
+  defaultMin: types.maybe(types.number),
+  defaultMax: types.maybe(types.number),
   deletedFormula: types.maybe(types.string),
   scale: types.maybe(AttributeScale)
 })
@@ -123,7 +150,7 @@ export const DataSetMetadata = SharedModel
       return !!self.description || !!self.source || !!self.importDate
     },
     get isAttrConfigChanged() {
-      return !!self.attrConfigProtected
+      return !!self.attrConfigChanged
     },
     get isAttrConfigProtected() {
       return !!self.attrConfigProtected
@@ -159,6 +186,12 @@ export const DataSetMetadata = SharedModel
         low: colorRange?.lowColor ?? kDefaultLowAttributeColor,
         high: colorRange?.highColor ?? kDefaultHighAttributeColor
       }
+    },
+    getAttributeDefaultRange(attrId: string) {
+      const attrMetadata = self.attributes.get(attrId)
+      return attrMetadata?.defaultMin != null || attrMetadata?.defaultMax != null
+              ? [attrMetadata?.defaultMin, attrMetadata?.defaultMax]
+              : undefined
     },
     getAttributeBinningType(attrId: string) {
       return self.attributes.get(attrId)?.scale?.binningType || "quantile"
@@ -230,6 +263,46 @@ export const DataSetMetadata = SharedModel
     }
   }))
   .actions(self => ({
+    setSingleCase(collectionId: string, singleCase: string) {
+      const metadata = self.requireCollectionMetadata(collectionId)
+      if (metadata.labels) {
+        metadata.labels.singleCase = singleCase
+      } else {
+        metadata.labels = CollectionLabels.create({ singleCase })
+      }
+    },
+    setPluralCase(collectionId: string, pluralCase: string) {
+      const metadata = self.requireCollectionMetadata(collectionId)
+      if (metadata.labels) {
+        metadata.labels.pluralCase = pluralCase
+      } else {
+        metadata.labels = CollectionLabels.create({ pluralCase })
+      }
+    },
+    setSingleCaseWithArticle(collectionId: string, singleCaseWithArticle: string) {
+      const metadata = self.requireCollectionMetadata(collectionId)
+      if (metadata.labels) {
+        metadata.labels.singleCaseWithArticle = singleCaseWithArticle
+      } else {
+        metadata.labels = CollectionLabels.create({ singleCaseWithArticle })
+      }
+    },
+    setSetOfCases(collectionId: string, setOfCases: string) {
+      const metadata = self.requireCollectionMetadata(collectionId)
+      if (metadata.labels) {
+        metadata.labels.setOfCases = setOfCases
+      } else {
+        metadata.labels = CollectionLabels.create({ setOfCases })
+      }
+    },
+    setSetOfCasesWithArticle(collectionId: string, setOfCasesWithArticle: string) {
+      const metadata = self.requireCollectionMetadata(collectionId)
+      if (metadata.labels) {
+        metadata.labels.setOfCasesWithArticle = setOfCasesWithArticle
+      } else {
+        metadata.labels = CollectionLabels.create({ setOfCasesWithArticle })
+      }
+    },
     setIsCollapsed(caseId: string, isCollapsed: boolean) {
       const { collectionId } = self.data?.caseInfoMap.get(caseId) || {}
       if (collectionId) {
@@ -258,6 +331,15 @@ export const DataSetMetadata = SharedModel
       self.attributes.forEach(attr => {
         attr.hidden = undefined
       })
+    },
+    setAttributeDefaultRange(attrId: string, min?: number, max?: number) {
+      const attrMetadata = self.requireAttributeMetadata(attrId)
+      if (min != null) {
+        attrMetadata.defaultMin = min
+      }
+      if (max != null) {
+        attrMetadata.defaultMax = max
+      }
     },
     setAttributeColor(attrId: string, color: string, selector: "low" | "high") {
       const attrMetadata = self.requireAttributeMetadata(attrId)
@@ -288,15 +370,26 @@ export const DataSetMetadata = SharedModel
     }
   }))
   .actions(self => ({
+    removeCollectionLabels(collId: string) {
+      const collMetadata = self.collections.get(collId)
+      if (collMetadata) {
+        collMetadata.labels = undefined
+      }
+    },
+    setCollectionLabels(collId: string, labels: Partial<ICollectionLabelsSnapshot>) {
+      if (labels.singleCase != null) self.setSingleCase(collId, labels.singleCase)
+      if (labels.pluralCase != null) self.setPluralCase(collId, labels.pluralCase)
+      if (labels.singleCaseWithArticle != null) self.setSingleCaseWithArticle(collId, labels.singleCaseWithArticle)
+      if (labels.setOfCases != null) self.setSetOfCases(collId, labels.setOfCases)
+      if (labels.setOfCasesWithArticle != null) self.setSetOfCasesWithArticle(collId, labels.setOfCasesWithArticle)
+    },
     removeCategorySet(attrId: string) {
       const attrMetadata = self.attributes.get(attrId)
       if (attrMetadata) {
         attrMetadata.categories = undefined
       }
       self.provisionalCategories.delete(attrId)
-    }
-  }))
-  .actions(self => ({
+    },
     setCategorySet(attrId: string, categorySet: ICategorySetSnapshot) {
       const attrMetadata = self.requireAttributeMetadata(attrId)
       if (attrMetadata.categories) {
@@ -318,7 +411,7 @@ export const DataSetMetadata = SharedModel
   }))
   .views(self => ({
     // returns an existing category set (if available) or creates a new provisional one (for valid attributes)
-    getCategorySet(attrId: string) {
+    getCategorySet(attrId: string, createIfMissing = true): Maybe<ICategorySet> {
       let categorySet = self.attributes.get(attrId)?.categories ?? self.provisionalCategories.get(attrId)
       if (!categorySet && self.data?.attrFromID(attrId)) {
         categorySet = createProvisionalCategorySet(self.data, attrId)

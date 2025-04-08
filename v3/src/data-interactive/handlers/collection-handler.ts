@@ -9,6 +9,7 @@ import { convertCollectionToV2 } from "../data-interactive-type-utils"
 import { getCollection } from "../data-interactive-utils"
 import { createAttribute } from "./di-handler-utils"
 import { collectionNotFoundResult, dataContextNotFoundResult, valuesRequiredResult } from "./di-results"
+import { isNonEmptyCollectionLabels } from "../../models/shared/data-set-metadata"
 
 export const diCollectionHandler: DIHandler = {
   create(resources: DIResources, values?: DIValues) {
@@ -61,7 +62,10 @@ export const diCollectionHandler: DIHandler = {
         // child-most collection
         const options = beforeCollectionId ? { before: beforeCollectionId }
           : { after: dataContext.collectionIds[dataContext.collectionIds.length - 1] }
-        const newCollection = dataContext.addCollection({ labels, name, _title: title }, options)
+        const newCollection = dataContext.addCollection({ name, _title: title }, options)
+        if (isNonEmptyCollectionLabels(labels)) {
+          metadata?.setCollectionLabels(newCollection.id, labels)
+        }
         newCollections.push(newCollection)
 
         // Attributes can be specified in both attributes and attrs
@@ -124,8 +128,11 @@ export const diCollectionHandler: DIHandler = {
       const { title, labels } = values as DIUpdateCollection
 
       dataContext.applyModelChange(() => {
+        const metadata = getMetadataFromDataSet(dataContext)
         if (title) collection.setTitle(title)
-        if (labels) collection.setLabels(labels)
+        if (isNonEmptyCollectionLabels(labels)) {
+          metadata?.setCollectionLabels(collection.id, labels)
+        }
       })
     }
 

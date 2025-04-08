@@ -27,7 +27,8 @@ export function getDataSetFromId(node: IAnyStateTreeNode, id: string): Maybe<IDa
   return sharedDataSet?.dataSet
 }
 
-export function getMetadataFromDataSet(dataset: IDataSet): Maybe<IDataSetMetadata> {
+export function getMetadataFromDataSet(dataset?: IDataSet): Maybe<IDataSetMetadata> {
+  if (!dataset) return undefined
   const sharedModelManager = getSharedModelManager(dataset)
   const sharedCaseMetadata = sharedModelManager?.getSharedModelsByType<typeof DataSetMetadata>(
     kDataSetMetadataType).find(model => model.data?.id === dataset.id)

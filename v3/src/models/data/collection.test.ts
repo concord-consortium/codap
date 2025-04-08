@@ -39,47 +39,6 @@ describe("CollectionModel", () => {
     defaultItemData.invalidate()
   })
 
-  it("labels work as expected", () => {
-    const c1 = CollectionModel.create({ name: "c1" })
-    expect(c1.labels).toBeUndefined()
-    c1.setSingleCase("singleCase")
-    expect(c1.labels?.singleCase).toBe("singleCase")
-    c1.setLabels({
-      singleCase: "singleCase",
-      pluralCase: "pluralCase",
-      singleCaseWithArticle: "singleCaseWithArticle",
-      setOfCases: "setOfCases",
-      setOfCasesWithArticle: "setOfCasesWithArticle"
-    })
-    expect(c1.labels?.singleCase).toBe("singleCase")
-    expect(c1.labels?.pluralCase).toBe("pluralCase")
-    expect(c1.labels?.singleCaseWithArticle).toBe("singleCaseWithArticle")
-    expect(c1.labels?.setOfCases).toBe("setOfCases")
-    expect(c1.labels?.setOfCasesWithArticle).toBe("setOfCasesWithArticle")
-
-    const c2 = CollectionModel.create({ name: "c2" })
-    expect(c2.labels).toBeUndefined()
-    c2.setPluralCase("pluralCase")
-    expect(c2.labels?.pluralCase).toBe("pluralCase")
-    c2.setSingleCase("singleCase")
-    expect(c2.labels?.singleCase).toBe("singleCase")
-
-    const c3 = CollectionModel.create({ name: "c3" })
-    expect(c3.labels).toBeUndefined()
-    c3.setSingleCaseWithArticle("singleCaseWithArticles")
-    expect(c3.labels?.singleCaseWithArticle).toBe("singleCaseWithArticles")
-
-    const c4 = CollectionModel.create({ name: "c4" })
-    expect(c4.labels).toBeUndefined()
-    c4.setSetOfCases("setOfCases")
-    expect(c4.labels?.setOfCases).toBe("setOfCases")
-
-    const c5 = CollectionModel.create({ name: "c5" })
-    expect(c5.labels).toBeUndefined()
-    c5.setSetOfCasesWithArticle("setOfCasesWithArticle")
-    expect(c5.labels?.setOfCasesWithArticle).toBe("setOfCasesWithArticle")
-  })
-
   it("empty collections work as expected", () => {
     const c1 = CollectionModel.create({ name: "c1" })
     c1.updateCaseGroups()
