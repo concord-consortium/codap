@@ -5,8 +5,7 @@ import { ICase } from "../../../models/data/data-set-types"
 import { applyModelChange } from "../../../models/history/apply-model-change"
 import { setNiceDomain } from "../../axis/axis-domain-utils"
 import { AxisPlace, IAxisDomainOptions, IAxisTicks, TickFormatter } from "../../axis/axis-types"
-import { CategoricalAxisModel, ColorAxisModel, CountAxisModel, DateAxisModel, EmptyAxisModel, IAxisModel,
-  isCategoricalAxisModel, isColorAxisModel,
+import { CategoricalAxisModel, CountAxisModel, DateAxisModel, EmptyAxisModel, IAxisModel, isCategoricalAxisModel,
   isCountAxisModel, isDateAxisModel, isEmptyAxisModel, isNumericAxisModel, isPercentAxisModel,
   NumericAxisModel, PercentAxisModel
 } from "../../axis/models/axis-model"

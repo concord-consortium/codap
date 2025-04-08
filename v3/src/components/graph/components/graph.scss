@@ -20,6 +20,11 @@
     cursor: grab;
   }
 
+  rect.category-label {
+    opacity: 0.85;
+    stroke: #315b7d;
+  }
+
   svg {
     width: 100%;
     height: 100%;

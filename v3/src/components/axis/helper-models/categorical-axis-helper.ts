@@ -122,8 +122,6 @@ export class CategoricalAxisHelper extends AxisHelper {
               .attr('transform', `${rotation}`)
               .attr('transform-origin', (d, i) => `${fns.getLabelX(i)} ${fns.getLabelY(i)}`)
               .transition().duration(duration)
-              .style('opacity', 0.85)
-              .style('stroke', '#315b7d')
           } else {
             update.selectAll('rect').remove()
             update.select('.category-label')

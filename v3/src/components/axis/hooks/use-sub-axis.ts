@@ -19,8 +19,8 @@ import { CatObject, CategoricalAxisHelper } from "../helper-models/categorical-a
 import { DateAxisHelper } from "../helper-models/date-axis-helper"
 import { NumericAxisHelper } from "../helper-models/numeric-axis-helper"
 import { useAxisLayoutContext } from "../models/axis-layout-context"
-import {IAxisModel, isBaseNumericAxisModel, isCategoricalAxisModel, isCategoricalOrColorAxisModel,
-        isColorAxisModel} from "../models/axis-model"
+import {IAxisModel, isBaseNumericAxisModel, isCategoricalAxisModel, isCategoricalOrColorAxisModel}
+  from "../models/axis-model"
 import { useAxisProviderContext } from "./use-axis-provider-context"
 
 export interface IUseSubAxis {
@@ -242,7 +242,7 @@ export const useSubAxis = ({
         multiScale?.setCategoricalDomain(categories)
       }
       categoriesRef.current = catArray
-    }, [axisAttributeType, axisPlace, dataConfig, dragBehavior, isColorAxis, layout, subAxisEltRef])
+    }, [axisPlace, dataConfig, dragBehavior, isColorAxis, layout, subAxisEltRef])
 
   // update axis helper
   useEffect(() => {
@@ -395,8 +395,7 @@ export const useSubAxis = ({
   useEffect(function respondToAttributeTypeChange() {
     const disposer = reaction(
       () => dataConfig?.dataset?.getAttribute(attrId)?.type, // Observe the attribute type
-      (newType) => {
-        console.log(`Attribute type changed to: ${newType}`)
+      () => {
         setupCategories()
         renderSubAxis()
       },
