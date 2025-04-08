@@ -110,6 +110,7 @@ export class CategoricalAxisHelper extends AxisHelper {
           // labels
           if (isColorAxis) {
             // Render color swatches
+            update.selectAll('text').remove()
             update.select('.category-label')
               .attr('class', 'category-label')
               .attr('x', (d, i) => fns.getLabelX(i) - ((bandWidth * 2 / 3) / 2))
@@ -123,6 +124,7 @@ export class CategoricalAxisHelper extends AxisHelper {
               .style('opacity', 0.85)
               .style('stroke', '#315b7d')
           } else {
+            update.selectAll('rect').remove()
             update.select('.category-label')
               .attr('transform', `${rotation}`)
               .attr('text-anchor', textAnchor)

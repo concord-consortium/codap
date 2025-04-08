@@ -58,11 +58,14 @@ export const useSubAxis = ({
   const layout = useAxisLayoutContext(),
     displayModel = useDataDisplayModelContextMaybe(),
     dataConfig = displayModel?.dataConfiguration,
+    attrId = dataConfig?.attributeID(axisPlaceToAttrRole[axisPlace]) || "",
+    axisAttribute = dataConfig?.dataset?.getAttribute(attrId),
+    axisAttributeType = axisAttribute?.type,
     {isAnimating, stopAnimation} = useDataDisplayAnimation(),
     axisProvider = useAxisProviderContext(),
     axisModel = axisProvider.getAxis(axisPlace),
     isCategorical = isCategoricalAxisModel(axisModel),
-    isColorAxis = isColorAxisModel(axisModel),
+    isColorAxis = axisModel?.type === "categorical" && axisAttributeType === "color",
     multiScaleChangeCount = layout.getAxisMultiScale(axisModel?.place ?? 'bottom')?.changeCount ?? 0,
     dragInfo = useRef<DragInfo>({
       indexOfCategory: -1,
@@ -164,6 +167,7 @@ export const useSubAxis = ({
      * Make sure there is a group element for each category and that the text elements have drag behavior
      */
     setupCategories = useCallback(() => {
+      console.log("setupCategories axisAttributeType", axisAttributeType)
       const subAxisElt = subAxisEltRef.current,
         axisLength = layout.getAxisLength(axisPlace),
         numCategoriesLimit = Math.floor(axisLength / kDefaultFontHeight)
@@ -218,12 +222,14 @@ export const useSubAxis = ({
         // labels
         if (catGroup.select('.category-label').empty()) {
           if (isColorAxis) {
+            console.log("in subaxis append color label")
             catGroup.append('rect')
               .attr('class', 'category-label')
               .attr('data-testid', 'color-label')
               .attr('x', 0)
               .attr('y', 0)
           } else {
+            console.log("in subaxis append text label")
             catGroup.append('text')
               .attr('class', 'category-label')
               .attr('data-testid', 'category-label')
@@ -239,7 +245,7 @@ export const useSubAxis = ({
         multiScale?.setCategoricalDomain(categories)
       }
       categoriesRef.current = catArray
-    }, [axisPlace, dataConfig, dragBehavior, isColorAxis, layout, subAxisEltRef])
+    }, [axisAttributeType, axisPlace, dataConfig, dragBehavior, isColorAxis, layout, subAxisEltRef])
 
   // update axis helper
   useEffect(() => {
@@ -263,6 +269,7 @@ export const useSubAxis = ({
         case 'categorical':
           // It is necessary to call renderSubAxis in most cases, but doing so for a categorical axis causes
           // a crash on redo. So we only do it for non-categorical axes.
+          console.log(" in update axis helper useEffect isColorAxis", isColorAxis)
           shouldRenderSubAxis = false
           helper = new CategoricalAxisHelper(
             { ...helperProps, centerCategoryLabels, dragInfo,
@@ -388,6 +395,19 @@ export const useSubAxis = ({
       )
     }
   }, [axisModel, dataConfig, updateDomainAndRenderSubAxis])
+
+  useEffect(function respondToAttributeTypeChange() {
+    const disposer = reaction(
+      () => dataConfig?.dataset?.getAttribute(attrId)?.type, // Observe the attribute type
+      (newType) => {
+        console.log(`Attribute type changed to: ${newType}`)
+        setupCategories()
+        renderSubAxis()
+      },
+      { name: "useSubAxis [attributeTypeChange]" }
+    )
+    return () => disposer()
+  }, [attrId, dataConfig, setupCategories, renderSubAxis])
 
   // Render when axis length or number of sub-axes changes
   useEffect(() => {
