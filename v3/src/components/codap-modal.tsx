@@ -18,7 +18,8 @@ interface IProps {
 }
 
 export const CodapModal = forwardRef(({
-  children, initialRef, isOpen, onClick, onClose, modalWidth, modalHeight, isCentered, noOverlay = true, id
+  children, initialRef, isOpen, onClick, onClose, modalWidth, modalHeight, isCentered,
+  noOverlay = true, closeOnOverlayClick,
 }: IProps, ref: React.Ref<HTMLElement> | undefined) => {
 
   return (
@@ -29,18 +30,29 @@ export const CodapModal = forwardRef(({
       onClose={onClose}
       isCentered={isCentered}
       size="xs"
+      closeOnOverlayClick={closeOnOverlayClick}
     >
       <ModalOverlay className={`modal-overlay ${noOverlay && "no-overlay"}`}/>
-      <DraggableModalContent
-          fRef={ref}
-          modalWidth={modalWidth}
-          modalHeight={modalHeight}
-          onClick={onClick}
-          isOpen={isOpen}
-          id={id}
-        >
-          {children}
-      </DraggableModalContent>
+      {!noOverlay
+          ? <ModalContent
+              // fRef={ref}
+              width={modalWidth}
+              height={modalHeight}
+              onClick={onClick}
+              // isOpen={isOpen}
+            >
+              {children}
+            </ModalContent>
+          : <DraggableModalContent
+              fRef={ref}
+              modalWidth={modalWidth}
+              modalHeight={modalHeight}
+              onClick={onClick}
+              isOpen={isOpen}
+            >
+              {children}
+            </DraggableModalContent>
+      }
     </Modal>
   )
 })
@@ -53,10 +65,9 @@ interface IDraggableModalContentProps {
   onClick?: () => void
   fRef: React.Ref<HTMLElement> | undefined
   isOpen: boolean
-  id?: string
 }
 
-const DraggableModalContent = ({children, modalWidth, modalHeight, onClick, fRef, isOpen, id
+const DraggableModalContent = ({children, modalWidth, modalHeight, onClick, fRef, isOpen,
     }: IDraggableModalContentProps) => {
   const [modalPos, setModalPos] = useState({left: 350, top: 250})
   const modalRef = useRef<HTMLElement | null>(null)
@@ -147,7 +158,6 @@ const DraggableModalContent = ({children, modalWidth, modalHeight, onClick, fRef
       style={{...style, ...varStyle}}
       onClick={onClick}
       className="codap-modal-content"
-      data-testId={id}
     >
       {children}
     </ModalContent>

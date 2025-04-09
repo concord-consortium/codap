@@ -13,4 +13,4 @@ export const kDefaultTileWidth = 250
 export const kDefaultTileHeight = 250
 
 export const kCodapAppElementId = "codap-app-id"
-export const kUserEntryModalDataId = "user-entry-modal"
+export const kGlobalDropOverlay = "global-drop-overlay"
