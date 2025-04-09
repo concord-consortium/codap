@@ -100,7 +100,7 @@ export const MapPinLayer = observer(function MapPinLayer({ mapLayerModel }: IMap
     }
   }
 
-  const renderPins = mapLayerModel.isVisible
+  const renderPins = mapLayerModel.isVisible && mapLayerModel.pinsAreVisible
   return (
     <div
       className={clsx("map-pin-layer", { "add-mode": mapLayerModel.addMode })}
