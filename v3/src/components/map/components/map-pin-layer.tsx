@@ -63,6 +63,7 @@ interface IMapPinLayerProps {
 export const MapPinLayer = observer(function MapPinLayer({ mapLayerModel }: IMapPinLayerProps) {
   const forceUpdate = useForceUpdate()
   const layerRef = useRef<HTMLDivElement>(null)
+  const mouseRef = useRef<[number, number] | null>(null)
   const map = useMap()
   const mapModel = useMapModelContext()
   const layout = useDataDisplayLayout()
@@ -106,11 +107,28 @@ export const MapPinLayer = observer(function MapPinLayer({ mapLayerModel }: IMap
     }
   }
 
+  const handleMouseDown = (e: React.MouseEvent) => {
+    mouseRef.current = [e.screenX, e.screenY]
+  }
+
+  const handleMouseUp = (e: React.MouseEvent) => {
+    if (!mouseRef.current) return
+
+    // Deselect all pins if the mouse hasn't moved very far
+    const distanceSquared = (e.screenX - mouseRef.current[0]) ** 2 + (e.screenY - mouseRef.current[1]) ** 2
+    if (distanceSquared < 9) {
+      setSelectedCases([], dataset)
+    }
+    mouseRef.current = null
+  }
+
   const renderPins = mapLayerModel.isVisible && mapLayerModel.pinsAreVisible
   return (
     <div
       className={clsx("map-pin-layer", { "add-mode": mapLayerModel.addMode })}
       onClick={handleClick}
+      onMouseDown={handleMouseDown}
+      onMouseUp={handleMouseUp}
       ref={layerRef}
     >
       {renderPins && dataset.items.map(({ __id__ }, index) => {
