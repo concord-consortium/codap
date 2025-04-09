@@ -147,7 +147,7 @@ const DraggableModalContent = ({children, modalWidth, modalHeight, onClick, fRef
       style={{...style, ...varStyle}}
       onClick={onClick}
       className="codap-modal-content"
-      id={id}
+      data-testId={id}
     >
       {children}
     </ModalContent>

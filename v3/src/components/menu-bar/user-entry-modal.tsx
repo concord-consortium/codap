@@ -1,8 +1,8 @@
-import { Button, ModalBody, ModalHeader, Tooltip } from "@chakra-ui/react"
+import { Button, ModalBody, ModalHeader } from "@chakra-ui/react"
 import React from "react"
 import { t } from "../../utilities/translation/translate"
 import { CodapModal } from "../codap-modal"
-import { kUserEntryModalId } from "../constants"
+import { kUserEntryModalDataId } from "../constants"
 import "./user-entry-modal.scss"
 import { useCfmContext } from "../../hooks/use-cfm-context"
 
@@ -42,7 +42,7 @@ export const UserEntryModal = ({ isOpen, onClose }: IProps) => {
       data-testid="user-entry-modal"
       isCentered={true}
       noOverlay={false}
-      id={kUserEntryModalId}
+      id={kUserEntryModalDataId}
     >
       <ModalHeader className="user-entry-modal codap-modal-header"
                   data-testid="codap-modal-header" fontSize="md" h="30">

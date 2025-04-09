@@ -4,7 +4,7 @@ import React, { useCallback, useEffect } from "react"
 import { CodapDndContext } from "../lib/dnd-kit/codap-dnd-context"
 import { Container } from "./container/container"
 import { ToolShelf } from "./tool-shelf/tool-shelf"
-import { kCodapAppElementId, kUserEntryModalId } from "./constants"
+import { kCodapAppElementId, kUserEntryModalDataId } from "./constants"
 import { MenuBar, kMenuBarElementId } from "./menu-bar/menu-bar"
 import { useCloudFileManager } from "../lib/cfm/use-cloud-file-manager"
 import { Logger } from "../lib/logger"
@@ -84,7 +84,7 @@ export const App = observer(function App() {
   }, [onClose])
 
   useDropHandler({
-    selector: isOpen ? `#${kUserEntryModalId}` : `#${kCodapAppElementId}`,
+    selector: isOpen ? `[data-testId="${kUserEntryModalDataId}"]` : `#${kCodapAppElementId}`,
     onImportDataSet: handleImportDataSet,
     onImportDocument: handleImportDocument,
     onHandleUrlDrop: handleUrlDrop
