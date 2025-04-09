@@ -88,5 +88,7 @@ $modal-width: 350px;
 }
 
 .chakra-modal__overlay {
-  opacity: 0.01 !important;
+  &.no-overlay {
+    opacity: 0.01 !important;
+  }
 }

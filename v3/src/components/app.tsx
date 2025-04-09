@@ -1,9 +1,10 @@
+import { useDisclosure } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
 import React, { useCallback, useEffect } from "react"
 import { CodapDndContext } from "../lib/dnd-kit/codap-dnd-context"
 import { Container } from "./container/container"
 import { ToolShelf } from "./tool-shelf/tool-shelf"
-import { kCodapAppElementId } from "./constants"
+import { kCodapAppElementId, kUserEntryModalId } from "./constants"
 import { MenuBar, kMenuBarElementId } from "./menu-bar/menu-bar"
 import { useCloudFileManager } from "../lib/cfm/use-cloud-file-manager"
 import { Logger } from "../lib/logger"
@@ -29,6 +30,7 @@ import { kWebViewTileType } from "./web-view/web-view-defs"
 import { isWebViewModel, IWebViewModel } from "./web-view/web-view-model"
 import { logStringifiedObjectMessage } from "../lib/log-message"
 import { CfmContext } from "../hooks/use-cfm-context"
+import { UserEntryModal } from "./menu-bar/user-entry-modal"
 
 import "../models/shared/shared-case-metadata-registration"
 import "../models/shared/shared-data-set-registration"
@@ -46,6 +48,10 @@ registerTileTypes([])
 
 export const App = observer(function App() {
   useKeyStates()
+  // default behavior is to show the user enty modal when CODAP is loaded
+  // We close the modal if user imports, drags a document, opens a document
+  // or plugin using url params
+  const {isOpen, onOpen, onClose} = useDisclosure()
 
   const { cfm, cfmReadyPromise } = useCloudFileManager({
     appOrMenuElemId: kMenuBarElementId
@@ -74,10 +80,11 @@ export const App = observer(function App() {
   const handleUrlDrop = useCallback((url: string) => {
     const tile = appState.document.content?.createOrShowTile(kWebViewTileType)
     isWebViewModel(tile?.content) && tile?.content.setUrl(url)
-  }, [])
+    onClose()
+  }, [onClose])
 
   useDropHandler({
-    selector: `#${kCodapAppElementId}`,
+    selector: isOpen ? `#${kUserEntryModalId}` : `#${kCodapAppElementId}`,
     onImportDataSet: handleImportDataSet,
     onImportDocument: handleImportDocument,
     onHandleUrlDrop: handleUrlDrop
@@ -91,17 +98,25 @@ export const App = observer(function App() {
     }
 
     async function initialize() {
+      const {sample, dashboard, di} = urlParams
+      const _sample = sampleData.find(name => sample === name.toLowerCase())
+      const isDashboard = dashboard !== undefined
+      const hasHashFileParam = window.location.hash.startsWith("#file=examples:")
+
+      const shouldShowModal = () => {
+        return !(
+          di || sample || dashboard || hasHashFileParam
+        )
+      }
       // create the initial sample data (if specified) or a new data set
       if (gDataBroker.dataSets.size === 0) {
-        const sample = sampleData.find(name => urlParams.sample === name.toLowerCase())
-        const isDashboard = urlParams.dashboard !== undefined
-        if (sample) {
+        if (_sample) {
           try {
-            const data = await importSample(sample)
+            const data = await importSample(_sample)
             appState.document.content?.importDataSet(data, { createDefaultTile: !isDashboard })
           }
           catch (e) {
-            console.warn(`Failed to import sample "${sample}"`)
+            console.warn(`Failed to import sample "${_sample}"`)
           }
         }
         else if (isDashboard) {
@@ -113,7 +128,6 @@ export const App = observer(function App() {
         }
       }
 
-      const { di } = urlParams
       if (typeof di === "string") {
         // wait for CFM to complete its initialization
         await cfmReadyPromise
@@ -127,6 +141,7 @@ export const App = observer(function App() {
           if (plugins.length > 0 && plugins.some(pI => pI.url === di)) {
             return
           }
+          //Do not show user entry modal
         }
         // setTimeout ensures that other components have been rendered,
         // which is necessary to properly position the plugin.
@@ -138,13 +153,18 @@ export const App = observer(function App() {
         })
       }
 
+      if (shouldShowModal()) {
+        onOpen()
+      } else {
+        onClose()
+      }
+
       appState.enableDocumentMonitoring()
       Logger.initializeLogger(appState.document)
     }
 
     initialize()
-  }, [cfmReadyPromise])
-
+  }, [cfmReadyPromise, onClose, onOpen])
   return (
     <CodapDndContext>
       <DocumentContentContext.Provider value={appState.document.content}>
@@ -152,6 +172,10 @@ export const App = observer(function App() {
           <div className="codap-app" data-testid="codap-app">
             <MenuBar/>
             <ToolShelf document={appState.document}/>
+                <UserEntryModal
+                  isOpen={isOpen}
+                  onClose={onClose}
+                />
             <Container/>
           </div>
         </CfmContext.Provider>

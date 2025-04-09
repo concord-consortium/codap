@@ -1,0 +1,25 @@
+.user-entry-modal.codap-modal-header {
+
+  .codap-header-title {
+    background-color: #0b4e5d;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100% !important;
+  }
+}
+
+.user-entry-modal-body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  button {
+    background-color: #72bfca;
+    color: white;
+    font-size: 15px;
+    text-transform: uppercase;
+    margin: 10px;
+  }
+}

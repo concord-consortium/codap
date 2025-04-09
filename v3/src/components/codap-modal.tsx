@@ -12,10 +12,13 @@ interface IProps {
   onClose: () => void
   modalWidth?: string
   modalHeight?: string
+  isCentered?: boolean
+  noOverlay?: boolean
+  id?: string;
 }
 
 export const CodapModal = forwardRef(({
-  children, initialRef, isOpen, onClick, onClose, modalWidth, modalHeight
+  children, initialRef, isOpen, onClick, onClose, modalWidth, modalHeight, isCentered, noOverlay = true, id
 }: IProps, ref: React.Ref<HTMLElement> | undefined) => {
 
   return (
@@ -24,15 +27,17 @@ export const CodapModal = forwardRef(({
       initialFocusRef={initialRef}
       isOpen={isOpen}
       onClose={onClose}
+      isCentered={isCentered}
       size="xs"
     >
-      <ModalOverlay />
+      <ModalOverlay className={`modal-overlay ${noOverlay && "no-overlay"}`}/>
       <DraggableModalContent
           fRef={ref}
           modalWidth={modalWidth}
           modalHeight={modalHeight}
           onClick={onClick}
           isOpen={isOpen}
+          id={id}
         >
           {children}
       </DraggableModalContent>
@@ -48,9 +53,10 @@ interface IDraggableModalContentProps {
   onClick?: () => void
   fRef: React.Ref<HTMLElement> | undefined
   isOpen: boolean
+  id?: string
 }
 
-const DraggableModalContent = ({children, modalWidth, modalHeight, onClick, fRef, isOpen
+const DraggableModalContent = ({children, modalWidth, modalHeight, onClick, fRef, isOpen, id
     }: IDraggableModalContentProps) => {
   const [modalPos, setModalPos] = useState({left: 350, top: 250})
   const modalRef = useRef<HTMLElement | null>(null)
@@ -141,6 +147,7 @@ const DraggableModalContent = ({children, modalWidth, modalHeight, onClick, fRef
       style={{...style, ...varStyle}}
       onClick={onClick}
       className="codap-modal-content"
+      id={id}
     >
       {children}
     </ModalContent>
