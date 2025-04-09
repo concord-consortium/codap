@@ -31,6 +31,10 @@ interface IMapPinProps {
   y: number
 }
 function MapPin({ color="#0068EA", dataset, id, selected, x, y }: IMapPinProps) {
+  const map = useMap()
+  const handlePointerEnter = () => map.dragging.disable()
+  const handlePointerLeave = () => map.dragging.enable()
+
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation()
     if (e.shiftKey) {
@@ -44,6 +48,8 @@ function MapPin({ color="#0068EA", dataset, id, selected, x, y }: IMapPinProps) 
     <button
       className={clsx("map-pin", { "selected-pin": selected })}
       onClick={handleClick}
+      onPointerEnter={handlePointerEnter}
+      onPointerLeave={handlePointerLeave}
       style={{ left: x, top: y }}
     >
       <PlacedLocationMarker color={color} />
