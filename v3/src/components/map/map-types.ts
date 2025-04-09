@@ -13,6 +13,7 @@ export const kMapUrls: Record<BaseMapKey, string> = {
 export const kMapPolygonLayerType = "mapPolygonLayer"
 export const kMapPointLayerType = "mapPointLayer"
 export const kMapPinLayerType = "mapPinLayer"
+export const kMapLayerTypes = [kMapPolygonLayerType, kMapPointLayerType, kMapPinLayerType]
 
 export const kMapClass = "codap-map"
 export const kMapClassSelector = `.${kMapClass}`
