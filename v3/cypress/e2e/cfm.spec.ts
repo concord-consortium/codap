@@ -1,6 +1,7 @@
 import { CfmElements as cfm } from "../support/elements/cfm"
 import { ComponentElements as c } from "../support/elements/component-elements"
 import { TableTileElements as table } from "../support/elements/table-tile"
+import { v3ActivityPlayerUrl } from "../support/constants"
 
 context("CloudFileManager", () => {
   function visitEmptyCodap()  {
@@ -145,8 +146,7 @@ context("CloudFileManager", () => {
       return false
     })
 
-    const activityPlayerUrl = Cypress.config("v3ActivityPlayerUrl")
-    cy.visit(activityPlayerUrl)
+    cy.visit(v3ActivityPlayerUrl)
 
     // Verify activity player loaded
     cy.get("[data-cy='activity-title']", { timeout: 10000 })
