@@ -252,6 +252,28 @@ context("Map UI", () => {
     map.getMapPin().should("have.class", "selected-pin")
     table.getSelectedRows().should("have.length", 1)
 
+    // Can deselect a pin by clicking on the map
+    map.getPinLayer().click("top")
+    map.getMapPin().should("not.have.class", "selected-pin")
+    table.getSelectedRows().should("have.length", 0)
+    map.getMapPin().click()
+    map.getMapPin().should("have.class", "selected-pin")
+    table.getSelectedRows().should("have.length", 1)
+
+    // Can hide pins using the ruler menu
+    map.getDisplayValuesButton().click()
+    map.getInspectorPalette().contains("Pins").click()
+    map.getMapPins().should("not.exist")
+    map.getInspectorPalette().contains("Pins").click()
+    map.getMapPin().should("exist")
+
+    // Can hide pins using the layers menu
+    map.getDisplayConfigButton().click()
+    map.getInspectorPalette().contains("New Dataset").click()
+    map.getMapPins().should("not.exist")
+    map.getInspectorPalette().contains("New Dataset").click()
+    map.getMapPin().should("exist")
+
     // Can remove a pin using the remove pin button
     c.getComponentTitleBar("map").click()
     map.getRemovePinButton().should("not.be.disabled")
