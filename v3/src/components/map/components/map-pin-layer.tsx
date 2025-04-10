@@ -12,7 +12,7 @@ import { onAnyAction } from "../../../utilities/mst-utils"
 import { useDataDisplayLayout } from "../../data-display/hooks/use-data-display-layout"
 import PlacedLocationMarker from "../assets/placed-location-marker.svg"
 import { useMapModelContext } from "../hooks/use-map-model-context"
-import { kPinColors } from "../map-types"
+import { kPinColors, kPinCursors } from "../map-types"
 import { IMapPinLayerModel } from "../models/map-pin-layer-model"
 import { datasetHasPinData, pinAttributesFromDataSet } from "../utilities/map-utils"
 import { PinControls } from "./pin-controls"
@@ -91,6 +91,7 @@ export const MapPinLayer = observer(function MapPinLayer({ mapLayerModel }: IMap
 
   const { pinLatId, pinLongId } = pinAttributesFromDataSet(dataset)
   const colorId = dataset.attributes.find(attr => attr.type === "color")?.id
+  const colorIndex = (dataset.items.length ?? 0) % kPinColors.length
 
   const handleClick = (e: React.MouseEvent) => {
     if (mapLayerModel.addMode) {
@@ -100,7 +101,7 @@ export const MapPinLayer = observer(function MapPinLayer({ mapLayerModel }: IMap
       const layerBB = layerRef.current?.getBoundingClientRect()
       if (!layerBB || !dataset) return
       const { lat, lng } = map.containerPointToLatLng([e.clientX - layerBB.x, e.clientY - layerBB.y])
-      const color = kPinColors[(dataset.items.length ?? 0) % kPinColors.length]
+      const color = kPinColors[colorIndex]
       const newItem: ICaseCreation = { [pinLatId]: lat, [pinLongId]: lng }
       if (colorId) newItem[colorId] = color
       insertCasesWithCustomUndoRedo(dataset, [newItem])
@@ -122,6 +123,9 @@ export const MapPinLayer = observer(function MapPinLayer({ mapLayerModel }: IMap
     mouseRef.current = null
   }
 
+  // 15 37 below makes the cursor appear centered horizontally and almost to the bottom vertically.
+  const style = mapLayerModel.addMode ? { cursor: `url(${kPinCursors[colorIndex]}) 15 37, pointer` } : undefined
+
   const renderPins = mapLayerModel.isVisible && mapLayerModel.pinsAreVisible
   return (
     <div
@@ -130,6 +134,7 @@ export const MapPinLayer = observer(function MapPinLayer({ mapLayerModel }: IMap
       onMouseDown={handleMouseDown}
       onMouseUp={handleMouseUp}
       ref={layerRef}
+      style={style}
     >
       {renderPins && dataset.items.map(({ __id__ }, index) => {
         const lat = dataset.getNumeric(__id__, pinLatId)

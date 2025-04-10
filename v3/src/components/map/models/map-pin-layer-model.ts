@@ -1,12 +1,12 @@
-import {Instance, SnapshotIn, types} from "mobx-state-tree"
-import {IDataSet} from "../../../models/data/data-set"
-import {getSharedCaseMetadataFromDataset} from "../../../models/shared/shared-data-utils"
-import {computePointRadius} from "../../data-display/data-display-utils"
-import {IDataDisplayLayerModel} from "../../data-display/models/data-display-layer-model"
-import {kMapPinLayerType} from "../map-types"
-import {latLongAttributesFromDataSet} from "../utilities/map-utils"
-import {MapGridModel} from "./map-grid-model"
-import {MapLayerModel} from "./map-layer-model"
+import { Instance, SnapshotIn, types } from "mobx-state-tree"
+import { IDataSet } from "../../../models/data/data-set"
+import { getSharedCaseMetadataFromDataset } from "../../../models/shared/shared-data-utils"
+import { computePointRadius } from "../../data-display/data-display-utils"
+import { IDataDisplayLayerModel } from "../../data-display/models/data-display-layer-model"
+import { kMapPinLayerType } from "../map-types"
+import { latLongAttributesFromDataSet } from "../utilities/map-utils"
+import { MapGridModel } from "./map-grid-model"
+import { MapLayerModel } from "./map-layer-model"
 
 export const MapPinLayerModel = MapLayerModel
   .named('MapPinLayerModel')
