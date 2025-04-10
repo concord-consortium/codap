@@ -101,7 +101,7 @@ const AttributeMenuListComponent = forwardRef<HTMLDivElement, IProps>(
     },
     {
       itemKey: "DG.TableController.headerMenuItems.deleteFormula",
-      isEnabled: () => !metadata?.isEditProtected(attributeId),
+      isEnabled: () => !metadata?.isEditProtected(attributeId) && !!attribute?.hasFormula,
       handleClick: () => {
         data?.applyModelChange(() => {
           attribute?.clearFormula()
@@ -158,7 +158,7 @@ const AttributeMenuListComponent = forwardRef<HTMLDivElement, IProps>(
     {
       itemKey: "DG.TableController.headerMenuItems.deleteAttribute",
       isEnabled: () => {
-        if (!metadata?.isDeleteProtected(attributeId) || !data) return false
+        if (metadata?.isDeleteProtected(attributeId) || !data) return false
 
         // If preventTopLevelReorg is true...
         if (preventTopLevelReorg(data)) {
