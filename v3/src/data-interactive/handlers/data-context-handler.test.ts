@@ -3,11 +3,12 @@ import { kWebViewTileType } from "../../components/web-view/web-view-defs"
 import { appState } from "../../models/app-state"
 import { createDefaultTileOfType } from "../../models/codap/add-default-content"
 import { gDataBroker } from "../../models/data/data-broker"
+import { getMetadataFromDataSet } from "../../models/shared/shared-data-utils"
 import { getSharedModelManager } from "../../models/tiles/tile-environment"
 import { toV2Id } from "../../utilities/codap-utils"
 import { ICodapV2DataContext } from "../../v2/codap-v2-data-context-types"
-import { DIValues } from "../data-interactive-types"
 import { DIDataContext, DIUpdateDataContext } from "../data-interactive-data-set-types"
+import { DIValues } from "../data-interactive-types"
 import { diDataContextHandler } from "./data-context-handler"
 import { setupTestDataset } from "./handler-test-utils"
 
@@ -62,9 +63,14 @@ describe("DataInteractive DataContextHandler", () => {
     expect((result3?.values as DIDataContext)?.name).toBe(defaultName)
     const dataset = gDataBroker.getDataSetByName(defaultName)!
     expect(dataset.collections.length).toBe(2)
-    // const collection1 = dataset.getCollectionByName("collection1")
-    // expect(collection1?.labels?.singleCase).toBe(singleCase)
-    // expect(collection1?.labels?.pluralCase).toBe(pluralCase)
+    const metadata = getMetadataFromDataSet(dataset)
+    expect(metadata).toBeDefined()
+    const collection1 = dataset.getCollectionByName("collection1")
+    expect(collection1).toBeDefined()
+    const collection1Metadata = metadata?.collections.get(collection1!.id)
+    expect(collection1Metadata).toBeDefined()
+    expect(collection1Metadata?.labels?.singleCase).toBe(singleCase)
+    expect(collection1Metadata?.labels?.pluralCase).toBe(pluralCase)
     expect(dataset.attributes.length).toBe(4)
   })
 

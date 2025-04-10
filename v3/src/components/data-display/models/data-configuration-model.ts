@@ -21,15 +21,15 @@ import { stringValuesToDateSeconds } from "../../../utilities/date-utils"
 import {hashStringSets, typedId, uniqueId} from "../../../utilities/js-utils"
 import { isFiniteNumber } from "../../../utilities/math-utils"
 import {cachedFnWithArgsFactory} from "../../../utilities/mst-utils"
-import { dataDisplayGetNumericValue } from "../data-display-value-utils"
 import { numericSortComparator } from "../../../utilities/data-utils"
 import { AxisPlace } from "../../axis/axis-types"
 import {GraphPlace} from "../../axis-graph-shared"
 import { getScaleThresholds } from "../components/legend/choropleth-legend/choropleth-legend"
+import {CaseData} from "../d3-types"
 import {
   AttrRole, GraphAttrRole, TipAttrRoles, graphPlaceToAttrRole, kOther, kMain, GraphSplitAttrRoles
 } from "../data-display-types"
-import {CaseData} from "../d3-types"
+import { dataDisplayGetNumericValue } from "../data-display-value-utils"
 
 export const AttributeDescription = types
   .model('AttributeDescription', {

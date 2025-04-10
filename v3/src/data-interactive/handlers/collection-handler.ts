@@ -1,5 +1,6 @@
 import { ICollectionModel } from "../../models/data/collection"
 import { createCollectionNotification } from "../../models/data/data-set-notifications"
+import { isNonEmptyCollectionLabels } from "../../models/shared/data-set-metadata"
 import { getMetadataFromDataSet } from "../../models/shared/shared-data-utils"
 import { toV2Id } from "../../utilities/codap-utils"
 import { registerDIHandler } from "../data-interactive-handler"
@@ -9,7 +10,6 @@ import { convertCollectionToV2 } from "../data-interactive-type-utils"
 import { getCollection } from "../data-interactive-utils"
 import { createAttribute } from "./di-handler-utils"
 import { collectionNotFoundResult, dataContextNotFoundResult, valuesRequiredResult } from "./di-results"
-import { isNonEmptyCollectionLabels } from "../../models/shared/data-set-metadata"
 
 export const diCollectionHandler: DIHandler = {
   create(resources: DIResources, values?: DIValues) {

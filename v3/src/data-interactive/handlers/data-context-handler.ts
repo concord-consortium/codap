@@ -36,8 +36,8 @@ export const diDataContextHandler: DIHandler = {
     return document.applyModelChange(() => {
       // Create dataset
       const dataSet = DataSet.create({ name, _title: title })
-      const { caseMetadata } = gDataBroker.addDataSet(dataSet)
-      caseMetadata.setDescription(description)
+      const { sharedMetadata } = gDataBroker.addDataSet(dataSet)
+      sharedMetadata.setDescription(description)
       getFormulaManager(document)?.addDataSet(dataSet)
 
       if (collections?.length) {
@@ -45,7 +45,7 @@ export const diDataContextHandler: DIHandler = {
         dataSet.removeCollection(dataSet.collections[0])
 
         // Create and add collections and attributes
-        collections.forEach(v2collection => createCollection(v2collection, dataSet, caseMetadata))
+        collections.forEach(v2collection => createCollection(v2collection, dataSet, sharedMetadata))
       }
 
       return {

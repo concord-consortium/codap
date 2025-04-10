@@ -1,6 +1,7 @@
 import { action, computed, makeObservable, observable } from "mobx"
 import { createDataSetMetadata, IDataSetMetadata } from "../shared/data-set-metadata"
 import { ISharedDataSet, SharedDataSet, kSharedDataSetType } from "../shared/shared-data-set"
+import { getMetadataFromDataSet } from "../shared/shared-data-utils"
 import { ISharedModelManager } from "../shared/shared-model-manager"
 import { IDataSet } from "./data-set"
 import { t } from "../../utilities/translation/translate"
@@ -94,19 +95,21 @@ export class DataBroker {
 
   @action
   addDataSet(ds: IDataSet, providerId?: string) {
-    const sharedModel = SharedDataSet.create({providerId})
-    sharedModel.setDataSet(ds)
+    const sharedData = SharedDataSet.create({providerId})
+    sharedData.setDataSet(ds)
     // so values are captured in undo/redo patches
     ds.prepareSnapshot()
-    this.sharedModelManager?.addSharedModel(sharedModel)
+    this.sharedModelManager?.addSharedModel(sharedData)
 
-    const caseMetadata = createDataSetMetadata(ds)
-    this.sharedModelManager?.addSharedModel(caseMetadata)
+    let sharedMetadata = createDataSetMetadata(ds)
+    this.sharedModelManager?.addSharedModel(sharedMetadata)
+    // shared model manager may have cloned the metadata object
+    sharedMetadata = getMetadataFromDataSet(ds) ?? sharedMetadata
 
-    this.addSharedDataSet(sharedModel)
+    this.addSharedDataSet(sharedData)
     ds.completeSnapshot()
 
-    return { sharedData: sharedModel, caseMetadata }
+    return { sharedData, sharedMetadata }
   }
 
   @action
@@ -128,6 +131,8 @@ export class DataBroker {
   @action
   removeDataSet(id: string) {
     const { sharedModelManager } = this
+    const metadata = getMetadataFromDataSet(this.getDataSet(id))
+    if (metadata) sharedModelManager?.removeSharedModel(metadata.id)
     sharedModelManager?.removeSharedModel(id)
   }
 
