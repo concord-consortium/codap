@@ -161,17 +161,27 @@ context("CloudFileManager", () => {
       .first()
       .should("have.text", "8")
       .click()
+      .then(() => {
+        // Wait for page content to load including iframe
+        cy.wait(15000)
+      })
 
-    // Wait for and verify iframe with a longer timeout
-    cy.get('iframe', { timeout: 30000 })
+    // Verify iframe exists and has loaded
+    cy.get('iframe')
       .should('be.visible')
-      .and('have.prop', 'contentDocument')
-      .and('not.be.null')
+      .then($iframe => {
+        cy.wrap($iframe)
+          .should('have.prop', 'contentDocument')
+          .should('not.be.null')
+      })
 
-    // Verify content inside the iframe with a longer timeout
-    cy.get('iframe', { timeout: 30000 })
+    // Verify content inside the iframe
+    cy.get('iframe')
+      .first()
       .its('0.contentDocument.body')
-      .should('not.be.null')
-      .and('contain.text', 'Hello from Activity Player')
+      .then(body => {
+        cy.wrap(body)
+          .should('contain.text', 'Hello from Activity Player')
+      })
   })
 })
