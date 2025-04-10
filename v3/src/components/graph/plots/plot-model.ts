@@ -97,9 +97,6 @@ export const PlotModel = types
     },
     get showZeroLine(): boolean {
       return false
-    },
-    axisLabelClickHandler(role: GraphAttrRole):undefined | (() => void) {
-      return undefined
     }
   }))
   .views(self => ({
@@ -135,6 +132,9 @@ export const PlotModel = types
         // When displaying bars, the domain should start at 0 unless there are negative values.
         clampPosMinAtZero: self.displayType === "bars"
       }
+    },
+    axisLabelClickHandler(role: GraphAttrRole): Maybe<() => void> {
+      return undefined
     },
     getValidEmptyAxis(place: AxisPlace, attrType?: AttributeType, axisModel?: IAxisModel): IAxisModel {
       return isEmptyAxisModel(axisModel)

@@ -1,10 +1,11 @@
 import { Checkbox, Box, Flex, FormLabel, Input, Radio, RadioGroup, Stack } from "@chakra-ui/react"
 import {observer} from "mobx-react-lite"
-import React, { useEffect, useState } from "react"
+import React, { useEffect } from "react"
 import BarChartIcon from "../../../../assets/icons/icon-segmented-bar-chart.svg"
-import { mstReaction } from "../../../../utilities/mst-reaction"
+import { useForceUpdate } from "../../../../hooks/use-force-update"
 import { logMessageWithReplacement } from "../../../../lib/log-message"
 import { ITileModel } from "../../../../models/tiles/tile-model"
+import { mstReaction } from "../../../../utilities/mst-reaction"
 import { t } from "../../../../utilities/translation/translate"
 import { isPointDisplayType } from "../../../data-display/data-display-types"
 import { InspectorPalette } from "../../../inspector-panel"
@@ -25,9 +26,11 @@ interface IProps {
 export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: IProps) {
   const { buttonRect, panelRect, setShowPalette, tile } = props
   const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
-  const [, setForceUpdate] = useState(0)
+  const forceUpdate = useForceUpdate()
   const binnedPlot = isBinnedPlotModel(graphModel?.plot) ? graphModel?.plot : undefined
   const barChart = isBarChartModel(graphModel?.plot) ? graphModel?.plot : undefined
+  // "formula" radio button should be selected when formula editor is open
+  const breakdownTypeRadio = barChart?.formulaEditorIsOpen ? "formula" : barChart?.breakdownType
   const binDetails = graphModel?.dataConfiguration
                       ? binnedPlot?.binDetails()
                       : { binWidth: undefined, binAlignment: undefined }
@@ -120,10 +123,11 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
   }
 
   useEffect(() => {
-    mstReaction(() => barChart?.formulaEditorIsOpen, () => {
-      setForceUpdate((prev:number) => prev + 1) // Increment state to force re-render
-    }, {name: "formulaEditorIsOpen"}, barChart)
-  }, [barChart])
+    mstReaction(
+      () => barChart?.formulaEditorIsOpen,
+      () => forceUpdate(),
+      {name: "formulaEditorIsOpen"}, barChart)
+  }, [barChart, forceUpdate])
 
   return (
     <InspectorPalette
@@ -209,7 +213,7 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
           {showBreakdownTypes && (
             <Stack>
               <Box className="form-title">{t("DG.Inspector.displayShow")}</Box>
-              <RadioGroup value={barChart?.breakdownType}>
+              <RadioGroup value={breakdownTypeRadio}>
                 <Stack>
                   {BreakdownTypes.map((type) => {
                     return (

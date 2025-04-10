@@ -1,10 +1,10 @@
+import { useDisclosure } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
 import React, { useCallback, useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
-import { useDisclosure } from "@chakra-ui/react"
-import { t } from "../../../../utilities/translation/translate"
 import { logStringifiedObjectMessage } from "../../../../lib/log-message"
 import { numericSortComparator } from "../../../../utilities/data-utils"
+import { t } from "../../../../utilities/translation/translate"
 import { kMain } from "../../../data-display/data-display-types"
 import { circleAnchor } from "../../../data-display/pixi/pixi-points"
 import { EditFormulaModal } from "../../../common/edit-formula-modal"
@@ -177,26 +177,22 @@ export const BarChart = observer(function BarChart({ abovePointsGroupRef, pixiPo
     formulaModal.onClose()
     handleModalOpen(false)
     barChartModel.setFormulaEditorIsOpen(false)
-/*
-    if (barChartModel.formula.empty) {
-      // Todo: We should really be reverting to previous breakdown type. Also we want to clean up undo history
-      barChartModel.setBreakdownType('count')
-    }
-*/
   }
 
   const handleEditExpressionClose = (newExpression: string) => {
     handleCloseModal()
-    const expression = barChartModel.formula.display
-    barChartModel.applyModelChange(
-      () => barChartModel.setExpression(newExpression),
-      {
-        undoStringKey: "DG.Undo.graph.showAsComputedBarChart",
-        redoStringKey: "DG.Redo.graph.showAsComputedBarChart",
-        log: logStringifiedObjectMessage("Change computed bar length function: %@",
-          {from: expression, to: newExpression})
-      }
-    )
+    const expression = barChartModel.formula?.display ?? ""
+    if (newExpression !== expression) {
+      barChartModel.applyModelChange(
+        () => barChartModel.setExpression(newExpression),
+        {
+          undoStringKey: "DG.Undo.graph.showAsComputedBarChart",
+          redoStringKey: "DG.Redo.graph.showAsComputedBarChart",
+          log: logStringifiedObjectMessage("Change computed bar length function: %@",
+            {from: expression, to: newExpression})
+        }
+      )
+    }
   }
 
   return (
@@ -212,7 +208,7 @@ export const BarChart = observer(function BarChart({ abovePointsGroupRef, pixiPo
             isOpen={barChartModel.formulaEditorIsOpen}
             onClose={handleCloseModal}
             titleLabel={t("DG.BarChartFunction.namePrompt")}
-            value={barChartModel.formula.display}
+            value={barChartModel.formula?.display}
          />
       }
     </>

@@ -17,11 +17,11 @@ export const BarChartModel = DotChartModel
   .props({
     type: typesPlotType("barChart"),
     breakdownType: types.optional(types.enumeration([...BreakdownTypes]), "count"),
-    formula: types.optional(Formula, () => Formula.create()),
+    formula: types.maybe(Formula)
   })
   .volatile(self => ({
     formulaEditorIsOpen: false,
-    fallbackBreakdownType: "count" as ("count" | "percent"),
+    fallbackBreakdownType: self.breakdownType === "percent" ? "percent" : "count" as Exclude<BreakdownType, "formula">
   }))
   .actions(self => ({
     setBreakdownType(type: BreakdownType) {
@@ -29,10 +29,11 @@ export const BarChartModel = DotChartModel
       if (type !== 'formula') self.fallbackBreakdownType = type
     },
     setExpression(expression: string) {
-      self.formula.setDisplayExpression(expression)
       if (expression) {
+        self.formula = Formula.create({ display: expression })
         this.setBreakdownType("formula")
       } else {
+        self.formula = undefined
         this.setBreakdownType(self.fallbackBreakdownType)
       }
     },
@@ -102,8 +103,8 @@ export const BarChartModel = DotChartModel
     get showBreakdownTypes(): boolean {
       return true
     },
-    axisLabelClickHandler(role: GraphAttrRole):undefined | (() => void) {
-      if (self.breakdownType === "formula" && !self.formula.empty && role === self.dataConfiguration?.secondaryRole) {
+    axisLabelClickHandler(role: GraphAttrRole): Maybe<() => void> {
+      if (self.breakdownType === "formula" && self.hasExpression && role === self.dataConfiguration?.secondaryRole) {
         return () => {
           self.setFormulaEditorIsOpen(true)
         }
