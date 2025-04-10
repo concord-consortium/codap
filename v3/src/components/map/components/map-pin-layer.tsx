@@ -128,14 +128,15 @@ export const MapPinLayer = observer(function MapPinLayer({ mapLayerModel }: IMap
 
   const renderPins = mapLayerModel.isVisible && mapLayerModel.pinsAreVisible
   return (
-    <div
-      className={clsx("map-pin-layer", { "add-mode": mapLayerModel.addMode })}
-      onClick={handleClick}
-      onMouseDown={handleMouseDown}
-      onMouseUp={handleMouseUp}
-      ref={layerRef}
-      style={style}
-    >
+    <div className="map-pin-layer">
+      <div
+        className={clsx("map-pin-overlay", { "add-mode": mapLayerModel.addMode })}
+        onClick={handleClick}
+        onMouseDown={handleMouseDown}
+        onMouseUp={handleMouseUp}
+        ref={layerRef}
+        style={style}
+      />
       {renderPins && dataset.items.map(({ __id__ }, index) => {
         const lat = dataset.getNumeric(__id__, pinLatId)
         const long = dataset.getNumeric(__id__, pinLongId)

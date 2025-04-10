@@ -4,7 +4,7 @@ import { getSharedCaseMetadataFromDataset } from "../../../models/shared/shared-
 import { computePointRadius } from "../../data-display/data-display-utils"
 import { IDataDisplayLayerModel } from "../../data-display/models/data-display-layer-model"
 import { kMapPinLayerType } from "../map-types"
-import { latLongAttributesFromDataSet } from "../utilities/map-utils"
+import { pinAttributesFromDataSet } from "../utilities/map-utils"
 import { MapGridModel } from "./map-grid-model"
 import { MapLayerModel } from "./map-layer-model"
 
@@ -23,10 +23,10 @@ export const MapPinLayerModel = MapLayerModel
       self.gridModel.setDataConfiguration(self.dataConfiguration)
     },
     setDataset(dataSet:IDataSet) {
-      const {latId, longId} = latLongAttributesFromDataSet(dataSet)
+      const { pinLatId, pinLongId } = pinAttributesFromDataSet(dataSet)
       self.dataConfiguration.setDataset(dataSet, getSharedCaseMetadataFromDataset(dataSet))
-      self.dataConfiguration.setAttribute('lat', {attributeID: latId})
-      self.dataConfiguration.setAttribute('long', {attributeID: longId})
+      self.dataConfiguration.setAttribute('pinLat', { attributeID: pinLatId })
+      self.dataConfiguration.setAttribute('pinLong', { attributeID: pinLongId })
     },
     setPinsAreVisible(isVisible: boolean) {
       self.pinsAreVisible = isVisible

@@ -4,10 +4,18 @@
   width: 100%;
   z-index: 10;
 
+  .map-pin-overlay {
+    height: 100%;
+    position: absolute;
+    width: 100%;
+    z-index: 11;
+  }
+
   .map-pin {
     border: none;
     margin: 0;
     position: absolute;
+    z-index: 12;
 
     .selection-outline {
       fill: none;
