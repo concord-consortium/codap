@@ -10,6 +10,7 @@ import {t} from "../../../utilities/translation/translate"
 import {useDndContext} from "@dnd-kit/core"
 import {ITileInspectorPanelProps} from "../../tiles/tile-base-props"
 import {isMapContentModel} from "../models/map-content-model"
+import {isMapPinLayerModel} from "../models/map-pin-layer-model"
 import {isMapPointLayerModel} from "../models/map-point-layer-model"
 import {HideShowMenuList} from "./inspector-panel/hide-show-menu-list"
 import {SaveImageMenuList} from "./inspector-panel/save-image-menu-list"
@@ -41,7 +42,7 @@ export const MapInspector = observer(function MapInspector({tile, show}: ITileIn
   }
 
   const renderRulerButton = () => {
-    if (mapModel && mapModel.layers.filter(layer => isMapPointLayerModel(layer)).length > 0) {
+    if (mapModel?.layers.some(layer => isMapPointLayerModel(layer) || isMapPinLayerModel(layer))) {
       return (
         <InspectorButton tooltip={t("DG.Inspector.displayValues.toolTip")} showMoreOptions={true}
                          onButtonClick={()=>{ setShowPalette(showPalette === "measure" ? undefined : "measure") }}

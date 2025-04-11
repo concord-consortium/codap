@@ -3,7 +3,7 @@
  */
 import {Instance, types} from "mobx-state-tree"
 import {DataDisplayLayerModel, IDataDisplayLayerModel} from "../../data-display/models/data-display-layer-model"
-import {kMapPointLayerType, kMapPolygonLayerType} from "../map-types"
+import {kMapLayerTypes} from "../map-types"
 import {DisplayItemDescriptionModel} from "../../data-display/models/display-item-description-model"
 
 export const MapLayerModel = DataDisplayLayerModel
@@ -23,6 +23,5 @@ export const MapLayerModel = DataDisplayLayerModel
 export interface IMapLayerModel extends Instance<typeof MapLayerModel> {}
 
 export function isMapLayerModel(layerModel?: IDataDisplayLayerModel): layerModel is IMapLayerModel {
-  return layerModel?.type === kMapPointLayerType || layerModel?.type === kMapPolygonLayerType
+  return !!layerModel?.type && kMapLayerTypes.includes(layerModel.type)
 }
-
