@@ -1,21 +1,31 @@
+import { useDisclosure } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
-import React, { useCallback, useEffect, useRef } from "react"
+import React, { useCallback, useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
+import { logStringifiedObjectMessage } from "../../../../lib/log-message"
 import { numericSortComparator } from "../../../../utilities/data-utils"
+import { t } from "../../../../utilities/translation/translate"
 import { kMain } from "../../../data-display/data-display-types"
 import { circleAnchor } from "../../../data-display/pixi/pixi-points"
+import { EditFormulaModal } from "../../../common/edit-formula-modal"
 import { IBarCover, IPlotProps } from "../../graphing-types"
 import { useChartDots } from "../../hooks/use-chart-dots"
 import { usePlotResponders } from "../../hooks/use-plot"
 import { setPointCoordinates } from "../../utilities/graph-utils"
 import { barCompressionFactorForCase, barCoverDimensions, renderBarCovers } from "../bar-utils"
+import { isBarChartModel } from "./bar-chart-model"
 
 export const BarChart = observer(function BarChart({ abovePointsGroupRef, pixiPoints }: IPlotProps) {
   const { dataset, graphModel, isAnimating, layout, primaryScreenCoord, secondaryScreenCoord,
           refreshPointSelection, subPlotCells } = useChartDots(pixiPoints)
+  const barChartModel = graphModel.plot
   const barCoversRef = useRef<SVGGElement>(null)
+  const [, setModalIsOpen] = useState(false)
+  const formulaModal = useDisclosure()
 
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
+    // todo: We're not yet ready to support formula-based bar charts
+    if (!isBarChartModel(barChartModel) || barChartModel.breakdownType === 'formula') return
     const {
       dataConfig, primaryAttrRole, primaryCellWidth, primaryCellHeight, primaryIsBottom,
       primarySplitAttrRole, secondarySplitAttrRole, secondaryNumericUnitLength } = subPlotCells
@@ -63,7 +73,7 @@ export const BarChart = observer(function BarChart({ abovePointsGroupRef, pixiPo
               if (legendAttrID && legendCats?.length > 0) {
                 let minInCell = 0
 
-                // Create a map of cases grouped by legend value so we don't need to filter all cases per value when
+                // Create a map of cases grouped by legend value, so we don't need to filter all cases per value when
                 // creating the bar covers.
                 const caseGroups = new Map()
                 dataConfig.getCaseDataArray(0).forEach(aCase => {
@@ -146,8 +156,8 @@ export const BarChart = observer(function BarChart({ abovePointsGroupRef, pixiPo
       getScreenX, getScreenY, getLegendColor, getAnimationEnabled: isAnimating, getWidth, getHeight,
       pointsFusedIntoBars: graphModel?.pointsFusedIntoBars
     })
-  }, [abovePointsGroupRef, dataset, graphModel, isAnimating, layout, pixiPoints,
-      primaryScreenCoord, secondaryScreenCoord, subPlotCells])
+  }, [abovePointsGroupRef, barChartModel, dataset, graphModel, isAnimating, layout,
+    pixiPoints, primaryScreenCoord, secondaryScreenCoord, subPlotCells])
 
   usePlotResponders({pixiPoints, refreshPointPositions, refreshPointSelection})
 
@@ -157,12 +167,59 @@ export const BarChart = observer(function BarChart({ abovePointsGroupRef, pixiPo
     }
   }, [pixiPoints, graphModel.pointsFusedIntoBars])
 
+  if (!isBarChartModel(barChartModel))  return
+
+  const handleModalOpen = (open: boolean) => {
+    setModalIsOpen(open)
+  }
+
+  const handleCloseModal = () => {
+    formulaModal.onClose()
+    handleModalOpen(false)
+    barChartModel.setFormulaEditorIsOpen(false)
+  }
+
+  const handleEditExpressionClose = (newExpression: string) => {
+    handleCloseModal()
+    const expression = barChartModel.formula?.display ?? ""
+    if (newExpression !== expression) {
+      barChartModel.applyModelChange(
+        () => barChartModel.setExpression(newExpression),
+        {
+          undoStringKey: "DG.Undo.graph.showAsComputedBarChart",
+          redoStringKey: "DG.Redo.graph.showAsComputedBarChart",
+          log: logStringifiedObjectMessage("Change computed bar length function: %@",
+            {from: expression, to: newExpression})
+        }
+      )
+    }
+    else if (barChartModel.breakdownType !== "formula") {
+      barChartModel.applyModelChange(
+        () => barChartModel.setBreakdownType("formula"),
+        {
+          undoStringKey: "DG.Undo.graph.showAsComputedBarChart",
+          redoStringKey: "DG.Redo.graph.showAsComputedBarChart",
+          log: 'Change bar chart to computed by pre-existing formula'        }
+      )
+    }
+  }
+
   return (
     <>
       {abovePointsGroupRef?.current && createPortal(
         <g ref={barCoversRef}/>,
         abovePointsGroupRef.current
       )}
+      {barChartModel.formulaEditorIsOpen &&
+         <EditFormulaModal
+            applyFormula={handleEditExpressionClose}
+            formulaPrompt={t("DG.BarChartFunction.formulaPrompt")}
+            isOpen={barChartModel.formulaEditorIsOpen}
+            onClose={handleCloseModal}
+            titleLabel={t("DG.BarChartFunction.namePrompt")}
+            value={barChartModel.formula?.display}
+         />
+      }
     </>
   )
 })
