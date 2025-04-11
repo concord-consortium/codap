@@ -1,9 +1,11 @@
 import {getSnapshot, types} from "mobx-state-tree"
-import {
-  AxisModel, AxisModelUnion, CategoricalAxisModel, EmptyAxisModel, IAxisModelUnion,
-  isCategoricalAxisModel, isEmptyAxisModel, isNumericAxisModel, NumericAxisModel
-} from "./axis-model"
 import { AppHistoryService } from "../../../models/history/app-history-service"
+import { AxisModel, EmptyAxisModel, isEmptyAxisModel } from "./axis-model"
+import { AxisModelUnion, IAxisModelUnion } from "./axis-model-union"
+import {
+  CategoricalAxisModel, ColorAxisModel, isCategoricalAxisModel, isColorAxisModel
+} from "./categorical-axis-models"
+import { isNumericAxisModel, NumericAxisModel } from "./numeric-axis-models"
 
 describe("AxisModel", () => {
   it("should error if AxisModel is instantiated directly", () => {
@@ -106,5 +108,18 @@ describe("AxisModelUnion", () => {
     const catSnap = getSnapshot(cat)
     const cat2 = M.create(catSnap)
     expect(isCategoricalAxisModel(cat2.axis)).toBe(true)
+    expect(CategoricalAxisModel.is(catSnap.axis)).toBe(true)
+
+    const colorAxis = ColorAxisModel.create({ place: "bottom" })
+    expect(CategoricalAxisModel.is(colorAxis)).toBe(false)
+    expect(ColorAxisModel.is(colorAxis)).toBe(true)
+    const color = M.create({ axis : colorAxis })
+    expect(isColorAxisModel(color.axis)).toBe(true)
+    const colorSnap = getSnapshot(color)
+    const color2 = M.create(colorSnap)
+    expect(isColorAxisModel(color2.axis)).toBe(true)
+    expect(AxisModel.is(color2)).toBe(false)
+    expect(CategoricalAxisModel.is(color2)).toBe(false)
+    expect(ColorAxisModel.is(color2.axis)).toBe(true)
   })
 })

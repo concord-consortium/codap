@@ -1,6 +1,6 @@
 import {comparer, reaction} from "mobx"
 import {addDisposer, getSnapshot, Instance, SnapshotIn, types} from "mobx-state-tree"
-import {AttributeType} from "../../../models/data/attribute-types"
+import {AttributeType, isCategoricalAttributeType} from "../../../models/data/attribute-types"
 import {IDataSet} from "../../../models/data/data-set"
 import {typedId} from "../../../utilities/js-utils"
 import { isFiniteNumber } from "../../../utilities/math-utils"
@@ -257,7 +257,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     },
     get categoricalRoles(): AttrRole[] {
       return (["legend", "x", "y", "topSplit", "rightSplit"] as const).filter((role) => {
-        return self.attributeType(role) === "categorical"
+        return isCategoricalAttributeType(self.attributeType(role))
       })
     },
     get categoricalAttrs(): Array<{ role: AttrRole, attrId: string }> {

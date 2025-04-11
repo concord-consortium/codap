@@ -2,7 +2,7 @@ import { extent } from "d3"
 import { isInteger } from "lodash"
 import { goodTickValue } from "../../utilities/math-utils"
 import { IAxisDomainOptions } from "./axis-types"
-import { IBaseNumericAxisModel, isBaseNumericAxisModel, isDateAxisModel } from "./models/axis-model"
+import { IBaseNumericAxisModel, isAnyNumericAxisModel, isDateAxisModel } from "./models/numeric-axis-models"
 
 /**
  * This function closely follows V2's CellLinearAxisModel:_computeBoundsAndTickGap
@@ -44,7 +44,7 @@ export function setNiceDomain(values: number[], axisModel: IBaseNumericAxisModel
       addend = 0.1 * Math.abs(maxDateAsSecs - minDateAsSecs)
     axisModel.setDomain(minDateAsSecs - addend, maxDateAsSecs + addend)
   }
-  else if (isBaseNumericAxisModel(axisModel)) {
+  else if (isAnyNumericAxisModel(axisModel)) {
     const [minValue, maxValue] = extent(values, d => d) as [number, number]
     let {min: niceMin, max: niceMax} = computeNiceNumericBounds(minValue, maxValue)
     // When clamping, the domain should start at 0 unless there are negative values.

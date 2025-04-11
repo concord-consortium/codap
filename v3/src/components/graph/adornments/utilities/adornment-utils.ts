@@ -1,6 +1,6 @@
-import { IBaseNumericAxisModel } from "../../../axis/models/axis-model"
-import { kOther } from "../../../data-display/data-display-types"
 import { t } from "../../../../utilities/translation/translate"
+import { IBaseNumericAxisModel } from "../../../axis/models/numeric-axis-models"
+import { kOther } from "../../../data-display/data-display-types"
 
 export function getAxisDomains(xAxis?: IBaseNumericAxisModel, yAxis?: IBaseNumericAxisModel) {
   // establishes access to the specified axis domains for purposes of MobX observation

@@ -1,10 +1,10 @@
 import { select, Selection } from "d3"
 import { MutableRefObject } from "react"
-import { DateAxisHelper, IDateAxisHelperArgs } from "./date-axis-helper"
-import { IDateAxisModel } from "../models/axis-model"
 import { IDataDisplayContentModel } from "../../data-display/models/data-display-content-model"
-import { IAxisLayout } from "../models/axis-layout-context"
 import { IAxisProvider } from "../hooks/use-axis-provider-context"
+import { IAxisLayout } from "../models/axis-layout-context"
+import { IDateAxisModel } from "../models/numeric-axis-models"
+import { DateAxisHelper, IDateAxisHelperArgs } from "./date-axis-helper"
 
 jest.mock("d3", () => ({
   select: jest.fn().mockReturnValue({

@@ -1,6 +1,6 @@
 import React from "react"
+import { IBaseNumericAxisModel } from "../../axis/models/numeric-axis-models"
 import { AdornmentModel, IAdornmentModel } from "./adornment-models"
-import { IBaseNumericAxisModel } from "../../axis/models/axis-model"
 
 export interface IAdornmentComponentProps {
   cellKey: Record<string, string>

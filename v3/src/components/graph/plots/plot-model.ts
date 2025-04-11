@@ -5,10 +5,12 @@ import { ICase } from "../../../models/data/data-set-types"
 import { applyModelChange } from "../../../models/history/apply-model-change"
 import { setNiceDomain } from "../../axis/axis-domain-utils"
 import { AxisPlace, IAxisDomainOptions, IAxisTicks, TickFormatter } from "../../axis/axis-types"
-import { CategoricalAxisModel, CountAxisModel, DateAxisModel, EmptyAxisModel, IAxisModel, isCategoricalAxisModel,
-  isCountAxisModel, isDateAxisModel, isEmptyAxisModel, isNumericAxisModel, isPercentAxisModel,
-  NumericAxisModel, PercentAxisModel
-} from "../../axis/models/axis-model"
+import { EmptyAxisModel, IAxisModel, isEmptyAxisModel } from "../../axis/models/axis-model"
+import { CategoricalAxisModel, isCategoricalAxisModel } from "../../axis/models/categorical-axis-models"
+import {
+  CountAxisModel, DateAxisModel, isCountAxisModel, isDateAxisModel,
+  isNumericAxisModel, isPercentAxisModel, NumericAxisModel, PercentAxisModel
+} from "../../axis/models/numeric-axis-models"
 import { PointDisplayType } from "../../data-display/data-display-types"
 import { PlotType } from "../graphing-types"
 import { IGraphDataConfigurationModel } from "../models/graph-data-configuration-model"

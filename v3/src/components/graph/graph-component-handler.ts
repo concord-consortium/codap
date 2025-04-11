@@ -13,7 +13,7 @@ import { ITileContentModel, ITileContentSnapshotWithType } from "../../models/ti
 import { maybeToV2Id, toV2Id, toV3AttrId, toV3CaseId, toV3DataSetId } from "../../utilities/codap-utils"
 import { t } from "../../utilities/translation/translate"
 import { AxisPlace } from "../axis/axis-types"
-import { isBaseNumericAxisModel } from "../axis/models/axis-model"
+import { isAnyNumericAxisModel } from "../axis/models/numeric-axis-models"
 import { attrRoleToGraphPlace, GraphAttrRole } from "../data-display/data-display-types"
 import { IAttributeDescriptionSnapshot } from "../data-display/models/data-configuration-model"
 import { kGraphTileType } from "./graph-defs"
@@ -252,7 +252,7 @@ export const graphComponentHandler: DIComponentHandler = {
       const xAttributeName = _xAttributeID ? dataset?.getAttribute(_xAttributeID)?.name : undefined
       const xAttributeType = xAttribute?.type
       const xAxis = content.getAxis("bottom")
-      const xNumericAxis = isBaseNumericAxisModel(xAxis) ? xAxis : undefined
+      const xNumericAxis = isAnyNumericAxisModel(xAxis) ? xAxis : undefined
       const xLowerBound = xNumericAxis?.min
       const xUpperBound = xNumericAxis?.max
 
@@ -262,7 +262,7 @@ export const graphComponentHandler: DIComponentHandler = {
       const yAttributeName = _yAttributeID ? dataset?.getAttribute(_yAttributeID)?.name : undefined
       const yAttributeType = yAttribute?.type
       const yAxis = content.getAxis("left")
-      const yNumericAxis = isBaseNumericAxisModel(yAxis) ? yAxis : undefined
+      const yNumericAxis = isAnyNumericAxisModel(yAxis) ? yAxis : undefined
       const yLowerBound = yNumericAxis?.min
       const yUpperBound = yNumericAxis?.max
 
@@ -272,7 +272,7 @@ export const graphComponentHandler: DIComponentHandler = {
       const y2AttributeName = _y2AttributeID ? dataset?.getAttribute(_y2AttributeID)?.name : undefined
       const y2AttributeType = y2Attribute?.type
       const y2Axis = content.getAxis("rightNumeric")
-      const y2NumericAxis = isBaseNumericAxisModel(y2Axis) ? y2Axis : undefined
+      const y2NumericAxis = isAnyNumericAxisModel(y2Axis) ? y2Axis : undefined
       const y2LowerBound = y2NumericAxis?.min
       const y2UpperBound = y2NumericAxis?.max
 
@@ -411,7 +411,7 @@ export const graphComponentHandler: DIComponentHandler = {
     const updateBounds = (place: AxisPlace, lower?: number, upper?: number) => {
       if (lower != null || upper != null) {
         const axis = content.getAxis(place)
-        if (isBaseNumericAxisModel(axis)) {
+        if (isAnyNumericAxisModel(axis)) {
           if (lower != null) axis.setMinimum(lower)
           if (upper != null) axis.setMaximum(upper)
         }

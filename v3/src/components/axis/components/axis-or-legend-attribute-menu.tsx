@@ -82,10 +82,12 @@ export const AxisOrLegendAttributeMenu = ({ place, target, portal,
                     <MenuItem onClick={() => onRemoveAttribute(place, attrId)}>
                       {removeAttrItemLabel}
                     </MenuItem>
-                    <MenuItem onClick={() => onTreatAttributeAs(place, attribute?.id, treatAs)}>
-                      {treatAs === "categorical" && t("DG.DataDisplayMenu.treatAsCategorical")}
-                      {treatAs === "numeric" && t("DG.DataDisplayMenu.treatAsNumeric")}
-                    </MenuItem>
+                    {attribute.type !== "color" &&
+                      <MenuItem onClick={() => onTreatAttributeAs(place, attribute?.id, treatAs)}>
+                        {treatAs === "categorical" && t("DG.DataDisplayMenu.treatAsCategorical")}
+                        {treatAs === "numeric" && t("DG.DataDisplayMenu.treatAsNumeric")}
+                      </MenuItem>
+                    }
                   </>
                 }
               </MenuList>

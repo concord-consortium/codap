@@ -5,7 +5,9 @@ import { toV2Id } from "../../utilities/codap-utils"
 import { defaultBackgroundColor, removeAlphaFromColor } from "../../utilities/color-utils"
 import { V2TileExportFn } from "../../v2/codap-v2-tile-exporters"
 import { CodapV2PlotType, guidLink, ICodapV2Adornment, ICodapV2GraphStorage, IGuidLink } from "../../v2/codap-v2-types"
-import { IAxisModel, isBaseNumericAxisModel, isCategoricalAxisModel, isCountAxisModel } from "../axis/models/axis-model"
+import { IAxisModel } from "../axis/models/axis-model"
+import { isAnyCategoricalAxisModel } from "../axis/models/categorical-axis-models"
+import { isAnyNumericAxisModel, isCountAxisModel } from "../axis/models/numeric-axis-models"
 import { GraphAttrRole } from "../data-display/data-display-types"
 import {
   getAdornmentContentInfo, IAdornmentExporterOptions, isCodapV2TopLevelAdornment
@@ -155,7 +157,7 @@ function getAxisClassAndBounds(
   let axisClass = "DG.AxisModel"
   let axisBounds: Record<string, number> = {}
 
-  if (isBaseNumericAxisModel(axis)) {
+  if (isAnyNumericAxisModel(axis)) {
     axisClass = isCountAxisModel(axis)
                   ? graph.plot.hasExpression
                     ? "DG.FormulaAxisModel"
@@ -168,7 +170,7 @@ function getAxisClassAndBounds(
       [`${dim}UpperBound`]: axis.max
     }
   }
-  else if (isCategoricalAxisModel(axis) || ["top", "right"].includes(dim)) {
+  else if (isAnyCategoricalAxisModel(axis) || ["top", "right"].includes(dim)) {
     axisClass = "DG.CellAxisModel"
   }
 
