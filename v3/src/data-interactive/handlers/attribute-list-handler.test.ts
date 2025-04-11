@@ -1,5 +1,5 @@
-import { ICodapV2Attribute } from "../../v2/codap-v2-data-set-types"
 import { toV2Id } from "../../utilities/codap-utils"
+import { ICodapV2Attribute } from "../../v2/codap-v2-data-context-types"
 import { diAttributeListHandler } from "./attribute-list-handler"
 import { setupTestDataset } from "./handler-test-utils"
 

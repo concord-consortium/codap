@@ -3,7 +3,7 @@ import {IDataDisplayLayerModel} from "../../data-display/models/data-display-lay
 import {kMapPointLayerType} from "../map-types"
 import {MapLayerModel} from "./map-layer-model"
 import {IDataSet} from "../../../models/data/data-set"
-import {getSharedCaseMetadataFromDataset} from "../../../models/shared/shared-data-utils"
+import {getMetadataFromDataSet} from "../../../models/shared/shared-data-utils"
 import {computePointRadius} from "../../data-display/data-display-utils"
 import {latLongAttributesFromDataSet} from "../utilities/map-utils"
 import {MapGridModel} from "./map-grid-model"
@@ -29,7 +29,7 @@ export const MapPointLayerModel = MapLayerModel
     },
     setDataset(dataSet:IDataSet) {
       const {latId, longId} = latLongAttributesFromDataSet(dataSet)
-      self.dataConfiguration.setDataset(dataSet, getSharedCaseMetadataFromDataset(dataSet))
+      self.dataConfiguration.setDataset(dataSet, getMetadataFromDataSet(dataSet))
       self.dataConfiguration.setAttribute('lat', {attributeID: latId})
       self.dataConfiguration.setAttribute('long', {attributeID: longId})
     },

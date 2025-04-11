@@ -1,10 +1,11 @@
 import { debugLog, DEBUG_PLUGINS } from "../../lib/debug"
 import { toV2Id } from "../../utilities/codap-utils"
+import { getMetadataFromDataSet } from "../shared/shared-data-utils"
 import { IAttribute } from "./attribute"
-import { IDataSet } from "./data-set"
-import { ICase } from "./data-set-types"
 import { ICollectionModel } from "./collection"
+import { IDataSet } from "./data-set"
 import { getDataSetNotificationAdapter } from "./data-set-notification-adapter"
+import { ICase } from "./data-set-types"
 
 const action = "notify"
 function makeCallback(operation: string, other?: any) {
@@ -29,13 +30,14 @@ export function dataContextDeletedNotification(dataSet: IDataSet) {
 }
 
 export function updateDataContextNotification(dataSet: IDataSet) {
+  const metadata = getMetadataFromDataSet(dataSet)
   const result = {
     success: true,
     properties: {
-      description: dataSet.description,
-      importDate: dataSet.importDate,
+      description: metadata?.description ?? "",
+      importDate: metadata?.importDate ?? "",
       name: dataSet.name,
-      sourceName: dataSet.sourceName,
+      sourceName: metadata?.source ?? "",
       title: dataSet._title
     }
   }

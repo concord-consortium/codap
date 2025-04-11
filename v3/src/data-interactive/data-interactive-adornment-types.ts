@@ -30,7 +30,9 @@ export type DIAdornmentValues = DICountAdornmentValues | DILsrlAdornmentValues |
   DIMedianAdornmentValues | DIMovableValueAdornmentValues | DIStandardDeviationAdornmentValues |
   DIRegionOfInterestAdornmentValues
 
-const kAdornmentTypes = [kCountType, kLSRLType, kMeanType, kMedianType, kMovableValueType, kRegionOfInterestType, kStandardDeviationType]
+const kAdornmentTypes = [
+  kCountType, kLSRLType, kMeanType, kMedianType, kMovableValueType, kRegionOfInterestType, kStandardDeviationType
+]
 const adornmentTypes = new Set(kAdornmentTypes)
 
 export const isAdornmentValues = (val: unknown): val is DIAdornmentValues => {

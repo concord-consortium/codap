@@ -8,9 +8,8 @@ import { addDisposer, getSnapshot, Instance, onPatch, SnapshotIn, types } from "
 import { isNumericAttributeType } from "../../../models/data/attribute-types"
 import {IDataSet} from "../../../models/data/data-set"
 import {applyModelChange} from "../../../models/history/apply-model-change"
-import {
-  getDataSetFromId, getSharedCaseMetadataFromDataset, getTileCaseMetadata, getTileDataSet
-} from "../../../models/shared/shared-data-utils"
+import { getTileCaseMetadata, getTileDataSet } from "../../../models/shared/shared-data-tile-utils"
+import { getDataSetFromId, getMetadataFromDataSet } from "../../../models/shared/shared-data-utils"
 import {ISharedModel, SharedModelChangeType} from "../../../models/shared/shared-model"
 import {ITileContentModel} from "../../../models/tiles/tile-content"
 import { getFormulaManager } from "../../../models/tiles/tile-environment"
@@ -269,7 +268,7 @@ export const GraphContentModel = DataDisplayContentModel
       const newDataSet = getDataSetFromId(self, dataSetID)
       if (newDataSet && newDataSet !== self.dataConfiguration.dataset) {
         self.dataConfiguration.clearAttributes()
-        self.dataConfiguration.setDataset(newDataSet, getSharedCaseMetadataFromDataset(newDataSet))
+        self.dataConfiguration.setDataset(newDataSet, getMetadataFromDataSet(newDataSet))
       }
     },
     setPlot(newPlotSnap: IPlotModelUnionSnapshot) {

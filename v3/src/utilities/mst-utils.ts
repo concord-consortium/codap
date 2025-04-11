@@ -22,6 +22,17 @@ export function typeField(typeName: string) {
 }
 
 /**
+ * This creates the definition for an optional boolean property in MST.
+ * The valid values for the property are `true` or `undefined`, which
+ * means that the property is not serialized unless it is true.
+ *
+ * @returns
+ */
+export function typeOptionalBoolean() {
+  return types.maybe(types.literal(true))
+}
+
+/**
  * Returns an ancestor of a node whose type name is `typeName`, if any.
  * This is like `getParentOfType(target, type)`, but allows us not to refer directly to the
  * parent type, which can cause circular reference errors in MST.

@@ -1,5 +1,6 @@
 import { DataSet } from "../../models/data/data-set"
 import { AppHistoryService } from "../../models/history/app-history-service"
+import { createDataSetMetadata } from "../../models/shared/data-set-metadata"
 
 export const testCases = [
   { a1: "a", a2: "x", a3: 1, a4: -1 },
@@ -21,6 +22,7 @@ export const setupTestDataset = (options?: ITestDatasetOptions) => {
       { name: "collection3" }
     ]
   }, {historyService: new AppHistoryService()})
+  const metadata = createDataSetMetadata(dataset)
   const [c1, c2] = dataset.collections
   const a1 = dataset.addAttribute({ name: "a1" }, { collection: c1.id })
   const a2 = dataset.addAttribute({ name: "a2" }, { collection: c2.id })
@@ -28,7 +30,7 @@ export const setupTestDataset = (options?: ITestDatasetOptions) => {
   const a4 = dataset.addAttribute({ name: "a4" })
   dataset.addCases(testCases, { canonicalize: true })
   dataset.validateCases()
-  return { dataset, c1, c2, a1, a2, a3, a4 }
+  return { dataset, metadata, c1, c2, a1, a2, a3, a4 }
 }
 
 export function setupForCaseTest() {

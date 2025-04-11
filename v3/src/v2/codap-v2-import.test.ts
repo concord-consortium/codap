@@ -1,5 +1,5 @@
 import { kV2CalculatorDGType } from "../components/calculator/calculator-defs"
-import { isV2ExternalContext } from "./codap-v2-data-set-types"
+import { isV2ExternalContext } from "./codap-v2-data-context-types"
 import { CodapV2Document } from "./codap-v2-document"
 import { ICodapV2DocumentJson, isCodapV2Document } from "./codap-v2-types"
 

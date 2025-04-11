@@ -1,4 +1,4 @@
-import { CodapV2ColorMap, ICodapV2CategoryMap } from "../../v2/codap-v2-data-set-types"
+import { CodapV2ColorMap, ICodapV2CategoryMap } from "../../v2/codap-v2-data-context-types"
 import { Attribute } from "./attribute"
 import { importV2CategorySet } from "./v2-category-set-importer"
 

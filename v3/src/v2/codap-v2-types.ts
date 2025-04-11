@@ -1,6 +1,6 @@
 import { Descendant, SlateExchangeValue } from "@concord-consortium/slate-editor"
 import { RequireExactlyOne } from "type-fest"
-import { CodapV2Context, ICodapV2CollectionV3, ICodapV2DataContext } from "./codap-v2-data-set-types"
+import { CodapV2Context, ICodapV2CollectionV3, ICodapV2DataContext } from "./codap-v2-data-context-types"
 
 // when exporting a v3 data set to v2 data context
 export interface ICodapV2DataContextV3

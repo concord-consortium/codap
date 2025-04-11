@@ -205,11 +205,6 @@ describe("Attribute", () => {
     expect(attribute.description).toBeUndefined()
     attribute.setDescription("description")
     expect(attribute.description).toBe("description")
-
-    expect(attribute.editable).toBe(true)
-    attribute.setEditable(false)
-    expect(attribute.editable).toBe(false)
-    expect(attribute.isEditable).toBe(false)
   })
 
   test("caching/invalidation of views based on data values works as expected", () => {
@@ -391,13 +386,10 @@ describe("Attribute", () => {
   test("Attribute formulas", () => {
     const attr = Attribute.create({ name: "foo" })
     expect(attr.formula).toBeUndefined()
-    expect(attr.isEditable).toBe(true)
     attr.setDisplayExpression("2 * x")
     expect(attr.formula!.display).toBe("2 * x")
-    expect(attr.isEditable).toBe(false)
     attr.clearFormula()
     expect(attr.formula).toBeUndefined()
-    expect(attr.isEditable).toBe(true)
   })
 
   test("isFormulaAttr and isValidFormulaAttr", () => {

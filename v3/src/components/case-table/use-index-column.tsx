@@ -3,15 +3,15 @@ import { useDndContext } from "@dnd-kit/core"
 import { clsx } from "clsx"
 import React, { useCallback, useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
-import { useCaseMetadata } from "../../hooks/use-case-metadata"
 import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
+import { useDataSetMetadata } from "../../hooks/use-data-set-metadata"
 import { DEBUG_CASE_IDS } from "../../lib/debug"
 import { ICollectionModel } from "../../models/data/collection"
 import { IDataSet } from "../../models/data/data-set"
 import { symIndex, symParent } from "../../models/data/data-set-types"
 import { getCollectionAttrs, selectCases, setSelectedCases } from "../../models/data/data-set-utils"
-import { ISharedCaseMetadata } from "../../models/shared/shared-case-metadata"
+import { IDataSetMetadata } from "../../models/shared/data-set-metadata"
 import { preventCollectionReorg } from "../../utilities/plugin-utils"
 import { t } from "../../utilities/translation/translate"
 import { kIndexColumnKey } from "../case-tile-common/case-tile-types"
@@ -26,7 +26,7 @@ import DragIndicator from "../../assets/icons/drag-indicator.svg"
 
 interface IColSpanProps {
   data?: IDataSet
-  metadata?: ISharedCaseMetadata
+  metadata?: IDataSetMetadata
   collection: ICollectionModel
 }
 function indexColumnSpan(args: TColSpanArgs, { data, metadata, collection }: IColSpanProps) {
@@ -43,8 +43,8 @@ function indexColumnSpan(args: TColSpanArgs, { data, metadata, collection }: ICo
 }
 
 export const useIndexColumn = () => {
-  const caseMetadata = useCaseMetadata()
   const data = useDataSetContext()
+  const metadata = useDataSetMetadata()
   const collectionId = useCollectionContext()
   const collection = data?.getCollection(collectionId)
   const disableMenu = preventCollectionReorg(data, collectionId)
@@ -60,7 +60,7 @@ export const useIndexColumn = () => {
     const index = __id__ === kInputRowKey
                     ? -1
                     : _index != null ? _index : data?.getItemIndex(__id__)
-    const collapsedCases = data && parentId && caseMetadata?.isCollapsed(parentId)
+    const collapsedCases = data && parentId && metadata?.isCollapsed(parentId)
                             ? data.caseInfoMap.get(parentId)?.childCaseIds ?? []
                             : []
     const collapsedCaseCount = collapsedCases.length
@@ -88,7 +88,7 @@ export const useIndexColumn = () => {
         <RowDivider rowId={__id__}/>
       </div>
     )
-  }, [caseMetadata, data, disableMenu])
+  }, [metadata, data, disableMenu])
   const indexColumn = useRef<TColumn | undefined>()
 
   useEffect(() => {
@@ -102,11 +102,11 @@ export const useIndexColumn = () => {
       renderHeaderCell: ColumnHeader,
       cellClass: row => clsx("codap-index-cell", `rowId-${row.__id__}`),
       colSpan(args: TColSpanArgs) {
-        return collection ? indexColumnSpan(args, { data, metadata: caseMetadata, collection }) : undefined
+        return collection ? indexColumnSpan(args, { data, metadata, collection }) : undefined
       },
       renderCell: RenderIndexCell
     }
-  }, [caseMetadata, collection, data, RenderIndexCell])
+  }, [metadata, collection, data, RenderIndexCell])
 
   return indexColumn.current
 }

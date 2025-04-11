@@ -4,10 +4,10 @@ import GraphIcon from "../../assets/icons/icon-graph.svg"
 import { registerComponentHandler } from "../../data-interactive/handlers/component-handler"
 import { registerDataDisplayHandler } from "../../data-interactive/handlers/data-display-handler"
 import { idOfChildmostCollectionForAttributes } from "../../models/data/data-set-utils"
+import { SharedDataSet } from "../../models/shared/shared-data-set"
+import { getMetadataFromDataSet } from "../../models/shared/shared-data-utils"
 import { registerTileComponentInfo } from "../../models/tiles/tile-component-info"
 import { ITileLikeModel, registerTileContentInfo } from "../../models/tiles/tile-content-info"
-import { SharedDataSet } from "../../models/shared/shared-data-set"
-import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-data-utils"
 import { registerV2TileExporter } from "../../v2/codap-v2-tile-exporters"
 import { registerV2TileImporter } from "../../v2/codap-v2-tile-importers"
 import { ComponentTitleBar } from "../component-title-bar"
@@ -38,7 +38,7 @@ registerTileContentInfo({
     const sharedModelManager = options?.env?.sharedModelManager
     const sharedDataSets = sharedModelManager?.getSharedModelsByType<typeof SharedDataSet>("SharedDataSet")
     const onlyDataSet = sharedDataSets?.length === 1 ? sharedDataSets[0].dataSet : undefined
-    const onlyMetadata = onlyDataSet && getSharedCaseMetadataFromDataset(onlyDataSet)
+    const onlyMetadata = onlyDataSet && getMetadataFromDataSet(onlyDataSet)
     const graphTileSnapshot: SetRequired<IGraphContentModelSnapshot, "type"> = {
       type: kGraphTileType,
       layers: [{

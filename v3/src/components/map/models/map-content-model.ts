@@ -6,7 +6,7 @@ import {IDataSet} from "../../../models/data/data-set"
 import {applyModelChange} from "../../../models/history/apply-model-change"
 import {withoutUndo} from "../../../models/history/without-undo"
 import {ISharedDataSet, kSharedDataSetType, SharedDataSet} from "../../../models/shared/shared-data-set"
-import {getSharedCaseMetadataFromDataset} from "../../../models/shared/shared-data-utils"
+import {getMetadataFromDataSet} from "../../../models/shared/shared-data-utils"
 import {ITileContentModel} from "../../../models/tiles/tile-content"
 import { getFormulaManager } from "../../../models/tiles/tile-environment"
 import {typedId} from "../../../utilities/js-utils"
@@ -154,7 +154,7 @@ export const MapContentModel = DataDisplayContentModel
       self.layers.push(newPointLayer) // We have to do this first so safe references will work
       const dataConfiguration = newPointLayer.dataConfiguration,
         {latId, longId} = latLongAttributesFromDataSet(dataSet)
-      dataConfiguration.setDataset(dataSet, getSharedCaseMetadataFromDataset(dataSet))
+      dataConfiguration.setDataset(dataSet, getMetadataFromDataSet(dataSet))
       dataConfiguration.setAttribute('lat', {attributeID: latId})
       dataConfiguration.setAttribute('long', {attributeID: longId})
       return newPointLayer
@@ -170,7 +170,7 @@ export const MapContentModel = DataDisplayContentModel
       self.layers.push(newPinLayer) // We have to do this first so safe references will work
       const dataConfiguration = newPinLayer.dataConfiguration,
         { pinLatId, pinLongId } = pinAttributesFromDataSet(dataSet)
-      dataConfiguration.setDataset(dataSet, getSharedCaseMetadataFromDataset(dataSet))
+      dataConfiguration.setDataset(dataSet, getMetadataFromDataSet(dataSet))
       dataConfiguration.setAttribute('pinLat', {attributeID: pinLatId})
       dataConfiguration.setAttribute('pinLong', {attributeID: pinLongId})
       return newPinLayer

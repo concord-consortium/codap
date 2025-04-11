@@ -1,9 +1,9 @@
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import React, { useMemo, useRef } from "react"
-import { useCaseMetadata } from "../../hooks/use-case-metadata"
 import { useCollectionContext, useParentCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
+import { useDataSetMetadata } from "../../hooks/use-data-set-metadata"
 import { getDragAttributeInfo, useTileDroppable } from "../../hooks/use-drag-drop"
 import { measureText } from "../../hooks/use-measure-text"
 import { useVisibleAttributes } from "../../hooks/use-visible-attributes"
@@ -34,7 +34,7 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({
   gridElt, onDrop, onWhiteSpaceClick
 }: IProps) {
   const data = useDataSetContext()
-  const caseMetadata = useCaseMetadata()
+  const metadata = useDataSetMetadata()
   const parentCollectionId = useParentCollectionContext()
   const parentCollection = parentCollectionId ? data?.getCollection(parentCollectionId) : undefined
   const parentTableModel = useCollectionTableModel(parentCollectionId)
@@ -91,7 +91,7 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({
 
   if (!data || !parentCases) return null
 
-  const everyCaseIsCollapsed = parentCases.every((value) => caseMetadata?.isCollapsed(value.__id__))
+  const everyCaseIsCollapsed = parentCases.every((value) => metadata?.isCollapsed(value.__id__))
 
   // Keep for now in case of accessibility application (wider area of input)
   // function handleAreaClick(e: React.MouseEvent) {
@@ -102,15 +102,15 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({
   //   const clickedRow = Math.floor((e.clientY - (parentGridBounds?.top ?? 0) - rowHeaderHeight) / rowHeight)
   //   const cases = data && parentCollection ? data?.getCasesForCollection(parentCollection.id) : []
   //   const clickedCase = cases[clickedRow]
-  //   if (caseMetadata && clickedCase) {
-  //     const isCollapsed = caseMetadata.isCollapsed(clickedCase.__id__)
-  //     caseMetadata.setIsCollapsed(clickedCase.__id__, !isCollapsed)
+  //   if (metadata && clickedCase) {
+  //     const isCollapsed = metadata.isCollapsed(clickedCase.__id__)
+  //     metadata.setIsCollapsed(clickedCase.__id__, !isCollapsed)
   //   }
   // }
 
   function handleExpandCollapseAllClick() {
-    caseMetadata?.applyModelChange(() => {
-      parentCases?.forEach((value) => caseMetadata?.setIsCollapsed(value.__id__, !everyCaseIsCollapsed))
+    metadata?.applyModelChange(() => {
+      parentCases?.forEach((value) => metadata?.setIsCollapsed(value.__id__, !everyCaseIsCollapsed))
     }, {
       log: logMessageWithReplacement("%@ all",
               { state: everyCaseIsCollapsed ? "Expand" : "Collapse" }, "table"),
@@ -121,13 +121,13 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({
 
   function handleExpandCollapseClick(parentCaseId: string) {
     // collapse the parent case
-    caseMetadata?.applyModelChange(() => {
-      caseMetadata?.setIsCollapsed(parentCaseId, !caseMetadata?.isCollapsed(parentCaseId))
+    metadata?.applyModelChange(() => {
+      metadata?.setIsCollapsed(parentCaseId, !metadata?.isCollapsed(parentCaseId))
     }, {
       undoStringKey: "DG.Undo.caseTable.expandCollapseOneCase",
       redoStringKey: "DG.Redo.caseTable.expandCollapseOneCase",
       log: logMessageWithReplacement("%@ case %@",
-              { state: caseMetadata?.isCollapsed(parentCaseId) ? "Expand" : "Collapse", parentCaseId}, "table")
+              { state: metadata?.isCollapsed(parentCaseId) ? "Expand" : "Collapse", parentCaseId}, "table")
     })
     // scroll to the first expanded/collapsed child case (if necessary)
     const parentCase = data?.caseInfoMap.get(parentCaseId)
@@ -215,7 +215,7 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({
             <div className="spacer-mid-layer">
               {indexRanges?.map(({ id }, index) => {
                 if (id !== kInputRowKey) {
-                  return <ExpandCollapseButton key={id} isCollapsed={!!caseMetadata?.isCollapsed(id)}
+                  return <ExpandCollapseButton key={id} isCollapsed={!!metadata?.isCollapsed(id)}
                     onClick={() => handleExpandCollapseClick(id)}
                     styles={{ left: '3px', top: `${((index * parentTableModel.rowHeight) - parentScrollTop) + 4}px`}}
                   />

@@ -54,8 +54,6 @@ export const Attribute = V2Model.named("Attribute").props({
   // userFormat: types.maybe(types.string),
   units: types.maybe(types.string),
   precision: types.maybe(types.union(types.number, types.enumeration(Object.values(DatePrecision)))),
-  deleteable: true,
-  editable: true,
   formula: types.maybe(Formula),
   // simple array -- _not_ MST all the way down to the array elements
   // due to its frozen nature, clients should _not_ use `values` directly
@@ -240,9 +238,6 @@ export const Attribute = V2Model.named("Attribute").props({
 
     return "categorical"
   },
-  get isEditable() {
-    return self.editable && !self.hasFormula
-  },
   value(index: number) {
     const numValue = self.numValues[index]
     return !isNaN(numValue) ? numValue : self.strValues[index]
@@ -282,12 +277,6 @@ export const Attribute = V2Model.named("Attribute").props({
   // },
   setPrecision(precision?: number | DatePrecision) {
     self.precision = precision
-  },
-  setDeleteable(deleteable: boolean) {
-    self.deleteable = deleteable
-  },
-  setEditable(editable: boolean) {
-    self.editable = editable
   },
   clearFormula() {
     self.formula = undefined

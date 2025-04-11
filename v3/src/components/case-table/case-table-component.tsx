@@ -1,6 +1,6 @@
 import { observer } from "mobx-react-lite"
 import React from "react"
-import { CaseMetadataContext } from "../../hooks/use-case-metadata"
+import { DataSetMetadataContext } from "../../hooks/use-data-set-metadata"
 import { useDataSet } from "../../hooks/use-data-set"
 import { DataSetContext } from "../../hooks/use-data-set-context"
 import { InstanceIdContext, useNextInstanceId } from "../../hooks/use-instance-id-context"
@@ -25,11 +25,11 @@ export const CaseTableComponent = observer(function CaseTableComponent({ tile }:
   return (
     <InstanceIdContext.Provider value={instanceId}>
       <DataSetContext.Provider value={data}>
-        <CaseMetadataContext.Provider value={metadata}>
+        <DataSetMetadataContext.Provider value={metadata}>
           <CaseTableModelContext.Provider value={tableModel}>
             <CaseTable />
           </CaseTableModelContext.Provider>
-        </CaseMetadataContext.Provider>
+        </DataSetMetadataContext.Provider>
       </DataSetContext.Provider>
     </InstanceIdContext.Provider>
   )

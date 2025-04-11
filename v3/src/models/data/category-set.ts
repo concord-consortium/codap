@@ -176,20 +176,15 @@ export const CategorySet = types.model("CategorySet", {
 })
 .views(self => ({
   get colorMap() {
-    const colorForCategory = (category: string) => {
-      const userColor = self.colors.get(category)
-      if (userColor) {
-        return userColor
-      }
-      const catIndex = self.index(category)
-      return catIndex != null ? kellyColors[catIndex % kellyColors.length] : undefined
+    const colorForCategory = (category: string, index: number) => {
+      return self.colors.get(category) ?? kellyColors[index % kellyColors.length]
     }
 
     // We intentionally create a new non-observable map here.
     // This way this map object can be observed and if it changes a user knows the
     // colors or categories have changed
-    const map: Record<string, string | undefined> = {}
-    self.values.forEach(category => map[category] = colorForCategory(category))
+    const map: Record<string, string> = {}
+    self.values.forEach((category, index) => map[category] = colorForCategory(category, index))
     return map
   }
 }))

@@ -3,7 +3,7 @@ import { CreateOrShowTileFn, DIComponentHandler } from "../../data-interactive/h
 import { errorResult, fieldRequiredResult } from "../../data-interactive/handlers/di-results"
 import { appState } from "../../models/app-state"
 import {
-  getDataSetByNameOrId, getSharedCaseMetadataFromDataset, getSharedDataSetFromDataSetId
+  getDataSetByNameOrId, getMetadataFromDataSet, getSharedDataSetFromDataSetId
 } from "../../models/shared/shared-data-utils"
 import { t } from "../../utilities/translation/translate"
 import { kCaseCardTileType, kV2CaseCardType } from "../case-card/case-card-defs"
@@ -22,9 +22,9 @@ export const caseTableCardComponentHandler: DIComponentHandler = {
     if (!dataSet) return dataContextNotFound
     const sharedDataSet = getSharedDataSetFromDataSetId(document, dataSet.id)
     if (!sharedDataSet) return dataContextNotFound
-    const caseMetadata = getSharedCaseMetadataFromDataset(dataSet)
-    if (!caseMetadata) {
-      return errorResult(t("V3.DI.Error.caseMetadataNotFound", { vars: [dataContext] }))
+    const sharedMetadata = getMetadataFromDataSet(dataSet)
+    if (!sharedMetadata) {
+      return errorResult(t("V3.DI.Error.dataSetMetadataNotFound", { vars: [dataContext] }))
     }
 
     const createOrShow: CreateOrShowTileFn = (tileType, options) => {

@@ -1,7 +1,7 @@
 import { closestCenter, CollisionDetection, rectIntersection } from "@dnd-kit/core"
 import { observer } from "mobx-react-lite"
 import React from "react"
-import { CaseMetadataContext } from "../../hooks/use-case-metadata"
+import { DataSetMetadataContext } from "../../hooks/use-data-set-metadata"
 import { useDataSet } from "../../hooks/use-data-set"
 import { DataSetContext } from "../../hooks/use-data-set-context"
 import { useTileDropOverlay } from "../../hooks/use-drag-drop"
@@ -38,11 +38,11 @@ export const CaseCardComponent = observer(function CaseCardComponent({ tile }: I
   return (
     <InstanceIdContext.Provider value={instanceId}>
       <DataSetContext.Provider value={data}>
-        <CaseMetadataContext.Provider value={metadata}>
+        <DataSetMetadataContext.Provider value={metadata}>
           <CaseCardModelContext.Provider value={tableModel}>
             <CaseCard setNodeRef={setNodeRef} />
           </CaseCardModelContext.Provider>
-        </CaseMetadataContext.Provider>
+        </DataSetMetadataContext.Provider>
       </DataSetContext.Provider>
     </InstanceIdContext.Provider>
   )

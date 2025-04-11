@@ -3,10 +3,10 @@ import {
 } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
 import React, { useRef } from "react"
+import { AttributeBinningTypes, AttributeBinningType } from "../../../models/shared/data-set-metadata"
 import {
   kDefaultHighAttributeColor, kDefaultLowAttributeColor
-} from "../../../models/shared/shared-case-metadata-constants"
-import { AttributeBinningTypes, IAttributeBinningType } from "../../../models/shared/shared-case-metadata"
+} from "../../../models/shared/data-set-metadata-constants"
 import { t } from "../../../utilities/translation/translate"
 import { IMapPointLayerModel, isMapPointDisplayType } from "../../map/models/map-point-layer-model"
 import { PointDisplayType } from "../data-display-types"
@@ -68,7 +68,7 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
     })
   }
 
-  const handleAttributeBinningTypeChange = (_scaleType: IAttributeBinningType) => {
+  const handleAttributeBinningTypeChange = (_scaleType: AttributeBinningType) => {
     metadata?.applyModelChange(() => {
       metadata.setAttributeBinningType(legendAttrID, _scaleType)
     }, {
@@ -271,7 +271,7 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
           <Flex>
             <FormLabel className="form-label legend-bins-menu">{t("DG.Inspector.legendBins")}</FormLabel>
             <Select size="xs" data-testid="legend-bins-type-select" value={binningType}
-              onChange={e => handleAttributeBinningTypeChange(e.target.value as IAttributeBinningType)}
+              onChange={e => handleAttributeBinningTypeChange(e.target.value as AttributeBinningType)}
             >
               { AttributeBinningTypes.map(_binningType =>
                 <option key={_binningType} value={_binningType}>{t(`DG.Inspector.legendBins.${_binningType}`)}</option>

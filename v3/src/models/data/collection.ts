@@ -8,15 +8,6 @@ import {
 } from "./data-set-types"
 import { V2Model } from "./v2-model"
 
-export const CollectionLabels = types.model("CollectionLabels", {
-  singleCase: "",
-  pluralCase: "",
-  singleCaseWithArticle: "",
-  setOfCases: "",
-  setOfCasesWithArticle: ""
-})
-export interface ICollectionLabels extends Instance<typeof CollectionLabels> {}
-
 // interface to data provided by DataSet
 export interface IItemData {
   itemIds: () => string[]
@@ -39,7 +30,6 @@ export const CollectionModel = V2Model
 .named("Collection")
 .props({
   id: typeV3Id(kCollectionIdPrefix),
-  labels: types.maybe(CollectionLabels),
   // attributes in left-to-right order
   attributes: types.array(types.safeReference(Attribute)),
   // array of [group key (stringified attribute values), case id] tuples
@@ -448,52 +438,6 @@ export const CollectionModel = V2Model
   findParentCaseGroup(childCaseId: string): Maybe<CaseInfo> {
     //consider building a child -> parent case id map if performance is an issue
     return self.caseGroups.find(group => group.childCaseIds?.includes(childCaseId))
-  }
-}))
-.actions(self => ({
-  setSingleCase(singleCase: string) {
-    if (self.labels) {
-      self.labels.singleCase = singleCase
-    } else {
-      self.labels = CollectionLabels.create({ singleCase })
-    }
-  },
-  setPluralCase(pluralCase: string) {
-    if (self.labels) {
-      self.labels.pluralCase = pluralCase
-    } else {
-      self.labels = CollectionLabels.create({ pluralCase })
-    }
-  },
-  setSingleCaseWithArticle(singleCaseWithArticle: string) {
-    if (self.labels) {
-      self.labels.singleCaseWithArticle = singleCaseWithArticle
-    } else {
-      self.labels = CollectionLabels.create({ singleCaseWithArticle })
-    }
-  },
-  setSetOfCases(setOfCases: string) {
-    if (self.labels) {
-      self.labels.setOfCases = setOfCases
-    } else {
-      self.labels = CollectionLabels.create({ setOfCases })
-    }
-  },
-  setSetOfCasesWithArticle(setOfCasesWithArticle: string) {
-    if (self.labels) {
-      self.labels.setOfCasesWithArticle = setOfCasesWithArticle
-    } else {
-      self.labels = CollectionLabels.create({ setOfCasesWithArticle })
-    }
-  }
-}))
-.actions(self => ({
-  setLabels(labels: Partial<ICollectionLabels>) {
-    if (labels.singleCase) self.setSingleCase(labels.singleCase)
-    if (labels.pluralCase) self.setPluralCase(labels.pluralCase)
-    if (labels.singleCaseWithArticle) self.setSingleCaseWithArticle(labels.singleCaseWithArticle)
-    if (labels.setOfCases) self.setSetOfCases(labels.setOfCases)
-    if (labels.setOfCasesWithArticle) self.setSetOfCasesWithArticle(labels.setOfCasesWithArticle)
   }
 }))
 .actions(self => ({

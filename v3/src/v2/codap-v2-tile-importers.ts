@@ -1,6 +1,6 @@
 import { IFreeTileInRowOptions } from "../models/document/free-tile-row"
 import { IGlobalValueManager } from "../models/global/global-value-manager"
-import { ISharedCaseMetadata } from "../models/shared/shared-case-metadata"
+import { IDataSetMetadata } from "../models/shared/data-set-metadata"
 import { ISharedDataSet } from "../models/shared/shared-data-set"
 import { ISharedModel } from "../models/shared/shared-model"
 import { ITileContentModel } from "../models/tiles/tile-content"
@@ -13,11 +13,12 @@ import { ICodapV2BaseComponent } from "./codap-v2-types"
   importer functions here.
  */
 // the arguments passed to a v2 component importer function
+export type GetCaseDataResult = { sharedData?: ISharedDataSet, sharedMetadata?: IDataSetMetadata }
 export type LayoutTransformFn = (layout: IFreeTileInRowOptions) => IFreeTileInRowOptions
 export interface V2TileImportArgs {
   v2Component: ICodapV2BaseComponent
   v2Document: CodapV2Document
-  getCaseData: (dataContextGuid: number) => { data?: ISharedDataSet, metadata?: ISharedCaseMetadata }
+  getCaseData: (dataContextGuid: number) => GetCaseDataResult
   getGlobalValues: () => Maybe<IGlobalValueManager>
   // function to call to insert the imported tile into the document
   insertTile: (tileSnap: ITileModelSnapshotIn, transform?: LayoutTransformFn) => ITileModel | undefined

@@ -1,6 +1,6 @@
 import { createCodapDocument } from "../../models/codap/create-codap-document"
 import { FreeTileRow, IFreeTileRow } from "../../models/document/free-tile-row"
-import { getTileSharedModels } from "../../models/shared/shared-data-utils"
+import { getTileSharedModels } from "../../models/shared/shared-data-tile-utils"
 import { ISharedModel } from "../../models/shared/shared-model"
 import { getTileComponentInfo } from "../../models/tiles/tile-component-info"
 import { ITileContentModel } from "../../models/tiles/tile-content"

@@ -2,7 +2,7 @@ import { SetOptional, SetRequired } from "type-fest"
 import TableIcon from "../../assets/icons/icon-table.svg"
 import { registerComponentHandler } from "../../data-interactive/handlers/component-handler"
 import { registerTileComponentInfo } from "../../models/tiles/tile-component-info"
-import { getTileDataSet } from "../../models/shared/shared-data-utils"
+import { getTileDataSet } from "../../models/shared/shared-data-tile-utils"
 import { registerTileContentInfo } from "../../models/tiles/tile-content-info"
 import { ITileModelSnapshotIn } from "../../models/tiles/tile-model"
 import { toV2Id, toV3AttrId, toV3CaseId, toV3CollectionId, toV3Id } from "../../utilities/codap-utils"
@@ -115,13 +115,13 @@ registerV2TileImporter("DG.TableView", ({ v2Component, v2Document, getCaseData, 
     isIndexHidden
   }
   const { collapsedNodes = [], context } = _links_
-  const { data, metadata } = getCaseData(context.id)
+  const { sharedData, sharedMetadata } = getCaseData(context.id)
   const collapsedCases = Array.isArray(collapsedNodes) ? collapsedNodes : [collapsedNodes]
 
   collapsedCases.forEach(({ id }) => {
     const caseId = toV3CaseId(id)
     if (caseId) {
-      metadata?.setIsCollapsed(caseId, true)
+      sharedMetadata?.setIsCollapsed(caseId, true)
     }
   })
 
@@ -148,14 +148,14 @@ registerV2TileImporter("DG.TableView", ({ v2Component, v2Document, getCaseData, 
 
   // Make sure metadata knows this is the table tile and it is the last shown
   if (isActive) {
-    metadata?.setLastShownTableOrCardTileId(tableTile?.id)
+    sharedMetadata?.setLastShownTableOrCardTileId(tableTile?.id)
   }
-  metadata?.setCaseTableTileId(tableTile?.id)
+  sharedMetadata?.setCaseTableTileId(tableTile?.id)
 
   // add links to shared models
   if (tableTile) {
-    linkSharedModel(tableTile.content, data, true)
-    linkSharedModel(tableTile.content, metadata, true)
+    linkSharedModel(tableTile.content, sharedData, true)
+    linkSharedModel(tableTile.content, sharedMetadata, true)
   }
 
   return tableTile

@@ -7,9 +7,9 @@ import { getSharedDataSets } from "../models/shared/shared-data-utils"
 import { getSharedModelManager } from "../models/tiles/tile-environment"
 import { getGlobalValueManager } from "../models/global/global-value-manager"
 import { toV2Id } from "../utilities/codap-utils"
+import { ICodapV2DataContext } from "./codap-v2-data-context-types"
 import { exportV2Component } from "./codap-v2-tile-exporters"
 import { CodapV2Component, ICodapV2DocumentJson } from "./codap-v2-types"
-import { ICodapV2DataContext } from "./codap-v2-data-set-types"
 
 interface IV2DocumentExportOptions {
   filename?: string
