@@ -193,6 +193,15 @@ export const BarChart = observer(function BarChart({ abovePointsGroupRef, pixiPo
         }
       )
     }
+    else if (barChartModel.breakdownType !== "formula") {
+      barChartModel.applyModelChange(
+        () => barChartModel.setBreakdownType("formula"),
+        {
+          undoStringKey: "DG.Undo.graph.showAsComputedBarChart",
+          redoStringKey: "DG.Redo.graph.showAsComputedBarChart",
+          log: 'Change bar chart to computed by pre-existing formula'        }
+      )
+    }
   }
 
   return (
