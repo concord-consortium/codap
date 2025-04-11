@@ -55,7 +55,7 @@ describe("createCodapDocument", () => {
 
   it("createDataSet adds a DataSet to the document as a shared model", () => {
     const doc = createCodapDocument()
-    const { sharedDataSet, caseMetadata } = doc.content!.createDataSet()
+    const { sharedDataSet, sharedMetadata } = doc.content!.createDataSet()
     const { dataSet: data } = sharedDataSet
     data.addAttribute({ name: "a" })
     data.addCases(toCanonical(data, [{ a: "1" }, { a: "2" }, { a: "3" }]))
@@ -103,12 +103,12 @@ describe("createCodapDocument", () => {
           },
           tiles: []
         },
-        [caseMetadata.id]: {
+        [sharedMetadata.id]: {
           sharedModel: {
             collections: {},
             attributes: {},
             data: "test-5",
-            id: caseMetadata.id,
+            id: sharedMetadata.id,
             type: "SharedCaseMetadata"
           },
           tiles: []

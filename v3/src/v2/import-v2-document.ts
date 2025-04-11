@@ -1,8 +1,6 @@
 import { createCodapDocument } from "../models/codap/create-codap-document"
 import { IFreeTileInRowOptions, isFreeTileRow } from "../models/document/free-tile-row"
 import { getGlobalValueManager } from "../models/global/global-value-manager"
-import { IDataSetMetadata } from "../models/shared/data-set-metadata"
-import { ISharedDataSet } from "../models/shared/shared-data-set"
 import { ISharedModel } from "../models/shared/shared-model"
 import { getTileComponentInfo } from "../models/tiles/tile-component-info"
 import { ITileContentModel } from "../models/tiles/tile-content"
@@ -11,7 +9,7 @@ import { ITileModel, ITileModelSnapshotIn } from "../models/tiles/tile-model"
 import { isV2ExternalContext } from "./codap-v2-data-context-types"
 import { CodapV2DataSetImporter, getCaseDataFromV2ContextGuid } from "./codap-v2-data-set-importer"
 import { CodapV2Document } from "./codap-v2-document"
-import { importV2Component, LayoutTransformFn } from "./codap-v2-tile-importers"
+import { GetCaseDataResult, importV2Component, LayoutTransformFn } from "./codap-v2-tile-importers"
 
 export function importV2Document(v2Document: CodapV2Document) {
   const v3Document = createCodapDocument(undefined, { layout: "free" })
@@ -40,7 +38,7 @@ export function importV2Document(v2Document: CodapV2Document) {
   })
 
   // This function will return the shared data set and case metadata for a given data context
-  const getCaseData = (dataContextGuid: number): { data?: ISharedDataSet, metadata?: IDataSetMetadata } => {
+  const getCaseData = (dataContextGuid: number): GetCaseDataResult => {
     return getCaseDataFromV2ContextGuid(dataContextGuid, sharedModelManager)
   }
 

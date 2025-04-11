@@ -104,11 +104,11 @@ export const DocumentContentModel = BaseDocumentContentModel
       const sharedDataSet = SharedDataSet.create({ providerId, dataSet })
       sharedModelManager?.addSharedModel(sharedDataSet)
 
-      const caseMetadata = DataSetMetadata.create()
-      sharedModelManager?.addSharedModel(caseMetadata)
-      caseMetadata.setData(sharedDataSet.dataSet)
+      const sharedMetadata = DataSetMetadata.create()
+      sharedModelManager?.addSharedModel(sharedMetadata)
+      sharedMetadata.setData(sharedDataSet.dataSet)
 
-      return { sharedDataSet, caseMetadata }
+      return { sharedDataSet, sharedMetadata }
     },
     createTile(tileType: string, options?: INewTileOptions): ITileModel | undefined {
       const componentInfo = getTileComponentInfo(tileType)

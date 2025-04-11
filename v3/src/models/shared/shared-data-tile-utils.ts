@@ -31,18 +31,18 @@ export function getAllTileCaseMetadata(tile: ITileContentModel): IDataSetMetadat
 export function addDataSetAndMetadata(tile: ITileModel, dataSet: IDataSet, isProvider = true) {
   const sharedModelManager = getSharedModelManager(tile)
   if (sharedModelManager) {
-    const sharedModel = SharedDataSet.create({ providerId: tile.id })
-    sharedModel.setDataSet(dataSet)
+    const sharedData = SharedDataSet.create({ providerId: tile.id })
+    sharedData.setDataSet(dataSet)
     // so values are captured in undo/redo patches
     dataSet.prepareSnapshot()
-    sharedModelManager?.addTileSharedModel(tile.content, sharedModel, isProvider)
+    sharedModelManager?.addTileSharedModel(tile.content, sharedData, isProvider)
 
-    const caseMetadata = DataSetMetadata.create()
-    caseMetadata.setData(dataSet)
-    sharedModelManager?.addSharedModel(caseMetadata)
+    const sharedMetadata = DataSetMetadata.create()
+    sharedMetadata.setData(dataSet)
+    sharedModelManager?.addTileSharedModel(tile.content, sharedMetadata, isProvider)
 
     dataSet.completeSnapshot()
 
-    return { sharedData: sharedModel, caseMetadata }
+    return { sharedData, sharedMetadata }
   }
 }

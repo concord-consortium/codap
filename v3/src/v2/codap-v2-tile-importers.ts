@@ -13,11 +13,12 @@ import { ICodapV2BaseComponent } from "./codap-v2-types"
   importer functions here.
  */
 // the arguments passed to a v2 component importer function
+export type GetCaseDataResult = { sharedData?: ISharedDataSet, sharedMetadata?: IDataSetMetadata }
 export type LayoutTransformFn = (layout: IFreeTileInRowOptions) => IFreeTileInRowOptions
 export interface V2TileImportArgs {
   v2Component: ICodapV2BaseComponent
   v2Document: CodapV2Document
-  getCaseData: (dataContextGuid: number) => { data?: ISharedDataSet, metadata?: IDataSetMetadata }
+  getCaseData: (dataContextGuid: number) => GetCaseDataResult
   getGlobalValues: () => Maybe<IGlobalValueManager>
   // function to call to insert the imported tile into the document
   insertTile: (tileSnap: ITileModelSnapshotIn, transform?: LayoutTransformFn) => ITileModel | undefined

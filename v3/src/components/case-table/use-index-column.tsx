@@ -43,8 +43,8 @@ function indexColumnSpan(args: TColSpanArgs, { data, metadata, collection }: ICo
 }
 
 export const useIndexColumn = () => {
-  const caseMetadata = useDataSetMetadata()
   const data = useDataSetContext()
+  const metadata = useDataSetMetadata()
   const collectionId = useCollectionContext()
   const collection = data?.getCollection(collectionId)
   const disableMenu = preventCollectionReorg(data, collectionId)
@@ -60,7 +60,7 @@ export const useIndexColumn = () => {
     const index = __id__ === kInputRowKey
                     ? -1
                     : _index != null ? _index : data?.getItemIndex(__id__)
-    const collapsedCases = data && parentId && caseMetadata?.isCollapsed(parentId)
+    const collapsedCases = data && parentId && metadata?.isCollapsed(parentId)
                             ? data.caseInfoMap.get(parentId)?.childCaseIds ?? []
                             : []
     const collapsedCaseCount = collapsedCases.length
@@ -88,7 +88,7 @@ export const useIndexColumn = () => {
         <RowDivider rowId={__id__}/>
       </div>
     )
-  }, [caseMetadata, data, disableMenu])
+  }, [metadata, data, disableMenu])
   const indexColumn = useRef<TColumn | undefined>()
 
   useEffect(() => {
@@ -102,11 +102,11 @@ export const useIndexColumn = () => {
       renderHeaderCell: ColumnHeader,
       cellClass: row => clsx("codap-index-cell", `rowId-${row.__id__}`),
       colSpan(args: TColSpanArgs) {
-        return collection ? indexColumnSpan(args, { data, metadata: caseMetadata, collection }) : undefined
+        return collection ? indexColumnSpan(args, { data, metadata, collection }) : undefined
       },
       renderCell: RenderIndexCell
     }
-  }, [caseMetadata, collection, data, RenderIndexCell])
+  }, [metadata, collection, data, RenderIndexCell])
 
   return indexColumn.current
 }

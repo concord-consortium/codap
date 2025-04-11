@@ -45,7 +45,7 @@ import { IStandardErrorAdornmentModelSnapshot }
   from "./univariate-measures/standard-error/standard-error-adornment-model"
 import { INormalCurveAdornmentModelSnapshot } from "./univariate-measures/normal-curve/normal-curve-adornment-model"
 
-interface IProps {
+export interface IAdornmentImporterProps {
   data?: ISharedDataSet
   metadata?: IDataSetMetadata
   plotModels: ICodapV2PlotModel[]
@@ -233,7 +233,7 @@ type ImportableAdornmentSnapshots = IBoxPlotAdornmentModelSnapshot |
 
 export const v2AdornmentImporter = ({
   data, metadata, plotModels, attributeDescriptions, yAttributeDescriptions
-}: IProps) => {
+}: IAdornmentImporterProps) => {
   const instanceKeysForAdornmentsProps = {data, metadata, attributeDescriptions, yAttributeDescriptions}
   const { instanceKeys, xCats, yCats, legendCats } = instanceKeysForAdornments(instanceKeysForAdornmentsProps)
   const splitAttrId = v2SplitAttrId(attributeDescriptions, yAttributeDescriptions)
@@ -470,8 +470,6 @@ export const v2AdornmentImporter = ({
         plotValues.push(value.value)
       })
 
-      // [Story: #188699857] TODO_V2_IMPORT: both valueModels and values might have `isVisible: false`
-      // we are currently just ignoring that
       values[key] = plotValues
     })
     const movableValuesAdornmentImport: IMovableValueAdornmentModelSnapshot = {

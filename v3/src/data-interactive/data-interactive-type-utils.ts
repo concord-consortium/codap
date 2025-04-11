@@ -105,10 +105,9 @@ export function convertAttributeToV2(attribute: IAttribute, dataContext?: IDataS
   const _defaultRange = metadata?.getAttributeDefaultRange(attribute.id)
   const defaultRange = _defaultRange ? { defaultMin: _defaultRange[0], defaultMax: _defaultRange[1] } : undefined
   const categorySet = metadata?.getCategorySet(attribute.id, false)
-  const rawColorMap = categorySet?.colorMap ?? {}
-  const entries = Object.entries(rawColorMap).filter((entry): entry is [string, string] => !!entry[1])
+  const colorMap = categorySet?.colorMap ?? {}
   const _categoryMap = {
-    ...Object.fromEntries(entries),
+    ...colorMap,
     __order: categorySet?.valuesArray ?? []
   } as ICodapV2CategoryMap
   const categoryMap = categorySet ? { _categoryMap } : undefined
@@ -126,7 +125,7 @@ export function convertAttributeToV2(attribute: IAttribute, dataContext?: IDataS
     renameable: (attribute && !metadata?.isRenameProtected(attribute.id)) ?? true,
     deleteable: (attribute && !metadata?.isDeleteProtected(attribute.id)) ?? true,
     formula: attribute.formula?.display,
-    deletedFormula: (attribute && metadata?.attributes.get(attribute.id)?.deletedFormula) ?? undefined,
+    deletedFormula: (attribute && metadata?.attributes.get(attribute.id)?.deletedFormula) || undefined,
     guid: v2Id,
     id: v2Id,
     precision,

@@ -1,7 +1,6 @@
 import React, { useCallback, useRef, useState } from "react"
 import { observer } from "mobx-react-lite"
 import { clsx } from "clsx"
-import { useDataSetMetadata } from "../../hooks/use-data-set-metadata"
 import { IValueType } from "../../models/data/attribute-types"
 import { IGroupedCase } from "../../models/data/data-set-types"
 import { ICollectionModel } from "../../models/data/collection"
@@ -30,8 +29,8 @@ function getDividerBounds(containerBounds: DOMRect, cellBounds: DOMRect) {
 
 export const CaseAttrsView = observer(function CaseAttrsView({caseItem, collection}: ICaseAttrsViewProps) {
   const cardModel = useCaseCardModel()
-  const caseMetadata = useDataSetMetadata()
   const data = cardModel?.data
+  const metadata = cardModel?.metadata
   const displayValues = useCaseCardModel()?.displayValues
   const isCollectionSummarized = collection?.cases && collection.cases.length > 0 &&
                                  !!cardModel?.summarizedCollections.find(cid => cid === collection?.id)
@@ -50,7 +49,7 @@ export const CaseAttrsView = observer(function CaseAttrsView({caseItem, collecti
 
   const tableClassName = clsx("case-card-attrs", "fadeIn", {"summary-view": isCollectionSummarized})
   const attrs = collection ? getCollectionAttrs(collection, data) : []
-  const visibleAttrs = attrs ? attrs.filter(attr => attr && !caseMetadata?.isHidden(attr.id)) : []
+  const visibleAttrs = attrs ? attrs.filter(attr => attr && !metadata?.isHidden(attr.id)) : []
   return (
     <table className={tableClassName} data-testid="case-card-attrs">
       <tbody>

@@ -81,7 +81,7 @@ registerV2TileImporter("DG.CaseCard", ({ v2Component, v2Document, getCaseData, i
     attributeColumnWidths: {}
   }
   const contextId = _links_.context.id
-  const { data, metadata } = getCaseData(contextId)
+  const { sharedData, sharedMetadata } = getCaseData(contextId)
 
   // some documents (presumably preceding hierarchy support) have a single percentage width
   if (columnWidthPct != null) {
@@ -112,14 +112,14 @@ registerV2TileImporter("DG.CaseCard", ({ v2Component, v2Document, getCaseData, i
 
   // Make sure metadata knows this is the case card tile and it is the last shown
   if (isActive) {
-    metadata?.setLastShownTableOrCardTileId(cardTile?.id)
+    sharedMetadata?.setLastShownTableOrCardTileId(cardTile?.id)
   }
-  metadata?.setCaseCardTileId(cardTile?.id)
+  sharedMetadata?.setCaseCardTileId(cardTile?.id)
 
   // add links to shared models
   if (cardTile) {
-    linkSharedModel(cardTile.content, data)
-    linkSharedModel(cardTile.content, metadata)
+    linkSharedModel(cardTile.content, sharedData)
+    linkSharedModel(cardTile.content, sharedMetadata)
   }
 
   return cardTile
