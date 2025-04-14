@@ -1,23 +1,23 @@
 import React, { useState } from "react"
-import { InspectorButton, InspectorMenu, InspectorPanel } from "../../inspector-panel"
 import HideShowIcon from "../../../assets/icons/icon-hideShow.svg"
 import InformationIcon from "../../../assets/icons/icon-info.svg"
 import ScaleDataIcon from "../../../assets/icons/icon-scaleData.svg"
 import TrashIcon from "../../../assets/icons/icon-trash.svg"
 import ValuesIcon from "../../../assets/icons/icon-values.svg"
-import { DatasetInfoModal } from "./dataset-info-modal"
-import { TrashMenuList } from "./trash-menu-list"
-import { ICaseTileContentModel, isCaseTileContentModel } from "../case-tile-utils"
-import { HideShowMenuList } from "../hide-show-menu-list"
-import { t } from "../../../utilities/translation/translate"
-import { RulerMenuList } from "./ruler-menu-list"
-import { ITileInspectorPanelProps } from "../../tiles/tile-base-props"
 import { useDataSet } from "../../../hooks/use-data-set"
 import { DataSetContext } from "../../../hooks/use-data-set-context"
-import { CaseMetadataContext } from "../../../hooks/use-case-metadata"
+import { DataSetMetadataContext } from "../../../hooks/use-data-set-metadata"
+import { t } from "../../../utilities/translation/translate"
 import { ICaseTableModel, isCaseTableModel } from "../../case-table/case-table-model"
-import { findLongestContentWidth } from "../attribute-format-utils"
 import { kCellPadding } from "../../case-table/case-table-types"
+import { InspectorButton, InspectorMenu, InspectorPanel } from "../../inspector-panel"
+import { ITileInspectorPanelProps } from "../../tiles/tile-base-props"
+import { findLongestContentWidth } from "../attribute-format-utils"
+import { ICaseTileContentModel, isCaseTileContentModel } from "../case-tile-utils"
+import { HideShowMenuList } from "../hide-show-menu-list"
+import { DatasetInfoModal } from "./dataset-info-modal"
+import { RulerMenuList } from "./ruler-menu-list"
+import { TrashMenuList } from "./trash-menu-list"
 
 import "./case-tile-inspector.scss"
 
@@ -63,7 +63,7 @@ export const CaseTileInspector = ({ tile, show, showResizeColumnsButton }: IProp
 
   return (
     <DataSetContext.Provider value={data}>
-      <CaseMetadataContext.Provider value={metadata}>
+      <DataSetMetadataContext.Provider value={metadata}>
         <InspectorPanel component="case-tile" show={show}>
           <InspectorButton tooltip={t("DG.Inspector.datasetInfo.toolTip")} showMoreOptions={true}
             onButtonClick={()=>handleButtonClick("datasetInfo")} testId="dataset-info-button">
@@ -89,7 +89,7 @@ export const CaseTileInspector = ({ tile, show, showResizeColumnsButton }: IProp
           </InspectorMenu>
           {showInfoModal && <DatasetInfoModal showInfoModal={showInfoModal} setShowInfoModal={setShowInfoModal}/>}
         </InspectorPanel>
-      </CaseMetadataContext.Provider>
+      </DataSetMetadataContext.Provider>
     </DataSetContext.Provider>
   )
 }

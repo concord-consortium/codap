@@ -8,7 +8,7 @@ import { urlParams } from "../../utilities/url-params"
 import { appState } from "../app-state"
 import { IFreeTileInRowOptions } from "../document/free-tile-row"
 import { IMosaicTileInRowOptions, isMosaicTileRow } from "../document/mosaic-tile-row"
-import { SharedCaseMetadata } from "../shared/shared-case-metadata"
+import { DataSetMetadata } from "../shared/data-set-metadata"
 import { SharedDataSet } from "../shared/shared-data-set"
 import { getSharedModelManager, getTileEnvironment } from "../tiles/tile-environment"
 import { createTileOfType, INewTileOptions } from "./create-tile"
@@ -39,7 +39,7 @@ export function addDefaultComponents() {
   const kGap = 10
 
   const sharedData = manager?.findFirstSharedModelByType<typeof SharedDataSet>(SharedDataSet)
-  const caseMetadata = manager?.findFirstSharedModelByType<typeof SharedCaseMetadata>(SharedCaseMetadata)
+  const sharedMetadata = manager?.findFirstSharedModelByType<typeof DataSetMetadata>(DataSetMetadata)
   if (isTableOnly) {
     const tableTile = createDefaultTileOfType(kCaseTableTileType)
     if (!tableTile) return
@@ -48,8 +48,8 @@ export function addDefaultComponents() {
             : { x: 2, y: 2, width: 800, height: 500 }
     content.insertTileInRow(tableTile, row, tableOptions)
     sharedData && manager?.addTileSharedModel(tableTile.content, sharedData, true)
-    caseMetadata && manager?.addTileSharedModel(tableTile.content, caseMetadata, true)
-    caseMetadata?.setCaseTableTileId(tableTile.id)
+    sharedMetadata && manager?.addTileSharedModel(tableTile.content, sharedMetadata, true)
+    sharedMetadata?.setCaseTableTileId(tableTile.id)
   }
   else {
     const tableTile = createDefaultTileOfType(kCaseTableTileType)
@@ -59,8 +59,8 @@ export function addDefaultComponents() {
             : { x: 2, y: 2, width: kFullWidth, height: kFullHeight }
     content.insertTileInRow(tableTile, row, tableOptions)
     sharedData && manager?.addTileSharedModel(tableTile.content, sharedData)
-    caseMetadata && manager?.addTileSharedModel(tableTile.content, caseMetadata)
-    caseMetadata?.setCaseTableTileId(tableTile.id)
+    sharedMetadata && manager?.addTileSharedModel(tableTile.content, sharedMetadata)
+    sharedMetadata?.setCaseTableTileId(tableTile.id)
 
     const calculatorTile = createDefaultTileOfType(kCalculatorTileType)
     if (!calculatorTile) return
@@ -95,7 +95,7 @@ export function addDefaultComponents() {
       content.insertTileInRow(graphTile, row, graphOptions)
       if (isGraphContentModel(graphTile.content)) {
         const dataConfiguration = graphTile.content.layers[0]?.dataConfiguration
-        dataConfiguration.setDataset(sharedData?.dataSet, caseMetadata)
+        dataConfiguration.setDataset(sharedData?.dataSet, sharedMetadata)
       }
     }
   }

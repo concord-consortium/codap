@@ -1,24 +1,24 @@
 import { Instance, SnapshotIn } from "mobx-state-tree"
-import { BaseDocumentContentModel } from "./base-document-content"
-import { urlParams } from "../../utilities/url-params"
-import { isFreeTileLayout, isFreeTileRow } from "./free-tile-row"
 import { kTitleBarHeight } from "../../components/constants"
 import { kCaseTableTileType } from "../../components/case-table/case-table-defs"
-import { getTileComponentInfo } from "../tiles/tile-component-info"
-import { getFormulaManager, getSharedModelManager, getTileEnvironment } from "../tiles/tile-environment"
-import { getTileContentInfo } from "../tiles/tile-content-info"
-import { ITileModel } from "../tiles/tile-model"
-import { getPositionOfNewComponent } from "../../utilities/view-utils"
 import { t } from "../../utilities/translation/translate"
+import { urlParams } from "../../utilities/url-params"
+import { getPositionOfNewComponent } from "../../utilities/view-utils"
 import { createTileSnapshotOfType, INewTileOptions } from "../codap/create-tile"
 import { DataSet, IDataSet, IDataSetSnapshot } from "../data/data-set"
 import { gDataBroker } from "../data/data-broker"
 import { applyModelChange } from "../history/apply-model-change"
-import { SharedCaseMetadata } from "../shared/shared-case-metadata"
+import { DataSetMetadata } from "../shared/data-set-metadata"
 import { ISharedDataSet, SharedDataSet, kSharedDataSetType } from "../shared/shared-data-set"
 import { getSharedDataSets } from "../shared/shared-data-utils"
-import { linkTileToDataSet } from "./data-set-linking"
+import { getTileComponentInfo } from "../tiles/tile-component-info"
 import { TileBroadcastCallback, TileBroadcastMessage } from "../tiles/tile-content"
+import { getTileContentInfo } from "../tiles/tile-content-info"
+import { getFormulaManager, getSharedModelManager, getTileEnvironment } from "../tiles/tile-environment"
+import { ITileModel } from "../tiles/tile-model"
+import { BaseDocumentContentModel } from "./base-document-content"
+import { linkTileToDataSet } from "./data-set-linking"
+import { isFreeTileLayout, isFreeTileRow } from "./free-tile-row"
 
 /**
  * The DocumentContentModel is the combination of 2 parts:
@@ -104,11 +104,11 @@ export const DocumentContentModel = BaseDocumentContentModel
       const sharedDataSet = SharedDataSet.create({ providerId, dataSet })
       sharedModelManager?.addSharedModel(sharedDataSet)
 
-      const caseMetadata = SharedCaseMetadata.create()
-      sharedModelManager?.addSharedModel(caseMetadata)
-      caseMetadata.setData(sharedDataSet.dataSet)
+      const sharedMetadata = DataSetMetadata.create()
+      sharedModelManager?.addSharedModel(sharedMetadata)
+      sharedMetadata.setData(sharedDataSet.dataSet)
 
-      return { sharedDataSet, caseMetadata }
+      return { sharedDataSet, sharedMetadata }
     },
     createTile(tileType: string, options?: INewTileOptions): ITileModel | undefined {
       const componentInfo = getTileComponentInfo(tileType)

@@ -5,7 +5,7 @@ import { appState } from "../../models/app-state"
 import { IAttribute } from "../../models/data/attribute"
 import { createAttributesNotification, updateAttributesNotification } from "../../models/data/data-set-notifications"
 import { IFreeTileLayout, isFreeTileRow } from "../../models/document/free-tile-row"
-import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-data-utils"
+import { getMetadataFromDataSet } from "../../models/shared/shared-data-utils"
 import { uiState } from "../../models/ui-state"
 import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
@@ -24,7 +24,7 @@ export const diAttributeHandler: DIHandler = {
     const { dataContext, collection } = resources
     if (!dataContext) return dataContextNotFoundResult
     if (!collection) return collectionNotFoundResult
-    const metadata = getSharedCaseMetadataFromDataset(dataContext)
+    const metadata = getMetadataFromDataSet(dataContext)
     const values = _values as DIAttribute | DIAttribute[]
 
     // Wrap single attribute in array and bail if any new attributes are missing names

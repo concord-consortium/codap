@@ -1,4 +1,4 @@
-import { ISharedCaseMetadata } from "../../../models/shared/shared-case-metadata"
+import { IDataSetMetadata } from "../../../models/shared/data-set-metadata"
 import { ISharedDataSet } from "../../../models/shared/shared-data-set"
 import { safeJsonParse } from "../../../utilities/js-utils"
 import {
@@ -45,9 +45,9 @@ import { IStandardErrorAdornmentModelSnapshot }
   from "./univariate-measures/standard-error/standard-error-adornment-model"
 import { INormalCurveAdornmentModelSnapshot } from "./univariate-measures/normal-curve/normal-curve-adornment-model"
 
-interface IProps {
+export interface IAdornmentImporterProps {
   data?: ISharedDataSet
-  metadata?: ISharedCaseMetadata
+  metadata?: IDataSetMetadata
   plotModels: ICodapV2PlotModel[]
   attributeDescriptions: GraphAttributeDescriptionsMapSnapshot
   yAttributeDescriptions: IAttributeDescriptionSnapshot[]
@@ -67,7 +67,7 @@ interface IInstanceKeyProps {
 
 interface IInstanceKeysForAdornmentsProps {
   data?: ISharedDataSet
-  metadata?: ISharedCaseMetadata
+  metadata?: IDataSetMetadata
   attributeDescriptions: GraphAttributeDescriptionsMapSnapshot
   yAttributeDescriptions: IAttributeDescriptionSnapshot[]
 }
@@ -173,7 +173,7 @@ const instanceKey = (props: IInstanceKeyProps) => {
 
 type GetAttributeInfoResult = [Maybe<string>, string[]]
 function getAttributeInfo(
-  data: ISharedDataSet, metadata?: ISharedCaseMetadata, attributeDesc?: IAttributeDescriptionSnapshot, defaultCat = ""
+  data: ISharedDataSet, metadata?: IDataSetMetadata, attributeDesc?: IAttributeDescriptionSnapshot, defaultCat = ""
 ): GetAttributeInfoResult {
   const { attributeID: id, type } = attributeDesc || {}
   let categories = [defaultCat]
@@ -233,7 +233,7 @@ type ImportableAdornmentSnapshots = IBoxPlotAdornmentModelSnapshot |
 
 export const v2AdornmentImporter = ({
   data, metadata, plotModels, attributeDescriptions, yAttributeDescriptions
-}: IProps) => {
+}: IAdornmentImporterProps) => {
   const instanceKeysForAdornmentsProps = {data, metadata, attributeDescriptions, yAttributeDescriptions}
   const { instanceKeys, xCats, yCats, legendCats } = instanceKeysForAdornments(instanceKeysForAdornmentsProps)
   const splitAttrId = v2SplitAttrId(attributeDescriptions, yAttributeDescriptions)
@@ -470,8 +470,6 @@ export const v2AdornmentImporter = ({
         plotValues.push(value.value)
       })
 
-      // [Story: #188699857] TODO_V2_IMPORT: both valueModels and values might have `isVisible: false`
-      // we are currently just ignoring that
       values[key] = plotValues
     })
     const movableValuesAdornmentImport: IMovableValueAdornmentModelSnapshot = {

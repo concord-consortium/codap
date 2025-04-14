@@ -37,7 +37,11 @@ describe("DataInteractiveTypeUtils", () => {
       name: "Data",
       title: "Data",
       type: "DG.DataContext",
-      contextStorage: {},
+      contextStorage: {
+        _links_: {
+          selectedCases: []
+        }
+      },
       setAsideItems: [],
       collections: [
         {
@@ -48,7 +52,6 @@ describe("DataInteractiveTypeUtils", () => {
           title: "Parents",
           attrs: [{
             cid: parentAttr.id,
-            "colormap": {},
             deleteable: true,
             editable: true,
             guid: 5,
@@ -73,7 +76,6 @@ describe("DataInteractiveTypeUtils", () => {
           parent: 3,
           attrs: [{
             cid: childAttr.id,
-            colormap: {},
             deleteable: true,
             editable: true,
             guid: 6,

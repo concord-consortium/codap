@@ -1,8 +1,8 @@
 import { MenuItem, MenuList, useDisclosure } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
 import React, { forwardRef } from "react"
-import { useCaseMetadata } from "../../../hooks/use-case-metadata"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
+import { useDataSetMetadata } from "../../../hooks/use-data-set-metadata"
 import { logMessageWithReplacement, logStringifiedObjectMessage } from "../../../lib/log-message"
 import {
   deleteCollectionNotification, hideAttributeNotification, removeAttributesNotification
@@ -14,10 +14,10 @@ import {
   allowAttributeDeletion, preventCollectionReorg, preventTopLevelReorg
 } from "../../../utilities/plugin-utils"
 import { t } from "../../../utilities/translation/translate"
-import { EditAttributePropertiesModal } from "./edit-attribute-properties-modal"
+import { kCellPadding } from "../../case-table/case-table-types"
 import { useCaseTableModel } from "../../case-table/use-case-table-model"
 import { findLongestContentWidth } from "../attribute-format-utils"
-import { kCellPadding } from "../../case-table/case-table-types"
+import { EditAttributePropertiesModal } from "./edit-attribute-properties-modal"
 
 interface IProps {
   attributeId: string
@@ -25,10 +25,10 @@ interface IProps {
   onModalOpen: (open: boolean) => void
 }
 
-const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
+const AttributeMenuListComponent = forwardRef<HTMLDivElement, IProps>(
     ({ attributeId, onRenameAttribute, onModalOpen }, ref) => {
   const data = useDataSetContext()
-  const caseMetadata = useCaseMetadata()
+  const metadata = useDataSetMetadata()
   const tableModel = useCaseTableModel()
   // each use of useDisclosure() maintains its own state and callbacks so they can be used for independent dialogs
   const propertiesModal = useDisclosure()
@@ -72,6 +72,7 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
   const menuItems: IMenuItem[] = [
     {
       itemKey: "DG.TableController.headerMenuItems.renameAttribute",
+      isEnabled: () => !metadata?.isRenameProtected(attributeId),
       handleClick: onRenameAttribute
     },
     {
@@ -100,7 +101,7 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
     },
     {
       itemKey: "DG.TableController.headerMenuItems.deleteFormula",
-      isEnabled: () => !!(attribute?.editable && attribute?.hasFormula),
+      isEnabled: () => !metadata?.isEditProtected(attributeId) && !!attribute?.hasFormula,
       handleClick: () => {
         data?.applyModelChange(() => {
           attribute?.clearFormula()
@@ -138,13 +139,13 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
         // can't hide last attribute of collection
         const visibleAttributes = collection?.attributes
                                     .reduce((sum, attr) => {
-                                      return attr && !caseMetadata?.isHidden(attr.id) ? sum + 1 : sum
+                                      return attr && !metadata?.isHidden(attr.id) ? sum + 1 : sum
                                     }, 0) ?? 0
         return visibleAttributes > 1
       },
       handleClick: () => {
-        caseMetadata?.applyModelChange(
-          () => caseMetadata?.setIsHidden(attributeId, true),
+        metadata?.applyModelChange(
+          () => metadata?.setIsHidden(attributeId, true),
           {
             notify: hideAttributeNotification([attributeId], data),
             undoStringKey: "DG.Undo.caseTable.hideAttribute",
@@ -157,7 +158,7 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
     {
       itemKey: "DG.TableController.headerMenuItems.deleteAttribute",
       isEnabled: () => {
-        if (!attribute?.deleteable || !data) return false
+        if (metadata?.isDeleteProtected(attributeId) || !data) return false
 
         // If preventTopLevelReorg is true...
         if (preventTopLevelReorg(data)) {
@@ -214,6 +215,6 @@ const AttributeMenuListComp = forwardRef<HTMLDivElement, IProps>(
   )
 })
 
-AttributeMenuListComp.displayName = "AttributeMenuList"
+AttributeMenuListComponent.displayName = "AttributeMenuList"
 
-export const AttributeMenuList = observer(AttributeMenuListComp)
+export const AttributeMenuList = observer(AttributeMenuListComponent)

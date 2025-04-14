@@ -1,4 +1,50 @@
-import { cachedFnFactory, cachedFnWithArgsFactory } from "./mst-utils"
+import { destroy, getSnapshot, types } from "mobx-state-tree"
+import {
+  cachedFnFactory, cachedFnWithArgsFactory, isAliveSafe, safeGetSnapshot, typeField, typeOptionalBoolean
+} from "./mst-utils"
+
+describe("MST utilities", () => {
+  it("safeGetSnapshot, typeField, isAliveSafe work as expected", () => {
+    const Model = types.model("Model", {
+      foo: typeField("bar"),
+    })
+    const m = Model.create()
+    expect(safeGetSnapshot(undefined)).toBeUndefined()
+    expect(safeGetSnapshot(m)).toEqual({ foo: "bar" })
+    expect(isAliveSafe(undefined)).toBe(false)
+    expect(isAliveSafe(m)).toBe(true)
+    destroy(m)
+    expect(isAliveSafe(m)).toBe(false)
+  })
+
+  it("typeOptionalBoolean works as expected", () => {
+    const Model = types.model("Model", {
+      bool: typeOptionalBoolean(),
+    })
+    .actions(self => ({
+      setBool(value?: boolean) {
+        self.bool = value || undefined
+      }
+    }))
+
+    const m = Model.create({})
+    expect(m.bool).toBeUndefined()
+    // check that it is not serialized
+    expect(JSON.stringify(getSnapshot(m)).includes("bool")).toBe(false)
+
+    m.setBool(true)
+    expect(m.bool).toBe(true)
+
+    m.setBool(false)
+    expect(m.bool).toBeUndefined() // should be undefined, not false
+
+    m.setBool(true)
+    m.setBool() // set to undefined again
+    expect(m.bool).toBeUndefined() // should be undefined again
+    // check that it is not serialized
+    expect(JSON.stringify(getSnapshot(m)).includes("bool")).toBe(false)
+  })
+})
 
 describe("cachedFnFactory", () => {
   it("should return a function that lazily caches the value", () => {

@@ -49,10 +49,10 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
       const options: INewTileOptions = { animateCreation: true, markNewlyCreated: true }
       const tile = createDefaultTileOfType(kCaseTableTileType, options)
       if (!tile) return
-      const { sharedData, caseMetadata } = gDataBroker.addDataSet(ds, tile.id)
+      const { sharedData, sharedMetadata } = gDataBroker.addDataSet(ds, tile.id)
       // Add dataset to the formula manager
       getFormulaManager(document)?.addDataSet(ds)
-      createTableOrCardForDataset(sharedData, caseMetadata, kCaseTableTileType, options)
+      createTableOrCardForDataset(sharedData, sharedMetadata, kCaseTableTileType, options)
     }, {
       notify: dataContextCountChangedNotification,
       undoStringKey: "V3.Undo.caseTable.create",
