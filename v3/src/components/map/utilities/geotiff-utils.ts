@@ -106,7 +106,7 @@ async function getGeoraster(url: string) {
     console.log(` -- arrayBuffer`, arrayBuffer)
 
     // TODO: add a way to specify the format in the CODAP api
-    if (url.match(/.*PNG.*/)) {
+    if (url.match(/.*PNG.*/) || url.match(/.*\.png/)) {
       const uint8Buffer = new Uint8Array(arrayBuffer)
       const png = await decodePng(uint8Buffer, { force32: true})
       console.log(` -- decodePng finished`)

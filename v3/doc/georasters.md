@@ -42,9 +42,9 @@ https://concord-consortium.github.io/codap-data-interactives/DataInteractiveAPIT
 }
 ```
 
-## Other datasets
+### Other datasets
 You can try other datasets by:
-1. go here: https://neo.gsfc.nasa.gov/dataset_index.php#atmosphere
+1. Find a dataset here: https://neo.gsfc.nasa.gov/dataset_index.php
 2. Choose the year and month of interest.
 3. Make sure the File Type is PNG.
 4. Right click on the resolution of interest and select Copy Link Address.
