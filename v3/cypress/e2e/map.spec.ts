@@ -238,9 +238,11 @@ context("Map UI", () => {
     // Can select a pin
     table.getSelectedRows().should("have.length", 0)
     map.getMapPin().should("not.have.class", "selected-pin")
+    map.getAddPinButton().should("be.enabled")
     map.getMapPin().click()
     map.getMapPin().should("have.class", "selected-pin")
     table.getSelectedRows().should("have.length", 1)
+    map.getAddPinButton().should("be.disabled")
 
     // Can deselect a pin by shift+clicking
     map.getMapPin().click({ shiftKey: true })

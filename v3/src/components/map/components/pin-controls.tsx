@@ -36,7 +36,7 @@ interface IPinControlsProps {
 export const PinControls = observer(function PinControls({ mapLayerModel }: IPinControlsProps) {
   const dataset = mapLayerModel.dataConfiguration.dataset
 
-  const addButtonDisabled = (dataset?.items.length ?? 0) >= kPinColors.length
+  const addButtonDisabled = (dataset?.items.length ?? 0) >= kPinColors.length || !!dataset?.selection.size
   const removeButtonDisabled = !dataset?.selection.size
 
   const handleAddButtonClick = (e: React.MouseEvent) => {
