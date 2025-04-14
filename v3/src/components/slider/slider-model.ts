@@ -76,7 +76,9 @@ export const SliderModel = TileContentModel
         else return num
       }
 
-      if (self.multipleOf && self.increment) {
+      // The bounds check for date scale type happens in the use-slider-animation
+      // so we skip the bounds check if the axis is a date axis here
+      if (self.multipleOf && self.increment && self.scaleType !== "date") {
         value = Math.round(value / self.increment) * self.increment
         value = value > self.axis.max ? value - self.increment : value
         value = value < self.axis.min ? value + self.increment : value
