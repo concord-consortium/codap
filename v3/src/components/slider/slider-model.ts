@@ -108,6 +108,9 @@ export const SliderModel = TileContentModel
     setValue(value: number) {
       self.globalValue.setValue(self.constrainValue(value))
     },
+    setValidatedValue(value: number) {
+      self.globalValue.setValue(value)
+    },
   }))
   .actions(self => ({
     setDynamicValueIfDynamic(value: number) {
