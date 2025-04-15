@@ -8,7 +8,7 @@ import { withCustomUndoRedo } from "../history/with-custom-undo-redo"
 import { ICollectionModel } from "./collection"
 import { CaseInfo, IAddCasesOptions, ICase, ICaseCreation, IItem } from "./data-set-types"
 import { DataSet, IDataSet } from "./data-set"
-import { deleteCasesNotification, moveCasesNotification, } from "./data-set-notifications"
+import { createCasesNotification, deleteCasesNotification, moveCasesNotification, } from "./data-set-notifications"
 
 /*
  * setCaseValues custom undo/redo
@@ -140,7 +140,7 @@ export function insertCasesWithCustomUndoRedo(data: IDataSet, cases: ICaseCreati
 
     data.addCases(items, options)
   }, {
-    // notify: insertCasesNotification(data, cases),
+    notify: createCasesNotification(items.map(({ __id__ }) => __id__), data),
     undoStringKey: "DG.Undo.caseTable.insertCases",
     redoStringKey: "DG.Redo.caseTable.insertCases",
     log: logMessageWithReplacement("insert %@ cases", {numCases: items.length})
