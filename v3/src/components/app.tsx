@@ -102,15 +102,15 @@ export const App = observer(function App() {
     }
 
     async function initialize() {
-      const {sample, dashboard, di, mouseSensor} = urlParams
+      const {sample, dashboard, di, noEntryModal} = urlParams
       const _sample = sampleData.find(name => sample === name.toLowerCase())
       const isDashboard = dashboard !== undefined
       const hasHashFileParam = window.location.hash.startsWith("#file=examples:")
 
       const showUserEntryModal = () => {
-        //include mouseSensor for testing
+        //include noEntryModal for testing
         return !(
-          di || sample || dashboard || hasHashFileParam || mouseSensor !== undefined
+          di || sample || dashboard || hasHashFileParam || noEntryModal !== undefined
         )
       }
       // create the initial sample data (if specified) or a new data set

@@ -4,7 +4,7 @@ import { TableTileElements as table } from "../support/elements/table-tile"
 
 context("CloudFileManager", () => {
   function visitEmptyCodap()  {
-    const queryParams = "?mouseSensor"
+    const queryParams = "?mouseSensor&noEntryModal"
     const url = `${Cypress.config("index")}${queryParams}`
     cy.visit(url)
   }
