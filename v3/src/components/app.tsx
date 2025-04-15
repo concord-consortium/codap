@@ -1,6 +1,6 @@
 import { useDisclosure } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
-import React, { useCallback, useEffect } from "react"
+import React, { useCallback, useEffect, useState } from "react"
 import { CfmContext } from "../hooks/use-cfm-context"
 import { DocumentContentContext } from "../hooks/use-document-content"
 import {useDropHandler} from "../hooks/use-drop-handler"
@@ -52,7 +52,7 @@ export const App = observer(function App() {
   // We close the modal if user imports, drags a document, opens a document
   // or plugin using url params
   const {isOpen, onOpen, onClose} = useDisclosure()
-  const [isDragging, setIsDragging] = React.useState(false)
+  const [isDragOver, setIsDragOver] = useState(false)
 
   const { cfm, cfmReadyPromise } = useCloudFileManager({
     appOrMenuElemId: kMenuBarElementId
@@ -72,7 +72,6 @@ export const App = observer(function App() {
       })
       // return to "normal" after import process is complete
       sharedData?.dataSet.completeSnapshot()
-      // setIsDragging(true)
       onClose()
     }, [onClose])
 
@@ -91,7 +90,8 @@ export const App = observer(function App() {
     selector: isOpen ? `#${kUserEntryDropOverlay}` : `#${kCodapAppElementId}`,
     onImportDataSet: handleImportDataSet,
     onImportDocument: handleImportDocument,
-    onHandleUrlDrop: handleUrlDrop
+    onHandleUrlDrop: handleUrlDrop,
+    setIsDragOver
   })
 
   useEffect(() => {
@@ -180,7 +180,7 @@ export const App = observer(function App() {
             <Container/>
           </div>
           {isOpen &&
-            <div id={`${kUserEntryDropOverlay}`} className={`${isOpen && isDragging ? "show-highlight" : ""}`}>
+            <div id={`${kUserEntryDropOverlay}`} className={`${isOpen && isDragOver ? "show-highlight" : ""}`}>
             <UserEntryModal
               isOpen={isOpen}
               onClose={onClose}

@@ -36,7 +36,7 @@
   pointer-events: auto;
   background-color: #77777780;
   z-index: 200;
-  &.show-highlight:target {
-    border: #ffff04 5px solid;
+  &.show-highlight {
+    border: 3px solid yellow;
   }
 }
