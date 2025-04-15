@@ -13,6 +13,15 @@ interface IProps {
 export const UserEntryModal = ({ isOpen, onClose }: IProps) => {
   const cfm = useCfmContext()
 
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === "Escape") {
+      onClose()
+    }
+    if (event.key === "Enter") {
+      openDocument()
+    }
+  }
+
   const openDocument = () => {
     cfm?.client.openFileDialog()
     onClose()
@@ -32,7 +41,7 @@ export const UserEntryModal = ({ isOpen, onClose }: IProps) => {
   }]
 
   return (
-    <div className="user-entry-modal-container" aria-modal="true">
+    <div className="user-entry-modal-container" aria-modal="true" onKeyDown={handleKeyDown}>
       <div className="user-entry-modal-header">
         <div className="user-entry-modal-title">
           {t("DG.main.userEntryView.title")}
