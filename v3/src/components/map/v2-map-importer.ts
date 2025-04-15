@@ -5,7 +5,7 @@ import {V2TileImportArgs} from "../../v2/codap-v2-tile-importers"
 import {
   isV2MapComponent, isV2MapCurrentStorage, isV2MapPointLayerStorage, isV2MapPolygonLayerStorage
 } from "../../v2/codap-v2-types"
-import {v3TypeFromV2TypeIndex} from "../../v2/codap-v2-data-set-types"
+import {v3TypeFromV2TypeIndex} from "../../v2/codap-v2-data-context-types"
 import {AttrRole} from "../data-display/data-display-types"
 import {IAttributeDescriptionSnapshot, kDataConfigurationType} from "../data-display/models/data-configuration-model"
 import {IMapModelContentSnapshot} from "./models/map-content-model"
@@ -44,10 +44,10 @@ export function v2MapImporter({v2Component, v2Document, getCaseData, insertTile}
       v2LegendAttribute = Array.isArray(v2LayerModel._links_.legendAttr)
         ? v2LayerModel._links_.legendAttr[0] : v2LayerModel._links_.legendAttr,
       v3LegendAttrId = v2LegendAttribute ? toV3AttrId(v2LegendAttribute.id) : undefined,
-      {data, metadata} = getCaseData(contextId),
+      {sharedData, sharedMetadata} = getCaseData(contextId),
       { isVisible, legendAttributeType, strokeSameAsFill } = v2LayerModel,
       v3LegendType = v3TypeFromV2TypeIndex[legendAttributeType]
-    if (!data?.dataSet) return
+    if (!sharedData?.dataSet) return
 
     if (v3LegendAttrId) {
       _attributeDescriptions.legend = {
@@ -64,7 +64,7 @@ export function v2MapImporter({v2Component, v2Document, getCaseData, insertTile}
         grid, pointsShouldBeVisible, connectingLines, transparency, strokeTransparency,
       } = v2LayerModel
       // V2 point layers don't store their lat/long attributes, so we need to find them in the dataset
-      const {latId, longId} = latLongAttributesFromDataSet(data.dataSet)
+      const {latId, longId} = latLongAttributesFromDataSet(sharedData.dataSet)
       _attributeDescriptions.lat = {attributeID: latId, type: 'numeric'}
       _attributeDescriptions.long = {attributeID: longId, type: 'numeric'}
 
@@ -73,8 +73,8 @@ export function v2MapImporter({v2Component, v2Document, getCaseData, insertTile}
         layerIndex,
         dataConfiguration: {
           type: kDataConfigurationType,
-          dataset: data?.dataSet.id,
-          metadata: metadata?.id,
+          dataset: sharedData?.dataSet.id,
+          metadata: sharedMetadata?.id,
           _attributeDescriptions,
           hiddenCases,
         },
@@ -100,14 +100,14 @@ export function v2MapImporter({v2Component, v2Document, getCaseData, insertTile}
         areaColor, areaStrokeColor, areaTransparency, areaStrokeTransparency
       } = v2LayerModel
       // V2 polygon layers don't store their boundary attribute, so we need to find it in the dataset
-      _attributeDescriptions.polygon = {attributeID: boundaryAttributeFromDataSet(data.dataSet)}
+      _attributeDescriptions.polygon = {attributeID: boundaryAttributeFromDataSet(sharedData.dataSet)}
       const polygonLayerSnapshot: IMapPolygonLayerModelSnapshot = {
         type: kMapPolygonLayerType,
         layerIndex,
         dataConfiguration: {
           type: kDataConfigurationType,
-          dataset: data?.dataSet.id,
-          metadata: metadata?.id,
+          dataset: sharedData?.dataSet.id,
+          metadata: sharedMetadata?.id,
           _attributeDescriptions,
           hiddenCases
         },

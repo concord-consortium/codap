@@ -1,5 +1,26 @@
 # Changelog
 
+## Version 3.0.0-pre.2256 - April 4, 2025
+
+### ✨ Features & Improvements:
+- **CODAP-6:** Map Pins
+- **CODAP-64:** DI Attribute ColorMap
+- **CODAP-68:** Allow plugins to get information about specific adornments
+- **CODAP-305:** Finish Graph/Map v2 import/export
+- **CODAP-306:** Guide component imported/exported from/to v2 documents
+- **CODAP-307:** Image component imported/exported from/to v2 documents
+- **CODAP-319:** Case table v2 import/export
+- **CODAP-320:** Finish component properties v2 import/export
+
+### 🐞 Bug Fixes:
+- **CODAP-14:** Categorical plot axis should be sorted
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  191639 bytes |                            0.62% |
+|  index.js | 6578782 bytes |                            1.01% |
+
 ## Version 3.0.0-pre.2233 - March 25, 2025
 
 ### 🐞 Bug Fixes:
@@ -34,7 +55,7 @@
 - **PT-188928484:** "url" url parameter supports csv import
 
 ### 🐞 Bug Fixes:
-- **CODAP-337:** Some points in the graph become invisible after being manipulated for several times. 
+- **CODAP-337:** Some points in the graph become invisible after being manipulated for several times.
 
 ### Asset Sizes
 |      File |          Size | % Increase from Previous Release |

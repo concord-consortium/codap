@@ -6,7 +6,7 @@ import {IDataSet} from "../../../models/data/data-set"
 import {applyModelChange} from "../../../models/history/apply-model-change"
 import {withoutUndo} from "../../../models/history/without-undo"
 import {ISharedDataSet, kSharedDataSetType, SharedDataSet} from "../../../models/shared/shared-data-set"
-import {getSharedCaseMetadataFromDataset} from "../../../models/shared/shared-data-utils"
+import {getMetadataFromDataSet} from "../../../models/shared/shared-data-utils"
 import {ITileContentModel} from "../../../models/tiles/tile-content"
 import { getFormulaManager } from "../../../models/tiles/tile-environment"
 import {typedId} from "../../../utilities/js-utils"
@@ -16,11 +16,13 @@ import {DataDisplayContentModel} from "../../data-display/models/data-display-co
 import {kMapModelName, kMapTileType} from "../map-defs"
 import {BaseMapKey, BaseMapKeys} from "../map-types"
 import {
-  datasetHasBoundaryData, datasetHasLatLongData, expandLatLngBounds, getLatLongBounds, latLongAttributesFromDataSet
+  datasetHasBoundaryData, datasetHasLatLongData, datasetHasPinData, expandLatLngBounds, getLatLongBounds,
+  latLongAttributesFromDataSet, pinAttributesFromDataSet
 } from "../utilities/map-utils"
 import {ILatLngSnapshot, LatLngModel} from "../map-model-types"
 import {LeafletMapState} from "./leaflet-map-state"
 import {isMapLayerModel} from "./map-layer-model"
+import { isMapPinLayerModel, MapPinLayerModel } from "./map-pin-layer-model"
 import {isMapPointLayerModel, MapPointLayerModel} from "./map-point-layer-model"
 import {isMapPolygonLayerModel, MapPolygonLayerModel} from "./map-polygon-layer-model"
 
@@ -152,7 +154,7 @@ export const MapContentModel = DataDisplayContentModel
       self.layers.push(newPointLayer) // We have to do this first so safe references will work
       const dataConfiguration = newPointLayer.dataConfiguration,
         {latId, longId} = latLongAttributesFromDataSet(dataSet)
-      dataConfiguration.setDataset(dataSet, getSharedCaseMetadataFromDataset(dataSet))
+      dataConfiguration.setDataset(dataSet, getMetadataFromDataSet(dataSet))
       dataConfiguration.setAttribute('lat', {attributeID: latId})
       dataConfiguration.setAttribute('long', {attributeID: longId})
       return newPointLayer
@@ -162,6 +164,16 @@ export const MapContentModel = DataDisplayContentModel
       self.layers.push(newPolygonLayer) // We have to do this first so safe references will work
       newPolygonLayer.setDataset(dataSet)
       return newPolygonLayer
+    },
+    addPinLayer(dataSet: IDataSet) {
+      const newPinLayer = MapPinLayerModel.create()
+      self.layers.push(newPinLayer) // We have to do this first so safe references will work
+      const dataConfiguration = newPinLayer.dataConfiguration,
+        { pinLatId, pinLongId } = pinAttributesFromDataSet(dataSet)
+      dataConfiguration.setDataset(dataSet, getMetadataFromDataSet(dataSet))
+      dataConfiguration.setAttribute('pinLat', {attributeID: pinLatId})
+      dataConfiguration.setAttribute('pinLong', {attributeID: pinLongId})
+      return newPinLayer
     },
     afterCreate() {
       addDisposer(self, () => self.leafletMapState.destroy())
@@ -270,6 +282,18 @@ export const MapContentModel = DataDisplayContentModel
               } else {
                 // Add a new layer for this dataset
                 this.addPolygonLayer(sharedDataSet.dataSet)
+              }
+            }
+            if (datasetHasPinData(sharedDataSet.dataSet)) {
+              const pinLayer = layersToCheck.find(layer => {
+                return layer.data === sharedDataSet.dataSet && isMapPinLayerModel(layer)
+              })
+              if (isMapPinLayerModel(pinLayer)) {
+                pinLayer.setDataset(sharedDataSet.dataSet)
+                layersToCheck.splice(layersToCheck.indexOf(pinLayer), 1)
+              } else {
+                // Add a new layer for this dataset
+                this.addPinLayer(sharedDataSet.dataSet)
               }
             }
           })

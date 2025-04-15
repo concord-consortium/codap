@@ -123,7 +123,7 @@
     "V3.DI.Error.fieldRequired": "%@1 %@2: %@3 required",
     "V3.DI.Error.dataContextNotFound": "DataContext not found",
     "V3.DI.Error.dataDisplayNotFound": "DataDisplay not found",
-    "V3.DI.Error.caseMetadataNotFound": "CaseMetadata not found for %@",
+    "V3.DI.Error.dataSetMetadataNotFound": "DataSetMetadata not found for %@",
     "V3.DI.Error.caseNotFound": "Case not found",
     "V3.DI.Error.collectionNotFound": "Collection not found",
     "V3.DI.Error.componentNotCreated": "Could not create component",
@@ -153,6 +153,15 @@
     "V3.DI.Error.adornmentMismatch": "Not a(n) %@1 adornment.",
     "V3.DI.Error.adornmentNotSupportedByPlotType": "Adornment not supported by plot type.",
     "V3.DI.Error.adornmentRequestNotSupported": "The %@1 adornment does not currently support %@2 requests.",
+    "V3.DI.Error.countAdornmentPercentNotSupported": "The current plot type does not support Percent.",
+    "V3.DI.Error.invalidCellKey": "%@1 contains an invalid attribute name or ID.",
+
+    // V3 adornment strings not present in V2
+    "V3.Inspector.graphRegionOfInterest": "Region of Interest",
+    "V3.Undo.graph.addRegionOfInterest": "Undo showing region of interest",
+    "V3.Redo.graph.addRegionOfInterest": "Redo showing region of interest",
+    "V3.Undo.graph.removeRegionOfInterest": "Undo hiding region of interest",
+    "V3.Redo.graph.removeRegionOfInterest": "Redo hiding region of interest",
 
     // CFM/File menu
     "DG.fileMenu.menuItem.newDocument": "New",

@@ -2,7 +2,7 @@ import { SetOptional, SetRequired } from "type-fest"
 import CardIcon from "../../assets/icons/icon-case-card.svg"
 import { registerComponentHandler } from "../../data-interactive/handlers/component-handler"
 import { IFreeTileInRowOptions } from "../../models/document/free-tile-row"
-import { getTileDataSet } from "../../models/shared/shared-data-utils"
+import { getTileDataSet } from "../../models/shared/shared-data-tile-utils"
 import { registerTileComponentInfo } from "../../models/tiles/tile-component-info"
 import { registerTileContentInfo } from "../../models/tiles/tile-content-info"
 import { ITileModelSnapshotIn } from "../../models/tiles/tile-model"
@@ -81,7 +81,7 @@ registerV2TileImporter("DG.CaseCard", ({ v2Component, v2Document, getCaseData, i
     attributeColumnWidths: {}
   }
   const contextId = _links_.context.id
-  const { data, metadata } = getCaseData(contextId)
+  const { sharedData, sharedMetadata } = getCaseData(contextId)
 
   // some documents (presumably preceding hierarchy support) have a single percentage width
   if (columnWidthPct != null) {
@@ -112,14 +112,14 @@ registerV2TileImporter("DG.CaseCard", ({ v2Component, v2Document, getCaseData, i
 
   // Make sure metadata knows this is the case card tile and it is the last shown
   if (isActive) {
-    metadata?.setLastShownTableOrCardTileId(cardTile?.id)
+    sharedMetadata?.setLastShownTableOrCardTileId(cardTile?.id)
   }
-  metadata?.setCaseCardTileId(cardTile?.id)
+  sharedMetadata?.setCaseCardTileId(cardTile?.id)
 
   // add links to shared models
   if (cardTile) {
-    linkSharedModel(cardTile.content, data)
-    linkSharedModel(cardTile.content, metadata)
+    linkSharedModel(cardTile.content, sharedData)
+    linkSharedModel(cardTile.content, sharedMetadata)
   }
 
   return cardTile

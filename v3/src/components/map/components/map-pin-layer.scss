@@ -1,0 +1,26 @@
+.map-pin-layer {
+  height: 100%;
+  position: absolute;
+  width: 100%;
+  z-index: 10;
+
+  &.add-mode {
+    cursor: pointer;
+  }
+
+  .map-pin {
+    border: none;
+    margin: 0;
+    position: absolute;
+
+    .selection-outline {
+      fill: none;
+    }
+
+    &.selected-pin {
+      .selection-outline {
+        fill: red;
+      }
+    }
+  }
+}

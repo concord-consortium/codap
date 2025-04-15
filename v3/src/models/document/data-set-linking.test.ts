@@ -1,13 +1,14 @@
 import { createCodapDocument } from "../codap/create-codap-document"
-import { SharedCaseMetadata } from "../shared/shared-case-metadata"
+import { DataSetMetadata } from "../shared/data-set-metadata"
 import { SharedDataSet } from "../shared/shared-data-set"
-import { getDataSetFromId, getTileCaseMetadata, getTileDataSet, getTileSharedModels } from "../shared/shared-data-utils"
+import { getTileCaseMetadata, getTileDataSet, getTileSharedModels } from "../shared/shared-data-tile-utils"
+import { getDataSetFromId } from "../shared/shared-data-utils"
 import { isTileLinkedToDataSet, unlinkTileFromDataSets, linkTileToDataSet } from "./data-set-linking"
 import { TileContentModel } from "../tiles/tile-content"
 import { registerTileContentInfo } from "../tiles/tile-content-info"
+import { getSharedModelManager } from "../tiles/tile-environment"
 import { TileModel } from "../tiles/tile-model"
 import { IDocumentModel } from "./document"
-import { getSharedModelManager } from "../tiles/tile-environment"
 
 const TestTileContent = TileContentModel
   .named("TestTile")
@@ -36,7 +37,7 @@ describe("DataSetLinking", () => {
   let document: IDocumentModel = createCodapDocument(undefined, { noGlobals: true })
   let tile = TileModel.create({ content: TestTileContent.create() })
   let sharedDataSet = SharedDataSet.create()
-  let sharedMetadata = SharedCaseMetadata.create()
+  let sharedMetadata = DataSetMetadata.create()
 
   beforeEach(() => {
     document = createCodapDocument(undefined, { noGlobals: true })
@@ -44,7 +45,7 @@ describe("DataSetLinking", () => {
     document.addTile(tile)
     sharedDataSet = SharedDataSet.create()
     document.content?.addSharedModel(sharedDataSet)
-    sharedMetadata = SharedCaseMetadata.create()
+    sharedMetadata = DataSetMetadata.create()
     document.content?.addSharedModel(sharedMetadata)
     sharedMetadata.setData(sharedDataSet.dataSet)
   })
@@ -93,7 +94,7 @@ describe("DataSetLinking", () => {
   it("auto-unlinks previously linked data sets when linking a new data set", () => {
     const sharedDataSet2 = SharedDataSet.create()
     document.content?.addSharedModel(sharedDataSet2)
-    const sharedMetadata2 = SharedCaseMetadata.create()
+    const sharedMetadata2 = DataSetMetadata.create()
     document.content?.addSharedModel(sharedMetadata2)
     sharedMetadata2.setData(sharedDataSet2.dataSet)
     expect(document.content?.sharedModelMap.size).toBe(4)

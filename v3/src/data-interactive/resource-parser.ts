@@ -10,9 +10,9 @@ import { GlobalValueManager } from "../models/global/global-value-manager"
 import { getSharedDataSets } from "../models/shared/shared-data-utils"
 import { ITileModel } from "../models/tiles/tile-model"
 import { toV3CaseId, toV3GlobalId, toV3ItemId } from "../utilities/codap-utils"
+import { resolveAdornmentType } from "./data-interactive-adornment-base-types"
 import { ActionName, DIResources, DIResourceSelector, DIParsedOperand } from "./data-interactive-types"
 import { getAttribute, getCollection } from "./data-interactive-utils"
-import { resolveAdornmentType } from "./handlers/adornment-handler"
 import { evaluateCaseFormula, findTileFromNameOrId, parseSearchQuery } from "./resource-parser-utils"
 
 /**

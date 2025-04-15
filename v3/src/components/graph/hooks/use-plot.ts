@@ -211,7 +211,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     return mstReaction(
       () => graphModel.dataConfiguration.legendColorDomain,
       () => {
-        callRefreshPointPositions()
+        callRefreshPointPositions({ updateMasks: true })
       }, {name: "usePlot [legendColorChange]"}, graphModel)
   }, [graphModel, callRefreshPointPositions])
 

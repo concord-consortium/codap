@@ -42,6 +42,12 @@ export function toV2Id(_v3Id: string) {
   return +(result?.[1] ?? NaN)
 }
 
+export function toV2ItemId(_v3Id: string) {
+  // if it's a prefixed number, return the number; otherwise return the original id
+  const result = /[A-Za-z]{4}(\d+)/.exec(_v3Id)
+  return result?.[1] ? result?.[1] : _v3Id
+}
+
 export function maybeToV2Id(_v3Id?: string) {
   if (!_v3Id) return
   return toV2Id(_v3Id)

@@ -9,27 +9,27 @@ import { ICase } from "../../models/data/data-set-types"
 import { setCaseValuesWithCustomUndoRedo } from "../../models/data/data-set-undo"
 import { IDocumentContentModel } from "../../models/document/document-content"
 import { isFreeTileLayout } from "../../models/document/free-tile-row"
-import {
-  ISharedCaseMetadata, kSharedCaseMetadataType, SharedCaseMetadata
-} from "../../models/shared/shared-case-metadata"
+import { IDataSetMetadata } from "../../models/shared/data-set-metadata"
 import { ISharedDataSet } from "../../models/shared/shared-data-set"
-import { getSharedDataSetFromDataSetId, getTileCaseMetadata } from "../../models/shared/shared-data-utils"
+import { getTileCaseMetadata } from "../../models/shared/shared-data-tile-utils"
+import { getMetadataFromDataSet, getSharedDataSetFromDataSetId } from "../../models/shared/shared-data-utils"
 import { getTileComponentInfo } from "../../models/tiles/tile-component-info"
 import { ITileContentModel } from "../../models/tiles/tile-content"
 import { getSharedModelManager, getTileEnvironment } from "../../models/tiles/tile-environment"
 import { uiState } from "../../models/ui-state"
 import { urlParams } from "../../utilities/url-params"
 import { getPositionOfNewComponent } from "../../utilities/view-utils"
-import { kTitleBarHeight } from "../constants"
 import { kCaseTableTileType } from "../case-table/case-table-defs"
-import { kCaseTableDefaultWidth, kDefaultColumnWidth, kDropzoneWidth, kIndexColumnWidth }
-  from "../case-table/case-table-types"
+import {
+  kCaseTableDefaultWidth, kDefaultColumnWidth, kDropzoneWidth, kIndexColumnWidth
+} from "../case-table/case-table-types"
+import { kTitleBarHeight } from "../constants"
 
 export type kCardOrTableTileType = typeof kCaseTableTileType | typeof kCaseCardTileType
 
 export interface ICaseTileContentModel extends ITileContentModel {
   data?: IDataSet
-  metadata?: ISharedCaseMetadata
+  metadata?: IDataSetMetadata
 }
 
 export function isCaseTileContentModel(tile?: ITileContentModel): tile is ICaseTileContentModel {
@@ -37,7 +37,7 @@ export function isCaseTileContentModel(tile?: ITileContentModel): tile is ICaseT
 }
 
 export function createTableOrCardForDataset (
-  sharedDataSet: ISharedDataSet, caseMetadata: ISharedCaseMetadata, tileType: kCardOrTableTileType = kCaseTableTileType,
+  sharedDataSet: ISharedDataSet, sharedMetadata: IDataSetMetadata, tileType: kCardOrTableTileType = kCaseTableTileType,
   options?: INewTileOptions
 ) {
   const document = appState.document
@@ -47,7 +47,7 @@ export function createTableOrCardForDataset (
   const caseTableComponentInfo = getTileComponentInfo(kCaseTableTileType)
   if (!content || !row || !caseTableComponentInfo) return
 
-  const caseTableTileId = caseMetadata.caseTableTileId
+  const caseTableTileId = sharedMetadata.caseTableTileId
   if (caseTableTileId) {
     content?.toggleNonDestroyableTileVisibility(caseTableTileId)
     return
@@ -57,13 +57,13 @@ export function createTableOrCardForDataset (
   if (!tile) return
 
   manager?.addTileSharedModel(tile.content, sharedDataSet, true)
-  manager?.addTileSharedModel(tile.content, caseMetadata, true)
+  manager?.addTileSharedModel(tile.content, sharedMetadata, true)
   if (tileType === kCaseTableTileType) {
-    caseMetadata.setCaseTableTileId(tile.id)
+    sharedMetadata.setCaseTableTileId(tile.id)
   } else {
-    caseMetadata.setCaseCardTileId(tile.id)
+    sharedMetadata.setCaseCardTileId(tile.id)
   }
-  caseMetadata.setLastShownTableOrCardTileId(tile.id)
+  sharedMetadata.setLastShownTableOrCardTileId(tile.id)
 
   const numAttributes = sharedDataSet.dataSet.attributes.length
   const width = options?.width ?? Math.min(kCaseTableDefaultWidth,
@@ -85,12 +85,10 @@ export function createOrShowTableOrCardForDataset (
 ) {
   const document = appState.document
   const { content } = document
-  const manager = getSharedModelManager(document)
-  const caseMetadatas = manager?.getSharedModelsByType<typeof SharedCaseMetadata>(kSharedCaseMetadataType)
-  const caseMetadata = caseMetadatas?.find(cm => cm.data?.id === sharedDataSet?.dataSet.id)
-  if (!sharedDataSet || !caseMetadata) return
+  const metadata = getMetadataFromDataSet(sharedDataSet.dataSet)
+  if (!sharedDataSet || !metadata) return
 
-  const existingTileId = caseMetadata.lastShownTableOrCardTileId
+  const existingTileId = metadata.lastShownTableOrCardTileId
   if (existingTileId) { // We already have a case card/table so make sure it's visible and has focus
     const existingTile = content?.getTile(existingTileId)
     if (existingTile?.content.type === tileType) {
@@ -103,7 +101,7 @@ export function createOrShowTableOrCardForDataset (
       return toggleCardTable(content, existingTileId, options)
     }
   } else {  // We don't already have a card/table for this dataset
-    return createTableOrCardForDataset(sharedDataSet, caseMetadata, tileType, options)
+    return createTableOrCardForDataset(sharedDataSet, metadata, tileType, options)
   }
 }
 
@@ -116,31 +114,31 @@ export function toggleCardTable(documentContent: IDocumentContentModel, tileID: 
   if (tileLayout && tileType && isFreeTileLayout(tileLayout) &&
       [kCaseCardTileType, kCaseTableTileType].includes(tileType)) {
     const otherTileType = tileType === kCaseTableTileType ? kCaseCardTileType : kCaseTableTileType,
-      caseMetadata = getTileCaseMetadata(tileModel.content),
-      datasetID = caseMetadata?.data?.id ?? "",
-      sharedData = getSharedDataSetFromDataSetId(caseMetadata, datasetID),
+      metadata = getTileCaseMetadata(tileModel.content),
+      datasetID = metadata?.data?.id ?? "",
+      sharedData = getSharedDataSetFromDataSetId(metadata, datasetID),
       otherTileId = tileType === kCaseTableTileType
-        ? caseMetadata?.caseCardTileId : caseMetadata?.caseTableTileId
+        ? metadata?.caseCardTileId : metadata?.caseTableTileId
     tileLayout.setHidden(true)
     if (otherTileId) {
       documentContent.toggleNonDestroyableTileVisibility(otherTileId)
-      caseMetadata?.setLastShownTableOrCardTileId(otherTileId)
+      metadata?.setLastShownTableOrCardTileId(otherTileId)
       return documentContent.getTile(otherTileId)
     } else {
       const componentInfo = getTileComponentInfo(otherTileType),
         { x, y } = tileLayout,
         options = { width: componentInfo?.defaultWidth, height: componentInfo?.defaultHeight, ..._options, x, y },
         otherTile = documentContent.createTile(otherTileType, options)
-      if (otherTile && caseMetadata && sharedData) {
+      if (otherTile && metadata && sharedData) {
         if (tileType === kCaseTableTileType) {
-          caseMetadata.setCaseCardTileId(otherTile.id)
+          metadata.setCaseCardTileId(otherTile.id)
         } else {
-          caseMetadata.setCaseTableTileId(otherTile.id)
+          metadata.setCaseTableTileId(otherTile.id)
         }
-        caseMetadata.setLastShownTableOrCardTileId(otherTile.id)
+        metadata.setLastShownTableOrCardTileId(otherTile.id)
         const manager = getTileEnvironment(tileModel)?.sharedModelManager
         manager?.addTileSharedModel(otherTile.content, sharedData, true)
-        manager?.addTileSharedModel(otherTile.content, caseMetadata, true)
+        manager?.addTileSharedModel(otherTile.content, metadata, true)
       }
       return otherTile
     }

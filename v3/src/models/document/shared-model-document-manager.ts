@@ -1,12 +1,13 @@
 import { action, computed, makeObservable, observable } from "mobx"
 import { getParentOfType, hasParentOfType, IAnyStateTreeNode, Instance } from "mobx-state-tree"
-import { IDocumentContentModel } from "./document-content"
+// TODO: eliminate this dependency -- should be a generic way of indicating tile requires shared model
+import { kCaseTableTileType } from "../../components/case-table/case-table-defs"
+import { DataSetMetadata, kDataSetMetadataType } from "../shared/data-set-metadata"
+import { kSharedDataSetType, SharedDataSet } from "../shared/shared-data-set"
 import { ISharedModel, SharedModel } from "../shared/shared-model"
 import { ISharedModelManager } from "../shared/shared-model-manager"
 import { ITileModel, TileModel } from "../tiles/tile-model"
-import { SharedDataSet } from "../shared/shared-data-set"
-import { kCaseTableTileType } from "../../components/case-table/case-table-defs"
-import { SharedCaseMetadata } from "../shared/shared-case-metadata"
+import { IDocumentContentModel } from "./document-content"
 
 
 function getTileModel(tileContentModel: IAnyStateTreeNode) {
@@ -95,8 +96,8 @@ export class SharedModelDocumentManager implements ISharedModelDocumentManager {
     }
     const sharedModelsToRemove: ISharedModel[] = []
     let sharedDataSetToDelete: Maybe<ISharedModel>
-    const sharedDatasets = this.document.getSharedModelsByType<typeof SharedDataSet>("SharedDataSet")
-    const sharedMetadata = this.document.getSharedModelsByType<typeof SharedCaseMetadata>("SharedCaseMetadata")
+    const sharedDatasets = this.document.getSharedModelsByType<typeof SharedDataSet>(kSharedDataSetType)
+    const sharedMetadata = this.document.getSharedModelsByType<typeof DataSetMetadata>(kDataSetMetadataType)
     const dataSetToDeleteIndex = sharedDatasets.map(model => model.dataSet.id).indexOf(dataSetId)
     if (dataSetToDeleteIndex >= 0) {
       sharedDataSetToDelete = sharedDatasets[dataSetToDeleteIndex]

@@ -2,7 +2,7 @@ import { useDisclosure } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
 import { isAlive } from "mobx-state-tree"
 import React from "react"
-import { useCaseMetadata } from "../../hooks/use-case-metadata"
+import { useDataSetMetadata } from "../../hooks/use-data-set-metadata"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { hideAttributeNotification } from "../../models/data/data-set-notifications"
 import { addSetAsideCases, restoreSetAsideCases } from "../../models/data/data-set-utils"
@@ -12,7 +12,7 @@ import { EditFormulaModal } from "../common/edit-formula-modal"
 
 export const HideShowMenuList = observer(function HideShowMenuList() {
   const data = useDataSetContext()
-  const caseMetadata = useCaseMetadata()
+  const metadata = useDataSetMetadata()
   const formulaModal = useDisclosure()
 
   if (data && !isAlive(data)) return null
@@ -29,7 +29,7 @@ export const HideShowMenuList = observer(function HideShowMenuList() {
   const selectionCount = data?.selection.size ?? 0
   const setAsideCount = data?.setAsideItemIds.length ?? 0
 
-  const hiddenAttributes = data?.attributes.filter(attr => attr && caseMetadata?.isHidden(attr.id))
+  const hiddenAttributes = data?.attributes.filter(attr => attr && metadata?.isHidden(attr.id))
   const hiddenAttributeCount = hiddenAttributes?.length ?? 0
 
   const menuItems: IMenuItem[] = [
@@ -83,8 +83,8 @@ export const HideShowMenuList = observer(function HideShowMenuList() {
       handleClick: () => {
         if (hiddenAttributeCount > 0) {
           const hiddenAttrIds = hiddenAttributes?.map(attr => attr.id) ?? []
-          caseMetadata?.applyModelChange(
-            () => caseMetadata?.showAllAttributes(),
+          metadata?.applyModelChange(
+            () => metadata?.showAllAttributes(),
             {
               notify: [
                 hideAttributeNotification(hiddenAttrIds, data, "unhideAttributes"),

@@ -1,9 +1,9 @@
 import { reaction } from "mobx"
 import { useCallback, useEffect, useRef } from "react"
 import { useDebouncedCallback } from "use-debounce"
-import { useCaseMetadata } from "../../hooks/use-case-metadata"
 import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
+import { useDataSetMetadata } from "../../hooks/use-data-set-metadata"
 import { useLoggingContext } from "../../hooks/use-log-context"
 import { logMessageWithReplacement } from "../../lib/log-message"
 import { appState } from "../../models/app-state"
@@ -12,7 +12,7 @@ import { createCasesNotification } from "../../models/data/data-set-notification
 import {
   IAddCasesOptions, ICase, ICaseCreation, IGroupedCase, symFirstChild, symIndex, symParent
 } from "../../models/data/data-set-types"
-import { isSetIsCollapsedAction } from "../../models/shared/shared-case-metadata"
+import { isSetIsCollapsedAction } from "../../models/shared/data-set-metadata"
 import { mstReaction } from "../../utilities/mst-reaction"
 import { onAnyAction } from "../../utilities/mst-utils"
 import { prf } from "../../utilities/profiler"
@@ -22,8 +22,8 @@ import { kInputRowKey, symDom, TRow, TRowsChangeData } from "./case-table-types"
 import { useCollectionTableModel } from "./use-collection-table-model"
 
 export const useRows = (gridElement: HTMLDivElement | null) => {
-  const caseMetadata = useCaseMetadata()
   const data = useDataSetContext()
+  const metadata = useDataSetMetadata()
   const collectionId = useCollectionContext()
   const collectionTableModel = useCollectionTableModel()
   const { getPendingLogMessage } = useLoggingContext()
@@ -60,7 +60,7 @@ export const useRows = (gridElement: HTMLDivElement | null) => {
         return cases.map(({ __id__ }) => {
           const row = rowCache.get(__id__)
           const parentId = row?.[symParent]
-          const isCollapsed = parentId && caseMetadata?.isCollapsed(parentId)
+          const isCollapsed = parentId && metadata?.isCollapsed(parentId)
           return !isCollapsed || row?.[symFirstChild] ? row : undefined
         }).filter(c => !!c)
       })
@@ -68,7 +68,7 @@ export const useRows = (gridElement: HTMLDivElement | null) => {
         collectionTableModel.resetRows(newRows || [])
       })
     })
-  }, [caseMetadata, collectionId, collectionTableModel, data])
+  }, [metadata, collectionId, collectionTableModel, data])
 
   const syncRowsToDom = useCallback(() => {
     prf.measure("Table.useRows[syncRowsToDom]", () => {
@@ -216,7 +216,7 @@ export const useRows = (gridElement: HTMLDivElement | null) => {
     })
 
     // update the cache on metadata changes
-    const metadataDisposer = caseMetadata && onAnyAction(caseMetadata, action => {
+    const metadataDisposer = metadata && onAnyAction(metadata, action => {
       if (isSetIsCollapsedAction(action)) {
         const [caseId] = action.args
         const caseGroup = data?.caseInfoMap.get(caseId)
@@ -239,7 +239,7 @@ export const useRows = (gridElement: HTMLDivElement | null) => {
       afterAnyActionDisposer?.()
       metadataDisposer?.()
     }
-  }, [caseMetadata, collectionId, collectionTableModel, data, resetRowCache, resetRowCacheAndSyncRows,
+  }, [metadata, collectionId, collectionTableModel, data, resetRowCache, resetRowCacheAndSyncRows,
       syncRowsToDom, syncRowsToRdg])
 
   const handleRowsChange = useCallback((_rows: TRow[], changes: TRowsChangeData) => {

@@ -4,7 +4,8 @@ import {GraphPointLayerModel, IGraphPointLayerModel, IGraphPointLayerModelSnapsh
   from "../../graph/models/graph-point-layer-model"
 import {IMapPointLayerModel, IMapPointLayerModelSnapshot, MapPointLayerModel}
   from "../../map/models/map-point-layer-model"
-import {kMapPointLayerType, kMapPolygonLayerType} from "../../map/map-types"
+import {kMapPinLayerType, kMapPointLayerType, kMapPolygonLayerType} from "../../map/map-types"
+import { IMapPinLayerModel, IMapPinLayerModelSnapshot, MapPinLayerModel } from "../../map/models/map-pin-layer-model"
 import {IMapBaseLayerModel, IMapBaseLayerModelSnapshot, kMapBaseLayerType, MapBaseLayerModel}
   from "../../map/models/map-base-layer-model"
 import {IMapPolygonLayerModel, IMapPolygonLayerModelSnapshot, MapPolygonLayerModel}
@@ -27,6 +28,7 @@ const dataDisplayLayerTypeDispatcher = (displayLayerModelSnap: IDataDisplayLayer
   switch (displayLayerModelSnap.type) {
     case kGraphPointLayerType: return GraphPointLayerModel
     case kMapBaseLayerType: return MapBaseLayerModel
+    case kMapPinLayerType: return MapPinLayerModel
     case kMapPointLayerType: return MapPointLayerModel
     case kMapPolygonLayerType: return MapPolygonLayerModel
     default: return UnknownDataDisplayLayerModel
@@ -34,8 +36,8 @@ const dataDisplayLayerTypeDispatcher = (displayLayerModelSnap: IDataDisplayLayer
 }
 
 export const DataDisplayLayerModelUnion = types.union({ dispatcher: dataDisplayLayerTypeDispatcher },
-  GraphPointLayerModel, MapBaseLayerModel, MapPolygonLayerModel, MapPointLayerModel)
+  GraphPointLayerModel, MapBaseLayerModel, MapPinLayerModel, MapPolygonLayerModel, MapPointLayerModel)
 export type IDataDisplayLayerModelUnion =
-  IGraphPointLayerModel | IMapBaseLayerModel | IMapPolygonLayerModel | IMapPointLayerModel
+  IGraphPointLayerModel | IMapBaseLayerModel | IMapPinLayerModel | IMapPolygonLayerModel | IMapPointLayerModel
 export type IDataDisplayLayerSnapshotUnion = IGraphPointLayerModelSnapshot |
-  IMapBaseLayerModelSnapshot | IMapPolygonLayerModelSnapshot | IMapPointLayerModelSnapshot
+  IMapBaseLayerModelSnapshot | IMapPinLayerModelSnapshot | IMapPolygonLayerModelSnapshot | IMapPointLayerModelSnapshot
