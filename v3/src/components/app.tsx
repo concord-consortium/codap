@@ -52,6 +52,7 @@ export const App = observer(function App() {
   // We close the modal if user imports, drags a document, opens a document
   // or plugin using url params
   const {isOpen, onOpen, onClose} = useDisclosure()
+  const [isDragging, setIsDragging] = React.useState(false)
 
   const { cfm, cfmReadyPromise } = useCloudFileManager({
     appOrMenuElemId: kMenuBarElementId
@@ -71,6 +72,7 @@ export const App = observer(function App() {
       })
       // return to "normal" after import process is complete
       sharedData?.dataSet.completeSnapshot()
+      // setIsDragging(true)
       onClose()
     }, [onClose])
 
@@ -108,7 +110,7 @@ export const App = observer(function App() {
       const showUserEntryModal = () => {
         //include mouseSensor for testing
         return !(
-          di || sample || dashboard || hasHashFileParam || mouseSensor == null
+          di || sample || dashboard || hasHashFileParam || mouseSensor !== undefined
         )
       }
       // create the initial sample data (if specified) or a new data set
@@ -178,7 +180,7 @@ export const App = observer(function App() {
             <Container/>
           </div>
           {isOpen &&
-            <div id={`${kUserEntryDropOverlay}`} className={`${isOpen ? "show-highlight" : ""}`}>
+            <div id={`${kUserEntryDropOverlay}`} className={`${isOpen && isDragging ? "show-highlight" : ""}`}>
             <UserEntryModal
               isOpen={isOpen}
               onClose={onClose}
