@@ -24,9 +24,10 @@ import { getSharedModelManager } from "../models/tiles/tile-environment"
 import { registerTileTypes } from "../register-tile-types"
 import { importSample, sampleData } from "../sample-data"
 import { urlParams } from "../utilities/url-params"
-import { kCodapAppElementId } from "./constants"
+import { kCodapAppElementId, kUserEntryDropOverlay } from "./constants"
 import { Container } from "./container/container"
 import { MenuBar, kMenuBarElementId } from "./menu-bar/menu-bar"
+import { UserEntryModal } from "./menu-bar/user-entry-modal"
 import { ToolShelf } from "./tool-shelf/tool-shelf"
 import { kWebViewTileType } from "./web-view/web-view-defs"
 import { isWebViewModel, IWebViewModel } from "./web-view/web-view-model"
@@ -85,7 +86,7 @@ export const App = observer(function App() {
   }, [onClose])
 
   useDropHandler({
-    selector: isOpen ? `#${kGlobalDropOverlay}` : `#${kCodapAppElementId}`,
+    selector: isOpen ? `#${kUserEntryDropOverlay}` : `#${kCodapAppElementId}`,
     onImportDataSet: handleImportDataSet,
     onImportDocument: handleImportDocument,
     onHandleUrlDrop: handleUrlDrop
@@ -176,7 +177,7 @@ export const App = observer(function App() {
             <Container/>
           </div>
           {isOpen &&
-            <div id={`${kGlobalDropOverlay}`} className={`${isOpen ? "show-highlight" : ""}`}>
+            <div id={`${kUserEntryDropOverlay}`} className={`${isOpen ? "show-highlight" : ""}`}>
             <UserEntryModal
               isOpen={isOpen}
               onClose={onClose}
