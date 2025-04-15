@@ -13,6 +13,10 @@
   z-index: 200;
   border: 1px solid #aaa;
   background-color: #fff;
+  
+   &:focus {
+    outline: none;
+  }
 
   .user-entry-modal-header {
     display: flex;
@@ -33,37 +37,22 @@
     justify-content: center;
     padding: 20px;
 
-    button {
+    .user-entry-button {
       background-color: #72bfca;
       color: white;
       font-size: 15px;
       text-transform: uppercase;
       margin: 10px;
+
+      &.default {
+        outline: 2px solid #0085f2;
+        outline-offset: 2px;
+      }
+      &:hover {
+        background: #3c94a1 !important;
+        color: white;
+      }
+
     }
   }
 }
-// .user-entry-modal.codap-modal-header {
-
-//   .codap-header-title {
-//     background-color: #0b4e5d;
-//     color: white;
-//     display: flex;
-//     align-items: center;
-//     justify-content: center;
-//     width: 100% !important;
-//   }
-// }
-
-// .user-entry-modal-body {
-//   display: flex;
-//   flex-direction: column;
-//   justify-content: center;
-
-//   button {
-//     background-color: #72bfca;
-//     color: white;
-//     font-size: 15px;
-//     text-transform: uppercase;
-//     margin: 10px;
-//   }
-// }

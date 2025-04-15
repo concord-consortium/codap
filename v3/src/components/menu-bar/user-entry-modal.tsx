@@ -1,5 +1,5 @@
 import { Button } from "@chakra-ui/react"
-import React from "react"
+import React, { useEffect, useRef } from "react"
 import { useCfmContext } from "../../hooks/use-cfm-context"
 import { t } from "../../utilities/translation/translate"
 
@@ -12,6 +12,7 @@ interface IProps {
 
 export const UserEntryModal = ({ isOpen, onClose }: IProps) => {
   const cfm = useCfmContext()
+  const modalRef = useRef<HTMLDivElement>(null)
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (event.key === "Escape") {
@@ -40,8 +41,14 @@ export const UserEntryModal = ({ isOpen, onClose }: IProps) => {
     onClick: createNewDocument
   }]
 
+  useEffect(() => {
+    if (isOpen && modalRef.current) {
+      modalRef.current.focus()
+    }
+  }, [isOpen])
+
   return (
-    <div className="user-entry-modal-container" aria-modal="true" onKeyDown={handleKeyDown}>
+    <div ref={modalRef} tabIndex={-1} className="user-entry-modal-container" onKeyDown={handleKeyDown}>
       <div className="user-entry-modal-header">
         <div className="user-entry-modal-title">
           {t("DG.main.userEntryView.title")}
@@ -49,9 +56,9 @@ export const UserEntryModal = ({ isOpen, onClose }: IProps) => {
       </div>
       <div className="user-entry-modal-body">
         { buttons.map((b, idx) => (
-            <Button key={`${b.label}-${idx}`} size="md" variant={`${b.default ? "default" : ""}`} ml="15"
-                    onClick={b.onClick} _hover={{backgroundColor: "#3c94a1", color: "white"}}
-                    data-testid={`${b.label}-button`}>
+            <Button key={`${b.label}-${idx}`} size="md" ml="15"
+                    className={`user-entry-button ${b.default ? "default" : ""}`}
+                    onClick={b.onClick} data-testid={`${b.label}-button`}>
               {b.label}
             </Button>
           ))
