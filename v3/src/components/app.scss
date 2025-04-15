@@ -33,9 +33,10 @@
   width: 100vw;
   height: 100vh;
   z-index: 5000;
-  pointer-events: auto; // change to 'auto' if you want it to intercept interactions
-  background-color: transparent;
-  &.show-highlight:hover {
+  pointer-events: auto;
+  background-color: #77777780;
+  z-index: 200;
+  &.show-highlight:target {
     border: #ffff04 5px solid;
   }
 }

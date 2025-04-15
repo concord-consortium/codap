@@ -12,14 +12,10 @@ interface IProps {
   onClose: () => void
   modalWidth?: string
   modalHeight?: string
-  isCentered?: boolean
-  noOverlay?: boolean
-  id?: string;
 }
 
 export const CodapModal = forwardRef(({
-  children, initialRef, isOpen, onClick, onClose, modalWidth, modalHeight, isCentered,
-  noOverlay = true, closeOnOverlayClick,
+  children, initialRef, isOpen, onClick, onClose, modalWidth, modalHeight
 }: IProps, ref: React.Ref<HTMLElement> | undefined) => {
 
   return (
@@ -28,31 +24,18 @@ export const CodapModal = forwardRef(({
       initialFocusRef={initialRef}
       isOpen={isOpen}
       onClose={onClose}
-      isCentered={isCentered}
       size="xs"
-      closeOnOverlayClick={closeOnOverlayClick}
     >
-      <ModalOverlay className={`modal-overlay ${noOverlay && "no-overlay"}`}/>
-      {!noOverlay
-          ? <ModalContent
-              // fRef={ref}
-              width={modalWidth}
-              height={modalHeight}
-              onClick={onClick}
-              // isOpen={isOpen}
-            >
-              {children}
-            </ModalContent>
-          : <DraggableModalContent
-              fRef={ref}
-              modalWidth={modalWidth}
-              modalHeight={modalHeight}
-              onClick={onClick}
-              isOpen={isOpen}
-            >
-              {children}
-            </DraggableModalContent>
-      }
+      <ModalOverlay />
+      <DraggableModalContent
+        fRef={ref}
+        modalWidth={modalWidth}
+        modalHeight={modalHeight}
+        onClick={onClick}
+        isOpen={isOpen}
+      >
+        {children}
+      </DraggableModalContent>
     </Modal>
   )
 })

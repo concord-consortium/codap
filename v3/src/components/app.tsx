@@ -71,11 +71,13 @@ export const App = observer(function App() {
       })
       // return to "normal" after import process is complete
       sharedData?.dataSet.completeSnapshot()
-    }, [])
+      onClose()
+    }, [onClose])
 
   const handleImportDocument = useCallback((file: File) => {
     cfm?.client.openLocalFileWithConfirmation(file)
-  }, [cfm])
+    onClose()
+  }, [cfm, onClose])
 
   const handleUrlDrop = useCallback((url: string) => {
     const tile = appState.document.content?.createOrShowTile(kWebViewTileType)
@@ -103,7 +105,7 @@ export const App = observer(function App() {
       const isDashboard = dashboard !== undefined
       const hasHashFileParam = window.location.hash.startsWith("#file=examples:")
 
-      const shouldShowModal = () => {
+      const showUserEntryModal = () => {
         return !(
           di || sample || dashboard || hasHashFileParam
         )
@@ -153,7 +155,7 @@ export const App = observer(function App() {
         })
       }
 
-      if (shouldShowModal()) {
+      if (showUserEntryModal()) {
         onOpen()
       } else {
         onClose()
@@ -169,16 +171,19 @@ export const App = observer(function App() {
     <CodapDndContext>
       <DocumentContentContext.Provider value={appState.document.content}>
         <CfmContext.Provider value={cfm}>
-          {isOpen && <div id={`${kGlobalDropOverlay}`} className={`${isOpen ? "show-highlight" : ""}`}/>}
           <div className="codap-app" data-testid="codap-app">
             <MenuBar/>
             <ToolShelf document={appState.document}/>
-                <UserEntryModal
-                  isOpen={isOpen}
-                  onClose={onClose}
-                />
             <Container/>
           </div>
+          {isOpen &&
+            <div id={`${kGlobalDropOverlay}`} className={`${isOpen ? "show-highlight" : ""}`}>
+            <UserEntryModal
+              isOpen={isOpen}
+              onClose={onClose}
+            />
+            </div>
+          }
         </CfmContext.Provider>
       </DocumentContentContext.Provider>
     </CodapDndContext>

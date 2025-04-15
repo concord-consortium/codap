@@ -1,8 +1,8 @@
-import { Button, ModalBody, ModalHeader } from "@chakra-ui/react"
+import { Button } from "@chakra-ui/react"
 import React from "react"
 import { useCfmContext } from "../../hooks/use-cfm-context"
 import { t } from "../../utilities/translation/translate"
-import { CodapModal } from "../codap-modal"
+
 import "./user-entry-modal.scss"
 
 interface IProps {
@@ -32,23 +32,13 @@ export const UserEntryModal = ({ isOpen, onClose }: IProps) => {
   }]
 
   return (
-    <CodapModal
-      closeOnOverlayClick={false}
-      isOpen={isOpen}
-      modalHeight={"120px"}
-      modalWidth={"400px"}
-      onClose={onClose}
-      data-testid="user-entry-modal"
-      isCentered={true}
-      noOverlay={false}
-    >
-      <ModalHeader className="user-entry-modal codap-modal-header"
-                  data-testid="codap-modal-header" fontSize="md" h="30">
-        <div className="codap-header-title">
+    <div className="user-entry-modal-container" aria-modal="true">
+      <div className="user-entry-modal-header">
+        <div className="user-entry-modal-title">
           {t("DG.main.userEntryView.title")}
         </div>
-      </ModalHeader>
-      <ModalBody className="user-entry-modal-body">
+      </div>
+      <div className="user-entry-modal-body">
         { buttons.map((b, idx) => (
             <Button key={`${b.label}-${idx}`} size="md" variant={`${b.default ? "default" : ""}`} ml="15"
                     onClick={b.onClick} _hover={{backgroundColor: "#3c94a1", color: "white"}}
@@ -57,7 +47,7 @@ export const UserEntryModal = ({ isOpen, onClose }: IProps) => {
             </Button>
           ))
         }
-      </ModalBody>
-    </CodapModal>
+      </div>
+    </div>
   )
 }
