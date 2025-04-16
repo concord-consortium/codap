@@ -9,6 +9,8 @@ import { logStringifiedObjectMessage } from "../../../lib/log-message"
 import {AttributeType} from "../../../models/data/attribute-types"
 import {IDataSet} from "../../../models/data/data-set"
 import {isUndoingOrRedoing} from "../../../models/history/tree-types"
+import { getTileModel } from "../../../models/tiles/tile-model"
+import { updateTileNotification } from "../../../models/tiles/tile-notifications"
 import {mstReaction} from "../../../utilities/mst-reaction"
 import {onAnyAction} from "../../../utilities/mst-utils"
 import { t } from "../../../utilities/translation/translate"
@@ -39,7 +41,7 @@ import { DotChart } from "../plots/dot-chart/dot-chart"
 import { DotLinePlot } from "../plots/dot-plot/dot-line-plot"
 import { Histogram } from "../plots/histogram/histogram"
 import {ScatterPlot} from "../plots/scatter-plot/scatter-plot"
-import { updateCellMasks } from "../utilities/graph-utils"
+import { attrChangeNotificationValues, updateCellMasks } from "../utilities/graph-utils"
 import {DroppableAddAttribute} from "./droppable-add-attribute"
 import {DroppablePlot} from "./droppable-plot"
 import {GraphAxis} from "./graph-axis"
@@ -196,10 +198,14 @@ export const Graph = observer(function Graph({graphController, setGraphRef, pixi
     const computedPlace = place === 'plot' && graphModel.dataConfiguration.noAttributesAssigned ? 'bottom' : place
     const attrRole = graphPlaceToAttrRole[computedPlace]
     const attrName = dataset?.getAttribute(attrId || attrIdToRemove)?.name
+    const tile = getTileModel(graphModel)
+    const notificationType = place === "legend" ? "legendAttributeChange" : "attributeChange"
+    const notificationValues = attrChangeNotificationValues(place, attrId, attrName, attrIdToRemove, tile)
 
     graphModel.applyModelChange(
       () => graphModel.setAttributeID(attrRole, dataSet.id, attrId),
       {
+        notify: updateTileNotification(notificationType, tile, notificationValues),
         undoStringKey: "DG.Undo.axisAttributeChange",
         redoStringKey: "DG.Redo.axisAttributeChange",
         log: logStringifiedObjectMessage(
