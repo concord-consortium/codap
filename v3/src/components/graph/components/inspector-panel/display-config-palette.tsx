@@ -1,9 +1,11 @@
 import { Checkbox, Box, Flex, FormLabel, Input, Radio, RadioGroup, Stack } from "@chakra-ui/react"
 import {observer} from "mobx-react-lite"
-import React from "react"
+import React, { useEffect } from "react"
 import BarChartIcon from "../../../../assets/icons/icon-segmented-bar-chart.svg"
+import { useForceUpdate } from "../../../../hooks/use-force-update"
 import { logMessageWithReplacement } from "../../../../lib/log-message"
 import { ITileModel } from "../../../../models/tiles/tile-model"
+import { mstReaction } from "../../../../utilities/mst-reaction"
 import { t } from "../../../../utilities/translation/translate"
 import { isPointDisplayType } from "../../../data-display/data-display-types"
 import { InspectorPalette } from "../../../inspector-panel"
@@ -24,8 +26,11 @@ interface IProps {
 export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: IProps) {
   const { buttonRect, panelRect, setShowPalette, tile } = props
   const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
+  const forceUpdate = useForceUpdate()
   const binnedPlot = isBinnedPlotModel(graphModel?.plot) ? graphModel?.plot : undefined
   const barChart = isBarChartModel(graphModel?.plot) ? graphModel?.plot : undefined
+  // "formula" radio button should be selected when formula editor is open
+  const breakdownTypeRadio = barChart?.formulaEditorIsOpen ? "formula" : barChart?.breakdownType
   const binDetails = graphModel?.dataConfiguration
                       ? binnedPlot?.binDetails()
                       : { binWidth: undefined, binAlignment: undefined }
@@ -104,14 +109,25 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
   }
 
   const handleBreakdownTypeChange = (breakdownType: BreakdownType) => {
-    barChart?.applyModelChange(() => barChart?.setBreakdownType(breakdownType), {
-      log: logMessageWithReplacement(
-                  "Changed %@ from %@ to %@",
-                  { option: "breakdownType", [`breakdownTypeInitial`]: barChart?.breakdownType, breakdownType }),
-      undoStringKey: "DG.Undo.graph.changeBreakdownType",
-      redoStringKey: "DG.Redo.graph.changeBreakdownType"
-    })
+    if (breakdownType === "formula") {
+      barChart?.setFormulaEditorIsOpen(true)
+    } else {
+      barChart?.applyModelChange(() => barChart?.setBreakdownType(breakdownType), {
+        log: logMessageWithReplacement(
+          "Changed %@ from %@ to %@",
+          {option: "breakdownType", [`breakdownTypeInitial`]: barChart?.breakdownType, breakdownType}),
+        undoStringKey: "DG.Undo.graph.changeBreakdownType",
+        redoStringKey: "DG.Redo.graph.changeBreakdownType"
+      })
+    }
   }
+
+  useEffect(() => {
+    mstReaction(
+      () => barChart?.formulaEditorIsOpen,
+      () => forceUpdate(),
+      {name: "formulaEditorIsOpen"}, barChart)
+  }, [barChart, forceUpdate])
 
   return (
     <InspectorPalette
@@ -197,7 +213,7 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
           {showBreakdownTypes && (
             <Stack>
               <Box className="form-title">{t("DG.Inspector.displayShow")}</Box>
-              <RadioGroup defaultValue={barChart?.breakdownType}>
+              <RadioGroup value={breakdownTypeRadio}>
                 <Stack>
                   {BreakdownTypes.map((type) => {
                     return (

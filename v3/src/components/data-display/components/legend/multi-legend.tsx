@@ -32,7 +32,8 @@ export const MultiLegend = observer(function MultiLegend({divElt, onDropAttribut
     extentsRef = useRef([] as number[])
 
   const legendBoundsTop = layout?.computedBounds?.legend?.top ?? 0
-
+  const legendsArray = Array.from(dataDisplayModel.layers)
+                          .filter(aLayer => !!aLayer.dataConfiguration.attributeID('legend'))
   const handleIsActive = (active: Active) => {
       const {dataSet, attributeId: droppedAttrId} = getDragAttributeInfo(active) || {}
         return isDropAllowed('legend', dataSet, droppedAttrId)
@@ -55,7 +56,7 @@ export const MultiLegend = observer(function MultiLegend({divElt, onDropAttribut
 
   const renderLegends = () => {
     return (
-      Array.from(dataDisplayModel.layers).filter(aLayer => !!aLayer.dataConfiguration.attributeID('legend'))
+      legendsArray
         .map(layer => {
             const
               index = layer.layerIndex,
@@ -79,14 +80,16 @@ export const MultiLegend = observer(function MultiLegend({divElt, onDropAttribut
     <div ref={legendRef} className='multi-legend'
          style={{top: legendBoundsTop}}>
       {renderLegends()}
-      <DroppableSvg
-        className="droppable-legend"
-        portal={divElt}
-        target={legendRef.current}
-        dropId={droppableId}
-        onIsActive={handleIsActive}
-        hintString={hintString}
-      />
+      {legendsArray.length > 0 &&
+        <DroppableSvg
+          className="droppable-legend"
+          portal={divElt}
+          target={legendRef.current}
+          dropId={droppableId}
+          onIsActive={handleIsActive}
+          hintString={hintString}
+        />
+}
     </div>
   )
 })

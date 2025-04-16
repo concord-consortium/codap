@@ -1,7 +1,7 @@
 import { IAdornmentModelSnapshot } from "../components/graph/adornments/adornment-models"
 import { IValueType } from "../models/data/attribute-types"
-import { ICollectionLabels } from "../models/data/collection"
-import { ICodapV2Attribute, ICodapV2Collection, ICodapV2DataContext } from "../v2/codap-v2-data-set-types"
+import { ICollectionLabelsSnapshot } from "../models/shared/data-set-metadata"
+import { ICodapV2Attribute, ICodapV2Collection, ICodapV2DataContext } from "../v2/codap-v2-data-context-types"
 
 export type DICaseValue = IValueType
 export type DICaseValues = Record<string, DICaseValue>
@@ -34,7 +34,12 @@ export interface DIAllCases {
     id?: number
   }
 }
-export type DIAttribute = Partial<ICodapV2Attribute>
+export interface DIAttribute extends Partial<ICodapV2Attribute> {
+  // v3 addition: whether the attribute is protected from deletion
+  deleteProtected?: boolean
+  // v3 addition: whether the attribute is protected from renaming
+  renameProtected?: boolean
+}
 export interface DINotifyAttribute {
   mouseX?: number
   mouseY?: number
@@ -62,7 +67,7 @@ export interface DINotifyDataContext {
 
 export type DIItem = DICaseValues
 export type DIItemValues = DIItem | { id?: string | number; values: DIItem}
-type DICollectionLabels = Partial<ICollectionLabels>
+type DICollectionLabels = Partial<ICollectionLabelsSnapshot>
 export interface DICreateCollection {
   labels?: DICollectionLabels
   name?: string

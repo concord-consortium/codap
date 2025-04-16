@@ -2,7 +2,7 @@ import { getSnapshot, types } from "mobx-state-tree"
 import { omitUndefined } from "../../test/test-utils"
 import { toCanonical } from "../data/data-set"
 import { createCodapDocument } from "./create-codap-document"
-import "../shared/shared-case-metadata-registration"
+import "../shared/data-set-metadata-registration"
 import "../shared/shared-data-set-registration"
 
 // eslint-disable-next-line no-var
@@ -55,7 +55,7 @@ describe("createCodapDocument", () => {
 
   it("createDataSet adds a DataSet to the document as a shared model", () => {
     const doc = createCodapDocument()
-    const { sharedDataSet, caseMetadata } = doc.content!.createDataSet()
+    const { sharedDataSet, sharedMetadata } = doc.content!.createDataSet()
     const { dataSet: data } = sharedDataSet
     data.addAttribute({ name: "a" })
     data.addCases(toCanonical(data, [{ a: "1" }, { a: "2" }, { a: "3" }]))
@@ -83,8 +83,6 @@ describe("createCodapDocument", () => {
                   clientKey: "",
                   id: "test-8",
                   name: "a",
-                  deleteable: true,
-                  editable: true,
                   values: ["1", "2", "3"]
                 }
               },
@@ -105,15 +103,12 @@ describe("createCodapDocument", () => {
           },
           tiles: []
         },
-        [caseMetadata.id]: {
+        [sharedMetadata.id]: {
           sharedModel: {
-            attributeColorRanges: {},
-            attributeScales: {},
-            categories: {},
             collections: {},
+            attributes: {},
             data: "test-5",
-            hidden: {},
-            id: caseMetadata.id,
+            id: sharedMetadata.id,
             type: "SharedCaseMetadata"
           },
           tiles: []

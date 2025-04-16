@@ -2,15 +2,16 @@ import { getSnapshot } from "mobx-state-tree"
 import { IAttribute, IAttributeSnapshot } from "../models/data/attribute"
 import { ICollectionModel } from "../models/data/collection"
 import { IDataSet } from "../models/data/data-set"
-import { ICase } from "../models/data/data-set-types"
+import { ICase, IGetCaseOptions } from "../models/data/data-set-types"
 import { v2ModelSnapshotFromV2ModelStorage } from "../models/data/v2-model"
 import { IGlobalValue } from "../models/global/global-value"
-import { getSharedCaseMetadataFromDataset } from "../models/shared/shared-data-utils"
-import { kAttrIdPrefix, maybeToV2Id, toV2Id, toV3AttrId } from "../utilities/codap-utils"
+import { getMetadataFromDataSet } from "../models/shared/shared-data-utils"
+import { kAttrIdPrefix, maybeToV2Id, toV2Id, toV2ItemId, toV3AttrId } from "../utilities/codap-utils"
 import { ICodapV2DataContextV3 } from "../v2/codap-v2-types"
 import {
-  CodapV2ColorMap, ICodapV2Attribute, ICodapV2Case, ICodapV2CollectionV3, v3TypeFromV2TypeString
-} from "../v2/codap-v2-data-set-types"
+  ICodapV2Attribute, ICodapV2Case, ICodapV2CategoryMap, ICodapV2CollectionV3, ICodapV2DataContextSelectedCase,
+  v3TypeFromV2TypeString
+} from "../v2/codap-v2-data-context-types"
 import { DIGetCaseResult, DIAttribute } from "./data-interactive-data-set-types"
 import { DIResources, DISingleValues } from "./data-interactive-types"
 import { getCaseValues } from "./data-interactive-utils"
@@ -23,17 +24,8 @@ export function convertValuesToAttributeSnapshot(_values: DISingleValues): IAttr
       ...v2ModelSnapshotFromV2ModelStorage(kAttrIdPrefix, values),
       id,
       userType: v3TypeFromV2TypeString(values.type),
-      // defaultMin: values.defaultMin, // TODO defaultMin not a part of IAttribute yet
-      // defaultMax: values.defaultMax, // TODO defaultMax not a part of IAttribute yet
       description: values.description ?? undefined,
-      // categoryMap: values._categoryMap, // TODO categoryMap not part of IAttribute. Should it be?
-      // blockDisplayOfEmptyCategories: values.blockDisplayOfEmptyCategories, // TODO Not part of IAttribute yet
-      editable: values.editable == null || !!values.editable,
-      // hidden is part of metadata, not the attribute model
-      // renameable: values.renameable, // TODO renameable not part of IAttribute yet
-      deleteable: values.deleteable,
       formula: values.formula ? { display: values.formula } : undefined,
-      // deletedFormula: values.deletedFormula, // TODO deletedFormula not part of IAttribute. Should it be?
       precision: values.precision == null || values.precision === "" ? undefined : +values.precision,
       units: values.unit ?? undefined
     }
@@ -107,30 +99,33 @@ export function getCaseRequestResultValues(c: ICase, dataContext: IDataSet): DIG
 }
 
 export function convertAttributeToV2(attribute: IAttribute, dataContext?: IDataSet): ICodapV2Attribute {
-  const metadata = dataContext && getSharedCaseMetadataFromDataset(dataContext)
-  const { cid, name, type, title, description, deleteable, editable, id, precision } = attribute
+  const metadata = dataContext && getMetadataFromDataSet(dataContext)
+  const { cid, name, type, title, description, id, precision } = attribute
   const v2Id = toV2Id(id)
-  const rawColorMap = metadata?.getCategorySet(attribute.id)?.colorMap ?? {}
-  const entries = Object.entries(rawColorMap).filter((entry): entry is [string, string] => entry[1] !== undefined)
-  const colormap: CodapV2ColorMap = Object.fromEntries(entries)
+  const _defaultRange = metadata?.getAttributeDefaultRange(attribute.id)
+  const defaultRange = _defaultRange ? { defaultMin: _defaultRange[0], defaultMax: _defaultRange[1] } : undefined
+  const categorySet = metadata?.getCategorySet(attribute.id, false)
+  const colorMap = categorySet?.colorMap ?? {}
+  const _categoryMap = {
+    ...colorMap,
+    __order: categorySet?.valuesArray ?? []
+  } as ICodapV2CategoryMap
+  const categoryMap = categorySet ? { _categoryMap } : undefined
 
   return {
     name,
     type,
     title,
     cid,
-    colormap,
-    // defaultMin: self.defaultMin, // TODO Where should this come from?
-    // defaultMax: self.defaultMax, // TODO Where should this come from?
     description,
-    // _categoryMap, // TODO This is incomplete
-    // blockDisplayOfEmptyCategories: self.blockDisplayOfEmptyCategories, // TODO What?
-    editable,
-    hidden: (attribute && metadata?.hidden.get(attribute.id)) ?? false,
-    renameable: true, // TODO What should this be?
-    deleteable,
+    ...defaultRange,
+    ...categoryMap,
+    editable: (attribute && !metadata?.isEditProtected(attribute.id)) ?? true,
+    hidden: (attribute && metadata?.isHidden(attribute.id)) ?? false,
+    renameable: (attribute && !metadata?.isRenameProtected(attribute.id)) ?? true,
+    deleteable: (attribute && !metadata?.isDeleteProtected(attribute.id)) ?? true,
     formula: attribute.formula?.display,
-    // deletedFormula: self.deletedFormula, // TODO What should this be?
+    deletedFormula: (attribute && metadata?.attributes.get(attribute.id)?.deletedFormula) || undefined,
     guid: v2Id,
     id: v2Id,
     precision,
@@ -150,10 +145,12 @@ interface CCV2Options {
   exportCases?: boolean
 }
 export function convertCollectionToV2(collection: ICollectionModel, options?: CCV2Options): ICodapV2CollectionV3 {
-  const { name, title, id, labels: _labels } = collection
+  const { name, title, id } = collection
   const { dataSet, exportCases } = options || {}
+  const metadata = getMetadataFromDataSet(dataSet)
+  const _labels = metadata?.collections.get(collection.id)?.labels
+  const labels = _labels?.isNonEmpty ? { labels: getSnapshot(_labels) } : undefined
   const v2Id = toV2Id(id)
-  const labels = _labels ? getSnapshot(_labels) : undefined
   const attrs = collection.attributes.map(attribute => {
     if (attribute) return convertAttributeToV2(attribute, dataSet)
   }).filter(attr => !!attr)
@@ -174,15 +171,12 @@ export function convertCollectionToV2(collection: ICollectionModel, options?: CC
     }
   }
   return {
-    // areParentChildLinksConfigured,
     attrs,
     ...cases,
-    // caseName,
     // childAttrName,
-    // collapseChildren,
     guid: v2Id,
     id: v2Id,
-    labels,
+    ...labels,
     name,
     parent: collection.parent?.id ? toV2Id(collection.parent.id) : undefined,
     title,
@@ -191,30 +185,42 @@ export function convertCollectionToV2(collection: ICollectionModel, options?: CC
 }
 
 export function convertDataSetToV2(dataSet: IDataSet, exportCases = false): ICodapV2DataContextV3 {
-  const { name, title, id, description } = dataSet
+  const { name, title, id } = dataSet
+  const v3Metadata = getMetadataFromDataSet(dataSet)
+  const { description, source, importDate, isAttrConfigChanged, isAttrConfigProtected } = v3Metadata || {}
   const v2Id = toV2Id(id)
+  const itemOptions: IGetCaseOptions = { canonical: false, numeric: true }
   dataSet.validateCases()
 
+  const selectedCases: ICodapV2DataContextSelectedCase[] = []
   const collections: ICodapV2CollectionV3[] =
-    dataSet.collections.map(collection => convertCollectionToV2(collection, { dataSet, exportCases }))
+    dataSet.collections.map(collection => {
+      collection.caseIds.forEach(caseId => {
+        if (dataSet.isCaseSelected(caseId)) {
+          selectedCases.push({ type: "DG.Case", id: toV2Id(caseId) })
+        }
+      })
+      return convertCollectionToV2(collection, { dataSet, exportCases })
+    })
+  const v2Metadata = v3Metadata?.hasDataContextMetadata
+                    ? { metadata: { description, source, importDate} }
+                    : undefined
 
   return {
     type: "DG.DataContext",
     document: 1,
     guid: v2Id,
     id: v2Id,
-    // flexibleGroupChangeFlag,
     name,
     title,
     collections,
-    description,
-    // metadata,
-    // preventReorg,
-    // TODO_V2_EXPORT setAsideItems
-    setAsideItems: [],
-    // TODO_V2_EXPORT contextStorage
-    // providing an empty object makes it possible for CODAPv2 to load more exported documents
-    contextStorage: {}
+    ...v2Metadata,
+    flexibleGroupingChangeFlag: isAttrConfigChanged,
+    preventReorg: isAttrConfigProtected,
+    setAsideItems: dataSet._itemIds
+                    .filter(itemId => dataSet.isItemSetAside(itemId))
+                    .map(itemId => ({ id: toV2ItemId(itemId), values: dataSet.getItem(itemId, itemOptions) ?? {} })),
+    contextStorage: { _links_: { selectedCases } }
   }
 }
 

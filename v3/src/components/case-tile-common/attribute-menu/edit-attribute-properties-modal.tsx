@@ -1,7 +1,7 @@
 import { Button, FormControl, FormLabel, HStack, Input, ModalBody, ModalCloseButton, ModalFooter, ModalHeader,
   Radio, RadioGroup, Select, Textarea, Tooltip } from "@chakra-ui/react"
 import React, { useEffect, useState } from "react"
-import { useDataSetContext } from "../../../hooks/use-data-set-context"
+import { useDataSet } from "../../../hooks/use-data-set"
 import { logMessageWithReplacement } from "../../../lib/log-message"
 import { AttributeType, attributeTypes } from "../../../models/data/attribute-types"
 import { updateAttributesNotification } from "../../../models/data/data-set-notifications"
@@ -26,7 +26,7 @@ interface IProps {
 }
 
 export const EditAttributePropertiesModal = ({ attributeId, isOpen, onClose }: IProps) => {
-  const data = useDataSetContext()
+  const { data, metadata } = useDataSet()
   const attribute = data?.attrFromID(attributeId)
   const columnName = attribute?.name || "attribute"
   const [attributeName, setAttributeName] = useState(columnName)
@@ -43,8 +43,8 @@ export const EditAttributePropertiesModal = ({ attributeId, isOpen, onClose }: I
     setUnits(attribute?.units ?? "")
     setPrecision(attribute?.precision)
     setUserType(attribute?.userType ?? "none")
-    setEditable(attribute?.editable ? "yes" : "no")
-  }, [attribute, isOpen])
+    setEditable(!metadata?.isEditProtected(attributeId) ? "yes" : "no")
+  }, [attribute, attributeId, isOpen, metadata])
 
   const applyChanges = () => {
     if (attribute && attributeId) {
@@ -67,8 +67,8 @@ export const EditAttributePropertiesModal = ({ attributeId, isOpen, onClose }: I
         if (precision !== attribute.precision) {
           attribute.setPrecision(precision)
         }
-        if ((editable === "yes") !== attribute.editable) {
-          attribute.setEditable(editable === "yes")
+        if ((editable === "no") !== metadata?.isEditProtected(attributeId)) {
+          metadata?.setIsEditProtected(attributeId, editable === "no")
         }
       }, {
         notify: updateAttributesNotification([attribute], data),

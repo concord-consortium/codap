@@ -6,6 +6,7 @@ import {
 } from "../../models/data/data-set-notifications"
 import { sortItemsWithCustomUndoRedo } from "../../models/data/data-set-undo"
 import { addSetAsideCases, replaceSetAsideCases, restoreSetAsideCases } from "../../models/data/data-set-utils"
+import { getMetadataFromDataSet } from "../../models/shared/shared-data-utils"
 import { getFormulaManager } from "../../models/tiles/tile-environment"
 import { toV3CaseId } from "../../utilities/codap-utils"
 import { hasOwnProperty } from "../../utilities/js-utils"
@@ -34,8 +35,9 @@ export const diDataContextHandler: DIHandler = {
 
     return document.applyModelChange(() => {
       // Create dataset
-      const dataSet = DataSet.create({ description, name, _title: title })
-      const { caseMetadata } = gDataBroker.addDataSet(dataSet)
+      const dataSet = DataSet.create({ name, _title: title })
+      const { sharedMetadata } = gDataBroker.addDataSet(dataSet)
+      sharedMetadata.setDescription(description)
       getFormulaManager(document)?.addDataSet(dataSet)
 
       if (collections?.length) {
@@ -43,7 +45,7 @@ export const diDataContextHandler: DIHandler = {
         dataSet.removeCollection(dataSet.collections[0])
 
         // Create and add collections and attributes
-        collections.forEach(v2collection => createCollection(v2collection, dataSet, caseMetadata))
+        collections.forEach(v2collection => createCollection(v2collection, dataSet, sharedMetadata))
       }
 
       return {
@@ -117,11 +119,15 @@ export const diDataContextHandler: DIHandler = {
     const { dataContext } = resources
     if (!dataContext) return dataContextNotFoundResult
 
+    const v3Metadata = getMetadataFromDataSet(dataContext)
+
     const values = _values as DIUpdateDataContext
     if (values) {
       const { managingController, metadata, sort, title } = values
       dataContext.applyModelChange(() => {
-        if (metadata && hasOwnProperty(metadata, "description")) dataContext.setDescription(metadata.description)
+        if (metadata && hasOwnProperty(metadata, "description")) {
+          v3Metadata?.setDescription(metadata.description)
+        }
         if (hasOwnProperty(values, "title")) dataContext.setTitle(title)
 
         if (managingController) {

@@ -4,7 +4,7 @@ declare global {
   namespace Cypress {
     interface Cypress {
       // added to Cypress config via cypress.*.json configuration files
-      config(key: "index"): string
+      config(key: "index" | "v3ActivityPlayerUrl"): string
     }
     interface Chainable {
       /**

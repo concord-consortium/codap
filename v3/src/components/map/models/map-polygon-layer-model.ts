@@ -4,7 +4,7 @@
 import {Instance, SnapshotIn, types} from "mobx-state-tree"
 import {GeoJSON} from "leaflet"
 import {IDataSet} from "../../../models/data/data-set"
-import {getSharedCaseMetadataFromDataset} from "../../../models/shared/shared-data-utils"
+import {getMetadataFromDataSet} from "../../../models/shared/shared-data-utils"
 import {IDataDisplayLayerModel} from "../../data-display/models/data-display-layer-model"
 import {kMapPolygonLayerType} from "../map-types"
 import {boundaryAttributeFromDataSet} from "../utilities/map-utils"
@@ -25,7 +25,7 @@ export const MapPolygonLayerModel = MapLayerModel
     },
     setDataset(dataSet: IDataSet) {
       const boundaryId = boundaryAttributeFromDataSet(dataSet)
-      self.dataConfiguration.setDataset(dataSet, getSharedCaseMetadataFromDataset(dataSet))
+      self.dataConfiguration.setDataset(dataSet, getMetadataFromDataSet(dataSet))
       self.dataConfiguration.setAttribute('polygon', {attributeID: boundaryId})
     }
 

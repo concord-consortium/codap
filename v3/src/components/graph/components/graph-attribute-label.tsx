@@ -1,4 +1,5 @@
 import React, { useCallback, useRef } from "react"
+import { observer } from "mobx-react-lite"
 import { select } from "d3"
 import { t } from "../../../utilities/translation/translate"
 import { useGraphDataConfigurationContext } from "../hooks/use-graph-data-configuration-context"
@@ -11,6 +12,7 @@ import { AttributeLabel } from "../../data-display/components/attribute-label"
 import { graphPlaceToAttrRole } from "../../data-display/data-display-types"
 import { useTileSelectionContext } from "../../../hooks/use-tile-selection-context"
 import { getStringBounds } from "../../axis/axis-utils"
+import { ClickableAxisLabel } from "./clickable-axis-label"
 
 import vars from "../../vars.scss"
 
@@ -22,7 +24,7 @@ interface IAttributeLabelProps {
 }
 
 export const GraphAttributeLabel =
-  function GraphAttributeLabel({
+  observer(function GraphAttributeLabel({
                                  place, onTreatAttributeAs, onRemoveAttribute,
                                  onChangeAttribute
                                }: IAttributeLabelProps) {
@@ -118,14 +120,29 @@ export const GraphAttributeLabel =
           )
     }, [getClickHereCue, getLabel, layout, place])
 
+    const plotDefinedAxisClickHandler = graphModel.plot.axisLabelClickHandler(graphPlaceToAttrRole[place])
+
+    const renderAxisLabel = () => {
+      return plotDefinedAxisClickHandler
+        ? <ClickableAxisLabel
+          ref={labelRef}
+          place={place}
+          refreshLabel={refreshAxisTitle}
+          onClickHandler={plotDefinedAxisClickHandler}
+        />
+        : <AttributeLabel
+          ref={labelRef}
+          place={place}
+          refreshLabel={refreshAxisTitle}
+          onChangeAttribute={onChangeAttribute}
+          onRemoveAttribute={onRemoveAttribute}
+          onTreatAttributeAs={onTreatAttributeAs}
+        />
+    }
+
     return (
-      <AttributeLabel
-        ref={labelRef}
-        place={place}
-        refreshLabel={refreshAxisTitle}
-        onChangeAttribute={onChangeAttribute}
-        onRemoveAttribute={onRemoveAttribute}
-        onTreatAttributeAs={onTreatAttributeAs}
-      />
+      <g>
+      { renderAxisLabel() }
+      </g>
     )
-  }
+  })

@@ -4,7 +4,7 @@ import { GraphController } from "./graph-controller"
 import { GraphLayout } from "./graph-layout"
 import { DataSet } from "../../../models/data/data-set"
 import { createDataSet } from "../../../models/data/data-set-conversion"
-import { SharedCaseMetadata } from "../../../models/shared/shared-case-metadata"
+import { DataSetMetadata } from "../../../models/shared/data-set-metadata"
 import { attrRoleToGraphPlace, GraphAttrRole } from "../../data-display/data-display-types"
 import { isCategoricalAxisModel, isEmptyAxisModel, isNumericAxisModel } from "../../axis/models/axis-model"
 import { AxisPlace } from "../../axis/axis-types"
@@ -12,7 +12,7 @@ import { AxisPlace } from "../../axis/axis-types"
 const mockGetDataSet = jest.fn()
 const mockGetMetadata = jest.fn()
 
-jest.mock("../../../models/shared/shared-data-utils", () => ({
+jest.mock("../../../models/shared/shared-data-tile-utils", () => ({
   getDataSetFromId: () => mockGetDataSet(),
   getTileDataSet: () => mockGetDataSet(),
   getTileCaseMetadata: () => mockGetMetadata()
@@ -38,7 +38,7 @@ describe("GraphController", () => {
         { id: "cId", name: "c", values: ["a", "b", "c"] }
       ]
     })),
-    metadata: types.optional(SharedCaseMetadata, () => SharedCaseMetadata.create())
+    metadata: types.optional(DataSetMetadata, () => DataSetMetadata.create())
   })
 
   const instanceId = "Graph1"

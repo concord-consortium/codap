@@ -81,8 +81,6 @@ describe("DataInteractive AttributeHandler", () => {
     expect(a1.units).toBe(unit)
     expect(resultAttr?.formula).toBe(formula)
     expect(a1.formula?.display).toBe(formula)
-    expect(resultAttr?.editable).toBe(editable)
-    expect(a1.editable).toBe(editable)
     expect(resultAttr?.type).toBe(type)
     expect(a1.type).toBe(type)
     expect(resultAttr?.precision).toBe(precision)

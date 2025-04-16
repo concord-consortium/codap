@@ -1,11 +1,11 @@
 import { format } from "d3-format"
 import { IJsonPatch, Instance, SnapshotIn, types } from "mobx-state-tree"
 import { AttributeType } from "../../../../models/data/attribute-types"
-import { Formula, IFormula } from "../../../../models/formula/formula"
+import { Formula } from "../../../../models/formula/formula"
 import { t } from "../../../../utilities/translation/translate"
 import { AxisPlace } from "../../../axis/axis-types"
-import { IAxisModel } from "../../../axis/models/axis-model"
-import { PointDisplayType } from "../../../data-display/data-display-types"
+import { IAxisModel, isNumericAxisModel } from "../../../axis/models/axis-model"
+import { GraphAttrRole, PointDisplayType } from "../../../data-display/data-display-types"
 import { BreakdownType, BreakdownTypes } from "../../graphing-types"
 import { DotChartModel } from "../dot-chart/dot-chart-model"
 import { IBarTipTextProps, IPlotModel, typesPlotType } from "../plot-model"
@@ -17,16 +17,29 @@ export const BarChartModel = DotChartModel
   .props({
     type: typesPlotType("barChart"),
     breakdownType: types.optional(types.enumeration([...BreakdownTypes]), "count"),
-    expression: types.maybe(Formula)
+    formula: types.maybe(Formula)
   })
+  .volatile(self => ({
+    formulaEditorIsOpen: false,
+    fallbackBreakdownType: self.breakdownType === "percent" ? "percent" : "count" as Exclude<BreakdownType, "formula">
+  }))
   .actions(self => ({
     setBreakdownType(type: BreakdownType) {
       self.breakdownType = type
-      if (type !== 'formula') self.expression = undefined
+      if (type !== 'formula') self.fallbackBreakdownType = type
     },
-    setExpression(expression: IFormula) {
-      self.expression = expression
-    }
+    setExpression(expression: string) {
+      if (expression) {
+        self.formula = Formula.create({ display: expression })
+        this.setBreakdownType("formula")
+      } else {
+        self.formula = undefined
+        this.setBreakdownType(self.fallbackBreakdownType)
+      }
+    },
+    setFormulaEditorIsOpen(isOpen: boolean) {
+      self.formulaEditorIsOpen = isOpen
+    },
   }))
   .views(self => {
     const baseMaxCellPercent = self.maxCellPercent
@@ -54,7 +67,7 @@ export const BarChartModel = DotChartModel
         case "percent":
           return t("DG.CountAxisView.percentLabel")
         case "formula":
-          return self.expression?.display ?? ""
+          return self.formula?.display ?? ""
         default:
           return ''
       }
@@ -63,7 +76,14 @@ export const BarChartModel = DotChartModel
       return true
     },
     get hasExpression() {
-      return !!self.expression && !self.expression.empty
+      return !!self.formula && !self.formula.empty
+    },
+    getValidFormulaAxis(axisModel?: IAxisModel): IAxisModel {
+      const secondaryPlace = self.dataConfiguration?.secondaryRole === "x" ? "bottom" : "left"
+      const resultAxisModel = self.getValidNumericOrDateAxis(secondaryPlace, undefined, axisModel)
+      // todo: Once we can evaluate the formula, use min and max computed from it
+      isNumericAxisModel(resultAxisModel) && resultAxisModel.setDomain(0, 100)
+      return resultAxisModel
     },
     getValidSecondaryAxis(place: AxisPlace, attrType?: AttributeType, axisModel?: IAxisModel): IAxisModel {
       switch (self.breakdownType) {
@@ -71,6 +91,8 @@ export const BarChartModel = DotChartModel
           return self.getValidCountAxis(place, attrType, axisModel)
         case "percent":
           return self.getValidPercentAxis(place, attrType, axisModel)
+        case "formula":
+          return this.getValidFormulaAxis(axisModel)
         default:
           return self.getValidNumericOrDateAxis(place, attrType, axisModel)
       }
@@ -80,6 +102,14 @@ export const BarChartModel = DotChartModel
     },
     get showBreakdownTypes(): boolean {
       return true
+    },
+    axisLabelClickHandler(role: GraphAttrRole): Maybe<() => void> {
+      if (self.breakdownType === "formula" && self.hasExpression && role === self.dataConfiguration?.secondaryRole) {
+        return () => {
+          self.setFormulaEditorIsOpen(true)
+        }
+      }
+      return undefined
     },
     newSecondaryAxisRequired(patch: IJsonPatch): false | IAxisModel {
       if (patch.path.includes("breakdownType")) {
