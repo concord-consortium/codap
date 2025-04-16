@@ -3,7 +3,7 @@ import { DataSet } from "../../models/data/data-set"
 import { DocumentContentModel, IDocumentContentModel } from "../../models/document/document-content"
 import { FreeTileRow } from "../../models/document/free-tile-row"
 import { SharedModelDocumentManager } from "../../models/document/shared-model-document-manager"
-import { SharedCaseMetadata } from "../../models/shared/shared-case-metadata"
+import { DataSetMetadata } from "../../models/shared/data-set-metadata"
 import { getSharedDataSetFromDataSetId } from "../../models/shared/shared-data-utils"
 import { ISharedModel } from "../../models/shared/shared-model"
 import { ITileContentModel } from "../../models/tiles/tile-content"
@@ -152,7 +152,7 @@ describe("V2GraphImporter", () => {
     expect(layer.dataConfiguration._yAttributeDescriptions.length).toBe(0)
 
     expect(getType(layer.dataConfiguration.dataset)).toBe(DataSet)
-    expect(getType(layer.dataConfiguration.metadata)).toBe(SharedCaseMetadata)
+    expect(getType(layer.dataConfiguration.metadata)).toBe(DataSetMetadata)
     const sharedDataSet = getSharedDataSetFromDataSetId(tile, layer.dataConfiguration.dataset!.id)
 
     // wait a beat for reactions to run
@@ -182,7 +182,7 @@ describe("V2GraphImporter", () => {
     expect(layer.dataConfiguration._yAttributeDescriptions.length).toBe(1)
 
     expect(getType(layer.dataConfiguration.dataset)).toBe(DataSet)
-    expect(getType(layer.dataConfiguration.metadata)).toBe(SharedCaseMetadata)
+    expect(getType(layer.dataConfiguration.metadata)).toBe(DataSetMetadata)
     const sharedDataSet = getSharedDataSetFromDataSetId(tile, layer.dataConfiguration.dataset!.id)
 
     // wait a beat for reactions to run
@@ -213,7 +213,7 @@ describe("V2GraphImporter", () => {
     expect(layer.dataConfiguration._yAttributeDescriptions.length).toBe(2)
 
     expect(getType(layer.dataConfiguration.dataset)).toBe(DataSet)
-    expect(getType(layer.dataConfiguration.metadata)).toBe(SharedCaseMetadata)
+    expect(getType(layer.dataConfiguration.metadata)).toBe(DataSetMetadata)
     const sharedDataSet = getSharedDataSetFromDataSetId(tile, layer.dataConfiguration.dataset!.id)
 
     // wait a beat for reactions to run
@@ -243,7 +243,7 @@ describe("V2GraphImporter", () => {
     expect(layer.dataConfiguration._yAttributeDescriptions.length).toBe(1)
 
     expect(getType(layer.dataConfiguration.dataset)).toBe(DataSet)
-    expect(getType(layer.dataConfiguration.metadata)).toBe(SharedCaseMetadata)
+    expect(getType(layer.dataConfiguration.metadata)).toBe(DataSetMetadata)
     const sharedDataSet = getSharedDataSetFromDataSetId(tile, layer.dataConfiguration.dataset!.id)
 
     // wait a beat for reactions to run
@@ -274,7 +274,7 @@ describe("V2GraphImporter", () => {
     expect(layer.dataConfiguration._yAttributeDescriptions.length).toBe(1)
 
     expect(getType(layer.dataConfiguration.dataset)).toBe(DataSet)
-    expect(getType(layer.dataConfiguration.metadata)).toBe(SharedCaseMetadata)
+    expect(getType(layer.dataConfiguration.metadata)).toBe(DataSetMetadata)
     const sharedDataSet = getSharedDataSetFromDataSetId(tile, layer.dataConfiguration.dataset!.id)
 
     // wait a beat for reactions to run
@@ -305,7 +305,7 @@ describe("V2GraphImporter", () => {
     expect(layer.dataConfiguration._yAttributeDescriptions.length).toBe(1)
 
     expect(getType(layer.dataConfiguration.dataset)).toBe(DataSet)
-    expect(getType(layer.dataConfiguration.metadata)).toBe(SharedCaseMetadata)
+    expect(getType(layer.dataConfiguration.metadata)).toBe(DataSetMetadata)
     const sharedDataSet = getSharedDataSetFromDataSetId(tile, layer.dataConfiguration.dataset!.id)
 
     // wait a beat for reactions to run

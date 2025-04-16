@@ -198,8 +198,8 @@ function getPlotModels(graph: IGraphContentModel): Partial<ICodapV2GraphStorage>
   const breakdownType = isBarChartModel(plot)
                           ? { breakdownType: plot.breakdownType === "percent" ? 1 : 0 }
                           : undefined
-  const expression = isBarChartModel(plot) && plot.expression && !plot.expression.empty
-                      ? { expression: plot.expression.display }
+  const expression = isBarChartModel(plot) && plot.formula && !plot.formula.empty
+                      ? { expression: plot.formula.display }
                       : undefined
   const _binDetails = isBinnedPlotModel(plot) ? plot.binDetails() : undefined
   const { binAlignment: alignment, binWidth: width, totalNumberOfBins } = _binDetails ?? {}

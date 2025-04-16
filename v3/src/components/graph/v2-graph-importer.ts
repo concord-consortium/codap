@@ -3,7 +3,7 @@ import {toV3AttrId, toV3Id} from "../../utilities/codap-utils"
 import {defaultBackgroundColor, parseColorToHex} from "../../utilities/color-utils"
 import {V2TileImportArgs} from "../../v2/codap-v2-tile-importers"
 import {IGuidLink, isV2GraphComponent} from "../../v2/codap-v2-types"
-import {v3TypeFromV2TypeIndex} from "../../v2/codap-v2-data-set-types"
+import {v3TypeFromV2TypeIndex} from "../../v2/codap-v2-data-context-types"
 import {GraphAttrRole, PrimaryAttrRole, axisPlaceToAttrRole} from "../data-display/data-display-types"
 import {kGraphIdPrefix, kGraphTileType} from "./graph-defs"
 import {IGraphContentModelSnapshot} from "./models/graph-content-model"
@@ -13,7 +13,7 @@ import {GraphAttributeDescriptionsMapSnapshot, IAttributeDescriptionSnapshot}
   from "../data-display/models/data-configuration-model"
 import {AxisPlace} from "../axis/axis-types"
 import {IAxisModelSnapshotUnion} from "../axis/models/axis-model"
-import {v2AdornmentImporter} from "./adornments/v2-adornment-importer"
+import {IAdornmentImporterProps, v2AdornmentImporter} from "./adornments/v2-adornment-importer"
 import { v2PlotImporter } from "./v2-plot-importer"
 
 const attrKeys = ["x", "y", "y2", "legend", "top", "right"] as const
@@ -56,7 +56,7 @@ export function v2GraphImporter({v2Component, v2Document, getCaseData, insertTil
             defaultBackgroundColor
   type TLinksKey = keyof typeof links
   const contextId = links.context?.id
-  const {data, metadata} = contextId ? getCaseData(contextId) : {}
+  const {sharedData, sharedMetadata} = contextId ? getCaseData(contextId) : {}
 
   const roleFromAttrKey: Record<string, GraphAttrRole> = {
     x: "x",
@@ -156,8 +156,8 @@ export function v2GraphImporter({v2Component, v2Document, getCaseData, insertTil
   const plot = v2PlotImporter(primaryPlot)
 
   // configure adornmentsStore
-  const adornmentImporterProps = {
-    data, metadata, plotModels,
+  const adornmentImporterProps: IAdornmentImporterProps = {
+    data: sharedData, metadata: sharedMetadata, plotModels,
     attributeDescriptions: _attributeDescriptions,
     yAttributeDescriptions: _yAttributeDescriptions
   }
@@ -189,8 +189,8 @@ export function v2GraphImporter({v2Component, v2Document, getCaseData, insertTil
       type: kGraphPointLayerType,
       dataConfiguration: {
         type: kGraphDataConfigurationType,
-        dataset: data?.dataSet.id,
-        metadata: metadata?.id,
+        dataset: sharedData?.dataSet.id,
+        metadata: sharedMetadata?.id,
         hiddenCases,
         primaryRole,
         _attributeDescriptions,
@@ -206,8 +206,8 @@ export function v2GraphImporter({v2Component, v2Document, getCaseData, insertTil
 
   // link shared model
   if (graphTile) {
-    linkSharedModel(graphTile.content, data, false)
-    linkSharedModel(graphTile.content, metadata, false)
+    linkSharedModel(graphTile.content, sharedData, false)
+    linkSharedModel(graphTile.content, sharedMetadata, false)
   }
 
   return graphTile

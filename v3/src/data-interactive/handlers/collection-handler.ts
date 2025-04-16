@@ -1,6 +1,7 @@
 import { ICollectionModel } from "../../models/data/collection"
 import { createCollectionNotification } from "../../models/data/data-set-notifications"
-import { getSharedCaseMetadataFromDataset } from "../../models/shared/shared-data-utils"
+import { isNonEmptyCollectionLabels } from "../../models/shared/data-set-metadata"
+import { getMetadataFromDataSet } from "../../models/shared/shared-data-utils"
 import { toV2Id } from "../../utilities/codap-utils"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIHandler, DIResources, DIValues} from "../data-interactive-types"
@@ -16,7 +17,7 @@ export const diCollectionHandler: DIHandler = {
     if (!dataContext) return dataContextNotFoundResult
     if (!values) return valuesRequiredResult
 
-    const metadata = getSharedCaseMetadataFromDataset(dataContext)
+    const metadata = getMetadataFromDataSet(dataContext)
     const collections = Array.isArray(values) ? values : [values]
     const returnValues: DICollection[] = []
 
@@ -61,7 +62,10 @@ export const diCollectionHandler: DIHandler = {
         // child-most collection
         const options = beforeCollectionId ? { before: beforeCollectionId }
           : { after: dataContext.collectionIds[dataContext.collectionIds.length - 1] }
-        const newCollection = dataContext.addCollection({ labels, name, _title: title }, options)
+        const newCollection = dataContext.addCollection({ name, _title: title }, options)
+        if (isNonEmptyCollectionLabels(labels)) {
+          metadata?.setCollectionLabels(newCollection.id, labels)
+        }
         newCollections.push(newCollection)
 
         // Attributes can be specified in both attributes and attrs
@@ -124,8 +128,11 @@ export const diCollectionHandler: DIHandler = {
       const { title, labels } = values as DIUpdateCollection
 
       dataContext.applyModelChange(() => {
+        const metadata = getMetadataFromDataSet(dataContext)
         if (title) collection.setTitle(title)
-        if (labels) collection.setLabels(labels)
+        if (isNonEmptyCollectionLabels(labels)) {
+          metadata?.setCollectionLabels(collection.id, labels)
+        }
       })
     }
 

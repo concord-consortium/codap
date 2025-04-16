@@ -15,7 +15,7 @@ export function v2PlotImporter(plotModel: ICodapV2PlotModel): IPlotModelUnionSna
                           plotModel.plotModelStorage?.expression
                             ? { display: plotModel.plotModelStorage.expression }
                             : undefined
-      const snap: IBarChartSnapshot = { type: "barChart", breakdownType, expression }
+      const snap: IBarChartSnapshot = { type: "barChart", breakdownType, formula: expression }
       return snap
     }
     case "DG.DotPlotModel":

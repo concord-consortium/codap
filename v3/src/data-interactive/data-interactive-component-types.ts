@@ -78,6 +78,7 @@ export interface V2Graph extends V2Component {
   plotType?: string
   pointColor?: string
   pointSize?: number
+  primaryAxis?: string
   rightNumericAttributeID?: number | null
   rightNumericAttributeName?: string | null
   rightSplitAttributeID?: number | null

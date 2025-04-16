@@ -138,4 +138,50 @@ context("CloudFileManager", () => {
     cfm.getLanguageMenuButton().click()
     cfm.getLanguageMenu().should("not.exist")
   })
+  it("should display in the Activity Player", () => {
+    // Ignore uncaught exceptions from the application for this test only
+    Cypress.on('uncaught:exception', (err) => {
+      // returning false here prevents Cypress from failing the test
+      return false
+    })
+
+    const activityPlayerUrl = Cypress.config("v3ActivityPlayerUrl")
+    cy.visit(activityPlayerUrl)
+
+    // Verify activity player loaded
+    cy.get("[data-cy='activity-title']", { timeout: 10000 })
+      .should("exist")
+      .and("contain.text", "Test CODAP v3")
+
+    cy.get("[data-cy='activity-nav-header']").should("exist")
+
+    // Navigate to page 8
+    cy.get("[data-cy='nav-pages-button']")
+      .filter("[aria-label='Page 8']")
+      .first()
+      .should("have.text", "8")
+      .click()
+      .then(() => {
+        // Wait for page content to load including iframe
+        cy.wait(15000)
+      })
+
+    // Verify iframe exists and has loaded
+    cy.get('iframe')
+      .should('be.visible')
+      .then($iframe => {
+        cy.wrap($iframe)
+          .should('have.prop', 'contentDocument')
+          .should('not.be.null')
+      })
+
+    // Verify content inside the iframe
+    cy.get('iframe')
+      .first()
+      .its('0.contentDocument.body')
+      .then(body => {
+        cy.wrap(body)
+          .should('contain.text', 'Hello from Activity Player')
+      })
+  })
 })

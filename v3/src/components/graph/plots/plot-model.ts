@@ -9,7 +9,7 @@ import { CategoricalAxisModel, CountAxisModel, DateAxisModel, EmptyAxisModel, IA
   isCountAxisModel, isDateAxisModel, isEmptyAxisModel, isNumericAxisModel, isPercentAxisModel,
   NumericAxisModel, PercentAxisModel
 } from "../../axis/models/axis-model"
-import { PointDisplayType } from "../../data-display/data-display-types"
+import { GraphAttrRole, PointDisplayType } from "../../data-display/data-display-types"
 import { PlotType } from "../graphing-types"
 import { IGraphDataConfigurationModel } from "../models/graph-data-configuration-model"
 
@@ -132,6 +132,9 @@ export const PlotModel = types
         // When displaying bars, the domain should start at 0 unless there are negative values.
         clampPosMinAtZero: self.displayType === "bars"
       }
+    },
+    axisLabelClickHandler(role: GraphAttrRole): Maybe<() => void> {
+      return undefined
     },
     getValidEmptyAxis(place: AxisPlace, attrType?: AttributeType, axisModel?: IAxisModel): IAxisModel {
       return isEmptyAxisModel(axisModel)

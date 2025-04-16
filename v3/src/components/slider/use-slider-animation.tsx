@@ -49,7 +49,7 @@ export const useSliderAnimation = ({sliderModel, running, setRunning}: IUseSlide
   const updateSlider = useCallback((val: number, min: FixValueFn, max: FixValueFn) => {
     if (sliderModel) {
       sliderModel.applyModelChange(
-        () => sliderModel.setValue(sliderModel.validateValue(val, min, max)),
+        () => sliderModel.setValidatedValue(sliderModel.validateValue(val, min, max)),
         { notify: () => valueChangeNotification(sliderModel.value, sliderModel.name) }
       )
     }

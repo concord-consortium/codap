@@ -1,7 +1,7 @@
 import { IDocumentMetadata } from "../models/document/document-metadata"
 import {
   CodapV2Context, ICodapV2Attribute, ICodapV2Case, ICodapV2Collection, isV2ExternalContext, isV2InternalContext
-} from "./codap-v2-data-set-types"
+} from "./codap-v2-data-context-types"
 import { CodapV2Component, ICodapV2DocumentJson } from "./codap-v2-types"
 
 export class CodapV2Document {
