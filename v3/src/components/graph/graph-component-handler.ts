@@ -282,7 +282,7 @@ export const graphComponentHandler: DIComponentHandler = {
         .map(description => dataset?.getAttribute(description.attributeID)?.name).filter(name => name != null)
 
       const { pointDescription } = content
-      const { displayOnlySelectedCases, showMeasuresForSelection } = dataConfiguration
+      const { displayOnlySelectedCases, showMeasuresForSelection, primaryRole: primaryAxis } = dataConfiguration
       const filterFormula = dataConfiguration.filterFormula?.display
       const hiddenCases = dataConfiguration.hiddenCases.map(id => toV2Id(id))
       const plotType = content.plotType
@@ -295,7 +295,7 @@ export const graphComponentHandler: DIComponentHandler = {
 
       return {
         backgroundColor, dataContext, displayOnlySelectedCases, enableNumberToggle, filterFormula, hiddenCases,
-        numberToggleLastMode, plotType, pointColor, pointSize, showMeasuresForSelection,
+        numberToggleLastMode, plotType, pointColor, pointSize, primaryAxis, showMeasuresForSelection,
         strokeColor, strokeSameAsFill, transparent, captionAttributeID, captionAttributeName,
         legendAttributeID, legendAttributeName, rightSplitAttributeID, rightSplitAttributeName,
         topSplitAttributeID, topSplitAttributeName, type: "graph",

@@ -316,7 +316,7 @@ describe("DataInteractive ComponentHandler Graph", () => {
         backgroundColor: _backgroundColor, dataContext, displayOnlySelectedCases: _displayOnlySelectedCases,
         enableNumberToggle, filterFormula: _filterFormula, hiddenCases: hc, numberToggleLastMode, captionAttributeID,
         captionAttributeName, legendAttributeID, legendAttributeName, pointColor: _pointColor,
-        plotType: _plotType, pointSize: _pointSize,
+        plotType: _plotType, pointSize: _pointSize, primaryAxis,
         rightSplitAttributeID, rightSplitAttributeName,
         strokeColor: _strokeColor, strokeSameAsFill: _strokeSameAsFill, topSplitAttributeID, topSplitAttributeName,
         transparent: _transparent, xAttributeID, xAttributeName, xAttributeType: _xAttributeType, xLowerBound,
@@ -371,6 +371,9 @@ describe("DataInteractive ComponentHandler Graph", () => {
       expect(y2LowerBound).toBe(y2Axis.min)
       expect(y2UpperBound).toBe(y2Axis.max)
 
+      const primaryRole = dataConfiguration.primaryRole
+      expect(primaryRole).toBe(primaryAxis)
+
       expect(_backgroundColor).toBe(backgroundColor)
       expect(_displayOnlySelectedCases).toBe(displayOnlySelectedCases)
       expect(_filterFormula).toBe(filterFormula)
@@ -384,6 +387,7 @@ describe("DataInteractive ComponentHandler Graph", () => {
       expect(_strokeColor).toBe(pointColor) // strokeSameAsFill overrides strokeColor
       expect(_strokeSameAsFill).toBe(strokeSameAsFill)
       expect(_transparent).toBe(transparent)
+      expect(primaryAxis).toBe("x")
     })
 
     // Create multiple graphs for the same dataset
