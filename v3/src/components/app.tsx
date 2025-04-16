@@ -51,12 +51,15 @@ export const App = observer(function App() {
   // default behavior is to show the user enty modal when CODAP is loaded
   // We close the modal if user imports, drags a document, opens a document
   // or plugin using url params
-  const {isOpen, onOpen, onClose} = useDisclosure()
+  const {isOpen: isOpenUserEntry, onOpen: onOpenUserEntry, onClose: onCloseUserEntry} = useDisclosure()
   const [isDragOver, setIsDragOver] = useState(false)
 
-  const { cfm, cfmReadyPromise } = useCloudFileManager({
-    appOrMenuElemId: kMenuBarElementId
-  })
+  const handleFileOpened = useCallback(() => {
+    onCloseUserEntry()
+  }, [onCloseUserEntry])
+
+  const { cfm, cfmReadyPromise } = useCloudFileManager(
+    {appOrMenuElemId: kMenuBarElementId}, handleFileOpened)
 
   const handleImportDataSet = useCallback(
     function handleImportDataSet(data: IDataSet, options?: IImportDataSetOptions) {
@@ -72,22 +75,22 @@ export const App = observer(function App() {
       })
       // return to "normal" after import process is complete
       sharedData?.dataSet.completeSnapshot()
-      onClose()
-    }, [onClose])
+      onCloseUserEntry()
+    }, [onCloseUserEntry])
 
   const handleImportDocument = useCallback((file: File) => {
     cfm?.client.openLocalFileWithConfirmation(file)
-    onClose()
-  }, [cfm, onClose])
+    onCloseUserEntry()
+  }, [cfm, onCloseUserEntry])
 
   const handleUrlDrop = useCallback((url: string) => {
     const tile = appState.document.content?.createOrShowTile(kWebViewTileType)
     isWebViewModel(tile?.content) && tile?.content.setUrl(url)
-    onClose()
-  }, [onClose])
+    onCloseUserEntry()
+  }, [onCloseUserEntry])
 
   useDropHandler({
-    selector: isOpen ? `#${kUserEntryDropOverlay}` : `#${kCodapAppElementId}`,
+    selector: isOpenUserEntry ? `#${kUserEntryDropOverlay}` : `#${kCodapAppElementId}`,
     onImportDataSet: handleImportDataSet,
     onImportDocument: handleImportDocument,
     onHandleUrlDrop: handleUrlDrop,
@@ -105,13 +108,8 @@ export const App = observer(function App() {
       const {sample, dashboard, di, noEntryModal} = urlParams
       const _sample = sampleData.find(name => sample === name.toLowerCase())
       const isDashboard = dashboard !== undefined
-      const hasHashFileParam = window.location.hash.startsWith("#file=examples:")
-
-      const showUserEntryModal = () => {
-        //include noEntryModal for testing
-        return !(
-          di || sample || dashboard || hasHashFileParam || noEntryModal !== undefined
-        )
+      const hideUserEntryModal = () => {
+        return (sample || dashboard || di || noEntryModal !== undefined)
       }
       // create the initial sample data (if specified) or a new data set
       if (gDataBroker.dataSets.size === 0) {
@@ -158,10 +156,10 @@ export const App = observer(function App() {
         })
       }
 
-      if (showUserEntryModal()) {
-        onOpen()
+      if (hideUserEntryModal()) {
+        onCloseUserEntry()
       } else {
-        onClose()
+        onOpenUserEntry()
       }
 
       appState.enableDocumentMonitoring()
@@ -169,7 +167,7 @@ export const App = observer(function App() {
     }
 
     initialize()
-  }, [cfmReadyPromise, onClose, onOpen])
+  }, [cfmReadyPromise, onCloseUserEntry, onOpenUserEntry])
   return (
     <CodapDndContext>
       <DocumentContentContext.Provider value={appState.document.content}>
@@ -179,11 +177,11 @@ export const App = observer(function App() {
             <ToolShelf document={appState.document}/>
             <Container/>
           </div>
-          {isOpen &&
-            <div id={`${kUserEntryDropOverlay}`} className={`${isOpen && isDragOver ? "show-highlight" : ""}`}>
+          {isOpenUserEntry &&
+            <div id={`${kUserEntryDropOverlay}`} className={`${isOpenUserEntry && isDragOver ? "show-highlight" : ""}`}>
             <UserEntryModal
-              isOpen={isOpen}
-              onClose={onClose}
+              isOpen={isOpenUserEntry}
+              onClose={onCloseUserEntry}
             />
             </div>
           }

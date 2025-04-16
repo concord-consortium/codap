@@ -141,7 +141,7 @@ function getMenuConfig(cfm: CloudFileManager) {
   ]
 }
 
-export function useCloudFileManager(optionsArg: CFMAppOptions) {
+export function useCloudFileManager(optionsArg: CFMAppOptions, onFileOpened?: () => void) {
   const options = useRef(optionsArg)
   const root = useRef<Root | undefined>()
   const cfm = useMemo(() => createCloudFileManager(), [])
@@ -252,6 +252,9 @@ export function useCloudFileManager(optionsArg: CFMAppOptions) {
 
     clientConnect(cfm, function cfmEventCallback(event: CloudFileManagerClientEvent) {
       handleCFMEvent(cfm.client, event)
+      if (event.type === "openedFile" && onFileOpened) {
+        onFileOpened()
+      }
       const cfmReadyEvents = ["fileOpened", "ready"]
       if (cfmReadyEvents.includes(event.type)) {
         cfmReadyResolver.current?.()
@@ -259,7 +262,7 @@ export function useCloudFileManager(optionsArg: CFMAppOptions) {
     })
 
     appState.setCFM(cfm)
-  }, [cfm])
+  }, [cfm, onFileOpened])
 
   return { cfm, cfmReadyPromise }
 }
