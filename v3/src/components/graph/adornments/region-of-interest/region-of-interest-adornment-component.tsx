@@ -55,10 +55,12 @@ const calculatePixelRange = (props: ICalculatePixelRange) => {
 export const RegionOfInterestAdornment = observer(function RegionOfInterestAdornment(props: IAdornmentComponentProps) {
   const { plotHeight, plotWidth, spannerRef, xAxis, yAxis } = props
   const model = props.model as IRegionOfInterestAdornmentModel
-  const { dataConfig, xScale, yScale } = useAdornmentAttributes()
+  const { dataConfig, graphModel, xScale, yScale } = useAdornmentAttributes()
   const { primary, secondary } = model
   const roiRect = useRef<any>(null)
-  const primaryAttrRole = dataConfig?.primaryRole ?? "x"
+  const isYPrimary = dataConfig?.primaryRole && graphModel?.plotType !== "scatterPlot"
+    ? dataConfig.primaryRole === "y"
+    : false
 
   useEffect(() => {
     if (!spannerRef?.current) return
@@ -78,7 +80,6 @@ export const RegionOfInterestAdornment = observer(function RegionOfInterestAdorn
 
     const { position: primaryPos, extent: primaryExtent } = primary
     const { position: secondaryPos, extent: secondaryExtent } = secondary
-    const isYPrimary = primaryAttrRole === "y"
     const primaryScale = isYPrimary? yScale : xScale
     const secondaryScale = isYPrimary ? undefined : yScale
     const primaryPlotExtent = isYPrimary ? plotHeight : plotWidth
@@ -117,14 +118,14 @@ export const RegionOfInterestAdornment = observer(function RegionOfInterestAdorn
         .attr("height", secondaryDimension)
     }
 
-  }, [primary, secondary, primaryAttrRole, plotWidth, plotHeight, xScale, yScale])
+  }, [primary, secondary, isYPrimary, plotWidth, plotHeight, xScale, yScale])
 
   useEffect(() => {
     const disposer = mstAutorun(() => {
       getAxisDomains(xAxis, yAxis)
       updateRectangle()
     }, { name: "RegionOfInterestAdornment.refreshAxisChange" }, model)
-  
+
     return disposer
   }, [model, xAxis, yAxis, plotWidth, plotHeight, updateRectangle])
 

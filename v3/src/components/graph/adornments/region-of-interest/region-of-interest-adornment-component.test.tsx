@@ -78,13 +78,15 @@ describe("RegionOfInterestComponent", () => {
     expect(view).toHaveAttribute("height", "100")
   })
 
-  it("should render correctly when primaryRole is y", () => {
+  it("should render correctly when primaryRole is y and the graph is not a scatterPlot", () => {
     jest.mocked(require("../../hooks/use-adornment-attributes").useAdornmentAttributes).mockReturnValue({
       dataConfig: {
         primaryRole: "y",
         secondaryRole: "x",
       },
-      xScale: (value: number) => value,
+      graphModel: {
+        plotType: "dotPlot",
+      },
       yScale: (value: number) => plotHeight - value,
     })
 
@@ -101,5 +103,33 @@ describe("RegionOfInterestComponent", () => {
     expect(view).toHaveAttribute("y", `${plotHeight - 20}`) // 200 - 10% (extent) of 200
     expect(view).toHaveAttribute("height", `${plotHeight * 0.1}`) // 10% (extent) of 200
     expect(view).toHaveAttribute("width", `${plotWidth}`)
+  })
+
+  it("should ignore primaryRole and render correctly when the graph is a scatterPlot", () => {
+    jest.mocked(require("../../hooks/use-adornment-attributes").useAdornmentAttributes).mockReturnValue({
+      dataConfig: {
+        primaryRole: "y",
+        secondaryRole: "x",
+      },
+      graphModel: {
+        plotType: "scatterPlot",
+      },
+      xScale: (value: number) => value,
+      yScale: (value: number) => plotHeight - value,
+    })
+
+    const model = RegionOfInterestAdornmentModel.create({
+      id: "ADRN124",
+      isVisible: true,
+      type: "Region of Interest",
+      primary: { position: 0, extent: "10%" },
+      secondary: { position: 0, extent: "100%" }
+    })
+
+    const view = renderWithAdornment(model)
+    expect(view).toHaveAttribute("x", "0")
+    expect(view).toHaveAttribute("y", "0")
+    expect(view).toHaveAttribute("width", `${plotWidth * 0.1}`) // 10% (extent) of 200
+    expect(view).toHaveAttribute("height", `${plotHeight}`)
   })
 })
