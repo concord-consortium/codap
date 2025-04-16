@@ -19,8 +19,9 @@ import { CatObject, CategoricalAxisHelper } from "../helper-models/categorical-a
 import { DateAxisHelper } from "../helper-models/date-axis-helper"
 import { NumericAxisHelper } from "../helper-models/numeric-axis-helper"
 import { useAxisLayoutContext } from "../models/axis-layout-context"
-import {IAxisModel, isBaseNumericAxisModel, isCategoricalAxisModel, isCategoricalOrColorAxisModel}
-  from "../models/axis-model"
+import {IAxisModel} from "../models/axis-model"
+import { isAnyCategoricalAxisModel, isCategoricalAxisModel } from "../models/categorical-axis-models"
+import { isAnyNumericAxisModel } from "../models/numeric-axis-models"
 import { useAxisProviderContext } from "./use-axis-provider-context"
 
 export interface IUseSubAxis {
@@ -313,7 +314,7 @@ export const useSubAxis = ({
     return mstAutorun(() => {
       const _axisModel = axisProvider?.getAxis?.(axisPlace)
       if (isAliveSafe(_axisModel)) {
-        if (isBaseNumericAxisModel(_axisModel)) {
+        if (isAnyNumericAxisModel(_axisModel)) {
           const {domain} = _axisModel || {},
             multiScale = layout.getAxisMultiScale(axisPlace)
           multiScale?.setScaleType('linear')  // Make sure it's linear
@@ -354,7 +355,7 @@ export const useSubAxis = ({
       return domain1[0] !== domain2[0] || domain1[1] !== domain2[1]
     }
 
-    if (isCategoricalOrColorAxisModel(axisModel)) {
+    if (isAnyCategoricalAxisModel(axisModel)) {
       setupCategories()
       const categoryValues = categoriesRef.current,
         multiScale = layout.getAxisMultiScale(axisPlace),
@@ -362,7 +363,7 @@ export const useSubAxis = ({
       if (JSON.stringify(categoryValues) === JSON.stringify(existingCategoryDomain)) return
       multiScale?.setCategoricalDomain(categoryValues)
       renderSubAxis()
-    } else if (isBaseNumericAxisModel(axisModel)) {
+    } else if (isAnyNumericAxisModel(axisModel)) {
       const currentAxisDomain = axisModel.domain
       const multiScale = layout.getAxisMultiScale(axisPlace)
       const allowToShrink = axisModel.allowRangeToShrink

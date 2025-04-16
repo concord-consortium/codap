@@ -7,15 +7,16 @@ import { mstReaction } from "../../../utilities/mst-reaction"
 import { axisPlaceToAttrRole, graphPlaceToAttrRole } from "../../data-display/data-display-types"
 import { maxWidthOfStringsD3 } from "../../data-display/data-display-utils"
 import { useDataConfigurationContext } from "../../data-display/hooks/use-data-configuration-context"
-import { AxisPlace, AxisScaleType, axisGap } from "../axis-types"
-import { useAxisLayoutContext } from "../models/axis-layout-context"
-import { isBaseNumericAxisModel, isColorAxisModel, isDateAxisModel } from "../models/axis-model"
-import { collisionExists, getNumberOfLevelsForDateAxis, getStringBounds, isScaleLinear } from "../axis-utils"
-import { useAxisProviderContext } from "./use-axis-provider-context"
 import { useDataDisplayModelContextMaybe } from "../../data-display/hooks/use-data-display-model"
 import { IDataDisplayContentModel } from "../../data-display/models/data-display-content-model"
-import { MultiScale } from "../models/multi-scale"
 import { kColorAxisExtent } from "../axis-constants"
+import { AxisPlace, AxisScaleType, axisGap } from "../axis-types"
+import { collisionExists, getNumberOfLevelsForDateAxis, getStringBounds, isScaleLinear } from "../axis-utils"
+import { useAxisLayoutContext } from "../models/axis-layout-context"
+import { isColorAxisModel } from "../models/categorical-axis-models"
+import { MultiScale } from "../models/multi-scale"
+import { isAnyNumericAxisModel, isDateAxisModel } from "../models/numeric-axis-models"
+import { useAxisProviderContext } from "./use-axis-provider-context"
 
 import vars from "../../vars.scss"
 
@@ -49,7 +50,7 @@ export const useAxis = (axisPlace: AxisPlace) => {
     displayModel = useDataDisplayModelContextMaybe(),
     axisProvider = useAxisProviderContext(),
     axisModel = axisProvider.getAxis(axisPlace),
-    isNumeric = axisModel && isBaseNumericAxisModel(axisModel),
+    isNumeric = axisModel && isAnyNumericAxisModel(axisModel),
     multiScale = layout.getAxisMultiScale(axisPlace),
     dataConfiguration = useDataConfigurationContext(),
     attrId = dataConfiguration?.attributeID(axisPlaceToAttrRole[axisPlace]) || "",
@@ -102,7 +103,8 @@ export const useAxis = (axisPlace: AxisPlace) => {
       }
     }
     return desiredExtent
-  }, [axisModel, axisPlace, axisProvider, dataConfiguration, displayModel, isNumeric, layout, multiScale])
+  }, [axisAttributeType, axisModel, axisPlace, axisProvider, dataConfiguration, displayModel,
+      isNumeric, layout, multiScale])
 
   // update d3 scale and axis when scale type changes
   useEffect(() => {

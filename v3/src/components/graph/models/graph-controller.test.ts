@@ -1,13 +1,14 @@
 import { applySnapshot, getSnapshot, SnapshotIn, types } from "mobx-state-tree"
-import { GraphContentModel } from "./graph-content-model"
-import { GraphController } from "./graph-controller"
-import { GraphLayout } from "./graph-layout"
 import { DataSet } from "../../../models/data/data-set"
 import { createDataSet } from "../../../models/data/data-set-conversion"
 import { DataSetMetadata } from "../../../models/shared/data-set-metadata"
 import { attrRoleToGraphPlace, GraphAttrRole } from "../../data-display/data-display-types"
 import { isCategoricalAxisModel, isEmptyAxisModel, isNumericAxisModel } from "../../axis/models/axis-model"
 import { AxisPlace } from "../../axis/axis-types"
+import { attrRoleToGraphPlace, GraphAttrRole } from "../../data-display/data-display-types"
+import { GraphContentModel } from "./graph-content-model"
+import { GraphController } from "./graph-controller"
+import { GraphLayout } from "./graph-layout"
 
 const mockGetDataSet = jest.fn()
 const mockGetMetadata = jest.fn()

@@ -2,11 +2,13 @@ import { AttributeType, isCategoricalAttributeType } from "../../../models/data/
 import { stringValuesToDateSeconds } from "../../../utilities/date-utils"
 import { setNiceDomain } from "../../axis/axis-domain-utils"
 import { AxisPlace, AxisPlaces, IScaleType } from "../../axis/axis-types"
+import { EmptyAxisModel, IAxisModel, isEmptyAxisModel } from "../../axis/models/axis-model"
 import {
-  CategoricalAxisModel, ColorAxisModel, DateAxisModel, EmptyAxisModel, IAxisModel, isBaseNumericAxisModel,
-  isCategoricalAxisModel, isCategoricalOrColorAxisModel, isColorAxisModel,
-  isDateAxisModel, isEmptyAxisModel, isNumericAxisModel, NumericAxisModel
-} from "../../axis/models/axis-model"
+  CategoricalAxisModel, ColorAxisModel, isAnyCategoricalAxisModel, isCategoricalAxisModel, isColorAxisModel
+} from "../../axis/models/categorical-axis-models"
+import {
+  DateAxisModel, isAnyNumericAxisModel, isDateAxisModel, isNumericAxisModel, NumericAxisModel
+} from "../../axis/models/numeric-axis-models"
 import { graphPlaceToAttrRole } from "../../data-display/data-display-types"
 import { IGraphContentModel } from "./graph-content-model"
 import { GraphLayout } from "./graph-layout"
@@ -46,13 +48,26 @@ function setupAxes(graphModel: IGraphContentModel, layout: GraphLayout) {
 
   function syncAxisScaleTypeWithAxis(place: AxisPlace, axisModel?: IAxisModel) {
     let scaleType: IScaleType = "ordinal"
-    if (isBaseNumericAxisModel(axisModel)) {
+    if (isAnyNumericAxisModel(axisModel)) {
       scaleType = "linear"
     }
-    else if (isCategoricalOrColorAxisModel(axisModel)) {
+    else if (isAnyCategoricalAxisModel(axisModel)) {
       scaleType = "band"
     }
     layout.setAxisScaleType(place, scaleType)
+  }
+
+  function categoricalOrColorAxisModel(place: AxisPlace, currAxisModel?: IAxisModel, attributeType?: AttributeType) {
+    if (!attributeType) return currAxisModel
+
+    if (attributeType === "color" && isColorAxisModel(currAxisModel) ||
+        attributeType === "categorical" && isCategoricalAxisModel(currAxisModel)) {
+      return currAxisModel
+    }
+
+    return attributeType === "color"
+            ? ColorAxisModel.create({ place })
+            : CategoricalAxisModel.create({ place })
   }
 
   const setupAxis = (place: AxisPlace) => {
@@ -75,16 +90,7 @@ function setupAxes(graphModel: IGraphContentModel, layout: GraphLayout) {
                         : currAxisModel ?? EmptyAxisModel.create({ place })
       // create secondary categorical axis model if necessary
       if (isEmptyAxisModel(newAxisModel) && isSecondaryPlace && attributeType) {
-        if (attributeType) {
-          if (attributeType === "color" && isColorAxisModel(currAxisModel) ||
-              attributeType === "categorical" && isCategoricalAxisModel(currAxisModel)) {
-            newAxisModel = currAxisModel
-          } else {
-            newAxisModel = attributeType === "color"
-                            ? ColorAxisModel.create({ place })
-                            : CategoricalAxisModel.create({ place })
-          }
-        }
+        newAxisModel = categoricalOrColorAxisModel(place, currAxisModel, attributeType)
       }
     }
     else if (place === "rightNumeric") {
@@ -101,16 +107,7 @@ function setupAxes(graphModel: IGraphContentModel, layout: GraphLayout) {
       }
     }
     else {
-      if (attributeType) {
-        if (attributeType === "color" && isColorAxisModel(currAxisModel) ||
-          attributeType === "categorical" && isCategoricalAxisModel(currAxisModel)) {
-          newAxisModel = currAxisModel
-        } else {
-          newAxisModel = attributeType === "color"
-                          ? ColorAxisModel.create({ place })
-                          : CategoricalAxisModel.create({ place })
-        }
-      }
+      newAxisModel = categoricalOrColorAxisModel(place, currAxisModel, attributeType)
     }
 
     if (newAxisModel) {
@@ -120,7 +117,7 @@ function setupAxes(graphModel: IGraphContentModel, layout: GraphLayout) {
         syncAxisScaleTypeWithAxis(place, newAxisModel)
       }
 
-      if (isBaseNumericAxisModel(newAxisModel)) {
+      if (isAnyNumericAxisModel(newAxisModel)) {
         newAxisModel.setAllowRangeToShrink(true)
         const values = isDateAxisModel(newAxisModel)
                         ? stringValuesToDateSeconds(attribute?.strValues || [])
@@ -128,7 +125,7 @@ function setupAxes(graphModel: IGraphContentModel, layout: GraphLayout) {
         setNiceDomain(values, newAxisModel, graphModel.plot.axisDomainOptions)
       }
 
-      if (isCategoricalOrColorAxisModel(newAxisModel)) {
+      if (isAnyCategoricalAxisModel(newAxisModel)) {
         const categorySet = dataConfig.categorySetForAttrRole(attributeRole)
         layout.getAxisMultiScale(place)?.setCategorySet(categorySet)
       }

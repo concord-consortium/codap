@@ -19,10 +19,13 @@ import { mstReaction } from "../../../utilities/mst-reaction"
 import { setNiceDomain } from "../../axis/axis-domain-utils"
 import {GraphPlace} from "../../axis-graph-shared"
 import {AxisPlace, AxisPlaces, IAxisTicks, ScaleNumericBaseType, TickFormatter} from "../../axis/axis-types"
+import { EmptyAxisModel, IAxisModel, IAxisModelSnapshot } from "../../axis/models/axis-model"
 import {
-  AxisModelUnion, EmptyAxisModel, IAxisModel, IAxisModelSnapshot, IAxisModelSnapshotUnion, IAxisModelUnion,
-  INumericAxisModelSnapshot, isAxisModelInUnion, isBaseNumericAxisModel, isPercentAxisModel
-} from "../../axis/models/axis-model"
+  AxisModelUnion, IAxisModelSnapshotUnion, IAxisModelUnion, isAxisModelInUnion
+} from "../../axis/models/axis-model-union"
+import {
+  INumericAxisModelSnapshot, isAnyNumericAxisModel, isPercentAxisModel
+} from "../../axis/models/numeric-axis-models"
 import { CaseData } from "../../data-display/d3-types"
 import {DataDisplayContentModel} from "../../data-display/models/data-display-content-model"
 import {
@@ -140,7 +143,7 @@ export const GraphContentModel = DataDisplayContentModel
     getNumericAxis(place: AxisPlace) {
       const axis = self.axes.get(place)
       // Include DataAxisModels
-      return isBaseNumericAxisModel(axis) ? axis : undefined
+      return isAnyNumericAxisModel(axis) ? axis : undefined
     },
     getAttributeID(place: GraphAttrRole) {
       return self.dataConfiguration.attributeID(place) ?? ''
@@ -296,10 +299,10 @@ export const GraphContentModel = DataDisplayContentModel
         self.pointDescription.pointSizeMultiplier, use)
     },
     hasBinnedNumericAxis(axisModel: IAxisModel): boolean {
-      return isBaseNumericAxisModel(axisModel) && self.plot.hasBinnedNumericAxis
+      return isAnyNumericAxisModel(axisModel) && self.plot.hasBinnedNumericAxis
     },
     hasDraggableNumericAxis(axisModel: IAxisModel): boolean {
-      return isBaseNumericAxisModel(axisModel) && self.plot.hasDraggableNumericAxis
+      return isAnyNumericAxisModel(axisModel) && self.plot.hasDraggableNumericAxis
     },
     nonDraggableAxisTicks(formatter: TickFormatter): IAxisTicks {
       return self.plot.nonDraggableAxisTicks(formatter)
@@ -444,7 +447,7 @@ export const GraphContentModel = DataDisplayContentModel
         AxisPlaces.forEach((axisPlace: AxisPlace) => {
           const axis = self.getAxis(axisPlace),
             role = axisPlaceToAttrRole[axisPlace]
-          if (isBaseNumericAxisModel(axis)) {
+          if (isAnyNumericAxisModel(axis)) {
             const numericValues = dataConfiguration.numericValuesForAttrRole(role)
             axis.setAllowRangeToShrink(true)
             setNiceDomain(numericValues, axis, self.plot.axisDomainOptions)
@@ -617,7 +620,7 @@ export const GraphContentModel = DataDisplayContentModel
     get noPossibleRescales() {
       return self.plotType !== 'casePlot' &&
         !AxisPlaces.find((axisPlace: AxisPlace) => {
-          return isBaseNumericAxisModel(self.getAxis(axisPlace))
+          return isAnyNumericAxisModel(self.getAxis(axisPlace))
         })
     },
     getTipText(props: IGetTipTextProps) {

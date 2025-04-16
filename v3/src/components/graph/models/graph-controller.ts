@@ -1,8 +1,8 @@
 import { mstReaction } from "../../../utilities/mst-reaction"
 import {AxisPlace, AxisPlaces} from "../../axis/axis-types"
-import {
-  EmptyAxisModel, isBaseNumericAxisModel, isCategoricalOrColorAxisModel, isEmptyAxisModel
-} from "../../axis/models/axis-model"
+import { EmptyAxisModel, isEmptyAxisModel } from "../../axis/models/axis-model"
+import { isAnyCategoricalAxisModel } from "../../axis/models/categorical-axis-models"
+import { isAnyNumericAxisModel } from "../../axis/models/numeric-axis-models"
 import { axisPlaceToAttrRole } from "../../data-display/data-display-types"
 import {matchCirclesToData} from "../../data-display/data-display-utils"
 import {PixiPoints} from "../../data-display/pixi/pixi-points"
@@ -92,11 +92,11 @@ export class GraphController {
           if (isEmptyAxisModel(axisModel)) {  // EmptyAxisModel
             axisMultiScale.setScaleType('ordinal')
           }
-          if (isCategoricalOrColorAxisModel(axisModel)) {
+          if (isAnyCategoricalAxisModel(axisModel)) {
             axisMultiScale.setCategoricalDomain(dataConfig.categoryArrayForAttrRole(attrRole))
             axisMultiScale.setCategorySet(dataConfig.categorySetForAttrRole(attrRole))
           }
-          if (isBaseNumericAxisModel(axisModel)) {
+          if (isAnyNumericAxisModel(axisModel)) {
             axisMultiScale.setNumericDomain(axisModel.domain)
           }
         }

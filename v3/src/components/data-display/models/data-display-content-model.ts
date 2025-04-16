@@ -19,7 +19,8 @@ import {defaultBackgroundColor} from "../../../utilities/color-utils"
 import { typedId } from "../../../utilities/js-utils"
 import { IAxisTicks, TickFormatter } from "../../axis/axis-types"
 import {GraphPlace} from "../../axis-graph-shared"
-import { IAxisModel, isBaseNumericAxisModel } from "../../axis/models/axis-model"
+import { IAxisModel } from "../../axis/models/axis-model"
+import { isAnyNumericAxisModel } from "../../axis/models/numeric-axis-models"
 import { MarqueeMode } from "../data-display-types"
 import { IGetTipTextProps, IShowDataTipProps } from "../data-tip-types"
 import { IDataConfigurationModel } from "./data-configuration-model"
@@ -54,7 +55,7 @@ export const DataDisplayContentModel = TileContentModel
     },
     hasDraggableNumericAxis(axisModel: IAxisModel): boolean {
       // derived models may override to provide additional constraints
-      return isBaseNumericAxisModel(axisModel)
+      return isAnyNumericAxisModel(axisModel)
     },
     nonDraggableAxisTicks(formatter: TickFormatter): IAxisTicks {
       // derived models should override
