@@ -65,8 +65,8 @@ export const useSubAxis = ({
     {isAnimating, stopAnimation} = useDataDisplayAnimation(),
     axisProvider = useAxisProviderContext(),
     axisModel = axisProvider.getAxis(axisPlace),
-    isCategorical = isCategoricalAxisModel(axisModel),
-    isColorAxis = axisModel?.type === "categorical" && axisAttributeType === "color",
+    isCategorical = isAnyCategoricalAxisModel(axisModel),
+    isColorAxis = axisModel?.type === "color" || (axisModel?.type === "categorical" && axisAttributeType === "color"),
     multiScaleChangeCount = layout.getAxisMultiScale(axisModel?.place ?? 'bottom')?.changeCount ?? 0,
     dragInfo = useRef<DragInfo>({
       indexOfCategory: -1,
@@ -265,6 +265,7 @@ export const useSubAxis = ({
             { ...helperProps, showScatterPlotGridLines, showZeroAxisLine })
           break
         case 'categorical':
+        case 'color':
           // It is necessary to call renderSubAxis in most cases, but doing so for a categorical axis causes
           // a crash on redo. So we only do it for non-categorical axes.
           shouldRenderSubAxis = false

@@ -1,4 +1,4 @@
-import { AttributeType, isCategoricalAttributeType } from "../../../models/data/attribute-types"
+import { AttributeType } from "../../../models/data/attribute-types"
 import { stringValuesToDateSeconds } from "../../../utilities/date-utils"
 import { setNiceDomain } from "../../axis/axis-domain-utils"
 import { AxisPlace, AxisPlaces, IScaleType } from "../../axis/axis-types"
@@ -33,11 +33,11 @@ function setupAxes(graphModel: IGraphContentModel, layout: GraphLayout) {
       newAttributeType = "numeric"
     }
     else if (isColorAxisModel(axisModel)) {
-      if (isCategoricalAttributeType(attributeType)) return
+      if (attributeType === "color") return
       newAttributeType = "color"
     }
     else if (isCategoricalAxisModel(axisModel)) {
-      if (isCategoricalAttributeType(attributeType)) return
+      if (attributeType === "categorical") return
       newAttributeType = "categorical"
     }
 

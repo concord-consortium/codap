@@ -12,7 +12,7 @@ import {kGraphPointLayerType} from "./models/graph-point-layer-model"
 import {GraphAttributeDescriptionsMapSnapshot, IAttributeDescriptionSnapshot}
   from "../data-display/models/data-configuration-model"
 import {AxisPlace} from "../axis/axis-types"
-import {IAxisModelSnapshotUnion} from "../axis/models/axis-model"
+import {IAxisModelSnapshotUnion} from "../axis/models/axis-model-union"
 import {IAdornmentImporterProps, v2AdornmentImporter} from "./adornments/v2-adornment-importer"
 import { v2PlotImporter } from "./v2-plot-importer"
 

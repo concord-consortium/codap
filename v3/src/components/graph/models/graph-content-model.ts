@@ -5,7 +5,7 @@
 import {isEqual} from "lodash"
 import { comparer, reaction, when } from "mobx"
 import { addDisposer, getSnapshot, Instance, onPatch, SnapshotIn, types } from "mobx-state-tree"
-import { isNumericAttributeType } from "../../../models/data/attribute-types"
+import { isCategoricalAttributeType, isNumericAttributeType } from "../../../models/data/attribute-types"
 import {IDataSet} from "../../../models/data/data-set"
 import {applyModelChange} from "../../../models/history/apply-model-change"
 import { getTileCaseMetadata, getTileDataSet } from "../../../models/shared/shared-data-tile-utils"
@@ -584,11 +584,10 @@ export const GraphContentModel = DataDisplayContentModel
       }
 
       function isNumericRole(role: GraphAttrRole) {
-        const attrType = self.dataConfiguration.attributeType(role)
-        return !!attrType && ["numeric", "date"].includes(attrType)
+        return isNumericAttributeType(self.dataConfiguration.attributeType(role))
       }
       function isCategoricalRole(role?: GraphAttrRole) {
-        return role && self.dataConfiguration.attributeType(role) === 'categorical'
+        return !!role && isCategoricalAttributeType(self.dataConfiguration.attributeType(role))
       }
       const numericAttrCount = PrimaryAttrRoles.map(role => isNumericRole(role))
                                   .filter(Boolean).length

@@ -82,7 +82,8 @@ export const useAxis = (axisPlace: AxisPlace) => {
           : numbersHeight + axisGap
         break
       }
-      case 'categorical': {
+      case 'categorical':
+      case 'color': {
         // We compute the desired bandWidth from the axis length and the number of categories. rather than
         // from the multiScale. This is because during restore the multiScale has not been set up yet.
         const axisLength = layout.getAxisLength(axisPlace),
