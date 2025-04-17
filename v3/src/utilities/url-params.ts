@@ -126,7 +126,6 @@ export interface UrlParams {
    * value: url string
    */
   url?: string | null
-
 }
 
 export let urlParams: UrlParams = queryString.parse(getSearchParams())

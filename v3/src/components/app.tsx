@@ -94,7 +94,7 @@ export const App = observer(function App() {
     onImportDataSet: handleImportDataSet,
     onImportDocument: handleImportDocument,
     onHandleUrlDrop: handleUrlDrop,
-    setIsDragOver
+    onSetIsDragOver: setIsDragOver
   })
 
   useEffect(() => {

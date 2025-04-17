@@ -7,10 +7,10 @@ export interface IDropHandler {
   onImportDataSet?: (data: IDataSet) => void
   onImportDocument?: (file: File) => void
   onHandleUrlDrop?: (url: string) => void
-  setIsDragOver?: (isDragOver: boolean) => void
+  onSetIsDragOver?: (isDragOver: boolean) => void
 }
 export const useDropHandler = ({
-  selector, onImportDataSet, onImportDocument, onHandleUrlDrop, setIsDragOver
+  selector, onImportDataSet, onImportDocument, onHandleUrlDrop, onSetIsDragOver: setIsDragOver
 }: IDropHandler) => {
   const eltRef = useRef<HTMLElement | null>(null)
 
