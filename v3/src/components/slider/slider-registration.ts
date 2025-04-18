@@ -1,10 +1,7 @@
 import { SetOptional, SetRequired } from "type-fest"
 import SliderIcon from "../../assets/icons/icon-slider.svg"
-import { V2Slider } from "../../data-interactive/data-interactive-component-types"
 import { registerComponentHandler } from "../../data-interactive/handlers/component-handler"
-import { errorResult } from "../../data-interactive/handlers/di-results"
-import { appState } from "../../models/app-state"
-import { GlobalValueManager, getGlobalValueManager } from "../../models/global/global-value-manager"
+import { getGlobalValueManager } from "../../models/global/global-value-manager"
 import { registerTileComponentInfo } from "../../models/tiles/tile-component-info"
 import { ITileLikeModel, registerTileContentInfo } from "../../models/tiles/tile-content-info"
 import { ITileModelSnapshotIn } from "../../models/tiles/tile-model"
@@ -28,6 +25,7 @@ import {
   kDefaultAnimationDirection, kDefaultAnimationMode, kDefaultSliderAxisMax, kDefaultSliderAxisMin
 } from "./slider-types"
 import { kDefaultSliderName, kDefaultSliderValue } from "./slider-utils"
+import { sliderComponentHandler } from "./slider-component-handler"
 
 export const kSliderIdPrefix = "SLID"
 
@@ -178,60 +176,4 @@ registerV2TileImporter("DG.SliderView", ({ v2Component, v2Document, getGlobalVal
   return sliderTile
 })
 
-registerComponentHandler(kV2SliderType, {
-  create({ values }) {
-    const {
-      animationDirection: _animationDirection, animationMode: _animationMode, globalValueName,
-      lowerBound, upperBound
-    } = values as V2Slider
-
-    let content: SetRequired<ISliderSnapshot, "type"> | undefined
-    if (globalValueName) {
-      const { document } = appState
-      const globalManager = document.content?.getFirstSharedModelByType(GlobalValueManager)
-      const global = globalManager?.getValueByName(globalValueName)
-      if (!global) {
-        return errorResult(t("V3.DI.Error.globalNotFound", { vars: [globalValueName] }))
-      }
-
-      // Multiple sliders for one global value are not allowed
-      let existingTile = false
-      document.content?.tileMap.forEach(sliderTile => {
-        if (isSliderModel(sliderTile.content) && sliderTile.content.globalValue.id === global.id) {
-          existingTile = true
-        }
-      })
-      if (existingTile) {
-        return errorResult(t("V3.DI.Error.noMultipleSliders", { vars: [globalValueName] }))
-      }
-
-      const animationDirection = _animationDirection != null
-        ? AnimationDirections[Number(_animationDirection)] : undefined
-      const animationMode = _animationMode != null ? AnimationModes[_animationMode] : undefined
-      content = {
-        type: kSliderTileType,
-        animationDirection,
-        animationMode,
-        axis: { min: lowerBound, max: upperBound, place: "bottom" },
-        globalValue: global.id
-      } as SetRequired<ISliderSnapshot, "type">
-    }
-
-    return { content }
-  },
-  get(content) {
-    if (isSliderModel(content)) {
-      const animationDirection = AnimationDirections.findIndex(value => value === content.animationDirection)
-      const animationMode = AnimationModes.findIndex(value => value === content.animationMode)
-      return {
-        type: kV2SliderType,
-        animationDirection,
-        animationMode,
-        globalValueName: content.globalValue.name,
-        lowerBound: content.axis.min,
-        upperBound: content.axis.max,
-        value: content.globalValue.value
-      } as V2Slider
-    }
-  }
-})
+registerComponentHandler(kV2SliderType, sliderComponentHandler)
