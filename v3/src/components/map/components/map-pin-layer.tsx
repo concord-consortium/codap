@@ -12,7 +12,7 @@ import { onAnyAction } from "../../../utilities/mst-utils"
 import { useDataDisplayLayout } from "../../data-display/hooks/use-data-display-layout"
 import PlacedLocationMarker from "../assets/placed-location-marker.svg"
 import { useMapModelContext } from "../hooks/use-map-model-context"
-import { kPinColors } from "../map-types"
+import { kPinColors, kPinCursors } from "../map-types"
 import { IMapPinLayerModel } from "../models/map-pin-layer-model"
 import { datasetHasPinData, pinAttributesFromDataSet } from "../utilities/map-utils"
 import { PinControls } from "./pin-controls"
@@ -31,6 +31,10 @@ interface IMapPinProps {
   y: number
 }
 function MapPin({ color="#0068EA", dataset, id, selected, x, y }: IMapPinProps) {
+  const map = useMap()
+  const handlePointerEnter = () => map.dragging.disable()
+  const handlePointerLeave = () => map.dragging.enable()
+
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation()
     if (e.shiftKey) {
@@ -44,6 +48,8 @@ function MapPin({ color="#0068EA", dataset, id, selected, x, y }: IMapPinProps) 
     <button
       className={clsx("map-pin", { "selected-pin": selected })}
       onClick={handleClick}
+      onPointerEnter={handlePointerEnter}
+      onPointerLeave={handlePointerLeave}
       style={{ left: x, top: y }}
     >
       <PlacedLocationMarker color={color} />
@@ -57,6 +63,7 @@ interface IMapPinLayerProps {
 export const MapPinLayer = observer(function MapPinLayer({ mapLayerModel }: IMapPinLayerProps) {
   const forceUpdate = useForceUpdate()
   const layerRef = useRef<HTMLDivElement>(null)
+  const mouseRef = useRef<[number, number] | null>(null)
   const map = useMap()
   const mapModel = useMapModelContext()
   const layout = useDataDisplayLayout()
@@ -84,6 +91,7 @@ export const MapPinLayer = observer(function MapPinLayer({ mapLayerModel }: IMap
 
   const { pinLatId, pinLongId } = pinAttributesFromDataSet(dataset)
   const colorId = dataset.attributes.find(attr => attr.type === "color")?.id
+  const colorIndex = (dataset.items.length ?? 0) % kPinColors.length
 
   const handleClick = (e: React.MouseEvent) => {
     if (mapLayerModel.addMode) {
@@ -93,20 +101,42 @@ export const MapPinLayer = observer(function MapPinLayer({ mapLayerModel }: IMap
       const layerBB = layerRef.current?.getBoundingClientRect()
       if (!layerBB || !dataset) return
       const { lat, lng } = map.containerPointToLatLng([e.clientX - layerBB.x, e.clientY - layerBB.y])
-      const color = kPinColors[(dataset.items.length ?? 0) % kPinColors.length]
+      const color = kPinColors[colorIndex]
       const newItem: ICaseCreation = { [pinLatId]: lat, [pinLongId]: lng }
       if (colorId) newItem[colorId] = color
       insertCasesWithCustomUndoRedo(dataset, [newItem])
     }
   }
 
-  const renderPins = mapLayerModel.isVisible
+  const handleMouseDown = (e: React.MouseEvent) => {
+    mouseRef.current = [e.screenX, e.screenY]
+  }
+
+  const handleMouseUp = (e: React.MouseEvent) => {
+    if (!mouseRef.current) return
+
+    // Deselect all pins if the mouse hasn't moved very far
+    const distanceSquared = (e.screenX - mouseRef.current[0]) ** 2 + (e.screenY - mouseRef.current[1]) ** 2
+    if (distanceSquared < 9) {
+      setSelectedCases([], dataset)
+    }
+    mouseRef.current = null
+  }
+
+  // 15 37 below makes the cursor appear centered horizontally and almost to the bottom vertically.
+  const style = mapLayerModel.addMode ? { cursor: `url(${kPinCursors[colorIndex]}) 15 37, pointer` } : undefined
+
+  const renderPins = mapLayerModel.isVisible && mapLayerModel.pinsAreVisible
   return (
-    <div
-      className={clsx("map-pin-layer", { "add-mode": mapLayerModel.addMode })}
-      onClick={handleClick}
-      ref={layerRef}
-    >
+    <div className="map-pin-layer">
+      <div
+        className={clsx("map-pin-overlay", { "add-mode": mapLayerModel.addMode })}
+        onClick={handleClick}
+        onMouseDown={handleMouseDown}
+        onMouseUp={handleMouseUp}
+        ref={layerRef}
+        style={style}
+      />
       {renderPins && dataset.items.map(({ __id__ }, index) => {
         const lat = dataset.getNumeric(__id__, pinLatId)
         const long = dataset.getNumeric(__id__, pinLongId)
