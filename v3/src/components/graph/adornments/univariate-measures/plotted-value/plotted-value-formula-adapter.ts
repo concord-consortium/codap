@@ -32,7 +32,7 @@ export class PlottedValueFormulaAdapter extends BaseGraphFormulaAdapter {
     super(PLOTTED_VALUE_FORMULA_ADAPTER, api)
   }
 
-  getAdornment(graphContentModel: IGraphContentModel) {
+  getFormulaOwner(graphContentModel: IGraphContentModel) {
     const adornment = graphContentModel.adornments.find(a => a.type === kPlottedValueType)
     if (adornment && isPlottedValueAdornment(adornment)) {
       return adornment
@@ -43,7 +43,7 @@ export class PlottedValueFormulaAdapter extends BaseGraphFormulaAdapter {
     const { graphCellKeys } = extraMetadata
     const graphContentModel = this.getGraphContentModel(extraMetadata)
     const { dataConfig } = graphContentModel.getUpdateCategoriesOptions()
-    const adornment = this.getAdornment(graphContentModel)
+    const adornment = this.getFormulaOwner(graphContentModel)
     if (!dataConfig || !adornment) {
       return
     }

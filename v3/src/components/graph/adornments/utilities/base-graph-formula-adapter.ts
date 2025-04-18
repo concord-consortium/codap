@@ -6,10 +6,8 @@ import { FormulaManagerAdapter, type IFormulaAdapterApi } from "../../../../mode
 import { FormulaMathJsScope } from "../../../../models/formula/formula-mathjs-scope"
 import { localAttrIdToCanonical } from "../../../../models/formula/utils/name-mapping-utils"
 import { ITileContentModel } from "../../../../models/tiles/tile-content"
+import { GraphCellKey } from "../../graphing-types"
 import { isGraphContentModel, type IGraphContentModel } from "../../models/graph-content-model"
-import { IAdornmentModel } from "../adornment-models"
-
-type GraphCellKey = Record<string, string>
 
 export interface IBaseGraphFormulaExtraMetadata extends IFormulaExtraMetadata {
   graphContentModelId: string
@@ -22,15 +20,16 @@ export const getDefaultArgument = (graphContentModel: IGraphContentModel) => {
   return defaultArgumentId ? localAttrIdToCanonical(defaultArgumentId) : undefined
 }
 
-interface IFormulaSupportingAdornment extends IAdornmentModel {
+interface IFormulaOwner {
   formula: IFormula
+  isVisible: boolean
   setError(errorMsg: string): void
 }
 
 export class BaseGraphFormulaAdapter extends FormulaManagerAdapter {
   // --- METHODS AND PROPS TO OVERRIDE/IMPLEMENT ---
 
-  getAdornment(graphContentModel: IGraphContentModel): IFormulaSupportingAdornment | undefined {
+  getFormulaOwner(graphContentModel: IGraphContentModel): IFormulaOwner | undefined {
     throw new Error("Method not implemented.")
   }
 
@@ -70,11 +69,11 @@ export class BaseGraphFormulaAdapter extends FormulaManagerAdapter {
   getActiveFormulas(): ({ formula: IFormula, extraMetadata: IBaseGraphFormulaExtraMetadata })[] {
     const result: ({ formula: IFormula, extraMetadata: IBaseGraphFormulaExtraMetadata })[] = []
     this.graphContentModels.forEach(graphContentModel => {
-      const adornment = this.getAdornment(graphContentModel)
-      // Only visible adornment formulas are considered active.
-      if (adornment?.isVisible && graphContentModel.dataset) {
+      const formulaSupportingObject = this.getFormulaOwner(graphContentModel)
+      // Only visible formulaSupportingObject formulas are considered active.
+      if (formulaSupportingObject?.isVisible && graphContentModel.dataset) {
         result.push({
-          formula: adornment.formula,
+          formula: formulaSupportingObject.formula,
           extraMetadata: {
             graphContentModelId: graphContentModel.id,
             dataSetId: graphContentModel.dataset.id,
@@ -102,8 +101,8 @@ export class BaseGraphFormulaAdapter extends FormulaManagerAdapter {
   }
 
   setFormulaError(formulaContext: IFormulaContext, extraMetadata: IBaseGraphFormulaExtraMetadata, errorMsg: string) {
-    const adornment = this.getAdornment(this.getGraphContentModel(extraMetadata))
-    adornment?.setError(errorMsg)
+    const formulaSupportingObject = this.getFormulaOwner(this.getGraphContentModel(extraMetadata))
+    formulaSupportingObject?.setError(errorMsg)
   }
 
   getFormulaError(formulaContext: IFormulaContext, extraMetadata: any) {

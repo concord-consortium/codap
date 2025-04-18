@@ -4,6 +4,7 @@ import { CellType, IBarCover } from "../graphing-types"
 import { GraphLayout } from "../models/graph-layout"
 import { SubPlotCells } from "../models/sub-plot-cells"
 import { IGraphContentModel } from "../models/graph-content-model"
+import { isBarChartModel } from "./bar-chart/bar-chart-model"
 
 interface IRenderBarCoverProps {
   barCovers: IBarCover[]
@@ -89,14 +90,24 @@ export const barCompressionFactorForCase = (caseID: string, graphModel?: IGraphC
    * If the axis not percent, return 1; i.e. no compression.
    * In the presence of a legend, all the cases belonging to the primary category in this sub-plot will be
    *    spread from 0 to 100%, so we compress by 100 over the number of cases in the primary category in this sub-plot
-   * If there is no legend, then we compress by 100 over the number of cases in the sub-plot
+   * When the height of the bar is computed by a formula, we divide the value by the number of cases making up the bar.
+   * If there is no legend and no formula, then we compress by 100 over the number of cases in the sub-plot.
    */
-
-  if (!graphModel?.secondaryAxisIsPercent) return 1
+  const barChartModel = graphModel?.plot
+  if (!isBarChartModel(barChartModel)) return 1
+  const isFormulaDriven = barChartModel.breakdownType === "formula"
+  if (!(graphModel?.secondaryAxisIsPercent || isFormulaDriven)) return 1
 
   const dataConfiguration = graphModel?.dataConfiguration
-  const denominator = dataConfiguration?.attributeID('legend')
-                        ? dataConfiguration?.numPrimaryCategoryCases(caseID) ?? 1
-                        : dataConfiguration?.subPlotCases(dataConfiguration?.subPlotKey(caseID)).length ?? 1
-  return 100 / denominator
+  if (isFormulaDriven) {
+    const graphCellKey = dataConfiguration?.graphCellKeyFromCaseID(caseID) || {}
+    const barSpec = barChartModel.getBarSpec(graphCellKey) || { value: 1, numCases: 1 }
+    return barSpec.value / barSpec.numCases
+  }
+  else {
+    const denominator = dataConfiguration?.attributeID('legend')
+      ? dataConfiguration?.numPrimaryCategoryCases(caseID) ?? 1
+      : dataConfiguration?.subPlotCases(dataConfiguration?.subPlotKey(caseID)).length ?? 1
+    return 100 / denominator
+  }
 }

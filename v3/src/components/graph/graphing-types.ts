@@ -30,6 +30,8 @@ export type CellType = { p: number, s: number, ep: number, es: number }
 type CellRecordType = Record<string, { cell: CellType, numSoFar: number }>
 export type CatMapType = Record<string, Record<string, Record<string, CellRecordType>>>
 
+export type GraphCellKey = Record<string, string>
+
 export const PlotTypes = [
   "casePlot",
   // categorical charts
