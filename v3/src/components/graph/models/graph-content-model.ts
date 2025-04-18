@@ -4,7 +4,7 @@
  */
 import {isEqual} from "lodash"
 import { comparer, reaction, when } from "mobx"
-import { addDisposer, getSnapshot, Instance, onPatch, SnapshotIn, types } from "mobx-state-tree"
+import { addDisposer, getSnapshot, Instance, SnapshotIn, types } from "mobx-state-tree"
 import { isNumericAttributeType } from "../../../models/data/attribute-types"
 import {IDataSet} from "../../../models/data/data-set"
 import {applyModelChange} from "../../../models/history/apply-model-change"
@@ -35,7 +35,7 @@ import {AdornmentsStore} from "../adornments/store/adornments-store"
 import {kGraphTileType} from "../graph-defs"
 import { CatMapType, CellType, PlotType } from "../graphing-types"
 import { CasePlotModel } from "../plots/case-plot/case-plot-model"
-import { isBarChartModel } from "../plots/bar-chart/bar-chart-model"
+import { IPlotGraphApi } from "../plots/plot-model"
 import { IPlotModelUnionSnapshot, PlotModelUnion } from "../plots/plot-model-union"
 import {IGraphDataConfigurationModel} from "./graph-data-configuration-model"
 import {GraphPointLayerModel, IGraphPointLayerModel, kGraphPointLayerType} from "./graph-point-layer-model"
@@ -81,7 +81,7 @@ export const GraphContentModel = DataDisplayContentModel
     changeCount: 0, // used to notify observers when something has changed that may require a re-computation/redraw
     prevDataSetId: "",
     pointOverlap: 0,  // Set by plots so that it is accessible to adornments,
-    onPatchDisposer: undefined as Maybe<() => void>
+    plotGraphApi: undefined as Maybe<IPlotGraphApi>
   }))
   // cast required to avoid self-reference in model definition error
   .preProcessSnapshot(preProcessSnapshot as any)
@@ -177,53 +177,10 @@ export const GraphContentModel = DataDisplayContentModel
     }
   }))
   .actions(self => ({
-    afterCreate() {
-      // add default layer if it's not already present
-      if (self.layers.length === 0) {
-        self.layers.push(GraphPointLayerModel.create({type: kGraphPointLayerType}))
-      }
-      // add default axes if they're not already present
-      if (!self.axes.get("bottom")) {
-        self.axes.set("bottom", EmptyAxisModel.create({place: "bottom"}))
-      }
-      if (!self.axes.get("left")) {
-        self.axes.set("left", EmptyAxisModel.create({place: "left"}))
-      }
-      // If our plot is a bar chart, we need to give it a secondary axis accessor
-      if (isBarChartModel(self.plot)) {
-        self.plot.setSecondaryNumericAxisAccessor(self.getSecondaryNumericAxis)
-      }
-      addDisposer(self, reaction(
-        () => self.plotType,
-        () => self.plot.setDataConfiguration(self.dataConfiguration),
-        { name: "GraphContentModel.afterCreate.setDataConfiguration", fireImmediately: true }
-      ))
-    }
-  }))
-  .actions(self => ({
     setAxis(place: AxisPlace, axis: IAxisModel) {
       if (isAxisModelInUnion(axis)) {
         self.axes.set(place, axis)
       }
-    },
-    disposePlotOnPatchHandler() {
-      self.onPatchDisposer?.()
-      self.onPatchDisposer = undefined
-    },
-    installPlotOnPatchHandler() {
-      // At the plot level we can't install a new axis. But a plot can change in such a way that it
-      // requires a new secondary axis. When our plot is patched, we pass the patch to it and allow it to
-      // tell us about any required new secondary axis.
-      this.disposePlotOnPatchHandler()
-      self.onPatchDisposer = onPatch(self.plot, (patch) => {
-        const newSecondaryAxis = self.plot.newSecondaryAxisRequired(patch)
-        if (newSecondaryAxis) {
-          this.setAxis(self.secondaryPlace, newSecondaryAxis)
-        }
-      })
-      // dispose of onPatch handler when either the plot or the content model is destroyed
-      addDisposer(self, () => this.disposePlotOnPatchHandler())
-      addDisposer(self.plot, () => this.disposePlotOnPatchHandler())
     },
     async afterAttachToDocument() {
       if (!self.tileEnv?.sharedModelManager?.isReady) {
@@ -241,7 +198,6 @@ export const GraphContentModel = DataDisplayContentModel
       )
 
       self.installSharedModelManagerSync()
-      this.installPlotOnPatchHandler()
 
       // update adornments when case data changes
       addDisposer(self, mstAutorun(function updateAdornments() {
@@ -262,6 +218,40 @@ export const GraphContentModel = DataDisplayContentModel
       }, {name: "GraphContentModel.afterAttachToDocument.updateAdornments", equals: comparer.structural},
         self.dataConfiguration))
 
+    }
+  }))
+  .actions(self => ({
+    afterCreate() {
+      // add default layer if it's not already present
+      if (self.layers.length === 0) {
+        self.layers.push(GraphPointLayerModel.create({type: kGraphPointLayerType}))
+      }
+      // add default axes if they're not already present
+      if (!self.axes.get("bottom")) {
+        self.axes.set("bottom", EmptyAxisModel.create({place: "bottom"}))
+      }
+      if (!self.axes.get("left")) {
+        self.axes.set("left", EmptyAxisModel.create({place: "left"}))
+      }
+      self.plotGraphApi = {
+        getSecondaryAxisModel() {
+          return self.getAxis(self.dataConfiguration.secondaryRole === "x" ? "bottom" : "left")
+        },
+        setSecondaryAxisModel(axisModel?: IAxisModel) {
+          const place = self.dataConfiguration.secondaryRole === "x" ? "bottom" : "left"
+          if (axisModel) {
+            self.setAxis(place, axisModel)
+          }
+          else {
+            self.axes.delete(place)
+          }
+        }
+      }
+      addDisposer(self, reaction(
+        () => self.plotType,
+        () => self.plot.setGraphContext(self.dataConfiguration, self.plotGraphApi),
+        { name: "GraphContentModel.afterCreate.setGraphContext", fireImmediately: true }
+      ))
     },
     beforeDestroy() {
       self.formulaAdapters.forEach(adapter => {
@@ -285,15 +275,10 @@ export const GraphContentModel = DataDisplayContentModel
         const prevPlotWasBinned = self.plot.isBinned
         self.plot = PlotModelUnion.create({ ...currPlotSnap, ...newPlotSnap })
         if (self.dataConfiguration) {
-          self.plot.setDataConfiguration(self.dataConfiguration)
+          self.plot.setGraphContext(self.dataConfiguration, self.plotGraphApi)
           self.plot.resetSettings({ isBinnedPlotChanged: prevPlotWasBinned !== self.plot.isBinned })
         }
-        if (isBarChartModel(self.plot)) {
-          self.plot.setSecondaryNumericAxisAccessor(self.getSecondaryNumericAxis)
-        }
       }
-      self.installPlotOnPatchHandler()
-
     },
     setPlotType(type: PlotType) {
       if (type !== self.plot.type) {

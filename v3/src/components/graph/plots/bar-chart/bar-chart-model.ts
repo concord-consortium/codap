@@ -1,11 +1,11 @@
 import { format } from "d3-format"
-import { observable, reaction } from "mobx"
-import { addDisposer, IJsonPatch, Instance, SnapshotIn, types } from "mobx-state-tree"
+import { comparer, observable, reaction } from "mobx"
+import { addDisposer, Instance, SnapshotIn, types } from "mobx-state-tree"
 import { AttributeType } from "../../../../models/data/attribute-types"
 import { Formula } from "../../../../models/formula/formula"
 import { t } from "../../../../utilities/translation/translate"
 import { AxisPlace } from "../../../axis/axis-types"
-import { IAxisModel, IDateAxisModel, INumericAxisModel, isNumericAxisModel } from "../../../axis/models/axis-model"
+import { IAxisModel, isBaseNumericAxisModel, isNumericAxisModel } from "../../../axis/models/axis-model"
 import { GraphAttrRole, PointDisplayType } from "../../../data-display/data-display-types"
 import { setNiceDomain } from "../../../axis/axis-domain-utils"
 import { BreakdownType, BreakdownTypes, GraphCellKey } from "../../graphing-types"
@@ -28,13 +28,18 @@ export const BarChartModel = DotChartModel
   .volatile(self => ({
     formulaEditorIsOpen: false,
     fallbackBreakdownType: self.breakdownType === "percent" ? "percent" : "count" as Exclude<BreakdownType, "formula">,
-    barSpecs: observable.map<string, IBarSpec>(),
-    getSecondaryNumericAxis: ():INumericAxisModel | IDateAxisModel | undefined => { return undefined },
+    barSpecs: observable.map<string, IBarSpec>()
   }))
   .actions(self => ({
     setBreakdownType(type: BreakdownType) {
+      const typeDidChange = self.breakdownType !== type
       self.breakdownType = type
       if (type !== 'formula') self.fallbackBreakdownType = type
+      if (typeDidChange) {
+        self.graphApi?.setSecondaryAxisModel(
+          self.getValidSecondaryAxis(self.dataConfiguration?.secondaryRole === "x" ? "bottom" : "left")
+        )
+      }
     },
     setExpression(expression: string) {
       if (expression) {
@@ -44,9 +49,6 @@ export const BarChartModel = DotChartModel
         self.formula = undefined
         this.setBreakdownType(self.fallbackBreakdownType)
       }
-    },
-    setSecondaryNumericAxisAccessor(getter: () => INumericAxisModel | IDateAxisModel | undefined) {
-      self.getSecondaryNumericAxis = getter
     },
     setFormulaEditorIsOpen(isOpen: boolean) {
       self.formulaEditorIsOpen = isOpen
@@ -92,10 +94,10 @@ export const BarChartModel = DotChartModel
     get hasExpression() {
       return !!self.formula && !self.formula.empty
     },
-    getMinMaxOfFormulaValues() {
+    getMinMaxOfFormulaValues(): [number, number] {
       const barSpecs = self.barSpecs
       if (barSpecs.size === 0) {
-        return { min: 0, max: 100 }
+        return [0, 100]
       }
       let min = Number.MAX_VALUE
       let max = -Number.MAX_VALUE
@@ -107,14 +109,14 @@ export const BarChartModel = DotChartModel
           max = value
         }
       })
-      return { min, max }
+      return [min, max]
     },
     getValidFormulaAxis(axisModel?: IAxisModel): IAxisModel {
       const secondaryPlace = self.dataConfiguration?.secondaryRole === "x" ? "bottom" : "left"
       const resultAxisModel = self.getValidNumericOrDateAxis(secondaryPlace, undefined, axisModel)
-      const {min, max} = this.getMinMaxOfFormulaValues()
+      const domain = this.getMinMaxOfFormulaValues()
       isNumericAxisModel(resultAxisModel) &&
-        setNiceDomain([min, max], resultAxisModel, { clampPosMinAtZero: true })
+        setNiceDomain(domain, resultAxisModel, { clampPosMinAtZero: true })
       return resultAxisModel
     },
     getValidSecondaryAxis(place: AxisPlace, attrType?: AttributeType, axisModel?: IAxisModel): IAxisModel {
@@ -145,13 +147,6 @@ export const BarChartModel = DotChartModel
         }
       }
       return undefined
-    },
-    newSecondaryAxisRequired(patch: IJsonPatch): false | IAxisModel {
-      if (patch.path.includes("breakdownType")) {
-        const secondaryPlace = self.dataConfiguration?.secondaryRole === "x" ? "bottom" : "left"
-        return this.getValidSecondaryAxis(secondaryPlace)
-      }
-      return false
     },
     barTipText(props: IBarTipTextProps) {
 
@@ -208,12 +203,13 @@ export const BarChartModel = DotChartModel
     afterCreate() {
       addDisposer(self, reaction(
         () => self.getMinMaxOfFormulaValues(),
-        ({min, max}) => {
-          const secondaryNumericAxis = self.getSecondaryNumericAxis()
-          secondaryNumericAxis &&
-            setNiceDomain([min, max], secondaryNumericAxis, { clampPosMinAtZero: true })
+        (domain) => {
+          const secondaryAxis = self.graphApi?.getSecondaryAxisModel()
+          if (isBaseNumericAxisModel(secondaryAxis)) {
+            setNiceDomain(domain, secondaryAxis, { clampPosMinAtZero: true })
+          }
         },
-        { name: "BarChartModel.afterCreate.reactToBarSpecMinMaxChanges" }
+        { name: "BarChartModel.afterCreate.reactToBarSpecMinMaxChanges", equals: comparer.structural }
       ))
     },
     beforeDestroy() {

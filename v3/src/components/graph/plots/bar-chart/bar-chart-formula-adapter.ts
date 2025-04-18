@@ -35,8 +35,7 @@ export class BarChartFormulaAdapter extends BaseGraphFormulaAdapter {
   getFormulaSupportingObject(graphContentModel: IGraphContentModel) {
     const { plot } = graphContentModel
     if (isBarChartModel(plot) && plot.breakdownType === 'formula' && plot.formula) {
-      return {formula: plot.formula, isVisible: true, setError(errorMsg: string) {
-        }}
+      return {formula: plot.formula, isVisible: true, setError: () => null}
     }
   }
 
