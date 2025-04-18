@@ -32,7 +32,7 @@ export class BarChartFormulaAdapter extends BaseGraphFormulaAdapter {
     super(BAR_CHART_FORMULA_ADAPTER, api)
   }
 
-  getFormulaSupportingObject(graphContentModel: IGraphContentModel) {
+  getFormulaOwner(graphContentModel: IGraphContentModel) {
     const { plot } = graphContentModel
     if (isBarChartModel(plot) && plot.breakdownType === 'formula' && plot.formula) {
       return {formula: plot.formula, isVisible: true, setError: () => null}

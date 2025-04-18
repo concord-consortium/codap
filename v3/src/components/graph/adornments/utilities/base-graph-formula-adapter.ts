@@ -20,7 +20,7 @@ export const getDefaultArgument = (graphContentModel: IGraphContentModel) => {
   return defaultArgumentId ? localAttrIdToCanonical(defaultArgumentId) : undefined
 }
 
-interface IFormulaSupportingObject {
+interface IFormulaOwner {
   formula: IFormula
   isVisible: boolean
   setError(errorMsg: string): void
@@ -29,7 +29,7 @@ interface IFormulaSupportingObject {
 export class BaseGraphFormulaAdapter extends FormulaManagerAdapter {
   // --- METHODS AND PROPS TO OVERRIDE/IMPLEMENT ---
 
-  getFormulaSupportingObject(graphContentModel: IGraphContentModel): IFormulaSupportingObject | undefined {
+  getFormulaOwner(graphContentModel: IGraphContentModel): IFormulaOwner | undefined {
     throw new Error("Method not implemented.")
   }
 
@@ -69,7 +69,7 @@ export class BaseGraphFormulaAdapter extends FormulaManagerAdapter {
   getActiveFormulas(): ({ formula: IFormula, extraMetadata: IBaseGraphFormulaExtraMetadata })[] {
     const result: ({ formula: IFormula, extraMetadata: IBaseGraphFormulaExtraMetadata })[] = []
     this.graphContentModels.forEach(graphContentModel => {
-      const formulaSupportingObject = this.getFormulaSupportingObject(graphContentModel)
+      const formulaSupportingObject = this.getFormulaOwner(graphContentModel)
       // Only visible formulaSupportingObject formulas are considered active.
       if (formulaSupportingObject?.isVisible && graphContentModel.dataset) {
         result.push({
@@ -101,7 +101,7 @@ export class BaseGraphFormulaAdapter extends FormulaManagerAdapter {
   }
 
   setFormulaError(formulaContext: IFormulaContext, extraMetadata: IBaseGraphFormulaExtraMetadata, errorMsg: string) {
-    const formulaSupportingObject = this.getFormulaSupportingObject(this.getGraphContentModel(extraMetadata))
+    const formulaSupportingObject = this.getFormulaOwner(this.getGraphContentModel(extraMetadata))
     formulaSupportingObject?.setError(errorMsg)
   }
 

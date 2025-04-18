@@ -90,7 +90,8 @@ export const barCompressionFactorForCase = (caseID: string, graphModel?: IGraphC
    * If the axis not percent, return 1; i.e. no compression.
    * In the presence of a legend, all the cases belonging to the primary category in this sub-plot will be
    *    spread from 0 to 100%, so we compress by 100 over the number of cases in the primary category in this sub-plot
-   * If there is no legend, then we compress by 100 over the number of cases in the sub-plot
+   * When the height of the bar is computed by a formula, we divide the value by the number of cases making up the bar.
+   * If there is no legend and no formula, then we compress by 100 over the number of cases in the sub-plot.
    */
   const barChartModel = graphModel?.plot
   if (!isBarChartModel(barChartModel)) return 1
