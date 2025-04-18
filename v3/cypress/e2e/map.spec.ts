@@ -18,7 +18,7 @@ const arrayOfAttributes = ["Category", "Educ_Tertiary_Perc", "Inversions"]
 
 context("Map UI", () => {
   beforeEach(function () {
-    const url = `${Cypress.config("index")}?mouseSensor&noComponentAnimation`
+    const url = `${Cypress.config("index")}?mouseSensor&noComponentAnimation&noEntryModal`
     cy.visit(url)
     cy.wait(3000)
   })

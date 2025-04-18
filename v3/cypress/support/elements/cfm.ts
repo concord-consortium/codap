@@ -5,6 +5,9 @@ export const CfmElements = {
   openLocalDoc(filename: string) {
     cy.get('#codap-app-id').selectFile(filename, { action: 'drag-drop' })
   },
+  openLocalDocWithUserEntry(filename: string) {
+    cy.get('#user-entry-drop-overlay').selectFile(filename, { action: 'drag-drop' })
+  },
   closeDocument(options?: IDocumentOptions) {
     this.getHamburgerMenuButton().click()
     this.getHamburgerMenu().contains("li", "Close").click()

@@ -1,5 +1,6 @@
+import { useDisclosure } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
-import React, { useCallback, useEffect } from "react"
+import React, { useCallback, useEffect, useState } from "react"
 import { CfmContext } from "../hooks/use-cfm-context"
 import { DocumentContentContext } from "../hooks/use-document-content"
 import {useDropHandler} from "../hooks/use-drop-handler"
@@ -23,9 +24,10 @@ import { getSharedModelManager } from "../models/tiles/tile-environment"
 import { registerTileTypes } from "../register-tile-types"
 import { importSample, sampleData } from "../sample-data"
 import { urlParams } from "../utilities/url-params"
-import { kCodapAppElementId } from "./constants"
+import { kCodapAppElementId, kUserEntryDropOverlay } from "./constants"
 import { Container } from "./container/container"
 import { MenuBar, kMenuBarElementId } from "./menu-bar/menu-bar"
+import { UserEntryModal } from "./menu-bar/user-entry-modal"
 import { ToolShelf } from "./tool-shelf/tool-shelf"
 import { kWebViewTileType } from "./web-view/web-view-defs"
 import { isWebViewModel, IWebViewModel } from "./web-view/web-view-model"
@@ -46,10 +48,18 @@ registerTileTypes([])
 
 export const App = observer(function App() {
   useKeyStates()
+  // default behavior is to show the user enty modal when CODAP is loaded
+  // We close the modal if user imports, drags a document, opens a document
+  // or plugin using url params
+  const {isOpen: isOpenUserEntry, onOpen: onOpenUserEntry, onClose: onCloseUserEntry} = useDisclosure()
+  const [isDragOver, setIsDragOver] = useState(false)
 
-  const { cfm, cfmReadyPromise } = useCloudFileManager({
-    appOrMenuElemId: kMenuBarElementId
-  })
+  const handleFileOpened = useCallback(() => {
+    onCloseUserEntry()
+  }, [onCloseUserEntry])
+
+  const { cfm, cfmReadyPromise } = useCloudFileManager(
+    {appOrMenuElemId: kMenuBarElementId}, handleFileOpened)
 
   const handleImportDataSet = useCallback(
     function handleImportDataSet(data: IDataSet, options?: IImportDataSetOptions) {
@@ -65,22 +75,26 @@ export const App = observer(function App() {
       })
       // return to "normal" after import process is complete
       sharedData?.dataSet.completeSnapshot()
-    }, [])
+      onCloseUserEntry()
+    }, [onCloseUserEntry])
 
   const handleImportDocument = useCallback((file: File) => {
     cfm?.client.openLocalFileWithConfirmation(file)
-  }, [cfm])
+    onCloseUserEntry()
+  }, [cfm, onCloseUserEntry])
 
   const handleUrlDrop = useCallback((url: string) => {
     const tile = appState.document.content?.createOrShowTile(kWebViewTileType)
     isWebViewModel(tile?.content) && tile?.content.setUrl(url)
-  }, [])
+    onCloseUserEntry()
+  }, [onCloseUserEntry])
 
   useDropHandler({
-    selector: `#${kCodapAppElementId}`,
+    selector: isOpenUserEntry ? `#${kUserEntryDropOverlay}` : `#${kCodapAppElementId}`,
     onImportDataSet: handleImportDataSet,
     onImportDocument: handleImportDocument,
-    onHandleUrlDrop: handleUrlDrop
+    onHandleUrlDrop: handleUrlDrop,
+    onSetIsDragOver: setIsDragOver
   })
 
   useEffect(() => {
@@ -91,17 +105,21 @@ export const App = observer(function App() {
     }
 
     async function initialize() {
+      const {sample, dashboard, di, noEntryModal} = urlParams
+      const _sample = sampleData.find(name => sample === name.toLowerCase())
+      const isDashboard = dashboard !== undefined
+      const hideUserEntryModal = () => {
+        return (sample || dashboard || di || noEntryModal !== undefined)
+      }
       // create the initial sample data (if specified) or a new data set
       if (gDataBroker.dataSets.size === 0) {
-        const sample = sampleData.find(name => urlParams.sample === name.toLowerCase())
-        const isDashboard = urlParams.dashboard !== undefined
-        if (sample) {
+        if (_sample) {
           try {
-            const data = await importSample(sample)
+            const data = await importSample(_sample)
             appState.document.content?.importDataSet(data, { createDefaultTile: !isDashboard })
           }
           catch (e) {
-            console.warn(`Failed to import sample "${sample}"`)
+            console.warn(`Failed to import sample "${_sample}"`)
           }
         }
         else if (isDashboard) {
@@ -113,7 +131,6 @@ export const App = observer(function App() {
         }
       }
 
-      const { di } = urlParams
       if (typeof di === "string") {
         // wait for CFM to complete its initialization
         await cfmReadyPromise
@@ -127,6 +144,7 @@ export const App = observer(function App() {
           if (plugins.length > 0 && plugins.some(pI => pI.url === di)) {
             return
           }
+          //Do not show user entry modal
         }
         // setTimeout ensures that other components have been rendered,
         // which is necessary to properly position the plugin.
@@ -138,13 +156,18 @@ export const App = observer(function App() {
         })
       }
 
+      if (hideUserEntryModal()) {
+        onCloseUserEntry()
+      } else {
+        onOpenUserEntry()
+      }
+
       appState.enableDocumentMonitoring()
       Logger.initializeLogger(appState.document)
     }
 
     initialize()
-  }, [cfmReadyPromise])
-
+  }, [cfmReadyPromise, onCloseUserEntry, onOpenUserEntry])
   return (
     <CodapDndContext>
       <DocumentContentContext.Provider value={appState.document.content}>
@@ -154,6 +177,14 @@ export const App = observer(function App() {
             <ToolShelf document={appState.document}/>
             <Container/>
           </div>
+          {isOpenUserEntry &&
+            <div id={`${kUserEntryDropOverlay}`} className={`${isOpenUserEntry && isDragOver ? "show-highlight" : ""}`}>
+            <UserEntryModal
+              isOpen={isOpenUserEntry}
+              onClose={onCloseUserEntry}
+            />
+            </div>
+          }
         </CfmContext.Provider>
       </DocumentContentContext.Provider>
     </CodapDndContext>

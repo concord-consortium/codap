@@ -7,7 +7,7 @@ context("attribute types", () => {
     const url = `${Cypress.config("index")}`
     cy.visit(url)
     cy.wait(3000)
-    cfm.openLocalDoc(filename)
+    cfm.openLocalDocWithUserEntry(filename)
   })
 
   describe("attribute types are rendered correctly", () => {

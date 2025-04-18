@@ -3,7 +3,7 @@ import { WebViewTileElements as webView } from "../support/elements/web-view-til
 
 context("import codap v2 documents", () => {
   beforeEach(function () {
-    const url = `${Cypress.config("index")}?mouseSensor`
+    const url = `${Cypress.config("index")}?mouseSensor&noEntryModal`
     cy.visit(url)
   })
   it('will load plugins from v2 documents', () => {

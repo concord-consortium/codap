@@ -164,7 +164,7 @@ context("codap plugins", () => {
     graph.getInspectorPalette().find("[data-testid=adornment-checkbox-count-percent]").click()
 
     openAPITester()
-  
+
     // Get the graph tile ID.
     const cmd1 = `{
       "action": "get",
@@ -420,7 +420,7 @@ context("codap plugins", () => {
     webView.clearAPITesterResponses()
 
     cy.log("Broadcast notifications involving dragging")
-    const url = `${Cypress.config("index")}?mouseSensor`
+    const url = `${Cypress.config("index")}?mouseSensor&noEntryModal`
     cy.visit(url)
     openAPITester()
     webView.toggleAPITesterFilter()
