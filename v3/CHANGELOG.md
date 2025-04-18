@@ -1,4 +1,23 @@
 # Changelog
+## Version 3.0.0-pre.2269 - April 18, 2025
+
+### ✨ Features & Improvements:
+- **CODAP-321:** Finish DataContext v2 import/export
+- **CODAP-355:** Translucent rectangle adornment on numeric graph components
+- **CODAP-372:** Percentage bar charts with legend divide 100% bar for each category into sub-categories
+- **CODAP-373:** A formula can be applied to a bar chart
+- **CODAP-607:** Add primaryRole property to graph object returned by API
+
+### 🐞 Bug Fixes:
+- **CODAP-60:** Slider displays yesterday's date instead of current date in animation
+- **CODAP-78:** Missing hover indicator on case table attributes
+- **CODAP-79:** Unwanted highlight element at the bottom of a graph on attribute drag
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  192190 bytes |                            0.29% |
+|  index.js | 6622491 bytes |                            0.66% |
 
 ## Version 3.0.0-pre.2256 - April 4, 2025
 
