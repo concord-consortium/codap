@@ -16,6 +16,10 @@ export enum EDateTimeLevel {
 export const dateUnits = ["year", "month", "day", "hour", "minute", "second", "millisecond"] as const
 export type DateUnit = typeof dateUnits[number]
 
+export function isDateUnit(value: any): value is DateUnit {
+  return dateUnits.includes(value as DateUnit)
+}
+
 export enum DatePrecision {
   None = '',
   Millisecond = 'millisecond',

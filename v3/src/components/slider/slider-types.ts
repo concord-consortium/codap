@@ -34,5 +34,8 @@ export const kAnimationDefaults = {
 export const SliderScaleTypes = ["numeric", "date"] as const
 export type ISliderScaleType = typeof SliderScaleTypes[number]
 export const kDefaultSliderScaleType = "numeric"
+export function isSliderScaleType(value: any): value is ISliderScaleType {
+  return SliderScaleTypes.includes(value as ISliderScaleType)
+}
 
 export type FixValueFn = (value: number) => number

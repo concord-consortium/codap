@@ -1,22 +1,22 @@
-import { SetRequired } from "type-fest"
+import { MergeExclusive, SetRequired } from "type-fest"
+import { applySnapshot, getSnapshot } from "mobx-state-tree"
+import { cloneDeep } from "lodash"
 import { V2Slider } from "../../data-interactive/data-interactive-component-types"
+import { DIValues } from "../../data-interactive/data-interactive-types"
 import { DIComponentHandler } from "../../data-interactive/handlers/component-handler"
 import { errorResult } from "../../data-interactive/handlers/di-results"
 import { appState } from "../../models/app-state"
 import { GlobalValueManager } from "../../models/global/global-value-manager"
+import { isDateUnit } from "../../utilities/date-utils"
 import { t } from "../../utilities/translation/translate"
 import { kSliderTileType, kV2SliderType } from "./slider-defs"
 import { ISliderModel, ISliderSnapshot, isSliderModel } from "./slider-model"
-import { AnimationDirections, AnimationModes, SliderScaleTypes } from "./slider-types"
-import { applySnapshot, getSnapshot } from "mobx-state-tree"
-import { cloneDeep } from "lodash"
-import { dateUnits } from "../../utilities/date-utils"
-import { DIValues } from "../../data-interactive/data-interactive-types"
+import { AnimationDirections, AnimationModes, isSliderScaleType } from "./slider-types"
 
-function validateInput(values: DIValues | undefined, sliderModel?: ISliderModel): {
-  error?: ReturnType<typeof errorResult>
-  validatedValues?: Partial<ISliderSnapshot>
-} {
+function validateInput(values: DIValues | undefined, sliderModel?: ISliderModel):
+  { error: ReturnType<typeof errorResult>, validatedValues?: never } |
+  { error?: never, validatedValues: Partial<ISliderSnapshot> }
+{
   if (!values) {
     return {validatedValues: {}}
   }
@@ -55,17 +55,17 @@ function validateInput(values: DIValues | undefined, sliderModel?: ISliderModel)
   }
 
   if (dateMultipleOfUnit != null) {
-    if (!dateUnits.includes(dateMultipleOfUnit as any)) {
+    if (!isDateUnit(dateMultipleOfUnit)) {
       return {error: errorResult(t("V3.DI.Error.unsupportedDateUnit", { vars: [dateMultipleOfUnit] }))}
     }
-    snapshot.dateMultipleOfUnit = dateMultipleOfUnit as ISliderSnapshot["dateMultipleOfUnit"]
+    snapshot.dateMultipleOfUnit = dateMultipleOfUnit
   }
 
   if (scaleType != null) {
-    if (!SliderScaleTypes.includes(scaleType as any)) {
+    if (!isSliderScaleType(scaleType)) {
       return {error: errorResult(t("V3.DI.Error.unsupportedScaleType", { vars: [scaleType] }))}
     }
-    snapshot.scaleType = scaleType as ISliderSnapshot["scaleType"]
+    snapshot.scaleType = scaleType
   }
 
   if (_animationDirection != null) {
@@ -105,7 +105,7 @@ export const sliderComponentHandler: DIComponentHandler = {
       dateMultipleOfUnit,
       globalValue,
       scaleType,
-    } = validatedValues as Partial<ISliderSnapshot>
+    } = validatedValues
 
     if (!globalValue) return {}
 
@@ -171,7 +171,7 @@ export const sliderComponentHandler: DIComponentHandler = {
 
     const {
       scaleType,
-    } = validatedValues as Partial<ISliderSnapshot>
+    } = validatedValues
 
     const snapshot = {
       ...cloneDeep(getSnapshot(content)),
