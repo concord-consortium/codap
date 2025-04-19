@@ -54,8 +54,13 @@ describe("updateTileNotification", () => {
   it("should create a notification with the correct operation and result", () => {
     const updateType = "attributeChange"
     const tileMock = { id: v3Id, content: { type: v3Type } } as ITileModel
+    const values = {
+      attributeId: "ATTR123",
+      attributeName: "Test Attribute",
+      axisOrientation: "horizontal"
+    }
 
-    const notification = updateTileNotification(updateType, tileMock)
+    const notification = updateTileNotification(updateType, values, tileMock)
 
     expect(notification).toBeDefined()
     expect(notification?.message.action).toBe("notify")

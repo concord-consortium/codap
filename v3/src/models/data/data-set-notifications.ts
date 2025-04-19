@@ -1,4 +1,4 @@
-import { debugLog, DEBUG_PLUGINS } from "../../lib/debug"
+import { makeCallback, notification } from "../../data-interactive/notification-utils"
 import { toV2Id } from "../../utilities/codap-utils"
 import { getMetadataFromDataSet } from "../shared/shared-data-utils"
 import { IAttribute } from "./attribute"
@@ -7,26 +7,20 @@ import { IDataSet } from "./data-set"
 import { getDataSetNotificationAdapter } from "./data-set-notification-adapter"
 import { ICase } from "./data-set-types"
 
-const action = "notify"
-function makeCallback(operation: string, other?: any) {
-  return (response: any) =>
-    debugLog(DEBUG_PLUGINS, `Reply to ${action} ${operation} ${other ?? ""}`, JSON.stringify(response))
-}
-
-function notification(
-  operation: string, result?: any, dataSet?: IDataSet, _callback?: (result: any) => void,
+function dataSetNotification(
+  operation: string, result?: any, dataSet?: IDataSet, callback?: (result: any) => void,
   extraValues?: Record<string, any>
 ) {
   const resource = dataSet ? `dataContextChangeNotice[${dataSet.name}]` : `documentChangeNotice`
   const values = { operation, result, ...extraValues }
-  const callback = _callback ?? makeCallback(operation)
-  return { message: { action, resource, values }, callback }
+
+  return notification(resource, values, callback)
 }
 
-export const dataContextCountChangedNotification = notification("dataContextCountChanged")
+export const dataContextCountChangedNotification = dataSetNotification("dataContextCountChanged")
 
 export function dataContextDeletedNotification(dataSet: IDataSet) {
-  return notification("dataContextDeleted", undefined, undefined, undefined, { deletedContext: dataSet.name })
+  return dataSetNotification("dataContextDeleted", undefined, undefined, undefined, { deletedContext: dataSet.name })
 }
 
 export function updateDataContextNotification(dataSet: IDataSet) {
@@ -41,7 +35,7 @@ export function updateDataContextNotification(dataSet: IDataSet) {
       title: dataSet._title
     }
   }
-  return notification("updateDataContext", result, dataSet)
+  return dataSetNotification("updateDataContext", result, dataSet)
 }
 
 export function createCollectionNotification(collection: ICollectionModel, dataSet?: IDataSet) {
@@ -51,17 +45,17 @@ export function createCollectionNotification(collection: ICollectionModel, dataS
     name: collection.name,
     attribute: collection.attributes[0]?.name
   }
-  return notification("createCollection", result, dataSet)
+  return dataSetNotification("createCollection", result, dataSet)
 }
 
 export function deleteCollectionNotification(dataSet?: IDataSet) {
   const result = { success: true }
-  return notification("deleteCollection", result, dataSet)
+  return dataSetNotification("deleteCollection", result, dataSet)
 }
 
 export function updateCollectionNotification(collection?: ICollectionModel, dataSet?: IDataSet) {
   const result = { success: true, properties: { name: collection?.name } }
-  return notification("updateCollection", result, dataSet)
+  return dataSetNotification("updateCollection", result, dataSet)
 }
 
 function attributeNotification(
@@ -73,7 +67,7 @@ function attributeNotification(
     attrs: attrs?.map(attr => adapter.convertAttribute(attr, data)),
     attrIDs: attrIDs?.map(attrID => toV2Id(attrID))
   }
-  return notification(operation, result, data, makeCallback(operation, attrIDs))
+  return dataSetNotification(operation, result, data, makeCallback(operation, attrIDs))
 }
 
 export function createAttributesNotification(attrs: IAttribute[], data?: IDataSet) {
@@ -113,7 +107,7 @@ export function createCasesNotification(caseIDs: string[], data?: IDataSet) {
     caseID,
     itemID
   }
-  return notification("createCases", result, data)
+  return dataSetNotification("createCases", result, data)
 }
 
 export function moveCasesNotification(data: IDataSet, cases: ICase[] = []) {
@@ -121,7 +115,7 @@ export function moveCasesNotification(data: IDataSet, cases: ICase[] = []) {
     success: true,
     caseIDs: cases.map(aCase => toV2Id(aCase.__id__))
   }
-  return notification("moveCases", result, data)
+  return dataSetNotification("moveCases", result, data)
 }
 
 export function updateCasesNotification(data: IDataSet, cases?: ICase[]) {
@@ -132,7 +126,7 @@ export function updateCasesNotification(data: IDataSet, cases?: ICase[]) {
     caseIDs,
     cases: cases?.map(c => adapter.convertCase(c, data))
   }
-  return notification("updateCases", result, data)
+  return dataSetNotification("updateCases", result, data)
 }
 
 export function updateCasesNotificationFromIds(data: IDataSet, caseIds?: string[]) {
@@ -149,7 +143,7 @@ export function deleteCasesNotification(data: IDataSet, cases?: ICase[]) {
     success: true,
     cases: cases?.map(c => adapter.convertCase(c, data))
   }
-  return notification("deleteCases", result, data)
+  return dataSetNotification("deleteCases", result, data)
 }
 
 // selectCasesNotification returns a function that will later be called to determine if the selection
@@ -195,6 +189,6 @@ export function selectCasesNotification(dataset: IDataSet, extend?: boolean) {
     const removedCases = extend && removedCaseIds.length > 0
       ? convertCaseIdsToV2FullCases(removedCaseIds) : []
     const result = { success: true, cases, removedCases, extend: !!extend }
-    return notification("selectCases", result, dataset)
+    return dataSetNotification("selectCases", result, dataset)
   }
 }

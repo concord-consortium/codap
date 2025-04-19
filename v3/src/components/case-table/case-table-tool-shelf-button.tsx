@@ -43,7 +43,7 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
   if (!content) return null
 
   const handleCreateNewCaseTable = () => {
-    let tile: ITileModel | undefined = undefined
+    let tile: Maybe<ITileModel>
     document.applyModelChange(() => {
       const baseName = t("DG.AppController.createDataSet.name")
       const newName = uniqueName(baseName, name => !datasetNames.includes(name), " ")

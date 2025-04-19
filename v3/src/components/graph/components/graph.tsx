@@ -34,6 +34,7 @@ import {GraphDataConfigurationContext} from "../hooks/use-graph-data-configurati
 import {useGraphLayoutContext} from "../hooks/use-graph-layout-context"
 import {useGraphModel} from "../hooks/use-graph-model"
 import {GraphController} from "../models/graph-controller"
+import { attrChangeNotificationValues } from "../models/graph-notification-utils"
 import { BarChart } from "../plots/bar-chart/bar-chart"
 import { BinnedDotPlot } from "../plots/binned-dot-plot/binned-dot-plot"
 import {CasePlot} from "../plots/case-plot/case-plot"
@@ -41,7 +42,7 @@ import { DotChart } from "../plots/dot-chart/dot-chart"
 import { DotLinePlot } from "../plots/dot-plot/dot-line-plot"
 import { Histogram } from "../plots/histogram/histogram"
 import {ScatterPlot} from "../plots/scatter-plot/scatter-plot"
-import { attrChangeNotificationValues, updateCellMasks } from "../utilities/graph-utils"
+import { updateCellMasks } from "../utilities/graph-utils"
 import {DroppableAddAttribute} from "./droppable-add-attribute"
 import {DroppablePlot} from "./droppable-plot"
 import {GraphAxis} from "./graph-axis"
@@ -205,7 +206,7 @@ export const Graph = observer(function Graph({graphController, setGraphRef, pixi
     graphModel.applyModelChange(
       () => graphModel.setAttributeID(attrRole, dataSet.id, attrId),
       {
-        notify: updateTileNotification(notificationType, tile, notificationValues),
+        notify: updateTileNotification(notificationType, notificationValues, tile),
         undoStringKey: "DG.Undo.axisAttributeChange",
         redoStringKey: "DG.Redo.axisAttributeChange",
         log: logStringifiedObjectMessage(

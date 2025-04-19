@@ -1,5 +1,4 @@
 import { DEBUG_PLUGINS, debugLog } from "../lib/debug"
-import { ITileModel } from "../models/tiles/tile-model"
 import { makeCallback, notification } from "./notification-utils"
 
 jest.mock("../lib/debug", () => ({
@@ -26,11 +25,11 @@ describe("makeCallback", () => {
 describe("notification", () => {
   it("should create a notification object with the correct properties", () => {
     const operation = "testOperation"
-    const values = { testKey: "testValue" }
-    const tile = { id: "TILE123", title: "Test Tile", name: "Test Tile" } as ITileModel
+    const resource = "component"
+    const values = { operation, testKey: "testValue" }
     const callback = jest.fn()
 
-    const result = notification(operation, values, tile, callback)
+    const result = notification(resource, values, callback)
 
     expect(result).toEqual({
       message: {
@@ -41,7 +40,7 @@ describe("notification", () => {
           operation
         }
       },
-      callback
+      callback: expect.any(Function)
     })
   })
 })

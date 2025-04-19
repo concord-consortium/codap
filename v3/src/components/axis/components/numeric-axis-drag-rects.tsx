@@ -3,6 +3,7 @@ import React, {useEffect, useRef} from "react"
 import { comparer, reaction } from "mobx"
 import {drag, ScaleContinuousNumeric, select} from "d3"
 import { logMessageWithReplacement } from "../../../lib/log-message"
+import { getTileModel } from "../../../models/tiles/tile-model"
 import { t } from "../../../utilities/translation/translate"
 import {isVertical} from "../../axis-graph-shared"
 import {RectIndices, selectDragRects} from "../axis-types"
@@ -117,11 +118,12 @@ export const NumericAxisDragRects = observer(
         onDragEnd: D3Handler = function() {
           select(this)
             .classed('dragging', false)
+          const tileModel = getTileModel(dataDisplayModel)
           // move "dynamic" values to model on drop
           axisModel.applyModelChange(
             () => axisModel.setDomain(...axisModel.domain), {
-              notify: dataDisplayModel
-                ? updateAxisNotification("change axis bounds", axisModel.domain, dataDisplayModel)
+              notify: tileModel
+                ? updateAxisNotification("change axis bounds", axisModel.domain, tileModel)
                 : undefined,
               undoStringKey: dilating ? "DG.Undo.axisDilate" : "DG.Undo.axisDrag",
               redoStringKey: dilating ? "DG.Redo.axisDilate" : "DG.Redo.axisDrag",
