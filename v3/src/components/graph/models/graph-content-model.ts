@@ -5,7 +5,7 @@
 import {isEqual} from "lodash"
 import { comparer, reaction, when } from "mobx"
 import { addDisposer, getSnapshot, Instance, SnapshotIn, types } from "mobx-state-tree"
-import { isNumericAttributeType } from "../../../models/data/attribute-types"
+import { isCategoricalAttributeType, isNumericAttributeType } from "../../../models/data/attribute-types"
 import {IDataSet} from "../../../models/data/data-set"
 import {applyModelChange} from "../../../models/history/apply-model-change"
 import { getTileCaseMetadata, getTileDataSet } from "../../../models/shared/shared-data-tile-utils"
