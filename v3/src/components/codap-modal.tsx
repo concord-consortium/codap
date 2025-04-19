@@ -28,13 +28,13 @@ export const CodapModal = forwardRef(({
     >
       <ModalOverlay />
       <DraggableModalContent
-          fRef={ref}
-          modalWidth={modalWidth}
-          modalHeight={modalHeight}
-          onClick={onClick}
-          isOpen={isOpen}
-        >
-          {children}
+        fRef={ref}
+        modalWidth={modalWidth}
+        modalHeight={modalHeight}
+        onClick={onClick}
+        isOpen={isOpen}
+      >
+        {children}
       </DraggableModalContent>
     </Modal>
   )

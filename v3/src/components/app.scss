@@ -25,3 +25,18 @@
   right: 0;
   bottom: 0;
 }
+
+#user-entry-drop-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 5000;
+  pointer-events: auto;
+  background-color: #77777780;
+  z-index: 200;
+  &.show-highlight {
+    border: 3px solid yellow;
+  }
+}

@@ -1,5 +1,5 @@
 import { format } from "d3-format"
-import { IJsonPatch, Instance, types } from "mobx-state-tree"
+import { Instance, types } from "mobx-state-tree"
 import { AttributeType } from "../../../models/data/attribute-types"
 import { ICase } from "../../../models/data/data-set-types"
 import { applyModelChange } from "../../../models/history/apply-model-change"
@@ -17,6 +17,11 @@ import { PlotType } from "../graphing-types"
 import { IGraphDataConfigurationModel } from "../models/graph-data-configuration-model"
 
 export const float1 = format('.1~f')
+
+export interface IPlotGraphApi {
+  getSecondaryAxisModel: () => Maybe<IAxisModel>
+  setSecondaryAxisModel: (axis?: IAxisModel) => void
+}
 
 export interface IBarTipTextProps {
   primaryMatches: ICase[]
@@ -48,6 +53,7 @@ export const PlotModel = types
   })
   .volatile(self => ({
     dataConfiguration: undefined as Maybe<IGraphDataConfigurationModel>,
+    graphApi: undefined as Maybe<IPlotGraphApi>
   }))
   .views(self => ({
     get displayType(): PointDisplayType {
@@ -123,10 +129,6 @@ export const PlotModel = types
     },
     barTipText(props: IBarTipTextProps) {
       return ""
-    },
-    newSecondaryAxisRequired(patch: IJsonPatch): undefined | IAxisModel {
-      // Derived classes may override to return true if a new secondary axis is required
-      return undefined
     }
   }))
   .views(self => ({
@@ -197,8 +199,9 @@ export const PlotModel = types
     }
   }))
   .actions(self => ({
-    setDataConfiguration(dataConfiguration: IGraphDataConfigurationModel) {
+    setGraphContext(dataConfiguration: IGraphDataConfigurationModel, api?: IPlotGraphApi) {
       self.dataConfiguration = dataConfiguration
+      self.graphApi = api
     },
     resetSettings(options?: IResetSettingsOptions) {
       // derived models may override

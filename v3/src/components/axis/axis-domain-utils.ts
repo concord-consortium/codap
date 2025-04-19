@@ -48,8 +48,13 @@ export function setNiceDomain(values: number[], axisModel: IBaseNumericAxisModel
     const [minValue, maxValue] = extent(values, d => d) as [number, number]
     let {min: niceMin, max: niceMax} = computeNiceNumericBounds(minValue, maxValue)
     // When clamping, the domain should start at 0 unless there are negative values.
-    if (options?.clampPosMinAtZero && minValue >= 0) {
-      niceMin = 0
+    if (options?.clampPosMinAtZero) {
+      if (minValue >= 0) {
+        niceMin = 0
+      }
+      else if (maxValue <= 0) {
+        niceMax = 0
+      }
       axisModel.setAllowRangeToShrink(true)
     }
     axisModel.setDomain(niceMin, niceMax)

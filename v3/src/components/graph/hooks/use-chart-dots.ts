@@ -54,7 +54,7 @@ export const useChartDots = (pixiPoints?: PixiPoints) => {
     const pointDiameter = 2 * graphModel.getPointRadius()
     const { pointsFusedIntoBars } = graphModel
     const {
-      primaryIsBottom, primaryCellHeight, signForOffset,
+      primaryIsBottom, primaryCellHeight, signForOffset, secondaryNumericScale,
       secondaryBaseCoord, secondaryNumericUnitLength, secondarySplitCellWidth
     } = subPlotCells
     const { cellIndices, overlap = 0 } = context
@@ -62,13 +62,14 @@ export const useChartDots = (pixiPoints?: PixiPoints) => {
     if (!cellIndex) return 0
 
     const barHeightFactor = barCompressionFactorForCase(anID, graphModel)
+    const barBaseCoord = secondaryNumericScale ? secondaryNumericScale(0) : secondaryBaseCoord
     const { row } = cellIndices[anID]
     const { s, es } = cellIndices[anID].cell
     const barHeight = secondaryNumericUnitLength * barHeightFactor
     const baseHeight = pointsFusedIntoBars
       ? (row + baselineOffset) * barHeight - barHeight
       : (row + baselineOffset) * pointDiameter + row * overlap
-    const baseSecScreenCoord = secondaryBaseCoord -
+    const baseSecScreenCoord = barBaseCoord -
       signForOffset * (s * primaryCellHeight + es * secondarySplitCellWidth + baseHeight)
 
     return primaryIsBottom && pointsFusedIntoBars

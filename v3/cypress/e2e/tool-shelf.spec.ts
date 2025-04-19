@@ -14,7 +14,7 @@ const privacyURL = 'https://codap.concord.org/privacy'
 
 context("codap toolbar", () => {
   beforeEach(function () {
-    const url = `${Cypress.config("index")}?mouseSensor`
+    const url = `${Cypress.config("index")}?mouseSensor&noEntryModal`
     cy.visit(url)
   })
   it("will open a new table", () => {

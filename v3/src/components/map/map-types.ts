@@ -1,6 +1,17 @@
 import {GeoJSONOptions, LatLng} from "leaflet"
 import { logStringifiedObjectMessage, stringify } from "../../lib/log-message"
 
+import cursorBlack from "./assets/location-marker-cursor-black.png"
+import cursorBlue from "./assets/location-marker-cursor-blue.png"
+import cursorBlueGray from "./assets/location-marker-cursor-bluegray.png"
+import cursorGray from "./assets/location-marker-cursor-gray.png"
+import cursorGreen from "./assets/location-marker-cursor-green.png"
+import cursorIndigo from "./assets/location-marker-cursor-indigo.png"
+import cursorMaroon from "./assets/location-marker-cursor-maroon.png"
+import cursorOrange from "./assets/location-marker-cursor-orange.png"
+import cursorPurple from "./assets/location-marker-cursor-purple.png"
+import cursorRed from "./assets/location-marker-cursor-red.png"
+
 export const BaseMapKeys = ['oceans', 'topo', 'streets'] as const
 export type BaseMapKey = typeof BaseMapKeys[number]
 
@@ -13,6 +24,7 @@ export const kMapUrls: Record<BaseMapKey, string> = {
 export const kMapPolygonLayerType = "mapPolygonLayer"
 export const kMapPointLayerType = "mapPointLayer"
 export const kMapPinLayerType = "mapPinLayer"
+export const kMapLayerTypes = [kMapPolygonLayerType, kMapPointLayerType, kMapPinLayerType]
 
 export const kMapClass = "codap-map"
 export const kMapClassSelector = `.${kMapClass}`
@@ -56,6 +68,10 @@ export const
   ],
   kPinColors = [
     '#0068EA', '#E86B11', '#16A76A', '#E40029', '#2A31A4', '#D51EFF', '#4769A1', '#800000', '#949494', '#000000'
+  ],
+  kPinCursors = [
+    cursorBlue, cursorOrange, cursorGreen, cursorRed, cursorIndigo,
+    cursorPurple, cursorBlueGray, cursorMaroon, cursorGray, cursorBlack
   ]
 
 export const MapPlaces = ['map', 'legend'] as const

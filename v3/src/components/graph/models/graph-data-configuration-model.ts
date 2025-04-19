@@ -1,6 +1,6 @@
 import {comparer, reaction} from "mobx"
 import {addDisposer, getSnapshot, Instance, SnapshotIn, types} from "mobx-state-tree"
-import {AttributeType, isCategoricalAttributeType} from "../../../models/data/attribute-types"
+import { AttributeType, isCategoricalAttributeType } from "../../../models/data/attribute-types"
 import {IDataSet} from "../../../models/data/data-set"
 import {typedId} from "../../../utilities/js-utils"
 import { isFiniteNumber } from "../../../utilities/math-utils"
@@ -551,6 +551,21 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       extraSecondaryAttrID && (key[extraSecondaryAttrID] = extraSecondaryCategory)
       extraPrimaryAttrID && (key[extraPrimaryAttrID] = extraPrimaryCategory)
       return key
+    },
+    graphCellKeyFromCaseID(caseID: string) {
+      const subPlotKey = this.subPlotKey(caseID)
+      const primaryAttributeID = self.primaryAttributeID
+      const primaryIsCategorical = isCategoricalAttributeType(self.primaryAttributeType)
+      if (primaryIsCategorical) {
+        const primaryCategory = self.dataset?.getStrValue(caseID, primaryAttributeID) ?? kMain
+        return {
+          ...subPlotKey,
+          [primaryAttributeID]: primaryCategory
+        }
+      }
+      else {
+        return subPlotKey
+      }
     },
     numCasesInSubPlotGivenCategories(extraPrimaryCategory: string, extraSecondaryCategory: string) {
       return this.subPlotCases(this.subPlotKeyFromExtraCategories(extraPrimaryCategory, extraSecondaryCategory)).length

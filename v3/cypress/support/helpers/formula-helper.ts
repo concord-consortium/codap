@@ -10,7 +10,7 @@ export const FormulaHelper = {
     cy.wait(1000)
   },
   importFile(file: string) {
-    cfm.openLocalDoc(file)
+    cfm.openLocalDocWithUserEntry(file)
     cy.wait(1000)
   },
   clearFormulaInput() {

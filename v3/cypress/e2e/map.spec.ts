@@ -18,7 +18,7 @@ const arrayOfAttributes = ["Category", "Educ_Tertiary_Perc", "Inversions"]
 
 context("Map UI", () => {
   beforeEach(function () {
-    const url = `${Cypress.config("index")}?mouseSensor&noComponentAnimation`
+    const url = `${Cypress.config("index")}?mouseSensor&noComponentAnimation&noEntryModal`
     cy.visit(url)
     cy.wait(3000)
   })
@@ -238,9 +238,11 @@ context("Map UI", () => {
     // Can select a pin
     table.getSelectedRows().should("have.length", 0)
     map.getMapPin().should("not.have.class", "selected-pin")
+    map.getAddPinButton().should("be.enabled")
     map.getMapPin().click()
     map.getMapPin().should("have.class", "selected-pin")
     table.getSelectedRows().should("have.length", 1)
+    map.getAddPinButton().should("be.disabled")
 
     // Can deselect a pin by shift+clicking
     map.getMapPin().click({ shiftKey: true })
@@ -251,6 +253,28 @@ context("Map UI", () => {
     table.getCell(2, 2).click()
     map.getMapPin().should("have.class", "selected-pin")
     table.getSelectedRows().should("have.length", 1)
+
+    // Can deselect a pin by clicking on the map
+    map.getPinLayer().click("top")
+    map.getMapPin().should("not.have.class", "selected-pin")
+    table.getSelectedRows().should("have.length", 0)
+    map.getMapPin().click()
+    map.getMapPin().should("have.class", "selected-pin")
+    table.getSelectedRows().should("have.length", 1)
+
+    // Can hide pins using the ruler menu
+    map.getDisplayValuesButton().click()
+    map.getInspectorPalette().contains("Pins").click()
+    map.getMapPins().should("not.exist")
+    map.getInspectorPalette().contains("Pins").click()
+    map.getMapPin().should("exist")
+
+    // Can hide pins using the layers menu
+    map.getDisplayConfigButton().click()
+    map.getInspectorPalette().contains("New Dataset").click()
+    map.getMapPins().should("not.exist")
+    map.getInspectorPalette().contains("New Dataset").click()
+    map.getMapPin().should("exist")
 
     // Can remove a pin using the remove pin button
     c.getComponentTitleBar("map").click()

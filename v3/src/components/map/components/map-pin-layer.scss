@@ -2,10 +2,12 @@
   height: 100%;
   position: absolute;
   width: 100%;
-  z-index: 10;
+  z-index: 12;
 
-  &.add-mode {
-    cursor: pointer;
+  .map-pin-overlay {
+    height: 100%;
+    position: absolute;
+    width: 100%;
   }
 
   .map-pin {

@@ -9,6 +9,7 @@ import {DisplayItemFormatControl} from "../../../data-display/inspector/display-
 import {InspectorPalette} from "../../../inspector-panel"
 import {isMapContentModel} from "../../models/map-content-model"
 import {IMapLayerModel, isMapLayerModel} from "../../models/map-layer-model"
+import { isMapPinLayerModel } from "../../models/map-pin-layer-model"
 import { isMapPointLayerModel } from "../../models/map-point-layer-model"
 import {MapBaseLayerControl} from "./map-base-layer-control"
 
@@ -29,6 +30,8 @@ export const MapLayersPalette = observer(function MapLayersPalette(
   const renderLayersFormattingControls = () => {
 
     const renderOneFormatControl = (layer: IMapLayerModel) => {
+      if (isMapPinLayerModel(layer)) return null
+
       const mapPointLayerModel = isMapPointLayerModel(layer) ? layer : undefined
       return (
         <DisplayItemFormatControl

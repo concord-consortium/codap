@@ -94,6 +94,11 @@ export interface UrlParams {
    */
   noDataTips?: string | null
   /*
+  * Primarily for testing -- when present does not show the user entry modal on startup.
+  * value: ignored
+  */
+  noEntryModal?: string | null
+  /*
    * [v2/v3] Specifies the url of the folder from which to load plugins.
    * Useful for testing/debugging plugins from alternate locations.
    * value: url string

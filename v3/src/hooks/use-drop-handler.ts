@@ -7,9 +7,10 @@ export interface IDropHandler {
   onImportDataSet?: (data: IDataSet) => void
   onImportDocument?: (file: File) => void
   onHandleUrlDrop?: (url: string) => void
+  onSetIsDragOver?: (isDragOver: boolean) => void
 }
 export const useDropHandler = ({
-  selector, onImportDataSet, onImportDocument, onHandleUrlDrop
+  selector, onImportDataSet, onImportDocument, onHandleUrlDrop, onSetIsDragOver: setIsDragOver
 }: IDropHandler) => {
   const eltRef = useRef<HTMLElement | null>(null)
 
@@ -19,6 +20,7 @@ export const useDropHandler = ({
     function dragOverHandler(event: DragEvent) {
       // Prevent default behavior (Prevent file from being opened)
       event.preventDefault()
+      setIsDragOver?.(true)
     }
 
     function dropHandler(event: DragEvent) {
@@ -73,6 +75,7 @@ export const useDropHandler = ({
           event.dataTransfer.clearData()
         }
       }
+      setIsDragOver?.(false)
     }
 
     eltRef.current?.addEventListener('dragover', dragOverHandler)
@@ -82,7 +85,7 @@ export const useDropHandler = ({
       eltRef.current?.removeEventListener('dragover', dragOverHandler)
       eltRef.current?.removeEventListener('drop', dropHandler)
     }
-  }, [onHandleUrlDrop, onImportDataSet, onImportDocument, selector])
+  }, [onHandleUrlDrop, onImportDataSet, onImportDocument, selector, setIsDragOver])
 
   // return element to which listeners were attached; useful for tests
   return eltRef.current
