@@ -19,7 +19,9 @@ import { CatObject, CategoricalAxisHelper } from "../helper-models/categorical-a
 import { DateAxisHelper } from "../helper-models/date-axis-helper"
 import { NumericAxisHelper } from "../helper-models/numeric-axis-helper"
 import { useAxisLayoutContext } from "../models/axis-layout-context"
-import {IAxisModel, isBaseNumericAxisModel, isCategoricalAxisModel} from "../models/axis-model"
+import {IAxisModel} from "../models/axis-model"
+import { isAnyCategoricalAxisModel, isCategoricalAxisModel, isColorAxisModel } from "../models/categorical-axis-models"
+import { isAnyNumericAxisModel } from "../models/numeric-axis-models"
 import { useAxisProviderContext } from "./use-axis-provider-context"
 
 export interface IUseSubAxis {
@@ -57,10 +59,14 @@ export const useSubAxis = ({
   const layout = useAxisLayoutContext(),
     displayModel = useDataDisplayModelContextMaybe(),
     dataConfig = displayModel?.dataConfiguration,
+    attrId = dataConfig?.attributeID(axisPlaceToAttrRole[axisPlace]) || "",
+    axisAttribute = dataConfig?.dataset?.getAttribute(attrId),
+    axisAttributeType = axisAttribute?.type,
     {isAnimating, stopAnimation} = useDataDisplayAnimation(),
     axisProvider = useAxisProviderContext(),
     axisModel = axisProvider.getAxis(axisPlace),
-    isCategorical = isCategoricalAxisModel(axisModel),
+    isCategorical = isAnyCategoricalAxisModel(axisModel),
+    isColorAxis = isColorAxisModel(axisModel) || (axisModel?.type === "categorical" && axisAttributeType === "color"),
     multiScaleChangeCount = layout.getAxisMultiScale(axisModel?.place ?? 'bottom')?.changeCount ?? 0,
     dragInfo = useRef<DragInfo>({
       indexOfCategory: -1,
@@ -215,11 +221,19 @@ export const useSubAxis = ({
         }
         // labels
         if (catGroup.select('.category-label').empty()) {
-          catGroup.append('text')
-            .attr('class', 'category-label')
-            .attr('data-testid', 'category-label')
-            .attr('x', 0)
-            .attr('y', 0)
+          if (isColorAxis) {
+            catGroup.append('rect')
+              .attr('class', 'category-label')
+              .attr('data-testid', 'color-label')
+              .attr('x', 0)
+              .attr('y', 0)
+          } else {
+            catGroup.append('text')
+              .attr('class', 'category-label')
+              .attr('data-testid', 'category-label')
+              .attr('x', 0)
+              .attr('y', 0)
+          }
         }
       })
 
@@ -229,7 +243,7 @@ export const useSubAxis = ({
         multiScale?.setCategoricalDomain(categories)
       }
       categoriesRef.current = catArray
-    }, [axisPlace, dataConfig, dragBehavior, layout, subAxisEltRef])
+    }, [axisPlace, dataConfig, dragBehavior, isColorAxis, layout, subAxisEltRef])
 
   // update axis helper
   useEffect(() => {
@@ -251,12 +265,13 @@ export const useSubAxis = ({
             { ...helperProps, showScatterPlotGridLines, showZeroAxisLine })
           break
         case 'categorical':
+        case 'color':
           // It is necessary to call renderSubAxis in most cases, but doing so for a categorical axis causes
           // a crash on redo. So we only do it for non-categorical axes.
           shouldRenderSubAxis = false
           helper = new CategoricalAxisHelper(
             { ...helperProps, centerCategoryLabels, dragInfo,
-              subAxisSelectionRef, categoriesSelectionRef, categoriesRef, swapInProgress })
+              subAxisSelectionRef, categoriesSelectionRef, categoriesRef, swapInProgress, isColorAxis })
           break
         case 'date':
           subAxisSelectionRef.current = subAxisElt ? select(subAxisElt) : undefined
@@ -267,8 +282,8 @@ export const useSubAxis = ({
         shouldRenderSubAxis && renderSubAxis()
       }
     }
-  }, [axisModel, axisProvider, centerCategoryLabels, displayModel, isAnimating, layout, renderSubAxis,
-            showScatterPlotGridLines, showZeroAxisLine, subAxisEltRef, subAxisIndex])
+  }, [axisModel, axisProvider, centerCategoryLabels, displayModel, isAnimating, isColorAxis, layout,
+      renderSubAxis, showScatterPlotGridLines, showZeroAxisLine, subAxisEltRef, subAxisIndex])
 
   // update d3 scale and axis when scale type changes
   useEffect(() => {
@@ -300,7 +315,7 @@ export const useSubAxis = ({
     return mstAutorun(() => {
       const _axisModel = axisProvider?.getAxis?.(axisPlace)
       if (isAliveSafe(_axisModel)) {
-        if (isBaseNumericAxisModel(_axisModel)) {
+        if (isAnyNumericAxisModel(_axisModel)) {
           const {domain} = _axisModel || {},
             multiScale = layout.getAxisMultiScale(axisPlace)
           multiScale?.setScaleType('linear')  // Make sure it's linear
@@ -341,7 +356,7 @@ export const useSubAxis = ({
       return domain1[0] !== domain2[0] || domain1[1] !== domain2[1]
     }
 
-    if (isCategoricalAxisModel(axisModel)) {
+    if (isAnyCategoricalAxisModel(axisModel)) {
       setupCategories()
       const categoryValues = categoriesRef.current,
         multiScale = layout.getAxisMultiScale(axisPlace),
@@ -349,7 +364,7 @@ export const useSubAxis = ({
       if (JSON.stringify(categoryValues) === JSON.stringify(existingCategoryDomain)) return
       multiScale?.setCategoricalDomain(categoryValues)
       renderSubAxis()
-    } else if (isBaseNumericAxisModel(axisModel)) {
+    } else if (isAnyNumericAxisModel(axisModel)) {
       const currentAxisDomain = axisModel.domain
       const multiScale = layout.getAxisMultiScale(axisPlace)
       const allowToShrink = axisModel.allowRangeToShrink
@@ -378,6 +393,18 @@ export const useSubAxis = ({
       )
     }
   }, [axisModel, dataConfig, updateDomainAndRenderSubAxis])
+
+  useEffect(function respondToAttributeTypeChange() {
+    const disposer = reaction(
+      () => dataConfig?.dataset?.getAttribute(attrId)?.type, // Observe the attribute type
+      () => {
+        setupCategories()
+        renderSubAxis()
+      },
+      { name: "useSubAxis [attributeTypeChange]" }
+    )
+    return () => disposer()
+  }, [attrId, dataConfig, setupCategories, renderSubAxis])
 
   // Render when axis length or number of sub-axes changes
   useEffect(() => {

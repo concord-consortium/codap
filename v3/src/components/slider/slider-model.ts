@@ -1,15 +1,16 @@
 import { reaction } from "mobx"
 import { addDisposer, Instance, SnapshotIn, types} from "mobx-state-tree"
-import {
-  DateAxisModel, IAxisModel, IBaseNumericAxisModel, isBaseNumericAxisModel, NumericAxisModel
-} from "../axis/models/axis-model"
 import { GlobalValue } from "../../models/global/global-value"
+import { getGlobalValueManager } from "../../models/global/global-value-manager"
 import { applyModelChange } from "../../models/history/apply-model-change"
 import { ISharedModel } from "../../models/shared/shared-model"
-import { getSharedModelManager } from "../../models/tiles/tile-environment"
-import { getGlobalValueManager } from "../../models/global/global-value-manager"
 import { ITileContentModel, TileContentModel } from "../../models/tiles/tile-content"
+import { getSharedModelManager } from "../../models/tiles/tile-environment"
 import { DateUnit, dateUnits, unitsStringToMilliseconds } from "../../utilities/date-utils"
+import { IAxisModel } from "../axis/models/axis-model"
+import {
+  DateAxisModel, IBaseNumericAxisModel, isAnyNumericAxisModel, NumericAxisModel
+} from "../axis/models/numeric-axis-models"
 import { kSliderTileType } from "./slider-defs"
 import {
   AnimationDirection, AnimationDirections, AnimationMode, AnimationModes, FixValueFn, ISliderScaleType,
@@ -92,7 +93,7 @@ export const SliderModel = TileContentModel
       return false
     },
     hasDraggableNumericAxis(axisModel: IAxisModel) {
-      return isBaseNumericAxisModel(axisModel)
+      return isAnyNumericAxisModel(axisModel)
     },
     nonDraggableAxisTicks(formatter: (value: number) => string): { tickValues: number[], tickLabels: string[] } {
       // derived models should override

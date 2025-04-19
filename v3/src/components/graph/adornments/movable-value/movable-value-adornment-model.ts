@@ -1,5 +1,5 @@
 import { Instance, SnapshotIn, types } from "mobx-state-tree"
-import { isBaseNumericAxisModel } from "../../../axis/models/axis-model"
+import { isAnyNumericAxisModel } from "../../../axis/models/numeric-axis-models"
 import { AdornmentModel, IAdornmentModel, IUpdateCategoriesOptions } from "../adornment-models"
 import { kMovableValueType } from "./movable-value-adornment-types"
 
@@ -117,9 +117,9 @@ export const MovableValueAdornmentModel = AdornmentModel
   .actions(self => ({
     updateCategories(options: IUpdateCategoriesOptions) {
       const { xAxis, yAxis, addMovableValue, dataConfig } = options
-      const [axisMin, axisMax] = isBaseNumericAxisModel(xAxis)
+      const [axisMin, axisMax] = isAnyNumericAxisModel(xAxis)
                                   ? xAxis.domain
-                                  : isBaseNumericAxisModel(yAxis) ? yAxis.domain : []
+                                  : isAnyNumericAxisModel(yAxis) ? yAxis.domain : []
 
       if (axisMin != null) self.setAxisMin(axisMin)
       if (axisMax != null) self.setAxisMax(axisMax)

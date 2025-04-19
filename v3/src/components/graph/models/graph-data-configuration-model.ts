@@ -257,7 +257,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     },
     get categoricalRoles(): AttrRole[] {
       return (["legend", "x", "y", "topSplit", "rightSplit"] as const).filter((role) => {
-        return self.attributeType(role) === "categorical"
+        return isCategoricalAttributeType(self.attributeType(role))
       })
     },
     get categoricalAttrs(): Array<{ role: AttrRole, attrId: string }> {

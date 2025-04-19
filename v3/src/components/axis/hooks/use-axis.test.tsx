@@ -6,7 +6,8 @@ import { SliderAxisLayout } from "../../slider/slider-layout"
 import { IDataDisplayContentModel } from "../../data-display/models/data-display-content-model"
 import { DataDisplayModelContext } from "../../data-display/hooks/use-data-display-model"
 import { AxisLayoutContext } from "../models/axis-layout-context"
-import { IAxisModel, IBaseNumericAxisModel, isBaseNumericAxisModel, NumericAxisModel } from "../models/axis-model"
+import { IAxisModel } from "../models/axis-model"
+import { IBaseNumericAxisModel, isAnyNumericAxisModel, NumericAxisModel } from "../models/numeric-axis-models"
 import { useAxis } from "./use-axis"
 import { AxisProviderContext } from "./use-axis-provider-context"
 
@@ -24,7 +25,7 @@ const TestAxisProvider = types.model("TestAxisProvider", {
     return false
   },
   hasDraggableNumericAxis(axisModel: IAxisModel) {
-    return isBaseNumericAxisModel(axisModel)
+    return isAnyNumericAxisModel(axisModel)
   },
   nonDraggableAxisTicks(formatter: (value: number) => string) {
     return {tickValues: [], tickLabels: []}

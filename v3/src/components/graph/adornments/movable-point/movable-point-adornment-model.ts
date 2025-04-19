@@ -1,5 +1,6 @@
 import { Instance, SnapshotIn, types } from "mobx-state-tree"
-import { IAxisModel, isBaseNumericAxisModel } from "../../../axis/models/axis-model"
+import { IAxisModel } from "../../../axis/models/axis-model"
+import { isAnyNumericAxisModel } from "../../../axis/models/numeric-axis-models"
 import { Point } from "../../../data-display/data-display-types"
 import { AdornmentModel, IAdornmentModel, IUpdateCategoriesOptions } from "../adornment-models"
 import { IPointModel, PointModel } from "../point-model"
@@ -17,7 +18,7 @@ export const MovablePointAdornmentModel = AdornmentModel
       return self.points.values().next().value
     },
     getInitialPosition(axis?: IAxisModel) {
-      if (!isBaseNumericAxisModel(axis)) return 0
+      if (!isAnyNumericAxisModel(axis)) return 0
       const [min, max] = axis.domain
       return max - (max - min) / 4
     }

@@ -5,12 +5,13 @@ import { AttributeType } from "../../../../models/data/attribute-types"
 import { Formula } from "../../../../models/formula/formula"
 import { t } from "../../../../utilities/translation/translate"
 import { AxisPlace } from "../../../axis/axis-types"
-import { IAxisModel, isBaseNumericAxisModel, isNumericAxisModel } from "../../../axis/models/axis-model"
+import { IAxisModel } from "../../../axis/models/axis-model"
 import { GraphAttrRole, PointDisplayType } from "../../../data-display/data-display-types"
 import { setNiceDomain } from "../../../axis/axis-domain-utils"
 import { BreakdownType, BreakdownTypes, GraphCellKey } from "../../graphing-types"
 import { DotChartModel } from "../dot-chart/dot-chart-model"
 import { IBarTipTextProps, IPlotModel, typesPlotType } from "../plot-model"
+import { isAnyNumericAxisModel, isNumericAxisModel } from "../../../axis/models/numeric-axis-models"
 
 export interface IBarSpec {
   value: number
@@ -205,7 +206,7 @@ export const BarChartModel = DotChartModel
         () => self.getMinMaxOfFormulaValues(),
         (domain) => {
           const secondaryAxis = self.graphApi?.getSecondaryAxisModel()
-          if (isBaseNumericAxisModel(secondaryAxis)) {
+          if (isAnyNumericAxisModel(secondaryAxis)) {
             setNiceDomain(domain, secondaryAxis, { clampPosMinAtZero: true })
           }
         },

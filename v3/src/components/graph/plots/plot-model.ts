@@ -5,10 +5,13 @@ import { ICase } from "../../../models/data/data-set-types"
 import { applyModelChange } from "../../../models/history/apply-model-change"
 import { setNiceDomain } from "../../axis/axis-domain-utils"
 import { AxisPlace, IAxisDomainOptions, IAxisTicks, TickFormatter } from "../../axis/axis-types"
-import { CategoricalAxisModel, CountAxisModel, DateAxisModel, EmptyAxisModel, IAxisModel, isCategoricalAxisModel,
-  isCountAxisModel, isDateAxisModel, isEmptyAxisModel, isNumericAxisModel, isPercentAxisModel,
-  NumericAxisModel, PercentAxisModel
-} from "../../axis/models/axis-model"
+import { EmptyAxisModel, IAxisModel, isEmptyAxisModel } from "../../axis/models/axis-model"
+import { CategoricalAxisModel, ColorAxisModel, isCategoricalAxisModel, isColorAxisModel
+  } from "../../axis/models/categorical-axis-models"
+import {
+  CountAxisModel, DateAxisModel, isCountAxisModel, isDateAxisModel,
+  isNumericAxisModel, isPercentAxisModel, NumericAxisModel, PercentAxisModel
+  } from "../../axis/models/numeric-axis-models"
 import { GraphAttrRole, PointDisplayType } from "../../data-display/data-display-types"
 import { PlotType } from "../graphing-types"
 import { IGraphDataConfigurationModel } from "../models/graph-data-configuration-model"
@@ -143,9 +146,13 @@ export const PlotModel = types
               ? axisModel
               : EmptyAxisModel.create({ place })
     },
-    getValidCategoricalAxis(place: AxisPlace, attrType?: AttributeType, axisModel?: IAxisModel): IAxisModel {
-      return isCategoricalAxisModel(axisModel)
-              ? axisModel
+    getValidCategoricalOrColorAxis(place: AxisPlace, attrType?: AttributeType, axisModel?: IAxisModel): IAxisModel {
+      if (attrType === "color" && isColorAxisModel(axisModel) ||
+          attrType === "categorical" && isCategoricalAxisModel(axisModel)) {
+        return axisModel
+      }
+      return attrType === "color"
+              ? ColorAxisModel.create({ place })
               : CategoricalAxisModel.create({ place })
     },
     getValidCountAxis(place: AxisPlace, attrType?: AttributeType, axisModel?: IAxisModel): IAxisModel {

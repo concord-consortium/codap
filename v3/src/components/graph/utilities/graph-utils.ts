@@ -6,8 +6,9 @@ import {
 } from "../../../utilities/color-utils"
 import { isFiniteNumber } from "../../../utilities/math-utils"
 import { t } from "../../../utilities/translation/translate"
-import {IAxisModel, isBaseNumericAxisModel} from "../../axis/models/axis-model"
 import {ScaleNumericBaseType} from "../../axis/axis-types"
+import {IAxisModel} from "../../axis/models/axis-model"
+import {isAnyNumericAxisModel} from "../../axis/models/numeric-axis-models"
 import {CaseData} from "../../data-display/d3-types"
 import {Point, PointDisplayType, transitionDuration} from "../../data-display/data-display-types"
 import {IDataConfigurationModel} from "../../data-display/models/data-configuration-model"
@@ -423,10 +424,10 @@ export function setPointCoordinates(props: ISetPointCoordinates) {
  Use the bounds of the given axes to compute slope and intercept.
 */
 export function computeSlopeAndIntercept(xAxis?: IAxisModel, yAxis?: IAxisModel, interceptLocked=false) {
-  const xLower = xAxis && isBaseNumericAxisModel(xAxis) ? xAxis.min : 0,
-    xUpper = xAxis && isBaseNumericAxisModel(xAxis) ? xAxis.max : 0,
-    yLower = yAxis && isBaseNumericAxisModel(yAxis) ? yAxis.min : 0,
-    yUpper = yAxis && isBaseNumericAxisModel(yAxis) ? yAxis.max : 0
+  const xLower = isAnyNumericAxisModel(xAxis) ? xAxis.min : 0,
+    xUpper = isAnyNumericAxisModel(xAxis) ? xAxis.max : 0,
+    yLower = isAnyNumericAxisModel(yAxis) ? yAxis.min : 0,
+    yUpper = isAnyNumericAxisModel(yAxis) ? yAxis.max : 0  
 
   // Make the default a bit steeper, so it's less likely to look like
   // it fits a typical set of points
