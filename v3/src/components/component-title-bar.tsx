@@ -4,6 +4,7 @@ import { observer } from "mobx-react-lite"
 import React, { useState } from "react"
 import { IUseDraggableTile, useDraggableTile } from "../hooks/use-drag-drop"
 import { getTitle } from "../models/tiles/tile-content-info"
+import { updateTileNotification } from "../models/tiles/tile-notifications"
 import { uiState } from "../models/ui-state"
 import MinimizeIcon from "../assets/icons/icon-minimize.svg"
 import { ITileTitleBarProps } from "./tiles/tile-base-props"
@@ -32,6 +33,7 @@ export const ComponentTitleBar = observer(function ComponentTitleBar({
       tile.applyModelChange(() => {
         tile.setTitle(nextValue)
       }, {
+        notify: updateTileNotification("titleChange", { from: title, to: nextValue }, tile),
         log: logMessageWithReplacement("Title changed to: %@", {nextValue}, "component"),
         undoStringKey: "DG.Undo.component.componentTitleChange",
         redoStringKey: "DG.Redo.component.componentTitleChange"
