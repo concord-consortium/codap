@@ -133,13 +133,21 @@ export interface V2Map extends V2Component {
   type: "map"
   zoom?: number
 }
+
+// This really isn't the v2 form of the Slider component, that is
+// defined by ICodapV2SliderStorage. This the format of data that
+// can be sent and received via API.
 export interface V2Slider extends V2Component {
+  type: "slider"
   animationDirection?: number
   animationMode?: number
+  animationRate?: number
   globalValueName?: string
-  lowerBound?: number
-  type: "slider"
+  multipleOf?: number
+  dateMultipleOfUnit?: string
+  scaleType?: string
   upperBound?: number
+  lowerBound?: number
 }
 export interface V2GetSlider extends V2Slider {
   value?: number
