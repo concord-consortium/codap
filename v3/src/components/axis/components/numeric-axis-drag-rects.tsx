@@ -6,9 +6,9 @@ import { logMessageWithReplacement } from "../../../lib/log-message"
 import { getTileModel } from "../../../models/tiles/tile-model"
 import { t } from "../../../utilities/translation/translate"
 import {isVertical} from "../../axis-graph-shared"
+import { useDataDisplayModelContextMaybe } from "../../data-display/hooks/use-data-display-model"
 import {RectIndices, selectDragRects} from "../axis-types"
 import {useAxisLayoutContext} from "../models/axis-layout-context"
-import { useDataDisplayModelContext } from "../../data-display/hooks/use-data-display-model"
 import { updateAxisNotification } from "../models/axis-notifications"
 import {MultiScale} from "../models/multi-scale"
 import { IBaseNumericAxisModel } from "../models/numeric-axis-models"
@@ -33,7 +33,7 @@ export const NumericAxisDragRects = observer(
     const rectRef = useRef() as React.RefObject<SVGGElement>,
       { lockZero, place } = axisModel,
       layout = useAxisLayoutContext(),
-      dataDisplayModel = useDataDisplayModelContext()
+      displayModel = useDataDisplayModelContextMaybe()
 
     useEffect(function createRects() {
       let multiScale: MultiScale | undefined,
@@ -118,7 +118,7 @@ export const NumericAxisDragRects = observer(
         onDragEnd: D3Handler = function() {
           select(this)
             .classed('dragging', false)
-          const tileModel = getTileModel(dataDisplayModel)
+          const tileModel = displayModel && getTileModel(displayModel)
           // move "dynamic" values to model on drop
           axisModel.applyModelChange(
             () => axisModel.setDomain(...axisModel.domain), {
@@ -189,7 +189,7 @@ export const NumericAxisDragRects = observer(
           }
         })
       }
-    }, [axisModel, place, layout, numSubAxes, subAxisIndex, lockZero, dataDisplayModel])
+    }, [axisModel, place, layout, numSubAxes, subAxisIndex, lockZero, displayModel])
 
     // update layout of axis drag rects when axis bounds change
     useEffect(() => {
