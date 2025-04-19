@@ -15,7 +15,7 @@ const axisPlaceToOrientationMap: Record<OrientableGraphPlace, AxisOrientation> =
   "yPlus": "vertical"
 }
 
-interface IUpdateGraphValues {
+export interface IAttrChangeValues {
   attributeId: string | number
   attributeName?: string
   axisOrientation?: string
@@ -36,7 +36,7 @@ export const attrChangeNotificationValues = (
   const plotType = tile.content.plotType
   const primaryAxis = tile.content.dataConfiguration.primaryRole || "x"
 
-  const values: IUpdateGraphValues = {
+  const values: IAttrChangeValues = {
     attributeId: toV2Id(attrId),
     attributeName,
     plotType,

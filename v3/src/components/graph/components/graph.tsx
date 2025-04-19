@@ -34,7 +34,7 @@ import {GraphDataConfigurationContext} from "../hooks/use-graph-data-configurati
 import {useGraphLayoutContext} from "../hooks/use-graph-layout-context"
 import {useGraphModel} from "../hooks/use-graph-model"
 import {GraphController} from "../models/graph-controller"
-import { attrChangeNotificationValues } from "../models/graph-notification-utils"
+import { attrChangeNotificationValues, IAttrChangeValues } from "../models/graph-notification-utils"
 import { BarChart } from "../plots/bar-chart/bar-chart"
 import { BinnedDotPlot } from "../plots/binned-dot-plot/binned-dot-plot"
 import {CasePlot} from "../plots/case-plot/case-plot"
@@ -201,12 +201,15 @@ export const Graph = observer(function Graph({graphController, setGraphRef, pixi
     const attrName = dataset?.getAttribute(attrId || attrIdToRemove)?.name
     const tile = getTileModel(graphModel)
     const notificationType = place === "legend" ? "legendAttributeChange" : "attributeChange"
-    const notificationValues = attrChangeNotificationValues(place, attrId, attrName, attrIdToRemove, tile)
+    let notificationValues: IAttrChangeValues | undefined = undefined
 
     graphModel.applyModelChange(
-      () => graphModel.setAttributeID(attrRole, dataSet.id, attrId),
+      () => {
+        graphModel.setAttributeID(attrRole, dataSet.id, attrId)
+        notificationValues = attrChangeNotificationValues(place, attrId, attrName, attrIdToRemove, tile)
+      },
       {
-        notify: updateTileNotification(notificationType, notificationValues, tile),
+        notify: () => updateTileNotification(notificationType, notificationValues, tile),
         undoStringKey: "DG.Undo.axisAttributeChange",
         redoStringKey: "DG.Redo.axisAttributeChange",
         log: logStringifiedObjectMessage(
