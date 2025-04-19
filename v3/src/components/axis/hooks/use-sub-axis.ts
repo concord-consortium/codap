@@ -20,7 +20,7 @@ import { DateAxisHelper } from "../helper-models/date-axis-helper"
 import { NumericAxisHelper } from "../helper-models/numeric-axis-helper"
 import { useAxisLayoutContext } from "../models/axis-layout-context"
 import {IAxisModel} from "../models/axis-model"
-import { isAnyCategoricalAxisModel, isCategoricalAxisModel } from "../models/categorical-axis-models"
+import { isAnyCategoricalAxisModel, isCategoricalAxisModel, isColorAxisModel } from "../models/categorical-axis-models"
 import { isAnyNumericAxisModel } from "../models/numeric-axis-models"
 import { useAxisProviderContext } from "./use-axis-provider-context"
 
@@ -66,7 +66,7 @@ export const useSubAxis = ({
     axisProvider = useAxisProviderContext(),
     axisModel = axisProvider.getAxis(axisPlace),
     isCategorical = isAnyCategoricalAxisModel(axisModel),
-    isColorAxis = axisModel?.type === "color" || (axisModel?.type === "categorical" && axisAttributeType === "color"),
+    isColorAxis = isColorAxisModel(axisModel) || (axisModel?.type === "categorical" && axisAttributeType === "color"),
     multiScaleChangeCount = layout.getAxisMultiScale(axisModel?.place ?? 'bottom')?.changeCount ?? 0,
     dragInfo = useRef<DragInfo>({
       indexOfCategory: -1,

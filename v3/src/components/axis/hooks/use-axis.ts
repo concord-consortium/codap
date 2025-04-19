@@ -50,7 +50,7 @@ export const useAxis = (axisPlace: AxisPlace) => {
     displayModel = useDataDisplayModelContextMaybe(),
     axisProvider = useAxisProviderContext(),
     axisModel = axisProvider.getAxis(axisPlace),
-    isNumeric = axisModel && isAnyNumericAxisModel(axisModel),
+    isNumeric = isAnyNumericAxisModel(axisModel),
     multiScale = layout.getAxisMultiScale(axisPlace),
     dataConfiguration = useDataConfigurationContext(),
     attrId = dataConfiguration?.attributeID(axisPlaceToAttrRole[axisPlace]) || "",
@@ -63,7 +63,7 @@ export const useAxis = (axisPlace: AxisPlace) => {
     const _axisModel = axisProvider?.getNumericAxis?.(axisPlace)
     const attrRole = graphPlaceToAttrRole[axisPlace]
     const axisType = axisModel?.type ?? 'empty'
-    const isColor = (axisModel && isColorAxisModel(axisModel)) || axisAttributeType === 'color'
+    const isColor = isColorAxisModel(axisModel) || axisAttributeType === 'color'
     const isBinned = axisModel ? axisProvider?.hasBinnedNumericAxis(axisModel) : false
     const labelFont = vars.labelFont,
       axisTitleHeight = getStringBounds("Xy", labelFont).height,

@@ -424,10 +424,10 @@ export function setPointCoordinates(props: ISetPointCoordinates) {
  Use the bounds of the given axes to compute slope and intercept.
 */
 export function computeSlopeAndIntercept(xAxis?: IAxisModel, yAxis?: IAxisModel, interceptLocked=false) {
-  const xLower = xAxis && isAnyNumericAxisModel(xAxis) ? xAxis.min : 0,
-    xUpper = xAxis && isAnyNumericAxisModel(xAxis) ? xAxis.max : 0,
-    yLower = yAxis && isAnyNumericAxisModel(yAxis) ? yAxis.min : 0,
-    yUpper = yAxis && isAnyNumericAxisModel(yAxis) ? yAxis.max : 0
+  const xLower = isAnyNumericAxisModel(xAxis) ? xAxis.min : 0,
+    xUpper = isAnyNumericAxisModel(xAxis) ? xAxis.max : 0,
+    yLower = isAnyNumericAxisModel(yAxis) ? yAxis.min : 0,
+    yUpper = isAnyNumericAxisModel(yAxis) ? yAxis.max : 0  
 
   // Make the default a bit steeper, so it's less likely to look like
   // it fits a typical set of points
