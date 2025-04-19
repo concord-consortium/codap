@@ -13,7 +13,7 @@ jest.mock("../../../models/tiles/tile-model", () => ({
 }))
 
 jest.mock("../../../models/tiles/tile-notifications", () => ({
-  updateTileNotification: jest.fn((updateType: string, tileModel: any, values: any) => ({
+  updateTileNotification: jest.fn((updateType: string, values: any, tileModel: any) => ({
     message: {
       action: "notify",
       resource: "component",
@@ -31,11 +31,13 @@ describe("updateAxisNotification", () => {
   it("should create a notification with the correct operation and result", () => {
     const updateType = "change axis bounds"
     const domain = [0, 10]
-    const tileContentModel = {
-      type: v3Type
+    const tileModel = {
+      content: {
+        type: v3Type
+      }
     } as any
 
-    const notification = updateAxisNotification(updateType, domain, tileContentModel)
+    const notification = updateAxisNotification(updateType, domain, tileModel)
 
     expect(notification).toBeDefined()
     expect(notification?.message.action).toBe("notify")

@@ -124,7 +124,6 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
     let tile: ITileModel | undefined = undefined
     document?.content?.applyModelChange(() => {
       tile = document?.content?.createOrShowTile?.(tileType, { animateCreation: true })
-      return tile
     }, {
       notify: () => createTileNotification(tile),
       undoStringKey,

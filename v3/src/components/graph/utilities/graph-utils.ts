@@ -1,22 +1,18 @@
 import {format} from "d3"
 import * as PIXI from "pixi.js"
 import {IDataSet} from "../../../models/data/data-set"
-import { ITileModel } from "../../../models/tiles/tile-model"
-import { toV2Id } from "../../../utilities/codap-utils"
 import {
   defaultSelectedColor, defaultSelectedStroke, defaultSelectedStrokeWidth, defaultStrokeWidth
 } from "../../../utilities/color-utils"
 import { isFiniteNumber } from "../../../utilities/math-utils"
 import { t } from "../../../utilities/translation/translate"
 import {IAxisModel, isBaseNumericAxisModel} from "../../axis/models/axis-model"
-import {AxisOrientation, ScaleNumericBaseType} from "../../axis/axis-types"
-import { GraphPlace } from "../../axis-graph-shared"
+import {ScaleNumericBaseType} from "../../axis/axis-types"
 import {CaseData} from "../../data-display/d3-types"
 import {Point, PointDisplayType, transitionDuration} from "../../data-display/data-display-types"
 import {IDataConfigurationModel} from "../../data-display/models/data-configuration-model"
 import {IPixiPointMetadata, PixiPoints} from "../../data-display/pixi/pixi-points"
 import { IGraphDataConfigurationModel } from "../models/graph-data-configuration-model"
-import { IGraphContentModel } from "../models/graph-content-model"
 import { GraphLayout } from "../models/graph-layout"
 
 /**
@@ -678,50 +674,4 @@ export const curveBasis = (points: Point[]) => {
   path += pathBasis(p1, p2, p3, p3)
   path += pathBasis(p2, p3, p3, p3)
   return path
-}
-
-const axisPlaceToOrientationMap: Record<GraphPlace, AxisOrientation> = {
-  "bottom": "horizontal",
-  "top": "horizontal",
-  "left": "vertical",
-  "rightCat": "vertical",
-  "rightNumeric": "vertical",
-  "yPlus": "vertical",
-  "plot": "horizontal",
-  "legend": "horizontal"
-}
-
-export interface IUpdateGraphValues {
-  attributeId: string | number
-  attributeName?: string
-  axisOrientation?: string
-  plotType?: string,
-  primaryRole?: string
-}
-
-export const attrChangeNotificationValues = (
-  place: GraphPlace, attrId: string, attrName?: string, attrIdToRemove = "",
-  tile?: ITileModel
-) => {
-
-  const axisOrientation = axisPlaceToOrientationMap[place] || "axis"
-
-  const attributeName = attrIdToRemove
-    ? `Remove ${ axisOrientation === "horizontal" ? "X" : "Y" }: ${attrName}`
-    : attrName
-
-  const graphContent = tile?.content as IGraphContentModel
-  const plotType = graphContent?.plotType
-  const primaryRole = graphContent?.dataConfiguration.primaryRole || "x"
-
-  const values: IUpdateGraphValues = {
-    attributeId: toV2Id(attrId),
-    attributeName,
-    plotType,
-    primaryRole
-  }
-
-  if (place !== "legend") values.axisOrientation = axisOrientation
-
-  return values
 }

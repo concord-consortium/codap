@@ -66,10 +66,11 @@ export const diComponentHandler: DIHandler = {
         (_type, createOrShowOptions) => document.content?.createOrShowTile(_type, createOrShowOptions)
       const _createOrShow = createOrShow ?? defaultCreateOrShow
       const _options = options ?? {}
-      const title = _title ?? name
-      const newTileOptions = { cannotClose, content, ...dimensions, name, title, ..._options }
-      const tile = _createOrShow(kComponentTypeV2ToV3Map[type], newTileOptions)
+      let tile: Maybe<ITileModel>
       return document.applyModelChange(() => {
+        const title = _title ?? name
+        const newTileOptions = { cannotClose, content, ...dimensions, name, title, ..._options }
+        tile = _createOrShow(kComponentTypeV2ToV3Map[type], newTileOptions)
         if (!tile) return errorResult(t("V3.DI.Error.componentNotCreated"))
 
         return {
@@ -177,7 +178,7 @@ export const diComponentHandler: DIHandler = {
         result = handler.update?.(content, values) ?? { success: true }
       }
     }, {
-      notify: updateTileNotification("update", component, values)
+      notify: updateTileNotification("update", values, component)
     })
 
     return result ?? errorResult(t("V3.DI.Error.unsupportedComponent", { vars: [content.type] }))
