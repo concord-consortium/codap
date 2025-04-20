@@ -461,7 +461,8 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
 
   return (
     <>
-      <svg style={{height: "100%", position: "absolute", width: "100%", zIndex: 11}}>
+      <svg style={{height: "100%", position: "absolute", width: "100%", zIndex: 11,
+          visibility: showConnectingLines ? "visible" : "hidden"}}>
         <g data-testid={`connecting-lines-${instanceId}`} className="connecting-lines" ref={connectingLinesRef}/>
       </svg>
       <div ref={pixiContainerRef} className="map-dot-area"/>
