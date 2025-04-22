@@ -84,7 +84,12 @@ export const graphComponentHandler: DIComponentHandler = {
     const layers: Array<IGraphPointLayerModelSnapshot> = []
     let provisionalDataSet: IDataSet | undefined
     let provisionalMetadata: IDataSetMetadata | undefined
-    getSharedDataSets(appState.document).forEach(sharedDataSet => {
+    const sharedDataSets = getSharedDataSets(appState.document)
+    // We currently only support one dataset in a graph, so we find the one specified by plugin
+    const sharedDataSet = sharedDataSets.find(sd => {
+      return sd.dataSet.name === _dataContext
+    })
+    if (sharedDataSet) {
       const dataset = sharedDataSet.dataSet
       const metadata = getMetadataFromDataSet(dataset)
       if (metadata) {
@@ -150,7 +155,7 @@ export const graphComponentHandler: DIComponentHandler = {
           type: kGraphPointLayerType
         })
       }
-    })
+    }
 
     // Create a GraphContentModel, call syncModelWithAttributeConfiguration to set up its primary role,
     // plot type, and axes properly, then use its snapshot
@@ -178,6 +183,7 @@ export const graphComponentHandler: DIComponentHandler = {
     // so we have to copy that over into the constructed layers. We also make sure all attribute assignments
     // are legal here.
     const finalLayers: Array<IGraphPointLayerModelSnapshot> = []
+    console.log("layers", layers)
     for (let i = 0; i < layers.length; i++) {
       const dataConfiguration = graphModel.layers[i].dataConfiguration as IGraphDataConfigurationModel
       dataConfiguration.setShowMeasuresForSelection(showMeasuresForSelection ?? false)
