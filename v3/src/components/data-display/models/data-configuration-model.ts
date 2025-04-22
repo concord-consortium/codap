@@ -283,8 +283,8 @@ export const DataConfigurationModel = types
           return {role, attributeID: self.attributeID(role) || ''}
         })
         .filter(pair => {
-          return (pair.role !== 'legend' && pair.role !== 'caption') ||
-            self.isAllowableNonAxisAttribute(pair.attributeID) && !!pair.attributeID
+          return ((pair.role !== 'legend' && pair.role !== 'caption') ||
+            self.isAllowableNonAxisAttribute(pair.attributeID)) && !!pair.attributeID
         })
     },
     get uniqueTipAttributes() {
