@@ -183,7 +183,6 @@ export const graphComponentHandler: DIComponentHandler = {
     // so we have to copy that over into the constructed layers. We also make sure all attribute assignments
     // are legal here.
     const finalLayers: Array<IGraphPointLayerModelSnapshot> = []
-    console.log("layers", layers)
     for (let i = 0; i < layers.length; i++) {
       const dataConfiguration = graphModel.layers[i].dataConfiguration as IGraphDataConfigurationModel
       dataConfiguration.setShowMeasuresForSelection(showMeasuresForSelection ?? false)
