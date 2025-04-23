@@ -131,7 +131,7 @@ export const DataConfigurationModel = types
     get attributeDescriptionsStr() {
       return JSON.stringify(this.attributeDescriptions)
     },
-    isAllowableNonAxisAttribute(attrID?: string) {
+    isAttributeAllowedForNonAxisRole(attrID?: string) {
       if (!attrID) return false
       // The legend and caption attributes are not allowed to be an attribute belonging
       // to a collection that is a child of the childmost collection (using axis attributes).
@@ -139,14 +139,14 @@ export const DataConfigurationModel = types
         collections = self.dataset?.collections || []
       let allowed = false
       for (const collection of collections) {
-        allowed = collection.attributes.map(attr => attr?.id || '').includes(attrID)
+        allowed = !!collection.getAttribute(attrID)
         if (allowed || collection.id === childmostCollectionID) break
       }
       return allowed
     },
     attributeDescriptionForRole(role: AttrRole) {
       const attrDesc = this.attributeDescriptions[role]
-      return role !== "legend" || this.isAllowableNonAxisAttribute(attrDesc?.attributeID)
+      return (role !== "legend" && role !== "caption") || this.isAttributeAllowedForNonAxisRole(attrDesc?.attributeID)
         ? attrDesc : undefined
     },
     // returns empty string (rather than undefined) for roles without attributes
@@ -284,7 +284,7 @@ export const DataConfigurationModel = types
         })
         .filter(pair => {
           return ((pair.role !== 'legend' && pair.role !== 'caption') ||
-            self.isAllowableNonAxisAttribute(pair.attributeID)) && !!pair.attributeID
+            self.isAttributeAllowedForNonAxisRole(pair.attributeID)) && !!pair.attributeID
         })
     },
     get uniqueTipAttributes() {

@@ -55,7 +55,7 @@ export function idOfChildmostCollectionForAttributes(attrIDs: string[], data?: I
     if (collection.attributes.some(attr => attrIDs.includes(attr?.id ?? ""))) return collection.id
   }
   // If we didn't find one, return the id of the childmost collection
-  return length > 0 ? collections[length - 1].id : ''
+  return length > 0 ? collections[length - 1].id : undefined
 }
 
 export function firstVisibleParentAttribute(data?: IDataSet, collectionId?: string): IAttribute | undefined {

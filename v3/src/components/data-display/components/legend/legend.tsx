@@ -38,7 +38,7 @@ export const Legend = observer(function Legend({
   const dataConfiguration = useDataConfigurationContext(),
     legendID = dataConfiguration?.attributeID("legend"),
     legendRef = useRef() as React.RefObject<SVGSVGElement>
-    if (!dataConfiguration?.isAllowableNonAxisAttribute(legendID)) return null
+  if (!dataConfiguration?.isAttributeAllowedForNonAxisRole(legendID)) return null
   const attrType = dataConfiguration?.attributeType('legend'),
     LegendComponent = dataConfiguration && legendComponentManager.getLegendComponent(dataConfiguration)
 
