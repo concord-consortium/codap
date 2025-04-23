@@ -40,7 +40,7 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
 
     const selectedCases = dataConfiguration.selection,
       hasLegend = !!dataConfiguration.attributeID('legend')
-    mapLayerModel.features.forEach((feature) => {
+    Object.values(mapLayerModel.features).forEach((feature) => {
       const
         featureCaseID = (feature.options as PolygonLayerOptions).caseID,
         isSelected = selectedCases.includes(featureCaseID),
@@ -67,7 +67,7 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
   const refreshPolygons = useDebouncedCallback((selectedOnly: boolean) => {
     if (!dataset) return
     const
-      stashFeature = (caseID: string, jsonObject: GeoJsonObject, caseIndex: number, error: string) => {
+      stashFeature = (caseID: string, jsonObject: GeoJsonObject, error: string) => {
 
         let infoPopup: Popup | null
 
@@ -78,7 +78,7 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
           },
 
           handleMouseover = () => {
-            const tFeature = mapLayerModel.features[caseIndex],
+            const tFeature = mapLayerModel.features[caseID],
               attributeIDs = (dataConfiguration.uniqueTipAttributes ?? [])
                 .map(aPair => aPair.attributeID),
               tipText = mapModel.getTipText({attributeIDs, caseID, dataset})
@@ -111,7 +111,7 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
           debugLog(DEBUG_MAP, `MapPolygonLayer.refreshPolygons: error: ${error}`)
           return
         }
-        mapLayerModel.features[caseIndex] = geoJSON(jsonObject, {
+        mapLayerModel.features[caseID] = geoJSON(jsonObject, {
           style() {
             return {
               fillColor: kMapAreaNoLegendColor,
@@ -119,7 +119,7 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
               smoothFactor: 2
             }
           },
-          caseID // Stashes reference in features[iIndex].options.caseID
+          caseID // Stashes reference in features[caseID].options.caseID
         } as PolygonLayerOptions)
           .on(PixiBackgroundPassThroughEvent.Click, handleClick)
           .on(PixiBackgroundPassThroughEvent.MouseOver, handleMouseover)
@@ -131,37 +131,26 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
       polygonId = boundaryAttributeFromDataSet(dataset),
       // Keep track of which features are already on the map so that we can delete ones that no longer have
       // corresponding cases in the dataset
-      featuresToRemove = mapLayerModel.features.map((feature) => {
-        return (feature.options as PolygonLayerOptions).caseID
-      })
+      featuresToRemove = Object.keys(mapLayerModel.features)
     // If this layer is not visible, skipping the following mapping will cause all the features to be removed
     // which is what we want
-    mapLayerModel.isVisible && dataConfiguration.getCaseDataArray(0).forEach((aCaseData, caseIndex) => {
-      const notAlreadyStashed = mapLayerModel.features.findIndex((feature) => {
-        return (feature.options as PolygonLayerOptions).caseID === aCaseData.caseID
-      }) === -1
+    mapLayerModel.isVisible && dataConfiguration.getCaseDataArray(0).forEach((aCaseData) => {
+      const notAlreadyStashed = mapLayerModel.features[aCaseData.caseID] === undefined
       if (notAlreadyStashed) {
         const
           polygon = safeJsonParse(dataset.getStrValue(aCaseData.caseID, polygonId))
         if (polygon) {
-          stashFeature(aCaseData.caseID, polygon, caseIndex, '')
+          stashFeature(aCaseData.caseID, polygon, '')
         }
       } else {  // This case has an already stashed feature. Remove it from the list of current features
         // so that its corresponding feature won't be deleted below
-        const featureID = (mapLayerModel.features[caseIndex].options as PolygonLayerOptions).caseID,
-          featureIndex = featuresToRemove.indexOf(featureID)
-        featuresToRemove.splice(featureIndex, 1)
+        featuresToRemove.splice(featuresToRemove.indexOf(aCaseData.caseID), 1)
       }
     })
     // Delete features that no longer have corresponding cases in the dataset
-    featuresToRemove.forEach((featureID) => {
-      const featureIndex = mapLayerModel.features.findIndex((feature) => {
-        return (feature.options as PolygonLayerOptions).caseID === featureID
-      })
-      if (featureIndex >= 0) {
-        leafletMap.removeLayer(mapLayerModel.features[featureIndex])
-        mapLayerModel.features.splice(featureIndex, 1)
-      }
+    featuresToRemove.forEach((caseID) => {
+      leafletMap.removeLayer(mapLayerModel.features[caseID])
+      delete mapLayerModel.features[caseID]
     })
     // Now that we're sure we have the right polygon features, update their styles
     refreshPolygonStyles()
