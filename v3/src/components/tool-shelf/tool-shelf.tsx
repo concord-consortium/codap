@@ -121,7 +121,7 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
   function handleTileButtonClick(tileType: string) {
     const tileInfo = getTileComponentInfo(tileType)
     const { undoStringKey = "", redoStringKey = "" } = tileInfo?.shelf || {}
-    let tile: ITileModel | undefined = undefined
+    let tile: Maybe<ITileModel>
     document?.content?.applyModelChange(() => {
       tile = document?.content?.createOrShowTile?.(tileType, { animateCreation: true })
     }, {
