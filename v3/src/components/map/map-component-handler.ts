@@ -111,7 +111,7 @@ export const mapComponentHandler: DIComponentHandler = {
       content.setCenterAndZoom(center, zoom)
     }
 
-    // CHECK: is this approach of passing a null value to remove the georaster consistent
+    // CHECK: is this approach of passing a null value to remove the geoRaster consistent
     // with the rest of the API?
     if (geoRaster !== undefined) {
       // If the geoRaster is null, we remove it

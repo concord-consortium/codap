@@ -209,6 +209,31 @@ async function getGeoRaster(mapModel: IMapContentModel) {
   }
 }
 
+function findGeoRasterLayer(mapModel: IMapContentModel) {
+  if (!mapModel.leafletMap) {
+    return
+  }
+
+  // Find the current layer if it exists
+  // And also clean up any extra geo raster layers
+  let currentLayer: any = undefined
+  mapModel.leafletMap.eachLayer((existingLayer) => {
+    // We need to remove the existing layer if it is a georaster layer
+    // This is a bit of a hack. It isn't clear how to tell the type of a layer.
+    if ("georasters" in existingLayer) {
+      if (!currentLayer) {
+        currentLayer = existingLayer
+        return
+      }
+
+      // We've found an extra layer, remove it
+      existingLayer.remove()
+    }
+  })
+
+  return currentLayer
+}
+
 /**
  * Creates a GeoRaster layer from a the model. If the url in the model changes while
  * it is being processed, the function will return undefined.
@@ -217,32 +242,104 @@ async function getGeoRaster(mapModel: IMapContentModel) {
  */
 export async function createLeafletGeoRasterLayer(mapModel: IMapContentModel) {
   try {
+
+    if (!mapModel.leafletMap) {
+      return
+    }
+
+    if (!mapModel.geoRaster) {
+      // Remove the layer if it exists
+      const existingLayer = findGeoRasterLayer(mapModel)
+      if (existingLayer) {
+        existingLayer.remove()
+      }
+      return
+    }
+
+    const { url, opacity } = mapModel.geoRaster
+
     const georaster = await getGeoRaster(mapModel)
     if (!georaster) {
       // The georaster could not be created perhaps because the URL changed
       return
     }
 
-    const layer = new GeoRasterLayer({
-      georaster,
-      // Add to the overlay pane so it is on top of the base map but below the
-      // the other layers that CODAP adds.
-      pane: "overlayPane",
-      opacity: mapModel.geoRaster?.opacity ?? 0.5,
-      // This is how detailed the georaster should be projected on to each Leaflet tile
-      // Most tiles are 256x256 some are 512x512. Using 256 shows the squares of the
-      // georaster nicely. However when the map is zoomed in and the georaster isn't
-      // detailed at that zoom level, it is kind of a waste. However it does expose the
-      // exact lines of the georaster "pixels" or samples. That might be useful for students
-      // to understand raster data.
-      resolution: 256,
-      // Uncomment to get more information about the georaster rendering process
-      // debugLevel: 2,
-    })
+    if (url !== mapModel.geoRaster?.url) {
+      // The URL has changed since we started getting the geoRaster.
+      // Bail out, so we don't take time away from processing the new one.
+      return
+    }
 
-    return {
-      georaster,
-      layer
+    // Find the current layer if it exists
+    // We search for the layer here after the getGeoRaster call incase the layers were changed
+    // while we were waiting for the georaster to be created.
+    // TODO: I can't figure out the typing for the GeoRasterLayer, it is like a class but
+    // really it is an object with an initializer function based on the Leaflet `typeof L.Class`
+    let currentLayer = findGeoRasterLayer(mapModel)
+
+    if (currentLayer) {
+      // Make sure the current layer can be updated
+      if (
+        currentLayer.georasters.length !== 1 ||
+        currentLayer.georasters[0].width !== georaster.width ||
+        currentLayer.georasters[0].height !== georaster.height ||
+        currentLayer.georasters[0].pixelWidth !== georaster.pixelWidth ||
+        currentLayer.georasters[0].pixelHeight !== georaster.pixelHeight ||
+        currentLayer.options.opacity !== opacity
+      ) {
+        // The layer is not the same size as the new geoRaster, so remove it
+        currentLayer.remove()
+        currentLayer = undefined
+      }
+    }
+
+    if (currentLayer) {
+      currentLayer.georasters[0] = georaster
+      currentLayer.palette = georaster.palette
+      currentLayer.rasters = georaster.values
+
+      // TODO: we need to update the opacity of the layer here too
+      // Or just start over if the opacity has changed
+
+      const tiles = currentLayer.getActiveTiles()
+      if (!tiles) {
+        console.error("No active tiles available")
+        return
+      }
+
+      // Note: The unreleased version of the georaster-layer-for-leaflet library caches the tiles
+      // If we start using that we'll need to deal with the cache correctly in this case.
+      // Otherwise `GeoRasterLayer.createTile` will return old tiles that haven't been updated
+      // new geoRaster.
+      //
+      // I think this can be tested by changing the zoom level, remembering what the image looks like,
+      // then change the zoom level back.
+      // Then change the image being viewed with the slider. And then change the zoom level again and see
+      // if the resulting image has been updated or still looks like the remembered image.
+      //
+      // Currently this isn't a problem because the tiles are not cached.
+      // Rather than using the unreleased version of the library, it'd probably be better to make our own
+      // version that is less flexible, more compact, and we can optimize it better.
+
+      tiles.forEach((tile: any) => {
+        const { coords, el } = tile
+        currentLayer.drawTile({ tile: el, coords: currentLayer._wrapCoords(coords), context: el.getContext("2d") })
+      })
+    } else {
+      const layer = new GeoRasterLayer({
+        georaster,
+        // Add to the overlay pane so it is on top of the base map but below the
+        // the other layers that CODAP adds.
+        pane: "overlayPane",
+        opacity: mapModel.geoRaster?.opacity ?? 0.5,
+        // This is how detailed the georaster should be projected on to each Leaflet tile
+        // Most tiles are 256x256 some are 512x512. Using 256 shows the squares of the
+        // georaster nicely. It might be OK to go down to 128 or even 64.
+        resolution: 256,
+        // Uncomment to get more information about the georaster rendering process
+        // debugLevel: 2,
+      })
+      layer.addTo(mapModel.leafletMap)
     }
   } catch (error) {
     console.error("Error initializing GeoRasterLayer", error)

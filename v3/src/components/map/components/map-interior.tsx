@@ -12,7 +12,8 @@ import { DataConfigurationContext } from "../../data-display/hooks/use-data-conf
 import { useTileModelContext } from "../../../hooks/use-tile-model-context"
 import { isMapPinLayerModel } from "../models/map-pin-layer-model"
 import { MapPinLayer } from "./map-pin-layer"
-import { createLeafletGeoRasterLayer } from "../utilities/georaster-utils"
+import { createLeafletGeoRasterLayer as createOrUpdateLeafletGeoRasterLayer } from "../utilities/georaster-utils"
+import { mstAutorun } from "../../../utilities/mst-autorun"
 
 interface IProps {
   setPixiPointsLayer: (pixiPoints: PixiPoints, layerIndex: number) => void
@@ -32,33 +33,14 @@ export const MapInterior = observer(function MapInterior({setPixiPointsLayer}: I
     }
   }, [tileTransitionComplete, mapModel])
 
-  // Add GeoRaster layer when URL changes
-  // FIXME: using an effect here is not ideal. It requires two renders to add the layer.
-  // A mobx reaction would be better. This could be in the map model, or perhaps in a
-  // presentation model that is used by this component.
-  useEffect(function addGeoTIFFLayer() {
-    if (!mapModel.geoRaster) return
-
-    // Add the GeoRaster using the georaster-layer-for-leaflet library
-    createLeafletGeoRasterLayer(mapModel).then(result => {
-      if (!result) return
-      const { georaster, layer } = result
-      if (georaster && layer && mapModel.leafletMap) {
-        mapModel.leafletMap.eachLayer((existingLayer) => {
-          // We need to remove the existing layer if it is a georaster layer
-          // This is a bit of a hack. It isn't clear how to tell the type of a layer.
-          if ("georasters" in existingLayer) {
-            // FIXME: This still causes a flicker where the is no layer for a moment.
-            // Probably this can be fixed by updating the existing layer instead of
-            // removing it and adding it again. That can probably be done by
-            // calling layer.updateColors(...)
-            existingLayer.remove()
-          }
-        })
-        layer.addTo(mapModel.leafletMap)
-      }
-    })
-  }, [mapModel, mapModel.geoRaster?.url, mapModel.leafletMap])
+  // Add or update the GeoRaster layer when URL changes
+  useEffect(() => {
+    return mstAutorun(() => {
+      // This reads the geoRaster.url from the model before going into an async task
+      // so change to the geoRaster or its url will retrigger this autorun
+      createOrUpdateLeafletGeoRasterLayer(mapModel)
+    }, {name: "MapInterior.mstAutorun [createOrUpdateLeafletGeoRasterLayer]"}, mapModel)
+  }, [mapModel])
 
 
   /**
