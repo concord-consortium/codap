@@ -22,7 +22,6 @@ import { IGraphDataConfigurationModel, kGraphDataConfigurationType } from "./mod
 import { GraphLayout } from "./models/graph-layout"
 import { syncModelWithAttributeConfiguration } from "./models/graph-model-utils"
 import { IGraphPointLayerModelSnapshot, kGraphPointLayerType } from "./models/graph-point-layer-model"
-import { a } from "react-dom-factories"
 
 interface AttributeInfo {
   id?: number | null
