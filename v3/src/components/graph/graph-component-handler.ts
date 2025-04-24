@@ -22,6 +22,7 @@ import { IGraphDataConfigurationModel, kGraphDataConfigurationType } from "./mod
 import { GraphLayout } from "./models/graph-layout"
 import { syncModelWithAttributeConfiguration } from "./models/graph-model-utils"
 import { IGraphPointLayerModelSnapshot, kGraphPointLayerType } from "./models/graph-point-layer-model"
+import { a } from "react-dom-factories"
 
 interface AttributeInfo {
   id?: number | null
@@ -86,9 +87,11 @@ export const graphComponentHandler: DIComponentHandler = {
     let provisionalMetadata: IDataSetMetadata | undefined
     const sharedDataSets = getSharedDataSets(appState.document)
     // We currently only support one dataset in a graph, so we find the one specified by plugin
-    const sharedDataSet = sharedDataSets.find(sd => {
-      return sd.dataSet.name === _dataContext
-    })
+    const sharedDataSet = sharedDataSets.length === 1
+                            ? sharedDataSets[0]
+                            : sharedDataSets.find(sd => {
+                              return _dataContext && sd.dataSet.matchTitleOrNameOrId(_dataContext)
+                            })
     if (sharedDataSet) {
       const dataset = sharedDataSet.dataSet
       const metadata = getMetadataFromDataSet(dataset)
