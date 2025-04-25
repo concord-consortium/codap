@@ -74,7 +74,7 @@ export class NumericAxisHelper extends AxisHelper {
     } else if (!hasDraggableNumericAxis) {
       const formatter = (value: number) => this.multiScale?.formatValueForScale(value) ?? ""
       const {tickValues, tickLabels} = this.axisProvider.nonDraggableAxisTicks(formatter) ||
-        {tickValues: [], tickLabels: []}
+      {tickValues: [], tickLabels: []}
       axisScale.tickValues(tickValues)
       axisScale.tickFormat((d, i) => tickLabels[i])
     }
@@ -94,7 +94,42 @@ export class NumericAxisHelper extends AxisHelper {
       .style("stroke", "lightgrey")
       .style("stroke-opacity", "0.7")
 
-      this.showZeroAxisLine && this.renderZeroAxisLine()
-      this.showScatterPlotGridLines && this.renderScatterPlotGridLines()
+    this.showZeroAxisLine && this.renderZeroAxisLine()
+    this.showScatterPlotGridLines && this.renderScatterPlotGridLines()
+
+    if (this.axisModel.place === 'bottom') {
+      // Detect overlapping tick labels
+      const tickLabelsSelection = subAxisSelection.selectAll(".tick text")
+      requestAnimationFrame(() => {
+        let hasOverlap = false
+        let previousEnd = 0
+        let detectedNonZeroTextLength = false
+
+        tickLabelsSelection.each(function (_, i) {
+          const currentNode = this as SVGTextElement
+          const textWidth = currentNode.getComputedTextLength()
+          const currentStart = currentNode.getBoundingClientRect().left
+          const currentEnd = currentStart + textWidth
+          detectedNonZeroTextLength ||= textWidth > 0
+
+          if (i > 0 && currentStart < previousEnd) {
+            hasOverlap = true
+          }
+          previousEnd = currentEnd
+        })
+
+        if (detectedNonZeroTextLength) {
+          // Rotate labels if overlap is detected
+          if (hasOverlap) {
+            tickLabelsSelection
+              .attr("transform", "rotate(-90)")
+              .style("text-anchor", "end")
+              .attr("x", -8)
+              .attr("y", -6)
+          }
+          this.axisModel.setLabelsAreRotated(hasOverlap)
+        }
+      })
+    }
   }
 }

@@ -48,7 +48,6 @@ export interface IComputePrimaryCoord {
   numExtraPrimaryBands: number
   primaryAttrID: string
   primaryAxisScale: ScaleLinear<number, number>
-  totalNumberOfBins?: number
 }
 
 export interface IComputeSecondaryCoord {
@@ -62,6 +61,7 @@ export interface IComputeSecondaryCoord {
   layout?: GraphLayout
   numExtraSecondaryBands: number
   overlap: number
+  numPointsInRow?: number
   pointDiameter: number
   primaryIsBottom: boolean
   secondaryAxisExtent: number
@@ -81,6 +81,14 @@ export interface IAdjustCoordForStacks {
   secondaryBandwidth: number
   screenCoord: number
   primaryIsBottom: boolean
+  indexInBin: number
+  numPointsInRow: number
+}
+
+const computeRowAndColumn = (indexInBin: number, numPointsInRow: number) => {
+  const row = Math.floor(indexInBin / numPointsInRow)
+  const column = indexInBin % numPointsInRow
+  return { row, column }
 }
 
 /*
@@ -108,7 +116,8 @@ export const computePrimaryCoord = (props: IComputePrimaryCoord) => {
  */
 export const computeSecondaryCoord = (props: IComputeSecondaryCoord) => {
   const { baseCoord, dataConfig, extraSecondaryAxisScale, extraSecondaryBandwidth, extraSecondaryCat, indexInBin,
-          layout, numExtraSecondaryBands, overlap, pointDiameter, primaryIsBottom, secondaryAxisExtent,
+          layout, numExtraSecondaryBands, overlap, numPointsInRow = 1,
+          pointDiameter, primaryIsBottom, secondaryAxisExtent,
           secondaryAxisScale, secondaryBandwidth, secondaryCat, secondarySign, isHistogram = false } = props
   let catCoord = (
     !!secondaryCat && secondaryCat !== kMain
@@ -120,35 +129,38 @@ export const computeSecondaryCoord = (props: IComputeSecondaryCoord) => {
 
   const subPlotCells = layout && new SubPlotCells(layout, dataConfig)
   const secondaryNumericUnitLength = subPlotCells ? subPlotCells.secondaryNumericUnitLength : 0
+  const { row} = computeRowAndColumn(indexInBin, numPointsInRow)
   if (primaryIsBottom) {
     extraCoord = secondaryAxisExtent - extraSecondaryBandwidth - extraCoord
     catCoord = extraSecondaryBandwidth - secondaryBandwidth - catCoord
-    const secondaryCoord = isHistogram
+    return isHistogram
       ? baseCoord - catCoord - extraCoord - secondaryNumericUnitLength / 2 - indexInBin * secondaryNumericUnitLength
-      : baseCoord - catCoord - extraCoord - pointDiameter / 2 - indexInBin * (pointDiameter - overlap)
-
-    return secondaryCoord
+      : baseCoord - catCoord - extraCoord - pointDiameter / 2 - row * (pointDiameter - overlap)
   } else {
-    const secondaryCoord = isHistogram && secondaryNumericUnitLength
+    return isHistogram && secondaryNumericUnitLength
       ? baseCoord + extraCoord + secondarySign *
           (catCoord + secondaryNumericUnitLength / 2 + indexInBin * secondaryNumericUnitLength)
-      : baseCoord + extraCoord + secondarySign * (catCoord + pointDiameter / 2 + indexInBin * (pointDiameter - overlap))
-
-    return secondaryCoord
+      : baseCoord + extraCoord + secondarySign * (catCoord + pointDiameter / 2 + row * (pointDiameter - overlap))
   }
 }
 
 /*
- * Returns bins, binMap and overlap values.
+ * Returns bins, binMap, overlap and numPointsPerRow values.
  */
 export const computeBinPlacements = (props: IComputeBinPlacements) => {
   const { binWidth: _binWidth, dataConfig, dataset, extraPrimaryAttrID, extraSecondaryAttrID, layout, minBinEdge = 0,
           numExtraPrimaryBands, pointDiameter, primaryAttrID, primaryAxisScale, primaryPlace, secondaryAttrID,
           secondaryBandwidth, totalNumberOfBins } = props
   const primaryLength = layout.getAxisLength(primaryPlace) / numExtraPrimaryBands
-  let overlap = 0
   const numBins = totalNumberOfBins ? totalNumberOfBins : Math.ceil(primaryLength / pointDiameter) + 1
   const binWidth = _binWidth ? _binWidth : primaryLength / (numBins - 1)
+  const primaryBandwidth = primaryLength / numBins
+  const kPrimaryGap = 6
+  const kSecondaryGap = 5
+  const allowedPointsPerRow = Math.max(1, Math.floor((primaryBandwidth - kPrimaryGap) / pointDiameter))
+  const allowedPointsPerColumn = Math.max(1, Math.floor((secondaryBandwidth - kSecondaryGap) / pointDiameter))
+  let overlap = 0
+  let numPointsInRow = 1
   const bins: Record<string, Record<string, Record<string, string[][]>>> = {}
   const binMap: Record<string, BinMap> = {}
 
@@ -195,11 +207,13 @@ export const computeBinPlacements = (props: IComputeBinPlacements) => {
       })) || 0
     })) || 0
 
-    const excessHeight = Math.max(0, maxInBin - Math.floor(secondaryBandwidth / pointDiameter)) * pointDiameter
-    overlap = excessHeight / maxInBin
+    numPointsInRow = Math.max(1, Math.min(allowedPointsPerRow, Math.ceil(maxInBin / allowedPointsPerColumn)))
+    const excessHeight = Math.max(0, 1 + (maxInBin / numPointsInRow) -
+      Math.floor(secondaryBandwidth / pointDiameter)) * pointDiameter
+    overlap = excessHeight / (maxInBin / numPointsInRow)
   }
 
-  return { bins, binMap, overlap }
+  return { bins, binMap, overlap, numPointsInRow }
 }
 
 /*
@@ -227,27 +241,16 @@ export const calculatePointStacking = (pointCount: number, pointDiameter: number
  * into account the number of stacks in the bin and that the stack group is always centered within the bin.
  */
 export const adjustCoordForStacks = (props: IAdjustCoordForStacks) => {
-  const { anID, axisType, binForCase, binMap, bins, pointDiameter, secondaryBandwidth, screenCoord,
-          primaryIsBottom } = props
+  const { anID, axisType, binMap, pointDiameter, screenCoord,
+    indexInBin, numPointsInRow } = props
   if (!binMap[anID]) return screenCoord
 
   let adjustedCoord = screenCoord
-  const { category, extraCategory, extraPrimaryCategory, indexInBin } = binMap[anID]
-  const casesInBin = binMap[anID]
-    ? bins[category][extraCategory][extraPrimaryCategory][binForCase]
-    : []
-  const { maxPointsPerStack, numberOfStacks } =
-    calculatePointStacking(casesInBin?.length, pointDiameter, secondaryBandwidth)
-  const stackIndex = Math.floor(indexInBin / maxPointsPerStack)
 
-  if (maxPointsPerStack < casesInBin?.length) {
-    if (axisType === "primary") {
-      const stackShift = (stackIndex - (numberOfStacks - 1) / 2) * pointDiameter
-      adjustedCoord += stackShift
-    } else if (axisType === "secondary") {
-      const stackShift = stackIndex * pointDiameter * maxPointsPerStack
-      adjustedCoord = primaryIsBottom ? screenCoord + stackShift : screenCoord - stackShift
-    }
+  if (axisType === "primary") {
+    const { column } = computeRowAndColumn(indexInBin, numPointsInRow)
+    const stackShift = (column - (numPointsInRow - 1) / 2) * pointDiameter
+    adjustedCoord += stackShift
   }
 
   return adjustedCoord
