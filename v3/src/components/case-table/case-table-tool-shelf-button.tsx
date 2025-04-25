@@ -13,6 +13,8 @@ import {
 } from "../../models/data/data-set-notifications"
 import { kSharedDataSetType, SharedDataSet } from "../../models/shared/shared-data-set"
 import { getFormulaManager, getSharedModelManager } from "../../models/tiles/tile-environment"
+import { ITileModel } from "../../models/tiles/tile-model"
+import { createTileNotification } from "../../models/tiles/tile-notifications"
 import { uniqueName } from "../../utilities/js-utils"
 import { t } from "../../utilities/translation/translate"
 import {
@@ -41,20 +43,21 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
   if (!content) return null
 
   const handleCreateNewCaseTable = () => {
+    let tile: Maybe<ITileModel>
     document.applyModelChange(() => {
       const baseName = t("DG.AppController.createDataSet.name")
       const newName = uniqueName(baseName, name => !datasetNames.includes(name), " ")
       const ds = DataSet.create({ name: newName })
       ds.addAttribute({ name: t("DG.AppController.createDataSet.initialAttribute") })
       const options: INewTileOptions = { animateCreation: true, markNewlyCreated: true }
-      const tile = createDefaultTileOfType(kCaseTableTileType, options)
+      tile = createDefaultTileOfType(kCaseTableTileType, options)
       if (!tile) return
       const { sharedData, sharedMetadata } = gDataBroker.addDataSet(ds, tile.id)
       // Add dataset to the formula manager
       getFormulaManager(document)?.addDataSet(ds)
       createTableOrCardForDataset(sharedData, sharedMetadata, kCaseTableTileType, options)
     }, {
-      notify: dataContextCountChangedNotification,
+      notify: [ dataContextCountChangedNotification, () => createTileNotification(tile) ],
       undoStringKey: "V3.Undo.caseTable.create",
       redoStringKey: "V3.Redo.caseTable.create",
       log: {message: "Create New Empty DataSet", args: {}, category: "document"}

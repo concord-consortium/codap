@@ -3,10 +3,13 @@ import React, {useEffect, useRef} from "react"
 import { comparer, reaction } from "mobx"
 import {drag, ScaleContinuousNumeric, select} from "d3"
 import { logMessageWithReplacement } from "../../../lib/log-message"
+import { getTileModel } from "../../../models/tiles/tile-model"
 import { t } from "../../../utilities/translation/translate"
 import {isVertical} from "../../axis-graph-shared"
+import { useDataDisplayModelContextMaybe } from "../../data-display/hooks/use-data-display-model"
 import {RectIndices, selectDragRects} from "../axis-types"
 import {useAxisLayoutContext} from "../models/axis-layout-context"
+import { updateAxisNotification } from "../models/axis-notifications"
 import {MultiScale} from "../models/multi-scale"
 import { IBaseNumericAxisModel } from "../models/numeric-axis-models"
 
@@ -29,7 +32,8 @@ export const NumericAxisDragRects = observer(
   function NumericAxisDragRects({axisModel, axisWrapperElt, numSubAxes = 1, subAxisIndex = 0}: IProps) {
     const rectRef = useRef() as React.RefObject<SVGGElement>,
       { lockZero, place } = axisModel,
-      layout = useAxisLayoutContext()
+      layout = useAxisLayoutContext(),
+      displayModel = useDataDisplayModelContextMaybe()
 
     useEffect(function createRects() {
       let multiScale: MultiScale | undefined,
@@ -114,9 +118,13 @@ export const NumericAxisDragRects = observer(
         onDragEnd: D3Handler = function() {
           select(this)
             .classed('dragging', false)
+          const tileModel = displayModel && getTileModel(displayModel)
           // move "dynamic" values to model on drop
           axisModel.applyModelChange(
             () => axisModel.setDomain(...axisModel.domain), {
+              notify: tileModel
+                ? updateAxisNotification("change axis bounds", axisModel.domain, tileModel)
+                : undefined,
               undoStringKey: dilating ? "DG.Undo.axisDilate" : "DG.Undo.axisDrag",
               redoStringKey: dilating ? "DG.Redo.axisDilate" : "DG.Redo.axisDrag",
               log: logMessageWithReplacement("Axis domain change: lower: %@, upper: %@",
@@ -181,7 +189,7 @@ export const NumericAxisDragRects = observer(
           }
         })
       }
-    }, [axisModel, place, layout, numSubAxes, subAxisIndex, lockZero])
+    }, [axisModel, place, layout, numSubAxes, subAxisIndex, lockZero, displayModel])
 
     // update layout of axis drag rects when axis bounds change
     useEffect(() => {

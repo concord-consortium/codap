@@ -17,7 +17,7 @@ export const dateUnits = ["year", "month", "day", "hour", "minute", "second", "m
 export type DateUnit = typeof dateUnits[number]
 
 export function isDateUnit(value: any): value is DateUnit {
-  return dateUnits.includes(value as DateUnit)
+  return dateUnits.includes(value)
 }
 
 export enum DatePrecision {

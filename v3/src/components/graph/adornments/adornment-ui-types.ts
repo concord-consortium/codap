@@ -17,10 +17,10 @@ export function getMeasuresForPlot(plotType: PlotType): IMeasure[] {
       ]
     case "barChart":
     case "dotChart":
+    case "binnedDotPlot":
       return [
         {title: "DG.Inspector.graphCount", type: "Count"}
       ]
-    case "binnedDotPlot":
     case "dotPlot":
     case "histogram":
     case "linePlot":
