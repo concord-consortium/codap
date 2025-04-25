@@ -4,8 +4,8 @@
 
 ### ✨ Features & Improvements:
 - **CODAP-63:** Color axes treated as categorical produce color swatch axes
-- **CODAP-609:** Support component-level notifications in API for CODAP v3
 - **CODAP-601:** A formula for a bar chart computes the heights of the bars
+- **CODAP-609:** Support component-level notifications in API for CODAP v3
 
 ### 🐞 Bug Fixes:
 - **CODAP-86:** The ruler menu for binned dot plots should only show **Count** and **Percent**
