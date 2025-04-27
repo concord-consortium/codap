@@ -16,7 +16,8 @@ export const MapPolygonLayerModel = MapLayerModel
     type: types.optional(types.literal(kMapPolygonLayerType), kMapPolygonLayerType),
   })
   .volatile(() => ({
-    features: [] as GeoJSON[]
+    // Key is case ID
+    features: {} as Record<string, GeoJSON>
   }))
   .actions(self => ({
     afterCreate() {
