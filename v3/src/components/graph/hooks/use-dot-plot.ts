@@ -91,7 +91,7 @@ export const useDotPlot = (pixiPoints?: PixiPoints) => {
     let primaryScreenCoord = primaryCoord + extraPrimaryCoord
 
     if (binWidth !== undefined && !isHistogram) {
-      const { indexInBin } = binMap[anID]
+      const { indexInBin } = binMap[anID] || {}
       const caseValue = dataDisplayGetNumericValue(dataset, anID, primaryAttrID) ?? -1
       const binForCase = determineBinForCase(caseValue, binWidth, minBinEdge)
       primaryScreenCoord = adjustCoordForStacks({
