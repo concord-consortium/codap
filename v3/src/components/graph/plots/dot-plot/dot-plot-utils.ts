@@ -129,7 +129,7 @@ export const computeSecondaryCoord = (props: IComputeSecondaryCoord) => {
 
   const subPlotCells = layout && new SubPlotCells(layout, dataConfig)
   const secondaryNumericUnitLength = subPlotCells ? subPlotCells.secondaryNumericUnitLength : 0
-  const { row} = computeRowAndColumn(indexInBin, numPointsInRow)
+  const { row } = computeRowAndColumn(indexInBin, numPointsInRow)
   if (primaryIsBottom) {
     extraCoord = secondaryAxisExtent - extraSecondaryBandwidth - extraCoord
     catCoord = extraSecondaryBandwidth - secondaryBandwidth - catCoord

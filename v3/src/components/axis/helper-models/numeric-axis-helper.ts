@@ -74,7 +74,7 @@ export class NumericAxisHelper extends AxisHelper {
     } else if (!hasDraggableNumericAxis) {
       const formatter = (value: number) => this.multiScale?.formatValueForScale(value) ?? ""
       const {tickValues, tickLabels} = this.axisProvider.nonDraggableAxisTicks(formatter) ||
-      {tickValues: [], tickLabels: []}
+        {tickValues: [], tickLabels: []}
       axisScale.tickValues(tickValues)
       axisScale.tickFormat((d, i) => tickLabels[i])
     }

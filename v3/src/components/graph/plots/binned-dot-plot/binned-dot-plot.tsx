@@ -37,7 +37,7 @@ export const BinnedDotPlot = observer(function BinnedDotPlot({pixiPoints, aboveP
   const primaryAxisScaleCopy = useRef<ScaleLinear<number, number>>(primaryAxisScale.copy())
   const lowerBoundaryRef = useRef<number>(0)
   const logFn = useRef<Maybe<LogMessageFn>>()
-  let handleDragBinBoundaryEnd: () => void = useCallback(() => {}, [])
+  const handleDragBinBoundaryEndFn = useRef<() => void>(() => {})
 
   const { onDrag, onDragEnd, onDragStart } = useDotPlotDragDrop()
   usePixiDragHandlers(pixiPoints, {start: onDragStart, drag: onDrag, end: onDragEnd})
@@ -110,12 +110,12 @@ export const BinnedDotPlot = observer(function BinnedDotPlot({pixiPoints, aboveP
         drag<SVGPathElement, unknown>()
           .on("start", (e) => handleDragBinBoundaryStart(e, i))
           .on("drag", (e) => handleDragBinBoundary(e))
-          .on("end", handleDragBinBoundaryEnd)
+          .on("end", handleDragBinBoundaryEndFn.current)
       )
     })
-  }, [handleDragBinBoundary, handleDragBinBoundaryEnd, handleDragBinBoundaryStart])
+  }, [handleDragBinBoundary, handleDragBinBoundaryStart])
 
-  handleDragBinBoundaryEnd = useCallback(() => {
+  handleDragBinBoundaryEndFn.current = useCallback(() => {
     if (!binnedPlot) return
     binnedPlot.setDragBinIndex(-1)
     drawBinBoundaries()
@@ -187,15 +187,14 @@ export const BinnedDotPlot = observer(function BinnedDotPlot({pixiPoints, aboveP
 
   useEffect(function respondToAxisLabelRotation()  {
     if (primaryAxisModel) {
-      const disposer = mstReaction(
+      return mstReaction(
         () => primaryAxisModel.labelsAreRotated,
         () => {
           refreshPointPositions(false)
         }, {name: "primaryAxisModel.labelsAreRotated"}, primaryAxisModel
       )
-      return () => disposer()
     }
-  }, []);
+  }, [primaryAxisModel, refreshPointPositions])
 
   return (
     abovePointsGroupRef?.current && createPortal(
