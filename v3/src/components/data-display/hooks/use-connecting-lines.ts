@@ -104,7 +104,13 @@ export const useConnectingLines = (props: IProps) => {
       const lineCaseIds = allLineCaseIds[primaryAttrValue]
       const allCasesSelected = lineCaseIds?.every((caseID: string) => dataset?.isCaseSelected(caseID))
       const legendID = dataConfig?.attributeID("legend")
-      const color = parentAttrID && legendID ? pointColorAtIndex(linesIndex) : pointColorAtIndex(0)
+      const categoryDataArray = dataConfig?.categoryArrayForAttrRole("legend")
+      const legendAttribute = legendID ? dataset?.getAttribute(legendID) : undefined
+      const legendAttrType = legendAttribute?.type
+      const color = legendAttribute && legendAttrType === "color" && categoryDataArray
+                      ? categoryDataArray[linesIndex]
+                      : parentAttrID && legendID ? pointColorAtIndex(linesIndex)
+                                                  : pointColorAtIndex(0)
 
       connectingLinesArea
         .append("path")

@@ -222,6 +222,15 @@ export const graphComponentHandler: DIComponentHandler = {
         }
       })
     }
+
+    // TODO: There is a race condition that causes a d3 error when we try to
+    // add the connecting lines on graph creation. So disabling this feature
+    // for now, and we use update graph to enable it.
+    // Enable connecting lines after the graph model is fully initialized
+    // if (showConnectingLines !== undefined) {
+    //     graphModel.adornmentsStore.setShowConnectingLines(showConnectingLines)
+    // }
+
     const result = { content: { ...getSnapshot(graphModel), layers: finalLayers } as ITileContentSnapshotWithType }
     // After we get the snapshot, destroy the model to stop all reactions
     destroy(graphModel)
@@ -299,11 +308,12 @@ export const graphComponentHandler: DIComponentHandler = {
       const strokeSameAsFill = pointDescription.pointStrokeSameAsFill
       const backgroundColor = content.plotBackgroundColor
       const transparent = content.isTransparent
+      const showConnectingLines = content.adornmentsStore.showConnectingLines
 
       return {
         backgroundColor, dataContext, displayOnlySelectedCases, enableNumberToggle, filterFormula, hiddenCases,
-        numberToggleLastMode, plotType, pointColor, pointSize, primaryAxis, showMeasuresForSelection,
-        strokeColor, strokeSameAsFill, transparent, captionAttributeID, captionAttributeName,
+        numberToggleLastMode, plotType, pointColor, pointSize, primaryAxis, showConnectingLines,
+        showMeasuresForSelection, strokeColor, strokeSameAsFill, transparent, captionAttributeID, captionAttributeName,
         legendAttributeID, legendAttributeName, rightSplitAttributeID, rightSplitAttributeName,
         topSplitAttributeID, topSplitAttributeName, type: "graph",
         xAttributeID, xAttributeName, xAttributeType, xLowerBound, xUpperBound,
@@ -319,9 +329,9 @@ export const graphComponentHandler: DIComponentHandler = {
     const {
       backgroundColor, dataContext: _dataContext, displayOnlySelectedCases, enableNumberToggle: showParentToggles,
       filterFormula, hiddenCases, numberToggleLastMode: showOnlyLastCase, pointColor,
-      pointSize, showMeasuresForSelection, strokeColor, strokeSameAsFill, transparent, xAttributeType, xLowerBound,
-      xUpperBound, yAttributeID, yAttributeIDs, yAttributeName, yAttributeNames, yAttributeType, yLowerBound,
-      yUpperBound, y2AttributeType, y2LowerBound, y2UpperBound
+      pointSize, showConnectingLines, showMeasuresForSelection, strokeColor, strokeSameAsFill, transparent,
+      xAttributeType, xLowerBound, xUpperBound, yAttributeID, yAttributeIDs, yAttributeName, yAttributeNames,
+      yAttributeType, yLowerBound, yUpperBound, y2AttributeType, y2LowerBound, y2UpperBound
     } = values as V2GetGraph
     const attributeInfo = getAttributeInfo(values)
     const { dataConfiguration, pointDescription } = content
@@ -439,6 +449,7 @@ export const graphComponentHandler: DIComponentHandler = {
     if (hiddenCases != null) dataConfiguration.setHiddenCases(hiddenCases.map(id => toV3CaseId(id)))
     if (pointColor != null) pointDescription.setPointColor(pointColor)
     if (pointSize != null) pointDescription.setPointSizeMultiplier(pointSize)
+    if (showConnectingLines != null) content.adornmentsStore.setShowConnectingLines(showConnectingLines)
     if (showMeasuresForSelection != null) dataConfiguration.setShowMeasuresForSelection(showMeasuresForSelection)
     if (showParentToggles != null) content.setShowParentToggles(showParentToggles)
     if (showOnlyLastCase != null) content.setShowOnlyLastCase(showOnlyLastCase)

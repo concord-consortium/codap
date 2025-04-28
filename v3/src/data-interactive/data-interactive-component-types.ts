@@ -83,6 +83,7 @@ export interface V2Graph extends V2Component {
   rightNumericAttributeName?: string | null
   rightSplitAttributeID?: number | null
   rightSplitAttributeName?: string | null
+  showConnectingLines?: boolean
   showMeasuresForSelection?: boolean
   strokeColor?: string
   strokeSameAsFill?: boolean
