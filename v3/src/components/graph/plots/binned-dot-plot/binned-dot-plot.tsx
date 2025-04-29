@@ -32,10 +32,12 @@ export const BinnedDotPlot = observer(function BinnedDotPlot({pixiPoints, aboveP
   const binnedPlot = isBinnedDotPlotModel(graphModel.plot) ? graphModel.plot : undefined
   const instanceId = useInstanceIdContext()
   const kMinBinScreenWidth = 20
+  const primaryAxisModel = graphModel.getNumericAxis(primaryPlace)
   const binBoundariesRef = useRef<SVGGElement>(null)
   const primaryAxisScaleCopy = useRef<ScaleLinear<number, number>>(primaryAxisScale.copy())
   const lowerBoundaryRef = useRef<number>(0)
   const logFn = useRef<Maybe<LogMessageFn>>()
+  const handleDragBinBoundaryEndFn = useRef<() => void>(() => {})
 
   const { onDrag, onDragEnd, onDragStart } = useDotPlotDragDrop()
   usePixiDragHandlers(pixiPoints, {start: onDragStart, drag: onDrag, end: onDragEnd})
@@ -80,8 +82,8 @@ export const BinnedDotPlot = observer(function BinnedDotPlot({pixiPoints, aboveP
   const handleDragBinBoundaryStart = useCallback((event: MouseEvent, binIndex: number) => {
     if (!dataConfig || !isFiniteNumber(binnedPlot?.binAlignment) || !isFiniteNumber(binnedPlot?.binWidth)) return
     logFn.current = logModelChangeFn(
-                      "dragBinBoundary from { alignment: %@, width: %@ } to { alignment: %@, width: %@ }",
-                      () => ({ alignment: binnedPlot.binAlignment, width: binnedPlot.binWidth }))
+      "dragBinBoundary from { alignment: %@, width: %@ } to { alignment: %@, width: %@ }",
+      () => ({ alignment: binnedPlot.binAlignment, width: binnedPlot.binWidth }))
     primaryAxisScaleCopy.current = primaryAxisScale.copy()
     binnedPlot.setDragBinIndex(binIndex)
     const { binWidth, minBinEdge } = binnedPlot.binDetails()
@@ -100,8 +102,24 @@ export const BinnedDotPlot = observer(function BinnedDotPlot({pixiPoints, aboveP
     binnedPlot.setActiveBinWidth(worldBinWidth)
   }, [binnedPlot, dataConfig, primaryIsBottom])
 
-  const handleDragBinBoundaryEnd = useCallback(() => {
+  const addBinBoundaryDragHandlers = useCallback(() => {
+    const binBoundariesArea = select(binBoundariesRef.current)
+    const binBoundaryCovers = binBoundariesArea.selectAll<SVGPathElement, unknown>("path.draggable-bin-boundary-cover")
+    binBoundaryCovers.each(function(d, i) {
+      select(this).call(
+        drag<SVGPathElement, unknown>()
+          .on("start", (e) => handleDragBinBoundaryStart(e, i))
+          .on("drag", (e) => handleDragBinBoundary(e))
+          .on("end", handleDragBinBoundaryEndFn.current)
+      )
+    })
+  }, [handleDragBinBoundary, handleDragBinBoundaryStart])
+
+  handleDragBinBoundaryEndFn.current = useCallback(() => {
     if (!binnedPlot) return
+    binnedPlot.setDragBinIndex(-1)
+    drawBinBoundaries()
+    addBinBoundaryDragHandlers()
     binnedPlot.applyModelChange(
       () => {
         if (binnedPlot.binAlignment && binnedPlot.binWidth) {
@@ -114,20 +132,7 @@ export const BinnedDotPlot = observer(function BinnedDotPlot({pixiPoints, aboveP
         log: logFn.current
       }
     )
-  }, [binnedPlot])
-
-  const addBinBoundaryDragHandlers = useCallback(() => {
-    const binBoundariesArea = select(binBoundariesRef.current)
-    const binBoundaryCovers = binBoundariesArea.selectAll<SVGPathElement, unknown>("path.draggable-bin-boundary-cover")
-    binBoundaryCovers.each(function(d, i) {
-      select(this).call(
-        drag<SVGPathElement, unknown>()
-          .on("start", (e) => handleDragBinBoundaryStart(e, i))
-          .on("drag", (e) => handleDragBinBoundary(e))
-          .on("end", handleDragBinBoundaryEnd)
-      )
-    })
-  }, [handleDragBinBoundary, handleDragBinBoundaryEnd, handleDragBinBoundaryStart])
+  }, [addBinBoundaryDragHandlers, binnedPlot, drawBinBoundaries])
 
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
     if (!dataConfig || !binnedPlot) return
@@ -136,6 +141,7 @@ export const BinnedDotPlot = observer(function BinnedDotPlot({pixiPoints, aboveP
     const { maxBinEdge, minBinEdge } = binnedPlot.binDetails()
 
     // Set the domain of the primary axis to the extent of the bins
+    primaryAxis?.setAllowRangeToShrink(true)  // Otherwise we get slop we don't want
     primaryAxis?.setDomain(minBinEdge, maxBinEdge)
 
     // Draw lines to delineate the bins in the plot
@@ -178,6 +184,17 @@ export const BinnedDotPlot = observer(function BinnedDotPlot({pixiPoints, aboveP
       }, {name: "enforceMinBinPixelWidth"}, binnedPlot
     )
   }, [binnedPlot, primaryAxisScale])
+
+  useEffect(function respondToAxisLabelRotation()  {
+    if (primaryAxisModel) {
+      return mstReaction(
+        () => primaryAxisModel.labelsAreRotated,
+        () => {
+          refreshPointPositions(false)
+        }, {name: "primaryAxisModel.labelsAreRotated"}, primaryAxisModel
+      )
+    }
+  }, [primaryAxisModel, refreshPointPositions])
 
   return (
     abovePointsGroupRef?.current && createPortal(

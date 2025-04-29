@@ -14,6 +14,8 @@ import HelpIcon from "../../assets/icons/icon-help.svg"
 import GuideIcon from "../../assets/icons/icon-guide.svg"
 import { DEBUG_UNDO } from "../../lib/debug"
 import { IDocumentModel } from "../../models/document/document"
+import { ITileModel } from "../../models/tiles/tile-model"
+import { createTileNotification } from "../../models/tiles/tile-notifications"
 import { t } from "../../utilities/translation/translate"
 import { OptionsShelfButton } from "./options-button"
 import { TilesListShelfButton } from "./tiles-list-button"
@@ -119,10 +121,15 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
   function handleTileButtonClick(tileType: string) {
     const tileInfo = getTileComponentInfo(tileType)
     const { undoStringKey = "", redoStringKey = "" } = tileInfo?.shelf || {}
+    let tile: Maybe<ITileModel>
     document?.content?.applyModelChange(() => {
-      document?.content?.createOrShowTile?.(tileType, { animateCreation: true })
-    }, { undoStringKey, redoStringKey, log: logMessageWithReplacement("Create component: %@",
-                                                {tileType}, "component")})
+      tile = document?.content?.createOrShowTile?.(tileType, { animateCreation: true })
+    }, {
+      notify: () => createTileNotification(tile),
+      undoStringKey,
+      redoStringKey,
+      log: logMessageWithReplacement("Create component: %@", {tileType}, "component")
+    })
   }
 
   function handleRightButtonClick(entry: IRightButtonEntry) {

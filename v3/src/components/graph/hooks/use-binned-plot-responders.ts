@@ -17,6 +17,6 @@ export const useBinnedPlotResponders = (refreshPointPositions: (selected: boolea
         return isBinnedPlotModel(plot) ? [plot.binAlignment, plot.binWidth] : []
       },
       () => refreshPointPositions(false),
-      {name: "respondToGraphBinSettings", equals: comparer.structural}, graphModel)
+      {name: "respondToGraphBinSettings", equals: comparer.structural}, [graphModel, graphModel.plot])
   }, [dataset, graphModel, refreshPointPositions])
 }

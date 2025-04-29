@@ -48,11 +48,14 @@ export function isAnyChildSelected(data: IDataSet, caseId: string): boolean {
  */
 export function idOfChildmostCollectionForAttributes(attrIDs: string[], data?: IDataSet) {
   if (!data) return undefined
-  const collections = data.collections
-  for (let i = collections.length - 1; i >= 0; --i) {
+  const collections = data.collections,
+    length = collections.length
+  for (let i = length - 1; i >= 0; --i) {
     const collection = collections[i]
     if (collection.attributes.some(attr => attrIDs.includes(attr?.id ?? ""))) return collection.id
   }
+  // If we didn't find one, return the id of the childmost collection
+  return length > 0 ? collections[length - 1].id : undefined
 }
 
 export function firstVisibleParentAttribute(data?: IDataSet, collectionId?: string): IAttribute | undefined {

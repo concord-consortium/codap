@@ -1,4 +1,23 @@
 # Changelog
+
+## Version 3.0.0-pre.2278 - April 25, 2025
+
+### ✨ Features & Improvements:
+- **CODAP-63:** Color axes treated as categorical produce color swatch axes
+- **CODAP-601:** A formula for a bar chart computes the heights of the bars
+- **CODAP-609:** Support component-level notifications in API for CODAP v3
+
+### 🐞 Bug Fixes:
+- **CODAP-86:** The ruler menu for binned dot plots should only show **Count** and **Percent**
+- **CODAP-322:** Unable to click/select polygon in map
+- **CODAP-361:** Graph legend incorrect after hierarchy change in table
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  193509 bytes |                            0.68% |
+|  index.js | 6637585 bytes |                            0.22% |
+
 ## Version 3.0.0-pre.2269 - April 18, 2025
 
 ### ✨ Features & Improvements:

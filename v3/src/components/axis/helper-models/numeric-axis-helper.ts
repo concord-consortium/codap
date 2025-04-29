@@ -1,7 +1,7 @@
 import { format, ScaleLinear, select } from "d3"
 import { between } from "../../../utilities/math-utils"
 import { transitionDuration } from "../../data-display/data-display-types"
-import { computeBestNumberOfTicks } from "../axis-utils"
+import { computeBestNumberOfTicks, getStringBounds } from "../axis-utils"
 import { AxisScaleType, otherPlace } from "../axis-types"
 import { isNonDateNumericAxisModel } from "../models/numeric-axis-models"
 import { AxisHelper, IAxisHelperArgs } from "./axis-helper"
@@ -10,6 +10,7 @@ export interface INumericAxisHelperArgs extends IAxisHelperArgs {
   showScatterPlotGridLines: boolean
   showZeroAxisLine?: boolean
 }
+
 export class NumericAxisHelper extends AxisHelper {
   showScatterPlotGridLines: boolean
   showZeroAxisLine?: boolean
@@ -74,7 +75,7 @@ export class NumericAxisHelper extends AxisHelper {
     } else if (!hasDraggableNumericAxis) {
       const formatter = (value: number) => this.multiScale?.formatValueForScale(value) ?? ""
       const {tickValues, tickLabels} = this.axisProvider.nonDraggableAxisTicks(formatter) ||
-        {tickValues: [], tickLabels: []}
+      {tickValues: [], tickLabels: []}
       axisScale.tickValues(tickValues)
       axisScale.tickFormat((d, i) => tickLabels[i])
     }
@@ -94,7 +95,43 @@ export class NumericAxisHelper extends AxisHelper {
       .style("stroke", "lightgrey")
       .style("stroke-opacity", "0.7")
 
-      this.showZeroAxisLine && this.renderZeroAxisLine()
-      this.showScatterPlotGridLines && this.renderScatterPlotGridLines()
+    this.showZeroAxisLine && this.renderZeroAxisLine()
+    this.showScatterPlotGridLines && this.renderScatterPlotGridLines()
+
+    if (this.axisModel.place === 'bottom' && !hasDraggableNumericAxis && this.multiScale && this.displayModel) {
+      const formatter = (value: number) => this.multiScale?.formatValueForScale(value) || ""
+      const {tickLabels} = this.displayModel.nonDraggableAxisTicks(formatter)
+      // Detect overlapping tick labels
+      const tickLabelsSelection = subAxisSelection.selectAll(".tick text")
+      let hasOverlap = false
+      let previousEnd = 0
+      let detectedNonZeroTextLength = false
+
+      tickLabelsSelection.each(function (_, i) {
+        const textWidth = getStringBounds(tickLabels[i]).width
+        const currentNode = this as SVGTextElement
+        const currentStart = currentNode.getBoundingClientRect().left
+        const currentEnd = currentStart + textWidth
+        detectedNonZeroTextLength ||= textWidth > 0
+
+        if (i > 0 && currentStart < previousEnd) {
+          hasOverlap = true
+        }
+        previousEnd = currentEnd
+      })
+
+      if (detectedNonZeroTextLength) {
+        // Rotate labels if overlap is detected
+        if (hasOverlap) {
+          tickLabelsSelection
+            .attr("transform", "rotate(-90)")
+            .transition().duration(duration)
+            .style("text-anchor", "end")
+            .attr("x", -8)
+            .attr("y", -6)
+        }
+        this.axisModel.setLabelsAreRotated(hasOverlap)
+      }
+    }
   }
 }

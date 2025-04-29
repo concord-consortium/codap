@@ -131,8 +131,23 @@ export const DataConfigurationModel = types
     get attributeDescriptionsStr() {
       return JSON.stringify(this.attributeDescriptions)
     },
+    isAttributeAllowedForNonAxisRole(attrID?: string) {
+      if (!attrID) return false
+      // The legend and caption attributes are not allowed to be an attribute belonging
+      // to a collection that is a child of the childmost collection (using axis attributes).
+      const childmostCollectionID = this.childmostCollectionIDForAxisAttributes,
+        collections = self.dataset?.collections || []
+      let allowed = false
+      for (const collection of collections) {
+        allowed = !!collection.getAttribute(attrID)
+        if (allowed || collection.id === childmostCollectionID) break
+      }
+      return allowed
+    },
     attributeDescriptionForRole(role: AttrRole) {
-      return this.attributeDescriptions[role]
+      const attrDesc = this.attributeDescriptions[role]
+      return (role !== "legend" && role !== "caption") || this.isAttributeAllowedForNonAxisRole(attrDesc?.attributeID)
+        ? attrDesc : undefined
     },
     // returns empty string (rather than undefined) for roles without attributes
     attributeID(role: AttrRole) {
@@ -267,7 +282,10 @@ export const DataConfigurationModel = types
         .map(role => {
           return {role, attributeID: self.attributeID(role) || ''}
         })
-        .filter(pair => !!pair.attributeID)
+        .filter(pair => {
+          return ((pair.role !== 'legend' && pair.role !== 'caption') ||
+            self.isAttributeAllowedForNonAxisRole(pair.attributeID)) && !!pair.attributeID
+        })
     },
     get uniqueTipAttributes() {
       const tipAttributes = this.tipAttributes,
@@ -793,7 +811,7 @@ export const DataConfigurationModel = types
           source: self.dataset,
           casesArrayNumber: self.filteredCases.length,
           filter: self.filterCase,
-          collectionID: idOfChildmostCollectionForAttributes(self.attributes, self.dataset),
+          collectionID: idOfChildmostCollectionForAttributes(self.axisAttributeIDs, self.dataset),
           onSetCaseValues: this.handleSetCaseValues
         }))
         self.setPointsNeedUpdating(true)
@@ -808,7 +826,7 @@ export const DataConfigurationModel = types
         self.filteredCases[0] = new FilteredCases({
           source: dataset,
           filter: self.filterCase,
-          collectionID: idOfChildmostCollectionForAttributes(self.attributes, dataset),
+          collectionID: idOfChildmostCollectionForAttributes(self.axisAttributeIDs, dataset),
           onSetCaseValues: this.handleSetCaseValues
         })
       }

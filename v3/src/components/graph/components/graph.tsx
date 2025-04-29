@@ -9,6 +9,8 @@ import { logStringifiedObjectMessage } from "../../../lib/log-message"
 import {AttributeType} from "../../../models/data/attribute-types"
 import {IDataSet} from "../../../models/data/data-set"
 import {isUndoingOrRedoing} from "../../../models/history/tree-types"
+import { getTileModel } from "../../../models/tiles/tile-model"
+import { updateTileNotification } from "../../../models/tiles/tile-notifications"
 import {mstReaction} from "../../../utilities/mst-reaction"
 import {onAnyAction} from "../../../utilities/mst-utils"
 import { t } from "../../../utilities/translation/translate"
@@ -32,6 +34,7 @@ import {GraphDataConfigurationContext} from "../hooks/use-graph-data-configurati
 import {useGraphLayoutContext} from "../hooks/use-graph-layout-context"
 import {useGraphModel} from "../hooks/use-graph-model"
 import {GraphController} from "../models/graph-controller"
+import { attrChangeNotificationValues, IAttrChangeValues } from "../models/graph-notification-utils"
 import { BarChart } from "../plots/bar-chart/bar-chart"
 import { BinnedDotPlot } from "../plots/binned-dot-plot/binned-dot-plot"
 import {CasePlot} from "../plots/case-plot/case-plot"
@@ -196,10 +199,17 @@ export const Graph = observer(function Graph({graphController, setGraphRef, pixi
     const computedPlace = place === 'plot' && graphModel.dataConfiguration.noAttributesAssigned ? 'bottom' : place
     const attrRole = graphPlaceToAttrRole[computedPlace]
     const attrName = dataset?.getAttribute(attrId || attrIdToRemove)?.name
+    const tile = getTileModel(graphModel)
+    const notificationType = place === "legend" ? "legendAttributeChange" : "attributeChange"
+    let notificationValues: IAttrChangeValues | undefined = undefined
 
     graphModel.applyModelChange(
-      () => graphModel.setAttributeID(attrRole, dataSet.id, attrId),
+      () => {
+        graphModel.setAttributeID(attrRole, dataSet.id, attrId)
+        notificationValues = attrChangeNotificationValues(place, attrId, attrName, attrIdToRemove, tile)
+      },
       {
+        notify: () => updateTileNotification(notificationType, notificationValues, tile),
         undoStringKey: "DG.Undo.axisAttributeChange",
         redoStringKey: "DG.Redo.axisAttributeChange",
         log: logStringifiedObjectMessage(

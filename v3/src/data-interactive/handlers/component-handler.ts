@@ -5,6 +5,9 @@ import { getTileInfo } from "../../models/document/tile-utils"
 import { ITileContentModel, ITileContentSnapshotWithType } from "../../models/tiles/tile-content"
 import { getTileContentInfo } from "../../models/tiles/tile-content-info"
 import { ITileModel } from "../../models/tiles/tile-model"
+import {
+  createTileNotification, deleteTileNotification, updateTileNotification
+} from "../../models/tiles/tile-notifications"
 import { uiState } from "../../models/ui-state"
 import { toV2Id } from "../../utilities/codap-utils"
 import { t } from "../../utilities/translation/translate"
@@ -63,10 +66,11 @@ export const diComponentHandler: DIHandler = {
         (_type, createOrShowOptions) => document.content?.createOrShowTile(_type, createOrShowOptions)
       const _createOrShow = createOrShow ?? defaultCreateOrShow
       const _options = options ?? {}
+      let tile: Maybe<ITileModel>
       return document.applyModelChange(() => {
         const title = _title ?? name
         const newTileOptions = { cannotClose, content, ...dimensions, name, title, ..._options }
-        const tile = _createOrShow(kComponentTypeV2ToV3Map[type], newTileOptions)
+        tile = _createOrShow(kComponentTypeV2ToV3Map[type], newTileOptions)
         if (!tile) return errorResult(t("V3.DI.Error.componentNotCreated"))
 
         return {
@@ -77,6 +81,8 @@ export const diComponentHandler: DIHandler = {
             type
           }
         }
+      }, {
+        notify: createTileNotification(tile)
       })
     }
 
@@ -90,6 +96,8 @@ export const diComponentHandler: DIHandler = {
     const { document } = appState
     document.applyModelChange(() => {
       document.content?.deleteOrHideTile(component.id)
+    }, {
+      notify: deleteTileNotification(component)
     })
 
     return { success: true }
@@ -169,6 +177,8 @@ export const diComponentHandler: DIHandler = {
       if (handler) {
         result = handler.update?.(content, values) ?? { success: true }
       }
+    }, {
+      notify: updateTileNotification("update", values, component)
     })
 
     return result ?? errorResult(t("V3.DI.Error.unsupportedComponent", { vars: [content.type] }))

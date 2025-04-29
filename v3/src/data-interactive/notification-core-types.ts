@@ -7,7 +7,13 @@ export interface IGlobalNotificationValue {
   globalValue: number
 }
 
-export type ICoreNotificationMessageValues = IBasicNotificationValue | IGlobalNotificationValue
+interface IComponentNotificationValue {
+  id: number
+  type: string
+}
+
+export type ICoreNotificationMessageValues = IBasicNotificationValue | IGlobalNotificationValue |
+  IComponentNotificationValue
 
 type NotificationCallback = (value: any) => void
 

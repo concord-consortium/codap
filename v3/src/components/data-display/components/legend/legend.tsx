@@ -36,9 +36,11 @@ export const Legend = observer(function Legend({
                                         layerIndex, setDesiredExtent, onDropAttribute
                                       }: ILegendProps) {
   const dataConfiguration = useDataConfigurationContext(),
-    attrType = dataConfiguration?.attributeType('legend'),
-    LegendComponent = dataConfiguration && legendComponentManager.getLegendComponent(dataConfiguration),
+    legendID = dataConfiguration?.attributeID("legend"),
     legendRef = useRef() as React.RefObject<SVGSVGElement>
+  if (!dataConfiguration?.isAttributeAllowedForNonAxisRole(legendID)) return null
+  const attrType = dataConfiguration?.attributeType('legend'),
+    LegendComponent = dataConfiguration && legendComponentManager.getLegendComponent(dataConfiguration)
 
   // Only show the legend if there is a legend role specified in the dataConfiguration
   return attrType ? (

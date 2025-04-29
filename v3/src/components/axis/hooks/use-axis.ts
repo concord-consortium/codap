@@ -77,7 +77,7 @@ export const useAxis = (axisPlace: AxisPlace) => {
       case 'percent':
       case 'numeric': {
         ticks = getTicks({d3Scale, isBinned, multiScale, displayModel})
-        desiredExtent += ['left', 'rightNumeric'].includes(axisPlace)
+        desiredExtent += ['left', 'rightNumeric'].includes(axisPlace) || axisModel?.labelsAreRotated
           ? Math.max(getStringBounds(ticks[0]).width, getStringBounds(ticks[ticks.length - 1]).width) + axisGap
           : numbersHeight + axisGap
         break
