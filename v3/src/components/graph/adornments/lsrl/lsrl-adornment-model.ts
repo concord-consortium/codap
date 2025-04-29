@@ -247,6 +247,19 @@ export const LSRLAdornmentModel = AdornmentModel
       }
     })
     return linesInCell
+  },
+  getLabels(cellKey: Record<string, string>, dataConfig: IGraphDataConfigurationModel) {
+    const key = self.instanceKey(cellKey)
+    const labelsInCell = self.labels.get(key)
+    const legendCats = self.getLegendCategories(dataConfig)
+    legendCats.forEach(legendCat => {
+      const existingLabel = labelsInCell ? labelsInCell.get(legendCat) : undefined
+      if (!existingLabel) {
+        // todo: We can't do what's in the line below. Must be done in an action
+        // labelsInCell?.set(legendCat, {})
+      }
+    })
+    return labelsInCell
   }
 }))
 

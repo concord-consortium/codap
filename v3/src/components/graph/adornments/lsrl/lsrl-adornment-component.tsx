@@ -62,7 +62,7 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
 
   const getLines = useCallback(() => {
     return dataConfig && model.getLines(xAttrId, yAttrId, cellKey, dataConfig, adornmentsStore?.interceptLocked)
-  }, [cellKey, dataConfig, adornmentsStore?.interceptLocked, model, xAttrId, yAttrId])
+  }, [cellKey, dataConfig, adornmentsStore, model, xAttrId, yAttrId])
 
   const fixEndPoints = useCallback((iLine: Selection<SVGLineElement, unknown, null, undefined>) => {
     if (
