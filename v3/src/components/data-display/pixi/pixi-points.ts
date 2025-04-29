@@ -1,7 +1,7 @@
 import * as PIXI from "pixi.js"
 import { CaseData, CaseDataWithSubPlot } from "../d3-types"
 import { PixiTransition, TransitionPropMap, TransitionProp } from "./pixi-transition"
-import { hoverRadiusFactor, transitionDuration } from "../data-display-types"
+import { hoverRadiusFactor, transitionDuration, PointDisplayType } from "../data-display-types"
 import { isFiniteNumber } from "../../../utilities/math-utils"
 
 const DEFAULT_Z_INDEX = 0
@@ -108,7 +108,7 @@ export class PixiPoints {
   pointMetadata: Map<PIXI.Sprite, IPixiPointMetadata> = new Map()
   caseDataToPoint: Map<string, PIXI.Sprite> = new Map()
   textures = new Map<string, PIXI.Texture>()
-  displayType: "points" | "bars" = "points"
+  displayType: "points" | "bars" | "rects" = "points"
   pointsFusedIntoBars = false
   anchor = circleAnchor
   displayTypeTransitionState: IDisplayTypeTransitionState = {
@@ -551,9 +551,21 @@ export class PixiPoints {
     }
 
     const graphics = new PIXI.Graphics()
-      .circle(0, 0, radius)
-      .fill(fill)
-      .stroke({ color: stroke, width: strokeWidth, alpha: strokeOpacity ?? 0.4 })
+    if (this.displayItemDescription?.pointAsRect) {
+      // Draw a rectangle instead of a circle
+      const rectSize = radius * 2
+      graphics.rect(0, 0, rectSize, rectSize)
+    } else {
+        // Draw a circle
+        graphics.circle(0, 0, radius)
+    }
+
+    graphics.fill(fill)
+    graphics.stroke({ color: stroke, width: strokeWidth, alpha: strokeOpacity ?? 0.4 })
+
+      // .circle(0, 0, radius)
+      // .fill(fill)
+      // .stroke({ color: stroke, width: strokeWidth, alpha: strokeOpacity ?? 0.4 })
 
     return this.generateTexture(graphics, key)
   }
@@ -771,7 +783,7 @@ export class PixiPoints {
   }
 
   matchPointsToData(
-    datasetID:string, caseData: CaseDataWithSubPlot[], displayType: "points" | "bars", style: IPixiPointStyle
+    datasetID:string, caseData: CaseDataWithSubPlot[], displayType: PointDisplayType, style: IPixiPointStyle
   ) {
     if (!this.renderer) {
       return

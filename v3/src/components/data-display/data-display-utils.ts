@@ -97,6 +97,8 @@ export function matchCirclesToData(props: IMatchCirclesProps) {
 
   startAnimation()
 
+  const pointsStyle = 
+
   pixiPoints?.matchPointsToData(dataConfiguration.dataset?.id ?? '', allCaseData, pointDisplayType, {
     radius: pointRadius,
     fill: pointColor,

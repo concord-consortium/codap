@@ -115,7 +115,10 @@
     "V3.Redo.legendAttributeRemove": "Redo removing map legend attribute",
     "V3.Undo.attributeTreatAs": "Undo changing attribute treatment",
     "V3.Redo.attributeTreatAs": "Redo changing attribute treatment",
+    "V3.Undo.graph.pointAsRect": "Undo change point to rect",
+    "V3.Redo.graph.pointAsRect": "Redo change point to rect",
     "V3.map.legendDrop": "Color regions by values of %@",
+    "V3.Inspector.pointAsRect": "Rectangular points",
 
     // V3 digital interactive error messages.
     // These should probably not be translated because plugins might be looking for specific

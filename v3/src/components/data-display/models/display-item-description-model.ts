@@ -1,6 +1,7 @@
 import {Instance, types} from "mobx-state-tree"
 import {applyModelChange} from "../../../models/history/apply-model-change"
 import {defaultPointColor, defaultStrokeColor, kellyColors} from "../../../utilities/color-utils"
+import { set } from "lodash"
 
 export const DisplayItemDescriptionModel = types
   .model("PointDescriptionModel", {
@@ -8,6 +9,7 @@ export const DisplayItemDescriptionModel = types
     _itemStrokeColor: defaultStrokeColor,
     _itemStrokeSameAsFill: false,
     _pointSizeMultiplier: 1, // Not used when item is a polygon in which case it is set to -1
+    _pointAsRect: types.optional(types.boolean,false), // Default shape
   })
   .volatile(() => ({
     _dynamicPointSizeMultiplier: undefined as number | undefined  // Used during slider drag
@@ -28,6 +30,9 @@ export const DisplayItemDescriptionModel = types
     },
     setDynamicPointSizeMultiplier(multiplier: number) {
       self._dynamicPointSizeMultiplier = multiplier
+    },
+    setPointAsRect(rect: boolean) {
+      self._pointAsRect = rect
     }
   }))
   .views(self => ({
@@ -46,6 +51,9 @@ export const DisplayItemDescriptionModel = types
     get itemStrokeSameAsFill() {
       return self._itemStrokeSameAsFill
     },
+    get pointAsRect() {
+      return self._pointAsRect
+    },
   }))
   .views(self => ({
     // Convenience methods referring to points, especially for use by graphs
@@ -60,8 +68,10 @@ export const DisplayItemDescriptionModel = types
     },
     get pointStrokeSameAsFill() {
       return self.itemStrokeSameAsFill
+    },
+    get pointAsRect() {
+      return self._pointAsRect
     }
-
   }))
   // performs the specified action so that response actions are included and undo/redo strings assigned
   .actions(applyModelChange)

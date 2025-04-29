@@ -61,7 +61,7 @@ export class GraphController {
     const { graphModel, layout } = this
     if (graphModel) syncModelWithAttributeConfiguration(graphModel, layout)
   }
-
+const pointsAsRects = t
   callMatchCirclesToData() {
     const {graphModel, pixiPoints, instanceId} = this
     if (graphModel && pixiPoints) {

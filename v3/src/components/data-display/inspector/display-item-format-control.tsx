@@ -22,6 +22,7 @@ interface IProps {
   mapPointLayerModel?: IMapPointLayerModel
   pointDisplayType?: PointDisplayType
   isTransparent?: boolean
+  isGraphModel?: boolean
   onBackgroundTransparencyChange?: (isTransparent: boolean) => void
   plotBackgroundColor?: string
   onBackgroundColorChange?: (color: string) => void
@@ -29,7 +30,7 @@ interface IProps {
 
 export const DisplayItemFormatControl = observer(function PointFormatControl(props: IProps) {
   const {
-    dataConfiguration, displayItemDescription, mapPointLayerModel, pointDisplayType,
+    dataConfiguration, displayItemDescription, mapPointLayerModel, pointDisplayType, isGraphModel,
     isTransparent, onBackgroundTransparencyChange, plotBackgroundColor, onBackgroundColorChange
   } = props
   const legendAttrID = dataConfiguration.attributeID("legend")
@@ -135,6 +136,30 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
             </Checkbox>
           </FormControl>
         </div>
+      )
+    }
+  }
+
+  const renderPointShapeControlIfAny = () => {
+    //only show checkbox if component is a graph
+    if (isGraphModel) {
+      return (
+        <FormControl>
+          <Checkbox
+            mt="6px" isChecked={displayItemDescription.pointAsRect}
+            onChange={e => {
+              displayItemDescription.applyModelChange(
+                () => displayItemDescription.setPointAsRect(e.target.checked),
+                {
+                  undoStringKey: "V3.Undo.graph.pointAsRect",
+                  redoStringKey: "V3.Redo.graph.pointAsRect",
+                  log: "Changed point shape"
+                }
+              )
+            }}>
+            {t("V3.Inspector.pointAsRect")}
+          </Checkbox>
+        </FormControl>
       )
     }
   }
@@ -281,6 +306,7 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
         </FormControl>
       }
       {renderPlotControlsIfAny()}
+      {isGraphModel && renderPointShapeControlIfAny()}
     </Flex>
   )
 })
