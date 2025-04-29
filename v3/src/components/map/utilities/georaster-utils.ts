@@ -1,8 +1,8 @@
 // We are only directly using the GeoRater type, not the code this might
 // help reduce the size of the bundled code.
-import GeoRasterLayer, { GeoRasterLayerOptions } from "georaster-layer-for-leaflet"
 import { decodePng, IDecodedPng, IImage32 } from '@lunapaint/png-codec'
 import { IMapContentModel } from "../models/map-content-model"
+import GeoRasterLayer, { GeoRasterLayerOptions } from "./georaster-layer-for-leaflet"
 
 /**
  * This type was determined by trial and error working with the GeoRasterLayer library.
@@ -302,6 +302,7 @@ export async function createLeafletGeoRasterLayer(mapModel: IMapContentModel) {
       // Or just start over if the opacity has changed
 
       const tiles = currentLayer.getActiveTiles()
+      console.log("Updating existing GeoRasterLayer with new georaster. Num tiles", tiles.length)
       if (!tiles) {
         console.error("No active tiles available")
         return
@@ -323,7 +324,10 @@ export async function createLeafletGeoRasterLayer(mapModel: IMapContentModel) {
 
       tiles.forEach((tile: any) => {
         const { coords, el } = tile
-        currentLayer.drawTile({ tile: el, coords: currentLayer._wrapCoords(coords), context: el.getContext("2d") })
+        const wrappedCoords = currentLayer._wrapCoords(coords)
+        const resolution = currentLayer._getResolution(wrappedCoords.z)
+
+        currentLayer.drawTile({ tile: el, coords: wrappedCoords, resolution, context: el.getContext("2d") })
       })
     } else {
       const layer = new GeoRasterLayer({
@@ -338,6 +342,8 @@ export async function createLeafletGeoRasterLayer(mapModel: IMapContentModel) {
         resolution: 256,
         // Uncomment to get more information about the georaster rendering process
         // debugLevel: 2,
+        // Disable caching to see if the map updates
+        caching: false,
       })
       layer.addTo(mapModel.leafletMap)
     }
