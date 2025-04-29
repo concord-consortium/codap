@@ -6,7 +6,7 @@ import { dataDisplayGetNumericValue } from "../../../data-display/data-display-v
 import { IGraphDataConfigurationModel } from "../../models/graph-data-configuration-model"
 import { leastSquaresLinearRegression, tAt0975ForDf } from "../../utilities/graph-utils"
 import { AdornmentModel, IAdornmentModel, IUpdateCategoriesOptions } from "../adornment-models"
-import { LineLabelInstance } from "../line-label-instance"
+import { ILineLabelInstance, LineLabelInstance } from "../line-label-instance"
 import { ILineDescription } from "../shared-adornment-types"
 import { kLSRLType } from "./lsrl-adornment-types"
 
@@ -18,8 +18,7 @@ interface ILSRLineSnap extends ILSRLInstanceSnapshot {
   sdResiduals?: number
 }
 
-export const LSRLInstance = LineLabelInstance
-.named("LSRLInstance")
+export const LSRLInstance = types.model("LSRLInstance", {})
 .volatile(() => ({
   category: undefined as Maybe<string>,
   intercept: undefined as Maybe<number>,
@@ -73,13 +72,21 @@ export const LSRLAdornmentModel = AdornmentModel
 .props({
   type: types.optional(types.literal(kLSRLType), kLSRLType),
   // first key is cell key; second key is legend category (or kMain)
-  lines: types.map(types.map(LSRLInstance)),
-  showConfidenceBands: false
+  labels: types.map(types.map(LineLabelInstance)),
+  showConfidenceBands: false,
 })
+.volatile(() => ({
+  // first key is cell key; second key is legend category (or kMain)
+  lines: new Map<string, Map<string, ILSRLInstance>>()
+}))
 .views(self => ({
   // each cell contains a map of lines, where the key is the legend category (or kMain)
   firstLineInstance(category = kMain): Maybe<ILSRLInstance> {
     return self.lines.values().next().value?.get(category)
+  },
+  // each cell contains a map of lines, where the key is the legend category (or kMain)
+  firstLabelInstance(category = kMain): Maybe<ILineLabelInstance> {
+    return self.labels.values().next().value?.get(category)
   },
   getCaseValues(
     xAttrId: string, yAttrId: string, cellKey: Record<string, string>, dataConfig?: IGraphDataConfigurationModel,
@@ -157,7 +164,10 @@ export const LSRLAdornmentModel = AdornmentModel
   updateLines(line: ILSRLineSnap, key: string, legendCat = kMain) {
     let linesInCell = self.lines.get(key)
     if (!linesInCell) {
-      self.lines.set(key, {})
+      self.lines.set(key, new Map<string, ILSRLInstance>())
+      // todo: Somewhere we have to make sure there is a label for the given key, legendCat. But the line below
+      // gets called during reading in of a document and puts an undo action in this history.
+      // self.labels.set(key, {})
       linesInCell = self.lines.get(key)!
     }
     linesInCell.set(legendCat, createLSRLInstance(line))
@@ -183,7 +193,7 @@ export const LSRLAdornmentModel = AdornmentModel
       const instanceKey = self.instanceKey(cellKey)
       const lines = self.lines.get(instanceKey)
       legendCats.forEach(legendCat => {
-        const existingLine = lines?.get(legendCat)
+        const existingLine = lines ? lines.get(legendCat) : undefined
         const existingLineProps = existingLine ? getSnapshot(existingLine) : undefined
         const { intercept, rSquared, slope, sdResiduals } = self.computeValues(
           xAttrId, yAttrId, cellKey, dataConfig, interceptLocked, legendCat
@@ -206,10 +216,7 @@ export const LSRLAdornmentModel = AdornmentModel
     const linesInCell = self.lines.get(key)
     const legendCats = self.getLegendCategories(dataConfig)
     legendCats.forEach(legendCat => {
-      const existingLine = linesInCell?.get(legendCat)
-      const equationCoords = existingLine?.equationCoords
-        ? getSnapshot(existingLine.equationCoords)
-        : undefined
+      const existingLine = linesInCell ? linesInCell.get(legendCat) : undefined
       if (!existingLine?.isValid) {
         const { intercept, rSquared, slope, sdResiduals } = self.computeValues(
           xAttrId, yAttrId, cellKey, dataConfig, interceptLocked, legendCat
@@ -220,10 +227,23 @@ export const LSRLAdornmentModel = AdornmentModel
           !Number.isFinite(slope) ||
           !Number.isFinite(sdResiduals)
         ) return
-        self.updateLines({category: legendCat, equationCoords, intercept, rSquared, slope, sdResiduals}, key, legendCat)
+        self.updateLines({category: legendCat, intercept, rSquared, slope, sdResiduals}, key, legendCat)
       }
     })
     return linesInCell
+  },
+  getLabels(cellKey: Record<string, string>, dataConfig: IGraphDataConfigurationModel) {
+    const key = self.instanceKey(cellKey)
+    const labelsInCell = self.labels.get(key)
+    const legendCats = self.getLegendCategories(dataConfig)
+    legendCats.forEach(legendCat => {
+      const existingLabel = labelsInCell ? labelsInCell.get(legendCat) : undefined
+      if (!existingLabel) {
+        // todo: We can't do what's in the line below. Must be done in an action
+        // labelsInCell?.set(legendCat, {})
+      }
+    })
+    return labelsInCell
   }
 }))
 

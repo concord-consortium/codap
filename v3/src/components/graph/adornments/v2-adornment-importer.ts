@@ -29,7 +29,7 @@ import { IMovablePointAdornmentModelSnapshot } from "./movable-point/movable-poi
 import { IMeasureInstanceSnapshot } from "./univariate-measures/univariate-measure-adornment-model"
 import { IMovableLineAdornmentModelSnapshot, IMovableLineInstanceSnapshot }
   from "./movable-line/movable-line-adornment-model"
-import { ILSRLAdornmentModelSnapshot, ILSRLInstanceSnapshot } from "./lsrl/lsrl-adornment-model"
+import { ILSRLAdornmentModelSnapshot } from "./lsrl/lsrl-adornment-model"
 import { IBoxPlotAdornmentModelSnapshot } from "./univariate-measures/box-plot/box-plot-adornment-model"
 import { ICountAdornmentModelSnapshot } from "./count/count-adornment-model"
 import { IMeanAdornmentModelSnapshot } from "./univariate-measures/mean/mean-adornment-model"
@@ -44,6 +44,7 @@ import { IStandardDeviationAdornmentModelSnapshot }
 import { IStandardErrorAdornmentModelSnapshot }
   from "./univariate-measures/standard-error/standard-error-adornment-model"
 import { INormalCurveAdornmentModelSnapshot } from "./univariate-measures/normal-curve/normal-curve-adornment-model"
+import { ILineLabelInstance, ILineLabelInstanceSnapshot } from "./line-label-instance";
 
 export interface IAdornmentImporterProps {
   data?: ISharedDataSet
@@ -127,8 +128,7 @@ function univariateMeasureInstances(adornment: ICodapV2UnivariateAdornment, prop
                     : NaN
                 : NaN
     const labelCoords = isFinite(x) && isFinite(y) ? { x, y } : undefined
-    const measureInstance = { labelCoords }
-    measures[key] = measureInstance
+    measures[key] = { labelCoords }
   })
 
   return measures
@@ -334,13 +334,13 @@ export const v2AdornmentImporter = ({
                               }
                             : undefined)
   if (lsrlAdornment) {
-    const lines: Record<string, Record<string, ILSRLInstanceSnapshot>> = {}
+    const labels: Record<string, Record<string, ILineLabelInstanceSnapshot>> = {}
     instanceKeys?.forEach((key: string) => {
-      const lsrlInstances: Record<string, ILSRLInstanceSnapshot> = {}
+      const labelInstances: Record<string, ILineLabelInstanceSnapshot> = {}
       lsrlAdornment.lsrls?.forEach((lsrl, index) => {
         const category = legendCats[index]
         const { equationCoords: inEquationCoords } = lsrl
-        lsrlInstances[category] = inEquationCoords
+        labelInstances[category] = inEquationCoords
                                     ? {
                                         equationCoords: {
                                           x: inEquationCoords.proportionCenterX,
@@ -351,13 +351,12 @@ export const v2AdornmentImporter = ({
                                       }
                                     : {}
       })
-      lines[key] = lsrlInstances
+      labels[key] = labelInstances
     })
     const lsrlAdornmentImport: ILSRLAdornmentModelSnapshot = {
       isVisible: lsrlAdornment.isVisible,
       showConfidenceBands: lsrlAdornment.showConfidenceBands,
-      type: kLSRLType,
-      lines
+      type: kLSRLType
     }
     interceptLocked = lsrlAdornment.isInterceptLocked
     v3Adornments.push(lsrlAdornmentImport)

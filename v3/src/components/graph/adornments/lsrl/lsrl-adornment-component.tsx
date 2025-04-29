@@ -54,7 +54,6 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
   const { cellCounts, classFromKey } = useAdornmentCells(model, cellKey)
   const { xSubAxesCount, ySubAxesCount } = useAdornmentCategories()
   const showConfidenceBands = model.showConfidenceBands
-  const interceptLocked = adornmentsStore?.interceptLocked
   const { equationContainerClass, equationContainerSelector } = equationContainerDefs(model, cellKey, containerId)
   const lineRef = useRef() as React.RefObject<SVGSVGElement>
   const lineObjectsRef = useRef(new Map<string, ILineObject>())
@@ -62,8 +61,12 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
   const logFn = useRef<Maybe<LogMessageFn>>()
 
   const getLines = useCallback(() => {
-    return dataConfig && model.getLines(xAttrId, yAttrId, cellKey, dataConfig, interceptLocked)
-  }, [cellKey, dataConfig, interceptLocked, model, xAttrId, yAttrId])
+    return dataConfig && model.getLines(xAttrId, yAttrId, cellKey, dataConfig, adornmentsStore?.interceptLocked)
+  }, [cellKey, dataConfig, adornmentsStore?.interceptLocked, model, xAttrId, yAttrId])
+
+  const getLabels = useCallback(() => {
+    return dataConfig && model.getLabels(cellKey, dataConfig)
+  }, [cellKey, dataConfig, adornmentsStore?.interceptLocked, model, xAttrId, yAttrId])
 
   const fixEndPoints = useCallback((iLine: Selection<SVGLineElement, unknown, null, undefined>) => {
     if (
@@ -127,9 +130,9 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
           // compute proportional position of center of label within container
           const x = (left + equationBounds.width / 2) / containerBounds.width
           const y = (top + equationBounds.height / 2) / containerBounds.height
-          const lines = getLines()
+          const labels = getLabels()
           graphModel.applyModelChange(
-            () => lines?.get(category)?.setEquationCoords({ x, y }),
+            () => labels?.get(category)?.setEquationCoords({ x, y }),
             {
               undoStringKey: "DG.Undo.graph.repositionEquation",
               redoStringKey: "DG.Redo.graph.repositionEquation",
@@ -139,19 +142,22 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
         }
       }
     }
-  }, [equationContainerSelector, getLines, graphModel])
+  }, [cellKey, equationContainerSelector, graphModel, model])
 
   const updateEquations = useCallback(() => {
     const lines = getLines()
     if (!lines) return
+    const key = JSON.stringify(cellKey)
     const xUnits = dataConfig?.dataset?.getAttribute(xAttrId)?.units
     const yUnits = dataConfig?.dataset?.getAttribute(yAttrId)?.units
     const equationDiv = select<HTMLDivElement, unknown>(equationContainerSelector)
+    const interceptLocked = adornmentsStore?.interceptLocked
     equationDiv.style("width", `${plotWidth}px`)
       .style("height", `${plotHeight}px`)
     let linesIndex = 0
     lines.forEach((line, _category) => {
       const category = String(_category)
+      const label = model.labels.get(key)?.get(category)
       const caseValues = model.getCaseValues(xAttrId, yAttrId, cellKey, dataConfig, category)
       const color = category && category !== kMain ? dataConfig?.getLegendColorForCategory(category) : undefined
       const { slope, intercept, rSquared } = line
@@ -173,7 +179,7 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
 
       const equationBounds = equation.node()?.getBoundingClientRect()
       // rendered extents are used for rendering and for exporting in v2 format
-      line.setExtents({
+      label?.setExtents({
         labelWidth: equationBounds?.width,
         labelHeight: equationBounds?.height,
         plotWidth,
@@ -182,7 +188,7 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
 
       // The equation may have been unpinned from its associated line if the user dragged it away from the line.
       // Only move the equation if it is still pinned (i.e. equationCoords is not valid).
-      const labelPos = line.labelPosition
+      const labelPos = label?.labelPosition
       if (!labelPos) {
         equation.style("left", `${screenX}px`)
           // If there are multiple lines and equations, we offset the equations slightly
@@ -193,8 +199,8 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
       }
       ++linesIndex
     })
-  }, [cellKey, dataConfig, equationContainerSelector, getLines, interceptLocked, layout, model, plotHeight,
-      plotWidth, showConfidenceBands, showSumSquares, xAttrId, xAttrName, xScale, xSubAxesCount, yAttrId,
+  }, [cellKey, dataConfig, equationContainerSelector, getLines, adornmentsStore?.interceptLocked, layout, model,
+      plotHeight, plotWidth, showConfidenceBands, showSumSquares, xAttrId, xAttrName, xScale, xSubAxesCount, yAttrId,
       yAttrName, yScale, ySubAxesCount])
 
   const confidenceBandPaths = useCallback((caseValues: Point[], category = kMain) => {
@@ -224,7 +230,7 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
 
     // If the Intercept Locked option is selected, we do not show confidence bands. So in that case we
     // simply clear the confidence band elements and return.
-    if (interceptLocked) {
+    if (adornmentsStore?.interceptLocked) {
       lineObj?.confidenceBandCurve?.attr("d", null)
       lineObj?.confidenceBandCover?.attr("d", null)
       lineObj?.confidenceBandShading?.attr("d", null)
@@ -239,8 +245,8 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
 
     lineObj?.confidenceBandShading?.on("mouseover", (e) => toggleConfidenceBandTip(e, true))
       .on("mouseout", (e) => toggleConfidenceBandTip(e, false))
-  }, [cellKey, confidenceBandPaths, dataConfig, interceptLocked, model, showConfidenceBands, toggleConfidenceBandTip,
-      xAttrId, yAttrId])
+  }, [cellKey, confidenceBandPaths, dataConfig, adornmentsStore?.interceptLocked, model, showConfidenceBands,
+            toggleConfidenceBandTip, xAttrId, yAttrId])
 
   const updateLines = useCallback(() => {
     const lines = getLines()
@@ -269,6 +275,7 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
   const buildElements = useCallback(() => {
     const lines = getLines()
     if (!lines) return
+    const key = JSON.stringify(cellKey)
 
     // Clear any previously added elements
     const selection = select(lineRef.current)
@@ -285,7 +292,9 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
 
     // Add a line for each item in the model's lines array
     lines.forEach((line, _category) => {
-      line.setExtents({ plotWidth, plotHeight })
+      const category = String(_category)
+      const label = model.labels.get(key)?.get(category)
+      label?.setExtents({ plotWidth, plotHeight })
       const lineIndex = lineObjectsRef.current.size
       const lineCategory = String(_category)
       const lineObj: ILineObject = { category: lineCategory, index: lineIndex }
@@ -297,7 +306,7 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
       if (slope != null && intercept != null) {
         pointsOnAxes.current = lineToAxisIntercepts(slope, intercept, xDomain, yDomain)
 
-        // Set up the confidence band elements. We add them before the line so they don't interfere
+        // Set up the confidence band elements. We add them before the line™, so they don't interfere
         // with the line's mouseover behavior.
         lineObj.confidenceBandCurve = selection.append("path")
           .attr("class", `lsrl-confidence-band lsrl-confidence-band-${classFromKey}`)
@@ -338,7 +347,7 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
           .on("mouseout", () => { handleHighlightLineAndEquation(false, lineCategory) })
 
         // If the equation is not pinned to the line, set its initial coordinates to the values specified in the model.
-        const labelPos = line.labelPosition
+        const labelPos = label?.labelPosition
         if (labelPos) {
           equationP
             .style("left", `${labelPos.left}px`)
@@ -357,7 +366,7 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
             .on("start", (e) => {
               logFn.current = logModelChangeFn(
                                 "Moved equation from (%@, %@) to (%@, %@)",
-                                () => safeGetSnapshot(line.equationCoords) ?? { x: "default", y: "default" })
+                                () => safeGetSnapshot(label?.equationCoords) ?? { x: "default", y: "default" })
             })
             .on("drag", (e) => handleMoveEquation(e, false, lineCategory))
             .on("end", (e) => handleMoveEquation(e, true, lineCategory))
@@ -373,15 +382,13 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
 
   // Refresh values on interceptLocked change
   useEffect(function refreshInterceptLockChange() {
-    const updateCategoryOptions = graphModel.getUpdateCategoriesOptions()
     return mstReaction(
+      () => adornmentsStore?.interceptLocked,
       () => {
-        model.updateCategories(updateCategoryOptions)
-      },
-      () => {
+        model.updateCategories(graphModel.getUpdateCategoriesOptions())
         buildElements()
       }, { name: "LSRLAdornmentComponent.refreshInterceptLockChange" }, model)
-  }, [buildElements, dataConfig, graphModel, interceptLocked, model, updateLSRL, xAxis, yAxis])
+  }, [buildElements, dataConfig, graphModel, adornmentsStore?.interceptLocked, model, updateLSRL, xAxis, yAxis])
 
   // Refresh values on changes to axes
   useEffect(function refreshAxisChange() {

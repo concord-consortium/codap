@@ -1,4 +1,4 @@
-import { types } from "mobx-state-tree"
+import { Instance, SnapshotIn, types } from "mobx-state-tree"
 import { Point, PointModel } from "./point-model"
 
 const kDefaultLabelHeight = 60
@@ -77,3 +77,5 @@ export const LineLabelInstance = types.model("LineLabelInstance", {
     self.plotHeight = plotHeight
   }
 }))
+export interface ILineLabelInstanceSnapshot extends SnapshotIn<typeof LineLabelInstance> {}
+export interface ILineLabelInstance extends Instance<typeof LineLabelInstance> {}

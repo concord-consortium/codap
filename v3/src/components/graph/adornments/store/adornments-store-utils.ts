@@ -1,3 +1,6 @@
+import { logMessageWithReplacement } from "../../../../lib/log-message"
+import { ITileModel } from "../../../../models/tiles/tile-model"
+import { updateTileNotification } from "../../../../models/tiles/tile-notifications"
 import { PlotType } from "../../graphing-types"
 import { getAdornmentComponentInfo, IAdornmentComponentInfo } from "../adornment-component-info"
 import { getAdornmentContentInfo, IAdornmentContentInfo } from "../adornment-content-info"
@@ -27,6 +30,12 @@ export interface IGroupItem {
 
 export type MeasureMenuItemArray = Array<IMeasureMenuItem | IGroupItem>
 
+function updateGraphAdornmentNotification(updateType: string, isChecked: boolean, tileModel: ITileModel) {
+  if (!tileModel) return
+
+  return updateTileNotification(updateType, { isChecked }, tileModel)
+}
+
 export function isGroupItem(item: IMeasureMenuItem | IGroupItem): item is IGroupItem {
   return item.type === 'Group'
 }
@@ -35,7 +44,8 @@ export function isMeasureMenuItem(item: IMeasureMenuItem | IGroupItem): item is 
   return item.type !== 'Group'
 }
 
-export function getAdornmentsMenuItemsFromTheStore(theStore: IAdornmentsBaseStore, plotType: PlotType,
+export function getAdornmentsMenuItemsFromTheStore(theStore: IAdornmentsBaseStore,
+                                                   tile: ITileModel | undefined, plotType: PlotType,
                                                    useGaussianOptions: boolean) {
   const measureMenuItems: MeasureMenuItemArray = []
 
@@ -74,6 +84,7 @@ export function getAdornmentsMenuItemsFromTheStore(theStore: IAdornmentsBaseStor
   // items that either augment/adjust other adornments' behavior (e.g. Show Measure Labels, Intercept Locked), or need
   // special handling outside the realm of adornments (e.g. Connecting Lines, Squares of Residuals).
   getMeasuresForPlot(plotType).map((measureOrGroup: IMeasure) => {
+    // const tileModel = displayModel && getTileModel(displayModel)
 
     // Add the Show Measure Labels option checkbox immediately before the first group item. Note that group items only
     // appear in the univariate plot's ruler.
@@ -81,7 +92,22 @@ export function getAdornmentsMenuItemsFromTheStore(theStore: IAdornmentsBaseStor
       checked: theStore.showMeasureLabels,
       title: "DG.Inspector.showLabels",
       type: "control",
-      clickHandler: theStore.toggleShowLabels
+      clickHandler: () => {
+        theStore.applyModelChange(() => {
+          theStore.toggleShowLabels()
+        }, {
+          notify: tile
+            ? updateGraphAdornmentNotification("toggle showing labels",
+              (theStore.showMeasureLabels), tile)
+            : undefined,
+          undoStringKey: theStore.showMeasureLabels ? "DG.Undo.graph.hideMeasureLabels"
+            : "DG.Undo.graph.showMeasureLabels",
+          redoStringKey: theStore.showMeasureLabels ? "DG.Redo.graph.hideMeasureLabels"
+            : "DG.Redo.graph.showMeasureLabels",
+          log: logMessageWithReplacement("%@ measure labels",
+            {action: theStore.showMeasureLabels ? "Hide" : "Show"}, "plot")
+        })
+      }
     })
 
     // Add the adornment or group item from `measures` to the menu.
@@ -98,7 +124,22 @@ export function getAdornmentsMenuItemsFromTheStore(theStore: IAdornmentsBaseStor
         checked: theStore.showConnectingLines,
         title: "DG.Inspector.graphConnectingLine",
         type: "control",
-        clickHandler: theStore.toggleShowConnectingLines
+        clickHandler: () => {
+          theStore.applyModelChange(() => {
+            theStore.toggleShowConnectingLines()
+          }, {
+            notify: tile
+              ? updateGraphAdornmentNotification("toggle show connecting lines",
+                (theStore.showConnectingLines), tile)
+              : undefined,
+            undoStringKey: theStore.showConnectingLines ? "DG.Undo.graph.hideConnectingLine"
+              : "DG.Undo.graph.showConnectingLine",
+            redoStringKey: theStore.showConnectingLines ? "DG.Redo.graph.hideConnectingLine"
+              : "DG.Redo.graph.showConnectingLine",
+            log: logMessageWithReplacement("%@ connecting lines",
+              {action: theStore.showConnectingLines ? "Hide" : "Show"}, "plot")
+          })
+        }
       })
     }
 
@@ -112,7 +153,22 @@ export function getAdornmentsMenuItemsFromTheStore(theStore: IAdornmentsBaseStor
         disabled: !movableLineVisible && !lsrlVisible,
         title: "DG.Inspector.graphInterceptLocked",
         type: "control",
-        clickHandler: theStore.toggleInterceptLocked
+        clickHandler: () => {
+          theStore.applyModelChange(() => {
+            theStore.toggleInterceptLocked()
+          }, {
+            notify: tile
+              ? updateGraphAdornmentNotification("toggle intercept locked",
+                (theStore.interceptLocked), tile)
+              : undefined,
+            undoStringKey: theStore.interceptLocked ? "DG.Undo.graph.unlockIntercept"
+              : "DG.Undo.graph.lockIntercept",
+            redoStringKey: theStore.interceptLocked ? "DG.Redo.graph.unlockIntercept"
+              : "DG.Redo.graph.lockIntercept",
+            log: logMessageWithReplacement("%@ line intercept",
+              {action: theStore.interceptLocked ? "Unlock" : "Lock"}, "plot")
+          })
+        }
       })
     }
   })
@@ -129,7 +185,22 @@ export function getAdornmentsMenuItemsFromTheStore(theStore: IAdornmentsBaseStor
       disabled: !movableLineVisible && !lsrlVisible && !plottedFunctionVisible,
       title: "DG.Inspector.graphSquares",
       type: "control",
-      clickHandler: theStore.toggleShowSquaresOfResiduals
+      clickHandler: () => {
+        theStore.applyModelChange(() => {
+          theStore.toggleShowSquaresOfResiduals()
+        }, {
+          notify: tile
+            ? updateGraphAdornmentNotification("toggle showSquares",
+              (theStore.showSquaresOfResiduals), tile)
+            : undefined,
+          undoStringKey: theStore.showSquaresOfResiduals ? "DG.Undo.graph.hideSquares"
+            : "DG.Undo.graph.showSquares",
+          redoStringKey: theStore.showSquaresOfResiduals ? "DG.Redo.graph.hideSquares"
+            : "DG.Redo.graph.showSquares",
+          log: logMessageWithReplacement("%@ squares of residuals",
+            {action: theStore.showSquaresOfResiduals ? "Hide" : "Show"}, "plot")
+        })
+      }
     })
   }
 

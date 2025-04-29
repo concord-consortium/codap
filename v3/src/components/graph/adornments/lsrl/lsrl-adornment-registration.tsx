@@ -113,10 +113,10 @@ registerAdornmentContentInfo({
         showConfidenceBands: adornment.showConfidenceBands,
         // v2 ignores top and right splits
         lsrls: options.legendCategories.map(cat => {
-          const lineInstance = adornment.firstLineInstance(cat)
+          const labelInstance = adornment.firstLabelInstance(cat)
           return {
             ...exportAdornmentBase(adornment, options),
-            equationCoords: lineInstance?.v2ExportCoords ?? null,
+            equationCoords: labelInstance?.v2ExportCoords ?? null,
             isInterceptLocked: options.isInterceptLocked,
             showConfidenceBands: adornment.showConfidenceBands
           }

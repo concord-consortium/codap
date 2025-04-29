@@ -1,4 +1,5 @@
 import {Instance} from "mobx-state-tree"
+import { ITileModel } from "../../../../models/tiles/tile-model"
 import { PlotType } from "../../graphing-types"
 import {AdornmentsBaseStore} from "./adornments-base-store"
 import {getAdornmentsMenuItemsFromTheStore} from "./adornments-store-utils"
@@ -10,8 +11,8 @@ import {getAdornmentsMenuItemsFromTheStore} from "./adornments-store-utils"
 export const AdornmentsStore = AdornmentsBaseStore
   .named("AdornmentsStore")
   .views(self => ({
-    getAdornmentsMenuItems(plotType: PlotType, useGaussianOptions: boolean) {
-      return getAdornmentsMenuItemsFromTheStore(self, plotType, useGaussianOptions)
+    getAdornmentsMenuItems(tile: ITileModel | undefined, plotType: PlotType, useGaussianOptions: boolean) {
+      return getAdornmentsMenuItemsFromTheStore(self, tile, plotType, useGaussianOptions)
     },
   }))
 

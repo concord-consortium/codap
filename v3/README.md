@@ -142,6 +142,7 @@ Various developer features can be enabled by adding a `debug` local storage key 
 - `map` print info about interactions with the map component
 - `pixiPoints` this adds a map of tileId keys to PixiPoint instances as `window.pixiPointsMap`. This is also always available in Cypress.
 - `plugins` enable some extra plugins in the plugin menu and print information about interactions with plugins.
+- `saveAsV2` this will cause the app to save documents in V2 format.
 - `undo` this will print information about each action that is added to the undo stack.
 
 ##### Why Did You Render?
