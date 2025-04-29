@@ -20,7 +20,7 @@ import { DateAxisHelper } from "../helper-models/date-axis-helper"
 import { NumericAxisHelper } from "../helper-models/numeric-axis-helper"
 import { useAxisLayoutContext } from "../models/axis-layout-context"
 import {IAxisModel} from "../models/axis-model"
-import { isAnyCategoricalAxisModel, isCategoricalAxisModel, isColorAxisModel } from "../models/categorical-axis-models"
+import { isAnyCategoricalAxisModel, isColorAxisModel } from "../models/categorical-axis-models"
 import { isAnyNumericAxisModel } from "../models/numeric-axis-models"
 import { useAxisProviderContext } from "./use-axis-provider-context"
 
