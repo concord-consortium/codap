@@ -755,12 +755,9 @@ const GeoRasterLayer: (new (options: GeoRasterLayerOptions) => any) & typeof L.C
               this.mask.then((mask: Mask) => {
                 geocanvas.maskCanvas({
                   canvas: tile,
-                  // eslint-disable-next-line camelcase
                   canvas_bbox: extentOfInnerTileInMapCRS.bbox, // need to support simple projection too
-                  // eslint-disable-next-line camelcase
                   canvas_srs: 3857, // default map crs, need to support simple
                   mask,
-                  // eslint-disable-next-line camelcase
                   mask_srs: this.mask_srs,
                   strategy: this.mask_strategy // hide everything inside or outside the mask
                 })
@@ -1114,14 +1111,12 @@ const GeoRasterLayer: (new (options: GeoRasterLayerOptions) => any) & typeof L.C
   }
 })
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 if (typeof window === "object") {
   (window as any).GeoRasterLayer = GeoRasterLayer
 }
 if (typeof self !== "undefined") {
   (self as any).GeoRasterLayer = GeoRasterLayer
 }
-/* eslint-enable @typescript-eslint/no-explicit-any */
 
 export default GeoRasterLayer
 

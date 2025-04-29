@@ -1,4 +1,3 @@
-/* eslint-disable camelcase */
 import type { GridLayerOptions, Coords, CRS, DoneCallback, LatLngBounds, Transformation } from "leaflet"
 import type { Feature, FeatureCollection, Polygon, MultiPolygon } from "geojson"
 
