@@ -576,10 +576,15 @@ const GeoRasterLayer: (new (options: GeoRasterLayerOptions) => any) & typeof L.C
       tile.style.paddingBottom = `${canvasPadding.bottom  }px`
       tile.style.paddingLeft = `${canvasPadding.left  }px`
 
-      tile.height = canvasHeight
+      // Only set the height and width if they are different, otherwise the canvas will be cleared
+      if (tile.height !== canvasHeight) {
+        tile.height = canvasHeight
+      }
       tile.style.height = `${canvasHeight  }px`
 
-      tile.width = canvasWidth
+      if (tile.width !== canvasWidth) {
+        tile.width = canvasWidth
+      }
       tile.style.width = `${canvasWidth  }px`
       if (debugLevel >= 3) console.log(`setting tile height to ${  canvasHeight  }px`)
       if (debugLevel >= 3) console.log(`setting tile width to ${  canvasWidth  }px`)
