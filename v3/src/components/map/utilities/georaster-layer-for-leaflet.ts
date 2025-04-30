@@ -1,8 +1,8 @@
 /* global proj4 */
 import "regenerator-runtime/runtime.js"
 import * as L from "leaflet"
-// import chroma from "chroma-js"
-import geocanvas from "geocanvas"
+import chroma from "chroma-js"
+// import geocanvas from "geocanvas"
 import { rawToRgb } from "pixel-utils"
 import isUTM from "utm-utils/src/isUTM.js"
 import getProjString from "utm-utils/src/getProjString.js"
@@ -19,10 +19,11 @@ import type {
   GeoRasterKeys,
   GetRasterOptions,
   DrawTileOptions,
-  Mask,
-  MaskStrategy,
   PixelValuesToColorFn,
-  Tile
+  Tile,
+  ResampleMethod,
+  DebugLevel,
+  GeoRasterValues
 } from "./georaster-types"
 
 const EPSG4326 = 4326
@@ -52,6 +53,105 @@ if (!L) {
 
 const zip = (a: any[], b: any[]) => a.map((it, i) => [it, b[i]])
 
+/**
+ * The types of extent.reproj() are messed up, so we wrap it to fix that.
+ * However note that reproj might return undefined. The code below doesn't
+ * handle that case, so we're going to hack it for now and assume it always
+ * returns a GeoExtent.
+ *
+ * @param extentOfTile
+ * @param code
+ * @returns
+ */
+const extentReproj = (extentOfTile: GeoExtent, code: number | string) => {
+  return (extentOfTile as any).reproj(code) as GeoExtent
+}
+
+interface Projector {
+  forward(point: [number, number]): [number, number]
+  forward(point: {x:number, y:number}): {x:number, y:number}
+  inverse(point: [number, number]): [number, number]
+  inverse(point: {x:number, y:number}): {x:number, y:number}
+}
+declare class GeoRasterLayerClass extends L.GridLayer {
+
+  // properties copied from the GeoRaster
+  height: number
+  width: number
+  noDataValue: GeoRaster["noDataValue"]
+  palette: GeoRaster["palette"]
+  pixelHeight: number
+  pixelWidth: number
+  projection: number
+  sourceType?: GeoRaster["sourceType"]
+  xmin: number
+  xmax: number
+  ymin: number
+  ymax: number
+
+  // Other properties
+  extent: GeoExtent
+  ratio: number
+  debugLevel: DebugLevel
+  rasters: number[][][]
+  tileHeight: number
+  tileWidth: number
+  numBands: number
+  currentStats: {
+    mins: (number | undefined)[],
+    maxs: (number | undefined)[],
+    ranges: (number | undefined)[]
+  }
+  calcStats?: boolean
+  georasters: GeoRaster[]
+  resampleMethod?: ResampleMethod
+  checkIfYCbCr: Promise<boolean>
+  cache: Record<string, HTMLElement>
+  xMinOfLayer: number
+  xMaxOfLayer: number
+  yMinOfLayer: number
+  yMaxOfLayer: number
+  // it isn't clear if chroma has any types
+  chroma: any
+  // This is the type of chrome.scale() but it isn't clear if chroma has any types
+  scale: any
+
+  same(array: GeoRaster[], key: GeoRasterKeys): boolean
+  rawToRgb: (values: number[]) => string
+  getMap(): L.Map
+  getMapCRS(): L.CRS
+  isSupportedProjection(): boolean
+  getProjector(): Projector | undefined
+  drawTile(options: DrawTileOptions): void
+  initBounds(options?: GeoRasterLayerOptions): void
+  getBounds(): LatLngBounds
+  getRasters(options: GetRasterOptions): Promise<GeoRasterValues | undefined>
+  getColor(values: number[]): string | undefined
+  getTiles(): Tile[]
+  getActiveTiles(): Tile[]
+  getProjectionString(projection: number): string
+
+  // Options
+  options: GeoRasterLayerOptions
+
+  // TODO: this is just a guess, need to confirm this is correct
+  protected _cache: {innerTile: Record<string, L.Rectangle>, tile: Record<string, L.Rectangle>}
+
+  protected _dynamic?: boolean
+  protected _isSupportedProjection?: boolean
+  protected _projector?: Projector
+  protected _bounds: LatLngBounds | undefined
+  protected _getResolution(zoom: number): number | undefined
+  protected _tileCoordsToBounds(coords: Coords): LatLngBounds
+  protected _tileCoordsToNwSe(coords: Coords): [L.LatLng, L.LatLng]
+  protected _isValidTile(coords: Coords): boolean
+
+  // This property is referenced but not defined by the Leaflet types
+  // nor is it set by the GeoRasterLayer class, perhaps it is an undocumented
+  // feature of Layers, or defined on an earlier version of Leaflet.
+  protected _globalTileRange: L.Bounds
+}
+
 const GeoRasterLayer: (new (options: GeoRasterLayerOptions) => any) & typeof L.Class = L.GridLayer.extend({
   options: {
     updateWhenIdle: true,
@@ -64,7 +164,7 @@ const GeoRasterLayer: (new (options: GeoRasterLayerOptions) => any) & typeof L.C
 
   cache: {},
 
-  initialize(options: GeoRasterLayerOptions) {
+  initialize(this: GeoRasterLayerClass, options: GeoRasterLayerOptions) {
     try {
       if (options.georasters) {
         this.georasters = options.georasters
@@ -101,18 +201,18 @@ const GeoRasterLayer: (new (options: GeoRasterLayerOptions) => any) & typeof L.C
         "xmax",
         "ymin",
         "ymax"
-      ]
+      ] as const
       if (this.georasters.length > 1) {
         keys.forEach(key => {
           if (this.same(this.georasters, key)) {
-            this[key] = this.georasters[0][key]
+            (this as any)[key] = this.georasters[0][key]
           } else {
             throw new Error(`all GeoRasters must have the same ${key}`)
           }
         })
       } else if (this.georasters.length === 1) {
         keys.forEach(key => {
-          this[key] = this.georasters[0][key]
+          (this as any)[key] = this.georasters[0][key]
         })
       }
 
@@ -126,36 +226,22 @@ const GeoRasterLayer: (new (options: GeoRasterLayerOptions) => any) & typeof L.C
       // used later if simple projection
       this.ratio = this.height / this.width
 
-      this.debugLevel = options.debugLevel
+      this.debugLevel = options.debugLevel || 0
       if (this.debugLevel >= 1) log({ options })
 
       if (this.georasters.every((georaster: GeoRaster) => typeof georaster.values === "object")) {
-        this.rasters = this.georasters.reduce((result: number[][][], georaster: GeoRaster) => {
+        this.rasters = this.georasters.reduce((result, georaster) => {
           // added double-check of values to make typescript linter and compiler happy
           if (georaster.values) {
             result = result.concat(georaster.values)
-            return result
           }
-        }, [])
+          return result
+        }, [] as GeoRasterValues)
         if (this.debugLevel > 1) console.log("this.rasters:", this.rasters)
       }
 
-      if (options.mask) {
-        if (typeof options.mask === "string") {
-          this.mask = fetch(options.mask).then(r => r.json()) as Promise<Mask>
-        } else if (typeof options.mask === "object") {
-          this.mask = Promise.resolve(options.mask)
-        }
-
-        // default mask srs is the EPSG:4326 projection used by GeoJSON
-        this.mask_srs = options.mask_srs || "EPSG:4326"
-      }
-
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-      this.mask_strategy = (options.mask_strategy || "outside") as MaskStrategy
-
-      // this.chroma = chroma
-      // this.scale = chroma.scale()
+      this.chroma = chroma
+      this.scale = chroma.scale()
 
       // could probably replace some day with a simple
       // (for let k in options) { this.options[k] = options[k]; }
@@ -209,11 +295,11 @@ const GeoRasterLayer: (new (options: GeoRasterLayerOptions) => any) & typeof L.C
 
       // if you haven't specified a pixelValuesToColorFn
       // and the image is YCbCr, add a function to convert YCbCr
-      // eslint-disable-next-line no-async-promise-executor
-      this.checkIfYCbCr = new Promise(async resolve => {
-        if (this.options.pixelValuesToColorFn) return resolve(true)
+      this.checkIfYCbCr = (async () => {
+        if (this.options.pixelValuesToColorFn) return true
         if (this.georasters.length === 1 && this.georasters[0].numberOfRasters === 3) {
-          const image = await this.georasters[0]._geotiff?.getImage()
+          // FIXME: _geotiff is defined as "unknown" in GeoRaster type
+          const image = await (this.georasters[0]._geotiff as any)?.getImage()
           if (image?.fileDirectory?.PhotometricInterpretation === 6) {
             this.options.pixelValuesToColorFn = (values: number[]) => {
               const r = Math.round(values[0] + 1.402 * (values[2] - 0x80))
@@ -223,14 +309,14 @@ const GeoRasterLayer: (new (options: GeoRasterLayerOptions) => any) & typeof L.C
             }
           }
         }
-        return resolve(true)
-      })
+        return true
+      })()
     } catch (error) {
       console.error("ERROR initializing GeoTIFFLayer", error)
     }
   },
 
-  onAdd(map: any) {
+  onAdd(this: GeoRasterLayerClass, map: any) {
     if (!this.options.maxZoom) {
       // maxZoom is needed to display the tiles in the correct order over the zIndex between the zoom levels
       // https://github.com/Leaflet/Leaflet/blob/2592967aa6bd392db0db9e58dab840054e2aa291/src/layer/tile/GridLayer.js#L375C21-L375C21
@@ -240,7 +326,7 @@ const GeoRasterLayer: (new (options: GeoRasterLayerOptions) => any) & typeof L.C
     L.GridLayer.prototype.onAdd.call(this, map)
   },
 
-  getRasters(options: GetRasterOptions) {
+  getRasters(this: GeoRasterLayerClass, options: GetRasterOptions) {
     const {
       innerTileTopLeftPoint,
       heightOfSampleInScreenPixels,
@@ -279,7 +365,7 @@ const GeoRasterLayer: (new (options: GeoRasterLayerOptions) => any) & typeof L.C
         /* source raster doesn't use latitude and longitude,
            so need to reproject point from lat/long to projection of raster
         */
-        const [x, y] = this.getProjector().inverse([lng, lat])
+        const [x, y] = this.getProjector()!.inverse([lng, lat])
         if (x === Infinity || y === Infinity) {
           if (this.debugLevel >= 1) console.error("projector converted", [lng, lat], "to", [x, y])
         }
@@ -314,15 +400,15 @@ const GeoRasterLayer: (new (options: GeoRasterLayerOptions) => any) & typeof L.C
           georaster.getValues({ ...getValuesOptions, resampleMethod: this.resampleMethod || "nearest" })
         )
       ).then(valuesByGeoRaster =>
-        valuesByGeoRaster.reduce((result: number[][][], values) => {
-          result = result.concat(values as number[][])
+        valuesByGeoRaster.reduce((result, values) => {
+          result = result.concat(values)
           return result
         }, [])
       )
     }
   },
 
-  createTile(coords: Coords, done: DoneCallback) {
+  createTile(this: GeoRasterLayerClass, coords: Coords, done: DoneCallback) {
     /* This tile is the square piece of the Leaflet map that we draw on */
     const tile = L.DomUtil.create("canvas", "leaflet-tile")
 
@@ -340,12 +426,18 @@ const GeoRasterLayer: (new (options: GeoRasterLayerOptions) => any) & typeof L.C
     const coordsKey = this._tileCoordsToKey(coords)
 
     const resolution = this._getResolution(coords.z)
+
+    if (!context || resolution === undefined) {
+      done(new Error("Could not get canvas context or resolution is undefined"), tile)
+      return tile
+    }
+
     const key = `${coordsKey}:${resolution}`
     const doneCb = (error?: Error, _tile?: HTMLElement): void => {
       done(error, _tile)
 
       // caching the rendered tile, to skip the calculation for the next time
-      if (!error && this.options.caching) {
+      if (!error && this.options.caching && _tile) {
         this.cache[key] = _tile
       }
     }
@@ -360,7 +452,7 @@ const GeoRasterLayer: (new (options: GeoRasterLayerOptions) => any) & typeof L.C
     return tile
   },
 
-  drawTile({ tile, coords, context, done, resolution }: DrawTileOptions) {
+  drawTile(this: GeoRasterLayerClass, { tile, coords, context, done, resolution }: DrawTileOptions) {
     try {
       const { debugLevel = 0 } = this
 
@@ -411,14 +503,16 @@ const GeoRasterLayer: (new (options: GeoRasterLayerOptions) => any) & typeof L.C
         }
       }
 
-      const extentOfTileInMapCRS = inSimpleCRS ? extentOfTile : extentOfTile.reproj(code)
+      // Types of extentOfTile.reproj() are messed up
+      // If we are not in a simple CRS, then the code of the CRS will be defined
+      const extentOfTileInMapCRS = inSimpleCRS ? extentOfTile : extentReproj(extentOfTile, code!)
       if (debugLevel >= 2) log({ extentOfTileInMapCRS })
 
       let extentOfInnerTileInMapCRS = extentOfTileInMapCRS.crop(inSimpleCRS ? extentOfLayer : this.extent)
       if (debugLevel >= 2) {
         console.log(
           "[georaster-layer-for-leaflet] extentOfInnerTileInMapCRS",
-          extentOfInnerTileInMapCRS.reproj(inSimpleCRS ? "simple" : 4326)
+          extentReproj(extentOfInnerTileInMapCRS, inSimpleCRS ? "simple" : 4326)
         )
       }
       if (debugLevel >= 2) log({ coords, extentOfInnerTileInMapCRS, extent: this.extent })
@@ -426,7 +520,7 @@ const GeoRasterLayer: (new (options: GeoRasterLayerOptions) => any) & typeof L.C
       // create blue outline around tiles
       if (debugLevel >= 4) {
         if (!this._cache.innerTile[cacheKey]) {
-          const ext = inSimpleCRS ? extentOfInnerTileInMapCRS : extentOfInnerTileInMapCRS.reproj(4326)
+          const ext = inSimpleCRS ? extentOfInnerTileInMapCRS : extentReproj(extentOfInnerTileInMapCRS, 4326)
           this._cache.innerTile[cacheKey] = L.rectangle(ext.leafletBounds, {
             color: "#F00",
             dashArray: "5, 10",
@@ -442,7 +536,7 @@ const GeoRasterLayer: (new (options: GeoRasterLayerOptions) => any) & typeof L.C
       // expand tile sampling area to align with raster pixels
       const oldExtentOfInnerTileInRasterCRS = inSimpleCRS
         ? extentOfInnerTileInMapCRS
-        : extentOfInnerTileInMapCRS.reproj(this.projection)
+        : extentReproj(extentOfInnerTileInMapCRS, this.projection)
       const snapped = snap({
         bbox: oldExtentOfInnerTileInRasterCRS.bbox,
         // pad xmax and ymin of container to tolerate ceil() and floor() in snap()
@@ -472,7 +566,7 @@ const GeoRasterLayer: (new (options: GeoRasterLayerOptions) => any) & typeof L.C
       let maxSamplesAcross = 1
       let maxSamplesDown = 1
       if (recropTileOrig !== null) {
-        const recropTileProj = inSimpleCRS ? recropTileOrig : recropTileOrig.reproj(code)
+        const recropTileProj = inSimpleCRS ? recropTileOrig : extentReproj(recropTileOrig, code!)
         const recropTile = recropTileProj.crop(extentOfTileInMapCRS)
         if (recropTile !== null) {
           maxSamplesAcross = Math.ceil(resolution * (recropTile.width / extentOfTileInMapCRS.width))
@@ -488,7 +582,7 @@ const GeoRasterLayer: (new (options: GeoRasterLayerOptions) => any) & typeof L.C
       if (debugLevel >= 3) {
         console.log(
           `[georaster-layer-for-leaflet] extent of inner tile before snapping ${
-            extentOfInnerTileInMapCRS.reproj(inSimpleCRS ? "simple" : 4326).bbox.toString()}`
+            extentReproj(extentOfInnerTileInMapCRS, inSimpleCRS ? "simple" : 4326).bbox.toString()}`
         )
       }
 
@@ -520,7 +614,7 @@ const GeoRasterLayer: (new (options: GeoRasterLayerOptions) => any) & typeof L.C
       // create outline around raster pixels
       if (debugLevel >= 4) {
         if (!this._cache.innerTile[cacheKey]) {
-          const ext = inSimpleCRS ? extentOfInnerTileInMapCRS : extentOfInnerTileInMapCRS.reproj(4326)
+          const ext = inSimpleCRS ? extentOfInnerTileInMapCRS : extentReproj(extentOfInnerTileInMapCRS, 4326)
           this._cache.innerTile[cacheKey] = L.rectangle(ext.leafletBounds, {
             color: "#F00",
             dashArray: "5, 10",
@@ -532,7 +626,7 @@ const GeoRasterLayer: (new (options: GeoRasterLayerOptions) => any) & typeof L.C
       if (debugLevel >= 3) {
         console.log(
           `[georaster-layer-for-leaflet] extent of inner tile after snapping ${
-            extentOfInnerTileInMapCRS.reproj(inSimpleCRS ? "simple" : 4326).bbox.toString()}`
+            extentReproj(extentOfInnerTileInMapCRS, inSimpleCRS ? "simple" : 4326).bbox.toString()}`
         )
       }
 
@@ -610,15 +704,13 @@ const GeoRasterLayer: (new (options: GeoRasterLayerOptions) => any) & typeof L.C
       // render asynchronously so tiles show up as they finish instead of all at once (which blocks the UI)
       setTimeout(async () => {
         try {
-          let tileRasters: number[][][] | null = null
+          let tileRasters: number[][][] | undefined
           if (!rasters) {
             tileRasters = await this.getRasters({
               innerTileTopLeftPoint,
               heightOfSampleInScreenPixels,
               widthOfSampleInScreenPixels,
               zoom,
-              pixelHeight,
-              pixelWidth,
               numberOfSamplesAcross,
               numberOfSamplesDown,
               ymax,
@@ -646,7 +738,9 @@ const GeoRasterLayer: (new (options: GeoRasterLayerOptions) => any) & typeof L.C
                 }
                 this.currentStats.mins[bandIndex] = min
                 this.currentStats.maxs[bandIndex] = max
-                this.currentStats.ranges[bandIndex] = max - min
+                this.currentStats.ranges[bandIndex] = min !== undefined && max !== undefined
+                  ? max - min
+                  : undefined
               }
             }
             if (this._dynamic) {
@@ -689,7 +783,7 @@ const GeoRasterLayer: (new (options: GeoRasterLayerOptions) => any) & typeof L.C
                   if (inSimpleCRS || this.projection === EPSG4326) {
                     xInRasterPixels = Math.floor((xOfLayer - xMinOfLayer) / pixelWidth)
                   } else if (this.getProjector()) {
-                    const inverted = this.getProjector().inverse({ x: xOfLayer, y: lat })
+                    const inverted = this.getProjector()!.inverse({ x: xOfLayer, y: lat })
                     const yInSrc = inverted.y
                     yInRasterPixels = Math.floor((ymax - yInSrc) / pixelHeight)
                     if (yInRasterPixels < 0 || yInRasterPixels >= rasterHeight) continue
@@ -698,7 +792,7 @@ const GeoRasterLayer: (new (options: GeoRasterLayerOptions) => any) & typeof L.C
                     xInRasterPixels = Math.floor((xInSrc - xmin) / pixelWidth)
                     if (xInRasterPixels < 0 || xInRasterPixels >= rasterWidth) continue
                   }
-                  let values = null
+                  let values: number[] | null = null
                   if (tileRasters) {
                     // get value from array specific to this tile
                     values = tileRasters.map(band => band[h][w])
@@ -748,23 +842,6 @@ const GeoRasterLayer: (new (options: GeoRasterLayerOptions) => any) & typeof L.C
             }
           }
 
-          if (this.mask) {
-            if (inSimpleCRS) {
-              console.warn("[georaster-layer-for-leaflet] mask is not supported when using simple projection")
-            } else {
-              this.mask.then((mask: Mask) => {
-                geocanvas.maskCanvas({
-                  canvas: tile,
-                  canvas_bbox: extentOfInnerTileInMapCRS.bbox, // need to support simple projection too
-                  canvas_srs: 3857, // default map crs, need to support simple
-                  mask,
-                  mask_srs: this.mask_srs,
-                  strategy: this.mask_strategy // hide everything inside or outside the mask
-                })
-              })
-            }
-          }
-
           tile.style.visibility = "visible" // set to default
         } catch (e: any) {
           console.error(e)
@@ -783,14 +860,14 @@ const GeoRasterLayer: (new (options: GeoRasterLayerOptions) => any) & typeof L.C
 
   // copied from Leaflet with slight modifications,
   // including removing the lines that set the tile size
-  _initTile (tile: HTMLCanvasElement) {
+  _initTile (this: GeoRasterLayerClass, tile: HTMLCanvasElement) {
     L.DomUtil.addClass(tile, "leaflet-tile")
 
     tile.onselectstart = L.Util.falseFn
     tile.onmousemove = L.Util.falseFn
 
     // update opacity on tiles in IE7-8 because of filter inheritance problems
-    if (L.Browser.ielt9 && this.options.opacity < 1) {
+    if (this.options.opacity !== undefined && L.Browser.ielt9 && this.options.opacity < 1) {
       L.DomUtil.setOpacity(tile, this.options.opacity)
     }
 
@@ -802,21 +879,24 @@ const GeoRasterLayer: (new (options: GeoRasterLayerOptions) => any) & typeof L.C
   },
 
   // method from https://github.com/Leaflet/Leaflet/blob/bb1d94ac7f2716852213dd11563d89855f8d6bb1/src/layer/ImageOverlay.js
-  getBounds () {
+  getBounds (this: GeoRasterLayerClass) {
     this.initBounds()
-    return this._bounds
+    // initBounds will throw an error if it can't initialize the bounds
+    return this._bounds!
   },
 
-  getMap () {
-    return this._map || this._mapToAdd
+  getMap (this: GeoRasterLayerClass) {
+    // This _mapToAdd property is not defined by typescript, but perhaps it is used
+    // by some versions of Leaflet?
+    return this._map || (this as any)._mapToAdd
   },
 
-  getMapCRS () {
+  getMapCRS (this: GeoRasterLayerClass) {
     return this.getMap()?.options.crs || L.CRS.EPSG3857
   },
 
   // add in to ensure backwards compatability with Leaflet 1.0.3
-  _tileCoordsToNwSe (coords: Coords) {
+  _tileCoordsToNwSe (this: GeoRasterLayerClass, coords: Coords) {
     const map = this.getMap()
     const tileSize = this.getTileSize()
     const nwPoint = coords.scaleBy(tileSize)
@@ -826,26 +906,29 @@ const GeoRasterLayer: (new (options: GeoRasterLayerOptions) => any) & typeof L.C
     return [nw, se]
   },
 
-  _tileCoordsToBounds (coords: Coords) {
+  _tileCoordsToBounds (this: GeoRasterLayerClass, coords: Coords) {
     const [nw, se] = this._tileCoordsToNwSe(coords)
     let bounds: LatLngBounds = new L.LatLngBounds(nw, se)
 
     if (!this.options.noWrap) {
-      const { crs } = this.getMap().options
-      bounds = crs.wrapLatLngBounds(bounds)
+      const crs = this.getMapCRS()
+      // In the types wrapLatLngBounds is defined on the L.Map class, there is a wrapLatLng defined
+      // on the CRS interface just not a wrapLatLngBounds.
+      bounds = (crs as any).wrapLatLngBounds(bounds) as LatLngBounds
     }
     return bounds
   },
 
-  _isValidTile (coords: Coords) {
+  _isValidTile (this: GeoRasterLayerClass, coords: Coords) {
     const crs = this.getMapCRS()
 
+    // This first part is copied from  _isValidTile method in GridLayer
     if (!crs.infinite) {
       // don't load tile if it's out of bounds and not wrapped
       const globalBounds = this._globalTileRange
       if (
-        (!crs.wrapLng && (coords.x < globalBounds.min.x || coords.x > globalBounds.max.x)) ||
-        (!crs.wrapLat && (coords.y < globalBounds.min.y || coords.y > globalBounds.max.y))
+        (!crs.wrapLng && (coords.x < globalBounds.min!.x || coords.x > globalBounds.max!.x)) ||
+        (!crs.wrapLat && (coords.y < globalBounds.min!.y || coords.y > globalBounds.max!.y))
       ) {
         return false
       }
@@ -856,6 +939,7 @@ const GeoRasterLayer: (new (options: GeoRasterLayerOptions) => any) & typeof L.C
     if (!bounds) {
       return true
     }
+    // End of copied part
 
     const { x, y, z } = coords
 
@@ -865,7 +949,9 @@ const GeoRasterLayer: (new (options: GeoRasterLayerOptions) => any) & typeof L.C
     const boundsOfTile = this._tileCoordsToBounds(coords)
 
     // check given tile coordinates
-    if (layerExtent.overlaps(boundsOfTile)) return true
+    // boundsOfTile is a LatLngBounds object, the types of GeoExtent only
+    // alow GeoExtent objects, however the code appears to allow LatLngBounds objects too
+    if (layerExtent.overlaps(boundsOfTile as unknown as GeoExtent)) return true
 
     // if not within the original confines of the earth return false
     // we don't want wrapping if using Simple CRS
@@ -878,18 +964,18 @@ const GeoRasterLayer: (new (options: GeoRasterLayerOptions) => any) & typeof L.C
     const leftCoords = L.point(x - width, y) as Coords
     leftCoords.z = z
     const leftBounds = this._tileCoordsToBounds(leftCoords)
-    if (layerExtent.overlaps(leftBounds)) return true
+    if (layerExtent.overlaps(leftBounds as unknown as GeoExtent)) return true
 
     // check one world to the right
     const rightCoords = L.point(x + width, y) as Coords
     rightCoords.z = z
     const rightBounds = this._tileCoordsToBounds(rightCoords)
-    if (layerExtent.overlaps(rightBounds)) return true
+    if (layerExtent.overlaps(rightBounds as unknown as GeoExtent)) return true
 
     return false
   },
 
-  getColor (values: number[]): string | undefined {
+  getColor (this: GeoRasterLayerClass, values: number[]): string | undefined {
     if (this.options.pixelValuesToColorFn) {
       return this.options.pixelValuesToColorFn(values)
     } else {
@@ -901,10 +987,10 @@ const GeoRasterLayer: (new (options: GeoRasterLayerOptions) => any) & typeof L.C
           if (this.palette) {
             const [r, g, b, a] = this.palette[value]
             return `rgba(${r},${g},${b},${a / 255})`
-          } else if (this.georasters[0].mins) {
+          } else if (this.georasters[0].mins && this.georasters[0].ranges) {
             const { mins, ranges } = this.georasters[0]
             return this.scale((values[0] - mins[0]) / ranges[0]).hex()
-          } else if (this.currentStats.mins) {
+          } else if (this.currentStats.mins[0] && this.currentStats.ranges[0]) {
             const min = this.currentStats.mins[0]
             const range = this.currentStats.ranges[0]
             return this.scale((values[0] - min) / range).hex()
@@ -923,7 +1009,7 @@ const GeoRasterLayer: (new (options: GeoRasterLayerOptions) => any) & typeof L.C
   /**
    * Redraws the active map tiles updating the pixel values using the supplie callback
    */
-  updateColors(
+  updateColors(this: GeoRasterLayerClass,
     /**The callback used to determine the colour based on the values of each pixel */
     pixelValuesToColorFn:  PixelValuesToColorFn,
     { debugLevel = -1 } = { debugLevel: -1 }
@@ -948,26 +1034,33 @@ const GeoRasterLayer: (new (options: GeoRasterLayerOptions) => any) & typeof L.C
 
     if (debugLevel >= 1) console.log("Active tiles fetched", tiles)
 
-    tiles.forEach((tile: Tile) => {
+
+    tiles.forEach((tile) => {
       const { coords, el } = tile
-      this.drawTile({ tile: el, coords, context: el.getContext("2d") })
+      const resolution = this._getResolution(coords.z)
+      const context = el.getContext("2d")
+      if (!context || resolution === undefined) {
+        throw new Error("Could not get canvas context for tile")
+      }
+      this.drawTile({ tile: el, coords, context, done() {}, resolution })
     })
     if (debugLevel >= 1) console.log("Finished updating active tile colours")
     return this
   },
 
-  getTiles(): Tile[] {
+  getTiles(this: GeoRasterLayerClass): Tile[] {
     // transform _tiles object collection into an array
-    return Object.values(this._tiles)
+    // assume the _tiles all all of our own tiles which means their elements are HTMLCanvasElements
+    return Object.values(this._tiles) as Tile[]
   },
 
-  getActiveTiles(): Tile[] {
+  getActiveTiles(this: GeoRasterLayerClass): Tile[] {
     const tiles: Tile[] = this.getTiles()
     // only return valid tiles
     return tiles.filter(tile => this._isValidTile(tile.coords))
   },
 
-  isSupportedProjection () {
+  isSupportedProjection (this: GeoRasterLayerClass) {
     if (this._isSupportedProjection === undefined) {
       const projection = this.projection
       if (isUTM(projection)) {
@@ -989,14 +1082,14 @@ const GeoRasterLayer: (new (options: GeoRasterLayerOptions) => any) & typeof L.C
     return this._isSupportedProjection
   },
 
-  getProjectionString (projection: number) {
+  getProjectionString (this: GeoRasterLayerClass, projection: number) {
     if (isUTM(projection)) {
       return getProjString(projection)
     }
     return `EPSG:${projection}`
   },
 
-  initBounds (options: GeoRasterLayerOptions) {
+  initBounds (this: GeoRasterLayerClass, options?: GeoRasterLayerOptions) {
     if (!options) options = this.options
     if (!this._bounds) {
       const { debugLevel, height, width, projection, xmin, xmax, ymin, ymax } = this
@@ -1016,9 +1109,9 @@ const GeoRasterLayer: (new (options: GeoRasterLayerOptions) => any) & typeof L.C
         this._bounds = L.latLngBounds(minLatWest, maxLatEast)
       } else if (this.getProjector()) {
         if (debugLevel >= 1) console.log("projection is UTM or supported by proj4")
-        const bottomLeft = this.getProjector().forward({ x: xmin, y: ymin })
+        const bottomLeft = this.getProjector()!.forward({ x: xmin, y: ymin })
         const minLatWest = L.latLng(bottomLeft.y, bottomLeft.x)
-        const topRight = this.getProjector().forward({ x: xmax, y: ymax })
+        const topRight = this.getProjector()!.forward({ x: xmax, y: ymax })
         const maxLatEast = L.latLng(topRight.y, topRight.x)
         this._bounds = L.latLngBounds(minLatWest, maxLatEast)
       } else {
@@ -1030,17 +1123,18 @@ const GeoRasterLayer: (new (options: GeoRasterLayerOptions) => any) & typeof L.C
         }
       }
 
+      const bounds = this._bounds!
       // these values are used so we don't try to sample outside of the raster
-      this.xMinOfLayer = this._bounds.getWest()
-      this.xMaxOfLayer = this._bounds.getEast()
-      this.yMaxOfLayer = this._bounds.getNorth()
-      this.yMinOfLayer = this._bounds.getSouth()
+      this.xMinOfLayer = bounds.getWest()
+      this.xMaxOfLayer = bounds.getEast()
+      this.yMaxOfLayer = bounds.getNorth()
+      this.yMinOfLayer = bounds.getSouth()
 
       options.bounds = this._bounds
     }
   },
 
-  getProjector () {
+  getProjector (this: GeoRasterLayerClass) {
     if (this.isSupportedProjection()) {
       if (!proj4FullyLoaded && !proj4) {
         throw "proj4 must be found in the global scope in order to load a raster that uses this projection"
@@ -1078,7 +1172,7 @@ const GeoRasterLayer: (new (options: GeoRasterLayerOptions) => any) & typeof L.C
     }
   },
 
-  same(array: GeoRaster[], key: GeoRasterKeys) {
+  same(this: GeoRasterLayerClass, array: GeoRaster[], key: GeoRasterKeys) {
     return new Set(array.map(item => item[key])).size === 1
   },
 
@@ -1086,10 +1180,10 @@ const GeoRasterLayer: (new (options: GeoRasterLayerOptions) => any) & typeof L.C
     this.cache = {}
   },
 
-  _getResolution(zoom: number) {
+  _getResolution(this: GeoRasterLayerClass, zoom: number) {
     const { resolution } = this.options
 
-    let resolutionValue
+    let resolutionValue: number | undefined
     if (typeof resolution === "object") {
       const zoomLevels = Object.keys(resolution)
 
