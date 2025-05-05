@@ -1,7 +1,7 @@
 import "regenerator-runtime/runtime.js"
 import * as L from "leaflet"
 import type { Coords, DoneCallback, LatLngBounds } from "leaflet"
-import { GeoExtent } from "geo-extent"
+import { GeoExtent } from "./geo-extent"
 import snap from "snap-bbox"
 
 import type {
@@ -24,20 +24,6 @@ if (!L) {
   console.warn(
     "[georaster-layer-for-leaflet] can't find Leaflet."
   )
-}
-
-/**
- * The types of extent.reproj() are messed up, so we wrap it to fix that.
- * However note that reproj might return undefined. The code below doesn't
- * handle that case, so we're going to hack it for now and assume it always
- * returns a GeoExtent.
- *
- * @param extentOfTile
- * @param code
- * @returns
- */
-const extentReproj = (extentOfTile: GeoExtent, code: number | string) => {
-  return (extentOfTile as any).reproj(code) as GeoExtent
 }
 
 class GeoRasterLayerClass extends L.GridLayer {
@@ -260,7 +246,7 @@ class GeoRasterLayerClass extends L.GridLayer {
       // Unpacking values for increased speed
       const { rasters, xmin, xmax, ymin, ymax } = this
 
-      const extentOfLayer = new GeoExtent(this.getBounds(), { srs: 4326 })
+      const extentOfLayer = new GeoExtent(this.getBounds())
       if (debugLevel >= 2) log({ extentOfLayer })
 
       const pixelHeight = this.pixelHeight
@@ -274,7 +260,7 @@ class GeoRasterLayerClass extends L.GridLayer {
 
       const { code } = mapCRS
       if (debugLevel >= 2) log({ code })
-      const extentOfTile = new GeoExtent(boundsOfTile, { srs: 4326 })
+      const extentOfTile = new GeoExtent(boundsOfTile)
       if (debugLevel >= 2) log({ extentOfTile })
 
       // create blue outline around tiles
@@ -288,14 +274,21 @@ class GeoRasterLayerClass extends L.GridLayer {
 
       // Types of extentOfTile.reproj() are messed up
       // If we are not in a simple CRS, then the code of the CRS will be defined
-      const extentOfTileInMapCRS = extentReproj(extentOfTile, code!)
+      const extentOfTileInMapCRS = extentOfTile.reproj(code!)
       if (debugLevel >= 2) log({ extentOfTileInMapCRS })
 
       let extentOfInnerTileInMapCRS = extentOfTileInMapCRS.crop(this.extent)
+      if (!extentOfInnerTileInMapCRS) {
+        error = new Error(
+          `[georaster-layer-for-leaflet] tile ${cacheKey} is outside of the extent of the layer`
+        )
+        done(error)
+        return
+      }
       if (debugLevel >= 2) {
         console.log(
           "[georaster-layer-for-leaflet] extentOfInnerTileInMapCRS",
-          extentReproj(extentOfInnerTileInMapCRS, 4326)
+          extentOfInnerTileInMapCRS.reproj(4326)
         )
       }
       if (debugLevel >= 2) log({ coords, extentOfInnerTileInMapCRS, extent: this.extent })
@@ -303,8 +296,7 @@ class GeoRasterLayerClass extends L.GridLayer {
       // create blue outline around tiles
       if (debugLevel >= 4) {
         if (!this._cache.innerTile[cacheKey]) {
-          const ext = extentReproj(extentOfInnerTileInMapCRS, 4326)
-          this._cache.innerTile[cacheKey] = L.rectangle(ext.leafletBounds, {
+          this._cache.innerTile[cacheKey] = L.rectangle(extentOfInnerTileInMapCRS.leafletBounds, {
             color: "#F00",
             dashArray: "5, 10",
             fillOpacity: 0
@@ -317,7 +309,7 @@ class GeoRasterLayerClass extends L.GridLayer {
       if (debugLevel >= 3) log({ heightOfScreenPixelInMapCRS, widthOfScreenPixelInMapCRS })
 
       // expand tile sampling area to align with raster pixels
-      const oldExtentOfInnerTileInRasterCRS = extentReproj(extentOfInnerTileInMapCRS, this.projection)
+      const oldExtentOfInnerTileInRasterCRS = extentOfInnerTileInMapCRS.reproj(this.projection)
       const snapped = snap({
         bbox: oldExtentOfInnerTileInRasterCRS.bbox,
         // pad xmax and ymin of container to tolerate ceil() and floor() in snap()
@@ -340,7 +332,7 @@ class GeoRasterLayerClass extends L.GridLayer {
       let maxSamplesAcross = 1
       let maxSamplesDown = 1
       if (recropTileOrig !== null) {
-        const recropTileProj = extentReproj(recropTileOrig, code!)
+        const recropTileProj = recropTileOrig.reproj(code!)
         const recropTile = recropTileProj.crop(extentOfTileInMapCRS)
         if (recropTile !== null) {
           maxSamplesAcross = Math.ceil(resolution * (recropTile.width / extentOfTileInMapCRS.width))
@@ -356,7 +348,7 @@ class GeoRasterLayerClass extends L.GridLayer {
       if (debugLevel >= 3) {
         console.log(
           `[georaster-layer-for-leaflet] extent of inner tile before snapping ${
-            extentReproj(extentOfInnerTileInMapCRS, 4326).bbox.toString()}`
+            extentOfInnerTileInMapCRS.reproj(4326).bbox.toString()}`
         )
       }
 
@@ -364,9 +356,9 @@ class GeoRasterLayerClass extends L.GridLayer {
       // (unless the projection is purely scaling and translation),
       // so instead just extend the old map bounding box proportionately.
       {
-        const oldrb = new GeoExtent(oldExtentOfInnerTileInRasterCRS.bbox)
-        const newrb = new GeoExtent(extentOfInnerTileInRasterCRS.bbox)
-        const oldmb = new GeoExtent(extentOfInnerTileInMapCRS.bbox)
+        const oldrb = new GeoExtent(oldExtentOfInnerTileInRasterCRS.bbox, { srs: 4326})
+        const newrb = new GeoExtent(extentOfInnerTileInRasterCRS.bbox, { srs: 4326})
+        const oldmb = new GeoExtent(extentOfInnerTileInMapCRS.bbox, { srs: 4326})
         if (oldrb.width !== 0 && oldrb.height !== 0) {
           let n0 = ((newrb.xmin - oldrb.xmin) / oldrb.width) * oldmb.width
           let n1 = ((newrb.ymin - oldrb.ymin) / oldrb.height) * oldmb.height
@@ -380,7 +372,9 @@ class GeoRasterLayerClass extends L.GridLayer {
             n1 = Math.max(n1, 0)
             n3 = Math.min(n3, 0)
           }
-          const newbox = [oldmb.xmin + n0, oldmb.ymin + n1, oldmb.xmax + n2, oldmb.ymax + n3]
+          const newbox = [
+            oldmb.xmin + n0, oldmb.ymin + n1, oldmb.xmax + n2, oldmb.ymax + n3
+          ] as [number, number, number, number]
           extentOfInnerTileInMapCRS = new GeoExtent(newbox, { srs: extentOfInnerTileInMapCRS.srs })
         }
       }
@@ -388,8 +382,7 @@ class GeoRasterLayerClass extends L.GridLayer {
       // create outline around raster pixels
       if (debugLevel >= 4) {
         if (!this._cache.innerTile[cacheKey]) {
-          const ext = extentReproj(extentOfInnerTileInMapCRS, 4326)
-          this._cache.innerTile[cacheKey] = L.rectangle(ext.leafletBounds, {
+          this._cache.innerTile[cacheKey] = L.rectangle(extentOfInnerTileInMapCRS.leafletBounds, {
             color: "#F00",
             dashArray: "5, 10",
             fillOpacity: 0
@@ -400,7 +393,7 @@ class GeoRasterLayerClass extends L.GridLayer {
       if (debugLevel >= 3) {
         console.log(
           `[georaster-layer-for-leaflet] extent of inner tile after snapping ${
-            extentReproj(extentOfInnerTileInMapCRS, 4326).bbox.toString()}`
+            extentOfInnerTileInMapCRS.reproj(4326).bbox.toString()}`
         )
       }
 
@@ -645,14 +638,14 @@ class GeoRasterLayerClass extends L.GridLayer {
 
     const { x, y, z } = coords
 
-    const layerExtent = new GeoExtent(bounds, { srs: 4326 })
+    const layerExtent = new GeoExtent(bounds)
 
     const boundsOfTile = this._tileCoordsToBounds(coords)
 
     // check given tile coordinates
     // boundsOfTile is a LatLngBounds object, the types of GeoExtent only
     // alow GeoExtent objects, however the code appears to allow LatLngBounds objects too
-    if (layerExtent.overlaps(boundsOfTile as unknown as GeoExtent)) return true
+    if (layerExtent.overlaps(new GeoExtent(boundsOfTile))) return true
 
     // width of the globe in tiles at the given zoom level
     const width = Math.pow(2, z)
@@ -661,13 +654,13 @@ class GeoRasterLayerClass extends L.GridLayer {
     const leftCoords = L.point(x - width, y) as Coords
     leftCoords.z = z
     const leftBounds = this._tileCoordsToBounds(leftCoords)
-    if (layerExtent.overlaps(leftBounds as unknown as GeoExtent)) return true
+    if (layerExtent.overlaps(new GeoExtent(leftBounds))) return true
 
     // check one world to the right
     const rightCoords = L.point(x + width, y) as Coords
     rightCoords.z = z
     const rightBounds = this._tileCoordsToBounds(rightCoords)
-    if (layerExtent.overlaps(rightBounds as unknown as GeoExtent)) return true
+    if (layerExtent.overlaps(new GeoExtent(rightBounds))) return true
 
     return false
   }

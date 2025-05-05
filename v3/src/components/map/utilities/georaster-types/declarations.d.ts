@@ -1,9 +1,2 @@
-declare module "utm-utils/src/isUTM.js";
-declare module "utm-utils/src/getProjString.js";
-declare module "proj4-fully-loaded";
-declare module "geocanvas";
-// declare module "geo-extent";
 declare module "snap-bbox";
-
-// This might actually have types
-declare module "chroma-js";
+declare module "bbox-fns/unwrap.js";

@@ -125,3 +125,9 @@ This could be further improved by actually canceling the fetch. And if we can ma
 - the "resolution" of the GeoRasterLayer could be reduced this ought to speed up its rendering, but the "raster blocks" shown when zoomed in won't match up as well with the actual "raster blocks".
 - look for projection options which use a WebGL canvas, these should be able to leverage parallel processing to optimize the projection.
 - consider storing the data files "pre-projected" so no client processing is needed to draw them, and just some simple math is needed to find the value at a lat-long for the datasets. The problem with this approach is that we'd have to render multiple tiles for each image of the dataset so the lines are correct as the student zooms in and out. So this means more storage and network used up for all of these tiles.
+
+# Size
+From my notes before the main js file was 6.6MB at the base of this PR.
+When the georaster-layer-for-leaflet library it went up to 7.2MB.
+With changes which remove the direct dependency from georaster-layer-from-leaflet on Proj4j it remained at 7.2MB. This is because the GeoExtent library also used Proj4j indirectly.
+With our custom GeoExtent class the main js file when down to 6.8MB. Some of the libraries which are contributing to this size: png-codec (39KB), pako (46KB) brought in by png-codec, preciso (12KB) brought in by the snap library, regenerator-runtime (6.5KB), snap-bb (5.8KB)
