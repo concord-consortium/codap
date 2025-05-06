@@ -74,7 +74,7 @@ export const graphComponentHandler: DIComponentHandler = {
   create({ values }) {
     const {
       backgroundColor, dataContext: _dataContext, displayOnlySelectedCases, enableNumberToggle: showParentToggles,
-      filterFormula, hiddenCases: _hiddenCases, name, numberToggleLastMode: showOnlyLastCase, pointColor,
+      filterFormula, hiddenCases: _hiddenCases, numberToggleLastMode: showOnlyLastCase, pointColor,
       pointSize, showMeasuresForSelection, strokeColor, strokeSameAsFill, transparent,
       yAttributeID, yAttributeIDs, yAttributeName, yAttributeNames, yAttributeType
     } = values as V2Graph
@@ -230,9 +230,7 @@ export const graphComponentHandler: DIComponentHandler = {
     // if (showConnectingLines !== undefined) {
     //     graphModel.adornmentsStore.setShowConnectingLines(showConnectingLines)
     // }
-
-    const result = {name,
-                    content: { ...getSnapshot(graphModel), layers: finalLayers } as ITileContentSnapshotWithType}
+    const result = {content: { ...getSnapshot(graphModel), layers: finalLayers } as ITileContentSnapshotWithType}
     // After we get the snapshot, destroy the model to stop all reactions
     destroy(graphModel)
     return result
@@ -330,7 +328,7 @@ export const graphComponentHandler: DIComponentHandler = {
     const {
       backgroundColor, dataContext: _dataContext, displayOnlySelectedCases, enableNumberToggle: showParentToggles,
       filterFormula, hiddenCases, numberToggleLastMode: showOnlyLastCase, pointColor, pointSize,
-      rescaleAxes, showConnectingLines, showMeasuresForSelection, strokeColor, strokeSameAsFill, transparent,
+      showConnectingLines, showMeasuresForSelection, strokeColor, strokeSameAsFill, transparent,
       xAttributeType, xLowerBound, xUpperBound, yAttributeID, yAttributeIDs, yAttributeName, yAttributeNames,
       yAttributeType, yLowerBound, yUpperBound, y2AttributeType, y2LowerBound, y2UpperBound
     } = values as V2GetGraph
@@ -438,8 +436,6 @@ export const graphComponentHandler: DIComponentHandler = {
     updateBounds("bottom", xLowerBound, xUpperBound)
     updateBounds("left", yLowerBound, yUpperBound)
     updateBounds("rightNumeric", y2LowerBound, y2UpperBound)
-    if (rescaleAxes != null) content.rescale()
-
     // Update odd features
     if (backgroundColor != null) content.setPlotBackgroundColor(backgroundColor)
     if (displayOnlySelectedCases) {
