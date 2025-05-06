@@ -79,7 +79,6 @@ export interface V2Graph extends V2Component {
   pointColor?: string
   pointSize?: number
   primaryAxis?: string
-  rescaleAxes?: boolean
   rightNumericAttributeID?: number | null
   rightNumericAttributeName?: string | null
   rightSplitAttributeID?: number | null
