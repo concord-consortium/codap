@@ -231,7 +231,7 @@ export const graphComponentHandler: DIComponentHandler = {
     //     graphModel.adornmentsStore.setShowConnectingLines(showConnectingLines)
     // }
 
-    const result = {content: { ...getSnapshot(graphModel), layers: finalLayers } as ITileContentSnapshotWithType}
+    const result = { content: { ...getSnapshot(graphModel), layers: finalLayers } as ITileContentSnapshotWithType }
     // After we get the snapshot, destroy the model to stop all reactions
     destroy(graphModel)
     return result
