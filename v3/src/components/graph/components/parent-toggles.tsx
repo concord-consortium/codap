@@ -72,7 +72,9 @@ const createCaseButtons = (props: ICreateCaseButtons): ICaseButton[] => {
     return { ids, textLabel, isHidden, width }
   })
   const buttonsToReturn = isCollectionSet ? consolidateCaseButtonsByAttrValue(caseButtons, hiddenCases) : caseButtons
-  lastVisibleIndex.current = Math.min(lastVisibleIndex.current, buttonsToReturn.length - 1)
+  lastVisibleIndex.current = lastVisibleIndex.current === -1
+    ? buttonsToReturn.length - 1
+    : Math.min(lastVisibleIndex.current, buttonsToReturn.length - 1)
   return buttonsToReturn
 }
 
@@ -87,7 +89,7 @@ export const ParentToggles = observer(function ParentToggles() {
   const hiddenCases = dataConfig?.hiddenCases ?? []
   const itemIDs = dataset?.itemIds ?? []
   const firstVisibleIndex = useRef(0)
-  const lastVisibleIndex = useRef(0)
+  const lastVisibleIndex = useRef(-1) // -1 indicates we should use caseButtons.length - 1
   const caseButtons = createCaseButtons(
     { itemIDs, dataset, collectionIndexForPrimaryAttribute, isCollectionSet, hiddenCases, lastVisibleIndex })
   const caseButtonsListWidth = caseButtons.reduce((acc, button) => acc + button.width + TEXT_OFFSET, 0)
