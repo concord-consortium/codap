@@ -777,7 +777,9 @@ export class PixiPoints {
       return
     }
     // If the display type has changed, we need to prepare for the transition between types
-    if (this.displayType !== displayType && this.points.length > 0) {
+    // But we can't do so if the number of cases to plot is not equal to the number of points we have because
+    // there will be a mismatch between caseIDs held onto by the points and the caseIDs of the cases we're plotting.
+    if (this.displayType !== displayType && this.points.length > 0 && this.points.length === caseData.length) {
       this.displayTypeTransitionState.isActive = true
       this.forEachPoint(point => {
         this.pointTransitionStates.set(point, { hasTransitioned: false })
