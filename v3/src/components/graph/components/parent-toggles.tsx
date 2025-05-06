@@ -24,6 +24,7 @@ interface ICreateCaseButtons {
   collectionIndexForPrimaryAttribute: number
   hiddenCases: string[]
   isCollectionSet: boolean
+  lastVisibleIndex: React.MutableRefObject<number>
 }
 
 const SCROLL_BUTTON_WIDTH = 32
@@ -49,7 +50,8 @@ const consolidateCaseButtonsByAttrValue = (caseButtons: ICaseButton[], hiddenCas
 }
 
 const createCaseButtons = (props: ICreateCaseButtons): ICaseButton[] => {
-  const { itemIDs, dataset, collectionIndexForPrimaryAttribute, isCollectionSet, hiddenCases } = props
+  const { itemIDs, dataset, collectionIndexForPrimaryAttribute, isCollectionSet,
+    hiddenCases, lastVisibleIndex } = props
   if (!dataset) return []
 
   // Determine the attribute to use for setting the buttons' text labels.
@@ -69,8 +71,11 @@ const createCaseButtons = (props: ICreateCaseButtons): ICaseButton[] => {
     const isHidden = hiddenCases.includes(childCaseID)
     return { ids, textLabel, isHidden, width }
   })
-
-  return isCollectionSet ? consolidateCaseButtonsByAttrValue(caseButtons, hiddenCases) : caseButtons
+  const buttonsToReturn = isCollectionSet ? consolidateCaseButtonsByAttrValue(caseButtons, hiddenCases) : caseButtons
+  lastVisibleIndex.current = lastVisibleIndex.current === -1
+    ? buttonsToReturn.length - 1
+    : Math.min(lastVisibleIndex.current, buttonsToReturn.length - 1)
+  return buttonsToReturn
 }
 
 export const ParentToggles = observer(function ParentToggles() {
@@ -83,12 +88,12 @@ export const ParentToggles = observer(function ParentToggles() {
   const isCollectionSet = !!(dataset && dataset.collections?.length > 0)
   const hiddenCases = dataConfig?.hiddenCases ?? []
   const itemIDs = dataset?.itemIds ?? []
+  const firstVisibleIndex = useRef(0)
+  const lastVisibleIndex = useRef(-1) // -1 indicates we should use caseButtons.length - 1
   const caseButtons = createCaseButtons(
-    { itemIDs, dataset, collectionIndexForPrimaryAttribute, isCollectionSet, hiddenCases })
+    { itemIDs, dataset, collectionIndexForPrimaryAttribute, isCollectionSet, hiddenCases, lastVisibleIndex })
   const caseButtonsListWidth = caseButtons.reduce((acc, button) => acc + button.width + TEXT_OFFSET, 0)
   const isOnlyLastShown = !!graphModel?.showOnlyLastCase
-  const firstVisibleIndex = useRef(0)
-  const lastVisibleIndex = useRef(caseButtons.length - 1)
   const toggleButtonText = hiddenCases.length > 0 ? t("DG.NumberToggleView.showAll") : t("DG.NumberToggleView.hideAll")
   const toggleTextWidth = measureText(toggleButtonText, BUTTON_FONT)
   const lastCheckbox = isOnlyLastShown ? t("DG.NumberToggleView.lastChecked") : t("DG.NumberToggleView.lastUnchecked")
