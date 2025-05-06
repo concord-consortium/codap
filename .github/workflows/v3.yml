@@ -193,9 +193,6 @@ jobs:
       - jest
       - cypress
     runs-on: ubuntu-latest
-    environment:
-      name: ${{ github.ref_type == 'branch' && 'branches' || 'versions' }}
-      url: https://codap3.concord.org/${{ steps.s3-deploy.outputs.deployPath }}/
     steps:
       - uses: actions/download-artifact@v4
         with:
@@ -210,6 +207,8 @@ jobs:
           workingDirectory: v3
           awsAccessKeyId: ${{ secrets.V3_AWS_ACCESS_KEY_ID }}
           awsSecretAccessKey: ${{ secrets.V3_AWS_SECRET_ACCESS_KEY }}
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          deployRunUrl: https://codap3.concord.org/__deployPath__/
           # Parameters to GHActions have to be strings, so a regular yaml array cannot
           # be used. Instead the `|` turns the following lines into a string
           topBranches: |

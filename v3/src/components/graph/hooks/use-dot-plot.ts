@@ -63,8 +63,7 @@ export const useDotPlot = (pixiPoints?: PixiPoints) => {
     numExtraPrimaryBands, pointDiameter, primaryAttrID, primaryAxisScale, primaryPlace, secondaryAttrID,
     secondaryBandwidth, totalNumberOfBins
   }
-  const { bins, binMap } = computeBinPlacements(binPlacementProps)
-  const overlap = 0
+  const { bins, binMap, overlap, numPointsInRow } = computeBinPlacements(binPlacementProps)
   const secondaryRangeIndex = primaryIsBottom ? 0 : 1
   const secondaryMax = Number(secondaryAxisScale.range()[secondaryRangeIndex])
   const secondarySign = primaryIsBottom ? -1 : 1
@@ -92,18 +91,19 @@ export const useDotPlot = (pixiPoints?: PixiPoints) => {
     let primaryScreenCoord = primaryCoord + extraPrimaryCoord
 
     if (binWidth !== undefined && !isHistogram) {
+      const { indexInBin } = binMap[anID] || {}
       const caseValue = dataDisplayGetNumericValue(dataset, anID, primaryAttrID) ?? -1
       const binForCase = determineBinForCase(caseValue, binWidth, minBinEdge)
       primaryScreenCoord = adjustCoordForStacks({
         anID, axisType: "primary", binForCase, binMap, bins, pointDiameter, secondaryBandwidth,
-        screenCoord: primaryScreenCoord, primaryIsBottom
+        screenCoord: primaryScreenCoord, primaryIsBottom, indexInBin, numPointsInRow
       })
     }
 
     return primaryScreenCoord
   }, [binMap, binWidth, bins, dataset, extraPrimaryAttrID, extraPrimaryAxisScale, isHistogram,
       minBinEdge, numExtraPrimaryBands, pointDiameter, primaryAttrID, primaryAxisScale, primaryIsBottom,
-      secondaryBandwidth, totalNumberOfBins])
+      secondaryBandwidth, totalNumberOfBins, numPointsInRow])
 
   const getSecondaryScreenCoord = useCallback((anID: string) => {
     if (!binMap[anID]) return 0
@@ -111,24 +111,19 @@ export const useDotPlot = (pixiPoints?: PixiPoints) => {
     const { category: secondaryCat, extraCategory: extraSecondaryCat, indexInBin } = binMap[anID]
     const secondaryCoordProps = {
       baseCoord, dataConfig, extraSecondaryAxisScale, extraSecondaryBandwidth, extraSecondaryCat, indexInBin, layout,
-      numExtraSecondaryBands, overlap, pointDiameter, primaryIsBottom, secondaryAxisExtent, secondaryNumericScale,
-      secondaryAxisScale, secondaryBandwidth, secondaryCat, secondarySign, isHistogram
+      numExtraSecondaryBands, overlap, numPointsInRow, pointDiameter, primaryIsBottom, secondaryAxisExtent,
+      secondaryNumericScale, secondaryAxisScale, secondaryBandwidth, secondaryCat, secondarySign, isHistogram
     }
     let secondaryScreenCoord = computeSecondaryCoord(secondaryCoordProps)
 
     if (binWidth !== undefined && !isHistogram) {
-      const onePixelOffset = primaryIsBottom ? -1 : 1
-      const casePrimaryValue = dataDisplayGetNumericValue(dataset, anID, primaryAttrID) ?? -1
-      const binForCase = determineBinForCase(casePrimaryValue, binWidth, minBinEdge)
-      secondaryScreenCoord = adjustCoordForStacks({
-        anID, axisType: "secondary", binForCase, binMap, bins, pointDiameter, secondaryBandwidth,
-        screenCoord: secondaryScreenCoord, primaryIsBottom
-      }) + onePixelOffset
+      secondaryScreenCoord += primaryIsBottom ? -1 : 1
     }
     return secondaryScreenCoord
-  }, [baseCoord, binMap, binWidth, bins, dataConfig, dataset, extraSecondaryAxisScale, extraSecondaryBandwidth,
-      isHistogram, layout, minBinEdge, numExtraSecondaryBands, pointDiameter, primaryAttrID, primaryIsBottom,
-      secondaryAxisExtent, secondaryAxisScale, secondaryBandwidth, secondaryNumericScale, secondarySign])
+  }, [baseCoord, binMap, binWidth, dataConfig, extraSecondaryAxisScale, extraSecondaryBandwidth,
+      isHistogram, layout, numExtraSecondaryBands, numPointsInRow, overlap, pointDiameter,
+      primaryIsBottom, secondaryAxisExtent, secondaryAxisScale, secondaryBandwidth,
+      secondaryNumericScale, secondarySign])
 
   return {
     dataset, dataConfig, getPrimaryScreenCoord, getSecondaryScreenCoord, graphModel, isAnimating, layout, pointColor,

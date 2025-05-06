@@ -8,6 +8,7 @@ export const DisplayItemDescriptionModel = types
     _itemStrokeColor: defaultStrokeColor,
     _itemStrokeSameAsFill: false,
     _pointSizeMultiplier: 1, // Not used when item is a polygon in which case it is set to -1
+    pointsHaveBeenReduced: false // Used in conjunction with connecting line point reduction
   })
   .volatile(() => ({
     _dynamicPointSizeMultiplier: undefined as number | undefined  // Used during slider drag
@@ -28,7 +29,10 @@ export const DisplayItemDescriptionModel = types
     },
     setDynamicPointSizeMultiplier(multiplier: number) {
       self._dynamicPointSizeMultiplier = multiplier
-    }
+    },
+    setPointsHaveBeenReduced(reduced: boolean) {
+      self.pointsHaveBeenReduced = reduced
+    },
   }))
   .views(self => ({
     get pointSizeMultiplier() {

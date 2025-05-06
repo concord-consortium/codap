@@ -30,7 +30,6 @@ import { kMovableLineType } from "../../adornments/movable-line/movable-line-ado
 import { kPlottedFunctionType } from "../../adornments/plotted-function/plotted-function-adornment-types"
 import { IPixiPointMetadata } from "../../../data-display/pixi/pixi-points"
 import { useConnectingLines } from "../../../data-display/hooks/use-connecting-lines"
-import { transitionDuration } from "../../../data-display/data-display-types"
 import { scatterPlotFuncs } from "./scatter-plot-utils"
 
 export const ScatterPlot = observer(function ScatterPlot({ pixiPoints }: IPlotProps) {
@@ -40,7 +39,6 @@ export const ScatterPlot = observer(function ScatterPlot({ pixiPoints }: IPlotPr
     {isAnimating, startAnimation, stopAnimation} = useDataDisplayAnimation(),
     dataset = useDataSetContext(),
     secondaryAttrIDsRef = useRef<string[]>([]),
-    pointRadiusRef = useRef(0),
     selectedPointRadiusRef = useRef(0),
     dragPointRadiusRef = useRef(0),
     layout = useGraphLayoutContext(),
@@ -50,9 +48,7 @@ export const ScatterPlot = observer(function ScatterPlot({ pixiPoints }: IPlotPr
     currPos = useRef({x: 0, y: 0}),
     didDrag = useRef(false),
     selectedDataObjects = useRef<Record<string, { x: number, y: number }>>({}),
-    plotNumRef = useRef(0),
-    pointSizeMultiplier = graphModel.pointDescription.pointSizeMultiplier,
-    origPointSizeMultiplier = useRef(pointSizeMultiplier)
+    plotNumRef = useRef(0)
 
   // The Squares of Residuals option is controlled by the AdornmentsStore, so we need to watch for changes to that store
   // and call refreshSquares when the option changes. The squares are rendered in connection with the Movable Line and
@@ -83,7 +79,6 @@ export const ScatterPlot = observer(function ScatterPlot({ pixiPoints }: IPlotPr
   })
 
   secondaryAttrIDsRef.current = dataConfiguration?.yAttributeIDs || []
-  pointRadiusRef.current = graphModel.getPointRadius()
   selectedPointRadiusRef.current = graphModel.getPointRadius('select')
   dragPointRadiusRef.current = graphModel.getPointRadius('hover-drag')
   yScaleRef.current = layout.getAxisScale("left") as ScaleNumericBaseType
@@ -175,7 +170,7 @@ export const ScatterPlot = observer(function ScatterPlot({ pixiPoints }: IPlotPr
     const {pointColor, pointStrokeColor} = graphModel.pointDescription
     dataConfiguration && setPointSelection(
       {
-        pixiPoints, dataConfiguration, pointRadius: pointRadiusRef.current,
+        pixiPoints, dataConfiguration, pointRadius: graphModel.getPointRadius(),
         selectedPointRadius: selectedPointRadiusRef.current,
         pointColor, pointStrokeColor, getPointColorAtIndex: graphModel.pointDescription.pointColorAtIndex
       })
@@ -190,7 +185,11 @@ export const ScatterPlot = observer(function ScatterPlot({ pixiPoints }: IPlotPr
     const parentAttrID = parentAttr?.id
     const parentAttrName = parentAttr?.name
     const cellKeys = dataConfiguration?.getAllCellKeys()
-    const pointColorAtIndex = graphModel.pointDescription.pointColorAtIndex
+    const pointDescription = graphModel.pointDescription
+    const pointColorAtIndex = pointDescription.pointColorAtIndex
+    const pointSizeMultiplier = pointDescription.pointSizeMultiplier
+    const pointsHaveBeenReduced = pointDescription.pointsHaveBeenReduced
+    const kPointSizeReductionFactor = 0.5
 
     cellKeys?.forEach((cellKey) => {
       renderConnectingLines({
@@ -200,17 +199,14 @@ export const ScatterPlot = observer(function ScatterPlot({ pixiPoints }: IPlotPr
 
     // Decrease point size when Connecting Lines are first activated so the lines are easier to see, and
     // revert to original point size when Connecting Lines are deactivated.
-    if (!connectingLinesActivatedRef.current && showConnectingLines && pointSizeMultiplier > .5) {
-      origPointSizeMultiplier.current = pointSizeMultiplier
-      await pixiPoints?.setAllPointsScale(.5, transitionDuration)
-      graphModel.pointDescription.setPointSizeMultiplier(pointSizeMultiplier * .5)
-    } else if (!showConnectingLines) {
-      const scaleFactor = origPointSizeMultiplier.current / pointSizeMultiplier
-      await pixiPoints?.setAllPointsScale(scaleFactor, transitionDuration)
-      graphModel.pointDescription.setPointSizeMultiplier(origPointSizeMultiplier.current)
+    if (!connectingLinesActivatedRef.current && showConnectingLines && !pointsHaveBeenReduced) {
+      pointDescription.setPointSizeMultiplier(pointSizeMultiplier * kPointSizeReductionFactor)
+      pointDescription.setPointsHaveBeenReduced(true)
+    } else if (!showConnectingLines && pointsHaveBeenReduced) {
+      pointDescription.setPointSizeMultiplier(pointSizeMultiplier / kPointSizeReductionFactor)
+      pointDescription.setPointsHaveBeenReduced(false)
     }
-  }, [showConnectingLines, layout, dataConfiguration, dataset, pointSizeMultiplier, renderConnectingLines,
-      graphModel, pixiPoints])
+  }, [showConnectingLines, layout, dataConfiguration, dataset, renderConnectingLines, graphModel])
 
   const refreshSquares = useCallback(() => {
 
@@ -261,13 +257,13 @@ export const ScatterPlot = observer(function ScatterPlot({ pixiPoints }: IPlotPr
       getLegendColor = legendAttrID ? dataConfiguration?.getLegendColorForCase : undefined
 
     setPointCoordinates({
-      dataset, pixiPoints, pointRadius: pointRadiusRef.current,
+      dataset, pixiPoints, pointRadius: graphModel.getPointRadius(),
       selectedPointRadius: selectedPointRadiusRef.current,
       selectedOnly, getScreenX, getScreenY, getLegendColor,
       getPointColorAtIndex: graphModel.pointDescription.pointColorAtIndex,
       pointColor, pointStrokeColor, getAnimationEnabled: isAnimating
     })
-  }, [dataConfiguration, graphModel.pointDescription, layout, legendAttrID, dataset, pixiPoints, isAnimating])
+  }, [dataConfiguration, graphModel, layout, legendAttrID, dataset, pixiPoints, isAnimating])
 
   const refreshPointPositionsPerfMode = useCallback((selectedOnly: boolean) => {
     if (!pixiPoints) {

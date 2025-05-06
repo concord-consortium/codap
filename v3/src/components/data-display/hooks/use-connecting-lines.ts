@@ -110,7 +110,7 @@ export const useConnectingLines = (props: IProps) => {
       const color = legendAttribute && legendAttrType === "color" && categoryDataArray
                       ? categoryDataArray[linesIndex]
                       : parentAttrID && legendID ? pointColorAtIndex(linesIndex)
-                                                  : pointColorAtIndex(0)
+                                                  : pointColorAtIndex(cases[0].plotNum || 0)
 
       connectingLinesArea
         .append("path")

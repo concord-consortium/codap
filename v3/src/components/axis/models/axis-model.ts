@@ -15,6 +15,7 @@ export const AxisModel = types.model("AxisModel", {
   scale: types.optional(types.enumeration([...ScaleTypes]), "ordinal")
 })
   .volatile(self => ({
+    labelsAreRotated: false,
     transitionDuration: 0
   }))
   .views(self => ({
@@ -29,6 +30,9 @@ export const AxisModel = types.model("AxisModel", {
   .actions(self => ({
     setScale(scale: IScaleType) {
       self.scale = scale
+    },
+    setLabelsAreRotated(rotated: boolean) {
+      self.labelsAreRotated = rotated
     },
     setTransitionDuration(duration: number) {
       self.transitionDuration = duration
