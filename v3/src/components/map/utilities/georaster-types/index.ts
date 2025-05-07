@@ -98,7 +98,6 @@ export type GeoRasterKeys =
   | "ymax"
 
 export interface GeoRaster {
-  getValues: (options?: GetValuesOptions) => GeoRasterValues;
   height: number;
   noDataValue: null | undefined | number | typeof NaN;
   numberOfRasters: number;
@@ -107,26 +106,13 @@ export interface GeoRaster {
   pixelHeight: number;
   pixelWidth: number;
   projection: number;
-  rasterType: "geotiff" | "object";
   sourceType: "url" | "Buffer" | undefined;
-  toCanvas: (e: any) => HTMLCanvasElement;
   values: GeoRasterValues | undefined;
   width: number;
   xmax: number;
   xmin: number;
   ymax: number;
   ymin: number;
-  _blob_is_available: boolean;
-  _data: string;
-  _geotiff: Record<string, unknown> | undefined;
-  cache: boolean;
-  firstIFDOffset: number;
-  ghostValues: null;
-  ifdRequests: Promise<any>[];
-  littleEndian: boolean;
-  _url: string;
-  _url_is_available: boolean;
-  _web_worker_is_available: boolean;
 }
 
 export interface CustomCSSStyleDeclaration extends CSSStyleDeclaration {

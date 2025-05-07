@@ -2,30 +2,7 @@
 // help reduce the size of the bundled code.
 import { decodePng, IDecodedPng, IImage32 } from '@lunapaint/png-codec'
 import { IMapContentModel } from "../models/map-content-model"
-import GeoRasterLayer, { GeoRasterLayerOptions } from "./georaster-layer-for-leaflet"
-
-/**
- * This type was determined by trial and error working with the GeoRasterLayer library.
- * It is almost a subset of GeoRaster type used by the library, but even that type
- * doesn't include all of the properties needed by GeoRasterLayer.
- */
-interface IGeoRaster {
-  pixelWidth: number
-  pixelHeight: number
-  width: number
-  height: number
-  noDataValue: number
-  // FIXME: Update this to match the expected type
-  values: any
-  xmin: number
-  ymin: number
-  xmax: number
-  ymax: number
-  projection: number
-  // FIXME: Update this to match the expected type
-  palette: any
-  numberOfRasters: number
-}
+import GeoRasterLayer, { GeoRaster } from "./georaster-layer-for-leaflet"
 
 // interface ProfileRow {
 //   url: string
@@ -181,10 +158,10 @@ async function getGeoRaster(mapModel: IMapContentModel) {
     // The GeoRaster type is close to what we need to provide, but it is missing
     // the palette, and numberOfRasters. It also has the wrong type for the
     // values.
-    const geoRaster: IGeoRaster = {
+    const geoRaster: GeoRaster = {
       pixelWidth: pixelSize,
       pixelHeight: pixelSize,
-
+      sourceType: "Buffer",
       width: png.image.width,
       height: png.image.height,
       noDataValue: 0,
@@ -203,7 +180,7 @@ async function getGeoRaster(mapModel: IMapContentModel) {
     // that is a bit different than the one we created. It has a few extra
     // properties and methods. However these are not actually used by the
     // GeoRasterLayer object.
-    return geoRaster as NonNullable<GeoRasterLayerOptions["georaster"]>
+    return geoRaster
   } catch (error) {
     console.error("Error fetching and processing geo raster", error)
   }
