@@ -185,17 +185,8 @@ export const BinnedDotPlot = observer(function BinnedDotPlot({pixiPoints, aboveP
     )
   }, [binnedPlot, primaryAxisScale])
 
-  useEffect(function respondToAxisLabelRotation()  {
-    if (primaryAxisModel) {
-      return mstReaction(
-        () => primaryAxisModel.labelsAreRotated,
-        () => {
-          refreshPointPositions(false)
-        }, {name: "primaryAxisModel.labelsAreRotated"}, primaryAxisModel
-      )
-    }
-  }, [primaryAxisModel, refreshPointPositions])
-
+  // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+  primaryAxisModel?.labelsAreRotated  // Observe labelsAreRotated to force re-render
   return (
     abovePointsGroupRef?.current && createPortal(
       <><g data-testid={`bin-ticks-${instanceId}`} className="bin-ticks" ref={binBoundariesRef}/></>,
