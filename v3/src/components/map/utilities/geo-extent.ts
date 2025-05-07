@@ -1,3 +1,9 @@
+/*
+This code is derived from https://github.com/DanielJDufour/geo-extent
+It was updated to no use Proj4j
+The original license is CC0 so we are free to relicense under our
+default MIT license, and use it how we wish.
+*/
 import * as L from "leaflet"
 import unwrap from "bbox-fns/unwrap.js"
 
