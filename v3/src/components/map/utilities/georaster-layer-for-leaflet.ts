@@ -36,7 +36,6 @@ class GeoRasterLayerClass extends L.GridLayer {
   pixelHeight!: number
   pixelWidth!: number
   projection!: number
-  sourceType?: GeoRaster["sourceType"]
   xmin!: number
   xmax!: number
   ymin!: number
@@ -83,12 +82,6 @@ class GeoRasterLayerClass extends L.GridLayer {
         throw new Error("You initialized a GeoRasterLayer without a georaster or georasters value.")
       }
 
-      if (this.sourceType === "url") {
-        options.updateWhenIdle = false
-        options.updateWhenZooming = true
-        options.keepBuffer = 16
-      }
-
       if (options.resampleMethod) {
         this.resampleMethod = options.resampleMethod
       }
@@ -105,7 +98,6 @@ class GeoRasterLayerClass extends L.GridLayer {
         "pixelHeight",
         "pixelWidth",
         "projection",
-        "sourceType",
         "xmin",
         "xmax",
         "ymin",

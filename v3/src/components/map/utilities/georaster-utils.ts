@@ -161,7 +161,6 @@ async function getGeoRaster(mapModel: IMapContentModel) {
     const geoRaster: GeoRaster = {
       pixelWidth: pixelSize,
       pixelHeight: pixelSize,
-      sourceType: "Buffer",
       width: png.image.width,
       height: png.image.height,
       noDataValue: 0,

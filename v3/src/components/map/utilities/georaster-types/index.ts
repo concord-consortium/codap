@@ -91,7 +91,6 @@ export type GeoRasterKeys =
   | "pixelHeight"
   | "pixelWidth"
   | "projection"
-  | "sourceType"
   | "xmin"
   | "xmax"
   | "ymin"
@@ -106,7 +105,6 @@ export interface GeoRaster {
   pixelHeight: number;
   pixelWidth: number;
   projection: number;
-  sourceType: "url" | "Buffer" | undefined;
   values: GeoRasterValues | undefined;
   width: number;
   xmax: number;
