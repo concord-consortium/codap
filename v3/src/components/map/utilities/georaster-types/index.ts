@@ -16,7 +16,7 @@ export type SimplePoint = {
 
 export type Mask = string | Feature | FeatureCollection | Polygon | MultiPolygon
 
-interface GeoRasterLayerOptions_CommonOptions extends GridLayerOptions {
+export interface GeoRasterLayerOptions extends GridLayerOptions {
   resolution?: number | { [key: number]: number };
   debugLevel?: DebugLevel;
   bounds?: LatLngBounds;
@@ -24,17 +24,8 @@ interface GeoRasterLayerOptions_CommonOptions extends GridLayerOptions {
   mask_srs?: string | number;
   mask_strategy?: MaskStrategy;
   caching?: boolean;
+  georaster: GeoRaster;
 }
-
-// Ensures at least one of the georaster[s] options is defined while being ok the other is not
-type GeoRasterLayerOptions_GeoRaster =
-  | {
-      georasters?: GeoRaster[];
-      georaster: GeoRaster;
-    }
-  | { georasters: GeoRaster[]; georaster?: GeoRaster }
-
-export type GeoRasterLayerOptions = GeoRasterLayerOptions_CommonOptions & GeoRasterLayerOptions_GeoRaster
 
 export type GetRasterOptions = {
   innerTileTopLeftPoint: SimplePoint;

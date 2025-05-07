@@ -11,7 +11,6 @@ import type {
   GeoRasterKeys,
   DrawTileOptions,
   Tile,
-  ResampleMethod,
   DebugLevel,
   GeoRasterValues
 } from "./georaster-types"
@@ -50,7 +49,6 @@ class GeoRasterLayerClass extends L.GridLayer {
   tileWidth!: number
   numBands!: number
   georasters!: GeoRaster[]
-  resampleMethod?: ResampleMethod
   cache: Record<string, HTMLElement> = {}
   xMinOfLayer!: number
   xMaxOfLayer!: number
@@ -74,13 +72,7 @@ class GeoRasterLayerClass extends L.GridLayer {
 
   initialize(options: GeoRasterLayerOptions) {
     try {
-      if (options.georasters) {
-        this.georasters = options.georasters
-      } else if (options.georaster) {
-        this.georasters = [options.georaster]
-      } else {
-        throw new Error("You initialized a GeoRasterLayer without a georaster or georasters value.")
-      }
+      this.georasters = [options.georaster]
 
       /*
           Unpacking values for use later.
