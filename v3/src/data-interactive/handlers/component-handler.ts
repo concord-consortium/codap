@@ -1,4 +1,4 @@
-import { IGraphContentModel } from "../../components/graph/models/graph-content-model"
+import { isGraphContentModel } from "../../components/graph/models/graph-content-model"
 import { appState } from "../../models/app-state"
 import { INewTileOptions } from "../../models/codap/create-tile"
 import { isFreeTileRow } from "../../models/document/free-tile-row"
@@ -146,12 +146,13 @@ export const diComponentHandler: DIHandler = {
       case "select":
         uiState.setFocusedTile(component.id)
         break
-      case "autoScale":
-        if (component.content.type === "graph") {
-          const graphContent = component.content as IGraphContentModel
-          graphContent.rescale()
-          break
+      case "autoScale": {
+        const { content } = component
+        if (isGraphContentModel(content)) {
+          content.rescale()
         }
+        break
+      }
     }
 
     return { success: true }
