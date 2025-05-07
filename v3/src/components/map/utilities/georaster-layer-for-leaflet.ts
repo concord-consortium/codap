@@ -82,10 +82,6 @@ class GeoRasterLayerClass extends L.GridLayer {
         throw new Error("You initialized a GeoRasterLayer without a georaster or georasters value.")
       }
 
-      if (options.resampleMethod) {
-        this.resampleMethod = options.resampleMethod
-      }
-
       /*
           Unpacking values for use later.
           We do this in order to increase speed.

@@ -318,6 +318,7 @@ export async function createLeafletGeoRasterLayer(mapModel: IMapContentModel) {
         resolution: 256,
         // Uncomment to get more information about the georaster rendering process
         // debugLevel: 2,
+        debugLevel: 1,
         // Disable caching to see if the map updates
         caching: false,
       })

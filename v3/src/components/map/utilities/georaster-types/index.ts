@@ -20,15 +20,9 @@ interface GeoRasterLayerOptions_CommonOptions extends GridLayerOptions {
   resolution?: number | { [key: number]: number };
   debugLevel?: DebugLevel;
   bounds?: LatLngBounds;
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-  proj4?: Function;
-  resampleMethod?: ResampleMethod;
   mask?: Mask;
   mask_srs?: string | number;
   mask_strategy?: MaskStrategy;
-  updateWhenIdle?: boolean; // inherited from LeafletJS
-  updateWhenZooming?: boolean; // inherited from LeafletJS
-  keepBuffer?: number; // inherited from LeafletJS
   caching?: boolean;
 }
 
@@ -69,16 +63,6 @@ export type Tile = {
   el: HTMLCanvasElement;
   loaded?: Date;
   retain?: boolean;
-}
-
-export type GetValuesOptions = {
-  bottom?: number;
-  height: number;
-  left?: number;
-  right?: number;
-  top?: number;
-  width: number;
-  resampleMethod?: ResampleMethod
 }
 
 export type GeoRasterValues = number[][][]
