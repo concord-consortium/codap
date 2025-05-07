@@ -118,16 +118,14 @@ class GeoRasterLayerClass extends L.GridLayer {
       this.debugLevel = options.debugLevel || 0
       if (this.debugLevel >= 1) log({ options })
 
-      if (this.georasters.every((georaster: GeoRaster) => typeof georaster.values === "object")) {
-        this.rasters = this.georasters.reduce((result, georaster) => {
-          // added double-check of values to make typescript linter and compiler happy
-          if (georaster.values) {
-            result = result.concat(georaster.values)
-          }
-          return result
-        }, [] as GeoRasterValues)
-        if (this.debugLevel > 1) console.log("this.rasters:", this.rasters)
-      }
+      this.rasters = this.georasters.reduce((result, georaster) => {
+        // added double-check of values to make typescript linter and compiler happy
+        if (georaster.values) {
+          result = result.concat(georaster.values)
+        }
+        return result
+      }, [] as GeoRasterValues)
+      if (this.debugLevel > 1) console.log("this.rasters:", this.rasters)
 
       // could probably replace some day with a simple
       // (for let k in options) { this.options[k] = options[k]; }

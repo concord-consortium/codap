@@ -80,7 +80,7 @@ export interface GeoRaster {
   pixelHeight: number;
   pixelWidth: number;
   projection: number;
-  values: GeoRasterValues | undefined;
+  values: GeoRasterValues;
   width: number;
   xmax: number;
   xmin: number;
