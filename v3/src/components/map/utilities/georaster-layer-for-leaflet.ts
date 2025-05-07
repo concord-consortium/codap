@@ -43,7 +43,6 @@ export class GeoRasterLayerClass extends L.GridLayer {
   extent!: GeoExtent
   ratio!: number
   debugLevel!: DebugLevel
-  rasters!: number[][][]
   tileHeight!: number
   tileWidth!: number
   georaster!: GeoRaster
@@ -105,9 +104,6 @@ export class GeoRasterLayerClass extends L.GridLayer {
 
       this.debugLevel = options.debugLevel || 0
       if (this.debugLevel >= 1) log({ options })
-
-      this.rasters = this.georaster.values
-      if (this.debugLevel > 1) console.log("this.rasters:", this.rasters)
 
       // could probably replace some day with a simple
       // (for let k in options) { this.options[k] = options[k]; }
@@ -200,7 +196,7 @@ export class GeoRasterLayerClass extends L.GridLayer {
       if (debugLevel >= 2) log({ mapCRS })
 
       // Unpacking values for increased speed
-      const { rasters, xmin, xmax, ymin, ymax } = this
+      const { xmin, xmax, ymin, ymax } = this
 
       const extentOfLayer = new GeoExtent(this.getBounds())
       if (debugLevel >= 2) log({ extentOfLayer })
@@ -453,16 +449,11 @@ export class GeoRasterLayerClass extends L.GridLayer {
                     throw new Error(
                       `[georaster-layer-for-leaflet] projection ${this.projection} is not supported`)
                   }
-                  let values: number[] | null = null
-                  if (rasters) {
-                    // get value from array with data for entire raster
-                    values = rasters.map((band: number[][]) => {
-                      return band[yInRasterPixels][xInRasterPixels]
-                    })
-                  } else {
-                    done && done(Error("no rasters are available for, so skipping value generation"))
-                    return
-                  }
+
+                  // get value from array with data for entire raster
+                  const values = this.georaster.values.map((band: number[][]) => {
+                    return band[yInRasterPixels][xInRasterPixels]
+                  })
 
                   // x-axis coordinate of the starting point of the rectangle representing the raster pixel
                   const x = Math.round(w * widthOfSampleInScreenPixels) + Math.min(padding.left, 0)
@@ -737,7 +728,6 @@ export class GeoRasterLayerClass extends L.GridLayer {
 
     this.georaster = georaster
     this.palette = georaster.palette
-    this.rasters = georaster.values
 
     const tiles = this.getActiveTiles()
     console.log("Updating existing GeoRasterLayer with new georaster. Num tiles", tiles.length)

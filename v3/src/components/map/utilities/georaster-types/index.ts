@@ -74,7 +74,6 @@ export type GeoRasterKeys =
 export interface GeoRaster {
   height: number;
   noDataValue: null | undefined | number | typeof NaN;
-  numberOfRasters: number;
   // This was typed as `string[]` but what seems to work is `Uint8Array[]`
   palette: Uint8Array[];
   pixelHeight: number;

@@ -172,7 +172,6 @@ async function getGeoRaster(mapModel: IMapContentModel) {
       ymax,
       projection: 4326,
       palette: getGeoPalette(png),
-      numberOfRasters: 1,
     }
 
     // The georaster-layer-for-leaflet library expects a GeoRaster object
