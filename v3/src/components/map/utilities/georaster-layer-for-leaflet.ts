@@ -25,7 +25,7 @@ if (!L) {
   )
 }
 
-class GeoRasterLayerClass extends L.GridLayer {
+export class GeoRasterLayerClass extends L.GridLayer {
 
   // properties copied from the GeoRaster
   height!: number
@@ -47,8 +47,7 @@ class GeoRasterLayerClass extends L.GridLayer {
   rasters!: number[][][]
   tileHeight!: number
   tileWidth!: number
-  numBands!: number
-  georasters!: GeoRaster[]
+  georaster!: GeoRaster
   cache: Record<string, HTMLElement> = {}
   xMinOfLayer!: number
   xMaxOfLayer!: number
@@ -72,7 +71,7 @@ class GeoRasterLayerClass extends L.GridLayer {
 
   initialize(options: GeoRasterLayerOptions) {
     try {
-      this.georasters = [options.georaster]
+      this.georaster = options.georaster
 
       /*
           Unpacking values for use later.
@@ -91,19 +90,9 @@ class GeoRasterLayerClass extends L.GridLayer {
         "ymin",
         "ymax"
       ] as const
-      if (this.georasters.length > 1) {
-        keys.forEach(key => {
-          if (this.same(this.georasters, key)) {
-            (this as any)[key] = this.georasters[0][key]
-          } else {
-            throw new Error(`all GeoRasters must have the same ${key}`)
-          }
-        })
-      } else if (this.georasters.length === 1) {
-        keys.forEach(key => {
-          (this as any)[key] = this.georasters[0][key]
-        })
-      }
+      keys.forEach(key => {
+        (this as any)[key] = this.georaster[key]
+      })
 
       this._cache = {
         innerTile: {},
@@ -118,13 +107,7 @@ class GeoRasterLayerClass extends L.GridLayer {
       this.debugLevel = options.debugLevel || 0
       if (this.debugLevel >= 1) log({ options })
 
-      this.rasters = this.georasters.reduce((result, georaster) => {
-        // added double-check of values to make typescript linter and compiler happy
-        if (georaster.values) {
-          result = result.concat(georaster.values)
-        }
-        return result
-      }, [] as GeoRasterValues)
+      this.rasters = this.georaster.values
       if (this.debugLevel > 1) console.log("this.rasters:", this.rasters)
 
       // could probably replace some day with a simple
@@ -139,10 +122,6 @@ class GeoRasterLayerClass extends L.GridLayer {
       const tileSize = this.getTileSize()
       this.tileHeight = tileSize.y
       this.tileWidth = tileSize.x
-
-      // total number of bands across all georasters
-      this.numBands = this.georasters.reduce((total: number, g: GeoRaster) => total + g.numberOfRasters, 0)
-      if (this.debugLevel > 1) console.log("this.numBands:", this.numBands)
 
     } catch (error) {
       console.error("ERROR initializing GeoTIFFLayer", error)

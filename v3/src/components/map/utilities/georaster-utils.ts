@@ -2,7 +2,7 @@
 // help reduce the size of the bundled code.
 import { decodePng, IDecodedPng, IImage32 } from '@lunapaint/png-codec'
 import { IMapContentModel } from "../models/map-content-model"
-import GeoRasterLayer, { GeoRaster } from "./georaster-layer-for-leaflet"
+import GeoRasterLayer, { GeoRaster, GeoRasterLayerClass } from "./georaster-layer-for-leaflet"
 
 // interface ProfileRow {
 //   url: string
@@ -192,13 +192,13 @@ function findGeoRasterLayer(mapModel: IMapContentModel) {
 
   // Find the current layer if it exists
   // And also clean up any extra geo raster layers
-  let currentLayer: any = undefined
+  let currentLayer: GeoRasterLayerClass | undefined = undefined
   mapModel.leafletMap.eachLayer((existingLayer) => {
     // We need to remove the existing layer if it is a georaster layer
     // This is a bit of a hack. It isn't clear how to tell the type of a layer.
-    if ("georasters" in existingLayer) {
+    if ("georaster" in existingLayer) {
       if (!currentLayer) {
-        currentLayer = existingLayer
+        currentLayer = existingLayer as GeoRasterLayerClass
         return
       }
 
@@ -207,7 +207,7 @@ function findGeoRasterLayer(mapModel: IMapContentModel) {
     }
   })
 
-  return currentLayer
+  return currentLayer as GeoRasterLayerClass | undefined
 }
 
 /**
@@ -256,11 +256,10 @@ export async function createLeafletGeoRasterLayer(mapModel: IMapContentModel) {
     if (currentLayer) {
       // Make sure the current layer can be updated
       if (
-        currentLayer.georasters.length !== 1 ||
-        currentLayer.georasters[0].width !== georaster.width ||
-        currentLayer.georasters[0].height !== georaster.height ||
-        currentLayer.georasters[0].pixelWidth !== georaster.pixelWidth ||
-        currentLayer.georasters[0].pixelHeight !== georaster.pixelHeight ||
+        currentLayer.georaster.width !== georaster.width ||
+        currentLayer.georaster.height !== georaster.height ||
+        currentLayer.georaster.pixelWidth !== georaster.pixelWidth ||
+        currentLayer.georaster.pixelHeight !== georaster.pixelHeight ||
         currentLayer.options.opacity !== opacity
       ) {
         // The layer is not the same size as the new geoRaster, so remove it
@@ -270,7 +269,7 @@ export async function createLeafletGeoRasterLayer(mapModel: IMapContentModel) {
     }
 
     if (currentLayer) {
-      currentLayer.georasters[0] = georaster
+      currentLayer.georaster = georaster
       currentLayer.palette = georaster.palette
       currentLayer.rasters = georaster.values
 
@@ -302,8 +301,12 @@ export async function createLeafletGeoRasterLayer(mapModel: IMapContentModel) {
         const { coords, el } = tile
         const wrappedCoords = currentLayer._wrapCoords(coords)
         const resolution = currentLayer._getResolution(wrappedCoords.z)
+        if (resolution === undefined) {
+          throw new Error("Could not get resolution for tile")
+        }
 
-        currentLayer.drawTile({ tile: el, coords: wrappedCoords, resolution, context: el.getContext("2d") })
+        const done = () => {}
+        currentLayer.drawTile({ tile: el, coords: wrappedCoords, resolution, context: el.getContext("2d"), done })
       })
     } else {
       const layer = new GeoRasterLayer({
