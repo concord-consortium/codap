@@ -12,7 +12,6 @@ import type {
   DrawTileOptions,
   Tile,
   DebugLevel,
-  GeoRasterValues
 } from "./georaster-types"
 
 const EPSG4326 = 4326
@@ -712,6 +711,59 @@ export class GeoRasterLayerClass extends L.GridLayer {
     }
 
     return resolutionValue
+  }
+
+  /**
+   * Update the GeoRaster of the layer and redraw the active tiles.
+   * If the new GeoRaster has incompatible dimensions or opacity, it will not be updated.
+   * If the GeoRaster can't be updated we return false.
+   *
+   * @param georaster
+   * @param opacity
+   * @returns
+   */
+  updateGeoraster(georaster: GeoRaster, opacity: number): boolean {
+    // Make sure this is a simple update
+    if (
+      this.georaster.width !== georaster.width ||
+      this.georaster.height !== georaster.height ||
+      this.georaster.pixelWidth !== georaster.pixelWidth ||
+      this.georaster.pixelHeight !== georaster.pixelHeight ||
+      this.options.opacity !== opacity
+    ) {
+      // The new GeoRaster is not compatible with this layer
+      return false
+    }
+
+    this.georaster = georaster
+    this.palette = georaster.palette
+    this.rasters = georaster.values
+
+    const tiles = this.getActiveTiles()
+    console.log("Updating existing GeoRasterLayer with new georaster. Num tiles", tiles.length)
+    if (!tiles) {
+      console.error("No active tiles available")
+      // We did update the georaster, but we can't redraw the tiles
+      return true
+    }
+
+    // We clear the cache so that the tiles all the way down will be redrawn with the new georaster
+    this.clearCache()
+
+    tiles.forEach((tile: any) => {
+      const { coords, el } = tile
+      const wrappedCoords = this._wrapCoords(coords)
+      const resolution = this._getResolution(wrappedCoords.z)
+      if (resolution === undefined) {
+        console.error("Could not get resolution for tile")
+        return
+      }
+
+      const done = () => {}
+      this.drawTile({ tile: el, coords: wrappedCoords, resolution, context: el.getContext("2d"), done })
+    })
+
+    return true
   }
 }
 

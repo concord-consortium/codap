@@ -249,66 +249,17 @@ export async function createLeafletGeoRasterLayer(mapModel: IMapContentModel) {
     // Find the current layer if it exists
     // We search for the layer here after the getGeoRaster call incase the layers were changed
     // while we were waiting for the georaster to be created.
-    // TODO: I can't figure out the typing for the GeoRasterLayer, it is like a class but
-    // really it is an object with an initializer function based on the Leaflet `typeof L.Class`
     let currentLayer = findGeoRasterLayer(mapModel)
 
     if (currentLayer) {
-      // Make sure the current layer can be updated
-      if (
-        currentLayer.georaster.width !== georaster.width ||
-        currentLayer.georaster.height !== georaster.height ||
-        currentLayer.georaster.pixelWidth !== georaster.pixelWidth ||
-        currentLayer.georaster.pixelHeight !== georaster.pixelHeight ||
-        currentLayer.options.opacity !== opacity
-      ) {
-        // The layer is not the same size as the new geoRaster, so remove it
+      if (!currentLayer.updateGeoraster(georaster, opacity)) {
+        // The layer is not compatible with the new GeoRaster, so remove it
         currentLayer.remove()
         currentLayer = undefined
       }
     }
 
-    if (currentLayer) {
-      currentLayer.georaster = georaster
-      currentLayer.palette = georaster.palette
-      currentLayer.rasters = georaster.values
-
-      // TODO: we need to update the opacity of the layer here too
-      // Or just start over if the opacity has changed
-
-      const tiles = currentLayer.getActiveTiles()
-      console.log("Updating existing GeoRasterLayer with new georaster. Num tiles", tiles.length)
-      if (!tiles) {
-        console.error("No active tiles available")
-        return
-      }
-
-      // Note: The unreleased version of the georaster-layer-for-leaflet library caches the tiles
-      // If we start using that we'll need to deal with the cache correctly in this case.
-      // Otherwise `GeoRasterLayer.createTile` will return old tiles that haven't been updated
-      // new geoRaster.
-      //
-      // I think this can be tested by changing the zoom level, remembering what the image looks like,
-      // then change the zoom level back.
-      // Then change the image being viewed with the slider. And then change the zoom level again and see
-      // if the resulting image has been updated or still looks like the remembered image.
-      //
-      // Currently this isn't a problem because the tiles are not cached.
-      // Rather than using the unreleased version of the library, it'd probably be better to make our own
-      // version that is less flexible, more compact, and we can optimize it better.
-
-      tiles.forEach((tile: any) => {
-        const { coords, el } = tile
-        const wrappedCoords = currentLayer._wrapCoords(coords)
-        const resolution = currentLayer._getResolution(wrappedCoords.z)
-        if (resolution === undefined) {
-          throw new Error("Could not get resolution for tile")
-        }
-
-        const done = () => {}
-        currentLayer.drawTile({ tile: el, coords: wrappedCoords, resolution, context: el.getContext("2d"), done })
-      })
-    } else {
+    if (!currentLayer) {
       const layer = new GeoRasterLayer({
         georaster,
         // Add to the overlay pane so it is on top of the base map but below the
