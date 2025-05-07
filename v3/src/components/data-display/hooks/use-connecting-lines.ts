@@ -108,19 +108,12 @@ export const useConnectingLines = (props: IProps) => {
       const categorySet = dataConfig?.categorySetForAttrRole("legend")
       const legendAttribute = legendID ? dataset?.getAttribute(legendID) : undefined
       const legendAttrType = legendAttribute?.type
-      console.log("legendAttribute && legendAttrType === 'color' && categoryDataArray", legendAttribute && legendAttrType === "color" && categoryDataArray)
-      console.log("categorySet && categoryDataArray", !!(categorySet && categoryDataArray), categorySet, categoryDataArray, categoryDataArray?.[linesIndex] )
-      categoryDataArray && console.log("categorySet?.colorMap[categoryDataArray?.[linesIndex]]", categorySet?.colorMap[categoryDataArray?.[linesIndex]])
-      console.log("parentAttrID && legendID", !!(parentAttrID && legendID))
-      console.log("pointColorAtIndex(linesIndex)", pointColorAtIndex(linesIndex))
 
       const color = legendAttribute && legendAttrType === "color" && categoryDataArray
                         ? categoryDataArray[linesIndex]
                         : categorySet && categoryDataArray
                           ? categorySet.colorMap[categoryDataArray[linesIndex]]
-                          : legendID && legendAttrType === "color" && categoryDataArray
-                            ? categoryDataArray[linesIndex]
-                            : parentAttrID && legendID ? pointColorAtIndex(linesIndex)
+                          : parentAttrID && legendID ? pointColorAtIndex(linesIndex)
                                                     : pointColorAtIndex(cases[0].plotNum || 0)
 
       connectingLinesArea
