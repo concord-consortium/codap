@@ -1,5 +1,6 @@
 import type { GridLayerOptions, Coords, CRS, DoneCallback, LatLngBounds, Transformation } from "leaflet"
 import type { Feature, FeatureCollection, Polygon, MultiPolygon } from "geojson"
+import { GeoImage } from "../geo-image"
 
 export type MaskStrategy = "inside" | "outside"
 
@@ -62,7 +63,6 @@ export type GeoRasterKeys =
   | "height"
   | "width"
   | "noDataValue"
-  | "palette"
   | "pixelHeight"
   | "pixelWidth"
   | "projection"
@@ -74,12 +74,10 @@ export type GeoRasterKeys =
 export interface GeoRaster {
   height: number;
   noDataValue: null | undefined | number | typeof NaN;
-  // This was typed as `string[]` but what seems to work is `Uint8Array[]`
-  palette: Uint8Array[];
   pixelHeight: number;
   pixelWidth: number;
   projection: number;
-  values: GeoRasterValues;
+  image: GeoImage;
   width: number;
   xmax: number;
   xmin: number;

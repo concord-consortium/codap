@@ -30,7 +30,6 @@ export class GeoRasterLayerClass extends L.GridLayer {
   height!: number
   width!: number
   noDataValue: GeoRaster["noDataValue"]
-  palette!: GeoRaster["palette"]
   pixelHeight!: number
   pixelWidth!: number
   projection!: number
@@ -79,7 +78,6 @@ export class GeoRasterLayerClass extends L.GridLayer {
         "height",
         "width",
         "noDataValue",
-        "palette",
         "pixelHeight",
         "pixelWidth",
         "projection",
@@ -195,7 +193,6 @@ export class GeoRasterLayerClass extends L.GridLayer {
       const mapCRS = this.getMapCRS()
       if (debugLevel >= 2) log({ mapCRS })
 
-      // Unpacking values for increased speed
       const { xmin, xmax, ymin, ymax } = this
 
       const extentOfLayer = new GeoExtent(this.getBounds())
@@ -423,6 +420,13 @@ export class GeoRasterLayerClass extends L.GridLayer {
       // render asynchronously so tiles show up as they finish instead of all at once (which blocks the UI)
       setTimeout(async () => {
         try {
+          this.georaster.image.prepare()
+
+          // NOTE: This might be able to be optimized further by copying the from the source image into
+          // the canvas with ctx.drawImage instead of fillRect
+          // Perhaps that won't be faster due to the overhead of the drawImage.
+          // An additional optimization because of the projections we are supporting, is to copy
+          // each horizontal row of raster pixels at the same time using drawImage.
           for (let h = 0; h < numberOfSamplesDown; h++) {
             const yCenterInMapPixels = yTopOfInnerTile + (h + 0.5) * heightOfSampleInScreenPixels
             const latWestPoint = L.point(xLeftOfInnerTile, yCenterInMapPixels)
@@ -450,11 +454,6 @@ export class GeoRasterLayerClass extends L.GridLayer {
                       `[georaster-layer-for-leaflet] projection ${this.projection} is not supported`)
                   }
 
-                  // get value from array with data for entire raster
-                  const values = this.georaster.values.map((band: number[][]) => {
-                    return band[yInRasterPixels][xInRasterPixels]
-                  })
-
                   // x-axis coordinate of the starting point of the rectangle representing the raster pixel
                   const x = Math.round(w * widthOfSampleInScreenPixels) + Math.min(padding.left, 0)
 
@@ -465,7 +464,7 @@ export class GeoRasterLayerClass extends L.GridLayer {
                   const width = widthOfSampleInScreenPixelsInt
                   const height = heightOfSampleInScreenPixelsInt
 
-                  const color = this.getColor(values)
+                  const color = this.georaster.image.getColorAt(xInRasterPixels, yInRasterPixels)
                   if (color && context) {
                     context.fillStyle = color
                     context.fillRect(x, y, width, height)
@@ -612,26 +611,6 @@ export class GeoRasterLayerClass extends L.GridLayer {
     return false
   }
 
-  getColor (values: number[]): string | undefined {
-    const numberOfValues = values.length
-    const haveDataForAllBands = values.every(value => value !== undefined && value !== this.noDataValue)
-    if (haveDataForAllBands) {
-      if (numberOfValues === 1) {
-        const value = values[0]
-        if (this.palette) {
-          const [r, g, b, a] = this.palette[value]
-          return `rgba(${r},${g},${b},${a / 255})`
-        }
-      } else if (numberOfValues === 2) {
-        return `rgb(${values[0]},${values[1]},0)`
-      } else if (numberOfValues === 3) {
-        return `rgb(${values[0]},${values[1]},${values[2]})`
-      } else if (numberOfValues === 4) {
-        return `rgba(${values[0]},${values[1]},${values[2]},${values[3] / 255})`
-      }
-    }
-  }
-
   getTiles(): Tile[] {
     // transform _tiles object collection into an array
     // assume the _tiles all all of our own tiles which means their elements are HTMLCanvasElements
@@ -727,7 +706,6 @@ export class GeoRasterLayerClass extends L.GridLayer {
     }
 
     this.georaster = georaster
-    this.palette = georaster.palette
 
     const tiles = this.getActiveTiles()
     console.log("Updating existing GeoRasterLayer with new georaster. Num tiles", tiles.length)
