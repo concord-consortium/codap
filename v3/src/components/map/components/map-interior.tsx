@@ -37,7 +37,7 @@ export const MapInterior = observer(function MapInterior({setPixiPointsLayer}: I
   useEffect(() => {
     return mstAutorun(() => {
       // This reads the geoRaster.url from the model before going into an async task
-      // so change to the geoRaster or its url will retrigger this autorun
+      // so changes to the geoRaster or its url will retrigger this autorun
       createOrUpdateLeafletGeoRasterLayer(mapModel)
     }, {name: "MapInterior.mstAutorun [createOrUpdateLeafletGeoRasterLayer]"}, mapModel)
   }, [mapModel])

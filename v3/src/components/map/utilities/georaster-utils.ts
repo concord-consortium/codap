@@ -1,20 +1,7 @@
 import { IMapContentModel } from "../models/map-content-model"
-import GeoRasterLayer, { GeoRaster, GeoRasterLayerClass } from "./georaster-layer-for-leaflet"
+import GeoRasterLayer, { GeoRasterLayerClass } from "./georaster-layer-for-leaflet"
 import { GeoImage } from './geo-image'
-
-// interface ProfileRow {
-//   url: string
-//   start: number
-//   fetch?: number
-//   arrayBuffer?: number
-//   decodePng?: number
-//   getGeorasterValuesAndPalette?: number
-//   newGeoRasterLayer?: number
-// }
-// let currentProfileRow: ProfileRow | undefined = undefined
-// function
-
-// const profileData: ProfileRow[] = []
+import { GeoRaster } from "./georaster-types"
 
 async function getGeoRaster(mapModel: IMapContentModel) {
   const url = mapModel.geoRaster?.url
@@ -33,8 +20,6 @@ async function getGeoRaster(mapModel: IMapContentModel) {
     const { width, height } = geoImage
 
     // assume the image goes from x -180 to -180 y -90 to 90
-    // TODO: add a way for the CODAP api call to specify the bounding box of the
-    // image.
     const xmin = -180
     const xmax = 180
     const ymin = -90
@@ -45,16 +30,6 @@ async function getGeoRaster(mapModel: IMapContentModel) {
     // Calculate the pixelSize in degrees.
     const pixelSize = xRange/width
 
-    // We manually construct the georaster instead of using the parseGeoraster function.
-    // The parseGeoraster function doesn't support PNGs directly. It is necessary to
-    // construct an object with the image bytes and send that. This object is basically
-    // the same thing that parseGeoraster returns.
-    // By skipping parseGeoraster the code should be a bit faster and perhaps we can
-    // reduce the size of the code this new feature adds to CODAP.
-
-    // The GeoRaster type is close to what we need to provide, but it is missing
-    // the palette, and numberOfRasters. It also has the wrong type for the
-    // values.
     const geoRaster: GeoRaster = {
       pixelWidth: pixelSize,
       pixelHeight: pixelSize,
@@ -69,10 +44,6 @@ async function getGeoRaster(mapModel: IMapContentModel) {
       projection: 4326,
     }
 
-    // The georaster-layer-for-leaflet library expects a GeoRaster object
-    // that is a bit different than the one we created. It has a few extra
-    // properties and methods. However these are not actually used by the
-    // GeoRasterLayer object.
     return geoRaster
   } catch (error) {
     console.error("Error fetching and processing geo raster", error)
@@ -105,7 +76,7 @@ function findGeoRasterLayer(mapModel: IMapContentModel) {
 }
 
 /**
- * Creates a GeoRaster layer from a the model. If the url in the model changes while
+ * Creates a GeoRaster layer. If the url in the model changes while
  * it is being processed, the function will return undefined.
  *
  * @returns A promise that resolves to a Leaflet layer or undefined if the there's an error
@@ -146,32 +117,34 @@ export async function createLeafletGeoRasterLayer(mapModel: IMapContentModel) {
     let currentLayer = findGeoRasterLayer(mapModel)
 
     if (currentLayer) {
-      if (!currentLayer.updateGeoraster(georaster, opacity)) {
-        // The layer is not compatible with the new GeoRaster, so remove it
-        currentLayer.remove()
-        currentLayer = undefined
+      if (currentLayer.updateGeoraster(georaster, opacity)) {
+        // We were able to update the existing layer with the new GeoRaster
+        return
       }
+
+      // The layer is not compatible with the new GeoRaster, so remove it
+      currentLayer.remove()
+      currentLayer = undefined
     }
 
-    if (!currentLayer) {
-      const layer = new GeoRasterLayer({
-        georaster,
-        // Add to the overlay pane so it is on top of the base map but below the
-        // the other layers that CODAP adds.
-        pane: "overlayPane",
-        opacity: mapModel.geoRaster?.opacity ?? 0.5,
-        // This is how detailed the georaster should be projected on to each Leaflet tile
-        // Most tiles are 256x256 some are 512x512. Using 256 shows the squares of the
-        // georaster nicely. It might be OK to go down to 128 or even 64.
-        resolution: 256,
-        // Uncomment to get more information about the georaster rendering process
-        // debugLevel: 2,
-        debugLevel: 1,
-        // Disable caching to see if the map updates
-        caching: false,
-      })
-      layer.addTo(mapModel.leafletMap)
-    }
+    const layer = new GeoRasterLayer({
+      georaster,
+      // Add to the overlay pane so it is on top of the base map but below the
+      // the other layers that CODAP adds.
+      pane: "overlayPane",
+      opacity: mapModel.geoRaster?.opacity ?? 0.5,
+      // This is how detailed the georaster should be projected on to each Leaflet tile
+      // Most tiles are 256x256 some are 512x512. Using 256 shows the squares of the
+      // georaster nicely. It might be OK to go down to 128 or even 64.
+      resolution: 256,
+      // Uncomment to get more information about the georaster rendering process
+      // debugLevel: 2,
+      debugLevel: 1,
+      // Disable caching to see if the map updates
+      caching: false,
+    })
+    layer.addTo(mapModel.leafletMap)
+
   } catch (error) {
     console.error("Error initializing GeoRasterLayer", error)
   }

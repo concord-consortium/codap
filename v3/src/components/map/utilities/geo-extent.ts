@@ -1,6 +1,6 @@
 /*
-This code is derived from https://github.com/DanielJDufour/geo-extent
-It was updated to no use Proj4j
+This code was derived from https://github.com/DanielJDufour/geo-extent
+It was updated to not use Proj4j
 The original license is CC0 so we are free to relicense under our
 default MIT license, and use it how we wish.
 */
@@ -29,14 +29,7 @@ export class GeoExtent {
   ymin: number
   ymax: number
   srs: number
-  // TODO this should take a few options for the first argument:
-  // - an array of [xmin, ymin, xmax, ymax]
-  // - a L.LatLngBounds object
-  // - a bounding box returned by snapped.bbox_in_coordinate_system
-  // - the bounding box returned by GeoExtent#bbox this looks like it is just an array
-  //   like the first option, but perhaps it is more?
-  // and { srs: number} - the projection number
-  //
+
   constructor(bbox: [number, number, number, number], options: { srs: number })
   constructor(leafletBounds: L.LatLngBounds)
   constructor(extent: GeoExtent)
@@ -68,13 +61,6 @@ export class GeoExtent {
     }
   }
 
-  /*
-   else if (isLeafletLatLngBounds(o)) {
-      (xmin = o.getWest()), (xmax = o.getEast()), (ymin = o.getSouth()), (ymax = o.getNorth())
-      if (!isDef(this.srs)) this.srs = "EPSG:4326"
-    }
-  */
-
   leafletProjection(code: number): L.Projection {
     switch (code) {
       case 4326:
@@ -103,7 +89,7 @@ export class GeoExtent {
   reproj(code: number | string): GeoExtent {
     const numCode = this.numericProjectionCode(code)
     // Note: this will only be accurate for certain projections (like 4326 and 3857)
-    // To support other projections, we need to create a set of points on each line
+    // To support other projections, we need to create a set of points on each edge
     // of the bounding box and transform those points to the new projection
     // The https://github.com/DanielJDufour/geo-extent library does this.
     const points: L.Point[] = [
@@ -142,8 +128,8 @@ export class GeoExtent {
   unwrap(): GeoExtent[] {
     const { xmin, xmax, srs } = this
 
+    // We only unwrap extents in the 4326 projection that cross the dateline
     if (srs !== 4326 || (xmin >= -180 && xmax <= 180)) {
-      // Not in 4326 or already within the dateline bounds
       return [this.clone()]
     }
 
@@ -164,8 +150,6 @@ export class GeoExtent {
   }
 
   crop(other: GeoExtent): GeoExtent | null {
-    // Note: in the original code it cloned the other extent first, but it isn't clear why
-
     if (!this.overlaps(other)) {
       // No overlap
       return null
@@ -202,13 +186,6 @@ export class GeoExtent {
     const xmax = Math.min(this.xmax, another.xmax)
     const ymax = Math.min(this.ymax, another.ymax)
     return new GeoExtent([xmin, ymin, xmax, ymax], { srs: this.srs })
-
-    // Note: in the original version it handled some case where another couldn't be
-    // created, but it seems like we can simplify that in this case
-    // However I'm not entirely sure when using the 4326 projection what the xmin and xmax
-    // should be. Are they pixel values on a rectangle that is offset or are the lat/long values?
-    // Also what about the scale in these cases?
-    // Hopefully that will all be clear as I implement more methods
   }
 
   overlaps(other: GeoExtent): boolean {
@@ -232,8 +209,6 @@ export class GeoExtent {
     return [this.xmin, this.ymin, this.xmax, this.ymax]
   }
 
-  // In the original code this would just return the coordinates directly
-  // without making sure they were lat long
   get leafletBounds(): L.LatLngBounds {
     const latLngExtent = this.reproj(4326) // Always project to 4326 for Leaflet bounds
 

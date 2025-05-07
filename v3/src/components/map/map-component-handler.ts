@@ -1,4 +1,5 @@
 import { SetRequired } from "type-fest"
+import { getSnapshot } from "mobx-state-tree"
 import { V2Map } from "../../data-interactive/data-interactive-component-types"
 import { DIValues } from "../../data-interactive/data-interactive-types"
 import { DIComponentHandler } from "../../data-interactive/handlers/component-handler"
@@ -19,7 +20,6 @@ import { IMapPolygonLayerModelSnapshot } from "./models/map-polygon-layer-model"
 import {
   boundaryAttributeFromDataSet, datasetHasBoundaryData, datasetHasLatLongData, latLongAttributesFromDataSet
 } from "./utilities/map-utils"
-import { getSnapshot } from "mobx-state-tree"
 
 export const mapComponentHandler: DIComponentHandler = {
   create({ values }) {

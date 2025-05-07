@@ -26,7 +26,9 @@ import type {
 
 const EPSG4326 = 4326
 
-const log = (obj: any) => console.log("[georaster-layer-for-leaflet] ", obj)
+function log(...args: any[]) {
+  console.log("[georaster-layer-for-leaflet] ", ...args)
+}
 
 if (!L) {
   console.warn(
@@ -50,7 +52,6 @@ export class GeoRasterLayerClass extends L.GridLayer {
 
   // Other properties
   extent!: GeoExtent
-  ratio!: number
   debugLevel!: DebugLevel
   tileHeight!: number
   tileWidth!: number
@@ -66,14 +67,12 @@ export class GeoRasterLayerClass extends L.GridLayer {
   // Options
   options!: GeoRasterLayerOptions
 
-  // TODO: this is just a guess, need to confirm this is correct
   protected _cache!: {innerTile: Record<string, L.Rectangle>, tile: Record<string, L.Rectangle>}
 
   protected _bounds: LatLngBounds | undefined
 
-  // This property is referenced but not defined by the Leaflet types
-  // nor is it set by the GeoRasterLayer class. It is defined in the leaflet
-  // code though, and is used by the GridLayer implementation.
+  // This property is referenced but not defined by the Leaflet types.
+  // It is defined in the leaflet code though, and is used by the GridLayer implementation.
   protected _globalTileRange!: L.Bounds
 
   initialize(options: GeoRasterLayerOptions) {
@@ -107,20 +106,15 @@ export class GeoRasterLayerClass extends L.GridLayer {
 
       this.extent = new GeoExtent([this.xmin, this.ymin, this.xmax, this.ymax], { srs: this.projection })
 
-      // used later if simple projection
-      this.ratio = this.height / this.width
-
       this.debugLevel = options.debugLevel || 0
       if (this.debugLevel >= 1) log({ options })
 
-      // could probably replace some day with a simple
-      // (for let k in options) { this.options[k] = options[k]; }
-      // but need to find a way around TypeScript any issues
+      // This might not be necessary. Leaflet has some special handling of options
       L.Util.setOptions(this, options)
 
       /*
-          Caching the constant tile size, so we don't recalculate every time we
-          create a new tile
+        Caching the constant tile size, so we don't recalculate every time we
+        create a new tile
       */
       const tileSize = this.getTileSize()
       this.tileHeight = tileSize.y
@@ -190,7 +184,7 @@ export class GeoRasterLayerClass extends L.GridLayer {
     try {
       const { debugLevel = 0 } = this
 
-      if (debugLevel >= 2) console.log("starting drawTile with", { tile, coords, context, done })
+      if (debugLevel >= 2) log("starting drawTile with", { tile, coords, context, done })
 
       let error: Error
 
@@ -245,8 +239,8 @@ export class GeoRasterLayerClass extends L.GridLayer {
         return
       }
       if (debugLevel >= 2) {
-        console.log(
-          "[georaster-layer-for-leaflet] extentOfInnerTileInMapCRS",
+        log(
+          "extentOfInnerTileInMapCRS",
           extentOfInnerTileInMapCRS.reproj(4326)
         )
       }
@@ -305,8 +299,8 @@ export class GeoRasterLayerClass extends L.GridLayer {
       const numberOfSamplesDown = overdrawTileDown ? snappedSamplesDown : maxSamplesDown
 
       if (debugLevel >= 3) {
-        console.log(
-          `[georaster-layer-for-leaflet] extent of inner tile before snapping ${
+        log(
+          `extent of inner tile before snapping ${
             extentOfInnerTileInMapCRS.reproj(4326).bbox.toString()}`
         )
       }
@@ -350,8 +344,8 @@ export class GeoRasterLayerClass extends L.GridLayer {
       }
 
       if (debugLevel >= 3) {
-        console.log(
-          `[georaster-layer-for-leaflet] extent of inner tile after snapping ${
+        log(
+          `extent of inner tile after snapping ${
             extentOfInnerTileInMapCRS.reproj(4326).bbox.toString()}`
         )
       }
@@ -406,8 +400,8 @@ export class GeoRasterLayerClass extends L.GridLayer {
         tile.width = canvasWidth
       }
       tile.style.width = `${canvasWidth  }px`
-      if (debugLevel >= 3) console.log(`setting tile height to ${  canvasHeight  }px`)
-      if (debugLevel >= 3) console.log(`setting tile width to ${  canvasWidth  }px`)
+      if (debugLevel >= 3) log(`setting tile height to ${  canvasHeight  }px`)
+      if (debugLevel >= 3) log(`setting tile width to ${  canvasWidth  }px`)
 
       // set how large to display each sample in screen pixels
       const heightOfSampleInScreenPixels = innerTileHeight / numberOfSamplesDown
@@ -642,7 +636,7 @@ export class GeoRasterLayerClass extends L.GridLayer {
     if (!this._bounds) {
       const { debugLevel, projection, xmin, xmax, ymin, ymax } = this
       if (projection === EPSG4326) {
-        if (debugLevel >= 1) console.log(`georaster projection is in ${EPSG4326}`)
+        if (debugLevel >= 1) log(`georaster projection is in ${EPSG4326}`)
         const minLatWest = L.latLng(ymin, xmin)
         const maxLatEast = L.latLng(ymax, xmax)
         this._bounds = L.latLngBounds(minLatWest, maxLatEast)
@@ -718,7 +712,6 @@ export class GeoRasterLayerClass extends L.GridLayer {
     this.georaster = georaster
 
     const tiles = this.getActiveTiles()
-    console.log("Updating existing GeoRasterLayer with new georaster. Num tiles", tiles.length)
     if (!tiles) {
       console.error("No active tiles available")
       // We did update the georaster, but we can't redraw the tiles
@@ -772,6 +765,3 @@ const GeoRasterLayer: (new (options: GeoRasterLayerOptions) => any) & typeof L.C
 })
 
 export default GeoRasterLayer
-
-// Explicitly exports public types
-export type { GeoRaster, GeoRasterLayerOptions, PixelValuesToColorFn } from "./georaster-types"
