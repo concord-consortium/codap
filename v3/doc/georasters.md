@@ -1,5 +1,5 @@
 # Geo Rasters
-CODAP supports adding a layer to the map which displays an image projected onto the map. Currently this image must be a PNG with a palette. It is only supported via the CODAP plugin API. You can test it by:
+CODAP supports adding a layer to the map which displays an image projected onto the map. Currently this image must be a PNG. It is only supported via the CODAP plugin API. You can test it by:
 1. Add the Plugin API Tester to a CODAP document:
 https://concord-consortium.github.io/codap-data-interactives/DataInteractiveAPITester/index.html?lang=en
 2. Add a map to the CODAP document
@@ -82,7 +82,7 @@ This library is popular, but seems to be sporadically maintained. There are a fe
 
 We found that it crashes when trying to load some images from https://neo.gsfc.nasa.gov. For example: https://neo.gsfc.nasa.gov/servlet/RenderData?si=1990677&cs=rgb&format=TIFF&width=720&height=360 This file will cause node.js to crash with a native stack trace. When geotiff.js is used in the browser the error message about this file is more useful. If there is time and support it would probably be worthwhile for us to track down the issue and fix geotiff.js so CODAP can support GeoTIFFs.
 
-Besides this error we've seen errors just downloading the GeoTIFFs. Most likely these errors will occur with PNGs too. Probably the fetching of the image needs to be updated to automatically retry when there is an error.
+Besides this error we've seen errors just downloading the GeoTIFFs.
 
 ## Projections
 
@@ -92,42 +92,45 @@ EPSG 3857 is the "google maps" projection where things are stretched vertically 
 
 ## Performance
 
-When looking at the timing when the map is showing the full world with horizontal repeats so the full north and south range can be seen, the biggest performance issue seems to be in the GeoRasterLayer when it is rendering the image for each of the requested Leaflet tiles.
+Originally we used the georaster-layer-for-leaflet and png-codec packages to implement this. These had some performance issues which were fixed by bringing this code into CODAP and significantly modifying it.
 
-The creation of the GeoRaster for each image takes around 40ms. This is mostly taken up by the png fetching from cache (11ms), the png decoding (20ms), converting the decoded pixels to the GeoRaster format (8ms). The png decoding could probably be reduced by using a canvas to decode the png instead of a pure javascript decoder. This canvas approach is used in the neo-codap-plugin.
+The speed of the rendering will vary depending on the zoom level of the map. When zoomed in the rendering inner loop has fewer raster pixels to iterate over.
 
-Then this GeoRaster is either used to create a new GeoRasterLayer or update an existing GeoRasterLayer. Each tile location in Leaflet asks the GeoRasterLayer to create a tile for this location and render this tile. On the full map view there are 3 tiles which are really the same image repeated 3 times. The total time for all of this rendering is around 110ms.
+### Notes on georaster-layer-for-leaflet package with png-codec
+
+The creation of the GeoRaster for each 0.5 degree per pixel image took around 40ms. This was mostly taken up by the png fetching from cache (11ms), the png decoding (20ms), converting the decoded pixels to the GeoRaster format (8ms).
+
+Then this GeoRaster was either used to create a new GeoRasterLayer or update an existing GeoRasterLayer. Each tile location in Leaflet asks the GeoRasterLayer to create a tile for this location and render this tile. On the full map view there are 3 tiles which are really the same image repeated 3 times. The total time for all of this rendering was around 110ms.
 
 These times were calculated using the Chrome dev tools profile tool along with some `performance.measure(...)` calls in the code.
 
-Another way to profile is by looking at what speed the images can be animated and still give consistent updates:
-- For the default map (full world view with repeats), the slider can go at about 6 images a second before the updates start to fall behind. This matches up with the 150ms total time described above.
-- For a map zoomed into just North America, it can go about 15 frames a second. So that is around 67 ms rendering time for each image.
+Another way to profile was by looking at what speed the images can be cycled through and still give consistent updates:
+- For the default map (full world view with repeats), we could update at a rate of 6 images a second before the updates started to fall behind. This matched up with the 150ms total time described above.
+- For a map zoomed into just North America, it could go about 15 frames a second. So that was around 67 ms rendering time for each image.
 
-Note that in the North America view the creation of the GeoRaster should take the same amount of time as with the full world view. That means that the 40ms to create the GeoRaster really dominates the total time on the North America view.
+Note that in the North America view the creation of the GeoRaster should have taken the same amount of time as with the full world view. That means that the 40ms to create the GeoRaster really dominated the total time on the North America view.
 
-### Flicker
-Originally we were creating a new GeoRasterLayer on each image update. This layer was not removed until the new GeoRaster was successfully created. However this still resulted in a flicker because the layer's tiles would be hidden instantly and the drawing of the new tiles would happen async over 20ms to 110ms. So this resulted in a pretty back flicker.
+#### Flicker
+Originally we were creating a new GeoRasterLayer on each image update. This layer was not removed until the new GeoRaster was successfully created. However this still resulted in a flicker because the layer's tiles would be hidden instantly and the drawing of the new tiles would happen async over 20ms to 110ms. So this resulted in a pretty bad flicker.
 
-Now the GeoRasterLayer is updated if it can be. This reduces the flicker, but it still exists. Now the problem is in the `GeoRasterLayer.drawTile` method. This method sets the width and height of the canvas of the tile even if they aren't changed. Setting either of these properties automatically clears the canvas.
+Now the GeoRasterLayer is updated if it can be instead of making a new layer. This eliminated one reason for the flicker, but then exposed another issue. In the georaster-layer-for-leaflet package the `GeoRasterLayer.drawTile` method sets the width and height of the canvas of the tile even if width and height don't change. As documented by MDN, setting either of these properties automatically clears the canvas even if the values are the same.
 
-Fixing this requires a change to `GeoRasterLayer.drawTile`, so we either need our own fork of that code or submit a PR.
+This was fixed in the `georaster-layer-leaflet.ts` module that is part of CODAP.
 
 ### Canceling
 When the geoRaster is updated too quickly, the fetching and decoding of the geoRaster might not complete before the next updated. Additionally within the `GeoRasterLayer.drawTile` the actual rendering happens async after the initial canvas configuration, so this might also not have completed. The code currently bails out of the fetching and decoding if the geoRaster URL has changed during the fetch or decoding.
 
-This could be further improved by actually canceling the fetch. And if we can make changes to `GeoRaster.drawTile` we could also have it bail out.
+This could be further improved by bailing out of `GeoRasterLayer.drawTile` if the url has changed.
 
 ### Notes
-- the current png decoder is wasting time and memory by returning r,g,b values which we then convert back into palette indexes.
-- the png decoder could be replaced with a canvas based decoding like with the neo-codap-plugin does, however this would continue to give us r,g,b values which we either need to convert back to palette indexes or waste space and have the GeoRasterLayer work with r,g,b values instead of palette indexes.
-- the GeoRasterLayer is pretty optimized since it gets faster when rendering more zoomed in tiles. This is because it is actually drawing rectangular regions instead of pixel by pixel.
-- the "resolution" of the GeoRasterLayer could be reduced this ought to speed up its rendering, but the "raster blocks" shown when zoomed in won't match up as well with the actual "raster blocks".
-- look for projection options which use a WebGL canvas, these should be able to leverage parallel processing to optimize the projection.
-- consider storing the data files "pre-projected" so no client processing is needed to draw them, and just some simple math is needed to find the value at a lat-long for the datasets. The problem with this approach is that we'd have to render multiple tiles for each image of the dataset so the lines are correct as the student zooms in and out. So this means more storage and network used up for all of these tiles.
+- the "resolution" of the GeoRasterLayer can be changed. This ought to speed up its rendering, but the "raster pixel" edges shown when zoomed in won't match up as well with the actual "raster pixels".
+- for the absolute fastest rendering we would need to pre-render the projected geo-raster so the map is just displaying a tile source like any other tile source. However this would require a lot of storage and more network bandwidth as the user is zooming in and out. So in the end it might be worth it.
 
-# Size
-From my notes before the main js file was 6.6MB at the base of this PR.
-When the georaster-layer-for-leaflet library it went up to 7.2MB.
-With changes which remove the direct dependency from georaster-layer-from-leaflet on Proj4j it remained at 7.2MB. This is because the GeoExtent library also used Proj4j indirectly.
-With our custom GeoExtent class the main js file when down to 6.8MB. Some of the libraries which are contributing to this size: png-codec (39KB), pako (46KB) brought in by png-codec, preciso (12KB) brought in by the snap library, regenerator-runtime (6.5KB), snap-bb (5.8KB)
+# Javascript Size
+When this feature was being developed the size of main CODAP javascript bundled file was 6.6MB before the feature was added.
+
+Initially the georaster-layer-for-leaflet package was used along with png-codec to load in the png image. This approach caused the main javascript file to go up to 7.2MB. So about a 600KB increase.
+
+The georaster-layer-for-leaflet code was brought into CODAP directly and stripped down so it no longer supports lots of different types of projections which required the Proj4j package. Additionally the png-codec package was replaced with loading the png into a canvas. These changes improved the speed of the geo raster support. They also brought the size of the main javascript down to 6.7MB. So about a 100KB increase.
+
+The extra size could be reduced further by looking at the use of snap package by georaster-layer-for-leaflet. This snap package uses the preciso, regenerator-runtime, and snap-bb all of which are probably unnecessary and add around 24KB.

@@ -208,7 +208,6 @@
     "@lezer/common": "^1.2.3",
     "@lezer/highlight": "^1.2.1",
     "@lezer/lr": "^1.4.2",
-    "@lunapaint/png-codec": "^0.2.0",
     "@nedb/binary-search-tree": "^2.1.5",
     "@uiw/react-codemirror": "^4.23.10",
     "bbox-fns": "^0.20.2",

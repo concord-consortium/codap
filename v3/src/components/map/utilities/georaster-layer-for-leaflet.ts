@@ -1,3 +1,13 @@
+/*
+This file is derived from the georaster-layer-for-leaflet package:
+https://github.com/GeoTIFF/georaster-layer-for-leaflet
+It has been modified quite a bit. However the logic of drawTile method is still
+pretty close to the original.
+
+The license for the original code is Apache 2.0.
+for the full text see: ./georaster-layer-for-leaflet-license.txt
+*/
+
 import "regenerator-runtime/runtime.js"
 import * as L from "leaflet"
 import type { Coords, DoneCallback, LatLngBounds } from "leaflet"
