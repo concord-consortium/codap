@@ -44,7 +44,7 @@ import { IStandardDeviationAdornmentModelSnapshot }
 import { IStandardErrorAdornmentModelSnapshot }
   from "./univariate-measures/standard-error/standard-error-adornment-model"
 import { INormalCurveAdornmentModelSnapshot } from "./univariate-measures/normal-curve/normal-curve-adornment-model"
-import { ILineLabelInstance, ILineLabelInstanceSnapshot } from "./line-label-instance";
+import { ILineLabelInstanceSnapshot } from "./line-label-instance"
 
 export interface IAdornmentImporterProps {
   data?: ISharedDataSet
@@ -356,9 +356,10 @@ export const v2AdornmentImporter = ({
     const lsrlAdornmentImport: ILSRLAdornmentModelSnapshot = {
       isVisible: lsrlAdornment.isVisible,
       showConfidenceBands: lsrlAdornment.showConfidenceBands,
-      type: kLSRLType
+      type: kLSRLType,
+      labels
     }
-    interceptLocked = lsrlAdornment.isInterceptLocked
+    interceptLocked = lsrlAdornment.isInterceptLocked // Just noting V3 doesn't track intercept locked at this level
     v3Adornments.push(lsrlAdornmentImport)
   }
 

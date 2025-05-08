@@ -64,10 +64,6 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
     return dataConfig && model.getLines(xAttrId, yAttrId, cellKey, dataConfig, adornmentsStore?.interceptLocked)
   }, [cellKey, dataConfig, adornmentsStore?.interceptLocked, model, xAttrId, yAttrId])
 
-  const getLabels = useCallback(() => {
-    return dataConfig && model.getLabels(cellKey, dataConfig)
-  }, [cellKey, dataConfig, adornmentsStore?.interceptLocked, model, xAttrId, yAttrId])
-
   const fixEndPoints = useCallback((iLine: Selection<SVGLineElement, unknown, null, undefined>) => {
     if (
       !Number.isFinite(pointsOnAxes.current.pt1.x) || !Number.isFinite(pointsOnAxes.current.pt2.x) ||
@@ -130,9 +126,8 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
           // compute proportional position of center of label within container
           const x = (left + equationBounds.width / 2) / containerBounds.width
           const y = (top + equationBounds.height / 2) / containerBounds.height
-          const labels = getLabels()
           graphModel.applyModelChange(
-            () => labels?.get(category)?.setEquationCoords({ x, y }),
+            () => model.setLabelEquationCoords(cellKey, category, { x, y}),
             {
               undoStringKey: "DG.Undo.graph.repositionEquation",
               redoStringKey: "DG.Redo.graph.repositionEquation",
@@ -306,7 +301,7 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
       if (slope != null && intercept != null) {
         pointsOnAxes.current = lineToAxisIntercepts(slope, intercept, xDomain, yDomain)
 
-        // Set up the confidence band elements. We add them before the line™, so they don't interfere
+        // Set up the confidence band elements. We add them before the line, so they don't interfere
         // with the line's mouseover behavior.
         lineObj.confidenceBandCurve = selection.append("path")
           .attr("class", `lsrl-confidence-band lsrl-confidence-band-${classFromKey}`)

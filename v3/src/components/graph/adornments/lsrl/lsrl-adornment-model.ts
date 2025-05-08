@@ -165,9 +165,6 @@ export const LSRLAdornmentModel = AdornmentModel
     let linesInCell = self.lines.get(key)
     if (!linesInCell) {
       self.lines.set(key, new Map<string, ILSRLInstance>())
-      // todo: Somewhere we have to make sure there is a label for the given key, legendCat. But the line below
-      // gets called during reading in of a document and puts an undo action in this history.
-      // self.labels.set(key, {})
       linesInCell = self.lines.get(key)!
     }
     linesInCell.set(legendCat, createLSRLInstance(line))
@@ -202,6 +199,25 @@ export const LSRLAdornmentModel = AdornmentModel
         self.updateLines(lineProps, instanceKey, legendCat)
       })
     })
+  },
+  setLabel(cellKey: Record<string, string>, category: string, label: ILineLabelInstance) {
+    const key = self.instanceKey(cellKey)
+    let labelsInCell = self.labels.get(key)
+    if (!labelsInCell) {
+      self.labels.set(key, {})
+      labelsInCell = self.labels.get(key)!
+    }
+    labelsInCell.set(category, label)
+  },
+  setLabelEquationCoords(cellKey: Record<string, string>, category: string, equationCoords: Point) {
+    const key = self.instanceKey(cellKey)
+    const labelsInCell = self.labels.get(key)
+    let label = labelsInCell ? labelsInCell.get(category) : undefined
+    if (!label) {
+      label = LineLabelInstance.create({ equationCoords: { x: 0, y: 0 } })
+      this.setLabel(cellKey, category, label)
+    }
+    label.setEquationCoords(equationCoords)
   }
 }))
 .views(self => ({
@@ -231,19 +247,6 @@ export const LSRLAdornmentModel = AdornmentModel
       }
     })
     return linesInCell
-  },
-  getLabels(cellKey: Record<string, string>, dataConfig: IGraphDataConfigurationModel) {
-    const key = self.instanceKey(cellKey)
-    const labelsInCell = self.labels.get(key)
-    const legendCats = self.getLegendCategories(dataConfig)
-    legendCats.forEach(legendCat => {
-      const existingLabel = labelsInCell ? labelsInCell.get(legendCat) : undefined
-      if (!existingLabel) {
-        // todo: We can't do what's in the line below. Must be done in an action
-        // labelsInCell?.set(legendCat, {})
-      }
-    })
-    return labelsInCell
   }
 }))
 

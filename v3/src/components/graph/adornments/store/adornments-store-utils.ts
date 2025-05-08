@@ -84,8 +84,6 @@ export function getAdornmentsMenuItemsFromTheStore(theStore: IAdornmentsBaseStor
   // items that either augment/adjust other adornments' behavior (e.g. Show Measure Labels, Intercept Locked), or need
   // special handling outside the realm of adornments (e.g. Connecting Lines, Squares of Residuals).
   getMeasuresForPlot(plotType).map((measureOrGroup: IMeasure) => {
-    // const tileModel = displayModel && getTileModel(displayModel)
-
     // Add the Show Measure Labels option checkbox immediately before the first group item. Note that group items only
     // appear in the univariate plot's ruler.
     addItemIfCondition(measureOrGroup.type === "Group", {
