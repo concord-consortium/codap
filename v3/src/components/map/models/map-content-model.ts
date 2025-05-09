@@ -26,6 +26,24 @@ import { isMapPinLayerModel, MapPinLayerModel } from "./map-pin-layer-model"
 import {isMapPointLayerModel, MapPointLayerModel} from "./map-point-layer-model"
 import {isMapPolygonLayerModel, MapPolygonLayerModel} from "./map-polygon-layer-model"
 
+export const GeoRasterModel = types.model("GeoRasterModel", {
+  /**
+   * The image type of the raster. Currently only png is supported.
+   */
+  type: types.enumeration(["png"]),
+  url: types.string,
+  opacity: types.optional(types.number, 0.5),
+  // In the future we may want to add additional properties:
+  // - bounds: the latitude/longitude bounds of the raster,
+  //   currently it is assumed to be -90 to 90 latitude and -180 to 180 longitude
+  // - projection: the EPSG code of the projection of the image,
+  //   currently it is assumed to be EPSG:4326
+  // These are not added now because they aren't needed yet and would just complicate
+  // the code.
+})
+
+export interface IGeoRasterModel extends Instance<typeof GeoRasterModel> {}
+
 export const MapContentModel = DataDisplayContentModel
   .named(kMapModelName)
   .props({
@@ -42,6 +60,8 @@ export const MapContentModel = DataDisplayContentModel
     // Changes the visibility of the layer in Leaflet with the opacity parameter
     baseMapLayerIsVisible: true,
     plotBackgroundColor: '#FFFFFF01',
+
+    geoRaster: types.maybe(GeoRasterModel),
   })
   .volatile(() => ({
     leafletMap: undefined as LeafletMap | undefined,
@@ -111,6 +131,9 @@ export const MapContentModel = DataDisplayContentModel
       self.center = center
       self.zoom = zoom
     },
+    setGeoRaster(geoRaster: Maybe<IGeoRasterModel>) {
+      self.geoRaster = geoRaster
+    }
   }))
   // performs the specified action so that response actions are included and undo/redo strings assigned
   .actions(applyModelChange)
