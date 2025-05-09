@@ -95,16 +95,6 @@ export const CasePlot = function CasePlot({ pixiPoints }: IPlotProps) {
     })
   }, [pixiPoints, graphModel, layout, dataConfiguration, dataset, isAnimating])
 
-  useEffect(function initDistribution() {
-    randomlyDistributePoints(dataConfiguration?.getCaseDataArray(0))
-    const disposer = dataConfiguration?.onAction(action => {
-      if (['addCases', 'removeCases'].includes(action.name)) {
-        randomlyDistributePoints(dataConfiguration?.getCaseDataArray(0))
-      }
-    }) || (() => true)
-    return () => disposer?.()
-  }, [dataConfiguration, dataset, randomlyDistributePoints])
-
   useEffect(function respondToModelChangeCount() {
     return mstReaction(
       () => graphModel.changeCount,
@@ -118,7 +108,22 @@ export const CasePlot = function CasePlot({ pixiPoints }: IPlotProps) {
   }, [dataConfiguration, graphModel,
       randomlyDistributePoints, refreshPointPositions, startAnimation])
 
+  useEffect(function respondToCasesCountChange() {
+    return mstReaction(
+      () => dataConfiguration?.caseDataHash,
+      () => {
+        randomlyDistributePoints(dataConfiguration?.getCaseDataArray(0))
+        startAnimation()
+        refreshPointPositions(false)
+      },
+      { name: "CaseDots.respondToCasesCountChange" }, dataConfiguration)
+  }, [dataConfiguration, randomlyDistributePoints, refreshPointPositions, startAnimation])
+
   usePlotResponders({pixiPoints, refreshPointPositions, refreshPointSelection})
+
+  useEffect(function initDistribution() {
+    randomlyDistributePoints(dataConfiguration?.getCaseDataArray(0))
+  }, [dataConfiguration, randomlyDistributePoints])
 
   return (
     <></>
