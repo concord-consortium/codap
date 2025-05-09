@@ -272,6 +272,10 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       const yHasCategorical = attrTypes.left === "categorical"
       return (xHasCategorical && !yHasCategorical) || (!xHasCategorical && yHasCategorical)
     },
+    get leftBottomCategoricalAttrCount() {
+      const attrTypes = self.attrTypes
+      return (attrTypes.left === "categorical" ? 1 : 0) + (attrTypes.bottom === "categorical" ? 1 : 0)
+    }
   }))
   .views(self => ({
     get categoricalAttrsWithChangeCounts() {
