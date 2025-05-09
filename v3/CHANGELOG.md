@@ -1,5 +1,27 @@
 # Changelog
 
+## Version 3.0.0-pre.2293 - May 9, 2025
+
+### ✨ Features & Improvements:
+- **CODAP-655:** Rescale axes on data change in API
+
+### 🐞 Bug Fixes:
+- **CODAP-71:** Connecting lines are not displaying multiple colors in graphs with multiple y axes
+- **CODAP-97:** New points in case plots appear on top of each other at top left
+- **CODAP-116:** Connecting lines in map and graph do not hide when points are hidden
+- **CODAP-323:** Map polygons created for each child case instead of one per parent
+- **CODAP-654:** Undo/Redo tool tips aren't showing/hiding connecting lines
+- **CODAP-365:** Bar chart point compression when changing graph axis
+- **CODAP-366:** Changing leftmost attribute while parent toggles are on crashes CODAP
+- **CODAP-617:** Binned dot plot stacks of points should be even
+- **CODAP-660:** Binning dot plot in fresh graph doesn't show all points
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  201351 bytes |                            4.05% |
+|  index.js | 6640922 bytes |                            0.05% |
+
 ## Version 3.0.0-pre.2278 - April 25, 2025
 
 ### ✨ Features & Improvements:
