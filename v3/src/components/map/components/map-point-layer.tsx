@@ -84,7 +84,7 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
         cLine && lineDescriptions.push(cLine)
     })
     return lineDescriptions
-  }, [connectingLine, dataset?.items])
+  }, [connectingLine, dataConfiguration])
 
   const handleConnectingLinesClick = useCallback(() => {
     // temporarily ignore leaflet clicks to prevent the map click handler
