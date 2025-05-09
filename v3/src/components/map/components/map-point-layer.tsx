@@ -69,7 +69,7 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
     const xValue = getScreenX(caseID)
     const yValue = getScreenY(caseID)
     if (isFinite(xValue) && isFinite(yValue)) {
-      const caseData = dataset?.getItem(caseID, { numeric: false })
+      const caseData = dataset?.getFirstItemForCase(caseID, { numeric: false })
       if (caseData) {
         const lineCoords: [number, number] = [xValue, yValue]
         return { caseData, lineCoords }
@@ -79,8 +79,8 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
 
   const connectingLinesForCases = useCallback(() => {
     const lineDescriptions: IConnectingLineDescription[] = []
-    dataset?.items.forEach(c => {
-        const cLine = connectingLine(c.__id__)
+    dataConfiguration?.getCaseDataArray(0).forEach(c => {
+        const cLine = connectingLine(c.caseID)
         cLine && lineDescriptions.push(cLine)
     })
     return lineDescriptions
