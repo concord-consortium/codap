@@ -1,4 +1,5 @@
 import { Instance, SnapshotIn, types } from "mobx-state-tree"
+import { applyModelChange } from "../../../../models/history/apply-model-change"
 import { getAdornmentComponentInfo } from "../adornment-component-info"
 import { AdornmentModelUnion, kDefaultFontSize } from "../adornment-types"
 import { IAdornmentModel, IUpdateCategoriesOptions } from "../adornment-models"
@@ -119,6 +120,7 @@ export const AdornmentsBaseStore = types.model("AdornmentsBaseStore", {
     self.adornments.forEach(adornment => adornment.updateCategories(options))
   },
 }))
+  .actions(applyModelChange)
 
 export interface IAdornmentsBaseStore extends Instance<typeof AdornmentsBaseStore> {}
 export interface IAdornmentsBaseStoreSnapshot extends SnapshotIn<typeof AdornmentsBaseStore> {}

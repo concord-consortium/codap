@@ -26,7 +26,7 @@ export const GraphMeasurePalette = observer(function GraphMeasurePalette({
   const useGaussianOptions = graphModel?.plotType === "histogram" &&
     getDocumentContentPropertyFromNode(graphModel, "gaussianFitEnabled")
   const measures =
-    graphModel?.adornmentsStore.getAdornmentsMenuItems(graphModel.plotType, useGaussianOptions)
+    graphModel?.adornmentsStore.getAdornmentsMenuItems(tile, graphModel.plotType, useGaussianOptions)
 
   return (
     <InspectorPalette
