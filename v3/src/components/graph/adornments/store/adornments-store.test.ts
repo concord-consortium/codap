@@ -104,7 +104,7 @@ describe("AdornmentsStore", () => {
   })
   it("returns a list of adornment items for use in menus", () => {
     const adornmentsStore = AdornmentsStore.create()
-    const adornmentsMenuItems = adornmentsStore.getAdornmentsMenuItems(undefined,"dotPlot", false)
+    const adornmentsMenuItems = adornmentsStore.getAdornmentsMenuItems(undefined, "dotPlot", false)
     expect(adornmentsMenuItems).toBeDefined()
     expect(adornmentsMenuItems?.length).toBeGreaterThan(0)
     expect(adornmentsMenuItems?.[0].title).toBe("DG.Inspector.graphCount")

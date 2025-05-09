@@ -194,7 +194,7 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
       }
       ++linesIndex
     })
-  }, [cellKey, dataConfig, equationContainerSelector, getLines, adornmentsStore?.interceptLocked, layout, model,
+  }, [cellKey, dataConfig, equationContainerSelector, getLines, adornmentsStore, layout, model,
       plotHeight, plotWidth, showConfidenceBands, showSumSquares, xAttrId, xAttrName, xScale, xSubAxesCount, yAttrId,
       yAttrName, yScale, ySubAxesCount])
 
@@ -240,7 +240,7 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
 
     lineObj?.confidenceBandShading?.on("mouseover", (e) => toggleConfidenceBandTip(e, true))
       .on("mouseout", (e) => toggleConfidenceBandTip(e, false))
-  }, [cellKey, confidenceBandPaths, dataConfig, adornmentsStore?.interceptLocked, model, showConfidenceBands,
+  }, [cellKey, confidenceBandPaths, dataConfig, adornmentsStore, model, showConfidenceBands,
             toggleConfidenceBandTip, xAttrId, yAttrId])
 
   const updateLines = useCallback(() => {
@@ -383,7 +383,7 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
         model.updateCategories(graphModel.getUpdateCategoriesOptions())
         buildElements()
       }, { name: "LSRLAdornmentComponent.refreshInterceptLockChange" }, model)
-  }, [buildElements, dataConfig, graphModel, adornmentsStore?.interceptLocked, model, updateLSRL, xAxis, yAxis])
+  }, [buildElements, dataConfig, graphModel, adornmentsStore, model, updateLSRL, xAxis, yAxis])
 
   // Refresh values on changes to axes
   useEffect(function refreshAxisChange() {
