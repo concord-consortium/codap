@@ -435,7 +435,7 @@ context("Map API", () => {
     // Check that the geo raster layer is not there
     map.getMapGeoRasterLayer().should("not.exist")
 
-    cy.log("Handle get component request")
+    cy.log("Handle initial setting of the geoRaster")
     const cmd1 = `{
       "action": "update",
       "resource": "component[Measurements]",
@@ -452,14 +452,34 @@ context("Map API", () => {
 
     map.getMapGeoRasterLayer().should("exist")
 
+    cy.log("Handle updating the geoRaster")
     const cmd2 = `{
+      "action": "update",
+      "resource": "component[Measurements]",
+      "values": {
+        "geoRaster": {
+          "type": "png",
+          "url": "https://models-resources.concord.org/neo-images/v1/GPM_3IMERGM/720x360/2007-10-01.png"
+        }
+      }
+    }`
+    webView.sendAPITesterCommand(cmd2)
+    webView.confirmAPITesterResponseContains(/"success":\s*true/)
+    webView.clearAPITesterResponses()
+
+    // TODO: we should check that the image updated somehow, I think this would require reading a pixel
+    // of the canvas and checking that it changed.
+    map.getMapGeoRasterLayer().should("exist")
+
+    cy.log("Remove the geoRaster")
+    const cmd3 = `{
       "action": "update",
       "resource": "component[Measurements]",
       "values": {
         "geoRaster": null
       }
     }`
-    webView.sendAPITesterCommand(cmd2)
+    webView.sendAPITesterCommand(cmd3)
     webView.confirmAPITesterResponseContains(/"success":\s*true/)
     webView.clearAPITesterResponses()
 
