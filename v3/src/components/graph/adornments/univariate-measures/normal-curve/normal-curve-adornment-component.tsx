@@ -63,8 +63,7 @@ export const NormalCurveAdornmentComponent = observer(
     const computeMeanAndStdDev: () => ({ mean: number; stdDev: number, numStdErrs:number,
                                         stdError: number | undefined }) =
       useCallback(() => {
-        const sampleMean = dataConfig ? model.computeMean(numericAttrId, cellKey, dataConfig) : NaN
-        const sampleStdDev = dataConfig ? model.computeStandardDeviation(numericAttrId, cellKey, dataConfig) : NaN
+        const { sampleMean, sampleStdDev } = model.getCurveParamValue(cellKey)
         if (!useGaussianFit) {
           return {mean: sampleMean, stdDev: sampleStdDev, numStdErrs: 1, stdError: undefined}
         } else {
@@ -86,7 +85,7 @@ export const NormalCurveAdornmentComponent = observer(
 
     const highlightCovers = useCallback((highlight: boolean) => {
       const cover = valueObjRef.current.normalCurveHoverCover,
-        coverClassName = `standard-error-hover-cover${highlight ? ' highlighted' : ''}`
+        coverClassName = `normal-curve-hover-cover${highlight ? ' highlighted' : ''}`
       cover?.attr("class", coverClassName)
     }, [])
 
