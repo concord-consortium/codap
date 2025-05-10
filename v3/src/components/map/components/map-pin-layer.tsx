@@ -82,6 +82,30 @@ export const MapPinLayer = observer(function MapPinLayer({ mapLayerModel }: IMap
     }
   }, [dataset, forceUpdate])
 
+  useEffect(() => {
+  if (map) {
+    const updateBounds = () => {
+      const bounds = map.getBounds()
+      mapModel.setBounds({
+        north: bounds.getNorth(),
+        south: bounds.getSouth(),
+        east: bounds.getEast(),
+        west: bounds.getWest()
+      })
+    }
+
+    // Update bounds initially and on map move/zoom
+    updateBounds()
+    map.on("moveend", updateBounds)
+    map.on("zoomend", updateBounds)
+
+    return () => {
+      map.off("moveend", updateBounds)
+      map.off("zoomend", updateBounds)
+    }
+  }
+}, [map, mapModel])
+
   // Force a rerender when the map is resized, panned, or zoomed
   const { contentWidth: _contentWidth, contentHeight: _contentHeight } = layout
   const { center: _center, zoom: _zoom } = mapModel.leafletMapState
@@ -145,7 +169,7 @@ export const MapPinLayer = observer(function MapPinLayer({ mapLayerModel }: IMap
         const { x, y } = map.latLngToContainerPoint([lat, long])
         const pinX = x - mapPinWidth / 2
         const pinY = y - mapPinHeight
-        
+
         const color = colorId ? dataset.getStrValue(__id__, colorId) : kPinColors[index % kPinColors.length]
         return (
           <MapPin

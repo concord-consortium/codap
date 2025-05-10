@@ -87,7 +87,13 @@ export const mapComponentHandler: DIComponentHandler = {
 
   get(content) {
     if (isMapContentModel(content)) {
-      return { dataContext: content.dataConfiguration?.dataset?.name }
+      const { dataConfiguration, zoom, center, bounds } = content
+      return {
+        dataContext: dataConfiguration?.dataset?.name,
+        zoom: zoom ?? null,
+        center: center ? [center.lat, center.lng] : null,
+        bounds
+      }
     }
   },
 

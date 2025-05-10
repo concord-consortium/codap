@@ -42,6 +42,7 @@ export const MapContentModel = DataDisplayContentModel
     // Changes the visibility of the layer in Leaflet with the opacity parameter
     baseMapLayerIsVisible: true,
     plotBackgroundColor: '#FFFFFF01',
+    bounds: types.optional(types.frozen({north: 0, south: 0, east: 0, west: 0}), {north: 0, south: 0, east: 0, west: 0})
   })
   .volatile(() => ({
     leafletMap: undefined as LeafletMap | undefined,
@@ -110,6 +111,9 @@ export const MapContentModel = DataDisplayContentModel
     setCenterAndZoom(center: ILatLngSnapshot, zoom: number) {
       self.center = center
       self.zoom = zoom
+    },
+    setBounds(bounds: { north: number; south: number; east: number; west: number }) {
+      self.bounds = bounds
     },
   }))
   // performs the specified action so that response actions are included and undo/redo strings assigned
