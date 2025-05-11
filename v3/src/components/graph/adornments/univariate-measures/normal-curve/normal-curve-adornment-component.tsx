@@ -366,6 +366,10 @@ export const NormalCurveAdornmentComponent = observer(
       }
     }, [])
 
+    if (graphModel.plotType === "binnedDotPlot") {
+      return  // Can't display a normal curve on a binned dot plot
+    }
+
     return (
       <UnivariateMeasureAdornmentBaseComponent
         classFromKey={helper.classFromKey}
