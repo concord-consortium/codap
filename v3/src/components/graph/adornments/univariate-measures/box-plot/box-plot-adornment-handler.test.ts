@@ -33,6 +33,13 @@ describe("DataInteractive boxPlotAdornmentHandler", () => {
       showOutliers: true,
       type: kBoxPlotType,
       upperQuartile: jest.fn(() => 15),
+      getBoxPlotParams: jest.fn(() => ({
+        median: 10,
+        minWhiskerValue: 0,
+        maxWhiskerValue: 20,
+        lowerQuartile: 5,
+        upperQuartile: 15
+      })),
     }
 
     mockInvalidAdornment = {
