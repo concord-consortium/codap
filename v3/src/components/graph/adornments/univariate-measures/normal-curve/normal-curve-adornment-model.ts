@@ -22,21 +22,24 @@ export const CurveParamInstance = types.model("CurveParamInstance", {
       self.isValid = isValid
     }
   }))
+export interface ICurveParamInstance extends Instance<typeof CurveParamInstance> {}
 
 export const NormalCurveAdornmentModel = UnivariateMeasureAdornmentModel
   .named("NormalCurveAdornmentModel")
   .props({
     type: types.optional(types.literal(kNormalCurveType), kNormalCurveType),
-    curveParams: types.map(CurveParamInstance), // keys are InstanceKey
     labelTitle: types.optional(types.literal(kNormalCurveValueTitleKey), kNormalCurveValueTitleKey),
   })
+  .volatile(() => ({
+    curveParams: new Map<string, ICurveParamInstance>(),
+  }))
   .actions(self => ({
     addCurveParam(sampleMean: number, sampleStdDev: number, key="{}") {
       const newCurveParam = CurveParamInstance.create()
       newCurveParam.setSampleMeanAndStdDev(sampleMean, sampleStdDev)
       self.curveParams.set(key, newCurveParam)
     },
-    updateCurveParamValue(sampleMean: number, sampleStdDev: number, key="{}") {
+    updateCurveParamValues(sampleMean: number, sampleStdDev: number, key="{}") {
       const curveParam = self.curveParams.get(key)
       if (curveParam) {
         curveParam.setSampleMeanAndStdDev(sampleMean, sampleStdDev)
@@ -119,7 +122,7 @@ export const NormalCurveAdornmentModel = UnivariateMeasureAdornmentModel
     getCurveParamValue(cellKey: Record<string, string>) {
       const instanceKey = self.instanceKey(cellKey)
       const curveParam = self.curveParams.get(instanceKey)
-      if (curveParam && curveParam.isValid) {
+      if (curveParam?.isValid) {
         return { sampleMean: curveParam.sampleMean, sampleStdDev: curveParam.sampleStdDev }
       }
       return { sampleMean: NaN, sampleStdDev: NaN }
@@ -136,7 +139,7 @@ export const NormalCurveAdornmentModel = UnivariateMeasureAdornmentModel
         if (!self.curveParams.get(instanceKey) || resetPoints) {
           self.addCurveParam(sampleMean, sampleStdDev, instanceKey)
         } else {
-          self.updateCurveParamValue(sampleMean, sampleStdDev, instanceKey)
+          self.updateCurveParamValues(sampleMean, sampleStdDev, instanceKey)
         }
       })
     }
