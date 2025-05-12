@@ -50,6 +50,9 @@ export const MapTileElements = {
   getMapPin(index=0) {
     return this.getMapPins().eq(index)
   },
+  getMapGeoRasterLayer() {
+    return this.getMapTile().find(".leaflet-overlay-pane .leaflet-layer")
+  },
   getHideSelectedCases() {
     return c.getInspectorPanel().find("[data-testid=hide-selected-cases]")
   },

@@ -4,6 +4,7 @@ import { ToolbarElements as toolbar } from "../support/elements/toolbar-elements
 import { CfmElements as cfm } from "../support/elements/cfm"
 import { MapLegendHelper as mlh } from "../support/helpers/map-legend-helper"
 import { TableTileElements as table } from "../support/elements/table-tile"
+import { WebViewTileElements as webView } from "../support/elements/web-view-tile"
 
 const filename1 = "cypress/fixtures/RollerCoastersWithLatLong.csv"
 const filename2 = "cypress/fixtures/map-data.csv"
@@ -396,7 +397,6 @@ context("Map UI", () => {
     mlh.selectCategoryColorForCategoricalLegend(arrayOfValues[0].values[1])
     mlh.verifyCategoricalLegendKeySelected(arrayOfValues[0].values[1], arrayOfValues[0].selected[1])
   })
-
   it("shows connecting lines when Connecting Lines option is checked", () => {
     cfm.openLocalDoc(filename1)
     c.getIconFromToolShelf("map").click()
@@ -412,5 +412,77 @@ context("Map UI", () => {
     cy.wait(2000)
     cy.get("[data-testid=connecting-lines-map-1").find("path").should("have.length", 0)
   })
+})
 
+context("Map API", () => {
+  beforeEach(function () {
+    const url = `${Cypress.config("index")}#file=examples:Four%20Seals`
+    cy.visit(url)
+  })
+  const apiTesterUrl='https://concord-consortium.github.io/codap-data-interactives/DataInteractiveAPITester/index.html?lang=en'
+  const openAPITester = () => {
+    toolbar.getOptionsButton().click()
+    toolbar.getWebViewButton().click()
+    webView.enterUrl(apiTesterUrl)
+    cy.wait(1000)
+  }
+  it("supports a background georaster", () => {
+    openAPITester()
+
+    // Make sure the API tester is loaded
+    webView.getTitle().should("contain.text", "CODAP API Tester")
+
+    // Check that the geo raster layer is not there
+    map.getMapGeoRasterLayer().should("not.exist")
+
+    cy.log("Handle initial setting of the geoRaster")
+    const cmd1 = `{
+      "action": "update",
+      "resource": "component[Measurements]",
+      "values": {
+        "geoRaster": {
+          "type": "png",
+          "url": "https://models-resources.concord.org/neo-images/v1/GPM_3IMERGM/720x360/2007-09-01.png"
+        }
+      }
+    }`
+    webView.sendAPITesterCommand(cmd1)
+    webView.confirmAPITesterResponseContains(/"success":\s*true/)
+    webView.clearAPITesterResponses()
+
+    map.getMapGeoRasterLayer().should("exist")
+
+    cy.log("Handle updating the geoRaster")
+    const cmd2 = `{
+      "action": "update",
+      "resource": "component[Measurements]",
+      "values": {
+        "geoRaster": {
+          "type": "png",
+          "url": "https://models-resources.concord.org/neo-images/v1/GPM_3IMERGM/720x360/2007-10-01.png"
+        }
+      }
+    }`
+    webView.sendAPITesterCommand(cmd2)
+    webView.confirmAPITesterResponseContains(/"success":\s*true/)
+    webView.clearAPITesterResponses()
+
+    // TODO: we should check that the image updated somehow, I think this would require reading a pixel
+    // of the canvas and checking that it changed.
+    map.getMapGeoRasterLayer().should("exist")
+
+    cy.log("Remove the geoRaster")
+    const cmd3 = `{
+      "action": "update",
+      "resource": "component[Measurements]",
+      "values": {
+        "geoRaster": null
+      }
+    }`
+    webView.sendAPITesterCommand(cmd3)
+    webView.confirmAPITesterResponseContains(/"success":\s*true/)
+    webView.clearAPITesterResponses()
+
+    map.getMapGeoRasterLayer().should("not.exist")
+  })
 })

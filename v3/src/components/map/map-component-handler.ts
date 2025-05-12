@@ -1,4 +1,5 @@
 import { SetRequired } from "type-fest"
+import { getSnapshot } from "mobx-state-tree"
 import { V2Map } from "../../data-interactive/data-interactive-component-types"
 import { DIValues } from "../../data-interactive/data-interactive-types"
 import { DIComponentHandler } from "../../data-interactive/handlers/component-handler"
@@ -13,7 +14,7 @@ import {
 import { kMapTileType } from "./map-defs"
 import { kMapPointLayerType, kMapPolygonLayerType } from "./map-types"
 import { IMapBaseLayerModelSnapshot } from "./models/map-base-layer-model"
-import { IMapModelContentSnapshot, isMapContentModel } from "./models/map-content-model"
+import { GeoRasterModel, IMapModelContentSnapshot, isMapContentModel } from "./models/map-content-model"
 import { IMapPointLayerModelSnapshot } from "./models/map-point-layer-model"
 import { IMapPolygonLayerModelSnapshot } from "./models/map-polygon-layer-model"
 import {
@@ -95,7 +96,7 @@ export const mapComponentHandler: DIComponentHandler = {
     if (!isMapContentModel(content)) return { success: false }
 
     // TODO: Finish implementing this function. See the Codap API docs for all properties that should be handled.
-    const { legendAttributeName, center: _center, zoom: _zoom } = values as V2Map
+    const { legendAttributeName, center: _center, zoom: _zoom, geoRaster } = values as V2Map
     const { dataConfiguration } = content
     const dataset = dataConfiguration?.dataset
     if (dataset && legendAttributeName != null) {
@@ -108,6 +109,19 @@ export const mapComponentHandler: DIComponentHandler = {
       const center = _center ? { lat: _center[0], lng: _center[1] } : content.center
       const zoom = _zoom ?? content.zoom
       content.setCenterAndZoom(center, zoom)
+    }
+
+    if (geoRaster !== undefined) {
+      // If the geoRaster is undefined that means the user didn't want to change it
+      // If the geoRaster is otherwise falsy (null, false, "", or 0) we remove it
+      if (!geoRaster) {
+        content.setGeoRaster(undefined)
+      } else {
+        const existingGeoRasterSnapshot = content.geoRaster ? getSnapshot(content.geoRaster) : {}
+        const newGeoRasterSnapshot = { ...existingGeoRasterSnapshot, ...geoRaster }
+        const geoRasterModel = GeoRasterModel.create(newGeoRasterSnapshot)
+        content.setGeoRaster(geoRasterModel)
+      }
     }
 
     return { success: true }

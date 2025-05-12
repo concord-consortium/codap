@@ -127,12 +127,19 @@ export interface V2Guide extends V2Component {
   items?: V2GuidePage[]
   type: "guideView"
 }
+
+export interface V2MapGeoRaster {
+  type: string
+  url: string
+  opacity?: number
+}
 export interface V2Map extends V2Component {
   center?: [number, number]
   dataContext?: string
   legendAttributeName?: string
   type: "map"
   zoom?: number
+  geoRaster?: V2MapGeoRaster
 }
 
 // This really isn't the v2 form of the Slider component, that is

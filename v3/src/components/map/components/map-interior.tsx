@@ -12,6 +12,8 @@ import { DataConfigurationContext } from "../../data-display/hooks/use-data-conf
 import { useTileModelContext } from "../../../hooks/use-tile-model-context"
 import { isMapPinLayerModel } from "../models/map-pin-layer-model"
 import { MapPinLayer } from "./map-pin-layer"
+import { createOrUpdateLeafletGeoRasterLayer } from "../utilities/georaster-utils"
+import { mstAutorun } from "../../../utilities/mst-autorun"
 
 interface IProps {
   setPixiPointsLayer: (pixiPoints: PixiPoints, layerIndex: number) => void
@@ -30,6 +32,16 @@ export const MapInterior = observer(function MapInterior({setPixiPointsLayer}: I
       mapModel.rescale()
     }
   }, [tileTransitionComplete, mapModel])
+
+  // Add or update the GeoRaster layer when URL changes
+  useEffect(() => {
+    return mstAutorun(() => {
+      // This reads the geoRaster.url from the model before going into an async task
+      // so changes to the geoRaster or its url will retrigger this autorun
+      createOrUpdateLeafletGeoRasterLayer(mapModel)
+    }, {name: "MapInterior.mstAutorun [createOrUpdateLeafletGeoRasterLayer]"}, mapModel)
+  }, [mapModel])
+
 
   /**
    * Note that we don't have to worry about layer order because polygons will be sent to the back
