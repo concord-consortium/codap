@@ -274,7 +274,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     },
     get leftBottomCategoricalAttrCount() {
       const attrTypes = self.attrTypes
-      return (attrTypes.left === "categorical" ? 1 : 0) + (attrTypes.bottom === "categorical" ? 1 : 0)
+      return (isCategoricalAttributeType(attrTypes.left) ? 1 : 0) + (isCategoricalAttributeType(attrTypes.bottom) ? 1 : 0)
     }
   }))
   .views(self => ({
