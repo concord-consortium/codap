@@ -20,10 +20,10 @@ const Controls = () => {
   const dataConfig = useGraphDataConfigurationContext()
   const adornmentsStore = graphModel.adornmentsStore
   const existingAdornment = adornmentsStore.findAdornmentOfType<ICountAdornmentModel>(kCountType)
-  const shouldShowPercentOption = dataConfig?.categoricalAttrCount || adornmentsStore.subPlotsHaveRegions ||
+  const leftBottomCategoricalAttrCount = dataConfig?.leftBottomCategoricalAttrCount ?? 0
+  const shouldShowPercentOption = leftBottomCategoricalAttrCount || adornmentsStore.subPlotsHaveRegions ||
                                   graphModel.plotType === "binnedDotPlot"
-  const categoricalAttrCount = dataConfig?.categoricalAttrCount ?? 0
-  const shouldShowPercentTypeOptions = categoricalAttrCount > 1
+  const shouldShowPercentTypeOptions = leftBottomCategoricalAttrCount > 1
   const [enablePercentOptions, setEnablePercentOptions] = useState(existingAdornment?.showPercent)
   const [percentTypeValue, setPercentTypeValue] = useState(
     existingAdornment && isCountAdornment(existingAdornment) ? existingAdornment.percentType : "row"
