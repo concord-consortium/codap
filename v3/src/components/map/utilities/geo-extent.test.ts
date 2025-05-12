@@ -46,7 +46,7 @@ describe("reproj", () => {
     const northPole = new GeoExtent([-180, 85, 180, 90], { srs: 4326 })
     const result = northPole.reproj(3857).bbox
     // The ymin here is different from the original test from the geo-extent library
-    // Which expected it to be 49411788.9015311. This is probably be due to how Leaflet handles
+    // Which expected it to be 49411788.9015311. This is probably due to how Leaflet handles
     // re-projecting the north pole.
     expect(result).toEqual([-20037508.342789244, 19971868.880408574, 20037508.342789244, 20037508.34278071])
   })
@@ -181,10 +181,10 @@ describe("crop", () => {
     // along with the left side of the tile up to the xmax of the layer. Then these two portions are combined to find
     // their extent. The extent ends up having the full width of the globe, because of the combination of the two
     // portions.
-    const result = tile.crop(lyr)
-    expect(result!.srs).toBe(3857)
-    expect(result!.bbox).toEqual([-20037508.342789244, 1754201.5427894332, 20037508.342789244, 12808999.953599948])
-    expect(result!.width).toBe(40075016.68557849)
+    const result = tile.crop(lyr)!
+    expect(result.srs).toBe(3857)
+    expect(result.bbox).toEqual([-20037508.342789244, 1754201.5427894332, 20037508.342789244, 12808999.953599948])
+    expect(result.width).toBe(40075016.68557849)
   })
 
   it("handles overflowing extent with no overlap", () => {

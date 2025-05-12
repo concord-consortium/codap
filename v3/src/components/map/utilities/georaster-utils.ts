@@ -76,12 +76,12 @@ function findGeoRasterLayer(mapModel: IMapContentModel) {
 }
 
 /**
- * Creates a GeoRaster layer. If the url in the model changes while
+ * Creates or updates a GeoRaster layer. If the url in the model changes while
  * it is being processed, the function will return undefined.
  *
  * @returns A promise that resolves to a Leaflet layer or undefined if the there's an error
  */
-export async function createLeafletGeoRasterLayer(mapModel: IMapContentModel) {
+export async function createOrUpdateLeafletGeoRasterLayer(mapModel: IMapContentModel) {
   try {
 
     if (!mapModel.leafletMap) {

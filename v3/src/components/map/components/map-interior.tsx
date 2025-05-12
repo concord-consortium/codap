@@ -12,7 +12,7 @@ import { DataConfigurationContext } from "../../data-display/hooks/use-data-conf
 import { useTileModelContext } from "../../../hooks/use-tile-model-context"
 import { isMapPinLayerModel } from "../models/map-pin-layer-model"
 import { MapPinLayer } from "./map-pin-layer"
-import { createLeafletGeoRasterLayer as createOrUpdateLeafletGeoRasterLayer } from "../utilities/georaster-utils"
+import { createOrUpdateLeafletGeoRasterLayer } from "../utilities/georaster-utils"
 import { mstAutorun } from "../../../utilities/mst-autorun"
 
 interface IProps {

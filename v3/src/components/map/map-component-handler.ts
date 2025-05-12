@@ -111,12 +111,10 @@ export const mapComponentHandler: DIComponentHandler = {
       content.setCenterAndZoom(center, zoom)
     }
 
-    // CHECK: is this approach of passing a null value to remove the geoRaster consistent
-    // with the rest of the API?
     if (geoRaster !== undefined) {
-      // If the geoRaster is null, we remove it
-      // If it is just undefined that means the user didn't want to change it
-      if (geoRaster === null) {
+      // If the geoRaster is undefined that means the user didn't want to change it
+      // If the geoRaster is otherwise falsy (null, false, "", or 0) we remove it
+      if (!geoRaster) {
         content.setGeoRaster(undefined)
       } else {
         const existingGeoRasterSnapshot = content.geoRaster ? getSnapshot(content.geoRaster) : {}

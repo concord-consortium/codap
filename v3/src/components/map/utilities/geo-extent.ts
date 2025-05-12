@@ -126,10 +126,7 @@ export class GeoExtent {
   }
 
   unwrap(): GeoExtent[] {
-    const { xmin, xmax, srs } = this
-
-    // We only unwrap extents in the 4326 projection that cross the dateline
-    if (srs !== 4326 || (xmin >= -180 && xmax <= 180)) {
+    if (!this.shouldUnwrap()) {
       return [this.clone()]
     }
 
@@ -160,7 +157,7 @@ export class GeoExtent {
       return this.clone()
     }
 
-    if (other.srs === 4326 && (other.xmin < -180 || other.xmax > 180)) {
+    if (other.shouldUnwrap()) {
       const parts = other.unwrap()
       const croppedParts = parts
         .map(part => this.crop(part))
@@ -216,5 +213,12 @@ export class GeoExtent {
       L.latLng(latLngExtent.ymin, latLngExtent.xmin),
       L.latLng(latLngExtent.ymax, latLngExtent.xmax)
     )
+  }
+
+  /**
+   * Only unwrap extents in the 4326 projection that cross the dateline
+   */
+  private shouldUnwrap(): boolean {
+    return this.srs === 4326 && (this.xmin < -180 || this.xmax > 180)
   }
 }

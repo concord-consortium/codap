@@ -17,7 +17,7 @@ https://concord-consortium.github.io/codap-data-interactives/DataInteractiveAPIT
 
 The `opacity` is optional and defaults to `0.5`.
 
-The image is assumed to be span the whole globe from -90 to 90 latitude and -180 to 180 longitude. The image is also assumed to be in an EPSG 4326 "projection".
+The image is assumed to span the whole globe from -90 to 90 latitude and -180 to 180 longitude. The image is also assumed to be in an EPSG 4326 "projection".
 
 ## Example CODAP messages
 
@@ -78,7 +78,7 @@ We initially tried to support real GeoTIFFs. They include information about the 
 
 All of the Leaflet libraries we found use the [geotiff.js](https://github.com/geotiffjs/geotiff.js) library underneath.
 
-This library is popular, but seems to be sporadically maintained. There are a few open PRs that seem reasonable but don't have any responses from the maintainer. Meanwhile there are PRs that have been merged recently.
+This library is popular, but it is difficult to get a handle on how it is maintained. There are a few open PRs that seem reasonable but don't have any responses from the maintainer. Meanwhile there are several PRs that have been merged recently with very little discussion. It looks like the maintainer trusts certain contributors or there is another channel where communication about the PRs is happening.
 
 We found that it crashes when trying to load some images from https://neo.gsfc.nasa.gov. For example: https://neo.gsfc.nasa.gov/servlet/RenderData?si=1990677&cs=rgb&format=TIFF&width=720&height=360 This file will cause node.js to crash with a native stack trace. When geotiff.js is used in the browser the error message about this file is more useful. If there is time and support it would probably be worthwhile for us to track down the issue and fix geotiff.js so CODAP can support GeoTIFFs.
 
@@ -124,7 +124,7 @@ This could be further improved by bailing out of `GeoRasterLayer.drawTile` if th
 
 ### Notes
 - the "resolution" of the GeoRasterLayer can be changed. This ought to speed up its rendering, but the "raster pixel" edges shown when zoomed in won't match up as well with the actual "raster pixels".
-- for the absolute fastest rendering we would need to pre-render the projected geo-raster so the map is just displaying a tile source like any other tile source. However this would require a lot of storage and more network bandwidth as the user is zooming in and out. So in the end it might be worth it.
+- for the absolute fastest rendering we would need to pre-render the projected geo-raster so the map is just displaying a tile source like any other tile source. However this would require a lot of storage and more network bandwidth as the user is zooming in and out. So in the end it might not be worth it.
 
 # Javascript Size
 When this feature was being developed the size of main CODAP javascript bundled file was 6.6MB before the feature was added.

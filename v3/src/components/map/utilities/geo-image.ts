@@ -2,7 +2,8 @@
  * GeoImage represents a single geographic image and provides methods to process it.
  */
 export class GeoImage {
-  private img?: HTMLImageElement
+  // This has to be public so it can be asserted to be defined
+  img?: HTMLImageElement
   private canvas?: HTMLCanvasElement
   private ctx?: CanvasRenderingContext2D
   private imageData?: Uint8ClampedArray<ArrayBufferLike>
@@ -23,36 +24,17 @@ export class GeoImage {
   }
 
   public get width(): number {
-    if (!this.img) {
-      throw new Error("Image not loaded")
-    }
-    // Ensure the image is loaded and has dimensions
-    if (!this.img.complete || !this.img.naturalWidth || !this.img.naturalHeight) {
-      throw new Error("Image not fully loaded or has invalid dimensions")
-    }
+    this.makeSureImageIsReady()
     return this.img.naturalWidth
   }
 
   public get height(): number {
-    if (!this.img) {
-      throw new Error("Image not loaded")
-    }
-    // Ensure the image is loaded and has dimensions
-    if (!this.img.complete || !this.img.naturalWidth || !this.img.naturalHeight) {
-      throw new Error("Image not fully loaded or has invalid dimensions")
-    }
+    this.makeSureImageIsReady()
     return this.img.naturalHeight
   }
 
   public prepare() {
-    if (!this.img) {
-      throw new Error("Image not loaded")
-    }
-
-    // Ensure the image is loaded and has dimensions
-    if (!this.img.complete || !this.img.naturalWidth || !this.img.naturalHeight) {
-      throw new Error("Image not fully loaded or has invalid dimensions")
-    }
+    this.makeSureImageIsReady()
 
     // Create canvas and imageData on first use
     if (!this.canvas || !this.ctx || !this.imageData) {
@@ -75,7 +57,21 @@ export class GeoImage {
   public getColorAt(x: number, y: number) {
     // Get pixel data
     const start = (y * this.canvas!.width + x) * 4
-    const imageData = this.imageData!
+    const { imageData } = this
+    if (!imageData) {
+      throw new Error("Image data not available, need to call prepare() first")
+    }
     return `rgb(${imageData[start]},${imageData[start+1]},${imageData[start+2]})`
+  }
+
+  private makeSureImageIsReady(): asserts this is { img: HTMLImageElement } {
+    if (!this.img) {
+      throw new Error("Image not loaded")
+    }
+
+    // Ensure the image is loaded and has dimensions
+    if (!this.img.complete || !this.img.naturalWidth || !this.img.naturalHeight) {
+      throw new Error("Image not fully loaded or has invalid dimensions")
+    }
   }
 }
