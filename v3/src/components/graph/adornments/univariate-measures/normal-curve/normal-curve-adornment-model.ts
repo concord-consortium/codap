@@ -1,9 +1,28 @@
 import { mean, std } from "mathjs"
 import { Instance, SnapshotIn, types } from "mobx-state-tree"
 import { IGraphDataConfigurationModel } from "../../../models/graph-data-configuration-model"
-import { IAdornmentModel } from "../../adornment-models"
+import { IAdornmentModel, IUpdateCategoriesOptions } from "../../adornment-models"
 import { UnivariateMeasureAdornmentModel } from "../univariate-measure-adornment-model"
 import { kNormalCurveValueTitleKey, kNormalCurveType } from "./normal-curve-adornment-types"
+
+export const CurveParamInstance = types.model("CurveParamInstance", {
+})
+  .volatile(self => ({
+    sampleMean: NaN,
+    sampleStdDev: NaN,
+    isValid: false
+  }))
+  .actions(self => ({
+    setSampleMeanAndStdDev(sampleMean: number, sampleStdDev: number) {
+      self.sampleMean = sampleMean
+      self.sampleStdDev = sampleStdDev
+      self.isValid = true
+    },
+    setIsValid(isValid: boolean) {
+      self.isValid = isValid
+    }
+  }))
+export interface ICurveParamInstance extends Instance<typeof CurveParamInstance> {}
 
 export const NormalCurveAdornmentModel = UnivariateMeasureAdornmentModel
   .named("NormalCurveAdornmentModel")
@@ -11,6 +30,31 @@ export const NormalCurveAdornmentModel = UnivariateMeasureAdornmentModel
     type: types.optional(types.literal(kNormalCurveType), kNormalCurveType),
     labelTitle: types.optional(types.literal(kNormalCurveValueTitleKey), kNormalCurveValueTitleKey),
   })
+  .volatile(() => ({
+    curveParams: new Map<string, ICurveParamInstance>(),
+  }))
+  .actions(self => ({
+    addCurveParam(sampleMean: number, sampleStdDev: number, key="{}") {
+      const newCurveParam = CurveParamInstance.create()
+      newCurveParam.setSampleMeanAndStdDev(sampleMean, sampleStdDev)
+      self.curveParams.set(key, newCurveParam)
+    },
+    updateCurveParamValues(sampleMean: number, sampleStdDev: number, key="{}") {
+      const curveParam = self.curveParams.get(key)
+      if (curveParam) {
+        curveParam.setSampleMeanAndStdDev(sampleMean, sampleStdDev)
+      }
+      else {
+        this.addCurveParam(sampleMean, sampleStdDev, key)
+      }
+    },
+    removeCurveParam(key: string) {
+      self.curveParams.delete(key)
+    },
+    invalidateCurveParams() {
+      self.curveParams.forEach(curveParam => curveParam.setIsValid(false))
+    }
+  }))
   .views(self => ({
     get labelLines() {
       return 2  // But if it's a gaussian fit it's 3 (or 4 if showing standard error) and we do special handling
@@ -68,8 +112,36 @@ export const NormalCurveAdornmentModel = UnivariateMeasureAdornmentModel
       }
       return results
     },
-    computeMeasureValue(attrId: string, cellKey: Record<string, string>, dataConfig: IGraphDataConfigurationModel) {
-      // no op
+    computeCurveParamValue(attrId: string, cellKey: Record<string, string>, dataConfig: IGraphDataConfigurationModel) {
+      // We'll store the mean and standard deviation in the measures map, so we can use them to compute the normal curve
+      return { sampleMean: this.computeMean(attrId, cellKey, dataConfig),
+        sampleStdDev: this.computeStandardDeviation(attrId, cellKey, dataConfig) }
+    },
+  }))
+  .views(self => ({
+    getCurveParamValue(cellKey: Record<string, string>) {
+      const instanceKey = self.instanceKey(cellKey)
+      const curveParam = self.curveParams.get(instanceKey)
+      if (curveParam?.isValid) {
+        return { sampleMean: curveParam.sampleMean, sampleStdDev: curveParam.sampleStdDev }
+      }
+      return { sampleMean: NaN, sampleStdDev: NaN }
+    }
+  }))
+  .actions(self => ({
+    updateCategories(options: IUpdateCategoriesOptions) {
+      const { dataConfig, resetPoints } = options
+      const { xAttrId, yAttrId, xAttrType } = dataConfig.getCategoriesOptions()
+      const attrId = xAttrId && xAttrType === "numeric" ? xAttrId : yAttrId
+      dataConfig.getAllCellKeys().forEach(cellKey => {
+        const instanceKey = self.instanceKey(cellKey)
+        const { sampleMean, sampleStdDev } = self.computeCurveParamValue(attrId, cellKey, dataConfig)
+        if (!self.curveParams.get(instanceKey) || resetPoints) {
+          self.addCurveParam(sampleMean, sampleStdDev, instanceKey)
+        } else {
+          self.updateCurveParamValues(sampleMean, sampleStdDev, instanceKey)
+        }
+      })
     }
   }))
 

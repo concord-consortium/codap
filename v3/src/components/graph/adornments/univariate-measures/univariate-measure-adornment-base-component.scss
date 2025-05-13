@@ -86,7 +86,7 @@
     stroke: #027d34;
     stroke-width: 6px;
     opacity: 0.001;
-    pointer-events: all;
+    pointer-events: visibleStroke;
 
     &:hover, &.highlighted {
       opacity: .2;
