@@ -30,6 +30,7 @@ export type PixiPointsArray = Array<Maybe<PixiPoints>>
 // "Type 'FederatedPointerEvent' is missing the following properties
 // from type 'PointerEvent': altitudeAngle, azimuthAngle"
 const toPointerEvent = (event: PIXI.FederatedPointerEvent) => event as unknown as PointerEvent
+const toFederatedPointerEvent = (event: PointerEvent) => event as unknown as PIXI.FederatedPointerEvent
 
 export type PixiPointEventHandler = (event: PointerEvent, point: PIXI.Sprite, metadata: IPixiPointMetadata) => void
 
@@ -760,6 +761,7 @@ export class PixiPoints {
           // Note that we don't call getMetadata here because the point can be removed by a click
           const metadata = this.pointMetadata.get(sprite)
           metadata && this.onPointDragEnd?.(pointerUpEvent, sprite, metadata)
+          handlePointerLeave(toFederatedPointerEvent(pointerUpEvent))
           window.removeEventListener("pointermove", onDrag)
           window.removeEventListener("pointerup", onDragEnd)
         }

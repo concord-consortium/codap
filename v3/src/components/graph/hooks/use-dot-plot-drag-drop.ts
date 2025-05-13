@@ -26,6 +26,7 @@ export const useDotPlotDragDrop = () => {
   const [dragID, setDragID] = useState('')
   const currPos = useRef(0)
   const didDrag = useRef(false)
+  const draggingAllowed = !dataset?.getAttribute(primaryAttrID)?.hasFormula
 
   /*
    * Drag handling. Dots in a dot plot can be dragged to change their position along
@@ -54,7 +55,7 @@ export const useDotPlotDragDrop = () => {
   const onDrag = (event: PointerEvent) => {
     if (primaryAxisScale && dragID) {
       const newPos = primaryIsBottom ? event.clientX : event.clientY
-      const deltaPixels = newPos - currPos.current
+      const deltaPixels = draggingAllowed ? newPos - currPos.current : 0
       currPos.current = newPos
       if (deltaPixels !== 0) {
         didDrag.current = true
