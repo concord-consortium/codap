@@ -78,7 +78,8 @@ export const useSubAxis = ({
       categories: [],
       bandwidth: 0,
       axisOrientation: 'horizontal',
-      labelOrientation: 'horizontal'
+      labelOrientation: 'horizontal',
+      isOther: false
     }),
     swapInProgress = useRef(false),
     subAxisSelectionRef = useRef<Selection<SVGGElement, any, any, any>>(),
@@ -104,6 +105,9 @@ export const useSubAxis = ({
         ? Math.floor(dI.currentDragPosition / dI.bandwidth)
         : dI.categories.length - 1 - Math.floor(dI.currentDragPosition / dI.bandwidth)
       dI.catName = dI.categories[dI.indexOfCategory]
+      // Todo: There is a slight possibility that the category name is "OTHER" in the data and it is the last category
+      // We could prevent by recording the translation of kOther as a flag to be checked here.
+      dI.isOther = dI.catName === translate("DG.CellAxis.other") && dI.indexOfCategory === dI.categories.length - 1
       dI.currentOffset = 0
       dI.initialOffset = dI.currentDragPosition - (dI.indexOfCategory + 0.5) * dI.bandwidth
     }, []),
@@ -117,7 +121,7 @@ export const useSubAxis = ({
     onDrag = useCallback((event: any) => {
       const dI = dragInfo.current,
         delta = dI.axisOrientation === 'horizontal' ? event.dx : event.dy
-      if (delta !== 0) {
+      if (delta !== 0 && !dI.isOther) {
         const
           numCategories = dI.categories.length,
           newDragPosition = dI.currentDragPosition + delta,

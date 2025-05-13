@@ -109,6 +109,7 @@ export interface DragInfo {
   bandwidth: number
   axisOrientation: 'horizontal' | 'vertical'
   labelOrientation: 'horizontal' | 'vertical'
+  isOther: boolean
 }
 
 export interface IGetCoordFunctionsProps {
