@@ -1,4 +1,5 @@
 import { mean, std } from "mathjs"
+import { observable } from "mobx"
 import { Instance, SnapshotIn, types } from "mobx-state-tree"
 import { IGraphDataConfigurationModel } from "../../../models/graph-data-configuration-model"
 import { IAdornmentModel, IUpdateCategoriesOptions } from "../../adornment-models"
@@ -31,7 +32,7 @@ export const NormalCurveAdornmentModel = UnivariateMeasureAdornmentModel
     labelTitle: types.optional(types.literal(kNormalCurveValueTitleKey), kNormalCurveValueTitleKey),
   })
   .volatile(() => ({
-    curveParams: new Map<string, ICurveParamInstance>(),
+    curveParams: observable.map<string, ICurveParamInstance>({}, { deep: false }),
   }))
   .actions(self => ({
     addCurveParam(sampleMean: number, sampleStdDev: number, key="{}") {
