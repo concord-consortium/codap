@@ -109,10 +109,12 @@ export const ScatterPlot = observer(function ScatterPlot({ pixiPoints }: IPlotPr
   const onDrag = useCallback((event: PointerEvent) => {
     const xAxisScale = layout.getAxisScale('bottom') as ScaleLinear<number, number>
     const xAttrID = dataConfiguration?.attributeID('x') ?? ''
+    const canDragX = !dataset?.getAttribute(xAttrID)?.hasFormula
+    const canDragY = !dataset?.getAttribute(secondaryAttrIDsRef.current[plotNumRef.current])?.hasFormula
     if (dragID !== '') {
       const newPos = { x: event.clientX, y: event.clientY }
-      const dx = newPos.x - currPos.current.x
-      const dy = newPos.y - currPos.current.y
+      const dx = canDragX ? newPos.x - currPos.current.x : 0
+      const dy = canDragY ? newPos.y - currPos.current.y : 0
       currPos.current = newPos
       if (dx !== 0 || dy !== 0) {
         didDrag.current = true
