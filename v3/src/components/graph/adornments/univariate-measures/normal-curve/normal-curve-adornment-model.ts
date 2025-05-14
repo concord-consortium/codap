@@ -113,6 +113,9 @@ export const NormalCurveAdornmentModel = UnivariateMeasureAdornmentModel
       }
       return results
     },
+    computeMeasureValue(attrId: string, cellKey: Record<string, string>, dataConfig: IGraphDataConfigurationModel) {
+      // no-op  but required for the base class
+    },
     computeCurveParamValue(attrId: string, cellKey: Record<string, string>, dataConfig: IGraphDataConfigurationModel) {
       // We'll store the mean and standard deviation in the measures map, so we can use them to compute the normal curve
       return { sampleMean: this.computeMean(attrId, cellKey, dataConfig),
@@ -141,6 +144,13 @@ export const NormalCurveAdornmentModel = UnivariateMeasureAdornmentModel
           self.addCurveParam(sampleMean, sampleStdDev, instanceKey)
         } else {
           self.updateCurveParamValues(sampleMean, sampleStdDev, instanceKey)
+        }
+        // We still need to update the measure value since it has the label coordinates
+        const value = Number(self.computeMeasureValue(attrId, cellKey, dataConfig))
+        if (!self.measures.get(instanceKey) || resetPoints) {
+          self.addMeasure(value, instanceKey)
+        } else {
+          self.updateMeasureValue(value, instanceKey)
         }
       })
     }

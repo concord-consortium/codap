@@ -458,7 +458,7 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
     addAdornmentElements(newValueObj, newLabelsObj)
   }, [model.isVisible, labelRef, addAdornmentElements])
 
-  if (['linePlot', 'binnedDotPlot'].includes(graphModel.plot.type)) {
+  if (!model.isVisible || ['linePlot', 'binnedDotPlot'].includes(graphModel.plot.type)) {
     return  // Don't display box plot adornments on binned dot plots or line plots
   }
 
