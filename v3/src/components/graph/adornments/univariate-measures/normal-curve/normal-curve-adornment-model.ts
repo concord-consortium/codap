@@ -6,44 +6,35 @@ import { IAdornmentModel, IUpdateCategoriesOptions } from "../../adornment-model
 import { UnivariateMeasureAdornmentModel } from "../univariate-measure-adornment-model"
 import { kNormalCurveValueTitleKey, kNormalCurveType } from "./normal-curve-adornment-types"
 
-export const CurveParamInstance = types.model("CurveParamInstance", {
-})
-  .volatile(self => ({
-    sampleMean: NaN,
-    sampleStdDev: NaN,
-    isValid: false
-  }))
-  .actions(self => ({
-    setSampleMeanAndStdDev(sampleMean: number, sampleStdDev: number) {
-      self.sampleMean = sampleMean
-      self.sampleStdDev = sampleStdDev
-      self.isValid = true
-    },
-    setIsValid(isValid: boolean) {
-      self.isValid = isValid
-    }
-  }))
-export interface ICurveParamInstance extends Instance<typeof CurveParamInstance> {}
+type CurveParamInstance = {
+    sampleMean: number,
+    sampleStdDev: number,
+    isValid: boolean
+  }
 
-export const NormalCurveAdornmentModel = UnivariateMeasureAdornmentModel
+  export const NormalCurveAdornmentModel = UnivariateMeasureAdornmentModel
   .named("NormalCurveAdornmentModel")
   .props({
     type: types.optional(types.literal(kNormalCurveType), kNormalCurveType),
     labelTitle: types.optional(types.literal(kNormalCurveValueTitleKey), kNormalCurveValueTitleKey),
   })
   .volatile(() => ({
-    curveParams: observable.map<string, ICurveParamInstance>({}, { deep: false }),
+    curveParams: observable.map<string, CurveParamInstance>({}),
   }))
   .actions(self => ({
     addCurveParam(sampleMean: number, sampleStdDev: number, key="{}") {
-      const newCurveParam = CurveParamInstance.create()
-      newCurveParam.setSampleMeanAndStdDev(sampleMean, sampleStdDev)
+      const newCurveParam = {
+        sampleMean,
+        sampleStdDev,
+        isValid: true
+      }
       self.curveParams.set(key, newCurveParam)
     },
     updateCurveParamValues(sampleMean: number, sampleStdDev: number, key="{}") {
       const curveParam = self.curveParams.get(key)
       if (curveParam) {
-        curveParam.setSampleMeanAndStdDev(sampleMean, sampleStdDev)
+        curveParam.sampleMean = sampleMean
+        curveParam.sampleStdDev = sampleStdDev
       }
       else {
         this.addCurveParam(sampleMean, sampleStdDev, key)
@@ -53,7 +44,7 @@ export const NormalCurveAdornmentModel = UnivariateMeasureAdornmentModel
       self.curveParams.delete(key)
     },
     invalidateCurveParams() {
-      self.curveParams.forEach(curveParam => curveParam.setIsValid(false))
+      self.curveParams.forEach(curveParam => curveParam.isValid = false)
     }
   }))
   .views(self => ({
@@ -61,14 +52,16 @@ export const NormalCurveAdornmentModel = UnivariateMeasureAdornmentModel
       return 2  // But if it's a gaussian fit it's 3 (or 4 if showing standard error) and we do special handling
     },
     computeMean(attrId: string, cellKey: Record<string, string>, dataConfig: IGraphDataConfigurationModel) {
-      return mean(self.getCaseValues(attrId, cellKey, dataConfig))
+      const caseValues = self.getCaseValues(attrId, cellKey, dataConfig)
+      return caseValues.length === 0 ? NaN : mean(self.getCaseValues(attrId, cellKey, dataConfig))
     },
     computeStandardDeviation(attrId: string, cellKey: Record<string, string>,
                              dataConfig: IGraphDataConfigurationModel) {
+      const caseValues = self.getCaseValues(attrId, cellKey, dataConfig)
       // Cast to Number should not be necessary, but there appears to be an issue with the mathjs type signature.
       // See https://github.com/josdejong/mathjs/issues/2429 for some history, although that bug is supposedly
       // fixed, but a variant of it seems to be re-occurring.
-      return Number(std(self.getCaseValues(attrId, cellKey, dataConfig)))
+      return caseValues.length === 0 ? NaN : Number(std(self.getCaseValues(attrId, cellKey, dataConfig)))
     },
     computeStandardError(attrId: string, cellKey: Record<string, string>,
                              dataConfig: IGraphDataConfigurationModel) {

@@ -7,7 +7,7 @@ import { kBoxPlotType, kBoxPlotValueTitleKey } from "./box-plot-adornment-types"
 import { IGraphDataConfigurationModel } from "../../../models/graph-data-configuration-model"
 import { IAdornmentModel, IUpdateCategoriesOptions } from "../../adornment-models"
 
-type BoxPlotParams = {
+type BoxPlotParamsType = {
   median: number
   lowerQuartile: number
   upperQuartile: number
@@ -18,22 +18,10 @@ type BoxPlotParams = {
   upperOutliers: number[]
 }
 
-export const BoxPlotParamInstance = types.model("BoxPlotParamInstance", {
-})
-  .volatile(self => ({
-    boxPlotParams: {} as BoxPlotParams,
-    isValid: false
-  }))
-  .actions(self => ({
-    setBoxPlotParams(boxPlotParams: BoxPlotParams) {
-      self.boxPlotParams = boxPlotParams
-      self.isValid = true
-    },
-    setIsValid(isValid: boolean) {
-      self.isValid = isValid
-    }
-  }))
-export interface IBoxPlotParamInstance extends Instance<typeof BoxPlotParamInstance> {}
+type BoxPlotParamInstance = {
+    boxPlotParams: BoxPlotParamsType,
+    isValid: boolean
+  }
 
 export const BoxPlotAdornmentModel = UnivariateMeasureAdornmentModel
   .named("BoxPlotAdornmentModel")
@@ -46,18 +34,17 @@ export const BoxPlotAdornmentModel = UnivariateMeasureAdornmentModel
     showICI: false  // show informal confidence interval
   })
   .volatile(() => ({
-    boxPlotParams: observable.map<string, IBoxPlotParamInstance>({}, { deep: false }),
+    boxPlotParams: observable.map<string, BoxPlotParamInstance>({}),
   }))
   .actions(self => ({
-    addBoxPlotParams(boxPlotParams: BoxPlotParams, key="{}") {
-      const newBoxPlotParam = BoxPlotParamInstance.create()
-      newBoxPlotParam.setBoxPlotParams(boxPlotParams)
+    addBoxPlotParams(boxPlotParams: BoxPlotParamsType, key="{}") {
+      const newBoxPlotParam: BoxPlotParamInstance = { boxPlotParams, isValid: true }
       self.boxPlotParams.set(key, newBoxPlotParam)
     },
-    updateBoxPlotParams(boxPlotParams: BoxPlotParams, key="{}") {
+    updateBoxPlotParams(boxPlotParams: BoxPlotParamsType, key="{}") {
       const boxPlotParam = self.boxPlotParams.get(key)
       if (boxPlotParam) {
-        boxPlotParam.setBoxPlotParams(boxPlotParams)
+        boxPlotParam.boxPlotParams = boxPlotParams
       }
       else {
         this.addBoxPlotParams(boxPlotParams, key)
@@ -67,7 +54,7 @@ export const BoxPlotAdornmentModel = UnivariateMeasureAdornmentModel
       self.boxPlotParams.delete(key)
     },
     invalidateBoxPlotParams() {
-      self.boxPlotParams.forEach(boxPlotParam => boxPlotParam.setIsValid(false))
+      self.boxPlotParams.forEach(boxPlotParam => boxPlotParam.isValid = false)
     }
   }))
   .views(() => ({
@@ -111,7 +98,7 @@ export const BoxPlotAdornmentModel = UnivariateMeasureAdornmentModel
       const ici = 1.5 * interquartileRange / Math.sqrt(caseValues.length)
       return { min: medianValue - ici, max: medianValue + ici }
     },
-    computeBoxPlotParamValue(attrId: string, cellKey: Record<string, string>,
+    computeBoxPlotParamValues(attrId: string, cellKey: Record<string, string>,
                              dataConfig: IGraphDataConfigurationModel) {
       const caseValues = self.getCaseValues(attrId, cellKey, dataConfig)
       const numValues = caseValues.length
@@ -147,7 +134,7 @@ export const BoxPlotAdornmentModel = UnivariateMeasureAdornmentModel
         return caseValues.filter(v => v > max).sort((a, b) => a - b)
       }
 
-      const boxPlotParams: BoxPlotParams = {
+      const boxPlotParams: BoxPlotParamsType = {
         median: numValues > 0 ? median(caseValues) : NaN,
         lowerQuartile: self.getQuantileValue(25, caseValues),
         upperQuartile: self.getQuantileValue(75, caseValues),
@@ -199,7 +186,7 @@ export const BoxPlotAdornmentModel = UnivariateMeasureAdornmentModel
       const attrId = xAttrId && xAttrType === "numeric" ? xAttrId : yAttrId
       dataConfig.getAllCellKeys().forEach(cellKey => {
         const instanceKey = self.instanceKey(cellKey)
-        const boxPlotParams = self.computeBoxPlotParamValue(attrId, cellKey, dataConfig)
+        const boxPlotParams = self.computeBoxPlotParamValues(attrId, cellKey, dataConfig)
         if (!self.boxPlotParams.get(instanceKey) || resetPoints) {
           self.addBoxPlotParams(boxPlotParams, instanceKey)
         } else {

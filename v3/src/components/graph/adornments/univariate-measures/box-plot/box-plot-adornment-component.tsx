@@ -3,6 +3,7 @@ import { select, Selection } from "d3"
 import { observer } from "mobx-react-lite"
 import { clsx } from "clsx"
 import { t } from "../../../../../utilities/translation/translate"
+import { selectCases, setSelectedCases } from "../../../../../models/data/data-set-utils"
 import { useGraphContentModelContext } from "../../../hooks/use-graph-content-model-context"
 import { useGraphDataConfigurationContext } from "../../../hooks/use-graph-data-configuration-context"
 import { useGraphLayoutContext } from "../../../hooks/use-graph-layout-context"
@@ -304,9 +305,9 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
       if (!dataConfig || !attrId || !dataConfig.dataset || min === undefined || max === undefined) return
       const casesToSelect = model.getCasesWithValuesInRange(attrId, cellKey, dataConfig, min, max)
       if (event.shiftKey) {
-        dataConfig.dataset.selectCases(casesToSelect)
+        selectCases(casesToSelect, dataConfig.dataset)
       } else {
-        dataConfig.dataset.setSelectedCases(casesToSelect)
+        setSelectedCases(casesToSelect, dataConfig.dataset)
       }
     }
 
@@ -458,8 +459,8 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
     addAdornmentElements(newValueObj, newLabelsObj)
   }, [model.isVisible, labelRef, addAdornmentElements])
 
-  if (!model.isVisible || ['linePlot', 'binnedDotPlot'].includes(graphModel.plot.type)) {
-    return  // Don't display box plot adornments on binned dot plots or line plots
+  if (!model.isVisible || !graphModel.plot.canShowBoxPlotAndNormalCurve) {
+    return
   }
 
   return (

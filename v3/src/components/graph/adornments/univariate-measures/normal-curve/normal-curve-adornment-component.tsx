@@ -366,8 +366,8 @@ export const NormalCurveAdornmentComponent = observer(
       }
     }, [])
 
-    if (['linePlot', 'binnedDotPlot'].includes(graphModel.plot.type)) {
-      return  // Can't display a normal curve on a binned dot plot
+    if (!graphModel.plot.canShowBoxPlotAndNormalCurve) {
+      return
     }
 
     return (

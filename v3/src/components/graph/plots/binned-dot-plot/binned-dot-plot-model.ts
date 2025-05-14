@@ -38,6 +38,9 @@ export const BinnedDotPlotModel = DotPlotModel
     },
     get binWidth() {
       return self.activeBinWidth ?? self._binWidth
+    },
+    get canShowBoxPlotAndNormalCurve(): boolean {
+      return false
     }
   }))
   .views(self => ({
