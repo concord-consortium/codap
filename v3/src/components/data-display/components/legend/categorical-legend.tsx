@@ -2,6 +2,7 @@ import {drag, select} from "d3"
 import React, {useCallback, useEffect, useMemo, useRef, useState} from "react"
 import {mstReaction} from "../../../../utilities/mst-reaction"
 import { mstAutorun } from "../../../../utilities/mst-autorun"
+import { setSelectedCases, selectCases } from "../../../../models/data/data-set-utils"
 import {axisGap} from "../../../axis/axis-types"
 import { transitionDuration } from "../../data-display-types"
 import {useDataConfigurationContext} from "../../hooks/use-data-configuration-context"
@@ -64,8 +65,8 @@ export const CategoricalLegend =
       if (caseIds) {
         // This is breaking the graph-legend cypress test
         // setOrExtendSelection(caseIds, dataConfiguration?.dataset, event.shiftKey)
-        if (event.shiftKey) dataConfiguration?.dataset?.selectCases(caseIds)
-        else dataConfiguration?.dataset?.setSelectedCases(caseIds)
+        if (event.shiftKey) selectCases(caseIds, dataConfiguration?.dataset)
+        else setSelectedCases(caseIds, dataConfiguration?.dataset)
       }
     }, [dataConfiguration])
 
