@@ -101,8 +101,12 @@ export const MapPinLayer = observer(function MapPinLayer({ mapLayerModel }: IMap
       const layerBB = layerRef.current?.getBoundingClientRect()
       if (!layerBB || !dataset) return
       const { lat, lng } = map.containerPointToLatLng([e.clientX - layerBB.x, e.clientY - layerBB.y])
+      // Normalize the longitude to be between -180 and 180
+      // The first modulo ensures the value is between -360 and 360,
+      // the second modulo ensures the value is between 0 and 360
+      const normalizedLng = ((lng + 180) % 360 + 360) % 360 - 180
       const color = kPinColors[colorIndex]
-      const newItem: ICaseCreation = { [pinLatId]: lat, [pinLongId]: lng }
+      const newItem: ICaseCreation = { [pinLatId]: lat, [pinLongId]: normalizedLng }
       if (colorId) newItem[colorId] = color
       insertCasesWithCustomUndoRedo(dataset, [newItem])
     }
@@ -145,7 +149,7 @@ export const MapPinLayer = observer(function MapPinLayer({ mapLayerModel }: IMap
         const { x, y } = map.latLngToContainerPoint([lat, long])
         const pinX = x - mapPinWidth / 2
         const pinY = y - mapPinHeight
-        
+
         const color = colorId ? dataset.getStrValue(__id__, colorId) : kPinColors[index % kPinColors.length]
         return (
           <MapPin

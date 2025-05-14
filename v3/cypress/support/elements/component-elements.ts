@@ -35,9 +35,11 @@ export const ComponentElements = {
     return cy.get(`.codap-component[data-testid$=${component}]`)
   },
   getComponentTile(component: string, index = 0) {
-    return this.getComponentSelector(component).then(element => {
-      return element.eq(index)
-    })
+    // This was using a then, but that prevents retrying the chain
+    // queries after this one.
+    // If we want to explicitly prevent retrying we should make that
+    // explicit in the method name.
+    return this.getComponentSelector(component).eq(index)
   },
   getComponentTitleBar(component: string, index = 0) {
     return this.getComponentTile(component, index).find(".component-title-bar")
