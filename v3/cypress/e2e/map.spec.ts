@@ -231,10 +231,19 @@ context("Map UI", () => {
     table.getNumOfRows().should("eq", "2") // Headers + input row
     map.getAddPinButton().click()
     map.getAddPinButton().should("have.class", "active")
-    map.getPinLayer().click()
+    // Note: Leaflet decides Cypress click() is a double click so it zooms the map
+    // at the location of the click. At least sometimes this double click happens before
+    // the actual click, so the map is zoomed and then the pin is added to the zoomed map.
+    // The location of the click is set so we can verify the pin longitude is normalized.
+    map.getPinLayer().click(50, 210)
     map.getAddPinButton().should("not.have.class", "active")
     map.getMapPin().should("exist")
     table.getNumOfRows().should("eq", "3")
+    table.getCell(4, 2).invoke("text").then(text => {
+      // Unicode minus
+      const normalized = text.replace(/\u2212/g, "-")
+      expect(parseFloat(normalized)).to.be.within(-180, 180)
+    })
 
     // Can select a pin
     table.getSelectedRows().should("have.length", 0)
