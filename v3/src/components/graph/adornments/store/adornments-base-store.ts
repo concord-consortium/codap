@@ -5,7 +5,8 @@ import { AdornmentModelUnion, kDefaultFontSize } from "../adornment-types"
 import { IAdornmentModel, IUpdateCategoriesOptions } from "../adornment-models"
 import { IMovableValueAdornmentModel } from "../movable-value/movable-value-adornment-model"
 import { kMovableValueType } from "../movable-value/movable-value-adornment-types"
-import { IUnivariateMeasureAdornmentModel } from "../univariate-measures/univariate-measure-adornment-model"
+import { isUnivariateMeasureAdornment, IUnivariateMeasureAdornmentModel }
+  from "../univariate-measures/univariate-measure-adornment-model"
 import { kNormalCurveType } from "../univariate-measures/normal-curve/normal-curve-adornment-types"
 import { kStandardErrorType } from "../univariate-measures/standard-error/standard-error-adornment-types"
 
@@ -28,6 +29,15 @@ export const AdornmentsBaseStore = types.model("AdornmentsBaseStore", {
   get activeUnivariateMeasures() {
     return self.adornments.filter(adornment => adornment.isUnivariateMeasure && adornment.isVisible) as
             IUnivariateMeasureAdornmentModel[]
+  },
+  mapOfUnivariateAdornmentVisibility() {
+    const map = new Map<string, { isVisible: boolean, needsRecomputation: boolean }>()
+    self.adornments.forEach(adornment => {
+      if (isUnivariateMeasureAdornment(adornment)) {
+        map.set(adornment.type, {isVisible: adornment.isVisible, needsRecomputation: adornment.needsRecomputation})
+      }
+    })
+    return map
   },
   findAdornmentOfType<T extends IAdornmentModel = IAdornmentModel>(type: string): T | undefined {
     return self.adornments.find(adornment => adornment.type === type) as T

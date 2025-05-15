@@ -1,5 +1,5 @@
-import { observable } from "mobx"
-import { Instance, SnapshotIn, types } from "mobx-state-tree"
+import { comparer, observable, reaction } from "mobx"
+import { addDisposer, Instance, SnapshotIn, types } from "mobx-state-tree"
 import { median } from "mathjs"
 import { quantileOfSortedArray } from "../../../../../utilities/math-utils"
 import { UnivariateMeasureAdornmentModel } from "../univariate-measure-adornment-model"
@@ -193,6 +193,16 @@ export const BoxPlotAdornmentModel = UnivariateMeasureAdornmentModel
           self.updateBoxPlotParams(boxPlotParams, instanceKey)
         }
       })
+      self.setNeedsRecomputation(false)
+    },
+    afterCreate() {
+      addDisposer(self, reaction(
+        () => [self.showOutliers, self.showICI],
+        () => self.setNeedsRecomputation(true),
+        { name: "BoxPlotAdornmentModel.afterCreate.showOutliers", fireImmediately: true,
+          equals: comparer.structural}
+      ))
+
     }
   }))
 

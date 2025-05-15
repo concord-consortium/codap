@@ -35,6 +35,7 @@ import { computePointRadius } from "../../data-display/data-display-utils"
 import { IGetTipTextProps } from "../../data-display/data-tip-types"
 import {IAdornmentModel, IUpdateCategoriesOptions} from "../adornments/adornment-models"
 import {AdornmentsStore} from "../adornments/store/adornments-store"
+import { isUnivariateMeasureAdornment } from "../adornments/univariate-measures/univariate-measure-adornment-model"
 import {kGraphTileType} from "../graph-defs"
 import { CatMapType, CellType, PlotType } from "../graphing-types"
 import { CasePlotModel } from "../plots/case-plot/case-plot-model"
@@ -221,6 +222,25 @@ export const GraphContentModel = DataDisplayContentModel
       }, {name: "GraphContentModel.afterAttachToDocument.updateAdornments", equals: comparer.structural},
         self.dataConfiguration))
 
+      // When a univariate adornment becomes visible and needs to be recomputed, update it
+      addDisposer(self, reaction(
+        () => self.adornmentsStore.mapOfUnivariateAdornmentVisibility(),
+        (adornmentMap) => {
+          adornmentMap.forEach(({isVisible, needsRecomputation}, type) => {
+            if (isVisible && needsRecomputation) {
+              const adornment = self.adornmentsStore.findAdornmentOfType(type)
+              if (adornment && isUnivariateMeasureAdornment(adornment)) {
+                adornment.updateCategories(self.getUpdateCategoriesOptions())
+                // MobX prevents reactions from re-triggering their accessor functions to prevent infinite loops
+                // setTimeout allows us re-trigger the reaction after the current event loop
+                // infinite loop is prevented by the needsRecomputation test
+                setTimeout(() => adornment.setNeedsRecomputation(false))
+              }
+            }
+          })
+        },
+        { name: "GraphContentModel.afterAttachToDocument.reactToVisibilityChange", equals: comparer.structural }
+      ))
     }
   }))
   .actions(self => ({
