@@ -1,10 +1,27 @@
-import { Instance, SnapshotIn, types } from "mobx-state-tree"
+import { comparer, observable, reaction } from "mobx"
+import { addDisposer, Instance, SnapshotIn, types } from "mobx-state-tree"
 import { median } from "mathjs"
 import { quantileOfSortedArray } from "../../../../../utilities/math-utils"
 import { UnivariateMeasureAdornmentModel } from "../univariate-measure-adornment-model"
 import { kBoxPlotType, kBoxPlotValueTitleKey } from "./box-plot-adornment-types"
 import { IGraphDataConfigurationModel } from "../../../models/graph-data-configuration-model"
-import { IAdornmentModel } from "../../adornment-models"
+import { IAdornmentModel, IUpdateCategoriesOptions } from "../../adornment-models"
+
+type BoxPlotParamsType = {
+  median: number
+  lowerQuartile: number
+  upperQuartile: number
+  iqr: number
+  minWhiskerValue: number
+  maxWhiskerValue: number
+  lowerOutliers: number[]
+  upperOutliers: number[]
+}
+
+type BoxPlotParamInstance = {
+    boxPlotParams: BoxPlotParamsType,
+    isValid: boolean
+  }
 
 export const BoxPlotAdornmentModel = UnivariateMeasureAdornmentModel
   .named("BoxPlotAdornmentModel")
@@ -16,6 +33,30 @@ export const BoxPlotAdornmentModel = UnivariateMeasureAdornmentModel
     // document, the ICI will be shown.
     showICI: false  // show informal confidence interval
   })
+  .volatile(() => ({
+    boxPlotParams: observable.map<string, BoxPlotParamInstance>({}),
+  }))
+  .actions(self => ({
+    addBoxPlotParams(boxPlotParams: BoxPlotParamsType, key="{}") {
+      const newBoxPlotParam: BoxPlotParamInstance = { boxPlotParams, isValid: true }
+      self.boxPlotParams.set(key, newBoxPlotParam)
+    },
+    updateBoxPlotParams(boxPlotParams: BoxPlotParamsType, key="{}") {
+      const boxPlotParam = self.boxPlotParams.get(key)
+      if (boxPlotParam) {
+        boxPlotParam.boxPlotParams = boxPlotParams
+      }
+      else {
+        this.addBoxPlotParams(boxPlotParams, key)
+      }
+    },
+    removeBoxPlotParam(key: string) {
+      self.boxPlotParams.delete(key)
+    },
+    invalidateBoxPlotParams() {
+      self.boxPlotParams.forEach(boxPlotParam => boxPlotParam.isValid = false)
+    }
+  }))
   .views(() => ({
     get hasRange() {
       return true
@@ -46,56 +87,9 @@ export const BoxPlotAdornmentModel = UnivariateMeasureAdornmentModel
     }
   }))
   .views(self => ({
-    // Returns the minimum value to use in constructing the whisker line. If we're showing outliers, we need to return
-    // the lowest non-outlier value since outliers are not part of the line.
-    minWhiskerValue(attrId: string, cellKey: Record<string, string>, dataConfig: IGraphDataConfigurationModel) {
-      const caseValues = self.getCaseValues(attrId, cellKey, dataConfig).filter(v => !Number.isNaN(v))
-      if (self.showOutliers) {
-        // If we're showing outliers, the min is the lowest non-outlier value.
-        const interquartileRange = self.interquartileRange(caseValues)
-        const lowerQuartile = self.lowerQuartile(caseValues)
-        const min = lowerQuartile - 1.5 * interquartileRange
-        return Math.min(...caseValues.filter(v => v >= min))
-      }
-      return Math.min(...caseValues)
-    },
-    // Returns the maximum value to use in constructing the whisker line. If we're showing outliers, we need to return
-    // the greatest non-outlier value since outliers are not part of the line.
-    maxWhiskerValue(attrId: string, cellKey: Record<string, string>, dataConfig: IGraphDataConfigurationModel) {
-      const caseValues = self.getCaseValues(attrId, cellKey, dataConfig).filter(v => !Number.isNaN(v))
-      if (self.showOutliers) {
-        // If we're showing outliers, the max is the highest non-outlier value.
-        const interquartileRange = self.interquartileRange(caseValues)
-        const upperQuartile = self.upperQuartile(caseValues)
-        const max = upperQuartile + 1.5 * interquartileRange
-        return Math.max(...caseValues.filter(v => v <= max))
-      }
-      return Math.max(...caseValues)
-    },
-    computeMeasureValue(attrId: string, cellKey: Record<string, string>, dataConfig: IGraphDataConfigurationModel) {
-      const caseValues = self.getCaseValues(attrId, cellKey, dataConfig)
-      if (caseValues.length === 0) return NaN
-      return median(caseValues)
-    }
-  }))
-  .views(self => ({
     computeMeasureRange(attrId: string, cellKey: Record<string, string>, dataConfig: IGraphDataConfigurationModel) {
       const caseValues = self.getCaseValues(attrId, cellKey, dataConfig)
       return { min: self.lowerQuartile(caseValues), max: self.upperQuartile(caseValues) }
-    },
-    lowerOutliers(attrId: string, cellKey: Record<string, string>, dataConfig: IGraphDataConfigurationModel) {
-      const caseValues = self.getCaseValues(attrId, cellKey, dataConfig)
-      const interquartileRange = self.interquartileRange(caseValues)
-      const lowerQuartile = self.lowerQuartile(caseValues)
-      const min = lowerQuartile - 1.5 * interquartileRange
-      return caseValues.filter(v => v < min).sort((a, b) => a - b)
-    },
-    upperOutliers(attrId: string, cellKey: Record<string, string>, dataConfig: IGraphDataConfigurationModel) {
-      const caseValues = self.getCaseValues(attrId, cellKey, dataConfig)
-      const interquartileRange = self.interquartileRange(caseValues)
-      const upperQuartile = self.upperQuartile(caseValues)
-      const max = upperQuartile + 1.5 * interquartileRange
-      return caseValues.filter(v => v > max).sort((a, b) => a - b)
     },
     computeICIRange(attrId: string, cellKey: Record<string, string>, dataConfig: IGraphDataConfigurationModel) {
       const caseValues = self.getCaseValues(attrId, cellKey, dataConfig)
@@ -103,6 +97,80 @@ export const BoxPlotAdornmentModel = UnivariateMeasureAdornmentModel
       const interquartileRange = self.interquartileRange(caseValues)
       const ici = 1.5 * interquartileRange / Math.sqrt(caseValues.length)
       return { min: medianValue - ici, max: medianValue + ici }
+    },
+    computeBoxPlotParamValues(attrId: string, cellKey: Record<string, string>,
+                             dataConfig: IGraphDataConfigurationModel) {
+      const caseValues = self.getCaseValues(attrId, cellKey, dataConfig)
+      const numValues = caseValues.length
+      const interquartileRange = self.interquartileRange(caseValues)
+      const lowerQuartile = self.lowerQuartile(caseValues)
+      const upperQuartile = self.upperQuartile(caseValues)
+      // Returns the minimum value to use in constructing the whisker line. If we're showing outliers, we need to return
+      // the lowest non-outlier value since outliers are not part of the line.
+      const minWhiskerValue = () =>{
+        if (self.showOutliers) {
+          // If we're showing outliers, the min is the lowest non-outlier value.
+          const min = lowerQuartile - 1.5 * interquartileRange
+          return Math.min(...caseValues.filter(v => v >= min))
+        }
+        return Math.min(...caseValues)
+      }
+      // Returns the maximum value to use in constructing the whisker line. If we're showing outliers, we need to return
+      // the greatest non-outlier value since outliers are not part of the line.
+      const maxWhiskerValue = () => {
+        if (self.showOutliers) {
+          // If we're showing outliers, the max is the highest non-outlier value.
+          const max = upperQuartile + 1.5 * interquartileRange
+          return Math.max(...caseValues.filter(v => v <= max))
+        }
+        return Math.max(...caseValues)
+      }
+      const lowerOutliers = () => {
+        const min = lowerQuartile - 1.5 * interquartileRange
+        return caseValues.filter(v => v < min).sort((a, b) => a - b)
+      }
+      const upperOutliers = () => {
+        const max = upperQuartile + 1.5 * interquartileRange
+        return caseValues.filter(v => v > max).sort((a, b) => a - b)
+      }
+
+      const boxPlotParams: BoxPlotParamsType = {
+        median: numValues > 0 ? median(caseValues) : NaN,
+        lowerQuartile: self.getQuantileValue(25, caseValues),
+        upperQuartile: self.getQuantileValue(75, caseValues),
+        iqr: self.interquartileRange(caseValues),
+        minWhiskerValue: minWhiskerValue(),
+        maxWhiskerValue: maxWhiskerValue(),
+        lowerOutliers: lowerOutliers(),
+        upperOutliers: upperOutliers()
+      }
+      return boxPlotParams
+    }
+  }))
+  .views(self => ({
+    getBoxPlotParams(cellKey: Record<string, string>) {
+      const instanceKey = self.instanceKey(cellKey)
+      const boxPlotParam = self.boxPlotParams.get(instanceKey)
+      return boxPlotParam?.isValid ? boxPlotParam.boxPlotParams : {
+        median: NaN,
+        lowerQuartile: NaN,
+        upperQuartile: NaN,
+        iqr: NaN,
+        minWhiskerValue: NaN,
+        maxWhiskerValue: NaN,
+        lowerOutliers: [],
+        upperOutliers: []
+      }
+    },
+    // For the following note that the range is inclusive, so we can include cases matching a single value
+    getCasesWithValuesInRange(attrId: string, cellKey: Record<string, string>, dataConfig: IGraphDataConfigurationModel,
+                              min: number, max: number) {
+      const dataset = dataConfig.dataset
+      const casesInPlot = dataConfig.filterCasesForDisplay(dataConfig.subPlotCases(cellKey))
+      return casesInPlot.filter(caseId => {
+        const caseValue = dataset?.getNumeric(caseId, attrId)
+        return caseValue != null && caseValue >= min && caseValue <= max
+      })
     }
   }))
   .actions(self => ({
@@ -111,6 +179,30 @@ export const BoxPlotAdornmentModel = UnivariateMeasureAdornmentModel
     },
     setShowICI(showICI: boolean) {
       self.showICI = showICI
+    },
+    updateCategories(options: IUpdateCategoriesOptions) {
+      const { dataConfig, resetPoints } = options
+      const { xAttrId, yAttrId, xAttrType } = dataConfig.getCategoriesOptions()
+      const attrId = xAttrId && xAttrType === "numeric" ? xAttrId : yAttrId
+      dataConfig.getAllCellKeys().forEach(cellKey => {
+        const instanceKey = self.instanceKey(cellKey)
+        const boxPlotParams = self.computeBoxPlotParamValues(attrId, cellKey, dataConfig)
+        if (!self.boxPlotParams.get(instanceKey) || resetPoints) {
+          self.addBoxPlotParams(boxPlotParams, instanceKey)
+        } else {
+          self.updateBoxPlotParams(boxPlotParams, instanceKey)
+        }
+      })
+      self.setNeedsRecomputation(false)
+    },
+    afterCreate() {
+      addDisposer(self, reaction(
+        () => [self.showOutliers, self.showICI],
+        () => self.setNeedsRecomputation(true),
+        { name: "BoxPlotAdornmentModel.afterCreate.showOutliers", fireImmediately: true,
+          equals: comparer.structural}
+      ))
+
     }
   }))
 

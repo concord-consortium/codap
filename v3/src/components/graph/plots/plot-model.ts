@@ -106,6 +106,9 @@ export const PlotModel = types
     },
     get showZeroLine(): boolean {
       return false
+    },
+    get canShowBoxPlotAndNormalCurve(): boolean {
+      return false
     }
   }))
   .views(self => ({

@@ -38,6 +38,9 @@ export const HistogramModel = BinnedDotPlotModel
     },
     get showGridLines() {
       return true
+    },
+    get canShowBoxPlotAndNormalCurve(): boolean {
+      return true
     }
   }))
   .views(self => ({

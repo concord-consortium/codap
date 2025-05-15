@@ -14,5 +14,8 @@ export const LinePlotModel = DotPlotModel
     },
     get showZeroLine() {
       return true
+    },
+    get canShowBoxPlotAndNormalCurve(): boolean {
+      return false
     }
   }))

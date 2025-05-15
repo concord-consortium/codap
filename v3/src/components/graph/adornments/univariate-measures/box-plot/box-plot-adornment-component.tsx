@@ -3,6 +3,8 @@ import { select, Selection } from "d3"
 import { observer } from "mobx-react-lite"
 import { clsx } from "clsx"
 import { t } from "../../../../../utilities/translation/translate"
+import { selectCases, setSelectedCases } from "../../../../../models/data/data-set-utils"
+import { useGraphContentModelContext } from "../../../hooks/use-graph-content-model-context"
 import { useGraphDataConfigurationContext } from "../../../hooks/use-graph-data-configuration-context"
 import { useGraphLayoutContext } from "../../../hooks/use-graph-layout-context"
 import { useAdornmentAttributes } from "../../../hooks/use-adornment-attributes"
@@ -34,6 +36,7 @@ interface IBoxPlotValue extends IValue {
 export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentComponent (props: IAdornmentComponentProps) {
   const {cellKey={}, cellCoords, containerId, plotHeight, plotWidth,
     xAxis, yAxis, spannerRef} = props
+  const graphModel = useGraphContentModelContext()
   const model = props.model as IBoxPlotAdornmentModel
   const layout = useGraphLayoutContext()
   const dataConfig = useGraphDataConfigurationContext()
@@ -136,11 +139,8 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
 
   const addWhiskers = useCallback((valueObj: IBoxPlotValue, range: IRange, showOutliers=false) => {
     if (!dataConfig || !attrId || !range.min || !range.max) return
-    const lowerOutliers = model.lowerOutliers(attrId, cellKey, dataConfig)
-    const upperOutliers = model.upperOutliers(attrId, cellKey, dataConfig)
-    const minValue = model.minWhiskerValue(attrId, cellKey, dataConfig)
-    const maxValue = model.maxWhiskerValue(attrId, cellKey, dataConfig)
-    if (minValue === maxValue || !isFinite(minValue) || !isFinite(maxValue)) return
+    const { minWhiskerValue, maxWhiskerValue, lowerOutliers, upperOutliers} = model.getBoxPlotParams(cellKey)
+    if (minWhiskerValue === maxWhiskerValue || !isFinite(minWhiskerValue) || !isFinite(maxWhiskerValue)) return
 
     const lineLowerClass = clsx("measure-line", "box-plot-line", `${helper.measureSlug}-whisker-lower`)
     const coverLowerClass = clsx("measure-cover", "box-plot-cover", `${helper.measureSlug}-whisker-lower`)
@@ -150,7 +150,7 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
     const coverLowerId = helper.generateIdString("whisker-lower-cover")
     const lineUpperId = helper.generateIdString("whisker-upper")
     const coverUpperId = helper.generateIdString("whisker-upper-cover")
-    const whiskerCoords = calculateWhiskerCoords(minValue, maxValue, range.min, range.max)
+    const whiskerCoords = calculateWhiskerCoords(minWhiskerValue, maxWhiskerValue, range.min, range.max)
     const whiskerLowerLineSpecs = {
       isVertical: isVertical.current,
       lineClass: lineLowerClass,
@@ -301,6 +301,16 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
       fullHeightLinesRef.current?.classed("highlighted", visible)
     }
 
+    const selectRange = ([min, max]: number[], event: MouseEvent) => {
+      if (!dataConfig || !attrId || !dataConfig.dataset || min === undefined || max === undefined) return
+      const casesToSelect = model.getCasesWithValuesInRange(attrId, cellKey, dataConfig, min, max)
+      if (event.shiftKey) {
+        selectCases(casesToSelect, dataConfig.dataset)
+      } else {
+        setSelectedCases(casesToSelect, dataConfig.dataset)
+      }
+    }
+
     const container = select(labelRef.current)
     const textId = helper.generateIdString("label")
     const labels = textContent.split("\n")
@@ -313,6 +323,17 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
       null, // valueObj.range causes problems when part of this array. Not sure why.
       valueObj.iciCover
     ]
+    const { median, lowerQuartile, upperQuartile,
+      minWhiskerValue, maxWhiskerValue, lowerOutliers, upperOutliers} = model.getBoxPlotParams(cellKey)
+    const selectionBounds = [
+      [minWhiskerValue, lowerQuartile],
+      [lowerQuartile, median],
+      [],
+      [median, upperQuartile],
+      [upperQuartile, maxWhiskerValue],
+      [],
+      []
+    ]
 
     for (let i = 0; i < labels.length; i++) {
       labelsObj.label = container.append("div")
@@ -322,38 +343,40 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
         .attr("data-testid", `${textId}-${i}`)
       covers[i]?.on("mouseover", (e) => toggleBoxPlotLabels(`${textId}-${i}`, true, e))
         .on("mouseout", (e) => toggleBoxPlotLabels(`${textId}-${i}`, false, e))
+        .on("click", (e) => selectRange(selectionBounds[i], e))
     }
     valueObj.range?.on("mouseover", (e) => toggleBoxPlotLabels(`${textId}-${5}`, true, e))
       .on("mouseout", (e) => toggleBoxPlotLabels(`${textId}-${5}`, false, e))
+      .on("click", (e) => selectRange([lowerQuartile, upperQuartile], e))
     valueObj.iciCover?.on("mouseover", (e) => toggleICILabels(`${textId}-${6}`, true, e))
       .on("mouseout", (e) => toggleICILabels(`${textId}-${6}`, false, e))
 
     if (model.showOutliers) {
       if (!attrId || !dataConfig) return
 
-      const lowerOutliers = model.lowerOutliers(attrId, cellKey, dataConfig)
-      const upperOutliers = model.upperOutliers(attrId, cellKey, dataConfig)
       for (let i = 0; i < lowerOutliers.length; i++) {
         const coverId = helper.generateIdString("outlier-cover")
         labelsObj.label = container.append("div")
-          .text(lowerOutliers[i])
+          .text(helper.formatValueForScale(isVertical.current, lowerOutliers[i]))
           .attr("class", "measure-tip measure-labels-tip box-plot-label")
           .attr("id", `${textId}-lower-outlier-${i}`)
           .attr("data-testid", `${textId}-${i}`)
         select(`#${coverId}-lower-${i}`)
           .on("mouseover", (e) => toggleBoxPlotLabels(`${textId}-lower-outlier-${i}`, true, e))
           .on("mouseout", (e) => toggleBoxPlotLabels(`${textId}-lower-outlier-${i}`, false, e))
+          .on("click", (e) => selectRange([lowerOutliers[i], lowerOutliers[i]], e))
       }
       for (let i = 0; i < upperOutliers.length; i++) {
         const coverId = helper.generateIdString("outlier-cover")
         labelsObj.label = container.append("div")
-          .text(upperOutliers[i])
+          .text(helper.formatValueForScale(isVertical.current, upperOutliers[i]))
           .attr("class", "measure-tip measure-labels-tip box-plot-label")
           .attr("id", `${textId}-upper-outlier-${i}`)
           .attr("data-testid", `${textId}-${i}`)
         select(`#${coverId}-upper-${i}`)
           .on("mouseover", (e) => toggleBoxPlotLabels(`${textId}-upper-outlier-${i}`, true, e))
           .on("mouseout", (e) => toggleBoxPlotLabels(`${textId}-upper-outlier-${i}`, false, e))
+          .on("click", (e) => selectRange([upperOutliers[i], upperOutliers[i]], e))
       }
     }
   }, [attrId, cellKey, dataConfig, helper, labelRef, model, toggleBoxPlotLabels])
@@ -377,19 +400,15 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
     }
 
     if (!attrId || !dataConfig) return
-    const value = model.measureValue(attrId, cellKey, dataConfig)
+    const value = model.getBoxPlotParams(cellKey).median
     if (value === undefined || isNaN(value)) return
 
-    const { coords, coverClass, coverId, displayValue, lineClass, lineId, measureRange } =
+    const { coords, coverClass, coverId, lineClass, lineId, measureRange } =
       helper.adornmentSpecs(attrId, dataConfig, value, isVertical.current, cellCounts, secondaryAxisX, secondaryAxisY)
-    const translationVars = [
-      model.minWhiskerValue(attrId, cellKey, dataConfig),
-      measureRange.min, // Q1
-      displayValue, // median
-      measureRange.max, // Q3
-      model.maxWhiskerValue(attrId, cellKey, dataConfig),
-      model.iqr(attrId, cellKey, dataConfig)
-    ]
+    const { median, lowerQuartile, upperQuartile, iqr,
+            minWhiskerValue, maxWhiskerValue } = model.getBoxPlotParams(cellKey)
+    const translationVars = [ minWhiskerValue, lowerQuartile, median, upperQuartile, maxWhiskerValue, iqr ]
+      .map(v => helper.formatValueForScale(isVertical.current, v))
     let textContent = `${t(model.labelTitle, { vars: translationVars })}`
 
     if ((measureRange?.min || measureRange?.min === 0) && (measureRange?.max || measureRange?.max === 0)) {
@@ -439,6 +458,10 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
 
     addAdornmentElements(newValueObj, newLabelsObj)
   }, [model.isVisible, labelRef, addAdornmentElements])
+
+  if (!model.isVisible || !graphModel.plot.canShowBoxPlotAndNormalCurve) {
+    return
+  }
 
   return (
     <UnivariateMeasureAdornmentBaseComponent

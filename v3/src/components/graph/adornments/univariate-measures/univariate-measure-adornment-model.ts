@@ -1,4 +1,5 @@
-import { Instance, SnapshotIn, types } from "mobx-state-tree"
+import { reaction } from "mobx"
+import { addDisposer, Instance, SnapshotIn, types } from "mobx-state-tree"
 import { isFiniteNumber } from "../../../../utilities/math-utils"
 import { dataDisplayGetNumericValue } from "../../../data-display/data-display-value-utils"
 import { IDataConfigurationModel } from "../../../data-display/models/data-configuration-model"
@@ -38,6 +39,22 @@ export const UnivariateMeasureAdornmentModel = AdornmentModel
       throw "labelTitle must be overridden"
     }),
   })
+  .volatile(() => ({
+    needsRecomputation: true // A way to know if the adornment needs to be recomputed
+  }))
+  .actions(self => ({
+    setNeedsRecomputation(needsRecomputation: boolean) {
+      self.needsRecomputation = needsRecomputation
+    },
+    afterCreate() {
+      // When the adornment becomes newly visible we always need to recompute
+      addDisposer(self, reaction(
+        () => self.isVisible,
+        (isVisible) => isVisible && this.setNeedsRecomputation(true),
+        {name: "UnivariateMeasureAdornmentModel.afterCreate.reaction [isVisible]" }
+      ))
+    }
+  }))
   .views(self => ({
     get firstMeasure(): Maybe<IMeasureInstance> {
       return self.measures.values().next().value
@@ -127,6 +144,7 @@ export const UnivariateMeasureAdornmentModel = AdornmentModel
           self.updateMeasureValue(value, instanceKey)
         }
       })
+      self.setNeedsRecomputation(false)
     }
   }))
 

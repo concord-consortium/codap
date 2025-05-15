@@ -24,5 +24,8 @@ export const DotPlotModel = PlotModel
     },
     get showDisplayTypeSelection() {
       return true
+    },
+    get canShowBoxPlotAndNormalCurve(): boolean {
+      return true
     }
   }))

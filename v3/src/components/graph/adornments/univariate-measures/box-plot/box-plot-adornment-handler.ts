@@ -13,16 +13,9 @@ export const boxPlotAdornmentHandler: DIAdornmentHandler = {
     const dataConfig = graphContent.dataConfiguration
     const cellKeys = dataConfig?.getAllCellKeys()
     const data: AdornmentData[] = []
-    const primaryAttrId = dataConfig?.primaryAttributeID
-
     for (const cellKey of cellKeys) {
-      const cellKeyString = JSON.stringify(cellKey)
-      const cellCaseValues = adornment.getCaseValues(primaryAttrId, cellKey, dataConfig)
-      const median = adornment.measures.get(cellKeyString)?.value ?? NaN
-      const lower = adornment.minWhiskerValue(primaryAttrId, cellKey, dataConfig)
-      const upper = adornment.maxWhiskerValue(primaryAttrId, cellKey, dataConfig)
-      const lowerQuartile = adornment.lowerQuartile(cellCaseValues)
-      const upperQuartile = adornment.upperQuartile(cellCaseValues)
+      const { median, minWhiskerValue: lower, maxWhiskerValue: upper,
+        lowerQuartile, upperQuartile } = adornment.getBoxPlotParams(cellKey)
       const interquartileRange = upperQuartile - lowerQuartile
       const dataItem: AdornmentData = {
         interquartileRange,
