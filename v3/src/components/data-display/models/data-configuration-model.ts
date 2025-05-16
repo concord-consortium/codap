@@ -22,6 +22,7 @@ import {hashStringSets, typedId, uniqueId} from "../../../utilities/js-utils"
 import { isFiniteNumber } from "../../../utilities/math-utils"
 import {cachedFnWithArgsFactory} from "../../../utilities/mst-utils"
 import { numericSortComparator } from "../../../utilities/data-utils"
+import { getMetadataFromDataSet } from "../../../models/shared/shared-data-utils"
 import { AxisPlace } from "../../axis/axis-types"
 import {GraphPlace} from "../../axis-graph-shared"
 import { getScaleThresholds } from "../components/legend/choropleth-legend/choropleth-legend"
@@ -152,8 +153,9 @@ export const DataConfigurationModel = types
     // returns empty string (rather than undefined) for roles without attributes
     attributeID(role: AttrRole) {
       const defaultCaptionAttributeID = () => {
-        // We find the childmost collection and return the first attribute in that collection. If there is no
-        // childmost collection, we return the first attribute in the dataset.
+        // We find the childmost collection and return the first non-hidden attribute in that collection. If there is
+        // no childmost collection, we return the first non-hidden attribute in the dataset.
+        const metadata = getMetadataFromDataSet(self.dataset)
         const attrIDs = (['x', 'y', 'rightNumeric', 'topSplit', 'rightSplit', 'legend',
               'lat', 'long', 'polygon'] as const)
             .map(aRole => this.attributeID(aRole))
@@ -161,7 +163,8 @@ export const DataConfigurationModel = types
           childmostCollectionID = idOfChildmostCollectionForAttributes(attrIDs, self.dataset)
         if (childmostCollectionID) {
           const childmostCollection = self.dataset?.getCollection(childmostCollectionID),
-            childmostCollectionAttributes = childmostCollection?.attributes
+            childmostCollectionAttributes =
+              childmostCollection?.attributes.filter(attr => attr?.id && !metadata?.isHidden(attr?.id))
           if (childmostCollectionAttributes?.length) {
             const firstAttribute = childmostCollectionAttributes[0]
             return firstAttribute?.id
