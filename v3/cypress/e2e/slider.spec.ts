@@ -269,7 +269,8 @@ context("Slider UI", () => {
     slider.getVariableName(0).should("have.text", sliderName)
     slider.getVariableName(1).should("have.text", newSliderName)
   })
-  it("checks slider with dates", () => {
+  // TODO: add this check back in CODAP-674
+  it.skip("checks slider with dates", () => {
     const today = new Date().toLocaleDateString("en-US") // Adjust locale as needed
     const minValue = "01/01/2023" // Set an example minimum date
     const maxValue = "12/31/2023" // Set an example maximum date

@@ -1,5 +1,26 @@
 # Changelog
 
+## Version 3.0.0-pre.2304 - May 16, 2025
+
+### ✨ Features & Improvements:
+- **CODAP-335:** Raster Data Support in CODAP Map
+- **CODAP-672:** Normalize Map pins longitude
+
+### 🐞 Bug Fixes:
+- **CODAP-22:** Mouse cursor misleading in **Filter Formulas**
+- **CODAP-51:** It should not be allowed to display percentages based on categorical attributes on top and right
+- **CODAP-136:** Normal curve doesn't respond dynamically to drag of points
+- **CODAP-301:** Should not be able to drag points whose coordinates are computed with formula
+- **CODAP-349:** Rearranging "OTHER" categorical plot type text breaks the graph axis
+- **CODAP-670:** Box plot not responding properly to dragging poings
+- **CODAP-676:** Synchronization of Selection Between Graph Legend and Table/Map
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  193534 bytes |                            -3.9% |
+|  index.js | 6702661 bytes |                            0.93% |
+
 ## Version 3.0.0-pre.2293 - May 9, 2025
 
 ### ✨ Features & Improvements:
