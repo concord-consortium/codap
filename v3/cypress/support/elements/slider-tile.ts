@@ -23,10 +23,14 @@ export const SliderTileElements = {
   },
   changeVariableValue(value: number | string, index = 0) {
     this.getVariableValueInput(index)
-    .dblclick()
-    .clear()
-    .type(`${value}{enter}`)
-    this.getVariableValueInput(index).should("have.value", `${value}`)
+      .click({ force: true })
+      .dblclick({ force: true })
+      .clear()
+      .type(`${value}`, { delay: 100 })
+      .blur()
+    cy.wait(200)
+    this.getVariableValueInput(index)
+      .should('have.value', `${value}`)
   },
   getPlayButton(index = 0) {
     return this.getSliderTile(index).find("[data-testid=slider-play-pause]")
