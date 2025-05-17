@@ -140,20 +140,16 @@ export const MovablePointAdornment = observer(function MovablePointAdornment(pro
   // Set up the point and shadow
   useEffect(function createElements() {
     const selection = select(pointRef.current),
-      { x, y } = model.points.get(instanceKey) ??
-                  { x: model.getInitialPosition(xAxis), y: model.getInitialPosition(yAxis) },
+      // Note that we don't set cx and cy here because during restore the scales are not ready to return
+      // valid values. Plus, movePoint will be called to set the position of the point.
       newPointObject: IPointObject = {
         shadow: selection.append('circle')
-                  .attr('cx', xScale(x) / xSubAxesCount + 1)
-                  .attr('cy', yScale(y) / ySubAxesCount + 1)
                   .attr('r', 8)
                   .attr('fill', 'none')
                   .attr('stroke', '#a9a9a9')
                   .attr('stroke-width', 2),
         point: selection.append('circle')
                   .attr('data-testid', `movable-point${classFromKey ? `-${classFromKey}` : ""}`)
-                  .attr('cx', xScale(x) / xSubAxesCount)
-                  .attr('cy', yScale(y) / ySubAxesCount)
                   .attr('r', 8)
                   .attr('fill', '#ffff00')
                   .attr('stroke', '#000000')
