@@ -1,8 +1,9 @@
 import * as PIXI from "pixi.js"
-import { CaseData, CaseDataWithSubPlot } from "../d3-types"
-import { PixiTransition, TransitionPropMap, TransitionProp } from "./pixi-transition"
-import { hoverRadiusFactor, transitionDuration } from "../data-display-types"
 import { isFiniteNumber } from "../../../utilities/math-utils"
+import { PointerState } from "../models/pointer-state"
+import { CaseData, CaseDataWithSubPlot } from "../d3-types"
+import { hoverRadiusFactor, transitionDuration } from "../data-display-types"
+import { PixiTransition, TransitionPropMap, TransitionProp } from "./pixi-transition"
 
 const DEFAULT_Z_INDEX = 0
 const RAISED_Z_INDEX = 100
@@ -686,6 +687,10 @@ export class PixiPoints {
     let draggingActive = false
 
     const handlePointerOver = (pointerEvent: PIXI.FederatedPointerEvent) => {
+      const pointerState = PointerState.getInstance()
+      if (pointerState.pointerIsDown()) {
+        return // Skip if the pointer is down
+      }
       if (this.displayType === "bars") {
         if (!this.pointsFusedIntoBars) {
           const newStyle = { ...this.getMetadata(sprite).style, stroke: strokeColorHover }
