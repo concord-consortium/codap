@@ -686,6 +686,10 @@ export class PixiPoints {
     let draggingActive = false
 
     const handlePointerOver = (pointerEvent: PIXI.FederatedPointerEvent) => {
+      const elementOnTop = document.elementFromPoint(pointerEvent.clientX, pointerEvent.clientY)
+      if (elementOnTop !== this.canvas) { // If the element on top is not the canvas, we don't want to do anything.
+        return
+      }
       if (this.displayType === "bars") {
         if (!this.pointsFusedIntoBars) {
           const newStyle = { ...this.getMetadata(sprite).style, stroke: strokeColorHover }
