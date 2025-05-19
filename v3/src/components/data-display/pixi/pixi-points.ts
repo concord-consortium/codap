@@ -689,11 +689,8 @@ export class PixiPoints {
     const handlePointerOver = (pointerEvent: PIXI.FederatedPointerEvent) => {
       const elementOnTop = document.elementFromPoint(pointerEvent.clientX, pointerEvent.clientY)
       const pointerState = PointerState.getInstance()
-      if (elementOnTop !== this.canvas || pointerState.pointerIsDown()) { // If the element on top is not the canvas, we don't want to do anything.
+      if (elementOnTop !== this.canvas || pointerState.pointerIsDown()) {
         return
-      }
-      if (pointerState.pointerIsDown()) {
-        return // Skip if the pointer is down
       }
       if (this.displayType === "bars") {
         if (!this.pointsFusedIntoBars) {
