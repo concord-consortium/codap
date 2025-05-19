@@ -121,7 +121,7 @@ function setupAxes(graphModel: IGraphContentModel, layout: GraphLayout) {
         newAxisModel.setAllowRangeToShrink(true)
         const values = isDateAxisModel(newAxisModel)
                         ? stringValuesToDateSeconds(attribute?.strValues || [])
-                        : attribute?.numValues || []
+                        : dataConfig.numericValuesForAttrRole(graphPlaceToAttrRole[place])
         setNiceDomain(values, newAxisModel, graphModel.plot.axisDomainOptions)
       }
 
