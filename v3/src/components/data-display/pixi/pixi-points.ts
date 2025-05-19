@@ -687,9 +687,10 @@ export class PixiPoints {
     let draggingActive = false
 
     const handlePointerOver = (pointerEvent: PIXI.FederatedPointerEvent) => {
+      const elementOnTop = document.elementFromPoint(pointerEvent.clientX, pointerEvent.clientY)
       const pointerState = PointerState.getInstance()
-      if (pointerState.pointerIsDown()) {
-        return // Skip if the pointer is down
+      if (elementOnTop !== this.canvas || pointerState.pointerIsDown()) {
+        return
       }
       if (this.displayType === "bars") {
         if (!this.pointsFusedIntoBars) {
