@@ -96,3 +96,14 @@ Syntax highlighting in the formula editor uses two main mechanisms:
     - Distinguishes between attributes, functions, constants, boundaries, globals, and special variables by applying unique highlight classes (e.g., `codap-attribute`, `codap-function`).
     - Uses both the node type from the grammar and runtime context (such as the current dataset and available functions) to determine the correct style for each identifier.
     - Handles special cases, such as attribute names in backticks, and ensures that user-defined and system-defined elements are visually distinct.
+
+## List of functions
+
+The list of available functions occurs in two places in the code:
+- `function-strings.json5`: this documents all of the functions including examples. It is used by the insert function button of the formula editor.
+- `typedFnRegistry` which is exported by `math.ts`: this combines all of the function implementations which are located in files in the `src/models/formula/functions` folder. This is used to:
+  - configure the autocomplete and highlight code in the formula editor.
+  - configure the mathJs evaluator
+  - handling specialized dependencies specific to certain functions
+  - getting the formula dependencies
+  - telling if a formula should be random
