@@ -116,6 +116,7 @@
     "V3.Undo.attributeTreatAs": "Undo changing attribute treatment",
     "V3.Redo.attributeTreatAs": "Redo changing attribute treatment",
     "V3.map.legendDrop": "Color regions by values of %@",
+    "V3.DataDisplayMenu.treatAsDate": "Treat as Date",
 
     // V3 digital interactive error messages.
     // These should probably not be translated because plugins might be looking for specific

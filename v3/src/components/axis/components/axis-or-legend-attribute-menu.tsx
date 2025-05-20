@@ -38,8 +38,11 @@ export const AxisOrLegendAttributeMenu = ({ place, target, portal,
   const attrId = dataConfiguration?.attributeID(role) || ''
   const instanceId = useInstanceIdContext()
   const attribute = attrId ? data?.attrFromID(attrId) : null
+  const nativeType = attribute?.type || ''
   const removeAttrItemLabel = t(removeAttrItemLabelKeys[role], {vars: [attribute?.name]})
-  const treatAs = dataConfiguration?.attributeType(role) === "numeric" ? "categorical" : "numeric"
+  const attrType = dataConfiguration?.attributeType(role) || ''
+  const treatAs = (nativeType === 'date' && attrType === 'categorical') ? 'date'
+    : ['numeric', 'date'].includes(attrType) ? "categorical" : "numeric"
   const overlayStyle: CSSProperties = { position: "absolute", ...useOverlayBounds({target, portal}) }
   const buttonStyle: CSSProperties = { position: "absolute", width: "100%", height: "100%", color: "transparent" }
   const menuRef = useRef<HTMLDivElement>(null)
@@ -86,6 +89,7 @@ export const AxisOrLegendAttributeMenu = ({ place, target, portal,
                       <MenuItem onClick={() => onTreatAttributeAs(place, attribute?.id, treatAs)}>
                         {treatAs === "categorical" && t("DG.DataDisplayMenu.treatAsCategorical")}
                         {treatAs === "numeric" && t("DG.DataDisplayMenu.treatAsNumeric")}
+                        {treatAs === "date" && t("V3.DataDisplayMenu.treatAsDate")}
                       </MenuItem>
                     }
                   </>
