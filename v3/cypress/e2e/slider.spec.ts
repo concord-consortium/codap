@@ -321,11 +321,7 @@ context("Slider UI", () => {
     // Wait and verify it reaches April 30
     slider.getVariableValue().should("contain", "4/30/2023")
   })
-  // NOTE: The changeVariableValue helper isn't working reliably in these tests.
-  // Possible reasons: timing issues, focus not being set correctly, or the slider
-  // input's reactivity/model rejecting or clamping values.
-  // This helper works in other tests, so the issue may be specific to the state or timing in this test context.
-  it.skip("checks editing variable value in one slider only affects that slider", () => {
+  it("checks editing variable value in one slider only affects that slider", () => {
     const newVariableValue = "0.5"
     c.getIconFromToolShelf("slider").click()
 
@@ -333,16 +329,30 @@ context("Slider UI", () => {
     slider.getVariableValue(0).should("contain", initialSliderValue)
     slider.getVariableValue(1).should("contain", newVariableValue)
   })
-  it.skip("checks min max slider values", () => {
+  it("checks min max slider values", () => {
+    const MAX_VALUE = 11.5
+    const MIN_VALUE = 0
+    const MID_VALUE = 5
+
     slider.getVariableValue().should("contain", initialSliderValue)
-    slider.changeVariableValue("11.5") // max value for the slider
-    slider.getVariableValueInput().invoke('val').should('eq', '11.5')
 
-    slider.changeVariableValue("0") // min value for the slider
-    slider.getVariableValueInput().invoke('val').should('eq', '0')
+    // Set to max value
+    cy.log('Setting value to max')
+    slider.changeVariableValue(MAX_VALUE)
+    cy.wait(1000) // Wait for any animations
+    slider.getVariableValueInput().should('have.value', MAX_VALUE.toString())
 
-    slider.changeVariableValue("5")
-    slider.getVariableValueInput().invoke('val').should('eq', '5')
+    // Set to min value
+    cy.log('Setting value to min')
+    slider.changeVariableValue(MIN_VALUE)
+    cy.wait(1000) // Wait for any animations
+    slider.getVariableValueInput().should('have.value', MIN_VALUE.toString())
+
+    // Set to middle value
+    cy.log('Setting value to middle')
+    slider.changeVariableValue(MID_VALUE)
+    cy.wait(1000) // Wait for any animations
+    slider.getVariableValueInput().should('have.value', MID_VALUE.toString())
   })
   it("reuses slider names after existing ones are closed", () => {
     c.closeComponent("slider")

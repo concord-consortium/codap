@@ -16,7 +16,7 @@ export const SliderTileElements = {
     this.getVariableNameInput(index).type(`${name}{enter}`)
   },
   getVariableValue(index = 0) {
-    return this.getSliderTile(index).find("[data-testid=slider-variable-value-text-input]").invoke("attr", "value")
+    return this.getVariableValueInput(index).invoke('val')
   },
   getVariableValueInput(index = 0) {
     return this.getSliderTile(index).find("[data-testid=slider-variable-value-text-input]")
@@ -24,11 +24,15 @@ export const SliderTileElements = {
   changeVariableValue(value: number | string, index = 0) {
     this.getVariableValueInput(index)
       .click({ force: true })
+    cy.wait(500)
+    this.getVariableValueInput(index)
       .dblclick({ force: true })
-      .clear()
-      .type(`${value}`, { delay: 100 })
+    this.getVariableValueInput(index)
+      .clear({ force: true })
+    this.getVariableValueInput(index)
+      .type(`${value}`, { delay: 200, force: true })
+    this.getVariableValueInput(index)
       .blur()
-    cy.wait(200)
     this.getVariableValueInput(index)
       .should('have.value', `${value}`)
   },
