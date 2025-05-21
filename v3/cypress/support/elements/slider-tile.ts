@@ -16,17 +16,25 @@ export const SliderTileElements = {
     this.getVariableNameInput(index).type(`${name}{enter}`)
   },
   getVariableValue(index = 0) {
-    return this.getSliderTile(index).find("[data-testid=slider-variable-value-text-input]").invoke("attr", "value")
+    return this.getVariableValueInput(index).invoke('val')
   },
   getVariableValueInput(index = 0) {
     return this.getSliderTile(index).find("[data-testid=slider-variable-value-text-input]")
   },
   changeVariableValue(value: number | string, index = 0) {
     this.getVariableValueInput(index)
-    .dblclick()
-    .clear()
-    .type(`${value}{enter}`)
-    this.getVariableValueInput(index).should("have.value", `${value}`)
+      .click({ force: true })
+    cy.wait(500)
+    this.getVariableValueInput(index)
+      .dblclick({ force: true })
+    this.getVariableValueInput(index)
+      .clear({ force: true })
+    this.getVariableValueInput(index)
+      .type(`${value}`, { delay: 200, force: true })
+    this.getVariableValueInput(index)
+      .blur()
+    this.getVariableValueInput(index)
+      .should('have.value', `${value}`)
   },
   getPlayButton(index = 0) {
     return this.getSliderTile(index).find("[data-testid=slider-play-pause]")

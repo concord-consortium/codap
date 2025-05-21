@@ -1,6 +1,7 @@
 import { SliderTileElements as slider } from "../support/elements/slider-tile"
 import { ComponentElements as c } from "../support/elements/component-elements"
 import { ToolbarElements as toolbar } from "../support/elements/toolbar-elements"
+import { CfmElements as cfm } from "../support/elements/cfm"
 
 const sliderName = "v1"
 const newName = "v2"
@@ -10,10 +11,19 @@ const newSliderValue = "0.6"
 
 context("Slider UI", () => {
   beforeEach(function () {
-    const queryParams = "?sample=mammals&dashboard&mouseSensor"
-    const url = `${Cypress.config("index")}${queryParams}`
-    cy.visit(url)
+    cy.visit(Cypress.config("index"))
+    cy.get('[data-testid="Create New Document-button"]').click()
+    cfm.openExampleDocument("Mammals")
     cy.wait(2500)
+    // Close only the Mammals Sample Guide component
+    cy.contains('[data-testid="component-title-bar"]', "Mammals Sample Guide")
+      .parents('.codap-component')
+      .find('[data-testid="component-close-button"]')
+      .first()
+      .click({ force: true })
+    // Open a new slider from the tool shelf
+    c.getIconFromToolShelf("slider").click()
+    slider.getSliderTile().should("be.visible")
   })
   it("basic Slider UI", () => {
     cy.log("populates default title, variable name and value and checks tooltips")
@@ -24,8 +34,8 @@ context("Slider UI", () => {
     slider.getSliderThumbIcon().should("be.visible")
     slider.getSliderAxis().should("be.visible")
 
-    // // undo should work after opening the Slider
-    // // TODO: add back this code (blocker: #187612762)
+    // undo should work after opening the Slider
+    // TODO: add back this code (blocker: #187612762)
     // cy.log("check for undo/redo after opening Slider component")
     // // use force:true here because undo button is incorrectly faded out here
     // toolbar.getUndoTool().click({force: true})
@@ -269,8 +279,7 @@ context("Slider UI", () => {
     slider.getVariableName(0).should("have.text", sliderName)
     slider.getVariableName(1).should("have.text", newSliderName)
   })
-  // TODO: add this check back in CODAP-674
-  it.skip("checks slider with dates", () => {
+  it("checks slider with dates", () => {
     const today = new Date().toLocaleDateString("en-US") // Adjust locale as needed
     const minValue = "01/01/2023" // Set an example minimum date
     const maxValue = "12/31/2023" // Set an example maximum date
@@ -312,33 +321,40 @@ context("Slider UI", () => {
     // Wait and verify it reaches April 30
     slider.getVariableValue().should("contain", "4/30/2023")
   })
-  // Issues with the click occur here, skipping for now
-  it.skip("checks editing variable value in one slider only affects that slider", () => {
-    const newVariableValue = "100"
+  it("checks editing variable value in one slider only affects that slider", () => {
+    const newVariableValue = "0.5"
     c.getIconFromToolShelf("slider").click()
 
     slider.changeVariableValue(newVariableValue, 1)
     slider.getVariableValue(0).should("contain", initialSliderValue)
     slider.getVariableValue(1).should("contain", newVariableValue)
   })
-  // This test has become flaky. Skipping for now.
-  it.skip("checks min max slider values", () => {
+  it("checks min max slider values", () => {
+    const MAX_VALUE = 11.5
+    const MIN_VALUE = 0
+    const MID_VALUE = 5
+
     slider.getVariableValue().should("contain", initialSliderValue)
-    // slider.changeVariableValue("12345678901234567890")
-    // slider.getVariableValue().should("contain", "1.235e+14")
 
-    // slider.changeVariableValue("0.12345678901234567890")
-    // slider.getVariableValue().should("contain", "0")
+    // Set to max value
+    cy.log('Setting value to max')
+    slider.changeVariableValue(MAX_VALUE)
+    cy.wait(1000) // Wait for any animations
+    slider.getVariableValueInput().should('have.value', MAX_VALUE.toString())
 
-    // slider.changeVariableValue("0.006")
-    // slider.getVariableValue().should("contain", "0")
+    // Set to min value
+    cy.log('Setting value to min')
+    slider.changeVariableValue(MIN_VALUE)
+    cy.wait(1000) // Wait for any animations
+    slider.getVariableValueInput().should('have.value', MIN_VALUE.toString())
 
-    slider.changeVariableValue("abc")
-    slider.getVariableValue().should("contain", "")
+    // Set to middle value
+    cy.log('Setting value to middle')
+    slider.changeVariableValue(MID_VALUE)
+    cy.wait(1000) // Wait for any animations
+    slider.getVariableValueInput().should('have.value', MID_VALUE.toString())
   })
-  // This test is covered now in earlier tests. Skipping
-  // this one for now.
-  it.skip("reuses slider names after existing ones are closed", () => {
+  it("reuses slider names after existing ones are closed", () => {
     c.closeComponent("slider")
     c.checkComponentDoesNotExist("slider")
     c.getIconFromToolShelf("slider").click()
