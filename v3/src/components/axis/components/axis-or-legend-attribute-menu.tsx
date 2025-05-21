@@ -70,7 +70,7 @@ export const AxisOrLegendAttributeMenu =
       orientation = t("DG.AxisView.horizontal")
       break
   }
-  const clickLabel = place === 'legend' ? `—${  t("DG.LegendView.attributeTooltip")}`
+  const clickLabel = place === 'legend' ? `—${t("DG.LegendView.attributeTooltip")}`
     : t("DG.AxisView.labelTooltip", { vars: [orientation]})
 
   return (
