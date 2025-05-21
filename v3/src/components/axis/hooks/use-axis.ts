@@ -139,11 +139,12 @@ export const useAxis = (axisPlace: AxisPlace) => {
           if (domain) {
             multiScale?.setNumericDomain(domain)
           }
+          layout.setDesiredExtent(axisPlace, computeDesiredExtent())
         }, { name: "useAxis.axisDomainSync", equals: comparer.structural }, axisProvider)
     }
   }, [axisPlace, axisProvider, isNumeric, multiScale])
 
-  // update desired extent as needed
+  // update desired extent as needed, but note that the axisModel domain is not called during this auto run
   useEffect(() => {
     return mstAutorun(() => {
       layout.setDesiredExtent(axisPlace, computeDesiredExtent())
