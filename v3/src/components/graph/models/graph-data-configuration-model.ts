@@ -142,7 +142,24 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     },
     get primaryAttributeType(): AttributeType {
       return self.primaryRole && self.attributeType(self.primaryRole) || "categorical"
-    }
+    },
+    /**
+     * This is overridden to handle multiple 'y' attributes
+     */
+    numericValuesForAttrRole(role: AttrRole) {
+      if (role !== 'y') {
+        return self._numericValuesForAttrRole(role)
+      }
+      const values:number[] = []
+      const yAttributeIDs = self.yAttributeIDs
+      yAttributeIDs.forEach(attrID => {
+        const attrValues = self.numericValuesForAttribute(attrID)
+        if (attrValues) {
+          values.push(...attrValues)
+        }
+      })
+      return values
+    },
   }))
   .actions(self => ({
     _setAttributeDescription(iRole: GraphAttrRole, iDesc?: IAttributeDescriptionSnapshot) {
@@ -784,7 +801,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       } else {
         self._setAttributeDescription(role, desc)
       }
-      self.numericValuesForAttrRole.invalidate(role)  // No harm in invalidating even if not numeric
+      self.numericValuesForAttribute.invalidate(role)  // No harm in invalidating even if not numeric
       self.cellMap.invalidateAll()
     },
     addYAttribute(desc: IAttributeDescriptionSnapshot, index?: number) {

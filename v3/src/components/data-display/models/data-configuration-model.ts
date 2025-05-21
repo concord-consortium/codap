@@ -359,15 +359,9 @@ export const DataConfigurationModel = types
     })
   }))
   .views(self => ({
-    /**
-     * This returns just values which can be converted to numbers for the
-     * attribute of this role. It does not include all cases, see `visibleCaseIds`.
-     * TODO: it seems better if this included unselected cases when displayOnlySelectedCases is enabled
-     */
-    numericValuesForAttrRole: cachedFnWithArgsFactory({
-      key: (role: AttrRole) => role,
-      calculate: (role: AttrRole) => {
-        const attrID = self.attributeID(role)
+    numericValuesForAttribute: cachedFnWithArgsFactory({
+      key: (attrID: string) => attrID,
+      calculate: (attrID: string) => {
         const dataset = self.dataset
         const allCaseIDs = Array.from(self.visibleCaseIds)
         const allValues = attrID
@@ -377,8 +371,26 @@ export const DataConfigurationModel = types
           }) : []
         return allValues.filter(aValue => aValue != null)
       },
-      name: "numericValuesForAttrRole"
-    }),
+      name: "numericValuesForAttribute"
+    })
+  }))
+  .views(self => ({
+    /**
+     * This can be called here or in derived classes.
+     * This returns just values which can be converted to numbers for the
+     * attribute of this role. It does not include all cases, see `visibleCaseIds`.
+     * TODO: it seems better if this included unselected cases when displayOnlySelectedCases is enabled
+     */
+    _numericValuesForAttrRole(role: AttrRole) {
+      const attrID = self.attributeID(role)
+      return self.numericValuesForAttribute(attrID || '')
+    },
+    /**
+     * This is overridden in derived class where we need to handle multiple y attributes.
+     */
+    numericValuesForAttrRole(role: AttrRole) {
+      return this._numericValuesForAttrRole(role)
+    },
     categorySetForAttrRole(role: AttrRole) {
       if (self.metadata) {
         const attributeID = self.attributeID(role) || ''
@@ -737,7 +749,7 @@ export const DataConfigurationModel = types
   .actions(self => ({
     clearCasesCache() {
       self.valuesForAttrRole.invalidateAll()
-      self.numericValuesForAttrRole.invalidateAll()
+      self.numericValuesForAttribute.invalidateAll()
       self.categoryArrayForAttrRole.invalidateAll()
       self.allCasesForCategoryAreSelected.invalidateAll()
       self.getCaseDataArray.invalidateAll()
@@ -985,7 +997,7 @@ export const DataConfigurationModel = types
     setAttribute(role: AttrRole, desc?: IAttributeDescriptionSnapshot) {
       self._setAttributeDescription(role, desc)
       self.setPointsNeedUpdating(true)
-      self.numericValuesForAttrRole.invalidate(role)  // No harm in invalidating even if not numeric
+      self.numericValuesForAttribute.invalidate(role)  // No harm in invalidating even if not numeric
     },
     setAttributeType(role: AttrRole, type: AttributeType, plotNumber = 0) {
       self._attributeDescriptions.get(role)?.setType(type)

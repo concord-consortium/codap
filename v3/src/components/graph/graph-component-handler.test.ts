@@ -194,8 +194,8 @@ describe("DataInteractive ComponentHandler Graph", () => {
     const y2Axis = tileContent.getAxis("rightNumeric") as IBaseNumericAxisModel
     expect(xAxis.min).toBe(-.5)
     expect(xAxis.max).toBe(7.5)
-    expect(yAxis.min).toBe(-6.5)
-    expect(yAxis.max).toBe(1.5)
+    expect(yAxis.min).toBe(-7)
+    expect(yAxis.max).toBe(9)
     expect(y2Axis.min).toBe(-.5)
     expect(y2Axis.max).toBe(7.5)
     const updateBoundsResult = update({ component: tile }, {
