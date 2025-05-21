@@ -1,3 +1,4 @@
+import { observer } from "mobx-react-lite"
 import { Menu, MenuItem, MenuList, MenuButton, MenuDivider } from "@chakra-ui/react"
 import React, {CSSProperties, useRef} from "react"
 import { t } from "../../../utilities/translation/translate"
@@ -29,8 +30,9 @@ const removeAttrItemLabelKeys: Record<string, string> = {
   "rightSplit": "DG.DataDisplayMenu.removeAttribute_right"
 }
 
-export const AxisOrLegendAttributeMenu = ({ place, target, portal,
-                                      onChangeAttribute, onRemoveAttribute, onTreatAttributeAs }: IProps) => {
+export const AxisOrLegendAttributeMenu =
+  observer(function AxisOrLegendAttributeMenu({ place, target, portal,
+                                      onChangeAttribute, onRemoveAttribute, onTreatAttributeAs }: IProps) {
   const dataConfiguration = useDataConfigurationContext()
   const metadata = dataConfiguration?.metadata
   const data = dataConfiguration?.dataset
@@ -55,9 +57,24 @@ export const AxisOrLegendAttributeMenu = ({ place, target, portal,
     handler: () => onCloseRef.current?.(),
     info: { name: "AxisOrLegendAttributeMenu", attrId, attrName: attribute?.name }
   })
+  const description = attribute ? attribute.description : ''
+  let orientation = ''
+  switch (place) {
+    case 'left':
+    case 'rightCat':
+    case 'rightNumeric':
+      orientation = t("DG.AxisView.vertical")
+      break
+    case 'top':
+    case 'bottom':
+      orientation = t("DG.AxisView.horizontal")
+      break
+  }
+  const clickLabel = place === 'legend' ? `—${t("DG.LegendView.attributeTooltip")}`
+    : t("DG.AxisView.labelTooltip", { vars: [orientation]})
 
   return (
-    <div className={`axis-legend-attribute-menu ${place}`} ref={menuRef}>
+    <div className={`axis-legend-attribute-menu ${place}`} ref={menuRef} title={description + clickLabel}>
       <Menu boundary="scrollParent">
         {({ onClose }) => {
           onCloseRef.current = onClose
@@ -97,4 +114,4 @@ export const AxisOrLegendAttributeMenu = ({ place, target, portal,
       </Menu>
     </div>
   )
-}
+})
