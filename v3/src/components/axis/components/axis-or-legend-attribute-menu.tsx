@@ -60,7 +60,7 @@ export const AxisOrLegendAttributeMenu =
     handler: () => onCloseRef.current?.(),
     info: { name: "AxisOrLegendAttributeMenu", attrId, attrName: attribute?.name }
   })
-  const description = attribute ? attribute.description : ''
+  const description = attribute?.description || ''
   let orientation = ''
   switch (place) {
     case 'left':
