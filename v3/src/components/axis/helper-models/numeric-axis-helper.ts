@@ -1,7 +1,7 @@
 import { format, ScaleLinear, select } from "d3"
 import { between } from "../../../utilities/math-utils"
 import { transitionDuration } from "../../data-display/data-display-types"
-import { computeBestNumberOfTicks, getStringBounds } from "../axis-utils"
+import { computeBestNumberOfTicks, computeBestNumberOfVerticalAxisTicks, getStringBounds } from "../axis-utils"
 import { AxisScaleType, otherPlace } from "../axis-types"
 import { isNonDateNumericAxisModel } from "../models/numeric-axis-models"
 import { AxisHelper, IAxisHelperArgs } from "./axis-helper"
@@ -70,14 +70,17 @@ export class NumericAxisHelper extends AxisHelper {
 
     const axisScale = this.axis(numericScale).tickSizeOuter(0).tickFormat(format('.9'))
     const duration = this.isAnimating() ? transitionDuration : 0
-    if (!this.isVertical && hasDraggableNumericAxis) {
-      axisScale.tickValues(numericScale.ticks(computeBestNumberOfTicks(numericScale)))
-    } else if (!hasDraggableNumericAxis) {
+    if (!hasDraggableNumericAxis) {
       const formatter = (value: number) => this.multiScale?.formatValueForScale(value) ?? ""
       const {tickValues, tickLabels} = this.axisProvider.nonDraggableAxisTicks(formatter) ||
       {tickValues: [], tickLabels: []}
       axisScale.tickValues(tickValues)
       axisScale.tickFormat((d, i) => tickLabels[i])
+    }
+    else {
+      const numberOfTicks = this.isVertical ? computeBestNumberOfVerticalAxisTicks(numericScale)
+        : computeBestNumberOfTicks(numericScale)
+      axisScale.tickValues(numericScale.ticks(numberOfTicks))
     }
     if (this.axisModel.integersOnly) {
       // Note: This has the desirable effect of removing the decimal point from the tick labels,

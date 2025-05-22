@@ -233,6 +233,13 @@ export const computeBestNumberOfTicks = (scale: ScaleLinear<number, number>): nu
   return Math.max(2, currentNumber)
 }
 
+export const computeBestNumberOfVerticalAxisTicks = (scale: ScaleLinear<number, number>): number => {
+  const numberHeight = measureTextExtent('0', kDataDisplayFont).height
+  const axisLength = Math.abs(scale.range()[1] - scale.range()[0])
+  // The following computation is a heuristic that results in good spacing and never just one tick
+  return Math.max(3, Math.floor(axisLength / (numberHeight * 1.5)))
+}
+
 export const isScaleLinear = (scale: any): scale is ScaleLinear<number, number> => {
   return (scale as ScaleLinear<number, number>).interpolate !== undefined
 }
