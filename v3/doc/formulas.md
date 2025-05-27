@@ -52,11 +52,11 @@ Formulas in CODAP can depend on attributes in the same dataset, boundaries, glob
 
 - Each formula's dependencies are determined by parsing its expression and identifying references to dependencies. This is done by `getFormulaDependencies`.
 - The Formula Manager watches for changes to the active formulas and then gets the dependencies for any updated formula.
-- Observers are added to the dependencies to trigger recalculation of the formula
+- Observers are added to the dependencies to trigger recalculation of the formula.
 
 ### Cycles
 
-Attribute formulas can have dependency cycles, so the FormulaAdapters have a method `getFormulaError` which is used by the Attribute formula adapter to identify this loops and show an error.
+Attribute formulas can have dependency cycles, so the FormulaAdapters have a method `getFormulaError` which is used by the Attribute formula adapter to identify such cycles and show an error.
 
 ### Observers and Recomputation
 
