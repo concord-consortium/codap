@@ -10,7 +10,8 @@ import { dataContextNotFoundResult } from "./di-results"
 
 export const diCaseHandler: DIHandler = {
   create(resources: DIResources, values?: DIValues) {
-    const { dataContext } = resources
+    const { dataContext, collection } = resources
+    const collectionID = collection?.id
     if (!dataContext) return dataContextNotFoundResult
 
     let itemIds: string[] = []
@@ -41,13 +42,16 @@ export const diCaseHandler: DIHandler = {
 
     return {
       success: true,
-      values: itemIds.map(id => {
-        const caseId = dataContext.itemIdChildCaseMap.get(id)?.groupedCase.__id__
-        return ({
-          id: caseId ? toV2Id(caseId) : undefined,
-          itemID: toV2Id(id)
-        })
-      })
+      values: newCaseIds.filter(id => {
+        return dataContext.getCollectionForCase(id)?.id === collectionID
+      }).map(validID => {
+        const itemID = dataContext.getItemsForCases([{ __id__: validID }])
+          .find(item => itemIds.includes(item.__id__))
+        return {
+          id: toV2Id(validID),
+          itemID: itemID ? toV2Id(itemID.__id__) : undefined
+        }
+      }),
     }
   },
   update(resources: DIResources, values?: DIValues) {
