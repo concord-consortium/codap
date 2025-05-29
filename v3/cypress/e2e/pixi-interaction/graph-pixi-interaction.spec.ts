@@ -284,7 +284,7 @@ context("Graph UI with Pixi interaction", () => {
       cy.get("[data-testid=graph]").find("[data-testid=axis-bottom]").find(".sub-axis-wrapper").should("have.length", 1)
       cy.dragAttributeToTarget("table", arrayOfAttributes[4], "left") // Mass => y axis
       cy.get("[data-testid=graph]").find("[data-testid=axis-left]").find(".sub-axis-wrapper").should("have.length", 1)
-      cy.dragAttributeToTarget("table", arrayOfAttributes[7], "right") // Habitat => right axis
+      glh.dragAttributeToPlot("Habitat") // Habitat => plot area (legend)
       cy.get("[data-testid=graph]")
         .find("[data-testid=axis-rightCat]")
         .find(".sub-axis-wrapper")
@@ -323,9 +323,43 @@ context("Graph UI with Pixi interaction", () => {
         gch.checkPointPosition(tileId, pointIndex, expectedX, expectedY)
       })
     })
+    it("toggles parent visibility and verifies legend updates", () => {
+      // Set up a categorical attribute on the x-axis and a hierarchy in the table
+      ah.openAxisAttributeMenu("bottom")
+      ah.selectMenuAttribute("Diet", "bottom") // Diet => x-axis
+      table.moveAttributeToParent("Habitat", "newCollection")
+      table.getNumOfRows(1).should("contain", 5) // five rows: top, land, water, both, bottom
+
+      // Add Habitat to the legend
+      glh.dragAttributeToPlot("Habitat")
+
+      // Show parent toggles
+      graph.getHideShowButton().click()
+      cy.get("[data-testid=show-parent-toggles]").click()
+      cy.wait(500)
+
+      // Count legend items before toggling
+      cy.get('g.legend-key').then($itemsBefore => {
+        const countBefore = $itemsBefore.length
+
+        // Toggle visibility of a parent (e.g., "land")
+        cy.get("[data-testid=parent-toggles-case-buttons-list]").find("button").contains("land").click()
+        cy.wait(500)
+
+        // Count legend items after toggling
+        cy.get('g.legend-key').then($itemsAfter => {
+          const countAfter = $itemsAfter.length
+          // The count should decrease if a parent is hidden
+          expect(countAfter).to.be.lessThan(countBefore)
+        })
+
+        // Optionally, check that the color swatch for "land" is not visible
+        cy.get('g.legend-key').contains('text', 'land').should('not.exist')
+      })
+    })
   })
   describe("graph colors and selection with point count pixi interaction", () => {
-    it.only("checks color of a point with Legend colors", () => {
+    it("checks color of a point with Legend colors", () => {
       ah.openAxisAttributeMenu("bottom")
       ah.selectMenuAttribute("Diet", "bottom") // Diet => x-axis
       glh.dragAttributeToPlot("Habitat") // Habitat => plot area
