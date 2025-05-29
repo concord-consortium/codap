@@ -22,27 +22,24 @@ export const AxisElements = {
     return this.getAxisElement(axis).find("[data-testid=empty-label]")
   },
   getTickMarks(axis: string, categorical = false) {
-    if (categorical) {
-      return this.getAxisElement(axis).find("[data-testid=tick]")
-    } else if (axis === "left" || axis === "right") {
-      // y-axes: tick marks are <g class="tick">
-      return this.getAxisElement(axis).find("g.tick")
-    } else {
-      // x-axis: tick marks are <line class="tick">
-      return this.getAxisElement(axis).find("line.tick")
+    switch (categorical) {
+      case true:
+        return this.getAxisElement(axis).find("[data-testid=tick]")
+      case false:
+        return this.getAxisElement(axis).find(".tick line")
     }
   },
   getTickMark(axis: string, index: number, categorical = false) {
-    return this.getTickMarks(axis, categorical).eq(index)
+    return this.getTickMarks(axis, categorical).then($marks => $marks.eq(index))
   },
   getTickLength(axis: string, attr: string, categorical = false) {
-    if (axis === "left" || axis === "right") {
-      // For y-axes, tick marks are <g class="tick"><line ...></line></g>
-      return this.getTickMark(axis, 0, categorical).find("line").invoke("attr", attr).then(tickLength => {
+    if (categorical) {
+      // For categorical axes, tick marks are <line class="tick" data-testid="tick">
+      return this.getTickMark(axis, 0, categorical).invoke("attr", attr).then(tickLength => {
         return parseFloat(tickLength ?? '0')
       })
     } else {
-      // For x-axes, tick marks are <line class="tick">
+      // For numeric/date axes, tick marks are <line> inside .tick
       return this.getTickMark(axis, 0, categorical).invoke("attr", attr).then(tickLength => {
         return parseFloat(tickLength ?? '0')
       })
@@ -92,5 +89,8 @@ export const AxisElements = {
   },
   getAttributeFromAttributeMenu(axis: string) {
     return this.getAxisAttributeMenu(axis).parent()
+  },
+  getDateAxisTickLabels(axis: string) {
+    return this.getAxisElement(axis).find("text:not([class])")
   }
 }
