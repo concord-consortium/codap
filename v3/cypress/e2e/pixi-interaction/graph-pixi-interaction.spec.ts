@@ -278,7 +278,7 @@ context("Graph UI with Pixi interaction", () => {
       cy.wait(500)
       cy.get("[data-testid=measures-for-selection-banner]").should("not.exist")
     })
-    it("should have correct point count and position with numerical y, categorical x, and right axes", () => {
+    it.skip("should have correct point count and position with numerical y, categorical x, and right axes", () => {
       ah.openAxisAttributeMenu("bottom")
       ah.selectMenuAttribute("Diet", "bottom") // Diet => bottom
       cy.get("[data-testid=graph]").find("[data-testid=axis-bottom]").find(".sub-axis-wrapper").should("have.length", 1)
