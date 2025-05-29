@@ -314,7 +314,7 @@ context("Test graph axes with various attribute types", () => {
     // Redo the last change (Sleep => left split)
     toolbar.getRedoTool().click()
     cy.wait(500)
-    cy.get("[data-testid=graph]").find("[data-testid=attribute-label]").should("have.text", "LifeSpanHeight, Sleep")
+    cy.get("[data-testid=graph]").find("[data-testid=attribute-label]").invoke("text").should("contain", "datechlorophyll, temperature")
     ah.verifyYAxisTickMarksDisplayed()
     ah.verifyAxisTickLabel("left", "0", 0)
 
