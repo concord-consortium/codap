@@ -647,24 +647,6 @@ context("Graph adornments", () => {
     // cy.get(".movable-value-label").should("have.length", 2)
     // cy.get(".movable-value-fill").should("have.length", 1)
 
-    // TODO: Also test the above after attributes are added to top and right axes (i.e. when there are multiple values)
-    // TODO: Test dragging of value
-    // cy.wait(250)
-    // cy.log("clicking movable value button -- 2")
-    // movableValueButton.click()
-    // cy.log("clicking movable value remove button")
-    // cy.get("[data-testid=adornment-button-movable-value--remove]").click()
-    // cy.get(".movable-value-label").should("have.length", 1)
-    // cy.get(".movable-value-fill").should("have.length", 0)
-    // cy.wait(250)
-    // cy.log("clicking movable value button -- 3")
-    // movableValueButton.click()
-    // cy.log("clicking movable value remove button")
-    // cy.get("[data-testid=adornment-button-movable-value--remove]").click()
-    // cy.get("[data-testid=adornment-wrapper]").should("have.class", "hidden")
-    // cy.get(".movable-value-label").should("have.length", 0)
-    // cy.get(".movable-value-fill").should("have.length", 0)
-
         // TODO: Add a test for undo and redo for moveable value checkbox
   })
 
@@ -701,5 +683,50 @@ context("Graph adornments", () => {
     cy.wait(500)
     graph.getDisplayValuesButton().click()
     cy.get(".sub-count").should("have.length", 10).and("have.class", "y-axis").and("have.class", "binned-points-count")
+  })
+  it("creates a binned dot plot with categorical axes and verifies even stacks", () => {
+    // Set up categorical axes
+    c.selectTile("graph", 0)
+    cy.dragAttributeToTarget("table", "Diet", "bottom")
+    // Open the inspector panel first
+    graph.getDisplayValuesButton().click()
+    cy.wait(500) // Wait for the inspector panel to fully load
+
+    // Now try to access the display config button
+    cy.get("[data-testid=graph-display-config-button]").should("exist").click()
+    // Click the 'Fuse Dots into Bars' checkbox
+    cy.get('[data-testid=bar-chart-checkbox]').click()
+    cy.wait(500)
+
+    // Check that "both", "meat", and "plants" appear as x-axis tick labels
+    ae.getAxisTickLabels("bottom", true).then($labels => {
+      const labelTexts = [...$labels].map(el => el.textContent?.trim())
+      expect(labelTexts).to.include.members(["both", "meat", "plants"])
+      // Uniqueness and visibility
+      const uniqueLabels = new Set(labelTexts)
+      expect(uniqueLabels.size).to.equal(labelTexts.length)
+      Array.from($labels).forEach((el: HTMLElement) => {
+        const style = window.getComputedStyle(el)
+        expect(style.display).to.not.equal("none")
+        expect(style.visibility).to.not.equal("hidden")
+        expect(el.getAttribute("opacity")).to.not.equal("0")
+      })
+    })
+
+    // Check that "count" is the y-axis label
+    ae.getAxisLabel("left").should("contain.text", "Count")
+
+    // Check y-axis tick labels for uniqueness and visibility
+    ae.getAxisTickLabels("left", false).then($labels => {
+      const labelTexts = [...$labels].map(el => el.textContent?.trim())
+      const uniqueLabels = new Set(labelTexts)
+      expect(uniqueLabels.size).to.equal(labelTexts.length)
+      Array.from($labels).forEach((el: HTMLElement) => {
+        const style = window.getComputedStyle(el)
+        expect(style.display).to.not.equal("none")
+        expect(style.visibility).to.not.equal("hidden")
+        expect(el.getAttribute("opacity")).to.not.equal("0")
+      })
+    })
   })
 })
