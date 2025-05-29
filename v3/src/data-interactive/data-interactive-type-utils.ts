@@ -7,6 +7,7 @@ import { v2ModelSnapshotFromV2ModelStorage } from "../models/data/v2-model"
 import { IGlobalValue } from "../models/global/global-value"
 import { getMetadataFromDataSet } from "../models/shared/shared-data-utils"
 import { kAttrIdPrefix, maybeToV2Id, toV2Id, toV2ItemId, toV3AttrId } from "../utilities/codap-utils"
+import { IV2CollectionDefaults } from "../models/shared/data-set-metadata"
 import { ICodapV2DataContextV3 } from "../v2/codap-v2-types"
 import {
   ICodapV2Attribute, ICodapV2Case, ICodapV2CategoryMap, ICodapV2CollectionV3, ICodapV2DataContextSelectedCase,
@@ -143,10 +144,11 @@ export function convertAttributeToV2FromResources(resources: DIResources) {
 interface CCV2Options {
   dataSet?: IDataSet
   exportCases?: boolean
+  defaults?: IV2CollectionDefaults
 }
 export function convertCollectionToV2(collection: ICollectionModel, options?: CCV2Options): ICodapV2CollectionV3 {
   const { name, title, id } = collection
-  const { dataSet, exportCases } = options || {}
+  const { dataSet, exportCases, defaults } = options || {}
   const metadata = getMetadataFromDataSet(dataSet)
   const _labels = metadata?.collections.get(collection.id)?.labels
   const labels = _labels?.isNonEmpty ? { labels: getSnapshot(_labels) } : undefined
@@ -180,6 +182,7 @@ export function convertCollectionToV2(collection: ICollectionModel, options?: CC
     name,
     parent: collection.parent?.id ? toV2Id(collection.parent.id) : undefined,
     title,
+    defaults,
     type: "DG.Collection"
   }
 }
@@ -190,24 +193,27 @@ export function convertDataSetToV2(dataSet: IDataSet, exportCases = false): ICod
   const { description, source, importDate, isAttrConfigChanged, isAttrConfigProtected } = v3Metadata || {}
   const v2Id = toV2Id(id)
   const itemOptions: IGetCaseOptions = { canonical: false, numeric: true }
+  let foundDefaultsInCollection = false
   dataSet.validateCases()
 
   const selectedCases: ICodapV2DataContextSelectedCase[] = []
   const collections: ICodapV2CollectionV3[] =
     dataSet.collections.map(collection => {
+      const defaults = v3Metadata?.collections.get(collection.id)?.defaults
+      foundDefaultsInCollection ||= defaults?.isNonEmpty || false
       collection.caseIds.forEach(caseId => {
         if (dataSet.isCaseSelected(caseId)) {
           selectedCases.push({ type: "DG.Case", id: toV2Id(caseId) })
         }
       })
-      return convertCollectionToV2(collection, { dataSet, exportCases })
+      return convertCollectionToV2(collection, { dataSet, exportCases, defaults })
     })
   const v2Metadata = v3Metadata?.hasDataContextMetadata
                     ? { metadata: { description, source, importDate} }
                     : undefined
 
   return {
-    type: "DG.DataContext",
+    type: foundDefaultsInCollection ? "DG.GameContext" : "DG.DataContext",
     document: 1,
     guid: v2Id,
     id: v2Id,
