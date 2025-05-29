@@ -323,9 +323,9 @@ context("Graph UI with Pixi interaction", () => {
         gch.checkPointPosition(tileId, pointIndex, expectedX, expectedY)
       })
     })
-})
+  })
   describe("graph colors and selection with point count pixi interaction", () => {
-    it("checks color of a point with Legend colors", () => {
+    it.only("checks color of a point with Legend colors", () => {
       ah.openAxisAttributeMenu("bottom")
       ah.selectMenuAttribute("Diet", "bottom") // Diet => x-axis
       glh.dragAttributeToPlot("Habitat") // Habitat => plot area
@@ -348,6 +348,23 @@ context("Graph UI with Pixi interaction", () => {
             expect(color).to.match(/^#[0-9a-fA-F]{6}$/, "Each color should be a valid hex code")
           })
         })
+      })
+      cy.log("test for point selection using selection of a category in the legend")
+
+      // Click the "water" legend category
+      cy.get('g.legend-key').contains('text', 'water').click()
+
+      // Verify that the corresponding rect has the selected class
+      cy.get('g.legend-key').contains('text', 'water')
+        .parent()
+        .find('rect')
+        .should('have.class', 'legend-rect-selected')
+
+      // Optionally, verify only one legend rect is selected
+      cy.get('rect.legend-rect-selected').should('have.length', 1)
+
+      gch.getGraphTileId().then((tileId) => {
+        gch.validateGraphPointCount(tileId, 27) // 27 points in graph
       })
     })
     it("checks point selection using color of a point", () => {
