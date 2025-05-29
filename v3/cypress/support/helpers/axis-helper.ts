@@ -103,5 +103,11 @@ export const AxisHelper = {
   },
   treatAttributeAsNumeric(axis: string) {
     ae.getAttributeFromAttributeMenu(axis).contains("Treat as Numeric").click()
+  },
+  verifyAxisTickLabelsInclude(axis: string, expectedLabels: string[]) {
+    ae.getAxisTickLabels(axis).then($labels => {
+      const labelTexts = [...$labels].map(el => el.textContent?.trim())
+      expectedLabels.forEach(label => expect(labelTexts).to.include(label))
+    })
   }
 }
