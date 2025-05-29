@@ -323,6 +323,21 @@ context("Test graph axes with various attribute types", () => {
     ah.verifyXAxisTickMarksDisplayed()
     cy.get("[data-testid=graph]").find("[data-testid=axis-bottom]")
     .find(".sub-axis-wrapper").should("have.length", 1)
+
+    cy.log("check that numeric axis labels are unique and visible")
+    ae.getAxisTickLabels("bottom", false).then($labels => {
+      const labelTexts = [...$labels].map(el => el.textContent?.trim())
+      // Uniqueness
+      const uniqueLabels = new Set(labelTexts)
+      expect(uniqueLabels.size).to.equal(labelTexts.length);
+      // Visibility
+      [...$labels].forEach(el => {
+        const style = window.getComputedStyle(el)
+        expect(style.display).to.not.equal("none")
+        expect(style.visibility).to.not.equal("hidden")
+        expect(el.getAttribute("opacity")).to.not.equal("0")
+      })
+    })
   })
   it("will adjust axis domain when points are changed to bars with undo/redo", () => {
     // When there are no negative numeric values, such as in the case of Height, the domain for the primary
