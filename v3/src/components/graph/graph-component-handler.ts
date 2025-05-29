@@ -178,6 +178,7 @@ export const graphComponentHandler: DIComponentHandler = {
     // We use an environment with a provisionalDataSet and Metadata so the dummy model can be set up with
     // them, even though they are not part of the same MST tree.
     const graphModel = GraphContentModel.create(graphContent, { provisionalDataSet, provisionalMetadata })
+    graphModel.dataConfiguration.synchronizeFilteredCases()  // kludgy workaround to ensure axis bounds will be correct
     syncModelWithAttributeConfiguration(graphModel, new GraphLayout())
 
     // Layers will get mangled in the model because it's not in the same tree as the dataset,
