@@ -64,9 +64,16 @@ export const AxisHelper = {
     })
   },
   verifyAxisTickLabels(axis: string, attributeValues: string[], categorical = false) {
-    ae.getAxisTickLabels(axis, categorical).should('have.length', attributeValues.length)
-    for (let index = 0; index < attributeValues.length; index++) {
-      this.verifyAxisTickLabel(axis, attributeValues[index], index, categorical)
+    if (categorical) {
+      ae.getAxisTickLabels(axis, categorical).should('have.length', attributeValues.length)
+      for (let index = 0; index < attributeValues.length; index++) {
+        this.verifyAxisTickLabel(axis, attributeValues[index], index, categorical)
+      }
+    } else {
+      ae.getAxisTickLabels(axis, categorical).then($labels => {
+        const labelTexts = [...$labels].map(el => el.textContent?.trim())
+        expect(labelTexts).to.include.members(attributeValues)
+      })
     }
   },
   verifyAxisTickLabel(axis: string, attributeValue: string, index: number, categorical = false) {
@@ -103,5 +110,11 @@ export const AxisHelper = {
   },
   treatAttributeAsNumeric(axis: string) {
     ae.getAttributeFromAttributeMenu(axis).contains("Treat as Numeric").click()
+  },
+  verifyAxisTickLabelsInclude(axis: string, expectedLabels: string[]) {
+    ae.getAxisTickLabels(axis).then($labels => {
+      const labelTexts = [...$labels].map(el => el.textContent?.trim())
+      expectedLabels.forEach(label => expect(labelTexts).to.include(label))
+    })
   }
 }

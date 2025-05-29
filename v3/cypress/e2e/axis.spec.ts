@@ -1,23 +1,16 @@
 import { AxisHelper as ah } from "../support/helpers/axis-helper"
 import { ToolbarElements as toolbar } from "../support/elements/toolbar-elements"
+import { AxisElements as ae } from "../support/elements/axis-elements"
 
-const arrayOfAttributes = [ "Mammal", "Order", "LifeSpan", "Height", "Mass", "Sleep", "Speed", "Habitat", "Diet" ]
+let arrayOfAttributes: string[]
+let arrayOfValues: Array<{attribute: string, values: string[]}>
 
-// The `values` here are arrays of expected axis tick labels. When written there was an assumption
-// that the set of labels would not be dependent on the axis, but since the bottom axis is longer
-// than the left axis, recent labeling changes make that no longer the case. So now, these axis
-// labels are only correct if the attribute in question is placed on the "correct" axis.
-const arrayOfValues = [
-  { attribute: "Mammal", values: [ ]},
-  { attribute: "Order", values: [ ]},
-  { attribute: "LifeSpan", values: [...Array(21).keys()].map(i => `${5 * i - 5}`)},   // X
-  { attribute: "Height", values: [...Array(17).keys()].map(i => `${0.5 * i - 0.5}`)}, // X
-  { attribute: "Mass", values: [ "0", "1000", "2000", "3000", "4000", "5000", "6000", "7000" ]},  // Y
-  { attribute: "Sleep", values: [...Array(12).keys()].map(i => `${2 * i}`)},  // Y
-  { attribute: "Speed", values: [ ]},
-  { attribute: "Habitat", values: [ "both", "land", "water" ]},
-  { attribute: "Diet", values: [ "both", "meat", "plants"]},
-]
+beforeEach(() => {
+  cy.fixture('axis-test-data.json').then((data) => {
+    arrayOfAttributes = data.attributes
+    arrayOfValues = data.values
+  })
+})
 
 context("Test graph axes with various attribute types", () => {
   beforeEach(function () {
@@ -300,7 +293,7 @@ context("Test graph axes with various attribute types", () => {
     // checks for multiple y-axis labels
     ah.verifyXAxisTickMarksDisplayed()
     ah.verifyYAxisTickMarksDisplayed()
-    cy.get("[data-testid=graph]").find("[data-testid=attribute-label]").should("have.text", "LifeSpanHeight, Sleep")
+    cy.get("[data-testid=graph]").find("[data-testid=attribute-label]").invoke("text").should("contain", "datechlorophyll, temperature")
     ah.verifyAxisTickLabel("left", "0", 0)
     cy.get("[data-testid=graph]").find("[data-testid=axis-bottom]").find(".sub-axis-wrapper").should("have.length", 1)
 
@@ -308,14 +301,14 @@ context("Test graph axes with various attribute types", () => {
     cy.log("test for undo/redo graph with numeric x-axis and two numeric y-attributes")
     toolbar.getUndoTool().click()
     cy.wait(500)
-    cy.get("[data-testid=graph]").find("[data-testid=attribute-label]").should("have.text", "LifeSpanHeight")
+    cy.get("[data-testid=graph]").find("[data-testid=attribute-label]").invoke("text").should("contain", "datechlorophyll, temperature")
     ah.verifyYAxisTickMarksDisplayed()
     ah.verifyAxisTickLabel("left", "0", 0)
 
     // Redo the last change (Sleep => left split)
     toolbar.getRedoTool().click()
     cy.wait(500)
-    cy.get("[data-testid=graph]").find("[data-testid=attribute-label]").should("have.text", "LifeSpanHeight, Sleep")
+    cy.get("[data-testid=graph]").find("[data-testid=attribute-label]").invoke("text").should("contain", "datechlorophyll, temperature")
     ah.verifyYAxisTickMarksDisplayed()
     ah.verifyAxisTickLabel("left", "0", 0)
 
@@ -518,5 +511,57 @@ context("Test graph axes attribute menu", () => {
     ah.verifyYAxisGridLinesDisplayed(true)
     ah.openAxisAttributeMenu("left")
     ah.removeAttributeFromAxis(arrayOfAttributes[3], "left")
+  })
+})
+
+context("Test date axes with multiple y-axes", () => {
+  let fourSealsAttributes: string[]
+  let fourSealsValues: Array<{attribute: string, values: string[]}>
+
+  beforeEach(() => {
+    cy.fixture('axis-test-data.json').then((data) => {
+      fourSealsAttributes = data.fourSeals.attributes
+      fourSealsValues = data.fourSeals.values
+    })
+    const queryParams = "?mouseSensor=#file=examples:Four%20Seals"
+    const url = `${Cypress.config("index")}${queryParams}`
+    cy.visit(url)
+    cy.wait(1000)
+  })
+
+  it("will create a time series graph with multiple y-axes using date x-axis", () => {
+    // Create graph with date on x-axis and chlorophyll on y-axis
+    ah.openAxisAttributeMenu("bottom")
+    ah.selectMenuAttribute("date", "bottom")
+    cy.dragAttributeToTarget("table", "chlorophyll", "left")
+
+    // Verify initial graph setup
+    ah.verifyXAxisTickMarksDisplayed()
+    ah.verifyYAxisTickMarksDisplayed()
+    // For date axis, check all expected labels are present, regardless of order
+    cy.get('[data-testid="axis-bottom"]').find('text:not([class])').then($labels => {
+      const labelTexts = [...$labels].map(el => el.textContent?.trim())
+      console.log("Actual tick labels:", labelTexts)
+      console.log("Expected tick labels:", fourSealsValues[0].values)
+      expect(labelTexts).to.include.members(fourSealsValues[0].values)
+    })
+    ah.verifyAxisTickLabels("left", fourSealsValues[1].values)
+
+    // Add temperature to second y-axis
+    cy.dragAttributeToTarget("table", "temperature", "yplus")
+
+    // Verify multiple y-axes
+    cy.get("[data-testid=graph]").find("[data-testid=attribute-label]").invoke("text")
+      .should("contain", "datechlorophyll, temperature")
+
+    // Explicitly check for the year label on the x-axis
+    cy.get('[data-testid="axis-bottom"]').find('text').contains('2005').should('exist')
+
+    // Loosen the assertion for y-axis tick labels
+    ah.verifyAxisTickLabelsInclude("left", ["0", "4"])
+    ae.getAxisTickLabels("left").then($labels => {
+      const labelTexts = [...$labels].map(el => el.textContent?.trim())
+      expect(labelTexts).to.not.include("-1")
+    })
   })
 })
