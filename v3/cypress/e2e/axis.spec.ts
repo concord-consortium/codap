@@ -287,54 +287,41 @@ context("Test graph axes with various attribute types", () => {
     cy.dragAttributeToTarget("table", arrayOfAttributes[3], "left") // Height => left split
     cy.dragAttributeToTarget("table", arrayOfAttributes[5], "yplus") // Sleep => left split
 
-    // Add a log to inspect the DOM for the x-axis
-    cy.get('[data-testid=axis-bottom]').invoke('html').then(console.log)
-      // This used to work but no longer does
-    // TODO: update when CODAP-705 is delivered
-    // ah.verifyXAxisTickMarksDisplayed()
-
     // checks for multiple y-axis labels
-    // This used to work but no longer does
-    // TODO: update when CODAP-705 is delivered
-    // ah.verifyYAxisTickMarksDisplayed()
-    cy.get("[data-testid=graph]").find("[data-testid=attribute-label]").invoke("text")
-      .should("contain", "LifeSpan")
-      .and("contain", "Height")
-
-    // This used to work but no longer does
-    // TODO: update when CODAP-705 is delivered
-    // ah.verifyAxisTickLabel("left", "0", 0)
-    cy.get("[data-testid=graph]").find("[data-testid=axis-bottom]").find(".sub-axis-wrapper").should("have.length", 1)
+    ah.verifyXAxisTickMarksDisplayed()
+    ah.verifyYAxisTickMarksDisplayed()
+    cy.get("[data-testid=graph]").find("[data-testid=attribute-label]").should("have.text", "LifeSpanHeight, Sleep")
+    ah.verifyAxisTickLabel("left", "0", 0)
+    cy.get("[data-testid=graph]")
+      .find("[data-testid=axis-bottom]")
+      .find(".sub-axis-wrapper")
+      .should("have.length", 1)
 
     // Undo the last change (Sleep => left split)
     cy.log("test for undo/redo graph with numeric x-axis and two numeric y-attributes")
     toolbar.getUndoTool().click()
     cy.wait(500)
-    cy.get("[data-testid=graph]").find("[data-testid=attribute-label]").invoke("text")
-      .should("contain", "LifeSpan")
-      .and("contain", "Height")
-    // This used to work but no longer does
-    // TODO: update when CODAP-705 is delivered
-    // ah.verifyYAxisTickMarksDisplayed()
-    // ah.verifyAxisTickLabel("left", "0", 0)
+    cy.get("[data-testid=graph]")
+      .find("[data-testid=attribute-label]")
+      .should("have.text", "LifeSpanHeight")
+    ah.verifyYAxisTickMarksDisplayed()
+    ah.verifyAxisTickLabel("left", "0", 0)
 
     // Redo the last change (Sleep => left split)
     toolbar.getRedoTool().click()
     cy.wait(500)
-    cy.get("[data-testid=graph]").find("[data-testid=attribute-label]").invoke("text")
-      .should("contain", "LifeSpan")
-      .and("contain", "Height")
-    // This used to work but no longer does
-    // TODO: update when CODAP-705 is delivered
-    // ah.verifyYAxisTickMarksDisplayed()
-    // ah.verifyAxisTickLabel("left", "0", 0)
+    cy.get("[data-testid=graph]")
+      .find("[data-testid=attribute-label]")
+      .should("have.text", "LifeSpanHeight, Sleep")
+    ah.verifyYAxisTickMarksDisplayed()
+    ah.verifyAxisTickLabel("left", "0", 0)
 
     // Verify the state after undo/redo
-    // This used to work but no longer does
-    // TODO: update when CODAP-705 is delivered
-    // ah.verifyXAxisTickMarksDisplayed()
-    cy.get("[data-testid=graph]").find("[data-testid=axis-bottom]")
-    .find(".sub-axis-wrapper").should("have.length", 1)
+    ah.verifyXAxisTickMarksDisplayed()
+    cy.get("[data-testid=graph]")
+      .find("[data-testid=axis-bottom]")
+      .find(".sub-axis-wrapper")
+      .should("have.length", 1)
 
     cy.log("check that numeric axis labels are unique and visible")
     ae.getAxisTickLabels("bottom", false).then($labels => {
