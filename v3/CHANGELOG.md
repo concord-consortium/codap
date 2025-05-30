@@ -1,5 +1,26 @@
 # Changelog
 
+## Version 3.0.0-pre.2316 - May 30, 2025
+
+### ✨ Features & Improvements:
+- **CODAP-111:** Hover over attribute label on graph or map brings up the attribute description (if any)
+- **CODAP-712:** Add documentation on the formula system
+
+### 🐞 Bug Fixes:
+- **CODAP-99:** The attribute menu for a date axis should show "Treat as Categorical" rather than "Treat as Numeric"
+- **CODAP-112:** Graph hover tip appears in graph that is behind the component where the mouse is
+- **CODAP-364:** The graph point tooltips appear unnecessarily when the Moveable Point is moved on top of them
+- **CODAP-658:** Caption attributes in maps and graphs should not end up being hidden attributes
+- **CODAP-678:** Rescale not behaving properly when graph y-axis has more than one attribute
+- **CODAP-679:** Graph y-axis not adjusting layout to accommodate large numbers
+- **CODAP-704:** Create graph scatterplot through plugin API chooses unusable axis bounds
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  193534 bytes |                           <0.00% |
+|  index.js | 6704859 bytes |                           <0.00% |
+
 ## Version 3.0.0-pre.2304 - May 16, 2025
 
 ### ✨ Features & Improvements:
