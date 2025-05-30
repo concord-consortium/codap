@@ -278,13 +278,13 @@ context("Graph UI with Pixi interaction", () => {
       cy.wait(500)
       cy.get("[data-testid=measures-for-selection-banner]").should("not.exist")
     })
-    it.skip("should have correct point count and position with numerical y, categorical x, and right axes", () => {
+    it("should have correct point count and position with numerical y, categorical x, and right axes", () => {
       ah.openAxisAttributeMenu("bottom")
       ah.selectMenuAttribute("Diet", "bottom") // Diet => bottom
       cy.get("[data-testid=graph]").find("[data-testid=axis-bottom]").find(".sub-axis-wrapper").should("have.length", 1)
       cy.dragAttributeToTarget("table", arrayOfAttributes[4], "left") // Mass => y axis
       cy.get("[data-testid=graph]").find("[data-testid=axis-left]").find(".sub-axis-wrapper").should("have.length", 1)
-      glh.dragAttributeToPlot("Habitat") // Habitat => plot area (legend)
+      cy.dragAttributeToTarget("table", arrayOfAttributes[7], "right") // Habitat => right axis
       cy.get("[data-testid=graph]")
         .find("[data-testid=axis-rightCat]")
         .find(".sub-axis-wrapper")
@@ -430,6 +430,36 @@ context("Graph UI with Pixi interaction", () => {
         })
       })
     })
+    it("should display connecting lines in multiple colors when there are multiple y-axes", () => {
+      ah.openAxisAttributeMenu("bottom")
+      ah.selectMenuAttribute("LifeSpan", "bottom") // LifeSpan => x-axis
+      cy.get("[data-testid=graph]").find("[data-testid=axis-bottom]").find(".sub-axis-wrapper").should("have.length", 1)
+      cy.dragAttributeToTarget("table", arrayOfAttributes[3], "left") // Height => left split
+      cy.dragAttributeToTarget("table", arrayOfAttributes[5], "yplus") // Sleep => left split
+
+      // checks for multiple y-axis labels
+      ah.verifyXAxisTickMarksDisplayed()
+      ah.verifyYAxisTickMarksDisplayed()
+      cy.get("[data-testid=graph]").find("[data-testid=attribute-label]").should("have.text", "LifeSpanHeight, Sleep")
+      ah.verifyAxisTickLabel("left", "0", 0)
+      cy.get("[data-testid=graph]")
+        .find("[data-testid=axis-bottom]")
+        .find(".sub-axis-wrapper")
+        .should("have.length", 1)
+
+        graph.getDisplayValuesButton().click()
+
+        graph.getInspectorPalette().should("be.visible")
+        cy.get("[data-testid=adornment-checkbox-connecting-lines]").should("be.visible")
+        cy.get("*[data-testid^=connecting-lines-graph]").find("path").should("not.exist")
+        gch.getGraphTileId().then((tileId: string) => {
+          gch.getPixiPointFillColors(tileId).then((colors) => {
+            cy.log(`Extracted Fill Colors: ${colors}`)
+            expect(colors).to.have.length(2) // Verify there are exactly 2 colors
+            expect(colors).to.deep.equal(["#E6805B", "#803E75"]) // Verify the colors are as expected
+          })
+        })
+      })
   })
   describe("checks for graph point position and color with pixi interaction", () => {
     // use this test to debug point positions when running locally
