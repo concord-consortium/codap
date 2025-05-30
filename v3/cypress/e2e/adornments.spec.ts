@@ -668,6 +668,24 @@ context("Graph adornments", () => {
     // cy.get(".movable-value-label").should("have.length", 2)
     // cy.get(".movable-value-fill").should("have.length", 1)
 
+    // TODO: Also test the above after attributes are added to top and right axes (i.e. when there are multiple values)
+    // TODO: Test dragging of value
+    // cy.wait(250)
+    // cy.log("clicking movable value button -- 2")
+    // movableValueButton.click()
+    // cy.log("clicking movable value remove button")
+    // cy.get("[data-testid=adornment-button-movable-value--remove]").click()
+    // cy.get(".movable-value-label").should("have.length", 1)
+    // cy.get(".movable-value-fill").should("have.length", 0)
+    // cy.wait(250)
+    // cy.log("clicking movable value button -- 3")
+    // movableValueButton.click()
+    // cy.log("clicking movable value remove button")
+    // cy.get("[data-testid=adornment-button-movable-value--remove]").click()
+    // cy.get("[data-testid=adornment-wrapper]").should("have.class", "hidden")
+    // cy.get(".movable-value-label").should("have.length", 0)
+    // cy.get(".movable-value-fill").should("have.length", 0)
+
         // TODO: Add a test for undo and redo for moveable value checkbox
   })
 
