@@ -357,6 +357,43 @@ context("Graph UI with Pixi interaction", () => {
         cy.get('g.legend-key').contains('text', 'land').should('not.exist')
       })
     })
+    it("removes legend and shows one gray point per Diet after removing Habitat", () => {
+      // Set up the graph
+      cy.dragAttributeToTarget("table", "Diet", "bottom")    // x-axis
+      glh.dragAttributeToPlot("Habitat") // Habitat => plot area
+
+      // Move Diet to parent level if needed (depends on your UI, may be a drag or menu action)
+      table.moveAttributeToParent("Diet", "newCollection")
+      // Check that there is only one point per Diet category (should be 3)
+      gch.getGraphTileId().then((tileId: string) => {
+        gch.getPixiPointFillColors(tileId).then((colors) => {
+          cy.log(`Extracted Fill Colors: ${colors}`)
+          expect(colors).to.have.length(1) // There should be exactly one color
+          expect(colors).to.deep.equal(["#888888"]) // The color should be gray
+        })
+      })
+      table.moveAttributeToParent("Habitat", "newCollection")
+
+      // Check that there is only one point per Diet category (should be 3)
+      gch.getGraphTileId().then((tileId: string) => {
+        gch.getPixiPointFillColors(tileId).then((colors) => {
+          cy.log(`Extracted Fill Colors: ${colors}`)
+          expect(colors).to.have.length(3) // There should be exactly one color
+          expect(colors).to.deep.equal(["#803E75", "#A6BDD7", "#FF6800"]) // The colors expected
+        })
+      })
+      toolbar.getUndoTool().click()
+      cy.wait(2500)
+      toolbar.getUndoTool().click()
+      cy.wait(2500)
+
+      gch.getGraphTileId().then((tileId: string) => {
+        gch.getPixiPointFillColors(tileId).then((colors) => {
+          cy.log(`Extracted Fill Colors: ${colors}`)
+          expect(colors).to.have.length(3) // There should be exactly three colors
+        })
+      })
+    })
   })
   describe("graph colors and selection with point count pixi interaction", () => {
     it("checks color of a point with Legend colors", () => {
