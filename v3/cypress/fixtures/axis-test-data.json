@@ -1,0 +1,72 @@
+{
+  "attributes": [
+    "Mammal",
+    "Order",
+    "LifeSpan",
+    "Height",
+    "Mass",
+    "Sleep",
+    "Speed",
+    "Habitat",
+    "Diet"
+  ],
+  "values": [
+    {
+      "attribute": "Mammal",
+      "values": []
+    },
+    {
+      "attribute": "Order",
+      "values": []
+    },
+    {
+      "attribute": "LifeSpan",
+      "values": ["-5", "0", "5", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55", "60", "65", "70", "75", "80", "85", "90", "95"]
+    },
+    {
+      "attribute": "Height",
+      "values": ["-0.5", "0", "0.5", "1", "1.5", "2", "2.5", "3", "3.5", "4", "4.5", "5", "5.5", "6", "6.5", "7", "7.5"]
+    },
+    {
+      "attribute": "Mass",
+      "values": ["0", "1000", "2000", "3000", "4000", "5000", "6000", "7000"]
+    },
+    {
+      "attribute": "Sleep",
+      "values": ["0", "2", "4", "6", "8", "10", "12", "14", "16", "18", "20", "22"]
+    },
+    {
+      "attribute": "Speed",
+      "values": []
+    },
+    {
+      "attribute": "Habitat",
+      "values": ["both", "land", "water"]
+    },
+    {
+      "attribute": "Diet",
+      "values": ["both", "meat", "plants"]
+    }
+  ],
+  "fourSeals": {
+    "attributes": [
+      "date",
+      "chlorophyll",
+      "temperature"
+    ],
+    "values": [
+      {
+        "attribute": "date",
+        "values": ["May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "2005"]
+      },
+      {
+        "attribute": "chlorophyll",
+        "values": ["0", "0.5", "1", "1.5", "2", "2.5", "3", "3.5", "4"]
+      },
+      {
+        "attribute": "temperature",
+        "values": []
+      }
+    ]
+  }
+}

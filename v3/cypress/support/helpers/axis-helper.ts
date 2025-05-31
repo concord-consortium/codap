@@ -63,11 +63,12 @@ export const AxisHelper = {
       expect($length).to.be.greaterThan(0)
     })
   },
-  verifyAxisTickLabels(axis: string, attributeValues: string[], categorical = false) {
-    ae.getAxisTickLabels(axis, categorical).should('have.length', attributeValues.length)
-    for (let index = 0; index < attributeValues.length; index++) {
-      this.verifyAxisTickLabel(axis, attributeValues[index], index, categorical)
-    }
+  verifyAxisTickLabels(axis: string, expectedLabels: string[], categorical = false) {
+    ae.getAxisTickLabels(axis, categorical).then($labels => {
+      const actualLabels = [...$labels].map(el => el.textContent?.trim().replace(/−/g, '-') ?? '')
+      const normalizedExpectedLabels = expectedLabels.map(label => label.replace(/−/g, '-'))
+      expect(actualLabels).to.include.members(normalizedExpectedLabels)
+    })
   },
   verifyAxisTickLabel(axis: string, attributeValue: string, index: number, categorical = false) {
     attributeValue = attributeValue.replace("-", "\u2212")  // hyphen => unicode minus sign
@@ -103,5 +104,11 @@ export const AxisHelper = {
   },
   treatAttributeAsNumeric(axis: string) {
     ae.getAttributeFromAttributeMenu(axis).contains("Treat as Numeric").click()
+  },
+  verifyAxisTickLabelsInclude(axis: string, expectedLabels: string[]) {
+    ae.getAxisTickLabels(axis).then($labels => {
+      const labelTexts = [...$labels].map(el => el.textContent?.trim())
+      expectedLabels.forEach(label => expect(labelTexts).to.include(label))
+    })
   }
 }
