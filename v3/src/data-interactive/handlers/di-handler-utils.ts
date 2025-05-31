@@ -38,13 +38,17 @@ export function createAttribute(value: DIAttribute, dataContext: IDataSet, colle
 export function createCollection(v2collection: DICollection, data: IDataSet, metadata: IDataSetMetadata) {
   // TODO How should we handle duplicate names?
   // TODO How should we handle missing names?
-  const { attrs, cid, labels, name: collectionName, title: collectionTitle } = v2collection
+  const { attrs, cid, labels, name: collectionName,
+    title: collectionTitle, defaults } = v2collection
   const _title = v2NameTitleToV3Title(collectionName ?? "", collectionTitle)
   const options: IAddCollectionOptions = { after: data.childCollection?.id }
   const collection = data.addCollection({ id: cid, name: collectionName, _title }, options)
 
   if (isNonEmptyCollectionLabels(labels)) {
     metadata.setCollectionLabels(collection.id, labels)
+  }
+  if (defaults) {
+    metadata.setCollectionDefaults(collection.id, defaults)
   }
 
   attrs?.forEach(attr => {

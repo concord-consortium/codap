@@ -48,11 +48,33 @@ export interface ICollectionLabelsSnapshot extends SnapshotIn<typeof CollectionL
 
 export function isNonEmptyCollectionLabels(labels?: ICollectionLabelsSnapshot): labels is ICollectionLabelsSnapshot {
   return !!(labels?.singleCase || labels?.pluralCase || labels?.singleCaseWithArticle ||
-            labels?.setOfCases || labels?.setOfCasesWithArticle)
+    labels?.setOfCases || labels?.setOfCasesWithArticle)
 }
+
+/**
+ * V2 collections can have a "defaults" property, typically added by a plugin such as Markov. We need to store this
+ * so it can be exported to V2 and can be queried during V2 export to determine whether the type of the data context
+ * to which the collection belongs should be "DG.GameContext" or "DG.DataContext".
+ */
+export const V2CollectionDefaults = types.model("V2CollectionDefaults", {
+  xAttr: types.maybe(types.string),
+  yAttr: types.maybe(types.string),
+  legendAttr: types.maybe(types.string)
+})
+.views(self => ({
+  get isEmpty() {
+    return !self.xAttr && !self.yAttr && !self.legendAttr
+  },
+  get isNonEmpty() {
+    return !this.isEmpty
+  }
+}))
+export interface IV2CollectionDefaults extends Instance<typeof V2CollectionDefaults> {}
+export interface IV2CollectionDefaultsSnapshot extends SnapshotIn<typeof V2CollectionDefaults> {}
 
 export const CollectionMetadata = types.model("CollectionMetadata", {
   labels: types.maybe(CollectionLabels),
+  defaults: types.maybe(V2CollectionDefaults),
   // key is case id; value is true (false values are deleted)
   collapsed: types.map(types.boolean)
 })
@@ -263,6 +285,10 @@ export const DataSetMetadata = SharedModel
     }
   }))
   .actions(self => ({
+    setCollectionDefaults(collectionId: string, defaults: IV2CollectionDefaultsSnapshot) {
+      const metadata = self.requireCollectionMetadata(collectionId)
+      metadata.defaults = V2CollectionDefaults.create(defaults)
+    },
     setSingleCase(collectionId: string, singleCase: string) {
       const metadata = self.requireCollectionMetadata(collectionId)
       if (metadata.labels) {
