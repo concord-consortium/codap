@@ -72,7 +72,7 @@ jobs:
       - uses: cypress-io/github-action@v6
         with:
           working-directory: v3
-          start: npm start
+          start: yarn start
           wait-on: 'http://localhost:8080'
           # add timeout of 5 minutes to start
           wait-on-timeout: 300
@@ -90,7 +90,7 @@ jobs:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
           # pass GitHub token to allow accurately detecting a build vs a re-run build
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # turn on code coverage when running npm start
+          # turn on code coverage when running yarn start
           # so far we've been using a webpack coverage-istanbul-loader for this
           # but there has been work on using the code coverage support in the browser directly,
           # which should be much faster

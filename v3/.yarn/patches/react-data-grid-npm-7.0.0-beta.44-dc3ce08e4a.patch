@@ -1,7 +1,7 @@
-diff --git a/node_modules/react-data-grid/lib/bundle.cjs b/node_modules/react-data-grid/lib/bundle.cjs
-index 43bf414..635934c 100644
---- a/node_modules/react-data-grid/lib/bundle.cjs
-+++ b/node_modules/react-data-grid/lib/bundle.cjs
+diff --git a/lib/bundle.cjs b/lib/bundle.cjs
+index 43bf41490738f8d7bbe350fc447a61db75599f51..635934c346fa759ddb623edf86613fc3685166cb 100644
+--- a/lib/bundle.cjs
++++ b/lib/bundle.cjs
 @@ -764,7 +764,7 @@ function useColumnWidths(columns, viewportColumns, templateColumns, gridRef, gri
        return hasChanges ? newMeasuredColumnWidths : measuredColumnWidths;
      });
@@ -87,10 +87,10 @@ index 43bf414..635934c 100644
 +exports.textEditorClassname = textEditorClassname;
  exports.useRowSelection = useRowSelection;
  //# sourceMappingURL=bundle.cjs.map
-diff --git a/node_modules/react-data-grid/lib/bundle.js b/node_modules/react-data-grid/lib/bundle.js
-index 0214c29..60b4932 100644
---- a/node_modules/react-data-grid/lib/bundle.js
-+++ b/node_modules/react-data-grid/lib/bundle.js
+diff --git a/lib/bundle.js b/lib/bundle.js
+index 0214c290c4eb681e8e5a4e775fd7063ba0e59ecb..60b493250595304f523f3c63ae48798be0d60b6b 100644
+--- a/lib/bundle.js
++++ b/lib/bundle.js
 @@ -760,7 +760,7 @@ function useColumnWidths(columns, viewportColumns, templateColumns, gridRef, gri
        return hasChanges ? newMeasuredColumnWidths : measuredColumnWidths;
      });
@@ -172,14 +172,14 @@ index 0214c29..60b4932 100644
 @@ -3303,5 +3309,5 @@ function textEditor({
    });
  }
-
+ 
 -export { DataGridDefaultRenderersProvider, RowComponent$1 as Row, SELECT_COLUMN_KEY, SelectCellFormatter, SelectColumn, ToggleGroup, TreeDataGrid$1 as TreeDataGrid, DataGrid$1 as default, renderCheckbox, renderHeaderCell, renderSortIcon, renderSortPriority, renderToggleGroup, renderValue, textEditor, useRowSelection };
 +export { DataGridDefaultRenderersProvider, RowComponent$1 as Row, SELECT_COLUMN_KEY, SelectCellFormatter, SelectColumn, ToggleGroup, TreeDataGrid$1 as TreeDataGrid, DataGrid$1 as default, renderCheckbox, renderHeaderCell, renderSortIcon, renderSortPriority, renderToggleGroup, renderValue, textEditor, textEditorClassname, useRowSelection };
  //# sourceMappingURL=bundle.js.map
-diff --git a/node_modules/react-data-grid/lib/index.d.ts b/node_modules/react-data-grid/lib/index.d.ts
-index 4b927bd..c6ffa4e 100644
---- a/node_modules/react-data-grid/lib/index.d.ts
-+++ b/node_modules/react-data-grid/lib/index.d.ts
+diff --git a/lib/index.d.ts b/lib/index.d.ts
+index 4b927bdf62d3ce363d1dbfdac5ff3ad2e27b29cd..c6ffa4e42d786ded452172b7f3614bd34c4a7fdf 100644
+--- a/lib/index.d.ts
++++ b/lib/index.d.ts
 @@ -196,6 +196,10 @@ export declare interface DataGridProps<R, SR = unknown, K extends Key = Key> ext
       * @default 35
       */
@@ -201,11 +201,11 @@ index 4b927bd..c6ffa4e 100644
      onColumnsReorder?: Maybe<(sourceColumnKey: string, targetColumnKey: string) => void>;
      /**
 @@ -439,6 +443,8 @@ export declare type SortDirection = 'ASC' | 'DESC';
-
+ 
  export declare function textEditor<TRow, TSummaryRow>({ row, column, onRowChange, onClose }: RenderEditCellProps<TRow, TSummaryRow>): JSX_2.Element;
-
+ 
 +export declare const textEditorClassname: string;
 +
  export declare function ToggleGroup<R, SR>({ groupKey, isExpanded, tabIndex, toggleGroup }: RenderGroupCellProps<R, SR>): JSX_2.Element;
-
+ 
  export declare const TreeDataGrid: <R, SR = unknown, K extends Key = Key>(props: TreeDataGridProps<R, SR, K> & RefAttributes<DataGridHandle>) => JSX.Element;
