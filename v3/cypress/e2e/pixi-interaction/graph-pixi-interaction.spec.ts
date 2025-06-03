@@ -323,7 +323,78 @@ context("Graph UI with Pixi interaction", () => {
         gch.checkPointPosition(tileId, pointIndex, expectedX, expectedY)
       })
     })
-})
+    it("toggles parent visibility and verifies legend updates", () => {
+      // Set up a categorical attribute on the x-axis and a hierarchy in the table
+      ah.openAxisAttributeMenu("bottom")
+      ah.selectMenuAttribute("Diet", "bottom") // Diet => x-axis
+      table.moveAttributeToParent("Habitat", "newCollection")
+      table.getNumOfRows(1).should("contain", 5) // five rows: top, land, water, both, bottom
+
+      // Add Habitat to the legend
+      glh.dragAttributeToPlot("Habitat")
+
+      // Show parent toggles
+      graph.getHideShowButton().click()
+      cy.get("[data-testid=show-parent-toggles]").click()
+      cy.wait(500)
+
+      // Count legend items before toggling
+      cy.get('g.legend-key').then($itemsBefore => {
+        const countBefore = $itemsBefore.length
+
+        // Toggle visibility of a parent (e.g., "land")
+        cy.get("[data-testid=parent-toggles-case-buttons-list]").find("button").contains("land").click()
+        cy.wait(500)
+
+        // Count legend items after toggling
+        cy.get('g.legend-key').then($itemsAfter => {
+          const countAfter = $itemsAfter.length
+          // The count should decrease if a parent is hidden
+          expect(countAfter).to.be.lessThan(countBefore)
+        })
+
+        // Optionally, check that the color swatch for "land" is not visible
+        cy.get('g.legend-key').contains('text', 'land').should('not.exist')
+      })
+    })
+    it("removes legend and shows one gray point per Diet after removing Habitat", () => {
+      // Set up the graph
+      cy.dragAttributeToTarget("table", "Diet", "bottom")    // x-axis
+      glh.dragAttributeToPlot("Habitat") // Habitat => plot area
+
+      // Move Diet to parent level if needed (depends on your UI, may be a drag or menu action)
+      table.moveAttributeToParent("Diet", "newCollection")
+      // Check that there is only one point per Diet category (should be 3)
+      gch.getGraphTileId().then((tileId: string) => {
+        gch.getPixiPointFillColors(tileId).then((colors) => {
+          cy.log(`Extracted Fill Colors: ${colors}`)
+          expect(colors).to.have.length(1) // There should be exactly one color
+          expect(colors).to.deep.equal(["#888888"]) // The color should be gray
+        })
+      })
+      table.moveAttributeToParent("Habitat", "newCollection")
+
+      // Check that there is only one point per Diet category (should be 3)
+      gch.getGraphTileId().then((tileId: string) => {
+        gch.getPixiPointFillColors(tileId).then((colors) => {
+          cy.log(`Extracted Fill Colors: ${colors}`)
+          expect(colors).to.have.length(3) // There should be exactly one color
+          expect(colors).to.deep.equal(["#803E75", "#A6BDD7", "#FF6800"]) // The colors expected
+        })
+      })
+      toolbar.getUndoTool().click()
+      cy.wait(2500)
+      toolbar.getUndoTool().click()
+      cy.wait(2500)
+
+      gch.getGraphTileId().then((tileId: string) => {
+        gch.getPixiPointFillColors(tileId).then((colors) => {
+          cy.log(`Extracted Fill Colors: ${colors}`)
+          expect(colors).to.have.length(3) // There should be exactly three colors
+        })
+      })
+    })
+  })
   describe("graph colors and selection with point count pixi interaction", () => {
     it("checks color of a point with Legend colors", () => {
       ah.openAxisAttributeMenu("bottom")
@@ -348,6 +419,23 @@ context("Graph UI with Pixi interaction", () => {
             expect(color).to.match(/^#[0-9a-fA-F]{6}$/, "Each color should be a valid hex code")
           })
         })
+      })
+      cy.log("test for point selection using selection of a category in the legend")
+
+      // Click the "water" legend category
+      cy.get('g.legend-key').contains('text', 'water').click()
+
+      // Verify that the corresponding rect has the selected class
+      cy.get('g.legend-key').contains('text', 'water')
+        .parent()
+        .find('rect')
+        .should('have.class', 'legend-rect-selected')
+
+      // Optionally, verify only one legend rect is selected
+      cy.get('rect.legend-rect-selected').should('have.length', 1)
+
+      gch.getGraphTileId().then((tileId) => {
+        gch.validateGraphPointCount(tileId, 27) // 27 points in graph
       })
     })
     it("checks point selection using color of a point", () => {
@@ -379,6 +467,36 @@ context("Graph UI with Pixi interaction", () => {
         })
       })
     })
+    it("should display connecting lines in multiple colors when there are multiple y-axes", () => {
+      ah.openAxisAttributeMenu("bottom")
+      ah.selectMenuAttribute("LifeSpan", "bottom") // LifeSpan => x-axis
+      cy.get("[data-testid=graph]").find("[data-testid=axis-bottom]").find(".sub-axis-wrapper").should("have.length", 1)
+      cy.dragAttributeToTarget("table", arrayOfAttributes[3], "left") // Height => left split
+      cy.dragAttributeToTarget("table", arrayOfAttributes[5], "yplus") // Sleep => left split
+
+      // checks for multiple y-axis labels
+      ah.verifyXAxisTickMarksDisplayed()
+      ah.verifyYAxisTickMarksDisplayed()
+      cy.get("[data-testid=graph]").find("[data-testid=attribute-label]").should("have.text", "LifeSpanHeight, Sleep")
+      ah.verifyAxisTickLabel("left", "0", 0)
+      cy.get("[data-testid=graph]")
+        .find("[data-testid=axis-bottom]")
+        .find(".sub-axis-wrapper")
+        .should("have.length", 1)
+
+        graph.getDisplayValuesButton().click()
+
+        graph.getInspectorPalette().should("be.visible")
+        cy.get("[data-testid=adornment-checkbox-connecting-lines]").should("be.visible")
+        cy.get("*[data-testid^=connecting-lines-graph]").find("path").should("not.exist")
+        gch.getGraphTileId().then((tileId: string) => {
+          gch.getPixiPointFillColors(tileId).then((colors) => {
+            cy.log(`Extracted Fill Colors: ${colors}`)
+            expect(colors).to.have.length(2) // Verify there are exactly 2 colors
+            expect(colors).to.deep.equal(["#E6805B", "#803E75"]) // Verify the colors are as expected
+          })
+        })
+      })
   })
   describe("checks for graph point position and color with pixi interaction", () => {
     // use this test to debug point positions when running locally

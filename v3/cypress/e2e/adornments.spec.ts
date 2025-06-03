@@ -399,6 +399,27 @@ context("Graph adornments", () => {
     cy.get("*[data-testid^=box-plot-label]").should("exist").should("not.be.visible")
     cy.get("*[data-testid^=box-plot-outlier]").should("not.exist")
     cy.get("*[data-testid^=box-plot-outlier-cover]").should("not.exist")
+
+    cy.log("updates box plot adornment when data changes")
+    c.selectTile("graph", 0)
+    cy.dragAttributeToTarget("table", "LifeSpan", "bottom")
+    cy.get("[data-testid=adornment-wrapper]").should("have.class", "visible")
+    cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid^=box-plot]").should("exist")
+    cy.get("*[data-testid^=box-plot-line]").should("exist")
+    cy.get("*[data-testid^=box-plot-cover]").should("exist")
+    cy.get("*[data-testid^=box-plot-range]").should("exist")
+    cy.get("*[data-testid^=box-plot-min]").should("exist")
+    cy.get("*[data-testid^=box-plot-min-cover]").should("exist")
+    cy.get("*[data-testid^=box-plot-max]").should("exist")
+    cy.get("*[data-testid^=box-plot-max-cover]").should("exist")
+    cy.get("*[data-testid^=box-plot-whisker-lower]").should("exist")
+    cy.get("*[data-testid^=box-plot-whisker-lower-cover]").should("exist")
+    cy.get("*[data-testid^=box-plot-whisker-upper]").should("exist")
+    cy.get("*[data-testid^=box-plot-whisker-upper-cover]").should("exist")
+    cy.get("*[data-testid^=box-plot-label]").should("exist").should("not.be.visible")
+    cy.get("*[data-testid^=box-plot-outlier]").should("not.exist")
+    cy.get("*[data-testid^=box-plot-outlier-cover]").should("not.exist")
+
   })
   it("adds normal curve adornment to the graph when Normal Curve checkbox is checked", () => {
     c.selectTile("graph", 0)
@@ -701,5 +722,50 @@ context("Graph adornments", () => {
     cy.wait(500)
     graph.getDisplayValuesButton().click()
     cy.get(".sub-count").should("have.length", 10).and("have.class", "y-axis").and("have.class", "binned-points-count")
+  })
+  it("creates a binned dot plot with categorical axes and verifies even stacks", () => {
+    // Set up categorical axes
+    c.selectTile("graph", 0)
+    cy.dragAttributeToTarget("table", "Diet", "bottom")
+    // Open the inspector panel first
+    graph.getDisplayValuesButton().click()
+    cy.wait(500) // Wait for the inspector panel to fully load
+
+    // Now try to access the display config button
+    cy.get("[data-testid=graph-display-config-button]").should("exist").click()
+    // Click the 'Fuse Dots into Bars' checkbox
+    cy.get('[data-testid=bar-chart-checkbox]').click()
+    cy.wait(500)
+
+    // Check that "both", "meat", and "plants" appear as x-axis tick labels
+    ae.getAxisTickLabels("bottom", true).then($labels => {
+      const labelTexts = [...$labels].map(el => el.textContent?.trim())
+      expect(labelTexts).to.include.members(["both", "meat", "plants"])
+      // Uniqueness and visibility
+      const uniqueLabels = new Set(labelTexts)
+      expect(uniqueLabels.size).to.equal(labelTexts.length)
+      Array.from($labels).forEach((el: HTMLElement) => {
+        const style = window.getComputedStyle(el)
+        expect(style.display).to.not.equal("none")
+        expect(style.visibility).to.not.equal("hidden")
+        expect(el.getAttribute("opacity")).to.not.equal("0")
+      })
+    })
+
+    // Check that "count" is the y-axis label
+    ae.getAxisLabel("left").should("contain.text", "Count")
+
+    // Check y-axis tick labels for uniqueness and visibility
+    ae.getAxisTickLabels("left", false).then($labels => {
+      const labelTexts = [...$labels].map(el => el.textContent?.trim())
+      const uniqueLabels = new Set(labelTexts)
+      expect(uniqueLabels.size).to.equal(labelTexts.length)
+      Array.from($labels).forEach((el: HTMLElement) => {
+        const style = window.getComputedStyle(el)
+        expect(style.display).to.not.equal("none")
+        expect(style.visibility).to.not.equal("hidden")
+        expect(el.getAttribute("opacity")).to.not.equal("0")
+      })
+    })
   })
 })
