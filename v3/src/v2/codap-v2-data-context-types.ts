@@ -1,5 +1,6 @@
 import { SetOptional } from "type-fest"
 import { AttributeType } from "../models/data/attribute-types"
+import { IV2CollectionDefaults } from "../models/shared/data-set-metadata"
 
 type ColorString = string // e.g. "#ff5586" or "rgb(85,85,255)"
 type ICodapV2CategoryOrder = { __order: string[] }
@@ -84,10 +85,7 @@ export interface ICodapV2Collection {
   collapseChildren?: boolean | null
   // TODO_V2_IMPORT_EXTRACT: defaults does not seem to be imported
   // There are 825 cases where it is defined in cfm-shared
-  defaults?: {
-    xAttr: string
-    yAttr: string
-  }
+  defaults?: IV2CollectionDefaults
   guid: number
   id?: number
   labels?: {
@@ -133,7 +131,7 @@ export interface ICodapV2DataContextMetadata {
 }
 
 export interface ICodapV2DataContext {
-  type: "DG.DataContext"
+  type: "DG.DataContext" | "DG.GameContext"
   document?: number // id of containing document
   guid: number
   // Ignored: when present it is always redundant with guid
