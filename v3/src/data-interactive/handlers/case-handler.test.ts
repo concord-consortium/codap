@@ -1,4 +1,4 @@
-import { toV2Id, toV3CaseId, toV3ItemId } from "../../utilities/codap-utils"
+import { toV2Id, toV3CaseId } from "../../utilities/codap-utils"
 import { DISuccessResult, DIValues } from "../data-interactive-types"
 import { DINewCase } from "../data-interactive-data-set-types"
 import { diCaseHandler } from "./case-handler"
@@ -11,14 +11,10 @@ describe("DataInteractive CaseHandler", () => {
     const { dataset, c1, c2 } = setupTestDataset()
 
     const oldCaseIds = new Set(Array.from(dataset.caseInfoMap.values()).map(aCase => toV2Id(aCase.groupedCase.__id__)))
-    const oldItemIds = new Set(dataset.items.map(item => toV2Id(item.__id__)))
     const confirmNewCase = (newCase: DINewCase) => {
       expect(newCase.id).toBeDefined()
-      expect(newCase.itemID).toBeDefined()
       expect(oldCaseIds.has(newCase.id!)).toBe(false)
-      expect(oldItemIds.has(newCase.itemID!)).toBe(false)
       expect(dataset.caseInfoMap.get(toV3CaseId(newCase.id!))).toBeDefined()
-      expect(dataset.getItem(toV3ItemId(newCase.itemID!))).toBeDefined()
     }
 
     expect(handler.create?.({}).success).toBe(false)
@@ -40,18 +36,29 @@ describe("DataInteractive CaseHandler", () => {
     const newCases = result?.values as DINewCase[]
     newCases.forEach(confirmNewCase)
 
-    // Creating a single case
-    const result2 = handler.create?.({ dataContext: dataset },
-      {
-        parent: dataset.getCasesForCollection(c1.id)[0].__id__,
-        values: { a2: "d", a3: 8 }
-      } as DIValues
-    )
+    // creating a single parent case
+    const result2 = handler.create?.({ dataContext: dataset, collection: c1 }, {
+      values: { a1: "d", a2: "d", a3: 8 }
+    } as DIValues)
     expect(result2?.success).toBe(true)
     expect(dataset.items.length).toBe(9)
+    expect(dataset.getCasesForCollection(c1.id).length).toBe(4)
     expect(dataset.getCasesForCollection(c2.id).length).toBe(6)
     const newCases2 = result2?.values as DINewCase[]
     newCases2.forEach(confirmNewCase)
+
+    // Creating a single child case
+    const result3 = handler.create?.({ dataContext: dataset },
+      {
+        parent: dataset.getCasesForCollection(c1.id)[0].__id__,
+        values: { a2: "e", a3: 9 }
+      } as DIValues
+    )
+    expect(result3?.success).toBe(true)
+    expect(dataset.items.length).toBe(10)
+    expect(dataset.getCasesForCollection(c2.id).length).toBe(7)
+    const newCases3 = result3?.values as DINewCase[]
+    newCases3.forEach(confirmNewCase)
   })
 
   it("update works as expected", () => {
