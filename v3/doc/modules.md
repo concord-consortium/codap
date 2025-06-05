@@ -96,3 +96,7 @@ For completeness there are also optional peer dependencies which are supported b
   - second run `npm run build:webpack  19.84s user 1.59s system 209% cpu 10.251 total`
 - Note: if the user tries to run an npm command they will currently see a message about an unsupported protocol for the patch dependencies.
 - Updating gitignore doing some other steps I don't remember, I ran `yarn start` again and this time I got complaints about `flat` and `flatMap` from typescript with the recommendation that I update the `lib` setting from es2018 to es2019. Doing that did fix the problems.
+- In VSCode need to install the ZipFS extension. It is listed in the recommended extensions by this repository. This makes it possible to open the definitions of types from dependencies in VSCode
+
+TODO:
+- document how to handle linking external libraries when using yarn

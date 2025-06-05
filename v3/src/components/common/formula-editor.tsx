@@ -4,10 +4,11 @@ import {
 } from "@codemirror/autocomplete"
 import { defaultKeymap } from "@codemirror/commands"
 import { defaultHighlightStyle, syntaxHighlighting, syntaxTree } from "@codemirror/language"
-import { Decoration, DecorationSet, keymap, ViewPlugin } from "@codemirror/view"
+import { Decoration, DecorationSet, keymap, EditorView, ViewPlugin } from "@codemirror/view"
+import { EditorState, StateField } from "@codemirror/state"
 import CodeMirror, {
-  drawSelection, EditorState, EditorView, Extension, KeyBinding, Prec, RangeSet, RangeSetBuilder, RangeValue,
-  ReactCodeMirrorRef, StateEffect, StateField, ViewUpdate
+  drawSelection, Extension, KeyBinding, Prec, RangeSet, RangeSetBuilder, RangeValue,
+  ReactCodeMirrorRef, StateEffect, ViewUpdate
 } from "@uiw/react-codemirror"
 import React, { useCallback, useRef } from "react"
 import { useMemo } from "use-memo-one"
