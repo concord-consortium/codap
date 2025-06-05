@@ -15,6 +15,16 @@ jobs:
       - uses: snow-actions/sparse-checkout@v1.2.0
         with:
           patterns: v3
+      - name: Install Corepack
+        # This is so yarn can be used correctly.
+        # Note with Node <= 24 it is included by default and and
+        # `corepack enable` can be used instead, but the current approach
+        # should work will all Node versions >= 18
+        # uninstalling the global yarn helps to make sure that the correct versions
+        # are being used
+        run: | 
+          npm uninstall -g yarn || true
+          npm install -g corepack
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -47,6 +57,16 @@ jobs:
       - uses: snow-actions/sparse-checkout@v1.2.0
         with:
           patterns: v3
+      - name: Install Corepack
+        # This is so yarn can be used correctly.
+        # Note with Node <= 24 it is included by default and and
+        # `corepack enable` can be used instead, but the current approach
+        # should work will all Node versions >= 18
+        # uninstalling the global yarn helps to make sure that the correct versions
+        # are being used
+        run: | 
+          npm uninstall -g yarn || true
+          npm install -g corepack
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -96,6 +116,16 @@ jobs:
       - uses: snow-actions/sparse-checkout@v1.2.0
         with:
           patterns: v3
+      - name: Install Corepack
+        # This is so yarn can be used correctly.
+        # Note with Node <= 24 it is included by default and and
+        # `corepack enable` can be used instead, but the current approach
+        # should work will all Node versions >= 18
+        # uninstalling the global yarn helps to make sure that the correct versions
+        # are being used
+        run: | 
+          npm uninstall -g yarn || true
+          npm install -g corepack
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -135,6 +165,21 @@ jobs:
       - uses: snow-actions/sparse-checkout@v1.2.0
         with:
           patterns: v3
+      - name: Install Corepack
+        # This is so yarn can be used correctly.
+        # Note with Node <= 24 it is included by default and and
+        # `corepack enable` can be used instead, but the current approach
+        # should work will all Node versions >= 18
+        # uninstalling the global yarn helps to make sure that the correct versions
+        # are being used
+        run: | 
+          npm uninstall -g yarn || true
+          npm install -g corepack
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'yarn'
+          cache-dependency-path: v3/yarn.lock
       - name: Restore Webpack Cache
         id: restore-webpack-cache
         uses: actions/cache/restore@v4

@@ -62,6 +62,21 @@ jobs:
           chrome-version: stable
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Install Corepack
+        # This is so yarn can be used correctly.
+        # Note with Node <= 24 it is included by default and and
+        # `corepack enable` can be used instead, but the current approach
+        # should work will all Node versions >= 18
+        # uninstalling the global yarn helps to make sure that the correct versions
+        # are being used
+        run: | 
+          npm uninstall -g yarn || true
+          npm install -g corepack
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'yarn'
+          cache-dependency-path: v3/yarn.lock
       - name: Restore Webpack Cache
         # Don't save the webpack cache because the same cache wil be saved
         # by the cypress job in `v3.yml`
@@ -72,7 +87,7 @@ jobs:
       - uses: cypress-io/github-action@v6
         with:
           working-directory: v3
-          install-command: yarn install
+          install-command: yarn install --immutable
           command: yarn run --binaries-only cypress run
           start: yarn start
           wait-on: 'http://localhost:8080'
