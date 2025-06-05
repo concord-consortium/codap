@@ -56,15 +56,16 @@ export const useAxis = (axisPlace: AxisPlace) => {
     attrId = dataConfiguration?.attributeID(axisPlaceToAttrRole[axisPlace]) || "",
     axisAttribute = dataConfiguration?.dataset?.getAttribute(attrId),
     axisAttributeType = axisAttribute?.type
+
   const computeDesiredExtent = useCallback(() => {
     if (dataConfiguration?.placeCanHaveZeroExtent(axisPlace)) {
       return 0
     }
     const _axisModel = axisProvider?.getNumericAxis?.(axisPlace)
     const attrRole = graphPlaceToAttrRole[axisPlace]
-    const axisType = axisModel?.type ?? 'empty'
-    const isColor = isColorAxisModel(axisModel) || axisAttributeType === 'color'
-    const isBinned = axisModel ? axisProvider?.hasBinnedNumericAxis(axisModel) : false
+    const axisType = _axisModel?.type ?? 'empty'
+    const isColor = isColorAxisModel(_axisModel) || axisAttributeType === 'color'
+    const isBinned = _axisModel ? axisProvider?.hasBinnedNumericAxis(_axisModel) : false
     const labelFont = vars.labelFont,
       axisTitleHeight = getStringBounds("Xy", labelFont).height,
       numbersHeight = getStringBounds('0').height,
@@ -77,7 +78,7 @@ export const useAxis = (axisPlace: AxisPlace) => {
       case 'percent':
       case 'numeric': {
         ticks = getTicks({d3Scale, isBinned, multiScale, displayModel})
-        desiredExtent += ['left', 'rightNumeric'].includes(axisPlace) || axisModel?.labelsAreRotated
+        desiredExtent += ['left', 'rightNumeric'].includes(axisPlace) || _axisModel?.labelsAreRotated
           ? Math.max(getStringBounds(ticks[0]).width, getStringBounds(ticks[ticks.length - 1]).width) + axisGap
           : numbersHeight + axisGap
         break
@@ -104,7 +105,7 @@ export const useAxis = (axisPlace: AxisPlace) => {
       }
     }
     return desiredExtent
-  }, [axisAttributeType, axisModel, axisPlace, axisProvider, dataConfiguration, displayModel,
+  }, [axisAttributeType, axisPlace, axisProvider, dataConfiguration, displayModel,
       isNumeric, layout, multiScale])
 
   // update d3 scale and axis when scale type changes
@@ -142,7 +143,7 @@ export const useAxis = (axisPlace: AxisPlace) => {
           layout.setDesiredExtent(axisPlace, computeDesiredExtent())
         }, { name: "useAxis.axisDomainSync", equals: comparer.structural }, axisProvider)
     }
-  }, [axisPlace, axisProvider, isNumeric, multiScale])
+  }, [axisPlace, axisProvider, computeDesiredExtent, isNumeric, layout, multiScale])
 
   // update desired extent as needed, but note that the axisModel domain is not called during this auto run
   useEffect(() => {
