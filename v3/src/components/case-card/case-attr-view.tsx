@@ -21,7 +21,7 @@ interface ICaseAttrViewProps {
   attr: IAttribute
   collection: ICollectionModel
   getDividerBounds?: GetDividerBoundsFn
-  groupedCase: IGroupedCase
+  groupedCase?: IGroupedCase
   isCollectionSummarized: boolean
   onSetContentElt?: (contentElt: HTMLDivElement | null) => HTMLElement | null
 }
@@ -29,12 +29,12 @@ interface ICaseAttrViewProps {
 export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrViewProps) {
   const { attr, collection, getDividerBounds, groupedCase, isCollectionSummarized, onSetContentElt } = props
   const { id, units } = attr || {}
-  const caseId = groupedCase.__id__
+  const caseId = groupedCase?.__id__ ?? ""
   const cardModel = useCaseCardModel()
   const data = cardModel?.data
   const cellValue = isCollectionSummarized
     ? cardModel?.summarizedValues(attr, collection)
-    : data?.getValue(groupedCase.__id__, id)
+    : data?.getValue(caseId, id)
   const displayStrValue = cellValue ? String(cellValue) : ""
   const displayNumValue = cellValue ? Number(cellValue) : NaN
   const showUnits = isFiniteNumber(displayNumValue) && !!units
