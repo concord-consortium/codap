@@ -81,7 +81,7 @@ export const CaseCardModel = TileContentModel
         const maxValue = Math.max(...numericValues)
         const minValueStr = formatter?.(minValue) ?? minValue.toString()
         const maxValueStr = formatter?.(maxValue) ?? maxValue.toString()
-        const valueString = minValueStr === maxValueStr ? minValueStr : `${minValueStr} - ${maxValueStr}`
+        const valueString = minValueStr === maxValueStr ? minValueStr : `${minValueStr}-${maxValueStr}`
         const attrUnits = attr.units ? ` ${attr.units}` : ""
         return `${valueString}${attrUnits}`
       } else {

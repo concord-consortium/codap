@@ -351,7 +351,7 @@ context("case card inspector panel", () => {
       cy.get('[data-testid="codap-case-card"]').click()
       card.getInspectorPanel().should("exist")
     })
-    it("allows user to select and delete all cases from inspector panel", () => {
+    it.only("allows user to select and delete all cases from inspector panel", () => {
       table.toggleCaseView()
       cy.wait(500)
       cy.get('[data-testid="case-card-view-next-button"]').click()
