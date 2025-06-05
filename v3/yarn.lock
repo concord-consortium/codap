@@ -2656,7 +2656,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@codemirror/state@npm:^6.0.0, @codemirror/state@npm:^6.1.1, @codemirror/state@npm:^6.4.0, @codemirror/state@npm:^6.5.0":
+"@codemirror/state@npm:^6.0.0, @codemirror/state@npm:^6.1.1, @codemirror/state@npm:^6.4.0, @codemirror/state@npm:^6.5.0, @codemirror/state@npm:^6.5.2":
   version: 6.5.2
   resolution: "@codemirror/state@npm:6.5.2"
   dependencies:
@@ -7150,6 +7150,7 @@ __metadata:
     "@codemirror/autocomplete": "npm:^6.18.6"
     "@codemirror/commands": "npm:^6.8.0"
     "@codemirror/language": "npm:^6.11.0"
+    "@codemirror/state": "npm:^6.5.2"
     "@codemirror/view": "npm:^6.36.4"
     "@concord-consortium/cloud-file-manager": "npm:^2.0.0-pre.7"
     "@concord-consortium/slate-editor": "npm:^0.10.1"

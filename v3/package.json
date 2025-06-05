@@ -201,6 +201,7 @@
     "@codemirror/autocomplete": "^6.18.6",
     "@codemirror/commands": "^6.8.0",
     "@codemirror/language": "^6.11.0",
+    "@codemirror/state": "^6.5.2",
     "@codemirror/view": "^6.36.4",
     "@concord-consortium/cloud-file-manager": "^2.0.0-pre.7",
     "@concord-consortium/slate-editor": "^0.10.1",

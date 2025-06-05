@@ -72,6 +72,8 @@ jobs:
       - uses: cypress-io/github-action@v6
         with:
           working-directory: v3
+          install-command: yarn install
+          command: yarn run --binaries-only cypress run
           start: yarn start
           wait-on: 'http://localhost:8080'
           # add timeout of 5 minutes to start

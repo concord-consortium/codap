@@ -1,6 +1,6 @@
 import { insertCompletionText, pickedCompletion } from "@codemirror/autocomplete"
 import { EditorView } from "@codemirror/view"
-import { EditorSelection } from "@uiw/react-codemirror"
+import { EditorSelection } from "@codemirror/state"
 import { createContext, useContext, useState } from "react"
 
 export class FormulaEditorApi {
