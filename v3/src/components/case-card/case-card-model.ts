@@ -1,7 +1,8 @@
 import { Instance, SnapshotIn, types } from "mobx-state-tree"
-import { IValueType, kDefaultNumPrecision } from "../../models/data/attribute-types"
+import { IAttribute } from "../../models/data/attribute"
+import { kDefaultNumPrecision } from "../../models/data/attribute-types"
 import { ICollectionModel } from "../../models/data/collection"
-import { ICaseCreation, IGroupedCase } from "../../models/data/data-set-types"
+import { ICaseCreation } from "../../models/data/data-set-types"
 import { getTileCaseMetadata, getTileDataSet } from "../../models/shared/shared-data-tile-utils"
 import { ISharedModel } from "../../models/shared/shared-model"
 import { ITileContentModel, TileContentModel } from "../../models/tiles/tile-content"
@@ -70,54 +71,35 @@ export const CaseCardModel = TileContentModel
         .map(childCaseId => self.data?.caseInfoMap.get(childCaseId)?.groupedCase)
         .filter(groupedCase => !!groupedCase)
     },
-    displayValues(collection: ICollectionModel, caseItem: IGroupedCase) {
-      const getNumericSummary = (numericValues: number[], attrUnits: string, attrPrecision: number): string => {
-        const formatStr = `.${attrPrecision}~f`
+    summarizedValues(attr: IAttribute, collection: ICollectionModel) {
+      // Returns a string summarizing the selected values of the attribute
+      if (attr.isNumeric) {
+        const numericValues = attr.numValues?.filter((_v, i) => attr.valueIsNumeric(i))
+        const formatStr = `.${attr.numPrecision ?? kDefaultNumPrecision}~f`
         const formatter = getNumFormatter(formatStr)
-        const minValue = formatter ? formatter(Math.min(...numericValues)) : Math.min(...numericValues)
-        const maxValue = formatter ? formatter(Math.max(...numericValues)) : Math.max(...numericValues)
-        return minValue === maxValue
-          ? `${minValue}${attrUnits ? ` ${attrUnits}` : ""}`
-          : `${minValue}-${maxValue}${attrUnits ? ` ${attrUnits}` : ""}`
-      }
-
-      const getCategoricalSummary = (uniqueValues: Set<IValueType>): string => {
-        const uniqueValuesArray = Array.from(uniqueValues)
-        if (uniqueValuesArray.length === 1) {
-          return `${uniqueValuesArray[0]}`
-        } else if (uniqueValuesArray.length === 2) {
-          return `${uniqueValuesArray[0]}, ${uniqueValuesArray[1]}`
-        } else {
-          return `${uniqueValuesArray.length} values`
-        }
-      }
-
-      if (self.summarizedCollections.includes(collection.id)) {
-        const summaryMap = collection?.attributes.reduce((acc: Record<string, string>, attr) => {
-          if (!attr || !attr.id) return acc
-
-          const selectedCases = self.data?.selection
-          const casesToUse = selectedCases && selectedCases.size >= 1
-            ? Array.from(selectedCases).map((id) => ({ __id__: id }))
-            : collection.cases
-          const allValues = casesToUse.map(c => self.data?.getValue(c.__id__, attr.id))
-          const uniqueValues = new Set(allValues)
-          const isNumeric = attr.numValues?.some((v, i) => attr.isNumeric(i))
-          let summary = ""
-
-          if (isNumeric) {
-            const numericValues = attr.numValues?.filter((v, i) => attr.isNumeric(i))
-            const attrUnits = attr.units ?? "" // self.data?.attrFromID(attr.id)?.units ?? ""
-            const attrPrecision = attr.numPrecision ?? kDefaultNumPrecision
-            summary = getNumericSummary(numericValues, attrUnits, attrPrecision)
-          } else {
-            summary = getCategoricalSummary(uniqueValues)
-          }
-          return { ...acc, [attr.id]: summary }
-        }, {})
-        return collection?.attributes.map(attr => attr?.id && summaryMap[attr.id]) ?? []
+        const minValue = Math.min(...numericValues)
+        const maxValue = Math.max(...numericValues)
+        const minValueStr = formatter?.(minValue) ?? minValue.toString()
+        const maxValueStr = formatter?.(maxValue) ?? maxValue.toString()
+        const valueString = minValueStr === maxValueStr ? minValueStr : `${minValueStr} - ${maxValueStr}`
+        const attrUnits = attr.units ? ` ${attr.units}` : ""
+        return `${valueString}${attrUnits}`
       } else {
-        return collection?.attributes.map(attr => attr?.id && self.data?.getValue(caseItem?.__id__, attr.id)) ?? []
+        const selectedCases = self.data?.selection
+        const casesToUse = selectedCases && selectedCases.size >= 1
+          ? Array.from(selectedCases).map((id) => ({ __id__: id }))
+          : collection.cases
+        const allValues = casesToUse.map(c => self.data?.getValue(c.__id__, attr.id))
+        const uniqueValues = new Set(allValues)
+        if (uniqueValues.size > 2) {
+          return `${uniqueValues.size} values`
+        } else {
+          const uniqueValuesArray = Array.from(uniqueValues)
+          if (uniqueValuesArray.length === 2) {
+            return `${uniqueValuesArray[0]}, ${uniqueValuesArray[1]}`
+          }
+          return `${uniqueValuesArray[0]}`
+        }
       }
     }
   }))

@@ -242,7 +242,7 @@ export const Attribute = V2Model.named("Attribute").props({
     const numValue = self.numValues[index]
     return !isNaN(numValue) ? numValue : self.strValues[index]
   },
-  isNumeric(index: number) {
+  valueIsNumeric(index: number) {
     return !isNaN(self.numValues[index])
   },
   numValue(index: number) {
@@ -257,6 +257,12 @@ export const Attribute = V2Model.named("Attribute").props({
   },
   derive(name?: string) {
     return { id: self.id, name: name || self.name, values: [] }
+  }
+}))
+.views(self => ({
+  get isNumeric() {
+    // An attribute is considered numeric if any of its values is a number.
+    return self.numValues.some(value => !isNaN(value))
   }
 }))
 .actions(self => ({
