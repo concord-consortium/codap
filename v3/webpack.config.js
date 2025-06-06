@@ -103,19 +103,29 @@ module.exports = (env, argv) => {
         {
           test: /.(ts|tsx)$/,
           include: path.resolve(__dirname, "src"),
-          use: process.env.CODE_COVERAGE ? { loader: "ts-loader" } : {
-            loader: "swc-loader",
-            options: {
-              jsc: {
-                parser: {
-                  syntax: "typescript",
-                  decorators: true,
-                  tsx: false,
-                  dynamicImport: false,
-                },
-              },
-            },
-          },
+          use: process.env.CODE_COVERAGE
+            ? {
+                loader: "ts-loader",
+                options: {
+                  // When we are compiling for CODE_COVERAGE we don't need type checking.
+                  // Also ts-loader with typechecking was causing errors which don't show up
+                  // with ForkTsCheckerWebpackPlugin for some reason.
+                  transpileOnly: true,
+                }
+              }
+            : {
+                loader: "swc-loader",
+                options: {
+                  jsc: {
+                    parser: {
+                      syntax: "typescript",
+                      decorators: true,
+                      tsx: false,
+                      dynamicImport: false,
+                    }
+                  }
+                }
+              }
         },
         // This code coverage instrumentation should only be added when needed. It makes
         // the code larger and slower
