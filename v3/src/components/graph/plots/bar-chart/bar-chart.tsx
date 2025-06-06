@@ -23,7 +23,7 @@ export const BarChart = observer(function BarChart({ abovePointsGroupRef, pixiPo
   const barChartModel = graphModel.plot
   const barCoversRef = useRef<SVGGElement>(null)
   const [, setModalIsOpen] = useState(false)
-  const formulaModal = useDisclosure()
+  const { onClose } = useDisclosure()
 
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
     if (!isBarChartModel(barChartModel)) return
@@ -196,7 +196,7 @@ export const BarChart = observer(function BarChart({ abovePointsGroupRef, pixiPo
   }
 
   const handleCloseModal = () => {
-    formulaModal.onClose()
+    onClose()
     handleModalOpen(false)
     barChartModel.setFormulaEditorIsOpen(false)
   }

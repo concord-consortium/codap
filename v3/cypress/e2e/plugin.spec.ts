@@ -180,7 +180,7 @@ context("codap plugins", () => {
       cy.wrap(graphId).as('graphId')
     })
     webView.clearAPITesterResponses()
-  
+
     cy.get('@graphId').then((graphId) => {
       cy.log("Handle get adornmentList request")
       const cmd2 = `{
@@ -418,8 +418,9 @@ context("codap plugins", () => {
     webView.confirmAPITesterResponseContains(/"action":\s"notify",\s"resource":\s"global/)
     slider.pauseSliderButton()
     webView.clearAPITesterResponses()
+  })
 
-    cy.log("Broadcast notifications involving dragging")
+  it('will broadcast notifications involving dragging attributes within the case table', () => {
     const url = `${Cypress.config("index")}?mouseSensor&noEntryModal`
     cy.visit(url)
     openAPITester()
@@ -439,17 +440,17 @@ context("codap plugins", () => {
     webView.clearAPITesterResponses()
 
     cy.log("Broadcast moveAttribute notifications")
-    // Move attribute within the ungrouped collection
+    cy.log("Move attribute within the ungrouped collection")
     table.moveAttributeToParent("newAttr", "headerDivider", 0)
-    // webView.confirmAPITesterResponseContains(/"operation":\s"moveAttribute/)
+    webView.confirmAPITesterResponseContains(/"operation":\s"moveAttribute/)
     webView.clearAPITesterResponses()
-    // Move attribute to a different collection
+    cy.log("Move attribute to a different collection")
     table.moveAttributeToParent("newAttr", "prevCollection")
-    // webView.confirmAPITesterResponseContains(/"operation":\s"moveAttribute/)
+    webView.confirmAPITesterResponseContains(/"operation":\s"moveAttribute/)
     webView.clearAPITesterResponses()
-    // Move attribute within a true collection
+    cy.log("Move attribute within a true collection")
     table.moveAttributeToParent("newAttr", "headerDivider", 2)
-    // webView.confirmAPITesterResponseContains(/"operation":\s"moveAttribute/)
+    webView.confirmAPITesterResponseContains(/"operation":\s"moveAttribute/)
     webView.clearAPITesterResponses()
 
     cy.log("Broadcast drag notifications")
@@ -464,30 +465,25 @@ context("codap plugins", () => {
     webView.clearAPITesterResponses()
     // TODO Check for dragleave notification when dragging to plugin then out of plugin
 
-    // For tests involving drag and drop of components with attribute "Attribute Name",
-    // we use a different drag and drop code because the cy.command version includes a
-    // "contains" expectation of text "Attribute Name", which it cannot find because it is over
-    // two spans. This code omits the "contains" expectation because the selector already has enough
-    // information without needing to find a specific text in a span
     cy.log("Broadcast deleteCollection notifications")
-    // Move the last attribute from the ungrouped collection to a new collection
-    table.moveTwoLineAttributeNameToTarget("Attribute Name", "newCollection")
+    cy.log("Move the last attribute from the ungrouped collection to a new collection")
+    cy.dragAttributeToTarget("table", "Attribute Name", "newCollection")
     webView.confirmAPITesterResponseContains(/"operation":\s"deleteCollection/)
     webView.confirmAPITesterResponseContains(/"operation":\s"createCollection/)
     webView.clearAPITesterResponses()
-    // Move the last attribute from a grouped collection to a new collection
-    table.moveTwoLineAttributeNameToTarget("Attribute Name", "newCollection")
+    cy.log("Move the last attribute from a grouped collection to a new collection")
+    cy.dragAttributeToTarget("table", "Attribute Name", "newCollection")
     webView.confirmAPITesterResponseContains(/"operation":\s"deleteCollection/)
     webView.confirmAPITesterResponseContains(/"operation":\s"createCollection/)
     webView.clearAPITesterResponses()
-    // Move the last attribute from a grouped collection to an existing collection
-    table.moveTwoLineAttributeNameToTarget("Attribute Name", "headerDivider", 2)
+    cy.log("Move the last attribute from a grouped collection to an existing collection")
+    cy.dragAttributeToTarget("table", "Attribute Name", "headerDivider", 1)
     webView.confirmAPITesterResponseContains(/"operation":\s"moveAttribute/)
     webView.confirmAPITesterResponseContains(/"operation":\s"deleteCollection/)
     webView.clearAPITesterResponses()
   })
 
-  it("will broadcoast deleteCollection when deleting the last attribute from a collection", () => {
+  it("will broadcast deleteCollection when deleting the last attribute from a collection", () => {
     cy.log("Broadcast deleteCollection notifications when deleting the final attribute")
     cfm.openExampleDocument("Four Seals")
     cy.wait(2000)

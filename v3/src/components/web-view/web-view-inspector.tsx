@@ -15,15 +15,7 @@ import "./web-view-inspector.scss"
 export const WebViewInspector = observer(function WebViewInspector({tile, show}: ITileInspectorPanelProps) {
   const documentContent = useDocumentContent()
   const webViewModel = isWebViewModel(tile?.content) ? tile?.content : undefined
-  const webViewModal = useDisclosure()
-
-  const handleSetWebViewUrlOpen = () => {
-    webViewModal.onOpen()
-  }
-
-  const handleSetWebViewUrlClose = () => {
-    webViewModal.onClose()
-  }
+  const { isOpen, onClose, onOpen } = useDisclosure()
 
   const handleSetWebViewUrlAccept = (url: string) => {
     if (!url.startsWith("https://") && !url.startsWith("http://")) {
@@ -42,7 +34,7 @@ export const WebViewInspector = observer(function WebViewInspector({tile, show}:
     <>
       <InspectorPanel component="web-view" show={show}>
         <InspectorButton
-          onButtonClick={handleSetWebViewUrlOpen}
+          onButtonClick={onOpen}
           showMoreOptions={false}
           testId={"web-view-edit-url-button"}
           tooltip={t("DG.Inspector.webViewEditURL.toolTip")}
@@ -50,12 +42,12 @@ export const WebViewInspector = observer(function WebViewInspector({tile, show}:
           <MediaToolIcon className="white-icon" />
         </InspectorButton>
       </InspectorPanel>
-      { webViewModal.isOpen &&
+      { isOpen &&
         <WebViewUrlModal
           currentValue={webViewModel?.url}
-          isOpen={webViewModal.isOpen}
+          isOpen={isOpen}
           onAccept={handleSetWebViewUrlAccept}
-          onClose={handleSetWebViewUrlClose}
+          onClose={onClose}
         />
       }
     </>

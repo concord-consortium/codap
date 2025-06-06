@@ -25,6 +25,19 @@ Cypress.Commands.add("clickWhenClickable", (selector: string, shouldCondition = 
   })
 })
 
+// Like `contains` but uses a regex to match the text, allowing for whitespace variations
+Cypress.Commands.add("containsText", (selector: string, text: string) => {
+  const textRegex = new RegExp(text.replace(/\s+/g, "\\s*"))
+  return cy.get(selector)
+          .filter((i, el) => textRegex.test(el.textContent || ""))
+          .first()
+          .should("exist")
+})
+
+function stringifyDOMRect(rect: DOMRect): string {
+  return `x: ${rect.x}, y: ${rect.y}, width: ${rect.width}, height: ${rect.height}`
+}
+
 Cypress.Commands.add("dragAttributeToTarget", (source, attribute, target, targetNumber) => {
   const el = {
     tableColumnHeader:
@@ -148,15 +161,15 @@ Cypress.Commands.add("dragAttributeToTarget", (source, attribute, target, target
   }
 
   cy.log("target_el", target_el)
-  cy.get(source_el).contains(attribute)
+  cy.containsText(source_el, attribute)
     .trigger("mousedown", { force: true })
     .then(() => {
       cy.get(target_el).eq(targetNumber ?? 0).then($target => {
         return $target[0].getBoundingClientRect()
       })
       .then($targetRect => {
-        cy.log("targetRect", $targetRect)
-        cy.get(source_el).contains(attribute).then($subject => {
+        cy.log("targetRect", stringifyDOMRect($targetRect))
+        cy.containsText(source_el, attribute).then($subject => {
           cy.mouseMoveBy($subject, $targetRect, { delay: 100 })
         })
       })
@@ -177,16 +190,14 @@ Cypress.Commands.add("clickToUnselect", (subject, options?: { delay: number }) =
 
 Cypress.Commands.add("mouseMoveBy",
   (subject, targetRect, options?: { delay: number }) => {
+    const clientX = Math.floor(targetRect.x + targetRect.width / 2)
+    const clientY = Math.floor(targetRect.y + targetRect.height / 2)
     cy.wrap(subject)
       .trigger("mousedown", { force: true })
       .wait(options?.delay || 0, { log: Boolean(options?.delay) })
-      .trigger("mousemove", {
-        force: true,
-        clientX: Math.floor(targetRect.x + targetRect.width / 2),
-        clientY: Math.floor(targetRect.y + targetRect.height / 2),
-      })
+      .trigger("mousemove", { clientX, clientY, force: true })
       .wait(options?.delay || 0, { log: Boolean(options?.delay) })
-      .trigger("mouseup", { force: true })
+      .trigger("mouseup", { clientX, clientY, force: true })
       .wait(options?.delay || 0, { log: Boolean(options?.delay) })
   })
 

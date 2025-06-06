@@ -67,6 +67,8 @@ function getCaseIdFromEvent(event: React.PointerEvent) {
   return caseId
 }
 
+const rowKey = (row: TRow) => row.__id__
+
 interface IProps {
   collectionIndex: number
   onMount: (collectionId: string) => void
@@ -118,7 +120,6 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
 
   // rows
   const { handleRowsChange } = useRows(gridRef.current?.element ?? null)
-  const rowKey = (row: TRow) => row.__id__
 
   const { setNodeRef } = useTileDroppable(`${kCollectionTableBodyDropZoneBaseId}-${collectionId}`)
 
@@ -188,7 +189,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
       }
     }, [columns, columnWidths, caseTableModel])
 
-  const handleAddNewAttribute = () => {
+  const handleAddNewAttribute = useCallback(() => {
     let attribute: IAttribute | undefined
     data?.applyModelChange(() => {
       const newAttrName = uniqueName(t("DG.CaseTable.defaultAttrName"),
@@ -205,7 +206,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
       log: logStringifiedObjectMessage("Create attribute: %@",
               {name: "newAttr", collection: data?.getCollection(collectionId)?.name, formula: ""}, "data")
     })
-  }
+  }, [collectionId, data])
 
   const showInputRow = !preventCollectionReorg(data, collectionId)
   const rows = useMemo(() => {
@@ -225,7 +226,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
 
   const { handleSelectedCellChange, navigateToNextRow } = useSelectedCell(gridRef, columns, rows)
 
-  function handleCellKeyDown(args: TCellKeyDownArgs, event: CellKeyboardEvent) {
+  const handleCellKeyDown = useCallback((args: TCellKeyDownArgs, event: CellKeyboardEvent) => {
     // By default in RDG, the enter/return key simply enters/exits edit mode without moving the
     // selected cell. In CODAP, the enter/return key should accept the edit _and_ advance to the
     // next row. To achieve this in RDG, we provide this callback, which is called before RDG
@@ -283,7 +284,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
         }
       }
     }
-  }
+  }, [collection, collectionId, data, navigateToNextRow, onScrollRowRangeIntoView])
 
   const handleClick = (event: React.PointerEvent<HTMLDivElement>) => {
     // See if mouse has moved beyond kMouseMovementThreshold since initial mousedown
@@ -400,19 +401,15 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
     stopAutoScroll()
   }, [stopAutoScroll])
 
-  if (!data || !rows || !visibleAttributes.length) return null
-
-  const dragId = String(active?.id)
-  const showDragOverlay = dragId.includes(kInputRowKey) && dragId.includes(collectionId)
-  const rowClass = (row: TRow) => {
+  const rowClass = useCallback((row: TRow) => {
     const caseIndex = collectionCaseIndexFromId(row.__id__, data, collectionId)
     const prevCaseIndex = caseIndex != null ? caseIndex - 1 : undefined
     const prevCaseId = prevCaseIndex != null ? collection?.caseIds[prevCaseIndex] : undefined
     const nextCaseIndex = caseIndex != null ? caseIndex + 1 : undefined
     const nextCaseId = nextCaseIndex != null ? collection?.caseIds[nextCaseIndex] : undefined
-    const prevCaseHasSelectedChild = !!prevCaseId && isAnyChildSelected(data, prevCaseId)
-    const hasSelectedChild = isAnyChildSelected(data, row.__id__)
-    const nextCaseHasSelectedChild = !!nextCaseId && isAnyChildSelected(data, nextCaseId)
+    const prevCaseHasSelectedChild = !!data && !!prevCaseId && isAnyChildSelected(data, prevCaseId)
+    const hasSelectedChild = !!data && isAnyChildSelected(data, row.__id__)
+    const nextCaseHasSelectedChild = !!data && !!nextCaseId && isAnyChildSelected(data, nextCaseId)
     const parentCaseChildren = data?.getParentCase(row.__id__, collectionId)?.childCaseIds ?? []
     const isLastChild = parentCaseChildren[parentCaseChildren.length - 1] === row.__id__
 
@@ -421,8 +418,12 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
       "highlight-border-bottom": hasSelectedChild && !nextCaseHasSelectedChild,
       "last-child-case": isLastChild
     })
-  }
+  }, [collection?.caseIds, collectionId, data])
 
+  if (!data || !rows || !visibleAttributes.length) return null
+
+  const dragId = String(active?.id)
+  const showDragOverlay = dragId.includes(kInputRowKey) && dragId.includes(collectionId)
   return (
     <div className={`collection-table collection-${collectionId}`}>
       <CollectionTableSpacer gridElt={gridRef.current?.element}
