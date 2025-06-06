@@ -4,7 +4,7 @@
     "esversion": 6,
     "node": true
   },
-  "typescript.tsdk": "./node_modules/typescript/lib",
+  "typescript.tsdk": ".yarn/sdks/typescript/lib",
   "cSpell.words": [
     "ccrte",
     "Chakra",
@@ -29,5 +29,11 @@
   ],
   "files.insertFinalNewline": true,
   "files.trimFinalNewlines": true,
-  "files.trimTrailingWhitespace": true
+  "files.trimTrailingWhitespace": true,
+  "search.exclude": {
+    "**/.yarn": true,
+    "**/.pnp.*": true
+  },
+  "eslint.nodePath": ".yarn/sdks",
+  "typescript.enablePromptUseWorkspaceTsdk": true
 }
