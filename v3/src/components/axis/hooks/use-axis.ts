@@ -61,7 +61,7 @@ export const useAxis = (axisPlace: AxisPlace) => {
     if (dataConfiguration?.placeCanHaveZeroExtent(axisPlace)) {
       return 0
     }
-    const _axisModel = axisProvider?.getNumericAxis?.(axisPlace)
+    const _axisModel = axisProvider?.getAxis?.(axisPlace)
     const attrRole = graphPlaceToAttrRole[axisPlace]
     const axisType = _axisModel?.type ?? 'empty'
     const isColor = isColorAxisModel(_axisModel) || axisAttributeType === 'color'
