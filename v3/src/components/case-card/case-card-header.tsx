@@ -1,79 +1,16 @@
 import { observer } from "mobx-react-lite"
 import React from "react"
 import { useCollectionContext } from "../../hooks/use-collection-context"
-import { IDataSet } from "../../models/data/data-set"
 import { createCasesNotification } from "../../models/data/data-set-notifications"
 import { IGroupedCase } from "../../models/data/data-set-types"
-import { setSelectedCases } from "../../models/data/data-set-utils"
 import { t } from "../../utilities/translation/translate"
 import { CollectionTitle } from "../case-tile-common/collection-title"
+import { CaseCardControls } from "./case-card-controls"
 import { useCaseCardModel } from "./use-case-card-model"
 
-import Arrow from "../../assets/icons/arrow.svg"
 import AddIcon from "../../assets/icons/add-data-icon.svg"
 
 import "./case-view.scss"
-
-interface ICaseCardControlsProps {
-  caseIndexText: string
-  cases: IGroupedCase[]
-  data?: IDataSet
-  displayedCaseIndex: number
-  isCollectionSummarized: boolean
-}
-
-function CaseCardControls({
-  caseIndexText, cases, data, displayedCaseIndex, isCollectionSummarized
-}: ICaseCardControlsProps) {
-  const renderCaseIndexText = () => {
-    return (
-      <span className="caseIndex" data-testid="case-card-view-index">
-        {caseIndexText}
-      </span>
-    )
-  }
-
-  if (cases.length === 0) {
-    return (
-      <div className="case-card-controls">
-        {renderCaseIndexText()}
-      </div>
-    )
-  }
-
-  const handleSelectCase = (delta: number) => {
-    const selectedCaseIndex = isCollectionSummarized
-                                ? delta < 0 ? cases.length - 1 : 0
-                                : displayedCaseIndex + delta
-    const newCase = cases[selectedCaseIndex]
-    if (!newCase.__id__) return
-    setSelectedCases([newCase.__id__], data)
-  }
-
-  const prevButtonDisabled = isCollectionSummarized || displayedCaseIndex === 0
-  const nextButtonDisabled = !isCollectionSummarized && displayedCaseIndex === cases.length - 1
-  return (
-    <div className="case-card-controls">
-      <button
-        className="arrow previous"
-        data-testid="case-card-view-previous-button"
-        disabled={prevButtonDisabled}
-        onClick={() => handleSelectCase(-1)}
-      >
-        <Arrow />
-      </button>
-      { renderCaseIndexText() }
-      <button
-        className="arrow next"
-        data-testid="case-card-view-next-button"
-        disabled={nextButtonDisabled}
-        onClick={() => handleSelectCase(+1)}
-      >
-        <Arrow />
-      </button>
-    </div>
-  )
-}
 
 interface ICaseHeaderProps {
   cases: IGroupedCase[]
