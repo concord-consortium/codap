@@ -102,15 +102,13 @@ For completeness there are also optional peer dependencies which are supported b
 
 ## Cypress Issues
 - Cypress used to have issues with PnP during the runtime but some of those are fixed: https://github.com/cypress-io/cypress/issues/8008 However component testing is apparently still broken.
-- Cypress can't import modules in the config file when PnP is being used, that is supposed to be fixed in Cypress 15: https://github.com/cypress-io/cypress/pull/31520
+- Cypress can't import modules in typescript or esm config files when PnP is being used, that is supposed to be fixed in Cypress 15: https://github.com/cypress-io/cypress/pull/31520 In the meantime the config file is switched to common js to work around this issue.
 
-Because Cypress config can't import modules we can't setup the "test runner" side of the code coverage stuff. Which requires adding `@cypress/code-coverage/task` to the config. I was able to get the compiling of the instrumented code to work though. The only work-arounds I see for this are:
-- disable cypress code coverage and wait for Cypress 15 to come out
-- switch yarn to the node_modules style module resolution
-- run cypress in a different directory which has node_modules
-- find a hacky way to temporarily patch cypress so its config parsing can import modules.
-- perhaps using a standard js file with require statements would be sufficient to work around this.
+## Linking to local external libraries
+From what I can tell `yalc` will continue to work with yarn PnP, but I haven't tested it.
 
-TODO:
-- document how to handle linking external libraries when using yarn
-- try to get cypress code coverage working
+Also modern yarn (>=2) supports a `portal:` protocol for dependencies. This https://yarnpkg.com/protocol/portal is like the `link:` protocol but it treats the package.json of the local package like any other package. This means that the dependencies of the local project are available correctly.
+
+The advantage of using the `portal:` approach is that changes in the local dependency should be available immediately to the main project. With `yalc` you have to explicitly republish the local dependency.
+
+The advantage of using `yalc` is that the local dependency will be built just like when it is published for real. This means any transpiled code and assets are processed the same way they would be when the package is published for real. Often this makes working local dependencies easier than trying to figure out why they aren't working with the direct link approach.
