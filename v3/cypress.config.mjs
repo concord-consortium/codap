@@ -1,4 +1,5 @@
 import path from 'path';
+import fs from 'fs';
 
 export default {
     video: false,
@@ -21,11 +22,13 @@ export default {
         setupNodeEvents(on, config) {// promisified fs module
             // Tasks for checking, clearing downloaded files.
             on("task", {
+                // This fails because of PnP isn't supported by Cypress, this might be fixed in Cypress 15
                 fileExists(filePath) {
                     return fs.existsSync(filePath)
                 }
             })
             on("task", {
+                // This fails because of PnP isn't supported by Cypress, this might be fixed in Cypress 15
                 clearFolder(folderPath) {
                     fs.rmdirSync(folderPath, { recursive: true });
                     fs.mkdirSync(folderPath);

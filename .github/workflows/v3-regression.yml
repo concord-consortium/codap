@@ -88,7 +88,7 @@ jobs:
         with:
           working-directory: v3
           install-command: yarn install --immutable
-          command: yarn run --binaries-only cypress run
+          command: yarn run --binaries-only cypress run ${{ !!secrets.CYPRESS_RECORD_KEY && '--record --parallel' || '' }}
           start: yarn start
           wait-on: 'http://localhost:8080'
           # add timeout of 5 minutes to start
