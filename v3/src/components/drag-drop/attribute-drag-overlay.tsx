@@ -1,5 +1,5 @@
 import { Active, DragOverlay, Modifier, Modifiers, useDndContext } from "@dnd-kit/core"
-import React, { CSSProperties } from "react"
+import React, { CSSProperties, useMemo } from "react"
 import { getDragAttributeInfo } from "../../hooks/use-drag-drop"
 
 import "./attribute-drag-overlay.scss"
@@ -27,16 +27,17 @@ export function AttributeDragOverlay ({
 
   const activeDragId = getOverlayDragId(active, dragIdPrefix, dragIdExcludeRegEx)
   const attr = activeDragId && dragAttrId ? dataSet?.attrFromID(dragAttrId) : undefined
-  const handleDropAnimation = (/*params: any*/) => {
-    /**
-     * If there has been no drop we would like to animate the overlay back to its original position.
-     * Otherwise, we don't want to animate it at all.
-     */
-  }
+  // const handleDropAnimation = (/*params: any*/) => {
+  //   /**
+  //    * If there has been no drop we would like to animate the overlay back to its original position.
+  //    * Otherwise, we don't want to animate it at all.
+  //    */
+  // }
 
   // Drags initiated by plugins can specify the size of the overlay
-  const style: CSSProperties | undefined = overlayHeight && overlayWidth
-    ? { height: `${overlayHeight}px`, width: `${overlayWidth}px` } : undefined
+  const style: CSSProperties | undefined = useMemo(() => overlayHeight && overlayWidth
+    ? { height: `${overlayHeight}px`, width: `${overlayWidth}px` }
+    : undefined, [overlayHeight, overlayWidth])
 
   // Drags initiated by plugins have to be offset based on the location of the plugin
   const modifier: Modifier | undefined = (xOffset || yOffset) ? (args => {
@@ -52,7 +53,7 @@ export function AttributeDragOverlay ({
   return (
     <DragOverlay
       className="dnd-kit-drag-overlay"
-      dropAnimation={handleDropAnimation}
+      // dropAnimation={handleDropAnimation}
       modifiers={modifiers}
       style={style}
     >
@@ -64,3 +65,6 @@ export function AttributeDragOverlay ({
     </DragOverlay>
   )
 }
+
+// This DnDKit component shows up as `Unknown` in tools like WhyDidYouRender
+DragOverlay.displayName = "DragOverlay"

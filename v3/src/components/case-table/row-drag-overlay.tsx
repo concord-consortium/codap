@@ -1,5 +1,5 @@
 import { DragOverlay, Modifier } from "@dnd-kit/core"
-import React from "react"
+import React, { useMemo } from "react"
 import DragIndicator from "../../assets/icons/drag-indicator.svg"
 import { ICase } from "../../models/data/data-set-types"
 import { kDefaultRowHeight, kInputRowKey } from "./case-table-types"
@@ -31,7 +31,7 @@ export function RowDragOverlay ({ rows, width }: IProps) {
   }
 
   const height = collectionTableModel?.rowHeight ?? kDefaultRowHeight
-  const style = { height, width: width ?? "100%" }
+  const style: React.CSSProperties = useMemo(() => ({ height, width: width ?? "100%" }), [height, width])
   return (
     <DragOverlay
       className="dnd-kit-drag-overlay"

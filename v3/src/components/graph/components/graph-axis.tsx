@@ -27,10 +27,12 @@ interface IProps {
   onTreatAttributeAs?: (place: GraphPlace, attrId: string, treatAs: AttributeType) => void
 }
 
+const trueFn = () => true
+
 export const GraphAxis = observer(function GraphAxis(
   {place, onDropAttribute, onRemoveAttribute, onTreatAttributeAs}: IProps) {
   const dataConfig = useGraphDataConfigurationContext(),
-    isDropAllowed = dataConfig?.placeCanAcceptAttributeIDDrop ?? (() => true),
+    isDropAllowed = dataConfig?.placeCanAcceptAttributeIDDrop ?? trueFn,
     graphModel = useGraphContentModelContext(),
     axisModel = graphModel.getAxis?.(place),
     instanceId = useInstanceIdContext(),
@@ -43,14 +45,14 @@ export const GraphAxis = observer(function GraphAxis(
       parentEltRef.current = elt?.closest(kGraphClassSelector) as HTMLDivElement ?? null
       _setWrapperElt(elt)
     }, [])
-  const handleIsActive = (active: Active) => {
+  const handleIsActive = useCallback((active: Active) => {
     const {dataSet, attributeId: droppedAttrId} = getDragAttributeInfo(active) || {}
     if (isDropAllowed) {
       return isDropAllowed(place, dataSet, droppedAttrId)
     } else {
       return !!droppedAttrId
     }
-  }
+  }, [isDropAllowed, place])
   useDropHandler(droppableId, active => {
     const {dataSet, attributeId: droppedAttrId} = getDragAttributeInfo(active) || {}
     dataSet && droppedAttrId && isDropAllowed(place, dataSet, droppedAttrId) &&
