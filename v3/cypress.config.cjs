@@ -1,7 +1,8 @@
-import path from 'path';
-import fs from 'fs';
+const path = require('path')
+const fs = require('fs');
+const codeCoverageTask = require('@cypress/code-coverage/task');
 
-export default {
+module.exports = {
     video: false,
     projectId: 'msrfxa',
     defaultCommandTimeout: 8000,
@@ -39,14 +40,14 @@ export default {
             const env = config.env.testEnv || 'local'
 
             // Disable code coverage because of issues with PnP
-            return { ...config,
+            return codeCoverageTask(on, { ...config,
                 // Hard code the local config for now to see if it works
                 ...{
                     "baseUrl": "http://localhost:8080",
                     "index": "/",
                     "v3ActivityPlayerUrl": "https://activity-player.concord.org/branch/master/?activity=https%3A%2F%2Fauthoring.lara.staging.concord.org%2Fapi%2Fv1%2Factivities%2F1178.json"
                 }
-            };
+            });
         },
         baseUrl: 'http://localhost:8080',
         specPattern: 'cypress/e2e/**/*.{js,jsx,ts,tsx}'
