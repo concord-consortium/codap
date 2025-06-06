@@ -50,12 +50,17 @@ export function AttributeDragOverlay ({
   }) : undefined
   const modifiers: Modifiers | undefined = modifier ? [modifier] : undefined
 
+  // Trigger a re-render at the end of the drag.
+  // Otherwise, dnd-kit doesn't always clean up the overlay properly.
+  const key = active?.id || "none"
+
   return (
     <DragOverlay
       className="dnd-kit-drag-overlay"
       // dropAnimation={handleDropAnimation}
       modifiers={modifiers}
       style={style}
+      key={key}
     >
       {attr
         ? <div className="attribute-drag-overlay">

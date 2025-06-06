@@ -180,7 +180,7 @@ context("codap plugins", () => {
       cy.wrap(graphId).as('graphId')
     })
     webView.clearAPITesterResponses()
-  
+
     cy.get('@graphId').then((graphId) => {
       cy.log("Handle get adornmentList request")
       const cmd2 = `{
@@ -418,8 +418,9 @@ context("codap plugins", () => {
     webView.confirmAPITesterResponseContains(/"action":\s"notify",\s"resource":\s"global/)
     slider.pauseSliderButton()
     webView.clearAPITesterResponses()
+  })
 
-    cy.log("Broadcast notifications involving dragging")
+  it('will broadcast notifications involving dragging', () => {
     const url = `${Cypress.config("index")}?mouseSensor&noEntryModal`
     cy.visit(url)
     openAPITester()
@@ -484,7 +485,7 @@ context("codap plugins", () => {
     table.moveTwoLineAttributeNameToTarget("Attribute Name", "headerDivider", 2)
     webView.confirmAPITesterResponseContains(/"operation":\s"moveAttribute/)
     webView.confirmAPITesterResponseContains(/"operation":\s"deleteCollection/)
-    webView.clearAPITesterResponses()
+    // webView.clearAPITesterResponses()
   })
 
   it("will broadcoast deleteCollection when deleting the last attribute from a collection", () => {

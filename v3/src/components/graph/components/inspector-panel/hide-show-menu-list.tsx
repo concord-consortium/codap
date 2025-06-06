@@ -17,7 +17,7 @@ interface IProps {
 export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProps) {
   const graphModel = tile && isAlive(tile) && isGraphContentModel(tile?.content) ? tile?.content : undefined
   const dataConfig = graphModel?.dataConfiguration
-  const formulaModal = useDisclosure()
+  const { isOpen, onClose, onOpen } = useDisclosure()
 
   const hideSelectedCases = () => {
     dataConfig?.applyModelChange(
@@ -76,15 +76,15 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
         log: logMessageWithReplacement("Change filter formula to %@", {formula})
       }
     )
-    formulaModal.onClose()
+    onClose()
   }
 
   const handleEditFormulaOpen = () => {
-    formulaModal.onOpen()
+    onOpen()
   }
 
   const handleEditFormulaClose = () => {
-    formulaModal.onClose()
+    onClose()
   }
 
   const handleParentTogglesChange = () => {
@@ -162,7 +162,7 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
         <DataSetContext.Provider value={dataConfig.dataset}>
           <EditFormulaModal
             applyFormula={applyFilterFormula}
-            isOpen={formulaModal.isOpen}
+            isOpen={isOpen}
             onClose={handleEditFormulaClose}
             titleLabel={t("V3.hideShowMenu.filterFormulaPrompt")}
             value={dataConfig.filterFormula?.display} />

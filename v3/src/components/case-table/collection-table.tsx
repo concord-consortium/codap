@@ -67,6 +67,8 @@ function getCaseIdFromEvent(event: React.PointerEvent) {
   return caseId
 }
 
+const rowKey = (row: TRow) => row.__id__
+
 interface IProps {
   collectionIndex: number
   onMount: (collectionId: string) => void
@@ -118,7 +120,6 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
 
   // rows
   const { handleRowsChange } = useRows(gridRef.current?.element ?? null)
-  const rowKey = (row: TRow) => row.__id__
 
   const { setNodeRef } = useTileDroppable(`${kCollectionTableBodyDropZoneBaseId}-${collectionId}`)
 
@@ -225,7 +226,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
 
   const { handleSelectedCellChange, navigateToNextRow } = useSelectedCell(gridRef, columns, rows)
 
-  function handleCellKeyDown(args: TCellKeyDownArgs, event: CellKeyboardEvent) {
+  const handleCellKeyDown = useCallback((args: TCellKeyDownArgs, event: CellKeyboardEvent) => {
     // By default in RDG, the enter/return key simply enters/exits edit mode without moving the
     // selected cell. In CODAP, the enter/return key should accept the edit _and_ advance to the
     // next row. To achieve this in RDG, we provide this callback, which is called before RDG
@@ -283,7 +284,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
         }
       }
     }
-  }
+  }, [collection, collectionId, data, navigateToNextRow, onScrollRowRangeIntoView])
 
   const handleClick = (event: React.PointerEvent<HTMLDivElement>) => {
     // See if mouse has moved beyond kMouseMovementThreshold since initial mousedown
