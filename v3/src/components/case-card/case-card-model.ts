@@ -74,7 +74,7 @@ export const CaseCardModel = TileContentModel
     summarizedValues(attr: IAttribute, collection: ICollectionModel) {
       // Returns a string summarizing the selected values of the attribute
       if (attr.isNumeric) {
-        const numericValues = attr.numValues?.filter((_v, i) => attr.valueIsNumeric(i))
+        const numericValues = attr.numValues.filter((_v, i) => attr.valueIsNumeric(i))
         const formatStr = `.${attr.numPrecision ?? kDefaultNumPrecision}~f`
         const formatter = getNumFormatter(formatStr)
         const minValue = Math.min(...numericValues)
