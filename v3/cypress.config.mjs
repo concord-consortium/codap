@@ -1,8 +1,6 @@
-import { defineConfig } from 'cypress'
-import fs from 'fs-extra';
 import path from 'path';
 
-export default defineConfig({
+export default {
     video: false,
     projectId: 'msrfxa',
     defaultCommandTimeout: 8000,
@@ -21,12 +19,6 @@ export default defineConfig({
         // We've imported your old cypress plugins here.
         // You may want to clean this up later by importing these.
         setupNodeEvents(on, config) {// promisified fs module
-            function getConfigurationByFile(file) {
-                const pathToConfigFile = path.resolve('.', 'cypress/config', `cypress.${file}.json`)
-
-                return fs.readJson(pathToConfigFile)
-            }
-
             // Tasks for checking, clearing downloaded files.
             on("task", {
                 fileExists(filePath) {
@@ -43,12 +35,17 @@ export default defineConfig({
 
             const env = config.env.testEnv || 'local'
 
-            return getConfigurationByFile(env)
-                .then(envConfig => {
-                    return require('@cypress/code-coverage/task')(on, { ...config, ...envConfig });
-                });
+            // Disable code coverage because of issues with PnP
+            return { ...config,
+                // Hard code the local config for now to see if it works
+                ...{
+                    "baseUrl": "http://localhost:8080",
+                    "index": "/",
+                    "v3ActivityPlayerUrl": "https://activity-player.concord.org/branch/master/?activity=https%3A%2F%2Fauthoring.lara.staging.concord.org%2Fapi%2Fv1%2Factivities%2F1178.json"
+                }
+            };
         },
         baseUrl: 'http://localhost:8080',
         specPattern: 'cypress/e2e/**/*.{js,jsx,ts,tsx}'
     },
-})
+}
