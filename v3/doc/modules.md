@@ -100,5 +100,17 @@ For completeness there are also optional peer dependencies which are supported b
 - Cypress used to have issues with PnP during the runtime but some of those are fixed: https://github.com/cypress-io/cypress/issues/8008 However component testing is apparently still broken.
 - Cypress can't import modules in the config file when PnP is being used, that sounds like it will be fixed in Cypress 15: https://github.com/cypress-io/cypress/pull/31520
 
+## Cypress Issues
+- Cypress used to have issues with PnP during the runtime but some of those are fixed: https://github.com/cypress-io/cypress/issues/8008 However component testing is apparently still broken.
+- Cypress can't import modules in the config file when PnP is being used, that is supposed to be fixed in Cypress 15: https://github.com/cypress-io/cypress/pull/31520
+
+Because Cypress config can't import modules we can't setup the "test runner" side of the code coverage stuff. Which requires adding `@cypress/code-coverage/task` to the config. I was able to get the compiling of the instrumented code to work though. The only work-arounds I see for this are:
+- disable cypress code coverage and wait for Cypress 15 to come out
+- switch yarn to the node_modules style module resolution
+- run cypress in a different directory which has node_modules
+- find a hacky way to temporarily patch cypress so its config parsing can import modules.
+- perhaps using a standard js file with require statements would be sufficient to work around this.
+
 TODO:
 - document how to handle linking external libraries when using yarn
+- try to get cypress code coverage working
