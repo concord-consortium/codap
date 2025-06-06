@@ -88,20 +88,17 @@ jobs:
         with:
           working-directory: v3
           install-command: yarn install --immutable
-          command: yarn run --binaries-only cypress run ${{ !!secrets.CYPRESS_RECORD_KEY && '--record --parallel' || '' }}
+          # TODO: this currently will re-run the smoke test, once we have a dedicated smoke
+          # test that should be excluded
+          command: > 
+            yarn run --binaries-only cypress run 
+            ${{ !!secrets.CYPRESS_RECORD_KEY && '--record --parallel' || '' }}
+            --browser chrome
+            --group 'Regression Tests'
           start: yarn start
           wait-on: 'http://localhost:8080'
           # add timeout of 5 minutes to start
           wait-on-timeout: 300
-          # only record the results to dashboard.cypress.io if CYPRESS_RECORD_KEY is set
-          record: ${{ !!secrets.CYPRESS_RECORD_KEY }}
-          # only do parallel if we have a record key
-          parallel: ${{ !!secrets.CYPRESS_RECORD_KEY }}
-          browser: chrome
-          # TODO: this currently will re-run the smoke test, once we have a dedicated smoke
-          # test that should be excluded
-          # spec: cypress/e2e/**
-          group: 'Regression Tests'
         env:
           # pass the Dashboard record key as an environment variable
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
