@@ -17,6 +17,9 @@ $table-body-font-size: 8pt;
     height: 100%;
     display: flex;
     overflow: auto hidden;
+    ::-webkit-scrollbar {
+      height: 16px;
+    }
 
     .collection-table {
       height: 100%;
