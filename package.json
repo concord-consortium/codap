@@ -1,0 +1,10 @@
+{
+  "private": true,
+  "workspaces": [
+    "v3"
+  ],
+  "devDependencies": {
+    "eslint": "^9.28.0",
+    "typescript": "^5.8.3"
+  }
+}

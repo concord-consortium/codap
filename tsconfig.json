@@ -1,0 +1,7 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./v3" }
+    // Add other workspaces here as needed
+  ]
+}
