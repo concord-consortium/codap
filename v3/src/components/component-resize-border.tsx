@@ -10,6 +10,7 @@ interface IProps {
 }
 
 export function ComponentResizeBorder({ componentRef, containerRef, edge, onPointerDown }: IProps) {
+  const kOverlap = 2
   const kResizeBorderSize = 8
   const kResizeHandleSize = 22
 
@@ -24,16 +25,16 @@ export function ComponentResizeBorder({ componentRef, containerRef, edge, onPoin
     switch (edge) {
       case "left":
         top = componentBounds.top - containerBounds.top + kTitleBarHeight
-        left = componentBounds.left - containerBounds.left - kResizeBorderSize
+        left = componentBounds.left - containerBounds.left - kResizeBorderSize + kOverlap
         height = componentBounds.height - kTitleBarHeight
         break
       case "right":
         top = componentBounds.top - containerBounds.top + kTitleBarHeight
-        left = componentBounds.right - containerBounds.left
+        left = componentBounds.right - containerBounds.left - kOverlap
         height = componentBounds.height - kTitleBarHeight - kResizeHandleSize
         break
       case "bottom":
-        top = componentBounds.bottom - containerBounds.top
+        top = componentBounds.bottom - containerBounds.top - kOverlap
         left = componentBounds.left - containerBounds.left
         width = componentBounds.width - kResizeHandleSize
     }
