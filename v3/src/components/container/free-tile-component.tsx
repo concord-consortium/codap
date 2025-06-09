@@ -1,17 +1,21 @@
-import { useMergeRefs } from "@chakra-ui/react"
+import { Portal, useMergeRefs } from "@chakra-ui/react"
 import { useDndContext } from "@dnd-kit/core"
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import React, { PointerEvent, useCallback, useEffect, useRef, useState } from "react"
+import ResizeHandle from "../../assets/icons/icon-corner-resize-handle.svg"
 import { ComponentWrapperContext } from "../../hooks/use-component-wrapper-context"
 import { getDragTileId, IUseDraggableTile, useDraggableTile } from "../../hooks/use-drag-drop"
+import { useTileContainerContext } from "../../hooks/use-tile-container-context"
+import { logMessageWithReplacement } from "../../lib/log-message"
 import { IFreeTileLayout, IFreeTileRow, isFreeTileRow } from "../../models/document/free-tile-row"
 import { getTileComponentInfo } from "../../models/tiles/tile-component-info"
 import { ITileModel } from "../../models/tiles/tile-model"
-import { CodapComponent } from "../codap-component"
-import { kTitleBarHeight } from "../constants"
+import { uiState } from "../../models/ui-state"
 import { urlParams } from "../../utilities/url-params"
-import { logMessageWithReplacement } from "../../lib/log-message"
+import { CodapComponent } from "../codap-component"
+import { ComponentResizeBorder } from "../component-resize-border"
+import { kTitleBarHeight } from "../constants"
 
 interface IProps {
   row: IFreeTileRow
@@ -21,6 +25,7 @@ interface IProps {
 
 export const FreeTileComponent = observer(function FreeTileComponent({ row, tile, onCloseTile}: IProps) {
   const { active } = useDndContext()
+  const containerRef = useTileContainerContext()
   const componentRef = useRef<HTMLDivElement | null>(null)
   const { id: tileId, content: { type: tileType } } = tile
   const [useDefaultCreationStyle, setUseDefaultCreationStyle] = useState(row.animateCreationTiles.has(tileId))
@@ -84,10 +89,6 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
     const startPosition = {x: e.pageX, y: e.pageY}
 
     let resizingWidth = startWidth, resizingHeight = startHeight, resizingLeft = tileLayout.x
-    // Because user can start drag 8px within the border, the component's startPosition.x moves by number of pixels
-    // the pointer down event location, which moves the entire component to the right by the same number of pixels.
-    // So we force it to always be the left position of the component
-    // const startLeft = startPosition.x > tile.x ? tile.x : startPosition.x
     const startLeft = tileLayout.x
 
     const onPointerMove = (pointerMoveEvent: { pageX: number; pageY: number }) => {
@@ -193,21 +194,45 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
 
   if (!info || (rowTile?.isHidden && !info.renderWhenHidden)) return null
 
+  const { isFixedWidth, isFixedHeight } = info
+  const { isMinimized } = rowTile || {}
+
   return (
     <ComponentWrapperContext.Provider value={componentRef}>
       <div id={tileId} className={classes} style={style} key={tileId} ref={mergedComponentRef}
           data-tile-z-index={zIndex}>
         {tile && rowTile &&
-          <CodapComponent tile={tile}
-            isMinimized={rowTile.isMinimized}
-            onMinimizeTile={handleMinimizeTile}
-            onCloseTile={onCloseTile}
-            onBottomRightPointerDown={handleBottomRightPointerDown}
-            onBottomLeftPointerDown={handleBottomLeftPointerDown}
-            onRightPointerDown={handleRightPointerDown}
-            onBottomPointerDown={handleBottomPointerDown}
-            onLeftPointerDown={handleLeftPointerDown}
-          />
+          <>
+            <CodapComponent tile={tile}
+              isMinimized={isMinimized}
+              onMinimizeTile={handleMinimizeTile}
+              onCloseTile={onCloseTile}
+            />
+            {!isMinimized &&
+              <>
+                <Portal containerRef={containerRef}>
+                  {!isFixedWidth &&
+                    <ComponentResizeBorder edge="left" onPointerDown={handleLeftPointerDown}
+                        componentRef={componentRef} containerRef={containerRef} />}
+                  {!isFixedWidth &&
+                    <ComponentResizeBorder edge="right" onPointerDown={handleRightPointerDown}
+                        componentRef={componentRef} containerRef={containerRef} />}
+                  {!isFixedHeight &&
+                    <ComponentResizeBorder edge="bottom" onPointerDown={handleBottomPointerDown}
+                        componentRef={componentRef} containerRef={containerRef} />}
+                </Portal>
+                {!(isFixedWidth && isFixedHeight) &&
+                  <div className="codap-component-corner bottom-left" onPointerDown={handleBottomLeftPointerDown}/>
+                }
+                {!(isFixedWidth && isFixedHeight) &&
+                  <div className="codap-component-corner bottom-right" onPointerDown={handleBottomRightPointerDown}>
+                    {(uiState.isFocusedTile(tile.id)) &&
+                      <ResizeHandle className="component-resize-handle"/>}
+                  </div>
+                }
+              </>
+            }
+          </>
         }
       </div>
     </ComponentWrapperContext.Provider>
