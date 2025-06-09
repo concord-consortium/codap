@@ -9,6 +9,7 @@ import { uniqueName } from "../../../utilities/js-utils"
 import { preventCollectionReorg } from "../../../utilities/plugin-utils"
 import { t } from "../../../utilities/translation/translate"
 import { IMenuItem, StdMenuList } from "../std-menu-list"
+import { convertDatasetToCsv } from "../../../utilities/csv-import"
 
 export const RulerMenuList = observer(function RulerMenuList() {
   const data = useDataSetContext()
@@ -61,7 +62,10 @@ export const RulerMenuList = observer(function RulerMenuList() {
       itemKey: "DG.Inspector.exportCaseData"
     },
     {
-      itemKey: "DG.Inspector.copyCaseDataToClipboard"
+      itemKey: "DG.Inspector.copyCaseDataToClipboard",
+      handleClick: () => {
+        if (data) navigator.clipboard.writeText(convertDatasetToCsv(data))
+      }
     },
     {
       itemKey: "DG.Inspector.getCaseDataFromClipboard"

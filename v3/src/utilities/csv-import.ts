@@ -1,5 +1,6 @@
 import { parse, ParseResult } from "papaparse"
-import { DataSet } from "../models/data/data-set"
+import { ICollectionModel } from "../models/data/collection"
+import { DataSet, IDataSet } from "../models/data/data-set"
 
 type RowType = Record<string, string>
 export type CsvParseResult = ParseResult<RowType>
@@ -32,4 +33,41 @@ export function convertParsedCsvToDataSet(results: CsvParseResult, filename: str
   ds.addCases(results.data, { canonicalize: true })
 
   return ds
+}
+
+export function convertDatasetToCsv(dataset: IDataSet, collection?: ICollectionModel) {
+  let csv = `# name: ${dataset.name}\n`
+
+  const attrs = collection?.attributesArray ?? dataset.attributes
+  attrs.forEach(attr => {
+    // FIXME: escape commas
+    csv += `# attribute -- name: ${attr.name}`
+    if (attr.description) csv += `, description: ${attr.description}`
+    if (attr.type) csv += `, type: ${attr.type}`
+    if (attr.units) csv += `, unit: ${attr.units}`
+    // FIXME: handle editable, maybe other properties
+    csv += "\n"
+  })
+
+  attrs.forEach((attr, index) => {
+    // FIXME: escape commas
+    const commaString = index === 0 ? "" : ","
+    csv += `${commaString}${attr.name}`
+  })
+  csv += "\n"
+
+  const caseOrItemIds = collection?.caseIds ?? dataset.itemIds
+  caseOrItemIds.forEach((caseOrItemId, index) => {
+    // FIXME: escape commas
+    const itemIndex = dataset.getItemIndexForCaseOrItem(caseOrItemId)
+    if (itemIndex) {
+      attrs.forEach((attr, attrIndex) => {
+        const commaString = attrIndex === 0 ? "" : ","
+        csv += `${commaString}${attr.strValue(itemIndex)}`
+      })
+      if (index < caseOrItemIds.length - 1) csv += "\n"
+    }
+  })
+
+  return csv
 }
