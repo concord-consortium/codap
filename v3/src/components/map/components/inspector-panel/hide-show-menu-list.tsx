@@ -9,7 +9,7 @@ import {ITileContentModel} from "../../../../models/tiles/tile-content"
 import {ITileModel} from "../../../../models/tiles/tile-model"
 import {t} from "../../../../utilities/translation/translate"
 import { EditFormulaModal } from "../../../common/edit-formula-modal"
-import {IMapContentModel, isMapContentModel} from "../../models/map-content-model"
+import { IMapContentModel, isMapContentModel } from "../../models/map-content-model"
 
 interface IProps {
   tile?: ITileModel
