@@ -103,7 +103,7 @@ export default [{
     "curly": ["error", "multi-line", "consistent"],
     "dot-notation": "error",
     "eqeqeq": ["error", "smart"],
-    "import/no-cycle": ["warn", { ignoreExternal: true, disableScc: true }],
+    // "import/no-cycle": ["warn", { ignoreExternal: true, disableScc: true }],
     "import/no-extraneous-dependencies": "warn",
     "import/no-useless-path-segments": "warn",
     "no-bitwise": "error",

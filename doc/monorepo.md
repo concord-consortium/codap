@@ -6,11 +6,28 @@ ESLint is installed at the root of the project so that Yarn PnP can patch it and
 
 It is not currently possible to lint the entire workspace. Each subfolder has to be linted individually.
 
+The eslint plugin is supported but continues to be slow. It required adding extra dependencies using Yarn's `packageExtensions` configuration. See below for a potential solution.
+
 # TODO
 
 ## ESLint
-Check that we can successfully run ESLint on the `v3` workspace. It might be necessary to use an experimental flag so eslint finds the closest config file, but that might only be necessary if we want to run eslint at the root of the project and have it figure things out correctly.
 
+**Re-enable the import cycle rule**
+
+ESLint successfully works in the `v3` workspace. However with the import plugin enabled it is really slow.
+
+With all of the import rules and plugin disabled:
+`yarn eslint  30.34s user 2.17s system 189% cpu 17.161 total`
+
+With the rules enabled:
+`yarn lint  133.40s user 12.03s system 122% cpu 1:58.54 total`
+
+With just the import cycle disabled:
+`yarn lint  45.20s user 3.03s system 170% cpu 28.328 total`
+
+The eslint-import-plugin-x is supposed to be faster. It uses a rust library to parse the imports but this is crashing when it encounters our "mobx-state-tree" overridden import. I've submitted a issue with a minimal reproduction and I'm hopeful it will get fixed by the maintainer. https://github.com/un-ts/eslint-plugin-import-x/issues/379
+
+I think also that eslint-import-plugin-x will not require the `packageExtensions` configuration.
 
 ## Typescript Language Server
 When I run `yarn dlx @yarnpkg/sdks --verbose vscode` at the root I get Eslint and Typescript sdks installed but I also get:
