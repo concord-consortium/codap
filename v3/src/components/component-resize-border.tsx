@@ -10,7 +10,8 @@ interface IProps {
 }
 
 export function ComponentResizeBorder({ componentRef, containerRef, edge, onPointerDown }: IProps) {
-  console.log("ComponentResizeBorder", "edge:", edge)
+  const kResizeBorderSize = 8
+  const kResizeHandleSize = 22
 
   let top = 0
   let left = 0
@@ -20,9 +21,6 @@ export function ComponentResizeBorder({ componentRef, containerRef, edge, onPoin
   const componentBounds = componentRef.current?.getBoundingClientRect()
   const containerBounds = containerRef.current?.getBoundingClientRect()
   if (componentBounds && containerBounds) {
-    const kResizeBorderSize = 8
-    const kResizeHandleSize = 22
-
     switch (edge) {
       case "left":
         top = componentBounds.top - containerBounds.top + kTitleBarHeight
