@@ -10,7 +10,7 @@ import { IDividerProps, kIndexColumnKey } from "./case-tile-types"
 import { kAttributeDividerDropZoneBaseId } from "../case-table/case-table-drag-drop"
 import { useAttributeHeaderDividerContext } from "./use-attribute-header-divider-context"
 
-export const AttributeHeaderDivider = ({ before = false, columnKey, cellElt, getDividerBounds }: IDividerProps) => {
+function AttributeHeaderDivider_({ before = false, columnKey, cellElt, getDividerBounds }: IDividerProps) {
   const collectionId = useCollectionContext()
   const droppableId = `${kAttributeDividerDropZoneBaseId}:${collectionId}:${columnKey}`
   const dataset = useDataSetContext()
@@ -54,3 +54,5 @@ export const AttributeHeaderDivider = ({ before = false, columnKey, cellElt, get
       ), containerElt)
     : null
 }
+
+export const AttributeHeaderDivider = React.memo(AttributeHeaderDivider_)

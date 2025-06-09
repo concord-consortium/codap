@@ -11,19 +11,12 @@ import "./tool-shelf.scss"
 
 export const OptionsShelfButton = () => {
   const documentContent = useDocumentContent()
-  const webViewModal = useDisclosure()
-
-  const handleSetWebViewUrlOpen = () => {
-    webViewModal.onOpen()
-  }
-
-  const handleSetWebViewUrlClose = () => {
-    webViewModal.onClose()
-  }
+  const { isOpen, onClose, onOpen } = useDisclosure()
 
   const handleSetWebViewUrlAccept = (url: string) => {
     showWebView(url, documentContent)
   }
+
   return (
     <>
       <Menu isLazy>
@@ -40,16 +33,16 @@ export const OptionsShelfButton = () => {
           />
         </MenuButton>
         <MenuList>
-          <MenuItem data-testid="tool-shelf-button-web-view" onClick={handleSetWebViewUrlOpen}>
+          <MenuItem data-testid="tool-shelf-button-web-view" onClick={onOpen}>
             {t("DG.AppController.optionMenuItems.viewWebPage")}
           </MenuItem>
         </MenuList>
       </Menu>
-      { webViewModal.isOpen &&
+      { isOpen &&
         <WebViewUrlModal
-          isOpen={webViewModal.isOpen}
+          isOpen={isOpen}
           onAccept={handleSetWebViewUrlAccept}
-          onClose={handleSetWebViewUrlClose}
+          onClose={onClose}
         />
       }
     </>

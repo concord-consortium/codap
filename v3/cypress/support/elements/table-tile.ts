@@ -323,31 +323,6 @@ export const TableTileElements = {
   moveAttributeToParent(name: string, moveType: string, targetNumber?: number) {
     cy.dragAttributeToTarget("table", name, moveType, targetNumber)
   },
-  moveTwoLineAttributeNameToTarget(name: string, moveType: string, targetNumber?: number) {
-    let target_el = ""
-    switch (moveType) {
-      case "newCollection":
-        target_el = ".collection-table-spacer.parentMost"
-        break
-      case "headerDivider":
-        target_el = ".codap-attribute-header-divider"
-        break
-    }
-    cy.get(`[data-testid="codap-attribute-button ${name}"]`)
-    .trigger("mousedown", { force: true })
-    .then(() => {
-      cy.get(target_el).eq(targetNumber ?? 0).then($target => {
-        return $target[0].getBoundingClientRect()
-      })
-      .then($targetRect => {
-        cy.log("targetRect", $targetRect)
-        cy.get('[data-testid="codap-attribute-button Attribute Name"]').then($subject => {
-          cy.mouseMoveBy($subject, $targetRect, { delay: 100 })
-        })
-      })
-    })
-    cy.wait(1000)
-  },
   getExpandAllGroupsButton(collectionIndex = 1) {
     return this.getCollection(collectionIndex).find("[title=\"expand all groups\"]")
   },

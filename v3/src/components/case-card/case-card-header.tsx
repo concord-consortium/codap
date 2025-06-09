@@ -17,7 +17,7 @@ interface ICaseHeaderProps {
   level: number
 }
 
-export const CaseCardHeader = observer(function CaseView(props: ICaseHeaderProps) {
+export const CaseCardHeader = observer(function CaseCardHeader(props: ICaseHeaderProps) {
   const { cases, level } = props
   const cardModel = useCaseCardModel()
   const data = cardModel?.data

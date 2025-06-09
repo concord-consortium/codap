@@ -1,29 +1,19 @@
 import { useDisclosure } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
 import { isAlive } from "mobx-state-tree"
-import React from "react"
+import React, { useMemo } from "react"
 import { useDataSetMetadata } from "../../hooks/use-data-set-metadata"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { hideAttributeNotification } from "../../models/data/data-set-notifications"
 import { addSetAsideCases, restoreSetAsideCases } from "../../models/data/data-set-utils"
 import { t } from "../../utilities/translation/translate"
-import { IMenuItem, StdMenuList } from "./std-menu-list"
 import { EditFormulaModal } from "../common/edit-formula-modal"
+import { IMenuItem, StdMenuList } from "./std-menu-list"
 
 export const HideShowMenuList = observer(function HideShowMenuList() {
   const data = useDataSetContext()
   const metadata = useDataSetMetadata()
-  const formulaModal = useDisclosure()
-
-  if (data && !isAlive(data)) return null
-
-  const handleEditFormulaOpen = () => {
-    formulaModal.onOpen()
-  }
-
-  const handleEditFormulaClose = () => {
-    formulaModal.onClose()
-  }
+  const { isOpen, onClose, onOpen } = useDisclosure()
 
   const itemCount = data?.items.length ?? 0
   const selectionCount = data?.selection.size ?? 0
@@ -32,7 +22,7 @@ export const HideShowMenuList = observer(function HideShowMenuList() {
   const hiddenAttributes = data?.attributes.filter(attr => attr && metadata?.isHidden(attr.id))
   const hiddenAttributeCount = hiddenAttributes?.length ?? 0
 
-  const menuItems: IMenuItem[] = [
+  const menuItems: IMenuItem[] = useMemo(() => [
     {
       itemKey: "DG.Inspector.setaside.setAsideSelectedCases",
       dataTestId: "hide-show-menu-set-aside-selected-cases",
@@ -67,7 +57,7 @@ export const HideShowMenuList = observer(function HideShowMenuList() {
                 : "V3.hideShowMenu.addFilterFormula",
       dataTestId: "hide-show-menu-add-filter-formula",
       isEnabled: () => !!data,
-      handleClick: handleEditFormulaOpen
+      handleClick: onOpen
     },
     {
       itemKey: "DG.Inspector.attributes.showAllHiddenAttributesPlural",
@@ -98,7 +88,9 @@ export const HideShowMenuList = observer(function HideShowMenuList() {
         }
       }
     }
-  ]
+  ], [data, hiddenAttributeCount, hiddenAttributes, itemCount, metadata, onOpen, selectionCount, setAsideCount])
+
+  if (data && !isAlive(data)) return null
 
   return (
     <>
@@ -107,8 +99,8 @@ export const HideShowMenuList = observer(function HideShowMenuList() {
         data &&
         <EditFormulaModal
           applyFormula={data.setFilterFormula}
-          isOpen={formulaModal.isOpen}
-          onClose={handleEditFormulaClose}
+          isOpen={isOpen}
+          onClose={onClose}
           titleLabel={t("V3.hideShowMenu.filterFormulaPrompt")}
           value={data.filterFormula?.display}
         />

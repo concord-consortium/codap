@@ -30,8 +30,7 @@ const AttributeMenuListComponent = forwardRef<HTMLDivElement, IProps>(
   const data = useDataSetContext()
   const metadata = useDataSetMetadata()
   const tableModel = useCaseTableModel()
-  // each use of useDisclosure() maintains its own state and callbacks so they can be used for independent dialogs
-  const propertiesModal = useDisclosure()
+  const { isOpen, onClose, onOpen } = useDisclosure()
 
   if (!attributeId) return null
 
@@ -40,12 +39,12 @@ const AttributeMenuListComponent = forwardRef<HTMLDivElement, IProps>(
   const collection = data?.getCollectionForAttribute(attributeId)
 
   const handleEditPropertiesOpen = () => {
-    propertiesModal.onOpen()
+    onOpen()
     onModalOpen(true)
   }
 
   const handleEditPropertiesClose = () => {
-    propertiesModal.onClose()
+    onClose()
     onModalOpen(false)
   }
 
@@ -209,7 +208,7 @@ const AttributeMenuListComponent = forwardRef<HTMLDivElement, IProps>(
           </MenuItem>
         ))}
       </MenuList>
-      <EditAttributePropertiesModal attributeId={attributeId} isOpen={propertiesModal.isOpen}
+      <EditAttributePropertiesModal attributeId={attributeId} isOpen={isOpen}
         onClose={handleEditPropertiesClose} />
     </>
   )
