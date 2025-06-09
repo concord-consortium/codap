@@ -27,12 +27,31 @@ export function convertParsedCsvToDataSet(results: CsvParseResult, filename: str
   const ds = DataSet.create({ name })
   // add attributes (extracted from first case)
   for (const pName in results.data[0]) {
-    ds.addAttribute({name: pName.trim()})
+    ds.addAttribute({ name: pName.trim() })
   }
   // add cases
   ds.addCases(results.data, { canonicalize: true })
 
   return ds
+}
+
+export function addParsedCsvToDataSet(results: CsvParseResult, dataset: IDataSet, append?: boolean) {
+  // FIXME: Handle append
+  // TODO: Properly handle undo/redo
+  dataset.applyModelChange(() => {
+    if (!append) {
+      dataset.removeCases(dataset.itemIds)
+      dataset.attributes.forEach(attr => dataset.removeAttribute(attr.id))
+    }
+
+    // add attributes (extracted from first case)
+    for (const pName in results.data[0]) {
+      const attrName = pName.trim()
+      if (!dataset.getAttributeByName(attrName)) dataset.addAttribute({ name: attrName })
+    }
+    // add cases
+    dataset.addCases(results.data, { canonicalize: true })
+  })
 }
 
 export function convertDatasetToCsv(dataset: IDataSet, collection?: ICollectionModel) {
@@ -60,7 +79,7 @@ export function convertDatasetToCsv(dataset: IDataSet, collection?: ICollectionM
   caseOrItemIds.forEach((caseOrItemId, index) => {
     // FIXME: escape commas
     const itemIndex = dataset.getItemIndexForCaseOrItem(caseOrItemId)
-    if (itemIndex) {
+    if (itemIndex != null) {
       attrs.forEach((attr, attrIndex) => {
         const commaString = attrIndex === 0 ? "" : ","
         csv += `${commaString}${attr.strValue(itemIndex)}`

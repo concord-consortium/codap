@@ -9,7 +9,7 @@ import { uniqueName } from "../../../utilities/js-utils"
 import { preventCollectionReorg } from "../../../utilities/plugin-utils"
 import { t } from "../../../utilities/translation/translate"
 import { IMenuItem, StdMenuList } from "../std-menu-list"
-import { convertDatasetToCsv } from "../../../utilities/csv-import"
+import { addParsedCsvToDataSet, convertDatasetToCsv, importCsvContent } from "../../../utilities/csv-import"
 
 export const RulerMenuList = observer(function RulerMenuList() {
   const data = useDataSetContext()
@@ -65,10 +65,18 @@ export const RulerMenuList = observer(function RulerMenuList() {
       itemKey: "DG.Inspector.copyCaseDataToClipboard",
       handleClick: () => {
         if (data) navigator.clipboard.writeText(convertDatasetToCsv(data))
+        // TODO: Display a popup saying how many cases were copied
       }
     },
     {
-      itemKey: "DG.Inspector.getCaseDataFromClipboard"
+      itemKey: "DG.Inspector.getCaseDataFromClipboard",
+      handleClick: () => {
+        if (data) {
+          navigator.clipboard.readText().then(text => {
+            importCsvContent(text, csvData => addParsedCsvToDataSet(csvData, data))
+          })
+        }
+      }
     }
   ]
 
