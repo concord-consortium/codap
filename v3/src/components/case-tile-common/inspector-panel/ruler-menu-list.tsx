@@ -1,6 +1,6 @@
 import { useDisclosure } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
-import React from "react"
+import React, { useState } from "react"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
 import { logStringifiedObjectMessage } from "../../../lib/log-message"
 import { IAttribute } from "../../../models/data/attribute"
@@ -10,12 +10,20 @@ import { addParsedCsvToDataSet, convertDatasetToCsv, importCsvContent } from "..
 import { uniqueName } from "../../../utilities/js-utils"
 import { preventCollectionReorg } from "../../../utilities/plugin-utils"
 import { t } from "../../../utilities/translation/translate"
+import { CopiedCasesAlert } from "../copied-cases-alert"
 import { CopyToClipboardModal } from "../copy-to-clipboard-modal"
 import { IMenuItem, StdMenuList } from "../std-menu-list"
 
 export const RulerMenuList = observer(function RulerMenuList() {
   const data = useDataSetContext()
-  const formulaModal = useDisclosure()
+  const [copiedCasesString, setCopiedCasesString] = useState("")
+  const copyToClipboardModal = useDisclosure()
+  const copiedAlert = useDisclosure()
+
+  const handleCloseModal = () => {
+    copyToClipboardModal.onClose()
+    copiedAlert.onOpen()
+  }
 
   const handleAddNewAttribute = (collectionId: string) => {
     let attribute: IAttribute | undefined
@@ -69,9 +77,11 @@ export const RulerMenuList = observer(function RulerMenuList() {
       handleClick: () => {
         if (data) {
           if (data.collections.length > 1) {
-            formulaModal.onOpen()
+            copyToClipboardModal.onOpen()
           } else {
             navigator.clipboard.writeText(convertDatasetToCsv(data))
+            setCopiedCasesString(`${data.itemIds.length} ${data.childCollection.title}`)
+            copiedAlert.onOpen()
           }
         }
       }
@@ -92,8 +102,14 @@ export const RulerMenuList = observer(function RulerMenuList() {
     <>
       <StdMenuList data-testid="ruler-menu-list" menuItems={menuItems} />
       <CopyToClipboardModal
-        isOpen={formulaModal.isOpen}
-        onClose={() => formulaModal.onClose()}
+        isOpen={copyToClipboardModal.isOpen}
+        onClose={handleCloseModal}
+        setCopiedCasesString={setCopiedCasesString}
+      />
+      <CopiedCasesAlert
+        copiedCasesString={copiedCasesString}
+        isOpen={copiedAlert.isOpen}
+        onClose={() => copiedAlert.onClose()}
       />
     </>
   )

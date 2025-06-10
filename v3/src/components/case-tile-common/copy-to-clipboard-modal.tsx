@@ -15,9 +15,12 @@ import "./copy-to-clipboard-modal.scss"
 interface IProps {
   isOpen: boolean
   onClose?: () => void
+  setCopiedCasesString: (copiedCasesString: string) => void
 }
 
-export const CopyToClipboardModal = observer(function CopyToClipboardModal({ isOpen, onClose }: IProps) {
+export const CopyToClipboardModal = observer(function CopyToClipboardModal({
+  isOpen, onClose, setCopiedCasesString
+}: IProps) {
   const dataSet = useDataSetContext()
   const collections = dataSet?.collections
 
@@ -28,7 +31,11 @@ export const CopyToClipboardModal = observer(function CopyToClipboardModal({ isO
   const selectedCollectionName = selectedCollection?.name || allCollectionsName
 
   const applyAndClose = () => {
-    if (dataSet) navigator.clipboard.writeText(convertDatasetToCsv(dataSet, selectedCollection))
+    if (dataSet) {
+      navigator.clipboard.writeText(convertDatasetToCsv(dataSet, selectedCollection))
+      const collection = selectedCollection ?? dataSet.childCollection
+      setCopiedCasesString(`${collection.caseIds.length} ${collection.title}`)
+    }
     closeModal()
   }
 
