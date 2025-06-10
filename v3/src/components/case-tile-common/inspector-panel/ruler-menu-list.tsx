@@ -1,3 +1,4 @@
+import { useDisclosure } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
 import React from "react"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
@@ -5,14 +6,16 @@ import { logStringifiedObjectMessage } from "../../../lib/log-message"
 import { IAttribute } from "../../../models/data/attribute"
 import { createAttributesNotification } from "../../../models/data/data-set-notifications"
 import { uiState } from "../../../models/ui-state"
+import { addParsedCsvToDataSet, convertDatasetToCsv, importCsvContent } from "../../../utilities/csv-import"
 import { uniqueName } from "../../../utilities/js-utils"
 import { preventCollectionReorg } from "../../../utilities/plugin-utils"
 import { t } from "../../../utilities/translation/translate"
+import { CopyToClipboardModal } from "../copy-to-clipboard-modal"
 import { IMenuItem, StdMenuList } from "../std-menu-list"
-import { addParsedCsvToDataSet, convertDatasetToCsv, importCsvContent } from "../../../utilities/csv-import"
 
 export const RulerMenuList = observer(function RulerMenuList() {
   const data = useDataSetContext()
+  const formulaModal = useDisclosure()
 
   const handleAddNewAttribute = (collectionId: string) => {
     let attribute: IAttribute | undefined
@@ -64,8 +67,13 @@ export const RulerMenuList = observer(function RulerMenuList() {
     {
       itemKey: "DG.Inspector.copyCaseDataToClipboard",
       handleClick: () => {
-        if (data) navigator.clipboard.writeText(convertDatasetToCsv(data))
-        // TODO: Display a popup saying how many cases were copied
+        if (data) {
+          if (data.collections.length > 1) {
+            formulaModal.onOpen()
+          } else {
+            navigator.clipboard.writeText(convertDatasetToCsv(data))
+          }
+        }
       }
     },
     {
@@ -81,6 +89,12 @@ export const RulerMenuList = observer(function RulerMenuList() {
   ]
 
   return (
-    <StdMenuList data-testid="ruler-menu-list" menuItems={menuItems} />
+    <>
+      <StdMenuList data-testid="ruler-menu-list" menuItems={menuItems} />
+      <CopyToClipboardModal
+        isOpen={formulaModal.isOpen}
+        onClose={() => formulaModal.onClose()}
+      />
+    </>
   )
 })
