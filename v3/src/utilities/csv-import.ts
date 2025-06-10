@@ -55,6 +55,14 @@ export function addParsedCsvToDataSet(results: CsvParseResult, dataset: IDataSet
   })
 }
 
+export function escapeCsvValue(value: string) {
+  // Escape double quotes by replacing them with two double quotes
+  // and wrap the value in double quotes if it contains commas, double quotes, or newlines
+  const escapedValue = value.replace(/"/g, '""')
+  return (escapedValue.includes(",") || escapedValue.includes("\n") || escapedValue.includes(`"`))
+    ? `"${escapedValue}"` : escapedValue
+}
+
 export function convertDatasetToCsv(dataset: IDataSet, collection?: ICollectionModel) {
   const metadata = getMetadataFromDataSet(dataset)
 
@@ -62,8 +70,7 @@ export function convertDatasetToCsv(dataset: IDataSet, collection?: ICollectionM
 
   const attrs = collection?.attributesArray ?? dataset.attributes
   attrs.forEach(attr => {
-    // FIXME: escape commas
-    csv += `# attribute -- name: ${attr.name}`
+    csv += `# attribute -- name: ${attr.name.replace(/,/g, "&comma;")}`
     if (attr.description) csv += `, description: ${attr.description}`
     if (attr.type) csv += `, type: ${attr.type}`
     if (attr.units) csv += `, unit: ${attr.units}`
@@ -73,20 +80,18 @@ export function convertDatasetToCsv(dataset: IDataSet, collection?: ICollectionM
   })
 
   attrs.forEach((attr, index) => {
-    // FIXME: escape commas
     const commaString = index === 0 ? "" : ","
-    csv += `${commaString}${attr.name}`
+    csv += `${commaString}${escapeCsvValue(attr.name)}`
   })
   csv += "\n"
 
   const caseOrItemIds = collection?.caseIds ?? dataset.itemIds
   caseOrItemIds.forEach((caseOrItemId, index) => {
-    // FIXME: escape commas
     const itemIndex = dataset.getItemIndexForCaseOrItem(caseOrItemId)
     if (itemIndex != null) {
       attrs.forEach((attr, attrIndex) => {
         const commaString = attrIndex === 0 ? "" : ","
-        csv += `${commaString}${attr.strValue(itemIndex)}`
+        csv += `${commaString}${escapeCsvValue(attr.strValue(itemIndex))}`
       })
       if (index < caseOrItemIds.length - 1) csv += "\n"
     }
