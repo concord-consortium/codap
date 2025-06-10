@@ -1,6 +1,7 @@
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import React, { useEffect, useRef } from "react"
+import { TileContainerContext } from "../../hooks/use-tile-container-context"
 import { IFreeTileRow } from "../../models/document/free-tile-row"
 import { ITileModel } from "../../models/tiles/tile-model"
 import { uiState } from "../../models/ui-state"
@@ -48,18 +49,20 @@ export const FreeTileRowComponent = observer(function FreeTileRowComponent(
     }
   }
 
-  const classes = clsx("free-tile-row", "tile-row", kDragContainerClass)
+  const classes = clsx("free-tile-row", "free-tile-container", "tile-row", kDragContainerClass)
 
   return (
-    <div className={classes} ref={rowRef} onPointerDown={handlePointerDown}>
-      {
-        row?.tileIds.map(tileId => {
-          const tile = getTile(tileId)
-          return (
-            tile && <FreeTileComponent row={row} tile={tile} onCloseTile={onCloseTile} key={tileId}/>
-          )
-        })
-      }
-    </div>
+    <TileContainerContext.Provider value={rowRef}>
+      <div className={classes} ref={rowRef} onPointerDown={handlePointerDown}>
+        {
+          row?.tileIds.map(tileId => {
+            const tile = getTile(tileId)
+            return (
+              tile && <FreeTileComponent row={row} tile={tile} onCloseTile={onCloseTile} key={tileId}/>
+            )
+          })
+        }
+      </div>
+    </TileContainerContext.Provider>
   )
 })
