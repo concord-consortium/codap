@@ -1,6 +1,6 @@
 import { clsx } from "clsx"
 import React from "react"
-import { kTitleBarHeight } from "./constants"
+import { kResizeBorderOverlap, kResizeBorderSize, kResizeHandleSize, kTitleBarHeight } from "./constants"
 
 interface IProps {
   componentRef: React.RefObject<HTMLDivElement | null>
@@ -10,10 +10,6 @@ interface IProps {
 }
 
 export function ComponentResizeBorder({ componentRef, containerRef, edge, onPointerDown }: IProps) {
-  const kOverlap = 2
-  const kResizeBorderSize = 8
-  const kResizeHandleSize = 22
-
   let top = 0
   let left = 0
   let width: Maybe<number>
@@ -25,16 +21,16 @@ export function ComponentResizeBorder({ componentRef, containerRef, edge, onPoin
     switch (edge) {
       case "left":
         top = componentBounds.top - containerBounds.top + kTitleBarHeight
-        left = componentBounds.left - containerBounds.left - kResizeBorderSize + kOverlap
+        left = componentBounds.left - containerBounds.left - kResizeBorderSize + kResizeBorderOverlap
         height = componentBounds.height - kTitleBarHeight
         break
       case "right":
         top = componentBounds.top - containerBounds.top + kTitleBarHeight
-        left = componentBounds.right - containerBounds.left - kOverlap
+        left = componentBounds.right - containerBounds.left - kResizeBorderOverlap
         height = componentBounds.height - kTitleBarHeight - kResizeHandleSize
         break
       case "bottom":
-        top = componentBounds.bottom - containerBounds.top - kOverlap
+        top = componentBounds.bottom - containerBounds.top - kResizeBorderOverlap
         left = componentBounds.left - containerBounds.left
         width = componentBounds.width - kResizeHandleSize
     }
