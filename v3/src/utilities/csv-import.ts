@@ -1,6 +1,7 @@
 import { parse, ParseResult } from "papaparse"
 import { ICollectionModel } from "../models/data/collection"
 import { DataSet, IDataSet } from "../models/data/data-set"
+import { getMetadataFromDataSet } from "../models/shared/shared-data-utils"
 
 type RowType = Record<string, string>
 export type CsvParseResult = ParseResult<RowType>
@@ -55,6 +56,8 @@ export function addParsedCsvToDataSet(results: CsvParseResult, dataset: IDataSet
 }
 
 export function convertDatasetToCsv(dataset: IDataSet, collection?: ICollectionModel) {
+  const metadata = getMetadataFromDataSet(dataset)
+
   let csv = `# name: ${dataset.name}\n`
 
   const attrs = collection?.attributesArray ?? dataset.attributes
@@ -64,7 +67,8 @@ export function convertDatasetToCsv(dataset: IDataSet, collection?: ICollectionM
     if (attr.description) csv += `, description: ${attr.description}`
     if (attr.type) csv += `, type: ${attr.type}`
     if (attr.units) csv += `, unit: ${attr.units}`
-    // FIXME: handle editable, maybe other properties
+    csv += `, editable: ${!metadata?.isEditProtected(attr.id)}`
+    // TODO: Are there other properties we should include?
     csv += "\n"
   })
 
