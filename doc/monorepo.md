@@ -18,8 +18,10 @@ The imports are linted with the new import-x eslint plugin. It is faster than th
 
 The no-cycle rule is much faster but overall the import-x plugin still makes eslint slow. With it disable the linting runs about twice as fast. Disabling just the no-cycle rule takes off 25s out of 66s for one run.
 
-# TODO
+# TS-Lib
+`ts-lib` is added to the root package.json to fix an issue with Jest and its transpiler. We have Jest transpile some of dependencies because they are distributed as ESM modules and Jest works with Common JS. When the transpiler tries to handle these it appears to be loading `ts-lib` as if it was required by one of the files in this package. These package don't depend on `ts-lib` so Yarn PnP fails this require. However because of the [top level fallback of Yarn PnP](https://yarnpkg.com/configuration/yarnrc#pnpFallbackMode) it will fallback to looking to see if the modules package is listed in the root package.json of the repository. This means that ts-lib has to be added to the root package.json to work around this issue. Hopefully Jest will fix this issue in the future.
 
+# TODO
 
 ## Typescript Language Server
 When I run `yarn dlx @yarnpkg/sdks --verbose vscode` at the root I get Eslint and Typescript sdks installed but I also get:
