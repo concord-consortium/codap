@@ -1,4 +1,4 @@
-import clsx from "clsx"
+import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import React, { useEffect, useRef } from "react"
 import { useMap } from "react-leaflet"
