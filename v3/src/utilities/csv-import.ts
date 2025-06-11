@@ -40,17 +40,16 @@ export function convertParsedCsvToDataSet(results: CsvParseResult, filename: str
 
 export function initiateImportFromCsv(csvContent: string, dataset: IDataSet) {
   // The importer plugin is used to import a csv string into a dataset.
-  const gameState = {
-    contentType: 'text/csv',
-    targetDatasetName: dataset.name,
-    name: "Importer",
-    text: csvContent
-  }
   const webViewModelSnap: IWebViewSnapshot = {
     type: kWebViewTileType,
     subType: "plugin",
     url: getImporterPluginUrl(),
-    state: gameState
+    state: {
+      contentType: 'text/csv',
+      targetDatasetName: dataset.name,
+      name: "Importer",
+      text: csvContent
+    }
   }
   appState.document.content?.insertTileSnapshotInDefaultRow({
     _title: "Importer",
