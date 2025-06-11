@@ -6,37 +6,18 @@ ESLint is installed at the root of the project so that Yarn PnP can patch it and
 
 It is not currently possible to lint the entire workspace. Each subfolder has to be linted individually.
 
-The eslint plugin is supported but continues to be slow. It required adding extra dependencies using Yarn's `packageExtensions` configuration. See below for a potential solution.
+The imports are linted with the new import-x eslint plugin. It is faster than the older import eslint plugin. It also has better support for Yarn PnP. However it did require a patch to work in a monorepo environment.
+
+The no-cycle rule is much faster but overall the import-x plugin still makes eslint slow. With it disable the linting runs about twice as fast. Disabling just the no-cycle rule takes off 25s out of 66s for one run.
 
 # TODO
 
-## ESLint
-
-**Re-enable the import cycle rule**
-
-ESLint successfully works in the `v3` workspace. However with the import plugin enabled it is really slow.
-
-With all of the import rules and plugin disabled:
-`yarn eslint  30.34s user 2.17s system 189% cpu 17.161 total`
-
-With the rules enabled:
-`yarn lint  133.40s user 12.03s system 122% cpu 1:58.54 total`
-
-With just the import cycle disabled:
-`yarn lint  45.20s user 3.03s system 170% cpu 28.328 total`
-
-The eslint-import-plugin-x is supposed to be faster. It uses a rust library to parse the imports but this is crashing when it encounters our "mobx-state-tree" overridden import. I've submitted a issue with a minimal reproduction and I'm hopeful it will get fixed by the maintainer. https://github.com/un-ts/eslint-plugin-import-x/issues/379
-
-I think also that eslint-import-plugin-x will not require the `packageExtensions` configuration.
 
 ## Typescript Language Server
 When I run `yarn dlx @yarnpkg/sdks --verbose vscode` at the root I get Eslint and Typescript sdks installed but I also get:
 >  Typescript Language Server (dependency not found; skipped)
 
 I'm guessing this might be for something other than vcode like emacs perhaps, but if we have problems it might be worth looking into.
-
-## What about Typescript plugins
-Do I need to install and setup any typescript plugins in the root? Or will typescript and yarn work together so they are used from the workspace that needs them?
 
 ## Linting root files
 Currently there is no linting of the files at the root of the workspace. We should lint some of them at least the `.github/workflow/*` files would be good to lint.
