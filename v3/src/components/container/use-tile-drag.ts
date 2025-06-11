@@ -35,7 +35,11 @@ export function useTileDrag({ row, tile, tileLayout, setChangingTileStyle }: IPr
         // Require a minimum drag distance to start dragging
         if (!isDragging && Math.abs(xDelta) + Math.abs(yDelta) > kTileDragGridSize) {
           pointerId = ptrEvt.pointerId
-          targetElt.setPointerCapture(pointerId)
+          if (pointerId) {
+            // capture is automatically released on pointerup
+            targetElt.setPointerCapture(pointerId)
+          }
+
           isDragging = true
         }
 
@@ -56,8 +60,6 @@ export function useTileDrag({ row, tile, tileLayout, setChangingTileStyle }: IPr
         targetElt.removeEventListener("pointerup", handleDropTile)
 
         if (isDragging) {
-          targetElt.releasePointerCapture(pointerId)
-
           const ptrEvt = event as PointerEvent
           const xDelta = ptrEvt.pageX - xPageStart
           const yDelta = ptrEvt.pageY - yPageStart

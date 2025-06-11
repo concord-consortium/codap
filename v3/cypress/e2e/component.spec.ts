@@ -2,7 +2,7 @@ import { ComponentElements as c } from "../support/elements/component-elements"
 
 context("Component UI", () => {
   beforeEach(function () {
-    const queryParams = "?sample=mammals&dashboard&mouseSensor"
+    const queryParams = "?sample=mammals&dashboard"
     const url = `${Cypress.config("index")}${queryParams}`
     cy.visit(url)
     cy.wait(2500)
@@ -14,7 +14,7 @@ context("Component UI", () => {
       const tileEl = $tileEl[0]
       const tileInitial = tileEl.getBoundingClientRect()
 
-      c.getComponentTitleBar("table").trigger("mousedown").then($titleEl => {
+      c.getComponentTitleBar("table").trigger("pointerdown").then($titleEl => {
         const titleEl = $titleEl[0]
         const titleInitial = titleEl.getBoundingClientRect()
         const startX = titleInitial.left + titleInitial.width / 2
@@ -22,11 +22,11 @@ context("Component UI", () => {
 
         const offsetX = 100 // desired horizontal movement
         const offsetY = 100 // desired vertical movement
-        const clientX = startX + offsetX
-        const clientY = startY + offsetY
-        cy.wrap($titleEl).trigger("mousemove", { clientX, clientY, force: true }).then(() => {
+        const pageX = startX + offsetX
+        const pageY = startY + offsetY
+        cy.wrap($titleEl).trigger("pointermove", { pageX, pageY, force: true }).then(() => {
           cy.wait(100)
-          cy.wrap($titleEl).trigger("mouseup", { force: true }).then(() => {
+          cy.wrap($titleEl).trigger("pointerup", { pageX, pageY, force: true }).then(() => {
             const tileFinal = tileEl.getBoundingClientRect()
             expect(tileFinal.left).to.be.greaterThan(tileInitial.left)
             expect(tileFinal.top).to.be.greaterThan(tileInitial.top)
