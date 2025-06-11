@@ -23,6 +23,9 @@ export class UIState {
     otherValues: false
   }
 
+  @observable
+  isDraggingTile = false
+
   // Values used by the Collaborative plugin to ensure a shared table does not change while a user is editing it
 
   // True if the user is editing a cell in a table.
@@ -94,6 +97,11 @@ export class UIState {
   @action
   setHoveredTile(tileId = "") {
     this.hoverTileId = tileId
+  }
+
+  @action
+  setIsDraggingTile(isDragging: boolean) {
+    this.isDraggingTile = isDragging
   }
 
   @action

@@ -2,6 +2,7 @@ import { useCallback } from "react"
 import { logStringifiedObjectMessage } from "../../lib/log-message"
 import { IFreeTileLayout, IFreeTileRow } from "../../models/document/free-tile-row"
 import { ITileModel } from "../../models/tiles/tile-model"
+import { uiState } from "../../models/ui-state"
 import { IChangingTileStyle, kTileDragGridSize, kTitleBarHeight } from "../constants"
 
 interface IProps {
@@ -33,6 +34,7 @@ export function useTileDrag({ row, tile, tileLayout, setChangingTileStyle }: IPr
         // Require a minimum drag distance to start dragging
         if (!isDragging && Math.abs(xDelta) + Math.abs(yDelta) > kTileDragGridSize) {
           isDragging = true
+          uiState.setIsDraggingTile(true)
         }
 
         if (isDragging) {
@@ -69,6 +71,7 @@ export function useTileDrag({ row, tile, tileLayout, setChangingTileStyle }: IPr
           }
 
           setChangingTileStyle(undefined)
+          uiState.setIsDraggingTile(false)
           isDragging = false
         }
       }
