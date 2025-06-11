@@ -1,4 +1,4 @@
-import { ReactNode } from "react"
+import React, { ReactNode } from "react"
 import { ITileModel } from "../../models/tiles/tile-model"
 
 export interface ITileBaseProps {
@@ -12,6 +12,7 @@ export interface ITileTitleBarProps extends ITileBaseProps {
   onHandleTitleChange?: (newValue?: string) => void
   onMinimizeTile?: () => void
   onCloseTile?: (tileId: string) => void
+  onMoveTilePointerDown?: (event: React.PointerEvent) => void
   initiateEditTitle?: boolean
   preventTitleChange?: boolean
 }

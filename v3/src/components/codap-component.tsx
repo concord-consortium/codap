@@ -21,6 +21,7 @@ export interface IProps extends ITileBaseProps {
   isMinimized?: boolean
   onMinimizeTile?: () => void
   onCloseTile: (tileId: string) => void
+  onMoveTilePointerDown?: (event: React.PointerEvent) => void
 }
 
 class TileSelectionHandler implements ITileSelection {
@@ -58,7 +59,7 @@ class TileSelectionHandler implements ITileSelection {
 }
 
 export const CodapComponent = observer(function CodapComponent(props: IProps) {
-  const { tile, isMinimized, onMinimizeTile, onCloseTile } = props
+  const { tile, isMinimized, onMinimizeTile, onCloseTile, onMoveTilePointerDown } = props
   const info = getTileComponentInfo(tile.content.type)
   const codapComponentRef = useRef<HTMLDivElement | null>(null)
 
@@ -78,7 +79,8 @@ export const CodapComponent = observer(function CodapComponent(props: IProps) {
         <CodapComponentContext.Provider value={codapComponentRef}>
           <div className={classes} ref={codapComponentRef} key={tile.id} data-testid={tileEltClass}
             onFocus={handleFocusEvent} onPointerDownCapture={handleFocusEvent}>
-            <TitleBar tile={tile} onMinimizeTile={onMinimizeTile} onCloseTile={onCloseTile}/>
+            <TitleBar tile={tile} onMinimizeTile={onMinimizeTile} onCloseTile={onCloseTile}
+                onMoveTilePointerDown={onMoveTilePointerDown}/>
             <Component tile={tile} isMinimized={isMinimized} />
           </div>
           <InspectorPanelWrapper tile={tile} isMinimized={isMinimized} />

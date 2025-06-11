@@ -30,18 +30,31 @@ export const FreeTileLayout = types.model("FreeTileLayout", {
   }
   return snap
 })
+.volatile(self => ({
+  isDragging: false,
+  xDragging: 0,
+  yDragging: 0
+}))
 .views(self => ({
   get position() {
-    return { x: self.x, y: self.y }
+    return self.isDragging ? { x: self.xDragging, y: self.yDragging } : { x: self.x, y: self.y }
   },
   get size() {
     return { width: self.width, height: self.height }
   }
 }))
 .actions(self => ({
+  setDraggingPosition(x: number, y: number) {
+    self.isDragging = true
+    self.xDragging = x
+    self.yDragging = y
+  },
   setPosition(x: number, y: number) {
     self.x = x
     self.y = y
+    self.xDragging = 0
+    self.yDragging = 0
+    self.isDragging = false
   },
   setSize(width?: number, height?: number) {
     self.width = width

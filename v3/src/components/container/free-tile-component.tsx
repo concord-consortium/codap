@@ -1,14 +1,12 @@
-import { Portal, useMergeRefs } from "@chakra-ui/react"
-import { useDndContext } from "@dnd-kit/core"
+import { Portal } from "@chakra-ui/react"
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import React, { PointerEvent, useCallback, useEffect, useRef, useState } from "react"
 import ResizeHandle from "../../assets/icons/icon-corner-resize-handle.svg"
 import { ComponentWrapperContext } from "../../hooks/use-component-wrapper-context"
-import { getDragTileId, IUseDraggableTile, useDraggableTile } from "../../hooks/use-drag-drop"
 import { useTileContainerContext } from "../../hooks/use-tile-container-context"
 import { logMessageWithReplacement } from "../../lib/log-message"
-import { IFreeTileLayout, IFreeTileRow, isFreeTileRow } from "../../models/document/free-tile-row"
+import { IFreeTileLayout, IFreeTileRow } from "../../models/document/free-tile-row"
 import { getTileComponentInfo } from "../../models/tiles/tile-component-info"
 import { ITileModel } from "../../models/tiles/tile-model"
 import { uiState } from "../../models/ui-state"
@@ -16,6 +14,7 @@ import { urlParams } from "../../utilities/url-params"
 import { CodapComponent } from "../codap-component"
 import { ComponentResizeBorder } from "../component-resize-border"
 import { kTitleBarHeight } from "../constants"
+import { useTileDrag } from "./use-tile-drag"
 
 interface IProps {
   row: IFreeTileRow
@@ -24,7 +23,6 @@ interface IProps {
 }
 
 export const FreeTileComponent = observer(function FreeTileComponent({ row, tile, onCloseTile}: IProps) {
-  const { active } = useDndContext()
   const containerRef = useTileContainerContext()
   const componentRef = useRef<HTMLDivElement | null>(null)
   const { id: tileId, content: { type: tileType } } = tile
@@ -33,52 +31,22 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
     useState<{left: number, top: number, width?: number, height?: number, zIndex?: number, transition: string}>()
   const [resizingTileId, setResizingTileId] = useState("")
   const rowTile = row.tiles.get(tileId)
-  const { x: left, y: top, width, height, zIndex } = rowTile || {}
+  const { position: { x: left, y: top }, width, height, zIndex } = rowTile || { position: { x: 0, y: 0 } }
   // when animating creation, use the default creation style on the first render
   const tileStyle: React.CSSProperties = useDefaultCreationStyle
           ? { left: 0, top: 0, width: 0, height: kTitleBarHeight, zIndex }
           : { left, top, width, height, zIndex }
-  const draggableOptions: IUseDraggableTile = { prefix: tileType || "tile", tileId }
 
   useEffect(() => {
     // after the first render, render the actual style; CSS transitions will handle the animation
     setUseDefaultCreationStyle(false)
   }, [])
 
-  const {setNodeRef, transform} = useDraggableTile(draggableOptions,
-    activeDrag => {
-    const dragTileId = getDragTileId(activeDrag)
-    if (dragTileId) {
-      const draggedElement = document.getElementById(dragTileId)
-      if (draggedElement) {
-        // Capture pointer events for the dragged tile
-        function pointerMove(event: any) {
-          if (!draggedElement?.hasPointerCapture(event.pointerId)) {
-            draggedElement?.setPointerCapture(event.pointerId)
-          }
-        }
-
-        function pointerUp(event: any) {
-          draggedElement?.releasePointerCapture(event.pointerId)
-          draggedElement?.removeEventListener("pointermove", pointerMove)
-          draggedElement?.removeEventListener("pointerup", pointerUp)
-        }
-
-        draggedElement.addEventListener('pointermove', pointerMove)
-        draggedElement.addEventListener('pointerup', pointerUp)
-      }
-
-      if (isFreeTileRow(row)) {
-        const allowBringToFront = dragTileId === tile.id ? tile.content.allowBringToFront : true
-        row.moveTileToTop(dragTileId, allowBringToFront)
-      }
-    }
-  })
-  const mergedComponentRef = useMergeRefs<HTMLDivElement | null>(componentRef, setNodeRef)
-
   const handleMinimizeTile = useCallback(() => {
     rowTile?.setMinimized(!rowTile.isMinimized)
   }, [rowTile])
+
+  const { handlePointerDown: handleMoveTilePointerDown } = useTileDrag({ containerRef, row, tileLayout: rowTile })
 
   const handleResizePointerDown = useCallback((e: PointerEvent, tileLayout: IFreeTileLayout, direction: string) => {
     if (e.pointerId !== undefined) {
@@ -91,7 +59,7 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
     let resizingWidth = startWidth, resizingHeight = startHeight, resizingLeft = tileLayout.x
     const startLeft = tileLayout.x
 
-    const onPointerMove = (pointerMoveEvent: { pageX: number; pageY: number }) => {
+    const handlePointerMove = (pointerMoveEvent: { pageX: number; pageY: number }) => {
       setResizingTileId(tileLayout.tileId)
       const xDelta = pointerMoveEvent.pageX - startPosition.x
       const yDelta = pointerMoveEvent.pageY - startPosition.y
@@ -115,9 +83,9 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
         transition: "none"
       })
     }
-    const onPointerUp = () => {
-      document.body.removeEventListener("pointermove", onPointerMove, { capture: true })
-      document.body.removeEventListener("pointerup", onPointerUp, { capture: true })
+    const handlePointerUp = () => {
+      document.body.removeEventListener("pointermove", handlePointerMove, { capture: true })
+      document.body.removeEventListener("pointerup", handlePointerUp, { capture: true })
       row.applyModelChange(() => {
         tileLayout.setSize(resizingWidth, resizingHeight)
         tileLayout.setPosition(resizingLeft, tileLayout.y)
@@ -129,8 +97,8 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
       setResizingTileId("")
     }
 
-    document.body.addEventListener("pointermove", onPointerMove, { capture: true })
-    document.body.addEventListener("pointerup", onPointerUp, { capture: true })
+    document.body.addEventListener("pointermove", handlePointerMove, { capture: true })
+    document.body.addEventListener("pointerup", handlePointerUp, { capture: true })
   }, [resizingTileId, row])
 
   const handleBottomRightPointerDown = useCallback((e: React.PointerEvent) => {
@@ -153,10 +121,10 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
     rowTile && handleResizePointerDown(e, rowTile, "left")
   }, [handleResizePointerDown, rowTile])
 
-  const startStyleTop = top || 0
-  const startStyleLeft = left || 0
-  const movingStyle = transform && {top: startStyleTop + transform.y, left: startStyleLeft + transform.x,
-    width, height, zIndex, transition: "none"}
+  // const startStyleTop = top || 0
+  // const startStyleLeft = left || 0
+  // const movingStyle = transform && {top: startStyleTop + transform.y, left: startStyleLeft + transform.x,
+  //   width, height, zIndex, transition: "none"}
 
   const info = getTileComponentInfo(tileType)
   const style = tileId === resizingTileId
@@ -164,14 +132,8 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
                   : rowTile?.isHidden && info?.renderWhenHidden
                     ? { left: -9999, top: -9999, width: 0, height: 0 }
                     : rowTile?.isMinimized
-                      ? { left: active && movingStyle ? movingStyle.left : left,
-                          top: active && movingStyle ? movingStyle.top : top,
-                          transition: "none",
-                          width, height: kTitleBarHeight, zIndex
-                        }
-                      : active && movingStyle
-                        ? movingStyle
-                        : tileStyle
+                      ? { left, top, transition: "none", width, height: kTitleBarHeight, zIndex }
+                      : tileStyle
   // don't impose a width and height for fixed size components
   if (info?.isFixedWidth) delete style?.width
   if (info?.isFixedHeight) delete style?.height
@@ -199,7 +161,7 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
 
   return (
     <ComponentWrapperContext.Provider value={componentRef}>
-      <div id={tileId} className={classes} style={style} key={tileId} ref={mergedComponentRef}
+      <div id={tileId} className={classes} style={style} key={tileId} ref={componentRef}
           data-tile-z-index={zIndex}>
         {tile && rowTile &&
           <>
@@ -207,6 +169,7 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
               isMinimized={isMinimized}
               onMinimizeTile={handleMinimizeTile}
               onCloseTile={onCloseTile}
+              onMoveTilePointerDown={handleMoveTilePointerDown}
             />
             {!isMinimized &&
               <>

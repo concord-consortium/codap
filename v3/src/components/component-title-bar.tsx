@@ -2,7 +2,6 @@ import { Button, CloseButton, Flex, Input } from "@chakra-ui/react"
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import React, { useState } from "react"
-import { IUseDraggableTile, useDraggableTile } from "../hooks/use-drag-drop"
 import { getTitle } from "../models/tiles/tile-content-info"
 import { updateTileNotification } from "../models/tiles/tile-notifications"
 import { uiState } from "../models/ui-state"
@@ -13,17 +12,17 @@ import { logMessageWithReplacement } from "../lib/log-message"
 
 import "./component-title-bar.scss"
 
-export const ComponentTitleBar = observer(function ComponentTitleBar({
-  tile, children, onHandleTitleChange, onMinimizeTile, onCloseTile, preventTitleChange, initiateEditTitle
-}: ITileTitleBarProps) {
+export const ComponentTitleBar = observer(function ComponentTitleBar(props: ITileTitleBarProps) {
+  const {
+    tile, children, onHandleTitleChange, onMinimizeTile, onCloseTile, onMoveTilePointerDown,
+    initiateEditTitle, preventTitleChange
+  } = props
   // perform all title-related model access here so only title is re-rendered when properties change
   const title = (tile && getTitle?.(tile)) || tile?.title || ""
   const [isEditing, setIsEditing] = useState(initiateEditTitle)
   const [editingTitle, setEditingTitle] = useState(title)
   const tileId = tile?.id || ""
   const tileType = tile?.content.type
-  const draggableOptions: IUseDraggableTile = { prefix: tileType || "tile", tileId, disabled: isEditing }
-  const {attributes, listeners, setActivatorNodeRef} = useDraggableTile(draggableOptions)
   const classes = clsx("component-title-bar", `${tileType}-title-bar`, {focusTile: uiState.isFocusedTile(tile?.id)})
   const [isHovering, setIsHovering] = useState(false)
   const blankTitle = "_____"
@@ -82,7 +81,7 @@ export const ComponentTitleBar = observer(function ComponentTitleBar({
   }
   return (
     <Flex className={classes} onMouseOver={()=>setIsHovering(true)} onMouseOut={()=>setIsHovering(false)}
-        ref={setActivatorNodeRef} {...listeners} {...attributes}>
+          onPointerDown={onMoveTilePointerDown}>
       {children}
       <div className="title-bar" data-testid="component-title-bar">
         {isEditing && !preventTitleChange

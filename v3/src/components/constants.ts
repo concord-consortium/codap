@@ -11,6 +11,7 @@ export const kTitleBarHeight = 25
 export const kResizeBorderOverlap = 2
 export const kResizeBorderSize = 8
 export const kResizeHandleSize = 22
+export const kTileDragGridSize = 5
 
 export const kDefaultTileWidth = 250
 export const kDefaultTileHeight = 250
