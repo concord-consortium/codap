@@ -1,14 +1,17 @@
 import { useCallback } from "react"
 import { IFreeTileLayout, IFreeTileRow } from "../../models/document/free-tile-row"
 import { IChangingTileStyle, kTileDragGridSize, kTitleBarHeight } from "../constants"
+import { logStringifiedObjectMessage } from "../../lib/log-message"
+import { ITileModel } from "../../models/tiles/tile-model"
 
 interface IProps {
   row: IFreeTileRow
+  tile: ITileModel
   tileLayout?: IFreeTileLayout
   setChangingTileStyle: (style: Maybe<IChangingTileStyle>) => void
 }
 
-export function useTileDrag({ row, tileLayout, setChangingTileStyle }: IProps) {
+export function useTileDrag({ row, tile, tileLayout, setChangingTileStyle }: IProps) {
 
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     if (e.currentTarget && tileLayout) {
@@ -58,21 +61,28 @@ export function useTileDrag({ row, tileLayout, setChangingTileStyle }: IProps) {
           const ptrEvt = event as PointerEvent
           const xDelta = ptrEvt.pageX - xPageStart
           const yDelta = ptrEvt.pageY - yPageStart
+          const newX = constrainX(xDelta)
+          const newY = constrainY(yDelta)
 
-          row.applyModelChange(() => {
-            tileLayout?.setPosition(constrainX(xDelta), constrainY(yDelta))
-          })
+          if (tileLayout && (newX !== tileLayout.x || newY !== tileLayout.y)) {
+            row.applyModelChange(() => {
+              tileLayout.setPosition(newX, newY)
+            }, {
+              undoStringKey: "DG.Undo.componentMove",
+              redoStringKey: "DG.Redo.componentMove",
+              log: logStringifiedObjectMessage("Moved component %@", {tileType: tile.content.type, tileId: tile.id})
+            })
+          }
 
+          setChangingTileStyle(undefined)
           isDragging = false
         }
-
-        setChangingTileStyle(undefined)
       }
 
       targetElt.addEventListener("pointermove", handleDragTile)
       targetElt.addEventListener("pointerup", handleDropTile)
     }
-  }, [row, setChangingTileStyle, tileLayout])
+  }, [row, setChangingTileStyle, tile, tileLayout])
 
   return { handlePointerDown }
 }

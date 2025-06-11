@@ -44,7 +44,7 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
     tileLayout?.setMinimized(!tileLayout.isMinimized)
   }, [tileLayout])
 
-  const { handlePointerDown: handleMoveTilePointerDown } = useTileDrag({ row, tileLayout, setChangingTileStyle })
+  const { handlePointerDown: handleMoveTilePointerDown } = useTileDrag({ row, tile, tileLayout, setChangingTileStyle })
 
   const handleResizePointerDown = useCallback((e: PointerEvent, _tileLayout: IFreeTileLayout, direction: string) => {
     if (e.pointerId !== undefined) {
