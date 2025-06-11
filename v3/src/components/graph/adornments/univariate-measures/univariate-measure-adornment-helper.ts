@@ -226,7 +226,7 @@ export class UnivariateMeasureAdornmentHelper {
     cellCounts: Record<string, number>, secondaryAxisX=0, secondaryAxisY=0
   ) => {
     const displayValue = this.formatValueForScale(isVertical, value)
-    const plotValue = Number(displayValue)
+    const plotValue = value
     const measureRange: IRange = attrId && this.model.hasRange
       ? this.model.computeMeasureRange(attrId, this.cellKey, dataConfig)
       : {}
