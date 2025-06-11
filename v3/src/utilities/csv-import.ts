@@ -1,4 +1,8 @@
 import { parse, ParseResult } from "papaparse"
+import { kWebViewTileType } from "../components/web-view/web-view-defs"
+import { IWebViewSnapshot } from "../components/web-view/web-view-model"
+import { getImporterPluginUrl } from "../constants"
+import { appState } from "../models/app-state"
 import { ICollectionModel } from "../models/data/collection"
 import { DataSet, IDataSet } from "../models/data/data-set"
 import { getMetadataFromDataSet } from "../models/shared/shared-data-utils"
@@ -36,22 +40,23 @@ export function convertParsedCsvToDataSet(results: CsvParseResult, filename: str
   return ds
 }
 
-export function addParsedCsvToDataSet(results: CsvParseResult, dataset: IDataSet, append?: boolean) {
-  // FIXME: Handle append
-  // TODO: Properly handle undo/redo
-  dataset.applyModelChange(() => {
-    if (!append) {
-      dataset.removeCases(dataset.itemIds)
-      dataset.attributes.forEach(attr => dataset.removeAttribute(attr.id))
-    }
-
-    // add attributes (extracted from first case)
-    for (const pName in results.data[0]) {
-      const attrName = pName.trim()
-      if (!dataset.getAttributeByName(attrName)) dataset.addAttribute({ name: attrName })
-    }
-    // add cases
-    dataset.addCases(results.data, { canonicalize: true })
+export function initiateImportFromCsv(csvContent: string, dataset: IDataSet) {
+  // The importer plugin is used to import a csv string into a dataset.
+  const gameState = {
+    contentType: 'text/csv',
+    targetDatasetName: dataset.name,
+    name: "Importer",
+    text: csvContent
+  }
+  const webViewModelSnap: IWebViewSnapshot = {
+    type: kWebViewTileType,
+    subType: "plugin",
+    url: getImporterPluginUrl(),
+    state: gameState
+  }
+  appState.document.content?.insertTileSnapshotInDefaultRow({
+    _title: "Importer",
+    content: webViewModelSnap
   })
 }
 

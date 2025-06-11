@@ -10,3 +10,8 @@ export const kRootGuideUrl = codapResourcesUrl("example-documents/guides")
 export function getPluginsRootUrl() {
   return urlParams.pluginURL || kRootPluginUrl
 }
+
+export const kImporterPluginUrl = "/Importer/index.html?lang=en-US"
+export function getImporterPluginUrl() {
+  return `${getPluginsRootUrl()}${kImporterPluginUrl}`
+}

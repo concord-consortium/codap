@@ -3,7 +3,7 @@ import { kCaseTableTileType } from "../../components/case-table/case-table-defs"
 import { kCaseTableDefaultHeight, kCaseTableDefaultWidth } from "../../components/case-table/case-table-types"
 import { kWebViewTileType } from "../../components/web-view/web-view-defs"
 import { IWebViewSnapshot } from "../../components/web-view/web-view-model"
-import { getPluginsRootUrl } from "../../constants"
+import { getPluginsRootUrl, kImporterPluginUrl } from "../../constants"
 import { createCodapDocument, isCodapDocument } from "../../models/codap/create-codap-document"
 import { IDocumentModelSnapshot } from "../../models/document/document"
 import { IDocumentMetadata } from "../../models/document/document-metadata"
@@ -15,8 +15,6 @@ import { convertParsedCsvToDataSet, importCsvContent } from "../../utilities/csv
 import { safeJsonParse } from "../../utilities/js-utils"
 import { ICodapV2Case, isV2InternalContext } from "../../v2/codap-v2-data-context-types"
 import { ICodapV2DocumentJson, isCodapV2Document, kV2AppName } from "../../v2/codap-v2-types"
-
-const kImporterPluginUrl = "/Importer/index.html?lang=en-US"
 
 /**
  * find expected content from mimeType or URL path extension

@@ -6,7 +6,7 @@ import { logStringifiedObjectMessage } from "../../../lib/log-message"
 import { IAttribute } from "../../../models/data/attribute"
 import { createAttributesNotification } from "../../../models/data/data-set-notifications"
 import { uiState } from "../../../models/ui-state"
-import { addParsedCsvToDataSet, convertDatasetToCsv, importCsvContent } from "../../../utilities/csv-import"
+import { initiateImportFromCsv, convertDatasetToCsv } from "../../../utilities/csv-import"
 import { uniqueName } from "../../../utilities/js-utils"
 import { preventCollectionReorg } from "../../../utilities/plugin-utils"
 import { t } from "../../../utilities/translation/translate"
@@ -90,9 +90,7 @@ export const RulerMenuList = observer(function RulerMenuList() {
       itemKey: "DG.Inspector.getCaseDataFromClipboard",
       handleClick: () => {
         if (data) {
-          navigator.clipboard.readText().then(text => {
-            importCsvContent(text, csvData => addParsedCsvToDataSet(csvData, data))
-          })
+          navigator.clipboard.readText().then(text => initiateImportFromCsv(text, data))
         }
       }
     }
