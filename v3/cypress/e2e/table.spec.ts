@@ -413,7 +413,7 @@ context("case table ui", () => {
       table.getAttribute("newAttr").should("have.text", "newAttr")
     })
 
-    it.only("can copy data to the clipboard", () => {
+    it("can copy data to the clipboard", () => {
       // The following allows Cypress to copy data to the clipboard
       // It was taken from: https://github.com/cypress-io/cypress/issues/2752#issuecomment-934864818
       cy.wrap(Cypress.automation('remote:debugger:protocol', {
