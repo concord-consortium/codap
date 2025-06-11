@@ -1,3 +1,11 @@
+# Adding a new workspace (package)
+Update the root files:
+- package.json workspaces property
+- tsconfig.json references property
+
+## TODO:
+- document how to use shared configurations for eslint and typescript
+
 # Typescript
 Typescript is added as a dependency in the root of the project so that the whole project can be built and so VSCode can open the whole project. Without this VSCode would fallback to its bundled Typescript version, but that does not support Yarn PnP so it is necessary to install typescript.
 
