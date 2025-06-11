@@ -7358,6 +7358,7 @@ __metadata:
     "@types/d3-format": "npm:^3.0.4"
     "@types/fs-extra": "npm:^11.0.4"
     "@types/jest": "npm:^29.5.14"
+    "@types/jsdom": "npm:^21.1.7"
     "@types/leaflet": "npm:^1.9.16"
     "@types/lodash": "npm:^4.17.16"
     "@types/node": "npm:^22.15.29"
@@ -7413,6 +7414,7 @@ __metadata:
     jest: "npm:^30.0.0"
     jest-canvas-mock: "npm:^2.5.2"
     jest-environment-jsdom: "npm:^30.0.0"
+    jest-environment-jsdom-global: "npm:^4.0.0"
     jest-fetch-mock: "npm:^3.0.3"
     jest-webgl-canvas-mock: "npm:^2.5.3"
     json5-loader: "npm:^4.0.1"
@@ -12032,6 +12034,15 @@ __metadata:
     jest-util: "npm:30.0.0"
     pretty-format: "npm:30.0.0"
   checksum: 10c0/9131d5efbdaf4f5f97b5363753f231e21a2ddc6141410f450dafd94c19b6e4fa2120a0749c95f3e72dc1edb40a723a971d2f016c6b75e3a484cc2d69a4ff7197
+  languageName: node
+  linkType: hard
+
+"jest-environment-jsdom-global@npm:^4.0.0":
+  version: 4.0.0
+  resolution: "jest-environment-jsdom-global@npm:4.0.0"
+  peerDependencies:
+    jest-environment-jsdom: 22.x || 23.x || 24.x || 25.x || 26.x || 27.x || 28.x || 29.x
+  checksum: 10c0/cb696011c060d1b2be86780d3b3e38d7b31feebe744263384179098ea3851ade1549310ae424a9a05fda672831b6b951654dcc5309c2e81d714a0644e7159345
   languageName: node
   linkType: hard
 

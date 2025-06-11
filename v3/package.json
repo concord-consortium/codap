@@ -28,7 +28,7 @@
     "setupFilesAfterEnv": [
       "<rootDir>/src/test/setupTests.ts"
     ],
-    "testEnvironment": "jsdom",
+    "testEnvironment": "jest-environment-jsdom-global",
     "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
     "testPathIgnorePatterns": [
       "/node_modules/",
@@ -126,6 +126,7 @@
     "@types/d3-format": "^3.0.4",
     "@types/fs-extra": "^11.0.4",
     "@types/jest": "^29.5.14",
+    "@types/jsdom": "^21.1.7",
     "@types/leaflet": "^1.9.16",
     "@types/lodash": "^4.17.16",
     "@types/node": "^22.15.29",
@@ -170,6 +171,7 @@
     "jest": "^30.0.0",
     "jest-canvas-mock": "^2.5.2",
     "jest-environment-jsdom": "^30.0.0",
+    "jest-environment-jsdom-global": "^4.0.0",
     "jest-fetch-mock": "^3.0.3",
     "jest-webgl-canvas-mock": "^2.5.3",
     "json5-loader": "^4.0.1",
