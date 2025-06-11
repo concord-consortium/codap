@@ -1,4 +1,4 @@
-import { setupTestDataset } from "./handlers/handler-test-utils"
+import { setupTestDataset } from "../test/dataset-test-utils"
 import { evaluateCaseFormula, parseSearchQuery } from "./resource-parser-utils"
 
 describe("DataInteractive ResourceParser Utilities", () => {

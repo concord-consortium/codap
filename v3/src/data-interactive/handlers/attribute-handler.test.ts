@@ -2,7 +2,7 @@ import { Attribute } from "../../models/data/attribute"
 import { diAttributeHandler } from "./attribute-handler"
 import { DIResultAttributes } from "../data-interactive-data-set-types"
 import { DataSet } from "../../models/data/data-set"
-import { setupTestDataset } from "./handler-test-utils"
+import { setupTestDataset } from "../../test/dataset-test-utils"
 import { AppHistoryService } from "../../models/history/app-history-service"
 
 describe("DataInteractive AttributeHandler", () => {
