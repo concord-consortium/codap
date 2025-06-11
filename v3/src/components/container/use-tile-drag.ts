@@ -1,14 +1,14 @@
 import { useCallback } from "react"
 import { IFreeTileLayout, IFreeTileRow } from "../../models/document/free-tile-row"
-import { kTileDragGridSize } from "../constants"
+import { IChangingTileStyle, kTileDragGridSize } from "../constants"
 
 interface IProps {
-  containerRef: React.RefObject<HTMLElement | null>
   row: IFreeTileRow
   tileLayout?: IFreeTileLayout
+  setChangingTileStyle: (style: Maybe<IChangingTileStyle>) => void
 }
 
-export function useTileDrag({ row, tileLayout }: IProps) {
+export function useTileDrag({ row, tileLayout, setChangingTileStyle }: IProps) {
 
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     if (e.currentTarget && tileLayout) {
@@ -29,8 +29,13 @@ export function useTileDrag({ row, tileLayout }: IProps) {
         const ptrEvt = event as PointerEvent
         const xDelta = ptrEvt.pageX - xPageStart
         const yDelta = ptrEvt.pageY - yPageStart
-        row.applyModelChange(() => {
-          tileLayout?.setDraggingPosition(constrainX(xDelta), constrainY(yDelta))
+        setChangingTileStyle({
+          left: constrainX(xDelta),
+          top: constrainY(yDelta),
+          width: tileLayout?.width,
+          height: tileLayout?.height,
+          zIndex: tileLayout?.zIndex,
+          transition: "none"
         })
       }
 
@@ -46,12 +51,14 @@ export function useTileDrag({ row, tileLayout }: IProps) {
         row.applyModelChange(() => {
           tileLayout?.setPosition(constrainX(xDelta), constrainY(yDelta))
         })
+
+        setChangingTileStyle(undefined)
       }
 
       targetElt.addEventListener("pointermove", handleDragTile)
       targetElt.addEventListener("pointerup", handleDropTile)
     }
-  }, [row, tileLayout])
+  }, [row, setChangingTileStyle, tileLayout])
 
   return { handlePointerDown }
 }

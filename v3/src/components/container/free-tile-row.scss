@@ -12,8 +12,8 @@
     box-shadow: 0 1px 3px 0 rgb(0 0 0 / 25%);
     border-radius: 6px;
     // https://stackoverflow.com/a/17117992
-    // transition: all 0.4s ease-in-out 0s;
-    // transition-property: left, top, width, height;
+    transition: all 0.4s ease-in-out 0s;
+    transition-property: left, top, width, height;
     &.disable-animation {
       transition: none;
     }
