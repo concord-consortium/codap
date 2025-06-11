@@ -1,6 +1,6 @@
 import { useCallback } from "react"
 import { IFreeTileLayout, IFreeTileRow } from "../../models/document/free-tile-row"
-import { IChangingTileStyle, kTileDragGridSize } from "../constants"
+import { IChangingTileStyle, kTileDragGridSize, kTitleBarHeight } from "../constants"
 
 interface IProps {
   row: IFreeTileRow
@@ -12,10 +12,9 @@ export function useTileDrag({ row, tileLayout, setChangingTileStyle }: IProps) {
 
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     if (e.currentTarget && tileLayout) {
+      let isDragging = false
+      let pointerId = e.pointerId
       const targetElt = e.currentTarget
-      if (e.pointerId != null) {
-        targetElt.setPointerCapture(e.pointerId)
-      }
 
       const { x: xStart, y: yStart } = tileLayout.position
       const xPageStart = e.pageX
@@ -29,28 +28,43 @@ export function useTileDrag({ row, tileLayout, setChangingTileStyle }: IProps) {
         const ptrEvt = event as PointerEvent
         const xDelta = ptrEvt.pageX - xPageStart
         const yDelta = ptrEvt.pageY - yPageStart
-        setChangingTileStyle({
-          left: constrainX(xDelta),
-          top: constrainY(yDelta),
-          width: tileLayout?.width,
-          height: tileLayout?.height,
-          zIndex: tileLayout?.zIndex,
-          transition: "none"
-        })
+
+        // Require a minimum drag distance to start dragging
+        if (!isDragging && Math.abs(xDelta) + Math.abs(yDelta) > kTileDragGridSize) {
+          pointerId = ptrEvt.pointerId
+          targetElt.setPointerCapture(pointerId)
+          isDragging = true
+        }
+
+        if (isDragging) {
+          setChangingTileStyle({
+            left: constrainX(xDelta),
+            top: constrainY(yDelta),
+            width: tileLayout?.width,
+            height: tileLayout?.isMinimized ? kTitleBarHeight : tileLayout?.height,
+            zIndex: tileLayout?.zIndex,
+            transition: "none"
+          })
+        }
       }
 
       function handleDropTile(event: Event) {
-        targetElt.releasePointerCapture(e.pointerId)
         targetElt.removeEventListener("pointermove", handleDragTile)
         targetElt.removeEventListener("pointerup", handleDropTile)
 
-        const ptrEvt = event as PointerEvent
-        const xDelta = ptrEvt.pageX - xPageStart
-        const yDelta = ptrEvt.pageY - yPageStart
+        if (isDragging) {
+          targetElt.releasePointerCapture(pointerId)
 
-        row.applyModelChange(() => {
-          tileLayout?.setPosition(constrainX(xDelta), constrainY(yDelta))
-        })
+          const ptrEvt = event as PointerEvent
+          const xDelta = ptrEvt.pageX - xPageStart
+          const yDelta = ptrEvt.pageY - yPageStart
+
+          row.applyModelChange(() => {
+            tileLayout?.setPosition(constrainX(xDelta), constrainY(yDelta))
+          })
+
+          isDragging = false
+        }
 
         setChangingTileStyle(undefined)
       }
