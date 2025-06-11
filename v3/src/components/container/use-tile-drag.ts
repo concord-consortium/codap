@@ -1,8 +1,8 @@
 import { useCallback } from "react"
-import { IFreeTileLayout, IFreeTileRow } from "../../models/document/free-tile-row"
-import { IChangingTileStyle, kTileDragGridSize, kTitleBarHeight } from "../constants"
 import { logStringifiedObjectMessage } from "../../lib/log-message"
+import { IFreeTileLayout, IFreeTileRow } from "../../models/document/free-tile-row"
 import { ITileModel } from "../../models/tiles/tile-model"
+import { IChangingTileStyle, kTileDragGridSize, kTitleBarHeight } from "../constants"
 
 interface IProps {
   row: IFreeTileRow
@@ -16,8 +16,6 @@ export function useTileDrag({ row, tile, tileLayout, setChangingTileStyle }: IPr
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     if (e.currentTarget && tileLayout) {
       let isDragging = false
-      let pointerId = e.pointerId
-      const targetElt = e.currentTarget
 
       const { x: xStart, y: yStart } = tileLayout.position
       const xPageStart = e.pageX
@@ -34,12 +32,6 @@ export function useTileDrag({ row, tile, tileLayout, setChangingTileStyle }: IPr
 
         // Require a minimum drag distance to start dragging
         if (!isDragging && Math.abs(xDelta) + Math.abs(yDelta) > kTileDragGridSize) {
-          pointerId = ptrEvt.pointerId
-          if (pointerId) {
-            // capture is automatically released on pointerup
-            targetElt.setPointerCapture(pointerId)
-          }
-
           isDragging = true
         }
 
@@ -56,8 +48,8 @@ export function useTileDrag({ row, tile, tileLayout, setChangingTileStyle }: IPr
       }
 
       function handleDropTile(event: Event) {
-        targetElt.removeEventListener("pointermove", handleDragTile)
-        targetElt.removeEventListener("pointerup", handleDropTile)
+        document.body.removeEventListener("pointermove", handleDragTile, { capture: true })
+        document.body.removeEventListener("pointerup", handleDropTile, { capture: true })
 
         if (isDragging) {
           const ptrEvt = event as PointerEvent
@@ -81,8 +73,8 @@ export function useTileDrag({ row, tile, tileLayout, setChangingTileStyle }: IPr
         }
       }
 
-      targetElt.addEventListener("pointermove", handleDragTile)
-      targetElt.addEventListener("pointerup", handleDropTile)
+      document.body.addEventListener("pointermove", handleDragTile, { capture: true })
+      document.body.addEventListener("pointerup", handleDropTile, { capture: true })
     }
   }, [row, setChangingTileStyle, tile, tileLayout])
 
