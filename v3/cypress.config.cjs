@@ -1,9 +1,8 @@
-import { defineConfig } from 'cypress'
-import fs from 'fs-extra';
-import path from 'path';
-import { addMatchImageSnapshotPlugin } from 'cypress-image-snapshot/plugin'
+const { defineConfig } = require('cypress')
+const fs = require('fs-extra')
+const path = require('path')
 
-export default defineConfig({
+module.exports = defineConfig({
     video: false,
     projectId: 'msrfxa',
     defaultCommandTimeout: 8000,
