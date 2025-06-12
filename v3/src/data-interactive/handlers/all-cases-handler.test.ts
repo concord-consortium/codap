@@ -1,6 +1,6 @@
 import { DIAllCases } from "../data-interactive-data-set-types"
 import { diAllCasesHandler } from "./all-cases-handler"
-import { setupTestDataset, testCases } from "./handler-test-utils"
+import { setupTestDataset, testCases } from "../../test/dataset-test-utils"
 
 describe("DataInteractive AllCasesHandler", () => {
   const handler = diAllCasesHandler

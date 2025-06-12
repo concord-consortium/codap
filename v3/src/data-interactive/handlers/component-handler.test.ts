@@ -12,7 +12,7 @@ import { V2CaseCard, V2CaseTable } from "../data-interactive-component-types"
 import { DIComponentInfo } from "../data-interactive-types"
 import { diComponentHandler } from "./component-handler"
 import { testGetComponent } from "./component-handler-test-utils"
-import { setupTestDataset } from "./handler-test-utils"
+import { setupTestDataset } from "../../test/dataset-test-utils"
 
 
 describe("DataInteractive ComponentHandler", () => {

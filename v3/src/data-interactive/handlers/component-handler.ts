@@ -176,8 +176,13 @@ export const diComponentHandler: DIHandler = {
       if (dimensions || _position) {
         const row = appState.document.content?.findRowContainingTile(component.id)
         const freeTileRow = row && isFreeTileRow(row) ? row : undefined
-        if (dimensions) freeTileRow?.setTileDimensions(component.id, dimensions)
-        if (_position) freeTileRow?.setTilePosition(component.id, { x: _position.left, y: _position.top })
+        
+        const currentDimensions = freeTileRow?.getTileDimensions(component.id) ?? {}
+        if (dimensions) freeTileRow?.setTileDimensions(component.id, { ...currentDimensions, ...dimensions })
+
+        const currentPosition = freeTileRow?.getTilePosition(component.id) ?? {}
+        const newPosition = { ...currentPosition, ..._position }
+        if (_position) freeTileRow?.setTilePosition(component.id, { x: newPosition.left, y: newPosition.top })
       }
 
       // Handle updating type specific features

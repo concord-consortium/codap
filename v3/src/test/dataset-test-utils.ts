@@ -1,6 +1,6 @@
-import { DataSet } from "../../models/data/data-set"
-import { AppHistoryService } from "../../models/history/app-history-service"
-import { createDataSetMetadata } from "../../models/shared/data-set-metadata"
+import { DataSet } from "../models/data/data-set"
+import { AppHistoryService } from "../models/history/app-history-service"
+import { createDataSetMetadata } from "../models/shared/data-set-metadata"
 
 export const testCases = [
   { a1: "a", a2: "x", a3: 1, a4: -1 },

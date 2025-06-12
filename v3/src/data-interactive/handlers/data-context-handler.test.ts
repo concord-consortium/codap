@@ -10,7 +10,7 @@ import { ICodapV2DataContext } from "../../v2/codap-v2-data-context-types"
 import { DIDataContext, DIUpdateDataContext } from "../data-interactive-data-set-types"
 import { DIValues } from "../data-interactive-types"
 import { diDataContextHandler } from "./data-context-handler"
-import { setupTestDataset } from "./handler-test-utils"
+import { setupTestDataset } from "../../test/dataset-test-utils"
 
 import "../../components/web-view/web-view-registration"
 

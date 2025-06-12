@@ -19,7 +19,7 @@ export const V2Model = types.model("V2Model", {
     return (!!self.name && self.name == nameOrId) ||
             (self.id == nameOrId) ||
             (self.id == toV3DataSetId(nameOrId)) ||
-            (typeof nameOrId === "number" && toV2Id(self.id) === nameOrId)
+            (toV2Id(self.id) == nameOrId)
     /* eslint-enable eqeqeq */
   }
 }))

@@ -6,7 +6,7 @@ import { SharedDataSet } from "../models/shared/shared-data-set"
 import { getSharedModelManager } from "../models/tiles/tile-environment"
 import { getGlobalValueManager } from "../models/global/global-value-manager"
 import { toV2Id } from "../utilities/codap-utils"
-import { setupTestDataset, testCases } from "./handlers/handler-test-utils"
+import { setupTestDataset, testCases } from "../test/dataset-test-utils"
 import { resolveResources } from "./resource-parser"
 
 describe("DataInteractive ResourceParser", () => {
