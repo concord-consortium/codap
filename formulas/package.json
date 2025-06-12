@@ -1,0 +1,171 @@
+{
+  "name": "codap-formulas",
+  "version": "1.0.0",
+  "description": "Library for handling formulas, used by CODAP and other applications.",
+  "main": "index.js",
+  "browser": {
+    "fs": false,
+    "os": false,
+    "path": false
+  },
+  "browserslist": "> 0.2%, last 5 versions, Firefox ESR, not dead, not ie > 0",
+  "jest": {
+    "preset": "ts-jest/presets/js-with-ts",
+    "transform": {
+      "^.+\\.json5$": "@talabes/json5-jest",
+      "^.+\\.tsx?$": [
+        "ts-jest",
+        {
+          "isolatedModules": true
+        }
+      ]
+    },
+    "setupFilesAfterEnv": [
+      "<rootDir>/src/test/setupTests.ts"
+    ],
+    "testEnvironment": "jest-environment-jsdom-global",
+    "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "/cypress/"
+    ],
+    "coveragePathIgnorePatterns": [
+      "/node_modules/",
+      "src/test/"
+    ],
+    "moduleNameMapper": {
+      "\\.(csv|jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/__mocks__/fileMock.js",
+      "\\.(css|less|sass|scss)$": "identity-obj-proxy"
+    },
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx",
+      "json"
+    ]
+  },
+  "scripts": {
+    "start": "webpack serve --server-type http",
+    "start:clean": "yarn clean:cache && yarn start",
+    "start:clean:all": "yarn clean:all && yarn start",
+    "start:secure": "webpack serve",
+    "start:secure:no-certs": "webpack serve --no-server-options-request-cert",
+    "build": "npm-run-all lint:build build:cypress build:webpack",
+    "build:ci": "npm-run-all build:cypress build:webpack",
+    "build:cypress": "tsc -p ./cypress/tsconfig.json",
+    "build:webpack": "webpack --mode production",
+    "clean:all": "yarn clean:cache && yarn install",
+    "clean:cache": "rimraf .cache",
+    "lezer:generate": "lezer-generator src/models/formula/lezer/formula.grammar -o src/models/formula/lezer/parser.js",
+    "lint:nocache": "eslint -c \"eslint.config.mjs\" \"./src/**/*.{js,jsx,mjs,ts,tsx}\" \"./cypress/**/*.{js,jsx,ts,tsx}\"",
+    "lint": "eslint --cache --cache-strategy content --cache-location \".cache/eslint/default\" -c \"eslint.config.mjs\" \"./src/**/*.{js,jsx,mjs,ts,tsx}\"",
+    "lint:build": "eslint --cache --cache-strategy content --cache-location \".cache/eslint/build\" -c \"eslint.build.config.mjs\" \"./src/**/*.{js,jsx,mjs,ts,tsx}\"",
+    "lint:fix": "eslint --cache --fix \"./src/**/*.{js,jsx,ts,tsx}\" \"./cypress/**/*.{js,jsx,ts,tsx}\"",
+    "lint:style": "eslint -c \".eslintrc.style.cjs\" \"./src/**/*.{js,jsx,ts,tsx}\" \"./cypress/**/*.{js,jsx,ts,tsx}\"",
+    "lint:style:fix": "eslint -c \".eslintrc.style.cjs\" \"./src/**/*.{js,jsx,ts,tsx}\" \"./cypress/**/*.{js,jsx,ts,tsx}\"",
+    "strings:pull:usage": "echo Usage: `yarn strings:pull -- -a <poeditor_api_key>`",
+    "strings:pull": "./scripts/strings-pull-project.sh",
+    "strings:push:usage": "echo Usage: `yarn strings:push -- -a <poeditor_api_key>`",
+    "strings:push": "./scripts/strings-push-project.sh",
+    "strings:update": "npm-run-all strings:push strings:pull",
+    "test": "jest",
+    "test:all": "npm-run-all build test start",
+    "test:clean": "jest --clearCache",
+    "test:coverage": "jest --coverage",
+    "test:debug": "node --nolazy --inspect-brk ./node_modules/.bin/jest --runInBand --no-cache",
+    "test:watch": "jest --watch",
+    "test:coverage:watch": "jest --coverage --watchAll",
+    "test:cypress": "cypress run --browser chrome",
+    "test:cypress:dev": "cypress run --env testEnv=dev",
+    "test:cypress:staging": "cypress run --env testEnv=staging",
+    "test:cypress:open": "cypress open --browser chrome",
+    "test:cypress:open:canary": "cypress open --browser chrome:canary",
+    "test:coverage:cypress:open": "cypress open --env coverage=true",
+    "test:full": "npm-run-all test test:cypress"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/concord-consortium/codap.git"
+  },
+  "author": "Concord Consortium",
+  "license": "MIT",
+  "homepage": "https://github.com/concord-consortium/codap#readme",
+  "devDependencies": {
+    "@eslint/compat": "^1.2.7",
+    "@eslint/eslintrc": "^3.3.0",
+    "@eslint/js": "^9.22.0",
+    "@lezer/generator": "^1.7.2",
+    "@stylistic/eslint-plugin": "^4.2.0",
+    "@talabes/json5-jest": "^2.0.0",
+    "@testing-library/dom": "^10.4.0",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.2.0",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/jest": "^29.5.14",
+    "@types/jsdom": "^21.1.7",
+    "@types/lodash": "^4.17.16",
+    "@types/node": "^22.15.29",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@types/react-dom-factories": "^1.0.5",
+    "@typescript-eslint/eslint-plugin": "^8.34.0",
+    "@typescript-eslint/parser": "^8.34.0",
+    "css-loader": "^7.1.2",
+    "eslint": "^9.22.0",
+    "eslint-config-react": "^1.1.7",
+    "eslint-import-resolver-typescript": "^4.4.3",
+    "eslint-plugin-chai-friendly": "^1.0.1",
+    "eslint-plugin-cypress": "^4.2.0",
+    "eslint-plugin-import-x": "patch:eslint-plugin-import-x@npm%3A4.15.1#~/.yarn/patches/eslint-plugin-import-x-npm-4.15.1-14cf13eac8.patch",
+    "eslint-plugin-jest": "^28.11.0",
+    "eslint-plugin-json": "^3.1.0",
+    "eslint-plugin-mocha": "^10.5.0",
+    "eslint-plugin-react": "^7.37.4",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-testing-library": "^7.1.1",
+    "eslint-webpack-plugin": "^5.0.0",
+    "globals": "^16.2.0",
+    "jest": "^30.0.0",
+    "jest-canvas-mock": "^2.5.2",
+    "jest-environment-jsdom": "^30.0.0",
+    "jest-environment-jsdom-global": "^4.0.0",
+    "jest-fetch-mock": "^3.0.3",
+    "resize-observer-polyfill": "^1.5.1"
+  },
+  "dependencies": {
+    "@chakra-ui/icons": "^2.2.4",
+    "@chakra-ui/react": "~2.8.2",
+    "@codemirror/autocomplete": "^6.18.6",
+    "@codemirror/commands": "^6.8.0",
+    "@codemirror/language": "^6.11.0",
+    "@codemirror/state": "^6.5.2",
+    "@codemirror/view": "^6.36.4",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "@lezer/common": "^1.2.3",
+    "@lezer/highlight": "^1.2.1",
+    "@lezer/lr": "^1.4.2",
+    "@uiw/react-codemirror": "^4.23.10",
+    "lodash": "^4.17.21",
+    "mathjs": "12.4.3",
+    "mobx": "^6.13.6",
+    "mobx-react-lite": "^4.1.0",
+    "mobx-state-tree": "npm:@concord-consortium/mobx-state-tree@6.0.0-cc.1",
+    "react": "^18.3.1",
+    "react-colorful": "^5.6.1",
+    "react-data-grid": "patch:react-data-grid@npm%3A7.0.0-beta.44#~/.yarn/patches/react-data-grid-npm-7.0.0-beta.44-dc3ce08e4a.patch",
+    "react-dom": "^18.3.1",
+    "react-dom-factories": "^1.0.2",
+    "react-leaflet": "^4.2.1",
+    "react-resize-detector": "^12.0.2",
+    "tslib": "^2.8.1",
+    "type-fest": "^4.37.0"
+  },
+  "packageManager": "yarn@4.9.2",
+  "devEngines": {
+    "packageManager": {
+      "name": "yarn"
+    }
+  }
+}
