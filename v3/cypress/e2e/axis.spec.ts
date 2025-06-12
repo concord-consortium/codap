@@ -328,9 +328,9 @@ context("Test graph axes with various attribute types", () => {
       const labelTexts = [...$labels].map(el => el.textContent?.trim())
       // Uniqueness
       const uniqueLabels = new Set(labelTexts)
-      expect(uniqueLabels.size).to.equal(labelTexts.length);
+      expect(uniqueLabels.size).to.equal(labelTexts.length)
       // Visibility
-      [...$labels].forEach(el => {
+      ;[...$labels].forEach(el => {
         const style = window.getComputedStyle(el)
         expect(style.display).to.not.equal("none")
         expect(style.visibility).to.not.equal("hidden")

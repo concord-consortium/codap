@@ -19,7 +19,7 @@ export const PlottedFunctionAdornmentBanner = observer(function PlottedFunctionA
   const yAttrID = graphModel.dataConfiguration.attributeID('y')
   const yAttrName = dataset?.getAttribute(yAttrID)?.name ?? t("DG.PlottedFunction.formulaPrompt")
   const { expression, error } = model
-  const formulaModal = useDisclosure()
+  const { isOpen, onClose, onOpen } = useDisclosure()
   const [modalIsOpen, setModalIsOpen] = useState(false)
 
   const handleModalOpen = (open: boolean) => {
@@ -27,12 +27,12 @@ export const PlottedFunctionAdornmentBanner = observer(function PlottedFunctionA
   }
 
   const handleEditExpressionOpen = () => {
-    formulaModal.onOpen()
+    onOpen()
     handleModalOpen(true)
   }
 
   const handleCloseModal = () => {
-    formulaModal.onClose()
+    onClose()
     handleModalOpen(false)
   }
 
@@ -73,7 +73,7 @@ export const PlottedFunctionAdornmentBanner = observer(function PlottedFunctionA
         <EditFormulaModal
           applyFormula={handleEditExpressionClose}
           formulaPrompt={`${yAttrName} =`}
-          isOpen={formulaModal.isOpen}
+          isOpen={isOpen}
           onClose={handleCloseModal}
           titleLabel={t("DG.PlottedFunction.namePrompt")}
           value={expression}

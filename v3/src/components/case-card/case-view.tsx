@@ -80,7 +80,6 @@ export const CaseView = observer(function CaseView(props: ICaseViewProps) {
   }
 
   return (
-    <>
     <div className={`case-card-view fadeIn ${colorCycleClass(level, collectionCount)}`} data-testid="case-card-view">
       {level === 0 && <CaseCardCollectionSpacer onDrop={handleNewCollectionDrop} collectionId={collectionId}/>}
       <CaseCardHeader cases={cases} level={level}/>
@@ -101,6 +100,5 @@ export const CaseView = observer(function CaseView(props: ICaseViewProps) {
         }
       </div>
     </div>
-    </>
   )
 })
