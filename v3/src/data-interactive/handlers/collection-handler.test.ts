@@ -6,7 +6,7 @@ import { ICodapV2CollectionV3 } from "../../v2/codap-v2-data-context-types"
 import { DICollection, DIDeleteCollectionResult } from "../data-interactive-data-set-types"
 import { DIValues } from "../data-interactive-types"
 import { diCollectionHandler } from "./collection-handler"
-import { setupTestDataset } from "./handler-test-utils"
+import { setupTestDataset } from "../../test/dataset-test-utils"
 
 describe("DataInteractive CollectionHandler", () => {
   const handler = diCollectionHandler

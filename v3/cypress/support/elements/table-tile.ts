@@ -303,6 +303,30 @@ export const TableTileElements = {
   selectItemFromRulerMenu(item: string) {
     this.getRulerMenuItem(item).click({ force: true })
   },
+  getCopyToClipboardItem() {
+    return this.getRulerMenuItem("Copy to Clipboard...")
+  },
+  getCopiedCasesAlert() {
+    return cy.get(".copied-cases-alert-content")
+  },
+  getCopiedCasesAlertOkButton() {
+    return this.getCopiedCasesAlert().find("button").contains("OK")
+  },
+  getCopyToClipboardModalBody() {
+    return cy.get(".copy-to-clipboard-modal-body")
+  },
+  getCopyToClipboardCollectionsButton() {
+    return this.getCopyToClipboardModalBody().find(".collections-button")
+  },
+  getCopyToClipboardCollectionList() {
+    return this.getCopyToClipboardModalBody().find(".collection-list")
+  },
+  getCopyToClipboardCollectionListItems() {
+    return this.getCopyToClipboardCollectionList().find(".collection-list-item")
+  },
+  getCopyToClipboardCopyButton() {
+    return cy.get(".formula-modal-footer").find("button").contains("Copy")
+  },
   verifyAttributeValues(attributes: TestAttributes, values: TestValues, collectionIndex = 1) {
     attributes.forEach(a => {
       const attribute = a.name

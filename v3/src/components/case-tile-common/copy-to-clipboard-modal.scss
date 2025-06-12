@@ -1,0 +1,44 @@
+.collections-label.chakra-form__label {
+  display: flex;
+  flex-direction: row;;
+  justify-content: flex-end;
+
+  .collections-button {
+    margin-left: 5px;
+    width: 150px;
+    z-index: 2;
+  }
+
+  .collection-list-container {
+    background-color: white;
+    border: solid 1px #888888;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+    border-top: none;
+    margin-left: 5px;
+    margin-top: -5px;
+    padding-top: 5px;
+    position: absolute;
+    width: 150px;
+    z-index: 1;
+
+    .collection-list {
+      width: 100%;
+
+      .collection-list-item {
+        cursor: pointer;
+        padding: 0 5px;
+        width: 100%;
+
+        &:hover {
+          background-color: #f0f0f0;
+        }
+
+        &.bottom-item {
+          border-bottom-left-radius: 10px;
+          border-bottom-right-radius: 10px;
+        }
+      }
+    }
+  }
+}

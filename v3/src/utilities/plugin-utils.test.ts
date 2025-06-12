@@ -1,5 +1,5 @@
 import { getSnapshot } from "mobx-state-tree"
-import { setupTestDataset, testCases } from "../data-interactive/handlers/handler-test-utils"
+import { setupTestDataset, testCases } from "../test/dataset-test-utils"
 import { appState } from "../models/app-state"
 import { createDefaultTileOfType } from "../models/codap/add-default-content"
 import {

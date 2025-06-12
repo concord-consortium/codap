@@ -1,7 +1,7 @@
 import { toV2Id } from "../../utilities/codap-utils"
 import { DIFullCase } from "../data-interactive-data-set-types"
 import { diCaseSearchHandler } from "./case-search-handler"
-import { setupTestDataset } from "./handler-test-utils"
+import { setupTestDataset } from "../../test/dataset-test-utils"
 
 
 describe("DataInteractive CaseSearchHandler", () => {

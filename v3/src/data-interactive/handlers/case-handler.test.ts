@@ -2,7 +2,7 @@ import { toV2Id, toV3CaseId } from "../../utilities/codap-utils"
 import { DISuccessResult, DIValues } from "../data-interactive-types"
 import { DINewCase } from "../data-interactive-data-set-types"
 import { diCaseHandler } from "./case-handler"
-import { setupTestDataset } from "./handler-test-utils"
+import { setupTestDataset } from "../../test/dataset-test-utils"
 
 describe("DataInteractive CaseHandler", () => {
   const handler = diCaseHandler

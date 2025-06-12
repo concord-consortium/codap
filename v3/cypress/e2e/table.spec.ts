@@ -412,6 +412,37 @@ context("case table ui", () => {
       table.getAttribute("newAttr").click()
       table.getAttribute("newAttr").should("have.text", "newAttr")
     })
+
+    it("can copy data to the clipboard", () => {
+      // The following allows Cypress to copy data to the clipboard
+      // It was taken from: https://github.com/cypress-io/cypress/issues/2752#issuecomment-934864818
+      cy.wrap(Cypress.automation('remote:debugger:protocol', {
+        command: 'Browser.grantPermissions',
+        params: { permissions: ['clipboardReadWrite', 'clipboardSanitizedWrite'], },
+      })).then(() => {
+        cy.log("check copying data from a single collection")
+        c.selectTile("table", 0)
+        table.getRulerButton().click()
+        table.getCopyToClipboardItem().click()
+        table.getCopiedCasesAlert().should("contain", "Copied 27 Cases to the clipboard")
+        table.getCopiedCasesAlertOkButton().click()
+
+        cy.log("check copying data from multiple collections")
+        const queryParams = "?mouseSensor=#file=examples:Four%20Seals"
+        const url = `${Cypress.config("index")}${queryParams}`
+        cy.visit(url)
+        c.selectTile("table", 0)
+        table.getRulerButton().click()
+        table.getCopyToClipboardItem().click()
+        table.getCopyToClipboardModalBody().should("contain", "Copy case data from:")
+        table.getCopyToClipboardCollectionsButton().click()
+        table.getCopyToClipboardCollectionList().should("exist")
+        table.getCopyToClipboardCollectionListItems().should("have.length", 3)
+        table.getCopyToClipboardCollectionListItems().contains("Tracks").click()
+        table.getCopyToClipboardCopyButton().click()
+        table.getCopiedCasesAlert().should("contain", "Copied 4 Tracks to the clipboard")
+      })
+    })
   })
   describe("case table header attribute menu", () => {
     it("verify add attribute with undo and redo", ()=>{

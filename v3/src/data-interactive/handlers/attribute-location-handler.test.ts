@@ -1,6 +1,6 @@
 import { ICollectionModel } from "../../models/data/collection"
 import { diAttributeLocationHandler } from "./attribute-location-handler"
-import { setupTestDataset } from "./handler-test-utils"
+import { setupTestDataset } from "../../test/dataset-test-utils"
 
 describe("DataInteractive AttributeLocationHandler", () => {
   const handler = diAttributeLocationHandler
