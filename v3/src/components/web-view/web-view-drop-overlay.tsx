@@ -60,7 +60,7 @@ export const WebViewDropOverlay = observer(function WebViewDropOverlay() {
   })
 
   // Only render the overlay if an attribute or tile is being dragged
-  if ((!dataSet || !attributeId) && !isDraggingTile) return null
+  if (!isDraggingAttribute && !isDraggingTile) return null
 
   // Broadcast drag notifications
   const handlePointerMove: MouseEventHandler<HTMLDivElement> = event => {
