@@ -16,23 +16,14 @@
     "strict": true,
     "types": [],
     "jsx": "react",
-    "lib": ["dom", "dom.iterable", "es2019"],
-    "paths": {
-      "codap-utilities": ["../utilities/src"],
-    }
-
+    "lib": ["dom", "dom.iterable", "es2019"]
   },
   "include": [
     "src/**/*",
-    "eslint.*.mjs",
-    // cypress.config.ts will need another pass before being added
-    // "*.config.ts",
-    "*.config.js",
-    "why-did-you-render.ts"
+    // Don't check the types in the eslint config for now
+    // "eslint.*.mjs",
   ],
   "exclude": [
-    "src/**/*.v2.ts",
-    "*.grammar",
     "*.json"
   ]
 }

@@ -219,6 +219,7 @@
     "@uiw/react-codemirror": "^4.23.10",
     "bbox-fns": "^0.20.2",
     "clsx": "^2.1.1",
+    "codap-formulas": "workspace:^",
     "colord": "^2.9.3",
     "create-react-class": "^15.7.0",
     "d3": "^7.9.0",

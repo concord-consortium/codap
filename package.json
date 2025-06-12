@@ -2,7 +2,8 @@
   "private": true,
   "workspaces": [
     "v3",
-    "formulas"
+    "formulas",
+    "utilities"
   ],
   "devDependencies": {
     "eslint": "^9.28.0",
