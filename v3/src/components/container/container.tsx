@@ -1,12 +1,10 @@
-import { useMergeRefs } from "@chakra-ui/react"
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import React, { useCallback, useRef } from "react"
 import { dataInteractiveState } from "../../data-interactive/data-interactive-state"
 import { DocumentContainerContext } from "../../hooks/use-document-container-context"
 import { useDocumentContent } from "../../hooks/use-document-content"
-import { useContainerDroppable, getDragTileId } from "../../hooks/use-drag-drop"
-import { logMessageWithReplacement, logStringifiedObjectMessage } from "../../lib/log-message"
+import { logMessageWithReplacement } from "../../lib/log-message"
 import { isFreeTileRow } from "../../models/document/free-tile-row"
 import { isMosaicTileRow } from "../../models/document/mosaic-tile-row"
 import { getSharedModelManager } from "../../models/tiles/tile-environment"
@@ -46,30 +44,10 @@ export const Container: React.FC = observer(function Container() {
     })
   }, [documentContent, getTile])
 
-  const { setNodeRef } = useContainerDroppable(kContainerClass, evt => {
-    const dragTileId = getDragTileId(evt.active)
-    if (dragTileId) {
-      if (isFreeTileRow(row)) {
-        const rowTile = row.getNode(dragTileId)
-        const tile = getTile(dragTileId)
-        if (rowTile && (evt.delta.x || evt.delta.y)) {
-          documentContent?.applyModelChange(() => {
-            rowTile.setPosition(rowTile.x + evt.delta.x, rowTile.y + evt.delta.y)
-          }, {
-            undoStringKey: "DG.Undo.componentMove",
-            redoStringKey: "DG.Redo.componentMove",
-            log: logStringifiedObjectMessage("Moved component %@", {tileType: tile?.content.type, tileId: dragTileId})
-          })
-        }
-      }
-    }
-  })
-  const mergedContainerRef = useMergeRefs<HTMLDivElement | null>(containerRef, setNodeRef)
-
   const classes = clsx(kContainerClass, { "scroll-behavior-auto": isScrollBehaviorAuto })
   return (
     <DocumentContainerContext.Provider value={containerRef}>
-      <div className={classes} ref={mergedContainerRef}>
+      <div className={classes} ref={containerRef}>
         {isMosaicTileRow(row) &&
           <MosaicTileRowComponent row={row} getTile={getTile} onCloseTile={handleCloseTile}/>}
         {isFreeTileRow(row) &&

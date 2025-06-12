@@ -1,8 +1,7 @@
 import {
-  Active, DataRef, DragEndEvent, Modifier, useDndMonitor,
+  Active, DataRef, useDndMonitor,
   useDraggable, UseDraggableArguments, useDroppable, UseDroppableArguments
 } from "@dnd-kit/core"
-import { kDragContainerClass } from "../components/container/container-constants"
 import { IDataSet } from "../models/data/data-set"
 import { useInstanceIdContext } from "./use-instance-id-context"
 import { useTileSelectionContext } from "./use-tile-selection-context"
@@ -75,82 +74,4 @@ export const useDropHandler = (dropId: string, onDrop?: (active: Active) => void
       selectTile()
     }
   }})
-}
-
-// Tile Dragging
-
-export interface IDragTileData extends IDragData {
-  type: "tile"
-  tileId: string
-}
-
-export function isDragTileData(data: DataRef): data is DataRef<IDragTileData> {
-  return data.current?.type === "tile"
-}
-
-export const getDragTileId = (active: Active | null) => {
-  return active && isDragTileData(active.data) ? active.data.current?.tileId : undefined
-}
-
-export interface IUseDraggableTile extends Omit<UseDraggableArguments, "id"> {
-  prefix: string
-  tileId: string
-}
-export const useDraggableTile =
-  ({ prefix, tileId, ...others }: IUseDraggableTile, onStartDrag?: (active: Active) => void) => {
-  const data: IDragTileData = { type: "tile", tileId }
-  const dragId = `${prefix}-${tileId}`
-  useTileDragStartHandler(dragId, onStartDrag ?? (() => null))
-  return useDraggable({ ...others, id: dragId, data })
-}
-
-export const useTileDragStartHandler = (dragId: string, onStartDrag: (active: Active) => void) => {
-  useDndMonitor({ onDragStart: ({ active }) => {
-    // only call onDragStart for the handler that registered it
-    (active.id === dragId) && onStartDrag(active)
-  }})
-}
-
-export const useContainerDroppable = (
-  baseId: string, onDrop: (event: DragEndEvent) => void, dropProps?: UseDroppableArguments
-) => {
-  const id = `${baseId}-drop`
-  useTileDropHandler(id, onDrop)
-  return { id, ...useDroppable({ ...dropProps, id }) }
-}
-
-export const useTileDropHandler = (dropId: string, onDrop: (event: DragEndEvent) => void) => {
-  useDndMonitor({ onDragEnd: (event: DragEndEvent) => {
-    // only call onDrop for the handler that registered it (if available)
-    // note that sometimes the over.id can be undefined ¯\_(ツ)_/¯
-    if (!event.over?.id || event.over.id === dropId) {
-      onDrop(event)
-    }
-  }})
-}
-
-export const containerSnapToGridModifier: Modifier = ({transform, active}) => {
-  // in pixels
-  const gridSize = active && isDragTileData(active.data) ? 5 : 1
-  return {
-    ...transform,
-    x: Math.ceil(transform.x / gridSize) * gridSize,
-    y: Math.ceil(transform.y / gridSize) * gridSize,
-  }
-}
-
-function isElement(target?: EventTarget | null) : target is Element {
-  return !!target && "closest" in target && typeof target.closest === "function"
-}
-
-export const restrictDragToContainer: Modifier = ({activeNodeRect, activatorEvent, transform}) =>{
-  // Prevent dragging upwards beyond the main container but allow dragging freely in other directions
-  const container = isElement(activatorEvent?.target) ? activatorEvent.target.closest(`.${kDragContainerClass}`) : null
-  const containerTop = container ? container.getBoundingClientRect().top - container.scrollTop : null
-  if (activeNodeRect && containerTop != null) {
-    if (activeNodeRect.top + transform.y < containerTop) {
-      transform.y = containerTop - activeNodeRect.top
-    }
-  }
-  return transform
 }

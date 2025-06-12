@@ -1,17 +1,19 @@
 import { Active, DragEndEvent, DragStartEvent, useDndMonitor, useDroppable } from "@dnd-kit/core"
+import { observer } from "mobx-react-lite"
 import React, { MouseEventHandler, useRef } from "react"
+import { IFullNotification } from "../../data-interactive/notification-full-types"
 import { getDragAttributeInfo, useDropHandler } from "../../hooks/use-drag-drop"
 import { useTileModelContext } from "../../hooks/use-tile-model-context"
 import {
   dragEndNotification, dragNotification, dragStartNotification, dragWithPositionNotification
 } from "../../lib/dnd-kit/dnd-notifications"
 import { IDataSet } from "../../models/data/data-set"
-import { IFullNotification } from "../../data-interactive/notification-full-types"
+import { uiState } from "../../models/ui-state"
 
 import "./web-view-drop-overlay.scss"
 
 // The WebViewDropOverlay broadcasts notifications to plugins as the user drags and drops attributes.
-export function WebViewDropOverlay() {
+export const WebViewDropOverlay = observer(function WebViewDropOverlay() {
   const overlayRef = useRef<HTMLElement|null>()
   const { tile, tileId } = useTileModelContext()
   const dropId = `web-view-drop-overlay-${tileId}`
@@ -19,6 +21,8 @@ export function WebViewDropOverlay() {
   const info = active && getDragAttributeInfo(active)
   const dataSet = info?.dataSet
   const attributeId = info?.attributeId
+  const isDraggingAttribute = !!dataSet && !!attributeId
+  const { isDraggingTile } = uiState
   // Mouse x and y are tracked so we know where the mouse is when a dragged attribute is dropped.
   const mouseX = useRef<number|undefined>()
   const mouseY = useRef<number|undefined>()
@@ -55,8 +59,8 @@ export function WebViewDropOverlay() {
     }
   })
 
-  // Only render the overlay if an attribute is being dragged
-  if (!dataSet || !attributeId) return null
+  // Only render the overlay if an attribute or tile is being dragged
+  if (!isDraggingAttribute && !isDraggingTile) return null
 
   // Broadcast drag notifications
   const handlePointerMove: MouseEventHandler<HTMLDivElement> = event => {
@@ -65,9 +69,11 @@ export function WebViewDropOverlay() {
     const y = event.clientY - top
 
     if (mouseX.current !== x || mouseY.current !== y) {
-      sendNotification(
-        dragWithPositionNotification("drag", dataSet, attributeId, x, y)
-      )
+      if (isDraggingAttribute) {
+        sendNotification(
+          dragWithPositionNotification("drag", dataSet, attributeId, x, y)
+        )
+      }
       mouseX.current = x
       mouseY.current = y
     }
@@ -75,9 +81,11 @@ export function WebViewDropOverlay() {
 
   // Broadcast dragenter and dragleave notifications
   const handlePointerEnterLeave = (operation: string) => {
-    sendNotification(
-      dragNotification(operation, dataSet, attributeId)
-    )
+    if (isDraggingAttribute) {
+      sendNotification(
+        dragNotification(operation, dataSet, attributeId)
+      )
+    }
   }
 
   const setRef = (ref: HTMLDivElement) => {
@@ -92,4 +100,4 @@ export function WebViewDropOverlay() {
     onPointerMove={handlePointerMove}
     ref={setRef}
   />
-}
+})
