@@ -18,13 +18,8 @@ import { IMenuItem, StdMenuList } from "../std-menu-list"
 export const RulerMenuList = observer(function RulerMenuList() {
   const data = useDataSetContext()
   const [copiedCasesString, setCopiedCasesString] = useState("")
-  const copyToClipboardModal = useDisclosure()
-  const copiedAlert = useDisclosure()
-
-  const handleCloseModal = () => {
-    copyToClipboardModal.onClose()
-    copiedAlert.onOpen()
-  }
+  const { isOpen: isCopyModalOpen, onClose: onCloseCopyModal, onOpen: onOpenCopyModal } = useDisclosure()
+  const { isOpen: isCopiedAlertOpen, onClose: onCloseCopiedAlert, onOpen: onOpenCopiedAlert } = useDisclosure()
 
   const handleAddNewAttribute = (collectionId: string) => {
     let attribute: IAttribute | undefined
@@ -32,7 +27,7 @@ export const RulerMenuList = observer(function RulerMenuList() {
       const newAttrName = uniqueName("newAttr",
         (aName: string) => !data.attributes.find(attr => aName === attr.name)
       )
-      attribute = data.addAttribute({name: newAttrName}, { collection: collectionId })
+      attribute = data.addAttribute({ name: newAttrName }, { collection: collectionId })
       if (attribute) {
         uiState.setAttrIdToEdit(attribute.id)
       }
@@ -78,11 +73,11 @@ export const RulerMenuList = observer(function RulerMenuList() {
       handleClick: () => {
         if (data) {
           if (data.collections.length > 1) {
-            copyToClipboardModal.onOpen()
+            onOpenCopyModal()
           } else {
             navigator.clipboard.writeText(convertDatasetToCsv(data))
             setCopiedCasesString(`${data.itemIds.length} ${data.childCollection.title}`)
-            copiedAlert.onOpen()
+            onOpenCopiedAlert()
           }
         }
       }
@@ -101,14 +96,15 @@ export const RulerMenuList = observer(function RulerMenuList() {
     <>
       <StdMenuList data-testid="ruler-menu-list" menuItems={menuItems} />
       <CopyToClipboardModal
-        isOpen={copyToClipboardModal.isOpen}
-        onClose={handleCloseModal}
+        isOpen={isCopyModalOpen}
+        onClose={() => onCloseCopyModal()}
+        onComplete={() => onOpenCopiedAlert()}
         setCopiedCasesString={setCopiedCasesString}
       />
       <CopiedCasesAlert
         copiedCasesString={copiedCasesString}
-        isOpen={copiedAlert.isOpen}
-        onClose={() => copiedAlert.onClose()}
+        isOpen={isCopiedAlertOpen}
+        onClose={() => onCloseCopiedAlert()}
       />
     </>
   )
