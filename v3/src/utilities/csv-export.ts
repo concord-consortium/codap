@@ -20,6 +20,8 @@ export function convertDatasetToCsv(dataset: IDataSet, collection?: ICollectionM
 
   let csv = `# name: ${escapeCommentValue(dataset.name)}\n`
 
+  // TODO: Include dataset metadata properties
+
   const attrs = collection?.attributesArray ?? dataset.attributes
   attrs.forEach(attr => {
     csv += `# attribute -- name: ${escapeCommentValue(attr.name)}`
