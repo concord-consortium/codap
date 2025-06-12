@@ -1,15 +1,12 @@
 import { removeDevUrlParams, removeSearchParams } from "./url-params"
 
 describe("urlParams", () => {
-  const originalLocation = window.location
-
-  const mockWindowLocation = (newLocation: Location | URL) => {
-    delete (window as any).location
-    window.location = newLocation as any
-  }
+  const originalLocation = window.location.href
 
   const setLocation = (url: string) => {
-    mockWindowLocation(new URL(url))
+    jsdom.reconfigure({
+      url
+    })
   }
 
   let mockPushState: jest.SpyInstance
@@ -20,7 +17,7 @@ describe("urlParams", () => {
 
   afterEach(() => {
     mockPushState.mockRestore()
-    mockWindowLocation(originalLocation)
+    setLocation(originalLocation)
   })
 
   it("removeSearchParams strips search params when requested", () => {

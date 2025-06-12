@@ -1,4 +1,4 @@
-import React from "react"
+import React, { createRef } from "react"
 import { render, screen } from "@testing-library/react"
 import { RegionOfInterestAdornment } from "./region-of-interest-adornment-component"
 import { IRegionOfInterestAdornmentModel, RegionOfInterestAdornmentModel } from "./region-of-interest-adornment-model"
@@ -23,7 +23,7 @@ jest.mock("../../hooks/use-adornment-attributes", () => ({
 
 const renderWithAdornment = (model: IRegionOfInterestAdornmentModel) => {
   // The ROI is rendered in the adornment spanner, so we need to mock that here.
-  const spannerRef = React.createRef<SVGSVGElement>()
+  const spannerRef = createRef<SVGSVGElement>()
   render(
     <svg ref={spannerRef}>
       <RegionOfInterestAdornment

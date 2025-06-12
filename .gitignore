@@ -1,18 +1,23 @@
-**/build/**
-**/tmp/**
-.DS_Store
-nbproject
-.idea
-*.iml
-.deployDevCodaprc
+coverage
+coverage-cypress
 dist
-.pt
-.ruby-gemset
-.ruby-version
-# Packages
-node_modules/
-cypress/screenshots
-cypress/videos
-cypress/downloads
-cypress/snapshots/*/__diff_output__/**
-v3/cypress/screenshots
+node_modules
+npm-error.log
+.DS_Store
+.env*
+.nyc_output
+.yalc
+yalc.lock
+.cache
+
+# Editors
+.idea
+
+# Yarn
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions

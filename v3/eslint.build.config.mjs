@@ -1,4 +1,5 @@
 import baseConfig from "./eslint.config.mjs"
+import jest from "eslint-plugin-jest"
 
 export default [
   ...baseConfig, // Include the base/default configuration
@@ -12,13 +13,13 @@ export default [
     },
   },
   { // Rules specific to Jest tests
-    files: ["src/**/*.test.*", "src/test/**"],
+    files: ["src/**/*.test.*", "src/test/**/*.ts"],
     rules: {
       "jest/no-focused-tests": "error"
     }
   },
   { // Rules specific to Cypress tests
-    files: ["cypress/**"],
+    files: ["cypress/**/*.ts"],
     rules: {
       "mocha/no-exclusive-tests": "error"
     }

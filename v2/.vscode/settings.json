@@ -1,0 +1,6 @@
+{
+  "files.associations": {
+    "*.js.ignore": "javascript",
+    "**/resources/*.css": "scss"
+  }
+}

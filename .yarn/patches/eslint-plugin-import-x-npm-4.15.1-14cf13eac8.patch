@@ -1,0 +1,84 @@
+diff --git a/lib/utils/module-require.js b/lib/utils/module-require.js
+index ca7b5c3c86c51f9f80ba925c2dfe3545993ad442..d345b753770fa48007a9243a82196c84ea3a29d9 100644
+--- a/lib/utils/module-require.js
++++ b/lib/utils/module-require.js
+@@ -1,4 +1,4 @@
+-import Module from 'node:module';
++import Module, { createRequire } from 'node:module';
+ import path from 'node:path';
+ import { cjsRequire } from '../require.js';
+ function createModule(filename) {
+@@ -7,7 +7,7 @@ function createModule(filename) {
+     mod.paths = Module._nodeModulePaths(path.dirname(filename));
+     return mod;
+ }
+-export function moduleRequire(p) {
++export function moduleRequire(p, context) {
+     try {
+         const eslintPath = cjsRequire.resolve('eslint');
+         const eslintModule = createModule(eslintPath);
+@@ -20,6 +20,11 @@ export function moduleRequire(p) {
+     }
+     catch {
+     }
++    try {
++        return createRequire(context.filename)(p);
++    }
++    catch {
++    }
+     return cjsRequire(p);
+ }
+ //# sourceMappingURL=module-require.js.map
+\ No newline at end of file
+diff --git a/lib/utils/parse.js b/lib/utils/parse.js
+index ddfe71bb2bcb9911b2ac66e57d9e5e04722c0112..de79e8b711f90f926833b988ee4867d934587614 100644
+--- a/lib/utils/parse.js
++++ b/lib/utils/parse.js
+@@ -49,8 +49,9 @@ export function parse(path, content, context) {
+     parserOptions = withoutProjectParserOptions(parserOptions);
+     parserOptions.ecmaVersion ??= context.languageOptions?.ecmaVersion;
+     parserOptions.sourceType ??= context.languageOptions?.sourceType;
++
+     const parser = typeof parserOrPath === 'string'
+-        ? moduleRequire(parserOrPath)
++        ? moduleRequire(parserOrPath, context)
+         : parserOrPath;
+     content = transformHashbang(stripUnicodeBOM(String(content)));
+     if ('parseForESLint' in parser &&
+diff --git a/lib/utils/resolve.js b/lib/utils/resolve.js
+index a189203ec1e7e3dfd9d2a61521ab3afcbc71c5ce..4c8b155118ff5038636515dd63b2738737fcb67a 100644
+--- a/lib/utils/resolve.js
++++ b/lib/utils/resolve.js
+@@ -178,7 +178,7 @@ function fullResolve(modulePath, sourceFile, settings, context) {
+             settings['import-x/resolver'] || {
+             node: settings['import-x/resolve'],
+         };
+-        for (const { enable, name, options, resolver } of normalizeConfigResolvers(configResolvers, sourceFile)) {
++        for (const { enable, name, options, resolver } of normalizeConfigResolvers(configResolvers, context.filename)) {
+             if (!enable) {
+                 continue;
+             }
+diff --git a/patch.md b/patch.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..dbaa69585e1204a65387b4b7142847f8ffc74eb9
+--- /dev/null
++++ b/patch.md
+@@ -0,0 +1,17 @@
++This patch fixes issues that come up with Yarn PnP when used in a monorepo. 
++
++This plugin uses node's `createRequire` in many places. `createRequire` is passed a filename. This filename represents the module that the created require function is relative to. For strict Yarn PnP if a require is used in a module that is part of a package which doesn't define a dependency on thing being required it will be rejected.
++
++When running Yarn PnP the require function returned by `createRequire` seems to look at both the package of the passed in filename and also the root package of the monorepo the code is running in. It does not look at the workspace package that the code is running in. 
++
++The import-x plugin is passing it's require.js as the filename for `createRequire` in many cases. This means that any dependency that is dynamically loaded has to either be defined on the mono repo root package or as a dependency of the import-x plugin itself. Specifically this was used when loading the parsers defined in the settings.
++
++For the resolvers defined in the settings, the filename of the current file being resolved was used. This filename might not be in the current project.
++
++This patch improves this by using the filename from the ESLint context for both the parser loading and the resolver loading. The filename from ESLint context is the file that is being linted. This should almost always be within the workspace that is being linted. So now Yarn PnP will look for the dependency in the workspaces package.json which is where most people would expect it to look. 
++
++A better approach would be to get the eslint config file itself and use that as the filename passed to `createRequire`. At least for parsers and resolvers these are defined as strings in the config file so it makes sense that they would be dynamically required from this location. I'm not sure how to get the path to the active eslint config file. The user could override this file so we can't do any path based approach. It seems the only way a plugin can get info about this is via the context object. There is info about that here: https://eslint.org/docs/latest/extend/custom-rules
++
++The best approach for all of this would be to stop using strings to define resolvers and parsers. Instead they should be imported into the eslint config file directly and if possible passed through a setting to the plugin. If we can't pass instances of objects as settings then they could be functions which generate the settings JSON. These functions could then find their own location and pass that through the settings JSON.
++
++The `'import-x/resolver-next'` setting takes this approach for resolvers so it is good way to deal with this: https://github.com/import-js/eslint-import-resolver-typescript?tab=readme-ov-file#eslintconfigjs
+\ No newline at end of file

@@ -1,20 +1,13 @@
 name: Continuous Integration (CODAP v3)
 
-on:
-  push:
-    paths:      # only run this workflow if it contains v3 files
-      - 'v3/**' # https://docs.github.com/en/actions/using-workflows/triggering-a-workflow#example-including-paths
-      - '.github/workflows/v3.yml'
-      - '.github/workflows/graph-pixi-tests.yml'
+on: push
 
 jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
     steps:
-      - uses: snow-actions/sparse-checkout@v1.2.0
-        with:
-          patterns: v3
+      - uses: actions/checkout@v4
       - name: Install Corepack
         # This is so yarn can be used correctly.
         # Note with Node <= 24 it is included by default and and
@@ -29,7 +22,7 @@ jobs:
         with:
           node-version: 20
           cache: 'yarn'
-          cache-dependency-path: v3/yarn.lock
+          cache-dependency-path: yarn.lock
       - name: Install Dependencies
         working-directory: v3
         run: yarn install
@@ -38,7 +31,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: v3/.cache/eslint/
-          key: eslint-${{ hashFiles('v3/package-lock.json', 'v3/.eslintrc.build.cjs', 'v3/.eslintrc.cjs') }}
+          key: eslint-${{ hashFiles('yarn.lock', 'v3/.eslintrc.build.cjs', 'v3/.eslintrc.cjs') }}
       - name: Lint
         working-directory: v3
         run: yarn lint:build
@@ -54,9 +47,7 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     steps:
-      - uses: snow-actions/sparse-checkout@v1.2.0
-        with:
-          patterns: v3
+      - uses: actions/checkout@v4
       - name: Install Corepack
         # This is so yarn can be used correctly.
         # Note with Node <= 24 it is included by default and and
@@ -71,7 +62,7 @@ jobs:
         with:
           node-version: 20
           cache: 'yarn'
-          cache-dependency-path: v3/yarn.lock
+          cache-dependency-path: yarn.lock
       - name: Install Dependencies
         working-directory: v3
         run: yarn install
@@ -113,9 +104,7 @@ jobs:
     name: Run Jest Tests
     runs-on: ubuntu-latest
     steps:
-      - uses: snow-actions/sparse-checkout@v1.2.0
-        with:
-          patterns: v3
+      - uses: actions/checkout@v4
       - name: Install Corepack
         # This is so yarn can be used correctly.
         # Note with Node <= 24 it is included by default and and
@@ -130,15 +119,15 @@ jobs:
         with:
           node-version: 20
           cache: 'yarn'
-          cache-dependency-path: v3/yarn.lock
+          cache-dependency-path: yarn.lock
       - name: Install Dependencies
-        working-directory: v3
         run: yarn install
+        working-directory: v3
       - name: Jest Cache
         uses: actions/cache@v4
         with:
           path: /tmp/jest_rt
-          key: jest-${{ hashFiles('v3/yarn.lock') }}
+          key: jest-${{ hashFiles('yarn.lock') }}
       - name: Get number of CPU cores
         id: cpu-cores
         uses: SimenB/github-actions-cpu-cores@v2
@@ -162,9 +151,7 @@ jobs:
       - uses: browser-actions/setup-chrome@v1
         with:
           chrome-version: stable
-      - uses: snow-actions/sparse-checkout@v1.2.0
-        with:
-          patterns: v3
+      - uses: actions/checkout@v4
       - name: Install Corepack
         # This is so yarn can be used correctly.
         # Note with Node <= 24 it is included by default and and
@@ -179,7 +166,7 @@ jobs:
         with:
           node-version: 20
           cache: 'yarn'
-          cache-dependency-path: v3/yarn.lock
+          cache-dependency-path: yarn.lock
       - name: Restore Webpack Cache
         id: restore-webpack-cache
         uses: actions/cache/restore@v4

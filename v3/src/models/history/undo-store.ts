@@ -1,7 +1,7 @@
 import { types, Instance, flow, getParent, IAnyStateTreeNode, getType } from "mobx-state-tree"
 import { nanoid } from "nanoid"
 import { HistoryEntry, HistoryEntryType, HistoryOperation } from "./history"
-// eslint-disable-next-line import/no-cycle
+// eslint-disable-next-line import-x/no-cycle
 import { TreeManager } from "./tree-manager"
 import { applyCustomRedo, applyCustomUndo, hasCustomUndoRedo } from "./custom-undo-redo-registry"
 import { DEBUG_UNDO } from "../../lib/debug"

@@ -1,6 +1,39 @@
 {
-  "files.associations": {
-    "*.js.ignore": "javascript",
-    "**/resources/*.css": "scss"
-  }
+  "standard.enable": false,
+  "jshint.options": {
+    "esversion": 6,
+    "node": true
+  },
+  "typescript.tsdk": ".yarn/sdks/typescript/lib",
+  "cSpell.words": [
+    "ccrte",
+    "Chakra",
+    "clsx",
+    "codemirror",
+    "colord",
+    "instanbul",
+    "keymap",
+    "keymaps",
+    "lezer",
+    "papaparse",
+    "Pixi",
+    "portaling",
+    "ulid"
+  ],
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "eslint.validate": [
+    "javascript",
+    "typescript"
+  ],
+  "files.insertFinalNewline": true,
+  "files.trimFinalNewlines": true,
+  "files.trimTrailingWhitespace": true,
+  "search.exclude": {
+    "**/.yarn": true,
+    "**/.pnp.*": true
+  },
+  "eslint.nodePath": ".yarn/sdks",
+  "typescript.enablePromptUseWorkspaceTsdk": true
 }

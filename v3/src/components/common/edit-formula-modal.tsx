@@ -35,7 +35,7 @@ export const EditFormulaModal = observer(function EditFormulaModal({
   const footerHeight = 56
   const insertButtonsHeight = 35
 
-  const modalContentRef = React.useRef<HTMLDivElement>(null)
+  const modalContentRef = useRef<HTMLDivElement>(null)
   const [showValuesMenu, setShowValuesMenu] = useState(false)
   const [showFunctionMenu, setShowFunctionMenu] = useState(false)
   const formulaEditorState = useFormulaEditorState(value ?? "")

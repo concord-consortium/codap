@@ -3,7 +3,7 @@ import { SetOptional } from "type-fest"
 import { kItemIdPrefix, v3Id } from "../../utilities/codap-utils"
 import { IAttributeSnapshot } from "./attribute"
 import { ICollectionModelSnapshot } from "./collection"
-// eslint-disable-next-line import/no-cycle
+// eslint-disable-next-line import-x/no-cycle
 import { DataSet, IDataSet, IDataSetSnapshot } from "./data-set"
 
 export const LegacyCaseID = types.model("CaseID", {
