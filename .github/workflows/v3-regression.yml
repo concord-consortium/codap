@@ -1,13 +1,7 @@
 # If this name is changed we also need to change it in run-regression-label.yml
 name: CI v3 Regression
 
-on:
-  push:
-    paths:      # only run this workflow if it contains v3 files
-      - 'v3/**' # https://docs.github.com/en/actions/using-workflows/triggering-a-workflow#example-including-paths
-      - '.github/workflows/v3-regression.yml'
-      - '.github/workflows/v3.yml'
-      - '.github/workflows/run-regression-label.yml'
+on: push
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -69,14 +63,14 @@ jobs:
         # should work will all Node versions >= 18
         # uninstalling the global yarn helps to make sure that the correct versions
         # are being used
-        run: | 
+        run: |
           npm uninstall -g yarn || true
           npm install -g corepack
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: 'yarn'
-          cache-dependency-path: v3/yarn.lock
+          cache-dependency-path: yarn.lock
       - name: Restore Webpack Cache
         # Don't save the webpack cache because the same cache wil be saved
         # by the cypress job in `v3.yml`
@@ -90,8 +84,8 @@ jobs:
           install-command: yarn install --immutable
           # TODO: this currently will re-run the smoke test, once we have a dedicated smoke
           # test that should be excluded
-          command: > 
-            yarn run --binaries-only cypress run 
+          command: >
+            yarn run --binaries-only cypress run
             ${{ !!secrets.CYPRESS_RECORD_KEY && '--record --parallel' || '' }}
             --browser chrome
             --group 'Regression Tests'
