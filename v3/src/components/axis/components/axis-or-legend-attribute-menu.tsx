@@ -16,6 +16,7 @@ interface IProps {
   place: GraphPlace,
   target: SVGGElement | null
   portal: HTMLElement | null
+  layoutBounds: string  // Used to signal need to re-render because layout has changed
   onChangeAttribute: (place: GraphPlace, dataSet: IDataSet, attrId: string) => void
   onRemoveAttribute: (place: GraphPlace, attrId: string) => void
   onTreatAttributeAs: (place: GraphPlace, attrId: string, treatAs: AttributeType) => void
@@ -31,7 +32,7 @@ const removeAttrItemLabelKeys: Record<string, string> = {
 }
 
 export const AxisOrLegendAttributeMenu =
-  observer(function AxisOrLegendAttributeMenu({ place, target, portal,
+  observer(function AxisOrLegendAttributeMenu({ place, target, portal, layoutBounds,
                                       onChangeAttribute, onRemoveAttribute, onTreatAttributeAs }: IProps) {
   const dataConfiguration = useDataConfigurationContext()
   const metadata = dataConfiguration?.metadata

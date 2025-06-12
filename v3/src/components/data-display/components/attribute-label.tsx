@@ -26,15 +26,14 @@ export const AttributeLabel = forwardRef((props: IProps, labelRef: ForwardedRef<
   const portal = labelElt?.closest(kPortalClassSelector) as HTMLElement ?? null
   const contentModel = useBaseDataDisplayModelContext()
   const layout = useDataDisplayLayout()
-  const [ , setLayoutBounds] = useState("")
+  const [ layoutBounds, setLayoutBounds] = useState("")
 
   useEffect(() => {
     return mstAutorun(() => {
       // accessing layout triggers autorun on change
       const bounds = layout.getComputedBounds(place)
-      const layoutBounds = JSON.stringify(bounds)
       // trigger re-render on layout position change
-      setLayoutBounds(layoutBounds)
+      setLayoutBounds(JSON.stringify(bounds))
       // render label and trigger autorun on change to observables within
       refreshLabel()
     }, { name: "AttributeLabel.autorun [refreshLabel]" }, contentModel)
@@ -48,6 +47,7 @@ export const AttributeLabel = forwardRef((props: IProps, labelRef: ForwardedRef<
           target={labelElt}
           portal={portal}
           place={place}
+          layoutBounds={layoutBounds}
           onChangeAttribute={onChangeAttribute}
           onRemoveAttribute={onRemoveAttribute}
           onTreatAttributeAs={onTreatAttributeAs}
