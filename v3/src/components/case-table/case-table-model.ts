@@ -20,7 +20,9 @@ export const CaseTableModel = TileContentModel
   })
   .volatile(self => ({
     // entire hierarchical table scrolls as a unit horizontally
-    _horizontalScrollOffset: 0
+    _horizontalScrollOffset: 0,
+    // temporary row heights for collections, used while resizing rows
+    tempRowHeights: new Map<string, number>()
   }))
   .actions(self => ({
     afterCreate() {
@@ -41,7 +43,7 @@ export const CaseTableModel = TileContentModel
       return self.columnWidths.get(attrId)
     },
     getRowHeightForCollection(collectionId: string) {
-      return self.rowHeights.get(collectionId)
+      return self.tempRowHeights.get(collectionId) ?? self.rowHeights.get(collectionId)
     }
   }))
   .views(self => {
@@ -51,7 +53,7 @@ export const CaseTableModel = TileContentModel
       getCollectionTableModel(collectionId: string) {
         let collectionTableModel = collectionTableModels.get(collectionId)
         if (!collectionTableModel) {
-          const rowHeight = self.getRowHeightForCollection(collectionId)
+          const rowHeight = self.rowHeights.get(collectionId)
           collectionTableModel = new CollectionTableModel(collectionId, rowHeight)
           collectionTableModels.set(collectionId, collectionTableModel)
         }
@@ -73,6 +75,13 @@ export const CaseTableModel = TileContentModel
     },
     setRowHeightForCollection(collectionId: string, height: number) {
       self.rowHeights.set(collectionId, height)
+    },
+    setTempRowHeightForCollection(collectionId: string, height: Maybe<number>) {
+      if (height == null) {
+        self.tempRowHeights.delete(collectionId)
+      } else {
+        self.tempRowHeights.set(collectionId, height)
+      }
     },
     updateAfterSharedModelChanges(sharedModel?: ISharedModel) {
       // TODO

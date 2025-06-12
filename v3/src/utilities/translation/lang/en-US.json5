@@ -55,6 +55,8 @@
     "V3.Redo.caseTable.delete": "Redo deleting case table",
     "V3.Undo.caseTable.hide": "Undo hiding case table",
     "V3.Redo.caseTable.hide": "Redo hiding case table",
+    "V3.Undo.caseTable.changeRowHeight": "Undo changing row height",
+    "V3.Redo.caseTable.changeRowHeight": "Redo changing row height",
     "V3.Undo.import.data": "Undo import of data",
     "V3.Redo.import.data": "Redo import of data",
     "V3.Undo.caseCard.hide": "Undo hiding case card",
