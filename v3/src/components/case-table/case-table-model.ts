@@ -1,3 +1,4 @@
+import { observable } from "mobx"
 import { Instance, SnapshotIn, types } from "mobx-state-tree"
 import { getTileCaseMetadata, getTileDataSet } from "../../models/shared/shared-data-tile-utils"
 import { ISharedModel } from "../../models/shared/shared-model"
@@ -20,7 +21,9 @@ export const CaseTableModel = TileContentModel
   })
   .volatile(self => ({
     // entire hierarchical table scrolls as a unit horizontally
-    _horizontalScrollOffset: 0
+    _horizontalScrollOffset: 0,
+    // temporary row heights for collections, used while resizing rows
+    tempRowHeights: observable.map<string, number>()
   }))
   .actions(self => ({
     afterCreate() {
@@ -42,6 +45,9 @@ export const CaseTableModel = TileContentModel
     },
     getRowHeightForCollection(collectionId: string) {
       return self.rowHeights.get(collectionId)
+    },
+    getTempRowHeightForCollection(collectionId: string) {
+      return self.tempRowHeights.get(collectionId)
     }
   }))
   .views(self => {
@@ -73,6 +79,13 @@ export const CaseTableModel = TileContentModel
     },
     setRowHeightForCollection(collectionId: string, height: number) {
       self.rowHeights.set(collectionId, height)
+    },
+    setTempRowHeightForCollection(collectionId: string, height: Maybe<number>) {
+      if (height == null) {
+        self.tempRowHeights.delete(collectionId)
+      } else {
+        self.tempRowHeights.set(collectionId, height)
+      }
     },
     updateAfterSharedModelChanges(sharedModel?: ISharedModel) {
       // TODO

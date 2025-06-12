@@ -65,7 +65,8 @@ export const RowDivider = observer(function RowDivider({ rowId, before }: IRowDi
       const deltaY = e.clientY - startY.current
       const tempNewHeight = Math.max(kDefaultRowHeight, initialHeight.current + deltaY)
       const newHeight = kSnapToLineHeight * Math.round((tempNewHeight - 4) / kSnapToLineHeight) + 4
-      collectionTableModel?.setRowHeight(newHeight)
+    collectionTableModel?.setRowHeight(newHeight)
+    caseTableModel?.setTempRowHeightForCollection(collectionId, newHeight)
     }
   }
 
@@ -73,14 +74,14 @@ export const RowDivider = observer(function RowDivider({ rowId, before }: IRowDi
     e.stopPropagation()
     isResizing.current = false
     caseTableModel?.applyModelChange(() => {
-        caseTableModel?.setRowHeightForCollection(collectionId, getRowHeight())
-      },
-      {
-        log: "Change row height",
-        undoStringKey: "DG.Undo.caseTable.changeRowHeight",
-        redoStringKey: "DG.Redo.caseTable.changeRowHeight"
-      }
-    )
+      caseTableModel?.setRowHeightForCollection(collectionId, getRowHeight())
+      caseTableModel?.setTempRowHeightForCollection(collectionId, undefined)
+    },
+    {
+      log: "Change row height",
+      undoStringKey: "V3.Undo.caseTable.changeRowHeight",
+      redoStringKey: "V3.Redo.caseTable.changeRowHeight"
+    })
     document.removeEventListener("mousemove", handleMouseMove)
     document.removeEventListener("mouseup", handleMouseUp)
   }
