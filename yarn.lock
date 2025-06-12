@@ -7428,6 +7428,7 @@ __metadata:
     jest-fetch-mock: "npm:^3.0.3"
     nanoid: "npm:^5.1.5"
     resize-observer-polyfill: "npm:^1.5.1"
+    ts-jest: "npm:^29.3.4"
     tslib: "npm:^2.8.1"
     typescript: "npm:^5.8.3"
   languageName: unknown

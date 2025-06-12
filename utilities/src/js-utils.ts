@@ -59,10 +59,6 @@ export function safeJsonParse<T = any>(json?: string) {
   return parsed
 }
 
-export function fooSpecial() {
-  return "hello"
-}
-
 /*
  * typedId()
  *
