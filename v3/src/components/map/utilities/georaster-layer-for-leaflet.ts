@@ -27,6 +27,7 @@ import type {
 const EPSG4326 = 4326
 
 function log(...args: any[]) {
+  // eslint-disable-next-line no-console
   console.log("[georaster-layer-for-leaflet] ", ...args)
 }
 

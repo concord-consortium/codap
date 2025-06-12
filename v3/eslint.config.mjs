@@ -9,7 +9,6 @@ import jest from "eslint-plugin-jest"
 import json from "eslint-plugin-json"
 import mocha from "eslint-plugin-mocha"
 import react from "eslint-plugin-react"
-import * as reactHooks from "eslint-plugin-react-hooks"
 import testingLibrary from "eslint-plugin-testing-library"
 import globals from "globals"
 import path from "node:path"
@@ -41,7 +40,7 @@ importX.flatConfigs.typescript,
     "@typescript-eslint": fixupPluginRules(typescriptEslint),
     json: fixupPluginRules(json),
     react: fixupPluginRules(react),
-    "react-hooks": fixupPluginRules(reactHooks)
+    // "react-hooks": fixupPluginRules(reactHooks)
   },
   languageOptions: {
     globals: {

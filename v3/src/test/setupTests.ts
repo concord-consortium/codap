@@ -76,5 +76,5 @@ declare global {
 }
 
 declare global {
-    const jsdom: JSDOM;
+    const jsdom: JSDOM
 }
