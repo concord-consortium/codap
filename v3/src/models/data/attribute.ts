@@ -31,7 +31,7 @@ import { parseColor } from "../../utilities/color-utils"
 import { isDateString } from "../../utilities/date-parser"
 import { DatePrecision } from "../../utilities/date-utils"
 import { cachedFnFactory } from "../../utilities/mst-utils"
-import { isBoundaryValue, kPolygonNames } from "../boundaries/boundary-types"
+import { isBoundaryString, kPolygonNames } from "../boundaries/boundary-types"
 import { Formula, IFormula } from "../formula/formula"
 import { applyModelChange } from "../history/apply-model-change"
 import { withoutUndo } from "../history/without-undo"
@@ -133,7 +133,7 @@ export const Attribute = V2Model.named("Attribute").props({
     return self.strValues.reduce((prev, current) => isDateString(current) ? ++prev : prev, 0)
   }),
   getBoundaryCount: cachedFnFactory<number>(() => {
-    return self.strValues.reduce((prev, current) => isBoundaryValue(current) ? ++prev : prev, 0)
+    return self.strValues.reduce((prev, current) => isBoundaryString(current) ? ++prev : prev, 0)
   }),
   get hasFormula() {
     return !!self.formula && !self.formula.empty
