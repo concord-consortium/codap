@@ -1,4 +1,4 @@
-import { kDefaultPrecision } from "../constants"
+import { kDefaultNumPrecision } from "../models/data/attribute-types"
 import { ICollectionModel } from "../models/data/collection"
 import { IDataSet } from "../models/data/data-set"
 import { getMetadataFromDataSet } from "../models/shared/shared-data-utils"
@@ -28,7 +28,7 @@ export function convertDatasetToCsv(dataset: IDataSet, collection?: ICollectionM
     if (attr.description) csv += `, description: ${escapeCommentValue(attr.description)}`
     if (attr.type) csv += `, type: ${escapeCommentValue(attr.type)}`
     if (attr.units) csv += `, unit: ${escapeCommentValue(attr.units)}`
-    if (attr.precision && attr.precision !== kDefaultPrecision) csv += `, precision: ${attr.precision}`
+    if (attr.precision && attr.precision !== kDefaultNumPrecision) csv += `, precision: ${attr.precision}`
     csv += `, editable: ${!metadata?.isEditProtected(attr.id)}`
     if (attr.formula?.display) csv += `, formula: ${escapeCommentValue(attr.formula.display)}`
     csv += "\n"

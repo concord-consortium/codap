@@ -97,14 +97,14 @@ export const RulerMenuList = observer(function RulerMenuList() {
       <StdMenuList data-testid="ruler-menu-list" menuItems={menuItems} />
       <CopyToClipboardModal
         isOpen={isCopyModalOpen}
-        onClose={() => onCloseCopyModal()}
-        onComplete={() => onOpenCopiedAlert()}
+        onClose={onCloseCopyModal}
+        onComplete={onOpenCopiedAlert}
         setCopiedCasesString={setCopiedCasesString}
       />
       <CopiedCasesAlert
         copiedCasesString={copiedCasesString}
         isOpen={isCopiedAlertOpen}
-        onClose={() => onCloseCopiedAlert()}
+        onClose={onCloseCopiedAlert}
       />
     </>
   )
