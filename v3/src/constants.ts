@@ -15,3 +15,5 @@ export const kImporterPluginUrl = "/Importer/index.html?lang=en-US"
 export function getImporterPluginUrl() {
   return `${getPluginsRootUrl()}${kImporterPluginUrl}`
 }
+
+export const kDefaultPrecision = 2

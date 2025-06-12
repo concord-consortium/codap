@@ -1,6 +1,11 @@
+import { kDefaultPrecision } from "../constants"
 import { ICollectionModel } from "../models/data/collection"
 import { IDataSet } from "../models/data/data-set"
 import { getMetadataFromDataSet } from "../models/shared/shared-data-utils"
+
+export function escapeCommentValue(value: string) {
+  return value.replace(/,/g, "&comma;").replace(/\n/g, "&NewLine;")
+}
 
 export function escapeCsvValue(value: string) {
   // Escape double quotes by replacing them with two double quotes
@@ -13,16 +18,17 @@ export function escapeCsvValue(value: string) {
 export function convertDatasetToCsv(dataset: IDataSet, collection?: ICollectionModel) {
   const metadata = getMetadataFromDataSet(dataset)
 
-  let csv = `# name: ${dataset.name}\n`
+  let csv = `# name: ${escapeCommentValue(dataset.name)}\n`
 
   const attrs = collection?.attributesArray ?? dataset.attributes
   attrs.forEach(attr => {
-    csv += `# attribute -- name: ${attr.name.replace(/,/g, "&comma;")}`
-    if (attr.description) csv += `, description: ${attr.description}`
-    if (attr.type) csv += `, type: ${attr.type}`
-    if (attr.units) csv += `, unit: ${attr.units}`
+    csv += `# attribute -- name: ${escapeCommentValue(attr.name)}`
+    if (attr.description) csv += `, description: ${escapeCommentValue(attr.description)}`
+    if (attr.type) csv += `, type: ${escapeCommentValue(attr.type)}`
+    if (attr.units) csv += `, unit: ${escapeCommentValue(attr.units)}`
+    if (attr.precision && attr.precision !== kDefaultPrecision) csv += `, precision: ${attr.precision}`
     csv += `, editable: ${!metadata?.isEditProtected(attr.id)}`
-    // TODO: Are there other properties we should include?
+    if (attr.formula?.display) csv += `, formula: ${escapeCommentValue(attr.formula.display)}`
     csv += "\n"
   })
 

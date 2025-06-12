@@ -1,5 +1,15 @@
 import { setupTestDataset } from "../test/dataset-test-utils"
-import { escapeCsvValue, convertDatasetToCsv } from "./csv-export"
+import { convertDatasetToCsv, escapeCommentValue, escapeCsvValue } from "./csv-export"
+
+describe("escapeCommentValue", () => {
+  it("should escape commas", () => {
+    expect(escapeCommentValue("a,b")).toBe("a&comma;b")
+  })
+
+  it("should escape newlines", () => {
+    expect(escapeCommentValue("a\nb")).toBe("a&NewLine;b")
+  })
+})
 
 describe("escapeCsvValue", () => {
   it("should escape double quotes", () => {
