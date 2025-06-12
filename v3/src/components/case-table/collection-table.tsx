@@ -96,8 +96,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
   const [selectionStartRowIdx, setSelectionStartRowIdx] = useState<number | null>(null)
   const initialPointerDownPosition = useRef({ x: 0, y: 0 })
   const kPointerMovementThreshold = 3
-  const rowHeight = caseTableModel?.getTempRowHeightForCollection(collectionId) ??
-    caseTableModel?.getRowHeightForCollection(collectionId) ?? kDefaultRowHeight
+  const rowHeight = caseTableModel?.getRowHeightForCollection(collectionId) ?? kDefaultRowHeight
   const {active} = useTileDroppable(`${kCollectionTableBodyDropZoneBaseId}-${collectionId}`)
 
   useEffect(function setGridElement() {

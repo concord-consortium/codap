@@ -43,10 +43,7 @@ export const CaseTableModel = TileContentModel
       return self.columnWidths.get(attrId)
     },
     getRowHeightForCollection(collectionId: string) {
-      return self.rowHeights.get(collectionId)
-    },
-    getTempRowHeightForCollection(collectionId: string) {
-      return self.tempRowHeights.get(collectionId)
+      return self.tempRowHeights.get(collectionId) ?? self.rowHeights.get(collectionId)
     }
   }))
   .views(self => {
@@ -56,7 +53,7 @@ export const CaseTableModel = TileContentModel
       getCollectionTableModel(collectionId: string) {
         let collectionTableModel = collectionTableModels.get(collectionId)
         if (!collectionTableModel) {
-          const rowHeight = self.getRowHeightForCollection(collectionId)
+          const rowHeight = self.rowHeights.get(collectionId)
           collectionTableModel = new CollectionTableModel(collectionId, rowHeight)
           collectionTableModels.set(collectionId, collectionTableModel)
         }
