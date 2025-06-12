@@ -4,6 +4,8 @@ import React, { useState } from "react"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
 import { logStringifiedObjectMessage } from "../../../lib/log-message"
 import { IAttribute } from "../../../models/data/attribute"
+import { ICollectionModel } from "../../../models/data/collection"
+import { IDataSet } from "../../../models/data/data-set"
 import { createAttributesNotification } from "../../../models/data/data-set-notifications"
 import { uiState } from "../../../models/ui-state"
 import { convertDatasetToCsv } from "../../../utilities/csv-export"
@@ -12,7 +14,7 @@ import { uniqueName } from "../../../utilities/js-utils"
 import { preventCollectionReorg } from "../../../utilities/plugin-utils"
 import { t } from "../../../utilities/translation/translate"
 import { CopiedCasesAlert } from "../copied-cases-alert"
-import { CopyToClipboardModal } from "../copy-to-clipboard-modal"
+import { ExportDataModal } from "../export-data-modal"
 import { IMenuItem, StdMenuList } from "../std-menu-list"
 
 export const RulerMenuList = observer(function RulerMenuList() {
@@ -92,14 +94,21 @@ export const RulerMenuList = observer(function RulerMenuList() {
     }
   ]
 
+  const handleComplete = (dataSet: IDataSet, selectedCollection: Maybe<ICollectionModel>) => {
+    navigator.clipboard.writeText(convertDatasetToCsv(dataSet, selectedCollection))
+    const collection = selectedCollection ?? dataSet.childCollection
+    setCopiedCasesString(`${collection.caseIds.length} ${collection.title}`)
+    onOpenCopiedAlert()
+  }
+
   return (
     <>
       <StdMenuList data-testid="ruler-menu-list" menuItems={menuItems} />
-      <CopyToClipboardModal
+      <ExportDataModal
         isOpen={isCopyModalOpen}
+        prompt={t("DG.Inspector.caseTable.exportCaseDialog.copyFrom")}
         onClose={onCloseCopyModal}
-        onComplete={onOpenCopiedAlert}
-        setCopiedCasesString={setCopiedCasesString}
+        onComplete={handleComplete}
       />
       <CopiedCasesAlert
         copiedCasesString={copiedCasesString}

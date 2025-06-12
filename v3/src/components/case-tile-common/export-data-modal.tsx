@@ -5,22 +5,23 @@ import React, { useState } from "react"
 import { observer } from "mobx-react-lite"
 import { clsx } from "clsx"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
-import { convertDatasetToCsv } from "../../utilities/csv-export"
+import { ICollectionModel } from "../../models/data/collection"
+import { IDataSet } from "../../models/data/data-set"
 import { isCommandKeyDown } from "../../utilities/platform-utils"
 import { t } from "../../utilities/translation/translate"
 import { CodapModal } from "../codap-modal"
 
-import "./copy-to-clipboard-modal.scss"
+import "./export-data-modal.scss"
 
 interface IProps {
   isOpen: boolean
+  prompt: string
   onClose?: () => void
-  onComplete?: () => void
-  setCopiedCasesString: (copiedCasesString: string) => void
+  onComplete: (dataSet: IDataSet, selectedCollection: Maybe<ICollectionModel>) => void
 }
 
-export const CopyToClipboardModal = observer(function CopyToClipboardModal({
-  isOpen, onClose, onComplete, setCopiedCasesString
+export const ExportDataModal = observer(function ExportDataModal({
+  isOpen, prompt, onClose, onComplete
 }: IProps) {
   const dataSet = useDataSetContext()
   const collections = dataSet?.collections
@@ -38,10 +39,7 @@ export const CopyToClipboardModal = observer(function CopyToClipboardModal({
 
   const applyAndClose = () => {
     if (dataSet) {
-      navigator.clipboard.writeText(convertDatasetToCsv(dataSet, selectedCollection))
-      const collection = selectedCollection ?? dataSet.childCollection
-      setCopiedCasesString(`${collection.caseIds.length} ${collection.title}`)
-      onComplete?.()
+      onComplete(dataSet, selectedCollection)
     }
     closeModal()
   }
@@ -92,7 +90,7 @@ export const CopyToClipboardModal = observer(function CopyToClipboardModal({
       <ModalBody className="copy-to-clipboard-modal-body" onKeyDown={handleKeyDown}>
         <FormControl className="copy-to-clipboard-form-control">
           <FormLabel className="collections-label">
-            {t("DG.Inspector.caseTable.exportCaseDialog.copyFrom")}
+            {prompt}
             <Box position="relative">
               <Button
                 className={clsx("collections-button", {"menu-open": showCollectionsMenu})}
