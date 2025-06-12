@@ -1,4 +1,3 @@
-import { observable } from "mobx"
 import { Instance, SnapshotIn, types } from "mobx-state-tree"
 import { getTileCaseMetadata, getTileDataSet } from "../../models/shared/shared-data-tile-utils"
 import { ISharedModel } from "../../models/shared/shared-model"
@@ -23,7 +22,7 @@ export const CaseTableModel = TileContentModel
     // entire hierarchical table scrolls as a unit horizontally
     _horizontalScrollOffset: 0,
     // temporary row heights for collections, used while resizing rows
-    tempRowHeights: observable.map<string, number>()
+    tempRowHeights: new Map<string, number>()
   }))
   .actions(self => ({
     afterCreate() {
