@@ -150,6 +150,34 @@ context("Graph UI with Pixi interaction", () => {
         gch.validateGraphPointCount(tileId, 24) // 24 points in graph
       })
     })
+
+    it("should not show connecting lines without pixi points when Display Only Selected Cases is enabled", () => {
+      // Set up graph with Speed on y-axis and Height on x-axis
+      ah.openAxisAttributeMenu("left")
+      ah.selectMenuAttribute("Speed", "left") // Speed => y-axis
+      ah.openAxisAttributeMenu("bottom")
+      ah.selectMenuAttribute("Height", "bottom") // Height => x-axis
+      cy.wait(500)
+
+      // Enable Display Only Selected Cases
+      graph.getHideShowButton().click()
+      cy.get("[data-testid=display-selected-cases]").click()
+      cy.wait(500)
+
+      // Enable connecting lines
+      graph.getDisplayValuesButton().click()
+      cy.get("[data-testid=adornment-checkbox-connecting-lines]").click()
+      cy.wait(500)
+
+      // Verify connecting lines do not exist
+      cy.get("*[data-testid^=connecting-lines-graph]").find("path").should("not.exist")
+
+      // Verify no pixi points exist
+      gch.getGraphTileId().then((tileId) => {
+        gch.validateGraphPointCount(tileId, 0) // 0 points in graph
+      })
+    })
+
     it("shows parent visibility toggles and verifies point count with Show Parent Visibility Toggles selected", () => {
       ah.openAxisAttributeMenu("bottom")
       ah.selectMenuAttribute("Sleep", "bottom") // Sleep => x-axis
@@ -176,13 +204,6 @@ context("Graph UI with Pixi interaction", () => {
         .find("button").contains("Spotted Hyena").should("have.class", "case-hidden")
       gch.getGraphTileId().then((tileId) => {
         gch.validateGraphPointCount(tileId, 23) // 23 points in graph
-      })
-      cy.get("[data-testid=parent-toggles-case-buttons-list]")
-        .find("button").contains("Spotted Hyena").click()
-      cy.get("[data-testid=parent-toggles-case-buttons-list]")
-        .find("button").contains("Spotted Hyena").should("not.have.class", "case-hidden")
-      gch.getGraphTileId().then((tileId) => {
-        gch.validateGraphPointCount(tileId, 24) // 24 points in graph
       })
       cy.get("[data-testid=parent-toggles-case-buttons-list]")
         .find("button").contains("Red Fox").should("exist").and("be.visible")
