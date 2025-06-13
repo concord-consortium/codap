@@ -122,12 +122,16 @@ export const RulerMenuList = observer(function RulerMenuList() {
       <ExportDataModal
         isOpen={isExportModalOpen}
         prompt={t("DG.AppController.exportCaseData.prompt")}
+        okLabel={t("DG.AppController.exportDocument.exportTitle")}
+        okTooltip={t("DG.AppController.exportDocument.exportTooltip")}
         onClose={onCloseExportModal}
         onComplete={exportData}
       />
       <ExportDataModal
         isOpen={isCopyModalOpen}
         prompt={t("DG.Inspector.caseTable.exportCaseDialog.copyFrom")}
+        okLabel={t("DG.Inspector.caseTable.exportCaseDialog.copy")}
+        okTooltip={t("DG.Inspector.caseTable.exportCaseDialog.copyTooltip")}
         onClose={onCloseCopyModal}
         onComplete={copyDataToClipboard}
       />

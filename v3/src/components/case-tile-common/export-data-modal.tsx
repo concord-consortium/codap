@@ -16,12 +16,14 @@ import "./export-data-modal.scss"
 interface IProps {
   isOpen: boolean
   prompt: string
+  okLabel: string
+  okTooltip: string
   onClose?: () => void
   onComplete: (dataSet: IDataSet, selectedCollection: Maybe<ICollectionModel>) => void
 }
 
 export const ExportDataModal = observer(function ExportDataModal({
-  isOpen, prompt, onClose, onComplete
+  isOpen, prompt, okLabel, okTooltip, onClose, onComplete
 }: IProps) {
   const dataSet = useDataSetContext()
   const collections = dataSet?.collections
@@ -59,8 +61,8 @@ export const ExportDataModal = observer(function ExportDataModal({
   }
 
   const footerButtons = [{
-    label: t("DG.Inspector.caseTable.exportCaseDialog.copy"),
-    tooltip: t("DG.Inspector.caseTable.exportCaseDialog.copyTooltip"),
+    label: okLabel,
+    tooltip: okTooltip,
     onClick: applyAndClose,
     default: true
   }, {
