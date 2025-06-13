@@ -89,8 +89,8 @@ export const ExportDataModal = observer(function ExportDataModal({
       modalHeight={`120px`}
       onClick={handleModalWhitespaceClick}
     >
-      <ModalBody className="copy-to-clipboard-modal-body" onKeyDown={handleKeyDown}>
-        <FormControl className="copy-to-clipboard-form-control">
+      <ModalBody className="export-data-modal-body" onKeyDown={handleKeyDown}>
+        <FormControl className="export-data-form-control">
           <FormLabel className="collections-label">
             {prompt}
             <Box position="relative">
@@ -99,7 +99,7 @@ export const ExportDataModal = observer(function ExportDataModal({
                 size="xs"
                 ml="5"
                 onClick={handleCollectionsMenuToggle}
-                data-testid="copy-to-clipboard-collections-button"
+                data-testid="export-data-collections-button"
               >
                 {selectedCollectionName}
               </Button>
@@ -128,7 +128,7 @@ export const ExportDataModal = observer(function ExportDataModal({
           </FormLabel>
         </FormControl>
       </ModalBody>
-      <ModalFooter mt="-5" className="formula-modal-footer">
+      <ModalFooter mt="-5" className="export-data-modal-footer">
         { footerButtons.map((b, idx) => {
             const key = `${idx}-${b.label}`
             return (
