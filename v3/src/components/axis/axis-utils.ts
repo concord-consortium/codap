@@ -1,11 +1,13 @@
 import {ScaleLinear} from "d3"
+import {MutableRefObject} from "react"
 import { determineLevels } from "../../utilities/date-utils"
-import {kAxisGap, kAxisTickLength} from "./axis-constants"
-import {kDataDisplayFont} from "../data-display/data-display-types"
-import {AxisPlace} from "./axis-types"
 import {measureText, measureTextExtent} from "../../hooks/use-measure-text"
 import {ICategorySet} from "../../models/data/category-set"
-import {MutableRefObject} from "react"
+import { kAxisGap, kAxisTickLength, kDefaultFontHeight } from "./axis-constants"
+import { axisPlaceToAttrRole, kDataDisplayFont } from "../data-display/data-display-types"
+import { IDataConfigurationModel } from "../data-display/models/data-configuration-model"
+import {AxisPlace} from "./axis-types"
+import { GraphLayout } from "../graph/models/graph-layout"
 
 export const getStringBounds = (s = 'Wy', font = kDataDisplayFont) => {
   return measureTextExtent(s, font)
@@ -28,6 +30,18 @@ export const collisionExists = (props: ICollisionProps) => {
   return centerCategoryLabels ? labelWidths.some((width, i) => {
     return i > 0 && width / 2 + labelWidths[i - 1] / 2 > narrowedBandwidth
   }) : labelWidths.some(width => width > narrowedBandwidth)
+}
+
+/**
+ * Having this utility function makes it possible to set the number of categories limit for a categorical
+ * axis early in the process of treating an attribute as categorical so that, if there is a large number of categories,
+ * we can limit the computation involved in figuring out which cases belong to which subplot.
+ */
+export const setNumberOfCategoriesLimit = (dataConfig: IDataConfigurationModel, axisPlace: AxisPlace,
+                                           layout: GraphLayout) => {
+  const axisLength = layout.getAxisLength(axisPlace),
+    numCategoriesLimit = Math.floor(axisLength / kDefaultFontHeight)
+  dataConfig?.setNumberOfCategoriesLimitForRole(axisPlaceToAttrRole[axisPlace], numCategoriesLimit)
 }
 
 interface ILabelPlacement {
