@@ -413,6 +413,29 @@ context("case table ui", () => {
       table.getAttribute("newAttr").should("have.text", "newAttr")
     })
 
+    it("can reach the cfm to export data", () => {
+      cy.log("check reaching the cfm to export data with one collection")
+      c.selectTile("table", 0)
+      table.getRulerButton().click()
+      table.getExportDataItem().click()
+      table.getCfmModal().should("exist")
+
+      cy.log("check reaching the cfm to export data with multiple collections")
+      const queryParams = "?mouseSensor=#file=examples:Four%20Seals"
+      const url = `${Cypress.config("index")}${queryParams}`
+      cy.visit(url)
+      c.selectTile("table", 0)
+      table.getRulerButton().click()
+      table.getExportDataItem().click()
+      table.getExportDataModalBody().should("contain", "Export the case data, from:")
+      table.getExportDataCollectionsButton().click()
+      table.getExportDataCollectionList().should("exist")
+      table.getExportDataCollectionListItems().should("have.length", 3)
+      table.getExportDataCollectionListItems().contains("Tracks").click()
+      table.getExportDataExportButton().click()
+      table.getCfmModal().should("exist")
+    })
+
     it("can copy data to the clipboard", () => {
       // The following allows Cypress to copy data to the clipboard
       // It was taken from: https://github.com/cypress-io/cypress/issues/2752#issuecomment-934864818
@@ -434,12 +457,12 @@ context("case table ui", () => {
         c.selectTile("table", 0)
         table.getRulerButton().click()
         table.getCopyToClipboardItem().click()
-        table.getCopyToClipboardModalBody().should("contain", "Copy case data from:")
-        table.getCopyToClipboardCollectionsButton().click()
-        table.getCopyToClipboardCollectionList().should("exist")
-        table.getCopyToClipboardCollectionListItems().should("have.length", 3)
-        table.getCopyToClipboardCollectionListItems().contains("Tracks").click()
-        table.getCopyToClipboardCopyButton().click()
+        table.getExportDataModalBody().should("contain", "Copy case data from:")
+        table.getExportDataCollectionsButton().click()
+        table.getExportDataCollectionList().should("exist")
+        table.getExportDataCollectionListItems().should("have.length", 3)
+        table.getExportDataCollectionListItems().contains("Tracks").click()
+        table.getExportDataCopyButton().click()
         table.getCopiedCasesAlert().should("contain", "Copied 4 Tracks to the clipboard")
       })
     })
