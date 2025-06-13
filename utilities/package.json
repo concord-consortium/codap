@@ -1,5 +1,5 @@
 {
-  "name": "codap-utilities",
+  "name": "@concord-consortium/codap-utilities",
   "version": "1.0.0",
   "description": "Library of utilities used by CODAP and its libraries",
   "main": "dist/index.js",

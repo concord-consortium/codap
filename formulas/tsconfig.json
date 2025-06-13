@@ -18,7 +18,7 @@
     "jsx": "react",
     "lib": ["dom", "dom.iterable", "es2019"],
     "paths": {
-      "codap-utilities": ["../utilities/src"],
+      "@concord-consortium/codap-utilities": ["../utilities/src"],
     }
 
   },

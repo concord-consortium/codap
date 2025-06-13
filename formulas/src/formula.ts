@@ -1,5 +1,5 @@
 import { getEnv, hasEnv, IAnyStateTreeNode, Instance, SnapshotIn, types } from "mobx-state-tree"
-import { typedId } from "codap-utilities"
+import { typedId } from "@concord-consortium/codap-utilities"
 import { IFormulaManager } from "./formula-manager-types"
 
 export interface IFormulaManagerEnvironment

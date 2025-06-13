@@ -21,8 +21,7 @@
       "@codemirror/state": ["./node_modules/@codemirror/state"],
       "@codemirror/view": ["./node_modules/@codemirror/view"],
       "mobx-state-tree": ["./node_modules/@concord-consortium/mobx-state-tree/dist"],
-      "codap-utilities": ["../utilities/src"],
-      "codap-formulas": ["../formulas/src"]
+      "@concord-consortium/codap-formulas": ["../formulas/src"]
     }
   },
   "include": [
