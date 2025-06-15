@@ -3,6 +3,16 @@
   "version": "1.0.0",
   "description": "Library of utilities used by CODAP and its libraries",
   "main": "dist/index.js",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./*": {
+      "import": "./dist/*.js",
+      "require": "./dist/*.cjs"
+    }
+  },
   "browser": {
     "fs": false,
     "os": false,
@@ -100,6 +110,7 @@
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.2.0",
     "@testing-library/user-event": "^14.6.1",
+    "@types/d3-format": "^3.0.4",
     "@types/jest": "^29.5.14",
     "@types/jsdom": "^21.1.7",
     "@types/node": "^22.15.29",
@@ -130,6 +141,10 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
-    "nanoid": "^5.1.5"
+    "d3-format": "^3.1.0",
+    "mobx": "^6.13.7",
+    "nanoid": "^5.1.5",
+    "query-string": "^9.2.0",
+    "type-fest": "^4.41.0"
   }
 }

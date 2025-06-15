@@ -1,10 +1,9 @@
-// import { IDataSet } from "../data/data-set"
-// import type { ICase } from "../data/data-set-types"
+import { IDataSet } from "../data/data-set"
+import type { ICase } from "../data/data-set-types"
 import { IAnyStateTreeNode } from "mobx-state-tree"
 import type { IFormula } from "./formula"
 
-// export type CaseList = ICase[] | "ALL_CASES"
-
+export type CaseList = ICase[] | "ALL_CASES"
 export interface IFormulaMetadata {
   formula: IFormula
   registeredDisplay: string
@@ -23,7 +22,7 @@ export interface IFormulaExtraMetadata {
 }
 
 export interface IFormulaContext extends Partial<IFormulaMetadata> {
-//   dataSet: IDataSet
+  dataSet: IDataSet
   formula: IFormula
 }
 
@@ -35,7 +34,7 @@ export interface IFormulaManagerAdapter {
   // active tracking and recalculation whenever any of their dependencies change. The adapter might opt not to return
   // formulas that currently shouldn't be recalculated, such as when the formula's adornment is hidden.
   getActiveFormulas: () => ({ formula: IFormula, extraMetadata: any })[]
-//   recalculateFormula: (formulaContext: IFormulaContext, extraMetadata: any, casesToRecalculateDesc?: CaseList) => void
+  recalculateFormula: (formulaContext: IFormulaContext, extraMetadata: any, casesToRecalculateDesc?: CaseList) => void
   getFormulaError: (formulaContext: IFormulaContext, extraMetadata: any) => Maybe<string>
   setFormulaError: (formulaContext: IFormulaContext, extraMetadata: any, errorMsg: string) => void
   setupFormulaObservers?: (formulaContext: IFormulaContext, extraMetadata: any) => () => void
@@ -45,7 +44,7 @@ export interface IFormulaManager {
   adapters: IFormulaManagerAdapter[]
   areAdaptersInitialized: boolean
 
-//   addDataSet: (dataSet: IDataSet) => void
+  addDataSet: (dataSet: IDataSet) => void
   removeDataSet: (dataSetId: string) => void
   getSyntaxError: (displayString: string) => any
   isRandomFunctionPresent: (canonicalString: string) => boolean

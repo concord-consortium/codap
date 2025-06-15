@@ -1,11 +1,20 @@
 {
   "compilerOptions": {
     "outDir": "./dist/",
+    "rootDir": "./src",
+    "composite": true,
     "declaration": true,
+    "declarationMap": true,
     "sourceMap": true,
     "noImplicitAny": true,
     "module": "esnext",
-    "moduleResolution": "node",
+    // Despite recommendations to not use "bundler" for libraries:
+    // https://www.typescriptlang.org/tsconfig#moduleResolution
+    // It seems to be the best way to allow extension-less imports in
+    // our typescript source code.
+    // It means that packages using this library also have to use
+    // "moduleResolution": "bundler" though.
+    "moduleResolution": "bundler",
     "target": "es2018",
     "allowJs": true,
     "esModuleInterop": true,
@@ -14,16 +23,24 @@
     "experimentalDecorators": true,
     "importHelpers": true,
     "strict": true,
-    "types": [],
+    // The MobX types depends on some es-next types that aren't available in es2018.
+    // In the runtime mobx handles older targets:
+    // https://github.com/mobxjs/mobx/issues/3903
+    "skipLibCheck": true,
     "jsx": "react",
     "lib": ["dom", "dom.iterable", "es2019"]
   },
   "include": [
     "src/**/*",
-    // Don't check the types in the eslint config for now
+    // Apparently with composite enabled typescript will only include js/ts files
+    // and not every file matching the `*`
+    "src/**/*.json",
+    // It might be helpful to add type checking to the eslint config file.
+    // This wouldn't be compatible with the composite setup though, so I think
+    // we'd need a second tsconfig file for that.
     // "eslint.*.mjs",
   ],
-  "exclude": [
-    "*.json"
-  ]
+  // "exclude": [
+  //   "*.json"
+  // ]
 }
