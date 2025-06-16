@@ -303,6 +303,9 @@ export const TableTileElements = {
   selectItemFromRulerMenu(item: string) {
     this.getRulerMenuItem(item).click({ force: true })
   },
+  getExportDataItem() {
+    return this.getRulerMenuItem("Export Case Data...")
+  },
   getCopyToClipboardItem() {
     return this.getRulerMenuItem("Copy to Clipboard...")
   },
@@ -312,20 +315,29 @@ export const TableTileElements = {
   getCopiedCasesAlertOkButton() {
     return this.getCopiedCasesAlert().find("button").contains("OK")
   },
-  getCopyToClipboardModalBody() {
-    return cy.get(".copy-to-clipboard-modal-body")
+  getExportDataModalBody() {
+    return cy.get(".export-data-modal-body")
   },
-  getCopyToClipboardCollectionsButton() {
-    return this.getCopyToClipboardModalBody().find(".collections-button")
+  getExportDataCollectionsButton() {
+    return this.getExportDataModalBody().find(".collections-button")
   },
-  getCopyToClipboardCollectionList() {
-    return this.getCopyToClipboardModalBody().find(".collection-list")
+  getExportDataCollectionList() {
+    return this.getExportDataModalBody().find(".collection-list")
   },
-  getCopyToClipboardCollectionListItems() {
-    return this.getCopyToClipboardCollectionList().find(".collection-list-item")
+  getExportDataCollectionListItems() {
+    return this.getExportDataCollectionList().find(".collection-list-item")
   },
-  getCopyToClipboardCopyButton() {
-    return cy.get(".formula-modal-footer").find("button").contains("Copy")
+  getExportDataButtons() {
+    return cy.get(".export-data-modal-footer").find("button")
+  },
+  getExportDataCopyButton() {
+    return this.getExportDataButtons().contains("Copy")
+  },
+  getExportDataExportButton() {
+    return this.getExportDataButtons().contains("Export")
+  },
+  getCfmModal() {
+    return cy.get("[data-testid=modal-dialog]")
   },
   verifyAttributeValues(attributes: TestAttributes, values: TestValues, collectionIndex = 1) {
     attributes.forEach(a => {
