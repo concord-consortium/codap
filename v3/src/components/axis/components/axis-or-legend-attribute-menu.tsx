@@ -12,6 +12,8 @@ import { IDataSet } from "../../../models/data/data-set"
 import {IUseDraggableAttribute, useDraggableAttribute} from "../../../hooks/use-drag-drop"
 import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
 
+import "./axis-or-legend-attribute-menu.scss"
+
 interface IProps {
   place: GraphPlace,
   target: SVGGElement | null
