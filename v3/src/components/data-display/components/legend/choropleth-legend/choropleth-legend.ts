@@ -1,8 +1,8 @@
 import { axisBottom, format, max, min, NumberValue, range, scaleLinear, ScaleQuantile, ScaleQuantize, select } from "d3"
-import { kChoroplethHeight } from "../../../data-display-types"
+import { measureTextExtent } from "../../../../../hooks/use-measure-text"
 import { neededSigDigitsArrayForBinBoundaries } from "../../../../../utilities/math-utils"
 import { DatePrecision, determineLevels, formatDate, mapLevelToPrecision } from "../../../../../utilities/date-utils"
-import { getStringBounds } from "../../../../axis/axis-utils"
+import { kChoroplethHeight, kDataDisplayFont } from "../../../data-display-types"
 
 export type ChoroplethLegendProps = {
   isDate?: boolean,
@@ -72,7 +72,7 @@ export function choroplethLegend(scale: ChoroplethScale, choroplethElt: SVGGElem
     tickFormat = (i: NumberValue) => thresholdFormat(thresholds[Number(i)]),
     minMaxFormat = isDate ? thresholdFormat
       : (d: number, i: number) => format(`.${significantDigits[i === 0 ? 0 : 5]}r`)(d),
-    minStringWidth = getStringBounds(minMaxFormat(minValue, 0)).width,
+    minStringWidth = measureTextExtent(minMaxFormat(minValue, 0), kDataDisplayFont).width,
     onlyShowMinMax = minStringWidth > 3 * width / 20 - 10
 
   svg.append("g")

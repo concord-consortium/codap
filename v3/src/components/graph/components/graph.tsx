@@ -6,7 +6,7 @@ import {IDisposer, isAlive} from "mobx-state-tree"
 import React, {useCallback, useEffect, useMemo, useRef} from "react"
 import {useDataSetContext} from "../../../hooks/use-data-set-context"
 import { logStringifiedObjectMessage } from "../../../lib/log-message"
-import {AttributeType} from "../../../models/data/attribute-types"
+import { AttributeType, isCategoricalAttributeType } from "../../../models/data/attribute-types"
 import {IDataSet} from "../../../models/data/data-set"
 import {isUndoingOrRedoing} from "../../../models/history/tree-types"
 import { getTileModel } from "../../../models/tiles/tile-model"
@@ -16,7 +16,7 @@ import {onAnyAction} from "../../../utilities/mst-utils"
 import { t } from "../../../utilities/translation/translate"
 import { setNiceDomain } from "../../axis/axis-domain-utils"
 import {GraphPlace} from "../../axis-graph-shared"
-import {AxisPlace, AxisPlaces} from "../../axis/axis-types"
+import { AxisPlace, AxisPlaces, isAxisPlace } from "../../axis/axis-types"
 import { IBaseNumericAxisModel } from "../../axis/models/numeric-axis-models"
 import {PixiPointsArray} from "../../data-display/pixi/pixi-points"
 import {Background} from "../../data-display/components/background"
@@ -27,6 +27,7 @@ import {GraphAttrRole, graphPlaceToAttrRole, kPortalClass} from "../../data-disp
 import {useDataDisplayAnimation} from "../../data-display/hooks/use-data-display-animation"
 import {isSetAttributeIDAction} from "../../data-display/models/display-model-actions"
 import {MarqueeState} from "../../data-display/models/marquee-state"
+import { setNumberOfCategoriesLimit } from "../../axis/axis-utils"
 import {Adornments} from "../adornments/components/adornments"
 import {IPlotProps, kGraphClass, PlotType} from "../graphing-types"
 import {useGraphContentModelContext} from "../hooks/use-graph-content-model-context"
@@ -198,13 +199,17 @@ export const Graph = observer(function Graph({graphController, setGraphRef, pixi
            attrIdToRemove = "") => {
     const computedPlace = place === 'plot' && graphModel.dataConfiguration.noAttributesAssigned ? 'bottom' : place
     const attrRole = graphPlaceToAttrRole[computedPlace]
-    const attrName = dataset?.getAttribute(attrId || attrIdToRemove)?.name
+    const attribute = dataSet.getAttribute(attrId || attrIdToRemove)
+    const attrName = attribute?.name
     const tile = getTileModel(graphModel)
     const notificationType = place === "legend" ? "legendAttributeChange" : "attributeChange"
     let notificationValues: IAttrChangeValues | undefined = undefined
 
     graphModel.applyModelChange(
       () => {
+        // We need to call setNumberOfCategoriesLimit early to avoid potential performance bottlenecks
+        isCategoricalAttributeType(attribute?.type) && isAxisPlace(place) &&
+          setNumberOfCategoriesLimit(graphModel.dataConfiguration, place, layout)
         graphModel.setAttributeID(attrRole, dataSet.id, attrId)
         notificationValues = attrChangeNotificationValues(place, attrId, attrName, attrIdToRemove, tile)
       },
@@ -217,7 +222,7 @@ export const Graph = observer(function Graph({graphController, setGraphRef, pixi
               { attribute: attrName, axis: place }, "plot")
       }
     )
-  }, [dataset, graphModel])
+  }, [graphModel, layout])
 
   /**
    * Only in the case that place === 'y' and there is more than one attribute assigned to the y-axis
@@ -237,6 +242,9 @@ export const Graph = observer(function Graph({graphController, setGraphRef, pixi
   const handleTreatAttrAs = useCallback((place: GraphPlace, _attrId: string, treatAs: AttributeType) => {
     const attrName = dataset?.getAttribute(_attrId)?.name
     dataset && graphModel.applyModelChange(() => {
+      // We need to call setNumberOfCategoriesLimit early to avoid potential performance bottlenecks
+      isCategoricalAttributeType(treatAs) && isAxisPlace(place) &&
+        setNumberOfCategoriesLimit(graphModel.dataConfiguration, place, layout)
       graphModel.dataConfiguration.setAttributeType(graphPlaceToAttrRole[place], treatAs)
       graphController?.handleAttributeAssignment()
     }, {
@@ -246,7 +254,7 @@ export const Graph = observer(function Graph({graphController, setGraphRef, pixi
             "plotAxisAttributeChangeType: %@",
             {axis: place, attribute: attrName, numeric: treatAs === 'numeric'})
     })
-  }, [dataset, graphController, graphModel])
+  }, [dataset, graphController, graphModel, layout])
 
   // respond to assignment of new attribute ID
   useEffect(function handleNewAttributeID() {

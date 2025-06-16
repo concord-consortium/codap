@@ -7,6 +7,10 @@ export const axisGap = 5
 export const AxisPlaces = ["bottom", "left", "rightCat", "top", "rightNumeric"] as const
 export type AxisPlace = typeof AxisPlaces[number]
 
+export function isAxisPlace(place: string): place is AxisPlace {
+  return (AxisPlaces as readonly string[]).includes(place)
+}
+
 export function otherPlace(aPlace: AxisPlace): AxisPlace {
   return ['bottom', 'top'].includes(aPlace) ? 'left' : 'bottom'
 }
