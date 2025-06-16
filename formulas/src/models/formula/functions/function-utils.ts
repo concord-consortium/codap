@@ -1,9 +1,9 @@
 import { MathNode } from "mathjs"
-import { checkDate } from "@concord-consortium/codap-utilities/date-utils"
-import { isValueNonEmpty } from "@concord-consortium/codap-utilities/math-utils"
+import { checkDate } from "../../../utilities/date-utils"
+import { isValueNonEmpty } from "../../../utilities/math-utils"
 import { FormulaMathJsScope } from "../formula-mathjs-scope"
 import { CurrentScope, MathJSPartitionedMap } from "../formula-types"
-export { isNumber, isValueNonEmpty } from "@concord-consortium/codap-utilities/math-utils"
+export { isNumber, isValueNonEmpty } from "../../../utilities/math-utils"
 
 export const UNDEF_RESULT = ""
 

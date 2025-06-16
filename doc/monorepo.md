@@ -5,6 +5,7 @@ Update the root files:
 
 ## TODO:
 - document how to use shared configurations for eslint and typescript
+- once we've switched the v3 workspace to using the utilities workspace, see if there are unnecessary dependencies in v3 because all of their usage has been moved to utilities
 
 # Typescript
 Typescript is added as a dependency in the root of the project so that the whole project can be built and so VSCode can open the whole project. Without this VSCode would fallback to its bundled Typescript version, but that does not support Yarn PnP so it is necessary to install typescript.

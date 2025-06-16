@@ -21,14 +21,6 @@
     "types": [],
     "jsx": "react",
     "lib": ["dom", "dom.iterable", "es2019"],
-    // FIXME: this approach is not good for a library we intend to publish:
-    // https://www.typescriptlang.org/docs/handbook/modules/reference.html#paths-should-not-point-to-monorepo-packages-or-node_modules-packages
-    // This means though we don't have a solution for "go to definition" across packages.
-    // "paths": {
-    //   "@concord-consortium/codap-utilities": ["../utilities/src"],
-    //   "@concord-consortium/codap-utilities/*": ["../utilities/src/*"],
-    // }
-
   },
   "include": [
     "src/**/*",

@@ -26,6 +26,7 @@
     "testEnvironment": "jest-environment-jsdom-global",
     "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
     "testPathIgnorePatterns": [
+      "/dist/",
       "/node_modules/",
       "/cypress/"
     ],
@@ -149,12 +150,15 @@
     "@lezer/highlight": "^1.2.1",
     "@lezer/lr": "^1.4.2",
     "@uiw/react-codemirror": "^4.23.10",
+    "colord": "patch:colord@npm%3A2.9.3#~/.yarn/patches/colord-npm-2.9.3-5c35c27898.patch",
+    "escape-string-regexp": "^5.0.0",
     "lodash": "^4.17.21",
     "mathjs": "12.4.3",
     "mobx": "^6.13.6",
     "mobx-react-lite": "^4.1.0",
     "mobx-state-tree": "npm:@concord-consortium/mobx-state-tree@6.0.0-cc.1",
     "nanoid": "^5.1.5",
+    "random": "^5.4.0",
     "react": "^18.3.1",
     "react-colorful": "^5.6.1",
     "react-data-grid": "patch:react-data-grid@npm%3A7.0.0-beta.44#~/.yarn/patches/react-data-grid-npm-7.0.0-beta.44-dc3ce08e4a.patch",

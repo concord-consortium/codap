@@ -220,7 +220,7 @@
     "@uiw/react-codemirror": "^4.23.10",
     "bbox-fns": "^0.20.2",
     "clsx": "^2.1.1",
-    "colord": "^2.9.3",
+    "colord": "patch:colord@npm%3A2.9.3#~/.yarn/patches/colord-npm-2.9.3-5c35c27898.patch",
     "create-react-class": "^15.7.0",
     "d3": "^7.9.0",
     "d3-format": "^3.1.0",
