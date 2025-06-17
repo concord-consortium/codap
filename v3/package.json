@@ -31,6 +31,7 @@
     "testEnvironment": "jest-environment-jsdom-global",
     "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
     "testPathIgnorePatterns": [
+      "/dist/",
       "/node_modules/",
       "/cypress/"
     ],
