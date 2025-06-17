@@ -1,21 +1,11 @@
+import { IFormula } from "../formula/formula";
 import { IAttribute } from "./attribute";
 import { IValueType } from "./attribute-types";
-
-interface ICollection {
-  id: string;
-  attributes: IAttribute[];
-}
+import { ICollection } from "./collection";
+import { CaseInfo, ICase, IGroupedCase, IItem } from "./data-set-types";
 
 interface ICollectionModel {
   id: string;
-}
-
-interface CaseInfo {
-  childItemIds: string[]
-}
-
-interface IItem {
-  __id__: string;
 }
 
 export interface IDataSet {
@@ -38,4 +28,20 @@ export interface IDataSet {
   getItemIndex(itemId: string): number | undefined;
   getValueAtItemIndex(index: number, attributeID: string): IValueType;
   items: readonly IItem[];
+  setCaseValues(cases: ICase[]): void;
+  getCasesForAttributes(attributeIds: string[]): IGroupedCase[];
+  hasFilterFormula(): boolean;
+  updateFilterFormulaResults(filterFormulaResults: { itemId: string, result: boolean }[], options: { replaceAll: boolean }): void;
+  itemsNotSetAside: readonly string[];
+  getItem(itemId: string): ICase | undefined;
+  setFilterFormulaError(error: string): void;
+  filterFormula?: IFormula;
+}
+
+export interface IDataSetWithFilterFormula extends IDataSet {
+  filterFormula: IFormula
+}
+
+export function isFilterFormulaDataSet(dataSet?: IDataSet): dataSet is IDataSetWithFilterFormula {
+  return !!dataSet?.hasFilterFormula
 }
