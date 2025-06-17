@@ -1,8 +1,10 @@
-import { Instance, SnapshotIn, types } from "mobx-state-tree"
+import { reaction } from "mobx"
+import { addDisposer, Instance, SnapshotIn, types } from "mobx-state-tree"
 import { getTileCaseMetadata, getTileDataSet } from "../../models/shared/shared-data-tile-utils"
 import { ISharedModel } from "../../models/shared/shared-model"
 import { ITileContentModel, TileContentModel } from "../../models/tiles/tile-content"
 import { kCaseTableTileType } from "./case-table-defs"
+import { kDefaultRowHeight } from "./case-table-types"
 import { CollectionTableModel } from "./collection-table-model"
 
 export const CaseTableModel = TileContentModel
@@ -54,6 +56,14 @@ export const CaseTableModel = TileContentModel
           const rowHeight = self.getRowHeightForCollection(collectionId)
           collectionTableModel = new CollectionTableModel(collectionId, rowHeight)
           collectionTableModels.set(collectionId, collectionTableModel)
+
+          // Set the collectionTableModel's rowHeight when the corresponding CaseTableModel.rowHeight changes.
+          // This allows external changes like undo/redo to work.
+          const disposer = reaction(
+            () => self.rowHeights.get(collectionId),
+            _rowHeight => collectionTableModel?.setRowHeight(_rowHeight ?? kDefaultRowHeight)
+          )
+          addDisposer(self, disposer)
         }
         return collectionTableModel
       }

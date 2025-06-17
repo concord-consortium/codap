@@ -73,14 +73,13 @@ export const RowDivider = observer(function RowDivider({ rowId, before }: IRowDi
     e.stopPropagation()
     isResizing.current = false
     caseTableModel?.applyModelChange(() => {
-        caseTableModel?.setRowHeightForCollection(collectionId, getRowHeight())
-      },
-      {
-        log: "Change row height",
-        undoStringKey: "DG.Undo.caseTable.changeRowHeight",
-        redoStringKey: "DG.Redo.caseTable.changeRowHeight"
-      }
-    )
+      caseTableModel?.setRowHeightForCollection(collectionId, getRowHeight())
+    },
+    {
+      log: "Change row height",
+      undoStringKey: "V3.Undo.caseTable.changeRowHeight",
+      redoStringKey: "V3.Redo.caseTable.changeRowHeight"
+    })
     document.removeEventListener("mousemove", handleMouseMove)
     document.removeEventListener("mouseup", handleMouseUp)
   }
