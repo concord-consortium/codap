@@ -1,0 +1,35 @@
+{
+  "compilerOptions": {
+    // Webpack handles emitting the files; it overrides this setting.
+    "noEmit": true,
+    "sourceMap": true,
+    "noImplicitAny": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "target": "es2018",
+    "allowJs": true,
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "resolveJsonModule": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "strict": true,
+    "types": [],
+    // Many of the dependency type definition files import files that aren't declared
+    // as dependencies.
+    "skipLibCheck": true,
+    "jsx": "react",
+    "lib": ["dom", "dom.iterable", "es2019"],
+    "paths": {
+      "@codemirror/autocomplete": ["./node_modules/@codemirror/autocomplete"],
+      "@codemirror/state": ["./node_modules/@codemirror/state"],
+      "@codemirror/view": ["./node_modules/@codemirror/view"]
+      // "mobx-state-tree": ["./node_modules/@concord-consortium/mobx-state-tree/dist"],
+    }
+  },
+  "exclude": [
+    "**/*.v2.ts",
+    "*.grammar",
+    "*.json"
+  ]
+}
