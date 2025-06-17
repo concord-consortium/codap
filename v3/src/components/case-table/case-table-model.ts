@@ -1,8 +1,10 @@
-import { Instance, SnapshotIn, types } from "mobx-state-tree"
+import { reaction } from "mobx"
+import { addDisposer, Instance, SnapshotIn, types } from "mobx-state-tree"
 import { getTileCaseMetadata, getTileDataSet } from "../../models/shared/shared-data-tile-utils"
 import { ISharedModel } from "../../models/shared/shared-model"
 import { ITileContentModel, TileContentModel } from "../../models/tiles/tile-content"
 import { kCaseTableTileType } from "./case-table-defs"
+import { kDefaultRowHeight } from "./case-table-types"
 import { CollectionTableModel } from "./collection-table-model"
 
 export const CaseTableModel = TileContentModel
@@ -20,9 +22,7 @@ export const CaseTableModel = TileContentModel
   })
   .volatile(self => ({
     // entire hierarchical table scrolls as a unit horizontally
-    _horizontalScrollOffset: 0,
-    // temporary row heights for collections, used while resizing rows
-    tempRowHeights: new Map<string, number>()
+    _horizontalScrollOffset: 0
   }))
   .actions(self => ({
     afterCreate() {
@@ -43,7 +43,7 @@ export const CaseTableModel = TileContentModel
       return self.columnWidths.get(attrId)
     },
     getRowHeightForCollection(collectionId: string) {
-      return self.tempRowHeights.get(collectionId) ?? self.rowHeights.get(collectionId)
+      return self.rowHeights.get(collectionId)
     }
   }))
   .views(self => {
@@ -53,9 +53,17 @@ export const CaseTableModel = TileContentModel
       getCollectionTableModel(collectionId: string) {
         let collectionTableModel = collectionTableModels.get(collectionId)
         if (!collectionTableModel) {
-          const rowHeight = self.rowHeights.get(collectionId)
+          const rowHeight = self.getRowHeightForCollection(collectionId)
           collectionTableModel = new CollectionTableModel(collectionId, rowHeight)
           collectionTableModels.set(collectionId, collectionTableModel)
+
+          // Set the collectionTableModel's rowHeight when the corresponding CaseTableModel.rowHeight changes.
+          // This allows external changes like undo/redo to work.
+          const disposer = reaction(
+            () => self.rowHeights.get(collectionId),
+            _rowHeight => collectionTableModel?.setRowHeight(_rowHeight ?? kDefaultRowHeight)
+          )
+          addDisposer(self, disposer)
         }
         return collectionTableModel
       }
@@ -75,13 +83,6 @@ export const CaseTableModel = TileContentModel
     },
     setRowHeightForCollection(collectionId: string, height: number) {
       self.rowHeights.set(collectionId, height)
-    },
-    setTempRowHeightForCollection(collectionId: string, height: Maybe<number>) {
-      if (height == null) {
-        self.tempRowHeights.delete(collectionId)
-      } else {
-        self.tempRowHeights.set(collectionId, height)
-      }
     },
     updateAfterSharedModelChanges(sharedModel?: ISharedModel) {
       // TODO

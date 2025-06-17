@@ -66,7 +66,6 @@ export const RowDivider = observer(function RowDivider({ rowId, before }: IRowDi
       const tempNewHeight = Math.max(kDefaultRowHeight, initialHeight.current + deltaY)
       const newHeight = kSnapToLineHeight * Math.round((tempNewHeight - 4) / kSnapToLineHeight) + 4
       collectionTableModel?.setRowHeight(newHeight)
-      caseTableModel?.setTempRowHeightForCollection(collectionId, newHeight)
     }
   }
 
@@ -75,7 +74,6 @@ export const RowDivider = observer(function RowDivider({ rowId, before }: IRowDi
     isResizing.current = false
     caseTableModel?.applyModelChange(() => {
       caseTableModel?.setRowHeightForCollection(collectionId, getRowHeight())
-      caseTableModel?.setTempRowHeightForCollection(collectionId, undefined)
     },
     {
       log: "Change row height",
