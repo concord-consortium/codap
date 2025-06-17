@@ -65,8 +65,13 @@ export const useDropHandler = ({
           else if (item.kind === "string" && item.type === "text/uri-list") {
             item.getAsString(url => {
               if (url) {
-                const result = /di=(.+)/.exec(url)
-                onHandleUrlDrop?.(result?.[1] || url)
+                if (url.replace(/.*\./g, '') === 'csv') {
+                  // For .csv import via Importer plugin
+                  initiateImportFromCsv({ url })
+                } else {
+                  const result = /di=(.+)/.exec(url)
+                  onHandleUrlDrop?.(result?.[1] || url)
+                }
               }
             })
           }
