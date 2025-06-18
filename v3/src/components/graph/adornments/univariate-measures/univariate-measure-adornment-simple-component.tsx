@@ -76,6 +76,7 @@ export const UnivariateMeasureAdornmentSimpleComponent = observer(
         .attr("data-testid", labelId)
         .style("left", `${100 * labelLeft}%`)
         .style("top", `${100 * labelTop}%`)
+        .append("p")
         .html(textContent)
 
       labelObj.label.call(

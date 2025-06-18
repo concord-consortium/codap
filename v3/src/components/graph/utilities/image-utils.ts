@@ -41,6 +41,24 @@ export const graphSnapshot = (options: IGraphSnapshotOptions): Promise<string | 
     }
     return text.join("\n")
   }
+  const css = document.createElement("style")
+  css.textContent = getCssText()
+  // Append some custom rules to improve the output -- hopefully we can make this unnecessary later.
+  css.textContent += `
+    .grid .tick line {
+      stroke: rgb(211, 211, 211);
+      stroke-opacity: 0.7;
+    }
+    line.divider, line.axis-line {
+      height: 1px;
+      stroke: rgb(211, 211, 211);
+    }
+    text.category-label {
+      fill: black;
+      font-family: arial, helvetica, sans-serif;
+      font-size: 9px;
+    }
+  `
 
   /**
    * Converts a PixiJS canvas to an SVG image element.
@@ -81,24 +99,6 @@ export const graphSnapshot = (options: IGraphSnapshotOptions): Promise<string | 
       }
     })
 
-    const css = document.createElement("style")
-    css.textContent = getCssText()
-    // Append some custom rules to improve the output -- hopefully we can make this unnecessary later.
-    css.textContent += `
-      .grid .tick line {
-        stroke: rgb(211, 211, 211);
-        stroke-opacity: 0.7;
-      }
-      line.divider, line.axis-line {
-        height: 1px;
-        stroke: rgb(211, 211, 211);
-      }
-      text.category-label {
-        fill: black;
-        font-family: arial, helvetica, sans-serif;
-        font-size: 9px;
-      }
-    `
     svgClone.insertBefore(css, svgClone.firstChild)
 
     // The PixiJS canvas inside the `graph-svg` SVG element requires special handling. We extract its
@@ -173,7 +173,8 @@ export const graphSnapshot = (options: IGraphSnapshotOptions): Promise<string | 
     }
   }
 
-  const perform = async (job?: Job): Promise<string | Blob> => {
+  const perform = async (jobIndex: number): Promise<string | Blob> => {
+    const job = jobList[jobIndex]
     if (!job) {
       if (graphTitle) {
         addTitle(mainCanvas, "transparent", "white", graphTitle)
@@ -185,26 +186,35 @@ export const graphSnapshot = (options: IGraphSnapshotOptions): Promise<string | 
     const { x, y } = coords
     const { width, height } = dimensions
     const elType = element.nodeName.toLowerCase()
-    const ctx = mainCanvas.getContext("2d")
   
-    if (ctx) {
+    if (mainCtx) {
       switch (elType) {
         case "div": {
-          ctx.fillStyle = getComputedStyle(job.element).backgroundColor || "#f8f8f8"
-          ctx.fillRect(x, y, width, height)
+          mainCtx.fillStyle = getComputedStyle(element).backgroundColor || "#f8f8f8"
+          mainCtx.fillRect(x, y, width, height)
           break
         }
         case "svg": {
-          const svgEl = job.element as SVGSVGElement
+          const svgEl = element as SVGSVGElement
           const dataURL = makeDataURLFromSVGElement(svgEl, dimensions)
           const svgImg = await makeSVGImage(dataURL)
-          ctx.drawImage(svgImg, x, y, width, height)
+          mainCtx.drawImage(svgImg, x, y, width, height)
+          break
+        }
+        case "p": {
+          const elementStyle = getComputedStyle(element)
+          // FIXME: Text styling isn't working
+          mainCtx.fillStyle = elementStyle.color || "#242424"
+          console.log(` -- style`, elementStyle)
+          mainCtx.font = `${elementStyle.fontSize || "12px"} ${elementStyle.fontFamily || "Montserrat, sans-serif"}`
+          // ctx.textAlign = elementStyle.textAlign as CanvasTextAlign || "right"
+          mainCtx.fillText(element.textContent || "", coords.x, coords.y, width)
           break
         }
       }
     }
     
-    return perform(jobList[jobIx++])
+    return perform(jobIndex + 1)
   }
 
   const getClassNames = (element: Element): string[] => {
@@ -234,11 +244,11 @@ export const graphSnapshot = (options: IGraphSnapshotOptions): Promise<string | 
     return classNames.every((className) => !disallowedElementClasses.has(className))
   }
 
-  const allElements = rootEl.querySelectorAll("div, svg")
+  const allElements = rootEl.querySelectorAll("div, svg, p")
   const targetElements = Array.from(allElements).filter(isAllowedElement)
   const mainCanvas = makeCanvas("#f8f8f8", 0, 0, graphWidth, graphHeight)
+  const mainCtx = mainCanvas.getContext("2d")
   const jobList: Job[] = []
-  let jobIx = 0
 
   targetElements.forEach((element: Element) => {
     const rect = element.getBoundingClientRect()
@@ -251,5 +261,5 @@ export const graphSnapshot = (options: IGraphSnapshotOptions): Promise<string | 
     jobList.push({ element, dimensions, coords })
   })
 
-  return perform(jobList[jobIx++])
+  return perform(0)
 }
