@@ -1,8 +1,8 @@
-import { IFormula } from "../formula/formula";
-import { IAttribute } from "./attribute";
-import { IValueType } from "./attribute-types";
-import { ICollection } from "./collection";
-import { CaseInfo, ICase, IGroupedCase, IItem } from "./data-set-types";
+import { IFormula } from "../formula/formula"
+import { IAttribute } from "./attribute"
+import { IValueType } from "./attribute-types"
+import { ICollection } from "./collection"
+import { CaseInfo, ICase, IGroupedCase, IItem } from "./data-set-types"
 
 interface ICollectionModel {
   id: string;
@@ -36,6 +36,7 @@ export interface IDataSet {
   getItem(itemId: string): ICase | undefined;
   setFilterFormulaError(error: string): void;
   filterFormula?: IFormula;
+  getAttributeByName(name: string): IAttribute | undefined;
 }
 
 export interface IDataSetWithFilterFormula extends IDataSet {

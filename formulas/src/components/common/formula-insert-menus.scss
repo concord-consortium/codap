@@ -1,0 +1,170 @@
+@use "../vars";
+
+.formula-function-menu-container {
+  margin: 3px 0;
+  border: 1px solid #000;
+  font-size: 12px;
+  z-index: 1005;
+  background-color: white;
+  max-width: 300px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  position: absolute;
+  max-height: 380px;
+  left: 20px;
+  cursor: pointer;
+
+  .formula-function-list {
+    display: flex;
+    flex-direction: column;
+    margin: 10px;
+    list-style-type: none;
+    font-size: 12px;
+    width: 270px;
+
+    .function-category-list-item {
+      display: flex;
+      align-items: center;
+      padding: 3px;
+      font-size: 14px;
+      font-weight: bold;
+      line-height: 20px;
+      &:hover, &:active {
+        color: vars.$codap-teal-light;
+        text-decoration: underline;
+      }
+
+      .function-category-expand-arrow {
+        position: absolute;
+        right: 15px;
+      }
+    }
+
+    .functions-list-header {
+      &:hover, &:active {
+        color: vars.$codap-teal-light;
+        text-decoration: underline;
+      }
+      .function-select-back-arrow {
+        margin-right: 5px;
+      }
+
+      .function-selected-item-name-header {
+        font-weight: bold;
+        margin-left: 5px;
+      }
+    }
+
+    .function-menu-item {
+      margin-top: 5px;
+      min-height: 20px;
+      &:hover, &:active {
+        color: vars.$codap-teal-light;
+        .function-menu-name {
+          text-decoration: underline;
+        }
+        .function-arguments {
+          text-decoration: underline;
+        }
+        .function-info-button {
+          text-decoration: none;
+        }
+      }
+    }
+
+    .function-header-divider {
+      border: 1px solid #777;
+      opacity: 1;
+    }
+  }
+}
+
+.function-info-name {
+  font-size: 14px;
+  font-weight: bold;
+  margin: 5px 0;
+  cursor: pointer;
+
+  &:hover, &:active {
+    color: vars.$codap-teal-light;
+    text-decoration: underline;
+  }
+}
+
+.function-info-subtitle {
+  font-size: 12px;
+  font-weight: bold;
+  margin: 5px 0;
+  color: #555;
+}
+
+.function-arguments-info {
+  font-size: 12px;
+  font-weight: normal;
+  margin: 5px 0;
+
+  span {
+    margin-right: 3px;
+  }
+}
+
+.function-arguments {
+  font-style: italic;
+}
+
+.formula-operand-list-container {
+  max-width: 310px;
+  position: absolute;
+  z-index: 1005;
+  display: flex;
+  flex-direction: column;
+  background-color: white;
+  border: solid 0 transparent;
+  padding: 5px 0;
+
+  .scroll-arrow {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    font-size: 12px;
+    height: 20px;
+
+    &:hover, &:active {
+      color: vars.$codap-teal-light;
+      text-decoration: underline;
+    }
+  }
+
+  .formula-operand-scrollable-container {
+    overflow-x: hidden;
+    overflow-y: auto;
+    display: flex;
+    vertical-align: middle;
+    flex-direction: column;
+
+    .list-divider {
+      border: 0.5px solid #d6d6d6;
+      opacity: 0.6;
+      margin: 0;
+    }
+
+    .formula-operand-subset {
+      margin: 5px 0;
+    }
+
+    .formula-operand-list-item {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      font-size: 12px;
+      margin: 0 20px;
+      height: 18px;
+      &:hover, &:active {
+        color: vars.$codap-teal-light;
+        text-decoration: underline;
+      }
+    }
+  }
+}

@@ -56,6 +56,7 @@
     "build:ci": "npm-run-all build:cypress build:webpack",
     "build:cypress": "tsc -p ./cypress/tsconfig.json",
     "build:tsc": "tsc --build",
+    "build:scss": "sass src:dist",
     "clean:all": "yarn clean:cache && yarn install",
     "clean:cache": "rimraf .cache",
     "lezer:generate": "lezer-generator src/models/formula/lezer/formula.grammar -o src/models/formula/lezer/parser.js",
@@ -103,6 +104,7 @@
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.2.0",
     "@testing-library/user-event": "^14.6.1",
+    "@types/copyfiles": "^2",
     "@types/jest": "^29.5.14",
     "@types/jsdom": "^21.1.7",
     "@types/lodash": "^4.17.16",
@@ -112,6 +114,7 @@
     "@types/react-dom-factories": "^1.0.5",
     "@typescript-eslint/eslint-plugin": "^8.34.0",
     "@typescript-eslint/parser": "^8.34.0",
+    "copyfiles": "^2.4.1",
     "css-loader": "^7.1.2",
     "eslint": "^9.22.0",
     "eslint-config-react": "^1.1.7",
@@ -132,7 +135,9 @@
     "jest-environment-jsdom": "^30.0.0",
     "jest-environment-jsdom-global": "^4.0.0",
     "jest-fetch-mock": "^3.0.3",
+    "npm-run-all": "^4.1.5",
     "resize-observer-polyfill": "^1.5.1",
+    "sass": "^1.89.2",
     "typescript": "^5.8.3"
   },
   "dependencies": {
@@ -167,6 +172,7 @@
     "react-leaflet": "^4.2.1",
     "react-resize-detector": "^12.0.2",
     "tslib": "^2.8.1",
-    "type-fest": "^4.41.0"
+    "type-fest": "^4.41.0",
+    "use-memo-one": "^1.1.3"
   }
 }

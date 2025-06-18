@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "outDir": "./dist/",
+    "rootDir": "./src/",
     "declaration": true,
     "sourceMap": true,
     "noImplicitAny": true,
@@ -24,11 +25,12 @@
   },
   "include": [
     "src/**/*",
-    "eslint.*.mjs",
+    // With the rootDir set to src, we don't want to include these
+    // config files
+    // "eslint.*.mjs",
     // cypress.config.ts will need another pass before being added
     // "*.config.ts",
-    "*.config.js",
-    "why-did-you-render.ts"
+    // "*.config.js",
   ],
   "exclude": [
     "src/**/*.v2.ts",

@@ -1,0 +1,45 @@
+$menu-bar-height: 30px;
+$tool-shelf-height: 65px;
+
+$title-bar-height: 25px;
+$header-height: 30px;
+
+$border-radius-top-corners: 6px 6px 0px 0px;
+$border-radius-four-corners: 6px;
+$border-radius-bottom-corners: 0px 0px 6px 6px;
+
+$charcoal-dark-3: #080808;
+$charcoal-dark-2: #3f3f3f;
+$charcoal-dark-1: #545454;
+$charcoal: #707070;
+$charcoal-light-1: #949494;
+$charcoal-light-1-b: #a9a9a9;
+$charcoal-light-1-c: #979797;
+$charcoal-light-2: #bfbfbf;
+$charcoal-light-3: #cfcfcf;
+$charcoal-light-4: #dfdfdf;
+$charcoal-light-5: #e9e9e9;
+$charcoal-light-6: #eeeeee;
+$charcoal-light-7: #f2f2f2;
+$charcoal-light-8: #f6f6f6;
+$charcoal-light-9: #f8f8f8;
+
+$teal-dark: #01879E;
+$teal-light1: #2BA5C1;
+$teal-light3: #93D5E4;
+
+$codap-teal-dark: #177991;
+$codap-teal-light: #72bfca;
+$codap-teal-lighter: #bddfdf;
+$codap-tool-shelf-gray: #ececec;
+
+$minimize-transition: height 0.4s ease-in-out 0s;
+
+$label-font: 400 14px Montserrat, sans-serif;
+$empty-label-font: 12px Montserrat, sans-serif;
+$background-fill: #f9f9f9;
+
+:export {
+  labelFont: $label-font;
+  emptyLabelFont: $empty-label-font;
+}

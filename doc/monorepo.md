@@ -9,6 +9,7 @@ Update the root files:
 - once we've switched the v3 workspace to using the utilities workspace, see if there are unnecessary dependencies in v3 because all of their usage has been moved to utilities
 - find a way to extract the duplicate code of the debug.ts which had to be added to `formulas`
 - figure out how to update the formula tests so can be moved into the formulas package. Currently they use the CODAP document so they can't be moved in without bringing in lots of dependencies.
+- put components/vars.scss in a common package, so the formula editor and v3 can share it there might be issues with getting yarn to allow the import from the package especially if the common package uses the "exports" property in its package.json
 
 # Typescript
 Typescript is added as a dependency in the root of the project so that the whole project can be built and so VSCode can open the whole project. Without this VSCode would fallback to its bundled Typescript version, but that does not support Yarn PnP so it is necessary to install typescript.
