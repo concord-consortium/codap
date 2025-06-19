@@ -3,6 +3,11 @@
   "version": "1.0.0",
   "description": "Library for handling formulas, used by CODAP and other applications.",
   "main": "index.js",
+  "exports": {
+    "./*": {
+      "import": "./dist/*.js"
+    }
+  },
   "browser": {
     "fs": false,
     "os": false,

@@ -1,18 +1,24 @@
 import { IDataSet } from "../data/data-set"
 import { createDataSet } from "../data/data-set-conversion"
-import { AttributeFormulaAdapter } from "./attribute-formula-adapter"
-import { FormulaManager } from "./formula-manager"
-import { localAttrIdToCanonical } from "./utils/name-mapping-utils"
+import { AttributeFormulaAdapter } from "@concord-consortium/codap-formulas/models/formula/attribute-formula-adapter"
+import { FormulaManager } from "@concord-consortium/codap-formulas/models/formula/formula-manager"
+import { localAttrIdToCanonical } from "@concord-consortium/codap-formulas/models/formula/utils/name-mapping-utils"
+
+import type { IDataSet as IFormulaDataSet } from "@concord-consortium/codap-formulas/models/data/data-set"
 
 const getTestEnv = () => {
-  const dataSet = createDataSet({
+  const _dataSet = createDataSet({
     attributes: [{ name: "foo", formula: { display: "1 + 2" } }]
   })
-  dataSet.addCases([{ __id__: "1" }])
+  _dataSet.addCases([{ __id__: "1" }])
+  // We have to cast here because the types in the formula package
+  // haven't been setup well enough to accept the CODAP DataSet type
+  // see formulas/todo.md
+  const dataSet = _dataSet as IFormulaDataSet
   const attribute = dataSet.attributes[0]
   const formula = attribute.formula!
   formula.setCanonicalExpression(formula.display)
-  const dataSets = new Map<string, IDataSet>([[dataSet.id, dataSet]])
+  const dataSets = new Map<string, IFormulaDataSet>([[dataSet.id, dataSet]])
   const context = { dataSet, formula }
   const extraMetadata = { dataSetId: dataSet.id, attributeId: attribute.id, boundariesLoaded: false }
   const api = {
@@ -57,22 +63,23 @@ describe("AttributeFormulaAdapter", () => {
   describe("getFormulaError", () => {
     it("should detect dependency cycles", () => {
       const formulaManager = new FormulaManager()
-      const dataSet = createDataSet({
+      const _dataSet = createDataSet({
         attributes: [
           { name: "foo", formula: { display: "bar + 1" } },
           { name: "bar", formula: { display: "foo + 1" } }
         ]
       }, {formulaManager})
+      const dataSet = _dataSet as IFormulaDataSet
       dataSet.attributes[0].formula!.setCanonicalExpression(
-        `${localAttrIdToCanonical(dataSet.attrIDFromName("bar")!)} + 1`
+        `${localAttrIdToCanonical(_dataSet.attrIDFromName("bar")!)} + 1`
       )
       dataSet.attributes[1].formula!.setCanonicalExpression(
-        `${localAttrIdToCanonical(dataSet.attrIDFromName("foo")!)} + 1`
+        `${localAttrIdToCanonical(_dataSet.attrIDFromName("foo")!)} + 1`
       )
-      dataSet.addCases([{ __id__: "1" }])
+      _dataSet.addCases([{ __id__: "1" }])
       const attribute = dataSet.attributes[0]
       const formula = attribute.formula!
-      const dataSets = new Map<string, IDataSet>([[dataSet.id, dataSet]])
+      const dataSets = new Map<string, IFormulaDataSet>([[dataSet.id, dataSet]])
       const context = { dataSet, formula }
       const extraMetadata = { dataSetId: dataSet.id, attributeId: attribute.id }
       const api = {
@@ -90,17 +97,18 @@ describe("AttributeFormulaAdapter", () => {
 
   describe("setupFormulaObservers", () => {
     it("should setup observer detecting hierarchy updates", () => {
-      const dataSet = createDataSet({
+      const _dataSet = createDataSet({
         attributes: [
           { name: "foo", formula: { display: "1 + 2" } },
           { name: "bar" }
         ]
       })
-      dataSet.addCases([{ __id__: "1" }])
+      _dataSet.addCases([{ __id__: "1" }])
+      const dataSet = _dataSet as IFormulaDataSet
       const attribute = dataSet.attributes[0]
       const formula = attribute.formula!
       formula.setCanonicalExpression(formula.display)
-      const dataSets = new Map<string, IDataSet>([[dataSet.id, dataSet]])
+      const dataSets = new Map<string, IFormulaDataSet>([[dataSet.id, dataSet]])
       const context = { dataSet, formula }
       const extraMetadata = { dataSetId: dataSet.id, attributeId: attribute.id }
       const api = {
@@ -114,7 +122,7 @@ describe("AttributeFormulaAdapter", () => {
       adapter.setupFormulaObservers(context, extraMetadata)
 
       expect(dataSet.getValueAtItemIndex(0, attribute.id)).toEqual("")
-      dataSet.moveAttributeToNewCollection(dataSet.attrIDFromName("bar")!)
+      _dataSet.moveAttributeToNewCollection(_dataSet.attrIDFromName("bar")!)
       expect(dataSet.getValueAtItemIndex(0, attribute.id)).toEqual(3) // formula has been recalculated
     })
   })

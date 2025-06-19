@@ -7485,6 +7485,7 @@ __metadata:
     "@codemirror/view": "npm:^6.36.4"
     "@concord-consortium/cloud-file-manager": "npm:^2.0.0-pre.7"
     "@concord-consortium/codap-formulas": "workspace:^"
+    "@concord-consortium/codap-utilities": "workspace:^"
     "@concord-consortium/slate-editor": "npm:^0.10.1"
     "@cypress/code-coverage": "npm:^3.13.12"
     "@cypress/webpack-preprocessor": "npm:^6.0.2"

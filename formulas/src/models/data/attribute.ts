@@ -1,4 +1,4 @@
-import { IFormula } from "../formula/formula";
+import { IFormula } from "../formula/formula"
 
 export interface IAttribute {
   id: string;
@@ -7,6 +7,7 @@ export interface IAttribute {
   strValues: string[]
   // The official return type is number, but in reality it can be undefined
   numValue(index: number): number | undefined
+  formula?: IFormula
   hasFormula: boolean
   hasValidFormula: boolean
 }

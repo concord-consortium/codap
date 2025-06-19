@@ -5,12 +5,10 @@
   "main": "dist/index.js",
   "exports": {
     ".": {
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
+      "import": "./dist/index.js"
     },
     "./*": {
-      "import": "./dist/*.js",
-      "require": "./dist/*.cjs"
+      "import": "./dist/*.js"
     }
   },
   "browser": {

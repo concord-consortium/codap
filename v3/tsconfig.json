@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
-    "outDir": "./dist/",
+    "noEmit": true,
+    "rootDir": ".",
     "sourceMap": true,
     "noImplicitAny": true,
     "module": "node16",

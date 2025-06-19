@@ -41,7 +41,9 @@
     ],
     "moduleNameMapper": {
       "\\.(csv|jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/__mocks__/fileMock.js",
-      "\\.(css|less|sass|scss)$": "identity-obj-proxy"
+      "\\.(css|less|sass|scss)$": "identity-obj-proxy",
+      "^@concord-consortium/codap-utilities(.*)$": "<rootDir>/../utilities/src$1",
+      "^@concord-consortium/codap-formulas(.*)$": "<rootDir>/../formulas/src$1"
     },
     "moduleFileExtensions": [
       "ts",
@@ -209,6 +211,7 @@
     "@codemirror/view": "^6.36.4",
     "@concord-consortium/cloud-file-manager": "^2.0.0-pre.7",
     "@concord-consortium/codap-formulas": "workspace:^",
+    "@concord-consortium/codap-utilities": "workspace:^",
     "@concord-consortium/slate-editor": "^0.10.1",
     "@dnd-kit/core": "patch:@dnd-kit/core@npm%3A6.3.1#~/.yarn/patches/@dnd-kit-core-npm-6.3.1-4c747b1b36.patch",
     "@emotion/react": "^11.14.0",

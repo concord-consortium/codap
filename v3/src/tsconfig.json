@@ -2,10 +2,11 @@
   "compilerOptions": {
     // Webpack handles emitting the files; it overrides this setting.
     "noEmit": true,
+    "rootDir": ".",
     "sourceMap": true,
     "noImplicitAny": true,
     "module": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "target": "es2018",
     "allowJs": true,
     "esModuleInterop": true,
@@ -31,5 +32,10 @@
     "**/*.v2.ts",
     "*.grammar",
     "*.json"
+  ],
+  "references": [
+    { "path": "../../formulas" },
+    { "path": "../../utilities" }
   ]
+
 }

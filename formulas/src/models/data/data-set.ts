@@ -30,8 +30,9 @@ export interface IDataSet {
   items: readonly IItem[];
   setCaseValues(cases: ICase[]): void;
   getCasesForAttributes(attributeIds: string[]): IGroupedCase[];
-  hasFilterFormula(): boolean;
-  updateFilterFormulaResults(filterFormulaResults: { itemId: string, result: boolean }[], options: { replaceAll: boolean }): void;
+  hasFilterFormula: boolean;
+  updateFilterFormulaResults(
+    filterFormulaResults: { itemId: string, result: boolean }[], options: { replaceAll: boolean }): void;
   itemsNotSetAside: readonly string[];
   getItem(itemId: string): ICase | undefined;
   setFilterFormulaError(error: string): void;

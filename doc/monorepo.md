@@ -26,6 +26,13 @@ The no-cycle rule is much faster but overall the import-x plugin still makes esl
 # TS-Lib
 `ts-lib` is added to the root package.json to fix an issue with Jest and its transpiler. We have Jest transpile some of dependencies because they are distributed as ESM modules and Jest works with Common JS. When the transpiler tries to handle these it appears to be loading `ts-lib` as if it was required by one of the files in this package. These package don't depend on `ts-lib` so Yarn PnP fails this require. However because of the [top level fallback of Yarn PnP](https://yarnpkg.com/configuration/yarnrc#pnpFallbackMode) it will fallback to looking to see if the modules package is listed in the root package.json of the repository. This means that ts-lib has to be added to the root package.json to work around this issue. Hopefully Jest will fix this issue in the future.
 
+# Jest
+We are using the package.json `exports` feature so the modules in packages in the monorepo can be imported into other packages. This configuration causes issues for Jest. We are still using Jest in CommonJS "mode". So it looks for the `require` property on each export in the package.json. We are not building CommonJS versions of these packages so it would be broken to specify this property.
+
+The work around we are using instead is add a `moduleNameMapper` mapping for each package in the monorepo so jest will just find its typescript files directly.
+
+This does mean that Jest is building more files itself instead of taking advantage of one of the monorepo features which is so only the files in the current package need to be rebuilt. However it solves a problem of making sure that the files Jest is using are the latest version instead some stale build in the dist folder of that package.
+
 # TODO
 
 ## Typescript Language Server
