@@ -26,5 +26,8 @@
     // "*.config.ts",
     "*.config.js",
     "why-did-you-render.ts"
+  ],
+  "exclude": [
+    "src/**/*"
   ]
 }

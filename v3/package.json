@@ -14,12 +14,9 @@
     "resolver": "<rootDir>/src/test/jest-resolver.js",
     "transform": {
       "^.+\\.json5$": "@talabes/json5-jest",
-      "^.+\\.tsx?$": [
-        "ts-jest",
-        {
-          "isolatedModules": true
-        }
-      ]
+      "^.+\\.[tj]sx?$": [ "ts-jest", {
+        "tsconfig": "<rootDir>/src/tsconfig.json"
+      } ]
     },
     "transformIgnorePatterns": [
       "/comments/ESM-only (https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c) modules that should not be transformed by ts-jest",
@@ -176,6 +173,7 @@
     "jest-environment-jsdom": "^30.0.0",
     "jest-environment-jsdom-global": "^4.0.0",
     "jest-fetch-mock": "^3.0.3",
+    "jest-util": "^30.0.2",
     "jest-webgl-canvas-mock": "^2.5.3",
     "json5-loader": "^4.0.1",
     "mini-css-extract-plugin": "^2.9.2",
@@ -191,7 +189,7 @@
     "string-replace-loader": "^3.1.0",
     "style-loader": "^4.0.0",
     "swc-loader": "^0.2.6",
-    "ts-jest": "^29.3.4",
+    "ts-jest": "^29.4.0",
     "ts-loader": "^9.5.2",
     "ts-node": "^10.9.2",
     "typescript": "~5.8.2",
