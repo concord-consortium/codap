@@ -16,6 +16,10 @@ Files referencing formula system:
 - data-set.ts - formula
 - create-document-model.ts - formula-adapter-registry, formula-manager
 
+Files "symlinked":
+- attribute-formula-adapter
+- filter-formula-adapter
+
 Things to fix:
 - dataset context: formula components are using the dataset context to access the dataset. I think that could be fixed by adding the dataset to the formula context.
 - global value manager needs some kind of registration of context so CODAP and CLUE can provide their own implementations to the formulas package

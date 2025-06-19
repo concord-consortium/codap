@@ -2,10 +2,13 @@ import { observable, runInAction } from "mobx"
 import { castToSnapshot, types } from "mobx-state-tree"
 import { DataSet, IDataSet } from "../data/data-set"
 import { createDataSet } from "../data/data-set-conversion"
-import { Formula, IFormula } from "./formula"
-import { FormulaManager } from "./formula-manager"
-import { CASE_INDEX_FAKE_ATTR_ID, localAttrIdToCanonical } from "./utils/name-mapping-utils"
-import { AttributeFormulaAdapter } from "./attribute-formula-adapter"
+import { IDataSet as IFormulaDataSet } from "@concord-consortium/codap-formulas/models/data/data-set"
+import { Formula, IFormula } from "@concord-consortium/codap-formulas/models/formula/formula"
+import { FormulaManager } from "@concord-consortium/codap-formulas/models/formula/formula-manager"
+import {
+  CASE_INDEX_FAKE_ATTR_ID, localAttrIdToCanonical
+} from "@concord-consortium/codap-formulas/models/formula/utils/name-mapping-utils"
+import { AttributeFormulaAdapter } from "@concord-consortium/codap-formulas/models/formula/attribute-formula-adapter"
 
 const formulaDisplay = "1 + 2 + foo"
 
@@ -43,7 +46,7 @@ const getManagerWithFakeAdapter = () => {
     formula
   }, {formulaManager})
   const adapter = getFakeAdapter(formula, dataSet)
-  formulaManager.addDataSet(dataSet)
+  formulaManager.addDataSet(dataSet as IFormulaDataSet)
   formulaManager.addAdapters([adapter])
   return { manager: formulaManager, adapter, formula, dataSet }
 }
@@ -101,7 +104,7 @@ describe("FormulaManager", () => {
       }, {formulaManager})
       dataSet.addCases([{ __id__: "1" }])
       const adapter = new AttributeFormulaAdapter(formulaManager.getAdapterApi())
-      formulaManager.addDataSet(dataSet)
+      formulaManager.addDataSet(dataSet as IFormulaDataSet)
       formulaManager.addAdapters([adapter])
 
       expect(dataSet.getValueAtItemIndex(0, dataSet.attrFromName("foo")?.id || "")).toMatch(/Circular reference/)

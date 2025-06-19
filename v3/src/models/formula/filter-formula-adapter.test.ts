@@ -1,9 +1,10 @@
 import { IDataSet } from "../data/data-set"
 import { createDataSet } from "../data/data-set-conversion"
-import { FilterFormulaAdapter } from "./filter-formula-adapter"
-import { IFormulaAdapterApi } from "./formula-manager-adapter"
-import { displayToCanonical } from "./utils/canonicalization-utils"
-import { getDisplayNameMap } from "./utils/name-mapping-utils"
+import { IDataSet as IFormulaDataSet } from "@concord-consortium/codap-formulas/models/data/data-set"
+import { FilterFormulaAdapter } from "@concord-consortium/codap-formulas/models/formula/filter-formula-adapter"
+import { IFormulaAdapterApi } from "@concord-consortium/codap-formulas/models/formula/formula-manager-adapter"
+import { displayToCanonical } from "@concord-consortium/codap-formulas/models/formula/utils/canonicalization-utils"
+import { getDisplayNameMap } from "@concord-consortium/codap-formulas/models/formula/utils/name-mapping-utils"
 
 const AttrID = "AttrID"
 const AttrName = "foo"
@@ -13,9 +14,10 @@ const getTestEnv = (filterFormula: string) => {
   dataSet.addAttribute({ id: AttrID, name: AttrName })
   dataSet.addCases([{ __id__: "1", AttrID: 1 }, { __id__: "2", AttrID: 2 }, { __id__: "3", AttrID: 3 }])
   dataSet.setFilterFormula(filterFormula)
-  const formula = dataSet.filterFormula!
-  const dataSets = new Map<string, IDataSet>([[dataSet.id, dataSet]])
-  const context = { dataSet, formula }
+  const formulaDataSet = dataSet as IFormulaDataSet
+  const formula = formulaDataSet.filterFormula!
+  const dataSets = new Map<string, IFormulaDataSet>([[dataSet.id, formulaDataSet]])
+  const context = { dataSet: formulaDataSet, formula }
   const extraMetadata = { dataSetId: dataSet.id }
   const api: IFormulaAdapterApi = {
     getDatasets: jest.fn(() => dataSets),
@@ -26,7 +28,7 @@ const getTestEnv = (filterFormula: string) => {
   }
   const adapter = new FilterFormulaAdapter(api)
 
-  const displayNameMap = getDisplayNameMap({ localDataSet: dataSet, dataSets })
+  const displayNameMap = getDisplayNameMap({ localDataSet: formulaDataSet, dataSets })
   formula.setCanonicalExpression(displayToCanonical(formula.display, displayNameMap))
 
   return { adapter, api, dataSet, formula, context, extraMetadata }
@@ -57,7 +59,7 @@ describe("AttributeFormulaAdapter", () => {
 
     it("should ignore cases that are set aside by the user", () => {
       const { adapter, context, extraMetadata } = getTestEnv("foo < 2")
-      const dataSet = context.dataSet
+      const dataSet = context.dataSet as IDataSet
       dataSet.hideCasesOrItems(["3"])
       const results = adapter.computeFormula(context, extraMetadata, "ALL_CASES")
       expect(results).toEqual([

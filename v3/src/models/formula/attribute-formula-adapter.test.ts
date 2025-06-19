@@ -1,4 +1,3 @@
-import { IDataSet } from "../data/data-set"
 import { createDataSet } from "../data/data-set-conversion"
 import { AttributeFormulaAdapter } from "@concord-consortium/codap-formulas/models/formula/attribute-formula-adapter"
 import { FormulaManager } from "@concord-consortium/codap-formulas/models/formula/formula-manager"
