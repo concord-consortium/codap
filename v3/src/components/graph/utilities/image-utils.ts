@@ -203,6 +203,9 @@ export const graphSnapshot = (options: IGraphSnapshotOptions): Promise<string | 
         }
         case "p": {
           const elementStyle = getComputedStyle(element)
+          mainCtx.fillStyle = elementStyle.backgroundColor || "#f8f8f8"
+          mainCtx.fillRect(x, y, width, height)
+
           // FIXME: Text styling isn't working
           mainCtx.fillStyle = elementStyle.color || "#242424"
           console.log(` -- style`, elementStyle)
@@ -250,9 +253,9 @@ export const graphSnapshot = (options: IGraphSnapshotOptions): Promise<string | 
   const mainCtx = mainCanvas.getContext("2d")
   const jobList: Job[] = []
 
+  const rootRect = rootEl.getBoundingClientRect()
   targetElements.forEach((element: Element) => {
     const rect = element.getBoundingClientRect()
-    const rootRect = rootEl.getBoundingClientRect()
     const left = rect.left - rootRect.left
     const top = rect.top - rootRect.top
     const coords = { x: left, y: top }
