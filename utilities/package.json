@@ -21,12 +21,7 @@
     "preset": "ts-jest/presets/js-with-ts",
     "transform": {
       "^.+\\.json5$": "@talabes/json5-jest",
-      "^.+\\.tsx?$": [
-        "ts-jest",
-        {
-          "isolatedModules": true
-        }
-      ]
+      "^.+\\.tsx?$": "ts-jest"
     },
     "transformIgnorePatterns": [
       "/comments/ESM-only (https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c) modules that should not be transformed by ts-jest",
@@ -136,9 +131,10 @@
     "jest-environment-jsdom": "^30.0.0",
     "jest-environment-jsdom-global": "^4.0.0",
     "jest-fetch-mock": "^3.0.3",
+    "jest-util": "^30.0.2",
     "npm-run-all": "^4.1.5",
     "resize-observer-polyfill": "^1.5.1",
-    "ts-jest": "^29.3.4",
+    "ts-jest": "^29.4.0",
     "tslib": "^2.8.1",
     "typescript": "^5.8.3"
   },
