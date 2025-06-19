@@ -23,19 +23,12 @@
     "skipLibCheck": true,
     "types": [],
     "jsx": "react",
-    "lib": ["dom", "dom.iterable", "es2019"],
+    "lib": ["dom", "dom.iterable", "es2019"]
   },
   "include": [
-    "src/**/*",
-    // With the rootDir set to src, we don't want to include these
-    // config files
-    // "eslint.*.mjs",
-    // cypress.config.ts will need another pass before being added
-    // "*.config.ts",
-    // "*.config.js",
+    "src/**/*"
   ],
   "exclude": [
-    "src/**/*.v2.ts",
     "*.grammar",
     "*.json"
   ],

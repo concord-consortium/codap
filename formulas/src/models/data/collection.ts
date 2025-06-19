@@ -1,5 +1,5 @@
-import { IAttribute } from "./attribute";
-import { CaseInfo, IGroupedCase } from "./data-set-types";
+import { IAttribute } from "./attribute"
+import { CaseInfo, IGroupedCase } from "./data-set-types"
 
 export interface ICollection {
   id: string;

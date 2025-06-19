@@ -25,12 +25,6 @@ declare global {
 global.assertIsDefined = assertIsDefined
 global.jestSpyConsole = jestSpyConsole
 
-let message = () => ""
-
-function removeIdsReplacer(key: string, value: any) {
-  return key === "id" ? undefined : value
-}
-
 declare global {
     const jsdom: JSDOM
 }

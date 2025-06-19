@@ -34,12 +34,12 @@
     "src/**/*",
     // Apparently with composite enabled typescript will only include js/ts files
     // and not every file matching the `*`
-    "src/**/*.json",
+    "src/**/*.json"
     // It might be helpful to add type checking to the eslint config file.
     // This wouldn't be compatible with the composite setup though, so I think
     // we'd need a second tsconfig file for that.
     // "eslint.*.mjs",
-  ],
+  ]
   // "exclude": [
   //   "*.json"
   // ]
