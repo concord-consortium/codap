@@ -4,13 +4,15 @@ import {
 import React, { useCallback, useEffect, useRef, useState } from "react"
 import { observer } from "mobx-react-lite"
 import { clsx } from "clsx"
+import { FormulaEditor } from "@concord-consortium/codap-formulas/components/common/formula-editor"
+import { InsertValuesMenu } from "@concord-consortium/codap-formulas/components/common/formula-insert-values-menu"
+import { InsertFunctionMenu } from "@concord-consortium/codap-formulas/components/common/formula-insert-function-menu"
+import {
+  FormulaEditorContext, useFormulaEditorState
+} from "@concord-consortium/codap-formulas/components/common/formula-editor-context"
 import { isCommandKeyDown } from "../../utilities/platform-utils"
 import { t } from "../../utilities/translation/translate"
-import { FormulaEditor } from "./formula-editor"
-import { FormulaEditorContext, useFormulaEditorState } from "./formula-editor-context"
 import { CodapModal } from "../codap-modal"
-import { InsertFunctionMenu } from "./formula-insert-function-menu"
-import { InsertValuesMenu } from "./formula-insert-values-menu"
 import ResizeHandle from "../../assets/icons/icon-corner-resize-handle.svg"
 
 import styles from './edit-formula-modal.scss'
