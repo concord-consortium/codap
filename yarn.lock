@@ -1703,16 +1703,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@chakra-ui/icons@npm:2.2.4":
-  version: 2.2.4
-  resolution: "@chakra-ui/icons@npm:2.2.4"
-  peerDependencies:
-    "@chakra-ui/react": ">=2.0.0"
-    react: ">=18"
-  checksum: 10c0/db1aa925e9e22efe12d2417df2b21337f4cb6e6de0a2ba641bc4c3c36dbebb39ec6e6ce9b82f79f3a5d85e988779784468f8b604614170dee1b57c66ea400f9e
-  languageName: node
-  linkType: hard
-
 "@chakra-ui/icons@npm:^2.2.4":
   version: 2.2.6
   resolution: "@chakra-ui/icons@npm:2.2.6"
@@ -2229,7 +2219,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@chakra-ui/react@npm:2.8.2, @chakra-ui/react@npm:~2.8.2":
+"@chakra-ui/react@npm:~2.8.2":
   version: 2.8.2
   resolution: "@chakra-ui/react@npm:2.8.2"
   dependencies:
@@ -2746,8 +2736,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@concord-consortium/codap-formulas@workspace:formulas"
   dependencies:
-    "@chakra-ui/icons": "npm:2.2.4"
-    "@chakra-ui/react": "npm:2.8.2"
+    "@chakra-ui/icons": "npm:^2.2.4"
+    "@chakra-ui/react": "npm:~2.8.2"
     "@codemirror/autocomplete": "npm:^6.18.6"
     "@codemirror/commands": "npm:^6.8.0"
     "@codemirror/language": "npm:^6.11.0"
@@ -2808,13 +2798,13 @@ __metadata:
     jest-util: "npm:^30.0.2"
     lodash: "npm:^4.17.21"
     mathjs: "npm:12.4.3"
-    mobx: "npm:6.13.6"
-    mobx-react-lite: "npm:4.1.0"
+    mobx: "npm:^6.13.6"
+    mobx-react-lite: "npm:^4.1.0"
     mobx-state-tree: "npm:@concord-consortium/mobx-state-tree@6.0.0-cc.1"
     npm-run-all: "npm:^4.1.5"
     random: "npm:^5.4.0"
-    react: "npm:18.3.1"
-    react-dom: "npm:18.3.1"
+    react: "npm:^18.3.1"
+    react-dom: "npm:^18.3.1"
     resize-observer-polyfill: "npm:^1.5.1"
     sass: "npm:^1.89.2"
     ts-jest: "npm:^29.4.0"
@@ -13693,7 +13683,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mobx-react-lite@npm:4.1.0, mobx-react-lite@npm:^4.1.0":
+"mobx-react-lite@npm:^4.1.0":
   version: 4.1.0
   resolution: "mobx-react-lite@npm:4.1.0"
   dependencies:
@@ -13716,13 +13706,6 @@ __metadata:
   peerDependencies:
     mobx: ^6.3.0
   checksum: 10c0/13a2a071edc6a81dbe8a64e068b1c4b894ec5f8e5d60fcb48e729072887bee10c84a789b2264db12dcf9d1dff029fda850fd3d38d5ece6edc87c649a0a4b519e
-  languageName: node
-  linkType: hard
-
-"mobx@npm:6.13.6":
-  version: 6.13.6
-  resolution: "mobx@npm:6.13.6"
-  checksum: 10c0/4419003efdcc7ce964c5a20d5630987b936c60202d782ffe6b34f57848418a2b7f33ea2a5038d4e004c25758c4cf474c20a894c52d4234dd7cfda76887a3e4fd
   languageName: node
   linkType: hard
 
@@ -15155,7 +15138,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-dom@npm:18.3.1, react-dom@npm:^18.3.1":
+"react-dom@npm:^18.3.1":
   version: 18.3.1
   resolution: "react-dom@npm:18.3.1"
   dependencies:
@@ -15325,7 +15308,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react@npm:18.3.1, react@npm:^18.3.1":
+"react@npm:^18.3.1":
   version: 18.3.1
   resolution: "react@npm:18.3.1"
   dependencies:
