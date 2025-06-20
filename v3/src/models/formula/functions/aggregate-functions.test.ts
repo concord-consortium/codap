@@ -1,7 +1,9 @@
 import { parse } from "mathjs"
+import {
+  cachedAggregateFnFactory
+} from "@concord-consortium/codap-formulas/models/formula/functions/aggregate-functions"
 import { FormulaMathJsScope } from "../formula-mathjs-scope"
 import { evaluate } from "../test-utils/formula-test-utils"
-import { cachedAggregateFnFactory } from "./aggregate-functions"
 
 describe("cachedAggregateFnFactory", () => {
   it("returns a function wrapper that caches results based on the argument and caseAggregateGroupId", () => {

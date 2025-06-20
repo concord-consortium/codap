@@ -19,6 +19,29 @@ Files referencing formula system:
 Files "symlinked":
 - attribute-formula-adapter
 - filter-formula-adapter
+- formula-adapter-registry
+- formula-manager-adapter
+- formula-manager-types
+- formula-manager
+- formula-mathjs-scope
+- functions/function-utils
+- math.ts
+- utils/name-mapping-utils.ts
+
+## Things to fix with generics:
+The following CODAP files were updated to cast the host dataset to the formula dataset.
+  - case-table-tool-shelf-button.tsx
+  - plotted-function-formula-adapter.test.ts
+  - plotted-value-formula-adapter.test.ts
+  - data-context-handler.ts
+  - create-document-model.ts
+  - formula-test-utils.ts
+
+These cast the host global value manager to the formula global value manager:
+  - resource-parser-utils.ts
+  - create-codap-document.ts
+  - document-content.ts
+  - formula-test-utils.ts
 
 Things to fix:
 - dataset context: formula components are using the dataset context to access the dataset. I think that could be fixed by adding the dataset to the formula context.

@@ -1,3 +1,7 @@
+import {
+  IGlobalValueManager as IFormulaGlobalValueManager
+} from "@concord-consortium/codap-formulas/models/global/global-value-manager"
+import { IDataSet as IFormulaDataSet } from "@concord-consortium/codap-formulas/models/data/data-set"
 import { createDataSet } from "../../data/data-set-conversion"
 import { GlobalValueManager } from "../../global/global-value-manager"
 import { getFormulaTestEnv } from "../test-utils/formula-test-utils"
@@ -137,7 +141,7 @@ describe("getDisplayNameMap", () => {
         attributes: [
           { id: "DATA_SET_ATTR_ID", name: "caseIndex" },
         ]
-      })
+      }) as IFormulaDataSet
       const nameMap = getDisplayNameMap({
         localDataSet: dataSet,
         dataSets: new Map([[dataSet.id, dataSet]]),
@@ -145,7 +149,7 @@ describe("getDisplayNameMap", () => {
           globals: {
             GLOBAL_VAL_ID: { id: "GLOBAL_VAL_ID", name: "caseIndex", _value: 1 },
           }
-        })
+        }) as IFormulaGlobalValueManager
       })
       expect(nameMap.localNames).toEqual({
         caseIndex: localAttrIdToCanonical(CASE_INDEX_FAKE_ATTR_ID)
@@ -161,7 +165,7 @@ describe("getDisplayNameMap", () => {
         attributes: [
           { id: "DATA_SET_ATTR_ID", name: "fooBar" },
         ]
-      })
+      }) as IFormulaDataSet
       const nameMap = getDisplayNameMap({
         localDataSet: dataSet,
         dataSets: new Map([[dataSet.id, dataSet]]),
@@ -169,7 +173,7 @@ describe("getDisplayNameMap", () => {
           globals: {
             GLOBAL_VAL_ID: { id: "GLOBAL_VAL_ID", name: "fooBar", _value: 1 },
           }
-        })
+        }) as IFormulaGlobalValueManager
       })
       expect(nameMap.localNames).toEqual(expect.objectContaining({
         fooBar: localAttrIdToCanonical("DATA_SET_ATTR_ID")

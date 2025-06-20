@@ -20,6 +20,10 @@
       "^.+\\.json5$": "@talabes/json5-jest",
       "^.+\\.tsx?$": "ts-jest"
     },
+    "transformIgnorePatterns": [
+      "/comments/ESM-only (https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c) modules that should not be transformed by ts-jest",
+      "/node_modules/(?!(d3-format|query-string|decode-uri-component|filter-obj|split-on-first)/)"
+    ],
     "setupFilesAfterEnv": [
       "<rootDir>/src/test/setupTests.ts"
     ],
@@ -36,7 +40,8 @@
     ],
     "moduleNameMapper": {
       "\\.(csv|jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/__mocks__/fileMock.js",
-      "\\.(css|less|sass|scss)$": "identity-obj-proxy"
+      "\\.(css|less|sass|scss)$": "identity-obj-proxy",
+      "^@concord-consortium/codap-utilities/(.*)$": "<rootDir>/../utilities/src/$1"
     },
     "moduleFileExtensions": [
       "ts",

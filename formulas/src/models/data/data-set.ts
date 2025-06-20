@@ -10,6 +10,7 @@ interface ICollectionModel {
 
 export interface IDataSet {
   id: string;
+  name: string;
   title: string;
   itemIdsHash: unknown;
   attrNameMap: {
@@ -38,6 +39,7 @@ export interface IDataSet {
   setFilterFormulaError(error: string): void;
   filterFormula?: IFormula;
   getAttributeByName(name: string): IAttribute | undefined;
+  attrIDFromName(name: string): string | undefined;
 }
 
 export interface IDataSetWithFilterFormula extends IDataSet {

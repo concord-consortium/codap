@@ -1,5 +1,8 @@
 import { getSnapshot } from "mobx-state-tree"
 import { SetOptional } from "type-fest"
+import {
+  IGlobalValueManager as IFormulaGlobalValueManager
+} from "@concord-consortium/codap-formulas/models/global/global-value-manager"
 import build from "../../../build_number.json"
 import pkg from "../../../package.json"
 import { urlParams } from "../../utilities/url-params"
@@ -45,7 +48,7 @@ export function createCodapDocument(snapshot?: ICodapDocumentModelSnapshot, opti
     }
     // Add the global value manager to the formula manager
     const formulaManager = getFormulaManager(document) as Maybe<FormulaManager>
-    formulaManager?.addGlobalValueManager(globalValueManager)
+    formulaManager?.addGlobalValueManager(globalValueManager as IFormulaGlobalValueManager)
   }
   // create the default tile container ("row")
   if (document.content?.rowCount === 0) {

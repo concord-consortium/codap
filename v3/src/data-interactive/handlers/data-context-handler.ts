@@ -1,3 +1,4 @@
+import { IDataSet as IFormulaDataSet } from "@concord-consortium/codap-formulas/models/data/data-set"
 import { appState } from "../../models/app-state"
 import { gDataBroker } from "../../models/data/data-broker"
 import { DataSet } from "../../models/data/data-set"
@@ -38,7 +39,7 @@ export const diDataContextHandler: DIHandler = {
       const dataSet = DataSet.create({ name, _title: title })
       const { sharedMetadata } = gDataBroker.addDataSet(dataSet)
       sharedMetadata.setDescription(description)
-      getFormulaManager(document)?.addDataSet(dataSet)
+      getFormulaManager(document)?.addDataSet(dataSet as IFormulaDataSet)
 
       if (collections?.length) {
         // remove the default collection
