@@ -3,6 +3,7 @@ import type { FormulaMathJsScope } from "./formula-mathjs-scope"
 
 export type LookupStringConstantArg = Maybe<ConstantNode<string>>
 
+// Used by canonicalization-utils
 export type DisplayNameMap = {
   localNames: Record<string, string>
   dataSet: Record<string, {

@@ -2,11 +2,13 @@ import { ICase } from "../data/data-set-types"
 import {
   IGlobalValueDependency,
   ILocalAttributeDependency, ILookupDependency
-} from "./formula-types"
+} from "@concord-consortium/codap-formulas/models/formula/formula-types"
 import {
   getLocalAttrCasesToRecalculate, getLookupCasesToRecalculate, isAttrDefined, observeDatasetHierarchyChanges,
   observeGlobalValues, observeLocalAttributes, observeLookupDependencies, observeSymbolNameChanges
-} from "./formula-observers"
+} from "@concord-consortium/codap-formulas/models/formula/formula-observers"
+import { IDataSet as IFormulaDataSet } from "@concord-consortium/codap-formulas/models/data/data-set"
+import { IGlobalValueManager as IFormulaGlobalValueManager } from "@concord-consortium/codap-formulas/models/global/global-value-manager"
 import { DataSet, IDataSet } from "../data/data-set"
 import { GlobalValueManager } from "../global/global-value-manager"
 import { GlobalValue } from "../global/global-value"
@@ -91,7 +93,8 @@ describe("observeLocalAttributes", () => {
 
     it("should call recalculateCallback with newly added cases", () => {
       const recalculateCallback = jest.fn()
-      const dispose = observeLocalAttributes(formulaDependenciesWithoutAggregate, dataSet, recalculateCallback)
+      const dispose = observeLocalAttributes(formulaDependenciesWithoutAggregate,
+        dataSet as IFormulaDataSet, recalculateCallback)
       const newCases = [{ __id__: "case1" }, { __id__: "case2" }]
       dataSet.addCases(newCases)
       // non-aggregate optimization has been removed for now
@@ -104,7 +107,8 @@ describe("observeLocalAttributes", () => {
 
     it("should call recalculateCallback with updated cases", () => {
       const recalculateCallback = jest.fn()
-      observeLocalAttributes(formulaDependenciesWithoutAggregate, dataSet, recalculateCallback)
+      observeLocalAttributes(formulaDependenciesWithoutAggregate,
+        dataSet as IFormulaDataSet, recalculateCallback)
       const caseUpdates = [{ __id__: "case1", attr1: 1 }, { __id__: "case2", attr321: 2 }]
       dataSet.setCaseValues(caseUpdates)
       expect(recalculateCallback).toHaveBeenCalledWith([caseUpdates[0]])
@@ -120,7 +124,8 @@ describe("observeLocalAttributes", () => {
 
     it("should call recalculateCallback with ALL_CASES when new case is added", () => {
       const recalculateCallback = jest.fn()
-      observeLocalAttributes(formulaDependenciesWithAggregate, dataSet, recalculateCallback)
+      observeLocalAttributes(formulaDependenciesWithAggregate,
+        dataSet as IFormulaDataSet, recalculateCallback)
       const newCases = [{ __id__: "case1" }, { __id__: "case2" }]
       dataSet.addCases(newCases)
       expect(recalculateCallback).toHaveBeenCalledWith("ALL_CASES")
@@ -128,7 +133,8 @@ describe("observeLocalAttributes", () => {
 
     it("should call recalculateCallback with updated cases when no aggregate dependency attribute is updated", () => {
       const recalculateCallback = jest.fn()
-      observeLocalAttributes(formulaDependenciesWithAggregate, dataSet, recalculateCallback)
+      observeLocalAttributes(formulaDependenciesWithAggregate,
+        dataSet as IFormulaDataSet, recalculateCallback)
       const caseUpdates = [{ __id__: "case1", attr1: 1 }, { __id__: "case2", attr321: 2 }]
       dataSet.setCaseValues(caseUpdates)
       expect(recalculateCallback).toHaveBeenCalledWith([caseUpdates[0]])
@@ -136,7 +142,8 @@ describe("observeLocalAttributes", () => {
 
     it("should call recalculateCallback with ALL_CASES when aggregate dependency attribute is updated", () => {
       const recalculateCallback = jest.fn()
-      observeLocalAttributes(formulaDependenciesWithAggregate, dataSet, recalculateCallback)
+      observeLocalAttributes(formulaDependenciesWithAggregate,
+        dataSet as IFormulaDataSet, recalculateCallback)
       const caseUpdates = [{ __id__: "case1", attr1: 1 }, { __id__: "case2", attr2: 2 }]
       dataSet.setCaseValues(caseUpdates)
       expect(recalculateCallback).toHaveBeenCalledWith("ALL_CASES")
@@ -151,7 +158,8 @@ describe("observeLookupDependencies", () => {
       { type: "lookup", dataSetId: "ds1", attrId: "attr1", otherAttrId: "attr2" },
     ]
     const recalculateCallback = jest.fn()
-    const dispose = observeLookupDependencies(formulaDependencies, new Map([["ds1", dataSet]]), recalculateCallback)
+    const dispose = observeLookupDependencies(formulaDependencies,
+      new Map([["ds1", dataSet as IFormulaDataSet]]), recalculateCallback)
     const newCases = [{ __id__: "case1" }, { __id__: "case2" }]
     dataSet.addCases(newCases)
     expect(recalculateCallback).toHaveBeenNthCalledWith(1, "ALL_CASES")
@@ -175,7 +183,8 @@ describe("observeGlobalValues", () => {
     globalValueManager.addValue(globalValue)
     const formulaDependencies: IGlobalValueDependency[] = [{ type: "globalValue", globalId: globalValue.id }]
     const recalculateCallback = jest.fn()
-    const dispose = observeGlobalValues(formulaDependencies, globalValueManager, recalculateCallback)
+    const dispose = observeGlobalValues(formulaDependencies,
+      globalValueManager as IFormulaGlobalValueManager, recalculateCallback)
     globalValueManager.getValueByName("global1")?.setValue(1)
     expect(recalculateCallback).toHaveBeenCalledWith("ALL_CASES")
 
@@ -193,7 +202,9 @@ describe("observeSymbolNameChanges", () => {
     const globalValue = GlobalValue.create({ name: "global1", _value: 0 })
     globalValueManager.addValue(globalValue)
     const nameUpdateCallback = jest.fn()
-    const dispose = observeSymbolNameChanges(new Map([["ds1", dataSet]]), globalValueManager, nameUpdateCallback)
+    const dispose = observeSymbolNameChanges(
+      new Map([["ds1", dataSet as IFormulaDataSet]]),
+      globalValueManager as IFormulaGlobalValueManager, nameUpdateCallback)
     dataSet.setAttributeName("attr1", "newName")
     expect(nameUpdateCallback).toHaveBeenCalledTimes(1)
     globalValueManager.getValueByName("global1")?.setName("newName")
@@ -208,7 +219,9 @@ describe("observeSymbolNameChanges", () => {
     const dataSet = DataSet.create({ id: "ds1" })
     const globalValueManager = GlobalValueManager.create()
     const nameUpdateCallback = jest.fn()
-    const dispose = observeSymbolNameChanges(new Map([["ds1", dataSet]]), globalValueManager, nameUpdateCallback)
+    const dispose = observeSymbolNameChanges(
+      new Map([["ds1", dataSet as IFormulaDataSet]]),
+      globalValueManager as IFormulaGlobalValueManager, nameUpdateCallback)
     globalValueManager.addValue(GlobalValue.create({ name: "global2", _value: 0 }))
     expect(nameUpdateCallback).toHaveBeenCalledTimes(1)
 
@@ -228,7 +241,9 @@ describe("observeSymbolNameChanges", () => {
     dataSet.addAttribute({ id: "attr1_id", name: "attr1" })
     dataSet.addAttribute({ id: "attr2_id", name: "attr2" })
     const nameUpdateCallback = jest.fn()
-    const dispose = observeSymbolNameChanges(new Map([["ds1", dataSet]]), globalValueManager, nameUpdateCallback)
+    const dispose = observeSymbolNameChanges(
+      new Map([["ds1", dataSet as IFormulaDataSet]]),
+      globalValueManager as IFormulaGlobalValueManager, nameUpdateCallback)
     globalValueManager.removeValue(globalValue)
     expect(nameUpdateCallback).toHaveBeenCalledTimes(1)
 
@@ -257,7 +272,8 @@ describe("observeDatasetHierarchyChanges", () => {
     dataSet.addAttribute({ id: "cId", name: "c" })
 
     const hierarchyChangedCallback = jest.fn()
-    const dispose = observeDatasetHierarchyChanges(dataSet, hierarchyChangedCallback)
+    const dispose = observeDatasetHierarchyChanges(
+      dataSet as IFormulaDataSet, hierarchyChangedCallback)
     dataSet.moveAttributeToNewCollection("aId")
     expect(attributesByCollection(dataSet)).toEqual([["aId"], ["bId", "cId"]])
     expect(hierarchyChangedCallback).toHaveBeenCalledTimes(1)

@@ -22,7 +22,7 @@
     },
     "transformIgnorePatterns": [
       "/comments/ESM-only (https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c) modules that should not be transformed by ts-jest",
-      "/node_modules/(?!(d3-format|query-string|decode-uri-component|filter-obj|split-on-first)/)"
+      "/node_modules/(?!(d3-format|decode-uri-component|escape-string-regexp|filter-obj|nanoid|query-string|split-on-first)/)"
     ],
     "setupFilesAfterEnv": [
       "<rootDir>/src/test/setupTests.ts"
