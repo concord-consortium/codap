@@ -4,9 +4,6 @@
   "description": "Library of utilities used by CODAP and its libraries",
   "main": "dist/index.js",
   "exports": {
-    ".": {
-      "import": "./dist/index.js"
-    },
     "./*": {
       "import": "./dist/*.js"
     }

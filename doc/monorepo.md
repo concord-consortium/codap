@@ -12,11 +12,18 @@ Update the root files:
 - put components/vars.scss in a common package, so the formula editor and v3 can share it there might be issues with getting yarn to allow the import from the package especially if the common package uses the "exports" property in its package.json
 
 # Dependencies
-Within packages/workspaces that are used by the main app (v3), managing their dependencies is tricky. In order to prevent duplicate 3rd party packages like React and MobX, peerDependencies should be used. In general it would be best to use peerDependencies for every package that is used directly by the app or any other package in the monorepo. This way there won't be duplication. This can be cumbersome to maintain. A tool like `syncpack` might help with this.
+Within packages/workspaces that are used by the main app (v3), managing their dependencies is tricky. In order to prevent duplicate 3rd party packages like React and MobX, peerDependencies should be used. In general it would be best to use peerDependencies for every package that is used directly by the app or any other package in the monorepo. This way there won't be duplication.
 
-Another difficult part is that these peerDependencies often need to be specified as devDependencies. This is so that running the typescript compiler, linter, and jest can find these packages when processing the code in this package. So often each of these dependencies has to be specified twice. Additionally if the package is intended to be a library the best practice would be to use the lowest version of the peerDependency range as the devDependency. This way the types and code used during testing will be this lowest version. Assuming the dependency follows semantic versioning this approach will help make sure the library works with the whole range.
+**However** using peerDependencies breaks VSCode's "find references" feature. When there seems to be any peerDependencies in the package.json, and you then search for references to the types defined within this workspace, VSCode finds nothing. My guess is that VSCode treats this as an external package when it finds peerDependencies.
 
-**However** this best practice caused problems in the monorepo setup. When running the Jest tests in the app (v3) when the formulas package pinned to version of MobX the following error happened:
+## Additional peerDependency issues
+If that issue gets fixed, and we can use peerDependencies here are more things to consider:
+
+These peerDependencies often need to be specified as devDependencies. This is so that running the typescript compiler, linter, and jest can find these packages when processing the code in this package. So often each of these dependencies have to be specified twice. Additionally if the package is intended to be a library the best practice would be to use the lowest version of the peerDependency range as the devDependency. This way the types and code used during testing will be this lowest version. Assuming the dependency follows semantic versioning this approach will help make sure the library works with the whole range.
+
+This can be cumbersome to maintain. A tool like `syncpack` might help with this.
+
+**But** this practice of pinning to the lowest version of a peerDependency caused problems in the monorepo setup. When running the Jest tests in the app (v3) when the formulas package pinned "mobx" to a specific version the following error happened:
 ```
  FAIL  src/models/formula/formula-manager.test.ts
   ● FormulaManager › getAdapterApi › should return functional adapter api
@@ -35,7 +42,7 @@ Another difficult part is that these peerDependencies often need to be specified
 ```
 This seemed to happen because different versions of MobX were being used between the app (v3) and the library (formulas). In theory this shouldn't happen because the app should be using the peerDependency spec not the devDependency spec. However Jest is configured to work directly with the source code of the libraries (like formulas), in this case Jest (via Yarn PnP) is using the devDependency when MobX is imported. This makes sense since devDependencies are for compiling source code. See the "Jest" section below for why Jest is configured this way.
 
-The solution to this problem is to not pin versions in the devDependencies, but instead use the same version spec that is used in peerDependencies and in the app.
+The solution to this problem is to not pin versions in the devDependencies, and instead use the same version spec that is used in peerDependencies and in the app. This is against the best practice for libraries, but at least it makes Jest work.
 
 # Typescript
 Typescript is added as a dependency in the root of the project so that the whole project can be built and so VSCode can open the whole project. Without this VSCode would fallback to its bundled Typescript version, but that does not support Yarn PnP so it is necessary to install typescript.
@@ -60,6 +67,13 @@ The work around we are using instead is add a `moduleNameMapper` mapping for eac
 This does mean that Jest is building more files itself instead of taking advantage of one of the monorepo features which is so only the files in the current package need to be rebuilt. However it solves a problem of making sure that the files Jest is using are the latest version instead some stale build in the dist folder of that package.
 
 Note: this approach prevents us from following the best practice of dependency version specs in the library packages like "formulas". If we can switch to using Jest in ESM mode instead of CommonJS mode it might allow us to remove the `moduleNameMapper`. One of the main blockers for making this switch is module level mocking. Jest doesn't have a good solution for mocking modules when running in ESM mode.
+
+## VSCode find references
+This is a very useful feature when working with a code base. In a monorepo keeping it working across workspaces is finicky.
+
+Adding `peerDependencies` to a package.json seems to break it (see above)
+
+The project references in the tsconfig.json files need to be setup so that VSCode knows the workspaces refer to each other. It isn't clear exactly what is required for this to work or not work. Currently there are references at the root tsconfig.json and each workspace that uses another workspace has references to that other workspace.
 
 # TODO
 

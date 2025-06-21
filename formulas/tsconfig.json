@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
-    "composite": true,
     "outDir": "./dist/",
-    "rootDir": "./src/",
+    "rootDir": "./src",
+    "composite": true,
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
@@ -26,11 +26,13 @@
     "lib": ["dom", "dom.iterable", "es2019"]
   },
   "include": [
-    "src/**/*"
+    "src/**/*",
+    // Apparently with composite enabled typescript will only include js/ts files
+    // and not every file matching the `*`
+    "src/**/*.json"
   ],
   "exclude": [
     "*.grammar",
-    "*.json"
   ],
   "references": [
     { "path": "../utilities" }
