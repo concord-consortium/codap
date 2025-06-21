@@ -1,18 +1,41 @@
-import { kRootPluginUrl } from "../../constants"
-import { kRelativePluginRoot, processWebViewUrl } from "./web-view-utils"
+import { kRootDataGamesPluginUrl, kRootGuideUrl, kRootPluginUrl } from "../../constants"
+import { kRelativeGuideRoot, kRelativePluginRoot, kRelativeURLRoot, processWebViewUrl } from "./web-view-utils"
+
+const kTestUrls: Array<{ original: string, processed: string }> = [
+  {
+    original: `https://concord-consortium.github.io/codap-data-interactives/Markov/`,
+    processed: `${kRootDataGamesPluginUrl}/Markov/index.html`
+  },
+  {
+    original: `https://test/`,
+    processed: `https://test/index.html`
+  },
+  {
+    original: `${kRelativePluginRoot}/index.html`,
+    processed: `${kRootPluginUrl}/index.html`
+  },
+  {
+    original: `${kRelativePluginRoot}/subdir/`,
+    processed: `${kRootPluginUrl}/subdir/index.html`
+  },
+  {
+    original: `${kRelativeGuideRoot}/Markov/markov_getstarted.html`,
+    processed: `${kRootGuideUrl}/Markov/markov_getstarted.html`
+  },
+  {
+    original: `${kRelativeURLRoot}/Markov/markov_getstarted.html`,
+    processed: `${kRootGuideUrl}/Markov/markov_getstarted.html`
+  },
+  {
+    original: `http://index.html`,
+    processed: `https://index.html`
+  }
+]
 
 describe('WebView Utilities', () => {
   it('processPluginUrl works', () => {
-    const url1 = `https://test/`
-    const processedUrl1 = `${url1}index.html`
-    expect(processWebViewUrl(url1)).toEqual(processedUrl1)
-
-    const url2 = `${kRelativePluginRoot}/index.html`
-    const processedUrl2 = `${kRootPluginUrl}/index.html`
-    expect(processWebViewUrl(url2)).toEqual(processedUrl2)
-
-    const url3 = `http://index.html`
-    const processedUrl3 = `https://index.html`
-    expect(processWebViewUrl(url3)).toEqual(processedUrl3)
+    kTestUrls.forEach(({ original, processed }) => {
+      expect(processWebViewUrl(original)).toEqual(processed)
+    })
   })
 })
