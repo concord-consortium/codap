@@ -10,6 +10,8 @@ import { InsertFunctionMenu } from "@concord-consortium/codap-formulas/component
 import {
   FormulaEditorContext, useFormulaEditorState
 } from "@concord-consortium/codap-formulas/components/common/formula-editor-context"
+import { IDataSet as IFormulaDataSet } from "@concord-consortium/codap-formulas/models/data/data-set"
+import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { isCommandKeyDown } from "../../utilities/platform-utils"
 import { t } from "../../utilities/translation/translate"
 import { CodapModal } from "../codap-modal"
@@ -40,7 +42,11 @@ export const EditFormulaModal = observer(function EditFormulaModal({
   const modalContentRef = useRef<HTMLDivElement>(null)
   const [showValuesMenu, setShowValuesMenu] = useState(false)
   const [showFunctionMenu, setShowFunctionMenu] = useState(false)
-  const formulaEditorState = useFormulaEditorState(value ?? "")
+  const dataSet = useDataSetContext()
+  if (!dataSet) {
+    throw new Error("EditFormulaModal must be used within a DataSetContextProvider")
+  }
+  const formulaEditorState = useFormulaEditorState(dataSet as IFormulaDataSet, value ?? "")
   const { formula, setFormula } = formulaEditorState
   const [dimensions, setDimensions] = useState({ width: minWidth, height: minHeight })
   const editorHeight = dimensions.height - headerHeight - footerHeight - insertButtonsHeight

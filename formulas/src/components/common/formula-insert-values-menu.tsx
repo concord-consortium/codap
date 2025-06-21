@@ -2,7 +2,6 @@ import { TriangleDownIcon, TriangleUpIcon } from "@chakra-ui/icons"
 import {Divider, Flex, List, ListItem,} from "@chakra-ui/react"
 import { IAnyStateTreeNode } from "mobx-state-tree"
 import React, { useEffect, useRef, useState } from "react"
-import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { boundaryManager } from "../../models/boundaries/boundary-manager"
 import { getGlobalValueManager } from "../../models/global/global-value-manager"
 import { useFormulaEditorContext } from "./formula-editor-context"
@@ -22,8 +21,7 @@ function getGlobalsNames(node?: IAnyStateTreeNode) {
 }
 
 export const InsertValuesMenu = ({setShowValuesMenu}: IProps) => {
-  const dataSet = useDataSetContext()
-  const { editorApi } = useFormulaEditorContext()
+  const { dataSet, editorApi } = useFormulaEditorContext()
   const collections = dataSet?.collections
   const attributeNamesInCollection = collections?.map(collection =>
     collection.attributes

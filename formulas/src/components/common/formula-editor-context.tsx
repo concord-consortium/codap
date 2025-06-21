@@ -2,6 +2,7 @@ import { insertCompletionText, pickedCompletion } from "@codemirror/autocomplete
 import { EditorView } from "@codemirror/view"
 import { EditorSelection } from "@uiw/react-codemirror"
 import { createContext, useContext, useState } from "react"
+import { IDataSet } from "../../models/data/data-set"
 
 export class FormulaEditorApi {
   editorView: EditorView
@@ -59,20 +60,25 @@ export class FormulaEditorApi {
 }
 
 interface IFormulaEditorState {
+  dataSet: IDataSet
   formula: string
-  setFormula?: React.Dispatch<React.SetStateAction<string>>
+  setFormula: React.Dispatch<React.SetStateAction<string>>
   editorApi?: FormulaEditorApi
   setEditorApi?: React.Dispatch<React.SetStateAction<Maybe<FormulaEditorApi>>>
 }
 
-export const FormulaEditorContext = createContext<IFormulaEditorState>({ formula: "" })
+export const FormulaEditorContext = createContext<Maybe<IFormulaEditorState>>(undefined)
 
-export function useFormulaEditorState(initialFormula: string) {
+export function useFormulaEditorState(dataSet: IDataSet, initialFormula: string): IFormulaEditorState {
   const [formula, setFormula] = useState(initialFormula)
   const [editorApi, setEditorApi] = useState<Maybe<FormulaEditorApi>>()
-  return { formula, setFormula, editorApi, setEditorApi }
+  return { dataSet, formula, setFormula, editorApi, setEditorApi }
 }
 
 export function useFormulaEditorContext() {
-  return useContext(FormulaEditorContext)
+  const context = useContext(FormulaEditorContext)
+  if (!context) {
+    throw new Error("useFormulaEditorContext must be used within an FormulaEditorContext.Provider")
+  }
+  return context
 }

@@ -63,7 +63,6 @@ These cast the host global value manager to the formula global value manager:
   - formula-test-utils.ts
 
 # Things to fix:
-- dataset context: formula components are using the dataset context to access the dataset. I think that could be fixed by adding the dataset to the formula context.
 - global value manager needs some kind of registration of context so CODAP and CLUE can provide their own implementations to the formulas package
 - the scss files should not be processed, just copied to dist, so then when the v3 package bundles the dependencies it will process these scss files and update the imports appropriately.
 

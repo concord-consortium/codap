@@ -11,7 +11,6 @@ import CodeMirror, {
 } from "@uiw/react-codemirror"
 import React, { useCallback, useRef } from "react"
 import { useMemo } from "use-memo-one"
-import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { boundaryManager } from "../../models/boundaries/boundary-manager"
 import { IDataSet } from "../../models/data/data-set"
 import { typedFnRegistry } from "../../models/formula/functions/math"
@@ -259,7 +258,7 @@ function cmExtensionsSetup() {
 const kDefaultEditorHeight = 180
 
 export function FormulaEditor({ options: _options, editorHeight = kDefaultEditorHeight }: IProps) {
-  const dataSet = useDataSetContext()
+  const { dataSet } = useFormulaEditorContext()
   const jsonOptions = JSON.stringify(_options ?? {})
   const options = useMemo(() => JSON.parse(jsonOptions), [jsonOptions])
   const cmRef = useRef<ReactCodeMirrorRef>(null)
