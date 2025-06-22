@@ -65,7 +65,6 @@ These cast the host global value manager to the formula global value manager:
   - formula-test-utils.ts
 
 # Things to fix:
-- mathjs-utils.ts
 - the scss files should not be processed, just copied to dist, so then when the v3 package bundles the dependencies it will process these scss files and update the imports appropriately.
 
 # Type issues
