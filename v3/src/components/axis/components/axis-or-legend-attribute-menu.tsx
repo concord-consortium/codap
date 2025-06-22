@@ -112,6 +112,9 @@ export const AxisOrLegendAttributeMenu =
                         {treatAs === "date" && t("V3.DataDisplayMenu.treatAsDate")}
                       </MenuItem>
                     }
+                    { /** We add a spacer to prevent a ChakdraUI problem whereby the bottom item disappears **/
+                      place === 'bottom' && <MenuItem>&nbsp;</MenuItem>
+                    }
                   </>
                 }
               </MenuList>
