@@ -1,10 +1,9 @@
 import { fireEvent, renderHook } from "@testing-library/react"
-import { getType } from "mobx-state-tree"
-import { DataSet, IDataSet } from "../models/data/data-set"
 import { useDropHandler } from "./use-drop-handler"
 
 const mockData = [{ a: 1, b: 2 }, { a: 3, b: 4 }]
 const mockFilename = "mockFile.csv"
+const mockInitiateImportFromCsvFile = jest.fn()
 
 jest.mock("papaparse", () => ({
   // mock parse() to return mock data
@@ -12,6 +11,12 @@ jest.mock("papaparse", () => ({
     options.complete({ data: mockData }, { name: mockFilename })
   }
 }))
+
+jest.mock("../utilities/csv-import", () => {
+  return {
+    initiateImportFromCsvFile: (file: File) => mockInitiateImportFromCsvFile(file)
+  }
+})
 
 describe("useDropHandler", () => {
 
@@ -21,7 +26,7 @@ describe("useDropHandler", () => {
       clear: () => null,
       "0": {
         kind: "file",
-        getAsFile: () => ({ name: mockFilename })
+        getAsFile: () => ({ name: mockFilename }) as File
       }
     }
   }
@@ -50,7 +55,7 @@ describe("useDropHandler", () => {
     expect(handler).not.toHaveBeenCalled()
   })
 
-  it("handles drops with items", () => {
+  it("handles drops with file as DataTransfer item", () => {
     const handler = jest.fn()
     const params = { selector: "body", onImportDataSet: handler, onImportDocument: handler }
     const { rerender, result } = renderHook(() => useDropHandler(params))
@@ -58,13 +63,15 @@ describe("useDropHandler", () => {
     expect(result.current).toBeTruthy()
     fireEvent.dragOver(result.current!)
     expect(handler).not.toHaveBeenCalled()
+    expect(mockInitiateImportFromCsvFile).not.toHaveBeenCalled()
     fireEvent.drop(result.current!, { dataTransfer: mockDataTransferWithItems })
-    expect(handler).toHaveBeenCalled()
-    const dsArg = handler.mock.calls[0][0] as IDataSet
-    expect(getType(dsArg)).toEqual(DataSet)
+    expect(handler).not.toHaveBeenCalled()
+    expect(mockInitiateImportFromCsvFile).toHaveBeenCalled()
+    const file = mockInitiateImportFromCsvFile.mock.calls[0][0] as File
+    expect(file.name).toBe(mockFilename)
   })
 
-  it("ignores drops without items", () => {
+  it("ignores drops without DataTransfer items", () => {
     const handler = jest.fn()
     const params = { selector: "body", onImportDataSet: handler, onImportDocument: handler }
     const { rerender, result } = renderHook(() => useDropHandler(params))

@@ -50,11 +50,11 @@ export const CollectionModel = V2Model
   caseIdToGroupKeyMap: new Map<string, string>(),
   // map from group key (stringified attribute values) to CaseInfo
   caseGroupMap: new Map<string, CaseInfo>(),
-  // case ids in case table/render order
+  // previous case ids in case table/render order
   prevCaseIds: undefined as Maybe<string[]>,
-  // map from case id to group key (stringified attribute values)
+  // previous map from case id to group key (stringified attribute values)
   prevCaseIdToGroupKeyMap: undefined as Maybe<Map<string, string>>,
-  // map from group key (stringified attribute values) to CaseInfo
+  // previous map from group key (stringified attribute values) to CaseInfo
   prevCaseGroupMap: undefined as Maybe<Map<string, CaseInfo>>
 }))
 .actions(self => ({
@@ -231,14 +231,20 @@ export const CollectionModel = V2Model
   }
 }))
 .views(self => ({
-  updateCaseGroups() {
-    self.clearCases()
+  updateCaseGroups(itemIds?: string[], isAppending?: boolean) {
+    // For now, we treat appending items as a special case for which we don't need to start
+    // from scratch. Eventually, we may be able to handle inserting items efficiently as well.
+    const isAppendingItems = !!itemIds && !!isAppending
+    if (!itemIds) {
+      self.clearCases()
+      itemIds = self.itemData.itemIds()
+    }
 
     const newCaseIds: string[] = []
     // key is child caseId
     const parentChildIdMap = new Map<string, { parentCaseId: string, isHidden: boolean }>()
     const itemInfo: Array<{itemId: string, caseId: string}> = []
-    self.itemData.itemIds().forEach((itemId, itemIndex) => {
+    itemIds.forEach(itemId => {
       const isItemHidden = self.itemData.isHidden(itemId)
       const groupKey = self.groupKey(itemId)
       const hadCaseIdForGroupKey = !!self.groupKeyCaseIds.get(groupKey)
@@ -351,7 +357,11 @@ export const CollectionModel = V2Model
         }
       }
     })
-    self.clearPrevCases()
+    if (!isAppendingItems) {
+      self.clearPrevCases()
+    }
+
+    return { isAppendingItems, newCaseIds }
   }
 }))
 .views(self => ({
@@ -382,8 +392,8 @@ export const CollectionModel = V2Model
   },
 }))
 .extend(self => {
-  const _caseGroups = observable.box<CaseInfo[]>([])
-  const _cases = observable.box<IGroupedCase[]>([])
+  const _caseGroups = observable.box<CaseInfo[]>([], { deep: false })
+  const _cases = observable.box<IGroupedCase[]>([], { deep: false })
   const _caseIdsHash = observable.box<number>(0)
   const _caseIdsOrderedHash = observable.box<number>(0)
   return {
@@ -400,12 +410,12 @@ export const CollectionModel = V2Model
       get caseIdsOrderedHash() {
         return _caseIdsOrderedHash.get()
       },
-      completeCaseGroups(parentCaseGroups?: CaseInfo[]) {
-        if (parentCaseGroups) {
+      completeCaseGroups(parentCases: Maybe<CaseInfo[]>, newCaseIds?: string[]) {
+        if (parentCases) {
           self.caseIds.splice(0, self.caseIds.length)
           // sort cases by parent cases
-          parentCaseGroups.forEach(parentGroup => {
-            const childCaseIds = parentGroup.childCaseIds ?? []
+          parentCases.forEach(parentCase => {
+            const childCaseIds = parentCase.childCaseIds ?? []
             // update indices
             childCaseIds.forEach((childCaseId, index) => {
               const caseGroup = self.getCaseGroup(childCaseId)
@@ -416,13 +426,27 @@ export const CollectionModel = V2Model
           })
         }
 
-        const caseGroups = self.caseIds
-                            .map(caseId => self.getCaseGroup(caseId))
-                            .filter(group => !!group)
+        let caseGroups = _caseGroups.get()
+        let cases = _cases.get()
 
-        const cases = self.caseIds
-                        .map(caseId => self.getCaseGroup(caseId)?.groupedCase)
-                        .filter(groupedCase => !!groupedCase)
+        // append new cases to existing arrays
+        if (!parentCases && newCaseIds) {
+          const newCaseGroups = newCaseIds.map(caseId => self.getCaseGroup(caseId))
+          caseGroups.push(...newCaseGroups.filter(group => !!group))
+
+          const newCases = newCaseIds.map(caseId => self.getCaseGroup(caseId)?.groupedCase)
+          cases.push(...newCases.filter(aCase => !!aCase))
+        }
+        // rebuild arrays from scratch
+        else {
+          caseGroups = self.caseIds
+                        .map(caseId => self.getCaseGroup(caseId))
+                        .filter(group => !!group)
+
+          cases = self.caseIds
+                    .map(caseId => self.getCaseGroup(caseId)?.groupedCase)
+                    .filter(groupedCase => !!groupedCase)
+        }
 
         runInAction(() => {
           _caseGroups.set(caseGroups)

@@ -56,3 +56,21 @@ export function initiateImportFromCsv(csvContent: string, dataset: IDataSet) {
     content: webViewModelSnap
   })
 }
+
+export function initiateImportFromCsvFile(file: File) {
+  // The importer plugin is used to import a csv file into a dataset.
+  const webViewModelSnap: IWebViewSnapshot = {
+    type: kWebViewTileType,
+    subType: "plugin",
+    url: getImporterPluginUrl(),
+    state: {
+      contentType: 'text/csv',
+      name: "Importer",
+      file
+    }
+  }
+  appState.document.content?.insertTileSnapshotInDefaultRow({
+    _title: "Importer",
+    content: webViewModelSnap
+  })
+}

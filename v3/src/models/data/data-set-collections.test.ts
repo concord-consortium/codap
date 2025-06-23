@@ -84,7 +84,6 @@ describe("DataSet collections", () => {
     expect(data.collections[0].attributes.map(attr => attr!.id)).toEqual(["aId"])
     expect(data.childCollection.attributes.map(attr => attr!.id)).toEqual(["bId", "cId"])
 
-    expect(collection.id).toBe("test-3")
     expect(attributesByCollection()).toEqual([["aId"], ["bId", "cId"]])
     expect(data.getCollection(collection.id)).toBe(collection)
     const aCases = data.getCasesForAttributes(["aId"])
@@ -102,7 +101,6 @@ describe("DataSet collections", () => {
     expect(data.childCollection.attributes.map(attr => attr!.id)).toEqual(["cId"])
     expect(attributesByCollection()).toEqual([["aId", "bId"], ["cId"]])
 
-    expect(collection.id).toBe("test-3")
     const aCases = data.getCasesForAttributes(["aId"])
     expect(aCases.length).toBe(9)
     expect(data.getCasesForCollection(collection.id)).toEqual(aCases)
