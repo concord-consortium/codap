@@ -210,8 +210,9 @@ export const graphSnapshot = (options: IGraphSnapshotOptions): Promise<string | 
           mainCtx.fillStyle = elementStyle.color || "#242424"
           console.log(` -- style`, elementStyle)
           mainCtx.font = `${elementStyle.fontSize || "12px"} ${elementStyle.fontFamily || "Montserrat, sans-serif"}`
+          const lineHeight = parseFloat(elementStyle.lineHeight || "12")
           // ctx.textAlign = elementStyle.textAlign as CanvasTextAlign || "right"
-          mainCtx.fillText(element.textContent || "", coords.x, coords.y, width)
+          mainCtx.fillText(element.textContent || "", coords.x, coords.y + lineHeight, width)
           break
         }
       }

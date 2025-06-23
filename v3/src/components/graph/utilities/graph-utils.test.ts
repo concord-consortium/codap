@@ -28,15 +28,15 @@ describe("lsrlEquationString", () => {
   const units = {}
   it("should return a valid equation for a given slope and intercept", () => {
     expect(lsrlEquationString({caseValues: [], slope: 1, intercept: 0, attrNames, units, layout}))
-      .toBe('<span><em>Speed</em> = 1 (<em>Lifespan</em>)</span>')
+      .toBe('<em>Speed</em> = 1 (<em>Lifespan</em>)')
   })
   it("should return an equation containing only the y attribute when the slope is 0", () => {
     expect(lsrlEquationString({caseValues: [], slope: 0, intercept: 1, attrNames, units, layout}))
-      .toBe('<span><em>Speed</em> = 1</span>')
+      .toBe('<em>Speed</em> = 1')
   })
   it("should return an equation containing only the x attribute when the slope is Infinity", () => {
     expect(lsrlEquationString({caseValues: [], slope: Infinity, intercept: 1, attrNames, units, layout}))
-      .toBe('<span><em>Lifespan</em> = 1</span>')
+      .toBe('<em>Lifespan</em> = 1')
   })
 })
 
