@@ -122,7 +122,7 @@ export const CountAdornment = observer(function CountAdornment(props: IAdornment
     if (regionCounts.length === 1) {
       const regionTextContent = regionText(regionCounts[0])
       setDisplayCount(
-        <p>
+        <p className="region-text-content">
           {regionTextContent}
         </p>
       )
@@ -141,7 +141,9 @@ export const CountAdornment = observer(function CountAdornment(props: IAdornment
             const regionTextContent = regionText(c, i)
             return (
               <div key={`count-instance-${i}`} className={className} style={style}>
-                {regionTextContent}
+                <p className="region-text-content">
+                  {regionTextContent}
+                </p>
               </div>
             )
           })}
