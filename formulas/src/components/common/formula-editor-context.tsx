@@ -60,7 +60,7 @@ export class FormulaEditorApi {
 }
 
 interface IFormulaEditorState {
-  dataSet: IDataSet
+  dataSet?: IDataSet
   formula: string
   setFormula: React.Dispatch<React.SetStateAction<string>>
   editorApi?: FormulaEditorApi
@@ -69,7 +69,7 @@ interface IFormulaEditorState {
 
 export const FormulaEditorContext = createContext<Maybe<IFormulaEditorState>>(undefined)
 
-export function useFormulaEditorState(dataSet: IDataSet, initialFormula: string): IFormulaEditorState {
+export function useFormulaEditorState(dataSet: Maybe<IDataSet>, initialFormula: string): IFormulaEditorState {
   const [formula, setFormula] = useState(initialFormula)
   const [editorApi, setEditorApi] = useState<Maybe<FormulaEditorApi>>()
   return { dataSet, formula, setFormula, editorApi, setEditorApi }

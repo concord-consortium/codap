@@ -44,6 +44,13 @@ This seemed to happen because different versions of MobX were being used between
 
 The solution to this problem is to not pin versions in the devDependencies, and instead use the same version spec that is used in peerDependencies and in the app. This is against the best practice for libraries, but at least it makes Jest work.
 
+# Styles in workspaces
+When a workspace has components with scss files, these files are passed directly through to the dist folder and the built javascript continues to refer to them with their `.scss` extension. Webpack handles bundling them when the main app (v3) is built.
+
+This means that the scss files have to be copied from src to dist. There isn't a way for typescript to do this so there is a package script `build:copyfiles` which does it. If you change the scss files you need to run this command to see the results in webpack dev server.
+
+**NOTE** you might also have to run `build:tsc` to see changes in javascript in the webpack dev server. I think it is all based on the files of `dist` in the packages.
+
 # Typescript
 Typescript is added as a dependency in the root of the project so that the whole project can be built and so VSCode can open the whole project. Without this VSCode would fallback to its bundled Typescript version, but that does not support Yarn PnP so it is necessary to install typescript.
 

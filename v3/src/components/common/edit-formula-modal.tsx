@@ -43,10 +43,7 @@ export const EditFormulaModal = observer(function EditFormulaModal({
   const [showValuesMenu, setShowValuesMenu] = useState(false)
   const [showFunctionMenu, setShowFunctionMenu] = useState(false)
   const dataSet = useDataSetContext()
-  if (!dataSet) {
-    throw new Error("EditFormulaModal must be used within a DataSetContextProvider")
-  }
-  const formulaEditorState = useFormulaEditorState(dataSet as IFormulaDataSet, value ?? "")
+  const formulaEditorState = useFormulaEditorState(dataSet as Maybe<IFormulaDataSet>, value ?? "")
   const { formula, setFormula } = formulaEditorState
   const [dimensions, setDimensions] = useState({ width: minWidth, height: minHeight })
   const editorHeight = dimensions.height - headerHeight - footerHeight - insertButtonsHeight
