@@ -244,6 +244,10 @@ export const graphSnapshot = (options: IGraphSnapshotOptions): Promise<string | 
   ])
 
   const isAllowedElement = (element: Element): boolean => {
+    // Do not include the element if the adornment is hidden
+    const closestWrapper = element.closest(".adornment-wrapper")
+    if (closestWrapper?.classList.contains("hidden")) return false
+
     const classNames = getClassNames(element)
     return classNames.every((className) => !disallowedElementClasses.has(className))
   }
