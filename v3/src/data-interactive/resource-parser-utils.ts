@@ -1,10 +1,14 @@
+import { displayToCanonical } from "@concord-consortium/codap-formulas/models/formula/utils/canonicalization-utils"
+import { getDisplayNameMap } from "@concord-consortium/codap-formulas/models/formula/utils/name-mapping-utils"
+import { IDataSet as IFormulaDataSet } from "@concord-consortium/codap-formulas/models/data/data-set"
+import {
+  IGlobalValueManager as IFormulaGlobalValueManager
+} from "@concord-consortium/codap-formulas/models/global/global-value-manager"
 import { appState } from "../models/app-state"
 import { ICollectionModel } from "../models/data/collection"
 import { IDataSet } from "../models/data/data-set"
 import { FormulaMathJsScope } from "../models/formula/formula-mathjs-scope"
 import { math } from "../models/formula/functions/math"
-import { displayToCanonical } from "../models/formula/utils/canonicalization-utils"
-import { getDisplayNameMap } from "../models/formula/utils/name-mapping-utils"
 import { getSharedDataSets } from "../models/shared/shared-data-utils"
 import { getTileContentInfo } from "../models/tiles/tile-content-info"
 import { getSharedModelManager } from "../models/tiles/tile-environment"
@@ -57,13 +61,13 @@ export function parseSearchQuery(query: string, dataContextOrCollection?: IDataS
 export function evaluateCaseFormula(displayFormula: string, dataset: IDataSet, collection: ICollectionModel) {
   // Build displayNameMap
   const { document } = appState
-  const localDataSet = dataset
-  const dataSets: Map<string, IDataSet> = new Map()
+  const localDataSet = dataset as IFormulaDataSet
+  const dataSets: Map<string, IFormulaDataSet> = new Map()
   getSharedDataSets(document).forEach(sharedDataSet => {
     const { dataSet } = sharedDataSet
-    dataSets.set(dataSet.id, dataSet)
+    dataSets.set(dataSet.id, dataSet as IFormulaDataSet)
   })
-  const globalValueManager = getGlobalValueManager(getSharedModelManager(document))
+  const globalValueManager = getGlobalValueManager(getSharedModelManager(document)) as IFormulaGlobalValueManager
   const displayNameMap = getDisplayNameMap({
     localDataSet,
     dataSets,

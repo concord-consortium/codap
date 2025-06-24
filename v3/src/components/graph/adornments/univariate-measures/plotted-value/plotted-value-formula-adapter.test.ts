@@ -1,4 +1,4 @@
-import { IDataSet } from "../../../../../models/data/data-set"
+import { IDataSet as IFormulaDataSet } from "@concord-consortium/codap-formulas/models/data/data-set"
 import { createDataSet } from "../../../../../models/data/data-set-conversion"
 import { localAttrIdToCanonical } from "../../../../../models/formula/utils/name-mapping-utils"
 import { IGraphContentModel } from "../../../models/graph-content-model"
@@ -9,7 +9,8 @@ import { PlottedValueFormulaAdapter } from "./plotted-value-formula-adapter"
 const getTestEnv = () => {
   const dataSet = createDataSet({ attributes: [{ name: "foo" }] })
   dataSet.addCases([{ __id__: "1" }])
-  const attribute = dataSet.attributes[0]
+  const formulaDataSet = dataSet as IFormulaDataSet
+  const attribute = formulaDataSet.attributes[0]
   const adornment = PlottedValueAdornmentModel.create({ formula: { display: "1 + 2" }})
   adornment.formula.setCanonicalExpression(adornment.formula.display)
   const dataConfig = GraphDataConfigurationModel.create({ })
@@ -45,8 +46,8 @@ const getTestEnv = () => {
     })
   }
   const formula = adornment.formula
-  const dataSets = new Map<string, IDataSet>([[dataSet.id, dataSet]])
-  const context = { dataSet, formula }
+  const dataSets = new Map<string, IFormulaDataSet>([[dataSet.id, formulaDataSet]])
+  const context = { dataSet: formulaDataSet, formula }
   const extraMetadata = {
     dataSetId: dataSet.id,
     defaultArgument: localAttrIdToCanonical(attribute.id),

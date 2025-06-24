@@ -1,11 +1,19 @@
 {
   "private": true,
   "workspaces": [
-    "v3"
+    "v3",
+    "formulas",
+    "utilities"
   ],
   "devDependencies": {
     "eslint": "^9.28.0",
     "tslib": "^2.8.1",
     "typescript": "^5.8.3"
+  },
+  "packageManager": "yarn@4.9.2",
+  "devEngines": {
+    "packageManager": {
+      "name": "yarn"
+    }
   }
 }

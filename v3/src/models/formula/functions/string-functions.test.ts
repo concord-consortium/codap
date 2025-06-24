@@ -1,5 +1,5 @@
 import { evaluate } from "../test-utils/formula-test-utils"
-import { stringFunctions } from "./string-functions"
+import { stringFunctions } from "@concord-consortium/codap-formulas/models/formula/functions/string-functions"
 
 describe("stringFunctions", () => {
   describe("beginsWith", () => {

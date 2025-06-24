@@ -1,4 +1,5 @@
 import { addDisposer, onAction } from "mobx-state-tree"
+import { IDataSet as IFormulaDataSet } from "@concord-consortium/codap-formulas/models/data/data-set"
 import { Logger } from "../../lib/logger"
 import { createFormulaAdapters } from "../formula/formula-adapter-registry"
 import { FormulaManager } from "../formula/formula-manager"
@@ -47,7 +48,7 @@ export const createDocumentModel = (snapshot?: IDocumentModelSnapshot) => {
     sharedModelManager.setDocument(document.content)
   }
   sharedModelManager.getSharedModelsByType<typeof SharedDataSet>(kSharedDataSetType)
-    .forEach((model: ISharedDataSet) => formulaManager.addDataSet(model.dataSet))
+    .forEach((model: ISharedDataSet) => formulaManager.addDataSet(model.dataSet as IFormulaDataSet))
 
   // configure logging
   fullEnvironment.log = function({ message, args, category }) {

@@ -13,7 +13,13 @@ import testingLibrary from "eslint-plugin-testing-library"
 import globals from "globals"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
+// This package is patched and it seems like the import-x plugin can't handle
+// patched packages.
+// eslint-disable-next-line import-x/no-unresolved
 import { importX } from "eslint-plugin-import-x"
+
+// ESLint 9 requires rules with options to define a schema or disable the schema
+json.rules["*"].meta = {schema: false}
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -35,6 +41,7 @@ export default [{
 importX.flatConfigs.recommended,
 importX.flatConfigs.typescript,
 {
+  files: ["src/**/*.ts", "src/**/*.tsx", "cypress/**/*.ts"],
   plugins: {
     "@stylistic": stylisticEslintPlugin,
     "@typescript-eslint": fixupPluginRules(typescriptEslint),
@@ -50,8 +57,9 @@ importX.flatConfigs.typescript,
     ecmaVersion: 2018,
     sourceType: "module",
     parserOptions: {
-      project: ["./tsconfig.json", "./cypress/tsconfig.json"],
-      tsconfigRootDir: __dirname
+      project: ["./tsconfig.json", "./cypress/tsconfig.json", "./src/tsconfig.json"],
+      tsconfigRootDir: __dirname,
+      extraFileExtensions: [".json"],
     }
   },
   linterOptions: {
@@ -213,5 +221,10 @@ importX.flatConfigs.typescript,
     "@typescript-eslint/no-var-requires": "off"
     // This can be used for more strict webpack config linting which matches the webpack examples
     // "quotes": ["error", "single", { allowTemplateLiterals: true, avoidEscape: true }],
+  }
+}, {
+  files: ["**/tsconfig.json"],
+  rules: {
+    "json/*": ["error", {"allowComments": true}],
   }
 }]

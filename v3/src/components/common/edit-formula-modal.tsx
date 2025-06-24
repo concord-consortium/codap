@@ -4,13 +4,17 @@ import {
 import React, { useCallback, useEffect, useRef, useState } from "react"
 import { observer } from "mobx-react-lite"
 import { clsx } from "clsx"
+import { FormulaEditor } from "@concord-consortium/codap-formulas/components/common/formula-editor"
+import { InsertValuesMenu } from "@concord-consortium/codap-formulas/components/common/formula-insert-values-menu"
+import { InsertFunctionMenu } from "@concord-consortium/codap-formulas/components/common/formula-insert-function-menu"
+import {
+  FormulaEditorContext, useFormulaEditorState
+} from "@concord-consortium/codap-formulas/components/common/formula-editor-context"
+import { IDataSet as IFormulaDataSet } from "@concord-consortium/codap-formulas/models/data/data-set"
+import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { isCommandKeyDown } from "../../utilities/platform-utils"
 import { t } from "../../utilities/translation/translate"
-import { FormulaEditor } from "./formula-editor"
-import { FormulaEditorContext, useFormulaEditorState } from "./formula-editor-context"
 import { CodapModal } from "../codap-modal"
-import { InsertFunctionMenu } from "./formula-insert-function-menu"
-import { InsertValuesMenu } from "./formula-insert-values-menu"
 import ResizeHandle from "../../assets/icons/icon-corner-resize-handle.svg"
 
 import styles from './edit-formula-modal.scss'
@@ -38,7 +42,8 @@ export const EditFormulaModal = observer(function EditFormulaModal({
   const modalContentRef = useRef<HTMLDivElement>(null)
   const [showValuesMenu, setShowValuesMenu] = useState(false)
   const [showFunctionMenu, setShowFunctionMenu] = useState(false)
-  const formulaEditorState = useFormulaEditorState(value ?? "")
+  const dataSet = useDataSetContext()
+  const formulaEditorState = useFormulaEditorState(dataSet as Maybe<IFormulaDataSet>, value ?? "")
   const { formula, setFormula } = formulaEditorState
   const [dimensions, setDimensions] = useState({ width: minWidth, height: minHeight })
   const editorHeight = dimensions.height - headerHeight - footerHeight - insertButtonsHeight
