@@ -4,6 +4,7 @@ interface IDocumentOptions {
 export const CfmElements = {
   openLocalDoc(filename: string) {
     cy.get('#codap-app-id').selectFile(filename, { action: 'drag-drop' })
+    cy.wait(1000) // Wait for the document to load
   },
   openLocalDocWithUserEntry(filename: string) {
     cy.get('#user-entry-drop-overlay').selectFile(filename, { action: 'drag-drop' })
