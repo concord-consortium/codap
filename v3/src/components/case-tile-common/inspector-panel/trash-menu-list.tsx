@@ -9,32 +9,31 @@ import { t } from "../../../utilities/translation/translate"
 
 export const TrashMenuList = observer(function TrashMenuList() {
   const data = useDataSetContext()
-  let deletableItems: string[] = []
-  let deletableSelectedItems: string[] = []
-  let deletableUnselectedItems: string[] = []
-  if (data) {
-    deletableItems = data.itemIds.filter(itemId => isItemEditable(data, itemId))
-    deletableSelectedItems = Array.from(data.selection).filter(itemId => isItemEditable(data, itemId))
-    const deletableSelectedItemsSet = new Set(deletableSelectedItems)
-    deletableUnselectedItems = deletableItems.filter(itemId => !deletableSelectedItemsSet.has(itemId))
-  }
-  const disableDeleteAllItems = deletableItems.length < 1
-  const disableDeleteSelectedItems = deletableSelectedItems.length < 1
-  const disableDeleteUnselectedItems = deletableUnselectedItems.length < 1
+
+  const selectedItemIds = Array.from(data?.selection ?? [])
+  const disableDeleteSelectedItems = !data || !selectedItemIds.some(itemId => isItemEditable(data, itemId))
+  const disableDeleteUnselectedItems = !data?.itemIds.some(itemId =>
+                                      isItemEditable(data, itemId) && !data.selection.has(itemId))
+  const disableDeleteAllItems = disableDeleteSelectedItems && disableDeleteUnselectedItems
 
   const handleSelectAllCases = () => {
     selectAllCases(data)
   }
 
   const handleDeleteSelectedCases = () => {
+    const deletableSelectedItems = data?.itemIds.filter(itemId =>
+                                      isItemEditable(data, itemId) && data.selection.has(itemId)) ?? []
     data && removeCasesWithCustomUndoRedo(data, deletableSelectedItems)
   }
 
   const handleDeleteUnselectedCases = () => {
+    const deletableUnselectedItems = data?.itemIds.filter(itemId =>
+                                      isItemEditable(data, itemId) && !data.selection.has(itemId)) ?? []
     data && removeCasesWithCustomUndoRedo(data, deletableUnselectedItems)
   }
 
   const handleDeleteAllCases = () => {
+    const deletableItems = data?.itemIds.filter(itemId => isItemEditable(data, itemId)) ?? []
     data && removeCasesWithCustomUndoRedo(data, deletableItems)
   }
 

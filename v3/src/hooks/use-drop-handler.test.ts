@@ -1,10 +1,9 @@
 import { fireEvent, renderHook } from "@testing-library/react"
-import { getType } from "mobx-state-tree"
-import { DataSet, IDataSet } from "../models/data/data-set"
 import { useDropHandler } from "./use-drop-handler"
 
 const mockData = [{ a: 1, b: 2 }, { a: 3, b: 4 }]
 const mockFilename = "mockFile.csv"
+const mockInitiateImportFromCsv = jest.fn()
 
 jest.mock("papaparse", () => ({
   // mock parse() to return mock data
@@ -12,6 +11,12 @@ jest.mock("papaparse", () => ({
     options.complete({ data: mockData }, { name: mockFilename })
   }
 }))
+
+jest.mock("../utilities/csv-import", () => {
+  return {
+    initiateImportFromCsv: (file: File) => mockInitiateImportFromCsv(file)
+  }
+})
 
 describe("useDropHandler", () => {
 
@@ -21,7 +26,7 @@ describe("useDropHandler", () => {
       clear: () => null,
       "0": {
         kind: "file",
-        getAsFile: () => ({ name: mockFilename })
+        getAsFile: () => ({ name: mockFilename }) as File
       }
     }
   }
@@ -44,35 +49,40 @@ describe("useDropHandler", () => {
     const { rerender, result } = renderHook(() => useDropHandler(params))
     rerender()  // make sure effect has a chance to run
     expect(result.current).toBeTruthy()
-    fireEvent.dragOver(result.current!)
+    if (!result.current) throw new Error("Hook did not return a valid element")
+    fireEvent.dragOver(result.current)
     expect(handler).not.toHaveBeenCalled()
-    fireEvent.drop(result.current!)
+    fireEvent.drop(result.current)
     expect(handler).not.toHaveBeenCalled()
   })
 
-  it("handles drops with items", () => {
+  it("handles drops with file as DataTransfer item", () => {
     const handler = jest.fn()
     const params = { selector: "body", onImportDataSet: handler, onImportDocument: handler }
     const { rerender, result } = renderHook(() => useDropHandler(params))
     rerender()  // make sure effect has a chance to run
     expect(result.current).toBeTruthy()
-    fireEvent.dragOver(result.current!)
+    if (!result.current) throw new Error("Hook did not return a valid element")
+    fireEvent.dragOver(result.current)
     expect(handler).not.toHaveBeenCalled()
-    fireEvent.drop(result.current!, { dataTransfer: mockDataTransferWithItems })
-    expect(handler).toHaveBeenCalled()
-    const dsArg = handler.mock.calls[0][0] as IDataSet
-    expect(getType(dsArg)).toEqual(DataSet)
+    expect(mockInitiateImportFromCsv).not.toHaveBeenCalled()
+    fireEvent.drop(result.current, { dataTransfer: mockDataTransferWithItems })
+    expect(handler).not.toHaveBeenCalled()
+    expect(mockInitiateImportFromCsv).toHaveBeenCalled()
+    const file = mockInitiateImportFromCsv.mock.calls[0][0].file as File
+    expect(file.name).toBe(mockFilename)
   })
 
-  it("ignores drops without items", () => {
+  it("ignores drops without DataTransfer items", () => {
     const handler = jest.fn()
     const params = { selector: "body", onImportDataSet: handler, onImportDocument: handler }
     const { rerender, result } = renderHook(() => useDropHandler(params))
     rerender()  // make sure effect has a chance to run
     expect(result.current).toBeTruthy()
-    fireEvent.dragOver(result.current!)
+    if (!result.current) throw new Error("Hook did not return a valid element")
+    fireEvent.dragOver(result.current)
     expect(handler).not.toHaveBeenCalled()
-    fireEvent.drop(result.current!, { dataTransfer: mockDataTransferWithoutItems })
+    fireEvent.drop(result.current, { dataTransfer: mockDataTransferWithoutItems })
     expect(handler).not.toHaveBeenCalled()
   })
 })

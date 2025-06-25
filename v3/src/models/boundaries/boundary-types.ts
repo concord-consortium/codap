@@ -25,6 +25,15 @@ export const isBoundaryValue = (iValue: object | string): boolean => {
       obj.type === 'FeatureCollection' || obj.type === 'Feature' || obj.jsonBoundaryObject)
 }
 
+export const isBoundaryString = (iValue: string): boolean => {
+  // stringified objects must be enclosed in braces
+  if (iValue[0] !== '{' || iValue[iValue.length - 1] !== '}') return false
+  const obj = boundaryObjectFromBoundaryValue(iValue)
+  return obj != null &&
+    !!(obj.geometry || obj.coordinates || obj.features ||
+      obj.type === 'FeatureCollection' || obj.type === 'Feature' || obj.jsonBoundaryObject)
+}
+
 export interface BoundaryInfo {
   name: string
   format: string

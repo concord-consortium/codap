@@ -1,6 +1,10 @@
 import { useEffect, useRef } from "react"
 import { IDataSet } from "../models/data/data-set"
-import { convertParsedCsvToDataSet, CsvParseResult, importCsvFile } from "../utilities/csv-import"
+import {
+  convertParsedCsvToDataSet, CsvParseResult, importCsvFile, initiateImportFromCsv
+} from "../utilities/csv-import"
+
+const USE_IMPORTER_PLUGIN_FOR_CSV_FILE = true
 
 export interface IDropHandler {
   selector: string
@@ -25,6 +29,7 @@ export const useDropHandler = ({
 
     function dropHandler(event: DragEvent) {
 
+      // For local .csv import
       function onCompleteCsvImport(results: CsvParseResult, aFile: any) {
         const ds = convertParsedCsvToDataSet(results, aFile.name)
         onImportDataSet?.(ds)
@@ -47,8 +52,14 @@ export const useDropHandler = ({
                 file && onImportDocument?.(file)
                 break
               case "csv":
-                importCsvFile(file, onCompleteCsvImport)
-                break
+                if (USE_IMPORTER_PLUGIN_FOR_CSV_FILE) {
+                  // For .csv import via Importer plugin
+                  file && initiateImportFromCsv({ file })
+                }
+                else {
+                  // For local .csv import without Importer plugin
+                  importCsvFile(file, onCompleteCsvImport)
+                }
             }
           }
           else if (item.kind === "string" && item.type === "text/uri-list") {

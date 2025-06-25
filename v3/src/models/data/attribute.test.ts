@@ -110,7 +110,7 @@ describe("Attribute", () => {
 
     attribute.setUnits("m")
     expect(attribute.units).toBe("m")
-    expect(attribute.getNumericCount()).toBe(0)
+    expect(attribute.isInferredNumericType()).toBe(false)
     expect(attribute.type).toBeUndefined()
 
     attribute.addValue("1")
@@ -124,7 +124,7 @@ describe("Attribute", () => {
     expect(attribute.value(2)).toBe(3)
     expect(attribute.numValue(1)).toBe(2)
     expect(attribute.numValue(2)).toBe(3)
-    expect(attribute.getNumericCount()).toBe(3)
+    expect(attribute.isInferredNumericType()).toBe(true)
 
     attribute.addValue(0, 0)
     expect(attribute.length).toBe(4)
@@ -161,7 +161,7 @@ describe("Attribute", () => {
     expect(attribute.value(1)).toBe(2)
     expect(attribute.numValue(0)).toBe(0)
     expect(attribute.numValue(1)).toBe(2)
-    expect(attribute.getNumericCount()).toBe(6)
+    expect(attribute.isInferredNumericType()).toBe(true)
     expect(attribute.type).toBe("numeric")
 
     // undefined/empty values are ignored when determining type
@@ -220,28 +220,18 @@ describe("Attribute", () => {
     expect(lengthListener).toHaveBeenCalledTimes(1)
     lengthDisposer()
 
-    // value changes should trigger emptyCount reevaluation
-    const emptyCountListener = jest.fn()
-    const emptyCountDisposer = reaction(() => a.getEmptyCount(), () => emptyCountListener())
-    expect(a.getEmptyCount()).toBe(0)
-    expect(emptyCountListener).toHaveBeenCalledTimes(0)
-    a.setValue(2, "")
-    expect(a.getEmptyCount()).toBe(1)
-    expect(emptyCountListener).toHaveBeenCalledTimes(1)
-    emptyCountDisposer()
-
-    // value changes should trigger numericCount reevaluation
-    const numericCountListener = jest.fn()
-    const numericCountDisposer = reaction(() => a.getNumericCount(), () => numericCountListener())
-    expect(a.getNumericCount()).toBe(3)
-    expect(numericCountListener).toHaveBeenCalledTimes(0)
+    // value changes should not trigger type reevaluation
+    const numericTypeListener = jest.fn()
+    const numericTypeDisposer = reaction(() => a.isInferredNumericType(), () => numericTypeListener())
+    expect(a.isInferredNumericType()).toBe(true)
+    expect(numericTypeListener).toHaveBeenCalledTimes(0)
     a.setValue(2, "3")
-    expect(a.getNumericCount()).toBe(4)
-    expect(numericCountListener).toHaveBeenCalledTimes(1)
-    numericCountDisposer()
+    expect(a.isInferredNumericType()).toBe(true)
+    expect(numericTypeListener).toHaveBeenCalledTimes(0)
+    numericTypeDisposer()
 
-    const colorCountListener = jest.fn()
-    const colorCountDisposer = reaction(() => a.getStrictColorCount(), () => colorCountListener())
+    const colorTypeListener = jest.fn()
+    const colorTypeDisposer = reaction(() => a.isInferredColorType(), () => colorTypeListener())
     const typeListener = jest.fn()
     const typeDisposer = reaction(() => a.type, () => typeListener())
     expect(a.type).toBe("numeric")
@@ -250,21 +240,21 @@ describe("Attribute", () => {
     expect(a.type).toBe("categorical")
     expect(typeListener).toHaveBeenCalledTimes(1)
     // color type
-    expect(a.getStrictColorCount()).toBe(0)
+    expect(a.isInferredColorType()).toBe(false)
     a.setValue(0, "#ff0000")
-    expect(a.getStrictColorCount()).toBe(1)
+    expect(a.isInferredColorType()).toBe(false)
     a.setValue(1, "#00f")
-    expect(a.getStrictColorCount()).toBe(2)
+    expect(a.isInferredColorType()).toBe(false)
     expect(a.type).toBe("categorical")
     a.setValue(2, "rgb(0, 255, 0)")
-    expect(a.getStrictColorCount()).toBe(3)
+    expect(a.isInferredColorType()).toBe(false)
     expect(a.type).toBe("categorical")
     a.setValue(3, "rgba(0, 255, 0, 0.5)")
-    expect(a.getStrictColorCount()).toBe(4)
+    expect(a.isInferredColorType()).toBe(true)
     expect(a.type).toBe("color")
     expect(typeListener).toHaveBeenCalledTimes(2)
     typeDisposer()
-    colorCountDisposer()
+    colorTypeDisposer()
   })
 
   test("Serialization (development)", () => {

@@ -178,7 +178,9 @@ export const DataSet = V2Model.named("DataSet").props({
   // cached result of filter formula evaluation for each item ID
   filteredOutItemIds: observable.set<string>(),
   filterFormulaError: "",
-  itemData: nullItemData
+  itemData: nullItemData,
+  // flag indicating that items are being appended, enabling certain optimizations
+  isAppendingItems: false
 }))
 .extend(self => {
   const _validationCount = observable.box<number>(0)
@@ -587,6 +589,25 @@ export const DataSet = V2Model.named("DataSet").props({
       })
       self.setValidCases()
     }
+  },
+  validateCasesForNewItems(itemIds: string[]) {
+    const newCaseIdsForCollections = new Map<string, string[]>()
+    self.collections.forEach((collection, index) => {
+      // update the cases
+      const { newCaseIds } = collection.updateCaseGroups(itemIds)
+      newCaseIdsForCollections.set(collection.id, newCaseIds)
+    })
+    self.collections.forEach((collection, index) => {
+      // complete the case groups, including sorting child collection cases into groups
+      const parentCaseGroups = index > 0 ? self.collections[index - 1].caseGroups : undefined
+      collection.completeCaseGroups(parentCaseGroups)
+      // update the caseGroupMap
+      collection.caseGroupMap.forEach(group => self.caseInfoMap.set(group.groupedCase.__id__, group))
+    })
+    self.itemIdChildCaseMap.clear()
+    Array.from(self.childCollection.caseGroupMap.values()).forEach(caseGroup => {
+      self.itemIdChildCaseMap.set(caseGroup.childItemIds[0] ?? caseGroup.hiddenChildItemIds[0], caseGroup)
+    })
   }
 }))
 .views(self => ({
@@ -991,6 +1012,7 @@ export const DataSet = V2Model.named("DataSet").props({
       // latter, whether it should be named addCases or addItems.
       addCases(cases: ICaseCreation[], options?: IAddCasesOptions) {
         const { before, after } = options || {}
+        let didAppendItems = false
 
         const beforePosition = before
           ? self.getItemIndex(before) ?? self.getItemIndex(self.caseInfoMap.get(before)?.childItemIds[0] ?? "")
@@ -1029,11 +1051,16 @@ export const DataSet = V2Model.named("DataSet").props({
           })
         }
         else {
+          self.isAppendingItems = true
+
           self._itemIds.push(...ids)
           // append values to each attribute
           self.attributesMap.forEach(attr => {
             attr.setLength(self._itemIds.length)
           })
+
+          self.isAppendingItems = false
+          didAppendItems = true
         }
         // add the itemInfo for the appended cases
         ids.forEach((caseId, index) => {
@@ -1058,6 +1085,11 @@ export const DataSet = V2Model.named("DataSet").props({
 
         // invalidate the affected attributes
         attrs.forEach(attrId => self.getAttribute(attrId)?.incChangeCount())
+
+        if (didAppendItems) {
+          self.validateCasesForNewItems(ids)
+        }
+
         return ids
       },
 
@@ -1277,10 +1309,13 @@ export const DataSet = V2Model.named("DataSet").props({
       ))
 
       // when items are added/removed...
-      // use MST's onPatch mechanism to respond to additions/removals of items and their undo/redo
+      // use MST's onPatch mechanism to respond to removals of items or undoing their creation.
       addDisposer(self, onPatch(self, ({ op, path, value }) => {
         if (/_itemIds(\/\d+)?$/.test(path)) {
-          self.invalidateCases()
+          // we don't need a full invalidation if we're appending items
+          if (op !== "add" || !self.isAppendingItems) {
+            self.invalidateCases()
+          }
         }
       }))
 

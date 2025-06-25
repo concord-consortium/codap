@@ -31,7 +31,7 @@ import { parseColor } from "../../utilities/color-utils"
 import { isDateString } from "../../utilities/date-parser"
 import { DatePrecision } from "../../utilities/date-utils"
 import { cachedFnFactory } from "../../utilities/mst-utils"
-import { isBoundaryValue, kPolygonNames } from "../boundaries/boundary-types"
+import { isBoundaryString, kPolygonNames } from "../boundaries/boundary-types"
 import { Formula, IFormula } from "../formula/formula"
 import { applyModelChange } from "../history/apply-model-change"
 import { withoutUndo } from "../history/without-undo"
@@ -104,36 +104,53 @@ export const Attribute = V2Model.named("Attribute").props({
   get datePrecision() {
     return typeof self.precision === "string" ? self.precision : undefined
   },
-  getEmptyCount: cachedFnFactory<number>(() => {
-    // Note that `self.changeCount` is absolutely not necessary here. However, historically, this function used to be
-    // a MobX computed property, and `self.changeCount` was used to invalidate the cache. Also, there are tests
-    // (and possibly some features?) that depend on MobX reactivity. Hence, this is left here for now.
-    self.changeCount // eslint-disable-line @typescript-eslint/no-unused-expressions
-    return self.strValues.reduce((prev, current) => current === "" ? ++prev : prev, 0)
+  isInferredNumericType: cachedFnFactory<boolean>(() => {
+    let numCount = 0
+    const isEveryValueNumericOrEmpty = self.strValues.every((strValue, index) => {
+      if (strValue == null || strValue === "") return true
+      if (isFinite(self.numValues[index])) {
+        ++numCount
+        return true
+      }
+      return false
+    })
+    return numCount > 0 && isEveryValueNumericOrEmpty
   }),
-  getNumericCount: cachedFnFactory<number>(() => {
-    // Note that `self.changeCount` is absolutely not necessary here. However, historically, this function used to be
-    // a MobX computed property, and `self.changeCount` was used to invalidate the cache. Also, there are tests
-    // (and possibly some features?) that depend on MobX reactivity. Hence, this is left here for now.
-    self.changeCount // eslint-disable-line @typescript-eslint/no-unused-expressions
-    return self.numValues.reduce((prev, current) => isFinite(current) ? ++prev : prev, 0)
+  isInferredColorType: cachedFnFactory<boolean>(() => {
+    let colorCount = 0
+    const isEveryValueColorOrEmpty = self.strValues.every((strValue, index) => {
+      if (strValue == null || strValue === "") return true
+      if (parseColor(strValue)) {
+        ++colorCount
+        return true
+      }
+      return false
+    })
+    return colorCount > 0 && isEveryValueColorOrEmpty
   }),
-  getStrictColorCount: cachedFnFactory<number>(() => {
-    // Note that `self.changeCount` is absolutely not necessary here. However, historically, this function used to be
-    // a MobX computed property, and `self.changeCount` was used to invalidate the cache. Also, there are tests
-    // (and possibly some features?) that depend on MobX reactivity. Hence, this is left here for now.
-    self.changeCount // eslint-disable-line @typescript-eslint/no-unused-expressions
-    return self.strValues.reduce((prev, current) => parseColor(current) ? ++prev : prev, 0)
+  isInferredDateType: cachedFnFactory<boolean>(() => {
+    let dateCount = 0
+    const isEveryValueDateOrEmpty = self.strValues.every((strValue, index) => {
+      if (strValue == null || strValue === "") return true
+      if (isDateString(strValue)) {
+        ++dateCount
+        return true
+      }
+      return false
+    })
+    return dateCount > 0 && isEveryValueDateOrEmpty
   }),
-  getDateCount: cachedFnFactory<number>(() => {
-    // Note that `self.changeCount` is absolutely not necessary here. However, historically, this function used to be
-    // a MobX computed property, and `self.changeCount` was used to invalidate the cache. Also, there are tests
-    // (and possibly some features?) that depend on MobX reactivity. Hence, this is left here for now.
-    self.changeCount // eslint-disable-line @typescript-eslint/no-unused-expressions
-    return self.strValues.reduce((prev, current) => isDateString(current) ? ++prev : prev, 0)
-  }),
-  getBoundaryCount: cachedFnFactory<number>(() => {
-    return self.strValues.reduce((prev, current) => isBoundaryValue(current) ? ++prev : prev, 0)
+  isInferredBoundaryType: cachedFnFactory<boolean>(() => {
+    let boundaryCount = 0
+    const isEveryValueBoundaryOrEmpty = self.strValues.every((strValue, index) => {
+      if (strValue == null || strValue === "") return true
+      if (isBoundaryString(strValue)) {
+        ++boundaryCount
+        return true
+      }
+      return false
+    })
+    return boundaryCount > 0 && isEveryValueBoundaryOrEmpty
   }),
   get hasFormula() {
     return !!self.formula && !self.formula.empty
@@ -150,11 +167,10 @@ export const Attribute = V2Model.named("Attribute").props({
 }))
 .actions(self => ({
   incChangeCount() {
-    self.getEmptyCount.invalidate()
-    self.getNumericCount.invalidate()
-    self.getStrictColorCount.invalidate()
-    self.getBoundaryCount.invalidate()
-    self.getDateCount.invalidate()
+    self.isInferredNumericType.invalidate()
+    self.isInferredColorType.invalidate()
+    self.isInferredBoundaryType.invalidate()
+    self.isInferredDateType.invalidate()
     ++self.changeCount
   },
   setCid(cid?: string) {
@@ -221,22 +237,17 @@ export const Attribute = V2Model.named("Attribute").props({
     self.changeCount  // eslint-disable-line @typescript-eslint/no-unused-expressions
     if (this.length === 0) return
 
-    // only infer color if all non-empty values are strict colors
-    const colorCount = self.getStrictColorCount()
-    if (colorCount > 0 && colorCount === this.length - self.getEmptyCount()) return "color"
-
     // only infer numeric if all non-empty values are numeric (CODAP2)
-    const numCount = self.getNumericCount()
-    if (numCount > 0 && numCount === this.length - self.getEmptyCount()) return "numeric"
+    if (self.isInferredNumericType()) return "numeric"
 
     // only infer date if all non-empty values are dates
-    const dateCount = self.getDateCount()
-    if (dateCount > 0 && dateCount === this.length - self.getEmptyCount()) return "date"
+    if (self.isInferredDateType()) return "date"
+
+    // only infer color if all non-empty values are strict colors
+    if (self.isInferredColorType()) return "color"
 
     // only infer boundary if all non-empty values are boundaries or if the attribute has a special name
-    const boundaryCount = self.getBoundaryCount()
-    const allValuesAreBoundaries = boundaryCount > 0 && boundaryCount === this.length - self.getEmptyCount()
-    if (kPolygonNames.includes(self.title) || allValuesAreBoundaries) {
+    if (kPolygonNames.includes(self.title) || self.isInferredBoundaryType()) {
       return "boundary"
     }
 
@@ -326,8 +337,19 @@ export const Attribute = V2Model.named("Attribute").props({
   },
   setValue(index: number, value: IValueType, options?: ISetValueOptions) {
     if ((index >= 0) && (index < self.strValues.length)) {
-      self.strValues[index] = self.importValue(value)
-      self.numValues[index] = self.toNumeric(self.strValues[index])
+      if (typeof value === "string") {
+        const trimmedValue = value.trim()
+        self.strValues[index] = trimmedValue
+        self.numValues[index] = self.toNumeric(trimmedValue)
+      }
+      else if (typeof value === "number") {
+        self.strValues[index] = value.toString()
+        self.numValues[index] = value
+      }
+      else {
+        self.strValues[index] = self.importValue(value)
+        self.numValues[index] = self.toNumeric(self.strValues[index])
+      }
       if (!options?.noInvalidate) self.incChangeCount()
     }
   },

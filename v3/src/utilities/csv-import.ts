@@ -38,7 +38,16 @@ export function convertParsedCsvToDataSet(results: CsvParseResult, filename: str
   return ds
 }
 
-export function initiateImportFromCsv(csvContent: string, dataset: IDataSet) {
+interface IImportFromCsvContentArgs {
+  text: string
+  data: IDataSet
+}
+interface IImportFromCsvFileArgs {
+  file: File
+}
+type IImportFromCsvArgs = IImportFromCsvContentArgs | IImportFromCsvFileArgs
+
+export function initiateImportFromCsv(options: IImportFromCsvArgs) {
   // The importer plugin is used to import a csv string into a dataset.
   const webViewModelSnap: IWebViewSnapshot = {
     type: kWebViewTileType,
@@ -46,9 +55,10 @@ export function initiateImportFromCsv(csvContent: string, dataset: IDataSet) {
     url: getImporterPluginUrl(),
     state: {
       contentType: 'text/csv',
-      targetDatasetName: dataset.name,
       name: "Importer",
-      text: csvContent
+      file: "file" in options ? options.file : undefined,
+      targetDatasetName: "data" in options ? options.data.name : undefined,
+      text: "text" in options ? options.text : undefined
     }
   }
   appState.document.content?.insertTileSnapshotInDefaultRow({

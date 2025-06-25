@@ -110,7 +110,7 @@ export const RulerMenuList = observer(function RulerMenuList() {
       itemKey: "DG.Inspector.getCaseDataFromClipboard",
       handleClick: () => {
         if (data) {
-          navigator.clipboard.readText().then(text => initiateImportFromCsv(text, data))
+          navigator.clipboard.readText().then(text => initiateImportFromCsv({ text, data }))
         }
       }
     }
