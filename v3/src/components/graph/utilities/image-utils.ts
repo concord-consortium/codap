@@ -119,6 +119,64 @@ export const graphSnapshot = (options: IGraphSnapshotOptions): Promise<string | 
     return `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svgData)))}`
   }
 
+  /**
+   * Renders a <p> element onto a canvas by drawing it inside a foreignObject in an SVG,
+   * then rasterizing the SVG to the canvas. This preserves HTML structure and styles,
+   * including <em>, <sup>, and <br>.
+   * @param pElement The paragraph HTML element to render.
+   */
+  const renderParagraphToCanvas = async (pElement: HTMLElement) => {
+    const width = mainCanvas.width
+    const height = mainCanvas.height
+    // Create SVG with foreignObject
+    const svgNS = "http://www.w3.org/2000/svg"
+    const xhtmlNS = "http://www.w3.org/1999/xhtml"
+    const svg = document.createElementNS(svgNS, "svg")
+    svg.setAttribute("width", width.toString())
+    svg.setAttribute("height", height.toString())
+
+    const foreignObject = document.createElementNS(svgNS, "foreignObject")
+    foreignObject.setAttribute("x", "0")
+    foreignObject.setAttribute("y", "0")
+    foreignObject.setAttribute("width", width.toString())
+    foreignObject.setAttribute("height", height.toString())
+    foreignObject.appendChild(css)
+
+    // Clone the <p> element to avoid side effects
+    const pClone = pElement.cloneNode(true) as HTMLElement
+
+    // Copy computed styles to the clone (inline)
+    const computed = getComputedStyle(pElement)
+    pClone.setAttribute("style", Array.from(computed)
+      .map(key => `${key}: ${computed.getPropertyValue(key)};`).join(" "))
+
+    // Wrap in a div to ensure proper layout in foreignObject
+    const wrapper = document.createElementNS(xhtmlNS, "div")
+    wrapper.setAttribute("xmlns", xhtmlNS)
+    wrapper.style.width = "100%"
+    wrapper.style.height = "100%"
+    wrapper.appendChild(pClone)
+    foreignObject.appendChild(wrapper)
+    svg.appendChild(foreignObject)
+
+    // Serialize SVG
+    const svgString = new XMLSerializer().serializeToString(svg)
+    const svgDataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgString)}`
+
+    // Draw SVG to canvas
+    await new Promise<void>((resolve, reject) => {
+      const img = new window.Image()
+      img.onload = () => {
+        if (mainCtx) {
+          mainCtx.drawImage(img, 0, 0, width, height)
+        }
+        resolve()
+      }
+      img.onerror = reject
+      img.src = svgDataUrl
+    })
+  }
+
   const makeCanvas = (bgColor: string, x: number, y: number, width: number, height: number): HTMLCanvasElement => {
     const newCanvas = document.createElement("canvas")
     newCanvas.width = width
@@ -202,44 +260,47 @@ export const graphSnapshot = (options: IGraphSnapshotOptions): Promise<string | 
           break
         }
         case "p": {
-          const elementStyle = getComputedStyle(element)
-          mainCtx.fillStyle = elementStyle.backgroundColor || "#f8f8f8"
-          mainCtx.fillRect(x, y, width, height)
-
-          // FIXME: Text styling isn't working
-          mainCtx.fillStyle = elementStyle.color || "#242424"
-          console.log(` -- style`, elementStyle)
-          mainCtx.font = `${elementStyle.fontSize || "12px"} ${elementStyle.fontFamily || "Montserrat, sans-serif"}`
-          const lineHeight = parseFloat(elementStyle.lineHeight || "12")
-          const paddingLeft = parseFloat(elementStyle.paddingLeft || "0")
-          const paddingRight = parseFloat(elementStyle.paddingRight || "0")
-          const paddingTop = parseFloat(elementStyle.paddingTop || "0")
-          mainCtx.textAlign = elementStyle.textAlign as CanvasTextAlign || "right"
-          const textY = coords.y + lineHeight + paddingTop
-          const textWidth = width - paddingLeft - paddingRight
-          const textX = mainCtx.textAlign === "right"
-            ? coords.x + width - paddingRight
-            : mainCtx.textAlign === "center"
-            ? coords.x + width / 2
-            : coords.x + paddingLeft
-
-          const renderText = (words: string[], index: number, _y: number) => {
-            if (index >= words.length) return
-
-            let line = words[index]
-            let currentIndex = index + 1
-            while (
-              currentIndex < words.length && mainCtx.measureText(`${line} ${words[currentIndex]}`).width < textWidth
-            ) {
-              line += ` ${words[currentIndex]}`
-              currentIndex++
-            }
-
-            mainCtx.fillText(line, textX, _y, textWidth)
-            renderText(words, currentIndex, _y + lineHeight)
-          }
-          renderText(element.textContent?.split(" ") || [], 0, textY)
+          await renderParagraphToCanvas(element as HTMLParagraphElement)
           break
+          // const elementStyle = getComputedStyle(element)
+          // mainCtx.fillStyle = elementStyle.backgroundColor || "#f8f8f8"
+          // mainCtx.fillRect(x, y, width, height)
+
+          // // FIXME: Text styling isn't working
+          // mainCtx.fillStyle = elementStyle.color || "#242424"
+          // console.log(` -- style`, elementStyle)
+          // mainCtx.font = `${elementStyle.fontSize || "12px"} ${elementStyle.fontFamily || "Montserrat, sans-serif"}`
+          // const lineHeight = parseFloat(elementStyle.lineHeight || "12")
+          // const paddingLeft = parseFloat(elementStyle.paddingLeft || "0")
+          // const paddingRight = parseFloat(elementStyle.paddingRight || "0")
+          // const paddingTop = parseFloat(elementStyle.paddingTop || "0")
+          // mainCtx.textAlign = elementStyle.textAlign as CanvasTextAlign || "right"
+          // const textY = coords.y + lineHeight + paddingTop
+          // const textWidth = width - paddingLeft - paddingRight
+          // const textX = mainCtx.textAlign === "right"
+          //   ? coords.x + width - paddingRight
+          //   : mainCtx.textAlign === "center"
+          //   ? coords.x + width / 2
+          //   : coords.x + paddingLeft
+
+          // // When rendering text to a canvas, we have to figure out line breaks outselves
+          // const renderText = (words: string[], index: number, _y: number) => {
+          //   if (index >= words.length) return
+
+          //   let line = words[index]
+          //   let currentIndex = index + 1
+          //   while (
+          //     currentIndex < words.length && mainCtx.measureText(`${line} ${words[currentIndex]}`).width < textWidth
+          //   ) {
+          //     line += ` ${words[currentIndex]}`
+          //     currentIndex++
+          //   }
+
+          //   mainCtx.fillText(line, textX, _y, textWidth)
+          //   renderText(words, currentIndex, _y + lineHeight)
+          // }
+          // renderText(element.textContent?.split(" ") || [], 0, textY)
+          // break
         }
       }
     }
