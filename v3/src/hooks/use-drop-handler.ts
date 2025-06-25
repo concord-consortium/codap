@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react"
 import { IDataSet } from "../models/data/data-set"
 import {
-  convertParsedCsvToDataSet, CsvParseResult, importCsvFile, initiateImportFromCsvFile
+  convertParsedCsvToDataSet, CsvParseResult, importCsvFile, initiateImportFromCsv
 } from "../utilities/csv-import"
 
 const USE_IMPORTER_PLUGIN_FOR_CSV_FILE = true
@@ -54,7 +54,7 @@ export const useDropHandler = ({
               case "csv":
                 if (USE_IMPORTER_PLUGIN_FOR_CSV_FILE) {
                   // For .csv import via Importer plugin
-                  file && initiateImportFromCsvFile(file)
+                  file && initiateImportFromCsv({ file })
                 }
                 else {
                   // For local .csv import without Importer plugin

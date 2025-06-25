@@ -590,7 +590,7 @@ export const DataSet = V2Model.named("DataSet").props({
       self.setValidCases()
     }
   },
-  validateNewCases(itemIds: string[]) {
+  validateCasesForNewItems(itemIds: string[]) {
     const newCaseIdsForCollections = new Map<string, string[]>()
     self.collections.forEach((collection, index) => {
       // update the cases
@@ -1087,7 +1087,7 @@ export const DataSet = V2Model.named("DataSet").props({
         attrs.forEach(attrId => self.getAttribute(attrId)?.incChangeCount())
 
         if (didAppendItems) {
-          self.validateNewCases(ids)
+          self.validateCasesForNewItems(ids)
         }
 
         return ids

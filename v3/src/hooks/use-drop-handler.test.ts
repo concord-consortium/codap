@@ -3,7 +3,7 @@ import { useDropHandler } from "./use-drop-handler"
 
 const mockData = [{ a: 1, b: 2 }, { a: 3, b: 4 }]
 const mockFilename = "mockFile.csv"
-const mockInitiateImportFromCsvFile = jest.fn()
+const mockInitiateImportFromCsv = jest.fn()
 
 jest.mock("papaparse", () => ({
   // mock parse() to return mock data
@@ -14,7 +14,7 @@ jest.mock("papaparse", () => ({
 
 jest.mock("../utilities/csv-import", () => {
   return {
-    initiateImportFromCsvFile: (file: File) => mockInitiateImportFromCsvFile(file)
+    initiateImportFromCsv: (file: File) => mockInitiateImportFromCsv(file)
   }
 })
 
@@ -49,9 +49,10 @@ describe("useDropHandler", () => {
     const { rerender, result } = renderHook(() => useDropHandler(params))
     rerender()  // make sure effect has a chance to run
     expect(result.current).toBeTruthy()
-    fireEvent.dragOver(result.current!)
+    if (!result.current) throw new Error("Hook did not return a valid element")
+    fireEvent.dragOver(result.current)
     expect(handler).not.toHaveBeenCalled()
-    fireEvent.drop(result.current!)
+    fireEvent.drop(result.current)
     expect(handler).not.toHaveBeenCalled()
   })
 
@@ -61,13 +62,14 @@ describe("useDropHandler", () => {
     const { rerender, result } = renderHook(() => useDropHandler(params))
     rerender()  // make sure effect has a chance to run
     expect(result.current).toBeTruthy()
-    fireEvent.dragOver(result.current!)
+    if (!result.current) throw new Error("Hook did not return a valid element")
+    fireEvent.dragOver(result.current)
     expect(handler).not.toHaveBeenCalled()
-    expect(mockInitiateImportFromCsvFile).not.toHaveBeenCalled()
-    fireEvent.drop(result.current!, { dataTransfer: mockDataTransferWithItems })
+    expect(mockInitiateImportFromCsv).not.toHaveBeenCalled()
+    fireEvent.drop(result.current, { dataTransfer: mockDataTransferWithItems })
     expect(handler).not.toHaveBeenCalled()
-    expect(mockInitiateImportFromCsvFile).toHaveBeenCalled()
-    const file = mockInitiateImportFromCsvFile.mock.calls[0][0] as File
+    expect(mockInitiateImportFromCsv).toHaveBeenCalled()
+    const file = mockInitiateImportFromCsv.mock.calls[0][0].file as File
     expect(file.name).toBe(mockFilename)
   })
 
@@ -77,9 +79,10 @@ describe("useDropHandler", () => {
     const { rerender, result } = renderHook(() => useDropHandler(params))
     rerender()  // make sure effect has a chance to run
     expect(result.current).toBeTruthy()
-    fireEvent.dragOver(result.current!)
+    if (!result.current) throw new Error("Hook did not return a valid element")
+    fireEvent.dragOver(result.current)
     expect(handler).not.toHaveBeenCalled()
-    fireEvent.drop(result.current!, { dataTransfer: mockDataTransferWithoutItems })
+    fireEvent.drop(result.current, { dataTransfer: mockDataTransferWithoutItems })
     expect(handler).not.toHaveBeenCalled()
   })
 })
