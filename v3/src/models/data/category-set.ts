@@ -2,7 +2,7 @@ import { uniq } from "lodash"
 import { observable, runInAction } from "mobx"
 import {
   addDisposer, getEnv, hasEnv, IAnyStateTreeNode, IDisposer, Instance, ISerializedActionCall, isValidReference,
-  resolveIdentifier, SnapshotIn, types
+  onPatch, resolveIdentifier, SnapshotIn, types
 } from "mobx-state-tree"
 import { kellyColors } from "../../utilities/color-utils"
 import { compareValues } from "../../utilities/data-utils"
@@ -64,6 +64,8 @@ export const CategorySet = types.model("CategorySet", {
 .volatile(self => ({
   provisionalAttributeActionDisposer: undefined as Maybe<IDisposer>,
   handleAttributeInvalidated: undefined as Maybe<(attrId: string) => void>,
+  dragCategory: undefined as Maybe<string>,
+  dragCategoryIndex: -1
 }))
 .actions(self => ({
   onAttributeInvalidated(handler: (attrId: string) => void) {
@@ -87,14 +89,23 @@ export const CategorySet = types.model("CategorySet", {
   function moveValueToIndex(value: string, dstIndex: number) {
     const valueIndex = _indexMap.get(value)
     if (valueIndex != null && valueIndex !== dstIndex) {
-      const insertIndex = valueIndex < dstIndex ? dstIndex - 1 : dstIndex
       // remove value from current position
       _values.splice(valueIndex, 1)
       // insert value in new position
-      _values.splice(insertIndex, 0, value)
+      _values.splice(dstIndex, 0, value)
       // update the index map
       rebuildIndexMap()
     }
+  }
+
+  function afterDstIndex(srcIndex: number, afterIndex: number) {
+    // if the source index is after the destination index, we need to adjust the destination index
+    return srcIndex > afterIndex ? afterIndex + 1 : afterIndex
+  }
+
+  function beforeDstIndex(srcIndex: number, beforeIndex: number) {
+    // if the source index is before the destination index, we need to adjust the destination index
+    return srcIndex < beforeIndex ? beforeIndex - 1 : beforeIndex
   }
 
   function refresh() {
@@ -119,18 +130,20 @@ export const CategorySet = types.model("CategorySet", {
 
           // move it next to the category closest to its original position
           const moveRatio = move.toIndex / move.length
-          const afterRatio = (afterIndex + 1) / _values.length
+          const afterRatio = afterIndex / _values.length
           const beforeRatio = beforeIndex / _values.length
           const afterDistance = Math.abs(moveRatio - afterRatio)
           const beforeDistance = Math.abs(moveRatio - beforeRatio)
-          const dstIndex = afterDistance < beforeDistance ? afterIndex + 1 : beforeIndex
+          const dstIndex = afterDistance < beforeDistance
+                            ? afterDstIndex(valueIndex, afterIndex)
+                            : beforeDstIndex(valueIndex, beforeIndex)
           moveValueToIndex(move.value, dstIndex)
         }
         else if (afterIndex != null) {
-          moveValueToIndex(move.value, afterIndex + 1)
+          moveValueToIndex(move.value, afterDstIndex(valueIndex, afterIndex))
         }
         else if (beforeIndex != null) {
-          moveValueToIndex(move.value, beforeIndex)
+          moveValueToIndex(move.value, beforeDstIndex(valueIndex, beforeIndex))
         }
         else {
           // neither category neighbor still exists
@@ -148,6 +161,14 @@ export const CategorySet = types.model("CategorySet", {
           }
         }
       })
+
+      // move the currently dragged category into position
+      if (self.dragCategory) {
+        const dragCategoryIndex = _indexMap.get(self.dragCategory)
+        if (dragCategoryIndex != null && self.dragCategoryIndex !== dragCategoryIndex) {
+          moveValueToIndex(self.dragCategory, self.dragCategoryIndex)
+        }
+      }
 
       runInAction(() => {
         observableValues.replace(_values)
@@ -169,6 +190,11 @@ export const CategorySet = types.model("CategorySet", {
     },
     actions: {
       invalidate() {
+        _isValid.set(false)
+      },
+      setDragCategory(category?: string, index = -1) {
+        self.dragCategory = category
+        self.dragCategoryIndex = index
         _isValid.set(false)
       }
     }
@@ -226,6 +252,13 @@ export const CategorySet = types.model("CategorySet", {
       self.provisionalAttributeActionDisposer = provisionalDisposer
       addDisposer(self, () => self.provisionalAttributeActionDisposer?.())
     }
+
+    addDisposer(self, onPatch(self, patch => {
+      // invalidate the categories when the moves are changed
+      if (patch.path.includes("/moves")) {
+        self.invalidate()
+      }
+    }))
   },
   afterAttach() {
     // invalidate the cached categories when necessary
@@ -263,7 +296,6 @@ export const CategorySet = types.model("CategorySet", {
     else {
       self.moves.push(move)
     }
-    self.invalidate()
   },
   setColorForCategory(value: string, color: string) {
     if (color) {

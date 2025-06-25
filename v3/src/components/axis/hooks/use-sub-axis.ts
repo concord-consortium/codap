@@ -69,6 +69,7 @@ export const useSubAxis = ({
     isColorAxis = isColorAxisModel(axisModel) || (axisModel?.type === "categorical" && axisAttributeType === "color"),
     multiScaleChangeCount = layout.getAxisMultiScale(axisModel?.place ?? 'bottom')?.changeCount ?? 0,
     dragInfo = useRef<DragInfo>({
+      initialIndexOfCategory: -1,
       indexOfCategory: -1,
       catName: '',
       initialOffset: 0,
@@ -104,6 +105,7 @@ export const useSubAxis = ({
       dI.indexOfCategory = dI.axisOrientation === 'horizontal'
         ? Math.floor(dI.currentDragPosition / dI.bandwidth)
         : dI.categories.length - 1 - Math.floor(dI.currentDragPosition / dI.bandwidth)
+      dI.initialIndexOfCategory = dI.indexOfCategory
       dI.catName = dI.categories[dI.indexOfCategory]
       // Todo: There is a slight possibility that the category name is "OTHER" in the data and it is the last category
       // We could prevent by recording the translation of kOther as a flag to be checked here.
@@ -112,12 +114,6 @@ export const useSubAxis = ({
       dI.initialOffset = dI.currentDragPosition - (dI.indexOfCategory + 0.5) * dI.bandwidth
     }, []),
 
-    /**
-     * Note: The event actually includes 'dx' and 'dy' properties, but they are not
-     * used here because there was an episode during which they didn't work reliably
-     * and the current less straightforward approach was adopted. It may be worth
-     * revisiting this at some point.
-     */
     onDrag = useCallback((event: any) => {
       const dI = dragInfo.current,
         delta = dI.axisOrientation === 'horizontal' ? event.dx : event.dy
@@ -138,7 +134,7 @@ export const useSubAxis = ({
               ? (newCatIndex === numCategories - 1 ? '' : dI.categories[newCatIndex + 1])
               : dI.categories[newCatIndex]
           dI.indexOfCategory = newCatIndex
-          dI.categorySet?.move(dI.catName, catToMoveBefore)
+          dI.categorySet?.setDragCategory(dI.catName, newCatIndex)
           dI.currentDragPositionCatName = catToMoveBefore
           categoriesRef.current = dI.categorySet?.valuesArray ?? []
         } else {
@@ -150,18 +146,27 @@ export const useSubAxis = ({
 
     onDragEnd = useCallback(() => {
       const dI = dragInfo.current
+      const indexDidChange = dI.indexOfCategory >= 0 && dI.indexOfCategory !== dI.initialIndexOfCategory
+      dI.initialIndexOfCategory = -1
       dI.indexOfCategory = -1 // so dragInfo won't influence category placement
-      stopAnimation() // disable animation for final placement
-      renderSubAxis()
-      displayModel?.applyModelChange(() => {},
-        { undoStringKey: "DG.Undo.graph.swapCategories",
+      dI.categorySet?.setDragCategory() // reset drag category
+
+      if (indexDidChange) {
+        stopAnimation() // disable animation for final placement
+
+        displayModel?.applyModelChange(() => {
+          dI.categorySet?.move(dI.catName, dI.currentDragPositionCatName)
+        }, {
+          undoStringKey: "DG.Undo.graph.swapCategories",
           redoStringKey: "DG.Redo.graph.swapCategories",
           log: logMessageWithReplacement(
                   "Moved category %@ into position of %@",
                   {movedCategory: dI.catName, targetCategory: dI.currentDragPositionCatName}, "plot")
-        }
-      )
-    }, [stopAnimation, renderSubAxis, displayModel]),
+        })
+      }
+
+      renderSubAxis()
+    }, [displayModel, renderSubAxis, stopAnimation]),
 
     dragBehavior = useMemo(() => drag()
       .on("start", onDragStart)
