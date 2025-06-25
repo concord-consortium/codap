@@ -1,28 +1,34 @@
-import { Point } from "../../data-display/data-display-types"
 import { PixiPoints } from "../../data-display/pixi/pixi-points"
-
-type Dimensions = {
-  width: number
-  height: number
-}
-type Job = {
-  coords: Point
-  dimensions: Dimensions
-  element: Element
-}
 
 interface IGraphSnapshotOptions {
   rootEl: HTMLElement
   graphWidth: number
   graphHeight: number
-  graphTitle: string
   asDataURL: boolean
   pixiPoints: PixiPoints
 }
 
 export const graphSnapshot = (options: IGraphSnapshotOptions): Promise<string | Blob> => {
-  const { rootEl, graphWidth, graphHeight, graphTitle, asDataURL, pixiPoints } = options
+  const { rootEl, graphWidth, graphHeight, asDataURL, pixiPoints } = options
 
+  // Create a canvas to render the graph PNG
+  const makeCanvas = (bgColor: string, x: number, y: number, width: number, height: number): HTMLCanvasElement => {
+    const newCanvas = document.createElement("canvas")
+    newCanvas.width = width
+    newCanvas.height = height
+    const ctx = newCanvas.getContext("2d")
+
+    if (ctx) {
+      ctx.fillStyle = bgColor
+      ctx.fillRect(x, y, width, height)
+    }
+
+    return newCanvas
+  }
+  const mainCanvas = makeCanvas("#f8f8f8", 0, 0, graphWidth, graphHeight)
+  const mainCtx = mainCanvas.getContext("2d")
+
+  // Gather CSS styles
   const getCssText = (): string => {
     const text: string[] = []
     for (let ix = 0; ix < document.styleSheets.length; ix++) {
@@ -84,50 +90,13 @@ export const graphSnapshot = (options: IGraphSnapshotOptions): Promise<string | 
     return image
   }
 
-  const makeDataURLFromSVGElement = (svgEl: SVGSVGElement, dimensions: Dimensions): string => {
-    const svgClone = svgEl.cloneNode(true) as SVGSVGElement
-    svgClone.style.fill = "#f8f8f8"
-    svgClone.setAttribute("width", dimensions.width.toString())
-    svgClone.setAttribute("height", dimensions.height.toString())
-
-    // grid lines are too dark without this tweak
-    const lines = svgClone.querySelectorAll("line")
-    lines.forEach(line => {
-      const stroke = line.getAttribute("stroke")
-      if (stroke === "rgb(211, 211, 211)") {
-        line.setAttribute("stroke", "rgb(230, 230, 230)")
-      }
-    })
-
-    svgClone.insertBefore(css, svgClone.firstChild)
-
-    // The PixiJS canvas inside the `graph-svg` SVG element requires special handling. We extract its
-    // content using PixiJS, create an image element using the extracted content, then replace the canvas
-    // element with the image element.
-    const foreignObject = svgClone.querySelector("foreignObject")
-    const pixiCanvas = foreignObject?.querySelector("canvas")
-    if (foreignObject && pixiCanvas) {
-      const image = imageFromPixiCanvas(foreignObject)
-      if (image) {
-        svgClone.replaceChild(image, foreignObject)
-      }
-    }
-
-    // Serialize the SVG to a data URL
-    let svgData = new XMLSerializer().serializeToString(svgClone)
-    svgData = svgData.replace(/url\('[^#]*#/g, "url('#")
-    return `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svgData)))}`
-  }
-
   /**
-   * Renders a <p> element onto a canvas by drawing it inside a foreignObject in an SVG,
-   * then rasterizing the SVG to the canvas. This preserves HTML structure and styles,
-   * including <em>, <sup>, and <br>.
-   * @param pElement The paragraph HTML element to render.
+   * Renders an element onto a canvas by drawing it inside a foreignObject in an SVG,
+   * then rasterizing the SVG to the canvas. This preserves HTML structure and styles.
+   * @param element The HTML element to render.
    */
-  const renderParagraphToCanvas = async (pElement: HTMLElement) => {
-    const width = mainCanvas.width
-    const height = mainCanvas.height
+  const renderGraphToCanvas = async (element: HTMLElement) => {
+    const { height, width } = mainCanvas
     // Create SVG with foreignObject
     const svgNS = "http://www.w3.org/2000/svg"
     const xhtmlNS = "http://www.w3.org/1999/xhtml"
@@ -142,20 +111,69 @@ export const graphSnapshot = (options: IGraphSnapshotOptions): Promise<string | 
     foreignObject.setAttribute("height", height.toString())
     foreignObject.appendChild(css)
 
-    // Clone the <p> element to avoid side effects
-    const pClone = pElement.cloneNode(true) as HTMLElement
+    // Clone the element to avoid side effects
+    const elementClone = element.cloneNode(true) as HTMLElement
+
+    const getClassNames = (_element: Element): string[] => {
+      if (_element instanceof HTMLElement || _element instanceof SVGElement) {
+        return Array.from(_element.classList)
+      }
+      return []
+    }
+
+    const disallowedElementClasses = new Set([
+      "axis-legend-attribute-menu",
+      "attribute-label-menu",
+      "chakra-icon",
+      "chakra-menu__menu-list",
+      "codap-component-corner",
+      "component-minimize-icon",
+      "component-resize-handle",
+      "droppable-axis",
+      "droppable-svg",
+      "empty-label",
+      "header-right",
+    ])
+
+    const isAllowedElement = (_element: Element): boolean => {
+      const classNames = getClassNames(_element)
+      return classNames.every((className) => !disallowedElementClasses.has(className))
+    }
+
+    const allElements = elementClone.querySelectorAll("*")
+    Array.from(allElements).forEach(el => {
+      if (!isAllowedElement(el)) {
+        el.parentElement?.removeChild(el)
+      } else if (el instanceof HTMLElement) {
+        // Elements won't render if they're animated
+        el.style.animationDuration = "auto"
+      }
+    })
+
+    // The PixiJS canvas inside the `graph-svg` SVG element requires special handling. We extract its
+    // content using PixiJS, create an image element using the extracted content, then replace the canvas
+    // element with the image element.
+    const graphSvg = elementClone.querySelector("svg.graph-svg")
+    const pixiForeignObject = graphSvg?.querySelector("foreignObject")
+    const pixiCanvas = pixiForeignObject?.querySelector("canvas")
+    if (pixiForeignObject && pixiCanvas) {
+      const image = imageFromPixiCanvas(pixiForeignObject)
+      if (image) {
+        graphSvg?.replaceChild(image, pixiForeignObject)
+      }
+    }
 
     // Copy computed styles to the clone (inline)
-    const computed = getComputedStyle(pElement)
-    pClone.setAttribute("style", Array.from(computed)
-      .map(key => `${key}: ${computed.getPropertyValue(key)};`).join(" "))
+    // const computed = getComputedStyle(element)
+    // elementClone.setAttribute("style", Array.from(computed)
+    //   .map(key => `${key}: ${computed.getPropertyValue(key)};`).join(" "))
 
     // Wrap in a div to ensure proper layout in foreignObject
     const wrapper = document.createElementNS(xhtmlNS, "div")
     wrapper.setAttribute("xmlns", xhtmlNS)
     wrapper.style.width = "100%"
     wrapper.style.height = "100%"
-    wrapper.appendChild(pClone)
+    wrapper.appendChild(elementClone)
     foreignObject.appendChild(wrapper)
     svg.appendChild(foreignObject)
 
@@ -177,20 +195,6 @@ export const graphSnapshot = (options: IGraphSnapshotOptions): Promise<string | 
     })
   }
 
-  const makeCanvas = (bgColor: string, x: number, y: number, width: number, height: number): HTMLCanvasElement => {
-    const newCanvas = document.createElement("canvas")
-    newCanvas.width = width
-    newCanvas.height = height
-    const ctx = newCanvas.getContext("2d")
-
-    if (ctx) {
-      ctx.fillStyle = bgColor
-      ctx.fillRect(x, y, width, height)
-    }
-
-    return newCanvas
-  }
-
   const makeCanvasBlob = (canvas: HTMLCanvasElement): Blob => {
     const canvasDataURL = canvas.toDataURL("image/png")
     const canvasData = atob(canvasDataURL.substring("data:image/png;base64,".length))
@@ -203,158 +207,11 @@ export const graphSnapshot = (options: IGraphSnapshotOptions): Promise<string | 
     return new Blob([canvasAsArray.buffer], { type: "image/png" })
   }
 
-  const makeSVGImage = (dataURL: string): Promise<HTMLImageElement> => {
-    return new Promise((resolve, reject) => {
-      try {
-        const img = new Image()
-        img.onload = () => resolve(img)
-        img.src = dataURL
-      } catch (ex) {
-        reject(ex)
-      }
-    })
+  const renderImage = async () => {
+    await renderGraphToCanvas(rootEl)
+
+    return Promise.resolve(asDataURL ? mainCanvas.toDataURL("image/png") : makeCanvasBlob(mainCanvas))
   }
 
-  const addTitle = (canvas: HTMLCanvasElement, bgColor: string, fgColor: string, title: string) => {
-    const ctx = canvas.getContext("2d")
-    if (ctx) {
-      ctx.fillStyle = bgColor
-      ctx.fillRect(0, 0, graphWidth, 25)
-      ctx.fillStyle = fgColor
-      ctx.beginPath()
-      ctx.moveTo(0, 0)
-      ctx.stroke()
-      ctx.font = "10pt MuseoSans-500"
-      ctx.textAlign = "center"
-      ctx.textBaseline = "middle"
-      ctx.fillText(title, graphWidth / 2, 14, graphWidth)
-    }
-  }
-
-  const perform = async (jobIndex: number): Promise<string | Blob> => {
-    const job = jobList[jobIndex]
-    if (!job) {
-      if (graphTitle) {
-        addTitle(mainCanvas, "transparent", "white", graphTitle)
-      }
-      return Promise.resolve(asDataURL ? mainCanvas.toDataURL("image/png") : makeCanvasBlob(mainCanvas))
-    }
-
-    const { coords, dimensions, element } = job
-    const { x, y } = coords
-    const { width, height } = dimensions
-    const elType = element.nodeName.toLowerCase()
-  
-    if (mainCtx) {
-      switch (elType) {
-        case "div": {
-          mainCtx.fillStyle = getComputedStyle(element).backgroundColor || "#f8f8f8"
-          mainCtx.fillRect(x, y, width, height)
-          break
-        }
-        case "svg": {
-          const svgEl = element as SVGSVGElement
-          const dataURL = makeDataURLFromSVGElement(svgEl, dimensions)
-          const svgImg = await makeSVGImage(dataURL)
-          mainCtx.drawImage(svgImg, x, y, width, height)
-          break
-        }
-        case "p": {
-          await renderParagraphToCanvas(element as HTMLParagraphElement)
-          break
-          // const elementStyle = getComputedStyle(element)
-          // mainCtx.fillStyle = elementStyle.backgroundColor || "#f8f8f8"
-          // mainCtx.fillRect(x, y, width, height)
-
-          // // FIXME: Text styling isn't working
-          // mainCtx.fillStyle = elementStyle.color || "#242424"
-          // console.log(` -- style`, elementStyle)
-          // mainCtx.font = `${elementStyle.fontSize || "12px"} ${elementStyle.fontFamily || "Montserrat, sans-serif"}`
-          // const lineHeight = parseFloat(elementStyle.lineHeight || "12")
-          // const paddingLeft = parseFloat(elementStyle.paddingLeft || "0")
-          // const paddingRight = parseFloat(elementStyle.paddingRight || "0")
-          // const paddingTop = parseFloat(elementStyle.paddingTop || "0")
-          // mainCtx.textAlign = elementStyle.textAlign as CanvasTextAlign || "right"
-          // const textY = coords.y + lineHeight + paddingTop
-          // const textWidth = width - paddingLeft - paddingRight
-          // const textX = mainCtx.textAlign === "right"
-          //   ? coords.x + width - paddingRight
-          //   : mainCtx.textAlign === "center"
-          //   ? coords.x + width / 2
-          //   : coords.x + paddingLeft
-
-          // // When rendering text to a canvas, we have to figure out line breaks outselves
-          // const renderText = (words: string[], index: number, _y: number) => {
-          //   if (index >= words.length) return
-
-          //   let line = words[index]
-          //   let currentIndex = index + 1
-          //   while (
-          //     currentIndex < words.length && mainCtx.measureText(`${line} ${words[currentIndex]}`).width < textWidth
-          //   ) {
-          //     line += ` ${words[currentIndex]}`
-          //     currentIndex++
-          //   }
-
-          //   mainCtx.fillText(line, textX, _y, textWidth)
-          //   renderText(words, currentIndex, _y + lineHeight)
-          // }
-          // renderText(element.textContent?.split(" ") || [], 0, textY)
-          // break
-        }
-      }
-    }
-    
-    return perform(jobIndex + 1)
-  }
-
-  const getClassNames = (element: Element): string[] => {
-    if (element instanceof HTMLElement || element instanceof SVGElement) {
-      return Array.from(element.classList)
-    }
-    return []
-  }
-
-  const disallowedElementClasses = new Set([
-    "axis-legend-attribute-menu",
-    "attribute-label-menu",
-    "chakra-icon",
-    "chakra-menu__menu-list",
-    "codap-component-corner",
-    "component-minimize-icon",
-    "component-resize-handle",
-    "droppable-axis",
-    "droppable-svg",
-    "header-right",
-    "legend",
-    "multi-legend",
-  ])
-
-  const isAllowedElement = (element: Element): boolean => {
-    // Do not include the element if the adornment is hidden
-    const closestWrapper = element.closest(".adornment-wrapper")
-    if (closestWrapper?.classList.contains("hidden")) return false
-
-    const classNames = getClassNames(element)
-    return classNames.every((className) => !disallowedElementClasses.has(className))
-  }
-
-  const allElements = rootEl.querySelectorAll("div, svg, p")
-  const targetElements = Array.from(allElements).filter(isAllowedElement)
-  const mainCanvas = makeCanvas("#f8f8f8", 0, 0, graphWidth, graphHeight)
-  const mainCtx = mainCanvas.getContext("2d")
-  const jobList: Job[] = []
-
-  const rootRect = rootEl.getBoundingClientRect()
-  targetElements.forEach((element: Element) => {
-    const rect = element.getBoundingClientRect()
-    const left = rect.left - rootRect.left
-    const top = rect.top - rootRect.top
-    const coords = { x: left, y: top }
-    const dimensions = { width: rect.width, height: rect.height }
-
-    jobList.push({ element, dimensions, coords })
-  })
-
-  return perform(0)
+  return renderImage()
 }
