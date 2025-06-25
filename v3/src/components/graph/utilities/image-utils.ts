@@ -211,8 +211,34 @@ export const graphSnapshot = (options: IGraphSnapshotOptions): Promise<string | 
           console.log(` -- style`, elementStyle)
           mainCtx.font = `${elementStyle.fontSize || "12px"} ${elementStyle.fontFamily || "Montserrat, sans-serif"}`
           const lineHeight = parseFloat(elementStyle.lineHeight || "12")
-          // ctx.textAlign = elementStyle.textAlign as CanvasTextAlign || "right"
-          mainCtx.fillText(element.textContent || "", coords.x, coords.y + lineHeight, width)
+          const paddingLeft = parseFloat(elementStyle.paddingLeft || "0")
+          const paddingRight = parseFloat(elementStyle.paddingRight || "0")
+          const paddingTop = parseFloat(elementStyle.paddingTop || "0")
+          mainCtx.textAlign = elementStyle.textAlign as CanvasTextAlign || "right"
+          const textY = coords.y + lineHeight + paddingTop
+          const textWidth = width - paddingLeft - paddingRight
+          const textX = mainCtx.textAlign === "right"
+            ? coords.x + width - paddingRight
+            : mainCtx.textAlign === "center"
+            ? coords.x + width / 2
+            : coords.x + paddingLeft
+
+          const renderText = (words: string[], index: number, _y: number) => {
+            if (index >= words.length) return
+
+            let line = words[index]
+            let currentIndex = index + 1
+            while (
+              currentIndex < words.length && mainCtx.measureText(`${line} ${words[currentIndex]}`).width < textWidth
+            ) {
+              line += ` ${words[currentIndex]}`
+              currentIndex++
+            }
+
+            mainCtx.fillText(line, textX, _y, textWidth)
+            renderText(words, currentIndex, _y + lineHeight)
+          }
+          renderText(element.textContent?.split(" ") || [], 0, textY)
           break
         }
       }
