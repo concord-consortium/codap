@@ -135,7 +135,7 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
-    "colord": "patch:colord@npm%3A2.9.3#~/.yarn/patches/colord-npm-2.9.3-5c35c27898.patch",
+    "colord": "^2.9.3",
     "d3-format": "^3.1.0",
     "mobx": "^6.13.7",
     "nanoid": "^5.1.5",

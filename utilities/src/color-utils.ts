@@ -1,6 +1,6 @@
 import { Colord, colord, getFormat as getColorFormat } from "colord"
 import namesPlugin from "colord/plugins/names"
-import type { Parsers, RgbaColor } from "colord"
+import type { Plugin, RgbaColor } from "colord"
 
 /*
   The following list of 20 colors are maximally visually distinct from each other.
@@ -36,6 +36,7 @@ export const defaultPointColor = '#E6805B',
   particularly the color names. To do so, we initialize the names plugin with a pointer
   to our own array of parsers and then extract the parse function itself from the array.
  */
+type Parsers = Parameters<Plugin>[1]
 const parsers: Parsers = {
   string: [],
   object: [],

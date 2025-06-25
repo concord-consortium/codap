@@ -3,6 +3,7 @@
   "workspaces": [
     "v3",
     "formulas",
+    "formulas-react17",
     "utilities"
   ],
   "devDependencies": {
