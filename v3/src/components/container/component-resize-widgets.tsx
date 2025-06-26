@@ -1,12 +1,12 @@
 import { Portal } from "@chakra-ui/react"
 import React, { useCallback, useEffect } from "react"
 import ResizeHandle from "../../assets/icons/icon-corner-resize-handle.svg"
+import { useForceUpdate } from "../../hooks/use-force-update"
 import { useTileContainerContext } from "../../hooks/use-tile-container-context"
 import { IFreeTileLayout } from "../../models/document/free-tile-row"
 import { ITileModel } from "../../models/tiles/tile-model"
 import { uiState } from "../../models/ui-state"
 import { ComponentResizeBorder } from "../component-resize-border"
-import { useForceUpdate } from "../../hooks/use-force-update"
 
 interface IProps {
   tile: ITileModel
