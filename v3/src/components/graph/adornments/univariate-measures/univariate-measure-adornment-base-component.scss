@@ -1,163 +1,162 @@
 .measure-container {
   height: 100%;
   width: 100%;
-}
 
-.measure-line {
-  fill: none;
-  pointer-events: all;
-  position: relative;
-  stroke: #000;
-  stroke-width: 1px;
+  .measure-line {
+    fill: none;
+    pointer-events: all;
+    position: relative;
+    stroke: #000;
+    stroke-width: 1px;
 
-  &.mean-line {
-    stroke: #00f;
-  }
+    &.mean-line {
+      stroke: #00f;
+    }
 
-  &.mean-absolute-deviation-line {
-    stroke: #9980ff;
-    stroke-width: .5px;
+    &.mean-absolute-deviation-line {
+      stroke: #9980ff;
+      stroke-width: .5px;
 
-    &.range-line {
-      stroke: #00adff;
-      stroke-width: 1;
+      &.range-line {
+        stroke: #00adff;
+        stroke-width: 1;
+      }
+    }
+
+    &.median-line {
+      stroke: #f00;
+    }
+
+    &.plotted-value-line {
+      stroke: green;
+    }
+
+    &.standard-deviation-line {
+      stroke: #9980ff;
+      stroke-width: .5px;
+
+      &.range-line {
+        stroke: #30f;
+        stroke-width: 1;
+      }
     }
   }
 
-  &.median-line {
-    stroke: #f00;
+  .standard-error-path {
+    stroke: #f6768e;
+    stroke-width: 1px;
   }
 
-  &.plotted-value-line {
-    stroke: green;
-  }
+  .standard-error-hover-cover {
+    stroke: #f6768e;
+    stroke-width: 6px;
+    opacity: 0.001;
+    pointer-events: all;
 
-  &.standard-deviation-line {
-    stroke: #9980ff;
-    stroke-width: .5px;
-
-    &.range-line {
-      stroke: #30f;
-      stroke-width: 1;
+    &:hover, &.highlighted {
+      opacity: .2;
     }
   }
-}
 
-.standard-error-path {
-  stroke: #f6768e;
-  stroke-width: 1px;
-}
-
-.standard-error-hover-cover {
-  stroke: #f6768e;
-  stroke-width: 6px;
-  opacity: 0.001;
-  pointer-events: all;
-
-  &:hover, &.highlighted {
-    opacity: .2;
-  }
-}
-
-.box-plot-ici {
-  stroke: #3300ff !important;
-  stroke-width: 2px !important;
-}
-
-.full-height-lines {
-  stroke: #f6768e;
-  opacity: 0;
-
-  &.highlighted {
-    opacity: 1;
+  .box-plot-ici {
+    stroke: #3300ff !important;
+    stroke-width: 2px !important;
   }
 
-  &.ici {
-    stroke: #3300ff;
-  }
-}
+  .full-height-lines {
+    stroke: #f6768e;
+    opacity: 0;
 
-.normal-curve {
-  fill: none;
-  stroke: #027d34;
-  stroke-width: 1px;
-}
+    &.highlighted {
+      opacity: 1;
+    }
 
-.normal-curve-hover-cover {
-  stroke: #027d34;
-  stroke-width: 6px;
-  opacity: 0.001;
-  pointer-events: visibleStroke;
-
-  &:hover, &.highlighted {
-    opacity: .2;
-  }
-}
-
-.measure-tip {
-  display: none;
-  fill: #000;
-  font-size: 12px;
-  font-weight: bold;
-  pointer-events: none;
-  position: absolute;
-  stroke: transparent;
-
-  &.visible {
-    display: block;
+    &.ici {
+      stroke: #3300ff;
+    }
   }
 
-  &.offset {
-    transform: translate(0, 17px)
-  }
-}
-
-.measure-cover {
-  fill: none;
-  opacity: 0;
-  pointer-events: all;
-  position: relative;
-  stroke: #000;
-  stroke-width: 5px;
-
-  &.mean-cover {
-    stroke: #00f;
+  .normal-curve {
+    fill: none;
+    stroke: #027d34;
+    stroke-width: 1px;
   }
 
-  &.mean-absolute-deviation-cover {
-    stroke: #5bbaff;
+  .normal-curve-hover-cover {
+    stroke: #027d34;
+    stroke-width: 6px;
+    opacity: 0.001;
+    pointer-events: visibleStroke;
+
+    &:hover, &.highlighted {
+      opacity: .2;
+    }
   }
 
-  &.median-cover {
-    stroke: #f00;
+  .measure-tip {
+    display: none;
+    fill: #000;
+    font-size: 12px;
+    font-weight: bold;
+    pointer-events: none;
+    position: absolute;
+    stroke: transparent;
+
+    &.visible {
+      display: block;
+    }
+
+    &.offset {
+      transform: translate(0, 17px)
+    }
   }
 
-  &.plotted-value-cover {
-    stroke: green;
+  .measure-cover {
+    fill: none;
+    opacity: 0;
+    pointer-events: all;
+    position: relative;
+    stroke: #000;
+    stroke-width: 5px;
+
+    &.mean-cover {
+      stroke: #00f;
+    }
+
+    &.mean-absolute-deviation-cover {
+      stroke: #5bbaff;
+    }
+
+    &.median-cover {
+      stroke: #f00;
+    }
+
+    &.plotted-value-cover {
+      stroke: green;
+    }
+
+    &.standard-deviation-cover {
+      stroke: #9980ff;
+    }
+
+    &:hover, &.highlighted {
+      opacity: .2;
+    }
   }
 
-  &.standard-deviation-cover {
-    stroke: #9980ff;
+  .measure-range {
+    fill-opacity: .5;
+    stroke: none;
+    stroke-width: 0;
+
+    &.mean-absolute-deviation-range {
+      fill: #9ac6ff;
+    }
+
+    &.standard-deviation-range {
+      fill: #9980ff;
+    }
   }
-
-  &:hover, &.highlighted {
-    opacity: .2;
-  }
-}
-
-.measure-range {
-  fill-opacity: .5;
-  stroke: none;
-  stroke-width: 0;
-
-  &.mean-absolute-deviation-range {
-    fill: #9ac6ff;
-  }
-
-  &.standard-deviation-range {
-    fill: #9980ff;
-  }
-
 }
 
 .measure-labels {

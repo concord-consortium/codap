@@ -56,10 +56,10 @@ export const PlottedValueAdornmentBanner = observer(function PlottedValueAdornme
       >
         <div className="plotted-value-control-row">
           <div className="plotted-value-control-label" data-testid="plotted-value-control-label">
-            <p>{ t("DG.PlottedValue.formulaPrompt") }</p>
+            { t("DG.PlottedValue.formulaPrompt") }
           </div>
           <div className="plotted-value-control-value" data-testid="plotted-value-control-value">
-            <p>{expression}</p>
+            {expression}
           </div>
         </div>
         { error && <div className="plotted-value-error" data-testid="plotted-value-error">{error}</div> }

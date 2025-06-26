@@ -1,72 +1,72 @@
 .measure-container {
   height: 100%;
   width: 100%;
-}
 
-.measure-line {
-  fill: none;
-  pointer-events: all;
-  position: relative;
-  stroke: #000;
-  stroke-width: 1px;
+  .measure-line {
+    fill: none;
+    pointer-events: all;
+    position: relative;
+    stroke: #000;
+    stroke-width: 1px;
 
-  &.box-plot-line {
-    stroke: #ff3300;
-
-    &.range-line {
+    &.box-plot-line {
       stroke: #ff3300;
+
+      &.range-line {
+        stroke: #ff3300;
+      }
     }
   }
-}
 
-.measure-outlier {
-  stroke: #ff3300;
-}
-
-.measure-outlier-cover {
-  border-radius: 50%;
-  cursor: pointer;
-  fill: #ff3000;
-  opacity: 0;
-  pointer-events: all;
-  position: relative;
-  stroke: transparent;
-  stroke-width: 0;
-
-  &:hover {
-    opacity: .2;
-  }
-}
-
-.measure-cover {
-  fill: none;
-  opacity: 0;
-  pointer-events: all;
-  position: relative;
-  stroke: #000;
-  stroke-width: 5px;
-
-  &.box-plot-cover {
-    cursor: pointer;
-    stroke: #ff3000;
-  }
-  &:hover, &.highlighted {
-    opacity: .2;
-  }
-}
-
-.measure-range {
-  fill-opacity: .5;
-  pointer-events: none;
-  stroke: none;
-  stroke-width: 0;
-
-  &.box-plot-range {
-    cursor: pointer;
-    fill: #ffb280;
+  .measure-outlier {
     stroke: #ff3300;
-    stroke-opacity: 1;
-    stroke-width: .5px;
+  }
+
+  .measure-outlier-cover {
+    border-radius: 50%;
+    cursor: pointer;
+    fill: #ff3000;
+    opacity: 0;
+    pointer-events: all;
+    position: relative;
+    stroke: transparent;
+    stroke-width: 0;
+
+    &:hover {
+      opacity: .2;
+    }
+  }
+
+  .measure-cover {
+    fill: none;
+    opacity: 0;
+    pointer-events: all;
+    position: relative;
+    stroke: #000;
+    stroke-width: 5px;
+
+    &.box-plot-cover {
+      cursor: pointer;
+      stroke: #ff3000;
+    }
+    &:hover, &.highlighted {
+      opacity: .2;
+    }
+  }
+
+  .measure-range {
+    fill-opacity: .5;
+    pointer-events: none;
+    stroke: none;
+    stroke-width: 0;
+
+    &.box-plot-range {
+      cursor: pointer;
+      fill: #ffb280;
+      stroke: #ff3300;
+      stroke-opacity: 1;
+      stroke-width: .5px;
+    }
   }
 }
 
