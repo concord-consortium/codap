@@ -204,7 +204,7 @@
     "@concord-consortium/mobx-state-tree": "^6.0.0-cc.1",
     "@concord-consortium/slate-editor": "^0.10.1",
     "@dnd-kit/core": "^6.3.1",
-    "@floating-ui/react": "^0.27.5",
+    "@floating-ui/react": "^0.27.12",
     "@lezer/common": "^1.2.3",
     "@lezer/highlight": "^1.2.1",
     "@lezer/lr": "^1.4.2",

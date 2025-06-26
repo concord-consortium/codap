@@ -29,23 +29,14 @@ $corner-drag-size: calc($border-drag-width * 2);
   z-index: 11;
   touch-action: none;
   &.right {
-    bottom: $corner-drag-size;
-    right: 0;
-    top: vars.$title-bar-height;
     width: $border-drag-width;
     cursor: e-resize;
   }
   &.bottom {
-    bottom: 0;
-    right: $corner-drag-size;
-    left: $corner-drag-size;
     height: $border-drag-width;
     cursor: s-resize;
   }
   &.left {
-    bottom: $corner-drag-size;
-    left: 0;
-    top: vars.$title-bar-height;
     width: $border-drag-width;
     cursor: w-resize;
   }
