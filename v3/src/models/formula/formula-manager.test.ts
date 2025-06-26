@@ -4,7 +4,7 @@ import { DataSet, IDataSet } from "../data/data-set"
 import { createDataSet } from "../data/data-set-conversion"
 import { Formula, IFormula } from "./formula"
 import { FormulaManager } from "./formula-manager"
-import { CASE_INDEX_FAKE_ATTR_ID, localAttrIdToCanonical } from "./utils/name-mapping-utils"
+import { CASE_INDEX_FAKE_ATTR_ID, idToCanonical, localAttrIdToCanonical } from "./utils/name-mapping-utils"
 import { AttributeFormulaAdapter } from "./attribute-formula-adapter"
 
 const formulaDisplay = "1 + 2 + foo"
@@ -185,11 +185,19 @@ describe("FormulaManager", () => {
   describe("getDisplayNameMap", () => {
     it("retrieves formula context and calculates display name map", () => {
       const { manager, formula, dataSet } = getManagerWithFakeAdapter()
+      const attrId = dataSet.attrFromName("foo")?.id || ""
       expect(manager.getDisplayNameMap(formula.id)).toEqual({
-        dataSet: {},
+        dataSet: {
+          Cases: {
+            attribute: {
+              foo: idToCanonical(attrId)
+            },
+            id: idToCanonical(dataSet.id)
+          }
+        },
         localNames: {
           caseIndex: localAttrIdToCanonical(CASE_INDEX_FAKE_ATTR_ID),
-          foo: localAttrIdToCanonical(dataSet.attrFromName("foo")?.id || ""),
+          foo: localAttrIdToCanonical(attrId),
         }
       })
     })
@@ -198,9 +206,12 @@ describe("FormulaManager", () => {
   describe("getCanonicalNameMap", () => {
     it("retrieves formula context and calculates canonical name map", () => {
       const { manager, formula, dataSet } = getManagerWithFakeAdapter()
+      const attrId = dataSet.attrFromName("foo")?.id || ""
       expect(manager.getCanonicalNameMap(formula.id)).toEqual({
+        [idToCanonical(attrId)]: "foo",
+        [idToCanonical(dataSet.id)]: "Cases",
         [localAttrIdToCanonical(CASE_INDEX_FAKE_ATTR_ID)]: "caseIndex",
-        [localAttrIdToCanonical(dataSet.attrFromName("foo")?.id || "")]: "foo"
+        [localAttrIdToCanonical(attrId)]: "foo"
       })
     })
   })
