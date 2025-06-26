@@ -155,6 +155,8 @@ describe("CategorySet", () => {
     expect(catKellyColors()).toEqual(numKellyColors(4))
     categories.setColorForCategory("b", "red")
     expect(catKellyColors()).toEqual([...numKellyColors(3), "red"])
+    categories.setColorForCategory("b", "")
+    expect(catKellyColors()).toEqual(numKellyColors(4))
     // moving "b" before "z" combines moves
     const originalFromIndex = categories.lastMove?.fromIndex
     expect(categories.moves.length).toBe(6)
@@ -163,6 +165,20 @@ describe("CategorySet", () => {
     expect(categories.valuesArray).toEqual(["x", "y", "z", "b"])
     expect(categories.moves.length).toBe(6)
     expect(categories.lastMove?.fromIndex).toBe(originalFromIndex)
+  })
+
+  it("handles volatile category drags", () => {
+    const a = Attribute.create({ name: "a", values: ["a", "b", "c", "a", "b", "c"] })
+    expect(a.strValues).toEqual(["a", "b", "c", "a", "b", "c"])
+    const tree = Tree.create({
+      attribute: a,
+      categories: { attribute: a.id }
+    })
+    const categories = tree.categories
+    categories.setDragCategory("a", 2)
+    expect(categories.values).toEqual(["b", "c", "a"])
+    categories.setDragCategory()
+    expect(categories.values).toEqual(["a", "b", "c"])
   })
 
   it("tracks user color assignments", () => {

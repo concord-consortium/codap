@@ -112,6 +112,7 @@ export const getCategoricalLabelPlacement = (
 }
 
 export interface DragInfo {
+  initialIndexOfCategory: number
   indexOfCategory: number
   catName: string
   initialOffset: number

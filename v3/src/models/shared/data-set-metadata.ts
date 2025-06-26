@@ -1,9 +1,9 @@
-import { observable, reaction, comparer } from "mobx"
+import { comparer, observable, reaction, when } from "mobx"
 import {
-  addDisposer, applySnapshot, getEnv, getSnapshot, getType, hasEnv, IAnyStateTreeNode, Instance, ISerializedActionCall,
-  resolveIdentifier, SnapshotIn, types
+  addDisposer, applySnapshot, getEnv, getSnapshot, getType, hasEnv, IAnyStateTreeNode, Instance,
+  ISerializedActionCall, resolveIdentifier, SnapshotIn, types
 } from "mobx-state-tree"
-import { onAnyAction, typeOptionalBoolean } from "../../utilities/mst-utils"
+import { typeOptionalBoolean } from "../../utilities/mst-utils"
 import { IAttribute } from "../data/attribute"
 import { CategorySet, createProvisionalCategorySet, ICategorySet, ICategorySetSnapshot } from "../data/category-set"
 import { DataSet, IDataSet } from "../data/data-set"
@@ -447,13 +447,15 @@ export const DataSetMetadata = SharedModel
         categorySet.onAttributeInvalidated(function(invalidAttrId: string) {
           self.removeCategorySet(invalidAttrId)
         })
-        const userActionNames = categorySet.userActionNames
-        onAnyAction(categorySet, action => {
-          // when a category set is changed by the user, it is promoted to a regular CategorySet
-          if (categorySet && userActionNames.includes(action.name)) {
-            self.promoteProvisionalCategorySet(categorySet)
+        // promote provisional category sets when they are modified by the user
+        when(
+          () => !!categorySet?.moves.length || !!categorySet?.colors.size,
+          () => {
+            if (categorySet && self.provisionalCategories.has(attrId)) {
+              self.promoteProvisionalCategorySet(categorySet)
+            }
           }
-        })
+        )
       }
       return categorySet
     }
