@@ -233,7 +233,7 @@ export const MovableValueAdornment = observer(function MovableValueAdornment(pro
           .attr("y1", y1)
           .attr("x2", x2)
           .attr("y2", y2)
-        newValueObject.valueLabel = select(`#${containerId}`).append("p")
+        newValueObject.valueLabel = select(`#${containerId}`).append("div")
           .attr("class", `movable-value-label ${orientationClass}`)
           .style("left", `${x1}px`)
           .style("top", `${y1}px`)

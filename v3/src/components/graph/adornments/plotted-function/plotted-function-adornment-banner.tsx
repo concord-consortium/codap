@@ -57,15 +57,15 @@ export const PlottedFunctionAdornmentBanner = observer(function PlottedFunctionA
         onClick={handleEditExpressionOpen}
       >
         <div className="plotted-function-control-row">
-          <p className="plotted-function-control-label" data-testid="plotted-function-control-label">
+          <div className="plotted-function-control-label" data-testid="plotted-function-control-label">
             {yAttrName}
-          </p>
-          <p className="equals-sign">
+          </div>
+          <div className="equals-sign">
             =
-          </p>
-          <p className="plotted-function-control-value" data-testid="plotted-function-control-value">
+          </div>
+          <div className="plotted-function-control-value" data-testid="plotted-function-control-value">
             {expression}
-          </p>
+          </div>
         </div>
         {error && <div className="plotted-function-error" data-testid="plotted-function-error">{error}</div>}
       </Button>
