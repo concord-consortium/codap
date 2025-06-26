@@ -1,19 +1,15 @@
-import { Portal } from "@chakra-ui/react"
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import React, { PointerEvent, useCallback, useEffect, useRef, useState } from "react"
-import ResizeHandle from "../../assets/icons/icon-corner-resize-handle.svg"
 import { ComponentWrapperContext } from "../../hooks/use-component-wrapper-context"
-import { useTileContainerContext } from "../../hooks/use-tile-container-context"
 import { logMessageWithReplacement } from "../../lib/log-message"
 import { IFreeTileLayout, IFreeTileRow } from "../../models/document/free-tile-row"
 import { getTileComponentInfo } from "../../models/tiles/tile-component-info"
 import { ITileModel } from "../../models/tiles/tile-model"
-import { uiState } from "../../models/ui-state"
 import { urlParams } from "../../utilities/url-params"
 import { CodapComponent } from "../codap-component"
-import { ComponentResizeBorder } from "../component-resize-border"
 import { IChangingTileStyle, kTitleBarHeight } from "../constants"
+import { ComponentResizeWidgets } from "./component-resize-widgets"
 import { useTileDrag } from "./use-tile-drag"
 
 interface IProps {
@@ -23,7 +19,6 @@ interface IProps {
 }
 
 export const FreeTileComponent = observer(function FreeTileComponent({ row, tile, onCloseTile}: IProps) {
-  const containerRef = useTileContainerContext()
   const componentRef = useRef<HTMLDivElement | null>(null)
   const { id: tileId, content: { type: tileType } } = tile
   const [useDefaultCreationStyle, setUseDefaultCreationStyle] = useState(row.animateCreationTiles.has(tileId))
@@ -98,26 +93,6 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
     document.body.addEventListener("pointerup", handlePointerUp, { capture: true })
   }, [row])
 
-  const handleBottomRightPointerDown = useCallback((e: React.PointerEvent) => {
-    tileLayout && handleResizePointerDown(e, tileLayout, "bottom-right")
-  }, [handleResizePointerDown, tileLayout])
-
-  const handleBottomLeftPointerDown = useCallback((e: React.PointerEvent) => {
-    tileLayout && handleResizePointerDown(e, tileLayout, "bottom-left")
-  }, [handleResizePointerDown, tileLayout])
-
-  const handleRightPointerDown = useCallback((e: React.PointerEvent) => {
-    tileLayout && handleResizePointerDown(e, tileLayout, "right")
-  }, [handleResizePointerDown, tileLayout])
-
-  const handleBottomPointerDown = useCallback((e: React.PointerEvent) => {
-    tileLayout && handleResizePointerDown(e, tileLayout, "bottom")
-  }, [handleResizePointerDown, tileLayout])
-
-  const handleLeftPointerDown = useCallback((e: React.PointerEvent) => {
-    tileLayout && handleResizePointerDown(e, tileLayout, "left")
-  }, [handleResizePointerDown, tileLayout])
-
   const info = getTileComponentInfo(tileType)
   const style = changingTileStyle ??
                   (tileLayout?.isHidden && info?.renderWhenHidden
@@ -163,28 +138,9 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
               onMoveTilePointerDown={handleMoveTilePointerDown}
             />
             {!isMinimized &&
-              <>
-                <Portal containerRef={containerRef}>
-                  {!isFixedWidth &&
-                    <ComponentResizeBorder edge="left" onPointerDown={handleLeftPointerDown}
-                        componentRef={componentRef} containerRef={containerRef} />}
-                  {!isFixedWidth &&
-                    <ComponentResizeBorder edge="right" onPointerDown={handleRightPointerDown}
-                        componentRef={componentRef} containerRef={containerRef} />}
-                  {!isFixedHeight &&
-                    <ComponentResizeBorder edge="bottom" onPointerDown={handleBottomPointerDown}
-                        componentRef={componentRef} containerRef={containerRef} />}
-                </Portal>
-                {!(isFixedWidth && isFixedHeight) &&
-                  <div className="codap-component-corner bottom-left" onPointerDown={handleBottomLeftPointerDown}/>
-                }
-                {!(isFixedWidth && isFixedHeight) &&
-                  <div className="codap-component-corner bottom-right" onPointerDown={handleBottomRightPointerDown}>
-                    {(uiState.isFocusedTile(tile.id)) &&
-                      <ResizeHandle className="component-resize-handle"/>}
-                  </div>
-                }
-              </>
+              <ComponentResizeWidgets tile={tile} tileLayout={tileLayout} componentRef={componentRef}
+                isFixedWidth={isFixedWidth} isFixedHeight={isFixedHeight}
+                handleResizePointerDown={handleResizePointerDown} />
             }
           </>
         }
