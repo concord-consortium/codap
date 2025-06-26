@@ -288,6 +288,9 @@ export const DataSet = V2Model.named("DataSet").props({
   return snap
 })
 .views(self => ({
+  get defaultTitle() {
+    return self.collections.map(collection => collection.name).join("/")
+  },
   isItemSetAside(itemId: string) {
     return self.setAsideItemIdsSet.has(itemId)
   },
@@ -296,6 +299,9 @@ export const DataSet = V2Model.named("DataSet").props({
   }
 }))
 .views(self => ({
+  get title() {
+    return self._title || self.defaultTitle || self.name
+  },
   isItemHidden(itemId: string) {
     return self.isItemSetAside(itemId) || self.isItemFilteredOut(itemId)
   }
