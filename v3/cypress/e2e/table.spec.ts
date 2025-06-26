@@ -9,7 +9,7 @@ context("case table ui", () => {
   let lastRowIndex = -1
   let middleRowIndex = -1
   let numOfCases = "0"
-  const collectionName = "Mammals"
+  const collectionName = "Cases"
   const renamedCollectionName = "Animals"
   const newCollectionName = "New Dataset"
 
@@ -1078,7 +1078,7 @@ context("case table ui", () => {
       toolbar.getUndoTool().click()
 
       // Asserts table has been reopened
-      c.getComponentTitle("table").should("contain", "Mammals")
+      c.getComponentTitle("table").should("contain", collectionName)
 
       // Add redo for closing table
       toolbar.getRedoTool().click()
