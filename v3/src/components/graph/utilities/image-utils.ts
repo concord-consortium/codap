@@ -51,6 +51,9 @@ export const graphSnapshot = (options: IGraphSnapshotOptions): Promise<string | 
   css.textContent = getCssText()
   // Append some custom rules to improve the output -- hopefully we can make this unnecessary later.
   css.textContent += `
+    .png-container {
+      font-family: Montserrat, sans-serif;
+    }
     .grid .tick line {
       stroke: rgb(211, 211, 211);
       stroke-opacity: 0.7;
@@ -173,6 +176,7 @@ export const graphSnapshot = (options: IGraphSnapshotOptions): Promise<string | 
     wrapper.setAttribute("xmlns", xhtmlNS)
     wrapper.style.width = "100%"
     wrapper.style.height = "100%"
+    wrapper.className = "png-container"
     wrapper.appendChild(elementClone)
     foreignObject.appendChild(wrapper)
     svg.appendChild(foreignObject)
