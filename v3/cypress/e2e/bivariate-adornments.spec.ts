@@ -40,7 +40,6 @@ context("Graph adornments", () => {
     cy.get("[data-testid=graph-adornments-grid]").find("*[data-testid=lsrl-equation-]").should("exist")
       .should(
         "contain.html",
-        // eslint-disable-next-line @stylistic/max-len
         "<em>Speed</em> = −0.0014 (<em>Mass</em>) + 50<br>r<sup>2</sup> = 0.009<br>SE<sub>slope</sub> = 0.003"
       )
     // TODO: Test that mousing over equation highlights the line and vice versa
