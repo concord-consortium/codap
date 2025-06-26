@@ -265,7 +265,7 @@ context("Map UI", () => {
     table.getSelectedRows().should("have.length", 1)
 
     // Can deselect a pin by clicking on the map
-    map.getPinLayer().click("top")
+    map.getPinLayer().click()
     map.getMapPin().should("not.have.class", "selected-pin")
     table.getSelectedRows().should("have.length", 0)
     map.getMapPin().click()
