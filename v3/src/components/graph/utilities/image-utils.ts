@@ -1,5 +1,19 @@
 import { PixiPoints } from "../../data-display/pixi/pixi-points"
 
+const disallowedElementClasses = new Set([
+  "axis-legend-attribute-menu",
+  "attribute-label-menu",
+  "chakra-icon",
+  "chakra-menu__menu-list",
+  "codap-component-corner",
+  "component-minimize-icon",
+  "component-resize-handle",
+  "droppable-axis",
+  "droppable-svg",
+  "empty-label",
+  "header-right",
+])
+
 interface IGraphSnapshotOptions {
   rootEl: HTMLElement
   graphWidth: number
@@ -11,22 +25,15 @@ interface IGraphSnapshotOptions {
 export const graphSnapshot = (options: IGraphSnapshotOptions): Promise<string | Blob> => {
   const { rootEl, graphWidth, graphHeight, asDataURL, pixiPoints } = options
 
-  // Create a canvas to render the graph PNG
-  const makeCanvas = (bgColor: string, x: number, y: number, width: number, height: number): HTMLCanvasElement => {
-    const newCanvas = document.createElement("canvas")
-    newCanvas.width = width
-    newCanvas.height = height
-    const ctx = newCanvas.getContext("2d")
-
-    if (ctx) {
-      ctx.fillStyle = bgColor
-      ctx.fillRect(x, y, width, height)
-    }
-
-    return newCanvas
-  }
-  const mainCanvas = makeCanvas("#f8f8f8", 0, 0, graphWidth, graphHeight)
+  // Create a canvas to render the snapshot
+  const mainCanvas = document.createElement("canvas")
+  mainCanvas.width = graphWidth
+  mainCanvas.height = graphHeight
   const mainCtx = mainCanvas.getContext("2d")
+  if (mainCtx) {
+    mainCtx.fillStyle = "#f8f8f8"
+    mainCtx.fillRect(0, 0, graphWidth, graphHeight)
+  }
 
   // Gather CSS styles
   const getCssText = (): string => {
@@ -49,6 +56,7 @@ export const graphSnapshot = (options: IGraphSnapshotOptions): Promise<string | 
   }
   const css = document.createElement("style")
   css.textContent = getCssText()
+
   // Append some custom rules to improve the output -- hopefully we can make this unnecessary later.
   css.textContent += `
     .png-container {
@@ -94,7 +102,7 @@ export const graphSnapshot = (options: IGraphSnapshotOptions): Promise<string | 
   }
 
   /**
-   * Renders an element onto a canvas by drawing it inside a foreignObject in an SVG,
+   * Renders an element onto the main canvas by drawing it inside a foreignObject in an SVG,
    * then rasterizing the SVG to the canvas. This preserves HTML structure and styles.
    * @param element The HTML element to render.
    */
@@ -117,34 +125,13 @@ export const graphSnapshot = (options: IGraphSnapshotOptions): Promise<string | 
     // Clone the element to avoid side effects
     const elementClone = element.cloneNode(true) as HTMLElement
 
-    const getClassNames = (_element: Element): string[] => {
-      if (_element instanceof HTMLElement || _element instanceof SVGElement) {
-        return Array.from(_element.classList)
-      }
-      return []
-    }
-
-    const disallowedElementClasses = new Set([
-      "axis-legend-attribute-menu",
-      "attribute-label-menu",
-      "chakra-icon",
-      "chakra-menu__menu-list",
-      "codap-component-corner",
-      "component-minimize-icon",
-      "component-resize-handle",
-      "droppable-axis",
-      "droppable-svg",
-      "empty-label",
-      "header-right",
-    ])
-
+    // Remove elements we don't want to include in the snapshot
     const isAllowedElement = (_element: Element): boolean => {
-      const classNames = getClassNames(_element)
-      return classNames.every((className) => !disallowedElementClasses.has(className))
+      if (!(_element instanceof HTMLInputElement || _element instanceof HTMLTextAreaElement)) return true
+      return Array.from(_element.classList).every((className) => !disallowedElementClasses.has(className))
     }
 
-    const allElements = elementClone.querySelectorAll("*")
-    Array.from(allElements).forEach(el => {
+    Array.from(elementClone.querySelectorAll("*")).forEach(el => {
       if (!isAllowedElement(el)) {
         el.parentElement?.removeChild(el)
       } else if (el instanceof HTMLElement) {
@@ -165,11 +152,6 @@ export const graphSnapshot = (options: IGraphSnapshotOptions): Promise<string | 
         graphSvg?.replaceChild(image, pixiForeignObject)
       }
     }
-
-    // Copy computed styles to the clone (inline)
-    // const computed = getComputedStyle(element)
-    // elementClone.setAttribute("style", Array.from(computed)
-    //   .map(key => `${key}: ${computed.getPropertyValue(key)};`).join(" "))
 
     // Wrap in a div to ensure proper layout in foreignObject
     const wrapper = document.createElementNS(xhtmlNS, "div")
@@ -213,9 +195,7 @@ export const graphSnapshot = (options: IGraphSnapshotOptions): Promise<string | 
 
   const renderImage = async () => {
     await renderGraphToCanvas(rootEl)
-
     return Promise.resolve(asDataURL ? mainCanvas.toDataURL("image/png") : makeCanvasBlob(mainCanvas))
   }
-
   return renderImage()
 }
