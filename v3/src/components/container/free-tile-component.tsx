@@ -7,7 +7,6 @@ import { IFreeTileLayout, IFreeTileRow } from "../../models/document/free-tile-r
 import { getTileComponentInfo } from "../../models/tiles/tile-component-info"
 import { ITileModel } from "../../models/tiles/tile-model"
 import { updateTileNotification } from "../../models/tiles/tile-notifications"
-import { uiState } from "../../models/ui-state"
 import { urlParams } from "../../utilities/url-params"
 import { CodapComponent } from "../codap-component"
 import { IChangingTileStyle, kTitleBarHeight } from "../constants"
