@@ -119,7 +119,8 @@ plusMin { ArithOp<"+" | "-"> }
 
   @precedence { "/*", LineComment, divide }
 
-  identifierChar { @asciiLetter | $[_$\u{a1}-\u{10ffff}] }
+  // exclude operators from identifiers, e.g. ×, ÷, ≠, ≤, ≥, etc.
+  identifierChar { @asciiLetter | $[_$\u{a1}-\u{d6}\u{d8}-\u{f6}\u{f8}-\u{223f}\u{2280}-\u{10ffff}] }
 
   word { identifierChar (identifierChar | @digit)* }
 

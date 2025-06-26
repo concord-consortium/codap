@@ -269,8 +269,65 @@ describe("Lezer formula parser works as expected", () => {
     expect(formula.slice(cursor.from, cursor.to)).toBe("2")
     expect(cursor.nextSibling()).toBe(false)
 
+    // supports multiplication symbol
+    formula = "1 × 2"
+    tree = parser.parse(formula)
+    cursor = tree.cursor()
+    expect(cursor.type.name).toBe("SingleExpression")
+    expect(cursor.firstChild()).toBe(true)
+    expect(cursor.type.name).toBe("BinaryExpression")
+    expect(formula.slice(cursor.from, cursor.to)).toBe(formula)
+    expect(cursor.firstChild()).toBe(true)
+    expect(cursor.type.name).toBe("Number")
+    expect(formula.slice(cursor.from, cursor.to)).toBe("1")
+    expect(cursor.nextSibling()).toBe(true)
+    expect(cursor.type.name).toBe("ArithOp")
+    expect(formula.slice(cursor.from, cursor.to)).toBe("×")
+    expect(cursor.nextSibling()).toBe(true)
+    expect(cursor.type.name).toBe("Number")
+    expect(formula.slice(cursor.from, cursor.to)).toBe("2")
+    expect(cursor.nextSibling()).toBe(false)
+
+    // supports multiplication symbol without spaces
+    formula = "1×2"
+    tree = parser.parse(formula)
+    cursor = tree.cursor()
+    expect(cursor.type.name).toBe("SingleExpression")
+    expect(cursor.firstChild()).toBe(true)
+    expect(cursor.type.name).toBe("BinaryExpression")
+    expect(formula.slice(cursor.from, cursor.to)).toBe(formula)
+    expect(cursor.firstChild()).toBe(true)
+    expect(cursor.type.name).toBe("Number")
+    expect(formula.slice(cursor.from, cursor.to)).toBe("1")
+    expect(cursor.nextSibling()).toBe(true)
+    expect(cursor.type.name).toBe("ArithOp")
+    expect(formula.slice(cursor.from, cursor.to)).toBe("×")
+    expect(cursor.nextSibling()).toBe(true)
+    expect(cursor.type.name).toBe("Number")
+    expect(formula.slice(cursor.from, cursor.to)).toBe("2")
+    expect(cursor.nextSibling()).toBe(false)
+
     // supports division symbol
     formula = "1 ÷ 2"
+    tree = parser.parse(formula)
+    cursor = tree.cursor()
+    expect(cursor.type.name).toBe("SingleExpression")
+    expect(cursor.firstChild()).toBe(true)
+    expect(cursor.type.name).toBe("BinaryExpression")
+    expect(formula.slice(cursor.from, cursor.to)).toBe(formula)
+    expect(cursor.firstChild()).toBe(true)
+    expect(cursor.type.name).toBe("Number")
+    expect(formula.slice(cursor.from, cursor.to)).toBe("1")
+    expect(cursor.nextSibling()).toBe(true)
+    expect(cursor.type.name).toBe("ArithOp")
+    expect(formula.slice(cursor.from, cursor.to)).toBe("÷")
+    expect(cursor.nextSibling()).toBe(true)
+    expect(cursor.type.name).toBe("Number")
+    expect(formula.slice(cursor.from, cursor.to)).toBe("2")
+    expect(cursor.nextSibling()).toBe(false)
+
+    // supports division symbol without spaces
+    formula = "1÷2"
     tree = parser.parse(formula)
     cursor = tree.cursor()
     expect(cursor.type.name).toBe("SingleExpression")
@@ -481,8 +538,46 @@ describe("Lezer formula parser works as expected", () => {
     expect(formula.slice(cursor.from, cursor.to)).toBe("2")
     expect(cursor.nextSibling()).toBe(false)
 
+    // supports CODAP != operator without spaces
+    formula = "1!=2"
+    tree = parser.parse(formula)
+    cursor = tree.cursor()
+    expect(cursor.type.name).toBe("SingleExpression")
+    expect(cursor.firstChild()).toBe(true)
+    expect(cursor.type.name).toBe("BinaryExpression")
+    expect(formula.slice(cursor.from, cursor.to)).toBe(formula)
+    expect(cursor.firstChild()).toBe(true)
+    expect(cursor.type.name).toBe("Number")
+    expect(formula.slice(cursor.from, cursor.to)).toBe("1")
+    expect(cursor.nextSibling()).toBe(true)
+    expect(cursor.type.name).toBe("CompareOp")
+    expect(formula.slice(cursor.from, cursor.to)).toBe("!=")
+    expect(cursor.nextSibling()).toBe(true)
+    expect(cursor.type.name).toBe("Number")
+    expect(formula.slice(cursor.from, cursor.to)).toBe("2")
+    expect(cursor.nextSibling()).toBe(false)
+
     // supports CODAP ≠ operator
     formula = "1 ≠ 2"
+    tree = parser.parse(formula)
+    cursor = tree.cursor()
+    expect(cursor.type.name).toBe("SingleExpression")
+    expect(cursor.firstChild()).toBe(true)
+    expect(cursor.type.name).toBe("BinaryExpression")
+    expect(formula.slice(cursor.from, cursor.to)).toBe(formula)
+    expect(cursor.firstChild()).toBe(true)
+    expect(cursor.type.name).toBe("Number")
+    expect(formula.slice(cursor.from, cursor.to)).toBe("1")
+    expect(cursor.nextSibling()).toBe(true)
+    expect(cursor.type.name).toBe("CompareOp")
+    expect(formula.slice(cursor.from, cursor.to)).toBe("≠")
+    expect(cursor.nextSibling()).toBe(true)
+    expect(cursor.type.name).toBe("Number")
+    expect(formula.slice(cursor.from, cursor.to)).toBe("2")
+    expect(cursor.nextSibling()).toBe(false)
+
+    // supports CODAP ≠ operator without spaces
+    formula = "1≠2"
     tree = parser.parse(formula)
     cursor = tree.cursor()
     expect(cursor.type.name).toBe("SingleExpression")
@@ -558,8 +653,46 @@ describe("Lezer formula parser works as expected", () => {
     expect(formula.slice(cursor.from, cursor.to)).toBe("2")
     expect(cursor.nextSibling()).toBe(false)
 
+    // supports <= operator without spaces
+    formula = "1<=2"
+    tree = parser.parse(formula)
+    cursor = tree.cursor()
+    expect(cursor.type.name).toBe("SingleExpression")
+    expect(cursor.firstChild()).toBe(true)
+    expect(cursor.type.name).toBe("BinaryExpression")
+    expect(formula.slice(cursor.from, cursor.to)).toBe(formula)
+    expect(cursor.firstChild()).toBe(true)
+    expect(cursor.type.name).toBe("Number")
+    expect(formula.slice(cursor.from, cursor.to)).toBe("1")
+    expect(cursor.nextSibling()).toBe(true)
+    expect(cursor.type.name).toBe("CompareOp")
+    expect(formula.slice(cursor.from, cursor.to)).toBe("<=")
+    expect(cursor.nextSibling()).toBe(true)
+    expect(cursor.type.name).toBe("Number")
+    expect(formula.slice(cursor.from, cursor.to)).toBe("2")
+    expect(cursor.nextSibling()).toBe(false)
+
     // supports ≤ operator
     formula = "1 ≤ 2"
+    tree = parser.parse(formula)
+    cursor = tree.cursor()
+    expect(cursor.type.name).toBe("SingleExpression")
+    expect(cursor.firstChild()).toBe(true)
+    expect(cursor.type.name).toBe("BinaryExpression")
+    expect(formula.slice(cursor.from, cursor.to)).toBe(formula)
+    expect(cursor.firstChild()).toBe(true)
+    expect(cursor.type.name).toBe("Number")
+    expect(formula.slice(cursor.from, cursor.to)).toBe("1")
+    expect(cursor.nextSibling()).toBe(true)
+    expect(cursor.type.name).toBe("CompareOp")
+    expect(formula.slice(cursor.from, cursor.to)).toBe("≤")
+    expect(cursor.nextSibling()).toBe(true)
+    expect(cursor.type.name).toBe("Number")
+    expect(formula.slice(cursor.from, cursor.to)).toBe("2")
+    expect(cursor.nextSibling()).toBe(false)
+
+    // supports ≤ operator without spaces
+    formula = "1≤2"
     tree = parser.parse(formula)
     cursor = tree.cursor()
     expect(cursor.type.name).toBe("SingleExpression")
@@ -615,8 +748,46 @@ describe("Lezer formula parser works as expected", () => {
     expect(formula.slice(cursor.from, cursor.to)).toBe("2")
     expect(cursor.nextSibling()).toBe(false)
 
+    // supports >= operator without spaces
+    formula = "1>=2"
+    tree = parser.parse(formula)
+    cursor = tree.cursor()
+    expect(cursor.type.name).toBe("SingleExpression")
+    expect(cursor.firstChild()).toBe(true)
+    expect(cursor.type.name).toBe("BinaryExpression")
+    expect(formula.slice(cursor.from, cursor.to)).toBe(formula)
+    expect(cursor.firstChild()).toBe(true)
+    expect(cursor.type.name).toBe("Number")
+    expect(formula.slice(cursor.from, cursor.to)).toBe("1")
+    expect(cursor.nextSibling()).toBe(true)
+    expect(cursor.type.name).toBe("CompareOp")
+    expect(formula.slice(cursor.from, cursor.to)).toBe(">=")
+    expect(cursor.nextSibling()).toBe(true)
+    expect(cursor.type.name).toBe("Number")
+    expect(formula.slice(cursor.from, cursor.to)).toBe("2")
+    expect(cursor.nextSibling()).toBe(false)
+
     // supports ≥ operator
     formula = "1 ≥ 2"
+    tree = parser.parse(formula)
+    cursor = tree.cursor()
+    expect(cursor.type.name).toBe("SingleExpression")
+    expect(cursor.firstChild()).toBe(true)
+    expect(cursor.type.name).toBe("BinaryExpression")
+    expect(formula.slice(cursor.from, cursor.to)).toBe(formula)
+    expect(cursor.firstChild()).toBe(true)
+    expect(cursor.type.name).toBe("Number")
+    expect(formula.slice(cursor.from, cursor.to)).toBe("1")
+    expect(cursor.nextSibling()).toBe(true)
+    expect(cursor.type.name).toBe("CompareOp")
+    expect(formula.slice(cursor.from, cursor.to)).toBe("≥")
+    expect(cursor.nextSibling()).toBe(true)
+    expect(cursor.type.name).toBe("Number")
+    expect(formula.slice(cursor.from, cursor.to)).toBe("2")
+    expect(cursor.nextSibling()).toBe(false)
+
+    // supports ≥ operator without spaces
+    formula = "1≥2"
     tree = parser.parse(formula)
     cursor = tree.cursor()
     expect(cursor.type.name).toBe("SingleExpression")
