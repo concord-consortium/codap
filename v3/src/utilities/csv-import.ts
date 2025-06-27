@@ -45,7 +45,10 @@ interface IImportFromCsvContentArgs {
 interface IImportFromCsvFileArgs {
   file: File
 }
-type IImportFromCsvArgs = IImportFromCsvContentArgs | IImportFromCsvFileArgs
+interface IImportFromCsvUrlArgs {
+  url: string
+}
+type IImportFromCsvArgs = IImportFromCsvContentArgs | IImportFromCsvFileArgs | IImportFromCsvUrlArgs
 
 export function initiateImportFromCsv(options: IImportFromCsvArgs) {
   // The importer plugin is used to import a csv string into a dataset.
@@ -58,7 +61,8 @@ export function initiateImportFromCsv(options: IImportFromCsvArgs) {
       name: "Importer",
       file: "file" in options ? options.file : undefined,
       targetDatasetName: "data" in options ? options.data.name : undefined,
-      text: "text" in options ? options.text : undefined
+      text: "text" in options ? options.text : undefined,
+      url: "url" in options ? options.url : undefined
     }
   }
   appState.document.content?.insertTileSnapshotInDefaultRow({

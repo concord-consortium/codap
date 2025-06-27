@@ -2,6 +2,7 @@ import { useCallback } from "react"
 import { logStringifiedObjectMessage } from "../../lib/log-message"
 import { IFreeTileLayout, IFreeTileRow } from "../../models/document/free-tile-row"
 import { ITileModel } from "../../models/tiles/tile-model"
+import { updateTileNotification } from "../../models/tiles/tile-notifications"
 import { uiState } from "../../models/ui-state"
 import { IChangingTileStyle, kTileDragGridSize, kTitleBarHeight } from "../constants"
 
@@ -64,6 +65,7 @@ export function useTileDrag({ row, tile, tileLayout, setChangingTileStyle }: IPr
             row.applyModelChange(() => {
               tileLayout.setPosition(newX, newY)
             }, {
+              notify: () => updateTileNotification("move", {}, tile),
               undoStringKey: "DG.Undo.componentMove",
               redoStringKey: "DG.Redo.componentMove",
               log: logStringifiedObjectMessage("Moved component %@", {tileType: tile.content.type, tileId: tile.id})

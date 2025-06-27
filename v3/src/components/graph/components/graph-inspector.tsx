@@ -11,6 +11,7 @@ import {HideShowMenuList} from "./inspector-panel/hide-show-menu-list"
 import {PointFormatPalette} from "./inspector-panel/point-format-palette"
 import {GraphMeasurePalette} from "./inspector-panel/graph-measure-palette"
 import { t } from "../../../utilities/translation/translate"
+import { updateTileNotification } from "../../../models/tiles/tile-notifications"
 import {useDndContext} from "@dnd-kit/core"
 import {ITileInspectorPanelProps} from "../../tiles/tile-base-props"
 import {isGraphContentModel} from "../models/graph-content-model"
@@ -63,6 +64,7 @@ export const GraphInspector = observer(function GraphInspector({tile, show}: ITi
       graphModel?.applyModelChange(
         () => graphModel.rescale(),
         {
+          notify: () => updateTileNotification("rescaleGraph", {}, tile),
           undoStringKey: "DG.Undo.axisDilate",
           redoStringKey: "DG.Redo.axisDilate",
           log: {message: "Rescale axes from data", args: {}, category: "plot"}

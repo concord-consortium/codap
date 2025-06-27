@@ -183,9 +183,8 @@ export function selectCasesNotification(dataset: IDataSet, extend?: boolean) {
 
     const caseIds = extend ? addedCaseIds : newSelectedCaseIds
     const _cases = convertCaseIdsToV2FullCases(caseIds)
-    const cases = extend
-      ? _cases.length > 0 ? _cases : undefined
-      : _cases
+    // V2 expects cases to be undefined (not an empty array) if there are no cases selected
+    const cases = _cases.length > 0 ? _cases : undefined
     const removedCases = extend && removedCaseIds.length > 0
       ? convertCaseIdsToV2FullCases(removedCaseIds) : []
     const result = { success: true, cases, removedCases, extend: !!extend }

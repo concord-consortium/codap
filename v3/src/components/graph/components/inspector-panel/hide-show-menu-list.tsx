@@ -6,6 +6,7 @@ import { ITileModel } from "../../../../models/tiles/tile-model"
 import { isGraphContentModel } from "../../models/graph-content-model"
 import { t } from "../../../../utilities/translation/translate"
 import { logMessageWithReplacement } from "../../../../lib/log-message"
+import { updateTileNotification } from "../../../../models/tiles/tile-notifications"
 import { EditFormulaModal } from "../../../common/edit-formula-modal"
 import { DataSetContext } from "../../../../hooks/use-data-set-context"
 import { useInspectorFormulaString } from "../../../../hooks/use-inspector-formula-string"
@@ -20,11 +21,15 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
   const { isOpen, onClose, onOpen } = useDisclosure()
 
   const hideSelectedCases = () => {
+    const numberToHide = dataConfig?.selection.length ?? 0
     dataConfig?.applyModelChange(
       () => dataConfig?.addNewHiddenCases(
         dataConfig?.selection ?? []
       ),
       {
+        notify: () => updateTileNotification("hideSelected",
+          { numberHidden: numberToHide },
+          tile),
         undoStringKey: "DG.Undo.hideSelectedCases",
         redoStringKey: "DG.Redo.hideSelectedCases",
         log: logMessageWithReplacement("Hide %@ selected cases", {length: dataConfig?.selection.length})
@@ -33,11 +38,15 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
   }
 
   const hideUnselectedCases = () => {
+    const numberToHide = dataConfig?.unselectedCases.length ?? 0
     dataConfig?.applyModelChange(
       () => dataConfig?.addNewHiddenCases(
         dataConfig?.unselectedCases ?? []
       ),
       {
+        notify: () => updateTileNotification("hideUnselected",
+          { numberHidden: numberToHide },
+          tile),
         undoStringKey: "DG.Undo.hideUnselectedCases",
         redoStringKey: "DG.Redo.hideUnselectedCases",
         log: "Hide unselected cases"

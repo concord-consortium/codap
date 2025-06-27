@@ -6,6 +6,7 @@ import { logMessageWithReplacement } from "../../lib/log-message"
 import { IFreeTileLayout, IFreeTileRow } from "../../models/document/free-tile-row"
 import { getTileComponentInfo } from "../../models/tiles/tile-component-info"
 import { ITileModel } from "../../models/tiles/tile-model"
+import { updateTileNotification } from "../../models/tiles/tile-notifications"
 import { urlParams } from "../../utilities/url-params"
 import { CodapComponent } from "../codap-component"
 import { IChangingTileStyle, kTitleBarHeight } from "../constants"
@@ -82,6 +83,7 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
         _tileLayout.setSize(resizingWidth, resizingHeight)
         _tileLayout.setPosition(resizingLeft, _tileLayout.y)
       }, {
+        notify: () => updateTileNotification("resize", {}, tile),
         undoStringKey: "DG.Undo.componentResize",
         redoStringKey: "DG.Redo.componentResize",
         log: logMessageWithReplacement("Resized component: %@", {tileID: _tileLayout.tileId})
@@ -91,7 +93,7 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
 
     document.body.addEventListener("pointermove", handlePointerMove, { capture: true })
     document.body.addEventListener("pointerup", handlePointerUp, { capture: true })
-  }, [row])
+  }, [row, tile])
 
   const info = getTileComponentInfo(tileType)
   const style = changingTileStyle ??
