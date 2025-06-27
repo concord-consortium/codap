@@ -8,7 +8,6 @@ import { registerTileCollisionDetection } from "../../../lib/dnd-kit/dnd-detect-
 import { useDataSet } from '../../../hooks/use-data-set'
 import { DataSetContext } from '../../../hooks/use-data-set-context'
 import { InstanceIdContext, useNextInstanceId } from "../../../hooks/use-instance-id-context"
-import { getTitle } from '../../../models/tiles/tile-content-info'
 import { AxisProviderContext } from '../../axis/hooks/use-axis-provider-context'
 import { AxisLayoutContext } from "../../axis/models/axis-layout-context"
 import { kTitleBarHeight } from "../../constants"
@@ -31,7 +30,6 @@ registerTileCollisionDetection(kGraphIdBase, graphCollisionDetection)
 
 export const GraphComponent = observer(function GraphComponent({tile}: ITileBaseProps) {
   const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
-  const title = (tile && getTitle?.(tile)) || tile?.title || ""
   const instanceId = useNextInstanceId("graph")
   const {data} = useDataSet(graphModel?.dataset)
   const layout = useInitGraphLayout(graphModel)
@@ -54,12 +52,12 @@ export const GraphComponent = observer(function GraphComponent({tile}: ITileBase
   const setGraphRef = useCallback((ref: HTMLDivElement | null) => {
     graphRef.current = ref
     const elementParent = ref?.parentElement
-    const dataUri = graphModel?.renderState?.dataUri ?? undefined
+    const dataUri = graphModel?.renderState?.dataUri
     if (elementParent) {
-      const renderState = new DataDisplayRenderState(pixiPointsArray, elementParent, () => title, dataUri)
+      const renderState = new DataDisplayRenderState(pixiPointsArray, elementParent, dataUri)
       graphModel?.setRenderState(renderState)
     }
-  }, [graphModel, pixiPointsArray, title])
+  }, [graphModel, pixiPointsArray])
 
   useEffect(() => {
     (width != null) && width >= 0 && (height != null) &&

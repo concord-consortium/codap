@@ -1,9 +1,10 @@
 import React, { useState } from "react"
 import { MenuItem, MenuList, useToast } from "@chakra-ui/react"
-import { t } from "../../../utilities/translation/translate"
-import { useTileModelContext } from "../../../hooks/use-tile-model-context"
-import { isGraphContentModel } from "../models/graph-content-model"
 import { useCfmContext } from "../../../hooks/use-cfm-context"
+import { useTileModelContext } from "../../../hooks/use-tile-model-context"
+import { t } from "../../../utilities/translation/translate"
+import { isGraphContentModel } from "../models/graph-content-model"
+import { graphSvg } from "../utilities/image-utils"
 
 export const CameraMenuList = () => {
   const tile = useTileModelContext().tile
@@ -60,7 +61,19 @@ export const CameraMenuList = () => {
   }
 
   const handleExportSVG = () => {
-    handleMenuItemClick("Export SVG Image clicked")
+    if (!graphModel?.renderState) return
+
+    const { imageOptions } = graphModel.renderState
+    if (!imageOptions) return
+
+    const svgString = graphSvg(imageOptions)
+
+    if (svgString) {
+      // const svgBlob = new Blob([svgString], { type: "image/svg+xml" })
+      // const svgUrl = URL.createObjectURL(svgBlob)
+      // cfm?.client.saveSecondaryFileAsDialog(svgUrl, "svg", "image/svg+xml", () => null)
+      cfm?.client.saveSecondaryFileAsDialog(svgString, "svg", "image/svg+xml", () => null)
+    }
   }
 
   return (

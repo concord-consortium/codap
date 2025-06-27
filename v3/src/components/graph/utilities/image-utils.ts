@@ -14,7 +14,7 @@ const disallowedElementClasses = new Set([
   "header-right",
 ])
 
-interface IGraphSvgOptions {
+export interface IGraphSvgOptions {
   rootEl: HTMLElement
   graphWidth: number
   graphHeight: number
