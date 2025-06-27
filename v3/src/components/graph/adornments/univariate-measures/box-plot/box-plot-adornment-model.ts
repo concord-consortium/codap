@@ -64,8 +64,7 @@ export const BoxPlotAdornmentModel = UnivariateMeasureAdornmentModel
     getQuantileValue(quantile: 25 | 75, caseValues: number[]) {
       const sortedCaseValues = caseValues.sort((a, b) => a - b)
       const quantileValue = quantileOfSortedArray(sortedCaseValues, quantile / 100)
-      // eslint-disable-next-line eqeqeq
-      return quantileValue == undefined ? NaN : quantileValue
+      return quantileValue == null ? NaN : quantileValue
     }
   }))
   .views(self => ({
