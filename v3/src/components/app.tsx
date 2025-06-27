@@ -89,37 +89,6 @@ export const App = observer(function App() {
     onCloseUserEntry()
   }, [onCloseUserEntry])
 
-/*
-  useEffect(() => {
-    const handleDragStart = (event: DragEvent) => {
-      console.log("Drag started:", event)
-    }
-
-    const handleDragOver = (event: DragEvent) => {
-      event.preventDefault() // Necessary to allow dropping
-      console.log("Drag over:", event)
-    }
-
-    const handleDrop = (event: DragEvent) => {
-      event.preventDefault()
-      console.log("Drop event:", event)
-      if (event.dataTransfer) {
-        console.log("Dropped data:", event.dataTransfer.getData("text"))
-      }
-    }
-
-    document.addEventListener("dragstart", handleDragStart)
-    document.addEventListener("dragover", handleDragOver)
-    document.addEventListener("drop", handleDrop)
-
-    return () => {
-      document.removeEventListener("dragstart", handleDragStart)
-      document.removeEventListener("dragover", handleDragOver)
-      document.removeEventListener("drop", handleDrop)
-    }
-  }, [])
-
-*/
   useDropHandler({
     selector: isOpenUserEntry ? `#${kUserEntryDropOverlay}` : `#${kCodapAppElementId}`,
     onImportDataSet: handleImportDataSet,
