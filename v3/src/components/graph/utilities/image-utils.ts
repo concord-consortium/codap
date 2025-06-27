@@ -14,27 +14,14 @@ const disallowedElementClasses = new Set([
   "header-right",
 ])
 
-interface IGraphSnapshotOptions {
+interface IGraphSvgOptions {
   rootEl: HTMLElement
   graphWidth: number
   graphHeight: number
-  asDataURL: boolean
   pixiPoints: PixiPoints
 }
 
-export const graphSnapshot = (options: IGraphSnapshotOptions): Promise<string | Blob> => {
-  const { rootEl, graphWidth, graphHeight, asDataURL, pixiPoints } = options
-
-  // Create a canvas to render the snapshot
-  const mainCanvas = document.createElement("canvas")
-  mainCanvas.width = graphWidth
-  mainCanvas.height = graphHeight
-  const mainCtx = mainCanvas.getContext("2d")
-  if (mainCtx) {
-    mainCtx.fillStyle = "#f8f8f8"
-    mainCtx.fillRect(0, 0, graphWidth, graphHeight)
-  }
-
+export function graphSvg({ rootEl, graphWidth, graphHeight, pixiPoints }: IGraphSvgOptions): string {
   // Gather CSS styles
   const getCssText = (): string => {
     const text: string[] = []
@@ -79,26 +66,102 @@ export const graphSnapshot = (options: IGraphSnapshotOptions): Promise<string | 
 
   /**
    * Converts a PixiJS canvas to an SVG image element.
-   * @param foreignObject {SVGForeignObjectElement} The foreignObject element containing the PixiJS canvas.
+   * @param _foreignObject {SVGForeignObjectElement} The foreignObject element containing the PixiJS canvas.
    * @returns {SVGImageElement | undefined} An SVG image element representing the PixiJS canvas, or undefined.
    */
-  const imageFromPixiCanvas = (foreignObject: SVGForeignObjectElement): SVGImageElement | undefined => {
+  const imageFromPixiCanvas = (_foreignObject: SVGForeignObjectElement): SVGImageElement | undefined => {
     const extractedCanvas = pixiPoints.renderer?.extract.canvas(pixiPoints.stage)
     if (!extractedCanvas?.toDataURL) return
 
-    const width = foreignObject.getAttribute("width") ?? extractedCanvas.width.toString()
-    const height = foreignObject.getAttribute("height") ?? extractedCanvas.height.toString()
-    const x = foreignObject.getAttribute("x") || "0"
-    const y = foreignObject.getAttribute("y") || "0"
+    const _width = _foreignObject.getAttribute("width") ?? extractedCanvas.width.toString()
+    const _height = _foreignObject.getAttribute("height") ?? extractedCanvas.height.toString()
+    const x = _foreignObject.getAttribute("x") || "0"
+    const y = _foreignObject.getAttribute("y") || "0"
     const dataURL = extractedCanvas.toDataURL("image/png")
     const image = document.createElementNS("http://www.w3.org/2000/svg", "image")
     image.setAttributeNS(null, "href", dataURL)
     image.setAttributeNS(null, "x", x)
     image.setAttributeNS(null, "y", y)
-    image.setAttributeNS(null, "width", width)
-    image.setAttributeNS(null, "height", height)
+    image.setAttributeNS(null, "width", _width)
+    image.setAttributeNS(null, "height", _height)
 
     return image
+  }
+
+  // Create SVG with foreignObject
+  const svgNS = "http://www.w3.org/2000/svg"
+  const xhtmlNS = "http://www.w3.org/1999/xhtml"
+  const svg = document.createElementNS(svgNS, "svg")
+  svg.setAttribute("width", graphWidth.toString())
+  svg.setAttribute("height", graphHeight.toString())
+
+  const foreignObject = document.createElementNS(svgNS, "foreignObject")
+  foreignObject.setAttribute("x", "0")
+  foreignObject.setAttribute("y", "0")
+  foreignObject.setAttribute("width", graphWidth.toString())
+  foreignObject.setAttribute("height", graphHeight.toString())
+  foreignObject.appendChild(css)
+
+  // Clone the element to avoid side effects
+  const elementClone = rootEl.cloneNode(true) as HTMLElement
+
+  // Remove elements we don't want to include in the snapshot
+  const isAllowedElement = (_element: Element): boolean => {
+    if (!(_element instanceof HTMLInputElement || _element instanceof HTMLTextAreaElement)) return true
+    return Array.from(_element.classList).every((className) => !disallowedElementClasses.has(className))
+  }
+
+  Array.from(elementClone.querySelectorAll("*")).forEach(el => {
+    if (!isAllowedElement(el)) {
+      el.parentElement?.removeChild(el)
+    } else if (el instanceof HTMLElement) {
+      // Elements won't render if they're animated
+      el.style.animationDuration = "auto"
+    }
+  })
+
+  // The PixiJS canvas inside the `graph-svg` SVG element requires special handling. We extract its
+  // content using PixiJS, create an image element using the extracted content, then replace the canvas
+  // element with the image element.
+  const pixiSvg = elementClone.querySelector("svg.graph-svg")
+  const pixiForeignObject = pixiSvg?.querySelector("foreignObject")
+  const pixiCanvas = pixiForeignObject?.querySelector("canvas")
+  if (pixiForeignObject && pixiCanvas) {
+    const image = imageFromPixiCanvas(pixiForeignObject)
+    if (image) {
+      pixiSvg?.replaceChild(image, pixiForeignObject)
+    }
+  }
+
+  // Wrap in a div to ensure proper layout in foreignObject
+  const wrapper = document.createElementNS(xhtmlNS, "div")
+  wrapper.setAttribute("xmlns", xhtmlNS)
+  wrapper.style.width = "100%"
+  wrapper.style.height = "100%"
+  wrapper.className = "png-container"
+  wrapper.appendChild(elementClone)
+  foreignObject.appendChild(wrapper)
+  svg.appendChild(foreignObject)
+
+  // Serialize SVG
+  return new XMLSerializer().serializeToString(svg)
+}
+
+interface IGraphSnapshotOptions extends IGraphSvgOptions {
+  asDataURL: boolean
+}
+
+export const graphSnapshot = (options: IGraphSnapshotOptions): Promise<string | Blob> => {
+  const { rootEl, graphWidth, graphHeight, asDataURL, pixiPoints } = options
+
+  // Create a canvas to render the snapshot
+  const mainCanvas = document.createElement("canvas")
+  mainCanvas.width = graphWidth
+  mainCanvas.height = graphHeight
+  const mainCtx = mainCanvas.getContext("2d")
+  if (mainCtx) {
+    mainCtx.fillStyle = "#f8f8f8"
+    mainCtx.fillRect(0, 0, graphWidth, graphHeight)
   }
 
   /**
@@ -106,65 +169,9 @@ export const graphSnapshot = (options: IGraphSnapshotOptions): Promise<string | 
    * then rasterizing the SVG to the canvas. This preserves HTML structure and styles.
    * @param element The HTML element to render.
    */
-  const renderGraphToCanvas = async (element: HTMLElement) => {
-    const { height, width } = mainCanvas
-    // Create SVG with foreignObject
-    const svgNS = "http://www.w3.org/2000/svg"
-    const xhtmlNS = "http://www.w3.org/1999/xhtml"
-    const svg = document.createElementNS(svgNS, "svg")
-    svg.setAttribute("width", width.toString())
-    svg.setAttribute("height", height.toString())
-
-    const foreignObject = document.createElementNS(svgNS, "foreignObject")
-    foreignObject.setAttribute("x", "0")
-    foreignObject.setAttribute("y", "0")
-    foreignObject.setAttribute("width", width.toString())
-    foreignObject.setAttribute("height", height.toString())
-    foreignObject.appendChild(css)
-
-    // Clone the element to avoid side effects
-    const elementClone = element.cloneNode(true) as HTMLElement
-
-    // Remove elements we don't want to include in the snapshot
-    const isAllowedElement = (_element: Element): boolean => {
-      if (!(_element instanceof HTMLInputElement || _element instanceof HTMLTextAreaElement)) return true
-      return Array.from(_element.classList).every((className) => !disallowedElementClasses.has(className))
-    }
-
-    Array.from(elementClone.querySelectorAll("*")).forEach(el => {
-      if (!isAllowedElement(el)) {
-        el.parentElement?.removeChild(el)
-      } else if (el instanceof HTMLElement) {
-        // Elements won't render if they're animated
-        el.style.animationDuration = "auto"
-      }
-    })
-
-    // The PixiJS canvas inside the `graph-svg` SVG element requires special handling. We extract its
-    // content using PixiJS, create an image element using the extracted content, then replace the canvas
-    // element with the image element.
-    const graphSvg = elementClone.querySelector("svg.graph-svg")
-    const pixiForeignObject = graphSvg?.querySelector("foreignObject")
-    const pixiCanvas = pixiForeignObject?.querySelector("canvas")
-    if (pixiForeignObject && pixiCanvas) {
-      const image = imageFromPixiCanvas(pixiForeignObject)
-      if (image) {
-        graphSvg?.replaceChild(image, pixiForeignObject)
-      }
-    }
-
-    // Wrap in a div to ensure proper layout in foreignObject
-    const wrapper = document.createElementNS(xhtmlNS, "div")
-    wrapper.setAttribute("xmlns", xhtmlNS)
-    wrapper.style.width = "100%"
-    wrapper.style.height = "100%"
-    wrapper.className = "png-container"
-    wrapper.appendChild(elementClone)
-    foreignObject.appendChild(wrapper)
-    svg.appendChild(foreignObject)
-
+  const renderGraphToCanvas = async () => {
     // Serialize SVG
-    const svgString = new XMLSerializer().serializeToString(svg)
+    const svgString = graphSvg({ rootEl, graphWidth, graphHeight, pixiPoints })
     const svgDataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgString)}`
 
     // Draw SVG to canvas
@@ -172,7 +179,7 @@ export const graphSnapshot = (options: IGraphSnapshotOptions): Promise<string | 
       const img = new window.Image()
       img.onload = () => {
         if (mainCtx) {
-          mainCtx.drawImage(img, 0, 0, width, height)
+          mainCtx.drawImage(img, 0, 0, graphWidth, graphHeight)
         }
         resolve()
       }
@@ -194,7 +201,7 @@ export const graphSnapshot = (options: IGraphSnapshotOptions): Promise<string | 
   }
 
   const renderImage = async () => {
-    await renderGraphToCanvas(rootEl)
+    await renderGraphToCanvas()
     return Promise.resolve(asDataURL ? mainCanvas.toDataURL("image/png") : makeCanvasBlob(mainCanvas))
   }
   return renderImage()
