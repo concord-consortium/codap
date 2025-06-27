@@ -8,7 +8,6 @@ export interface IAxisLayout {
 
   // actual bounds of DOM element
   getAxisBounds: (place: AxisPlace) => AxisBounds | undefined
-  setAxisBounds: (place: AxisPlace, bounds?: AxisBounds) => void
 
   getAxisMultiScale: (place: AxisPlace) => MultiScale | undefined
   getAxisScale: (place: AxisPlace) => AxisScaleType | undefined
@@ -23,7 +22,6 @@ const nullAxisLayout: IAxisLayout = {
   setTileExtent: () => undefined,
   getAxisLength: () => 0,
   getAxisBounds: () => undefined,
-  setAxisBounds: () => undefined,
   getAxisMultiScale: () => undefined,
   getAxisScale: () => undefined,
   setAxisScaleType: () => undefined,
