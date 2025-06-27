@@ -165,11 +165,12 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
       const attrNames = {x: xAttrName, y: yAttrName}
       const units = {x: xUnits, y: yUnits}
       const string = lsrlEquationString({
-        attrNames, units, caseValues, color, intercept, interceptLocked, rSquared,
+        attrNames, units, caseValues, intercept, interceptLocked, rSquared,
         showConfidenceBands, slope, sumOfSquares, layout
       })
       const equationSelector = `#lsrl-equation-${model.classNameFromKey(cellKey)}-${linesIndex}`
       const equation = equationDiv.select<HTMLDivElement>(equationSelector)
+      if (color) equation.style("color", color)
       equation.html(string)
 
       const equationBounds = equation.node()?.getBoundingClientRect()

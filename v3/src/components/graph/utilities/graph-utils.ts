@@ -276,14 +276,13 @@ export function equationString({ slope, intercept, attrNames, units, sumOfSquare
 
 interface ILsrlEquationString extends IEquationString {
   caseValues: Point[]
-  color?: string
   interceptLocked?: boolean
   rSquared?: number
   showConfidenceBands?: boolean
 }
 
 export const lsrlEquationString = (props: ILsrlEquationString) => {
-  const { slope, intercept, attrNames, units, caseValues, showConfidenceBands, rSquared, color, interceptLocked=false,
+  const { slope, intercept, attrNames, units, caseValues, showConfidenceBands, rSquared, interceptLocked=false,
           sumOfSquares, layout } = props
   const slopeUnits = units.x && units.y
                       ? `${units.y}/${units.x}`
@@ -309,9 +308,8 @@ export const lsrlEquationString = (props: ILsrlEquationString) => {
     ? `<br />${t("DG.ScatterPlotModel.sumSquares")} = ${formattedSumOfSquares}`
     : ""
   const rSquaredPart = rSquared == null ? "" : `<br />r<sup>2</sup> = ${formattedRSquared}`
-  const style = color ? ` style="color: ${color}"` : ""
 
-  return `<span${style}>${equationPart}${rSquaredPart}${seSlopePart}${squaresPart}</span>`
+  return `${equationPart}${rSquaredPart}${seSlopePart}${squaresPart}`
 }
 
 
