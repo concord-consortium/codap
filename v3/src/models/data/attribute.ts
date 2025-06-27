@@ -25,11 +25,13 @@
   JavaScript engines can optimize operations on homogeneous arrays more than heterogeneous ones.
  */
 
-import { Instance, SnapshotIn, types } from "mobx-state-tree"
+import { reaction } from "mobx"
+import { addDisposer, Instance, SnapshotIn, types } from "mobx-state-tree"
 import { kAttrIdPrefix, typeV3Id } from "../../utilities/codap-utils"
 import { parseColor } from "../../utilities/color-utils"
 import { isDateString } from "../../utilities/date-parser"
 import { DatePrecision } from "../../utilities/date-utils"
+import { extractNumeric } from "../../utilities/math-utils"
 import { cachedFnFactory } from "../../utilities/mst-utils"
 import { isBoundaryString, kPolygonNames } from "../boundaries/boundary-types"
 import { Formula, IFormula } from "../formula/formula"
@@ -96,6 +98,7 @@ export const Attribute = V2Model.named("Attribute").props({
   },
   toNumeric(value: string) {
     if (value == null || value === "") return NaN
+    if (self.userType === "numeric") return extractNumeric(value) ?? NaN
     return Number(value)
   },
   get numPrecision() {
@@ -175,6 +178,11 @@ export const Attribute = V2Model.named("Attribute").props({
   },
   setCid(cid?: string) {
     self._cid = cid
+  },
+  updateNumValues() {
+    // cache the numeric conversion of each value in volatile `numValues`
+    self.numValues = self.strValues.map(v => self.toNumeric(v))
+    self.isInferredNumericType.invalidate()
   }
 }))
 .actions(self => ({
@@ -195,8 +203,11 @@ export const Attribute = V2Model.named("Attribute").props({
       if (!self.values) self.values = []
       self.strValues = self.values
     }
-    // cache the numeric conversion of each value in volatile `numValues`
-    self.numValues = self.strValues.map(v => self.toNumeric(v))
+    addDisposer(self, reaction(
+      () => self.userType === "numeric",
+      () => self.updateNumValues(),
+      { name: "Attribute.userType.reaction", fireImmediately: true })
+    )
   },
   // should be called before retrieving snapshot (i.e. before serialization)
   prepareSnapshot() {
