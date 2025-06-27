@@ -145,7 +145,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
           return
         }
         callMatchCirclesToData()
-        callRefreshPointPositions()
+        callRefreshPointPositions({ updateMasks: true })
       }, {name: "respondToHiddenCasesChange"}, dataConfiguration
     )
     return () => disposer()
