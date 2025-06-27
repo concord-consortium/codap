@@ -36,7 +36,7 @@ const Container = types.model("Container", {
 
 const getManagerWithFakeAdapter = () => {
   const formulaManager = new FormulaManager()
-  const dataSet = createDataSet({ attributes: [{ name: "foo" }] })
+  const dataSet = createDataSet({ name: "Cases", attributes: [{ name: "foo" }] })
   const formula = Formula.create({ display: formulaDisplay })
   Container.create({
     dataSet: castToSnapshot(dataSet),
