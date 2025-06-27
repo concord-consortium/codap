@@ -1,7 +1,6 @@
 import { Portal } from "@chakra-ui/react"
-import React, { useCallback, useEffect } from "react"
+import React, { useCallback } from "react"
 import ResizeHandle from "../../assets/icons/icon-corner-resize-handle.svg"
-import { useForceUpdate } from "../../hooks/use-force-update"
 import { useTileContainerContext } from "../../hooks/use-tile-container-context"
 import { IFreeTileLayout } from "../../models/document/free-tile-row"
 import { ITileModel } from "../../models/tiles/tile-model"
@@ -19,7 +18,6 @@ interface IProps {
 export function ComponentResizeWidgets(props: IProps) {
   const { tile, tileLayout, componentRef, isFixedWidth, isFixedHeight, handleResizePointerDown } = props
   const containerRef = useTileContainerContext()
-  const forceUpdate = useForceUpdate()
 
   const handleBottomRightPointerDown = useCallback((e: React.PointerEvent) => {
     tileLayout && handleResizePointerDown(e, tileLayout, "bottom-right")
@@ -41,23 +39,15 @@ export function ComponentResizeWidgets(props: IProps) {
     tileLayout && handleResizePointerDown(e, tileLayout, "left")
   }, [handleResizePointerDown, tileLayout])
 
-  useEffect(() => {
-    // trigger an initial re-render to ensure resize widgets are positioned correctly
-    forceUpdate()
-  }, [forceUpdate])
-
   return (
     <>
       <Portal containerRef={containerRef}>
         {!isFixedWidth &&
-          <ComponentResizeBorder edge="left" onPointerDown={handleLeftPointerDown}
-              componentRef={componentRef} containerRef={containerRef} />}
+          <ComponentResizeBorder edge="left" onPointerDown={handleLeftPointerDown} componentRef={componentRef} />}
         {!isFixedWidth &&
-          <ComponentResizeBorder edge="right" onPointerDown={handleRightPointerDown}
-              componentRef={componentRef} containerRef={containerRef} />}
+          <ComponentResizeBorder edge="right" onPointerDown={handleRightPointerDown} componentRef={componentRef} />}
         {!isFixedHeight &&
-          <ComponentResizeBorder edge="bottom" onPointerDown={handleBottomPointerDown}
-              componentRef={componentRef} containerRef={containerRef} />}
+          <ComponentResizeBorder edge="bottom" onPointerDown={handleBottomPointerDown} componentRef={componentRef} />}
       </Portal>
       {!(isFixedWidth && isFixedHeight) &&
         <div className="codap-component-corner bottom-left" onPointerDown={handleBottomLeftPointerDown}/>

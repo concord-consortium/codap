@@ -1,47 +1,55 @@
+import { autoUpdate, offset, size, useFloating } from "@floating-ui/react"
 import { clsx } from "clsx"
-import React from "react"
-import { kResizeBorderOverlap, kResizeBorderSize, kResizeHandleSize, kTitleBarHeight } from "./constants"
+import React, { useEffect } from "react"
+import { kResizeBorderOverlap } from "./constants"
 
 interface IProps {
-  componentRef: React.RefObject<HTMLDivElement | null>
-  containerRef: React.RefObject<HTMLElement | null>
+  componentRef: React.RefObject<HTMLElement | null>
   edge: "left" | "right" | "bottom"
   onPointerDown?: (e: React.PointerEvent<HTMLDivElement>) => void
 }
 
-export function ComponentResizeBorder({ componentRef, containerRef, edge, onPointerDown }: IProps) {
-  let top = 0
-  let left = 0
-  let width: Maybe<number>
-  let height: Maybe<number>
+export function ComponentResizeBorder({ componentRef, edge, onPointerDown }: IProps) {
 
-  const componentBounds = componentRef.current?.getBoundingClientRect()
-  const containerBounds = containerRef.current?.getBoundingClientRect()
-  if (componentBounds && containerBounds) {
-    switch (edge) {
-      case "left":
-        top = componentBounds.top - containerBounds.top + kTitleBarHeight
-        left = componentBounds.left - containerBounds.left - kResizeBorderSize + kResizeBorderOverlap
-        height = componentBounds.height - kTitleBarHeight
-        break
-      case "right":
-        top = componentBounds.top - containerBounds.top + kTitleBarHeight
-        left = componentBounds.right - containerBounds.left - kResizeBorderOverlap
-        height = componentBounds.height - kTitleBarHeight - kResizeHandleSize
-        break
-      case "bottom":
-        top = componentBounds.bottom - containerBounds.top - kResizeBorderOverlap
-        left = componentBounds.left - containerBounds.left
-        width = componentBounds.width - kResizeHandleSize
+  // Use floating-ui for positioning
+  const { elements: { reference }, refs: { setFloating, setReference }, floatingStyles, update } = useFloating({
+    placement: edge,
+    open: true,
+    middleware: [
+      offset(-kResizeBorderOverlap),
+      size({
+        apply({ rects, elements }) {
+          if (edge === "bottom") {
+            Object.assign(elements.floating.style, {
+              width: `${rects.reference.width}px`,
+            })
+          }
+          else {
+            Object.assign(elements.floating.style, {
+              height: `${rects.reference.height}px`,
+            })
+          }
+        },
+      })
+    ],
+    whileElementsMounted: autoUpdate
+  })
+
+  // Attach the reference ref to your component
+  useEffect(() => {
+    if (componentRef.current && reference !== componentRef.current) {
+      setReference(componentRef.current)
     }
-  }
+    // Note: explicit update shouldn't be required, but without it the border would track
+    // tile resizes correctly but not tile moves.
+    update()
+  })
 
   if (!onPointerDown) return null
 
   const classes = clsx("codap-component-border", edge)
-  const style: React.CSSProperties = { left, top, width, height }
 
   return (
-    <div className={classes} style={style} onPointerDown={onPointerDown}/>
+    <div ref={setFloating} className={classes} style={floatingStyles} onPointerDown={onPointerDown}/>
   )
 }
