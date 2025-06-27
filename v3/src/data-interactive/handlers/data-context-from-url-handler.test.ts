@@ -73,7 +73,7 @@ describe("DataInteractive DataContextHandler", () => {
       // There is also an id field, but that is harder to test.
       expect(result.values).toMatchObject({
         name: "https://example.com/",
-        title: "https://example.com/"
+        title: "Cases"
       })
     })
   })

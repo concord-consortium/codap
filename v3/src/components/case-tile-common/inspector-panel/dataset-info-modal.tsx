@@ -17,14 +17,14 @@ interface IProps {
 export const DatasetInfoModal = ({showInfoModal, setShowInfoModal}: IProps) => {
   const data = useDataSetContext()
   const metadata = useDataSetMetadata()
-  const [datasetName, setDataSetName] = useState(data?.title || "")
+  const [datasetTitle, setDatasetTitle] = useState(data?.title || "")
   const [description, setDescription] = useState(metadata?.description || "")
   const [source, setSource] = useState(metadata?.source || "")
   const [importDate, setImportDate] = useState(metadata?.importDate || "")
 
   const handleCloseInfoModal = () => {
     data?.applyModelChange(() => {
-      data.setName(datasetName)
+      data.setTitle(datasetTitle)
       metadata?.setDescription(description)
       metadata?.setSource(source)
       metadata?.setImportDate(importDate)
@@ -57,8 +57,8 @@ export const DatasetInfoModal = ({showInfoModal, setShowInfoModal}: IProps) => {
         <FormControl display="flex" flexDirection="column" className="dataset-info-modal">
           <FormLabel h="20px" display="flex" flexDirection="row" alignItems="center">
             {t("DG.CaseTable.attributeEditor.name")}
-            <Input size="xs" ml={5} placeholder="name" value={datasetName} onFocus={(e) => e.target.select()}
-                onChange={event => setDataSetName(event.target.value)} data-testid="dataset-name-input"
+            <Input size="xs" ml={5} placeholder="name" value={datasetTitle} onFocus={(e) => e.target.select()}
+                onChange={event => setDatasetTitle(event.target.value)} data-testid="dataset-name-input"
                 onKeyDown={(e) => e.stopPropagation()}
             />
           </FormLabel>

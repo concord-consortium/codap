@@ -106,6 +106,10 @@ test("DataSet basic functionality", () => {
   dataset.setName("name")
   expect(dataset.name).toBe("name")
 
+  expect(dataset.title).toBe("Cases")
+  dataset.setTitle("title")
+  expect(dataset.title).toBe("title")
+
   expect(dataset.isInTransaction).toBe(false)
   dataset.beginTransaction()
   expect(dataset.isInTransaction).toBe(true)
@@ -399,6 +403,7 @@ test("hierarchical collection support", () => {
   expect(data.childCollection.name).toBe("Cases")
 
   const parentCollection = data.addCollection({ name: "ParentCollection" })
+  expect(data.title).toBe("ParentCollection/Cases")
   const parentCollectionId = parentCollection.id
   expect(data.collectionIds).toEqual([parentCollection.id, data.childCollection.id])
   expect(data.collections).toEqual([parentCollection, data.childCollection])
