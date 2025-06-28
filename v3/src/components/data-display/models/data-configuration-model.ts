@@ -360,8 +360,8 @@ export const DataConfigurationModel = types
   }))
   .views(self => ({
     numericValuesForAttribute: cachedFnWithArgsFactory({
-      key: (attrID: string, type: AttributeType | undefined) => attrID + (type || ""),
-      calculate: (attrID: string, type: AttributeType | undefined) => {
+      key: (attrID: string, type?: AttributeType) => `${attrID}:${type || ""}`,
+      calculate: (attrID: string, type?: AttributeType) => {
         const dataset = self.dataset
         const allCaseIDs = Array.from(self.visibleCaseIds)
         const allValues = attrID
@@ -641,8 +641,7 @@ export const DataConfigurationModel = types
         return legendID
           ? self.getCaseDataArray(0).filter((aCaseData: CaseData) => {
             const value = dataDisplayGetNumericValue(dataset, aCaseData.caseID, legendID, typeIsNumeric)
-            // eslint-disable-next-line eqeqeq
-            return value != undefined && value >= min && value < max
+            return value != null && value >= min && value < max
           }).map((aCaseData: CaseData) => aCaseData.caseID)
           : []
 
