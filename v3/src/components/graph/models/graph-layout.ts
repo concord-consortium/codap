@@ -1,4 +1,6 @@
 import {action, computed, makeObservable, observable, override} from "mobx"
+import { measureTextExtent } from "../../../hooks/use-measure-text"
+import vars from "../../vars.scss"
 import {AxisPlace, AxisPlaces, AxisBounds, IScaleType} from "../../axis/axis-types"
 import {isVertical} from "../../axis-graph-shared"
 import {IAxisLayout} from "../../axis/models/axis-layout-context"
@@ -87,6 +89,20 @@ export class GraphLayout extends DataDisplayLayout implements IAxisLayout {
   }
 
   @override setDesiredExtent(place: GraphExtentsPlace, extent: number) {
+    const labelHeight = measureTextExtent('Xy', vars.labelFont).height
+    switch (place) {
+      case 'left':
+      case 'rightNumeric':
+      case 'rightCat': {
+        extent = Math.min(extent, labelHeight + this.tileWidth / 3) // Maximum width for axis
+        break
+      }
+      case 'top':
+      case 'bottom': {
+        extent = Math.min(extent, labelHeight + this.tileHeight / 3) // Maximum height for axis
+        break
+      }
+    }
     this.desiredExtents.set(place, extent)
     this.updateScaleRanges(this.plotWidth, this.plotHeight)
   }

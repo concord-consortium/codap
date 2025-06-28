@@ -1,6 +1,7 @@
 import {ScaleLinear} from "d3"
 import {MutableRefObject} from "react"
 import { determineLevels } from "../../utilities/date-utils"
+import vars from "../vars.scss"
 import {measureText, measureTextExtent} from "../../hooks/use-measure-text"
 import {ICategorySet} from "../../models/data/category-set"
 import { kAxisGap, kAxisTickLength, kDefaultFontHeight } from "./axis-constants"
@@ -11,6 +12,27 @@ import { GraphLayout } from "../graph/models/graph-layout"
 
 export const getStringBounds = (s = 'Wy', font = kDataDisplayFont) => {
   return measureTextExtent(s, font)
+}
+
+export const elideStringToFit = (s: string, maxWidth: number, font = kDataDisplayFont) => {
+  const bounds = measureTextExtent(s, font)
+  if (bounds.width <= maxWidth) return s
+
+  const ellipsis = '…'
+  const ellipsisWidth = measureTextExtent(ellipsis, font).width
+  const avgCharWidth = bounds.width / s.length
+  const extraLength = 5 // extra chars so we don't cut off too early
+  const estimatedLength = Math.floor((maxWidth - ellipsisWidth) / avgCharWidth) + extraLength
+
+  let ellidedString = s.slice(0, estimatedLength)
+  let currentWidth = measureTextExtent(ellidedString + ellipsis, font).width
+
+  while (currentWidth > maxWidth && ellidedString.length > 0) {
+    ellidedString = ellidedString.slice(0, -1)
+    currentWidth = measureTextExtent(ellidedString + ellipsis, font).width
+  }
+
+  return ellidedString + ellipsis
 }
 
 interface ICollisionProps {
@@ -155,7 +177,7 @@ export const getCoordFunctions = (props: IGetCoordFunctionsProps): ICoordFunctio
     rangeMin, rangeMax, subAxisLength,
     isRightCat, isTop, dragInfo} = props,
     bandWidth = subAxisLength / numCategories,
-    labelTextHeight = getStringBounds('12px sans-serif').height,
+    labelTextHeight = getStringBounds(vars.labelFont).height,
     indexOffset = centerCategoryLabels ? 0.5 : 0/*(axisIsVertical ? 1 : 0)*/,
     dI = dragInfo.current
   let labelXOffset = 0, labelYOffset = 0

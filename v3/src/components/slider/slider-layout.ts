@@ -47,6 +47,10 @@ export class SliderAxisLayout implements IAxisLayout {
     this.desiredExtent = extent
   }
 
+  getDesiredExtent(place: AxisPlace) {
+    return this.desiredExtent ?? kDefaultSliderAxisHeight
+  }
+
   getComputedBounds(place: AxisPlace) {
     return {
       left: 0,
