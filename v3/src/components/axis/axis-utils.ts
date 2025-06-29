@@ -24,15 +24,15 @@ export const elideStringToFit = (s: string, maxWidth: number, font = kDataDispla
   const extraLength = 5 // extra chars so we don't cut off too early
   const estimatedLength = Math.floor((maxWidth - ellipsisWidth) / avgCharWidth) + extraLength
 
-  let ellidedString = s.slice(0, estimatedLength)
-  let currentWidth = measureTextExtent(ellidedString + ellipsis, font).width
+  let elidedString = s.slice(0, estimatedLength)
+  let currentWidth = measureTextExtent(elidedString + ellipsis, font).width
 
-  while (currentWidth > maxWidth && ellidedString.length > 0) {
-    ellidedString = ellidedString.slice(0, -1)
-    currentWidth = measureTextExtent(ellidedString + ellipsis, font).width
+  while (currentWidth > maxWidth && elidedString.length > 0) {
+    elidedString = elidedString.slice(0, -1)
+    currentWidth = measureTextExtent(elidedString + ellipsis, font).width
   }
 
-  return ellidedString + ellipsis
+  return elidedString + ellipsis
 }
 
 interface ICollisionProps {
