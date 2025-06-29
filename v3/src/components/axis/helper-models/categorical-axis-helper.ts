@@ -1,15 +1,11 @@
 import { BaseType, Selection } from "d3"
 import { AxisHelper, IAxisHelperArgs } from "./axis-helper"
 import { MutableRefObject } from "react"
-import { kAxisTickLength, kDefaultColorSwatchHeight } from "../axis-constants"
-import { otherPlace } from "../axis-types"
 import { kMain, transitionDuration } from "../../data-display/data-display-types"
-import {
-  collisionExists, DragInfo,
-  getCategoricalLabelPlacement,
-  getCoordFunctions,
-  IGetCoordFunctionsProps
-} from "../axis-utils"
+import { otherPlace } from "../axis-types"
+import { kAxisGap, kAxisTickLength, kDefaultColorSwatchHeight } from "../axis-constants"
+import { collisionExists, DragInfo, elideStringToFit, getCategoricalLabelPlacement, getCoordFunctions, getStringBounds,
+  IGetCoordFunctionsProps } from "../axis-utils"
 
 export interface CatObject {
   cat: string
@@ -51,6 +47,8 @@ export class CategoricalAxisHelper extends AxisHelper {
     const {isVertical, centerCategoryLabels, dragInfo, isColorAxis} = this,
       categorySet = this.multiScale?.categorySet,
       dividerLength = this.layout.getAxisLength(otherPlace(this.axisPlace)) ?? 0,
+      maxCategoryLabelExtent = this.layout.getDesiredExtent(this.axisPlace) - 4 * kAxisGap -
+                                        kAxisTickLength - getStringBounds().height,
       isRightCat = this.axisPlace === 'rightCat',
       isTop = this.axisPlace === 'top',
       categories = this.categoriesRef.current,
@@ -122,6 +120,7 @@ export class CategoricalAxisHelper extends AxisHelper {
               .attr('transform-origin', (d, i) => `${fns.getLabelX(i)} ${fns.getLabelY(i)}`)
               .transition().duration(duration)
           } else {
+            // Render category labels
             update.selectAll('rect').remove()
             update.select('.category-label')
               .attr('transform', `${rotation}`)
@@ -133,7 +132,7 @@ export class CategoricalAxisHelper extends AxisHelper {
               .attr('class', 'category-label')
               .attr('x', (d, i) => fns.getLabelX(i))
               .attr('y', (d, i) => fns.getLabelY(i))
-              .text((d: CatObject, i) => String(categories[i]))
+              .text((d: CatObject, i) => elideStringToFit(String(categories[i]), maxCategoryLabelExtent))
             }
           return update
         }

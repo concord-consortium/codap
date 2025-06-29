@@ -30,10 +30,6 @@ export class SliderAxisLayout implements IAxisLayout {
     return this.axisBounds
   }
 
-  @action setAxisBounds(place: AxisPlace, bounds?: AxisBounds) {
-    this.axisBounds = bounds
-  }
-
   getAxisMultiScale(place: AxisPlace) {
     return this.axisMultiScale
   }
@@ -49,6 +45,10 @@ export class SliderAxisLayout implements IAxisLayout {
 
   @action setDesiredExtent(place: any, extent: number) {
     this.desiredExtent = extent
+  }
+
+  getDesiredExtent(place: AxisPlace) {
+    return this.desiredExtent ?? kDefaultSliderAxisHeight
   }
 
   getComputedBounds(place: AxisPlace) {

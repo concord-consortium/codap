@@ -1,4 +1,6 @@
 import {action, computed, makeObservable, observable, override} from "mobx"
+import { measureTextExtent } from "../../../hooks/use-measure-text"
+import vars from "../../vars.scss"
 import {AxisPlace, AxisPlaces, AxisBounds, IScaleType} from "../../axis/axis-types"
 import {isVertical} from "../../axis-graph-shared"
 import {IAxisLayout} from "../../axis/models/axis-layout-context"
@@ -48,38 +50,6 @@ export class GraphLayout extends DataDisplayLayout implements IAxisLayout {
     return this.axisBounds.get(place)
   }
 
-  @action setAxisBounds(place: AxisPlace, bounds: AxisBounds | undefined) {
-    if (bounds) {
-      // We allow the axis to draw gridlines for bivariate numeric plots. Unfortunately, the gridlines end up as
-      // part of the axis dom element so that we get in here with bounds that span the entire width or height of
-      // the plot. We tried workarounds to get gridlines that were _not_ part of the axis element with the result
-      // that the gridlines got out of sync with axis tick marks during drag. So we have this inelegant solution
-      // that shouldn't affect the top and right axes when we get them but it may be worthwhile to
-      // (TODO) figure out if there's a better way to render gridlines on background (or plot) so this isn't necessary.
-
-      // given state of the graph, we may need to adjust the drop areas' bounds
-      const newBounds = bounds
-      const legendHeight = this.getDesiredExtent('legend')
-
-      if (place === "bottom") {
-        newBounds.height = Math.min(bounds.height, this.tileHeight - this.getAxisLength('left') - legendHeight)
-        newBounds.top = this.plotHeight
-      }
-
-      if (place === "left") {
-        newBounds.height = Math.min(bounds.height, this.tileHeight - legendHeight)
-        // if gridlines are present, axis will grow to .width + plotWidth, so we recalculate
-        if (bounds.width > this.plotWidth) {
-          newBounds.width -= this.plotWidth
-        }
-      }
-
-      this.axisBounds.set(place, newBounds)
-    } else {
-      this.axisBounds.delete(place)
-    }
-  }
-
   getAxisMultiScale(place: AxisPlace) {
     return this.axisScales.get(place) ??
       new MultiScale({scaleType: "ordinal", orientation: "horizontal"})
@@ -119,6 +89,20 @@ export class GraphLayout extends DataDisplayLayout implements IAxisLayout {
   }
 
   @override setDesiredExtent(place: GraphExtentsPlace, extent: number) {
+    const labelHeight = measureTextExtent('Xy', vars.labelFont).height
+    switch (place) {
+      case 'left':
+      case 'rightNumeric':
+      case 'rightCat': {
+        extent = Math.min(extent, labelHeight + this.tileWidth / 3) // Maximum width for axis
+        break
+      }
+      case 'top':
+      case 'bottom': {
+        extent = Math.min(extent, labelHeight + this.tileHeight / 3) // Maximum height for axis
+        break
+      }
+    }
     this.desiredExtents.set(place, extent)
     this.updateScaleRanges(this.plotWidth, this.plotHeight)
   }

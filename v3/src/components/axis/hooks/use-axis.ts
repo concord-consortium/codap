@@ -149,6 +149,8 @@ export const useAxis = (axisPlace: AxisPlace) => {
   useEffect(() => {
     return mstAutorun(() => {
       layout.setDesiredExtent(axisPlace, computeDesiredExtent())
+      // detect changes to computed bounds
+      layout.getComputedBounds(axisPlace)
     }, {name: "useAxis.mstAutorun [setDesiredExtent]"}, axisModel)
   }, [axisModel, layout, axisPlace, computeDesiredExtent])
 }
