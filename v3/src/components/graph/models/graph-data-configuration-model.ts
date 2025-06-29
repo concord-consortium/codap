@@ -153,7 +153,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       const values:number[] = []
       const yAttributeIDs = self.yAttributeIDs
       yAttributeIDs.forEach(attrID => {
-        const attrValues = self.numericValuesForAttribute(attrID)
+        const attrValues = self.numericValuesForAttribute(attrID, self.attributeType(role))
         if (attrValues) {
           values.push(...attrValues)
         }
@@ -801,7 +801,8 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       } else {
         self._setAttributeDescription(role, desc)
       }
-      self.numericValuesForAttribute.invalidate(role)  // No harm in invalidating even if not numeric
+      // No harm in invalidating even if not numeric
+      self.numericValuesForAttribute.invalidate(role, self.attributeType(role))
       self.cellMap.invalidateAll()
     },
     addYAttribute(desc: IAttributeDescriptionSnapshot, index?: number) {

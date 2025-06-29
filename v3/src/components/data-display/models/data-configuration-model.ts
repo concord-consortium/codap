@@ -241,7 +241,7 @@ export const DataConfigurationModel = types
         switch (self.attributeType(role as AttrRole)) {
           // TODO: handle "date" type
           case "numeric":
-            return isFiniteNumber(data.getNumeric(caseID, attributeID))
+            return isFiniteNumber(dataDisplayGetNumericValue(data, caseID, attributeID, true))
           case "categorical":
             // Treat 0 as a string and return true for all non-empty strings
             return !!data.getStrValue(caseID, attributeID)
@@ -360,13 +360,13 @@ export const DataConfigurationModel = types
   }))
   .views(self => ({
     numericValuesForAttribute: cachedFnWithArgsFactory({
-      key: (attrID: string) => attrID,
-      calculate: (attrID: string) => {
+      key: (attrID: string, type?: AttributeType) => `${attrID}:${type || ""}`,
+      calculate: (attrID: string, type?: AttributeType) => {
         const dataset = self.dataset
         const allCaseIDs = Array.from(self.visibleCaseIds)
         const allValues = attrID
           ? allCaseIDs.map((anID: string) => {
-            const value = dataDisplayGetNumericValue(dataset, anID, attrID)
+            const value = dataDisplayGetNumericValue(dataset, anID, attrID, type === "numeric")
             return isFiniteNumber(value) ? value : null
           }) : []
         return allValues.filter(aValue => aValue != null)
@@ -383,7 +383,8 @@ export const DataConfigurationModel = types
      */
     _numericValuesForAttrRole(role: AttrRole) {
       const attrID = self.attributeID(role)
-      return self.numericValuesForAttribute(attrID || '')
+      const type = self.attributeType(role)
+      return self.numericValuesForAttribute(attrID || '', type)
     },
     /**
      * This is overridden in derived class where we need to handle multiple y attributes.
@@ -465,8 +466,8 @@ export const DataConfigurationModel = types
         if (legendAttrID) {
           if (self.attributeType("legend") === "numeric") {
             caseDataArray.sort((cd1: CaseData, cd2: CaseData) => {
-              const cd1Value = self.dataset?.getNumeric(cd1.caseID, legendAttrID) ?? NaN,
-                cd2Value = self.dataset?.getNumeric(cd2.caseID, legendAttrID) ?? NaN
+              const cd1Value = dataDisplayGetNumericValue(self.dataset, cd1.caseID, legendAttrID, true) ?? NaN,
+                cd2Value = dataDisplayGetNumericValue(self.dataset, cd2.caseID, legendAttrID, true) ?? NaN
               return numericSortComparator({a: cd1Value, b: cd2Value, order: "desc"})
             })
           } else {
@@ -636,10 +637,11 @@ export const DataConfigurationModel = types
       getCasesInLegendRange(min: number, max: number) {
         const dataset = self.dataset
         const legendID = self.attributeID('legend')
+        const typeIsNumeric = self.attributeType('legend') === 'numeric'
         return legendID
           ? self.getCaseDataArray(0).filter((aCaseData: CaseData) => {
-            const value = dataDisplayGetNumericValue(dataset, aCaseData.caseID, legendID)
-            return value !== undefined && value >= min && value < max
+            const value = dataDisplayGetNumericValue(dataset, aCaseData.caseID, legendID, typeIsNumeric)
+            return value != null && value >= min && value < max
           }).map((aCaseData: CaseData) => aCaseData.caseID)
           : []
 
@@ -997,7 +999,8 @@ export const DataConfigurationModel = types
     setAttribute(role: AttrRole, desc?: IAttributeDescriptionSnapshot) {
       self._setAttributeDescription(role, desc)
       self.setPointsNeedUpdating(true)
-      self.numericValuesForAttribute.invalidate(role)  // No harm in invalidating even if not numeric
+      // No harm in invalidating even if not numeric
+      self.numericValuesForAttribute.invalidate(role, self.attributeType(role))
     },
     setAttributeType(role: AttrRole, type: AttributeType, plotNumber = 0) {
       self._attributeDescriptions.get(role)?.setType(type)

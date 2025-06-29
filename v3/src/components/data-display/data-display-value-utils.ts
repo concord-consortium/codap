@@ -1,13 +1,23 @@
-import { convertToDate } from "../../utilities/date-utils"
 import { IDataSet } from "../../models/data/data-set"
+import { convertToDate } from "../../utilities/date-utils"
+import { extractNumeric } from "../../utilities/math-utils"
 
 // For graphs and map legends, we need date values to be returned as numbers
-export const dataDisplayGetNumericValue = (dataset: IDataSet | undefined, caseID: string, attrID: string) => {
+export function dataDisplayGetNumericValue(dataset: Maybe<IDataSet>, caseID: string, attrID: string, extract = true) {
   const attr = dataset?.getAttribute(attrID)
-  const index = dataset?.getItemIndexForCaseOrItem(caseID)
-  if (attr?.type === 'date' && index != null) {
-    const dateInMS = convertToDate(dataset?.getStrValueAtItemIndex(index, attrID))?.valueOf()
-    return dateInMS ? dateInMS / 1000 : undefined
+  if (attr?.type === 'numeric') {
+    return dataset?.getNumeric(caseID, attrID)
   }
-  return dataset?.getNumeric(caseID, attrID)
+
+  const strValue = dataset?.getStrValue(caseID, attrID)
+  if (!strValue) return
+
+  if (attr?.type === 'date') {
+    const dateInMS = convertToDate(strValue)?.valueOf()
+    return dateInMS != null ? dateInMS / 1000 : undefined
+  }
+
+  if (extract) {
+    return extractNumeric(strValue)
+  }
 }
