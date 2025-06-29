@@ -27,7 +27,7 @@ export const useDotPlot = (pixiPoints?: PixiPoints) => {
   const { secondaryNumericScale } = subPlotCells
   const primaryAttrRole = dataConfig?.primaryRole ?? "x"
   const primaryIsBottom = primaryAttrRole === "x"
-  const secondaryPlace = primaryIsBottom ? "left" : "top"
+  const secondaryPlace = primaryIsBottom ? "left" : "bottom"
   const secondaryAttrRole: GraphAttrRole = primaryAttrRole === "x" ? "y" : "x"
   const extraPrimaryRole = primaryIsBottom ? "topSplit" : "rightSplit"
   const extraPrimaryPlace = primaryIsBottom ? "top" : "rightCat"
@@ -104,6 +104,10 @@ export const useDotPlot = (pixiPoints?: PixiPoints) => {
   }, [binMap, binWidth, bins, dataset, extraPrimaryAttrID, extraPrimaryAxisScale, isHistogram,
       minBinEdge, numExtraPrimaryBands, pointDiameter, primaryAttrID, primaryAxisScale, primaryIsBottom,
       secondaryBandwidth, totalNumberOfBins, numPointsInRow])
+
+  // The secondary axis scale can lose its domain in certain circumstances. Reconstitute it.
+  layout?.axisScales.get(secondaryPlace)?.setCategoricalDomain(
+    dataConfig?.categoryArrayForAttrRole(secondaryAttrRole) ?? [])
 
   const getSecondaryScreenCoord = useCallback((anID: string) => {
     if (!binMap[anID]) return 0
