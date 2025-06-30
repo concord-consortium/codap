@@ -101,6 +101,10 @@ export class GraphLayout extends DataDisplayLayout implements IAxisLayout {
     return this.axisScales.get(place)?.bandScale
   }
 
+  getCategoricalScale(place: AxisPlace) {
+    return this.axisScales.get(place)?.categoricalScale
+  }
+
   @action setAxisScaleType(place: AxisPlace, scale: IScaleType) {
     this.getAxisMultiScale(place)?.setScaleType(scale)
     const length = isVertical(place) ? this.plotHeight : this.plotWidth

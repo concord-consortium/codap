@@ -1,6 +1,7 @@
 import { ScaleBand, ScaleLinear } from "d3"
-import { useCallback } from "react"
+import { useCallback, useEffect } from "react"
 import { useMemo } from "use-memo-one"
+import { mstReaction } from "../../../utilities/mst-reaction"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
 import { AxisPlace } from "../../axis/axis-types"
 import { GraphAttrRole } from "../../data-display/data-display-types"
@@ -16,6 +17,7 @@ import {
 import { useGraphContentModelContext } from "./use-graph-content-model-context"
 import { useGraphDataConfigurationContext } from "./use-graph-data-configuration-context"
 import { useGraphLayoutContext } from "./use-graph-layout-context"
+import { reaction } from "mobx";
 
 export const useDotPlot = (pixiPoints?: PixiPoints) => {
   const graphModel = useGraphContentModelContext()
@@ -105,10 +107,6 @@ export const useDotPlot = (pixiPoints?: PixiPoints) => {
       minBinEdge, numExtraPrimaryBands, pointDiameter, primaryAttrID, primaryAxisScale, primaryIsBottom,
       secondaryBandwidth, totalNumberOfBins, numPointsInRow])
 
-  // The secondary axis scale can lose its domain in certain circumstances. Reconstitute it.
-  layout?.axisScales.get(secondaryPlace)?.setCategoricalDomain(
-    dataConfig?.categoryArrayForAttrRole(secondaryAttrRole) ?? [])
-
   const getSecondaryScreenCoord = useCallback((anID: string) => {
     if (!binMap[anID]) return 0
 
@@ -128,6 +126,18 @@ export const useDotPlot = (pixiPoints?: PixiPoints) => {
       isHistogram, layout, numExtraSecondaryBands, numPointsInRow, overlap, pointDiameter,
       primaryIsBottom, secondaryAxisExtent, secondaryAxisScale, secondaryBandwidth,
       secondaryNumericScale, secondarySign])
+
+  useEffect(function handleSecondaryDomainObjectChange() {
+    const updateCategoricalDomainDisposer = reaction(
+      () => layout?.axisScales.get(secondaryPlace)?.domain,
+      () => {
+        layout?.axisScales.get(secondaryPlace)?.setCategoricalDomain(
+          dataConfig?.categoryArrayForAttrRole(secondaryAttrRole) ?? [])
+      },
+      {name: 'AxisScale updateCategoricalDomain', fireImmediately: true}
+    )
+    return () => updateCategoricalDomainDisposer()
+  }, [dataConfig, layout, secondaryAttrRole, secondaryPlace])
 
   return {
     dataset, dataConfig, getPrimaryScreenCoord, getSecondaryScreenCoord, graphModel, isAnimating, layout, pointColor,
