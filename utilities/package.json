@@ -13,6 +13,9 @@
     "os": false,
     "path": false
   },
+  "files": [
+    "dist"
+  ],
   "browserslist": "> 0.2%, last 5 versions, Firefox ESR, not dead, not ie > 0",
   "jest": {
     "preset": "ts-jest/presets/js-with-ts",
