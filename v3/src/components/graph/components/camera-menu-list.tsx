@@ -69,10 +69,7 @@ export const CameraMenuList = () => {
     const svgString = graphSvg(imageOptions)
 
     if (svgString) {
-      // const svgBlob = new Blob([svgString], { type: "image/svg+xml" })
-      // const svgUrl = URL.createObjectURL(svgBlob)
-      // cfm?.client.saveSecondaryFileAsDialog(svgUrl, "svg", "image/svg+xml", () => null)
-      cfm?.client.saveSecondaryFileAsDialog(svgString, "svg", "image/svg+xml", () => null)
+      cfm?.client.saveSecondaryFileAsDialog(svgString, "svg", "text/plain", () => null)
     }
   }
 

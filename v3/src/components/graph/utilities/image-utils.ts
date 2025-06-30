@@ -107,7 +107,7 @@ export function graphSvg({ rootEl, graphWidth, graphHeight, pixiPoints }: IGraph
 
   // Remove elements we don't want to include in the snapshot
   const isAllowedElement = (_element: Element): boolean => {
-    if (!(_element instanceof HTMLInputElement || _element instanceof HTMLTextAreaElement)) return true
+    if (_element instanceof HTMLInputElement || _element instanceof HTMLTextAreaElement) return false
     return Array.from(_element.classList).every((className) => !disallowedElementClasses.has(className))
   }
 
