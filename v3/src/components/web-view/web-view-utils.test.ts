@@ -1,4 +1,4 @@
-import { kRootDataGamesPluginUrl, kRootGuideUrl, kRootPluginUrl } from "../../constants"
+import { kCodap3RootPluginsUrl, kRootDataGamesPluginUrl, kRootGuideUrl, kRootPluginsUrl } from "../../constants"
 import { kRelativeGuideRoot, kRelativePluginRoot, kRelativeURLRoot, processWebViewUrl } from "./web-view-utils"
 
 const kTestUrls: Array<{ original: string, processed: string }> = [
@@ -7,16 +7,20 @@ const kTestUrls: Array<{ original: string, processed: string }> = [
     processed: `${kRootDataGamesPluginUrl}/Markov/index.html`
   },
   {
+    original: `../../../../extn/plugins/onboarding/`,
+    processed: `${kCodap3RootPluginsUrl}/onboarding/index.html`
+  },
+  {
     original: `https://test/`,
     processed: `https://test/index.html`
   },
   {
     original: `${kRelativePluginRoot}/index.html`,
-    processed: `${kRootPluginUrl}/index.html`
+    processed: `${kRootPluginsUrl}/index.html`
   },
   {
     original: `${kRelativePluginRoot}/subdir/`,
-    processed: `${kRootPluginUrl}/subdir/index.html`
+    processed: `${kRootPluginsUrl}/subdir/index.html`
   },
   {
     original: `${kRelativeGuideRoot}/Markov/markov_getstarted.html`,

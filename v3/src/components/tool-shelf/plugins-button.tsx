@@ -1,7 +1,7 @@
 import React from "react"
 import { Menu, MenuButton, MenuDivider, MenuItem, MenuList } from "@chakra-ui/react"
 import PluginsIcon from '../../assets/icons/icon-plug.svg'
-import { kRootPluginUrl } from "../../constants"
+import { kRootPluginsUrl } from "../../constants"
 import { useRemotePluginsConfig } from "../../hooks/use-remote-plugins-config"
 import { useDocumentContent } from "../../hooks/use-document-content"
 import { DEBUG_PLUGINS } from "../../lib/debug"
@@ -32,7 +32,7 @@ function PluginItem({ pluginData }: IPluginItemProps) {
       () => {
         const url = URL.canParse(pluginData.path)
                       ? pluginData.path
-                      : processWebViewUrl(`${kRootPluginUrl}${pluginData.path}`)
+                      : processWebViewUrl(`${kRootPluginsUrl}${pluginData.path}`)
         const options = { height: pluginData.height, width: pluginData.width }
         const tile = documentContent?.createOrShowTile?.(kWebViewTileType, options)
         if (isWebViewModel(tile?.content)) tile.content.setUrl(url)
@@ -51,7 +51,7 @@ function PluginItem({ pluginData }: IPluginItemProps) {
       onClick={handleClick}
     >
       <div className="plugin-selection">
-        <img className="plugin-selection-icon" src={`${kRootPluginUrl}${pluginData.icon}`} />
+        <img className="plugin-selection-icon" src={`${kRootPluginsUrl}${pluginData.icon}`} />
         <span className="plugin-selection-title">{pluginData.title}</span>
       </div>
     </MenuItem>

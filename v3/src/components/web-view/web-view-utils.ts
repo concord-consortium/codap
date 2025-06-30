@@ -1,4 +1,4 @@
-import { kRootDataGamesPluginUrl, kRootGuideUrl, kRootPluginUrl } from "../../constants"
+import { kCodap3RootPluginsUrl, kRootDataGamesPluginUrl, kRootGuideUrl, kRootPluginsUrl } from "../../constants"
 
 export const kRelativePluginRoot = "../../../../extn/plugins"
 export const kRelativeGuideRoot = "../../../../extn/example-documents/guides"
@@ -8,7 +8,9 @@ export const kRelativeURLRoot = "%_url_%/guides"
 // a substring match against the old URL to find the new URL.
 const kMappedUrls: Array<[string, string]> = [
   // v3 version of Markov has been deployed to s3, but not all data games have been migrated
-  ["//concord-consortium.github.io/codap-data-interactives/Markov", `${kRootDataGamesPluginUrl}/Markov/`]
+  ["//concord-consortium.github.io/codap-data-interactives/Markov", `${kRootDataGamesPluginUrl}/Markov/`],
+  // onboarding plugins are proxied so that drag/drop works, so we used the proxied url
+  ["/plugins/onboarding/", `${kCodap3RootPluginsUrl}/onboarding/`],
 ]
 
 export function processWebViewUrl(url: string) {
@@ -29,7 +31,7 @@ export function processWebViewUrl(url: string) {
   // Many plugins used to be packaged with CODAP v2, then referenced relatively.
   // These references need to be changed to point to the S3 bucket we now use to host plugins.
   if (updatedUrl.startsWith(kRelativePluginRoot)) {
-    updatedUrl = `${kRootPluginUrl}${updatedUrl.slice(kRelativePluginRoot.length)}`
+    updatedUrl = `${kRootPluginsUrl}${updatedUrl.slice(kRelativePluginRoot.length)}`
   }
 
   // Some example document guides were packaged with CODAP v2, then referenced relatively.
