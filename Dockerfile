@@ -105,8 +105,8 @@ RUN mv /codap/dist/$BUILD_NUMBER/* /codap/dist/
 ### Step 2 ###
 # Nginx 이미지로 전환하여 정적 파일 서빙
 
-# bitnami/nginx 17.1.0 버전에서 사용하는 image tag
-FROM bitnami/nginx:1.26.0-debian-12-r1 as dev
+# bitnami/nginx 20.1.3 버전에서 사용하는 image tag
+FROM bitnami/nginx:1.28.0-debian-12-r3 as dev
 
 # 빌드된 정적 파일 복사
 COPY --from=builder-dev /codap/dist /app/codap
@@ -115,8 +115,8 @@ EXPOSE 80
 
 
 
-# bitnami/nginx 17.1.0 버전에서 사용하는 image tag
-FROM bitnami/nginx:1.26.0-debian-12-r1 as prd
+# bitnami/nginx 20.1.3 버전에서 사용하는 image tag
+FROM bitnami/nginx:1.28.0-debian-12-r3 as prd
 
 # 빌드된 정적 파일 복사
 COPY --from=builder-prd /codap/dist /app/codap
