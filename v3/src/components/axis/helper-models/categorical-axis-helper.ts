@@ -132,7 +132,10 @@ export class CategoricalAxisHelper extends AxisHelper {
               .attr('class', 'category-label')
               .attr('x', (d, i) => fns.getLabelX(i))
               .attr('y', (d, i) => fns.getLabelY(i))
-              .text((d: CatObject, i) => elideStringToFit(String(categories[i]), maxCategoryLabelExtent))
+              .text((d: CatObject, i) => {
+                return collision ? elideStringToFit(String(categories[i]), maxCategoryLabelExtent)
+                  : categories[i]
+              })
             }
           return update
         }
