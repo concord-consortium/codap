@@ -1,7 +1,7 @@
 import { ScaleBand, ScaleLinear } from "d3"
+import { reaction } from "mobx"
 import { useCallback, useEffect } from "react"
 import { useMemo } from "use-memo-one"
-import { mstReaction } from "../../../utilities/mst-reaction"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
 import { AxisPlace } from "../../axis/axis-types"
 import { GraphAttrRole } from "../../data-display/data-display-types"
@@ -17,7 +17,6 @@ import {
 import { useGraphContentModelContext } from "./use-graph-content-model-context"
 import { useGraphDataConfigurationContext } from "./use-graph-data-configuration-context"
 import { useGraphLayoutContext } from "./use-graph-layout-context"
-import { reaction } from "mobx";
 
 export const useDotPlot = (pixiPoints?: PixiPoints) => {
   const graphModel = useGraphContentModelContext()
@@ -127,16 +126,14 @@ export const useDotPlot = (pixiPoints?: PixiPoints) => {
       primaryIsBottom, secondaryAxisExtent, secondaryAxisScale, secondaryBandwidth,
       secondaryNumericScale, secondarySign])
 
-  useEffect(function handleSecondaryDomainObjectChange() {
-    const updateCategoricalDomainDisposer = reaction(
-      () => layout?.axisScales.get(secondaryPlace)?.domain,
-      () => {
-        layout?.axisScales.get(secondaryPlace)?.setCategoricalDomain(
-          dataConfig?.categoryArrayForAttrRole(secondaryAttrRole) ?? [])
+  useEffect(function handleSecondaryAxisScaleChange() {
+    return reaction(
+      () => layout?.axisScales.get(secondaryPlace),
+      axisScale => {
+        axisScale?.setCategoricalDomain(dataConfig?.categoryArrayForAttrRole(secondaryAttrRole) ?? [])
       },
       {name: 'AxisScale updateCategoricalDomain', fireImmediately: true}
     )
-    return () => updateCategoricalDomainDisposer()
   }, [dataConfig, layout, secondaryAttrRole, secondaryPlace])
 
   return {
