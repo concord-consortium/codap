@@ -1,5 +1,6 @@
 import { ScaleBand, ScaleLinear } from "d3"
-import { useCallback } from "react"
+import { reaction } from "mobx"
+import { useCallback, useEffect } from "react"
 import { useMemo } from "use-memo-one"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
 import { AxisPlace } from "../../axis/axis-types"
@@ -27,7 +28,7 @@ export const useDotPlot = (pixiPoints?: PixiPoints) => {
   const { secondaryNumericScale } = subPlotCells
   const primaryAttrRole = dataConfig?.primaryRole ?? "x"
   const primaryIsBottom = primaryAttrRole === "x"
-  const secondaryPlace = primaryIsBottom ? "left" : "top"
+  const secondaryPlace = primaryIsBottom ? "left" : "bottom"
   const secondaryAttrRole: GraphAttrRole = primaryAttrRole === "x" ? "y" : "x"
   const extraPrimaryRole = primaryIsBottom ? "topSplit" : "rightSplit"
   const extraPrimaryPlace = primaryIsBottom ? "top" : "rightCat"
@@ -124,6 +125,16 @@ export const useDotPlot = (pixiPoints?: PixiPoints) => {
       isHistogram, layout, numExtraSecondaryBands, numPointsInRow, overlap, pointDiameter,
       primaryIsBottom, secondaryAxisExtent, secondaryAxisScale, secondaryBandwidth,
       secondaryNumericScale, secondarySign])
+
+  useEffect(function handleSecondaryAxisScaleChange() {
+    return reaction(
+      () => layout?.axisScales.get(secondaryPlace),
+      axisScale => {
+        axisScale?.setCategoricalDomain(dataConfig?.categoryArrayForAttrRole(secondaryAttrRole) ?? [])
+      },
+      {name: 'AxisScale updateCategoricalDomain', fireImmediately: true}
+    )
+  }, [dataConfig, layout, secondaryAttrRole, secondaryPlace])
 
   return {
     dataset, dataConfig, getPrimaryScreenCoord, getSecondaryScreenCoord, graphModel, isAnimating, layout, pointColor,
