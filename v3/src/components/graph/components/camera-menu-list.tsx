@@ -66,6 +66,8 @@ export const CameraMenuList = () => {
     const { imageOptions } = graphModel.renderState
     if (!imageOptions) return
 
+    // TODO: The current strategy for turning a graph into an SVG involves wrapping the whole tile in a foreignObject,
+    // which will not render in Word, Notes, etc.
     const svgString = graphSvg(imageOptions)
 
     if (svgString) {
