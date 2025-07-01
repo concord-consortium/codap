@@ -1,6 +1,6 @@
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
-import React, { useMemo, useRef } from "react"
+import React, { useEffect, useMemo, useState } from "react"
 import { useCollectionContext, useParentCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useDataSetMetadata } from "../../hooks/use-data-set-metadata"
@@ -24,6 +24,19 @@ const kRelationDefaultStrokeColor = "#ddd" // light gray
 const kRelationSelectedStrokeColor = "#66afe9" // blue
 const kRelationStrokeWidth = 1
 const kRelationSelectedStrokeWidth = 3
+
+interface IRelationColors {
+  defaultFill: string
+  selectedFill: string
+  defaultStroke: string
+  selectedStroke: string
+}
+const kDefaultRelationColors: IRelationColors = {
+  defaultFill: kRelationDefaultFillColor,
+  selectedFill: kRelationDefaultFillColor,
+  defaultStroke: kRelationDefaultStrokeColor,
+  selectedStroke: kRelationSelectedStrokeColor
+}
 
 interface IProps {
   gridElt?: HTMLDivElement | null
@@ -61,11 +74,13 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({
     { active: !!dragAttributeInfo && !preventDrop, over: isOverAndCanDrop, parentMost })
   const dropMessage = t("DG.CaseTableDropTarget.dropMessage")
   const dropMessageWidth = useMemo(() => measureText(dropMessage, "12px sans-serif"), [dropMessage])
-  const tableSpacerDivRef = useRef<HTMLElement | null>(null)
-  const divHeight = tableSpacerDivRef.current?.getBoundingClientRect().height
+  const [tableSpacerDiv, setTableSpacerDiv] = useState<HTMLElement | null>(null)
+  const [tableSpacerHeight, setTableSpacerHeight] = useState<number | null>(null)
+  const [relationColors, setRelationColors] = useState<IRelationColors>(kDefaultRelationColors)
   const kMargin = 10
-  const msgStyle: React.CSSProperties =
-    { bottom: divHeight && dropMessageWidth ? (divHeight - dropMessageWidth) / 2 - kMargin : undefined }
+  const msgStyle: React.CSSProperties = tableSpacerHeight && dropMessageWidth
+    ? { bottom: (tableSpacerHeight - dropMessageWidth) / 2 - kMargin }
+    : {}
   const parentCases = parentCollection ? data?.getCasesForCollection(parentCollection.id) : []
   const indexRanges = useMemo(() => {
     const _indexRanges = childTableModel?.parentIndexRanges ?? []
@@ -85,9 +100,41 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({
   }, [childTableModel?.parentIndexRanges, parentTableModel?.inputRowIndex])
 
   const handleRef = (element: HTMLElement | null) => {
-    tableSpacerDivRef.current = element
+    setTableSpacerDiv(element)
     setNodeRef(element)
   }
+
+  // match relation colors to grid colors via CSS variables
+  useEffect(() => {
+    const newRelationColors = { ...relationColors}
+    const relationSelectedFillColor = getStringCssVariable(gridElt, "--rdg-row-selected-background-color")
+    if (relationSelectedFillColor) {
+      newRelationColors.selectedFill = relationSelectedFillColor
+    }
+    const relationDefaultStrokeColor = getStringCssVariable(gridElt, "--rdg-border-color")
+    if (relationDefaultStrokeColor) {
+      newRelationColors.defaultStroke = relationDefaultStrokeColor
+    }
+    const relationSelectedStrokeColor = getStringCssVariable(gridElt, "--rdg-selection-color")
+    if (relationSelectedStrokeColor) {
+      newRelationColors.selectedStroke = relationSelectedStrokeColor
+    }
+    setRelationColors(newRelationColors)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gridElt])
+
+  // use resize observer to track changes in the height of the spacer div
+  useEffect(() => {
+    if (!tableSpacerDiv) return
+
+    const resizeObserver = new ResizeObserver(entries => {
+      if (entries.length > 0 && entries[0].contentRect.height !== tableSpacerHeight) {
+        setTableSpacerHeight(entries[0].contentRect.height)
+      }
+    })
+    resizeObserver.observe(tableSpacerDiv)
+    return () => resizeObserver.disconnect()
+  }, [tableSpacerDiv, tableSpacerHeight])
 
   if (!data || !parentCases) return null
 
@@ -142,12 +189,6 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({
 
   const topTooltipKey = `DG.CaseTable.dividerView.${everyCaseIsCollapsed ? 'expandAllTooltip' : 'collapseAllTooltip'}`
   const topButtonTooltip = t(topTooltipKey)
-  const relationSelectedFillColor = getStringCssVariable(gridElt, "--rdg-row-selected-background-color") ||
-                                      kRelationDefaultFillColor
-  const relationDefaultStrokeColor = getStringCssVariable(gridElt, "--rdg-border-color") ||
-                                      kRelationDefaultStrokeColor
-  const relationSelectedStrokeColor = getStringCssVariable(gridElt, "--rdg-selection-color") ||
-                                      kRelationSelectedStrokeColor
 
   return (
     <div className={classes} ref={handleRef} onClick={handleBackgroundClick}>
@@ -162,7 +203,7 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({
               {/* Draw all fills */}
               {indexRanges?.map(({ id: parentCaseId, firstChildIndex, lastChildIndex }, index) => {
                 const isCaseSelected = data.isCaseSelected(parentCaseId)
-                const fillColor = isCaseSelected ? relationSelectedFillColor : kRelationDefaultFillColor
+                const fillColor = isCaseSelected ? relationColors.selectedFill : relationColors.defaultFill
                 return (
                   <CurvedSplineFill
                     key={`fill-${parentCaseId}-${index}`}
@@ -181,7 +222,7 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({
                 const nextParentHasSelectedChild = !!nextParentCaseId && isAnyChildSelected(data, nextParentCaseId)
                 const hasSelectedChild = isAnyChildSelected(data, parentCaseId)
                 const strokeColor = hasSelectedChild || nextParentHasSelectedChild
-                                      ? relationSelectedStrokeColor : relationDefaultStrokeColor
+                                      ? relationColors.selectedStroke : relationColors.defaultStroke
                 const strokeWidth = hasSelectedChild !== nextParentHasSelectedChild
                                       ? kRelationSelectedStrokeWidth : kRelationStrokeWidth
                 const y1Bottom = parentTableModel.getBottomOfRowModuloScroll(parentIndex)
