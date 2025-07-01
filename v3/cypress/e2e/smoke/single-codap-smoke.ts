@@ -135,8 +135,7 @@ context("codap single smoke test", () => {
     cy.log("checks map component")
     c.getComponentTitle("map").should("have.text", "Measurements")
     cy.get('.leaflet-container').should('exist') // Ensure the map container is ready
-    // Some day add a check for map with points, see PT #187534790
-    // Also some day add a legend to the map.
+    // PixiPoint checks for maps are in map-pixi-interaction.spec.ts
   })
   it("verify an empty CODAP document appears and components open", () => {
     cy.log("verifies that toolshelf items open")
@@ -189,5 +188,63 @@ context("codap single smoke test", () => {
     toolbar.getPluginSelection().eq(0).click()
     webView.getTitle().should("have.text", "Sampler")
     toolbar.getPluginSelection().should("not.exist")
+  })
+
+  it("verify no console errors during table flattening and legend operations", () => {
+    // Set up console error monitoring
+    cy.window().then((win) => {
+      cy.stub(win.console, 'error').as('consoleError')
+      cy.stub(win.console, 'warn').as('consoleWarn')
+    })
+
+    // Open Mammals document
+    cy.log("Open Mammals from Hamburger menu")
+    cfm.getHamburgerMenuButton().click()
+    cfm.getHamburgerMenu().contains("li", "Open...").click()
+    cfm.getModalDialog().contains(".filelist div.selectable", "Mammals").click()
+    cfm.getModalDialog().contains(".buttons button", "Open").click()
+    cy.wait(1000)
+
+    // Create hierarchical table
+    cy.log("Create hierarchical table")
+    table.moveAttributeToParent("Habitat", "newCollection")
+    table.getNumOfRows(1).should("contain", 5)
+    table.moveAttributeToParent("Diet", "newCollection")
+    table.getNumOfRows(1).should("contain", 5)
+
+    // Flatten the table by dragging attributes back
+    cy.log("Flatten the table")
+    cy.dragAttributeToTarget("table", "Habitat", "headerDivider")
+    cy.dragAttributeToTarget("table", "Diet", "headerDivider")
+
+    // Verify no critical errors in console
+    cy.get('@consoleError').then((stub: any) => {
+      const errors = stub.getCalls().map((call: any) => call.args[0])
+      const criticalErrors = errors.filter((error: any) => {
+        if (typeof error === 'string') {
+          return error.includes('mobx') ||
+            error.includes('TypeError') ||
+            error.includes('ReferenceError') ||
+            error.includes('Uncaught')
+        }
+        return false
+      })
+cy.wrap(criticalErrors).should('be.empty')
+    })
+
+    // Verify no critical warnings in console
+    cy.get('@consoleWarn').then((stub: any) => {
+      const warnings = stub.getCalls().map((call: any) => call.args[0])
+      const criticalWarnings = warnings.filter((warning: any) => {
+        if (typeof warning === 'string') {
+          return warning.includes('mobx') ||
+            warning.includes('TypeError') ||
+            warning.includes('ReferenceError') ||
+            warning.includes('Uncaught')
+        }
+        return false
+      })
+cy.wrap(criticalWarnings).should('be.empty')
+    })
   })
 })

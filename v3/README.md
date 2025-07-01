@@ -83,7 +83,7 @@ To deploy a production release:
 3. Create a new entry in `versions.md` with the new version and release date
 4. Create a new entry in `CHANGELOG.md` with a description of the new version
 5. Create `v3-release-<version>` branch and stage versions.md, package.json and package-lock.json
-6. Run `npm run release-notes 3.0.0-pre.<new-version>` in the `dev-templates/scripts` repo. You may need to export your PT token first. In the `scripts` folder, `export PT_TOKEN=your_PT_token`
+6. Run `npm run release-notes 3.0.0-pre.<new-version>` in the `dev-templates/scripts` repo.
 7. Run `npm run build`
 8. Copy asset size markdown table from previous release and change sizes to match new sizes in `dist`. In the Terminal from the `v3` folder, the command is `ls -la dist/assets`
 9. Stage CHANGELOG.md, Commit changes, push to GitHub, create PR and merge
