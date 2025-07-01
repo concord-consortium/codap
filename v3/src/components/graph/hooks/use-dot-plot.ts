@@ -39,18 +39,18 @@ export const useDotPlot = (pixiPoints?: PixiPoints) => {
   // strange ways. It's possibly related to the fact `getBandScale` can return `undefined` whereas `getAxisScale`
   // will always return a scale of some kind.
   const extraPrimaryAxisScale = layout.getAxisScale(extraPrimaryPlace) as ScaleBand<string>
-  const numExtraPrimaryBands = Math.max(1, extraPrimaryAxisScale?.domain().length ?? 1)
+  const primaryPlace: AxisPlace = primaryIsBottom ? "bottom" : "left"
+  const numExtraPrimaryBands = dataConfig?.numRepetitionsForPlace(primaryPlace) ?? 1
   const extraSecondaryRole = primaryIsBottom ? "rightSplit" : "topSplit"
   const extraSecondaryAttrID = dataConfig?.attributeID(extraSecondaryRole) ?? ""
   const primaryAttrID = dataConfig?.attributeID(primaryAttrRole) ?? ""
-  const primaryPlace: AxisPlace = primaryIsBottom ? "bottom" : "left"
   const primaryAxisScale = layout.getAxisScale(primaryPlace) as ScaleLinear<number, number>
   const pointDiameter = 2 * graphModel.getPointRadius()
   const secondaryAttrID = dataConfig?.attributeID(secondaryAttrRole) ?? ""
   const secondaryAxisScale = layout.getAxisScale(secondaryPlace) as ScaleBand<string>
   const extraSecondaryPlace = primaryIsBottom ? "rightCat" : "top"
   const extraSecondaryAxisScale = layout.getAxisScale(extraSecondaryPlace) as ScaleBand<string>
-  const secondaryAxisExtent = Math.abs(Number(secondaryAxisScale.range()[0] - secondaryAxisScale.range()[1]))
+  const secondaryAxisExtent = layout.getAxisLength(secondaryPlace)
   const fullSecondaryBandwidth = secondaryAxisScale.bandwidth?.() ?? secondaryAxisExtent
   const numExtraSecondaryBands = Math.max(1, extraSecondaryAxisScale?.domain().length ?? 1)
   const secondaryBandwidth = fullSecondaryBandwidth / numExtraSecondaryBands

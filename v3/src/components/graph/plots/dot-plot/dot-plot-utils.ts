@@ -100,10 +100,10 @@ export const computePrimaryCoord = (props: IComputePrimaryCoord) => {
           minBinEdge = 0, numExtraPrimaryBands, primaryAttrID, primaryAxisScale } = props
   const caseValue = dataDisplayGetNumericValue(dataset, anID, primaryAttrID) ?? NaN
   const binNumber = determineBinForCase(caseValue, binWidth, minBinEdge) ?? 0
-  const binMidpoint = ((minBinEdge + binNumber * binWidth) - binWidth / 2) / numExtraPrimaryBands
+  const binMidpoint = ((minBinEdge + binNumber * binWidth) - binWidth / 2)
   const primaryCoord = isBinned
-    ? primaryAxisScale(binMidpoint)
-    : primaryAxisScale(dataDisplayGetNumericValue(dataset, anID, primaryAttrID) ?? NaN) / numExtraPrimaryBands
+    ? primaryAxisScale(binMidpoint) / numExtraPrimaryBands
+    : primaryAxisScale(caseValue) / numExtraPrimaryBands
   const extraPrimaryValue = dataset?.getStrValue(anID, extraPrimaryAttrID)
   const extraPrimaryCoord = extraPrimaryValue ? extraPrimaryAxisScale(extraPrimaryValue ?? kMain) ?? 0 : 0
   return { primaryCoord, extraPrimaryCoord }

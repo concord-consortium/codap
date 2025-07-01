@@ -162,6 +162,7 @@ export class MultiScale {
   }
 
   @action setCategoricalDomain(domain: Iterable<string>) {
+    if (this.scaleType !== "band") this.setScaleType("band")  // Ensure we are using a band scale for categorical data
     this.categoricalScale?.domain(domain)
     this.incrementChangeCount()
   }
