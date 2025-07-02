@@ -2,6 +2,7 @@ import React, { useState } from "react"
 import { Button, Menu, MenuButton, MenuItem, MenuList, ModalBody, ModalFooter,
     Tooltip, useDisclosure } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
+import { IDataSet as IFormulaDataSet } from "@concord-consortium/codap-formulas/models/data/data-set"
 import { logStringifiedObjectMessage } from "../../lib/log-message"
 import { appState } from "../../models/app-state"
 import { createDefaultTileOfType } from "../../models/codap/add-default-content"
@@ -54,7 +55,7 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
       if (!tile) return
       const { sharedData, sharedMetadata } = gDataBroker.addDataSet(ds, tile.id)
       // Add dataset to the formula manager
-      getFormulaManager(document)?.addDataSet(ds)
+      getFormulaManager(document)?.addDataSet(ds as IFormulaDataSet)
       createTableOrCardForDataset(sharedData, sharedMetadata, kCaseTableTileType, options)
     }, {
       notify: [ dataContextCountChangedNotification, () => createTileNotification(tile) ],

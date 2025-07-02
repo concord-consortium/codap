@@ -1,0 +1,9 @@
+{
+  "extends": "../formulas/tsconfig.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "../formulas/src",
+    "composite": false
+  },
+  "include": ["../formulas/src/**/*"]
+}

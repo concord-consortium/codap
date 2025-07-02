@@ -1,5 +1,4 @@
 import baseConfig from "./eslint.config.mjs"
-import jest from "eslint-plugin-jest"
 
 export default [
   ...baseConfig, // Include the base/default configuration

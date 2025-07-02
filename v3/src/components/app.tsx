@@ -1,6 +1,10 @@
 import { useDisclosure } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
+import { IAnyStateTreeNode } from "mobx-state-tree"
 import React, { useCallback, useEffect, useState } from "react"
+import {
+  registerGlobalValueManagerLookupFunction, IGlobalValueManager as IFormulaGlobalValueManager
+} from "@concord-consortium/codap-formulas/models/global/global-value-manager"
 import { CfmContext } from "../hooks/use-cfm-context"
 import { DocumentContentContext } from "../hooks/use-document-content"
 import {useDropHandler} from "../hooks/use-drop-handler"
@@ -19,6 +23,7 @@ import { dataContextCountChangedNotification } from "../models/data/data-set-not
 import { IImportDataSetOptions } from "../models/document/document-content"
 import { AttributeFormulaAdapter } from "../models/formula/attribute-formula-adapter"
 import { FilterFormulaAdapter } from "../models/formula/filter-formula-adapter"
+import { getGlobalValueManager } from "../models/global/global-value-manager"
 import { ISharedDataSet } from "../models/shared/shared-data-set"
 import { getSharedModelManager } from "../models/tiles/tile-environment"
 import { registerTileTypes } from "../register-tile-types"
@@ -45,6 +50,10 @@ FilterFormulaAdapter.register()
 setDataSetNotificationAdapter(V2DataSetNotificationAdapter)
 
 registerTileTypes([])
+
+registerGlobalValueManagerLookupFunction(node => {
+  return getGlobalValueManager(getSharedModelManager(node)) as IFormulaGlobalValueManager | undefined
+})
 
 export const App = observer(function App() {
   useKeyStates()

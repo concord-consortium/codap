@@ -1,7 +1,7 @@
 import { MathNode, SymbolNode, parse } from "mathjs"
 import {
   evaluateRawWithAggregateContext, evaluateRawWithDefaultArg, evaluateToEvaluateRaw, evaluateWithAggregateContextSupport
-} from "./math"
+} from "@concord-consortium/codap-formulas/models/formula/functions/math"
 import { FValue, FValueOrArray, MathJSPartitionedMap } from "../formula-types"
 
 describe("evaluateRawWithAggregateContext", () => {
