@@ -54,11 +54,11 @@ export const BinnedDotPlot = observer(function BinnedDotPlot({pixiPoints, aboveP
 
     binBoundariesArea.selectAll("path").remove()
     const numRepetitions = dataConfig.numRepetitionsForPlace(primaryPlace)
-    const primaryLength = Math.abs(primaryAxisScale.range()[1] - primaryAxisScale.range()[0])
+    const primaryLength = layout.getAxisLength(primaryPlace)
     const bandWidth = primaryLength / numRepetitions
     for (let repetition = 0; repetition < numRepetitions; repetition++) {
       for (let binNumber = 1; binNumber < totalNumberOfBins; binNumber++) {
-        const primaryBoundaryOrigin =repetition * bandWidth +
+        const primaryBoundaryOrigin = repetition * bandWidth +
           primaryAxisScale(minBinEdge + binNumber * binWidth) / numRepetitions
         const lineCoords = primaryIsBottom
           ? `M ${primaryBoundaryOrigin},0 L ${primaryBoundaryOrigin},${secondaryAxisExtent}`
