@@ -284,8 +284,10 @@ export function FormulaEditor({ options: _options, editorHeight = kDefaultEditor
 
   // .input-element indicates to CodapModal not to drag the modal from within the element
   const classes = "formula-editor-input input-element"
-  return <CodeMirror ref={cmRef} className={classes} data-testid="formula-editor-input" height="70px"
-                     basicSetup={false} extensions={extensions} style={{height: editorHeight}}
+  // indentWithTab is disabled so users can navigate the UI with tab and not have the formula editor
+  // capture it.
+  return <CodeMirror ref={cmRef} className={classes} data-testid="formula-editor-input" height={`${editorHeight}px`}
+                     basicSetup={false} extensions={extensions} indentWithTab={false}
                      onCreateEditor={handleCreateEditor}
                      value={formula} onChange={handleFormulaChange} />
 }
