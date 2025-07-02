@@ -106,7 +106,7 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({
 
   // match relation colors to grid colors via CSS variables
   useEffect(() => {
-    const newRelationColors = { ...relationColors}
+    const newRelationColors = { ...kDefaultRelationColors}
     const relationSelectedFillColor = getStringCssVariable(gridElt, "--rdg-row-selected-background-color")
     if (relationSelectedFillColor) {
       newRelationColors.selectedFill = relationSelectedFillColor
@@ -120,7 +120,6 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({
       newRelationColors.selectedStroke = relationSelectedStrokeColor
     }
     setRelationColors(newRelationColors)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gridElt])
 
   // use resize observer to track changes in the height of the spacer div
@@ -128,13 +127,14 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({
     if (!tableSpacerDiv) return
 
     const resizeObserver = new ResizeObserver(entries => {
-      if (entries.length > 0 && entries[0].contentRect.height !== tableSpacerHeight) {
+      if (entries.length > 0 && entries[0].contentRect.height > 0) {
         setTableSpacerHeight(entries[0].contentRect.height)
       }
     })
     resizeObserver.observe(tableSpacerDiv)
+
     return () => resizeObserver.disconnect()
-  }, [tableSpacerDiv, tableSpacerHeight])
+  }, [tableSpacerDiv])
 
   if (!data || !parentCases) return null
 
