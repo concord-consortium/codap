@@ -106,7 +106,7 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({
 
   // match relation colors to grid colors via CSS variables
   useEffect(() => {
-    const newRelationColors = { ...kDefaultRelationColors}
+    const newRelationColors = { ...kDefaultRelationColors }
     const relationSelectedFillColor = getStringCssVariable(gridElt, "--rdg-row-selected-background-color")
     if (relationSelectedFillColor) {
       newRelationColors.selectedFill = relationSelectedFillColor
