@@ -80,25 +80,22 @@ export const CaseView = observer(function CaseView(props: ICaseViewProps) {
   }
 
   return (
-    <div className={`case-card-view fadeIn ${colorCycleClass(level, collectionCount)}`} data-testid="case-card-view">
-      {level === 0 && <CaseCardCollectionSpacer onDrop={handleNewCollectionDrop} collectionId={collectionId}/>}
-      <CaseCardHeader cases={cases} level={level}/>
-      <div className="case-card-attributes">
-        <button className="add-attribute" onClick={handleAddNewAttribute} data-testid="add-attribute-button">
-          <AddIcon />
-        </button>
-        <CaseAttrsView
-          key={displayedCaseId}
-          caseItem={displayedCase}
-          collection={collection}
-        />
-        { collection?.child &&
-          <>
-            <CaseCardCollectionSpacer onDrop={handleNewCollectionDrop} collectionId={collection.child.id} />
-            {renderChildCollection(collection.child)}
-          </>
-        }
+    <>
+      <CaseCardCollectionSpacer onDrop={handleNewCollectionDrop} collectionId={collectionId}/>
+      <div className={`case-card-view fadeIn ${colorCycleClass(level, collectionCount)}`} data-testid="case-card-view">
+        <CaseCardHeader cases={cases} level={level}/>
+        <div className="case-card-attributes">
+          <button className="add-attribute" onClick={handleAddNewAttribute} data-testid="add-attribute-button">
+            <AddIcon />
+          </button>
+          <CaseAttrsView
+            key={displayedCaseId}
+            caseItem={displayedCase}
+            collection={collection}
+          />
+          { collection?.child && renderChildCollection(collection.child) }
+        </div>
       </div>
-    </div>
+    </>
   )
 })
