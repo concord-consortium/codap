@@ -34,7 +34,8 @@ const customizations: Record<string, CustomizationFn> = {
     const nodeText = formula.substring(cursor.from, cursor.to)
     const replaceMap: Record<string, string> = {
       "×": "*",
-      "÷": "/"
+      "÷": "/",
+      "%": " mod "
     }
     const replacement = replaceMap[nodeText]
     return replacement ? { from: cursor.from, to: cursor.to, replacement } : undefined
