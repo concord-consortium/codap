@@ -303,8 +303,8 @@ describe("CollectionModel", () => {
 
     // serializes group key => case id map appropriately
     c1.prepareSnapshot()
-    const aGroupKey = '["a"]'
-    const bGroupKey = '["b"]'
+    const aGroupKey = '[a]'
+    const bGroupKey = '[b]'
     const aCaseId = c1.caseIds[0]
     const bCaseId = c1.caseIds[1]
     expect(c1._groupKeyCaseIds).toEqual([[aGroupKey, aCaseId], [bGroupKey, bCaseId]])

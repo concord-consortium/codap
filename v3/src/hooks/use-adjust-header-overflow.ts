@@ -4,7 +4,7 @@ import { measureText } from './use-measure-text'
 const kPaddingBuffer = 5 // Button width is 5px smaller because of parent padding
 
 // Hook to split headers into 2 rows and elide the 2nd line if it doesn't fit
-export function useAdjustHeaderForOverflow(attrbuteHeaderButtonEl: HTMLButtonElement | null,
+export function useAdjustHeaderForOverflow(attributeHeaderButtonEl: HTMLButtonElement | null,
                                             attrName: string, attrUnits?: string) {
   const attributeName = attrName.replace(/_/g, ' ')
   const candidateAttributeLabel = `${attributeName}${attrUnits}`.trim()
@@ -29,23 +29,23 @@ export function useAdjustHeaderForOverflow(attrbuteHeaderButtonEl: HTMLButtonEle
   }
 
   const calculateSplit = () => {
-    if (!attrbuteHeaderButtonEl) {
+    if (!attributeHeaderButtonEl) {
       setLine1('')
       setLine2('')
       setIsOverflowed(false)
       return
     }
 
-    const attributeButtonWidth = attrbuteHeaderButtonEl.clientWidth - kPaddingBuffer
-    const computedStyle = getComputedStyle(attrbuteHeaderButtonEl)
+    const attributeButtonWidth = attributeHeaderButtonEl.clientWidth - kPaddingBuffer
+    const computedStyle = getComputedStyle(attributeHeaderButtonEl)
     const style = [
       `font-style:${computedStyle.fontStyle}`,
       `font-variant:${computedStyle.fontVariant}`,
       `font-weight:${computedStyle.fontWeight}`,
       `font-size:${computedStyle.fontSize}`,
       `font-family:${computedStyle.fontFamily}`,
-      `width:${attrbuteHeaderButtonEl.clientWidth}px`,
-      `height:${attrbuteHeaderButtonEl.clientHeight}px`
+      `width:${attributeHeaderButtonEl.clientWidth}px`,
+      `height:${attributeHeaderButtonEl.clientHeight}px`
     ].join('')
     const fullTextWidth = measureText(candidateAttributeLabel, style)
     const words = candidateAttributeLabel.split(' ')
@@ -85,17 +85,17 @@ export function useAdjustHeaderForOverflow(attrbuteHeaderButtonEl: HTMLButtonEle
   }
 
   useEffect(() => {
-    if (!attrbuteHeaderButtonEl) return
+    if (!attributeHeaderButtonEl) return
     resizeObserverRef.current = new ResizeObserver(() => {
       calculateSplit()
     })
-    resizeObserverRef.current.observe(attrbuteHeaderButtonEl)
+    resizeObserverRef.current.observe(attributeHeaderButtonEl)
     return () => {
       resizeObserverRef.current?.disconnect()
     }
   // Adding calculateSplit to dependencies causes rerender problems on attribute rename
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [candidateAttributeLabel, attrbuteHeaderButtonEl])
+  }, [candidateAttributeLabel, attributeHeaderButtonEl])
 
   useEffect(()=> {
     calculateSplit()
