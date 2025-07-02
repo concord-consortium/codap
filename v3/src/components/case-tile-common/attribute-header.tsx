@@ -13,9 +13,10 @@ import { updateAttributesNotification } from "../../models/data/data-set-notific
 import { uiState } from "../../models/ui-state"
 import { uniqueName } from "../../utilities/js-utils"
 import { t } from "../../utilities/translation/translate"
+import { AttributeHeaderDivider } from "./attribute-header-divider"
 import { AttributeMenuList } from "./attribute-menu/attribute-menu-list"
 import { CaseTilePortal } from "./case-tile-portal"
-import { GetDividerBoundsFn, IDividerProps, kIndexColumnKey } from "./case-tile-types"
+import { GetDividerBoundsFn, kIndexColumnKey } from "./case-tile-types"
 import { useParentChildFocusRedirect } from "./use-parent-child-focus-redirect"
 
 interface IProps {
@@ -23,7 +24,6 @@ interface IProps {
   beforeHeaderDivider?: boolean
   customButtonStyle?: SystemStyleObject
   getDividerBounds?: GetDividerBoundsFn
-  HeaderDivider?: React.ComponentType<IDividerProps>
   showUnits?: boolean
   allowTwoLines?: boolean
   // returns the draggable parent element for use with DnDKit
@@ -34,7 +34,7 @@ interface IProps {
 }
 
 export const AttributeHeader = observer(function AttributeHeader({
-  attributeId, beforeHeaderDivider, customButtonStyle, allowTwoLines, getDividerBounds, HeaderDivider,
+  attributeId, beforeHeaderDivider, customButtonStyle, allowTwoLines, getDividerBounds,
   showUnits=true, onSetHeaderContentElt, onBeginEdit, onEndEdit, onOpenMenu
 }: IProps) {
   const { active } = useDndContext()
@@ -264,8 +264,8 @@ export const AttributeHeader = observer(function AttributeHeader({
                   />
                 </CaseTilePortal>
               }
-              {attributeId && HeaderDivider && !beforeHeaderDivider &&
-                <HeaderDivider
+              {attributeId && !beforeHeaderDivider &&
+                <AttributeHeaderDivider
                   key={attributeId}
                   columnKey={attributeId}
                   cellElt={parentRef.current}

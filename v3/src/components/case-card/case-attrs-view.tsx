@@ -5,7 +5,6 @@ import { IGroupedCase } from "../../models/data/data-set-types"
 import { ICollectionModel } from "../../models/data/collection"
 import { getCollectionAttrs } from "../../models/data/data-set-utils"
 import { AttributeHeader } from "../case-tile-common/attribute-header"
-import { AttributeHeaderDivider } from "../case-tile-common/attribute-header-divider"
 import { kIndexColumnKey } from "../case-tile-common/case-tile-types"
 import { CaseAttrView } from "./case-attr-view"
 import { useCaseCardModel } from "./use-case-card-model"
@@ -52,7 +51,6 @@ export const CaseAttrsView = observer(function CaseAttrsView({ caseItem, collect
             <AttributeHeader
               attributeId={kIndexColumnKey}
               getDividerBounds={getDividerBounds}
-              HeaderDivider={AttributeHeaderDivider}
               showUnits={false}
               onSetHeaderContentElt={handleSetHeaderContentElt}
             />

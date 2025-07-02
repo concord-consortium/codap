@@ -8,7 +8,6 @@ import { ICase, IGroupedCase } from "../../models/data/data-set-types"
 import { isFiniteNumber } from "../../utilities/math-utils"
 import { renderAttributeValue } from "../case-tile-common/attribute-format-utils"
 import { AttributeHeader } from "../case-tile-common/attribute-header"
-import { AttributeHeaderDivider } from "../case-tile-common/attribute-header-divider"
 import { GetDividerBoundsFn } from "../case-tile-common/case-tile-types"
 import { applyCaseValueChanges } from "../case-tile-common/case-tile-utils"
 import ColorTextEditor from "../case-tile-common/color-text-editor"
@@ -137,7 +136,6 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
           attributeId={id}
           customButtonStyle={customButtonStyle}
           getDividerBounds={getDividerBounds}
-          HeaderDivider={AttributeHeaderDivider}
           showUnits={false}
           onSetHeaderContentElt={onSetContentElt}
         />
