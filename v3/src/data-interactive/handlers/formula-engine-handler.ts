@@ -1,6 +1,6 @@
 import { EvalFunction } from "mathjs"
 import { math } from "../../models/formula/functions/math"
-import { displayToCanonical } from "../../models/formula/utils/canonicalization-utils"
+import { preprocessDisplayFormula } from "../../models/formula/utils/canonicalization-utils"
 import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIHandler, diNotImplementedYet } from "../data-interactive-types"
@@ -22,7 +22,7 @@ export const diFormulaEngineHandler: DIHandler = {
 
     let compiledFormula: EvalFunction
     try {
-      const canonicalFormula = displayToCanonical(formula, { localNames: {}, dataSet: {} })
+      const canonicalFormula = preprocessDisplayFormula(formula)
       compiledFormula = math.compile(canonicalFormula)
     }
     catch (e) {
