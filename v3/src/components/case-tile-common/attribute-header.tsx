@@ -12,7 +12,6 @@ import { useOutsidePointerDown } from "../../hooks/use-outside-pointer-down"
 import { updateAttributesNotification } from "../../models/data/data-set-notifications"
 import { uiState } from "../../models/ui-state"
 import { uniqueName } from "../../utilities/js-utils"
-import { t } from "../../utilities/translation/translate"
 import { AttributeHeaderDivider } from "./attribute-header-divider"
 import { AttributeMenuList } from "./attribute-menu/attribute-menu-list"
 import { CaseTilePortal } from "./case-tile-portal"
@@ -216,6 +215,8 @@ export const AttributeHeader = observer(function AttributeHeader({
   }, [line1, line2, isOverflowed, line2Truncated])
 
   const description = attribute?.description ? `: ${attribute.description}` : ""
+  const isIndex = attributeId === kIndexColumnKey
+  const headerContentClasses = clsx("codap-column-header-content", { "index-column-header": isIndex })
   return (
     <Menu isLazy>
       {({ isOpen, onClose }) => {
@@ -229,11 +230,10 @@ export const AttributeHeader = observer(function AttributeHeader({
               color="white" openDelay={1000} placement="bottom" bottom="15px" left="15px"
               isDisabled={disableTooltip}
           >
-            <div className="codap-column-header-content" ref={setHeaderContentRef} {...draggableProps}
+            <div className={headerContentClasses} ref={setHeaderContentRef} {...draggableProps}
             data-testid="codap-column-header-content">
-              { attributeId === kIndexColumnKey
-                ? <span>{t("DG.CaseTable.indexColumnName")}</span>
-                : editingAttrId
+              { !isIndex &&
+                (editingAttrId
                   ? <Input ref={inputRef} value={editingAttrName} data-testid="column-name-input"
                             className="column-name-input" size="xs"
                             autoFocus={true} variant="unstyled" onClick={handleInputClick}
@@ -250,7 +250,7 @@ export const AttributeHeader = observer(function AttributeHeader({
                           data-testid={`codap-attribute-button ${attrName}`}
                           aria-describedby={`sr-column-header-drag-instructions-${instanceId}`}>
                         {allowTwoLines ? renderAttributeLabel
-                                       : `${attrName ?? ""}${showUnits ? attrUnits : ""}`.trim()}
+                                        : `${attrName ?? ""}${showUnits ? attrUnits : ""}`.trim()}
                       </MenuButton>
                       <VisuallyHidden id={`sr-column-header-drag-instructions-${instanceId}`}>
                         <pre> Press Space to drag the attribute within the table or to a graph.
@@ -258,6 +258,7 @@ export const AttributeHeader = observer(function AttributeHeader({
                         </pre>
                       </VisuallyHidden>
                     </>
+                )
               }
               {attributeId !== kIndexColumnKey &&
                 <CaseTilePortal>
