@@ -27,6 +27,7 @@ import type {
 const EPSG4326 = 4326
 
 function log(...args: any[]) {
+  // eslint-disable-next-line no-console
   console.log("[georaster-layer-for-leaflet] ", ...args)
 }
 
@@ -199,7 +200,9 @@ export class GeoRasterLayerClass extends L.GridLayer {
 
       const { xmin, xmax, ymin, ymax } = this
 
-      const extentOfLayer = new GeoExtent(this.getBounds())
+      const bounds = this.getBounds()
+      if (!bounds) throw new Error("[georaster-layer-for-leaflet] bounds are not defined")
+      const extentOfLayer = new GeoExtent(bounds)
       if (debugLevel >= 2) log({ extentOfLayer })
 
       const pixelHeight = this.pixelHeight
@@ -212,6 +215,7 @@ export class GeoRasterLayerClass extends L.GridLayer {
       if (debugLevel >= 2) log({ boundsOfTile })
 
       const { code } = mapCRS
+      if (!code) throw new Error("[georaster-layer-for-leaflet] map CRS 'code' is not defined")
       if (debugLevel >= 2) log({ code })
       const extentOfTile = new GeoExtent(boundsOfTile)
       if (debugLevel >= 2) log({ extentOfTile })
@@ -227,7 +231,7 @@ export class GeoRasterLayerClass extends L.GridLayer {
 
       // Types of extentOfTile.reproj() are messed up
       // If we are not in a simple CRS, then the code of the CRS will be defined
-      const extentOfTileInMapCRS = extentOfTile.reproj(code!)
+      const extentOfTileInMapCRS = extentOfTile.reproj(code)
       if (debugLevel >= 2) log({ extentOfTileInMapCRS })
 
       let extentOfInnerTileInMapCRS = extentOfTileInMapCRS.crop(this.extent)
@@ -285,7 +289,7 @@ export class GeoRasterLayerClass extends L.GridLayer {
       let maxSamplesAcross = 1
       let maxSamplesDown = 1
       if (recropTileOrig !== null) {
-        const recropTileProj = recropTileOrig.reproj(code!)
+        const recropTileProj = recropTileOrig.reproj(code)
         const recropTile = recropTileProj.crop(extentOfTileInMapCRS)
         if (recropTile !== null) {
           maxSamplesAcross = Math.ceil(resolution * (recropTile.width / extentOfTileInMapCRS.width))
@@ -518,7 +522,7 @@ export class GeoRasterLayerClass extends L.GridLayer {
   getBounds () {
     this.initBounds()
     // initBounds will throw an error if it can't initialize the bounds
-    return this._bounds!
+    return this._bounds
   }
 
   getMap () {
@@ -531,7 +535,7 @@ export class GeoRasterLayerClass extends L.GridLayer {
     return this.getMap()?.options.crs || L.CRS.EPSG3857
   }
 
-  // add in to ensure backwards compatability with Leaflet 1.0.3
+  // add in to ensure backwards compatibility with Leaflet 1.0.3
   _tileCoordsToNwSe (coords: Coords) {
     const map = this.getMap()
     // This normalizes the tileSize option passed to the layer into a point
@@ -571,10 +575,9 @@ export class GeoRasterLayerClass extends L.GridLayer {
     if (!crs.infinite) {
       // don't load tile if it's out of bounds and not wrapped
       const globalBounds = this._globalTileRange
-      if (
-        (!crs.wrapLng && (coords.x < globalBounds.min!.x || coords.x > globalBounds.max!.x)) ||
-        (!crs.wrapLat && (coords.y < globalBounds.min!.y || coords.y > globalBounds.max!.y))
-      ) {
+      if (globalBounds.min && globalBounds.max && (
+          (!crs.wrapLng && (coords.x < globalBounds.min.x || coords.x > globalBounds.max.x)) ||
+          (!crs.wrapLat && (coords.y < globalBounds.min.y || coords.y > globalBounds.max.y)))) {
         return false
       }
     }
