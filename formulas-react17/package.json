@@ -1,6 +1,6 @@
 {
   "name": "@concord-consortium/codap-formulas-react17",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "index.js",
   "exports": {
     "./*": {
