@@ -53,31 +53,37 @@ export const BinnedDotPlot = observer(function BinnedDotPlot({pixiPoints, aboveP
     if (binWidth === undefined) return
 
     binBoundariesArea.selectAll("path").remove()
-    for (let i = 1; i < totalNumberOfBins; i++) {
-      const primaryBoundaryOrigin = primaryAxisScale(minBinEdge + i * binWidth)
-      const lineCoords = primaryIsBottom
-        ? `M ${primaryBoundaryOrigin},0 L ${primaryBoundaryOrigin},${secondaryAxisExtent}`
-        : `M 0,${primaryBoundaryOrigin} L ${secondaryAxisExtent},${primaryBoundaryOrigin}`
-      const boundaryClasses = clsx(
-        "draggable-bin-boundary",
-        {dragging: i - 1 === binnedPlot.dragBinIndex},
-        {lower: i === binnedPlot.dragBinIndex}
-      )
-      const boundaryCoverClasses = clsx(
-        "draggable-bin-boundary-cover",
-        {vertical: primaryIsBottom},
-        {horizontal: !primaryIsBottom}
-      )
-      binBoundariesArea.append("path")
-        .attr("class", boundaryClasses)
-        .attr("d", lineCoords)
-      binBoundariesArea.append("path")
-        .attr("class", boundaryCoverClasses)
-        .attr("d", lineCoords)
-        .append("title")
+    const numRepetitions = dataConfig.numRepetitionsForPlace(primaryPlace)
+    const primaryLength = layout.getAxisLength(primaryPlace)
+    const bandWidth = primaryLength / numRepetitions
+    for (let repetition = 0; repetition < numRepetitions; repetition++) {
+      for (let binNumber = 1; binNumber < totalNumberOfBins; binNumber++) {
+        const primaryBoundaryOrigin = repetition * bandWidth +
+          primaryAxisScale(minBinEdge + binNumber * binWidth) / numRepetitions
+        const lineCoords = primaryIsBottom
+          ? `M ${primaryBoundaryOrigin},0 L ${primaryBoundaryOrigin},${secondaryAxisExtent}`
+          : `M 0,${primaryBoundaryOrigin} L ${secondaryAxisExtent},${primaryBoundaryOrigin}`
+        const boundaryClasses = clsx(
+          "draggable-bin-boundary",
+          {dragging: binNumber - 1 === binnedPlot.dragBinIndex},
+          {lower: binNumber === binnedPlot.dragBinIndex}
+        )
+        const boundaryCoverClasses = clsx(
+          "draggable-bin-boundary-cover",
+          {vertical: primaryIsBottom},
+          {horizontal: !primaryIsBottom}
+        )
+        binBoundariesArea.append("path")
+          .attr("class", boundaryClasses)
+          .attr("d", lineCoords)
+        binBoundariesArea.append("path")
+          .attr("class", boundaryCoverClasses)
+          .attr("d", lineCoords)
+          .append("title")
           .text(`${t("DG.BinnedPlotModel.dragBinTip")}`)
+      }
     }
-  }, [binnedPlot, dataConfig, layout, primaryAxisScale, primaryIsBottom])
+  }, [binnedPlot, dataConfig, layout, primaryAxisScale, primaryIsBottom, primaryPlace])
 
   const handleDragBinBoundaryStart = useCallback((event: MouseEvent, binIndex: number) => {
     if (!dataConfig || !isFiniteNumber(binnedPlot?.binAlignment) || !isFiniteNumber(binnedPlot?.binWidth)) return
