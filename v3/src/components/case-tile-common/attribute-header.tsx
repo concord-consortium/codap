@@ -23,6 +23,7 @@ interface IProps {
   attributeId: string
   beforeHeaderDivider?: boolean
   customButtonStyle?: SystemStyleObject
+  draggable?: boolean
   getDividerBounds?: GetDividerBoundsFn
   showUnits?: boolean
   allowTwoLines?: boolean
@@ -34,7 +35,7 @@ interface IProps {
 }
 
 export const AttributeHeader = observer(function AttributeHeader({
-  attributeId, beforeHeaderDivider, customButtonStyle, allowTwoLines, getDividerBounds,
+  attributeId, beforeHeaderDivider, customButtonStyle, draggable = true, allowTwoLines, getDividerBounds,
   showUnits=true, onSetHeaderContentElt, onBeginEdit, onEndEdit, onOpenMenu
 }: IProps) {
   const { active } = useDndContext()
@@ -63,6 +64,7 @@ export const AttributeHeader = observer(function AttributeHeader({
     prefix: instanceId, dataSet: data, attributeId
   }
   const { attributes, listeners, setNodeRef: setDragNodeRef } = useDraggableAttribute(draggableOptions)
+  const draggableProps = draggable ? { ...attributes, ...listeners } : {}
   // TODO: we really should only enable the outside pointer down listener when the menu is open.
   // However there doesn't seem to be simple way to do that.
   // `isMenuOpen` is a ref so we won't be re-rendered when that changes.
@@ -75,7 +77,7 @@ export const AttributeHeader = observer(function AttributeHeader({
   const setHeaderContentRef = (elt: HTMLDivElement | null) => {
     contentRef.current = elt
     parentRef.current = onSetHeaderContentElt?.(elt) ?? null
-    setDragNodeRef(parentRef.current ?? elt)
+    if (draggable) setDragNodeRef(parentRef.current ?? elt)
   }
 
   useEffect(() => {
@@ -227,7 +229,7 @@ export const AttributeHeader = observer(function AttributeHeader({
               color="white" openDelay={1000} placement="bottom" bottom="15px" left="15px"
               isDisabled={disableTooltip}
           >
-            <div className="codap-column-header-content" ref={setHeaderContentRef} {...attributes} {...listeners}
+            <div className="codap-column-header-content" ref={setHeaderContentRef} {...draggableProps}
             data-testid="codap-column-header-content">
               { attributeId === kIndexColumnKey
                 ? <span>{t("DG.CaseTable.indexColumnName")}</span>
