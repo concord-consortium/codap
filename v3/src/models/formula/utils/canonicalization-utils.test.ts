@@ -97,6 +97,12 @@ describe("customizeDisplayFormula", () => {
     expect(customizeDisplayFormula("π")).toEqual("pi")
     expect(customizeDisplayFormula("∞")).toEqual("Infinity")
   })
+  it("replaces % with mod", () => {
+    expect(customizeDisplayFormula("a % 1")).toEqual("a  mod  1")
+    expect(customizeDisplayFormula("a%1")).toEqual("a mod 1")
+    expect(customizeDisplayFormula("a % -1")).toEqual("a  mod  -1")
+    expect(customizeDisplayFormula("a%-1")).toEqual("a mod -1")
+  })
 })
 
 describe("formulaIndexOf", () => {
