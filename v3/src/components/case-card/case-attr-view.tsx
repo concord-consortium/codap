@@ -75,7 +75,7 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
       )
     }
 
-    if (attr?.userType == null || attr?.userType === "color") {
+    if (attr?.userType === "color" || attr?.isInferredColorType()) {
       const handleClick = () => {
         if (groupedCase) {
           setIsEditing(true)
