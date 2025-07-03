@@ -61,8 +61,7 @@ export const CaseView = observer(function CaseView(props: ICaseViewProps) {
   }
 
   const renderChildCollection = (coll: ICollectionModel) => {
-    const childCases = cardModel?.groupChildCases(displayedCaseId)
-    if (!childCases) return null
+    const childCases = cardModel?.groupChildCases(displayedCaseId) ?? []
 
     return (
       <ParentCollectionContext.Provider key={`${displayedCaseId}-${level}`} value={coll.parent?.id}>
