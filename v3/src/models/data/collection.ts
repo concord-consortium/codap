@@ -133,13 +133,11 @@ export const CollectionModel = V2Model
   groupKey(itemId: string) {
     // only parent collections group cases; child collections "group" by itemId
     if (!self.child) return itemId
-    const allValues = self.allDataAttributes.map(attr => self.itemData.getValue(itemId, attr.id))
-    return JSON.stringify(allValues)
+    return `[${self.allDataAttributes.map(attr => self.itemData.getValue(itemId, attr.id)).join("\t")}]`
   },
   parentGroupKey(itemId: string) {
     if (!self.parent) return
-    const allValues = self.sortedParentDataAttrs.map(attr => self.itemData.getValue(itemId, attr.id))
-    return JSON.stringify(allValues)
+    return `[${self.sortedParentDataAttrs.map(attr => self.itemData.getValue(itemId, attr.id)).join("\t")}]`
   },
   groupKeyCaseId(groupKey?: string) {
     if (!groupKey) return undefined

@@ -49,5 +49,13 @@ describe("formulaEngineHandler", () => {
     expect((diFormulaEngineHandler.notify?.({}, {
       request: "evalExpression", source: "π / a", records: [{ a: Math.PI }]
     }).values as any)?.[0]).toBeCloseTo(1)
+
+    // Make sure we're using our own custom functions (in mathjs, = is asignment, but we treat it as equality)
+    expect((diFormulaEngineHandler.notify?.({}, {
+      request: "evalExpression", source: "Sex = 'M'", records: [{ Sex: "F" }]
+    }).values as any)?.[0]).toBe(false)
+    expect((diFormulaEngineHandler.notify?.({}, {
+      request: "evalExpression", source: "Sex = 'F'", records: [{ Sex: "F" }]
+    }).values as any)?.[0]).toBe(true)
   })
 })

@@ -1,9 +1,10 @@
 import React, { useState } from "react"
 import { MenuItem, MenuList, useToast } from "@chakra-ui/react"
-import { t } from "../../../utilities/translation/translate"
-import { useTileModelContext } from "../../../hooks/use-tile-model-context"
-import { isGraphContentModel } from "../models/graph-content-model"
 import { useCfmContext } from "../../../hooks/use-cfm-context"
+import { useTileModelContext } from "../../../hooks/use-tile-model-context"
+import { t } from "../../../utilities/translation/translate"
+import { isGraphContentModel } from "../models/graph-content-model"
+import { graphSvg } from "../utilities/image-utils"
 
 export const CameraMenuList = () => {
   const tile = useTileModelContext().tile
@@ -60,7 +61,18 @@ export const CameraMenuList = () => {
   }
 
   const handleExportSVG = () => {
-    handleMenuItemClick("Export SVG Image clicked")
+    if (!graphModel?.renderState) return
+
+    const { imageOptions } = graphModel.renderState
+    if (!imageOptions) return
+
+    // TODO: The current strategy for turning a graph into an SVG involves wrapping the whole tile in a foreignObject,
+    // which will not render in Word, Notes, etc.
+    const svgString = graphSvg(imageOptions)
+
+    if (svgString) {
+      cfm?.client.saveSecondaryFileAsDialog(svgString, "svg", "text/plain", () => null)
+    }
   }
 
   return (

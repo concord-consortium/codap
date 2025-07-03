@@ -89,7 +89,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
   // (a dependency of refreshPointPositions) are updated. useDebouncedCallback doesn't seem to declare any
   // dependencies, and I'd imagine it returns a stable result (?).
   useEffect(() => {
-    callRefreshPointPositions()
+    callRefreshPointPositions({ updateMasks: true })
   }, [callRefreshPointPositions, pixiPoints])
 
   // respond to numeric axis domain changes (e.g. axis dragging)
