@@ -40,7 +40,7 @@ export const CaseCardHeader = observer(function CaseCardHeader(props: ICaseHeade
   const displayedCaseIndex = getDisplayedCaseIndex()
 
   const getCaseIndexText = () => {
-    if (isCollectionSummarized) {
+    if (isCollectionSummarized || !collection?.cases.length) {
       let summaryTotal = 0
       if (data?.selection.size === 0) {
         summaryTotal = collection?.cases.length ?? 0
