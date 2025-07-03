@@ -6,8 +6,8 @@ import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { getDragAttributeInfo, useTileDroppable } from "../../hooks/use-drag-drop"
 import { preventAttributeMove, preventCollectionReorg } from "../../utilities/plugin-utils"
-import { IDividerProps, kIndexColumnKey } from "./case-tile-types"
 import { kAttributeDividerDropZoneBaseId } from "../case-table/case-table-drag-drop"
+import { IDividerProps, kIndexColumnKey } from "./case-tile-types"
 import { useAttributeHeaderDividerContext } from "./use-attribute-header-divider-context"
 
 function AttributeHeaderDivider_({ before = false, columnKey, cellElt, getDividerBounds }: IDividerProps) {

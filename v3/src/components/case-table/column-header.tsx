@@ -1,7 +1,6 @@
 import React, { useCallback, useRef, useState } from "react"
 import { AttributeHeader } from "../case-tile-common/attribute-header"
 import { TRenderHeaderCellProps } from "./case-table-types"
-import { AttributeHeaderDivider } from "../case-tile-common/attribute-header-divider"
 
 function getDividerBounds(containerBounds: DOMRect, cellBounds: DOMRect) {
   const kTableDividerWidth = 7
@@ -45,7 +44,6 @@ export function ColumnHeader(props: TRenderHeaderCellProps) {
   return <AttributeHeader attributeId={props.column.key}
             allowTwoLines={true}
             getDividerBounds={getDividerBounds}
-            HeaderDivider={AttributeHeaderDivider}
             onSetHeaderContentElt={handleSetHeaderContentElt}
             onBeginEdit={setAriaSelectedAttribute}
             onEndEdit={clearAriaSelectedAttribute}
