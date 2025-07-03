@@ -1,4 +1,4 @@
-import clsx from "clsx"
+import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import React from "react"
 import { removeCasesWithCustomUndoRedo } from "../../../models/data/data-set-undo"

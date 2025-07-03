@@ -49,7 +49,7 @@ module.exports = (env, argv) => {
     }))
   }
   if (!process.env.CODE_COVERAGE) {
-    webpackPlugins.push(new ForkTsCheckerWebpackPlugin())
+    webpackPlugins.push(new ForkTsCheckerWebpackPlugin({ typescript: { memoryLimit: 3072 } }))
   }
 
   return {
@@ -247,5 +247,11 @@ module.exports = (env, argv) => {
       },
     },
     plugins: webpackPlugins,
+    watchOptions: {
+      // for some systems, watching many files can result in a lot of CPU or memory usage
+      // https://webpack.js.org/configuration/watch/#watchoptionsignored
+      // don't use this pattern, if you have a monorepo with linked packages
+      ignored: /node_modules/,
+    }
   }
 }

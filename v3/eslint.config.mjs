@@ -83,7 +83,7 @@ export default [{
     "@stylistic/max-len": ["warn", { code: 120, ignoreUrls: true }],
     "@stylistic/no-tabs": "error",
     "@stylistic/no-whitespace-before-property": "error",
-    "@stylistic/operator-linebreak": "warn",
+    "@stylistic/operator-linebreak": "off",
     "@stylistic/semi": ["warn", "never", { beforeStatementContinuationChars: "always" }],
     "@stylistic/semi-style": ["warn", "first"],
     "@stylistic/space-before-blocks": ["warn"],
