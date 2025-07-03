@@ -76,6 +76,12 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
     }
 
     if (attr?.userType == null || attr?.userType === "color") {
+      const handleClick = () => {
+        if (groupedCase) {
+          setIsEditing(true)
+        }
+      }
+      
       return (
         isEditing
         ? <ColorTextEditor
@@ -86,7 +92,7 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
             cancelChanges={handleCancel}
             value={isEditing ? editingValue : displayStrValue}
           />
-        : <div className="case-card-attr-value-color" onClick={()=>setIsEditing(true)}>{ content }</div>
+        : <div className="case-card-attr-value-color" onClick={handleClick}>{ content }</div>
         )
     }
 
@@ -129,6 +135,12 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
     }
   }
 
+  const classes = clsx("case-card-attr-value", {
+    editable: !!groupedCase,
+    editing: isEditing,
+    numeric: !isCollectionSummarized && isFiniteNumber(displayNumValue)
+  })
+
   return (
     <tr className="case-card-attr" data-testid="case-card-attr">
       <td className="case-card-attr-name" data-testid="case-card-attr-name">
@@ -140,13 +152,7 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
           onSetHeaderContentElt={onSetContentElt}
         />
       </td>
-      <td
-        className={clsx("case-card-attr-value", {
-                    editing: isEditing,
-                    numeric: !isCollectionSummarized && isFiniteNumber(displayNumValue)
-                  })}
-        data-testid="case-card-attr-value"
-      >
+      <td className={classes} data-testid="case-card-attr-value">
         {renderEditableOrSummaryValue()}
       </td>
     </tr>

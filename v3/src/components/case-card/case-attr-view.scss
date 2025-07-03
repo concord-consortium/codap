@@ -32,11 +32,14 @@
     background-color: white;
     border: solid 1px #b2b2b2;
     border-top: none;
-    cursor: text;
     font-weight: 500;
     padding: 0;
     text-align: left;
     width: 100%;
+
+    &.editable {
+      cursor: text;
+    }
 
     &.numeric {
       text-align: right;
