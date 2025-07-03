@@ -50,6 +50,7 @@ export const CaseAttrsView = observer(function CaseAttrsView({ caseItem, collect
           <td colSpan={2}>
             <AttributeHeader
               attributeId={kIndexColumnKey}
+              disableTooltip={true}
               draggable={false}
               getDividerBounds={getDividerBounds}
               showUnits={false}

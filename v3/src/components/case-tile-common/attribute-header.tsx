@@ -22,6 +22,7 @@ interface IProps {
   attributeId: string
   beforeHeaderDivider?: boolean
   customButtonStyle?: SystemStyleObject
+  disableTooltip?: boolean
   draggable?: boolean
   getDividerBounds?: GetDividerBoundsFn
   showUnits?: boolean
@@ -34,8 +35,8 @@ interface IProps {
 }
 
 export const AttributeHeader = observer(function AttributeHeader({
-  attributeId, beforeHeaderDivider, customButtonStyle, draggable = true, allowTwoLines, getDividerBounds,
-  showUnits=true, onSetHeaderContentElt, onBeginEdit, onEndEdit, onOpenMenu
+  attributeId, beforeHeaderDivider, customButtonStyle, disableTooltip, draggable = true, allowTwoLines,
+  getDividerBounds, showUnits=true, onSetHeaderContentElt, onBeginEdit, onEndEdit, onOpenMenu
 }: IProps) {
   const { active } = useDndContext()
   const data = useDataSetContext()
@@ -220,7 +221,7 @@ export const AttributeHeader = observer(function AttributeHeader({
   return (
     <Menu isLazy>
       {({ isOpen, onClose }) => {
-        const disableTooltip = dragging || isOpen || modalIsOpen || editingAttrId === attributeId
+        const _disableTooltip = disableTooltip || dragging || isOpen || modalIsOpen || editingAttrId === attributeId
         isMenuOpen.current = isOpen
         onCloseMenuRef.current = onClose
         // ensure selected header is styled correctly.
@@ -228,7 +229,7 @@ export const AttributeHeader = observer(function AttributeHeader({
         return (
           <Tooltip label={`${attrName ?? ""} ${description}`} h="20px" fontSize="12px"
               color="white" openDelay={1000} placement="bottom" bottom="15px" left="15px"
-              isDisabled={disableTooltip}
+              isDisabled={_disableTooltip}
           >
             <div className={headerContentClasses} ref={setHeaderContentRef} {...draggableProps}
             data-testid="codap-column-header-content">
