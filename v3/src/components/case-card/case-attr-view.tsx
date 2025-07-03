@@ -39,7 +39,7 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
   const showUnits = isFiniteNumber(displayNumValue) && !!units
   const { value, content } = renderAttributeValue(displayStrValue, displayNumValue, attr, { caseId, showUnits })
   const [isEditing, setIsEditing] = useState(false)
-  const [editingValue, setEditingValue] = useState(value)
+  const [editingValue, setEditingValue] = useState(data?.getStrValue(caseId, id) ?? "")
 
   const handleChangeValue = (newValue: string) => {
     setEditingValue(newValue)
@@ -81,7 +81,7 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
           setIsEditing(true)
         }
       }
-      
+
       return (
         isEditing
         ? <ColorTextEditor
