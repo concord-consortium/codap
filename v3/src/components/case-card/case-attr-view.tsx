@@ -40,6 +40,7 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
   const { value, content } = renderAttributeValue(displayStrValue, displayNumValue, attr, { caseId, showUnits })
   const [isEditing, setIsEditing] = useState(false)
   const [editingValue, setEditingValue] = useState(data?.getStrValue(caseId, id) ?? "")
+  const isEditable = !!groupedCase
 
   const handleChangeValue = (newValue: string) => {
     setEditingValue(newValue)
@@ -77,7 +78,7 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
 
     if (attr?.userType === "color" || attr?.isInferredColorType()) {
       const handleClick = () => {
-        if (groupedCase) {
+        if (isEditable) {
           setIsEditing(true)
         }
       }
@@ -136,7 +137,7 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
   }
 
   const classes = clsx("case-card-attr-value", {
-    editable: !!groupedCase,
+    editable: isEditable,
     editing: isEditing,
     numeric: !isCollectionSummarized && isFiniteNumber(displayNumValue)
   })
