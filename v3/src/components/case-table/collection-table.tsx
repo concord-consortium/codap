@@ -3,19 +3,6 @@ import { comparer } from "mobx"
 import { observer } from "mobx-react-lite"
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import DataGrid, { CellKeyboardEvent, DataGridHandle } from "react-data-grid"
-import { kCollectionTableBodyDropZoneBaseId } from "./case-table-drag-drop"
-import {
-  kDefaultRowHeight, kIndexColumnWidth, kInputRowKey, OnScrollClosestRowIntoViewFn,
-  OnScrollRowRangeIntoViewFn, OnTableScrollFn, TCellKeyDownArgs, TRenderers, TRow
-} from "./case-table-types"
-import { CollectionTableSpacer } from "./collection-table-spacer"
-import { CollectionTitle } from "../case-tile-common/collection-title"
-import { customRenderRow } from "./custom-row"
-import { useColumns } from "./use-columns"
-import { useIndexColumn } from "./use-index-column"
-import { useRows } from "./use-rows"
-import { useSelectedCell } from "./use-selected-cell"
-import { useSelectedRows } from "./use-selected-rows"
 import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useTileDroppable } from "../../hooks/use-drag-drop"
@@ -34,9 +21,22 @@ import { uniqueName } from "../../utilities/js-utils"
 import { mstReaction } from "../../utilities/mst-reaction"
 import { preventCollectionReorg } from "../../utilities/plugin-utils"
 import { t } from "../../utilities/translation/translate"
+import { CollectionTitle } from "../case-tile-common/collection-title"
+import { kCollectionTableBodyDropZoneBaseId } from "./case-table-drag-drop"
+import {
+  kDefaultRowHeight, kIndexColumnWidth, kInputRowKey, OnScrollClosestRowIntoViewFn,
+  OnScrollRowRangeIntoViewFn, OnTableScrollFn, TCellKeyDownArgs, TRenderers, TRow
+} from "./case-table-types"
+import { CollectionTableSpacer } from "./collection-table-spacer"
+import { customRenderRow } from "./custom-row"
 import { RowDragOverlay } from "./row-drag-overlay"
 import { useCaseTableModel } from "./use-case-table-model"
 import { useCollectionTableModel } from "./use-collection-table-model"
+import { useColumns } from "./use-columns"
+import { useIndexColumn } from "./use-index-column"
+import { useRows } from "./use-rows"
+import { useSelectedCell } from "./use-selected-cell"
+import { useSelectedRows } from "./use-selected-rows"
 import { useWhiteSpaceClick } from "./use-white-space-click"
 
 import "react-data-grid/lib/styles.css"
@@ -44,7 +44,9 @@ import styles from "./case-table-shared.scss"
 
 type OnNewCollectionDropFn = (dataSet: IDataSet, attrId: string, beforeCollectionId: string) => void
 
-const kScrollMargin = 35
+const kAutoScrollMargin = 35
+const kAutoScrollDelay = 200
+const kAutoScrollThreshold = 3
 
 // custom renderers for use with RDG
 const renderers: TRenderers = { renderRow: customRenderRow }
@@ -305,8 +307,9 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
     }
   }
 
-  const scrollInterval = useRef<NodeJS.Timeout | null>(null)
-  const mouseY = useRef<number>(0)
+  const marqueeStartEvent = useRef<{ time: number, y: number }>({ time: 0, y: 0 })
+  const scrollInterval = useRef<number | null>(null)
+  const pointerY = useRef<number>(0)
 
   const marqueeSelectCases = useCallback((startIdx: number, endIdx: number) => {
     const newSelectedRows = []
@@ -321,30 +324,34 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
     setSelectedCases(selectedCaseIds, data)
   }, [collectionId, data])
 
-  const startAutoScroll = useCallback((clientY: number) => {
+  const startAutoScroll = useCallback(() => {
     const grid = gridRef.current?.element
     const rHeight = collectionTableModel?.rowHeight
     if (!grid || !rHeight) return
 
     const scrollSpeed = 50
 
-    scrollInterval.current = setInterval(() => {
+    marqueeStartEvent.current = { time: Date.now(), y: pointerY.current }
+    scrollInterval.current = window.setInterval(() => {
       const { top, bottom } = grid.getBoundingClientRect()
       let scrolledToRowIdx = null
 
-      if (mouseY.current < top + kScrollMargin) {
-        grid.scrollTop -= scrollSpeed
-        const scrolledTop = grid.scrollTop
-        scrolledToRowIdx = Math.floor(scrolledTop / rHeight)
-      } else if (mouseY.current > bottom - kScrollMargin) {
-        grid.scrollTop += scrollSpeed
-        const scrolledBottom = grid.scrollTop + grid.clientHeight - 1
-        scrolledToRowIdx = Math.floor(scrolledBottom / rHeight)
-
-      }
-      if (scrolledToRowIdx != null && selectionStartRowIdx != null && scrolledToRowIdx >= 0 &&
+      // pointer must be held down and moved beyond the threshold to start auto-scrolling
+      if (Date.now() - marqueeStartEvent.current.time > kAutoScrollDelay &&
+          Math.abs(pointerY.current - marqueeStartEvent.current.y) > kAutoScrollThreshold) {
+        if (pointerY.current < top + kAutoScrollMargin) {
+          grid.scrollTop -= scrollSpeed
+          const scrolledTop = grid.scrollTop
+          scrolledToRowIdx = Math.floor(scrolledTop / rHeight)
+        } else if (pointerY.current > bottom - kAutoScrollMargin) {
+          grid.scrollTop += scrollSpeed
+          const scrolledBottom = grid.scrollTop + grid.clientHeight - 1
+          scrolledToRowIdx = Math.floor(scrolledBottom / rHeight)
+        }
+        if (scrolledToRowIdx != null && selectionStartRowIdx != null && scrolledToRowIdx >= 0 &&
             (rows?.length && scrolledToRowIdx < rows?.length)) {
-        marqueeSelectCases(selectionStartRowIdx, scrolledToRowIdx)
+          marqueeSelectCases(selectionStartRowIdx, scrolledToRowIdx)
+        }
       }
     }, 25)
   }, [collectionTableModel, marqueeSelectCases, rows?.length, selectionStartRowIdx])
@@ -369,8 +376,8 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
     if (startRowIdx != null) {
       setSelectionStartRowIdx(startRowIdx)
       setIsSelecting(true)
-      startAutoScroll(event.clientY)
-      mouseY.current = event.clientY
+      pointerY.current = event.clientY
+      startAutoScroll()
     }
   }
 
@@ -380,13 +387,13 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
       if (currentRowIdx != null) {
         marqueeSelectCases(selectionStartRowIdx, currentRowIdx)
       }
-      mouseY.current = event.clientY
+      pointerY.current = event.clientY
       const grid = gridRef.current?.element
       if (grid) {
         const { top, bottom } = grid.getBoundingClientRect()
-        if (mouseY.current < top + kScrollMargin || mouseY.current > bottom - kScrollMargin) {
+        if (pointerY.current < top + kAutoScrollMargin || pointerY.current > bottom - kAutoScrollMargin) {
           if (!scrollInterval.current) {
-            startAutoScroll(mouseY.current)
+            startAutoScroll()
           }
         } else {
           stopAutoScroll()
