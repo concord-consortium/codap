@@ -17,7 +17,6 @@ import { getTileComponentInfo } from "../../models/tiles/tile-component-info"
 import { ITileContentModel } from "../../models/tiles/tile-content"
 import { getSharedModelManager, getTileEnvironment } from "../../models/tiles/tile-environment"
 import { uiState } from "../../models/ui-state"
-import { urlParams } from "../../utilities/url-params"
 import { getPositionOfNewComponent } from "../../utilities/view-utils"
 import { kCaseTableTileType } from "../case-table/case-table-defs"
 import {
@@ -175,9 +174,8 @@ export function applyCaseValueChanges(data: IDataSet, cases: ICase[], log?: ILog
 
 export const colorCycleClass = (level: number, levelCount: number) => {
   const colorCycleCount = 5
-  const levelIndex = urlParams.levelColors === "child-parent"
-                      ? (levelCount - 1) - level
-                      : level
+  // assign colors from child to parent; levelIndex = level for parent to child
+  const levelIndex = (levelCount - 1) - level
   // e.g. `color-cycle-1`, `color-cycle-2`, etc.
   return `color-cycle-${levelIndex % colorCycleCount + 1}`
 }
