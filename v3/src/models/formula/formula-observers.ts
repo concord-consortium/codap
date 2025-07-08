@@ -34,7 +34,10 @@ export const observeLocalAttributes = (formulaDependencies: IFormulaDependency[]
   // If we needed to optimize the non-aggregate case, we could cache the items and then determine which ones
   // were added/removed ourselves, but it's not clear that it will be worth it.
   const disposeDatasetItemsObserver = mstReaction(
-    () => localDataSet.itemIdsHash,
+    // This recomputes all formulas when the order of items changes, which is only strictly necessary
+    // for order-dependent functions like first, last, prev, next, etc., but we don't currently have
+    // a way to track which formulas are order-dependent, so we just recalculate all of them.
+    () => localDataSet.itemIdsOrderedHash,
     () => recalculateCallback("ALL_CASES"),
     { name: "FormulaObservers.itemsReaction" }, localDataSet
   )

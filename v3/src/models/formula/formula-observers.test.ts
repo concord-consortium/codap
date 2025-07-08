@@ -102,12 +102,25 @@ describe("observeLocalAttributes", () => {
       expect(recalculateCallback).toHaveBeenCalledTimes(1)
     })
 
+    it("should call recalculateCallback with sorted cases", () => {
+      const recalculateCallback = jest.fn()
+      dataSet.addAttribute({ id: "attr1", name: "attr1" })
+      const newCases = [{ __id__: "case1", attr1: 1 }, { __id__: "case2", attr2: 2 }]
+      dataSet.addCases(newCases)
+      // non-aggregate optimization has been removed for now
+      const dispose = observeLocalAttributes(formulaDependenciesWithoutAggregate, dataSet, recalculateCallback)
+      dataSet.sortByAttribute("attr1", "descending")
+      expect(recalculateCallback).toHaveBeenCalledWith("ALL_CASES")
+      dispose()
+    })
+
     it("should call recalculateCallback with updated cases", () => {
       const recalculateCallback = jest.fn()
-      observeLocalAttributes(formulaDependenciesWithoutAggregate, dataSet, recalculateCallback)
+      const dispose = observeLocalAttributes(formulaDependenciesWithoutAggregate, dataSet, recalculateCallback)
       const caseUpdates = [{ __id__: "case1", attr1: 1 }, { __id__: "case2", attr321: 2 }]
       dataSet.setCaseValues(caseUpdates)
       expect(recalculateCallback).toHaveBeenCalledWith([caseUpdates[0]])
+      dispose()
     })
   })
 
