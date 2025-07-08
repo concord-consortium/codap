@@ -12,18 +12,19 @@ import { useOutsidePointerDown } from "../../hooks/use-outside-pointer-down"
 import { updateAttributesNotification } from "../../models/data/data-set-notifications"
 import { uiState } from "../../models/ui-state"
 import { uniqueName } from "../../utilities/js-utils"
-import { t } from "../../utilities/translation/translate"
+import { AttributeHeaderDivider } from "./attribute-header-divider"
 import { AttributeMenuList } from "./attribute-menu/attribute-menu-list"
 import { CaseTilePortal } from "./case-tile-portal"
-import { GetDividerBoundsFn, IDividerProps, kIndexColumnKey } from "./case-tile-types"
+import { GetDividerBoundsFn, kIndexColumnKey } from "./case-tile-types"
 import { useParentChildFocusRedirect } from "./use-parent-child-focus-redirect"
 
 interface IProps {
   attributeId: string
   beforeHeaderDivider?: boolean
   customButtonStyle?: SystemStyleObject
+  disableTooltip?: boolean
+  draggable?: boolean
   getDividerBounds?: GetDividerBoundsFn
-  HeaderDivider?: React.ComponentType<IDividerProps>
   showUnits?: boolean
   allowTwoLines?: boolean
   // returns the draggable parent element for use with DnDKit
@@ -34,8 +35,8 @@ interface IProps {
 }
 
 export const AttributeHeader = observer(function AttributeHeader({
-  attributeId, beforeHeaderDivider, customButtonStyle, allowTwoLines, getDividerBounds, HeaderDivider,
-  showUnits=true, onSetHeaderContentElt, onBeginEdit, onEndEdit, onOpenMenu
+  attributeId, beforeHeaderDivider, customButtonStyle, disableTooltip, draggable = true, allowTwoLines,
+  getDividerBounds, showUnits=true, onSetHeaderContentElt, onBeginEdit, onEndEdit, onOpenMenu
 }: IProps) {
   const { active } = useDndContext()
   const data = useDataSetContext()
@@ -63,6 +64,7 @@ export const AttributeHeader = observer(function AttributeHeader({
     prefix: instanceId, dataSet: data, attributeId
   }
   const { attributes, listeners, setNodeRef: setDragNodeRef } = useDraggableAttribute(draggableOptions)
+  const draggableProps = draggable ? { ...attributes, ...listeners } : {}
   // TODO: we really should only enable the outside pointer down listener when the menu is open.
   // However there doesn't seem to be simple way to do that.
   // `isMenuOpen` is a ref so we won't be re-rendered when that changes.
@@ -75,7 +77,7 @@ export const AttributeHeader = observer(function AttributeHeader({
   const setHeaderContentRef = (elt: HTMLDivElement | null) => {
     contentRef.current = elt
     parentRef.current = onSetHeaderContentElt?.(elt) ?? null
-    setDragNodeRef(parentRef.current ?? elt)
+    if (draggable) setDragNodeRef(parentRef.current ?? elt)
   }
 
   useEffect(() => {
@@ -214,10 +216,12 @@ export const AttributeHeader = observer(function AttributeHeader({
   }, [line1, line2, isOverflowed, line2Truncated])
 
   const description = attribute?.description ? `: ${attribute.description}` : ""
+  const isIndex = attributeId === kIndexColumnKey
+  const headerContentClasses = clsx("codap-column-header-content", { "index-column-header": isIndex })
   return (
     <Menu isLazy>
       {({ isOpen, onClose }) => {
-        const disableTooltip = dragging || isOpen || modalIsOpen || editingAttrId === attributeId
+        const tooltipDisabled = disableTooltip || dragging || isOpen || modalIsOpen || editingAttrId === attributeId
         isMenuOpen.current = isOpen
         onCloseMenuRef.current = onClose
         // ensure selected header is styled correctly.
@@ -225,13 +229,12 @@ export const AttributeHeader = observer(function AttributeHeader({
         return (
           <Tooltip label={`${attrName ?? ""} ${description}`} h="20px" fontSize="12px"
               color="white" openDelay={1000} placement="bottom" bottom="15px" left="15px"
-              isDisabled={disableTooltip}
+              isDisabled={tooltipDisabled}
           >
-            <div className="codap-column-header-content" ref={setHeaderContentRef} {...attributes} {...listeners}
+            <div className={headerContentClasses} ref={setHeaderContentRef} {...draggableProps}
             data-testid="codap-column-header-content">
-              { attributeId === kIndexColumnKey
-                ? <span>{t("DG.CaseTable.indexColumnName")}</span>
-                : editingAttrId
+              { !isIndex &&
+                (editingAttrId
                   ? <Input ref={inputRef} value={editingAttrName} data-testid="column-name-input"
                             className="column-name-input" size="xs"
                             autoFocus={true} variant="unstyled" onClick={handleInputClick}
@@ -248,7 +251,7 @@ export const AttributeHeader = observer(function AttributeHeader({
                           data-testid={`codap-attribute-button ${attrName}`}
                           aria-describedby={`sr-column-header-drag-instructions-${instanceId}`}>
                         {allowTwoLines ? renderAttributeLabel
-                                       : `${attrName ?? ""}${showUnits ? attrUnits : ""}`.trim()}
+                                        : `${attrName ?? ""}${showUnits ? attrUnits : ""}`.trim()}
                       </MenuButton>
                       <VisuallyHidden id={`sr-column-header-drag-instructions-${instanceId}`}>
                         <pre> Press Space to drag the attribute within the table or to a graph.
@@ -256,6 +259,7 @@ export const AttributeHeader = observer(function AttributeHeader({
                         </pre>
                       </VisuallyHidden>
                     </>
+                )
               }
               {attributeId !== kIndexColumnKey &&
                 <CaseTilePortal>
@@ -264,8 +268,8 @@ export const AttributeHeader = observer(function AttributeHeader({
                   />
                 </CaseTilePortal>
               }
-              {attributeId && HeaderDivider && !beforeHeaderDivider &&
-                <HeaderDivider
+              {attributeId && !beforeHeaderDivider &&
+                <AttributeHeaderDivider
                   key={attributeId}
                   columnKey={attributeId}
                   cellElt={parentRef.current}

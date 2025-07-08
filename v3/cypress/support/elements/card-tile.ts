@@ -4,6 +4,24 @@ export const CardTileElements = {
   getCardTile(index = 0) {
     return c.getComponentTile("case-card", index)
   },
+  getIndexText() {
+    return cy.get('[data-testid="case-card-view-index"]')
+  },
+  getAttributes() {
+    return cy.get('[data-testid="case-card-attr"]')
+  },
+  getAttributeNames() {
+    return cy.get('[data-testid="case-card-attr-name"]')
+  },
+  getAttributeValues() {
+    return cy.get('[data-testid="case-card-attr-value"]')
+  },
+  getAttributeValueEditors() {
+    return cy.get('[data-testid="case-card-attr-value"] [data-testid="case-card-attr-value-text-editor"]')
+  },
+  getAddAttributeButton() {
+    return cy.get('[data-testid="add-attribute-button"]')
+  },
   getInspectorPanel() {
     return cy.get('[data-testid="codap-case-card"]').siblings('[data-testid="inspector-panel"]')
   },
