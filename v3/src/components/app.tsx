@@ -48,7 +48,7 @@ registerTileTypes([])
 
 export const App = observer(function App() {
   useKeyStates()
-  // default behavior is to show the user enty modal when CODAP is loaded
+  // default behavior is to show the user entry modal when CODAP is loaded
   // We close the modal if user imports, drags a document, opens a document
   // or plugin using url params
   const {isOpen: isOpenUserEntry, onOpen: onOpenUserEntry, onClose: onCloseUserEntry} = useDisclosure()
