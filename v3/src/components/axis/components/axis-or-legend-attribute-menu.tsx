@@ -39,6 +39,7 @@ export const AxisOrLegendAttributeMenu =
   const dataConfiguration = useDataConfigurationContext()
   const metadata = dataConfiguration?.metadata
   const data = dataConfiguration?.dataset
+  const collections = data?.collections || []
   const role = graphPlaceToAttrRole[place]
   const attrId = dataConfiguration?.attributeID(role) || ''
   const instanceId = useInstanceIdContext()
@@ -79,6 +80,29 @@ export const AxisOrLegendAttributeMenu =
   const clickLabel = place === 'legend' ? `—${t("DG.LegendView.attributeTooltip")}`
     : t("DG.AxisView.labelTooltip", { vars: [orientation]})
 
+  const renderMenuItems = () => {
+    if (!data) return null
+
+    if (collections.length === 1) {
+      const attrs = collections[0].attributes.filter(attr => !!attr)
+      return attrs.filter(attr => !metadata?.isHidden(attr.id)).map((attr) => {
+        return (
+          <MenuItem onClick={() => onChangeAttribute(place, data, attr.id)} key={attr.id}>
+            {attr.name}
+          </MenuItem>
+        )
+      })
+    } else {
+      return collections.map(collection => {
+        return (
+          <MenuItem key={collection.id}>
+            {collection.name}
+          </MenuItem>
+        )
+      })
+    }
+  }
+
   return (
     <div className={`axis-legend-attribute-menu ${place}`} ref={menuRef} title={description + clickLabel}>
       <Menu boundary="scrollParent">
@@ -92,13 +116,7 @@ export const AxisOrLegendAttributeMenu =
                 {attribute?.name}
               </MenuButton>
               <MenuList>
-                { data?.attributes?.filter(attr => !metadata?.isHidden(attr.id)).map((attr) => {
-                  return (
-                    <MenuItem onClick={() => onChangeAttribute(place, data, attr.id)} key={attr.id}>
-                      {attr.name}
-                    </MenuItem>
-                  )
-                })}
+                {renderMenuItems()}
                 { attribute &&
                   <>
                     <MenuDivider />
