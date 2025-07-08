@@ -109,7 +109,7 @@ export const CaseAttrView = observer(function CaseAttrView (props: ICaseAttrView
       <Editable
         className={clsx("case-card-attr-value-text", {"formula-attr-value": attr?.hasFormula})}
         isPreviewFocusable={true}
-        isDisabled={attr?.hasFormula}
+        isDisabled={!isEditable || attr?.hasFormula}
         onCancel={handleCancel}
         onChange={handleChangeValue}
         onEdit={() => setIsEditing(true)}
