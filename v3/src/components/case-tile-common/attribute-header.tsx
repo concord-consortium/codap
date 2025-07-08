@@ -221,7 +221,7 @@ export const AttributeHeader = observer(function AttributeHeader({
   return (
     <Menu isLazy>
       {({ isOpen, onClose }) => {
-        const _disableTooltip = disableTooltip || dragging || isOpen || modalIsOpen || editingAttrId === attributeId
+        const tooltipDisabled = disableTooltip || dragging || isOpen || modalIsOpen || editingAttrId === attributeId
         isMenuOpen.current = isOpen
         onCloseMenuRef.current = onClose
         // ensure selected header is styled correctly.
@@ -229,7 +229,7 @@ export const AttributeHeader = observer(function AttributeHeader({
         return (
           <Tooltip label={`${attrName ?? ""} ${description}`} h="20px" fontSize="12px"
               color="white" openDelay={1000} placement="bottom" bottom="15px" left="15px"
-              isDisabled={_disableTooltip}
+              isDisabled={tooltipDisabled}
           >
             <div className={headerContentClasses} ref={setHeaderContentRef} {...draggableProps}
             data-testid="codap-column-header-content">
