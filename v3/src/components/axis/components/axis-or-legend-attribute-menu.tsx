@@ -1,21 +1,29 @@
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import { Menu, MenuItem, MenuList, MenuButton, MenuDivider } from "@chakra-ui/react"
-import React, {CSSProperties, useRef} from "react"
-import {IUseDraggableAttribute, useDraggableAttribute} from "../../../hooks/use-drag-drop"
-import {useInstanceIdContext} from "../../../hooks/use-instance-id-context"
+import React, { CSSProperties, useRef } from "react"
+import { IUseDraggableAttribute, useDraggableAttribute } from "../../../hooks/use-drag-drop"
+import { useInstanceIdContext } from "../../../hooks/use-instance-id-context"
 import { useOutsidePointerDown } from "../../../hooks/use-outside-pointer-down"
 import { useOverlayBounds } from "../../../hooks/use-overlay-bounds"
 import { AttributeType } from "../../../models/data/attribute-types"
-import { ICollectionModel } from "../../../models/data/collection"
+import { ICollectionModel, isCollectionModel } from "../../../models/data/collection"
+import { gDataBroker } from "../../../models/data/data-broker"
 import { IDataSet } from "../../../models/data/data-set"
 import { IDataSetMetadata } from "../../../models/shared/data-set-metadata"
+import { getMetadataFromDataSet } from "../../../models/shared/shared-data-utils"
 import { t } from "../../../utilities/translation/translate"
-import {GraphPlace} from "../../axis-graph-shared"
+import { GraphPlace } from "../../axis-graph-shared"
 import { graphPlaceToAttrRole } from "../../data-display/data-display-types"
 import { useDataConfigurationContext } from "../../data-display/hooks/use-data-configuration-context"
 
 import "./axis-or-legend-attribute-menu.scss"
+
+interface ICollectionInfo {
+  collection: ICollectionModel
+  data: IDataSet
+  metadata?: IDataSetMetadata
+}
 
 interface IMenuItemsForCollectionProps {
   collection: ICollectionModel
@@ -97,10 +105,22 @@ const removeAttrItemLabelKeys: Record<string, string> = {
 export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttributeMenu({
   place, target, portal, layoutBounds, onChangeAttribute, onRemoveAttribute, onTreatAttributeAs
 }: IProps) {
+  const dataSets = Array.from(gDataBroker.dataSets.values())
+  const allCollectionInfo: ICollectionInfo[] = []
+  dataSets.forEach(dataSet => {
+    const dataSetMetadata = getMetadataFromDataSet(dataSet)
+    dataSet.collections.forEach(collection => {
+      if (isCollectionModel(collection)) {
+        allCollectionInfo.push({
+          collection,
+          data: dataSet,
+          metadata: dataSetMetadata
+        })
+      }
+    })
+  })
   const dataConfiguration = useDataConfigurationContext()
-  const metadata = dataConfiguration?.metadata
   const data = dataConfiguration?.dataset
-  const collections = data?.collections || []
   const role = graphPlaceToAttrRole[place]
   const attrId = dataConfiguration?.attributeID(role) || ''
   const instanceId = useInstanceIdContext()
@@ -151,23 +171,22 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
   }
 
   const renderMenuItems = () => {
-    if (!data) return null
-
-    if (collections.length === 1) {
+    if (allCollectionInfo.length === 1) {
+      const { collection, data: dataSet, metadata } = allCollectionInfo[0]
       return (
         <MenuItemsForCollection
-          collection={collections[0]}
-          data={data}
+          collection={collection}
+          data={dataSet}
           metadata={metadata}
           onChangeAttribute={handleChangeAttribute}
           place={place}
         />
       )
     } else {
-      return collections.map(collection => (
+      return allCollectionInfo.map(({ collection, data: dataSet, metadata }) => (
         <CollectionMenu
           collection={collection}
-          data={data}
+          data={dataSet}
           isOpen={openCollectionId === collection.id}
           key={collection.id}
           metadata={metadata}
