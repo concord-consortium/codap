@@ -96,6 +96,16 @@ export const AxisHelper = {
       .click()
     cy.wait(2000)
   },
+  // Use this function when there are multiple datasets or a single dataset with multiple collections
+  selectSubmenuAttribute(attributeName: string, collectionName: string, axis: string) {
+    ae.getAttributeFromAttributeMenu(axis)
+      .contains(".collection-menu-item", collectionName)
+      .click()
+    ae.getAttributeFromAttributeMenu(axis)
+      .contains("button", attributeName)
+      .click()
+    cy.wait(2000)
+  },
   removeAttributeFromAxis(name: string, axis: string) {
     ae.getAttributeFromAttributeMenu(axis).contains(`Remove`).click()
   },
