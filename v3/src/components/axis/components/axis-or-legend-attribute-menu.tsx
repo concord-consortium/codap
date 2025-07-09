@@ -46,14 +46,13 @@ interface ICollectionMenuProps {
   onPointerOver?: React.PointerEventHandler<HTMLButtonElement>
   place: GraphPlace
 }
-
 const CollectionMenu = observer(function CollectionMenu({
   collection, data, isOpen, metadata, onChangeAttribute, onPointerOver, place
 }: ICollectionMenuProps) {
   return (
-    <MenuItem key={collection.id} onPointerOver={onPointerOver}>
-      {collection.name}
-      <Menu isOpen={isOpen}>
+    <>
+      <Menu isOpen={isOpen} placement="right-start">
+        <MenuButton as="div" className="collection-menu-button" />
         <MenuList>
           <MenuItemsForCollection
             collection={collection}
@@ -64,7 +63,15 @@ const CollectionMenu = observer(function CollectionMenu({
           />
         </MenuList>
       </Menu>
-    </MenuItem>
+      <MenuItem
+        as="div"
+        closeOnSelect={false}
+        key={collection.id}
+        onPointerOver={onPointerOver}
+      >
+        {collection.name}
+      </MenuItem>
+    </>
   )
 })
 
@@ -138,6 +145,11 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
   const clickLabel = place === 'legend' ? `—${t("DG.LegendView.attributeTooltip")}`
     : t("DG.AxisView.labelTooltip", { vars: [orientation]})
 
+  const handleChangeAttribute = (_place: GraphPlace, dataSet: IDataSet, _attrId: string) => {
+    onChangeAttribute(_place, dataSet, _attrId)
+    onCloseRef.current?.()
+  }
+
   const renderMenuItems = () => {
     if (!data) return null
 
@@ -147,7 +159,7 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
           collection={collections[0]}
           data={data}
           metadata={metadata}
-          onChangeAttribute={onChangeAttribute}
+          onChangeAttribute={handleChangeAttribute}
           place={place}
         />
       )
@@ -159,7 +171,7 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
           isOpen={openCollectionId === collection.id}
           key={collection.id}
           metadata={metadata}
-          onChangeAttribute={onChangeAttribute}
+          onChangeAttribute={handleChangeAttribute}
           onPointerOver={() => setOpenCollectionId(collection.id)}
           place={place}
         />
@@ -169,7 +181,7 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
 
   return (
     <div className={clsx("axis-legend-attribute-menu", place)} ref={menuRef} title={description + clickLabel}>
-      <Menu boundary="scrollParent">
+      <Menu boundary="scrollParent" onOpen={() => setOpenCollectionId(null)}>
         {({ onClose }) => {
           onCloseRef.current = onClose
           return (
