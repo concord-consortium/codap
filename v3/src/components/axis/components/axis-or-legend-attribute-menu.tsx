@@ -17,6 +17,8 @@ import { GraphPlace } from "../../axis-graph-shared"
 import { graphPlaceToAttrRole } from "../../data-display/data-display-types"
 import { useDataConfigurationContext } from "../../data-display/hooks/use-data-configuration-context"
 
+import RightArrow from "../../../assets/icons/arrow-right.svg"
+
 import "./axis-or-legend-attribute-menu.scss"
 
 interface ICollectionInfo {
@@ -73,11 +75,13 @@ const CollectionMenu = observer(function CollectionMenu({
       </Menu>
       <MenuItem
         as="div"
+        className="collection-menu-item"
         closeOnSelect={false}
         key={collection.id}
         onPointerOver={onPointerOver}
       >
-        {collection.name}
+        <span>{collection.name}</span>
+        <RightArrow />
       </MenuItem>
     </>
   )
