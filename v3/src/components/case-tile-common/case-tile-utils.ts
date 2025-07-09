@@ -174,7 +174,7 @@ export function applyCaseValueChanges(data: IDataSet, cases: ICase[], log?: ILog
 
 export const colorCycleClass = (level: number, levelCount: number) => {
   const colorCycleCount = 5
-  // assign colors from child to parent; levelIndex = level for parent to child
+  // assign colors from child to parent (use levelIndex = level for parent to child)
   const levelIndex = (levelCount - 1) - level
   // e.g. `color-cycle-1`, `color-cycle-2`, etc.
   return `color-cycle-${levelIndex % colorCycleCount + 1}`
