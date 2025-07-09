@@ -97,8 +97,6 @@ For completeness there are also optional peer dependencies which are supported b
 - Note: if the user tries to run an npm command they will currently see a message about an unsupported protocol for the patch dependencies.
 - Updating gitignore doing some other steps I don't remember, I ran `yarn start` again and this time I got complaints about `flat` and `flatMap` from typescript with the recommendation that I update the `lib` setting from es2018 to es2019. Doing that did fix the problems.
 - In VSCode need to install the ZipFS extension. It is listed in the recommended extensions by this repository. This makes it possible to open the definitions of types from dependencies in VSCode
-- Cypress used to have issues with PnP during the runtime but some of those are fixed: https://github.com/cypress-io/cypress/issues/8008 However component testing is apparently still broken.
-- Cypress can't import modules in the config file when PnP is being used, that sounds like it will be fixed in Cypress 15: https://github.com/cypress-io/cypress/pull/31520
 
 ## Cypress Issues
 - Cypress used to have issues with PnP during the runtime but some of those are fixed: https://github.com/cypress-io/cypress/issues/8008 However component testing is apparently still broken.
