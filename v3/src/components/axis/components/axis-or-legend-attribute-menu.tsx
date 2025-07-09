@@ -28,15 +28,12 @@ interface ICollectionInfo {
 }
 
 interface IMenuItemsForCollectionProps {
-  collection: ICollectionModel
-  data: IDataSet
-  metadata?: IDataSetMetadata
+  collectionInfo: ICollectionInfo
   onChangeAttribute: (place: GraphPlace, dataSet: IDataSet, attrId: string) => void
   place: GraphPlace
 }
-function MenuItemsForCollection({
-  collection, data, metadata, onChangeAttribute, place
-}: IMenuItemsForCollectionProps) {
+function MenuItemsForCollection({ collectionInfo, onChangeAttribute, place }: IMenuItemsForCollectionProps) {
+  const { collection, data, metadata } = collectionInfo
   const attrs = collection.attributes.filter(attr => !!attr)
   return attrs.filter(attr => !metadata?.isHidden(attr.id)).map((attr) => {
     return (
@@ -48,26 +45,23 @@ function MenuItemsForCollection({
 }
 
 interface ICollectionMenuProps {
-  collection: ICollectionModel
-  data: IDataSet
+  collectionInfo: ICollectionInfo
   isOpen: boolean
-  metadata?: IDataSetMetadata
   onChangeAttribute: (place: GraphPlace, dataSet: IDataSet, attrId: string) => void
   onPointerOver?: React.PointerEventHandler<HTMLButtonElement>
   place: GraphPlace
 }
 const CollectionMenu = observer(function CollectionMenu({
-  collection, data, isOpen, metadata, onChangeAttribute, onPointerOver, place
+  collectionInfo, isOpen, onChangeAttribute, onPointerOver, place
 }: ICollectionMenuProps) {
+  const { collection } = collectionInfo
   return (
     <>
       <Menu isOpen={isOpen} placement="right-start">
         <MenuButton as="div" className="collection-menu-button" />
         <MenuList>
           <MenuItemsForCollection
-            collection={collection}
-            data={data}
-            metadata={metadata}
+            collectionInfo={collectionInfo}
             onChangeAttribute={onChangeAttribute}
             place={place}
           />
@@ -111,24 +105,20 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
 }: IProps) {
   const dataSets = Array.from(gDataBroker.dataSets.values())
   const allCollectionInfo: ICollectionInfo[] = []
-  dataSets.forEach(dataSet => {
-    const dataSetMetadata = getMetadataFromDataSet(dataSet)
-    dataSet.collections.forEach(collection => {
+  dataSets.forEach(data => {
+    const metadata = getMetadataFromDataSet(data)
+    data.collections.forEach(collection => {
       if (isCollectionModel(collection)) {
-        allCollectionInfo.push({
-          collection,
-          data: dataSet,
-          metadata: dataSetMetadata
-        })
+        allCollectionInfo.push({ collection, data, metadata })
       }
     })
   })
   const dataConfiguration = useDataConfigurationContext()
-  const data = dataConfiguration?.dataset
+  const dataSet = dataConfiguration?.dataset
   const role = graphPlaceToAttrRole[place]
   const attrId = dataConfiguration?.attributeID(role) || ''
   const instanceId = useInstanceIdContext()
-  const attribute = attrId ? data?.attrFromID(attrId) : null
+  const attribute = attrId ? dataSet?.attrFromID(attrId) : null
   const nativeType = attribute?.type || ''
   const removeAttrItemLabel = t(removeAttrItemLabelKeys[role], {vars: [attribute?.name]})
   const attrType = dataConfiguration?.attributeType(role) || ''
@@ -141,7 +131,7 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
   const [openCollectionId, setOpenCollectionId] = React.useState<string | null>(null)
 
   const draggableOptions: IUseDraggableAttribute = {
-    prefix: instanceId, dataSet: data, attributeId: attrId
+    prefix: instanceId, dataSet, attributeId: attrId
   }
   const { attributes, listeners, setNodeRef: setDragNodeRef } = useDraggableAttribute(draggableOptions)
 
@@ -169,36 +159,34 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
   const clickLabel = place === 'legend' ? `—${t("DG.LegendView.attributeTooltip")}`
     : t("DG.AxisView.labelTooltip", { vars: [orientation]})
 
-  const handleChangeAttribute = (_place: GraphPlace, dataSet: IDataSet, _attrId: string) => {
-    onChangeAttribute(_place, dataSet, _attrId)
+  const handleChangeAttribute = (_place: GraphPlace, data: IDataSet, _attrId: string) => {
+    onChangeAttribute(_place, data, _attrId)
     onCloseRef.current?.()
   }
 
   const renderMenuItems = () => {
     if (allCollectionInfo.length === 1) {
-      const { collection, data: dataSet, metadata } = allCollectionInfo[0]
       return (
         <MenuItemsForCollection
-          collection={collection}
-          data={dataSet}
-          metadata={metadata}
+          collectionInfo={allCollectionInfo[0]}
           onChangeAttribute={handleChangeAttribute}
           place={place}
         />
       )
     } else {
-      return allCollectionInfo.map(({ collection, data: dataSet, metadata }) => (
-        <CollectionMenu
-          collection={collection}
-          data={dataSet}
-          isOpen={openCollectionId === collection.id}
-          key={collection.id}
-          metadata={metadata}
-          onChangeAttribute={handleChangeAttribute}
-          onPointerOver={() => setOpenCollectionId(collection.id)}
-          place={place}
-        />
-      ))
+      return allCollectionInfo.map(collectionInfo => {
+        const { collection } = collectionInfo
+        return (
+          <CollectionMenu
+            collectionInfo={collectionInfo}
+            isOpen={openCollectionId === collection.id}
+            key={collection.id}
+            onChangeAttribute={handleChangeAttribute}
+            onPointerOver={() => setOpenCollectionId(collection.id)}
+            place={place}
+          />
+        )
+      })
     }
   }
 
