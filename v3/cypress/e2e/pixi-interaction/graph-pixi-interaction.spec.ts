@@ -65,14 +65,14 @@ context("Graph UI with Pixi interaction", () => {
       // Drag Diet to parent in case table
       table.moveAttributeToParent("Diet", "newCollection")
       table.getNumOfRows(1).should("contain", 5) // five rows: top, plants, meat, both, bottom
-      gch.setAxisAndRetrieveTileId("Diet", "bottom").then((tileId) => {
+      gch.setAxisAndRetrieveTileId("Diet", "bottom", "Diets").then((tileId) => {
         gch.validateGraphPointCount(tileId, 3)
       })
 
       cy.log('Test for "Diet", "Habitat" univariate with hierarchy (5 points)')
       table.moveAttributeToParent("Habitat", "newCollection")
       table.getNumOfRows(1).should("contain", 5) // five rows: top, land, water, both, bottom
-      gch.setAxisAndRetrieveTileId("Diet", "bottom").then((tileId) => {
+      gch.setAxisAndRetrieveTileId("Diet", "bottom", "Diets").then((tileId) => {
         gch.validateGraphPointCount(tileId, 5)
       })
     })
@@ -564,10 +564,10 @@ context("Graph UI with Pixi interaction", () => {
       // Create a graph
       graph.getGraphTile().click()
       ah.openAxisAttributeMenu("bottom")
-      ah.selectMenuAttribute("date", "bottom") // Date => x-axis
+      ah.selectSubmenuAttribute("date", "Measurements", "bottom") // Date => x-axis
       cy.get('[data-testid="axis-legend-attribute-button-bottom"]').eq(0).should("have.text", "date")
       ah.openAxisAttributeMenu("left")
-      ah.selectMenuAttribute("animal_id", "left") // animal_id => y-axis
+      ah.selectSubmenuAttribute("animal_id", "Tracks", "left") // animal_id => y-axis
       ah.openAxisAttributeMenu("left")
       ah.treatAttributeAsNumeric("left")
       ah.openAxisAttributeMenu("left")
