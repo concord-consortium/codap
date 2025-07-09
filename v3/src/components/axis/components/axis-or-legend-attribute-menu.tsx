@@ -27,6 +27,7 @@ interface ICollectionInfo {
   metadata?: IDataSetMetadata
 }
 
+// MenuItems for all attributes in a single collection
 interface IMenuItemsForCollectionProps {
   collectionInfo: ICollectionInfo
   onChangeAttribute: (place: GraphPlace, dataSet: IDataSet, attrId: string) => void
@@ -44,6 +45,7 @@ function MenuItemsForCollection({ collectionInfo, onChangeAttribute, place }: IM
   })
 }
 
+// A MenuItem for a collection, which contains a submenu of the collection's attributes
 interface ICollectionMenuProps {
   collectionInfo: ICollectionInfo
   isOpen: boolean
@@ -81,16 +83,6 @@ const CollectionMenu = observer(function CollectionMenu({
   )
 })
 
-interface IProps {
-  place: GraphPlace,
-  target: SVGGElement | null
-  portal: HTMLElement | null
-  layoutBounds: string  // Used to signal need to re-render because layout has changed
-  onChangeAttribute: (place: GraphPlace, dataSet: IDataSet, attrId: string) => void
-  onRemoveAttribute: (place: GraphPlace, attrId: string) => void
-  onTreatAttributeAs: (place: GraphPlace, attrId: string, treatAs: AttributeType) => void
-}
-
 const removeAttrItemLabelKeys: Record<string, string> = {
   "x": "DG.DataDisplayMenu.removeAttribute_x",
   "y": "DG.DataDisplayMenu.removeAttribute_y",
@@ -100,6 +92,16 @@ const removeAttrItemLabelKeys: Record<string, string> = {
   "rightSplit": "DG.DataDisplayMenu.removeAttribute_right"
 }
 
+// The full menu
+interface IProps {
+  place: GraphPlace,
+  target: SVGGElement | null
+  portal: HTMLElement | null
+  layoutBounds: string  // Used to signal need to re-render because layout has changed
+  onChangeAttribute: (place: GraphPlace, dataSet: IDataSet, attrId: string) => void
+  onRemoveAttribute: (place: GraphPlace, attrId: string) => void
+  onTreatAttributeAs: (place: GraphPlace, attrId: string, treatAs: AttributeType) => void
+}
 export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttributeMenu({
   place, target, portal, layoutBounds, onChangeAttribute, onRemoveAttribute, onTreatAttributeAs
 }: IProps) {
