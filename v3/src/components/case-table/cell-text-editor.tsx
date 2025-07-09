@@ -18,7 +18,7 @@ import { TRenderEditCellProps } from "./case-table-types"
   `rdg-text-editor`), RDG ties its internal CSS to the dynamically generated class names.
   Therefore, to preserve the prior behavior we must give our instances of these components the
   same classes as the components they're replacing, including the dynamically generated classes.
-  To enable this, patch-package has been used to export the `textEditorClassname` string.
+  To enable this, react-data-grid has been patched to export the `textEditorClassname` string.
  */
 
 function autoFocusAndSelect(input: HTMLInputElement | null) {

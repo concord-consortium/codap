@@ -15,14 +15,19 @@ jobs:
       - uses: snow-actions/sparse-checkout@v1.2.0
         with:
           patterns: v3
+      - name: Install Corepack
+        # See "Corepack and GitHub Actions" in yarn.md
+        run: |
+          npm uninstall -g yarn || true
+          npm install -g corepack
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
-          cache-dependency-path: v3/package-lock.json
+          cache: 'yarn'
+          cache-dependency-path: v3/yarn.lock
       - name: Install Dependencies
         working-directory: v3
-        run: npm ci
+        run: yarn install
       - name: Restore ESLint Cache
         id: restore-eslint-cache
         uses: actions/cache/restore@v4
@@ -31,7 +36,7 @@ jobs:
           key: eslint-${{ hashFiles('v3/package-lock.json', 'v3/.eslintrc.build.cjs', 'v3/.eslintrc.cjs') }}
       - name: Lint
         working-directory: v3
-        run: npm run lint:build
+        run: yarn lint:build
       - name: Save ESLint Cache
         uses: actions/cache/save@v4
         # Always save the cache on the main branch, it won't be built often and
@@ -47,14 +52,19 @@ jobs:
       - uses: snow-actions/sparse-checkout@v1.2.0
         with:
           patterns: v3
+      - name: Install Corepack
+        # See "Corepack and GitHub Actions" in yarn.md
+        run: |
+          npm uninstall -g yarn || true
+          npm install -g corepack
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
-          cache-dependency-path: v3/package-lock.json
+          cache: 'yarn'
+          cache-dependency-path: v3/yarn.lock
       - name: Install Dependencies
         working-directory: v3
-        run: npm ci
+        run: yarn install
       - name: Restore Webpack Cache
         id: restore-webpack-cache
         uses: actions/cache/restore@v4
@@ -73,7 +83,7 @@ jobs:
           EOF
       - name: Build
         working-directory: v3
-        run: npm run build:ci
+        run: yarn build:ci
         env:
           DEPLOY_PATH: ${{ steps.s3-deploy-path.outputs.deployPath }}
       - name: Save Webpack Cache
@@ -96,25 +106,30 @@ jobs:
       - uses: snow-actions/sparse-checkout@v1.2.0
         with:
           patterns: v3
+      - name: Install Corepack
+        # See "Corepack and GitHub Actions" in yarn.md
+        run: |
+          npm uninstall -g yarn || true
+          npm install -g corepack
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
-          cache-dependency-path: v3/package-lock.json
+          cache: 'yarn'
+          cache-dependency-path: v3/yarn.lock
       - name: Install Dependencies
         working-directory: v3
-        run: npm ci
+        run: yarn install
       - name: Jest Cache
         uses: actions/cache@v4
         with:
           path: /tmp/jest_rt
-          key: jest-${{ hashFiles('v3/package-lock.json') }}
+          key: jest-${{ hashFiles('v3/yarn.lock') }}
       - name: Get number of CPU cores
         id: cpu-cores
         uses: SimenB/github-actions-cpu-cores@v2
       - name: Run Tests
         working-directory: v3
-        run: npm run test:coverage -- --maxWorkers=${{ steps.cpu-cores.outputs.count }}
+        run: yarn test:coverage --maxWorkers=${{ steps.cpu-cores.outputs.count }}
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
@@ -135,6 +150,16 @@ jobs:
       - uses: snow-actions/sparse-checkout@v1.2.0
         with:
           patterns: v3
+      - name: Install Corepack
+        # See "Corepack and GitHub Actions" in yarn.md
+        run: |
+          npm uninstall -g yarn || true
+          npm install -g corepack
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'yarn'
+          cache-dependency-path: v3/yarn.lock
       - name: Restore Webpack Cache
         id: restore-webpack-cache
         uses: actions/cache/restore@v4
@@ -146,23 +171,23 @@ jobs:
       - uses: cypress-io/github-action@v6
         with:
           working-directory: v3
-          start: npm start
+          install-command: yarn install
+          command: >
+            yarn run --binaries-only cypress run
+            ${{ !!secrets.CYPRESS_RECORD_KEY && '--record' || '' }}
+            --spec cypress/e2e/smoke/single-codap-smoke.ts
+            --group "Smoke Tests"
+            --browser chrome
+          start: yarn start
           wait-on: 'http://localhost:8080'
           # add timeout of 5 minutes to start
           wait-on-timeout: 300
-          # only record the results to dashboard.cypress.io if CYPRESS_RECORD_KEY is set
-          record: ${{ !!secrets.CYPRESS_RECORD_KEY }}
-          browser: chrome
-          # only run a single test
-          # TODO: setup a special test for this purpose
-          spec: cypress/e2e/smoke/single-codap-smoke.ts
-          group: 'Smoke Tests'
         env:
           # pass the Dashboard record key as an environment variable
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
           # pass GitHub token to allow accurately detecting a build vs a re-run build
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # turn on code coverage when running npm start
+          # turn on code coverage when running yarn start
           # so far we've been using a webpack coverage-istanbul-loader for this
           # but there has been work on using the code coverage support in the browser directly,
           # which should be much faster

@@ -20,11 +20,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 18
-          cache: 'npm'
-          cache-dependency-path: v3/package-lock.json
+          cache: 'yarn'
+          cache-dependency-path: v3/yarn.lock
       - name: Install Dependencies
         working-directory: v3
-        run: npm ci
+        run: yarn install
       - uses: browser-actions/setup-chrome@v1
         with:
           chrome-version: stable
@@ -37,7 +37,7 @@ jobs:
       - uses: cypress-io/github-action@v6
         with:
           working-directory: v3
-          start: npm start
+          start: yarn start
           wait-on: 'http://localhost:8080'
           wait-on-timeout: 300
           record: ${{ !!secrets.CYPRESS_RECORD_KEY }}

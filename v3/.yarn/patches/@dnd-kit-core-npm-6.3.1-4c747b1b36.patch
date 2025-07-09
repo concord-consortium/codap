@@ -1,7 +1,7 @@
-diff --git a/node_modules/@dnd-kit/core/dist/core.cjs.development.js b/node_modules/@dnd-kit/core/dist/core.cjs.development.js
-index 2685024..57dba94 100644
---- a/node_modules/@dnd-kit/core/dist/core.cjs.development.js
-+++ b/node_modules/@dnd-kit/core/dist/core.cjs.development.js
+diff --git a/dist/core.cjs.development.js b/dist/core.cjs.development.js
+index 268502405d09f14023adf1d2be5a672efb353624..a410c91ab302f97d7aac45c1d44acc71bd8bde59 100644
+--- a/dist/core.cjs.development.js
++++ b/dist/core.cjs.development.js
 @@ -1825,10 +1825,6 @@ function useAutoScroller(_ref) {
      }
  
@@ -24,10 +24,10 @@ index 2685024..57dba94 100644
        for (const axis of ['x', 'y']) {
          if (!scrollIntent[axis][direction[axis]]) {
            speed[axis] = 0;
-diff --git a/node_modules/@dnd-kit/core/dist/core.esm.js b/node_modules/@dnd-kit/core/dist/core.esm.js
-index 1577c25..0678b61 100644
---- a/node_modules/@dnd-kit/core/dist/core.esm.js
-+++ b/node_modules/@dnd-kit/core/dist/core.esm.js
+diff --git a/dist/core.esm.js b/dist/core.esm.js
+index 1577c253774e3c37eafa4f267f1944426deee405..979bba9f8d7fa54cab01e8e84643ffb0fb64c0d9 100644
+--- a/dist/core.esm.js
++++ b/dist/core.esm.js
 @@ -1824,10 +1824,6 @@ function useAutoScroller(_ref) {
      }
  
@@ -50,10 +50,10 @@ index 1577c25..0678b61 100644
        for (const axis of ['x', 'y']) {
          if (!scrollIntent[axis][direction[axis]]) {
            speed[axis] = 0;
-diff --git a/node_modules/@dnd-kit/core/dist/hooks/utilities/useAutoScroller.d.ts b/node_modules/@dnd-kit/core/dist/hooks/utilities/useAutoScroller.d.ts
-index 3159f04..01f66e3 100644
---- a/node_modules/@dnd-kit/core/dist/hooks/utilities/useAutoScroller.d.ts
-+++ b/node_modules/@dnd-kit/core/dist/hooks/utilities/useAutoScroller.d.ts
+diff --git a/dist/hooks/utilities/useAutoScroller.d.ts b/dist/hooks/utilities/useAutoScroller.d.ts
+index 3159f04b27a9dad6b78d2c6d8d5df95c7e906ef2..01f66e3daaf7dc2f32495dddcd55d26c414f71ed 100644
+--- a/dist/hooks/utilities/useAutoScroller.d.ts
++++ b/dist/hooks/utilities/useAutoScroller.d.ts
 @@ -1,3 +1,4 @@
 +import { Direction } from '../../types';
  import type { Coordinates, ClientRect } from '../../types';

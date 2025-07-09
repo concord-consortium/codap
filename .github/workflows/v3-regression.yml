@@ -62,6 +62,16 @@ jobs:
           chrome-version: stable
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Install Corepack
+        # See "Corepack and GitHub Actions" in yarn.md
+        run: | 
+          npm uninstall -g yarn || true
+          npm install -g corepack
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'yarn'
+          cache-dependency-path: v3/yarn.lock
       - name: Restore Webpack Cache
         # Don't save the webpack cache because the same cache wil be saved
         # by the cypress job in `v3.yml`
@@ -72,25 +82,24 @@ jobs:
       - uses: cypress-io/github-action@v6
         with:
           working-directory: v3
-          start: npm start
+          install-command: yarn install --immutable
+          # TODO: this currently will re-run the smoke test, once we have a dedicated smoke
+          # test that should be excluded
+          command: > 
+            yarn run --binaries-only cypress run 
+            ${{ !!secrets.CYPRESS_RECORD_KEY && '--record --parallel' || '' }}
+            --browser chrome
+            --group 'Regression Tests'
+          start: yarn start
           wait-on: 'http://localhost:8080'
           # add timeout of 5 minutes to start
           wait-on-timeout: 300
-          # only record the results to dashboard.cypress.io if CYPRESS_RECORD_KEY is set
-          record: ${{ !!secrets.CYPRESS_RECORD_KEY }}
-          # only do parallel if we have a record key
-          parallel: ${{ !!secrets.CYPRESS_RECORD_KEY }}
-          browser: chrome
-          # TODO: this currently will re-run the smoke test, once we have a dedicated smoke
-          # test that should be excluded
-          # spec: cypress/e2e/**
-          group: 'Regression Tests'
         env:
           # pass the Dashboard record key as an environment variable
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
           # pass GitHub token to allow accurately detecting a build vs a re-run build
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # turn on code coverage when running npm start
+          # turn on code coverage when running yarn start
           # so far we've been using a webpack coverage-istanbul-loader for this
           # but there has been work on using the code coverage support in the browser directly,
           # which should be much faster
