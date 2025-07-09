@@ -10,6 +10,7 @@ Update the root files:
 - find a way to extract the duplicate code of the debug.ts which had to be added to `formulas`
 - figure out how to update the formula tests so can be moved into the formulas package. Currently they use the CODAP document so they can't be moved in without bringing in lots of dependencies.
 - put components/vars.scss in a common package, so the formula editor and v3 can share it there might be issues with getting yarn to allow the import from the package especially if the common package uses the "exports" property in its package.json
+- when I run `yarn pack --dry-run` in utilities it is including some of the files ignored by git in the package: `tsconfig.tsbuildinfo` and `.cache/eslint/default`. I guess the right fix is to use the files setting in package.json to list explicitly what we want to package, but it is strange that these files are included. Perhaps it only respects a .gitignore file in the same folder as the package.
 
 # Dependencies
 Within packages/workspaces that are used by the main app (v3), managing their dependencies is tricky. In order to prevent duplicate 3rd party packages like React and MobX, peerDependencies should be used. In general it would be best to use peerDependencies for every package that is used directly by the app or any other package in the monorepo. This way there won't be duplication.

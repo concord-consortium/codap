@@ -1,7 +1,8 @@
 import { create, all, MathNode } from "mathjs"
 import {
   CODAPMathjsFunctionRegistry, CurrentScope, EvaluateFunc, EvaluateFuncWithAggregateContextSupport, EvaluateRawFunc,
-  FValue, FValueOrArray
+  FValue, FValueOrArray,
+  IFormulaMathjsFunction
 } from "../formula-types"
 import { aggregateFunctions } from "./aggregate-functions"
 import { arithmeticFunctions } from "./arithmetic-functions"
@@ -96,9 +97,12 @@ export const fnRegistry = {
 
 export const typedFnRegistry: CODAPMathjsFunctionRegistry = fnRegistry
 
-// import the new function in the Mathjs namespace
-Object.keys(typedFnRegistry).forEach((key) => {
-  const fn = typedFnRegistry[key]
+/**
+ * Import a function into the Mathjs namespace.
+ * @param key
+ * @param fn
+ */
+const importMathjsFunction = (key: string, fn: IFormulaMathjsFunction) => {
   let evaluateRaw = fn.evaluateRaw
   if (!evaluateRaw && fn.evaluate) {
     // Some simpler functions can be defined with evaluate function instead of evaluateRaw. In that case, we need to
@@ -127,4 +131,28 @@ Object.keys(typedFnRegistry).forEach((key) => {
   }, {
     override: true // override functions already defined by mathjs
   })
+}
+
+// import all built in functions into the Mathjs namespace
+Object.keys(typedFnRegistry).forEach((key) => {
+  const fn = typedFnRegistry[key]
+  importMathjsFunction(key, fn)
 })
+
+/**
+ * Allow users of the formula system to register new functions in the Mathjs namespace. This can also be
+ * used to override existing functions provided by CODAP or Mathjs.
+ *
+ * The registered function will also be used by by other parts of the formula system:
+ * - the code editor uses it for autocompletion and highlighting.
+ * - the formula dependency system uses to figure out the dependencies of the formula.
+ *
+ * TODO: this will not currently add documentation for the new function so it won't show up in the
+ * insert function dialog of CODAP
+ * @param name
+ * @param fn
+ */
+export const registerMathjsFunction = (name: string, fn: IFormulaMathjsFunction) => {
+  typedFnRegistry[name] = fn
+  importMathjsFunction(name, fn)
+}

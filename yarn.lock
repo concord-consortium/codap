@@ -3573,7 +3573,7 @@ __metadata:
     "@codemirror/language": "npm:^6.11.0"
     "@codemirror/state": "npm:^6.5.2"
     "@codemirror/view": "npm:^6.36.4"
-    "@concord-consortium/codap-utilities": "file:.yalc/@concord-consortium/codap-utilities"
+    "@concord-consortium/codap-utilities": "npm:^1.0.0"
     "@emotion/react": "npm:^11.14.0"
     "@emotion/styled": "npm:^11.14.0"
     "@eslint/compat": "npm:^1.2.7"
@@ -3730,7 +3730,7 @@ __metadata:
 
 "@concord-consortium/codap-utilities@file:.yalc/@concord-consortium/codap-utilities::locator=%40concord-consortium%2Fcodap-formulas%40workspace%3Aformulas":
   version: 1.0.0
-  resolution: "@concord-consortium/codap-utilities@file:.yalc/@concord-consortium/codap-utilities#.yalc/@concord-consortium/codap-utilities::hash=8a76a4&locator=%40concord-consortium%2Fcodap-formulas%40workspace%3Aformulas"
+  resolution: "@concord-consortium/codap-utilities@file:.yalc/@concord-consortium/codap-utilities#.yalc/@concord-consortium/codap-utilities::hash=4086da&locator=%40concord-consortium%2Fcodap-formulas%40workspace%3Aformulas"
   dependencies:
     colord: "npm:^2.9.3"
     d3-format: "npm:^3.1.0"
@@ -3738,25 +3738,11 @@ __metadata:
     nanoid: "npm:^5.1.5"
     query-string: "npm:^9.2.0"
     type-fest: "npm:^4.41.0"
-  checksum: 10c0/a579074f23cb5e2792345609f56f29ef0b036b89d36e093a99fd7a562cbec970ada226ddb071ba7efb9ef0d1dea5521c9dd37f0d7c2545137d4fc5f04e65fbb5
+  checksum: 10c0/9dc8668853199a634553a9996ff2ae302c5373ec1103f1880c561c9c8ac5f19651df9a1bf5d6ef5804c1777ceb3de8bca1818ad92e26d21c5677f641b8e4e68b
   languageName: node
   linkType: hard
 
-"@concord-consortium/codap-utilities@file:.yalc/@concord-consortium/codap-utilities::locator=%40concord-consortium%2Fcodap-formulas-react17%40workspace%3Aformulas-react17":
-  version: 1.0.0
-  resolution: "@concord-consortium/codap-utilities@file:.yalc/@concord-consortium/codap-utilities#.yalc/@concord-consortium/codap-utilities::hash=8a76a4&locator=%40concord-consortium%2Fcodap-formulas-react17%40workspace%3Aformulas-react17"
-  dependencies:
-    colord: "npm:^2.9.3"
-    d3-format: "npm:^3.1.0"
-    mobx: "npm:^6.13.7"
-    nanoid: "npm:^5.1.5"
-    query-string: "npm:^9.2.0"
-    type-fest: "npm:^4.41.0"
-  checksum: 10c0/a579074f23cb5e2792345609f56f29ef0b036b89d36e093a99fd7a562cbec970ada226ddb071ba7efb9ef0d1dea5521c9dd37f0d7c2545137d4fc5f04e65fbb5
-  languageName: node
-  linkType: hard
-
-"@concord-consortium/codap-utilities@workspace:^, @concord-consortium/codap-utilities@workspace:utilities":
+"@concord-consortium/codap-utilities@npm:^1.0.0, @concord-consortium/codap-utilities@workspace:^, @concord-consortium/codap-utilities@workspace:utilities":
   version: 0.0.0-use.local
   resolution: "@concord-consortium/codap-utilities@workspace:utilities"
   dependencies:

@@ -1,6 +1,6 @@
 {
   "name": "@concord-consortium/codap-formulas",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Library for handling formulas, used by CODAP and other applications.",
   "main": "index.js",
   "exports": {
