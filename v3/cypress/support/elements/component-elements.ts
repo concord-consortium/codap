@@ -68,7 +68,7 @@ export const ComponentElements = {
     return this.getComponentTile(component, index).find("[data-testid=component-close-button]")
   },
   getResizeControl(component: string, index = 0) {
-    return this.getComponentTile(component, index).find(".codap-component-corner.bottom-right")
+    return this.getComponentTile(component, index).parent().find(".codap-component-corner.bottom-right")
   },
   checkToolTip(element: JQuery<HTMLElement>, tooltipText: string) {
     cy.wrap(element).invoke("attr", "title").should("contain", tooltipText)

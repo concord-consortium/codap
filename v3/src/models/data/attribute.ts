@@ -90,6 +90,10 @@ export const Attribute = V2Model.named("Attribute").props({
     // numeric values using an attribute-specific number of decimal places
     return importValueToString(value)
   },
+  get isNumeric() {
+    // An attribute is considered numeric if any of its values is a number.
+    return self.numValues.some(value => !isNaN(value))
+  },
   toNumeric(value: string) {
     if (value == null || value === "") return NaN
     return Number(value)
@@ -242,7 +246,7 @@ export const Attribute = V2Model.named("Attribute").props({
     const numValue = self.numValues[index]
     return !isNaN(numValue) ? numValue : self.strValues[index]
   },
-  isNumeric(index: number) {
+  isValueNumeric(index: number) {
     return !isNaN(self.numValues[index])
   },
   numValue(index: number) {

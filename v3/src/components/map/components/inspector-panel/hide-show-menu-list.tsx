@@ -2,14 +2,14 @@ import {MenuItem, MenuList, useDisclosure} from "@chakra-ui/react"
 import {observer} from "mobx-react-lite"
 import {isAlive} from "mobx-state-tree"
 import React from "react"
+import { DataSetContext } from "../../../../hooks/use-data-set-context"
+import { useInspectorFormulaString } from "../../../../hooks/use-inspector-formula-string"
+import { logMessageWithReplacement } from "../../../../lib/log-message"
 import {ITileContentModel} from "../../../../models/tiles/tile-content"
 import {ITileModel} from "../../../../models/tiles/tile-model"
 import {t} from "../../../../utilities/translation/translate"
-import {IMapContentModel, isMapContentModel} from "../../models/map-content-model"
-import { logMessageWithReplacement } from "../../../../lib/log-message"
-import { DataSetContext } from "../../../../hooks/use-data-set-context"
 import { EditFormulaModal } from "../../../common/edit-formula-modal"
-import { useInspectorFormulaString } from "../../../../hooks/use-inspector-formula-string"
+import { IMapContentModel, isMapContentModel } from "../../models/map-content-model"
 
 interface IProps {
   tile?: ITileModel
@@ -24,7 +24,7 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
   const numSelected = mapModel?.numSelected() ?? 0
   const numUnselected = mapModel?.numUnselected() ?? 0
   const numHidden = mapModel?.numHidden() ?? 0
-  const formulaModal = useDisclosure()
+  const { isOpen, onClose, onOpen } = useDisclosure()
   const dataConfig = mapModel?.layers.find(layer => layer.dataConfiguration)?.dataConfiguration
 
   const hideSelectedString = numSelected === 1
@@ -77,15 +77,7 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
         log: logMessageWithReplacement("Change filter formula to %@", {formula})
       }
     )
-    formulaModal.onClose()
-  }
-
-  const handleEditFormulaOpen = () => {
-    formulaModal.onOpen()
-  }
-
-  const handleEditFormulaClose = () => {
-    formulaModal.onClose()
+    onClose()
   }
 
   return (
@@ -100,7 +92,7 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
         <MenuItem onClick={showAllCases} isDisabled={numHidden === 0} data-testid="show-all-cases">
           {t("DG.DataDisplayMenu.showAll")}
         </MenuItem>
-        <MenuItem onClick={handleEditFormulaOpen} data-testid="map-edit-filter-formula">
+        <MenuItem onClick={onOpen} data-testid="map-edit-filter-formula">
           {addOrEditFormulaString}
         </MenuItem>
       </MenuList>
@@ -108,8 +100,8 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
         <DataSetContext.Provider value={dataConfig.dataset}>
           <EditFormulaModal
             applyFormula={applyFilterFormula}
-            isOpen={formulaModal.isOpen}
-            onClose={handleEditFormulaClose}
+            isOpen={isOpen}
+            onClose={onClose}
             titleLabel={t("V3.hideShowMenu.filterFormulaPrompt")}
             value={dataConfig.filterFormula?.display} />
         </DataSetContext.Provider>

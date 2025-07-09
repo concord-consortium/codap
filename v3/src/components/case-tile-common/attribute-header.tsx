@@ -2,7 +2,7 @@ import { Tooltip, Menu, MenuButton, Input, VisuallyHidden, SystemStyleObject } f
 import { useDndContext } from "@dnd-kit/core"
 import { autorun } from "mobx"
 import { observer } from "mobx-react-lite"
-import React, { useEffect, useMemo, useRef, useState } from "react"
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { clsx } from "clsx"
 import { useAdjustHeaderForOverflow } from "../../hooks/use-adjust-header-overflow"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
@@ -165,14 +165,14 @@ export const AttributeHeader = observer(function AttributeHeader({
     setIsFocused(false)
     uiState.setAttrIdToEdit?.()
   }
-  const handleRenameAttribute = () => {
+  const handleRenameAttribute = useCallback(() => {
     setEditingAttrId(attributeId)
     setEditingAttrName(attrName)
-  }
+  }, [attrName, attributeId])
 
-  const handleModalOpen = (open: boolean) => {
+  const handleModalOpen = useCallback((open: boolean) => {
     setModalIsOpen(open)
-  }
+  }, [])
 
   const handleInputBlur = (e: any) => {
     if (isFocused) {

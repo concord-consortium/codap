@@ -131,6 +131,14 @@ export function toCanonical(ds: IDataSet, cases: CaseOrArray): CaseOrArray {
           : toCanonicalCase(ds, cases)
 }
 
+export const nullItemData: IItemData = {
+  itemIds: () => [],
+  isHidden: () => false,
+  getValue: () => "",
+  addItemInfo: () => {},
+  invalidate: () => {}
+} as IItemData
+
 export const DataSet = V2Model.named("DataSet").props({
   id: typeV3Id("DATA"),
   sourceID: types.maybe(types.string),
@@ -169,7 +177,8 @@ export const DataSet = V2Model.named("DataSet").props({
   managingControllerId: "",
   // cached result of filter formula evaluation for each item ID
   filteredOutItemIds: observable.set<string>(),
-  filterFormulaError: ""
+  filterFormulaError: "",
+  itemData: nullItemData
 }))
 .extend(self => {
   const _validationCount = observable.box<number>(0)
@@ -402,6 +411,13 @@ export const DataSet = V2Model.named("DataSet").props({
     ++self.syncCollectionLinksCount
   }
 }))
+.actions(self => ({
+  syncCollectionLinks() {
+    syncCollectionLinks(self.collections, self.itemData)
+    self.incSyncCollectionLinksCount()
+    self.invalidateCases()
+  }
+}))
 .extend(self => {
   function getCollection(collectionId?: string): ICollectionModel | undefined {
     if (!isAlive(self)) {
@@ -494,6 +510,7 @@ export const DataSet = V2Model.named("DataSet").props({
       },
       removeCollection(collection: ICollectionModel) {
         self.collections.remove(collection)
+        self.syncCollectionLinks()
       }
     }
   }
@@ -1199,24 +1216,17 @@ export const DataSet = V2Model.named("DataSet").props({
   }
 }))
 .actions(self => ({
-  syncCollectionLinks() {
-    // update parent/child links and provide access to item data
-    const itemData: IItemData = {
+  afterCreate() {
+    const context: IEnvContext | Record<string, never> = hasEnv(self) ? getEnv(self) : {},
+          { srcDataSet } = context
+
+    self.itemData = {
       itemIds: () => self._itemIds,
       isHidden: (itemId) => self.isCaseOrItemHidden(itemId),
       getValue: (itemId, attrId) => self.getStrValue(itemId, attrId) ?? "",
       addItemInfo: (itemId, caseId) => self.addItemInfo(itemId, caseId),
       invalidate: () => self.invalidateCases()
     }
-    syncCollectionLinks(self.collections, itemData)
-    self.incSyncCollectionLinksCount()
-    self.invalidateCases()
-  }
-}))
-.actions(self => ({
-  afterCreate() {
-    const context: IEnvContext | Record<string, never> = hasEnv(self) ? getEnv(self) : {},
-          { srcDataSet } = context
 
     self.syncCollectionLinks()
 

@@ -1,7 +1,7 @@
 import { isEqual, isEqualWith } from "lodash"
 import { applyAction, clone, destroy, getSnapshot, onAction, onSnapshot } from "mobx-state-tree"
 import { uniqueName } from "../../utilities/js-utils"
-import { DataSet, fromCanonical, isFilterFormulaDataSet, toCanonical } from "./data-set"
+import { DataSet, fromCanonical, isFilterFormulaDataSet, nullItemData, toCanonical } from "./data-set"
 import { createDataSet } from "./data-set-conversion"
 import { ICaseID } from "./data-set-types"
 
@@ -79,6 +79,14 @@ test("Canonicalization", () => {
   expect(toCanonical(ds, { foo: "bar", ...a1Case })).toEqual(a1Canonical)
   expect(mockConsoleWarn).toHaveBeenCalledTimes(1)
   mockConsole.mockRestore()
+})
+
+test("nullItemData", () => {
+  expect(nullItemData.itemIds()).toEqual([])
+  expect(nullItemData.isHidden("id")).toBe(false)
+  expect(nullItemData.getValue("id", "attr")).toBe("")
+  expect(nullItemData.addItemInfo("id", "attr")).toBeUndefined()
+  expect(nullItemData.invalidate()).toBeUndefined()
 })
 
 test("DataSet volatile caching", () => {

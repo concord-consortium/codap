@@ -16,7 +16,7 @@ export const PlottedValueAdornmentBanner = observer(function PlottedValueAdornme
   const model = props.model as IPlottedValueAdornmentModel
   const graphModel = useGraphContentModelContext()
   const { expression, error } = model
-  const formulaModal = useDisclosure()
+  const { isOpen, onClose, onOpen } = useDisclosure()
   const [modalIsOpen, setModalIsOpen] = useState(false)
 
   const handleModalOpen = (open: boolean) => {
@@ -24,12 +24,12 @@ export const PlottedValueAdornmentBanner = observer(function PlottedValueAdornme
   }
 
   const handleEditExpressionOpen = () => {
-    formulaModal.onOpen()
+    onOpen()
     handleModalOpen(true)
   }
 
   const handleCloseModal = () => {
-    formulaModal.onClose()
+    onClose()
     setModalIsOpen(false)
   }
 
@@ -68,7 +68,7 @@ export const PlottedValueAdornmentBanner = observer(function PlottedValueAdornme
         <EditFormulaModal
           applyFormula={handleEditExpressionClose}
           formulaPrompt={t("DG.PlottedValue.formulaPrompt")}
-          isOpen={formulaModal.isOpen}
+          isOpen={isOpen}
           onClose={handleCloseModal}
           titleLabel={t("DG.PlottedValue.namePrompt")}
           value={expression}

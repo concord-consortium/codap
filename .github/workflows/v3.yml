@@ -9,12 +9,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install Corepack
-        # This is so yarn can be used correctly.
-        # Note with Node <= 24 it is included by default and and
-        # `corepack enable` can be used instead, but the current approach
-        # should work will all Node versions >= 18
-        # uninstalling the global yarn helps to make sure that the correct versions
-        # are being used
+        # See "Corepack and GitHub Actions" in yarn.md
         run: |
           npm uninstall -g yarn || true
           npm install -g corepack
@@ -49,12 +44,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install Corepack
-        # This is so yarn can be used correctly.
-        # Note with Node <= 24 it is included by default and and
-        # `corepack enable` can be used instead, but the current approach
-        # should work will all Node versions >= 18
-        # uninstalling the global yarn helps to make sure that the correct versions
-        # are being used
+        # See "Corepack and GitHub Actions" in yarn.md
         run: |
           npm uninstall -g yarn || true
           npm install -g corepack
@@ -106,12 +96,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install Corepack
-        # This is so yarn can be used correctly.
-        # Note with Node <= 24 it is included by default and and
-        # `corepack enable` can be used instead, but the current approach
-        # should work will all Node versions >= 18
-        # uninstalling the global yarn helps to make sure that the correct versions
-        # are being used
+        # See "Corepack and GitHub Actions" in yarn.md
         run: |
           npm uninstall -g yarn || true
           npm install -g corepack
@@ -153,12 +138,7 @@ jobs:
           chrome-version: stable
       - uses: actions/checkout@v4
       - name: Install Corepack
-        # This is so yarn can be used correctly.
-        # Note with Node <= 24 it is included by default and and
-        # `corepack enable` can be used instead, but the current approach
-        # should work will all Node versions >= 18
-        # uninstalling the global yarn helps to make sure that the correct versions
-        # are being used
+        # See "Corepack and GitHub Actions" in yarn.md
         run: |
           npm uninstall -g yarn || true
           npm install -g corepack
