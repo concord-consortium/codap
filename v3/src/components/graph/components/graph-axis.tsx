@@ -91,23 +91,28 @@ export const GraphAxis = observer(function GraphAxis(
     }
   }, [layout, place, graphModel])
 
+  const role = axisPlaceToAttrRole[place]
+  const renderAxis = role !== "rightSplit" || !!dataConfig?.attributeDescriptionForRole(role)?.attributeID
+
   return (
     <g className={`axis-wrapper ${place}`} ref={elt => setWrapperElt(elt)}>
       <rect className='axis-background'/>
-      {axisModel &&
+      {axisModel && renderAxis &&
         <Axis axisPlace={place}
               showScatterPlotGridLines={graphModel.axisShouldShowGridLines(place)}
               showZeroAxisLine={graphModel.axisShouldShowZeroLine(place)}
         />}
-      <GraphAttributeLabel
-        place={place}
-        onChangeAttribute={onDropAttribute}
-        onRemoveAttribute={onRemoveAttribute}
-        onTreatAttributeAs={onTreatAttributeAs}
-      />
+      {renderAxis &&
+        <GraphAttributeLabel
+          place={place}
+          onChangeAttribute={onDropAttribute}
+          onRemoveAttribute={onRemoveAttribute}
+          onTreatAttributeAs={onTreatAttributeAs}
+        />
+      }
       {onDropAttribute &&
         <DroppableAxis
-            place={`${place}`}
+            place={place}
             dropId={droppableId}
             hintString={hintString}
             portal={parentEltRef.current}
