@@ -161,7 +161,7 @@ jobs:
           # We've already installed dependencies above, so we don't need to do it again
           # However this might break the caching of the cypress install
           # see the cache setup here: https://github.com/cypress-io/github-action?tab=readme-ov-file#install-cypress-only
-          install-command: false
+          install: false
           command: >
             yarn run --binaries-only cypress run
             ${{ !!secrets.CYPRESS_RECORD_KEY && '--record' || '' }}
