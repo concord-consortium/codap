@@ -8,10 +8,9 @@ import { useOutsidePointerDown } from "../../../hooks/use-outside-pointer-down"
 import { useOverlayBounds } from "../../../hooks/use-overlay-bounds"
 import { AttributeType } from "../../../models/data/attribute-types"
 import { ICollectionModel, isCollectionModel } from "../../../models/data/collection"
-import { gDataBroker } from "../../../models/data/data-broker"
 import { IDataSet } from "../../../models/data/data-set"
 import { IDataSetMetadata } from "../../../models/shared/data-set-metadata"
-import { getMetadataFromDataSet } from "../../../models/shared/shared-data-utils"
+import { getMetadataFromDataSet, getSharedDataSets } from "../../../models/shared/shared-data-utils"
 import { t } from "../../../utilities/translation/translate"
 import { GraphPlace } from "../../axis-graph-shared"
 import { graphPlaceToAttrRole } from "../../data-display/data-display-types"
@@ -105,7 +104,9 @@ interface IProps {
 export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttributeMenu({
   place, target, portal, layoutBounds, onChangeAttribute, onRemoveAttribute, onTreatAttributeAs
 }: IProps) {
-  const dataSets = Array.from(gDataBroker.dataSets.values())
+  const dataConfiguration = useDataConfigurationContext()
+  const dataSet = dataConfiguration?.dataset
+  const dataSets = dataSet ? getSharedDataSets(dataSet).map(sharedDataSet => sharedDataSet.dataSet) : []
   const allCollectionInfo: (ICollectionInfo|"divider")[] = []
   dataSets.forEach((data, index) => {
     const metadata = getMetadataFromDataSet(data)
@@ -118,8 +119,6 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
       allCollectionInfo.push("divider")
     }
   })
-  const dataConfiguration = useDataConfigurationContext()
-  const dataSet = dataConfiguration?.dataset
   const role = graphPlaceToAttrRole[place]
   const attrId = dataConfiguration?.attributeID(role) || ''
   const instanceId = useInstanceIdContext()
