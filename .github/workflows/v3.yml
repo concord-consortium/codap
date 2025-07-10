@@ -153,6 +153,7 @@ jobs:
         working-directory: v3
         run: yarn install
       - name: Build Sub Packages
+        working-directory: v3
         run: yarn build:dependencies
       - uses: cypress-io/github-action@v6
         with:
