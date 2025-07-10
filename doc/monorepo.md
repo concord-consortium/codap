@@ -55,6 +55,19 @@ This means that the scss files have to be copied from src to dist. There isn't a
 # Typescript
 Typescript is added as a dependency in the root of the project so that the whole project can be built and so VSCode can open the whole project. Without this VSCode would fallback to its bundled Typescript version, but that does not support Yarn PnP so it is necessary to install typescript.
 
+When building a workspace/package that depends on another package you can run `tsc --build` instead of just `tsc` this way it will automatically re-build the dependent package too. This requires the main tsconfig.json to have a references section. When a dependent package is built it will have a `/dist` folder and a `tsconfig.tsbuildinfo` file. However this approach has a few problems:
+- when a package has assets (css or json5) those are not "built" by `tsc --build`
+- the main `v3/src` folder can't be built as a dependency doing so causes several build errors. See below for more info.
+
+What you currently have to do is manually run `yarn build` in each dependent package first. This will build the javascript files and typescript type definitions, as well as copy the assets to the dist folder. In the `v3` package you can run `yarn build:dependencies` to do this. This doesn't handle incrementally building though it will just rebuild all of the files. We could improve that with a cache setup in each of the folders. We could also look at tools like `nx` which are supposed to optimize what gets rebuilt.
+
+When developing in VSCode it does handle most of this pretty well, so you normally won't notice this problem until running the devServer or building for production.
+
+ForkTsCheckWebpackPlugin is configured to build typescript references through its `build` option, however this is just for the type checking which is running in parallel with the actual bundling of the files. When Webpack is trying to bundle the files it will probably not have the built dependencies so it will fail. So before running the webpack dev server you need to build the dependent projects.
+
+## Issues with using references to `v3/src`
+This approach cannot currently be used with a reference from the `v3/tsconfig.json` to `v3/src/tsconfig.json`. Making this reference requires `v3/src/tsconfig.json` to have the `composite` option which also requires that it cannot have the `noEmit` option. When `v3/src/tsconfig.json` doesn't have the `noEmit` option it reports 50 typescript errors. Many are related to the size of inferred types being too large to serialize.
+
 # ESLint
 ESLint is installed at the root of the project so that Yarn PnP can patch it and the vscode eslint plugin can use this patched version. Currently there is an empty eslint configuration at the root. This basically disables eslint for files at the root level. When a file is opened in a subfolder the vscode eslint plugin uses the configuration from that subfolder.
 
