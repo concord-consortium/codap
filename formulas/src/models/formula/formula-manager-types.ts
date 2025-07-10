@@ -1,3 +1,4 @@
+// eslint-disable-next-line import-x/no-cycle
 import { IDataSet } from "../data/data-set"
 import type { ICase } from "../data/data-set-types"
 import { IAnyStateTreeNode } from "mobx-state-tree"

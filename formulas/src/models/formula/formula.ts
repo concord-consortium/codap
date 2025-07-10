@@ -1,5 +1,6 @@
 import { getEnv, hasEnv, IAnyStateTreeNode, Instance, SnapshotIn, types } from "mobx-state-tree"
 import { typedId } from "@concord-consortium/codap-utilities/js-utils"
+// eslint-disable-next-line import-x/no-cycle
 import { IFormulaManager } from "./formula-manager-types"
 
 export interface IFormulaManagerEnvironment

@@ -1,4 +1,4 @@
-import { IValueType } from "./attribute-types";
+import { IValueType } from "./attribute-types"
 
 export interface IItemID {
   __id__: string;

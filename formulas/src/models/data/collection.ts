@@ -1,3 +1,4 @@
+// eslint-disable-next-line import-x/no-cycle
 import { IAttribute } from "./attribute"
 import { CaseInfo, IGroupedCase } from "./data-set-types"
 

@@ -1,3 +1,4 @@
+// eslint-disable-next-line import-x/no-cycle
 import { IFormula } from "../formula/formula"
 
 export interface IAttribute {
