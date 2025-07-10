@@ -9390,7 +9390,7 @@ __metadata:
 
 "eslint-plugin-import-x@patch:eslint-plugin-import-x@npm%3A4.15.1#~/.yarn/patches/eslint-plugin-import-x-npm-4.15.1-14cf13eac8.patch":
   version: 4.15.1
-  resolution: "eslint-plugin-import-x@patch:eslint-plugin-import-x@npm%3A4.15.1#~/.yarn/patches/eslint-plugin-import-x-npm-4.15.1-14cf13eac8.patch::version=4.15.1&hash=f8c611"
+  resolution: "eslint-plugin-import-x@patch:eslint-plugin-import-x@npm%3A4.15.1#~/.yarn/patches/eslint-plugin-import-x-npm-4.15.1-14cf13eac8.patch::version=4.15.1&hash=a625c2"
   dependencies:
     "@typescript-eslint/types": "npm:^8.33.1"
     comment-parser: "npm:^1.4.1"
@@ -9410,7 +9410,7 @@ __metadata:
       optional: true
     eslint-import-resolver-node:
       optional: true
-  checksum: 10c0/6987456a5a4a4ddb02edba9932bf02de52e6de11fa550c89cdc73d4a4a9da7477929ca6169d06ec534ceb7f3d4be5a3512023852a29b36c0fa28da0b76535e60
+  checksum: 10c0/05bd9bb461ddbb138c1297ffd138ab5489514d4062d473fe5e0120cd3d15f25f3260f5f2c093b8c0f7aefc553aa9310ef04c335b57531efab1fb9893c2cd1cc8
   languageName: node
   linkType: hard
 
