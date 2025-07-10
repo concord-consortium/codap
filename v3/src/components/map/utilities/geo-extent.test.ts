@@ -1,9 +1,9 @@
-import L from "leaflet"
+import { latLngBounds } from "leaflet"
 import { GeoExtent } from "./geo-extent"
 
 describe("constructor", () => {
   it("handles a leaflet bounds", () => {
-    const extent = new GeoExtent(L.latLngBounds([-85, -180], [85, 180]))
+    const extent = new GeoExtent(latLngBounds([-85, -180], [85, 180]))
     expect(extent.bbox).toEqual([-180, -85, 180, 85])
   })
 })

@@ -1,7 +1,7 @@
 import { types, Instance, flow, IJsonPatch, detach, destroy } from "mobx-state-tree"
 import { nanoid } from "nanoid"
 import { TreeAPI } from "./tree-api"
-// eslint-disable-next-line import/no-cycle
+// eslint-disable-next-line import-x/no-cycle
 import { IUndoManager, UndoStore } from "./undo-store"
 import {
   TreePatchRecord, HistoryEntry, TreePatchRecordSnapshot, HistoryOperation, ICreateHistoryEntry

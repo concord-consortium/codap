@@ -110,3 +110,22 @@ Also modern yarn (>=2) supports a `portal:` protocol for dependencies. This http
 The advantage of using the `portal:` approach is that changes in the local dependency should be available immediately to the main project. With `yalc` you have to explicitly republish the local dependency.
 
 The advantage of using `yalc` is that the local dependency will be built just like when it is published for real. This means any transpiled code and assets are processed the same way they would be when the package is published for real. Often this makes working local dependencies easier than trying to figure out why they aren't working with the direct link approach.
+
+## Typescript configuration
+One recommendation is to use project references:
+https://www.typescriptlang.org/docs/handbook/project-references.html
+In dese models and foss simulation we do not have a main typescript config. We just have separate typescript configs for each project.
+In dese models there seems to be a single vscode config.
+In foss simulations there are separate vscode configs for each workspace.
+
+In foss simulations there is a common folder which has a shared webpack config file for all of the workspaces.
+
+I should check to see if we are using these in the dese models or foss simulations repos.
+
+## Interesting Notes
+It is possible to mix module resolutions in a mono-repo:
+https://yarnpkg.com/getting-started/recipes
+In other words some workspaces in the mono-repo can use node-modules instead of PnP.
+
+A useful article about some of this:
+https://semaphore.io/blog/typescript-monorepos-with-yarn

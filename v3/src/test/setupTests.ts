@@ -2,6 +2,7 @@ import "@testing-library/jest-dom"
 import "jest-canvas-mock"
 import { enableFetchMocks } from "jest-fetch-mock"
 import "jest-webgl-canvas-mock"
+import type { JSDOM } from "jsdom"
 import { isEqual, isEqualWith } from "lodash"
 import ResizeObserverPolyfill from "resize-observer-polyfill"
 global.ResizeObserver = ResizeObserverPolyfill
@@ -72,4 +73,8 @@ declare global {
       toEqualWithoutIds(expected: any): R
     }
   }
+}
+
+declare global {
+  const jsdom: JSDOM
 }

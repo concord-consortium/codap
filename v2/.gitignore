@@ -1,0 +1,18 @@
+**/build/**
+**/tmp/**
+.DS_Store
+nbproject
+.idea
+*.iml
+.deployDevCodaprc
+dist
+.pt
+.ruby-gemset
+.ruby-version
+# Packages
+node_modules/
+cypress/screenshots
+cypress/videos
+cypress/downloads
+cypress/snapshots/*/__diff_output__/**
+v3/cypress/screenshots

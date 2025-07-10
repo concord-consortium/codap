@@ -11,7 +11,9 @@ npm uninstall -g yarn || true
 npm install -g corepack
 ```
 
-This is so yarn will be used correctly. Corepack is a tool that manages which version of yarn or pnpm is use. It also can prevent you from accidentally running a npm command in a yarn repository. It was included in Node versions 16 to 24. It is planned to be removed in Node version 25. But it can still be installed separately. The commands above will work with version of Node >= 18 (latest corepack is not compatible with Node 16 and 17).
+Uninstalling the global yarn helps to make sure that corepack is working properly.
+
+Corepack is a tool that manages which version of yarn or pnpm is use. It also can prevent you from accidentally running a npm command in a yarn repository. It was included in Node versions 16 to 24. It is planned to be removed in Node version 25. But it can still be installed separately. The commands above will work with version of Node >= 18 (latest corepack is not compatible with Node 16 and 17).
 
 # Patching packages
 Detailed info:
