@@ -8726,7 +8726,7 @@ __metadata:
     eslint-plugin-testing-library: "npm:^7.1.1"
     eslint-webpack-plugin: "npm:^5.0.0"
     file-loader: "npm:^6.2.0"
-    fork-ts-checker-webpack-plugin: "npm:^9.0.2"
+    fork-ts-checker-webpack-plugin: "npm:^9.1.0"
     framer-motion: "npm:^12.16.0"
     fs-extra: "npm:^11.3.0"
     globals: "npm:^16.0.0"
@@ -11614,7 +11614,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fork-ts-checker-webpack-plugin@npm:^9.0.2":
+"fork-ts-checker-webpack-plugin@npm:^9.1.0":
   version: 9.1.0
   resolution: "fork-ts-checker-webpack-plugin@npm:9.1.0"
   dependencies:

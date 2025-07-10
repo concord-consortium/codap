@@ -49,7 +49,14 @@ module.exports = (env, argv) => {
     }))
   }
   if (!process.env.CODE_COVERAGE) {
-    webpackPlugins.push(new ForkTsCheckerWebpackPlugin())
+    webpackPlugins.push(new ForkTsCheckerWebpackPlugin({
+      typescript: {
+        // Automatically build and re-build dependent packages
+        build: true,
+        // Use the tsconfig.json in the src folder
+        configFile: path.resolve(__dirname, 'src/tsconfig.json'),
+      }
+    }))
   }
 
   return {
@@ -103,7 +110,7 @@ module.exports = (env, argv) => {
         {
           test: /.(ts|tsx)$/,
           include: path.resolve(__dirname, "src"),
-          use: process.env.CODE_COVERAGE
+          use: process.env.CODE_COVERAGE || process.env.FORCE_TS_LOADER
             ? {
                 loader: "ts-loader",
                 options: {

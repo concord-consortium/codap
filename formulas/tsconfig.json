@@ -32,7 +32,7 @@
     "src/**/*.json"
   ],
   "exclude": [
-    "*.grammar",
+    "*.grammar"
   ],
   "references": [
     { "path": "../utilities" }

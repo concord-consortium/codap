@@ -2,7 +2,8 @@
   "extends": "../src/tsconfig.json",
   "compilerOptions": {
     "sourceMap": false,
-    "types": ["cypress", "cypress-real-events"]
+    "types": ["cypress", "cypress-real-events"],
+    "rootDir": "."
   },
   "include": [
     "./**/*"
