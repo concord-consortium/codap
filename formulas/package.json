@@ -159,7 +159,7 @@
     "@codemirror/language": "^6.11.0",
     "@codemirror/state": "^6.5.2",
     "@codemirror/view": "^6.36.4",
-    "@concord-consortium/codap-utilities": "file:.yalc/@concord-consortium/codap-utilities",
+    "@concord-consortium/codap-utilities": "workspace:^",
     "@lezer/common": "^1.2.3",
     "@lezer/highlight": "^1.2.1",
     "@lezer/lr": "^1.4.2",
