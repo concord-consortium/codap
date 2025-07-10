@@ -149,17 +149,25 @@ jobs:
           # this key is different from the build job above because this is a dev build so its
           # folder in the cache will be different and cached data is also likely different
           key: webpack-dev-build-${{ hashFiles('v3/webpack.config.js') }}
+      - name: Install Yarn Dependencies
+        working-directory: v3
+        run: yarn install
+      - name: Build Sub Packages
+        run: yarn build:dependencies
       - uses: cypress-io/github-action@v6
         with:
           working-directory: v3
-          install-command: yarn install
+          # We've already installed dependencies above, so we don't need to do it again
+          # However this might break the caching of the cypress install
+          # see the cache setup here: https://github.com/cypress-io/github-action?tab=readme-ov-file#install-cypress-only
+          install-command: false
           command: >
             yarn run --binaries-only cypress run
             ${{ !!secrets.CYPRESS_RECORD_KEY && '--record' || '' }}
             --spec cypress/e2e/smoke/single-codap-smoke.ts
             --group "Smoke Tests"
             --browser chrome
-          start: sh -c 'yarn build:dependencies && yarn start'
+          start: yarn start'
           wait-on: 'http://localhost:8080'
           # add timeout of 5 minutes to start
           wait-on-timeout: 300
