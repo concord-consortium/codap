@@ -77,7 +77,7 @@ const CollectionMenu = observer(function CollectionMenu({
         onPointerOver={onPointerOver}
       >
         <span>{collection.name}</span>
-        <RightArrow />
+        <RightArrow className="collection-menu-arrow" />
       </MenuItem>
     </>
   )
