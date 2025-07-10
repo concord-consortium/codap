@@ -19,6 +19,8 @@ export const DroppableAxis = observer(function DroppableAxis(
   { place, portal, target, dropId, hintString, onIsActive }: IProps) {
   const layout = useGraphLayoutContext(),
     axisBounds = layout?.getComputedBounds(place)
+  console.log(`--- place`, place)
+  console.log(` -- computedBounds`, axisBounds)
 
   const { active, isOver, setNodeRef } = useDroppable({ id: dropId })
   const isActive = active && onIsActive?.(active)
