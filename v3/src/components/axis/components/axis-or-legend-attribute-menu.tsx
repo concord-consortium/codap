@@ -106,7 +106,7 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
   place, target, portal, layoutBounds, onChangeAttribute, onRemoveAttribute, onTreatAttributeAs
 }: IProps) {
   const dataSets = Array.from(gDataBroker.dataSets.values())
-  const allCollectionInfo: (ICollectionInfo|string)[] = []
+  const allCollectionInfo: (ICollectionInfo|"divider")[] = []
   dataSets.forEach((data, index) => {
     const metadata = getMetadataFromDataSet(data)
     data.collections.forEach(collection => {
@@ -170,7 +170,7 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
   }
 
   const renderMenuItems = () => {
-    if (allCollectionInfo.length === 1 && typeof allCollectionInfo[0] !== 'string') {
+    if (allCollectionInfo.length === 1 && allCollectionInfo[0] !== "divider") {
       return (
         <MenuItemsForCollection
           collectionInfo={allCollectionInfo[0]}
@@ -181,7 +181,7 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
     } else {
       let dividerCount = 0
       return allCollectionInfo.map(collectionInfo => {
-        if (typeof collectionInfo === 'string') {
+        if (collectionInfo === "divider") {
           return <MenuDivider key={`divider-${dividerCount++}`} />
         } else {
           const { collection } = collectionInfo
