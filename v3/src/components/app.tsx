@@ -1,6 +1,5 @@
 import { useDisclosure } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
-import { IAnyStateTreeNode } from "mobx-state-tree"
 import React, { useCallback, useEffect, useState } from "react"
 import {
   registerGlobalValueManagerLookupFunction, IGlobalValueManager as IFormulaGlobalValueManager

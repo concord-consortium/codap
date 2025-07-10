@@ -1,6 +1,7 @@
 import { MathNode, SymbolNode, parse } from "mathjs"
 import {
-  evaluateRawWithAggregateContext, evaluateRawWithDefaultArg, evaluateToEvaluateRaw, evaluateWithAggregateContextSupport,
+  evaluateRawWithAggregateContext, evaluateRawWithDefaultArg, evaluateToEvaluateRaw,
+  evaluateWithAggregateContextSupport,
   registerMathjsFunction, typedFnRegistry, math
 } from "@concord-consortium/codap-formulas/models/formula/functions/math"
 import { FValue, FValueOrArray, MathJSPartitionedMap } from "../formula-types"
@@ -101,7 +102,7 @@ describe("evaluateWithAggregateContextSupport", () => {
 
 describe("registerMathjsFunction", () => {
   it("can add aliases of existing functions", () => {
-    registerMathjsFunction("roof", typedFnRegistry["ceil"])
+    registerMathjsFunction("roof", typedFnRegistry.ceil)
     const fn = math.compile("roof(x)")
     expect(fn.evaluate({ x: 1.2 })).toEqual(2)
     expect(fn.evaluate({ x: -1.2 })).toEqual(-1)

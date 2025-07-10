@@ -8,7 +8,9 @@ import {
   observeGlobalValues, observeLocalAttributes, observeLookupDependencies, observeSymbolNameChanges
 } from "@concord-consortium/codap-formulas/models/formula/formula-observers"
 import { IDataSet as IFormulaDataSet } from "@concord-consortium/codap-formulas/models/data/data-set"
-import { IGlobalValueManager as IFormulaGlobalValueManager } from "@concord-consortium/codap-formulas/models/global/global-value-manager"
+import {
+  IGlobalValueManager as IFormulaGlobalValueManager
+} from "@concord-consortium/codap-formulas/models/global/global-value-manager"
 import { DataSet, IDataSet } from "../data/data-set"
 import { GlobalValueManager } from "../global/global-value-manager"
 import { GlobalValue } from "../global/global-value"

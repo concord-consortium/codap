@@ -14,7 +14,6 @@ import { MosaicTileRow } from "../document/mosaic-tile-row"
 import { GlobalValueManager } from "../global/global-value-manager"
 import "../global/global-value-manager-registration"
 import { getFormulaManager } from "../tiles/tile-environment"
-import { FormulaManager } from "../formula/formula-manager"
 const { version } = pkg
 const { buildNumber } = build
 
@@ -47,7 +46,7 @@ export function createCodapDocument(snapshot?: ICodapDocumentModelSnapshot, opti
       document.content?.addSharedModel(globalValueManager)
     }
     // Add the global value manager to the formula manager
-    const formulaManager = getFormulaManager(document) as Maybe<FormulaManager>
+    const formulaManager = getFormulaManager(document)
     formulaManager?.addGlobalValueManager(globalValueManager as IFormulaGlobalValueManager)
   }
   // create the default tile container ("row")

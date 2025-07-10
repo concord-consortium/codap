@@ -28,18 +28,19 @@ export function registerGlobalValueManagerLookupFunction(
   lookupFunction: ((node: IAnyStateTreeNode) => IGlobalValueManager | undefined) | undefined
 ): void {
   if (lookupFunction) {
-    _getGlobalValueManager = lookupFunction;
-    _haveGlobalValueManager = true;
+    _getGlobalValueManager = lookupFunction
+    _haveGlobalValueManager = true
   } else {
-    _getGlobalValueManager = undefined;
-    _haveGlobalValueManager = false;
+    _getGlobalValueManager = undefined
+    _haveGlobalValueManager = false
   }
 }
 
 export function getGlobalValueManager(node: IAnyStateTreeNode): IGlobalValueManager {
 
   if (_haveGlobalValueManager == null) {
-    throw new Error("Global value manager has not been registered. Please call registerGlobalValueManagerLookupFunction first.");
+    throw new Error("Global value manager has not been registered. " +
+      "Please call registerGlobalValueManagerLookupFunction first.")
   }
 
   if (_haveGlobalValueManager === false) {
@@ -51,12 +52,12 @@ export function getGlobalValueManager(node: IAnyStateTreeNode): IGlobalValueMana
   }
 
   if (!_getGlobalValueManager) {
-    throw new Error("Global value manager lookup function is not defined.");
+    throw new Error("Global value manager lookup function is not defined.")
   }
 
-  const globalValueManager = _getGlobalValueManager(node);
+  const globalValueManager = _getGlobalValueManager(node)
   if (!globalValueManager) {
-    throw new Error("Global value manager not found for the provided node.");
+    throw new Error("Global value manager not found for the provided node.")
   }
   return globalValueManager
 }

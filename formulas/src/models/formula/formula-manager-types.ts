@@ -2,6 +2,7 @@ import { IDataSet } from "../data/data-set"
 import type { ICase } from "../data/data-set-types"
 import { IAnyStateTreeNode } from "mobx-state-tree"
 import type { IFormula } from "./formula"
+import { IGlobalValueManager } from "../global/global-value-manager"
 
 export type CaseList = ICase[] | "ALL_CASES"
 export interface IFormulaMetadata {
@@ -49,4 +50,9 @@ export interface IFormulaManager {
   getSyntaxError: (displayString: string) => any
   isRandomFunctionPresent: (canonicalString: string) => boolean
   rerandomize: (formulaId: string) => void
+  /**
+   * Note: This overlaps with `registerGlobalValueManagerLookupFunction`. If you have a global value manager
+   * registered, you need to call this function too.
+   */
+  addGlobalValueManager(globalValueManager: IGlobalValueManager): void
 }
