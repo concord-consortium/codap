@@ -159,7 +159,7 @@ jobs:
             --spec cypress/e2e/smoke/single-codap-smoke.ts
             --group "Smoke Tests"
             --browser chrome
-          start: yarn build:dependencies && yarn start
+          start: sh -c 'yarn build:dependencies && yarn start'
           wait-on: 'http://localhost:8080'
           # add timeout of 5 minutes to start
           wait-on-timeout: 300
