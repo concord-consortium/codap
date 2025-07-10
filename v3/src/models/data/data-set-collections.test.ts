@@ -63,18 +63,18 @@ describe("DataSet collections", () => {
     expect(data.collections.length).toEqual(1)
     expect(data.childCollection.attributes.map(attr => attr!.id)).toEqual(["aId", "bId", "cId"])
     // case caches are updated when cases are added/removed
-    const childCases = data.childCases()
+    const childCases = data.childCases
     expect(noSymbols(childCases)).toEqual(allCases)
     data.addCases([{ __id__: "4-5-6", aId: 4, bId: 5, cId: 6 }])
     data.validateCases()
     const allCases2 = data.items.map(({ __id__ }) => ({ __id__: data.getItemChildCaseId(__id__) }))
     expect(allCases2).not.toEqual(allCases)
-    const childCases2 = data.childCases()
+    const childCases2 = data.childCases
     expect(childCases2).not.toEqual(childCases)
     expect(noSymbols(childCases2)).toEqual(allCases2)
     data.removeCases(["4-5-6"])
     const allCases3 = data.items.map(({ __id__ }) => ({ __id__: data.getItemChildCaseId(__id__) }))
-    const childCases3 = data.childCases()
+    const childCases3 = data.childCases
     expect(childCases3).toEqual(childCases)
     expect(noSymbols(childCases3)).toEqual(allCases3)
   })

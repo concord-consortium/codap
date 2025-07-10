@@ -115,13 +115,14 @@ export class AttributeFormulaAdapter extends FormulaManagerAdapter {
       return
     }
 
+    const { attributeId } = extraMetadata
     const dataSet = this.api.getDatasets().get(extraMetadata.dataSetId)
     if (!dataSet) {
       throw new Error(`Dataset with id "${extraMetadata.dataSetId}" not found`)
     }
     const results = this.computeFormula(formulaContext, extraMetadata, casesToRecalculateDesc)
     if (results && results.length > 0) {
-      dataSet.setCaseValues(results)
+      dataSet.setAttributeValues(attributeId, results)
     }
   }
 
@@ -197,10 +198,7 @@ export class AttributeFormulaAdapter extends FormulaManagerAdapter {
       } catch (e: any) {
         formulaValue = formulaError(e.message)
       }
-      return {
-        __id__: c.__id__,
-        [attributeId]: formulaValue
-      }
+      return [c.__id__, formulaValue] as [string, FValue]
     })
   }
 
@@ -209,10 +207,7 @@ export class AttributeFormulaAdapter extends FormulaManagerAdapter {
     const { dataSet } = formulaContext
     const { attributeId } = extraMetadata
     const allCases = dataSet.getCasesForAttributes([attributeId])
-    dataSet.setCaseValues(allCases.map(c => ({
-      __id__: c.__id__,
-      [attributeId]: errorMsg
-    })))
+    dataSet.setAttributeValues(attributeId, allCases.map(c => [c.__id__, errorMsg]))
   }
 
   setupFormulaObservers(formulaContext: IFormulaContext, extraMetadata: IAttrFormulaExtraMetadata) {

@@ -48,9 +48,9 @@ import {
 } from "mobx-state-tree"
 import pluralize from "pluralize"
 import { Attribute, IAttribute, IAttributeSnapshot } from "./attribute"
-import { importValueToString } from "./attribute-types"
+import { importValueToString, IValueType } from "./attribute-types"
 import {
-  CollectionModel, ICollectionModel, ICollectionModelSnapshot, IItemData, isCollectionModel, syncCollectionLinks
+  CollectionModel, ICollectionModel, ICollectionModelSnapshot, IItemData, syncCollectionLinks
 } from "./collection"
 import {
   CaseInfo, IAddAttributeOptions, IAddCasesOptions, IAddCollectionOptions, IAttributeChangeResult, ICase,
@@ -138,6 +138,10 @@ export const nullItemData: IItemData = {
   addItemInfo: () => {},
   invalidate: () => {}
 } as IItemData
+
+interface IValidateCasesOptions {
+  force?: boolean;
+}
 
 export const DataSet = V2Model.named("DataSet").props({
   id: typeV3Id("DATA"),
@@ -486,7 +490,7 @@ export const DataSet = V2Model.named("DataSet").props({
         // ensure collection has a unique name
         const { name, ...rest } = collectionSnap
         const _name = getUniqueCollectionName(name ?? "")
-        const collection = { name: _name, ...rest }
+        const newCollectionSnap = { name: _name, ...rest }
 
         // place the collection in the correct location
         let beforeIndex = options?.before ? getCollectionIndex(options.before) : -1
@@ -501,17 +505,17 @@ export const DataSet = V2Model.named("DataSet").props({
           beforeIndex = self.collections.length - 1
         }
         if (beforeIndex >= 0) {
-          self.collections.splice(beforeIndex, 0, collection)
+          self.collections.splice(beforeIndex, 0, newCollectionSnap)
         }
         else {
           // by default, new collections are added as the childmost collection
           beforeIndex = self.collections.length
-          self.collections.push(collection)
+          self.collections.push(newCollectionSnap)
         }
 
         const newCollection = self.collections[beforeIndex]
-        // remove any attributes from other collections
-        const attrIds: Array<ReferenceIdentifier | undefined> = [...(collection.attributes ?? [])]
+        // remove any conflicting attributes from existing collections
+        const attrIds: Array<ReferenceIdentifier | undefined> = [...(newCollectionSnap.attributes ?? [])]
         attrIds?.forEach(attrId => {
           const attrCollection = self.collections.find(_collection => {
             return attrId && _collection !== newCollection && _collection.getAttribute(`${attrId}`)
@@ -568,7 +572,8 @@ export const DataSet = V2Model.named("DataSet").props({
   }
 }))
 .views(self => ({
-  validateCases() {
+  validateCases(options: IValidateCasesOptions = {}) {
+    if (options.force) self.invalidateCases()
     if (!self.isValidCases) {
       self.caseInfoMap.clear()
       const itemsToValidate = new Set<string>(self.itemInfoMap.keys())
@@ -621,7 +626,7 @@ export const DataSet = V2Model.named("DataSet").props({
   }
 }))
 .views(self => ({
-  childCases() {
+  get childCases() {
     self.validateCases()
     return self.collections[self.collections.length - 1].cases
   },
@@ -742,11 +747,12 @@ export const DataSet = V2Model.named("DataSet").props({
     self.validateCases()
     return self.getCollection(collectionId)?.cases ?? []
   },
-  getParentCase(caseId: string, collectionId?: string) {
+  getParentCaseInfo(childCaseId: string, childCollectionId?: string) {
     self.validateCases()
-    const parentCollectionId = self.getCollection(collectionId)?.parent?.id
-    return self.getCollection(parentCollectionId)?.findParentCaseGroup(caseId)
+    const parentCollectionId = self.getCollection(childCollectionId)?.parent?.id
+    return self.getCollection(parentCollectionId)?.findParentCaseInfo(childCaseId)
   },
+  // returns the child-most collection that contains at least one of the attributes
   getCollectionForAttributes(attributeIds: string[]) {
     self.validateCases()
     for (let i = self.collections.length - 1; i >= 0; --i) {
@@ -957,7 +963,6 @@ export const DataSet = V2Model.named("DataSet").props({
         const attribute = self.attributesMap.put(snapshot)
 
         // fill out any missing values
-        // for (let i = attribute.strValues.length; i < self.cases.length; ++i) {
         for (let i = attribute.strValues.length; i < self._itemIds.length; ++i) {
           attribute.addValue()
         }
@@ -999,7 +1004,7 @@ export const DataSet = V2Model.named("DataSet").props({
         if (attribute) {
           // remove attribute from any collection
           const collection = self.getCollectionForAttribute(attributeID)
-          if (isCollectionModel(collection)) {
+          if (collection) {
             if (collection.attributes.length > 1) {
               collection.removeAttribute(attributeID)
             }
@@ -1136,12 +1141,13 @@ export const DataSet = V2Model.named("DataSet").props({
       },
 
       removeCases(caseIDs: string[]) {
+        const items = self.getItemsForCases(caseIDs.map(id => ({ __id__: id })))
         // Remove the items last -> first, so we only have to update itemInfo once
-        const items = caseIDs.map(id => ({ id, index: self.getItemIndex(id) }))
-          .filter(info => info.index != null) as { id: string, index: number }[]
-        items.sort((a, b) => b.index - a.index)
-        const firstIndex = items[items.length - 1]?.index ?? -1
-        items.forEach(({ id: caseID, index }) => {
+        const itemWithIndices = items.map(item => ({ id: item.__id__, index: self.getItemIndex(item.__id__) ?? -1 }))
+                                     .filter(info => info.index >= 0)
+        itemWithIndices.sort((a, b) => b.index - a.index)
+        const firstIndex = itemWithIndices[itemWithIndices.length - 1]?.index ?? -1
+        itemWithIndices.forEach(({ id: caseID, index }) => {
           self._itemIds.splice(index, 1)
           self.attributes.forEach((attr) => {
             attr.removeValues(index)
@@ -1255,6 +1261,32 @@ export const DataSet = V2Model.named("DataSet").props({
       }
     })
     return values
+  },
+  // This is a `view` for performance reasons, so it doesn't trigger middleware. It is used
+  // by the formula engine to update computed values without triggering additional responses.
+  setAttributeValues(attributeID: string, caseValues: Array<[string, IValueType]>) {
+    const attribute = self.getAttribute(attributeID)
+    if (!attribute || !caseValues.length) return
+    const itemIndices: number[] = []
+    const itemValues: IValueType[] = []
+    caseValues.forEach(([caseId, caseValue]) => {
+      const caseGroup = self.caseInfoMap.get(caseId)
+      if (caseGroup?.childItemIds?.length) {
+        const childIndices = caseGroup.childItemIds
+                              .map(itemId => self.getItemIndex(itemId))
+                              .filter(index => index != null)
+        itemIndices.push(...childIndices)
+        itemValues.push(...childIndices.map(() => caseValue))
+      }
+      else {
+        const itemIndex = self.getItemIndex(caseId)
+        if (itemIndex != null) {
+          itemIndices.push(itemIndex)
+          itemValues.push(caseValue)
+        }
+      }
+    })
+    attribute.setValues(itemIndices, itemValues)
   }
 }))
 .actions(self => ({

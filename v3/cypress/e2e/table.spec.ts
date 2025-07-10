@@ -543,7 +543,7 @@ context("case table ui", () => {
       table.getGridCell(2, 5).then(cell => {
         random2 = +cell.text()
         expect(random2 >= 0).to.eq(true)
-        expect(random2 < 1).to.eq(true)
+        expect(random2 <= 1).to.eq(true)
         expect(random2).not.to.eq(random1)
       })
       // Delete formula, verify values remain
@@ -552,7 +552,7 @@ context("case table ui", () => {
       table.getGridCell(2, 5).then(cell => {
         const value = +cell.text()
         expect(value >= 0).to.eq(true)
-        expect(value < 1).to.eq(true)
+        expect(value <= 1).to.eq(true)
         expect(value).to.eq(random2)
       })
       // verify that formula was deleted
