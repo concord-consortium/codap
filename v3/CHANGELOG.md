@@ -1,5 +1,24 @@
 # Changelog
 
+## Version 3.0.0-pre.2324 - June 6, 2025
+
+### 🐞 Bug Fixes:
+- **CODAP-631:** Performance problems with dataset that has many attributes
+- **CODAP-680:** Numeric axis numbers overlap and become illegible
+- **CODAP-702:** Using API, create of parent case returns caseID of child
+- **CODAP-703:** The dataset created by Markov, when exported to V2 needs have DG.GameContext as its type
+- **CODAP-720:** With categorical axes, the categories overlap the attribute label
+
+### 🛠️ Under the Hood:
+- **CODAP-700:** Expand graph automation coverage for recent regression areas
+- **CODAP-728:** Fix MST warnings on graph axis change
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  201387 bytes |                            0.04% |
+|  index.js | 6704343 bytes |                           <0.00% |
+
 ## Version 3.0.0-pre.2316 - May 30, 2025
 
 ### ✨ Features & Improvements:

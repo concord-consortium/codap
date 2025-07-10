@@ -130,8 +130,8 @@ describe("Attribute", () => {
     expect(attribute.length).toBe(4)
     expect(attribute.value(0)).toBe(0)
     expect(attribute.value(3)).toBe(3)
-    expect(attribute.isNumeric(0)).toBe(true)
-    expect(attribute.isNumeric(3)).toBe(true)
+    expect(attribute.isValueNumeric(0)).toBe(true)
+    expect(attribute.isValueNumeric(3)).toBe(true)
     expect(attribute.numValue(0)).toBe(0)
     expect(attribute.numValue(3)).toBe(3)
 
@@ -184,7 +184,7 @@ describe("Attribute", () => {
 
     attribute.addValues(["a", "b"])
     expect(attribute.value(3)).toBe("a")
-    expect(attribute.isNumeric(3)).toBe(false)
+    expect(attribute.isValueNumeric(3)).toBe(false)
     expect(attribute.numValue(3)).toBeNaN()
     expect(attribute.type).toBe("categorical")
 
@@ -193,7 +193,7 @@ describe("Attribute", () => {
 
     attribute.addValue()
     expect(attribute.value(5)).toBe("")
-    expect(attribute.isNumeric(5)).toBe(false)
+    expect(attribute.isValueNumeric(5)).toBe(false)
     expect(attribute.numValue(5)).toBeNaN()
 
     attribute.clearValues()

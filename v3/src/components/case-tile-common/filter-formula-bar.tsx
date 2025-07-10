@@ -8,12 +8,12 @@ import "./filter-formula-bar.scss"
 
 export const FilterFormulaBar = () => {
   const data = useDataSetContext()
-  const formulaModal = useDisclosure()
+  const { isOpen, onClose, onOpen } = useDisclosure()
   const [modalOpen, setModalOpen] = useState(false)
 
   const handleOpenEditFormulaModal = () => {
     setModalOpen(true)
-    formulaModal.onOpen()
+    onOpen()
   }
 
   const handleSubmitEditFormula = (formula: string) => {
@@ -27,7 +27,7 @@ export const FilterFormulaBar = () => {
 
   const handleCloseModal = () => {
     setModalOpen(false)
-    formulaModal.onClose()
+    onClose()
   }
 
   if (!data) return null
@@ -44,7 +44,7 @@ export const FilterFormulaBar = () => {
       {modalOpen &&
         <EditFormulaModal
           applyFormula={handleSubmitEditFormula}
-          isOpen={formulaModal.isOpen}
+          isOpen={isOpen}
           onClose={handleCloseModal}
           titleLabel={t("V3.hideShowMenu.filterFormulaPrompt")}
           value={filterFormula}

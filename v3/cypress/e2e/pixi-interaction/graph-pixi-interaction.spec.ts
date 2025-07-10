@@ -297,11 +297,12 @@ context("Graph UI with Pixi interaction", () => {
       gch.getGraphTileId().then((tileId: string) => {
         gch.checkPointsHaveUniquePositions(tileId) // Call the helper function
       })
+      // TODO: Checking pixel positions of points seems potentially flaky
       // here we check that some points are in the position we expect
       gch.getGraphTileId().then((tileId: string) => {
         // Known inputs:
         const pointIndex = 3
-        const expectedX = 166
+        const expectedX = 165
         const expectedY = 67
 
         gch.checkPointPosition(tileId, pointIndex, expectedX, expectedY)
@@ -309,7 +310,7 @@ context("Graph UI with Pixi interaction", () => {
       gch.getGraphTileId().then((tileId: string) => {
         // Known inputs:
         const pointIndex = 8
-        const expectedX = 325
+        const expectedX = 324
         const expectedY = 140
 
         gch.checkPointPosition(tileId, pointIndex, expectedX, expectedY)

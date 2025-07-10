@@ -10,10 +10,10 @@ import { dataContextNotFoundResult } from "./di-results"
 
 export const diCaseHandler: DIHandler = {
   create(resources: DIResources, values?: DIValues) {
-    const { dataContext } = resources
+    const { dataContext, collection } = resources
+    const collectionId = collection?.id
     if (!dataContext) return dataContextNotFoundResult
 
-    let itemIds: string[] = []
     const newCaseData: ICaseCreation[] = []
     const cases = (Array.isArray(values) ? values : [values]) as DIFullCase[]
     const oldCaseIds = new Set(dataContext.caseInfoMap.keys())
@@ -27,7 +27,7 @@ export const diCaseHandler: DIHandler = {
           newCaseData.push({ ...caseValues, ...parentValues })
         }
       })
-      itemIds = dataContext.addCases(newCaseData)
+      dataContext.addCases(newCaseData)
 
       dataContext.validateCases()
       Array.from(dataContext.caseInfoMap.keys()).forEach(caseId => {
@@ -41,13 +41,10 @@ export const diCaseHandler: DIHandler = {
 
     return {
       success: true,
-      values: itemIds.map(id => {
-        const caseId = dataContext.itemIdChildCaseMap.get(id)?.groupedCase.__id__
-        return ({
-          id: caseId ? toV2Id(caseId) : undefined,
-          itemID: toV2Id(id)
-        })
-      })
+      values: newCaseIds.filter(newCaseId => {
+        // if a collection is specified, only return cases in that collection
+        return !collectionId || dataContext.getCollection(collectionId)?.hasCase(newCaseId)
+      }).map(id => ({ id: toV2Id(id) }))
     }
   },
   update(resources: DIResources, values?: DIValues) {

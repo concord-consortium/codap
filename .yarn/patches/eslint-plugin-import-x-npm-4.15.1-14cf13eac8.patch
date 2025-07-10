@@ -64,17 +64,17 @@ index 0000000000000000000000000000000000000000..dbaa69585e1204a65387b4b7142847f8
 --- /dev/null
 +++ b/patch.md
 @@ -0,0 +1,17 @@
-+This patch fixes issues that come up with Yarn PnP when used in a monorepo. 
++This patch fixes issues that come up with Yarn PnP when used in a monorepo.
 +
 +This plugin uses node's `createRequire` in many places. `createRequire` is passed a filename. This filename represents the module that the created require function is relative to. For strict Yarn PnP if a require is used in a module that is part of a package which doesn't define a dependency on thing being required it will be rejected.
 +
-+When running Yarn PnP the require function returned by `createRequire` seems to look at both the package of the passed in filename and also the root package of the monorepo the code is running in. It does not look at the workspace package that the code is running in. 
++When running Yarn PnP the require function returned by `createRequire` seems to look at both the package of the passed in filename and also the root package of the monorepo the code is running in. It does not look at the workspace package that the code is running in.
 +
-+The import-x plugin is passing it's require.js as the filename for `createRequire` in many cases. This means that any dependency that is dynamically loaded has to either be defined on the mono repo root package or as a dependency of the import-x plugin itself. Specifically this was used when loading the parsers defined in the settings.
++The import-x plugin is passing its require.js as the filename for `createRequire` in many cases. This means that any dependency that is dynamically loaded has to either be defined on the mono repo root package or as a dependency of the import-x plugin itself. Specifically this was used when loading the parsers defined in the settings.
 +
 +For the resolvers defined in the settings, the filename of the current file being resolved was used. This filename might not be in the current project.
 +
-+This patch improves this by using the filename from the ESLint context for both the parser loading and the resolver loading. The filename from ESLint context is the file that is being linted. This should almost always be within the workspace that is being linted. So now Yarn PnP will look for the dependency in the workspaces package.json which is where most people would expect it to look. 
++This patch improves this by using the filename from the ESLint context for both the parser loading and the resolver loading. The filename from ESLint context is the file that is being linted. This should almost always be within the workspace that is being linted. So now Yarn PnP will look for the dependency in the workspaces package.json which is where most people would expect it to look.
 +
 +A better approach would be to get the eslint config file itself and use that as the filename passed to `createRequire`. At least for parsers and resolvers these are defined as strings in the config file so it makes sense that they would be dynamically required from this location. I'm not sure how to get the path to the active eslint config file. The user could override this file so we can't do any path based approach. It seems the only way a plugin can get info about this is via the context object. There is info about that here: https://eslint.org/docs/latest/extend/custom-rules
 +

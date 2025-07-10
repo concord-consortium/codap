@@ -89,9 +89,7 @@ The project references in the tsconfig.json files need to be setup so that VSCod
 When I run `yarn dlx @yarnpkg/sdks --verbose vscode` at the root I get Eslint and Typescript sdks installed but I also get:
 >  Typescript Language Server (dependency not found; skipped)
 
-I'm guessing this might be for something other than vcode like emacs perhaps, but if we have problems it might be worth looking into.
+I'm guessing this might be for something other than vscode like emacs perhaps, but if we have problems it might be worth looking into.
 
 ## Linting root files
 Currently there is no linting of the files at the root of the workspace. We should lint some of them at least the `.github/workflow/*` files would be good to lint.
-
-With typescript it is possible to typecheck the whole repository. With the current eslint setup
