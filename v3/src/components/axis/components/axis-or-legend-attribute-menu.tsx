@@ -106,14 +106,17 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
   place, target, portal, layoutBounds, onChangeAttribute, onRemoveAttribute, onTreatAttributeAs
 }: IProps) {
   const dataSets = Array.from(gDataBroker.dataSets.values())
-  const allCollectionInfo: ICollectionInfo[] = []
-  dataSets.forEach(data => {
+  const allCollectionInfo: (ICollectionInfo|string)[] = []
+  dataSets.forEach((data, index) => {
     const metadata = getMetadataFromDataSet(data)
     data.collections.forEach(collection => {
       if (isCollectionModel(collection)) {
         allCollectionInfo.push({ collection, data, metadata })
       }
     })
+    if (index < dataSets.length - 1) {
+      allCollectionInfo.push("divider")
+    }
   })
   const dataConfiguration = useDataConfigurationContext()
   const dataSet = dataConfiguration?.dataset
@@ -167,7 +170,7 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
   }
 
   const renderMenuItems = () => {
-    if (allCollectionInfo.length === 1) {
+    if (allCollectionInfo.length === 1 && typeof allCollectionInfo[0] !== 'string') {
       return (
         <MenuItemsForCollection
           collectionInfo={allCollectionInfo[0]}
@@ -176,18 +179,23 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
         />
       )
     } else {
+      let dividerCount = 0
       return allCollectionInfo.map(collectionInfo => {
-        const { collection } = collectionInfo
-        return (
-          <CollectionMenu
-            collectionInfo={collectionInfo}
-            isOpen={openCollectionId === collection.id}
-            key={collection.id}
-            onChangeAttribute={handleChangeAttribute}
-            onPointerOver={() => setOpenCollectionId(collection.id)}
-            place={place}
-          />
-        )
+        if (typeof collectionInfo === 'string') {
+          return <MenuDivider key={`divider-${dividerCount++}`} />
+        } else {
+          const { collection } = collectionInfo
+          return (
+            <CollectionMenu
+              collectionInfo={collectionInfo}
+              isOpen={openCollectionId === collection.id}
+              key={collection.id}
+              onChangeAttribute={handleChangeAttribute}
+              onPointerOver={() => setOpenCollectionId(collection.id)}
+              place={place}
+            />
+          )
+        }
       })
     }
   }
