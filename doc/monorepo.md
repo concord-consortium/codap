@@ -4,13 +4,17 @@ Update the root files:
 - tsconfig.json references property
 
 ## TODO:
-- need a way to pass the boundary manager instance into the formulas package
-- document how to use shared configurations for eslint and typescript
-- once we've switched the v3 workspace to using the utilities workspace, see if there are unnecessary dependencies in v3 because all of their usage has been moved to utilities
+- need a way to pass the boundary manager instance into the formulas package. I think this is why boundary lookups seem to be broken. If the coaster document is opened and the "show hidden attributes" is selected the "Boundary" attribute has this formula: lookupBoundary(US_state_boundaries,State). It reports an error in the cells.
+- shared configurations for eslint and typescript across packages
+- clean up unnecessary dependencies in v3 there might be some now that formulas and utilities are separated.
 - find a way to extract the duplicate code of the debug.ts which had to be added to `formulas`
 - figure out how to update the formula tests so can be moved into the formulas package. Currently they use the CODAP document so they can't be moved in without bringing in lots of dependencies.
 - put components/vars.scss in a common package, so the formula editor and v3 can share it there might be issues with getting yarn to allow the import from the package especially if the common package uses the "exports" property in its package.json
 - when I run `yarn pack --dry-run` in utilities it is including some of the files ignored by git in the package: `tsconfig.tsbuildinfo` and `.cache/eslint/default`. I guess the right fix is to use the files setting in package.json to list explicitly what we want to package, but it is strange that these files are included. Perhaps it only respects a .gitignore file in the same folder as the package.
+- add `nx` or some other build tool so it is easier to manage the dependencies efficiently in the mono repo. The list of dependencies of each package.json has to include duplicates. I think `nx` can help with that. When building projects that depend on other projects the other projects need to be built first. typescript can’t handle this all by itself. `nx` is supposed to be able to help with that too.
+- clean up the `monorepo.md`, `modules.md`, and `formulas.md` that was added in the PR
+- figure out any issues that might come up when IntelliJ is used with this setup, the VSCode issues are resolved but Bill uses IntelliJ which might have issues to solve.
+- figure out why the VSCode eslint plugin isn’t working all of the time
 
 # Dependencies
 Within packages/workspaces that are used by the main app (v3), managing their dependencies is tricky. In order to prevent duplicate 3rd party packages like React and MobX, peerDependencies should be used. In general it would be best to use peerDependencies for every package that is used directly by the app or any other package in the monorepo. This way there won't be duplication.
