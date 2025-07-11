@@ -73,10 +73,19 @@ jobs:
         with:
           path: v3/.cache/webpack/
           key: webpack-dev-build-${{ hashFiles('v3/webpack.config.js') }}
+      - name: Install Yarn Dependencies
+        working-directory: v3
+        run: yarn install
+      - name: Build Sub Packages
+        working-directory: v3
+        run: yarn build:dependencies
       - uses: cypress-io/github-action@v6
         with:
           working-directory: v3
-          install-command: yarn install --immutable
+          # We've already installed dependencies above, so we don't need to do it again
+          # However this might break the caching of the cypress install
+          # see the cache setup here: https://github.com/cypress-io/github-action?tab=readme-ov-file#install-cypress-only
+          install: false
           # TODO: this currently will re-run the smoke test, once we have a dedicated smoke
           # test that should be excluded
           command: >

@@ -1,4 +1,6 @@
-import { numericFnFactory, numericMultiArgsFnFactory } from "./arithmetic-functions"
+import {
+  numericFnFactory, numericMultiArgsFnFactory
+} from "@concord-consortium/codap-formulas/models/formula/functions/arithmetic-functions"
 import { UNDEF_RESULT } from "./function-utils"
 import { math } from "./math"
 

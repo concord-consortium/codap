@@ -1,4 +1,5 @@
 import { Instance, SnapshotIn } from "mobx-state-tree"
+import { IDataSet as IFormulaDataSet } from "@concord-consortium/codap-formulas/models/data/data-set"
 import { kTitleBarHeight } from "../../components/constants"
 import { kCaseTableTileType } from "../../components/case-table/case-table-defs"
 import { t } from "../../utilities/translation/translate"
@@ -216,7 +217,7 @@ export const DocumentContentModel = BaseDocumentContentModel
       ds.addAttribute({ name: attributeName })
       gDataBroker.addDataSet(ds)
       // Add dataset to the formula manager
-      getFormulaManager(self)?.addDataSet(ds)
+      getFormulaManager(self)?.addDataSet(ds as IFormulaDataSet)
     },
     importDataSet(data: IDataSet, options?: IImportDataSetOptions) {
       const { createDefaultTile = true, defaultTileType = kCaseTableTileType } = options || {}
@@ -231,7 +232,7 @@ export const DocumentContentModel = BaseDocumentContentModel
         }
       }
       // Add dataset to the formula manager
-      getFormulaManager(self)?.addDataSet(data)
+      getFormulaManager(self)?.addDataSet(data as IFormulaDataSet)
 
       return sharedData
     }

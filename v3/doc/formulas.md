@@ -53,6 +53,7 @@ Formulas in CODAP can depend on attributes in the same dataset, boundaries, glob
 - Each formula's dependencies are determined by parsing its expression and identifying references to dependencies. This is done by `getFormulaDependencies`.
 - The Formula Manager watches for changes to the active formulas and then gets the dependencies for any updated formula.
 - Observers are added to the dependencies to trigger recalculation of the formula.
+- The observers of the formulas work by using a MobX reaction on the `getActiveFormulas` function provided by each formula adapter. For example the attribute formula adapter's `getActiveFormulas` reads all of the attributes of all the datasets to find the attributes with formulas, so any new attributes or new formulas will trigger a recomputation. See the "Observers and Recomputation" section for more info.
 
 ### Cycles
 
@@ -67,6 +68,8 @@ Some formula adapters need to observe additional features to know when the formu
 - the FilterFormulaAdapter uses this to monitor the filter formula text itself.
 
 Recomputation is performed by the adapter's `recalculateFormula` method, which updates the relevant cases in the dataset.
+
+- `observeLocalAttributes` watches for item changes of attributes (add, remove, ..) by watching `dataSet.itemIdsHash`. It watches for calls of `setCaseValues` on the dataset to know when the values in the dataset have changed.
 
 ### Error Handling
 

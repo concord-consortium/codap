@@ -1,5 +1,5 @@
 import { clsx } from "clsx"
-import React from "react"
+import React, { memo } from "react"
 import { createPortal } from "react-dom"
 import { moveAttribute } from "../../models/data/data-set-utils"
 import { useCollectionContext } from "../../hooks/use-collection-context"
@@ -55,4 +55,4 @@ function AttributeHeaderDivider_({ before = false, columnKey, cellElt, getDivide
     : null
 }
 
-export const AttributeHeaderDivider = React.memo(AttributeHeaderDivider_)
+export const AttributeHeaderDivider = memo(AttributeHeaderDivider_)

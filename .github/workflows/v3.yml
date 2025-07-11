@@ -126,12 +126,6 @@ jobs:
           flags: jest
   cypress:
     runs-on: ubuntu-latest
-    strategy:
-      # when one test fails, DO NOT cancel the other
-      # containers, because this will kill Cypress processes
-      # leaving the Dashboard hanging ...
-      # https://github.com/cypress-io/github-action/issues/48
-      fail-fast: false
     steps:
       - uses: browser-actions/setup-chrome@v1
         with:
@@ -155,10 +149,19 @@ jobs:
           # this key is different from the build job above because this is a dev build so its
           # folder in the cache will be different and cached data is also likely different
           key: webpack-dev-build-${{ hashFiles('v3/webpack.config.js') }}
+      - name: Install Yarn Dependencies
+        working-directory: v3
+        run: yarn install
+      - name: Build Sub Packages
+        working-directory: v3
+        run: yarn build:dependencies
       - uses: cypress-io/github-action@v6
         with:
           working-directory: v3
-          install-command: yarn install
+          # We've already installed dependencies above, so we don't need to do it again
+          # However this might break the caching of the cypress install
+          # see the cache setup here: https://github.com/cypress-io/github-action?tab=readme-ov-file#install-cypress-only
+          install: false
           command: >
             yarn run --binaries-only cypress run
             ${{ !!secrets.CYPRESS_RECORD_KEY && '--record' || '' }}
