@@ -226,13 +226,14 @@ export const getCoordFunctions = (props: IGetCoordFunctionsProps): ICoordFunctio
  */
 export const computeBestNumberOfTicks = (scale: ScaleLinear<number, number>): number => {
   const formatter = scale.tickFormat()
+  const kLabelGap = 4 // Minimum gap between labels in pixels
 
   // Helper function to detect collisions between tick labels
   const hasCollision = (values: number[]) => {
     return values.some((value, i) => {
       if (i === values.length - 1) return false
       const delta = scale(values[i + 1]) - scale(values[i])
-      const length = (measureText(formatter(values[i])) + measureText(formatter(values[i + 1]))) / 2
+      const length = (measureText(formatter(values[i])) + measureText(formatter(values[i + 1]))) / 2 + kLabelGap
       return length > delta
     })
   }
