@@ -242,6 +242,14 @@ export class PixiPoints {
     }
   }
 
+  removeMasks() {
+    this.subPlotMasks.forEach(mask => mask.destroy())
+    this.subPlotMasks = []
+    for (const point of this.caseDataToPoint.values()) {
+      point.mask = null
+    }
+  }
+
   setVisibility(isVisible: boolean) {
     this.pointsContainer.visible = isVisible
     this.startRendering()

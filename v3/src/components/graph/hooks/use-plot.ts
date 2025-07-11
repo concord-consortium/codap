@@ -118,10 +118,16 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     return mstReaction(() => {
       return [dataConfiguration.allCategoriesForRoles, dataConfiguration.categoricalAttrsWithChangeCounts]
     }, () => {
-      startAnimation()
-      callRefreshPointPositions({ updateMasks: true })
+
+      const updateMasksCallback = () => {
+        if (!pixiPoints) return
+        updateCellMasks({ dataConfig: dataConfiguration, layout, pixiPoints })
+      }
+      pixiPoints?.removeMasks()
+      startAnimation(updateMasksCallback)
+      callRefreshPointPositions()
     }, {name: "usePlot.respondToCategorySetChanges", equals: comparer.structural}, dataConfiguration)
-  }, [callRefreshPointPositions, dataConfiguration, startAnimation])
+  }, [callRefreshPointPositions, dataConfiguration, layout, pixiPoints, startAnimation])
 
   // respond to attribute assignment changes
   useEffect(() => {
