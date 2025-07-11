@@ -5,5 +5,8 @@
     "rootDir": "../formulas/src",
     "composite": false
   },
-  "include": ["../formulas/src/**/*"]
+  "include": ["../formulas/src/**/*"],
+  "references": [
+    { "path": "../utilities" }
+  ]
 }

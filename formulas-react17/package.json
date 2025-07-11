@@ -1,6 +1,11 @@
 {
   "name": "@concord-consortium/codap-formulas-react17",
-  "version": "1.1.0",
+  "version": "1.1.1",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/concord-consortium/codap",
+    "directory": "formulas-react17"
+  },
   "main": "index.js",
   "exports": {
     "./*": {
@@ -12,7 +17,7 @@
   ],
   "scripts": {
     "build": "npm-run-all build:tsc build:copyfiles",
-    "build:tsc": "tsc -p tsconfig.json",
+    "build:tsc": "tsc --build",
     "build:copyfiles": "copyfiles -u 3 ../formulas/src/**/*.scss ../formulas/src/**/*.json5 dist"
   },
   "dependencies": {
