@@ -56,15 +56,16 @@ $table-body-font-size: 8pt;
           .collection-title {
             position: absolute;
             text-align: center;
-            font-family: "museo-sans", sans-serif;
-            font-size: 12px;
+            font-family: "noto-sans", sans-serif;
+            font-size: 14px;
+            font-weight: 600;
             text-overflow: ellipsis;
             cursor: text;
             vertical-align: middle;
             white-space: nowrap;
             user-select: none;
             font-style: italic;
-            color: #0f2633; // Not used anywhere else at the moment, so we're leaving it unnamed
+            color: black; // Not used anywhere else at the moment, so we're leaving it unnamed
           }
 
           .add-attribute-icon-button {

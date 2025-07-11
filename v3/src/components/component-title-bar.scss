@@ -3,7 +3,7 @@
 .component-title-bar {
   flex-direction: row;
   height: vars.$title-bar-height;
-  background-color: vars.$codap-teal-light;
+  background-color: vars.$title-bar-color;
   width: 100%;
   border-radius: vars.$border-radius-top-corners;
   &.focusTile {
@@ -100,8 +100,9 @@
   display: flex !important;
   justify-content: center !important;
   width: max-content;
-  color: white;
-  font-size: 14px !important;
+  color: black;
+  font-size: 16px !important;
+  font-weight: 600 !important;
   text-align: center;
   padding-top: 2px !important;
   margin: auto;
