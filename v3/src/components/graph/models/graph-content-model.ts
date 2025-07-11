@@ -283,7 +283,7 @@ export const GraphContentModel = DataDisplayContentModel
     }
   }))
   .actions(self => ({
-    updateAfterSharedModelChanges(sharedModel: ISharedModel | undefined, type: SharedModelChangeType) {
+    updateAfterSharedModelChanges(sharedModel: ISharedModel | undefined) {
     },
     setDataSet(dataSetID: string) {
       const newDataSet = getDataSetFromId(self, dataSetID)

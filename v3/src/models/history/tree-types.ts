@@ -1,5 +1,6 @@
 import { getPath, getRunningActionContext, getType, IActionContext, IPatchRecorder } from "mobx-state-tree"
 import { IActionTrackingMiddleware3Call } from "./create-action-tracking-middleware-3"
+import { SharedModelMapSnapshotOutType } from "../document/shared-model-entry"
 
 export interface ICustomPatch {
   type: string
@@ -10,6 +11,9 @@ export type IClientUndoData = Record<string, string | number | boolean>
 
 export interface CallEnv {
   recorder: IPatchRecorder
+  // FIXME: this breaks the abstraction, and means the tree monitor
+  // wouldn't work in an iframe tree.
+  initialSharedModelMap: SharedModelMapSnapshotOutType
   sharedModelModifications: SharedModelModifications
   historyEntryId: string
   exchangeId: string
@@ -19,8 +23,8 @@ export interface CallEnv {
 }
 
 export function isValidCallEnv(env?: CallEnv): env is CallEnv {
-  return !!env && !!env.recorder && !!env.sharedModelModifications &&
-          !!env.historyEntryId && !!env.exchangeId && env.undoable != null
+  return !!env && !!env.recorder && !!env.initialSharedModelMap &&
+    !!env.sharedModelModifications && !!env.historyEntryId && !!env.exchangeId && env.undoable != null
 }
 
 export type SharedModelModifications = Record<string, number>

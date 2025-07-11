@@ -1,4 +1,5 @@
 import { addMiddleware, flow, types } from "mobx-state-tree"
+import { action, makeObservable } from "mobx"
 import { createActionTrackingMiddleware3, IActionTrackingMiddleware3Call } from "./create-action-tracking-middleware-3"
 
 /**
@@ -248,4 +249,77 @@ test("#1250", async () => {
   expect(model.y).toBe(10)
   expect(calls).toEqual(["setX (21) <- (undefined) - onFinish (error: false)"])
   calls.length = 0
+})
+
+test("MobX action calling MST actions, causes separate calls for each MST action", async () => {
+  const M = types
+    .model({
+      x: 0,
+      y: 0
+    })
+    .actions((self) => ({
+      setX() {
+        self.x = 10
+      },
+      setY() {
+        self.y = 10
+      }
+    }))
+
+  const calls: string[] = []
+  const mware = createActionTrackingMiddleware3({
+    filter(call) {
+      calls.push(
+        `${call.actionCall.name} (${call.actionCall.id}) <- (${
+          call.parentCall?.actionCall.id
+        }) - filter`
+      )
+      return true
+    },
+    onStart(call) {
+      calls.push(
+        `${call.actionCall.name} (${call.actionCall.id}) <- (${
+          call.parentCall?.actionCall.id
+        }) - onStart`
+      )
+    },
+    onFinish(call, error) {
+      calls.push(
+        `${call.actionCall.name} (${call.actionCall.id}) <- (${
+          call.parentCall?.actionCall.id
+        }) - onFinish (error: ${!!error})`
+      )
+    }
+  })
+
+  const model = M.create({})
+
+  addMiddleware(model, mware, false)
+
+  class MobXModel {
+    constructor() {
+      makeObservable(this, {
+        parentAction: action,
+      })
+    }
+
+    parentAction() {
+      model.setX()
+      model.setY()
+    }
+  }
+
+  const mobxModel = new MobXModel()
+  mobxModel.parentAction()
+
+  // Note the call ids are based on calls run in previous tests
+  // so if you run this test in isolation or a different order the ids will be different.
+  expect(calls).toEqual([
+    "setX (24) <- (undefined) - filter",
+    "setX (24) <- (undefined) - onStart",
+    "setX (24) <- (undefined) - onFinish (error: false)",
+    "setY (25) <- (undefined) - filter",
+    "setY (25) <- (undefined) - onStart",
+    "setY (25) <- (undefined) - onFinish (error: false)"
+  ])
 })

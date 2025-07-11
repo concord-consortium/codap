@@ -73,7 +73,7 @@ export const TileContentModel = types.model("TileContentModel", {
      *
      * @param sharedModel
      */
-    updateAfterSharedModelChanges(sharedModel: ISharedModel | undefined, type: SharedModelChangeType) {
+    updateAfterSharedModelChanges(sharedModel: ISharedModel | undefined) {
       console.warn("updateAfterSharedModelChanges not implemented for:", self.type)
     },
     broadcastMessage(message: TileBroadcastMessage, callback: TileBroadcastCallback) {

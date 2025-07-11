@@ -76,6 +76,7 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
           // case table title reflects DataSet title
           const tileTitle = dataset.dataSet.title
           return (
+            // FIXME: this will create multiple undo entries
             <MenuItem key={`${dataset.dataSet.id}`} onClick={()=>createOrShowTableOrCardForDataset(dataset)}
               data-testid={`tool-shelf-table-${tileTitle}`}>
               <TableIcon className="case-table-icon"/>
