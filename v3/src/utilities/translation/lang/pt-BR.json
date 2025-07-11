@@ -93,7 +93,7 @@
     "DG.ToolButtonData.graphButton.toolTip": "Faça um gráfico (ctrl-alt-g)",
     "DG.ToolButtonData.sliderButton.title": "Controle",
     "DG.ToolButtonData.sliderButton.toolTip": "Faça um controle deslizante (Ctrl Alt S)",
-    "DG.ToolButtonData.calcButton.title": "Calc",
+    "DG.ToolButtonData.calcButton.title": "Calculadora",
     "DG.ToolButtonData.calcButton.toolTip": "Abre/Feche a calculadora (Ctrl Alt C)",
     "DG.ToolButtonData.textButton.title": "Texto",
     "DG.ToolButtonData.textButton.toolTip": "Abra uma Caixa de Texto (ctrl-alt-shift-t)",
