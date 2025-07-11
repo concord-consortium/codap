@@ -137,11 +137,9 @@ export class SharedModelDocumentManager implements ISharedModelDocumentManager {
 
     sharedModelEntry.addTile(tile, isProvider)
 
-    // When a shared model changes updateAfterSharedModelChanges is called on
-    // the tile content model automatically by the tree monitor. However when
-    // the list of shared models is changed like here addTileSharedModel, the
-    // tree monitor doesn't pick that up, so we must call it directly.
-    tileContentModel.updateAfterSharedModelChanges(sharedModel, "link")
+    // When a shared model entry changes updateAfterSharedModelChanges is called on
+    // the tile content model automatically by the tree monitor. This will also
+    // pick up this case of adding a tile.
   }
 
   // This is not an action because it is deriving state.
@@ -195,7 +193,9 @@ export class SharedModelDocumentManager implements ISharedModelDocumentManager {
       return
     }
 
-    tileContentModel.updateAfterSharedModelChanges(sharedModel, "unlink")
+    // When a tile is removed from the shared model entry this is picked
+    // up by the tree-monitor middleware and updateAfterSharedModelChanges will
+    // be called on all of the tiles that were or are referring to the sharedModel.
     sharedModelEntry.removeTile(tile)
   }
 }
