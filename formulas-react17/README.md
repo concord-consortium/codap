@@ -4,6 +4,10 @@ This is a react 17 version of the CODAP formula system. CLUE uses it to get all 
 
 It uses the same source files as the main formula system which requires React 18 or higher.
 
+# In A Branch
+The code for this library is currently in a branch of the CODAP repository:
+`CODAP-740-formula-library`
+
 ## Publishing
 Bump the version.
 Build it:
