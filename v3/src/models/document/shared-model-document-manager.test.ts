@@ -533,12 +533,12 @@ describe("SharedModelDocumentManager", () => {
     expect(sharedModelEntry?.tiles[0]?.id).toBe("t1")
 
     // The update function is called for adding the shared model and for linking it
-    await expectUpdateToBeCalledTimes(tileContent1, 2)
+    await expectUpdateToBeCalledTimes(tileContent1, 1)
     await expectUpdateToBeCalledTimes(tileContent2, 0)
 
     // just tile 1 should be monitoring this now
     sharedModel.setValue("something")
-    await expectUpdateToBeCalledTimes(tileContent1, 3)
+    await expectUpdateToBeCalledTimes(tileContent1, 2)
     await expectUpdateToBeCalledTimes(tileContent2, 0)
 
     // Add to the second tile
@@ -551,12 +551,12 @@ describe("SharedModelDocumentManager", () => {
     // it is added
     await expectUpdateToBeCalledTimes(tileContent2, 1)
     // The existing tile's update function should also be called
-    await expectUpdateToBeCalledTimes(tileContent1, 4)
+    await expectUpdateToBeCalledTimes(tileContent1, 3)
 
     // now both tile's update functions should be called when the shared
     // model changes
     sharedModel.setValue("something2")
-    await expectUpdateToBeCalledTimes(tileContent1, 5)
+    await expectUpdateToBeCalledTimes(tileContent1, 4)
     await expectUpdateToBeCalledTimes(tileContent2, 2)
 
     destroy(docModel)
@@ -626,25 +626,26 @@ describe("SharedModelDocumentManager", () => {
     manager!.addTileSharedModel(tileContent, sharedModel1)
 
     // The update function should be called right after it is added
-    await expectUpdateToBeCalledTimes(tileContent, 1)
+    await expectUpdateToBeCalledAfter(tileContent, 0, 1)
 
     // it should be monitoring this now
     sharedModel1.setValue("something")
-    await expectUpdateToBeCalledTimes(tileContent, 2)
+    await expectUpdateToBeCalledAfter(tileContent, 1, 2)
 
     const sharedModel2 = TestSharedModel.create({})
     manager!.addTileSharedModel(tileContent, sharedModel2)
 
     // The update function should be called right after second model is added
-    await expectUpdateToBeCalledTimes(tileContent, 3)
+    // It is actually called twice, see above for details.
+    await expectUpdateToBeCalledAfter(tileContent, 2, 3)
 
     // it should still be monitoring the first model
     sharedModel1.setValue("something2")
-    await expectUpdateToBeCalledTimes(tileContent, 5)
+    await expectUpdateToBeCalledAfter(tileContent, 3, 4)
 
     // it should also be monitoring the second model
     sharedModel2.setValue("something")
-    await expectUpdateToBeCalledTimes(tileContent, 6)
+    await expectUpdateToBeCalledAfter(tileContent, 4, 5)
 
     destroy(docModel)
   })
@@ -891,6 +892,16 @@ describe("SharedModelDocumentManager", () => {
 
 // Just to get this done we could just make a helper function for this
 async function expectUpdateToBeCalledTimes(testTile: TestTileType, times: number) {
-  const updateCalledTimes = when(() => testTile.updateCount === times, {timeout: 100})
+  const updateCalledTimes = when(() => {
+    return testTile.updateCount === times
+  }, {timeout: 100})
+  return expect(updateCalledTimes).resolves.toBeUndefined()
+}
+
+async function expectUpdateToBeCalledAfter(testTile: TestTileType, initialCount: number, nextCount: number) {
+  expect(testTile.updateCount).toBe(initialCount)
+  const updateCalledTimes = when(() => {
+    return testTile.updateCount === nextCount
+  }, {timeout: 100})
   return expect(updateCalledTimes).resolves.toBeUndefined()
 }

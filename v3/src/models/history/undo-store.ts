@@ -75,16 +75,20 @@ export const UndoStore = types
     const uniqueTreeIds = [...new Set(treeIds)]
 
     // first disable shared model syncing in each tree
+    // Order of calls does not matter for this operation.
     const startPromises = uniqueTreeIds.map(treeId => {
       const startExchangeId = nanoid()
       manager.startExchange(historyEntryId, startExchangeId, "UndoStore.applyPatchesToTrees.start")
-
       return manager.trees[treeId].startApplyingPatchesFromManager(historyEntryId, startExchangeId)
     })
     yield Promise.all(startPromises)
 
-    // apply the patches to all trees
-    const applyPromises = treePatchRecords.map(treePatchRecord => {
+    // apply the patches to all trees, in reverse order if we are undoing changes.
+    const undoRecords = [ ...treePatchRecords ]
+    if (opType === HistoryOperation.Undo) {
+      undoRecords.reverse()
+    }
+    for (const treePatchRecord of undoRecords) {
       // console.log(`send tile entry to ${opType} to the tree`, getSnapshot(treeEntry));
 
       // If there are multiple trees, and a patch is applied to shared model
@@ -101,10 +105,9 @@ export const UndoStore = types
       manager.startExchange(historyEntryId, applyExchangeId, "UndoStore.applyPatchesToTrees.apply")
 
       const tree = manager.trees[treePatchRecord.tree]
-      return tree.applyPatchesFromManager(historyEntryId,  applyExchangeId,
+      yield tree.applyPatchesFromManager(historyEntryId,  applyExchangeId,
           treePatchRecord.getPatches(opType))
-    })
-    yield Promise.all(applyPromises)
+    }
 
     // finish the patch application
     //
@@ -196,6 +199,10 @@ export const UndoStore = types
       }
 
       self.undoIdx--
+      return {
+        id: entryToUndo.id,
+        action: entryToUndo.action
+      }
     },
     redo() {
       if (!self.canRedo) {
@@ -227,6 +234,10 @@ export const UndoStore = types
       }
 
       self.undoIdx++
+      return {
+        id: entryToRedo.id,
+        action: entryToRedo.action
+      }
     },
   }
 })

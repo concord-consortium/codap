@@ -113,7 +113,7 @@ export const Tree = types.model("Tree", {
   }
 
   return {
-      updateTreeAfterSharedModelChangesInternal
+    updateTreeAfterSharedModelChangesInternal
   }
 })
 .actions(self => {
