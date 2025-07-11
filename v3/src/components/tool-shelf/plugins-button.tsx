@@ -1,6 +1,6 @@
 import React from "react"
 import { Menu, MenuButton, MenuDivider, MenuItem, MenuList } from "@chakra-ui/react"
-import PluginsIcon from '../../assets/icons/icon-plug.svg'
+import PluginsIcon from '../../assets/icons/icon-plugins.svg'
 import { kRootPluginsUrl } from "../../constants"
 import { useRemotePluginsConfig } from "../../hooks/use-remote-plugins-config"
 import { useDocumentContent } from "../../hooks/use-document-content"
@@ -66,7 +66,7 @@ export function PluginsButton() {
   return (
     <Menu isLazy>
       <MenuButton
-        className="tool-shelf-button plugins"
+        className="tool-shelf-button toolshelf-menu plugins"
         title={t("DG.ToolButtonData.optionMenu.toolTip")}
         data-testid="tool-shelf-button-plugins"
       >

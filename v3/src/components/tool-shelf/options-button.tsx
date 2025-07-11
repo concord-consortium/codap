@@ -1,6 +1,6 @@
 import React from "react"
 import { Menu, MenuButton, MenuItem, MenuList, useDisclosure } from "@chakra-ui/react"
-import OptionsIcon from "../../assets/icons/icon-options.svg"
+import OptionsIcon from "../../assets/icons/icon-settings.svg"
 import { useDocumentContent } from "../../hooks/use-document-content"
 import { t } from "../../utilities/translation/translate"
 import { WebViewUrlModal } from "../web-view/web-view-url-modal"
@@ -21,7 +21,7 @@ export const OptionsShelfButton = () => {
     <>
       <Menu isLazy>
         <MenuButton
-          className="tool-shelf-button web-view"
+          className="tool-shelf-button toolshelf-menu web-view"
           title={t("DG.ToolButtonData.optionMenu.toolTip")}
           data-testid="tool-shelf-button-options"
         >

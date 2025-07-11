@@ -35,9 +35,13 @@ $codap-tool-shelf-gray: #ececec;
 
 $minimize-transition: height 0.4s ease-in-out 0s;
 
-$label-font: 400 14px Montserrat, sans-serif;
-$empty-label-font: 12px Montserrat, sans-serif;
+$label-font: 500 14px Roboto, sans-serif;
+$letter-spacing: 0.2px;
+$label-color: #222222;
+$empty-label-font: 12px Roboto, sans-serif;
 $background-fill: #f9f9f9;
+$icon-fill-light: #d3f4ff;
+$icon-fill-dark: #006c8e;
 
 :export {
   labelFont: $label-font;

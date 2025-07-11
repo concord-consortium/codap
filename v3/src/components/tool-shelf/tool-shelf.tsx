@@ -7,9 +7,8 @@ import {
   getTileComponentInfo, getTileComponentKeys, ITileComponentInfo
 } from "../../models/tiles/tile-component-info"
 import UndoIcon from "../../assets/icons/icon-undo.svg"
-import RedoIcon from "../../assets/icons/icon-redo.svg"
 import TileListIcon from "../../assets/icons/icon-tile-list.svg"
-import OptionsIcon from "../../assets/icons/icon-options.svg"
+import OptionsIcon from "../../assets/icons/icon-settings.svg"
 import HelpIcon from "../../assets/icons/icon-help.svg"
 import GuideIcon from "../../assets/icons/icon-guide.svg"
 import { DEBUG_UNDO } from "../../lib/debug"
@@ -70,7 +69,7 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
     },
     {
       className: "redo-button",
-      icon: <RedoIcon className="icon-redo"/>,
+      icon: <UndoIcon className="icon-redo"/>,
       labelKey: "DG.mainPage.mainPane.redoButton.title",
       hintKey: getRedoStringKey(undoManager),
       isDisabled: () => !document?.canRedo,

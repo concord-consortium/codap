@@ -36,7 +36,7 @@ export const TilesListShelfButton = observer(function TilesListShelfButton() {
     <>
       <Menu isLazy autoSelect={false}>
         <MenuButton
-          className="tool-shelf-button tiles-list-menu"
+          className="tool-shelf-button toolshelf-menu tiles-list-menu"
           title={t("DG.ToolButtonData.tileListMenu.toolTip")}
           data-testid="tool-shelf-button-tiles"
         >
