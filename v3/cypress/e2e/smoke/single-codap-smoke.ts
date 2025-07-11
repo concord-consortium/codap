@@ -119,7 +119,7 @@ context("codap single smoke test", () => {
     cy.log("Test date display in bottom axis of graph")
     ah.verifyDefaultAxisLabel("bottom")
     ah.openAxisAttributeMenu("bottom")
-    ah.selectMenuAttribute("date", "bottom") // Date => x-axis
+    ah.selectSubmenuAttribute("date", "Measurements", "bottom") // Date => x-axis
     cy.get('[data-testid="axis-legend-attribute-button-bottom"]').eq(0).should("have.text", "date")
     // Check that the date axis contains the year '2005'
     cy.get('[data-testid="axis-bottom"]')

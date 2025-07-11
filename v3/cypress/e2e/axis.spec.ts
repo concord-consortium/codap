@@ -551,7 +551,7 @@ context("Test date axes with multiple y-axes", () => {
   it("will create a time series graph with multiple y-axes using date x-axis", () => {
     // Create graph with date on x-axis and chlorophyll on y-axis
     ah.openAxisAttributeMenu("bottom")
-    ah.selectMenuAttribute("date", "bottom")
+    ah.selectSubmenuAttribute("date", "Measurements", "bottom")
     cy.dragAttributeToTarget("table", "chlorophyll", "left")
 
     // Verify initial graph setup
