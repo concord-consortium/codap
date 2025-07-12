@@ -71,26 +71,26 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
   }
   return (
     <>
-      <MenuList>
+      <MenuList className="tool-shelf-menu-list" data-testid="tool-shelf-table-menu-list">
         {datasets.map((dataset) => {
           // case table title reflects DataSet title
           const tileTitle = dataset.dataSet.title
           return (
-            <MenuItem key={`${dataset.dataSet.id}`} onClick={()=>createOrShowTableOrCardForDataset(dataset)}
-              data-testid={`tool-shelf-table-${tileTitle}`}>
-              <TableIcon className="case-table-icon"/>
+            <MenuItem key={`${dataset.dataSet.id}`} className="tool-shelf-menu-item"
+              onClick={()=>createOrShowTableOrCardForDataset(dataset)} data-testid={`tool-shelf-table-${tileTitle}`}>
+              <TableIcon className="menu-icon case-table-icon"/>
               {tileTitle}
               <TrashIcon className="tool-shelf-menu-trash-icon"
                   onClick={() => handleOpenRemoveDataSetModal(dataset.dataSet.id)} />
             </MenuItem>
           )
         })}
-        <MenuItem data-testid="tool-shelf-table-new-clipboard" isDisabled={true}>
-          <TableIcon className="case-table-icon"/>
+        <MenuItem data-testid="tool-shelf-table-new-clipboard" isDisabled={true} className="tool-shelf-menu-item">
+          <TableIcon className="menu-icon case-table-icon"/>
           {`${t("DG.AppController.caseTableMenu.clipboardDataset")} 🚧`}
         </MenuItem>
-        <MenuItem onClick={handleCreateNewCaseTable} data-testid="tool-shelf-table-new">
-          <TableIcon className="case-table-icon"/>
+        <MenuItem onClick={handleCreateNewCaseTable} data-testid="tool-shelf-table-new" className="tool-shelf-menu-item">
+          <TableIcon className="menu-icon case-table-icon"/>
           {t("DG.AppController.caseTableMenu.newDataSet")}
         </MenuItem>
       </MenuList>

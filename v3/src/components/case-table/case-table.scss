@@ -2,7 +2,7 @@
 @use "./case-table-shared.scss" as shared;
 @use "../case-tile-common/case-tile-vars" as caseTileVars;
 
-$table-body-font-size: 8pt;
+$table-body-font-size: 12px;
 
 .case-table {
   position: relative;
@@ -203,7 +203,7 @@ $table-body-font-size: 8pt;
     height: 100%;
     scroll-behavior: smooth;
 
-    font-family: Montserrat, sans-serif !important;
+    font-family: "Noto Sans", sans-serif !important;
     font-size: $table-body-font-size !important;
     color: #222222;
     border-radius: vars.$border-radius-bottom-corners;
@@ -388,6 +388,10 @@ $table-body-font-size: 8pt;
           text-overflow: ellipsis;
           display: -webkit-box;
           -webkit-box-orient: vertical;
+          font-family: "Noto Sans", sans-serif;
+          font-size: $table-body-font-size;
+          font-weight: 500;
+
         }
       }
       &.codap-data-cell.rowId-__input__ {
@@ -405,6 +409,10 @@ $table-body-font-size: 8pt;
       .cell-span {
         width: 100%;
         height: 100%;
+        font-family: "Noto Sans", sans-serif;
+        font-size: $table-body-font-size;
+        font-weight: 500;
+
 
         &.numeric-format {
           width: 100%;
@@ -499,7 +507,7 @@ $table-body-font-size: 8pt;
   width: 190px;
 
   .menu-item {
-    font-family: 'museo-sans', sans-serif;
+    font-family: "Roboto", sans-serif;
     font-size: 12px;
     line-height: 20px;
     padding: 0 5px 0 20px;

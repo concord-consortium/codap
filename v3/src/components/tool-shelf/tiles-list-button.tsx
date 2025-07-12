@@ -47,7 +47,7 @@ export const TilesListShelfButton = observer(function TilesListShelfButton() {
             label={t("DG.ToolButtonData.tileListMenu.title")}
           />
         </MenuButton>
-        <MenuList data-testid="tiles-list-menu" >
+        <MenuList className="tool-shelf-menu-list" data-testid="tiles-list-menu" >
           {tilesArr?.map((tile) => {
             const tileType = tile.content.type
             const _Icon = getTileComponentIcon(tileType)
@@ -56,7 +56,7 @@ export const TilesListShelfButton = observer(function TilesListShelfButton() {
             const tileInfo = getTileContentInfo(tileType)
             const title = tileInfo?.getTitle(tile)
             return (
-              <MenuItem key={tile?.id} data-testid="tiles-list-menu-item"
+              <MenuItem key={tile?.id} data-testid="tiles-list-menu-item" className="tool-shelf-menu-item"
                   onClick={()=>handleSelectTile(tile.id) }
                   onFocus={()=>handleFocus(tile.id)} // Handle focus similar to pointer over
                   onBlur={()=>handleBlur(tile.id)} // Handle blur similar to pointer leave

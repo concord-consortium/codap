@@ -79,6 +79,11 @@ $deleteButton: #4B8ADD;
           display: flex;
           flex-direction: column;
           justify-content: center;
+
+          svg {
+            height: 24px;
+            width: 24px;
+          }
         }
       }
 
@@ -131,13 +136,40 @@ $deleteButton: #4B8ADD;
   margin-top: 0 !important;
 }
 
+.tool-shelf-menu-list {
+  padding: 10px !important;
+}
+
+.tool-shelf-menu-item {
+  display: flex;
+  align-items: center;
+  padding: 4px 8px;
+  font-family: 'roboto', sans-serif;
+  font-size: 14px !important;
+  color: #222;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #f0f0f0;
+  }
+
+  &:active {
+    background-color: #e0e0e0;
+  }
+
+  .menu-icon {
+    height: 16px;
+    width: 16px;
+    margin-right: 4px;
+  }
+}
+
 .tool-shelf-menu-trash-icon {
   background-color: white;
-  right: 6px;
-  position: absolute;
   height: 11px;
   width: 11px;
   fill: black;
+  margin-left: 4px;
 }
 
 .delete-data-set-modal-body {
