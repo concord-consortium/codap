@@ -289,6 +289,10 @@ export class FormulaManager implements IFormulaManager {
     const recalculate = (casesToRecalculate: CaseList) => {
       this.recalculateFormula(formulaId, casesToRecalculate)
     }
+    const recalculateInvalidate = (casesToRecalculate: CaseList) => {
+      this.recalculateFormula(formulaId, casesToRecalculate)
+      dataSet.validateCases({ force: true })
+    }
     const updateDisplay = () => {
       this.updateFormulaDisplayExpression(formulaId)
       // Note that when attribute is removed or renamed, this can also affect the formula's canonical form.
@@ -305,7 +309,7 @@ export class FormulaManager implements IFormulaManager {
 
     const disposeLocalAttributeObservers = observeLocalAttributes(dependencies, dataSet, recalculate)
     const disposeBoundaryObservers = observeBoundaries(dependencies, this.boundaryManager, recalculate)
-    const disposeGlobalValueObservers = observeGlobalValues(dependencies, this.globalValueManager, recalculate)
+    const disposeGlobalObservers = observeGlobalValues(dependencies, this.globalValueManager, recalculateInvalidate)
     const disposeLookupObservers = observeLookupDependencies(dependencies, this.dataSets, recalculate)
     const disposeNameChangeObservers = observeSymbolNameChanges(this.dataSets, this.globalValueManager, updateDisplay)
     const disposeAdapterSpecificObservers = adapter.setupFormulaObservers?.(formulaContext, extraMetadata)
@@ -315,7 +319,7 @@ export class FormulaManager implements IFormulaManager {
       dispose: () => {
         disposeLocalAttributeObservers()
         disposeBoundaryObservers()
-        disposeGlobalValueObservers()
+        disposeGlobalObservers()
         disposeLookupObservers()
         disposeNameChangeObservers()
         disposeAdapterSpecificObservers?.()

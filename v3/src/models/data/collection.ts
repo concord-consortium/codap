@@ -457,7 +457,7 @@ export const CollectionModel = V2Model
   }
 })
 .views(self => ({
-  findParentCaseGroup(childCaseId: string): Maybe<CaseInfo> {
+  findParentCaseInfo(childCaseId: string): Maybe<CaseInfo> {
     //consider building a child -> parent case id map if performance is an issue
     return self.caseGroups.find(group => group.childCaseIds?.includes(childCaseId))
   }

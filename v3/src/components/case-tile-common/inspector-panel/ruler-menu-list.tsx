@@ -79,6 +79,7 @@ export const RulerMenuList = observer(function RulerMenuList() {
               attr.formula.rerandomize()
             }
           })
+          data.validateCases({ force: true })
         })
       }
     },

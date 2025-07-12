@@ -360,7 +360,7 @@ test("DataSet basic functionality", () => {
   dataset.setCaseValues(toCanonical(dataset, [{ __id__: caseA1ID, num: undefined }]))
   expect(dataset.getItem(caseA1ID, { canonical: false })).toEqual({ __id__: caseA1ID, str: "A", num: "" })
 
-  const cases = dataset.getItems([caseB2ID, caseC3ID, ""], { canonical: false })
+  let cases = dataset.getItems([caseB2ID, caseC3ID, ""], { canonical: false })
   expect(cases.length).toBe(2)
   expect(cases[0]).toEqual({ __id__: caseB2ID, str: "B", num: 20 })
   expect(cases[1]).toEqual({ __id__: caseC3ID, str: "C", num: 30 })
@@ -371,6 +371,12 @@ test("DataSet basic functionality", () => {
   expect(cases[0]).toEqual({ __id__: caseB2ID, str: "B", num: 20 })
   expect(cases[1]).toEqual({ __id__: caseC3ID, str: "C", num: 30 })
 
+  dataset.setAttributeValues(strAttrID, [[caseB2ID, "b"], [caseC3ID, "c"]])
+  cases = dataset.getItems([caseB2ID, caseC3ID, ""], { canonical: false })
+  expect(cases[0]).toEqual({ __id__: caseB2ID, str: "b", num: 20 })
+  expect(cases[1]).toEqual({ __id__: caseC3ID, str: "c", num: 30 })
+
+  // clone DataSet
   const copy = clone(dataset)
   expect(copy.id).toBe(dataset.id)
   expect(copy.name).toBe(dataset.name)
@@ -379,6 +385,7 @@ test("DataSet basic functionality", () => {
   expect(copy.attributes.length).toBe(dataset.attributes.length)
   expect(copy.items.length).toBe(dataset.items.length)
 
+  // removeCases
   dataset.removeCases([nullCaseID])
   expect(dataset.items.length).toBe(6)
   dataset.removeCases([caseA1ID, caseB2ID])
@@ -417,6 +424,13 @@ test("hierarchical collection support", () => {
   expect(parentCollection.getAttribute(childAttr.id)).toBeUndefined()
   expect(parentCollection.getAttribute(parentAttr.id)).toBe(parentAttr)
 
+  expect(data.getCollectionForAttributes([parentAttr.id])).toBe(parentCollection)
+  expect(data.getCasesForAttributes([parentAttr.id])).toBe(parentCollection.cases)
+  expect(data.getCollectionForAttributes([childAttr.id])).toBe(data.childCollection)
+  expect(data.getCasesForAttributes([childAttr.id])).toBe(data.childCollection.cases)
+  expect(data.getCollectionForAttributes([childAttr.id, parentAttr.id])).toBe(data.childCollection)
+  expect(data.getCasesForAttributes([childAttr.id, parentAttr.id])).toBe(data.childCollection.cases)
+
   // Names must be unique
   const parentCollection2 = data.addCollection({ name: "ParentCollection" })
   expect(parentCollection2.name).toBe("ParentCollection1")
@@ -434,6 +448,85 @@ test("hierarchical collection support", () => {
     data.getCollectionByName("ParentCollection")
     expect(spy).toHaveBeenCalledTimes(2)
   })
+})
+
+test("DataSet basic hierarchical functionality", () => {
+  const data = DataSet.create({
+    name: "data",
+    collections: [{ id: "Parent", name: "Parents" }, { id: "Child", name: "Children" }]
+  })
+  const parentCollection = data.getCollection("Parent")!
+  const childCollection = data.getCollection("Child")!
+  expect(data.collections[0]).toBe(parentCollection)
+  expect(data.collections[1]).toBe(childCollection)
+  const p = data.addAttribute({ id: "ParentAttr", name: "parentAttr" }, { collection: "Parent" })
+  const c = data.addAttribute({ id: "ChildAttr", name: "childAttr" }, { collection: "Child" })
+
+  data.addCases([
+    { __id__: "ITEM1", [p.id]: "A", [c.id]: "1" },
+    { __id__: "ITEM2", [p.id]: "B", [c.id]: "2" },
+    { __id__: "ITEM3", [p.id]: "A", [c.id]: "3" },
+    { __id__: "ITEM4", [p.id]: "B", [c.id]: "4" },
+    { __id__: "ITEM5", [p.id]: "A", [c.id]: "5" }
+  ])
+  data.validateCases()
+  const parentCases = parentCollection.cases
+  const pCase1 = parentCases[0]
+  const pCase2 = parentCases[1]
+  const childCases = childCollection.cases
+  const cCase1 = childCases[0]
+  const cCase5 = childCases[4]
+  expect(parentCollection.caseIds.length).toBe(2)
+  expect(parentCollection.cases.length).toBe(2)
+  expect(data.getCollectionForCase(pCase1.__id__)).toBe(parentCollection)
+  expect(data.getCollectionForCase(pCase2.__id__)).toBe(parentCollection)
+  expect(childCollection.caseIds.length).toBe(5)
+  expect(childCollection.cases.length).toBe(5)
+  expect(data.childCases.length).toBe(5)
+  expect(data.getCollectionForCase(cCase1.__id__)).toBe(childCollection)
+  expect(data.getCollectionForCase(cCase5.__id__)).toBe(childCollection)
+
+  // setAttributeValues sets multiple values for a single attribute without triggering actions
+  const disposer = onAction(data, action => { if (action.name === "setAttributeValues") throw new Error("Failed") })
+  data.setAttributeValues(p.id, [[pCase1.__id__, "a"], [pCase2.__id__, "b"]])
+  expect(data.getItem("ITEM1")).toEqual({ __id__: "ITEM1", ParentAttr: "a", ChildAttr: 1 })
+
+  expect(data.getParentCaseInfo(cCase1.__id__, "Child")?.groupedCase.__id__).toEqual(pCase1.__id__)
+  expect(data.getParentCaseInfo(cCase5.__id__, "Child")?.groupedCase.__id__).toEqual(pCase2.__id__)
+  expect(data.getItemsForCases([{ __id__: pCase2.__id__, ChildAttr: 0 }])).toEqual([
+    { __id__: "ITEM2", ChildAttr: 0 },
+    { __id__: "ITEM4", ChildAttr: 0 }])
+  disposer()
+
+  data.selectCases([pCase1.__id__])
+  expect(data.isCaseSelected(pCase1.__id__)).toBe(true)
+  expect(data.isCaseSelected(pCase2.__id__)).toBe(false)
+  expect(Array.from(data.selection)).toEqual(["ITEM1", "ITEM3", "ITEM5"])
+  data.setSelectedCases([pCase2.__id__])
+  expect(data.isCaseSelected(pCase1.__id__)).toBe(false)
+  expect(data.isCaseSelected(pCase2.__id__)).toBe(true)
+  expect(Array.from(data.selection)).toEqual(["ITEM2", "ITEM4"])
+
+  // removing a case removes its items
+  data.removeCases([pCase2.__id__])
+  data.validateCases()
+  expect(parentCollection.cases.length).toBe(1)
+  expect(childCollection.cases.length).toBe(3)
+  expect(data.selection.size).toBe(0)
+
+  // adding an attribute to a collection with cases fills out the attribute for all cases
+  const third = data.addAttribute({ id: "ThirdAttr", name: "thirdAttr" }, { collection: "Child" })
+  expect(third.length).toBe(3)
+
+  // deleting last attribute in collection removes the collection...
+  data.removeAttribute(third.id)
+  data.removeAttribute(c.id)
+  expect(data.collections.length).toBe(1)
+  expect(data.childCollection.id).toBe("Parent")
+  // ...unless it's the last collection.
+  data.removeAttribute(p.id)
+  expect(data.collections.length).toBe(1)
+  expect(data.childCollection.id).toBe("Parent")
 })
 
 test("Canonical case functionality", () => {
