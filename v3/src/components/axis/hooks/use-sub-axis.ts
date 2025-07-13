@@ -87,6 +87,15 @@ export const useSubAxis = ({
     categoriesSelectionRef = useRef<Selection<SVGGElement | BaseType, CatObject, SVGGElement, any>>(),
     categoriesRef = useRef<string[]>([]),
 
+    getCatArray = useCallback(() => {
+      const catArray = dataConfig?.categoryArrayForAttrRole(axisPlaceToAttrRole[axisPlace]).slice() ?? []
+      // console.log('categoryArray.length =', catArray.length, 'for axisPlace', axisPlace)
+      if (catArray[catArray.length - 1] === kOther) {
+        catArray[catArray.length - 1] = translate("DG.CellAxis.other")
+      }
+      return catArray
+    }, [axisPlace, dataConfig]),
+
     renderSubAxis = useCallback(() => {
       const _axisModel = axisProvider.getAxis?.(axisPlace)
       if (!isAliveSafe(_axisModel)) {
@@ -136,13 +145,13 @@ export const useSubAxis = ({
           dI.indexOfCategory = newCatIndex
           dI.categorySet?.setDragCategory(dI.catName, newCatIndex)
           dI.currentDragPositionCatName = catToMoveBefore
-          categoriesRef.current = dI.categorySet?.valuesArray ?? []
+          categoriesRef.current = getCatArray()
         } else {
           renderSubAxis()
         }
         dI.currentDragPosition = newDragPosition
       }
-    }, [renderSubAxis]),
+    }, [renderSubAxis, getCatArray]),
 
     onDragEnd = useCallback(() => {
       const dI = dragInfo.current
@@ -181,10 +190,7 @@ export const useSubAxis = ({
         axisLength = layout.getAxisLength(axisPlace),
         numCategoriesLimit = Math.floor(axisLength / kDefaultFontHeight)
       dataConfig?.setNumberOfCategoriesLimitForRole(axisPlaceToAttrRole[axisPlace], numCategoriesLimit)
-      const catArray = (dataConfig?.categoryArrayForAttrRole(axisPlaceToAttrRole[axisPlace]) ?? []).slice()
-      if (catArray[catArray.length - 1] === kOther) {
-        catArray[catArray.length - 1] = translate("DG.CellAxis.other")
-      }
+      const catArray = getCatArray()
       const categories = catArray,
         categoryData: CatObject[] = categories.map((cat, index) =>
           ({cat, index: isVertical(axisPlace) ? categories.length - index - 1 : index}))
@@ -252,7 +258,7 @@ export const useSubAxis = ({
         multiScale?.setCategoricalDomain(categories)
       }
       categoriesRef.current = catArray
-    }, [axisPlace, dataConfig, dragBehavior, isColorAxis, layout, subAxisEltRef])
+    }, [axisPlace, dataConfig, dragBehavior, getCatArray, isColorAxis, layout, subAxisEltRef])
 
   // update axis helper
   useEffect(() => {

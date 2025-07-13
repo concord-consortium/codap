@@ -882,7 +882,6 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     }
   })
   .actions(self => {
-    const baseAfterCreate = self.afterCreate
     const baseRemoveAttributeFromRole = self.removeAttributeFromRole
     return {
       afterCreate() {
@@ -903,7 +902,6 @@ export const GraphDataConfigurationModel = DataConfigurationModel
           () => self.clearCasesCache(),
           { name: "GraphDataConfigurationModel getCellKeys reaction", equals: comparer.structural }
         ))
-        baseAfterCreate()
       },
       removeAttributeFromRole(role: GraphAttrRole, attrID: string) {
         if (role === "yPlus") {
