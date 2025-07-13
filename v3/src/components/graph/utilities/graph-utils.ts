@@ -331,10 +331,6 @@ export function updateCellMasks({ dataConfig, layout, pixiPoints }: IUpdateCellM
   pixiPoints?.setPointsMask(dataConfig.caseDataWithSubPlot)
 }
 
-export function removeCellMasks(pixiPoints?: PixiPoints) {
-  pixiPoints?.removeMasks()
-}
-
 export interface ISetPointSelection {
   pixiPoints?: PixiPoints
   dataConfiguration: IDataConfigurationModel

@@ -124,11 +124,11 @@ export const DataDisplayContentModel = TileContentModel
         clearTimeout(self.animationTimerId)
       }
     },
-    startAnimation(stoppingCallback?: () => void) {
+    startAnimation(onComplete?: () => void) {
       if (self.animationTimerId) clearTimeout(self.animationTimerId)
       self.animationTimerId = window.setTimeout(() => {
         this.stopAnimation()
-        if (stoppingCallback) stoppingCallback()
+        onComplete?.()
       }, 2000)
     },
     stopAnimation() {
