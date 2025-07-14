@@ -16,10 +16,14 @@ export const GraphCanvasHelper = {
       })
   },
   // Helper function to set an attribute for the axis and retrieve the tile ID.
-  setAxisAndRetrieveTileId (attribute: string, axis: "bottom" | "left") {
+  setAxisAndRetrieveTileId (attribute: string, axis: "bottom" | "left", collectionName?: string) {
     cy.log(`Set ${attribute} on ${axis} axis`)
     ah.openAxisAttributeMenu(axis)
-    ah.selectMenuAttribute(attribute, axis)
+    if (collectionName) {
+      ah.selectSubmenuAttribute(attribute, collectionName, axis)
+    } else {
+      ah.selectMenuAttribute(attribute, axis)
+    }
     cy.wait(500)
 
     cy.log('Locate the graph element and retrieve its dynamic ID')
