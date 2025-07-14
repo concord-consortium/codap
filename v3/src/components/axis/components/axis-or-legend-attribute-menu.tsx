@@ -6,6 +6,7 @@ import { IUseDraggableAttribute, useDraggableAttribute } from "../../../hooks/us
 import { useInstanceIdContext } from "../../../hooks/use-instance-id-context"
 import { useOutsidePointerDown } from "../../../hooks/use-outside-pointer-down"
 import { useOverlayBounds } from "../../../hooks/use-overlay-bounds"
+import { useTileModelContext } from "../../../hooks/use-tile-model-context"
 import { AttributeType } from "../../../models/data/attribute-types"
 import { ICollectionModel, isCollectionModel } from "../../../models/data/collection"
 import { IDataSet } from "../../../models/data/data-set"
@@ -106,7 +107,8 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
 }: IProps) {
   const dataConfiguration = useDataConfigurationContext()
   const dataSet = dataConfiguration?.dataset
-  const dataSets = dataSet ? getSharedDataSets(dataSet).map(sharedDataSet => sharedDataSet.dataSet) : []
+  const tileModel = useTileModelContext()
+  const dataSets = tileModel ? getSharedDataSets(tileModel.tile).map(sharedDataSet => sharedDataSet.dataSet) : []
   const allCollectionInfo: (ICollectionInfo|"divider")[] = []
   dataSets.forEach((data, index) => {
     const metadata = getMetadataFromDataSet(data)
