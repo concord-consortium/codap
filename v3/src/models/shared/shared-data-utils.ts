@@ -10,6 +10,10 @@ export function getSharedDataSets(node: IAnyStateTreeNode): ISharedDataSet[] {
   return sharedModelManager?.getSharedModelsByType<typeof SharedDataSet>(kSharedDataSetType) ?? []
 }
 
+export function getDataSets(node: IAnyStateTreeNode): IDataSet[] {
+  return getSharedDataSets(node).map(sharedDataSet => sharedDataSet.dataSet)
+}
+
 export function getDataSetByNameOrId(node: IAnyStateTreeNode, nameOrId?: string): Maybe<IDataSet> {
   return getSharedDataSets(node).find(({ dataSet }) => {
     return dataSet.id === nameOrId || dataSet.name === nameOrId || `${toV2Id(dataSet.id)}` === nameOrId
