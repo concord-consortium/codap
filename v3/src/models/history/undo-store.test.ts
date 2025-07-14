@@ -15,6 +15,7 @@ import { withCustomUndoRedo } from "./with-custom-undo-redo"
 import { withoutUndo } from "./without-undo"
 import { ICustomPatch } from "./tree-types"
 import { registerCustomUndoRedo } from "./custom-undo-redo-registry"
+import { expectEntryToBeComplete } from "./undo-store-test-utils"
 
 // way to get a writable reference to libDebug
 const libDebug = require("../../lib/debug")
@@ -981,34 +982,4 @@ it("can track the addition of a new shared model", async () => {
 async function expectUpdateToBeCalledTimes(testTile: TestTileType, times: number) {
   const updateCalledTimes = when(() => testTile.updateCount === times, {timeout: 100})
   return expect(updateCalledTimes).resolves.toBeUndefined()
-}
-
-// TODO: it would nicer to use a custom Jest matcher here so we can
-// provide a better error message when it fails
-async function expectEntryToBeComplete(manager: Instance<typeof TreeManager>, length: number) {
-  const changeDocument = manager.document
-  let timedOut = false
-  try {
-    await when(
-      () => {
-        const _historyLength = changeDocument.history.length
-        return _historyLength >= length && changeDocument.history[_historyLength - 1]?.state === "complete"
-      },
-      {timeout: 100})
-  } catch (e) {
-    timedOut = true
-  }
-  const historyLength = changeDocument.history.length
-  const lastEntry = changeDocument.history[historyLength - 1]
-  expect({
-    historyLength,
-    lastEntryState: lastEntry?.state,
-    activeExchanges: lastEntry?.activeExchanges.toJSON(),
-    timedOut
-  }).toEqual({
-    historyLength: length,
-    lastEntryState: "complete",
-    activeExchanges: [],
-    timedOut: false
-  })
 }

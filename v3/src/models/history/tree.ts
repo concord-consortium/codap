@@ -1,5 +1,6 @@
-import { types, IJsonPatch, applyPatch, resolvePath, getSnapshot, flow,
-  resolveIdentifier, isAlive } from "mobx-state-tree"
+import {
+  applyPatch, flow, getSnapshot, IJsonPatch, isAlive, resolvePath, resolveIdentifier, types
+} from "mobx-state-tree"
 import { DEBUG_HISTORY } from "../../lib/debug"
 import { IDocumentContentModel } from "../document/document-content"
 import { SharedModelMapSnapshotOutType } from "../document/shared-model-entry"

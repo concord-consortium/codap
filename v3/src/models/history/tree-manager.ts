@@ -1,4 +1,6 @@
-import { types, Instance, flow, IJsonPatch, detach, destroy } from "mobx-state-tree"
+import {
+  types, Instance, flow, IJsonPatch, detach, destroy
+} from "mobx-state-tree"
 import { nanoid } from "nanoid"
 import { TreeAPI } from "./tree-api"
 // eslint-disable-next-line import/no-cycle
@@ -76,6 +78,15 @@ export const TreeManager = types
 
   findHistoryEntry(historyEntryId: string) {
     return self.document.history.find(entry => entry.id === historyEntryId)
+  },
+
+  findHistoryEntryIndex(historyEntryId: string) {
+    return self.document.history.findIndex(entry => entry.id === historyEntryId)
+  },
+
+  get latestDocumentHistoryEntry() {
+    const history = self.document.history
+    return history ? history[history.length - 1] : undefined
   },
 
   findActiveHistoryEntry(historyEntryId: string) {

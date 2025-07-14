@@ -7,14 +7,20 @@ import { applyCustomRedo, applyCustomUndo, hasCustomUndoRedo } from "./custom-un
 import { DEBUG_UNDO } from "../../lib/debug"
 
 export interface IUndoManager {
-  undoLevels : number;
-  redoLevels : number;
-  canUndo : boolean;
-  canRedo : boolean;
-  undoEntry : HistoryEntryType | undefined;
-  redoEntry : HistoryEntryType | undefined;
-  undo() : void;
-  redo() : void;
+  undoLevels : number
+  redoLevels : number
+  canUndo : boolean
+  canRedo : boolean
+  undoEntry : HistoryEntryType | undefined
+  redoEntry : HistoryEntryType | undefined
+  undo() : IUndoInformation
+  redo() : IUndoInformation
+}
+
+// Information that is returned by undo and redo calls
+export interface IUndoInformation {
+  id: string|undefined,
+  action: string|undefined
 }
 
 export const UndoStore = types
@@ -89,7 +95,7 @@ export const UndoStore = types
       undoRecords.reverse()
     }
     for (const treePatchRecord of undoRecords) {
-      // console.log(`send tile entry to ${opType} to the tree`, getSnapshot(treeEntry));
+      // console.log(`send tile entry to ${opType} to the tree`, getSnapshot(treeEntry))
 
       // If there are multiple trees, and a patch is applied to shared model
       // owned by a tree. The tree will send an updated snapshot of the
