@@ -2,6 +2,7 @@
 
 .component-title-bar {
   flex-direction: row;
+  align-items: center;
   height: vars.$title-bar-height;
   background-color: vars.$title-bar-color;
   width: 100%;
@@ -26,7 +27,6 @@
     display: flex;
     flex-direction: row;
     position: absolute;
-    top: 0;
     left: 5px;
     align-items: center;
     justify-content: center;
