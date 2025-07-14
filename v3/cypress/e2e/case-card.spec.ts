@@ -124,8 +124,8 @@ context("case card", () => {
       table.toggleCaseView()
       cy.wait(500)
       cy.get('[data-testid="case-card-view"]').should("have.length", 2)
-      cy.get('[data-testid="case-card-view"]').eq(0).should("have.class", "color-cycle-1")
-      cy.get('[data-testid="case-card-view"]').eq(1).should("have.class", "color-cycle-2")
+      cy.get('[data-testid="case-card-view"]').eq(0).should("have.class", "color-cycle-2")
+      cy.get('[data-testid="case-card-view"]').eq(1).should("have.class", "color-cycle-1")
       cy.get('[data-testid="case-card-view-title"]').should("have.length", 2)
       cy.get('[data-testid="case-card-view-title"]').eq(0).should("have.text", "Orders")
       cy.get('[data-testid="case-card-view-title"]').eq(1).should("have.text", "Cases")
@@ -483,7 +483,7 @@ context("case card inspector panel", () => {
       cy.get('[data-testid="filter-formula-bar"]').should("contain", filterFormula)
       card.getIndexText().should("contain", "11")
       cy.get('[data-testid="filter-formula-bar"]').click()
-  
+
       fh.clearFormulaInput()
       cy.get(".codap-modal-content [data-testid=Apply-button]").should("be.visible").click()
       cy.get('[data-testid="filter-formula-bar"]').should("not.exist")

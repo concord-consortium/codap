@@ -64,7 +64,7 @@ import { applyModelChange } from "../history/apply-model-change"
 import { withoutUndo } from "../history/without-undo"
 import { kAttrIdPrefix, kItemIdPrefix, typeV3Id, v3Id } from "../../utilities/codap-utils"
 import { compareValues } from "../../utilities/data-utils"
-import { hashStringSet } from "../../utilities/js-utils"
+import { hashOrderedStringSet, hashStringSet } from "../../utilities/js-utils"
 import { gLocale } from "../../utilities/translation/locale"
 import { t } from "../../utilities/translation/translate"
 import { V2Model } from "./v2-model"
@@ -338,8 +338,12 @@ export const DataSet = V2Model.named("DataSet").props({
     return attrs
   },
   get itemIdsHash() {
-    // observable hash of visible (not set aside, not filtered out) item ids
+    // observable order-independent hash of visible (not set aside, not filtered out) item ids
     return hashStringSet(self.itemIds)
+  },
+  get itemIdsOrderedHash() {
+    // observable order-dependent hash of visible (not set aside, not filtered out) item ids
+    return hashOrderedStringSet(self.itemIds)
   },
   get items(): readonly IItem[] {
     return self.itemIds.map(id => ({ __id__: id }))
