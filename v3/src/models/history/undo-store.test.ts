@@ -15,6 +15,7 @@ import { withCustomUndoRedo } from "./with-custom-undo-redo"
 import { withoutUndo } from "./without-undo"
 import { ICustomPatch } from "./tree-types"
 import { registerCustomUndoRedo } from "./custom-undo-redo-registry"
+import { expectEntryToBeComplete } from "./undo-store-test-utils"
 
 // way to get a writable reference to libDebug
 const libDebug = require("../../lib/debug")
@@ -714,21 +715,21 @@ const initialSharedModelUpdateEntry = {
   created: expect.any(Number),
   id: expect.any(String),
   records: [
-    { action: "/handleSharedModelChanges",
-      inversePatches: [
-        { op: "replace", path: "/content/tileMap/t1/content/text", value: undefined}
-      ],
-      patches: [
-        { op: "replace", path: "/content/tileMap/t1/content/text", value: "something-tile"}
-      ],
-      tree: "test"
-    },
     { action: "/content/sharedModelMap/sm1/sharedModel/setValue",
       inversePatches: [
         { op: "replace", path: "/content/sharedModelMap/sm1/sharedModel/value", value: undefined}
       ],
       patches: [
         { op: "replace", path: "/content/sharedModelMap/sm1/sharedModel/value", value: "something"}
+      ],
+      tree: "test"
+    },
+    { action: "/handleSharedModelChanges",
+      inversePatches: [
+        { op: "replace", path: "/content/tileMap/t1/content/text", value: undefined}
+      ],
+      patches: [
+        { op: "replace", path: "/content/tileMap/t1/content/text", value: "something-tile"}
       ],
       tree: "test"
     }
@@ -816,19 +817,19 @@ const redoSharedModelEntry = {
   records: [
     { action: "/applyPatchesFromManager",
       inversePatches: [
-        { op: "replace", path: "/content/tileMap/t1/content/text", value: undefined}
+        { op: "replace", path: "/content/sharedModelMap/sm1/sharedModel/value", value: undefined}
       ],
       patches: [
-        { op: "replace", path: "/content/tileMap/t1/content/text", value: "something-tile"}
+        { op: "replace", path: "/content/sharedModelMap/sm1/sharedModel/value", value: "something"}
       ],
       tree: "test"
     },
     { action: "/applyPatchesFromManager",
       inversePatches: [
-        { op: "replace", path: "/content/sharedModelMap/sm1/sharedModel/value", value: undefined}
+        { op: "replace", path: "/content/tileMap/t1/content/text", value: undefined}
       ],
       patches: [
-        { op: "replace", path: "/content/sharedModelMap/sm1/sharedModel/value", value: "something"}
+        { op: "replace", path: "/content/tileMap/t1/content/text", value: "something-tile"}
       ],
       tree: "test"
     }
@@ -898,8 +899,6 @@ it("can replay history entries that include shared model changes", async () => {
   expect(getSnapshot(changeDocument.history)).toEqual(history)
 })
 
-// This is recording 3 events for something that should probably be 1
-// However we don't have a good solution for that yet.
 it("can track the addition of a new shared model", async () => {
   // Start with just a tile and no shared model
   const {tileContent, manager} = setupDocument({
@@ -918,25 +917,27 @@ it("can track the addition of a new shared model", async () => {
   const sharedModelId = newSharedModel.id
   sharedModelManager?.addTileSharedModel(tileContent, newSharedModel)
 
-  await expectEntryToBeComplete(manager, 3)
+  await expectEntryToBeComplete(manager, 1)
 
   const changeDocument = manager.document
   expect(getSnapshot(changeDocument.history)).toEqual([
     {
       model: "DocumentContent",
-      action: "/content/addSharedModel",
+      action: "/content/_addTileSharedModel",
       created: expect.any(Number),
       id: expect.any(String),
       records: [
         {
-          action: "/content/addSharedModel",
+          action: "/content/_addTileSharedModel",
           inversePatches: [
-            { op: "remove", path: `/content/sharedModelMap/${sharedModelId}` }
+            { op: "remove", path: `/content/sharedModelMap/${sharedModelId}` },
+            { op: "remove", path: `/content/sharedModelMap/${sharedModelId}/tiles/0`}
           ],
           patches: [
             {
               op: "add", path: `/content/sharedModelMap/${sharedModelId}`,
               value: {
+                provider: undefined,
                 sharedModel: {
                   id: sharedModelId,
                   type: "TestSharedModel",
@@ -944,60 +945,31 @@ it("can track the addition of a new shared model", async () => {
                 },
                 tiles: []
               }
-            }
-          ],
-          tree: "test"
-        }
-      ],
-      state: "complete",
-      tree: "test",
-      undoable: true
-    },
-    {
-      model: "SharedModelEntry",
-      action: `/content/sharedModelMap/${sharedModelId}/addTile`,
-      created: expect.any(Number),
-      id: expect.any(String),
-      records: [
-        {
-          action: `/content/sharedModelMap/${sharedModelId}/addTile`,
-          inversePatches: [
-            { op: "remove", path: `/content/sharedModelMap/${sharedModelId}/tiles/0`}
-          ],
-          patches: [
+            },
             {
               op: "add", path: `/content/sharedModelMap/${sharedModelId}/tiles/0`,
               value: "t1"
             }
           ],
           tree: "test"
-        }
-      ],
-      state: "complete",
-      tree: "test",
-      undoable: true
-    },
-    {
-      model: "TestTile",
-      action: "/content/tileMap/t1/content/updateAfterSharedModelChanges",
-      created: expect.any(Number),
-      id: expect.any(String),
-      records: [
+        },
         {
-          action: "/content/tileMap/t1/content/updateAfterSharedModelChanges",
-          inversePatches: [
-            {
-              op: "replace", path: "/content/tileMap/t1/content/text",
-              value: undefined
-            }
-          ],
+          tree: "test",
+          action: "/handleSharedModelChanges",
           patches: [
             {
-              op: "replace", path: "/content/tileMap/t1/content/text",
+              op: "replace",
+              path: "/content/tileMap/t1/content/text",
               value: "new model-tile"
             }
           ],
-          tree: "test"
+          inversePatches: [
+            {
+              op: "replace",
+              path: "/content/tileMap/t1/content/text",
+              value: undefined
+            }
+          ]
         }
       ],
       state: "complete",
@@ -1010,34 +982,4 @@ it("can track the addition of a new shared model", async () => {
 async function expectUpdateToBeCalledTimes(testTile: TestTileType, times: number) {
   const updateCalledTimes = when(() => testTile.updateCount === times, {timeout: 100})
   return expect(updateCalledTimes).resolves.toBeUndefined()
-}
-
-// TODO: it would nicer to use a custom Jest matcher here so we can
-// provide a better error message when it fails
-async function expectEntryToBeComplete(manager: Instance<typeof TreeManager>, length: number) {
-  const changeDocument = manager.document
-  let timedOut = false
-  try {
-    await when(
-      () => {
-        const _historyLength = changeDocument.history.length
-        return _historyLength >= length && changeDocument.history[_historyLength - 1]?.state === "complete"
-      },
-      {timeout: 100})
-  } catch (e) {
-    timedOut = true
-  }
-  const historyLength = changeDocument.history.length
-  const lastEntry = changeDocument.history[historyLength - 1]
-  expect({
-    historyLength,
-    lastEntryState: lastEntry?.state,
-    activeExchanges: lastEntry?.activeExchanges.toJSON(),
-    timedOut
-  }).toEqual({
-    historyLength: length,
-    lastEntryState: "complete",
-    activeExchanges: [],
-    timedOut: false
-  })
 }

@@ -10,7 +10,7 @@ import {IDataSet} from "../../../models/data/data-set"
 import {applyModelChange} from "../../../models/history/apply-model-change"
 import { getTileCaseMetadata, getTileDataSet } from "../../../models/shared/shared-data-tile-utils"
 import { getDataSetFromId, getMetadataFromDataSet } from "../../../models/shared/shared-data-utils"
-import {ISharedModel, SharedModelChangeType} from "../../../models/shared/shared-model"
+import {ISharedModel} from "../../../models/shared/shared-model"
 import {ITileContentModel} from "../../../models/tiles/tile-content"
 import { getFormulaManager } from "../../../models/tiles/tile-environment"
 import {typedId} from "../../../utilities/js-utils"
@@ -283,7 +283,7 @@ export const GraphContentModel = DataDisplayContentModel
     }
   }))
   .actions(self => ({
-    updateAfterSharedModelChanges(sharedModel: ISharedModel | undefined, type: SharedModelChangeType) {
+    updateAfterSharedModelChanges(sharedModel: ISharedModel | undefined) {
     },
     setDataSet(dataSetID: string) {
       const newDataSet = getDataSetFromId(self, dataSetID)

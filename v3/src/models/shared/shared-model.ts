@@ -2,7 +2,6 @@ import { Instance, types } from "mobx-state-tree"
 import { typedId } from "../../utilities/js-utils"
 
 export const kUnknownSharedModel = "unknownSharedModel"
-export type SharedModelChangeType = "link" | "change" | "unlink"
 
 // Generic "super class" of all shared models
 export const SharedModel = types.model("SharedModel", {

@@ -42,7 +42,7 @@ export interface TreeAPI {
    * startApplyingPatchesFromManager with the tree's response. So these two ids are
    * here to support that scenario.
    */
-  startApplyingPatchesFromManager(historyEntryId: string, exchangeId: string): Promise<void>;
+  startApplyingPatchesFromManager(historyEntryId: string, exchangeId: string): Promise<void>
 
   /**
    * This is called by the manager to do an undo or redo or replay history
@@ -67,8 +67,8 @@ export interface TreeAPI {
    * The patches should be applied in order starting from the first in the
    * array.
    */
-  applyPatchesFromManager(historyEntryId: string, exchangeId: string, 
-    patchesToApply: readonly IJsonPatch[]): Promise<void>;
+  applyPatchesFromManager(historyEntryId: string, exchangeId: string,
+    patchesToApply: readonly IJsonPatch[]): Promise<void>
 
   /**
    * This is called after the manager has applied all of the patches. Before
@@ -90,13 +90,13 @@ export interface TreeAPI {
    * the tree has handled the request.
    *
    * TODO: describe when the promise should resolve in this case. Should it
-   * wait for any updates to tree state from shared model changes? 
+   * wait for any updates to tree state from shared model changes?
    *
    */
-  finishApplyingPatchesFromManager(historyEntryId: string, exchangeId: string): Promise<void>;
+  finishApplyingPatchesFromManager(historyEntryId: string, exchangeId: string): Promise<void>
 
   /**
-   * TODO: need to bring over updated documentation from prototype 
+   * TODO: need to bring over updated documentation from prototype
    */
-  applySharedModelSnapshotFromManager(historyEntryId: string, exchangeId: string, snapshot: any): Promise<void>;
+  applySharedModelSnapshotFromManager(historyEntryId: string, exchangeId: string, snapshot: any): Promise<void>
 }

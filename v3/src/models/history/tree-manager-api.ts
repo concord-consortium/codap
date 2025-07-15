@@ -37,7 +37,7 @@ export interface TreeManagerAPI {
      * is done.
      */
     updateSharedModel: (historyEntryId: string, exchangeId: string,
-        sourceTreeId: string, snapshot: any) => Promise<void>;
+        sourceTreeId: string, snapshot: any) => Promise<void>
 
     /**
      * Trees should call this to start a new history entry. These history
@@ -93,7 +93,7 @@ export interface TreeManagerAPI {
      *
      * @param entryInfo.clientData client-provided metadata for undo/redo.
      */
-    addHistoryEntry: (entryInfo: ICreateHistoryEntry) => Promise<void>;
+    addHistoryEntry: (entryInfo: ICreateHistoryEntry) => Promise<void>
 
     /**
      * Trees should call this to record the actual patches of a history event.
@@ -118,7 +118,7 @@ export interface TreeManagerAPI {
      * @param record the actual changes. If there are no changes this should
      * still be sent with empty patches.
      */
-    addTreePatchRecord: (historyEntryId: string, exchangeId: string, record: TreePatchRecordSnapshot) => void;
+    addTreePatchRecord: (historyEntryId: string, exchangeId: string, record: TreePatchRecordSnapshot) => void
 
     /**
      * This starts a new "exchange" in the history entry. These exchanges are
@@ -153,10 +153,10 @@ export interface TreeManagerAPI {
      * history entry is not complete when it is expected to be complete. The list
      * of active exchanges can be viewed to see which one hasn't ended yet.
      */
-    startExchange: (historyEntryId: string, exchangeId: string, name: string) => Promise<void>;
+    startExchange: (historyEntryId: string, exchangeId: string, name: string) => Promise<void>
 
     /**
      * This provides an interface for Trees to undo and redo history events
      */
-    undoManager: IUndoManager;
+    undoManager: IUndoManager
 }

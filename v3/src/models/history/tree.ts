@@ -1,8 +1,11 @@
-import { types, IJsonPatch, applyPatch, resolvePath, getSnapshot, flow } from "mobx-state-tree"
+import {
+  applyPatch, flow, getSnapshot, IJsonPatch, isAlive, resolvePath, resolveIdentifier, types
+} from "mobx-state-tree"
 import { DEBUG_HISTORY } from "../../lib/debug"
 import { IDocumentContentModel } from "../document/document-content"
+import { SharedModelMapSnapshotOutType } from "../document/shared-model-entry"
 import { ISharedModel } from "../shared/shared-model"
-import { ITileModel } from "../tiles/tile-model"
+import { ITileModel, TileModel } from "../tiles/tile-model"
 import { TreeManagerAPI } from "./tree-manager-api"
 import { withoutUndo } from "./without-undo"
 
@@ -18,7 +21,9 @@ export const Tree = types.model("Tree", {
   }
 }))
 .actions(self => ({
-  updateTreeAfterSharedModelChanges(options?: {sharedModel: ISharedModel}) {
+  updateTreeAfterSharedModelChanges(options?: {sharedModel: ISharedModel,
+    initialSharedModelMap: SharedModelMapSnapshotOutType})
+  {
     // If there is no sharedModel param, run the update function on all tiles which
     // have shared model references.
     // If there is a sharedModel param, only run the update function on tiles which
@@ -28,17 +33,39 @@ export const Tree = types.model("Tree", {
     // can track this down
     const document = (self as any).content as IDocumentContentModel
 
+    // FIXME: In the case where several changes have been applied we need to notify
+    // any new tiles that were just linked and any old tiles that were unlinked
+    // This will happen when there is no specific shared model being updated.
+    // We can probably punt this case for later.
+    // FIXME: when we start deleting shared models the code below will have to
+    // be updated to handle this case.
+
     // We can probably optimize this by using a MSTView to cache the tiles
     // here. But I don't remember how it handles parameter values
     const tiles: Array<ITileModel> = []
     let sharedModel: ISharedModel | undefined
     if (options) {
       sharedModel = options.sharedModel
-      const sharedModelEntry = document.sharedModelMap.get(sharedModel.id)
-      if (!sharedModelEntry) {
+      const newSharedModelEntry = document.sharedModelMap.get(sharedModel.id)
+      if (!newSharedModelEntry) {
         console.warn(`no shared model entry for shared model: ${sharedModel.id}`)
       } else {
-        tiles.push(...sharedModelEntry.tiles)
+        tiles.push(...newSharedModelEntry.tiles)
+      }
+      const initialSharedModelEntry = options.initialSharedModelMap[sharedModel.id]
+      if (!initialSharedModelEntry) {
+        // This entry didn't exist before
+      } else {
+        initialSharedModelEntry.tiles.forEach(tileId => {
+          if (tiles.find(existingTile => existingTile.id === tileId)) {
+            // This tile has already been added to our list
+          } else {
+            const tile = resolveIdentifier(TileModel, document, tileId)
+            if (tile) {
+              tiles.push(tile)
+            }
+          }
+        })
       }
     } else {
 
@@ -54,36 +81,41 @@ export const Tree = types.model("Tree", {
 
     // Run update function on the tiles
     for (const tile of tiles) {
-      tile.content.updateAfterSharedModelChanges(sharedModel, "change")
+      if (isAlive(tile)) {
+        tile.content.updateAfterSharedModelChanges(sharedModel)
+      }
     }
   }
 }))
 .actions(self => {
-    const updateTreeAfterSharedModelChangesInternal = (sharedModel: ISharedModel) => {
-        // If we are applying manager patches, then we ignore any sync actions
-        // otherwise the user might make a change such as changing the name of a
-        // node while the patches are applied. When they do this the patch for
-        // the shared model might have been applied first, and which if sync is
-        // enabled could create a new node in the diagram. Then the patch for the
-        // diagram is applied which also creates a new node in the diagram.
-        // Even if we just disable the sync when the shared model update is done
-        // from the patch, if the user makes a change, this would be a separate
-        // action would would trigger the sync. So if the user made this change
-        // at just the right time it would could result in duplicate nodes in the
-        // diagram.
-        if (self.applyingManagerPatches) {
-          return
-        }
-
-        // The TreeMonitor middleware should pickup the historyEntryId and
-        // exchangeId parameters automatically. And then when it sends any
-        // changes captured during the update, it should include these ids
-        self.updateTreeAfterSharedModelChanges({sharedModel})
+  const updateTreeAfterSharedModelChangesInternal = (sharedModel: ISharedModel,
+      initialSharedModelMap: SharedModelMapSnapshotOutType) => {
+    // If we are applying manager patches, then we ignore any sync actions
+    // otherwise the user might make a change such as changing the name of a
+    // node while the patches are applied. When they do this the patch for
+    // the shared model might have been applied first, and which if sync is
+    // enabled could create a new node in the diagram. Then the patch for the
+    // diagram is applied which also creates a new node in the diagram.
+    // Even if we just disable the sync when the shared model update is done
+    // from the patch, if the user makes a change, this would be a separate
+    // action would would trigger the sync. So if the user made this change
+    // at just the right time it would could result in duplicate nodes in the
+    // diagram.
+    if (self.applyingManagerPatches) {
+      return
     }
 
-    return {
-        updateTreeAfterSharedModelChangesInternal
+    // The TreeMonitor middleware should pickup the historyEntryId and
+    // exchangeId parameters automatically. And then when it sends any
+    // changes captured during the update, it should include these ids
+    if (isAlive(self)) {
+      self.updateTreeAfterSharedModelChanges({sharedModel, initialSharedModelMap})
     }
+  }
+
+  return {
+    updateTreeAfterSharedModelChangesInternal
+  }
 })
 .actions(self => {
   return {
@@ -172,12 +204,15 @@ export const Tree = types.model("Tree", {
 })
 .actions(self => ({
   handleSharedModelChanges: flow(function* handleSharedModelChanges(historyEntryId: string, exchangeId: string,
-      call: any, sharedModelPath: string) {
+      call: any, sharedModelPath: string, initialSharedModelMap: SharedModelMapSnapshotOutType) {
 
       let model: ISharedModel | undefined
 
       try {
-        model = resolvePath(self, sharedModelPath)
+        // The sharedModelPath is to the sharedModel entry we have to tack on /sharedModel to
+        // get the actual model object that was just updated.
+        // TODO: see if there is a helper method to join paths for us
+        model = resolvePath(self, `${sharedModelPath}/sharedModel`)
       }
       catch {
         console.warn("Tree.handleSharedModelChanges failed to find model at:", sharedModelPath)
@@ -258,6 +293,8 @@ export const Tree = types.model("Tree", {
       // handler in the first place. However a developer might make
       // a mistake. So it would be useful if we could identify the
       // looping and notify them.
-      self.updateTreeAfterSharedModelChangesInternal(model)
+      if (isAlive(self)) {
+        self.updateTreeAfterSharedModelChangesInternal(model, initialSharedModelMap)
+      }
   })
 }))
