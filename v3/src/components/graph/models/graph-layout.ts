@@ -95,7 +95,6 @@ export class GraphLayout extends DataDisplayLayout implements IAxisLayout {
       case 'rightNumeric':
       case 'rightCat': {
         extent = Math.min(extent, labelHeight + this.tileWidth / 3) // Maximum width for axis
-        console.log(`>>> extent`, extent)
         break
       }
       case 'top':
@@ -194,7 +193,6 @@ export class GraphLayout extends DataDisplayLayout implements IAxisLayout {
           height: plotHeight
         } // This value is not used
       }
-    console.log(`... newBounds`, newBounds.rightCat)
     return newBounds
   }
 
