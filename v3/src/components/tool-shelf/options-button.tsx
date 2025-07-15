@@ -29,7 +29,7 @@ export const OptionsShelfButton = () => {
     <>
       <Menu isLazy>
         <MenuButton
-          className="tool-shelf-button toolshelf-menu web-view"
+          className="tool-shelf-button tool-shelf-menu web-view"
           title={t("DG.ToolButtonData.optionMenu.toolTip")}
           data-testid="tool-shelf-button-options"
         >

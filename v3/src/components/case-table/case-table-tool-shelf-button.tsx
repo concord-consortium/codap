@@ -106,7 +106,7 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
 export const CaseTableToolShelfButton = () => {
   return (
     <Menu isLazy>
-      <MenuButton className="tool-shelf-button toolshelf-menu table" title={`${t("DG.ToolButtonData.tableButton.toolTip")}`}
+      <MenuButton className="tool-shelf-button tool-shelf-menu table" title={`${t("DG.ToolButtonData.tableButton.toolTip")}`}
           data-testid={"tool-shelf-button-table"}>
         <TableIcon />
         <ToolShelfButtonTag className="table" label={t("DG.ToolButtonData.tableButton.title")} />

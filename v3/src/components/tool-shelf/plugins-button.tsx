@@ -66,7 +66,7 @@ export function PluginsButton() {
   return (
     <Menu isLazy>
       <MenuButton
-        className="tool-shelf-button toolshelf-menu plugins"
+        className="tool-shelf-button tool-shelf-menu plugins"
         title={t("DG.ToolButtonData.optionMenu.toolTip")}
         data-testid="tool-shelf-button-plugins"
       >
