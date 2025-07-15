@@ -1,7 +1,9 @@
 import {
-  addDisposer, addMiddleware, IJsonPatch, Instance, isActionContextThisOrChildOf, isAlive, recordPatches
+  addDisposer, addMiddleware, getSnapshot, IJsonPatch, Instance,
+  isActionContextThisOrChildOf, isAlive, recordPatches, tryResolve
 } from "mobx-state-tree"
 import { nanoid } from "nanoid"
+import { IDocumentContentModel } from "../document/document-content"
 import { TreeManagerAPI } from "./tree-manager-api"
 import { TreePatchRecordSnapshot } from "./history"
 import { Tree } from "./tree"
@@ -56,8 +58,15 @@ export class TreeMonitor {
         runningCalls.set(call.actionCall, call)
 
         // DEBUG:
-        // console.log("onStart", getActionName(call));
+        // console.log("onStart", getActionPath(call))
         const sharedModelModifications: SharedModelModifications = {}
+
+        // Save the sharedModelMap before any changes are made this way if
+        // a link is removed we can identify the old tile before the change
+        // FIXME: this breaks the abstraction, and means the tree monitor
+        // wouldn't work in an iframe tree.
+        const document = (tree as any).content as IDocumentContentModel
+        const initialSharedModelMap = getSnapshot(document.sharedModelMap)
 
         let historyEntryId
         let exchangeId
@@ -112,19 +121,11 @@ export class TreeMonitor {
             // look for shared models in the sharedModelMap of the
             // document.
             //
-            // This should only match changes to the shared models themselves
-            // not the map and not when a new tile is referencing a shared model.
-            //
             // When a new shared model is added to the document the path will be
             //   /content/sharedModelMap/${sharedModelId}
-            // We a new tile is referencing a shared model the path will be:
+            // When a shared model is linked or unlinked to a tile the path will be:
             //   /content/sharedModelMap/${sharedModelId}/tiles/[index]
-            //
-            // When a new shared model is added via addTileSharedModel the
-            // shared model manager will call updateAfterSharedModelChanges after it
-            // adds model to the document and tile to the entry. So there currently
-            // isn't a need for the tree monitor to handle that case.
-            const pathMatch = _patch.path.match(/(.*\/content\/sharedModelMap\/[^/]+\/sharedModel)\//)
+            const pathMatch = _patch.path.match(/(.*\/content\/sharedModelMap\/[^/]+)/)
             if (pathMatch) {
               const sharedModelPath = pathMatch[1]
 
@@ -149,6 +150,7 @@ export class TreeMonitor {
 
         call.env = {
           recorder,
+          initialSharedModelMap,
           sharedModelModifications,
           historyEntryId,
           exchangeId,
@@ -160,6 +162,9 @@ export class TreeMonitor {
         if (!isValidCallEnv(env)) {
           throw new Error(`The call.env is corrupted: ${JSON.stringify(env)}`)
         }
+        // DEBUG:
+        // console.log("onFinish", getActionPath(call))
+
         call.env = undefined
 
         const { recorder } = env
@@ -216,7 +221,8 @@ export class TreeMonitor {
   // shared model in other trees. The actual changes to the shared model are
   // stored in the recorder.
   async recordAction(call: IActionTrackingMiddleware3Call<CallEnv>, env: CallEnv) {
-    const { recorder, sharedModelModifications, historyEntryId, exchangeId, undoable, customPatches, clientData } = env
+    const { recorder, initialSharedModelMap, sharedModelModifications, historyEntryId,
+      exchangeId, undoable, customPatches, clientData } = env
     if (!isActionFromManager(call)) {
       // We record the start of the action even if it doesn't have any
       // patches. This is useful when an action only modifies the shared
@@ -244,8 +250,21 @@ export class TreeMonitor {
     // TODO: If there are multiple shared model changes, we might want
     // to send them all to the tree at the same time, that way it can
     // inform the tiles of all changes at the same time.
+    const exchangesToProcess: { id: string, path: string }[] = []
     for (const [sharedModelPath, numModifications] of Object.entries(sharedModelModifications)) {
       if (numModifications > 0) {
+        // If a shared model has been deleted, we can't run these callbacks without errors,
+        // so we bail out now.  May need improvement if tiles need to be notified about
+        // deleted shared models.
+        if (!isAlive(this.tree)) {
+          // The tree might have been destroyed. This happens during tests.
+          return
+        }
+        try {
+          tryResolve(this.tree, `${sharedModelPath}/sharedModel`)
+        } catch {
+          continue
+        }
         // Run the callbacks tracking changes to the shared model.
         // We need to wait for these to complete because the manager
         // needs to know when this history entry is complete. If it
@@ -262,35 +281,12 @@ export class TreeMonitor {
         // shared model update are recorded in the same HistoryEntry
         //
         const sharedModelChangesExchangeId = nanoid()
+        // TODO: we get here with this.manager not alive during some jest tests ¯\_(ツ)_/¯
+        if (!isAlive(this.manager)) return
         await this.manager.startExchange(historyEntryId, sharedModelChangesExchangeId,
           "recordAction.sharedModelChanges")
 
-        // Recursion: handleSharedModelChanges is an action on the
-        // tree, and we are currently in a middleware that is
-        // monitoring actions on that tree. At this point in the
-        // middleware we are finishing a different action. Calling
-        // handleSharedModelChanges starts a new top level action:
-        // an action with no parent actions. This is what we want so
-        // we can record any changes made to the tree as part of the
-        // undo entry. I don't know if calling an action from a
-        // middleware is an officially supported or tested approach.
-        // It is working now. If it stops working we could delay the
-        // call to handleSharedModelChanges with a setTimeout.
-        //
-        // It is recursive because we will end up back in this
-        // recordAction function. Because we are awaiting
-        // handleSharedModelChanges that second recursive
-        // recordAction will get kicked off before this call to
-        // handleSharedModelChanges returns. The tree's
-        // implementation of handleSharedModelChanges should not
-        // modify the shared model itself or we could get into an
-        // infinite loop.
-        //
-        // Within this recursive call to recordAction,
-        // addTreePatchRecord will be called. This is how the
-        // startExchange above is closed out.
-        await this.tree.handleSharedModelChanges(historyEntryId, sharedModelChangesExchangeId,
-          call, sharedModelPath)
+        exchangesToProcess.push({ id: sharedModelChangesExchangeId, path: sharedModelPath })
       }
     }
 
@@ -300,11 +296,11 @@ export class TreeMonitor {
       return
     }
 
-            // TODO: CLUE Specific filtering of 'changeCount', should we record
-            // this or not?
-            const filterChangeCount = (patch: IJsonPatch) => !patch.path.match(/\/changeCount/)
-            const patches = recorder.patches.filter(filterChangeCount)
-            const inversePatches = recorder.inversePatches.filter(filterChangeCount)
+    // TODO: CLUE Specific filtering of 'changeCount', should we record
+    // this or not?
+    const filterChangeCount = (patch: IJsonPatch) => !patch.path.match(/\/changeCount/)
+    const patches = recorder.patches.filter(filterChangeCount)
+    const inversePatches = recorder.inversePatches.filter(filterChangeCount)
 
     // Always send the record to the manager even if there are no
     // patches. This API is how the manager knows the exchangeId is finished.
@@ -315,5 +311,36 @@ export class TreeMonitor {
       inversePatches,
     }
     this.manager.addTreePatchRecord(historyEntryId, exchangeId, record)
+
+    for (const exchange of exchangesToProcess) {
+      // Now that the patches have been recorded, we can process the shared model changes
+      // Recursion: handleSharedModelChanges is an action on the
+      // tree, and we are currently in a middleware that is
+      // monitoring actions on that tree. At this point in the
+      // middleware we are finishing a different action. Calling
+      // handleSharedModelChanges starts a new top level action:
+      // an action with no parent actions. This is what we want so
+      // we can record any changes made to the tree as part of the
+      // undo entry. I don't know if calling an action from a
+      // middleware is an officially supported or tested approach.
+      // It is working now. If it stops working we could delay the
+      // call to handleSharedModelChanges with a setTimeout.
+      //
+      // It is recursive because we will end up back in this
+      // recordAction function. Because we are awaiting
+      // handleSharedModelChanges that second recursive
+      // recordAction will get kicked off before this call to
+      // handleSharedModelChanges returns. The tree's
+      // implementation of handleSharedModelChanges should not
+      // modify the shared model itself or we could get into an
+      // infinite loop.
+      //
+      // Within this recursive call to recordAction,
+      // addTreePatchRecord will be called. This is how the
+      // startExchange above is closed out.
+      await this.tree.handleSharedModelChanges(historyEntryId, exchange.id,
+        call, exchange.path, initialSharedModelMap)
+    }
+
   }
 }

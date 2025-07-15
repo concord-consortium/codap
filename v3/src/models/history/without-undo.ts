@@ -1,7 +1,23 @@
 import { getRoot, getRunningActionContext } from "mobx-state-tree"
-import { getHistoryServiceMaybe } from "./history-service"
 import { DEBUG_UNDO } from "../../lib/debug"
+import { getHistoryServiceMaybe } from "./history-service"
 
+/**
+ * When added to the body of a MST action, this will prevent any changes
+ * made by the action from being recorded in the CLUE undo stack. The changes
+ * will still be recorded in the CLUE document history.
+ *
+ * If this action was called from another MST action it is considered a child
+ * action. Child action changes are will be recorded unless the "root" action
+ * has a withoutUndo. Because this can lead to unexpected behavior a warning
+ * is printed when withoutUndo is called from a child action.
+ *
+ * There is is an option so you can stop this warning. You can use this option 
+ * if you are OK with the behavior described above.
+ *
+ *   `withoutUndo({ suppressWarning: true })`
+ *
+*/
 export function withoutUndo(options?: { suppressWarning?: boolean }) {
   const actionCall = getRunningActionContext()
   if (!actionCall) {

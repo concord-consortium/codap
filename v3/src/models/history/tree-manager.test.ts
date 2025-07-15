@@ -1,3 +1,5 @@
+import { nanoid } from "nanoid"
+import { cloneDeep } from "lodash"
 import { getSnapshot, getType, Instance, types } from "mobx-state-tree"
 // import { ITileProps } from "src/components/tiles/tile-component"
 import { SharedModel, ISharedModel } from "../shared/shared-model"
@@ -7,11 +9,9 @@ import { registerTileComponentInfo } from "../tiles/tile-component-info"
 import { registerTileContentInfo } from "../tiles/tile-content-info"
 import { DocumentContentModel, IDocumentContentSnapshotIn } from "../document/document-content"
 import { createDocumentModel } from "../document/create-document-model"
-import { when } from "mobx"
 import { CDocument, TreeManager } from "./tree-manager"
 import { HistoryEntrySnapshot } from "./history"
-import { nanoid } from "nanoid"
-import { cloneDeep } from "lodash"
+import { expectEntryToBeComplete } from "./undo-store-test-utils"
 
 const TestSharedModel = SharedModel
   .named("TestSharedModel")
@@ -236,6 +236,55 @@ const action4 = {
   undoable: true
 }
 
+const sharedModelChange = {
+  "model": "TestSharedModel",
+  "action": "/content/sharedModelMap/sm1/sharedModel/setValue",
+  "created": expect.any(Number),
+  "id": expect.any(String),
+  "records": [
+    {
+      "action": "/content/sharedModelMap/sm1/sharedModel/setValue",
+      "inversePatches": [
+        {
+          "op": "replace",
+          "path": "/content/sharedModelMap/sm1/sharedModel/value",
+          "value": undefined,
+        },
+      ],
+      "patches": [
+        {
+          "op": "replace",
+          "path": "/content/sharedModelMap/sm1/sharedModel/value",
+          "value": "shared value",
+        },
+      ],
+      "tree": "test",
+    },
+    {
+      "action": "/handleSharedModelChanges",
+      "inversePatches": [
+        {
+          "op": "replace",
+          "path": "/content/tileMap/t1/content/text",
+        },
+      ],
+      "patches": [
+          {
+          "op": "replace",
+          "path": "/content/tileMap/t1/content/text",
+          "value": "shared value-tile",
+        },
+      ],
+      "tree": "test",
+    }
+  ],
+  "state": "complete",
+  "tree": "test",
+  "undoable": true,
+}
+
+
+
 /**
  * Remove the Jest `expect.any(Number)` on created, and provide a real id.
  * @param entry
@@ -289,32 +338,13 @@ it("can replay the history entries", async () => {
   expect(getSnapshot(manager.document.history)).toEqual(history)
 })
 
-// TODO: it would nicer to use a custom Jest matcher here so we can
-// provide a better error message when it fails
-async function expectEntryToBeComplete(manager: Instance<typeof TreeManager>, length: number) {
+it("records tile model changes in response to shared model changes", async () => {
+  const {tileContent, manager, sharedModel} = setupDocument()
+  sharedModel.setValue("shared value")
+  await expectEntryToBeComplete(manager, 1)
+  expect(tileContent.text).toBe("shared value-tile")
+  expect(tileContent.updateCount).toBe(1)
+
   const changeDocument: Instance<typeof CDocument> = manager.document
-  let timedOut = false
-  try {
-    await when(
-      () => {
-        const _historyLength = changeDocument.history.length
-        return _historyLength >= length && changeDocument.history[_historyLength - 1]?.state === "complete"
-      },
-      {timeout: 100})
-  } catch (e) {
-    timedOut = true
-  }
-  const historyLength = changeDocument.history.length
-  const lastEntry = changeDocument.history[historyLength - 1]
-  expect({
-    historyLength,
-    lastEntryState: lastEntry?.state,
-    activeExchanges: lastEntry?.activeExchanges.toJSON(),
-    timedOut
-  }).toEqual({
-    historyLength: length,
-    lastEntryState: "complete",
-    activeExchanges: [],
-    timedOut: false
-  })
-}
+  expect(getSnapshot(changeDocument.history)).toEqual([sharedModelChange])
+})

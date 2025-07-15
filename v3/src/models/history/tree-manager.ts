@@ -1,4 +1,6 @@
-import { types, Instance, flow, IJsonPatch, detach, destroy } from "mobx-state-tree"
+import {
+  types, Instance, flow, IJsonPatch, detach, destroy
+} from "mobx-state-tree"
 import { nanoid } from "nanoid"
 import { TreeAPI } from "./tree-api"
 // eslint-disable-next-line import/no-cycle
@@ -76,6 +78,15 @@ export const TreeManager = types
 
   findHistoryEntry(historyEntryId: string) {
     return self.document.history.find(entry => entry.id === historyEntryId)
+  },
+
+  findHistoryEntryIndex(historyEntryId: string) {
+    return self.document.history.findIndex(entry => entry.id === historyEntryId)
+  },
+
+  get latestDocumentHistoryEntry() {
+    const history = self.document.history
+    return history ? history[history.length - 1] : undefined
   },
 
   findActiveHistoryEntry(historyEntryId: string) {
@@ -421,13 +432,17 @@ export const TreeManager = types
     const startingIndex = direction === 1 ? self.numHistoryEventsApplied : self.numHistoryEventsApplied - 1
     const endingIndex = direction === 1 ? newHistoryPosition : newHistoryPosition - 1
     for (let i=startingIndex; i !== endingIndex; i=i+direction) {
-      const entry = self.document.history[i]
-      for (const treeEntry of (entry?.records || [])) {
-        const patches = treePatches[treeEntry.tree]
+      const historyEntry = self.document.history.at(i)
+      let records = historyEntry ? [ ...historyEntry.records] : []
+      if (direction === -1) {
+        records = records.reverse()
+      }
+      for (const entryRecord of records) {
+        const patches = treePatches[entryRecord.tree]
         if (newHistoryPosition > self.numHistoryEventsApplied) {
-          patches?.push(...treeEntry.getPatches(HistoryOperation.Redo))
+          patches?.push(...entryRecord.getPatches(HistoryOperation.Redo))
         } else {
-          patches?.push(...treeEntry.getPatches(HistoryOperation.Undo))
+          patches?.push(...entryRecord.getPatches(HistoryOperation.Undo))
         }
       }
     }
@@ -463,7 +478,7 @@ export const TreeManager = types
 }))
 .views(self => ({
   getHistoryEntry: (historyIndex: number) => {
-    return self.document.history[historyIndex]
+    return self.document.history.at(historyIndex)
   }
 }))
 .views(self => ({
