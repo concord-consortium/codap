@@ -76,6 +76,7 @@ function makeCSVDocument(contents: string, urlString: string, dataSetName: strin
       }
       const tableTile = doc.content?.insertTileSnapshotInDefaultRow(tileSnap, options)
       if (tableTile) {
+        // FIXME: This will cause multiple undo entries
         addDataSetAndMetadata(tableTile, dataSet, true)
         resolve(serializeCodapV3Document(doc))
       }

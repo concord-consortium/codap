@@ -1,4 +1,4 @@
-import { ScaleLinear, scaleLinear, scaleOrdinal } from "d3"
+import { format, ScaleLinear, scaleLinear, scaleOrdinal } from "d3"
 import { comparer } from "mobx"
 import { isAlive } from "mobx-state-tree"
 import { useCallback, useEffect } from "react"
@@ -10,8 +10,14 @@ import { useDataConfigurationContext } from "../../data-display/hooks/use-data-c
 import { useDataDisplayModelContextMaybe } from "../../data-display/hooks/use-data-display-model"
 import { IDataDisplayContentModel } from "../../data-display/models/data-display-content-model"
 import { kColorAxisExtent } from "../axis-constants"
-import { AxisPlace, AxisScaleType, axisGap } from "../axis-types"
-import { collisionExists, getNumberOfLevelsForDateAxis, getStringBounds, isScaleLinear } from "../axis-utils"
+import { AxisPlace, AxisScaleType, axisGap, axisPlaceToAxisFn } from "../axis-types"
+import {
+  collisionExists, computeBestNumberOfTicks,
+  computeBestNumberOfVerticalAxisTicks,
+  getNumberOfLevelsForDateAxis,
+  getStringBounds,
+  isScaleLinear
+} from "../axis-utils"
 import { useAxisLayoutContext } from "../models/axis-layout-context"
 import { isColorAxisModel } from "../models/categorical-axis-models"
 import { MultiScale } from "../models/multi-scale"
@@ -23,12 +29,13 @@ import vars from "../../vars.scss"
 interface IGetTicksProps {
   d3Scale: AxisScaleType | ScaleLinear<number, number>
   isBinned: boolean
+  isVertical: boolean
   multiScale?: MultiScale
   displayModel?: IDataDisplayContentModel
 }
 
 const getTicks = (props: IGetTicksProps) => {
-  const {d3Scale, isBinned, multiScale, displayModel} = props
+  const {d3Scale, isBinned, isVertical, multiScale, displayModel} = props
   if (!isScaleLinear(d3Scale)) return []
 
   let ticks: string[]
@@ -39,8 +46,13 @@ const getTicks = (props: IGetTicksProps) => {
       return tickLabels[i]
     })
   } else {
-    const formatTick = d3Scale.tickFormat?.()
-    ticks = (d3Scale.ticks?.() ?? []).map(tick => formatTick(tick))
+    const numberOfTicks = isVertical ? computeBestNumberOfVerticalAxisTicks(d3Scale)
+      : computeBestNumberOfTicks(d3Scale)
+    const axis = axisPlaceToAxisFn(isVertical ? 'left' : 'bottom')
+    const axisScale = axis(d3Scale).tickSizeOuter(0).tickFormat(format('.9'))
+    // Note that axisScale.tickValues gives the actual values that will render while d3Scale.ticks() does not
+    axisScale.tickValues(d3Scale.ticks(numberOfTicks))
+    return axisScale.tickValues()?.map(tick => tick.toString()) || []
   }
   return ticks
 }
@@ -67,6 +79,7 @@ export const useAxis = (axisPlace: AxisPlace) => {
     const isColor = isColorAxisModel(_axisModel) || axisAttributeType === 'color'
     const isBinned = _axisModel ? axisProvider?.hasBinnedNumericAxis(_axisModel) : false
     const labelFont = vars.labelFont,
+      isVertical = ['left', 'rightNumeric'].includes(axisPlace),
       axisTitleHeight = getStringBounds("Xy", labelFont).height,
       numbersHeight = getStringBounds('0').height,
       repetitions = multiScale?.repetitions ?? 1,
@@ -77,9 +90,9 @@ export const useAxis = (axisPlace: AxisPlace) => {
       case 'count':
       case 'percent':
       case 'numeric': {
-        ticks = getTicks({d3Scale, isBinned, multiScale, displayModel})
-        desiredExtent += ['left', 'rightNumeric'].includes(axisPlace) || _axisModel?.labelsAreRotated
-          ? Math.max(getStringBounds(ticks[0]).width, getStringBounds(ticks[ticks.length - 1]).width) + axisGap
+        ticks = getTicks({d3Scale, isBinned, isVertical, multiScale, displayModel})
+        desiredExtent += isVertical || _axisModel?.labelsAreRotated
+          ? Math.max(...ticks.map(tick => getStringBounds(tick).width)) + axisGap
           : numbersHeight + axisGap
         break
       }

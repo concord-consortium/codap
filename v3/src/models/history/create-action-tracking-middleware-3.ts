@@ -11,9 +11,9 @@ import { IActionContext, IMiddlewareEvent, IMiddlewareHandler } from "mobx-state
  */
 
 export interface IActionTrackingMiddleware3Call<TEnv> {
-  actionCall: Readonly<IActionContext>;
-  env: TEnv | undefined;
-  readonly parentCall?: IActionTrackingMiddleware3Call<TEnv>;
+  actionCall: Readonly<IActionContext>
+  env: TEnv | undefined
+  readonly parentCall?: IActionTrackingMiddleware3Call<TEnv>
 }
 
 export interface IActionTrackingMiddleware3Hooks<TEnv> {

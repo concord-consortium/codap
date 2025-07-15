@@ -124,9 +124,12 @@ export const DataDisplayContentModel = TileContentModel
         clearTimeout(self.animationTimerId)
       }
     },
-    startAnimation() {
+    startAnimation(onComplete?: () => void) {
       if (self.animationTimerId) clearTimeout(self.animationTimerId)
-      self.animationTimerId = window.setTimeout(() => this.stopAnimation(), 2000)
+      self.animationTimerId = window.setTimeout(() => {
+        this.stopAnimation()
+        onComplete?.()
+      }, 2000)
     },
     stopAnimation() {
       self.animationTimerId = 0
