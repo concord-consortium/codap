@@ -12,50 +12,6 @@ $deleteButton: #4B8ADD;
   flex-direction: row;
   align-items: center;
 
-  // .tool-shelf-component-buttons {
-  //   // display: flex;
-  //   // flex-direction: row;
-  //   // align-items: center;
-
-  //   .tool-shelf-button {
-  //     // height: 56px;
-  //     // width: fit-content;
-  //     // display: flex;
-  //     // flex-direction: column;
-  //     // justify-content: center;
-  //     // align-items: center;
-  //     // margin: 0 4px;
-
-  //     // For some reason, Chakra sometimes wraps the svg and label in a styled span
-  //     // This overrides wrapping span styles
-  //     // > span {
-  //     //   align-items: center !important;
-  //     //   display: flex !important;
-  //     //   flex-direction: column !important;
-  //     // }
-  //   }
-  // }
-
-  // .tool-shelf-right-buttons {
-  //   // display: flex;
-  //   // flex-direction: row;
-  //   // align-items: center;
-
-  //   .tool-shelf-button {
-
-  //     // override CFM styles issue
-  //     &.menu {
-  //       padding: 0;
-  //     }
-
-  //     &.redo-button {
-  //       .icon-redo {
-  //         transform: scaleX(-1);
-  //       }
-  //     }
-  //   }
-  // }
-
   .tool-shelf-component-buttons, .tool-shelf-right-buttons {
     display: flex;
     flex-direction: row;
@@ -73,7 +29,7 @@ $deleteButton: #4B8ADD;
 
       // When toolshelf button is a menu button, it has a span wrapper
       // This overrides wrapping span styles
-      &.toolshelf-menu {
+      &.tool-shelf-menu {
         > span {
           align-items: center;
           display: flex;
