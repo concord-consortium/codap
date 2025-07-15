@@ -474,6 +474,25 @@ export const GraphContentModel = DataDisplayContentModel
     removeAxis(place: AxisPlace) {
       self.axes.delete(place)
     },
+    setAttributeID(role: GraphAttrRole, dataSetID: string, attributeID: string) {
+      const prevPrimaryRole = self.dataConfiguration.primaryRole
+      const prevPrimaryAttrId = prevPrimaryRole ? self.dataConfiguration.attributeID(prevPrimaryRole) : undefined
+      self.setDataSet(dataSetID)
+      if (role === 'yPlus') {
+        self.dataConfiguration.addYAttribute({attributeID})
+      } else {
+        self.dataConfiguration.setAttribute(role, {attributeID})
+      }
+      const newPrimaryRole = self.dataConfiguration.primaryRole
+      const newPrimaryAttrId = newPrimaryRole ? self.dataConfiguration.attributeID(newPrimaryRole) : undefined
+      self.plot.resetSettings({
+        primaryRoleChanged: prevPrimaryRole !== newPrimaryRole,
+        primaryAttrChanged: prevPrimaryAttrId !== newPrimaryAttrId
+      })
+
+      const updateCategoriesOptions = self.getUpdateCategoriesOptions(true)
+      self.adornmentsStore.updateAdornments(updateCategoriesOptions)
+    },
     setGraphProperties(props: GraphProperties) {
       (Object.keys(props.axes) as AxisPlace[]).forEach(aKey => {
         self.setAxis(aKey, props.axes[aKey])
@@ -507,27 +526,6 @@ export const GraphContentModel = DataDisplayContentModel
     }
   }))
   .actions(self => ({
-    setAttributeID(role: GraphAttrRole, dataSetID: string, attributeID: string) {
-      const prevPrimaryRole = self.dataConfiguration.primaryRole
-      const prevPrimaryAttrId = prevPrimaryRole ? self.dataConfiguration.attributeID(prevPrimaryRole) : undefined
-      self.setDataSet(dataSetID)
-      if (role === 'yPlus') {
-        self.dataConfiguration.addYAttribute({attributeID})
-      } else {
-        self.dataConfiguration.setAttribute(role, {attributeID})
-
-        if (!attributeID && role === "rightSplit") self.removeAxis("rightCat")
-      }
-      const newPrimaryRole = self.dataConfiguration.primaryRole
-      const newPrimaryAttrId = newPrimaryRole ? self.dataConfiguration.attributeID(newPrimaryRole) : undefined
-      self.plot.resetSettings({
-        primaryRoleChanged: prevPrimaryRole !== newPrimaryRole,
-        primaryAttrChanged: prevPrimaryAttrId !== newPrimaryAttrId
-      })
-
-      const updateCategoriesOptions = self.getUpdateCategoriesOptions(true)
-      self.adornmentsStore.updateAdornments(updateCategoriesOptions)
-    },
     configureUnivariateNumericPlot(display: "points" | "bars", isBinned = false) {
       let newPlotType: Maybe<PlotType>
       if (isBinned) {
