@@ -19,8 +19,8 @@ export interface IUndoManager {
 
 // Information that is returned by undo and redo calls
 export interface IUndoInformation {
-  id: string|undefined,
-  action: string|undefined
+  id?: string,
+  action?: string
 }
 
 export const UndoStore = types
