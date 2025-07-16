@@ -1,5 +1,67 @@
 # Changelog
 
+## Version 3.0.0-pre.2364 - July 16, 2025
+
+### ✨ Features & Improvements:
+- **CODAP-103:** Case Table Ruler - Import Case Data from Clipboard…
+- **CODAP-104:** Case Table Ruler - Export Case Data…
+- **CODAP-287:** Case Table Ruler - Copy to Clipboard
+- **CODAP-696:** Graph: "Export SVG Image"
+- **CODAP-747:** Support Markov data game plugin
+- **CODAP-753:** Update Sampler plugin url to latest version
+
+### 🐞 Bug Fixes:
+- **CODAP-98:** Graph attribute menu not showing attribute list when there is more than one dataset
+- **CODAP-105:** Undo/redo not working for dragging categories on a categorical axis
+- **CODAP-109:** Changing the type of an attribute to *numeric* should display the values as ordinary numbers
+- **CODAP-280:** Graph attribute selection menus are empty when two or more tables exist in a document
+- **CODAP-503:** Graph attribute menu clipping problem
+- **CODAP-620:** Not equal to character (≠) should terminate identifiers in formulas
+- **CODAP-621:** Formula engine is not parsing/evaluating the modulo operator % correctly
+- **CODAP-630:** Improve performance of large .csv imports
+- **CODAP-640:** Axis attribute menu for right y axis should be on top on inspect panel when opened
+- **CODAP-643:** Default DataSet title should match v2
+- **CODAP-645:** Enable Undo/Redo Support for Table Row Resizing
+- **CODAP-654:** Treating an attribute as *numeric* should convert strings containing numbers to numeric values and plot them
+- **CODAP-681:** Graph: sometimes the axis labels are so long in a graph that the graph itself cannot be displayed
+- **CODAP-682:** Graph renders incorrectly after setting aside cases
+- **CODAP-686:** Graph renders incorrectly after Group into Bins
+- **CODAP-688:** Table: double-clicking a cell to edit and vertical autoscroll conflict
+- **CODAP-689:** Box plots display incorrectly after changing x axis attribute
+- **CODAP-693:** Difficulty interacting with case table horizontal scroll bar
+- **CODAP-697:** Chromebook performance -- performance tweaks to reduce re-renders, etc.
+- **CODAP-698:** Graph renders incorrectly after hiding cases
+- **CODAP-701:** Rendering categorical axes can take a long time
+- **CODAP-715:** MST warning on dragging last attribute of collection
+- **CODAP-718:** Dragging hierarchical table with many cases is laggy (Chromebook)
+- **CODAP-719:** Difficulty grabbing/dragging graph tile (Chromebook)
+- **CODAP-723:** Case Card: attribute dragging behaves inconsistently
+- **CODAP-724:** Case Card is broken for empty data sets
+- **CODAP-725:** Plugin API evaluation of formulas should match V2
+- **CODAP-735:** mean and median adornments not drawn correctly when negative
+- **CODAP-737:** Graph axis label becomes inaccessible
+- **CODAP-738:** Getting started with CODAP document: "Drag this data file" not working, checkbox not changing state
+- **CODAP-739:** Getting started with CODAP 2 document: two tables are displayed, checkboxes not changing state
+- **CODAP-741:** Graph: Axis label covers the axis scale labels
+- **CODAP-742:** Graph adornments don't export to .png correctly
+- **CODAP-752:** Tile border resize handles sometimes inaccessible on first appearance of tile
+- **CODAP-758:** Binned dot plot with categorical on right axis doesn't display properly
+- **CODAP-765:** first() and last() don't recalculate upon sort
+- **CODAP-769:** Dots disappear while dragging to reorder categories in graphs
+- **CODAP-787:** Dropping file on user entry dialog results in document being imported twice
+
+### 🛠️ Under the Hood:
+- **CODAP-733:** Add test for connecting lines with Display Only Selected Cases
+- **CODAP-743:** Add a check for common console error logs to the Cypress smoke test suite
+- **CODAP-759:** update dependencies; set target/lib to ES2020
+- **CODAP-771:** Sync recent DocumentModel changes from CLUE to CODAP
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  196073 bytes |                           -0.03% |
+|  index.js | 6759783 bytes |                            0.01% |
+
 ## Version 3.0.0-pre.2324 - June 6, 2025
 
 ### 🐞 Bug Fixes:
