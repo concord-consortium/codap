@@ -44,7 +44,7 @@ context("codap toolbar", () => {
     c.getComponentTitle("slider").should("have.text", "v1")
   })
   it("will open a calculator", () => {
-    c.clickIconFromToolShelf("calculator")
+    c.clickIconFromToolShelf("calc")
     calculator.getCalculatorTile().should("be.visible")
     c.getComponentTitle("calculator").should("have.text", "Calculator")
   })
@@ -77,7 +77,7 @@ context("codap toolbar", () => {
     c.getIconFromToolShelf("graph").click()
     c.getIconFromToolShelf("map").click()
     c.getIconFromToolShelf("slider").click()
-    c.getIconFromToolShelf("calculator").click()
+    c.getIconFromToolShelf("calc").click()
     c.getIconFromToolShelf("plugins").click()
     toolbar.getPluginSelection().eq(0).click()
     //TODO need to add check for Text component
