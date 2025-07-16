@@ -152,7 +152,7 @@ export const useSubAxis = ({
         }
         dI.currentDragPosition = newDragPosition
       }
-    }, [renderSubAxis, getCategoryArray]),
+    }, [dataConfig, axisPlace, getCategoryArray, renderSubAxis]),
 
     onDragEnd = useCallback(() => {
       const dI = dragInfo.current
@@ -178,7 +178,7 @@ export const useSubAxis = ({
       }
 
       renderSubAxis()
-    }, [displayModel, renderSubAxis, stopAnimation]),
+    }, [axisPlace, dataConfig, displayModel, renderSubAxis, stopAnimation]),
 
     dragBehavior = useMemo(() => drag()
       .on("start", onDragStart)
