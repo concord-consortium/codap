@@ -141,7 +141,6 @@ export interface DragInfo {
   currentOffset: number
   currentDragPosition: number
   currentDragPositionCatName: string
-  categorySet?: ICategorySet
   categories: string[]
   bandwidth: number
   axisOrientation: 'horizontal' | 'vertical'
