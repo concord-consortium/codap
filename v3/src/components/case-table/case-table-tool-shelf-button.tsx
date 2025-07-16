@@ -78,7 +78,7 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
           return (
             // FIXME: this will create multiple undo entries
             <MenuItem key={`${dataset.dataSet.id}`} className="tool-shelf-menu-item"
-            	onClick={()=>createOrShowTableOrCardForDataset(dataset)} data-testid={`tool-shelf-table-${tileTitle}`}>
+            	  onClick={()=>createOrShowTableOrCardForDataset(dataset)} data-testid={`tool-shelf-table-${tileTitle}`}>
               <TableIcon className="menu-icon case-table-icon"/>
               {tileTitle}
               <TrashIcon className="tool-shelf-menu-trash-icon"
@@ -90,7 +90,8 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
           <TableIcon className="menu-icon case-table-icon"/>
           {`${t("DG.AppController.caseTableMenu.clipboardDataset")} 🚧`}
         </MenuItem>
-        <MenuItem onClick={handleCreateNewCaseTable} data-testid="tool-shelf-table-new" className="tool-shelf-menu-item">
+        <MenuItem data-testid="tool-shelf-table-new" className="tool-shelf-menu-item"
+            onClick={handleCreateNewCaseTable}>
           <TableIcon className="menu-icon case-table-icon"/>
           {t("DG.AppController.caseTableMenu.newDataSet")}
         </MenuItem>
@@ -106,7 +107,8 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
 export const CaseTableToolShelfButton = () => {
   return (
     <Menu isLazy>
-      <MenuButton className="tool-shelf-button tool-shelf-menu table" title={`${t("DG.ToolButtonData.tableButton.toolTip")}`}
+      <MenuButton className="tool-shelf-button tool-shelf-menu table"
+          title={`${t("DG.ToolButtonData.tableButton.toolTip")}`}
           data-testid={"tool-shelf-button-table"}>
         <TableIcon />
         <ToolShelfButtonTag className="tool-shelf-tool-label table" label={t("DG.ToolButtonData.tableButton.title")} />

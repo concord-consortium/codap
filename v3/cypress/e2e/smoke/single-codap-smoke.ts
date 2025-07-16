@@ -173,7 +173,7 @@ context("codap single smoke test", () => {
     c.clickIconFromToolShelf("slider")
     slider.getSliderTile().should("be.visible")
     c.getComponentTitle("slider").should("have.text", "v1")
-    cy.get("[data-testid=component-close-button]").click("top", { force: true });
+    cy.get("[data-testid=component-close-button]").click("top", { force: true })
     // c.closeComponent("slider") //Change in component header height causes interference with variable value input
 
     cy.log("will open a calculator")
