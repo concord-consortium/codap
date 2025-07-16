@@ -255,7 +255,6 @@ export function getNextCase(data: IDataSet, collection: ICollectionModel, caseId
 
     // Otherwise return the first case that is selected
     const nextCaseId = collection.caseIds.find(id => data.isCaseLooselySelected(id))
-    console.log(` !! nextCaseId`, nextCaseId)
     if (nextCaseId) return collection.getCaseGroup(nextCaseId)?.groupedCase
   }
 }
