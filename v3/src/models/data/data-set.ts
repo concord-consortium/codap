@@ -912,6 +912,13 @@ export const DataSet = V2Model.named("DataSet").props({
                 ? group.childItemIds.every(id => self.selection.has(id))
                 : self.selection.has(caseId)
       },
+      isCaseLooselySelected(caseId: string) {
+        // a pseudo-case is loosely selected if any of its individual cases are selected
+        const group = self.caseInfoMap.get(caseId)
+        return group
+          ? group.childItemIds.some(id => self.selection.has(id))
+          : self.selection.has(caseId)
+      },
       get isInTransaction() {
         return self.transactionCount > 0
       }
