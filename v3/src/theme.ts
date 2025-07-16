@@ -35,14 +35,6 @@ export const theme = extendTheme({
       baseStyle: {
         border: "none"
       },
-      _hover: {
-        backgroundColor: "tealLightHover",
-        color: "labelText"
-      },
-      _active: {
-        backgroundColor: "tealLightActive",
-        color: "labelText"
-      },
       variants: {
         unstyled: {
           border: "none",
@@ -55,14 +47,6 @@ export const theme = extendTheme({
         default: {
           backgroundColor: "tealLight2",
           color: "white",
-          _hover: {
-            backgroundColor: "tealLight1",
-            color: "white"
-          },
-          _active: {
-            backgroundColor: "tealLight1",
-            color: "white"
-          },
         },
       }
     },

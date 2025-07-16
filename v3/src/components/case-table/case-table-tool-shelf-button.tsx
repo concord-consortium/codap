@@ -109,7 +109,7 @@ export const CaseTableToolShelfButton = () => {
       <MenuButton className="tool-shelf-button tool-shelf-menu table" title={`${t("DG.ToolButtonData.tableButton.toolTip")}`}
           data-testid={"tool-shelf-button-table"}>
         <TableIcon />
-        <ToolShelfButtonTag className="table" label={t("DG.ToolButtonData.tableButton.title")} />
+        <ToolShelfButtonTag className="tool-shelf-tool-label table" label={t("DG.ToolButtonData.tableButton.title")} />
       </MenuButton>
       <CaseTableToolShelfMenuList />
     </Menu>

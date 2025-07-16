@@ -71,7 +71,7 @@ export function PluginsButton() {
         data-testid="tool-shelf-button-plugins"
       >
         <PluginsIcon />
-        <ToolShelfButtonTag className="plugins" label={t("DG.ToolButtonData.pluginMenu.title")} />
+        <ToolShelfButtonTag className="tool-shelf-tool-label plugins" label={t("DG.ToolButtonData.pluginMenu.title")} />
       </MenuButton>
       <MenuList>
         {

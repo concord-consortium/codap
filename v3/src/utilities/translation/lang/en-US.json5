@@ -327,7 +327,7 @@
     "DG.ToolButtonData.graphButton.toolTip": "Make a graph (ctrl-alt-g)",
     "DG.ToolButtonData.sliderButton.title": "Slider",
     "DG.ToolButtonData.sliderButton.toolTip": "Make a slider (ctrl-alt-s)",
-    "DG.ToolButtonData.calcButton.title": "Calculator",
+    "DG.ToolButtonData.calcButton.title": "Calc",
     "DG.ToolButtonData.calcButton.toolTip": "Open/close the calculator (ctrl-alt-c)",
     "DG.ToolButtonData.textButton.title": "Text",
     "DG.ToolButtonData.textButton.toolTip": "Make a text object (ctrl-alt-shift-t)",

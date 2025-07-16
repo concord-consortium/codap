@@ -5,7 +5,7 @@ import { useDocumentContent } from "../../hooks/use-document-content"
 import { uiState } from "../../models/ui-state"
 import { isFreeTileLayout } from "../../models/document/free-tile-row"
 import { t } from "../../utilities/translation/translate"
-import { kRightButtonBackground, ToolShelfButtonTag } from "./tool-shelf-button"
+import { ToolShelfButtonTag } from "./tool-shelf-button"
 import { getTileComponentIcon } from "../../models/tiles/tile-component-info"
 import { getTileContentInfo } from "../../models/tiles/tile-content-info"
 import WebViewIcon from "../../assets/icons/icon-media-tool.svg"
@@ -42,8 +42,7 @@ export const TilesListShelfButton = observer(function TilesListShelfButton() {
         >
           <TileListIcon />
           <ToolShelfButtonTag
-            bg={kRightButtonBackground}
-            className="tiles-list"
+            className="tool-shelf-tool-label tiles-list"
             label={t("DG.ToolButtonData.tileListMenu.title")}
           />
         </MenuButton>

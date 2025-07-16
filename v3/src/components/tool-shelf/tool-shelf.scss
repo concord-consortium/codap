@@ -1,16 +1,20 @@
 @use "../vars";
 $deleteModalBackground: #EEE;
 $deleteButton: #4B8ADD;
+$tool-shelf-border-width: 1px;
 
 .tool-shelf {
   height: vars.$tool-shelf-height;
   width: 100%;
   background-color: white;
-  border-bottom: 1px solid #dcdbd8;
-  box-shadow: 0 0 0 1px #888888!important;
+  border-bottom: $tool-shelf-border-width solid #a6a6a6;
+  box-shadow: 0 0 6px 0 rgba(0, 0, 0, 0.25) !important;
   display: flex;
   flex-direction: row;
   align-items: center;
+  box-sizing: border-box;
+  position: relative;
+  z-index: 5;
 
   .tool-shelf-component-buttons, .tool-shelf-right-buttons {
     display: flex;
@@ -18,13 +22,12 @@ $deleteButton: #4B8ADD;
     align-items: center;
 
     .tool-shelf-button {
-      height: 56px;
+      height: calc(vars.$tool-shelf-height - $tool-shelf-border-width);
       width: fit-content;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      margin: 0 4px;
       background-color: white;
 
       // When toolshelf button is a menu button, it has a span wrapper
@@ -37,8 +40,14 @@ $deleteButton: #4B8ADD;
           justify-content: center;
 
           svg {
-            height: 24px;
-            width: 24px;
+            height: 30px;
+            width: 30px;
+            margin: 0 10px
+          }
+          > .tool-shelf-tool-label {
+            background-color: transparent;
+            padding-inline-start: 0;
+            padding-inline-end: 0;
           }
         }
       }
@@ -49,10 +58,10 @@ $deleteButton: #4B8ADD;
         cursor: not-allowed;
       }
       &:hover:not(:disabled) {
-        box-shadow: 1px 1px 1px rgb(0, 0, 0, 0.5) !important;
+        background-color: vars.$icon-fill-light;
       }
       &:active:not(:disabled) {
-        box-shadow: 2px 2px 2px rgb(0, 0, 0, 0.5) !important;
+        background-color: #bfefff;
       }
       &.redo-button {
         .icon-redo {
@@ -66,8 +75,8 @@ $deleteButton: #4B8ADD;
         justify-content: center;
         align-items: center;
         svg {
-          height: 24px;
-          width: 24px;
+          height: 30px;
+          width: 30px;
         }
       }
 
@@ -79,6 +88,10 @@ $deleteButton: #4B8ADD;
         color: vars.$label-color;
         background-color: white;
         height: 16px;
+        margin: 0 10px;
+        background-color: transparent;
+        padding-inline-start: 0;
+        padding-inline-end: 0;
 
         &.menu {
           background-color: white;
@@ -172,10 +185,4 @@ $deleteButton: #4B8ADD;
       background-color: #4B8ABD;
     }
   }
-}
-
-.tile-list-menu-icon {
-  height: 15px;
-  max-width: 20px;
-  margin-right: 5px;
 }

@@ -20,7 +20,7 @@ import { OptionsShelfButton } from "./options-button"
 import { TilesListShelfButton } from "./tiles-list-button"
 import { PluginsButton } from "./plugins-button"
 import { HelpShelfButton } from "./help-button"
-import { kRightButtonBackground, ToolShelfButton, ToolShelfTileButton } from "./tool-shelf-button"
+import { ToolShelfButton, ToolShelfTileButton } from "./tool-shelf-button"
 import { logMessageWithReplacement } from "../../lib/log-message"
 
 import "./tool-shelf.scss"
@@ -164,7 +164,7 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
             button
               ? button
               : <ToolShelfButton key={labelKey} className={className} icon={icon} label={t(labelKey)} hint={t(hintKey)}
-                    disabled={entry.isDisabled?.()} background={kRightButtonBackground}
+                    disabled={entry.isDisabled?.()}
                     onClick={() => handleRightButtonClick(entry)} />
           )
         })}

@@ -4,7 +4,7 @@ import OptionsIcon from "../../assets/icons/icon-settings.svg"
 import { useDocumentContent } from "../../hooks/use-document-content"
 import { t } from "../../utilities/translation/translate"
 import { WebViewUrlModal } from "../web-view/web-view-url-modal"
-import { kRightButtonBackground, ToolShelfButtonTag } from "./tool-shelf-button"
+import { ToolShelfButtonTag } from "./tool-shelf-button"
 import { showWebView } from "./tool-shelf-utilities"
 
 import "./tool-shelf.scss"
@@ -35,8 +35,7 @@ export const OptionsShelfButton = () => {
         >
           <OptionsIcon />
           <ToolShelfButtonTag
-            bg={kRightButtonBackground}
-            className="web-view"
+            className="tool-shelf-tool-label web-view"
             label={t("DG.ToolButtonData.optionMenu.title")}
           />
         </MenuButton>
