@@ -234,18 +234,14 @@ export function replaceSetAsideCases(data: IDataSet, caseOrItemIds: string[]) {
   }
 }
 
-// FIXME We should use collection.getCaseIndex here, but it's not working correctly
-function caseIndex(caseId: string, collection?: ICollectionModel) {
-  return collection?.caseIds.indexOf(caseId)
-}
-
 // Returns the next case of the given collection to select based on the current selection.
 // Used by the case card to scroll through cases.
 export function getNextCase(data: IDataSet, collection: ICollectionModel, caseId: string) {
-  const indexInCollection = caseIndex(caseId, collection)
+  const indexInCollection = collection.getCaseIndex(caseId)
 
   const selectedCases = collection.cases.filter(c => data.isCaseLooselySelected(c.__id__))
   if (selectedCases.length === 1) {
+    // When one case is selected, just return the next case
     if (indexInCollection != null && indexInCollection < collection.cases.length - 1) {
       return collection.getCaseGroup(collection.caseIds[indexInCollection + 1])?.groupedCase
     }
@@ -260,10 +256,11 @@ export function getNextCase(data: IDataSet, collection: ICollectionModel, caseId
 }
 
 export function getPreviousCase(data: IDataSet, collection: ICollectionModel, caseId: string) {
-  const indexInCollection = caseIndex(caseId, collection)
+  const indexInCollection = collection.getCaseIndex(caseId)
 
   const selectedCases = collection.cases.filter(c => data.isCaseLooselySelected(c.__id__))
   if (selectedCases.length === 1) {
+    // When one case is selected, just return the previous case
     if (indexInCollection != null && indexInCollection > 0) {
       return collection.getCaseGroup(collection.caseIds[indexInCollection - 1])?.groupedCase
     }
@@ -274,12 +271,13 @@ export function getPreviousCase(data: IDataSet, collection: ICollectionModel, ca
     if (selectedCases.length === 0) return lastCase
 
     // Otherwise return the case before the first one that's selected
-    const selectedCaseIndices = selectedCases.map(({ __id__ }) => caseIndex(__id__, collection))
+    const selectedCaseIndices = selectedCases.map(({ __id__ }) => collection.getCaseIndex(__id__))
       .filter(index => index != null && index >= 0) as number[]
     const lowestIndex = Math.min(...selectedCaseIndices)
     if (lowestIndex > 0) {
       return collection.getCaseGroup(collection.caseIds[lowestIndex - 1])?.groupedCase
     } else {
+      // If the lowest index is 0, return the last case in the collection
       return lastCase
     }
   }
