@@ -1,7 +1,8 @@
 import React from 'react'
+import { useCollectionContext } from '../../hooks/use-collection-context'
 import { IDataSet } from "../../models/data/data-set"
 import { IGroupedCase } from '../../models/data/data-set-types'
-import { setSelectedCases } from "../../models/data/data-set-utils"
+import { getNextCase, getPreviousCase, setSelectedCases } from "../../models/data/data-set-utils"
 
 import Arrow from "../../assets/icons/arrow.svg"
 
@@ -10,12 +11,13 @@ interface ICaseCardControlsProps {
   cases: IGroupedCase[]
   data?: IDataSet
   displayedCaseIndex: number
-  isCollectionSummarized: boolean
 }
 
-export function CaseCardControls({
-  caseIndexText, cases, data, displayedCaseIndex, isCollectionSummarized
-}: ICaseCardControlsProps) {
+export function CaseCardControls({ caseIndexText, cases, data, displayedCaseIndex }: ICaseCardControlsProps) {
+  const caseId = cases[displayedCaseIndex]?.__id__
+  const collectionId = useCollectionContext()
+  const collection = data?.getCollection(collectionId)
+
   const renderCaseIndexText = () => {
     return (
       <span className="caseIndex" data-testid="case-card-view-index">
@@ -32,24 +34,23 @@ export function CaseCardControls({
     )
   }
 
-  const handleSelectCase = (delta: number) => {
-    const selectedCaseIndex = isCollectionSummarized
-                                ? delta < 0 ? cases.length - 1 : 0
-                                : displayedCaseIndex + delta
-    const newCase = cases[selectedCaseIndex]
-    if (!newCase.__id__) return
-    setSelectedCases([newCase.__id__], data)
+  const nextCase = data && collection ? getNextCase(data, collection, caseId) : undefined
+  const nextButtonDisabled = !nextCase
+
+  const previousCase = data && collection ? getPreviousCase(data, collection, caseId) : undefined
+  const prevButtonDisabled = !previousCase
+
+  const handleSelectCase = (id?: string) => {
+    if (id) setSelectedCases([id], data)
   }
 
-  const prevButtonDisabled = isCollectionSummarized || displayedCaseIndex === 0
-  const nextButtonDisabled = !isCollectionSummarized && displayedCaseIndex === cases.length - 1
   return (
     <div className="case-card-controls">
       <button
         className="arrow previous"
         data-testid="case-card-view-previous-button"
         disabled={prevButtonDisabled}
-        onClick={() => handleSelectCase(-1)}
+        onClick={() => handleSelectCase(previousCase?.__id__)}
       >
         <Arrow />
       </button>
@@ -58,7 +59,7 @@ export function CaseCardControls({
         className="arrow next"
         data-testid="case-card-view-next-button"
         disabled={nextButtonDisabled}
-        onClick={() => handleSelectCase(+1)}
+        onClick={() => handleSelectCase(nextCase?.__id__)}
       >
         <Arrow />
       </button>

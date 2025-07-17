@@ -422,6 +422,11 @@ export const CollectionModel = V2Model
             // append case ids in grouped order
             self.caseIds.push(...childCaseIds)
           })
+          // rebuild the case id to index map, since the order of child cases may have changed
+          self.caseIdToIndexMap.clear()
+          self.caseIds.forEach((caseId, index) => {
+            self.caseIdToIndexMap.set(caseId, index)
+          })
         }
 
         let caseGroups = _caseGroups.get()

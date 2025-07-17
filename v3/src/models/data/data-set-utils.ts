@@ -233,3 +233,58 @@ export function replaceSetAsideCases(data: IDataSet, caseOrItemIds: string[]) {
     })
   }
 }
+
+// Functions used to scroll through cases in the case card
+
+// Returns the next case of the given collection to select based on the current selection.
+// caseId should be undefined if no case is selected, or multiple cases are selected.
+// caseId could be determined by looking at the selection, but that's inefficient
+// and it's already known where this function is called.
+export function getNextCase(data: IDataSet, collection: ICollectionModel, caseId?: string) {
+  const indexInCollection = caseId ? collection.getCaseIndex(caseId) : undefined
+
+  const selectedCases = collection.cases.filter(c => data.isAnyChildItemSelected(c.__id__))
+  if (selectedCases.length === 1) {
+    // When one case is selected, just return the next case
+    if (indexInCollection != null && indexInCollection < collection.cases.length - 1) {
+      return collection.getCaseGroup(collection.caseIds[indexInCollection + 1])?.groupedCase
+    }
+  } else {
+    // If no cases are selected, return the first case
+    if (selectedCases.length === 0) return collection?.cases[0]
+
+    // Otherwise return the first case that is selected
+    const nextCaseId = collection.caseIds.find(id => data.isAnyChildItemSelected(id))
+    if (nextCaseId) return collection.getCaseGroup(nextCaseId)?.groupedCase
+  }
+}
+
+// Returns the previous case of the given collection to select based on the current selection.
+// The same notes apply to caseId here as for getNextCase.
+export function getPreviousCase(data: IDataSet, collection: ICollectionModel, caseId?: string) {
+  const indexInCollection = caseId ? collection.getCaseIndex(caseId) : undefined
+
+  const selectedCases = collection.cases.filter(c => data.isAnyChildItemSelected(c.__id__))
+  if (selectedCases.length === 1) {
+    // When one case is selected, just return the previous case
+    if (indexInCollection != null && indexInCollection > 0) {
+      return collection.getCaseGroup(collection.caseIds[indexInCollection - 1])?.groupedCase
+    }
+  } else {
+    // If no cases are selected, return the last case
+    const lastCaseId = collection.caseIds[collection.caseIds.length - 1]
+    const lastCase = lastCaseId ? collection.getCaseGroup(lastCaseId)?.groupedCase : undefined
+    if (selectedCases.length === 0) return lastCase
+
+    // Otherwise return the case before the first one that's selected
+    const selectedCaseIndices = selectedCases.map(({ __id__ }) => collection.getCaseIndex(__id__))
+      .filter(index => index != null && index >= 0) as number[]
+    const lowestIndex = Math.min(...selectedCaseIndices)
+    if (lowestIndex > 0) {
+      return collection.getCaseGroup(collection.caseIds[lowestIndex - 1])?.groupedCase
+    } else {
+      // If the lowest index is 0, return the last case in the collection
+      return lastCase
+    }
+  }
+}

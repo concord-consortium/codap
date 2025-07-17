@@ -906,11 +906,17 @@ export const DataSet = V2Model.named("DataSet").props({
         return itemId ? getItem(itemId, { numeric: false }) : undefined
       },
       isCaseSelected(caseId: string) {
-        // a pseudo-case is selected if all of its individual cases are selected
+        // a case is selected if all of its child items are selected
         const group = self.caseInfoMap.get(caseId)
         return group
                 ? group.childItemIds.every(id => self.selection.has(id))
                 : self.selection.has(caseId)
+      },
+      isAnyChildItemSelected(caseId: string) {
+        const group = self.caseInfoMap.get(caseId)
+        return group
+          ? group.childItemIds.some(id => self.selection.has(id))
+          : self.selection.has(caseId)
       },
       get isInTransaction() {
         return self.transactionCount > 0
