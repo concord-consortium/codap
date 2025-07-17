@@ -80,12 +80,12 @@ describe("DataSetUtils", () => {
     const c3CaseLast = c3.getCaseGroup(c3.caseIds[c3.caseIds.length - 1])!.groupedCase
 
     // Nothing selected, child collection
-    expect(getNextCase(dataset, c3, "")).toBe(c3Case1)
-    expect(getPreviousCase(dataset, c3, "")).toBe(c3CaseLast)
+    expect(getNextCase(dataset, c3)).toBe(c3Case1)
+    expect(getPreviousCase(dataset, c3)).toBe(c3CaseLast)
 
     // Nothing selected, parent collection
-    expect(getNextCase(dataset, c2, "")).toBe(c2Case1)
-    expect(getPreviousCase(dataset, c2, "")).toBe(c2CaseLast)
+    expect(getNextCase(dataset, c2)).toBe(c2Case1)
+    expect(getPreviousCase(dataset, c2)).toBe(c2CaseLast)
 
     // First child case selected, child collection
     dataset.setSelectedCases([c3Case1.__id__])
@@ -107,8 +107,8 @@ describe("DataSetUtils", () => {
 
     // First parent case selected, child collection
     dataset.setSelectedCases([c2Case1.__id__])
-    expect(getNextCase(dataset, c3, "")).toBe(c3Case1)
-    expect(getPreviousCase(dataset, c3, "")).toBe(c3CaseLast)
+    expect(getNextCase(dataset, c3)).toBe(c3Case1)
+    expect(getPreviousCase(dataset, c3)).toBe(c3CaseLast)
 
     // First parent case selected, parent collection
     expect(getNextCase(dataset, c2, c2Case1.__id__)).toBe(c2Case2)

@@ -234,10 +234,14 @@ export function replaceSetAsideCases(data: IDataSet, caseOrItemIds: string[]) {
   }
 }
 
+// Functions used to scroll through cases in the case card
+
 // Returns the next case of the given collection to select based on the current selection.
-// Used by the case card to scroll through cases.
-export function getNextCase(data: IDataSet, collection: ICollectionModel, caseId: string) {
-  const indexInCollection = collection.getCaseIndex(caseId)
+// caseId should be undefined if no case is selected, or multiple cases are selected.
+// caseId could be determined by looking at the selection, but that's inefficient
+// and it's already known where this function is called.
+export function getNextCase(data: IDataSet, collection: ICollectionModel, caseId?: string) {
+  const indexInCollection = caseId ? collection.getCaseIndex(caseId) : undefined
 
   const selectedCases = collection.cases.filter(c => data.isCaseLooselySelected(c.__id__))
   if (selectedCases.length === 1) {
@@ -255,8 +259,10 @@ export function getNextCase(data: IDataSet, collection: ICollectionModel, caseId
   }
 }
 
-export function getPreviousCase(data: IDataSet, collection: ICollectionModel, caseId: string) {
-  const indexInCollection = collection.getCaseIndex(caseId)
+// Returns the previous case of the given collection to select based on the current selection.
+// The same notes apply to caseId here as for getNextCase.
+export function getPreviousCase(data: IDataSet, collection: ICollectionModel, caseId?: string) {
+  const indexInCollection = caseId ? collection.getCaseIndex(caseId) : undefined
 
   const selectedCases = collection.cases.filter(c => data.isCaseLooselySelected(c.__id__))
   if (selectedCases.length === 1) {

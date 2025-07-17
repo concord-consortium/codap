@@ -11,12 +11,9 @@ interface ICaseCardControlsProps {
   cases: IGroupedCase[]
   data?: IDataSet
   displayedCaseIndex: number
-  isCollectionSummarized: boolean
 }
 
-export function CaseCardControls({
-  caseIndexText, cases, data, displayedCaseIndex, isCollectionSummarized
-}: ICaseCardControlsProps) {
+export function CaseCardControls({ caseIndexText, cases, data, displayedCaseIndex }: ICaseCardControlsProps) {
   const caseId = cases[displayedCaseIndex]?.__id__
   const collectionId = useCollectionContext()
   const collection = data?.getCollection(collectionId)
