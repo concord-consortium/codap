@@ -331,12 +331,11 @@ export const CollectionModel = V2Model
     }
     Array.from(remappedCaseIds.entries()).forEach(([newCaseId, origCaseId]) => {
       // update index map
-      // FIXME This was changed. Make sure the change is actually correct.
-      // Also, because the index map is just being reconstructed below anyway, this is currently not doing anything.
-      const caseIndex = self.caseIdToIndexMap.get(origCaseId)
+      // FIXME Because the index map is just being reconstructed below anyway, this is currently not doing anything.
+      const caseIndex = self.caseIdToIndexMap.get(newCaseId)
       if (caseIndex != null) {
-        self.caseIdToIndexMap.delete(origCaseId)
-        self.caseIdToIndexMap.set(newCaseId, caseIndex)
+        self.caseIdToIndexMap.delete(newCaseId)
+        self.caseIdToIndexMap.set(origCaseId, caseIndex)
       }
       // update group key-case id relationships
       const groupKey = self.caseIdToGroupKeyMap.get(newCaseId)
