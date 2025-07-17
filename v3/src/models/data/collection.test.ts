@@ -280,10 +280,12 @@ describe("CollectionModel", () => {
         const [parentCaseId, childCaseId] = itemIdToCaseIdsMap.get(itemId)!
         const childItemIds = index % 2 ? ["i1", "i3", "i5"] : ["i0", "i2", "i4"]
         expect(c1.hasCase(parentCaseId)).toBe(true)
-        expect(c1.getCaseIndex(parentCaseId)).toBe(index % 2)
+        const parentIndex = c1.caseIds.indexOf(parentCaseId)
+        expect(c1.getCaseIndex(parentCaseId)).toBe(parentIndex)
         expect(c1.getCaseGroup(parentCaseId)!.childItemIds).toEqual(childItemIds)
         expect(c2.hasCase(childCaseId)).toBe(true)
-        expect(c2.getCaseIndex(childCaseId)).toBe(index)
+        const childIndex = c2.caseIds.indexOf(childCaseId)
+        expect(c2.getCaseIndex(childCaseId)).toBe(childIndex)
         expect(c2.getCaseGroup(childCaseId)!.childItemIds).toEqual([itemId])
         expect(c1.findParentCaseGroup(childCaseId)).toBe(c1.caseGroups[+itemBaseId % 2])
       })
