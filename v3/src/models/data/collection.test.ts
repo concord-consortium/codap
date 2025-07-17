@@ -274,21 +274,29 @@ describe("CollectionModel", () => {
     expect(c1.caseGroups[1].childCaseIds).toEqual(caseIdsForItems(["i1", "i3", "i5"], 1))
     expect(c1.caseGroups[1].childItemIds).toEqual(["i1", "i3", "i5"])
 
+    function validateGetCaseIndex() {
+      itemData.itemIds().forEach(itemId => {
+        const [parentCaseId, childCaseId] = itemIdToCaseIdsMap.get(itemId)!
+        const parentIndex = c1.caseIds.indexOf(parentCaseId)
+        expect(c1.getCaseIndex(parentCaseId)).toBe(parentIndex)
+        const childIndex = c2.caseIds.indexOf(childCaseId)
+        expect(c2.getCaseIndex(childCaseId)).toBe(childIndex)
+      })
+    }
+
     function validateItemCaseIds() {
       itemData.itemIds().forEach((itemId, index) => {
         const itemBaseId = itemId.substring(1)
         const [parentCaseId, childCaseId] = itemIdToCaseIdsMap.get(itemId)!
         const childItemIds = index % 2 ? ["i1", "i3", "i5"] : ["i0", "i2", "i4"]
         expect(c1.hasCase(parentCaseId)).toBe(true)
-        const parentIndex = c1.caseIds.indexOf(parentCaseId)
-        expect(c1.getCaseIndex(parentCaseId)).toBe(parentIndex)
         expect(c1.getCaseGroup(parentCaseId)!.childItemIds).toEqual(childItemIds)
         expect(c2.hasCase(childCaseId)).toBe(true)
-        const childIndex = c2.caseIds.indexOf(childCaseId)
-        expect(c2.getCaseIndex(childCaseId)).toBe(childIndex)
         expect(c2.getCaseGroup(childCaseId)!.childItemIds).toEqual([itemId])
         expect(c1.findParentCaseGroup(childCaseId)).toBe(c1.caseGroups[+itemBaseId % 2])
       })
+
+      validateGetCaseIndex()
     }
 
     validateItemCaseIds()
@@ -350,6 +358,7 @@ describe("CollectionModel", () => {
     expect([...c2.caseIds].sort()).toEqual([...origChildCollectionInfo.caseIds].sort())
     expect(c2.caseIdsHash).toEqual(origChildCollectionInfo.caseIdsHash)
     expect(c2.caseIdsOrderedHash).not.toEqual(origChildCollectionInfo.caseIdsOrderedHash)
+    validateGetCaseIndex()
 
     // adding attr1 back to parent collection invalidates grouping and restores original parent case ids
     c1.addAttribute(a1)

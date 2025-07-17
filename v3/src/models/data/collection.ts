@@ -423,6 +423,11 @@ export const CollectionModel = V2Model
             // append case ids in grouped order
             self.caseIds.push(...childCaseIds)
           })
+          // rebuild the case id to index map, since the order of child cases may have changed
+          self.caseIdToIndexMap.clear()
+          self.caseIds.forEach((caseId, index) => {
+            self.caseIdToIndexMap.set(caseId, index)
+          })
         }
 
         let caseGroups = _caseGroups.get()
@@ -446,12 +451,6 @@ export const CollectionModel = V2Model
                     .map(caseId => self.getCaseGroup(caseId)?.groupedCase)
                     .filter(groupedCase => !!groupedCase)
         }
-
-        // FIXME: Can this be done more efficiently?
-        self.caseIdToIndexMap.clear()
-        self.caseIds.forEach((caseId, index) => {
-          self.caseIdToIndexMap.set(caseId, index)
-        })
 
         runInAction(() => {
           _caseGroups.set(caseGroups)
