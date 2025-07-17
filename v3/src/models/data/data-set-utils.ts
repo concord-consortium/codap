@@ -243,7 +243,7 @@ export function replaceSetAsideCases(data: IDataSet, caseOrItemIds: string[]) {
 export function getNextCase(data: IDataSet, collection: ICollectionModel, caseId?: string) {
   const indexInCollection = caseId ? collection.getCaseIndex(caseId) : undefined
 
-  const selectedCases = collection.cases.filter(c => data.isCaseLooselySelected(c.__id__))
+  const selectedCases = collection.cases.filter(c => data.isAnyChildItemSelected(c.__id__))
   if (selectedCases.length === 1) {
     // When one case is selected, just return the next case
     if (indexInCollection != null && indexInCollection < collection.cases.length - 1) {
@@ -254,7 +254,7 @@ export function getNextCase(data: IDataSet, collection: ICollectionModel, caseId
     if (selectedCases.length === 0) return collection?.cases[0]
 
     // Otherwise return the first case that is selected
-    const nextCaseId = collection.caseIds.find(id => data.isCaseLooselySelected(id))
+    const nextCaseId = collection.caseIds.find(id => data.isAnyChildItemSelected(id))
     if (nextCaseId) return collection.getCaseGroup(nextCaseId)?.groupedCase
   }
 }
@@ -264,7 +264,7 @@ export function getNextCase(data: IDataSet, collection: ICollectionModel, caseId
 export function getPreviousCase(data: IDataSet, collection: ICollectionModel, caseId?: string) {
   const indexInCollection = caseId ? collection.getCaseIndex(caseId) : undefined
 
-  const selectedCases = collection.cases.filter(c => data.isCaseLooselySelected(c.__id__))
+  const selectedCases = collection.cases.filter(c => data.isAnyChildItemSelected(c.__id__))
   if (selectedCases.length === 1) {
     // When one case is selected, just return the previous case
     if (indexInCollection != null && indexInCollection > 0) {

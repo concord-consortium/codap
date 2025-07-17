@@ -912,9 +912,7 @@ export const DataSet = V2Model.named("DataSet").props({
                 ? group.childItemIds.every(id => self.selection.has(id))
                 : self.selection.has(caseId)
       },
-      isCaseLooselySelected(caseId: string) {
-        // a case is loosely selected if any of its child items are selected
-        // This function is used by the case card.
+      isAnyChildItemSelected(caseId: string) {
         const group = self.caseInfoMap.get(caseId)
         return group
           ? group.childItemIds.some(id => self.selection.has(id))
