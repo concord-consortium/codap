@@ -343,6 +343,8 @@
     "DG.ToolButtonData.help.toolTip": "Help for CODAP, learn about CODAP project",
     "DG.ToolButtonData.pluginMenu.title": "Plugins",
     "DG.ToolButtonData.pluginMenu.toolTip": "Open a plugin component",
+    "DG.ToolButtonData.errorTesterButton.title": "ErrTest",
+    "DG.ToolButtonData.errorTesterButton.toolTip": "Make an error tester",
 
     // DG.Slider
     "DG.Slider.multiples": "Restrict to Multiples of:",
@@ -654,6 +656,8 @@
     "DG.Redo.webView.show": "Redo adding webView component",
     "DG.Undo.imageComponent.show": "Undo adding image component",
     "DG.Redo.imageComponent.show": "Redo adding image component",
+    "DG.Undo.errorTester.create": "Undo adding error tester",
+    "DG.Redo.errorTester.create": "Redo adding error tester",
 
     // DG.DataContext
     "DG.DataContext.singleCaseName": "case",
