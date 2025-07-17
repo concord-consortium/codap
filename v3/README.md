@@ -75,25 +75,27 @@ Production releases are deployed to the root at http://codap3.concord.org.
 
 Other branches are deployed to https://codap3.concord.org/branch/{branch-name}/, e.g. https://codap3.concord.org/branch/main/ for the `main` branch. Note that the trailing slash is required. For arcane reasons leaving off the slash results in a redirect to an invalid url. ¯\\_(ツ)_/¯
 
-To deploy a production release:
+To deploy a new release:
 
-1. Create a new release version in Jira using the `Manage Releases` tab of the CODAPv3 Jira board. (The new version number is the number found in the top right corner of v3, incremented by one.)
+1. Create a new release version in Jira using the `Manage Releases` tab of the CODAPv3 Jira board. (The new version number is the number found in the top right corner of v3, incremented by one.) The status of the release can remain `Unreleased` for now.
 2. Run `git log --reverse <last-version>...HEAD` and/or use the GitHub UI to see a list of PRs merged since the last release and identify their corresponding Jira stories. Tag the Jira stories based on this list as `3.0.0-pre.<new-version>` in the `Fix versions` field.
-3. Update the version number in `package.json` and `package-lock.json`
+3. Update the version number in `package.json` and `package-lock.json`.
     - `npm version --no-git-tag-version 3.0.0-pre.<new-version>`
-4. Create a new entry in `versions.md` with the new version and release date
-5. Create a new entry in `CHANGELOG.md` with a description of the new version
-6. Create `v3-release-<version>` branch and stage versions.md, package.json and package-lock.json
+4. Create a new entry in `versions.md` with the new version and release date.
+5. Create a new entry in `CHANGELOG.md` with a description of the new version.
+6. Create `v3-release-<version>` branch and stage `versions.md`, `package.json` and `package-lock.json`.
 7. Run `npm run release-notes 3.0.0-pre.<new-version>` in the `dev-templates/scripts` repo.
-8. Run `npm run build`
-9. Copy asset size markdown table from previous release and change sizes to match new sizes in `dist`. In the Terminal from the `v3` folder, the command is `ls -la dist/assets`
-10. Stage CHANGELOG.md, Commit changes, push to GitHub, create PR and merge
-11. Checkout `main` and pull
-12. Make a new version tag using your local git client with the version number in the description (e.g., `git tag -a 3.0.0-pre.1085 -m "version 3.0.0-pre.1085"`) and push the tag to the remote origin (e.g., `git push origin 3.0.0-pre.1085`)
-13. Watch the GitHub actions build to see that the S3 Deploy step finished and then QA this version using the versioned URL (e.g., https://codap3.concord.org/version/3.0.0-pre.1085/) or alternatively QA the staged release in step 11
-14. Stage the release by running the [Release v3 Staging Workflow](https://github.com/concord-consortium/codap/actions/workflows/release-v3-staging.yml) and entering the version tag you just pushed
-15. Test the staged release at https://codap3.concord.org/index-staging.html
-16. Update production by running the [Release v3 Production Workflow](https://github.com/concord-consortium/codap/actions/workflows/release-v3-production.yml) and entering the release version tag
+8. Run `npm run build`.
+9. Copy asset size markdown table from previous release and change sizes to match new sizes in `dist`. In the Terminal from the `v3` folder, the command is `ls -la dist/assets`.
+10. Stage `CHANGELOG.md`, Commit changes, push to GitHub, and create PR for the release. Add `v3` and `run regression` labels so cypress tests are run. Merge PR once tests complete.
+11. Checkout `main` and pull.
+12. Make a new version tag using your local git client with the version number in the description (e.g. `git tag -a 3.0.0-pre.<new-version> -m "version 3.0.0-pre.<new-version>"`) and push the tag to the remote origin (e.g., `git push origin 3.0.0-pre.<new-version>`).
+13. Create a new GitHub release at https://github.com/concord-consortium/codap/releases corresponding to the new tag.
+14. Watch the GitHub actions build to see that the S3 Deploy step finished and then QA this version using the versioned URL (e.g., `https://codap3.concord.org/version/3.0.0-pre.<new-version>/`) or alternatively QA the staged release in the next step.
+15. Stage the release by running the [Release v3 Staging Workflow](https://github.com/concord-consortium/codap/actions/workflows/release-v3-staging.yml) and entering the version tag you just pushed
+16. Test the staged release at https://codap3.concord.org/index-staging.html.
+17. Update production by running the [Release v3 Production Workflow](https://github.com/concord-consortium/codap/actions/workflows/release-v3-production.yml) and entering the release version tag.
+18. In the `Manage Releases` tab of the CODAPv3 project in Jira, mark the new release as `Released`. Clicking on the release shows a list of all stories tagged as fixed in this version.
 
 ### Versions
 [Here](https://github.com/concord-consortium/codap/blob/main/v3/versions.md) is a link to the various versions of CODAP along with their release dates.
@@ -158,6 +160,6 @@ Remember not to commit any of these debug-only changes to the repository.
 
 ## License
 
-Starter Projects are Copyright 2022 (c) by the Concord Consortium and is distributed under the [MIT license](http://www.opensource.org/licenses/MIT).
+CODAP is Copyright 2025 (c) by the Concord Consortium and is distributed under the [MIT license](http://www.opensource.org/licenses/MIT).
 
 See license.md for the complete license text.
