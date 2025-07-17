@@ -87,12 +87,12 @@ To deploy a new release:
 7. Run `npm run release-notes 3.0.0-pre.<new-version>` in the `dev-templates/scripts` repo.
 8. Run `npm run build`.
 9. Copy asset size markdown table from previous release and change sizes to match new sizes in `dist`. In the Terminal from the `v3` folder, the command is `ls -la dist/assets`.
-10. Stage `CHANGELOG.md`, Commit changes, push to GitHub, and create PR for the release. Add `v3` and `run regression` labels so cypress tests are run. Merge PR once tests complete.
+10. Stage `CHANGELOG.md`, commit changes, push to GitHub, and create PR for the release. Add `v3` and `run regression` labels so cypress tests are run. Merge PR once tests complete.
 11. Checkout `main` and pull.
 12. Make a new version tag using your local git client with the version number in the description (e.g. `git tag -a 3.0.0-pre.<new-version> -m "version 3.0.0-pre.<new-version>"`) and push the tag to the remote origin (e.g., `git push origin 3.0.0-pre.<new-version>`).
 13. Create a new GitHub release at https://github.com/concord-consortium/codap/releases corresponding to the new tag.
 14. Watch the GitHub actions build to see that the S3 Deploy step finished and then QA this version using the versioned URL (e.g., `https://codap3.concord.org/version/3.0.0-pre.<new-version>/`) or alternatively QA the staged release in the next step.
-15. Stage the release by running the [Release v3 Staging Workflow](https://github.com/concord-consortium/codap/actions/workflows/release-v3-staging.yml) and entering the version tag you just pushed
+15. Stage the release by running the [Release v3 Staging Workflow](https://github.com/concord-consortium/codap/actions/workflows/release-v3-staging.yml) and entering the version tag you just pushed.
 16. Test the staged release at https://codap3.concord.org/index-staging.html.
 17. Update production by running the [Release v3 Production Workflow](https://github.com/concord-consortium/codap/actions/workflows/release-v3-production.yml) and entering the release version tag.
 18. In the `Manage Releases` tab of the CODAPv3 project in Jira, mark the new release as `Released`. Clicking on the release shows a list of all stories tagged as fixed in this version.
