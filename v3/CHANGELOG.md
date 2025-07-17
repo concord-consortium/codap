@@ -22,7 +22,6 @@
 - **CODAP-640:** Axis attribute menu for right y axis should be on top on inspect panel when opened
 - **CODAP-643:** Default DataSet title should match v2
 - **CODAP-645:** Enable Undo/Redo Support for Table Row Resizing
-- **CODAP-654:** Treating an attribute as *numeric* should convert strings containing numbers to numeric values and plot them
 - **CODAP-681:** Graph: sometimes the axis labels are so long in a graph that the graph itself cannot be displayed
 - **CODAP-682:** Graph renders incorrectly after setting aside cases
 - **CODAP-686:** Graph renders incorrectly after Group into Bins
@@ -45,6 +44,7 @@
 - **CODAP-741:** Graph: Axis label covers the axis scale labels
 - **CODAP-742:** Graph adornments don't export to .png correctly
 - **CODAP-752:** Tile border resize handles sometimes inaccessible on first appearance of tile
+- **CODAP-754:** Treating an attribute as *numeric* should convert strings containing numbers to numeric values and plot them
 - **CODAP-758:** Binned dot plot with categorical on right axis doesn't display properly
 - **CODAP-765:** first() and last() don't recalculate upon sort
 - **CODAP-769:** Dots disappear while dragging to reorder categories in graphs
