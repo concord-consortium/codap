@@ -142,7 +142,9 @@ export const useSubAxis = ({
               ? (newCatIndex === numCategories - 1 ? '' : dI.categories[newCatIndex + 1])
               : dI.categories[newCatIndex]
           dI.indexOfCategory = newCatIndex
-          dI.categorySet?.setDragCategory(dI.catName, newCatIndex)
+          // Get the category set dynamically to avoid confusion between provisional and actual categorySet
+          const categorySet = dataConfig?.categorySetForAttrRole(axisPlaceToAttrRole[axisPlace])
+          categorySet?.setDragCategory(dI.catName, newCatIndex)
           dI.currentDragPositionCatName = catToMoveBefore
           categoriesRef.current = getCategoryArray()
         } else {
@@ -150,20 +152,22 @@ export const useSubAxis = ({
         }
         dI.currentDragPosition = newDragPosition
       }
-    }, [renderSubAxis, getCategoryArray]),
+    }, [dataConfig, axisPlace, getCategoryArray, renderSubAxis]),
 
     onDragEnd = useCallback(() => {
       const dI = dragInfo.current
       const indexDidChange = dI.indexOfCategory >= 0 && dI.indexOfCategory !== dI.initialIndexOfCategory
       dI.initialIndexOfCategory = -1
       dI.indexOfCategory = -1 // so dragInfo won't influence category placement
-      dI.categorySet?.setDragCategory() // reset drag category
+      // Get the category set dynamically to avoid confusion between provisional and actual categorySet
+      const categorySet = dataConfig?.categorySetForAttrRole(axisPlaceToAttrRole[axisPlace])
+      categorySet?.setDragCategory() // reset drag category
 
       if (indexDidChange) {
         stopAnimation() // disable animation for final placement
 
         displayModel?.applyModelChange(() => {
-          dI.categorySet?.move(dI.catName, dI.currentDragPositionCatName)
+          categorySet?.move(dI.catName, dI.currentDragPositionCatName)
         }, {
           undoStringKey: "DG.Undo.graph.swapCategories",
           redoStringKey: "DG.Redo.graph.swapCategories",
@@ -174,7 +178,7 @@ export const useSubAxis = ({
       }
 
       renderSubAxis()
-    }, [displayModel, renderSubAxis, stopAnimation]),
+    }, [axisPlace, dataConfig, displayModel, renderSubAxis, stopAnimation]),
 
     dragBehavior = useMemo(() => drag()
       .on("start", onDragStart)

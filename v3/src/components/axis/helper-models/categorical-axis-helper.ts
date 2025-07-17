@@ -45,7 +45,6 @@ export class CategoricalAxisHelper extends AxisHelper {
   render() {
     if (!(this.subAxisSelectionRef.current && this.categoriesSelectionRef.current)) return
     const {isVertical, centerCategoryLabels, dragInfo, isColorAxis} = this,
-      categorySet = this.multiScale?.categorySet,
       dividerLength = this.layout.getAxisLength(otherPlace(this.axisPlace)) ?? 0,
       maxCategoryLabelExtent = this.layout.getDesiredExtent(this.axisPlace) - 4 * kAxisGap -
                                         kAxisTickLength - getStringBounds().height,
@@ -63,7 +62,6 @@ export class CategoricalAxisHelper extends AxisHelper {
 
     // Fill out dragInfo for use in drag callbacks
     const dI = dragInfo.current
-    dI.categorySet = categorySet
     dI.categories = categories
     dI.bandwidth = bandWidth
     dI.axisOrientation = isVertical ? 'vertical' : 'horizontal'
