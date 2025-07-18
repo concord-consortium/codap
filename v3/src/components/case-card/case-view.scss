@@ -30,14 +30,6 @@
 
   &.animating {
     transition: left 0.25s ease-in-out;
-
-    &.flipping-left {
-      left: -400px;
-    }
-
-    &.flipping-right {
-      left: 400px;
-    }
   }
 
   &:first-child {

@@ -1,6 +1,7 @@
 import { Portal } from "@chakra-ui/react"
 import React, { useCallback } from "react"
 import ResizeHandle from "../../assets/icons/icon-corner-resize-handle.svg"
+import { useFreeTileLayoutContext } from "../../hooks/use-free-tile-layout-context"
 import { useTileContainerContext } from "../../hooks/use-tile-container-context"
 import { IFreeTileLayout } from "../../models/document/free-tile-row"
 import { ITileModel } from "../../models/tiles/tile-model"
@@ -9,14 +10,14 @@ import { ComponentResizeBorder } from "../component-resize-border"
 
 interface IProps {
   tile: ITileModel
-  tileLayout?: IFreeTileLayout
   componentRef: React.RefObject<HTMLDivElement | null>
   isFixedWidth?: boolean
   isFixedHeight?: boolean
   handleResizePointerDown: (e: React.PointerEvent, _tileLayout: IFreeTileLayout, direction: string) => void
 }
 export function ComponentResizeWidgets(props: IProps) {
-  const { tile, tileLayout, componentRef, isFixedWidth, isFixedHeight, handleResizePointerDown } = props
+  const { tile, componentRef, isFixedWidth, isFixedHeight, handleResizePointerDown } = props
+  const tileLayout = useFreeTileLayoutContext()
   const containerRef = useTileContainerContext()
 
   const handleBottomRightPointerDown = useCallback((e: React.PointerEvent) => {

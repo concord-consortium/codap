@@ -1,20 +1,21 @@
 import { clsx } from "clsx"
-import React, { useCallback, useEffect, useRef, useState } from "react"
 import { observer } from "mobx-react-lite"
-import { IGroupedCase } from "../../models/data/data-set-types"
-import { ICollectionModel } from "../../models/data/collection"
-import { CaseAttrsView } from "./case-attrs-view"
-import { useCaseCardModel } from "./use-case-card-model"
+import React, { useCallback, useEffect, useRef, useState } from "react"
+import { colorCycleClass } from "../case-tile-common/case-tile-utils"
 import { CollectionContext, ParentCollectionContext, useCollectionContext } from "../../hooks/use-collection-context"
-import { t } from "../../utilities/translation/translate"
+import { useFreeTileLayoutContext } from "../../hooks/use-free-tile-layout-context"
 import { IAttribute } from "../../models/data/attribute"
+import { ICollectionModel } from "../../models/data/collection"
+import { IDataSet } from "../../models/data/data-set"
+import { IGroupedCase } from "../../models/data/data-set-types"
 import { createAttributesNotification } from "../../models/data/data-set-notifications"
 import { uiState } from "../../models/ui-state"
 import { uniqueName } from "../../utilities/js-utils"
-import { IDataSet } from "../../models/data/data-set"
-import { colorCycleClass } from "../case-tile-common/case-tile-utils"
+import { t } from "../../utilities/translation/translate"
+import { CaseAttrsView } from "./case-attrs-view"
 import { CaseCardCollectionSpacer } from "./case-card-collection-spacer"
 import { CaseCardHeader } from "./case-card-header"
+import { useCaseCardModel } from "./use-case-card-model"
 
 import AddIcon from "../../assets/icons/add-data-icon.svg"
 
@@ -31,6 +32,7 @@ interface ICaseViewProps {
 export const CaseView = observer(function InnerCaseView(props: ICaseViewProps) {
   const {cases, level, onSelectCases, onNewCollectionDrop, displayedCaseLineage = []} = props
   const cardModel = useCaseCardModel()
+  const tileLayout = useFreeTileLayoutContext()
   const data = cardModel?.data
   const collectionCount = data?.collections.length ?? 1
   const collectionId = useCollectionContext()
@@ -104,15 +106,16 @@ export const CaseView = observer(function InnerCaseView(props: ICaseViewProps) {
     "case-card-view",
     colorCycleClass(level, collectionCount),
     {
-      "animating": isAnimating,
-      "flipping-left": !isFlippingRight,
-      "flipping-right": isFlippingRight
+      "animating": isAnimating
     }
   )
+  const tileWidth = tileLayout?.width ?? 0
+  const left = !isAnimating ? 0 : isFlippingRight ? `${tileWidth}px` : `-${tileWidth}px`
+  const style = { left }
   return (
     <>
       <CaseCardCollectionSpacer onDrop={handleNewCollectionDrop} collectionId={collectionId}/>
-      <div className={classes} data-testid="case-card-view">
+      <div className={classes} data-testid="case-card-view" style={style}>
         <CaseCardHeader cases={cases} level={level}/>
         <div className="case-card-attributes">
           <button className="add-attribute" onClick={handleAddNewAttribute} data-testid="add-attribute-button">
