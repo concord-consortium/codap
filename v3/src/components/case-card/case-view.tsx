@@ -1,4 +1,5 @@
-import React, { useCallback } from "react"
+import { clsx } from "clsx"
+import React, { useCallback, useEffect, useRef, useState } from "react"
 import { observer } from "mobx-react-lite"
 import { IGroupedCase } from "../../models/data/data-set-types"
 import { ICollectionModel } from "../../models/data/collection"
@@ -37,6 +38,27 @@ export const CaseView = observer(function InnerCaseView(props: ICaseViewProps) {
   const initialSelectedCase = collection?.cases.find(c => c.__id__ === displayedCaseLineage[level])
   const displayedCase = initialSelectedCase ?? cases[0]
   const displayedCaseId = displayedCase?.__id__
+  const displayedCaseIndex = collection?.getCaseIndex(displayedCaseId) ?? -1
+
+  // FIXME: This should handle all selected cases
+  const previousSelectedCaseIndex = useRef<number | undefined>(undefined)
+  const [isAnimating, setIsAnimating] = useState(false)
+  const [isFlippingRight, setIsFlippingRight] = useState(false)
+
+  useEffect(() => {
+    if (isAnimating) return
+
+    if (previousSelectedCaseIndex.current == null) {
+      previousSelectedCaseIndex.current = displayedCaseIndex
+    } else if (previousSelectedCaseIndex.current !== displayedCaseIndex) {
+      setIsFlippingRight(previousSelectedCaseIndex.current < displayedCaseIndex)
+      setIsAnimating(true)
+      setTimeout(() => {
+        setIsAnimating(false)
+        previousSelectedCaseIndex.current = displayedCaseIndex
+      }, 250)
+    }
+  }, [displayedCaseIndex, isAnimating])
 
   const handleNewCollectionDrop = useCallback((dataSet: IDataSet, attrId: string, collId: string) => {
     const attr = dataSet.attrFromID(attrId)
@@ -78,10 +100,19 @@ export const CaseView = observer(function InnerCaseView(props: ICaseViewProps) {
     )
   }
 
+  const classes = clsx(
+    "case-card-view",
+    colorCycleClass(level, collectionCount),
+    {
+      "animating": isAnimating,
+      "flipping-left": !isFlippingRight,
+      "flipping-right": isFlippingRight
+    }
+  )
   return (
     <>
       <CaseCardCollectionSpacer onDrop={handleNewCollectionDrop} collectionId={collectionId}/>
-      <div className={`case-card-view fadeIn ${colorCycleClass(level, collectionCount)}`} data-testid="case-card-view">
+      <div className={classes} data-testid="case-card-view">
         <CaseCardHeader cases={cases} level={level}/>
         <div className="case-card-attributes">
           <button className="add-attribute" onClick={handleAddNewAttribute} data-testid="add-attribute-button">
