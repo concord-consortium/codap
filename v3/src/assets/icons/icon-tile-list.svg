@@ -1,7 +1,7 @@
 <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
     <g fill="none">
         <path d="M0 0h24v24H0z"/>
-        <path d="M13 9V3h8v6h-8zM3 13V3h8v10H3zm10 8V11h8v10h-8zM3 21v-6h8v6H3z" fill="#006C8E"/>
-        <path d="M5 11h4V5H5v6zm10 8h4v-6h-4v6zm0-12h4V5h-4v2zM5 19h4v-2H5v2z" fill="#D3F4FF"/>
+        <path d="M2.5 21.5V15H11v6.5H2.5zm10.5 0V11h8.5v10.5H13zM13 9V2.5h8.5V9H13zM2.5 13V2.5H11V13H2.5z" fill="#006C8E"/>
+        <path d="M15 19.5h4.5V13H15v6.5zm-10.5 0H9V17H4.5v2.5zM15 7h4.5V4.5H15V7zM4.5 11H9V4.5H4.5V11z" fill="#D3F4FF"/>
     </g>
 </svg>

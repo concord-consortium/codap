@@ -60,7 +60,7 @@ export const TilesListShelfButton = observer(function TilesListShelfButton() {
                   onFocus={()=>handleFocus(tile.id)} // Handle focus similar to pointer over
                   onBlur={()=>handleBlur(tile.id)} // Handle blur similar to pointer leave
               >
-                <Icon className={`tile-list-menu-icon ${iconClass}`} data-testid="tile-list-menu-icon"/>
+                <Icon className={`menu-icon ${iconClass}`} data-testid="tile-list-menu-icon"/>
                 {title}
               </MenuItem>
             )
