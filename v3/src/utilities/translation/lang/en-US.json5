@@ -206,6 +206,7 @@
     "DG.mainPage.mainPane.messageView.value": "Unfortunately, CODAP is not currently supported on your browser. CODAP is supported on Firefox 46+, Chrome 50+, Windows Edge 14+, and Safari 10+. CODAP is not actively supported on other browsers at this time.",
     "DG.mainPage.titleBar.saved": "Document Saved!",
     "DG.mainPage.exceptionMessage": "An error has occurred that may affect how this program behaves. You may wish to reload this page after you save your work. (Error: %@)",
+    "DG.mainPage.repeatExceptionMessage": "The same error has occurred again and will probably keep happening. Use the file menu to save your work, and then reload the page.",
 
     // IS_BUILD variants of strings for InquirySpace
     "DG.mainPage.mainPane.versionString.IS_BUILD": "Version %@ (%@ IS)",
@@ -343,6 +344,8 @@
     "DG.ToolButtonData.help.toolTip": "Help for CODAP, learn about CODAP project",
     "DG.ToolButtonData.pluginMenu.title": "Plugins",
     "DG.ToolButtonData.pluginMenu.toolTip": "Open a plugin component",
+    "DG.ToolButtonData.errorTesterButton.title": "ErrTest",
+    "DG.ToolButtonData.errorTesterButton.toolTip": "Make an error tester",
 
     // DG.Slider
     "DG.Slider.multiples": "Restrict to Multiples of:",
@@ -654,6 +657,8 @@
     "DG.Redo.webView.show": "Redo adding webView component",
     "DG.Undo.imageComponent.show": "Undo adding image component",
     "DG.Redo.imageComponent.show": "Redo adding image component",
+    "DG.Undo.errorTester.create": "Undo adding error tester",
+    "DG.Redo.errorTester.create": "Redo adding error tester",
 
     // DG.DataContext
     "DG.DataContext.singleCaseName": "case",

@@ -33,12 +33,13 @@ import { isDateString } from "../../utilities/date-parser"
 import { DatePrecision } from "../../utilities/date-utils"
 import { extractNumeric } from "../../utilities/math-utils"
 import { cachedFnFactory } from "../../utilities/mst-utils"
+import { isDevelopment, isProduction } from "../../utilities/environment-utils"
 import { isBoundaryString, kPolygonNames } from "../boundaries/boundary-types"
 import { Formula, IFormula } from "../formula/formula"
 import { applyModelChange } from "../history/apply-model-change"
 import { withoutUndo } from "../history/without-undo"
 import {
-  AttributeType, attributeTypes, importValueToString, isDevelopment, isProduction, IValueType
+  AttributeType, attributeTypes, importValueToString, IValueType
 } from "./attribute-types"
 import { V2Model } from "./v2-model"
 

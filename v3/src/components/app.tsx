@@ -1,6 +1,7 @@
 import { useDisclosure } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
 import React, { useCallback, useEffect, useState } from "react"
+import { ErrorBoundary, FallbackProps } from "react-error-boundary"
 import { CfmContext } from "../hooks/use-cfm-context"
 import { DocumentContentContext } from "../hooks/use-document-content"
 import {useDropHandler} from "../hooks/use-drop-handler"
@@ -24,6 +25,7 @@ import { getSharedModelManager } from "../models/tiles/tile-environment"
 import { registerTileTypes } from "../register-tile-types"
 import { importSample, sampleData } from "../sample-data"
 import { urlParams } from "../utilities/url-params"
+import { t } from "../utilities/translation/translate"
 import { kCodapAppElementId, kUserEntryDropOverlay } from "./constants"
 import { Container } from "./container/container"
 import { MenuBar, kMenuBarElementId } from "./menu-bar/menu-bar"
@@ -45,6 +47,8 @@ FilterFormulaAdapter.register()
 setDataSetNotificationAdapter(V2DataSetNotificationAdapter)
 
 registerTileTypes([])
+
+const errorBoundaryErrors: { time: number, message: string }[] = []
 
 export const App = observer(function App() {
   useKeyStates()
@@ -168,21 +172,55 @@ export const App = observer(function App() {
 
     initialize()
   }, [cfmReadyPromise, onCloseUserEntry, onOpenUserEntry])
+
+  const fallbackRender = useCallback(({ error, resetErrorBoundary }: FallbackProps) => {
+    errorBoundaryErrors.push({ time: Date.now(), message: error.message })
+
+    // Because a component has to throw two errors before the error boundary is really
+    // used, we make sure the length is greater than 2 before showing the message.
+    // about the error being seen again.
+    if (errorBoundaryErrors.length > 2 &&
+      error.message === errorBoundaryErrors[errorBoundaryErrors.length - 2].message) {
+
+      // If the error is the same as the last one, don't reset it.
+      // FIXME: looking for the same error message is hacky. If the error message changes slightly,
+      // or multiple errors are thrown in sequence, the user will get stuck in a loop seeing the
+      // dialog message. We could loop for patterns in the error messages. Or we could look to see if
+      // the error is thrown immediately after the alert is dismissed.
+      return (
+        <div className="codap-repeat-error">
+          {t("DG.mainPage.repeatExceptionMessage")}
+        </div>
+      )
+    } else {
+      appState.alert(t("DG.mainPage.exceptionMessage", {vars: [error.message]}), "Error", () => {
+        resetErrorBoundary()
+      })
+      return (
+        <div></div>
+      )
+    }
+  }, [])
+
   return (
     <CodapDndContext>
       <DocumentContentContext.Provider value={appState.document.content}>
         <CfmContext.Provider value={cfm}>
           <div className="codap-app" data-testid="codap-app">
             <MenuBar/>
-            <ToolShelf document={appState.document}/>
-            <Container/>
+            <ErrorBoundary fallbackRender={fallbackRender}>
+              <ToolShelf document={appState.document}/>
+              <Container/>
+            </ErrorBoundary>
           </div>
           {isOpenUserEntry &&
-            <div id={`${kUserEntryDropOverlay}`} className={`${isOpenUserEntry && isDragOver ? "show-highlight" : ""}`}>
-            <UserEntryModal
-              isOpen={isOpenUserEntry}
-              onClose={onCloseUserEntry}
-            />
+            <div id={`${kUserEntryDropOverlay}`}
+              className={`${isOpenUserEntry && isDragOver ? "show-highlight" : ""}`}
+            >
+              <UserEntryModal
+                isOpen={isOpenUserEntry}
+                onClose={onCloseUserEntry}
+              />
             </div>
           }
         </CfmContext.Provider>
