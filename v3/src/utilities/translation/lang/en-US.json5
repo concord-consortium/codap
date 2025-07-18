@@ -206,6 +206,7 @@
     "DG.mainPage.mainPane.messageView.value": "Unfortunately, CODAP is not currently supported on your browser. CODAP is supported on Firefox 46+, Chrome 50+, Windows Edge 14+, and Safari 10+. CODAP is not actively supported on other browsers at this time.",
     "DG.mainPage.titleBar.saved": "Document Saved!",
     "DG.mainPage.exceptionMessage": "An error has occurred that may affect how this program behaves. You may wish to reload this page after you save your work. (Error: %@)",
+    "DG.mainPage.repeatExceptionMessage": "The same error has occurred again and will probably keep happening. Use the file menu to save your work, and then reload the page.",
 
     // IS_BUILD variants of strings for InquirySpace
     "DG.mainPage.mainPane.versionString.IS_BUILD": "Version %@ (%@ IS)",

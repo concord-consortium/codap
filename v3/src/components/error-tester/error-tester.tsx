@@ -2,10 +2,19 @@ import React from "react"
 import { ITileBaseProps } from "../tiles/tile-base-props"
 import { isErrorTesterModel } from "./error-tester-model"
 import { urlParams } from "../../utilities/url-params"
+import { isDevelopment } from "../../utilities/environment-utils"
+
+let renderCount = 0
+
+// See react-render-errors.md on why this component throws multiple errors depending on
+// the environment.
+const numErrorsThrownOnFirstDisplay = isDevelopment() ? 4 : 2
 
 /**
  * This component is used to test error handling.
- * It throws an error when rendered if the `errorTester` URL parameter is set to "render".
+ * If the URL has `errorTester=render`, it throws an error every time when rendered
+ * If the URL has `errorTester=firstDisplay` it throws a fixed number of errors to test
+ * the behavior of the error boundary.
  * It throws an error when clicked.
  * It can also be used to test what happens when a tile is loaded that isn't registered:
  * - set the `errorTester` URL parameter to "none" so the errorTester can be added to the document
@@ -22,6 +31,11 @@ export const ErrorTesterComponent = ({ tile }: ITileBaseProps) => {
 
   if (urlParams.errorTester === "render") {
     throw new Error("Error Tester Component: example error on render")
+  }
+
+  renderCount++
+  if (urlParams.errorTester === "firstDisplay" && renderCount <= numErrorsThrownOnFirstDisplay) {
+    throw new Error(`Error Tester Component: example error on first render ${renderCount}`)
   }
 
   const handleClick = () => {

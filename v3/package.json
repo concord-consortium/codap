@@ -234,6 +234,7 @@
     "react-data-grid": "7.0.0-beta.44",
     "react-dom": "^18.3.1",
     "react-dom-factories": "^1.0.2",
+    "react-error-boundary": "^6.0.0",
     "react-leaflet": "^4.2.1",
     "react-resize-detector": "^12.1.0",
     "regenerator-runtime": "^0.14.1",
