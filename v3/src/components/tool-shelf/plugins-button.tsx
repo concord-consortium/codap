@@ -20,6 +20,7 @@ const standardPlugins = _standardPlugins as PluginMenuConfig
 const combinedPlugins = [...standardPlugins, ...debugPlugins]
 
 import "./plugins-button.scss"
+import "./tool-shelf.scss"
 
 interface IPluginItemProps {
   pluginData: PluginData | null
@@ -75,7 +76,7 @@ export function PluginsButton() {
         <PluginsIcon />
         <ToolShelfButtonTag className="tool-shelf-tool-label plugins" label={t("DG.ToolButtonData.pluginMenu.title")} />
       </MenuButton>
-      <MenuList>
+      <MenuList className="tool-shelf-menu-list" data-testid="plugins-menu">
         {
           pluginItems.length
             ? pluginItems.map((pd, i) => <PluginItem key={pd?.title ?? `divider-${i}`} pluginData={pd} />)
