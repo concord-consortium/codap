@@ -1,5 +1,6 @@
 import React from "react"
 import { Menu, MenuButton, MenuDivider, MenuItem, MenuList } from "@chakra-ui/react"
+import "../../utilities/plugin-icons"
 import PluginsIcon from '../../assets/icons/icon-plugins.svg'
 import { kRootPluginsUrl } from "../../constants"
 import { useRemotePluginsConfig } from "../../hooks/use-remote-plugins-config"
@@ -51,7 +52,8 @@ function PluginItem({ pluginData }: IPluginItemProps) {
       onClick={handleClick}
     >
       <div className="plugin-selection">
-        <img className="plugin-selection-icon" src={`${kRootPluginsUrl}${pluginData.icon}`} />
+        <img className="plugin-selection-icon"
+              src={`${standardPlugins.includes(pluginData) ? "" : kRootPluginsUrl}${pluginData.icon}`} />
         <span className="plugin-selection-title">{pluginData.title}</span>
       </div>
     </MenuItem>

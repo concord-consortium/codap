@@ -10,12 +10,6 @@
     // This puts CFM menus and dialogs above all components, resize handles, etc.
     z-index: 20;
 
-    .menu-bar {
-      // center hamburger menu button
-      .menu-anchor {
-        margin-top: 5px;
-      }
-    }
     .modal-dialog {
       // default border for input elements
       input {
