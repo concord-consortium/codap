@@ -4,7 +4,7 @@ import HelpIcon from "../../assets/icons/icon-help.svg"
 import { useDocumentContent } from "../../hooks/use-document-content"
 import { gLocale } from "../../utilities/translation/locale"
 import { t } from "../../utilities/translation/translate"
-import { kRightButtonBackground, ToolShelfButtonTag } from "./tool-shelf-button"
+import { ToolShelfButtonTag } from "./tool-shelf-button"
 import { showWebView } from "./tool-shelf-utilities"
 
 import "./tool-shelf.scss"
@@ -36,14 +36,13 @@ export const HelpShelfButton = () => {
     <>
       <Menu isLazy>
         <MenuButton
-          className="tool-shelf-button help"
+          className="tool-shelf-button tool-shelf-menu help"
           title={t("DG.ToolButtonData.help.toolTip")}
           data-testid="tool-shelf-button-help"
         >
           <HelpIcon />
           <ToolShelfButtonTag
-            bg={kRightButtonBackground}
-            className="web-view"
+            className="tool-shelf-tool-label web-view"
             label={t("DG.ToolButtonData.help.title")}
           />
         </MenuButton>

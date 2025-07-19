@@ -5,7 +5,7 @@ import { useDocumentContent } from "../../hooks/use-document-content"
 import { uiState } from "../../models/ui-state"
 import { isFreeTileLayout } from "../../models/document/free-tile-row"
 import { t } from "../../utilities/translation/translate"
-import { kRightButtonBackground, ToolShelfButtonTag } from "./tool-shelf-button"
+import { ToolShelfButtonTag } from "./tool-shelf-button"
 import { getTileComponentIcon } from "../../models/tiles/tile-component-info"
 import { getTileContentInfo } from "../../models/tiles/tile-content-info"
 import WebViewIcon from "../../assets/icons/icon-media-tool.svg"
@@ -36,18 +36,17 @@ export const TilesListShelfButton = observer(function TilesListShelfButton() {
     <>
       <Menu isLazy autoSelect={false}>
         <MenuButton
-          className="tool-shelf-button tiles-list-menu"
+          className="tool-shelf-button tool-shelf-menu tiles-list-menu"
           title={t("DG.ToolButtonData.tileListMenu.toolTip")}
           data-testid="tool-shelf-button-tiles"
         >
           <TileListIcon />
           <ToolShelfButtonTag
-            bg={kRightButtonBackground}
-            className="tiles-list"
+            className="tool-shelf-tool-label tiles-list"
             label={t("DG.ToolButtonData.tileListMenu.title")}
           />
         </MenuButton>
-        <MenuList data-testid="tiles-list-menu" >
+        <MenuList className="tool-shelf-menu-list" data-testid="tiles-list-menu" >
           {tilesArr?.map((tile) => {
             const tileType = tile.content.type
             const _Icon = getTileComponentIcon(tileType)
@@ -56,12 +55,12 @@ export const TilesListShelfButton = observer(function TilesListShelfButton() {
             const tileInfo = getTileContentInfo(tileType)
             const title = tileInfo?.getTitle(tile)
             return (
-              <MenuItem key={tile?.id} data-testid="tiles-list-menu-item"
+              <MenuItem key={tile?.id} data-testid="tiles-list-menu-item" className="tool-shelf-menu-item"
                   onClick={()=>handleSelectTile(tile.id) }
                   onFocus={()=>handleFocus(tile.id)} // Handle focus similar to pointer over
                   onBlur={()=>handleBlur(tile.id)} // Handle blur similar to pointer leave
               >
-                <Icon className={`tile-list-menu-icon ${iconClass}`} data-testid="tile-list-menu-icon"/>
+                <Icon className={`menu-icon ${iconClass}`} data-testid="tile-list-menu-icon"/>
                 {title}
               </MenuItem>
             )

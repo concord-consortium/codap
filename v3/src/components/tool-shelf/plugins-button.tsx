@@ -1,6 +1,7 @@
 import React from "react"
 import { Menu, MenuButton, MenuDivider, MenuItem, MenuList } from "@chakra-ui/react"
-import PluginsIcon from '../../assets/icons/icon-plug.svg'
+import "../../utilities/plugin-icons"
+import PluginsIcon from '../../assets/icons/icon-plugins.svg'
 import { kRootPluginsUrl } from "../../constants"
 import { useRemotePluginsConfig } from "../../hooks/use-remote-plugins-config"
 import { useDocumentContent } from "../../hooks/use-document-content"
@@ -19,6 +20,7 @@ const standardPlugins = _standardPlugins as PluginMenuConfig
 const combinedPlugins = [...standardPlugins, ...debugPlugins]
 
 import "./plugins-button.scss"
+import "./tool-shelf.scss"
 
 interface IPluginItemProps {
   pluginData: PluginData | null
@@ -51,7 +53,8 @@ function PluginItem({ pluginData }: IPluginItemProps) {
       onClick={handleClick}
     >
       <div className="plugin-selection">
-        <img className="plugin-selection-icon" src={`${kRootPluginsUrl}${pluginData.icon}`} />
+        <img className="plugin-selection-icon"
+              src={`${standardPlugins.includes(pluginData) ? "" : kRootPluginsUrl}${pluginData.icon}`} />
         <span className="plugin-selection-title">{pluginData.title}</span>
       </div>
     </MenuItem>
@@ -66,14 +69,14 @@ export function PluginsButton() {
   return (
     <Menu isLazy>
       <MenuButton
-        className="tool-shelf-button plugins"
+        className="tool-shelf-button tool-shelf-menu plugins"
         title={t("DG.ToolButtonData.optionMenu.toolTip")}
         data-testid="tool-shelf-button-plugins"
       >
         <PluginsIcon />
-        <ToolShelfButtonTag className="plugins" label={t("DG.ToolButtonData.pluginMenu.title")} />
+        <ToolShelfButtonTag className="tool-shelf-tool-label plugins" label={t("DG.ToolButtonData.pluginMenu.title")} />
       </MenuButton>
-      <MenuList>
+      <MenuList className="tool-shelf-menu-list" data-testid="plugins-menu">
         {
           pluginItems.length
             ? pluginItems.map((pd, i) => <PluginItem key={pd?.title ?? `divider-${i}`} pluginData={pd} />)

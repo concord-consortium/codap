@@ -1,77 +1,56 @@
 @use "../vars";
 $deleteModalBackground: #EEE;
 $deleteButton: #4B8ADD;
+$tool-shelf-border-width: 1px;
 
 .tool-shelf {
   height: vars.$tool-shelf-height;
   width: 100%;
-  background-color: vars.$codap-tool-shelf-gray;
-  border-bottom: 1px solid #dcdbd8;
-  box-shadow: 0 0 0 1px #888888!important;
+  background-color: white;
+  border-bottom: $tool-shelf-border-width solid #a6a6a6;
+  box-shadow: 0 0 6px 0 rgba(0, 0, 0, 0.25) !important;
   display: flex;
   flex-direction: row;
   align-items: center;
-
-  .tool-shelf-component-buttons {
-    background-color: white;
-
-    .case-table-icon {
-      width: 20px;
-      height: 15px;
-      margin-right: 8px;
-    }
-  }
-
-  .tool-shelf-right-buttons {
-    background-color: vars.$codap-tool-shelf-gray;
-
-    .tool-shelf-button {
-      // override CFM styles issue
-      &.menu {
-        padding: 0;
-      }
-
-      > span {
-        align-items: center;
-        display: flex;
-        flex-direction: column;
-      }
-
-      &.undo-button, &.redo-button {
-        width: 34px;
-      }
-      // separate undo/redo buttons from other buttons
-      &.redo-button {
-        margin-left: -1px;
-        margin-right: 12px;
-      }
-
-      svg {
-        height: 24px;
-        // separate label from icon
-        margin-bottom: 1px;
-
-        &.icon-tile-list {
-          width: 33px;
-        }
-      }
-    }
-  }
+  box-sizing: border-box;
+  position: relative;
+  z-index: 5;
 
   .tool-shelf-component-buttons, .tool-shelf-right-buttons {
-    height: vars.$tool-shelf-height;
-    border-right: solid #888888;
+    display: flex;
+    flex-direction: row;
     align-items: center;
-    padding: 0 5px;
 
     .tool-shelf-button {
-      height: 40px;
-      width: 40px;
+      height: calc(vars.$tool-shelf-height - $tool-shelf-border-width);
+      width: fit-content;
       display: flex;
       flex-direction: column;
-      justify-items: center;
+      justify-content: center;
       align-items: center;
-      margin: 10px 3px 0 3px;
+      background-color: white;
+
+      // When toolshelf button is a menu button, it has a span wrapper
+      // This overrides wrapping span styles
+      &.tool-shelf-menu {
+        > span {
+          align-items: center;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+
+          svg {
+            height: 30px;
+            width: 30px;
+            margin: 0 10px
+          }
+          > .tool-shelf-tool-label {
+            background-color: transparent;
+            padding-inline-start: 0;
+            padding-inline-end: 0;
+          }
+        }
+      }
 
       &:disabled {
         opacity: 0.5;
@@ -79,17 +58,40 @@ $deleteButton: #4B8ADD;
         cursor: not-allowed;
       }
       &:hover:not(:disabled) {
-        box-shadow: 1px 1px 1px rgb(0, 0, 0, 0.5) !important;
+        background-color: vars.$icon-fill-light;
       }
       &:active:not(:disabled) {
-        box-shadow: 2px 2px 2px rgb(0, 0, 0, 0.5) !important;
+        background-color: #bfefff;
       }
+      &.redo-button {
+        .icon-redo {
+          transform: scaleX(-1);
+        }
+      }
+      .tool-shelf-button-icon-wrapper {
+        max-height: 40px;
+        width: 40px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        svg {
+          height: 30px;
+          width: 30px;
+        }
+      }
+
       .tool-shelf-tool-label {
-        font-family: "museo-sans", sans-serif;
-        font-size: 11px;
+        font-family: "roboto", sans-serif;
         font-weight: 500;
-        padding: 0;
-        min-height: 6px;
+        font-size: 14px;
+        letter-spacing: vars.$letter-spacing;
+        color: vars.$label-color;
+        background-color: white;
+        height: 16px;
+        margin: 0 10px;
+        background-color: transparent;
+        padding-inline-start: 0;
+        padding-inline-end: 0;
 
         &.menu {
           background-color: white;
@@ -100,16 +102,44 @@ $deleteButton: #4B8ADD;
 }
 
 .tool-shelf-span {
-  margin-top: 0!important;
+  margin-top: 0 !important;
+}
+
+.tool-shelf-menu-list {
+  padding: 10px !important;
+  transform: translate3d(0px, -10px, 0px) !important;
+}
+
+.tool-shelf-menu-item {
+  display: flex;
+  align-items: center;
+  padding: 4px 8px;
+  font-family: 'roboto', sans-serif;
+  font-size: 14px !important;
+  color: #222;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #f0f0f0;
+  }
+
+  &:active {
+    background-color: #e0e0e0;
+  }
+
+  .menu-icon {
+    height: 16px;
+    width: 16px;
+    margin-right: 4px;
+  }
 }
 
 .tool-shelf-menu-trash-icon {
   background-color: white;
-  right: 6px;
-  position: absolute;
   height: 11px;
   width: 11px;
   fill: black;
+  margin-left: 4px;
 }
 
 .delete-data-set-modal-body {
@@ -156,10 +186,4 @@ $deleteButton: #4B8ADD;
       background-color: #4B8ABD;
     }
   }
-}
-
-.tile-list-menu-icon {
-  height: 15px;
-  max-width: 20px;
-  margin-right: 5px;
 }

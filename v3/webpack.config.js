@@ -71,6 +71,9 @@ module.exports = (env, argv) => {
           warnings: false,
         },
       },
+      // static: {
+      //   directory: path.resolve(__dirname, 'public'),
+      // },
     },
     devtool: devMode ? 'eval-cheap-module-source-map' : 'source-map',
     entry: './src/index.tsx',
@@ -171,6 +174,14 @@ module.exports = (env, argv) => {
             filename: 'assets/images/[name].[contenthash:6][ext]'
           }
         },
+        {
+          test: /\.nosvgr\.svg$/i,
+          include: path.resolve(__dirname, 'src/assets/plugins'),
+          type: 'asset/resource',
+          generator: {
+            filename: 'assets/plugins/[name][ext]'
+          }
+        },
         { // disable svgo optimization for files ending in .nosvgo.svg
           test: /\.nosvgo\.svg$/i,
           loader: '@svgr/webpack',
@@ -179,8 +190,16 @@ module.exports = (env, argv) => {
           }
         },
         {
+          test: /\.nosvgr\.svg$/i,
+          exclude: path.resolve(__dirname, 'src/assets/plugins'),
+          type: 'asset/resource',
+          generator: {
+            filename: 'assets/cfm/[name].[contenthash:6][ext]'
+          }
+        },
+        {
           test: /\.svg$/i,
-          exclude: /\.nosvgo\.svg$/i,
+          exclude: /\.nosvg[or]\.svg$/i,
           oneOf: [
             {
               // Do not apply SVGR import in CSS files.

@@ -71,27 +71,28 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
   }
   return (
     <>
-      <MenuList>
+      <MenuList className="tool-shelf-menu-list" data-testid="tool-shelf-table-menu-list">
         {datasets.map((dataset) => {
           // case table title reflects DataSet title
           const tileTitle = dataset.dataSet.title
           return (
             // FIXME: this will create multiple undo entries
-            <MenuItem key={`${dataset.dataSet.id}`} onClick={()=>createOrShowTableOrCardForDataset(dataset)}
-              data-testid={`tool-shelf-table-${tileTitle}`}>
-              <TableIcon className="case-table-icon"/>
+            <MenuItem key={`${dataset.dataSet.id}`} className="tool-shelf-menu-item"
+              onClick={()=>createOrShowTableOrCardForDataset(dataset)} data-testid={`tool-shelf-table-${tileTitle}`}>
+              <TableIcon className="menu-icon case-table-icon"/>
               {tileTitle}
               <TrashIcon className="tool-shelf-menu-trash-icon"
                   onClick={() => handleOpenRemoveDataSetModal(dataset.dataSet.id)} />
             </MenuItem>
           )
         })}
-        <MenuItem data-testid="tool-shelf-table-new-clipboard" isDisabled={true}>
-          <TableIcon className="case-table-icon"/>
+        <MenuItem data-testid="tool-shelf-table-new-clipboard" isDisabled={true} className="tool-shelf-menu-item">
+          <TableIcon className="menu-icon case-table-icon"/>
           {`${t("DG.AppController.caseTableMenu.clipboardDataset")} 🚧`}
         </MenuItem>
-        <MenuItem onClick={handleCreateNewCaseTable} data-testid="tool-shelf-table-new">
-          <TableIcon className="case-table-icon"/>
+        <MenuItem data-testid="tool-shelf-table-new" className="tool-shelf-menu-item"
+            onClick={handleCreateNewCaseTable}>
+          <TableIcon className="menu-icon case-table-icon"/>
           {t("DG.AppController.caseTableMenu.newDataSet")}
         </MenuItem>
       </MenuList>
@@ -106,10 +107,11 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
 export const CaseTableToolShelfButton = () => {
   return (
     <Menu isLazy>
-      <MenuButton className="tool-shelf-button table" title={`${t("DG.ToolButtonData.tableButton.toolTip")}`}
+      <MenuButton className="tool-shelf-button tool-shelf-menu table"
+          title={`${t("DG.ToolButtonData.tableButton.toolTip")}`}
           data-testid={"tool-shelf-button-table"}>
         <TableIcon />
-        <ToolShelfButtonTag className="table" label={t("DG.ToolButtonData.tableButton.title")} />
+        <ToolShelfButtonTag className="tool-shelf-tool-label table" label={t("DG.ToolButtonData.tableButton.title")} />
       </MenuButton>
       <CaseTableToolShelfMenuList />
     </Menu>
