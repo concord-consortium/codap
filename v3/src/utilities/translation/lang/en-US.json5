@@ -176,6 +176,7 @@
     "V3.Redo.graph.removeRegionOfInterest": "Redo hiding region of interest",
 
     // CFM/File menu
+    "DG.fileMenu.fileMenuName": "File",
     "DG.fileMenu.menuItem.newDocument": "New",
     "DG.fileMenu.menuItem.openDocument": "Open...",
     "DG.fileMenu.menuItem.closeDocument": "Close",
