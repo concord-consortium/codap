@@ -69,17 +69,19 @@ export const getDisplayNameMap = (options: IDisplayNameMapOptions, useSafeSymbol
   displayNameMap.localNames.caseIndex = localAttrIdToCanonical(CASE_INDEX_FAKE_ATTR_ID)
 
   dataSets.forEach(dataSet => {
-    // No LOCAL_ATTR prefix is necessary for external attributes. They always need to be resolved manually by custom
-    // mathjs functions (like "lookupByIndex"). Also, it's never necessary to use safe names, as these names
-    // are string constants, not symbols, so MathJS will not care about special characters there.
-    const dataSetKey = key(dataSet.name, false)
-    displayNameMap.dataSet[dataSetKey] = {
-      id: idToCanonical(dataSet.id),
-      attribute: {}
+    if (dataSet.title) {
+      // No LOCAL_ATTR prefix is necessary for external attributes. They always need to be resolved manually by custom
+      // mathjs functions (like "lookupByIndex"). Also, it's never necessary to use safe names, as these names
+      // are string constants, not symbols, so MathJS will not care about special characters there.
+      const dataSetKey = key(dataSet.title, false)
+      displayNameMap.dataSet[dataSetKey] = {
+        id: idToCanonical(dataSet.id),
+        attribute: {}
+      }
+      dataSet.attributes.forEach(attr => {
+        displayNameMap.dataSet[dataSetKey].attribute[key(attr.name, false)] = idToCanonical(attr.id)
+      })
     }
-    dataSet.attributes.forEach(attr => {
-      displayNameMap.dataSet[dataSetKey].attribute[key(attr.name, false)] = idToCanonical(attr.id)
-    })
   })
 
   return displayNameMap
