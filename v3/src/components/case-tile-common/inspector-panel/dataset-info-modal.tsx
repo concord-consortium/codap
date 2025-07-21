@@ -17,7 +17,7 @@ interface IProps {
 export const DatasetInfoModal = ({showInfoModal, setShowInfoModal}: IProps) => {
   const data = useDataSetContext()
   const metadata = useDataSetMetadata()
-  const [datasetTitle, setDatasetTitle] = useState(data?.title || "")
+  const [datasetTitle, setDatasetTitle] = useState(data?.displayTitle || "")
   const [description, setDescription] = useState(metadata?.description || "")
   const [source, setSource] = useState(metadata?.source || "")
   const [importDate, setImportDate] = useState(metadata?.importDate || "")

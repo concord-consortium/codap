@@ -188,7 +188,7 @@ export function convertCollectionToV2(collection: ICollectionModel, options?: CC
 }
 
 export function convertDataSetToV2(dataSet: IDataSet, exportCases = false): ICodapV2DataContextV3 {
-  const { name, title, id } = dataSet
+  const { name, _title, id } = dataSet
   const v3Metadata = getMetadataFromDataSet(dataSet)
   const { description, source, importDate, isAttrConfigChanged, isAttrConfigProtected } = v3Metadata || {}
   const v2Id = toV2Id(id)
@@ -218,7 +218,7 @@ export function convertDataSetToV2(dataSet: IDataSet, exportCases = false): ICod
     guid: v2Id,
     id: v2Id,
     name,
-    title,
+    title: _title,
     collections,
     ...v2Metadata,
     flexibleGroupingChangeFlag: isAttrConfigChanged,
@@ -241,7 +241,7 @@ export function basicDataSetInfo(dataSet: IDataSet) {
   return {
     name: dataSet.name,
     id: toV2Id(dataSet.id),
-    title: dataSet.title
+    title: dataSet._title
   }
 }
 

@@ -299,7 +299,7 @@ export const DataSet = V2Model.named("DataSet").props({
   }
 }))
 .views(self => ({
-  get title() {
+  get displayTitle() {
     return self._title || self.defaultTitle || self.name
   },
   isItemHidden(itemId: string) {
