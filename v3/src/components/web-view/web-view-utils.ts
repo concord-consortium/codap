@@ -30,7 +30,7 @@ export function processWebViewUrl(url: string) {
   }
 
   for (const [urlRegex, newUrl] of kPartiallyReplacedUrls) {
-    const execResult: RegExpExecArray | null = urlRegex.exec(updatedUrl)
+    const execResult = urlRegex.exec(updatedUrl)
     if (execResult && execResult.length > 1) {
       updatedUrl = newUrl.replace(kReplaceToken, execResult[1])
     }
