@@ -285,7 +285,7 @@ export const stringFunctions = {
       }
 
       const wordAttribute = dataSet.getAttribute(attrId) ?? dataSet.getAttributeByName(attrId) ??
-        dataSet.attributes.find(attr => attr.title === attrId)
+        dataSet.getAttributeByTitle(attrId)
       if (!wordAttribute) {
         throw new Error(t("DG.Formula.LookupAttrError.description", { vars: [ attrId, dataSet.title || "" ] }))
       }

@@ -76,7 +76,9 @@ export const observeLookupDependencies = (formulaDependencies: IFormulaDependenc
     formulaDependencies.filter(d => d.type === "lookup")
 
   const disposeLookupObserver = lookupDependencies.map(dependency => {
-    const externalDataSet = dataSets.get(dependency.dataSetId)
+    const externalDataSet = dataSets.get(dependency.dataSetId) ??
+      // FIXME: There's got to be a better way of getting the dataset by title here.
+      Array.from(dataSets.values()).find(ds => ds.title === dependency.dataSetId)
     if (!externalDataSet) {
       return
     }

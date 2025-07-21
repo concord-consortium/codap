@@ -378,6 +378,9 @@ export const DataSet = V2Model.named("DataSet").props({
   getAttributeByName(name: string) {
     return self.attributesMap.get(self.attrNameMap.get(name) ?? "")
   },
+  getAttributeByTitle(title: string) {
+    return Array.from(self.attributesMap.values()).find(attr => attr.title === title)
+  },
   hasItem(itemId: string) {
     return !!self.itemInfoMap.get(itemId)
   },
