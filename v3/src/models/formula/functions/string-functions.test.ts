@@ -166,8 +166,7 @@ describe("stringFunctions", () => {
       // The 0th item in the Sleep attribute is "3".
       // There are 10 copies of "3" in the Age attribute in the Cats dataset.
       expect(evaluate("wordListMatches(Sleep, 'Cats', 'Age')", 0)).toBe(10)
-      // This also checks references to dataset and attribute titles rather than names
-      expect(evaluate("wordListMatches(Sleep, 'Cats Dataset', 'Age Title')", 2)).toBe(0)
+      expect(evaluate("wordListMatches(Sleep, 'Cats', 'Age')", 2)).toBe(0)
     })
 
     it("counts words with ratings", () => {

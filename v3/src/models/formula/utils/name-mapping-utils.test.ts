@@ -111,7 +111,7 @@ describe("getDisplayNameMap", () => {
             "Speed": "__CANONICAL_NAME__ATTRUmG4vmDYa9CC",
           },
         },
-        Cats: {
+        "Cats": {
           id: "__CANONICAL_NAME__DATAlL2AlOmWYdDV",
           attribute: {
             "Age": "__CANONICAL_NAME__ATTRgxF6Y65KXTGI",
