@@ -279,12 +279,13 @@ export const stringFunctions = {
       const [textRefArg] = args as TWordListMatchesArgs
       const { dataSetId, attrId, otherAttrId } = stringFunctions.wordListMatches.getDependency(args)
       const text = String(evaluateNode(textRefArg, scope))
-      const dataSet = scope.getDataSet(dataSetId)
+      const dataSet = scope.getDataSet(dataSetId) ?? scope.getDataSetByTitle(dataSetId)
       if (!dataSet) {
         throw new Error(t("DG.Formula.LookupDataSetError.description", { vars: [ dataSetId ] }))
       }
 
-      const wordAttribute = dataSet.attrFromID(attrId)
+      const wordAttribute = dataSet.getAttribute(attrId) ?? dataSet.getAttributeByName(attrId) ??
+        dataSet.attributes.find(attr => attr.title === attrId)
       if (!wordAttribute) {
         throw new Error(t("DG.Formula.LookupAttrError.description", { vars: [ attrId, dataSet.title || "" ] }))
       }
