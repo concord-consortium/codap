@@ -613,6 +613,7 @@
           "dataSet": {
             "id": "DATAlL2AlOmWYdDV",
             "name": "Cats",
+            "_title": "Cats Dataset",
             "collections": [],
             "ungrouped": {
               "id": "COLLh_oGF3ie4rHK",
@@ -854,7 +855,7 @@
                 "id": "ATTRgxF6Y65KXTGI",
                 "clientKey": "",
                 "name": "Age",
-                "title": "",
+                "title": "Age Title",
                 "editable": true,
                 "formula": {
                   "id": "FORMk2FiLtneE3pO",
