@@ -1,4 +1,5 @@
 import { clsx } from "clsx"
+// import { autorun } from "mobx"
 import { observer } from "mobx-react-lite"
 import React, { useCallback, useEffect, useRef, useState } from "react"
 import { colorCycleClass } from "../case-tile-common/case-tile-utils"
@@ -110,25 +111,60 @@ export const CaseView = observer(function InnerCaseView(props: ICaseViewProps) {
 
   // FIXME: This should handle all selected cases
   const previousSelectedCaseIndex = useRef<number>(displayedCaseIndex)
-  const [isAnimating, setIsAnimating] = useState(false)
-  const [isFlippingRight, setIsFlippingRight] = useState(false)
+  const isAnimating = cardModel?.animationLevel === level
+  const isFlippingRight = cardModel?.animationDirection === "right"
+  // const [isAnimating, setIsAnimating] = useState(false)
+  // const [isFlippingRight, setIsFlippingRight] = useState(false)
   const previousDisplayedCase = useRef<IGroupedCase>(displayedCase)
   const previousDisplayedCaseLineage = useRef<readonly string[]>(displayedCaseLineage)
 
+  // useEffect(() => {
+  //   return autorun(() => {
+  //     if (!cardModel) return
+
+  //     if (previousSelectedCaseIndex.current !== displayedCaseIndex) {
+  //       if (cardModel.animationLevel < level) {
+  //         console.log(`--- Animation level`, level)
+  //         cardModel.setAnimationLevel(level)
+  //         cardModel.setAnimationDirection(
+  //           previousSelectedCaseIndex.current <= displayedCaseIndex ? "right" : "left"
+  //         )
+  //         cardModel.setAnimationTimeout(setTimeout(() => {
+  //           cardModel.setAnimationLevel(Infinity)
+  //           console.log(`  - Reset animation level`)
+  //         }, 300))
+  //       }
+  //       previousSelectedCaseIndex.current = displayedCaseIndex
+  //     }
+  //   })
+  // }, [])
+
   useEffect(() => {
-    if (disableAnimation || isAnimating) return
+    if (!cardModel) return
+    // if (disableAnimation || isAnimating) return
 
     if (previousSelectedCaseIndex.current !== displayedCaseIndex) {
-      setIsFlippingRight(previousSelectedCaseIndex.current < displayedCaseIndex)
-      setIsAnimating(true)
+      if (level < cardModel.animationLevel) {
+        console.log(`--- Animation level`, level)
+        cardModel.setAnimationLevel(level)
+        cardModel.setAnimationDirection(
+          previousSelectedCaseIndex.current <= displayedCaseIndex ? "right" : "left"
+        )
+        cardModel.setAnimationTimeout(setTimeout(() => {
+          cardModel.setAnimationLevel(Infinity)
+          console.log(`  - Reset animation level`)
+        }, 300))
+      }
+      // setIsFlippingRight(previousSelectedCaseIndex.current < displayedCaseIndex)
+      // setIsAnimating(true)
       setTimeout(() => {
-        setIsAnimating(false)
+        // setIsAnimating(false)
         previousSelectedCaseIndex.current = displayedCaseIndex
         previousDisplayedCaseLineage.current = displayedCaseLineage
         previousDisplayedCase.current = displayedCase
       }, 300)
     }
-  }, [disableAnimation, displayedCase, displayedCaseIndex, displayedCaseLineage, isAnimating])
+  }, [cardModel, disableAnimation, displayedCase, displayedCaseIndex, displayedCaseLineage, isAnimating, level])
 
   const handleNewCollectionDrop = useCallback((dataSet: IDataSet, attrId: string, collId: string) => {
     const attr = dataSet.attrFromID(attrId)
@@ -155,9 +191,7 @@ export const CaseView = observer(function InnerCaseView(props: ICaseViewProps) {
   const classes = clsx(
     "case-card-view",
     colorCycleClass(level, collectionCount),
-    {
-      "animating": isAnimating && !disableAnimation
-    }
+    { "animating": isAnimating && !disableAnimation }
   )
   const tileWidth = tileLayout?.width ?? 0
   const leftLeft = `-${tileWidth}px`

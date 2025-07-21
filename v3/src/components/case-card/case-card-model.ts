@@ -16,6 +16,11 @@ export const CaseCardModel = TileContentModel
     // key is collection id; value is percentage width
     attributeColumnWidths: types.map(types.number),
   })
+  .volatile(() => ({
+    animationLevel: Infinity,
+    animationDirection: "right" as "left" | "right",
+    animationTimeout: undefined as NodeJS.Timeout | undefined
+  }))
   .views(self => ({
     get data() {
       return getTileDataSet(self)
@@ -104,6 +109,16 @@ export const CaseCardModel = TileContentModel
     }
   }))
   .actions(self => ({
+    setAnimationLevel(level: number) {
+      self.animationLevel = level
+    },
+    setAnimationDirection(direction: "left" | "right") {
+      self.animationDirection = direction
+    },
+    setAnimationTimeout(timeout: NodeJS.Timeout) {
+      clearTimeout(self.animationTimeout)
+      self.animationTimeout = timeout
+    },
     updateAfterSharedModelChanges(sharedModel?: ISharedModel) {
       // TODO
     },
