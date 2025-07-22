@@ -32,10 +32,10 @@ export const ToolShelfButton = ({
       data-testid={`tool-shelf-button-${label.toLowerCase()}`}
       className={clsx("tool-shelf-button", className)}
     >
-      <Box className="tool-shelf-button-icon-wrapper">
+      <Box className="tool-shelf-button-content">
         {icon}
+        <ToolShelfButtonTag label={t(label)} />
       </Box>
-      <ToolShelfButtonTag label={t(label)} />
     </Box>
   )
 }

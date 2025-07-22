@@ -1,5 +1,5 @@
-import React from "react"
-import { Menu, MenuButton, MenuDivider, MenuItem, MenuList } from "@chakra-ui/react"
+import React, { useState } from "react"
+import { Menu, MenuButton, MenuItem, MenuList } from "@chakra-ui/react"
 import "../../utilities/plugin-icons"
 import PluginsIcon from '../../assets/icons/icon-plugins.svg'
 import { kRootPluginsUrl } from "../../constants"
@@ -11,13 +11,14 @@ import { kWebViewTileType } from "../web-view/web-view-defs"
 import { isWebViewModel } from "../web-view/web-view-model"
 import { processWebViewUrl } from "../web-view/web-view-utils"
 import { ToolShelfButtonTag } from "./tool-shelf-button"
-import { PluginData, PluginMenuConfig } from "./plugin-config-types"
+import { PluginData, PluginMenuConfig, PluginSubMenuItems } from "./plugin-config-types"
 import { logMessageWithReplacement } from "../../lib/log-message"
 import _debugPlugins from "./debug-plugins.json"
 import _standardPlugins from "./standard-plugins.json"
 const debugPlugins = DEBUG_PLUGINS ? _debugPlugins as PluginMenuConfig : []
 const standardPlugins = _standardPlugins as PluginMenuConfig
 const combinedPlugins = [...standardPlugins, ...debugPlugins]
+import RightArrow from "../../assets/icons/arrow-right.svg"
 
 import "./plugins-button.scss"
 import "./tool-shelf.scss"
@@ -47,27 +48,57 @@ function PluginItem({ pluginData }: IPluginItemProps) {
     )
   }
 
-  return pluginData ? (
-    <MenuItem
-      data-testid="tool-shelf-plugins-option"
-      onClick={handleClick}
-    >
-      <div className="plugin-selection">
-        <img className="plugin-selection-icon"
-              src={`${standardPlugins.includes(pluginData) ? "" : kRootPluginsUrl}${pluginData.icon}`} />
+  const isStandardPlugin = standardPlugins.some(category =>
+    category.subMenu.some(item => item?.title === pluginData?.title)
+  )
+  return (
+    pluginData &&
+      <MenuItem className="tool-shelf-menu-item plugin-selection" data-testid="tool-shelf-plugins-option" onClick={handleClick}>
+        <img className="plugin-icon"
+              src={`${isStandardPlugin ? "" : kRootPluginsUrl}${pluginData.icon}`} />
         <span className="plugin-selection-title">{pluginData.title}</span>
-      </div>
-    </MenuItem>
-  ) : <MenuDivider/>
+      </MenuItem>
+  )
 }
 
 export function PluginsButton() {
   const { plugins: remotePlugins } = useRemotePluginsConfig()
-  const pluginItems: Array<PluginData | null> =
+  const pluginItems: (PluginSubMenuItems | null)[] =
           remotePlugins.length ? [...combinedPlugins, null, ...remotePlugins] : combinedPlugins
+  const [selectedCategoryTitle, setSelectedCategoryTitle] = useState<string | null>(null)
+
+  const renderPluginCategoryList = () => {
+    if (!pluginItems.length) return null
+    return (
+      pluginItems.map((pluginData: PluginSubMenuItems | null) => {
+        if (!pluginData) return null
+        const { title, subMenu } = pluginData
+        return (
+          <>
+            <Menu placement="right-start" isOpen={selectedCategoryTitle === title} key={title} autoSelect={false}>
+              <MenuButton as="div" className="plugin-category-button" />
+              <MenuList key={title} className="tool-shelf-menu-list plugin-submenu" data-testid={`plugin-submenu-${title}`}>
+                {subMenu.length > 0
+                    ? subMenu.map((pd, i) => <PluginItem key={pd?.title ?? `divider-${i}`} pluginData={pd} />)
+                    : <MenuItem>{t("V3.ToolButtonData.pluginMenu.fetchError")}</MenuItem>
+                }
+              </MenuList>
+            </Menu>
+            <MenuItem as="div" className="tool-shelf-menu-item plugin-category-item"
+              closeOnSelect={false} onPointerOver={()=>setSelectedCategoryTitle(title)}
+              data-testid={`plugin-category-${title}`}
+            >
+              <span className="category-title">{title}</span>
+              <RightArrow className="submenu-expand-icon" />
+            </MenuItem>
+          </>
+        )
+      })
+    )
+  }
 
   return (
-    <Menu isLazy>
+    <Menu isLazy autoSelect={false}>
       <MenuButton
         className="tool-shelf-button tool-shelf-menu plugins"
         title={t("DG.ToolButtonData.optionMenu.toolTip")}
@@ -76,12 +107,8 @@ export function PluginsButton() {
         <PluginsIcon />
         <ToolShelfButtonTag className="tool-shelf-tool-label plugins" label={t("DG.ToolButtonData.pluginMenu.title")} />
       </MenuButton>
-      <MenuList className="tool-shelf-menu-list" data-testid="plugins-menu">
-        {
-          pluginItems.length
-            ? pluginItems.map((pd, i) => <PluginItem key={pd?.title ?? `divider-${i}`} pluginData={pd} />)
-            : <MenuItem>{t("V3.ToolButtonData.pluginMenu.fetchError")}</MenuItem>
-        }
+      <MenuList className="tool-shelf-menu-list plugins" data-testid="plugins-menu">
+        {renderPluginCategoryList()}
       </MenuList>
     </Menu>
   )

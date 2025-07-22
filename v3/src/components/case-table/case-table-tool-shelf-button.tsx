@@ -71,7 +71,7 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
   }
   return (
     <>
-      <MenuList className="tool-shelf-menu-list" data-testid="tool-shelf-table-menu-list">
+      <MenuList className="tool-shelf-menu-list table" data-testid="tool-shelf-table-menu-list">
         {datasets.map((dataset) => {
           // case table title reflects DataSet title
           const tileTitle = dataset.dataSet.title
@@ -106,11 +106,11 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
 
 export const CaseTableToolShelfButton = () => {
   return (
-    <Menu isLazy>
+    <Menu isLazy autoSelect={false}>
       <MenuButton className="tool-shelf-button tool-shelf-menu table"
           title={`${t("DG.ToolButtonData.tableButton.toolTip")}`}
           data-testid={"tool-shelf-button-table"}>
-        <TableIcon />
+        <TableIcon className="menu-icon case-table-icon" />
         <ToolShelfButtonTag className="tool-shelf-tool-label table" label={t("DG.ToolButtonData.tableButton.title")} />
       </MenuButton>
       <CaseTableToolShelfMenuList />
