@@ -65,29 +65,42 @@ export const CaseCardModel = TileContentModel
     }
   }))
   .views(self => ({
-    get selectedCaseIndices() {
+    get selectedCaseIds(): Set<string>[] {
       const { data } = self
       if (!data) return []
 
-      const selectedCaseIndices: Set<number>[] = []
+      const selectedCaseIds: Set<string>[] = []
       data.selection.forEach((itemId) => {
         const caseIds = data.getItemCaseIds(itemId)
         caseIds?.forEach((caseId, index) => {
           const collection = data.collections[index]
           if (!collection) return
 
-          if (!selectedCaseIndices[index]) {
-            selectedCaseIndices[index] = new Set()
+          if (!selectedCaseIds[index]) {
+            selectedCaseIds[index] = new Set<string>()
           }
-          const caseIndex = collection.getCaseIndex(caseId)
-          if (caseIndex != null) selectedCaseIndices[index].add(caseIndex)
+          selectedCaseIds[index].add(caseId)
         })
       })
-      return selectedCaseIndices.map((set) => Array.from(set).sort())
-    },
-    caseLineage(itemId?: string) {
-      if (!itemId) return undefined
-      return self.data?.getItemCaseIds(itemId)
+
+      return selectedCaseIds
+    }
+  }))
+  .views(self => ({
+    // The returned array includes arrays of the sorted indices of selected cases in each collection
+    // So selectedCaseIndices[i] contains an array of the indices of the cases selected in data.collections[i]
+    get selectedCaseIndices(): number[][] {
+      const { selectedCaseIds } = self
+
+      const selectedCaseIndices: number[][] = []
+      selectedCaseIds.forEach((caseIds, index) => {
+        const collection = self.data?.collections[index]
+        if (!collection) return
+
+        selectedCaseIndices[index] = Array.from(caseIds).map(caseId => collection.getCaseIndex(caseId))
+          .filter(caseIndex => caseIndex != null).sort()
+      })
+      return selectedCaseIndices
     },
     groupChildCases(parentCaseId: string) {
       const parentCaseInfo = self.data?.caseInfoMap.get(parentCaseId)
@@ -151,39 +164,11 @@ export const CaseCardModel = TileContentModel
       }
     },
     addNewCase(level: number) {
-      const newCase: ICaseCreation = {}
-      const selectedItemIds = self.data?.selection
-      const collections = self.data?.collections
-
-      function findCommonCases(lineages: (readonly string[])[]) {
-        if (!collections) return
-        if (lineages.length === 0) return []
-        if (lineages.length === 1) return lineages[0].slice(0, (level - collections.length))
-        let commonValues = lineages[0].slice(0, level)
-        for (let i = 1; i < lineages.length; i++) {
-          commonValues = commonValues.filter(value => lineages[i].includes(value))
-          if (commonValues.length === 0) {
-            return []
-          }
-        }
-        return commonValues
-      }
-
-      if (collections && selectedItemIds && level !== 0) {
-        const caseLineages = Array.from(selectedItemIds).map(itemId => self.caseLineage(itemId) || [])
-        const commonCaseIds = findCommonCases(caseLineages)
-        if (commonCaseIds && commonCaseIds.length > 0) {
-          commonCaseIds.forEach(caseId => {
-            const caseCollection = self.data?.getCollectionForCase(caseId)
-            caseCollection?.attributes.forEach(attr => {
-              const attrId = attr?.id
-              if (!attrId) return
-              const caseValue = self.data?.getValue(caseId, attr.id)
-              newCase[attrId] = caseValue
-            })
-          })
-        }
-      }
+      const selectedParentCaseIds = self.selectedCaseIds[level - 1]
+      const selectedParentCaseId = selectedParentCaseIds && selectedParentCaseIds.size === 1
+        ? Array.from(selectedParentCaseIds)[0] : undefined
+      const newCase: ICaseCreation = selectedParentCaseId != null ?
+        self.data?.getParentValues(selectedParentCaseId) ?? {} : {}
 
       const [newCaseId] = self.data?.addCases([newCase]) ?? []
 

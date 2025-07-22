@@ -30,11 +30,8 @@ export const CardView = observer(function CardView({onNewCollectionDrop}: CardVi
   const handleSummaryButtonClick = () => {
     if (isInSummaryMode) {
       // select the first child-most case
-      const firstItemId = data?.itemIds[0]
-      const firstItemLineage = cardModel?.caseLineage(firstItemId)
-      if (firstItemLineage) {
-        setSelectedCases([firstItemLineage[firstItemLineage.length - 1]], data)
-      }
+      const caseId = data?.itemIdChildCaseMap.get(data?.itemIds[0])?.groupedCase?.__id__
+      if (caseId) setSelectedCases([caseId], data)
     } else {
       setSelectedCases([], data)
     }

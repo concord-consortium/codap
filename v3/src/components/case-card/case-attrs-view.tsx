@@ -61,7 +61,7 @@ export const CaseAttrsView = observer(function CaseAttrsView({ caseItem, collect
         {collection && visibleAttrs.map(attr => {
             return (
               <CaseAttrView
-                key={isCollectionSummarized ? `${attr.id}-summary` : attr.id}
+                key={`${attr.id}-${isCollectionSummarized ? "summary" : caseItem.__id__}`}
                 attr={attr}
                 collection={collection}
                 getDividerBounds={getDividerBounds}

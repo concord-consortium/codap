@@ -33,10 +33,8 @@ export const CaseCardHeader = observer(function CaseCardHeader(props: ICaseHeade
     if (_displayedCaseIndex !== -1) return _displayedCaseIndex
 
     // the child case is selected and not the parent, so we need to find the case that has the selected child
-    const selectedItemId = data?.selection && Array.from(data.selection)[0]
-    const selectedCaseId = cardModel?.caseLineage(selectedItemId)?.[level]
-    const selectedCase = collection?.cases.find(c => c.__id__ === selectedCaseId)
-    return cases.findIndex(c => c.__id__ === selectedCase?.__id__)
+    const selectedCaseId = Array.from(cardModel?.selectedCaseIds[level] ?? [])[0]
+    return cases.findIndex(c => c.__id__ === selectedCaseId)
   }
   const displayedCaseIndex = getDisplayedCaseIndex()
 
