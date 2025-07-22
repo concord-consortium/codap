@@ -387,6 +387,7 @@ $table-body-font-size: 8pt;
           text-overflow: ellipsis;
           display: -webkit-box;
           -webkit-box-orient: vertical;
+          font-family: "Noto Sans", sans-serif;
         }
       }
       &.codap-data-cell.rowId-__input__ {
@@ -407,7 +408,7 @@ $table-body-font-size: 8pt;
 
         &.numeric-format {
           width: 100%;
-          font-family: 'Chivo Mono', monospace;
+          font-family: 'Noto Sans Mono', monospace;
           font-weight: 500;
           margin-top: 2px;
           text-align: right;
