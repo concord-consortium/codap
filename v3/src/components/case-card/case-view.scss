@@ -32,10 +32,6 @@
   &.animating {
     transition: left 0.3s ease-in-out;
   }
-  
-  &.dummy {
-    position: absolute;
-  }
 
   &:first-child {
     border: solid 2px #cecece;

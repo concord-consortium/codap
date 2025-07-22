@@ -26,7 +26,7 @@ const animationDuration = 300
 
 interface ICaseViewProps {
   cases: IGroupedCase[]
-  dummy?: boolean
+  dummy?: boolean // Dummy case views are used for animations and have stripped down functionality
   onNewCollectionDrop?: (dataSet: IDataSet, attrId: string, beforeCollectionId: string) => void
   level: number
   onSelectCases?: (caseIds: string[]) => void
@@ -35,7 +35,6 @@ interface ICaseViewProps {
 interface IRenderSingleCaseViewArgs {
   displayedCase: IGroupedCase
   dummy?: boolean
-  dummyParent?: boolean
   style?: React.CSSProperties
 }
 
@@ -130,8 +129,11 @@ export const CaseView = observer(function InnerCaseView({
   const left = !isAnimating || animationStarted ? 0 : isFlippingRight ? leftLeft : rightLeft
   const style = { left }
   const otherLeft = !animationStarted ? 0 : isFlippingRight ? rightLeft : leftLeft
-  const otherVisibility = !isAnimating ? "hidden" : undefined
-  const otherStyle: React.CSSProperties = { left: otherLeft, visibility: otherVisibility }
+  const otherStyle: React.CSSProperties = {
+    left: otherLeft,
+    position: "absolute",
+    visibility: !isAnimating ? "hidden" : undefined
+  }
 
   const renderSingleCaseView = (args: IRenderSingleCaseViewArgs) => (
     <SingleCaseView
@@ -140,7 +142,6 @@ export const CaseView = observer(function InnerCaseView({
       collection={collection}
       displayedCase={args.displayedCase}
       dummy={args.dummy}
-      dummyParent={args.dummyParent}
       onAddNewAttribute={args.dummy ? undefined : handleAddNewAttribute}
       onNewCollectionDrop={args.dummy ? undefined : handleNewCollectionDrop}
       onSelectCases={args.dummy ? undefined : onSelectCases}
@@ -152,28 +153,32 @@ export const CaseView = observer(function InnerCaseView({
   return (
     <>
       <CaseCardCollectionSpacer onDrop={handleNewCollectionDrop} collectionId={collectionId}/>
-      {!dummy && renderSingleCaseView({
-        displayedCase: previousDisplayedCase.current,
-        dummy: true,
-        style: otherStyle
-      })}
-      {renderSingleCaseView({
-        displayedCase,
-        dummy,
-        dummyParent: dummy,
-        style
-      })}
+      { // Render the dummy single case view, used for animations
+        !dummy && renderSingleCaseView({
+          displayedCase: previousDisplayedCase.current,
+          dummy: true,
+          style: otherStyle
+        })
+      }
+      { // Render the actual single case view
+        renderSingleCaseView({
+          displayedCase,
+          dummy,
+          style
+        })
+      }
     </>
   )
 })
+
+// Each level has two SingleCaseViews, one actual and one dummy for animations
 
 interface ISingleCaseViewProps {
   cases: IGroupedCase[]
   className?: string
   collection?: ICollectionModel
   displayedCase: IGroupedCase
-  dummy?: boolean
-  dummyParent?: boolean
+  dummy?: boolean // When dummy is true, many features are surpressed
   level: number
   onAddNewAttribute?: () => void
   onNewCollectionDrop?: (dataSet: IDataSet, attrId: string, beforeCollectionId: string) => void
@@ -182,16 +187,15 @@ interface ISingleCaseViewProps {
 }
 
 const SingleCaseView = observer(function SingleCaseView({
-  cases, className, collection, displayedCase, dummy, dummyParent, level,
-  onAddNewAttribute, onNewCollectionDrop, onSelectCases, style
+  cases, className, collection, displayedCase, dummy, level, onAddNewAttribute, onNewCollectionDrop,
+  onSelectCases, style
 }: ISingleCaseViewProps) {
   const cardModel = useCaseCardModel()
   const childCases = cardModel?.groupChildCases(displayedCase.__id__) ?? []
   const childCollection = collection?.child
 
-  const classes = clsx(className, { dummy: dummy && !dummyParent })
   return (
-    <div className={classes} data-testid="case-card-view" style={style}>
+    <div className={className} data-testid="case-card-view" style={style}>
       <CaseCardHeader cases={cases} level={level}/>
       <div className="case-card-attributes">
         <button className="add-attribute" onClick={onAddNewAttribute} data-testid="add-attribute-button">
