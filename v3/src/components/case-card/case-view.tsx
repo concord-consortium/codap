@@ -28,6 +28,7 @@ interface ISingleCaseViewProps {
   displayedCase: IGroupedCase
   displayedCaseLineage?: readonly string[]
   dummy?: boolean
+  dummyParent?: boolean
   hidden?: boolean
   level: number
   onAddNewAttribute?: () => void
@@ -37,14 +38,14 @@ interface ISingleCaseViewProps {
 }
 
 const SingleCaseView = observer(function SingleCaseView({
-  cases, className, collection, displayedCase, displayedCaseLineage, dummy, hidden, level, onAddNewAttribute,
-  onNewCollectionDrop, onSelectCases, style
+  cases, className, collection, displayedCase, displayedCaseLineage, dummy, dummyParent, hidden, level,
+  onAddNewAttribute, onNewCollectionDrop, onSelectCases, style
 }: ISingleCaseViewProps) {
   const cardModel = useCaseCardModel()
   const childCases = cardModel?.groupChildCases(displayedCase.__id__) ?? []
   const childCollection = collection?.child
 
-  const classes = clsx(className, { dummy, hidden })
+  const classes = clsx(className, { dummy: dummy && !dummyParent, hidden })
   return (
     <div className={classes} data-testid="case-card-view" style={style}>
       <CaseCardHeader cases={cases} level={level}/>
@@ -88,6 +89,7 @@ interface IRenderSingleCaseViewArgs {
   displayedCase: IGroupedCase
   displayedCaseLineage: readonly string[]
   dummy?: boolean
+  dummyParent?: boolean
   hidden?: boolean
   style?: React.CSSProperties
 }
@@ -183,10 +185,11 @@ export const CaseView = observer(function InnerCaseView({
       displayedCase={args.displayedCase}
       displayedCaseLineage={args.displayedCaseLineage}
       dummy={args.dummy}
+      dummyParent={args.dummyParent}
       hidden={args.hidden}
-      onAddNewAttribute={dummy ? undefined : handleAddNewAttribute}
-      onNewCollectionDrop={dummy ? undefined : handleNewCollectionDrop}
-      onSelectCases={dummy ? undefined : onSelectCases}
+      onAddNewAttribute={args.dummy ? undefined : handleAddNewAttribute}
+      onNewCollectionDrop={args.dummy ? undefined : handleNewCollectionDrop}
+      onSelectCases={args.dummy ? undefined : onSelectCases}
       level={level}
       style={args.style}
     />
@@ -206,6 +209,7 @@ export const CaseView = observer(function InnerCaseView({
         displayedCase,
         displayedCaseLineage,
         dummy,
+        dummyParent: dummy,
         hidden: false,
         style
       })}
