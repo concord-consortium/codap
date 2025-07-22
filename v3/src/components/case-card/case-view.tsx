@@ -37,7 +37,6 @@ interface IRenderSingleCaseViewArgs {
   displayedCaseLineage: readonly string[]
   dummy?: boolean
   dummyParent?: boolean
-  hidden?: boolean
   style?: React.CSSProperties
 }
 
@@ -122,7 +121,10 @@ export const CaseView = observer(function InnerCaseView({
   const left = !isAnimating || animationStarted ? 0 : isFlippingRight ? leftLeft : rightLeft
   const style = { left }
   const otherLeft = !animationStarted ? 0 : isFlippingRight ? rightLeft : leftLeft
-  const otherStyle = { left: otherLeft }
+  const otherStyle: React.CSSProperties = {
+    left: otherLeft,
+    visibility: isAnimating ? undefined : "hidden"
+  }
 
   const renderSingleCaseView = (args: IRenderSingleCaseViewArgs) => (
     <SingleCaseView
@@ -133,7 +135,6 @@ export const CaseView = observer(function InnerCaseView({
       displayedCaseLineage={args.displayedCaseLineage}
       dummy={args.dummy}
       dummyParent={args.dummyParent}
-      hidden={args.hidden}
       onAddNewAttribute={args.dummy ? undefined : handleAddNewAttribute}
       onNewCollectionDrop={args.dummy ? undefined : handleNewCollectionDrop}
       onSelectCases={args.dummy ? undefined : onSelectCases}
@@ -149,7 +150,6 @@ export const CaseView = observer(function InnerCaseView({
         displayedCase: previousDisplayedCase.current,
         displayedCaseLineage: previousDisplayedCaseLineage.current,
         dummy: true,
-        hidden: !isAnimating,
         style: otherStyle
       })}
       {renderSingleCaseView({
@@ -157,7 +157,6 @@ export const CaseView = observer(function InnerCaseView({
         displayedCaseLineage,
         dummy,
         dummyParent: dummy,
-        hidden: false,
         style
       })}
     </>
@@ -172,7 +171,6 @@ interface ISingleCaseViewProps {
   displayedCaseLineage?: readonly string[]
   dummy?: boolean
   dummyParent?: boolean
-  hidden?: boolean
   level: number
   onAddNewAttribute?: () => void
   onNewCollectionDrop?: (dataSet: IDataSet, attrId: string, beforeCollectionId: string) => void
@@ -181,14 +179,14 @@ interface ISingleCaseViewProps {
 }
 
 const SingleCaseView = observer(function SingleCaseView({
-  cases, className, collection, displayedCase, displayedCaseLineage, dummy, dummyParent, hidden, level,
+  cases, className, collection, displayedCase, displayedCaseLineage, dummy, dummyParent, level,
   onAddNewAttribute, onNewCollectionDrop, onSelectCases, style
 }: ISingleCaseViewProps) {
   const cardModel = useCaseCardModel()
   const childCases = cardModel?.groupChildCases(displayedCase.__id__) ?? []
   const childCollection = collection?.child
 
-  const classes = clsx(className, { dummy: dummy && !dummyParent, hidden })
+  const classes = clsx(className, { dummy: dummy && !dummyParent })
   return (
     <div className={classes} data-testid="case-card-view" style={style}>
       <CaseCardHeader cases={cases} level={level}/>
