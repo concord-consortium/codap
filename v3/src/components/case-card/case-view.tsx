@@ -1,7 +1,6 @@
 import { clsx } from "clsx"
-// import { autorun } from "mobx"
 import { observer } from "mobx-react-lite"
-import React, { useCallback, useEffect, useRef, useState } from "react"
+import React, { useCallback, useEffect, useRef } from "react"
 import { colorCycleClass } from "../case-tile-common/case-tile-utils"
 import { CollectionContext, ParentCollectionContext, useCollectionContext } from "../../hooks/use-collection-context"
 import { useFreeTileLayoutContext } from "../../hooks/use-free-tile-layout-context"
@@ -26,7 +25,6 @@ interface ISingleCaseViewProps {
   cases: IGroupedCase[]
   className?: string
   collection?: ICollectionModel
-  disableAnimation?: boolean
   displayedCase: IGroupedCase
   displayedCaseLineage?: readonly string[]
   dummy?: boolean
@@ -39,7 +37,7 @@ interface ISingleCaseViewProps {
 }
 
 const SingleCaseView = observer(function SingleCaseView({
-  cases, className, collection, disableAnimation, displayedCase, displayedCaseLineage, dummy, hidden, onAddNewAttribute,
+  cases, className, collection, displayedCase, displayedCaseLineage, dummy, hidden, onAddNewAttribute,
   onNewCollectionDrop, onSelectCases, level, style
 }: ISingleCaseViewProps) {
   const cardModel = useCaseCardModel()
@@ -79,7 +77,6 @@ const SingleCaseView = observer(function SingleCaseView({
 
 interface ICaseViewProps {
   cases: IGroupedCase[]
-  disableAnimation?: boolean
   displayedCaseLineage?: readonly string[]
   dummy?: boolean
   onNewCollectionDrop?: (dataSet: IDataSet, attrId: string, beforeCollectionId: string) => void
@@ -88,7 +85,6 @@ interface ICaseViewProps {
 }
 
 interface IRenderSingleCaseViewArgs {
-  disableAnimation?: boolean
   displayedCase: IGroupedCase
   displayedCaseLineage: readonly string[]
   dummy?: boolean
@@ -96,8 +92,9 @@ interface IRenderSingleCaseViewArgs {
   style?: React.CSSProperties
 }
 
-export const CaseView = observer(function InnerCaseView(props: ICaseViewProps) {
-  const { cases, disableAnimation, displayedCaseLineage = [], dummy, level, onNewCollectionDrop, onSelectCases } = props
+export const CaseView = observer(function InnerCaseView({
+  cases, displayedCaseLineage = [], dummy, level, onNewCollectionDrop, onSelectCases
+}: ICaseViewProps) {
   const cardModel = useCaseCardModel()
   const tileLayout = useFreeTileLayoutContext()
   const data = cardModel?.data
@@ -113,35 +110,11 @@ export const CaseView = observer(function InnerCaseView(props: ICaseViewProps) {
   const previousSelectedCaseIndex = useRef<number>(displayedCaseIndex)
   const isAnimating = cardModel?.animationLevel === level
   const isFlippingRight = cardModel?.animationDirection === "right"
-  // const [isAnimating, setIsAnimating] = useState(false)
-  // const [isFlippingRight, setIsFlippingRight] = useState(false)
   const previousDisplayedCase = useRef<IGroupedCase>(displayedCase)
   const previousDisplayedCaseLineage = useRef<readonly string[]>(displayedCaseLineage)
 
-  // useEffect(() => {
-  //   return autorun(() => {
-  //     if (!cardModel) return
-
-  //     if (previousSelectedCaseIndex.current !== displayedCaseIndex) {
-  //       if (cardModel.animationLevel < level) {
-  //         console.log(`--- Animation level`, level)
-  //         cardModel.setAnimationLevel(level)
-  //         cardModel.setAnimationDirection(
-  //           previousSelectedCaseIndex.current <= displayedCaseIndex ? "right" : "left"
-  //         )
-  //         cardModel.setAnimationTimeout(setTimeout(() => {
-  //           cardModel.setAnimationLevel(Infinity)
-  //           console.log(`  - Reset animation level`)
-  //         }, 300))
-  //       }
-  //       previousSelectedCaseIndex.current = displayedCaseIndex
-  //     }
-  //   })
-  // }, [])
-
   useEffect(() => {
-    if (!cardModel) return
-    // if (disableAnimation || isAnimating) return
+    if (dummy || isAnimating || !cardModel) return
 
     if (previousSelectedCaseIndex.current !== displayedCaseIndex) {
       if (level < cardModel.animationLevel) {
@@ -155,16 +128,13 @@ export const CaseView = observer(function InnerCaseView(props: ICaseViewProps) {
           console.log(`  - Reset animation level`)
         }, 300))
       }
-      // setIsFlippingRight(previousSelectedCaseIndex.current < displayedCaseIndex)
-      // setIsAnimating(true)
       setTimeout(() => {
-        // setIsAnimating(false)
         previousSelectedCaseIndex.current = displayedCaseIndex
         previousDisplayedCaseLineage.current = displayedCaseLineage
         previousDisplayedCase.current = displayedCase
       }, 300)
     }
-  }, [cardModel, disableAnimation, displayedCase, displayedCaseIndex, displayedCaseLineage, isAnimating, level])
+  }, [cardModel, displayedCase, displayedCaseIndex, displayedCaseLineage, dummy, isAnimating, level])
 
   const handleNewCollectionDrop = useCallback((dataSet: IDataSet, attrId: string, collId: string) => {
     const attr = dataSet.attrFromID(attrId)
@@ -191,14 +161,14 @@ export const CaseView = observer(function InnerCaseView(props: ICaseViewProps) {
   const classes = clsx(
     "case-card-view",
     colorCycleClass(level, collectionCount),
-    { "animating": isAnimating && !disableAnimation }
+    { "animating": isAnimating && !dummy }
   )
   const tileWidth = tileLayout?.width ?? 0
   const leftLeft = `-${tileWidth}px`
   const rightLeft = `${tileWidth}px`
-  const left = disableAnimation || !isAnimating ? 0 : isFlippingRight ? rightLeft : leftLeft
-  const leftIsVisible = !disableAnimation && isAnimating && isFlippingRight
-  const rightIsVisible = !disableAnimation && isAnimating && !isFlippingRight
+  const left = !isAnimating ? 0 : isFlippingRight ? rightLeft : leftLeft
+  const leftIsVisible = isAnimating && isFlippingRight
+  const rightIsVisible = isAnimating && !isFlippingRight
   const style = { left }
   const leftStyle = { left: leftIsVisible ? 0 : leftLeft }
   const rightStyle = { left: rightIsVisible ? 0 : rightLeft }
@@ -224,7 +194,6 @@ export const CaseView = observer(function InnerCaseView(props: ICaseViewProps) {
     <>
       <CaseCardCollectionSpacer onDrop={handleNewCollectionDrop} collectionId={collectionId}/>
       {!dummy && renderSingleCaseView({
-        disableAnimation: true,
         displayedCase,
         displayedCaseLineage,
         dummy: true,
@@ -232,7 +201,6 @@ export const CaseView = observer(function InnerCaseView(props: ICaseViewProps) {
         style: leftStyle
       })}
       {!dummy && renderSingleCaseView({
-        disableAnimation: true,
         displayedCase,
         displayedCaseLineage,
         dummy: true,
@@ -240,7 +208,6 @@ export const CaseView = observer(function InnerCaseView(props: ICaseViewProps) {
         style: rightStyle
       })}
       {renderSingleCaseView({
-        disableAnimation: isAnimating || disableAnimation,
         displayedCase: isAnimating ? previousDisplayedCase.current : displayedCase,
         displayedCaseLineage: isAnimating ? previousDisplayedCaseLineage.current : displayedCaseLineage,
         dummy,
