@@ -1,5 +1,23 @@
 # Changelog
 
+## Version 3.0.0-pre.2385 - July 21, 2025
+
+### ✨ Features & Improvements:
+- **CODAP-767:** Case Card: Modify paging to match v2 behavior
+
+### 🐞 Bug Fixes:
+- **CODAP-691:** Graph: Fix plotted function rendering on Firefox
+- **CODAP-786:** Graph: Second drag of category on axis fails
+- **CODAP-793:** Fix loading of Getting Started with CODAP 2 example document
+- **CODAP-794:** Formulas: Fix data set and attribute lookup in `wordListMatches()` function
+- **CODAP-795:** Fix compatibility of case id assignment with recent v3 builds
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  196073 bytes |                            0.00% |
+|  index.js | 6762381 bytes |                            0.00% |
+
 ## Version 3.0.0-pre.2364 - July 16, 2025
 
 ### ✨ Features & Improvements:
