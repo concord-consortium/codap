@@ -12,6 +12,7 @@ import { createAttributesNotification } from "../../models/data/data-set-notific
 import { uiState } from "../../models/ui-state"
 import { uniqueName } from "../../utilities/js-utils"
 import { t } from "../../utilities/translation/translate"
+import { urlParams } from "../../utilities/url-params"
 import { CaseAttrsView } from "./case-attrs-view"
 import { CaseCardCollectionSpacer } from "./case-card-collection-spacer"
 import { CaseCardHeader } from "./case-card-header"
@@ -56,13 +57,14 @@ export const CaseView = observer(function InnerCaseView({
   const displayedCaseId = collection?.caseIds[displayedCaseIndex] ?? ""
   const displayedCase = data?.caseInfoMap.get(displayedCaseId)?.groupedCase ?? cases[0]
 
+  const disableAnimation = urlParams.noComponentAnimation != null
   const isAnimating = cardModel?.animationLevel === level
   const [animationStarted, setAnimationStarted] = useState(false)
   const isFlippingRight = cardModel?.animationDirection === "right"
   const previousDisplayedCase = useRef<IGroupedCase>(displayedCase)
 
   useEffect(() => {
-    if (dummy || isAnimating || !cardModel) return
+    if (disableAnimation || dummy || isAnimating || !cardModel) return
 
     if (previousCollectionSelectedCaseIndicesString.current !== collectionSelectedCaseIndicesString) {
       if (level < cardModel.animationLevel) {
@@ -91,8 +93,8 @@ export const CaseView = observer(function InnerCaseView({
       previousCollectionSelectedCaseIndicesString.current = collectionSelectedCaseIndicesString
     }
   }, [
-    cardModel, cases.length, collectionSelectedCaseIndicesString, displayedCase, displayedCaseIndex, dummy,
-    isAnimating, level
+    cardModel, cases.length, collectionSelectedCaseIndicesString, disableAnimation, displayedCase, displayedCaseIndex,
+    dummy, isAnimating, level
   ])
 
   const handleNewCollectionDrop = useCallback((dataSet: IDataSet, attrId: string, collId: string) => {
