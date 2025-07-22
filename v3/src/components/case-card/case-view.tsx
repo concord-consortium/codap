@@ -25,7 +25,6 @@ const animationDuration = 300
 
 interface ICaseViewProps {
   cases: IGroupedCase[]
-  displayedCaseLineage?: readonly string[]
   dummy?: boolean
   onNewCollectionDrop?: (dataSet: IDataSet, attrId: string, beforeCollectionId: string) => void
   level: number
@@ -34,14 +33,13 @@ interface ICaseViewProps {
 
 interface IRenderSingleCaseViewArgs {
   displayedCase: IGroupedCase
-  displayedCaseLineage: readonly string[]
   dummy?: boolean
   dummyParent?: boolean
   style?: React.CSSProperties
 }
 
 export const CaseView = observer(function InnerCaseView({
-  cases, displayedCaseLineage = [], dummy, level, onNewCollectionDrop, onSelectCases
+  cases, dummy, level, onNewCollectionDrop, onSelectCases
 }: ICaseViewProps) {
   const cardModel = useCaseCardModel()
   const tileLayout = useFreeTileLayoutContext()
@@ -49,44 +47,53 @@ export const CaseView = observer(function InnerCaseView({
   const collectionCount = data?.collections.length ?? 1
   const collectionId = useCollectionContext()
   const collection = data?.getCollection(collectionId)
-  const initialSelectedCase = collection?.getCaseGroup(displayedCaseLineage[level])?.groupedCase
-  const displayedCase = initialSelectedCase ?? cases[0]
-  const displayedCaseId = displayedCase?.__id__
-  const displayedCaseIndex = collection?.getCaseIndex(displayedCaseId) ?? -1
-
-  // FIXME: This should handle all selected cases
+  const selectedCaseIndices = cardModel?.selectedCaseIndices ?? []
+  const collectionSelectedCaseIndices = selectedCaseIndices[level] ?? []
+  const collectionSelectedCaseIndicesString = collectionSelectedCaseIndices.join(",")
+  const previousCollectionSelectedCaseIndicesString = useRef<string>(collectionSelectedCaseIndicesString)
+  const displayedCaseIndex = collectionSelectedCaseIndices[0] ?? -1
   const previousSelectedCaseIndex = useRef<number>(displayedCaseIndex)
+  const displayedCaseId = collection?.caseIds[displayedCaseIndex] ?? ""
+  const displayedCase = data?.caseInfoMap.get(displayedCaseId)?.groupedCase ?? cases[0]
+
   const isAnimating = cardModel?.animationLevel === level
   const [animationStarted, setAnimationStarted] = useState(false)
   const isFlippingRight = cardModel?.animationDirection === "right"
   const previousDisplayedCase = useRef<IGroupedCase>(displayedCase)
-  const previousDisplayedCaseLineage = useRef<readonly string[]>(displayedCaseLineage)
 
   useEffect(() => {
     if (dummy || isAnimating || !cardModel) return
 
-    if (previousSelectedCaseIndex.current !== displayedCaseIndex) {
+    if (previousCollectionSelectedCaseIndicesString.current !== collectionSelectedCaseIndicesString) {
       if (level < cardModel.animationLevel) {
         cardModel.setAnimationLevel(level)
         cardModel.setAnimationDirection(
-          previousSelectedCaseIndex.current <= displayedCaseIndex ? "right" : "left"
+          previousSelectedCaseIndex.current === -1 && displayedCaseIndex === cases.length - 1
+            ? "left" // Special case for pushing the left button while in summarized view
+            : previousSelectedCaseIndex.current <= displayedCaseIndex
+              ? "right" : "left"
         )
         cardModel.setAnimationTimeout(setTimeout(() => {
           cardModel.setAnimationLevel(Infinity)
           setAnimationStarted(false)
         }, animationDuration))
 
-        setTimeout(() => setAnimationStarted(true))
+        setTimeout(() => {
+          if (cardModel.animationLevel === level) setAnimationStarted(true)
+        })
       }
 
       setTimeout(() => {
-        previousDisplayedCaseLineage.current = displayedCaseLineage
         previousDisplayedCase.current = displayedCase
       }, animationDuration)
 
       previousSelectedCaseIndex.current = displayedCaseIndex
+      previousCollectionSelectedCaseIndicesString.current = collectionSelectedCaseIndicesString
     }
-  }, [cardModel, displayedCase, displayedCaseIndex, displayedCaseLineage, dummy, isAnimating, level])
+  }, [
+    cardModel, cases.length, collectionSelectedCaseIndicesString, displayedCase, displayedCaseIndex, dummy,
+    isAnimating, level
+  ])
 
   const handleNewCollectionDrop = useCallback((dataSet: IDataSet, attrId: string, collId: string) => {
     const attr = dataSet.attrFromID(attrId)
@@ -130,7 +137,6 @@ export const CaseView = observer(function InnerCaseView({
       className={classes}
       collection={collection}
       displayedCase={args.displayedCase}
-      displayedCaseLineage={args.displayedCaseLineage}
       dummy={args.dummy}
       dummyParent={args.dummyParent}
       onAddNewAttribute={args.dummy ? undefined : handleAddNewAttribute}
@@ -146,13 +152,11 @@ export const CaseView = observer(function InnerCaseView({
       <CaseCardCollectionSpacer onDrop={handleNewCollectionDrop} collectionId={collectionId}/>
       {!dummy && renderSingleCaseView({
         displayedCase: previousDisplayedCase.current,
-        displayedCaseLineage: previousDisplayedCaseLineage.current,
         dummy: true,
         style: otherStyle
       })}
       {renderSingleCaseView({
         displayedCase,
-        displayedCaseLineage,
         dummy,
         dummyParent: dummy,
         style
@@ -166,7 +170,6 @@ interface ISingleCaseViewProps {
   className?: string
   collection?: ICollectionModel
   displayedCase: IGroupedCase
-  displayedCaseLineage?: readonly string[]
   dummy?: boolean
   dummyParent?: boolean
   level: number
@@ -177,7 +180,7 @@ interface ISingleCaseViewProps {
 }
 
 const SingleCaseView = observer(function SingleCaseView({
-  cases, className, collection, displayedCase, displayedCaseLineage, dummy, dummyParent, level,
+  cases, className, collection, displayedCase, dummy, dummyParent, level,
   onAddNewAttribute, onNewCollectionDrop, onSelectCases, style
 }: ISingleCaseViewProps) {
   const cardModel = useCaseCardModel()
@@ -204,7 +207,6 @@ const SingleCaseView = observer(function SingleCaseView({
                 dummy={dummy}
                 level={level + 1}
                 onSelectCases={onSelectCases}
-                displayedCaseLineage={displayedCaseLineage}
                 onNewCollectionDrop={onNewCollectionDrop}
               />
             </CollectionContext.Provider>

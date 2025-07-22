@@ -18,9 +18,6 @@ export const CardView = observer(function CardView({onNewCollectionDrop}: CardVi
   const data = cardModel?.data
   const collections = data?.collections
   const rootCollection = collections?.[0]
-  const selectedItems = data?.selection
-  const selectedItemId = selectedItems && Array.from(selectedItems)[0]
-  const selectedItemLineage = cardModel?.caseLineage(selectedItemId)
   const contentRef = useRef<HTMLDivElement>(null)
   const summarizedCollections = cardModel?.summarizedCollections || []
   const isInSummaryMode = summarizedCollections.length > 0
@@ -51,7 +48,6 @@ export const CardView = observer(function CardView({onNewCollectionDrop}: CardVi
               cases={rootCollection.cases}
               level={0}
               onSelectCases={handleSelectCases}
-              displayedCaseLineage={selectedItemLineage}
               onNewCollectionDrop={onNewCollectionDrop}
             />
             <div className="summary-view-toggle-container">

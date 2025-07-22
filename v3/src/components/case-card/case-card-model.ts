@@ -65,6 +65,26 @@ export const CaseCardModel = TileContentModel
     }
   }))
   .views(self => ({
+    get selectedCaseIndices() {
+      const { data } = self
+      if (!data) return []
+
+      const selectedCaseIndices: Set<number>[] = []
+      data.selection.forEach((itemId) => {
+        const caseIds = data.getItemCaseIds(itemId)
+        caseIds?.forEach((caseId, index) => {
+          const collection = data.collections[index]
+          if (!collection) return
+
+          if (!selectedCaseIndices[index]) {
+            selectedCaseIndices[index] = new Set()
+          }
+          const caseIndex = collection.getCaseIndex(caseId)
+          if (caseIndex != null) selectedCaseIndices[index].add(caseIndex)
+        })
+      })
+      return selectedCaseIndices.map((set) => Array.from(set).sort())
+    },
     caseLineage(itemId?: string) {
       if (!itemId) return undefined
       return self.data?.getItemCaseIds(itemId)
