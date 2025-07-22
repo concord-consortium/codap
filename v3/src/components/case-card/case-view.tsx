@@ -49,8 +49,6 @@ export const CaseView = observer(function InnerCaseView({
   const collection = data?.getCollection(collectionId)
   const selectedCaseIndices = cardModel?.selectedCaseIndices ?? []
   const collectionSelectedCaseIndices = selectedCaseIndices[level] ?? []
-  const collectionSelectedCaseIndicesString = collectionSelectedCaseIndices.join(",")
-  const previousCollectionSelectedCaseIndicesString = useRef<string>(collectionSelectedCaseIndicesString)
   const displayedCaseIndex = collectionSelectedCaseIndices[0] ?? -1
   const previousSelectedCaseIndex = useRef<number>(displayedCaseIndex)
   const displayedCaseId = collection?.caseIds[displayedCaseIndex] ?? ""
@@ -60,12 +58,17 @@ export const CaseView = observer(function InnerCaseView({
   const isAnimating = cardModel?.animationLevel === level
   const [animationStarted, setAnimationStarted] = useState(false)
   const isFlippingRight = cardModel?.animationDirection === "right"
-  const previousDisplayedCase = useRef<IGroupedCase>(displayedCase)
+  const dummyDisplayedCase = useRef<IGroupedCase>(displayedCase)
+  const collectionSelectedCaseIndicesString = collectionSelectedCaseIndices.join(",")
+  const previousCollectionSelectedCaseIndicesString = useRef<string>(collectionSelectedCaseIndicesString)
 
+  // Manage the animation
   useEffect(() => {
     if (disableAnimation || dummy || isAnimating || !cardModel) return
 
+    // Trigger the animation when the selection at this level changes
     if (previousCollectionSelectedCaseIndicesString.current !== collectionSelectedCaseIndicesString) {
+      // The lowest level should animate
       if (level < cardModel.animationLevel) {
         cardModel.setAnimationLevel(level)
         cardModel.setAnimationDirection(
@@ -74,20 +77,25 @@ export const CaseView = observer(function InnerCaseView({
             : previousSelectedCaseIndex.current <= displayedCaseIndex
               ? "right" : "left"
         )
+        // Reset the animation after the proper duration
         cardModel.setAnimationTimeout(setTimeout(() => {
           cardModel.setAnimationLevel(Infinity)
           setAnimationStarted(false)
         }, animationDuration))
 
+        // We need one frame to set up the animation, so we actually start the animation in a timeout
         setTimeout(() => {
+          // We need to make sure a lower level did not supercede this one
           if (cardModel.animationLevel === level) setAnimationStarted(true)
         })
       }
 
+      // Update the dummy displayed case after the animation duration
       setTimeout(() => {
-        previousDisplayedCase.current = displayedCase
+        dummyDisplayedCase.current = displayedCase
       }, animationDuration)
 
+      // Immediately update the case index and indices string so we know when the animation should occur again
       previousSelectedCaseIndex.current = displayedCaseIndex
       previousCollectionSelectedCaseIndicesString.current = collectionSelectedCaseIndicesString
     }
@@ -153,9 +161,9 @@ export const CaseView = observer(function InnerCaseView({
   return (
     <>
       <CaseCardCollectionSpacer onDrop={handleNewCollectionDrop} collectionId={collectionId}/>
-      { // Render the dummy single case view, used for animations
+      { // Render the dummy single case view, used for animations. Only actual case views have dummies.
         !dummy && renderSingleCaseView({
-          displayedCase: previousDisplayedCase.current,
+          displayedCase: dummyDisplayedCase.current,
           dummy: true,
           style: otherStyle
         })
