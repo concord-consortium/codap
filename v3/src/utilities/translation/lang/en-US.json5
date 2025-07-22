@@ -205,8 +205,16 @@
     "DG.mainPage.mainPane.versionString": "Version %@ (%@)", // DG.VERSION, DG.BUILD_NUM
     "DG.mainPage.mainPane.messageView.value": "Unfortunately, CODAP is not currently supported on your browser. CODAP is supported on Firefox 46+, Chrome 50+, Windows Edge 14+, and Safari 10+. CODAP is not actively supported on other browsers at this time.",
     "DG.mainPage.titleBar.saved": "Document Saved!",
-    "DG.mainPage.exceptionMessage": "An error has occurred that may affect how this program behaves. You may wish to reload this page after you save your work. (Error: %@)",
-    "DG.mainPage.repeatExceptionMessage": "The same error has occurred again and will probably keep happening. Use the file menu to save your work, and then reload the page.",
+    "DG.mainPage.errorDialog.title": "Error",
+    "DG.mainPage.errorDialog.description": "An error has occurred that may affect how this program behaves.",
+    "DG.mainPage.errorDialog.suggestionWithSave": "You may wish to reload this page after you save a copy of your work.",
+    "DG.mainPage.errorDialog.suggestion": "You may wish to reload this page.",
+    "DG.mainPage.errorDialog.errorDetails": "(Error: %@)",
+    "DG.mainPage.documentDisplayError.title": "Display Error",
+    "DG.mainPage.documentDisplayError.suggestion": "Try reloading the page.",
+    "DG.mainPage.documentDisplayError.suggestionWithSave": "Try saving a copy of the document and reloading the page.",
+    "DG.mainPage.documentDisplayError.reason": "An error is preventing CODAP from displaying the document.",
+    "DG.mainPage.documentDisplayError.detailsTitle": "Details",
 
     // IS_BUILD variants of strings for InquirySpace
     "DG.mainPage.mainPane.versionString.IS_BUILD": "Version %@ (%@ IS)",

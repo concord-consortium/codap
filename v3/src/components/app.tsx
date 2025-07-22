@@ -173,34 +173,56 @@ export const App = observer(function App() {
     initialize()
   }, [cfmReadyPromise, onCloseUserEntry, onOpenUserEntry])
 
-  const fallbackRender = useCallback(({ error, resetErrorBoundary }: FallbackProps) => {
+  const userCanSaveCopy = useCallback(() => {
+    // TODO: There are other cases where the user can't save a copy
+    return !cfm.appOptions.hideMenuBar
+  }, [cfm.appOptions.hideMenuBar])
+
+  const fallbackRender = useCallback(({ error }: FallbackProps) => {
     errorBoundaryErrors.push({ time: Date.now(), message: error.message })
 
-    // Because a component has to throw two errors before the error boundary is really
-    // used, we make sure the length is greater than 2 before showing the message.
-    // about the error being seen again.
-    if (errorBoundaryErrors.length > 2 &&
-      error.message === errorBoundaryErrors[errorBoundaryErrors.length - 2].message) {
+    // Notes:
+    // 1. If we are running embedded in the Activity Player or some other
+    // system that does autosaving, the file menu may be disabled so
+    // the user can't save a copy of the document.
+    // 2. We are not using the resetErrorBoundary function provided to the
+    // fallbackRender function because we are basically asking them to
+    // reload the page anyhow, so giving them another option to try
+    // to render the document again would just be confusing.
+    return (
+      <div className="document-render-error">
+        <h1>{t("DG.mainPage.documentDisplayError.title")}</h1>
+        <p>
+          {[
+            userCanSaveCopy()
+              ? t("DG.mainPage.documentDisplayError.suggestionWithSave")
+              : t("DG.mainPage.documentDisplayError.suggestion"),
+            " ",
+            t("DG.mainPage.documentDisplayError.reason")
+          ]}
+        </p>
+        <h2>{t("DG.mainPage.documentDisplayError.detailsTitle")}</h2>
+        <p>{error.message}</p>
+      </div>
+    )
+  }, [userCanSaveCopy])
 
-      // If the error is the same as the last one, don't reset it.
-      // FIXME: looking for the same error message is hacky. If the error message changes slightly,
-      // or multiple errors are thrown in sequence, the user will get stuck in a loop seeing the
-      // dialog message. We could loop for patterns in the error messages. Or we could look to see if
-      // the error is thrown immediately after the alert is dismissed.
-      return (
-        <div className="codap-repeat-error">
-          {t("DG.mainPage.repeatExceptionMessage")}
-        </div>
-      )
-    } else {
-      appState.alert(t("DG.mainPage.exceptionMessage", {vars: [error.message]}), "Error", () => {
-        resetErrorBoundary()
-      })
-      return (
-        <div></div>
-      )
+  useEffect(() => {
+    const showErrorDialog = (error: ErrorEvent) => {
+      const dialogMessage = [
+        t("DG.mainPage.errorDialog.description"),
+        userCanSaveCopy()
+          ? t("DG.mainPage.errorDialog.suggestionWithSave")
+          : t("DG.mainPage.errorDialog.suggestion"),
+        t("DG.mainPage.errorDialog.errorDetails", {vars: [error.message]})
+      ].join(" ")
+      appState.alert(dialogMessage, t("DG.mainPage.errorDialog.title"))
     }
-  }, [])
+    window.addEventListener("error", showErrorDialog)
+    return () => {
+      window.removeEventListener("error", showErrorDialog)
+    }
+  }, [userCanSaveCopy])
 
   return (
     <CodapDndContext>
