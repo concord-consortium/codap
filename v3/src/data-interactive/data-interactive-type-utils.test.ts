@@ -35,7 +35,6 @@ describe("DataInteractiveTypeUtils", () => {
       guid: 2,
       id: 2,
       name: "Data",
-      title: "Parents/Children",
       type: "DG.DataContext",
       contextStorage: {
         _links_: {
