@@ -121,10 +121,8 @@ export const CaseView = observer(function InnerCaseView({
   const left = !isAnimating || animationStarted ? 0 : isFlippingRight ? leftLeft : rightLeft
   const style = { left }
   const otherLeft = !animationStarted ? 0 : isFlippingRight ? rightLeft : leftLeft
-  const otherStyle: React.CSSProperties = {
-    left: otherLeft,
-    visibility: isAnimating ? undefined : "hidden"
-  }
+  const otherVisibility = !isAnimating ? "hidden" : undefined
+  const otherStyle: React.CSSProperties = { left: otherLeft, visibility: otherVisibility }
 
   const renderSingleCaseView = (args: IRenderSingleCaseViewArgs) => (
     <SingleCaseView
