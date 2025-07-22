@@ -6,9 +6,10 @@ import { getRedoStringKey, getUndoStringKey } from "../../models/history/codap-u
 import {
   getTileComponentInfo, getTileComponentKeys, ITileComponentInfo
 } from "../../models/tiles/tile-component-info"
+import RedoIcon from "../../assets/icons/icon-redo.svg"
 import UndoIcon from "../../assets/icons/icon-undo.svg"
 import TileListIcon from "../../assets/icons/icon-tile-list.svg"
-import OptionsIcon from "../../assets/icons/icon-settings.svg"
+import SettingsIcon from "../../assets/icons/icon-settings.svg"
 import HelpIcon from "../../assets/icons/icon-help.svg"
 import GuideIcon from "../../assets/icons/icon-guide.svg"
 import { DEBUG_UNDO } from "../../lib/debug"
@@ -16,7 +17,7 @@ import { IDocumentModel } from "../../models/document/document"
 import { ITileModel } from "../../models/tiles/tile-model"
 import { createTileNotification } from "../../models/tiles/tile-notifications"
 import { t } from "../../utilities/translation/translate"
-import { OptionsShelfButton } from "./options-button"
+import { SettingsShelfButton } from "./settings-button"
 import { TilesListShelfButton } from "./tiles-list-button"
 import { PluginsButton } from "./plugins-button"
 import { HelpShelfButton } from "./help-button"
@@ -69,7 +70,7 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
     },
     {
       className: "redo-button",
-      icon: <UndoIcon className="icon-redo"/>,
+      icon: <RedoIcon className="icon-redo"/>,
       labelKey: "DG.mainPage.mainPane.redoButton.title",
       hintKey: getRedoStringKey(undoManager),
       isDisabled: () => !document?.canRedo,
@@ -86,10 +87,10 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
       button: <TilesListShelfButton key={t("DG.ToolButtonData.tileListMenu.title")} />
     },
     {
-      icon: <OptionsIcon className="icon-options"/>,
+      icon: <SettingsIcon className="icon-settings"/>,
       labelKey: "DG.ToolButtonData.optionMenu.title",
       hintKey: "DG.ToolButtonData.optionMenu.toolTip",
-      button: <OptionsShelfButton key={t("DG.ToolButtonData.optionMenu.title")} />
+      button: <SettingsShelfButton key={t("DG.ToolButtonData.optionMenu.title")} />
     },
     {
       icon: <HelpIcon className="icon-help"/>,

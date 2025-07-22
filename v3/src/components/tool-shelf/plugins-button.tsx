@@ -26,46 +26,52 @@ import "./tool-shelf.scss"
 interface IPluginItemProps {
   pluginData: PluginData | null
 }
-function PluginItem({ pluginData }: IPluginItemProps) {
-  const documentContent = useDocumentContent()
-
-  function handleClick() {
-    if (!pluginData) return
-    documentContent?.applyModelChange(
-      () => {
-        const url = URL.canParse(pluginData.path)
-                      ? pluginData.path
-                      : processWebViewUrl(`${kRootPluginsUrl}${pluginData.path}`)
-        const options = { height: pluginData.height, width: pluginData.width }
-        const tile = documentContent?.createOrShowTile?.(kWebViewTileType, options)
-        if (isWebViewModel(tile?.content)) tile.content.setUrl(url)
-      }, {
-        undoStringKey: t("V3.Undo.plugin.create", { vars: [pluginData.title] }),
-        redoStringKey: t("V3.Redo.plugin.create", { vars: [pluginData.title] }),
-        log: logMessageWithReplacement("Add Plugin: %@", { name: pluginData.title, url: pluginData.path })
-
-      }
-    )
-  }
-
-  const isStandardPlugin = standardPlugins.some(category =>
-    category.subMenu.some(item => item?.title === pluginData?.title)
-  )
-  return (
-    pluginData &&
-      <MenuItem className="tool-shelf-menu-item plugin-selection" data-testid="tool-shelf-plugins-option" onClick={handleClick}>
-        <img className="plugin-icon"
-              src={`${isStandardPlugin ? "" : kRootPluginsUrl}${pluginData.icon}`} />
-        <span className="plugin-selection-title">{pluginData.title}</span>
-      </MenuItem>
-  )
-}
 
 export function PluginsButton() {
   const { plugins: remotePlugins } = useRemotePluginsConfig()
   const pluginItems: (PluginSubMenuItems | null)[] =
-          remotePlugins.length ? [...combinedPlugins, null, ...remotePlugins] : combinedPlugins
+    remotePlugins.length ? [...combinedPlugins, null, ...remotePlugins] : combinedPlugins
   const [selectedCategoryTitle, setSelectedCategoryTitle] = useState<string | null>(null)
+  const [isOpen, setIsOpen] = useState(false)
+  const onClose = () => setIsOpen(false)
+  const onOpen = () => setIsOpen(true)
+
+  function PluginItem({ pluginData }: IPluginItemProps) {
+    const documentContent = useDocumentContent()
+
+    function handleClick() {
+      if (!pluginData) return
+      documentContent?.applyModelChange(
+        () => {
+          const url = URL.canParse(pluginData.path)
+            ? pluginData.path
+            : processWebViewUrl(`${kRootPluginsUrl}${pluginData.path}`)
+          const options = { height: pluginData.height, width: pluginData.width }
+          const tile = documentContent?.createOrShowTile?.(kWebViewTileType, options)
+          if (isWebViewModel(tile?.content)) tile.content.setUrl(url)
+          setSelectedCategoryTitle(null)
+          setIsOpen(false)
+        }, {
+          undoStringKey: t("V3.Undo.plugin.create", { vars: [pluginData.title] }),
+          redoStringKey: t("V3.Redo.plugin.create", { vars: [pluginData.title] }),
+          log: logMessageWithReplacement("Add Plugin: %@", { name: pluginData.title, url: pluginData.path })
+        }
+      )
+    }
+
+    const isStandardPlugin = standardPlugins.some(category =>
+      category.subMenu.some(item => item?.title === pluginData?.title)
+    )
+    return (
+      pluginData &&
+        <MenuItem className="tool-shelf-menu-item plugin-selection" data-testid="tool-shelf-plugins-option"
+            onClick={handleClick}>
+          <img className="plugin-icon"
+                src={`${isStandardPlugin ? "" : kRootPluginsUrl}${pluginData.icon}`} />
+          <span className="plugin-selection-title">{pluginData.title}</span>
+        </MenuItem>
+    )
+  }
 
   const renderPluginCategoryList = () => {
     if (!pluginItems.length) return null
@@ -76,8 +82,9 @@ export function PluginsButton() {
         return (
           <>
             <Menu placement="right-start" isOpen={selectedCategoryTitle === title} key={title} autoSelect={false}>
-              <MenuButton as="div" className="plugin-category-button" />
-              <MenuList key={title} className="tool-shelf-menu-list plugin-submenu" data-testid={`plugin-submenu-${title}`}>
+              <MenuButton as="div" className="plugin-category-button" data-testid={`plugin-category-button-${title}`} />
+              <MenuList key={title} className="tool-shelf-menu-list plugin-submenu"
+                  data-testid={`plugin-submenu-${title}`}>
                 {subMenu.length > 0
                     ? subMenu.map((pd, i) => <PluginItem key={pd?.title ?? `divider-${i}`} pluginData={pd} />)
                     : <MenuItem>{t("V3.ToolButtonData.pluginMenu.fetchError")}</MenuItem>
@@ -98,14 +105,15 @@ export function PluginsButton() {
   }
 
   return (
-    <Menu isLazy autoSelect={false}>
+    <Menu isLazy autoSelect={false} isOpen={isOpen} onOpen={onOpen} onClose={onClose} >
       <MenuButton
         className="tool-shelf-button tool-shelf-menu plugins"
         title={t("DG.ToolButtonData.optionMenu.toolTip")}
         data-testid="tool-shelf-button-plugins"
+        onClick={() => setIsOpen((prev) => !prev)}
       >
         <PluginsIcon />
-        <ToolShelfButtonTag className="tool-shelf-tool-label plugins" label={t("DG.ToolButtonData.pluginMenu.title")} />
+        <ToolShelfButtonTag className="tool-shelf-tool-label plugins" label={t("DG.ToolButtonData.pluginMenu.title")}/>
       </MenuButton>
       <MenuList className="tool-shelf-menu-list plugins" data-testid="plugins-menu">
         {renderPluginCategoryList()}

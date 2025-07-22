@@ -9,7 +9,7 @@ import { showWebView } from "./tool-shelf-utilities"
 
 import "./tool-shelf.scss"
 
-export const OptionsShelfButton = () => {
+export const SettingsShelfButton = () => {
   const documentContent = useDocumentContent()
   const { isOpen, onClose, onOpen } = useDisclosure()
   //TODO: May have to move state somewhere

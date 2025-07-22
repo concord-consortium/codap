@@ -68,11 +68,6 @@ $tool-shelf-border-width: 1px;
       &:active:not(:disabled) {
         background-color: #bfefff;
       }
-      &.redo-button {
-        .icon-redo {
-          transform: scaleX(-1);
-        }
-      }
 
       .tool-shelf-button-content{
         display: flex;
