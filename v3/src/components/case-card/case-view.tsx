@@ -1,6 +1,6 @@
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
-import React, { useCallback, useEffect, useRef } from "react"
+import React, { useCallback, useEffect, useRef, useState } from "react"
 import { colorCycleClass } from "../case-tile-common/case-tile-utils"
 import { CollectionContext, ParentCollectionContext, useCollectionContext } from "../../hooks/use-collection-context"
 import { useFreeTileLayoutContext } from "../../hooks/use-free-tile-layout-context"
@@ -29,16 +29,16 @@ interface ISingleCaseViewProps {
   displayedCaseLineage?: readonly string[]
   dummy?: boolean
   hidden?: boolean
+  level: number
   onAddNewAttribute?: () => void
   onNewCollectionDrop?: (dataSet: IDataSet, attrId: string, beforeCollectionId: string) => void
   onSelectCases?: (caseIds: string[]) => void
-  level: number
   style?: React.CSSProperties
 }
 
 const SingleCaseView = observer(function SingleCaseView({
-  cases, className, collection, displayedCase, displayedCaseLineage, dummy, hidden, onAddNewAttribute,
-  onNewCollectionDrop, onSelectCases, level, style
+  cases, className, collection, displayedCase, displayedCaseLineage, dummy, hidden, level, onAddNewAttribute,
+  onNewCollectionDrop, onSelectCases, style
 }: ISingleCaseViewProps) {
   const cardModel = useCaseCardModel()
   const childCases = cardModel?.groupChildCases(displayedCase.__id__) ?? []
@@ -109,6 +109,7 @@ export const CaseView = observer(function InnerCaseView({
   // FIXME: This should handle all selected cases
   const previousSelectedCaseIndex = useRef<number>(displayedCaseIndex)
   const isAnimating = cardModel?.animationLevel === level
+  const [animationStarted, setAnimationStarted] = useState(false)
   const isFlippingRight = cardModel?.animationDirection === "right"
   const previousDisplayedCase = useRef<IGroupedCase>(displayedCase)
   const previousDisplayedCaseLineage = useRef<readonly string[]>(displayedCaseLineage)
@@ -124,7 +125,10 @@ export const CaseView = observer(function InnerCaseView({
         )
         cardModel.setAnimationTimeout(setTimeout(() => {
           cardModel.setAnimationLevel(Infinity)
+          setAnimationStarted(false)
         }, 300))
+
+        setTimeout(() => setAnimationStarted(true))
       }
 
       setTimeout(() => {
@@ -161,17 +165,15 @@ export const CaseView = observer(function InnerCaseView({
   const classes = clsx(
     "case-card-view",
     colorCycleClass(level, collectionCount),
-    { "animating": isAnimating && !dummy }
+    { "animating": animationStarted && !dummy }
   )
   const tileWidth = tileLayout?.width ?? 0
   const leftLeft = `-${tileWidth}px`
   const rightLeft = `${tileWidth}px`
-  const left = !isAnimating ? 0 : isFlippingRight ? rightLeft : leftLeft
-  const leftIsVisible = isAnimating && isFlippingRight
-  const rightIsVisible = isAnimating && !isFlippingRight
+  const left = !isAnimating || animationStarted ? 0 : isFlippingRight ? leftLeft : rightLeft
   const style = { left }
-  const leftStyle = { left: leftIsVisible ? 0 : leftLeft }
-  const rightStyle = { left: rightIsVisible ? 0 : rightLeft }
+  const otherLeft = !animationStarted ? 0 : isFlippingRight ? rightLeft : leftLeft
+  const otherStyle = { left: otherLeft }
 
   const renderSingleCaseView = (args: IRenderSingleCaseViewArgs) => (
     <SingleCaseView
@@ -194,22 +196,15 @@ export const CaseView = observer(function InnerCaseView({
     <>
       <CaseCardCollectionSpacer onDrop={handleNewCollectionDrop} collectionId={collectionId}/>
       {!dummy && renderSingleCaseView({
-        displayedCase,
-        displayedCaseLineage,
+        displayedCase: previousDisplayedCase.current,
+        displayedCaseLineage: previousDisplayedCaseLineage.current,
         dummy: true,
-        hidden: !leftIsVisible,
-        style: leftStyle
-      })}
-      {!dummy && renderSingleCaseView({
-        displayedCase,
-        displayedCaseLineage,
-        dummy: true,
-        hidden: !rightIsVisible,
-        style: rightStyle
+        hidden: !isAnimating,
+        style: otherStyle
       })}
       {renderSingleCaseView({
-        displayedCase: isAnimating ? previousDisplayedCase.current : displayedCase,
-        displayedCaseLineage: isAnimating ? previousDisplayedCaseLineage.current : displayedCaseLineage,
+        displayedCase,
+        displayedCaseLineage,
         dummy,
         hidden: false,
         style
