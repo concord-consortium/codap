@@ -118,21 +118,21 @@ export const CaseView = observer(function InnerCaseView({
 
     if (previousSelectedCaseIndex.current !== displayedCaseIndex) {
       if (level < cardModel.animationLevel) {
-        console.log(`--- Animation level`, level)
         cardModel.setAnimationLevel(level)
         cardModel.setAnimationDirection(
           previousSelectedCaseIndex.current <= displayedCaseIndex ? "right" : "left"
         )
         cardModel.setAnimationTimeout(setTimeout(() => {
           cardModel.setAnimationLevel(Infinity)
-          console.log(`  - Reset animation level`)
         }, 300))
       }
+
       setTimeout(() => {
-        previousSelectedCaseIndex.current = displayedCaseIndex
         previousDisplayedCaseLineage.current = displayedCaseLineage
         previousDisplayedCase.current = displayedCase
       }, 300)
+
+      previousSelectedCaseIndex.current = displayedCaseIndex
     }
   }, [cardModel, displayedCase, displayedCaseIndex, displayedCaseLineage, dummy, isAnimating, level])
 
