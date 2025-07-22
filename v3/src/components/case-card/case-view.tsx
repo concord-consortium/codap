@@ -21,60 +21,7 @@ import AddIcon from "../../assets/icons/add-data-icon.svg"
 
 import "./case-view.scss"
 
-interface ISingleCaseViewProps {
-  cases: IGroupedCase[]
-  className?: string
-  collection?: ICollectionModel
-  displayedCase: IGroupedCase
-  displayedCaseLineage?: readonly string[]
-  dummy?: boolean
-  dummyParent?: boolean
-  hidden?: boolean
-  level: number
-  onAddNewAttribute?: () => void
-  onNewCollectionDrop?: (dataSet: IDataSet, attrId: string, beforeCollectionId: string) => void
-  onSelectCases?: (caseIds: string[]) => void
-  style?: React.CSSProperties
-}
-
-const SingleCaseView = observer(function SingleCaseView({
-  cases, className, collection, displayedCase, displayedCaseLineage, dummy, dummyParent, hidden, level,
-  onAddNewAttribute, onNewCollectionDrop, onSelectCases, style
-}: ISingleCaseViewProps) {
-  const cardModel = useCaseCardModel()
-  const childCases = cardModel?.groupChildCases(displayedCase.__id__) ?? []
-  const childCollection = collection?.child
-
-  const classes = clsx(className, { dummy: dummy && !dummyParent, hidden })
-  return (
-    <div className={classes} data-testid="case-card-view" style={style}>
-      <CaseCardHeader cases={cases} level={level}/>
-      <div className="case-card-attributes">
-        <button className="add-attribute" onClick={onAddNewAttribute} data-testid="add-attribute-button">
-          <AddIcon />
-        </button>
-        <CaseAttrsView
-          caseItem={displayedCase}
-          collection={collection}
-        />
-        { childCollection && (
-          <ParentCollectionContext.Provider key={`${displayedCase?.__id__}-${level}`} value={collection?.id}>
-            <CollectionContext.Provider value={childCollection.id}>
-              <CaseView
-                cases={childCases}
-                dummy={dummy}
-                level={level + 1}
-                onSelectCases={onSelectCases}
-                displayedCaseLineage={displayedCaseLineage}
-                onNewCollectionDrop={onNewCollectionDrop}
-              />
-            </CollectionContext.Provider>
-          </ParentCollectionContext.Provider>
-        )}
-      </div>
-    </div>
-  )
-})
+const animationDuration = 300
 
 interface ICaseViewProps {
   cases: IGroupedCase[]
@@ -128,7 +75,7 @@ export const CaseView = observer(function InnerCaseView({
         cardModel.setAnimationTimeout(setTimeout(() => {
           cardModel.setAnimationLevel(Infinity)
           setAnimationStarted(false)
-        }, 300))
+        }, animationDuration))
 
         setTimeout(() => setAnimationStarted(true))
       }
@@ -136,7 +83,7 @@ export const CaseView = observer(function InnerCaseView({
       setTimeout(() => {
         previousDisplayedCaseLineage.current = displayedCaseLineage
         previousDisplayedCase.current = displayedCase
-      }, 300)
+      }, animationDuration)
 
       previousSelectedCaseIndex.current = displayedCaseIndex
     }
@@ -214,5 +161,60 @@ export const CaseView = observer(function InnerCaseView({
         style
       })}
     </>
+  )
+})
+
+interface ISingleCaseViewProps {
+  cases: IGroupedCase[]
+  className?: string
+  collection?: ICollectionModel
+  displayedCase: IGroupedCase
+  displayedCaseLineage?: readonly string[]
+  dummy?: boolean
+  dummyParent?: boolean
+  hidden?: boolean
+  level: number
+  onAddNewAttribute?: () => void
+  onNewCollectionDrop?: (dataSet: IDataSet, attrId: string, beforeCollectionId: string) => void
+  onSelectCases?: (caseIds: string[]) => void
+  style?: React.CSSProperties
+}
+
+const SingleCaseView = observer(function SingleCaseView({
+  cases, className, collection, displayedCase, displayedCaseLineage, dummy, dummyParent, hidden, level,
+  onAddNewAttribute, onNewCollectionDrop, onSelectCases, style
+}: ISingleCaseViewProps) {
+  const cardModel = useCaseCardModel()
+  const childCases = cardModel?.groupChildCases(displayedCase.__id__) ?? []
+  const childCollection = collection?.child
+
+  const classes = clsx(className, { dummy: dummy && !dummyParent, hidden })
+  return (
+    <div className={classes} data-testid="case-card-view" style={style}>
+      <CaseCardHeader cases={cases} level={level}/>
+      <div className="case-card-attributes">
+        <button className="add-attribute" onClick={onAddNewAttribute} data-testid="add-attribute-button">
+          <AddIcon />
+        </button>
+        <CaseAttrsView
+          caseItem={displayedCase}
+          collection={collection}
+        />
+        { childCollection && (
+          <ParentCollectionContext.Provider key={`${displayedCase?.__id__}-${level}`} value={collection?.id}>
+            <CollectionContext.Provider value={childCollection.id}>
+              <CaseView
+                cases={childCases}
+                dummy={dummy}
+                level={level + 1}
+                onSelectCases={onSelectCases}
+                displayedCaseLineage={displayedCaseLineage}
+                onNewCollectionDrop={onNewCollectionDrop}
+              />
+            </CollectionContext.Provider>
+          </ParentCollectionContext.Provider>
+        )}
+      </div>
+    </div>
   )
 })
