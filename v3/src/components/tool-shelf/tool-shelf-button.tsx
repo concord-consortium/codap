@@ -3,6 +3,7 @@ import { clsx } from "clsx"
 import React from "react"
 import { getTileComponentIcon } from "../../models/tiles/tile-component-info"
 import { t } from "../../utilities/translation/translate"
+import { gLocale } from "../../utilities/translation/locale"
 
 interface IToolShelfButtonTagProps {
   className?: string
@@ -23,6 +24,11 @@ export interface IToolShelfButtonProps {
 export const ToolShelfButton = ({
   className, icon, label, hint, disabled, onClick
 }: IToolShelfButtonProps) => {
+  const langClass = gLocale.current.startsWith("fa")
+    ? "lang-fa"
+    : gLocale.current.startsWith("th")
+      ? "lang-th"
+      : ""
   return (
     <Box
       as='button'
@@ -30,7 +36,7 @@ export const ToolShelfButton = ({
       disabled={disabled}
       onClick={onClick}
       data-testid={`tool-shelf-button-${label.toLowerCase()}`}
-      className={clsx("tool-shelf-button", className)}
+      className={clsx("tool-shelf-button", langClass,className)}
     >
       <Box className="tool-shelf-button-content">
         {icon}

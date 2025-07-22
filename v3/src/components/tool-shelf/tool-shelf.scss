@@ -33,12 +33,12 @@ $tool-shelf-border-width: 1px;
       // This overrides wrapping span styles
       &.tool-shelf-menu {
         > span {
-          align-items: center;
           display: flex;
           flex-direction: column;
           justify-content: center;
           align-items: center;
-          margin: 6px 10px 10px 11px;
+          height: 46px;
+          margin: 0 10px 0 11px;
 
           svg {
             height: 30px;
@@ -48,6 +48,11 @@ $tool-shelf-border-width: 1px;
             background-color: transparent;
             padding-inline-start: 0;
             padding-inline-end: 0;
+            height: 18px;
+            line-height: 16px;
+            letter-spacing: 0.2px;
+            min-height: 0;
+            font-size: 14px;
           }
         }
       }
@@ -74,7 +79,8 @@ $tool-shelf-border-width: 1px;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        margin: 6px 10px 10px 11px;
+        margin: 9px 10px 0px 10px;
+        height: 46px;
 
         svg {
           height: 30px;
@@ -82,16 +88,16 @@ $tool-shelf-border-width: 1px;
         }
 
         .tool-shelf-tool-label {
-          font-family: "roboto", sans-serif;
-          font-weight: 500;
-          font-size: 14px;
-          letter-spacing: vars.$letter-spacing;
-          color: vars.$label-color;
           background-color: white;
           min-height: 16px;
           background-color: transparent;
           padding-inline-start: 0;
           padding-inline-end: 0;
+          line-height: 18px;
+          line-height: 16px;
+          letter-spacing: 0.2px;
+          min-height: 0;
+          font-size: 14px;
 
           &.menu {
             background-color: white;
@@ -107,9 +113,6 @@ $tool-shelf-border-width: 1px;
 }
 
 .tool-shelf-menu-list {
-  font-family: Roboto;
-  font-size: 14px;
-  color: #222;
   display: inline-block;
   padding: 6px 2px 6px 2px !important;
   transform: translate3d(0px, -10px, 0px) !important;
@@ -120,8 +123,6 @@ $tool-shelf-border-width: 1px;
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
-    font-family: 'roboto', sans-serif;
-    font-size: 14px !important;
     color: #222;
     cursor: pointer;
 
@@ -150,9 +151,6 @@ $tool-shelf-border-width: 1px;
   display: flex;
   align-items: center;
   padding: 4px 8px;
-  font-family: 'roboto', sans-serif;
-  font-size: 14px !important;
-  color: #222;
   cursor: pointer;
   height: 30px;
   margin-right: 8px;
@@ -225,4 +223,26 @@ $tool-shelf-border-width: 1px;
       background-color: #4B8ABD;
     }
   }
+}
+
+.tool-shelf,
+.tool-shelf-menu-list,
+.tool-shelf-menu-item {
+  font-family: 'Roboto', sans-serif;
+  letter-spacing: 0.2px !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  color: #222 !important;
+}
+
+.tool-shelf-button.lang-fa,
+.tool-shelf-menu-list.lang-fa,
+.tool-shelf-menu-item.lang-fa {
+  font-family: 'Noto Sans', sans-serif;
+}
+
+.tool-shelf-button.lang-th,
+.tool-shelf-menu-list.lang-th,
+.tool-shelf-menu-item.lang-th {
+  font-family: 'Noto Sans', sans-serif;
 }
