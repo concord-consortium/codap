@@ -192,13 +192,13 @@ export function useCloudFileManager(optionsArg: CFMAppOptions, onFileOpened?: ()
               cfm.client.replaceMenu({ menu: getMenuConfig(cfm) })
             }
           },
-          languageAnchorIcon: LanguageMenuIcon,
+          // languageAnchorIcon: LanguageMenuIcon,
         },
 
-        menuAnchorIcon: FileMenuIcon,
-        menuAnchorName: t("DG.fileMenu.fileMenuName"),
+        // menuAnchorIcon: FileMenuIcon,
+        // menuAnchorName: t("DG.fileMenu.fileMenuName"),
         menu: getMenuConfig(cfm),
-        subMenuExpandIcon: SubMenuExpandIcon,
+        // subMenuExpandIcon: SubMenuExpandIcon,
       },
       renderRoot(content: React.ReactNode, container: HTMLElement) {
         if (container && !root.current) {
@@ -254,7 +254,7 @@ export function useCloudFileManager(optionsArg: CFMAppOptions, onFileOpened?: ()
         "localFile",
         ...(DEBUG_CFM_LOCAL_STORAGE ? ["localStorage"] : [])
       ],
-      appIcon: CODAPIcon,
+      // appIcon: CODAPIcon,
       ...options.current
     }
 
