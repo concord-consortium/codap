@@ -1,11 +1,12 @@
 import React, { useRef } from "react"
 import { observer } from "mobx-react-lite"
 import { CollectionContext } from "../../hooks/use-collection-context"
+import { IDataSet } from "../../models/data/data-set"
+import { setSelectedCases } from "../../models/data/data-set-utils"
+import { t } from "../../utilities/translation/translate"
 import { AttributeHeaderDividerContext } from "../case-tile-common/use-attribute-header-divider-context"
 import { CaseView } from "./case-view"
 import { useCaseCardModel } from "./use-case-card-model"
-import { IDataSet } from "../../models/data/data-set"
-import { t } from "../../utilities/translation/translate"
 
 import "./card-view.scss"
 
@@ -23,7 +24,7 @@ export const CardView = observer(function CardView({onNewCollectionDrop}: CardVi
   const isInSummaryMode = summarizedCollections.length > 0
 
   const handleSelectCases = (caseIds: string[]) => {
-    data?.setSelectedCases(caseIds)
+    setSelectedCases(caseIds, data)
   }
 
   const handleSummaryButtonClick = () => {
@@ -32,10 +33,10 @@ export const CardView = observer(function CardView({onNewCollectionDrop}: CardVi
       const firstItemId = data?.itemIds[0]
       const firstItemLineage = cardModel?.caseLineage(firstItemId)
       if (firstItemLineage) {
-        data?.setSelectedCases([firstItemLineage[firstItemLineage.length - 1]])
+        setSelectedCases([firstItemLineage[firstItemLineage.length - 1]], data)
       }
     } else {
-      data?.setSelectedCases([])
+      setSelectedCases([], data)
     }
   }
 
