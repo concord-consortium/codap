@@ -206,7 +206,7 @@ $collection-title-font-color: black;
 
     font-family: "Noto Sans", sans-serif !important;
     font-size: $table-body-font-size !important;
-    color: $default-font-color;
+    color: vars.$default-font-color;
     border-radius: vars.$border-radius-bottom-corners;
     overflow-x: hidden;
 
@@ -227,7 +227,7 @@ $collection-title-font-color: black;
           display: flex;
           align-items: center;
           justify-content: center;
-          color: $default-font-color !important; //overrides chakra's default color
+          color: vars.$default-font-color !important; //overrides chakra's default color
           &:hover {
             text-decoration: underline;
             color: #1b5798 !important;
