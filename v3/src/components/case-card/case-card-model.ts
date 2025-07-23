@@ -19,7 +19,7 @@ export const CaseCardModel = TileContentModel
   .volatile(() => ({
     animationLevel: Infinity,
     animationDirection: "right" as "left" | "right",
-    animationTimeout: undefined as NodeJS.Timeout | undefined
+    animationTimeout: undefined as ReturnType<typeof setTimeout> | undefined
   }))
   .views(self => ({
     get data() {
@@ -106,7 +106,7 @@ export const CaseCardModel = TileContentModel
     setAnimationDirection(direction: "left" | "right") {
       self.animationDirection = direction
     },
-    setAnimationTimeout(timeout: NodeJS.Timeout) {
+    setAnimationTimeout(timeout: ReturnType<typeof setTimeout>) {
       clearTimeout(self.animationTimeout)
       self.animationTimeout = timeout
     },
