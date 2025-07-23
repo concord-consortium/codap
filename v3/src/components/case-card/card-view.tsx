@@ -20,8 +20,8 @@ export const CardView = observer(function CardView({onNewCollectionDrop}: CardVi
   const collections = data?.collections
   const rootCollection = collections?.[0]
   const contentRef = useRef<HTMLDivElement>(null)
-  const summarizedCollections = cardModel?.summarizedCollections || []
-  const isInSummaryMode = summarizedCollections.length > 0
+  const summarizedCollectionsCount = cardModel?.summarizedCollections.size ?? 0
+  const isInSummaryMode = summarizedCollectionsCount > 0
 
   const handleSelectCases = (caseIds: string[]) => {
     setSelectedCases(caseIds, data)

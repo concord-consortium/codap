@@ -37,29 +37,24 @@ export const CaseCardModel = TileContentModel
     get summarizedCollections() {
       const selectedItems = self.data?.selection
       const items = self.data?.items
-      const collections = self.data?.collections
+      const collections = self.data?.collections ?? []
 
-      if (!collections || !items || selectedItems?.size === 1) {
-        return []
-      }
+      const collectionIdsToSummarize = new Set<string>()
 
-      const collectionIdsToSummarize: string[] = []
-
-      collections.forEach((collection, index) => {
-        if (index < collections.length - 1) {
-          const cases = self.data?.getCasesForCollection(collection.id) ?? []
-          const anyChildSelectedCount = cases.reduce((count, { __id__ }) => {
-            const caseInfo = self.data?.caseInfoMap.get(__id__)
-            return caseInfo?.childItemIds.some(id => selectedItems?.has(id)) ? count + 1 : count
-          }, 0)
-          if (cases.length > 1 && anyChildSelectedCount !== 1) {
-            collectionIdsToSummarize.push(collection.id)
+      if (items && selectedItems?.size !== 1) {
+        collections.forEach((collection, index) => {
+          if (index < collections.length - 1) {
+            const cases = self.data?.getCasesForCollection(collection.id) ?? []
+            const collectionSelectedCaseIds = self.data?.selectedCaseIds[index]
+            if (cases.length > 1 && collectionSelectedCaseIds?.size !== 1) {
+              collectionIdsToSummarize.add(collection.id)
+            }
+          } else {
+            // always summarize the last collection
+              collectionIdsToSummarize.add(collection.id)
           }
-        } else {
-          // always summarize the last collection
-            collectionIdsToSummarize.push(collection.id)
-        }
-      })
+        })
+      }
 
       return collectionIdsToSummarize
     }

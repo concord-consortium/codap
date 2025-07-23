@@ -23,7 +23,7 @@ export const CaseCardHeader = observer(function CaseCardHeader(props: ICaseHeade
   const data = cardModel?.data
   const collectionId = useCollectionContext()
   const collection = data?.getCollection(collectionId)
-  const isCollectionSummarized = !!cardModel?.summarizedCollections.includes(collectionId)
+  const isCollectionSummarized = !!cardModel?.summarizedCollections.has(collectionId)
 
   const getDisplayedCaseIndex = () => {
     if (cases.length === 1) return 0
