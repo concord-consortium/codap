@@ -2,7 +2,7 @@
 @use "./case-table-shared.scss" as shared;
 @use "../case-tile-common/case-tile-vars" as caseTileVars;
 
-$table-body-font-size: 12px;
+$table-body-font-size: 10px;
 
 .case-table {
   position: relative;
@@ -226,7 +226,7 @@ $table-body-font-size: 12px;
           display: flex;
           align-items: center;
           justify-content: center;
-          color: #555555 !important; //overrides chakra's default color
+          color: #222 !important; //overrides chakra's default color
           &:hover {
             text-decoration: underline;
             color: #1b5798 !important;

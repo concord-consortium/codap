@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from "react"
+import { clsx } from "clsx"
 import { textEditorClassname } from "react-data-grid"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useLoggingContext } from "../../hooks/use-log-context"
@@ -7,7 +8,6 @@ import { selectAllCases } from "../../models/data/data-set-utils"
 import { uiState } from "../../models/ui-state"
 import { blockAPIRequestsWhileEditing } from "../../utilities/plugin-utils"
 import { TRenderEditCellProps } from "./case-table-types"
-import clsx from "clsx"
 
 /*
   ReactDataGrid uses Linaria CSS-in-JS for its internal styling. As with CSS Modules and other
