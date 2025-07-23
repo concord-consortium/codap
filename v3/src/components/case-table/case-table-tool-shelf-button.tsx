@@ -30,7 +30,12 @@ import TrashIcon from "../../assets/icons/icon-trash.svg"
 
 import "../tool-shelf/tool-shelf.scss"
 
-export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMenuList() {
+interface ICaseTableToolShelfMenuListProps {
+  setMenuIsOpen: (isOpen: boolean) => void
+}
+
+const CaseTableToolShelfMenuList = observer(
+    function CaseTableToolShelfMenuList({ setMenuIsOpen }: ICaseTableToolShelfMenuListProps) {
   const document = appState.document
   const content = document.content
   const manager = getSharedModelManager(document)
@@ -68,6 +73,7 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
     setModalOpen(true)
     onOpen()
     setDataSetIdToDelete(dsId)
+    setMenuIsOpen(false)
   }
   return (
     <>
@@ -105,15 +111,18 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
 })
 
 export const CaseTableToolShelfButton = () => {
+  const [isOpen, setIsOpen] = useState(false)
+  const onClose = () => setIsOpen(false)
+  const onOpen = () => setIsOpen(true)
   return (
-    <Menu isLazy autoSelect={false}>
+    <Menu isLazy autoSelect={false} isOpen={isOpen} onOpen={onOpen} onClose={onClose}>
       <MenuButton className="tool-shelf-button tool-shelf-menu table"
           title={`${t("DG.ToolButtonData.tableButton.toolTip")}`}
           data-testid={"tool-shelf-button-table"}>
         <TableIcon className="menu-icon case-table-icon" />
         <ToolShelfButtonTag className="tool-shelf-tool-label table" label={t("DG.ToolButtonData.tableButton.title")} />
       </MenuButton>
-      <CaseTableToolShelfMenuList />
+      <CaseTableToolShelfMenuList setMenuIsOpen={setIsOpen} />
     </Menu>
   )
 }
