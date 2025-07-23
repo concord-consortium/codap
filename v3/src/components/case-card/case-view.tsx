@@ -33,7 +33,7 @@ interface ICaseViewProps {
 }
 
 interface IRenderSingleCaseViewArgs {
-  displayedCase: IGroupedCase
+  displayedCase?: IGroupedCase
   dummy?: boolean
   style?: React.CSSProperties
 }
@@ -58,7 +58,7 @@ export const CaseView = observer(function InnerCaseView({
   const isAnimating = cardModel?.animationLevel === level
   const [animationStarted, setAnimationStarted] = useState(false)
   const isFlippingRight = cardModel?.animationDirection === "right"
-  const dummyDisplayedCase = useRef<IGroupedCase>(displayedCase)
+  const dummyDisplayedCase = useRef<IGroupedCase | undefined>(displayedCase)
   const collectionSelectedCaseIndicesString = collectionSelectedCaseIndices.join(",")
   const previousCollectionSelectedCaseIndicesString = useRef<string>(collectionSelectedCaseIndicesString)
 
@@ -185,7 +185,7 @@ interface ISingleCaseViewProps {
   cases: IGroupedCase[]
   className?: string
   collection?: ICollectionModel
-  displayedCase: IGroupedCase
+  displayedCase?: IGroupedCase
   dummy?: boolean // When dummy is true, many features are surpressed
   level: number
   onAddNewAttribute?: () => void
@@ -199,7 +199,7 @@ const SingleCaseView = observer(function SingleCaseView({
   onSelectCases, style
 }: ISingleCaseViewProps) {
   const cardModel = useCaseCardModel()
-  const childCases = cardModel?.groupChildCases(displayedCase.__id__) ?? []
+  const childCases = displayedCase ? cardModel?.groupChildCases(displayedCase.__id__) ?? [] : []
   const childCollection = collection?.child
 
   return (

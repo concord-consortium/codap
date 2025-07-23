@@ -12,7 +12,7 @@ import { useCaseCardModel } from "./use-case-card-model"
 import "./case-attrs-view.scss"
 
 interface ICaseAttrsViewProps {
-  caseItem: IGroupedCase
+  caseItem?: IGroupedCase
   collection?: ICollectionModel
 }
 
@@ -61,7 +61,7 @@ export const CaseAttrsView = observer(function CaseAttrsView({ caseItem, collect
         {collection && visibleAttrs.map(attr => {
             return (
               <CaseAttrView
-                key={`${attr.id}-${isCollectionSummarized ? "summary" : caseItem.__id__}`}
+                key={`${attr.id}-${isCollectionSummarized ? "summary" : caseItem?.__id__}`}
                 attr={attr}
                 collection={collection}
                 getDividerBounds={getDividerBounds}
