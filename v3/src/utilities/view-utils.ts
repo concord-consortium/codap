@@ -4,26 +4,35 @@ const kCodapAppHeader = 95
 const kTitleBarHeight = 25
 const kGap = 5 // Also used to increment during search
 
-export const getPositionOfNewComponent = (iViewRect: {width?: number, height?: number}, iPosition = "top") => {
+export const getPositionOfNewComponent = (componentSize: { width?: number, height?: number }, iPosition = "top") => {
   // note that this will only work when the document content is a single FreeTileRow
   const parentEl = document.getElementsByClassName("free-tile-row")
   if (!parentEl?.[0]) return { x: 100, y: 100 }
-  const rowRect = parentEl[0].getBoundingClientRect()
+  const viewportLeft = parentEl[0].scrollLeft
+  const viewportTop = parentEl[0].scrollTop
+  const viewportWidth = parentEl[0].clientWidth
+  const viewportHeight = parentEl[0].clientHeight
+  const viewportBottom = viewportTop + viewportHeight
+  const viewportRight = viewportLeft + viewportWidth
   const existingEls = document.getElementsByClassName("free-tile-component")
   const existingRects = Array.from(existingEls).map(el => el.getBoundingClientRect())
-  const viewWidth = iViewRect.width || kDefaultTileWidth
-  const viewHeight = iViewRect.height || kDefaultTileHeight
+    .map(rect => ({ height: rect.height, width: rect.width, x: rect.x + viewportLeft, y: rect.y + viewportTop }))
+  const componentWidth = componentSize.width || kDefaultTileWidth
+  const componentHeight = componentSize.height || kDefaultTileHeight
 
+  const iOffset = { x: 0, y: 0 }
+  const initialX = kGap + viewportLeft + iOffset.x
+    const tStartAtBottom = (iPosition === 'bottom')
+  const initialY = (tStartAtBottom ? viewportBottom - componentHeight - kGap : kGap) + iOffset.y
 
   const findEmptyLocationForRect = () => {
-    const iOffset = {x: 0, y: 0}
-    const tStartAtBottom = (iPosition === 'bottom')
-    let tLoc = {x: kGap + iOffset.x,
-          y: (tStartAtBottom ? rowRect.height - viewHeight - kGap : kGap) + iOffset.y }
+    let componentPosition = { x: initialX, y: initialY }
     let tSuccess = false
 
-    const intersectRect = (r1: {x: number, y: number, width: number, height: number},
-        r2: {x: number, y: number, width: number, height: number}) => {
+    const intersectRect = (
+      r1: {x: number, y: number, width: number, height: number},
+      r2: {x: number, y: number, width: number, height: number}
+    ) => {
       const tRes = (!isNaN(r1.x) && !isNaN(r1.y)) && !(r2.x > r1.x + r1.width ||
           r2.x + r2.width < r1.x ||
           r2.y > r1.y + r1.height ||
@@ -37,13 +46,13 @@ export const getPositionOfNewComponent = (iViewRect: {width?: number, height?: n
     */
     const intersects = (iTopLeft: {x: number, y: number}) => {
       return !existingRects.every(rect => {
-        return !intersectRect(rect,
-                              { x: iTopLeft.x,
-                                y: iTopLeft.y + kCodapAppHeader,
-                                width: viewWidth,
-                                height: viewHeight
-                              })
+        return !intersectRect(rect, {
+          x: iTopLeft.x,
+          y: iTopLeft.y + kCodapAppHeader,
+          width: componentWidth,
+          height: componentHeight
         })
+      })
     }
 
     const onTopOfViewRectTopLeft = (iTopLeft: {x: number, y: number}) => {
@@ -55,45 +64,45 @@ export const getPositionOfNewComponent = (iViewRect: {width?: number, height?: n
     // If there are no other views or reserved areas, simply return the initial
     // candidate.
     if (existingRects.length === 0) {
-      return tLoc
+      return componentPosition
     }
 
     // Work our way through the visible portion of the document
-    while (!tSuccess && (tLoc.y + viewHeight < rowRect.height) &&
-              tLoc.y >= iOffset.y + kGap) {
-      tLoc.x = iOffset.x + kGap
+    while (
+      !tSuccess && (componentPosition.y + componentHeight < viewportBottom) && componentPosition.y >= iOffset.y + kGap
+    ) {
+      componentPosition.x = initialX
       // left to right, making sure we got through at least once
       while (!tSuccess) {
         // Positioned at tLoc, does the item rect intersect any view rects?
-        if (intersects(tLoc)) {
-          tLoc.x += kGap
-          if (tLoc.x + viewWidth > iOffset.x + rowRect.x + rowRect.width)
+        if (intersects(componentPosition)) {
+          componentPosition.x += kGap
+          if (componentPosition.x + componentWidth > iOffset.x + viewportRight)
             { break }
         }
         else {
           tSuccess = true
         }
       }
-      !tSuccess && (tLoc.y += (tStartAtBottom ? -kGap : kGap))
+      !tSuccess && (componentPosition.y += (tStartAtBottom ? -kGap : kGap))
     }
 
     if (!tSuccess) {
       // Choose a location that will center the item rect in the container
-      tLoc = {  x: iOffset.x +
-                    Math.max(kGap, Math.round((rowRect.width - viewWidth) / 2)),
-                y: iOffset.y +
-                    Math.max(kGap, Math.round((rowRect.height - viewHeight) / 2))
-              }
-      // Adjust down and to the right until there tLoc is not on top of the upper-right corner of a view rect
+      componentPosition = {
+        x: iOffset.x + viewportLeft + Math.max(kGap, Math.round((viewportWidth - componentWidth) / 2)),
+        y: iOffset.y + viewportTop + Math.max(kGap, Math.round((viewportHeight - componentHeight) / 2))
+      }
+      // Adjust down and to the right until the componentPosition is not on top of the upper-right corner of a view rect
       while (!tSuccess) {
-        if (!onTopOfViewRectTopLeft(tLoc)) {
+        if (!onTopOfViewRectTopLeft(componentPosition)) {
           tSuccess = true
         } else {
-          tLoc = { x: tLoc.x + kGap, y: tLoc.y + kTitleBarHeight }
+          componentPosition = { x: componentPosition.x + kGap, y: componentPosition.y + kTitleBarHeight }
         }
       }
     }
-    return tLoc
+    return componentPosition
   }
 
   const nLoc = findEmptyLocationForRect()
