@@ -14,9 +14,7 @@ Additionally we are running CODAP with the Webpack dev server during development
 
 The combination of all of these behaviors makes it complex to see the same thing a user sees in production when trying to duplicate the problem in development.
 
-Note: Even if the error boundary doesn't call `cfmClient.alert` in the error boundary the component is still rendered a second time.
-
-Details below...
+Below is what happens in CODAP using the ErrorTesterComponent. This component is enabled by adding the URL parameter `errorTester=[value]`. For the results below a value of `firstDisplay` was used and the `numErrorsThrownOnFirstDisplay` variable in the ErrorTesterComponent was changed.
 
 # Production Mode
 In production mode React will automatically re-render a component that throws an error during render. The error boundary handler gets the error from the first render before the component is re-rendered. The error boundary handler's components are not shown unless the main component throws an error a second time. Details below.
@@ -31,7 +29,7 @@ The component only throws an error on its first render.
 - the first render error is shown in the console as an uncaught error.
 
 ### Visible Behavior
-An error dialog is shown because the CODAP error boundary triggers it. The main CODAP components are shown underneath the dialog instead of the error boundary component.
+An error dialog is shown because the CODAP window error handler shows it. The main CODAP components are shown underneath the dialog instead of the error boundary component.
 
 ## Two errors are thrown
 The component throws an error on its first and second render
@@ -44,7 +42,7 @@ The component throws an error on its first and second render
 - the second render error is shown in the console as an uncaught error.
 
 ### Visible Behavior
-An error dialog is shown because the CODAP error boundary triggers it. The error boundary components (just a blank div) is shown underneath the dialog instead of the main CODAP components.
+An error dialog is shown because the CODAP window error handler shows it. The error boundary components are shown underneath the dialog instead of the main CODAP components.
 
 # Development Mode
 In dev mode React re-renders a component four times when it throws an error before giving up. If the component throws less than 4 errors various things are seen.
@@ -75,7 +73,7 @@ If the component only throws an error on its first and second render
 - the first render error is shown in the console
 
 ### Visible behavior
-The webpack error overlay is shown with the first render error. Closing this overlay shows the CODAP error dialog and beneath it are the main CODAP components. Closing the error dialog, shows the codap components. This does **not** cause the component to be rendered a fourth time.
+The webpack error overlay is shown with the first render error. Closing this overlay shows the CODAP error dialog showing the first render error and beneath it are the main CODAP components. Closing the error dialog, shows the codap components. This does not cause the component to be rendered a fourth time.
 
 ## Three errors thrown
 If the component only throws an error on its first three renders
@@ -91,7 +89,7 @@ If the component only throws an error on its first three renders
 - react shows an error message in the console saying the error boundary will be used because an error was thrown
 
 ### Visible behavior
-The CODAP error dialog is shown with the third render error. Beneath this dialog is the error boundary components (a blank div). Closing the error dialog, shows the codap components. This causes the component to be rendered a fifth time.
+The CODAP error dialog is shown with the second render error. Beneath this dialog are the error boundary components showing the third render error. Closing the error dialog, shows the error boundary components.
 
 ## Four errors thrown
 
@@ -107,7 +105,4 @@ The CODAP error dialog is shown with the third render error. Beneath this dialog
 - react shows an error message in the console saying the error boundary will be used because an error was thrown
 
 ### Visible behavior
-The CODAP error dialog is shown with the third render error. Beneath this dialog is the error boundary components (a blank div). Closing the error dialog, shows the codap components. This causes the component to be rendered a fifth time.
-
-## More than four errors thrown
-The events and behavior just repeat. So with 5 errors thrown, the behavior of 4 errors happens. Then when you close the dialog the behavior is the same as when a single error is thrown.
+The CODAP error dialog is shown with the fourth render error. Beneath this dialog is the error boundary components showing the third render error. Closing the error dialog, shows the error boundary components.
