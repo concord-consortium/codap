@@ -276,6 +276,7 @@ $table-body-font-size: 12px;
     .rdg-row {
       input.rdg-text-editor {
         font-size: $table-body-font-size;
+        font-weight: 500;
         height: 100%;
         line-height: 1.5;
         display: flex;
@@ -283,9 +284,8 @@ $table-body-font-size: 12px;
         box-sizing: border-box;
         &.numeric-format {
           font-family: 'Noto Sans Mono', monospace;
-          font-weight: 500;
           text-align: right;
-        } 
+        }
       }
       &.rdg-row-even {
         .codap-index-cell {
@@ -444,6 +444,10 @@ $table-body-font-size: 12px;
         font-size: $table-body-font-size;
         font-weight: 500;
         height: 100%;
+        &.numeric-format {
+          font-family: 'Noto Sans Mono', monospace;
+          text-align: right;
+        }
       }
 
       .color-cell-text-editor {
@@ -532,15 +536,4 @@ $table-body-font-size: 12px;
   font-family: 'Noto Sans Mono', monospace;
   font-size: $table-body-font-size;
   font-weight: 500;
-}
-
-.cell-text-editor {
-  font-family: 'Noto Sans Mono', monospace;
-  font-size: $table-body-font-size;
-  font-weight: 500;
-  height: 100%;
-  line-height: 1.5;
-  display: flex;
-  align-items: center;
-  box-sizing: border-box;
 }

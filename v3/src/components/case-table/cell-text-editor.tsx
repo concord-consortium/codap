@@ -58,7 +58,7 @@ export default function CellTextEditor({ row, column, onRowChange, onClose }: TR
   return (
     <input
       data-testid="cell-text-editor"
-      className={`${textEditorClassname} ${isNumeric ? "numeric-format" : ""}`}
+      className={`${textEditorClassname} cell-text-editor ${isNumeric ? "numeric-format" : ""}`}
       ref={autoFocusAndSelect}
       value={valueRef.current}
       onChange={(event) => handleChange(event.target.value)}
