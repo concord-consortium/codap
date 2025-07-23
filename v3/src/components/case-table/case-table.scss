@@ -3,6 +3,7 @@
 @use "../case-tile-common/case-tile-vars" as caseTileVars;
 
 $table-body-font-size: 10px;
+$collection-title-font-color: black;
 
 .case-table {
   position: relative;
@@ -65,7 +66,7 @@ $table-body-font-size: 10px;
             white-space: nowrap;
             user-select: none;
             font-style: italic;
-            color: black;
+            color: $collection-title-font-color;
           }
 
           .add-attribute-icon-button {
@@ -205,7 +206,7 @@ $table-body-font-size: 10px;
 
     font-family: "Noto Sans", sans-serif !important;
     font-size: $table-body-font-size !important;
-    color: #222222;
+    color: $default-font-color;
     border-radius: vars.$border-radius-bottom-corners;
     overflow-x: hidden;
 
@@ -226,7 +227,7 @@ $table-body-font-size: 10px;
           display: flex;
           align-items: center;
           justify-content: center;
-          color: #222 !important; //overrides chakra's default color
+          color: $default-font-color !important; //overrides chakra's default color
           &:hover {
             text-decoration: underline;
             color: #1b5798 !important;
