@@ -1,6 +1,8 @@
 {
   "files": [],
   "references": [
-    { "path": "./v3" }
+    { "path": "./v3" },
+    { "path": "./formulas" },
+    { "path": "./utilities" }
   ]
 }

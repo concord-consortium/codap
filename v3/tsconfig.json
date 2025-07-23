@@ -1,30 +1,26 @@
 {
   "compilerOptions": {
-    "outDir": "./dist/",
+    "noEmit": true,
+    "rootDir": ".",
     "sourceMap": true,
     "noImplicitAny": true,
-    "module": "esnext",
-    "moduleResolution": "node",
+    "module": "node16",
+    "moduleResolution": "node16",
     "target": "es2018",
     "allowJs": true,
     "esModuleInterop": true,
     "isolatedModules": true,
+    // Many of the dependency's type definition files are not compatible with
+    // this configuration.
+    "skipLibCheck": true,
     "resolveJsonModule": true,
     "experimentalDecorators": true,
     "importHelpers": true,
     "strict": true,
-    "types": [],
-    "jsx": "react",
-    "lib": ["dom", "dom.iterable", "es2019"],
-    "paths": {
-      "@codemirror/autocomplete": ["./node_modules/@codemirror/autocomplete"],
-      "@codemirror/state": ["./node_modules/@codemirror/state"],
-      "@codemirror/view": ["./node_modules/@codemirror/view"],
-      "mobx-state-tree": ["./node_modules/@concord-consortium/mobx-state-tree/dist"]
-    }
+    "types": ["node"],
+    "lib": ["es2020"]
   },
   "include": [
-    "src/**/*",
     "eslint.*.mjs",
     // cypress.config.ts will need another pass before being added
     // "*.config.ts",
@@ -32,8 +28,6 @@
     "why-did-you-render.ts"
   ],
   "exclude": [
-    "src/**/*.v2.ts",
-    "*.grammar",
-    "*.json"
+    "src/**/*"
   ]
 }

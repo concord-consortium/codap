@@ -1,7 +1,7 @@
+import { getDisplayNameMap } from "@concord-consortium/codap-formulas/models/formula/utils/name-mapping-utils"
+import { displayToCanonical } from "@concord-consortium/codap-formulas/models/formula/utils/canonicalization-utils"
 import { FormulaMathJsScope } from "../formula-mathjs-scope"
 import { evaluate, evaluateForAllCases, getFormulaTestEnv } from "../test-utils/formula-test-utils"
-import { displayToCanonical } from "../utils/canonicalization-utils"
-import { getDisplayNameMap } from "../utils/name-mapping-utils"
 import { UNDEF_RESULT } from "./function-utils"
 import { math } from "./math"
 

@@ -1,4 +1,4 @@
-import { colorFunctions } from "./color-functions"
+import { colorFunctions } from "@concord-consortium/codap-formulas/models/formula/functions/color-functions"
 
 describe("colorFunctions", () => {
   describe("rgb", () => {

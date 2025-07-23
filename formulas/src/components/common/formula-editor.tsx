@@ -11,16 +11,12 @@ import CodeMirror, {
 } from "@uiw/react-codemirror"
 import React, { useCallback, useRef } from "react"
 import { useMemo } from "use-memo-one"
-import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { boundaryManager } from "../../models/boundaries/boundary-manager"
 import { IDataSet } from "../../models/data/data-set"
 import { typedFnRegistry } from "../../models/formula/functions/math"
 import { formulaLanguageWithHighlighting } from "../../models/formula/lezer/formula-language"
-import { getSharedModelManager } from "../../models/tiles/tile-environment"
 import { getGlobalValueManager } from "../../models/global/global-value-manager"
 import { FormulaEditorApi, useFormulaEditorContext } from "./formula-editor-context"
-
-import styles from './edit-formula-modal.scss'
 
 interface ICompletionOptions {
   attributes: boolean
@@ -124,7 +120,7 @@ function cmCodapCompletions(context: CompletionContext): CompletionResult | null
                       ? Array.from(boundaryManager.boundaryKeys.map(key => ({ label: key })))
                       : []
   const globalManager = dataSet && options?.globals
-                          ? getGlobalValueManager(getSharedModelManager(dataSet))
+                          ? getGlobalValueManager(dataSet)
                           : undefined
   const globals = globalManager
                     ? Array.from(globalManager.globals.values()).map(global => ({ label: global.name }))
@@ -178,7 +174,7 @@ const highlightClasses: Record<string, HighlightFn> = {
 
     if (boundaryManager.isBoundarySet(nodeText)) return "codap-boundary"
 
-    const globalManager = options.globals ? getGlobalValueManager(getSharedModelManager(data)) : undefined
+    const globalManager = options.globals ? getGlobalValueManager(data) : undefined
     if (globalManager?.getValueByName(nodeText)) return "codap-global"
   }
 }
@@ -259,8 +255,10 @@ function cmExtensionsSetup() {
   return extensions.filter(Boolean)
 }
 
-export function FormulaEditor({ options: _options, editorHeight = +styles.editFormulaModalMinHeight }: IProps) {
-  const dataSet = useDataSetContext()
+const kDefaultEditorHeight = 180
+
+export function FormulaEditor({ options: _options, editorHeight = kDefaultEditorHeight }: IProps) {
+  const { dataSet } = useFormulaEditorContext()
   const jsonOptions = JSON.stringify(_options ?? {})
   const options = useMemo(() => JSON.parse(jsonOptions), [jsonOptions])
   const cmRef = useRef<ReactCodeMirrorRef>(null)
@@ -286,8 +284,10 @@ export function FormulaEditor({ options: _options, editorHeight = +styles.editFo
 
   // .input-element indicates to CodapModal not to drag the modal from within the element
   const classes = "formula-editor-input input-element"
-  return <CodeMirror ref={cmRef} className={classes} data-testid="formula-editor-input" height="70px"
-                     basicSetup={false} extensions={extensions} style={{height: editorHeight}}
+  // indentWithTab is disabled so users can navigate the UI with tab and not have the formula editor
+  // capture it.
+  return <CodeMirror ref={cmRef} className={classes} data-testid="formula-editor-input" height={`${editorHeight}px`}
+                     basicSetup={false} extensions={extensions} indentWithTab={false}
                      onCreateEditor={handleCreateEditor}
                      value={formula} onChange={handleFormulaChange} />
 }

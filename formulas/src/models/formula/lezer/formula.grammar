@@ -1,0 +1,160 @@
+// Based on https://github.com/lezer-parser/javascript/blob/34e5de4cb57fe3ef3d8d278c231a634b1f2bad9f/src/javascript.grammar
+// npm run lezer:generate to compile the grammar into its JavaScript-callable constituents.
+
+// leaving this here as an example; we may want to support dialects for specific use cases like plotted functions
+// @dialects { jsx, ts }
+
+@precedence {
+  call,
+  prefix,
+  exp @left,
+  times @left,
+  plus @left,
+  rel @left,
+  equal @left,
+  and @left,
+  or @left,
+  ternary @right
+}
+
+@top SingleExpression { expression }
+
+expression[@isGroup=Expression] {
+  expressionNoComma
+}
+
+expressionNoComma {
+  Number |
+  String |
+  VariableName |
+  boolean |
+  UnaryExpression |
+  ParenthesizedExpression |
+  BinaryExpression |
+  ConditionalExpression { expressionNoComma !ternary questionOp expressionNoComma LogicOp<":"> expressionNoComma } |
+  // JS supports arbitrary expression returning a function; we require a literal function name string
+  CallExpression { FunctionName !call ArgList }
+}
+
+ParenthesizedExpression { "(" expression ")" }
+
+UnaryExpression {
+  !prefix (LogicOp<"!"> | plusMin)
+  expressionNoComma
+}
+
+BinaryExpression {
+  // use `^` for exponentiation rather than the JavaScript `**`
+  expressionNoComma !exp ArithOp<"^"> expressionNoComma |
+  expressionNoComma !times (divide | ArithOp<"%" | "*" | "×">) expressionNoComma |
+  expressionNoComma !plus plusMin expressionNoComma |
+  // support unicode comparison operators
+  expressionNoComma !rel (LessThan | CompareOp<"<=" | "≤" | ">" | ">=" | "≥">) expressionNoComma |
+  expressionNoComma !equal CompareOp<"=" | "==" | "!=" | "≠"> expressionNoComma |
+  // use single-char (bitwise in JS) and full-word logical operators
+  expressionNoComma !and LogicOp<"&" | "and" | "AND"> expressionNoComma |
+  expressionNoComma !or LogicOp<"|" | "or" | "OR"> expressionNoComma
+}
+
+ArgList {
+  "(" commaSep<expressionNoComma> ")"
+}
+
+@skip {} {
+  // backtick strings are similar to JS template strings, but don't support interpolation
+  BackTickString[isolate] {
+    backTickStart (backTickEscape | backTickContent)* backTickEnd
+  }
+
+  String[isolate] {
+    '"' (stringContentDouble | Escape)* ('"' | "\n") |
+    "'" (stringContentSingle | Escape)* ("'" | "\n")
+  }
+
+  BlockComment[isolate] { "/*" (blockCommentContent | blockCommentNewline)* blockCommentEnd }
+}
+
+commaSep<content> {
+  "" | content ("," content?)*
+}
+
+// Contextual keyword in property context
+
+boolean { @specialize[@name=BooleanLiteral]<identifier, "true" | "false"> }
+
+FunctionName { identifier }
+
+// identifiers can be specified with backtick strings
+// TODO: separate backticks from variable name so variable name can be highlighted without the backticks
+VariableName { identifier | BackTickString }
+
+questionOp[@name=LogicOp] { "?" }
+
+plusMin { ArithOp<"+" | "-"> }
+
+@skip { spaces | newline | LineComment | BlockComment }
+
+@context trackNewline from "./tokens.js"
+
+@local tokens {
+  backTickEnd { "`" }
+  backTickEscape[@name=Escape] { Escape }
+  @else backTickContent
+}
+
+@local tokens {
+  blockCommentEnd { "*/" }
+  blockCommentNewline { "\n" }
+  @else blockCommentContent
+}
+
+@tokens {
+  spaces[@export] { $[\u0009 \u000b\u00a0\u1680\u2000-\u200a\u202f\u205f\u3000\ufeff]+ }
+  newline[@export] { $[\r\n\u2028\u2029] }
+
+  LineComment[isolate] { "//" ![\n]* }
+
+  // support unicode division operator
+  divide[@name=ArithOp] { "/" | "÷" }
+
+  @precedence { "/*", LineComment, divide }
+
+  identifierChar { @asciiLetter | $[_$\u{a1}-\u{10ffff}] }
+
+  word { identifierChar (identifierChar | @digit)* }
+
+  identifier { word }
+
+  @precedence { spaces, newline, identifier }
+
+  hex { @digit | $[a-fA-F] }
+
+  Number {
+    (@digit (@digit)* ("." (@digit)*)? | "." @digit (@digit)*)
+      (("e" | "E") ("+" | "-")? (@digit)+)?
+  }
+
+  Escape {
+    "\\" ("x" hex hex | "u" ("{" hex+ "}" | hex hex hex hex) | ![xu])
+  }
+
+  stringContentSingle { ![\\\n']+ }
+
+  stringContentDouble { ![\\\n"]+ }
+
+  backTickStart { "`" }
+
+  ArithOp<expr> { expr }
+  LogicOp<expr> { expr }
+  CompareOp<expr> { expr }
+
+  LessThan[@name=CompareOp] { "<" }
+
+  "="[@name=Equals]
+
+  "(" ")"
+}
+
+@external propSource jsHighlight from "./highlight"
+
+@detectDelim

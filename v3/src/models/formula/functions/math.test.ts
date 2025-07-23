@@ -1,8 +1,11 @@
 import { MathNode, SymbolNode, parse } from "mathjs"
 import {
-  evaluateRawWithAggregateContext, evaluateRawWithDefaultArg, evaluateToEvaluateRaw, evaluateWithAggregateContextSupport
-} from "./math"
+  evaluateRawWithAggregateContext, evaluateRawWithDefaultArg, evaluateToEvaluateRaw,
+  evaluateWithAggregateContextSupport,
+  registerMathjsFunction, typedFnRegistry, math
+} from "@concord-consortium/codap-formulas/models/formula/functions/math"
 import { FValue, FValueOrArray, MathJSPartitionedMap } from "../formula-types"
+import { UNDEF_RESULT } from "./function-utils"
 
 describe("evaluateRawWithAggregateContext", () => {
   it("should call provided function within withAggregateContext", () => {
@@ -94,5 +97,17 @@ describe("evaluateWithAggregateContextSupport", () => {
     res = evaluateWithAggregateContextSupport(mockFn)(...[ 1, 2 ])
     expect(mockFn).toHaveBeenCalledTimes(5)
     expect(res).toEqual(3)
+  })
+})
+
+describe("registerMathjsFunction", () => {
+  it("can add aliases of existing functions", () => {
+    registerMathjsFunction("roof", typedFnRegistry.ceil)
+    const fn = math.compile("roof(x)")
+    expect(fn.evaluate({ x: 1.2 })).toEqual(2)
+    expect(fn.evaluate({ x: -1.2 })).toEqual(-1)
+    expect(fn.evaluate({ x: "" })).toEqual(UNDEF_RESULT)
+    expect(fn.evaluate({ x: "foo" })).toEqual(UNDEF_RESULT)
+    expect(fn.evaluate({ x: [1.2, -1.2, 2.5, "foo"] })).toEqual([2, -1, 3, UNDEF_RESULT])
   })
 })

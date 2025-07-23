@@ -1,3 +1,9 @@
+import { IDataSet as IFormulaDataSet } from "@concord-consortium/codap-formulas/models/data/data-set"
+import {
+  IGlobalValueManager as IFormulaGlobalValueManager
+} from "@concord-consortium/codap-formulas/models/global/global-value-manager"
+import { getDisplayNameMap } from "@concord-consortium/codap-formulas/models/formula/utils/name-mapping-utils"
+import { displayToCanonical } from "@concord-consortium/codap-formulas/models/formula/utils/canonicalization-utils"
 import { boundaryManager } from "../../boundaries/boundary-manager"
 import { createCodapDocument } from "../../codap/create-codap-document"
 import { IDataSet } from "../../data/data-set"
@@ -6,8 +12,6 @@ import { getSharedDataSets } from "../../shared/shared-data-utils"
 import { getSharedModelManager } from "../../tiles/tile-environment"
 import { FormulaMathJsScope, IFormulaMathjsScopeContext } from "../formula-mathjs-scope"
 import { math } from "../functions/math"
-import { displayToCanonical } from "../utils/canonicalization-utils"
-import { getDisplayNameMap } from "../utils/name-mapping-utils"
 import testDoc from "./test-doc.json"
 
 // Because formulas largely depend on the document context and data structures, it's not trivial to mock them in each
@@ -41,12 +45,12 @@ export const getFormulaTestEnv = () => {
   }
   return {
     dataSetsByName: {
-      Mammals: mammals,
-      Cats: cats,
+      Mammals: mammals as IFormulaDataSet,
+      Cats: cats as IFormulaDataSet,
     },
     boundaryManager,
-    globalValueManager: getGlobalValueManager(getSharedModelManager(doc)),
-    dataSets: new Map(dataSets.map(dataSet => [dataSet.id, dataSet])),
+    globalValueManager: getGlobalValueManager(getSharedModelManager(doc)) as IFormulaGlobalValueManager,
+    dataSets: new Map(dataSets.map(dataSet => [dataSet.id, dataSet as IFormulaDataSet])),
   }
 }
 
@@ -79,7 +83,7 @@ export const evaluate = (displayFormula: string, casePointer?: number) => {
 export interface IEvaluateForAllCasesOptions {
   formulaAttrName?: string
   // can modify the data set and return additional context to be passed to the scope
-  amendContext?: (data: IDataSet) => Partial<IFormulaMathjsScopeContext>
+  amendContext?: (data: IFormulaDataSet) => Partial<IFormulaMathjsScopeContext>
 }
 
 export const evaluateForAllCases = (displayFormula: string, options?: IEvaluateForAllCasesOptions) => {
@@ -90,7 +94,7 @@ export const evaluateForAllCases = (displayFormula: string, options?: IEvaluateF
   const caseIds = localDataSet.items.map(c => c.__id__)
   const formulaAttrId = formulaAttrName ? localDataSet.attrIDFromName(formulaAttrName) : undefined
   const formulaCollectionIndex = formulaAttrId
-                                  ? localDataSet.getCollectionIndexForAttribute(formulaAttrId)
+                                  ? (localDataSet as IDataSet).getCollectionIndexForAttribute(formulaAttrId)
                                   : undefined
   const scope = new FormulaMathJsScope({
     localDataSet,

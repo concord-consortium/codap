@@ -1,7 +1,6 @@
 import { action, makeObservable, observable } from "mobx"
 import { DEBUG_FORMULAS, debugLog } from "../../../lib/debug"
-import { ICase } from "../../../models/data/data-set-types"
-import { IFormulaContext, IFormulaExtraMetadata } from "../../../models/formula/formula-manager-types"
+import { CaseList, IFormulaContext, IFormulaExtraMetadata } from "../../../models/formula/formula-manager-types"
 import { IFormulaAdapterApi, FormulaManagerAdapter } from "../../../models/formula/formula-manager-adapter"
 import { FormulaMathJsScope } from "../../../models/formula/formula-mathjs-scope"
 import { math } from "../../../models/formula/functions/math"
@@ -54,7 +53,7 @@ export class DataDisplayFilterFormulaAdapter extends FormulaManagerAdapter {
   }
 
   recalculateFormula(formulaContext: IFormulaContext, extraMetadata: IDataDisplayFilterFormulaExtraMetadata,
-    casesToRecalculateDesc: ICase[] | "ALL_CASES" = "ALL_CASES") {
+    casesToRecalculateDesc: CaseList = "ALL_CASES") {
     const dataConfig = this.getDataConfiguration(extraMetadata)
 
     if (formulaContext.formula.empty) {
@@ -76,7 +75,7 @@ export class DataDisplayFilterFormulaAdapter extends FormulaManagerAdapter {
   }
 
   computeFormula(formulaContext: IFormulaContext, extraMetadata: IDataDisplayFilterFormulaExtraMetadata,
-    casesToRecalculateDesc: ICase[] | "ALL_CASES" = "ALL_CASES") {
+    casesToRecalculateDesc: CaseList = "ALL_CASES") {
     const { formula, dataSet } = formulaContext
     const { attributeId } = extraMetadata
     const dataConfig = this.getDataConfiguration(extraMetadata)

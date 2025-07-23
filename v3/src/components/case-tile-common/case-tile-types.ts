@@ -1,7 +1,7 @@
 // used in lieu of attribute id for index column for ReactDataGrid
 export const kIndexColumnKey = "__index__"
 
-interface SimpleDOMRect {
+export interface SimpleDOMRect {
   top: number
   left: number
   width: number

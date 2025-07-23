@@ -1,4 +1,4 @@
-import { parseColor, parseColorToHex } from "./color-utils"
+import { parseColor, parseColorToHex } from "@concord-consortium/codap-utilities/color-utils"
 
 describe("Color utilities", () => {
   it("parseColor works as expected without color names", () => {

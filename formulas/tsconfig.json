@@ -1,0 +1,40 @@
+{
+  "compilerOptions": {
+    "outDir": "./dist/",
+    "rootDir": "./src",
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "noImplicitAny": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "target": "es2018",
+    "allowJs": true,
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "resolveJsonModule": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "strict": true,
+    // The MobX types depends on some es-next types that aren't available in es2018.
+    // In the runtime mobx handles older targets:
+    // https://github.com/mobxjs/mobx/issues/3903
+    "skipLibCheck": true,
+    "types": [],
+    "jsx": "react",
+    "lib": ["dom", "dom.iterable", "es2019"]
+  },
+  "include": [
+    "src/**/*",
+    // Apparently with composite enabled typescript will only include js/ts files
+    // and not every file matching the `*`
+    "src/**/*.json"
+  ],
+  "exclude": [
+    "*.grammar"
+  ],
+  "references": [
+    { "path": "../utilities" }
+  ]
+}

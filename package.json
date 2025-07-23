@@ -1,7 +1,10 @@
 {
   "private": true,
   "workspaces": [
-    "v3"
+    "v3",
+    "formulas",
+    "formulas-react17",
+    "utilities"
   ],
   "devDependencies": {
     "eslint": "^9.28.0",
