@@ -281,6 +281,11 @@ $table-body-font-size: 12px;
         display: flex;
         align-items: center;
         box-sizing: border-box;
+        &.numeric-format {
+          font-family: 'Noto Sans Mono', monospace;
+          font-weight: 500;
+          text-align: right;
+        } 
       }
       &.rdg-row-even {
         .codap-index-cell {
@@ -434,6 +439,13 @@ $table-body-font-size: 12px;
         }
       }
 
+      .cell-text-editor {
+        font-family: 'Noto Sans', sans-serif;
+        font-size: $table-body-font-size;
+        font-weight: 500;
+        height: 100%;
+      }
+
       .color-cell-text-editor {
         width: 100%;
         height: calc(100% - 4px);
@@ -520,4 +532,15 @@ $table-body-font-size: 12px;
   font-family: 'Noto Sans Mono', monospace;
   font-size: $table-body-font-size;
   font-weight: 500;
+}
+
+.cell-text-editor {
+  font-family: 'Noto Sans Mono', monospace;
+  font-size: $table-body-font-size;
+  font-weight: 500;
+  height: 100%;
+  line-height: 1.5;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
 }

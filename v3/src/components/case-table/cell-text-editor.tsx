@@ -32,6 +32,7 @@ export default function CellTextEditor({ row, column, onRowChange, onClose }: TR
   const valueRef = useRef(initialValueRef.current)
   const { setPendingLogMessage } = useLoggingContext()
   const blockAPIRequests = blockAPIRequestsWhileEditing(data)
+  const isNumeric = data?.getAttribute(column.key)?.isNumeric
 
   useEffect(()=>{
     selectAllCases(data, false)
@@ -57,7 +58,7 @@ export default function CellTextEditor({ row, column, onRowChange, onClose }: TR
   return (
     <input
       data-testid="cell-text-editor"
-      className={textEditorClassname}
+      className={`${textEditorClassname} ${isNumeric ? "numeric-format" : ""}`}
       ref={autoFocusAndSelect}
       value={valueRef.current}
       onChange={(event) => handleChange(event.target.value)}
