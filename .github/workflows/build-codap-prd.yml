@@ -16,7 +16,7 @@ jobs:
         {
           "aws": {
             "imageName": "jce-ecr-codap-all-prd",
-            "valueFilePath": ["codap-nginx/prd.yaml"]
+            "valueFilePath": ["codap-nginx/prd.yaml", "codap-nginx/aws-apne2-prd.yaml"]
           },
           "ncp": {
             "registry": "ped-cr-all-prd.ncr.gov-ntruss.com",
