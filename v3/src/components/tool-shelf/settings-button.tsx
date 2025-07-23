@@ -6,6 +6,8 @@ import { t } from "../../utilities/translation/translate"
 import { WebViewUrlModal } from "../web-view/web-view-url-modal"
 import { ToolShelfButtonTag } from "./tool-shelf-button"
 import { showWebView } from "./tool-shelf-utilities"
+import WebViewIcon from "../../assets/icons/icon-media-tool.svg"
+import ToolbarPositionIcon from "../../assets/icons/icon-toolbar-position.svg"
 
 import "./tool-shelf.scss"
 
@@ -27,7 +29,7 @@ export const SettingsShelfButton = () => {
 
   return (
     <>
-      <Menu isLazy>
+      <Menu isLazy autoSelect={false}>
         <MenuButton
           className="tool-shelf-button tool-shelf-menu web-view"
           title={t("DG.ToolButtonData.optionMenu.toolTip")}
@@ -39,11 +41,15 @@ export const SettingsShelfButton = () => {
             label={t("DG.ToolButtonData.optionMenu.title")}
           />
         </MenuButton>
-        <MenuList>
-          <MenuItem data-testid="tool-shelf-button-web-view" onClick={onOpen}>
+        <MenuList className="tool-shelf-menu-list settings" data-testid="tool-shelf-settings-menu-list">
+          <MenuItem data-testid="tool-shelf-button-web-view" onClick={onOpen}
+              className="tool-shelf-menu-item settings">
+            <WebViewIcon className="menu-icon web-view-icon" />
             {t("DG.AppController.optionMenuItems.viewWebPage")}
           </MenuItem>
-          <MenuItem data-testid="tool-shelf-button-tool-shelf-position" onClick={toggleToolShelfPosition}>
+          <MenuItem data-testid="tool-shelf-button-tool-shelf-position" onClick={toggleToolShelfPosition}
+              className="tool-shelf-menu-item settings">
+            <ToolbarPositionIcon className="menu-icon toolbar-position-icon" />
             {t("DG.AppController.optionMenuItems.positionToolShelf")} {positionToolShelf}
           </MenuItem>
         </MenuList>

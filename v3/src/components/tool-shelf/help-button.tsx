@@ -6,6 +6,10 @@ import { gLocale } from "../../utilities/translation/locale"
 import { t } from "../../utilities/translation/translate"
 import { ToolShelfButtonTag } from "./tool-shelf-button"
 import { showWebView } from "./tool-shelf-utilities"
+import HelpPagesIcon from "../../assets/icons/icon-help-pages.svg"
+import HelpForumIcon from "../../assets/icons/icon-help-forum.svg"
+import ProjectWebSiteIcon from "../../assets/icons/icon-codap-project.svg"
+import WebViewIcon from "../../assets/icons/icon-media-tool.svg"
 
 import "./tool-shelf.scss"
 
@@ -34,7 +38,7 @@ export const HelpShelfButton = () => {
 
   return (
     <>
-      <Menu isLazy>
+      <Menu isLazy autoSelect={false}>
         <MenuButton
           className="tool-shelf-button tool-shelf-menu help"
           title={t("DG.ToolButtonData.help.toolTip")}
@@ -46,17 +50,25 @@ export const HelpShelfButton = () => {
             label={t("DG.ToolButtonData.help.title")}
           />
         </MenuButton>
-        <MenuList data-testid="help-menu">
-          <MenuItem data-testid="help-menu-help-page" onClick={handleShowHelp}>
+        <MenuList className="tool-shelf-menu-list help" data-testid="help-menu">
+          <MenuItem data-testid="help-menu-help-page" onClick={handleShowHelp}
+              className="tool-shelf-menu-item help">
+            <HelpPagesIcon className="menu-icon help-icon" />
             {t("DG.AppController.optionMenuItems.help")}
           </MenuItem>
-          <MenuItem data-testid="help-menu-forum-page" onClick={()=>window.open(helpForumURL)}>
+          <MenuItem data-testid="help-menu-forum-page" onClick={()=>window.open(helpForumURL)}
+              className="tool-shelf-menu-item forum">
+            <HelpForumIcon className="menu-icon help-icon" />
             {t("DG.AppController.optionMenuItems.help-forum")}
           </MenuItem>
-          <MenuItem data-testid="help-menu-project-page" onClick={()=>window.open(projectWebSiteURL)}>
+          <MenuItem data-testid="help-menu-project-page" onClick={()=>window.open(projectWebSiteURL)}
+              className="tool-shelf-menu-item project">
+            <ProjectWebSiteIcon className="menu-icon help-icon" />
             {t("DG.AppController.optionMenuItems.toWebSite")}
           </MenuItem>
-          <MenuItem data-testid="help-menu-privacy-page" onClick={()=>window.open(privacyURL)}>
+          <MenuItem data-testid="help-menu-privacy-page" onClick={()=>window.open(privacyURL)}
+              className="tool-shelf-menu-item privacy">
+            <WebViewIcon className="menu-icon help-icon" />
             {t("DG.AppController.optionMenuItems.toPrivacyPage")}
           </MenuItem>
         </MenuList>

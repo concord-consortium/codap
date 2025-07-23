@@ -228,7 +228,7 @@
     "DG.AppController.beforeUnload.confirmationMessage": "The document contains unsaved changes.",
     "DG.AppController.optionMenuItems.reportProblem": "Send Feedback...",
     "DG.AppController.optionMenuItems.viewWebPage": "Display Web Page...",
-    "DG.AppController.optionMenuItems.positionToolShelf": "Position:",
+    "DG.AppController.optionMenuItems.positionToolShelf": "Toolbar Position:",
     "DG.AppController.optionMenuItems.configureGuide": "Configure Guide...",
     "DG.AppController.optionMenuItems.about": "About CODAP...",
     "DG.AppController.optionMenuItems.releaseNotes": "What's New?",
