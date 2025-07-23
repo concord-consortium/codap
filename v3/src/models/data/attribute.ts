@@ -57,6 +57,7 @@ export const Attribute = V2Model.named("Attribute").props({
   units: types.maybe(types.string),
   precision: types.maybe(types.union(types.number, types.enumeration(Object.values(DatePrecision)))),
   formula: types.maybe(Formula),
+  recoverableFormulaText: types.maybe(types.string),
   // simple array -- _not_ MST all the way down to the array elements
   // due to its frozen nature, clients should _not_ use `values` directly
   // volatile `strValues` and `numValues` can be accessed directly, but
@@ -157,6 +158,9 @@ export const Attribute = V2Model.named("Attribute").props({
   }),
   get hasFormula() {
     return !!self.formula && !self.formula.empty
+  },
+  get hasRecoverableFormula() {
+    return !!self.recoverableFormulaText
   },
   get hasValidFormula() {
     return !!self.formula?.valid
@@ -305,8 +309,14 @@ export const Attribute = V2Model.named("Attribute").props({
     self.precision = precision
   },
   clearFormula() {
+    if (self.formula && !self.formula.empty) {
+      self.recoverableFormulaText = self.formula.display
+    }
     self.formula = undefined
   },
+  // NOTE: this behavior is slightly different from v2. In v3 if the formula is set to an empty string,
+  // we'll save the formula in recoverableFormulaText. In v2 the formula will not be recoverable in
+  // this case.
   setDisplayExpression(displayFormula: string) {
     if (displayFormula) {
       if (!self.formula) {
@@ -407,6 +417,14 @@ export const Attribute = V2Model.named("Attribute").props({
     for (let i = self.strValues.length - 1; i >= 0; --i) {
       self.strValues[i] = ""
       self.numValues[i] = self.toNumeric(self.strValues[i])
+    }
+  }
+}))
+.actions(self => ({
+  recoverFormula() {
+    if (self.recoverableFormulaText) {
+      self.setDisplayExpression(self.recoverableFormulaText)
+      self.recoverableFormulaText = undefined
     }
   }
 }))

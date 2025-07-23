@@ -546,7 +546,8 @@ context("case table ui", () => {
         expect(random2 < 1).to.eq(true)
         expect(random2).not.to.eq(random1)
       })
-      // Delete formula, verify values remain
+
+      cy.log("Delete formula, verify values remain")
       table.openAttributeMenu("Height")
       table.selectMenuItemFromAttributeMenu("Delete Formula (Keeping Values)")
       table.getGridCell(2, 5).then(cell => {
@@ -555,21 +556,44 @@ context("case table ui", () => {
         expect(value < 1).to.eq(true)
         expect(value).to.eq(random2)
       })
-      // verify that formula was deleted
+
+      cy.log("Verify that formula was deleted")
       table.openAttributeMenu("Height")
       table.getAttributeMenuItem("Rerandomize").should("be.disabled")
       table.getAttributeMenuItem("Delete Formula (Keeping Values)").should("be.disabled")
-      // Undo formula deletion
+
+      cy.log("Undo formula deletion")
+      let random3 = 0
       toolbar.getUndoTool().click()
       table.openAttributeMenu("Height")
       table.getAttributeMenuItem("Rerandomize").should("be.enabled")
       table.getAttributeMenuItem("Delete Formula (Keeping Values)").should("be.enabled")
       table.getGridCell(2, 5).then(cell => {
+        random3 = +cell.text()
+        expect(random3 >= 0).to.eq(true)
+        expect(random3 < 1).to.eq(true)
+        // restored formula is re-evaluated resulting in a different value
+        expect(random3).not.to.eq(random2)
+      })
+
+      cy.log("Delete formula, then use recover formula")
+      table.openAttributeMenu("Height")
+      table.selectMenuItemFromAttributeMenu("Delete Formula (Keeping Values)")
+      table.getGridCell(2, 5).then(cell => {
+        const value = +cell.text()
+        expect(value >= 0).to.eq(true)
+        expect(value < 1).to.eq(true)
+        // after deleting the formula the values should still match
+        expect(value).to.eq(random3)
+      })
+      table.openAttributeMenu("Height")
+      table.selectMenuItemFromAttributeMenu("Recover Deleted Formula")
+      table.getGridCell(2, 5).then(cell => {
         const value = +cell.text()
         expect(value >= 0).to.eq(true)
         expect(value < 1).to.eq(true)
         // restored formula is re-evaluated resulting in a different value
-        expect(value).not.to.eq(random2)
+        expect(value).to.not.eq(random3)
       })
     })
     it("verify sorting", () => {

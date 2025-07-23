@@ -113,7 +113,18 @@ const AttributeMenuListComponent = forwardRef<HTMLDivElement, IProps>(
       }
     },
     {
-      itemKey: "DG.TableController.headerMenuItems.recoverFormula"
+      itemKey: "DG.TableController.headerMenuItems.recoverFormula",
+      isEnabled: () =>
+        !metadata?.isEditProtected(attributeId) && !attribute?.hasFormula && !!attribute?.hasRecoverableFormula,
+      handleClick: () => {
+        data?.applyModelChange(() => {
+          attribute?.recoverFormula()
+        }, {
+          undoStringKey: "DG.Undo.caseTable.editAttributeFormula",
+          redoStringKey: "DG.Undo.caseTable.editAttributeFormula",
+          log: logMessageWithReplacement("Recover formula for attribute %@", { name: attribute?.name })
+        })
+      }
     },
     {
       itemKey: "DG.TableController.headerMenuItems.randomizeAttribute",
