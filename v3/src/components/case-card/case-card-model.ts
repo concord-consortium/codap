@@ -65,43 +65,6 @@ export const CaseCardModel = TileContentModel
     }
   }))
   .views(self => ({
-    get selectedCaseIds(): Set<string>[] {
-      const { data } = self
-      if (!data) return []
-
-      const selectedCaseIds: Set<string>[] = []
-      data.selection.forEach((itemId) => {
-        const caseIds = data.getItemCaseIds(itemId)
-        caseIds?.forEach((caseId, index) => {
-          const collection = data.collections[index]
-          if (!collection) return
-
-          if (!selectedCaseIds[index]) {
-            selectedCaseIds[index] = new Set<string>()
-          }
-          selectedCaseIds[index].add(caseId)
-        })
-      })
-
-      return selectedCaseIds
-    }
-  }))
-  .views(self => ({
-    // The returned array includes arrays of the sorted indices of selected cases in each collection
-    // So selectedCaseIndices[i] contains an array of the indices of the cases selected in data.collections[i]
-    get selectedCaseIndices(): number[][] {
-      const { selectedCaseIds } = self
-
-      const selectedCaseIndices: number[][] = []
-      selectedCaseIds.forEach((caseIds, index) => {
-        const collection = self.data?.collections[index]
-        if (!collection) return
-
-        selectedCaseIndices[index] = Array.from(caseIds).map(caseId => collection.getCaseIndex(caseId))
-          .filter(caseIndex => caseIndex != null).sort()
-      })
-      return selectedCaseIndices
-    },
     groupChildCases(parentCaseId: string) {
       const parentCaseInfo = self.data?.caseInfoMap.get(parentCaseId)
       if (!parentCaseInfo?.childCaseIds) return undefined
@@ -164,7 +127,7 @@ export const CaseCardModel = TileContentModel
       }
     },
     addNewCase(level: number) {
-      const selectedParentCaseIds = self.selectedCaseIds[level - 1]
+      const selectedParentCaseIds = self.data?.selectedCaseIds[level - 1]
       const selectedParentCaseId = selectedParentCaseIds && selectedParentCaseIds.size === 1
         ? Array.from(selectedParentCaseIds)[0] : undefined
       const newCase: ICaseCreation = selectedParentCaseId != null ?
