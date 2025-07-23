@@ -7,9 +7,8 @@ import { ICase } from "../data/data-set-types"
 import { IGlobalValueManager } from "../global/global-value-manager"
 import { IFormula } from "./formula"
 import {
-  IFormulaExtraMetadata, IFormulaManagerAdapter, IFormulaMetadata,
-  IFormulaManager
-, CaseList } from "./formula-manager-types"
+  IFormulaExtraMetadata, IFormulaManagerAdapter, IFormulaMetadata, IFormulaManager, CaseList
+} from "./formula-manager-types"
 import { IFormulaAdapterApi } from "./formula-manager-adapter"
 import {
   observeBoundaries, observeGlobalValues, observeLocalAttributes, observeLookupDependencies, observeSymbolNameChanges

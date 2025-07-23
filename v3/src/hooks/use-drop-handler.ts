@@ -19,7 +19,8 @@ export const useDropHandler = ({
   const eltRef = useRef<HTMLElement | null>(null)
 
   useEffect(function installListeners() {
-    eltRef.current = document.querySelector(selector)
+    const elt = document.querySelector<HTMLElement>(selector)
+    eltRef.current = elt
 
     function dragOverHandler(event: DragEvent) {
       // Prevent default behavior (Prevent file from being opened)
@@ -35,8 +36,10 @@ export const useDropHandler = ({
         onImportDataSet?.(ds)
       }
 
-      // Prevent default behavior (Prevent file from being opened)
+      // Prevent default behavior (Prevent file from being opened by browser)
       event.preventDefault()
+      // Prevent event from being handled more than once
+      event.stopPropagation()
       if (event.dataTransfer?.items) {
         // Use DataTransferItemList interface to access the file(s)
         for (let i = 0; i < event.dataTransfer.items.length; i++) {
@@ -94,12 +97,12 @@ export const useDropHandler = ({
       setIsDragOver?.(false)
     }
 
-    eltRef.current?.addEventListener('dragover', dragOverHandler)
-    eltRef.current?.addEventListener('drop', dropHandler)
+    elt?.addEventListener('dragover', dragOverHandler)
+    elt?.addEventListener('drop', dropHandler)
 
     return () => {
-      eltRef.current?.removeEventListener('dragover', dragOverHandler)
-      eltRef.current?.removeEventListener('drop', dropHandler)
+      elt?.removeEventListener('dragover', dragOverHandler)
+      elt?.removeEventListener('drop', dropHandler)
     }
   }, [onHandleUrlDrop, onImportDataSet, onImportDocument, selector, setIsDragOver])
 

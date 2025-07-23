@@ -58,7 +58,7 @@ function setupAxes(graphModel: IGraphContentModel, layout: GraphLayout) {
   }
 
   function categoricalOrColorAxisModel(place: AxisPlace, currAxisModel?: IAxisModel, attributeType?: AttributeType) {
-    if (!attributeType) return currAxisModel
+    if (!attributeType) return
 
     if (attributeType === "color" && isColorAxisModel(currAxisModel) ||
         attributeType === "categorical" && isCategoricalAxisModel(currAxisModel)) {

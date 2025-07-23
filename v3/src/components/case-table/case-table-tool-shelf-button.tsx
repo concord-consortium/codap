@@ -80,7 +80,7 @@ const CaseTableToolShelfMenuList = observer(
       <MenuList className="tool-shelf-menu-list table" data-testid="tool-shelf-table-menu-list">
         {datasets.map((dataset) => {
           // case table title reflects DataSet title
-          const tileTitle = dataset.dataSet.title
+          const tileTitle = dataset.dataSet.displayTitle
           return (
             // FIXME: this will create multiple undo entries
             <MenuItem key={`${dataset.dataSet.id}`} className="tool-shelf-menu-item"
@@ -155,7 +155,7 @@ export const DeleteDataSetModal = ({dataSetId, isOpen, onClose, setModalOpen}: I
         undoStringKey: "V3.Undo.caseTable.delete",
         redoStringKey: "V3.Redo.caseTable.delete",
         log: logStringifiedObjectMessage("Delete dataset: %@",
-                {id: dataSetId, name: data?.title}, "document")
+                {id: dataSetId, name: data?.displayTitle}, "document")
       })
     }
   }

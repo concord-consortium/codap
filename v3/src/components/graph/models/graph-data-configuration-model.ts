@@ -882,10 +882,12 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     }
   })
   .actions(self => {
-    const baseAfterCreate = self.afterCreate
     const baseRemoveAttributeFromRole = self.removeAttributeFromRole
     return {
       afterCreate() {
+        // Note that afterCreate is also defined in the base model. But it will be called automatically without
+        // us having to do anything special.
+
         // clear caches when primary role changes, since many caches are role-dependent
         addDisposer(self, reaction(
           () => self.primaryRole,
@@ -903,7 +905,6 @@ export const GraphDataConfigurationModel = DataConfigurationModel
           () => self.clearCasesCache(),
           { name: "GraphDataConfigurationModel getCellKeys reaction", equals: comparer.structural }
         ))
-        baseAfterCreate()
       },
       removeAttributeFromRole(role: GraphAttrRole, attrID: string) {
         if (role === "yPlus") {
