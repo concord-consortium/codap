@@ -7,6 +7,7 @@ import { selectAllCases } from "../../models/data/data-set-utils"
 import { uiState } from "../../models/ui-state"
 import { blockAPIRequestsWhileEditing } from "../../utilities/plugin-utils"
 import { TRenderEditCellProps } from "./case-table-types"
+import clsx from "clsx"
 
 /*
   ReactDataGrid uses Linaria CSS-in-JS for its internal styling. As with CSS Modules and other
@@ -58,7 +59,7 @@ export default function CellTextEditor({ row, column, onRowChange, onClose }: TR
   return (
     <input
       data-testid="cell-text-editor"
-      className={`${textEditorClassname} cell-text-editor ${isNumeric ? "numeric-format" : ""}`}
+      className={clsx(textEditorClassname, "cell-text-editor", { "numeric-format": isNumeric })}
       ref={autoFocusAndSelect}
       value={valueRef.current}
       onChange={(event) => handleChange(event.target.value)}
