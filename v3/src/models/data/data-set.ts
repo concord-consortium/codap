@@ -621,7 +621,7 @@ export const DataSet = V2Model.named("DataSet").props({
   },
   // The returned array is in collection order.
   // Includes cases with ANY child items selected, not just those with all items selected.
-  get selectedCaseIds(): Set<string>[] {
+  get partiallySelectedCaseIdsByCollection(): Set<string>[] {
     const selectedCaseIds: Set<string>[] = []
     self.selection.forEach((itemId) => {
       const caseIds = self.getItemCaseIds(itemId)
@@ -640,11 +640,11 @@ export const DataSet = V2Model.named("DataSet").props({
   }
 }))
 .views(self => ({
-  // The returned array includes arrays of the sorted indices of selected cases in each collection
-  // So selectedCaseIndices[i] contains an array of the indices of the cases selected in data.collections[i]
+  // The returned array includes arrays of the sorted indices of partially selected cases in each collection
+  // So selectedCaseIndices[i] contains an array of the indices of the cases partially selected in data.collections[i]
   // Includes cases with ANY child items selected, not just those with all items selected.
-  get selectedCaseIndices(): number[][] {
-    const { selectedCaseIds } = self
+  get partiallySelectedCaseIndicesByCollection(): number[][] {
+    const { partiallySelectedCaseIdsByCollection: selectedCaseIds } = self
 
     const selectedCaseIndices: number[][] = []
     selectedCaseIds.forEach((caseIds, index) => {

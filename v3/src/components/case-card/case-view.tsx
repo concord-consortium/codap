@@ -47,7 +47,7 @@ export const CaseView = observer(function InnerCaseView({
   const collectionCount = data?.collections.length ?? 1
   const collectionId = useCollectionContext()
   const collection = data?.getCollection(collectionId)
-  const selectedCaseIndices = data?.selectedCaseIndices ?? []
+  const selectedCaseIndices = data?.partiallySelectedCaseIndicesByCollection ?? []
   const collectionSelectedCaseIndices = selectedCaseIndices[level] ?? []
   const displayedCaseIndex = collectionSelectedCaseIndices[0] ?? -1
   const previousSelectedCaseIndex = useRef<number>(displayedCaseIndex)
@@ -85,7 +85,7 @@ export const CaseView = observer(function InnerCaseView({
 
         // We need one frame to set up the animation, so we actually start the animation in a timeout
         setTimeout(() => {
-          // We need to make sure a lower level did not supercede this one
+          // We need to make sure a lower level did not supersede this one
           if (cardModel.animationLevel === level) setAnimationStarted(true)
         })
       }
@@ -129,16 +129,16 @@ export const CaseView = observer(function InnerCaseView({
   const classes = clsx(
     "case-card-view",
     colorCycleClass(level, collectionCount),
-    { "animating": animationStarted && !dummy }
+    { animating: animationStarted && !dummy }
   )
   const tileWidth = tileLayout?.width ?? 0
   const leftLeft = `-${tileWidth}px`
   const rightLeft = `${tileWidth}px`
   const left = !isAnimating || animationStarted ? 0 : isFlippingRight ? leftLeft : rightLeft
   const style = { left }
-  const otherLeft = !animationStarted ? 0 : isFlippingRight ? rightLeft : leftLeft
-  const otherStyle: React.CSSProperties = {
-    left: otherLeft,
+  const dummyLeft = !animationStarted ? 0 : isFlippingRight ? rightLeft : leftLeft
+  const dummyStyle: React.CSSProperties = {
+    left: dummyLeft,
     position: "absolute",
     visibility: !isAnimating ? "hidden" : undefined
   }
@@ -165,7 +165,7 @@ export const CaseView = observer(function InnerCaseView({
         !dummy && renderSingleCaseView({
           displayedCase: dummyDisplayedCase.current,
           dummy: true,
-          style: otherStyle
+          style: dummyStyle
         })
       }
       { // Render the actual single case view

@@ -45,13 +45,13 @@ export const CaseCardModel = TileContentModel
         collections.forEach((collection, index) => {
           if (index < collections.length - 1) {
             const cases = self.data?.getCasesForCollection(collection.id) ?? []
-            const collectionSelectedCaseIds = self.data?.selectedCaseIds[index]
+            const collectionSelectedCaseIds = self.data?.partiallySelectedCaseIdsByCollection[index]
             if (cases.length > 1 && collectionSelectedCaseIds?.size !== 1) {
               collectionIdsToSummarize.add(collection.id)
             }
           } else {
             // always summarize the last collection
-              collectionIdsToSummarize.add(collection.id)
+            collectionIdsToSummarize.add(collection.id)
           }
         })
       }
@@ -122,7 +122,7 @@ export const CaseCardModel = TileContentModel
       }
     },
     addNewCase(level: number) {
-      const selectedParentCaseIds = self.data?.selectedCaseIds[level - 1]
+      const selectedParentCaseIds = self.data?.partiallySelectedCaseIdsByCollection[level - 1]
       const selectedParentCaseId = selectedParentCaseIds && selectedParentCaseIds.size === 1
         ? Array.from(selectedParentCaseIds)[0] : undefined
       const newCase: ICaseCreation = selectedParentCaseId != null ?
