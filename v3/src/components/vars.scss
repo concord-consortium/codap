@@ -39,6 +39,8 @@ $label-font: 400 14px Montserrat, sans-serif;
 $empty-label-font: 12px Montserrat, sans-serif;
 $background-fill: #f9f9f9;
 
+$default-font-color: #222;
+
 :export {
   labelFont: $label-font;
   emptyLabelFont: $empty-label-font;

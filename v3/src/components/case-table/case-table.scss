@@ -2,7 +2,8 @@
 @use "./case-table-shared.scss" as shared;
 @use "../case-tile-common/case-tile-vars" as caseTileVars;
 
-$table-body-font-size: 8pt;
+$table-body-font-size: 10px;
+$collection-title-font-color: black;
 
 .case-table {
   position: relative;
@@ -56,15 +57,16 @@ $table-body-font-size: 8pt;
           .collection-title {
             position: absolute;
             text-align: center;
-            font-family: "museo-sans", sans-serif;
-            font-size: 12px;
+            font-family: "Noto Sans", sans-serif;
+            font-size: 14px;
+            font-weight: 500;
             text-overflow: ellipsis;
             cursor: text;
             vertical-align: middle;
             white-space: nowrap;
             user-select: none;
             font-style: italic;
-            color: #0f2633; // Not used anywhere else at the moment, so we're leaving it unnamed
+            color: $collection-title-font-color;
           }
 
           .add-attribute-icon-button {
@@ -202,9 +204,9 @@ $table-body-font-size: 8pt;
     height: 100%;
     scroll-behavior: smooth;
 
-    font-family: Montserrat, sans-serif !important;
+    font-family: "Noto Sans", sans-serif !important;
     font-size: $table-body-font-size !important;
-    color: #222222;
+    color: vars.$default-font-color;
     border-radius: vars.$border-radius-bottom-corners;
     overflow-x: hidden;
 
@@ -225,7 +227,7 @@ $table-body-font-size: 8pt;
           display: flex;
           align-items: center;
           justify-content: center;
-          color: #555555 !important; //overrides chakra's default color
+          color: vars.$default-font-color !important; //overrides chakra's default color
           &:hover {
             text-decoration: underline;
             color: #1b5798 !important;
@@ -275,11 +277,16 @@ $table-body-font-size: 8pt;
     .rdg-row {
       input.rdg-text-editor {
         font-size: $table-body-font-size;
+        font-weight: 500;
         height: 100%;
         line-height: 1.5;
         display: flex;
         align-items: center;
         box-sizing: border-box;
+        &.numeric-format {
+          font-family: 'Noto Sans Mono', monospace;
+          text-align: right;
+        }
       }
       &.rdg-row-even {
         .codap-index-cell {
@@ -387,6 +394,9 @@ $table-body-font-size: 8pt;
           text-overflow: ellipsis;
           display: -webkit-box;
           -webkit-box-orient: vertical;
+          font-family: "Noto Sans", sans-serif;
+          font-size: $table-body-font-size;
+          font-weight: 500;
         }
       }
       &.codap-data-cell.rowId-__input__ {
@@ -407,10 +417,12 @@ $table-body-font-size: 8pt;
 
         &.numeric-format {
           width: 100%;
-          font-family: 'Chivo Mono', monospace;
+          font-family: 'Noto Sans Mono', monospace;
+          font-size: $table-body-font-size;
           font-weight: 500;
           margin-top: 2px;
           text-align: right;
+          color: black;
         }
       }
 
@@ -425,6 +437,17 @@ $table-body-font-size: 8pt;
           width: calc(100% - 4px);
           height: calc(100% - 8px);
           margin-top: 0.5px;
+        }
+      }
+
+      .cell-text-editor {
+        font-family: 'Noto Sans', sans-serif;
+        font-size: $table-body-font-size;
+        font-weight: 500;
+        height: 100%;
+        &.numeric-format {
+          font-family: 'Noto Sans Mono', monospace;
+          text-align: right;
         }
       }
 
@@ -498,7 +521,7 @@ $table-body-font-size: 8pt;
   width: 190px;
 
   .menu-item {
-    font-family: 'museo-sans', sans-serif;
+    font-family: 'Roboto', sans-serif;
     font-size: 12px;
     line-height: 20px;
     padding: 0 5px 0 20px;
@@ -508,4 +531,10 @@ $table-body-font-size: 8pt;
 // turn off `scroll-behavior: smooth` when necessary (e.g. for cypress tests)
 .scroll-behavior-auto .case-table .collection-table .rdg {
   scroll-behavior: auto
+}
+
+.codap-index-content {
+  font-family: 'Noto Sans Mono', monospace;
+  font-size: $table-body-font-size;
+  font-weight: 500;
 }
