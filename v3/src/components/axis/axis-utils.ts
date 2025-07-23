@@ -3,7 +3,6 @@ import {MutableRefObject} from "react"
 import { determineLevels } from "../../utilities/date-utils"
 import vars from "../vars.scss"
 import {measureText, measureTextExtent} from "../../hooks/use-measure-text"
-import {ICategorySet} from "../../models/data/category-set"
 import { kAxisGap, kAxisTickLength, kDefaultFontHeight } from "./axis-constants"
 import { axisPlaceToAttrRole, kDataDisplayFont } from "../data-display/data-display-types"
 import { IDataConfigurationModel } from "../data-display/models/data-configuration-model"
@@ -141,7 +140,6 @@ export interface DragInfo {
   currentOffset: number
   currentDragPosition: number
   currentDragPositionCatName: string
-  categorySet?: ICategorySet
   categories: string[]
   bandwidth: number
   axisOrientation: 'horizontal' | 'vertical'

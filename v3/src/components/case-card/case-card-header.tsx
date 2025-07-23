@@ -27,6 +27,7 @@ export const CaseCardHeader = observer(function CaseCardHeader(props: ICaseHeade
 
   const getDisplayedCaseIndex = () => {
     if (cases.length === 1) return 0
+    if (isCollectionSummarized) return -1
 
     const _displayedCaseIndex = cases.findIndex(c => data?.isCaseSelected(c.__id__))
     if (_displayedCaseIndex !== -1) return _displayedCaseIndex
@@ -91,7 +92,6 @@ export const CaseCardHeader = observer(function CaseCardHeader(props: ICaseHeade
         cases={cases}
         data={data}
         displayedCaseIndex={displayedCaseIndex}
-        isCollectionSummarized={isCollectionSummarized}
       />
       <div className="add-case">
         <button onClick={handleAddNewCase} data-testid="add-case-button">

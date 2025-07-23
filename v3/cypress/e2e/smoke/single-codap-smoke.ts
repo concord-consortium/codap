@@ -188,7 +188,6 @@ context("codap single smoke test", () => {
     toolbar.getPluginCategory().should("have.length", 5)
     webView.getTitle().should("not.exist")
     toolbar.getPluginCategory().eq(2).click()
-    // toolbar.getPluginSubMenu().eq(2).invoke("show")
     toolbar.getPluginSelection().eq(5).click()
     webView.getTitle().should("have.text", "Sampler")
     toolbar.getPluginSelection().should("not.exist")

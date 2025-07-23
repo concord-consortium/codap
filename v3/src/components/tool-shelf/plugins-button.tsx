@@ -1,6 +1,5 @@
 import React, { useState } from "react"
 import { Menu, MenuButton, MenuItem, MenuList } from "@chakra-ui/react"
-import "../../utilities/plugin-icons"
 import PluginsIcon from '../../assets/icons/icon-plugins.svg'
 import { kRootPluginsUrl } from "../../constants"
 import { useRemotePluginsConfig } from "../../hooks/use-remote-plugins-config"
@@ -19,6 +18,15 @@ const debugPlugins = DEBUG_PLUGINS ? _debugPlugins as PluginMenuConfig : []
 const standardPlugins = _standardPlugins as PluginMenuConfig
 const combinedPlugins = [...standardPlugins, ...debugPlugins]
 import RightArrow from "../../assets/icons/arrow-right.svg"
+import DrawToolIcon from "../../assets/plugins/plugin-draw-tool-icon.svg"
+import SonifyIcon from "../../assets/plugins/plugin-sonify-icon.svg"
+import StoryBuilderIcon from "../../assets/plugins/plugin-story-builder-icon.svg"
+import MicrodataPortalIcon from "../../assets/plugins/plugin-microdata-portal-icon.svg"
+import NOAAWeatherIcon from "../../assets/plugins/plugin-noaa-weather-icon.svg"
+import SamplerIcon from "../../assets/plugins/plugin-sampler-icon.svg"
+import ChoosyIcon from "../../assets/plugins/plugin-choosy-icon.svg"
+import TransformersIcon from "../../assets/plugins/plugin-transformers-icon.svg"
+import ScramblerIcon from "../../assets/plugins/plugin-scrambler-icon.svg"
 
 import "./plugins-button.scss"
 import "./tool-shelf.scss"
@@ -35,6 +43,17 @@ export function PluginsButton() {
   const [isOpen, setIsOpen] = useState(false)
   const onClose = () => setIsOpen(false)
   const onOpen = () => setIsOpen(true)
+  const iconComponents: Record<string, React.FC<React.SVGProps<SVGSVGElement>>> = {
+    DrawToolIcon,
+    SonifyIcon,
+    StoryBuilderIcon,
+    MicrodataPortalIcon,
+    NOAAWeatherIcon,
+    SamplerIcon,
+    ChoosyIcon,
+    TransformersIcon,
+    ScramblerIcon
+  }
 
   function PluginItem({ pluginData }: IPluginItemProps) {
     const documentContent = useDocumentContent()
@@ -60,14 +79,14 @@ export function PluginsButton() {
     }
 
     const isStandardPlugin = standardPlugins.some(category =>
-      category.subMenu.some(item => item?.title === pluginData?.title)
-    )
+                                category.subMenu.some(item => item?.title === pluginData?.title))
+    const IconComponent = iconComponents[pluginData?.icon || ""]
     return (
       pluginData &&
         <MenuItem className="tool-shelf-menu-item plugin-selection" data-testid="tool-shelf-plugins-option"
             onClick={handleClick}>
-          <img className="plugin-icon"
-                src={`${isStandardPlugin ? "" : kRootPluginsUrl}${pluginData.icon}`} />
+          {isStandardPlugin ? <IconComponent className="plugin-icon" />
+                            : <img className="plugin-icon" src={`${kRootPluginsUrl}${pluginData.icon}`} />}
           <span className="plugin-selection-title">{pluginData.title}</span>
         </MenuItem>
     )

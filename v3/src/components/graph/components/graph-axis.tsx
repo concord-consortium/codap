@@ -107,7 +107,7 @@ export const GraphAxis = observer(function GraphAxis(
       />
       {onDropAttribute &&
         <DroppableAxis
-            place={`${place}`}
+            place={place}
             dropId={droppableId}
             hintString={hintString}
             portal={parentEltRef.current}

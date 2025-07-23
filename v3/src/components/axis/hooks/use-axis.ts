@@ -2,7 +2,6 @@ import { format, ScaleLinear, scaleLinear, scaleOrdinal } from "d3"
 import { comparer } from "mobx"
 import { isAlive } from "mobx-state-tree"
 import { useCallback, useEffect } from "react"
-import { mstAutorun } from "../../../utilities/mst-autorun"
 import { mstReaction } from "../../../utilities/mst-reaction"
 import { axisPlaceToAttrRole, graphPlaceToAttrRole } from "../../data-display/data-display-types"
 import { maxWidthOfStringsD3 } from "../../data-display/data-display-utils"
@@ -160,10 +159,12 @@ export const useAxis = (axisPlace: AxisPlace) => {
 
   // update desired extent as needed, but note that the axisModel domain is not called during this auto run
   useEffect(() => {
-    return mstAutorun(() => {
-      layout.setDesiredExtent(axisPlace, computeDesiredExtent())
-      // detect changes to computed bounds
-      layout.getComputedBounds(axisPlace)
-    }, {name: "useAxis.mstAutorun [setDesiredExtent]"}, axisModel)
+    return mstReaction(
+      () => {
+        return computeDesiredExtent()
+      },
+      (desiredExtent) => {
+        layout.setDesiredExtent(axisPlace, desiredExtent)
+      }, {name: "useAxis.mstAutorun [setDesiredExtent]", fireImmediately: true}, axisModel)
   }, [axisModel, layout, axisPlace, computeDesiredExtent])
 }

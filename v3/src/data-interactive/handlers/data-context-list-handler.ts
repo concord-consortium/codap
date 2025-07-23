@@ -16,7 +16,7 @@ export const diDataContextListHandler: DIHandler = {
         return {
           name: dataSet.name,
           guid: id,
-          title: dataSet.title,
+          title: dataSet._title,
           id
         }
       })

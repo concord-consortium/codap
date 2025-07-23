@@ -30,7 +30,12 @@ import TrashIcon from "../../assets/icons/icon-trash.svg"
 
 import "../tool-shelf/tool-shelf.scss"
 
-export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMenuList() {
+interface ICaseTableToolShelfMenuListProps {
+  setMenuIsOpen: (isOpen: boolean) => void
+}
+
+const CaseTableToolShelfMenuList = observer(
+    function CaseTableToolShelfMenuList({ setMenuIsOpen }: ICaseTableToolShelfMenuListProps) {
   const document = appState.document
   const content = document.content
   const manager = getSharedModelManager(document)
@@ -68,13 +73,14 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
     setModalOpen(true)
     onOpen()
     setDataSetIdToDelete(dsId)
+    setMenuIsOpen(false)
   }
   return (
     <>
       <MenuList className="tool-shelf-menu-list table" data-testid="tool-shelf-table-menu-list">
         {datasets.map((dataset) => {
           // case table title reflects DataSet title
-          const tileTitle = dataset.dataSet.title
+          const tileTitle = dataset.dataSet.displayTitle
           return (
             // FIXME: this will create multiple undo entries
             <MenuItem key={`${dataset.dataSet.id}`} className="tool-shelf-menu-item"
@@ -105,15 +111,18 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
 })
 
 export const CaseTableToolShelfButton = () => {
+  const [isOpen, setIsOpen] = useState(false)
+  const onClose = () => setIsOpen(false)
+  const onOpen = () => setIsOpen(true)
   return (
-    <Menu isLazy autoSelect={false}>
+    <Menu isLazy autoSelect={false} isOpen={isOpen} onOpen={onOpen} onClose={onClose}>
       <MenuButton className="tool-shelf-button tool-shelf-menu table"
           title={`${t("DG.ToolButtonData.tableButton.toolTip")}`}
           data-testid={"tool-shelf-button-table"}>
         <TableIcon className="menu-icon case-table-icon" />
         <ToolShelfButtonTag className="tool-shelf-tool-label table" label={t("DG.ToolButtonData.tableButton.title")} />
       </MenuButton>
-      <CaseTableToolShelfMenuList />
+      <CaseTableToolShelfMenuList setMenuIsOpen={setIsOpen} />
     </Menu>
   )
 }
@@ -146,7 +155,7 @@ export const DeleteDataSetModal = ({dataSetId, isOpen, onClose, setModalOpen}: I
         undoStringKey: "V3.Undo.caseTable.delete",
         redoStringKey: "V3.Redo.caseTable.delete",
         log: logStringifiedObjectMessage("Delete dataset: %@",
-                {id: dataSetId, name: data?.title}, "document")
+                {id: dataSetId, name: data?.displayTitle}, "document")
       })
     }
   }

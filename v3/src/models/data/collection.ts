@@ -1,7 +1,7 @@
 import { comparer, observable, reaction, runInAction } from "mobx"
 import { addDisposer, getType, IAnyStateTreeNode, Instance, SnapshotIn, types } from "mobx-state-tree"
 import { kCaseIdPrefix, kCollectionIdPrefix, typeV3Id, v3Id } from "../../utilities/codap-utils"
-import { hashStringSet, hashOrderedStringSet } from "../../utilities/js-utils"
+import { hashStringSet, hashOrderedStringSet, safeJsonParse } from "../../utilities/js-utils"
 import { Attribute, IAttribute } from "./attribute"
 import {
   CaseInfo, IGroupedCase, IMoveAttributeOptions, symIndex, symParent
@@ -24,6 +24,12 @@ export const defaultItemData: IItemData = {
   getValue: () => "",
   addItemInfo: () => null,
   invalidate: () => null
+}
+
+const kGroupKeySeparator = "\t"
+
+export function makeGroupKey(values: string[]) {
+  return `[${values.join(kGroupKeySeparator)}]`
 }
 
 export const CollectionModel = V2Model
@@ -57,6 +63,21 @@ export const CollectionModel = V2Model
   // previous map from group key (stringified attribute values) to CaseInfo
   prevCaseGroupMap: undefined as Maybe<Map<string, CaseInfo>>
 }))
+.preProcessSnapshot(snap => {
+  if (snap._groupKeyCaseIds) {
+    // Prior to PR #2006, group keys were JSON.stringified attribute values.
+    const { _groupKeyCaseIds: legacyGroupKeyCaseIds, ...others } = snap
+    const _groupKeyCaseIds = legacyGroupKeyCaseIds.map(([snapGroupKey, caseId]) => {
+      if (snapGroupKey.includes(kGroupKeySeparator)) return [snapGroupKey, caseId]
+      // convert legacy group key to new format
+      const groupKeyValues = safeJsonParse<string[]>(snapGroupKey)
+      const groupKey = groupKeyValues ? makeGroupKey(groupKeyValues) : snapGroupKey
+      return [groupKey, caseId]
+    }).filter(([groupKey, caseId]) => !!groupKey && !!caseId) as Array<[string, string]>
+    return { _groupKeyCaseIds, ...others }
+  }
+  return snap
+})
 .actions(self => ({
   setParent(parent?: ICollectionModel) {
     self.parent = parent
@@ -133,11 +154,11 @@ export const CollectionModel = V2Model
   groupKey(itemId: string) {
     // only parent collections group cases; child collections "group" by itemId
     if (!self.child) return itemId
-    return `[${self.allDataAttributes.map(attr => self.itemData.getValue(itemId, attr.id)).join("\t")}]`
+    return makeGroupKey(self.allDataAttributes.map(attr => self.itemData.getValue(itemId, attr.id)))
   },
   parentGroupKey(itemId: string) {
     if (!self.parent) return
-    return `[${self.sortedParentDataAttrs.map(attr => self.itemData.getValue(itemId, attr.id)).join("\t")}]`
+    return makeGroupKey(self.sortedParentDataAttrs.map(attr => self.itemData.getValue(itemId, attr.id)))
   },
   groupKeyCaseId(groupKey?: string) {
     if (!groupKey) return undefined
@@ -421,6 +442,11 @@ export const CollectionModel = V2Model
             })
             // append case ids in grouped order
             self.caseIds.push(...childCaseIds)
+          })
+          // rebuild the case id to index map, since the order of child cases may have changed
+          self.caseIdToIndexMap.clear()
+          self.caseIds.forEach((caseId, index) => {
+            self.caseIdToIndexMap.set(caseId, index)
           })
         }
 

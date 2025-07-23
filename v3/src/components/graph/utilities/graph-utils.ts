@@ -650,7 +650,7 @@ export const pathBasis = (p0: Point, p1: Point, p2: Point, p3: Point) => {
   const b2 = weight(basis[2])
   const b3 = weight(basis[3])
 
-  return `C${b1.x},${b1.y},${b2.x},${b2.y},${b3.x},${b3.y}`
+  return `C${b1.x} ${b1.y} ${b2.x} ${b2.y} ${b3.x} ${b3.y}`
 }
 
 // This is a modified version of CODAP V2's SvgScene.curveBasis which was extracted from protovis

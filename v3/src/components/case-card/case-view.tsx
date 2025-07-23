@@ -27,7 +27,7 @@ interface ICaseViewProps {
   onNewCollectionDrop: (dataSet: IDataSet, attrId: string, beforeCollectionId: string) => void
 }
 
-export const CaseView = observer(function CaseView(props: ICaseViewProps) {
+export const CaseView = observer(function InnerCaseView(props: ICaseViewProps) {
   const {cases, level, onSelectCases, onNewCollectionDrop, displayedCaseLineage = []} = props
   const cardModel = useCaseCardModel()
   const data = cardModel?.data

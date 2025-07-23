@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from "react"
+import { clsx } from "clsx"
 import { textEditorClassname } from "react-data-grid"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useLoggingContext } from "../../hooks/use-log-context"
@@ -32,6 +33,7 @@ export default function CellTextEditor({ row, column, onRowChange, onClose }: TR
   const valueRef = useRef(initialValueRef.current)
   const { setPendingLogMessage } = useLoggingContext()
   const blockAPIRequests = blockAPIRequestsWhileEditing(data)
+  const isNumeric = data?.getAttribute(column.key)?.isNumeric
 
   useEffect(()=>{
     selectAllCases(data, false)
@@ -57,7 +59,7 @@ export default function CellTextEditor({ row, column, onRowChange, onClose }: TR
   return (
     <input
       data-testid="cell-text-editor"
-      className={textEditorClassname}
+      className={clsx(textEditorClassname, "cell-text-editor", { "numeric-format": isNumeric })}
       ref={autoFocusAndSelect}
       value={valueRef.current}
       onChange={(event) => handleChange(event.target.value)}
