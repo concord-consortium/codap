@@ -164,6 +164,10 @@ export const App = observer(function App() {
 
       appState.enableDocumentMonitoring()
       Logger.initializeLogger(appState.document)
+
+      // window.onbeforeunload = function() {
+      //   if (dirty) return "Changes you made may not be saved."
+      // }
     }
 
     initialize()
