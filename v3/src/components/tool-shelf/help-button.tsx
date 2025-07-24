@@ -28,7 +28,7 @@ const translatedHelpURLs: Record<string, string> = {
 export const HelpShelfButton = () => {
   const documentContent = useDocumentContent()
   const langClass = getSpecialLangFontClassName(gLocale.current)
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const { isOpen, onOpen, onClose } = useDisclosure()
 
   const handleShowHelp = () => {
     const url = translatedHelpURLs[gLocale.current]
