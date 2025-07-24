@@ -199,6 +199,7 @@ export function useCloudFileManager(optionsArg: CFMAppOptions, onFileOpened?: ()
         menuAnchorName: t("DG.fileMenu.fileMenuName"),
         menu: getMenuConfig(cfm),
         subMenuExpandIcon: SubMenuExpandIcon,
+        clientToolBarPosition: "top",
       },
       renderRoot(content: React.ReactNode, container: HTMLElement) {
         if (container && !root.current) {
