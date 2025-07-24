@@ -1,6 +1,7 @@
 import React, { useState } from "react"
 import { Button, Menu, MenuButton, MenuItem, MenuList, ModalBody, ModalFooter,
     Tooltip, useDisclosure } from "@chakra-ui/react"
+import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import { logStringifiedObjectMessage } from "../../lib/log-message"
 import { appState } from "../../models/app-state"
@@ -16,6 +17,8 @@ import { getFormulaManager, getSharedModelManager } from "../../models/tiles/til
 import { ITileModel } from "../../models/tiles/tile-model"
 import { createTileNotification } from "../../models/tiles/tile-notifications"
 import { uniqueName } from "../../utilities/js-utils"
+import { getSpecialLangFontClassName } from "../../utilities/translation/languages"
+import { gLocale } from "../../utilities/translation/locale"
 import { t } from "../../utilities/translation/translate"
 import {
   createOrShowTableOrCardForDataset, createTableOrCardForDataset
@@ -114,9 +117,11 @@ export const CaseTableToolShelfButton = () => {
   const [isOpen, setIsOpen] = useState(false)
   const onClose = () => setIsOpen(false)
   const onOpen = () => setIsOpen(true)
+  const langClass = getSpecialLangFontClassName(gLocale.current)
+
   return (
     <Menu isLazy autoSelect={false} isOpen={isOpen} onOpen={onOpen} onClose={onClose}>
-      <MenuButton className="tool-shelf-button tool-shelf-menu table"
+      <MenuButton className={clsx("tool-shelf-button", "tool-shelf-menu", "table", langClass)}
           title={`${t("DG.ToolButtonData.tableButton.toolTip")}`}
           data-testid={"tool-shelf-button-table"}>
         <TableIcon className="menu-icon case-table-icon" />

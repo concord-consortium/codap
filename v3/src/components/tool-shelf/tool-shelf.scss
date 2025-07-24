@@ -235,14 +235,44 @@ $tool-shelf-border-width: 1px;
   color: #222 !important;
 }
 
-.tool-shelf-button.lang-fa,
+.tool-shelf-button.lang-fa .tool-shelf-tool-label,
 .tool-shelf-menu-list.lang-fa,
 .tool-shelf-menu-item.lang-fa {
-  font-family: 'Noto Sans', sans-serif;
+  font-family: 'Noto Sans Arabic', sans-serif;
+  font-weight: 600 !important;
 }
 
-.tool-shelf-button.lang-th,
+.tool-shelf-button.lang-he .tool-shelf-tool-label,
+.tool-shelf-menu-list.lang-he,
+.tool-shelf-menu-item.lang-he {
+  font-family: 'Noto Sans Hebrew', sans-serif;
+  font-weight: 600 !important;
+}
+
+.tool-shelf-button.lang-ja .tool-shelf-tool-label,
+.tool-shelf-menu-list.lang-ja,
+.tool-shelf-menu-item.lang-ja {
+  font-family: 'Noto Sans Japanese', sans-serif;
+  font-weight: 600 !important;
+}
+
+.tool-shelf-button.lang-ko .tool-shelf-tool-label,
+.tool-shelf-menu-list.lang-ko,
+.tool-shelf-menu-item.lang-ko {
+  font-family: 'Noto Sans Korean', sans-serif;
+  font-weight: 600 !important;
+}
+
+.tool-shelf-button.lang-th .tool-shelf-tool-label,
 .tool-shelf-menu-list.lang-th,
 .tool-shelf-menu-item.lang-th {
-  font-family: 'Noto Sans', sans-serif;
+  font-family: 'Noto Sans Thai', sans-serif;
+  font-weight: 600 !important;
+}
+
+.tool-shelf-button.lang-zh .tool-shelf-tool-label,
+.tool-shelf-menu-list.lang-zh,
+.tool-shelf-menu-item.lang-zh {
+  font-family: 'Noto Sans Chinese', sans-serif;
+  font-weight: 600 !important;
 }

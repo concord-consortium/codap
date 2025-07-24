@@ -4,6 +4,7 @@ import React from "react"
 import { getTileComponentIcon } from "../../models/tiles/tile-component-info"
 import { t } from "../../utilities/translation/translate"
 import { gLocale } from "../../utilities/translation/locale"
+import { getSpecialLangFontClassName } from "../../utilities/translation/languages"
 
 interface IToolShelfButtonTagProps {
   className?: string
@@ -24,11 +25,7 @@ export interface IToolShelfButtonProps {
 export const ToolShelfButton = ({
   className, icon, label, hint, disabled, onClick
 }: IToolShelfButtonProps) => {
-  const langClass = gLocale.current.startsWith("fa")
-    ? "lang-fa"
-    : gLocale.current.startsWith("th")
-      ? "lang-th"
-      : ""
+  const langClass = getSpecialLangFontClassName(gLocale.current)
   return (
     <Box
       as='button'
@@ -36,9 +33,9 @@ export const ToolShelfButton = ({
       disabled={disabled}
       onClick={onClick}
       data-testid={`tool-shelf-button-${label.toLowerCase()}`}
-      className={clsx("tool-shelf-button", langClass,className)}
+      className={clsx("tool-shelf-button", langClass, className)}
     >
-      <Box className="tool-shelf-button-content">
+      <Box className={clsx("tool-shelf-button-content", langClass)}>
         {icon}
         <ToolShelfButtonTag label={t(label)} />
       </Box>

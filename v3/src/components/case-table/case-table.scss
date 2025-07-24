@@ -228,6 +228,7 @@ $collection-title-font-color: black;
           align-items: center;
           justify-content: center;
           color: vars.$default-font-color !important; //overrides chakra's default color
+          font-weight: bold;
           &:hover {
             text-decoration: underline;
             color: #1b5798 !important;

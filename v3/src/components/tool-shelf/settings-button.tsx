@@ -1,19 +1,23 @@
 import React, { useState } from "react"
+import { clsx } from "clsx"
 import { Menu, MenuButton, MenuItem, MenuList, useDisclosure } from "@chakra-ui/react"
-import OptionsIcon from "../../assets/icons/icon-settings.svg"
 import { useDocumentContent } from "../../hooks/use-document-content"
+import { getSpecialLangFontClassName } from "../../utilities/translation/languages"
+import { gLocale } from "../../utilities/translation/locale"
 import { t } from "../../utilities/translation/translate"
 import { WebViewUrlModal } from "../web-view/web-view-url-modal"
 import { ToolShelfButtonTag } from "./tool-shelf-button"
 import { showWebView } from "./tool-shelf-utilities"
 import WebViewIcon from "../../assets/icons/icon-media-tool.svg"
 import ToolbarPositionIcon from "../../assets/icons/icon-toolbar-position.svg"
+import OptionsIcon from "../../assets/icons/icon-settings.svg"
 
 import "./tool-shelf.scss"
 
 export const SettingsShelfButton = () => {
   const documentContent = useDocumentContent()
   const { isOpen, onClose, onOpen } = useDisclosure()
+  const langClass = getSpecialLangFontClassName(gLocale.current)
   //TODO: May have to move state somewhere
   const [ positionToolShelf, setPositionToolShelf ] = useState<"Top" | "Left">("Top")
 
@@ -31,7 +35,7 @@ export const SettingsShelfButton = () => {
     <>
       <Menu isLazy autoSelect={false}>
         <MenuButton
-          className="tool-shelf-button tool-shelf-menu web-view"
+          className={clsx("tool-shelf-button", "tool-shelf-menu", "web-view", langClass)}
           title={t("DG.ToolButtonData.optionMenu.toolTip")}
           data-testid="tool-shelf-button-options"
         >
