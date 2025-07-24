@@ -217,6 +217,9 @@ export const DataSetMetadata = SharedModel
     },
     getAttributeBinningType(attrId: string) {
       return self.attributes.get(attrId)?.scale?.binningType || "quantile"
+    },
+    getAttributeDeletedFormula(attrId: string) {
+      return self.attributes.get(attrId)?.deletedFormula
     }
   }))
   .actions(self => ({
@@ -390,12 +393,25 @@ export const DataSetMetadata = SharedModel
         scale.binningType = binningType
       }
     },
-    setDeletedFormula(attrId: string, formula?: string) {
+    setDeletedFormula(attrId: string, formula: Maybe<string>) {
       const attrMetadata = self.requireAttributeMetadata(attrId)
       attrMetadata.deletedFormula = formula || undefined
     }
   }))
   .actions(self => ({
+    deleteAttributeFormula(attrId: string) {
+      const attribute = self.getAttribute(attrId)
+      self.setDeletedFormula(attrId, attribute?.formula?.display)
+      attribute?.clearFormula()
+    },
+    recoverAttributeFormula(attrId: string) {
+      const formula = self.getAttributeDeletedFormula(attrId)
+      if (!formula) {
+        console.warn(`Deleted formula not found for attributeId: ${attrId}`)
+        return
+      }
+      self.getAttribute(attrId)?.setDisplayExpression(formula)
+    },
     removeCollectionLabels(collId: string) {
       const collMetadata = self.collections.get(collId)
       if (collMetadata) {
