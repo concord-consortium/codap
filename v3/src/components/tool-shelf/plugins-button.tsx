@@ -81,7 +81,7 @@ export function PluginsButton() {
     return (
       pluginData &&
         <MenuItem className="tool-shelf-menu-item plugin-selection" data-testid="tool-shelf-plugins-option"
-            onClick={handleClick}>
+            onClick={handleClick} closeOnSelect={true}>
           {isStandardPlugin ? <IconComponent className="plugin-icon" />
                             : <img className="plugin-icon" src={`${kRootPluginsUrl}${pluginData.icon}`} />}
           <span className="plugin-selection-title">{pluginData.title}</span>
@@ -99,8 +99,9 @@ export function PluginsButton() {
           <React.Fragment key={title}>
             <Menu placement="right-start" isOpen={selectedCategoryTitle === title} key={title} autoSelect={false}>
               <MenuButton as="div" className="plugin-category-button" data-testid={`plugin-category-button-${title}`} />
-              <MenuList key={title} className="tool-shelf-menu-list plugin-submenu"
-                  data-testid={`plugin-submenu-${title}`}>
+              <MenuList key={title} className="tool-shelf-menu-list plugin-submenu submenu"
+                  data-testid={`plugin-submenu-${title}`}
+                  onPointerLeave={() => setSelectedCategoryTitle(null)}>
                 {subMenu.length > 0
                     ? subMenu.map((pd, i) => <PluginItem key={pd?.title ?? `divider-${i}`} pluginData={pd} />)
                     : <MenuItem>{t("V3.ToolButtonData.pluginMenu.fetchError")}</MenuItem>
@@ -108,8 +109,8 @@ export function PluginsButton() {
               </MenuList>
             </Menu>
             <MenuItem as="div" className="tool-shelf-menu-item plugin-category-item"
-              closeOnSelect={false} onPointerOver={()=>setSelectedCategoryTitle(title)}
-              data-testid={`plugin-category-${title}`}
+              closeOnSelect={false} data-testid={`plugin-category-${title}`}
+              onPointerOver={()=>setSelectedCategoryTitle(title)}
             >
               <span className="category-title">{title}</span>
               <RightArrow className="submenu-expand-icon" />
@@ -131,7 +132,8 @@ export function PluginsButton() {
         <PluginsIcon />
         <ToolShelfButtonTag className="tool-shelf-tool-label plugins" label={t("DG.ToolButtonData.pluginMenu.title")}/>
       </MenuButton>
-      <MenuList className="tool-shelf-menu-list plugins" data-testid="plugins-menu">
+      <MenuList className="tool-shelf-menu-list plugins" data-testid="plugins-menu"
+          onPointerLeave={() => setSelectedCategoryTitle(null)}>
         {renderPluginCategoryList()}
       </MenuList>
     </Menu>
