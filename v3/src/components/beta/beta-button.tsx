@@ -10,7 +10,7 @@ export function BetaButton() {
 
   return (
     <div className="beta-button-container">
-      <button className="beta-button">
+      <button className="beta-button" onClick={() => console.log(`Hi`)}>
         <FeedbackIcon className="feedback-icon" />
         BETA Feedback
       </button>
