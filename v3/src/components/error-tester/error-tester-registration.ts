@@ -32,11 +32,10 @@ if (urlParams.errorTester) {
     Icon: ErrorTesterIcon,
     shelf: {
       position: 7,
-      // TODO: Update these values, they seem to have to be translation keys.
-      labelKey: "DG.ToolButtonData.errorTesterButton.title",
-      hintKey: "DG.ToolButtonData.errorTesterButton.toolTip",
-      undoStringKey: "DG.Undo.errorTester.create",
-      redoStringKey: "DG.Redo.errorTester.create"
+      labelKey: "V3.ToolButtonData.errorTesterButton.title",
+      hintKey: "V3.ToolButtonData.errorTesterButton.toolTip",
+      undoStringKey: "V3.Undo.errorTester.create",
+      redoStringKey: "V3.Redo.errorTester.create"
     },
     isFixedWidth: true,
     isFixedHeight: true,
@@ -45,9 +44,6 @@ if (urlParams.errorTester) {
     defaultWidth: 137
   })
 
-  // TODO: What should we do with the v2 component here?
-  // Shortly v2 saving is going to enabled by default so if we don't have one
-  // the error tester component can't be saved.
   registerComponentHandler(kErrorTesterTileType, {
     create() {
       return { content: { type: kErrorTesterTileType } }

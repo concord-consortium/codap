@@ -36,6 +36,7 @@ export interface UrlParams {
    * value: which type of error the tester should throw.
    * Possible values:
    * - "render": throws an error on render
+   * - "firstDisplay": throws errors on first display see react-render-errors.md
    * - "none" (default): only throws an error on click
    */
   errorTester?: string | null

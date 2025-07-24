@@ -8,6 +8,18 @@
     "V3.general.yes": "Yes",
     "V3.general.no": "No",
 
+    // V3 application level strings
+    "V3.app.errorDialog.title": "Error",
+    "V3.app.errorDialog.description": "An error has occurred that may affect how this program behaves.",
+    "V3.app.errorDialog.suggestionWithSave": "You may wish to reload this page after you save a copy of your work.",
+    "V3.app.errorDialog.suggestion": "You may wish to reload this page.",
+    "V3.app.errorDialog.errorDetails": "(Error: %@)",
+    "V3.app.documentDisplayError.title": "Display Error",
+    "V3.app.documentDisplayError.suggestion": "Try reloading the page.",
+    "V3.app.documentDisplayError.suggestionWithSave": "Try saving a copy of the document and reloading the page.",
+    "V3.app.documentDisplayError.reason": "An error is preventing CODAP from displaying the document.",
+    "V3.app.documentDisplayError.detailsTitle": "Details",
+
     "V3.Undo.graph.toggleParentVisibility": "Undo toggling visibility",
     "V3.Redo.graph.toggleParentVisibility": "Redo toggling visibility",
     "V3.Undo.graph.hideAllCases": "Undo hiding all cases",
@@ -175,6 +187,12 @@
     "V3.Undo.graph.removeRegionOfInterest": "Undo hiding region of interest",
     "V3.Redo.graph.removeRegionOfInterest": "Redo hiding region of interest",
 
+    // V3 ErrorTester strings they probably don't need to be translated
+    "V3.ToolButtonData.errorTesterButton.title": "ErrTest",
+    "V3.ToolButtonData.errorTesterButton.toolTip": "Make an error tester",
+    "V3.Undo.errorTester.create": "Undo adding error tester",
+    "V3.Redo.errorTester.create": "Redo adding error tester",
+
     // CFM/File menu
     "DG.fileMenu.menuItem.newDocument": "New",
     "DG.fileMenu.menuItem.openDocument": "Open...",
@@ -205,16 +223,7 @@
     "DG.mainPage.mainPane.versionString": "Version %@ (%@)", // DG.VERSION, DG.BUILD_NUM
     "DG.mainPage.mainPane.messageView.value": "Unfortunately, CODAP is not currently supported on your browser. CODAP is supported on Firefox 46+, Chrome 50+, Windows Edge 14+, and Safari 10+. CODAP is not actively supported on other browsers at this time.",
     "DG.mainPage.titleBar.saved": "Document Saved!",
-    "DG.mainPage.errorDialog.title": "Error",
-    "DG.mainPage.errorDialog.description": "An error has occurred that may affect how this program behaves.",
-    "DG.mainPage.errorDialog.suggestionWithSave": "You may wish to reload this page after you save a copy of your work.",
-    "DG.mainPage.errorDialog.suggestion": "You may wish to reload this page.",
-    "DG.mainPage.errorDialog.errorDetails": "(Error: %@)",
-    "DG.mainPage.documentDisplayError.title": "Display Error",
-    "DG.mainPage.documentDisplayError.suggestion": "Try reloading the page.",
-    "DG.mainPage.documentDisplayError.suggestionWithSave": "Try saving a copy of the document and reloading the page.",
-    "DG.mainPage.documentDisplayError.reason": "An error is preventing CODAP from displaying the document.",
-    "DG.mainPage.documentDisplayError.detailsTitle": "Details",
+    "DG.mainPage.exceptionMessage": "An error has occurred that may affect how this program behaves. You may wish to reload this page after you save your work. (Error: %@)",
 
     // IS_BUILD variants of strings for InquirySpace
     "DG.mainPage.mainPane.versionString.IS_BUILD": "Version %@ (%@ IS)",
@@ -352,8 +361,6 @@
     "DG.ToolButtonData.help.toolTip": "Help for CODAP, learn about CODAP project",
     "DG.ToolButtonData.pluginMenu.title": "Plugins",
     "DG.ToolButtonData.pluginMenu.toolTip": "Open a plugin component",
-    "DG.ToolButtonData.errorTesterButton.title": "ErrTest",
-    "DG.ToolButtonData.errorTesterButton.toolTip": "Make an error tester",
 
     // DG.Slider
     "DG.Slider.multiples": "Restrict to Multiples of:",
@@ -665,8 +672,6 @@
     "DG.Redo.webView.show": "Redo adding webView component",
     "DG.Undo.imageComponent.show": "Undo adding image component",
     "DG.Redo.imageComponent.show": "Redo adding image component",
-    "DG.Undo.errorTester.create": "Undo adding error tester",
-    "DG.Redo.errorTester.create": "Redo adding error tester",
 
     // DG.DataContext
     "DG.DataContext.singleCaseName": "case",

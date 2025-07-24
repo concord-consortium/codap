@@ -45,7 +45,7 @@ The component throws an error on its first and second render
 An error dialog is shown because the CODAP window error handler shows it. The error boundary components are shown underneath the dialog instead of the main CODAP components.
 
 # Development Mode
-In dev mode React re-renders a component four times when it throws an error before giving up. If the component throws less than 4 errors various things are seen.
+In dev mode React re-renders a component four times when it throws an error before giving up. If the component throws fewer than 4 errors various things are seen.
 
 ## One error thrown
 If the component only throws an error on its first render
@@ -56,7 +56,6 @@ If the component only throws an error on its first render
 - the error boundary gets the first render error
 - component is rendered again
 - the first render error is shown in the console
-
 
 ### Visible behavior
 The webpack error overlay is shown with the first render error. Closing this overlay shows the CODAP error dialog and beneath it are the main CODAP components. Closing the error dialog, shows the codap components. This does **not** cause the component to be rendered a fourth time.
