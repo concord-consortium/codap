@@ -12,7 +12,7 @@ import { useCaseCardModel } from "./use-case-card-model"
 import "./case-attrs-view.scss"
 
 interface ICaseAttrsViewProps {
-  caseItem: IGroupedCase
+  caseItem?: IGroupedCase
   collection?: ICollectionModel
 }
 
@@ -30,7 +30,7 @@ export const CaseAttrsView = observer(function CaseAttrsView({ caseItem, collect
   const data = cardModel?.data
   const metadata = cardModel?.metadata
   const isCollectionSummarized = !!collection?.cases && collection.cases.length > 0 &&
-                                 !!cardModel?.summarizedCollections.find(cid => cid === collection?.id)
+                                 !!cardModel?.summarizedCollections.has(collection.id)
   const contentRef = useRef<HTMLDivElement | null>(null)
   const [, setCellElt] = useState<HTMLElement | null>(null)
   const handleSetHeaderContentElt = useCallback((contentElt: HTMLDivElement | null) => {
@@ -61,7 +61,7 @@ export const CaseAttrsView = observer(function CaseAttrsView({ caseItem, collect
         {collection && visibleAttrs.map(attr => {
             return (
               <CaseAttrView
-                key={isCollectionSummarized ? `${attr.id}-summary` : attr.id}
+                key={`${attr.id}-${isCollectionSummarized ? "summary" : caseItem?.__id__}`}
                 attr={attr}
                 collection={collection}
                 getDividerBounds={getDividerBounds}

@@ -1,11 +1,12 @@
 import React, { useRef } from "react"
 import { observer } from "mobx-react-lite"
 import { CollectionContext } from "../../hooks/use-collection-context"
+import { IDataSet } from "../../models/data/data-set"
+import { setSelectedCases } from "../../models/data/data-set-utils"
+import { t } from "../../utilities/translation/translate"
 import { AttributeHeaderDividerContext } from "../case-tile-common/use-attribute-header-divider-context"
 import { CaseView } from "./case-view"
 import { useCaseCardModel } from "./use-case-card-model"
-import { IDataSet } from "../../models/data/data-set"
-import { t } from "../../utilities/translation/translate"
 
 import "./card-view.scss"
 
@@ -18,27 +19,21 @@ export const CardView = observer(function CardView({onNewCollectionDrop}: CardVi
   const data = cardModel?.data
   const collections = data?.collections
   const rootCollection = collections?.[0]
-  const selectedItems = data?.selection
-  const selectedItemId = selectedItems && Array.from(selectedItems)[0]
-  const selectedItemLineage = cardModel?.caseLineage(selectedItemId)
   const contentRef = useRef<HTMLDivElement>(null)
-  const summarizedCollections = cardModel?.summarizedCollections || []
-  const isInSummaryMode = summarizedCollections.length > 0
+  const summarizedCollectionsCount = cardModel?.summarizedCollections.size ?? 0
+  const isInSummaryMode = summarizedCollectionsCount > 0
 
   const handleSelectCases = (caseIds: string[]) => {
-    data?.setSelectedCases(caseIds)
+    setSelectedCases(caseIds, data)
   }
 
   const handleSummaryButtonClick = () => {
     if (isInSummaryMode) {
       // select the first child-most case
-      const firstItemId = data?.itemIds[0]
-      const firstItemLineage = cardModel?.caseLineage(firstItemId)
-      if (firstItemLineage) {
-        data?.setSelectedCases([firstItemLineage[firstItemLineage.length - 1]])
-      }
+      const caseId = data?.itemIdChildCaseMap.get(data?.itemIds[0])?.groupedCase?.__id__
+      if (caseId) setSelectedCases([caseId], data)
     } else {
-      data?.setSelectedCases([])
+      setSelectedCases([], data)
     }
   }
 
@@ -51,7 +46,6 @@ export const CardView = observer(function CardView({onNewCollectionDrop}: CardVi
               cases={rootCollection.cases}
               level={0}
               onSelectCases={handleSelectCases}
-              displayedCaseLineage={selectedItemLineage}
               onNewCollectionDrop={onNewCollectionDrop}
             />
             <div className="summary-view-toggle-container">

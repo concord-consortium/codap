@@ -25,7 +25,13 @@
   padding: 2px;
   border-radius: 5px;
   box-shadow: inset 0 2px 3px rgba(0,0,0,0.3), 0 2px 0 rgba(255,255,255,0.8);
+  left: 0;
   position: relative;
+  width: calc(100% - 14px);
+
+  &.animating {
+    transition: left 0.3s ease-in-out;
+  }
 
   &:first-child {
     border: solid 2px #cecece;

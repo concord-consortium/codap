@@ -3,7 +3,8 @@
 
 .case-card.react-data-card {
   height: calc(100% - vars.$title-bar-height);
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .codap-case-card {

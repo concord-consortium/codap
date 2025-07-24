@@ -4,23 +4,42 @@ export const CardTileElements = {
   getCardTile(index = 0) {
     return c.getComponentTile("case-card", index)
   },
+  // Gets the real case views, ignoring the dummy views used for animations
+  getCaseCardView() {
+    return cy.get('.case-card-view:visible')
+  },
+  getViewTitle() {
+    return cy.get('[data-testid="case-card-view-title"]:visible')
+  },
+  getPreviousButton() {
+    return cy.get('[data-testid="case-card-view-previous-button"]:visible')
+  },
+  getNextButton() {
+    return cy.get('[data-testid="case-card-view-next-button"]:visible')
+  },
   getIndexText() {
-    return cy.get('[data-testid="case-card-view-index"]')
+    return cy.get('[data-testid="case-card-view-index"]:visible')
   },
   getAttributes() {
-    return cy.get('[data-testid="case-card-attr"]')
+    return cy.get('[data-testid="case-card-attr"]:visible')
+  },
+  getAttrs() {
+    return cy.get('[data-testid="case-card-attrs"]:visible')
   },
   getAttributeNames() {
-    return cy.get('[data-testid="case-card-attr-name"]')
+    return cy.get('[data-testid="case-card-attr-name"]:visible')
+  },
+  getAttributeNameInput() {
+    return cy.get('[data-testid="column-name-input"]:visible')
   },
   getAttributeValues() {
-    return cy.get('[data-testid="case-card-attr-value"]')
+    return cy.get('[data-testid="case-card-attr-value"]:visible')
   },
   getAttributeValueEditors() {
-    return cy.get('[data-testid="case-card-attr-value"] [data-testid="case-card-attr-value-text-editor"]')
+    return cy.get('[data-testid="case-card-attr-value"] [data-testid="case-card-attr-value-text-editor"]:visible')
   },
   getAddAttributeButton() {
-    return cy.get('[data-testid="add-attribute-button"]')
+    return cy.get('[data-testid="add-attribute-button"]:visible')
   },
   getInspectorPanel() {
     return cy.get('[data-testid="codap-case-card"]').siblings('[data-testid="inspector-panel"]')
