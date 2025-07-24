@@ -34,7 +34,7 @@ export const SettingsShelfButton = () => {
   }
 
   const handleShowWebViewModal = () => {
-    onOpen();
+    onOpen()
     setIsMenuOpen(false)
   }
 
@@ -42,13 +42,13 @@ export const SettingsShelfButton = () => {
     <>
       <Menu isLazy autoSelect={false} onClose={()=>setIsMenuOpen(false)}>
         <MenuButton
-          className={clsx("tool-shelf-button", "tool-shelf-menu", "web-view", langClass, {"menu-open": isMenuOpen})}
+          className={clsx("tool-shelf-button", "tool-shelf-menu", "settings", langClass, {"menu-open": isMenuOpen})}
           title={t("DG.ToolButtonData.optionMenu.toolTip")}
           data-testid="tool-shelf-button-options" onClick={()=>setIsMenuOpen(!isMenuOpen)}
         >
           <OptionsIcon />
           <ToolShelfButtonTag
-            className="tool-shelf-tool-label web-view"
+            className="tool-shelf-tool-label settings"
             label={t("DG.ToolButtonData.optionMenu.title")}
           />
         </MenuButton>

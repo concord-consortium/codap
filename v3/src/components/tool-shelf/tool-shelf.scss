@@ -53,6 +53,8 @@ $tool-shelf-border-width: 1px;
             letter-spacing: 0.2px;
             min-height: 0;
             font-size: 14px;
+            position: relative;
+            top: -1px;
           }
         }
       }
@@ -85,6 +87,8 @@ $tool-shelf-border-width: 1px;
         svg {
           height: 30px;
           width: 30px;
+          position: relative;
+          bottom: 1px;
         }
 
         .tool-shelf-tool-label {
