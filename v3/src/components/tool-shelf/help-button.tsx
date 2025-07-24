@@ -1,8 +1,9 @@
-import { Menu, MenuButton, MenuItem, MenuList } from "@chakra-ui/react"
 import React from "react"
-import HelpIcon from "../../assets/icons/icon-help.svg"
+import { clsx } from "clsx"
+import { Menu, MenuButton, MenuItem, MenuList, useDisclosure } from "@chakra-ui/react"
 import { useDocumentContent } from "../../hooks/use-document-content"
 import { gLocale } from "../../utilities/translation/locale"
+import { getSpecialLangFontClassName } from "../../utilities/translation/languages"
 import { t } from "../../utilities/translation/translate"
 import { ToolShelfButtonTag } from "./tool-shelf-button"
 import { showWebView } from "./tool-shelf-utilities"
@@ -10,6 +11,7 @@ import HelpPagesIcon from "../../assets/icons/icon-help-pages.svg"
 import HelpForumIcon from "../../assets/icons/icon-help-forum.svg"
 import ProjectWebSiteIcon from "../../assets/icons/icon-codap-project.svg"
 import WebViewIcon from "../../assets/icons/icon-media-tool.svg"
+import HelpIcon from "../../assets/icons/icon-help.svg"
 
 import "./tool-shelf.scss"
 
@@ -25,6 +27,8 @@ const translatedHelpURLs: Record<string, string> = {
 
 export const HelpShelfButton = () => {
   const documentContent = useDocumentContent()
+  const langClass = getSpecialLangFontClassName(gLocale.current)
+  const { isOpen, onOpen, onClose } = useDisclosure()
 
   const handleShowHelp = () => {
     const url = translatedHelpURLs[gLocale.current]
@@ -38,9 +42,9 @@ export const HelpShelfButton = () => {
 
   return (
     <>
-      <Menu isLazy autoSelect={false}>
+      <Menu isLazy autoSelect={false} isOpen={isOpen} onOpen={onOpen} onClose={onClose}>
         <MenuButton
-          className="tool-shelf-button tool-shelf-menu help"
+          className={clsx("tool-shelf-button", "tool-shelf-menu", "help", langClass, {"menu-open": isOpen})}
           title={t("DG.ToolButtonData.help.toolTip")}
           data-testid="tool-shelf-button-help"
         >

@@ -267,10 +267,10 @@
     "DG.AppController.createDataSet.name": "New Dataset",
     "DG.AppController.createDataSet.collectionName": "Cases",
     "DG.AppController.caseTableMenu.openCaseTableToolTip": "Open case table for this data set",
-    "DG.AppController.caseTableMenu.newDataSet": "-- new --",
+    "DG.AppController.caseTableMenu.newDataSet": "Νew",
     "DG.AppController.caseTableMenu.newDataSetToolTip": "Create a new data set",
     "DG.AppController.caseTableMenu.deleteDataSetToolTip": "Delete and destroy this data set",
-    "DG.AppController.caseTableMenu.clipboardDataset": "-- new from clipboard --",
+    "DG.AppController.caseTableMenu.clipboardDataset": "Νew from clipboard",
     "DG.AppController.caseTableMenu.clipboardDatasetToolTip": "Paste data set from clipboard",
 
     "DG.SingleTextDialog.okButton.title": "OK",

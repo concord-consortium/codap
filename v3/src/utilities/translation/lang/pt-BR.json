@@ -71,7 +71,7 @@
     "DG.AppController.createDataSet.initialAttribute": "NomeDaVariavel",
     "DG.AppController.createDataSet.name": "Nova Base de Dados",
     "DG.AppController.createDataSet.collectionName": "Dados",
-    "DG.AppController.caseTableMenu.newDataSet": "-- novo--",
+    "DG.AppController.caseTableMenu.newDataSet": "Novo",
     "DG.SingleTextDialog.okButton.title": "OK",
     "DG.SingleTextDialog.cancelButton.title": "Cancelar",
     "DG.SingleTextDialog.cancelButton.toolTip": "Dispensar a caixa de diálogo sem fazer alteraçōes",

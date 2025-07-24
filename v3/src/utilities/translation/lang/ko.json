@@ -71,7 +71,7 @@
   "DG.AppController.createDataSet.initialAttribute": "속성명",
   "DG.AppController.createDataSet.name": "새 데이터셋",
   "DG.AppController.createDataSet.collectionName": "케이스",
-  "DG.AppController.caseTableMenu.newDataSet": "-- 새 데이터셋 --",
+  "DG.AppController.caseTableMenu.newDataSet": "새 데이터셋",
   "DG.SingleTextDialog.okButton.title": "확인",
   "DG.SingleTextDialog.cancelButton.title": "취소",
   "DG.SingleTextDialog.cancelButton.toolTip": "변경하지 않고 창 닫기",

@@ -1,10 +1,12 @@
 import React, { useState } from "react"
+import { clsx } from "clsx"
 import { Menu, MenuButton, MenuItem, MenuList } from "@chakra-ui/react"
-import PluginsIcon from '../../assets/icons/icon-plugins.svg'
 import { kRootPluginsUrl } from "../../constants"
 import { useRemotePluginsConfig } from "../../hooks/use-remote-plugins-config"
 import { useDocumentContent } from "../../hooks/use-document-content"
 import { DEBUG_PLUGINS } from "../../lib/debug"
+import { getSpecialLangFontClassName } from "../../utilities/translation/languages"
+import { gLocale } from "../../utilities/translation/locale"
 import { t } from "../../utilities/translation/translate"
 import { kWebViewTileType } from "../web-view/web-view-defs"
 import { isWebViewModel } from "../web-view/web-view-model"
@@ -17,6 +19,7 @@ import _standardPlugins from "./standard-plugins.json"
 const debugPlugins = DEBUG_PLUGINS ? _debugPlugins as PluginMenuConfig : []
 const standardPlugins = _standardPlugins as PluginMenuConfig
 const combinedPlugins = [...standardPlugins, ...debugPlugins]
+import PluginsIcon from '../../assets/icons/icon-plugins.svg'
 import RightArrow from "../../assets/icons/arrow-right.svg"
 import DrawToolIcon from "../../assets/plugins/plugin-draw-tool-icon.svg"
 import SonifyIcon from "../../assets/plugins/plugin-sonify-icon.svg"
@@ -44,16 +47,10 @@ export function PluginsButton() {
   const onClose = () => setIsOpen(false)
   const onOpen = () => setIsOpen(true)
   const iconComponents: Record<string, React.FC<React.SVGProps<SVGSVGElement>>> = {
-    DrawToolIcon,
-    SonifyIcon,
-    StoryBuilderIcon,
-    MicrodataPortalIcon,
-    NOAAWeatherIcon,
-    SamplerIcon,
-    ChoosyIcon,
-    TransformersIcon,
-    ScramblerIcon
+    DrawToolIcon, SonifyIcon, StoryBuilderIcon, MicrodataPortalIcon, NOAAWeatherIcon,
+    SamplerIcon, ChoosyIcon, TransformersIcon, ScramblerIcon
   }
+  const langClass = getSpecialLangFontClassName(gLocale.current)
 
   function PluginItem({ pluginData }: IPluginItemProps) {
     const documentContent = useDocumentContent()
@@ -84,7 +81,7 @@ export function PluginsButton() {
     return (
       pluginData &&
         <MenuItem className="tool-shelf-menu-item plugin-selection" data-testid="tool-shelf-plugins-option"
-            onClick={handleClick}>
+            onClick={handleClick} closeOnSelect={true}>
           {isStandardPlugin ? <IconComponent className="plugin-icon" />
                             : <img className="plugin-icon" src={`${kRootPluginsUrl}${pluginData.icon}`} />}
           <span className="plugin-selection-title">{pluginData.title}</span>
@@ -99,11 +96,12 @@ export function PluginsButton() {
         if (!pluginData) return null
         const { title, subMenu } = pluginData
         return (
-          <>
+          <React.Fragment key={title}>
             <Menu placement="right-start" isOpen={selectedCategoryTitle === title} key={title} autoSelect={false}>
               <MenuButton as="div" className="plugin-category-button" data-testid={`plugin-category-button-${title}`} />
-              <MenuList key={title} className="tool-shelf-menu-list plugin-submenu"
-                  data-testid={`plugin-submenu-${title}`}>
+              <MenuList key={title} className="tool-shelf-menu-list plugin-submenu submenu"
+                  data-testid={`plugin-submenu-${title}`}
+                  onPointerLeave={() => setSelectedCategoryTitle(null)}>
                 {subMenu.length > 0
                     ? subMenu.map((pd, i) => <PluginItem key={pd?.title ?? `divider-${i}`} pluginData={pd} />)
                     : <MenuItem>{t("V3.ToolButtonData.pluginMenu.fetchError")}</MenuItem>
@@ -111,13 +109,13 @@ export function PluginsButton() {
               </MenuList>
             </Menu>
             <MenuItem as="div" className="tool-shelf-menu-item plugin-category-item"
-              closeOnSelect={false} onPointerOver={()=>setSelectedCategoryTitle(title)}
-              data-testid={`plugin-category-${title}`}
+              closeOnSelect={false} data-testid={`plugin-category-${title}`}
+              onPointerOver={()=>setSelectedCategoryTitle(title)}
             >
               <span className="category-title">{title}</span>
               <RightArrow className="submenu-expand-icon" />
             </MenuItem>
-          </>
+          </React.Fragment>
         )
       })
     )
@@ -126,7 +124,7 @@ export function PluginsButton() {
   return (
     <Menu isLazy autoSelect={false} isOpen={isOpen} onOpen={onOpen} onClose={onClose} >
       <MenuButton
-        className="tool-shelf-button tool-shelf-menu plugins"
+        className={clsx("tool-shelf-button", "tool-shelf-menu", "plugins", langClass, {"menu-open": isOpen})}
         title={t("DG.ToolButtonData.optionMenu.toolTip")}
         data-testid="tool-shelf-button-plugins"
         onClick={() => setIsOpen((prev) => !prev)}
@@ -134,7 +132,8 @@ export function PluginsButton() {
         <PluginsIcon />
         <ToolShelfButtonTag className="tool-shelf-tool-label plugins" label={t("DG.ToolButtonData.pluginMenu.title")}/>
       </MenuButton>
-      <MenuList className="tool-shelf-menu-list plugins" data-testid="plugins-menu">
+      <MenuList className="tool-shelf-menu-list plugins" data-testid="plugins-menu"
+          onPointerLeave={() => setSelectedCategoryTitle(null)}>
         {renderPluginCategoryList()}
       </MenuList>
     </Menu>

@@ -1,6 +1,7 @@
 import React, { useState } from "react"
 import { Button, Menu, MenuButton, MenuItem, MenuList, ModalBody, ModalFooter,
     Tooltip, useDisclosure } from "@chakra-ui/react"
+import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import { logStringifiedObjectMessage } from "../../lib/log-message"
 import { appState } from "../../models/app-state"
@@ -16,6 +17,8 @@ import { getFormulaManager, getSharedModelManager } from "../../models/tiles/til
 import { ITileModel } from "../../models/tiles/tile-model"
 import { createTileNotification } from "../../models/tiles/tile-notifications"
 import { uniqueName } from "../../utilities/js-utils"
+import { getSpecialLangFontClassName } from "../../utilities/translation/languages"
+import { gLocale } from "../../utilities/translation/locale"
 import { t } from "../../utilities/translation/translate"
 import {
   createOrShowTableOrCardForDataset, createTableOrCardForDataset
@@ -78,6 +81,17 @@ const CaseTableToolShelfMenuList = observer(
   return (
     <>
       <MenuList className="tool-shelf-menu-list table" data-testid="tool-shelf-table-menu-list">
+        <MenuItem data-testid="tool-shelf-table-new" className="tool-shelf-menu-item"
+            onClick={handleCreateNewCaseTable}>
+          <TableIcon className="menu-icon case-table-icon"/>
+          {t("DG.AppController.caseTableMenu.newDataSet")}
+        </MenuItem>
+        <MenuItem data-testid="tool-shelf-table-new-clipboard" isDisabled={true} className="tool-shelf-menu-item">
+          <span>
+            <TableIcon className="menu-icon case-table-icon"/>
+            {`${t("DG.AppController.caseTableMenu.clipboardDataset")} 🚧`}
+          </span>
+        </MenuItem>
         {datasets.map((dataset) => {
           // case table title reflects DataSet title
           const tileTitle = dataset.dataSet.displayTitle
@@ -87,20 +101,11 @@ const CaseTableToolShelfMenuList = observer(
               onClick={()=>createOrShowTableOrCardForDataset(dataset)} data-testid={`tool-shelf-table-${tileTitle}`}>
               <TableIcon className="menu-icon case-table-icon"/>
               {tileTitle}
-              <TrashIcon className="tool-shelf-menu-trash-icon"
+              <TrashIcon className="menu-icon tool-shelf-menu-trash-icon"
                   onClick={() => handleOpenRemoveDataSetModal(dataset.dataSet.id)} />
             </MenuItem>
           )
         })}
-        <MenuItem data-testid="tool-shelf-table-new-clipboard" isDisabled={true} className="tool-shelf-menu-item">
-          <TableIcon className="menu-icon case-table-icon"/>
-          {`${t("DG.AppController.caseTableMenu.clipboardDataset")} 🚧`}
-        </MenuItem>
-        <MenuItem data-testid="tool-shelf-table-new" className="tool-shelf-menu-item"
-            onClick={handleCreateNewCaseTable}>
-          <TableIcon className="menu-icon case-table-icon"/>
-          {t("DG.AppController.caseTableMenu.newDataSet")}
-        </MenuItem>
       </MenuList>
       {modalOpen &&
         <DeleteDataSetModal dataSetId={dataSetIdToDeleteId} isOpen={isOpen} onClose={onClose}
@@ -114,9 +119,11 @@ export const CaseTableToolShelfButton = () => {
   const [isOpen, setIsOpen] = useState(false)
   const onClose = () => setIsOpen(false)
   const onOpen = () => setIsOpen(true)
+  const langClass = getSpecialLangFontClassName(gLocale.current)
+
   return (
     <Menu isLazy autoSelect={false} isOpen={isOpen} onOpen={onOpen} onClose={onClose}>
-      <MenuButton className="tool-shelf-button tool-shelf-menu table"
+      <MenuButton className={clsx("tool-shelf-button", "tool-shelf-menu", "table", langClass, {"menu-open": isOpen})}
           title={`${t("DG.ToolButtonData.tableButton.toolTip")}`}
           data-testid={"tool-shelf-button-table"}>
         <TableIcon className="menu-icon case-table-icon" />
