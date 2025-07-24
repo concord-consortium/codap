@@ -71,7 +71,7 @@
     "DG.AppController.createDataSet.initialAttribute": "Özellik",
     "DG.AppController.createDataSet.name": "Yeni Veri Seti",
     "DG.AppController.createDataSet.collectionName": "Durumlar",
-    "DG.AppController.caseTableMenu.newDataSet": "-- yeni --",
+    "DG.AppController.caseTableMenu.newDataSet": "Yeni",
     "DG.SingleTextDialog.okButton.title": "TAMAM",
     "DG.SingleTextDialog.cancelButton.title": "İptal et",
     "DG.SingleTextDialog.cancelButton.toolTip": "Herhangi bir değişiklik yapmadan iletişim kutusunu kapat",
