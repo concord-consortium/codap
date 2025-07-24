@@ -1,6 +1,6 @@
 import React from "react"
 import { clsx } from "clsx"
-import { Menu, MenuButton, MenuItem, MenuList } from "@chakra-ui/react"
+import { Menu, MenuButton, MenuItem, MenuList, useDisclosure } from "@chakra-ui/react"
 import { useDocumentContent } from "../../hooks/use-document-content"
 import { gLocale } from "../../utilities/translation/locale"
 import { getSpecialLangFontClassName } from "../../utilities/translation/languages"
@@ -28,6 +28,7 @@ const translatedHelpURLs: Record<string, string> = {
 export const HelpShelfButton = () => {
   const documentContent = useDocumentContent()
   const langClass = getSpecialLangFontClassName(gLocale.current)
+  const { isOpen, onOpen, onClose } = useDisclosure();
 
   const handleShowHelp = () => {
     const url = translatedHelpURLs[gLocale.current]
@@ -41,9 +42,9 @@ export const HelpShelfButton = () => {
 
   return (
     <>
-      <Menu isLazy autoSelect={false}>
+      <Menu isLazy autoSelect={false} isOpen={isOpen} onOpen={onOpen} onClose={onClose}>
         <MenuButton
-          className={clsx("tool-shelf-button", "tool-shelf-menu", "help", langClass)}
+          className={clsx("tool-shelf-button", "tool-shelf-menu", "help", langClass, {"menu-open": isOpen})}
           title={t("DG.ToolButtonData.help.toolTip")}
           data-testid="tool-shelf-button-help"
         >

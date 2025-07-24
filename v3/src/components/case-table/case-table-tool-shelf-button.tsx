@@ -87,8 +87,10 @@ const CaseTableToolShelfMenuList = observer(
           {t("DG.AppController.caseTableMenu.newDataSet")}
         </MenuItem>
         <MenuItem data-testid="tool-shelf-table-new-clipboard" isDisabled={true} className="tool-shelf-menu-item">
-          <TableIcon className="menu-icon case-table-icon"/>
-          {`${t("DG.AppController.caseTableMenu.clipboardDataset")} 🚧`}
+          <span>
+            <TableIcon className="menu-icon case-table-icon"/>
+            {`${t("DG.AppController.caseTableMenu.clipboardDataset")} 🚧`}
+          </span>
         </MenuItem>
         {datasets.map((dataset) => {
           // case table title reflects DataSet title
@@ -121,7 +123,7 @@ export const CaseTableToolShelfButton = () => {
 
   return (
     <Menu isLazy autoSelect={false} isOpen={isOpen} onOpen={onOpen} onClose={onClose}>
-      <MenuButton className={clsx("tool-shelf-button", "tool-shelf-menu", "table", langClass)}
+      <MenuButton className={clsx("tool-shelf-button", "tool-shelf-menu", "table", langClass, {"menu-open": isOpen})}
           title={`${t("DG.ToolButtonData.tableButton.toolTip")}`}
           data-testid={"tool-shelf-button-table"}>
         <TableIcon className="menu-icon case-table-icon" />

@@ -124,7 +124,7 @@ export function PluginsButton() {
   return (
     <Menu isLazy autoSelect={false} isOpen={isOpen} onOpen={onOpen} onClose={onClose} >
       <MenuButton
-        className={clsx("tool-shelf-button", "tool-shelf-menu", "plugins", langClass)}
+        className={clsx("tool-shelf-button", "tool-shelf-menu", "plugins", langClass, {"menu-open": isOpen})}
         title={t("DG.ToolButtonData.optionMenu.toolTip")}
         data-testid="tool-shelf-button-plugins"
         onClick={() => setIsOpen((prev) => !prev)}

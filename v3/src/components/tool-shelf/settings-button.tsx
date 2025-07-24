@@ -18,6 +18,7 @@ export const SettingsShelfButton = () => {
   const documentContent = useDocumentContent()
   const { isOpen, onClose, onOpen } = useDisclosure()
   const langClass = getSpecialLangFontClassName(gLocale.current)
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
   //TODO: May have to move state somewhere
   const [ positionToolShelf, setPositionToolShelf ] = useState<"Top" | "Left">("Top")
 
@@ -28,16 +29,22 @@ export const SettingsShelfButton = () => {
   const toggleToolShelfPosition = () => {
     const newPosition = positionToolShelf === "Top" ? "Left" : "Top"
     setPositionToolShelf(newPosition)
+    setIsMenuOpen(false)
     //TODO: actually change the position of the tool shelf
+  }
+
+  const handleShowWebViewModal = () => {
+    onOpen();
+    setIsMenuOpen(false)
   }
 
   return (
     <>
-      <Menu isLazy autoSelect={false}>
+      <Menu isLazy autoSelect={false} onClose={()=>setIsMenuOpen(false)}>
         <MenuButton
-          className={clsx("tool-shelf-button", "tool-shelf-menu", "web-view", langClass)}
+          className={clsx("tool-shelf-button", "tool-shelf-menu", "web-view", langClass, {"menu-open": isMenuOpen})}
           title={t("DG.ToolButtonData.optionMenu.toolTip")}
-          data-testid="tool-shelf-button-options"
+          data-testid="tool-shelf-button-options" onClick={()=>setIsMenuOpen(!isMenuOpen)}
         >
           <OptionsIcon />
           <ToolShelfButtonTag
@@ -46,7 +53,7 @@ export const SettingsShelfButton = () => {
           />
         </MenuButton>
         <MenuList className="tool-shelf-menu-list settings" data-testid="tool-shelf-settings-menu-list">
-          <MenuItem data-testid="tool-shelf-button-web-view" onClick={onOpen}
+          <MenuItem data-testid="tool-shelf-button-web-view" onClick={handleShowWebViewModal}
               className="tool-shelf-menu-item settings">
             <WebViewIcon className="menu-icon web-view-icon" />
             {t("DG.AppController.optionMenuItems.viewWebPage")}

@@ -1,7 +1,7 @@
 import React from "react"
 import { observer } from "mobx-react-lite"
 import { clsx } from "clsx"
-import { Menu, MenuButton, MenuItem, MenuList } from "@chakra-ui/react"
+import { Menu, MenuButton, MenuItem, MenuList, useDisclosure } from "@chakra-ui/react"
 import { useDocumentContent } from "../../hooks/use-document-content"
 import { uiState } from "../../models/ui-state"
 import { isFreeTileLayout } from "../../models/document/free-tile-row"
@@ -20,6 +20,7 @@ export const TilesListShelfButton = observer(function TilesListShelfButton() {
   const documentContent = useDocumentContent()
   const tilesArr = documentContent?.tileMap ? Array.from(documentContent.tileMap.values()) : []
   const langClass = getSpecialLangFontClassName(gLocale.current)
+  const {isOpen, onOpen, onClose} = useDisclosure()
 
   const handleSelectTile = (tileId: string) => {
     uiState.setFocusedTile(tileId)
@@ -38,9 +39,9 @@ export const TilesListShelfButton = observer(function TilesListShelfButton() {
 
   return (
     <>
-      <Menu isLazy autoSelect={false}>
+      <Menu isLazy autoSelect={false} isOpen={isOpen} onOpen={onOpen} onClose={onClose}>
         <MenuButton
-          className={clsx("tool-shelf-button", "tool-shelf-menu", "tiles-list-menu", langClass)}
+          className={clsx("tool-shelf-button", "tool-shelf-menu", "tiles-list-menu", langClass, {"menu-open": isOpen})}
           title={t("DG.ToolButtonData.tileListMenu.toolTip")}
           data-testid="tool-shelf-button-tiles"
         >
