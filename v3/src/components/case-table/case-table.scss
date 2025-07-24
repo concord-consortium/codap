@@ -278,7 +278,7 @@ $collection-title-font-color: black;
     .rdg-row {
       input.rdg-text-editor {
         font-size: $table-body-font-size;
-        font-weight: 500;
+        font-weight: 600;
         height: 100%;
         line-height: 1.5;
         display: flex;
@@ -341,6 +341,7 @@ $collection-title-font-color: black;
       border-block-end: 1px solid var(--rdg-border-color);
       display: flex;
       align-items: center;
+      font-weight: 600;
 
       &.codap-index-cell {
         padding-inline: 0;
@@ -397,7 +398,7 @@ $collection-title-font-color: black;
           -webkit-box-orient: vertical;
           font-family: "Noto Sans", sans-serif;
           font-size: $table-body-font-size;
-          font-weight: 500;
+          font-weight: 600;
         }
       }
       &.codap-data-cell.rowId-__input__ {
@@ -415,12 +416,12 @@ $collection-title-font-color: black;
       .cell-span {
         width: 100%;
         height: 100%;
+        font-weight: 600;
 
         &.numeric-format {
           width: 100%;
           font-family: 'Noto Sans Mono', monospace;
           font-size: $table-body-font-size;
-          font-weight: 500;
           margin-top: 2px;
           text-align: right;
           color: black;
@@ -444,7 +445,7 @@ $collection-title-font-color: black;
       .cell-text-editor {
         font-family: 'Noto Sans', sans-serif;
         font-size: $table-body-font-size;
-        font-weight: 500;
+        font-weight: 600;
         height: 100%;
         &.numeric-format {
           font-family: 'Noto Sans Mono', monospace;
@@ -537,5 +538,5 @@ $collection-title-font-color: black;
 .codap-index-content {
   font-family: 'Noto Sans Mono', monospace;
   font-size: $table-body-font-size;
-  font-weight: 500;
+  font-weight: 600;
 }
