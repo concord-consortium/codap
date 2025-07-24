@@ -103,7 +103,11 @@ const AttributeMenuListComponent = forwardRef<HTMLDivElement, IProps>(
       isEnabled: () => !metadata?.isEditProtected(attributeId) && !!attribute?.hasFormula,
       handleClick: () => {
         data?.applyModelChange(() => {
-          attribute?.clearFormula()
+          if (!metadata) {
+            console.warn(`Metadata not found for data set: ${data?.id}`)
+            return
+          }
+          metadata.deleteAttributeFormula(attributeId)
         }, {
           // TODO Should also broadcast notify component edit formula notification
           undoStringKey: "DG.Undo.caseTable.editAttributeFormula",
@@ -114,11 +118,16 @@ const AttributeMenuListComponent = forwardRef<HTMLDivElement, IProps>(
     },
     {
       itemKey: "DG.TableController.headerMenuItems.recoverFormula",
-      isEnabled: () =>
-        !metadata?.isEditProtected(attributeId) && !attribute?.hasFormula && !!attribute?.hasRecoverableFormula,
+      isEnabled: () => !metadata?.isEditProtected(attributeId) &&
+          !attribute?.hasFormula &&
+          !!metadata?.getAttributeDeletedFormula(attributeId),
       handleClick: () => {
         data?.applyModelChange(() => {
-          attribute?.recoverFormula()
+          if (!metadata) {
+            console.warn(`Metadata not found for data set: ${data?.id}`)
+            return
+          }
+          metadata.recoverAttributeFormula(attributeId)
         }, {
           undoStringKey: "DG.Undo.caseTable.editAttributeFormula",
           redoStringKey: "DG.Undo.caseTable.editAttributeFormula",
