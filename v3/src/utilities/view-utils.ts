@@ -22,8 +22,8 @@ export const getPositionOfNewComponent = (componentSize: { width?: number, heigh
 
   const iOffset = { x: 0, y: 0 }
   const initialX = kGap + viewportLeft + iOffset.x
-    const tStartAtBottom = (iPosition === 'bottom')
-  const initialY = (tStartAtBottom ? viewportBottom - componentHeight - kGap : kGap) + iOffset.y
+  const tStartAtBottom = (iPosition === 'bottom')
+  const initialY = (tStartAtBottom ? viewportBottom - componentHeight - kGap : viewportTop + kGap) + iOffset.y
 
   const findEmptyLocationForRect = () => {
     let componentPosition = { x: initialX, y: initialY }
