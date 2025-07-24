@@ -78,7 +78,7 @@
     "DG.AppController.createDataSet.initialAttribute": "Atributo",
     "DG.AppController.createDataSet.name": "Nuevo Conjunto de Datos",
     "DG.AppController.createDataSet.collectionName": "Casos",
-    "DG.AppController.caseTableMenu.newDataSet": "-- nuevo --",
+    "DG.AppController.caseTableMenu.newDataSet": "Νuevo",
     "DG.SingleTextDialog.okButton.title": "OK",
     "DG.SingleTextDialog.cancelButton.title": "Cancelar",
     "DG.SingleTextDialog.cancelButton.toolTip": "Descartar el cuadro de diálogo sin realizar ningún cambio",

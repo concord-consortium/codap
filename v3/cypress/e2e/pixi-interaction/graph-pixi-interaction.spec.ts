@@ -208,7 +208,7 @@ context("Graph UI with Pixi interaction", () => {
       cy.get("[data-testid=parent-toggles-case-buttons-list]")
         .find("button").contains("Red Fox").should("exist").and("be.visible")
       cy.get("[data-testid=parent-toggles-case-buttons-list]")
-        .find("button").contains("Owl Monkey").should("exist").and("not.be.visible")
+        .find("button").contains("Lion").should("exist").and("not.be.visible")
       cy.get("[data-testid=parent-toggles-case-buttons-left]").should("exist")
       cy.get("[data-testid=parent-toggles-case-buttons-right]").should("not.exist")
       cy.get("[data-testid=parent-toggles-case-buttons-left]").click()
@@ -217,7 +217,7 @@ context("Graph UI with Pixi interaction", () => {
       cy.get("[data-testid=parent-toggles-case-buttons-list]").find("button")
         .contains("Red Fox").should("exist").and("not.be.visible")
       cy.get("[data-testid=parent-toggles-case-buttons-list]")
-        .find("button").contains("Owl Monkey").should("exist").and("be.visible")
+        .find("button").contains("Lion").should("exist").and("be.visible")
       cy.get("[data-testid=parent-toggles-case-buttons-right]").click()
       cy.wait(250)
       cy.get("[data-testid=parent-toggles-case-buttons-list]")
@@ -324,15 +324,15 @@ context("Graph UI with Pixi interaction", () => {
         // Known inputs:
         const pointIndex = 3
         const expectedX = 167
-        const expectedY = 67
+        const expectedY = 64
 
         gch.checkPointPosition(tileId, pointIndex, expectedX, expectedY)
       })
       gch.getGraphTileId().then((tileId: string) => {
         // Known inputs:
         const pointIndex = 8
-        const expectedX = 327
-        const expectedY = 140
+        const expectedX = 328
+        const expectedY = 135
 
         gch.checkPointPosition(tileId, pointIndex, expectedX, expectedY)
       })
@@ -340,7 +340,7 @@ context("Graph UI with Pixi interaction", () => {
         // Known inputs:
         const pointIndex = 20
         const expectedX = 67
-        const expectedY = 151
+        const expectedY = 146
 
         gch.checkPointPosition(tileId, pointIndex, expectedX, expectedY)
       })

@@ -275,7 +275,7 @@ context("Graph UI", () => {
       cy.get("[data-testid=parent-toggles-case-buttons-list]")
         .find("button").contains("Red Fox").should("exist").and("be.visible")
       cy.get("[data-testid=parent-toggles-case-buttons-list]")
-        .find("button").contains("Owl Monkey").should("exist").and("not.be.visible")
+        .find("button").contains("Lion").should("exist").and("not.be.visible")
       cy.get("[data-testid=parent-toggles-case-buttons-left]").should("exist")
       cy.get("[data-testid=parent-toggles-case-buttons-right]").should("not.exist")
       cy.get("[data-testid=parent-toggles-case-buttons-left]").click()

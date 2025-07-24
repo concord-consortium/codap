@@ -1,12 +1,41 @@
+$tool-shelf-menu-list-width: 180px;
 .plugin-selection {
   display: flex;
   flex-direction: row;
 
-  .plugin-selection-icon {
-    width: 16px;
+  .plugin-icon {
+    width: 18px;
+    height: 18px;
+    margin-left: 8px;
   }
 
   .plugin-selection-title {
-    margin-left: 13px;
+    margin-left: 6px;
+    font-family: "Roboto", sans-serif;
+    font-size: 14px;
+    color: #222;
   }
+}
+
+.tool-shelf-menu-list.plugins {
+  display: inline-block;
+
+  .plugin-selection {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    height: 30px;
+  }
+}
+
+.plugin-category-item {
+  display: flex;
+}
+
+.plugin-submenu {
+  width: 180px;
+  position: relative;
+  left: -10px;
+  top: 5px;
+  transform: translate3d(-10px, -5px, 0px) !important;
 }

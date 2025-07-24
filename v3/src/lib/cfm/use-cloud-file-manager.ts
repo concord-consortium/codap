@@ -12,6 +12,23 @@ import { clientConnect, createCloudFileManager, renderRoot } from "./cfm-utils"
 import { CONFIG_SAVE_AS_V2 } from "../config"
 import { DEBUG_CFM_LOCAL_STORAGE, DEBUG_CFM_NO_AUTO_SAVE, DEBUG_SAVE_AS_V2 } from "../debug"
 import { handleCFMEvent } from "./handle-cfm-event"
+import CODAPIcon from "../../assets/cfm/codap-logo.nosvgr.svg"
+import LanguageMenuIcon from "../../assets/cfm/language-menu-icon.nosvgr.svg"
+import FileMenuIcon from "../../assets/cfm/file-menu-icon.nosvgr.svg"
+import FileCloseIcon from "../../assets/cfm/file-close-icon.nosvgr.svg"
+import FileGetLinkToSharedViewIcon from "../../assets/cfm/file-get-link-to-shared-view-icon.nosvgr.svg"
+import FileImportIcon from "../../assets/cfm/file-import-icon.nosvgr.svg"
+import FileMakeACopyIcon from "../../assets/cfm/file-make-a-copy-icon.nosvgr.svg"
+import FileNewIcon from "../../assets/cfm/file-new-icon.nosvgr.svg"
+import FileOpenIcon from "../../assets/cfm/file-open-icon.nosvgr.svg"
+import FileRecentlyOpenedStateIcon from "../../assets/cfm/file-recently-opened-state-icon.nosvgr.svg"
+import FileRenameIcon from "../../assets/cfm/file-rename-icon.nosvgr.svg"
+import FileRevertIcon from "../../assets/cfm/file-revert-icon.nosvgr.svg"
+import FileSaveIcon from "../../assets/cfm/file-save-icon.nosvgr.svg"
+import FileShareIcon from "../../assets/cfm/file-share-icon.nosvgr.svg"
+import FileSharedViewIcon from "../../assets/cfm/file-shared-view-icon.nosvgr.svg"
+import FileUpdateSharedViewIcon from "../../assets/cfm/file-update-shared-view-icon.nosvgr.svg"
+import SubMenuExpandIcon from "../../assets/cfm/dropdown-arrow-old.nosvgr.svg"
 
 const locales = [
   {
@@ -108,8 +125,8 @@ const locales = [
 
 function getMenuConfig(cfm: CloudFileManager) {
   return [
-    { name: t('DG.fileMenu.menuItem.newDocument'), action: 'newFileDialog' },
-    { name: t('DG.fileMenu.menuItem.openDocument'), action: 'openFileDialog' },
+    { name: t('DG.fileMenu.menuItem.newDocument'), action: 'newFileDialog', icon: FileNewIcon },
+    { name: t('DG.fileMenu.menuItem.openDocument'), action: 'openFileDialog', icon: FileOpenIcon },
     {
       name: t('DG.fileMenu.menuItem.closeDocument'),
       action() {
@@ -117,27 +134,29 @@ function getMenuConfig(cfm: CloudFileManager) {
           removeDevUrlParams()
           appState.setDocument({type: "CODAP"})
         })
-      }
+      },
+      icon: FileCloseIcon
     },
-    { name: t('DG.fileMenu.menuItem.importFile'), action: 'importDataDialog' },
+    { name: t('DG.fileMenu.menuItem.importFile'), action: 'importDataDialog', icon: FileImportIcon },
     {
-      name: t('DG.fileMenu.menuItem.revertTo'),
+      name: t('DG.fileMenu.menuItem.revertTo'), icon: FileRevertIcon,
       items: [
-        { name: t('DG.fileMenu.menuItem.revertToOpened'), action: 'revertToLastOpenedDialog'},
-        { name: t('DG.fileMenu.menuItem.revertToShared'), action: 'revertToSharedDialog'}
+        { name: t('DG.fileMenu.menuItem.revertToOpened'), action: 'revertToLastOpenedDialog',
+          icon: FileRecentlyOpenedStateIcon },
+        { name: t('DG.fileMenu.menuItem.revertToShared'), action: 'revertToSharedDialog', icon: FileSharedViewIcon }
       ]
     },
     'separator',
-    { name: t('DG.fileMenu.menuItem.saveDocument'), action: 'saveFileAsDialog' },
-    { name: t('DG.fileMenu.menuItem.copyDocument'), action: 'createCopy' },
+    { name: t('DG.fileMenu.menuItem.saveDocument'), action: 'saveFileAsDialog', icon: FileSaveIcon },
+    { name: t('DG.fileMenu.menuItem.copyDocument'), action: 'createCopy', icon: FileMakeACopyIcon },
     {
-      name: t('DG.fileMenu.menuItem.share'),
+      name: t('DG.fileMenu.menuItem.share'), icon: FileShareIcon,
       items: [
-        { name: t('DG.fileMenu.menuItem.shareGetLink'), action: 'shareGetLink' },
-        { name: t('DG.fileMenu.menuItem.shareUpdate'), action: 'shareUpdate' }
+        { name: t('DG.fileMenu.menuItem.shareGetLink'), action: 'shareGetLink', icon: FileGetLinkToSharedViewIcon },
+        { name: t('DG.fileMenu.menuItem.shareUpdate'), action: 'shareUpdate', icon: FileUpdateSharedViewIcon },
       ]
     },
-    { name: t('DG.fileMenu.menuItem.renameDocument'), action: 'renameDialog' }
+    { name: t('DG.fileMenu.menuItem.renameDocument'), action: 'renameDialog', icon: FileRenameIcon }
   ]
 }
 
@@ -173,9 +192,13 @@ export function useCloudFileManager(optionsArg: CFMAppOptions, onFileOpened?: ()
               cfm.client.replaceMenu({ menu: getMenuConfig(cfm) })
             }
           },
+          // languageAnchorIcon: LanguageMenuIcon,
         },
 
-        menu: getMenuConfig(cfm)
+        // menuAnchorIcon: FileMenuIcon,
+        // menuAnchorName: t("DG.fileMenu.fileMenuName"),
+        menu: getMenuConfig(cfm),
+        // subMenuExpandIcon: SubMenuExpandIcon,
       },
       renderRoot(content: React.ReactNode, container: HTMLElement) {
         if (container && !root.current) {
@@ -231,6 +254,7 @@ export function useCloudFileManager(optionsArg: CFMAppOptions, onFileOpened?: ()
         "localFile",
         ...(DEBUG_CFM_LOCAL_STORAGE ? ["localStorage"] : [])
       ],
+      // appIcon: CODAPIcon,
       ...options.current
     }
 

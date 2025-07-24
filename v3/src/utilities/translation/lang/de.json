@@ -71,7 +71,7 @@
     "DG.AppController.createDataSet.initialAttribute": "Merkmal",
     "DG.AppController.createDataSet.name": "Neuer Datensatz",
     "DG.AppController.createDataSet.collectionName": "Fälle",
-    "DG.AppController.caseTableMenu.newDataSet": "-- neu --",
+    "DG.AppController.caseTableMenu.newDataSet": "Neu",
     "DG.SingleTextDialog.okButton.title": "OK",
     "DG.SingleTextDialog.cancelButton.title": "Abbrechen",
     "DG.SingleTextDialog.cancelButton.toolTip": "Ohne Änderungen verlassen",

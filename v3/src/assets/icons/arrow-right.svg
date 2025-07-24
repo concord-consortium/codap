@@ -1,1 +1,3 @@
-<svg class="svg-icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"><path d="M256 102.4v819.2l512-409.6L256 102.4z"  /></svg>
+<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path d="m12 14.5-4.167-4.167h8.334z" transform="rotate(270 12 12)"/>
+</svg>

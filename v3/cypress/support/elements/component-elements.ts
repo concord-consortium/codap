@@ -83,7 +83,7 @@ export const ComponentElements = {
     cy.wait(100)
   },
   selectTile(component: string, index = 0) {
-    cy.get(".codap-container").click("bottom")
+    cy.get(".codap-container").click("bottom", { force: true })
     this.getComponentTile(component, index).click()
   },
   checkComponentDoesNotExist(component: string) {

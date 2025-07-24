@@ -39,7 +39,7 @@ export const WebViewInspector = observer(function WebViewInspector({tile, show}:
           testId={"web-view-edit-url-button"}
           tooltip={t("DG.Inspector.webViewEditURL.toolTip")}
         >
-          <MediaToolIcon className="white-icon" />
+          <MediaToolIcon />
         </InspectorButton>
       </InspectorPanel>
       { isOpen &&

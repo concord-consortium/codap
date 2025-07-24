@@ -71,7 +71,7 @@
     "DG.AppController.createDataSet.initialAttribute": "變項",
     "DG.AppController.createDataSet.name": "新資料組",
     "DG.AppController.createDataSet.collectionName": "數據",
-    "DG.AppController.caseTableMenu.newDataSet": "-- 新 --",
+    "DG.AppController.caseTableMenu.newDataSet": "新",
     "DG.SingleTextDialog.okButton.title": "確認",
     "DG.SingleTextDialog.cancelButton.title": "取消",
     "DG.SingleTextDialog.cancelButton.toolTip": "關閉對話框而不進行任何更改",

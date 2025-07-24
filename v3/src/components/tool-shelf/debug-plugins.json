@@ -1,13 +1,17 @@
 [
-  {
-    "title": "Plugin API Tester",
-    "description": "Exercise the CODAP Plugin API and see the results.",
-    "width": 420,
-    "height": 540,
-    "path": "https://concord-consortium.github.io/codap-data-interactives/DataInteractiveAPITester/index.html",
-    "icon": "/TP-Sampler/icon-sampler.svg",
-    "visible": "true",
-    "isStandard": "true",
-    "categories": []
+  { "title": "Debug Tools",
+    "subMenu": [
+      {
+        "title": "Plugin API Tester",
+        "description": "Exercise the CODAP Plugin API and see the results.",
+        "width": 420,
+        "height": 540,
+        "path": "https://concord-consortium.github.io/codap-data-interactives/DataInteractiveAPITester/index.html",
+        "icon": "/TP-Sampler/icon-sampler.svg",
+        "visible": "true",
+        "isStandard": "true",
+        "categories": []
+      }
+    ]
   }
 ]

@@ -727,7 +727,7 @@ context("Test changing legend colors", () => {
             expect(rgb.g).to.be.within(saturationLandGreen - colorTolerance, saturationLandGreen + colorTolerance)
           }
         })
-      color_picker.getSetColorButton().click()
+      color_picker.getSetColorButton().click({waitForAnimations: false})
       cy.get('[data-testid="legend-key"]').eq(0) //fragile but couldn't get it to work with the contains "land"
         .find('rect')
         .invoke('css', 'fill')

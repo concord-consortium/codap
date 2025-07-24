@@ -5,6 +5,12 @@ export const ToolbarElements = {
   getToolShelfIcon(component: string) {
     return this.getToolShelfSelector(component)
   },
+  getPluginCategory() {
+    return cy.get(`.plugin-category-item`)
+  },
+  getPluginSubMenu() {
+    return cy.get(`.plugin-sub-menu`)
+  },
   getPluginSelection() {
     return cy.get(`.plugin-selection`)
   },
