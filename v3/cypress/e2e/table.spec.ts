@@ -575,6 +575,7 @@ context("case table ui", () => {
         // restored formula is re-evaluated resulting in a different value
         expect(random3).not.to.eq(random2)
       })
+      table.closeAttributeMenu()
 
       cy.log("Delete formula, then use recover formula")
       table.openAttributeMenu("Height")
