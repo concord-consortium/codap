@@ -57,5 +57,5 @@ languageFiles.forEach((langFile) => {
 
 export const getSpecialLangFontClassName = (lang: string) => {
   const specialLangFonts = ["fa", "th", "ja", "ko", "zhHans", "zhTW", "he"]
-  return specialLangFonts.includes(lang) ? `lang-${lang}` : "";
+  return specialLangFonts.includes(lang) ? `lang-${lang}` : ""
 }
