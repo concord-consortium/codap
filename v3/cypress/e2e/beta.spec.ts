@@ -1,4 +1,4 @@
-
+// TODO: Remove this test when the beta is complete
 context("Test beta features", () => {
   const queryParams = "?sample=mammals&dashboard&mouseSensor"
   beforeEach(() => {
@@ -6,6 +6,7 @@ context("Test beta features", () => {
     cy.visit(url)
     cy.wait(1000)
   })
+
   it("will display the beta button in beta mode", () => {
     cy.log("The beta button should exist in beta mode")
     cy.get(".beta-button").should("exist")
