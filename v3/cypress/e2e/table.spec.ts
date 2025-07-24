@@ -1132,7 +1132,7 @@ context("case table ui", () => {
       // The badge will not be there before the selection, so we need to wait
       // to give some time for buggy code to add the badge.
       cy.wait(100)
-      cy.get(".menu-bar-file-status.alert").should("not.exist")
+      cy.get(".menu-bar-file-status").should("not.exist")
 
       cy.log("edit cell text and check dirty state")
       // double-click to initiate editing cell
@@ -1141,7 +1141,7 @@ context("case table ui", () => {
       table.getGridCell(2, 2).find("[data-testid='cell-text-editor']").should("have.value", "African Elephant")
       // update the text
       table.getGridCell(2, 2).find("[data-testid='cell-text-editor']").type("African Turtle{enter}")
-      cy.get(".menu-bar-file-status.alert").should("contain", "Unsaved")
+      cy.get(".menu-bar-file-status").should("contain", "Unsaved")
 
       cy.log("add color swatch to cell")
       // select the cell again
