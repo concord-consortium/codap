@@ -4,7 +4,7 @@ import { getParent, getSnapshot, getType,
 import { applyModelChange } from "../history/apply-model-change"
 import { StringBuilder } from "../../utilities/string-builder"
 import { v3Id, typeV3Id } from "../../utilities/codap-utils"
-import { V2Model } from "../data/v2-model"
+import { V2UserTitleModel } from "../data/v2-user-title-model"
 import { DisplayUserTypeEnum } from "../stores/user-types"
 import { ITileContentModel } from "./tile-content"
 import { getTileContentInfo, ITileExportOptions } from "./tile-content-info"
@@ -48,15 +48,7 @@ export function getTileModel(tileContentModel: ITileContentModel) {
   }
 }
 
-export function getTileTitleFromContent(tileContentModel: ITileContentModel) {
-  return getTileModel(tileContentModel)?.title
-}
-
-export function setTileTitleFromContent(tileContentModel: ITileContentModel, title: string) {
-  getTileModel(tileContentModel)?.setTitle(title)
-}
-
-export const TileModel = V2Model.named("TileModel")
+export const TileModel = V2UserTitleModel.named("TileModel")
   .props({
     // if not provided, will be generated
     id: typeV3Id("TILE"),

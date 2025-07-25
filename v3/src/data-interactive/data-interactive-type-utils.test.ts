@@ -29,7 +29,7 @@ describe("DataInteractiveTypeUtils", () => {
     const c3Id = toV2Id(data.collections[1].cases[2].__id__)
     const c4Id = toV2Id(data.collections[1].cases[3].__id__)
 
-    const dataExport = convertDataSetToV2(data, true)
+    const dataExport = convertDataSetToV2(data, { exportCases: true })
     expect(dataExport).toEqual({
       document: 1,
       guid: 2,

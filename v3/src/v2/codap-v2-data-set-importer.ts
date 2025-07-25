@@ -87,13 +87,17 @@ export class CodapV2DataSetImporter {
   importCollections(data: IDataSet, metadata: IDataSetMetadata, collections: ICodapV2Collection[]) {
     let prevCollection: ICollectionModel | undefined
     collections.forEach((collection, index) => {
-      const { attrs = [], cases = [], guid, name = "", title, caseName, labels: v2Labels } = collection
+      const { attrs = [], cases = [], guid, name = "", title, caseName, defaults, labels: v2Labels } = collection
+      const v3CollectionId = toV3CollectionId(guid)
       const _title = v2NameTitleToV3Title(name, title)
       const v3Labels: ICollectionLabelsSnapshot = { ...v2Labels }
       if (caseName && !v3Labels.singleCase) v3Labels.singleCase = caseName
 
+      if (defaults) {
+        metadata.setCollectionDefaults(v3CollectionId, defaults)
+      }
       if (isNonEmptyCollectionLabels(v3Labels)) {
-        metadata.setCollectionLabels(toV3CollectionId(guid), v3Labels)
+        metadata.setCollectionLabels(v3CollectionId, v3Labels)
       }
 
       // assumes hierarchical collections are in order parent => child

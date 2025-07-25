@@ -20,7 +20,7 @@ import {IMapPolygonLayerModelSnapshot} from "./models/map-polygon-layer-model"
 export function v2MapImporter({v2Component, v2Document, getCaseData, insertTile}: V2TileImportArgs) {
   if (!isV2MapComponent(v2Component)) return
 
-  const { guid, componentStorage: { name, title = "", mapModelStorage, cannotClose } } = v2Component
+  const { guid, componentStorage: { name, title, userSetTitle, mapModelStorage, cannotClose } } = v2Component
   const { center, zoom, baseMapLayerName: v2BaseMapLayerName } = mapModelStorage
   const baseMapKeyMap: Record<string, BaseMapKey> = { Topographic: 'topo', Streets: 'streets', Oceans: 'oceans' }
   const baseMapLayerName = baseMapKeyMap[v2BaseMapLayerName]
@@ -134,6 +134,6 @@ export function v2MapImporter({v2Component, v2Document, getCaseData, insertTile}
   }
 
   const mapTileSnap: ITileModelSnapshotIn =
-          { id: toV3Id(kMapIdPrefix, guid), name, _title: title, content, cannotClose }
+          { id: toV3Id(kMapIdPrefix, guid), name, _title: title, userSetTitle, content, cannotClose }
   return insertTile(mapTileSnap)
 }

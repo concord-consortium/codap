@@ -30,7 +30,7 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(props: ITil
   const handleChangeTitle = (nextValue?: string) => {
     if (tile != null && nextValue !== undefined) {
       tile.applyModelChange(() => {
-        tile.setTitle(nextValue)
+        tile.setUserTitle(nextValue)
       }, {
         notify: updateTileNotification("titleChange", { from: title, to: nextValue }, tile),
         log: logMessageWithReplacement("Title changed to: %@", {nextValue}, "component"),

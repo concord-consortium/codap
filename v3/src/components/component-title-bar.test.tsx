@@ -52,7 +52,7 @@ describe("ComponentTitleBar", () => {
     expect(titleRenderCounter).toHaveBeenCalledTimes(1)
     expect(childRenderCounter).toHaveBeenCalledTimes(1)
     // change the title
-    act(() => tile.setTitle("newTitle"))
+    act(() => tile.setUserTitle("newTitle"))
     // ComponentTitleBar is re-rendered, but not parent or children
     expect(screen.getByText("newTitle")).toBeInTheDocument()
     expect(screen.getByText("Parent calls: 1")).toBeInTheDocument()
