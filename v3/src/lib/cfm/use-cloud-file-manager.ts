@@ -189,7 +189,12 @@ export function useCloudFileManager(optionsArg: CFMAppOptions, onFileOpened?: ()
                             }),
             onLangChanged: (langCode: string) => {
               gLocale.setCurrent(langCode)
-              cfm.client.replaceMenu({ menu: getMenuConfig(cfm) })
+              cfm.client.replaceMenu({
+                menuAnchorIcon: FileMenuIcon,
+                menuAnchorName: t("DG.fileMenu.fileMenuName"),
+                menu: getMenuConfig(cfm),
+                subMenuExpandIcon: SubMenuExpandIcon,
+              })
             }
           },
           languageAnchorIcon: LanguageMenuIcon,
