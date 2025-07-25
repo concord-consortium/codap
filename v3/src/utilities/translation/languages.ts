@@ -8,7 +8,7 @@ import ja from "./lang/ja.json"
 import ko from "./lang/ko.json"
 import nb from "./lang/nb.json"
 import nn from "./lang/nn.json"
-import nl from "./lang/nl.json"  // Dutch language file not available
+import nl from "./lang/nl.json"
 import ptBR from "./lang/pt-BR.json"
 import th from "./lang/th.json"
 import tr from "./lang/tr.json"
