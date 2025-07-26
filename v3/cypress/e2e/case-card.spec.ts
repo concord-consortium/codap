@@ -24,7 +24,6 @@ context("case card", () => {
       cy.get('[data-testid="codap-case-table"]').should("not.exist")
       cy.get('[data-testid="codap-case-card"]').should("exist")
       c.checkComponentFocused("case-card")
-      
       table.getToggleCardView().click()
       cy.wait(500)
       table.getToggleCardMessage().should("have.text", "Switch to case table view of the data").click()
