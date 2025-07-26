@@ -7,6 +7,7 @@
     // V3 case table strings that are not present in V2 and will eventually require translation.
     "V3.general.yes": "Yes",
     "V3.general.no": "No",
+    "V3.general.unsavedChangesWarning": "Changes you made may not be saved.",
 
     // V3 application level strings
     "V3.app.errorDialog.title": "Error",
