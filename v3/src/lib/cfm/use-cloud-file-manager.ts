@@ -81,6 +81,12 @@ const locales = [
     icon: 'flag flag-br'
   },
   {
+    langName: 'Nederlands',
+    langCode: 'nl',
+    countryDigraph: 'NL',
+    icon: 'flag flag-nl'
+  },
+  {
     langName: 'ไทย',
     langCode: 'th',
     countryDigraph: 'TH',
