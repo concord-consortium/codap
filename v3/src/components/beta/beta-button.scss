@@ -1,0 +1,28 @@
+.beta-button-container {
+  bottom: 10px;
+  position: absolute;
+  right: 10px;
+  z-index: 1000;
+
+  .beta-button {
+    background-color: #e7bf32;
+    border: solid 2px #222;
+    box-shadow: 0 2px 6px 1px rgba(0, 0, 0, 0.25);
+    display: flex;
+    font-family: "Gloria Hallelujah";
+    padding: 2px 4px 2px 2px;
+    position: sticky;
+
+    &:hover {
+      background-color: #ffe27c;
+    }
+
+    &:active {
+      background-color: #ffefb8;
+    }
+
+    .feedback-icon {
+      margin-right: 3px;
+    }
+  }
+}
