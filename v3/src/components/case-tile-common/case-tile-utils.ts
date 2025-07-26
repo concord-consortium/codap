@@ -122,6 +122,7 @@ export function toggleCardTable(documentContent: IDocumentContentModel, tileID: 
     if (otherTileId) {
       documentContent.toggleNonDestroyableTileVisibility(otherTileId)
       metadata?.setLastShownTableOrCardTileId(otherTileId)
+      uiState.setFocusedTile(otherTileId)
       return documentContent.getTile(otherTileId)
     } else {
       const componentInfo = getTileComponentInfo(otherTileType),
