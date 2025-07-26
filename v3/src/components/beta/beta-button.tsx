@@ -1,12 +1,12 @@
 import React from "react"
-import { urlParams } from "../../utilities/url-params"
+import { isBeta } from "../../utilities/version-utils"
 
 import FeedbackIcon from "../../assets/icons/beta/feedback-icon.svg"
 
 import "./beta-button.scss"
 
 export function BetaButton() {
-  if (urlParams.release !== "beta") return null
+  if (!isBeta()) return null
 
   const handleClick = () => {
     const link = document.createElement("a")
