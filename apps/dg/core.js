@@ -610,6 +610,12 @@ DG = SC.Application.create((function () // closure
         icon: 'flag flag-no'
       },
       {
+        langName: 'Nederlands',
+        langDigraph: 'nl',
+        countryDigraph: 'NL',
+        icon: 'flag flag-nl'
+      },
+      {
         langName: 'Polski',
         langDigraph: 'pl',
         countryDigraph: 'PL',
