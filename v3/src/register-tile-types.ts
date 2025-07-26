@@ -10,6 +10,8 @@ import "./components/calculator/calculator-registration"
 import "./components/text/text-registration"
 import "./components/map/map-registration"
 import "./components/web-view/web-view-registration"
+// This will only be registered if the errorTester URL parameter is set
+import "./components/error-tester/error-tester-registration"
 
 const gTileRegistration: Record<string, () => void> = {
   // "Table": () => Promise.all([

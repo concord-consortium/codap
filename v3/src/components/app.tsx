@@ -1,10 +1,12 @@
 import { useDisclosure } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
 import React, { useCallback, useEffect, useState } from "react"
+import { ErrorBoundary } from "react-error-boundary"
 import { CfmContext } from "../hooks/use-cfm-context"
 import { DocumentContentContext } from "../hooks/use-document-content"
 import {useDropHandler} from "../hooks/use-drop-handler"
 import { useKeyStates } from "../hooks/use-key-states"
+import { useUncaughtErrorHandler } from "../hooks/use-uncaught-error-handler"
 import { useCloudFileManager } from "../lib/cfm/use-cloud-file-manager"
 import { CodapDndContext } from "../lib/dnd-kit/codap-dnd-context"
 import { logStringifiedObjectMessage } from "../lib/log-message"
@@ -46,6 +48,8 @@ FilterFormulaAdapter.register()
 setDataSetNotificationAdapter(V2DataSetNotificationAdapter)
 
 registerTileTypes([])
+
+const errorBoundaryErrors: { time: number, message: string }[] = []
 
 export const App = observer(function App() {
   useKeyStates()
@@ -173,21 +177,28 @@ export const App = observer(function App() {
 
     initialize()
   }, [cfm, cfmReadyPromise, onCloseUserEntry, onOpenUserEntry])
+
+  const { fallbackRender } = useUncaughtErrorHandler(cfm)
+
   return (
     <CodapDndContext>
       <DocumentContentContext.Provider value={appState.document.content}>
         <CfmContext.Provider value={cfm}>
           <div className="codap-app" data-testid="codap-app">
             <MenuBar/>
-            <ToolShelf document={appState.document}/>
-            <Container/>
+            <ErrorBoundary fallbackRender={fallbackRender}>
+              <ToolShelf document={appState.document}/>
+              <Container/>
+            </ErrorBoundary>
           </div>
           {isOpenUserEntry &&
-            <div id={`${kUserEntryDropOverlay}`} className={`${isOpenUserEntry && isDragOver ? "show-highlight" : ""}`}>
-            <UserEntryModal
-              isOpen={isOpenUserEntry}
-              onClose={onCloseUserEntry}
-            />
+            <div id={`${kUserEntryDropOverlay}`}
+              className={`${isOpenUserEntry && isDragOver ? "show-highlight" : ""}`}
+            >
+              <UserEntryModal
+                isOpen={isOpenUserEntry}
+                onClose={onCloseUserEntry}
+              />
             </div>
           }
         </CfmContext.Provider>

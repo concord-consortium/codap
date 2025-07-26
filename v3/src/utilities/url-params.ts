@@ -32,6 +32,15 @@ export interface UrlParams {
    */
   di?: string | null
   /*
+   * When present enables the error tester component.
+   * value: which type of error the tester should throw.
+   * Possible values:
+   * - "render": throws an error on render
+   * - "firstDisplay": throws errors on first display see react-render-errors.md
+   * - "none" (default): only throws an error on click
+   */
+  errorTester?: string | null
+  /*
    * [v2] When present enables the gaussian fit feature of the normal curve adornment.
    * value: ignored
    */
