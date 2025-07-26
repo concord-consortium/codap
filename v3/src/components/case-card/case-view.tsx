@@ -71,12 +71,8 @@ export const CaseView = observer(function InnerCaseView({
       // The lowest level should animate
       if (level < cardModel.animationLevel) {
         cardModel.setAnimationLevel(level)
-        cardModel.setAnimationDirection(
-          previousSelectedCaseIndex.current === -1 && displayedCaseIndex === cases.length - 1
-            ? "left" // Special case for pushing the left button while in summarized view
-            : previousSelectedCaseIndex.current <= displayedCaseIndex
-              ? "right" : "left"
-        )
+        cardModel.setAnimationDirection(previousSelectedCaseIndex.current > displayedCaseIndex ? "right" : "left")
+        
         // Reset the animation after the proper duration
         cardModel.setAnimationTimeout(setTimeout(() => {
           cardModel.setAnimationLevel(Infinity)
