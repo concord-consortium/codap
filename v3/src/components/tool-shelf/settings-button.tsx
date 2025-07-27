@@ -59,9 +59,9 @@ export const SettingsShelfButton = () => {
             {t("DG.AppController.optionMenuItems.viewWebPage")}
           </MenuItem>
           <MenuItem data-testid="tool-shelf-button-tool-shelf-position" onClick={toggleToolShelfPosition}
-              className="tool-shelf-menu-item settings">
+              className="tool-shelf-menu-item settings" isDisabled={true}>
             <ToolbarPositionIcon className="menu-icon toolbar-position-icon" />
-            {t("DG.AppController.optionMenuItems.positionToolShelf")} {positionToolShelf}
+            {t("DG.AppController.optionMenuItems.positionToolShelf")} {positionToolShelf} 🚧
           </MenuItem>
         </MenuList>
       </Menu>
