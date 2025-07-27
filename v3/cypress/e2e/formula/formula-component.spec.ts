@@ -3,9 +3,12 @@ import { TableTileElements as table } from "../../support/elements/table-tile"
 import { SliderTileElements as slider } from "../../support/elements/slider-tile"
 
 context("Formula Engine", () => {
+  const emptyUrlParams = "?suppressUnsavedWarning=true"
+  const fourUrlParams = `${emptyUrlParams}&sample=four`
+  const dashboardUrlParams = `${fourUrlParams}&dashboard`
   describe("Component Formula Tests", () => {
     it("Add and edit formula for a new attribute", () => {
-      fh.visitURL("?sample=four&dashboard")
+      fh.visitURL(dashboardUrlParams)
       table.addNewAttribute()
       table.renameAttribute("newAttr", "Formula")
       table.addFormula("Formula", "a+1")
@@ -15,7 +18,7 @@ context("Formula Engine", () => {
       table.verifyFormulaValues("Formula", [3, 4, 5, 5, 2])
     })
     it("Add and edit formula for an existing attribute", () => {
-      fh.visitURL("?sample=four&dashboard")
+      fh.visitURL(dashboardUrlParams)
       table.addFormula("b", "count(a)")
       table.verifyFormulaValues("b", [4, 4, 4, 4, 4])
       table.checkFormulaExists("b", "count(a)")
@@ -23,7 +26,7 @@ context("Formula Engine", () => {
       table.verifyFormulaValues("b", [2.25, 2.25, 2.25, 2.25, 2.25])
     })
     it("Rename attribute and make sure formula updates", () => {
-      fh.visitURL("?sample=four&dashboard")
+      fh.visitURL(dashboardUrlParams)
       table.addNewAttribute()
       table.renameAttribute("newAttr", "Formula")
       table.addFormula("Formula", "count(a)")
@@ -35,7 +38,7 @@ context("Formula Engine", () => {
       table.verifyFormulaValues("Formula", [2.25, 2.25, 2.25, 2.25, 2.25])
     })
     it("Delete attribute that a formula uses", () => {
-      fh.visitURL("?sample=four&dashboard")
+      fh.visitURL(dashboardUrlParams)
       table.addFormula("b", "count(a)")
       table.deleteAttribute("a")
       table.checkFormulaExists("b", "count(a)")
@@ -50,7 +53,7 @@ context("Formula Engine", () => {
       table.verifyFormulaValues("b", [5, 5, 5, 5, 5])
     })
     it("Use slider variable with formula", () => {
-      fh.visitURL("?sample=four&dashboard")
+      fh.visitURL(dashboardUrlParams)
       table.addFormula("b", "count(a) + v1")
       table.verifyFormulaValues("b", [4.5, 4.5, 4.5, 4.5, 4.5])
       slider.changeVariableName("v2")
@@ -62,7 +65,7 @@ context("Formula Engine", () => {
       table.checkFormulaExists("b", "count(a) + v2")
     })
     it("Add slider after using it in formula", () => {
-      fh.visitURL("?sample=four")
+      fh.visitURL(fourUrlParams)
       table.addFormula("b", "count(a) + v1")
       table.verifyFormulaValues("b", [
         "❌ Undefined symbol v1",
@@ -85,7 +88,7 @@ context("Formula Engine", () => {
     })
     // TODO: update test when insert cases on input row is implemnted
     it("Formula in a new dataset", () => {
-      fh.visitURL("")
+      fh.visitURL(emptyUrlParams)
       cy.get("#user-entry-drop-overlay").type("{esc}")
       table.createNewTableFromToolShelf()
       table.getGridCell(2, 2).dblclick()
@@ -103,7 +106,7 @@ context("Formula Engine", () => {
     it("Navigate functions browser", () => {
       const func = "abs"
       const funcCategory = "Arithmetic"
-      fh.visitURL("?sample=four&dashboard")
+      fh.visitURL(dashboardUrlParams)
       table.addNewAttribute()
       table.renameAttribute("newAttr", "Formula")
       table.openAttributeMenu("Formula")
@@ -126,7 +129,7 @@ context("Formula Engine", () => {
     it("Insert function into formula", () => {
       const func = "abs"
       const funcCategory = "Arithmetic"
-      fh.visitURL("?sample=four&dashboard")
+      fh.visitURL(dashboardUrlParams)
       table.addNewAttribute()
       table.renameAttribute("newAttr", "Formula")
       table.openAttributeMenu("Formula")
@@ -144,7 +147,7 @@ context("Formula Engine", () => {
     })
     it("Insert value into formula", () => {
       const value = "b"
-      fh.visitURL("?sample=four&dashboard")
+      fh.visitURL(dashboardUrlParams)
       table.addNewAttribute()
       table.renameAttribute("newAttr", "Formula")
       table.openAttributeMenu("Formula")

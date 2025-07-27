@@ -4,7 +4,7 @@ import { TableTileElements as table } from "../support/elements/table-tile"
 
 context("CloudFileManager", () => {
   function visitEmptyCodap()  {
-    const queryParams = "?mouseSensor&noEntryModal"
+    const queryParams = "?mouseSensor&noEntryModal&suppressUnsavedWarning=true"
     const url = `${Cypress.config("index")}${queryParams}`
     cy.visit(url)
   }
@@ -12,7 +12,7 @@ context("CloudFileManager", () => {
   it("Opens Mammals document using different methods", () => {
     cy.log("Opening via a url parameter")
     const mammalsUrl = "https://codap-resources.concord.org/example-documents/documents/mammals.codap"
-    cy.visit(`${Cypress.config("index")}?url=${mammalsUrl}`)
+    cy.visit(`${Cypress.config("index")}?url=${mammalsUrl}&suppressUnsavedWarning=true`)
     cy.get(".codap-component.codap-case-table").contains(".title-bar", "Mammals").should("exist")
 
     // The title is not set to mammals because the CFM is not reading the name from the document

@@ -2,9 +2,10 @@ import { FormulaHelper as fh } from "../../support/helpers/formula-helper"
 import { TableTileElements as table } from "../../support/elements/table-tile"
 
 context("Formula Engine", () => {
+  const urlParams = "?sample=four&suppressUnsavedWarning=true"
   describe("Special Characters in Formula Tests", () => {
     it("Check backtick in symbol name", () => {
-      fh.visitURL("?sample=four")
+      fh.visitURL(urlParams)
       table.renameAttribute("b", "x`yz")
       table.addNewAttribute()
       table.renameAttribute("newAttr", "Formula1")
@@ -19,7 +20,7 @@ context("Formula Engine", () => {
       table.verifyFormulaValues("Formula2", [3, 3, 3, 2, 2])
     })
     it("Check backslash symbol in attribute", () => {
-      fh.visitURL("?sample=four")
+      fh.visitURL(urlParams)
       table.renameAttribute("b", "x\\yz")
       table.addNewAttribute()
       table.renameAttribute("newAttr", "Formula1")
@@ -34,7 +35,7 @@ context("Formula Engine", () => {
       table.verifyFormulaValues("Formula2", [3, 3, 3, 2, 2])
     })
     it("Check backslash and backtick symbols in attribute", () => {
-      fh.visitURL("?sample=four")
+      fh.visitURL(urlParams)
       table.renameAttribute("b", "x\\`yz")
       table.addNewAttribute()
       table.renameAttribute("newAttr", "Formula1")
@@ -48,7 +49,7 @@ context("Formula Engine", () => {
       table.verifyFormulaValues("Formula2", [3, 3, 3, 2, 2])
     })
     it("Check single quote symbol in attribute", () => {
-      fh.visitURL("?sample=four")
+      fh.visitURL(urlParams)
       table.renameAttribute("b", "x'yz")
       table.addNewAttribute()
       table.renameAttribute("newAttr", "Formula1")
@@ -63,7 +64,7 @@ context("Formula Engine", () => {
       table.verifyFormulaValues("Formula2", [3, 3, 3, 2, 2])
     })
     it("Check double quotes symbol in attribute", () => {
-      fh.visitURL("?sample=four")
+      fh.visitURL(urlParams)
       table.renameAttribute("b", "x\"yz")
       table.addNewAttribute()
       table.renameAttribute("newAttr", "Formula1")
@@ -78,7 +79,7 @@ context("Formula Engine", () => {
       table.verifyFormulaValues("Formula2", [3, 3, 3, 2, 2])
     })
     it("Check backslash and double quotes symbols in attribute", () => {
-      fh.visitURL("?sample=four")
+      fh.visitURL(urlParams)
       table.renameAttribute("b", "x\\\"yz")
       table.addNewAttribute()
       table.renameAttribute("newAttr", "Formula1")
@@ -94,7 +95,7 @@ context("Formula Engine", () => {
       table.verifyFormulaValues("Formula2", [3, 3, 3, 2, 2])
     })
     it("Check double quote in string constant", () => {
-      fh.visitURL("?sample=four")
+      fh.visitURL(urlParams)
       table.addNewAttribute()
       table.renameAttribute("newAttr", "Formula")
       table.addFormula("Formula", "if(b = 1, \"o\\\"k\", \"ok\")")
@@ -105,7 +106,7 @@ context("Formula Engine", () => {
       table.verifyFormulaValues("Formula", ["o\\\"k", "o\\\"k", "o\\\"k", "ok", "ok"])
     })
     it("Check double quote in symbol name", () => {
-      fh.visitURL("?sample=four")
+      fh.visitURL(urlParams)
       table.addNewAttribute()
       table.renameAttribute("newAttr", "Formula")
       table.addFormula("Formula", "lookupByIndex(\"Four\", \"b\", caseIndex)")
@@ -120,7 +121,7 @@ context("Formula Engine", () => {
       table.verifyFormulaValues("Formula", [1, 1, 1, "", ""])
     })
     it("Check single quote in string constant", () => {
-      fh.visitURL("?sample=four")
+      fh.visitURL(urlParams)
       table.addNewAttribute()
       table.renameAttribute("newAttr", "Formula")
       table.addFormula("Formula", "if(b = 1, 'ok', 'not ok')")
@@ -133,7 +134,7 @@ context("Formula Engine", () => {
       table.verifyFormulaValues("Formula", ["o\\k", "o\\k", "o\\k", "not ok", "not ok"])
     })
     it("Check single quote in symbol name", () => {
-      fh.visitURL("?sample=four")
+      fh.visitURL(urlParams)
       table.addNewAttribute()
       table.renameAttribute("newAttr", "Formula")
       table.addFormula("Formula", "lookupByIndex('Four', 'b', caseIndex)")

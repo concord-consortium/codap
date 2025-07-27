@@ -2,9 +2,10 @@ import { FormulaHelper as fh } from "../../support/helpers/formula-helper"
 import { TableTileElements as table } from "../../support/elements/table-tile"
 
 context("Formula Engine", () => {
+  const urlParams = "?suppressUnsavedWarning=true"
   describe("Hierarchical Case Tables Formula Tests", () => {
     it("Check aggregate and non-aggregate formulae referencing a parent attribute in child collection", () => {
-      fh.visitURL("")
+      fh.visitURL(urlParams)
       fh.importFile("cypress/fixtures/hierarchical-four.codap3")
       table.addNewAttribute(2)
       table.renameAttribute("newAttr", "Formula", 2)
@@ -20,7 +21,7 @@ context("Formula Engine", () => {
       table.verifyFormulaValues("Formula", [2, 2, 2, 1, 1], 2)
     })
     it("Check aggregate and non-aggregate formulae referencing a child attribute in child collection", () => {
-      fh.visitURL("")
+      fh.visitURL(urlParams)
       fh.importFile("cypress/fixtures/hierarchical-four.codap3")
       table.addNewAttribute(2)
       table.renameAttribute("newAttr", "Formula", 2)
@@ -30,7 +31,7 @@ context("Formula Engine", () => {
       table.verifyFormulaValues("Formula", [2, 3, 4, 4, 1], 2)
     })
     it("Check aggregate and non-aggregate formulae referencing a parent attribute in parent collection", () => {
-      fh.visitURL("")
+      fh.visitURL(urlParams)
       fh.importFile("cypress/fixtures/hierarchical-four.codap3")
       table.addNewAttribute(1)
       table.renameAttribute("newAttr", "Formula", 1)
@@ -40,7 +41,7 @@ context("Formula Engine", () => {
       table.verifyFormulaValues("Formula", [2, 1], 1)
     })
     it("Check aggregate and non-aggregate formulae referencing a child attribute in parent collection", () => {
-      fh.visitURL("")
+      fh.visitURL(urlParams)
       fh.importFile("cypress/fixtures/hierarchical-four.codap3")
       table.addNewAttribute(1)
       table.renameAttribute("newAttr", "Formula", 1)

@@ -15,7 +15,7 @@ context("case table ui", () => {
 
   beforeEach(() => {
     // cy.scrollTo() doesn't work as expected with `scroll-behavior: smooth`
-    const queryParams = "?sample=mammals&scrollBehavior=auto"
+    const queryParams = "?sample=mammals&scrollBehavior=auto&suppressUnsavedWarning=true"
     const url = `${Cypress.config("index")}${queryParams}`
     cy.visit(url)
     cy.wait(1000)

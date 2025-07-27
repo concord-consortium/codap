@@ -16,7 +16,7 @@ const plots = graphRules.plots
 // the page less often and/or by waiting less. As written, each test takes ~75 sec.
 context.skip("Test graph plot transitions", () => {
   beforeEach(function () {
-    const queryParams = "?mouseSensor"
+    const queryParams = "?mouseSensor&suppressUnsavedWarning=true"
     const url = `${Cypress.config("index")}${queryParams}`
     cy.visit(url)
     cfm.openLocalDoc("cypress/fixtures/3TableGroups.codap")
@@ -40,7 +40,7 @@ context.skip("Test graph plot transitions", () => {
 
 context("Graph UI", () => {
   beforeEach(function () {
-    const queryParams = "?sample=mammals&dashboard&mouseSensor"
+    const queryParams = "?sample=mammals&dashboard&mouseSensor&suppressUnsavedWarning=true"
     const url = `${Cypress.config("index")}${queryParams}`
     cy.visit(url)
     cy.wait(2500)

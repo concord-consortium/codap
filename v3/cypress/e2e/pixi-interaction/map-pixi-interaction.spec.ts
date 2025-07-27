@@ -5,7 +5,7 @@ import { MapCanvasHelper as mch } from "../../support/helpers/map-canvas-helper"
 
 context("Graph UI with Pixi interaction", () => {
   beforeEach(function () {
-    const queryParams = "/#file=examples:Four%20Seals&dashboard&mouseSensor"
+    const queryParams = "/#file=examples:Four%20Seals&dashboard&mouseSensor&suppressUnsavedWarning=true"
     const url = `${Cypress.config("index")}${queryParams}`
     cy.visit(url)
     cy.wait(2500)

@@ -9,7 +9,7 @@ import { GraphTileElements as graph } from "../support/elements/graph-tile"
 
 context("codap plugins", () => {
   beforeEach(function () {
-    const url = `${Cypress.config("index")}?sample=mammals&dashboard`
+    const url = `${Cypress.config("index")}?sample=mammals&dashboard&suppressUnsavedWarning=true`
     cy.visit(url)
   })
   const apiTesterUrl='https://concord-consortium.github.io/codap-data-interactives/DataInteractiveAPITester/index.html?lang=en'
@@ -21,7 +21,7 @@ context("codap plugins", () => {
   }
 
   it('will open plugin specified in url parameter', () => {
-    const url = `${Cypress.config("index")}?di=${apiTesterUrl}`
+    const url = `${Cypress.config("index")}?di=${apiTesterUrl}&suppressUnsavedWarning=true`
     cy.visit(url)
     webView.getTitle().should("contain.text", "CODAP API Tester")
   })
@@ -421,7 +421,7 @@ context("codap plugins", () => {
   })
 
   it('will broadcast notifications involving dragging attributes within the case table', () => {
-    const url = `${Cypress.config("index")}?mouseSensor&noEntryModal`
+    const url = `${Cypress.config("index")}?mouseSensor&noEntryModal&suppressUnsavedWarning=true`
     cy.visit(url)
     openAPITester()
     webView.toggleAPITesterFilter()

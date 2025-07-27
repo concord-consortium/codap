@@ -2,7 +2,7 @@ import { ComponentElements as c } from "../support/elements/component-elements"
 
 context("Component UI", () => {
   beforeEach(function () {
-    const queryParams = "?sample=mammals&dashboard"
+    const queryParams = "?sample=mammals&dashboard&suppressUnsavedWarning=true"
     const url = `${Cypress.config("index")}${queryParams}`
     cy.visit(url)
     cy.wait(2500)

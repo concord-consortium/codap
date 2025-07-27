@@ -120,6 +120,12 @@ export interface UrlParams {
    */
   scrollBehavior?: string | null
   /*
+   * If a string value, the warning dialog triggered by reloading or navigating away from a document
+   * with unsaved changes will not be shown.
+   * Primarily used for cypress tests.
+   */
+  suppressUnsavedWarning?: string | null
+  /*
    * For testing -- when present along with `dashboard`, only a single table will be created by default.
    * value: ignored
    */

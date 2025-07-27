@@ -2,8 +2,9 @@ import { FormulaHelper as fh } from "../../support/helpers/formula-helper"
 import { TableTileElements as table } from "../../support/elements/table-tile"
 
 context("Formula Engine", () => {
+  const urlParams = "?suppressUnsavedWarning=true"
   it("Check arithmetic functions", () => {
-    fh.visitURL("")
+    fh.visitURL(urlParams)
     fh.importFile("cypress/fixtures/formula.codap3")
 
     table.addNewAttribute()
@@ -76,7 +77,7 @@ context("Formula Engine", () => {
     ])
   })
   it("Check lookup functions", () => {
-    fh.visitURL("")
+    fh.visitURL(urlParams)
     fh.importFile("cypress/fixtures/formula.codap3")
 
     table.addNewAttribute()
@@ -100,7 +101,7 @@ context("Formula Engine", () => {
     table.verifyFormulaValues("lookupByKey", [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2])
   })
   it("Check logic functions", () => {
-    fh.visitURL("")
+    fh.visitURL(urlParams)
     fh.importFile("cypress/fixtures/formula.codap3")
 
     table.addNewAttribute()
@@ -110,7 +111,7 @@ context("Formula Engine", () => {
         ["true", "true", "true", "true", "true", "true", "true", "true", "true", "true", "true"])
   })
   it("Check other functions", () => {
-    fh.visitURL("")
+    fh.visitURL(urlParams)
     fh.importFile("cypress/fixtures/formula.codap3")
 
     table.addNewAttribute()

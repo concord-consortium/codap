@@ -7,7 +7,7 @@ const values = hierarchical.attributes
 
 context("hierarchical collections", () => {
   beforeEach(function () {
-    const queryParams = "?sample=mammals&mouseSensor&scrollBehavior=auto"
+    const queryParams = "?sample=mammals&mouseSensor&scrollBehavior=auto&suppressUnsavedWarning=true"
     const url = `${Cypress.config("index")}${queryParams}`
     cy.visit(url)
     cy.wait(1000)
