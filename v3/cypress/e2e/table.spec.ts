@@ -1211,7 +1211,7 @@ context("case table ui", () => {
 
   describe("table cells with boundary thumbnails", () => {
     it("displays boundary thumbnails in cells of boundary attributes", () => {
-      const queryParams = "&suppressUnsavedWarning=true#file=examples:Roller%20Coasters"
+      const queryParams = "?suppressUnsavedWarning=true#file=examples:Roller%20Coasters"
       const url = `${Cypress.config("index")}${queryParams}`
       cy.visit(url)
       cy.wait(1000)
