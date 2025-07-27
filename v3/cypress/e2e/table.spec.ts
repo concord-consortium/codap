@@ -421,7 +421,7 @@ context("case table ui", () => {
       table.getCfmModal().should("exist")
 
       cy.log("check reaching the cfm to export data with multiple collections")
-      const queryParams = "?mouseSensor=#file=examples:Four%20Seals"
+      const queryParams = "?suppressUnsavedWarning=true&mouseSensor=#file=examples:Four%20Seals"
       const url = `${Cypress.config("index")}${queryParams}`
       cy.visit(url)
       c.selectTile("table", 0)
@@ -451,7 +451,7 @@ context("case table ui", () => {
         table.getCopiedCasesAlertOkButton().click()
 
         cy.log("check copying data from multiple collections")
-        const queryParams = "?mouseSensor=#file=examples:Four%20Seals"
+        const queryParams = "?suppressUnsavedWarning=true&mouseSensor=#file=examples:Four%20Seals"
         const url = `${Cypress.config("index")}${queryParams}`
         cy.visit(url)
         c.selectTile("table", 0)

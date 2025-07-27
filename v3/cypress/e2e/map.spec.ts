@@ -425,7 +425,7 @@ context("Map UI", () => {
 
 context("Map API", () => {
   beforeEach(function () {
-    const url = `${Cypress.config("index")}#file=examples:Four%20Seals`
+    const url = `${Cypress.config("index")}?suppressUnsavedWarning=true#file=examples:Four%20Seals`
     cy.visit(url)
   })
   const apiTesterUrl='https://concord-consortium.github.io/codap-data-interactives/DataInteractiveAPITester/index.html?lang=en'
