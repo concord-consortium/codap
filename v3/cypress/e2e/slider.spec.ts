@@ -76,10 +76,7 @@ context("Slider UI", () => {
 
     toolbar.getRedoTool().click()
     c.getComponentTitle("slider").should("have.text", newSliderName)
-    c.getComponentTile("slider").then($tile => {
-      cy.wrap($tile).find("[data-testid=component-close-button]").click("top", { force: true })
-    })
-    // c.closeComponent("slider") //Change in component header height causes interference with variable value input
+    c.closeComponent("slider") //Change in component header height causes interference with variable value input
 
     cy.log("updates variable name")
     c.clickIconFromToolShelf("slider")
@@ -95,10 +92,7 @@ context("Slider UI", () => {
     slider.getVariableValue().should("contain", initialSliderValue)
     slider.changeVariableValue(newSliderValue)
     slider.getVariableValue().should("contain", newSliderValue)
-    c.getComponentTile("slider").then($tile => {
-      cy.wrap($tile).find("[data-testid=component-close-button]").click("top", { force: true })
-    })
-    // c.closeComponent("slider") //Change in component header height causes interference with variable value input
+    c.closeComponent("slider") //Change in component header height causes interference with variable value input
 
 
     cy.log("creates another slider from toolshelf")
@@ -144,10 +138,7 @@ context("Slider UI", () => {
     slider.pauseSliderButton()
     slider.checkPlayButtonIsPaused()
     slider.getVariableValue().should("not.equal", initialSliderValue)
-    c.getComponentTile("slider").then($tile => {
-      cy.wrap($tile).find("[data-testid=component-close-button]").click("top", { force: true })
-    })
-    // c.closeComponent("slider")
+    c.closeComponent("slider")
 
     cy.log("replays from initial value once it reaches the end")
     c.clickIconFromToolShelf("slider")
@@ -163,10 +154,7 @@ context("Slider UI", () => {
     slider.getVariableValue().should("contain", finalSliderValue)
     slider.playSliderButton()
     slider.getVariableValue().should("contain", "0")
-    c.getComponentTile("slider").then($tile => {
-      cy.wrap($tile).find("[data-testid=component-close-button]").click("top", { force: true })
-    })
-    // c.closeComponent("slider") //Change in component header height causes interference with variable value input
+    c.closeComponent("slider") //Change in component header height causes interference with variable value input
 
 
     cy.log("plays low to high animation direction")
@@ -180,10 +168,7 @@ context("Slider UI", () => {
     slider.checkPlayButtonIsRunning()
     slider.getVariableValue().should("contain", finalSliderValue)
     slider.checkPlayButtonIsPaused()
-    c.getComponentTile("slider").then($tile => {
-      cy.wrap($tile).find("[data-testid=component-close-button]").click("top", { force: true })
-    })
-    // c.closeComponent("slider") //Change in component header height causes interference with variable value input
+    c.closeComponent("slider") //Change in component header height causes interference with variable value input
 
 
     cy.log("plays back and forth animation direction")
@@ -199,10 +184,7 @@ context("Slider UI", () => {
     slider.checkPlayButtonIsRunning()
     slider.getVariableValue().should("contain", "2.5")
     slider.checkPlayButtonIsPaused()
-    c.getComponentTile("slider").then($tile => {
-      cy.wrap($tile).find("[data-testid=component-close-button]").click("top", { force: true })
-    })
-    // c.closeComponent("slider") //Change in component header height causes interference with variable value input
+    c.closeComponent("slider") //Change in component header height causes interference with variable value input
 
 
     cy.log("plays high to low animation direction")
@@ -217,10 +199,7 @@ context("Slider UI", () => {
     slider.checkPlayButtonIsRunning()
     slider.getVariableValue().should("contain", initialSliderValue)
     slider.checkPlayButtonIsPaused()
-    c.getComponentTile("slider").then($tile => {
-      cy.wrap($tile).find("[data-testid=component-close-button]").click("top", { force: true })
-    })
-    // c.closeComponent("slider") //Change in component header height causes interference with variable value input
+    c.closeComponent("slider") //Change in component header height causes interference with variable value input
 
 
     cy.log("plays nonstop")
@@ -245,10 +224,7 @@ context("Slider UI", () => {
     // Check if the slider has looped back to the initial value in nonstop mode
     slider.getVariableValue().should("contain", initialSliderValue)
     slider.checkPlayButtonIsRunning()
-    c.getComponentTile("slider").then($tile => {
-      cy.wrap($tile).find("[data-testid=component-close-button]").click("top", { force: true })
-    })
-    // c.closeComponent("slider") //Change in component header height causes interference with variable value input
+    c.closeComponent("slider") //Change in component header height causes interference with variable value input
 
 
     cy.log("plays with restricting multiples")
@@ -385,10 +361,7 @@ context("Slider UI", () => {
     slider.getVariableValueInput().should('have.value', MID_VALUE.toString())
   })
   it("reuses slider names after existing ones are closed", () => {
-    c.getComponentTile("slider").then($tile => {
-      cy.wrap($tile).find("[data-testid=component-close-button]").click("top", { force: true })
-    })
-    // c.closeComponent("slider") //Change in component header height causes interference with variable value input
+    c.closeComponent("slider") //Change in component header height causes interference with variable value input
 
     c.checkComponentDoesNotExist("slider")
     c.getIconFromToolShelf("slider").click()
@@ -398,10 +371,7 @@ context("Slider UI", () => {
     slider.getVariableValue().should("contain", initialSliderValue)
     slider.checkPlayButtonIsPaused()
 
-    c.getComponentTile("slider").then($tile => {
-      cy.wrap($tile).find("[data-testid=component-close-button]").click("top", { force: true })
-    })
-    // c.closeComponent("slider") //Change in component header height causes interference with variable value input
+    c.closeComponent("slider") //Change in component header height causes interference with variable value input
 
     c.checkComponentDoesNotExist("slider")
     c.getIconFromToolShelf("slider").click()

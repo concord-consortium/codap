@@ -19,7 +19,7 @@ import _standardPlugins from "./standard-plugins.json"
 const debugPlugins = DEBUG_PLUGINS ? _debugPlugins as PluginMenuConfig : []
 const standardPlugins = _standardPlugins as PluginMenuConfig
 const combinedPlugins = [...standardPlugins, ...debugPlugins]
-import PluginsIcon from '../../assets/icons/icon-plugins.svg'
+import PluginsIcon from "../../assets/icons/icon-plugins.svg"
 import RightArrow from "../../assets/icons/arrow-right.svg"
 import DrawToolIcon from "../../assets/plugins/plugin-draw-tool-icon.svg"
 import SonifyIcon from "../../assets/plugins/plugin-sonify-icon.svg"
@@ -102,9 +102,8 @@ export function PluginsButton() {
               <MenuList key={title} className="tool-shelf-menu-list plugin-submenu submenu"
                   data-testid={`plugin-submenu-${title}`}
                   onPointerLeave={() => setSelectedCategoryTitle(null)}>
-                {subMenu.length > 0
-                    ? subMenu.map((pd, i) => <PluginItem key={pd?.title ?? `divider-${i}`} pluginData={pd} />)
-                    : <MenuItem>{t("V3.ToolButtonData.pluginMenu.fetchError")}</MenuItem>
+                {subMenu.length > 0 &&
+                    subMenu.map((pd, i) => <PluginItem key={pd?.title ?? `divider-${i}`} pluginData={pd} />)
                 }
               </MenuList>
             </Menu>

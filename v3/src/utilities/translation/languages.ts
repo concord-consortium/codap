@@ -59,5 +59,5 @@ languageFiles.forEach((langFile) => {
 // components that use these languages.
 export const getSpecialLangFontClassName = (lang: string) => {
   const specialLangFonts = ["fa", "th", "ja", "ko", "zhHans", "zhTW", "he"]
-  return specialLangFonts.includes(lang) ? `lang-${lang}` : ""
+  return specialLangFonts.includes(lang) ? `lang-${lang} lang-bold` : ""
 }
