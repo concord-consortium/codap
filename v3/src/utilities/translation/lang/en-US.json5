@@ -194,6 +194,7 @@
     "V3.Redo.errorTester.create": "Redo adding error tester",
 
     // CFM/File menu
+    "DG.fileMenu.fileMenuName": "File",
     "DG.fileMenu.menuItem.newDocument": "New",
     "DG.fileMenu.menuItem.openDocument": "Open...",
     "DG.fileMenu.menuItem.closeDocument": "Close",
@@ -245,6 +246,7 @@
     "DG.AppController.beforeUnload.confirmationMessage": "The document contains unsaved changes.",
     "DG.AppController.optionMenuItems.reportProblem": "Send Feedback...",
     "DG.AppController.optionMenuItems.viewWebPage": "Display Web Page...",
+    "DG.AppController.optionMenuItems.positionToolShelf": "Toolbar Position:",
     "DG.AppController.optionMenuItems.configureGuide": "Configure Guide...",
     "DG.AppController.optionMenuItems.about": "About CODAP...",
     "DG.AppController.optionMenuItems.releaseNotes": "What's New?",
@@ -283,10 +285,10 @@
     "DG.AppController.createDataSet.name": "New Dataset",
     "DG.AppController.createDataSet.collectionName": "Cases",
     "DG.AppController.caseTableMenu.openCaseTableToolTip": "Open case table for this data set",
-    "DG.AppController.caseTableMenu.newDataSet": "-- new --",
+    "DG.AppController.caseTableMenu.newDataSet": "Νew",
     "DG.AppController.caseTableMenu.newDataSetToolTip": "Create a new data set",
     "DG.AppController.caseTableMenu.deleteDataSetToolTip": "Delete and destroy this data set",
-    "DG.AppController.caseTableMenu.clipboardDataset": "-- new from clipboard --",
+    "DG.AppController.caseTableMenu.clipboardDataset": "Νew from clipboard",
     "DG.AppController.caseTableMenu.clipboardDatasetToolTip": "Paste data set from clipboard",
 
     "DG.SingleTextDialog.okButton.title": "OK",
@@ -350,7 +352,7 @@
     "DG.ToolButtonData.textButton.toolTip": "Make a text object (ctrl-alt-shift-t)",
     "DG.ToolButtonData.mapButton.title": "Map",
     "DG.ToolButtonData.mapButton.toolTip": "Make a map",
-    "DG.ToolButtonData.optionMenu.title": "Options",
+    "DG.ToolButtonData.optionMenu.title": "Settings",
     "DG.ToolButtonData.optionMenu.toolTip": "Display a website, configure guide...",
     "DG.ToolButtonData.tileListMenu.title": "Tiles",
     "DG.ToolButtonData.tileListMenu.toolTip": "Show the list of tiles in the document",

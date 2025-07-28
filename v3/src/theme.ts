@@ -12,7 +12,7 @@ export const theme = extendTheme({
   },
   fonts: {
     // CODAP v2 default font stack
-    body: "Montserrat, sans-serif",
+    body: "Roboto, sans-serif",
   },
   fontSizes: {
     md: "12px"
@@ -23,25 +23,22 @@ export const theme = extendTheme({
     tealLight2: "#72bfca",
     tealLight3: "#93d5e4",
     tealLight4: "#b7e2ec",
-    tealLight5: "#e2f4f8"
+    tealLight5: "#e2f4f8",
+    tealLightHover: "#d3f4ff",
+    tealLightActive: "#eaf9ff",
+    appHeader: "#a5e3f6",
+    focusOutlineColor: "#0957d0",
+    labelText: "#222"
   },
   components: {
     Button: {
       baseStyle: {
-        border: "1px solid gray"
-      },
-      _hover: {
-        backgroundColor: "tealLight1",
-        color: "white"
-      },
-      _active: {
-        backgroundColor: "tealLight1",
-        color: "white"
+        border: "none"
       },
       variants: {
         unstyled: {
           border: "none",
-          borderRadius: 0,
+          borderRadius: 4,
           display: "flex",
           height: "auto",
           outline: "none",
@@ -50,14 +47,6 @@ export const theme = extendTheme({
         default: {
           backgroundColor: "tealLight2",
           color: "white",
-          _hover: {
-            backgroundColor: "tealLight1",
-            color: "white"
-          },
-          _active: {
-            backgroundColor: "tealLight1",
-            color: "white"
-          },
         },
       }
     },

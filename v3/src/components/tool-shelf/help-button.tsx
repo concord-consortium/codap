@@ -1,11 +1,17 @@
-import { Menu, MenuButton, MenuItem, MenuList } from "@chakra-ui/react"
 import React from "react"
-import HelpIcon from "../../assets/icons/icon-help.svg"
+import { clsx } from "clsx"
+import { Menu, MenuButton, MenuItem, MenuList, useDisclosure } from "@chakra-ui/react"
 import { useDocumentContent } from "../../hooks/use-document-content"
 import { gLocale } from "../../utilities/translation/locale"
+import { getSpecialLangFontClassName } from "../../utilities/translation/languages"
 import { t } from "../../utilities/translation/translate"
-import { kRightButtonBackground, ToolShelfButtonTag } from "./tool-shelf-button"
+import { ToolShelfButtonTag } from "./tool-shelf-button"
 import { showWebView } from "./tool-shelf-utilities"
+import HelpPagesIcon from "../../assets/icons/icon-help-pages.svg"
+import HelpForumIcon from "../../assets/icons/icon-help-forum.svg"
+import ProjectWebSiteIcon from "../../assets/icons/icon-codap-project.svg"
+import WebViewIcon from "../../assets/icons/icon-media-tool.svg"
+import HelpIcon from "../../assets/icons/icon-help.svg"
 
 import "./tool-shelf.scss"
 
@@ -21,6 +27,8 @@ const translatedHelpURLs: Record<string, string> = {
 
 export const HelpShelfButton = () => {
   const documentContent = useDocumentContent()
+  const langClass = getSpecialLangFontClassName(gLocale.current)
+  const { isOpen, onOpen, onClose } = useDisclosure()
 
   const handleShowHelp = () => {
     const url = translatedHelpURLs[gLocale.current]
@@ -34,30 +42,37 @@ export const HelpShelfButton = () => {
 
   return (
     <>
-      <Menu isLazy>
+      <Menu isLazy autoSelect={false} isOpen={isOpen} onOpen={onOpen} onClose={onClose}>
         <MenuButton
-          className="tool-shelf-button help"
+          className={clsx("tool-shelf-button", "tool-shelf-menu", "help", langClass, {"menu-open": isOpen})}
           title={t("DG.ToolButtonData.help.toolTip")}
           data-testid="tool-shelf-button-help"
         >
           <HelpIcon />
           <ToolShelfButtonTag
-            bg={kRightButtonBackground}
-            className="web-view"
+            className="tool-shelf-tool-label web-view"
             label={t("DG.ToolButtonData.help.title")}
           />
         </MenuButton>
-        <MenuList data-testid="help-menu">
-          <MenuItem data-testid="help-menu-help-page" onClick={handleShowHelp}>
+        <MenuList className="tool-shelf-menu-list help" data-testid="help-menu">
+          <MenuItem data-testid="help-menu-help-page" onClick={handleShowHelp}
+              className="tool-shelf-menu-item help">
+            <HelpPagesIcon className="menu-icon help-icon" />
             {t("DG.AppController.optionMenuItems.help")}
           </MenuItem>
-          <MenuItem data-testid="help-menu-forum-page" onClick={()=>window.open(helpForumURL)}>
+          <MenuItem data-testid="help-menu-forum-page" onClick={()=>window.open(helpForumURL)}
+              className="tool-shelf-menu-item forum">
+            <HelpForumIcon className="menu-icon help-icon" />
             {t("DG.AppController.optionMenuItems.help-forum")}
           </MenuItem>
-          <MenuItem data-testid="help-menu-project-page" onClick={()=>window.open(projectWebSiteURL)}>
+          <MenuItem data-testid="help-menu-project-page" onClick={()=>window.open(projectWebSiteURL)}
+              className="tool-shelf-menu-item project">
+            <ProjectWebSiteIcon className="menu-icon help-icon" />
             {t("DG.AppController.optionMenuItems.toWebSite")}
           </MenuItem>
-          <MenuItem data-testid="help-menu-privacy-page" onClick={()=>window.open(privacyURL)}>
+          <MenuItem data-testid="help-menu-privacy-page" onClick={()=>window.open(privacyURL)}
+              className="tool-shelf-menu-item privacy">
+            <WebViewIcon className="menu-icon help-icon" />
             {t("DG.AppController.optionMenuItems.toPrivacyPage")}
           </MenuItem>
         </MenuList>

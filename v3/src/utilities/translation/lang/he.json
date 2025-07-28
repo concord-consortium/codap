@@ -71,7 +71,7 @@
     "DG.AppController.createDataSet.initialAttribute": "מאפיין",
     "DG.AppController.createDataSet.name": "מערך נתונים חדש",
     "DG.AppController.createDataSet.collectionName": "מקרים",
-    "DG.AppController.caseTableMenu.newDataSet": "-- חדש --",
+    "DG.AppController.caseTableMenu.newDataSet": "חדש",
     "DG.SingleTextDialog.okButton.title": "אישור",
     "DG.SingleTextDialog.cancelButton.title": "בטל",
     "DG.SingleTextDialog.cancelButton.toolTip": "שחרר דיאלוג ללא ביצוע שינויים",

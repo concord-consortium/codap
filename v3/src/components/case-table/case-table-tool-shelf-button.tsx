@@ -1,6 +1,7 @@
 import React, { useState } from "react"
 import { Button, Menu, MenuButton, MenuItem, MenuList, ModalBody, ModalFooter,
     Tooltip, useDisclosure } from "@chakra-ui/react"
+import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import { logStringifiedObjectMessage } from "../../lib/log-message"
 import { appState } from "../../models/app-state"
@@ -16,6 +17,8 @@ import { getFormulaManager, getSharedModelManager } from "../../models/tiles/til
 import { ITileModel } from "../../models/tiles/tile-model"
 import { createTileNotification } from "../../models/tiles/tile-notifications"
 import { uniqueName } from "../../utilities/js-utils"
+import { getSpecialLangFontClassName } from "../../utilities/translation/languages"
+import { gLocale } from "../../utilities/translation/locale"
 import { t } from "../../utilities/translation/translate"
 import {
   createOrShowTableOrCardForDataset, createTableOrCardForDataset
@@ -30,7 +33,12 @@ import TrashIcon from "../../assets/icons/icon-trash.svg"
 
 import "../tool-shelf/tool-shelf.scss"
 
-export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMenuList() {
+interface ICaseTableToolShelfMenuListProps {
+  setMenuIsOpen: (isOpen: boolean) => void
+}
+
+const CaseTableToolShelfMenuList = observer(
+    function CaseTableToolShelfMenuList({ setMenuIsOpen }: ICaseTableToolShelfMenuListProps) {
   const document = appState.document
   const content = document.content
   const manager = getSharedModelManager(document)
@@ -68,32 +76,36 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
     setModalOpen(true)
     onOpen()
     setDataSetIdToDelete(dsId)
+    setMenuIsOpen(false)
   }
   return (
     <>
-      <MenuList>
+      <MenuList className="tool-shelf-menu-list table" data-testid="tool-shelf-table-menu-list">
+        <MenuItem data-testid="tool-shelf-table-new" className="tool-shelf-menu-item"
+            onClick={handleCreateNewCaseTable}>
+          <TableIcon className="menu-icon case-table-icon"/>
+          {t("DG.AppController.caseTableMenu.newDataSet")}
+        </MenuItem>
+        <MenuItem data-testid="tool-shelf-table-new-clipboard" isDisabled={true} className="tool-shelf-menu-item">
+          <span>
+            <TableIcon className="menu-icon case-table-icon"/>
+            {`${t("DG.AppController.caseTableMenu.clipboardDataset")} 🚧`}
+          </span>
+        </MenuItem>
         {datasets.map((dataset) => {
           // case table title reflects DataSet title
           const tileTitle = dataset.dataSet.displayTitle
           return (
             // FIXME: this will create multiple undo entries
-            <MenuItem key={`${dataset.dataSet.id}`} onClick={()=>createOrShowTableOrCardForDataset(dataset)}
-              data-testid={`tool-shelf-table-${tileTitle}`}>
-              <TableIcon className="case-table-icon"/>
+            <MenuItem key={`${dataset.dataSet.id}`} className="tool-shelf-menu-item"
+              onClick={()=>createOrShowTableOrCardForDataset(dataset)} data-testid={`tool-shelf-table-${tileTitle}`}>
+              <TableIcon className="menu-icon case-table-icon"/>
               {tileTitle}
-              <TrashIcon className="tool-shelf-menu-trash-icon"
+              <TrashIcon className="menu-icon tool-shelf-menu-trash-icon"
                   onClick={() => handleOpenRemoveDataSetModal(dataset.dataSet.id)} />
             </MenuItem>
           )
         })}
-        <MenuItem data-testid="tool-shelf-table-new-clipboard" isDisabled={true}>
-          <TableIcon className="case-table-icon"/>
-          {`${t("DG.AppController.caseTableMenu.clipboardDataset")} 🚧`}
-        </MenuItem>
-        <MenuItem onClick={handleCreateNewCaseTable} data-testid="tool-shelf-table-new">
-          <TableIcon className="case-table-icon"/>
-          {t("DG.AppController.caseTableMenu.newDataSet")}
-        </MenuItem>
       </MenuList>
       {modalOpen &&
         <DeleteDataSetModal dataSetId={dataSetIdToDeleteId} isOpen={isOpen} onClose={onClose}
@@ -104,14 +116,20 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
 })
 
 export const CaseTableToolShelfButton = () => {
+  const [isOpen, setIsOpen] = useState(false)
+  const onClose = () => setIsOpen(false)
+  const onOpen = () => setIsOpen(true)
+  const langClass = getSpecialLangFontClassName(gLocale.current)
+
   return (
-    <Menu isLazy>
-      <MenuButton className="tool-shelf-button table" title={`${t("DG.ToolButtonData.tableButton.toolTip")}`}
+    <Menu isLazy autoSelect={false} isOpen={isOpen} onOpen={onOpen} onClose={onClose}>
+      <MenuButton className={clsx("tool-shelf-button", "tool-shelf-menu", "table", langClass, {"menu-open": isOpen})}
+          title={`${t("DG.ToolButtonData.tableButton.toolTip")}`}
           data-testid={"tool-shelf-button-table"}>
-        <TableIcon />
-        <ToolShelfButtonTag className="table" label={t("DG.ToolButtonData.tableButton.title")} />
+        <TableIcon className="menu-icon case-table-icon" />
+        <ToolShelfButtonTag className="tool-shelf-tool-label table" label={t("DG.ToolButtonData.tableButton.title")} />
       </MenuButton>
-      <CaseTableToolShelfMenuList />
+      <CaseTableToolShelfMenuList setMenuIsOpen={setIsOpen} />
     </Menu>
   )
 }
