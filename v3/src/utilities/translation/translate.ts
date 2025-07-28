@@ -50,3 +50,10 @@ export function translate (key: string, options?: ITranslateOptions) {
 }
 
 export const t = translate
+
+// Non-roman character languages require special styling so we add a class to
+// components that use these languages.
+export const getSpecialLangFontClassName = () => {
+  const specialLangFonts = ["fa", "th", "ja", "ko", "zhHans", "zhTW", "he"]
+  return specialLangFonts.includes(gLocale.current) ? `lang-${gLocale.current} lang-bold` : ""
+}

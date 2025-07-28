@@ -17,12 +17,8 @@ import { getFormulaManager, getSharedModelManager } from "../../models/tiles/til
 import { ITileModel } from "../../models/tiles/tile-model"
 import { createTileNotification } from "../../models/tiles/tile-notifications"
 import { uniqueName } from "../../utilities/js-utils"
-import { getSpecialLangFontClassName } from "../../utilities/translation/languages"
-import { gLocale } from "../../utilities/translation/locale"
-import { t } from "../../utilities/translation/translate"
-import {
-  createOrShowTableOrCardForDataset, createTableOrCardForDataset
-} from "../case-tile-common/case-tile-utils"
+import { getSpecialLangFontClassName, t } from "../../utilities/translation/translate"
+import { createOrShowTableOrCardForDataset, createTableOrCardForDataset } from "../case-tile-common/case-tile-utils"
 import { CodapModal } from "../codap-modal"
 import { ToolShelfButtonTag } from "../tool-shelf/tool-shelf-button"
 import { kCaseTableTileType } from "./case-table-defs"
@@ -119,7 +115,7 @@ export const CaseTableToolShelfButton = () => {
   const [isOpen, setIsOpen] = useState(false)
   const onClose = () => setIsOpen(false)
   const onOpen = () => setIsOpen(true)
-  const langClass = getSpecialLangFontClassName(gLocale.current)
+  const langClass = getSpecialLangFontClassName()
 
   return (
     <Menu isLazy autoSelect={false} isOpen={isOpen} onOpen={onOpen} onClose={onClose}>

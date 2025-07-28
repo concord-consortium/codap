@@ -1,9 +1,12 @@
 $tool-shelf-menu-list-width: 180px;
+
 .plugin-selection {
   display: flex;
   flex-direction: row;
+  align-items: center;
+  height: 30px;
 
-  .plugin-icon {
+  .plugin-selection-icon {
     width: 18px;
     height: 18px;
     margin-left: 8px;
@@ -17,15 +20,9 @@ $tool-shelf-menu-list-width: 180px;
   }
 }
 
-.tool-shelf-menu-list.plugins {
-  display: inline-block;
-
-  .plugin-selection {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    height: 30px;
-  }
+.submenu-expand-icon {
+  height: 36px;
+  width: 36px;
 }
 
 .plugin-category-item {
@@ -38,4 +35,18 @@ $tool-shelf-menu-list-width: 180px;
   left: -10px;
   top: 5px;
   transform: translate3d(-10px, -5px, 0px) !important;
+}
+
+.plugin-group-menu-button {
+  width: 100%;
+}
+
+.plugin-group-menu-item {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.plugin-group-menu-arrow {
+  margin-left: 8px;
 }

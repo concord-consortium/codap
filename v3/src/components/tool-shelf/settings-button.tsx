@@ -2,9 +2,7 @@ import React, { useState } from "react"
 import { clsx } from "clsx"
 import { Menu, MenuButton, MenuItem, MenuList, useDisclosure } from "@chakra-ui/react"
 import { useDocumentContent } from "../../hooks/use-document-content"
-import { getSpecialLangFontClassName } from "../../utilities/translation/languages"
-import { gLocale } from "../../utilities/translation/locale"
-import { t } from "../../utilities/translation/translate"
+import { getSpecialLangFontClassName, t } from "../../utilities/translation/translate"
 import { WebViewUrlModal } from "../web-view/web-view-url-modal"
 import { ToolShelfButtonTag } from "./tool-shelf-button"
 import { showWebView } from "./tool-shelf-utilities"
@@ -17,7 +15,7 @@ import "./tool-shelf.scss"
 export const SettingsShelfButton = () => {
   const documentContent = useDocumentContent()
   const { isOpen, onClose, onOpen } = useDisclosure()
-  const langClass = getSpecialLangFontClassName(gLocale.current)
+  const langClass = getSpecialLangFontClassName()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   //TODO: May have to move state somewhere
   const [ positionToolShelf, setPositionToolShelf ] = useState<"Top" | "Left">("Top")

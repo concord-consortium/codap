@@ -3,10 +3,10 @@ import { clsx } from "clsx"
 import { Menu, MenuButton, MenuItem, MenuList, useDisclosure } from "@chakra-ui/react"
 import { useDocumentContent } from "../../hooks/use-document-content"
 import { gLocale } from "../../utilities/translation/locale"
-import { getSpecialLangFontClassName } from "../../utilities/translation/languages"
-import { t } from "../../utilities/translation/translate"
+import { getSpecialLangFontClassName, t } from "../../utilities/translation/translate"
 import { ToolShelfButtonTag } from "./tool-shelf-button"
 import { showWebView } from "./tool-shelf-utilities"
+
 import HelpPagesIcon from "../../assets/icons/icon-help-pages.svg"
 import HelpForumIcon from "../../assets/icons/icon-help-forum.svg"
 import ProjectWebSiteIcon from "../../assets/icons/icon-codap-project.svg"
@@ -27,7 +27,7 @@ const translatedHelpURLs: Record<string, string> = {
 
 export const HelpShelfButton = () => {
   const documentContent = useDocumentContent()
-  const langClass = getSpecialLangFontClassName(gLocale.current)
+  const langClass = getSpecialLangFontClassName()
   const { isOpen, onOpen, onClose } = useDisclosure()
 
   const handleShowHelp = () => {
