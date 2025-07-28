@@ -171,7 +171,7 @@ export const App = observer(function App() {
       Logger.initializeLogger(appState.document)
 
       window.onbeforeunload = function() {
-        if (urlParams.suppressUnsavedWarning !== undefined && cfm.client.state.dirty) {
+        if (urlParams.suppressUnsavedWarning === undefined && cfm.client.state.dirty) {
           return t("V3.general.unsavedChangesWarning")
         }
       }
