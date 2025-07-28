@@ -49,7 +49,7 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
       const newName = uniqueName(baseName, name => !datasetNames.includes(name), " ")
       const ds = DataSet.create({ name: newName, _title: newName })
       ds.addAttribute({ name: t("DG.AppController.createDataSet.initialAttribute") })
-      const options: INewTileOptions = { animateCreation: true, markNewlyCreated: true }
+      const options: INewTileOptions = { markNewlyCreated: true }
       tile = createDefaultTileOfType(kCaseTableTileType, options)
       if (!tile) return
       const { sharedData, sharedMetadata } = gDataBroker.addDataSet(ds, tile.id)
