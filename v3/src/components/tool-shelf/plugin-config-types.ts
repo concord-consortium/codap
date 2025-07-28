@@ -13,9 +13,9 @@ export interface PluginData {
   width: number
 }
 
-export interface PluginSubMenuItems {
+export interface PluginGroup {
   title: string,
-  subMenu: PluginData[]
+  plugins: PluginData[]
 }
 
-export type PluginMenuConfig = PluginSubMenuItems[]
+export type PluginMenuConfig = PluginGroup[]

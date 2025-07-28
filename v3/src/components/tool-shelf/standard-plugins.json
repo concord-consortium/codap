@@ -1,6 +1,6 @@
 [
   { "title": "Story Telling",
-    "subMenu": [
+    "plugins": [
       {
         "title": "Draw Tool",
         "description": "Annotate an image.",
@@ -50,7 +50,7 @@
     ]
   },
   { "title": "Getting Data",
-    "subMenu": [
+    "plugins": [
       {
         "title": "Microdata Portal",
         "description": "Investigate populations from the US census at the individual level.",
@@ -87,7 +87,7 @@
     ]
   },
   { "title": "Simulation",
-    "subMenu": [
+    "plugins": [
       {
         "title": "Sampler",
         "description": "Create random datasets from scratch or existing datasets.",
@@ -108,7 +108,7 @@
     ]
   },
   { "title": "Data Moves",
-    "subMenu": [
+    "plugins": [
       {
         "title": "Choosy",
         "description": "Organize and simplify datasets, especially those with many attributes.",
@@ -144,7 +144,7 @@
     ]
   },
   { "title": "Statistical Inference",
-    "subMenu": [
+    "plugins": [
       {
         "title": "Scrambler",
         "description": "Test hypotheses by randomly varying an attribute.",
