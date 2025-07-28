@@ -127,7 +127,7 @@ export function convertAttributeToV2(attribute: IAttribute, dataContext?: IDataS
     renameable: (attribute && !metadata?.isRenameProtected(attribute.id)) ?? true,
     deleteable: (attribute && !metadata?.isDeleteProtected(attribute.id)) ?? true,
     formula: attribute.formula?.display,
-    deletedFormula: (attribute && metadata?.attributes.get(attribute.id)?.deletedFormula) || undefined,
+    deletedFormula: (attribute && metadata?.getAttributeDeletedFormula(attribute.id)) || undefined,
     guid: v2Id,
     id: v2Id,
     precision,

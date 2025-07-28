@@ -175,7 +175,7 @@ export class CodapV2DataSetImporter {
           metadata.setAttributeDefaultRange(attribute.id, defaultMin, defaultMax)
         }
         if (deletedFormula) {
-          metadata.setDeletedFormula(deletedFormula)
+          metadata.setDeletedFormula(attribute.id, deletedFormula)
         }
       }
     })
