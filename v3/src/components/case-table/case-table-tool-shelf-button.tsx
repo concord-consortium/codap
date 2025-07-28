@@ -17,9 +17,7 @@ import { ITileModel } from "../../models/tiles/tile-model"
 import { createTileNotification } from "../../models/tiles/tile-notifications"
 import { uniqueName } from "../../utilities/js-utils"
 import { t } from "../../utilities/translation/translate"
-import {
-  createOrShowTableOrCardForDataset, createTableOrCardForDataset
-} from "../case-tile-common/case-tile-utils"
+import { createOrShowTableOrCardForDataset, createTableOrCardForDataset } from "../case-tile-common/case-tile-utils"
 import { CodapModal } from "../codap-modal"
 import { ToolShelfButtonTag } from "../tool-shelf/tool-shelf-button"
 import { kCaseTableTileType } from "./case-table-defs"
@@ -49,6 +47,10 @@ export const CaseTableToolShelfMenuList = observer(function CaseTableToolShelfMe
       const newName = uniqueName(baseName, name => !datasetNames.includes(name), " ")
       const ds = DataSet.create({ name: newName, _title: newName })
       ds.addAttribute({ name: t("DG.AppController.createDataSet.initialAttribute") })
+      // TODO: After beta release, turn animateCreation back on.
+      // For some reason the viewport is scrolling to show new tables, and when animateCreation is on,
+      // the new tile is created at 0,0. The correct fix for this issue is to prevent scrolling to show the new table.
+      // const options: INewTileOptions = { animateCreation: true, markNewlyCreated: true }
       const options: INewTileOptions = { markNewlyCreated: true }
       tile = createDefaultTileOfType(kCaseTableTileType, options)
       if (!tile) return
