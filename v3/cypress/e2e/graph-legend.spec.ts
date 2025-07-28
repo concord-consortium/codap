@@ -22,7 +22,7 @@ const arrayOfValues = [
 
 context("Test legend with various attribute types", () => {
   beforeEach(function () {
-    const queryParams = "?sample=mammals&dashboard&mouseSensor"
+    const queryParams = "?sample=mammals&dashboard&mouseSensor&suppressUnsavedWarning"
     const url = `${Cypress.config("index")}${queryParams}`
     cy.visit(url)
     cy.wait(2500)
@@ -351,7 +351,7 @@ context("Test legend with various attribute types", () => {
 
 context("Test drawing legend on existing legend", () => {
   beforeEach(function () {
-    const queryParams = "?sample=mammals&dashboard&mouseSensor"
+    const queryParams = "?sample=mammals&dashboard&mouseSensor&suppressUnsavedWarning"
     const url = `${Cypress.config("index")}${queryParams}`
     cy.visit(url)
     cy.wait(2500)
@@ -528,7 +528,7 @@ context("Test drawing legend on existing legend", () => {
 })
 context("Test selecting and selecting categories in legend", () => {
   beforeEach(function () {
-    const queryParams = "?sample=mammals&dashboard&mouseSensor"
+    const queryParams = "?sample=mammals&dashboard&mouseSensor&suppressUnsavedWarning"
     const url = `${Cypress.config("index")}${queryParams}`
     cy.visit(url)
     cy.wait(2500)
@@ -590,7 +590,7 @@ context("Test changing legend colors", () => {
     const hueLandBaseGreen = 255
 
     beforeEach(function () {
-      const queryParams = "?sample=mammals&dashboard&mouseSensor"
+      const queryParams = "?sample=mammals&dashboard&mouseSensor&suppressUnsavedWarning"
       const url = `${Cypress.config("index")}${queryParams}`
       cy.visit(url)
       cy.wait(2500)
@@ -799,7 +799,7 @@ context("Test changing legend colors", () => {
 })
 context("Test changing the legend bins", () => {
   beforeEach(function () {
-    const queryParams = "?sample=mammals&dashboard&mouseSensor"
+    const queryParams = "?sample=mammals&dashboard&mouseSensor&suppressUnsavedWarning"
     const url = `${Cypress.config("index")}${queryParams}`
     cy.visit(url)
     cy.wait(2500)

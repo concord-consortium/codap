@@ -14,7 +14,7 @@ const privacyURL = 'https://codap.concord.org/privacy'
 
 context("codap toolbar", () => {
   beforeEach(function () {
-    const url = `${Cypress.config("index")}?mouseSensor&noEntryModal`
+    const url = `${Cypress.config("index")}?mouseSensor&noEntryModal&suppressUnsavedWarning`
     cy.visit(url)
   })
   it("will open a new table", () => {
@@ -106,7 +106,7 @@ context("codap toolbar", () => {
     toolbar.getTilesListMenuIcon().eq(0).should("have.class", "CaseTable")
   })
   it('will show a list of open tiles when there is a data context', ()=>{
-    cy.visit("#file=examples:Four%20Seals")
+    cy.visit("?suppressUnsavedWarning#file=examples:Four%20Seals")
     toolbar.getTilesButton().click()
     toolbar.getTilesListMenu().should("be.visible")
     toolbar.getTilesListMenuItem().should("have.length", 5)
@@ -117,7 +117,7 @@ context("codap toolbar", () => {
     toolbar.getTilesListMenuItem().eq(4).should("have.text", "Getting Started")
   })
   it('will show the help pages list', ()=>{
-    cy.visit("#file=examples:Four%20Seals")
+    cy.visit("?suppressUnsavedWarning#file=examples:Four%20Seals")
     c.getIconFromToolShelf("help").click()
     toolbar.getHelpMenu().should("be.visible")
     toolbar.getHelpMenuItem("help").should("contains.text", "Help Pages and Videos")
@@ -129,7 +129,7 @@ context("codap toolbar", () => {
 
 context("Help Pages", () => {
   beforeEach(() => {
-    cy.visit("#file=examples:Four%20Seals")
+    cy.visit("?suppressUnsavedWarning#file=examples:Four%20Seals")
     cy.window().then((win) => {
       cy.stub(win, "open").as("windowOpen")
     })

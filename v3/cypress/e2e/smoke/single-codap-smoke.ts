@@ -12,7 +12,7 @@ import { AxisHelper as ah } from "../../support/helpers/axis-helper"
 
 context("codap single smoke test", () => {
   beforeEach(function () {
-    const url = `${Cypress.config("index")}?mouseSensor&noEntryModal`
+    const url = `${Cypress.config("index")}?mouseSensor&noEntryModal&suppressUnsavedWarning`
     cy.visit(url)
   })
 

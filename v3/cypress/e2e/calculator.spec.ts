@@ -6,7 +6,7 @@ const calculatorName = "Calculator"
 
 context("Calculator", () => {
   beforeEach(function () {
-      const queryParams = "?sample=mammals&dashboard&mouseSensor"
+      const queryParams = "?sample=mammals&dashboard&mouseSensor&suppressUnsavedWarning"
       const url = `${Cypress.config("index")}${queryParams}`
       cy.visit(url)
       cy.wait(2500) // Ensuring the page and components are fully loaded.
