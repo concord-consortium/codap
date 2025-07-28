@@ -1,12 +1,14 @@
 import { TableTileElements as table } from "../support/elements/table-tile"
 import { CardTileElements as card } from "../support/elements/card-tile"
+import { ComponentElements as c } from "../support/elements/component-elements"
 import { ToolbarElements as toolbar } from "../support/elements/toolbar-elements"
 import { FormulaHelper as fh } from "../support/helpers/formula-helper"
 
 context("case card", () => {
   beforeEach(() => {
     // cy.scrollTo() doesn't work as expected with `scroll-behavior: smooth`
-    const queryParams = "?sample=mammals&mouseSensor&scrollBehavior=auto&noComponentAnimation=true"
+    const queryParams =
+      "?sample=mammals&mouseSensor&scrollBehavior=auto&noComponentAnimation=true&suppressUnsavedWarning"
     const url = `${Cypress.config("index")}${queryParams}`
     cy.visit(url)
     cy.wait(2000)
@@ -22,6 +24,7 @@ context("case card", () => {
       cy.wait(500)
       cy.get('[data-testid="codap-case-table"]').should("not.exist")
       cy.get('[data-testid="codap-case-card"]').should("exist")
+      c.checkComponentFocused("case-card")
       table.getToggleCardView().click()
       cy.wait(500)
       table.getToggleCardMessage().should("have.text", "Switch to case table view of the data").click()
@@ -337,7 +340,7 @@ context("case card", () => {
 context("case card inspector panel", () => {
   beforeEach(() => {
     // cy.scrollTo() doesn't work as expected with `scroll-behavior: smooth`
-    const queryParams = "?sample=mammals&scrollBehavior=auto"
+    const queryParams = "?sample=mammals&scrollBehavior=auto&suppressUnsavedWarning"
     const url = `${Cypress.config("index")}${queryParams}`
     cy.visit(url)
     cy.wait(2000)

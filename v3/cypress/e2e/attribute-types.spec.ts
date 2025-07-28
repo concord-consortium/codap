@@ -4,7 +4,7 @@ import { CfmElements as cfm } from "../support/elements/cfm"
 context("attribute types", () => {
   beforeEach(() => {
     const filename = "cypress/fixtures/attribute-types.codap"
-    const url = `${Cypress.config("index")}`
+    const url = `${Cypress.config("index")}?suppressUnsavedWarning`
     cy.visit(url)
     cy.wait(3000)
     cfm.openLocalDocWithUserEntry(filename)

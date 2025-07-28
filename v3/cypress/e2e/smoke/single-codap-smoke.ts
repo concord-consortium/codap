@@ -12,7 +12,7 @@ import { AxisHelper as ah } from "../../support/helpers/axis-helper"
 
 context("codap single smoke test", () => {
   beforeEach(function () {
-    const url = `${Cypress.config("index")}?mouseSensor&noEntryModal`
+    const url = `${Cypress.config("index")}?mouseSensor&noEntryModal&suppressUnsavedWarning`
     cy.visit(url)
     cy.wait(1000)
   })
@@ -231,7 +231,7 @@ context("codap single smoke test", () => {
         }
         return false
       })
-cy.wrap(criticalErrors).should('be.empty')
+      cy.wrap(criticalErrors).should('be.empty')
     })
 
     // Verify no critical warnings in console
@@ -246,7 +246,7 @@ cy.wrap(criticalErrors).should('be.empty')
         }
         return false
       })
-cy.wrap(criticalWarnings).should('be.empty')
+      cy.wrap(criticalWarnings).should('be.empty')
     })
   })
 })
