@@ -186,6 +186,9 @@ export interface ICodapV2GameContext extends Omit<ICodapV2DataContext, "type"> {
   type: "DG.GameContext"
   contextStorage: ICodapV2GameContextStorage
 }
+export function isCodapV2GameContext(context?: CodapV2Context): context is ICodapV2GameContext {
+  return !!context && "type" in context && context.type === "DG.GameContext"
+}
 
 export interface ICodapV2DataContextSelectedCase {
   type: "DG.Case"
@@ -204,8 +207,9 @@ export interface ICodapV2GameContextStorage extends ICodapV2DataContextStorage {
   gameState?: any
 }
 
-export type CodapV2Context = ICodapV2DataContext | ICodapV2GameContext | ICodapV2ExternalContext
-export const isV2ExternalContext = (context: CodapV2Context): context is ICodapV2ExternalContext =>
-  !("type" in context) && ("externalDocumentId" in context)
-export const isV2InternalContext = (context: CodapV2Context): context is ICodapV2DataContext | ICodapV2GameContext =>
-  ("type" in context)
+export type CodapV2InternalContext = ICodapV2DataContext | ICodapV2GameContext
+export type CodapV2Context = CodapV2InternalContext | ICodapV2ExternalContext
+export const isV2ExternalContext = (context: Maybe<CodapV2Context>): context is ICodapV2ExternalContext =>
+  !!context && !("type" in context) && ("externalDocumentId" in context)
+export const isV2InternalContext = (context: Maybe<CodapV2Context>): context is CodapV2InternalContext =>
+  !!context && ("type" in context)

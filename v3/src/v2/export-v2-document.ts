@@ -1,6 +1,6 @@
 import build from "../../build_number.json"
 import pkg from "../../package.json"
-import { convertDataSetToV2 } from "../data-interactive/data-interactive-type-utils"
+import { convertDataSetToV2, IConvertDataSetToV2Options } from "../data-interactive/data-interactive-type-utils"
 import { IDocumentModel } from "../models/document/document"
 import { isFreeTileRow } from "../models/document/free-tile-row"
 import { getSharedDataSets } from "../models/shared/shared-data-utils"
@@ -8,7 +8,7 @@ import { getSharedModelManager } from "../models/tiles/tile-environment"
 import { getGlobalValueManager } from "../models/global/global-value-manager"
 import { toV2Id } from "../utilities/codap-utils"
 import { ICodapV2DataContext } from "./codap-v2-data-context-types"
-import { exportV2Component } from "./codap-v2-tile-exporters"
+import { exportV2Component, GameContextMetadataMap } from "./codap-v2-tile-exporters"
 import { CodapV2Component, ICodapV2DocumentJson } from "./codap-v2-types"
 
 interface IV2DocumentExportOptions {
@@ -22,15 +22,18 @@ export function exportV2Document(document: IDocumentModel, options?: IV2Document
 
   // export the components
   const components: CodapV2Component[] = []
+  const gameContextMetadataMap: GameContextMetadataMap = {}
   document.content?.tileMap.forEach(tile => {
-    const component = exportV2Component({ tile, row, sharedModelManager })
+    // components can add game context metadata, which will be used below when the contexts are exported
+    const component = exportV2Component({ tile, row, sharedModelManager, gameContextMetadataMap })
     if (component) components.push(component)
   })
 
   // export the data contexts
   const contexts: ICodapV2DataContext[] = []
   getSharedDataSets(document).forEach(sharedData => {
-    const data = convertDataSetToV2(sharedData.dataSet, true) as ICodapV2DataContext
+    const _options: IConvertDataSetToV2Options = { exportCases: true, gameContextMetadataMap }
+    const data = convertDataSetToV2(sharedData.dataSet, _options) as ICodapV2DataContext
     contexts.push(data)
   })
 

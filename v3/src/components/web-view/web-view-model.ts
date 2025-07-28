@@ -29,15 +29,22 @@ export const WebViewModel = TileContentModel
     pageIndex: 0,
     pages: types.array(WebPageModel),
     // for games/plugins
+    // TODO: should this be a safeReference instead?
+    dataContextId: types.maybe(types.string),
     state: types.frozen<unknown>(),
     // fields controlled by plugins (like Collaborative) via interactiveFrame requests
+    // allows the user to delete empty attributes, even if preventAttributeDeletion is true
     allowEmptyAttributeDeletion: kDefaultAllowEmptyAttributeDeletion,
     blockAPIRequestsWhileEditing: kDefaultBlockAPIRequestsWhileEditing,
+    // prevent the user from deleting attributes (see exception for empty attributes above)
     preventAttributeDeletion: kDefaultPreventAttributeDeletion,
     preventBringToFront: kDefaultPreventBringToFront,
     preventDataContextReorg: kDefaultPreventDataContextReorg,
     preventTopLevelReorg: kDefaultPreventTopLevelReorg,
-    respectEditableItemAttribute: kDefaultRespectEditableItemAttribute
+    // this property is referenced in the v2 code but does not appear to ever be set
+    respectEditableItemAttribute: kDefaultRespectEditableItemAttribute,
+    // whether this web view was imported (in part) from a v2 DG.GameContext
+    hasV2GameContext: types.maybe(types.literal(true))
   })
   .volatile(self => ({
     dataInteractiveController: undefined as iframePhone.IframePhoneRpcEndpoint | undefined,

@@ -109,42 +109,17 @@ export interface ICodapV2GameViewStorage extends ICodapV2BaseComponentStorage {
   currentGameUrl: string
   savedGameState?: unknown
   currentGameName?: string
-  // TODO_V2_IMPORT allowInitGameOverride is not imported
-  // it occurs in at least 12,500 files in cfm-shared
-  // there are no instances of it being set to false
-  // it might not be optional
+  // ignore: initialized to true but not used by v2 code
   allowInitGameOverride?: boolean
-  // TODO_V2_IMPORT preventBringToFront is not imported
-  // it occurs in at least 19,7000 files in cfm-shared
-  // there are at least 8,000 instances where it is false
-  // it might not be optional
   preventBringToFront?: boolean
-  // TODO_V2_IMPORT preventDataContextReorg is not imported
-  // there are at least 20,000 instances where it is false
-  // and at least 20,000 instances where it is true
-  // it might not be optional
   preventDataContextReorg?: boolean
-  // TODO_V2_IMPORT preventTopLevelReorg is not imported
-  // there are only 11 instances in 9 files where it is true
-  // and at least 20,000 instances where it is false
-  // it might not be optional
   preventTopLevelReorg?: boolean
-  // TODO_V2_IMPORT preventAttributeDeletion is not imported
-  // there are only 4 instances in 3 files where it is true
-  // and at least 20,000 instances where it is false
-  // it might not be optional
   preventAttributeDeletion?: boolean
-  // TODO_V2_IMPORT allowEmptyAttributeDeletion is not imported
-  // there are only 41 instances in 33 files where it is true
-  // and at least 20,000 instances where it is false
-  // it might not be optional
   allowEmptyAttributeDeletion?: boolean
-  // TODO_V2_IMPORT _links_ is not imported
-  // unknown how many times it is used in this location
   _links_?: {
     context?: IGuidLink<"DG.DataContextRecord">
   }
-  // currentGameFormulas occurs 62 times in cfm-shared and is always null
+  // ignore: occurs 62 times in cfm-shared and is always null
   currentGameFormulas?: null
 }
 
