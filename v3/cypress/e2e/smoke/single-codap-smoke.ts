@@ -229,7 +229,7 @@ context("codap single smoke test", () => {
         }
         return false
       })
-cy.wrap(criticalErrors).should('be.empty')
+      cy.wrap(criticalErrors).should('be.empty')
     })
 
     // Verify no critical warnings in console
@@ -244,7 +244,7 @@ cy.wrap(criticalErrors).should('be.empty')
         }
         return false
       })
-cy.wrap(criticalWarnings).should('be.empty')
+      cy.wrap(criticalWarnings).should('be.empty')
     })
   })
 })

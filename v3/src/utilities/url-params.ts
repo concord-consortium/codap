@@ -108,6 +108,11 @@ export interface UrlParams {
    */
   pluginURL?: string | null
   /*
+   * Used to toggle certain features based on which version of CODAP is being run.
+   * Currently supports "beta".
+   */
+  release?: string | null
+  /*
    * For testing -- specifies a built-in sample document to be loaded on startup.
    * Useful for automated tests; often combined with `dashboard`.
    * value: "abalone" | "cats" | "coasters" | "colors" | "four" | "mammals"
