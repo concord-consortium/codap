@@ -15,7 +15,7 @@ const arrayOfAttributes = [ "Mammal", "Order", "LifeSpan", "Height", "Mass", "Sl
 // These tests may be run locally if desired. they can take awhile to run on the cloud
 context.skip("Test graph plot transitions", () => {
   beforeEach(function () {
-    const queryParams = "?mouseSensor&suppressUnsavedWarning=true"
+    const queryParams = "?mouseSensor&suppressUnsavedWarning"
     const url = `${Cypress.config("index")}${queryParams}`
     cy.visit(url)
     cfm.openLocalDoc("cypress/fixtures/3TableGroups.codap")

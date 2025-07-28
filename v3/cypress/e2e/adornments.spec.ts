@@ -8,7 +8,7 @@ const expectedPercents = [0, 100, 0, 37, 33, 29, 0, 100, 0]
 
 context("Graph adornments", () => {
   beforeEach(function () {
-    const queryParams = "?sample=mammals&dashboard&mouseSensor&suppressUnsavedWarning=true"
+    const queryParams = "?sample=mammals&dashboard&mouseSensor&suppressUnsavedWarning"
     const url = `${Cypress.config("index")}${queryParams}`
     cy.visit(url)
     cy.wait(2500)

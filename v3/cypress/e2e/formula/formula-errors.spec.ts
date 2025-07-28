@@ -4,7 +4,7 @@ import { TableTileElements as table } from "../../support/elements/table-tile"
 context("Formula Engine", () => {
   describe("Errors Formula Tests", () => {
     it("Check invalid functions", () => {
-      fh.visitURL("?sample=four&suppressUnsavedWarning=true")
+      fh.visitURL("?sample=four&suppressUnsavedWarning")
       table.addNewAttribute()
       table.renameAttribute("newAttr", "Formula")
       table.addFormula("Formula", "count(aaa)")

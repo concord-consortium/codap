@@ -3,7 +3,7 @@ import { TableTileElements as table } from "../../support/elements/table-tile"
 import { SliderTileElements as slider } from "../../support/elements/slider-tile"
 
 context("Formula Engine", () => {
-  const emptyUrlParams = "?suppressUnsavedWarning=true"
+  const emptyUrlParams = "?suppressUnsavedWarning"
   const fourUrlParams = `${emptyUrlParams}&sample=four`
   const dashboardUrlParams = `${fourUrlParams}&dashboard`
   describe("Component Formula Tests", () => {

@@ -2,7 +2,7 @@ import { FormulaHelper as fh } from "../../support/helpers/formula-helper"
 import { TableTileElements as table } from "../../support/elements/table-tile"
 
 context("Formula Engine", () => {
-  const urlParams = "?sample=four&suppressUnsavedWarning=true"
+  const urlParams = "?sample=four&suppressUnsavedWarning"
   describe("Special Characters in Formula Tests", () => {
     it("Check backtick in symbol name", () => {
       fh.visitURL(urlParams)

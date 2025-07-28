@@ -11,7 +11,7 @@ context("Test graph axes with various attribute types", () => {
       arrayOfAttributes = data.attributes
       arrayOfValues = data.values
     })
-    const queryParams = "?sample=mammals&dashboard&mouseSensor&suppressUnsavedWarning=true"
+    const queryParams = "?sample=mammals&dashboard&mouseSensor&suppressUnsavedWarning"
     const url = `${Cypress.config("index")}${queryParams}`
     cy.visit(url)
     cy.wait(1000)
@@ -373,7 +373,7 @@ context("Test graph axes with various attribute types", () => {
 
 context("Test graph axes attribute menu", () => {
   beforeEach(function () {
-    const queryParams = "?sample=mammals&dashboard&mouseSensor&suppressUnsavedWarning=true"
+    const queryParams = "?sample=mammals&dashboard&mouseSensor&suppressUnsavedWarning"
     const url = `${Cypress.config("index")}${queryParams}`
     cy.visit(url)
     cy.wait(2500)
@@ -542,7 +542,7 @@ context("Test date axes with multiple y-axes", () => {
     cy.fixture('axis-test-data.json').then((data) => {
       fourSealsValues = data.fourSeals.values
     })
-    const queryParams = "?mouseSensor=&suppressUnsavedWarning=true#file=examples:Four%20Seals"
+    const queryParams = "?mouseSensor=&suppressUnsavedWarning#file=examples:Four%20Seals"
     const url = `${Cypress.config("index")}${queryParams}`
     cy.visit(url)
     cy.wait(1000)

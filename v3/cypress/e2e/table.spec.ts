@@ -15,7 +15,7 @@ context("case table ui", () => {
 
   beforeEach(() => {
     // cy.scrollTo() doesn't work as expected with `scroll-behavior: smooth`
-    const queryParams = "?sample=mammals&scrollBehavior=auto&suppressUnsavedWarning=true"
+    const queryParams = "?sample=mammals&scrollBehavior=auto&suppressUnsavedWarning"
     const url = `${Cypress.config("index")}${queryParams}`
     cy.visit(url)
     cy.wait(1000)
@@ -421,7 +421,7 @@ context("case table ui", () => {
       table.getCfmModal().should("exist")
 
       cy.log("check reaching the cfm to export data with multiple collections")
-      const queryParams = "?suppressUnsavedWarning=true&mouseSensor=#file=examples:Four%20Seals"
+      const queryParams = "?suppressUnsavedWarning&mouseSensor=#file=examples:Four%20Seals"
       const url = `${Cypress.config("index")}${queryParams}`
       cy.visit(url)
       c.selectTile("table", 0)
@@ -451,7 +451,7 @@ context("case table ui", () => {
         table.getCopiedCasesAlertOkButton().click()
 
         cy.log("check copying data from multiple collections")
-        const queryParams = "?suppressUnsavedWarning=true&mouseSensor=#file=examples:Four%20Seals"
+        const queryParams = "?suppressUnsavedWarning&mouseSensor=#file=examples:Four%20Seals"
         const url = `${Cypress.config("index")}${queryParams}`
         cy.visit(url)
         c.selectTile("table", 0)
@@ -1211,7 +1211,7 @@ context("case table ui", () => {
 
   describe("table cells with boundary thumbnails", () => {
     it("displays boundary thumbnails in cells of boundary attributes", () => {
-      const queryParams = "?suppressUnsavedWarning=true#file=examples:Roller%20Coasters"
+      const queryParams = "?suppressUnsavedWarning#file=examples:Roller%20Coasters"
       const url = `${Cypress.config("index")}${queryParams}`
       cy.visit(url)
       cy.wait(1000)

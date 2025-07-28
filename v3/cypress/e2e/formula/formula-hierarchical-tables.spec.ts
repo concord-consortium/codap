@@ -2,7 +2,7 @@ import { FormulaHelper as fh } from "../../support/helpers/formula-helper"
 import { TableTileElements as table } from "../../support/elements/table-tile"
 
 context("Formula Engine", () => {
-  const urlParams = "?suppressUnsavedWarning=true"
+  const urlParams = "?suppressUnsavedWarning"
   describe("Hierarchical Case Tables Formula Tests", () => {
     it("Check aggregate and non-aggregate formulae referencing a parent attribute in child collection", () => {
       fh.visitURL(urlParams)

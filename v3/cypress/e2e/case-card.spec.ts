@@ -7,7 +7,7 @@ context("case card", () => {
   beforeEach(() => {
     // cy.scrollTo() doesn't work as expected with `scroll-behavior: smooth`
     const queryParams =
-      "?sample=mammals&mouseSensor&scrollBehavior=auto&noComponentAnimation=true&suppressUnsavedWarning=true"
+      "?sample=mammals&mouseSensor&scrollBehavior=auto&noComponentAnimation=true&suppressUnsavedWarning"
     const url = `${Cypress.config("index")}${queryParams}`
     cy.visit(url)
     cy.wait(2000)
@@ -338,7 +338,7 @@ context("case card", () => {
 context("case card inspector panel", () => {
   beforeEach(() => {
     // cy.scrollTo() doesn't work as expected with `scroll-behavior: smooth`
-    const queryParams = "?sample=mammals&scrollBehavior=auto&suppressUnsavedWarning=true"
+    const queryParams = "?sample=mammals&scrollBehavior=auto&suppressUnsavedWarning"
     const url = `${Cypress.config("index")}${queryParams}`
     cy.visit(url)
     cy.wait(2000)

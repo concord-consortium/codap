@@ -2,7 +2,7 @@ import { FormulaHelper as fh } from "../../support/helpers/formula-helper"
 import { TableTileElements as table } from "../../support/elements/table-tile"
 
 context("Formula Engine", () => {
-  const urlParams = "?suppressUnsavedWarning=true"
+  const urlParams = "?suppressUnsavedWarning"
   it("Check arithmetic functions", () => {
     fh.visitURL(urlParams)
     fh.importFile("cypress/fixtures/formula.codap3")

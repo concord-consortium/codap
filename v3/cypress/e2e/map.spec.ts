@@ -19,7 +19,7 @@ const arrayOfAttributes = ["Category", "Educ_Tertiary_Perc", "Inversions"]
 
 context("Map UI", () => {
   beforeEach(function () {
-    const url = `${Cypress.config("index")}?mouseSensor&noComponentAnimation&noEntryModal&suppressUnsavedWarning=true`
+    const url = `${Cypress.config("index")}?mouseSensor&noComponentAnimation&noEntryModal&suppressUnsavedWarning`
     cy.visit(url)
     cy.wait(3000)
   })
@@ -425,7 +425,7 @@ context("Map UI", () => {
 
 context("Map API", () => {
   beforeEach(function () {
-    const url = `${Cypress.config("index")}?suppressUnsavedWarning=true#file=examples:Four%20Seals`
+    const url = `${Cypress.config("index")}?suppressUnsavedWarning#file=examples:Four%20Seals`
     cy.visit(url)
   })
   const apiTesterUrl='https://concord-consortium.github.io/codap-data-interactives/DataInteractiveAPITester/index.html?lang=en'
