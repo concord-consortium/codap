@@ -1,7 +1,7 @@
 .codap-menu-bar {
   position: relative;
   width: 100%;
-  height: 30px;
+  height: 51px;
   background: #105262;
 
   // CFM style overrides
@@ -10,12 +10,6 @@
     // This puts CFM menus and dialogs above all components, resize handles, etc.
     z-index: 20;
 
-    .menu-bar {
-      // center hamburger menu button
-      .menu-anchor {
-        margin-top: 5px;
-      }
-    }
     .modal-dialog {
       // default border for input elements
       input {
@@ -29,25 +23,5 @@
         font-size: 12px
       }
     }
-
-    .cfm-menu > .lang-menu {
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      &.with-border {
-        margin-top: -5px;
-      }
-      .lang-label {
-        background-position: 4px 5px;
-        margin-top: 0;
-      }
-    }
-
-    .menu.lang-menu {
-      .cfm-menu.menu-showing {
-        top: 24px;
-      }
-    }
   }
-
 }

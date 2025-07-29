@@ -1,98 +1,111 @@
 @use "../vars";
 $deleteModalBackground: #EEE;
 $deleteButton: #4B8ADD;
+$tool-shelf-border-width: 1px;
 
 .tool-shelf {
   height: vars.$tool-shelf-height;
   width: 100%;
-  background-color: vars.$codap-tool-shelf-gray;
-  border-bottom: 1px solid #dcdbd8;
-  box-shadow: 0 0 0 1px #888888!important;
+  background-color: white;
+  border-bottom: $tool-shelf-border-width solid #a6a6a6;
+  box-shadow: 0 0 6px 0 rgba(0, 0, 0, 0.25) !important;
   display: flex;
   flex-direction: row;
   align-items: center;
-
-  .tool-shelf-component-buttons {
-    background-color: white;
-
-    .case-table-icon {
-      width: 20px;
-      height: 15px;
-      margin-right: 8px;
-    }
-  }
-
-  .tool-shelf-right-buttons {
-    background-color: vars.$codap-tool-shelf-gray;
-
-    .tool-shelf-button {
-      // override CFM styles issue
-      &.menu {
-        padding: 0;
-      }
-
-      > span {
-        align-items: center;
-        display: flex;
-        flex-direction: column;
-      }
-
-      &.undo-button, &.redo-button {
-        width: 34px;
-      }
-      // separate undo/redo buttons from other buttons
-      &.redo-button {
-        margin-left: -1px;
-        margin-right: 12px;
-      }
-
-      svg {
-        height: 24px;
-        // separate label from icon
-        margin-bottom: 1px;
-
-        &.icon-tile-list {
-          width: 33px;
-        }
-      }
-    }
-  }
+  box-sizing: border-box;
+  position: relative;
+  z-index: 5;
 
   .tool-shelf-component-buttons, .tool-shelf-right-buttons {
-    height: vars.$tool-shelf-height;
-    border-right: solid #888888;
+    display: flex;
+    flex-direction: row;
     align-items: center;
-    padding: 0 5px;
 
     .tool-shelf-button {
-      height: 40px;
-      width: 40px;
+      height: calc(vars.$tool-shelf-height - $tool-shelf-border-width);
+      width: fit-content;
       display: flex;
       flex-direction: column;
-      justify-items: center;
       align-items: center;
-      margin: 10px 3px 0 3px;
+      background-color: white;
+
+      // When toolshelf button is a menu button, it has a span wrapper
+      // This overrides wrapping span styles
+      &.tool-shelf-menu {
+        > span {
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+          height: 46px;
+          margin: 0 10px 0 11px;
+
+          svg {
+            height: 30px;
+            width: 30px;
+          }
+          > .tool-shelf-tool-label {
+            background-color: transparent;
+            padding-inline-start: 0;
+            padding-inline-end: 0;
+            height: 18px;
+            line-height: 16px;
+            letter-spacing: 0.2px;
+            min-height: 0;
+            font-size: 14px;
+            position: relative;
+            top: -1px;
+          }
+        }
+      }
 
       &:disabled {
-        opacity: 0.5;
+        opacity: 0.35;
         box-shadow: none;
-        cursor: not-allowed;
+        pointer-events: none;
       }
       &:hover:not(:disabled) {
-        box-shadow: 1px 1px 1px rgb(0, 0, 0, 0.5) !important;
+        background-color: vars.$icon-fill-light;
       }
       &:active:not(:disabled) {
-        box-shadow: 2px 2px 2px rgb(0, 0, 0, 0.5) !important;
+        background-color: #bfefff;
       }
-      .tool-shelf-tool-label {
-        font-family: "museo-sans", sans-serif;
-        font-size: 11px;
-        font-weight: 500;
-        padding: 0;
-        min-height: 6px;
+      &.menu-open {
+        height: calc(vars.$tool-shelf-height - $tool-shelf-border-width);
+        width: fit-content;
+        background-color: vars.$icon-fill-light;
+      }
 
-        &.menu {
+      .tool-shelf-button-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        margin: 9px 10px 0px 10px;
+        height: 46px;
+
+        svg {
+          height: 30px;
+          width: 30px;
+          position: relative;
+          bottom: 1px;
+        }
+
+        .tool-shelf-tool-label {
           background-color: white;
+          min-height: 16px;
+          background-color: transparent;
+          padding-inline-start: 0;
+          padding-inline-end: 0;
+          line-height: 18px;
+          line-height: 16px;
+          letter-spacing: 0.2px;
+          min-height: 0;
+          font-size: 14px;
+
+          &.menu {
+            background-color: white;
+          }
         }
       }
     }
@@ -100,16 +113,127 @@ $deleteButton: #4B8ADD;
 }
 
 .tool-shelf-span {
-  margin-top: 0!important;
+  margin-top: 0 !important;
 }
 
-.tool-shelf-menu-trash-icon {
-  background-color: white;
-  right: 6px;
-  position: absolute;
-  height: 11px;
-  width: 11px;
-  fill: black;
+.tool-shelf-menu-list {
+  display: flex;
+  flex-direction: column;
+  border-width: 0 !important;
+  border-radius: 4px !important;
+  padding: 6px 2px !important;
+  transform: translate3d(0px, -15px, 0px) !important;
+  box-shadow: 0 2px 6px 2px rgba(0, 0, 0, 0.25) !important;
+  min-width: 0;
+  &.table {
+    width: 190px;
+    transform: translate3d(10px, -15px, -10px) !important;
+  }
+  &.plugins {
+    min-width: 180px;
+  }
+
+  .submenu-button {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    color: #222;
+    cursor: pointer;
+
+    &:hover {
+      background-color: #e9e9e9;
+    }
+
+    &:active {
+      background-color: #e9e9e9;
+    }
+  }
+
+  .category-title {
+    margin-left: 8px;
+  }
+
+  .submenu-expand-icon {
+    height: 26px;
+    width: 26px;
+    fill: #006c8e;
+    position: absolute;
+    right: 2px;
+  }
+}
+
+.tool-shelf-menu-item {
+  display: flex;
+  align-items: center;
+  padding: 4px 8px;
+  cursor: pointer;
+  height: 30px;
+  width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
+  font-weight: 400 !important;
+  font-size: 14px !important;
+  letter-spacing: 0.2px;
+  color: vars.$default-font-color !important;
+
+  > span {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+  }
+
+  &:hover:not(:disabled), &:active:not(:disabled) {
+    opacity: 1 !important;
+    background-color: #e9e9e9 !important;
+  }
+  &:disabled {
+    opacity: 0.4;
+    background-color: transparent;
+    pointer-events: none;
+    cursor: not-allowed
+  }
+
+  .menu-list-button {
+    height: 24px;
+    width: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    min-width: 0;
+    background-color: transparent;
+    position: absolute;
+    right: 0px;
+    margin-right: 5px;
+    margin-left: 6px;
+
+    &:hover:not(:disabled) {
+      background-color: vars.$icon-fill-light;
+    }
+    &:active:not(:disabled) {
+      background-color: #bfefff;
+    }
+
+    .menu-icon {
+      margin: 0;
+    }
+  }
+
+  .menu-icon {
+    height: 18px;
+    width: 18px;
+    margin-right: 6px;
+    margin-left: 8px;
+  }
+
+  .submenu {
+    border-width: 0 !important;
+    border-radius: 4px !important;
+    box-shadow: 0 2px 6px 2px rgba(0, 0, 0, 0.25);
+    padding: 2px;
+    font-weight: 400;
+  }
 }
 
 .delete-data-set-modal-body {
@@ -158,8 +282,46 @@ $deleteButton: #4B8ADD;
   }
 }
 
-.tile-list-menu-icon {
-  height: 15px;
-  max-width: 20px;
-  margin-right: 5px;
+.tool-shelf,
+.tool-shelf-button {
+  font-family: 'Roboto', sans-serif;
+  letter-spacing: 0.2px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #222 !important;
+}
+
+.tool-shelf-button.lang-bold .tool-shelf-tool-label{
+  font-weight: 600 !important;
+}
+
+.tool-shelf-button.lang-fa .tool-shelf-tool-label {
+  font-family: 'Noto Sans Arabic', sans-serif;
+}
+
+.tool-shelf-button.lang-he .tool-shelf-tool-label {
+  font-family: 'Noto Sans Hebrew', sans-serif;
+}
+
+.tool-shelf-button.lang-ja .tool-shelf-tool-label {
+  font-family: 'Noto Sans Japanese', sans-serif;
+}
+
+.tool-shelf-button.lang-ko .tool-shelf-tool-label {
+  font-family: 'Noto Sans Korean', sans-serif;
+}
+
+.tool-shelf-button.lang-th .tool-shelf-tool-label {
+  font-family: 'Noto Sans Thai', sans-serif;
+}
+
+.tool-shelf-button.lang-zh .tool-shelf-tool-label {
+  font-family: 'Noto Sans Chinese', sans-serif;
+}
+
+.tool-shelf-menu-list,
+.tool-shelf-menu-list:focus,
+.tool-shelf-menu-list[tabindex]:focus,
+.tool-shelf-menu-list:active {
+  box-shadow: 0 2px 6px 2px rgba(0, 0, 0, 0.25) !important;
 }

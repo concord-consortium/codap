@@ -49,8 +49,6 @@ setDataSetNotificationAdapter(V2DataSetNotificationAdapter)
 
 registerTileTypes([])
 
-const errorBoundaryErrors: { time: number, message: string }[] = []
-
 export const App = observer(function App() {
   useKeyStates()
   // default behavior is to show the user entry modal when CODAP is loaded
