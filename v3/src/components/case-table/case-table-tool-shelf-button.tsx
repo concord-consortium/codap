@@ -87,10 +87,9 @@ const CaseTableToolShelfMenuList = observer(
           {t("DG.AppController.caseTableMenu.newDataSet")}
         </MenuItem>
         <MenuItem data-testid="tool-shelf-table-new-clipboard" isDisabled={true} className="tool-shelf-menu-item">
-          <span>
-            <TableIcon className="menu-icon case-table-icon"/>
-            {`${t("DG.AppController.caseTableMenu.clipboardDataset")} 🚧`}
-          </span>
+          <TableIcon className="menu-icon case-table-icon"/>
+          {`${t("DG.AppController.caseTableMenu.clipboardDataset")}`}
+          <Button className="menu-list-button" isDisabled={true}>🚧</Button>
         </MenuItem>
         {datasets.map((dataset) => {
           // case table title reflects DataSet title
@@ -101,8 +100,11 @@ const CaseTableToolShelfMenuList = observer(
               onClick={()=>createOrShowTableOrCardForDataset(dataset)} data-testid={`tool-shelf-table-${tileTitle}`}>
               <TableIcon className="menu-icon case-table-icon"/>
               {tileTitle}
-              <TrashIcon className="menu-icon tool-shelf-menu-trash-icon"
-                  onClick={() => handleOpenRemoveDataSetModal(dataset.dataSet.id)} />
+              <Button className="menu-list-button tool-shelf-menu-trash">
+                <TrashIcon className="menu-icon"
+                    onClick={() => handleOpenRemoveDataSetModal(dataset.dataSet.id)} />
+              </Button>
+
             </MenuItem>
           )
         })}
