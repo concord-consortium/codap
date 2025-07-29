@@ -9,10 +9,10 @@ import { t } from "../../../utilities/translation/translate"
 import {ScaleNumericBaseType} from "../../axis/axis-types"
 import {IAxisModel} from "../../axis/models/axis-model"
 import {isAnyNumericAxisModel} from "../../axis/models/numeric-axis-models"
-import {CaseData} from "../../data-display/d3-types"
+import { CaseData } from "../../data-display/d3-types"
 import {Point, PointDisplayType, transitionDuration} from "../../data-display/data-display-types"
 import {IDataConfigurationModel} from "../../data-display/models/data-configuration-model"
-import {IPixiPointMetadata, PixiPoints} from "../../data-display/pixi/pixi-points"
+import { IPixiPointMetadata, PixiPoints } from "../../data-display/pixi/pixi-points"
 import { IGraphDataConfigurationModel } from "../models/graph-data-configuration-model"
 import { GraphLayout } from "../models/graph-layout"
 
@@ -392,6 +392,16 @@ export function setPointCoordinates(props: ISetPointCoordinates) {
       if (anchor) {
         pixiPoints.anchor = anchor
       }
+      // Points that still have the default (0, 0) position will be set to their assigned position before transition.
+      pixiPoints.forEachPoint((point: PIXI.Sprite, metadata: IPixiPointMetadata) => {
+        if (point.x === 0 && point.y === 0) {
+          const { caseID, plotNum } = metadata
+          const screenX = getScreenX(caseID) || 0
+          const screenY = getScreenY(caseID, plotNum) || 0
+          pixiPoints.setPointPosition(point, screenX, screenY)
+          pixiPoints.setPointScale(point, 0)
+        }
+      })
       pixiPoints.transition(() => {
         pixiPoints.forEachPoint((point: PIXI.Sprite, metadata: IPixiPointMetadata) => {
           const { caseID, plotNum } = metadata

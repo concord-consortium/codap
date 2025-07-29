@@ -3,7 +3,7 @@ import * as PIXI from "pixi.js"
 import React, {useCallback, useEffect, useRef, useState} from "react"
 import {useDataSetContext} from "../../../../hooks/use-data-set-context"
 import {mstReaction} from "../../../../utilities/mst-reaction"
-import {CaseData} from "../../../data-display/d3-types"
+import { CaseData } from "../../../data-display/d3-types"
 import {handleClickOnCase, setPointSelection} from "../../../data-display/data-display-utils"
 import {useDataDisplayAnimation} from "../../../data-display/hooks/use-data-display-animation"
 import {IPixiPointMetadata} from "../../../data-display/pixi/pixi-points"
@@ -12,7 +12,7 @@ import {useGraphContentModelContext} from "../../hooks/use-graph-content-model-c
 import {useGraphDataConfigurationContext} from "../../hooks/use-graph-data-configuration-context"
 import {useGraphLayoutContext} from "../../hooks/use-graph-layout-context"
 import {usePixiDragHandlers, usePlotResponders} from "../../hooks/use-plot"
-import {setPointCoordinates} from "../../utilities/graph-utils"
+import { setPointCoordinates } from "../../utilities/graph-utils"
 
 export const CasePlot = function CasePlot({ pixiPoints }: IPlotProps) {
   const graphModel = useGraphContentModelContext(),
@@ -73,7 +73,7 @@ export const CasePlot = function CasePlot({ pixiPoints }: IPlotProps) {
       })
   }, [graphModel, dataConfiguration, pixiPoints])
 
-  const refreshPointPositions = useCallback((selectedOnly: boolean) => {
+  const refreshPointPositions = useCallback((selectedOnly = false) => {
     const
       pointRadius = graphModel.getPointRadius(),
       selectedPointRadius = graphModel.getPointRadius('select'),
@@ -102,7 +102,7 @@ export const CasePlot = function CasePlot({ pixiPoints }: IPlotProps) {
         randomPointsRef.current = {}
         randomlyDistributePoints(dataConfiguration?.getCaseDataArray(0))
         startAnimation()
-        refreshPointPositions(false)
+        refreshPointPositions()
       },
       { name: "CaseDots.respondToModelChangeCount" }, graphModel)
   }, [dataConfiguration, graphModel,
@@ -114,7 +114,7 @@ export const CasePlot = function CasePlot({ pixiPoints }: IPlotProps) {
       () => {
         randomlyDistributePoints(dataConfiguration?.getCaseDataArray(0))
         startAnimation()
-        refreshPointPositions(false)
+        refreshPointPositions()
       },
       { name: "CaseDots.respondToCasesCountChange" }, dataConfiguration)
   }, [dataConfiguration, randomlyDistributePoints, refreshPointPositions, startAnimation])

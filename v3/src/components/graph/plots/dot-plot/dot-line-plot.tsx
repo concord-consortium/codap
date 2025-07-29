@@ -6,12 +6,12 @@ import {mstReaction} from "../../../../utilities/mst-reaction"
 import { setNiceDomain } from "../../../axis/axis-domain-utils"
 import { AxisPlace } from "../../../axis/axis-types"
 import { kMain } from "../../../data-display/data-display-types"
-import {circleAnchor, hBarAnchor, vBarAnchor} from "../../../data-display/pixi/pixi-points"
+import { circleAnchor, hBarAnchor, vBarAnchor } from "../../../data-display/pixi/pixi-points"
 import {IPlotProps} from "../../graphing-types"
 import { useDotPlot } from "../../hooks/use-dot-plot"
 import { useDotPlotDragDrop } from "../../hooks/use-dot-plot-drag-drop"
-import {usePixiDragHandlers, usePlotResponders} from "../../hooks/use-plot"
-import {setPointCoordinates} from "../../utilities/graph-utils"
+import { usePixiDragHandlers, usePlotResponders } from "../../hooks/use-plot"
+import { setPointCoordinates } from "../../utilities/graph-utils"
 import { computeBinPlacements, computePrimaryCoord, computeSecondaryCoord } from "./dot-plot-utils"
 
 export const DotLinePlot = observer(function DotLinePlot({ pixiPoints }: IPlotProps) {
@@ -54,13 +54,14 @@ export const DotLinePlot = observer(function DotLinePlot({ pixiPoints }: IPlotPr
         dataConfig, dataset, extraPrimaryAttrID, extraSecondaryAttrID, layout, numExtraPrimaryBands,
         pointDiameter, primaryAttrID, primaryAxisScale, primaryPlace, secondaryAttrID, secondaryBandwidth
       }
-      const { binMap, overlap } = computeBinPlacements(binPlacementProps)
+      const {binMap, overlap} = computeBinPlacements(binPlacementProps)
       graphModel.setPointOverlap(overlap) // So that if we draw a normal curve, it can use the overlap
 
       interface ISubPlotDetails {
         cases: string[]
         indices: Record<string, number>
       }
+
       const subPlotDetails = new Map<string, ISubPlotDetails>()
       dataset?.items.forEach(aCase => {
         const subPlotKey = dataConfig?.subPlotKey(aCase.__id__) ?? {}
@@ -70,7 +71,7 @@ export const DotLinePlot = observer(function DotLinePlot({ pixiPoints }: IPlotPr
           const cases = dataConfig?.subPlotCases(subPlotKey) ?? []
           const indices: Record<string, number> = {}
           cases.forEach((caseId, index) => indices[caseId] = index)
-          details = { cases, indices }
+          details = {cases, indices}
           subPlotDetails.set(subPlotMapKey, details)
         }
       })
@@ -79,7 +80,7 @@ export const DotLinePlot = observer(function DotLinePlot({ pixiPoints }: IPlotPr
         const subPlotKey = dataConfig?.subPlotKey(anID) ?? {}
         const subPlotMapKey = JSON.stringify(subPlotKey)
         const details: ISubPlotDetails | undefined = subPlotDetails.get(subPlotMapKey)
-        return { subPlotKey, casesInCategory: details?.cases ?? [], caseIndex: details?.indices[anID] ?? -1 }
+        return {subPlotKey, casesInCategory: details?.cases ?? [], caseIndex: details?.indices[anID] ?? -1}
       }
 
       const getBarStaticDimension = () => {
@@ -95,14 +96,14 @@ export const DotLinePlot = observer(function DotLinePlot({ pixiPoints }: IPlotPr
           anID, dataConfig, dataset, extraPrimaryAttrID, extraPrimaryAxisScale, isBinned: false,
           numExtraPrimaryBands, primaryAttrID, primaryAxisScale
         }
-        const { primaryCoord } = computePrimaryCoord(computePrimaryCoordProps)
+        const {primaryCoord} = computePrimaryCoord(computePrimaryCoordProps)
         return Math.abs(primaryCoord - primaryAxisScale(0) / numExtraPrimaryBands)
       }
 
       const getBarPositionInSubPlot = (anID: string) => {
-        const { caseIndex, casesInCategory } = getSubPlotDetails(anID)
+        const {caseIndex, casesInCategory} = getSubPlotDetails(anID)
         const barDimension = getBarStaticDimension()
-        const { category, extraCategory } = binMap[anID]
+        const {category, extraCategory} = binMap[anID]
         const secondaryCoord = category && category !== kMain ? (secondaryAxisScale(category) ?? 0) : 0
         const extraSecondaryCoord = extraCategory && extraCategory !== kMain
           ? (extraSecondaryAxisScale(extraCategory) ?? 0)
@@ -121,7 +122,7 @@ export const DotLinePlot = observer(function DotLinePlot({ pixiPoints }: IPlotPr
           anID, dataConfig, dataset, extraPrimaryAttrID, extraPrimaryAxisScale, isBinned: false,
           numExtraPrimaryBands, primaryAttrID, primaryAxisScale
         }
-        let { primaryCoord, extraPrimaryCoord } = computePrimaryCoord(computePrimaryCoordProps)
+        let {primaryCoord, extraPrimaryCoord} = computePrimaryCoord(computePrimaryCoordProps)
         if (pointDisplayType === "bars") {
           const zeroCoord = primaryAxisScale(0) / numExtraPrimaryBands
           primaryCoord = primaryIsBottom ? Math.max(primaryCoord, zeroCoord) : Math.min(primaryCoord, zeroCoord)
@@ -135,7 +136,7 @@ export const DotLinePlot = observer(function DotLinePlot({ pixiPoints }: IPlotPr
         if (pointDisplayType === "bars") return getBarPositionInSubPlot(anID)
         if (!binMap[anID]) return null
 
-        const { category: secondaryCat, extraCategory: extraSecondaryCat, indexInBin } = binMap[anID]
+        const {category: secondaryCat, extraCategory: extraSecondaryCat, indexInBin} = binMap[anID]
         const onePixelOffset = primaryIsBottom ? -1 : 1
         const computeSecondaryCoordProps = {
           baseCoord, extraSecondaryAxisScale, extraSecondaryBandwidth, extraSecondaryCat, indexInBin,
@@ -165,8 +166,8 @@ export const DotLinePlot = observer(function DotLinePlot({ pixiPoints }: IPlotPr
         pointDisplayType, getWidth, getHeight, anchor, dataset
       })
     },
-    [primaryIsBottom, layout, dataConfig, primaryAttrRole, graphModel, secondaryAttrRole, dataset, pointDisplayType,
-     pixiPoints, pointColor, pointStrokeColor, isAnimating])
+    [primaryIsBottom, layout, dataConfig, primaryAttrRole, graphModel, secondaryAttrRole, dataset,
+      pointDisplayType, pixiPoints, pointColor, pointStrokeColor, isAnimating])
 
   usePlotResponders({pixiPoints, refreshPointPositions, refreshPointSelection})
 
