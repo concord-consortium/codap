@@ -54,7 +54,7 @@ export const CaseView = observer(function InnerCaseView({
   const displayedCaseId = collection?.caseIds[displayedCaseIndex] ?? ""
   const displayedCase = data?.caseInfoMap.get(displayedCaseId)?.groupedCase ?? cases[0]
 
-  const disableAnimation = urlParams.noComponentAnimation != null
+  const disableAnimation = urlParams.noComponentAnimation !== undefined
   const isAnimating = cardModel?.animationLevel === level
   const [animationStarted, setAnimationStarted] = useState(false)
   const isFlippingRight = cardModel?.animationDirection === "right"

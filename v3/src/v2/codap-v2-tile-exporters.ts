@@ -10,10 +10,18 @@ export interface V2ExporterOutput {
   componentStorage?: CodapV2ComponentStorage
 }
 
+interface IGameContextMetadata {
+  gameName?: string
+  gameUrl?: string
+  gameState?: any
+}
+export type GameContextMetadataMap = Record<string, IGameContextMetadata>
+
 export interface V2TileExportArgs {
   tile: ITileModel
   row?: IFreeTileRow
   sharedModelManager?: ISharedModelManager
+  gameContextMetadataMap?: GameContextMetadataMap
 }
 interface V2TileExportFnOptions {
   suppressName?: boolean

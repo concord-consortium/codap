@@ -6,7 +6,7 @@ const textDefaultTitle = "Text"
 
 context("Text tile", () => {
   beforeEach(function () {
-      const queryParams = "?sample=mammals&dashboard&mouseSensor"
+      const queryParams = "?sample=mammals&dashboard&mouseSensor&suppressUnsavedWarning"
       const url = `${Cypress.config("index")}${queryParams}`
       cy.visit(url)
       cy.wait(1000) // Ensuring the page and components are fully loaded.

@@ -4,7 +4,7 @@ import { ToolbarElements as toolbar } from "../support/elements/toolbar-elements
 
 context("Graph adornments", () => {
   beforeEach(function () {
-    const queryParams = "?sample=mammals&dashboard&mouseSensor"
+    const queryParams = "?sample=mammals&dashboard&mouseSensor&suppressUnsavedWarning"
     const url = `${Cypress.config("index")}${queryParams}`
     cy.visit(url)
     cy.wait(2500)

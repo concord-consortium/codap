@@ -105,10 +105,7 @@ describe("WebView registration", () =>  {
     expect(tile).toBeDefined()
     expect(mockInsertTile).toHaveBeenCalledTimes(1)
     const content = isWebViewModel(tile?.content) ? tile?.content : undefined
-    // Note: a component with a userSetTitle false (like in this case) does not import the
-    // title into _title. However the name is imported.
-    // When the _title is undefined the name is used as the title
-    expect(tile._title).toBeUndefined()
+    expect(tile._title).toBe("Microdata Portal")
     expect(tile.name).toBe("Microdata Portal")
     expect(getTileContentInfo(kWebViewTileType)!.getTitle(tile)).toBe("Microdata Portal")
     expect(content?.url).toBe("https://codap-resources.concord.org/plugins/sdlc/plugin/index.html")
@@ -121,14 +118,56 @@ describe("WebView registration", () =>  {
     // shouldn't write out `name` property for GameView components
     expect(hasOwnProperty(contentStorage, "name")).toBe(false)
     expect(contentStorage.currentGameName).toBe("Microdata Portal")
-    // Note: the value of the exported title can probably be anything here, but undefined seems
-    // to be a safe value to make it clear to CODAPv2 that user hasn't set the title
-    expect(contentStorage.title).toBeUndefined()
+    expect(contentStorage.title).toBe("Microdata Portal")
     expect(contentStorage.userSetTitle).toBe(false)
 
     // Note: we do not convert the URL back to the relative one that is used by CODAPv2
     // this seems OK to do.
     expect(contentStorage.currentGameUrl).toBe("https://codap-resources.concord.org/plugins/sdlc/plugin/index.html")
+  })
+
+  it("imports/exports v2 Markov game view components", () => {
+    const file = path.join(__dirname, "../../test/v2", "markov-example.codap")
+    const json = fs.readFileSync(file, "utf8")
+    const doc = safeJsonParse<ICodapV2DocumentJson>(json)!
+    const v2Document = new CodapV2Document(doc)
+
+    const codapDoc = createCodapDocument()
+    const docContent = codapDoc.content!
+    docContent.setRowCreator(() => FreeTileRow.create())
+    const sharedModelManager = getSharedModelManager(docContent)
+    const mockInsertTile = jest.fn((tileSnap: ITileModelSnapshotIn) => {
+      return docContent?.insertTileSnapshotInDefaultRow(tileSnap)
+    })
+
+    const tile = importV2Component({
+      v2Component: v2Document.components[0],
+      v2Document,
+      insertTile: mockInsertTile,
+      ...mockImportArgs
+    })!
+    expect(tile).toBeDefined()
+    expect(mockInsertTile).toHaveBeenCalledTimes(1)
+    const content = isWebViewModel(tile?.content) ? tile?.content : undefined
+    expect(tile._title).toBe("Markov")
+    expect(tile.name).toBe("Markov")
+    expect(getTileContentInfo(kWebViewTileType)!.getTitle(tile)).toBe("Markov")
+    expect(content?.url).toBe("https://codap-resources.concord.org/plugins/data-games/Markov/index.html")
+    expect(content?.isPlugin).toBe(true)
+
+    const row = docContent.getRowByIndex(0) as IFreeTileRow
+    const componentExport = exportV2Component({ tile, row, sharedModelManager })
+    expect(componentExport?.type).toBe("DG.GameView")
+    const contentStorage = componentExport?.componentStorage as ICodapV2GameViewStorage
+    // shouldn't write out `name` property for GameView components
+    expect(hasOwnProperty(contentStorage, "name")).toBe(false)
+    expect(contentStorage.currentGameName).toBe("Markov")
+    expect(contentStorage.title).toBe("Markov")
+    expect(contentStorage.userSetTitle).toBe(false)
+
+    // Note: we do not convert the URL back to the relative one that is used by CODAPv2
+    // this seems OK to do.
+    expect(contentStorage.currentGameUrl).toBe("https://codap-resources.concord.org/plugins/data-games/Markov/index.html")
   })
 
   it("imports/exports v2 guide view components with external url", () => {

@@ -24,7 +24,7 @@ export const DatasetInfoModal = ({showInfoModal, setShowInfoModal}: IProps) => {
 
   const handleCloseInfoModal = () => {
     data?.applyModelChange(() => {
-      data.setTitle(datasetTitle)
+      data.setUserTitle(datasetTitle)
       metadata?.setDescription(description)
       metadata?.setSource(source)
       metadata?.setImportDate(importDate)

@@ -51,14 +51,14 @@ registerV2TileImporter(kV2CalculatorDGType, ({ v2Component, insertTile }) => {
   if (!isV2CalculatorComponent(v2Component)) return
 
   const { guid, componentStorage } = v2Component
-  const { name = "", title = "" } = componentStorage || {}
+  const { name = "", title, userSetTitle } = componentStorage || {}
 
   const content: ICalculatorSnapshot = {
     type: kCalculatorTileType,
     name
   }
   const calculatorTileSnap: ITileModelSnapshotIn = {
-    id: toV3Id(kCalculatorIdPrefix, guid), name, _title: title, content
+    id: toV3Id(kCalculatorIdPrefix, guid), name, _title: title, userSetTitle, content
   }
   const calculatorTile = insertTile(calculatorTileSnap)
 

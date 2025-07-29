@@ -108,6 +108,11 @@ export interface UrlParams {
    */
   pluginURL?: string | null
   /*
+   * Used to toggle certain features based on which version of CODAP is being run.
+   * Currently supports "beta".
+   */
+  release?: string | null
+  /*
    * For testing -- specifies a built-in sample document to be loaded on startup.
    * Useful for automated tests; often combined with `dashboard`.
    * value: "abalone" | "cats" | "coasters" | "colors" | "four" | "mammals"
@@ -119,6 +124,12 @@ export interface UrlParams {
    * value: "auto" | "smooth" (default)
    */
   scrollBehavior?: string | null
+  /*
+   * If a string value, the warning dialog triggered by reloading or navigating away from a document
+   * with unsaved changes will not be shown.
+   * Primarily used for cypress tests.
+   */
+  suppressUnsavedWarning?: string | null
   /*
    * For testing -- when present along with `dashboard`, only a single table will be created by default.
    * value: ignored

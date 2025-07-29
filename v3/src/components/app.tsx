@@ -25,6 +25,7 @@ import { ISharedDataSet } from "../models/shared/shared-data-set"
 import { getSharedModelManager } from "../models/tiles/tile-environment"
 import { registerTileTypes } from "../register-tile-types"
 import { importSample, sampleData } from "../sample-data"
+import { t } from "../utilities/translation/translate"
 import { urlParams } from "../utilities/url-params"
 import { kCodapAppElementId, kUserEntryDropOverlay } from "./constants"
 import { Container } from "./container/container"
@@ -166,10 +167,16 @@ export const App = observer(function App() {
 
       appState.enableDocumentMonitoring()
       Logger.initializeLogger(appState.document)
+
+      window.onbeforeunload = function() {
+        if (urlParams.suppressUnsavedWarning === undefined && cfm.client.state.dirty) {
+          return t("V3.general.unsavedChangesWarning")
+        }
+      }
     }
 
     initialize()
-  }, [cfmReadyPromise, onCloseUserEntry, onOpenUserEntry])
+  }, [cfm, cfmReadyPromise, onCloseUserEntry, onOpenUserEntry])
 
   const { fallbackRender } = useUncaughtErrorHandler(cfm)
 

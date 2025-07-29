@@ -67,7 +67,7 @@ import { compareValues } from "../../utilities/data-utils"
 import { hashOrderedStringSet, hashStringSet } from "../../utilities/js-utils"
 import { gLocale } from "../../utilities/translation/locale"
 import { t } from "../../utilities/translation/translate"
-import { V2Model } from "./v2-model"
+import { V2UserTitleModel } from "./v2-user-title-model"
 
 // remnant of derived DataSet implementation that isn't in active use
 interface IEnvContext {
@@ -139,7 +139,7 @@ export const nullItemData: IItemData = {
   invalidate: () => {}
 } as IItemData
 
-export const DataSet = V2Model.named("DataSet").props({
+export const DataSet = V2UserTitleModel.named("DataSet").props({
   id: typeV3Id("DATA"),
   sourceID: types.maybe(types.string),
   // ordered parent-most to child-most

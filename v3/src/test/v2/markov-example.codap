@@ -1,0 +1,308 @@
+{
+    "name": "Markov Sample",
+    "guid": 1,
+    "components": [
+        {
+            "type": "DG.GameView",
+            "guid": 2,
+            "componentStorage": {
+                "currentGameName": "Markov",
+                "currentGameUrl": "http://concord-consortium.github.io/codap-data-interactives/Markov/",
+                "allowInitGameOverride": true,
+                "preventBringToFront": false,
+                "preventDataContextReorg": true,
+                "_links_": {
+                    "context": {
+                        "type": "DG.DataContextRecord",
+                        "id": 3
+                    }
+                },
+                "title": "Markov",
+                "userSetTitle": false,
+                "cannotClose": false
+            },
+            "layout": {
+                "width": 550,
+                "height": 340,
+                "zIndex": 3,
+                "isVisible": true
+            },
+            "savedHeight": null
+        },
+        {
+            "type": "DG.GuideView",
+            "guid": 16,
+            "componentStorage": {
+                "title": "Markov Sample Guide",
+                "items": [
+                    {
+                        "itemTitle": "Getting Started",
+                        "url": "%_url_%/guides/Markov/markov_getstarted.html"
+                    }
+                ],
+                "currentItemIndex": 0,
+                "isVisible": true,
+                "name": "Markov Sample Guide"
+            },
+            "layout": {
+                "left": 3,
+                "top": 350,
+                "width": 566,
+                "height": 475,
+                "isVisible": true,
+                "zIndex": 3
+            },
+            "savedHeight": null
+        }
+    ],
+    "contexts": [
+        {
+            "type": "DG.GameContext",
+            "document": 1,
+            "guid": 3,
+            "flexibleGroupingChangeFlag": false,
+            "name": "Data_Set_1",
+            "title": "Games/Turns",
+            "collections": [
+                {
+                    "areParentChildLinksConfigured": true,
+                    "attrs": [
+                        {
+                            "name": "game",
+                            "type": "numeric",
+                            "title": "game",
+                            "defaultMin": 1,
+                            "defaultMax": 5,
+                            "description": "game number",
+                            "blockDisplayOfEmptyCategories": true,
+                            "editable": false,
+                            "hidden": false,
+                            "guid": 5,
+                            "precision": 0,
+                            "unit": null
+                        },
+                        {
+                            "name": "turns",
+                            "type": "numeric",
+                            "title": "turns",
+                            "defaultMin": 0,
+                            "defaultMax": 10,
+                            "description": "number of turns in the game",
+                            "blockDisplayOfEmptyCategories": true,
+                            "editable": false,
+                            "hidden": false,
+                            "guid": 6,
+                            "precision": 0,
+                            "unit": null
+                        },
+                        {
+                            "name": "winner",
+                            "type": "nominal",
+                            "title": "winner",
+                            "description": "who won? You or Markov?",
+                            "blockDisplayOfEmptyCategories": true,
+                            "editable": false,
+                            "hidden": false,
+                            "guid": 7,
+                            "precision": 2,
+                            "unit": null
+                        },
+                        {
+                            "name": "level",
+                            "type": "nominal",
+                            "title": "level",
+                            "description": "what level of the game was played",
+                            "blockDisplayOfEmptyCategories": true,
+                            "editable": false,
+                            "hidden": false,
+                            "guid": 8,
+                            "precision": 2,
+                            "unit": null
+                        }
+                    ],
+                    "cases": [],
+                    "childAttrName": null,
+                    "defaults": {
+                        "xAttr": "game",
+                        "yAttr": "score"
+                    },
+                    "guid": 4,
+                    "name": "Games",
+                    "title": "Games",
+                    "type": "DG.Collection"
+                },
+                {
+                    "areParentChildLinksConfigured": true,
+                    "attrs": [
+                        {
+                            "name": "turn",
+                            "type": "numeric",
+                            "title": "turn",
+                            "defaultMin": 0,
+                            "defaultMax": 10,
+                            "description": "the turn number in the game",
+                            "blockDisplayOfEmptyCategories": true,
+                            "editable": false,
+                            "hidden": false,
+                            "guid": 10,
+                            "precision": 0,
+                            "unit": null
+                        },
+                        {
+                            "name": "markovs_move",
+                            "type": "nominal",
+                            "title": "markovs_move",
+                            "description": "the move markov made this turn",
+                            "_categoryMap": {
+                                "R": "red",
+                                "P": "blue",
+                                "S": "green",
+                                "__order": [
+                                    "R",
+                                    "P",
+                                    "S"
+                                ]
+                            },
+                            "blockDisplayOfEmptyCategories": true,
+                            "editable": false,
+                            "hidden": false,
+                            "guid": 11,
+                            "precision": 2,
+                            "unit": null
+                        },
+                        {
+                            "name": "your_move",
+                            "type": "nominal",
+                            "title": "your_move",
+                            "description": "the move you made this turn",
+                            "_categoryMap": {
+                                "R": "red",
+                                "P": "blue",
+                                "S": "green",
+                                "__order": [
+                                    "R",
+                                    "P",
+                                    "S"
+                                ]
+                            },
+                            "blockDisplayOfEmptyCategories": true,
+                            "editable": false,
+                            "hidden": false,
+                            "guid": 12,
+                            "precision": 2,
+                            "unit": null
+                        },
+                        {
+                            "name": "result",
+                            "type": "nominal",
+                            "title": "result",
+                            "description": "did you win or lose this turn?",
+                            "blockDisplayOfEmptyCategories": true,
+                            "editable": false,
+                            "hidden": false,
+                            "guid": 13,
+                            "precision": 2,
+                            "unit": null
+                        },
+                        {
+                            "name": "up_down",
+                            "type": "numeric",
+                            "title": "up_down",
+                            "defaultMin": -1,
+                            "defaultMax": 1,
+                            "description": "the number of steps up or down Madeline moved",
+                            "blockDisplayOfEmptyCategories": true,
+                            "editable": false,
+                            "hidden": false,
+                            "guid": 14,
+                            "precision": 0,
+                            "unit": null
+                        },
+                        {
+                            "name": "previous_2_markov_moves",
+                            "type": "nominal",
+                            "title": "previous_2_markov_moves",
+                            "description": "the two moves Markov made prior to this one",
+                            "blockDisplayOfEmptyCategories": true,
+                            "editable": false,
+                            "hidden": false,
+                            "guid": 15,
+                            "precision": 2,
+                            "unit": null
+                        }
+                    ],
+                    "cases": [],
+                    "childAttrName": null,
+                    "defaults": {
+                        "xAttr": "previous_2_markov_moves",
+                        "yAttr": "markovs_move"
+                    },
+                    "guid": 9,
+                    "name": "Turns",
+                    "parent": 4,
+                    "title": "Turns",
+                    "type": "DG.Collection"
+                }
+            ],
+            "description": "",
+            "preventReorg": false,
+            "setAsideItems": [],
+            "contextStorage": {
+                "gameName": "Markov",
+                "gameState": {
+                    "gameNumber": 0,
+                    "currentLevel": "Tethys",
+                    "levelsMap": {
+                        "Tethys": true,
+                        "Deimos": true,
+                        "Phobos": true,
+                        "Callisto": true
+                    },
+                    "strategy": {
+                        "RR": {
+                            "move": "",
+                            "weight": 2
+                        },
+                        "RP": {
+                            "move": "",
+                            "weight": 2
+                        },
+                        "RS": {
+                            "move": "",
+                            "weight": 2
+                        },
+                        "PP": {
+                            "move": "",
+                            "weight": 2
+                        },
+                        "PR": {
+                            "move": "",
+                            "weight": 2
+                        },
+                        "PS": {
+                            "move": "",
+                            "weight": 2
+                        },
+                        "SS": {
+                            "move": "",
+                            "weight": 2
+                        },
+                        "SR": {
+                            "move": "",
+                            "weight": 2
+                        },
+                        "SP": {
+                            "move": "",
+                            "weight": 2
+                        }
+                    }
+                }
+            }
+        }
+    ],
+    "globalValues": [],
+    "appName": "DG",
+    "appVersion": "2.0",
+    "appBuildNum": "0449",
+    "metadata": {}
+}
