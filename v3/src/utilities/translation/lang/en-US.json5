@@ -39,6 +39,11 @@
     "V3.Undo.graph.uncheckLastParentOnly": "Undo unchecking \"Last\" checkbox",
     "V3.Redo.graph.uncheckLastParentOnly": "Redo unchecking \"Last\" checkbox",
 
+    "V3.map.Inspector.Rescale": "Rescale",
+    "V3.map.Inspector.View": "View",
+    "V3.map.Inspector.Data": "Data",
+    "V3.map.Inspector.Layers": "Layers",
+    "V3.map.Inspector.Image": "Image",
     "V3.map.inspector.base": "Base",
     "V3.map.inspector.oceans": "Oceans",
     "V3.map.inspector.topo": "Topo",
