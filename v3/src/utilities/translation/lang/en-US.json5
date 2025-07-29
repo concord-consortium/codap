@@ -105,6 +105,8 @@
     "V3.Inspector.rescale.noRescale.toolTip": "All the data are already visible",
     "V3.Inspector.rescale.casePlot.toolTip": "Move the points to new random positions",
 
+    "V3.Slider.Inspector.Playback": "Playback",
+    "V3.Slider.Inspector.Timeline": "Timeline",
     "V3.Inspector.sliderScales.toolTip": "Set slider scale to numeric or date-time",
     "V3.Inspector.animation": "Animation",
     "V3.Inspector.scale": "Scale",
