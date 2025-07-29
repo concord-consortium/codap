@@ -1,0 +1,216 @@
+@use "./vars";
+$inspector-panel-width: 64px;
+
+.inspector-panel-new {
+  align-items: center;
+  background-color: white;
+  border: 2px solid #1eabd6;
+  border-radius: 0 5px 5px 5px;
+  box-shadow: rgba(0, 0, 0, 0.25) 0px 1px 3px 0px;
+  display: flex;
+  flex-direction: column;
+  min-height: 50px;
+  position: absolute;
+  right: calc(-1 * $inspector-panel-width);
+  top: 32px;
+  width: $inspector-panel-width;
+  z-index: 15;
+
+  .inspector-tool-button-new {
+    align-items: center;
+    background-color: white;
+    border-radius: 0;
+    display: flex;
+    flex-direction: column;
+    height: 56px;
+    justify-content: space-around;
+    padding: 5px;
+    width: 100%;
+
+    &:hover {
+      background-color: #d3f4ff;
+    }
+
+    &:active {
+      background-color: #bfefff;
+    }
+
+    &.bottom {
+      border-radius: 0 0 5px 5px;
+    }
+
+    &.top {
+      border-radius: 5px 5px 0 0;
+    }
+
+    .more-options-icon-new {
+      width: 3px;
+      height: 3px;
+      position: absolute;
+      bottom: 0;
+      left: 0;
+    }
+
+    .inspector-button-label {
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    &.menu-new {
+      span {
+        align-items: center;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .more-options-icon-new {
+        position: relative;
+        left: -5px;
+      }
+    }
+  }
+}
+
+.codap-inspector-palette {
+  background-color: #EEE;
+  border: 0px #444 solid;
+  position: absolute;
+  inset: 0;
+  width: fit-content;
+  height: fit-content;
+  font-family: "museo-sans", sans-serif;
+  z-index: 5;
+  font-size: 12px;
+  min-width: 205px;
+  min-height: 100px;
+  font-weight: bold;
+
+  .codap-inspector-palette-header {
+    position: relative;
+    top: 0;
+    left: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    box-shadow: none;
+
+    .codap-inspector-palette-icon-container {
+      width: 30px;
+      height: 30px;
+      background-color: vars.$teal-dark;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .codap-inspector-palette-header-title {
+      border-bottom: solid #C1C5C7 1px;
+      border-left: solid #C1C5C7 1px;
+      padding-left: 5px;
+      width: calc(100% - vars.$header-height);
+      height: vars.$header-height;
+      font-size: 12px;
+      line-height: vars.$header-height;
+    }
+  }
+
+  .palette-form {
+    position: relative;
+    left: 0;
+    padding: 5px 10px 10px 10px;
+    background-color: #EEE;
+    height: fit-content;
+    z-index: 20;
+
+    .chakra-form-control {
+      margin: 3px 0;
+    }
+
+    .palette-row {
+      flex-direction: row;
+      align-items: center;
+      height: 20px;
+      white-space: nowrap;
+
+      &.color-picker-row {
+        display: flex;
+        flex-direction: row;
+        height: 30px;
+        justify-content: space-between;
+        padding-right: 5px;
+        margin: 4px 0;
+      }
+    }
+
+    .form-title {
+      font-family: "museo-sans", sans-serif !important;
+      font-size: 12px;
+    }
+
+    .form-label {
+      align-items: center;
+      display: flex;
+      flex-direction: row;
+      white-space: nowrap;
+      &.color-picker {
+        margin-right: 4px;
+        &.color {
+          margin-right: 8px;
+        }
+      }
+    }
+
+    .palette-checkbox {
+      height: 20px;
+      width: 180px;
+      margin: 2px 0;
+    }
+
+    .chakra-radio__control {
+      border-color: #cfcfcf;
+    }
+
+    [data-checked] {
+      border-color: #3182ce;
+    }
+
+    .inline-input-group {
+      background: rgba(231, 231, 231, 0.7);
+      display: flex;
+      flex-direction: row;
+
+      .form-label {
+        align-items: center;
+        display: flex;
+        flex-grow: 3;
+        margin: 0 10px 0 0;
+      }
+      .form-input {
+        background: white;
+        display: inline-block;
+        font-size: 12px;
+        margin-right: 10px;
+        width: 40px;
+      }
+    }
+  }
+}
+
+.palette-pointer {
+  position: absolute;
+  z-index: 10;
+
+  &.arrow-left {
+    left: calc($inspector-panel-width - 10px);
+    border-top: 25px solid transparent;
+    border-bottom: 25px solid transparent;
+    border-right: 22px solid #EEE;
+  }
+  &.arrow-right {
+    right: calc($inspector-panel-width - 10px);
+    border-top: 25px solid transparent;
+    border-bottom: 25px solid transparent;
+    border-left: 22px solid #EEE;
+  }
+}
