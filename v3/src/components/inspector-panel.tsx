@@ -21,7 +21,7 @@ export const InspectorPanel = forwardRef(({ component, show, setShowPalette, chi
     enabled: !!(show && ref && setShowPalette),
     info: {name: "InspectorPanel", component}
   })
-  const classes = clsx("inspector-panel-new", component ?? "", width ?? "normal")
+  const classes = clsx("inspector-panel", component ?? "", width ?? "normal")
   return (show
     ? <Box ref={ref} className={classes} data-testid={"inspector-panel"}>
         {children}
@@ -50,7 +50,7 @@ export const InspectorButton = ({
     setButtonRef?.(buttonRef)
     onButtonClick?.()
   }
-  const className = clsx("inspector-tool-button-new", { bottom, top })
+  const className = clsx("inspector-tool-button", { bottom, top })
   return (
     <Button
       className={className}
@@ -81,7 +81,7 @@ interface IInspectorMenuProps {
 export const InspectorMenu = ({
   bottom, children, icon, label, onButtonClick, onOpen, testId, tooltip, top
 }: IInspectorMenuProps) => {
-  const classes = clsx("inspector-tool-button-new", "menu-new", { bottom, top })
+  const classes = clsx("inspector-tool-button", "menu", { bottom, top })
   return (
     <Menu isLazy onOpen={onOpen}>
       <MenuButton className={classes} title={tooltip} data-testid={testId} onClick={onButtonClick}>

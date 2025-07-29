@@ -8,7 +8,7 @@
   width: 100%;
   border-radius: vars.$border-radius-top-corners;
   &.focusTile {
-    background-color: #8ddaf2;
+    background-color: vars.$title-bar-focus-color;
   }
   &:hover, &:active {
     .header-right {

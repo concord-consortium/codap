@@ -1,7 +1,9 @@
 @use "./vars";
-$inspector-panel-width: 64px;
+$inspector-panel-width-narrow: 64px;
+$inspector-panel-width-medium: 72px;
+$inspector-panel-width-wide: 80px;
 
-.inspector-panel-new {
+.inspector-panel {
   align-items: center;
   background-color: white;
   border: 2px solid #1eabd6;
@@ -11,22 +13,25 @@ $inspector-panel-width: 64px;
   flex-direction: column;
   min-height: 50px;
   position: absolute;
-  right: calc(-1 * $inspector-panel-width);
   top: 32px;
-  width: $inspector-panel-width;
   z-index: 15;
 
+  &.narrow {
+    width: $inspector-panel-width-narrow;
+    right: calc(-1 * $inspector-panel-width-narrow);
+  }
+
   &.normal {
-    width: 72px;
-    right: -72px;
+    width: $inspector-panel-width-medium;
+    right: calc(-1 * $inspector-panel-width-medium);
   }
 
   &.wide {
-    width: 80px;
-    right: -80px;
+    width: $inspector-panel-width-wide;
+    right: calc(-1 * $inspector-panel-width-wide);
   }
 
-  .inspector-tool-button-new {
+  .inspector-tool-button {
     align-items: center;
     background-color: white;
     border-radius: 0;
@@ -54,29 +59,16 @@ $inspector-panel-width: 64px;
       border-top-right-radius: 4px;
     }
 
-    .more-options-icon-new {
-      width: 3px;
-      height: 3px;
-      position: absolute;
-      bottom: 0;
-      left: 0;
-    }
-
     .inspector-button-label {
       font-size: 14px;
       font-weight: 500;
     }
 
-    &.menu-new {
+    &.menu {
       span {
         align-items: center;
         display: flex;
         flex-direction: column;
-      }
-
-      .more-options-icon-new {
-        position: relative;
-        left: -5px;
       }
     }
   }
@@ -213,13 +205,13 @@ $inspector-panel-width: 64px;
   z-index: 10;
 
   &.arrow-left {
-    left: calc($inspector-panel-width - 10px);
+    left: calc($inspector-panel-width-medium - 10px);
     border-top: 25px solid transparent;
     border-bottom: 25px solid transparent;
     border-right: 22px solid #EEE;
   }
   &.arrow-right {
-    right: calc($inspector-panel-width - 10px);
+    right: calc($inspector-panel-width-medium - 10px);
     border-top: 25px solid transparent;
     border-bottom: 25px solid transparent;
     border-left: 22px solid #EEE;
