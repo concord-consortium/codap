@@ -123,6 +123,7 @@
     "V3.Redo.slider.changeMaximum": "Redo change of slider maximum",
 
     // V3 web view strings that are not present in V2 and will eventually require translation.
+    "V3.WebView.Inspector.URL": "URL",
     "V3.WebView.Modal.PlaceholderText": "URL",
     "V3.WebView.Modal.okBtnTitle": "OK",
     "V3.Undo.webView.show": "Undo adding web page component",

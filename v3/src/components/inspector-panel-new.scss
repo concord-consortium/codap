@@ -46,11 +46,12 @@ $inspector-panel-width: 64px;
     }
 
     &.bottom {
-      border-radius: 0 0 4px 4px;
+      border-bottom-left-radius: 4px;
+      border-bottom-right-radius: 4px;
     }
 
     &.top {
-      border-radius: 0 4px 0 0;
+      border-top-right-radius: 4px;
     }
 
     .more-options-icon-new {
