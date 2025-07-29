@@ -129,6 +129,9 @@ $tool-shelf-border-width: 1px;
     width: 190px;
     transform: translate3d(10px, -15px, -10px) !important;
   }
+  &.plugins {
+    min-width: 180px;
+  }
 
   .submenu-button {
     display: flex;
