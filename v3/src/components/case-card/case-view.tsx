@@ -38,7 +38,7 @@ interface IRenderSingleCaseViewArgs {
   style?: React.CSSProperties
 }
 
-export const CaseView = observer(function InnerCaseView({
+export const CaseView = observer(function CaseView({
   cases, dummy, level, onNewCollectionDrop, onSelectCases
 }: ICaseViewProps) {
   const cardModel = useCaseCardModel()
