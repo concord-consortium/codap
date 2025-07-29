@@ -1,44 +1,80 @@
 @use "./vars";
-$inspector-panel-width: 50px;
+$inspector-panel-width: 64px;
 
-.inspector-panel {
-  position: absolute;
-  right: -50px;
-  top: 0;
-  width: $inspector-panel-width;
-  min-height: 50px;
-  z-index: 15;
+.inspector-panel-new {
+  align-items: center;
+  background-color: white;
+  border: 2px solid #1eabd6;
+  border-radius: 0 5px 5px 5px;
+  box-shadow: rgba(0, 0, 0, 0.25) 0px 1px 3px 0px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  border-radius: 6px;
-  padding: 5px 0;
+  min-height: 50px;
+  position: absolute;
+  right: calc(-1 * $inspector-panel-width);
+  top: 32px;
+  width: $inspector-panel-width;
+  z-index: 15;
 
-  .inspector-tool-button {
-    width: 40px;
-    height: 30px;
+  &.normal {
+    width: 72px;
+    right: -72px;
+  }
+
+  &.wide {
+    width: 80px;
+    right: -80px;
+  }
+
+  .inspector-tool-button-new {
+    align-items: center;
+    background-color: white;
+    border-radius: 0;
+    display: flex;
+    flex-direction: column;
+    height: 56px;
+    justify-content: space-around;
     padding: 5px;
-    border: none !important;
-    margin: 5px;
-    background-color: vars.$teal-dark;
+    width: 100%;
+
     &:hover {
-      background-color: vars.$teal-light1;
-    }
-    &:active {
-      background-color: vars.$teal-light3;
+      background-color: #d3f4ff;
     }
 
-    .more-options-icon {
+    &:active {
+      background-color: #bfefff;
+    }
+
+    &.bottom {
+      border-bottom-left-radius: 4px;
+      border-bottom-right-radius: 4px;
+    }
+
+    &.top {
+      border-top-right-radius: 4px;
+    }
+
+    .more-options-icon-new {
       width: 3px;
       height: 3px;
       position: absolute;
       bottom: 0;
       left: 0;
     }
-    &.menu {
-      .more-options-icon {
-        width: 3px;
-        height: 3px;
+
+    .inspector-button-label {
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    &.menu-new {
+      span {
+        align-items: center;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .more-options-icon-new {
         position: relative;
         left: -5px;
       }

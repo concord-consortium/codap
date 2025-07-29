@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from "react"
 import { observer } from "mobx-react-lite"
-import { InspectorButtonNew, InspectorMenuNew, InspectorPanelNew } from "../../inspector-panel-new"
+import { InspectorButton, InspectorMenu, InspectorPanel } from "../../inspector-panel"
 import { HideShowMenuList } from "./inspector-panel/hide-show-menu-list"
 import { PointFormatPalette } from "./inspector-panel/point-format-palette"
 import { GraphMeasurePalette } from "./inspector-panel/graph-measure-palette"
@@ -73,7 +73,7 @@ export const GraphInspector = observer(function GraphInspector({tile, show}: ITi
     }
 
     return (
-      <InspectorButtonNew
+      <InspectorButton
         isDisabled={graphModel?.noPossibleRescales}
         label={t("V3.graph.Inspector.Scale")}
         onButtonClick={handleGraphRescale}
@@ -82,14 +82,14 @@ export const GraphInspector = observer(function GraphInspector({tile, show}: ITi
         top={true}
       >
         <ScaleDataIcon/>
-      </InspectorButtonNew>
+      </InspectorButton>
     )
   }
 
   return (
-    <InspectorPanelNew ref={panelRef} component="graph data-display" show={show} setShowPalette={setShowPalette}>
+    <InspectorPanel ref={panelRef} component="graph data-display" show={show} setShowPalette={setShowPalette}>
       {renderRescaleButton()}
-      <InspectorMenuNew
+      <InspectorMenu
         icon={<HideShowIcon/>}
         label={t("V3.graph.Inspector.View")}
         onButtonClick={handleClosePalette}
@@ -98,8 +98,8 @@ export const GraphInspector = observer(function GraphInspector({tile, show}: ITi
         top={true}
       >
         <HideShowMenuList tile={tile}/>
-      </InspectorMenuNew>
-      <InspectorButtonNew
+      </InspectorMenu>
+      <InspectorButton
         label={t("V3.graph.Inspector.Data")}
         onButtonClick={handleRulerButton}
         setButtonRef={setButtonRef}
@@ -107,9 +107,9 @@ export const GraphInspector = observer(function GraphInspector({tile, show}: ITi
         tooltip={t("DG.Inspector.displayValues.toolTip")}
       >
         <ValuesIcon/>
-      </InspectorButtonNew>
+      </InspectorButton>
       {showDisplayConfig &&
-        <InspectorButtonNew
+        <InspectorButton
           label={t("V3.graph.Inspector.Config")}
           onButtonClick={handleConfigButton}
           setButtonRef={setButtonRef}
@@ -117,9 +117,9 @@ export const GraphInspector = observer(function GraphInspector({tile, show}: ITi
           tooltip={t("DG.Inspector.displayConfiguration.toolTip")}
         >
           <BarChartIcon/>
-        </InspectorButtonNew>
+        </InspectorButton>
       }
-      <InspectorButtonNew
+      <InspectorButton
         label={t("V3.graph.Inspector.Format")}
         onButtonClick={handleBrushButton}
         setButtonRef={setButtonRef}
@@ -127,8 +127,8 @@ export const GraphInspector = observer(function GraphInspector({tile, show}: ITi
         tooltip={t("DG.Inspector.displayStyles.toolTip")}
       >
         <StylesIcon/>
-      </InspectorButtonNew>
-      <InspectorMenuNew
+      </InspectorButton>
+      <InspectorMenu
         bottom={true}
         icon={<CameraIcon/>}
         label={t("V3.graph.Inspector.Image")}
@@ -137,7 +137,7 @@ export const GraphInspector = observer(function GraphInspector({tile, show}: ITi
         tooltip={t("DG.Inspector.makeImage.toolTip")}
       >
         <CameraMenuList/>
-      </InspectorMenuNew>
+      </InspectorMenu>
       {showPalette === "measure" &&
         <GraphMeasurePalette tile={tile} setShowPalette={setShowPalette}
                              panelRect={panelRect} buttonRect={buttonRect}/>}
@@ -148,6 +148,6 @@ export const GraphInspector = observer(function GraphInspector({tile, show}: ITi
       {showPalette === "format" &&
         <PointFormatPalette tile={tile} setShowPalette={setShowPalette}
                             panelRect={panelRect} buttonRect={buttonRect}/>}
-    </InspectorPanelNew>
+    </InspectorPanel>
   )
 })

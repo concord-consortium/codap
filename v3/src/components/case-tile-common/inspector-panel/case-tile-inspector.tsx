@@ -5,7 +5,7 @@ import { DataSetMetadataContext } from "../../../hooks/use-data-set-metadata"
 import { t } from "../../../utilities/translation/translate"
 import { ICaseTableModel, isCaseTableModel } from "../../case-table/case-table-model"
 import { kCellPadding } from "../../case-table/case-table-types"
-import { InspectorButtonNew, InspectorMenuNew, InspectorPanelNew } from "../../inspector-panel-new"
+import { InspectorButton, InspectorMenu, InspectorPanel } from "../../inspector-panel"
 import { ITileInspectorPanelProps } from "../../tiles/tile-base-props"
 import { findLongestContentWidth } from "../attribute-format-utils"
 import { ICaseTileContentModel, isCaseTileContentModel } from "../case-tile-utils"
@@ -65,8 +65,8 @@ export const CaseTileInspector = ({ tile, show, showResizeColumnsButton }: IProp
   return (
     <DataSetContext.Provider value={data}>
       <DataSetMetadataContext.Provider value={metadata}>
-        <InspectorPanelNew component="case-tile" show={show} width="narrow">
-          <InspectorButtonNew
+        <InspectorPanel component="case-tile" show={show} width="narrow">
+          <InspectorButton
             onButtonClick={()=>handleButtonClick("datasetInfo")}
             label={t("V3.CaseCardTable.Inspector.Info")}
             testId="dataset-info-button"
@@ -74,34 +74,34 @@ export const CaseTileInspector = ({ tile, show, showResizeColumnsButton }: IProp
             top={true}
           >
             <InformationIcon />
-          </InspectorButtonNew>
+          </InspectorButton>
           {showResizeColumnsButton &&
-            <InspectorButtonNew
+            <InspectorButton
               label={t("V3.CaseCardTable.Inspector.Resize")}
               onButtonClick={resizeAllColumns}
               testId="resize-table-button"
               tooltip={t("DG.Inspector.resize.toolTip")}
             >
               <ScaleDataIcon />
-            </InspectorButtonNew>
+            </InspectorButton>
           }
-          <InspectorMenuNew
+          <InspectorMenu
             icon={<HideShowIcon />}
             label={t("V3.CaseCardTable.Inspector.View")}
             testId="hide-show-button"
             tooltip={t("DG.Inspector.hideShow.toolTip")}
           >
             <HideShowMenuList />
-          </InspectorMenuNew>
-          <InspectorMenuNew
+          </InspectorMenu>
+          <InspectorMenu
             icon={<ValuesIcon className="inspector-menu-icon"/>}
             label={t("V3.CaseCardTable.Inspector.Data")}
             testId="ruler-button"
             tooltip={t("DG.Inspector.attributes.toolTip")}
           >
             <RulerMenuList />
-          </InspectorMenuNew>
-          <InspectorMenuNew
+          </InspectorMenu>
+          <InspectorMenu
             bottom={true}
             icon={<TrashIcon />}
             label={t("V3.CaseCardTable.Inspector.Delete")}
@@ -109,9 +109,9 @@ export const CaseTileInspector = ({ tile, show, showResizeColumnsButton }: IProp
             tooltip={t("DG.Inspector.delete.toolTip")}
           >
             <TrashMenuList />
-          </InspectorMenuNew>
+          </InspectorMenu>
           {showInfoModal && <DatasetInfoModal showInfoModal={showInfoModal} setShowInfoModal={setShowInfoModal}/>}
-        </InspectorPanelNew>
+        </InspectorPanel>
       </DataSetMetadataContext.Provider>
     </DataSetContext.Provider>
   )

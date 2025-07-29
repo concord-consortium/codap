@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react"
-import { InspectorButtonNew, InspectorPanelNew } from "../inspector-panel-new"
+import { InspectorButton, InspectorPanel } from "../inspector-panel"
 import { SliderSettingsPalette } from "./inspector-panel/slider-settings-panel"
 import { t } from "../../utilities/translation/translate"
 import { ITileInspectorPanelProps } from "../tiles/tile-base-props"
@@ -49,8 +49,8 @@ export const SliderInspector = ({ tile, show }: ITileInspectorPanelProps) => {
   }
 
   return (
-    <InspectorPanelNew ref={panelRef} component="slider" show={show} setShowPalette={setShowPalette} width="wide">
-      <InspectorButtonNew
+    <InspectorPanel ref={panelRef} component="slider" show={show} setShowPalette={setShowPalette} width="wide">
+      <InspectorButton
         label={t("V3.Slider.Inspector.Playback")}
         onButtonClick={handleTimerButton}
         setButtonRef={setButtonRef}
@@ -59,8 +59,8 @@ export const SliderInspector = ({ tile, show }: ITileInspectorPanelProps) => {
         top={true}
       >
         <TimerIcon />
-      </InspectorButtonNew>
-      <InspectorButtonNew
+      </InspectorButton>
+      <InspectorButton
         bottom={true}
         label={t("V3.Slider.Inspector.Timeline")}
         onButtonClick={handleScaleButton}
@@ -69,8 +69,8 @@ export const SliderInspector = ({ tile, show }: ITileInspectorPanelProps) => {
         tooltip={t("V3.Inspector.sliderScales.toolTip")}
       >
         <ScaleIcon />
-      </InspectorButtonNew>
+      </InspectorButton>
       {renderPaletteIfAny()}
-    </InspectorPanelNew>
+    </InspectorPanel>
   )
 }

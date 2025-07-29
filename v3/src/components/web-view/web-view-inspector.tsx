@@ -3,7 +3,7 @@ import { observer } from "mobx-react-lite"
 import React from "react"
 import { useDocumentContent } from "../../hooks/use-document-content"
 import { t } from "../../utilities/translation/translate"
-import { InspectorButtonNew, InspectorPanelNew } from "../inspector-panel-new"
+import { InspectorButton, InspectorPanel } from "../inspector-panel"
 import { ITileInspectorPanelProps } from "../tiles/tile-base-props"
 import { WebViewUrlModal } from "./web-view-url-modal"
 import { isWebViewModel } from "./web-view-model"
@@ -33,8 +33,8 @@ export const WebViewInspector = observer(function WebViewInspector({tile, show}:
 
   return (
     <>
-      <InspectorPanelNew component="web-view" show={show}>
-        <InspectorButtonNew
+      <InspectorPanel component="web-view" show={show}>
+        <InspectorButton
           bottom={true}
           label={t("V3.WebView.Inspector.URL")}
           onButtonClick={onOpen}
@@ -43,8 +43,8 @@ export const WebViewInspector = observer(function WebViewInspector({tile, show}:
           top={true}
         >
           <MediaToolIcon />
-        </InspectorButtonNew>
-      </InspectorPanelNew>
+        </InspectorButton>
+      </InspectorPanel>
       { isOpen &&
         <WebViewUrlModal
           currentValue={webViewModel?.url}
