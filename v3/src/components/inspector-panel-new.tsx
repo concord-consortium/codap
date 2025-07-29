@@ -11,16 +11,17 @@ interface IProps {
   show?: boolean
   children: ReactNode
   setShowPalette?: (palette: string | undefined) => void
+  width?: "narrow" | "normal" | "wide"
 }
 
-export const InspectorPanelNew = forwardRef(({ component, show, setShowPalette, children }: IProps, ref) => {
+export const InspectorPanelNew = forwardRef(({ component, show, setShowPalette, children, width }: IProps, ref) => {
   useOutsidePointerDown({
     ref: ref as unknown as RefObject<HTMLElement>,
     handler: ()=> setShowPalette?.(undefined),
     enabled: !!(show && ref && setShowPalette),
     info: {name: "InspectorPanel", component}
   })
-  const classes = clsx("inspector-panel-new", component ?? "")
+  const classes = clsx("inspector-panel-new", component ?? "", width ?? "normal")
   return (show
     ? <Box ref={ref} className={classes} data-testid={"inspector-panel"}>
         {children}

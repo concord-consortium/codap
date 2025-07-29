@@ -65,7 +65,7 @@ export const CaseTileInspector = ({ tile, show, showResizeColumnsButton }: IProp
   return (
     <DataSetContext.Provider value={data}>
       <DataSetMetadataContext.Provider value={metadata}>
-        <InspectorPanelNew component="case-tile" show={show}>
+        <InspectorPanelNew component="case-tile" show={show} width="narrow">
           <InspectorButtonNew
             onButtonClick={()=>handleButtonClick("datasetInfo")}
             label={t("V3.CaseCardTable.Inspector.Info")}

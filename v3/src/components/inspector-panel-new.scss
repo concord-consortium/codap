@@ -16,6 +16,16 @@ $inspector-panel-width: 64px;
   width: $inspector-panel-width;
   z-index: 15;
 
+  &.normal {
+    width: 72px;
+    right: -72px;
+  }
+
+  &.wide {
+    width: 80px;
+    right: -80px;
+  }
+
   .inspector-tool-button-new {
     align-items: center;
     background-color: white;
