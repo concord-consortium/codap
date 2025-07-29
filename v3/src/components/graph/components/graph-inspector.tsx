@@ -15,9 +15,9 @@ import { CameraMenuList } from "./camera-menu-list"
 import ScaleDataIcon from "../../../assets/icons/inspector-panel/resize-icon.svg"
 import HideShowIcon from "../../../assets/icons/inspector-panel/view-icon.svg"
 import ValuesIcon from "../../../assets/icons/inspector-panel/data-icon.svg"
-import BarChartIcon from "../../../assets/icons/icon-segmented-bar-chart.svg"
-import StylesIcon from "../../../assets/icons/icon-styles.svg"
-import CameraIcon from "../../../assets/icons/icon-camera.svg"
+import BarChartIcon from "../../../assets/icons/inspector-panel/configuration-icon.svg"
+import StylesIcon from "../../../assets/icons/inspector-panel/format-icon.svg"
+import CameraIcon from "../../../assets/icons/inspector-panel/image-icon.svg"
 
 export const GraphInspector = observer(function GraphInspector({tile, show}: ITileInspectorPanelProps) {
   const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
