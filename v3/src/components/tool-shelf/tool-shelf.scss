@@ -285,40 +285,38 @@ $tool-shelf-border-width: 1px;
 .tool-shelf,
 .tool-shelf-button {
   font-family: 'Roboto', sans-serif;
-  letter-spacing: 0.2px !important;
-  font-size: 14px !important;
-  font-weight: 500 !important;
+  letter-spacing: 0.2px;
+  font-size: 14px;
+  font-weight: 500;
   color: #222 !important;
+}
+
+.tool-shelf-button.lang-bold .tool-shelf-tool-label{
+  font-weight: 600 !important;
 }
 
 .tool-shelf-button.lang-fa .tool-shelf-tool-label {
   font-family: 'Noto Sans Arabic', sans-serif;
-  font-weight: 600 !important;
 }
 
 .tool-shelf-button.lang-he .tool-shelf-tool-label {
   font-family: 'Noto Sans Hebrew', sans-serif;
-  font-weight: 600 !important;
 }
 
 .tool-shelf-button.lang-ja .tool-shelf-tool-label {
   font-family: 'Noto Sans Japanese', sans-serif;
-  font-weight: 600 !important;
 }
 
 .tool-shelf-button.lang-ko .tool-shelf-tool-label {
   font-family: 'Noto Sans Korean', sans-serif;
-  font-weight: 600 !important;
 }
 
 .tool-shelf-button.lang-th .tool-shelf-tool-label {
   font-family: 'Noto Sans Thai', sans-serif;
-  font-weight: 600 !important;
 }
 
 .tool-shelf-button.lang-zh .tool-shelf-tool-label {
   font-family: 'Noto Sans Chinese', sans-serif;
-  font-weight: 600 !important;
 }
 
 .tool-shelf-menu-list,

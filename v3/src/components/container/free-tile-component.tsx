@@ -2,6 +2,7 @@ import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import React, { PointerEvent, useCallback, useEffect, useRef, useState } from "react"
 import { ComponentWrapperContext } from "../../hooks/use-component-wrapper-context"
+import { FreeTileLayoutContext } from "../../hooks/use-free-tile-layout-context"
 import { logMessageWithReplacement } from "../../lib/log-message"
 import { IFreeTileLayout, IFreeTileRow } from "../../models/document/free-tile-row"
 import { getTileComponentInfo } from "../../models/tiles/tile-component-info"
@@ -129,24 +130,26 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
 
   return (
     <ComponentWrapperContext.Provider value={componentRef}>
-      <div id={tileId} className={classes} style={style} key={tileId} ref={componentRef}
-          data-tile-z-index={zIndex}>
-        {tile && tileLayout &&
-          <>
-            <CodapComponent tile={tile}
-              isMinimized={isMinimized}
-              onMinimizeTile={handleMinimizeTile}
-              onCloseTile={onCloseTile}
-              onMoveTilePointerDown={handleMoveTilePointerDown}
-            />
-            {!isMinimized &&
-              <ComponentResizeWidgets tile={tile} tileLayout={tileLayout} componentRef={componentRef}
-                isFixedWidth={isFixedWidth} isFixedHeight={isFixedHeight}
-                handleResizePointerDown={handleResizePointerDown} />
-            }
-          </>
-        }
-      </div>
+      <FreeTileLayoutContext.Provider value={tileLayout}>
+        <div id={tileId} className={classes} style={style} key={tileId} ref={componentRef}
+            data-tile-z-index={zIndex}>
+          {tile && tileLayout &&
+            <>
+              <CodapComponent tile={tile}
+                isMinimized={isMinimized}
+                onMinimizeTile={handleMinimizeTile}
+                onCloseTile={onCloseTile}
+                onMoveTilePointerDown={handleMoveTilePointerDown}
+              />
+              {!isMinimized &&
+                <ComponentResizeWidgets tile={tile} componentRef={componentRef}
+                  isFixedWidth={isFixedWidth} isFixedHeight={isFixedHeight}
+                  handleResizePointerDown={handleResizePointerDown} />
+              }
+            </>
+          }
+        </div>
+      </FreeTileLayoutContext.Provider>
     </ComponentWrapperContext.Provider>
   )
 })

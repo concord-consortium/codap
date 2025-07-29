@@ -16,6 +16,11 @@ export const CaseCardModel = TileContentModel
     // key is collection id; value is percentage width
     attributeColumnWidths: types.map(types.number),
   })
+  .volatile(() => ({
+    animationLevel: Infinity,
+    animationDirection: "right" as "left" | "right",
+    animationTimeout: undefined as ReturnType<typeof setTimeout> | undefined
+  }))
   .views(self => ({
     get data() {
       return getTileDataSet(self)
@@ -32,38 +37,29 @@ export const CaseCardModel = TileContentModel
     get summarizedCollections() {
       const selectedItems = self.data?.selection
       const items = self.data?.items
-      const collections = self.data?.collections
+      const collections = self.data?.collections ?? []
 
-      if (!collections || !items || selectedItems?.size === 1) {
-        return []
-      }
+      const collectionIdsToSummarize = new Set<string>()
 
-      const collectionIdsToSummarize: string[] = []
-
-      collections.forEach((collection, index) => {
-        if (index < collections.length - 1) {
-          const cases = self.data?.getCasesForCollection(collection.id) ?? []
-          const anyChildSelectedCount = cases.reduce((count, { __id__ }) => {
-            const caseInfo = self.data?.caseInfoMap.get(__id__)
-            return caseInfo?.childItemIds.some(id => selectedItems?.has(id)) ? count + 1 : count
-          }, 0)
-          if (cases.length > 1 && anyChildSelectedCount !== 1) {
-            collectionIdsToSummarize.push(collection.id)
+      if (items && selectedItems?.size !== 1) {
+        collections.forEach((collection, index) => {
+          if (index < collections.length - 1) {
+            const cases = self.data?.getCasesForCollection(collection.id) ?? []
+            const collectionSelectedCaseIds = self.data?.partiallySelectedCaseIdsByCollection[index]
+            if (cases.length > 1 && collectionSelectedCaseIds?.size !== 1) {
+              collectionIdsToSummarize.add(collection.id)
+            }
+          } else {
+            // always summarize the last collection
+            collectionIdsToSummarize.add(collection.id)
           }
-        } else {
-          // always summarize the last collection
-            collectionIdsToSummarize.push(collection.id)
-        }
-      })
+        })
+      }
 
       return collectionIdsToSummarize
     }
   }))
   .views(self => ({
-    caseLineage(itemId?: string) {
-      if (!itemId) return undefined
-      return self.data?.getItemCaseIds(itemId)
-    },
     groupChildCases(parentCaseId: string) {
       const parentCaseInfo = self.data?.caseInfoMap.get(parentCaseId)
       if (!parentCaseInfo?.childCaseIds) return undefined
@@ -104,6 +100,16 @@ export const CaseCardModel = TileContentModel
     }
   }))
   .actions(self => ({
+    setAnimationLevel(level: number) {
+      self.animationLevel = level
+    },
+    setAnimationDirection(direction: "left" | "right") {
+      self.animationDirection = direction
+    },
+    setAnimationTimeout(timeout: ReturnType<typeof setTimeout>) {
+      clearTimeout(self.animationTimeout)
+      self.animationTimeout = timeout
+    },
     updateAfterSharedModelChanges(sharedModel?: ISharedModel) {
       // TODO
     },
@@ -116,39 +122,11 @@ export const CaseCardModel = TileContentModel
       }
     },
     addNewCase(level: number) {
-      const newCase: ICaseCreation = {}
-      const selectedItemIds = self.data?.selection
-      const collections = self.data?.collections
-
-      function findCommonCases(lineages: (readonly string[])[]) {
-        if (!collections) return
-        if (lineages.length === 0) return []
-        if (lineages.length === 1) return lineages[0].slice(0, (level - collections.length))
-        let commonValues = lineages[0].slice(0, level)
-        for (let i = 1; i < lineages.length; i++) {
-          commonValues = commonValues.filter(value => lineages[i].includes(value))
-          if (commonValues.length === 0) {
-            return []
-          }
-        }
-        return commonValues
-      }
-
-      if (collections && selectedItemIds && level !== 0) {
-        const caseLineages = Array.from(selectedItemIds).map(itemId => self.caseLineage(itemId) || [])
-        const commonCaseIds = findCommonCases(caseLineages)
-        if (commonCaseIds && commonCaseIds.length > 0) {
-          commonCaseIds.forEach(caseId => {
-            const caseCollection = self.data?.getCollectionForCase(caseId)
-            caseCollection?.attributes.forEach(attr => {
-              const attrId = attr?.id
-              if (!attrId) return
-              const caseValue = self.data?.getValue(caseId, attr.id)
-              newCase[attrId] = caseValue
-            })
-          })
-        }
-      }
+      const selectedParentCaseIds = self.data?.partiallySelectedCaseIdsByCollection[level - 1]
+      const selectedParentCaseId = selectedParentCaseIds && selectedParentCaseIds.size === 1
+        ? Array.from(selectedParentCaseIds)[0] : undefined
+      const newCase: ICaseCreation = selectedParentCaseId != null ?
+        self.data?.getParentValues(selectedParentCaseId) ?? {} : {}
 
       const [newCaseId] = self.data?.addCases([newCase]) ?? []
 

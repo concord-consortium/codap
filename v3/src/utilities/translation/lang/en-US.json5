@@ -8,6 +8,18 @@
     "V3.general.yes": "Yes",
     "V3.general.no": "No",
 
+    // V3 application level strings
+    "V3.app.errorDialog.title": "Error",
+    "V3.app.errorDialog.description": "An error has occurred that may affect how this program behaves.",
+    "V3.app.errorDialog.suggestionWithSave": "You may wish to reload this page after you save a copy of your work.",
+    "V3.app.errorDialog.suggestion": "You may wish to reload this page.",
+    "V3.app.errorDialog.errorDetails": "(Error: %@)",
+    "V3.app.documentDisplayError.title": "Display Error",
+    "V3.app.documentDisplayError.suggestion": "Try reloading the page.",
+    "V3.app.documentDisplayError.suggestionWithSave": "Try saving a copy of the document and reloading the page.",
+    "V3.app.documentDisplayError.reason": "An error is preventing CODAP from displaying the document.",
+    "V3.app.documentDisplayError.detailsTitle": "Details",
+
     "V3.Undo.graph.toggleParentVisibility": "Undo toggling visibility",
     "V3.Redo.graph.toggleParentVisibility": "Redo toggling visibility",
     "V3.Undo.graph.hideAllCases": "Undo hiding all cases",
@@ -174,6 +186,12 @@
     "V3.Redo.graph.addRegionOfInterest": "Redo showing region of interest",
     "V3.Undo.graph.removeRegionOfInterest": "Undo hiding region of interest",
     "V3.Redo.graph.removeRegionOfInterest": "Redo hiding region of interest",
+
+    // V3 ErrorTester strings they probably don't need to be translated
+    "V3.ToolButtonData.errorTesterButton.title": "ErrTest",
+    "V3.ToolButtonData.errorTesterButton.toolTip": "Make an error tester",
+    "V3.Undo.errorTester.create": "Undo adding error tester",
+    "V3.Redo.errorTester.create": "Redo adding error tester",
 
     // CFM/File menu
     "DG.fileMenu.fileMenuName": "File",

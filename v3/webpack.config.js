@@ -70,10 +70,7 @@ module.exports = (env, argv) => {
           errors: true,
           warnings: false,
         },
-      },
-      // static: {
-      //   directory: path.resolve(__dirname, 'public'),
-      // },
+      }
     },
     devtool: devMode ? 'eval-cheap-module-source-map' : 'source-map',
     entry: './src/index.tsx',
@@ -174,12 +171,12 @@ module.exports = (env, argv) => {
             filename: 'assets/images/[name].[contenthash:6][ext]'
           }
         },
-        {
+        { // disable svgo optimization for files ending in .nosvgr.svg. These icons are for CFM
           test: /\.nosvgr\.svg$/i,
           include: path.resolve(__dirname, 'src/assets/plugins'),
           type: 'asset/resource',
           generator: {
-            filename: 'assets/plugins/[name][ext]'
+            filename: 'assets/plugins/[name].[contenthash:6][ext]'
           }
         },
         { // disable svgo optimization for files ending in .nosvgo.svg

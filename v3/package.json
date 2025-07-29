@@ -20,7 +20,7 @@
     },
     "transformIgnorePatterns": [
       "/comments/ESM-only (https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c) modules that should not be transformed by ts-jest",
-      "/node_modules/(?!(d3|d3-(.+)|decode-uri-component|delaunator|escape-string-regexp|filter-obj|internmap|mime|nanoid|query-string|random|@?react-leaflet|react-resize-detector|robust-predicates|split-on-first)/)"
+      "/node_modules/(?!(d3|d3-(.+)|decode-uri-component|delaunator|escape-string-regexp|filter-obj|internmap|mime|nanoid|query-string|random|@?react-leaflet|react-error-boundary|react-resize-detector|robust-predicates|split-on-first)/)"
     ],
     "setupFilesAfterEnv": [
       "<rootDir>/src/test/setupTests.ts"
@@ -234,6 +234,7 @@
     "react-data-grid": "7.0.0-beta.44",
     "react-dom": "^18.3.1",
     "react-dom-factories": "^1.0.2",
+    "react-error-boundary": "^6.0.0",
     "react-leaflet": "^4.2.1",
     "react-resize-detector": "^12.1.0",
     "regenerator-runtime": "^0.14.1",

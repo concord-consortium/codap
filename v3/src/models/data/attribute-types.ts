@@ -3,9 +3,6 @@ import { formatStdISODateString } from "../../utilities/date-iso-utils"
 export const kDefaultNumPrecision = 2
 export const kDefaultNumFormatStr = `.${kDefaultNumPrecision}~f`
 
-export const isDevelopment = () => process.env.NODE_ENV !== "production"
-export const isProduction = () => process.env.NODE_ENV === "production"
-
 export type IValueType = string | number | boolean | Date | object | undefined
 
 export function importValueToString(value: IValueType): string {

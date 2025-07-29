@@ -23,7 +23,7 @@ export const CaseCardHeader = observer(function CaseCardHeader(props: ICaseHeade
   const data = cardModel?.data
   const collectionId = useCollectionContext()
   const collection = data?.getCollection(collectionId)
-  const isCollectionSummarized = !!cardModel?.summarizedCollections.includes(collectionId)
+  const isCollectionSummarized = !!cardModel?.summarizedCollections.has(collectionId)
 
   const getDisplayedCaseIndex = () => {
     if (cases.length === 1) return 0
@@ -33,10 +33,8 @@ export const CaseCardHeader = observer(function CaseCardHeader(props: ICaseHeade
     if (_displayedCaseIndex !== -1) return _displayedCaseIndex
 
     // the child case is selected and not the parent, so we need to find the case that has the selected child
-    const selectedItemId = data?.selection && Array.from(data.selection)[0]
-    const selectedCaseId = cardModel?.caseLineage(selectedItemId)?.[level]
-    const selectedCase = collection?.cases.find(c => c.__id__ === selectedCaseId)
-    return cases.findIndex(c => c.__id__ === selectedCase?.__id__)
+    const selectedCaseId = Array.from(data?.partiallySelectedCaseIdsByCollection[level] ?? [])[0]
+    return cases.findIndex(c => c.__id__ === selectedCaseId)
   }
   const displayedCaseIndex = getDisplayedCaseIndex()
 

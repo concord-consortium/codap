@@ -101,7 +101,15 @@ export const ComponentElements = {
       .trigger("mouseup", { force: true })
   },
   closeComponent(component: string, index = 0) {
-    this.selectTile(component, index)
-    this.getCloseButton(component, index).click({ force: true })
+    if (component === "slider") {
+      // Change in component header height causes interference with variable value input
+      this.getComponentTile("slider").then($tile => {
+        cy.wrap($tile).find("[data-testid=component-close-button]").click("top", { force: true })
+      })
+    }
+    else {
+      this.selectTile(component, index)
+      this.getCloseButton(component, index).click({ force: true })
+    }
   }
 }
