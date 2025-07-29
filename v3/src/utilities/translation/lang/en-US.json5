@@ -20,6 +20,12 @@
     "V3.app.documentDisplayError.reason": "An error is preventing CODAP from displaying the document.",
     "V3.app.documentDisplayError.detailsTitle": "Details",
 
+    "V3.graph.Inspector.Scale": "Scale",
+    "V3.graph.Inspector.View": "View",
+    "V3.graph.Inspector.Data": "Data",
+    "V3.graph.Inspector.Config": "Config",
+    "V3.graph.Inspector.Format": "Format",
+    "V3.graph.Inspector.Image": "Image",
     "V3.Undo.graph.toggleParentVisibility": "Undo toggling visibility",
     "V3.Redo.graph.toggleParentVisibility": "Redo toggling visibility",
     "V3.Undo.graph.hideAllCases": "Undo hiding all cases",
@@ -57,6 +63,11 @@
     "V3.Undo.map.hideLayer": "Undo hiding map layer",
     "V3.Redo.map.hideLayer": "Redo hiding map layer",
 
+    "V3.CaseCardTable.Inspector.Info": "Info",
+    "V3.CaseCardTable.Inspector.Resize": "Resize",
+    "V3.CaseCardTable.Inspector.View": "View",
+    "V3.CaseCardTable.Inspector.Data": "Data",
+    "V3.CaseCardTable.Inspector.Delete": "Delete",
     "DG.CaseTable.attribute.type.color": "color", // used dynamically (`DG.CaseTable.attribute.type.${type}`)
     "V3.CaseTable.colorPalette.setColor": "Set Color",
     "V3.CaseTable.colorPalette.cancel": "Cancel",

@@ -1,7 +1,6 @@
 import { forwardRef, Box, Button, Menu, MenuButton } from "@chakra-ui/react"
 import { clsx } from "clsx"
 import React, { ReactNode, RefObject, useEffect, useRef, useState } from "react"
-import MoreOptionsIcon from "../assets/icons/arrow-moreIconOptions.svg"
 import { useOutsidePointerDown } from "../hooks/use-outside-pointer-down"
 import { isWithinBounds, getPaletteTopPosition } from "../utilities/view-utils"
 
@@ -37,14 +36,13 @@ interface IInspectorButtonProps {
   label?: string
   onButtonClick?: () => void
   setButtonRef?: (ref: any) => void
-  showMoreOptions?: boolean
   testId: string
   tooltip: string
   top?: boolean
 }
 
 export const InspectorButtonNew = ({
-  bottom, children, isDisabled, label, onButtonClick, setButtonRef, showMoreOptions, testId, tooltip, top
+  bottom, children, isDisabled, label, onButtonClick, setButtonRef, testId, tooltip, top
 }: IInspectorButtonProps) => {
   const buttonRef = useRef<any>()
   const _onClick = () => {
@@ -63,7 +61,6 @@ export const InspectorButtonNew = ({
     >
       {children}
       {label && <span className="inspector-button-label">{label}</span>}
-      {showMoreOptions && <MoreOptionsIcon className="more-options-icon-new"/>}
     </Button>
   )
 }

@@ -68,7 +68,7 @@ export const CaseTileInspector = ({ tile, show, showResizeColumnsButton }: IProp
         <InspectorPanelNew component="case-tile" show={show}>
           <InspectorButtonNew
             onButtonClick={()=>handleButtonClick("datasetInfo")}
-            label="Info"
+            label={t("V3.CaseCardTable.Inspector.Info")}
             testId="dataset-info-button"
             tooltip={t("DG.Inspector.datasetInfo.toolTip")}
             top={true}
@@ -77,7 +77,7 @@ export const CaseTileInspector = ({ tile, show, showResizeColumnsButton }: IProp
           </InspectorButtonNew>
           {showResizeColumnsButton &&
             <InspectorButtonNew
-              label="Reize"
+              label={t("V3.CaseCardTable.Inspector.Resize")}
               onButtonClick={resizeAllColumns}
               testId="resize-table-button"
               tooltip={t("DG.Inspector.resize.toolTip")}
@@ -87,7 +87,7 @@ export const CaseTileInspector = ({ tile, show, showResizeColumnsButton }: IProp
           }
           <InspectorMenuNew
             icon={<HideShowIcon />}
-            label="View"
+            label={t("V3.CaseCardTable.Inspector.View")}
             testId="hide-show-button"
             tooltip={t("DG.Inspector.hideShow.toolTip")}
           >
@@ -95,7 +95,7 @@ export const CaseTileInspector = ({ tile, show, showResizeColumnsButton }: IProp
           </InspectorMenuNew>
           <InspectorMenuNew
             icon={<ValuesIcon className="inspector-menu-icon"/>}
-            label="Data"
+            label={t("V3.CaseCardTable.Inspector.Data")}
             testId="ruler-button"
             tooltip={t("DG.Inspector.attributes.toolTip")}
           >
@@ -104,7 +104,7 @@ export const CaseTileInspector = ({ tile, show, showResizeColumnsButton }: IProp
           <InspectorMenuNew
             bottom={true}
             icon={<TrashIcon />}
-            label="Delete"
+            label={t("V3.CaseCardTable.Inspector.Delete")}
             testId="delete-cases-button"
             tooltip={t("DG.Inspector.delete.toolTip")}
           >
