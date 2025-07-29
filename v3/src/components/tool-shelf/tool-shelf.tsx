@@ -1,4 +1,4 @@
-import {Flex, Spacer, useToast} from "@chakra-ui/react"
+import {Flex, Spacer} from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
 import React from "react"
 import { SetRequired } from "type-fest"
@@ -46,14 +46,6 @@ interface IProps {
   document: IDocumentModel
 }
 export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
-  const toast = useToast()
-  const labelToast = (entry: IRightButtonEntry) => toast({
-    title: `"${t(entry.labelKey)}" button clicked`,
-    status: "success",
-    duration: 9000,
-    isClosable: true
-  })
-
   const undoManager = document?.treeManagerAPI?.undoManager
   const rightButtons: IRightButtonEntry[] = [
     {
@@ -101,7 +93,8 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
     {
       icon: <GuideIcon className="icon-guide"/>,
       labelKey: "DG.ToolButtonData.guideMenu.title",
-      hintKey: "DG.ToolButtonData.guideMenu.toolTip"
+      hintKey: "DG.ToolButtonData.guideMenu.toolTip",
+      isDisabled: () => true  // TODO: remove guide button if we're not supporting guide authoring
     }
   ]
 
@@ -132,15 +125,6 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
     })
   }
 
-  function handleRightButtonClick(entry: IRightButtonEntry) {
-    if (entry.onClick) {
-      entry.onClick()
-    }
-    else {
-      labelToast(entry)
-    }
-  }
-
   const tileButtons = tileComponentInfo.map((info, idx) => {
     if (!info) return null
     const { type, shelf: { ButtonComponent = ToolShelfTileButton, labelKey, hintKey } } = info
@@ -166,7 +150,7 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
               ? button
               : <ToolShelfButton key={labelKey} className={className} icon={icon} label={t(labelKey)} hint={t(hintKey)}
                     disabled={entry.isDisabled?.()}
-                    onClick={() => handleRightButtonClick(entry)} />
+                    onClick={() => entry.onClick?.()} />
           )
         })}
       </Flex>
