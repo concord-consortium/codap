@@ -17,7 +17,7 @@ export const Menu = helpers.defineMultiStyleConfig({
       padding: "10px 15px"
     },
     item: {
-      padding: "3px 0",
+      padding: "3px 10px 3px 0",
       fontWeight: "medium",
       _focus: {
         bg: "tealLight5"
