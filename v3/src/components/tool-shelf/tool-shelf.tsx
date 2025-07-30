@@ -1,4 +1,4 @@
-import {Flex, Spacer, useToast} from "@chakra-ui/react"
+import {Flex, Spacer} from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
 import React from "react"
 import { SetRequired } from "type-fest"
@@ -6,10 +6,10 @@ import { getRedoStringKey, getUndoStringKey } from "../../models/history/codap-u
 import {
   getTileComponentInfo, getTileComponentKeys, ITileComponentInfo
 } from "../../models/tiles/tile-component-info"
-import UndoIcon from "../../assets/icons/icon-undo.svg"
 import RedoIcon from "../../assets/icons/icon-redo.svg"
+import UndoIcon from "../../assets/icons/icon-undo.svg"
 import TileListIcon from "../../assets/icons/icon-tile-list.svg"
-import OptionsIcon from "../../assets/icons/icon-options.svg"
+import SettingsIcon from "../../assets/icons/icon-settings.svg"
 import HelpIcon from "../../assets/icons/icon-help.svg"
 import GuideIcon from "../../assets/icons/icon-guide.svg"
 import { DEBUG_UNDO } from "../../lib/debug"
@@ -17,11 +17,11 @@ import { IDocumentModel } from "../../models/document/document"
 import { ITileModel } from "../../models/tiles/tile-model"
 import { createTileNotification } from "../../models/tiles/tile-notifications"
 import { t } from "../../utilities/translation/translate"
-import { OptionsShelfButton } from "./options-button"
+import { SettingsShelfButton } from "./settings-button"
 import { TilesListShelfButton } from "./tiles-list-button"
 import { PluginsButton } from "./plugins-button"
 import { HelpShelfButton } from "./help-button"
-import { kRightButtonBackground, ToolShelfButton, ToolShelfTileButton } from "./tool-shelf-button"
+import { ToolShelfButton, ToolShelfTileButton } from "./tool-shelf-button"
 import { logMessageWithReplacement } from "../../lib/log-message"
 
 import "./tool-shelf.scss"
@@ -46,14 +46,6 @@ interface IProps {
   document: IDocumentModel
 }
 export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
-  const toast = useToast()
-  const labelToast = (entry: IRightButtonEntry) => toast({
-    title: `"${t(entry.labelKey)}" button clicked`,
-    status: "success",
-    duration: 9000,
-    isClosable: true
-  })
-
   const undoManager = document?.treeManagerAPI?.undoManager
   const rightButtons: IRightButtonEntry[] = [
     {
@@ -87,10 +79,10 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
       button: <TilesListShelfButton key={t("DG.ToolButtonData.tileListMenu.title")} />
     },
     {
-      icon: <OptionsIcon className="icon-options"/>,
+      icon: <SettingsIcon className="icon-settings"/>,
       labelKey: "DG.ToolButtonData.optionMenu.title",
       hintKey: "DG.ToolButtonData.optionMenu.toolTip",
-      button: <OptionsShelfButton key={t("DG.ToolButtonData.optionMenu.title")} />
+      button: <SettingsShelfButton key={t("DG.ToolButtonData.optionMenu.title")} />
     },
     {
       icon: <HelpIcon className="icon-help"/>,
@@ -101,7 +93,8 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
     {
       icon: <GuideIcon className="icon-guide"/>,
       labelKey: "DG.ToolButtonData.guideMenu.title",
-      hintKey: "DG.ToolButtonData.guideMenu.toolTip"
+      hintKey: "DG.ToolButtonData.guideMenu.toolTip",
+      isDisabled: () => true  // TODO: remove guide button if we're not supporting guide authoring
     }
   ]
 
@@ -132,15 +125,6 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
     })
   }
 
-  function handleRightButtonClick(entry: IRightButtonEntry) {
-    if (entry.onClick) {
-      entry.onClick()
-    }
-    else {
-      labelToast(entry)
-    }
-  }
-
   const tileButtons = tileComponentInfo.map((info, idx) => {
     if (!info) return null
     const { type, shelf: { ButtonComponent = ToolShelfTileButton, labelKey, hintKey } } = info
@@ -165,8 +149,8 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
             button
               ? button
               : <ToolShelfButton key={labelKey} className={className} icon={icon} label={t(labelKey)} hint={t(hintKey)}
-                    disabled={entry.isDisabled?.()} background={kRightButtonBackground}
-                    onClick={() => handleRightButtonClick(entry)} />
+                    disabled={entry.isDisabled?.()}
+                    onClick={() => entry.onClick?.()} />
           )
         })}
       </Flex>

@@ -71,7 +71,7 @@
     "DG.AppController.createDataSet.initialAttribute": "ชื่อแอ็ตทริบิวต์",
     "DG.AppController.createDataSet.name": "ชุดข้อมูลใหม่",
     "DG.AppController.createDataSet.collectionName": "เคส",
-    "DG.AppController.caseTableMenu.newDataSet": "-- ใหม่ --",
+    "DG.AppController.caseTableMenu.newDataSet": "ใหม่",
     "DG.SingleTextDialog.okButton.title": "ตกลง",
     "DG.SingleTextDialog.cancelButton.title": "ยกเลิก",
     "DG.SingleTextDialog.cancelButton.toolTip": "ปิดกล่องโต้ตอบโดยไม่ทำการเปลี่ยนแปลงใดๆ",

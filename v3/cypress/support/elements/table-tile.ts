@@ -255,7 +255,7 @@ export const TableTileElements = {
   },
   deleteDataSetFromToolShelf(index = 0) {
     c.getIconFromToolShelf("table").click()
-    cy.get(`.tool-shelf-menu-trash-icon`).eq(index).should("be.visible").then($el => {
+    cy.get(`.tool-shelf-menu-trash`).eq(index).should("be.visible").then($el => {
       cy.wrap($el).click()
     })
     cy.clickWhenClickable(`.delete-data-set-button-delete`)

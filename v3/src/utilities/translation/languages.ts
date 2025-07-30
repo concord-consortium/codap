@@ -54,3 +54,10 @@ languageFiles.forEach((langFile) => {
     translations[bLang] = langFile.contents
   }
 })
+
+// Non-roman character languages require special styling so we add a class to
+// components that use these languages.
+export const getSpecialLangFontClassName = (lang: string) => {
+  const specialLangFonts = ["fa", "th", "ja", "ko", "zhHans", "zhTW", "he"]
+  return specialLangFonts.includes(lang) ? `lang-${lang} lang-bold` : ""
+}

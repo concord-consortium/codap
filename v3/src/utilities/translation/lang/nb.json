@@ -71,7 +71,7 @@
     "DG.AppController.createDataSet.initialAttribute": "VariabelNavn",
     "DG.AppController.createDataSet.name": "Nytt datasett",
     "DG.AppController.createDataSet.collectionName": "Observasjoner",
-    "DG.AppController.caseTableMenu.newDataSet": "-- ny --",
+    "DG.AppController.caseTableMenu.newDataSet": "Ny",
     "DG.SingleTextDialog.okButton.title": "OK",
     "DG.SingleTextDialog.cancelButton.title": "Avbrytt",
     "DG.SingleTextDialog.cancelButton.toolTip": "Avslutt uten å gjøre endringer",

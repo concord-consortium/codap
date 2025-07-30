@@ -14,6 +14,7 @@ context("codap single smoke test", () => {
   beforeEach(function () {
     const url = `${Cypress.config("index")}?mouseSensor&noEntryModal&suppressUnsavedWarning`
     cy.visit(url)
+    cy.wait(1000)
   })
 
   it("verify Mammals opens from Hamburger menu and tests graph and table functionality", () => {
@@ -22,7 +23,7 @@ context("codap single smoke test", () => {
     cfm.getHamburgerMenuButton().should("exist")
     cfm.getHamburgerMenu().should("not.exist")
     // hamburger menu is shows when button is clicked
-    cfm.getHamburgerMenuButton().click()
+    cfm.getHamburgerMenuButton().click({force: true})
     cfm.getHamburgerMenu().should("exist")
     // clicking Open... item closes menu and shows Open dialog
     cfm.getHamburgerMenu().contains("li", "Open...").click()
@@ -183,9 +184,10 @@ context("codap single smoke test", () => {
 
     cy.log("plugin menu works")
     c.getIconFromToolShelf("plugins").should("exist").click()
-    toolbar.getPluginSelection().should("have.length", 9)
+    toolbar.getPluginCategory().should("have.length", 5)
     webView.getTitle().should("not.exist")
-    toolbar.getPluginSelection().eq(0).click()
+    toolbar.getPluginCategory().eq(2).click()
+    toolbar.getPluginSelection().eq(5).click()
     webView.getTitle().should("have.text", "Sampler")
     toolbar.getPluginSelection().should("not.exist")
   })

@@ -71,7 +71,7 @@
     "DG.AppController.createDataSet.initialAttribute": "AttributeName",
     "DG.AppController.createDataSet.name": "Νέο Σετ Δεδομένων",
     "DG.AppController.createDataSet.collectionName": "Περιπτώσεις",
-    "DG.AppController.caseTableMenu.newDataSet": "-- νέο --",
+    "DG.AppController.caseTableMenu.newDataSet": "Νέο",
     "DG.SingleTextDialog.okButton.title": "ΟΚ",
     "DG.SingleTextDialog.cancelButton.title": "Άκυρο",
     "DG.SingleTextDialog.cancelButton.toolTip": "Απομακρύνετε το διάλογο, χωρίς να κάνετε αλλαγές",

@@ -1,7 +1,8 @@
-$menu-bar-height: 30px;
-$tool-shelf-height: 65px;
+$menu-bar-height: 51px;
+$tool-shelf-height: 66px;
 
-$title-bar-height: 25px;
+$title-bar-height: 34px;
+$title-bar-color: #7bd0e3;
 $header-height: 30px;
 
 $border-radius-top-corners: 6px 6px 0px 0px;
@@ -35,9 +36,13 @@ $codap-tool-shelf-gray: #ececec;
 
 $minimize-transition: height 0.4s ease-in-out 0s;
 
-$label-font: 400 14px Montserrat, sans-serif;
-$empty-label-font: 12px Montserrat, sans-serif;
+$label-font: 500 14px Roboto, sans-serif;
+$letter-spacing: 0.2px;
+$label-color: #222222;
+$empty-label-font: 12px Roboto, sans-serif;
 $background-fill: #f9f9f9;
+$icon-fill-light: #d3f4ff;
+$icon-fill-dark: #006c8e;
 
 $default-font-color: #222;
 

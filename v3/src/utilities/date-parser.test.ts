@@ -7,6 +7,13 @@ describe('Date Parser tests - V2 compatibility', () => {
     expect(parseDate('11/09/2016', true)?.toISOString()).toBe(new Date(2016, 10, 9).toISOString())
     expect(parseDate('4/1/1928', true)?.toISOString()).toBe(new Date(1928, 3, 1).toISOString())
     expect(parseDate('11/9/16', true)?.toISOString()).toBe(new Date(2016, 10, 9).toISOString())
+
+    // The cutoff is "50". Two digit dates before 50 are converted to 20xx.
+    // Two digit dates after 50 are converted to 19xx.
+    // This follows the behavior of CODAPv2 and Chrome.
+    expect(parseDate('6/2/49', true)?.toISOString()).toBe(new Date(2049, 5, 2).toISOString())
+    expect(parseDate('6/2/50', true)?.toISOString()).toBe(new Date(1950, 5, 2).toISOString())
+
     expect(parseDate('11/09/16', true)?.toISOString()).toBe(new Date(2016, 10, 9).toISOString())
     expect(parseDate('04/1/28', true)?.toISOString()).toBe(new Date(2028, 3, 1).toISOString())
     // 3 digit year was not supported in V2

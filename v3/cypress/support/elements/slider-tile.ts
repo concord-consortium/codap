@@ -139,6 +139,9 @@ export const SliderTileElements = {
     c.getIconFromToolShelf("slider").click()
   },
   deleteSlider() {
-    c.closeComponent("slider")
+    c.getComponentTile("slider").then($tile => {
+      cy.wrap($tile).find("[data-testid=component-close-button]").click("top", { force: true })
+    })
+    // c.closeComponent("slider")
   },
 }

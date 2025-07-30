@@ -83,7 +83,7 @@ export const ComponentElements = {
     cy.wait(100)
   },
   selectTile(component: string, index = 0) {
-    cy.get(".codap-container").click("bottom")
+    cy.get(".codap-container").click("bottom", { force: true })
     this.getComponentTile(component, index).click()
   },
   checkComponentDoesNotExist(component: string) {
@@ -101,7 +101,15 @@ export const ComponentElements = {
       .trigger("mouseup", { force: true })
   },
   closeComponent(component: string, index = 0) {
-    this.selectTile(component, index)
-    this.getCloseButton(component, index).click({ force: true })
+    if (component === "slider") {
+      // Change in component header height causes interference with variable value input
+      this.getComponentTile("slider").then($tile => {
+        cy.wrap($tile).find("[data-testid=component-close-button]").click("top", { force: true })
+      })
+    }
+    else {
+      this.selectTile(component, index)
+      this.getCloseButton(component, index).click({ force: true })
+    }
   }
 }
