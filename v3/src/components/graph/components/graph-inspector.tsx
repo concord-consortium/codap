@@ -12,12 +12,12 @@ import { isGraphContentModel } from "../models/graph-content-model"
 import { DisplayConfigPalette } from "./inspector-panel/display-config-palette"
 import { CameraMenuList } from "./camera-menu-list"
 
-import ScaleDataIcon from "../../../assets/icons/inspector-panel/resize-icon.svg"
-import HideShowIcon from "../../../assets/icons/inspector-panel/view-icon.svg"
-import ValuesIcon from "../../../assets/icons/inspector-panel/data-icon.svg"
-import BarChartIcon from "../../../assets/icons/inspector-panel/configuration-icon.svg"
-import StylesIcon from "../../../assets/icons/inspector-panel/format-icon.svg"
-import CameraIcon from "../../../assets/icons/inspector-panel/image-icon.svg"
+import RescaleIcon from "../../../assets/icons/inspector-panel/rescale-icon.svg"
+import ViewIcon from "../../../assets/icons/inspector-panel/view-icon.svg"
+import MeasureIcon from "../../../assets/icons/inspector-panel/data-icon.svg"
+import ConfigurationIcon from "../../../assets/icons/inspector-panel/configuration-icon.svg"
+import FormatIcon from "../../../assets/icons/inspector-panel/format-icon.svg"
+import ImageIcon from "../../../assets/icons/inspector-panel/image-icon.svg"
 
 export const GraphInspector = observer(function GraphInspector({tile, show}: ITileInspectorPanelProps) {
   const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
@@ -81,7 +81,7 @@ export const GraphInspector = observer(function GraphInspector({tile, show}: ITi
         tooltip={t(rescaleTooltip)}
         top={true}
       >
-        <ScaleDataIcon/>
+        <RescaleIcon/>
       </InspectorButton>
     )
   }
@@ -96,12 +96,11 @@ export const GraphInspector = observer(function GraphInspector({tile, show}: ITi
     >
       {renderRescaleButton()}
       <InspectorMenu
-        icon={<HideShowIcon/>}
+        icon={<ViewIcon/>}
         label={t("V3.graph.Inspector.View")}
         onButtonClick={handleClosePalette}
         testId={"graph-hide-show-button"}
         tooltip={t("DG.Inspector.hideShow.toolTip")}
-        top={true}
       >
         <HideShowMenuList tile={tile}/>
       </InspectorMenu>
@@ -112,7 +111,7 @@ export const GraphInspector = observer(function GraphInspector({tile, show}: ITi
         testId={"graph-display-values-button"}
         tooltip={t("DG.Inspector.displayValues.toolTip")}
       >
-        <ValuesIcon/>
+        <MeasureIcon/>
       </InspectorButton>
       {showDisplayConfig &&
         <InspectorButton
@@ -122,7 +121,7 @@ export const GraphInspector = observer(function GraphInspector({tile, show}: ITi
           testId={"graph-display-config-button"}
           tooltip={t("DG.Inspector.displayConfiguration.toolTip")}
         >
-          <BarChartIcon/>
+          <ConfigurationIcon/>
         </InspectorButton>
       }
       <InspectorButton
@@ -132,11 +131,11 @@ export const GraphInspector = observer(function GraphInspector({tile, show}: ITi
         testId={"graph-display-styles-button"}
         tooltip={t("DG.Inspector.displayStyles.toolTip")}
       >
-        <StylesIcon/>
+        <FormatIcon/>
       </InspectorButton>
       <InspectorMenu
         bottom={true}
-        icon={<CameraIcon/>}
+        icon={<ImageIcon/>}
         label={t("V3.graph.Inspector.Image")}
         onButtonClick={handleClosePalette}
         testId={"graph-camera-button"}
