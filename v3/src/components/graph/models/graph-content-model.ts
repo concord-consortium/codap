@@ -464,7 +464,11 @@ export const GraphContentModel = DataDisplayContentModel
           const axis = self.getAxis(axisPlace),
             role = axisPlaceToAttrRole[axisPlace]
           if (isAnyNumericAxisModel(axis)) {
-            const numericValues = dataConfiguration.numericValuesForAttrRole(role)
+            const epRole = dataConfiguration.primaryRole === 'x' ? 'topSplit' : 'rightSplit'
+            const esRole = dataConfiguration.primaryRole === 'x' ? 'rightSplit' : 'topSplit'
+            const numericValues = self.plotType === 'barChart'
+              ? [0, dataConfiguration.maxOverAllCells(epRole, esRole)]
+              : dataConfiguration.numericValuesForAttrRole(role)
             axis.setAllowRangeToShrink(true)
             setNiceDomain(numericValues, axis, self.plot.axisDomainOptions)
           }
