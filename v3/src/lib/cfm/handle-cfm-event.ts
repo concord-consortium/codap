@@ -12,7 +12,7 @@ import { hideSplashScreen } from "./splash-screen"
 import { isCodapV2Document } from "../../v2/codap-v2-types"
 
 // -1 is used to disable autosave because the CFM's client.autoSave function only takes 
-// numbers and -1 it is more clear than 0. Also if the autoSaveIntervale is falsy, then 
+// numbers and -1 it is more clear than 0. Also if the autoSaveInterval is falsy, then 
 // in some places the CFM will not disable the autoSave if it was already enabled.
 export const kCFMAutoSaveDisabledInterval = -1
 export const kCFMAutoSaveInterval = DEBUG_CFM_NO_AUTO_SAVE ? kCFMAutoSaveDisabledInterval : 5
@@ -161,7 +161,7 @@ export async function handleCFMEvent(cfmClient: CloudFileManagerClient, event: C
       break
     }
     case "savedFile": {
-      // TODO: We might will want to enable autoSave if we had disabled it previously.
+      // TODO: We might want to enable autoSave if we had disabled it previously.
       const { content } = event.data
       // Compare the revisionId of the saved content with the revisionId of
       // the current content. If they are different, tell the CFM the document

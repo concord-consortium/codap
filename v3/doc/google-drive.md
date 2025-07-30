@@ -15,7 +15,7 @@ These values can be found in the Google Cloud interface. The cloud project is ca
 Find the project dashboard: If you click on the hamburger menu on the top left and then "Cloud overview", then select "Dashboard. Now copy the "Project number". This is the AppId that you need.
 
 ### ClientId
-In the cloud project's API & Services section, go to the Credentials section. Then in the OAuth 2.0 Client IDs section choose the open the "codap-dev" and copy the Client ID. This client has been configured for local development, look at its Authorized JavaScript origins and make sure you are running CODAP locally from a matching origin.
+In the cloud project's API & Services section, go to the Credentials section. Then in the OAuth 2.0 Client IDs section open the "codap-dev" and copy the Client ID. This client has been configured for local development. Look at its Authorized JavaScript origins and make sure you are running CODAP locally from a matching origin.
 
 ### ApiKey
 In the cloud project's API & Services section, go to the Credentials section. Then in the API Keys section is a list of api keys (currently there is only one). Open the "Browser key 1" key, then on the page that comes up click the "Show key" button.
