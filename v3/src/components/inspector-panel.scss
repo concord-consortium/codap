@@ -1,4 +1,5 @@
 @use "./vars";
+$inspector-panel-width-very-narrow: 48px;
 $inspector-panel-width-narrow: 64px;
 $inspector-panel-width-medium: 72px;
 $inspector-panel-width-wide: 80px;
@@ -15,6 +16,11 @@ $inspector-panel-width-wide: 80px;
   position: absolute;
   top: 32px;
   z-index: 15;
+
+  &.very-narrow {
+    width: $inspector-panel-width-very-narrow;
+    right: calc(-1 * $inspector-panel-width-very-narrow);
+  }
 
   &.narrow {
     width: $inspector-panel-width-narrow;

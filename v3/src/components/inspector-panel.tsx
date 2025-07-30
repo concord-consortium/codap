@@ -11,7 +11,7 @@ interface IProps {
   show?: boolean
   children: ReactNode
   setShowPalette?: (palette: string | undefined) => void
-  width?: "narrow" | "normal" | "wide"
+  width?: "very-narrow" | "narrow" | "normal" | "wide"
 }
 
 export const InspectorPanel = forwardRef(({ component, show, setShowPalette, children, width }: IProps, ref) => {

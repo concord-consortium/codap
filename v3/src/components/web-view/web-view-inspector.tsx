@@ -33,7 +33,7 @@ export const WebViewInspector = observer(function WebViewInspector({tile, show}:
 
   return (
     <>
-      <InspectorPanel component="web-view" show={show}>
+      <InspectorPanel component="web-view" show={show} width="very-narrow">
         <InspectorButton
           bottom={true}
           label={t("V3.WebView.Inspector.URL")}
