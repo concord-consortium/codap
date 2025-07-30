@@ -87,7 +87,13 @@ export const GraphInspector = observer(function GraphInspector({tile, show}: ITi
   }
 
   return (
-    <InspectorPanel ref={panelRef} component="graph data-display" show={show} setShowPalette={setShowPalette}>
+    <InspectorPanel
+      component="graph data-display"
+      ref={panelRef}
+      setShowPalette={setShowPalette}
+      show={show}
+      width="wide"
+    >
       {renderRescaleButton()}
       <InspectorMenu
         icon={<HideShowIcon/>}
@@ -100,7 +106,7 @@ export const GraphInspector = observer(function GraphInspector({tile, show}: ITi
         <HideShowMenuList tile={tile}/>
       </InspectorMenu>
       <InspectorButton
-        label={t("V3.graph.Inspector.Data")}
+        label={t("V3.graph.Inspector.Measure")}
         onButtonClick={handleRulerButton}
         setButtonRef={setButtonRef}
         testId={"graph-display-values-button"}
