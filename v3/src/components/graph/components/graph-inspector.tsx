@@ -1,23 +1,23 @@
-import React, {useRef, useEffect, useState} from "react"
-import {observer} from "mobx-react-lite"
-import {InspectorButton, InspectorMenu, InspectorPanel} from "../../inspector-panel"
-import ScaleDataIcon from "../../../assets/icons/icon-scaleData.svg"
-import HideShowIcon from "../../../assets/icons/icon-hideShow.svg"
-import ValuesIcon from "../../../assets/icons/icon-values.svg"
-import BarChartIcon from "../../../assets/icons/icon-segmented-bar-chart.svg"
-import StylesIcon from "../../../assets/icons/icon-styles.svg"
-import CameraIcon from "../../../assets/icons/icon-camera.svg"
-import {HideShowMenuList} from "./inspector-panel/hide-show-menu-list"
-import {PointFormatPalette} from "./inspector-panel/point-format-palette"
-import {GraphMeasurePalette} from "./inspector-panel/graph-measure-palette"
+import React, { useRef, useEffect, useState } from "react"
+import { observer } from "mobx-react-lite"
+import { InspectorButton, InspectorMenu, InspectorPanel } from "../../inspector-panel"
+import { HideShowMenuList } from "./inspector-panel/hide-show-menu-list"
+import { PointFormatPalette } from "./inspector-panel/point-format-palette"
+import { GraphMeasurePalette } from "./inspector-panel/graph-measure-palette"
 import { t } from "../../../utilities/translation/translate"
 import { updateTileNotification } from "../../../models/tiles/tile-notifications"
-import {useDndContext} from "@dnd-kit/core"
-import {ITileInspectorPanelProps} from "../../tiles/tile-base-props"
-import {isGraphContentModel} from "../models/graph-content-model"
+import { useDndContext } from "@dnd-kit/core"
+import { ITileInspectorPanelProps } from "../../tiles/tile-base-props"
+import { isGraphContentModel } from "../models/graph-content-model"
 import { DisplayConfigPalette } from "./inspector-panel/display-config-palette"
 import { CameraMenuList } from "./camera-menu-list"
 
+import ScaleDataIcon from "../../../assets/icons/inspector-panel/resize-icon.svg"
+import HideShowIcon from "../../../assets/icons/inspector-panel/view-icon.svg"
+import ValuesIcon from "../../../assets/icons/inspector-panel/data-icon.svg"
+import BarChartIcon from "../../../assets/icons/inspector-panel/configuration-icon.svg"
+import StylesIcon from "../../../assets/icons/inspector-panel/format-icon.svg"
+import CameraIcon from "../../../assets/icons/inspector-panel/image-icon.svg"
 
 export const GraphInspector = observer(function GraphInspector({tile, show}: ITileInspectorPanelProps) {
   const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
@@ -26,7 +26,7 @@ export const GraphInspector = observer(function GraphInspector({tile, show}: ITi
   const panelRect = panelRef.current?.getBoundingClientRect()
   const buttonRef = useRef<HTMLDivElement>()
   const buttonRect = buttonRef.current?.getBoundingClientRect()
-  const {active} = useDndContext()
+  const { active } = useDndContext()
   const showDisplayConfig = graphModel?.plot.showDisplayConfig
 
   useEffect(() => {
@@ -73,8 +73,14 @@ export const GraphInspector = observer(function GraphInspector({tile, show}: ITi
     }
 
     return (
-      <InspectorButton tooltip={t(rescaleTooltip)} isDisabled={graphModel?.noPossibleRescales}
-                       showMoreOptions={false} testId={"graph-resize-button"} onButtonClick={handleGraphRescale}>
+      <InspectorButton
+        isDisabled={graphModel?.noPossibleRescales}
+        label={t("V3.graph.Inspector.Scale")}
+        onButtonClick={handleGraphRescale}
+        testId={"graph-resize-button"}
+        tooltip={t(rescaleTooltip)}
+        top={true}
+      >
         <ScaleDataIcon/>
       </InspectorButton>
     )
@@ -83,28 +89,53 @@ export const GraphInspector = observer(function GraphInspector({tile, show}: ITi
   return (
     <InspectorPanel ref={panelRef} component="graph data-display" show={show} setShowPalette={setShowPalette}>
       {renderRescaleButton()}
-      <InspectorMenu tooltip={t("DG.Inspector.hideShow.toolTip")}
-                     icon={<HideShowIcon/>} testId={"graph-hide-show-button"} onButtonClick={handleClosePalette}>
+      <InspectorMenu
+        icon={<HideShowIcon/>}
+        label={t("V3.graph.Inspector.View")}
+        onButtonClick={handleClosePalette}
+        testId={"graph-hide-show-button"}
+        tooltip={t("DG.Inspector.hideShow.toolTip")}
+        top={true}
+      >
         <HideShowMenuList tile={tile}/>
       </InspectorMenu>
-      <InspectorButton tooltip={t("DG.Inspector.displayValues.toolTip")} showMoreOptions={true}
-                       onButtonClick={handleRulerButton} setButtonRef={setButtonRef}
-                       testId={"graph-display-values-button"}>
+      <InspectorButton
+        label={t("V3.graph.Inspector.Data")}
+        onButtonClick={handleRulerButton}
+        setButtonRef={setButtonRef}
+        testId={"graph-display-values-button"}
+        tooltip={t("DG.Inspector.displayValues.toolTip")}
+      >
         <ValuesIcon/>
       </InspectorButton>
       {showDisplayConfig &&
-        <InspectorButton tooltip={t("DG.Inspector.displayConfiguration.toolTip")} showMoreOptions={true}
-                       onButtonClick={handleConfigButton} setButtonRef={setButtonRef}
-                       testId={"graph-display-config-button"}>
+        <InspectorButton
+          label={t("V3.graph.Inspector.Config")}
+          onButtonClick={handleConfigButton}
+          setButtonRef={setButtonRef}
+          testId={"graph-display-config-button"}
+          tooltip={t("DG.Inspector.displayConfiguration.toolTip")}
+        >
           <BarChartIcon/>
-        </InspectorButton>}
-      <InspectorButton tooltip={t("DG.Inspector.displayStyles.toolTip")} showMoreOptions={true}
-                       onButtonClick={handleBrushButton} setButtonRef={setButtonRef}
-                       testId={"graph-display-styles-button"}>
+        </InspectorButton>
+      }
+      <InspectorButton
+        label={t("V3.graph.Inspector.Format")}
+        onButtonClick={handleBrushButton}
+        setButtonRef={setButtonRef}
+        testId={"graph-display-styles-button"}
+        tooltip={t("DG.Inspector.displayStyles.toolTip")}
+      >
         <StylesIcon/>
       </InspectorButton>
-      <InspectorMenu tooltip={t("DG.Inspector.makeImage.toolTip")} icon={<CameraIcon/>}
-                     onButtonClick={handleClosePalette} testId={"graph-camera-button"}>
+      <InspectorMenu
+        bottom={true}
+        icon={<CameraIcon/>}
+        label={t("V3.graph.Inspector.Image")}
+        onButtonClick={handleClosePalette}
+        testId={"graph-camera-button"}
+        tooltip={t("DG.Inspector.makeImage.toolTip")}
+      >
         <CameraMenuList/>
       </InspectorMenu>
       {showPalette === "measure" &&

@@ -1,9 +1,4 @@
 import React, { useState } from "react"
-import HideShowIcon from "../../../assets/icons/icon-hideShow.svg"
-import InformationIcon from "../../../assets/icons/icon-info.svg"
-import ScaleDataIcon from "../../../assets/icons/icon-scaleData.svg"
-import TrashIcon from "../../../assets/icons/icon-trash.svg"
-import ValuesIcon from "../../../assets/icons/icon-values.svg"
 import { useDataSet } from "../../../hooks/use-data-set"
 import { DataSetContext } from "../../../hooks/use-data-set-context"
 import { DataSetMetadataContext } from "../../../hooks/use-data-set-metadata"
@@ -18,6 +13,12 @@ import { HideShowMenuList } from "../hide-show-menu-list"
 import { DatasetInfoModal } from "./dataset-info-modal"
 import { RulerMenuList } from "./ruler-menu-list"
 import { TrashMenuList } from "./trash-menu-list"
+
+import HideShowIcon from "../../../assets/icons/inspector-panel/view-icon.svg"
+import InformationIcon from "../../../assets/icons/inspector-panel/info-icon.svg"
+import ScaleDataIcon from "../../../assets/icons/inspector-panel/resize-icon.svg"
+import TrashIcon from "../../../assets/icons/inspector-panel/delete-icon.svg"
+import ValuesIcon from "../../../assets/icons/inspector-panel/data-icon.svg"
 
 import "./case-tile-inspector.scss"
 
@@ -64,28 +65,50 @@ export const CaseTileInspector = ({ tile, show, showResizeColumnsButton }: IProp
   return (
     <DataSetContext.Provider value={data}>
       <DataSetMetadataContext.Provider value={metadata}>
-        <InspectorPanel component="case-tile" show={show}>
-          <InspectorButton tooltip={t("DG.Inspector.datasetInfo.toolTip")} showMoreOptions={true}
-            onButtonClick={()=>handleButtonClick("datasetInfo")} testId="dataset-info-button">
+        <InspectorPanel component="case-tile" show={show} width="narrow">
+          <InspectorButton
+            onButtonClick={()=>handleButtonClick("datasetInfo")}
+            label={t("V3.CaseCardTable.Inspector.Info")}
+            testId="dataset-info-button"
+            tooltip={t("DG.Inspector.datasetInfo.toolTip")}
+            top={true}
+          >
             <InformationIcon />
           </InspectorButton>
           {showResizeColumnsButton &&
-            <InspectorButton tooltip={t("DG.Inspector.resize.toolTip")} showMoreOptions={false}
-              testId="resize-table-button" onButtonClick={resizeAllColumns}>
+            <InspectorButton
+              label={t("V3.CaseCardTable.Inspector.Resize")}
+              onButtonClick={resizeAllColumns}
+              testId="resize-table-button"
+              tooltip={t("DG.Inspector.resize.toolTip")}
+            >
               <ScaleDataIcon />
-            </InspectorButton>}
-          <InspectorMenu tooltip={t("DG.Inspector.delete.toolTip")}
-            icon={<TrashIcon className="inspector-menu-icon trash-icon"/>}
-            testId="delete-cases-button">
-            <TrashMenuList />
-          </InspectorMenu>
-          <InspectorMenu tooltip={t("DG.Inspector.hideShow.toolTip")}
-              icon={<HideShowIcon />} testId="hide-show-button">
+            </InspectorButton>
+          }
+          <InspectorMenu
+            icon={<HideShowIcon />}
+            label={t("V3.CaseCardTable.Inspector.View")}
+            testId="hide-show-button"
+            tooltip={t("DG.Inspector.hideShow.toolTip")}
+          >
             <HideShowMenuList />
           </InspectorMenu>
-          <InspectorMenu tooltip={t("DG.Inspector.attributes.toolTip")}
-            icon={<ValuesIcon className="inspector-menu-icon"/>} testId="ruler-button">
+          <InspectorMenu
+            icon={<ValuesIcon className="inspector-menu-icon"/>}
+            label={t("V3.CaseCardTable.Inspector.Data")}
+            testId="ruler-button"
+            tooltip={t("DG.Inspector.attributes.toolTip")}
+          >
             <RulerMenuList />
+          </InspectorMenu>
+          <InspectorMenu
+            bottom={true}
+            icon={<TrashIcon />}
+            label={t("V3.CaseCardTable.Inspector.Delete")}
+            testId="delete-cases-button"
+            tooltip={t("DG.Inspector.delete.toolTip")}
+          >
+            <TrashMenuList />
           </InspectorMenu>
           {showInfoModal && <DatasetInfoModal showInfoModal={showInfoModal} setShowInfoModal={setShowInfoModal}/>}
         </InspectorPanel>

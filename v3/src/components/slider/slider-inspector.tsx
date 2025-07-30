@@ -1,12 +1,13 @@
 import React, { useEffect, useRef, useState } from "react"
 import { InspectorButton, InspectorPanel } from "../inspector-panel"
-import TimerIcon from "../../assets/icons/icon-stopwatch.svg"
-import ScaleIcon from "../../assets/icons/icon-values.svg"
 import { SliderSettingsPalette } from "./inspector-panel/slider-settings-panel"
 import { t } from "../../utilities/translation/translate"
 import { ITileInspectorPanelProps } from "../tiles/tile-base-props"
 import { isSliderModel } from "./slider-model"
 import { SliderScalesPalette } from "./inspector-panel/slider-scales-panel"
+
+import TimerIcon from "../../assets/icons/inspector-panel/playback-settings-icon.svg"
+import ScaleIcon from "../../assets/icons/inspector-panel/timeline-scale-icon.svg"
 
 export const SliderInspector = ({ tile, show }: ITileInspectorPanelProps) => {
   const sliderModel = tile?.content
@@ -48,13 +49,25 @@ export const SliderInspector = ({ tile, show }: ITileInspectorPanelProps) => {
   }
 
   return (
-    <InspectorPanel ref={panelRef} component="slider" show={show} setShowPalette={setShowPalette}>
-      <InspectorButton tooltip={t("DG.Inspector.sliderValues.toolTip")} showMoreOptions={true}
-        onButtonClick={handleTimerButton} setButtonRef={setButtonRef} testId={"slider-values-button"}>
+    <InspectorPanel ref={panelRef} component="slider" show={show} setShowPalette={setShowPalette} width="wide">
+      <InspectorButton
+        label={t("V3.Slider.Inspector.Playback")}
+        onButtonClick={handleTimerButton}
+        setButtonRef={setButtonRef}
+        testId={"slider-values-button"}
+        tooltip={t("DG.Inspector.sliderValues.toolTip")}
+        top={true}
+      >
         <TimerIcon />
       </InspectorButton>
-      <InspectorButton tooltip={t("V3.Inspector.sliderScales.toolTip")} showMoreOptions={true}
-        onButtonClick={handleScaleButton} setButtonRef={setButtonRef} testId={"slider-scale-button"}>
+      <InspectorButton
+        bottom={true}
+        label={t("V3.Slider.Inspector.Timeline")}
+        onButtonClick={handleScaleButton}
+        setButtonRef={setButtonRef}
+        testId={"slider-scale-button"}
+        tooltip={t("V3.Inspector.sliderScales.toolTip")}
+      >
         <ScaleIcon />
       </InspectorButton>
       {renderPaletteIfAny()}
