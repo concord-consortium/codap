@@ -459,12 +459,11 @@ export const GraphContentModel = DataDisplayContentModel
       if (self.plotType === 'casePlot') {
         this.incrementChangeCount()
       } else {
-        const {dataConfiguration} = self
         AxisPlaces.forEach((axisPlace: AxisPlace) => {
           const axis = self.getAxis(axisPlace),
             role = axisPlaceToAttrRole[axisPlace]
           if (isAnyNumericAxisModel(axis)) {
-            const numericValues = dataConfiguration.numericValuesForAttrRole(role)
+            const numericValues = self.plot.numericValuesForRole(role)
             axis.setAllowRangeToShrink(true)
             setNiceDomain(numericValues, axis, self.plot.axisDomainOptions)
           }
