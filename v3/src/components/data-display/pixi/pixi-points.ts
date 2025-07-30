@@ -416,6 +416,7 @@ export class PixiPoints {
     } else {
       this.setPointAnchor(point, this.anchor.x, this.anchor.y)
       this.setPointPosition(point, x, y)
+      this.setPointScale(point, 1)
     }
   }
 
