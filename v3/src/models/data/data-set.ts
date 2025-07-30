@@ -618,44 +618,9 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
     Array.from(self.childCollection.caseGroupMap.values()).forEach(caseGroup => {
       self.itemIdChildCaseMap.set(caseGroup.childItemIds[0] ?? caseGroup.hiddenChildItemIds[0], caseGroup)
     })
-  },
-  // The returned array is in collection order.
-  // Includes cases with ANY child items selected, not just those with all items selected.
-  get partiallySelectedCaseIdsByCollection(): Set<string>[] {
-    const selectedCaseIds: Set<string>[] = []
-    self.selection.forEach((itemId) => {
-      const caseIds = self.getItemCaseIds(itemId)
-      caseIds?.forEach((caseId, index) => {
-        const collection = self.collections[index]
-        if (!collection) return
-
-        if (!selectedCaseIds[index]) {
-          selectedCaseIds[index] = new Set<string>()
-        }
-        selectedCaseIds[index].add(caseId)
-      })
-    })
-
-    return selectedCaseIds
   }
 }))
 .views(self => ({
-  // The returned array includes arrays of the sorted indices of partially selected cases in each collection
-  // So selectedCaseIndices[i] contains an array of the indices of the cases partially selected in data.collections[i]
-  // Includes cases with ANY child items selected, not just those with all items selected.
-  get partiallySelectedCaseIndicesByCollection(): number[][] {
-    const { partiallySelectedCaseIdsByCollection: selectedCaseIds } = self
-
-    const selectedCaseIndices: number[][] = []
-    selectedCaseIds.forEach((caseIds, index) => {
-      const collection = self.collections[index]
-      if (!collection) return
-
-      selectedCaseIndices[index] = Array.from(caseIds).map(caseId => collection.getCaseIndex(caseId))
-        .filter(caseIndex => caseIndex != null).sort()
-    })
-    return selectedCaseIndices
-  },
   childCases() {
     self.validateCases()
     return self.collections[self.collections.length - 1].cases
@@ -770,9 +735,46 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
   getGroupsForCollection(collectionId?: string) {
     self.validateCases()
     return self.getCollection(collectionId)?.caseGroups ?? []
+  },
+  // The returned array is in collection order.
+  // Includes cases with ANY child items selected, not just those with all items selected.
+  get partiallySelectedCaseIdsByCollection(): Set<string>[] {
+    self.validateCases()
+
+    const selectedCaseIds: Set<string>[] = []
+    self.selection.forEach((itemId) => {
+      const caseIds = self.getItemCaseIds(itemId)
+      caseIds?.forEach((caseId, index) => {
+        const collection = self.collections[index]
+        if (!collection) return
+
+        if (!selectedCaseIds[index]) {
+          selectedCaseIds[index] = new Set<string>()
+        }
+        selectedCaseIds[index].add(caseId)
+      })
+    })
+
+    return selectedCaseIds
   }
 }))
 .views(self => ({
+  // The returned array includes arrays of the sorted indices of partially selected cases in each collection
+  // So selectedCaseIndices[i] contains an array of the indices of the cases partially selected in data.collections[i]
+  // Includes cases with ANY child items selected, not just those with all items selected.
+  get partiallySelectedCaseIndicesByCollection(): number[][] {
+    const { partiallySelectedCaseIdsByCollection: selectedCaseIds } = self
+
+    const selectedCaseIndices: number[][] = []
+    selectedCaseIds.forEach((caseIds, index) => {
+      const collection = self.collections[index]
+      if (!collection) return
+
+      selectedCaseIndices[index] = Array.from(caseIds).map(caseId => collection.getCaseIndex(caseId))
+        .filter(caseIndex => caseIndex != null).sort()
+    })
+    return selectedCaseIndices
+  },
   getCasesForCollection(collectionId?: string): readonly ICase[] {
     self.validateCases()
     return self.getCollection(collectionId)?.cases ?? []
