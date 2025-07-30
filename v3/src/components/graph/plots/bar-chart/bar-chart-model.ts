@@ -211,7 +211,7 @@ export const BarChartModel = DotChartModel
         case "percent":
           return [0, dataConfiguration.maxPercentAllCells(epRole, esRole)]
         case "formula":
-          return this.getMinMaxOfFormulaValues().concat(0)
+          return [0, ...this.getMinMaxOfFormulaValues()]
         default:
           return []
       }
