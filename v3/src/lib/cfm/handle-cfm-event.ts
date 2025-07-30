@@ -88,7 +88,7 @@ export async function handleCFMEvent(cfmClient: CloudFileManagerClient, event: C
 
         const resolvedDocument = await resolveDocument(content, metadata)
         
-        let loadedDocumentWasSavedByV3 = true
+        let shouldAutoSaveDocument = true
         if (isCodapV2Document(resolvedDocument)) {
           // Disable autoSave for v2 documents that were not saved by CODAP v3
           // This disabling of autoSave might be temporary until we are confident that
@@ -96,29 +96,36 @@ export async function handleCFMEvent(cfmClient: CloudFileManagerClient, event: C
           // should use a more advanced mechanism to determine which application saved
           // the document. In the meantime we just look at the appVersion. If it isn't
           // a v3 appVersion, then we assume this is a v2 document.
+          // If CFM file menu is hidden because of the interactiveApi url parameter then
+          // we keep autoSave enabled.
+          // Note: if auto save is disabled by the debug flag DEBUG_CFM_NO_AUTO_SAVE,
+          // that will override this, and is handled by the value of kCFMAutoSaveInterval
+          // computed above.
           // Note: in some v2 documents the appVersion is not set
-          loadedDocumentWasSavedByV3 = !!resolvedDocument.appVersion?.startsWith("3.")
-          if (!loadedDocumentWasSavedByV3) {
-            // TODO: We might want to enable autoSave when running in the AP. Otherwise
-            // a CODAPv2 document saved by CODAPv2 in the AP might never be saved when
-            // it is opened by CODAPv3
+          const loadedDocumentWasSavedByV3 = !!resolvedDocument.appVersion?.startsWith("3.")
+          shouldAutoSaveDocument = loadedDocumentWasSavedByV3 || urlParams.interactiveApi !== undefined
+          if (!shouldAutoSaveDocument) {
+            // eslint-disable-next-line no-console
+            console.log("Disabling autoSave for v2 document that was saved by CODAPv2",
+              { appVersion: resolvedDocument.appVersion })
+            // NOTE: Whether the document is saved automatically depends on more factors.
+            // For example the CFM provider has to support autoSave.
             cfmClient.autoSave(kCFMAutoSaveDisabledInterval)
           }
-          // If this is a v2 document saved by CODAP v3 we do not enable autoSave yet.
+          // If shouldAutoSaveDocument is true, we do not enable autoSave yet.
           // At this point the appState.document will still be the original document 
-          // not the new one we are trying to open. The new document will be set when 
-          // setDocument is called. If autoSave is enabled here, the CFM might decide
+          // not the new one we are trying to open. The new document gets set by
+          // setDocument below. If autoSave is enabled before this, the CFM might decide
           // to save the original document before the new document is set. The original
           // document might be one that we don't want to autoSave.
         } 
         await appState.setDocument(resolvedDocument, metadata)
 
-        // Now that we know the new document is set as the appState.document, it is
-        // safe to enable autoSave if we want to.
-        // Note that appState.document.version will always start with '3." because
+        // Now that the new document is set as the appState.document, it is
+        // safe to enable autoSave.
+        // Note: appState.document.version will always start with '3." here because
         // the conversion from v2 to v3 documents does not migrate the appVersion.
-        // So instead we check the variable saved above.
-        if (loadedDocumentWasSavedByV3) {
+        if (shouldAutoSaveDocument) {
           cfmClient.autoSave(kCFMAutoSaveInterval)
         }
 
