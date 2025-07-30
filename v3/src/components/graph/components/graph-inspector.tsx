@@ -75,7 +75,7 @@ export const GraphInspector = observer(function GraphInspector({tile, show}: ITi
     return (
       <InspectorButton
         isDisabled={graphModel?.noPossibleRescales}
-        label={t("V3.graph.Inspector.Scale")}
+        label={t("V3.graph.Inspector.Rescale")}
         onButtonClick={handleGraphRescale}
         testId={"graph-resize-button"}
         tooltip={t(rescaleTooltip)}
