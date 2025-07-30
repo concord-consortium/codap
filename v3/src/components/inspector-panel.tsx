@@ -81,7 +81,7 @@ interface IInspectorMenuProps {
 export const InspectorMenu = ({
   bottom, children, icon, label, onButtonClick, onOpen, testId, tooltip, top
 }: IInspectorMenuProps) => {
-  const classes = clsx("inspector-tool-button", "menu", { bottom, top })
+  const classes = clsx("inspector-tool-button", "inspector-tool-menu", { bottom, top })
   return (
     <Menu isLazy onOpen={onOpen}>
       <MenuButton className={classes} title={tooltip} data-testid={testId} onClick={onButtonClick}>
