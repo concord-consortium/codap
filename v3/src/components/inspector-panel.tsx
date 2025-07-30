@@ -21,7 +21,7 @@ export const InspectorPanel = forwardRef(({ component, show, setShowPalette, chi
     enabled: !!(show && ref && setShowPalette),
     info: {name: "InspectorPanel", component}
   })
-  const classes = clsx("inspector-panel", component ?? "", width ?? "normal")
+  const classes = clsx("inspector-panel", component, width ?? "normal")
   return (show
     ? <Box ref={ref} className={classes} data-testid={"inspector-panel"}>
         {children}
