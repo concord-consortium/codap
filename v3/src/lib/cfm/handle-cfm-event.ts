@@ -118,7 +118,7 @@ export async function handleCFMEvent(cfmClient: CloudFileManagerClient, event: C
         // Note that appState.document.version will always start with '3." because
         // the conversion from v2 to v3 documents does not migrate the appVersion.
         // So instead we check the variable saved above.
-        if (loadedDocumentWasSavedByV3) {          
+        if (loadedDocumentWasSavedByV3) {
           cfmClient.autoSave(kCFMAutoSaveInterval)
         }
 

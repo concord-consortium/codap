@@ -7,7 +7,7 @@ import { appState } from "../../models/app-state"
 import { createCodapDocument, isCodapDocument } from "../../models/codap/create-codap-document"
 import { ICodapV2DocumentJson } from "../../v2/codap-v2-types"
 import * as ImportV2Document from "../../v2/import-v2-document"
-import { handleCFMEvent } from "./handle-cfm-event"
+import { handleCFMEvent, kCFMAutoSaveInterval } from "./handle-cfm-event"
 import { Logger } from "../logger"
 
 const urlParamsModule = require("../../utilities/url-params")
@@ -127,7 +127,7 @@ describe("handleCFMEvent", () => {
   })
 
   it("handles the `openedFile` message with a v2 document", async () => {
-    const mockCfmClient = { closeFile: jest.fn() } as unknown as CloudFileManagerClient
+    const mockCfmClient = { closeFile: jest.fn(), autoSave: jest.fn() } as unknown as CloudFileManagerClient
     const mockV2Document: ICodapV2DocumentJson = {
       appName: "DG",
       appVersion: "2.0.0",
@@ -150,11 +150,42 @@ describe("handleCFMEvent", () => {
     expect(ImportV2Document.importV2Document).toHaveBeenCalledTimes(1)
     // No error and no shared data
     expect(cfmEvent.callback).toHaveBeenCalledWith(null, {})
+    // autoSave should be disabled for v2 documents with an appVersion other than 3.x
+    expect(mockCfmClient.autoSave).toHaveBeenCalledWith(-1)
+    spy.mockRestore()
+  })
+
+  it("handles the `openedFile` message with a v2 document saved by v3", async () => {
+    const mockCfmClient = { closeFile: jest.fn(), autoSave: jest.fn() } as unknown as CloudFileManagerClient
+    const mockV2Document: ICodapV2DocumentJson = {
+      appName: "DG",
+      appVersion: "3.0.0",
+      appBuildNum: "555",
+      components: [],
+      contexts: []
+    } as unknown as ICodapV2DocumentJson
+    const cfmEvent = {
+      type: "openedFile",
+      data: {
+        content: mockV2Document,
+        metadata: {
+          filename: "file.codap"
+        }
+      },
+      callback: jest.fn() as ClientEventCallback
+    } as CloudFileManagerClientEvent
+    const spy = jest.spyOn(ImportV2Document, "importV2Document")
+    await handleCFMEvent(mockCfmClient, cfmEvent)
+    expect(ImportV2Document.importV2Document).toHaveBeenCalledTimes(1)
+    // No error and no shared data
+    expect(cfmEvent.callback).toHaveBeenCalledWith(null, {})
+    // autoSave should be enabled for v2 documents with an appVersion of 3.x
+    expect(mockCfmClient.autoSave).toHaveBeenCalledWith(kCFMAutoSaveInterval)
     spy.mockRestore()
   })
 
   it("handles the `openedFile` message with a v3 document", async () => {
-    const mockCfmClient = { closeFile: jest.fn() } as unknown as CloudFileManagerClient
+    const mockCfmClient = { closeFile: jest.fn(), autoSave: jest.fn() } as unknown as CloudFileManagerClient
     const v3Document = createCodapDocument()
     const cfmEvent = {
       type: "openedFile",
@@ -175,7 +206,7 @@ describe("handleCFMEvent", () => {
   })
 
   it("handles the `openedFile` message with sharing info", async () => {
-    const mockCfmClient = { closeFile: jest.fn() } as unknown as CloudFileManagerClient
+    const mockCfmClient = { closeFile: jest.fn(), autoSave: jest.fn() } as unknown as CloudFileManagerClient
     const v3Document = createCodapDocument()
     // This is not real metadata for sharing. Our CFM handler should
     // not care and just return it whatever it is.
@@ -212,7 +243,8 @@ describe("handleCFMEvent", () => {
 
     beforeEach(() => {
       mockCfmClient = {
-        closeFile: jest.fn() as CloudFileManagerClient["closeFile"]
+        closeFile: jest.fn() as CloudFileManagerClient["closeFile"],
+        autoSave: jest.fn() as CloudFileManagerClient["autoSave"]
       } as CloudFileManagerClient
       cfmEvent = {
         type: "openedFile",
