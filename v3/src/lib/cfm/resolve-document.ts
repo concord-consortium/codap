@@ -228,6 +228,12 @@ function validateV2Document(_content: unknown): Maybe<ICodapV2DocumentJson> {
   return (content.appName === kV2AppName) && !!content.appVersion && !!content.appBuildNum ? content : undefined
 }
 
+/**
+ * Resolves and converts various document formats (CODAP v2, v3, CSV, GeoJSON) into a CODAP document snapshot,
+ * based on provided contents and metadata. Handles validation, parsing, and format-specific processing.
+ * 
+ * It does not convert CODAP v2 documents to v3 documents.
+ */
 export function resolveDocument(iDocContents: any, iMetadata: IDocumentMetadata): Promise<IDocumentModelSnapshot> {
   return new Promise(function (resolve, reject) {
     const metadata = iMetadata || {}

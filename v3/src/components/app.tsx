@@ -54,7 +54,8 @@ export const App = observer(function App() {
   // default behavior is to show the user entry modal when CODAP is loaded
   // We close the modal if user imports, drags a document, opens a document
   // or plugin using url params
-  const {isOpen: isOpenUserEntry, onOpen: onOpenUserEntry, onClose: onCloseUserEntry} = useDisclosure()
+  const {isOpen: isOpenUserEntry, onOpen: onOpenUserEntry, onClose: onCloseUserEntry}
+    = useDisclosure({defaultIsOpen: true})
   const [isDragOver, setIsDragOver] = useState(false)
 
   const handleFileOpened = useCallback(() => {
@@ -161,8 +162,6 @@ export const App = observer(function App() {
 
       if (hideUserEntryModal()) {
         onCloseUserEntry()
-      } else {
-        onOpenUserEntry()
       }
 
       appState.enableDocumentMonitoring()
