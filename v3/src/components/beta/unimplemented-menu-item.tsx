@@ -8,7 +8,7 @@ interface IUnimplementedMenuItemProps {
 export function UnimplementedMenuItem({ label, testId }: IUnimplementedMenuItemProps) {
   return (
     <MenuItem isDisabled data-testid={testId}>
-      {`🚧 ${label}`}
+      {`${label} 🚧`}
     </MenuItem>
   )
 }
