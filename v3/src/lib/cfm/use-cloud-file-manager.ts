@@ -1,10 +1,12 @@
 import { CFMAppOptions, CloudFileManager, CloudFileManagerClientEvent } from "@concord-consortium/cloud-file-manager"
+import { runInAction } from "mobx"
 import { useEffect, useRef } from "react"
 import { Root, createRoot } from "react-dom/client"
 import { useMemo } from "use-memo-one"
 import { codapResourcesUrl } from "../../constants"
 import { appState } from "../../models/app-state"
 import { isCodapDocument } from "../../models/codap/create-codap-document"
+import { uiState } from "../../models/ui-state"
 import { gLocale } from "../../utilities/translation/locale"
 import { t } from "../../utilities/translation/translate"
 import { removeDevUrlParams, urlParams } from "../../utilities/url-params"
@@ -12,7 +14,8 @@ import { clientConnect, createCloudFileManager, renderRoot } from "./cfm-utils"
 import { CONFIG_SAVE_AS_V2 } from "../config"
 import { DEBUG_CFM_LOCAL_STORAGE } from "../debug"
 import { handleCFMEvent, kCFMAutoSaveInterval } from "./handle-cfm-event"
-import CODAPIcon from "../../assets/cfm/codap-logo.nosvgr.svg"
+import CODAPLogo from "../../assets/cfm/codap-logo.nosvgr.svg"
+import CODAPProjectIcon from "../../assets/cfm/codap-project-icon.nosvgr.svg"
 import LanguageMenuIcon from "../../assets/cfm/language-menu-icon.nosvgr.svg"
 import FileMenuIcon from "../../assets/cfm/file-menu-icon.nosvgr.svg"
 import FileCloseIcon from "../../assets/cfm/file-close-icon.nosvgr.svg"
@@ -28,7 +31,13 @@ import FileSaveIcon from "../../assets/cfm/file-save-icon.nosvgr.svg"
 import FileShareIcon from "../../assets/cfm/file-share-icon.nosvgr.svg"
 import FileSharedViewIcon from "../../assets/cfm/file-shared-view-icon.nosvgr.svg"
 import FileUpdateSharedViewIcon from "../../assets/cfm/file-update-shared-view-icon.nosvgr.svg"
+import HelpForumIcon from "../../assets/cfm/help-forum-icon.nosvgr.svg"
+import HelpIcon from "../../assets/cfm/icon-help.nosvgr.svg"
+import HelpPagesIcon from "../../assets/cfm/help-pages-and-videos-icon.nosvgr.svg"
+import PrivacyPolicyIcon from "../../assets/cfm/web-policy-page-icon.nosvgr.svg"
+import SettingsIcon from "../../assets/cfm/icon-settings.nosvgr.svg"
 import SubMenuExpandIcon from "../../assets/cfm/dropdown-arrow-old.nosvgr.svg"
+import ToolbarPositionIcon from "../../assets/cfm/icon-toolbar-position.nosvgr.svg"
 
 const locales = [
   {
@@ -123,7 +132,7 @@ const locales = [
   }
 ]
 
-function getMenuConfig(cfm: CloudFileManager) {
+function getFileMenuConfig(cfm: CloudFileManager) {
   return [
     { name: t('DG.fileMenu.menuItem.newDocument'), action: 'newFileDialog', icon: FileNewIcon },
     { name: t('DG.fileMenu.menuItem.openDocument'), action: 'openFileDialog', icon: FileOpenIcon },
@@ -160,6 +169,19 @@ function getMenuConfig(cfm: CloudFileManager) {
   ]
 }
 
+const helpURL = "https://codap.concord.org/help"
+const helpForumURL = "https://codap.concord.org/forums/forum/test/"
+const projectWebSiteURL = "https://codap.concord.org"
+const privacyPolicyURL = "https://codap.concord.org/privacy"
+
+const translatedHelpURLs: Record<string, string> = {
+  "ja": "https://codap.concord.org/resources/latest/help-documents/CODAP解説書.pdf"
+}
+
+function getHelpUrl() {
+  return translatedHelpURLs[gLocale.current] || helpURL
+}
+
 export function useCloudFileManager(optionsArg: CFMAppOptions, onFileOpened?: () => void) {
   const options = useRef(optionsArg)
   const root = useRef<Root | undefined>()
@@ -177,7 +199,56 @@ export function useCloudFileManager(optionsArg: CFMAppOptions, onFileOpened?: ()
       hideMenuBar: urlParams.interactiveApi !== undefined,
       ui: {
         menuBar: {
-          info: "Language menu",
+          onInfoClick() {
+            window.open(projectWebSiteURL, "_blank")
+          },
+          subMenuExpandIcon: SubMenuExpandIcon,
+          otherMenus: [
+            {
+              className: "help-menu",
+              menuAnchorIcon: HelpIcon,
+              menuAnchorName: t("DG.ToolButtonData.help.title"),
+              menu: [
+                {
+                  icon: HelpPagesIcon,
+                  name: t("DG.AppController.optionMenuItems.help"),
+                  action: () => window.open(getHelpUrl(), "_blank")
+                },
+                {
+                  icon: HelpForumIcon,
+                  name: t("DG.AppController.optionMenuItems.help-forum"),
+                  action: () => window.open(helpForumURL, "_blank")
+                },
+                {
+                  icon: PrivacyPolicyIcon,
+                  name: t("DG.AppController.optionMenuItems.toWebSite"),
+                  action: () => window.open(projectWebSiteURL, "_blank")
+                },
+                {
+                  icon: CODAPProjectIcon,
+                  name: t("DG.AppController.optionMenuItems.toPrivacyPage"),
+                  action: () => window.open(privacyPolicyURL, "_blank")
+                }
+              ]
+            },
+            {
+              className: "settings-menu",
+              menuAnchorIcon: SettingsIcon,
+              menuAnchorName: t("DG.ToolButtonData.optionMenu.title"),
+              menu: [
+                {
+                  icon: ToolbarPositionIcon,
+                  name: `${t("DG.AppController.optionMenuItems.positionToolShelf")} ${uiState.toolbarPosition} 🚧`,
+                  action() {
+                    runInAction(() => {
+                      uiState.setToolbarPosition(uiState.toolbarPosition === "Top" ? "Left" : "Top")
+                    })
+                  },
+                  enabled: false
+                }
+              ]
+            }
+          ],
           languageMenu: {
             currentLang: gLocale.current,
             options: locales.map(function (locale) {
@@ -191,8 +262,7 @@ export function useCloudFileManager(optionsArg: CFMAppOptions, onFileOpened?: ()
               cfm.client.replaceMenu({
                 menuAnchorIcon: FileMenuIcon,
                 menuAnchorName: t("DG.fileMenu.fileMenuName"),
-                menu: getMenuConfig(cfm),
-                subMenuExpandIcon: SubMenuExpandIcon,
+                menu: getFileMenuConfig(cfm),
               })
             }
           },
@@ -201,8 +271,7 @@ export function useCloudFileManager(optionsArg: CFMAppOptions, onFileOpened?: ()
 
         menuAnchorIcon: FileMenuIcon,
         menuAnchorName: t("DG.fileMenu.fileMenuName"),
-        menu: getMenuConfig(cfm),
-        subMenuExpandIcon: SubMenuExpandIcon,
+        menu: getFileMenuConfig(cfm),
         clientToolBarPosition: "top",
       },
       renderRoot(content: React.ReactNode, container: HTMLElement) {
@@ -259,7 +328,7 @@ export function useCloudFileManager(optionsArg: CFMAppOptions, onFileOpened?: ()
         "localFile",
         ...(DEBUG_CFM_LOCAL_STORAGE ? ["localStorage"] : [])
       ],
-      appIcon: CODAPIcon,
+      appIcon: CODAPLogo,
       ...options.current
     }
 
