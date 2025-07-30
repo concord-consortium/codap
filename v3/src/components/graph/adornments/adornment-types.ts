@@ -3,6 +3,8 @@ import { IAdornmentModel, IUnknownAdornmentModel, UnknownAdornmentModel } from "
 import { IMovableLineAdornmentModel, MovableLineAdornmentModel } from "./movable-line/movable-line-adornment-model"
 import { IMovablePointAdornmentModel, MovablePointAdornmentModel } from "./movable-point/movable-point-adornment-model"
 import { IMovableValueAdornmentModel, MovableValueAdornmentModel } from "./movable-value/movable-value-adornment-model"
+import { ConnectingLinesAdornmentModel, IConnectingLinesAdornmentModel }
+  from "./connecting-lines/connecting-lines-adornment-model"
 import { CountAdornmentModel, ICountAdornmentModel } from "./count/count-adornment-model"
 import { IPlottedValueAdornmentModel, PlottedValueAdornmentModel }
   from "./univariate-measures/plotted-value/plotted-value-adornment-model"
@@ -29,6 +31,7 @@ export const kGraphAdornmentsBannerHeight = 22
 const adornmentTypeDispatcher = (adornmentSnap: IAdornmentModel) => {
   switch (adornmentSnap.type) {
     case "Box Plot": return BoxPlotAdornmentModel
+    case "Connecting Lines": return ConnectingLinesAdornmentModel
     case "Count": return CountAdornmentModel
     case "LSRL": return LSRLAdornmentModel
     case "Mean": return MeanAdornmentModel
@@ -52,12 +55,12 @@ const adornmentTypeDispatcher = (adornmentSnap: IAdornmentModel) => {
 
 // TODO: build these unions from the registration info rather than statically
 export const AdornmentModelUnion = types.union({ dispatcher: adornmentTypeDispatcher },
-  BoxPlotAdornmentModel, CountAdornmentModel, LSRLAdornmentModel, MeanAdornmentModel,
+  BoxPlotAdornmentModel, ConnectingLinesAdornmentModel, CountAdornmentModel, LSRLAdornmentModel, MeanAdornmentModel,
   MeanAbsoluteDeviationAdornmentModel, MedianAdornmentModel, MovableValueAdornmentModel, MovableLineAdornmentModel,
   MovablePointAdornmentModel, NormalCurveAdornmentModel, PlottedFunctionAdornmentModel, PlottedValueAdornmentModel,
   StandardDeviationAdornmentModel, StandardErrorAdornmentModel, RegionOfInterestAdornmentModel, UnknownAdornmentModel)
-export type IAdornmentModelUnion = IBoxPlotAdornmentModel | ICountAdornmentModel | ILSRLAdornmentModel |
-  IMeanAdornmentModel | IMeanAbsoluteDeviationAdornmentModel | IMedianAdornmentModel | IMovableValueAdornmentModel |
-  IMovableLineAdornmentModel | IMovablePointAdornmentModel | INormalCurveAdornmentModel |
+export type IAdornmentModelUnion = IBoxPlotAdornmentModel | IConnectingLinesAdornmentModel | ICountAdornmentModel |
+  ILSRLAdornmentModel | IMeanAdornmentModel | IMeanAbsoluteDeviationAdornmentModel | IMedianAdornmentModel |
+  IMovableValueAdornmentModel | IMovableLineAdornmentModel | IMovablePointAdornmentModel | INormalCurveAdornmentModel |
   IPlottedFunctionAdornmentModel | IPlottedValueAdornmentModel | IStandardDeviationAdornmentModel |
   IStandardErrorAdornmentModel | IRegionOfInterestAdornmentModel | IUnknownAdornmentModel
