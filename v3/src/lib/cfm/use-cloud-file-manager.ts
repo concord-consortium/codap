@@ -220,12 +220,12 @@ export function useCloudFileManager(optionsArg: CFMAppOptions, onFileOpened?: ()
                   action: () => window.open(helpForumURL, "_blank")
                 },
                 {
-                  icon: PrivacyPolicyIcon,
+                  icon: CODAPProjectIcon,
                   name: t("DG.AppController.optionMenuItems.toWebSite"),
                   action: () => window.open(projectWebSiteURL, "_blank")
                 },
                 {
-                  icon: CODAPProjectIcon,
+                  icon: PrivacyPolicyIcon,
                   name: t("DG.AppController.optionMenuItems.toPrivacyPage"),
                   action: () => window.open(privacyPolicyURL, "_blank")
                 }
