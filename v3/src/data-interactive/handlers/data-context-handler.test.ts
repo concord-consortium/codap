@@ -42,9 +42,12 @@ describe("DataInteractive DataContextHandler", () => {
     expect(gDataBroker.length).toBe(0)
 
     // Can create a more complex dataset
+    const source = "dataSet Source"
+    const importDate = "2023-10-01T00:00:00Z"
     const singleCase = "case"
     const pluralCase = "cases"
     const result3 = handler.create?.({}, {
+      metadata: { description, importDate, source },
       collections: [
         {
           name: "collection1",
@@ -65,6 +68,9 @@ describe("DataInteractive DataContextHandler", () => {
     expect(dataset.collections.length).toBe(2)
     const metadata = getMetadataFromDataSet(dataset)
     expect(metadata).toBeDefined()
+    expect(metadata?.description).toBe(description)
+    expect(metadata?.source).toBe(source)
+    expect(metadata?.importDate).toBe("9/30/2023, 5:00:00 PM")
     const collection1 = dataset.getCollectionByName("collection1")
     expect(collection1).toBeDefined()
     const collection1Metadata = metadata?.collections.get(collection1!.id)
