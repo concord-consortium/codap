@@ -19,6 +19,7 @@ import { getAttribute } from "../data-interactive-utils"
 import { findTileFromNameOrId } from "../resource-parser-utils"
 import { createCollection } from "./di-handler-utils"
 import { attributeNotFoundResult, dataContextNotFoundResult, errorResult, fieldRequiredResult } from "./di-results"
+import { formatDate } from "../../utilities/date-utils"
 
 const requestRequiredResult = fieldRequiredResult("Notify", "dataContext", "request")
 
@@ -41,8 +42,8 @@ export const diDataContextHandler: DIHandler = {
       // Set metadata
       const { sharedMetadata } = gDataBroker.addDataSet(dataSet)
       if (metadata?.importDate) {
-        const date = new Date(metadata.importDate)
-        sharedMetadata.setImportDate(date.toLocaleString("en-US", { hour12: true }))
+        const formattedDate = formatDate(metadata.importDate)
+        if (formattedDate) sharedMetadata.setImportDate(formattedDate)
       }
       sharedMetadata.setSource(metadata?.source)
       sharedMetadata.setDescription(metadata?.description ?? description)

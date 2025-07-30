@@ -5,12 +5,13 @@ import { createDefaultTileOfType } from "../../models/codap/add-default-content"
 import { gDataBroker } from "../../models/data/data-broker"
 import { getMetadataFromDataSet } from "../../models/shared/shared-data-utils"
 import { getSharedModelManager } from "../../models/tiles/tile-environment"
+import { setupTestDataset } from "../../test/dataset-test-utils"
 import { toV2Id } from "../../utilities/codap-utils"
+import { formatDate } from "../../utilities/date-utils"
 import { ICodapV2DataContext } from "../../v2/codap-v2-data-context-types"
 import { DIDataContext, DIUpdateDataContext } from "../data-interactive-data-set-types"
 import { DIValues } from "../data-interactive-types"
 import { diDataContextHandler } from "./data-context-handler"
-import { setupTestDataset } from "../../test/dataset-test-utils"
 
 import "../../components/web-view/web-view-registration"
 
@@ -70,7 +71,7 @@ describe("DataInteractive DataContextHandler", () => {
     expect(metadata).toBeDefined()
     expect(metadata?.description).toBe(description)
     expect(metadata?.source).toBe(source)
-    expect(metadata?.importDate).toBe("9/30/2023, 5:00:00 PM")
+    expect(metadata?.importDate).toBe(formatDate(importDate))
     const collection1 = dataset.getCollectionByName("collection1")
     expect(collection1).toBeDefined()
     const collection1Metadata = metadata?.collections.get(collection1!.id)
