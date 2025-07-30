@@ -53,7 +53,7 @@ export const dndDetectCollision: CollisionDetection = (args) => {
           // filter the drop zones to those appropriate for the relevant tile
           const containers =
             args.droppableContainers.filter(({id: containerId}) => droppableRegex.test(`${containerId}`))
-          // apply the collection detection function specified by the tile
+          // apply the collision detection function specified by the tile
           return detect({ ...args, droppableContainers: containers })
         }
       }
