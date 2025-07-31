@@ -9,7 +9,7 @@ import { WebViewUrlModal } from "./web-view-url-modal"
 import { isWebViewModel } from "./web-view-model"
 import { logMessageWithReplacement } from "../../lib/log-message"
 
-import MediaToolIcon from "../../assets/icons/inspector-panel/web-page-icon.svg"
+import UrlIcon from "../../assets/icons/inspector-panel/web-url-icon.svg"
 
 import "./web-view-inspector.scss"
 
@@ -33,7 +33,7 @@ export const WebViewInspector = observer(function WebViewInspector({tile, show}:
 
   return (
     <>
-      <InspectorPanel component="web-view" show={show}>
+      <InspectorPanel component="web-view" show={show} width="very-narrow">
         <InspectorButton
           bottom={true}
           label={t("V3.WebView.Inspector.URL")}
@@ -42,7 +42,7 @@ export const WebViewInspector = observer(function WebViewInspector({tile, show}:
           tooltip={t("DG.Inspector.webViewEditURL.toolTip")}
           top={true}
         >
-          <MediaToolIcon />
+          <UrlIcon />
         </InspectorButton>
       </InspectorPanel>
       { isOpen &&

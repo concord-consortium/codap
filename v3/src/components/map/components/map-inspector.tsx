@@ -12,11 +12,11 @@ import { SaveImageMenuList } from "./inspector-panel/save-image-menu-list"
 import { MapMeasurePalette } from "./inspector-panel/map-measure-palette"
 import { MapLayersPalette } from "./inspector-panel/map-layers-palette"
 
-import ScaleDataIcon from "../../../assets/icons/inspector-panel/resize-icon.svg"
-import HideShowIcon from "../../../assets/icons/inspector-panel/view-icon.svg"
-import ValuesIcon from "../../../assets/icons/inspector-panel/data-icon.svg"
+import RescaleIcon from "../../../assets/icons/inspector-panel/rescale-icon.svg"
+import ViewIcon from "../../../assets/icons/inspector-panel/view-icon.svg"
+import DataIcon from "../../../assets/icons/inspector-panel/data-icon.svg"
 import LayersIcon from "../../../assets/icons/inspector-panel/layers-icon.svg"
-import CameraIcon from "../../../assets/icons/inspector-panel/image-icon.svg"
+import ImageIcon from "../../../assets/icons/inspector-panel/image-icon.svg"
 
 export const MapInspector = observer(function MapInspector({tile, show}: ITileInspectorPanelProps) {
   const mapModel = isMapContentModel(tile?.content) ? tile?.content : undefined
@@ -52,7 +52,7 @@ export const MapInspector = observer(function MapInspector({tile, show}: ITileIn
           testId={"map-display-values-button"}
           tooltip={t("DG.Inspector.displayValues.toolTip")}
         >
-          <ValuesIcon/>
+          <DataIcon/>
         </InspectorButton>
       )
     }
@@ -97,10 +97,10 @@ export const MapInspector = observer(function MapInspector({tile, show}: ITileIn
           tooltip={t("DG.Inspector.rescale.toolTip")}
           top={true}
         >
-          <ScaleDataIcon/>
+          <RescaleIcon/>
         </InspectorButton>
         <InspectorMenu
-          icon={<HideShowIcon/>}
+          icon={<ViewIcon/>}
           label={t("V3.map.Inspector.View")}
           onButtonClick={handleClosePalette}
           testId={"map-hide-show-button"}
@@ -112,7 +112,7 @@ export const MapInspector = observer(function MapInspector({tile, show}: ITileIn
         {renderLayersButton()}
         <InspectorMenu
           bottom={true}
-          icon={<CameraIcon/>}
+          icon={<ImageIcon/>}
           label={t("V3.map.Inspector.Image")}
           onButtonClick={handleClosePalette}
           testId={"map-camera-button"}
