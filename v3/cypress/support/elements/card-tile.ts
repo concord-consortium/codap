@@ -41,6 +41,9 @@ export const CardTileElements = {
   getAddAttributeButton() {
     return cy.get('[data-testid="add-attribute-button"]:visible')
   },
+  getSummaryButton() {
+    return cy.get('[data-testid="summary-view-toggle-button"]')
+  },
   getInspectorPanel() {
     return cy.get('[data-testid="codap-case-card"]').siblings('[data-testid="inspector-panel"]')
   },
