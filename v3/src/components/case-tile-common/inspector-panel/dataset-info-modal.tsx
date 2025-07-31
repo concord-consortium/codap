@@ -4,6 +4,7 @@ import { Button, FormControl, FormLabel, Input, ModalBody, ModalCloseButton, Mod
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
 import { useDataSetMetadata } from "../../../hooks/use-data-set-metadata"
 import { updateDataContextNotification } from "../../../models/data/data-set-notifications"
+import { formatDate } from "../../../utilities/date-utils"
 import { t } from "../../../utilities/translation/translate"
 import { CodapModal } from "../../codap-modal"
 
@@ -20,14 +21,14 @@ export const DatasetInfoModal = ({showInfoModal, setShowInfoModal}: IProps) => {
   const [datasetTitle, setDatasetTitle] = useState(data?.displayTitle || "")
   const [description, setDescription] = useState(metadata?.description || "")
   const [source, setSource] = useState(metadata?.source || "")
-  const [importDate, setImportDate] = useState(metadata?.importDate || "")
+  const [importDate, setImportDate] = useState(formatDate(metadata?.importDate || "") || "")
 
   const handleCloseInfoModal = () => {
     data?.applyModelChange(() => {
       data.setUserTitle(datasetTitle)
       metadata?.setDescription(description)
       metadata?.setSource(source)
-      metadata?.setImportDate(importDate)
+      metadata?.setImportDate(new Date(importDate).toISOString())
       setShowInfoModal(false)
     }, {
       notify: () => updateDataContextNotification(data)

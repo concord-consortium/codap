@@ -9,7 +9,6 @@ import { addSetAsideCases, replaceSetAsideCases, restoreSetAsideCases } from "..
 import { getMetadataFromDataSet } from "../../models/shared/shared-data-utils"
 import { getFormulaManager } from "../../models/tiles/tile-environment"
 import { toV3CaseId } from "../../utilities/codap-utils"
-import { formatDate } from "../../utilities/date-utils"
 import { hasOwnProperty } from "../../utilities/js-utils"
 import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
@@ -41,10 +40,7 @@ export const diDataContextHandler: DIHandler = {
 
       // Set metadata
       const { sharedMetadata } = gDataBroker.addDataSet(dataSet)
-      if (metadata?.importDate) {
-        const formattedDate = formatDate(metadata.importDate)
-        if (formattedDate) sharedMetadata.setImportDate(formattedDate)
-      }
+      sharedMetadata.setImportDate(metadata?.importDate)
       sharedMetadata.setSource(metadata?.source)
       sharedMetadata.setDescription(metadata?.description ?? description)
 
