@@ -105,7 +105,7 @@ context("case table ui", () => {
     it("should open dataset information button and make changes", () => {
       const newInfoName = "Animals",
         newSource = "The Internet",
-        importDate = "May 4",
+        importDate = "May 4, 2021",
         newDescription = "All about mammals"
 
       // Enter new dataset information
@@ -116,7 +116,7 @@ context("case table ui", () => {
       // Checks that the new description information is filled in
       cy.get("[data-testid='dataset-name-input']").should("have.value", newInfoName)
       cy.get("[data-testid='dataset-source-input']").should("have.value", newSource)
-      cy.get("[data-testid='dataset-date-input']").should("have.value", importDate)
+      cy.get("[data-testid='dataset-date-input']").should("have.value", "5/4/2021")
       cy.get("[data-testid=dataset-description-input]").should("have.value", newDescription)
     })
     it("select a case and delete the case from inspector menu", () => {
