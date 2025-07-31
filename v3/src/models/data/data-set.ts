@@ -771,7 +771,7 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
       if (!collection) return
 
       selectedCaseIndices[index] = Array.from(caseIds).map(caseId => collection.getCaseIndex(caseId))
-        .filter(caseIndex => caseIndex != null).sort()
+        .filter(caseIndex => caseIndex != null).sort((a, b) => a - b)
     })
     return selectedCaseIndices
   },
