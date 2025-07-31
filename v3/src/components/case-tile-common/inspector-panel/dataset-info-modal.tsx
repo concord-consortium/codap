@@ -21,14 +21,28 @@ export const DatasetInfoModal = ({showInfoModal, setShowInfoModal}: IProps) => {
   const [datasetTitle, setDatasetTitle] = useState(data?.displayTitle || "")
   const [description, setDescription] = useState(metadata?.description || "")
   const [source, setSource] = useState(metadata?.source || "")
-  const [importDate, setImportDate] = useState(formatDate(metadata?.importDate || "") || "")
+  let initialImportDate = ""
+  try {
+    // Display a formatted date if we can interpret the import date as a date
+    initialImportDate = formatDate(metadata?.importDate || "") || ""
+  } catch (error) {
+    // Otherwise, just use the string
+    initialImportDate = metadata?.importDate || ""
+  }
+  const [importDate, setImportDate] = useState(initialImportDate)
 
   const handleCloseInfoModal = () => {
     data?.applyModelChange(() => {
       data.setUserTitle(datasetTitle)
       metadata?.setDescription(description)
       metadata?.setSource(source)
-      metadata?.setImportDate(new Date(importDate).toISOString())
+      try {
+        // Save an ISO string if we can parse the submitted string as a date
+        metadata?.setImportDate(new Date(importDate).toISOString())
+      } catch (error) {
+        // Otherwise, just save the string
+        metadata?.setImportDate(importDate)
+      }
       setShowInfoModal(false)
     }, {
       notify: () => updateDataContextNotification(data)
