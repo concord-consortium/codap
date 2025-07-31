@@ -1,13 +1,13 @@
 import { useDisclosure } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
-import React from "react"
+import React, { useEffect } from "react"
 import { useDocumentContent } from "../../hooks/use-document-content"
+import { logMessageWithReplacement } from "../../lib/log-message"
 import { t } from "../../utilities/translation/translate"
 import { InspectorButton, InspectorPanel } from "../inspector-panel"
 import { ITileInspectorPanelProps } from "../tiles/tile-base-props"
 import { WebViewUrlModal } from "./web-view-url-modal"
 import { isWebViewModel } from "./web-view-model"
-import { logMessageWithReplacement } from "../../lib/log-message"
 
 import UrlIcon from "../../assets/icons/inspector-panel/web-url-icon.svg"
 
@@ -30,6 +30,13 @@ export const WebViewInspector = observer(function WebViewInspector({tile, show}:
       log: logMessageWithReplacement("Change web view URL: %@", {url})
     })
   }
+
+  useEffect(() => {
+    if (webViewModel?.autoOpenUrlDialog) {
+      onOpen()
+      webViewModel.setAutoOpenUrlDialog(false)
+    }
+  }, [onOpen, webViewModel, webViewModel?.autoOpenUrlDialog])
 
   return (
     <>

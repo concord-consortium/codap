@@ -48,7 +48,8 @@ export const WebViewModel = TileContentModel
   })
   .volatile(self => ({
     dataInteractiveController: undefined as iframePhone.IframePhoneRpcEndpoint | undefined,
-    version: kDefaultWebViewVersion
+    version: kDefaultWebViewVersion,
+    autoOpenUrlDialog: false
   }))
   .views(self => ({
     get allowBringToFront() {
@@ -65,6 +66,9 @@ export const WebViewModel = TileContentModel
     }
   }))
   .actions(self => ({
+    setAutoOpenUrlDialog(autoOpen: boolean) {
+      self.autoOpenUrlDialog = autoOpen
+    },
     setDataInteractiveController(controller?: iframePhone.IframePhoneRpcEndpoint) {
       self.dataInteractiveController = controller
     },

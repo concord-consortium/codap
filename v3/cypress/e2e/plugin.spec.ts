@@ -2,7 +2,6 @@ import { CfmElements as cfm } from "../support/elements/cfm"
 import { ComponentElements as c } from "../support/elements/component-elements"
 import { SliderTileElements as slider } from "../support/elements/slider-tile"
 import { TableTileElements as table } from "../support/elements/table-tile"
-import { ToolbarElements as toolbar } from "../support/elements/toolbar-elements"
 import { WebViewTileElements as webView } from "../support/elements/web-view-tile"
 import { AxisHelper as ah } from "../support/helpers/axis-helper"
 import { GraphTileElements as graph } from "../support/elements/graph-tile"
@@ -14,8 +13,7 @@ context("codap plugins", () => {
   })
   const apiTesterUrl='https://concord-consortium.github.io/codap-data-interactives/DataInteractiveAPITester/index.html?lang=en'
   const openAPITester = () => {
-    toolbar.getOptionsButton().click()
-    toolbar.getWebViewButton().click()
+    c.clickIconFromToolShelf("web page")
     webView.enterUrl(apiTesterUrl)
     cy.wait(1000)
   }

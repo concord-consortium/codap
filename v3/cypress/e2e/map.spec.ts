@@ -430,8 +430,7 @@ context("Map API", () => {
   })
   const apiTesterUrl='https://concord-consortium.github.io/codap-data-interactives/DataInteractiveAPITester/index.html?lang=en'
   const openAPITester = () => {
-    toolbar.getOptionsButton().click()
-    toolbar.getWebViewButton().click()
+    c.clickIconFromToolShelf("web page")
     webView.enterUrl(apiTesterUrl)
     cy.wait(1000)
   }

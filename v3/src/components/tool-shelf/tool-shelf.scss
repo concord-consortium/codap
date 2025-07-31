@@ -29,7 +29,7 @@ $tool-shelf-border-width: 1px;
       align-items: center;
       background-color: white;
 
-      // When toolshelf button is a menu button, it has a span wrapper
+      // When tool shelf button is a menu button, it has a span wrapper
       // This overrides wrapping span styles
       &.tool-shelf-menu {
         > span {

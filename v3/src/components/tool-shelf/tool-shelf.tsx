@@ -9,20 +9,18 @@ import {
 import RedoIcon from "../../assets/icons/icon-redo.svg"
 import UndoIcon from "../../assets/icons/icon-undo.svg"
 import TileListIcon from "../../assets/icons/icon-tile-list.svg"
-import SettingsIcon from "../../assets/icons/icon-settings.svg"
-import HelpIcon from "../../assets/icons/icon-help.svg"
 import GuideIcon from "../../assets/icons/icon-guide.svg"
 import { DEBUG_UNDO } from "../../lib/debug"
+import { logMessageWithReplacement } from "../../lib/log-message"
 import { IDocumentModel } from "../../models/document/document"
 import { ITileModel } from "../../models/tiles/tile-model"
 import { createTileNotification } from "../../models/tiles/tile-notifications"
 import { t } from "../../utilities/translation/translate"
-import { SettingsShelfButton } from "./settings-button"
+import { kWebViewTileType } from "../web-view/web-view-defs"
+import { isWebViewModel } from "../web-view/web-view-model"
 import { TilesListShelfButton } from "./tiles-list-button"
 import { PluginsButton } from "./plugins-button"
-import { HelpShelfButton } from "./help-button"
 import { ToolShelfButton, ToolShelfTileButton } from "./tool-shelf-button"
-import { logMessageWithReplacement } from "../../lib/log-message"
 
 import "./tool-shelf.scss"
 
@@ -30,6 +28,11 @@ import "./tool-shelf.scss"
 type IShelfTileComponentInfo = SetRequired<ITileComponentInfo, "shelf">
 export function isShelfTileComponent(info?: ITileComponentInfo): info is IShelfTileComponentInfo {
   return !!info && "shelf" in info && info.shelf != null
+}
+
+function hasGuideTile(document: IDocumentModel): boolean {
+  const tiles = document?.content?.getTilesOfType(kWebViewTileType) ?? []
+  return tiles.some(tile => isWebViewModel(tile.content) && tile.content.isGuide)
 }
 
 interface IRightButtonEntry {
@@ -78,24 +81,17 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
       hintKey: "DG.ToolButtonData.tileListMenu.toolTip",
       button: <TilesListShelfButton key={t("DG.ToolButtonData.tileListMenu.title")} />
     },
-    {
-      icon: <SettingsIcon className="icon-settings"/>,
-      labelKey: "DG.ToolButtonData.optionMenu.title",
-      hintKey: "DG.ToolButtonData.optionMenu.toolTip",
-      button: <SettingsShelfButton key={t("DG.ToolButtonData.optionMenu.title")} />
-    },
-    {
-      icon: <HelpIcon className="icon-help"/>,
-      labelKey: "DG.ToolButtonData.help.title",
-      hintKey: "DG.ToolButtonData.help.toolTip",
-      button: <HelpShelfButton key={t("DG.ToolButtonData.help.title")} />
-    },
-    {
-      icon: <GuideIcon className="icon-guide"/>,
-      labelKey: "DG.ToolButtonData.guideMenu.title",
-      hintKey: "DG.ToolButtonData.guideMenu.toolTip",
-      isDisabled: () => true  // TODO: remove guide button if we're not supporting guide authoring
-    }
+    // only show the guide button if there is a guide tile in the document
+    ...(
+      hasGuideTile(document)
+        ? [{
+          icon: <GuideIcon className="icon-guide"/>,
+          labelKey: "DG.ToolButtonData.guideMenu.title",
+          hintKey: "DG.ToolButtonData.guideMenu.toolTip",
+          isDisabled: () => true
+        }]
+        : []
+    )
   ]
 
   if (DEBUG_UNDO) {
@@ -117,6 +113,7 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
     let tile: Maybe<ITileModel>
     document?.content?.applyModelChange(() => {
       tile = document?.content?.createOrShowTile?.(tileType, { animateCreation: true })
+      if (tile) tileInfo?.shelf?.afterCreate?.(tile.content)
     }, {
       notify: () => createTileNotification(tile),
       undoStringKey,

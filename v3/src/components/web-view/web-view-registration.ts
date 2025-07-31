@@ -1,4 +1,5 @@
 import { SetRequired } from "type-fest"
+import WebPageIcon from "../../assets/icons/web-page-icon.svg"
 import { V2Game, V2Guide, V2WebView } from "../../data-interactive/data-interactive-component-types"
 import { DIComponentHandler, registerComponentHandler } from "../../data-interactive/handlers/component-handler"
 import { IFreeTileLayout } from "../../models/document/free-tile-row"
@@ -46,7 +47,20 @@ registerTileComponentInfo({
   defaultWidth: kDefaultWebViewWidth,
   defaultHeight: kDefaultWebViewHeight,
   // plugins must still be able to communicate when hidden
-  renderWhenHidden: true
+  renderWhenHidden: true,
+  Icon: WebPageIcon,
+  shelf: {
+    position: 7,
+    labelKey: "V3.ToolButtonData.webPageButton.title",
+    hintKey: "V3.ToolButtonData.webPageButton.toolTip",
+    undoStringKey: "V3.Undo.webPage.create",
+    redoStringKey: "V3.Redo.webPage.create",
+    afterCreate: tileContent => {
+      if (isWebViewModel(tileContent)) {
+        tileContent.setAutoOpenUrlDialog(true)
+      }
+    }
+  }
 })
 
 const exportFn: V2TileExportFn = ({ tile, row, gameContextMetadataMap }) => {

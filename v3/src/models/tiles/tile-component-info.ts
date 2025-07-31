@@ -1,6 +1,7 @@
 import React, { SVGProps } from "react"
 import { ITileBaseProps, ITileInspectorPanelProps, ITileTitleBarProps } from "../../components/tiles/tile-base-props"
 import { type IToolShelfTileButtonProps } from "../../components/tool-shelf/tool-shelf-button"
+import { ITileContentModel } from "./tile-content"
 
 export interface IToolShelfOptions {
   position: number
@@ -9,6 +10,7 @@ export interface IToolShelfOptions {
   hintKey: string
   undoStringKey: string
   redoStringKey: string
+  afterCreate?: (tile: ITileContentModel) => void
 }
 
 export interface ITileComponentInfo {

@@ -207,6 +207,11 @@
     "V3.Undo.graph.removeRegionOfInterest": "Undo hiding region of interest",
     "V3.Redo.graph.removeRegionOfInterest": "Redo hiding region of interest",
 
+    "V3.ToolButtonData.webPageButton.title": "Web Page",
+    "V3.ToolButtonData.webPageButton.toolTip": "Open a web page",
+    "V3.Undo.webPage.create": "Undo opening a web page",
+    "V3.Redo.webPage.create": "Redo opening a web page",
+
     // V3 ErrorTester strings they probably don't need to be translated
     "V3.ToolButtonData.errorTesterButton.title": "ErrTest",
     "V3.ToolButtonData.errorTesterButton.toolTip": "Make an error tester",

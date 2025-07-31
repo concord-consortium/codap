@@ -1,3 +1,4 @@
+import { CfmElements as cfm } from "../support/elements/cfm"
 import { ComponentElements as c } from "../support/elements/component-elements"
 import { ToolbarElements as toolbar } from "../support/elements/toolbar-elements"
 import { TableTileElements as table } from "../support/elements/table-tile"
@@ -61,8 +62,7 @@ context("codap toolbar", () => {
   it('will display a webpage', ()=>{
       const url='https://www.wikipedia.org'
       const url2='https://en.wikipedia.org/wiki/Concord_Consortium'
-      toolbar.getOptionsButton().click()
-      toolbar.getWebViewButton().click()
+      c.clickIconFromToolShelf("web page")
       webView.getUrlModal().should("exist")
       webView.enterUrl(url)
       cy.wait(1500)
@@ -97,7 +97,7 @@ context("codap toolbar", () => {
     toolbar.getTilesListMenuItem().eq(3).should("have.text", "Calculator")
     toolbar.getTilesListMenuIcon().eq(3).should("have.class", "Calculator")
     toolbar.getTilesListMenuItem().eq(4).should("have.text", "Sampler")
-    toolbar.getTilesListMenuIcon().eq(4).should("have.class", "WebView")
+    toolbar.getTilesListMenuIcon().eq(4).should("have.class", "CodapWebView")
   })
   it('will show correct title for a new table', ()=>{
     c.getIconFromToolShelf("table").click()
@@ -121,12 +121,12 @@ context("codap toolbar", () => {
   })
   it('will show the help pages list', ()=>{
     cy.visit("?suppressUnsavedWarning#file=examples:Four%20Seals")
-    c.getIconFromToolShelf("help").click()
-    toolbar.getHelpMenu().should("be.visible")
-    toolbar.getHelpMenuItem("help").should("contains.text", "Help Pages and Videos")
-    toolbar.getHelpMenuItem("forum").should("contains.text", "Help Forum")
-    toolbar.getHelpMenuItem("project").should("contains.text", "The CODAP Project")
-    toolbar.getHelpMenuItem("privacy").should("contains.text", "Privacy Page")
+    cfm.getHelpMenuButton().click()
+    cfm.getHelpMenu().should("be.visible")
+    cfm.getHelpMenuItem(0).should("contains.text", "Help Pages and Videos")
+    cfm.getHelpMenuItem(1).should("contains.text", "Help Forum")
+    cfm.getHelpMenuItem(2).should("contains.text", "The CODAP Project")
+    cfm.getHelpMenuItem(3).should("contains.text", "Privacy Page")
   })
 })
 
@@ -138,23 +138,23 @@ context("Help Pages", () => {
     })
   })
   it('will open the help page', ()=>{
-    c.getIconFromToolShelf("help").click()
-    toolbar.getHelpMenuItem("help").click()
+    cfm.getHelpMenuButton().click()
+    cfm.getHelpMenuItem(0).click()
     cy.get('@windowOpen').should('have.been.calledWith', helpURL)
   })
   it('will open the forum page', ()=>{
-    c.getIconFromToolShelf("help").click()
-    toolbar.getHelpMenuItem("forum").click()
+    cfm.getHelpMenuButton().click()
+    cfm.getHelpMenuItem(1).click()
     cy.get('@windowOpen').should('have.been.calledWith', helpForumURL)
   })
   it('will open the project website', ()=>{
-    c.getIconFromToolShelf("help").click()
-    toolbar.getHelpMenuItem("project").click()
+    cfm.getHelpMenuButton().click()
+    cfm.getHelpMenuItem(2).click()
     cy.get('@windowOpen').should('have.been.calledWith', projectWebSiteURL)
   })
   it('will open the privacy policy page', ()=>{
-    c.getIconFromToolShelf("help").click()
-    toolbar.getHelpMenuItem("privacy").click()
+    cfm.getHelpMenuButton().click()
+    cfm.getHelpMenuItem(3).click()
     cy.get('@windowOpen').should('have.been.calledWith', privacyURL)
   })
   //TODO need to add test for the translated help page
