@@ -122,7 +122,7 @@ context("case card", () => {
       card.getAttributeValues().first().should("have.text", "Spotted Hyena")
       card.getNextButton().should("be.disabled")
     })
-    it.only("displays case data in a hierarchy when there is a parent collection", () => {
+    it("displays case data in a hierarchy when there is a parent collection", () => {
       // make a parent collection
       table.moveAttributeToParent("Order", "newCollection")
       cy.wait(500)
