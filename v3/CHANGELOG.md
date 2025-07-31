@@ -1,5 +1,39 @@
 # Changelog
 
+## Version 3.0.0-beta.2418 - July 31, 2025
+
+### ✨ Features & Improvements:
+- **CODAP-37:** Disable auto-save after converting v2 document
+- **CODAP-46:** Show dialog to user when an unhandled error happens
+- **CODAP-81:** The user has a chance to save dirty document when closing browser window/tab
+- **CODAP-83:** Attribute menu **Recover Deleted Formula**
+- **CODAP-118:** Update case table fonts
+- **CODAP-318:** V2 import/export for plugins
+- **CODAP-768:** Case Card: Card swipe animation
+- **CODAP-790:** Graph: New points appear in final position
+- **CODAP-797:** Beta Feedback button for bug reports
+- **CODAP-801:** Move Settings and Help buttons from tool shelf to CFM toolbar
+- **CODAP-803:** Inspector panel restyle
+- **CODAP-807:** Enable CC logging and Google analytics
+- **CODAP-813:** Beta release should default to v2 save format
+- **CODAP-814:** Update tile minimize and close buttons
+- **CODAP-815:** Update text toolbar colors to match spec
+
+### 🐞 Bug Fixes:
+- **CODAP-101:** Import data set metadata
+- **CODAP-694:** Position new tiles within viewport
+- **CODAP-774:** Case card opens behind other components
+- **CODAP-775:** Attribute drags sometimes "stolen" by overlapped tiles
+- **CODAP-792:** The rescale button does nothing when the plot is a bar chart
+- **CODAP-817:** Fix styling and closing issues with CFM menus
+- **CODAP-818:** Misalignment of relation lines in hierarchical case table
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  202820 bytes |                            0.03% |
+|  index.js | 6796028 bytes |                           <0.01% |
+
 ## Version 3.0.0-pre.2385 - July 21, 2025
 
 ### ✨ Features & Improvements:
