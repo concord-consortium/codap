@@ -3,6 +3,7 @@
 @use "../case-tile-common/case-tile-vars" as caseTileVars;
 
 $table-body-font-size: 10px;
+$collection-title-bar-height: 26px;
 $collection-title-font-color: black;
 
 .case-table {
@@ -135,7 +136,7 @@ $collection-title-font-color: black;
         }
 
         .spacer-top {
-          height: calc(vars.$title-bar-height + vars.$header-height + 1px);
+          height: calc($collection-title-bar-height + vars.$header-height);
           background-color: #f9f9f9; // --rdg-header-background-color
           width: 100%;
           border-bottom: 1px solid var(--codap-colors-chakra-border-color);
