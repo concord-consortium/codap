@@ -165,14 +165,14 @@ context("case card", () => {
 
       // The first selected case is selected when the browse individual case button is clicked
       card.getSummaryButton().click()
-      card.getNextButton().eq(0).click().click().click()
+      card.getNextButton().eq(0).click().click().click().click()
       card.getAttrs().eq(0).find('[data-testid="case-card-attr-value"]')
-        .eq(0).should("have.text", "Cetacea")
+        .eq(0).should("have.text", "Carnivora")
       card.getAttrs().eq(1).find('[data-testid="case-card-attr-value"]')
-        .eq(0).should("have.text", "Bottlenose Dolphin, Killer Whale")
+        .eq(0).should("have.text", "7 values")
       card.getSummaryButton().click()
       card.getAttrs().eq(1).find('[data-testid="case-card-attr-value"]')
-        .eq(0).should("have.text", "Bottlenose Dolphin")
+        .eq(0).should("have.text", "Cheetah")
     })
     it("allows the user to add, edit, and hide attributes with undo/redo", () => {
       table.toggleCaseView()
