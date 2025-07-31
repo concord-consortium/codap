@@ -7,9 +7,21 @@
   background-color: vars.$title-bar-color;
   width: 100%;
   border-radius: vars.$border-radius-top-corners;
+
   &.focusTile {
     background-color: vars.$title-bar-focus-color;
+
+    .component-title-bar-button {
+      &:hover {
+        background-color: #bbefff;
+      }
+
+      &:active {
+        background-color: #d3f4ff;
+      }
+    }
   }
+
   &:hover, &:active {
     .header-right {
       visibility: visible;
@@ -48,19 +60,22 @@
     fill: lightgray;
     border-top-right-radius: 6px;
 
-    .component-minimize-icon {
-      height: 20px;
-      width: 19px;
-      fill: lightgray;
+    .component-title-bar-button {
+      align-items: center;
+      background-color: transparent;
+      border-radius: 0;
+      display: flex;
+      height: 34px;
+      justify-content: center;
+      padding: 0;
+      width: 34px;
+
       &:hover {
-        height: 25px;
-        width: 24px;
-        fill: white;
+        background-color: #d3f4ff;
       }
+
       &:active {
-        height: 25px;
-        width: 24px;
-        fill: black;
+        background-color: #eaf9ff;
       }
     }
 
@@ -74,18 +89,7 @@
     }
 
     .component-close-button {
-      color: lightgray;
-      height: 24px;
-      &:hover {
-        font-size: medium;
-        font-weight: bold;
-        color: white;
-      }
-      &:active {
-        font-size: medium;
-        font-weight: bold;
-        color: black;
-      }
+      border-top-right-radius: 4px;
     }
   }
 }
