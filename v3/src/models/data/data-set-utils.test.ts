@@ -1,9 +1,10 @@
 import { setupTestDataset } from "../../test/dataset-test-utils"
 import { AppHistoryService } from "../history/app-history-service"
+import { DataSetMetadata } from "../shared/data-set-metadata"
 import { IAttribute } from "./attribute"
-import { ICollectionModel } from "./collection"
+import { CollectionModel, ICollectionModel } from "./collection"
 import { DataSet, IDataSet } from "./data-set"
-import { getCollectionAttrs, getNextCase, getPreviousCase, moveAttribute } from "./data-set-utils"
+import { getCaseNameForCount, getCollectionAttrs, getNextCase, getPreviousCase, moveAttribute } from "./data-set-utils"
 
 function names(attrs: IAttribute[]) {
   return attrs.map(({ name }) => name)
@@ -32,6 +33,25 @@ describe("DataSetUtils", () => {
     expect(data.childCollection).toBe(collection)
     expect(data.getCollection(origChildCollectionId)).toBeUndefined()
     expect(getCollectionAttrNames(data.childCollection, data)).toEqual(["a", "b"])
+  })
+
+  it("getCaseNameForCount works as expected", () => {
+    // defaults to "case"/"cases"
+    expect(getCaseNameForCount(undefined, undefined, 0)).toBe("cases")
+    expect(getCaseNameForCount(undefined, undefined, 1)).toBe("case")
+    expect(getCaseNameForCount(undefined, undefined, 2)).toBe("cases")
+    // will use collection title if available
+    const collection = CollectionModel.create({ id: "cId", _title: "Tests" })
+    expect(getCaseNameForCount(undefined, collection, 0)).toBe("Tests")
+    expect(getCaseNameForCount(undefined, collection, 1)).toBe("Test")
+    expect(getCaseNameForCount(undefined, collection, 2)).toBe("Tests")
+    // will use collection labels if available
+    const metadata = DataSetMetadata.create()
+    metadata.setSingleCase(collection.id, "Group")
+    metadata.setPluralCase(collection.id, "Groups")
+    expect(getCaseNameForCount(metadata, collection, 0)).toBe("Groups")
+    expect(getCaseNameForCount(metadata, collection, 1)).toBe("Group")
+    expect(getCaseNameForCount(metadata, collection, 2)).toBe("Groups")
   })
 
   it("moveAttribute works as expected", () => {
