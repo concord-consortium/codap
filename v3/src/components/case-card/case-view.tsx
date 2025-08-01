@@ -38,7 +38,7 @@ interface IRenderSingleCaseViewArgs {
   style?: React.CSSProperties
 }
 
-export const CaseView = observer(function InnerCaseView({
+export const CaseView = observer(function CaseView({
   cases, dummy, level, onNewCollectionDrop, onSelectCases
 }: ICaseViewProps) {
   const cardModel = useCaseCardModel()
@@ -54,7 +54,7 @@ export const CaseView = observer(function InnerCaseView({
   const displayedCaseId = collection?.caseIds[displayedCaseIndex] ?? ""
   const displayedCase = data?.caseInfoMap.get(displayedCaseId)?.groupedCase ?? cases[0]
 
-  const disableAnimation = urlParams.noComponentAnimation != null
+  const disableAnimation = urlParams.noComponentAnimation !== undefined
   const isAnimating = cardModel?.animationLevel === level
   const [animationStarted, setAnimationStarted] = useState(false)
   const isFlippingRight = cardModel?.animationDirection === "right"
@@ -71,12 +71,8 @@ export const CaseView = observer(function InnerCaseView({
       // The lowest level should animate
       if (level < cardModel.animationLevel) {
         cardModel.setAnimationLevel(level)
-        cardModel.setAnimationDirection(
-          previousSelectedCaseIndex.current === -1 && displayedCaseIndex === cases.length - 1
-            ? "left" // Special case for pushing the left button while in summarized view
-            : previousSelectedCaseIndex.current <= displayedCaseIndex
-              ? "right" : "left"
-        )
+        cardModel.setAnimationDirection(previousSelectedCaseIndex.current > displayedCaseIndex ? "right" : "left")
+        
         // Reset the animation after the proper duration
         cardModel.setAnimationTimeout(setTimeout(() => {
           cardModel.setAnimationLevel(Infinity)

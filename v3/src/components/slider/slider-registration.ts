@@ -125,8 +125,8 @@ registerV2TileImporter("DG.SliderView", ({ v2Component, v2Document, getGlobalVal
   const {
     guid: componentGuid,
     componentStorage: {
-      name, title: v2Title = "", _links_, lowerBound, upperBound, animationDirection, animationMode,
-      restrictToMultiplesOf, maxPerSecond, userTitle, userSetTitle, cannotClose, v3
+      name, title, _links_, lowerBound, upperBound, animationDirection, animationMode,
+      restrictToMultiplesOf, maxPerSecond, userSetTitle, cannotClose, v3
     }
   } = v2Component
   const globalId = _links_.model.id
@@ -162,9 +162,8 @@ registerV2TileImporter("DG.SliderView", ({ v2Component, v2Document, getGlobalVal
     _animationRate: maxPerSecond ?? undefined,
     axis: { type: axisType, place: "bottom", min: axisMin, max: axisMax }
   }
-  const title = v2Title && (userTitle || userSetTitle) ? v2Title : undefined
   const sliderTileSnap: ITileModelSnapshotIn = {
-    id: toV3Id(kSliderIdPrefix, componentGuid), name, _title: title, content, cannotClose
+    id: toV3Id(kSliderIdPrefix, componentGuid), name, _title: title, userSetTitle, content, cannotClose
   }
   const sliderTile = insertTile(sliderTileSnap)
 

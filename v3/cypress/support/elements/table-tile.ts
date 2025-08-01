@@ -113,6 +113,9 @@ export const TableTileElements = {
   openAttributeMenu(name: string, collectionIndex = 1) {
     this.getAttribute(name, collectionIndex).click({force: true})
   },
+  closeAttributeMenu() {
+    cy.get("[data-testid=attribute-menu-list][style*='visibility: visible']").type("{esc}")
+  },
   getAttributeMenuItem(item: string) {
     return cy.get("[data-testid=attribute-menu-list] button").contains(item)
   },
@@ -252,7 +255,7 @@ export const TableTileElements = {
   },
   deleteDataSetFromToolShelf(index = 0) {
     c.getIconFromToolShelf("table").click()
-    cy.get(`.tool-shelf-menu-trash-icon`).eq(index).should("be.visible").then($el => {
+    cy.get(`.tool-shelf-menu-trash`).eq(index).should("be.visible").then($el => {
       cy.wrap($el).click()
     })
     cy.clickWhenClickable(`.delete-data-set-button-delete`)

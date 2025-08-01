@@ -50,8 +50,8 @@ export const TextToolbar = observer(function TextToolbar() {
         modalPortalRoot={documentContainerRef.current ?? undefined}
         orientation="vertical"
         colors={{
-          buttonColors: { fill: "#ffffff", background: "#177991" },
-          selectedColors: { fill: "#177991", background: "#72bfca" }
+          buttonColors: { fill: "#006c8e", background: "#ffffff" },
+          selectedColors: { fill: "#006c8e", background: "#d3f4ff" }
         }}
         buttonsPerRow={9}
         transform={transformToolbarButtons}

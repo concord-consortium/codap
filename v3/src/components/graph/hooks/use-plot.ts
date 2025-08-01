@@ -72,15 +72,17 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
   })
 
   const callMatchCirclesToData = useCallback(() => {
-    pixiPoints && matchCirclesToData({
-      dataConfiguration,
-      pointRadius: graphModel.getPointRadius(),
-      pointColor: graphModel.pointDescription.pointColor,
-      pointDisplayType: graphModel.plot.displayType,
-      pointStrokeColor: graphModel.pointDescription.pointStrokeColor,
-      pixiPoints,
-      startAnimation, instanceId
-    })
+    if (pixiPoints) {
+      matchCirclesToData({
+        dataConfiguration,
+        pointRadius: graphModel.getPointRadius(),
+        pointColor: graphModel.pointDescription.pointColor,
+        pointDisplayType: graphModel.plot.displayType,
+        pointStrokeColor: graphModel.pointDescription.pointStrokeColor,
+        pixiPoints,
+        startAnimation, instanceId
+      })
+    }
   }, [dataConfiguration, graphModel, instanceId, pixiPoints, startAnimation])
 
   // Refresh point positions when pixiPoints become available to fix this bug:
@@ -89,8 +91,9 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
   // (a dependency of refreshPointPositions) are updated. useDebouncedCallback doesn't seem to declare any
   // dependencies, and I'd imagine it returns a stable result (?).
   useEffect(() => {
+    callMatchCirclesToData()
     callRefreshPointPositions({ updateMasks: true })
-  }, [callRefreshPointPositions, pixiPoints])
+  }, [callMatchCirclesToData, callRefreshPointPositions, pixiPoints])
 
   // respond to numeric axis domain changes (e.g. axis dragging)
   useEffect(() => {
@@ -143,7 +146,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     return () => disposer()
   }, [callRefreshPointPositions, dataConfiguration, graphModel, layout, startAnimation])
 
-  useEffect(function respondToHiddenCasesChange() {
+  useEffect(function respondToCasesChange() {
     const disposer = mstReaction(
       () => dataConfiguration?.caseDataHash,
       () => {
@@ -152,7 +155,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
         }
         callMatchCirclesToData()
         callRefreshPointPositions({ updateMasks: true })
-      }, {name: "respondToHiddenCasesChange"}, dataConfiguration
+      }, {name: "respondToCasesChange"}, dataConfiguration
     )
     return () => disposer()
   }, [callMatchCirclesToData, callRefreshPointPositions, dataConfiguration, pixiPoints])
@@ -178,7 +181,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
         {name: "useSubAxis.respondToSelectionChanges"}, dataConfiguration
       )
     }
-  }, [callMatchCirclesToData, callRefreshPointPositions, dataConfiguration, dataset, refreshPointSelection])
+  }, [dataConfiguration, dataset, refreshPointSelection])
 
   // respond to value changes
   useEffect(() => {

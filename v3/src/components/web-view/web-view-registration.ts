@@ -1,16 +1,18 @@
 import { SetRequired } from "type-fest"
+import WebPageIcon from "../../assets/icons/web-page-icon.svg"
 import { V2Game, V2Guide, V2WebView } from "../../data-interactive/data-interactive-component-types"
 import { DIComponentHandler, registerComponentHandler } from "../../data-interactive/handlers/component-handler"
 import { IFreeTileLayout } from "../../models/document/free-tile-row"
 import { registerTileComponentInfo } from "../../models/tiles/tile-component-info"
 import { registerTileContentInfo } from "../../models/tiles/tile-content-info"
 import { ITileModelSnapshotIn } from "../../models/tiles/tile-model"
-import { toV3Id } from "../../utilities/codap-utils"
+import { toV2Id, toV3DataSetId, toV3Id } from "../../utilities/codap-utils"
 import { t } from "../../utilities/translation/translate"
+import { isCodapV2GameContext } from "../../v2/codap-v2-data-context-types"
 import { registerV2TileImporter, V2TileImportArgs } from "../../v2/codap-v2-tile-importers"
 import { registerV2TileExporter, V2ExportedComponent, V2TileExportFn } from "../../v2/codap-v2-tile-exporters"
 import {
-  ICodapV2GameViewComponent, ICodapV2GuideViewComponent, ICodapV2WebViewComponent,
+  guidLink, ICodapV2GameViewComponent, ICodapV2GuideViewComponent, ICodapV2WebViewComponent,
   isV2GameViewComponent, isV2GuideViewComponent, isV2ImageViewComponent, isV2WebViewComponent
 } from "../../v2/codap-v2-types"
 import { kV2GameType, kV2GuideViewType, kV2ImageComponentViewType, kV2WebViewType, kWebViewTileType,
@@ -45,22 +47,51 @@ registerTileComponentInfo({
   defaultWidth: kDefaultWebViewWidth,
   defaultHeight: kDefaultWebViewHeight,
   // plugins must still be able to communicate when hidden
-  renderWhenHidden: true
+  renderWhenHidden: true,
+  Icon: WebPageIcon,
+  shelf: {
+    position: 7,
+    labelKey: "V3.ToolButtonData.webPageButton.title",
+    hintKey: "V3.ToolButtonData.webPageButton.toolTip",
+    undoStringKey: "V3.Undo.webPage.create",
+    redoStringKey: "V3.Redo.webPage.create",
+    afterCreate: tileContent => {
+      if (isWebViewModel(tileContent)) {
+        tileContent.setAutoOpenUrlDialog(true)
+      }
+    }
+  }
 })
 
-const exportFn: V2TileExportFn = ({ tile, row }) => {
-  // This really should be a WebView Model. We shouldn't be called unless
-  // the tile type is kWebViewTileType which is what isWebViewModel is using.
+const exportFn: V2TileExportFn = ({ tile, row, gameContextMetadataMap }) => {
   const webViewContent = isWebViewModel(tile.content) ? tile.content : undefined
   const url = webViewContent?.url ?? ""
   if (webViewContent?.isPlugin) {
+    const { allowEmptyAttributeDeletion, preventAttributeDeletion, preventBringToFront,
+            preventDataContextReorg, preventTopLevelReorg, state } = webViewContent
+    const _links_ = webViewContent.dataContextId
+      ? { _links_: { context: guidLink("DG.DataContextRecord", toV2Id(webViewContent.dataContextId)) } }
+      : undefined
+    if (gameContextMetadataMap && webViewContent.hasV2GameContext && webViewContent.dataContextId) {
+      gameContextMetadataMap[webViewContent.dataContextId] = {
+        gameName: tile.name || undefined,
+        gameUrl: url || undefined,
+        gameState: state ?? undefined
+      }
+    }
     const v2GameView: V2ExportedComponent<ICodapV2GameViewComponent> = {
       type: "DG.GameView",
       componentStorage: {
         currentGameUrl: url,
         currentGameName: tile.name,
-        savedGameState: webViewContent?.state ?? undefined
-        // TODO_V2_EXPORT add the rest of the game properties
+        savedGameState: state ?? undefined,
+        ...(allowEmptyAttributeDeletion === false ? { allowEmptyAttributeDeletion: false } : {}),
+        allowInitGameOverride: true, // unused by v2, but exported for compatibility
+        ...(preventAttributeDeletion ? { preventAttributeDeletion } : {}),
+        preventBringToFront,
+        ...(preventDataContextReorg ? { preventDataContextReorg } : {}),
+        ...(preventTopLevelReorg ? { preventTopLevelReorg } : {}),
+        ..._links_
       }
     }
     return v2GameView
@@ -114,15 +145,8 @@ function addWebViewSnapshot(args: V2TileImportArgs, name?: string, _content?: Pa
   const webViewTileSnap: ITileModelSnapshotIn = {
     id: toV3Id(kWebViewIdPrefix, guid),
     name,
-    // Note: when a game view is imported the userSetTitle is often
-    // false, and often the title property is set to title which the plugin provided
-    // to CODAPv2. This value is also set in componentStorage.currentGameName. This
-    // currentGameName value is imported as the name field above.
-    // If round tripping a v2 document through v3 the title will be lost because
-    // of this. The name will be preserved though. Even when the name was not preserved
-    // CODAPv2 seemed to handle this correctly and updated the the title when the document
-    // is loaded.
-    _title: (userSetTitle && title) || undefined,
+    _title: title,
+    userSetTitle,
     content,
     cannotClose
   }
@@ -145,16 +169,36 @@ function importWebView(args: V2TileImportArgs) {
 registerV2TileImporter("DG.WebView", importWebView)
 
 function importGameView(args: V2TileImportArgs) {
-  const { v2Component } = args
+  const { v2Component, v2Document } = args
   if (!isV2GameViewComponent(v2Component)) return
 
   // parse the v2 content
-  const { componentStorage: { currentGameUrl, currentGameName, savedGameState} } = v2Component
+  const { componentStorage: {
+    _links_, currentGameUrl, currentGameName, allowEmptyAttributeDeletion, preventAttributeDeletion,
+    preventBringToFront, preventDataContextReorg, preventTopLevelReorg, savedGameState
+  } } = v2Component
+  const linkedDataContextId = _links_?.context?.id
+  const linkedDataContext = linkedDataContextId ? v2Document.getV2DataContext(linkedDataContextId) : undefined
+  const linkedGameContext = isCodapV2GameContext(linkedDataContext) ? linkedDataContext : undefined
+
+  const gameName = currentGameName ?? linkedGameContext?.contextStorage?.gameName ?? undefined
+  const gameUrl = currentGameUrl ?? linkedGameContext?.contextStorage?.gameUrl ?? undefined
+  const gameState = savedGameState ?? linkedGameContext?.contextStorage?.gameState ?? undefined
 
   // create webView model
   // Note: a renamed GameView has the componentStorage.currentGameName set to the value
   // provided by the plugin, only the componentStorage.title is updated
-  return addWebViewSnapshot(args, currentGameName, { state: savedGameState, url: processWebViewUrl(currentGameUrl) })
+  return addWebViewSnapshot(args, gameName, {
+    url: processWebViewUrl(gameUrl),
+    dataContextId: linkedDataContextId ? toV3DataSetId(linkedDataContextId) : undefined,
+    state: gameState,
+    allowEmptyAttributeDeletion,
+    preventAttributeDeletion,
+    preventBringToFront,
+    preventDataContextReorg,
+    preventTopLevelReorg,
+    hasV2GameContext: linkedGameContext ? true : undefined
+  })
 }
 registerV2TileImporter("DG.GameView", importGameView)
 

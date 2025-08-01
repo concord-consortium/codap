@@ -25,6 +25,7 @@ import { ISharedDataSet } from "../models/shared/shared-data-set"
 import { getSharedModelManager } from "../models/tiles/tile-environment"
 import { registerTileTypes } from "../register-tile-types"
 import { importSample, sampleData } from "../sample-data"
+import { t } from "../utilities/translation/translate"
 import { urlParams } from "../utilities/url-params"
 import { kCodapAppElementId, kUserEntryDropOverlay } from "./constants"
 import { Container } from "./container/container"
@@ -48,14 +49,13 @@ setDataSetNotificationAdapter(V2DataSetNotificationAdapter)
 
 registerTileTypes([])
 
-const errorBoundaryErrors: { time: number, message: string }[] = []
-
 export const App = observer(function App() {
   useKeyStates()
   // default behavior is to show the user entry modal when CODAP is loaded
   // We close the modal if user imports, drags a document, opens a document
   // or plugin using url params
-  const {isOpen: isOpenUserEntry, onOpen: onOpenUserEntry, onClose: onCloseUserEntry} = useDisclosure()
+  const {isOpen: isOpenUserEntry, onOpen: onOpenUserEntry, onClose: onCloseUserEntry}
+    = useDisclosure({defaultIsOpen: true})
   const [isDragOver, setIsDragOver] = useState(false)
 
   const handleFileOpened = useCallback(() => {
@@ -162,16 +162,20 @@ export const App = observer(function App() {
 
       if (hideUserEntryModal()) {
         onCloseUserEntry()
-      } else {
-        onOpenUserEntry()
       }
 
       appState.enableDocumentMonitoring()
       Logger.initializeLogger(appState.document)
+
+      window.onbeforeunload = function() {
+        if (urlParams.suppressUnsavedWarning === undefined && cfm.client.state.dirty) {
+          return t("V3.general.unsavedChangesWarning")
+        }
+      }
     }
 
     initialize()
-  }, [cfmReadyPromise, onCloseUserEntry, onOpenUserEntry])
+  }, [cfm, cfmReadyPromise, onCloseUserEntry, onOpenUserEntry])
 
   const { fallbackRender } = useUncaughtErrorHandler(cfm)
 

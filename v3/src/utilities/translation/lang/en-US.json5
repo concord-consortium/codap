@@ -7,6 +7,7 @@
     // V3 case table strings that are not present in V2 and will eventually require translation.
     "V3.general.yes": "Yes",
     "V3.general.no": "No",
+    "V3.general.unsavedChangesWarning": "Changes you made may not be saved.",
 
     // V3 application level strings
     "V3.app.errorDialog.title": "Error",
@@ -20,6 +21,12 @@
     "V3.app.documentDisplayError.reason": "An error is preventing CODAP from displaying the document.",
     "V3.app.documentDisplayError.detailsTitle": "Details",
 
+    "V3.graph.Inspector.Rescale": "Rescale",
+    "V3.graph.Inspector.View": "View",
+    "V3.graph.Inspector.Measure": "Measure",
+    "V3.graph.Inspector.Config": "Config",
+    "V3.graph.Inspector.Format": "Format",
+    "V3.graph.Inspector.Image": "Image",
     "V3.Undo.graph.toggleParentVisibility": "Undo toggling visibility",
     "V3.Redo.graph.toggleParentVisibility": "Redo toggling visibility",
     "V3.Undo.graph.hideAllCases": "Undo hiding all cases",
@@ -33,6 +40,11 @@
     "V3.Undo.graph.uncheckLastParentOnly": "Undo unchecking \"Last\" checkbox",
     "V3.Redo.graph.uncheckLastParentOnly": "Redo unchecking \"Last\" checkbox",
 
+    "V3.map.Inspector.Rescale": "Rescale",
+    "V3.map.Inspector.View": "View",
+    "V3.map.Inspector.Data": "Data",
+    "V3.map.Inspector.Layers": "Layers",
+    "V3.map.Inspector.Image": "Image",
     "V3.map.inspector.base": "Base",
     "V3.map.inspector.oceans": "Oceans",
     "V3.map.inspector.topo": "Topo",
@@ -57,6 +69,11 @@
     "V3.Undo.map.hideLayer": "Undo hiding map layer",
     "V3.Redo.map.hideLayer": "Redo hiding map layer",
 
+    "V3.CaseCardTable.Inspector.Info": "Info",
+    "V3.CaseCardTable.Inspector.Resize": "Resize",
+    "V3.CaseCardTable.Inspector.View": "View",
+    "V3.CaseCardTable.Inspector.Data": "Data",
+    "V3.CaseCardTable.Inspector.Delete": "Delete",
     "DG.CaseTable.attribute.type.color": "color", // used dynamically (`DG.CaseTable.attribute.type.${type}`)
     "V3.CaseTable.colorPalette.setColor": "Set Color",
     "V3.CaseTable.colorPalette.cancel": "Cancel",
@@ -89,6 +106,8 @@
     "V3.Inspector.rescale.noRescale.toolTip": "All the data are already visible",
     "V3.Inspector.rescale.casePlot.toolTip": "Move the points to new random positions",
 
+    "V3.Slider.Inspector.Playback": "Playback",
+    "V3.Slider.Inspector.Timeline": "Timeline",
     "V3.Inspector.sliderScales.toolTip": "Set slider scale to numeric or date-time",
     "V3.Inspector.animation": "Animation",
     "V3.Inspector.scale": "Scale",
@@ -105,6 +124,7 @@
     "V3.Redo.slider.changeMaximum": "Redo change of slider maximum",
 
     // V3 web view strings that are not present in V2 and will eventually require translation.
+    "V3.WebView.Inspector.URL": "URL",
     "V3.WebView.Modal.PlaceholderText": "URL",
     "V3.WebView.Modal.okBtnTitle": "OK",
     "V3.Undo.webView.show": "Undo adding web page component",
@@ -187,6 +207,11 @@
     "V3.Undo.graph.removeRegionOfInterest": "Undo hiding region of interest",
     "V3.Redo.graph.removeRegionOfInterest": "Redo hiding region of interest",
 
+    "V3.ToolButtonData.webPageButton.title": "Web Page",
+    "V3.ToolButtonData.webPageButton.toolTip": "Open a web page",
+    "V3.Undo.webPage.create": "Undo opening a web page",
+    "V3.Redo.webPage.create": "Redo opening a web page",
+
     // V3 ErrorTester strings they probably don't need to be translated
     "V3.ToolButtonData.errorTesterButton.title": "ErrTest",
     "V3.ToolButtonData.errorTesterButton.toolTip": "Make an error tester",
@@ -198,15 +223,15 @@
     "DG.fileMenu.menuItem.newDocument": "New",
     "DG.fileMenu.menuItem.openDocument": "Open...",
     "DG.fileMenu.menuItem.closeDocument": "Close",
-    "DG.fileMenu.menuItem.importFile": "Import...",
-    "DG.fileMenu.menuItem.revertTo": "Revert...",
-    "DG.fileMenu.menuItem.revertToOpened": "Recently opened state",
-    "DG.fileMenu.menuItem.revertToShared": "Shared view",
+    "DG.fileMenu.menuItem.importFile": "Import Data...",
+    "DG.fileMenu.menuItem.revertTo": "Revert",
+    "DG.fileMenu.menuItem.revertToOpened": "Recently opened state...",
+    "DG.fileMenu.menuItem.revertToShared": "Shared view...",
     "DG.fileMenu.menuItem.saveDocument": "Save...",
-    "DG.fileMenu.menuItem.copyDocument": "Create a copy",
-    "DG.fileMenu.menuItem.share": "Share...",
-    "DG.fileMenu.menuItem.shareGetLink": "Get link to shared view",
-    "DG.fileMenu.menuItem.shareUpdate": "Update shared view",
+    "DG.fileMenu.menuItem.copyDocument": "Make a copy",
+    "DG.fileMenu.menuItem.share": "Share",
+    "DG.fileMenu.menuItem.shareGetLink": "Get link to shared view...",
+    "DG.fileMenu.menuItem.shareUpdate": "Update shared view...",
     "DG.fileMenu.menuItem.renameDocument": "Rename...",
     "DG.fileMenu.provider.examples.displayName": "Example Documents",
 

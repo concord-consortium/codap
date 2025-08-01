@@ -12,6 +12,9 @@ import { CodapV2Document } from "./codap-v2-document"
 import { GetCaseDataResult, importV2Component, LayoutTransformFn } from "./codap-v2-tile-importers"
 
 export function importV2Document(v2Document: CodapV2Document) {
+  // We do not migrate the v2 `appVersion` into the v3 `version` property.
+  // That way if this converted document is saved, it will be saved with
+  // the current CODAP version.
   const v3Document = createCodapDocument(undefined, { layout: "free" })
   const sharedModelManager = getSharedModelManager(v3Document)
 

@@ -4,6 +4,7 @@ import { Button, FormControl, FormLabel, Input, ModalBody, ModalCloseButton, Mod
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
 import { useDataSetMetadata } from "../../../hooks/use-data-set-metadata"
 import { updateDataContextNotification } from "../../../models/data/data-set-notifications"
+import { formatDate } from "../../../utilities/date-utils"
 import { t } from "../../../utilities/translation/translate"
 import { CodapModal } from "../../codap-modal"
 
@@ -20,14 +21,28 @@ export const DatasetInfoModal = ({showInfoModal, setShowInfoModal}: IProps) => {
   const [datasetTitle, setDatasetTitle] = useState(data?.displayTitle || "")
   const [description, setDescription] = useState(metadata?.description || "")
   const [source, setSource] = useState(metadata?.source || "")
-  const [importDate, setImportDate] = useState(metadata?.importDate || "")
+  let initialImportDate = ""
+  try {
+    // Display a formatted date if we can interpret the import date as a date
+    initialImportDate = formatDate(metadata?.importDate || "") || ""
+  } catch (error) {
+    // Otherwise, just use the string
+    initialImportDate = metadata?.importDate || ""
+  }
+  const [importDate, setImportDate] = useState(initialImportDate)
 
   const handleCloseInfoModal = () => {
     data?.applyModelChange(() => {
-      data.setTitle(datasetTitle)
+      data.setUserTitle(datasetTitle)
       metadata?.setDescription(description)
       metadata?.setSource(source)
-      metadata?.setImportDate(importDate)
+      try {
+        // Save an ISO string if we can parse the submitted string as a date
+        metadata?.setImportDate(new Date(importDate).toISOString())
+      } catch (error) {
+        // Otherwise, just save the string
+        metadata?.setImportDate(importDate)
+      }
       setShowInfoModal(false)
     }, {
       notify: () => updateDataContextNotification(data)

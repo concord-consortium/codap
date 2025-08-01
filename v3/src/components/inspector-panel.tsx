@@ -1,6 +1,6 @@
 import { forwardRef, Box, Button, Menu, MenuButton } from "@chakra-ui/react"
+import { clsx } from "clsx"
 import React, { ReactNode, RefObject, useEffect, useRef, useState } from "react"
-import MoreOptionsIcon from "../assets/icons/arrow-moreIconOptions.svg"
 import { useOutsidePointerDown } from "../hooks/use-outside-pointer-down"
 import { isWithinBounds, getPaletteTopPosition } from "../utilities/view-utils"
 
@@ -11,17 +11,19 @@ interface IProps {
   show?: boolean
   children: ReactNode
   setShowPalette?: (palette: string | undefined) => void
+  width?: "very-narrow" | "narrow" | "normal" | "wide"
 }
 
-export const InspectorPanel = forwardRef(({ component, show, setShowPalette, children }: IProps, ref) => {
+export const InspectorPanel = forwardRef(({ component, show, setShowPalette, children, width }: IProps, ref) => {
   useOutsidePointerDown({
     ref: ref as unknown as RefObject<HTMLElement>,
     handler: ()=> setShowPalette?.(undefined),
     enabled: !!(show && ref && setShowPalette),
     info: {name: "InspectorPanel", component}
   })
+  const classes = clsx("inspector-panel", component, width ?? "normal")
   return (show
-    ? <Box ref={ref} className={`inspector-panel ${component ?? "" }`} bg="tealDark" data-testid={"inspector-panel"}>
+    ? <Box ref={ref} className={classes} data-testid={"inspector-panel"}>
         {children}
       </Box>
     : null
@@ -29,45 +31,62 @@ export const InspectorPanel = forwardRef(({ component, show, setShowPalette, chi
 })
 
 interface IInspectorButtonProps {
+  bottom?: boolean
   children: ReactNode
-  tooltip: string
   isDisabled?: boolean
-  testId: string
-  showMoreOptions: boolean
+  label?: string
   onButtonClick?: () => void
   setButtonRef?: (ref: any) => void
+  testId: string
+  tooltip: string
+  top?: boolean
 }
 
-export const InspectorButton = ({children, tooltip, isDisabled, testId, showMoreOptions, setButtonRef,
-    onButtonClick}:IInspectorButtonProps) => {
+export const InspectorButton = ({
+  bottom, children, isDisabled, label, onButtonClick, setButtonRef, testId, tooltip, top
+}: IInspectorButtonProps) => {
   const buttonRef = useRef<any>()
   const _onClick = () => {
     setButtonRef?.(buttonRef)
     onButtonClick?.()
   }
+  const className = clsx("inspector-tool-button", { bottom, top })
   return (
-    <Button ref={buttonRef} className="inspector-tool-button" title={tooltip} isDisabled={isDisabled}
-            data-testid={testId} onClick={_onClick}>
+    <Button
+      className={className}
+      isDisabled={isDisabled}
+      data-testid={testId}
+      onClick={_onClick}
+      ref={buttonRef}
+      title={tooltip}
+    >
       {children}
-      {showMoreOptions && <MoreOptionsIcon className="more-options-icon"/>}
+      {label && <span className="inspector-button-label">{label}</span>}
     </Button>
   )
 }
 
 interface IInspectorMenuProps {
+  bottom?: boolean
   children: ReactNode
   icon: ReactNode
-  tooltip: string
-  testId: string
+  label?: string
   onButtonClick?: () => void
   onOpen?: () => void
+  testId: string
+  tooltip: string
+  top?: boolean
 }
-export const InspectorMenu = ({children, icon, tooltip, testId, onOpen, onButtonClick}:IInspectorMenuProps) => {
+
+export const InspectorMenu = ({
+  bottom, children, icon, label, onButtonClick, onOpen, testId, tooltip, top
+}: IInspectorMenuProps) => {
+  const classes = clsx("inspector-tool-button", "inspector-tool-menu", { bottom, top })
   return (
     <Menu isLazy onOpen={onOpen}>
-      <MenuButton className="inspector-tool-button menu" title={tooltip} data-testid={testId} onClick={onButtonClick}>
+      <MenuButton className={classes} title={tooltip} data-testid={testId} onClick={onButtonClick}>
         {icon}
-        <MoreOptionsIcon className="more-options-icon"/>
+        {label && <span className="inspector-button-label">{label}</span>}
       </MenuButton>
       {children}
     </Menu>

@@ -25,11 +25,20 @@ export const CfmElements = {
   getHamburgerMenu() {
     return cy.get('#codap-menu-bar-id .cfm-menu.menu-showing')
   },
+  getHelpMenuButton() {
+    return cy.get('#codap-menu-bar-id .menu-bar-right .help-menu .cfm-menu.menu-anchor')
+  },
+  getHelpMenu() {
+    return cy.get('#codap-menu-bar-id .menu-bar-right .help-menu .cfm-menu.menu-showing')
+  },
+  getHelpMenuItem(index: number) {
+    return cy.get(`.menu.help-menu.menu-open .menuItem`).eq(index)
+  },
   getLanguageMenuButton() {
-    return cy.get('#codap-menu-bar-id .menu-bar-right .cfm-menu.menu-anchor')
+    return cy.get('#codap-menu-bar-id .menu-bar-right .lang-menu .cfm-menu.menu-anchor')
   },
   getLanguageMenu() {
-    return cy.get('#codap-menu-bar-id .cfm-menu.menu-showing')
+    return cy.get('#codap-menu-bar-id .menu-bar-right .lang-menu .cfm-menu.menu-showing')
   },
   getModalDialog() {
     return cy.get('#codap-menu-bar-id .view .modal-dialog')

@@ -5,12 +5,12 @@ import { createDefaultTileOfType } from "../../models/codap/add-default-content"
 import { gDataBroker } from "../../models/data/data-broker"
 import { getMetadataFromDataSet } from "../../models/shared/shared-data-utils"
 import { getSharedModelManager } from "../../models/tiles/tile-environment"
+import { setupTestDataset } from "../../test/dataset-test-utils"
 import { toV2Id } from "../../utilities/codap-utils"
 import { ICodapV2DataContext } from "../../v2/codap-v2-data-context-types"
 import { DIDataContext, DIUpdateDataContext } from "../data-interactive-data-set-types"
 import { DIValues } from "../data-interactive-types"
 import { diDataContextHandler } from "./data-context-handler"
-import { setupTestDataset } from "../../test/dataset-test-utils"
 
 import "../../components/web-view/web-view-registration"
 
@@ -42,9 +42,12 @@ describe("DataInteractive DataContextHandler", () => {
     expect(gDataBroker.length).toBe(0)
 
     // Can create a more complex dataset
+    const source = "dataSet Source"
+    const importDate = "2023-10-01T00:00:00Z"
     const singleCase = "case"
     const pluralCase = "cases"
     const result3 = handler.create?.({}, {
+      metadata: { description, importDate, source },
       collections: [
         {
           name: "collection1",
@@ -65,6 +68,9 @@ describe("DataInteractive DataContextHandler", () => {
     expect(dataset.collections.length).toBe(2)
     const metadata = getMetadataFromDataSet(dataset)
     expect(metadata).toBeDefined()
+    expect(metadata?.description).toBe(description)
+    expect(metadata?.source).toBe(source)
+    expect(metadata?.importDate).toBe(importDate)
     const collection1 = dataset.getCollectionByName("collection1")
     expect(collection1).toBeDefined()
     const collection1Metadata = metadata?.collections.get(collection1!.id)

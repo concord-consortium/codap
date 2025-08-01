@@ -53,15 +53,13 @@ interface IAnalyticsService {
 type ILogListener = (logMessage: LogMessage) => void
 
 export class Logger {
-  public static isLoggingEnabled = DEBUG_LOGGER
+  public static isLoggingEnabled =
+    typeof window !== "undefined" && window.location.hostname.toLowerCase().endsWith(".concord.org")
+    || DEBUG_LOGGER
   private static _instance: Logger
   private static pendingMessages: PendingMessage[] = []
 
   public static initializeLogger(document: IDocumentModel) {
-  //Logging is enabled when origin server within this domain.
-    // const logFromServer = "concord.org"
-    // this.isLoggingEnabled = window.location.hostname.toLowerCase().endsWith(logFromServer) || DEBUG_LOGGER
-
     debugLog(DEBUG_LOGGER, "Logger#initializeLogger called.")
     this._instance = new Logger(document)
     this.sendPendingMessages()

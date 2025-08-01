@@ -99,7 +99,7 @@ registerV2TileImporter("DG.TableView", ({ v2Component, v2Document, getCaseData, 
   const {
     guid,
     componentStorage: {
-      name, title = "", _links_, isActive, attributeWidths, cannotClose, rowHeights,
+      name, title, userSetTitle, _links_, isActive, attributeWidths, cannotClose, rowHeights,
       horizontalScrollOffset, isIndexHidden
     }
   } = v2Component
@@ -142,7 +142,7 @@ registerV2TileImporter("DG.TableView", ({ v2Component, v2Document, getCaseData, 
   })
 
   const tableTileSnap: ITileModelSnapshotIn = {
-    id: toV3Id(kCaseTableIdPrefix, guid), name, _title: title, content, cannotClose
+    id: toV3Id(kCaseTableIdPrefix, guid), name, _title: title, userSetTitle, content, cannotClose
   }
   const tableTile = insertTile(tableTileSnap)
 

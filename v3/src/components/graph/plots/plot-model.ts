@@ -199,6 +199,10 @@ export const PlotModel = types
     },
     nonDraggableAxisTicks(formatter: TickFormatter): IAxisTicks {
       return { tickValues: [], tickLabels: [] }
+    },
+    numericValuesForRole(role: GraphAttrRole) {
+      // The default implementation returns the numeric values for the attribute corresponding to the role.
+      return self.dataConfiguration?.numericValuesForAttrRole(role) || []
     }
   }))
   .actions(self => ({

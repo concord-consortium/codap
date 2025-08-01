@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>15FB072F-C894-4B6E-AC3D-2AA9FB22924A</title>
+    <g id="Configuration-ICON" stroke="none" fill="none" fill-rule="nonzero">
+        <rect id="Rectangle" x="0" y="0" width="24" height="24"></rect>
+        <path d="M1.5,2.5 L20.5,2.5 C21.6045695,2.5 22.5,3.3954305 22.5,4.5 L22.5,21.5 L3.5,21.5 C2.4,21.5 1.5,20.6045695 1.5,19.5 L1.5,2.5 Z" id="Path" fill="#D3F4FF"></path>
+        <path d="M3.5,2.5 L3.5,19.5 L22.5,19.5 L22.5,21.5 L3.5,21.5 C2.95,21.5 2.47916667,21.3041667 2.0875,20.9125 C1.69583333,20.5208333 1.5,20.05 1.5,19.5 L1.5,2.5 L3.5,2.5 Z M22.5,10.5 L22.5,18.25 L17.42,18.25 L17.42,10.5 L22.5,10.5 Z M16.17,3.5 L16.17,18.25 L11.09,18.25 L11.09,3.5 L16.17,3.5 Z M9.84,7.75 L9.84,18.25 L4.76,18.25 L4.76,7.75 L9.84,7.75 Z" id="Shape" fill="#006C8E"></path>
+        <path d="M18.67,14.75 L18.67,11.75 L21.25,11.75 L21.25,14.75 L18.67,14.75 Z M12.34,8.25 L12.34,4.75 L14.92,4.75 L14.92,8.25 L12.34,8.25 Z M6.01,13 L6.01,9 L8.59,9 L8.59,13 L6.01,13 Z" id="Shape" fill="#D3F4FF"></path>
+    </g>
+</svg>

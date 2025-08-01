@@ -8,12 +8,12 @@ import {
   firstVisibleParentAttribute, idOfChildmostCollectionForAttributes
 } from "../../../../models/data/data-set-utils"
 import {ScaleNumericBaseType} from "../../../axis/axis-types"
-import {CaseData} from "../../../data-display/d3-types"
+import { CaseData } from "../../../data-display/d3-types"
 import {IPlotProps} from "../../graphing-types"
 import { handleClickOnCase, setPointSelection } from "../../../data-display/data-display-utils"
 import { dataDisplayGetNumericValue } from "../../../data-display/data-display-value-utils"
 import {useDataDisplayAnimation} from "../../../data-display/hooks/use-data-display-animation"
-import {getScreenCoord, setPointCoordinates} from "../../utilities/graph-utils"
+import { getScreenCoord, setPointCoordinates } from "../../utilities/graph-utils"
 import {useGraphContentModelContext} from "../../hooks/use-graph-content-model-context"
 import {useGraphDataConfigurationContext} from "../../hooks/use-graph-data-configuration-context"
 import {useGraphLayoutContext} from "../../hooks/use-graph-layout-context"
@@ -253,7 +253,6 @@ export const ScatterPlot = observer(function ScatterPlot({ pixiPoints }: IPlotPr
   }, [lsrl, movableLine, dataConfiguration, layout, instanceId, plottedFunctionModel])
 
   const refreshAllPointPositions = useCallback((selectedOnly: boolean) => {
-
     const {getXCoord: getScreenX, getYCoord: getScreenY} = scatterPlotFuncs(layout, dataConfiguration),
       {pointColor, pointStrokeColor} = graphModel.pointDescription,
       getLegendColor = legendAttrID ? dataConfiguration?.getLegendColorForCase : undefined

@@ -25,7 +25,7 @@ const requestRequiredResult = fieldRequiredResult("Notify", "dataContext", "requ
 export const diDataContextHandler: DIHandler = {
   create(_resources: DIResources, _values?: DIValues) {
     const values = _values as DIDataContext
-    const { collections, description, name: _name, title } = values
+    const { collections, description, metadata, name: _name, title } = values
     const name = _name || gDataBroker.newDataSetName
     const document = appState.document
 
@@ -36,9 +36,13 @@ export const diDataContextHandler: DIHandler = {
     return document.applyModelChange(() => {
       // Create dataset
       const dataSet = DataSet.create({ name, _title: title })
-      const { sharedMetadata } = gDataBroker.addDataSet(dataSet)
-      sharedMetadata.setDescription(description)
       getFormulaManager(document)?.addDataSet(dataSet)
+
+      // Set metadata
+      const { sharedMetadata } = gDataBroker.addDataSet(dataSet)
+      sharedMetadata.setImportDate(metadata?.importDate)
+      sharedMetadata.setSource(metadata?.source)
+      sharedMetadata.setDescription(metadata?.description ?? description)
 
       if (collections?.length) {
         // remove the default collection

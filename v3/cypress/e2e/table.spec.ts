@@ -15,7 +15,7 @@ context("case table ui", () => {
 
   beforeEach(() => {
     // cy.scrollTo() doesn't work as expected with `scroll-behavior: smooth`
-    const queryParams = "?sample=mammals&scrollBehavior=auto"
+    const queryParams = "?sample=mammals&scrollBehavior=auto&suppressUnsavedWarning"
     const url = `${Cypress.config("index")}${queryParams}`
     cy.visit(url)
     cy.wait(1000)
@@ -105,7 +105,7 @@ context("case table ui", () => {
     it("should open dataset information button and make changes", () => {
       const newInfoName = "Animals",
         newSource = "The Internet",
-        importDate = "May 4",
+        importDate = "May 4, 2021",
         newDescription = "All about mammals"
 
       // Enter new dataset information
@@ -116,7 +116,7 @@ context("case table ui", () => {
       // Checks that the new description information is filled in
       cy.get("[data-testid='dataset-name-input']").should("have.value", newInfoName)
       cy.get("[data-testid='dataset-source-input']").should("have.value", newSource)
-      cy.get("[data-testid='dataset-date-input']").should("have.value", importDate)
+      cy.get("[data-testid='dataset-date-input']").should("have.value", "5/4/2021")
       cy.get("[data-testid=dataset-description-input]").should("have.value", newDescription)
     })
     it("select a case and delete the case from inspector menu", () => {
@@ -421,7 +421,7 @@ context("case table ui", () => {
       table.getCfmModal().should("exist")
 
       cy.log("check reaching the cfm to export data with multiple collections")
-      const queryParams = "?mouseSensor=#file=examples:Four%20Seals"
+      const queryParams = "?suppressUnsavedWarning&mouseSensor=#file=examples:Four%20Seals"
       const url = `${Cypress.config("index")}${queryParams}`
       cy.visit(url)
       c.selectTile("table", 0)
@@ -451,7 +451,7 @@ context("case table ui", () => {
         table.getCopiedCasesAlertOkButton().click()
 
         cy.log("check copying data from multiple collections")
-        const queryParams = "?mouseSensor=#file=examples:Four%20Seals"
+        const queryParams = "?suppressUnsavedWarning&mouseSensor=#file=examples:Four%20Seals"
         const url = `${Cypress.config("index")}${queryParams}`
         cy.visit(url)
         c.selectTile("table", 0)
@@ -546,7 +546,8 @@ context("case table ui", () => {
         expect(random2 < 1).to.eq(true)
         expect(random2).not.to.eq(random1)
       })
-      // Delete formula, verify values remain
+
+      cy.log("Delete formula, verify values remain")
       table.openAttributeMenu("Height")
       table.selectMenuItemFromAttributeMenu("Delete Formula (Keeping Values)")
       table.getGridCell(2, 5).then(cell => {
@@ -555,21 +556,45 @@ context("case table ui", () => {
         expect(value < 1).to.eq(true)
         expect(value).to.eq(random2)
       })
-      // verify that formula was deleted
+
+      cy.log("Verify that formula was deleted")
       table.openAttributeMenu("Height")
       table.getAttributeMenuItem("Rerandomize").should("be.disabled")
       table.getAttributeMenuItem("Delete Formula (Keeping Values)").should("be.disabled")
-      // Undo formula deletion
+
+      cy.log("Undo formula deletion")
+      let random3 = 0
       toolbar.getUndoTool().click()
       table.openAttributeMenu("Height")
       table.getAttributeMenuItem("Rerandomize").should("be.enabled")
       table.getAttributeMenuItem("Delete Formula (Keeping Values)").should("be.enabled")
       table.getGridCell(2, 5).then(cell => {
+        random3 = +cell.text()
+        expect(random3 >= 0).to.eq(true)
+        expect(random3 < 1).to.eq(true)
+        // restored formula is re-evaluated resulting in a different value
+        expect(random3).not.to.eq(random2)
+      })
+      table.closeAttributeMenu()
+
+      cy.log("Delete formula, then use recover formula")
+      table.openAttributeMenu("Height")
+      table.selectMenuItemFromAttributeMenu("Delete Formula (Keeping Values)")
+      table.getGridCell(2, 5).then(cell => {
+        const value = +cell.text()
+        expect(value >= 0).to.eq(true)
+        expect(value < 1).to.eq(true)
+        // after deleting the formula the values should still match
+        expect(value).to.eq(random3)
+      })
+      table.openAttributeMenu("Height")
+      table.selectMenuItemFromAttributeMenu("Recover Deleted Formula")
+      table.getGridCell(2, 5).then(cell => {
         const value = +cell.text()
         expect(value >= 0).to.eq(true)
         expect(value < 1).to.eq(true)
         // restored formula is re-evaluated resulting in a different value
-        expect(value).not.to.eq(random2)
+        expect(value).to.not.eq(random3)
       })
     })
     it("verify sorting", () => {
@@ -1211,7 +1236,7 @@ context("case table ui", () => {
 
   describe("table cells with boundary thumbnails", () => {
     it("displays boundary thumbnails in cells of boundary attributes", () => {
-      const queryParams = "#file=examples:Roller%20Coasters"
+      const queryParams = "?suppressUnsavedWarning#file=examples:Roller%20Coasters"
       const url = `${Cypress.config("index")}${queryParams}`
       cy.visit(url)
       cy.wait(1000)

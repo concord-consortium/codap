@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>A098F99B-BD72-4585-8CCC-7C6DBA71E587</title>
+    <g id="Timeline-Scale-ICON" stroke="none" fill="none">
+        <rect id="Rectangle" fill-rule="nonzero" x="0" y="0" width="24" height="24"></rect>
+        <path d="M12,2 C17.5228475,2 22,6.4771525 22,12 C22,17.5228475 17.5228475,22 12,22 C6.4771525,22 2,17.5228475 2,12 C2,6.4771525 6.4771525,2 12,2 Z" id="Path" fill="#006C8E" fill-rule="nonzero"></path>
+        <path d="M12,4 C7.581722,4 4,7.581722 4,12 C4,16.418278 7.581722,20 12,20 C16.418278,20 20,16.418278 20,12 C20,7.581722 16.418278,4 12,4 Z" id="Path" fill="#D3F4FF" fill-rule="nonzero"></path>
+        <polygon id="Path" fill="#006C8E" fill-rule="evenodd" points="15.3 16.7 11 12.4 11 7 13 7 13 11.6 16.7 15.3"></polygon>
+    </g>
+</svg>

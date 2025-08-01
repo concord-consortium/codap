@@ -1,6 +1,6 @@
 export const ToolbarElements = {
   getToolShelfSelector(component: string) {
-    return cy.get(`[data-testid=tool-shelf-button-${component}]`)
+    return cy.get(`[data-testid="tool-shelf-button-${component}"]`)
   },
   getToolShelfIcon(component: string) {
     return this.getToolShelfSelector(component)
@@ -53,10 +53,4 @@ export const ToolbarElements = {
  getRedoTool() {
     return cy.get('[data-testid="tool-shelf-button-redo"]')
  },
- getHelpMenu() {
-    return cy.get('[data-testid="help-menu"]')
- },
- getHelpMenuItem(item: string) {
-    return cy.get(`[data-testid="help-menu-${item}-page"]`)
- }
 }

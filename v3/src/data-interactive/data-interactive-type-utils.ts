@@ -5,14 +5,15 @@ import { IDataSet } from "../models/data/data-set"
 import { ICase, IGetCaseOptions } from "../models/data/data-set-types"
 import { v2ModelSnapshotFromV2ModelStorage } from "../models/data/v2-model"
 import { IGlobalValue } from "../models/global/global-value"
+import { IV2CollectionDefaults } from "../models/shared/data-set-metadata"
 import { getMetadataFromDataSet } from "../models/shared/shared-data-utils"
 import { kAttrIdPrefix, maybeToV2Id, toV2Id, toV2ItemId, toV3AttrId } from "../utilities/codap-utils"
-import { IV2CollectionDefaults } from "../models/shared/data-set-metadata"
-import { ICodapV2DataContextV3 } from "../v2/codap-v2-types"
 import {
   ICodapV2Attribute, ICodapV2Case, ICodapV2CategoryMap, ICodapV2CollectionV3, ICodapV2DataContextSelectedCase,
   v3TypeFromV2TypeString
 } from "../v2/codap-v2-data-context-types"
+import { GameContextMetadataMap } from "../v2/codap-v2-tile-exporters"
+import { ICodapV2DataContextV3 } from "../v2/codap-v2-types"
 import { DIGetCaseResult, DIAttribute } from "./data-interactive-data-set-types"
 import { DIResources, DISingleValues } from "./data-interactive-types"
 import { getCaseValues } from "./data-interactive-utils"
@@ -126,7 +127,7 @@ export function convertAttributeToV2(attribute: IAttribute, dataContext?: IDataS
     renameable: (attribute && !metadata?.isRenameProtected(attribute.id)) ?? true,
     deleteable: (attribute && !metadata?.isDeleteProtected(attribute.id)) ?? true,
     formula: attribute.formula?.display,
-    deletedFormula: (attribute && metadata?.attributes.get(attribute.id)?.deletedFormula) || undefined,
+    deletedFormula: (attribute && metadata?.getAttributeDeletedFormula(attribute.id)) || undefined,
     guid: v2Id,
     id: v2Id,
     precision,
@@ -187,20 +188,28 @@ export function convertCollectionToV2(collection: ICollectionModel, options?: CC
   }
 }
 
-export function convertDataSetToV2(dataSet: IDataSet, exportCases = false): ICodapV2DataContextV3 {
+export interface IConvertDataSetToV2Options {
+  exportCases?: boolean
+  gameContextMetadataMap?: GameContextMetadataMap
+}
+
+export function convertDataSetToV2(dataSet: IDataSet, options?: IConvertDataSetToV2Options): ICodapV2DataContextV3 {
   const { name, _title, id } = dataSet
+  const { exportCases = false, gameContextMetadataMap } = options || {}
   const v3Metadata = getMetadataFromDataSet(dataSet)
   const { description, source, importDate, isAttrConfigChanged, isAttrConfigProtected } = v3Metadata || {}
   const v2Id = toV2Id(id)
   const itemOptions: IGetCaseOptions = { canonical: false, numeric: true }
-  let foundDefaultsInCollection = false
+  const gameContextMetadata = gameContextMetadataMap?.[id]
+  let isGameContext = gameContextMetadata != null
   dataSet.validateCases()
 
   const selectedCases: ICodapV2DataContextSelectedCase[] = []
   const collections: ICodapV2CollectionV3[] =
     dataSet.collections.map(collection => {
       const defaults = v3Metadata?.collections.get(collection.id)?.defaults
-      foundDefaultsInCollection ||= defaults?.isNonEmpty || false
+      // if there are collection defaults, we assume this is a game context
+      isGameContext ||= defaults?.isNonEmpty || false
       collection.caseIds.forEach(caseId => {
         if (dataSet.isCaseSelected(caseId)) {
           selectedCases.push({ type: "DG.Case", id: toV2Id(caseId) })
@@ -209,11 +218,11 @@ export function convertDataSetToV2(dataSet: IDataSet, exportCases = false): ICod
       return convertCollectionToV2(collection, { dataSet, exportCases, defaults })
     })
   const v2Metadata = v3Metadata?.hasDataContextMetadata
-                    ? { metadata: { description, source, importDate} }
+                    ? { metadata: { description, source, importDate } }
                     : undefined
 
   return {
-    type: foundDefaultsInCollection ? "DG.GameContext" : "DG.DataContext",
+    type: isGameContext ? "DG.GameContext" : "DG.DataContext",
     document: 1,
     guid: v2Id,
     id: v2Id,
@@ -226,7 +235,10 @@ export function convertDataSetToV2(dataSet: IDataSet, exportCases = false): ICod
     setAsideItems: dataSet._itemIds
                     .filter(itemId => dataSet.isItemSetAside(itemId))
                     .map(itemId => ({ id: toV2ItemId(itemId), values: dataSet.getItem(itemId, itemOptions) ?? {} })),
-    contextStorage: { _links_: { selectedCases } }
+    contextStorage: {
+      _links_: { selectedCases },
+      ...(gameContextMetadata ?? {})
+    }
   }
 }
 

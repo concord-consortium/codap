@@ -55,7 +55,8 @@ export class CodapV2Document {
 
   getV2DataContext(v2Id: number) {
     const entry = this.guidMap.get(v2Id)
-    return entry?.type === "DG.DataContext" ? entry.object as CodapV2Context : undefined
+    if (!entry?.type) return
+    return ["DG.DataContext", "DG.GameContext"].includes(entry.type) ? entry.object as CodapV2Context : undefined
   }
 
   getV2Collection(v2Id: number) {

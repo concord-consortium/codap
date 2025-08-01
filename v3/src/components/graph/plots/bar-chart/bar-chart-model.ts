@@ -198,6 +198,23 @@ export const BarChartModel = DotChartModel
           : firstCount === 1 ? "DG.BarChartModel.cellTipNoLegendSingular" : "DG.BarChartModel.cellTipNoLegendPlural"
         return t(translationKey, {vars})
       }
+    },
+    numericValuesForRole(role: GraphAttrRole) {
+      // What is returned depends on the breakdown type.
+      const dataConfiguration = self.dataConfiguration
+      if (!dataConfiguration) return []
+      const epRole = dataConfiguration.primaryRole === 'x' ? 'topSplit' : 'rightSplit'
+      const esRole = dataConfiguration.primaryRole === 'x' ? 'rightSplit' : 'topSplit'
+      switch (self.breakdownType) {
+        case "count":
+          return [0, dataConfiguration.maxOverAllCells(epRole, esRole)]
+        case "percent":
+          return [0, dataConfiguration.maxPercentAllCells(epRole, esRole)]
+        case "formula":
+          return [0, ...this.getMinMaxOfFormulaValues()]
+        default:
+          return []
+      }
     }
   }))
   .actions(self => ({

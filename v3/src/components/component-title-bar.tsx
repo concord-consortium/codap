@@ -1,11 +1,12 @@
-import { Button, CloseButton, Flex, Input } from "@chakra-ui/react"
+import { Button, Flex, Input } from "@chakra-ui/react"
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import React, { useState } from "react"
 import { getTitle } from "../models/tiles/tile-content-info"
 import { updateTileNotification } from "../models/tiles/tile-notifications"
 import { uiState } from "../models/ui-state"
-import MinimizeIcon from "../assets/icons/icon-minimize.svg"
+import CloseIcon from "../assets/icons/close-tile-icon.svg"
+import MinimizeIcon from "../assets/icons/minimize-tile-icon.svg"
 import { ITileTitleBarProps } from "./tiles/tile-base-props"
 import { t } from "../utilities/translation/translate"
 import { logMessageWithReplacement } from "../lib/log-message"
@@ -30,7 +31,7 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(props: ITil
   const handleChangeTitle = (nextValue?: string) => {
     if (tile != null && nextValue !== undefined) {
       tile.applyModelChange(() => {
-        tile.setTitle(nextValue)
+        tile.setUserTitle(nextValue)
       }, {
         notify: updateTileNotification("titleChange", { from: title, to: nextValue }, tile),
         log: logMessageWithReplacement("Title changed to: %@", {nextValue}, "component"),
@@ -95,13 +96,22 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(props: ITil
         }
       </div>
       <Flex className={clsx("header-right", { disabled: isEditing })}>
-        <Button className="component-minimize-button" title={t("DG.Component.minimizeComponent.toolTip")}
-          data-testid="component-minimize-button">
+        <Button
+          className="component-title-bar-button component-minimize-button"
+          data-testid="component-minimize-button"
+          title={t("DG.Component.minimizeComponent.toolTip")}
+        >
           <MinimizeIcon className="component-minimize-icon" onPointerDown={onMinimizeTile}/>
         </Button>
         {!tile?.cannotClose &&
-          <CloseButton className="component-close-button" title={t("DG.Component.closeComponent.toolTip")}
-            onPointerDown={()=>onCloseTile?.(tileId)} data-testid="component-close-button"/>
+          <Button
+            className="component-title-bar-button component-close-button"
+            data-testid="component-close-button"
+            onPointerDown={() => onCloseTile?.(tileId)}
+            title={t("DG.Component.closeComponent.toolTip")}
+          >
+            <CloseIcon className="component-close-icon"/>
+          </Button>
         }
       </Flex>
     </Flex>

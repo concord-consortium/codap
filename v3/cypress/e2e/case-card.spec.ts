@@ -1,12 +1,14 @@
 import { TableTileElements as table } from "../support/elements/table-tile"
 import { CardTileElements as card } from "../support/elements/card-tile"
+import { ComponentElements as c } from "../support/elements/component-elements"
 import { ToolbarElements as toolbar } from "../support/elements/toolbar-elements"
 import { FormulaHelper as fh } from "../support/helpers/formula-helper"
 
 context("case card", () => {
   beforeEach(() => {
     // cy.scrollTo() doesn't work as expected with `scroll-behavior: smooth`
-    const queryParams = "?sample=mammals&mouseSensor&scrollBehavior=auto&noComponentAnimation=true"
+    const queryParams =
+      "?sample=mammals&mouseSensor&scrollBehavior=auto&noComponentAnimation=true&suppressUnsavedWarning"
     const url = `${Cypress.config("index")}${queryParams}`
     cy.visit(url)
     cy.wait(2000)
@@ -22,6 +24,7 @@ context("case card", () => {
       cy.wait(500)
       cy.get('[data-testid="codap-case-table"]').should("not.exist")
       cy.get('[data-testid="codap-case-card"]').should("exist")
+      c.checkComponentFocused("case-card")
       table.getToggleCardView().click()
       cy.wait(500)
       table.getToggleCardMessage().should("have.text", "Switch to case table view of the data").click()
@@ -62,8 +65,8 @@ context("case card", () => {
       card.getAttributeNames().eq(8).should("contain.text", "Diet")
       card.getAttributeValues().eq(8).should("have.text", "3 values")
       cy.log("Switch to individual cases view.")
-      cy.get('[data-testid="summary-view-toggle-button"]').should("have.text", "Browse Individual Cases")
-      cy.get('[data-testid="summary-view-toggle-button"]').click()
+      card.getSummaryButton().should("have.text", "Browse Individual Cases")
+      card.getSummaryButton().click()
       card.getAttributeValues().eq(0).should("have.text", "African Elephant")
       card.getAttributeValues().eq(1).should("have.text", "Proboscidae")
       card.getAttributeValues().eq(2).should("have.text", "70")
@@ -73,9 +76,9 @@ context("case card", () => {
       card.getAttributeValues().eq(6).should("have.text", "40")
       card.getAttributeValues().eq(7).should("have.text", "land")
       card.getAttributeValues().eq(8).should("have.text", "plants")
-      cy.get('[data-testid="summary-view-toggle-button"]').should("have.text", "Summarize Dataset")
+      card.getSummaryButton().should("have.text", "Summarize Dataset")
       cy.log("Switch back to summary view.")
-      cy.get('[data-testid="summary-view-toggle-button"]').click()
+      card.getSummaryButton().click()
       card.getAttributeValues().eq(0).should("have.text", "27 values")
       card.getAttributeValues().eq(1).should("have.text", "12 values")
       card.getAttributeValues().eq(2).should("have.text", "3-80")
@@ -159,6 +162,17 @@ context("case card", () => {
       card.getIndexText().eq(1).should("have.text", "1 of 2")
       card.getAttrs().eq(1).find('[data-testid="case-card-attr-value"]')
                                                  .eq(0).should("have.text", "African Elephant")
+
+      // The first selected case is selected when the browse individual case button is clicked
+      card.getSummaryButton().click()
+      card.getNextButton().eq(0).click().click().click().click()
+      card.getAttrs().eq(0).find('[data-testid="case-card-attr-value"]')
+        .eq(0).should("have.text", "Carnivora")
+      card.getAttrs().eq(1).find('[data-testid="case-card-attr-value"]')
+        .eq(0).should("have.text", "7 values")
+      card.getSummaryButton().click()
+      card.getAttrs().eq(1).find('[data-testid="case-card-attr-value"]')
+        .eq(0).should("have.text", "Cheetah")
     })
     it("allows the user to add, edit, and hide attributes with undo/redo", () => {
       table.toggleCaseView()
@@ -337,7 +351,7 @@ context("case card", () => {
 context("case card inspector panel", () => {
   beforeEach(() => {
     // cy.scrollTo() doesn't work as expected with `scroll-behavior: smooth`
-    const queryParams = "?sample=mammals&scrollBehavior=auto"
+    const queryParams = "?sample=mammals&scrollBehavior=auto&suppressUnsavedWarning"
     const url = `${Cypress.config("index")}${queryParams}`
     cy.visit(url)
     cy.wait(2000)

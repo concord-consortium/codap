@@ -14,8 +14,8 @@ import { useBinnedPlotResponders } from "../../hooks/use-binned-plot-responders"
 import { useDotPlot } from "../../hooks/use-dot-plot"
 import { useDotPlotDragDrop } from "../../hooks/use-dot-plot-drag-drop"
 import {usePixiDragHandlers, usePlotResponders} from "../../hooks/use-plot"
-import { isBinnedDotPlotModel } from "./binned-dot-plot-model"
 import { setPointCoordinates } from "../../utilities/graph-utils"
+import { isBinnedDotPlotModel } from "./binned-dot-plot-model"
 
 const screenWidthToWorldWidth = (scale: ScaleLinear<number, number>, screenWidth: number) => {
   return Math.abs(scale.invert(screenWidth) - scale.invert(0))
