@@ -18,6 +18,7 @@ import { ToolShelfButtonTag } from "./tool-shelf-button"
 import RightArrow from "../../assets/icons/arrow-right.svg"
 import PluginsIcon from "../../assets/icons/icon-plugins.svg"
 import ChoosyIcon from "../../assets/plugins/plugin-choosy-icon.svg"
+import DayLengthIcon from "../../assets/plugins/plugin-day-length-icon.svg"
 import DrawToolIcon from "../../assets/plugins/plugin-draw-tool-icon.svg"
 import MicrodataPortalIcon from "../../assets/plugins/plugin-microdata-portal-icon.svg"
 import NOAAWeatherIcon from "../../assets/plugins/plugin-noaa-weather-icon.svg"
@@ -36,7 +37,7 @@ const standardPlugins = _standardPlugins as PluginMenuConfig
 const combinedPlugins = [...standardPlugins, ...debugPlugins]
 
 const iconComponents: Record<string, React.FC<React.SVGProps<SVGSVGElement>>> = {
-  DrawToolIcon, SonifyIcon, StoryBuilderIcon, MicrodataPortalIcon, NOAAWeatherIcon,
+  DayLengthIcon, DrawToolIcon, SonifyIcon, StoryBuilderIcon, MicrodataPortalIcon, NOAAWeatherIcon,
   SamplerIcon, ChoosyIcon, TransformersIcon, ScramblerIcon
 }
 

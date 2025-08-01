@@ -54,6 +54,17 @@
   { "title": "Getting Data",
     "plugins": [
       {
+        "title": "Day Length",
+        "description": "Get day lengths for any location on Earth plus an astronomical simulation",
+        "path": "https://models-resources.concord.org/codap-day-length-plugin-3/index.html",
+        "icon": "DayLengthIcon",
+        "width": 340,
+        "height": 541,
+        "categories": [
+          "Partners"
+        ]
+      },
+      {
         "title": "Microdata Portal",
         "description": "Investigate populations from the US census at the individual level.",
         "title-string": "DG.plugin.MicrodataPortal.title",
