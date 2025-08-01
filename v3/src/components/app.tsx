@@ -120,7 +120,11 @@ export const App = observer(function App() {
         if (_sample) {
           try {
             const data = await importSample(_sample)
-            appState.document.content?.importDataSet(data, { createDefaultTile: !isDashboard })
+            const options: IImportDataSetOptions = {
+              createDefaultTile: !isDashboard,
+              width: isDashboard ? undefined : 1024 // default width for case table
+            }
+            appState.document.content?.importDataSet(data, options)
           }
           catch (e) {
             console.warn(`Failed to import sample "${_sample}"`)

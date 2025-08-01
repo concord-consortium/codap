@@ -44,6 +44,7 @@ import { isFreeTileLayout, isFreeTileRow } from "./free-tile-row"
 export interface IImportDataSetOptions {
   createDefaultTile?: boolean // default true
   defaultTileType?: string    // default kCaseTableTileType
+  width?: number              // default width
 }
 
 export const DocumentContentModel = BaseDocumentContentModel
@@ -219,12 +220,12 @@ export const DocumentContentModel = BaseDocumentContentModel
       getFormulaManager(self)?.addDataSet(ds)
     },
     importDataSet(data: IDataSet, options?: IImportDataSetOptions) {
-      const { createDefaultTile = true, defaultTileType = kCaseTableTileType } = options || {}
+      const { createDefaultTile = true, defaultTileType = kCaseTableTileType, width } = options || {}
       // add data set
       const { sharedData } = gDataBroker.addDataSet(data)
       if (sharedData.dataSet && createDefaultTile) {
         // create the corresponding case table
-        const newTile = self.createOrShowTile(defaultTileType)
+        const newTile = self.createOrShowTile(defaultTileType, { width })
         if (newTile) {
           // link the case table to the new data set
           linkTileToDataSet(newTile, sharedData.dataSet)
