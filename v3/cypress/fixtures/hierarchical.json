@@ -13,7 +13,7 @@
               "move": "newCollection"
             }
           ],
-          "childCases": [ "9 cases", "11 cases", "7 cases"],
+          "childCases": ["9 Cases", "11 Cases", "7 Cases"],
           "totalChildren": 27
         }
       ]
@@ -31,7 +31,7 @@
               "move": "newCollection"
             }
           ],
-          "childCases": [ "1 case", "2 cases", "3 cases"],
+          "childCases": ["1 Case", "2 Cases", "3 Cases"],
           "totalChildren": 27
         }
       ]
@@ -53,7 +53,7 @@
               "move": "prevCollection"
             }
           ],
-          "childCases": ["7 cases", "8 cases", "2 cases", "9 cases", "1 case"],
+          "childCases": ["7 Cases", "8 Cases", "2 Cases", "9 Cases", "1 Case"],
           "totalChildren": 27
         }
       ]
@@ -75,7 +75,7 @@
               "move": "prevCollection"
             }
           ],
-          "childCases": ["1 case", "2 cases", "3 cases"],
+          "childCases": ["1 Case", "2 Cases", "3 Cases"],
           "totalChildren": 27
         }
       ]
@@ -93,7 +93,7 @@
               "move": "newCollection"
             }
           ],
-          "childCases": ["9 cases", "11 cases", "7 cases"],
+          "childCases": ["9 Cases", "11 Cases", "7 Cases"],
           "totalChildren": 27
         },
         {
@@ -106,7 +106,7 @@
               "move": "newCollection"
             }
           ],
-          "childCases": ["3 cases", "1 case", "1 case"],
+          "childCases": ["3 Diets", "1 Diet", "1 Diet"],
           "totalChildren": 5
         }
       ]
@@ -125,7 +125,7 @@
               "move": "newCollection"
             }
           ],
-          "childCases": ["1 case", "2 cases", "24 cases"],
+          "childCases": ["1 Case", "2 Cases", "24 Cases"],
           "totalChildren": 27
         },
         {
@@ -138,7 +138,7 @@
               "move": "newCollection"
             }
           ],
-          "childCases": ["1 case", "2 cases"],
+          "childCases": ["1 Case", "2 Cases"],
           "totalChildren": 20
         }
       ]

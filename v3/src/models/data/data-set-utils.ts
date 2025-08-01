@@ -1,5 +1,8 @@
 import { isAlive } from "mobx-state-tree"
+import { singular } from "pluralize"
 import { logMessageWithReplacement } from "../../lib/log-message"
+import { t } from "../../utilities/translation/translate"
+import { IDataSetMetadata } from "../shared/data-set-metadata"
 import { getMetadataFromDataSet } from "../shared/shared-data-utils"
 import { INotify } from "../history/history-service"
 import { IAttribute } from "./attribute"
@@ -31,6 +34,19 @@ export function collectionCaseIndexFromId(caseId: string, data?: IDataSet, colle
   // for now, linear search through pseudo-cases; could index if performance becomes a problem.
   const found = cases.findIndex(aCase => aCase.__id__ === caseId)
   return found >= 0 ? found : undefined
+}
+
+export function getCaseNameForCount(
+  metadata: Maybe<IDataSetMetadata>, collection: Maybe<ICollectionModel>, count: number
+): string {
+  // patterned after analogous v2 function
+  const collectionMetadata = collection?.id ? metadata?.collections.get(collection.id) : undefined
+  const collectionLabels = collectionMetadata?.labels
+  const pluralName = collectionLabels?.pluralCase || collection?.title
+  const singleName = collectionLabels?.singleCase || (pluralName ? singular(pluralName) : undefined)
+  return count === 1
+          ? singleName || t("DG.DataContext.singleCaseName")
+          : pluralName || t("DG.DataContext.pluralCaseName")
 }
 
 export function isAnyChildSelected(data: IDataSet, caseId: string): boolean {

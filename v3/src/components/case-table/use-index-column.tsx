@@ -4,13 +4,14 @@ import { clsx } from "clsx"
 import React, { useCallback, useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import { useCollectionContext } from "../../hooks/use-collection-context"
-import { useDataSetContext } from "../../hooks/use-data-set-context"
-import { useDataSetMetadata } from "../../hooks/use-data-set-metadata"
+import { useDataSet } from "../../hooks/use-data-set"
 import { DEBUG_CASE_IDS } from "../../lib/debug"
 import { ICollectionModel } from "../../models/data/collection"
 import { IDataSet } from "../../models/data/data-set"
 import { symIndex, symParent } from "../../models/data/data-set-types"
-import { getCollectionAttrs, selectCases, setSelectedCases } from "../../models/data/data-set-utils"
+import {
+  getCaseNameForCount, getCollectionAttrs, selectCases, setSelectedCases
+} from "../../models/data/data-set-utils"
 import { IDataSetMetadata } from "../../models/shared/data-set-metadata"
 import { preventCollectionReorg } from "../../utilities/plugin-utils"
 import { t } from "../../utilities/translation/translate"
@@ -43,8 +44,7 @@ function indexColumnSpan(args: TColSpanArgs, { data, metadata, collection }: ICo
 }
 
 export const useIndexColumn = () => {
-  const data = useDataSetContext()
-  const metadata = useDataSetMetadata()
+  const { data, metadata } = useDataSet()
   const collectionId = useCollectionContext()
   const collection = data?.getCollection(collectionId)
   const disableMenu = preventCollectionReorg(data, collectionId)
@@ -120,6 +120,9 @@ interface IIndexCellProps {
   onPointerDown?: (evt: React.PointerEvent | React.MouseEvent) => void
 }
 export function IndexCell({ caseId, disableMenu, index, collapsedCases, onClick, onPointerDown }: IIndexCellProps) {
+  const { data, metadata } = useDataSet()
+  const collectionId = useCollectionContext()
+  const collection = data?.getCollection(collectionId)
   const [menuButton, setMenuButton] = useState<HTMLButtonElement | null>(null)
   const cellElt: HTMLDivElement | null = menuButton?.closest(".rdg-cell") ?? null
   // Find the parent CODAP component to display the index menu above the grid
@@ -183,10 +186,9 @@ export function IndexCell({ caseId, disableMenu, index, collapsedCases, onClick,
   }
 
   // cell contents
-  const casesStr = t(collapsedCases === 1 ? "DG.DataContext.singleCaseName" : "DG.DataContext.pluralCaseName")
   const caseIdStr = DEBUG_CASE_IDS ? `: ${caseId}` : ""
   const cellContents = collapsedCases
-                        ? `${collapsedCases} ${casesStr}`
+                        ? `${collapsedCases} ${getCaseNameForCount(metadata, collection, collapsedCases)}`
                         : index != null ? `${index + 1}${caseIdStr}` : ""
   const handleClick = collapsedCases ? onClick : undefined
 
