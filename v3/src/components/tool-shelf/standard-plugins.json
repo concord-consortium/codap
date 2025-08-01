@@ -20,6 +20,7 @@
       {
         "title": "Sonify",
         "description": "Listen to your data",
+        "disabled": true,
         "width": 325,
         "height": 274,
         "path": "/Sonify/index.html",
@@ -34,6 +35,7 @@
       {
         "title": "Story Builder",
         "description": "Create a narrative of your investigation",
+        "disabled": true,
         "title-string": "DG.plugin.StoryBuilder.pluginName",
         "description-string": "DG.plugin.StoryBuilder.description",
         "width": 800,

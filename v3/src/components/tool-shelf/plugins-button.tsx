@@ -46,35 +46,36 @@ interface IPluginItemProps {
 }
 function PluginItem({ onClose, pluginData }: IPluginItemProps) {
   const documentContent = useDocumentContent()
+    const { disabled, height, icon, path, title, width } = pluginData || {}
 
   function handleClick() {
     if (!pluginData) return
     documentContent?.applyModelChange(
       () => {
-        const url = URL.canParse(pluginData.path)
-          ? pluginData.path
-          : processWebViewUrl(`${kRootPluginsUrl}${pluginData.path}`)
-        const options = { height: pluginData.height, width: pluginData.width }
+        const url = URL.canParse(pluginData.path) ? pluginData.path : processWebViewUrl(`${kRootPluginsUrl}${path}`)
+        const options = { height, width }
         const tile = documentContent?.createOrShowTile?.(kWebViewTileType, options)
         if (isWebViewModel(tile?.content)) tile.content.setUrl(url)
       }, {
-        undoStringKey: t("V3.Undo.plugin.create", { vars: [pluginData.title] }),
-        redoStringKey: t("V3.Redo.plugin.create", { vars: [pluginData.title] }),
-        log: logMessageWithReplacement("Add Plugin: %@", { name: pluginData.title, url: pluginData.path })
+        undoStringKey: t("V3.Undo.plugin.create", { vars: [title] }),
+        redoStringKey: t("V3.Redo.plugin.create", { vars: [title] }),
+        log: logMessageWithReplacement("Add Plugin: %@", { name: title, url: path })
       }
     )
     onClose?.()
   }
-  const IconComponent = iconComponents[pluginData?.icon ?? ""]
-    
+  const IconComponent = iconComponents[icon ?? ""]
+
+  const displayTitle = `${title}${disabled ? " 🚧" : ""}`
   return pluginData ? (
     <MenuItem
       data-testid="tool-shelf-plugins-option"
+      isDisabled={disabled}
       onClick={handleClick}
     >
       <div className="plugin-selection">
         <IconComponent className="plugin-selection-icon" />
-        <span className="plugin-selection-title">{pluginData.title}</span>
+        <span className="plugin-selection-title">{displayTitle}</span>
       </div>
     </MenuItem>
   ) : <MenuDivider/>
