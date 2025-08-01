@@ -22,10 +22,13 @@ import DayLengthIcon from "../../assets/plugins/plugin-day-length-icon.svg"
 import DrawToolIcon from "../../assets/plugins/plugin-draw-tool-icon.svg"
 import MicrodataPortalIcon from "../../assets/plugins/plugin-microdata-portal-icon.svg"
 import NasaEarthAirAndWaterIcon from "../../assets/plugins/plugin-nasa-earth-air-and-water-icon.svg"
+import NasaEarthObservatoryIcon from "../../assets/plugins/plugin-nasa-earth-observatory-icon.svg"
+import NHANESPortalIcon from "../../assets/plugins/plugin-nhanes-portal-icon.svg"
 import NOAAWeatherIcon from "../../assets/plugins/plugin-noaa-weather-icon.svg"
 import SamplerIcon from "../../assets/plugins/plugin-sampler-icon.svg"
 import ScramblerIcon from "../../assets/plugins/plugin-scrambler-icon.svg"
 import SonifyIcon from "../../assets/plugins/plugin-sonify-icon.svg"
+import SpaceTimeCubeIcon from "../../assets/plugins/plugin-space-time-cube-icon.svg"
 import StoryBuilderIcon from "../../assets/plugins/plugin-story-builder-icon.svg"
 import TransformersIcon from "../../assets/plugins/plugin-transformers-icon.svg"
 import _debugPlugins from "./debug-plugins.json"
@@ -39,7 +42,8 @@ const combinedPlugins = [...standardPlugins, ...debugPlugins]
 
 const iconComponents: Record<string, React.FC<React.SVGProps<SVGSVGElement>>> = {
   DayLengthIcon, DrawToolIcon, SonifyIcon, StoryBuilderIcon, MicrodataPortalIcon, NasaEarthAirAndWaterIcon,
-  NOAAWeatherIcon, SamplerIcon, ChoosyIcon, TransformersIcon, ScramblerIcon
+  NasaEarthObservatoryIcon, NHANESPortalIcon, NOAAWeatherIcon, SamplerIcon, ChoosyIcon, TransformersIcon, ScramblerIcon,
+  SpaceTimeCubeIcon
 }
 
 interface IPluginItemProps {

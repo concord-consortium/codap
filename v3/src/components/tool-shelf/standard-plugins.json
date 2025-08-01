@@ -93,6 +93,29 @@
         ]
       },
       {
+        "title": "NASA Earth Observatory",
+        "description": "Get global data from NASA",
+        "disabled": true,
+        "path": "https://models-resources.concord.org/nasa-codap-plugin/index.html",
+        "icon": "NasaEarthObservatoryIcon",
+        "width": 360,
+        "height": 536,
+        "categories": [
+          "Partners"
+        ]
+      },
+      {
+        "title": "NHANES Portal",
+        "description": "Get data from National Health and Nutrition Examination Survey",
+        "path": "https://concord-consortium.github.io/codap-data-interactives/data-science-worlds/nhanes/nhanes.html?lang=en",
+        "icon": "NHANESPortalIcon",
+        "width": 444,
+        "height": 555,
+        "categories": [
+          "Partners"
+        ]
+      },
+      {
         "title": "NOAA Weather",
         "description": "Investigate historical weather patterns",
         "title-string": "DG.plugin.NOAA-weather.title",
@@ -106,6 +129,17 @@
         "categories": [
           "Partners",
           "Portals"
+        ]
+      },
+      {
+        "title": "Space-Time Cube",
+        "description": "Explore US tornado data in a 3D space-time cube",
+        "path": "https://models-resources.concord.org/dst-codap-plugin/branch/main/index.html",
+        "icon": "SpaceTimeCubeIcon",
+        "width": 685,
+        "height": 542,
+        "categories": [
+          "Partners"
         ]
       }
     ]
