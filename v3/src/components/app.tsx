@@ -122,7 +122,7 @@ export const App = observer(function App() {
             const data = await importSample(_sample)
             const options: IImportDataSetOptions = {
               createDefaultTile: !isDashboard,
-              width: isDashboard ? undefined : 1024 // default width for case table
+              width: isDashboard ? undefined : 1024 // default width for sample case table
             }
             appState.document.content?.importDataSet(data, options)
           }
