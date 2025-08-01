@@ -21,6 +21,7 @@ import ChoosyIcon from "../../assets/plugins/plugin-choosy-icon.svg"
 import DayLengthIcon from "../../assets/plugins/plugin-day-length-icon.svg"
 import DrawToolIcon from "../../assets/plugins/plugin-draw-tool-icon.svg"
 import MicrodataPortalIcon from "../../assets/plugins/plugin-microdata-portal-icon.svg"
+import NasaEarthAirAndWaterIcon from "../../assets/plugins/plugin-nasa-earth-air-and-water-icon.svg"
 import NOAAWeatherIcon from "../../assets/plugins/plugin-noaa-weather-icon.svg"
 import SamplerIcon from "../../assets/plugins/plugin-sampler-icon.svg"
 import ScramblerIcon from "../../assets/plugins/plugin-scrambler-icon.svg"
@@ -37,8 +38,8 @@ const standardPlugins = _standardPlugins as PluginMenuConfig
 const combinedPlugins = [...standardPlugins, ...debugPlugins]
 
 const iconComponents: Record<string, React.FC<React.SVGProps<SVGSVGElement>>> = {
-  DayLengthIcon, DrawToolIcon, SonifyIcon, StoryBuilderIcon, MicrodataPortalIcon, NOAAWeatherIcon,
-  SamplerIcon, ChoosyIcon, TransformersIcon, ScramblerIcon
+  DayLengthIcon, DrawToolIcon, SonifyIcon, StoryBuilderIcon, MicrodataPortalIcon, NasaEarthAirAndWaterIcon,
+  NOAAWeatherIcon, SamplerIcon, ChoosyIcon, TransformersIcon, ScramblerIcon
 }
 
 interface IPluginItemProps {

@@ -82,6 +82,17 @@
         ]
       },
       {
+        "title": "NASA: Earth, Air, and Water",
+        "description": "Get global data from NASA",
+        "path": "https://models-resources.concord.org/nasa-codap-plugin/index.html",
+        "icon": "NasaEarthAirAndWaterIcon",
+        "width": 360,
+        "height": 536,
+        "categories": [
+          "Partners"
+        ]
+      },
+      {
         "title": "NOAA Weather",
         "description": "Investigate historical weather patterns",
         "title-string": "DG.plugin.NOAA-weather.title",
