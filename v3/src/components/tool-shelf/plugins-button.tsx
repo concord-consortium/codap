@@ -49,6 +49,7 @@ const iconComponents: Record<string, React.FC<React.SVGProps<SVGSVGElement>>> = 
   SimmerIcon, SpaceTimeCubeIcon, TestimateIcon
 }
 
+// A MenuItem for a single plugin
 interface IPluginItemProps {
   onClose?: () => void
   pluginData: PluginData | null
@@ -91,7 +92,7 @@ function PluginItem({ onClose, pluginData }: IPluginItemProps) {
   ) : <MenuDivider/>
 }
 
-// A MenuItem for a collection, which contains a submenu of the collection's attributes
+// A MenuItem for a group of plugins, which contains a submenu of the plugins
 interface IPluginGroupMenuProps {
   isOpen: boolean
   onClose?: () => void
