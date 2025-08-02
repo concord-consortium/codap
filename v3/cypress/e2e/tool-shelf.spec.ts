@@ -55,7 +55,7 @@ context("codap toolbar", () => {
     webView.getTitle().should("not.exist")
     toolbar.getPluginGroup().eq(2).click()
     // toolbar.getPluginSubMenu().eq(2).invoke("show")
-    toolbar.getPluginSelection().eq(5).click()
+    toolbar.getPluginSelection().eq(0).click()
     webView.getTitle().should("have.text", "Sampler")
     toolbar.getPluginSelection().should("not.exist")
   })
@@ -82,7 +82,7 @@ context("codap toolbar", () => {
     c.getIconFromToolShelf("calc").click()
     c.getIconFromToolShelf("plugins").click()
     toolbar.getPluginGroup().eq(2).click()
-    toolbar.getPluginSelection().eq(5).click()
+    toolbar.getPluginSelection().eq(0).click()
     //TODO need to add check for Text component
     toolbar.getTilesButton().click()
     toolbar.getTilesListMenu().should("be.visible")
