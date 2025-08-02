@@ -8,7 +8,7 @@ $tool-shelf-border-width: 1px;
   width: 100%;
   background-color: white;
   border-bottom: $tool-shelf-border-width solid #a6a6a6;
-  box-shadow: 0 0 6px 0 rgba(0, 0, 0, 0.25) !important;
+  box-shadow: 0 0 6px 0 rgba(0, 0, 0, 0.25);
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -112,10 +112,6 @@ $tool-shelf-border-width: 1px;
   }
 }
 
-.tool-shelf-span {
-  margin-top: 0 !important;
-}
-
 .tool-shelf-component-buttons {
   .tool-shelf-menu-list {
     border-radius: 4px;
@@ -123,9 +119,12 @@ $tool-shelf-border-width: 1px;
     box-shadow: 0 2px 6px 2px rgba(0, 0, 0, 0.25);
     display: flex;
     flex-direction: column;
-    margin-top: -13px;
     min-width: 0;
     padding: 6px 2px;
+
+    &.top-menu {
+      margin-top: -13px;
+    }
 
     // TODO: This is necessary because of the following line in index.scss, which should be removed:
     // box-shadow: none !important;
@@ -142,22 +141,9 @@ $tool-shelf-border-width: 1px;
 
     &.plugins {
       min-width: 180px;
-    }
 
-    .submenu-button {
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      justify-content: space-between;
-      color: #222;
-      cursor: pointer;
-
-      &:hover {
-        background-color: #e9e9e9;
-      }
-
-      &:active {
-        background-color: #e9e9e9;
+      .submenu {
+        margin-left: -21px;
       }
     }
 
@@ -176,7 +162,6 @@ $tool-shelf-border-width: 1px;
     .tool-shelf-menu-item {
       display: flex;
       align-items: center;
-      padding: 4px 8px;
       cursor: pointer;
       height: 30px;
       width: 100%;
@@ -186,6 +171,14 @@ $tool-shelf-border-width: 1px;
       font-size: 14px;
       letter-spacing: 0.2px;
       color: vars.$default-font-color;
+
+      &.table-menu-item {
+        padding: 6px 3px 6px 8px;
+      }
+
+      &.plugins-menu-item {
+        padding: 7px 12px 7px 8px;
+      }
 
       > span {
         display: flex;
@@ -215,8 +208,8 @@ $tool-shelf-border-width: 1px;
         background-color: transparent;
         position: absolute;
         right: 0px;
-        margin-right: 5px;
         margin-left: 6px;
+        margin-right: 5px;
 
         &:hover:not(:disabled) {
           background-color: vars.$icon-fill-light;
@@ -234,15 +227,6 @@ $tool-shelf-border-width: 1px;
         height: 18px;
         width: 18px;
         margin-right: 6px;
-        margin-left: 8px;
-      }
-
-      .submenu {
-        border-width: 0 !important;
-        border-radius: 4px !important;
-        box-shadow: 0 2px 6px 2px rgba(0, 0, 0, 0.25);
-        padding: 2px;
-        font-weight: 400;
       }
     }
   }
@@ -300,11 +284,11 @@ $tool-shelf-border-width: 1px;
   letter-spacing: 0.2px;
   font-size: 14px;
   font-weight: 500;
-  color: #222 !important;
+  color: #222;
 }
 
 .tool-shelf-button.lang-bold .tool-shelf-tool-label{
-  font-weight: 600 !important;
+  font-weight: 600;
 }
 
 .tool-shelf-button.lang-fa .tool-shelf-tool-label {

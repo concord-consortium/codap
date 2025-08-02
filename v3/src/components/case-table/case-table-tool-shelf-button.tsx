@@ -81,12 +81,16 @@ const CaseTableToolShelfMenuList = observer(
   return (
     <>
       <MenuList className="tool-shelf-menu-list table" data-testid="tool-shelf-table-menu-list">
-        <MenuItem data-testid="tool-shelf-table-new" className="tool-shelf-menu-item"
+        <MenuItem data-testid="tool-shelf-table-new" className="tool-shelf-menu-item table-menu-item"
             onClick={handleCreateNewCaseTable}>
           <TableIcon className="menu-icon case-table-icon"/>
           {t("DG.AppController.caseTableMenu.newDataSet")}
         </MenuItem>
-        <MenuItem data-testid="tool-shelf-table-new-clipboard" isDisabled={true} className="tool-shelf-menu-item">
+        <MenuItem
+          className="tool-shelf-menu-item table-menu-item"
+          data-testid="tool-shelf-table-new-clipboard"
+          isDisabled={true}
+        >
           <TableIcon className="menu-icon case-table-icon"/>
           {`${t("DG.AppController.caseTableMenu.clipboardDataset")}`}
           <Button className="menu-list-button" isDisabled={true}>🚧</Button>
@@ -96,7 +100,7 @@ const CaseTableToolShelfMenuList = observer(
           const tileTitle = dataset.dataSet.displayTitle
           return (
             // FIXME: this will create multiple undo entries
-            <MenuItem key={`${dataset.dataSet.id}`} className="tool-shelf-menu-item"
+            <MenuItem key={`${dataset.dataSet.id}`} className="tool-shelf-menu-item table-menu-item"
               onClick={()=>createOrShowTableOrCardForDataset(dataset)} data-testid={`tool-shelf-table-${tileTitle}`}>
               <TableIcon className="menu-icon case-table-icon"/>
               {tileTitle}

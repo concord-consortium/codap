@@ -78,6 +78,7 @@ function PluginItem({ onClose, pluginData }: IPluginItemProps) {
   const displayTitle = `${title}${disabled ? " 🚧" : ""}`
   return pluginData ? (
     <MenuItem
+      className="tool-shelf-menu-item plugins-menu-item"
       data-testid="tool-shelf-plugins-option"
       isDisabled={disabled}
       onClick={handleClick}
@@ -106,7 +107,7 @@ const PluginGroupMenu = observer(function PluginGroupMenu({
       {isOpen && (
         <Menu isOpen={isOpen} placement="right-start">
           <MenuButton as="div" className="plugin-group-menu-button" />
-          <MenuList>
+          <MenuList className="tool-shelf-menu-list submenu">
             {plugins.map((plugin, i) => (
               <PluginItem key={plugin?.title ?? `divider-${i}`} onClose={onClose} pluginData={plugin} />
             ))}
@@ -158,7 +159,7 @@ export function PluginsButton() {
                 <PluginsIcon />
                 <ToolShelfButtonTag className="plugins" label={t("DG.ToolButtonData.pluginMenu.title")} />
               </MenuButton>
-              <MenuList className="tool-shelf-menu-list plugins">
+              <MenuList className="tool-shelf-menu-list top-menu plugins">
                 {pluginGroups.map(pluginGroup => {
                   const { plugins, title } = pluginGroup
                   return (
