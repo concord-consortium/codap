@@ -112,7 +112,7 @@ $tool-shelf-border-width: 1px;
   }
 }
 
-.tool-shelf-component-buttons {
+.tool-shelf-component-buttons, .tool-shelf-right-buttons {
   .tool-shelf-menu-list {
     border-radius: 4px;
     border-width: 0;
@@ -164,6 +164,7 @@ $tool-shelf-border-width: 1px;
       align-items: center;
       cursor: pointer;
       height: 30px;
+      padding: 6px 12px 6px 8px;
       width: 100%;
       box-sizing: border-box;
       min-width: 0;
@@ -174,10 +175,6 @@ $tool-shelf-border-width: 1px;
 
       &.table-menu-item {
         padding: 6px 3px 6px 8px;
-      }
-
-      &.plugins-menu-item {
-        padding: 7px 12px 7px 8px;
       }
 
       > span {

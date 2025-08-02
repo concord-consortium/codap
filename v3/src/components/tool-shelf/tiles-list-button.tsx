@@ -49,7 +49,7 @@ export const TilesListShelfButton = observer(function TilesListShelfButton() {
             label={t("DG.ToolButtonData.tileListMenu.title")}
           />
         </MenuButton>
-        <MenuList className="tool-shelf-menu-list tiles-list" data-testid="tiles-list-menu" >
+        <MenuList className="tool-shelf-menu-list top-menu tiles-list" data-testid="tiles-list-menu" >
           {tilesArr?.map((tile) => {
             const tileType = tile.content.type
             const _Icon = getTileComponentIcon(tileType)
