@@ -60,6 +60,7 @@ export const v3TypeFromV2TypeIndex: Array<AttributeType | undefined> = [
 export function v3TypeFromV2TypeString(v2Type?: string | null): AttributeType | undefined {
   if (v2Type == null || v2Type === "none") return undefined
   if (v2Type === "nominal") return "categorical"
+  if (v2Type === "number") return "numeric"
   return v2Type as AttributeType
 }
 type CaseValue = number | string | boolean | null | object
