@@ -130,10 +130,7 @@ export function PluginsButton() {
   const pluginGroups: PluginMenuConfig =
     remotePlugins.length ? [...combinedPlugins, ...remotePlugins] : combinedPlugins
 
-  const handleClose = () => {
-    setOpenSubmenuId(null)
-    onCloseRef.current?.()
-  }
+  const handleClose = () => onCloseRef.current?.()
 
   useOutsidePointerDown({
     ref: menuRef,
@@ -143,7 +140,7 @@ export function PluginsButton() {
   const className = clsx("tool-shelf-button", "tool-shelf-menu", "plugins", getSpecialLangFontClassName())
   return (
     <div ref={menuRef}>
-      <Menu boundary="scrollParent" onOpen={() => setOpenSubmenuId(null)}>
+      <Menu boundary="scrollParent" onClose={() => setOpenSubmenuId(null)}>
         {({ onClose }) => {
           onCloseRef.current = onClose
           return (
