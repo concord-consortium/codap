@@ -184,10 +184,10 @@ context("codap single smoke test", () => {
 
     cy.log("plugin menu works")
     c.getIconFromToolShelf("plugins").should("exist").click()
-    toolbar.getPluginCategory().should("have.length", 5)
+    toolbar.getPluginGroup().should("have.length", 5)
     webView.getTitle().should("not.exist")
-    toolbar.getPluginCategory().eq(2).click()
-    toolbar.getPluginSelection().eq(5).click()
+    toolbar.getPluginGroup().eq(2).click()
+    toolbar.getPluginSelection().eq(0).click()
     webView.getTitle().should("have.text", "Sampler")
     toolbar.getPluginSelection().should("not.exist")
   })
