@@ -37,6 +37,7 @@ import _debugPlugins from "./debug-plugins.json"
 import _standardPlugins from "./standard-plugins.json"
 
 import "./plugins-button.scss"
+import "./tool-shelf.scss"
 
 const debugPlugins = DEBUG_PLUGINS ? _debugPlugins as PluginMenuConfig : []
 const standardPlugins = _standardPlugins as PluginMenuConfig
@@ -114,7 +115,7 @@ const PluginGroupMenu = observer(function PluginGroupMenu({
       )}
       <MenuItem
         as="div"
-        className="plugin-group-menu-item"
+        className="plugin-group-menu-item tool-shelf-menu-item"
         closeOnSelect={false}
         key={title}
         onPointerOver={onPointerOver}
@@ -144,7 +145,7 @@ export function PluginsButton() {
   const className = clsx("tool-shelf-button", "tool-shelf-menu", "plugins", getSpecialLangFontClassName())
   return (
     <div ref={menuRef}>
-      <Menu boundary="scrollParent" onClose={() => setOpenSubmenuId(null)}>
+      <Menu autoSelect={false} boundary="scrollParent" onClose={() => setOpenSubmenuId(null)}>
         {({ onClose }) => {
           onCloseRef.current = onClose
           return (
@@ -157,7 +158,7 @@ export function PluginsButton() {
                 <PluginsIcon />
                 <ToolShelfButtonTag className="plugins" label={t("DG.ToolButtonData.pluginMenu.title")} />
               </MenuButton>
-              <MenuList>
+              <MenuList className="tool-shelf-menu-list plugins">
                 {pluginGroups.map(pluginGroup => {
                   const { plugins, title } = pluginGroup
                   return (
