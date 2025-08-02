@@ -162,6 +162,17 @@
           "Partners",
           "Generators"
         ]
+      },
+      {
+        "title": "Simmer",
+        "description": "Create block programmed simulations that generate data.",
+        "path": "https://codap.xyz/plugins/simmer/",
+        "icon": "SimmerIcon",
+        "width": 800,
+        "height": 555,
+        "categories": [
+          "Partners"
+        ]
       }
     ]
   },
@@ -216,6 +227,18 @@
         "isStandard": "true",
         "categories": [
           "Tools"
+        ]
+      },
+      {
+        "title": "Testimate",
+        "description": "Test hypotheses using classical inferential methods.",
+        "disabled": true,
+        "path": "/eepsmedia/plugins/testimate/index.html",
+        "icon": "TestimateIcon",
+        "width": 444,
+        "height": 555,
+        "categories": [
+          "Partners"
         ]
       }
     ]

@@ -27,9 +27,11 @@ import NHANESPortalIcon from "../../assets/plugins/plugin-nhanes-portal-icon.svg
 import NOAAWeatherIcon from "../../assets/plugins/plugin-noaa-weather-icon.svg"
 import SamplerIcon from "../../assets/plugins/plugin-sampler-icon.svg"
 import ScramblerIcon from "../../assets/plugins/plugin-scrambler-icon.svg"
+import SimmerIcon from "../../assets/plugins/plugin-simmer-icon.svg"
 import SonifyIcon from "../../assets/plugins/plugin-sonify-icon.svg"
 import SpaceTimeCubeIcon from "../../assets/plugins/plugin-space-time-cube-icon.svg"
 import StoryBuilderIcon from "../../assets/plugins/plugin-story-builder-icon.svg"
+import TestimateIcon from "../../assets/plugins/plugin-testimate-icon.svg"
 import TransformersIcon from "../../assets/plugins/plugin-transformers-icon.svg"
 import _debugPlugins from "./debug-plugins.json"
 import _standardPlugins from "./standard-plugins.json"
@@ -43,7 +45,7 @@ const combinedPlugins = [...standardPlugins, ...debugPlugins]
 const iconComponents: Record<string, React.FC<React.SVGProps<SVGSVGElement>>> = {
   DayLengthIcon, DrawToolIcon, SonifyIcon, StoryBuilderIcon, MicrodataPortalIcon, NasaEarthAirAndWaterIcon,
   NasaEarthObservatoryIcon, NHANESPortalIcon, NOAAWeatherIcon, SamplerIcon, ChoosyIcon, TransformersIcon, ScramblerIcon,
-  SpaceTimeCubeIcon
+  SimmerIcon, SpaceTimeCubeIcon, TestimateIcon
 }
 
 interface IPluginItemProps {
@@ -100,14 +102,16 @@ const PluginGroupMenu = observer(function PluginGroupMenu({
 }: IPluginGroupMenuProps) {
   return (
     <>
-      <Menu isOpen={isOpen} placement="right-start">
-        <MenuButton as="div" className="plugin-group-menu-button" />
-        <MenuList>
-          {plugins.map((plugin, i) => (
-            <PluginItem key={plugin?.title ?? `divider-${i}`} onClose={onClose} pluginData={plugin} />
-          ))}
-        </MenuList>
-      </Menu>
+      {isOpen && (
+        <Menu isOpen={isOpen} placement="right-start">
+          <MenuButton as="div" className="plugin-group-menu-button" />
+          <MenuList>
+            {plugins.map((plugin, i) => (
+              <PluginItem key={plugin?.title ?? `divider-${i}`} onClose={onClose} pluginData={plugin} />
+            ))}
+          </MenuList>
+        </Menu>
+      )}
       <MenuItem
         as="div"
         className="plugin-group-menu-item"
