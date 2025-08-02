@@ -2,9 +2,7 @@ import { Box, Tag } from "@chakra-ui/react"
 import { clsx } from "clsx"
 import React from "react"
 import { getTileComponentIcon } from "../../models/tiles/tile-component-info"
-import { t } from "../../utilities/translation/translate"
-import { gLocale } from "../../utilities/translation/locale"
-import { getSpecialLangFontClassName } from "../../utilities/translation/languages"
+import { getSpecialLangFontClassName, t } from "../../utilities/translation/translate"
 
 interface IToolShelfButtonTagProps {
   className?: string
@@ -25,7 +23,7 @@ export interface IToolShelfButtonProps {
 export const ToolShelfButton = ({
   className, icon, label, hint, disabled, onClick
 }: IToolShelfButtonProps) => {
-  const langClass = getSpecialLangFontClassName(gLocale.current)
+  const langClass = getSpecialLangFontClassName()
   return (
     <Box
       as='button'

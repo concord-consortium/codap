@@ -11,6 +11,8 @@ describe("PluginsButtons", () => {
     expect(await screen.findByTestId("tool-shelf-button-plugins")).toBeInTheDocument()
     // click the button
     user.click(screen.getByTestId("tool-shelf-button-plugins"))
+    expect(await screen.findByText("Simulation")).toBeInTheDocument()
+    user.click(await screen.findByText("Simulation"))
     expect(await screen.findByText("Sampler")).toBeInTheDocument()
   })
 })
