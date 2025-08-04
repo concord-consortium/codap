@@ -232,8 +232,7 @@
       {
         "title": "Testimate",
         "description": "Test hypotheses using classical inferential methods.",
-        "disabled": true,
-        "path": "/eepsmedia/plugins/testimate/index.html",
+        "path": "https://codap.concord.org/releases/latest/extn/plugins/eepsmedia/plugins/testimate/index.html",
         "icon": "TestimateIcon",
         "width": 444,
         "height": 555,
