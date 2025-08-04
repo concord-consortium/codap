@@ -117,9 +117,8 @@ context("Graph UI with Pixi interaction", () => {
   })
   describe("case card graph interaction with point count pixi interaction", () => {
     it("can drag attributes from the case card to the graph and check point count", () => {
-      const tableHeaderLeftSelector = ".codap-component.codap-case-table .component-title-bar .header-left"
-      cy.get(tableHeaderLeftSelector).click()
-      cy.get(`${tableHeaderLeftSelector} .card-table-toggle-message`).click()
+      table.getToggleCardView().click()
+      table.getToggleCardMessage().click()
       cy.wait(500)
       cy.dragAttributeToTarget("card", "Speed", "left")
       cy.wait(500)

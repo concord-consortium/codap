@@ -15,6 +15,7 @@ import { ComponentTitleBar } from "../component-title-bar"
 import { ITileTitleBarProps } from "../tiles/tile-base-props"
 import { toggleCardTable } from "./case-tile-utils"
 
+import "../component-title-bar.scss"
 import "./case-tile-title-bar.scss"
 
 interface TableCardInfo {
@@ -24,7 +25,6 @@ interface TableCardInfo {
   otherSuffix: string
   toggleSuffix: string
   Icon: React.FC<SVGProps<SVGSVGElement>>
-  iconClass: string
 }
 
 // Icon and iconClass are swapped to show the correct icon for toggling between case card and table
@@ -35,8 +35,7 @@ const tileInfoMap: Record<string, TableCardInfo> = {
     thisSuffix: "Card",
     otherSuffix: "Table",
     toggleSuffix: "CardToTable",
-    Icon: TableIcon,
-    iconClass: "table-icon"
+    Icon: TableIcon
   },
   [kCaseTableTileType]: {
     thisType: kCaseTableTileType,
@@ -44,8 +43,7 @@ const tileInfoMap: Record<string, TableCardInfo> = {
     thisSuffix: "Table",
     otherSuffix: "Card",
     toggleSuffix: "TableToCard",
-    Icon: CardIcon,
-    iconClass: "card-icon"
+    Icon: CardIcon
   }
 }
 
@@ -114,27 +112,31 @@ export const CaseTileTitleBar =
       })
     }, [documentContent, tile?.id, tileInfo])
 
-    const caseTableOrCardToggleString =
-      t(`DG.DocumentController.toggleToCase${tileInfo.otherSuffix}`)
-    const CardOrTableIcon = tileInfo.Icon
-    const cardOrTableIconClass = tileInfo.iconClass
+    const { Icon, otherSuffix } = tileInfo
+    const caseTableOrCardToggleString = t(`DG.DocumentController.toggleToCase${otherSuffix}`)
 
     return (
       <ComponentTitleBar tile={tile} {...others}
                          onHandleTitleChange={handleChangeTitle} onCloseTile={closeCaseTableOrCard}
                          preventTitleChange={preventTitleChange} initiateEditTitle={isNewCaseTile}>
-        <div className="header-left"
-             title={caseTableOrCardToggleString}
-             onClick={handleShowCardTableToggleMessage}
-             data-testid={"case-table-toggle-view"}>
-          <CardOrTableIcon className={`${cardOrTableIconClass}`}/>
+        <div className="header-left">
+          <button
+            className="component-title-bar-button"
+            data-testid={"case-table-toggle-view"}
+            onClick={handleShowCardTableToggleMessage}
+            title={caseTableOrCardToggleString}
+          >
+            <Icon className="toggle-icon"/>
+          </button>
           {showSwitchMessage &&
-             <Box ref={cardTableToggleRef}
-                  className="card-table-toggle-message"
-                  onClick={handleToggleCardTable}
-                  data-testid="card-table-toggle-message">
-               {caseTableOrCardToggleString}
-             </Box>
+            <Box
+              ref={cardTableToggleRef}
+              className="card-table-toggle-message"
+              onClick={handleToggleCardTable}
+              data-testid="card-table-toggle-message"
+            >
+              {caseTableOrCardToggleString}
+            </Box>
           }
         </div>
       </ComponentTitleBar>

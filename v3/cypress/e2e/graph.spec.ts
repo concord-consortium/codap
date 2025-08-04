@@ -139,9 +139,8 @@ context("Graph UI", () => {
   })
   describe("case card graph interaction", () => {
     it("should drag attributes from the case card to the graph", () => {
-      const tableHeaderLeftSelector = ".codap-component.codap-case-table .component-title-bar .header-left"
-      cy.get(tableHeaderLeftSelector).click()
-      cy.get(`${tableHeaderLeftSelector} .card-table-toggle-message`).click()
+      table.getToggleCardView().click()
+      table.getToggleCardMessage().click()
       cy.wait(500)
       cy.dragAttributeToTarget("card", "Speed", "left")
       cy.wait(500)

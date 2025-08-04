@@ -35,31 +35,7 @@
     }
   }
 
-  .header-left {
-    display: flex;
-    flex-direction: row;
-    position: absolute;
-    left: 5px;
-    align-items: center;
-    justify-content: center;
-    height: 24px;
-    width: 24px;
-    border-top-left-radius: 6px;
-
-  }
-
-  .header-right {
-    height: vars.$title-bar-height;
-    flex-direction: row;
-    align-items: center;
-    position: absolute;
-    top: 0;
-    right: 0;
-    cursor: pointer;
-    visibility: hidden;
-    fill: lightgray;
-    border-top-right-radius: 6px;
-
+  .header-left, .header-right {
     .component-title-bar-button {
       align-items: center;
       background-color: transparent;
@@ -78,6 +54,28 @@
         background-color: #eaf9ff;
       }
     }
+  }
+
+  .header-left {
+    align-items: center;
+    border-top-left-radius: 6px;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    position: absolute;
+  }
+
+  .header-right {
+    height: vars.$title-bar-height;
+    flex-direction: row;
+    align-items: center;
+    position: absolute;
+    top: 0;
+    right: 0;
+    cursor: pointer;
+    visibility: hidden;
+    fill: lightgray;
+    border-top-right-radius: 6px;
 
     .component-minimize-button {
       background-color: transparent;
