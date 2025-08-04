@@ -1,5 +1,3 @@
-$tool-shelf-menu-list-width: 180px;
-
 .plugin-selection {
   display: flex;
   flex-direction: row;
@@ -19,33 +17,10 @@ $tool-shelf-menu-list-width: 180px;
   }
 }
 
-.submenu-expand-icon {
-  height: 36px;
-  width: 36px;
-}
-
-.plugin-category-item {
-  display: flex;
-}
-
-.plugin-submenu {
-  width: 180px;
-  position: relative;
-  left: -10px;
-  top: 5px;
-  transform: translate3d(-10px, -5px, 0px) !important;
-}
-
 .plugin-group-menu-button {
   width: 100%;
 }
 
 .plugin-group-menu-item {
-  display: flex;
   justify-content: space-between;
-  width: 100%;
-}
-
-.plugin-group-menu-arrow {
-  margin-left: 8px;
 }

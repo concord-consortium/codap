@@ -87,7 +87,7 @@ function PluginItem({ onClose, pluginData }: IPluginItemProps) {
       onClick={handleClick}
     >
       <div className="plugin-selection">
-        <IconComponent className="plugin-selection-icon" />
+        {IconComponent && <IconComponent className="plugin-selection-icon" />}
         <span className="plugin-selection-title">{displayTitle}</span>
       </div>
     </MenuItem>
@@ -125,7 +125,7 @@ const PluginGroupMenu = observer(function PluginGroupMenu({
         onPointerOver={onPointerOver}
       >
         <span className="category-title">{title}</span>
-        <RightArrow className="plugin-group-menu-arrow submenu-expand-icon" />
+        <RightArrow className="submenu-expand-icon" />
       </MenuItem>
     </>
   )
