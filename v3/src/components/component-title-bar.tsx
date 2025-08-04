@@ -80,6 +80,10 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(props: ITil
         break
     }
   }
+  const handleMinimizePointerDown = (e: React.PointerEvent<HTMLButtonElement>) => {
+    e.stopPropagation()
+    onMinimizeTile?.()
+  }
   return (
     <Flex className={classes} onMouseOver={()=>setIsHovering(true)} onMouseOut={()=>setIsHovering(false)}
           onPointerDown={onMoveTilePointerDown}>
@@ -99,9 +103,10 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(props: ITil
         <Button
           className="component-title-bar-button component-minimize-button"
           data-testid="component-minimize-button"
+          onPointerDown={handleMinimizePointerDown}
           title={t("DG.Component.minimizeComponent.toolTip")}
         >
-          <MinimizeIcon className="component-minimize-icon" onPointerDown={onMinimizeTile}/>
+          <MinimizeIcon className="component-minimize-icon"/>
         </Button>
         {!tile?.cannotClose &&
           <Button

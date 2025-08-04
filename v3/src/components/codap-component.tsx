@@ -77,8 +77,14 @@ export const CodapComponent = observer(function CodapComponent(props: IProps) {
     <TileModelContext.Provider value={tile}>
       <TileSelectionContext.Provider value={tileSelection}>
         <CodapComponentContext.Provider value={codapComponentRef}>
-          <div className={classes} ref={codapComponentRef} key={tile.id} data-testid={tileEltClass}
-            onFocus={handleFocusEvent} onPointerDownCapture={handleFocusEvent}>
+          {/* FIXME: Is it ok to remove the onFocus handler and change onPointerDownCapture to onPointerDown? */}
+          <div
+            className={classes}
+            data-testid={tileEltClass}
+            key={tile.id}
+            onPointerDown={handleFocusEvent}
+            ref={codapComponentRef}
+          >
             <TitleBar tile={tile} onMinimizeTile={onMinimizeTile} onCloseTile={onCloseTile}
                 onMoveTilePointerDown={onMoveTilePointerDown}/>
             <Component tile={tile} isMinimized={isMinimized} />
