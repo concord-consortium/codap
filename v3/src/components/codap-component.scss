@@ -3,10 +3,11 @@ $border-drag-width: 8px;
 $corner-drag-size: calc($border-drag-width * 2);
 
 .codap-component {
+  border-radius: vars.$border-radius-four-corners;
+  height: 100%;
+  overflow: hidden;
   position: relative;
   width: 100%;
-  height: 100%;
-  border-radius: vars.$border-radius-four-corners;
 
   &.shadowed {
     box-shadow: 0 1px 20px 0 rgba(0, 0, 0, 0.4);
