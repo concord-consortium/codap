@@ -144,15 +144,16 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       return self.primaryRole && self.attributeType(self.primaryRole) || "categorical"
     },
     /**
-     * This is overridden to handle multiple 'y' attributes
+     * This is overridden to handle multiple 'y' attributes on the left axis
      */
     numericValuesForAttrRole(role: AttrRole) {
       if (role !== 'y') {
         return self._numericValuesForAttrRole(role)
       }
       const values:number[] = []
-      const yAttributeIDs = self.yAttributeIDs
-      yAttributeIDs.forEach(attrID => {
+      const leftYAttrDescriptions = self._yAttributeDescriptions
+      const leftYAttrIDs = leftYAttrDescriptions.map((d: IAttributeDescriptionSnapshot) => d.attributeID)
+      leftYAttrIDs.forEach(attrID => {
         const attrValues = self.numericValuesForAttribute(attrID, self.attributeType(role))
         if (attrValues) {
           values.push(...attrValues)
