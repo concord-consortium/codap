@@ -134,11 +134,11 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
   })
 
   return (
-    <Flex className='tool-shelf' alignContent='center' data-testid='tool-shelf'>
+    <Flex className="tool-shelf" alignContent="center" data-testid="tool-shelf">
       <Flex className="tool-shelf-component-buttons">
         {[...tileButtons, <PluginsButton key="plugins-99" />]}
       </Flex>
-      <Spacer/>
+      <Spacer />
       <Flex className="tool-shelf-right-buttons">
         {rightButtons.map(entry => {
           const { className, icon, labelKey, hintKey, button } = entry

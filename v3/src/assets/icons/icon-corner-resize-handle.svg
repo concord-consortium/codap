@@ -1,4 +1,7 @@
-<svg id="se_corner_handle" data-name="se corner handle" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 25 25">
-  <path id="back" d="M19,25H0L25,0V19A6,6,0,0,1,19,25Z" style="fill:#177991"/>
-  <path id="grabber_lines" data-name="grabber lines" d="M16.48,22.35l-1.7-1.7,5.86-5.86,1.7,1.7ZM22.35,10.5l-1.7-1.7L8.83,20.62l1.7,1.7Z"/>
+<svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <g fill="none">
+        <path d="M0 0h24v24H0z"/>
+        <path d="M24 0v20a4 4 0 0 1-4 4H0L24 0z" fill="#8DDAF2"/>
+        <path d="M20.999 14.684v3.182L17.866 21h-3.182l6.315-6.316zm0-6.717v3.182L11.15 21H7.965L21 7.967z" fill="#006C8E"/>
+    </g>
 </svg>
