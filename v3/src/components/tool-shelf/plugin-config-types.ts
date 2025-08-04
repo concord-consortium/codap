@@ -5,6 +5,7 @@ export interface PluginData {
   "description-string"?: string,
   disabled?: boolean,
   height: number,
+  hidden?: boolean, // Set to true to not include the plugin in the menu
   icon: string,
   isStandard?: "true" | "false", // All have "true" for some reason
   path: string,

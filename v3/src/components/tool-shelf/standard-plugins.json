@@ -96,6 +96,7 @@
         "title": "NASA Earth Observatory",
         "description": "Get global data from NASA",
         "disabled": true,
+        "hidden": true,
         "path": "https://models-resources.concord.org/nasa-codap-plugin/index.html",
         "icon": "NasaEarthObservatoryIcon",
         "width": 360,
@@ -134,6 +135,7 @@
       {
         "title": "Space-Time Cube",
         "description": "Explore US tornado data in a 3D space-time cube",
+        "hidden": true,
         "path": "https://models-resources.concord.org/dst-codap-plugin/branch/main/index.html",
         "icon": "SpaceTimeCubeIcon",
         "width": 685,

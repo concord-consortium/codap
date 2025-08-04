@@ -56,7 +56,9 @@ interface IPluginItemProps {
 }
 function PluginItem({ onClose, pluginData }: IPluginItemProps) {
   const documentContent = useDocumentContent()
-    const { disabled, height, icon, path, title, width } = pluginData || {}
+  const { disabled, height, hidden, icon, path, title, width } = pluginData || {}
+
+  if (hidden) return null
 
   function handleClick() {
     if (!pluginData) return
