@@ -13,7 +13,7 @@
 
     .component-title-bar-button {
       &:hover {
-        background-color: #bbefff;
+        background-color: vars.$title-bar-color;
       }
 
       &:active {
@@ -108,16 +108,16 @@
   }
 
   .title-text {
-    border: 1px solid #006c8e;
+    border: 1px solid vars.$icon-fill-dark;
     width: max-content;
 
     &:hover {
-      background-color: #bbefff;
+      background-color: vars.$title-bar-color;
     }
   }
 
   .title-text-input {
-    outline: 2px solid #0957d0;
+    outline: 2px solid vars.$focus-outline-color;
     outline-offset: 0;
   }
 
