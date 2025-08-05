@@ -130,7 +130,8 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(props: ITil
             <div className="title-text" data-testid="title-text" onClick={handleTitleClick}>
               {isHovering && title === "" ? blankTitle : title}
             </div>
-          )}
+          )
+        }
       </div>
       <Flex className={clsx("header-right", { disabled: isEditing })}>
         <Button
