@@ -92,35 +92,41 @@
   }
 }
 
-// Have to make some stylings important to override Chakra's default styling
 .title-bar {
-  width: 100%;
-  cursor: grab !important;
+  cursor: grab;
+  font-size: 14px;
   touch-action: none;
+  width: 100%;
 }
+
 .title-text {
-  display: flex !important;
-  justify-content: center !important;
-  width: max-content;
+  border: 1px solid #006c8e;
+  border-radius: vars.$border-radius-four-corners;
   color: #222;
-  font-size: 16px !important;
-  font-weight: 600 !important;
-  text-align: center;
-  padding-top: 2px !important;
+  cursor: text;
+  display: flex;
+  font-weight: 500;
+  justify-content: center;
   margin: auto;
-  cursor: text
-}
-.title-text-input {
-  display: flex !important;
-  justify-content: center !important;
-  height: calc(vars.$title-bar-height) !important;
+  padding: 0 10px;
+  text-align: center;
   width: max-content;
-  font-size: 14px !important;
-  text-align: center !important;
-  padding-top: 2px !important;
+
+  &:hover {
+    background-color: #bbefff;
+  }
+}
+
+.title-text-input {
+  display: flex;
+  justify-content: center;
+  height: vars.$title-bar-height;
+  width: max-content;
+  text-align: center;
+  padding-top: 2px;
   margin: auto;
   cursor: text;
-  outline: none !important;
-  border-radius: vars.$border-radius-top-corners !important;
+  outline: none;
+  border-radius: vars.$border-radius-top-corners;
   border: 2px solid #66afe9;
 }
