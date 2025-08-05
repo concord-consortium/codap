@@ -59,7 +59,11 @@ export const GlobalValueManager = SharedModel
   }
 }))
 export interface IGlobalValueManager extends Instance<typeof GlobalValueManager> {}
-
+export interface IGlobalValueManagerSnapshot {
+  type: "GlobalValueManager";
+  id: string;
+  globals: Record<string, IGlobalValueSnapshot>;
+}
 export function getGlobalValueManager(sharedModelManager?: ISharedModelManager) {
   return sharedModelManager?.getSharedModelsByType(kGlobalValueManagerType)?.[0] as IGlobalValueManager | undefined
 }

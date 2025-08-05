@@ -165,6 +165,10 @@ export const diComponentHandler: DIHandler = {
 
     if (!values) return valuesRequiredResult
 
+    // We don't want to notify if the request to update is coming from the component itself. Doing so causes
+    // Story Builder to mark the selected moment as changed.
+    const options = resources.interactiveFrame?.id === component.id ? { }
+      : { notify: updateTileNotification("update", values, component) }
     let result: DIHandlerFnResult | undefined
     component.applyModelChange(() => {
       // Handle updating generic component features
@@ -191,9 +195,7 @@ export const diComponentHandler: DIHandler = {
       if (handler) {
         result = handler.update?.(content, values) ?? { success: true }
       }
-    }, {
-      notify: updateTileNotification("update", values, component)
-    })
+    }, options)
 
     return result ?? errorResult(t("V3.DI.Error.unsupportedComponent", { vars: [content.type] }))
   }

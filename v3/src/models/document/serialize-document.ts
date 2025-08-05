@@ -22,6 +22,12 @@ export async function serializeDocument<T>(document: IDocumentModel, serializeFn
 }
 
 // serialize a document in v3 format
+export async function serializeCodapV2Document(document: IDocumentModel): Promise<ISerializedV2Document> {
+  // use cloneDeep because MST snapshots are immutable
+  return serializeDocument(document, (doc: IDocumentModel) => exportV2Document(doc) as ISerializedV2Document)
+}
+
+// serialize a document in v3 format
 export async function serializeCodapV3Document(document: IDocumentModel): Promise<ISerializedV3Document> {
   // use cloneDeep because MST snapshots are immutable
   return serializeDocument(document, (doc: IDocumentModel) => cloneDeep(getSnapshot(doc)) as ISerializedV3Document)
