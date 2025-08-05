@@ -44,9 +44,9 @@ const standardPlugins = _standardPlugins as PluginMenuConfig
 const combinedPlugins = [...standardPlugins, ...debugPlugins]
 
 const iconComponents: Record<string, React.FC<React.SVGProps<SVGSVGElement>>> = {
-  DayLengthIcon, DrawToolIcon, SonifyIcon, StoryBuilderIcon, MicrodataPortalIcon, NasaEarthAirAndWaterIcon,
-  NasaEarthObservatoryIcon, NHANESPortalIcon, NOAAWeatherIcon, SamplerIcon, ChoosyIcon, TransformersIcon, ScramblerIcon,
-  SimmerIcon, SpaceTimeCubeIcon, TestimateIcon
+  ChoosyIcon, DayLengthIcon, DrawToolIcon, MicrodataPortalIcon, NasaEarthAirAndWaterIcon, NasaEarthObservatoryIcon,
+  NHANESPortalIcon, NOAAWeatherIcon, PluginsIcon, SamplerIcon, ScramblerIcon, SimmerIcon, SonifyIcon, SpaceTimeCubeIcon,
+  StoryBuilderIcon, TestimateIcon, TransformersIcon
 }
 
 // A MenuItem for a single plugin
