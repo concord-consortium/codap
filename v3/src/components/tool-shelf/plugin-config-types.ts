@@ -3,19 +3,21 @@ export interface PluginData {
   categories: string[],
   description: string,
   "description-string"?: string,
+  disabled?: boolean,
   height: number,
+  hidden?: boolean, // Set to true to not include the plugin in the menu
   icon: string,
-  isStandard: "true" | "false", // All have "true" for some reason
+  isStandard?: "true" | "false", // All have "true" for some reason
   path: string,
   title: string,
   "title-string"?: string,
-  visible: boolean | "true" | "false", // Most have "true" or "false" for some reason, but a couple have true
+  visible?: boolean | "true" | "false", // Most have "true" or "false" for some reason, but a couple have true
   width: number
 }
 
-export interface PluginSubMenuItems {
+export interface PluginGroup {
   title: string,
-  subMenu: PluginData[]
+  plugins: PluginData[]
 }
 
-export type PluginMenuConfig = PluginSubMenuItems[]
+export type PluginMenuConfig = PluginGroup[]

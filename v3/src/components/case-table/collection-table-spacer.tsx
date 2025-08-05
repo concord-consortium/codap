@@ -1,6 +1,6 @@
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
-import React, { useEffect, useMemo, useState } from "react"
+import React, { useEffect, useMemo, useState, Fragment } from "react"
 import { useCollectionContext, useParentCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useDataSetMetadata } from "../../hooks/use-data-set-metadata"
@@ -206,7 +206,7 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({
                 const fillColor = isCaseSelected ? relationColors.selectedFill : relationColors.defaultFill
                 return (
                   <CurvedSplineFill
-                    key={`fill-${parentCaseId}-${index}`}
+                    key={parentCaseId}
                     prevY1={parentTableModel.getTopOfRowModuloScroll(index)}
                     y1={parentTableModel.getBottomOfRowModuloScroll(index)}
                     prevY2={childTableModel.getTopOfRowModuloScroll(firstChildIndex)}
@@ -232,10 +232,9 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({
                   --y2Bottom
                 }
                 return (
-                  <>
+                  <Fragment key={parentCaseId}>
                     {parentIndex === 0 && hasSelectedChild
                       ? <CurvedSplineStroke
-                          key={`stroke-${parentCaseId}-top`}
                           y1={parentTableModel.getTopOfRowModuloScroll(parentIndex)}
                           y2={childTableModel.getTopOfRowModuloScroll(firstChildIndex)}
                           strokeColor={strokeColor}
@@ -243,13 +242,12 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({
                         />
                       : null}
                     <CurvedSplineStroke
-                      key={`stroke-${parentCaseId}-${parentIndex}`}
                       y1={y1Bottom}
                       y2={y2Bottom}
                       strokeColor={strokeColor}
                       strokeWidth={strokeWidth}
                     />
-                  </>
+                  </Fragment>
                 )
               })}
             </svg>
