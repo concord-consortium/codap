@@ -12,7 +12,6 @@ import { createCasesNotification } from "../../models/data/data-set-notification
 import {
   IAddCasesOptions, ICase, ICaseCreation, IGroupedCase, symFirstChild, symIndex, symParent
 } from "../../models/data/data-set-types"
-import { isSetIsCollapsedAction } from "../../models/shared/data-set-metadata"
 import { mstReaction } from "../../utilities/mst-reaction"
 import { onAnyAction } from "../../utilities/mst-utils"
 import { prf } from "../../utilities/profiler"
@@ -59,9 +58,12 @@ export const useRows = (gridElement: HTMLDivElement | null) => {
         const cases = data?.getCasesForCollection(collectionId) ?? []
         return cases.map(({ __id__ }) => {
           const row = rowCache.get(__id__)
-          const parentId = row?.[symParent]
-          const isCollapsed = parentId && metadata?.isCollapsed(parentId)
-          return !isCollapsed || row?.[symFirstChild] ? row : undefined
+          const collapsedAncestorId = metadata?.getCollapsedAncestor(__id__)
+          const isCollapsed = !!collapsedAncestorId
+          const isFirstCaseOfAncestor = collapsedAncestorId
+                                          ? metadata?.isFirstCaseOfAncestor(__id__, collapsedAncestorId)
+                                          : false
+          return !isCollapsed || isFirstCaseOfAncestor ? row : undefined
         }).filter(c => !!c)
       })
       prf.measure("Table.useRows[syncRowsToRdg-set]", () => {
@@ -215,23 +217,12 @@ export const useRows = (gridElement: HTMLDivElement | null) => {
       })
     })
 
-    // update the cache on metadata changes
-    const metadataDisposer = metadata && onAnyAction(metadata, action => {
-      if (isSetIsCollapsedAction(action)) {
-        const [caseId] = action.args
-        const caseGroup = data?.caseInfoMap.get(caseId)
-        const childCaseIds = caseGroup?.childCaseIds ?? caseGroup?.childItemIds
-        const firstChildCaseId = childCaseIds?.[0]
-        if (firstChildCaseId) {
-          const row = rowCache.get(firstChildCaseId)
-          if (row) {
-            // copy the row to trigger re-render due to RDG memoization
-            rowCache.set(firstChildCaseId, { ...row })
-            syncRowsToRdg()
-          }
-        }
-      }
-    })
+    // rebuild the row cache when cases are expanded/collapsed
+    const metadataDisposer = metadata && mstReaction(
+      () => metadata.collapsedCaseIdsHash,
+      () => resetRowCacheAndSyncRows(),
+      { name: "useRows.useEffect.reaction [collapsedCases]" }, metadata)
+
     return () => {
       validationReactionDisposer?.()
       caseIdsReactionDisposer?.()

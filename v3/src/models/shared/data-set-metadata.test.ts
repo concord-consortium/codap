@@ -224,7 +224,7 @@ describe("DataSetMetadata", () => {
     expect(categories).toBeUndefined()
   })
 
-  it("stores collapsed pseudo-cases", () => {
+  it("stores expand/collapse state for cases", () => {
     // ignores invalid ids
     expect(tree.metadata.isCollapsed("foo")).toBe(false)
     tree.metadata.setIsCollapsed("foo", true)
@@ -244,6 +244,60 @@ describe("DataSetMetadata", () => {
     // move attr "a" back to child collection
     tree.data.moveAttribute("aId", { collection: tree.data.collections[1].id })
     expect(tree.metadata.collections.size).toBe(0)
+  })
+
+  it("stores expand/collapse state for cases in hierarchical data sets", () => {
+    // create hierarchical data set
+    const cCollection = tree.data.childCollection
+    // move attr "b" to a new collection (["bId"], ["aId", "cId"])
+    const bCollection = tree.data.moveAttributeToNewCollection("bId")!
+    // move attr "a" to a new collection (["aId"], ["bId"], ["cId"])
+    const aCollection = tree.data.moveAttributeToNewCollection("aId", bCollection.id)!
+    tree.data.validateCases()
+    const aCases = aCollection.cases
+    // console.log("aCases", JSON.stringify(aCases, null, 2))
+    const bCases = bCollection.cases
+    // console.log("bCases", JSON.stringify(bCases, null, 2))
+    const cCases = cCollection.cases
+    // console.log("cCases", JSON.stringify(cCases, null, 2))
+    const hash0 = tree.metadata.collapsedCaseIdsHash
+    expect(tree.metadata.isCaseOrAncestorCollapsed(aCases[0].__id__)).toBe(false)
+    tree.metadata.setIsCollapsed(aCases[0].__id__, true)
+    const hash1 = tree.metadata.collapsedCaseIdsHash
+    expect(hash1).not.toBe(hash0)
+    expect(tree.metadata.isCollapsed(aCases[0].__id__)).toBe(true)
+    expect(tree.metadata.isCaseOrAncestorCollapsed(aCases[0].__id__)).toBe(true)
+    expect(tree.metadata.getCollapsedAncestor(aCases[0].__id__)).toBeUndefined()
+    expect(tree.metadata.isCollapsed(bCases[0].__id__)).toBe(false)
+    expect(tree.metadata.isCaseOrAncestorCollapsed(bCases[0].__id__)).toBe(true)
+    expect(tree.metadata.getCollapsedAncestor(bCases[0].__id__)).toBe(aCases[0].__id__)
+    expect(tree.metadata.isFirstCaseOfAncestor(bCases[0].__id__, aCases[0].__id__)).toBe(true)
+    expect(tree.metadata.isFirstCaseOfAncestor(bCases[1].__id__, aCases[0].__id__)).toBe(false)
+    const abDescendantIds = tree.metadata.getDescendantCaseIds(aCases[0].__id__, bCases[0].__id__)
+    expect(abDescendantIds.length).toBe(3)
+    expect(abDescendantIds).toEqual([bCases[0].__id__, bCases[1].__id__, bCases[2].__id__])
+    expect(tree.metadata.isCollapsed(cCases[0].__id__)).toBe(false)
+    expect(tree.metadata.isCaseOrAncestorCollapsed(cCases[0].__id__)).toBe(true)
+    expect(tree.metadata.getCollapsedAncestor(cCases[0].__id__)).toBe(aCases[0].__id__)
+    expect(tree.metadata.isFirstCaseOfAncestor(cCases[0].__id__, aCases[0].__id__)).toBe(true)
+    expect(tree.metadata.isFirstCaseOfAncestor(cCases[1].__id__, aCases[0].__id__)).toBe(false)
+    const acDescendantIds = tree.metadata.getDescendantCaseIds(aCases[0].__id__, cCases[0].__id__)
+    expect(acDescendantIds.length).toBe(9)
+    expect(acDescendantIds.includes(cCases[0].__id__)).toBe(true)
+    expect(acDescendantIds.includes(cCases[8].__id__)).toBe(true)
+    expect(acDescendantIds.includes(cCases[9].__id__)).toBe(false)
+    // edge cases
+    expect(tree.metadata.isFirstCaseOfAncestor(aCases[0].__id__, cCases[0].__id__)).toBe(false)
+    const caDescendantIds = tree.metadata.getDescendantCaseIds(cCases[0].__id__, aCases[0].__id__)
+    expect(caDescendantIds).toEqual([])
+    // expanding a child case expands its parents/ancestors
+    tree.metadata.setIsCollapsed(cCases[0].__id__, false)
+    expect(tree.metadata.isCollapsed(aCases[0].__id__)).toBe(false)
+    expect(tree.metadata.isCollapsed(bCases[0].__id__)).toBe(false)
+    expect(tree.metadata.isCollapsed(cCases[0].__id__)).toBe(false)
+    const hash2 = tree.metadata.collapsedCaseIdsHash
+    expect(hash2).not.toBe(hash1)
+    expect(hash2).toBe(hash0)
   })
 
   it("recognizes SetIsCollapsedActions", () => {

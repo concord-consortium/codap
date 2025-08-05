@@ -46,7 +46,7 @@ export function convertCaseToV2FullCase(c: ICase, dataContext: IDataSet) {
   const collectionId = _collection?.id
   const caseGroup = dataContext.caseInfoMap.get(caseId)
 
-  const parent = maybeToV2Id(dataContext.getParentCase(caseId, collectionId)?.groupedCase.__id__)
+  const parent = maybeToV2Id(dataContext.getParentCaseId(caseId))
 
   const collectionIndex = collectionId ? dataContext.getCollectionIndex(collectionId) : -1
   const parentCollection = collectionIndex > 0 ? dataContext.collections[collectionIndex - 1] : undefined
@@ -80,7 +80,7 @@ export function getCaseRequestResultValues(c: ICase, dataContext: IDataSet): DIG
   const caseGroup = dataContext.caseInfoMap.get(caseId)
   const collectionId = caseGroup?.collectionId ?? dataContext.childCollection.id
 
-  const parent = maybeToV2Id(dataContext.getParentCase(caseId, collectionId)?.groupedCase.__id__)
+  const parent = maybeToV2Id(dataContext.getParentCaseId(caseId))
 
   const _collection = dataContext.getCollection(collectionId)
   const collection = _collection ? {
@@ -163,7 +163,7 @@ export function convertCollectionToV2(collection: ICollectionModel, options?: CC
     cases = {
       cases: collection.cases.map(aCase => {
         const v2CaseId = toV2Id(aCase.__id__)
-        const parentCase = dataSet?.getParentCase(aCase.__id__, collection.id)
+        const parentCase = dataSet?.getParentCaseInfo(aCase.__id__)
         const v2ParentCaseId = parentCase ? toV2Id(parentCase.groupedCase.__id__) : undefined
         const values: ICodapV2Case["values"] = {}
         collection.dataAttributesArray.forEach(attr => {

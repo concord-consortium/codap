@@ -138,7 +138,7 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({
 
   if (!data || !parentCases) return null
 
-  const everyCaseIsCollapsed = parentCases.every((value) => metadata?.isCollapsed(value.__id__))
+  const everyCaseIsCollapsed = parentCases.every((value) => metadata?.isCaseOrAncestorCollapsed(value.__id__))
 
   // Keep for now in case of accessibility application (wider area of input)
   // function handleAreaClick(e: React.MouseEvent) {
@@ -169,7 +169,7 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({
   function handleExpandCollapseClick(parentCaseId: string) {
     // collapse the parent case
     metadata?.applyModelChange(() => {
-      metadata?.setIsCollapsed(parentCaseId, !metadata?.isCollapsed(parentCaseId))
+      metadata?.setIsCollapsed(parentCaseId, !metadata?.isCaseOrAncestorCollapsed(parentCaseId))
     }, {
       undoStringKey: "DG.Undo.caseTable.expandCollapseOneCase",
       redoStringKey: "DG.Redo.caseTable.expandCollapseOneCase",
@@ -254,7 +254,7 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({
             <div className="spacer-mid-layer">
               {indexRanges?.map(({ id }, index) => {
                 if (id !== kInputRowKey) {
-                  return <ExpandCollapseButton key={id} isCollapsed={!!metadata?.isCollapsed(id)}
+                  return <ExpandCollapseButton key={id} isCollapsed={!!metadata?.isCaseOrAncestorCollapsed(id)}
                     onClick={() => handleExpandCollapseClick(id)}
                     styles={{ left: '3px', top: `${((index * parentTableModel.rowHeight) - parentScrollTop) + 4}px`}}
                   />
