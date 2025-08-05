@@ -30,7 +30,7 @@ context("codap toolbar", () => {
     c.clickIconFromToolShelf("graph")
     graph.getGraphTile().should("be.visible")
     // graphs with no associated data set should not have a title but show a blank space when hovered
-    c.getComponentTitle("graph").should("not.be.visible")
+    c.getComponentTitle("graph").should("not.exist")
     c.getComponentTitleBar("graph").trigger("mouseover")
     c.getComponentTitle("graph").should("have.text", "_____")
   })

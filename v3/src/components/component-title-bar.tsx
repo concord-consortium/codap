@@ -126,7 +126,7 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(props: ITil
               style={{ width: `${inputWidth}px` }}
               value={editingTitle}
             />
-          ) : (
+          ) : ((title || isHovering) &&
             <div className="title-text" data-testid="title-text" onClick={handleTitleClick}>
               {isHovering && title === "" ? blankTitle : title}
             </div>
