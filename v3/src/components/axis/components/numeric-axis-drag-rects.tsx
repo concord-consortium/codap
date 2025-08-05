@@ -35,8 +35,6 @@ export const NumericAxisDragRects = observer(
       layout = useAxisLayoutContext(),
       displayModel = useDataDisplayModelContextMaybe()
 
-    console.log("NumericAxisDragRects render", axisModel.type, "lockZero =", lockZero, "place =", place)
-
     useEffect(function createRects() {
       const rectElement = rectRef.current // Copy the ref value to a local variable
       let multiScale: MultiScale | undefined,
