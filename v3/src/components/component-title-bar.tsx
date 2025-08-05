@@ -1,7 +1,7 @@
 import { Button, Flex, Input } from "@chakra-ui/react"
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
-import React, { useState } from "react"
+import React, { useRef, useState } from "react"
 import { getTitle } from "../models/tiles/tile-content-info"
 import { updateTileNotification } from "../models/tiles/tile-notifications"
 import { uiState } from "../models/ui-state"
@@ -12,6 +12,8 @@ import { t } from "../utilities/translation/translate"
 import { logMessageWithReplacement } from "../lib/log-message"
 
 import "./component-title-bar.scss"
+
+const kInputPadding = 10
 
 export const ComponentTitleBar = observer(function ComponentTitleBar(props: ITileTitleBarProps) {
   const {
@@ -27,6 +29,11 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(props: ITil
   const classes = clsx("component-title-bar", `${tileType}-title-bar`, {focusTile: uiState.isFocusedTile(tile?.id)})
   const [isHovering, setIsHovering] = useState(false)
   const blankTitle = "_____"
+
+  // Input sizing is based on https://stackoverflow.com/questions/8100770/auto-scaling-inputtype-text-to-width-of-value
+  const [inputWidth, setInputWidth] = useState(2 * kInputPadding)
+  const inputRef = useRef<HTMLInputElement>(null)
+  const measureRef = useRef<HTMLSpanElement>(null)
 
   const handleChangeTitle = (nextValue?: string) => {
     if (tile != null && nextValue !== undefined) {
@@ -60,10 +67,18 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(props: ITil
     setIsEditing(false)
   }
 
+  const resizeInput = (text: string) => {
+    if (!measureRef.current) return
+
+    measureRef.current.textContent = text
+    setInputWidth(measureRef.current.offsetWidth + 2 * kInputPadding)
+  }
+
   const handleTitleClick = () => {
     if (!preventTitleChange) {
       setIsEditing(true)
       setEditingTitle(title)
+      resizeInput(title)
     }
   }
 
@@ -80,24 +95,42 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(props: ITil
         break
     }
   }
+
+  const handleInput = () => {
+    if (inputRef.current) resizeInput(inputRef.current.value)
+  }
+
   const handleMinimizePointerDown = (e: React.PointerEvent<HTMLButtonElement>) => {
     e.stopPropagation()
     onMinimizeTile?.()
   }
+
   return (
     <Flex className={classes} onMouseOver={()=>setIsHovering(true)} onMouseOut={()=>setIsHovering(false)}
           onPointerDown={onMoveTilePointerDown}>
       {children}
       <div className="title-bar" data-testid="component-title-bar">
+        <span className="title-text-measure" ref={measureRef} />
         {isEditing && !preventTitleChange
-          ? <Input value={editingTitle} className="title-text-input" data-testid="title-text-input" autoFocus={true}
-              onChange={(e) => setEditingTitle(e.target.value)} onBlur={() => handleSubmit(editingTitle)}
-              onFocus={(e) => e.target.select()} onKeyDown={handleInputKeyDown}
+          ? (
+            <Input
+              autoFocus={true}
+              className="title-text-input"
+              data-testid="title-text-input"
+              onBlur={() => handleSubmit(editingTitle)}
+              onChange={(e) => setEditingTitle(e.target.value)}
+              onFocus={(e) => e.target.select()}
+              onInput={handleInput}
+              onKeyDown={handleInputKeyDown}
+              ref={inputRef}
+              style={{ width: `${inputWidth}px` }}
+              value={editingTitle}
             />
-          : <div className="title-text" data-testid="title-text" onClick={handleTitleClick}>
+          ) : (
+            <div className="title-text" data-testid="title-text" onClick={handleTitleClick}>
               {isHovering && title === "" ? blankTitle : title}
             </div>
-        }
+          )}
       </div>
       <Flex className={clsx("header-right", { disabled: isEditing })}>
         <Button

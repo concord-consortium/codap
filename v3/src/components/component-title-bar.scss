@@ -93,40 +93,41 @@
 }
 
 .title-bar {
+  color: #222;
   cursor: grab;
   font-size: 14px;
   touch-action: none;
   width: 100%;
-}
 
-.title-text {
-  border: 1px solid #006c8e;
-  border-radius: vars.$border-radius-four-corners;
-  color: #222;
-  cursor: text;
-  display: flex;
-  font-weight: 500;
-  justify-content: center;
-  margin: auto;
-  padding: 0 10px;
-  text-align: center;
-  width: max-content;
-
-  &:hover {
-    background-color: #bbefff;
+  .title-text, .title-text-input {
+    border-radius: vars.$border-radius-four-corners;
+    cursor: text;
+    display: flex;
+    font-weight: 500;
+    justify-content: center;
+    margin: auto;
+    padding: 0 10px;
+    text-align: center;
   }
-}
 
-.title-text-input {
-  display: flex;
-  justify-content: center;
-  height: vars.$title-bar-height;
-  width: max-content;
-  text-align: center;
-  padding-top: 2px;
-  margin: auto;
-  cursor: text;
-  outline: none;
-  border-radius: vars.$border-radius-top-corners;
-  border: 2px solid #66afe9;
+  .title-text {
+    border: 1px solid #006c8e;
+    width: max-content;
+
+    &:hover {
+      background-color: #bbefff;
+    }
+  }
+
+  .title-text-input {
+    outline: 2px solid #0957d0;
+    outline-offset: 0;
+  }
+
+  .title-text-measure {
+    height: 0;
+    overflow: hidden;
+    position: absolute;
+    white-space: pre;
+  }
 }
