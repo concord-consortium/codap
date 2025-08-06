@@ -568,6 +568,12 @@ DG = SC.Application.create((function () // closure
         icon: 'flag flag-es'
       },
       {
+        langName: 'Français',
+        langDigraph: 'fr',
+        countryDigraph: 'FR',
+        icon: 'flag flag-fr'
+      },
+      {
         langName: 'فارسی',
         langDigraph: 'fa',
         countryDigraph: 'IR',
@@ -608,6 +614,12 @@ DG = SC.Application.create((function () // closure
         langDigraph: 'nn',
         countryDigraph: 'NO',
         icon: 'flag flag-no'
+      },
+      {
+        langName: 'Nederlands',
+        langDigraph: 'nl',
+        countryDigraph: 'NL',
+        icon: 'flag flag-nl'
       },
       {
         langName: 'Polski',

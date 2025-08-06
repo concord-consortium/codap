@@ -1137,7 +1137,7 @@ SC.stringsFor("tr", {
               "DG.plugin.Sonify.description": "Bu eklentide verinizi dinleyebilirsiniz",
               "DG.plugin.NHANES.title": "USVBIA Portalı",
               "DG.plugin.NHANES.description": "Ulusal Sağlık ve Beslenme İnceleme Anketinden veri kullanabilirsiniz.",
-              "DG.plugin.NASA-data.title": "NASA Dünya, Hava ve Su",
+              "DG.plugin.NASA-data.title": "NASA: Dünya, Hava ve Su",
               "DG.plugin.NASA-data.description": "NASA'dan global veriye ulaş",
               "DG.plugin.DayLength.title": "GünUzunluğu",
               "DG.plugin.DayLength.description": "Herhangi bir konumun gün uzunluğu için için Earth plus'dan astronomik simülasyon temin edin",
