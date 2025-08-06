@@ -7,7 +7,7 @@ export const defaultItalicFont = `italic ${defaultFont}`
 
 export const defaultTileTitleFont = defaultItalicFont
 
-export const kTitleBarHeight = 25
+export const kTitleBarHeight = 34
 export const kResizeBorderOverlap = 2
 export const kResizeBorderSize = 8
 export const kResizeHandleSize = 22

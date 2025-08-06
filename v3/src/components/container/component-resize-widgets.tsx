@@ -1,4 +1,5 @@
 import { Portal } from "@chakra-ui/react"
+import { observer } from "mobx-react-lite"
 import React, { useCallback } from "react"
 import ResizeHandle from "../../assets/icons/icon-corner-resize-handle.svg"
 import { useFreeTileLayoutContext } from "../../hooks/use-free-tile-layout-context"
@@ -15,7 +16,7 @@ interface IProps {
   isFixedHeight?: boolean
   handleResizePointerDown: (e: React.PointerEvent, _tileLayout: IFreeTileLayout, direction: string) => void
 }
-export function ComponentResizeWidgets(props: IProps) {
+export const ComponentResizeWidgets = observer(function ComponentResizeWidgets(props: IProps) {
   const { tile, componentRef, isFixedWidth, isFixedHeight, handleResizePointerDown } = props
   const tileLayout = useFreeTileLayoutContext()
   const containerRef = useTileContainerContext()
@@ -61,4 +62,4 @@ export function ComponentResizeWidgets(props: IProps) {
       }
     </>
   )
-}
+})
