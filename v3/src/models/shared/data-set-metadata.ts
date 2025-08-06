@@ -214,6 +214,7 @@ export const DataSetMetadata = SharedModel
     // given an ancestorCaseId, returns the set of collapsed case ids (if any)
     // at the same collection level as the provided descendant case id
     getDescendantCaseIds(ancestorCaseId: string, descendantCaseId: string): string[] {
+      self.data?.validateCases()
       const ancestorCollectionId = self.data?.caseInfoMap.get(ancestorCaseId)?.collectionId
       const descendantCollectionId = self.data?.caseInfoMap.get(descendantCaseId)?.collectionId
       if (!ancestorCollectionId || !descendantCollectionId) return []
@@ -389,6 +390,7 @@ export const DataSetMetadata = SharedModel
       }
     },
     setIsCollapsed(caseId: string, isCollapsed: boolean) {
+      self.data?.validateCases()
       let { collectionId } = self.data?.caseInfoMap.get(caseId) || {}
       if (!collectionId) return
       if (isCollapsed) {

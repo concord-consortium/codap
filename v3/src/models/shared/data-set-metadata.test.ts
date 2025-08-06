@@ -255,11 +255,8 @@ describe("DataSetMetadata", () => {
     const aCollection = tree.data.moveAttributeToNewCollection("aId", bCollection.id)!
     tree.data.validateCases()
     const aCases = aCollection.cases
-    // console.log("aCases", JSON.stringify(aCases, null, 2))
     const bCases = bCollection.cases
-    // console.log("bCases", JSON.stringify(bCases, null, 2))
     const cCases = cCollection.cases
-    // console.log("cCases", JSON.stringify(cCases, null, 2))
     const hash0 = tree.metadata.collapsedCaseIdsHash
     expect(tree.metadata.isCaseOrAncestorCollapsed(aCases[0].__id__)).toBe(false)
     tree.metadata.setIsCollapsed(aCases[0].__id__, true)
