@@ -60,8 +60,9 @@ export const useIndexColumn = () => {
     const index = __id__ === kInputRowKey
                     ? -1
                     : _index != null ? _index : data?.getItemIndex(__id__)
-    const collapsedCases = data && parentId && metadata?.isCollapsed(parentId)
-                            ? data.caseInfoMap.get(parentId)?.childCaseIds ?? []
+    const collapsedAncestorId = metadata?.getCollapsedAncestor(__id__)
+    const collapsedCases = data && collapsedAncestorId
+                            ? metadata?.getDescendantCaseIds(collapsedAncestorId, __id__) ?? []
                             : []
     const collapsedCaseCount = collapsedCases.length
 

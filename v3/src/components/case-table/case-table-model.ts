@@ -54,7 +54,7 @@ export const CaseTableModel = TileContentModel
         let collectionTableModel = collectionTableModels.get(collectionId)
         if (!collectionTableModel) {
           const rowHeight = self.getRowHeightForCollection(collectionId)
-          collectionTableModel = new CollectionTableModel(collectionId, rowHeight)
+          collectionTableModel = new CollectionTableModel(collectionId, self.metadata, rowHeight)
           collectionTableModels.set(collectionId, collectionTableModel)
 
           // Set the collectionTableModel's rowHeight when the corresponding CaseTableModel.rowHeight changes.

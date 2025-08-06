@@ -417,7 +417,7 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
     const prevCaseHasSelectedChild = !!data && !!prevCaseId && isAnyChildSelected(data, prevCaseId)
     const hasSelectedChild = !!data && isAnyChildSelected(data, row.__id__)
     const nextCaseHasSelectedChild = !!data && !!nextCaseId && isAnyChildSelected(data, nextCaseId)
-    const parentCaseChildren = data?.getParentCase(row.__id__, collectionId)?.childCaseIds ?? []
+    const parentCaseChildren = data?.getParentCaseInfo(row.__id__)?.childCaseIds ?? []
     const isLastChild = parentCaseChildren[parentCaseChildren.length - 1] === row.__id__
 
     return clsx({

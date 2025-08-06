@@ -1,5 +1,6 @@
 import { action, computed, makeObservable, observable } from "mobx"
 import { symParent } from "../../models/data/data-set-types"
+import { IDataSetMetadata } from "../../models/shared/data-set-metadata"
 import { getNumericCssVariable } from "../../utilities/css-utils"
 import { uniqueId } from "../../utilities/js-utils"
 import { IScrollOptions, kDefaultRowHeaderHeight, kDefaultRowHeight, TRow } from "./case-table-types"
@@ -20,6 +21,7 @@ function wrapScrollBehavior(element: HTMLElement, fn: (element: HTMLElement) => 
 }
 
 export class CollectionTableModel {
+  metadata?: IDataSetMetadata
   collectionId: string
   // RDG grid element
   @observable element: HTMLDivElement | null = null
@@ -47,7 +49,8 @@ export class CollectionTableModel {
 
   @observable rowHeight
 
-  constructor(collectionId: string, rowHeight = kDefaultRowHeight) {
+  constructor(collectionId: string, metadata?: IDataSetMetadata, rowHeight = kDefaultRowHeight) {
+    this.metadata = metadata
     this.collectionId = collectionId
     this.rowHeight = rowHeight
 
@@ -153,7 +156,7 @@ export class CollectionTableModel {
   }
 
   @computed get parentIndexRanges() {
-    let currParentId = ""
+    let controllingAncestorId = ""
     let firstChildIndex = -1
     let lastChildIndex = -1
 
@@ -173,15 +176,16 @@ export class CollectionTableModel {
 
     const indexRanges: { id: string, firstChildIndex: number, lastChildIndex: number }[] = []
     this.rows.forEach((row, i) => {
-      if (row[symParent]) {
-        if (row[symParent] !== currParentId) {
+      const currAncestorId = this.metadata?.getCollapsedAncestor(row.__id__) ?? row[symParent]
+      if (currAncestorId) {
+        if (currAncestorId !== controllingAncestorId) {
           const { firstOffset, lastOffset } = getOffsets()
-          currParentId && indexRanges.push({
-            id: currParentId,
+          controllingAncestorId && indexRanges.push({
+            id: controllingAncestorId,
             firstChildIndex: firstChildIndex + firstOffset,
             lastChildIndex: lastChildIndex + lastOffset
           })
-          currParentId = row[symParent]
+          controllingAncestorId = currAncestorId
           firstChildIndex = i
         }
         lastChildIndex = i
@@ -194,7 +198,7 @@ export class CollectionTableModel {
         ? { firstOffset: 0, lastOffset: 1 }
         : getOffsets()
       indexRanges.push({
-        id: currParentId,
+        id: controllingAncestorId,
         firstChildIndex: firstChildIndex + firstOffset,
         lastChildIndex: lastChildIndex + lastOffset
       })
