@@ -360,7 +360,6 @@ export const TableTileElements = {
     })
   },
   moveAttributeToParent(name: string, moveType: string, targetNumber?: number) {
-    c.selectTile("table", 0)
     cy.dragAttributeToTarget("table", name, moveType, targetNumber)
   },
   getExpandAllGroupsButton(collectionIndex = 1) {

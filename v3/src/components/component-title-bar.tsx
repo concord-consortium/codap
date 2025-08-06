@@ -100,11 +100,6 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(props: ITil
     if (inputRef.current) resizeInput(inputRef.current.value)
   }
 
-  const handleMinimizePointerDown = (e: React.PointerEvent<HTMLButtonElement>) => {
-    e.stopPropagation()
-    onMinimizeTile?.()
-  }
-
   return (
     <Flex className={classes} onMouseOver={()=>setIsHovering(true)} onMouseOut={()=>setIsHovering(false)}
           onPointerDown={onMoveTilePointerDown}>
@@ -137,7 +132,7 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(props: ITil
         <Button
           className="component-title-bar-button component-minimize-button"
           data-testid="component-minimize-button"
-          onPointerDown={handleMinimizePointerDown}
+          onPointerDown={onMinimizeTile}
           title={t("DG.Component.minimizeComponent.toolTip")}
         >
           <MinimizeIcon className="component-minimize-icon"/>
