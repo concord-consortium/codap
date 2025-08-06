@@ -35,7 +35,7 @@ function indexColumnSpan(args: TColSpanArgs, { data, metadata, collection }: ICo
   if (args.type === "ROW") {
     const row = args.row
     const parentId = row[symParent]
-    if (parentId && metadata?.isCollapsed(parentId)) {
+    if (parentId && metadata?.isCaseOrAncestorCollapsed(parentId)) {
       const visibleAttrCount = getCollectionAttrs(collection, data)
                                 .reduce((prev, attr) => metadata?.isHidden(attr.id) ? prev : ++prev, 0)
       return visibleAttrCount + 1
