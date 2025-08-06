@@ -3,6 +3,7 @@ import de from "./lang/de.json"
 import el from "./lang/el.json"
 import es from './lang/es.json'
 import fa from "./lang/fa.json"
+import fr from "./lang/fr.json"
 import he from "./lang/he.json"
 import ja from "./lang/ja.json"
 import ko from "./lang/ko.json"

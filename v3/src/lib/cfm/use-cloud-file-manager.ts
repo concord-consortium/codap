@@ -33,6 +33,12 @@ const locales = [
     icon: 'flag flag-es'
   },
   {
+    langName: 'Français',
+    langCode: 'fr',
+    countryDigraph: 'FR',
+    icon: 'flag flag-fr'
+  },
+  {
     langName: 'فارسی',
     langCode: 'fa',
     countryDigraph: 'IR',

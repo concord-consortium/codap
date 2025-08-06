@@ -1,7 +1,7 @@
 #!/bin/bash
 PROJECT_ID=125447
 OUTPUT_DIR=src/utilities/translation/lang
-LANGUAGES=("de" "el" "es" "fa" "he" "ja" "nb" "nn" "nl" "pt-BR" "th" "tr" "zh-TW" "zh-Hans")
+LANGUAGES=("de" "el" "es" "fr" "fa" "he" "ja" "nb" "nn" "nl" "pt-BR" "th" "tr" "zh-TW" "zh-Hans")
 LANG_COUNT=${#LANGUAGES[@]}
 
 # argument processing from https://stackoverflow.com/a/14203146
