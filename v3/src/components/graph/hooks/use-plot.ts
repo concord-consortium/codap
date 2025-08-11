@@ -137,10 +137,9 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
     const disposer = mstReaction(
       () => GraphAttrRoles.map((aRole) => dataConfiguration?.attributeID(aRole)),
       () => {
-        if (syncModelWithAttributeConfiguration(graphModel, layout)) {
-          startAnimation()
-          callRefreshPointPositions()
-        }
+        syncModelWithAttributeConfiguration(graphModel, layout)
+        startAnimation()
+        callRefreshPointPositions()
       }, {name: "usePlot [attribute assignment]"}, dataConfiguration
     )
     return () => disposer()

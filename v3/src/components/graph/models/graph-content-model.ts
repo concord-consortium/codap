@@ -589,7 +589,7 @@ export const GraphContentModel = DataDisplayContentModel
     // returns true if the plot type changed
     syncPlotWithAttributeConfiguration(): boolean {
       const assignedAttrCount = PrimaryAttrRoles.map(role => !!self.dataConfiguration.attributeID(role))
-                                  .filter(Boolean).length
+        .filter(Boolean).length
       if (assignedAttrCount === 0) {
         if (self.plotType !== "casePlot") {
           self.setPlotType("casePlot")
