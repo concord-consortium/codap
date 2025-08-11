@@ -7,7 +7,8 @@ $corner-drag-size: calc($border-drag-width * 2);
   box-shadow: 0 1px 4px 1px rgba(0, 0, 0, 0.25);
   height: 100%;
   outline: 1px solid vars.$focus-border-color;
-  overflow: hidden;
+  // With this next line, attribute menus are held inside the component boundaries, but bottom corners are rounded
+  //overflow: hidden;
   position: relative;
   width: 100%;
 
