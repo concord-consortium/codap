@@ -141,7 +141,6 @@ function setupAxes(graphModel: IGraphContentModel, layout: GraphLayout) {
 }
 
 export function syncModelWithAttributeConfiguration(graphModel: IGraphContentModel, layout: GraphLayout) {
-  const result = setPrimaryRoleAndPlotType(graphModel)
+  setPrimaryRoleAndPlotType(graphModel)
   setupAxes(graphModel, layout)
-  return result
 }
