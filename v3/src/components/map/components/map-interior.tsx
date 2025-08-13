@@ -9,7 +9,6 @@ import {MapPointLayer} from "./map-point-layer"
 import {isMapPolygonLayerModel} from "../models/map-polygon-layer-model"
 import {MapPolygonLayer} from "./map-polygon-layer"
 import { DataConfigurationContext } from "../../data-display/hooks/use-data-configuration-context"
-import { useTileModelContext } from "../../../hooks/use-tile-model-context"
 import { isMapPinLayerModel } from "../models/map-pin-layer-model"
 import { MapPinLayer } from "./map-pin-layer"
 import { createOrUpdateLeafletGeoRasterLayer } from "../utilities/georaster-utils"
@@ -21,17 +20,8 @@ interface IProps {
 
 export const MapInterior = observer(function MapInterior({setPixiPointsLayer}: IProps) {
   const mapModel = useMapModelContext()
-  const { transitionComplete: tileTransitionComplete } = useTileModelContext()
 
   useMapModel()
-
-  // Ensure the map rescales when its tile's CSS transition is complete to compensate for any changes to the tile's
-  // size that may have occurred after the map was initially rendered.
-  useEffect(function rescaleOnTileTransitionEnd() {
-    if (tileTransitionComplete) {
-      mapModel.rescale()
-    }
-  }, [tileTransitionComplete, mapModel])
 
   // Add or update the GeoRaster layer when URL changes
   useEffect(() => {
@@ -41,7 +31,6 @@ export const MapInterior = observer(function MapInterior({setPixiPointsLayer}: I
       createOrUpdateLeafletGeoRasterLayer(mapModel)
     }, {name: "MapInterior.mstAutorun [createOrUpdateLeafletGeoRasterLayer]"}, mapModel)
   }, [mapModel])
-
 
   /**
    * Note that we don't have to worry about layer order because polygons will be sent to the back

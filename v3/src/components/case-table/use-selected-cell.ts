@@ -21,8 +21,8 @@ export function useSelectedCell(gridRef: React.RefObject<DataGridHandle | null>,
   const collectionTableModel = useCollectionTableModel()
   const selectedCell = useRef<Maybe<ISelectedCell>>()
   const blockUpdateSelectedCell = useRef(false)
-  const tile = useTileModelContext()
-  const tileIsFocused = tile.tileId === uiState.focusedTile
+  const { tileId } = useTileModelContext()
+  const tileIsFocused = tileId === uiState.focusedTile
 
   const handleSelectedCellChange = useCallback((args: TCellSelectArgs) => {
     const columnId = args.column?.key

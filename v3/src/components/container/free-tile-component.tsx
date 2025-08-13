@@ -115,13 +115,20 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
   // the tile's dimensions. To prevent this, we add a transitionend handler that sets a flag on the tile model when the
   // transition completes. Child components can check this flag to avoid or counteract premature application of effects.
   useEffect(function addTransitionEndHandler() {
-    // applyModelChange is used to prevent an action from being added to the undo stack
-    const handleTransitionEnd = () => tile.applyModelChange(() => tile.setTransitionComplete(true))
+    const handleTransitionEnd = () => tile.setTransitionComplete(true)
+
+    // If we are not animating the creation of this tile, the transitionend event will never fire.
+    // So we set the tile's transitionComplete immediately to true.
+    if (disableAnimation || !row.animateCreationTiles.has(tileId)) {
+      handleTransitionEnd()
+      return
+    }
+
     const element = document.getElementById(`${tileId}`)
     element?.addEventListener("transitionend", handleTransitionEnd)
 
     return () => element?.removeEventListener("transitionend", handleTransitionEnd)
-  }, [tile, tileId])
+  }, [tile, tileId, disableAnimation, row.animateCreationTiles])
 
   if (!info || (tileLayout?.isHidden && !info.renderWhenHidden)) return null
 

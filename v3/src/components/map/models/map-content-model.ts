@@ -334,6 +334,7 @@ export const MapContentModel = DataDisplayContentModel
       self.leafletMapState.setLeafletMap(leafletMap)
     },
     setHasBeenInitialized() {
+      // TODO: withoutUndo should be unnecessary since isLeafletMapInitialized is volatile
       withoutUndo()
       self.isLeafletMapInitialized = true
     },
