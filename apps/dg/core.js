@@ -548,6 +548,7 @@ DG = SC.Application.create((function () // closure
       return this.get('langOverride') || SC.Locale.currentLanguage;
     }.property(),
 
+    // used to configure the language menu in the CFM menu bar
     locales: [
       {
         langName: 'Deutsch',
@@ -574,6 +575,11 @@ DG = SC.Application.create((function () // closure
         icon: 'flag flag-ir'
       },
       {
+        langName: 'Français',
+        langDigraph: 'fr',
+        countryDigraph: 'FR',
+        icon: 'flag flag-fr'
+      },      {
         langName: 'Ελληνικά',
         langDigraph: 'el',
         countryDigraph: 'GR',
@@ -596,6 +602,12 @@ DG = SC.Application.create((function () // closure
         langDigraph: 'ko',
         countryDigraph: 'KO',
         icon: 'flag flag-kr'
+      },
+      {
+        langName: 'Nederlands',
+        langDigraph: 'nl',
+        countryDigraph: 'NL',
+        icon: 'flag flag-nl'
       },
       {
         langName: 'Bokmål',
