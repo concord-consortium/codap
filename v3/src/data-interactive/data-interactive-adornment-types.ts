@@ -1,9 +1,6 @@
 import { SnapshotIn } from "mobx-state-tree"
 import { CountAdornmentModel } from "../components/graph/adornments/count/count-adornment-model"
 import { kCountType } from "../components/graph/adornments/count/count-adornment-types"
-import { ConnectingLinesAdornmentModel }
-  from "../components/graph/adornments/connecting-lines/connecting-lines-adornment-model"
-import { kConnectingLinesType } from "../components/graph/adornments/connecting-lines/connecting-lines-adornment-types"
 import { LSRLAdornmentModel } from "../components/graph/adornments/lsrl/lsrl-adornment-model"
 import { kLSRLType } from "../components/graph/adornments/lsrl/lsrl-adornment-types"
 import { MeanAdornmentModel } from "../components/graph/adornments/univariate-measures/mean/mean-adornment-model"
@@ -26,7 +23,6 @@ import { RegionOfInterestAdornmentModel }
 import { kRegionOfInterestType }
   from "../components/graph/adornments/region-of-interest/region-of-interest-adornment-types"
 
-export type DIConnectingLinesAdornmentValues = Partial<SnapshotIn<typeof ConnectingLinesAdornmentModel>>
 export type DICountAdornmentValues = Partial<SnapshotIn<typeof CountAdornmentModel>>
 export type DILsrlAdornmentValues = Partial<SnapshotIn<typeof LSRLAdornmentModel>>
 export type DIMeanAdornmentValues = Partial<SnapshotIn<typeof MeanAdornmentModel>>
@@ -35,12 +31,12 @@ export type DIMovableValueAdornmentValues = Partial<SnapshotIn<typeof MovableVal
 export type DIPlottedValueAdornmentValues = Partial<SnapshotIn<typeof PlottedValueAdornmentModel>>
 export type DIStandardDeviationAdornmentValues = Partial<SnapshotIn<typeof StandardDeviationAdornmentModel>>
 export type DIRegionOfInterestAdornmentValues = Partial<SnapshotIn<typeof RegionOfInterestAdornmentModel>>
-export type DIAdornmentValues = DIConnectingLinesAdornmentValues | DICountAdornmentValues | DILsrlAdornmentValues |
-  DIMeanAdornmentValues | DIMedianAdornmentValues | DIMovableValueAdornmentValues | DIStandardDeviationAdornmentValues |
+export type DIAdornmentValues = DICountAdornmentValues | DILsrlAdornmentValues | DIMeanAdornmentValues |
+  DIMedianAdornmentValues | DIMovableValueAdornmentValues | DIStandardDeviationAdornmentValues |
   DIRegionOfInterestAdornmentValues
 
 const kAdornmentTypes = [
-  kConnectingLinesType, kCountType, kLSRLType, kMeanType, kMedianType, kMovableValueType, kPlottedValueType,
+  kCountType, kLSRLType, kMeanType, kMedianType, kMovableValueType, kPlottedValueType,
   kRegionOfInterestType, kStandardDeviationType
 ]
 const adornmentTypes = new Set(kAdornmentTypes)
