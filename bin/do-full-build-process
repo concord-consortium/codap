@@ -82,8 +82,10 @@ checkAnswer
 # this could confuse the checks in updateBuildNumber
 [ -e npm-debug.log ] && mv -f npm-debug.log /tmp
 
-echo '2. update build number: '
-updateBuildNumber
+read -p '2. increment build number? ' ANSWER
+if [ "$ANSWER" = "y" ]; then
+    updateBuildNumber
+fi
 BUILD_NUM=`getBuildNumber apps/dg/core.js`
 BUILD_STR=build_$BUILD_NUM
 echo BUILD_NUM=$BUILD_NUM

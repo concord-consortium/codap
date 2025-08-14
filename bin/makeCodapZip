@@ -72,10 +72,12 @@ mkdir -p ${WORK_DIR}
 
 #
 # Build to a temp directory
+echo "Building ${APPNAME} to ${WORK_DIR}..."
 sproutcore build ${BUILD_OPTS} ${APPNAME} --buildroot ${WORK_DIR} --build=cert
 
 LANG_ARRAY=\[`/bin/ls -m ${WORK_DIR}/static/dg|sed "s/[^, ][^, ]*/'&'/g"`\]
 
+echo "Building external plugins and example documents..."
 ${DIRNAME}/makeExtn "${WORK_DIR}/extn"
 
 #
@@ -87,7 +89,7 @@ cat > ${INDEX_HTML} << END_DOC
 <title>Redirect</title>
 <style>
   body {
-    margin: 0; 
+    margin: 0;
     padding: 0;
   }
   iframe {
@@ -110,7 +112,7 @@ cat > ${INDEX_HTML} << END_DOC
   var languageCode = supportedLangs.find(function (lang) {
     return (lang === browserLanguage || lang === browserDigraph);
   }) || 'en';
-  
+
   window.location.replace("${REDIRECT_PATH_P1}" + languageCode + "${REDIRECT_PATH_P2}" + searchAndHash);
   //var codapURL = "${REDIRECT_PATH_P1}" + languageCode + "${REDIRECT_PATH_P2}" + searchAndHash;
   //var iFrame='<iframe width="100%" src="' + codapURL + '"></iframe>'

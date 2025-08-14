@@ -67,9 +67,11 @@ Note that CODAP v3 has an entirely different deployment system.
       [Developer Guide](https://github.com/concord-consortium/codap/wiki/Developer-Guide). (node 16)
     * The following directories have node dependencies, so, run `npm install` in them:
       * cloud-file-manager (node 16)
-      * codap-transformers (node 16+?)
+      * codap-data-interactives (node 16+?)
+      * codap-transformers (node 16)
       * noaa-codap-plugin (node 18+?)
-      * story-builder (node 16+?)
+        * note that `npm install` must be run with node 18, but it can be built with node 16
+      * story-builder (node 16)
     * In the codap-data-interactives directory, run `npm install` in the
       following subdirectories:
         * ./DrawTool (node 16+?)
@@ -107,7 +109,8 @@ Note that CODAP v3 has an entirely different deployment system.
       If errors do occur, enter 'n'. This will abort the build.
     * Here are the steps in the execution of the script:
       1. verify clean repositories
-      2. update build number
+      2. increment build number
+         * incrementing the build number is optional -- this is useful to avoid burning through additional build numbers when errors occur.
       3. ~~make Pivotal Tracker release story~~
       4. make the third party bundle
       5. make release through the Sproutcore build process
