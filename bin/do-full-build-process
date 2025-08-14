@@ -71,7 +71,7 @@ echo '    * extension directories clean'
 ./bin/recordExtnVersions
 echo '    * nothing checked out, and in master: “git st”'
 [ "$CODAP_BRANCH" != "$EXP_CODAP_BRANCH" ] && error 'branch is not master'
-[ `git status -s | wc -l` != 0 ] && error 'CODAP codeline is not clean'
+[ `git status -s | wc -l` != 0 ] && error 'CODAP repository is not clean'
 echo '     * lint error free: “npm run lint”'
 npm run lint
 

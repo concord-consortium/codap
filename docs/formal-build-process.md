@@ -7,7 +7,7 @@ Note that CODAP v3 has an entirely different deployment system.
 
 * Prerequisites
   * Accounts: The build person will need access to a number of cloud accounts, as follows:
-    * Github CODAP Project
+    * GitHub CODAP Project (`codap`)
     * ~~Pivotal Tracker, CODAP Project~~
       * ~~Scripts create a release story~~
     * POEditor, CODAP project
@@ -101,12 +101,12 @@ Note that CODAP v3 has an entirely different deployment system.
         * then run `git status`. If the codeline is no longer clean, there have been
           changes. Commit them.
 * Automated part
-    * In codap directory, run `bin/do-full-build-process`. This script is
-      intended to be monitored by the build engineer and has a sequence of
+    * In codap directory, switch to node 16 (nvm is useful for this) and run `bin/do-full-build-process`.
+      This script must be monitored by the build engineer because there are a sequence of
       points where the build engineer needs to indicate readiness to continue by entering ‘y’.
       If errors do occur, enter 'n'. This will abort the build.
     * Here are the steps in the execution of the script:
-      1. verify clean codeline
+      1. verify clean repositories
       2. update build number
       3. ~~make Pivotal Tracker release story~~
       4. make the third party bundle
