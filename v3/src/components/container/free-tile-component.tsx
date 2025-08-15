@@ -115,7 +115,22 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
   // the tile's dimensions. To prevent this, we add a transitionend handler that sets a flag on the tile model when the
   // transition completes. Child components can check this flag to avoid or counteract premature application of effects.
   useEffect(function addTransitionEndHandler() {
-    const handleTransitionEnd = () => tile.setTransitionComplete(true)
+    const element = document.getElementById(`${tileId}`)
+
+    const handleTransitionEnd = () => {
+      // Because the transitions of left, top, width, and height, in theory might finish at different times we wait for
+      // the width and height to be complete before setting the transitionComplete flag.
+      if (element?.offsetWidth !== width && element?.offsetHeight !== height) {
+        // This has never been seen in practice, but if it does we probably want to know about it.
+        // Perhaps some browser will not run the transitions to the exact final size which would then break the
+        // transitionComplete logic.
+        console.warn("Transition ended but tile dimensions are not complete", {
+          tileId, width: element?.offsetWidth, height: element?.offsetHeight
+        })
+        return
+      }
+      tile.setTransitionComplete(true)
+    }
 
     // If we are not animating the creation of this tile, the transitionend event will never fire.
     // So we set the tile's transitionComplete immediately to true.
@@ -124,7 +139,7 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
       return
     }
 
-    const element = document.getElementById(`${tileId}`)
+    // NOTE: this will be called for each CSS property that is transitioning
     element?.addEventListener("transitionend", handleTransitionEnd)
 
     return () => element?.removeEventListener("transitionend", handleTransitionEnd)
