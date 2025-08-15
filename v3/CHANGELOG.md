@@ -1,5 +1,28 @@
 # Changelog
 
+## Version 3.0.0-beta.2433 - August 15, 2025
+
+### ✨ Features & Improvements:
+- **CODAP-788:** Hierarchical plugins menu
+- **CODAP-798:** Support creating/updating plotted values via plugin API
+- **CODAP-816:** Use v2 document background
+- **CODAP-830:** Refresh tile UI
+
+### 🐞 Bug Fixes:
+- **CODAP-363:** Fix case names for collapsed cases in case table
+- **CODAP-824:** Fix expand/collapse behavior in hierarchical case table
+- **CODAP-826:** Fix rescale button for two numeric axes
+- **CODAP-828:** Fix render warning in case table
+- **CODAP-829:** Fix rescale button for histogram
+- **CODAP-831:** Fix histogram crash on rescale after flipping axes
+- **CODAP-833:** Fix swapping of attributes on graph axes in some situations
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  201786 bytes |                           -0.01% |
+|  index.js | 6813473 bytes |                           <0.01% |
+
 ## Version 3.0.0-beta.2418 - July 31, 2025
 
 ### ✨ Features & Improvements:
