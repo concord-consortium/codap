@@ -1,23 +1,24 @@
-import { appState } from "../../models/app-state"
 import { applySnapshot, getSnapshot } from "mobx-state-tree"
-import { toV2Id, toV3GlobalId } from "../../utilities/codap-utils"
 import { isWebViewModel } from "../../components/web-view/web-view-model"
-import { ICodapV2DocumentJson } from "../../v2/codap-v2-types"
-import { CodapV2Document } from "../../v2/codap-v2-document"
-import { ITileModel, ITileModelSnapshotIn } from "../../models/tiles/tile-model"
-import { ITileContentModel } from "../../models/tiles/tile-content"
-import { getTileComponentInfo } from "../../models/tiles/tile-component-info"
-import { IFreeTileInRowOptions, IFreeTileRow } from "../../models/document/free-tile-row"
-import { GetCaseDataResult, importV2Component, LayoutTransformFn } from "../../v2/codap-v2-tile-importers"
-import { serializeCodapV2Document, serializeCodapV3Document } from "../../models/document/serialize-document"
+import { DEBUG_PLUGINS, debugLog } from "../../lib/debug"
+import { appState } from "../../models/app-state"
 import { DocumentModel } from "../../models/document/document"
 import { DocumentContentModel } from "../../models/document/document-content"
+import { IFreeTileInRowOptions, IFreeTileRow } from "../../models/document/free-tile-row"
+import { serializeCodapV2Document, serializeCodapV3Document } from "../../models/document/serialize-document"
 import { SharedModelDocumentManager } from "../../models/document/shared-model-document-manager"
-import { getGlobalValueManager, IGlobalValueManagerSnapshot } from "../../models/global/global-value-manager"
+import { getGlobalValueManager, IGlobalValueManagerSnapshotOut } from "../../models/global/global-value-manager"
 import { ISharedModel } from "../../models/shared/shared-model"
+import { getTileComponentInfo } from "../../models/tiles/tile-component-info"
+import { ITileContentModel } from "../../models/tiles/tile-content"
 import { getSharedModelManager } from "../../models/tiles/tile-environment"
+import { ITileModel, ITileModelSnapshotIn } from "../../models/tiles/tile-model"
+import { toV2Id, toV3GlobalId } from "../../utilities/codap-utils"
 import { isV2ExternalContext } from "../../v2/codap-v2-data-context-types"
 import { CodapV2DataSetImporter, getCaseDataFromV2ContextGuid } from "../../v2/codap-v2-data-set-importer"
+import { CodapV2Document } from "../../v2/codap-v2-document"
+import { GetCaseDataResult, importV2Component, LayoutTransformFn } from "../../v2/codap-v2-tile-importers"
+import { ICodapV2DocumentJson } from "../../v2/codap-v2-types"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIHandler, DIResources, DIValues } from "../data-interactive-types"
 
@@ -41,7 +42,7 @@ export const diDocumentHandler: DIHandler = {
           const tileContent = tile?.content
           if (isWebViewModel(tileContent) && tileContent.subscribeToDocuments) {
             const callback = (response: any) => {
-              console.log("Tile response:", response)
+              debugLog(DEBUG_PLUGINS, "Tile response:", response)
             }
             tileContent.broadcastMessage(message, callback)
           }
@@ -82,7 +83,7 @@ export const diDocumentHandler: DIHandler = {
       const globalManager = getGlobalValueManager(getSharedModelManager(document))
       if (!globalManager) return
       // Define the type for globalManagerSnapshot
-      const globalManagerSnapshot: IGlobalValueManagerSnapshot = {
+      const globalManagerSnapshot: IGlobalValueManagerSnapshotOut = {
         type: "GlobalValueManager", // Set the correct literal value
         id: globalManager.id,
         globals: {}
@@ -91,7 +92,7 @@ export const diDocumentHandler: DIHandler = {
         globalManagerSnapshot.globals[toV3GlobalId(globalValue.guid)] = {
           id: toV3GlobalId(globalValue.guid),
           name: globalValue.name,
-          value: globalValue.value,
+          _value: globalValue.value,
         }
       })
       applySnapshot(globalManager, globalManagerSnapshot)

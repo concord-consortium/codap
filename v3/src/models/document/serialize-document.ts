@@ -21,24 +21,23 @@ export async function serializeDocument<T>(document: IDocumentModel, serializeFn
   }
 }
 
-// serialize a document in v3 format
-export async function serializeCodapV2Document(document: IDocumentModel): Promise<ISerializedV2Document> {
+// serialize a document in v2 format
+export async function serializeCodapV2Document<T = ISerializedV2Document>(document: IDocumentModel): Promise<T> {
   // use cloneDeep because MST snapshots are immutable
-  return serializeDocument(document, (doc: IDocumentModel) => exportV2Document(doc) as ISerializedV2Document)
+  return serializeDocument(document, (doc: IDocumentModel) => exportV2Document(doc) as T)
 }
 
 // serialize a document in v3 format
-export async function serializeCodapV3Document(document: IDocumentModel): Promise<ISerializedV3Document> {
+export async function serializeCodapV3Document<T = ISerializedV3Document>(document: IDocumentModel): Promise<T> {
   // use cloneDeep because MST snapshots are immutable
-  return serializeDocument(document, (doc: IDocumentModel) => cloneDeep(getSnapshot(doc)) as ISerializedV3Document)
+  return serializeDocument(document, (doc: IDocumentModel) => cloneDeep(getSnapshot(doc)) as T)
 }
 
 // serialize a document in v2 or v3 format depending on configuration
 export async function serializeCodapDocument(document: IDocumentModel): Promise<ISerializedDocument> {
   const serializeFn = CONFIG_SAVE_AS_V2
                         // export as v2 if configured to do so
-                        ? (doc: IDocumentModel) => exportV2Document(doc) as ISerializedDocument
-                        // use cloneDeep because MST snapshots are immutable
-                        : (doc: IDocumentModel) => cloneDeep(getSnapshot(doc)) as ISerializedDocument
+                        ? serializeCodapV2Document<ISerializedDocument>
+                        : serializeCodapV3Document<ISerializedDocument>
   return serializeDocument(document, serializeFn)
 }
