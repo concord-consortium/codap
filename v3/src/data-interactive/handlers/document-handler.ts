@@ -208,14 +208,14 @@ export const diDocumentHandler: DIHandler = {
 
     reinstateDatasets().then(() => {
       reinstateComponents()
-    })
 
-    // The 500ms timeout here gives the document time to settle down.
-    // Especially any changes to center and zoom of a map
-    setTimeout(function() {
-      // DG.UndoHistory.clearUndoRedoHistory();
-      notifyDocumentChange('updateDocumentEnded')
-    }, 500)
+      // The 500ms timeout here gives the document time to settle down.
+      // Especially any changes to center and zoom of a map
+      setTimeout(function() {
+        // DG.UndoHistory.clearUndoRedoHistory();
+        notifyDocumentChange('updateDocumentEnded')
+      }, 500)
+    })
 
     return { success: true }
   }
