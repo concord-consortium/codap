@@ -9,6 +9,7 @@ $corner-drag-size: calc($border-drag-width * 2);
   outline: 1px solid vars.$focus-border-color;
   // With this next line, attribute menus are held inside the component boundaries, but bottom corners are rounded
   //overflow: hidden;
+  // todo: Attribute menus should be rendered in a portal so that the overflow: hidden can be reinstated
   position: relative;
   width: 100%;
 
