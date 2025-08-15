@@ -1,6 +1,6 @@
 {
   "name": "codap3",
-  "version": "3.0.0-beta.2418",
+  "version": "3.0.0-beta.2433",
   "description": "Common Online Data Analysis Platform v3",
   "main": "index.js",
   "browser": {

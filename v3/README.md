@@ -80,7 +80,8 @@ To deploy a new release:
 1. Create a new release version in Jira using the `Manage Releases` tab of the CODAPv3 Jira board. (The new version number is the number found in the top right corner of v3, incremented by one.) The status of the release can remain `Unreleased` for now.
 2. Run `git log --reverse <last-version>...HEAD` and/or use the GitHub UI to see a list of PRs merged since the last release and identify their corresponding Jira stories. Tag the Jira stories based on this list as `3.0.0-pre.<new-version>` in the `Fix versions` field.
 3. Update the version number in `package.json` and `package-lock.json`.
-    - `npm version --no-git-tag-version 3.0.0-pre.<new-version>`
+    - `npm version --no-git-tag-version 3.0.0-pre.<new-version>` or
+    - `npm version --no-git-tag-version 3.0.0-beta.<new-version>`
 4. Create a new entry in `versions.md` with the new version and release date.
 5. Create a new entry in `CHANGELOG.md` with a description of the new version.
 6. Create `v3-release-<version>` branch and stage `versions.md`, `package.json` and `package-lock.json`.
