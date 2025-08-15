@@ -13,6 +13,7 @@ export const kDefaultPreventDataContextReorg = false
 export const kDefaultPreventTopLevelReorg = false
 export const kDefaultRespectEditableItemAttribute = false
 export const kDefaultWebViewVersion = ""
+export const kDefaultSubscribeToDocuments = false
 
 export const WebPageModel = types.model("WebPageModel", {
   title: types.maybe(types.string),
@@ -43,6 +44,8 @@ export const WebViewModel = TileContentModel
     preventTopLevelReorg: kDefaultPreventTopLevelReorg,
     // this property is referenced in the v2 code but does not appear to ever be set
     respectEditableItemAttribute: kDefaultRespectEditableItemAttribute,
+    // whether this web view should subscribe to notifications that pass the document to the plugin
+    subscribeToDocuments: kDefaultSubscribeToDocuments,
     // whether this web view was imported (in part) from a v2 DG.GameContext
     hasV2GameContext: types.maybe(types.literal(true))
   })
@@ -105,6 +108,9 @@ export const WebViewModel = TileContentModel
     },
     setPreventTopLevelReorg(value: boolean) {
       self.preventTopLevelReorg = value
+    },
+    setSubscribeToDocuments(value: boolean) {
+      self.subscribeToDocuments = value
     },
     setVersion(version: string) {
       self.version = version

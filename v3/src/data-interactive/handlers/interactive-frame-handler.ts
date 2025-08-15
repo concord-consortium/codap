@@ -16,7 +16,8 @@ export const diInteractiveFrameHandler: DIHandler = {
     const webViewContent = isWebViewModel(interactiveFrame.content) ? interactiveFrame.content : undefined
     const {
       allowEmptyAttributeDeletion, blockAPIRequestsWhileEditing, preventAttributeDeletion, preventBringToFront,
-      preventDataContextReorg, preventTopLevelReorg, respectEditableItemAttribute, state: savedState, version
+      preventDataContextReorg, preventTopLevelReorg, respectEditableItemAttribute, state: savedState,
+      subscribeToDocuments, version
     } = webViewContent ?? {}
     const values: DIInteractiveFrame = {
       allowEmptyAttributeDeletion,
@@ -33,6 +34,7 @@ export const diInteractiveFrameHandler: DIHandler = {
       respectEditableItemAttribute,
       savedState,
       standaloneUndoModeAvailable: false, // TODO Fix hard coded value
+      subscribeToDocuments,
       title: interactiveFrame.title,
       version,
     }
@@ -54,7 +56,7 @@ export const diInteractiveFrameHandler: DIHandler = {
     const {
       allowEmptyAttributeDeletion, blockAPIRequestsWhileEditing, cannotClose, dimensions, name,
       preventAttributeDeletion, preventBringToFront, preventDataContextReorg, preventTopLevelReorg,
-      respectEditableItemAttribute, title, version
+      respectEditableItemAttribute, subscribeToDocuments, title, version
     } = values as DIInteractiveFrame
     interactiveFrame.applyModelChange(() => {
       if (allowEmptyAttributeDeletion != null) {
@@ -74,6 +76,9 @@ export const diInteractiveFrameHandler: DIHandler = {
       if (preventTopLevelReorg != null) webViewContent?.setPreventTopLevelReorg(preventTopLevelReorg)
       if (respectEditableItemAttribute != null) {
         webViewContent?.setRespectEditableItemAttribute(respectEditableItemAttribute)
+      }
+      if (subscribeToDocuments != null) {
+        webViewContent?.setSubscribeToDocuments(subscribeToDocuments)
       }
       if (title) interactiveFrame.setTitle(title)
       if (version) webViewContent?.setVersion(version)
