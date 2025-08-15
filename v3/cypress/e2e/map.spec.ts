@@ -557,7 +557,7 @@ context("Map Resizing", () => {
   // This is skipped because the test can fail due to an issue documented in use-map-model.ts
   // The size of the leaflet dom element can fall behind the size of the tile when the tiles
   // are animating on slow computers.
-  it.skip("fits map bounds to the data with animation", () => {
+  it("fits map bounds to the data with animation", () => {
     const url = `${Cypress.config("index")}?mouseSensor&noEntryModal&suppressUnsavedWarning`
     openCODAPWithDataset(url)
     c.getIconFromToolShelf("map").click()
@@ -579,6 +579,31 @@ context("Map Resizing", () => {
         "type": "map",
         "name": "name-map",
         "title": "title-map"
+      }
+    }`
+    webView.sendAPITesterCommand(cmd1)
+    webView.confirmAPITesterResponseContains(/"success":\s*true/)
+
+    checkFitOfData()
+  })
+
+  it("fits map bounds to the data when created by the API", () => {
+    const url = `${Cypress.config("index")}?mouseSensor&noEntryModal&suppressUnsavedWarning`
+    openCODAPWithDataset(url)
+    openAPITester()
+
+    // Make sure the API tester is loaded
+    webView.getTitle().should("contain.text", "CODAP API Tester")
+
+    const cmd1 = `{
+      "action": "create",
+      "resource": "component",
+      "values": {
+        "type": "map",
+        "name": "name-map",
+        "title": "title-map",
+        "legendAttributeName": "Drop",
+        "dataContext": "RollerCoastersWithLatLong"
       }
     }`
     webView.sendAPITesterCommand(cmd1)

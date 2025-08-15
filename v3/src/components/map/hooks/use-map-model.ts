@@ -1,10 +1,13 @@
 import { useEffect } from "react"
-import { when } from "mobx"
+import L from "leaflet"
 import { useMapEvents, useMap } from "react-leaflet"
 import { DEBUG_MAP, debugLog } from "../../../lib/debug"
 import { useTileModelContext } from "../../../hooks/use-tile-model-context"
+import { getTileInfo } from "../../../models/document/tile-utils"
 import { useDataDisplayLayout } from "../../data-display/hooks/use-data-display-layout"
-import { kDefaultMapZoomForGeoLocation } from "../map-types"
+import { kTitleBarHeight } from "../../constants"
+import { kDefaultMapZoomForGeoLocation, kMapBoundsExtensionFactor, kMaxZoomForFitBounds } from "../map-types"
+import { expandLatLngBounds } from "../utilities/map-utils"
 import { useMapModelContext } from "./use-map-model-context"
 
 export function useMapModel() {
@@ -33,7 +36,6 @@ export function useMapModel() {
 
   // Initialize
   useEffect(function initializeLeafletMapView() {
-    const disposers: (() => void)[] = []
     // wait until everything is ready before initializing the map
     if (mapModel.isLeafletMapInitialized || !layout.isTileExtentInitialized || !mapModel.isSharedDataInitialized) {
       return
@@ -45,7 +47,7 @@ export function useMapModel() {
     }
     // In a newly created map, layers can be added automatically in MapContentModel's sharedDataSets
     // reaction. We've waited for that to be complete by making sure isSharedDataInitialized is
-    // true. We need to wait for this to be complete to avoid auto-positioning the map prematurely.
+    // true. We need to wait for it to avoid auto-positioning the map prematurely.
     else if (mapModel.layers.length === 0) {
       // Auto-position to the user's current position, if available
       navigator.geolocation.getCurrentPosition?.((pos: GeolocationPosition) => {
@@ -61,33 +63,49 @@ export function useMapModel() {
     // want to rescale the map to fit the bounds of this data. However the calculation of the map
     // center and zoom that fits the data requires knowing the map's final aspect ratio.
     // When a newly created map is added to the document, sometimes it is animated into its final size
-    // and position, so the aspect ratio of the map is not known by Leaflet until the animation
-    // completes.
-    // The check above is not waiting for this animation to complete. This is intentional because the
-    // animating map looks better when its zoom and center are set while it is animating.
-    // So instead of having the cases above wait for the animation complete, we use a MobX `when`
-    // below to wait for this animation only in this specific case.
-    //
-    // NOTE: the animation in this case could be improved by computing the map center and zoom using a fake
-    // map with the final size. However that seems more complicated so doesn't seem worth it.
+    // and position, so the aspect ratio of the map is not correct until the animation completes.
+    // This problem is solved by using a temporary Leaflet map which is the final size to get the
+    // center and zoom that fits the data.
+    // See map.md for more details.
     else {
-      const rescaleDisposer = when(
-        () => !!tile?.transitionComplete,
-        () => {
-          // Make sure the map still has no zoom and still has layers
-          if (mapModel.zoom < 0 && mapModel.layers.length > 0) {
-            mapModel.rescale()
-          }
-        }
-      )
+      const { dimensions } = tile ? getTileInfo(tile.id) : {}
+      const bounds = mapModel.latLongBounds
 
-      disposers.push(rescaleDisposer)
+      if (!dimensions || !bounds?.isValid()) {
+        console.warn("Cannot determine tile dimensions or data bounds for map. Cannot auto-fit map to data.",
+          { dimensions, bounds, isValid: bounds?.isValid() }
+        )
+        return
+      }
+
+      const width = dimensions.width
+      // NOTE: this isn't perfect because when the API creates a new map tile it might specify a legend
+      // that will reduce the height of the map further. That calculation is done by the
+      // DataDisplayLayout, but it needs the legends to be rendered to know their height.
+      const height = Math.max(0, dimensions.height - kTitleBarHeight)
+
+      const extendedBounds = expandLatLngBounds(bounds, kMapBoundsExtensionFactor)
+
+      const div = document.createElement('div')
+      div.style.width = `${width}px`
+      div.style.height = `${height}px`
+      div.style.visibility = 'hidden'
+      document.body.appendChild(div)
+
+      const tempMap = L.map(div, { center: [0, 0], zoom: 0, zoomSnap: 0 })
+      tempMap.fitBounds(extendedBounds, { animate: false, maxZoom: kMaxZoomForFitBounds })
+      const zoom = tempMap.getZoom()
+      const center = tempMap.getCenter()
+      tempMap.remove()
+      document.body.removeChild(div)
+
+      debugLog(DEBUG_MAP, "Auto-positioning map on initialization", {
+        width, height, zoom, center, bounds: bounds.toBBoxString()
+      })
+
+      mapModel.leafletMapState.adjustMapView({ center, zoom })
     }
     mapModel.setHasBeenInitialized()
-
-    return () => {
-      disposers.forEach(disposer => disposer())
-    }
   },
   // Because we are setting mapModel.isLeafletMapInitialized and this code is skipped when
   // isLeafletMapInitialized is set, it is better to not include it in the dependencies.

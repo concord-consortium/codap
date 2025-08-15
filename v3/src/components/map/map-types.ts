@@ -41,6 +41,7 @@ export const
   kDefaultMapHeight = 335,
   kMapAttribution = '&copy; <a href="https://static.arcgis.com/attribution/World_Topo_Map">USGS, NOAA</a>',
   kMaxZoomForFitBounds = 12,
+  kMapBoundsExtensionFactor = 1.1,
   kDefaultMapZoomForGeoLocation = 8,
   // Constants for maps
   kDefaultMapFillOpacity = 0.5,

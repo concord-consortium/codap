@@ -114,28 +114,39 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
   // The CSS transition used to animate the tile can cause child components to prematurely apply effects that depend on
   // the tile's dimensions. To prevent this, we add a transitionend handler that sets a flag on the tile model when the
   // transition completes. Child components can check this flag to avoid or counteract premature application of effects.
+  // TODO: perhaps some tiles will want to use something like transitionComplete
+  // to avoid unnecessary calculations during all types of tile resizing.
+  // In that case perhaps we should use debouncing and just monitor
+  // the size of the tile instead of using the transitionend event.
   useEffect(function addTransitionEndHandler() {
+    if (tile.transitionComplete) {
+      // If the initial animation is already complete we don't need do anything
+      return
+    }
     const element = document.getElementById(`${tileId}`)
 
     const handleTransitionEnd = () => {
       // Because the transitions of left, top, width, and height, in theory might finish at different times we wait for
       // the width and height to be complete before setting the transitionComplete flag.
       if (element?.offsetWidth !== width && element?.offsetHeight !== height) {
-        // This has never been seen in practice, but if it does we probably want to know about it.
+        // This has never been seen in practice, but if it does happen we probably want to know about it.
         // Perhaps some browser will not run the transitions to the exact final size which would then break the
         // transitionComplete logic.
         console.warn("Transition ended but tile dimensions are not complete", {
-          tileId, width: element?.offsetWidth, height: element?.offsetHeight
+          tileId, elementWidth: element?.offsetWidth, elementHeight: element?.offsetHeight,
+          expectedWidth: width, expectedHeight: height
         })
         return
       }
       tile.setTransitionComplete(true)
+      // remove the event listener because future tile resizing can trigger this again
+      element?.removeEventListener("transitionend", handleTransitionEnd)
     }
 
     // If we are not animating the creation of this tile, the transitionend event will never fire.
     // So we set the tile's transitionComplete immediately to true.
     if (disableAnimation || !row.animateCreationTiles.has(tileId)) {
-      handleTransitionEnd()
+      tile.setTransitionComplete(true)
       return
     }
 
@@ -143,7 +154,7 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
     element?.addEventListener("transitionend", handleTransitionEnd)
 
     return () => element?.removeEventListener("transitionend", handleTransitionEnd)
-  }, [tile, tileId, disableAnimation, row.animateCreationTiles])
+  }, [tile, tileId, disableAnimation, row.animateCreationTiles, width, height])
 
   if (!info || (isHidden && !info.renderWhenHidden)) return null
 
