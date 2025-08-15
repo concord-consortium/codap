@@ -1,7 +1,7 @@
 import {observer} from "mobx-react-lite"
 import React, {useEffect, useRef} from "react"
 import { comparer, reaction } from "mobx"
-import {drag, ScaleContinuousNumeric, select} from "d3"
+import { drag, DragBehavior, ScaleContinuousNumeric, select, SubjectPosition } from "d3"
 import { logMessageWithReplacement } from "../../../lib/log-message"
 import { getTileModel } from "../../../models/tiles/tile-model"
 import { t } from "../../../utilities/translation/translate"
@@ -36,6 +36,7 @@ export const NumericAxisDragRects = observer(
       displayModel = useDataDisplayModelContextMaybe()
 
     useEffect(function createRects() {
+      const rectElement = rectRef.current // Copy the ref value to a local variable
       let multiScale: MultiScale | undefined,
         d3Scale: ScaleContinuousNumeric<number, number>,
         d3ScaleAtStart: ScaleContinuousNumeric<number, number>,
@@ -45,6 +46,8 @@ export const NumericAxisDragRects = observer(
         dilationAnchorCoord: number,
         dragging = false,
         dilating = false
+
+      const dragBehaviors: Array<DragBehavior<SVGRectElement, RectIndices, SubjectPosition | RectIndices>> = []
 
       const onDragStart: D3Handler = function() {
           const subAxisLength = layout.getAxisLength(place) / numSubAxes,
@@ -134,7 +137,7 @@ export const NumericAxisDragRects = observer(
           dilating = false
         }
 
-      if (rectRef.current) {
+      if (rectElement) {
         // Add rects which the user can drag to dilate or translate the axis scale. If the data display
         // model has a fixed zero axis, only add one draggable rect. Otherwise, add three.
         const classPrefix = place === 'bottom' ? 'h' : 'v',
@@ -146,7 +149,8 @@ export const NumericAxisDragRects = observer(
                              : place === 'bottom'
                                ? ['lower-dilate', 'translate', 'upper-dilate']
                                : ['upper-dilate', 'translate', 'lower-dilate'],
-          dragBehavior = [drag<SVGRectElement, RectIndices>()  // lower
+          dragBehavior = [
+            drag<SVGRectElement, RectIndices>()  // lower
             .on("start", onDilateStart)
             .on("drag", onLowerDilateDrag)
             .on("end", onDragEnd),
@@ -159,7 +163,9 @@ export const NumericAxisDragRects = observer(
               .on("drag", onUpperDilateDrag)
               .on("end", onDragEnd)]
 
-        selectDragRects(rectRef.current)
+        dragBehaviors.push(...dragBehavior)
+
+        selectDragRects(rectElement)
           ?.data(numbering)// data signify lower, middle, upper rectangles
           .join(
             (enter) =>
@@ -176,7 +182,7 @@ export const NumericAxisDragRects = observer(
                 })
           )
         numbering.forEach((behaviorIndex, axisIndex) => {
-          const indexedRects = selectDragRects(rectRef.current, `.${classPrefix}-${classPostfixes[axisIndex]}`)
+          const indexedRects = selectDragRects(rectElement, `.${classPrefix}-${classPostfixes[axisIndex]}`)
           if (lockZero) {
             indexedRects?.call(
               drag<any, any>()
@@ -188,6 +194,15 @@ export const NumericAxisDragRects = observer(
             indexedRects?.call(dragBehavior[behaviorIndex])
           }
         })
+      }
+
+      return () => {
+        // Cleanup drag behaviors
+        if (rectElement) {
+          selectDragRects(rectElement)?.on(".drag", null)
+          selectDragRects(rectElement)?.remove()
+        }
+        dragBehaviors.forEach((behavior) => behavior.on("start", null).on("drag", null).on("end", null))
       }
     }, [axisModel, place, layout, numSubAxes, subAxisIndex, lockZero, displayModel])
 

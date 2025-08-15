@@ -3,10 +3,12 @@ import {
   addDisposer, applySnapshot, getEnv, getSnapshot, getType, hasEnv, IAnyStateTreeNode, Instance,
   ISerializedActionCall, resolveIdentifier, SnapshotIn, types
 } from "mobx-state-tree"
+import { hashStringSet } from "../../utilities/js-utils"
 import { typeOptionalBoolean } from "../../utilities/mst-utils"
 import { IAttribute } from "../data/attribute"
 import { CategorySet, createProvisionalCategorySet, ICategorySet, ICategorySetSnapshot } from "../data/category-set"
 import { DataSet, IDataSet } from "../data/data-set"
+import { CaseInfo } from "../data/data-set-types"
 import { applyModelChange } from "../history/apply-model-change"
 import { kDefaultHighAttributeColor, kDefaultLowAttributeColor } from "./data-set-metadata-constants"
 import { ISharedModel, SharedModel } from "./shared-model"
@@ -76,7 +78,7 @@ export const CollectionMetadata = types.model("CollectionMetadata", {
   labels: types.maybe(CollectionLabels),
   defaults: types.maybe(V2CollectionDefaults),
   // key is case id; value is true (false values are deleted)
-  collapsed: types.map(types.boolean)
+  collapsed: types.map(types.literal(true))
 })
 
 const ColorRangeModel = types.model("ColorRangeModel", {
@@ -182,6 +184,61 @@ export const DataSetMetadata = SharedModel
       const { collectionId } = self.data?.caseInfoMap.get(caseId) || {}
       const collection = collectionId ? self.collections.get(collectionId) : undefined
       return collection?.collapsed.get(caseId) ?? false
+    },
+    get collapsedCaseIdsHash() {
+      const caseIds: string[] = Array.from(self.collections.values()).reduce((ids, collection) => {
+        return ids.concat(Array.from(collection.collapsed.keys()))
+      }, [] as string[])
+      return hashStringSet(caseIds)
+    },
+    getCollapsedAncestor(caseId: Maybe<string>) {
+      let collapsedAncestorId: Maybe<string>
+      while (caseId && (caseId = self.data?.getParentCaseId(caseId))) {
+        if (this.isCollapsed(caseId)) collapsedAncestorId = caseId
+      }
+      return collapsedAncestorId
+    },
+    isCaseOrAncestorCollapsed(caseId: string) {
+      return this.isCollapsed(caseId) || !!this.getCollapsedAncestor(caseId)
+    },
+    isFirstCaseOfAncestor(caseId: string, ancestorCaseId: string) {
+      let _caseId: Maybe<string> = caseId
+      let parentCaseInfo: Maybe<CaseInfo>
+      while (_caseId && (parentCaseInfo = self.data?.getParentCaseInfo(_caseId))) {
+        if (parentCaseInfo.childCaseIds?.[0] !== _caseId) return false
+        _caseId = parentCaseInfo.groupedCase.__id__
+        if (_caseId === ancestorCaseId) return true
+      }
+      return false
+    },
+    // given an ancestorCaseId, returns the set of collapsed case ids (if any)
+    // at the same collection level as the provided descendant case id
+    getDescendantCaseIds(ancestorCaseId: string, descendantCaseId: string): string[] {
+      self.data?.validateCases()
+      const ancestorCollectionId = self.data?.caseInfoMap.get(ancestorCaseId)?.collectionId
+      const descendantCollectionId = self.data?.caseInfoMap.get(descendantCaseId)?.collectionId
+      if (!ancestorCollectionId || !descendantCollectionId) return []
+      let caseIds = [ancestorCaseId]
+      let parentCollectionId: Maybe<string> = ancestorCollectionId
+      while (parentCollectionId) {
+        // replace case ids with child case ids
+        caseIds = caseIds.reduce((ids, caseId) => {
+          const caseInfo = self.data?.caseInfoMap.get(caseId)
+          if (caseInfo?.childCaseIds?.length) {
+            ids.push(...caseInfo.childCaseIds)
+          }
+          return ids
+        }, [] as string[])
+
+        // if this is the correct descendant collection, return the case ids
+        const childCollectionId: Maybe<string> = self.data?.getChildCollection(parentCollectionId)?.id
+        if (childCollectionId === descendantCollectionId) {
+          return caseIds
+        }
+        // otherwise, advance to the next child collection
+        parentCollectionId = childCollectionId
+      }
+      return []
     },
     isEditable(attrId: string) {
       return !self.attributes.get(attrId)?.editProtected && !self.getAttribute(attrId)?.hasFormula
@@ -333,14 +390,23 @@ export const DataSetMetadata = SharedModel
       }
     },
     setIsCollapsed(caseId: string, isCollapsed: boolean) {
-      const { collectionId } = self.data?.caseInfoMap.get(caseId) || {}
-      if (collectionId) {
+      self.data?.validateCases()
+      let { collectionId } = self.data?.caseInfoMap.get(caseId) || {}
+      if (!collectionId) return
+      if (isCollapsed) {
         const collectionMetadata = self.requireCollectionMetadata(collectionId)
-        if (isCollapsed) {
-          collectionMetadata.collapsed.set(caseId, true)
-        }
-        else if (collectionMetadata) {
-          collectionMetadata.collapsed.delete(caseId)
+        collectionMetadata.collapsed.set(caseId, true)
+      }
+      else {
+        // expanding a child case requires expanding all of its ancestors
+        for (let _caseId: Maybe<string> = caseId; _caseId; _caseId = self.data?.getParentCaseId(_caseId)) {
+          collectionId = self.data?.caseInfoMap.get(_caseId)?.collectionId
+          if (collectionId) {
+            const collectionMetadata = self.collections.get(collectionId)
+            if (collectionMetadata?.collapsed.has(_caseId)) {
+              collectionMetadata?.collapsed.delete(_caseId)
+            }
+          }
         }
       }
     },

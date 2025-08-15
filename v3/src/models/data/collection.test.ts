@@ -70,7 +70,6 @@ describe("CollectionModel", () => {
     })
 
     expect(c1.getCaseGroup("foo")).toBeUndefined()
-    expect(c1.findParentCaseGroup("foo")).toBeUndefined()
     c1.completeCaseGroups([{} as any])
   })
 
@@ -253,8 +252,6 @@ describe("CollectionModel", () => {
       root.collections.forEach((collection, index) => {
         // update the cases
         collection.updateCaseGroups()
-
-        expect(collection.findParentCaseGroup("foo")).toBeUndefined()
       })
 
       root.collections.forEach((collection, index) => {
@@ -268,7 +265,6 @@ describe("CollectionModel", () => {
     expect(c1.caseIds.length).toBe(2)
     expect(c1.cases.length).toBe(2)
     expect(c2.caseIds).toEqual(caseIdsForItems(["i0", "i2", "i4", "i1", "i3", "i5"], 1))
-    expect(c2.findParentCaseGroup("foo")).toBeUndefined()
     expect(c1.caseGroups[0].childCaseIds).toEqual(caseIdsForItems(["i0", "i2", "i4"], 1))
     expect(c1.caseGroups[0].childItemIds).toEqual(["i0", "i2", "i4"])
     expect(c1.caseGroups[1].childCaseIds).toEqual(caseIdsForItems(["i1", "i3", "i5"], 1))
@@ -286,14 +282,12 @@ describe("CollectionModel", () => {
 
     function validateItemCaseIds() {
       itemData.itemIds().forEach((itemId, index) => {
-        const itemBaseId = itemId.substring(1)
         const [parentCaseId, childCaseId] = itemIdToCaseIdsMap.get(itemId)!
         const childItemIds = index % 2 ? ["i1", "i3", "i5"] : ["i0", "i2", "i4"]
         expect(c1.hasCase(parentCaseId)).toBe(true)
         expect(c1.getCaseGroup(parentCaseId)!.childItemIds).toEqual(childItemIds)
         expect(c2.hasCase(childCaseId)).toBe(true)
         expect(c2.getCaseGroup(childCaseId)!.childItemIds).toEqual([itemId])
-        expect(c1.findParentCaseGroup(childCaseId)).toBe(c1.caseGroups[+itemBaseId % 2])
       })
 
       validateGetCaseIndex()
@@ -384,7 +378,6 @@ describe("CollectionModel", () => {
     expect(c1.caseIds.length).toBe(2)
     expect(c1.cases.length).toBe(2)
     expect(c2.caseIds).toEqual(caseIdsForItems(["i1", "i3", "i5", "i4"], 1))
-    expect(c2.findParentCaseGroup("foo")).toBeUndefined()
     expect(c1.caseGroups[0].childCaseIds).toEqual(caseIdsForItems(["i1", "i3", "i5"], 1))
     expect(c1.caseGroups[0].childItemIds).toEqual(["i1", "i3", "i5"])
     expect(c1.caseGroups[1].childCaseIds).toEqual(caseIdsForItems(["i4"], 1))

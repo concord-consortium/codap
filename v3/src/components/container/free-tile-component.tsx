@@ -26,7 +26,9 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
   const [useDefaultCreationStyle, setUseDefaultCreationStyle] = useState(row.animateCreationTiles.has(tileId))
   const [changingTileStyle, setChangingTileStyle] = useState<Maybe<IChangingTileStyle>>()
   const tileLayout: Maybe<IFreeTileLayout> = row.tiles.get(tileId)
-  const { position: { x: left, y: top }, width, height, zIndex } = tileLayout || { position: { x: 0, y: 0 } }
+  const {
+    isHidden, isMinimized, position: { x: left, y: top }, setMinimized, width, height, zIndex
+  } = tileLayout || { position: { x: 0, y: 0 } }
   // when animating creation, use the default creation style on the first render
   const tileStyle: React.CSSProperties = useDefaultCreationStyle
           ? { left: 0, top: 0, width: 0, height: kTitleBarHeight, zIndex }
@@ -38,8 +40,8 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
   }, [])
 
   const handleMinimizeTile = useCallback(() => {
-    tileLayout?.setMinimized(!tileLayout.isMinimized)
-  }, [tileLayout])
+    setMinimized?.(!isMinimized)
+  }, [isMinimized, setMinimized])
 
   const { handlePointerDown: handleMoveTilePointerDown } = useTileDrag({ row, tile, tileLayout, setChangingTileStyle })
 
@@ -98,18 +100,16 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
 
   const info = getTileComponentInfo(tileType)
   const style = changingTileStyle ??
-                  (tileLayout?.isHidden && info?.renderWhenHidden
+                  (isHidden && info?.renderWhenHidden
                     ? { left: -9999, top: -9999, width: 0, height: 0 }
-                    : tileLayout?.isMinimized
-                      ? { left, top, transition: "none", width, height: kTitleBarHeight, zIndex }
+                    : isMinimized
+                      ? { left, top, width, zIndex }
                       : tileStyle)
   // don't impose a width and height for fixed size components
   if (info?.isFixedWidth) delete style?.width
   if (info?.isFixedHeight) delete style?.height
   const disableAnimation = urlParams.noComponentAnimation !== undefined
-  const classes = clsx("free-tile-component", {
-    minimized: tileLayout?.isMinimized,
-    "disable-animation": disableAnimation })
+  const classes = clsx("free-tile-component", { minimized: isMinimized, "disable-animation": disableAnimation })
 
   // The CSS transition used to animate the tile can cause child components to prematurely apply effects that depend on
   // the tile's dimensions. To prevent this, we add a transitionend handler that sets a flag on the tile model when the
@@ -145,10 +145,9 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
     return () => element?.removeEventListener("transitionend", handleTransitionEnd)
   }, [tile, tileId, disableAnimation, row.animateCreationTiles])
 
-  if (!info || (tileLayout?.isHidden && !info.renderWhenHidden)) return null
+  if (!info || (isHidden && !info.renderWhenHidden)) return null
 
   const { isFixedWidth, isFixedHeight } = info
-  const { isMinimized } = tileLayout || {}
 
   return (
     <ComponentWrapperContext.Provider value={componentRef}>

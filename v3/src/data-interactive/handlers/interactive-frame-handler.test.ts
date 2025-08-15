@@ -1,4 +1,5 @@
-import { kDefaultWebViewWidth } from "../../components/web-view/web-view-registration"
+import { kTitleBarHeight } from "../../components/constants"
+import { kDefaultWebViewHeight, kDefaultWebViewWidth } from "../../components/web-view/web-view-registration"
 import { kWebViewTileType } from "../../components/web-view/web-view-defs"
 import {
   IWebViewModel, kDefaultAllowEmptyAttributeDeletion, kDefaultPreventAttributeDeletion,
@@ -24,7 +25,7 @@ describe("DataInteractive InteractiveFrameHandler", () => {
       preventDataContextReorg, preventTopLevelReorg, respectEditableItemAttribute, savedState, title, version
     } = result.values as DIInteractiveFrame
     expect(allowEmptyAttributeDeletion).toBe(kDefaultAllowEmptyAttributeDeletion)
-    expect(dimensions?.height).toBe(425) // Seems like this should be kDefaultWebViewHeight, but it's not
+    expect(dimensions?.height).toBe(kDefaultWebViewHeight + kTitleBarHeight)
     expect(dimensions?.width).toBe(kDefaultWebViewWidth)
     expect(id).toBe(toV2Id(interactiveFrame.id))
     expect(name).toBe(interactiveFrame.title)

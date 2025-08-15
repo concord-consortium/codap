@@ -62,6 +62,7 @@ export const CodapComponent = observer(function CodapComponent(props: IProps) {
   const { tile, isMinimized, onMinimizeTile, onCloseTile, onMoveTilePointerDown } = props
   const info = getTileComponentInfo(tile.content.type)
   const codapComponentRef = useRef<HTMLDivElement | null>(null)
+  const focused = uiState.isFocusedTile(tile.id) || uiState.isHoveredTile(tile.id)
 
   // useState for guaranteed lifetime
   const [tileSelection] = useState<TileSelectionHandler>(() => new TileSelectionHandler(tile))
@@ -71,14 +72,19 @@ export const CodapComponent = observer(function CodapComponent(props: IProps) {
   if (!info) return null
 
   const { TitleBar, Component, tileEltClass } = info
-  const classes = clsx("codap-component", tileEltClass, { minimized: isMinimized },
-                    { shadowed: uiState.isFocusedTile(tile.id) || uiState.isHoveredTile(tile.id) })
+  const classes = clsx("codap-component", tileEltClass, { focused, minimized: isMinimized })
   return (
     <TileModelContext.Provider value={tile}>
       <TileSelectionContext.Provider value={tileSelection}>
         <CodapComponentContext.Provider value={codapComponentRef}>
-          <div className={classes} ref={codapComponentRef} key={tile.id} data-testid={tileEltClass}
-            onFocus={handleFocusEvent} onPointerDownCapture={handleFocusEvent}>
+          <div
+            className={classes}
+            data-testid={tileEltClass}
+            key={tile.id}
+            onFocus={handleFocusEvent}
+            onPointerDownCapture={handleFocusEvent}
+            ref={codapComponentRef}
+          >
             <TitleBar tile={tile} onMinimizeTile={onMinimizeTile} onCloseTile={onCloseTile}
                 onMoveTilePointerDown={onMoveTilePointerDown}/>
             <Component tile={tile} isMinimized={isMinimized} />

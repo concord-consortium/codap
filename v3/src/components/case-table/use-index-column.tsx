@@ -35,7 +35,7 @@ function indexColumnSpan(args: TColSpanArgs, { data, metadata, collection }: ICo
   if (args.type === "ROW") {
     const row = args.row
     const parentId = row[symParent]
-    if (parentId && metadata?.isCollapsed(parentId)) {
+    if (parentId && metadata?.isCaseOrAncestorCollapsed(parentId)) {
       const visibleAttrCount = getCollectionAttrs(collection, data)
                                 .reduce((prev, attr) => metadata?.isHidden(attr.id) ? prev : ++prev, 0)
       return visibleAttrCount + 1
@@ -60,8 +60,9 @@ export const useIndexColumn = () => {
     const index = __id__ === kInputRowKey
                     ? -1
                     : _index != null ? _index : data?.getItemIndex(__id__)
-    const collapsedCases = data && parentId && metadata?.isCollapsed(parentId)
-                            ? data.caseInfoMap.get(parentId)?.childCaseIds ?? []
+    const collapsedAncestorId = metadata?.getCollapsedAncestor(__id__)
+    const collapsedCases = data && collapsedAncestorId
+                            ? metadata?.getDescendantCaseIds(collapsedAncestorId, __id__) ?? []
                             : []
     const collapsedCaseCount = collapsedCases.length
 

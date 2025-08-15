@@ -4,7 +4,7 @@ import { ICase } from "../../../../models/data/data-set-types"
 import { t } from "../../../../utilities/translation/translate"
 import { AxisPlace } from "../../../axis/axis-types"
 import { IAxisModel } from "../../../axis/models/axis-model"
-import { PointDisplayType } from "../../../data-display/data-display-types"
+import { GraphAttrRole, PointDisplayType } from "../../../data-display/data-display-types"
 import { dataDisplayGetNumericValue } from "../../../data-display/data-display-value-utils"
 import { BinnedDotPlotModel, IBinnedDotPlotModel } from "../binned-dot-plot/binned-dot-plot-model"
 import { float1, IBarTipTextProps, IPlotModel, typesPlotType } from "../plot-model"
@@ -91,6 +91,12 @@ export const HistogramModel = BinnedDotPlotModel
           : "DG.HistogramView.barTipNoLegendPlural"
         return t(translationKey, {vars: attrArray})
       }
+    },
+    numericValuesForRole(role: GraphAttrRole) {
+      if (self.dataConfiguration?.secondaryRole === role) {
+        return [0, self.maxCellCaseCount()]
+      }
+      return self.dataConfiguration?.numericValuesForAttrRole(role) || []
     }
   }))
 export interface IHistogramModel extends Instance<typeof HistogramModel> {}

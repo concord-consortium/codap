@@ -55,7 +55,7 @@ import {
 import {
   CaseInfo, IAddAttributeOptions, IAddCasesOptions, IAddCollectionOptions, IAttributeChangeResult, ICase,
   ICaseCreation, IDerivationSpec, IGetCaseOptions, IGetCasesOptions, IItem, IMoveAttributeCollectionOptions,
-  IMoveItemsOptions, ItemInfo
+  IMoveItemsOptions, ItemInfo, symParent
 } from "./data-set-types"
 // eslint-disable-next-line import/no-cycle
 import { isLegacyDataSetSnap, isOriginalDataSetSnap, isTempDataSetSnap } from "./data-set-conversion"
@@ -779,10 +779,14 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
     self.validateCases()
     return self.getCollection(collectionId)?.cases ?? []
   },
-  getParentCase(caseId: string, collectionId?: string) {
+  getParentCaseId(caseId: string) {
     self.validateCases()
-    const parentCollectionId = self.getCollection(collectionId)?.parent?.id
-    return self.getCollection(parentCollectionId)?.findParentCaseGroup(caseId)
+    const caseInfo = self.caseInfoMap.get(caseId)
+    return caseInfo?.groupedCase[symParent]
+  },
+  getParentCaseInfo(caseId: string) {
+    const parentCaseId = this.getParentCaseId(caseId)
+    return parentCaseId ? self.caseInfoMap.get(parentCaseId) : undefined
   },
   getCollectionForAttributes(attributeIds: string[]) {
     self.validateCases()

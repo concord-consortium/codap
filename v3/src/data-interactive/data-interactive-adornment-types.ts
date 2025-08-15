@@ -9,6 +9,10 @@ import { MedianAdornmentModel } from "../components/graph/adornments/univariate-
 import { kMedianType } from "../components/graph/adornments/univariate-measures/median/median-adornment-types"
 import { MovableValueAdornmentModel } from "../components/graph/adornments/movable-value/movable-value-adornment-model"
 import { kMovableValueType } from "../components/graph/adornments/movable-value/movable-value-adornment-types"
+import { kPlottedValueType }
+  from "../components/graph/adornments/univariate-measures/plotted-value/plotted-value-adornment-types"
+import { PlottedValueAdornmentModel }
+  from "../components/graph/adornments/univariate-measures/plotted-value/plotted-value-adornment-model"
 import { StandardDeviationAdornmentModel }
   from "../components/graph/adornments/univariate-measures/standard-deviation/standard-deviation-adornment-model"
 import { kStandardDeviationType }
@@ -24,6 +28,7 @@ export type DILsrlAdornmentValues = Partial<SnapshotIn<typeof LSRLAdornmentModel
 export type DIMeanAdornmentValues = Partial<SnapshotIn<typeof MeanAdornmentModel>>
 export type DIMedianAdornmentValues = Partial<SnapshotIn<typeof MedianAdornmentModel>>
 export type DIMovableValueAdornmentValues = Partial<SnapshotIn<typeof MovableValueAdornmentModel>>
+export type DIPlottedValueAdornmentValues = Partial<SnapshotIn<typeof PlottedValueAdornmentModel>>
 export type DIStandardDeviationAdornmentValues = Partial<SnapshotIn<typeof StandardDeviationAdornmentModel>>
 export type DIRegionOfInterestAdornmentValues = Partial<SnapshotIn<typeof RegionOfInterestAdornmentModel>>
 export type DIAdornmentValues = DICountAdornmentValues | DILsrlAdornmentValues | DIMeanAdornmentValues |
@@ -31,7 +36,8 @@ export type DIAdornmentValues = DICountAdornmentValues | DILsrlAdornmentValues |
   DIRegionOfInterestAdornmentValues
 
 const kAdornmentTypes = [
-  kCountType, kLSRLType, kMeanType, kMedianType, kMovableValueType, kRegionOfInterestType, kStandardDeviationType
+  kCountType, kLSRLType, kMeanType, kMedianType, kMovableValueType, kPlottedValueType,
+  kRegionOfInterestType, kStandardDeviationType
 ]
 const adornmentTypes = new Set(kAdornmentTypes)
 

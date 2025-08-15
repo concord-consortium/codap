@@ -1,11 +1,11 @@
+import { act, render, screen } from "@testing-library/react"
+import { userEvent } from "@testing-library/user-event"
 import React from "react"
-import { userEvent } from '@testing-library/user-event'
-import { ToolShelf } from "./tool-shelf"
-import { render, screen } from "@testing-library/react"
 import { createCodapDocument } from "../../models/codap/create-codap-document"
 import { IDocumentModel } from "../../models/document/document"
-import { TestTileContent } from "../../test/test-tile-content"
 import { TileModel } from "../../models/tiles/tile-model"
+import { TestTileContent } from "../../test/test-tile-content"
+import { ToolShelf } from "./tool-shelf"
 
 // way to get a writable reference to libDebug
 const libDebug = require("../../lib/debug")
@@ -59,7 +59,7 @@ describe("Tool shelf", () => {
     expect(screen.getByTestId("tool-shelf")).toBeDefined()
 
     const tile = TileModel.create({ id: "tile-1", content: TestTileContent.create() })
-    document.addTile(tile)
+    act(() => document.addTile(tile))
     expect(document.content?.tileMap.size).toBe(1)
     await user.click(screen.getByTestId("tool-shelf-button-undo"))
     expect(document.content?.tileMap.size).toBe(1)
@@ -75,7 +75,7 @@ describe("Tool shelf", () => {
 
     document.treeMonitor?.enableMonitoring()
     const tile = TileModel.create({ id: "tile-1", content: TestTileContent.create() })
-    document.addTile(tile)
+    act(() => document.addTile(tile))
     expect(document.content?.tileMap.size).toBe(1)
     await user.click(screen.getByTestId("tool-shelf-button-undo"))
     expect(document.content?.tileMap.size).toBe(0)
