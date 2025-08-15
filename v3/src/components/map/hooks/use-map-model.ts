@@ -13,6 +13,14 @@ export function useMapModel() {
   const layout = useDataDisplayLayout()
   const { tile } = useTileModelContext()
 
+  // Expose the leaflet map object in the global window object
+  // This helps with debugging and allows Cypress to check the map state
+  if (((window as any).Cypress || DEBUG_MAP) && tile?.id) {
+    const leafletMaps: any = (window as any).leafletMaps  || ({} as Record<string, any>)
+    ;(window as any).leafletMaps = leafletMaps
+    leafletMaps[tile.id] = mapModel.leafletMapState.leafletMap
+  }
+
   useEffect(function initializeLeafletMap() {
     mapModel.setLeafletMap(leafletMap)
   }, [leafletMap, mapModel])
