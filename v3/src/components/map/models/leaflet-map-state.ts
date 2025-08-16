@@ -2,7 +2,7 @@ import { LatLng, LatLngBoundsExpression, LatLngExpression, Map as LeafletMap, Le
 import { debounce } from 'lodash'
 import { action, computed, makeObservable, observable, runInAction } from "mobx"
 import { ILogMessage } from '../../../lib/log-message'
-import { logStringifiedMapMessage } from '../map-types'
+import { kMaxZoomForFitBounds, logStringifiedMapMessage } from '../map-types'
 
 interface IAdjustMapViewOptions {
   // specify center and/or zoom to set those directly
@@ -254,7 +254,16 @@ export class LeafletMapState {
       this.leafletMap.invalidateSize({ animate })
     }
     if (fitBounds) {
-      this.leafletMap.fitBounds(fitBounds, { animate })
+      // NOTE: If this is called when the container width and height are zero,
+      // then Leaflet will set the center of the map. It will not set the zoom.
+      // The container width and height can be zero when the map is being animated
+      // into its final size.
+      this.leafletMap.fitBounds(fitBounds, {
+        animate,
+        // maxZoom is used to prevent leaflet from zooming in so far on a small cluster
+        // of points that the map makes no sense.
+        maxZoom: kMaxZoomForFitBounds
+      })
     }
     else if (center != null || zoom != null) {
       const newCenter = center ?? this.leafletMap.getCenter()

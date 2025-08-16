@@ -1,3 +1,4 @@
+import { LatLngBounds, Map as LeafletMap } from "leaflet"
 import { MapTileElements as map } from "../support/elements/map-tile"
 import { ComponentElements as c } from "../support/elements/component-elements"
 import { ToolbarElements as toolbar } from "../support/elements/toolbar-elements"
@@ -5,6 +6,7 @@ import { CfmElements as cfm } from "../support/elements/cfm"
 import { MapLegendHelper as mlh } from "../support/helpers/map-legend-helper"
 import { TableTileElements as table } from "../support/elements/table-tile"
 import { WebViewTileElements as webView } from "../support/elements/web-view-tile"
+import { MapCanvasHelper as mch } from "../support/helpers/map-canvas-helper"
 
 const filename1 = "cypress/fixtures/RollerCoastersWithLatLong.csv"
 const filename2 = "cypress/fixtures/map-data.csv"
@@ -18,6 +20,7 @@ const arrayOfValues = [
 const arrayOfAttributes = ["Category", "Educ_Tertiary_Perc", "Inversions"]
 
 context("Map UI", () => {
+
   beforeEach(function () {
     const url = `${Cypress.config("index")}?mouseSensor&noComponentAnimation&noEntryModal&suppressUnsavedWarning`
     cy.visit(url)
@@ -423,17 +426,18 @@ context("Map UI", () => {
   })
 })
 
+const apiTesterUrl='https://concord-consortium.github.io/codap-data-interactives/DataInteractiveAPITester/index.html?lang=en'
+const openAPITester = () => {
+  c.clickIconFromToolShelf("web page")
+  webView.enterUrl(apiTesterUrl)
+  cy.wait(1000)
+}
+
 context("Map API", () => {
   beforeEach(function () {
     const url = `${Cypress.config("index")}?suppressUnsavedWarning#file=examples:Four%20Seals`
     cy.visit(url)
   })
-  const apiTesterUrl='https://concord-consortium.github.io/codap-data-interactives/DataInteractiveAPITester/index.html?lang=en'
-  const openAPITester = () => {
-    c.clickIconFromToolShelf("web page")
-    webView.enterUrl(apiTesterUrl)
-    cy.wait(1000)
-  }
   it("supports a background georaster", () => {
     openAPITester()
 
@@ -492,5 +496,148 @@ context("Map API", () => {
     webView.clearAPITesterResponses()
 
     map.getMapGeoRasterLayer().should("not.exist")
+  })
+})
+
+context("Map Resizing", () => {
+
+  function checkBoundsOfMap(boundsChecker: (bounds: LatLngBounds) => void) {
+    cy.log("Fit map bounds to the data")
+    mch.getMapTileId().then((tileId) => {
+      cy.log(`Map Tile ID: ${tileId}`)
+      return cy.window().then((win: any) => {
+        const leafletMap = win.leafletMaps[tileId] as LeafletMap
+
+        if (!leafletMap) {
+          throw new Error(`Leaflet map for Tile ID ${tileId} is undefined or empty.`)
+        }
+
+        return leafletMap
+      })
+    })
+    .then((leafletMap: LeafletMap) => {
+      cy.wrap(leafletMap).should((_leafletMap) => {
+        const bounds = _leafletMap.getBounds()
+        boundsChecker(bounds)
+      })
+    })
+  }
+
+  function checkFitOfData() {
+    checkBoundsOfMap((bounds) => {
+      // `within` is used so the fit is a tight fit.
+      // Ie. we don't want it to pass if the whole world is shown,
+      // and we don't want it to pass if all of the points are not shown.
+      expect(bounds.getNorth()).to.be.within(47, 53)
+      expect(bounds.getEast()).to.be.within(-70, -66)
+      expect(bounds.getSouth()).to.be.within(23, 28)
+      expect(bounds.getWest()).to.be.within(-126, -123)
+    })
+  }
+
+  function openCODAPWithDataset(url: string) {
+    cy.visit(url)
+    cy.wait(3000)
+    cfm.openLocalDoc(filename1)
+  }
+
+  // TODO:
+  // - test that the map bounds are preserved after a load (ideally we'd pan the map save it and reload the page)
+  // but it might be sufficient to just have a prepared document with a map with different bounds.
+  // - test that the user's current position is used
+
+  it("fits map bounds to the data without animation", () => {
+    const url = `${Cypress.config("index")}?mouseSensor&noComponentAnimation&noEntryModal&suppressUnsavedWarning`
+    openCODAPWithDataset(url)
+    c.getIconFromToolShelf("map").click()
+    checkFitOfData()
+  })
+
+  // This is skipped because the test can fail due to an issue documented in use-map-model.ts
+  // The size of the leaflet dom element can fall behind the size of the tile when the tiles
+  // are animating on slow computers.
+  it("fits map bounds to the data with animation", () => {
+    const url = `${Cypress.config("index")}?mouseSensor&noEntryModal&suppressUnsavedWarning`
+    openCODAPWithDataset(url)
+    c.getIconFromToolShelf("map").click()
+    checkFitOfData()
+  })
+
+  it("fits map bounds to the data when created by the API", () => {
+    const url = `${Cypress.config("index")}?mouseSensor&noEntryModal&suppressUnsavedWarning`
+    openCODAPWithDataset(url)
+    openAPITester()
+
+    // Make sure the API tester is loaded
+    webView.getTitle().should("contain.text", "CODAP API Tester")
+
+    const cmd1 = `{
+      "action": "create",
+      "resource": "component",
+      "values": {
+        "type": "map",
+        "name": "name-map",
+        "title": "title-map"
+      }
+    }`
+    webView.sendAPITesterCommand(cmd1)
+    webView.confirmAPITesterResponseContains(/"success":\s*true/)
+
+    checkFitOfData()
+  })
+
+  it("fits map bounds to the data when created by the API with legend", () => {
+    const url = `${Cypress.config("index")}?mouseSensor&noEntryModal&suppressUnsavedWarning`
+    openCODAPWithDataset(url)
+    openAPITester()
+
+    // Make sure the API tester is loaded
+    webView.getTitle().should("contain.text", "CODAP API Tester")
+
+    const cmd1 = `{
+      "action": "create",
+      "resource": "component",
+      "values": {
+        "type": "map",
+        "name": "name-map",
+        "title": "title-map",
+        "legendAttributeName": "Drop",
+        "dataContext": "RollerCoastersWithLatLong"
+      }
+    }`
+    webView.sendAPITesterCommand(cmd1)
+    webView.confirmAPITesterResponseContains(/"success":\s*true/)
+
+    checkFitOfData()
+  })
+
+  it("map zoom and center are used when specified by the API", () => {
+    const url = `${Cypress.config("index")}?mouseSensor&noEntryModal&suppressUnsavedWarning`
+    openCODAPWithDataset(url)
+    openAPITester()
+
+    // Make sure the API tester is loaded
+    webView.getTitle().should("contain.text", "CODAP API Tester")
+
+    const cmd1 = `{
+      "action": "create",
+      "resource": "component",
+      "values": {
+        "type": "map",
+        "name": "name-map",
+        "title": "title-map",
+        "center": [0, 20],
+        "zoom": 4
+      }
+    }`
+    webView.sendAPITesterCommand(cmd1)
+    webView.confirmAPITesterResponseContains(/"success":\s*true/)
+
+    checkBoundsOfMap((bounds) => {
+      expect(bounds.getNorth()).to.be.within(12, 16)
+      expect(bounds.getEast()).to.be.within(41, 45)
+      expect(bounds.getSouth()).to.be.within(-16, 12)
+      expect(bounds.getWest()).to.be.within(-5, -1)
+    })
   })
 })

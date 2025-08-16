@@ -80,10 +80,7 @@ export const mapComponentHandler: DIComponentHandler = {
       layers,
       zoom
     }
-    // If the center or zoom are specified, we need to prevent CODAP from automatically focusing the map
-    const options = center || zoom != null ? { transitionComplete: true } : undefined
-
-    return { content, options }
+    return { content }
   },
 
   get(content) {

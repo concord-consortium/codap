@@ -14,7 +14,7 @@ import {GraphPlace} from "../../axis-graph-shared"
 import {IDataConfigurationModel} from "../../data-display/models/data-configuration-model"
 import {DataDisplayContentModel} from "../../data-display/models/data-display-content-model"
 import {kMapModelName, kMapTileType} from "../map-defs"
-import {BaseMapKey, BaseMapKeys} from "../map-types"
+import {BaseMapKey, BaseMapKeys, kMapBoundsExtensionFactor} from "../map-types"
 import {
   datasetHasBoundaryData, datasetHasLatLongData, datasetHasPinData, expandLatLngBounds, getLatLongBounds,
   latLongAttributesFromDataSet, pinAttributesFromDataSet
@@ -155,7 +155,7 @@ export const MapContentModel = DataDisplayContentModel
       const bounds = self.latLongBounds
       if (bounds) {
         self.leafletMapState.adjustMapView({
-          fitBounds: expandLatLngBounds(bounds, 1.1),
+          fitBounds: expandLatLngBounds(bounds, kMapBoundsExtensionFactor),
           animate: !!undoStringKey && !!redoStringKey,
           undoStringKey, redoStringKey
         })
@@ -208,7 +208,10 @@ export const MapContentModel = DataDisplayContentModel
           return {isChanging, center, zoom}
         },
         ({isChanging, center, zoom}) => {
-          // don't sync map state to model until map change is complete
+          // Don't sync map state to model until map change is complete
+          // NOTE: `isChanging` will be true when the map tile is animating into place. If the browser
+          // gets slowed down `isChanging` might toggle to false and true again during this animation.
+          // It usually doesn't toggle because of the debouncing in leafletMapState.
           if (!isChanging) {
             // if undo/redo strings are specified, then treat change as undoable
             if (self.leafletMapState.undoStringKey && self.leafletMapState.redoStringKey) {
@@ -250,7 +253,16 @@ export const MapContentModel = DataDisplayContentModel
       // Rescale when the layers are changed
       addDisposer(self, reaction(
         () => self.layers.map(layer => layer.id),
-        () => self.rescale(),
+        () => {
+          if (!self.isLeafletMapInitialized) {
+            // If the map hasn't been initialized yet, we shouldn't rescale it.
+            // The map component size might not be its final size yet, so the
+            // rescale will not work properly.
+            // If necessary, it will be rescaled during initialization.
+            return
+          }
+          self.rescale()
+        },
         {name: "MapContentModel.reaction rescale when layers change", equals: comparer.structural}
       ))
     },
@@ -334,6 +346,7 @@ export const MapContentModel = DataDisplayContentModel
       self.leafletMapState.setLeafletMap(leafletMap)
     },
     setHasBeenInitialized() {
+      // TODO: withoutUndo should be unnecessary since isLeafletMapInitialized is volatile
       withoutUndo()
       self.isLeafletMapInitialized = true
     },

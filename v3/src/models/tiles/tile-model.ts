@@ -57,10 +57,10 @@ export const TileModel = V2UserTitleModel.named("TileModel")
     // e.g. "TextContentModel", ...
     content: TileContentUnion,
     cannotClose: types.maybe(types.boolean),
-    transitionComplete: types.maybe(types.boolean)
   })
   .volatile(self => ({
-    isNewlyCreated: false
+    isNewlyCreated: false,
+    transitionComplete: false
   }))
   .preProcessSnapshot(snapshot => {
     // early development versions of v3 had a `title` property
