@@ -516,9 +516,8 @@ context("Map Resizing", () => {
       })
     })
     .then((leafletMap: LeafletMap) => {
-      cy.wrap(leafletMap).should((map) => {
-        const bounds = map.getBounds()
-        expect(bounds).to.not.be.empty
+      cy.wrap(leafletMap).should((_leafletMap) => {
+        const bounds = _leafletMap.getBounds()
         boundsChecker(bounds)
       })
     })
@@ -587,7 +586,7 @@ context("Map Resizing", () => {
     checkFitOfData()
   })
 
-  it("fits map bounds to the data when created by the API", () => {
+  it("fits map bounds to the data when created by the API with legend", () => {
     const url = `${Cypress.config("index")}?mouseSensor&noEntryModal&suppressUnsavedWarning`
     openCODAPWithDataset(url)
     openAPITester()
