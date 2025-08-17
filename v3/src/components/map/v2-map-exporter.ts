@@ -1,5 +1,6 @@
 import { colord } from "colord"
 import { SetOptional } from "type-fest"
+import { toJS } from "mobx"
 import { kPolygonNames } from "../../models/boundaries/boundary-types"
 import { AttributeType } from "../../models/data/attribute-types"
 import { toV2Id } from "../../utilities/codap-utils"
@@ -172,8 +173,8 @@ export const v2MapExporter: V2TileExportFn = ({ tile }) => {
 
   const componentStorage: Maybe<SetOptional<ICodapV2MapStorage, keyof ICodapV2BaseComponentStorage>> = {
     mapModelStorage: {
-      center: mapContent.center,
-      zoom: mapContent.zoom,
+      center: toJS(mapContent.center),  // without toJS, the center is a MobX observable
+      zoom: toJS(mapContent.zoom),
       baseMapLayerName: baseMapStringToV2BaseMapString(mapContent.baseMapLayerName) || "Topographic",
       gridMultiplier: Math.min(...gridMultiplierArr) ?? 1,
       layerModels: v2LayerModels

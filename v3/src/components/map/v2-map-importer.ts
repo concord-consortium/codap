@@ -1,4 +1,4 @@
-import {ITileModelSnapshotIn} from "../../models/tiles/tile-model"
+import { ITileModel, ITileModelSnapshotIn } from "../../models/tiles/tile-model"
 import {toV3AttrId, toV3Id} from "../../utilities/codap-utils"
 import { parseColorToHex } from "../../utilities/color-utils"
 import {V2TileImportArgs} from "../../v2/codap-v2-tile-importers"
@@ -7,6 +7,7 @@ import {
 } from "../../v2/codap-v2-types"
 import {v3TypeFromV2TypeIndex} from "../../v2/codap-v2-data-context-types"
 import {AttrRole} from "../data-display/data-display-types"
+import { v2DataDisplayPostImportSnapshotProcessor } from "../data-display/v2-data-display-import-utils"
 import {IAttributeDescriptionSnapshot, kDataConfigurationType} from "../data-display/models/data-configuration-model"
 import {IMapModelContentSnapshot} from "./models/map-content-model"
 import {kMapIdPrefix, kMapTileType} from "./map-defs"
@@ -136,4 +137,11 @@ export function v2MapImporter({v2Component, v2Document, getCaseData, insertTile}
   const mapTileSnap: ITileModelSnapshotIn =
           { id: toV3Id(kMapIdPrefix, guid), name, _title: title, userSetTitle, content, cannotClose }
   return insertTile(mapTileSnap)
+}
+
+export function v2MapPostImportSnapshotProcessor(
+  tileModel:ITileModel, tileSnap:ITileModelSnapshotIn): ITileModelSnapshotIn
+{
+  if (tileSnap.content?.type !== "Map") return tileSnap
+  return v2DataDisplayPostImportSnapshotProcessor(tileModel, tileSnap)
 }

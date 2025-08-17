@@ -1,17 +1,18 @@
-import {ITileModelSnapshotIn} from "../../models/tiles/tile-model"
+import { ITileModel, ITileModelSnapshotIn } from "../../models/tiles/tile-model"
 import {toV3AttrId, toV3Id} from "../../utilities/codap-utils"
 import {defaultBackgroundColor, parseColorToHex} from "../../utilities/color-utils"
 import {V2TileImportArgs} from "../../v2/codap-v2-tile-importers"
-import {IGuidLink, isV2GraphComponent} from "../../v2/codap-v2-types"
+import { IGuidLink, isV2GraphComponent } from "../../v2/codap-v2-types"
 import {v3TypeFromV2TypeIndex} from "../../v2/codap-v2-data-context-types"
 import {GraphAttrRole, PrimaryAttrRole, axisPlaceToAttrRole} from "../data-display/data-display-types"
-import {kGraphIdPrefix, kGraphTileType} from "./graph-defs"
-import {IGraphContentModelSnapshot} from "./models/graph-content-model"
-import {kGraphDataConfigurationType} from "./models/graph-data-configuration-model"
-import {kGraphPointLayerType} from "./models/graph-point-layer-model"
+import { v2DataDisplayPostImportSnapshotProcessor } from "../data-display/v2-data-display-import-utils"
 import {GraphAttributeDescriptionsMapSnapshot, IAttributeDescriptionSnapshot}
   from "../data-display/models/data-configuration-model"
 import {AxisPlace} from "../axis/axis-types"
+import {kGraphIdPrefix, kGraphTileType} from "./graph-defs"
+import { IGraphContentModelSnapshot } from "./models/graph-content-model"
+import {kGraphDataConfigurationType} from "./models/graph-data-configuration-model"
+import {kGraphPointLayerType} from "./models/graph-point-layer-model"
 import {IAxisModelSnapshotUnion} from "../axis/models/axis-model-union"
 import {IAdornmentImporterProps, v2AdornmentImporter} from "./adornments/v2-adornment-importer"
 import { v2PlotImporter } from "./v2-plot-importer"
@@ -211,4 +212,12 @@ export function v2GraphImporter({v2Component, v2Document, getCaseData, insertTil
   }
 
   return graphTile
+}
+
+export function v2GraphPostImportSnapshotProcessor(
+  tileModel:ITileModel, tileSnap:ITileModelSnapshotIn): ITileModelSnapshotIn
+{
+  if (tileSnap.content?.type !== "Graph") return tileSnap
+
+  return v2DataDisplayPostImportSnapshotProcessor(tileModel, tileSnap)
 }

@@ -9,12 +9,11 @@ import { getMetadataFromDataSet } from "../../models/shared/shared-data-utils"
 import { registerTileComponentInfo } from "../../models/tiles/tile-component-info"
 import { ITileLikeModel, registerTileContentInfo } from "../../models/tiles/tile-content-info"
 import { registerV2TileExporter } from "../../v2/codap-v2-tile-exporters"
-import { registerV2TileImporter } from "../../v2/codap-v2-tile-importers"
+import { registerV2PostImportSnapshotProcessor, registerV2TileImporter } from "../../v2/codap-v2-tile-importers"
 import { ComponentTitleBar } from "../component-title-bar"
 import { PlottedFunctionFormulaAdapter } from "./adornments/plotted-function/plotted-function-formula-adapter"
-import {
-  PlottedValueFormulaAdapter
-} from "./adornments/univariate-measures/plotted-value/plotted-value-formula-adapter"
+import { PlottedValueFormulaAdapter }
+  from "./adornments/univariate-measures/plotted-value/plotted-value-formula-adapter"
 import { GraphComponent } from "./components/graph-component"
 import { GraphInspector } from "./components/graph-inspector"
 import { graphComponentHandler } from "./graph-component-handler"
@@ -26,7 +25,7 @@ import { GraphFilterFormulaAdapter } from "./models/graph-filter-formula-adapter
 import { BarChartFormulaAdapter } from "./plots/bar-chart/bar-chart-formula-adapter"
 import { kGraphPointLayerType } from "./models/graph-point-layer-model"
 import { v2GraphExporter } from "./v2-graph-exporter"
-import { v2GraphImporter } from "./v2-graph-importer"
+import { v2GraphImporter, v2GraphPostImportSnapshotProcessor } from "./v2-graph-importer"
 
 GraphFilterFormulaAdapter.register()
 BarChartFormulaAdapter.register()
@@ -92,6 +91,7 @@ registerTileComponentInfo({
 
 registerV2TileExporter(kGraphTileType, v2GraphExporter)
 registerV2TileImporter("DG.GraphView", v2GraphImporter)
+registerV2PostImportSnapshotProcessor("Graph", v2GraphPostImportSnapshotProcessor)
 
 registerComponentHandler(kV2GraphType, graphComponentHandler)
 registerDataDisplayHandler(kV2GraphType, graphDataDisplayHandler)

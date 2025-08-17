@@ -4,7 +4,7 @@ import { registerTileComponentInfo } from "../../models/tiles/tile-component-inf
 import { ITileLikeModel, registerTileContentInfo } from "../../models/tiles/tile-content-info"
 import { t } from "../../utilities/translation/translate"
 import { registerV2TileExporter } from "../../v2/codap-v2-tile-exporters"
-import { registerV2TileImporter } from "../../v2/codap-v2-tile-importers"
+import { registerV2PostImportSnapshotProcessor, registerV2TileImporter } from "../../v2/codap-v2-tile-importers"
 import { ComponentTitleBar } from "../component-title-bar"
 import { MapComponent } from "./components/map-component"
 import { MapInspector } from "./components/map-inspector"
@@ -14,7 +14,7 @@ import {kDefaultMapHeight, kDefaultMapWidth} from "./map-types"
 import { createMapContentModel, MapContentModel } from "./models/map-content-model"
 import { MapFilterFormulaAdapter } from "./models/map-filter-formula-adapter"
 import { v2MapExporter } from "./v2-map-exporter"
-import { v2MapImporter } from "./v2-map-importer"
+import { v2MapImporter, v2MapPostImportSnapshotProcessor } from "./v2-map-importer"
 
 MapFilterFormulaAdapter.register()
 
@@ -50,5 +50,6 @@ registerTileComponentInfo({
 
 registerV2TileExporter(kMapTileType, v2MapExporter)
 registerV2TileImporter("DG.MapView", v2MapImporter)
+registerV2PostImportSnapshotProcessor("Map", v2MapPostImportSnapshotProcessor)
 
 registerComponentHandler(kV2MapType, mapComponentHandler)
