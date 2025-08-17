@@ -1,5 +1,6 @@
 import { RequireAtLeastOne } from "type-fest"
 import { LoggableValue } from "../lib/log-message"
+import { ICodapV2DocumentJson } from "../v2/codap-v2-types"
 import { IAdornmentModel } from "../components/graph/adornments/adornment-models"
 import { IAttribute } from "../models/data/attribute"
 import { ICollectionModel } from "../models/data/collection"
@@ -15,6 +16,7 @@ import {
 } from "./data-interactive-data-set-types"
 import { DIAdornmentValues } from "./data-interactive-adornment-types"
 
+export type DIDocument = ICodapV2DocumentJson
 export type DIComponent = ITileModel
 export interface DIComponentInfo {
   hidden?: boolean
@@ -46,6 +48,7 @@ export interface DIInteractiveFrame {
   respectEditableItemAttribute?: boolean
   savedState?: unknown
   standaloneUndoModeAvailable?: boolean
+  subscribeToDocuments?: boolean
   title?: string
   version?: string
 }
@@ -84,6 +87,7 @@ export interface DIResources {
   dataContext?: IDataSet
   dataContextList?: IDataSet[]
   dataDisplay?: DIDataDisplay
+  document?: DIDocument
   error?: string
   global?: IGlobalValue
   interactiveFrame?: ITileModel
@@ -97,12 +101,12 @@ export interface DIResources {
 
 // types for values accepted as inputs by the API
 export type DISingleValues = DIAttribute | DINotifyAttribute | DIAttributeLocationValues | DICase | DIDataContext |
-  DINotifyDataContext | DIGlobal | DIInteractiveFrame | DIItemValues | DICreateCollection | DINewCase | DIUpdateCase |
-  DINotification | DIItemSearchNotify | DILogMessage | DIUrl | V2SpecificComponent | DIAdornmentValues
+  DIDocument | DINotifyDataContext | DIGlobal | DIInteractiveFrame | DIItemValues | DICreateCollection | DINewCase |
+  DIUpdateCase | DINotification | DIItemSearchNotify | DILogMessage | DIUrl | V2SpecificComponent | DIAdornmentValues
 export type DIValues = DISingleValues | DISingleValues[] | number | string[]
 
 // types returned as outputs by the API
-export type DIResultSingleValues = DICase | DIComponentInfo |  DIDataDisplay | DIGetCaseResult | DIGlobal
+export type DIResultSingleValues = DICase | DIComponentInfo |  DIDataDisplay | DIDocument | DIGetCaseResult | DIGlobal
   | DIInteractiveFrame
 
 export type DIResultValues = DIResultSingleValues | DIResultSingleValues[] |

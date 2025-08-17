@@ -35,7 +35,6 @@
       {
         "title": "Story Builder",
         "description": "Create a narrative of your investigation",
-        "disabled": true,
         "title-string": "DG.plugin.StoryBuilder.pluginName",
         "description-string": "DG.plugin.StoryBuilder.description",
         "width": 800,
