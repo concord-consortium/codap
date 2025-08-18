@@ -85,6 +85,31 @@ export const CodapMap = observer(function CodapMap({mapRef}: IProps) {
     }
   }) // no dependencies so it runs after every render
 
+  useEffect(function mapResizeObserver() {
+    if (!mapRef.current) {
+      // We can't do anything if we don't have element to monitor
+      return
+    }
+
+    const resizeObserver = new ResizeObserver(entries => {
+      if (entries.length <= 0) {
+        return
+      }
+      const { width, height } = entries[0].contentRect
+      // On a tile that is animating into place, width and height will start at 0
+      // There doesn't seem to be a reason to update the tile extent in that case.
+      if (width <= 0 || height <= 0) {
+        return
+      }
+      layout.setTileExtent(width, height)
+    })
+    resizeObserver.observe(mapRef.current)
+
+    return () => {
+      resizeObserver.disconnect()
+    }
+  }, [layout, mapRef])
+
   const renderSliderIfAppropriate = useCallback(() => {
     if (mapModel.layers.some(layer => isMapPointLayerModel(layer) && layer.gridModel.isVisible)) {
       return <MapGridSlider mapModel={mapModel} mapRef={mapRef}/>

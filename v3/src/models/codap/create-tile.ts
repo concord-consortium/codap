@@ -16,7 +16,6 @@ export interface INewTileOptions {
   x?: number
   y?: number
   height?: number
-  transitionComplete?: boolean
   width?: number
 }
 
@@ -27,8 +26,7 @@ export function createTileSnapshotOfType(tileType: string, env?: ITileEnvironmen
   const content = options?.content ?? info?.defaultContent({ env })
   const cannotClose = options?.cannotClose
   const title = options?.title
-  const transitionComplete = options?.transitionComplete
-  return content ? { cannotClose, content, id, name, title, transitionComplete } : undefined
+  return content ? { cannotClose, content, id, name, title } : undefined
 }
 
 export function createTileOfType(tileType: string, env?: ITileEnvironment, options?: INewTileOptions) {
