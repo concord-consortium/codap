@@ -182,21 +182,6 @@ export const DotLinePlot = observer(function DotLinePlot({ pixiPoints }: IPlotPr
     )
   }, [graphModel, refreshPointPositions])
 
-  // respond to pointDisplayType changes because the axis domain may need to be updated
-  useEffect(function respondToGraphPointDisplayType() {
-    // TODO: Despite the comment above, this effect does not respond to pointDisplayType changes.
-    // In fact, the only observable property referenced by the autorun appears to be the domain
-    // that is being changed. So the entire effect of this would appear to be to reinstall the
-    // autorun when primaryIsBottom changes.
-    return mstAutorun(() => {
-      const primaryAxis = graphModel.getNumericAxis(primaryIsBottom ? "bottom" : "left")
-      const numValues = graphModel.dataConfiguration.numericValuesForAttrRole(primaryIsBottom ? "x" : "y")
-      if (primaryAxis) {
-        setNiceDomain(numValues, primaryAxis, graphModel.plot.axisDomainOptions)
-      }
-    }, {name: "respondToGraphPointDisplayType"}, graphModel)
-  }, [dataset, graphModel, primaryIsBottom])
-
   return (
     <></>
   )
