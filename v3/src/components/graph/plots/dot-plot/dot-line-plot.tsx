@@ -171,6 +171,17 @@ export const DotLinePlot = observer(function DotLinePlot({ pixiPoints }: IPlotPr
 
   usePlotResponders({pixiPoints, refreshPointPositions, refreshPointSelection})
 
+  useEffect(function respondToPlotDisplayType() {
+    return mstReaction(() => graphModel.plot.displayType,
+      () => {
+      const primaryAxis = graphModel.getNumericAxis(primaryIsBottom ? "bottom" : "left")
+      const numValues = graphModel.dataConfiguration.numericValuesForAttrRole(primaryIsBottom ? "x" : "y")
+      if (primaryAxis) {
+        setNiceDomain(numValues, primaryAxis, graphModel.plot.axisDomainOptions)
+      }
+    }, {name: "respondToPlotDisplayType"}, graphModel)
+  }, [dataset, graphModel, primaryIsBottom])
+
   // respond to point size change because we have to change the stacking
   useEffect(function respondToGraphPointVisualAction() {
     return mstReaction(() => {
