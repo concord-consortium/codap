@@ -294,6 +294,10 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       const attrTypes = self.attrTypes
       return (isCategoricalAttributeType(attrTypes.left) ? 1 : 0) + (isCategoricalAttributeType(attrTypes.bottom)
         ? 1 : 0)
+    },
+    get xAndYAreNumeric() {
+      const attrTypes = self.attrTypes
+      return attrTypes.bottom === "numeric" && attrTypes.left === "numeric"
     }
   }))
   .views(self => ({

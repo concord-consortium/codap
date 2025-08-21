@@ -92,12 +92,14 @@ export const MovableLineAdornmentModel = AdornmentModel
 .actions(self => ({
   updateCategories(options: IUpdateCategoriesOptions) {
     const { resetPoints, dataConfig, interceptLocked, xAxis, yAxis } = options
-    dataConfig.getAllCellKeys().forEach(cellKey => {
-      const instanceKey = self.instanceKey(cellKey)
-      if (!self.lines.get(instanceKey) || resetPoints) {
-        self.setInitialLine(xAxis, yAxis, instanceKey, interceptLocked)
-      }
-    })
+    if (dataConfig.xAndYAreNumeric) {
+      dataConfig.getAllCellKeys().forEach(cellKey => {
+        const instanceKey = self.instanceKey(cellKey)
+        if (!self.lines.get(instanceKey) || resetPoints) {
+          self.setInitialLine(xAxis, yAxis, instanceKey, interceptLocked)
+        }
+      })
+    }
   }
 }))
 
