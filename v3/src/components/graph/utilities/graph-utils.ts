@@ -293,7 +293,8 @@ function formatEquationValue(equationValue: number, equationDigits: number, unit
     const absVal = Math.abs(value)
     const useScientific = absVal !== 0 && (absVal < 1e-4 || absVal >= 1e6)
 
-    return useScientific ? toScientificFromFixed(fixed) : fixed
+    const result = useScientific ? toScientificFromFixed(fixed) : fixed
+    return result.replace('-', '−') // replace hyphen with minus sign for better display
   }
 
   const numStr = formatValue(equationValue, equationDigits)
