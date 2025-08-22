@@ -606,16 +606,22 @@ export const GraphContentModel = DataDisplayContentModel
       }
       const numericAttrCount = PrimaryAttrRoles.map(role => isNumericRole(role))
                                   .filter(Boolean).length
+      const secondaryAttrIsCategorical = isCategoricalRole(self.dataConfiguration.secondaryRole)
       let newPlotType: Maybe<PlotType>
       if (numericAttrCount === 0) {
-        const secondaryAttrIsCategorical = isCategoricalRole(self.dataConfiguration.secondaryRole)
         if (!self.plot.isCategorical || (self.plotType === "barChart" && secondaryAttrIsCategorical)) {
           newPlotType = "dotChart"
         }
       }
       else if (numericAttrCount === 1) {
-        if (!self.plot.isUnivariateNumeric) {
-          newPlotType = "dotPlot"
+        if (!self.plot.isUnivariateNumeric || secondaryAttrIsCategorical) {
+          if (self.plotType === "histogram") {
+            // Histograms can't be split so we revert to binnedDotPlot
+            newPlotType = "binnedDotPlot"
+          }
+          else if (self.plotType !== "binnedDotPlot") { // Already binned? Leave it so.
+            newPlotType = "dotPlot"
+          }
         }
       }
       else if (numericAttrCount > 1) {
