@@ -6,6 +6,7 @@ import { useMemo } from "use-memo-one"
 import { useTileSelectionContext } from "../../hooks/use-tile-selection-context"
 import { ITileBaseProps } from "../tiles/tile-base-props"
 import { mstReaction } from "../../utilities/mst-reaction"
+import { updateTileNotification } from "../../models/tiles/tile-notifications"
 import { isTextModel, modelValueToEditorValue } from "./text-model"
 import { TextToolbar } from "./text-toolbar"
 
@@ -81,7 +82,8 @@ export const TextTile = observer(function TextTile({ tile }: ITileBaseProps) {
         // For now, we log just the text content, not the full JSON-stringified slate value.
         log: textDidChange ? () => `Edited text component: ${textModel.textContent}` : undefined,
         undoStringKey: "DG.Undo.textComponent.edit",
-        redoStringKey: "DG.Redo.textComponent.edit"
+        redoStringKey: "DG.Redo.textComponent.edit",
+        notify: updateTileNotification("edit text", {}, tile)
       })
     }
   }
