@@ -433,15 +433,17 @@ export function setPointCoordinates(props: ISetPointCoordinates) {
 */
 export function computeSlopeAndIntercept(xAxis?: IAxisModel, yAxis?: IAxisModel, interceptLocked=false) {
   const xLower = isAnyNumericAxisModel(xAxis) ? xAxis.min : 0,
-    xUpper = isAnyNumericAxisModel(xAxis) ? xAxis.max : 0,
+    xUpper = isAnyNumericAxisModel(xAxis) ? xAxis.max : 1,
     yLower = isAnyNumericAxisModel(yAxis) ? yAxis.min : 0,
-    yUpper = isAnyNumericAxisModel(yAxis) ? yAxis.max : 0  
+    yUpper = isAnyNumericAxisModel(yAxis) ? yAxis.max : 1
 
   // Make the default a bit steeper, so it's less likely to look like
   // it fits a typical set of points
   const adjustedXUpper = xLower + (xUpper - xLower) / 2,
     slope = (yUpper - yLower) / (adjustedXUpper - xLower),
-    intercept = interceptLocked ? 0 : yLower - slope * xLower
+    intercept = interceptLocked ? 0
+      : isFinite(slope) ? yLower - slope * xLower
+        : adjustedXUpper
 
   return {slope, intercept}
 }
