@@ -238,13 +238,12 @@ export function useCloudFileManager(optionsArg: CFMAppOptions, onFileOpened?: ()
               menu: [
                 {
                   icon: ToolbarPositionIcon,
-                  name: `${t("DG.AppController.optionMenuItems.positionToolShelf")} ${uiState.toolbarPosition} 🚧`,
+                  name: `${t("V3.AppController.optionMenuItems.positionToolShelf")} ${uiState.toolbarPosition}`,
                   action() {
                     runInAction(() => {
                       uiState.setToolbarPosition(uiState.toolbarPosition === "Top" ? "Left" : "Top")
                     })
-                  },
-                  enabled: false
+                  }
                 }
               ]
             }
