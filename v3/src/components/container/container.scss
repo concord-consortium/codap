@@ -4,7 +4,7 @@
   // set up a stacking context so component z-index values don't interact with others
   isolation: isolate;
   width: 100%;
-  height: calc(100% - vars.$menu-bar-height - vars.$tool-shelf-height);
+  height: calc(100% - vars.$tool-shelf-height);
   background: url("../../assets/bg-grid-grey.png");
   position: relative;
 
@@ -14,5 +14,12 @@
     display: flex;
     align-items: center;
     justify-content: center;
+  }
+}
+
+.vertical-toolbar-container {
+  .codap-container {
+    height: 100%;
+    width: calc(100% - vars.$tool-shelf-width);
   }
 }

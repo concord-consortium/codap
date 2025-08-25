@@ -35,9 +35,10 @@ export const TilesListShelfButton = observer(function TilesListShelfButton() {
     uiState.setHoveredTile("")
   }
 
+  const placement = uiState.toolbarPosition === "Top" ? "bottom-end" : "right-end"
   return (
     <>
-      <Menu isLazy autoSelect={false} isOpen={isOpen} onOpen={onOpen} onClose={onClose}>
+      <Menu isLazy autoSelect={false} isOpen={isOpen} onOpen={onOpen} onClose={onClose} placement={placement}>
         <MenuButton
           className={clsx("tool-shelf-button", "tool-shelf-menu", "tiles-list-menu", langClass, {"menu-open": isOpen})}
           title={t("DG.ToolButtonData.tileListMenu.toolTip")}

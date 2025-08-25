@@ -1,4 +1,4 @@
-import {Flex, Spacer} from "@chakra-ui/react"
+import { Flex, Spacer } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
 import React from "react"
 import { SetRequired } from "type-fest"
@@ -127,8 +127,13 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
     const { type, shelf: { ButtonComponent = ToolShelfTileButton, labelKey, hintKey } } = info
     return (
       ButtonComponent
-        ? <ButtonComponent tileType={type} key={`${type}-${idx}`} label={t(labelKey)} hint={t(hintKey)}
-              onClick={handleTileButtonClick}/>
+        ? <ButtonComponent
+            hint={t(hintKey)}
+            key={`${type}-${idx}`}
+            label={t(labelKey)}
+            onClick={handleTileButtonClick}
+            tileType={type}
+          />
         : null
     )
   })
@@ -145,9 +150,15 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
           return (
             button
               ? button
-              : <ToolShelfButton key={labelKey} className={className} icon={icon} label={t(labelKey)} hint={t(hintKey)}
-                    disabled={entry.isDisabled?.()}
-                    onClick={() => entry.onClick?.()} />
+              : <ToolShelfButton
+                  key={labelKey}
+                  className={className}
+                  icon={icon}
+                  label={t(labelKey)}
+                  hint={t(hintKey)}
+                  disabled={entry.isDisabled?.()}
+                  onClick={() => entry.onClick?.()}
+                />
           )
         })}
       </Flex>

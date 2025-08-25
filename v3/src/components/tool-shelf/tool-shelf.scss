@@ -112,6 +112,62 @@ $tool-shelf-border-width: 1px;
   }
 }
 
+.vertical-toolbar-container {
+  .tool-shelf {
+    flex-direction: column;
+    height: 100%;
+    width: vars.$tool-shelf-width;
+
+    .tool-shelf-component-buttons, .tool-shelf-right-buttons {
+      flex-direction: column;
+      width: 100%;
+
+      .tool-shelf-button {
+        height: 52px;
+        width: 100%;
+
+        &.first {
+          height: 56px;
+          padding-top: 4px;
+        }
+
+        .tool-shelf-button-content, > span {
+          height: 100%;
+          margin: 0;
+
+          svg {
+            height: 24px;
+            width: 24px;
+          }
+        }
+      }
+
+      .tool-shelf-menu-list.top-menu {
+        margin: 0 0 0 -13px;
+      }
+    }
+
+    .tool-shelf-right-buttons {
+      .tool-shelf-button {
+        height: 36px;
+
+        .tool-shelf-button-content, > span {
+          flex-direction: row;
+          justify-content: flex-start;
+          margin: 0;
+          width: 100%;
+
+          svg {
+            height: 24px;
+            margin: 0 5px 0 10px;
+            width: 24px;
+          }
+        }
+      }
+    }
+  }
+}
+
 .tool-shelf-component-buttons, .tool-shelf-right-buttons {
   .tool-shelf-menu-list {
     border-radius: 4px;

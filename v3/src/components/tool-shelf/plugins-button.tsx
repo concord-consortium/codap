@@ -8,6 +8,7 @@ import { useOutsidePointerDown } from "../../hooks/use-outside-pointer-down"
 import { useRemotePluginsConfig } from "../../hooks/use-remote-plugins-config"
 import { DEBUG_PLUGINS } from "../../lib/debug"
 import { logMessageWithReplacement } from "../../lib/log-message"
+import { uiState } from "../../models/ui-state"
 import { getSpecialLangFontClassName, t } from "../../utilities/translation/translate"
 import { kWebViewTileType } from "../web-view/web-view-defs"
 import { isWebViewModel } from "../web-view/web-view-model"
@@ -131,7 +132,7 @@ const PluginGroupMenu = observer(function PluginGroupMenu({
   )
 })
 
-export function PluginsButton() {
+export const PluginsButton = observer(function PluginsButton() {
   const menuRef = useRef<HTMLDivElement>(null)
   const onCloseRef = useRef<() => void>()
   const [openSubmenuId, setOpenSubmenuId] = React.useState<string | null>(null)
@@ -147,9 +148,15 @@ export function PluginsButton() {
   })
 
   const className = clsx("tool-shelf-button", "tool-shelf-menu", "plugins", getSpecialLangFontClassName())
+  const placement = uiState.toolbarPosition === "Top" ? "bottom-start" : "right-start"
   return (
-    <div ref={menuRef}>
-      <Menu autoSelect={false} boundary="scrollParent" onClose={() => setOpenSubmenuId(null)}>
+    <div className="tool-shelf-button" ref={menuRef}>
+      <Menu
+        autoSelect={false}
+        boundary="scrollParent"
+        onClose={() => setOpenSubmenuId(null)}
+        placement={placement}
+      >
         {({ onClose }) => {
           onCloseRef.current = onClose
           return (
@@ -183,4 +190,4 @@ export function PluginsButton() {
       </Menu>
     </div>
   )
-}
+})
