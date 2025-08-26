@@ -185,7 +185,8 @@ export const App = observer(function App() {
 
   const { fallbackRender } = useUncaughtErrorHandler(cfm)
 
-  const appClassName = clsx("toolbar-container", { "vertical-toolbar-container": uiState.toolbarPosition === "Left" })
+  const toolbarContainerClassName =
+    clsx("toolbar-container", { "vertical-toolbar-container": uiState.toolbarPosition === "Left" })
   return (
     <CodapDndContext>
       <DocumentContentContext.Provider value={appState.document.content}>
@@ -193,7 +194,7 @@ export const App = observer(function App() {
           <div className="codap-app" data-testid="codap-app">
             <MenuBar/>
             <ErrorBoundary fallbackRender={fallbackRender}>
-              <div className={appClassName}>
+              <div className={toolbarContainerClassName}>
                 <ToolShelf document={appState.document}/>
                 <Container/>
               </div>
