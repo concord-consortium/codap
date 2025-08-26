@@ -295,6 +295,12 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       return (isCategoricalAttributeType(attrTypes.left) ? 1 : 0) + (isCategoricalAttributeType(attrTypes.bottom)
         ? 1 : 0)
     },
+    get numericAttrs(): Array<{ role: AttrRole, attrId: string }> {
+      const roles: Array<Maybe<AttrRole>> = [self.primaryRole, self.secondaryRole, "topSplit", "rightSplit"]
+      return roles.filter(role => !!role).filter(role => {
+        return self.attributeType(role) === "numeric"
+      }).map(role => ({ role, attrId: self.attributeID(role) }))
+    },
     get xAndYAreNumeric() {
       const attrTypes = self.attrTypes
       return attrTypes.bottom === "numeric" && attrTypes.left === "numeric"
@@ -323,7 +329,13 @@ export const GraphDataConfigurationModel = DataConfigurationModel
         rightAttrId: self.attributeID("rightSplit"),
         rightCats: self.categoryArrayForAttrRole("rightSplit", []) ?? [""],
       }
-    }
+    },
+    get numericAttrsWithChangeCounts() {
+      return self.numericAttrs.map(attrEntry => {
+        const attr = self.dataset?.getAttribute(attrEntry.attrId)
+        return { ...attrEntry, changeCount: attr?.changeCount ?? 0 }
+      })
+    },
   }))
   .views(self => ({
     categoricalValueForCaseInRole(caseID: string, role: AttrRole) {
@@ -906,7 +918,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
           { name: "GraphDataConfigurationModel yAttrDescriptions reaction", equals: comparer.structural }
         ))
         addDisposer(self, reaction(
-          () => self.categoricalAttrsWithChangeCounts,
+          () => [...self.categoricalAttrsWithChangeCounts, ...self.numericAttrsWithChangeCounts],
           () => self.clearCasesCache(),
           { name: "GraphDataConfigurationModel getCellKeys reaction", equals: comparer.structural }
         ))
