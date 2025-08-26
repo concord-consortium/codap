@@ -225,6 +225,29 @@ export function findNeededFractionDigits(slope: number, intercept: number, layou
   return { slopeDigits, interceptDigits }
 }
 
+/**
+ * Formats equation values for display with automatic scientific notation switching and unit handling.
+ *
+ * Requirements:
+ * - Formats numbers to a specified number of decimal places
+ * - Automatically switches to scientific notation for very small (< 1e-4) or large (≥ 1e6) numbers
+ * - Removes trailing zeros and unnecessary decimal points from formatted values
+ * - Handles special cases: NaN, Infinity, -Infinity, and zero (including -0)
+ * - In scientific notation:
+ *   - Mantissa has trailing zeros trimmed (e.g., "1.2e3" not "1.200e3")
+ *   - Single-digit mantissas have no decimal point (e.g., "5e2" not "5.0e2")
+ *   - Preserves precision up to the specified decimal places before conversion
+ * - Appends optional units to the formatted value
+ * - Can optionally wrap units in parentheses
+ * - Uses proper minus sign (−) instead of hyphen (-) for negative numbers
+ * - Maintains numerical accuracy by rounding to fixed precision first, then converting to scientific notation
+ *
+ * @param equationValue - The numeric value to format
+ * @param equationDigits - Number of decimal places to use for rounding
+ * @param units - Optional unit string to append to the formatted value
+ * @param parenthesizeUnits - Whether to wrap units in parentheses
+ * @returns Formatted string representation of the value with optional units
+ */
 function formatEquationValue(equationValue: number, equationDigits: number, units = "", parenthesizeUnits = false) {
   const formatValue = (value: number, digits: number): string => {
     // value is the number to be formatted and digits is the number of decimal places to use.
