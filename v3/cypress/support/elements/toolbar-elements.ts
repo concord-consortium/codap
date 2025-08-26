@@ -1,4 +1,13 @@
 export const ToolbarElements = {
+  confirmToolbarPosition(position: "Top" | "Left" = "Top") {
+    if (position === "Top") {
+      cy.get(".toolbar-container:not(.vertical-toolbar-container)").should("exist")
+      cy.get(".vertical-toolbar-container").should("not.exist")
+    } else {
+      cy.get(".toolbar-container:not(.vertical-toolbar-container)").should("not.exist")
+      cy.get(".vertical-toolbar-container").should("exist")
+    }
+  },
   getToolShelfSelector(component: string) {
     return cy.get(`[data-testid="tool-shelf-button-${component}"]`)
   },

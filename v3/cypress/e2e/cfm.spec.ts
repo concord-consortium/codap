@@ -1,6 +1,7 @@
 import { CfmElements as cfm } from "../support/elements/cfm"
 import { ComponentElements as c } from "../support/elements/component-elements"
 import { TableTileElements as table } from "../support/elements/table-tile"
+import { ToolbarElements } from "../support/elements/toolbar-elements"
 
 context("CloudFileManager", () => {
   function visitEmptyCodap()  {
@@ -137,6 +138,17 @@ context("CloudFileManager", () => {
     cfm.getLanguageMenu().should("exist")
     cfm.getLanguageMenuButton().click()
     cfm.getLanguageMenu().should("not.exist")
+  })
+  it("can switch toolbar position", () => {
+    visitEmptyCodap()
+
+    ToolbarElements.confirmToolbarPosition("Top")
+    cfm.getSettingsMenuButton().click()
+    cfm.getSettingsMenuItems().eq(0).click()
+    ToolbarElements.confirmToolbarPosition("Left")
+    cfm.getSettingsMenuButton().click()
+    cfm.getSettingsMenuItems().eq(0).click()
+    ToolbarElements.confirmToolbarPosition("Top")
   })
   it("should display in the Activity Player", () => {
     // Ignore uncaught exceptions from the application for this test only
