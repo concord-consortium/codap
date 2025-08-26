@@ -73,17 +73,17 @@ export const TextTile = observer(function TextTile({ tile }: ITileBaseProps) {
   function handleBlur() {
     // update the model on blur, not on every change (e.g. keystroke)
     if (textModel && !textModel.isEquivalent(editor.children)) {
-      const textDidChange = textOnFocus.current !== textModel.textContent
+      // handleBlur only gets called if the text or style has changed
       textModel?.applyModelChange(() => {
         textModel.setValueFromEditor(editor.children)
       }, {
-        // log only when the text actually changed, e.g. not on style changes
         // Note that logging of text changes was commented out in v2 in build 0601. ¯\_(ツ)_/¯
-        // For now, we log just the text content, not the full JSON-stringified slate value.
-        log: textDidChange ? () => `Edited text component: ${textModel.textContent}` : undefined,
+        // For now, we log just the text content, not the full JSON-stringified slate value. This means that
+        // style changes will trigger logging but won't be reflected in the log message.
+        log: () => `Edited text component: ${textModel.textContent}`,
         undoStringKey: "DG.Undo.textComponent.edit",
         redoStringKey: "DG.Redo.textComponent.edit",
-        notify: textDidChange ? () => updateTileNotification("edit text", {}, tile) : undefined
+        notify: () => updateTileNotification("edit text", {}, tile)
       })
     }
   }
