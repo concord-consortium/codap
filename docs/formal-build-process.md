@@ -77,6 +77,7 @@ Note that CODAP v3 has an entirely different deployment system.
         * ./DrawTool (node 16+?)
         * ./eepsmedia/plugins/scrambler (node 16+?)
         * ./Importer (node 16+?)
+        * ./Sonify (node 16+?)
         * ./TP-Sampler (node 16+?)
 * Non-automated part: checking on readiness
     * ~~Check on CFM **production** branch changes.~~
@@ -84,23 +85,24 @@ Note that CODAP v3 has an entirely different deployment system.
       Generally speaking, it has been the practice to update the CFM in CODAP
       prior to the commencement of the build so this step is mainly a reminder.
       ~~CFM changes should have a PT story in they CODAP project, but they don’t always.~~
-      If there are CFM Changes, in the CODAP codeline run `npm run build:cfm`.
+      If there are CFM Changes, in the CODAP repository run `npm run build:cfm`.
       Commit the changes.
     * Check on strings file changes:
         * in codap directory: `npm run strings:update`
-        * then, `git status`. If the codeline is no longer clean, there have been changes
+          * note that the `strings:pull` script (which is called by `strings:update`) sometimes hangs part of the way through, so make sure it runs to completion before moving on. It can be useful to call `strings:pull` directly in these cases.
+        * then, `git status`. If the repository is no longer clean, there have been changes
         * if there are changes, they need to be propagated to plugins. Run
           `npm run strings:pull:plugins -- --APIToken=XXXX`. This, of course, may dirty one or more of the plugin directories, which will have to be committed.
         * Note that this will update strings for the standard plugins in the `codap-data-interactives` repository (which are built automatically) _and_ for the `story-builder` plugin (which is _not_ built or deployed automatically as part of the build process), so a separate deploy of `story-builder` will be required if there are strings changes that affect it.
     * Assess whether plugin version number is updated or needs to be updated.
       That is to say assess whether there have been changes since the plugin
       build number was last changed.
-      * If there have been, in the codap-data-interactives codeline run
+      * If there have been, in the codap-data-interactives repository run
         `npm run std:increment-build-number`.
     * Check on extension changes
         * in codap directory: `npm run record:extn`
             * this step records the git hashes for dependent directories in codap files.
-        * then run `git status`. If the codeline is no longer clean, there have been
+        * then run `git status`. If the repository is no longer clean, there have been
           changes. Commit them.
 * Automated part
     * In codap directory, switch to node 16 (nvm is useful for this) and run `bin/do-full-build-process`.
