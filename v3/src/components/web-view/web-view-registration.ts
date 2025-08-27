@@ -207,7 +207,7 @@ function importGuideView(args: V2TileImportArgs) {
   if (!isV2GuideViewComponent(v2Component)) return
 
   // parse the v2 content
-  const {componentStorage: {title, items, currentItemIndex, currentItemTitle, currentURL}} = v2Component
+  const {componentStorage: {name = "", items, currentItemIndex, currentItemTitle, currentURL}} = v2Component
   // create webView model
   const pages = items?.map((i) => ({
     title: i.itemTitle ?? undefined,
@@ -224,7 +224,7 @@ function importGuideView(args: V2TileImportArgs) {
   if (pageIndex == null) {
     pageIndex = 0 // fallback to first page
   }
-  return addWebViewSnapshot(args, title, { url: processWebViewUrl(pages[pageIndex]?.url ?? ""), pageIndex, pages })
+  return addWebViewSnapshot(args, name, { url: processWebViewUrl(pages[pageIndex]?.url ?? ""), pageIndex, pages })
 }
 registerV2TileImporter("DG.GuideView", importGuideView)
 
