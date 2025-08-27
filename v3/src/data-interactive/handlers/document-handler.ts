@@ -183,6 +183,7 @@ export const diDocumentHandler: DIHandler = {
                 }
                 row.setTilePosition(existingTile.id, layout)
                 row.setTileDimensions(existingTile.id, layout)
+                row.setTileMinimized(existingTile.id, isMinimized)
                 resultTile = existingTile
               }
               else {
