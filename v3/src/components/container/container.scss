@@ -19,7 +19,8 @@
 
 .vertical-toolbar-container {
   .codap-container {
+    flex: 1;
     height: 100%;
-    width: calc(100% - vars.$tool-shelf-width);
+    width: auto;
   }
 }

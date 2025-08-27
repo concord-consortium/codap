@@ -150,7 +150,7 @@ export const PluginsButton = observer(function PluginsButton() {
   const className = clsx("tool-shelf-button", "tool-shelf-menu", "plugins", getSpecialLangFontClassName())
   const placement = uiState.toolbarPosition === "Top" ? "bottom-start" : "right-start"
   return (
-    <div className="tool-shelf-button" ref={menuRef}>
+    <div className="tool-shelf-button no-padding" ref={menuRef}>
       <Menu
         autoSelect={false}
         boundary="scrollParent"

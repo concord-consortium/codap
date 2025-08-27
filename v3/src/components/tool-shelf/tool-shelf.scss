@@ -114,9 +114,11 @@ $tool-shelf-border-width: 1px;
 
 .vertical-toolbar-container {
   .tool-shelf {
+    align-items: stretch;
+    display: inline-flex;
     flex-direction: column;
     height: 100%;
-    width: vars.$tool-shelf-width;
+    width: auto;
 
     .tool-shelf-component-buttons, .tool-shelf-right-buttons {
       flex-direction: column;
@@ -124,11 +126,16 @@ $tool-shelf-border-width: 1px;
 
       .tool-shelf-button {
         height: 52px;
+        padding: 0 10px;
         width: 100%;
 
         &.first {
           height: 56px;
           padding-top: 4px;
+        }
+
+        &.no-padding {
+          padding: 0;
         }
 
         .tool-shelf-button-content, > span {
@@ -154,12 +161,12 @@ $tool-shelf-border-width: 1px;
         .tool-shelf-button-content, > span {
           flex-direction: row;
           justify-content: flex-start;
-          margin: 0;
+          margin: auto;
           width: 100%;
 
           svg {
             height: 24px;
-            margin: 0 5px 0 10px;
+            margin-right: 5px;
             width: 24px;
           }
         }
