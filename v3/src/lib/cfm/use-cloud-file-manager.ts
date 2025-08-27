@@ -238,7 +238,7 @@ export function useCloudFileManager(optionsArg: CFMAppOptions, onFileOpened?: ()
               menu: [
                 {
                   icon: ToolbarPositionIcon,
-                  name: `${t("V3.AppController.optionMenuItems.positionToolShelf")} ${uiState.toolbarPosition}`,
+                  name: t("V3.AppController.optionMenuItems.positionToolShelf"),
                   action() {
                     runInAction(() => {
                       uiState.setToolbarPosition(uiState.toolbarPosition === "Top" ? "Left" : "Top")
