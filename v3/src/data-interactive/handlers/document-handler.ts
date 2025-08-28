@@ -17,7 +17,8 @@ import { toV2Id, toV3GlobalId } from "../../utilities/codap-utils"
 import { isV2ExternalContext } from "../../v2/codap-v2-data-context-types"
 import { CodapV2DataSetImporter, getCaseDataFromV2ContextGuid } from "../../v2/codap-v2-data-set-importer"
 import { CodapV2Document } from "../../v2/codap-v2-document"
-import { GetCaseDataResult, importV2Component, LayoutTransformFn } from "../../v2/codap-v2-tile-importers"
+import {GetCaseDataResult, gV2PostImportSnapshotProcessors, importV2Component, LayoutTransformFn}
+  from "../../v2/codap-v2-tile-importers"
 import { ICodapV2DocumentJson } from "../../v2/codap-v2-types"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIHandler, DIResources, DIValues } from "../data-interactive-types"
@@ -125,7 +126,6 @@ export const diDocumentHandler: DIHandler = {
    }
 
     const reinstateComponents = () => {
-      const kRehydrateExistingTiles = true  // The alternative to rehydration is to delete and recreate tiles
       const { content } = document
       if (!content) {
         throw new Error("Document content is undefined")
@@ -150,18 +150,11 @@ export const diDocumentHandler: DIHandler = {
       }
 
       v2Document.components.forEach(v2Component => {
-        const insertTile = (tile: ITileModelSnapshotIn, transform?: LayoutTransformFn) => {
-          let existingTile = tileMap?.get(tile.id || '')
-          // If we are not rehydrating existing tiles, we check if the tile already exists
-          // and if it does, we delete it to insert a new one. But we never delete the WebView tile (almost certainly
-          // a Story Builder plugin) that subscribes to documents, as it is expected to be persistent.
-          if (!kRehydrateExistingTiles && existingTile && interactiveFrameId !== existingTile.id) {
-            content.deleteTile(existingTile.id || '') // Remove the existing tile
-            existingTile = undefined // Reset to ensure we insert a new tile
-          }
+        const insertTile = (tileSnapshot: ITileModelSnapshotIn, transform?: LayoutTransformFn) => {
+          const existingTile = tileMap?.get(tileSnapshot.id || '')
           let resultTile: ITileModel | undefined
-          if (row && tile) {
-            const info = getTileComponentInfo(tile.content.type)
+          if (row && tileSnapshot) {
+            const info = getTileComponentInfo(tileSnapshot.content.type)
             if (info) {
               const {
                 layout: { left = 0, top = 0, width, height: v2Height, isVisible, zIndex, x, y }, savedHeight
@@ -183,13 +176,17 @@ export const diDocumentHandler: DIHandler = {
                 // A webView that subscribes to documents (like Story Builder) should not be updated
                 const shouldBeUpdated = !(isWebViewModel(existingTile.content) &&
                   existingTile.content.subscribeToDocuments)
-                if (shouldBeUpdated) applySnapshot(existingTile, tile)
+                if (shouldBeUpdated) {
+                  const processedSnapshot = gV2PostImportSnapshotProcessors
+                    .get(existingTile.content.type)?.(existingTile, tileSnapshot)
+                  applySnapshot(existingTile, processedSnapshot || tileSnapshot)
+                }
                 row.setTilePosition(existingTile.id, layout)
                 row.setTileDimensions(existingTile.id, layout)
                 resultTile = existingTile
               }
               else {
-                resultTile = content.insertTileSnapshotInRow(tile, row, layout)
+                resultTile = content.insertTileSnapshotInRow(tileSnapshot, row, layout)
               }
             }
           }

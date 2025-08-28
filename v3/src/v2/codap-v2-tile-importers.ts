@@ -38,3 +38,16 @@ export function registerV2TileImporter(v2ComponentType: string, importFn: V2Tile
 export function importV2Component(args: V2TileImportArgs) {
   return gV2TileImporters.get(args.v2Component.type)?.(args)
 }
+
+export type V2TileSnapshotProcessorFn = (tileModel: ITileModel, tileSnap: ITileModelSnapshotIn) => ITileModelSnapshotIn
+
+// During the process of importing a tile, there may be a need to post-process the snapshot. For example, a
+// graph tile needs to post-process so that its GraphPointLayerModel gets the correct ID. Without doing so,
+// applySnapshot cannot determine that the sole element of the layers array is a GraphPointLayerModel.
+export const gV2PostImportSnapshotProcessors
+  = new Map<string, (tileModel: ITileModel, tileSnap: ITileModelSnapshotIn) => ITileModelSnapshotIn>()
+
+// register an importer for the specified v2 component type
+export function registerV2PostImportSnapshotProcessor(v2ComponentType: string, processorFn: V2TileSnapshotProcessorFn) {
+  gV2PostImportSnapshotProcessors.set(v2ComponentType, processorFn)
+}

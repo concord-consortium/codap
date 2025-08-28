@@ -3,7 +3,7 @@
  * It owns a vector of DataDisplayLayerModels.
  */
 import {comparer, reaction} from "mobx"
-import {addDisposer, Instance, types} from "mobx-state-tree"
+import {addDisposer, Instance, SnapshotIn, types} from "mobx-state-tree"
 import { format } from "d3"
 import { formatDate } from "../../../utilities/date-utils"
 import { IValueType } from "../../../models/data/attribute-types"
@@ -194,6 +194,7 @@ export const DataDisplayContentModel = TileContentModel
     }
   }))
 export interface IDataDisplayContentModel extends Instance<typeof DataDisplayContentModel> {}
+export interface IDataDisplayContentModelSnapshotIn extends SnapshotIn<typeof DataDisplayContentModel> {}
 
 export function isDataDisplayContentModel(model?: IBaseDataDisplayModel): model is IDataDisplayContentModel {
   // Currently checking for any type is enough to ensure this is a IDataDisplayContentModel
