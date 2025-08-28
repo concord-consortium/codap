@@ -376,6 +376,15 @@ export const LSRLAdornment = observer(function LSRLAdornment(props: IAdornmentCo
       handleHighlightLineAndEquation, handleMoveEquation, model, plotHeight, plotWidth, showConfidenceBands,
       updateConfidenceBands, updateEquations, xAxis, yAxis])
 
+  // Refresh values on changes to model's computed values
+  useEffect(function refreshInterceptLockChange() {
+    return mstReaction(
+      () => model.changeCount,
+      () => {
+        buildElements()
+      }, { name: "LSRLAdornmentComponent.refreshInterceptLockChange" }, model)
+  }, [buildElements, model, model.changeCount])
+
   // Refresh values on interceptLocked change
   useEffect(function refreshInterceptLockChange() {
     return mstReaction(
