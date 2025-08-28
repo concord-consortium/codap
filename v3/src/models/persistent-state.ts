@@ -11,7 +11,11 @@ export const PersistentState = types.model("PersistentState", {
 })
 .actions(self => ({
   save() {
-    localStorage.setItem(kPersistentStateKey, JSON.stringify(getSnapshot(self)))
+    try {
+      localStorage.setItem(kPersistentStateKey, JSON.stringify(getSnapshot(self)))
+    } catch (e) {
+      //
+    }
   }
 }))
 .actions(self => ({
@@ -22,7 +26,12 @@ export const PersistentState = types.model("PersistentState", {
 }))
 
 function getSavedSnapshot() {
-  const storedState = localStorage.getItem(kPersistentStateKey)
+  let storedState: string | null = null
+  try {
+    storedState = localStorage.getItem(kPersistentStateKey)
+  } catch (e) {
+    //
+  }
   return storedState ? JSON.parse(storedState) : {}
 }
 
