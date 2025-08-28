@@ -140,7 +140,7 @@ export function v2MapImporter({v2Component, v2Document, getCaseData, insertTile}
 }
 
 export function v2MapPostImportSnapshotProcessor(
-  tileModel:ITileModel, tileSnap:ITileModelSnapshotIn): ITileModelSnapshotIn
+  tileModel: ITileModel, tileSnap: ITileModelSnapshotIn): ITileModelSnapshotIn
 {
   if (tileSnap.content?.type !== "Map") return tileSnap
   return v2DataDisplayPostImportSnapshotProcessor(tileModel, tileSnap)
