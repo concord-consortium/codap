@@ -3,6 +3,7 @@ import { observer } from "mobx-react-lite"
 import { clsx } from "clsx"
 import { Menu, MenuButton, MenuItem, MenuList, useDisclosure } from "@chakra-ui/react"
 import { useDocumentContent } from "../../hooks/use-document-content"
+import { persistentState } from "../../models/persistent-state"
 import { uiState } from "../../models/ui-state"
 import { isFreeTileLayout } from "../../models/document/free-tile-row"
 import { getSpecialLangFontClassName, t } from "../../utilities/translation/translate"
@@ -35,7 +36,7 @@ export const TilesListShelfButton = observer(function TilesListShelfButton() {
     uiState.setHoveredTile("")
   }
 
-  const placement = uiState.toolbarPosition === "Top" ? "bottom-end" : "right-end"
+  const placement = persistentState.toolbarPosition === "Top" ? "bottom-end" : "right-end"
   return (
     <>
       <Menu isLazy autoSelect={false} isOpen={isOpen} onOpen={onOpen} onClose={onClose} placement={placement}>

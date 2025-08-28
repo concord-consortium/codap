@@ -8,7 +8,7 @@ import { useOutsidePointerDown } from "../../hooks/use-outside-pointer-down"
 import { useRemotePluginsConfig } from "../../hooks/use-remote-plugins-config"
 import { DEBUG_PLUGINS } from "../../lib/debug"
 import { logMessageWithReplacement } from "../../lib/log-message"
-import { uiState } from "../../models/ui-state"
+import { persistentState } from "../../models/persistent-state"
 import { getSpecialLangFontClassName, t } from "../../utilities/translation/translate"
 import { kWebViewTileType } from "../web-view/web-view-defs"
 import { isWebViewModel } from "../web-view/web-view-model"
@@ -148,7 +148,7 @@ export const PluginsButton = observer(function PluginsButton() {
   })
 
   const className = clsx("tool-shelf-button", "tool-shelf-menu", "plugins", getSpecialLangFontClassName())
-  const placement = uiState.toolbarPosition === "Top" ? "bottom-start" : "right-start"
+  const placement = persistentState.toolbarPosition === "Top" ? "bottom-start" : "right-start"
   return (
     <div className="tool-shelf-button no-padding" ref={menuRef}>
       <Menu

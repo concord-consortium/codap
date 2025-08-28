@@ -7,8 +7,6 @@ import { RulerState, RulerStateKey } from "./ui-state-types"
   It can be manually saved by copying it into the document during pre-serialization if desired.
  */
 export class UIState {
-  @observable
-  toolbarPosition: "Top" | "Left" = "Top"
   // the focused tile is a singleton; in theory there can be multiple selected tiles
   @observable
   private focusTileId = ""
@@ -89,11 +87,6 @@ export class UIState {
 
   isHoveredTile(tileId?: string) {
     return this.hoverTileId === tileId
-  }
-
-  @action
-  setToolbarPosition(position: "Top" | "Left") {
-    this.toolbarPosition = position
   }
 
   @action

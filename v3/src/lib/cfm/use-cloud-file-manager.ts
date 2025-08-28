@@ -6,7 +6,7 @@ import { useMemo } from "use-memo-one"
 import { codapResourcesUrl } from "../../constants"
 import { appState } from "../../models/app-state"
 import { isCodapDocument } from "../../models/codap/create-codap-document"
-import { uiState } from "../../models/ui-state"
+import { persistentState } from "../../models/persistent-state"
 import { gLocale } from "../../utilities/translation/locale"
 import { t } from "../../utilities/translation/translate"
 import { removeDevUrlParams, urlParams } from "../../utilities/url-params"
@@ -241,7 +241,7 @@ export function useCloudFileManager(optionsArg: CFMAppOptions, onFileOpened?: ()
                   name: t("V3.AppController.optionMenuItems.positionToolShelf"),
                   action() {
                     runInAction(() => {
-                      uiState.setToolbarPosition(uiState.toolbarPosition === "Top" ? "Left" : "Top")
+                      persistentState.setToolbarPosition(persistentState.toolbarPosition === "Top" ? "Left" : "Top")
                     })
                   }
                 }

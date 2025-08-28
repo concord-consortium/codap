@@ -24,7 +24,7 @@ import { AttributeFormulaAdapter } from "../models/formula/attribute-formula-ada
 import { FilterFormulaAdapter } from "../models/formula/filter-formula-adapter"
 import { ISharedDataSet } from "../models/shared/shared-data-set"
 import { getSharedModelManager } from "../models/tiles/tile-environment"
-import { uiState } from "../models/ui-state"
+import { persistentState } from "../models/persistent-state"
 import { registerTileTypes } from "../register-tile-types"
 import { importSample, sampleData } from "../sample-data"
 import { t } from "../utilities/translation/translate"
@@ -186,7 +186,7 @@ export const App = observer(function App() {
   const { fallbackRender } = useUncaughtErrorHandler(cfm)
 
   const toolbarContainerClassName =
-    clsx("toolbar-container", { "vertical-toolbar-container": uiState.toolbarPosition === "Left" })
+    clsx("toolbar-container", { "vertical-toolbar-container": persistentState.toolbarPosition === "Left" })
   return (
     <CodapDndContext>
       <DocumentContentContext.Provider value={appState.document.content}>

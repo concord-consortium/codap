@@ -16,7 +16,7 @@ import { kSharedDataSetType, SharedDataSet } from "../../models/shared/shared-da
 import { getFormulaManager, getSharedModelManager } from "../../models/tiles/tile-environment"
 import { ITileModel } from "../../models/tiles/tile-model"
 import { createTileNotification } from "../../models/tiles/tile-notifications"
-import { uiState } from "../../models/ui-state"
+import { persistentState } from "../../models/persistent-state"
 import { uniqueName } from "../../utilities/js-utils"
 import { getSpecialLangFontClassName, t } from "../../utilities/translation/translate"
 import { createOrShowTableOrCardForDataset, createTableOrCardForDataset } from "../case-tile-common/case-tile-utils"
@@ -128,7 +128,7 @@ export const CaseTableToolShelfButton = observer(function CaseTableToolShelfButt
   const onOpen = () => setIsOpen(true)
   const langClass = getSpecialLangFontClassName()
 
-  const placement = uiState.toolbarPosition === "Top" ? "bottom-start" : "right-start"
+  const placement = persistentState.toolbarPosition === "Top" ? "bottom-start" : "right-start"
   return (
     <Menu isLazy autoSelect={false} isOpen={isOpen} onOpen={onOpen} onClose={onClose} placement={placement}>
       <MenuButton className={clsx("tool-shelf-button tool-shelf-menu table first", langClass, {"menu-open": isOpen})}
