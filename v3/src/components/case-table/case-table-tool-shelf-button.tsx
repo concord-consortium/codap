@@ -16,6 +16,7 @@ import { kSharedDataSetType, SharedDataSet } from "../../models/shared/shared-da
 import { getFormulaManager, getSharedModelManager } from "../../models/tiles/tile-environment"
 import { ITileModel } from "../../models/tiles/tile-model"
 import { createTileNotification } from "../../models/tiles/tile-notifications"
+import { persistentState } from "../../models/persistent-state"
 import { uniqueName } from "../../utilities/js-utils"
 import { getSpecialLangFontClassName, t } from "../../utilities/translation/translate"
 import { createOrShowTableOrCardForDataset, createTableOrCardForDataset } from "../case-tile-common/case-tile-utils"
@@ -80,7 +81,7 @@ const CaseTableToolShelfMenuList = observer(
   }
   return (
     <>
-      <MenuList className="tool-shelf-menu-list table" data-testid="tool-shelf-table-menu-list">
+      <MenuList className="tool-shelf-menu-list top-menu table" data-testid="tool-shelf-table-menu-list">
         <MenuItem data-testid="tool-shelf-table-new" className="tool-shelf-menu-item table-menu-item"
             onClick={handleCreateNewCaseTable}>
           <TableIcon className="menu-icon case-table-icon"/>
@@ -121,15 +122,16 @@ const CaseTableToolShelfMenuList = observer(
   )
 })
 
-export const CaseTableToolShelfButton = () => {
+export const CaseTableToolShelfButton = observer(function CaseTableToolShelfButton() {
   const [isOpen, setIsOpen] = useState(false)
   const onClose = () => setIsOpen(false)
   const onOpen = () => setIsOpen(true)
   const langClass = getSpecialLangFontClassName()
 
+  const placement = persistentState.toolbarPosition === "Top" ? "bottom-start" : "right-start"
   return (
-    <Menu isLazy autoSelect={false} isOpen={isOpen} onOpen={onOpen} onClose={onClose}>
-      <MenuButton className={clsx("tool-shelf-button", "tool-shelf-menu", "table", langClass, {"menu-open": isOpen})}
+    <Menu isLazy autoSelect={false} isOpen={isOpen} onOpen={onOpen} onClose={onClose} placement={placement}>
+      <MenuButton className={clsx("tool-shelf-button tool-shelf-menu table first", langClass, {"menu-open": isOpen})}
           title={`${t("DG.ToolButtonData.tableButton.toolTip")}`}
           data-testid={"tool-shelf-button-table"}>
         <TableIcon className="menu-icon case-table-icon" />
@@ -138,7 +140,7 @@ export const CaseTableToolShelfButton = () => {
       <CaseTableToolShelfMenuList setMenuIsOpen={setIsOpen} />
     </Menu>
   )
-}
+})
 
 interface IDeleteDataSetModalProps {
   dataSetId: string
