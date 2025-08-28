@@ -12,8 +12,9 @@ import { registerV2TileExporter } from "../../v2/codap-v2-tile-exporters"
 import { registerV2PostImportSnapshotProcessor, registerV2TileImporter } from "../../v2/codap-v2-tile-importers"
 import { ComponentTitleBar } from "../component-title-bar"
 import { PlottedFunctionFormulaAdapter } from "./adornments/plotted-function/plotted-function-formula-adapter"
-import { PlottedValueFormulaAdapter }
-  from "./adornments/univariate-measures/plotted-value/plotted-value-formula-adapter"
+import {
+  PlottedValueFormulaAdapter
+} from "./adornments/univariate-measures/plotted-value/plotted-value-formula-adapter"
 import { GraphComponent } from "./components/graph-component"
 import { GraphInspector } from "./components/graph-inspector"
 import { graphComponentHandler } from "./graph-component-handler"
