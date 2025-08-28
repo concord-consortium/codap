@@ -101,8 +101,8 @@ export const LSRLAdornmentModel = AdornmentModel
       const caseValueX = dataDisplayGetNumericValue(dataset, caseId, xAttrId)
       const caseValueY = dataDisplayGetNumericValue(dataset, caseId, yAttrId)
       const caseValueLegend = dataset?.getValue(caseId, legendAttrId)
-      const isValidX = caseValueX && Number.isFinite(caseValueX)
-      const isValidY = caseValueY && Number.isFinite(caseValueY)
+      const isValidX = isFiniteNumber(caseValueX)
+      const isValidY = isFiniteNumber(caseValueY)
       const categoryMatch = cat === kMain || caseValueLegend === cat
       if (isValidX && isValidY && categoryMatch) {
         caseValues.push({x: caseValueX, y: caseValueY})
