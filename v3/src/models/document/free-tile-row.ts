@@ -174,6 +174,10 @@ export const FreeTileRow = TileRowModel
         const { x = freeTileLayout.x, y = freeTileLayout.y } = position
         freeTileLayout?.setPosition(x, y)
       }
+    },
+    setTileMinimized(tileId: string, isMinimized: boolean = false) {
+      const freeTileLayout = self.getNode(tileId)
+      freeTileLayout?.setMinimized(isMinimized)
     }
   }))
 export interface IFreeTileRow extends Instance<typeof FreeTileRow> {}
