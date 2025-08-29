@@ -455,9 +455,10 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
     return self.collections.find(coll => coll.getAttribute(attributeId))
   }
 
+  // returns index of collection containing attribute, or last collection if attribute not given
   function getCollectionIndexForAttribute(attributeId: string): number | undefined {
     const id = getCollectionForAttribute(attributeId)?.id
-    return id ? getCollectionIndex(id) : undefined
+    return id ? getCollectionIndex(id) : self.collections.length - 1
   }
 
   function getUniqueCollectionName(name: string) {
