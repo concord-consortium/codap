@@ -73,7 +73,7 @@ export const TextTile = observer(function TextTile({ tile }: ITileBaseProps) {
   function handleBlur() {
     // update the model on blur, not on every change (e.g. keystroke)
     if (textModel && !textModel.isEquivalent(editor.children)) {
-      // handleBlur only gets called if the text or style has changed
+      // We only get here if the text or style has changed
       textModel?.applyModelChange(() => {
         textModel.setValueFromEditor(editor.children)
       }, {
