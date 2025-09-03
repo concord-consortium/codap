@@ -1,7 +1,8 @@
-import { TableTileElements as table } from "../support/elements/table-tile"
+import { CfmElements as cfm } from "../support/elements/cfm"
 import { ComponentElements as c } from "../support/elements/component-elements"
-import { ToolbarElements as toolbar } from "../support/elements/toolbar-elements"
 import { ColorPickerPaletteElements as cpp } from "../support/elements/color-picker-palette"
+import { TableTileElements as table } from "../support/elements/table-tile"
+import { ToolbarElements as toolbar } from "../support/elements/toolbar-elements"
 
 context("case table ui", () => {
   const numOfAttributes = 10
@@ -99,8 +100,7 @@ context("case table ui", () => {
     // it("verify index column cannot be reordered", () => {
     // })
   })
-  // TODO: add tests for: Rerandomize All, Export Case Data, Copy to Clipboard,
-  // Import Case Data from Clipboard (PT: #184432150)
+  // TODO: add tests for: Rerandomize All, Export Case Data, Import Case Data from Clipboard (PT: #184432150)
   describe("case table Inspector menu options", () => {
     it("should open dataset information button and make changes", () => {
       const newInfoName = "Animals",
@@ -464,6 +464,20 @@ context("case table ui", () => {
         table.getExportDataCollectionListItems().contains("Tracks").click()
         table.getExportDataCopyButton().click()
         table.getCopiedCasesAlert().should("contain", "Copied 4 Tracks to the clipboard")
+        table.getCopiedCasesAlertOkButton().click()
+
+        cy.log("check new table from clipboard")
+        cfm.openExampleDocument("Mammals")
+        c.clickIconFromToolShelf("table")
+        toolbar.getNewCaseTableFromClipboard().click()
+        c.getComponentTitle("table", 1).should("contain", "clipboard data")
+        table.getAttributeHeader().should("contain", "animal id")
+        table.getAttributeHeader().should("contain", "species")
+        table.getNumOfRows(1, 1).should("eq", "6") // Header row + 4 data rows + 1 input row
+        c.closeComponent("table", 1)
+
+        // TODO: Add test for importing data from clipboard into existing table.
+        // I couldn't figure out how to confirm in the Importer plugin.
       })
     })
   })

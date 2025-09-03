@@ -57,5 +57,4 @@ export const WebViewTileElements = {
   clearAPITesterResponses() {
     WebViewTileElements.getIFrame().find(`#clear-log-button`).click()
   }
-
 }
