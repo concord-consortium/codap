@@ -41,12 +41,12 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
   const layout = useGraphLayoutContext()
   const dataConfig = useGraphDataConfigurationContext()
   const { xAttrId, yAttrId, xAttrType } = useAdornmentAttributes()
+  const isVerticalRef = useRef(!!(xAttrType && xAttrType === "numeric"))
   const { cellCounts } = useAdornmentCells(model, cellKey)
   const helper = useMemo(() => {
-    return new UnivariateMeasureAdornmentHelper(cellKey, layout, model, containerId)
+    return new UnivariateMeasureAdornmentHelper(cellKey, isVerticalRef, layout, model, containerId)
   }, [cellKey, containerId, layout, model])
   const attrId = xAttrId && xAttrType === "numeric" ? xAttrId : yAttrId
-  const isVertical = useRef(!!(xAttrType && xAttrType === "numeric"))
   const boxPlotOffset = 5
   const secondaryAxisX = plotWidth / cellCounts.x / 2 - boxPlotOffset
   const secondaryAxisY = plotHeight / cellCounts.y / 2 - boxPlotOffset
@@ -80,10 +80,10 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
       .attr("d", "M0, -3 V3 M-3, 0 H3")
       .attr("transform", (d: number) => {
         const index = outliers.indexOf(d)
-        const x = isVertical.current
+        const x = isVerticalRef.current
           ? helper.xScale(outliers[index]) / cellCounts.x
           : secondaryAxisX
-        const y = isVertical.current
+        const y = isVerticalRef.current
           ? secondaryAxisY
           : helper.yScale(outliers[index]) / cellCounts.y
         return `translate(${x}, ${y})`
@@ -107,13 +107,13 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
         .attr("ry", 3)
         .attr("x", (d: number) => {
           const index = outliers.indexOf(d)
-          return isVertical.current
+          return isVerticalRef.current
             ? helper.xScale(outliers[index]) / cellCounts.x - outlierOffset
             : secondaryAxisX - outlierOffset
         })
         .attr("y", (d: number) => {
           const index = outliers.indexOf(d)
-          return isVertical.current
+          return isVerticalRef.current
             ? secondaryAxisY - outlierOffset
             : helper.yScale(outliers[index]) / cellCounts.y - outlierOffset
         })
@@ -123,16 +123,16 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
     const subplotWidth = plotWidth / cellCounts.x
     const subplotHeight = plotHeight / cellCounts.y
     const lower = {
-      x1: !isVertical.current ? subplotWidth / 2 : helper.xScale(minVal) / cellCounts.x,
-      x2: !isVertical.current ? subplotWidth / 2 : helper.xScale(rangeMin) / cellCounts.x,
-      y1: isVertical.current ? subplotHeight / 2 : helper.yScale(minVal) / cellCounts.y,
-      y2: isVertical.current ? subplotHeight / 2 : helper.yScale(rangeMin) / cellCounts.y
+      x1: !isVerticalRef.current ? subplotWidth / 2 : helper.xScale(minVal) / cellCounts.x,
+      x2: !isVerticalRef.current ? subplotWidth / 2 : helper.xScale(rangeMin) / cellCounts.x,
+      y1: isVerticalRef.current ? subplotHeight / 2 : helper.yScale(minVal) / cellCounts.y,
+      y2: isVerticalRef.current ? subplotHeight / 2 : helper.yScale(rangeMin) / cellCounts.y
     }
     const upper = {
-      x1: !isVertical.current ? subplotWidth / 2 : helper.xScale(rangeMax) / cellCounts.x,
-      x2: !isVertical.current ? subplotWidth / 2 : helper.xScale(maxVal) / cellCounts.x,
-      y1: isVertical.current ? subplotHeight / 2 : helper.yScale(rangeMax) / cellCounts.y,
-      y2: isVertical.current ? subplotHeight / 2 : helper.yScale(maxVal) / cellCounts.y
+      x1: !isVerticalRef.current ? subplotWidth / 2 : helper.xScale(rangeMax) / cellCounts.x,
+      x2: !isVerticalRef.current ? subplotWidth / 2 : helper.xScale(maxVal) / cellCounts.x,
+      y1: isVerticalRef.current ? subplotHeight / 2 : helper.yScale(rangeMax) / cellCounts.y,
+      y2: isVerticalRef.current ? subplotHeight / 2 : helper.yScale(maxVal) / cellCounts.y
     }
     return {lower, upper}
   }, [cellCounts, helper, plotHeight, plotWidth])
@@ -152,7 +152,7 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
     const coverUpperId = helper.generateIdString("whisker-upper-cover")
     const whiskerCoords = calculateWhiskerCoords(minWhiskerValue, maxWhiskerValue, range.min, range.max)
     const whiskerLowerLineSpecs = {
-      isVertical: isVertical.current,
+      isVertical: isVerticalRef.current,
       lineClass: lineLowerClass,
       lineId: lineLowerId,
       offset: -5,
@@ -163,7 +163,7 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
     }
     const whiskerLowerCoverSpecs = {...whiskerLowerLineSpecs, lineClass: coverLowerClass, lineId: coverLowerId}
     const whiskerUpperLineSpecs = {
-      isVertical: isVertical.current,
+      isVertical: isVerticalRef.current,
       lineClass: lineUpperClass,
       lineId: lineUpperId,
       offset: -5,
@@ -189,10 +189,10 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
       const subplotWidth = plotWidth / cellCounts.x
       const subplotHeight = plotHeight / cellCounts.y
       return {
-        x1: !isVertical.current ? subplotWidth / 2 : helper.xScale(iciRange.min) / cellCounts.x,
-        x2: !isVertical.current ? subplotWidth / 2 : helper.xScale(iciRange.max) / cellCounts.x,
-        y1: isVertical.current ? subplotHeight / 2 : helper.yScale(iciRange.min) / cellCounts.y,
-        y2: isVertical.current ? subplotHeight / 2 : helper.yScale(iciRange.max) / cellCounts.y
+        x1: !isVerticalRef.current ? subplotWidth / 2 : helper.xScale(iciRange.min) / cellCounts.x,
+        x2: !isVerticalRef.current ? subplotWidth / 2 : helper.xScale(iciRange.max) / cellCounts.x,
+        y1: isVerticalRef.current ? subplotHeight / 2 : helper.yScale(iciRange.min) / cellCounts.y,
+        y2: isVerticalRef.current ? subplotHeight / 2 : helper.yScale(iciRange.max) / cellCounts.y
       }
     }
 
@@ -201,14 +201,14 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
         graphHeight = layout.plotHeight,
         cellWidth = graphWidth / cellCounts.x,
         cellHeight = graphHeight / cellCounts.y,
-        lowerCoord = isVertical.current ? helper.xScale(iciRange.min) / cellCounts.x
+        lowerCoord = isVerticalRef.current ? helper.xScale(iciRange.min) / cellCounts.x
           : helper.yScale(iciRange.min) / cellCounts.y,
-        upperCoord = isVertical.current ? helper.xScale(iciRange.max) / cellCounts.x
+        upperCoord = isVerticalRef.current ? helper.xScale(iciRange.max) / cellCounts.x
           : helper.yScale(iciRange.max) / cellCounts.y,
-        templatePath = isVertical.current
+        templatePath = isVerticalRef.current
           ? `M%@,%@ v%@ M%@,%@ v%@`
           : `M%@,%@ h%@ M%@,%@ h%@`,
-        replacementVars = isVertical.current
+        replacementVars = isVerticalRef.current
           ? [
             lowerCoord + cellCoords.col * cellWidth, 0, graphHeight,
             upperCoord + cellCoords.col * cellWidth, 0, graphHeight
@@ -229,7 +229,7 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
     const iciCoverId = helper.generateIdString("ici-cover")
     const iciCoords = calculateIciCoords()
     const iciSpecs = {
-      isVertical: isVertical.current,
+      isVertical: isVerticalRef.current,
       lineClass: iciClass,
       lineId: iciId,
       offset: -5,
@@ -264,16 +264,16 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
         const subplotHeight = plotHeight / cellCounts.y
         const offset = 2 * boxPlotOffset
         return {
-          x1: !isVertical.current ? subplotWidth / 2 - offset : helper.xScale(value) / cellCounts.x,
-          x2: !isVertical.current ? subplotWidth / 2 + offset : helper.xScale(value) / cellCounts.x,
-          y1: isVertical.current ? subplotHeight / 2 - offset : helper.yScale(value) / cellCounts.y,
-          y2: isVertical.current ? subplotHeight / 2 + offset : helper.yScale(value) / cellCounts.y
+          x1: !isVerticalRef.current ? subplotWidth / 2 - offset : helper.xScale(value) / cellCounts.x,
+          x2: !isVerticalRef.current ? subplotWidth / 2 + offset : helper.xScale(value) / cellCounts.x,
+          y1: isVerticalRef.current ? subplotHeight / 2 - offset : helper.yScale(value) / cellCounts.y,
+          y2: isVerticalRef.current ? subplotHeight / 2 + offset : helper.yScale(value) / cellCounts.y
         }
       }
 
       const qCoords = calculateQCoords(qValue)
       return {
-        isVertical: isVertical.current,
+        isVertical: isVerticalRef.current,
         lineClass: qCoverClass,
         lineId: qCoverId,
         offset: -5,
@@ -357,7 +357,7 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
       for (let i = 0; i < lowerOutliers.length; i++) {
         const coverId = helper.generateIdString("outlier-cover")
         labelsObj.label = container.append("div")
-          .text(helper.formatValueForScale(isVertical.current, lowerOutliers[i]))
+          .text(helper.formatValueForScale(lowerOutliers[i]))
           .attr("class", "measure-tip measure-labels-tip box-plot-label")
           .attr("id", `${textId}-lower-outlier-${i}`)
           .attr("data-testid", `${textId}-${i}`)
@@ -369,7 +369,7 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
       for (let i = 0; i < upperOutliers.length; i++) {
         const coverId = helper.generateIdString("outlier-cover")
         labelsObj.label = container.append("div")
-          .text(helper.formatValueForScale(isVertical.current, upperOutliers[i]))
+          .text(helper.formatValueForScale(upperOutliers[i]))
           .attr("class", "measure-tip measure-labels-tip box-plot-label")
           .attr("id", `${textId}-upper-outlier-${i}`)
           .attr("data-testid", `${textId}-${i}`)
@@ -385,14 +385,14 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
 
     const addMedian = () => {
       const lineSpecs = {
-        isVertical: isVertical.current,
+        isVertical: isVerticalRef.current,
         lineClass,
         lineId,
         offset: boxPlotOffset * -1,
-        x1: !isVertical.current ? coords.x1 - boxPlotOffset : coords.x1,
-        x2: !isVertical.current ? coords.x2 + boxPlotOffset * 3 : coords.x1,
-        y1: isVertical.current ? coords.y1 - boxPlotOffset : coords.y1,
-        y2: isVertical.current ? coords.y2 + boxPlotOffset * 3 : coords.y1
+        x1: !isVerticalRef.current ? coords.x1 - boxPlotOffset : coords.x1,
+        x2: !isVerticalRef.current ? coords.x2 + boxPlotOffset * 3 : coords.x1,
+        y1: isVerticalRef.current ? coords.y1 - boxPlotOffset : coords.y1,
+        y2: isVerticalRef.current ? coords.y2 + boxPlotOffset * 3 : coords.y1
       }
       const coverSpecs = {...lineSpecs, lineClass: coverClass, lineId: coverId}
       valueObj.line = helper.newLine(valueRef.current, lineSpecs)
@@ -404,11 +404,11 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
     if (value === undefined || isNaN(value)) return
 
     const { coords, coverClass, coverId, lineClass, lineId, measureRange } =
-      helper.adornmentSpecs(attrId, dataConfig, value, isVertical.current, cellCounts, secondaryAxisX, secondaryAxisY)
+      helper.adornmentSpecs(attrId, dataConfig, value, cellCounts, secondaryAxisX, secondaryAxisY)
     const { median, lowerQuartile, upperQuartile, iqr,
             minWhiskerValue, maxWhiskerValue } = model.getBoxPlotParams(cellKey)
     const translationVars = [ minWhiskerValue, lowerQuartile, median, upperQuartile, maxWhiskerValue, iqr ]
-      .map(v => helper.formatValueForScale(isVertical.current, v))
+      .map(v => helper.formatValueForScale(v))
     let textContent = `${t(model.labelTitle, { vars: translationVars })}`
 
     if ((measureRange?.min || measureRange?.min === 0) && (measureRange?.max || measureRange?.max === 0)) {
@@ -417,7 +417,7 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
         coords,
         coverClass,
         extentForSecondaryAxis: "20px",
-        isVertical: isVertical.current,
+        isVertical: isVerticalRef.current,
         lineClass,
         lineOffset: boxPlotOffset * -1,
         rangeMin: measureRange.min,
@@ -438,8 +438,8 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
       const iciRange = model.computeICIRange(attrId, cellKey, dataConfig)
       addICI(valueObj)
       textContent += `\n${t('ICI: [%@, %@]',
-        { vars: [helper.formatValueForScale(isVertical.current, iciRange.min),
-            helper.formatValueForScale(isVertical.current, iciRange.max)] })}`
+        { vars: [helper.formatValueForScale(iciRange.min),
+            helper.formatValueForScale(iciRange.max)] })}`
     }
     addBoxPlotLabels(textContent, valueObj, labelsObj)
   }, [addBoxPlotLabels, addICI, addWhiskers, addQCovers, attrId, cellCounts, cellKey, dataConfig,
@@ -475,7 +475,7 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
       xAxis={xAxis}
       yAxis={yAxis}
       refreshValues={refreshValues}
-      setIsVertical={(adornmentIsVertical: boolean) => { isVertical.current = adornmentIsVertical }}
+      setIsVertical={(adornmentIsVertical: boolean) => { isVerticalRef.current = adornmentIsVertical }}
     />
   )
 })

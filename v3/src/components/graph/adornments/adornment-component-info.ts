@@ -11,6 +11,7 @@ export interface IAdornmentComponentProps {
   plotWidth: number
   xAxis?: IBaseNumericAxisModel
   yAxis?: IBaseNumericAxisModel
+  labelsDivRef?: React.RefObject<HTMLDivElement>
   spannerRef?: React.RefObject<SVGSVGElement>
 }
 
