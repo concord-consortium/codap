@@ -27,7 +27,7 @@ export const ToolbarElements = {
     return cy.get("[data-testid=tool-shelf-table-new]")
   },
   getNewCaseTableFromClipboard() {
-    return cy.get("[data-testid=tool-shelf-table-new]")
+    return cy.get("[data-testid=tool-shelf-table-new-clipboard]")
   },
   getDatasetListedInToolShelf(dataset: string) {
     return cy.get(`[data-testid="tool-shelf-table-${dataset}"]`)

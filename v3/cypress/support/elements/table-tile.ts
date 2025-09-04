@@ -22,16 +22,16 @@ export const TableTileElements = {
   getNumOfAttributes() {
     return cy.get("[data-testid=collection-table-grid]").invoke("attr", "aria-colcount")
   },
-  getNumOfRows(collectionIndex = 1) {
-    return this.getCollection(collectionIndex).find("[data-testid=collection-table-grid]")
+  getNumOfRows(collectionIndex = 1, tableIndex = 0) {
+    return this.getCollection(collectionIndex, tableIndex).find("[data-testid=collection-table-grid]")
       .invoke("attr", "aria-rowcount")
   },
   getSelectedRows(collectionIndex = 1) {
     return this.getCollection(collectionIndex)
             .find(`[data-testid=collection-table-grid] [role="row"][aria-selected="true"]`)
   },
-  getCollection(collectionIndex = 1) {
-    return this.getTableTile().find(`.collection-table:nth-child(${collectionIndex})`)
+  getCollection(collectionIndex = 1, tableIndex = 0) {
+    return this.getTableTile(tableIndex).find(`.collection-table:nth-child(${collectionIndex})`)
   },
   getCollectionSpacer(collectionIndex = 1) {
     return this.getCollection(collectionIndex).find(".collection-table-spacer")
@@ -311,6 +311,9 @@ export const TableTileElements = {
   },
   getCopyToClipboardItem() {
     return this.getRulerMenuItem("Copy to Clipboard...")
+  },
+  getImportFromClipboardItem() {
+    return this.getRulerMenuItem("Import Case Data from Clipboard...")
   },
   getCopiedCasesAlert() {
     return cy.get(".copied-cases-alert-content")
