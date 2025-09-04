@@ -42,8 +42,7 @@
           {
             "name": "k",
             "type": "number",
-            "description": "The number of items to be drawn from the set (a non-negative integer).",
-            "optional": true
+            "description": "The number of items to be drawn from the set (a non-negative integer)."
           }
         ],
         "examples": [
@@ -829,6 +828,8 @@
       },
       { "displayName": "randomPick",
         "description": "Given a list of arguments, chooses one at random and returns it.",
+        "minArgs": 2,
+        "maxArgs": 1000,
         "args": [],
         "examples": [
           "randomPick(1,2,3,4,5,6) makes a die, returning one of the number 1–6 chosen at random.",

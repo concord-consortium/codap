@@ -1,31 +1,10 @@
 import {Divider, Flex, List, ListItem,} from "@chakra-ui/react"
 import React, { useEffect, useState } from "react"
 
-import _functionCategoryInfoArray from "../../assets/json/function-strings.json5"
+import { functionCategoryInfoArray, FunctionInfo } from "../../lib/functions"
 import { useFormulaEditorContext } from "./formula-editor-context"
 
 import "./formula-insert-menus.scss"
-
-interface FunctionArgInfo {
-  name: string
-  type: string
-  description: string
-  optional?: boolean    // defaults to false (i.e. required)
-}
-interface FunctionInfo {
-  displayName: string
-  description: string
-  args: FunctionArgInfo[]
-  examples: string[]
-}
-
-interface FunctionCategoryInfo {
-  category: string
-  displayName: string
-  functions: FunctionInfo[]
-}
-
-const functionCategoryInfoArray: FunctionCategoryInfo[] = _functionCategoryInfoArray
 
 const kMenuGap = 3
 
