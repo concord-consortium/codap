@@ -132,7 +132,7 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(props: ITil
         <Button
           className="component-title-bar-button component-minimize-button"
           data-testid="component-minimize-button"
-          onPointerDown={onMinimizeTile}
+          onClick={onMinimizeTile}
           title={t("DG.Component.minimizeComponent.toolTip")}
         >
           <MinimizeIcon className="component-minimize-icon"/>
@@ -141,7 +141,7 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(props: ITil
           <Button
             className="component-title-bar-button component-close-button"
             data-testid="component-close-button"
-            onPointerDown={() => onCloseTile?.(tileId)}
+            onClick={() => onCloseTile?.(tileId)}
             title={t("DG.Component.closeComponent.toolTip")}
           >
             <CloseIcon className="component-close-icon"/>
