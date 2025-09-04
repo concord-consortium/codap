@@ -18,7 +18,10 @@ export const WebViewUrlModal = ({ currentValue="", isOpen, onAccept, onClose }: 
   const [value, setValue] = useState(currentValue)
 
   const applyValue = () => {
-    onAccept(value)
+    if (value !== "") {
+      onAccept(value)
+    }
+    
     closeModal()
   }
 
