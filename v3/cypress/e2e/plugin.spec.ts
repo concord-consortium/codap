@@ -496,4 +496,20 @@ context("codap plugins", () => {
     // in the ungrouped collection. This currently doesn't result in the ungrouped collection
     // being removed.
   })
+
+  it("only enables OK button after a value is entered", () => {
+    c.clickIconFromToolShelf("web page")
+    webView.getUrlModal().should("be.visible")
+    webView.getUrlModalOkButton().should("be.disabled")
+    webView.getUrlModalInput().type("https://example.com")
+    webView.getUrlModalOkButton().should("be.enabled")
+  })
+
+  it("removes empty web view when URL modal is cancelled", () => {
+    c.clickIconFromToolShelf("web page")
+    webView.getUrlModal().should("be.visible")
+    webView.cancelUrlModal()
+    webView.getUrlModal().should("not.exist")
+    webView.verifyWebViewRemoved()
+  })
 })

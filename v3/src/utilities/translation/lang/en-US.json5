@@ -131,6 +131,8 @@
     "V3.Redo.webView.show": "Redo adding web page component",
     "V3.Undo.webView.changeUrl": "Undo changing web page url",
     "V3.Redo.webView.changeUrl": "Redo changing web page url",
+    "V3.Undo.webView.remove": "Undo remove web page component",
+    "V3.Redo.webView.remove": "Redo remove web page component",
 
     // V3 plugin strings that are not present in V2 and will eventually require translation.
     "V3.Undo.plugin.create": "Undo adding %@ plugin",
