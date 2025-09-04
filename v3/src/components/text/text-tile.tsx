@@ -1,4 +1,6 @@
-import { createEditor, defaultHotkeyMap, ReactEditor, Slate, SlateEditor } from "@concord-consortium/slate-editor"
+import {
+  createEditor, defaultHotkeyMap, ReactEditor, Slate, SlateEditor, slateToText
+} from "@concord-consortium/slate-editor"
 import { observer } from "mobx-react-lite"
 import { addDisposer, onPatch } from "mobx-state-tree"
 import React, { useEffect, useRef, useState } from "react"
@@ -74,16 +76,17 @@ export const TextTile = observer(function TextTile({ tile }: ITileBaseProps) {
     // update the model on blur, not on every change (e.g. keystroke)
     if (textModel && !textModel.isEquivalent(editor.children)) {
       // We only get here if the text or style has changed
+      const textDidChange = textOnFocus.current !== slateToText(editor.children)
       textModel?.applyModelChange(() => {
         textModel.setValueFromEditor(editor.children)
       }, {
+        // log only when the text actually changed, e.g. not on style changes
         // Note that logging of text changes was commented out in v2 in build 0601. ¯\_(ツ)_/¯
-        // For now, we log just the text content, not the full JSON-stringified slate value. This means that
-        // style changes will trigger logging but won't be reflected in the log message.
-        log: () => `Edited text component: ${textModel.textContent}`,
+        // For now, we log just the text content, not the full JSON-stringified slate value.
+        log: textDidChange ? () => `Edited text component: ${textModel.textContent}` : undefined,
         undoStringKey: "DG.Undo.textComponent.edit",
         redoStringKey: "DG.Redo.textComponent.edit",
-        notify: () => updateTileNotification("edit text", {}, tile)
+        notify: textDidChange ? () => updateTileNotification("edit text", {}, tile) : undefined
       })
     }
   }
