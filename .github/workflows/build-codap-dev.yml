@@ -16,7 +16,7 @@ jobs:
         {
           "aws": {
             "imageName": "jce-ecr-codap-all-dev",
-            "valueFilePath": ["codap-nginx/dev.yaml"]
+            "valueFilePath": ["codap-nginx/aws-apne2-dev-service.yaml"]
           },
           "ncp": {
             "registry": "ped-cr-all-dev.ncr.gov-ntruss.com",
