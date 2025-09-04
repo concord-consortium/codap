@@ -7,7 +7,7 @@ import { diFormulaEngineHandler } from "./formula-engine-handler"
 // Optional filter argugments have been added to several functions
 // The following functions have been moved from "Statistical Functions" to "Bivariate Statistical Functions":
 //   correlation, rSquared, linRegrSlope, linRegrSESlope, linRegrIntercept, linRegrResidual, linRegrPredicted
-import _v2Values from "../../assets/json/di-get-formula-engine-response.json5"
+import _v2Values from "../../test/di-get-formula-engine-response.json5"
 const v2Values = _v2Values as DIFunctionCategories
 
 describe("formulaEngineHandler", () => {
