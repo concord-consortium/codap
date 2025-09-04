@@ -149,7 +149,6 @@ export const useConnectingLines = (props: IProps) => {
     const { connectingLines, parentAttrID, cellKey, parentAttrName, showConnectingLines } = prepareLineProps
     if (!dataConfig) return
 
-    connectingLinesArea.selectAll("path").remove()
     // In a graph, each plot can have multiple groups of connecting lines. The number of groups is determined by the
     // number of Y attributes or the presence of a parent attribute and the number of unique values for that attribute.
     // If there are multiple Y attributes, the number of groups matches the number of Y attributes. Otherwise, if
@@ -180,7 +179,7 @@ export const useConnectingLines = (props: IProps) => {
     })
 
     return { allLineCaseIds, lineGroups, parentAttrID, parentAttrName, showConnectingLines }
-  }, [connectingLinesArea, dataConfig, isCaseInSubPlot, yAttrCount])
+  }, [dataConfig, isCaseInSubPlot, yAttrCount])
 
   const renderConnectingLines = useCallback((renderLineProps: IPrepareLineProps) => {
     const { pointColorAtIndex } = renderLineProps
