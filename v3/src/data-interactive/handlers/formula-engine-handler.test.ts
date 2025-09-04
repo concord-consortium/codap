@@ -3,7 +3,6 @@ import { DIFunctionCategories } from "../data-interactive-types"
 import { diFormulaEngineHandler } from "./formula-engine-handler"
 
 // v2Values are based on the v2 response to get formulaEngine with a few changes:
-// The k argument to combinations has been made optional (is this correct?)
 // Corrected a few typos in function descriptions
 // Optional filter arguments have been added to several functions
 // The following functions have been moved from "Statistical Functions" to "Bivariate Statistical Functions":
