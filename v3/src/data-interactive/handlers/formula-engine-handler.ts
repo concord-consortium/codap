@@ -14,18 +14,19 @@ export const diFormulaEngineHandler: DIHandler = {
       const categoryName = `${category.displayName} Functions`
       const diCategory: DIFunctionCategory = {}
       category.functions.forEach(func => {
-        let requiredArgs = 0
+        let minArgs = func.minArgs ?? 0
         const args = func.args.map(arg => {
           const required = !arg.optional
-          if (required) requiredArgs++
+          if (func.minArgs == null && required) minArgs++
           return { ...arg, required }
         })
+
         diCategory[func.displayName] = {
           ...func,
           category: categoryName,
           name: func.displayName,
-          minArgs: requiredArgs,
-          maxArgs: func.args.length,
+          minArgs,
+          maxArgs: func.maxArgs ?? func.args.length,
           args
         }
       })

@@ -1,16 +1,18 @@
 import _functionCategoryInfoArray from "../assets/json/function-strings.json5"
 
 interface FunctionArgInfo {
-  name: string
-  type: string
   description: string
+  name: string
   optional?: boolean    // defaults to false (i.e. required)
+  type: string
 }
 export interface FunctionInfo {
-  displayName: string
-  description: string
   args: FunctionArgInfo[]
+  description: string
+  displayName: string
   examples: string[]
+  maxArgs?: number
+  minArgs?: number
 }
 
 interface FunctionCategoryInfo {

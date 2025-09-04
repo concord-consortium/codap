@@ -1,7 +1,42 @@
 import { t } from "../../utilities/translation/translate"
+import { DIFunctionCategories } from "../data-interactive-types"
 import { diFormulaEngineHandler } from "./formula-engine-handler"
 
+// v2Values are based on the v2 response to get formulaEngine with a few changes:
+// The k argument to combinations has been made optional (is this correct?)
+// Optional filter argugments have been added to several functions
+// The following functions have been moved from "Statistical Functions" to "Bivariate Statistical Functions":
+//   correlation, rSquared, linRegrSlope, linRegrSESlope, linRegrIntercept, linRegrResidual, linRegrPredicted
+import _v2Values from "../../assets/json/di-get-formula-engine-response.json5"
+const v2Values = _v2Values as DIFunctionCategories
+
 describe("formulaEngineHandler", () => {
+  it("get works as expected", () => {
+    const { success, values: _values } = diFormulaEngineHandler.get!({})
+    expect(success).toBe(true)
+    const values = _values as DIFunctionCategories
+    expect(values).toBeDefined()
+
+    Object.keys(v2Values).forEach(categoryName => {
+      const v2Category = v2Values[categoryName]
+      const category = values[categoryName]
+      expect(category).toBeDefined()
+
+      Object.keys(v2Category).forEach(funcName => {
+        const v2Func = v2Category[funcName]
+        const func = category[funcName]
+        expect(func).toBeDefined()
+        expect(func.name).toBe(v2Func.name)
+        expect(func.displayName).toBe(v2Func.displayName)
+        expect(func.description).toBe(v2Func.description)
+        expect(func.examples).toEqual(v2Func.examples)
+        expect(func.category).toBe(v2Func.category)
+        expect(func.minArgs).toBe(v2Func.minArgs)
+        expect(func.maxArgs).toBe(v2Func.maxArgs)
+      })
+    })
+  })
+
   it("evaluates the formula when `evalExpression` is notified", () => {
     const kInvalidRecordString = t("V3.DI.Error.invalidEvaluationRecord")
     const kUndefinedSymbolA = "Error: Undefined symbol a"
