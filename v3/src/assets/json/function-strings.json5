@@ -42,8 +42,7 @@
           {
             "name": "k",
             "type": "number",
-            "description": "The number of items to be drawn from the set (a non-negative integer).",
-            "optional": true
+            "description": "The number of items to be drawn from the set (a non-negative integer)."
           }
         ],
         "examples": [

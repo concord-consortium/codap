@@ -4,7 +4,8 @@ import { diFormulaEngineHandler } from "./formula-engine-handler"
 
 // v2Values are based on the v2 response to get formulaEngine with a few changes:
 // The k argument to combinations has been made optional (is this correct?)
-// Optional filter argugments have been added to several functions
+// Corrected a few typos in function descriptions
+// Optional filter arguments have been added to several functions
 // The following functions have been moved from "Statistical Functions" to "Bivariate Statistical Functions":
 //   correlation, rSquared, linRegrSlope, linRegrSESlope, linRegrIntercept, linRegrResidual, linRegrPredicted
 import _v2Values from "../../test/di-get-formula-engine-response.json5"

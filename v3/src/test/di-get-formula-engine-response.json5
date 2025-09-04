@@ -46,7 +46,7 @@
       "displayName": "combinations",
       "category": "Arithmetic Functions",
       "description": "Returns the number of ways that k things can be drawn from a set of n things without regard to order. The formula is n! /(k! (n-k)!).",
-      "minArgs": 1,
+      "minArgs": 2,
       "maxArgs": 2,
       "args": [
         {
@@ -59,7 +59,7 @@
           "name": "k",
           "type": "number",
           "description": "The number of items to be drawn from the set (a non-negative integer).",
-          "required": false
+          "required": true
         }
       ],
       "examples": [
