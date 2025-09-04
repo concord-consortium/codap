@@ -2,6 +2,7 @@ import React, { SVGProps } from "react"
 import { ITileBaseProps, ITileInspectorPanelProps, ITileTitleBarProps } from "../../components/tiles/tile-base-props"
 import { type IToolShelfTileButtonProps } from "../../components/tool-shelf/tool-shelf-button"
 import { ITileContentModel } from "./tile-content"
+import { ITileModel } from "./tile-model"
 
 export interface IToolShelfOptions {
   position: number
@@ -18,6 +19,7 @@ export interface ITileComponentInfo {
   TitleBar: React.ComponentType<ITileTitleBarProps>;
   Component: React.ComponentType<ITileBaseProps>;
   InspectorPanel?: React.ComponentType<ITileInspectorPanelProps>;
+  hideInspector?: (tile: ITileModel) => boolean
   tileEltClass: string;
   Icon?: React.FC<SVGProps<SVGSVGElement>>;
   shelf?: IToolShelfOptions;

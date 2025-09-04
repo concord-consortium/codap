@@ -43,6 +43,7 @@ registerTileComponentInfo({
   TitleBar: WebViewTitleBar,
   Component: WebViewComponent,
   InspectorPanel: WebViewInspector,
+  hideInspector: (tile) => isWebViewModel(tile.content) && tile.content.subType === "plugin",
   tileEltClass: "codap-web-view",
   defaultWidth: kDefaultWebViewWidth,
   defaultHeight: kDefaultWebViewHeight,
