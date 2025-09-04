@@ -6,6 +6,7 @@ import * as PIXI from "pixi.js"
 import {useMap} from "react-leaflet"
 import simpleheat from "simpleheat"
 import {useDebouncedCallback} from "use-debounce"
+import { select } from "d3"
 import {isSelectionAction, isSetCaseValuesAction} from "../../../models/data/data-set-actions"
 import { firstVisibleParentAttribute, idOfChildmostCollectionForAttributes } from "../../../models/data/data-set-utils"
 import {defaultSelectedStroke, defaultSelectedStrokeWidth, defaultStrokeWidth} from "../../../utilities/color-utils"
@@ -249,6 +250,12 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, set
     const parentAttrID = parentAttr?.id
     const parentAttrName = parentAttr?.name
     const pointColorAtIndex = mapModel.pointDescription.pointColorAtIndex
+
+    // Remove all existing connecting lines before rendering new ones to prevent duplicates
+    if (connectingLinesRef.current) {
+      const connectingLinesArea = select(connectingLinesRef.current)
+      connectingLinesArea.selectAll("path").remove()
+    }
 
     renderConnectingLines({ connectingLines, parentAttrID, parentAttrName, pointColorAtIndex, showConnectingLines })
   }, [connectingLinesForCases, dataConfiguration, dataset, mapModel.pointDescription.pointColorAtIndex,
