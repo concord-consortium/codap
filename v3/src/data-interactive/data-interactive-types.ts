@@ -17,6 +17,7 @@ import {
 import { DIAdornmentValues } from "./data-interactive-adornment-types"
 
 export type DIDocument = ICodapV2DocumentJson
+
 export type DIComponent = ITileModel
 export interface DIComponentInfo {
   hidden?: boolean
@@ -25,10 +26,31 @@ export interface DIComponentInfo {
   title?: string
   type?: string
 }
+
+interface DIFunctionArg {
+  name: string
+  type: string
+  description: string
+  required: boolean
+}
+interface DIFunction {
+  name: string
+  displayName: string
+  category: string
+  description: string
+  minArgs: number
+  maxArgs: number
+  args: DIFunctionArg[]
+  examples: string[]
+}
+export type DIFunctionCategory = Record<string, DIFunction>
+export type DIFunctionCategories = Record<string, DIFunctionCategory>
+
 export interface DIGlobal {
   name?: string
   value?: number
 }
+
 export interface DIInteractiveFrame {
   allowEmptyAttributeDeletion?: boolean
   blockAPIRequestsWhileEditing?: boolean
@@ -52,6 +74,7 @@ export interface DIInteractiveFrame {
   title?: string
   version?: string
 }
+
 export interface DINotification {
   request?: string
 }
@@ -107,7 +130,7 @@ export type DIValues = DISingleValues | DISingleValues[] | number | string[]
 
 // types returned as outputs by the API
 export type DIResultSingleValues = DICase | DIComponentInfo |  DIDataDisplay | DIDocument | DIGetCaseResult | DIGlobal
-  | DIInteractiveFrame
+  | DIInteractiveFrame | DIFunctionCategories
 
 export type DIResultValues = DIResultSingleValues | DIResultSingleValues[] |
   DIAllCases | DIDeleteCollectionResult | DIUpdateItemResult | DIResultAttributes | number | number[] |
