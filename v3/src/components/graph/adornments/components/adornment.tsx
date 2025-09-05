@@ -14,11 +14,12 @@ interface IProps {
   adornment: IAdornmentModel
   cellKey: Record<string, string>
   cellCoords: { row: number, col: number }
+  labelsDivRef: React.RefObject<HTMLDivElement>
   spannerRef: React.RefObject<SVGSVGElement>
 }
 
 export const Adornment = observer(function Adornment({adornment, cellKey: _cellKey,
-                                                       cellCoords, spannerRef}: IProps) {
+                                                       cellCoords, labelsDivRef, spannerRef}: IProps) {
   const cellKey = useDeepCompareMemo(() => _cellKey, [_cellKey])
   const graphModel = useGraphContentModelContext()
   const { subPlotWidth, subPlotHeight } = useSubplotExtent()
@@ -58,6 +59,7 @@ export const Adornment = observer(function Adornment({adornment, cellKey: _cellK
         plotWidth={subPlotWidth}
         xAxis={graphModel.getNumericAxis('bottom')}
         yAxis={graphModel.getNumericAxis('left')}
+        labelsDivRef={labelsDivRef}
         spannerRef={spannerRef}
       />
     </div>

@@ -24,7 +24,7 @@ export const useAdornmentAttributes = () => {
   const xAttrName = xAttr?.name ?? ""
   const yAttrName = yAttr?.name ?? ""
   const showLabel = adornmentsStore?.showMeasureLabels
-  const isVertical = useRef(!!(xAttrType && xAttrType === "numeric"))
+  const isVerticalRef = useRef(!!(xAttrType && xAttrType === "numeric"))
   const valueRef = useRef<SVGGElement>(null)
   const labelRef = useRef<HTMLDivElement>(null)
   const kLabelLineHeight = 20
@@ -35,5 +35,5 @@ export const useAdornmentAttributes = () => {
   }, [adornmentsStore, isGaussianFit])
 
   return { graphModel, dataConfig, layout, adornmentsStore, xAttrType, xAttrId, yAttrId, xAttrName, yAttrName,
-    numericAttrId, xScale, yScale, showLabel, isVertical, valueRef, labelRef, defaultLabelTopOffset }
+    numericAttrId, xScale, yScale, showLabel, isVerticalRef, valueRef, labelRef, defaultLabelTopOffset }
 }

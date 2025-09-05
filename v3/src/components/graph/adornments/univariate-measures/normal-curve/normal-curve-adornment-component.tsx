@@ -41,22 +41,22 @@ export const NormalCurveAdornmentComponent = observer(
     const model = props.model as INormalCurveAdornmentModel
     const {
       dataConfig, layout, adornmentsStore,
-      numericAttrId, showLabel, isVertical, valueRef,
+      numericAttrId, showLabel, isVerticalRef, valueRef,
       labelRef, defaultLabelTopOffset
     } = useAdornmentAttributes()
     const helper = useMemo(() => {
-      return new UnivariateMeasureAdornmentHelper(cellKey, layout, model, containerId)
-    }, [cellKey, containerId, layout, model])
+      return new UnivariateMeasureAdornmentHelper(cellKey, isVerticalRef, layout, model, containerId)
+    }, [cellKey, containerId, isVerticalRef, layout, model])
     const isHistogram = graphModel.plotType === "histogram"
     const binnedPlot = isBinnedPlotModel(graphModel.plot) ? graphModel.plot : undefined
     const useGaussianFit = isHistogram && getDocumentContentPropertyFromNode(graphModel, "gaussianFitEnabled")
     const stdErrorAdorn = adornmentsStore.findAdornmentOfType(kStandardErrorType)
     const displayStdErr = stdErrorAdorn?.isVisible
-    const numericScale = isVertical.current ? helper.xScale : helper.yScale
-    const countScale = isHistogram ? (isVertical.current ? helper.yScale : helper.xScale) : undefined
+    const numericScale = isVerticalRef.current ? helper.xScale : helper.yScale
+    const countScale = isHistogram ? (isVerticalRef.current ? helper.yScale : helper.xScale) : undefined
     const {cellCounts} = useAdornmentCells(model, cellKey)
     const isBlockingOtherMeasure = dataConfig &&
-      helper.blocksOtherMeasure({adornmentsStore, attrId: numericAttrId, dataConfig, isVertical: isVertical.current})
+      helper.blocksOtherMeasure({adornmentsStore, attrId: numericAttrId, dataConfig})
     const valueObjRef = useRef<INormalCurveSelections>({})
     const caseCount = dataConfig ? model.getCaseCount(numericAttrId, cellKey, dataConfig) : 0
 
@@ -118,7 +118,7 @@ export const NormalCurveAdornmentComponent = observer(
       const labelCoords = measure.labelCoords
       const labelLeft = labelCoords
         ? labelCoords.x
-        : isVertical.current
+        : isVerticalRef.current
           ? helper.xScalePct(plotValue)
           : 0
       const labelTop = labelCoords ? labelCoords.y : helper.yRangePct(defaultLabelTopOffset(model))
@@ -147,7 +147,7 @@ export const NormalCurveAdornmentComponent = observer(
         .on("mouseout", () => highlightLabel(labelId, false))
 
     }, [containerId, dataConfig, defaultLabelTopOffset, helper, highlightCovers, highlightLabel,
-        isVertical, labelRef, model, numericAttrId])
+        isVerticalRef, labelRef, model, numericAttrId])
 
     const addTextTip = useCallback((plotValue: number, textContent: string, valueObj: INormalCurveSelections) => {
       const measure = model?.measures.get(helper.instanceKey)
@@ -165,10 +165,10 @@ export const NormalCurveAdornmentComponent = observer(
       const lineOffset = 5
       const cellWidth = layout.plotWidth / cellCounts.x  // Use the full width of the graph
       const cellHeight = layout.plotHeight / cellCounts.y  // Use the full height of the graph
-      let x = cellWidth * cellCoords.col + (isVertical.current
+      let x = cellWidth * cellCoords.col + (isVerticalRef.current
         ? helper.xScale(plotValue) / cellCounts.x + lineOffset
         : Math.max(0, (plotWidth - plotWidth / 2) / cellCounts.x - textTipWidth / 2 + cellWidth * cellCoords.col))
-      const y = cellHeight * cellCoords.row + (isVertical.current ? plotHeight / 2
+      const y = cellHeight * cellCoords.row + (isVerticalRef.current ? plotHeight / 2
         : helper.yScale(plotValue) / cellCounts.y - lineOffset)
 
       // If x plus the approximate width of the text tip would extend beyond the right boundary of the graph, set x to
@@ -185,7 +185,7 @@ export const NormalCurveAdornmentComponent = observer(
       valueObj.normalCurveHoverCover?.on("mouseover", () => toggleTextTip(valueObj.text, true))
         .on("mouseout", () => toggleTextTip(valueObj.text, false))
     }, [cellCoords.col, cellCoords.row, cellCounts.x, cellCounts.y, helper, isBlockingOtherMeasure,
-      isVertical, layout.plotHeight, layout.plotWidth, model?.measures,
+      isVerticalRef, layout.plotHeight, layout.plotWidth, model?.measures,
       plotHeight, plotWidth, spannerRef, toggleTextTip])
 
     const addNormalCurve = useCallback((selectionsObj: INormalCurveSelections) => {
@@ -211,13 +211,13 @@ export const NormalCurveAdornmentComponent = observer(
           if (!countScale) {
             return 0
           } else {
-            return isVertical.current ? countScale(iCount) / cellCounts.y : countScale(iCount) / cellCounts.x
+            return isVerticalRef.current ? countScale(iCount) / cellCounts.y : countScale(iCount) / cellCounts.x
           }
         }
 
         const countAxisFunc = isHistogram ? countToScreenCoordFromHistogram : countToScreenCoordFromDotPlot,
           pointRadius = graphModel.getPointRadius(),
-          numCellsNumeric = isVertical.current ? cellCounts.x : cellCounts.y,
+          numCellsNumeric = isVerticalRef.current ? cellCounts.x : cellCounts.y,
           overlap = graphModel.pointOverlap,
           binWidth = binnedPlot?.binWidth ?? Math.abs(numericScale.invert(pointRadius * 2) - numericScale.invert(0))
 
@@ -225,8 +225,8 @@ export const NormalCurveAdornmentComponent = observer(
 
         const
           pixelRange = numericScale.range(),
-          pixelMin = isVertical.current ? pixelRange[0] : pixelRange[1],
-          pixelMax = isVertical.current ? pixelRange[1] : pixelRange[0],
+          pixelMin = isVerticalRef.current ? pixelRange[0] : pixelRange[1],
+          pixelMax = isVerticalRef.current ? pixelRange[1] : pixelRange[0],
           numeratorForAmplitude = isHistogram ? 1 : numCellsNumeric,
           // todo: Determine whether for a gaussian fit amplitude is a fitted parameter. (Probably not!)
           amplitude = (numeratorForAmplitude / (stdDev * sqrtTwoPi)) * caseCount * binWidth,
@@ -281,7 +281,7 @@ export const NormalCurveAdornmentComponent = observer(
         x: 0, y: layout.plotHeight / cellCounts.y,
         width: 0, cellHeight: 0
       },
-      isVertical.current)
+      isVerticalRef.current)
 
     selectionsObj.normalCurve = select(valueRef.current).append("path")
       .attr("class", kNormalCurveClass)
@@ -293,7 +293,7 @@ export const NormalCurveAdornmentComponent = observer(
       .attr("id", `${helper.generateIdString("path")}`)
       .attr("data-testid", `${helper.measureSlug}-normal-curve`)
       .attr("d", theSymbolPath)
-  }, [binnedPlot, caseCount, cellCounts, countScale, graphModel, helper, isHistogram, isVertical,
+  }, [binnedPlot, caseCount, cellCounts, countScale, graphModel, helper, isHistogram, isVerticalRef,
       layout, mean, numStdErrs, numericScale, stdDev, stdError, valueRef])
 
     const addAdornmentElements = useCallback((measure: IMeasureInstance,
@@ -302,8 +302,8 @@ export const NormalCurveAdornmentComponent = observer(
         isNaN(stdDev) || !numericScale.invert) return
       const numericAttr = dataConfig?.dataset?.attrFromID(numericAttrId) ?? null
       const numericAttrUnits = numericAttr?.units
-      const meanDisplayValue = helper.formatValueForScale(isVertical.current, mean)
-      const sdDisplayValue = helper.formatValueForScale(isVertical.current, stdDev)
+      const meanDisplayValue = helper.formatValueForScale(mean)
+      const sdDisplayValue = helper.formatValueForScale(stdDev)
 
       addNormalCurve(selectionsObj)
 
@@ -325,7 +325,7 @@ export const NormalCurveAdornmentComponent = observer(
         ? `<p style = "color:${kNormalCurveStrokeColor}">${sdValueString}${unitsContent}</p>`
         : sdValueString
       const stdErrValueContent = stdError
-        ? helper.computeTextContentForStdErr(dataConfig, isVertical.current, stdError, numStdErrs, showLabel) : ""
+        ? helper.computeTextContentForStdErr(dataConfig, stdError, numStdErrs, showLabel) : ""
       const textContent = `${gaussianFitTitle}${meanValueContent}${sdValueContent}${stdErrValueContent}`
 
       // If showLabels is true, then the Show Measure Labels option is selected, so we add a label to the adornment,
@@ -335,7 +335,7 @@ export const NormalCurveAdornmentComponent = observer(
       } else {
         addTextTip(mean, textContent, selectionsObj)
       }
-    }, [numericAttrId, dataConfig, mean, stdDev, numericScale.invert, helper, isVertical, addNormalCurve,
+    }, [numericAttrId, dataConfig, mean, stdDev, numericScale.invert, helper, addNormalCurve,
       useGaussianFit, showLabel, stdError, numStdErrs, addLabels, addTextTip])
 
 // Add the lines and their associated covers and labels
@@ -381,7 +381,7 @@ export const NormalCurveAdornmentComponent = observer(
         valueRef={valueRef}
         refreshValues={refreshValues}
         setIsVertical={(adornmentIsVertical: boolean) => {
-          isVertical.current = adornmentIsVertical
+          isVerticalRef.current = adornmentIsVertical
         }}
         xAxis={xAxis}
         yAxis={yAxis}

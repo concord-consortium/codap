@@ -26,6 +26,8 @@ export const Adornments = observer(function Adornments() {
   const { isTileSelected } = useTileSelectionContext()
   const adornments = graphModel.adornmentsStore.adornments
   const { left, top, width, height } = layout.computedBounds.plot
+  const labelsDivRef = useRef<HTMLDivElement>(null)
+  const spannerDivRef = useRef<HTMLDivElement>(null)
   const spannerRef = useRef<SVGSVGElement>(null)
 
   useEffect(function handleAdornmentBannerCountChange() {
@@ -130,6 +132,7 @@ export const Adornments = observer(function Adornments() {
                           adornment={adornment}
                           cellKey={cellKey}
                           cellCoords={cellCoords}
+                          labelsDivRef={labelsDivRef}
                           spannerRef={spannerRef}
                         />
                 })
@@ -162,9 +165,14 @@ export const Adornments = observer(function Adornments() {
       <div className={containerClass} data-testid={kGraphAdornmentsClass} style={outerGridStyle}>
         {outerGridCells}
       </div>
-      <div className={'adornment-spanner'} style={outerGridStyle}>
+      {/*The following div can be used by adornments to display divs that will not be clipped by grid cells*/}
+      <div className={'adornment-spanner'} style={outerGridStyle} ref={spannerDivRef}>
+        {
+          graphModel.adornmentsStore.showMeasureLabels &&
+           <div className="measure-labels" id={`measure-labels-${graphModel.id}`} ref={labelsDivRef} />
+        }
         {/*The following svg can be used by adornments that need to draw outside their grid cell*/}
-        <svg className="spanner-svg" ref={spannerRef}/>
+        <svg className="spanner-svg measure-container" ref={spannerRef}/>
       </div>
     </>
   )

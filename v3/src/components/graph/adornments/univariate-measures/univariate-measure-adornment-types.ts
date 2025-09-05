@@ -61,4 +61,5 @@ export interface IValue {
   rangeMax?: Selection<SVGLineElement, unknown, null, undefined>
   rangeMinCover?: Selection<SVGLineElement, unknown, null, undefined>
   rangeMaxCover?: Selection<SVGLineElement, unknown, null, undefined>
+  label?: Selection<HTMLDivElement, unknown, null, undefined>
 }
