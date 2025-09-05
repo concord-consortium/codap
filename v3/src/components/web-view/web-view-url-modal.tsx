@@ -33,7 +33,7 @@ export const WebViewUrlModal = ({
   }
 
   const closeModal = () => {
-    if (value === "") {
+    if (value === "" && currentValue === "") {
       onRemoveEmptyWebView()
     }
 
