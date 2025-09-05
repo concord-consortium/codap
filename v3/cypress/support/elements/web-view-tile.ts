@@ -72,6 +72,9 @@ export const WebViewTileElements = {
   clearAPITesterResponses() {
     WebViewTileElements.getIFrame().find(`#clear-log-button`).click()
   },
+  verifyWebViewExists() {
+    cy.get(`[data-testid=codap-web-view]`).should('exist')
+  },
   verifyWebViewRemoved() {
     cy.get(`[data-testid=codap-web-view]`).should('not.exist')
   }
