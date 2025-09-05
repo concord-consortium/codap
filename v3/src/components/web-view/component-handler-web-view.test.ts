@@ -5,6 +5,7 @@ import { diComponentHandler } from "../../data-interactive/handlers/component-ha
 import { testGetComponent } from "../../data-interactive/handlers/component-handler-test-utils"
 import { appState } from "../../models/app-state"
 import { isFreeTileRow } from "../../models/document/free-tile-row"
+import { getTileComponentInfo } from "../../models/tiles/tile-component-info"
 import { toV3Id } from "../../utilities/codap-utils"
 import { kV2GameType } from "./web-view-defs"
 import { IWebViewModel, isWebViewModel } from "./web-view-model"
@@ -91,6 +92,9 @@ describe("DataInteractive ComponentHandler WebView and Game", () => {
     testGetComponent(tile3, handler, (gameTile, values) => {
       const { URL } = values as V2Game
       expect(URL).toBe((gameTile.content as IWebViewModel).url)
+      expect((gameTile.content as IWebViewModel).subType).toBe("plugin")
+      // plugins should not show inspector
+      expect(getTileComponentInfo(gameTile.content.type)?.hideInspector?.(gameTile)).toBe(true)
     }, { type: kV2GameType })
   })
 })

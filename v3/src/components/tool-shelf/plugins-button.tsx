@@ -68,7 +68,10 @@ function PluginItem({ onClose, pluginData }: IPluginItemProps) {
         const url = URL.canParse(pluginData.path) ? pluginData.path : processWebViewUrl(`${kRootPluginsUrl}${path}`)
         const options = { height, width }
         const tile = documentContent?.createOrShowTile?.(kWebViewTileType, options)
-        if (isWebViewModel(tile?.content)) tile.content.setUrl(url)
+        if (isWebViewModel(tile?.content)) {
+          tile.content.setUrl(url)
+          tile.content.setPluginCandidate(true)
+        }
       }, {
         undoStringKey: t("V3.Undo.plugin.create", { vars: [title] }),
         redoStringKey: t("V3.Redo.plugin.create", { vars: [title] }),

@@ -37,7 +37,9 @@ export const WebViewTileElements = {
   getTitle() {
     return cy.get(`.codap-web-view .title-bar .title-text`)
   },
-
+  getInspectorPanel() {
+    return cy.get(`.codap-web-view [data-testid=inspector-panel]`)
+  },
   // Data Interactive API Tester Functions
   // These will only work if you've opened the API Tester plugin, which can be found here:
   // https://concord-consortium.github.io/codap-data-interactives/DataInteractiveAPITester/index.html?lang=en
