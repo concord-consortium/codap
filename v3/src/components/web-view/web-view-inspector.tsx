@@ -31,6 +31,14 @@ export const WebViewInspector = observer(function WebViewInspector({tile, show}:
     })
   }
 
+  const handleRemoveEmptyWebView = () => {
+    if (tile) {
+      documentContent?.applyModelChange(() => {
+        documentContent?.deleteTile(tile.id)
+      })
+    }
+  }
+
   useEffect(() => {
     if (webViewModel?.autoOpenUrlDialog) {
       onOpen()
@@ -58,6 +66,7 @@ export const WebViewInspector = observer(function WebViewInspector({tile, show}:
           isOpen={isOpen}
           onAccept={handleSetWebViewUrlAccept}
           onClose={onClose}
+          onRemoveEmptyWebView={handleRemoveEmptyWebView}
         />
       }
     </>

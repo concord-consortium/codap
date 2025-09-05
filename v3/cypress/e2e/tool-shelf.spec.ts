@@ -74,6 +74,32 @@ context("codap toolbar", () => {
       cy.wait(1500)
       webView.getIFrame().find(`.mw-page-title-main`).should("contain.text", "Concord Consortium")
   })
+  it("only enables web page modal OK button after a value is entered", () => {
+    c.clickIconFromToolShelf("web page")
+    webView.getUrlModal().should("be.visible")
+    webView.getUrlModalOkButton().should("be.disabled")
+    webView.getUrlModalInput().type("https://example.com")
+    webView.getUrlModalOkButton().should("be.enabled")
+  })
+  it("removes empty web view when URL modal is cancelled", () => {
+    c.clickIconFromToolShelf("web page")
+    webView.verifyWebViewExists()
+    webView.getUrlModal().should("be.visible")
+    webView.cancelUrlModal()
+    webView.getUrlModal().should("not.exist")
+    webView.verifyWebViewRemoved()
+  })
+  it("does not remove a web view with a URL value when URL modal is cancelled", () => {
+    c.clickIconFromToolShelf("web page")
+    webView.getUrlModal().should("be.visible")
+    webView.enterUrl("https://example.com")
+    cy.wait(1500)
+    webView.verifyWebViewExists()
+    webView.getEditUrlButton().click()
+    webView.cancelUrlModal()
+    webView.getUrlModal().should("not.exist")
+    webView.verifyWebViewExists()
+  })
   it('will show a list of open tiles when there is no data context', ()=>{
     // Don't open a table as this automatically creates a data context
     c.getIconFromToolShelf("graph").click()
