@@ -35,10 +35,6 @@ export const WebViewInspector = observer(function WebViewInspector({tile, show}:
     if (tile) {
       documentContent?.applyModelChange(() => {
         documentContent?.deleteTile(tile.id)
-      }, {
-        undoStringKey: "V3.Undo.webView.remove",
-        redoStringKey: "V3.Redo.webView.remove",
-        log: logMessageWithReplacement("Remove empty web view: %@", {tileId: tile.id})
       })
     }
   }
