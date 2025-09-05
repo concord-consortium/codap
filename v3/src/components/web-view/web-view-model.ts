@@ -52,7 +52,8 @@ export const WebViewModel = TileContentModel
   .volatile(self => ({
     dataInteractiveController: undefined as iframePhone.IframePhoneRpcEndpoint | undefined,
     version: kDefaultWebViewVersion,
-    autoOpenUrlDialog: false
+    autoOpenUrlDialog: false,
+    isPluginCandidate: false
   }))
   .views(self => ({
     get allowBringToFront() {
@@ -78,6 +79,9 @@ export const WebViewModel = TileContentModel
     setSubType(subType?: WebViewSubType) {
       withoutUndo()
       self.subType = subType
+      if (subType) {
+        self.isPluginCandidate = false
+      }
     },
     setSavedState(state: unknown) {
       self.state = state
@@ -114,6 +118,9 @@ export const WebViewModel = TileContentModel
     },
     setVersion(version: string) {
       self.version = version
+    },
+    setPluginCandidate(isPlugin: boolean) {
+      self.isPluginCandidate = isPlugin
     }
   }))
   .actions(self => ({

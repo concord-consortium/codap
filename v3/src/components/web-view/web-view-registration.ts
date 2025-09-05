@@ -5,7 +5,7 @@ import { DIComponentHandler, registerComponentHandler } from "../../data-interac
 import { IFreeTileLayout } from "../../models/document/free-tile-row"
 import { registerTileComponentInfo } from "../../models/tiles/tile-component-info"
 import { registerTileContentInfo } from "../../models/tiles/tile-content-info"
-import { ITileModelSnapshotIn } from "../../models/tiles/tile-model"
+import { ITileModel, ITileModelSnapshotIn } from "../../models/tiles/tile-model"
 import { toV2Id, toV3DataSetId, toV3Id } from "../../utilities/codap-utils"
 import { t } from "../../utilities/translation/translate"
 import { isCodapV2GameContext } from "../../v2/codap-v2-data-context-types"
@@ -22,6 +22,20 @@ import { WebViewComponent } from "./web-view"
 import { WebViewInspector } from "./web-view-inspector"
 import { WebViewTitleBar } from "./web-view-title-bar"
 import { processWebViewUrl } from "./web-view-utils"
+
+function isInspectorHidden(tile: ITileModel): boolean {
+  if (!isWebViewModel(tile.content)) return false
+  const { subType, isPluginCandidate } = tile.content
+
+  if (subType === "plugin") return true
+  
+  if (subType === "guide" || subType === "image") return false
+  
+  // For web views without subType, use isPluginCandidate flag:
+  // - true = plugin candidate (hide inspector)
+  // - false = regular web view (show inspector)
+  return isPluginCandidate
+}
 
 export const kWebViewIdPrefix = "WEBV"
 
@@ -43,7 +57,7 @@ registerTileComponentInfo({
   TitleBar: WebViewTitleBar,
   Component: WebViewComponent,
   InspectorPanel: WebViewInspector,
-  hideInspector: (tile) => isWebViewModel(tile.content) && tile.content.subType === "plugin",
+  hideInspector: isInspectorHidden,
   tileEltClass: "codap-web-view",
   defaultWidth: kDefaultWebViewWidth,
   defaultHeight: kDefaultWebViewHeight,
