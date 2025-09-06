@@ -1,8 +1,28 @@
-import {ptInRect} from "../../data-display/data-display-utils"
-import {equationString, getScreenCoord, lineToAxisIntercepts, lsrlEquationString, valueLabelString} from "./graph-utils"
-import {DataSet, toCanonical} from "../../../models/data/data-set"
 import {scaleLinear} from "d3"
+import {DataSet, toCanonical} from "../../../models/data/data-set"
+import {ptInRect} from "../../data-display/data-display-utils"
 import { GraphLayout } from "../models/graph-layout"
+import {
+  equationString, formatValue, getScreenCoord, kMinus, lineToAxisIntercepts, lsrlEquationString, valueLabelString
+} from "./graph-utils"
+
+describe("formatValue", () => {
+  it("should format values correctly", () => {
+    expect(formatValue(0, 1)).toBe("0")
+    expect(formatValue(-0, 1)).toBe("0")
+    expect(formatValue(0/0, 2)).toBe("NaN")
+    expect(formatValue(1/0, 2)).toBe("Infinity")
+    expect(formatValue(-1/0, 2)).toBe(`${kMinus}Infinity`)
+    expect(formatValue(123.456, 2)).toBe("123.46")
+    expect(formatValue(1.00, 2)).toBe("1")
+    expect(formatValue(-0.00000018, 8)).toBe(`${kMinus}1.8e${kMinus}7`)
+    expect(formatValue(123400.5, 1)).toBe("123,400.5")
+    expect(formatValue(1234567, 2)).toBe("1,234,567")
+    expect(formatValue(1230000, 2)).toBe("1.23e6")
+    expect(formatValue(123000, 2)).toBe("1.23e5")
+    expect(formatValue(500000, 2)).toBe("5e5")
+  })
+})
 
 describe("equationString", () => {
   const layout = new GraphLayout()

@@ -225,6 +225,52 @@ export function findNeededFractionDigits(slope: number, intercept: number, layou
   return { slopeDigits, interceptDigits }
 }
 
+export const kMinus = "\u2212" // Unicode minus sign
+
+/**
+ * Formats equation values for display with automatic scientific notation switching.
+ *
+ * Requirements:
+ * - see formatEquationValue below for requirements
+ *
+ * @param value - The numeric value to format
+ * @param digits - Number of decimal places to use for rounding
+ * @returns Formatted string representation of the value
+ */
+export function formatValue(value: number, digits: number): string {
+  if (Number.isNaN(value)) return "NaN"
+  if (!Number.isFinite(value)) return value > 0 ? "Infinity" : `${kMinus}Infinity`
+
+  // Make a fixed-point string with the requested decimal places, trimming zeros
+  let result = format(`.${digits}~f`)(value)
+
+  // count the number of meaningful digits, i.e. ignoring leading/trailing zeros
+  let firstDigitPos = -1
+  let lastDigitPos = -1
+  let decimalPos = result.length
+  for (let i = 0; i < result.length; i++) {
+    if (firstDigitPos < 0 && /[1-9]/.test(result[i])) firstDigitPos = i
+    if (/[1-9]/.test(result[i])) lastDigitPos = i
+    if (result[i] === ".") decimalPos = i
+  }
+
+  if (firstDigitPos >= 0 && lastDigitPos >= 0) {
+    const absVal = Math.abs(value)
+    // switch to scientific notation if the value is small (has leading zeros) or is large and has trailing zeros
+    const useScientific = absVal !== 0 && (absVal < 1e-4 || (absVal >= 1e5 && result.endsWith("000")))
+    if (useScientific) {
+      result = format(`.${lastDigitPos - firstDigitPos + 1}~e`)(value)
+      result = result.replace("e+", "e")
+    }
+    // add grouping separator for large fixed values
+    else if (decimalPos - firstDigitPos > 3) {
+      result = format(`,.${digits}~f`)(value)
+    }
+  }
+
+  return result.replace(/-/g, kMinus) // replace hyphen with minus sign for better display
+}
+
 /**
  * Formats equation values for display with automatic scientific notation switching and unit handling.
  *
@@ -249,77 +295,6 @@ export function findNeededFractionDigits(slope: number, intercept: number, layou
  * @returns Formatted string representation of the value with optional units
  */
 function formatEquationValue(equationValue: number, equationDigits: number, units = "", parenthesizeUnits = false) {
-  const formatValue = (value: number, digits: number): string => {
-    // value is the number to be formatted and digits is the number of decimal places to use.
-
-    const trimFixed = (str: string): string => {
-      // Trim trailing zeros from fixed form and a dangling decimal
-      if (str.includes(".")) {
-        str = str.replace(/\.?0+$/, "")
-      }
-      return str === "-0" ? "0" : str
-    }
-
-    const toScientificFromFixed = (str: string): string => {
-      // Convert an already-rounded fixed decimal string (e.g. "-0.00000018" or "123400.5")
-      // into scientific notation, trimming mantissa zeros.
-
-      // Handle sign
-      const sign = str.startsWith("-") ? "-" : ""
-      const s = sign ? str.slice(1) : str
-
-      // Quick zero check
-      if (s === "0") return "0"
-
-      // Split into integer and fractional parts
-      let [intPart, fracPart = ""] = s.split(".")
-
-      // Remove leading zeros in integer part (but keep at least one if all zeros)
-      intPart = intPart.replace(/^0+/, "") || "0"
-
-      if (intPart !== "0") {
-        // Number >= 1 (after trimming leading zeros)
-        const mDigits = (intPart + fracPart).replace(/^0+/, "") // all significant digits
-        const exponent = intPart.length - 1
-        const mantissa = formatMantissa(mDigits)
-        return `${sign}${mantissa}e${exponent}`
-      } else {
-        // Number < 1: find first non-zero digit in fractional part
-        const m = fracPart.match(/[^0]/)
-        if (!m) return "0" // should not happen after earlier checks
-        const firstIdx = m.index! // number of leading zeros in fractional part
-        const exponent = -(firstIdx + 1)
-        const fracDigits = fracPart.slice(firstIdx) // starts with first non-zero
-        const mantissa = formatMantissa(fracDigits)
-        return `${sign}${mantissa}e${exponent}`
-      }
-    }
-
-    const formatMantissa = (mDigits: string): string => {
-      // Build "d.ddd" from a string of digits, then trim trailing zeros/decimal.
-      if (mDigits.length === 1) return mDigits // single digit like "1"
-      let m = `${mDigits[0]}.${mDigits.slice(1)}`
-      m = m.replace(/(\.\d*?[1-9])0+$/, "$1") // trim trailing zeros
-      m = m.replace(/\.0+$/, "").replace(/\.$/, "") // remove dangling ".0" or "."
-      return m
-    }
-
-    if (Number.isNaN(value)) return "NaN"
-    if (!Number.isFinite(value)) return value > 0 ? "Infinity" : "-Infinity"
-
-    // Make a fixed-point string with the requested decimal places, then trim zeros
-    const fixed = trimFixed(value.toFixed(digits))
-
-    // Zero stays zero
-    if (fixed === "0" || fixed === "-0") return "0"
-
-    const absVal = Math.abs(value)
-    const useScientific = absVal !== 0 && (absVal < 1e-4 || absVal >= 1e6)
-
-    const result = useScientific ? toScientificFromFixed(fixed) : fixed
-    return result.replace('-', '−') // replace hyphen with minus sign for better display
-  }
-
   const numStr = formatValue(equationValue, equationDigits)
   const numUnitsStr = units ? `${numStr} ${units}` : numStr
   return units && parenthesizeUnits ? `(${numUnitsStr})` : numUnitsStr
@@ -526,7 +501,7 @@ export function computeSlopeAndIntercept(xAxis?: IAxisModel, yAxis?: IAxisModel,
   const xLower = isAnyNumericAxisModel(xAxis) ? xAxis.min : 0,
     xUpper = isAnyNumericAxisModel(xAxis) ? xAxis.max : 0,
     yLower = isAnyNumericAxisModel(yAxis) ? yAxis.min : 0,
-    yUpper = isAnyNumericAxisModel(yAxis) ? yAxis.max : 0  
+    yUpper = isAnyNumericAxisModel(yAxis) ? yAxis.max : 0
 
   // Make the default a bit steeper, so it's less likely to look like
   // it fits a typical set of points
