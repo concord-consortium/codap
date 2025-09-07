@@ -15,7 +15,7 @@ interface IProps {
 }
 
 export const CodapModal = forwardRef(({
-  children, initialRef, isOpen, onClick, onClose, modalWidth, modalHeight
+  children, initialRef, isOpen, closeOnOverlayClick, onClick, onClose, modalWidth, modalHeight
 }: IProps, ref: React.Ref<HTMLElement> | undefined) => {
 
   return (
@@ -23,6 +23,7 @@ export const CodapModal = forwardRef(({
       data-testid="codap-modal"
       initialFocusRef={initialRef}
       isOpen={isOpen}
+      closeOnOverlayClick={closeOnOverlayClick}
       onClose={onClose}
       size="xs"
     >

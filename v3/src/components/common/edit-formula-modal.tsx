@@ -134,6 +134,7 @@ export const EditFormulaModal = observer(function EditFormulaModal({
     <FormulaEditorContext.Provider value={formulaEditorState}>
       <CodapModal
         isOpen={isOpen}
+        closeOnOverlayClick={false}
         onClose={closeModal}
         modalWidth={`${dimensions.width}px`}
         modalHeight={`${dimensions.height}px`}
