@@ -3,7 +3,7 @@ import { drag, select, selectAll } from "d3"
 import { observer } from "mobx-react-lite"
 import { clsx } from "clsx"
 import { t } from "../../../../utilities/translation/translate"
-import { isFiniteNumber } from "../../../../utilities/math-utils";
+import { isFiniteNumber } from "../../../../utilities/math-utils"
 import { IMeasureInstance, IUnivariateMeasureAdornmentModel } from "./univariate-measure-adornment-model"
 import { measureText } from "../../../../hooks/use-measure-text"
 import { IAdornmentComponentProps } from "../adornment-component-info"
@@ -15,7 +15,7 @@ import { useAdornmentCells } from "../../hooks/use-adornment-cells"
 
 export const UnivariateMeasureAdornmentSimpleComponent = observer(
   function UnivariateMeasureAdornmentSimpleComponent (props: IAdornmentComponentProps) {
-    const {cellKey={}, containerId, plotHeight, plotWidth,
+    const {cellKey={}, containerId,
       xAxis, yAxis, spannerRef, labelsDivRef} = props
     const model = props.model as IUnivariateMeasureAdornmentModel
     const {
@@ -100,7 +100,7 @@ export const UnivariateMeasureAdornmentSimpleComponent = observer(
         .on("mouseout", () => highlightLabel(labelId, false))
 
     },
-      [containerId, dataConfig, helper, highlightCovers, highlightLabel, isVerticalRef, labelsDivRef])
+      [containerId, dataConfig, helper, highlightCovers, highlightLabel, labelsDivRef])
 
     const addTextTip = useCallback((plotValue: number, textContent: string, valueObj: IValue, range?: number) => {
       if (!spannerRef?.current) return
@@ -121,11 +121,11 @@ export const UnivariateMeasureAdornmentSimpleComponent = observer(
       const { left, top } =
       (dataConfig && helper.measureLabelCoordinates(dataConfig, valueToLabel)) || { left: 0, top: 0 }
       const bandWidth = totalPlotWidth / cellCounts.x
-      let x = isVerticalRef.current
+      const x = isVerticalRef.current
           ? Math.min(left * totalPlotWidth + lineOffset, totalPlotWidth - textTipWidth)
           : Math.min(totalPlotWidth - textTipWidth,
               left * totalPlotWidth + bandWidth - bandWidth/2 - textTipWidth/2)
-      let y = isVerticalRef.current ? topOffset + top * totalPlotHeight
+      const y = isVerticalRef.current ? topOffset + top * totalPlotHeight
         : top * totalPlotHeight + helper.yScale(plotValue) / cellCounts.y - lineOffset
 
       valueObj.text = selection.append("text")
@@ -144,7 +144,7 @@ export const UnivariateMeasureAdornmentSimpleComponent = observer(
         .on("mouseout", () => toggleTextTip(textId, false))
 
     }, [cellCounts.x, cellCounts.y, dataConfig, helper, isBlockingOtherMeasure, isVerticalRef,
-              plotHeight, plotWidth, spannerRef, toggleTextTip])
+              layout.plotHeight, layout.plotWidth, spannerRef, toggleTextTip])
 
     const addAdornmentElements = useCallback((measure: IMeasureInstance, valueObj: IValue) => {
       if (!numericAttrId || !dataConfig) return
