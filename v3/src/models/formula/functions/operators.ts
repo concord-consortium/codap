@@ -2,6 +2,26 @@ import { checkDate } from '../../../utilities/date-utils'
 import { checkNumber } from '../../../utilities/math-utils'
 import { equal } from './function-utils'
 
+function addError(a: any, b: any) {
+  return new Error(`Invalid arguments for add operator: ${a}, ${b}`)
+}
+
+function subtractError(a: any, b: any) {
+  return new Error(`Invalid arguments for subtract operator: ${a}, ${b}`)
+}
+
+function multiplyError(a: any, b: any) {
+  return new Error(`Invalid arguments for multiply operator: ${a}, ${b}`)
+}
+
+function divideError(a: any, b: any) {
+  return new Error(`Invalid arguments for divide operator: ${a}, ${b}`)
+}
+
+function modError(a: any, b: any) {
+  return new Error(`Invalid arguments for mod operator: ${a}, ${b}`)
+}
+
 export const operators = {
   // equal(a, b) or a == b
   // Note that we need to override default MathJs implementation so we can compare strings like "ABC" == "CDE".
@@ -94,7 +114,9 @@ export const operators = {
     isOperator: true,
     numOfRequiredArguments: 2,
     evaluateOperator: (a: any, b: any) => {
-      const addError = new Error(`Invalid arguments for add operator: ${a}, ${b}`)
+      // empty strings
+      if (a === "" && typeof b !== "string") return ""
+      if (b === "" && typeof a !== "string") return ""
 
       const [isADate, aDate] = checkDate(a)
       const [isBDate, bDate] = checkDate(b)
@@ -103,7 +125,7 @@ export const operators = {
 
       // both are dates
       if (isADate && isBDate) {
-        throw addError
+        throw addError(a, b)
       }
       // add a number in seconds to a date
       if (isADate && isBNumber) {
@@ -125,7 +147,7 @@ export const operators = {
       }
 
       /* istanbul ignore next */
-      throw addError
+      throw addError(a, b)
     }
   },
 
@@ -133,8 +155,6 @@ export const operators = {
     isOperator: true,
     numOfRequiredArguments: 2,
     evaluateOperator: (a: any, b: any) => {
-      const subtractError = new Error(`Invalid arguments for subtract operator: ${a}, ${b}`)
-
       // Empty strings
       if (a === "" || b === "") {
         return ""
@@ -156,7 +176,7 @@ export const operators = {
           return new Date(aDate.valueOf() - bNumber * 1000)
         }
         // can't subtract a date from seconds, etc.
-        throw subtractError
+        throw subtractError(a, b)
       }
 
       // Numbers
@@ -164,7 +184,7 @@ export const operators = {
         return aNumber - bNumber
       }
 
-      throw subtractError
+      throw subtractError(a, b)
     }
   },
 
@@ -172,8 +192,6 @@ export const operators = {
     isOperator: true,
     numOfRequiredArguments: 2,
     evaluateOperator: (a: any, b: any) => {
-      const multiplyError = new Error(`Invalid arguments for multiply operator: ${a}, ${b}`)
-
       // Empty strings
       if (a === "" || b === "") {
         return ""
@@ -183,7 +201,7 @@ export const operators = {
       const [isBNumber, bNumber] = checkNumber(b)
 
       if (!isANumber || !isBNumber) {
-        throw multiplyError
+        throw multiplyError(a, b)
       }
 
       return aNumber * bNumber
@@ -194,18 +212,16 @@ export const operators = {
     isOperator: true,
     numOfRequiredArguments: 2,
     evaluateOperator: (a: any, b: any) => {
-      const divideError = new Error(`Invalid arguments for divide operator: ${a}, ${b}`)
-
-      const [isANumber, aNumber] = checkNumber(a)
-      const [isBNumber, bNumber] = checkNumber(b)
-
       // Empty strings
       if (a === "" || b === "") {
         return ""
       }
 
+      const [isANumber, aNumber] = checkNumber(a)
+      const [isBNumber, bNumber] = checkNumber(b)
+
       if (!isANumber || !isBNumber) {
-        throw divideError
+        throw divideError(a, b)
       }
 
       return aNumber / bNumber
@@ -216,8 +232,6 @@ export const operators = {
     isOperator: true,
     numOfRequiredArguments: 2,
     evaluateOperator: (a: any, b: any) => {
-      const modError = new Error(`Invalid arguments for mod operator: ${a}, ${b}`)
-
       // Empty strings
       if (a === "" || b === "") {
         return ""
@@ -227,7 +241,7 @@ export const operators = {
       const [isBNumber, bNumber] = checkNumber(b)
 
       if (!isANumber || !isBNumber) {
-        throw modError
+        throw modError(a, b)
       }
 
       return aNumber % bNumber
