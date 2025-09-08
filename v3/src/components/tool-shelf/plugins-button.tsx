@@ -8,6 +8,7 @@ import { useOutsidePointerDown } from "../../hooks/use-outside-pointer-down"
 import { useRemotePluginsConfig } from "../../hooks/use-remote-plugins-config"
 import { DEBUG_PLUGINS } from "../../lib/debug"
 import { logMessageWithReplacement } from "../../lib/log-message"
+import { persistentState } from "../../models/persistent-state"
 import { getSpecialLangFontClassName, t } from "../../utilities/translation/translate"
 import { kWebViewTileType } from "../web-view/web-view-defs"
 import { isWebViewModel } from "../web-view/web-view-model"
@@ -67,7 +68,10 @@ function PluginItem({ onClose, pluginData }: IPluginItemProps) {
         const url = URL.canParse(pluginData.path) ? pluginData.path : processWebViewUrl(`${kRootPluginsUrl}${path}`)
         const options = { height, width }
         const tile = documentContent?.createOrShowTile?.(kWebViewTileType, options)
-        if (isWebViewModel(tile?.content)) tile.content.setUrl(url)
+        if (isWebViewModel(tile?.content)) {
+          tile.content.setUrl(url)
+          tile.content.setPluginCandidate(true)
+        }
       }, {
         undoStringKey: t("V3.Undo.plugin.create", { vars: [title] }),
         redoStringKey: t("V3.Redo.plugin.create", { vars: [title] }),
@@ -131,7 +135,7 @@ const PluginGroupMenu = observer(function PluginGroupMenu({
   )
 })
 
-export function PluginsButton() {
+export const PluginsButton = observer(function PluginsButton() {
   const menuRef = useRef<HTMLDivElement>(null)
   const onCloseRef = useRef<() => void>()
   const [openSubmenuId, setOpenSubmenuId] = React.useState<string | null>(null)
@@ -147,9 +151,15 @@ export function PluginsButton() {
   })
 
   const className = clsx("tool-shelf-button", "tool-shelf-menu", "plugins", getSpecialLangFontClassName())
+  const placement = persistentState.toolbarPosition === "Top" ? "bottom-start" : "right-start"
   return (
-    <div ref={menuRef}>
-      <Menu autoSelect={false} boundary="scrollParent" onClose={() => setOpenSubmenuId(null)}>
+    <div className="tool-shelf-button no-padding" ref={menuRef}>
+      <Menu
+        autoSelect={false}
+        boundary="scrollParent"
+        onClose={() => setOpenSubmenuId(null)}
+        placement={placement}
+      >
         {({ onClose }) => {
           onCloseRef.current = onClose
           return (
@@ -183,4 +193,4 @@ export function PluginsButton() {
       </Menu>
     </div>
   )
-}
+})

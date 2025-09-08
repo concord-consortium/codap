@@ -114,14 +114,14 @@ registerV2TileExporter(kTextTileType, ({ tile }) => {
 registerV2TileImporter(kV2TextDGType, ({ v2Component, insertTile }) => {
   if (!isV2TextComponent(v2Component)) return
 
-  const { guid, componentStorage: { title, userSetTitle, text, cannotClose } } = v2Component
+  const { guid, componentStorage: { name = "", title, userSetTitle, text, cannotClose } } = v2Component
 
   const content: SetRequired<ITextSnapshot, "type"> = {
     type: kTextTileType,
     value: importTextToModelValue(text)
   }
   const textTileSnap: ITileModelSnapshotIn =
-          { id: toV3Id(kTextIdPrefix, guid), _title: title, userSetTitle, content, cannotClose }
+          { id: toV3Id(kTextIdPrefix, guid), _title: title, name, userSetTitle, content, cannotClose }
   const textTile = insertTile(textTileSnap)
 
   return textTile

@@ -40,6 +40,15 @@ export const CfmElements = {
   getLanguageMenu() {
     return cy.get('#codap-menu-bar-id .menu-bar-right .lang-menu .cfm-menu.menu-showing')
   },
+  getSettingsMenuButton() {
+    return cy.get('#codap-menu-bar-id .menu-bar-right .settings-menu .menu-bar-button')
+  },
+  getSettingsMenu() {
+    return cy.get('#codap-menu-bar-id .menu-bar-right .settings-menu .cfm-menu')
+  },
+  getSettingsMenuItems() {
+    return this.getSettingsMenu().find(".menuItem")
+  },
   getModalDialog() {
     return cy.get('#codap-menu-bar-id .view .modal-dialog')
   },

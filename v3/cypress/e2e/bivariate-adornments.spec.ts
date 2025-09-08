@@ -261,6 +261,7 @@ context("Graph adornments", () => {
     c.selectTile("graph", 0)
     cy.dragAttributeToTarget("table", "Sleep", "bottom")
     cy.dragAttributeToTarget("table", "Speed", "left")
+    cy.dragAttributeToTarget("table", "Diet", "top")
     graph.getDisplayValuesButton().click()
 
     graph.getInspectorPalette().should("be.visible")
@@ -271,17 +272,17 @@ context("Graph adornments", () => {
     //   cy.wrap(dot).should("have.attr", "r", 6)
     // })
     cy.get("[data-testid=adornment-checkbox-connecting-lines]").click()
-    cy.get("*[data-testid^=connecting-lines-graph]").find("path").should("exist")
+    cy.get("*[data-testid^=connecting-lines-graph]").find("path").should("exist").and("have.length", 3)
     // TODO: Update the below once the connecting lines and related dot animation is re-instated
     // cy.get(".graph-dot").each((dot: SVGCircleElement) => {
     //   cy.wrap(dot).should("have.attr", "r", 3)
     // })
     // Since the circle elements for the graph's case dots overlay the lines' path element in various places, we
     // use force: true so we don't need to figure out exactly where to click.
-    cy.get("*[data-testid^=connecting-lines-graph]").find("path").click({force: true})
-    cy.get("*[data-testid^=connecting-lines-graph]").find("path").should("have.attr", "stroke-width", "4")
-    cy.get("*[data-testid^=connecting-lines-graph]").find("path").click({force: true})
-    cy.get("*[data-testid^=connecting-lines-graph]").find("path").should("have.attr", "stroke-width", "2")
+    cy.get("*[data-testid^=connecting-lines-graph]").find("path").first().click({force: true})
+    cy.get("*[data-testid^=connecting-lines-graph]").find("path").first().should("have.attr", "stroke-width", "4")
+    cy.get("*[data-testid^=connecting-lines-graph]").find("path").first().click({force: true})
+    cy.get("*[data-testid^=connecting-lines-graph]").find("path").first().should("have.attr", "stroke-width", "2")
     graph.getDisplayValuesButton().click()
     cy.get("[data-testid=adornment-checkbox-connecting-lines]").click()
     cy.get("*[data-testid^=adornment-checkbox-connecting-lines]").find("path").should("not.exist")
@@ -296,10 +297,10 @@ context("Graph adornments", () => {
 
     // Connecting lines should be visible again after an undo
     cy.get("*[data-testid^=connecting-lines-graph]").find("path").should("exist")
-    cy.get("*[data-testid^=connecting-lines-graph]").find("path").click({force: true})
-    cy.get("*[data-testid^=connecting-lines-graph]").find("path").should("have.attr", "stroke-width", "4")
-    cy.get("*[data-testid^=connecting-lines-graph]").find("path").click({force: true})
-    cy.get("*[data-testid^=connecting-lines-graph]").find("path").should("have.attr", "stroke-width", "2")
+    cy.get("*[data-testid^=connecting-lines-graph]").find("path").first().click({force: true})
+    cy.get("*[data-testid^=connecting-lines-graph]").find("path").first().should("have.attr", "stroke-width", "4")
+    cy.get("*[data-testid^=connecting-lines-graph]").find("path").first().click({force: true})
+    cy.get("*[data-testid^=connecting-lines-graph]").find("path").first().should("have.attr", "stroke-width", "2")
     cy.wait(250)
 
     // Connecting lines should be hidden after a redo. this piece is a bit flaky so commented out for now.

@@ -1,13 +1,40 @@
 import { EvalFunction } from "mathjs"
+import { functionCategoryInfoArray } from "../../lib/functions"
 import { math } from "../../models/formula/functions/math"
 import { preprocessDisplayFormula } from "../../models/formula/utils/canonicalization-utils"
 import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
-import { DIHandler, diNotImplementedYet } from "../data-interactive-types"
+import { DIFunctionCategories, DIFunctionCategory, DIHandler } from "../data-interactive-types"
 import { errorResult, fieldRequiredResult, valuesRequiredResult } from "./di-results"
 
 export const diFormulaEngineHandler: DIHandler = {
-  get: diNotImplementedYet,
+  get: (_resources) => {
+    const values: DIFunctionCategories = {}
+    functionCategoryInfoArray.forEach(category => {
+      const categoryName = `${category.displayName} Functions`
+      const diCategory: DIFunctionCategory = {}
+      category.functions.forEach(func => {
+        let minArgs = func.minArgs ?? 0
+        const args = func.args.map(arg => {
+          const required = !arg.optional
+          if (func.minArgs == null && required) minArgs++
+          return { ...arg, required }
+        })
+
+        diCategory[func.displayName] = {
+          ...func,
+          category: categoryName,
+          name: func.displayName,
+          minArgs,
+          maxArgs: func.maxArgs ?? func.args.length,
+          args
+        }
+      })
+      values[categoryName] = diCategory
+    })
+
+    return { success: true, values }
+  },
 
   notify: (_resources, values) => {
     if (!values || typeof values !== "object") {

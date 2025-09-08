@@ -112,6 +112,69 @@ $tool-shelf-border-width: 1px;
   }
 }
 
+.vertical-toolbar-container {
+  .tool-shelf {
+    align-items: stretch;
+    display: inline-flex;
+    flex-direction: column;
+    height: 100%;
+    width: auto;
+
+    .tool-shelf-component-buttons, .tool-shelf-right-buttons {
+      flex-direction: column;
+      width: 100%;
+
+      .tool-shelf-button {
+        height: 52px;
+        padding: 0 10px;
+        width: 100%;
+
+        &.first {
+          height: 56px;
+          padding-top: 4px;
+        }
+
+        &.no-padding {
+          padding: 0;
+        }
+
+        .tool-shelf-button-content, > span {
+          height: 100%;
+          margin: 0;
+
+          svg {
+            height: 24px;
+            width: 24px;
+          }
+        }
+      }
+
+      .tool-shelf-menu-list.top-menu {
+        margin: 0 0 0 -13px;
+      }
+    }
+
+    .tool-shelf-right-buttons {
+      .tool-shelf-button {
+        height: 36px;
+
+        .tool-shelf-button-content, > span {
+          flex-direction: row;
+          justify-content: flex-start;
+          margin: auto;
+          width: 100%;
+
+          svg {
+            height: 24px;
+            margin-right: 5px;
+            width: 24px;
+          }
+        }
+      }
+    }
+  }
+}
+
 .tool-shelf-component-buttons, .tool-shelf-right-buttons {
   .tool-shelf-menu-list {
     border-radius: 4px;

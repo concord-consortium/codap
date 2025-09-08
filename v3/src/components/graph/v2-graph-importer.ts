@@ -1,19 +1,21 @@
-import {ITileModelSnapshotIn} from "../../models/tiles/tile-model"
+import { ITileModel, ITileModelSnapshotIn } from "../../models/tiles/tile-model"
 import {toV3AttrId, toV3Id} from "../../utilities/codap-utils"
 import {defaultBackgroundColor, parseColorToHex} from "../../utilities/color-utils"
 import {V2TileImportArgs} from "../../v2/codap-v2-tile-importers"
-import {IGuidLink, isV2GraphComponent} from "../../v2/codap-v2-types"
+import { IGuidLink, isV2GraphComponent } from "../../v2/codap-v2-types"
 import {v3TypeFromV2TypeIndex} from "../../v2/codap-v2-data-context-types"
 import {GraphAttrRole, PrimaryAttrRole, axisPlaceToAttrRole} from "../data-display/data-display-types"
-import {kGraphIdPrefix, kGraphTileType} from "./graph-defs"
-import {IGraphContentModelSnapshot} from "./models/graph-content-model"
-import {kGraphDataConfigurationType} from "./models/graph-data-configuration-model"
-import {kGraphPointLayerType} from "./models/graph-point-layer-model"
-import {GraphAttributeDescriptionsMapSnapshot, IAttributeDescriptionSnapshot}
-  from "../data-display/models/data-configuration-model"
+import { v2DataDisplayPostImportSnapshotProcessor } from "../data-display/v2-data-display-import-utils"
+import {
+  GraphAttributeDescriptionsMapSnapshot, IAttributeDescriptionSnapshot
+} from "../data-display/models/data-configuration-model"
 import {AxisPlace} from "../axis/axis-types"
 import {IAxisModelSnapshotUnion} from "../axis/models/axis-model-union"
 import {IAdornmentImporterProps, v2AdornmentImporter} from "./adornments/v2-adornment-importer"
+import {kGraphIdPrefix, kGraphTileType} from "./graph-defs"
+import { IGraphContentModelSnapshot } from "./models/graph-content-model"
+import {kGraphDataConfigurationType} from "./models/graph-data-configuration-model"
+import {kGraphPointLayerType} from "./models/graph-point-layer-model"
 import { v2PlotImporter } from "./v2-plot-importer"
 
 const attrKeys = ["x", "y", "y2", "legend", "top", "right"] as const
@@ -134,7 +136,9 @@ export function v2GraphImporter({v2Component, v2Document, getCaseData, insertTil
         case "DG.CellLinearAxisModel":
         case "DG.CountAxisModel":
         case "DG.FormulaAxisModel": {
-          const type = ["DG.CountAxisModel", "DG.FormulaAxisModel"].includes(axisClass) ? "count" : "numeric"
+          const type = ["DG.CountAxisModel", "DG.FormulaAxisModel"].includes(axisClass) ? "count"
+            : _attributeDescriptions[axisPlaceToAttrRole[v3Place]]?.type === "date" ? "date"
+            : "numeric"
           // V2 lowerBound or upperBound can be undefined or null, which will cause an MST exception and
           // failure to load. So we assign a default value of lowerBound = 0 and upperBound = 10 if they are undefined.
           axes[v3Place] = {place: v3Place, type, min: lowerBound ?? 0, max: upperBound ?? 10}
@@ -211,4 +215,12 @@ export function v2GraphImporter({v2Component, v2Document, getCaseData, insertTil
   }
 
   return graphTile
+}
+
+export function v2GraphPostImportSnapshotProcessor(
+  tileModel: ITileModel, tileSnap: ITileModelSnapshotIn): ITileModelSnapshotIn
+{
+  if (tileSnap.content?.type !== "Graph") return tileSnap
+
+  return v2DataDisplayPostImportSnapshotProcessor(tileModel, tileSnap)
 }

@@ -10,7 +10,7 @@ import { IDataSet } from "../../../models/data/data-set"
 import { createAttributesNotification } from "../../../models/data/data-set-notifications"
 import { uiState } from "../../../models/ui-state"
 import { convertDatasetToCsv } from "../../../utilities/csv-export"
-import { initiateImportFromCsv } from "../../../utilities/csv-import"
+import { initiateImportFromClipboard } from "../../../utilities/csv-import"
 import { uniqueName } from "../../../utilities/js-utils"
 import { preventCollectionReorg } from "../../../utilities/plugin-utils"
 import { t } from "../../../utilities/translation/translate"
@@ -109,9 +109,7 @@ export const RulerMenuList = observer(function RulerMenuList() {
     {
       itemKey: "DG.Inspector.getCaseDataFromClipboard",
       handleClick: () => {
-        if (data) {
-          navigator.clipboard.readText().then(text => initiateImportFromCsv({ text, data }))
-        }
+        if (data) initiateImportFromClipboard(data)
       }
     }
   ]

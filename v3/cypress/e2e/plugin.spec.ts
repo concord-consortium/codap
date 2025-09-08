@@ -24,6 +24,12 @@ context("codap plugins", () => {
     webView.getTitle().should("contain.text", "CODAP API Tester")
   })
 
+  it('will not show an inspector panel', () => {
+    openAPITester()
+    cy.get('.codap-web-view').click() // bring component into focus
+    webView.getInspectorPanel().should("not.exist")
+  })
+
   it('will handle plugin requests', () => {
     openAPITester()
 

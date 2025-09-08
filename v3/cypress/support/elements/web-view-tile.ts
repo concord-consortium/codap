@@ -2,10 +2,25 @@ export const WebViewTileElements = {
   getUrlModal() {
     return cy.get(`.chakra-modal__content`)
   },
+  getUrlModalInput() {
+    return cy.get(`[data-testid=web-view-url-input]`)
+  },
+  getUrlModalOkButton() {
+    return cy.get(`[data-testid=OK-button]`)
+  },
+  getUrlModalCancelButton() {
+    return cy.get(`[data-testid=Cancel-button]`)
+  },
+  confirmUrlModal() {
+    this.getUrlModalOkButton().click()
+  },
+  cancelUrlModal() {
+    this.getUrlModalCancelButton().click()
+  },
   enterUrl(url: string) {
-    cy.get(`[data-testid=web-view-url-input]`).clear()
-    cy.get(`[data-testid=web-view-url-input]`).type(url, { delay: 0 })
-    cy.get(`[data-testid=OK-button]`).click()
+    this.getUrlModalInput().clear()
+    this.getUrlModalInput().type(url, { delay: 0 })
+    this.confirmUrlModal()
   },
   getIFrame() {
     // These functions were stolen from v2's commands.js
@@ -37,7 +52,9 @@ export const WebViewTileElements = {
   getTitle() {
     return cy.get(`.codap-web-view .title-bar .title-text`)
   },
-
+  getInspectorPanel() {
+    return cy.get(`.codap-web-view [data-testid=inspector-panel]`)
+  },
   // Data Interactive API Tester Functions
   // These will only work if you've opened the API Tester plugin, which can be found here:
   // https://concord-consortium.github.io/codap-data-interactives/DataInteractiveAPITester/index.html?lang=en
@@ -56,6 +73,11 @@ export const WebViewTileElements = {
   },
   clearAPITesterResponses() {
     WebViewTileElements.getIFrame().find(`#clear-log-button`).click()
+  },
+  verifyWebViewExists() {
+    cy.get(`[data-testid=codap-web-view]`).should('exist')
+  },
+  verifyWebViewRemoved() {
+    cy.get(`[data-testid=codap-web-view]`).should('not.exist')
   }
-
 }

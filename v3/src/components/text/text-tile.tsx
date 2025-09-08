@@ -1,4 +1,6 @@
-import { createEditor, defaultHotkeyMap, ReactEditor, Slate, SlateEditor } from "@concord-consortium/slate-editor"
+import {
+  createEditor, defaultHotkeyMap, ReactEditor, Slate, SlateEditor, slateToText
+} from "@concord-consortium/slate-editor"
 import { observer } from "mobx-react-lite"
 import { addDisposer, onPatch } from "mobx-state-tree"
 import React, { useEffect, useRef, useState } from "react"
@@ -6,6 +8,7 @@ import { useMemo } from "use-memo-one"
 import { useTileSelectionContext } from "../../hooks/use-tile-selection-context"
 import { ITileBaseProps } from "../tiles/tile-base-props"
 import { mstReaction } from "../../utilities/mst-reaction"
+import { updateTileNotification } from "../../models/tiles/tile-notifications"
 import { isTextModel, modelValueToEditorValue } from "./text-model"
 import { TextToolbar } from "./text-toolbar"
 
@@ -72,7 +75,8 @@ export const TextTile = observer(function TextTile({ tile }: ITileBaseProps) {
   function handleBlur() {
     // update the model on blur, not on every change (e.g. keystroke)
     if (textModel && !textModel.isEquivalent(editor.children)) {
-      const textDidChange = textOnFocus.current !== textModel.textContent
+      // We only get here if the text or style has changed
+      const textDidChange = textOnFocus.current !== slateToText(editor.children)
       textModel?.applyModelChange(() => {
         textModel.setValueFromEditor(editor.children)
       }, {
@@ -81,7 +85,8 @@ export const TextTile = observer(function TextTile({ tile }: ITileBaseProps) {
         // For now, we log just the text content, not the full JSON-stringified slate value.
         log: textDidChange ? () => `Edited text component: ${textModel.textContent}` : undefined,
         undoStringKey: "DG.Undo.textComponent.edit",
-        redoStringKey: "DG.Redo.textComponent.edit"
+        redoStringKey: "DG.Redo.textComponent.edit",
+        notify: textDidChange ? () => updateTileNotification("edit text", {}, tile) : undefined
       })
     }
   }

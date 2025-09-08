@@ -77,7 +77,9 @@ export const LSRLAdornmentModel = AdornmentModel
 })
 .volatile(() => ({
   // first key is cell key; second key is legend category (or kMain)
-  lines: new Map<string, Map<string, ILSRLInstance>>()
+  lines: new Map<string, Map<string, ILSRLInstance>>(),
+  // Used for notification
+  changeCount: 0
 }))
 .views(self => ({
   // each cell contains a map of lines, where the key is the legend category (or kMain)
@@ -101,8 +103,8 @@ export const LSRLAdornmentModel = AdornmentModel
       const caseValueX = dataDisplayGetNumericValue(dataset, caseId, xAttrId)
       const caseValueY = dataDisplayGetNumericValue(dataset, caseId, yAttrId)
       const caseValueLegend = dataset?.getValue(caseId, legendAttrId)
-      const isValidX = caseValueX && Number.isFinite(caseValueX)
-      const isValidY = caseValueY && Number.isFinite(caseValueY)
+      const isValidX = isFiniteNumber(caseValueX)
+      const isValidY = isFiniteNumber(caseValueY)
       const categoryMatch = cat === kMain || caseValueLegend === cat
       if (isValidX && isValidY && categoryMatch) {
         caseValues.push({x: caseValueX, y: caseValueY})
@@ -179,6 +181,9 @@ export const LSRLAdornmentModel = AdornmentModel
     const caseValues = self.getCaseValues(xAttrId, yAttrId, cellKey, dataConfig, cat)
     const { intercept, rSquared, slope, sdResiduals } = leastSquaresLinearRegression(caseValues, isInterceptLocked)
     return { intercept, rSquared, slope, sdResiduals }
+  },
+  incrementChangeCount() {
+    self.changeCount++
   }
 }))
 .actions(self => ({
@@ -199,6 +204,7 @@ export const LSRLAdornmentModel = AdornmentModel
         self.updateLines(lineProps, instanceKey, legendCat)
       })
     })
+    self.incrementChangeCount()
   },
   setLabel(cellKey: Record<string, string>, category: string, label: ILineLabelInstance) {
     const key = self.instanceKey(cellKey)
