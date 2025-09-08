@@ -10,9 +10,12 @@ export function v2PlotImporter(plotModel: ICodapV2PlotModel): IPlotModelUnionSna
       return { type: "dotChart" }
     case "DG.BarChartModel":
     case "DG.ComputedBarChartModel": {
-      const breakdownType = plotModel.plotModelStorage?.breakdownType ? "percent" : "count"
-      const expression = plotModel.plotClass === "DG.ComputedBarChartModel" &&
-                          plotModel.plotModelStorage?.expression
+      const isComputedBarChart = plotModel.plotClass === "DG.ComputedBarChartModel"
+      const hasExpression = isComputedBarChart && plotModel.plotModelStorage?.expression
+      const breakdownType = hasExpression
+                              ? "formula"
+                              : plotModel.plotModelStorage?.breakdownType ? "percent" : "count"
+      const expression = hasExpression
                             ? { display: plotModel.plotModelStorage.expression }
                             : undefined
       const snap: IBarChartSnapshot = { type: "barChart", breakdownType, formula: expression }
