@@ -133,6 +133,7 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(props: ITil
           className="component-title-bar-button component-minimize-button"
           data-testid="component-minimize-button"
           onClick={onMinimizeTile}
+          onPointerDown={(e) => e.stopPropagation()}
           title={t("DG.Component.minimizeComponent.toolTip")}
         >
           <MinimizeIcon className="component-minimize-icon"/>
@@ -142,6 +143,7 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(props: ITil
             className="component-title-bar-button component-close-button"
             data-testid="component-close-button"
             onClick={() => onCloseTile?.(tileId)}
+            onPointerDown={(e) => e.stopPropagation()}
             title={t("DG.Component.closeComponent.toolTip")}
           >
             <CloseIcon className="component-close-icon"/>
