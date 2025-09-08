@@ -1,11 +1,19 @@
+import { CfmElements as cfm } from "./cfm"
+
 export const ToolbarElements = {
   confirmToolbarPosition(position: "Top" | "Left" = "Top") {
     if (position === "Top") {
       cy.get(".toolbar-container:not(.vertical-toolbar-container)").should("exist")
       cy.get(".vertical-toolbar-container").should("not.exist")
+      cfm.getSettingsMenuButton().click()
+      cfm.getSettingsMenuItems().eq(0).should("contain.text", "Toolbar Position: Top")
+      cfm.getMenuBarInfo().click() // Close the menu
     } else {
       cy.get(".toolbar-container:not(.vertical-toolbar-container)").should("not.exist")
       cy.get(".vertical-toolbar-container").should("exist")
+      cfm.getSettingsMenuButton().click()
+      cfm.getSettingsMenuItems().eq(0).should("contain.text", "Toolbar Position: Left")
+      cfm.getMenuBarInfo().click() // Close the menu
     }
   },
   getToolShelfSelector(component: string) {
