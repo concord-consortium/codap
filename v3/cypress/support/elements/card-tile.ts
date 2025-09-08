@@ -29,6 +29,9 @@ export const CardTileElements = {
   getAttributeNames() {
     return cy.get('[data-testid="case-card-attr-name"]:visible')
   },
+  openAttributeMenu(index=0) {
+    this.getAttributeNames().eq(index).find("button").click()
+  },
   getAttributeNameInput() {
     return cy.get('[data-testid="column-name-input"]:visible')
   },

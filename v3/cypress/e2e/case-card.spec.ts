@@ -208,7 +208,7 @@ context("case card", () => {
       card.getAttributeNames().eq(9).should("contain.text", "Memory")
 
       cy.log("Hide an attribute.")
-      card.getAttributeNames().eq(9).click()
+      card.openAttributeMenu(9)
       cy.get('[data-testid="attribute-menu-list"]').should("be.visible")
       cy.get('[data-testid="attribute-menu-list"]').find("button").eq(9).trigger("click")
       card.getAttributes().should("have.length", 9)
@@ -223,7 +223,7 @@ context("case card", () => {
 
       cy.log("Edit an attribute name with undo/redo.")
       card.getAttributeNames().eq(0).should("contain.text", "Mammal")
-      card.getAttributeNames().eq(0).click()
+      card.openAttributeMenu(0)
       cy.get('[data-testid="attribute-menu-list"]').find("button").first().trigger("click")
       cy.wait(500)
       cy.get('[data-testid="column-name-input"]').type("{selectall}{backspace}Name{enter}")
@@ -448,7 +448,7 @@ context("case card inspector panel", () => {
       card.getHideShowButton().click()
       cy.wait(500)
       card.getShowAllHiddenAttributesButton().should("be.disabled")
-      card.getAttributeNames().eq(8).click()
+      card.openAttributeMenu(8)
       cy.get('[data-testid="attribute-menu-list"]').should("be.visible")
       cy.get('[data-testid="attribute-menu-list"]').find("button").contains("Hide Attribute").click()
       card.getAttributes().should("have.length", 8)
@@ -469,7 +469,7 @@ context("case card inspector panel", () => {
       card.getAttributes().should("have.length", 10)
 
       cy.log("add a formula to the new attribute")
-      card.getAttributeNames().eq(9).click()
+      card.openAttributeMenu(9)
       cy.wait(500)
       cy.get('[data-testid="attribute-menu-list"]').should("be.visible")
       cy.get("[data-testid=attribute-menu-list] button").contains("Edit Formula...").click()
