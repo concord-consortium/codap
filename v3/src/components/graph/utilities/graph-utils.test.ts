@@ -10,9 +10,9 @@ describe("formatValue", () => {
   it("should format values correctly", () => {
     expect(formatValue(0, 1)).toBe("0")
     expect(formatValue(-0, 1)).toBe("0")
-    expect(formatValue(0/0, 2)).toBe("NaN")
-    expect(formatValue(1/0, 2)).toBe("Infinity")
-    expect(formatValue(-1/0, 2)).toBe(`${kMinus}Infinity`)
+    expect(formatValue(0/0, 2)).toBe("(not a number)")
+    expect(formatValue(1/0, 2)).toBe("∞")
+    expect(formatValue(-1/0, 2)).toBe(`${kMinus}∞`)
     expect(formatValue(123.456, 2)).toBe("123.46")
     expect(formatValue(1.00, 2)).toBe("1")
     expect(formatValue(-0.00000018, 8)).toBe(`${kMinus}1.8e${kMinus}7`)
