@@ -7,6 +7,7 @@ import { CfmContext } from "../hooks/use-cfm-context"
 import { DocumentContentContext } from "../hooks/use-document-content"
 import {useDropHandler} from "../hooks/use-drop-handler"
 import { useKeyStates } from "../hooks/use-key-states"
+import { useKeyboardShortcuts } from "../hooks/use-keyboard-shortcuts"
 import { useUncaughtErrorHandler } from "../hooks/use-uncaught-error-handler"
 import { useCloudFileManager } from "../lib/cfm/use-cloud-file-manager"
 import { CodapDndContext } from "../lib/dnd-kit/codap-dnd-context"
@@ -59,6 +60,8 @@ export const App = observer(function App() {
   const {isOpen: isOpenUserEntry, onOpen: onOpenUserEntry, onClose: onCloseUserEntry}
     = useDisclosure({defaultIsOpen: true})
   const [isDragOver, setIsDragOver] = useState(false)
+
+  useKeyboardShortcuts()
 
   const handleFileOpened = useCallback(() => {
     onCloseUserEntry()
