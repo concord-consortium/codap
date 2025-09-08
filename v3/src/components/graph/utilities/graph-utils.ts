@@ -238,8 +238,8 @@ export const kMinus = "\u2212" // Unicode minus sign
  * @returns Formatted string representation of the value
  */
 export function formatValue(value: number, digits: number): string {
-  if (Number.isNaN(value)) return "NaN"
-  if (!Number.isFinite(value)) return value > 0 ? "Infinity" : `${kMinus}Infinity`
+  if (Number.isNaN(value)) return "(not a number)"
+  if (!Number.isFinite(value)) return value > 0 ? "∞" : `${kMinus}∞`
 
   // Make a fixed-point string with the requested decimal places, trimming zeros
   let result = format(`.${digits}~f`)(value)
