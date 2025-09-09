@@ -202,9 +202,6 @@ const SingleCaseView = observer(function SingleCaseView({
     <div className={className} data-testid="case-card-view" style={style}>
       <CaseCardHeader cases={cases} level={level}/>
       <div className="case-card-attributes">
-        <button className="add-attribute" onClick={onAddNewAttribute} data-testid="add-attribute-button">
-          <AddIcon />
-        </button>
         <CaseAttrsView
           caseItem={displayedCase}
           collection={collection}
@@ -222,6 +219,9 @@ const SingleCaseView = observer(function SingleCaseView({
             </CollectionContext.Provider>
           </ParentCollectionContext.Provider>
         )}
+        <button className="add-attribute" onClick={onAddNewAttribute} data-testid="add-attribute-button">
+          <AddIcon />
+        </button>
       </div>
     </div>
   )
