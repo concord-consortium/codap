@@ -1,6 +1,7 @@
 @use "../../vars";
 
 .attribute-label-menu {
+  touch-action: none;
   z-index: 16;
 }
 
