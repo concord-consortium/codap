@@ -61,6 +61,11 @@ context("hierarchical collections", () => {
     // table.getGridCell(30, 2, 2).find("input").type("New Mammal{enter}")
     // table.getNumOfRows(1).should("contain", 15)
     // table.getNumOfRows(2).should("contain", 31)
+
+      cy.log("can move input row using index menu in a hierarchical table")
+      table.getIndexCellInRow(20, 2).should("not.have.class", "input-row")
+      table.moveInputRowUsingIndexMenu(20, 2)
+      table.getIndexCellInRow(20, 2).should("have.class", "input-row")
   })
 
   it("verify insert case in hierarchical table", () => {

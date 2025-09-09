@@ -835,6 +835,11 @@ context("case table ui", () => {
       table.getGridCell(lastRowIndex + 1, 2).find("input").type("Sloth{enter}")
       table.getNumOfRows().should("equal", `${Number(numOfCases) + 1}`)
     })
+    it("can move the input row using the index menu", () => {
+      table.getIndexCellInRow(3).should("not.have.class", "input-row")
+      table.moveInputRowUsingIndexMenu(3)
+      table.getIndexCellInRow(3).should("have.class", "input-row")
+    })
     it("verify insert multiple cases below current case at the bottom", () => {
       table.getCaseTableGrid().scrollTo("bottom")
       table.openIndexMenuForRow(lastRowIndex)

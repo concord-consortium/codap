@@ -73,6 +73,11 @@ export const TableTileElements = {
   getIndexMenu() {
     return cy.get("[data-testid=index-menu-list]")
   },
+  moveInputRowUsingIndexMenu(rowNum = 0, collectionIndex = 1) {
+    this.openIndexMenuForRow(rowNum, collectionIndex)
+    this.getIndexMenu().should("be.visible")
+    cy.clickMenuItem("Move Data Entry Row Here")
+  },
   insertCase() {
     this.getIndexMenu().should("be.visible")
     cy.clickMenuItem("Insert Case")
