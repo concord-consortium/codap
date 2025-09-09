@@ -48,6 +48,30 @@ export const theme = extendTheme({
           backgroundColor: "tealLight2",
           color: "white",
         },
+        v3: {
+          backgroundColor: "#d3f4ff",
+          color: "labelText",
+          border: "1px solid lightgray",
+          borderRadius: "4px",
+          _hover: { backgroundColor: "#bbefff", color: "labelText" },
+          _active: { backgroundColor: "#a5e3f6", color: "labelText" }
+        },
+        v3Clear: {
+          backgroundColor: "white",
+          color: "labelText",
+          border: "1px solid lightgray",
+          borderRadius: "4px",
+          _hover: { backgroundColor: "#bbefff", color: "labelText" },
+          _active: { backgroundColor: "#a5e3f6", color: "labelText" }
+        },
+        v3Default: {
+          backgroundColor: "#bbefff",
+          color: "labelText",
+          border: "1px solid lightgray",
+          borderRadius: "4px",
+          _hover: { backgroundColor: "#93d5e4", color: "labelText" },
+          _active: { backgroundColor: "#72bfca", color: "labelText" }
+        }
       }
     },
     FormLabel: {

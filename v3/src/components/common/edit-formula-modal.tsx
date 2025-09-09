@@ -79,13 +79,14 @@ export const EditFormulaModal = observer(function EditFormulaModal({
   }
 
   const footerButtons = [{
+    variant: "v3Clear",
     label: t("DG.AttrFormView.cancelBtnTitle"),
     tooltip: t("DG.AttrFormView.cancelBtnTooltip"),
     onClick: closeModal
   }, {
+    variant: "v3Default",
     label: t("DG.AttrFormView.applyBtnTitle"),
-    onClick: applyAndClose,
-    default: true
+    onClick: applyAndClose
   }]
 
   function handleKeyDown(event: React.KeyboardEvent) {
@@ -160,8 +161,10 @@ export const EditFormulaModal = observer(function EditFormulaModal({
           </FormControl>
           <Flex className="formula-insert-buttons-container" flexDirection="row" justifyContent="flex-start">
             <Box position="relative">
-              <Button className={clsx("formula-editor-button", "insert-value", {"menu-open": showValuesMenu})}
-                      size="xs" ml="5" onClick={handleInsertValuesOpen} data-testid="formula-insert-value-button">
+              <Button variant="v3"
+                className={clsx("formula-editor-button", "insert-value", {"menu-open": showValuesMenu})}
+                size="xs" ml="5" onClick={handleInsertValuesOpen} data-testid="formula-insert-value-button"
+              >
                 {t("DG.AttrFormView.operandMenuTitle")}
               </Button>
               {showValuesMenu &&
@@ -169,7 +172,7 @@ export const EditFormulaModal = observer(function EditFormulaModal({
               }
             </Box>
             <Box position="relative">
-              <Button
+              <Button variant="v3"
                 className={clsx("formula-editor-button", "insert-function", {"menu-open": showFunctionMenu})}
                 size="xs" ml="5" onClick={handleInsertFunctionsOpen} data-testid="formula-insert-function-button"
               >
@@ -188,8 +191,8 @@ export const EditFormulaModal = observer(function EditFormulaModal({
                 <Tooltip key={idx} label={b.tooltip} h="20px" fontSize="12px" color="white" openDelay={1000}
                   placement="bottom" bottom="15px" left="15px" data-testid="modal-tooltip"
                 >
-                  <Button key={key} size="xs" variant={`${b.default ? "default" : ""}`} ml="5" onClick={b.onClick}
-                        _hover={{backgroundColor: "#72bfca", color: "white"}} data-testid={`${b.label}-button`}>
+                  <Button key={key} size="xs" variant={b.variant} ml="5" onClick={b.onClick}
+                        data-testid={`${b.label}-button`}>
                     {b.label}
                   </Button>
                 </Tooltip>
