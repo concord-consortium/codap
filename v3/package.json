@@ -241,6 +241,7 @@
     "rtree": "^1.4.2",
     "simpleheat": "^0.4.0",
     "snap-bbox": "^0.5.0",
+    "tinykeys": "^3.0.0",
     "tslib": "^2.8.1",
     "type-fest": "^4.41.0",
     "use-debounce": "^10.0.5",

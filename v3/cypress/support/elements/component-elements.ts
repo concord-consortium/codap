@@ -2,11 +2,11 @@ import { ToolbarElements as toolbar } from "./toolbar-elements"
 
 export const ComponentElements = {
   tooltips: {
-    tableToolShelfIcon: "Open a case table for each data set(ctrl-alt-t)",
-    graphToolShelfIcon: "Make a graph (ctrl-alt-g)",
+    tableToolShelfIcon: "Open a case table for each data set",
+    graphToolShelfIcon: "Make a graph",
     mapToolShelfIcon: "Make a map",
-    sliderToolShelfIcon: "Make a slider (ctrl-alt-s)",
-    calculatorToolShelfIcon: "Open/close the calculator (ctrl-alt-c)",
+    sliderToolShelfIcon: "Make a slider",
+    calculatorToolShelfIcon: "Open/close the calculator",
     minimizeComponent: "Minimize or expand this Component",
     closeComponent: "Close this Component",
     inspectorPanel: "Change what is shown along with the points",
