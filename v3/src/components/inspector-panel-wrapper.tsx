@@ -6,8 +6,12 @@ import { uiState } from "../models/ui-state"
 import { ITileBaseProps } from "./tiles/tile-base-props"
 
 export const InspectorPanelWrapper = observer(function InspectorPanelWrapper({ tile, isMinimized }: ITileBaseProps) {
-  const { InspectorPanel } = getTileComponentInfo(tile?.content.type) || {}
+  const { hideInspector, InspectorPanel } = getTileComponentInfo(tile?.content.type) || {}
   const { active } = useDndContext()
+  
+  if (tile && hideInspector?.(tile)) return null
+
   const show = uiState.isFocusedTile(tile?.id) && !active && !isMinimized
+  
   return InspectorPanel ? <InspectorPanel tile={tile} show={show} /> : null
 })

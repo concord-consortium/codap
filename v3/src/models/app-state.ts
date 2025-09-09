@@ -8,7 +8,7 @@
  */
 import { CloudFileManager } from "@concord-consortium/cloud-file-manager"
 import { action, autorun, computed, makeObservable, observable, reaction, flow } from "mobx"
-import { getSnapshot } from "mobx-state-tree"
+import { destroy, getSnapshot } from "mobx-state-tree"
 import { DEBUG_DOCUMENT } from "../lib/debug"
 import { Logger } from "../lib/logger"
 import { t } from "../utilities/translation/translate"
@@ -108,6 +108,8 @@ class AppState {
       // needs to result in a basic javascript object. This prevents the import process
       // from accidentally setting up something in the v3 document that doesn't serialize.
       content = yield serializeDocument(v3Document, doc => getSnapshot(doc))
+      // destroy the document once we've retrieved the snapshot
+      destroy(v3Document)
     } else {
       content = snap
     }

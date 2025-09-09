@@ -40,7 +40,8 @@ export function convertParsedCsvToDataSet(results: CsvParseResult, filename: str
 
 interface IImportFromCsvContentArgs {
   text: string
-  data: IDataSet
+  data?: IDataSet
+  datasetName?: string
 }
 interface IImportFromCsvFileArgs {
   file: File
@@ -60,7 +61,8 @@ export function initiateImportFromCsv(options: IImportFromCsvArgs) {
       contentType: 'text/csv',
       name: "Importer",
       file: "file" in options ? options.file : undefined,
-      targetDatasetName: "data" in options ? options.data.name : undefined,
+      targetDatasetName: "data" in options ? options.data?.name : undefined,
+      datasetName: "datasetName" in options ? options.datasetName : undefined,
       text: "text" in options ? options.text : undefined,
       url: "url" in options ? options.url : undefined
     }
@@ -69,4 +71,9 @@ export function initiateImportFromCsv(options: IImportFromCsvArgs) {
     _title: "Importer",
     content: webViewModelSnap
   })
+}
+
+export function initiateImportFromClipboard(data?: IDataSet) {
+  const datasetName = data ? undefined : "clipboard data"
+  navigator.clipboard.readText().then(text => initiateImportFromCsv({ text, data, datasetName }))
 }

@@ -85,7 +85,7 @@ function getAttrRoleAndType(
         }
         else {
           // note: v2 writes out all secondary axis roles as eSecondaryCategorical, even with no attribute
-          v2Role = type === "numeric"
+          v2Role = type === "numeric" || type === "date"
                     ? isPrimary ? v2Roles.ePrimaryNumeric : v2Roles.eSecondaryCategorical
                     : isPrimary ? v2Roles.ePrimaryCategorical : v2Roles.eSecondaryCategorical
         }

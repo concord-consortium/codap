@@ -193,6 +193,12 @@ export const ScatterPlot = observer(function ScatterPlot({ pixiPoints }: IPlotPr
     const pointsHaveBeenReduced = pointDescription.pointsHaveBeenReduced
     const kPointSizeReductionFactor = 0.5
 
+    // Remove all existing connecting lines before rendering new ones to prevent duplicates
+    if (connectingLinesRef.current) {
+      const connectingLinesArea = select(connectingLinesRef.current)
+      connectingLinesArea.selectAll("path").remove()
+    }
+
     cellKeys?.forEach((cellKey) => {
       renderConnectingLines({
         cellKey, connectingLines, parentAttrID, parentAttrName, pointColorAtIndex, showConnectingLines

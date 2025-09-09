@@ -3,18 +3,19 @@ $inspector-panel-width-very-narrow: 48px;
 $inspector-panel-width-narrow: 64px;
 $inspector-panel-width-medium: 72px;
 $inspector-panel-width-wide: 80px;
+$inspector-panel-border-width: 2px;
 
 .inspector-panel {
   align-items: center;
   background-color: white;
-  border: 2px solid vars.$focus-border-color;
-  border-radius: 0 5px 5px 5px;
+  border: $inspector-panel-border-width solid vars.$focus-border-color;
+  border-radius: 5px;
   box-shadow: rgba(0, 0, 0, 0.25) 0px 1px 3px 0px;
   display: flex;
   flex-direction: column;
   min-height: 50px;
   position: absolute;
-  top: 32px;
+  top: -$inspector-panel-border-width;
   z-index: 15;
 
   &.very-narrow {
@@ -65,6 +66,7 @@ $inspector-panel-width-wide: 80px;
     }
 
     &.top {
+      border-top-left-radius: 4px;
       border-top-right-radius: 4px;
       height: 56px;
       padding-top: 8px;

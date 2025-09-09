@@ -1,5 +1,5 @@
 import escapeStringRegexp from "escape-string-regexp"
-import { CollisionDetection, pointerWithin, rectIntersection } from "@dnd-kit/core"
+import { Collision, CollisionDetection, pointerWithin, rectIntersection } from "@dnd-kit/core"
 
 const prefixRegex = /[A-Za-z-]+-\d+/
 
@@ -18,6 +18,11 @@ export const registerTileCollisionDetection = (baseId: string, detect: Collision
   gTileCollisionDetectionRegistry.push({ baseId, overlayRegex, droppableRegex, detect })
 }
 
+function getZIndexForCollision(collision: Collision) {
+  const tileNode = collision.data?.droppableContainer.node.current?.closest("[data-tile-z-index]")
+  return tileNode ? parseInt(tileNode.getAttribute("data-tile-z-index") || "0", 10) : 0
+}
+
 export const dndDetectCollision: CollisionDetection = (args) => {
   // first determine the component we're in using pointerWithin (for pointer sensor) or
   // rectIntersection (for keyboard sensor)
@@ -25,10 +30,8 @@ export const dndDetectCollision: CollisionDetection = (args) => {
 
   // sort collisions by z-index of the tile
   const sortedCollisions = collisions.slice().sort((aCollision, bCollision) => {
-    const aTileNode = aCollision.data?.droppableContainer.node.current?.closest("[data-tile-z-index]")
-    const aTileZIndex = aTileNode ? parseInt(aTileNode.getAttribute("data-tile-z-index") || "0", 10) : 0
-    const bTileNode = bCollision.data?.droppableContainer.node.current?.closest("[data-tile-z-index]")
-    const bTileZIndex = bTileNode ? parseInt(bTileNode.getAttribute("data-tile-z-index") || "0", 10) : 0
+    const aTileZIndex = getZIndexForCollision(aCollision)
+    const bTileZIndex = getZIndexForCollision(bCollision)
     return bTileZIndex - aTileZIndex
   })
 
@@ -51,8 +54,9 @@ export const dndDetectCollision: CollisionDetection = (args) => {
         if (handler) {
           const { droppableRegex, detect } = handler
           // filter the drop zones to those appropriate for the relevant tile
-          const containers =
-            args.droppableContainers.filter(({id: containerId}) => droppableRegex.test(`${containerId}`))
+          const containers = args.droppableContainers.filter(({id: containerId}) => {
+            return droppableRegex.test(`${containerId}`) && `${containerId}`.startsWith(prefix)
+          })
           // apply the collision detection function specified by the tile
           return detect({ ...args, droppableContainers: containers })
         }

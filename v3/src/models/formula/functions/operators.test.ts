@@ -184,6 +184,20 @@ describe(">= operator", () => {
 })
 
 describe("+ operator", () => {
+  it("adding empty string to number returns empty string", () => {
+    const f1 = math.compile("'' + 1")
+    expect(f1.evaluate()).toEqual("")
+    const f2 = math.compile("1 + ''")
+    expect(f2.evaluate()).toEqual("")
+  })
+
+  it("adding empty string to string concatenates", () => {
+    const f1 = math.compile("'' + 'a'")
+    expect(f1.evaluate()).toEqual("a")
+    const f2 = math.compile("'a' + ''")
+    expect(f2.evaluate()).toEqual("a")
+  })
+
   it("adds two numbers", () => {
     const fn = math.compile("1 + 2")
     expect(fn.evaluate()).toEqual(3)

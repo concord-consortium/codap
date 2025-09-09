@@ -18,7 +18,7 @@ context("Formula Engine", () => {
         "❌ invalid reference to parent attribute 'b' within aggregate function"
       ], 2)
       table.editFormula("Formula", "b+1", 2)
-      table.verifyFormulaValues("Formula", [2, 2, 2, 1, 1], 2)
+      table.verifyFormulaValues("Formula", [2, 2, 2, "", ""], 2)
     })
     it("Check aggregate and non-aggregate formulae referencing a child attribute in child collection", () => {
       fh.visitURL(urlParams)
@@ -28,7 +28,7 @@ context("Formula Engine", () => {
       table.addFormula("Formula", "count(a)", 2)
       table.verifyFormulaValues("Formula", [3, 3, 3, 1, 1], 2)
       table.editFormula("Formula", "a+1", 2)
-      table.verifyFormulaValues("Formula", [2, 3, 4, 4, 1], 2)
+      table.verifyFormulaValues("Formula", [2, 3, 4, 4, ""], 2)
     })
     it("Check aggregate and non-aggregate formulae referencing a parent attribute in parent collection", () => {
       fh.visitURL(urlParams)
@@ -38,7 +38,7 @@ context("Formula Engine", () => {
       table.addFormula("Formula", "count(b)", 1)
       table.verifyFormulaValues("Formula", [1, 1], 1)
       table.editFormula("Formula", "b+1", 1)
-      table.verifyFormulaValues("Formula", [2, 1], 1)
+      table.verifyFormulaValues("Formula", [2, ""], 1)
     })
     it("Check aggregate and non-aggregate formulae referencing a child attribute in parent collection", () => {
       fh.visitURL(urlParams)

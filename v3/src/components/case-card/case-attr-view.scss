@@ -1,4 +1,5 @@
 .case-card-attr {
+  touch-action: none;
   height: 25px;
 
   &:nth-child(2) {
@@ -8,15 +9,17 @@
   }
 
   .case-card-attr-name {
+    box-sizing: border-box;
     font-weight: 400;
     font-stretch: normal;
     font-style: normal;
     line-height: normal;
     letter-spacing: normal;
-    text-align: right;
-    padding: 1px 8px 2px 4px;
+    padding: 1px 8px 2px 24px;
     position: relative;
+    text-align: right;
     white-space: nowrap;
+    width: 50%;
 
     .codap-column-header-content {
       &:hover {
@@ -35,7 +38,7 @@
     font-weight: 500;
     padding: 0;
     text-align: left;
-    width: 100%;
+    width: 50%;
 
     &.editable {
       cursor: text;

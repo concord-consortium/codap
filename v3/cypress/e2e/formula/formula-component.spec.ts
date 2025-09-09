@@ -12,10 +12,10 @@ context("Formula Engine", () => {
       table.addNewAttribute()
       table.renameAttribute("newAttr", "Formula")
       table.addFormula("Formula", "a+1")
-      table.verifyFormulaValues("Formula", [2, 3, 4, 4, 1])
+      table.verifyFormulaValues("Formula", [2, 3, 4, 4, ""])
       table.checkFormulaExists("Formula", "a+1")
       table.editFormula("Formula", "a+2")
-      table.verifyFormulaValues("Formula", [3, 4, 5, 5, 2])
+      table.verifyFormulaValues("Formula", [3, 4, 5, 5, ""])
     })
     it("Add and edit formula for an existing attribute", () => {
       fh.visitURL(dashboardUrlParams)

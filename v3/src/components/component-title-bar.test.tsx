@@ -1,6 +1,6 @@
 import { DndContext } from "@dnd-kit/core"
 import React from "react"
-import { act, render, screen } from "@testing-library/react"
+import { act, fireEvent, render, screen } from "@testing-library/react"
 import { ComponentTitleBar } from "./component-title-bar"
 import { ITileLikeModel } from "../models/tiles/tile-content-info"
 import { ITileModel, TileModel } from "../models/tiles/tile-model"
@@ -61,5 +61,45 @@ describe("ComponentTitleBar", () => {
     // only TitleBarComponent re-rendered when title changed
     expect(titleRenderCounter).toHaveBeenCalledTimes(2)
     expect(childRenderCounter).toHaveBeenCalledTimes(1)
+  })
+
+  it("prevents drag when clicking minimize button", () => {
+    const tile = TileModel.create({ _title: "title", content: {} as any })
+    const mockOnMoveTilePointerDown = jest.fn()
+    
+    render(
+      <DndContext>
+        <ComponentTitleBar 
+          tile={tile} 
+          onMoveTilePointerDown={mockOnMoveTilePointerDown}
+        />
+      </DndContext>
+    )
+    
+    const minimizeButton = screen.getByTestId("component-minimize-button")
+
+    fireEvent.pointerDown(minimizeButton)
+    // The drag handler should not be called because stopPropagation prevents bubbling
+    expect(mockOnMoveTilePointerDown).not.toHaveBeenCalled()
+  })
+
+  it("prevents drag when clicking close button", () => {
+    const tile = TileModel.create({ _title: "title", content: {} as any })
+    const mockOnMoveTilePointerDown = jest.fn()
+    
+    render(
+      <DndContext>
+        <ComponentTitleBar 
+          tile={tile} 
+          onMoveTilePointerDown={mockOnMoveTilePointerDown}
+        />
+      </DndContext>
+    )
+    
+    const closeButton = screen.getByTestId("component-close-button")
+
+    fireEvent.pointerDown(closeButton)
+    // The drag handler should not be called because stopPropagation prevents bubbling
+    expect(mockOnMoveTilePointerDown).not.toHaveBeenCalled()
   })
 })

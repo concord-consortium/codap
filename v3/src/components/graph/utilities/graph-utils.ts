@@ -225,11 +225,77 @@ export function findNeededFractionDigits(slope: number, intercept: number, layou
   return { slopeDigits, interceptDigits }
 }
 
-function formatEquationValue(value: number, digits: number, units = "", parenthesizeUnits = false) {
-  const exponent = `e${digits}`
-  const roundedValue = Math.round(parseFloat(`${value}${exponent}`))
-  // Use D3's format() to add comma separators to the value.
-  const numStr = format(",")(Number(`${roundedValue}e-${digits}`))
+export const kMinus = "\u2212" // Unicode minus sign
+
+/**
+ * Formats equation values for display with automatic scientific notation switching.
+ *
+ * Requirements:
+ * - see formatEquationValue below for requirements
+ *
+ * @param value - The numeric value to format
+ * @param digits - Number of decimal places to use for rounding
+ * @returns Formatted string representation of the value
+ */
+export function formatValue(value: number, digits: number): string {
+  if (Number.isNaN(value)) return "(not a number)"
+  if (!Number.isFinite(value)) return value > 0 ? "∞" : `${kMinus}∞`
+
+  // Make a fixed-point string with the requested decimal places, trimming zeros
+  let result = format(`.${digits}~f`)(value)
+
+  // count the number of meaningful digits, i.e. ignoring leading/trailing zeros
+  let firstDigitPos = -1
+  let lastDigitPos = -1
+  let decimalPos = result.length
+  for (let i = 0; i < result.length; i++) {
+    if (firstDigitPos < 0 && /[1-9]/.test(result[i])) firstDigitPos = i
+    if (/[1-9]/.test(result[i])) lastDigitPos = i
+    if (result[i] === ".") decimalPos = i
+  }
+
+  if (firstDigitPos >= 0 && lastDigitPos >= 0) {
+    const absVal = Math.abs(value)
+    // switch to scientific notation if the value is small (has leading zeros) or is large and has trailing zeros
+    const useScientific = absVal !== 0 && (absVal < 1e-4 || (absVal >= 1e5 && result.endsWith("000")))
+    if (useScientific) {
+      result = format(`.${lastDigitPos - firstDigitPos + 1}~e`)(value)
+      result = result.replace("e+", "e")
+    }
+    // add grouping separator for large fixed values
+    else if (decimalPos - firstDigitPos > 3) {
+      result = format(`,.${digits}~f`)(value)
+    }
+  }
+
+  return result.replace(/-/g, kMinus) // replace hyphen with minus sign for better display
+}
+
+/**
+ * Formats equation values for display with automatic scientific notation switching and unit handling.
+ *
+ * Requirements:
+ * - Formats numbers to a specified number of decimal places
+ * - Automatically switches to scientific notation for very small (< 1e-4) or large (≥ 1e6) numbers
+ * - Removes trailing zeros and unnecessary decimal points from formatted values
+ * - Handles special cases: NaN, Infinity, -Infinity, and zero (including -0)
+ * - In scientific notation:
+ *   - Mantissa has trailing zeros trimmed (e.g., "1.2e3" not "1.200e3")
+ *   - Single-digit mantissas have no decimal point (e.g., "5e2" not "5.0e2")
+ *   - Preserves precision up to the specified decimal places before conversion
+ * - Appends optional units to the formatted value
+ * - Can optionally wrap units in parentheses
+ * - Uses proper minus sign (−) instead of hyphen (-) for negative numbers
+ * - Maintains numerical accuracy by rounding to fixed precision first, then converting to scientific notation
+ *
+ * @param equationValue - The numeric value to format
+ * @param equationDigits - Number of decimal places to use for rounding
+ * @param units - Optional unit string to append to the formatted value
+ * @param parenthesizeUnits - Whether to wrap units in parentheses
+ * @returns Formatted string representation of the value with optional units
+ */
+function formatEquationValue(equationValue: number, equationDigits: number, units = "", parenthesizeUnits = false) {
+  const numStr = formatValue(equationValue, equationDigits)
   const numUnitsStr = units ? `${numStr} ${units}` : numStr
   return units && parenthesizeUnits ? `(${numUnitsStr})` : numUnitsStr
 }

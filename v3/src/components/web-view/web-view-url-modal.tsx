@@ -11,18 +11,32 @@ interface IProps {
   isOpen: boolean
   onAccept: (value: string) => void
   onClose: () => void
+  onRemoveEmptyWebView: () => void
 }
 
-export const WebViewUrlModal = ({ currentValue="", isOpen, onAccept, onClose }: IProps) => {
+export const WebViewUrlModal = ({
+  currentValue = "",
+  isOpen,
+  onAccept,
+  onClose,
+  onRemoveEmptyWebView
+}: IProps) => {
   const inputRef = useRef<HTMLInputElement | null>(null)
   const [value, setValue] = useState(currentValue)
 
   const applyValue = () => {
-    onAccept(value)
+    if (value !== "") {
+      onAccept(value)
+    }
+
     closeModal()
   }
 
   const closeModal = () => {
+    if (value === "" && currentValue === "") {
+      onRemoveEmptyWebView()
+    }
+
     onClose()
   }
 
@@ -44,7 +58,8 @@ export const WebViewUrlModal = ({ currentValue="", isOpen, onAccept, onClose }: 
     label: t("V3.WebView.Modal.okBtnTitle"),
     tooltip: t("DG.DocumentController.enterViewWebPageOKTip"),
     onClick: applyValue,
-    default: true
+    default: true,
+    disabled: !value
   }]
 
   return (
@@ -89,7 +104,8 @@ export const WebViewUrlModal = ({ currentValue="", isOpen, onAccept, onClose }: 
             <Tooltip key={idx} label={b.tooltip} h="20px" fontSize="12px" color="white" openDelay={1000}
               placement="bottom" bottom="15px" left="15px" data-testid="modal-tooltip">
               <Button size="xs" variant={`${b.default ? "default" : ""}`} ml="5" onClick={b.onClick}
-                _hover={{backgroundColor: "#72bfca", color: "white"}} data-testid={`${b.label}-button`}>
+                _hover={{backgroundColor: "#72bfca", color: "white"}} data-testid={`${b.label}-button`}
+                isDisabled={b.disabled ?? false}>
                 {b.label}
               </Button>
             </Tooltip>
