@@ -6,6 +6,7 @@ import { FreeTileLayoutContext } from "../../hooks/use-free-tile-layout-context"
 import { logMessageWithReplacement } from "../../lib/log-message"
 import { IFreeTileLayout, IFreeTileRow } from "../../models/document/free-tile-row"
 import { getTileComponentInfo } from "../../models/tiles/tile-component-info"
+import { kDefaultMinWidth } from "../../models/tiles/tile-layout"
 import { ITileModel } from "../../models/tiles/tile-model"
 import { updateTileNotification } from "../../models/tiles/tile-notifications"
 import { urlParams } from "../../utilities/url-params"
@@ -18,6 +19,10 @@ interface IProps {
   row: IFreeTileRow
   tile: ITileModel
   onCloseTile: (tileId: string) => void
+}
+
+const getSafeTileWidth = (width?: number) => {
+  return width != null ? Math.max(width, kDefaultMinWidth) : kDefaultMinWidth
 }
 
 export const FreeTileComponent = observer(function FreeTileComponent({ row, tile, onCloseTile}: IProps) {
@@ -73,17 +78,20 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
       }
 
       setChangingTileStyle({
-        left: resizingLeft, top: _tileLayout.y,
-        width: resizingWidth, height: resizingHeight,
+        left: resizingLeft,
+        top: _tileLayout.y,
+        width: getSafeTileWidth(resizingWidth),
+        height: resizingHeight,
         zIndex: _tileLayout.zIndex,
         transition: "none"
       })
     }
     const handlePointerUp = () => {
+      const newWidth = getSafeTileWidth(resizingWidth)
       document.body.removeEventListener("pointermove", handlePointerMove, { capture: true })
       document.body.removeEventListener("pointerup", handlePointerUp, { capture: true })
       row.applyModelChange(() => {
-        _tileLayout.setSize(resizingWidth, resizingHeight)
+        _tileLayout.setSize(newWidth, resizingHeight)
         _tileLayout.setPosition(resizingLeft, _tileLayout.y)
       }, {
         notify: () => updateTileNotification("resize", {}, tile),

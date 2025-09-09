@@ -102,4 +102,26 @@ describe("ComponentTitleBar", () => {
     // The drag handler should not be called because stopPropagation prevents bubbling
     expect(mockOnMoveTilePointerDown).not.toHaveBeenCalled()
   })
+
+  it("prevents drag when editing title", () => {
+    const tile = TileModel.create({ _title: "title", content: {} as any })
+    const mockOnMoveTilePointerDown = jest.fn()
+
+    render(
+      <DndContext>
+        <ComponentTitleBar
+          tile={tile}
+          onMoveTilePointerDown={mockOnMoveTilePointerDown}
+        />
+      </DndContext>
+    )
+
+    const titleText = screen.getByTestId("title-text")
+    fireEvent.click(titleText)
+    const titleInput = screen.getByTestId("title-text-input")
+    expect(titleInput).toBeInTheDocument()
+    fireEvent.pointerDown(titleInput)
+    // The drag handler should not be called because stopPropagation prevents bubbling
+    expect(mockOnMoveTilePointerDown).not.toHaveBeenCalled()
+  })
 })

@@ -82,6 +82,10 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(props: ITil
     }
   }
 
+  const handleInputPointerDown = (e: React.PointerEvent<HTMLInputElement>) => {
+    e.stopPropagation()
+  }
+
   const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     const { key } = e
     e.stopPropagation()
@@ -117,13 +121,14 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(props: ITil
               onFocus={(e) => e.target.select()}
               onInput={handleInput}
               onKeyDown={handleInputKeyDown}
+              onPointerDown={handleInputPointerDown}
               ref={inputRef}
               style={{ width: `${inputWidth}px` }}
               value={editingTitle}
             />
           ) : ((title || isHovering) &&
             <div className="title-text" data-testid="title-text" onClick={handleTitleClick}>
-              {isHovering && title === "" ? blankTitle : title}
+              <span>{isHovering && title === "" ? blankTitle : title}</span>
             </div>
           )
         }

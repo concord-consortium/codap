@@ -1,12 +1,24 @@
 @use "./vars";
 
+$min-button-width: 24px;
+$button-width: 34px;
+$title-padding-x: 10px;
+$title-margin-x: 10px;
+$title-text-min-width: 32px;
+$right-buttons: 2 * $button-width;
+$left-buttons: 1 * $button-width;
+$reserved-inline: $right-buttons + $left-buttons + 2 * ($title-padding-x + $title-margin-x);
+
 .component-title-bar {
-  flex-direction: row;
   align-items: center;
-  height: vars.$title-bar-height;
   background-color: vars.$title-bar-color;
-  width: 100%;
   border-radius: vars.$border-radius-top-corners;
+  container-name: titleBar;
+  container-type: inline-size;
+  flex-direction: row;
+  height: vars.$title-bar-height;
+  overflow: hidden;
+  width: 100%;
 
   &.focusTile {
     background-color: vars.$title-bar-focus-color;
@@ -38,10 +50,11 @@
       background-color: transparent;
       border-radius: 0;
       display: flex;
-      height: 34px;
+      height: vars.$title-bar-height;
       justify-content: center;
+      min-width: $min-button-width;
       padding: 0;
-      width: 34px;
+      width: $button-width;
 
       &:hover {
         background-color: #d3f4ff;
@@ -77,10 +90,7 @@
     .component-minimize-button {
       background-color: transparent;
       border: none;
-      height: vars.$title-bar-height;
-      width: 24px;
       padding: 0;
-      border-radius: 0;
     }
 
     .component-close-button {
@@ -99,17 +109,28 @@
   .title-text, .title-text-input {
     border-radius: vars.$border-radius-four-corners;
     cursor: text;
-    display: flex;
+    display: block;
     font-weight: 500;
-    justify-content: center;
     margin: auto;
-    padding: 0 10px;
+    max-width: calc(100% - #{$reserved-inline});
+    min-width: $title-text-min-width;
+    overflow: hidden;
+    padding: 0 $title-padding-x;
     text-align: center;
+    white-space: nowrap;
   }
 
   .title-text {
     border: 1px solid vars.$icon-fill-dark;
-    width: max-content;
+    width: fit-content;
+
+    span {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      width: 100%;
+    }
 
     &:hover {
       background-color: vars.$title-bar-color;
@@ -119,6 +140,7 @@
   .title-text-input {
     outline: 2px solid vars.$focus-outline-color;
     outline-offset: 0;
+    width: 100%;
   }
 
   .title-text-measure {
@@ -126,5 +148,37 @@
     overflow: hidden;
     position: absolute;
     white-space: pre;
+  }
+}
+
+// Small adjustments to buttons when the title bar gets very narrow.
+@container titleBar (max-width: 67px) {
+  .header-right {
+    .component-title-bar-button {
+      width: $min-button-width !important;
+    }
+    .component-minimize-button {
+      border-top-left-radius: 4px !important;
+      margin-right: 2px !important;
+    }
+  }
+}
+
+// When the title bar container width forces the title text element to its minimum width, we
+// should only display the ellipsis with no other text. Since `text-overflow: ellipsis` will
+// not result in the desired effect (it will instead show something like "T..."), we hide the
+// text and add the ellipsis character via ::after.
+@container titleBar (max-width: #{$reserved-inline + $title-text-min-width}) {
+  span {
+    position: relative;
+    visibility: hidden;
+  }
+  span::after {
+    content: "\2026"; // ellipsis character
+    left: 0;
+    place-content: center;
+    pointer-events: none;
+    position: absolute;
+    visibility: visible;
   }
 }
