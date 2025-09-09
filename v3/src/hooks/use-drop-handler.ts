@@ -68,10 +68,12 @@ export const useDropHandler = ({
           else if (item.kind === "string" && item.type === "text/uri-list") {
             item.getAsString(url => {
               if (url) {
-                if (url.replace(/.*\./g, '') === 'csv') {
+                const extension = url.replace(/.*\./g, '')
+                if (extension === 'csv') {
                   // For .csv import via Importer plugin
                   initiateImportFromCsv({ url })
-                } else {
+                } else if (!["svg", "png", "gif"].includes(extension)) {
+                  // Do not load web views for image files
                   const result = /di=(.+)/.exec(url)
                   onHandleUrlDrop?.(result?.[1] || url)
                 }
