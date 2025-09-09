@@ -2,12 +2,6 @@
 
 $min-button-width: 24px;
 $button-width: 34px;
-$title-padding-x: 10px;
-$title-margin-x: 10px;
-$title-text-min-width: 32px;
-$right-buttons: 2 * $button-width;
-$left-buttons: 1 * $button-width;
-$reserved-inline: $right-buttons + $left-buttons + 2 * ($title-padding-x + $title-margin-x);
 
 .component-title-bar {
   align-items: center;
@@ -109,19 +103,18 @@ $reserved-inline: $right-buttons + $left-buttons + 2 * ($title-padding-x + $titl
   .title-text, .title-text-input {
     border-radius: vars.$border-radius-four-corners;
     cursor: text;
-    display: block;
+    display: flex;
     font-weight: 500;
     margin: auto;
-    max-width: calc(100% - #{$reserved-inline});
-    min-width: $title-text-min-width;
+    max-width: calc(100% - 10px);
     overflow: hidden;
-    padding: 0 $title-padding-x;
+    padding: 0 10px;
     text-align: center;
-    white-space: nowrap;
   }
 
   .title-text {
     border: 1px solid vars.$icon-fill-dark;
+    white-space: nowrap;
     width: fit-content;
 
     span {
@@ -151,8 +144,9 @@ $reserved-inline: $right-buttons + $left-buttons + 2 * ($title-padding-x + $titl
   }
 }
 
-// Small adjustments to buttons when the title bar gets very narrow.
-@container titleBar (max-width: 67px) {
+// Ensure the buttons in `.header-right` don't extend beyond the title bar bounds
+// when the tile is narrower than the default width of the two buttons.
+@container titleBar (max-width: #{$button-width * 2}) {
   .header-right {
     .component-title-bar-button {
       width: $min-button-width !important;
@@ -161,24 +155,5 @@ $reserved-inline: $right-buttons + $left-buttons + 2 * ($title-padding-x + $titl
       border-top-left-radius: 4px !important;
       margin-right: 2px !important;
     }
-  }
-}
-
-// When the title bar container width forces the title text element to its minimum width, we
-// should only display the ellipsis with no other text. Since `text-overflow: ellipsis` will
-// not result in the desired effect (it will instead show something like "T..."), we hide the
-// text and add the ellipsis character via ::after.
-@container titleBar (max-width: #{$reserved-inline + $title-text-min-width}) {
-  span {
-    position: relative;
-    visibility: hidden;
-  }
-  span::after {
-    content: "\2026"; // ellipsis character
-    left: 0;
-    place-content: center;
-    pointer-events: none;
-    position: absolute;
-    visibility: visible;
   }
 }
