@@ -1,5 +1,6 @@
 import { clsx } from "clsx"
 import { select } from "d3"
+import { MutableRefObject } from "react"
 import { isFiniteNumber } from "../../../../utilities/math-utils"
 import { t } from "../../../../utilities/translation/translate"
 import { ScaleNumericBaseType } from "../../../axis/axis-types"
@@ -20,31 +21,36 @@ interface IBlocksOtherMeasure {
   adornmentsStore: IAdornmentsStore
   attrId: string
   dataConfig: IDataConfigurationModel
-  isVertical: boolean
 }
 
 export class UnivariateMeasureAdornmentHelper {
   cellKey: Record<string, string>
+  isVerticalRef: MutableRefObject<boolean>
   classFromKey = ""
   containerId = ""
   instanceKey = ""
   layout: GraphLayout
   measureSlug = ""
   model: IUnivariateMeasureAdornmentModel
+  defaultLabelTopOffset: (adornmentModel: IUnivariateMeasureAdornmentModel) => number = () => 0
 
   constructor (
     cellKey: Record<string, string>,
+    isVerticalRef: MutableRefObject<boolean>,
     layout: GraphLayout,
     model: IUnivariateMeasureAdornmentModel,
-    containerId?: string
+    containerId?: string,
+    defaultLabelTopOffset: (adornmentModel: IUnivariateMeasureAdornmentModel) => number = () => 0
   ) {
     this.cellKey = cellKey
+    this.isVerticalRef = isVerticalRef
     this.classFromKey = model.classNameFromKey(cellKey)
     this.containerId = containerId ?? ""
     this.instanceKey = model.instanceKey(cellKey)
     this.layout = layout
     this.measureSlug = model.type.toLowerCase().replace(/ /g, "-")
     this.model = model
+    this.defaultLabelTopOffset = defaultLabelTopOffset
   }
 
   // There is a convenient fiction in the types of these scales in that one of them is _actually_
@@ -66,8 +72,8 @@ export class UnivariateMeasureAdornmentHelper {
     return `${this.measureSlug}-${elementType}-${this.containerId}${this.classFromKey ? `-${this.classFromKey}` : ""}`
   }
 
-  formatValueForScale(isVertical: boolean, value: number | undefined) {
-    const multiScale = isVertical
+  formatValueForScale(value: number | undefined) {
+    const multiScale = this.isVerticalRef.current
       ? this.layout.getAxisMultiScale("bottom")
       : this.layout.getAxisMultiScale("left")
     return value != null
@@ -85,9 +91,10 @@ export class UnivariateMeasureAdornmentHelper {
   // secondaryAxisY = y-coordinate of the secondary axis
   // Returns an object with x and y coordinates
   calculateLineCoords = (
-    value: number, index: number, isVertical: boolean, cellCounts: Record<string, number>,
+    value: number, index: number, cellCounts: Record<string, number>,
     secondaryAxisX=0, secondaryAxisY=0
   ) => {
+    const isVertical = this.isVerticalRef.current
     const [left, right] = this.xScale?.range() || [0, 1]
     const [bottom, top] = this.yScale?.range() || [0, 1]
     const coordX = index === 1 ? right : left
@@ -104,8 +111,9 @@ export class UnivariateMeasureAdornmentHelper {
   }
 
   calculateRangeCoords = (
-    rangeVal: number, coords: ILineCoords, isVertical: boolean, cellCounts: Record<string, number>
+    rangeVal: number, coords: ILineCoords, cellCounts: Record<string, number>
   ) => {
+    const isVertical = this.isVerticalRef.current
     const { x1, x2, y1, y2 } = coords
     return {
       x1: isVertical ? this.xScale(rangeVal) / cellCounts.x : x1,
@@ -161,14 +169,15 @@ export class UnivariateMeasureAdornmentHelper {
  */
  addRange = (valueElement: SVGGElement | null, valueObj: IValue, rangeSpecs: IRangeSpecs) => {
     if (!valueElement) return
-    const { cellCounts, coords, coverClass, extentForSecondaryAxis="100%", isVertical, lineClass,
+    const isVertical = this.isVerticalRef.current
+    const { cellCounts, coords, coverClass, extentForSecondaryAxis="100%", lineClass,
             lineOffset=0, rangeMin, rangeMax, rectOffset=0, secondaryAxisX=0, secondaryAxisY=0 } = rangeSpecs
     const rangeMinId = this.generateIdString("min")
     const rangeMinCoverId = this.generateIdString("min-cover")
     const rangeMaxId = this.generateIdString("max")
     const rangeMaxCoverId = this.generateIdString("max-cover")
-    const rangeMinCoords = this.calculateRangeCoords(rangeMin, coords, isVertical, cellCounts)
-    const rangeMaxCoords = this.calculateRangeCoords(rangeMax, coords, isVertical, cellCounts)
+    const rangeMinCoords = this.calculateRangeCoords(rangeMin, coords, cellCounts)
+    const rangeMaxCoords = this.calculateRangeCoords(rangeMax, coords, cellCounts)
     const x = !isVertical ? secondaryAxisX : rangeMinCoords.x1
     const y = isVertical ? secondaryAxisY : rangeMaxCoords.y1
     const width = isVertical ? (this.xScale(rangeMax) - this.xScale(rangeMin)) / cellCounts.x : extentForSecondaryAxis
@@ -222,20 +231,20 @@ export class UnivariateMeasureAdornmentHelper {
   }
 
   adornmentSpecs = (
-    attrId: string, dataConfig: IDataConfigurationModel, value: number, isVertical: boolean,
+    attrId: string, dataConfig: IDataConfigurationModel, value: number,
     cellCounts: Record<string, number>, secondaryAxisX=0, secondaryAxisY=0
   ) => {
-    const displayValue = this.formatValueForScale(isVertical, value)
+    const displayValue = this.formatValueForScale(value)
     const plotValue = value
     const measureRange: IRange = attrId && this.model.hasRange
       ? this.model.computeMeasureRange(attrId, this.cellKey, dataConfig)
       : {}
     const rangeValue = measureRange.min != null ? value - measureRange.min : undefined
-    const displayRange = this.formatValueForScale(isVertical, rangeValue)
+    const displayRange = this.formatValueForScale(rangeValue)
     const {x: x1, y: y1} =
-      this.calculateLineCoords(plotValue, 1, isVertical, cellCounts, secondaryAxisX, secondaryAxisY)
+      this.calculateLineCoords(plotValue, 1, cellCounts, secondaryAxisX, secondaryAxisY)
     const {x: x2, y: y2} =
-      this.calculateLineCoords(plotValue, 2, isVertical, cellCounts, secondaryAxisX, secondaryAxisY)
+      this.calculateLineCoords(plotValue, 2, cellCounts, secondaryAxisX, secondaryAxisY)
     const lineClass = clsx("measure-line", `${this.measureSlug}-line`)
     const lineId = this.generateIdString("line")
     const coverClass = clsx("measure-cover", `${this.measureSlug}-cover`)
@@ -254,13 +263,56 @@ export class UnivariateMeasureAdornmentHelper {
     }
   }
 
+  measureLabelCoordinates = (dataConfig: IGraphDataConfigurationModel, value:number) => {
+   // Return the left and top coordinates for the measure label in proportions of plot width and height
+    const plotWidth = this.layout.plotWidth
+    const plotHeight = this.layout.plotHeight
+    const isVertical = this.isVerticalRef.current
+    const primaryScale = isVertical ? this.xScale : this.yScale
+    const secondaryAttrId = dataConfig.secondaryAttributeID
+    const secondaryValue = secondaryAttrId ? this.cellKey[secondaryAttrId] || "" : ""
+    const secondaryPlace = isVertical ? 'left' : 'bottom'
+    const secondaryScale = this.layout.getCategoricalScale(secondaryPlace)
+    const secondaryScaledValue = secondaryScale && secondaryValue ? secondaryScale(secondaryValue) : 0
+    const extraPrimaryPlace = isVertical ? 'top' : 'rightCat'
+    const extraPrimaryRole = isVertical ? 'topSplit' : 'rightSplit'
+    const extraPrimaryAttrId = dataConfig.attributeDescriptionForRole(extraPrimaryRole)?.attributeID || ""
+    const extraPrimaryValue = extraPrimaryAttrId ? this.cellKey[extraPrimaryAttrId] || "" : ""
+    const extraPrimaryScale = this.layout.getCategoricalScale(extraPrimaryPlace)
+    const extraPrimaryScaledValue = extraPrimaryScale && extraPrimaryValue
+      ? extraPrimaryScale(extraPrimaryValue) : 0
+    const extraSecondaryPlace = isVertical ? 'rightCat' : 'top'
+    const extraSecondaryRole = isVertical ? 'rightSplit' : 'topSplit'
+    const extraSecondaryAttrId = dataConfig.attributeDescriptionForRole(extraSecondaryRole)?.attributeID || ""
+    const extraSecondaryValue = extraSecondaryAttrId ? this.cellKey[extraSecondaryAttrId] || "" : ""
+    const extraSecondaryScale = this.layout.getCategoricalScale(extraSecondaryPlace)
+    const extraSecondaryScaledValue = extraSecondaryScale && extraSecondaryValue
+      ? extraSecondaryScale(extraSecondaryValue) : 0
+    const topLabelOffset = this.defaultLabelTopOffset(this.model)
+    const numRows = this.layout.numRows || 1
+    const numColumns = this.layout.numColumns || 1
+    let left = 0
+    let top = 0
+    if (isVertical) {
+      left = (primaryScale(value) / numColumns + extraPrimaryScaledValue) / plotWidth
+      top = (secondaryScaledValue / numRows + extraSecondaryScaledValue + topLabelOffset) / plotHeight
+    }
+    else {
+      left = (secondaryScaledValue / numColumns + extraSecondaryScaledValue) / plotWidth
+      top = (extraPrimaryScaledValue + topLabelOffset) / plotHeight
+    }
+    left = Math.min(Math.max(left, 0), 0.95)
+    top = Math.min(Math.max(top, 0), 0.95)
+    return {left, top}
+  }
+
   blocksOtherMeasure(props: IBlocksOtherMeasure) {
     const affectedMeasureTypes = [kMeanType, kMedianType]
     if (!affectedMeasureTypes.includes(this.model.type)) return false
-    const { adornmentsStore, attrId, dataConfig, isVertical } = props
+    const { adornmentsStore, attrId, dataConfig } = props
     const thisMeasureValue = this.model.measureValue(attrId, this.cellKey, dataConfig)
     if (!isFiniteNumber(thisMeasureValue)) return false
-    const scale = isVertical ? this.xScale : this.yScale
+    const scale = this.isVerticalRef.current ? this.xScale : this.yScale
     const otherMeasureType = this.model.type === kMeanType ? kMedianType : kMeanType
     const activeUnivariateMeasures = adornmentsStore?.activeUnivariateMeasures
     const isBlockingOtherMeasure = activeUnivariateMeasures?.find((measure: IUnivariateMeasureAdornmentModel) => {
@@ -284,8 +336,10 @@ export class UnivariateMeasureAdornmentHelper {
     const parentWidth = parentBounds.width
     const parentHeight = parentBounds.height
     const left = event.x - labelWidth / 2
+    const x = Math.min(0.95, Math.max(0, left / parentWidth))
     const top = event.y - labelHeight / 2
-    return { x: left / parentWidth, y: top / parentHeight }
+    const y = Math.min(0.95, Math.max(0, top / parentHeight))
+    return { x, y }
   }
 
   handleMoveLabel(event: { x: number, y: number, dx: number, dy: number }, labelId: string) {
@@ -306,13 +360,13 @@ export class UnivariateMeasureAdornmentHelper {
     measure?.setLabelCoords({ x: proportions.x, y: proportions.y })
   }
 
-  computeTextContentForStdErr(dataConfiguration: IGraphDataConfigurationModel, isVertical: boolean, stdErr: number,
+  computeTextContentForStdErr(dataConfiguration: IGraphDataConfigurationModel, stdErr: number,
                                        numStErrs: number, inHTML: boolean) {
     const primaryAttributeID = dataConfiguration?.primaryAttributeID
     const primaryAttribute = primaryAttributeID
       ? dataConfiguration?.dataset?.attrFromID(primaryAttributeID) : undefined
     const primaryAttributeUnits = primaryAttribute?.units
-    const stdErrorString = this.formatValueForScale(isVertical, numStErrs * stdErr)
+    const stdErrorString = this.formatValueForScale(numStErrs * stdErr)
     const numStdErrsString = numStErrs === 1 ? '' : parseFloat(numStErrs.toFixed(2)).toString()
     const substitutionVars = inHTML ? [`${numStdErrsString}`,
       '<sub style="vertical-align: sub">',

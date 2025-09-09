@@ -8,7 +8,8 @@ import { UnivariateMeasureAdornmentSimpleComponent } from "../univariate-measure
 
 export const PlottedValueComponent = observer(
   function PlottedValueComponent (props: IAdornmentComponentProps) {
-    const {cellKey={}, containerId, model, plotHeight, plotWidth, xAxis, yAxis} = props
+    const {cellKey={}, containerId, model, plotHeight, plotWidth,
+      spannerRef, labelsDivRef, xAxis, yAxis} = props
     const graphModel = useGraphContentModelContext()
 
     // Refresh values on Plotted Value expression changes
@@ -30,6 +31,8 @@ export const PlottedValueComponent = observer(
         model={model}
         plotHeight={plotHeight}
         plotWidth={plotWidth}
+        spannerRef={spannerRef}
+        labelsDivRef={labelsDivRef}
         xAxis={xAxis}
         yAxis={yAxis}
       />

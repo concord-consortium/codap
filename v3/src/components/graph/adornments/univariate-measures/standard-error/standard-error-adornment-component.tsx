@@ -31,14 +31,14 @@ export const StandardErrorAdornmentComponent = observer(
     const model = props.model as IStandardErrorAdornmentModel
     const {
       dataConfig, layout, adornmentsStore,
-      numericAttrId, showLabel, isVertical, valueRef,
+      numericAttrId, showLabel, isVerticalRef, valueRef,
       labelRef, defaultLabelTopOffset } = useAdornmentAttributes()
     const helper = useMemo(() => {
-      return new UnivariateMeasureAdornmentHelper(cellKey, layout, model, containerId)
-    }, [cellKey, containerId, layout, model])
+      return new UnivariateMeasureAdornmentHelper(cellKey, isVerticalRef, layout, model, containerId)
+    }, [cellKey, containerId, isVerticalRef, layout, model])
     const {cellCounts} = useAdornmentCells(model, cellKey)
     const isBlockingOtherMeasure = dataConfig &&
-      helper.blocksOtherMeasure({adornmentsStore, attrId: numericAttrId, dataConfig, isVertical: isVertical.current})
+      helper.blocksOtherMeasure({adornmentsStore, attrId: numericAttrId, dataConfig})
     const valueObjRef = useRef<IStandardErrorSelections>({})
     const range = dataConfig
       ? model.computeMeasureRange(numericAttrId, cellKey, dataConfig) : {min: NaN, max: NaN}
@@ -82,7 +82,7 @@ export const StandardErrorAdornmentComponent = observer(
       const labelCoords = measure.labelCoords
       const labelLeft = labelCoords
         ? labelCoords.x
-        : isVertical.current
+        : isVerticalRef.current
           ? helper.xScalePct(plotValue)
           : 0
       const labelTop = labelCoords ? labelCoords.y : helper.yRangePct(defaultLabelTopOffset(model))
@@ -111,7 +111,7 @@ export const StandardErrorAdornmentComponent = observer(
         .on("mouseout", () => highlightLabel(labelId, false))
 
     }, [containerId, dataConfig, defaultLabelTopOffset, helper, highlightCovers, highlightLabel,
-        isVertical, labelRef, model, numericAttrId])
+        isVerticalRef, labelRef, model, numericAttrId])
 
     const addTextTip = useCallback((plotValue: number, textContent: string, valueObj: IStandardErrorSelections) => {
       const measure = model?.measures.get(helper.instanceKey)
@@ -130,18 +130,18 @@ export const StandardErrorAdornmentComponent = observer(
       const lineOffset = 5
       const labelCoords = measure.labelCoords || {x: 0, y: 0}
       const rangeOffset = rangeValue && rangeValue !== plotValue
-        ? isVertical.current
+        ? isVerticalRef.current
           ? helper.xScale(rangeValue) - helper.xScale(plotValue)
           : helper.yScale(rangeValue) - helper.yScale(plotValue)
         : 0
       const cellWidth = layout.plotWidth / cellCounts.x  // Use the full width of the graph
       const cellHeight = layout.plotHeight / cellCounts.y  // Use the full height of the graph
-      let x = cellWidth * cellCoords.col + (isVertical.current
+      let x = cellWidth * cellCoords.col + (isVerticalRef.current
         ? helper.xScale(range.max) / cellCounts.x + lineOffset
         : Math.max(0, (plotWidth - plotWidth / 2) / cellCounts.x - textTipWidth / 2 + cellWidth * cellCoords.col))
-      let y = cellHeight * cellCoords.row + (isVertical.current ? labelCoords.y + kBarCoord
+      let y = cellHeight * cellCoords.row + (isVerticalRef.current ? labelCoords.y + kBarCoord
         : helper.yScale(plotValue) / cellCounts.y - lineOffset)
-      if ((rangeValue || rangeValue === 0) && !isVertical.current) {
+      if ((rangeValue || rangeValue === 0) && !isVerticalRef.current) {
         y = (helper.yScale(plotValue) + rangeOffset) / cellCounts.y - lineOffset
       }
 
@@ -159,19 +159,19 @@ export const StandardErrorAdornmentComponent = observer(
       valueObj.errorBarHoverCover?.on("mouseover", () => toggleTextTip(valueObj.text, true))
         .on("mouseout", () => toggleTextTip(valueObj.text, false))
     }, [cellCoords.col, cellCoords.row, cellCounts.x, cellCounts.y, helper, isBlockingOtherMeasure,
-              isVertical, layout.plotHeight, layout.plotWidth, model?.measures, plotWidth, range.max,
+              isVerticalRef, layout.plotHeight, layout.plotWidth, model?.measures, plotWidth, range.max,
               rangeValue, spannerRef, toggleTextTip])
 
     const addErrorBar = useCallback((selectionsObj: IStandardErrorSelections) => {
       const kTickLength = 8,
-        lowerCoord = isVertical.current
+        lowerCoord = isVerticalRef.current
           ? helper.xScale(range.min) / cellCounts.x : helper.yScale(range.min) / cellCounts.y,
-        upperCoord = isVertical.current
+        upperCoord = isVerticalRef.current
           ? helper.xScale(range.max) / cellCounts.x : helper.yScale(range.max) / cellCounts.y
 
       const symbolPath = () => {
         // Note that we use translate just as a way to replace %@ with the actual values
-        if (isVertical.current) {
+        if (isVerticalRef.current) {
           return t(`M%@,%@ h%@ M%@,%@ v%@ M%@,%@ v%@`, {
             vars: [
               lowerCoord, kBarCoord, (upperCoord - lowerCoord), // Horizontal line
@@ -195,10 +195,10 @@ export const StandardErrorAdornmentComponent = observer(
           graphHeight = layout.plotHeight,
           cellWidth = graphWidth / cellCounts.x,
           cellHeight = graphHeight / cellCounts.y,
-          templatePath = isVertical.current
+          templatePath = isVerticalRef.current
             ? `M%@,%@ v%@ M%@,%@ v%@`
             : `M%@,%@ h%@ M%@,%@ h%@`,
-          replacementVars = isVertical.current
+          replacementVars = isVerticalRef.current
             ? [
               lowerCoord + cellCoords.col * cellWidth, 0, graphHeight,
               upperCoord + cellCoords.col * cellWidth, 0, graphHeight
@@ -228,7 +228,7 @@ export const StandardErrorAdornmentComponent = observer(
         .attr("id", `${helper.generateIdString("path")}`)
         .attr("data-testid", `${helper.measureSlug}-error-bar`)
         .attr("d", fullHeightLinesPath())
-    }, [cellCoords.col, cellCoords.row, cellCounts.x, cellCounts.y, helper, isVertical, layout.plotHeight,
+    }, [cellCoords.col, cellCoords.row, cellCounts.x, cellCounts.y, helper, isVerticalRef, layout.plotHeight,
               layout.plotWidth, range.max, range.min, spannerRef, valueRef])
 
     const addAdornmentElements = useCallback((measure: IMeasureInstance,
@@ -240,8 +240,7 @@ export const StandardErrorAdornmentComponent = observer(
 
       addErrorBar(valueObjRef.current)
 
-      const textContent = helper.computeTextContentForStdErr(dataConfig, isVertical.current, stdErr,
-        model.numStErrs, showLabel)
+      const textContent = helper.computeTextContentForStdErr(dataConfig, stdErr, model.numStErrs, showLabel)
 
       // If showLabel is true, then the Show Measure Labels option is selected, so we add a label to the adornment,
       // otherwise we add a text tip that only appears when the user mouses over the value line or the range boundaries.
@@ -251,7 +250,7 @@ export const StandardErrorAdornmentComponent = observer(
         addTextTip(range.max, textContent, selectionsObj)
       }
     }, [numericAttrId, dataConfig, model, cellKey, range.min, range.max, addErrorBar, helper,
-            isVertical, showLabel, addLabels, addTextTip])
+              showLabel, addLabels, addTextTip])
 
     // Add the lines and their associated covers and labels
     const refreshValues = useCallback(() => {
@@ -292,7 +291,7 @@ export const StandardErrorAdornmentComponent = observer(
         valueRef={valueRef}
         refreshValues={refreshValues}
         setIsVertical={(adornmentIsVertical: boolean) => {
-          isVertical.current = adornmentIsVertical
+          isVerticalRef.current = adornmentIsVertical
         }}
         xAxis={xAxis}
         yAxis={yAxis}
