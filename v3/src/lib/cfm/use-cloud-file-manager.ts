@@ -223,7 +223,7 @@ function getMenuBar(cfm: CloudFileManager) {
         menu: [
           {
             icon: ToolbarPositionIcon,
-            name: `${t("V3.AppController.optionMenuItems.positionToolShelf")} ${persistentState.toolbarPosition}`,
+            name: t(`V3.AppController.optionMenuItems.positionToolShelf${persistentState.toolbarPosition}`),
             action() {
               runInAction(() => {
                 persistentState.setToolbarPosition(persistentState.toolbarPosition === "Top" ? "Left" : "Top")

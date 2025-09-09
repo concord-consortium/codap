@@ -218,7 +218,8 @@
     "V3.Undo.errorTester.create": "Undo adding error tester",
     "V3.Redo.errorTester.create": "Redo adding error tester",
 
-    "V3.AppController.optionMenuItems.positionToolShelf": "Toolbar Position:",
+    "V3.AppController.optionMenuItems.positionToolShelfLeft": "Toolbar Position: Left",
+    "V3.AppController.optionMenuItems.positionToolShelfTop": "Toolbar Position: Top",
 
     // CFM/File menu
     "DG.fileMenu.fileMenuName": "File",
