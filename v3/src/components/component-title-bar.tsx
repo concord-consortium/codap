@@ -29,6 +29,7 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(props: ITil
   const classes = clsx("component-title-bar", `${tileType}-title-bar`, {focusTile: uiState.isFocusedTile(tile?.id)})
   const [isHovering, setIsHovering] = useState(false)
   const blankTitle = "_____"
+  const hasDraggedRef = useRef(false)
 
   // Input sizing is based on https://stackoverflow.com/questions/8100770/auto-scaling-inputtype-text-to-width-of-value
   const [inputWidth, setInputWidth] = useState(2 * kInputPadding)
@@ -74,8 +75,16 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(props: ITil
     setInputWidth(measureRef.current.offsetWidth + 2 * kInputPadding)
   }
 
+  const handleTitlePointerDown = () => {
+    hasDraggedRef.current = false
+  }
+
+  const handleTitlePointerMove = () => {
+    hasDraggedRef.current = true
+  }
+
   const handleTitleClick = () => {
-    if (!preventTitleChange) {
+    if (!preventTitleChange && !hasDraggedRef.current) {
       setIsEditing(true)
       setEditingTitle(title)
       resizeInput(title)
@@ -127,7 +136,13 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(props: ITil
               value={editingTitle}
             />
           ) : ((title || isHovering) &&
-            <div className="title-text" data-testid="title-text" onClick={handleTitleClick}>
+            <div
+              className="title-text"
+              data-testid="title-text"
+              onClick={handleTitleClick}
+              onPointerDown={handleTitlePointerDown}
+              onPointerMove={handleTitlePointerMove}
+            >
               <span>{isHovering && title === "" ? blankTitle : title}</span>
             </div>
           )

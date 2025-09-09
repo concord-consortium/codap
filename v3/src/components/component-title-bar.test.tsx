@@ -124,4 +124,32 @@ describe("ComponentTitleBar", () => {
     // The drag handler should not be called because stopPropagation prevents bubbling
     expect(mockOnMoveTilePointerDown).not.toHaveBeenCalled()
   })
+
+  it("only activates title edit mode on click with no drag", () => {
+    const tile = TileModel.create({ _title: "title", content: {} as any })
+    const mockOnMoveTilePointerDown = jest.fn()
+
+    render(
+      <DndContext>
+        <ComponentTitleBar
+          tile={tile}
+          onMoveTilePointerDown={mockOnMoveTilePointerDown}
+        />
+      </DndContext>
+    )
+
+    const titleText = screen.getByTestId("title-text")
+    fireEvent.pointerDown(titleText)
+    fireEvent.pointerMove(titleText, {clientX: 10, clientY: 10})
+    fireEvent.pointerUp(titleText)
+    expect(screen.queryByTestId("title-text-input")).not.toBeInTheDocument()
+
+    // Simulate a clean click (pointerDown + pointerUp without movement) to reset the drag state set by the call
+    // to pointerMove above. This is necessary here because `fireEvent.click()` does not trigger pointer events like
+    // an actual mouse click would.
+    fireEvent.pointerDown(titleText)
+    fireEvent.pointerUp(titleText)
+    fireEvent.click(titleText)
+    expect(screen.getByTestId("title-text-input")).toBeInTheDocument()
+  })
 })
