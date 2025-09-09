@@ -47,9 +47,7 @@ export const IndexMenuList = ({caseId, index}: IProps) => {
     {
       itemKey: "DG.CaseTable.indexMenu.moveEntryRow",
       isEnabled: () => tableIndex !== -1,
-      handleClick: () => {
-        collectionTable?.setInputRowIndex(tableIndex)
-      }
+      handleClick: () => collectionTable?.setInputRowIndex(tableIndex)
     },
     {
       itemKey: "DG.CaseTable.indexMenu.insertCase",
