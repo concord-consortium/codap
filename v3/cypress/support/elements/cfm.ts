@@ -19,6 +19,9 @@ export const CfmElements = {
   getMenuBar() {
     return cy.get('#codap-menu-bar-id')
   },
+  getMenuBarInfo() {
+    return cy.get('.menu-bar-info')
+  },
   getHamburgerMenuButton() {
     return cy.get('#codap-menu-bar-id .menu-bar-left .cfm-menu.menu-anchor')
   },

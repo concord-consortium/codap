@@ -182,6 +182,79 @@ function getHelpUrl() {
   return translatedHelpURLs[gLocale.current] || helpURL
 }
 
+function getMenuBar(cfm: CloudFileManager) {
+  return {
+    onInfoClick() {
+      window.open(projectWebSiteURL, "_blank")
+    },
+    subMenuExpandIcon: SubMenuExpandIcon,
+    otherMenus: [
+      {
+        className: "help-menu",
+        menuAnchorIcon: HelpIcon,
+        menuAnchorName: t("DG.ToolButtonData.help.title"),
+        menu: [
+          {
+            icon: HelpPagesIcon,
+            name: t("DG.AppController.optionMenuItems.help"),
+            action: () => window.open(getHelpUrl(), "_blank")
+          },
+          {
+            icon: HelpForumIcon,
+            name: t("DG.AppController.optionMenuItems.help-forum"),
+            action: () => window.open(helpForumURL, "_blank")
+          },
+          {
+            icon: CODAPProjectIcon,
+            name: t("DG.AppController.optionMenuItems.toWebSite"),
+            action: () => window.open(projectWebSiteURL, "_blank")
+          },
+          {
+            icon: PrivacyPolicyIcon,
+            name: t("DG.AppController.optionMenuItems.toPrivacyPage"),
+            action: () => window.open(privacyPolicyURL, "_blank")
+          }
+        ]
+      },
+      {
+        className: "settings-menu",
+        menuAnchorIcon: SettingsIcon,
+        menuAnchorName: t("DG.ToolButtonData.optionMenu.title"),
+        menu: [
+          {
+            icon: ToolbarPositionIcon,
+            name: t(`V3.AppController.optionMenuItems.positionToolShelf${persistentState.toolbarPosition}`),
+            action() {
+              runInAction(() => {
+                persistentState.setToolbarPosition(persistentState.toolbarPosition === "Top" ? "Left" : "Top")
+                cfm.client.updateMenuBar(getMenuBar(cfm))
+              })
+            }
+          }
+        ]
+      }
+    ],
+    languageMenu: {
+      currentLang: gLocale.current,
+      options: locales.map(function (locale) {
+                        return {
+                          label: locale.langName,
+                          langCode: locale.langCode,
+                        }
+                      }),
+      onLangChanged: (langCode: string) => {
+        gLocale.setCurrent(langCode)
+        cfm.client.replaceMenu({
+          menuAnchorIcon: FileMenuIcon,
+          menuAnchorName: t("DG.fileMenu.fileMenuName"),
+          menu: getFileMenuConfig(cfm),
+        })
+      }
+    },
+    languageAnchorIcon: LanguageMenuIcon,
+  }
+}
+
 export function useCloudFileManager(optionsArg: CFMAppOptions, onFileOpened?: () => void) {
   const options = useRef(optionsArg)
   const root = useRef<Root | undefined>()
@@ -198,76 +271,7 @@ export function useCloudFileManager(optionsArg: CFMAppOptions, onFileOpened?: ()
       // When running in the Activity Player, hide the hamburger menu
       hideMenuBar: urlParams.interactiveApi !== undefined,
       ui: {
-        menuBar: {
-          onInfoClick() {
-            window.open(projectWebSiteURL, "_blank")
-          },
-          subMenuExpandIcon: SubMenuExpandIcon,
-          otherMenus: [
-            {
-              className: "help-menu",
-              menuAnchorIcon: HelpIcon,
-              menuAnchorName: t("DG.ToolButtonData.help.title"),
-              menu: [
-                {
-                  icon: HelpPagesIcon,
-                  name: t("DG.AppController.optionMenuItems.help"),
-                  action: () => window.open(getHelpUrl(), "_blank")
-                },
-                {
-                  icon: HelpForumIcon,
-                  name: t("DG.AppController.optionMenuItems.help-forum"),
-                  action: () => window.open(helpForumURL, "_blank")
-                },
-                {
-                  icon: CODAPProjectIcon,
-                  name: t("DG.AppController.optionMenuItems.toWebSite"),
-                  action: () => window.open(projectWebSiteURL, "_blank")
-                },
-                {
-                  icon: PrivacyPolicyIcon,
-                  name: t("DG.AppController.optionMenuItems.toPrivacyPage"),
-                  action: () => window.open(privacyPolicyURL, "_blank")
-                }
-              ]
-            },
-            {
-              className: "settings-menu",
-              menuAnchorIcon: SettingsIcon,
-              menuAnchorName: t("DG.ToolButtonData.optionMenu.title"),
-              menu: [
-                {
-                  icon: ToolbarPositionIcon,
-                  name: t("V3.AppController.optionMenuItems.positionToolShelf"),
-                  action() {
-                    runInAction(() => {
-                      persistentState.setToolbarPosition(persistentState.toolbarPosition === "Top" ? "Left" : "Top")
-                    })
-                  }
-                }
-              ]
-            }
-          ],
-          languageMenu: {
-            currentLang: gLocale.current,
-            options: locales.map(function (locale) {
-                              return {
-                                label: locale.langName,
-                                langCode: locale.langCode,
-                              }
-                            }),
-            onLangChanged: (langCode: string) => {
-              gLocale.setCurrent(langCode)
-              cfm.client.replaceMenu({
-                menuAnchorIcon: FileMenuIcon,
-                menuAnchorName: t("DG.fileMenu.fileMenuName"),
-                menu: getFileMenuConfig(cfm),
-              })
-            }
-          },
-          languageAnchorIcon: LanguageMenuIcon,
-        },
-
+        menuBar: getMenuBar(cfm),
         menuAnchorIcon: FileMenuIcon,
         menuAnchorName: t("DG.fileMenu.fileMenuName"),
         menu: getFileMenuConfig(cfm),
