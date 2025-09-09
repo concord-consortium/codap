@@ -14,10 +14,14 @@ export const useKeyboardShortcuts = () => {
       }
     }
 
-    const okToUndoRedo = (e: KeyboardEvent, test:boolean) => {
+    const okToUndoRedo = (e: KeyboardEvent, test: boolean) => {
       const target = e.target as Element | null
+      // don't intercept undo/redo if focused on editable element
       if (isEditable(target)) return false
-      e.preventDefault()
+      if (test) {
+        e.preventDefault()
+        e.stopPropagation()
+      }
       return test
     }
 
