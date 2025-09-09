@@ -75,10 +75,11 @@
   height: 100%;
   top: 0;
   width: 100%;
+}
 
-  &.box-plot-label {
-    background: #ffc;
-    box-shadow: 1px 1px 1px rgba(51, 51, 51, .7);
-    padding: 2px 4px;
-  }
+.box-plot-label {
+  background: #ffc;
+  box-shadow: 1px 1px 1px rgba(51, 51, 51, .7);
+  padding: 2px 4px;
+  pointer-events: none !important;  // to override measure-tip pointer-events
 }
