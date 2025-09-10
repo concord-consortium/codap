@@ -1,6 +1,7 @@
 import { getSnapshot } from "mobx-state-tree"
-import { kDefaultMinWidth, TileModel } from "./tile-model"
+import { TileModel } from "./tile-model"
 import { getTileTypes, getTileContentInfo } from "./tile-content-info"
+import { kDefaultMinWidth } from "./tile-layout"
 import { IUnknownContentModel } from "./unknown-content"
 import { kUnknownTileType } from "./unknown-types"
 

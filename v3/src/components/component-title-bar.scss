@@ -1,12 +1,18 @@
 @use "./vars";
 
+$min-button-width: 24px;
+$button-width: 34px;
+
 .component-title-bar {
-  flex-direction: row;
   align-items: center;
-  height: vars.$title-bar-height;
   background-color: vars.$title-bar-color;
-  width: 100%;
   border-radius: vars.$border-radius-top-corners;
+  container-name: titleBar;
+  container-type: inline-size;
+  flex-direction: row;
+  height: vars.$title-bar-height;
+  overflow: hidden;
+  width: 100%;
 
   &.focusTile {
     background-color: vars.$title-bar-focus-color;
@@ -38,10 +44,11 @@
       background-color: transparent;
       border-radius: 0;
       display: flex;
-      height: 34px;
+      height: vars.$title-bar-height;
       justify-content: center;
+      min-width: $min-button-width;
       padding: 0;
-      width: 34px;
+      width: $button-width;
 
       &:hover {
         background-color: #d3f4ff;
@@ -77,10 +84,7 @@
     .component-minimize-button {
       background-color: transparent;
       border: none;
-      height: vars.$title-bar-height;
-      width: 24px;
       padding: 0;
-      border-radius: 0;
     }
 
     .component-close-button {
@@ -101,15 +105,25 @@
     cursor: text;
     display: flex;
     font-weight: 500;
-    justify-content: center;
     margin: auto;
+    max-width: calc(100% - 10px);
+    overflow: hidden;
     padding: 0 10px;
     text-align: center;
   }
 
   .title-text {
     border: 1px solid vars.$icon-fill-dark;
-    width: max-content;
+    white-space: nowrap;
+    width: fit-content;
+
+    span {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      width: 100%;
+    }
 
     &:hover {
       background-color: vars.$title-bar-color;
@@ -119,6 +133,7 @@
   .title-text-input {
     outline: 2px solid vars.$focus-outline-color;
     outline-offset: 0;
+    width: 100%;
   }
 
   .title-text-measure {
@@ -126,5 +141,19 @@
     overflow: hidden;
     position: absolute;
     white-space: pre;
+  }
+}
+
+// Ensure the buttons in `.header-right` don't extend beyond the title bar bounds
+// when the tile is narrower than the default width of the two buttons.
+@container titleBar (max-width: #{$button-width * 2}) {
+  .header-right {
+    .component-title-bar-button {
+      width: $min-button-width !important;
+    }
+    .component-minimize-button {
+      border-top-left-radius: 4px !important;
+      margin-right: 2px !important;
+    }
   }
 }

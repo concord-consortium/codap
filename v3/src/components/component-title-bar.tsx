@@ -29,6 +29,8 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(props: ITil
   const classes = clsx("component-title-bar", `${tileType}-title-bar`, {focusTile: uiState.isFocusedTile(tile?.id)})
   const [isHovering, setIsHovering] = useState(false)
   const blankTitle = "_____"
+  const hasDraggedRef = useRef(false)
+  const pointerStart = useRef<{x: number, y: number} | null>(null);
 
   // Input sizing is based on https://stackoverflow.com/questions/8100770/auto-scaling-inputtype-text-to-width-of-value
   const [inputWidth, setInputWidth] = useState(2 * kInputPadding)
@@ -74,12 +76,31 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(props: ITil
     setInputWidth(measureRef.current.offsetWidth + 2 * kInputPadding)
   }
 
+  const handleTitlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    hasDraggedRef.current = false
+    pointerStart.current = { x: e.clientX, y: e.clientY }
+  }
+
+  const handleTitlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (pointerStart.current) {
+      const dx = Math.abs(e.clientX - pointerStart.current.x)
+      const dy = Math.abs(e.clientY - pointerStart.current.y)
+      if (dx > 3 || dy > 3) { // 3px threshold
+        hasDraggedRef.current = true
+      }
+    }
+  }
+
   const handleTitleClick = () => {
-    if (!preventTitleChange) {
+    if (!preventTitleChange && !hasDraggedRef.current) {
       setIsEditing(true)
       setEditingTitle(title)
       resizeInput(title)
     }
+  }
+
+  const handleInputPointerDown = (e: React.PointerEvent<HTMLInputElement>) => {
+    e.stopPropagation()
   }
 
   const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -117,13 +138,20 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(props: ITil
               onFocus={(e) => e.target.select()}
               onInput={handleInput}
               onKeyDown={handleInputKeyDown}
+              onPointerDown={handleInputPointerDown}
               ref={inputRef}
               style={{ width: `${inputWidth}px` }}
               value={editingTitle}
             />
           ) : ((title || isHovering) &&
-            <div className="title-text" data-testid="title-text" onClick={handleTitleClick}>
-              {isHovering && title === "" ? blankTitle : title}
+            <div
+              className="title-text"
+              data-testid="title-text"
+              onClick={handleTitleClick}
+              onPointerDown={handleTitlePointerDown}
+              onPointerMove={handleTitlePointerMove}
+            >
+              <span>{isHovering && title === "" ? blankTitle : title}</span>
             </div>
           )
         }

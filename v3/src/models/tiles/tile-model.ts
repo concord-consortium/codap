@@ -9,9 +9,7 @@ import { DisplayUserTypeEnum } from "../stores/user-types"
 import { ITileContentModel } from "./tile-content"
 import { getTileContentInfo, ITileExportOptions } from "./tile-content-info"
 import { TileContentUnion } from "./tile-content-union"
-
-// generally negotiated with app, e.g. single column width for table
-export const kDefaultMinWidth = 60
+import { kDefaultMinWidth } from "./tile-layout"
 
 export interface IDragTileItem {
   rowIndex: number;
