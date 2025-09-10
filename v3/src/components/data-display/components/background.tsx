@@ -82,7 +82,7 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
     startY = useRef(0),
     width = useRef(0),
     height = useRef(0),
-    needsToClear = useRef(true),
+    needsToClearSelection = useRef(false),
     selectionTree = useRef<RTree | null>(null),
     previousMarqueeRect = useRef<rTreeRect>()
 
@@ -104,21 +104,17 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
     width.current = 0
     height.current = 0
     marqueeState.setMarqueeRect({x: startX.current, y: startY.current, width: 0, height: 0})
-    needsToClear.current = !event.shiftKey
+    needsToClearSelection.current = !event.shiftKey
   }, [bgRef, marqueeState, pixiPointsArray])
 
   const onDrag = useCallback((event: { dx: number; dy: number }) => {
     if ((event.dx === 0 && event.dy === 0) || datasetsArray.length === 0) return
 
-    if (needsToClear.current) {
-      pixiPointsArray.forEach(pixiPoints => {
-        pixiPoints?.forEachPoint((_point: PIXI.Sprite, metadata: IPixiPointMetadata) => {
-          const dataset = datasetsMap[metadata.datasetID].dataset
-          if (dataset.selection.size <= 0) return
-          selectAllCases(dataset, false)
-        })
+    if (needsToClearSelection.current) {
+      datasetsArray.forEach(data => {
+        if (data.selection.size > 0) selectAllCases(data, false)
       })
-      needsToClear.current = false
+      needsToClearSelection.current = false
     }
 
     previousMarqueeRect.current = rectNormalize(
@@ -152,7 +148,7 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
     })
 
     clearDatasetsMapArrays()
-  }, [clearDatasetsMapArrays, datasetsArray.length, datasetsMap, marqueeState, pixiPointsArray])
+  }, [clearDatasetsMapArrays, datasetsArray, datasetsMap, marqueeState])
 
   const onDragEnd = useCallback(() => {
     marqueeState.setMarqueeRect({x: 0, y: 0, width: 0, height: 0})
