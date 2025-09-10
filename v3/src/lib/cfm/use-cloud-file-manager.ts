@@ -37,7 +37,8 @@ import HelpPagesIcon from "../../assets/cfm/help-pages-and-videos-icon.nosvgr.sv
 import PrivacyPolicyIcon from "../../assets/cfm/web-policy-page-icon.nosvgr.svg"
 import SettingsIcon from "../../assets/cfm/icon-settings.nosvgr.svg"
 import SubMenuExpandIcon from "../../assets/cfm/dropdown-arrow-old.nosvgr.svg"
-import ToolbarPositionIcon from "../../assets/cfm/icon-toolbar-position.nosvgr.svg"
+import ToolbarPositionLeftIcon from "../../assets/cfm/icon-toolbar-position-left.nosvgr.svg"
+import ToolbarPositionTopIcon from "../../assets/cfm/icon-toolbar-position-top.nosvgr.svg"
 
 const locales = [
   {
@@ -183,6 +184,7 @@ function getHelpUrl() {
 }
 
 function getMenuBar(cfm: CloudFileManager) {
+  const isToolbarTop = persistentState.toolbarPosition === "Top"
   return {
     onInfoClick() {
       window.open(projectWebSiteURL, "_blank")
@@ -222,11 +224,11 @@ function getMenuBar(cfm: CloudFileManager) {
         menuAnchorName: t("DG.ToolButtonData.optionMenu.title"),
         menu: [
           {
-            icon: ToolbarPositionIcon,
+            icon: isToolbarTop ? ToolbarPositionLeftIcon : ToolbarPositionTopIcon,
             name: t(`V3.AppController.optionMenuItems.positionToolShelf${persistentState.toolbarPosition}`),
             action() {
               runInAction(() => {
-                persistentState.setToolbarPosition(persistentState.toolbarPosition === "Top" ? "Left" : "Top")
+                persistentState.setToolbarPosition(isToolbarTop ? "Left" : "Top")
                 cfm.client.updateMenuBar(getMenuBar(cfm))
               })
             }
