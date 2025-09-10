@@ -34,11 +34,12 @@ interface IBoxPlotValue extends IValue {
 }
 
 export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentComponent (props: IAdornmentComponentProps) {
-  const {cellKey={}, cellCoords, containerId, plotHeight, plotWidth,
+  const {cellKey={}, cellCoords, containerId,
     xAxis, yAxis, spannerRef} = props
   const graphModel = useGraphContentModelContext()
   const model = props.model as IBoxPlotAdornmentModel
   const layout = useGraphLayoutContext()
+  const { plotWidth, plotHeight } = layout
   const dataConfig = useGraphDataConfigurationContext()
   const { xAttrId, yAttrId, xAttrType } = useAdornmentAttributes()
   const isVerticalRef = useRef(!!(xAttrType && xAttrType === "numeric"))
@@ -63,7 +64,7 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
     const containerLeft = containerRect?.left || 0
     const containerTop = containerRect?.top || 0
     const labelLeft = elementRect.left - containerLeft - 30
-    const labelTop = elementRect.top - containerTop - 30
+    const labelTop = Math.max(0, elementRect.top - containerTop - 30)
 
     label.style("left", `${labelLeft}px`)
       .style("top", `${labelTop}px`)
@@ -197,8 +198,8 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
     }
 
     const fullHeightLinesPath = () => {
-      const graphWidth = layout.plotWidth,
-        graphHeight = layout.plotHeight,
+      const graphWidth = plotWidth,
+        graphHeight = plotHeight,
         cellWidth = graphWidth / cellCounts.x,
         cellHeight = graphHeight / cellCounts.y,
         lowerCoord = isVerticalRef.current ? helper.xScale(iciRange.min) / cellCounts.x
@@ -251,8 +252,8 @@ export const BoxPlotAdornmentComponent = observer(function BoxPlotAdornmentCompo
         .attr("data-testid", `${helper.measureSlug}-error-bar`)
         .attr("d", fullHeightLinesPath())
     }
-  }, [dataConfig, attrId, helper, model, cellKey, spannerRef, plotWidth, cellCounts.x, cellCounts.y, plotHeight,
-            layout.plotWidth, layout.plotHeight, cellCoords.col, cellCoords.row])
+  }, [dataConfig, attrId, helper, model, cellKey, spannerRef, cellCounts.x, cellCounts.y,
+            plotWidth, plotHeight, cellCoords.col, cellCoords.row])
 
   const addQCovers = useCallback((valueObj: IBoxPlotValue) => {
 
