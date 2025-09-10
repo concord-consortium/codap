@@ -6,7 +6,7 @@ import RTreeLib from 'rtree'
 import * as PIXI from "pixi.js"
 import {appState} from "../../../models/app-state"
 import {IDataSet} from "../../../models/data/data-set"
-import {selectAndDeselectCases} from "../../../models/data/data-set-utils"
+import {selectAllCases, selectAndDeselectCases} from "../../../models/data/data-set-utils"
 import {defaultBackgroundColor} from "../../../utilities/color-utils"
 import {rTreeRect} from "../data-display-types"
 import {rectangleSubtract, rectNormalize} from "../data-display-utils"
@@ -39,32 +39,34 @@ interface SelectionMap {
 }
 
 const prepareTree = (pixiPointsArray: PixiPointsArray): RTree => {
-    const selectionTree = RTreeLib(10)
-    pixiPointsArray.forEach(pixiPoints => {
-      pixiPoints?.forEachPoint((point: PIXI.Sprite, metadata: IPixiPointMetadata) => {
-        const rect = {
-          x: point.x,
-          y: point.y,
-          w: 1, h: 1
-        }
-        selectionTree.insert(rect, {datasetID: metadata.datasetID, caseID: metadata.caseID})
-      })
+  const selectionTree = RTreeLib(10)
+  pixiPointsArray.forEach(pixiPoints => {
+    pixiPoints?.forEachPoint((point: PIXI.Sprite, metadata: IPixiPointMetadata) => {
+      const rect = {
+        x: point.x,
+        y: point.y,
+        w: 1, h: 1
+      }
+      selectionTree.insert(rect, { datasetID: metadata.datasetID, caseID: metadata.caseID })
     })
-    return selectionTree
-  },
+  })
+  return selectionTree
+}
 
-  getCasesForDelta = (tree: any, newRect: rTreeRect, prevRect: rTreeRect) => {
-    const diffRects = rectangleSubtract(newRect, prevRect)
-    let caseObjects: caseObject[] = []
-    diffRects.forEach(aRect => {
-      const newlyFoundCaseObjects = tree.search(aRect)
-      caseObjects = caseObjects.concat(newlyFoundCaseObjects)
-    })
-    return caseObjects
-  }
+const getCasesForDelta = (tree: RTree | null, newRect: rTreeRect, prevRect: rTreeRect) => {
+  if (!tree) return []
+
+  const diffRects = rectangleSubtract(newRect, prevRect)
+  let caseObjects: caseObject[] = []
+  diffRects.forEach(aRect => {
+    const newlyFoundCaseObjects = tree.search(aRect)
+    caseObjects = caseObjects.concat(newlyFoundCaseObjects)
+  })
+  return caseObjects
+}
 
 export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((props, ref) => {
-  const {marqueeState, pixiPointsArray} = props,
+  const { marqueeState, pixiPointsArray } = props,
     dataDisplayModel = useDataDisplayModelContext(),
     datasetsArray = dataDisplayModel.datasetsArray,
     datasetsMap: SelectionMap = useMemo(() => {
@@ -80,6 +82,7 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
     startY = useRef(0),
     width = useRef(0),
     height = useRef(0),
+    needsToClearSelection = useRef(false),
     selectionTree = useRef<RTree | null>(null),
     previousMarqueeRect = useRef<rTreeRect>()
 
@@ -88,62 +91,71 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
       datasetsMap[key].caseIDsToSelect = []
       datasetsMap[key].caseIDsToDeselect = []
     })
-  }, [datasetsMap]),
+  }, [datasetsMap])
 
-    onDragStart = useCallback((event: PointerEvent) => {
-      appState.beginPerformance()
-      selectionTree.current = prepareTree(pixiPointsArray)
-      // Event coordinates are window coordinates. To convert them to SVG coordinates, we need to subtract the
-      // bounding rect of the SVG element.
-      const bgRect = (bgRef.current as SVGGElement).getBoundingClientRect()
-      startX.current = event.x - bgRect.left
-      startY.current = event.y - bgRect.top
-      width.current = 0
-      height.current = 0
-      marqueeState.setMarqueeRect({x: startX.current, y: startY.current, width: 0, height: 0})
-    }, [bgRef, marqueeState, pixiPointsArray]),
+  const onDragStart = useCallback((event: PointerEvent) => {
+    appState.beginPerformance()
+    selectionTree.current = prepareTree(pixiPointsArray)
+    // Event coordinates are window coordinates. To convert them to SVG coordinates, we need to subtract the
+    // bounding rect of the SVG element.
+    const bgRect = (bgRef.current as SVGGElement).getBoundingClientRect()
+    startX.current = event.x - bgRect.left
+    startY.current = event.y - bgRect.top
+    width.current = 0
+    height.current = 0
+    marqueeState.setMarqueeRect({x: startX.current, y: startY.current, width: 0, height: 0})
+    needsToClearSelection.current = !event.shiftKey
+  }, [bgRef, marqueeState, pixiPointsArray])
 
-    onDrag = useCallback((event: { dx: number; dy: number }) => {
-      if (event.dx !== 0 || event.dy !== 0 && datasetsArray.length) {
-        previousMarqueeRect.current = rectNormalize(
-          {x: startX.current, y: startY.current, w: width.current, h: height.current})
-        width.current = width.current + event.dx
-        height.current = height.current + event.dy
-        const marqueeRect = marqueeState.marqueeRect
-        marqueeState.setMarqueeRect({
-          x: marqueeRect.x, y: marqueeRect.y,
-          width: marqueeRect.width + event.dx,
-          height: marqueeRect.height + event.dy
-        })
-        const currentRect = rectNormalize({
-            x: startX.current, y: startY.current,
-            w: width.current,
-            h: height.current
-          }),
-          newSelection = getCasesForDelta(selectionTree.current, currentRect, previousMarqueeRect.current),
-          newDeselection = getCasesForDelta(selectionTree.current, previousMarqueeRect.current, currentRect)
-        // Stash the caseIDs to select and deselect for each dataset
-        newSelection.forEach((caseObject: caseObject) => {
-          datasetsMap[caseObject.datasetID].caseIDsToSelect.push(caseObject.caseID)
-        })
-        newDeselection.forEach((caseObject: caseObject) => {
-          datasetsMap[caseObject.datasetID].caseIDsToDeselect.push(caseObject.caseID)
-        })
-        // Apply the selections and de-selections for each dataset
-        Object.values(datasetsMap).forEach((selectionSpec) => {
-          const {dataset, caseIDsToSelect, caseIDsToDeselect} = selectionSpec
-          selectAndDeselectCases(caseIDsToSelect, caseIDsToDeselect, dataset)
-        })
-      }
-      clearDatasetsMapArrays()
-    }, [clearDatasetsMapArrays, datasetsArray.length, datasetsMap, marqueeState]),
+  const onDrag = useCallback((event: { dx: number; dy: number }) => {
+    if ((event.dx === 0 && event.dy === 0) || datasetsArray.length === 0) return
 
-    onDragEnd = useCallback(() => {
-      marqueeState.setMarqueeRect({x: 0, y: 0, width: 0, height: 0})
-      selectionTree.current = null
-      dataDisplayModel.setMarqueeMode("unclicked")
-      appState.endPerformance()
-    }, [dataDisplayModel, marqueeState])
+    if (needsToClearSelection.current) {
+      datasetsArray.forEach(data => {
+        if (data.selection.size > 0) selectAllCases(data, false)
+      })
+      needsToClearSelection.current = false
+    }
+
+    previousMarqueeRect.current = rectNormalize(
+      {x: startX.current, y: startY.current, w: width.current, h: height.current})
+    width.current = width.current + event.dx
+    height.current = height.current + event.dy
+    const marqueeRect = marqueeState.marqueeRect
+    marqueeState.setMarqueeRect({
+      x: marqueeRect.x, y: marqueeRect.y,
+      width: marqueeRect.width + event.dx,
+      height: marqueeRect.height + event.dy
+    })
+    const currentRect = rectNormalize({
+        x: startX.current, y: startY.current,
+        w: width.current,
+        h: height.current
+      }),
+      newSelection = getCasesForDelta(selectionTree.current, currentRect, previousMarqueeRect.current),
+      newDeselection = getCasesForDelta(selectionTree.current, previousMarqueeRect.current, currentRect)
+    // Stash the caseIDs to select and deselect for each dataset
+    newSelection.forEach((caseObject: caseObject) => {
+      datasetsMap[caseObject.datasetID].caseIDsToSelect.push(caseObject.caseID)
+    })
+    newDeselection.forEach((caseObject: caseObject) => {
+      datasetsMap[caseObject.datasetID].caseIDsToDeselect.push(caseObject.caseID)
+    })
+    // Apply the selections and de-selections for each dataset
+    Object.values(datasetsMap).forEach((selectionSpec) => {
+      const {dataset, caseIDsToSelect, caseIDsToDeselect} = selectionSpec
+      selectAndDeselectCases(caseIDsToSelect, caseIDsToDeselect, dataset)
+    })
+
+    clearDatasetsMapArrays()
+  }, [clearDatasetsMapArrays, datasetsArray, datasetsMap, marqueeState])
+
+  const onDragEnd = useCallback(() => {
+    marqueeState.setMarqueeRect({x: 0, y: 0, width: 0, height: 0})
+    selectionTree.current = null
+    dataDisplayModel.setMarqueeMode("unclicked")
+    appState.endPerformance()
+  }, [dataDisplayModel, marqueeState])
 
   usePixiPointerDownDeselect(pixiPointsArray, dataDisplayModel)
 
@@ -152,12 +164,12 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
       if (!layout.computedBounds.plot) {
         return
       }
-      const {left, top, width: plotWidth, height: plotHeight} = layout.computedBounds.plot,
+      const { left, top, width: plotWidth, height: plotHeight } = layout.computedBounds.plot,
         transform = `translate(${left}, ${top})`,
-        {isTransparent, plotBackgroundColor = defaultBackgroundColor} = dataDisplayModel,
+        { isTransparent, plotBackgroundColor = defaultBackgroundColor } = dataDisplayModel,
         bgColor = String(color(plotBackgroundColor)),
         darkBgColor = String(color(plotBackgroundColor)?.darker(0.2)),
-        {numRows, numColumns} = layout,
+        { numRows, numColumns } = layout,
         cellWidth = Math.max(0, plotWidth / numColumns),
         cellHeight = Math.max(0, plotHeight / numRows),
         row = (index: number) => Math.floor(index / numColumns),
