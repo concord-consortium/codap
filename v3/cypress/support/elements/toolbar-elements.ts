@@ -6,13 +6,13 @@ export const ToolbarElements = {
       cy.get(".toolbar-container:not(.vertical-toolbar-container)").should("exist")
       cy.get(".vertical-toolbar-container").should("not.exist")
       cfm.getSettingsMenuButton().click()
-      cfm.getSettingsMenuItems().eq(0).should("contain.text", "Toolbar Position: Top")
+      cfm.getSettingsMenuItems().eq(0).should("contain.text", "Toolbar Position: Left")
       cfm.getMenuBarInfo().click() // Close the menu
     } else {
       cy.get(".toolbar-container:not(.vertical-toolbar-container)").should("not.exist")
       cy.get(".vertical-toolbar-container").should("exist")
       cfm.getSettingsMenuButton().click()
-      cfm.getSettingsMenuItems().eq(0).should("contain.text", "Toolbar Position: Left")
+      cfm.getSettingsMenuItems().eq(0).should("contain.text", "Toolbar Position: Top")
       cfm.getMenuBarInfo().click() // Close the menu
     }
   },
