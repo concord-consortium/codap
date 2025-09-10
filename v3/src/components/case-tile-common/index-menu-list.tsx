@@ -1,11 +1,13 @@
 import { MenuItem, MenuList, useDisclosure } from "@chakra-ui/react"
 import React from "react"
+import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { insertCasesWithCustomUndoRedo, removeCasesWithCustomUndoRedo } from "../../models/data/data-set-undo"
 import { t } from "../../utilities/translation/translate"
 import { IInsertSpec, InsertCasesModal } from "./insert-cases-modal"
 import { isItemEditable } from "../../utilities/plugin-utils"
 import { ICaseCreation } from "../../models/data/data-set-types"
+import { useCollectionTableModel } from "../case-table/use-collection-table-model"
 
 interface IProps {
   caseId: string
@@ -19,6 +21,11 @@ export const IndexMenuList = ({caseId, index}: IProps) => {
     ? Array.from(data.selection).filter(itemId => isItemEditable(data, itemId))
     : []
   const disableEdits = deletableSelectedItems.length < 1
+
+  const collectionId = useCollectionContext()
+  const collection = data?.getCollection(collectionId)
+  const tableIndex = collection?.caseIdToIndexMap.get(caseId) ?? -1
+  const collectionTable = useCollectionTableModel()
 
   function handleCloseInsertCasesModel(insertSpec?: IInsertSpec) {
     const { count, position } = insertSpec || {}
@@ -38,7 +45,9 @@ export const IndexMenuList = ({caseId, index}: IProps) => {
 
   const menuItems: IMenuItem[] = [
     {
-      itemKey: "DG.CaseTable.indexMenu.moveEntryRow"
+      itemKey: "DG.CaseTable.indexMenu.moveEntryRow",
+      isEnabled: () => tableIndex !== -1,
+      handleClick: () => collectionTable?.setInputRowIndex(tableIndex)
     },
     {
       itemKey: "DG.CaseTable.indexMenu.insertCase",
