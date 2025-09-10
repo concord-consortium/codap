@@ -5,7 +5,7 @@ import { useDataSet } from "../../../hooks/use-data-set"
 import { logMessageWithReplacement } from "../../../lib/log-message"
 import { AttributeType, attributeTypes } from "../../../models/data/attribute-types"
 import { updateAttributesNotification } from "../../../models/data/data-set-notifications"
-import { DatePrecision } from "../../../utilities/date-utils"
+import { DatePrecision, datePrecisions } from "../../../utilities/date-utils"
 import { uniqueName } from "../../../utilities/js-utils"
 import { t } from "../../../utilities/translation/translate"
 import { CodapModal } from "../../codap-modal"
@@ -120,7 +120,7 @@ export const EditAttributePropertiesModal = ({ attributeId, isOpen, onClose }: I
       return (
         <Select size="xs" ml={5} value={toDatePrecisionStr(precision)} data-testid="attr-precision-select"
                         onChange={(e) => setPrecision(toDatePrecision(e.target.value))}>
-          {Object.values(DatePrecision).map(p => {
+          {datePrecisions.map(p => {
             return (
               <option value={p} key={`precision-${p}`} data-testid={`attr-precision-option-${p}`}>
                 {p}
