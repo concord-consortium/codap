@@ -30,6 +30,7 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(props: ITil
   const [isHovering, setIsHovering] = useState(false)
   const blankTitle = "_____"
   const hasDraggedRef = useRef(false)
+  const pointerStart = useRef<{x: number, y: number} | null>(null);
 
   // Input sizing is based on https://stackoverflow.com/questions/8100770/auto-scaling-inputtype-text-to-width-of-value
   const [inputWidth, setInputWidth] = useState(2 * kInputPadding)
@@ -75,12 +76,19 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(props: ITil
     setInputWidth(measureRef.current.offsetWidth + 2 * kInputPadding)
   }
 
-  const handleTitlePointerDown = () => {
+  const handleTitlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     hasDraggedRef.current = false
+    pointerStart.current = { x: e.clientX, y: e.clientY }
   }
 
-  const handleTitlePointerMove = () => {
-    hasDraggedRef.current = true
+  const handleTitlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (pointerStart.current) {
+      const dx = Math.abs(e.clientX - pointerStart.current.x)
+      const dy = Math.abs(e.clientY - pointerStart.current.y)
+      if (dx > 3 || dy > 3) { // 3px threshold
+        hasDraggedRef.current = true
+      }
+    }
   }
 
   const handleTitleClick = () => {
