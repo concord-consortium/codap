@@ -72,7 +72,7 @@ export const useDropHandler = ({
                 if (extension === 'csv') {
                   // For .csv import via Importer plugin
                   initiateImportFromCsv({ url })
-                } else if (!["svg", "png", "gif"].includes(extension)) {
+                } else if (!["svg", "png", "gif", "jpg"].includes(extension)) {
                   // Do not load web views for image files
                   const result = /di=(.+)/.exec(url)
                   onHandleUrlDrop?.(result?.[1] || url)
