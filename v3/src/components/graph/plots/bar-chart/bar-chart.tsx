@@ -204,6 +204,14 @@ export const BarChart = observer(function BarChart({ abovePointsGroupRef, pixiPo
   const handleEditExpressionClose = (newExpression: string) => {
     handleCloseModal()
     const expression = barChartModel.formula?.display ?? ""
+    const notification = {
+      message: {
+        action: 'notify',
+        resource: "component",
+        // todo: id is supposed to be numeric, but graphModel.id is a string
+        values: { type: "graph", operation: "change formula", id: 0 }
+      }
+      }
     if (newExpression !== expression) {
       barChartModel.applyModelChange(
         () => barChartModel.setExpression(newExpression),
@@ -211,7 +219,8 @@ export const BarChart = observer(function BarChart({ abovePointsGroupRef, pixiPo
           undoStringKey: "DG.Undo.graph.showAsComputedBarChart",
           redoStringKey: "DG.Redo.graph.showAsComputedBarChart",
           log: logStringifiedObjectMessage("Change computed bar length function: %@",
-            {from: expression, to: newExpression})
+            {from: expression, to: newExpression}),
+          notify: notification
         }
       )
     }
@@ -221,7 +230,9 @@ export const BarChart = observer(function BarChart({ abovePointsGroupRef, pixiPo
         {
           undoStringKey: "DG.Undo.graph.showAsComputedBarChart",
           redoStringKey: "DG.Redo.graph.showAsComputedBarChart",
-          log: 'Change bar chart to computed by pre-existing formula'        }
+          log: 'Change bar chart to computed by pre-existing formula',
+          notify: notification
+        }
       )
     }
   }
