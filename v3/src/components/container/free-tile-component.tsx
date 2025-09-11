@@ -45,12 +45,13 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
   }, [])
 
   const handleMinimizeTile = useCallback(() => {
+    const logString = isMinimized ? "Expanded component" : "Minimized component"
     if (setMinimized) {
       tile.applyModelChange(() => {
         setMinimized(!isMinimized)
       }, {
         notify: updateTileNotification("toggle minimize component", {}, tile),
-        log: logMessageWithReplacement("Component minimized: %@", {isMinimized}, "component"),
+        log: logMessageWithReplacement(logString, {}, "component"),
         undoStringKey: "DG.Undo.component.minimize",
         redoStringKey: "DG.Redo.component.minimize"
       })
