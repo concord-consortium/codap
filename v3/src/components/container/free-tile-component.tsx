@@ -45,8 +45,19 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
   }, [])
 
   const handleMinimizeTile = useCallback(() => {
-    setMinimized?.(!isMinimized)
-  }, [isMinimized, setMinimized])
+    const logString = isMinimized ? "Expanded component" : "Minimized component"
+    if (setMinimized) {
+      tile.applyModelChange(() => {
+        setMinimized(!isMinimized)
+      }, {
+        notify: updateTileNotification("toggle minimize component", {}, tile),
+        log: logMessageWithReplacement(logString, {}, "component"),
+        undoStringKey: "DG.Undo.component.minimize",
+        redoStringKey: "DG.Redo.component.minimize"
+      })
+
+    }
+  }, [isMinimized, setMinimized, tile])
 
   const { handlePointerDown: handleMoveTilePointerDown } = useTileDrag({ row, tile, tileLayout, setChangingTileStyle })
 
