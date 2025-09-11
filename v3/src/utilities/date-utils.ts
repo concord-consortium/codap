@@ -17,18 +17,15 @@ export const dateUnits = ["year", "month", "day", "hour", "minute", "second", "m
 export type DateUnit = typeof dateUnits[number]
 
 export function isDateUnit(value: any): value is DateUnit {
-  return dateUnits.includes(value)
+  return typeof value === "string"  && (dateUnits as readonly string[]).includes(value)
 }
 
-export enum DatePrecision {
-  None = '',
-  Millisecond = 'millisecond',
-  Second = 'second',
-  Minute = 'minute',
-  Hour = 'hour',
-  Day = 'day',
-  Month = 'month',
-  Year = 'year'
+export const kDatePrecisionNone = ""
+export const datePrecisions = [kDatePrecisionNone, ...dateUnits] as const
+export type DatePrecision = typeof datePrecisions[number]
+
+export function isDatePrecision(value: any): value is DatePrecision {
+  return typeof value === "string" && (datePrecisions as readonly string[]).includes(value)
 }
 
 // Constants for converting between units of time and milliseconds
@@ -123,25 +120,25 @@ export function determineLevels(iMinDate: number, iMaxDate: number) {
 }
 
 export function mapLevelToPrecision(iLevel: EDateTimeLevel) {
-  let tPrecision = DatePrecision.None
+  let tPrecision: DatePrecision = kDatePrecisionNone
   switch (iLevel) {
     case EDateTimeLevel.eSecond:
-      tPrecision = DatePrecision.Second
+      tPrecision = "second"
       break
     case EDateTimeLevel.eMinute:
-      tPrecision = DatePrecision.Minute
+      tPrecision = "minute"
       break
     case EDateTimeLevel.eHour:
-      tPrecision = DatePrecision.Hour
+      tPrecision = "hour"
       break
     case EDateTimeLevel.eDay:
-      tPrecision = DatePrecision.Day
+      tPrecision = "day"
       break
     case EDateTimeLevel.eMonth:
-      tPrecision = DatePrecision.Month
+      tPrecision = "month"
       break
     case EDateTimeLevel.eYear:
-      tPrecision = DatePrecision.Year
+      tPrecision = "year"
       break
   }
   return tPrecision
@@ -167,17 +164,17 @@ export function checkDate(value: any): [false] | [true, Date] {
  * @param precision {number}
  * @return {string}
  */
-export function formatDate(x: Date | number | string | null, precision: DatePrecision = DatePrecision.None):
+export function formatDate(x: Date | number | string | null, precision: DatePrecision = kDatePrecisionNone):
   string | null {
   const formatPrecisions: Partial<Record<DatePrecision, Intl.DateTimeFormatOptions>> = {
-    [DatePrecision.Year]: { year: 'numeric' },
-    [DatePrecision.Month]: { year: 'numeric', month: 'numeric' },
-    [DatePrecision.Day]: { year: 'numeric', month: 'numeric', day: 'numeric' },
-    [DatePrecision.Hour]: { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric' },
-    [DatePrecision.Minute]: { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric' },
-    [DatePrecision.Second]: { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric',
+    year: { year: 'numeric' },
+    month: { year: 'numeric', month: 'numeric' },
+    day: { year: 'numeric', month: 'numeric', day: 'numeric' },
+    hour: { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric' },
+    minute: { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric' },
+    second: { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric',
       second: 'numeric' },
-    [DatePrecision.Millisecond]: { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric',
+    millisecond: { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric',
       minute: 'numeric', second: 'numeric', fractionalSecondDigits: 3 } as Intl.DateTimeFormatOptions
   }
 

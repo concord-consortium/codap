@@ -11,6 +11,8 @@ import { kSharedDataSetType, SharedDataSet } from "../models/shared/shared-data-
 import { getMetadataFromDataSet } from "../models/shared/shared-data-utils"
 import { ISharedModelManager } from "../models/shared/shared-model-manager"
 import { kItemIdPrefix, toV3AttrId, toV3CaseId, toV3CollectionId, toV3DataSetId, v3Id } from "../utilities/codap-utils"
+import { DatePrecision, isDatePrecision } from "../utilities/date-utils"
+import { isFiniteNumber } from "../utilities/math-utils"
 import {
   ICodapV2Attribute, ICodapV2Case, ICodapV2Collection, ICodapV2DataContext, ICodapV2DataContextStorage,
   ICodapV2GameContext, ICodapV2SetAsideItem, isV2SetAsideItem, v3TypeFromV2TypeString
@@ -25,6 +27,14 @@ interface V2CaseIdInfo {
 
 // This supports importing ICodapV2DataContext and ICodapV2GameContext
 type ImportableContext = ICodapV2DataContext | ICodapV2GameContext
+
+function validateV2Precision(v2Precision: number | string | null | undefined): Maybe<number | DatePrecision> {
+  if (v2Precision == null) return undefined
+  if (typeof v2Precision === "number") return v2Precision
+  if (isDatePrecision(v2Precision)) return v2Precision
+  const convertedPrecision = +v2Precision
+  if (isFiniteNumber(convertedPrecision)) return convertedPrecision
+}
 
 export class CodapV2DataSetImporter {
   private guidMap
@@ -149,8 +159,8 @@ export class CodapV2DataSetImporter {
       const userType = v3TypeFromV2TypeString(v2Type)
       const formula = v2Formula ? { display: v2Formula } : undefined
       const editable = v2Editable == null || !!v2Editable
-      const precision = v2Precision != null && v2Precision !== ""
-                          ? +v2Precision
+      const precision = v2Precision != null
+                          ? validateV2Precision(v2Precision)
                           : decimals != null && decimals !== ""
                             ? +decimals
                             : undefined

@@ -30,7 +30,7 @@ import { addDisposer, Instance, SnapshotIn, types } from "mobx-state-tree"
 import { kAttrIdPrefix, typeV3Id } from "../../utilities/codap-utils"
 import { parseColor } from "../../utilities/color-utils"
 import { isDateString } from "../../utilities/date-parser"
-import { DatePrecision } from "../../utilities/date-utils"
+import { DatePrecision, datePrecisions } from "../../utilities/date-utils"
 import { extractNumeric } from "../../utilities/math-utils"
 import { cachedFnFactory } from "../../utilities/mst-utils"
 import { isDevelopment, isProduction } from "../../utilities/environment-utils"
@@ -56,7 +56,7 @@ export const Attribute = V2Model.named("Attribute").props({
   userType: types.maybe(types.enumeration([...attributeTypes])),
   // userFormat: types.maybe(types.string),
   units: types.maybe(types.string),
-  precision: types.maybe(types.union(types.number, types.enumeration(Object.values(DatePrecision)))),
+  precision: types.maybe(types.union(types.number, types.enumeration(datePrecisions))),
   formula: types.maybe(Formula),
   // simple array -- _not_ MST all the way down to the array elements
   // due to its frozen nature, clients should _not_ use `values` directly

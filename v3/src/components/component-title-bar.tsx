@@ -30,7 +30,7 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(props: ITil
   const [isHovering, setIsHovering] = useState(false)
   const blankTitle = "_____"
   const hasDraggedRef = useRef(false)
-  const pointerStart = useRef<{x: number, y: number} | null>(null);
+  const pointerStart = useRef<{x: number, y: number} | null>(null)
 
   // Input sizing is based on https://stackoverflow.com/questions/8100770/auto-scaling-inputtype-text-to-width-of-value
   const [inputWidth, setInputWidth] = useState(2 * kInputPadding)

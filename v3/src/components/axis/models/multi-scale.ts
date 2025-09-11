@@ -208,11 +208,11 @@ export class MultiScale {
       return format('.9')(roundedNumber)
     }
 
-    const formatDatePrecisionArr = [DatePrecision.Year, DatePrecision.Month, DatePrecision.Day, DatePrecision.Hour]
+    const formatDatePrecisionArr = ["year", "month", "day", "hour"]
     const formatSliderInputDate = (n: number): string => {
       if (isDate && formatDatePrecisionArr.includes(dateMultipleOfUnit as DatePrecision)) {
         return formatDate(n * 1000, dateMultipleOfUnit as DatePrecision) ?? ''
-      } else { return formatDate(n * 1000, DatePrecision.Minute) ?? '' }
+      } else { return formatDate(n * 1000, "minute") ?? '' }
     }
 
     return isDate

@@ -1,7 +1,9 @@
 import { axisBottom, format, max, min, NumberValue, range, scaleLinear, ScaleQuantile, ScaleQuantize, select } from "d3"
 import { measureTextExtent } from "../../../../../hooks/use-measure-text"
+import {
+  determineLevels, formatDate, kDatePrecisionNone, mapLevelToPrecision
+} from "../../../../../utilities/date-utils"
 import { neededSigDigitsArrayForBinBoundaries } from "../../../../../utilities/math-utils"
-import { DatePrecision, determineLevels, formatDate, mapLevelToPrecision } from "../../../../../utilities/date-utils"
 import { kChoroplethHeight, kDataDisplayFont } from "../../../data-display-types"
 
 export type ChoroplethLegendProps = {
@@ -60,7 +62,7 @@ export function choroplethLegend(scale: ChoroplethScale, choroplethElt: SVGGElem
     domainValues = scale.domain(),
     significantDigits = neededSigDigitsArrayForBinBoundaries(fullBoundaries, domainValues),
     dateLevels = isDate ? determineLevels(minValue, maxValue) : {increment: 1, outerLevel: 0, innerLevel: 0},
-    datePrecision = isDate ? mapLevelToPrecision(dateLevels.innerLevel + 1) : DatePrecision.None
+    datePrecision = isDate ? mapLevelToPrecision(dateLevels.innerLevel + 1) : kDatePrecisionNone
 
   const thresholdFormat = isDate ? (date: number) => formatDate(date * 1000, datePrecision) ?? ''
     : format(tickFormatSpec)
