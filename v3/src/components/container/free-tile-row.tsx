@@ -1,6 +1,7 @@
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import React, { useEffect, useRef } from "react"
+import { useScrollableContainer } from "../../hooks/use-scrollable-container"
 import { TileContainerContext } from "../../hooks/use-tile-container-context"
 import { IFreeTileRow } from "../../models/document/free-tile-row"
 import { ITileModel } from "../../models/tiles/tile-model"
@@ -20,6 +21,7 @@ export const FreeTileRowComponent = observer(function FreeTileRowComponent(
   { row, getTile, onCloseTile }: IFreeTileRowProps) {
 
   const rowRef = useRef<HTMLDivElement | null>(null)
+  useScrollableContainer(rowRef.current)
 
   // focused tile should always be on top
   useEffect(() => {

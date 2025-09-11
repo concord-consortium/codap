@@ -4,8 +4,8 @@ import { observer } from "mobx-react-lite"
 import React, { CSSProperties } from "react"
 import { createPortal } from "react-dom"
 import { AxisPlace } from "../../axis/axis-types"
-import { useGraphLayoutContext } from "../hooks/use-graph-layout-context"
 import { DropHint } from "../../data-display/components/drop-hint"
+import { useGraphLayoutContext } from "../hooks/use-graph-layout-context"
 
 interface IProps {
   place: AxisPlace
