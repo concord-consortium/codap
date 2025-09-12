@@ -179,10 +179,11 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
     lineObject.handleUpper && fixHandles(lineObject.handleUpper, 3)
 
     // If the intercept is locked, hide the middle handle. It's not needed since it would then be permanently fixed
-    // at the origin and is not draggable.
+    // at the origin and not draggable.
     if (interceptLocked) {
       lineObject.handleMiddle?.style("display", "none")
     } else {
+      // Let the stylesheet handle the display in this case.
       lineObject.handleMiddle?.style("display", null)
     }
 
@@ -369,7 +370,6 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
       const intercept = interceptLocked ? 0 : lineModel.dynamicIntercept ?? lineModel.intercept
       const { xDomain, yDomain } = getAxisDomains(xAxis, yAxis)
       pointsOnAxes.current = lineToAxisIntercepts(slope, intercept, xDomain, yDomain)
-      getAxisDomains()
       updateLine()
       refreshEquation(slope, intercept)
 
