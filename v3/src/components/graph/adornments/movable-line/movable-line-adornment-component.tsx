@@ -429,10 +429,13 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
       .attr("class", "movable-line-cover movable-line-upper-cover")
     newLineObject.handleLower = selection.append("rect")
       .attr("class", "movable-line-handle movable-line-lower-handle show-on-tile-selected")
+      .attr("data-testid", "movable-line-lower-handle")
     newLineObject.handleMiddle = selection.append("rect")
       .attr("class", "movable-line-handle movable-line-middle-handle show-on-tile-selected")
+      .attr("data-testid", "movable-line-middle-handle")
     newLineObject.handleUpper = selection.append("rect")
       .attr("class", "movable-line-handle movable-line-upper-handle show-on-tile-selected")
+      .attr("data-testid", "movable-line-upper-handle")
 
     // Set up the corresponding equation box
     // Define the selector that corresponds with this specific movable line's adornment container
