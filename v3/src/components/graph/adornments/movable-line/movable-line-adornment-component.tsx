@@ -366,8 +366,8 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
       const lineModel = model.lines.get(instanceKey)
       if (!lineObject.line || !lineModel) return
 
-      const slope = lineModel.dynamicSlope ?? lineModel.slope
-      const intercept = interceptLocked ? 0 : lineModel.dynamicIntercept ?? lineModel.intercept
+      const { slope, intercept: _intercept } = lineModel.slopeAndIntercept
+      const intercept = interceptLocked ? 0 : _intercept
       const { xDomain, yDomain } = getAxisDomains(xAxis, yAxis)
       pointsOnAxes.current = lineToAxisIntercepts(slope, intercept, xDomain, yDomain)
       updateLine()
