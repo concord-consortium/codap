@@ -498,10 +498,36 @@ context("Graph adornments", () => {
     cy.get("[data-testid=adornment-wrapper]").find("*[data-testid^=movable-line]").should("exist")
     cy.get("[data-testid=adornment-wrapper]").find("*[data-testid^=movable-line-equation-container-]")
       .find("[data-testid=movable-line-equation-]").should("not.be.empty")
+
+    // The movable line should have three handles (lower, middle, upper) that are visible.
+    cy.get("[data-testid=movable-line-lower-handle]").should("exist").and("have.css", "display", "block")
+    cy.get("[data-testid=movable-line-middle-handle]").should("exist").and("have.css", "display", "block")
+    cy.get("[data-testid=movable-line-upper-handle]").should("exist").and("have.css", "display", "block")
+    // If the intercept is locked, the middle handle is hidden.
+    graph.getInspectorPalette().find("[data-testid=adornment-checkbox-intercept-locked]").click()
+    cy.get("[data-testid=movable-line-lower-handle]").should("have.css", "display", "block")
+    cy.get("[data-testid=movable-line-middle-handle]").should("have.css", "display", "none")
+    cy.get("[data-testid=movable-line-upper-handle]").should("have.css", "display", "block")
+    graph.getInspectorPalette().find("[data-testid=adornment-checkbox-intercept-locked]").click()
+    cy.get("[data-testid=movable-line-lower-handle]").should("have.css", "display", "block")
+    cy.get("[data-testid=movable-line-middle-handle]").should("have.css", "display", "block")
+    cy.get("[data-testid=movable-line-upper-handle]").should("have.css", "display", "block")
+
+    // All handles should be hidden when focus taken off graph, and reappear when focus is back on graph.
+    c.selectTile("table", 0)
+    cy.get("[data-testid=movable-line-lower-handle]").should("have.css", "display", "none")
+    cy.get("[data-testid=movable-line-middle-handle]").should("have.css", "display", "none")
+    cy.get("[data-testid=movable-line-upper-handle]").should("have.css", "display", "none")
+    c.selectTile("graph", 0)
+    cy.get("[data-testid=movable-line-lower-handle]").should("have.css", "display", "block")
+    cy.get("[data-testid=movable-line-middle-handle]").should("have.css", "display", "block")
+    cy.get("[data-testid=movable-line-upper-handle]").should("have.css", "display", "block")
+
     // TODO: Also test the above after attributes are added to top and right axes (i.e. when there are multiple lines)
     // TODO: Test dragging of line and equation value changes
     // TODO: Test unpinning equation box from line
     cy.wait(250)
+    graph.getDisplayValuesButton().click()
     graph.getInspectorPalette().find("[data-testid=adornment-checkbox-movable-line]").click()
     cy.get("[data-testid=adornment-wrapper]").should("have.class", "hidden")
 
@@ -522,6 +548,7 @@ context("Graph adornments", () => {
     // The Show Measures label should be hidden after a redo
     toolbar.getRedoTool().click()
     cy.get("[data-testid=adornment-wrapper]").should("have.class", "hidden")
+
   })
   it("adds plotted value UI to graph when Plotted Value checkbox is checked", () => {
     c.selectTile("graph", 0)
