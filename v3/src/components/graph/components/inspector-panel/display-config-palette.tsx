@@ -48,17 +48,32 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
       const isBinned = configType === "bins"
       const plotType = isBinned ? "BinnedPlot"
         : (display === "bars" ? "LinePlot" : "DotPlot")
+      let undoStringKey = ""
+      let redoStringKey = ""
+      switch (isBinned) {
+        case true:
+          undoStringKey = "DG.Undo.graph.showAsBinnedPlot"
+          redoStringKey = "DG.Redo.graph.showAsBinnedPlot"
+          break
+        case false:
+          if (display === "points") {
+            undoStringKey = "DG.Undo.graph.showAsDotPlot"
+            redoStringKey = "DG.Redo.graph.showAsDotPlot"
+          } else {
+            undoStringKey = "DG.Undo.graph.showAsLinePlot"
+            redoStringKey = "DG.Redo.graph.showAsLinePlot"
+          }
+          break
+      }
       graphModel?.applyModelChange(() => {
           graphModel?.configureUnivariateNumericPlot(display, isBinned)
         },
         {
-          undoStringKey: "DG.Undo.graph.showAsBinnedPlot",
-          redoStringKey: "DG.Redo.graph.showAsBinnedPlot",
+          undoStringKey, redoStringKey,
           log: logMessageWithReplacement("toggleShowAs: %@", { logString: plotType }),
           notify: tile ? tileNotification(`toggle show as ${plotType}`, {}, tile) : undefined
         }
       )
-      graphModel?.configureUnivariateNumericPlot(display, isBinned)
     }
   }
 

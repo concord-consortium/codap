@@ -5,6 +5,8 @@ import { createPortal } from "react-dom"
 import { logStringifiedObjectMessage } from "../../../../lib/log-message"
 import { numericSortComparator } from "../../../../utilities/data-utils"
 import { t } from "../../../../utilities/translation/translate"
+import { useTileModelContext } from "../../../../hooks/use-tile-model-context"
+import { tileNotification } from "../../../../models/tiles/tile-notifications"
 import { EditFormulaModal } from "../../../common/edit-formula-modal"
 import { kMain } from "../../../data-display/data-display-types"
 import { circleAnchor } from "../../../data-display/pixi/pixi-points"
@@ -20,6 +22,7 @@ export const BarChart = observer(function BarChart({ abovePointsGroupRef, pixiPo
   const { dataset, graphModel, isAnimating, layout, primaryScreenCoord, secondaryScreenCoord,
           refreshPointSelection, subPlotCells } = useChartDots(pixiPoints)
   const graphLayout = useGraphLayoutContext()
+  const { tile } = useTileModelContext()
   const barChartModel = graphModel.plot
   const barCoversRef = useRef<SVGGElement>(null)
   const [, setModalIsOpen] = useState(false)
@@ -204,14 +207,7 @@ export const BarChart = observer(function BarChart({ abovePointsGroupRef, pixiPo
   const handleEditExpressionClose = (newExpression: string) => {
     handleCloseModal()
     const expression = barChartModel.formula?.display ?? ""
-    const notification = {
-      message: {
-        action: 'notify',
-        resource: "component",
-        // todo: id is supposed to be numeric, but graphModel.id is a string
-        values: { type: "graph", operation: "change formula", id: 0 }
-      }
-      }
+    const notification = tile && tileNotification("change formula", {}, tile)
     if (newExpression !== expression) {
       barChartModel.applyModelChange(
         () => barChartModel.setExpression(newExpression),
