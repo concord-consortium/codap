@@ -179,11 +179,12 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
     lineObject.handleUpper && fixHandles(lineObject.handleUpper, 3)
 
     // If the intercept is locked, hide the middle handle. It's not needed since it would then be permanently fixed
-    // at the origin and is not draggable.
+    // at the origin and not draggable.
     if (interceptLocked) {
       lineObject.handleMiddle?.style("display", "none")
     } else {
-      lineObject.handleMiddle?.style("display", "block")
+      // Let the stylesheet handle the display in this case.
+      lineObject.handleMiddle?.style("display", null)
     }
 
   }, [breakPointCoords, interceptLocked, lineObject.handleLower, lineObject.handleMiddle, lineObject.handleUpper,
@@ -213,7 +214,6 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
     const { xDomain, yDomain } = getAxisDomains(xAxis, yAxis)
     pointsOnAxes.current = lineToAxisIntercepts(slope, newIntercept, xDomain, yDomain)
     updateLine()
-    refreshEquation(slope, newIntercept)
 
     // Until the user releases the line, only update the model's volatile props for the slope and intercept. Once
     // the user releases the line, update the model's slope and intercept and set the volatile props to undefined.
@@ -232,7 +232,7 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
     } else {
       model.setVolatileLine({intercept: newIntercept, slope}, instanceKey)
     }
-  }, [getEquationString, instanceKey, interceptLocked, model, refreshEquation, updateLine, xAxis, yAxis])
+  }, [getEquationString, instanceKey, interceptLocked, model, updateLine, xAxis, yAxis])
 
   const newSlopeAndIntercept = useCallback((
     pivot: Point, mousePosition: Point, lineSection: string, isVertical: boolean
@@ -298,7 +298,6 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
       const { xDomain, yDomain } = getAxisDomains(xAxis, yAxis)
       pointsOnAxes.current = lineToAxisIntercepts(newSlope, newIntercept, xDomain, yDomain)
       updateLine()
-      refreshEquation(newSlope, newIntercept)
 
       // Until the user releases the line, only update the model's volatile props for the slope and intercept. Once
       // the user releases the line, update the model's slope and intercept and set the volatile props to undefined.
@@ -323,8 +322,8 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
         model.setVolatileLine({intercept: newIntercept, slope: newSlope}, instanceKey)
       }
     }
-  }, [getEquationString, instanceKey, interceptLocked, lineObject, model,
-      newSlopeAndIntercept, refreshEquation, updateLine, xAxis, yAxis])
+  }, [getEquationString, instanceKey, interceptLocked, lineObject.lower, lineObject.upper, model,
+      newSlopeAndIntercept, updateLine, xAxis, yAxis])
 
   const handleMoveEquation = useCallback((
     event: { x: number, y: number, dx: number, dy: number },
@@ -367,16 +366,22 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
       const lineModel = model.lines.get(instanceKey)
       if (!lineObject.line || !lineModel) return
 
-      const slope = lineModel.slope
-      const intercept = interceptLocked ? 0 : lineModel.intercept
+      const { slope, intercept: _intercept } = lineModel.slopeAndIntercept
+      const intercept = interceptLocked ? 0 : _intercept
       const { xDomain, yDomain } = getAxisDomains(xAxis, yAxis)
       pointsOnAxes.current = lineToAxisIntercepts(slope, intercept, xDomain, yDomain)
       updateLine()
       refreshEquation(slope, intercept)
+
+      // Update scale copy ranges
+      xScaleRef.current = xScale.copy()
+      yScaleRef.current = yScale.copy()
+      xScaleRef.current.range([0, plotWidth])
+      yScaleRef.current.range([plotHeight, 0])
     }, { name: "MovableLineAdornmentComponent.refreshLine" }, model)
   }, [instanceId, interceptLocked, pointsOnAxes, lineObject, plotHeight, plotWidth, model,
-      model.lines, xAttrName, xSubAxesCount, xAxis, yAttrName, ySubAxesCount, yAxis, xRange,
-      yRange, equationContainerSelector, cellKey, instanceKey, updateLine, refreshEquation])
+      model.lines, xAttrName, xSubAxesCount, xAxis, yAttrName, xScale, ySubAxesCount, yAxis, xRange,
+      yRange, yScale, equationContainerSelector, cellKey, instanceKey, updateLine, refreshEquation])
 
   // Add the behaviors to the line segments
   useEffect(function addBehaviors() {
@@ -424,10 +429,13 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
       .attr("class", "movable-line-cover movable-line-upper-cover")
     newLineObject.handleLower = selection.append("rect")
       .attr("class", "movable-line-handle movable-line-lower-handle show-on-tile-selected")
+      .attr("data-testid", "movable-line-lower-handle")
     newLineObject.handleMiddle = selection.append("rect")
       .attr("class", "movable-line-handle movable-line-middle-handle show-on-tile-selected")
+      .attr("data-testid", "movable-line-middle-handle")
     newLineObject.handleUpper = selection.append("rect")
       .attr("class", "movable-line-handle movable-line-upper-handle show-on-tile-selected")
+      .attr("data-testid", "movable-line-upper-handle")
 
     // Set up the corresponding equation box
     // Define the selector that corresponds with this specific movable line's adornment container
@@ -464,19 +472,6 @@ export const MovableLineAdornment = observer(function MovableLineAdornment(props
   // instances of the line elements
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-
-  // Refresh values on axis changes
-  useEffect(function refreshAxisChange() {
-    return mstAutorun(() => {
-      getAxisDomains()
-      updateLine()
-      // Update scale copy ranges
-      xScaleRef.current = xScale.copy()
-      yScaleRef.current = yScale.copy()
-      xScaleRef.current.range([0, plotWidth])
-      yScaleRef.current.range([plotHeight, 0])
-    }, { name: "MovableLineAdornmentComponent.refreshAxisChange" }, model)
-  }, [dataConfig, interceptLocked, model, xAxis, xScale, yAxis, yScale, updateLine, plotWidth, plotHeight])
 
   return (
     <svg
