@@ -1,11 +1,11 @@
 import { select } from "d3"
 import { isVertical } from "../../axis-graph-shared"
-import { axisPlaceToAxisFn } from "../axis-types"
-import { IAxisModel } from "../models/axis-model"
 import { IDataDisplayContentModel } from "../../data-display/models/data-display-content-model"
+import { axisPlaceToAxisFn } from "../axis-types"
 import { IAxisLayout } from "../models/axis-layout-context"
+import { IAxisModel } from "../models/axis-model"
+import { IAxisProvider } from "../models/axis-provider"
 import { MultiScale } from "../models/multi-scale"
-import { IAxisProvider } from "../hooks/use-axis-provider-context"
 
 export interface IAxisHelperArgs {
   displayModel?: IDataDisplayContentModel

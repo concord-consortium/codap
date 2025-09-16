@@ -3,7 +3,7 @@ import { isFiniteNumber } from "../../../../utilities/math-utils"
 import { IAxisTicks, TickFormatter } from "../../../axis/axis-types"
 import { dataDisplayGetNumericValue } from "../../../data-display/data-display-value-utils"
 import { DotPlotModel } from "../dot-plot/dot-plot-model"
-import { IPlotModel, IResetSettingsOptions, typesPlotType } from "../plot-model"
+import { IPlotModel, IRespondToPlotChangeOptions, typesPlotType } from "../plot-model"
 
 export const BinnedDotPlotModel = DotPlotModel
   .named("BinnedDotPlotModel")
@@ -178,7 +178,9 @@ export const BinnedDotPlotModel = DotPlotModel
     }
   }))
   .actions(self => ({
-    resetSettings({ isBinnedPlotChanged, primaryAttrChanged }: IResetSettingsOptions = {}) {
+    respondToPlotChange({
+      axisProvider, primaryPlace, isBinnedPlotChanged, primaryAttrChanged
+    }: IRespondToPlotChangeOptions) {
       if (primaryAttrChanged || isBinnedPlotChanged) {
         const { binAlignment, binWidth } = self.binDetails({ initialize: true })
         if (binAlignment != null) {
@@ -188,6 +190,12 @@ export const BinnedDotPlotModel = DotPlotModel
           self.setBinWidth(binWidth)
         }
       }
+
+      // Set the domain of the primary axis to the extent of the bins
+      const primaryAxis = axisProvider?.getNumericAxis(primaryPlace)
+      const { maxBinEdge, minBinEdge } = self.binDetails()
+      primaryAxis?.setAllowRangeToShrink(true)  // Otherwise we get slop we don't want
+      primaryAxis?.setDomain(minBinEdge, maxBinEdge)
     },
     endBinBoundaryDrag(binAlignment: number, binWidth: number) {
       self.setDragBinIndex(-1)

@@ -7,6 +7,7 @@ import { logMessageWithReplacement } from "../../../../lib/log-message"
 import { ITileModel } from "../../../../models/tiles/tile-model"
 import { mstReaction } from "../../../../utilities/mst-reaction"
 import { t } from "../../../../utilities/translation/translate"
+import { tileNotification } from "../../../../models/tiles/tile-notifications"
 import { isPointDisplayType } from "../../../data-display/data-display-types"
 import { InspectorPalette } from "../../../inspector-panel"
 import { BreakdownType, BreakdownTypes } from "../../graphing-types"
@@ -45,7 +46,34 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
     if (isPointDisplayType(configType) || configType === "bins") {
       const display = configType === "bars" ? "bars" : "points"
       const isBinned = configType === "bins"
-      graphModel?.configureUnivariateNumericPlot(display, isBinned)
+      const plotType = isBinned ? "BinnedPlot"
+        : (display === "bars" ? "LinePlot" : "DotPlot")
+      let undoStringKey = ""
+      let redoStringKey = ""
+      switch (isBinned) {
+        case true:
+          undoStringKey = "DG.Undo.graph.showAsBinnedPlot"
+          redoStringKey = "DG.Redo.graph.showAsBinnedPlot"
+          break
+        case false:
+          if (display === "points") {
+            undoStringKey = "DG.Undo.graph.showAsDotPlot"
+            redoStringKey = "DG.Redo.graph.showAsDotPlot"
+          } else {
+            undoStringKey = "DG.Undo.graph.showAsLinePlot"
+            redoStringKey = "DG.Redo.graph.showAsLinePlot"
+          }
+          break
+      }
+      graphModel?.applyModelChange(() => {
+          graphModel?.configureUnivariateNumericPlot(display, isBinned)
+        },
+        {
+          undoStringKey, redoStringKey,
+          log: logMessageWithReplacement("toggleShowAs: %@", { logString: plotType }),
+          notify: tile ? tileNotification(`toggle show as ${plotType}`, {}, tile) : undefined
+        }
+      )
     }
   }
 
@@ -74,7 +102,8 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
                     "Changed %@ from %@ to %@",
                     { option, [`${option}Initial`]: initialValue, [option]: value }),
         undoStringKey: option === "binWidth" ? "DG.Undo.graph.changeBinWidth" : "DG.Undo.graph.changeBinAlignment",
-        redoStringKey: option === "binWidth" ? "DG.Redo.graph.changeBinWidth" : "DG.Redo.graph.changeBinAlignment"
+        redoStringKey: option === "binWidth" ? "DG.Redo.graph.changeBinWidth" : "DG.Redo.graph.changeBinAlignment",
+        notify: tile ? tileNotification(`change bin parameter`, {}, tile) : undefined
      })
     }
   }
@@ -89,7 +118,8 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
                   "Changed %@ from %@ to %@",
                   { option, [`${option}Initial`]: initialValue, [option]: value }),
       undoStringKey: option === "binWidth" ? "DG.Undo.graph.changeBinWidth" : "DG.Undo.graph.changeBinAlignment",
-      redoStringKey: option === "binWidth" ? "DG.Redo.graph.changeBinWidth" : "DG.Redo.graph.changeBinAlignment"
+      redoStringKey: option === "binWidth" ? "DG.Redo.graph.changeBinWidth" : "DG.Redo.graph.changeBinAlignment",
+      notify: tile ? tileNotification(`change bin parameter`, {}, tile) : undefined
     })
   }
 
@@ -103,7 +133,8 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
         graphModel?.pointDescription.setPointStrokeSameAsFill(fuseIntoBars)
       },
       { undoStringKey, redoStringKey,
-        log: logMessageWithReplacement("toggleShowAs: %@", { type: fuseIntoBars ? "BarChart" : "DotChart" })
+        log: logMessageWithReplacement("toggleShowAs: %@", { type: fuseIntoBars ? "BarChart" : "DotChart" }),
+        notify: tile ? tileNotification(`toggle between bars and dots`, {}, tile) : undefined
       }
     )
   }
@@ -117,7 +148,9 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
           "Changed %@ from %@ to %@",
           {option: "breakdownType", [`breakdownTypeInitial`]: barChart?.breakdownType, breakdownType}),
         undoStringKey: "DG.Undo.graph.changeBreakdownType",
-        redoStringKey: "DG.Redo.graph.changeBreakdownType"
+        redoStringKey: "DG.Redo.graph.changeBreakdownType",
+        notify: tile ? tileNotification(
+          `change bar chart from ${barChart?.breakdownType} to ${breakdownType}`, {}, tile) : undefined
       })
     }
   }

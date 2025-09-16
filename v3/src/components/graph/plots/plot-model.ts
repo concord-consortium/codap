@@ -6,6 +6,7 @@ import { applyModelChange } from "../../../models/history/apply-model-change"
 import { setNiceDomain } from "../../axis/axis-domain-utils"
 import { AxisPlace, IAxisDomainOptions, IAxisTicks, TickFormatter } from "../../axis/axis-types"
 import { EmptyAxisModel, IAxisModel, isEmptyAxisModel } from "../../axis/models/axis-model"
+import { IAxisProviderBase } from "../../axis/models/axis-provider"
 import { CategoricalAxisModel, ColorAxisModel, isCategoricalAxisModel, isColorAxisModel
   } from "../../axis/models/categorical-axis-models"
 import {
@@ -35,7 +36,10 @@ export interface IBarTipTextProps {
   caseRightSplitValue?: string
 }
 
-export interface IResetSettingsOptions {
+export interface IRespondToPlotChangeOptions {
+  axisProvider: IAxisProviderBase
+  primaryPlace: AxisPlace
+  secondaryPlace: AxisPlace
   isBinnedPlotChanged?: boolean
   primaryRoleChanged?: boolean
   primaryAttrChanged?: boolean
@@ -210,7 +214,7 @@ export const PlotModel = types
       self.dataConfiguration = dataConfiguration
       self.graphApi = api
     },
-    resetSettings(options?: IResetSettingsOptions) {
+    respondToPlotChange(options: IRespondToPlotChangeOptions) {
       // derived models may override
     }
   }))

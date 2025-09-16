@@ -299,7 +299,12 @@ export const GraphContentModel = DataDisplayContentModel
         self.plot = PlotModelUnion.create({ ...currPlotSnap, ...newPlotSnap })
         if (self.dataConfiguration) {
           self.plot.setGraphContext(self.dataConfiguration, self.plotGraphApi)
-          self.plot.resetSettings({ isBinnedPlotChanged: prevPlotWasBinned !== self.plot.isBinned })
+          self.plot.respondToPlotChange({
+            axisProvider: self,
+            primaryPlace: self.primaryPlace,
+            secondaryPlace: self.secondaryPlace,
+            isBinnedPlotChanged: prevPlotWasBinned !== self.plot.isBinned
+          })
         }
       }
     },
@@ -484,7 +489,10 @@ export const GraphContentModel = DataDisplayContentModel
       }
       const newPrimaryRole = self.dataConfiguration.primaryRole
       const newPrimaryAttrId = newPrimaryRole ? self.dataConfiguration.attributeID(newPrimaryRole) : undefined
-      self.plot.resetSettings({
+      self.plot.respondToPlotChange({
+        axisProvider: self,
+        primaryPlace: self.primaryPlace,
+        secondaryPlace: self.secondaryPlace,
         primaryRoleChanged: prevPrimaryRole !== newPrimaryRole,
         primaryAttrChanged: prevPrimaryAttrId !== newPrimaryAttrId
       })

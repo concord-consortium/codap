@@ -197,7 +197,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
   }, [dataset, callRefreshPointPositions, graphModel.plotType])
 
   // respond to plotType changes
-  useEffect(function respondToPointConfigChange() {
+  useEffect(function respondToPlotTypeChange() {
     return mstReaction(
       () => graphModel.plotType,
       () => {
@@ -205,7 +205,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
 
         callMatchCirclesToData()
         callRefreshPointPositions()
-      }, {name: "usePlot [pointDisplayType]"}, graphModel
+      }, {name: "usePlot [plotType]"}, graphModel
     )
   }, [callMatchCirclesToData, callRefreshPointPositions, graphModel, pixiPoints])
 
