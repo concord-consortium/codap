@@ -30,11 +30,8 @@ export const DroppableAxis = observer(function DroppableAxis(
 
   return portal && target && createPortal(
     <>
-      <div ref={setNodeRef} className={classes} style={style} 
-      data-testid={`add-attribute-drop-${place}`} />
-      { isOver && hintString &&
-        <DropHint hintText={hintString} />
-      }
+      <div ref={setNodeRef} className={classes} style={style} data-testid={`add-attribute-drop-${place}`} />
+      <DropHint hintText={hintString} isVisible={isOver} />
     </>,
     portal
   )

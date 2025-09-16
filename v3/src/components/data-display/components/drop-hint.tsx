@@ -1,16 +1,18 @@
 import {useDndMonitor} from "@dnd-kit/core"
 import React, {useRef, useState} from "react"
-import { getScrollDifference } from "../../../hooks/use-scrollable-container"
+import { useContainerDragScrollOffset } from "../../../hooks/use-controller-drag-scroll-offset"
 
 import "./drop-hint.scss"
 
 interface IProps {
   hintText: string | undefined
+  isVisible?: boolean
 }
 
-export const DropHint = ({ hintText }: IProps) => {
+export const DropHint = ({ hintText, isVisible }: IProps) => {
   const hintDiv = useRef<HTMLDivElement>(null)
   const [hintPos, setHintPos] = useState<{ left: number, top: number }>({ left: 0, top: 0 })
+  const { left, top } = useContainerDragScrollOffset()
 
   useDndMonitor({
     onDragMove(event) {
@@ -19,7 +21,6 @@ export const DropHint = ({ hintText }: IProps) => {
       const newXPos = delta.x + ae.clientX
       const newYPos = delta.y + ae.clientY
       if (hintDiv.current) {
-        const { left, top } = getScrollDifference()
         setHintPos({
           left: newXPos - (hintDiv.current?.clientWidth * .5) - 5 - left,
           top: newYPos - 40 - top
@@ -27,6 +28,8 @@ export const DropHint = ({ hintText }: IProps) => {
       }
     }
   })
+
+  if (!isVisible || !hintText) return null
 
   return (
     <div ref={hintDiv} className="drop-hint" style={{ top: hintPos.top, left: hintPos.left }}>
