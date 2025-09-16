@@ -143,13 +143,6 @@ export const BinnedDotPlot = observer(function BinnedDotPlot({pixiPoints, aboveP
   const refreshPointPositions = useCallback((selectedOnly: boolean) => {
     if (!dataConfig || !binnedPlot) return
 
-    const primaryAxis = graphModel.getNumericAxis(primaryPlace)
-    const { maxBinEdge, minBinEdge } = binnedPlot.binDetails()
-
-    // Set the domain of the primary axis to the extent of the bins
-    primaryAxis?.setAllowRangeToShrink(true)  // Otherwise we get slop we don't want
-    primaryAxis?.setDomain(minBinEdge, maxBinEdge)
-
     // Draw lines to delineate the bins in the plot
     drawBinBoundaries()
     if (!binnedPlot.isDraggingBinBoundary) {
@@ -171,7 +164,7 @@ export const BinnedDotPlot = observer(function BinnedDotPlot({pixiPoints, aboveP
     })
   }, [addBinBoundaryDragHandlers, binnedPlot, dataConfig, dataset, drawBinBoundaries,
       getPrimaryScreenCoord, getSecondaryScreenCoord, graphModel, isAnimating,
-      pixiPoints, pointColor, pointDisplayType, pointStrokeColor, primaryIsBottom, primaryPlace])
+      pixiPoints, pointColor, pointDisplayType, pointStrokeColor, primaryIsBottom])
 
   usePlotResponders({pixiPoints, refreshPointPositions, refreshPointSelection})
   useBinnedPlotResponders(refreshPointPositions)

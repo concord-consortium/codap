@@ -1,10 +1,10 @@
 // Tests for the AxisHelper class
 import { select } from "d3"
-import { AxisHelper, IAxisHelperArgs } from "./axis-helper"
-import { IAxisModel } from "../models/axis-model"
 import { IDataDisplayContentModel } from "../../data-display/models/data-display-content-model"
 import { IAxisLayout } from "../models/axis-layout-context"
-import { IAxisProvider } from "../hooks/use-axis-provider-context"
+import { IAxisModel } from "../models/axis-model"
+import { IAxisProvider } from "../models/axis-provider"
+import { AxisHelper, IAxisHelperArgs } from "./axis-helper"
 
 jest.mock("d3", () => ({
   select: jest.fn().mockReturnValue({
