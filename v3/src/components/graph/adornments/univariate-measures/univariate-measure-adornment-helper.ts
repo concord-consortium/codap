@@ -372,7 +372,7 @@ export class UnivariateMeasureAdornmentHelper {
       '<sub style="vertical-align: sub">',
       '</sub>', stdErrorString] : [`${numStdErrsString}`, '', '', stdErrorString]
     const valueString = t(kStandardErrorValueTitleKey, {vars: substitutionVars}) +
-      (inHTML ? (primaryAttributeUnits ? ` ${primaryAttributeUnits}` : "") : "")
+      (inHTML ? (primaryAttributeUnits ? ` <span class="units">${primaryAttributeUnits}</span>` : "") : "")
     const unitsString = `${primaryAttributeUnits ? ` ${primaryAttributeUnits}` : ""}`
     const valueContent = inHTML ? `<p style = "color:${kErrorBarStrokeColor};">${valueString}</p>` : valueString
     return `${valueContent}${inHTML ? '' : unitsString}`

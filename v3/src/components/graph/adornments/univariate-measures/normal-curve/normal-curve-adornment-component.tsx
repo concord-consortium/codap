@@ -317,7 +317,7 @@ export const NormalCurveAdornmentComponent = observer(
       const sdValueString = t(kNormalCurveStdDevValueTitleKey, {vars: [sdDisplayValue]})
 
       const unitsString = `${numericAttrUnits ? ` ${numericAttrUnits}` : ""}`
-      const unitsContent = showLabel ? `<span style="color:grey">${unitsString}</span>` : unitsString
+      const unitsContent = showLabel ? `<span class="units">${unitsString}</span>` : unitsString
       const meanValueContent = showLabel
         ? `<p style = "color:${kNormalCurveStrokeColor}">${meanValueString}${unitsContent}</p>`
         : `${meanValueString}, `
