@@ -296,8 +296,7 @@ export function formatValue(value: number, digits: number): string {
  */
 function formatEquationValue(equationValue: number, equationDigits: number, units = "", parenthesizeUnits = false) {
   const numStr = formatValue(equationValue, equationDigits)
-  const unitsStr = units ? `<span class="units">${units}</span>` : ""
-  const numUnitsStr = units ? `${numStr} ${unitsStr}` : numStr
+  const numUnitsStr = units ? `${numStr} <span class="units">${units}</span>` : numStr
   return units && parenthesizeUnits ? `(${numUnitsStr})` : numUnitsStr
 }
 
