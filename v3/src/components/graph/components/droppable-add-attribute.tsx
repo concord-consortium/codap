@@ -44,12 +44,8 @@ export const DroppableAddAttribute = ({place, onDrop}: IAddAttributeProps) => {
     placeKey = ['rightNumeric', 'rightCat'].includes(place) ? 'right' : place // both use same css
   const className = clsx(`add-attribute-drop-${placeKey}`, {over: isActive && isOver, active: isActive})
   return isActive ? (
-    <div ref={setNodeRef} id={droppableId}
-         className={className}
-         data-testid={`add-attribute-drop-${place}`}>
-      {isOver && hintString &&
-         <DropHint hintText={hintString}/>
-      }
+    <div ref={setNodeRef} id={droppableId} className={className} data-testid={`add-attribute-drop-${place}`}>
+      <DropHint hintText={hintString} isVisible={isOver}/>
     </div>
   ) : null
 }

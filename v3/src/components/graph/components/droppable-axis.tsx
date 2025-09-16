@@ -4,8 +4,8 @@ import { observer } from "mobx-react-lite"
 import React, { CSSProperties } from "react"
 import { createPortal } from "react-dom"
 import { AxisPlace } from "../../axis/axis-types"
-import { useGraphLayoutContext } from "../hooks/use-graph-layout-context"
 import { DropHint } from "../../data-display/components/drop-hint"
+import { useGraphLayoutContext } from "../hooks/use-graph-layout-context"
 
 interface IProps {
   place: AxisPlace
@@ -30,11 +30,8 @@ export const DroppableAxis = observer(function DroppableAxis(
 
   return portal && target && createPortal(
     <>
-      <div ref={setNodeRef} className={classes} style={style} 
-      data-testid={`add-attribute-drop-${place}`} />
-      { isOver && hintString &&
-        <DropHint hintText={hintString} />
-      }
+      <div ref={setNodeRef} className={classes} style={style} data-testid={`add-attribute-drop-${place}`} />
+      <DropHint hintText={hintString} isVisible={isOver} />
     </>,
     portal
   )
