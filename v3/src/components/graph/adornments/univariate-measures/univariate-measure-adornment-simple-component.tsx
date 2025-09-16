@@ -162,7 +162,7 @@ export const UnivariateMeasureAdornmentSimpleComponent = observer(
       ]
 
       const valueContent = `${t(model.labelTitle, { vars: translationVars })}`
-      const unitContent = `${primaryAttrUnits ? ` ${primaryAttrUnits}` : ""}`
+      const unitContent = primaryAttrUnits ? ` <span class="units">${primaryAttrUnits}</span>` : ""
       const textContent = `${valueContent}${unitContent}`
 
       // Add the main value line

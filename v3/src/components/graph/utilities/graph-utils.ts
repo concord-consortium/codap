@@ -296,7 +296,8 @@ export function formatValue(value: number, digits: number): string {
  */
 function formatEquationValue(equationValue: number, equationDigits: number, units = "", parenthesizeUnits = false) {
   const numStr = formatValue(equationValue, equationDigits)
-  const numUnitsStr = units ? `${numStr} ${units}` : numStr
+  const unitsStr = units ? `<span class="units">${units}</span>` : ""
+  const numUnitsStr = units ? `${numStr} ${unitsStr}` : numStr
   return units && parenthesizeUnits ? `(${numUnitsStr})` : numUnitsStr
 }
 
@@ -377,7 +378,6 @@ export const lsrlEquationString = (props: ILsrlEquationString) => {
 
   return `${equationPart}${rSquaredPart}${seSlopePart}${squaresPart}`
 }
-
 
 export function getScreenCoord(dataSet: IDataSet | undefined, id: string,
                                attrID: string, scale: ScaleNumericBaseType) {

@@ -44,3 +44,10 @@
   height: 100%;
   pointer-events: none;
 }
+
+[class*="equation-container"],
+.measure-labels {
+  .units {
+    color: gray;
+  }
+}
