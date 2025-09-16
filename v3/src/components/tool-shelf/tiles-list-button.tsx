@@ -11,6 +11,7 @@ import { getTileComponentIcon } from "../../models/tiles/tile-component-info"
 import { getTileContentInfo } from "../../models/tiles/tile-content-info"
 import WebViewIcon from "../../assets/icons/icon-media-tool.svg"
 import TileListIcon from "../../assets/icons/icon-tile-list.svg"
+import { scrollTileIntoView } from "../../utilities/dom-utils"
 import { handleSelectTile } from "./tool-shelf-utilities"
 
 import "./tool-shelf.scss"
@@ -23,10 +24,13 @@ export const TilesListShelfButton = observer(function TilesListShelfButton() {
 
   const handleFocus = (tileId: string) => {
     uiState.setHoveredTile(tileId)
+    uiState.setFocusedTile(tileId)
+    scrollTileIntoView(tileId)
   }
 
-  const handleBlur = (tileId: string) => {
+  const handleBlur = () => {
     uiState.setHoveredTile("")
+    uiState.setFocusedTile("")
   }
 
   const placement = persistentState.toolbarPosition === "Top" ? "bottom-end" : "right-end"
@@ -56,7 +60,7 @@ export const TilesListShelfButton = observer(function TilesListShelfButton() {
               <MenuItem key={tile?.id} data-testid="tiles-list-menu-item" className="tool-shelf-menu-item"
                   onClick={()=>handleSelectTile(tile.id, documentContent) }
                   onFocus={()=>handleFocus(tile.id)} // Handle focus similar to pointer over
-                  onBlur={()=>handleBlur(tile.id)} // Handle blur similar to pointer leave
+                  onBlur={()=>handleBlur()} // Handle blur similar to pointer leave
               >
                 <Icon className={`menu-icon ${iconClass}`} data-testid="tile-list-menu-icon"/>
                 {title}
