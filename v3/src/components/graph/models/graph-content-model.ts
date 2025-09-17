@@ -521,6 +521,34 @@ export const GraphContentModel = DataDisplayContentModel
     setShowOnlyLastCase(show: boolean) {
       self.showOnlyLastCase = show
     },
+    setBackgroundImage(image: string) {
+      self.plotBackgroundImage = image
+    },
+    removeBackgroundImage() {
+      self.plotBackgroundImage = undefined
+      self.plotBackgroundImageLockInfo = undefined
+    },
+    setBackgroundImageLock(locked:boolean) {
+      if (!self.plotBackgroundImage) {
+        self.plotBackgroundImageLockInfo = undefined
+        return
+      }
+      if (locked) {
+        const xAxis = self.getAxis("bottom"),
+          yAxis = self.getAxis("left")
+        if (xAxis || yAxis) {
+          self.plotBackgroundImageLockInfo = {
+            locked: true,
+            xAxisLowerBound: isAnyNumericAxisModel(xAxis) ? xAxis.min : 0,
+            xAxisUpperBound: isAnyNumericAxisModel(xAxis) ? xAxis.max : 1,
+            yAxisLowerBound: isAnyNumericAxisModel(yAxis) ? yAxis.min : 0,
+            yAxisUpperBound: isAnyNumericAxisModel(yAxis) ? yAxis.max : 1,
+          }
+        }
+      } else {
+        self.plotBackgroundImageLockInfo = undefined
+      }
+    },
   }))
   .actions(self => ({
     displayOnlySelectedCases() {

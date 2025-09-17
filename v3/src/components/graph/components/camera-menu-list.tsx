@@ -1,16 +1,88 @@
 import React from "react"
+import { observer } from "mobx-react-lite"
 import { MenuItem, MenuList } from "@chakra-ui/react"
 import { useCfmContext } from "../../../hooks/use-cfm-context"
 import { useTileModelContext } from "../../../hooks/use-tile-model-context"
+import { updateTileNotification } from "../../../models/tiles/tile-notifications"
+import { logMessageWithReplacement } from "../../../lib/log-message"
 import { t } from "../../../utilities/translation/translate"
 import { UnimplementedMenuItem } from "../../beta/unimplemented-menu-item"
 import { isGraphContentModel } from "../models/graph-content-model"
 import { graphSvg } from "../utilities/image-utils"
 
-export const CameraMenuList = () => {
+export const CameraMenuList = observer(function CameraMenuList() {
   const tile = useTileModelContext().tile
   const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
   const cfm = useCfmContext()
+  const backgroundImage = graphModel?.plotBackgroundImage
+  const backgroundImageIsLocked = graphModel?.plotBackgroundImageLockInfo?.locked ?? false
+  const xAndOrYIsNumeric = graphModel?.getNumericAxis('bottom') ||
+    graphModel?.getNumericAxis('left')
+
+  const addBackgroundImage = () => {
+    const handleAbnormal = () => {
+      console.error("Abort or error on file read.")
+    }
+
+    const handleRead = function (this: FileReader) {
+      if (!graphModel) return
+      const result = this.result as string | null
+      if (result) {
+        graphModel?.applyModelChange(
+          () => graphModel.setBackgroundImage(result),
+          {
+            undoStringKey: "DG.Undo.graph.addBackgroundImage",
+            redoStringKey: "DG.Redo.graph.addBackgroundImage",
+            log: logMessageWithReplacement(`added background image`, {}),
+            notify: updateTileNotification("added background image", {}, tile)
+          }
+        )
+      }
+    }
+
+    const parseData = (data: { file: { object: Blob } }) => {
+      if (data) {
+        const tReader = new FileReader()
+        tReader.onabort = handleAbnormal
+        tReader.onerror = handleAbnormal
+        tReader.onload = handleRead
+        tReader.readAsDataURL(data.file.object)
+      }
+    }
+
+    return cfm?.client._ui.importDataDialog((data: { file: { object: Blob } }) => {
+      parseData(data)
+    })
+  }
+
+  const removeBackgroundImage = () => {
+    graphModel?.applyModelChange(
+      () => graphModel.removeBackgroundImage(),
+      {
+        undoStringKey: "DG.Undo.graph.removeBackgroundImage",
+        redoStringKey: "DG.Redo.graph.removeBackgroundImage",
+        log: logMessageWithReplacement(`removed background image`, {}),
+        notify: updateTileNotification("removed background image", {}, tile)
+      }
+    )
+  }
+
+  const toggleBackgroundImageLock = () => {
+    if (!graphModel) return
+    const lockInfo = graphModel.plotBackgroundImageLockInfo
+    const isLocked = lockInfo?.locked ?? false
+    const undoKey = isLocked ? "DG.Undo.graph.unlockBackgroundImage" : "DG.Undo.graph.lockBackgroundImage"
+    const redoKey = isLocked ? "DG.Redo.graph.unlockBackgroundImage" : "DG.Redo.graph.lockBackgroundImage"
+    graphModel.applyModelChange(
+      () => graphModel.setBackgroundImageLock(!isLocked),
+      {
+        undoStringKey: undoKey,
+        redoStringKey: redoKey,
+        log: logMessageWithReplacement(`${isLocked ? "unlocked" : "locked"} background image from axes`, {}),
+        notify: updateTileNotification("background locked to axes", { to: isLocked ? 'unlocked' : 'locked' }, tile)
+      }
+    )
+  }
 
   const handleExportPNG = async () => {
     if (!graphModel?.renderState) return
@@ -42,33 +114,28 @@ export const CameraMenuList = () => {
 
   return (
     <MenuList data-testid="graph-camera-menu-list">
-      {/* TODO: This is left in for reference when we're ready to implement background images.
-      {hasBackgroundImage
+      {
+        backgroundImage !== undefined
         ? <>
-            <UnimplementedMenuItem
-              label={t("DG.DataDisplayMenu.addBackgroundImage")}
-              testId="add-background-image-disabled"
-            />
-            {imageLocked
-              ? <UnimplementedMenuItem
-                  label={t("DG.DataDisplayMenu.unlockImageFromAxes")}
-                  testId="unlock-image"
-                />
-              : <UnimplementedMenuItem
-                  label={t("DG.DataDisplayMenu.lockImageToAxes")}
-                  testId="lock-image"
-                />
+            <MenuItem data-testid="remove-background-image" onClick={removeBackgroundImage}>
+              {t("DG.DataDisplayMenu.removeBackgroundImage")}
+            </MenuItem>
+            {xAndOrYIsNumeric ?
+              (backgroundImageIsLocked
+              ? <MenuItem data-testid="unlock-image" onClick={toggleBackgroundImageLock}>
+                  {t("DG.DataDisplayMenu.unlockImageFromAxes")}
+                </MenuItem>
+              : <MenuItem data-testid="lock-image" onClick={toggleBackgroundImageLock}>
+                  {t("DG.DataDisplayMenu.lockImageToAxes")}
+                </MenuItem>)
+        : null
             }
           </>
-        : <UnimplementedMenuItem
-            label={t("DG.DataDisplayMenu.addBackgroundImage")}
-            testId="add-background-image"
-          />
-      } */}
-      <UnimplementedMenuItem
-        label={t("DG.DataDisplayMenu.addBackgroundImage")}
-        testId="add-background-image"
-      />
+        : <MenuItem data-testid="add-background-image" onClick={addBackgroundImage}>
+            {t("DG.DataDisplayMenu.addBackgroundImage")}
+          </MenuItem>
+      }
+
       <UnimplementedMenuItem
         label={t("DG.DataDisplayMenu.copyAsImage")}
         testId="open-in-draw-tool"
@@ -81,4 +148,4 @@ export const CameraMenuList = () => {
       </MenuItem>
     </MenuList>
   )
-}
+})

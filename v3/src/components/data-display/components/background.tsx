@@ -1,13 +1,17 @@
-import {autorun} from "mobx"
 import React, {forwardRef, MutableRefObject, useCallback, useEffect, useRef} from "react"
+import { comparer } from "mobx"
 import {useMemo} from "use-memo-one"
 import {select, color, range} from "d3"
 import RTreeLib from 'rtree'
 import * as PIXI from "pixi.js"
+import { mstReaction } from "../../../utilities/mst-reaction"
 import {appState} from "../../../models/app-state"
 import {IDataSet} from "../../../models/data/data-set"
 import {selectAllCases, selectAndDeselectCases} from "../../../models/data/data-set-utils"
 import {defaultBackgroundColor} from "../../../utilities/color-utils"
+import { useGraphContentModelContext } from "../../graph/hooks/use-graph-content-model-context"
+import { useGraphLayoutContext } from "../../graph/hooks/use-graph-layout-context"
+import { isAnyNumericAxisModel } from "../../axis/models/numeric-axis-models"
 import {rTreeRect} from "../data-display-types"
 import {rectangleSubtract, rectNormalize} from "../data-display-utils"
 import {useDataDisplayLayout} from "../hooks/use-data-display-layout"
@@ -68,6 +72,7 @@ const getCasesForDelta = (tree: RTree | null, newRect: rTreeRect, prevRect: rTre
 export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((props, ref) => {
   const { marqueeState, pixiPointsArray } = props,
     dataDisplayModel = useDataDisplayModelContext(),
+    graphModel = useGraphContentModelContext(),
     datasetsArray = dataDisplayModel.datasetsArray,
     datasetsMap: SelectionMap = useMemo(() => {
       const map: SelectionMap = {}
@@ -77,6 +82,7 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
       return map
     }, [datasetsArray]),
     layout = useDataDisplayLayout(),
+    graphLayout = useGraphLayoutContext(),
     bgRef = ref as MutableRefObject<SVGGElement | null>,
     startX = useRef(0),
     startY = useRef(0),
@@ -159,63 +165,124 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
 
   usePixiPointerDownDeselect(pixiPointsArray, dataDisplayModel)
 
-  useEffect(() => {
-    return autorun(() => {
-      if (!layout.computedBounds.plot) {
-        return
+  const renderBackground = useCallback(() => {
+    if (!layout.computedBounds.plot) {
+      return
+    }
+    const {left, top, width: plotWidth, height: plotHeight} = layout.computedBounds.plot,
+      transform = `translate(${left}, ${top})`,
+      {isTransparent, plotBackgroundColor = defaultBackgroundColor} = dataDisplayModel,
+      bgColor = String(color(plotBackgroundColor)),
+      darkBgColor = String(color(plotBackgroundColor)?.darker(0.2)),
+      {numRows, numColumns} = layout,
+      cellWidth = Math.max(0, plotWidth / numColumns),
+      cellHeight = Math.max(0, plotHeight / numRows),
+      row = (index: number) => Math.floor(index / numColumns),
+      col = (index: number) => index % numColumns,
+      groupElement = bgRef.current,
+      fillOpacity = isTransparent ? 0
+        : graphModel.plotBackgroundImage ? 0.001 : 1
+
+    select(groupElement).selectAll('image').remove()
+    select(groupElement).selectAll('rect').remove()
+    if (graphModel.plotBackgroundImage) {
+      let xCoord = left,
+        imageWidth = plotWidth,
+        yCoord = top,
+        imageHeight = plotHeight
+      if (graphModel.plotBackgroundImageLockInfo?.locked) {
+        const xScale = graphLayout.getNumericScale('bottom'),
+          yScale = graphLayout.getNumericScale('left')
+        if (xScale) {
+          xCoord = left + xScale(graphModel.plotBackgroundImageLockInfo.xAxisLowerBound)
+          const right = left + xScale(graphModel.plotBackgroundImageLockInfo.xAxisUpperBound)
+          imageWidth = right - xCoord
+        }
+        if (yScale) {
+          yCoord = top + yScale(graphModel.plotBackgroundImageLockInfo.yAxisUpperBound)
+          const bottom = top + yScale(graphModel.plotBackgroundImageLockInfo.yAxisLowerBound)
+          imageHeight = bottom - yCoord
+        }
       }
-      const { left, top, width: plotWidth, height: plotHeight } = layout.computedBounds.plot,
-        transform = `translate(${left}, ${top})`,
-        { isTransparent, plotBackgroundColor = defaultBackgroundColor } = dataDisplayModel,
-        bgColor = String(color(plotBackgroundColor)),
-        darkBgColor = String(color(plotBackgroundColor)?.darker(0.2)),
-        { numRows, numColumns } = layout,
-        cellWidth = Math.max(0, plotWidth / numColumns),
-        cellHeight = Math.max(0, plotHeight / numRows),
-        row = (index: number) => Math.floor(index / numColumns),
-        col = (index: number) => index % numColumns,
-        groupElement = bgRef.current
-      select(groupElement)
-        .selectAll<SVGRectElement, number>('rect')
-        .data(range(numRows * numColumns))
-        .join('rect')
-        .attr('class', 'plot-cell-background')
-        .attr('data-testid', 'plot-cell-background')
-        .attr('transform', transform)
-        .attr('width', cellWidth)
-        .attr('height', cellHeight)
-        .attr('x', d => cellWidth * col(d))
-        .attr('y', d => cellHeight * row(d))
-        .style('fill', d => (row(d) + col(d)) % 2 === 0 ? bgColor : darkBgColor)
-        .style('fill-opacity', isTransparent ? 0 : 1)
-        .on(PixiBackgroundPassThroughEvent.PointerDown, pointerDownEvent => {
-          // Custom dragging implementation to avoid D3. Unfortunately, since we need to deal with events manually
-          // dispatched from PixiJS canvas, we need to be very careful about the event handling. This implementation
-          // allows us just to deal with pointerdown event being passed from canvas. pointermove and pointerup events
-          // are attached to window directly (recommended way anyway).
-          let draggingActive = true
-          const prevXY = {x: pointerDownEvent.x, y: pointerDownEvent.y}
-          onDragStart(pointerDownEvent)
-          const onDragHandler = (onDragEvent: PointerEvent) => {
-            if (draggingActive) {
-              onDrag({dx: onDragEvent.x - prevXY.x, dy: onDragEvent.y - prevXY.y})
-              prevXY.x = onDragEvent.x
-              prevXY.y = onDragEvent.y
-            }
+      select(groupElement).append('image')
+        .attr("x", xCoord)
+        .attr("y", yCoord)
+        .attr("width", imageWidth)
+        .attr("height", imageHeight)
+        .attr("preserveAspectRatio", "none") // Stretch to fill the rectangle
+        .attr("xlink:href", graphModel.plotBackgroundImage) // For older browsers
+        .attr("href", graphModel.plotBackgroundImage) // For modern browsers
+    }
+
+    select(groupElement)
+      .selectAll<SVGRectElement, number>('rect')
+      .data(range(numRows * numColumns))
+      .join('rect')
+      .attr('class', 'plot-cell-background')
+      .attr('data-testid', 'plot-cell-background')
+      .attr('transform', transform)
+      .attr('width', cellWidth)
+      .attr('height', cellHeight)
+      .attr('x', d => cellWidth * col(d))
+      .attr('y', d => cellHeight * row(d))
+      .style('fill', d => (row(d) + col(d)) % 2 === 0 ? bgColor : darkBgColor)
+      .style('fill-opacity', fillOpacity)
+      .on(PixiBackgroundPassThroughEvent.PointerDown, pointerDownEvent => {
+        // Custom dragging implementation to avoid D3. Unfortunately, since we need to deal with events manually
+        // dispatched from PixiJS canvas, we need to be very careful about the event handling. This implementation
+        // allows us just to deal with pointerdown event being passed from canvas. pointermove and pointerup events
+        // are attached to window directly (recommended way anyway).
+        let draggingActive = true
+        const prevXY = {x: pointerDownEvent.x, y: pointerDownEvent.y}
+        onDragStart(pointerDownEvent)
+        const onDragHandler = (onDragEvent: PointerEvent) => {
+          if (draggingActive) {
+            onDrag({dx: onDragEvent.x - prevXY.x, dy: onDragEvent.y - prevXY.y})
+            prevXY.x = onDragEvent.x
+            prevXY.y = onDragEvent.y
           }
-          const onDragEndHandler = () => {
-            if (draggingActive) {
-              draggingActive = false
-              onDragEnd()
-              window.removeEventListener("pointermove", onDragHandler)
-              window.removeEventListener("pointerup", onDragEndHandler)
-            }
+        }
+        const onDragEndHandler = () => {
+          if (draggingActive) {
+            draggingActive = false
+            onDragEnd()
+            window.removeEventListener("pointermove", onDragHandler)
+            window.removeEventListener("pointerup", onDragEndHandler)
           }
-          window.addEventListener("pointermove", onDragHandler)
-          window.addEventListener("pointerup", onDragEndHandler)
-        })
-    }, {name: "Background.autorun"})
-  }, [bgRef, datasetsArray, dataDisplayModel, layout, onDrag, onDragEnd, onDragStart])
+        }
+        window.addEventListener("pointermove", onDragHandler)
+        window.addEventListener("pointerup", onDragEndHandler)
+      })
+  }, [layout, dataDisplayModel, bgRef, graphModel, graphLayout, onDragStart, onDrag, onDragEnd])
+
+  useEffect(function respondToAxisBoundsChange() {
+    mstReaction(() => {
+      let axisBounds:(number | undefined)[] = []
+      if (graphModel?.plotBackgroundImageLockInfo?.locked) {
+        const xAxisModel = graphModel.getAxis('bottom')
+        if (isAnyNumericAxisModel(xAxisModel)) {
+          axisBounds = axisBounds.concat([xAxisModel.max, xAxisModel.dynamicMax, xAxisModel.min, xAxisModel.dynamicMin])
+        }
+        const yAxisModel = graphModel.getAxis('left')
+        if (isAnyNumericAxisModel(yAxisModel)) {
+          axisBounds = axisBounds.concat([yAxisModel.max, yAxisModel.dynamicMax, yAxisModel.min, yAxisModel.dynamicMin])
+        }
+      }
+      return axisBounds
+    },
+      () => {
+        renderBackground()
+      }, {name: "renderBackground", equals: comparer.structural, fireImmediately: true}, graphModel
+    )
+  }, [renderBackground, graphModel])
+
+  useEffect(function respondToChangeInImage() {
+    mstReaction(() => graphModel?.plotBackgroundImage,
+      () => {
+        renderBackground()
+      }, {name: "renderBackground", fireImmediately: true}, graphModel
+    )
+  }, [graphModel, renderBackground])
 
   return (
     <g className='background-group-element' ref={bgRef}/>
