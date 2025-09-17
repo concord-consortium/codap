@@ -21,7 +21,7 @@ export const CameraMenuList = observer(function CameraMenuList() {
 
   const addBackgroundImage = () => {
     const handleAbnormal = () => {
-      console.log("Abort or error on file read.")
+      console.error("Abort or error on file read.")
     }
 
     const handleRead = function (this: FileReader) {
@@ -128,7 +128,7 @@ export const CameraMenuList = observer(function CameraMenuList() {
               : <MenuItem data-testid="lock-image" onClick={toggleBackgroundImageLock}>
                   {t("DG.DataDisplayMenu.lockImageToAxes")}
                 </MenuItem>)
-              : null
+        : null
             }
           </>
         : <MenuItem data-testid="add-background-image" onClick={addBackgroundImage}>
