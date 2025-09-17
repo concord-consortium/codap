@@ -1,5 +1,61 @@
 # Changelog
 
+## Version 3.0.0-beta.2485 - September 16, 2025
+
+### ✨ Features & Improvements:
+- **CODAP-43:** Progress towards StoryBuilder working
+- **CODAP-120:** The plugin API supports `get` for the formula engine
+- **CODAP-764:** Vertical toolbar option
+- **CODAP-776:** Case card is "responsive" to changes in component width
+- **CODAP-835:** Implement keyboard shortcuts for undo & redo
+- **CODAP-846:** Tile inspector palettes align with top of the tile
+- **CODAP-857:** Update `<meta>` `description` content
+- **CODAP-859:** New Table from Clipboard
+- **CODAP-877:** Implement "Move Data Entry Row Here" menu item on case table index menu
+- **CODAP-879:** Dynamic Toolbar Position Menu Item
+
+### 🐞 Bug Fixes:
+- **CODAP-96:** Formula editor closes unexpectedly when clicking outside the modal
+- **CODAP-100:** Problems with adornment labels and hover tips
+- **CODAP-302:** Difficulty dragging attributes from graph on iPad
+- **CODAP-610:** Bar chart with computed bar heights isn't importing from V2 properly
+- **CODAP-779:** Graph tip gets offset from mouse pointer when document has scrolled
+- **CODAP-819:** Plugins should not show URL inspector
+- **CODAP-823:** Fix formula editor button styling
+- **CODAP-832:** Incorrect import/export of V2 date axis
+- **CODAP-836:** Graph rescale works when data values are edited
+- **CODAP-837:** Splitting a histogram should result in binned dot plot
+- **CODAP-839:** Fix parent visibility toggles for case plot
+- **CODAP-843:** Minimize and close buttons in component title bar should respond on click, not pointerDown
+- **CODAP-844:** Minimize and close buttons should notify plugins
+- **CODAP-845:** Nearly flat least squares lines slope display as 0
+- **CODAP-850:** Editing text in a text component should notify plugins
+- **CODAP-851:** Minimization state of components not restored in Story Builder moments
+- **CODAP-853:** Story Builder moment title not synching with associated text component title
+- **CODAP-855:** Formula evaluation with empty strings is broken
+- **CODAP-858:** Minimized background component made active on attribute drop
+- **CODAP-862:** Fix for movable line causing invalid document
+- **CODAP-863:** Movable line misbehaviors
+- **CODAP-865:** "Group into bins" is not undoable
+- **CODAP-868:** Connecting lines don't appear in each subplot
+- **CODAP-870:** Leaving URL blank in "Web Page" component crashes
+- **CODAP-873:** Long component title overflow
+- **CODAP-874:** LSRL isn't updating during drag of points
+- **CODAP-885:** Fix LSRL with 0 values
+- **CODAP-889:** Error importing v2 document with date precision
+- **CODAP-893:** Marquee select in graphs doesn't always clear selection at start
+- **CODAP-896:** Measure label unit formatting
+- **CODAP-898:** Box plot placement not correct when graph is split on both top and right
+
+### 🛠️ Under the Hood:
+- **CODAP-57:** Make tile `transitionComplete` a volatile property
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  205514 bytes |                            0.02% |
+|  index.js | 6863832 bytes |                            0.01% |
+
 ## Version 3.0.0-beta.2433 - August 15, 2025
 
 ### ✨ Features & Improvements:
