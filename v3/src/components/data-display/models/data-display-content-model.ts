@@ -29,6 +29,14 @@ import {DisplayItemDescriptionModel} from "./display-item-description-model"
 import { IBaseDataDisplayModel } from "./base-data-display-content-model"
 import { DataDisplayRenderState } from "./data-display-render-state"
 
+export type BackgroundLockInfo = {
+  locked: true,
+  xAxisLowerBound: number,
+  xAxisUpperBound: number,
+  yAxisLowerBound: number,
+  yAxisUpperBound: number
+}
+
 export const DataDisplayContentModel = TileContentModel
   .named("DataDisplayContentModel")
   .props({
@@ -36,9 +44,12 @@ export const DataDisplayContentModel = TileContentModel
     id: types.optional(types.string, () => typedId("DDCM")),
     layers: types.array(DataDisplayLayerModelUnion),
     pointDescription: types.optional(DisplayItemDescriptionModel, () => DisplayItemDescriptionModel.create()),
+    // The following five properties apply to graphs, not maps, but need to be accessible at this level
     plotBackgroundColor: defaultBackgroundColor,
     plotBackgroundOpacity: 1,
     isTransparent: false,
+    plotBackgroundImage: types.maybe(types.string),
+    plotBackgroundImageLockInfo: types.maybe(types.frozen<BackgroundLockInfo>()),
   })
   .volatile(() => ({
     animationTimerId: 0,

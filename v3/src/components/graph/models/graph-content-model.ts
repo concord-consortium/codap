@@ -27,7 +27,7 @@ import {
   INumericAxisModelSnapshot, isAnyNumericAxisModel, isPercentAxisModel
 } from "../../axis/models/numeric-axis-models"
 import { CaseData } from "../../data-display/d3-types"
-import {DataDisplayContentModel} from "../../data-display/models/data-display-content-model"
+import { BackgroundLockInfo, DataDisplayContentModel } from "../../data-display/models/data-display-content-model"
 import {
   attrRoleToAxisPlace, axisPlaceToAttrRole, GraphAttrRole, kMain, kOther, PrimaryAttrRoles
 } from "../../data-display/data-display-types"
@@ -49,14 +49,6 @@ export interface GraphProperties {
   plotType: PlotType
 }
 
-export type BackgroundLockInfo = {
-  locked: true,
-  xAxisLowerBound: number,
-  xAxisUpperBound: number,
-  yAxisLowerBound: number,
-  yAxisUpperBound: number
-}
-
 export const NumberToggleModel = types
   .model('NumberToggleModel', {})
 
@@ -69,8 +61,6 @@ export const GraphContentModel = DataDisplayContentModel
     // keys are AxisPlaces
     axes: types.map(AxisModelUnion),
     plot: types.optional(PlotModelUnion, () => CasePlotModel.create()),
-    plotBackgroundImage: types.maybe(types.string),
-    plotBackgroundImageLockInfo: types.maybe(types.frozen<BackgroundLockInfo>()),
     // Plots can have a background whose properties are described by this property.
     plotBackgroundLockInfo: types.maybe(types.frozen<BackgroundLockInfo>()),
     // numberToggleModel: types.optional(types.union(NumberToggleModel, null))
