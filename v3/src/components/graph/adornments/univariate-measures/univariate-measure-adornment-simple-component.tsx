@@ -153,7 +153,7 @@ export const UnivariateMeasureAdornmentSimpleComponent = observer(
 
       const primaryAttrId = dataConfig?.primaryAttributeID
       const primaryAttr = primaryAttrId ? dataConfig?.dataset?.attrFromID(primaryAttrId) : undefined
-      const primaryAttrUnits = primaryAttr?.units
+      const primaryAttrUnits = primaryAttr?.units || ""
       const { coords, coverClass, coverId, displayRange, displayValue, lineClass, lineId, measureRange, plotValue } =
         helper.adornmentSpecs(numericAttrId, dataConfig, value, cellCounts)
 
@@ -164,6 +164,7 @@ export const UnivariateMeasureAdornmentSimpleComponent = observer(
       const valueContent = `${t(model.labelTitle, { vars: translationVars })}`
       const unitContent = primaryAttrUnits ? ` <span class="units">${primaryAttrUnits}</span>` : ""
       const textContent = `${valueContent}${unitContent}`
+      const tipContent = `${valueContent}${primaryAttrUnits}`  // No formatting in tip
 
       // Add the main value line
       const lineSpecs = {
@@ -202,7 +203,7 @@ export const UnivariateMeasureAdornmentSimpleComponent = observer(
       if (showLabel) {
         addLabels(measure, textContent, valueObj, plotValue, measureRange.max)
       } else {
-        addTextTip(plotValue, textContent, valueObj, measureRange.max)
+        addTextTip(plotValue, tipContent, valueObj, measureRange.max)
       }
     }, [numericAttrId, dataConfig, model, cellKey, helper, isVerticalRef, cellCounts, valueRef, showLabel,
               addLabels, addTextTip])
