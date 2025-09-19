@@ -19,3 +19,8 @@ export const kImporterPluginUrl = "/Importer/index.html?lang=en-US"
 export function getImporterPluginUrl() {
   return `${getPluginsRootUrl()}${kImporterPluginUrl}`
 }
+
+export const kDrawToolPluginUrl = "/DrawTool/index.html?lang=en-US"
+export function getDrawToolPluginUrl() {
+  return `${getPluginsRootUrl()}${kDrawToolPluginUrl}`
+}
