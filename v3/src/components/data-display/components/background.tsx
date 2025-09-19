@@ -10,7 +10,6 @@ import {IDataSet} from "../../../models/data/data-set"
 import {selectAllCases, selectAndDeselectCases} from "../../../models/data/data-set-utils"
 import {defaultBackgroundColor} from "../../../utilities/color-utils"
 import { useGraphLayoutContext } from "../../graph/hooks/use-graph-layout-context"
-import { IGraphContentModel } from "../../graph/models/graph-content-model" // Needed for access to getAxis
 import { isAnyNumericAxisModel } from "../../axis/models/numeric-axis-models"
 import {rTreeRect} from "../data-display-types"
 import {rectangleSubtract, rectNormalize} from "../data-display-utils"
@@ -256,14 +255,13 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
 
   useEffect(function respondToAxisBoundsChange() {
     mstReaction(() => {
-      const graphModel = dataDisplayModel as IGraphContentModel
       let axisBounds:(number | undefined)[] = []
       if (dataDisplayModel?.plotBackgroundImageLockInfo?.locked) {
-        const xAxisModel = graphModel.getAxis('bottom')
+        const xAxisModel = dataDisplayModel.getAxis('bottom')
         if (isAnyNumericAxisModel(xAxisModel)) {
           axisBounds = axisBounds.concat([xAxisModel.max, xAxisModel.dynamicMax, xAxisModel.min, xAxisModel.dynamicMin])
         }
-        const yAxisModel = graphModel.getAxis('left')
+        const yAxisModel = dataDisplayModel.getAxis('left')
         if (isAnyNumericAxisModel(yAxisModel)) {
           axisBounds = axisBounds.concat([yAxisModel.max, yAxisModel.dynamicMax, yAxisModel.min, yAxisModel.dynamicMin])
         }

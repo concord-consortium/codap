@@ -17,7 +17,7 @@ import {TileContentModel} from "../../../models/tiles/tile-content"
 import { getTileContentInfo } from "../../../models/tiles/tile-content-info"
 import {defaultBackgroundColor} from "../../../utilities/color-utils"
 import { typedId } from "../../../utilities/js-utils"
-import { IAxisTicks, TickFormatter } from "../../axis/axis-types"
+import { AxisPlace, IAxisTicks, TickFormatter } from "../../axis/axis-types"
 import {GraphPlace} from "../../axis-graph-shared"
 import { IAxisModel } from "../../axis/models/axis-model"
 import { isAnyNumericAxisModel } from "../../axis/models/numeric-axis-models"
@@ -127,7 +127,11 @@ export const DataDisplayContentModel = TileContentModel
       const { attributeIDs, caseID, dataset } = props
       // derived models may override in certain circumstances
       return self.caseTipText(attributeIDs, caseID, dataset)
-    }
+    },
+    getAxis(place: AxisPlace): IAxisModel | undefined {
+      // derived models should override if they have axes
+      return undefined
+    },
   }))
   .actions(self => ({
     beforeDestroy() {
