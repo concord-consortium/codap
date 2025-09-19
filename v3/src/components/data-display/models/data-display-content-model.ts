@@ -17,7 +17,7 @@ import {TileContentModel} from "../../../models/tiles/tile-content"
 import { getTileContentInfo } from "../../../models/tiles/tile-content-info"
 import {defaultBackgroundColor} from "../../../utilities/color-utils"
 import { typedId } from "../../../utilities/js-utils"
-import { IAxisTicks, TickFormatter } from "../../axis/axis-types"
+import { AxisPlace, IAxisTicks, TickFormatter } from "../../axis/axis-types"
 import {GraphPlace} from "../../axis-graph-shared"
 import { IAxisModel } from "../../axis/models/axis-model"
 import { isAnyNumericAxisModel } from "../../axis/models/numeric-axis-models"
@@ -29,6 +29,14 @@ import {DisplayItemDescriptionModel} from "./display-item-description-model"
 import { IBaseDataDisplayModel } from "./base-data-display-content-model"
 import { DataDisplayRenderState } from "./data-display-render-state"
 
+export type BackgroundLockInfo = {
+  locked: true,
+  xAxisLowerBound: number,
+  xAxisUpperBound: number,
+  yAxisLowerBound: number,
+  yAxisUpperBound: number
+}
+
 export const DataDisplayContentModel = TileContentModel
   .named("DataDisplayContentModel")
   .props({
@@ -36,9 +44,12 @@ export const DataDisplayContentModel = TileContentModel
     id: types.optional(types.string, () => typedId("DDCM")),
     layers: types.array(DataDisplayLayerModelUnion),
     pointDescription: types.optional(DisplayItemDescriptionModel, () => DisplayItemDescriptionModel.create()),
+    // The following five properties apply to graphs, not maps, but need to be accessible at this level
     plotBackgroundColor: defaultBackgroundColor,
     plotBackgroundOpacity: 1,
     isTransparent: false,
+    plotBackgroundImage: types.maybe(types.string),
+    plotBackgroundImageLockInfo: types.maybe(types.frozen<BackgroundLockInfo>()),
   })
   .volatile(() => ({
     animationTimerId: 0,
@@ -116,7 +127,11 @@ export const DataDisplayContentModel = TileContentModel
       const { attributeIDs, caseID, dataset } = props
       // derived models may override in certain circumstances
       return self.caseTipText(attributeIDs, caseID, dataset)
-    }
+    },
+    getAxis(place: AxisPlace): IAxisModel | undefined {
+      // derived models should override if they have axes
+      return undefined
+    },
   }))
   .actions(self => ({
     beforeDestroy() {
