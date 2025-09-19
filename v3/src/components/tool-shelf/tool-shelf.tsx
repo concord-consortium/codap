@@ -30,9 +30,10 @@ export function isShelfTileComponent(info?: ITileComponentInfo): info is IShelfT
   return !!info && "shelf" in info && info.shelf != null
 }
 
-function hasGuideTile(document: IDocumentModel): boolean {
+function hasGuideTile(document: IDocumentModel) {
   const tiles = document?.content?.getTilesOfType(kWebViewTileType) ?? []
-  return tiles.some(tile => isWebViewModel(tile.content) && tile.content.isGuide)
+  const guideTile = tiles.find(tile => isWebViewModel(tile.content) && tile.content.isGuide)
+  return guideTile?.id ?? ''
 }
 
 interface IRightButtonEntry {
@@ -87,8 +88,7 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
         ? [{
           icon: <GuideIcon className="icon-guide"/>,
           labelKey: "DG.ToolButtonData.guideMenu.title",
-          hintKey: "DG.ToolButtonData.guideMenu.toolTip",
-          isDisabled: () => true
+          hintKey: "DG.ToolButtonData.guideMenu.toolTip"
         }]
         : []
     )
