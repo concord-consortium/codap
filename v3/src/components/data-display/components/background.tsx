@@ -9,7 +9,6 @@ import {appState} from "../../../models/app-state"
 import {IDataSet} from "../../../models/data/data-set"
 import {selectAllCases, selectAndDeselectCases} from "../../../models/data/data-set-utils"
 import {defaultBackgroundColor} from "../../../utilities/color-utils"
-import { useGraphContentModelContext } from "../../graph/hooks/use-graph-content-model-context"
 import { useGraphLayoutContext } from "../../graph/hooks/use-graph-layout-context"
 import { isAnyNumericAxisModel } from "../../axis/models/numeric-axis-models"
 import {rTreeRect} from "../data-display-types"
@@ -72,7 +71,6 @@ const getCasesForDelta = (tree: RTree | null, newRect: rTreeRect, prevRect: rTre
 export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((props, ref) => {
   const { marqueeState, pixiPointsArray } = props,
     dataDisplayModel = useDataDisplayModelContext(),
-    graphModel = useGraphContentModelContext(),
     datasetsArray = dataDisplayModel.datasetsArray,
     datasetsMap: SelectionMap = useMemo(() => {
       const map: SelectionMap = {}
@@ -181,26 +179,26 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
       col = (index: number) => index % numColumns,
       groupElement = bgRef.current,
       fillOpacity = isTransparent ? 0
-        : graphModel.plotBackgroundImage ? 0.001 : 1
+        : dataDisplayModel.plotBackgroundImage ? 0.001 : 1
 
     select(groupElement).selectAll('image').remove()
     select(groupElement).selectAll('rect').remove()
-    if (graphModel.plotBackgroundImage) {
+    if (dataDisplayModel.plotBackgroundImage) {
       let xCoord = left,
         imageWidth = plotWidth,
         yCoord = top,
         imageHeight = plotHeight
-      if (graphModel.plotBackgroundImageLockInfo?.locked) {
+      if (dataDisplayModel.plotBackgroundImageLockInfo?.locked) {
         const xScale = graphLayout.getNumericScale('bottom'),
           yScale = graphLayout.getNumericScale('left')
         if (xScale) {
-          xCoord = left + xScale(graphModel.plotBackgroundImageLockInfo.xAxisLowerBound)
-          const right = left + xScale(graphModel.plotBackgroundImageLockInfo.xAxisUpperBound)
+          xCoord = left + xScale(dataDisplayModel.plotBackgroundImageLockInfo.xAxisLowerBound)
+          const right = left + xScale(dataDisplayModel.plotBackgroundImageLockInfo.xAxisUpperBound)
           imageWidth = right - xCoord
         }
         if (yScale) {
-          yCoord = top + yScale(graphModel.plotBackgroundImageLockInfo.yAxisUpperBound)
-          const bottom = top + yScale(graphModel.plotBackgroundImageLockInfo.yAxisLowerBound)
+          yCoord = top + yScale(dataDisplayModel.plotBackgroundImageLockInfo.yAxisUpperBound)
+          const bottom = top + yScale(dataDisplayModel.plotBackgroundImageLockInfo.yAxisLowerBound)
           imageHeight = bottom - yCoord
         }
       }
@@ -210,8 +208,8 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
         .attr("width", imageWidth)
         .attr("height", imageHeight)
         .attr("preserveAspectRatio", "none") // Stretch to fill the rectangle
-        .attr("xlink:href", graphModel.plotBackgroundImage) // For older browsers
-        .attr("href", graphModel.plotBackgroundImage) // For modern browsers
+        .attr("xlink:href", dataDisplayModel.plotBackgroundImage) // For older browsers
+        .attr("href", dataDisplayModel.plotBackgroundImage) // For modern browsers
     }
 
     select(groupElement)
@@ -253,17 +251,17 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
         window.addEventListener("pointermove", onDragHandler)
         window.addEventListener("pointerup", onDragEndHandler)
       })
-  }, [layout, dataDisplayModel, bgRef, graphModel, graphLayout, onDragStart, onDrag, onDragEnd])
+  }, [layout, dataDisplayModel, bgRef, graphLayout, onDragStart, onDrag, onDragEnd])
 
   useEffect(function respondToAxisBoundsChange() {
     mstReaction(() => {
       let axisBounds:(number | undefined)[] = []
-      if (graphModel?.plotBackgroundImageLockInfo?.locked) {
-        const xAxisModel = graphModel.getAxis('bottom')
+      if (dataDisplayModel?.plotBackgroundImageLockInfo?.locked) {
+        const xAxisModel = dataDisplayModel.getAxis('bottom')
         if (isAnyNumericAxisModel(xAxisModel)) {
           axisBounds = axisBounds.concat([xAxisModel.max, xAxisModel.dynamicMax, xAxisModel.min, xAxisModel.dynamicMin])
         }
-        const yAxisModel = graphModel.getAxis('left')
+        const yAxisModel = dataDisplayModel.getAxis('left')
         if (isAnyNumericAxisModel(yAxisModel)) {
           axisBounds = axisBounds.concat([yAxisModel.max, yAxisModel.dynamicMax, yAxisModel.min, yAxisModel.dynamicMin])
         }
@@ -272,17 +270,17 @@ export const Background = forwardRef<SVGGElement | HTMLDivElement, IProps>((prop
     },
       () => {
         renderBackground()
-      }, {name: "renderBackground", equals: comparer.structural, fireImmediately: true}, graphModel
+      }, {name: "renderBackground", equals: comparer.structural, fireImmediately: true}, dataDisplayModel
     )
-  }, [renderBackground, graphModel])
+  }, [renderBackground, dataDisplayModel])
 
   useEffect(function respondToChangeInImage() {
-    mstReaction(() => graphModel?.plotBackgroundImage,
+    mstReaction(() => dataDisplayModel?.plotBackgroundImage,
       () => {
         renderBackground()
-      }, {name: "renderBackground", fireImmediately: true}, graphModel
+      }, {name: "renderBackground", fireImmediately: true}, dataDisplayModel
     )
-  }, [graphModel, renderBackground])
+  }, [dataDisplayModel, renderBackground])
 
   return (
     <g className='background-group-element' ref={bgRef}/>
