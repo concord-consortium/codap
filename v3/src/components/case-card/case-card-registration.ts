@@ -33,7 +33,7 @@ registerTileContentInfo({
     const data = tile.content && getTileDataSet(tile.content)
     return data?.displayTitle || t("DG.DocumentController.caseTableTitle")
   },
-  hideOnClose: true
+  hideOnClose: () => true
 })
 
 registerTileComponentInfo({

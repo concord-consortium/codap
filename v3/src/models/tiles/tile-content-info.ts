@@ -37,7 +37,7 @@ export interface ITileContentInfo {
   getTitle: (tile: ITileLikeModel) => string | undefined;
   getV2Type?: (content: ITileContentModel) => string;
   isSingleton?: boolean; // Only one instance of a tile is open per document (e.g. calculator and guide)
-  hideOnClose?: boolean;
+  hideOnClose?: (content?: ITileContentModel) => boolean;
   addSidecarNotes?: boolean;
   defaultHeight?: number;
   exportNonDefaultHeight?: boolean;

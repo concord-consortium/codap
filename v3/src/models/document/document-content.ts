@@ -200,11 +200,13 @@ export const DocumentContentModel = BaseDocumentContentModel
     deleteOrHideTile(tileId: string) {
       const tile = self.getTile(tileId)
       const tileInfo = getTileContentInfo(tile?.content.type)
-      if (tileInfo?.hideOnClose || tileInfo?.isSingleton) {
-        const tileLayout = self.getTileLayoutById(tileId)
-        if (isFreeTileLayout(tileLayout)) {
-          tileLayout.setHidden(true)
-          return
+      if (tileInfo) {
+        if (tileInfo.isSingleton  || (tileInfo.hideOnClose?.(tile?.content))) {
+          const tileLayout = self.getTileLayoutById(tileId)
+          if (isFreeTileLayout(tileLayout)) {
+            tileLayout.setHidden(true)
+            return
+          }
         }
       }
       self.deleteTile(tileId)

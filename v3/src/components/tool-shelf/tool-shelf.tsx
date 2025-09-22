@@ -21,6 +21,7 @@ import { isWebViewModel } from "../web-view/web-view-model"
 import { TilesListShelfButton } from "./tiles-list-button"
 import { PluginsButton } from "./plugins-button"
 import { ToolShelfButton, ToolShelfTileButton } from "./tool-shelf-button"
+import { GuideButton} from "./guide-button"
 
 import "./tool-shelf.scss"
 
@@ -51,6 +52,7 @@ interface IProps {
 }
 export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
   const undoManager = document?.treeManagerAPI?.undoManager
+  const guideTileId = hasGuideTile(document)
   const rightButtons: IRightButtonEntry[] = [
     {
       className: "undo-button",
@@ -84,12 +86,13 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
     },
     // only show the guide button if there is a guide tile in the document
     ...(
-      hasGuideTile(document)
+      guideTileId
         ? [{
           icon: <GuideIcon className="icon-guide"/>,
           labelKey: "DG.ToolButtonData.guideMenu.title",
-          hintKey: "DG.ToolButtonData.guideMenu.toolTip"
-        }]
+          hintKey: "DG.ToolButtonData.guideMenu.toolTip",
+          button: <GuideButton key={t("DG.ToolButtonData.guideMenu.title")} guideTileId={guideTileId} />
+      }]
         : []
     )
   ]

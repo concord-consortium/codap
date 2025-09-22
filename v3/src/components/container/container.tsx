@@ -36,7 +36,7 @@ export const Container: React.FC = observer(function Container() {
       sharedModels?.forEach(model => {
         manager?.removeTileSharedModel(tile?.content, model)
       })
-      tileId && documentContent?.deleteTile(tileId)
+      tileId && documentContent?.deleteOrHideTile(tileId)
     }, {
       notify: deleteTileNotification(tile),
       log: logMessageWithReplacement("Close component: %@", {tileType: tile?.content.type}, "component"),

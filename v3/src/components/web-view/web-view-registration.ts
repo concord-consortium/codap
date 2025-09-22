@@ -46,6 +46,7 @@ registerTileContentInfo({
   type: kWebViewTileType,
   prefix: kWebViewIdPrefix,
   modelClass: WebViewModel,
+  hideOnClose: (content) => isWebViewModel(content) && content.isGuide,
   defaultContent: () => ({ type: kWebViewTileType }),
   defaultName: () => t("DG.WebView.defaultTitle"),
   getTitle: (tile) => tile.title || t("DG.WebView.defaultTitle"),
