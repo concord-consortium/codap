@@ -3,6 +3,7 @@ import { observer } from "mobx-react-lite"
 import { isAlive } from "mobx-state-tree"
 import React, { useRef, useState } from "react"
 import { CodapComponentContext } from "../hooks/use-codap-component-context"
+import { TileInspectorContent, TileInspectorContext } from "../hooks/use-tile-inspector-context"
 import { TileModelContext } from "../hooks/use-tile-model-context"
 import {
   FocusIgnoreEventType, FocusIgnoreFn, ITileSelection, TileSelectionContext
@@ -66,6 +67,7 @@ export const CodapComponent = observer(function CodapComponent(props: IProps) {
 
   // useState for guaranteed lifetime
   const [tileSelection] = useState<TileSelectionHandler>(() => new TileSelectionHandler(tile))
+  const tileInspectorContentTuple = useState<TileInspectorContent>(() => new TileInspectorContent())
 
   const handleFocusEvent = (event: FocusIgnoreEventType) => tileSelection.handleFocusEvent(event)
 
@@ -75,23 +77,25 @@ export const CodapComponent = observer(function CodapComponent(props: IProps) {
   const classes = clsx("codap-component", tileEltClass, { focused, minimized: isMinimized })
   return (
     <TileModelContext.Provider value={tile}>
-      <TileSelectionContext.Provider value={tileSelection}>
-        <CodapComponentContext.Provider value={codapComponentRef}>
-          <div
-            className={classes}
-            data-testid={tileEltClass}
-            key={tile.id}
-            onFocus={handleFocusEvent}
-            onPointerDownCapture={handleFocusEvent}
-            ref={codapComponentRef}
-          >
-            <TitleBar tile={tile} onMinimizeTile={onMinimizeTile} onCloseTile={onCloseTile}
-                onMoveTilePointerDown={onMoveTilePointerDown}/>
-            <Component tile={tile} isMinimized={isMinimized} />
-          </div>
-          <InspectorPanelWrapper tile={tile} isMinimized={isMinimized} />
-        </CodapComponentContext.Provider>
-      </TileSelectionContext.Provider>
+      <TileInspectorContext.Provider value={tileInspectorContentTuple}>
+        <TileSelectionContext.Provider value={tileSelection}>
+          <CodapComponentContext.Provider value={codapComponentRef}>
+            <div
+              className={classes}
+              data-testid={tileEltClass}
+              key={tile.id}
+              onFocus={handleFocusEvent}
+              onPointerDownCapture={handleFocusEvent}
+              ref={codapComponentRef}
+            >
+              <TitleBar tile={tile} onMinimizeTile={onMinimizeTile} onCloseTile={onCloseTile}
+                  onMoveTilePointerDown={onMoveTilePointerDown}/>
+              <Component tile={tile} isMinimized={isMinimized} />
+            </div>
+            <InspectorPanelWrapper tile={tile} isMinimized={isMinimized} />
+          </CodapComponentContext.Provider>
+        </TileSelectionContext.Provider>
+      </TileInspectorContext.Provider>
     </TileModelContext.Provider>
   )
 })

@@ -1,0 +1,37 @@
+.text-format-dialog-body {
+  input {
+    font-size: 14px;
+    height: 30px;
+    padding-inline-start: 5px;
+    padding-inline-end: 5px;
+  }
+
+  label {
+    margin-left: 4px;
+  }
+
+  .chakra-checkbox__control {
+    width: 18px;
+    height: 18px;
+  }
+
+  .chakra-checkbox__label {
+    font-size: 14px;
+    font-weight: normal;
+  }
+
+  .chakra-menu__menuitem {
+    svg {
+      margin-right: 5px;
+    }
+    font-size: 14px;
+    height: 30px;
+    padding: 0;
+  }
+
+  .chakra-numberinput {
+    input: {
+      border: none;
+    }
+  }
+}

@@ -1,0 +1,18 @@
+.inspector-panel.text {
+  display: grid;
+  // width: 68px;
+  // right: -68px;
+  grid-template-columns: repeat(2, 34px);
+  grid-template-rows: repeat(9, 34px);
+  grid-auto-flow: column;
+  place-items: center;
+
+  .inspector-tool-button {
+    min-width: 34px !important;
+    max-width: 34px !important;
+    width: 34px !important;
+    height: 34px !important;
+    padding: 5px !important;
+    place-self: center;
+  }
+}

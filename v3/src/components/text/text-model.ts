@@ -1,5 +1,5 @@
 import {
-  EditorValue, serializeValue, SlateExchangeValue, slateToText, textToSlate
+  CustomEditor, EditorValue, serializeValue, SlateExchangeValue, slateToText, textToSlate
 } from "@concord-consortium/slate-editor"
 import { cloneDeep, isEqual } from "lodash"
 import { Instance, SnapshotIn, types } from "mobx-state-tree"
@@ -22,6 +22,8 @@ export const TextModel = TileContentModel
     value: types.optional(types.frozen<SlateExchangeValue>(), () => editorValueToModelValue(textToSlate("")))
   })
   .volatile(self => ({
+    editor: undefined as Maybe<CustomEditor>,
+    editorChangeCount: 0,
     isSettingValue: false
   }))
   .preProcessSnapshot(snap => {
@@ -43,6 +45,12 @@ export const TextModel = TileContentModel
     }
   }))
   .actions(self => ({
+    incEditorChange() {
+      ++self.editorChangeCount
+    },
+    setEditor(editor: CustomEditor) {
+      self.editor = editor
+    },
     setValue(value: EditorValue) {
       self.value = editorValueToModelValue(value)
     }
