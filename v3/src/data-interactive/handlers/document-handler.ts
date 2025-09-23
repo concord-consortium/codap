@@ -2,26 +2,189 @@ import { applySnapshot, getSnapshot } from "mobx-state-tree"
 import { isWebViewModel } from "../../components/web-view/web-view-model"
 import { DEBUG_PLUGINS, debugLog } from "../../lib/debug"
 import { appState } from "../../models/app-state"
-import { DocumentModel } from "../../models/document/document"
-import { DocumentContentModel } from "../../models/document/document-content"
-import { IFreeTileInRowOptions, IFreeTileRow } from "../../models/document/free-tile-row"
-import { serializeCodapV2Document, serializeCodapV3Document } from "../../models/document/serialize-document"
-import { SharedModelDocumentManager } from "../../models/document/shared-model-document-manager"
-import { getGlobalValueManager, IGlobalValueManagerSnapshotOut } from "../../models/global/global-value-manager"
-import { ISharedModel } from "../../models/shared/shared-model"
-import { getTileComponentInfo } from "../../models/tiles/tile-component-info"
-import { ITileContentModel } from "../../models/tiles/tile-content"
-import { getSharedModelManager } from "../../models/tiles/tile-environment"
-import { ITileModel, ITileModelSnapshotIn } from "../../models/tiles/tile-model"
-import { toV2Id, toV3GlobalId } from "../../utilities/codap-utils"
-import { isV2ExternalContext } from "../../v2/codap-v2-data-context-types"
-import { CodapV2DataSetImporter, getCaseDataFromV2ContextGuid } from "../../v2/codap-v2-data-set-importer"
+import {
+  ISerializedV3Document, serializeCodapV2Document, serializeCodapV3Document
+} from "../../models/document/serialize-document"
 import { CodapV2Document } from "../../v2/codap-v2-document"
-import {GetCaseDataResult, gV2PostImportSnapshotProcessors, importV2Component, LayoutTransformFn}
-  from "../../v2/codap-v2-tile-importers"
 import { ICodapV2DocumentJson } from "../../v2/codap-v2-types"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIHandler, DIResources, DIValues } from "../data-interactive-types"
+import { importV2Document } from "../../v2/import-v2-document"
+import { isSharedDataSet, isSharedDataSetSnapshot } from "../../models/shared/shared-data-set"
+import { isDataSetMetadata, isDataSetMetadataSnapshot } from "../../models/shared/data-set-metadata"
+import { isGlobalValueManager, isGlobalValueManagerSnapshot } from "../../models/global/global-value-manager"
+import { ISharedModel, ISharedModelSnapshot } from "../../models/shared/shared-model"
+
+/**
+ * We need to update ids in the incoming snapshot to match the existing document.
+ * This way when the incoming snapshot is applied to the existing document, it will
+ * just update the existing instances of the models instead of creating new ones.
+ * The conversion to v2 and back to v3 preserves the tile ids, but not the shared
+ * model entry ids. However there are ids within the shared models that are preserved
+ * and can be used to match up the entries with each other.
+ *
+ * An example of the structure being updated is:
+ * sharedModelMap: {
+ *   "SHARV8oaPqqqnjm4": {
+ *     "sharedModel": {
+ *       "type": "SharedDataSet",
+ *       "id": "SHARV8oaPqqqnjm4",
+ *       "providerId": "",
+ *       "dataSet": {
+ *         "id": "DATA277341785405236",
+ *         ...
+ *       }
+ *     },
+ *     ...
+ *   },
+ *   ...
+ * }
+ *
+ * In this example, the shared model entry id is "SHARV8oaPqqqnjm4" and the
+ * shared model's id is also "SHARV8oaPqqqnjm4". The dataSet id is "DATA277341785405236".
+ * We use the dataSet id to match the incoming shared model entry with the existing
+ * shared model entry, and then update the incoming shared model entry id to match
+ * the existing shared model entry id.
+ *
+ * @param incomingSnapshot
+ * @returns
+ */
+function updateIncomingSnapshotIds(incomingSnapshot: ISerializedV3Document) {
+  const { document } = appState
+
+  // This new v3Snapshot will not have the same document id as the current document
+  // so we need to update it to match.
+  incomingSnapshot.key = document.key
+
+  const existingSharedModelMap = document.content?.sharedModelMap
+  const incomingSharedModelMap = incomingSnapshot.content?.sharedModelMap
+
+  /**
+   * A helper function to update the ids of a specific type of shared model.
+   * If matchNewModelSnapshot returns true, then the id of the shared model entry
+   * for this shared model is updated to match the existing shared model's id.
+   */
+  function updateSharedModelEntryIds<SpecificSharedModelType extends ISharedModel>({
+    existingModelTypeGuard,
+    matchNewModelSnapshot
+  } : {
+    existingModelTypeGuard: (model?: ISharedModel) => model is SpecificSharedModelType,
+    matchNewModelSnapshot: (existingSharedModel: SpecificSharedModelType, snapshot: ISharedModelSnapshot) => boolean
+  }) {
+    if (!incomingSharedModelMap) return
+
+    existingSharedModelMap?.forEach((sharedModelEntry) => {
+      const { sharedModel } = sharedModelEntry
+      if (existingModelTypeGuard(sharedModel)) {
+
+        Object.values(incomingSharedModelMap).forEach((v3SharedModelEntry) => {
+          const newSharedModel = v3SharedModelEntry.sharedModel
+          if (newSharedModel.id && matchNewModelSnapshot(sharedModel, newSharedModel)) {
+            // We have a match, update key in the shared model map and the id
+            // stored in the sharedModel itself
+            delete incomingSharedModelMap[newSharedModel.id]
+            newSharedModel.id = sharedModel.id
+            incomingSharedModelMap[sharedModel.id] = v3SharedModelEntry
+          }
+        })
+      }
+    })
+  }
+
+  // Update shared datasets matching by the dataSet id
+  updateSharedModelEntryIds({
+    existingModelTypeGuard: isSharedDataSet,
+    matchNewModelSnapshot: (existingSharedModel, snapshot) => {
+      return isSharedDataSetSnapshot(snapshot) &&
+             existingSharedModel.dataSet?.id === snapshot.dataSet?.id
+    }
+  })
+
+  // Update shared case metadata models matching by the data id
+  updateSharedModelEntryIds({
+    existingModelTypeGuard: isDataSetMetadata,
+    matchNewModelSnapshot: (existingSharedModel, snapshot) => {
+      return isDataSetMetadataSnapshot(snapshot) &&
+             existingSharedModel.data?.id === snapshot.data
+    }
+  })
+
+  // Update the globals shared model
+  updateSharedModelEntryIds({
+    existingModelTypeGuard: isGlobalValueManager,
+    matchNewModelSnapshot: (existingSharedModel, snapshot) => {
+      // There should be only one global value manager, so we only need to check types
+      return isGlobalValueManagerSnapshot(snapshot)
+    }
+  })
+}
+
+async function asyncUpdate(resources: DIResources, values?: DIValues) {
+  const v2DocumentJson = values as ICodapV2DocumentJson
+  const v2Document = new CodapV2Document(v2DocumentJson)
+  const { document } = appState
+  const tileMap = document.content?.tileMap
+  const interactiveFrameId = resources.interactiveFrame?.id || ''
+
+  const notifyDocumentChange = (operation: string) => {
+    document.content?.broadcastMessage({
+      action: 'notify',
+      resource: 'documentChangeNotice',
+      values: {operation}
+    }, () => {}, interactiveFrameId)
+  }
+
+  notifyDocumentChange('updateDocumentBegun')
+
+  // Convert v2 Document to v3
+  const v3Document = importV2Document(v2Document)
+  const v3Snapshot = await serializeCodapV3Document(v3Document)
+
+  updateIncomingSnapshotIds(v3Snapshot)
+
+  // Replace the tile state for any webview tiles that is subscribed to document events
+  // This is a way to identify the story builder tile. Tiles like story builder
+  // update the document state but don't want to update themselves in the process.
+  const snapshotTileMap = v3Snapshot.content?.tileMap
+  if (!snapshotTileMap) {
+    // TODO: perhaps we should just do nothing in this case
+    throw new Error("v3 Document content's tileMap is undefined")
+  }
+  Object.values(snapshotTileMap).forEach((tileSnapshot) => {
+    const tileId = tileSnapshot.id
+    if (!tileId) return
+
+    const existingTile = tileMap?.get(tileId)
+    if (!existingTile) return
+
+    // Check if the tile is listening to document events
+    const shouldIgnoreIncomingTile = isWebViewModel(existingTile.content) &&
+                              existingTile.content.subscribeToDocuments
+    if (shouldIgnoreIncomingTile) {
+      // Update the tile's content in the snapshot with the current snapshot
+      // with the new snapshot
+      snapshotTileMap[tileId] = getSnapshot(existingTile)
+    }
+  })
+
+  if (DEBUG_PLUGINS) {
+    console.log("Updating document",
+      {
+        // Note: calling getSnapshot on the existing document is not exactly the same
+        // as what is saved as the document state because it is not asking to objects
+        // like the dataset to prepare their data for serialization.
+        "1) existing doc": getSnapshot(document),
+        "2) incoming v2 doc": v2DocumentJson,
+        "3) converted v3 doc": v3Snapshot
+      }
+    )
+  }
+  applySnapshot(document, v3Snapshot)
+
+  await new Promise(resolve => setTimeout(resolve, 500))
+  notifyDocumentChange('updateDocumentEnded')
+
+}
 
 export const diDocumentHandler: DIHandler = {
   get() {
@@ -55,165 +218,7 @@ export const diDocumentHandler: DIHandler = {
     }
   },
   update(resources: DIResources, values?: DIValues) {
-    const v2DocumentJson = values as ICodapV2DocumentJson
-    const v2Document = new CodapV2Document(v2DocumentJson)
-    const { document } = appState
-    const tileMap = document.content?.tileMap
-    const interactiveFrameId = resources.interactiveFrame?.id || ''
-
-    const notifyDocumentChange = (operation: string) => {
-      document.content?.broadcastMessage({
-        action: 'notify',
-        resource: 'documentChangeNotice',
-        values: {operation}
-      }, () => {}, interactiveFrameId)
-    }
-
-    const deleteTilesNotInV2 = () => {
-      if (tileMap) {
-        const tileIds = tileMap.keys()
-        Array.from(tileIds).forEach(tileId => {
-          if (!v2Document.components.some(component => component.guid === toV2Id(tileId))) {
-            document.content?.deleteTile(tileId)
-          }
-        })
-      }
-    }
-
-    const reinstateGlobalValues = () => {
-      const globalManager = getGlobalValueManager(getSharedModelManager(document))
-      if (!globalManager) return
-      // Define the type for globalManagerSnapshot
-      const globalManagerSnapshot: IGlobalValueManagerSnapshotOut = {
-        type: "GlobalValueManager", // Set the correct literal value
-        id: globalManager.id,
-        globals: {}
-      }
-      v2DocumentJson.globalValues?.forEach(globalValue => {
-        globalManagerSnapshot.globals[toV3GlobalId(globalValue.guid)] = {
-          id: toV3GlobalId(globalValue.guid),
-          name: globalValue.name,
-          _value: globalValue.value,
-        }
-      })
-      applySnapshot(globalManager, globalManagerSnapshot)
-    }
-
-    const reinstateDatasets = async () => {
-      const tempSharedModelManager = new SharedModelDocumentManager()
-      // The 2nd parameter we send to create is the "environment."
-      const tempDocModel = DocumentModel.create({ type: "CODAP" }, { sharedModelManager: tempSharedModelManager})
-      tempDocModel.setContent(getSnapshot(DocumentContentModel.create()))
-      if (!tempDocModel.content) {
-        throw new Error("Temporary document content is undefined")
-      }
-      tempSharedModelManager.setDocument(tempDocModel.content)
-      const dataSetImporter = new CodapV2DataSetImporter(v2Document.guidMap)
-      v2Document.contexts.forEach(context => {
-        if (!isV2ExternalContext(context)) {
-          dataSetImporter.importContext(context, tempSharedModelManager)
-        }
-      })
-      const tempSharedModelMap = tempDocModel.content?.sharedModelMap
-      const currentSharedModelMap = document.content?.sharedModelMap
-      if (!tempSharedModelMap || !currentSharedModelMap) {
-        throw new Error("Document content's sharedModelMap is undefined")
-      }
-      const tempDocSnapshot = await serializeCodapV3Document(tempDocModel)
-      if (tempDocSnapshot.content) {
-        applySnapshot(currentSharedModelMap, tempDocSnapshot.content.sharedModelMap)
-      }
-   }
-
-    const reinstateComponents = () => {
-      const { content } = document
-      if (!content) {
-        throw new Error("Document content is undefined")
-      }
-      const row = content.firstRow as IFreeTileRow
-      let maxZIndex = 0
-
-      // This function will return the shared data set and case metadata for a given data context
-      const getCaseData = (dataContextGuid: number): GetCaseDataResult => {
-        return getCaseDataFromV2ContextGuid(dataContextGuid, getSharedModelManager(document))
-      }
-
-      const getGlobalValues = () => {
-        return getGlobalValueManager(getSharedModelManager(document))
-      }
-
-      const linkSharedModel = (tileContent: ITileContentModel, sharedModel?: ISharedModel, isProvider?: boolean) => {
-        const sharedModelManager = getSharedModelManager(document)
-        if (sharedModelManager && sharedModel) {
-          sharedModelManager.addTileSharedModel(tileContent, sharedModel, isProvider)
-        }
-      }
-
-      v2Document.components.forEach(v2Component => {
-        const insertTile = (tileSnapshot: ITileModelSnapshotIn, transform?: LayoutTransformFn) => {
-          const existingTile = tileMap?.get(tileSnapshot.id || '')
-          let resultTile: ITileModel | undefined
-          if (row && tileSnapshot) {
-            const info = getTileComponentInfo(tileSnapshot.content.type)
-            if (info) {
-              const {
-                layout: { left = 0, top = 0, width, height: v2Height, isVisible, zIndex, x, y }, savedHeight
-              } = v2Component
-              const isHidden = isVisible === false
-              const v2Minimized = (!!savedHeight && v2Height != null && savedHeight >= v2Height) || undefined
-              const isMinimized = v2Minimized && !isHidden
-              const height = savedHeight && v2Minimized ? savedHeight : v2Height
-              // only apply imported width and height to resizable tiles
-              const _width = !info.isFixedWidth ? { width } : {}
-              const _height = !info?.isFixedHeight ? { height } : {}
-              const _zIndex = zIndex != null ? { zIndex } : {}
-              if (zIndex != null && zIndex > maxZIndex) maxZIndex = zIndex
-              const _layout: IFreeTileInRowOptions = {
-                x: left ?? x, y: top ?? y, ..._width, ..._height, ..._zIndex, isHidden, isMinimized
-              }
-              const layout = transform?.(_layout) ?? _layout
-              if (existingTile) { // If the tile already exists, update its content and layout
-                // A webView that subscribes to documents (like Story Builder) should not be updated
-                const shouldBeUpdated = !(isWebViewModel(existingTile.content) &&
-                  existingTile.content.subscribeToDocuments)
-                if (shouldBeUpdated) {
-                  const processedSnapshot = gV2PostImportSnapshotProcessors
-                    .get(existingTile.content.type)?.(existingTile, tileSnapshot)
-                  applySnapshot(existingTile, processedSnapshot || tileSnapshot)
-                }
-                row.setTilePosition(existingTile.id, layout)
-                row.setTileDimensions(existingTile.id, layout)
-                row.setTileMinimized(existingTile.id, isMinimized)
-                resultTile = existingTile
-              }
-              else {
-                resultTile = content.insertTileSnapshotInRow(tileSnapshot, row, layout)
-              }
-            }
-          }
-          return resultTile
-        }
-
-        importV2Component({ v2Component, v2Document, getCaseData, getGlobalValues, insertTile, linkSharedModel })
-      })
-    }
-
-    notifyDocumentChange('updateDocumentBegun')
-
-    deleteTilesNotInV2()
-
-    reinstateGlobalValues()
-
-    reinstateDatasets().then(() => {
-      reinstateComponents()
-
-      // The 500ms timeout here gives the document time to settle down.
-      // Especially any changes to center and zoom of a map
-      setTimeout(function() {
-        // DG.UndoHistory.clearUndoRedoHistory();
-        notifyDocumentChange('updateDocumentEnded')
-      }, 500)
-    })
+    asyncUpdate(resources, values)
 
     return { success: true }
   }
