@@ -132,6 +132,10 @@
     "V3.Undo.webView.changeUrl": "Undo changing web page url",
     "V3.Redo.webView.changeUrl": "Redo changing web page url",
 
+    // Miscellaneous V3 strings that are not present in V2 and will eventually require translation.
+    "V3.Undo.tile.show": "Undo showing tile",
+    "V3.Redo.tile.show": "Redo showing tile",
+
     // V3 plugin strings that are not present in V2 and will eventually require translation.
     "V3.Undo.plugin.create": "Undo adding %@ plugin",
     "V3.Redo.plugin.create": "Redo adding %@ plugin",

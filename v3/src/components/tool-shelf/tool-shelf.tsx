@@ -21,6 +21,7 @@ import { isWebViewModel } from "../web-view/web-view-model"
 import { TilesListShelfButton } from "./tiles-list-button"
 import { PluginsButton } from "./plugins-button"
 import { ToolShelfButton, ToolShelfTileButton } from "./tool-shelf-button"
+import { GuideButton} from "./guide-button"
 
 import "./tool-shelf.scss"
 
@@ -30,9 +31,10 @@ export function isShelfTileComponent(info?: ITileComponentInfo): info is IShelfT
   return !!info && "shelf" in info && info.shelf != null
 }
 
-function hasGuideTile(document: IDocumentModel): boolean {
+function getGuideTileId(document: IDocumentModel) {
   const tiles = document?.content?.getTilesOfType(kWebViewTileType) ?? []
-  return tiles.some(tile => isWebViewModel(tile.content) && tile.content.isGuide)
+  const guideTile = tiles.find(tile => isWebViewModel(tile.content) && tile.content.isGuide)
+  return guideTile?.id ?? ''
 }
 
 interface IRightButtonEntry {
@@ -50,6 +52,7 @@ interface IProps {
 }
 export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
   const undoManager = document?.treeManagerAPI?.undoManager
+  const guideTileId = getGuideTileId(document)
   const rightButtons: IRightButtonEntry[] = [
     {
       className: "undo-button",
@@ -83,13 +86,13 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
     },
     // only show the guide button if there is a guide tile in the document
     ...(
-      hasGuideTile(document)
+      guideTileId
         ? [{
           icon: <GuideIcon className="icon-guide"/>,
           labelKey: "DG.ToolButtonData.guideMenu.title",
           hintKey: "DG.ToolButtonData.guideMenu.toolTip",
-          isDisabled: () => true
-        }]
+          button: <GuideButton key={t("DG.ToolButtonData.guideMenu.title")} guideTileId={guideTileId} />
+      }]
         : []
     )
   ]
