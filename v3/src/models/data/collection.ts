@@ -483,10 +483,17 @@ export const CollectionModel = V2Model
   }
 })
 .actions(self => ({
-  afterCreate() {
+  initializeVolatileState() {
     if (self._groupKeyCaseIds) {
       self.groupKeyCaseIds = new Map<string, string>(self._groupKeyCaseIds)
     }
+
+    // TODO: do we need to do anything else here? There are many other volatile properties
+  }
+}))
+.actions(self => ({
+  afterCreate() {
+    self.initializeVolatileState()
 
     // changes to a parent collection's attributes invalidate grouping
     addDisposer(self, reaction(
@@ -514,6 +521,9 @@ export const CollectionModel = V2Model
     self._groupKeyCaseIds = Array.from(self.groupKeyCaseIds.entries())
   },
   completeSnapshot() {
+  },
+  afterApplySnapshot() {
+    self.initializeVolatileState()
   },
   addAttribute(attr: IAttribute, options?: IMoveAttributeOptions) {
     const beforeIndex = options?.before ? self.getAttributeIndex(options.before) : -1

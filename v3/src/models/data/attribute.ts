@@ -187,7 +187,7 @@ export const Attribute = V2Model.named("Attribute").props({
     }
   }))
   .actions(self => ({
-    afterCreate() {
+    initializeVolatileState() {
       // frozen properties are not modifiable in development (because MST freezes them with Object.freeze),
       // so we copy the data to volatile properties during runtime. Clients must call prepareSnapshot() before
       // and completeSnapshot() after serialization for this to work under these conditions. MST doesn't
@@ -204,10 +204,23 @@ export const Attribute = V2Model.named("Attribute").props({
         if (!self.values) self.values = []
         self.strValues = self.values
       }
+
+      // Update the numeric values cache
+      self.updateNumValues()
+
+      // NOTE: we don't need to increment changeCount here. We are replacing the entire value
+      // of strValues. And the volatile object itself is observable (but by default not its contents). So
+      // any view that is reading strValues will be updated.
+    }
+
+  }))
+  .actions(self => ({
+    afterCreate() {
+      self.initializeVolatileState()
       addDisposer(self, reaction(
         () => self.userType === "numeric",
         () => self.updateNumValues(),
-        { name: "Attribute.userType.reaction", fireImmediately: true })
+        { name: "Attribute.userType.reaction" })
       )
     },
     // should be called before retrieving snapshot (i.e. before serialization)
@@ -237,6 +250,9 @@ export const Attribute = V2Model.named("Attribute").props({
         withoutUndo({suppressWarning: true})
         self.values = self.strValues
       }
+    },
+    afterApplySnapshot() {
+      self.initializeVolatileState()
     }
   }))
   .views(self => ({

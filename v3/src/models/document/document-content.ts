@@ -79,6 +79,17 @@ export const DocumentContentModel = BaseDocumentContentModel
       // complete serialization for each row
       self.rowMap.forEach(row => row.completeSnapshot())
     },
+    afterApplySnapshot() {
+      // update volatile state for each data
+      const sharedDataSets = getSharedDataSets(self)
+      sharedDataSets.forEach(model => model.dataSet.afterApplySnapshot())
+
+      // update volatile state for each tile
+      self.tileMap.forEach(tile => tile.afterApplySnapshot())
+
+      // TODO: do we need to do anything for rows?
+      // It doesn't seem like rows actually do anything with prepareSnapshot
+    },
     broadcastMessage(message: TileBroadcastMessage, callback: TileBroadcastCallback, targetTileId?: string) {
       const tileIds = self.tileMap.keys()
       if (tileIds) {

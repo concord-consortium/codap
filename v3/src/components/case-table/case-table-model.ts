@@ -25,11 +25,19 @@ export const CaseTableModel = TileContentModel
     _horizontalScrollOffset: 0
   }))
   .actions(self => ({
-    afterCreate() {
+    initializeVolatileState() {
       self._horizontalScrollOffset = self.horizontalScrollOffset
+    }
+  }))
+  .actions(self => ({
+    afterCreate() {
+      self.initializeVolatileState()
     },
     prepareSnapshot() {
       self.horizontalScrollOffset = self._horizontalScrollOffset
+    },
+    afterApplySnapshot() {
+      self.initializeVolatileState()
     }
   }))
   .views(self => ({

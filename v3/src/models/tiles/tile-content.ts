@@ -60,6 +60,17 @@ export const TileContentModel = types.model("TileContentModel", {
       // Override in derived models as appropriate
     },
     /**
+     * This should be used if the tile has volatile state that needs to be updated before a snapshot is taken.
+     * This is the inverse of prepareSnapshot/completeSnapshot which are called before a snapshot is taken.
+     * This solves a problem similar to withCustomUndoRedo. When undo/redo or applying history is done,
+     * afterApplySnapshot will not be called. When a tile has volatile state that needs to be updated
+     * by the undo/redo/history system withCustomUndoRedo should be used. However if the tile is using
+     * withCustomUndoRedo, it is very likely that it also needs to implement afterApplySnapshot.
+     */
+    afterApplySnapshot() {
+      // Override in derived models as appropriate
+    },
+    /**
      * This will be called automatically by the tree monitor.
      * Currently the call tree looks like:
      * TreeMonitor.recordAction

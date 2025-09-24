@@ -151,7 +151,7 @@ export const Graph = observer(function Graph({graphController, setGraphRef, pixi
         graphModel.dataConfiguration._updateFilteredCasesCollectionID()
         graphModel.dataConfiguration._invalidateCases()
         graphController.callMatchCirclesToData()
-      }, { name: "Graph.mstReaction [syncCollectionLinksCount]" }, dataset)
+      }, { name: "Graph.mstReaction [syncCollectionLinksCount]" }, [dataset, graphModel.dataConfiguration])
   }, [dataset, graphController, graphModel.dataConfiguration])
 
   useEffect(function handleAttributeCollectionMapChange() {

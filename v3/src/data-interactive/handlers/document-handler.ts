@@ -180,6 +180,7 @@ async function asyncUpdate(resources: DIResources, values?: DIValues) {
     )
   }
   applySnapshot(document, v3Snapshot)
+  document.content?.afterApplySnapshot()
 
   await new Promise(resolve => setTimeout(resolve, 500))
   notifyDocumentChange('updateDocumentEnded')
@@ -205,6 +206,7 @@ export const diDocumentHandler: DIHandler = {
           const tile = tileMap.get(tileId)
           const tileContent = tile?.content
           if (isWebViewModel(tileContent) && tileContent.subscribeToDocuments) {
+            debugLog(DEBUG_PLUGINS, `Sending document to tile ${tileId}`, message)
             const callback = (response: any) => {
               debugLog(DEBUG_PLUGINS, "Tile response:", response)
             }

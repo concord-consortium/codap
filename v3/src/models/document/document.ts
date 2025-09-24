@@ -117,6 +117,7 @@ export const DocumentModel = Tree.named("Document")
     setContent(snapshot: IDocumentContentSnapshotIn) {
       if (self.content) {
         applySnapshot(self.content, snapshot)
+        // TODO: should we run afterApplySnapshot here?
       }
       else {
         self.content = DocumentContentModel.create(snapshot)

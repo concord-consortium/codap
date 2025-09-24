@@ -144,6 +144,10 @@ export const WebViewModel = TileContentModel
           resolve()
         }
       })
+    },
+    afterApplySnapshot() {
+      // TODO: we probably need to send the state to the plugin. Otherwise plugins
+      // won't update after snapshots are applied.
     }
   }))
 export interface IWebViewModel extends Instance<typeof WebViewModel> {}

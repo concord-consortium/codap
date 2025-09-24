@@ -1306,6 +1306,36 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
   }
 }))
 .actions(self => ({
+  initializeVolatileState() {
+    // TODO check if we need to do this
+    self.syncCollectionLinks()
+
+    // build itemIDMap
+    // If we are re-initializing, clear out any existing entries first
+    self.itemInfoMap.clear()
+    self._itemIds.forEach((itemId, index) => {
+      self.itemInfoMap.set(itemId, { index, caseIds: [], isHidden: self.isCaseOrItemHidden(itemId) })
+    })
+
+    // make sure attributes have appropriate length, including attributes with formulas
+    self.attributesMap.forEach(attr => {
+      attr.setLength(self._itemIds.length)
+    })
+
+    // initialize selection
+    self.selection.replace(self.snapSelection)
+
+    // initialize setAsideItemIdsSet
+    self.setAsideItemIdsSet.replace(self.setAsideItemIds)
+  }
+}))
+.actions(self => ({
+  afterApplySnapshot() {
+    console.log(`DataSet(${self.name}).afterApplySnapshot`)
+    self.initializeVolatileState()
+    self.collections.forEach(collection => collection.afterApplySnapshot())
+    self.attributes.forEach(attr => attr.afterApplySnapshot())
+  },
   afterCreate() {
     const context: IEnvContext | Record<string, never> = hasEnv(self) ? getEnv(self) : {},
           { srcDataSet } = context
@@ -1318,6 +1348,9 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
       invalidate: () => self.invalidateCases()
     }
 
+    // TODO: replace this with initializeVolatileState()
+    // However we still need to add the initial collection, hopefully the order of
+    // of doing that doesn't matter.
     self.syncCollectionLinks()
 
     // build itemIDMap
@@ -1363,6 +1396,8 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
       addDisposer(self, reaction(
         () => self.collectionIds,
         () => self.syncCollectionLinks(),
+        // TODO: the fireImmediately seems unnecessary because we are calling syncCollectionLinks()
+        // above.
         { name: "DataSet.collections", equals: comparer.structural, fireImmediately: true }
       ))
 
