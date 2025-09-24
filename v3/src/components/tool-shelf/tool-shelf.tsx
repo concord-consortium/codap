@@ -31,7 +31,7 @@ export function isShelfTileComponent(info?: ITileComponentInfo): info is IShelfT
   return !!info && "shelf" in info && info.shelf != null
 }
 
-function hasGuideTile(document: IDocumentModel) {
+function getGuideTileId(document: IDocumentModel) {
   const tiles = document?.content?.getTilesOfType(kWebViewTileType) ?? []
   const guideTile = tiles.find(tile => isWebViewModel(tile.content) && tile.content.isGuide)
   return guideTile?.id ?? ''
@@ -52,7 +52,7 @@ interface IProps {
 }
 export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
   const undoManager = document?.treeManagerAPI?.undoManager
-  const guideTileId = hasGuideTile(document)
+  const guideTileId = getGuideTileId(document)
   const rightButtons: IRightButtonEntry[] = [
     {
       className: "undo-button",

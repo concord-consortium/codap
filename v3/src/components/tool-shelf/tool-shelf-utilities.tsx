@@ -24,13 +24,14 @@ export const handleSelectTile = (tileId: string, documentContent?: IDocumentCont
   const tileRow = documentContent?.findRowContainingTile(tileId)
   const tileLayout = tileRow?.getTileLayout(tileId)
   if (isFreeTileLayout(tileLayout) && (tileLayout.isHidden || tileLayout.isMinimized)) {
+    const type = documentContent?.getTile(tileId)?.content.type || "tile"
     documentContent?.applyModelChange(() => {
       tileLayout.setHidden(false)
       tileLayout.setMinimized(false)
     }, {
-      undoStringKey: "DG.Undo.guide.show",
-      redoStringKey: "DG.Redo.guide.show",
-      log: logMessageWithReplacement("Show Guide", {}, "document")
+      undoStringKey: "V3.Undo.tile.show",
+      redoStringKey: "V3.Redo.tile.show",
+      log: logMessageWithReplacement("Show %@", {type}, "document")
     })
   }
 }
