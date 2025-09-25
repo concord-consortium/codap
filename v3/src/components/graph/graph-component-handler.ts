@@ -347,7 +347,11 @@ export const graphComponentHandler: DIComponentHandler = {
       })
     }
     if (!dataSet) {
-      dataSet = content.dataset ?? getSharedDataSets(appState.document)[0].dataSet
+      const sharedDataSets = getSharedDataSets(appState.document)
+      if (sharedDataSets.length === 0) {
+        return  { success: true } // nothing we can do to the graph without a dataset
+      }
+      dataSet = content.dataset ?? sharedDataSets[0].dataSet
     }
 
     // Ensure that all specified attributes are legal for their roles before we actually update anything
