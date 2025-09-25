@@ -413,15 +413,14 @@ export const useSubAxis = ({
   }, [axisModel, dataConfig, updateDomainAndRenderSubAxis])
 
   useEffect(function respondToAttributeTypeChange() {
-    const disposer = reaction(
+    return mstReaction(
       () => dataConfig?.dataset?.getAttribute(attrId)?.type, // Observe the attribute type
       () => {
         setupCategories()
         renderSubAxis()
       },
-      { name: "useSubAxis [attributeTypeChange]" }
+      { name: "useSubAxis [attributeTypeChange]" }, [dataConfig]
     )
-    return () => disposer()
   }, [attrId, dataConfig, setupCategories, renderSubAxis])
 
   // Render when axis length or number of sub-axes changes

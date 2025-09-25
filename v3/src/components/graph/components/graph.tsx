@@ -191,7 +191,7 @@ export const Graph = observer(function Graph({graphController, setGraphRef, pixi
           }
         })
         prevAttrCollectionsMapRef.current = attrCollections
-      }, {name: "handleAttrConfigurationChange", equals: comparer.structural}, dataset
+      }, {name: "handleAttrConfigurationChange", equals: comparer.structural}, [dataset, graphModel]
     )
   }, [dataset, graphController, graphModel])
 

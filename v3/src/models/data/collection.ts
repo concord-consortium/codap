@@ -43,11 +43,27 @@ export const CollectionModel = V2Model
   _groupKeyCaseIds: types.maybe(types.frozen<Array<[string, string]>>())
 })
 .volatile(self => ({
+  // Init: the following properties are updated by dataSet.syncCollectionLinks
   parent: undefined as ICollectionModel | undefined,
   child: undefined as ICollectionModel | undefined,
+  itemData: defaultItemData,
+
+  // Init: groupKeyCaseIds is updated by initializeVolatileState
+
   // map from group key (stringified attribute values) => case id
   groupKeyCaseIds: new Map<string, string>(),
-  itemData: defaultItemData,
+
+  // Init: the following case structures are updated by updateCaseGroups.
+  // updateCaseGroups is called by dataSet.validateCases
+  // if the the dataSet has been invalidated.
+  // During initialization the dataset is invalidated by dataSet.syncCollectionLinks.
+  // dataSet.validateCases is not called directly by any initialization or update code.
+  // dataSet.validateCases is a view that updates volatile state, and validateCases is
+  // called by many views of the dataSet. So whenever the cases are actually needed
+  // validatedCases should be called and the cases structures will be updated if necessary.
+  // NOTE: after an applySnapshot these structures are explicitly cleared, this forces
+  // them to be rebuilt and prevents any residual values being left over.
+
   // case ids in case table/render order
   caseIds: [] as string[],
   // map from case id to case index
@@ -523,6 +539,21 @@ export const CollectionModel = V2Model
   completeSnapshot() {
   },
   afterApplySnapshot() {
+    // To be safe we clear out volatile state that might not be valid anymore.
+    // Things do seem to work without this, but there is residual state in
+    // some of the case structures, and the previous case structures can end
+    // up pointing at the old data
+
+    // The following volatile properties get updated by dataSet.syncCollectionLinks
+    self.parent = undefined
+    self.child = undefined
+    self.itemData = defaultItemData
+
+    self.clearCases()
+    // clearPrevCases has to be called after clearCases because clearCases
+    // sets prevCaseIds, prevCaseIdToGroupKeyMap, and prevCaseGroupMap
+    self.clearPrevCases()
+
     self.initializeVolatileState()
   },
   addAttribute(attr: IAttribute, options?: IMoveAttributeOptions) {

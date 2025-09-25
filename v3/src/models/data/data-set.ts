@@ -572,6 +572,9 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
   validateCases() {
     if (!self.isValidCases) {
       self.caseInfoMap.clear()
+
+      // TODO: look at this more closely to see if after an applySnapshot we need to clear this
+      // better
       const itemsToValidate = new Set<string>(self.itemInfoMap.keys())
       self.itemInfoMap.clear()
       self._itemIds.forEach((itemId, index) => {
@@ -1307,7 +1310,14 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
 }))
 .actions(self => ({
   initializeVolatileState() {
-    // TODO check if we need to do this
+    // This directly updates volatile properties of collections:
+    // - parent and child
+    // - it also updates the collection itemData property from the dataSets itemData
+    // - it indirectly causes the other properties of collection to be updated because
+    //   it calls invalidateCases.
+    // Note: itemData is a object that provides methods to access the dataSet's
+    // data. There is no state in this itemData object, so after an applySnapshot it
+    // isn't necessary to recreate it or update it.
     self.syncCollectionLinks()
 
     // build itemIDMap
@@ -1332,8 +1342,15 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
 .actions(self => ({
   afterApplySnapshot() {
     console.log(`DataSet(${self.name}).afterApplySnapshot`)
-    self.initializeVolatileState()
+
+    // TODO: there are many volatile properties of the dataset that haven't been
+    // reviewed to see if they need to be reset here.
+
+    // This needs to be called before initializeVolatileState because
+    // collection.afterApplySnapshot clears out data that is then set by
+    // self.initializeVolatileState
     self.collections.forEach(collection => collection.afterApplySnapshot())
+    self.initializeVolatileState()
     self.attributes.forEach(attr => attr.afterApplySnapshot())
   },
   afterCreate() {
