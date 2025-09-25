@@ -18,7 +18,7 @@ export const getPositionOfNewComponent = (componentSize: { width?: number, heigh
   const existingRects = Array.from(existingEls).map(el => el.getBoundingClientRect())
     .map(rect => ({ height: rect.height, width: rect.width, x: rect.x + viewportLeft, y: rect.y + viewportTop }))
   const componentWidth = componentSize.width || kDefaultTileWidth
-  const componentHeight = componentSize.height || kDefaultTileHeight
+  const componentHeight = componentSize.height ? (componentSize.height + kTitleBarHeight) : kDefaultTileHeight
 
   const iOffset = { x: 0, y: 0 }
   const initialX = kGap + viewportLeft + iOffset.x

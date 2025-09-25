@@ -124,7 +124,9 @@ export const DocumentContentModel = BaseDocumentContentModel
         if (newTileSnapshot) {
           if (isFreeTileRow(row)) {
             const newTileSize = {width, height}
-            const computedPosition = getPositionOfNewComponent(newTileSize)
+            const position = typeof options?.position === 'string'
+              ? options?.position : undefined
+            const computedPosition = getPositionOfNewComponent(newTileSize, position)
             const x = options?.x ?? computedPosition.x
             const y = options?.y ?? computedPosition.y
             const tileOptions = { x, y, width, height: height + kTitleBarHeight, animateCreation }

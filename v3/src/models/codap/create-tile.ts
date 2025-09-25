@@ -13,6 +13,7 @@ export interface INewTileOptions {
   title?: string
   markNewlyCreated?: boolean
   setSingletonHidden?: boolean // If undefined, singleton visibility will be toggled
+  position?: string | { left: number, top: number }
   x?: number
   y?: number
   height?: number
