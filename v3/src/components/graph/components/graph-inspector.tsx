@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState } from "react"
 import { observer } from "mobx-react-lite"
+import { isAlive } from "mobx-state-tree"
 import { InspectorButton, InspectorMenu, InspectorPanel } from "../../inspector-panel"
 import { HideShowMenuList } from "./inspector-panel/hide-show-menu-list"
 import { PointFormatPalette } from "./inspector-panel/point-format-palette"
@@ -20,7 +21,7 @@ import FormatIcon from "../../../assets/icons/inspector-panel/format-icon.svg"
 import ImageIcon from "../../../assets/icons/inspector-panel/image-icon.svg"
 
 export const GraphInspector = observer(function GraphInspector({tile, show}: ITileInspectorPanelProps) {
-  const graphModel = isGraphContentModel(tile?.content) ? tile?.content : undefined
+  const graphModel = isGraphContentModel(tile?.content) && isAlive(tile.content) ? tile.content : undefined
   const [showPalette, setShowPalette] = useState<string | undefined>(undefined)
   const panelRef = useRef<HTMLDivElement>()
   const panelRect = panelRef.current?.getBoundingClientRect()

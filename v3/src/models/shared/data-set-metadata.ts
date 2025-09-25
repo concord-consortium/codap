@@ -11,7 +11,7 @@ import { DataSet, IDataSet } from "../data/data-set"
 import { CaseInfo } from "../data/data-set-types"
 import { applyModelChange } from "../history/apply-model-change"
 import { kDefaultHighAttributeColor, kDefaultLowAttributeColor } from "./data-set-metadata-constants"
-import { ISharedModel, SharedModel } from "./shared-model"
+import { ISharedModel, ISharedModelSnapshot, SharedModel } from "./shared-model"
 
 export const kDataSetMetadataType = "SharedCaseMetadata"
 
@@ -573,6 +573,10 @@ export interface IDataSetMetadataSnapshot extends SnapshotIn<typeof DataSetMetad
 
 export function isDataSetMetadata(model?: ISharedModel): model is IDataSetMetadata {
   return model ? getType(model) === DataSetMetadata : false
+}
+
+export function isDataSetMetadataSnapshot(model?: ISharedModelSnapshot): model is IDataSetMetadataSnapshot {
+  return model ? model.type === kDataSetMetadataType : false
 }
 
 export interface SetIsCollapsedAction extends ISerializedActionCall {

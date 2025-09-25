@@ -1,4 +1,4 @@
-import { Instance, types } from "mobx-state-tree"
+import { Instance, SnapshotIn, types } from "mobx-state-tree"
 import { typedId } from "../../utilities/js-utils"
 
 export const kUnknownSharedModel = "unknownSharedModel"
@@ -39,3 +39,4 @@ export const SharedModel = types.model("SharedModel", {
   }
 }))
 export interface ISharedModel extends Instance<typeof SharedModel> {}
+export interface ISharedModelSnapshot extends SnapshotIn<typeof SharedModel> {}

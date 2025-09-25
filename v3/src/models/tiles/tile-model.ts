@@ -140,6 +140,9 @@ export const TileModel = V2UserTitleModel.named("TileModel")
     completeSnapshot() {
       self.content.completeSnapshot()
     },
+    afterApplySnapshot() {
+      self.content.afterApplySnapshot()
+    },
     willRemoveFromDocument() {
       return self.content.willRemoveFromDocument?.()
     }
