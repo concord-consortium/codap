@@ -1,7 +1,5 @@
 .inspector-panel.text {
   display: grid;
-  // width: 68px;
-  // right: -68px;
   grid-template-columns: repeat(2, 34px);
   grid-template-rows: repeat(9, 34px);
   grid-auto-flow: column;

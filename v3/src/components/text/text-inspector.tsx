@@ -1,5 +1,5 @@
 import {
-  EFormat, isBlockActive, isMarkActive, toggleBlock, toggleMark, toggleSuperSubscript
+  EFormat, getPlatformTooltip, isBlockActive, isMarkActive, toggleBlock, toggleMark, toggleSuperSubscript
 } from "@concord-consortium/slate-editor"
 import { observer } from "mobx-react-lite"
 import React from "react"
@@ -28,16 +28,8 @@ import { isTextModel } from "./text-model"
 
 import "./text-inspector.scss"
 
-export function getPlatformTooltip(str: string) {
-  const IS_MAC = typeof window != 'undefined' &&
-                  /Mac|iPod|iPhone|iPad/.test(window.navigator.platform)
-  const modKey = IS_MAC ? "cmd-" : "ctrl-"
-  return str.replace("mod-", modKey)
-}
-
 export const TextInspector = observer(function TextInspector({ tile, show }: ITileInspectorPanelProps) {
   const textModel = isTextModel(tile?.content) ? tile.content : undefined
-  const forceUpdate = useForceUpdate()
 
   // Trigger a re-render when the editor content changes
   textModel?.editorChangeCount  // eslint-disable-line @typescript-eslint/no-unused-expressions
@@ -50,7 +42,6 @@ export const TextInspector = observer(function TextInspector({ tile, show }: ITi
     if (textModel?.editor) {
       e.preventDefault()
       toggleMark(textModel.editor, format)
-      forceUpdate()
     }
   }
 
@@ -62,7 +53,6 @@ export const TextInspector = observer(function TextInspector({ tile, show }: ITi
     if (textModel?.editor) {
       e.preventDefault()
       toggleBlock(textModel.editor, format)
-      forceUpdate()
     }
   }
 
@@ -70,7 +60,6 @@ export const TextInspector = observer(function TextInspector({ tile, show }: ITi
     if (textModel?.editor) {
       e.preventDefault()
       toggleSuperSubscript(textModel.editor, format)
-      forceUpdate()
     }
   }
 
