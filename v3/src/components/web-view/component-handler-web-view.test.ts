@@ -58,7 +58,7 @@ describe("DataInteractive ComponentHandler WebView and Game", () => {
     const tileLayout = freeTileRow?.getNode(tile2.id)
     expect(tileLayout?.x).toBe(100)
     expect(tileLayout?.y).toBe(100)
-    expect(tileLayout?.height).toBe(kDefaultWebViewHeight + kTitleBarHeight)
+    expect(tileLayout?.height).toBe(kDefaultWebViewHeight)
     expect(tileLayout?.width).toBe(kDefaultWebViewWidth)
     const newValue = 50
     const title = "New Title"

@@ -67,8 +67,9 @@ export const diComponentHandler: DIHandler = {
         (_type, createOrShowOptions) => document.content?.createOrShowTile(_type, createOrShowOptions)
       const _createOrShow = createOrShow ?? defaultCreateOrShow
       const _options = options ?? {}
-      const x = position && typeof position !== "string" ? position.left : undefined
-      const y = position && typeof position !== "string" ? position.top : undefined
+      const isPositionObject = position && typeof position !== "string"
+      const x = isPositionObject ? position.left : undefined
+      const y = isPositionObject ? position.top : undefined
       let tile: Maybe<ITileModel>
       return document.applyModelChange(() => {
         const title = _title ?? name

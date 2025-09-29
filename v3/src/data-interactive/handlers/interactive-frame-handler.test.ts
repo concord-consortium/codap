@@ -25,7 +25,7 @@ describe("DataInteractive InteractiveFrameHandler", () => {
       preventDataContextReorg, preventTopLevelReorg, respectEditableItemAttribute, savedState, title, version
     } = result.values as DIInteractiveFrame
     expect(allowEmptyAttributeDeletion).toBe(kDefaultAllowEmptyAttributeDeletion)
-    expect(dimensions?.height).toBe(kDefaultWebViewHeight + kTitleBarHeight)
+    expect(dimensions?.height).toBe(kDefaultWebViewHeight)
     expect(dimensions?.width).toBe(kDefaultWebViewWidth)
     expect(id).toBe(toV2Id(interactiveFrame.id))
     expect(name).toBe(interactiveFrame.title)

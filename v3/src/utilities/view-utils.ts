@@ -1,7 +1,6 @@
-import { kDefaultTileHeight, kDefaultTileWidth } from "../components/constants"
+import { kDefaultTileHeight, kDefaultTileWidth, kTitleBarHeight } from "../components/constants"
 
-const kCodapAppHeader = 95
-const kTitleBarHeight = 25
+const kCodapAppHeader = 120
 const kGap = 5 // Also used to increment during search
 
 export const getPositionOfNewComponent = (componentSize: { width?: number, height?: number }, iPosition = "top") => {
@@ -35,8 +34,8 @@ export const getPositionOfNewComponent = (componentSize: { width?: number, heigh
     ) => {
       const tRes = (!isNaN(r1.x) && !isNaN(r1.y)) && !(r2.x > r1.x + r1.width ||
           r2.x + r2.width < r1.x ||
-          r2.y > r1.y + r1.height ||
-          r2.y + r2.height < r1.y - kTitleBarHeight - kGap)
+          r2.y > r1.y + r1.height + kGap ||
+          r2.y + r2.height < r1.y - kGap)
       return tRes
     }
 
@@ -57,7 +56,9 @@ export const getPositionOfNewComponent = (componentSize: { width?: number, heigh
 
     const onTopOfViewRectTopLeft = (iTopLeft: {x: number, y: number}) => {
       return !existingRects.every(rect => {
-        return !(iTopLeft.x === rect.x && iTopLeft.y + kCodapAppHeader === rect.y)
+        const testY = iTopLeft.y + kCodapAppHeader
+        // It's "on top of" if testY is within ±kGap of rect's y coord
+        return !(iTopLeft.x === rect.x && (testY >= rect.y - kGap && testY <= rect.y + kGap))
       })
     }
 
