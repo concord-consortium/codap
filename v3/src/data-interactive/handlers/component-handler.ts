@@ -52,7 +52,7 @@ export const diComponentHandler: DIHandler = {
   create(_resources: DIResources, values?: DIValues) {
     if (!values) return valuesRequiredResult
 
-    const { type, cannotClose, dimensions, name, title: _title } = values as V2Component
+    const { type, cannotClose, dimensions, position, name, title: _title } = values as V2Component
     const { document } = appState
 
     // check if there's a registered handler for this type
@@ -67,10 +67,13 @@ export const diComponentHandler: DIHandler = {
         (_type, createOrShowOptions) => document.content?.createOrShowTile(_type, createOrShowOptions)
       const _createOrShow = createOrShow ?? defaultCreateOrShow
       const _options = options ?? {}
+      const isPositionObject = position && typeof position !== "string"
+      const x = isPositionObject ? position.left : undefined
+      const y = isPositionObject ? position.top : undefined
       let tile: Maybe<ITileModel>
       return document.applyModelChange(() => {
         const title = _title ?? name
-        const newTileOptions = { cannotClose, content, ...dimensions, name, title, ..._options }
+        const newTileOptions = { cannotClose, content, ...dimensions, position, x, y, name, title, ..._options }
         tile = _createOrShow(kComponentTypeV2ToV3Map[type], newTileOptions)
         if (!tile) return errorResult(t("V3.DI.Error.componentNotCreated"))
 

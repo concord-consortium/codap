@@ -1,5 +1,4 @@
 import { Instance, SnapshotIn } from "mobx-state-tree"
-import { kTitleBarHeight } from "../../components/constants"
 import { kCaseTableTileType } from "../../components/case-table/case-table-defs"
 import { t } from "../../utilities/translation/translate"
 import { urlParams } from "../../utilities/url-params"
@@ -124,10 +123,12 @@ export const DocumentContentModel = BaseDocumentContentModel
         if (newTileSnapshot) {
           if (isFreeTileRow(row)) {
             const newTileSize = {width, height}
-            const computedPosition = getPositionOfNewComponent(newTileSize)
+            const position = typeof options?.position === 'string'
+              ? options?.position : undefined
+            const computedPosition = getPositionOfNewComponent(newTileSize, position)
             const x = options?.x ?? computedPosition.x
             const y = options?.y ?? computedPosition.y
-            const tileOptions = { x, y, width, height: height + kTitleBarHeight, animateCreation }
+            const tileOptions = { x, y, width, height, animateCreation }
             return self.insertTileSnapshotInRow(newTileSnapshot, row, tileOptions)
           }
         }
