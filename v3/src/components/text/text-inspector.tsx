@@ -18,7 +18,6 @@ import FormatSuperscriptIcon from "../../assets/icons/inspector-panel/format-sup
 import FormatTextDecreaseIcon from "../../assets/icons/inspector-panel/format-text-decrease-icon.svg"
 import FormatTextIncreaseIcon from "../../assets/icons/inspector-panel/format-text-increase-icon.svg"
 import FormatUnderlineIcon from "../../assets/icons/inspector-panel/format-underline-icon.svg"
-import { useForceUpdate } from "../../hooks/use-force-update"
 import { InspectorButton, InspectorPanel } from "../inspector-panel"
 import { ITileInspectorPanelProps } from "../tiles/tile-base-props"
 import { FormatImageButton } from "./format-image-button"

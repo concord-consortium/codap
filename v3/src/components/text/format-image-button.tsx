@@ -133,9 +133,12 @@ function ImageDialog({ isOpen, onClose, onSave, editImage }: IImageDialogProps) 
     border: "1px solid #006c8e",
     borderRadius: "4px"
   }
-  const placementLabel =
-    placement === "left" ? "Float Left" :
-    placement === "right" ? "Float Right" : "Inline"
+  const placementLabels = {
+    "left": "Float Left",
+    "right": "Float Right",
+    "inline": "Inline"
+  }
+  const placementLabel = placementLabels[placement]
 
   function handleSave() {
     onSave({
@@ -243,15 +246,15 @@ function ImageDialog({ isOpen, onClose, onSave, editImage }: IImageDialogProps) 
                 <MenuList>
                   <MenuItem onClick={() => setPlacement("inline")}>
                     <InlineImageIcon />
-                    Inline
+                    {placementLabels.inline}
                   </MenuItem>
                   <MenuItem onClick={() => setPlacement("left")}>
                     <FloatLeftImageIcon />
-                    Float Left
+                    {placementLabels.left}
                   </MenuItem>
                   <MenuItem onClick={() => setPlacement("right")}>
                     <FloatRightImageIcon />
-                    Float Right
+                    {placementLabels.right}
                   </MenuItem>
                 </MenuList>
               </Menu>
