@@ -259,7 +259,8 @@ function getMenuBar(cfm: CloudFileManager) {
 
 export function useCloudFileManager(optionsArg: CFMAppOptions, onFileOpened?: () => void) {
   const options = useRef(optionsArg)
-  const root = useRef<Root | undefined>()
+  const rootRef = useRef<Root | undefined>()
+  const containerRef = useRef<HTMLElement | null>(null)
   const cfm = useMemo(() => createCloudFileManager(), [])
   const cfmReadyResolver = useRef<() => void>()
   const cfmReadyPromise = useMemo(() => new Promise<void>((resolve) => {
@@ -280,10 +281,11 @@ export function useCloudFileManager(optionsArg: CFMAppOptions, onFileOpened?: ()
         clientToolBarPosition: "top",
       },
       renderRoot(content: React.ReactNode, container: HTMLElement) {
-        if (container && !root.current) {
-          root.current = createRoot(container)
+        if (container && !rootRef.current) {
+          rootRef.current = createRoot(container)
+          containerRef.current = container
         }
-        renderRoot(root.current, content)
+        renderRoot(rootRef.current, content)
       },
       appSetsWindowTitle: true, // CODAP takes responsibility for the window title
       wrapFileContent: false,
@@ -366,6 +368,44 @@ export function useCloudFileManager(optionsArg: CFMAppOptions, onFileOpened?: ()
 
     appState.setCFM(cfm)
   }, [cfm, onFileOpened])
+
+  useEffect(() => {
+    // Ideally, the CFM would be responsible for marking its images as non-draggable,
+    // but since the code for rendering icons is scattered around, we do it here
+    // for simplicity. If the CFM is ever updated to make its icons non-draggable,
+    // this code can be removed.
+    const container = containerRef.current
+    if (!container) return
+
+    // Set draggable="false" on all current images
+    const setImagesNonDraggable = (root: HTMLElement) => {
+      const images = root.querySelectorAll("img")
+      images.forEach(img => {
+        img.setAttribute("draggable", "false")
+      })
+    }
+
+    setImagesNonDraggable(container)
+
+    // Observe for dynamically added images
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach(mutation => {
+        mutation.addedNodes.forEach(node => {
+          if (node.nodeType === 1) { // ELEMENT_NODE
+            const element = node as HTMLElement
+            if (element.tagName === "IMG") {
+              element.setAttribute("draggable", "false")
+            } else {
+              setImagesNonDraggable(element)
+            }
+          }
+        })
+      })
+    })
+
+    observer.observe(container, { childList: true, subtree: true })
+    return () => observer.disconnect()
+  }, [containerRef])
 
   return { cfm, cfmReadyPromise }
 }

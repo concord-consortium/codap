@@ -230,7 +230,7 @@ context("Map UI", () => {
     map.getAddPinButton().should("exist")
     map.getRemovePinButton().should("exist").should("be.disabled")
 
-    // Can add a pin
+    cy.log("Can add a pin")
     table.getNumOfRows().should("eq", "2") // Headers + input row
     map.getAddPinButton().click()
     map.getAddPinButton().should("have.class", "active")
@@ -248,7 +248,7 @@ context("Map UI", () => {
       expect(parseFloat(normalized)).to.be.within(-180, 180)
     })
 
-    // Can select a pin
+    cy.log("Can select a pin")
     table.getSelectedRows().should("have.length", 0)
     map.getMapPin().should("not.have.class", "selected-pin")
     map.getAddPinButton().should("be.enabled")
@@ -257,17 +257,17 @@ context("Map UI", () => {
     table.getSelectedRows().should("have.length", 1)
     map.getAddPinButton().should("be.disabled")
 
-    // Can deselect a pin by shift+clicking
+    cy.log("Can deselect a pin by shift+clicking")
     map.getMapPin().click({ shiftKey: true })
     map.getMapPin().should("not.have.class", "selected-pin")
     table.getSelectedRows().should("have.length", 0)
 
-    // Pin is selected when the table row is selected
+    cy.log("Pin is selected when the table row is selected")
     table.getCell(2, 2).click()
     map.getMapPin().should("have.class", "selected-pin")
     table.getSelectedRows().should("have.length", 1)
 
-    // Can deselect a pin by clicking on the map
+    cy.log("Can deselect a pin by clicking on the map")
     map.getPinLayer().click()
     map.getMapPin().should("not.have.class", "selected-pin")
     table.getSelectedRows().should("have.length", 0)
@@ -275,22 +275,22 @@ context("Map UI", () => {
     map.getMapPin().should("have.class", "selected-pin")
     table.getSelectedRows().should("have.length", 1)
 
-    // Can hide pins using the ruler menu
+    cy.log("Can hide pins using the ruler menu")
     map.getDisplayValuesButton().click()
     map.getInspectorPalette().contains("Pins").click()
     map.getMapPins().should("not.exist")
     map.getInspectorPalette().contains("Pins").click()
     map.getMapPin().should("exist")
 
-    // Can hide pins using the layers menu
+    cy.log("Can hide pins using the layers menu")
     map.getDisplayConfigButton().click()
     map.getInspectorPalette().contains("New Dataset").click()
     map.getMapPins().should("not.exist")
     map.getInspectorPalette().contains("New Dataset").click()
     map.getMapPin().should("exist")
 
-    // Can remove a pin using the remove pin button
-    c.getComponentTitleBar("map").click()
+    cy.log("Can remove a pin using the remove pin button")
+    map.getInspectorPalette().type("{esc}")
     map.getRemovePinButton().should("not.be.disabled")
     map.getRemovePinButton().click()
     map.getRemovePinButton().should("be.disabled")
