@@ -1,7 +1,7 @@
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import { Menu, MenuItem, MenuList, MenuButton, MenuDivider } from "@chakra-ui/react"
-import React, { CSSProperties, useRef } from "react"
+import React, { CSSProperties, useRef, useState } from "react"
 import { IUseDraggableAttribute, useDraggableAttribute } from "../../../hooks/use-drag-drop"
 import { useInstanceIdContext } from "../../../hooks/use-instance-id-context"
 import { useOutsidePointerDown } from "../../../hooks/use-outside-pointer-down"
@@ -131,20 +131,29 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
   const overlayStyle: CSSProperties = { position: "absolute", ...useOverlayBounds({target, portal}) }
   const buttonStyle: CSSProperties = { position: "absolute", width: "100%", height: "100%", color: "transparent" }
   const menuRef = useRef<HTMLDivElement>(null)
-  const onCloseRef = useRef<() => void>()
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const onCloseMenuRef = useRef<() => void>()
   const [openCollectionId, setOpenCollectionId] = React.useState<string | null>(null)
 
   const draggableOptions: IUseDraggableAttribute = {
-    prefix: instanceId, dataSet, attributeId: attrId
+    prefix: instanceId, dataSet, attributeId: attrId, disabled: !!openCollectionId || isMenuOpen
   }
   const { attributes, listeners, setNodeRef: setDragNodeRef } = useDraggableAttribute(draggableOptions)
 
+  function handleOpenMenu() {
+    setOpenCollectionId(null)
+    setIsMenuOpen(true)
+  }
+
+  function handleCloseMenu() {
+    setOpenCollectionId(null)
+    onCloseMenuRef.current?.()
+    setIsMenuOpen(false)
+  }
+
   useOutsidePointerDown({
     ref: menuRef,
-    handler: () => {
-      setOpenCollectionId(null)
-      onCloseRef.current?.()
-    },
+    handler: handleCloseMenu,
     info: { name: "AxisOrLegendAttributeMenu", attrId, attrName: attribute?.name }
   })
   const description = attribute?.description || ''
@@ -165,7 +174,7 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
 
   const handleChangeAttribute = (_place: GraphPlace, data: IDataSet, _attrId: string) => {
     onChangeAttribute(_place, data, _attrId)
-    onCloseRef.current?.()
+    handleCloseMenu()
   }
 
   const renderMenuItems = () => {
@@ -201,9 +210,12 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
 
   return (
     <div className={clsx("axis-legend-attribute-menu", place)} ref={menuRef} title={description + clickLabel}>
-      <Menu boundary="scrollParent" onOpen={() => setOpenCollectionId(null)}>
-        {({ onClose }) => {
-          onCloseRef.current = onClose
+      <Menu boundary="scrollParent" onOpen={handleOpenMenu}>
+        {({ isOpen, onClose }) => {
+          if (isOpen !== isMenuOpen) {
+            setIsMenuOpen(isOpen)
+          }
+          onCloseMenuRef.current = onClose
           return (
             <div className="attribute-label-menu" ref={setDragNodeRef}
                 style={overlayStyle} {...attributes} {...listeners}
