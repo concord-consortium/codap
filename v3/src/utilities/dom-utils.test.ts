@@ -7,8 +7,6 @@ describe("scrollTileIntoView", () => {
   let originalInnerWidth: number
   let originalInnerHeight: number
 
-
-
   beforeEach(() => {
     scrollToSpy = jest.spyOn(window, "scrollTo").mockImplementation(() => {})
     getElementByIdSpy = jest.spyOn(document, "getElementById")
