@@ -374,13 +374,38 @@ export function useCloudFileManager(optionsArg: CFMAppOptions, onFileOpened?: ()
     // but since the code for rendering icons is scattered around, we do it here
     // for simplicity. If the CFM is ever updated to make its icons non-draggable,
     // this code can be removed.
-    if (!containerRef.current) return
-    const images = containerRef.current?.querySelectorAll("img")
-    images?.forEach(img => {
-      // Ensure that img elements are not draggable
-      img.setAttribute("draggable", "false")
+    const container = containerRef.current
+    if (!container) return
+
+    // Set draggable="false" on all current images
+    const setImagesNonDraggable = (root: HTMLElement) => {
+      const images = root.querySelectorAll("img")
+      images.forEach(img => {
+        img.setAttribute("draggable", "false")
+      })
+    }
+
+    setImagesNonDraggable(container)
+
+    // Observe for dynamically added images
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach(mutation => {
+        mutation.addedNodes.forEach(node => {
+          if (node.nodeType === 1) { // ELEMENT_NODE
+            const element = node as HTMLElement
+            if (element.tagName === "IMG") {
+              element.setAttribute("draggable", "false")
+            } else {
+              setImagesNonDraggable(element)
+            }
+          }
+        })
+      })
     })
-  })
+
+    observer.observe(container, { childList: true, subtree: true })
+    return () => observer.disconnect()
+  }, [containerRef])
 
   return { cfm, cfmReadyPromise }
 }
