@@ -1,9 +1,11 @@
 import { cloneDeep } from "lodash"
 import { getParent, getSnapshot, getType,
-  Instance, SnapshotIn, SnapshotOut, types, ISerializedActionCall } from "mobx-state-tree"
+  Instance, SnapshotIn, SnapshotOut, types, ISerializedActionCall,
+} from "mobx-state-tree"
 import { applyModelChange } from "../history/apply-model-change"
 import { StringBuilder } from "../../utilities/string-builder"
 import { v3Id, typeV3Id } from "../../utilities/codap-utils"
+import { mstReaction } from "../../utilities/mst-reaction"
 import { V2UserTitleModel } from "../data/v2-user-title-model"
 import { DisplayUserTypeEnum } from "../stores/user-types"
 import { ITileContentModel } from "./tile-content"
@@ -127,9 +129,19 @@ export const TileModel = V2UserTitleModel.named("TileModel")
       // The afterAttach() method of the tile content gets called when the content is attached to the tile,
       // which often occurs before the tile has been attached to the document. Therefore, the tile model
       // will call the content's afterAttachToDocument() method when the tile model itself is attached.
-      if ("afterAttachToDocument" in self.content && typeof self.content.afterAttachToDocument === "function") {
-        self.content.afterAttachToDocument()
-      }
+      // Additionally, this is in a reaction, so that if the content model changes, the new content model
+      // will also have its afterAttachToDocument() method called.
+      // Currently that only happens when a snapshot is applied.
+      mstReaction(
+        () => self.content,
+        (content) => {
+          if (content && "afterAttachToDocument" in content && typeof content.afterAttachToDocument === "function") {
+            content.afterAttachToDocument()
+          }
+        },
+        { name: `TileModel [${self.id}] afterAttachToDocument`, fireImmediately: true },
+        [ self ]
+      )
     },
     onTileAction(call: ISerializedActionCall) {
       self.content.onTileAction?.(call)

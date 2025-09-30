@@ -16,7 +16,7 @@ import { getSharedDataSetFromDataSetId } from "../../../models/shared/shared-dat
 import {TileContentModel} from "../../../models/tiles/tile-content"
 import { getTileContentInfo } from "../../../models/tiles/tile-content-info"
 import {defaultBackgroundColor} from "../../../utilities/color-utils"
-import { typedId } from "../../../utilities/js-utils"
+import { typeV3Id } from "../../../utilities/codap-utils"
 import { AxisPlace, IAxisTicks, TickFormatter } from "../../axis/axis-types"
 import {GraphPlace} from "../../axis-graph-shared"
 import { IAxisModel } from "../../axis/models/axis-model"
@@ -41,7 +41,7 @@ export const DataDisplayContentModel = TileContentModel
   .named("DataDisplayContentModel")
   .props({
     // expected to be overridden by derived models
-    id: types.optional(types.string, () => typedId("DDCM")),
+    id: typeV3Id("DDCM"),
     layers: types.array(DataDisplayLayerModelUnion),
     pointDescription: types.optional(DisplayItemDescriptionModel, () => DisplayItemDescriptionModel.create()),
     // The following five properties apply to graphs, not maps, but need to be accessible at this level

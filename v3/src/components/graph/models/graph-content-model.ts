@@ -11,9 +11,9 @@ import {applyModelChange} from "../../../models/history/apply-model-change"
 import { getTileCaseMetadata, getTileDataSet } from "../../../models/shared/shared-data-tile-utils"
 import { getDataSetFromId, getMetadataFromDataSet } from "../../../models/shared/shared-data-utils"
 import {ISharedModel} from "../../../models/shared/shared-model"
-import {ITileContentModel} from "../../../models/tiles/tile-content"
+import {ITileContentModel, ITileContentSnapshot} from "../../../models/tiles/tile-content"
 import { getFormulaManager } from "../../../models/tiles/tile-environment"
-import {typedId} from "../../../utilities/js-utils"
+import { typeV3Id } from "../../../utilities/codap-utils"
 import {mstAutorun} from "../../../utilities/mst-autorun"
 import { mstReaction } from "../../../utilities/mst-reaction"
 import { setNiceDomain } from "../../axis/axis-domain-utils"
@@ -55,7 +55,11 @@ export const NumberToggleModel = types
 export const GraphContentModel = DataDisplayContentModel
   .named("GraphContentModel")
   .props({
-    id: types.optional(types.string, () => typedId("GRCM")),
+    // Because this isn't a types.identifier, MST's applySnapshot will happily update
+    // this value instead of recreating the model. This is typically OK because the v2
+    // round trip does not preserve this id. However, this id is used in the formula
+    // to identify the content model.
+    id: typeV3Id("GRCM"),
     type: types.optional(types.literal(kGraphTileType), kGraphTileType),
     adornmentsStore: types.optional(AdornmentsStore, () => AdornmentsStore.create()),
     // keys are AxisPlaces
@@ -182,6 +186,11 @@ export const GraphContentModel = DataDisplayContentModel
       }
 
       // register with the formula adapters once they've been initialized
+      // FIXME: This approach fails when a snapshot is applied to the document
+      // and the content model id has changed. The afterAttachToDocument is not
+      // called on the new content model.
+      // This might also be a problem with undo/redo, when a tile is added by the
+      // the undo/redo patch.
       when(
         () => getFormulaManager(self)?.areAdaptersInitialized ?? false,
         () => {
@@ -689,6 +698,10 @@ export interface IGraphContentModelSnapshot extends SnapshotIn<typeof GraphConte
 
 export function isGraphContentModel(model?: ITileContentModel): model is IGraphContentModel {
   return model?.type === kGraphTileType
+}
+
+export function isGraphContentModelSnapshot(snap?: ITileContentSnapshot): snap is IGraphContentModelSnapshot {
+  return snap?.type === kGraphTileType
 }
 
 /*

@@ -108,7 +108,9 @@ class AppState {
       // needs to result in a basic javascript object. This prevents the import process
       // from accidentally setting up something in the v3 document that doesn't serialize.
       content = yield serializeDocument(v3Document, doc => getSnapshot(doc))
-      // destroy the document once we've retrieved the snapshot
+      // Destroy the document once we've retrieved the snapshot
+      // This cleans up many of the reactions coming from the managers
+      // that were created along with the document.
       destroy(v3Document)
     } else {
       content = snap

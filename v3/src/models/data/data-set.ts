@@ -153,8 +153,6 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
   filterFormula: types.maybe(Formula)
 })
 .volatile(self => ({
-  // map from attribute name to attribute id
-  attrNameMap: observable.map<string, string>({}, { name: "attrNameMap" }),
   // map from item ids to info like index and case ids
   itemInfoMap: new Map<string, ItemInfo>(),
   // MobX-observable set of selected item IDs
@@ -1334,9 +1332,11 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
 
     // initialize selection
     self.selection.replace(self.snapSelection)
+    self.selectionChanges = 0
 
-    // initialize setAsideItemIdsSet
+    // initialize setAsideItem metadata props
     self.setAsideItemIdsSet.replace(self.setAsideItemIds)
+    self.setAsideItemIdsMirror = [...self.setAsideItemIds]
   }
 }))
 .actions(self => ({
@@ -1350,8 +1350,15 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
     // collection.afterApplySnapshot clears out data that is then set by
     // self.initializeVolatileState
     self.collections.forEach(collection => collection.afterApplySnapshot())
-    self.initializeVolatileState()
+
+    // This needs to be called before initializeVolatileState because
+    // attribute.afterApplySnapshot initializes strValues to match values
+    // which will be undefined for attributes with formulas. And then then
+    // initializeVolatileState calls attr.setLength which fills strValues
+    // with "" for any missing values.
     self.attributes.forEach(attr => attr.afterApplySnapshot())
+
+    self.initializeVolatileState()
   },
   afterCreate() {
     const context: IEnvContext | Record<string, never> = hasEnv(self) ? getEnv(self) : {},

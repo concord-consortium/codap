@@ -87,6 +87,19 @@ export const DocumentContentModel = BaseDocumentContentModel
       // update volatile state for each tile
       self.tileMap.forEach(tile => tile.afterApplySnapshot())
 
+      // Changes to just dataset values do not trigger formula recalculation,
+      // To be safe we recalculate all formulas after applying the snapshot
+      // In many cases the formulas will be recalculated anyhow because the
+      // number of cases have changed or some other state being observed by the formula
+      // changed. We could be smarter and make sure the formulas are not recalculated
+      // more than once.
+      // Also note that the id of the formulas change during the round trip to v2 and
+      // back. That means the formulas will be recalculate every time a snapshot is
+      // applied. However, this automatic recalculation happens before the strValues
+      // of the attributes have been initialized to the correct length, so the automatic
+      // recalculation doesn't actually update the values correctly.
+      getFormulaManager(self)?.recalculateActiveFormulas()
+
       // TODO: do we need to do anything for rows?
       // It doesn't seem like rows actually do anything with prepareSnapshot
     },

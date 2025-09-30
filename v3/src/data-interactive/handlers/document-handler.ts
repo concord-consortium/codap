@@ -1,4 +1,4 @@
-import { applySnapshot, getSnapshot } from "mobx-state-tree"
+import { applySnapshot, destroy, getSnapshot } from "mobx-state-tree"
 import { isWebViewModel } from "../../components/web-view/web-view-model"
 import { DEBUG_PLUGINS, debugLog } from "../../lib/debug"
 import { appState } from "../../models/app-state"
@@ -14,6 +14,8 @@ import { isSharedDataSet, isSharedDataSetSnapshot } from "../../models/shared/sh
 import { isDataSetMetadata, isDataSetMetadataSnapshot } from "../../models/shared/data-set-metadata"
 import { isGlobalValueManager, isGlobalValueManagerSnapshot } from "../../models/global/global-value-manager"
 import { ISharedModel, ISharedModelSnapshot } from "../../models/shared/shared-model"
+import { isGraphContentModel, isGraphContentModelSnapshot } from "../../components/graph/models/graph-content-model"
+import { isMapContentModel, isMapModelContentSnapshot } from "../../components/map/models/map-content-model"
 
 /**
  * We need to update ids in the incoming snapshot to match the existing document.
@@ -34,6 +36,18 @@ import { ISharedModel, ISharedModelSnapshot } from "../../models/shared/shared-m
  *         "id": "DATA277341785405236",
  *         ...
  *       }
+ *     },
+ *     ...
+ *   },
+ *   ...
+ * },
+ * "tileMap": {
+ *   "GRPH583792987052227": {
+ *     "id": "GRPH583792987052227",
+ *     "content": {
+ *       "type": "Graph",
+ *       "id": "GRCMHwojrf3ikAHt",
+ *       ...
  *     },
  *     ...
  *   },
@@ -117,6 +131,47 @@ function updateIncomingSnapshotIds(incomingSnapshot: ISerializedV3Document) {
       return isGlobalValueManagerSnapshot(snapshot)
     }
   })
+
+  // The following code matches the ids of the map and content models.
+  // It doesn't do anything with these matches because making the ids the same causes more
+  // problems than it solves. When the ids are the same, MST will reuse the existing
+  // model instances when an snapshot is applied. This should be more efficient, because
+  // fewer views ought to be re-rendered.
+  // However, within these content models are other models like the dataConfiguration and
+  // layers. These models also have MST ids, and they aren't round tripped through the
+  // v2 format. So when the snapshot is applied, these child models are recreated with new
+  // ids, and the old models are destroyed. This causes problems because there are a lot of
+  // reactions observing these child models, and some of them are generic observers that
+  // don't really know about the child models. For example the autorun in AttributeLabel.
+  // So it isn't easy to get these reactions to be disposed properly.
+  //
+  // Originally these ids were not real MST ids, just strings. That has the same problem
+  // as matching up the ids to be the same. The content model was reused, but the child
+  // objects were not. This also caused other problems where the id of the object would
+  // change, but there were maps referring to the object by the old id. An example is
+  // the `BaseGraphFormulaAdapter.graphContentModels`.
+  const existingTileMap = document.content?.tileMap
+  const incomingTileMap = incomingSnapshot.content?.tileMap
+  if (incomingTileMap && existingTileMap) {
+    Object.values(incomingTileMap).forEach((incomingTile) => {
+      const existingTile = existingTileMap.get(incomingTile.id || "")
+      const existingContentModel = existingTile?.content
+      const incomingContentModel = incomingTile.content
+      if (
+        (
+          isGraphContentModelSnapshot(incomingContentModel) &&
+          isGraphContentModel(existingContentModel)
+        ) ||
+        (
+          isMapModelContentSnapshot(incomingContentModel) &&
+          isMapContentModel(existingContentModel)
+        )
+      ) {
+        // As described above, we do not actually make the ids the same
+        // incomingContentModel.id = existingContentModel.id
+      }
+    })
+  }
 }
 
 async function asyncUpdate(resources: DIResources, values?: DIValues) {
@@ -139,6 +194,10 @@ async function asyncUpdate(resources: DIResources, values?: DIValues) {
   // Convert v2 Document to v3
   const v3Document = importV2Document(v2Document)
   const v3Snapshot = await serializeCodapV3Document(v3Document)
+  // Destroy the document once we've retrieved the snapshot
+  // This cleans up many of the reactions coming from the managers
+  // that were created along with the document.
+  destroy(v3Document)
 
   updateIncomingSnapshotIds(v3Snapshot)
 
@@ -179,6 +238,12 @@ async function asyncUpdate(resources: DIResources, values?: DIValues) {
       }
     )
   }
+  // TODO: try wrapping this in a an action so the afterApplySnapshot call happens
+  // before the reactions run from the applySnapshot. This should prevent an initial
+  // formula recomputation that happens too soon. But that computation will still
+  // happen. So to prevent the duplicate recomputation, we also need to make changes
+  // to how the formula manager observers work and how the manual recomputation is
+  // triggered.
   applySnapshot(document, v3Snapshot)
   document.content?.afterApplySnapshot()
 
