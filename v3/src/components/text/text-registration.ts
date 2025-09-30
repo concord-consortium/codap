@@ -15,6 +15,7 @@ import { registerV2TileImporter } from "../../v2/codap-v2-tile-importers"
 import { isV2TextComponent, V2SlateExchangeValue, V2TextObjTypesMap } from "../../v2/codap-v2-types"
 import { ComponentTitleBar } from "../component-title-bar"
 import { kTextTileClass, kTextTileType, kV2TextDGType, kV2TextDIType } from "./text-defs"
+import { TextInspector } from "./text-inspector"
 import { editorValueToModelValue, isTextModel, ITextSnapshot, modelValueToEditorValue, TextModel } from "./text-model"
 import { TextTile } from "./text-tile"
 
@@ -35,6 +36,7 @@ registerTileComponentInfo({
   type: kTextTileType,
   TitleBar: ComponentTitleBar,
   Component: TextTile,
+  InspectorPanel: TextInspector,
   tileEltClass: kTextTileClass,
   Icon: TextIcon,
   shelf: {

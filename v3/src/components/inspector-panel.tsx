@@ -33,38 +33,35 @@ export const InspectorPanel = forwardRef(({ component, show, setShowPalette, chi
 interface IInspectorButtonProps {
   bottom?: boolean
   children: ReactNode
+  isActive?: boolean
   isDisabled?: boolean
   label?: string
-  onButtonClick?: () => void
-  setButtonRef?: (ref: any) => void
+  onButtonClick?: (e: React.MouseEvent) => void
+  onPointerDown?: (e: React.PointerEvent) => void
   testId: string
   tooltip: string
   top?: boolean
 }
 
-export const InspectorButton = ({
-  bottom, children, isDisabled, label, onButtonClick, setButtonRef, testId, tooltip, top
-}: IInspectorButtonProps) => {
-  const buttonRef = useRef<any>()
-  const _onClick = () => {
-    setButtonRef?.(buttonRef)
-    onButtonClick?.()
-  }
-  const className = clsx("inspector-tool-button", { bottom, top })
+export const InspectorButton = forwardRef(function InspectorButton({
+  bottom, children, isActive, isDisabled, label, onButtonClick, onPointerDown, testId, tooltip, top
+}: IInspectorButtonProps, ref) {
+  const className = clsx("inspector-tool-button", { active: isActive, bottom, top })
   return (
     <Button
       className={className}
       isDisabled={isDisabled}
       data-testid={testId}
-      onClick={_onClick}
-      ref={buttonRef}
+      onClick={onButtonClick}
+      onPointerDown={!isDisabled ? onPointerDown : undefined}
+      ref={ref}
       title={tooltip}
     >
       {children}
       {label && <span className="inspector-button-label">{label}</span>}
     </Button>
   )
-}
+})
 
 interface IInspectorMenuProps {
   bottom?: boolean

@@ -1,0 +1,16 @@
+.inspector-panel.text {
+  display: grid;
+  grid-template-columns: repeat(2, 34px);
+  grid-template-rows: repeat(9, 34px);
+  grid-auto-flow: column;
+  place-items: center;
+
+  .inspector-tool-button {
+    min-width: 34px;
+    max-width: 34px;
+    width: 34px;
+    height: 34px;
+    padding: 5px;
+    place-self: center;
+  }
+}

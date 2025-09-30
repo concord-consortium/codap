@@ -50,12 +50,12 @@ $inspector-panel-border-width: 2px;
     padding-top: 4px;
     width: 100%;
 
-    &:hover {
-      background-color: #d3f4ff;
+    &:active, &.active {
+      background-color: #bfefff;
     }
 
-    &:active {
-      background-color: #bfefff;
+    &:hover {
+      background-color: #d3f4ff;
     }
 
     &.bottom {

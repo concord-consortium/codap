@@ -50,7 +50,7 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
   const attribute = data?.getAttribute(attributeId)
   const [inputValue, setInputValue] = useState(() => data?.getStrValue(row.__id__, attributeId))
   const initialInputValue = useRef(inputValue)
-  const [placement, setPlacement ]= useState<"right" | "left">("right")
+  const [placement, setPlacement]= useState<"right" | "left">("right")
   // support colors if user hasn't assigned a non-color type
   const supportColors = attribute?.userType == null || attribute?.userType === "color"
   // support color names if the color type is user-assigned

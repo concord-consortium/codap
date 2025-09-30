@@ -10,12 +10,13 @@ interface IProps {
   isOpen: boolean
   onClick?: () => void
   onClose: () => void
+  onKeyDown?: (e: React.KeyboardEvent) => void
   modalWidth?: string
   modalHeight?: string
 }
 
 export const CodapModal = forwardRef(({
-  children, initialRef, isOpen, closeOnOverlayClick, onClick, onClose, modalWidth, modalHeight
+  children, initialRef, isOpen, closeOnOverlayClick, onClick, onClose, onKeyDown, modalWidth, modalHeight
 }: IProps, ref: React.Ref<HTMLElement> | undefined) => {
 
   return (
@@ -33,6 +34,7 @@ export const CodapModal = forwardRef(({
         modalWidth={modalWidth}
         modalHeight={modalHeight}
         onClick={onClick}
+        onKeyDown={onKeyDown}
         isOpen={isOpen}
       >
         {children}
@@ -47,11 +49,12 @@ interface IDraggableModalContentProps {
   modalWidth?: string
   modalHeight?: string
   onClick?: () => void
+  onKeyDown?: (e: React.KeyboardEvent) => void
   fRef: React.Ref<HTMLElement> | undefined
   isOpen: boolean
 }
 
-const DraggableModalContent = ({children, modalWidth, modalHeight, onClick, fRef, isOpen
+const DraggableModalContent = ({children, modalWidth, modalHeight, onClick, onKeyDown, fRef, isOpen
     }: IDraggableModalContentProps) => {
   const [modalPos, setModalPos] = useState({left: 350, top: 250})
   const modalRef = useRef<HTMLElement | null>(null)
@@ -141,6 +144,7 @@ const DraggableModalContent = ({children, modalWidth, modalHeight, onClick, fRef
       ref={mergedRef}
       style={{...style, ...varStyle}}
       onClick={onClick}
+      onKeyDownCapture={onKeyDown}
       className="codap-modal-content"
     >
       {children}
