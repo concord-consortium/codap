@@ -2,7 +2,7 @@ import { pickRandom } from "mathjs"
 import { Random } from "random"
 import { isDateString, parseDate } from "../../../utilities/date-parser"
 import { isDate } from "../../../utilities/date-utils"
-import { extractNumeric } from "../../../utilities/math-utils"
+import { extractNumeric, isValueEmpty } from "../../../utilities/math-utils"
 import { FValue, IFormulaMathjsFunction } from "../formula-types"
 import { UNDEF_RESULT } from "./function-utils"
 
@@ -12,7 +12,18 @@ export const otherFunctions: Record<string, IFormulaMathjsFunction> = {
   // if(expression, value_if_true, value_if_false)
   if: {
     numOfRequiredArguments: 3,
-    evaluate: (...args: FValue[]) => args[0] ? args[1] : (args[2] ?? "")
+    evaluate: (...args: FValue[]) => {
+      const [condition, trueValue, falseValue] = args
+      if (isValueEmpty(condition)) return ""
+      if (condition === true || typeof condition === "string" && condition.toLowerCase() === "true") {
+        return trueValue
+      }
+      if (condition === false || typeof condition === "string" && condition.toLowerCase() === "false") {
+        return falseValue
+      }
+      if (typeof condition === "object") return trueValue
+      return Number(condition) !== 0 ? trueValue : falseValue
+    }
   },
 
   // randomPick(...args)

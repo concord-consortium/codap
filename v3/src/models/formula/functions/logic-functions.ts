@@ -14,6 +14,7 @@ export const logicFunctions: Record<string, IFormulaMathjsFunction> = {
       if (arg === true || arg === false) return arg
       if (typeof arg === "string" && arg.toLowerCase() === "false") return false
       if (typeof arg === "string" && arg.toLowerCase() === "true") return true
+      if (typeof arg === "object") return true
       return Number(arg) !== 0
     }
   },

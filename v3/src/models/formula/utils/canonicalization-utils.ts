@@ -55,6 +55,40 @@ const customizations: Record<string, CustomizationFn> = {
     const replacement = replaceMap[nodeText]
     return replacement ? { from: cursor.from, to: cursor.to, replacement } : undefined
   },
+  // replace ternary operator with if() function
+  ConditionalExpression: (formula, cursor) => {
+    // Move to the first child: condition
+    if (!cursor.firstChild()) return undefined
+    const conditionFrom = cursor.from
+    const conditionTo = cursor.to
+    const conditionText = formula.substring(conditionFrom, conditionTo)
+
+    // Move to '?'
+    if (!cursor.nextSibling()) return undefined
+    // Move to true branch
+    if (!cursor.nextSibling()) return undefined
+    const trueFrom = cursor.from
+    const trueTo = cursor.to
+    const trueText = formula.substring(trueFrom, trueTo)
+
+    // Move to ':'
+    if (!cursor.nextSibling()) return undefined
+    // Move to false branch
+    if (!cursor.nextSibling()) return undefined
+    const falseFrom = cursor.from
+    const falseTo = cursor.to
+    const falseText = formula.substring(falseFrom, falseTo)
+
+    // Move back to parent node (the ConditionalExpression)
+    cursor.parent()
+
+    // Replace the entire ternary with if(condition, trueValue, falseValue)
+    return {
+      from: cursor.from,
+      to: cursor.to,
+      replacement: `if(${conditionText}, ${trueText}, ${falseText})`
+    }
+  },
   LineComment: (formula, cursor) => {
     // replace comments with a single space
     return { from: cursor.from, to: cursor.to, replacement: " " }

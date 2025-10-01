@@ -6,6 +6,9 @@ describe("if", () => {
     const fn = math.compile("if(x < 10, 'foo', 'bar')")
     expect(fn.evaluate({ x: 9 })).toEqual("foo")
     expect(fn.evaluate({ x: 11 })).toEqual("bar")
+
+    const fn2 = math.compile("if('', 'foo', 'bar')")
+    expect(fn2.evaluate()).toEqual("")
   })
 })
 
