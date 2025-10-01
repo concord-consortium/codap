@@ -1,7 +1,7 @@
 import { destroy, getSnapshot, isAlive, types } from "mobx-state-tree"
 import { Attribute, IAttribute } from "./attribute"
 import {
-  CollectionModel, ICollectionModel, IItemData, defaultItemData, isCollectionModel, syncCollectionLinks
+  CollectionModel, ICollectionModel, IItemData, defaultItemData, isCollectionModel, makeGroupKey, syncCollectionLinks
 } from "./collection"
 
 const Tree = types.model("Tree", {
@@ -307,8 +307,8 @@ describe("CollectionModel", () => {
 
     // serializes group key => case id map appropriately
     c1.prepareSnapshot()
-    const aGroupKey = '[a]'
-    const bGroupKey = '[b]'
+    const aGroupKey = makeGroupKey(["a"])
+    const bGroupKey = makeGroupKey(["b"])
     const aCaseId = c1.caseIds[0]
     const bCaseId = c1.caseIds[1]
     expect(c1._groupKeyCaseIds).toEqual([[aGroupKey, aCaseId], [bGroupKey, bCaseId]])
@@ -382,5 +382,28 @@ describe("CollectionModel", () => {
     expect(c1.caseGroups[0].childItemIds).toEqual(["i1", "i3", "i5"])
     expect(c1.caseGroups[1].childCaseIds).toEqual(caseIdsForItems(["i4"], 1))
     expect(c1.caseGroups[1].childItemIds).toEqual(["i4"])
+  })
+
+  it("converts legacy group keys in snapshots", () => {
+    const c1 = CollectionModel.create({
+      name: "c1",
+      _groupKeyCaseIds: [
+        ["item0", "case0"],
+        ["[a]", "case1"],
+        ["[b]", "case2"],
+        ["[a\tb]", "case3"],
+        ["[b\ta]", "case4"],
+        [`["c"]`, "case5"],
+        [`["c","d"]`, "case6"],
+      ]
+    })
+    expect(c1.groupKeyCaseIds.size).toBe(7)
+    expect(c1.groupKeyCaseIds.get("item0")).toBe("case0")
+    expect(c1.groupKeyCaseIds.get(makeGroupKey(["a"]))).toBe("case1")
+    expect(c1.groupKeyCaseIds.get(makeGroupKey(["b"]))).toBe("case2")
+    expect(c1.groupKeyCaseIds.get(makeGroupKey(["a", "b"]))).toBe("case3")
+    expect(c1.groupKeyCaseIds.get(makeGroupKey(["b", "a"]))).toBe("case4")
+    expect(c1.groupKeyCaseIds.get(makeGroupKey(["c"]))).toBe("case5")
+    expect(c1.groupKeyCaseIds.get(makeGroupKey(["c", "d"]))).toBe("case6")
   })
 })

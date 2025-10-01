@@ -26,10 +26,45 @@ export const defaultItemData: IItemData = {
   invalidate: () => null
 }
 
-const kGroupKeySeparator = "\t"
+// Group keys are used to map from a set of attribute values to a case id (for parent collections)
+// and from an item id to a case id (for child collections).
+// The format of parent group keys used internally has changed over the course of development.
+// Prior to PR #2006, parent group keys were JSON.stringified attribute values.
+// In PR #2006, we switched to using square brackets as begin/end markers with tab characters
+// as separators, e.g. "[value1\tvalue2\tvalue3]".
+// In PR #2157, we switched to using \r characters as begin/end markers to avoid ambiguity.
+
+export const kGroupKeySeparator = "\t"
+export const kGroupKeyDelimiter = "\r"
 
 export function makeGroupKey(values: string[]) {
-  return `[${values.join(kGroupKeySeparator)}]`
+  return `${kGroupKeyDelimiter}${values.join(kGroupKeySeparator)}${kGroupKeyDelimiter}`
+}
+
+// functions for pre-processing legacy group keys in snapshots
+function preProcessBetaGroupKey(snapGroupKey: string): string {
+  const result = /\[(.+)\]/.exec(snapGroupKey)
+  if (result?.[1]) return `${kGroupKeyDelimiter}${result[1]}${kGroupKeyDelimiter}`
+  return snapGroupKey
+}
+
+function preProcessGroupKey(snapGroupKey: string): string {
+  if (snapGroupKey.startsWith(kGroupKeyDelimiter) && snapGroupKey.endsWith(kGroupKeyDelimiter)) return snapGroupKey
+  // earlier parent group key formats used [] as begin/end markers
+  if (snapGroupKey.startsWith("[") && snapGroupKey.endsWith("]")) {
+    // if it contains tab characters, but not \r, then it should be in beta format
+    if (snapGroupKey.includes(kGroupKeySeparator)) {
+      const result = preProcessBetaGroupKey(snapGroupKey)
+      if (result) return result
+    }
+    // original group key format was JSON.stringified attribute values
+    const groupKeyValues = safeJsonParse<string[]>(snapGroupKey)
+    if (Array.isArray(groupKeyValues)) return makeGroupKey(groupKeyValues)
+    // no tab key and not JSON.parse-able -- single value group key in beta format
+    return preProcessBetaGroupKey(snapGroupKey)
+  }
+  // otherwise, it should be an item id (child group key), so just return it
+  return snapGroupKey
 }
 
 export const CollectionModel = V2Model
@@ -65,14 +100,9 @@ export const CollectionModel = V2Model
 }))
 .preProcessSnapshot(snap => {
   if (snap._groupKeyCaseIds) {
-    // Prior to PR #2006, group keys were JSON.stringified attribute values.
     const { _groupKeyCaseIds: legacyGroupKeyCaseIds, ...others } = snap
     const _groupKeyCaseIds = legacyGroupKeyCaseIds.map(([snapGroupKey, caseId]) => {
-      if (snapGroupKey.includes(kGroupKeySeparator)) return [snapGroupKey, caseId]
-      // convert legacy group key to new format
-      const groupKeyValues = safeJsonParse<string[]>(snapGroupKey)
-      const groupKey = groupKeyValues ? makeGroupKey(groupKeyValues) : snapGroupKey
-      return [groupKey, caseId]
+      return [preProcessGroupKey(snapGroupKey), caseId]
     }).filter(([groupKey, caseId]) => !!groupKey && !!caseId) as Array<[string, string]>
     return { _groupKeyCaseIds, ...others }
   }
