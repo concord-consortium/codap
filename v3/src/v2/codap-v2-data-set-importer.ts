@@ -1,5 +1,5 @@
 import { SetRequired } from "type-fest"
-import { ICollectionModel, ICollectionModelSnapshot } from "../models/data/collection"
+import { ICollectionModel, ICollectionModelSnapshot, makeGroupKey } from "../models/data/collection"
 import { IDataSet, toCanonical } from "../models/data/data-set"
 import { ICaseCreation, IItem } from "../models/data/data-set-types"
 import { importV2CategorySet, V2CategorySetInput } from "../models/data/v2-category-set-importer"
@@ -242,8 +242,7 @@ export class CodapV2DataSetImporter {
         const groupValues = v2CollectionInfo.groupAttrNames.map(name => {
           return caseValues[name] != null ? String(caseValues[name]) : ""
         })
-        const groupKey = JSON.stringify(groupValues)
-        v2CollectionInfo.groupKeyCaseIds.set(groupKey, v3CaseId)
+        groupKeyCaseIds.set(makeGroupKey(groupValues), v3CaseId)
       }
     })
     if (itemsToAdd.length) {
