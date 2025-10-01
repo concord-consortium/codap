@@ -15,10 +15,10 @@ export const otherFunctions: Record<string, IFormulaMathjsFunction> = {
     evaluate: (...args: FValue[]) => {
       const [condition, trueValue, falseValue] = args
       if (isValueEmpty(condition)) return ""
-      if (condition === true || typeof condition === "string" && condition.toLowerCase() === "true") {
+      if (condition === true || (typeof condition === "string" && condition.toLowerCase() === "true")) {
         return trueValue
       }
-      if (condition === false || typeof condition === "string" && condition.toLowerCase() === "false") {
+      if (condition === false || (typeof condition === "string" && condition.toLowerCase() === "false")) {
         return falseValue
       }
       if (typeof condition === "object") return trueValue
