@@ -332,7 +332,8 @@ export const graphComponentHandler: DIComponentHandler = {
       filterFormula, hiddenCases, numberToggleLastMode: showOnlyLastCase, pointColor,
       pointSize, showConnectingLines, showMeasuresForSelection, strokeColor, strokeSameAsFill, transparent,
       xAttributeType, xLowerBound, xUpperBound, yAttributeID, yAttributeIDs, yAttributeName, yAttributeNames,
-      yAttributeType, yLowerBound, yUpperBound, y2AttributeType, y2LowerBound, y2UpperBound
+      yAttributeType, yLowerBound, yUpperBound, y2AttributeType, y2LowerBound, y2UpperBound,
+      pointsAreFusedIntoBars
     } = values as V2GetGraph
     const attributeInfo = getAttributeInfo(values)
     const { dataConfiguration, pointDescription } = content
@@ -461,6 +462,13 @@ export const graphComponentHandler: DIComponentHandler = {
     if (strokeColor != null) pointDescription.setPointStrokeColor(strokeColor)
     if (strokeSameAsFill != null) pointDescription.setPointStrokeSameAsFill(strokeSameAsFill)
     if (transparent != null) content.setIsTransparent(transparent)
+    if (pointsAreFusedIntoBars != null) {
+      const pointsCanBeFused = content.pointsCanBeFusedIntoBars()
+      if (pointsAreFusedIntoBars && !pointsCanBeFused) {
+        return errorResult(t("V3.DI.Error.cannotFusePointsIntoBars"))
+      }
+      content.fusePointsIntoBars(pointsAreFusedIntoBars)
+    }
 
     return { success: true }
   }

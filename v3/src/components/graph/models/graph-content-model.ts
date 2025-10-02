@@ -564,6 +564,14 @@ export const GraphContentModel = DataDisplayContentModel
       }
       self.setPlotType(newPlotType)
     },
+    pointsCanBeFusedIntoBars(): boolean {
+      const primaryRole = self.dataConfiguration.primaryRole
+      const primaryType = primaryRole ? self.dataConfiguration.attributeType(primaryRole) : undefined
+      const secondaryRole = self.dataConfiguration.secondaryRole
+      const secondaryType = secondaryRole ? self.dataConfiguration.attributeType(secondaryRole) : undefined
+      return self.plot.displayType !== "bars" && secondaryType === undefined &&
+        (isCategoricalAttributeType(primaryType) || isNumericAttributeType(primaryType))
+    },
     fusePointsIntoBars(fuseIntoBars: boolean) {
       if (fuseIntoBars !== (self.plot.displayType === "bars")) {
         const transformMap: Partial<Record<PlotType, PlotType>> = {
