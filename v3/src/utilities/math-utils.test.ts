@@ -1,5 +1,7 @@
 import {FormatLocaleDefinition, format, formatLocale} from "d3-format"
-import { between, isFiniteNumber, isValueNonEmpty, isNumber, extractNumeric, chooseDecimalPlaces } from "./math-utils"
+import {
+  between, checkNumber, chooseDecimalPlaces, extractNumeric, isFiniteNumber, isNumber, isValueNonEmpty
+} from "./math-utils"
 
 // default formatting except uses ASCII minus sign
 const asciiLocale = formatLocale({ minus: "-" } as FormatLocaleDefinition)
@@ -90,6 +92,22 @@ describe("math-utils", () => {
       expect(isNumber("abc")).toBe(false)
       expect(isNumber(null)).toBe(false)
       expect(isNumber(undefined)).toBe(false)
+    })
+  })
+
+  describe("checkNumber", () => {
+    it("should return [true, number] for numbers", () => {
+      expect(checkNumber(0)).toEqual([true, 0])
+      expect(checkNumber("0")).toEqual([true, 0])
+      expect(checkNumber(1.23)).toEqual([true, 1.23])
+      expect(checkNumber("1.23")).toEqual([true, 1.23])
+    })
+    it("should return [false] for non-numbers", () => {
+      expect(checkNumber("")).toEqual([false])
+      expect(checkNumber(" ")).toEqual([false])
+      expect(checkNumber("abc")).toEqual([false])
+      expect(checkNumber(null)).toEqual([false])
+      expect(checkNumber(undefined)).toEqual([false])
     })
   })
 

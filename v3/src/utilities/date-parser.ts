@@ -1,5 +1,5 @@
 import { isStdISODateString, parseStdISODateString } from "./date-iso-utils"
-import { isFiniteNumber } from "./math-utils"
+import { isFiniteNumber, isValueEmpty } from "./math-utils"
 import { t } from "./translation/translate"
 
 /**
@@ -238,12 +238,9 @@ export function isValidDateSpec(dateSpec: DateSpec) {
 }
 
 export function parseDateV2Compatible(iValue: any, iLoose?: boolean) {
-  if (iValue == null) {
-    return null
-  }
-  if (iValue instanceof Date) {
-    return iValue
-  }
+  if (isValueEmpty(iValue)) return null
+  if (iValue instanceof Date) return iValue
+
   iValue = String(iValue)
   if (isStdISODateString(iValue)) {
     return parseStdISODateString(iValue)
@@ -278,6 +275,8 @@ export function parseDateV2Compatible(iValue: any, iLoose?: boolean) {
 }
 
 export function parseDateV3(value: any) {
+  if (isValueEmpty(value)) return null
+
   // Built-in date parser might not be the best, but it likely supports more formats than we do currently and
   // it's only used in the loose mode.
   const date = new Date(value)
@@ -285,8 +284,10 @@ export function parseDateV3(value: any) {
 }
 
 export function parseDate(value: any, loose?: boolean) {
+  if (isValueEmpty(value)) return null
+
   const v2CompatibleParserResult = parseDateV2Compatible(value, loose)
-  // If the v2 compatible parser found a valid date, always return it for backwards compatibility
+  // If the v2 compatible parser found a valid date, always return it for backward compatibility
   if (v2CompatibleParserResult != null) {
     return v2CompatibleParserResult
   }
