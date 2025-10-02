@@ -1,4 +1,4 @@
-import { checkDate } from '../../../utilities/date-utils'
+import { checkDate, formatDate } from '../../../utilities/date-utils'
 import { checkNumber } from '../../../utilities/math-utils'
 import { equal } from './function-utils'
 
@@ -133,6 +133,14 @@ export const operators = {
       }
       if (isANumber && isBDate) {
         return new Date(aNumber * 1000 + bDate.valueOf())
+      }
+
+      // concatenate a date with a string
+      if (isADate && typeof b === "string") {
+        return formatDate(aDate) + b
+      }
+      if (typeof a === "string" && isBDate) {
+        return a + formatDate(bDate)
       }
 
       // Numbers

@@ -159,6 +159,7 @@ export const isNumber = (v: any) => isValueNonEmpty(v) && !isNaN(Number(v))
 export function checkNumber(value: any) : [false] | [true, number] {
   if (typeof value === "number") return [true, value]
   if (value == null || value === "") return [false]
+  if (typeof value === "string" && value.trim() === "") return [false]
   const result = Number(value)
   return isNaN(result) ? [false] : [true, result]
 }
@@ -173,7 +174,7 @@ export const extractNumeric = (v: any) => {
     return num
   }
 
-  // Based on the V2 implementation for the backward compatibility.
+  // Based on the V2 implementation for backward compatibility.
   if (typeof v === 'string') {
     const noNumberPattern = /[^.\d-]+/gm
     const firstNumericPattern = /(^-?\.?[\d]+(?:\.?[\d]*)?)/gm
