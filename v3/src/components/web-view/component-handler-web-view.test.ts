@@ -1,4 +1,3 @@
-import { kTitleBarHeight } from "../constants"
 import { V2Game, V2WebView } from "../../data-interactive/data-interactive-component-types"
 import { DIComponentInfo } from "../../data-interactive/data-interactive-types"
 import { diComponentHandler } from "../../data-interactive/handlers/component-handler"

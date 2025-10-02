@@ -164,7 +164,7 @@ export const computeBinPlacements = (props: IComputeBinPlacements) => {
   const bins: Record<string, Record<string, Record<string, string[][]>>> = {}
   const binMap: Record<string, BinMap> = {}
 
-  if (primaryAxisScale) {
+  if (primaryAxisScale && pointDiameter > 0) {
     dataConfig?.getCaseDataArray(0).forEach((aCaseData: CaseData) => {
       const anID = aCaseData.caseID
       const caseValue = dataDisplayGetNumericValue(dataset, anID, primaryAttrID) ?? -1

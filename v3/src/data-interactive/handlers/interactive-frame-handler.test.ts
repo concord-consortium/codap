@@ -1,4 +1,3 @@
-import { kTitleBarHeight } from "../../components/constants"
 import { kDefaultWebViewHeight, kDefaultWebViewWidth } from "../../components/web-view/web-view-registration"
 import { kWebViewTileType } from "../../components/web-view/web-view-defs"
 import {
