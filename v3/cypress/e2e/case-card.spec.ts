@@ -122,13 +122,16 @@ context("case card", () => {
       card.getAttributeValues().first().should("have.text", "Spotted Hyena")
       card.getNextButton().should("be.disabled")
     })
-    // todo: PR #2153 broke this test. Fix the test and re-enable.
-    it.skip("displays case data in a hierarchy when there is a parent collection", () => {
+    it("displays case data in a hierarchy when there is a parent collection", () => {
       // make a parent collection
       table.moveAttributeToParent("Order", "newCollection")
       cy.wait(500)
       table.toggleCaseView()
       cy.wait(500)
+      c.getResizeControl("codap-case-card")
+        .realMouseDown({ position: "center" })
+        .realMouseMove(100, 200)
+        .realMouseUp()
       card.getCaseCardView().should("have.length", 2)
       card.getCaseCardView().eq(0).should("have.class", "color-cycle-2")
       card.getCaseCardView().eq(1).should("have.class", "color-cycle-1")
@@ -164,7 +167,7 @@ context("case card", () => {
       card.getAttrs().eq(1).find('[data-testid="case-card-attr-value"]')
                                                  .eq(0).should("have.text", "African Elephant")
 
-      // The first selected case is selected when the browse individual case button is clicked
+      cy.log("The first selected case is selected when the browse individual case button is clicked")
       card.getSummaryButton().click()
       card.getNextButton().eq(0).click().click().click().click()
       card.getAttrs().eq(0).find('[data-testid="case-card-attr-value"]')
