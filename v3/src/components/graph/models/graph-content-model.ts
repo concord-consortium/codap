@@ -564,14 +564,6 @@ export const GraphContentModel = DataDisplayContentModel
       }
       self.setPlotType(newPlotType)
     },
-    pointsCanBeFusedIntoBars(): boolean {
-      const primaryRole = self.dataConfiguration.primaryRole
-      const primaryType = primaryRole ? self.dataConfiguration.attributeType(primaryRole) : undefined
-      const secondaryRole = self.dataConfiguration.secondaryRole
-      const secondaryType = secondaryRole ? self.dataConfiguration.attributeType(secondaryRole) : undefined
-      return self.plot.displayType !== "bars" && secondaryType === undefined &&
-        (isCategoricalAttributeType(primaryType) || isNumericAttributeType(primaryType))
-    },
     fusePointsIntoBars(fuseIntoBars: boolean) {
       if (fuseIntoBars !== (self.plot.displayType === "bars")) {
         const transformMap: Partial<Record<PlotType, PlotType>> = {
@@ -671,6 +663,14 @@ export const GraphContentModel = DataDisplayContentModel
     }
   }))
   .views(self => ({
+    get pointsCanBeFusedIntoBars() {
+      const primaryRole = self.dataConfiguration.primaryRole
+      const primaryType = primaryRole ? self.dataConfiguration.attributeType(primaryRole) : undefined
+      const secondaryRole = self.dataConfiguration.secondaryRole
+      const secondaryType = secondaryRole ? self.dataConfiguration.attributeType(secondaryRole) : undefined
+      return self.plot.displayType !== "bars" && !secondaryType &&
+        (isCategoricalAttributeType(primaryType) || isNumericAttributeType(primaryType))
+    },
     get noPossibleRescales() {
       return self.plotType !== 'casePlot' &&
         !AxisPlaces.find((axisPlace: AxisPlace) => {

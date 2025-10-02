@@ -463,7 +463,7 @@ export const graphComponentHandler: DIComponentHandler = {
     if (strokeSameAsFill != null) pointDescription.setPointStrokeSameAsFill(strokeSameAsFill)
     if (transparent != null) content.setIsTransparent(transparent)
     if (pointsAreFusedIntoBars != null) {
-      const pointsCanBeFused = content.pointsCanBeFusedIntoBars()
+      const pointsCanBeFused = content.pointsCanBeFusedIntoBars
       if (pointsAreFusedIntoBars && !pointsCanBeFused) {
         return errorResult(t("V3.DI.Error.cannotFusePointsIntoBars"))
       }
