@@ -103,6 +103,13 @@ describe("customizeDisplayFormula", () => {
     expect(customizeDisplayFormula("a % -1")).toEqual("a  mod  -1")
     expect(customizeDisplayFormula("a%-1")).toEqual("a mod -1")
   })
+  it("replaces comments with spaces", () => {
+    expect(customizeDisplayFormula("a + /* comment */ b")).toEqual("a +   b")
+    expect(customizeDisplayFormula("a + b // comment")).toEqual("a + b  ")
+  })
+  it("replaces ternary operator with if() function", () => {
+    expect(customizeDisplayFormula("a ? b : c")).toEqual("if(a, b, c)")
+  })
 })
 
 describe("formulaIndexOf", () => {
