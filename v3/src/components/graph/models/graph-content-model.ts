@@ -55,10 +55,6 @@ export const NumberToggleModel = types
 export const GraphContentModel = DataDisplayContentModel
   .named("GraphContentModel")
   .props({
-    // Because this isn't a types.identifier, MST's applySnapshot will happily update
-    // this value instead of recreating the model. This is typically OK because the v2
-    // round trip does not preserve this id. However, this id is used in the formula
-    // to identify the content model.
     id: typeV3Id("GRCM"),
     type: types.optional(types.literal(kGraphTileType), kGraphTileType),
     adornmentsStore: types.optional(AdornmentsStore, () => AdornmentsStore.create()),
@@ -186,11 +182,6 @@ export const GraphContentModel = DataDisplayContentModel
       }
 
       // register with the formula adapters once they've been initialized
-      // FIXME: This approach fails when a snapshot is applied to the document
-      // and the content model id has changed. The afterAttachToDocument is not
-      // called on the new content model.
-      // This might also be a problem with undo/redo, when a tile is added by the
-      // the undo/redo patch.
       when(
         () => getFormulaManager(self)?.areAdaptersInitialized ?? false,
         () => {
