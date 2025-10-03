@@ -1337,7 +1337,10 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
     return values
   }
 }))
-.actions(self => ({
+.volatile(self => ({
+  // This is inside of a volatile block in case it modifies any non-volatile state.
+  // As an action, if it modified non-volatile, it would be recorded as a new entry
+  // in the undo history when it is called from afterCreate.
   initializeVolatileState() {
     // This directly updates volatile properties of collections:
     // - parent and child

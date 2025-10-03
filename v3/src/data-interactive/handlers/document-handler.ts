@@ -73,6 +73,8 @@ function updateIncomingSnapshotIds(incomingSnapshot: ISerializedV3Document) {
   const existingSharedModelMap = document.content?.sharedModelMap
   const incomingSharedModelMap = incomingSnapshot.content?.sharedModelMap
 
+  const remappedIds: Record<string, string> = {}
+
   /**
    * A helper function to update the ids of a specific type of shared model.
    * If matchNewModelSnapshot returns true, then the id of the shared model entry
@@ -96,6 +98,7 @@ function updateIncomingSnapshotIds(incomingSnapshot: ISerializedV3Document) {
           if (newSharedModel.id && matchNewModelSnapshot(sharedModel, newSharedModel)) {
             // We have a match, update key in the shared model map and the id
             // stored in the sharedModel itself
+            remappedIds[newSharedModel.id] = sharedModel.id
             delete incomingSharedModelMap[newSharedModel.id]
             newSharedModel.id = sharedModel.id
             incomingSharedModelMap[sharedModel.id] = v3SharedModelEntry
@@ -172,6 +175,18 @@ function updateIncomingSnapshotIds(incomingSnapshot: ISerializedV3Document) {
       }
     })
   }
+
+  // Now update any references to the remapped ids in the snapshot.
+  // This is done using a text based regex approach.
+  let updatedSnapshotString = JSON.stringify(incomingSnapshot)
+  const remappedIdsEntries = Object.entries(remappedIds)
+  if (remappedIdsEntries.length === 0) return
+  remappedIdsEntries.forEach(([oldId, newId]) => {
+    // Referenced ids should always be inside of quotes.
+    const regex = new RegExp(`"${oldId}"`, 'g')
+    updatedSnapshotString = updatedSnapshotString.replace(regex, `"${newId}"`)
+  })
+  return JSON.parse(updatedSnapshotString) as ISerializedV3Document
 }
 
 async function asyncUpdate(resources: DIResources, values?: DIValues) {
@@ -193,18 +208,22 @@ async function asyncUpdate(resources: DIResources, values?: DIValues) {
 
   // Convert v2 Document to v3
   const v3Document = importV2Document(v2Document)
-  const v3Snapshot = await serializeCodapV3Document(v3Document)
+  let v3Snapshot = await serializeCodapV3Document(v3Document)
   // Destroy the document once we've retrieved the snapshot
   // This cleans up many of the reactions coming from the managers
   // that were created along with the document.
   destroy(v3Document)
 
-  updateIncomingSnapshotIds(v3Snapshot)
+  const updatedV3Snapshot = updateIncomingSnapshotIds(v3Snapshot)
+  if (!updatedV3Snapshot) {
+    throw new Error("Failed to update incoming snapshot ids")
+  }
+  v3Snapshot = updatedV3Snapshot
 
   // Replace the tile state for any webview tiles that is subscribed to document events
   // This is a way to identify the story builder tile. Tiles like story builder
   // update the document state but don't want to update themselves in the process.
-  const snapshotTileMap = v3Snapshot.content?.tileMap
+  const snapshotTileMap = updatedV3Snapshot.content?.tileMap
   if (!snapshotTileMap) {
     // TODO: perhaps we should just do nothing in this case
     throw new Error("v3 Document content's tileMap is undefined")

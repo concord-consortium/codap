@@ -186,7 +186,9 @@ export const Attribute = V2Model.named("Attribute").props({
       self.isInferredNumericType.invalidate()
     }
   }))
-  .actions(self => ({
+  .volatile(self => ({
+    // This in a volatile section instead of an action section so that when it is called by afterCreate it doesn't
+    // show up as a change in the history. Changes made in afterCreate directly are ignored by the history system.
     initializeVolatileState() {
       // frozen properties are not modifiable in development (because MST freezes them with Object.freeze),
       // so we copy the data to volatile properties during runtime. Clients must call prepareSnapshot() before
