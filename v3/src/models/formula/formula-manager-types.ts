@@ -50,4 +50,5 @@ export interface IFormulaManager {
   getSyntaxError: (displayString: string) => any
   isRandomFunctionPresent: (canonicalString: string) => boolean
   rerandomize: (formulaId: string) => void
+  recalculateActiveFormulas: () => void
 }

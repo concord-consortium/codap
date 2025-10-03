@@ -11,9 +11,9 @@ import {applyModelChange} from "../../../models/history/apply-model-change"
 import { getTileCaseMetadata, getTileDataSet } from "../../../models/shared/shared-data-tile-utils"
 import { getDataSetFromId, getMetadataFromDataSet } from "../../../models/shared/shared-data-utils"
 import {ISharedModel} from "../../../models/shared/shared-model"
-import {ITileContentModel} from "../../../models/tiles/tile-content"
+import {ITileContentModel, ITileContentSnapshot} from "../../../models/tiles/tile-content"
 import { getFormulaManager } from "../../../models/tiles/tile-environment"
-import {typedId} from "../../../utilities/js-utils"
+import { typeV3Id } from "../../../utilities/codap-utils"
 import {mstAutorun} from "../../../utilities/mst-autorun"
 import { mstReaction } from "../../../utilities/mst-reaction"
 import { setNiceDomain } from "../../axis/axis-domain-utils"
@@ -55,7 +55,7 @@ export const NumberToggleModel = types
 export const GraphContentModel = DataDisplayContentModel
   .named("GraphContentModel")
   .props({
-    id: types.optional(types.string, () => typedId("GRCM")),
+    id: typeV3Id("GRCM"),
     type: types.optional(types.literal(kGraphTileType), kGraphTileType),
     adornmentsStore: types.optional(AdornmentsStore, () => AdornmentsStore.create()),
     // keys are AxisPlaces
@@ -697,6 +697,10 @@ export interface IGraphContentModelSnapshot extends SnapshotIn<typeof GraphConte
 
 export function isGraphContentModel(model?: ITileContentModel): model is IGraphContentModel {
   return model?.type === kGraphTileType
+}
+
+export function isGraphContentModelSnapshot(snap?: ITileContentSnapshot): snap is IGraphContentModelSnapshot {
+  return snap?.type === kGraphTileType
 }
 
 /*
