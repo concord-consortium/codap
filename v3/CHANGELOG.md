@@ -1,5 +1,33 @@
 # Changelog
 
+## Version 3.0.0-beta.2503 - October 3, 2025
+
+### ✨ Features & Improvements:
+- **CODAP-232:** Users can add a background image to graphs
+- **CODAP-809:** Redesigned text inspector
+- **CODAP-822:** Guide button functionality
+- **CODAP-894:** Tiles menu item hover brings component forward
+- **CODAP-902:** Open graph image in Draw Tool plugin
+- **CODAP-923:** Plugin API should support updating the position and dimensions of a component
+- **CODAP-949:** New plugin api for fusing dots into rectangles
+
+### 🐞 Bug Fixes:
+- **CODAP-778:** Clicking attribute menu should not trigger drag of attribute
+- **CODAP-840:** Disable dragging icons from the CFM toolbar
+- **CODAP-844:** Dot plot crash on setting point size to zero
+- **CODAP-914:** Don't show html formatting in hover tips
+- **CODAP-915:** Fix crash on marquee select in maps
+- **CODAP-920:** Fix subtraction of dates
+- **CODAP-927:** Fix date string concatenation
+- **CODAP-931:** Boolean evaluation in if() function and ternary operator is broken
+- **CODAP-941:** V2 doc won't open in V3 (group key import bug)
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  207849 bytes |                            0.01% |
+|  index.js | 6902791 bytes |                            0.01% |
+
 ## Version 3.0.0-beta.2485 - September 16, 2025
 
 ### ✨ Features & Improvements:
