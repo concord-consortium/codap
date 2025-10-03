@@ -154,30 +154,61 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
 })
 .volatile(self => ({
   // map from item ids to info like index and case ids
+  // Init: cleared by initializeVolatileState and rebuilt
   itemInfoMap: new Map<string, ItemInfo>(),
+
   // MobX-observable set of selected item IDs
+  // Init: updated by initializeVolatileState
   selection: observable.set<string>(),
+
+  // Init: reset by initializeVolatileState to trigger reactions
   selectionChanges: 0,
+
+  // Init: the setAside volatile state is rebuilt by initializeVolatileState
+
   // MobX-observable set of hidden (set aside) item IDs
   setAsideItemIdsSet: observable.set<string>(),
   // copy of setAsideItemIds used for change-detection
   setAsideItemIdsMirror: [] as string[],
+
+  // Init: the caseInfoMap and itemIdChildCaseMap are updated when used
+  // by validateCases. initializeVolatileState forces this to happen when
+  // it calls syncCollectionLinks
+
   // map from case ID to the CaseInfo it represents
   caseInfoMap: new Map<string, CaseInfo>(),
   // map from item ID to the child case containing it
   // contains all items and child cases, including hidden ones
   itemIdChildCaseMap: new Map<string, CaseInfo>(),
+
   // incremented when collection parent/child links are updated
+  // Init: updated by initializeVolatileState
   syncCollectionLinksCount: 0,
+
+  // TODO: This does not seem to actually be used anywhere, so should probably be removed
   transactionCount: 0,
+
   // the id of the interactive frame handling this dataset
   // used by the Collaborative plugin
+  // FIXME-Init: when the state is updated by applySnapshot, managingControllerId
+  // should be updated. However, it would be up to the plugin to do that, and
+  // it doesn't seem like plugins get any notifications when applySnapshot happens.
   managingControllerId: "",
+
+  // Init: the filter volatile state is updated when the filter formula is recomputed
+  // after applySnapshot
+
   // cached result of filter formula evaluation for each item ID
   filteredOutItemIds: observable.set<string>(),
   filterFormulaError: "",
+
+  // Init: this object does not need to change when a snapshot is applied.
+  // It simply provides an interface to getting values from this dataset.
   itemData: nullItemData,
+
   // flag indicating that items are being appended, enabling certain optimizations
+  // Init: this is not modified by applySnapshot, it should be rare that the two
+  // operation are interleaved
   isAppendingItems: false
 }))
 .extend(self => {
@@ -1341,11 +1372,6 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
 }))
 .actions(self => ({
   afterApplySnapshot() {
-    console.log(`DataSet(${self.name}).afterApplySnapshot`)
-
-    // TODO: there are many volatile properties of the dataset that haven't been
-    // reviewed to see if they need to be reset here.
-
     // This needs to be called before initializeVolatileState because
     // collection.afterApplySnapshot clears out data that is then set by
     // self.initializeVolatileState
@@ -1449,6 +1475,10 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
             self.setAsideItemIdsSet.add(itemId)
           }
           else {
+            // TODO: It looks like the mirror array is used just so we can figure out what the itemId
+            // was that was just removed, this could also be done by looking at the second
+            // argument to the onPatch callback which is the reversePatch.
+            // The reversePath will have the value that is being removed
             const itemId = self.setAsideItemIdsMirror[index]
             self.setAsideItemIdsMirror.splice(index, 1)
             self.setAsideItemIdsSet.delete(itemId)

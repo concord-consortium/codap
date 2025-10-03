@@ -503,8 +503,6 @@ export const CollectionModel = V2Model
     if (self._groupKeyCaseIds) {
       self.groupKeyCaseIds = new Map<string, string>(self._groupKeyCaseIds)
     }
-
-    // TODO: do we need to do anything else here? There are many other volatile properties
   }
 }))
 .actions(self => ({
