@@ -235,6 +235,13 @@ describe("+ operator", () => {
     expect(fn4.evaluate()).toEqual(new Date(2020, 0, 2))
   })
 
+  it("concatenates dates and strings", () => {
+    const fn = math.compile("'1/1/2020' + ' is a date'")
+    expect(fn.evaluate()).toEqual("1/1/2020 is a date")
+    const fn1 = math.compile("'Date: ' + '1/1/2020'")
+    expect(fn1.evaluate()).toEqual("Date: 1/1/2020")
+  })
+
   it("concatenates strings", () => {
     const fn = math.compile("'foo' + 'bar'")
     expect(fn.evaluate()).toEqual("foobar")
@@ -261,7 +268,7 @@ describe("- operator", () => {
     const fn = math.compile("'1/2/2020' - '1/1/2020'") // 1 day
     const val1 = new Date(2020, 0, 2).valueOf()
     const val2 = new Date(2020, 0, 1).valueOf()
-    expect(fn.evaluate()).toEqual(new Date(val1 - val2))
+    expect(fn.evaluate()).toEqual((val1 - val2) / 1000)
   })
 
   it("subtracts a number from a date", () => {
@@ -361,10 +368,23 @@ describe("/ operator", () => {
   })
 })
 
-describe("% operator", () => {
+describe("% (mod) operator", () => {
+  it("propagates empty values", () => {
+    const fn1 = math.compile("10 mod ''")
+    expect(fn1.evaluate()).toEqual("")
+    const fn2 = math.compile("'' mod 10")
+    expect(fn2.evaluate()).toEqual("")
+    const fn3 = math.compile("'' mod ''")
+    expect(fn3.evaluate()).toEqual("")
+  })
   it("computes modulus of two numbers", () => {
     const fn = math.compile("15 % 7")
     expect(fn.evaluate()).toEqual(1)
+    const fn1 = math.compile("15 mod 7")
+    expect(fn1.evaluate()).toEqual(1)
   })
-  // Trying to compute the modulus with strings is difficult so we punt on that for now
+  it("throws an error when computing modulus of strings", () => {
+    const fn = math.compile("'foo' mod 'bar'")
+    expect(() => fn.evaluate()).toThrow("Invalid arguments for mod operator: foo, bar")
+  })
 })
