@@ -177,7 +177,7 @@ export const operators = {
       if (isADate || isBDate) {
         // both are dates
         if (isADate && isBDate) {
-          return new Date(aDate.valueOf() - bDate.valueOf())
+          return (aDate.valueOf() - bDate.valueOf()) / 1000
         }
         // subtract seconds from a date
         if (isADate && isBNumber) {
