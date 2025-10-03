@@ -50,7 +50,9 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
           : (isSelected ? kMapAreaNoLegendSelectedColor : displayItemDescription.itemColor),
         strokeColor = hasLegend
           ? (isSelected ? kMapAreaWithLegendSelectedBorderColor
-            : dataConfiguration.getLegendColorForCase(featureCaseID))
+            : (displayItemDescription.itemStrokeSameAsFill
+                ? dataConfiguration.getLegendColorForCase(featureCaseID)
+                : displayItemDescription.itemStrokeColor))
           : (isSelected ? kMapAreaNoLegendSelectedBorderColor : displayItemDescription.itemStrokeColor),
         opacity = kDefaultMapFillOpacity,
         weight = isSelected ? kMapAreaSelectedBorderWeight : kMapAreaUnselectedBorderWeight
