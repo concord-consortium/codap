@@ -1,21 +1,14 @@
 import React from "react"
 import { observer } from "mobx-react-lite"
 import { MenuItem, MenuList } from "@chakra-ui/react"
-import { getDrawToolPluginUrl } from "../../../constants"
-import { getPositionOfNewComponent } from "../../../utilities/view-utils"
-import { getTileInfo } from "../../../models/document/tile-utils"
 import { useCfmContext } from "../../../hooks/use-cfm-context"
 import { useTileModelContext } from "../../../hooks/use-tile-model-context"
-import { isFreeTileRow } from "../../../models/document/free-tile-row"
 import { updateTileNotification } from "../../../models/tiles/tile-notifications"
 import { logMessageWithReplacement } from "../../../lib/log-message"
 import { t } from "../../../utilities/translation/translate"
-import { getTitle } from "../../../models/tiles/tile-content-info"
-import { appState } from "../../../models/app-state"
-import { kWebViewTileType } from "../../web-view/web-view-defs"
-import { IWebViewSnapshot } from "../../web-view/web-view-model"
 import { isGraphContentModel } from "../models/graph-content-model"
 import { graphSvg } from "../utilities/image-utils"
+import { openInDrawTool } from "../../data-display/data-display-image-utils"
 
 export const CameraMenuList = observer(function CameraMenuList() {
   const tile = useTileModelContext().tile
@@ -97,36 +90,6 @@ export const CameraMenuList = observer(function CameraMenuList() {
     return graphModel.renderState.dataUri || ''
   }
 
-  const openInDrawTool = async () => {
-    const title = (tile && getTitle?.(tile)) || tile?.title || ""
-    const { dimensions = { width: 400, height: 300 } } = tile?.id ? getTileInfo(tile?.id || '') : {}
-    const computedPosition = getPositionOfNewComponent(dimensions)
-    const imageString = await getImageString()
-    const webViewModelSnap: IWebViewSnapshot = {
-      type: kWebViewTileType,
-      subType: "plugin",
-      url: getDrawToolPluginUrl(),
-    }
-    const drawTileModel = appState.document.content?.insertTileSnapshotInDefaultRow({
-      _title: `Draw: ${title}`,
-      content: webViewModelSnap
-    })
-    const drawContentModel = drawTileModel?.content
-    if (drawContentModel && imageString) {
-      // Give the draw tool a moment to initialize before passing the image to it
-      setTimeout(() => {
-        drawContentModel.broadcastMessage({
-          action: "update",
-          resource: 'backgroundImage',
-          values: { image: imageString }
-        }, () => null)
-        const row = appState.document.content?.findRowContainingTile(drawTileModel?.id)
-        const freeTileRow = row && isFreeTileRow(row) ? row : undefined
-        freeTileRow?.setTilePosition(drawTileModel?.id, computedPosition)
-      }, 500)
-    }
-  }
-
   const handleExportPNG = async () => {
     let imageString = await getImageString()
     imageString = imageString.replace("data:image/png;base64,", "")
@@ -176,7 +139,12 @@ export const CameraMenuList = observer(function CameraMenuList() {
           </MenuItem>
       }
 
-      <MenuItem data-testid="open-in-draw-tool" onClick={openInDrawTool}>
+      <MenuItem data-testid="open-in-draw-tool" onClick={ async () => {
+        if (tile) {
+          const imageString = await getImageString()
+          await openInDrawTool(tile, imageString)
+        }
+      }}>
         {t("DG.DataDisplayMenu.copyAsImage")}
       </MenuItem>
       <MenuItem data-testid="export-png-image" onClick={handleExportPNG}>

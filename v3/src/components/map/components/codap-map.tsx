@@ -1,4 +1,4 @@
-import React, {MutableRefObject, useCallback, useEffect, useRef} from "react"
+import React, {useCallback, useEffect, useRef} from "react"
 import {observer} from "mobx-react-lite"
 import {clsx} from "clsx"
 import {MapContainer, TileLayer} from "react-leaflet"
@@ -25,17 +25,23 @@ import {MapGridSlider} from "./map-grid-slider"
 import "leaflet/dist/leaflet.css"
 import "./map.scss"
 interface IProps {
-  mapRef: MutableRefObject<HTMLDivElement | null>
+  setMapRef: (ref: HTMLDivElement | null) => void
 }
 
-export const CodapMap = observer(function CodapMap({mapRef}: IProps) {
+export const CodapMap = observer(function CodapMap({setMapRef}: IProps) {
   const mapModel = useMapModelContext(),
     layout = useDataDisplayLayout(),
     mapHeight = layout.contentHeight,
     interiorDivRef = useRef<HTMLDivElement>(null),
     prevMapSize = useRef<{ width: number, height: number, legend: number }>({width: 0, height: 0, legend: 0}),
     forceUpdate = useForceUpdate(),
+    mapRef = useRef<HTMLDivElement | null>(null),
     {pixiPointsArray, setPixiPointsLayer} = usePixiPointsArray()
+
+  const mySetMapRef = (ref: HTMLDivElement | null) => {
+    mapRef.current = ref
+    setMapRef(ref)
+  }
 
   // trigger an additional render once references have been fulfilled
   useEffect(() => forceUpdate(), [forceUpdate])
@@ -117,7 +123,7 @@ export const CodapMap = observer(function CodapMap({mapRef}: IProps) {
   }, [mapModel, mapRef])
 
   return (
-    <div className={clsx('map-container', kPortalClass)} ref={mapRef} data-testid="map">
+    <div className={clsx('map-container', kPortalClass)} ref={mySetMapRef} data-testid="map">
       <div className="leaflet-wrapper" style={{height: mapHeight}} ref={interiorDivRef}>
         <MapContainer center={mapModel.center} zoom={mapModel.zoom} scrollWheelZoom={false}
                       zoomSnap={0} trackResize={true}>
