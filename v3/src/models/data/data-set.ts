@@ -1402,7 +1402,7 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
     }
 
     // TODO: replace this with initializeVolatileState()
-    // However we still need to add the initial collection, hopefully the order of
+    // However we still need to add the initial collection, hopefully the order
     // of doing that doesn't matter.
     self.syncCollectionLinks()
 
@@ -1481,7 +1481,7 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
             // TODO: It looks like the mirror array is used just so we can figure out what the itemId
             // was that was just removed, this could also be done by looking at the second
             // argument to the onPatch callback which is the reversePatch.
-            // The reversePath will have the value that is being removed
+            // The reversePatch will have the value that is being removed
             const itemId = self.setAsideItemIdsMirror[index]
             self.setAsideItemIdsMirror.splice(index, 1)
             self.setAsideItemIdsSet.delete(itemId)

@@ -8,6 +8,7 @@ import "../shared/shared-data-set-registration"
 // eslint-disable-next-line no-var
 var mockNodeIdCount = 0
 jest.mock("../../utilities/js-utils", () => ({
+  ...jest.requireActual("../../utilities/js-utils"),
   hashOrderedStringSet: () => 12345678,
   hashStringSet: () => 12345678,
   typedId: () => `test-${++mockNodeIdCount}`,

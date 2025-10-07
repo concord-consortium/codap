@@ -1,7 +1,7 @@
 import { comparer, makeObservable, observable, reaction, action } from "mobx"
 import { addDisposer } from "mobx-state-tree"
 import { parse } from "mathjs"
-import { nanoid } from "nanoid"
+import { uniqueId } from "../../utilities/js-utils"
 import { boundaryManager, BoundaryManager } from "../boundaries/boundary-manager"
 import { IDataSet } from "../data/data-set"
 import { ICase } from "../data/data-set-types"
@@ -34,7 +34,7 @@ export class FormulaManager implements IFormulaManager {
   areAdaptersInitialized = false
 
   // Unique identifier of this formula manager instance, useful for debugging.
-  id = nanoid()
+  id = uniqueId()
 
   constructor() {
     makeObservable(this)
