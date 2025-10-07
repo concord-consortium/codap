@@ -1,5 +1,5 @@
-import { Instance, SnapshotIn, SnapshotOut, types } from "mobx-state-tree"
-import { SharedModel } from "../shared/shared-model"
+import { getType, Instance, SnapshotIn, SnapshotOut, types } from "mobx-state-tree"
+import { ISharedModel, ISharedModelSnapshot, SharedModel } from "../shared/shared-model"
 import { GlobalValue, IGlobalValue, IGlobalValueSnapshot, kDefaultNamePrefix } from "./global-value"
 import { ISharedModelManager } from "../shared/shared-model-manager"
 
@@ -61,6 +61,14 @@ export const GlobalValueManager = SharedModel
 export interface IGlobalValueManager extends Instance<typeof GlobalValueManager> {}
 export interface IGlobalValueManagerSnapshot extends SnapshotIn<typeof GlobalValueManager> {}
 export interface IGlobalValueManagerSnapshotOut extends SnapshotOut<typeof GlobalValueManager> {}
+
+export function isGlobalValueManager(model?: ISharedModel): model is IGlobalValueManager {
+  return model ? getType(model) === GlobalValueManager : false
+}
+
+export function isGlobalValueManagerSnapshot(snapshot?: ISharedModelSnapshot): snapshot is IGlobalValueManagerSnapshot {
+  return snapshot ? snapshot.type === kGlobalValueManagerType : false
+}
 
 export function getGlobalValueManager(sharedModelManager?: ISharedModelManager) {
   return sharedModelManager?.getSharedModelsByType(kGlobalValueManagerType)?.[0] as IGlobalValueManager | undefined

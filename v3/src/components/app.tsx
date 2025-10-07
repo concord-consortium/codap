@@ -2,6 +2,7 @@ import { clsx } from "clsx"
 import { useDisclosure } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
 import React, { useCallback, useEffect, useState } from "react"
+import { setLivelinessChecking } from "mobx-state-tree"
 import { ErrorBoundary } from "react-error-boundary"
 import { CfmContext } from "../hooks/use-cfm-context"
 import { DocumentContentContext } from "../hooks/use-document-content"
@@ -43,6 +44,11 @@ import "../models/shared/data-set-metadata-registration"
 import "../models/shared/shared-data-set-registration"
 
 import "./app.scss"
+
+// Uncomment this to help track down MST errors like:
+// "You are trying to read or write to an object that is no longer part of a state tree"
+// See mst-detached-error.md for more information.
+// setLivelinessChecking("error")
 
 AttributeFormulaAdapter.register()
 FilterFormulaAdapter.register()

@@ -7,9 +7,9 @@ import {applyModelChange} from "../../../models/history/apply-model-change"
 import {withoutUndo} from "../../../models/history/without-undo"
 import {ISharedDataSet, kSharedDataSetType, SharedDataSet} from "../../../models/shared/shared-data-set"
 import {getMetadataFromDataSet} from "../../../models/shared/shared-data-utils"
-import {ITileContentModel} from "../../../models/tiles/tile-content"
+import {ITileContentModel, ITileContentSnapshot} from "../../../models/tiles/tile-content"
 import { getFormulaManager } from "../../../models/tiles/tile-environment"
-import {typedId} from "../../../utilities/js-utils"
+import { typeV3Id } from "../../../utilities/codap-utils"
 import {GraphPlace} from "../../axis-graph-shared"
 import {IDataConfigurationModel} from "../../data-display/models/data-configuration-model"
 import {DataDisplayContentModel} from "../../data-display/models/data-display-content-model"
@@ -47,7 +47,7 @@ export interface IGeoRasterModel extends Instance<typeof GeoRasterModel> {}
 export const MapContentModel = DataDisplayContentModel
   .named(kMapModelName)
   .props({
-    id: types.optional(types.string, () => typedId("MPCM")),
+    id: typeV3Id("MPCM"),
     type: types.optional(types.literal(kMapTileType), kMapTileType),
 
     // center and zoom are kept in sync with Leaflet's map state
@@ -409,4 +409,8 @@ export function createMapContentModel(snap?: IMapModelContentSnapshot) {
 
 export function isMapContentModel(model?: ITileContentModel): model is IMapContentModel {
   return model?.type === kMapTileType
+}
+
+export function isMapModelContentSnapshot(snap?: ITileContentSnapshot): snap is IMapModelContentSnapshot {
+  return snap?.type === kMapTileType
 }

@@ -153,33 +153,62 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
   filterFormula: types.maybe(Formula)
 })
 .volatile(self => ({
-  // map from attribute name to attribute id
-  attrNameMap: observable.map<string, string>({}, { name: "attrNameMap" }),
   // map from item ids to info like index and case ids
+  // Init: cleared by initializeVolatileState and rebuilt
   itemInfoMap: new Map<string, ItemInfo>(),
+
   // MobX-observable set of selected item IDs
+  // Init: updated by initializeVolatileState
   selection: observable.set<string>(),
+
+  // Init: reset by initializeVolatileState to trigger reactions
   selectionChanges: 0,
+
+  // Init: the setAside volatile state is rebuilt by initializeVolatileState
+
   // MobX-observable set of hidden (set aside) item IDs
   setAsideItemIdsSet: observable.set<string>(),
   // copy of setAsideItemIds used for change-detection
   setAsideItemIdsMirror: [] as string[],
+
+  // Init: the caseInfoMap and itemIdChildCaseMap are updated when used
+  // by validateCases. initializeVolatileState forces this to happen when
+  // it calls syncCollectionLinks
+
   // map from case ID to the CaseInfo it represents
   caseInfoMap: new Map<string, CaseInfo>(),
   // map from item ID to the child case containing it
   // contains all items and child cases, including hidden ones
   itemIdChildCaseMap: new Map<string, CaseInfo>(),
+
   // incremented when collection parent/child links are updated
+  // Init: updated by initializeVolatileState
   syncCollectionLinksCount: 0,
+
+  // TODO: This does not seem to actually be used anywhere, so should probably be removed
   transactionCount: 0,
+
   // the id of the interactive frame handling this dataset
   // used by the Collaborative plugin
+  // FIXME-Init: when the state is updated by applySnapshot, managingControllerId
+  // should be updated. However, it would be up to the plugin to do that, and
+  // it doesn't seem like plugins get any notifications when applySnapshot happens.
   managingControllerId: "",
+
+  // Init: the filter volatile state is updated when the filter formula is recomputed
+  // after applySnapshot
+
   // cached result of filter formula evaluation for each item ID
   filteredOutItemIds: observable.set<string>(),
   filterFormulaError: "",
+
+  // Init: this object does not need to change when a snapshot is applied.
+  // It simply provides an interface to getting values from this dataset.
   itemData: nullItemData,
+
   // flag indicating that items are being appended, enabling certain optimizations
+  // Init: this is not modified by applySnapshot, it should be rare that the two
+  // operation are interleaved
   isAppendingItems: false
 }))
 .extend(self => {
@@ -572,6 +601,9 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
   validateCases() {
     if (!self.isValidCases) {
       self.caseInfoMap.clear()
+
+      // TODO: look at this more closely to see if after an applySnapshot we need to clear this
+      // better
       const itemsToValidate = new Set<string>(self.itemInfoMap.keys())
       self.itemInfoMap.clear()
       self._itemIds.forEach((itemId, index) => {
@@ -1305,7 +1337,58 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
     return values
   }
 }))
+.volatile(self => ({
+  // This is inside of a volatile block in case it modifies any non-volatile state.
+  // As an action, if it modified non-volatile, it would be recorded as a new entry
+  // in the undo history when it is called from afterCreate.
+  initializeVolatileState() {
+    // This directly updates volatile properties of collections:
+    // - parent and child
+    // - it also updates the collection itemData property from the dataSets itemData
+    // - it indirectly causes the other properties of collection to be updated because
+    //   it calls invalidateCases.
+    // Note: itemData is a object that provides methods to access the dataSet's
+    // data. There is no state in this itemData object, so after an applySnapshot it
+    // isn't necessary to recreate it or update it.
+    self.syncCollectionLinks()
+
+    // build itemIDMap
+    // If we are re-initializing, clear out any existing entries first
+    self.itemInfoMap.clear()
+    self._itemIds.forEach((itemId, index) => {
+      self.itemInfoMap.set(itemId, { index, caseIds: [], isHidden: self.isCaseOrItemHidden(itemId) })
+    })
+
+    // make sure attributes have appropriate length, including attributes with formulas
+    self.attributesMap.forEach(attr => {
+      attr.setLength(self._itemIds.length)
+    })
+
+    // initialize selection
+    self.selection.replace(self.snapSelection)
+    self.selectionChanges = 0
+
+    // initialize setAsideItem metadata props
+    self.setAsideItemIdsSet.replace(self.setAsideItemIds)
+    self.setAsideItemIdsMirror = [...self.setAsideItemIds]
+  }
+}))
 .actions(self => ({
+  afterApplySnapshot() {
+    // This needs to be called before initializeVolatileState because
+    // collection.afterApplySnapshot clears out data that is then set by
+    // self.initializeVolatileState
+    self.collections.forEach(collection => collection.afterApplySnapshot())
+
+    // This needs to be called before initializeVolatileState because
+    // attribute.afterApplySnapshot initializes strValues to match values
+    // which will be undefined for attributes with formulas. And then then
+    // initializeVolatileState calls attr.setLength which fills strValues
+    // with "" for any missing values.
+    self.attributes.forEach(attr => attr.afterApplySnapshot())
+
+    self.initializeVolatileState()
+  },
   afterCreate() {
     const context: IEnvContext | Record<string, never> = hasEnv(self) ? getEnv(self) : {},
           { srcDataSet } = context
@@ -1318,6 +1401,9 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
       invalidate: () => self.invalidateCases()
     }
 
+    // TODO: replace this with initializeVolatileState()
+    // However we still need to add the initial collection, hopefully the order
+    // of doing that doesn't matter.
     self.syncCollectionLinks()
 
     // build itemIDMap
@@ -1363,6 +1449,8 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
       addDisposer(self, reaction(
         () => self.collectionIds,
         () => self.syncCollectionLinks(),
+        // TODO: the fireImmediately seems unnecessary because we are calling syncCollectionLinks()
+        // above.
         { name: "DataSet.collections", equals: comparer.structural, fireImmediately: true }
       ))
 
@@ -1390,6 +1478,10 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
             self.setAsideItemIdsSet.add(itemId)
           }
           else {
+            // TODO: It looks like the mirror array is used just so we can figure out what the itemId
+            // was that was just removed, this could also be done by looking at the second
+            // argument to the onPatch callback which is the reversePatch.
+            // The reversePatch will have the value that is being removed
             const itemId = self.setAsideItemIdsMirror[index]
             self.setAsideItemIdsMirror.splice(index, 1)
             self.setAsideItemIdsSet.delete(itemId)

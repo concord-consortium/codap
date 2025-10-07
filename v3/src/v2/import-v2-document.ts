@@ -15,6 +15,12 @@ export function importV2Document(v2Document: CodapV2Document) {
   // We do not migrate the v2 `appVersion` into the v3 `version` property.
   // That way if this converted document is saved, it will be saved with
   // the current CODAP version.
+  // Note: this call to createCodapDocument creates managers and services
+  // that you might not realize:
+  // - formulaManager
+  // - globalValueManager
+  // - sharedModelManager
+  // - historyService
   const v3Document = createCodapDocument(undefined, { layout: "free" })
   const sharedModelManager = getSharedModelManager(v3Document)
 

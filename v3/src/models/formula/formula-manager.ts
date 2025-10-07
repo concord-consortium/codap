@@ -1,6 +1,7 @@
 import { comparer, makeObservable, observable, reaction, action } from "mobx"
 import { addDisposer } from "mobx-state-tree"
 import { parse } from "mathjs"
+import { uniqueId } from "../../utilities/js-utils"
 import { boundaryManager, BoundaryManager } from "../boundaries/boundary-manager"
 import { IDataSet } from "../data/data-set"
 import { ICase } from "../data/data-set-types"
@@ -32,9 +33,11 @@ export class FormulaManager implements IFormulaManager {
   @observable
   areAdaptersInitialized = false
 
+  // Unique identifier of this formula manager instance, useful for debugging.
+  id = uniqueId()
+
   constructor() {
     makeObservable(this)
-
     this.boundaryManager = boundaryManager
   }
 
@@ -151,6 +154,12 @@ export class FormulaManager implements IFormulaManager {
 
   getActiveFormulas() {
     return this.adapters.flatMap(a => a.getActiveFormulas())
+  }
+
+  recalculateActiveFormulas() {
+    this.getActiveFormulas().forEach(({ formula }) => {
+      this.recalculateFormula(formula.id)
+    })
   }
 
   registerActiveFormulas() {
