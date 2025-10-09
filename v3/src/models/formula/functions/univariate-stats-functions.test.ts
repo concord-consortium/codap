@@ -118,6 +118,48 @@ describe("min", () => {
   })
 })
 
+describe("percentile", () => {
+  it("returns correct value", () => {
+    expect(evaluate("percentile(Speed, 0)")).toBeCloseTo(1)
+    expect(evaluate("percentile(Speed, 50)")).toBeCloseTo(49)
+    expect(evaluate("percentile(Speed, 100)")).toBeCloseTo(110)
+  })
+
+  it("supports filter expression", () => {
+    expect(evaluate("percentile(Speed, 0, Diet = 'plants')")).toBeCloseTo(40)
+    expect(evaluate("percentile(Speed, 50, Diet = 'plants')")).toBeCloseTo(50)
+    expect(evaluate("percentile(Speed, 100, Diet = 'plants')")).toBeCloseTo(98)
+  })
+
+  it("ignores non-numeric values", () => {
+    expect(evaluate("percentile(Diet, 50)")).toEqual(UNDEF_RESULT)
+  })
+
+  it("supports single value argument", () => {
+    expect(evaluate("percentile(1, 50, true)")).toEqual(1)
+    expect(evaluate("percentile(1, 50, false)")).toEqual(UNDEF_RESULT)
+  })
+})
+
+describe("rollingMean", () => {
+  it("returns correct value", () => {
+    expect(evaluate("rollingMean(Speed, 3)", 0)).toBe("")
+    expect(evaluate("rollingMean(Speed, 3)", 1)).toBeCloseTo(40)
+    expect(evaluate("rollingMean(Speed, 3)", 2)).toBeCloseTo(39)
+  })
+
+  it("supports filter expression", () => {
+    expect(evaluate("rollingMean(Speed, 3, Diet = 'plants')", 0)).toBe("")
+    expect(evaluate("rollingMean(Speed, 3, Diet = 'plants')", 1)).toBeCloseTo(43.33)
+    expect(evaluate("rollingMean(Speed, 3, Diet = 'plants')", 2)).toBe("")
+    expect(evaluate("rollingMean(Speed, 3, Diet = 'plants')", 7)).toBeCloseTo(46.67)
+  })
+
+  it("ignores non-numeric values", () => {
+    expect(evaluate("rollingMean(Diet, 3)")).toEqual(UNDEF_RESULT)
+  })
+})
+
 describe("stdDev", () => {
   it("returns correct value", () => {
     expect(evaluate("stdDev(Speed)")).toBeCloseTo(25.46)
