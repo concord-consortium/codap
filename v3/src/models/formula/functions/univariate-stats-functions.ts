@@ -175,7 +175,7 @@ export const univariateStatsFunctions: Record<string, IFormulaMathjsFunction> = 
         for (let i = 0; i < _count; ++i) {
           const [isValid, x] = checkNumber(values[i])
           if (isValid && (filterValues ? isValueTruthy(filterValues[i]) : true)) {
-            filteredValues.push({ value: x, caseId: scope.context.caseIds?.[i] ?? "" })
+            filteredValues.push({ value: x, caseId: scope.context.caseIds?.[scope.casePointer + i] ?? "" })
           }
         }
 

@@ -143,16 +143,16 @@ describe("percentile", () => {
 
 describe("rollingMean", () => {
   it("returns correct value", () => {
-    expect(evaluate("rollingMean(Speed, 3)", 0)).toBe("")
-    expect(evaluate("rollingMean(Speed, 3)", 1)).toBeCloseTo(40)
-    expect(evaluate("rollingMean(Speed, 3)", 2)).toBeCloseTo(39)
+    expect(evaluate("rollingMean(Speed, 3)", 0, 0)).toBe("")
+    expect(evaluate("rollingMean(Speed, 3)", 0, 1)).toBeCloseTo(40)
+    expect(evaluate("rollingMean(Speed, 3)", 0, 2)).toBeCloseTo(39)
   })
 
   it("supports filter expression", () => {
-    expect(evaluate("rollingMean(Speed, 3, Diet = 'plants')", 0)).toBe("")
-    expect(evaluate("rollingMean(Speed, 3, Diet = 'plants')", 1)).toBeCloseTo(43.33)
-    expect(evaluate("rollingMean(Speed, 3, Diet = 'plants')", 2)).toBe("")
-    expect(evaluate("rollingMean(Speed, 3, Diet = 'plants')", 7)).toBeCloseTo(46.67)
+    expect(evaluate("rollingMean(Speed, 3, Diet = 'plants')", 0, 0)).toBe("")
+    expect(evaluate("rollingMean(Speed, 3, Diet = 'plants')", 0, 1)).toBeCloseTo(43.33)
+    expect(evaluate("rollingMean(Speed, 3, Diet = 'plants')", 0, 2)).toBe("")
+    expect(evaluate("rollingMean(Speed, 3, Diet = 'plants')", 0, 7)).toBeCloseTo(46.67)
   })
 
   it("ignores non-numeric values", () => {

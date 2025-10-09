@@ -51,7 +51,11 @@ export const getFormulaTestEnv = () => {
 }
 
 // When casePointer is provided, evaluation will support case-dependant formulas.
-export const evaluate = (displayFormula: string, casePointer?: number) => {
+// When evalCasePointer is provided, the formula will be evaluated first for casePointer,
+// then the casePointer will be set to evalCasePointer and the formula will be evaluated again.
+// This is useful for testing functions like rollingMean(), which perform casePointer-based
+// caching on the first evaluation, but then can be evaluated for other cases.
+export const evaluate = (displayFormula: string, casePointer?: number, evalCasePointer?: number) => {
   const { dataSetsByName, dataSets, globalValueManager } = getFormulaTestEnv()
   const localDataSet = dataSetsByName.Mammals
   const caseIds = localDataSet.items.map(c => c.__id__)
@@ -73,7 +77,12 @@ export const evaluate = (displayFormula: string, casePointer?: number) => {
     globalValueManager
   })
   const formula = displayToCanonical(displayFormula, displayNameMap)
-  return math.evaluate(formula, scope)
+  let result = math.evaluate(formula, scope)
+  if (evalCasePointer != null) {
+    scope.setCasePointer(evalCasePointer)
+    result = math.evaluate(formula, scope)
+  }
+  return result
 }
 
 export interface IEvaluateForAllCasesOptions {
