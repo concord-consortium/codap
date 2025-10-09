@@ -160,7 +160,7 @@ export const univariateStatsFunctions: Record<string, IFormulaMathjsFunction> = 
       const cacheKey = `rollingMean(${args.toString()})-${caseGroupId}`
       let cached = scope.getCached<IRollingMeanFunctionCache>(cacheKey)
 
-      // if we don't have cached results, sort the values and cache the results
+      // if we don't have cached results, cache the values and their case ids
       if (!cached) {
         let values = evaluateNode(expressionArg, scope)
         if (!Array.isArray(values)) {
@@ -198,7 +198,7 @@ export const univariateStatsFunctions: Record<string, IFormulaMathjsFunction> = 
       const index = cached.caseIdToIndex.get(scope.caseId)
       if (index == null) return UNDEF_RESULT
 
-      const numPreceding = Math.floor(width/2)
+      const numPreceding = Math.floor(width / 2)
       const numFollowing = width - 1 - numPreceding
       // if there are not enough preceding or following values, there is no value
       if (numPreceding > index || numFollowing >= cached.values.length - index) return UNDEF_RESULT
