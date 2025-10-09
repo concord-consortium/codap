@@ -246,6 +246,7 @@ async function asyncUpdate(resources: DIResources, values?: DIValues) {
   })
 
   if (DEBUG_PLUGINS) {
+    // eslint-disable-next-line no-console
     console.log("Updating document",
       {
         // Note: calling getSnapshot on the existing document is not exactly the same
