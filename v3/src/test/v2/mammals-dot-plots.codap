@@ -123,6 +123,7 @@
                     }
                 },
                 "displayOnlySelected": false,
+                "enableMeasuresForSelection": false,
                 "legendRole": 0,
                 "legendAttributeType": 0,
                 "numberOfLegendQuantiles": 5,
@@ -217,6 +218,7 @@
                     }
                 },
                 "displayOnlySelected": false,
+                "enableMeasuresForSelection": false,
                 "legendRole": 0,
                 "legendAttributeType": 0,
                 "numberOfLegendQuantiles": 5,
@@ -315,6 +317,7 @@
                     }
                 },
                 "displayOnlySelected": false,
+                "enableMeasuresForSelection": false,
                 "legendRole": 0,
                 "legendAttributeType": 0,
                 "numberOfLegendQuantiles": 5,
@@ -415,6 +418,7 @@
                     }
                 },
                 "displayOnlySelected": false,
+                "enableMeasuresForSelection": false,
                 "legendRole": 0,
                 "legendAttributeType": 0,
                 "numberOfLegendQuantiles": 5,
@@ -517,6 +521,7 @@
                     }
                 },
                 "displayOnlySelected": false,
+                "enableMeasuresForSelection": false,
                 "legendRole": 0,
                 "legendAttributeType": 0,
                 "numberOfLegendQuantiles": 5,
@@ -612,6 +617,7 @@
                     }
                 },
                 "displayOnlySelected": false,
+                "enableMeasuresForSelection": false,
                 "legendRole": 0,
                 "legendAttributeType": 0,
                 "numberOfLegendQuantiles": 5,
@@ -718,6 +724,7 @@
                     }
                 },
                 "displayOnlySelected": false,
+                "enableMeasuresForSelection": false,
                 "legendRole": 0,
                 "legendAttributeType": 0,
                 "numberOfLegendQuantiles": 5,
@@ -826,6 +833,7 @@
                     }
                 },
                 "displayOnlySelected": false,
+                "enableMeasuresForSelection": false,
                 "legendRole": 0,
                 "legendAttributeType": 0,
                 "numberOfLegendQuantiles": 5,
@@ -928,6 +936,7 @@
                     }
                 },
                 "displayOnlySelected": false,
+                "enableMeasuresForSelection": false,
                 "legendRole": 0,
                 "legendAttributeType": 0,
                 "numberOfLegendQuantiles": 5,
@@ -1023,6 +1032,7 @@
                     }
                 },
                 "displayOnlySelected": false,
+                "enableMeasuresForSelection": false,
                 "legendRole": 0,
                 "legendAttributeType": 0,
                 "numberOfLegendQuantiles": 5,
@@ -1129,6 +1139,7 @@
                     }
                 },
                 "displayOnlySelected": false,
+                "enableMeasuresForSelection": false,
                 "legendRole": 0,
                 "legendAttributeType": 0,
                 "numberOfLegendQuantiles": 5,
@@ -1237,6 +1248,7 @@
                     }
                 },
                 "displayOnlySelected": false,
+                "enableMeasuresForSelection": false,
                 "legendRole": 0,
                 "legendAttributeType": 0,
                 "numberOfLegendQuantiles": 5,

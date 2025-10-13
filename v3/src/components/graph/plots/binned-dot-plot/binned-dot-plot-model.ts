@@ -3,7 +3,8 @@ import { isFiniteNumber } from "../../../../utilities/math-utils"
 import { IAxisTicks, TickFormatter } from "../../../axis/axis-types"
 import { dataDisplayGetNumericValue } from "../../../data-display/data-display-value-utils"
 import { DotPlotModel } from "../dot-plot/dot-plot-model"
-import { IPlotModel, IRespondToPlotChangeOptions, typesPlotType } from "../plot-model"
+import {ICountAdornmentValuesProps, INumDenom, IPlotModel, IRespondToPlotChangeOptions, typesPlotType}
+  from "../plot-model"
 
 export const BinnedDotPlotModel = DotPlotModel
   .named("BinnedDotPlotModel")
@@ -156,6 +157,70 @@ export const BinnedDotPlotModel = DotPlotModel
         }
       }
       return { tickValues, tickLabels }
+    },
+    binnedCaseValues() {
+      const caseValues: number[] = []
+      const { dataset, primaryAttributeID } = self.dataConfiguration ?? {}
+      const caseDataArray = self.dataConfiguration?.getCaseDataArray(0) ?? []
+      caseDataArray.forEach(aCaseData => {
+        const value = primaryAttributeID
+          ? dataDisplayGetNumericValue(dataset, aCaseData.caseID, primaryAttributeID)
+          : undefined
+        if (isFiniteNumber(value)) {
+          caseValues.push(value)
+        }
+      })
+      return caseValues
+    },
+    countAdornmentValues({ cellKey }: ICountAdornmentValuesProps) {
+      const dataConfig = self.dataConfiguration
+      const { binWidth, totalNumberOfBins, minBinEdge } = self.binDetails()
+      const caseDataArray = dataConfig?.subPlotCases(cellKey) ?? []
+      const showMeasuresForSelection = dataConfig?.showMeasuresForSelection ?? false
+      const totalNumberOfCases = caseDataArray.length
+      const values: INumDenom[] = []
+      const binCounts: { numInBin:number, numSelected:number }[] = []
+      const { dataset, primaryAttributeID } = self.dataConfiguration ?? {}
+      caseDataArray.forEach(caseID => {
+        const caseValue = primaryAttributeID
+          ? dataDisplayGetNumericValue(dataset, caseID, primaryAttributeID)
+          : undefined
+        if (isFiniteNumber(caseValue)) {
+          const diff = caseValue - minBinEdge
+          const binIndex = binWidth ? Math.floor(diff / binWidth) : 0
+          if (binIndex >= 0 && binIndex < totalNumberOfBins) {
+            if (!binCounts[binIndex]) {
+              binCounts[binIndex] = { numInBin: 0, numSelected: 0 }
+            }
+            binCounts[binIndex].numInBin++
+            if (dataset?.isCaseSelected(caseID)) {
+              binCounts[binIndex].numSelected++
+            }
+          }
+        }
+      })
+      for (let binIndex = 0; binIndex < totalNumberOfBins; binIndex++) {
+        if (!binCounts[binIndex]) {
+          values[binIndex] = { numerator: 0, denominator: 1 }
+        }
+        else {
+          if (showMeasuresForSelection) {
+            values[binIndex] = {
+              numerator: binCounts[binIndex].numSelected,
+              denominator: binCounts[binIndex].numInBin
+            }
+          } else {
+            values[binIndex] = {
+              numerator: binCounts[binIndex].numInBin,
+              denominator: totalNumberOfCases
+            }
+          }
+        }
+      }
+      return {
+        numHorizontalRegions: (dataConfig?.numberOfHorizontalRegions ?? 1) * totalNumberOfBins,
+        values
+      }
     }
   }))
   .actions(self => ({

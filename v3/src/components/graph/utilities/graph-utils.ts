@@ -107,12 +107,16 @@ export function valueLabelString(value: number) {
   return float(value)
 }
 
-export function percentString(value: number) {
-  return new Intl.NumberFormat("default", {
-    style: "percent",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  }).format(value)
+// This function is used by the count adornment which includes the '%' character in the localizable strings.
+// So we use the "decimal" style here to format the number without the percent sign.
+export function percentString(value: number, maxFracDigits = 1) {
+  return isFinite(value)
+    ? new Intl.NumberFormat("default", {
+        style: "decimal",
+        minimumFractionDigits: 0,
+        maximumFractionDigits: maxFracDigits,
+      }).format(value * 100)
+    : ''
 }
 
 function roundToSignificantDigits(value: number, sigDigits: number) {

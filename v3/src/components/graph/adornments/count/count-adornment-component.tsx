@@ -1,82 +1,125 @@
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
+import { comparer } from "mobx"
 import React, { useCallback, useEffect, useRef, useState } from "react"
 import { measureText } from "../../../../hooks/use-measure-text"
 import { mstAutorun } from "../../../../utilities/mst-autorun"
+import { t } from "../../../../utilities/translation/translate"
+import { isFiniteNumber } from "../../../../utilities/math-utils"
 import { mstReaction } from "../../../../utilities/mst-reaction"
-import { prf } from "../../../../utilities/profiler"
+import { isNumericAxisModel } from "../../../axis/models/numeric-axis-models"
 import { useAdornmentAttributes } from "../../hooks/use-adornment-attributes"
 import { useAdornmentCells } from "../../hooks/use-adornment-cells"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
 import { useGraphDataConfigurationContext } from "../../hooks/use-graph-data-configuration-context"
 import { isBinnedDotPlotModel } from "../../plots/binned-dot-plot/binned-dot-plot-model"
 import { percentString } from "../../utilities/graph-utils"
+import { INumDenom } from "../../plots/plot-model"
 import { IAdornmentComponentProps } from "../adornment-component-info"
 import { kDefaultFontSize } from "../adornment-types"
-import { getAxisDomains } from "../utilities/adornment-utils"
-import { ICountAdornmentModel, IRegionCount } from "./count-adornment-model"
+import { ICountAdornmentModel } from "./count-adornment-model"
 
 import "./count-adornment-component.scss"
 
 export const CountAdornment = observer(function CountAdornment(props: IAdornmentComponentProps) {
-  prf.begin("CountAdornment.render")
-  const { cellKey, plotHeight, plotWidth, xAxis, yAxis } = props
+  const { cellKey, plotWidth} = props
+  const [stateCounter, setStateCounter] = useState(0)
   const model = props.model as ICountAdornmentModel
   const { classFromKey, instanceKey } = useAdornmentCells(model, cellKey)
   const { xScale, yScale } = useAdornmentAttributes()
   const dataConfig = useGraphDataConfigurationContext()
+  const showMeasuresForSelection = dataConfig?.showMeasuresForSelection ?? false
   const graphModel = useGraphContentModelContext()
-  const binnedDotPlot = isBinnedDotPlotModel(graphModel.plot) ? graphModel.plot : undefined
+  const isBinnedPlot = isBinnedDotPlotModel(graphModel.plot)
   const adornmentsStore = graphModel?.adornmentsStore
+  const movableValues = adornmentsStore?.sortedMovableValues(instanceKey) ?? []
+  const movableValuesAreShowing = movableValues.length > 0
+  const percentType = model.percentType as "cell" | "column" | "row" | undefined
   const primaryAttrRole = dataConfig?.primaryRole ?? "x"
-  const scale = primaryAttrRole === "x" ? xScale : yScale
-  const casesInPlot =
-    dataConfig?.filterCasesForDisplay(dataConfig?.subPlotCases(cellKey)).length ?? 0
-  const percent = model.percentValue(casesInPlot, cellKey, dataConfig)
-  const displayPercent = model.showCount ? ` (${percentString(percent)})` : percentString(percent)
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const rerenderOnCasesChange = dataConfig?.casesChangeCount
-  const textContent = `${model.showCount ? casesInPlot : ""}${model.showPercent ? displayPercent : ""}`
+  const primaryScale = primaryAttrRole === "x" ? xScale : yScale
+  const candidateDomain = primaryScale.domain()
+  const primaryAxisDomain =
+    (candidateDomain.length === 2 ? candidateDomain as [min: number, max: number] : undefined)
+  const primaryAxisModel = primaryAttrRole === "x" ? graphModel.getAxis('bottom') : graphModel.getAxis('left')
   const defaultFontSize = graphModel.adornmentsStore.defaultFontSize
   let fontSize = defaultFontSize
   const prevCellWidth = useRef(plotWidth)
   const prevSubPlotRegionWidth = useRef(plotWidth)
-  const [displayCount, setDisplayCount] = useState(<div>{textContent}</div>)
 
-  const subPlotRegionBoundaries = useCallback(() => {
-      // Sub plot regions can be defined by either bin boundaries when points are grouped into bins, or by
-      // instances of the movable value adornment. It should not be possible to have both bin boundaries and
-      // movable values present at the same time.
-      // access plot type so the autorun below is triggered when the plot type changes
-      if (graphModel.plotType === "binnedDotPlot" && binnedDotPlot && dataConfig) {
-        const { binWidth, minBinEdge, maxBinEdge, totalNumberOfBins } = binnedDotPlot.binDetails() ?? {}
-        return binWidth !== undefined ? [
-          // Build and spread an array of numeric values corresponding to the bin boundaries. Using totalNumberOfBins
-          // for length, start at minBinEdge and increment by binWidth using each bin's index. Afterward, add
-          // maxBinEdge to complete the region boundaries array.
-          ...Array.from({ length: totalNumberOfBins }, (_, i) => minBinEdge + i * binWidth),
-          maxBinEdge
-        ] : []
+  const countAdornmentValues =
+    graphModel.plot.countAdornmentValues({cellKey, percentType, movableValues, primaryAxisDomain})
+
+  const computeTextContent = useCallback(({numerator, denominator}:INumDenom) => {
+    const countNoSelection = 'DG.PlottedCount.withoutSelection',
+      countWithSelection = 'DG.PlottedCount.withSelection',
+      percentNoSelection = 'DG.PlottedPercent.withoutSelection',
+      percentWithSelection = 'DG.PlottedPercent.withSelection',
+      countPercentNoSelection = 'DG.PlottedCountPercent.withoutSelection',
+      countPercentWithSelection = 'DG.PlottedCountPercent.withSelection'
+    const
+      primaryIsSplit = dataConfig?.primaryIsCategorical ?? false,
+      secondaryIsSplit = dataConfig?.secondaryIsCategorical ?? false,
+      showingCount = model.showCount,
+      showingPercent = model.showPercent,
+      pctString = percentString(numerator / denominator)
+    let result = ""
+    if (secondaryIsSplit || primaryIsSplit || movableValuesAreShowing || isBinnedPlot) {
+      if (showingCount && showingPercent) {
+        if (showMeasuresForSelection) {
+          result = t(countPercentWithSelection, { vars: [numerator, denominator, pctString] })
+        }
+        else {
+          result = t(countPercentNoSelection, { vars: [numerator, pctString] })
+        }
       }
-      return adornmentsStore?.subPlotRegionBoundaries(instanceKey) ?? []
-  }, [adornmentsStore, binnedDotPlot, dataConfig, graphModel, instanceKey])
+      else if (showingCount) {
+        if (showMeasuresForSelection) {
+          result = t(countWithSelection, { vars: [numerator] })
+        }
+        else {
+          result = t(countNoSelection, { vars: [numerator] })
+        }
+      }
+      else if (showingPercent) {
+        if (showMeasuresForSelection) {
+          result = t(percentWithSelection, { vars: [pctString] })
+        }
+        else {
+          result = t(percentNoSelection, { vars: [pctString] })
+        }
+      }
+    }
+    else {  // only counts are possible
+      if (showMeasuresForSelection) {
+        result = t(countWithSelection, { vars: [numerator] })
+      }
+      else {
+        result = t(countNoSelection, { vars: [numerator] })
+      }
+    }
+    return result
+  },
+    [dataConfig?.primaryIsCategorical, dataConfig?.secondaryIsCategorical, isBinnedPlot,
+            model.showCount, model.showPercent, movableValuesAreShowing, showMeasuresForSelection])
 
-  const subPlotRegionBoundariesRef = useRef(subPlotRegionBoundaries())
-
-  const regionText = useCallback((regionCount: Partial<IRegionCount>, regionIndex = 0) => {
-    const regionPercent = percentString(
-      model.percentValue(casesInPlot, cellKey, dataConfig, subPlotRegionBoundariesRef.current, regionIndex)
-    )
-    const regionDisplayPercent = model.showCount ? ` (${regionPercent})` : regionPercent
-    return `${model.showCount ? regionCount.count : ""}${model.showPercent ? regionDisplayPercent : ""}`
-  }, [casesInPlot, cellKey, dataConfig, model])
+  const longestDisplayText = useCallback(() => {
+    let longest = ""
+    countAdornmentValues.values.forEach((value) => {
+      const displayText = computeTextContent(value)
+      if (displayText.length > longest.length) {
+        longest = displayText
+      }
+    })
+    return longest
+  }, [computeTextContent, countAdornmentValues.values])
 
   const resizeText = useCallback(() => {
-    const minFontSize = 3
+    const minFontSize = 6
     const maxFontSize = kDefaultFontSize
-    const textOffset = 5
-    const textWidth = measureText(textContent, `${fontSize}px Lato, sans-serif`) + textOffset
-    const subPlotRegionWidth = plotWidth / subPlotRegionBoundariesRef.current.length
+    const textOffset = 0
+    const textToMeasure = longestDisplayText()
+    const textWidth = measureText(textToMeasure, `${fontSize}px Lato, sans-serif`) + textOffset
+    const subPlotRegionWidth = plotWidth / countAdornmentValues.numHorizontalRegions
     const textWidthIsTooWide = textWidth > plotWidth || textWidth > subPlotRegionWidth
     const isContainerShrinking = prevCellWidth.current > plotWidth ||
                                  prevSubPlotRegionWidth.current > subPlotRegionWidth
@@ -92,63 +135,45 @@ export const CountAdornment = observer(function CountAdornment(props: IAdornment
     if (fontSize !== defaultFontSize) {
       graphModel.adornmentsStore.setDefaultFontSize(fontSize)
     }
-  }, [defaultFontSize, fontSize, graphModel.adornmentsStore, plotWidth, textContent])
+  }, [countAdornmentValues.numHorizontalRegions, defaultFontSize, fontSize,
+            graphModel.adornmentsStore, longestDisplayText, plotWidth])
 
-  const plotCaseCounts = useCallback(() => {
-    // If the graph's points have been grouped into bins, we need to show the case count within each bin.
-    //
-    // If there are movable values present, we need to show the case count within each sub-plot region defined by the
-    // movable values and the min and max of the primary axis. For example, if there is one movable value, the sub-plot
-    // will have two regions, one from the axis' min value to the movable value, and another from the movable value
-    // to the axis' max value.
-    //
-    // It should not be possible to have both bin boundaries and movable values present at the same time.
-
-    const regionCounts = model.computeRegionCounts({
-      cellKey,
-      dataConfig,
-      // Points whose values match a region's upper boundary are treated differently based on
-      // what defines the regions. For regions defined by bins, points matching the upper boundary
-      // are placed into the next bin. So we set `inclusiveMax` to false. Otherwise, such points
-      // are considered within the boundary and `inclusiveMax` is true.
-      inclusiveMax: !binnedDotPlot,
-      plotHeight,
-      plotWidth,
-      scale,
-      subPlotRegionBoundaries: subPlotRegionBoundariesRef.current
-    })
-
-    // If there are no bin boundaries or movable values present, we just show a single case count.
-    if (regionCounts.length === 1) {
-      const regionTextContent = regionText(regionCounts[0])
-      setDisplayCount(
-        <div>
-          {regionTextContent}
-        </div>
-      )
-    } else {
-      setDisplayCount(
-        <>
-          {regionCounts.map((c: IRegionCount, i: number) => {
-            const className = clsx("sub-count",
-              {"x-axis": primaryAttrRole === "x"},
-              {"y-axis": primaryAttrRole === "y"},
-              {"binned-points-count": !!binnedDotPlot}
+  const divsToDisplay = useCallback(() => {
+    const numBins = countAdornmentValues.values.length
+    const width = plotWidth / countAdornmentValues.numHorizontalRegions
+    const range = primaryAttrRole === "x" ? xScale.range() : yScale.range()
+    return (
+      <>
+        {
+          countAdornmentValues.values.map((value: INumDenom, i: number) => {
+            const {startFraction, endFraction} = value
+            const className = clsx(
+              {"count": numBins === 1},
+              {"sub-count": numBins > 1},
+              {"x-axis": primaryAttrRole === "x" && numBins > 1},
+              {"y-axis": primaryAttrRole === "y" && numBins > 1},
+              {"binned-points-count": !!isBinnedPlot}
             )
+            const lowerPixels = isFiniteNumber(startFraction)
+                ? range[0] + startFraction * (range[1] - range[0]) : width * i,
+              upperPixels = isFiniteNumber(endFraction)
+                ? range[0] + endFraction * (range[1] - range[0]) : width * (i + 1),
+              widthPixels = upperPixels - lowerPixels
             const style = primaryAttrRole === "x"
-              ? { left: `${c.leftOffset}px`, width: `${c.width}px` }
-              : { bottom: `${c.bottomOffset}px`, height: `${c.height}px` }
-            const regionTextContent = regionText(c, i)
+              ? {left: `${lowerPixels}px`, width: `${widthPixels}px`}
+              : {bottom: `${lowerPixels}px`, height: `${widthPixels}px`}
+            const divTextContent = computeTextContent(value)
             return (
               <div key={`count-instance-${i}`} className={className} style={style}>
-                {regionTextContent}
+                {divTextContent}
               </div>
             )
-          })}
-        </>
-      )
-    }
-  }, [binnedDotPlot, cellKey, dataConfig, model, plotHeight, plotWidth, primaryAttrRole, regionText, scale])
+          })
+        }
+      </>
+    )
+  }, [computeTextContent, countAdornmentValues.numHorizontalRegions, countAdornmentValues.values,
+            isBinnedPlot, plotWidth, primaryAttrRole, xScale, yScale])
 
   useEffect(function resizeTextOnCellWidthChange() {
     return mstAutorun(() => {
@@ -157,52 +182,54 @@ export const CountAdornment = observer(function CountAdornment(props: IAdornment
     }, { name: "CountAdornmentComponent.resizeTextOnCellWidthChange" }, model)
   }, [model, plotWidth, resizeText])
 
-  useEffect(function refreshBoundariesAndCaseCounts() {
-    return mstAutorun(
-      () => {
-        getAxisDomains(xAxis, yAxis)
-        subPlotRegionBoundariesRef.current = subPlotRegionBoundaries()
-        plotCaseCounts()
-      }, { name: "Count.refreshBoundariesAndCaseCounts" }, [model, xAxis, yAxis])
-  }, [model, plotCaseCounts, subPlotRegionBoundaries, xAxis, yAxis])
-
-  useEffect(function refreshOnSubPlotRegionChange() {
+  useEffect(function respondToAxisDomainChange() {
     return mstReaction(
-      () => binnedDotPlot?.binWidth,
+      () => isNumericAxisModel(primaryAxisModel) ? primaryAxisModel?.domain.slice() : null,
       () => {
-        if (binnedDotPlot) {
-          resizeText()
-          prevSubPlotRegionWidth.current = plotWidth / subPlotRegionBoundariesRef.current.length
-        }
-      }, { name: "CountAdornment.refreshOnSubPlotRegionChange" }, binnedDotPlot
+        setStateCounter(stateCounter + 1) // force a re-render to update the counts
+      }, { name: "CountAdornment.respondToAxisDomainChange", equals: comparer.structural }, model
     )
-  }, [binnedDotPlot, plotWidth, resizeText])
+  }, [model, primaryAxisModel, primaryScale, stateCounter])
 
-  useEffect(function refreshShowPercentOption() {
-    return mstAutorun(
-      () => {
-        // set showPercent to false if attributes change to a configuration that doesn't support percent
-        const shouldShowPercentOption = !!dataConfig?.categoricalAttrCount || adornmentsStore.subPlotsHaveRegions ||
-                                        !!binnedDotPlot
-        if (!shouldShowPercentOption && model?.showPercent) {
-          graphModel.applyModelChange(() => {
-            model.setShowPercent(false)
-          }, {
-            undoStringKey: "DG.Undo.graph.hidePercent",
-            redoStringKey: "DG.Redo.graph.hidePercent",
-            log: "Hide percent adornment"
-          })
-        }
-     }, { name: "CountAdornment.refreshPercentOption"}, model)
-  }, [adornmentsStore, binnedDotPlot, dataConfig, graphModel, model])
-  prf.end("CountAdornment.render")
+    useEffect(function resizeTextOnBinWidthChange() {
+      return mstReaction(
+        () => {
+          const binnedDotPlot = isBinnedDotPlotModel(graphModel.plot) && graphModel.plot
+          return binnedDotPlot && binnedDotPlot?.binWidth
+        },
+        () => {
+          resizeText()
+        }, { name: "CountAdornment.resizeTextOnBinWidthChange" }, graphModel
+      )
+    }, [graphModel, resizeText])
+
+    useEffect(function refreshShowPercentOption() {
+      return mstAutorun(
+        () => {
+          // set showPercent to false if things change to a configuration that doesn't support percent
+          const shouldShowPercentOption = !!dataConfig?.categoricalAttrCount ||
+            adornmentsStore.subPlotsHaveRegions || showMeasuresForSelection || movableValuesAreShowing ||
+            isBinnedPlot
+          if (!shouldShowPercentOption && model?.showPercent) {
+            graphModel.applyModelChange(() => {
+              model.setShowPercent(false)
+            }, {
+              undoStringKey: "DG.Undo.graph.hidePercent",
+              redoStringKey: "DG.Redo.graph.hidePercent",
+              log: "Hide percent adornment"
+            })
+          }
+       }, { name: "CountAdornment.refreshPercentOption"}, model)
+    }, [adornmentsStore, dataConfig, graphModel, isBinnedPlot, model, movableValuesAreShowing,
+              showMeasuresForSelection])
+
   return (
     <div
       className="graph-count"
       data-testid={`graph-count${classFromKey ? `-${classFromKey}` : ""}`}
       style={{fontSize: `${fontSize}px`}}
     >
-      {displayCount}
+      {divsToDisplay()}
     </div>
   )
 })

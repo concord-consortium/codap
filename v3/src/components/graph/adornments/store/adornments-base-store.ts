@@ -97,6 +97,14 @@ export const AdornmentsBaseStore = types.model("AdornmentsBaseStore", {
   }
 }))
 .views(self => ({
+  sortedMovableValues(instanceKey?: string) {
+    const movableValueAdornment = self.findAdornmentOfType<IMovableValueAdornmentModel>(kMovableValueType)
+    return movableValueAdornment?.isVisible ? movableValueAdornment?.sortedValues(instanceKey) ?? [] : []
+  },
+  get movableValuesAreShowing() {
+    const movableValueAdornment = self.findAdornmentOfType<IMovableValueAdornmentModel>(kMovableValueType)
+    return !!(movableValueAdornment?.isVisible && movableValueAdornment?.values?.size)
+  },
   get subPlotsHaveRegions() {
     const movableValueAdornment = self.findAdornmentOfType<IMovableValueAdornmentModel>(kMovableValueType)
     const movableValues = movableValueAdornment?.values

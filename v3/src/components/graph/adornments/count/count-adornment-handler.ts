@@ -73,7 +73,7 @@ export const countAdornmentHandler: DIAdornmentHandler = {
       }
 
       if (showPercent) {
-        dataItem.percent = percentString(adornment.percentValue(subPlotCases.length, cellKey, dataConfig))
+        dataItem.percent = `${percentString(adornment.percentValue(subPlotCases.length, cellKey, dataConfig))}%`
       }
     
       if (Object.keys(cellKey).length > 0) {
