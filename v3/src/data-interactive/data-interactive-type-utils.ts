@@ -202,6 +202,27 @@ export function convertDataSetToV2(dataSet: IDataSet, options?: IConvertDataSetT
   const itemOptions: IGetCaseOptions = { canonical: false, numeric: true }
   const gameContextMetadata = gameContextMetadataMap?.[id]
   let isGameContext = gameContextMetadata != null
+
+  // Disable filter formula for exporting cases, since CODAP V2 does not support it.
+  // a single itemData instance is shared by all collections in a data set
+  const originalItemData = dataSet.collections[0].itemData
+  const tempItemData = {
+    ...originalItemData,
+    // for v2 export, hidden means set-aside, i.e. filter formula is ignored
+    isHidden: (caseOrItemId: string) => {
+      const caseInfo = dataSet.caseInfoMap.get(caseOrItemId)
+      if (caseInfo) {
+        // a parent case is hidden if all of its child items are set-aside
+        if (caseInfo.childItemIds.length > 0) return false
+        return caseInfo.hiddenChildItemIds.length > 0 &&
+                caseInfo.hiddenChildItemIds.every(itemId => dataSet.isItemSetAside(itemId))
+      }
+      return dataSet.isItemSetAside(caseOrItemId)
+    }
+  }
+  dataSet.collections.forEach(collection => collection.setItemData(tempItemData))
+
+  dataSet.invalidateCases()
   dataSet.validateCases()
 
   const selectedCases: ICodapV2DataContextSelectedCase[] = []
@@ -217,6 +238,10 @@ export function convertDataSetToV2(dataSet: IDataSet, options?: IConvertDataSetT
       })
       return convertCollectionToV2(collection, { dataSet, exportCases, defaults })
     })
+
+  dataSet.collections.forEach(collection => collection.setItemData(originalItemData))
+  dataSet.invalidateCases()
+  dataSet.validateCases()
   const v2Metadata = v3Metadata?.hasDataContextMetadata
                     ? { metadata: { description, source, importDate } }
                     : undefined
