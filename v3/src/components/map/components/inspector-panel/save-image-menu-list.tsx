@@ -15,7 +15,8 @@ export const SaveImageMenuList = ({tile}: IProps) => {
 
   const getImageString = async () => {
     if (!mapModel?.renderState) return ''
-    // todo: updateSnapshot calls code that is clearly graph-specific. Does it work for maps?
+    // TODO: Confirm that updateSnapshot works correctly for map models. If not, add map-specific handling
+    //  or tests to validate its behavior.
     await mapModel.renderState.updateSnapshot()
     return mapModel.renderState.dataUri || ''
   }

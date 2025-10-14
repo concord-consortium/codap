@@ -25,8 +25,9 @@ export const MapComponent = observer(function MapComponent({tile}: ITileBaseProp
   const {setNodeRef} = useDroppable({id: dropId})
   setNodeRef(mapRef.current ?? null)
 
-  // Todo: This routine is modeled on the one in graph-component.tsx. But it's not clear that this is correct.
-  // In particular, pixiPointsArray is also used in codap-map.tsx.
+  // TODO: Investigate whether sharing or passing pixiPointsArray between map-component.tsx and codap-map.tsx
+  // could lead to unintended side effects or synchronization issues. Confirm that pixiPointsArray is not
+  // mutated in codap-map.tsx in a way that affects its usage here, or document the intended data flow.
   const setMapRef = useCallback((ref: HTMLDivElement | null) => {
     mapRef.current = ref
     const elementParent = ref?.parentElement
