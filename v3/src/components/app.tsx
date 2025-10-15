@@ -10,7 +10,7 @@ import {useDropHandler} from "../hooks/use-drop-handler"
 import { useKeyStates } from "../hooks/use-key-states"
 import { useKeyboardShortcuts } from "../hooks/use-keyboard-shortcuts"
 import { useUncaughtErrorHandler } from "../hooks/use-uncaught-error-handler"
-import { useCloudFileManager } from "../lib/cfm/use-cloud-file-manager"
+import { IUseCloudFileManagerHookOptions, useCloudFileManager } from "../lib/cfm/use-cloud-file-manager"
 import { CodapDndContext } from "../lib/dnd-kit/codap-dnd-context"
 import { logStringifiedObjectMessage } from "../lib/log-message"
 import { Logger } from "../lib/logger"
@@ -73,8 +73,18 @@ export const App = observer(function App() {
     onCloseUserEntry()
   }, [onCloseUserEntry])
 
+  const handleLoadWebView = (url: string) => {
+    const tile = appState.document.content?.createOrShowTile(kWebViewTileType)
+    isWebViewModel(tile?.content) && tile?.content.setUrl(url)
+  }
+
+  const cfmOptions: IUseCloudFileManagerHookOptions = {
+    onFileOpened: handleFileOpened,
+    onUrlImported: handleLoadWebView,
+  }
+
   const { cfm, cfmReadyPromise } = useCloudFileManager(
-    {appOrMenuElemId: kMenuBarElementId}, handleFileOpened)
+    {appOrMenuElemId: kMenuBarElementId}, cfmOptions)
 
   const handleImportDataSet = useCallback(
     function handleImportDataSet(data: IDataSet, options?: IImportDataSetOptions) {
@@ -99,8 +109,7 @@ export const App = observer(function App() {
   }, [cfm, onCloseUserEntry])
 
   const handleUrlDrop = useCallback((url: string) => {
-    const tile = appState.document.content?.createOrShowTile(kWebViewTileType)
-    isWebViewModel(tile?.content) && tile?.content.setUrl(url)
+    handleLoadWebView(url)
     onCloseUserEntry()
   }, [onCloseUserEntry])
 
