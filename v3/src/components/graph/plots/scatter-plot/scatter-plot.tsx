@@ -333,7 +333,17 @@ export const ScatterPlot = observer(function ScatterPlot({ pixiPoints }: IPlotPr
 
   return (
     <>
-      <g data-testid={`connecting-lines-${instanceId}`} className="connecting-lines" ref={connectingLinesRef}/>
+      <defs>
+        <clipPath id={`plot-clip-${instanceId}`}>
+          <rect width={layout.plotWidth} height={layout.plotHeight} />
+        </clipPath>
+      </defs>
+      <g 
+        className="connecting-lines"
+        clipPath={`url(#plot-clip-${instanceId})`}
+        data-testid={`connecting-lines-${instanceId}`}
+        ref={connectingLinesRef}
+      />
       <svg/>
       { movableLine?.isVisible && showSquares &&
         <g
