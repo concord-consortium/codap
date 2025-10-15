@@ -297,6 +297,7 @@ export function useCloudFileManager(optionsArg: CFMAppOptions, onFileOpened?: ()
         return isCodapDocument(content)
       },
       mimeType: 'application/json',
+      localFileMimeType: 'application/octet-stream',
       readableMimeTypes: ['application/x-codap-document'],
       extension: CONFIG_SAVE_AS_V2 ? "codap" : "codap3",
       readableExtensions: ["json", "", "codap", "codap3"],
