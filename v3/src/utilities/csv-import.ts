@@ -4,6 +4,7 @@ import { IWebViewSnapshot } from "../components/web-view/web-view-model"
 import { getImporterPluginUrl } from "../constants"
 import { appState } from "../models/app-state"
 import { DataSet, IDataSet } from "../models/data/data-set"
+import { getExtensionFromUrl } from "./urls"
 
 type RowType = Record<string, string>
 export type CsvParseResult = ParseResult<RowType>
@@ -50,6 +51,10 @@ interface IImportFromCsvUrlArgs {
   url: string
 }
 type IImportFromCsvArgs = IImportFromCsvContentArgs | IImportFromCsvFileArgs | IImportFromCsvUrlArgs
+
+export function isImportableCSVUrl(url: string): false | { url: string } {
+  return getExtensionFromUrl(url) === "csv" ? { url } : false
+}
 
 export function initiateImportFromCsv(options: IImportFromCsvArgs) {
   // The importer plugin is used to import a csv string into a dataset.
