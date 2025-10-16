@@ -1,7 +1,7 @@
 import { clsx } from "clsx"
 import { useDisclosure } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
-import React, { useCallback, useEffect, useState } from "react"
+import React, { useCallback, useEffect, useMemo, useState } from "react"
 // import { setLivelinessChecking } from "mobx-state-tree"
 import { ErrorBoundary } from "react-error-boundary"
 import { CfmContext } from "../hooks/use-cfm-context"
@@ -75,7 +75,12 @@ export const App = observer(function App() {
     onCloseUserEntry()
   }, [onCloseUserEntry])
 
-  const handleUrlImported = (url: string) => {
+  const handleLoadWebView = useCallback((url: string) => {
+    const tile = appState.document.content?.createOrShowTile(kWebViewTileType)
+    isWebViewModel(tile?.content) && tile?.content.setUrl(url)
+  }, [])
+
+  const handleUrlImported = useCallback((url: string) => {
     const importableCSVUrl = isImportableCSVUrl(url)
     const genericallyImportableUrl = isGenericallyImportableUrl(url)
 
@@ -86,17 +91,12 @@ export const App = observer(function App() {
     } else {
       handleLoadWebView(url)
     }
-  }
+  }, [handleLoadWebView])
 
-  const handleLoadWebView = (url: string) => {
-    const tile = appState.document.content?.createOrShowTile(kWebViewTileType)
-    isWebViewModel(tile?.content) && tile?.content.setUrl(url)
-  }
-
-  const cfmOptions: IUseCloudFileManagerHookOptions = {
+  const cfmOptions: IUseCloudFileManagerHookOptions = useMemo(() => ({
     onFileOpened: handleFileOpened,
     onUrlImported: handleUrlImported,
-  }
+  }), [handleFileOpened, handleUrlImported])
 
   const { cfm, cfmReadyPromise } = useCloudFileManager(
     {appOrMenuElemId: kMenuBarElementId}, cfmOptions)
