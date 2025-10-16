@@ -230,7 +230,7 @@ export const PlotModel = types
     // This function makes it easy for inherited models to get base model behavior when appropriate
     _countAdornmentValues({ cellKey }: ICountAdornmentValuesProps): ICountAdornmentValues {
       const dataConfig = self.dataConfiguration
-      const showMeasuresForSelection = dataConfig?.showMeasuresForSelection ?? false,
+      const showMeasuresForSelection = !!dataConfig?.showMeasuresForSelection,
         totalNumberOfCases = dataConfig?.allPlottedCases().length ?? 0,
         totNumInSubPlot = dataConfig?.subPlotCases(cellKey).length ?? 0,
         numSelInSubPlot = dataConfig?.filterCasesForDisplay(dataConfig?.subPlotCases(cellKey)).length ?? 0

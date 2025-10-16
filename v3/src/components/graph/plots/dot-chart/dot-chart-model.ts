@@ -25,7 +25,7 @@ export const DotChartModel = PlotModel
   .views(self => ({
     countAdornmentValues({cellKey, percentType}: ICountAdornmentValuesProps): ICountAdornmentValues {
       const dataConfig = self.dataConfiguration
-      const showMeasuresForSelection = dataConfig?.showMeasuresForSelection ?? false,
+      const showMeasuresForSelection = !!dataConfig?.showMeasuresForSelection,
         totalNumberOfCases = dataConfig?.allPlottedCases().length ?? 0,
         totalNumSelected = dataConfig?.selection.length ?? 0,
         totNumInSubPlot = dataConfig?.subPlotCases(cellKey).length ?? 0,

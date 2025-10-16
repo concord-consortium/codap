@@ -291,7 +291,7 @@ export const v2GraphExporter: V2TileExportFn = ({ tile }) => {
   const componentStorage: Partial<ICodapV2GraphStorage> = {
     _links_: getLinks(graph),
     displayOnlySelected: !!graph.dataConfiguration.displayOnlySelectedCases,
-    enableMeasuresForSelection: !!graph.dataConfiguration.showMeasuresForSelection,
+    ...(graph.dataConfiguration.showMeasuresForSelection ? { enableMeasuresForSelection: true } : {}),
     pointColor: removeAlphaFromColor(graph.pointDescription.pointColor),
     transparency: getTransparency(graph.pointDescription.pointColor),
     strokeColor: graph.pointDescription.pointStrokeSameAsFill

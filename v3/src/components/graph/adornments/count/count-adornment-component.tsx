@@ -28,13 +28,13 @@ export const CountAdornment = observer(function CountAdornment(props: IAdornment
   const { classFromKey, instanceKey } = useAdornmentCells(model, cellKey)
   const { xScale, yScale } = useAdornmentAttributes()
   const dataConfig = useGraphDataConfigurationContext()
-  const showMeasuresForSelection = dataConfig?.showMeasuresForSelection ?? false
+  const showMeasuresForSelection = !!dataConfig?.showMeasuresForSelection
   const graphModel = useGraphContentModelContext()
   const isBinnedPlot = isBinnedDotPlotModel(graphModel.plot)
   const adornmentsStore = graphModel?.adornmentsStore
   const movableValues = adornmentsStore?.sortedMovableValues(instanceKey) ?? []
   const movableValuesAreShowing = movableValues.length > 0
-  const percentType = model.percentType as "cell" | "column" | "row" | undefined
+  const percentType = model.percentType
   const primaryAttrRole = dataConfig?.primaryRole ?? "x"
   const primaryScale = primaryAttrRole === "x" ? xScale : yScale
   const candidateDomain = primaryScale.domain()

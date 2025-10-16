@@ -41,7 +41,7 @@ export const DotPlotModel = PlotModel
       movableValues = movableValues.filter(v => inRange(v, primaryAxisDomain[0], primaryAxisDomain[1]))
       const dataConfig = self.dataConfiguration,
         dataset = dataConfig?.dataset,
-        showMeasuresForSelection = dataConfig?.showMeasuresForSelection ?? false,
+        showMeasuresForSelection = !!dataConfig?.showMeasuresForSelection,
         subPlotCaseIds = dataConfig?.subPlotCases(cellKey) ?? [],
         totNumInSubPlot = subPlotCaseIds.length,
         numSelInSubPlot = dataConfig?.filterCasesForDisplay(dataConfig?.subPlotCases(cellKey)).length ?? 0,

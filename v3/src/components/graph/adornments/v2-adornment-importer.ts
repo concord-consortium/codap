@@ -31,7 +31,7 @@ import { IMovableLineAdornmentModelSnapshot, IMovableLineInstanceSnapshot }
   from "./movable-line/movable-line-adornment-model"
 import { ILSRLAdornmentModelSnapshot } from "./lsrl/lsrl-adornment-model"
 import { IBoxPlotAdornmentModelSnapshot } from "./univariate-measures/box-plot/box-plot-adornment-model"
-import { ICountAdornmentModelSnapshot } from "./count/count-adornment-model"
+import { ICountAdornmentModelSnapshot, PercentType } from "./count/count-adornment-model"
 import { IMeanAdornmentModelSnapshot } from "./univariate-measures/mean/mean-adornment-model"
 import { IMeanAbsoluteDeviationAdornmentModelSnapshot }
   from "./univariate-measures/mean-absolute-deviation/mean-absolute-deviation-adornment-model"
@@ -259,7 +259,7 @@ export const v2AdornmentImporter = ({
 
   // COUNT/PERCENT
   const countAdornment = v2Adornments?.plottedCount
-  const percentTypeMap: Record<string, string> = { 0: "cell", 1: "row", 2: "column" }
+  const percentTypeMap: Record<number, PercentType> = { 0: "cell", 1: "row", 2: "column" }
   if (countAdornment) {
     const countAdornmentImport: ICountAdornmentModelSnapshot = {
       isVisible: countAdornment.isVisible || isShowingMovableValueCounts || isShowingMovableValuePercents,

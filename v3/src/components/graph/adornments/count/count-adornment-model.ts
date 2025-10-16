@@ -24,20 +24,22 @@ export interface IRegionCountParams {
   subPlotRegionBoundaries: number[]
 }
 
+export const PercentTypes = ["cell", "column", "row"] as const
+export type PercentType = typeof PercentTypes[number]
+
 export const CountAdornmentModel = AdornmentModel
   .named("CountAdornmentModel")
   .props({
     type: types.optional(types.literal(kCountType), kCountType),
     showCount: false,
     showPercent: false,
-    percentType: types.optional(types.enumeration(["cell", "column", "row"]), "row")
+    percentType: types.optional(types.enumeration(PercentTypes), "row")
   })
   .views(self => ({
     percentValue(
       casesInPlot: number, cellKey: Record<string, string>, dataConfig?: IGraphDataConfigurationModel,
       subPlotRegionBoundaries?: number[], regionIndex = 0
     ) {
-  
       // If there are movable values present, we need to calculate the percent based on cases in each sub-plot
       // region defined by the movable values and the min and max of the primary axis.
       if (subPlotRegionBoundaries && subPlotRegionBoundaries.length > 2) {
@@ -164,7 +166,7 @@ export const CountAdornmentModel = AdornmentModel
       self.showPercent = showPercent
       self.isVisible = self.showCount || self.showPercent
     },
-    setPercentType(percentType: string) {
+    setPercentType(percentType: PercentType) {
       self.percentType = percentType
     }
   }))
