@@ -20,7 +20,13 @@
       // It should really be handled internally to the CFM itself.
       .tabbed-panel .workspace-tab-component .dialogTab .provider-message {
         color: #000;
-        font-size: 12px
+        font-size: 12px;
+      }
+
+      // make the URL input field full width and match other input padding
+      .urlImport > input {
+        padding: 5px;
+        width: 100%;
       }
     }
   }
