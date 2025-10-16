@@ -1,4 +1,5 @@
 import { action, makeObservable, observable } from "mobx"
+import { scrollTileIntoView } from "../utilities/dom-utils"
 import { RulerState, RulerStateKey } from "./ui-state-types"
 
 /*
@@ -92,6 +93,7 @@ export class UIState {
   @action
   setFocusedTile(tileId = "") {
     this.focusTileId = tileId
+    scrollTileIntoView(tileId)
   }
 
   @action
