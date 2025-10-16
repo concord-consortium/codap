@@ -95,26 +95,17 @@ export const useConnectingLines = (props: IProps) => {
   }, [dataTip, pixiPoints])
 
   const drawConnectingLines = useCallback((drawLinesProps: IDrawLines) => {
-    const { allLineCaseIds, lineGroups, parentAttrID, parentAttrName, pointColorAtIndex,
+    if (!connectingLinesSvg) return
+
+    const { allLineCaseIds, lineGroups, parentAttrName, pointColorAtIndex,
             showConnectingLines } = drawLinesProps
     const curve = line().curve(curveLinear)
     // For each group of lines, draw a path using the lines' coordinates
-    for (const [linesIndex, [primaryAttrValue, cases]] of Object.entries(lineGroups).entries()) {
-      const allLineCoords = cases.map((l: any) => l.lineCoords)
+    for (const [_linesIndex, [primaryAttrValue, cases]] of Object.entries(lineGroups).entries()) {
+      const allLineCoords = cases.map((l: IConnectingLineDescription) => l.lineCoords)
       const lineCaseIds = allLineCaseIds[primaryAttrValue]
       const allCasesSelected = lineCaseIds?.every((caseID: string) => dataset?.isCaseSelected(caseID))
-      const legendID = dataConfig?.attributeID("legend")
-      const categoryDataArray = dataConfig?.categoryArrayForAttrRole("legend")
-      const categorySet = dataConfig?.categorySetForAttrRole("legend")
-      const legendAttribute = legendID ? dataset?.getAttribute(legendID) : undefined
-      const legendAttrType = legendAttribute?.type
-
-      const color = legendAttribute && legendAttrType === "color" && categoryDataArray
-                        ? categoryDataArray[linesIndex]
-                        : categorySet && categoryDataArray
-                          ? categorySet.colorMap[categoryDataArray[linesIndex]]
-                          : parentAttrID && legendID ? pointColorAtIndex(linesIndex)
-                                                    : pointColorAtIndex(cases[0].plotNum || 0)
+       const color = pointColorAtIndex(cases[0].plotNum || 0)
 
       connectingLinesArea
         .append("path")
@@ -142,8 +133,8 @@ export const useConnectingLines = (props: IProps) => {
           !showConnectingLines && connectingLinesArea.selectAll("path").remove()
         })
     }
-  }, [clientType, connectingLinesActivatedRef, connectingLinesArea, dataConfig, dataTip, dataset,
-      handleConnectingLinesClick, handleConnectingLinesMouseOut, handleConnectingLinesMouseOver])
+  }, [clientType, connectingLinesActivatedRef, connectingLinesArea, connectingLinesSvg,
+      dataTip, dataset, handleConnectingLinesClick, handleConnectingLinesMouseOut, handleConnectingLinesMouseOver])
 
   const prepareConnectingLines = useCallback((prepareLineProps: IPrepareLineProps) => {
     const { connectingLines, parentAttrID, cellKey, parentAttrName, showConnectingLines } = prepareLineProps
