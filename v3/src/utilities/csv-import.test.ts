@@ -1,6 +1,45 @@
-import { CsvParseResult, convertParsedCsvToDataSet } from "./csv-import"
+import { CsvParseResult, convertParsedCsvToDataSet, isImportableCSVUrl } from "./csv-import"
 
 describe("CSV import", () => {
+  describe("isImportableCSVUrl", () => {
+    it("correctly identifies importable CSV URLs", () => {
+      const testCases = [
+        {
+          url: "http://example.com/data.csv",
+          expected: { url: "http://example.com/data.csv" },
+        },
+        {
+          url: "https://example.com/data.csv",
+          expected: { url: "https://example.com/data.csv" },
+        },
+        {
+          url: "https://example.com/path/to/data.csv",
+          expected: { url: "https://example.com/path/to/data.csv" },
+        },
+        {
+          url: "http://example.com/data.txt",
+          expected: false,
+        },
+        {
+          url: "https://example.com/data.json",
+          expected: false,
+        },
+        {
+          url: "https://example.com/data",
+          expected: false,
+        },
+        {
+          url: "data.csv",
+          expected: false,
+        },
+      ]
+
+      for (const { url, expected } of testCases) {
+        expect(isImportableCSVUrl(url)).toEqual(expected)
+      }
+    })
+  })
+
   it("works as expected", () => {
     const result: CsvParseResult = {
       data: [

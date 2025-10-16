@@ -38,6 +38,8 @@ import { UserEntryModal } from "./menu-bar/user-entry-modal"
 import { ToolShelf } from "./tool-shelf/tool-shelf"
 import { kWebViewTileType } from "./web-view/web-view-defs"
 import { isWebViewModel, IWebViewModel } from "./web-view/web-view-model"
+import { initiateGenericImport, isGenericallyImportableUrl } from "../utilities/generic-import"
+import { initiateImportFromCsv, isImportableCSVUrl } from "../utilities/csv-import"
 
 import "../lib/debug-event-modification"
 import "../models/shared/data-set-metadata-registration"
@@ -73,6 +75,19 @@ export const App = observer(function App() {
     onCloseUserEntry()
   }, [onCloseUserEntry])
 
+  const handleUrlImported = (url: string) => {
+    const importableCSVUrl = isImportableCSVUrl(url)
+    const genericallyImportableUrl = isGenericallyImportableUrl(url)
+
+    if (importableCSVUrl) {
+      initiateImportFromCsv(importableCSVUrl)
+    } else if (genericallyImportableUrl) {
+      initiateGenericImport(genericallyImportableUrl)
+    } else {
+      handleLoadWebView(url)
+    }
+  }
+
   const handleLoadWebView = (url: string) => {
     const tile = appState.document.content?.createOrShowTile(kWebViewTileType)
     isWebViewModel(tile?.content) && tile?.content.setUrl(url)
@@ -80,7 +95,7 @@ export const App = observer(function App() {
 
   const cfmOptions: IUseCloudFileManagerHookOptions = {
     onFileOpened: handleFileOpened,
-    onUrlImported: handleLoadWebView,
+    onUrlImported: handleUrlImported,
   }
 
   const { cfm, cfmReadyPromise } = useCloudFileManager(

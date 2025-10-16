@@ -1,8 +1,10 @@
 import { useEffect, useRef } from "react"
 import { IDataSet } from "../models/data/data-set"
 import {
-  convertParsedCsvToDataSet, CsvParseResult, importCsvFile, initiateImportFromCsv
+  convertParsedCsvToDataSet, CsvParseResult, importCsvFile, initiateImportFromCsv,
+  isImportableCSVUrl
 } from "../utilities/csv-import"
+import { initiateGenericImport, isGenericallyImportableUrl } from "../utilities/generic-import"
 
 const USE_IMPORTER_PLUGIN_FOR_CSV_FILE = true
 
@@ -63,14 +65,22 @@ export const useDropHandler = ({
                   // For local .csv import without Importer plugin
                   importCsvFile(file, onCompleteCsvImport)
                 }
+                break
+              case "geojson":
+                file && initiateGenericImport({ file, contentType: "application/geo+json" })
+                break
             }
           }
           else if (item.kind === "string" && item.type === "text/uri-list") {
             item.getAsString(url => {
               if (url) {
-                if (url.replace(/.*\./g, '') === 'csv') {
-                  // For .csv import via Importer plugin
-                  initiateImportFromCsv({ url })
+                const importableCSVUrl = isImportableCSVUrl(url)
+                const genericallyImportableUrl = isGenericallyImportableUrl(url)
+
+                if (importableCSVUrl) {
+                  initiateImportFromCsv(importableCSVUrl)
+                } else if (genericallyImportableUrl) {
+                  initiateGenericImport(genericallyImportableUrl)
                 } else {
                   const result = /di=(.+)/.exec(url)
                   onHandleUrlDrop?.(result?.[1] || url)
