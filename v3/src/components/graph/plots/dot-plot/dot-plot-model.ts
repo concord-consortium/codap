@@ -1,4 +1,3 @@
-import { inRange } from "lodash"
 import { AttributeType } from "../../../../models/data/attribute-types"
 import { isFiniteNumber } from "../../../../utilities/math-utils"
 import { AxisPlace } from "../../../axis/axis-types"
