@@ -45,6 +45,25 @@ export interface IRespondToPlotChangeOptions {
   primaryAttrChanged?: boolean
 }
 
+export interface ICountAdornmentValuesProps {
+  cellKey: Record<string, string>
+  movableValues?: number[]
+  primaryAxisDomain?: [min: number, max: number]
+  percentType?: "cell" | "row" | "column"
+}
+
+export interface INumDenom {
+  numerator: number
+  denominator: number
+  startFraction?: number
+  endFraction?: number
+}
+
+export interface ICountAdornmentValues {
+  numHorizontalRegions: number
+  values: INumDenom[]
+}
+
 export function typesPlotType(type: PlotType) {
   return types.optional(types.literal(type), type)
 }
@@ -207,8 +226,35 @@ export const PlotModel = types
     numericValuesForRole(role: GraphAttrRole) {
       // The default implementation returns the numeric values for the attribute corresponding to the role.
       return self.dataConfiguration?.numericValuesForAttrRole(role) || []
-    }
-  }))
+    },
+    // This function makes it easy for inherited models to get base model behavior when appropriate
+    _countAdornmentValues({ cellKey }: ICountAdornmentValuesProps): ICountAdornmentValues {
+      const dataConfig = self.dataConfiguration
+      const showMeasuresForSelection = !!dataConfig?.showMeasuresForSelection,
+        totalNumberOfCases = dataConfig?.allPlottedCases().length ?? 0,
+        totNumInSubPlot = dataConfig?.subPlotCases(cellKey).length ?? 0,
+        numSelInSubPlot = dataConfig?.filterCasesForDisplay(dataConfig?.subPlotCases(cellKey)).length ?? 0
+      const theValue = {numerator: 0, denominator: 1}
+      if (showMeasuresForSelection) {
+        theValue.numerator = numSelInSubPlot
+        theValue.denominator = totNumInSubPlot
+      } else {
+        theValue.numerator = totNumInSubPlot
+        theValue.denominator = totalNumberOfCases
+      }
+      return {
+        numHorizontalRegions: dataConfig?.numberOfHorizontalRegions ?? 1,
+        values: [theValue]
+      }
+    },
+    // Called by CountAdornmentComponent to get the information needed to display counts and percents
+    // based on various aspects of the plot. The base class implementation assumes there is only one
+    // "region" of interest, but also, for convenience, it returns the number of equal width regions
+    // that the plot is divided into.
+    // Subclasses will override and handle things like movable values and the bins of a binned dot plot.
+    countAdornmentValues({ cellKey }: ICountAdornmentValuesProps): ICountAdornmentValues {
+      return this._countAdornmentValues({ cellKey })
+  }}))
   .actions(self => ({
     setGraphContext(dataConfiguration: IGraphDataConfigurationModel, api?: IPlotGraphApi) {
       self.dataConfiguration = dataConfiguration

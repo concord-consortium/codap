@@ -47,7 +47,8 @@ export function v2GraphImporter({v2Component, v2Document, getCaseData, insertTil
     componentStorage: {
       name, title, userSetTitle, _links_: links, plotModels, hiddenCases: _hiddenCaseIds, cannotClose,
       pointColor, transparency, strokeColor, strokeTransparency, pointSizeMultiplier,
-      strokeSameAsFill, isTransparent, displayOnlySelected, enableNumberToggle, numberToggleLastMode,
+      strokeSameAsFill, isTransparent, displayOnlySelected, enableMeasuresForSelection,
+      enableNumberToggle, numberToggleLastMode,
       plotBackgroundImage, plotBackgroundImageLockInfo, numberOfLegendQuantiles, legendQuantilesAreLocked
     }
   } = v2Component
@@ -199,7 +200,8 @@ export function v2GraphImporter({v2Component, v2Document, getCaseData, insertTil
         primaryRole,
         _attributeDescriptions,
         _yAttributeDescriptions,
-        displayOnlySelectedCases: displayOnlySelected
+        displayOnlySelectedCases: displayOnlySelected,
+        showMeasuresForSelection: enableMeasuresForSelection || undefined
       }
     }]
   }

@@ -12,7 +12,7 @@ import {
 import { IAdornmentModel } from "../adornment-models"
 import { CountAdornment } from "./count-adornment-component"
 import { countAdornmentHandler } from "./count-adornment-handler"
-import { CountAdornmentModel, ICountAdornmentModel, isCountAdornment } from "./count-adornment-model"
+import { CountAdornmentModel, ICountAdornmentModel, isCountAdornment, PercentType } from "./count-adornment-model"
 import { kCountClass, kCountLabelKey, kCountPrefix, kCountType, kPercentLabelKey } from "./count-adornment-types"
 
 const Controls = () => {
@@ -71,7 +71,7 @@ const Controls = () => {
     }
   }
 
-  const handlePercentTypeSetting = (percentType: string) => {
+  const handlePercentTypeSetting = (percentType: PercentType) => {
     existingAdornment?.setPercentType(percentType)
     setPercentTypeValue(percentType)
   }

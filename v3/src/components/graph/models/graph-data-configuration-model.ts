@@ -295,6 +295,12 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       return (isCategoricalAttributeType(attrTypes.left) ? 1 : 0) + (isCategoricalAttributeType(attrTypes.bottom)
         ? 1 : 0)
     },
+    get primaryIsCategorical() {
+      return self.primaryRole ? isCategoricalAttributeType(self.attributeType(self.primaryRole)) : false
+    },
+    get secondaryIsCategorical() {
+      return self.secondaryRole ? isCategoricalAttributeType(self.attributeType(self.secondaryRole)) : false
+    },
     get numericAttrs(): Array<{ role: AttrRole, attrId: string }> {
       const roles: Array<Maybe<AttrRole>> = [self.primaryRole, self.secondaryRole, "topSplit", "rightSplit"]
       return roles.filter(role => !!role).filter(role => {
@@ -304,6 +310,11 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     get xAndYAreNumeric() {
       const attrTypes = self.attrTypes
       return attrTypes.bottom === "numeric" && attrTypes.left === "numeric"
+    },
+    get numberOfHorizontalRegions() {
+      return self.primaryRole === 'x'
+        ? this.primaryIsCategorical ? self.categoryArrayForAttrRole('x').length : 1
+        : this.secondaryIsCategorical ? self.categoryArrayForAttrRole('x').length : 1
     }
   }))
   .views(self => ({
