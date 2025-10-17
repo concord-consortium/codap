@@ -29,7 +29,7 @@ export const BinnedDotPlotModel = DotPlotModel
       return true
     },
     get showFusePointsIntoBars() {
-      return true
+      return !self.dataConfiguration?.secondaryIsCategorical
     },
     get isDraggingBinBoundary() {
       return self.dragBinIndex >= 0
