@@ -12,9 +12,11 @@
   position: relative;
 
   .attribute-drag-overlay {
-    display: inline-flex;
+    display: block;
+    margin: auto;
     padding: 0 5px;
-    width: auto;
+    transform: translateX(-50%); // centers drag preview on mouse pointer
+    width: fit-content;
   }
 
   .codap-attribute-header-divider {
