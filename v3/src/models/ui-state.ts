@@ -93,7 +93,9 @@ export class UIState {
   @action
   setFocusedTile(tileId = "") {
     this.focusTileId = tileId
-    scrollTileIntoView(tileId)
+    if (tileId) {
+      scrollTileIntoView(tileId)
+    }
   }
 
   @action
