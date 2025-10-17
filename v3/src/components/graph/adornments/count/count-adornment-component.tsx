@@ -1,7 +1,8 @@
 import { clsx } from "clsx"
-import { observer } from "mobx-react-lite"
 import { comparer } from "mobx"
-import React, { useCallback, useEffect, useRef, useState } from "react"
+import { observer } from "mobx-react-lite"
+import React, { useCallback, useEffect, useRef } from "react"
+import { useForceUpdate } from "../../../../hooks/use-force-update"
 import { measureText } from "../../../../hooks/use-measure-text"
 import { mstAutorun } from "../../../../utilities/mst-autorun"
 import { t } from "../../../../utilities/translation/translate"
@@ -13,8 +14,8 @@ import { useAdornmentCells } from "../../hooks/use-adornment-cells"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
 import { useGraphDataConfigurationContext } from "../../hooks/use-graph-data-configuration-context"
 import { isBinnedDotPlotModel } from "../../plots/binned-dot-plot/binned-dot-plot-model"
-import { percentString } from "../../utilities/graph-utils"
 import { INumDenom } from "../../plots/plot-model"
+import { percentString } from "../../utilities/graph-utils"
 import { IAdornmentComponentProps } from "../adornment-component-info"
 import { kDefaultFontSize } from "../adornment-types"
 import { ICountAdornmentModel } from "./count-adornment-model"
@@ -23,7 +24,7 @@ import "./count-adornment-component.scss"
 
 export const CountAdornment = observer(function CountAdornment(props: IAdornmentComponentProps) {
   const { cellKey, plotWidth} = props
-  const [stateCounter, setStateCounter] = useState(0)
+  const forceUpdate = useForceUpdate()
   const model = props.model as ICountAdornmentModel
   const { classFromKey, instanceKey } = useAdornmentCells(model, cellKey)
   const { xScale, yScale } = useAdornmentAttributes()
@@ -116,9 +117,8 @@ export const CountAdornment = observer(function CountAdornment(props: IAdornment
   const resizeText = useCallback(() => {
     const minFontSize = 6
     const maxFontSize = kDefaultFontSize
-    const textOffset = 0
     const textToMeasure = longestDisplayText()
-    const textWidth = measureText(textToMeasure, `${fontSize}px Lato, sans-serif`) + textOffset
+    const textWidth = measureText(textToMeasure, `${fontSize}px Lato, sans-serif`)
     const subPlotRegionWidth = plotWidth / countAdornmentValues.numHorizontalRegions
     const textWidthIsTooWide = textWidth > plotWidth || textWidth > subPlotRegionWidth
     const isContainerShrinking = prevCellWidth.current > plotWidth ||
@@ -186,10 +186,10 @@ export const CountAdornment = observer(function CountAdornment(props: IAdornment
     return mstReaction(
       () => isNumericAxisModel(primaryAxisModel) ? primaryAxisModel?.domain.slice() : null,
       () => {
-        setStateCounter(stateCounter + 1) // force a re-render to update the counts
+        forceUpdate()
       }, { name: "CountAdornment.respondToAxisDomainChange", equals: comparer.structural }, model
     )
-  }, [model, primaryAxisModel, primaryScale, stateCounter])
+  }, [forceUpdate, model, primaryAxisModel, primaryScale])
 
     useEffect(function resizeTextOnBinWidthChange() {
       return mstReaction(
