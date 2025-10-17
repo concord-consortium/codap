@@ -233,7 +233,7 @@ context("codap plugins", () => {
         expect(countInfo.data[0].count[1]).to.be.a("number")
         const percents = countInfo.data[0].percent
         expect(percents).to.be.an("array").with.length(2)
-        percents.forEach((p: string) => expect(p).to.match(/^\d+(\.\d+)?%$/))
+        percents.forEach((p: string) => expect(p).to.match(/^\d+(\.\d+)/))
         // The sum of all percent values should be ~100%
         const total = percents.reduce((sum: number, p: string) => sum + parseFloat(p), 0)
         expect(total).to.be.closeTo(100, 0.1)

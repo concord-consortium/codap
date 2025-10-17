@@ -38,7 +38,7 @@ export const DotPlotModel = PlotModel
       if (!movableValues || movableValues.length === 0 || !primaryAxisDomain) {
         return self._countAdornmentValues({ cellKey })
       }
-      movableValues = movableValues.filter(v => inRange(v, primaryAxisDomain[0], primaryAxisDomain[1]))
+      movableValues = movableValues.filter(v => v >= primaryAxisDomain[0] && v <= primaryAxisDomain[1])
       const dataConfig = self.dataConfiguration,
         dataset = dataConfig?.dataset,
         showMeasuresForSelection = !!dataConfig?.showMeasuresForSelection,
@@ -59,7 +59,7 @@ export const DotPlotModel = PlotModel
           thisValue = i < movableValues.length ? movableValues[i] : Infinity,
           startFraction = i === 0 ? 0 : (prevValue - min) / (max - min),
           endFraction = i === movableValues.length ? 1 : (thisValue - min) / (max - min),
-          numerator = numericValuesForSubPlot.filter(v => v > prevValue && v <= thisValue).length
+          numerator = numericValuesForSubPlot.filter(v => v >= prevValue && v < thisValue).length
         theValues.push({
           numerator,
           denominator: showMeasuresForSelection ? numSelInSubPlot : totNumInSubPlot,
