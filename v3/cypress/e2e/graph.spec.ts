@@ -355,6 +355,29 @@ context("Graph UI", () => {
       cy.get("[data-testid=measures-for-selection-banner]").should("not.exist")
     })
 
+    it("should apply `with-parent-toggles` class to adornment banners when parent toggles are shown", () => {
+      ah.openAxisAttributeMenu("bottom")
+      ah.selectMenuAttribute("Sleep", "bottom")
+      graph.getHideShowButton().click()
+      cy.wait(500)
+      cy.get("[data-testid=show-parent-toggles]").click()
+      cy.wait(500)
+      graph.getHideShowButton().click()
+      cy.wait(500)
+      cy.get("[data-testid=show-selection-measures]").click()
+      cy.wait(500)
+      cy.get("[data-testid=graph-adornments-banners]")
+        .should("exist")
+        .and("have.class", "with-parent-toggles")
+      graph.getHideShowButton().click()
+      cy.wait(500)
+      cy.get("[data-testid=show-parent-toggles]").click()
+      cy.wait(500)
+      cy.get("[data-testid=graph-adornments-banners]")
+        .should("exist")
+        .and("not.have.class", "with-parent-toggles")
+    })
+
     // NOTE:
     // - Adornments are covered in graph-adornments.spec.ts (including Show Measures)
     // - Legend colors and bins configuration is covered in graph-legend.spec.ts
