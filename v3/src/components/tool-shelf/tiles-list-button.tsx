@@ -11,7 +11,6 @@ import { getTileComponentIcon } from "../../models/tiles/tile-component-info"
 import { getTileContentInfo } from "../../models/tiles/tile-content-info"
 import WebViewIcon from "../../assets/icons/icon-media-tool.svg"
 import TileListIcon from "../../assets/icons/icon-tile-list.svg"
-import { scrollTileIntoView } from "../../utilities/dom-utils"
 import { handleSelectTile } from "./tool-shelf-utilities"
 
 import "./tool-shelf.scss"
@@ -25,7 +24,6 @@ export const TilesListShelfButton = observer(function TilesListShelfButton() {
   const handleFocus = (tileId: string) => {
     uiState.setHoveredTile(tileId)
     uiState.setFocusedTile(tileId)
-    scrollTileIntoView(tileId)
   }
 
   const handleBlur = () => {
