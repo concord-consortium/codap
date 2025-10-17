@@ -227,9 +227,8 @@ export const AttributeHeader = observer(function AttributeHeader({
         // ensure selected header is styled correctly.
         if (isMenuOpen.current) onOpenMenu?.()
         return (
-          <Tooltip label={`${attrName ?? ""} ${description}`} h="20px" fontSize="12px"
-              color="white" openDelay={1000} placement="bottom" bottom="15px" left="15px"
-              isDisabled={tooltipDisabled}
+          <Tooltip label={`${attrName ?? ""} ${description}`} fontSize="12px" color="white"
+              openDelay={1000} placement="bottom" bottom="15px" left="15px" isDisabled={tooltipDisabled}
           >
             <div className={headerContentClasses} ref={setHeaderContentRef} {...draggableProps}
             data-testid="codap-column-header-content">
