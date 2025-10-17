@@ -150,14 +150,19 @@ export const Adornments = observer(function Adornments() {
     }
   }
 
+  const bannerClass = clsx(
+    'graph-adornments-banners',
+    { 'with-parent-toggles': graphModel.showParentToggles }
+  )
   const containerClass = clsx(
     `${kGraphAdornmentsClass} ${instanceId}`,
     { 'tile-selected': isTileSelected() }
   )
+
   return (
     <>
       {(adornmentBanners.length > 0 || dataConfig?.showMeasuresForSelection) &&
-        <div className="graph-adornments-banners" data-testid="graph-adornments-banners">
+        <div className={bannerClass} data-testid="graph-adornments-banners">
           {dataConfig?.showMeasuresForSelection && <MeasuresForSelectionBanner />}
           {adornmentBanners}
         </div>
