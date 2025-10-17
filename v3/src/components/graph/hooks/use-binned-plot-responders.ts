@@ -5,7 +5,8 @@ import { mstReaction } from "../../../utilities/mst-reaction"
 import { isBinnedPlotModel } from "../plots/histogram/histogram-model"
 import { useGraphContentModelContext } from "./use-graph-content-model-context"
 
-export const useBinnedPlotResponders = (refreshPointPositions: (selected: boolean) => void) => {
+export const useBinnedPlotResponders = (
+  refreshPointPositionsRef:  React.MutableRefObject<(selectedOnly: boolean) => void>) => {
   const graphModel = useGraphContentModelContext()
   const dataset = useDataSetContext()
 
@@ -16,7 +17,10 @@ export const useBinnedPlotResponders = (refreshPointPositions: (selected: boolea
         const plot = graphModel.plot
         return isBinnedPlotModel(plot) ? [plot.binAlignment, plot.binWidth] : []
       },
-      () => refreshPointPositions(false),
-      {name: "respondToGraphBinSettings", equals: comparer.structural}, [graphModel, graphModel.plot])
-  }, [dataset, graphModel, refreshPointPositions])
+      () => {
+        refreshPointPositionsRef.current(false)
+      },
+      {name: "respondToGraphBinSettings", equals: comparer.structural},
+      [graphModel, graphModel.plot])
+  }, [dataset, graphModel, refreshPointPositionsRef])
 }
