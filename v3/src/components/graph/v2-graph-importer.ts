@@ -137,9 +137,11 @@ export function v2GraphImporter({v2Component, v2Document, getCaseData, insertTil
         case "DG.CellLinearAxisModel":
         case "DG.CountAxisModel":
         case "DG.FormulaAxisModel": {
-          const type = ["DG.CountAxisModel", "DG.FormulaAxisModel"].includes(axisClass) ? "count"
-            : _attributeDescriptions[axisPlaceToAttrRole[v3Place]]?.type === "date" ? "date"
-            : "numeric"
+          const type = axisClass === "DG.CountAxisModel"
+                        ? "count"
+                        : _attributeDescriptions[axisPlaceToAttrRole[v3Place]]?.type === "date"
+                          ? "date"
+                          : "numeric"
           // V2 lowerBound or upperBound can be undefined or null, which will cause an MST exception and
           // failure to load. So we assign a default value of lowerBound = 0 and upperBound = 10 if they are undefined.
           axes[v3Place] = {place: v3Place, type, min: lowerBound ?? 0, max: upperBound ?? 10}

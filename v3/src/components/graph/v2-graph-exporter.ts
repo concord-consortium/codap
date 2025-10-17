@@ -158,13 +158,13 @@ function getAxisClassAndBounds(
   let axisBounds: Record<string, number> = {}
 
   if (isAnyNumericAxisModel(axis)) {
-    axisClass = isCountAxisModel(axis)
-                  ? graph.plot.hasExpression
-                    ? "DG.FormulaAxisModel"
-                    : "DG.CountAxisModel"
-                  : isPrimary && graph.plot.type === "binnedDotPlot"
-                    ? "DG.BinnedAxisModel"
-                    : "DG.CellLinearAxisModel"
+    axisClass = graph.plot.hasExpression
+                  ? "DG.FormulaAxisModel"
+                  : isCountAxisModel(axis)
+                    ? "DG.CountAxisModel"
+                    : isPrimary && graph.plot.type === "binnedDotPlot"
+                      ? "DG.BinnedAxisModel"
+                      : "DG.CellLinearAxisModel"
     axisBounds = {
       [`${dim}LowerBound`]: axis.min,
       [`${dim}UpperBound`]: axis.max
