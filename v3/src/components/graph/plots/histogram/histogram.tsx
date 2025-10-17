@@ -3,7 +3,6 @@ import { observer } from "mobx-react-lite"
 import React, { useCallback, useEffect, useRef } from "react"
 import { createPortal } from "react-dom"
 import { mstAutorun } from "../../../../utilities/mst-autorun"
-import { useCurrent } from "../../../../hooks/use-current"
 import { IBarCover, IPlotProps } from "../../graphing-types"
 import { useBinnedPlotResponders } from "../../hooks/use-binned-plot-responders"
 import { useDotPlot } from "../../hooks/use-dot-plot"
@@ -11,7 +10,6 @@ import { usePlotResponders } from "../../hooks/use-plot"
 import { isBinnedPlotModel } from "./histogram-model"
 import { SubPlotCells } from "../../models/sub-plot-cells"
 import { setPointCoordinates } from "../../utilities/graph-utils"
-import { usePrevious } from "../../hooks/use-previous"
 import { renderBarCovers } from "../bar-utils"
 import { computeBinPlacements } from "../dot-plot/dot-plot-utils"
 
@@ -113,13 +111,9 @@ export const Histogram = observer(function Histogram({ abovePointsGroupRef, pixi
   }, [abovePointsGroupRef, binnedPlot, dataConfig, dataset, getPrimaryScreenCoord, getSecondaryScreenCoord,
       graphModel, isAnimating, layout, pixiPoints, pointColor, pointStrokeColor,
       primaryAttrRole, primaryAxisScale, primaryIsBottom, primaryPlace, secondaryAttrRole])
-  const prevRefreshPointPosition = usePrevious(refreshPointPositions)
-  const refreshPointPositionsRef = useCurrent(refreshPointPositions)
-  if (prevRefreshPointPosition !== refreshPointPositionsRef.current) {
-  }
 
   usePlotResponders({pixiPoints, refreshPointPositions, refreshPointSelection})
-  useBinnedPlotResponders(refreshPointPositionsRef)
+  useBinnedPlotResponders(refreshPointPositions)
 
   // when points are fused into bars, update pixiPoints and set the secondary axis scale type to linear
   useEffect(function handleFuseIntoBars() {

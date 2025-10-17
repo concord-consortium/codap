@@ -8,7 +8,6 @@ import { LogMessageFn, logModelChangeFn } from "../../../../lib/log-message"
 import { isFiniteNumber } from "../../../../utilities/math-utils"
 import { mstReaction } from "../../../../utilities/mst-reaction"
 import { t } from "../../../../utilities/translation/translate"
-import { useCurrent } from "../../../../hooks/use-current"
 import {circleAnchor} from "../../../data-display/pixi/pixi-points"
 import {IPlotProps} from "../../graphing-types"
 import { useBinnedPlotResponders } from "../../hooks/use-binned-plot-responders"
@@ -166,10 +165,9 @@ export const BinnedDotPlot = observer(function BinnedDotPlot({pixiPoints, aboveP
   }, [addBinBoundaryDragHandlers, binnedPlot, dataConfig, dataset, drawBinBoundaries,
       getPrimaryScreenCoord, getSecondaryScreenCoord, graphModel, isAnimating,
       pixiPoints, pointColor, pointDisplayType, pointStrokeColor, primaryIsBottom])
-  const refreshPointPositionsRef = useCurrent(refreshPointPositions)
 
   usePlotResponders({pixiPoints, refreshPointPositions, refreshPointSelection})
-  useBinnedPlotResponders(refreshPointPositionsRef)
+  useBinnedPlotResponders(refreshPointPositions)
 
   // If the pixel width of graphModel.binWidth would be less than kMinBinPixelWidth, set it to kMinBinPixelWidth.
   useEffect(function enforceMinBinPixelWidth() {
