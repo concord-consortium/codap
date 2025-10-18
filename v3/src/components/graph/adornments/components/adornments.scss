@@ -34,6 +34,11 @@
   position: absolute;
   top: 0;
   width: 100%;
+
+  &.with-parent-toggles {
+    height: calc(100% - 20px);
+    top: 20px;
+  }
 }
 
 .adornment-spanner {
