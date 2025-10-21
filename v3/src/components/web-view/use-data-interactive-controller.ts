@@ -3,7 +3,7 @@ import { reaction } from "mobx"
 import React, { useEffect } from "react"
 import { getDIHandler } from "../../data-interactive/data-interactive-handler"
 import {
-  DIAction, DIHandler, DIRequest, DIRequestCallback, DIRequestResponse
+  DIAction, DIHandler, DIRequest, DIRequestCallback, DIRequestResponse, DIValues
 } from "../../data-interactive/data-interactive-types"
 import "../../data-interactive/register-handlers"
 import { parseResourceSelector, resolveResources } from "../../data-interactive/resource-parser"
@@ -73,9 +73,24 @@ export function useDataInteractiveController(iframeRef: React.RefObject<HTMLIFra
           let result: DIRequestResponse = { success: false }
 
           const processAction = async (action: DIAction) => {
+            function hasTypeProperty(value: DIValues | undefined): value is { type: string } {
+              return typeof value === "object" && value !== null && "type" in value
+            }
+            function hasDataContextProperty(value: DIValues | undefined): value is { dataContext: string } {
+              return typeof value === "object" && value !== null && "dataContext" in value
+            }
+            function hasNameProperty(value: DIValues | undefined): value is { name: string } {
+              return typeof value === "object" && value !== null && "name" in value
+            }
+
             if (!action) return errorResult(t("V3.DI.Error.noAction"))
             if (!tile) return errorResult(t("V3.DI.Error.noTile"))
 
+            if (action.action === 'create' &&
+              hasTypeProperty(action.values) && action.values.type === 'caseTable' &&
+              !hasDataContextProperty(action.values) && hasNameProperty(action.values)) {
+              (action.values as unknown as { dataContext: string }).dataContext = action.values.name
+            }
             const resourceSelector = parseResourceSelector(action.resource)
             const resources = resolveResources(resourceSelector, action.action, tile)
             const type = resourceSelector.type ?? ""
