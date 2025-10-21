@@ -41,13 +41,14 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
   const showBreakdownTypes = graphModel?.plot?.showBreakdownTypes
   const showBarForEachPoint = graphModel?.plot?.isUnivariateNumeric &&
                             graphModel?.dataConfiguration.primaryAttributeType !== "date"
+  const kInputMaxCharacters = 12
   const binWidthInputRef = useRef<HTMLInputElement>(null)
   const binAlignmentInputRef = useRef<HTMLInputElement>(null)
 
   const adjustInputWidth = (input: HTMLInputElement) => {
-    const contentBuffer = 2
+    const kBufferChars = 2 // used to account for input field padding
     const contentLength = input.value.length || 1
-    input.style.width = `${contentLength + contentBuffer}ch`
+    input.style.width = `${contentLength + kBufferChars}ch`
   }
 
   const handleDisplayTypeChange = (configType: string) => {
@@ -119,12 +120,11 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
      })
     } else {
       // Limit the number of characters that can be entered, but allow deletion and navigation keys.
-      const kMaxCharacters = 12
       const allowedKeys = new Set([ "Backspace", "Delete", "ArrowLeft", "ArrowRight", "Home", "End", "Tab" ])
       const isModifierKeyPressed = e.ctrlKey || e.metaKey
       const isAllowedKey = allowedKeys.has(e.key) || isModifierKeyPressed
 
-      if (e.currentTarget.value.length >= kMaxCharacters && !isAllowedKey) {
+      if (e.currentTarget.value.length >= kInputMaxCharacters && !isAllowedKey) {
         e.preventDefault()
       }
     }
