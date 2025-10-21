@@ -1,6 +1,6 @@
 import { Checkbox, Box, Flex, FormLabel, Input, Radio, RadioGroup, Stack } from "@chakra-ui/react"
 import {observer} from "mobx-react-lite"
-import React, { useEffect } from "react"
+import React, { useEffect, useRef } from "react"
 import BarChartIcon from "../../../../assets/icons/icon-segmented-bar-chart.svg"
 import { useForceUpdate } from "../../../../hooks/use-force-update"
 import { logMessageWithReplacement } from "../../../../lib/log-message"
@@ -41,6 +41,14 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
   const showBreakdownTypes = graphModel?.plot?.showBreakdownTypes
   const showBarForEachPoint = graphModel?.plot?.isUnivariateNumeric &&
                             graphModel?.dataConfiguration.primaryAttributeType !== "date"
+  const binWidthInputRef = useRef<HTMLInputElement>(null)
+  const binAlignmentInputRef = useRef<HTMLInputElement>(null)
+
+  const adjustInputWidth = (input: HTMLInputElement) => {
+    const contentBuffer = 2
+    const contentLength = input.value.length || 1
+    input.style.width = `${contentLength + contentBuffer}ch`
+  }
 
   const handleDisplayTypeChange = (configType: string) => {
     if (isPointDisplayType(configType) || configType === "bins") {
@@ -90,6 +98,10 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
     }
   }
 
+  const handleBinOptionInput = (e: React.FormEvent<HTMLInputElement>) => {
+    adjustInputWidth(e.currentTarget)
+  }
+
   const handleBinOptionKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, option: BinOption) => {
     if (e.key === "Enter") {
       e.preventDefault()
@@ -105,6 +117,16 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
         redoStringKey: option === "binWidth" ? "DG.Redo.graph.changeBinWidth" : "DG.Redo.graph.changeBinAlignment",
         notify: tile ? tileNotification(`change bin parameter`, {}, tile) : undefined
      })
+    } else {
+      // Limit the number of characters that can be entered, but allow deletion and navigation keys.
+      const kMaxCharacters = 12
+      const allowedKeys = new Set([ "Backspace", "Delete", "ArrowLeft", "ArrowRight", "Home", "End", "Tab" ])
+      const isModifierKeyPressed = e.ctrlKey || e.metaKey
+      const isAllowedKey = allowedKeys.has(e.key) || isModifierKeyPressed
+
+      if (e.currentTarget.value.length >= kMaxCharacters && !isAllowedKey) {
+        e.preventDefault()
+      }
     }
   }
 
@@ -162,6 +184,16 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
       {name: "formulaEditorIsOpen"}, barChart)
   }, [barChart, forceUpdate])
 
+  // Sync input widths to current values.
+  useEffect(() => {
+    if (binWidthInputRef.current) {
+      adjustInputWidth(binWidthInputRef.current)
+    }
+    if (binAlignmentInputRef.current) {
+      adjustInputWidth(binAlignmentInputRef.current)
+    }
+  }, [binDetails?.binWidth, binDetails?.binAlignment])
+
   return (
     <InspectorPalette
       title={t("DG.Inspector.configuration")}
@@ -213,10 +245,12 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
                   width. Currently, enforcing of the min pixel width is handled by the enforceMinBinPixelWidth
                   useEffect in BinnedDotPlotDots. */}
               <Input
+                ref={binWidthInputRef}
                 className="form-input"
                 type="number"
                 defaultValue={binDetails?.binWidth}
                 onBlur={(e) => handleBinOptionBlur(e, "binWidth")}
+                onInput={handleBinOptionInput}
                 onKeyDown={(e) => handleBinOptionKeyDown(e, "binWidth")}
               />
             </Box>
@@ -225,10 +259,12 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
                 {t("DG.Inspector.graphAlignment")}
               </FormLabel>
               <Input
+                ref={binAlignmentInputRef}
                 className="form-input"
                 type="number"
                 defaultValue={binDetails?.binAlignment}
                 onBlur={(e) => handleBinOptionBlur(e, "binAlignment")}
+                onInput={handleBinOptionInput}
                 onKeyDown={(e) => handleBinOptionKeyDown(e, "binAlignment")}
               />
             </Box>

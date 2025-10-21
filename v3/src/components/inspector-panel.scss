@@ -211,8 +211,14 @@ $inspector-panel-border-width: 2px;
         background: white;
         display: inline-block;
         font-size: 12px;
+        height: 24px;
         margin-right: 10px;
-        width: 40px;
+        max-width: 100px;
+        min-width: 36px;
+        overflow: visible;
+        padding: 4px 6px;
+        text-align: right;
+        width: 36px;
       }
     }
   }
