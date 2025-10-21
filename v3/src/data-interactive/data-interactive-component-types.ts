@@ -59,6 +59,9 @@ export interface V2CaseTable extends V2Component {
   isIndexHidden?: boolean
   type: "caseTable"
 }
+export function isV2CaseTableComponent(obj?: any): obj is V2CaseTable {
+  return obj && typeof obj === "object" && "type" in obj && obj.type === "caseTable"
+}
 export interface V2Game extends V2Component {
   type: "game"
   URL?: string

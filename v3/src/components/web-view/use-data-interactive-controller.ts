@@ -1,20 +1,21 @@
 import iframePhone from "iframe-phone"
 import { reaction } from "mobx"
 import React, { useEffect } from "react"
+import { isV2CaseTableComponent } from "../../data-interactive/data-interactive-component-types"
 import { getDIHandler } from "../../data-interactive/data-interactive-handler"
+import { errorResult } from "../../data-interactive/handlers/di-results"
 import {
-  DIAction, DIHandler, DIRequest, DIRequestCallback, DIRequestResponse, DIValues
+  DIAction, DIHandler, DIRequest, DIRequestCallback, DIRequestResponse
 } from "../../data-interactive/data-interactive-types"
-import "../../data-interactive/register-handlers"
 import { parseResourceSelector, resolveResources } from "../../data-interactive/resource-parser"
 import { DEBUG_PLUGINS, debugLog } from "../../lib/debug"
 import { ITileModel } from "../../models/tiles/tile-model"
 import { uiState } from "../../models/ui-state"
 import { t } from "../../utilities/translation/translate"
-import { errorResult } from "../../data-interactive/handlers/di-results"
-import { V2CaseTable } from "../../data-interactive/data-interactive-component-types"
 import { RequestQueue } from "./request-queue"
 import { isWebViewModel } from "./web-view-model"
+
+import "../../data-interactive/register-handlers"
 
 function extractOrigin(url?: string) {
   if (!url) return
@@ -74,38 +75,16 @@ export function useDataInteractiveController(iframeRef: React.RefObject<HTMLIFra
           let result: DIRequestResponse = { success: false }
 
           const processAction = async (action: DIAction) => {
-
-            // We handle a special case for V2 compatibility: Request is for creating a caseTable
-            // but there is no specified dataContext though there is specified a name.
-            const handleCreateCaseTableWithoutDataContext = () => {
-              const hasNameProperty = (value: DIValues | undefined): value is { name: string } => {
-                return typeof value === "object" && value !== null && "name" in value
-              }
-
-              const isCreateCaseTableWithoutDataContext = (theAction: DIAction) => {
-
-                const hasTypeProperty = (value: DIValues | undefined): value is { type: string } => {
-                  return typeof value === "object" && value !== null && "type" in value
-                }
-                const hasDataContextProperty = (value: DIValues | undefined): value is { dataContext: string } => {
-                  return typeof value === "object" && value !== null && "dataContext" in value
-                }
-
-                return theAction.action === 'create' &&
-                  hasTypeProperty(theAction.values) && theAction.values.type === 'caseTable' &&
-                  !hasDataContextProperty(theAction.values) && hasNameProperty(theAction.values)
-              }
-              if (isCreateCaseTableWithoutDataContext(action)) {
-                if (hasNameProperty(action.values)) {
-                  (action.values as V2CaseTable).dataContext = action.values.name
-                }
-              }
-            }
-
             if (!action) return errorResult(t("V3.DI.Error.noAction"))
             if (!tile) return errorResult(t("V3.DI.Error.noTile"))
 
-            handleCreateCaseTableWithoutDataContext()
+            const { action: _action, values } = action
+
+            // We handle a special case for V2 compatibility: Request is for creating a caseTable
+            // but there is no specified dataContext though there is a specified name.
+            if (_action === "create" && isV2CaseTableComponent(values) && !values.dataContext && values.name) {
+              values.dataContext = values.name
+            }
 
             const resourceSelector = parseResourceSelector(action.resource)
             const resources = resolveResources(resourceSelector, action.action, tile)
