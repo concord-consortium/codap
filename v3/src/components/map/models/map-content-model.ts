@@ -107,7 +107,7 @@ export const MapContentModel = DataDisplayContentModel
       })
       return datasets
     },
-    get dataCongurationArrFromLayers(): IDataConfigurationModel[] {
+    get dataConfigurationArrFromLayers(): IDataConfigurationModel[] {
       const dataConfigurations: IDataConfigurationModel[] = []
       self.layers.filter(isMapLayerModel).forEach(layer => {
         const dataConfiguration = layer.dataConfiguration

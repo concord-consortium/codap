@@ -1,27 +1,27 @@
 import {comparer, reaction} from "mobx"
-import {onAnyAction} from "../../../utilities/mst-utils"
-import {mstReaction} from "../../../utilities/mst-reaction"
-import React, {useCallback, useEffect} from "react"
-import {useDebouncedCallback} from "use-debounce"
 import {geoJSON, LeafletMouseEvent, point, Popup, popup} from "leaflet"
+import React, {useCallback, useEffect} from "react"
 import {useMap} from "react-leaflet"
+import {useDebouncedCallback} from "use-debounce"
 import {DEBUG_MAP, debugLog} from "../../../lib/debug"
 import {isSelectionAction, isSetCaseValuesAction} from "../../../models/data/data-set-actions"
+import {safeJsonParse} from "../../../utilities/js-utils"
+import {onAnyAction} from "../../../utilities/mst-utils"
+import {mstReaction} from "../../../utilities/mst-reaction"
 import {transitionDuration} from "../../data-display/data-display-types"
 import {handleClickOnCase} from "../../data-display/data-display-utils"
-import { PixiBackgroundPassThroughEvent } from "../../data-display/pixi/pixi-points"
 import {useDataDisplayLayout} from "../../data-display/hooks/use-data-display-layout"
+import { PixiBackgroundPassThroughEvent } from "../../data-display/pixi/pixi-points"
+import { useLastRenderedMapLayer } from "../hooks/use-last-rendered-map-layer"
 import {useMapModelContext} from "../hooks/use-map-model-context"
-import {IMapPolygonLayerModel} from "../models/map-polygon-layer-model"
-import {boundaryAttributeFromDataSet} from "../utilities/map-utils"
-import {safeJsonParse} from "../../../utilities/js-utils"
 import {
   GeoJsonObject, kDefaultMapFillOpacity, kMapAreaNoLegendColor,
   kMapAreaNoLegendSelectedBorderColor, kMapAreaNoLegendSelectedColor, kMapAreaNoLegendSelectedOpacity,
   kMapAreaNoLegendUnselectedOpacity, kMapAreaSelectedBorderWeight, kMapAreaUnselectedBorderWeight,
   kMapAreaWithLegendSelectedBorderColor, PolygonLayerOptions
-}
-  from "../map-types"
+} from "../map-types"
+import {IMapPolygonLayerModel} from "../models/map-polygon-layer-model"
+import {boundaryAttributeFromDataSet} from "../utilities/map-utils"
 
 export const MapPolygonLayer = function MapPolygonLayer(props: {
   mapLayerModel: IMapPolygonLayerModel
@@ -31,7 +31,8 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
     dataset = dataConfiguration?.dataset,
     mapModel = useMapModelContext(),
     leafletMap = useMap(),
-    layout = useDataDisplayLayout()
+    layout = useDataDisplayLayout(),
+    [ , setLastRenderedMapLayer] = useLastRenderedMapLayer()
 
   // useDataTips({dotsRef, dataset, displayModel: mapLayerModel})
 
@@ -156,6 +157,7 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
     })
     // Now that we're sure we have the right polygon features, update their styles
     refreshPolygonStyles()
+    setLastRenderedMapLayer("polygon")
   }, 10)
 
   // Actions in the dataset can trigger need to update polygons

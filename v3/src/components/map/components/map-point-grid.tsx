@@ -3,8 +3,8 @@ import {DomEvent, LeafletMouseEvent, point, popup, Rectangle, rectangle} from "l
 import {useMap} from "react-leaflet"
 import {useMemo} from "use-memo-one"
 import { setOrExtendSelection } from "../../../models/data/data-set-utils"
-import {mstAutorun} from "../../../utilities/mst-autorun"
 import {mstReaction} from "../../../utilities/mst-reaction"
+import { useLastRenderedMapLayer } from "../hooks/use-last-rendered-map-layer"
 import {IMapPointLayerModel} from "../models/map-point-layer-model"
 import {getCaseCountString, getCategoryBreakdownHtml} from "../utilities/map-utils"
 
@@ -15,6 +15,7 @@ export interface IMapPointGridProps {
 export const MapPointGrid = function MapPointGrid(props: IMapPointGridProps) {
   const {mapLayerModel} = props
   const mapGridModel = mapLayerModel.gridModel
+  const [getLastRenderedMapLayer, setLastRenderedMapLayer] = useLastRenderedMapLayer()
   const leafletMap = useMap()
   const leafletRectsRef = useRef<Array<Rectangle>>([])
   const leafletPopup = useMemo(() => popup({
@@ -86,16 +87,27 @@ export const MapPointGrid = function MapPointGrid(props: IMapPointGridProps) {
         leafletRectsRef.current.push(leafletRect)
       })
       refreshGridSelection()
+      setLastRenderedMapLayer("grid")
     }
-  }, [leafletMap, leafletPopup, mapGridModel, mapLayerModel.isVisible, refreshGridSelection])
+  }, [leafletMap, leafletPopup, mapGridModel, mapLayerModel.isVisible, refreshGridSelection, setLastRenderedMapLayer])
+
+  useEffect(function syncMapGridMultiplier() {
+    return mstReaction(
+      () => mapGridModel.gridMultiplier,
+      () => refreshLeafletRects(),
+      {name: "syncMapGridMultiplier"}, mapGridModel)
+  }, [mapGridModel, refreshLeafletRects])
 
   useEffect(function syncMapGridRectangles() {
-    return mstAutorun(() => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-expressions -- used for side effect
-      mapGridModel.gridMultiplier
-      refreshLeafletRects()
-    }, {name: "syncMapGridRectangles"}, mapGridModel)
-  }, [mapGridModel, refreshLeafletRects])
+    return mstReaction(
+      () => getLastRenderedMapLayer(),
+      lastLayer => {
+        if (lastLayer === "polygon") {
+          refreshLeafletRects()
+        }
+      },
+      {name: "syncMapGridRectangles"}, mapGridModel)
+  }, [getLastRenderedMapLayer, mapGridModel, refreshLeafletRects])
 
   useEffect(function respondToHiddenCasesChange() {
     return mstReaction(
