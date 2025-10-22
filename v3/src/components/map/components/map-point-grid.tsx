@@ -1,3 +1,4 @@
+import { comparer } from "mobx"
 import React, {useCallback, useEffect, useRef} from "react"
 import {DomEvent, LeafletMouseEvent, point, popup, Rectangle, rectangle} from "leaflet"
 import {useMap} from "react-leaflet"
@@ -94,11 +95,11 @@ export const MapPointGrid = function MapPointGrid(props: IMapPointGridProps) {
     leafletMapLayers?.updateLayer(mapLayerModel, refreshLeafletRects)
   }, [leafletMapLayers, mapLayerModel, refreshLeafletRects])
 
-  useEffect(function syncMapGridMultiplier() {
+  useEffect(function syncMapGridModel() {
     return mstReaction(
-      () => mapGridModel.gridMultiplier,
+      () => [mapGridModel.changeCount, mapGridModel.isVisible, mapGridModel.gridMultiplier],
       () => refreshGridLayer(),
-      {name: "syncMapGridMultiplier"}, mapGridModel)
+      {name: "syncMapGridModel", equals: comparer.structural}, mapGridModel)
   }, [mapGridModel, refreshGridLayer])
 
   useEffect(function respondToHiddenCasesChange() {
@@ -107,14 +108,6 @@ export const MapPointGrid = function MapPointGrid(props: IMapPointGridProps) {
       () => refreshGridLayer(),
       {name: 'MapPointGrid respondToHiddenCasesChange'}, mapLayerModel)
   }, [mapLayerModel, refreshGridLayer])
-
-  useEffect(() => {
-    return mstReaction(
-      () => mapGridModel.changeCount,
-      () => refreshGridLayer(),
-      {name: 'MapPointGrid respondToGridChange'}, mapGridModel
-    )
-  }, [mapGridModel, refreshGridLayer])
 
   useEffect(() => {
     refreshGridLayer()
