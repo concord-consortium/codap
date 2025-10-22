@@ -2,7 +2,7 @@ import { clsx } from "clsx"
 import { format } from "d3-format"
 import React from "react"
 import { measureText } from "../../hooks/use-measure-text"
-import { boundaryObjectFromBoundaryValue } from "../../models/boundaries/boundary-types"
+import { getBoundaryValueFromString, hasBoundaryThumbnail } from "../../models/boundaries/boundary-types"
 import { IAttribute } from "../../models/data/attribute"
 import { kDefaultNumPrecision } from "../../models/data/attribute-types"
 import { parseColor } from "../../utilities/color-utils"
@@ -44,18 +44,21 @@ export function renderAttributeValue(str = "", num = NaN, attr?: IAttribute, opt
                       ? Math.ceil(rowHeight / (kSnapToLineHeight + 1))
                       : 0
 
-  // boundaries
-  if (type === "boundary") {
-    const boundaryObject = boundaryObjectFromBoundaryValue(str)
-    const thumb = boundaryObject?.properties?.THUMB
-    if (thumb) {
-      return {
-        value: boundaryObject?.properties?.NAME ?? str,
-        content: (
-          <span className="cell-boundary-thumb">
-            <img src={thumb} alt="thumb" className="cell-boundary-thumb-interior" />
-          </span>
-        )
+  // boundary thumbnails
+  let boundary: Maybe<object>
+  if (type === "boundary" || (type === "categorical" && (boundary = getBoundaryValueFromString(str)))) {
+    const boundaryObject = boundary || getBoundaryValueFromString(str)
+    if (hasBoundaryThumbnail(boundaryObject)) {
+      const thumb = boundaryObject?.properties?.THUMB
+      if (thumb) {
+        return {
+          value: boundaryObject?.properties?.NAME ?? str,
+          content: (
+            <span className="cell-boundary-thumb">
+              <img src={thumb} alt="thumb" className="cell-boundary-thumb-interior" />
+            </span>
+          )
+        }
       }
     }
   }

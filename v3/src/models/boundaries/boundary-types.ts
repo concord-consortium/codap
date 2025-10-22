@@ -20,18 +20,39 @@ export const boundaryObjectFromBoundaryValue = (iBoundaryValue: object | string)
 
 export const isBoundaryValue = (iValue: object | string): boolean => {
   const obj = boundaryObjectFromBoundaryValue(iValue)
-  return obj != null &&
+  return obj != null && typeof obj === 'object' &&
     !!(obj.geometry || obj.coordinates || obj.features ||
       obj.type === 'FeatureCollection' || obj.type === 'Feature' || obj.jsonBoundaryObject)
 }
 
-export const isBoundaryString = (iValue: string): boolean => {
+export const checkBoundaryString = (iValue: string): [false] | [true, object] => {
   // stringified objects must be enclosed in braces
-  if (iValue[0] !== '{' || iValue[iValue.length - 1] !== '}') return false
+  if (iValue[0] !== '{' || iValue[iValue.length - 1] !== '}') return [false]
   const obj = boundaryObjectFromBoundaryValue(iValue)
-  return obj != null &&
-    !!(obj.geometry || obj.coordinates || obj.features ||
-      obj.type === 'FeatureCollection' || obj.type === 'Feature' || obj.jsonBoundaryObject)
+  return obj && isBoundaryValue(obj) ? [true, obj] : [false]
+}
+
+export const isBoundaryString = (iValue: string): boolean => {
+  const [isBoundary] = checkBoundaryString(iValue)
+  return isBoundary
+}
+
+export const getBoundaryValueFromString = (iValue: string): Maybe<object> => {
+  const [isBoundary, boundary] = checkBoundaryString(iValue)
+  return isBoundary ? boundary : undefined
+}
+
+interface IBoundaryWithThumbnail {
+  properties?: {
+    NAME?: string
+    THUMB?: string
+  }
+}
+
+export const hasBoundaryThumbnail = (iBoundary?: object): iBoundary is IBoundaryWithThumbnail => {
+  return iBoundary != null && typeof iBoundary === "object" &&
+    "properties" in iBoundary && iBoundary.properties != null && typeof iBoundary.properties === "object" &&
+    "THUMB" in iBoundary.properties
 }
 
 export interface BoundaryInfo {
