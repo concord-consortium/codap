@@ -27,6 +27,12 @@ export const MapInterior = observer(function MapInterior({setPixiPointsLayer}: I
 
   useMapModel()
 
+  useEffect(() => {
+    return () => {
+      leafletMapLayers.destroy()
+    }
+  }, [leafletMapLayers])
+
   // Add or update the GeoRaster layer when URL changes
   useEffect(() => {
     return mstAutorun(() => {
