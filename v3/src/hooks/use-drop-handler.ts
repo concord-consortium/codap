@@ -1,22 +1,13 @@
 import { useEffect, useRef } from "react"
-import { IDataSet } from "../models/data/data-set"
-import {
-  convertParsedCsvToDataSet, CsvParseResult, importCsvFile, initiateImportFromCsv,
-  isImportableCSVUrl
-} from "../utilities/csv-import"
-import { initiateGenericImport, isGenericallyImportableUrl } from "../utilities/generic-import"
-
-const USE_IMPORTER_PLUGIN_FOR_CSV_FILE = true
 
 export interface IDropHandler {
   selector: string
-  onImportDataSet?: (data: IDataSet) => void
-  onImportDocument?: (file: File) => void
-  onHandleUrlDrop?: (url: string) => void
+  onDataTransferItem?: (item: DataTransferItem) => Promise<void>
   onSetIsDragOver?: (isDragOver: boolean) => void
 }
+
 export const useDropHandler = ({
-  selector, onImportDataSet, onImportDocument, onHandleUrlDrop, onSetIsDragOver: setIsDragOver
+  selector, onDataTransferItem, onSetIsDragOver: setIsDragOver
 }: IDropHandler) => {
   const eltRef = useRef<HTMLElement | null>(null)
 
@@ -32,63 +23,20 @@ export const useDropHandler = ({
 
     function dropHandler(event: DragEvent) {
 
-      // For local .csv import
-      function onCompleteCsvImport(results: CsvParseResult, aFile: any) {
-        const ds = convertParsedCsvToDataSet(results, aFile.name)
-        onImportDataSet?.(ds)
-      }
-
       // Prevent default behavior (Prevent file from being opened by browser)
       event.preventDefault()
       // Prevent event from being handled more than once
       event.stopPropagation()
-      if (event.dataTransfer?.items) {
-        // Use DataTransferItemList interface to access the file(s)
-        for (let i = 0; i < event.dataTransfer.items.length; i++) {
-          const item = event.dataTransfer.items[i]
-          // If dropped items aren't files, reject them
-          if (item.kind === 'file') {
-            const file = item.getAsFile()
-            const nameParts = file?.name.toLowerCase().split(".")
-            const extension = nameParts?.length ? nameParts[nameParts.length - 1] : ""
-            switch (extension) {
-              case "codap":
-              case "codap3":
-                file && onImportDocument?.(file)
-                break
-              case "csv":
-                if (USE_IMPORTER_PLUGIN_FOR_CSV_FILE) {
-                  // For .csv import via Importer plugin
-                  file && initiateImportFromCsv({ file })
-                }
-                else {
-                  // For local .csv import without Importer plugin
-                  importCsvFile(file, onCompleteCsvImport)
-                }
-                break
-              case "geojson":
-                file && initiateGenericImport({ file, contentType: "application/geo+json" })
-                break
-            }
-          }
-          else if (item.kind === "string" && item.type === "text/uri-list") {
-            item.getAsString(url => {
-              if (url) {
-                const importableCSVUrl = isImportableCSVUrl(url)
-                const genericallyImportableUrl = isGenericallyImportableUrl(url)
 
-                if (importableCSVUrl) {
-                  initiateImportFromCsv(importableCSVUrl)
-                } else if (genericallyImportableUrl) {
-                  initiateGenericImport(genericallyImportableUrl)
-                } else {
-                  const result = /di=(.+)/.exec(url)
-                  onHandleUrlDrop?.(result?.[1] || url)
-                }
-              }
-            })
+      // iterate through the dropped files
+      if (event.dataTransfer?.items) {
+        const items = event.dataTransfer.items
+        const processItems = async () => {
+          for (let i = 0; i < items.length; i++) {
+            await onDataTransferItem?.(items[i])
           }
         }
+        processItems()
       }
       // Pass event to removeDragData for cleanup
       removeDragData(event)
@@ -114,7 +62,7 @@ export const useDropHandler = ({
       elt?.removeEventListener('dragover', dragOverHandler)
       elt?.removeEventListener('drop', dropHandler)
     }
-  }, [onHandleUrlDrop, onImportDataSet, onImportDocument, selector, setIsDragOver])
+  }, [onDataTransferItem, selector, setIsDragOver])
 
   // return element to which listeners were attached; useful for tests
   return eltRef.current

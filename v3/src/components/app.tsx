@@ -1,17 +1,19 @@
 import { clsx } from "clsx"
 import { useDisclosure } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
-import React, { useCallback, useEffect, useState } from "react"
+import React, { useCallback, useEffect, useRef, useState } from "react"
 import { useMemo } from "use-memo-one"
 // import { setLivelinessChecking } from "mobx-state-tree"
 import { ErrorBoundary } from "react-error-boundary"
+import { CloudFileManager } from "@concord-consortium/cloud-file-manager"
+
 import { CfmContext } from "../hooks/use-cfm-context"
 import { DocumentContentContext } from "../hooks/use-document-content"
 import {useDropHandler} from "../hooks/use-drop-handler"
 import { useKeyStates } from "../hooks/use-key-states"
 import { useKeyboardShortcuts } from "../hooks/use-keyboard-shortcuts"
 import { useUncaughtErrorHandler } from "../hooks/use-uncaught-error-handler"
-import { IUseCloudFileManagerHookOptions, useCloudFileManager } from "../lib/cfm/use-cloud-file-manager"
+import { IImportedFile, IUseCloudFileManagerHookOptions, useCloudFileManager } from "../lib/cfm/use-cloud-file-manager"
 import { CodapDndContext } from "../lib/dnd-kit/codap-dnd-context"
 import { logStringifiedObjectMessage } from "../lib/log-message"
 import { Logger } from "../lib/logger"
@@ -39,14 +41,19 @@ import { UserEntryModal } from "./menu-bar/user-entry-modal"
 import { ToolShelf } from "./tool-shelf/tool-shelf"
 import { kWebViewTileType } from "./web-view/web-view-defs"
 import { isWebViewModel, IWebViewModel } from "./web-view/web-view-model"
-import { initiateGenericImport, isGenericallyImportableUrl } from "../utilities/generic-import"
-import { initiateImportFromCsv, isImportableCSVUrl } from "../utilities/csv-import"
+import { initiateGenericImport } from "../utilities/generic-import"
+import { convertParsedCsvToDataSet, CsvParseResult, importCsvFile,
+         initiateImportFromCsv } from "../utilities/csv-import"
+import { ImportableFileType, getImportableFileTypeFromDataTransferFile, getImportableFileTypeFromFile,
+         getImportableFileTypeFromUrl } from "../utilities/importable-files"
 
 import "../lib/debug-event-modification"
 import "../models/shared/data-set-metadata-registration"
 import "../models/shared/shared-data-set-registration"
 
 import "./app.scss"
+
+const USE_IMPORTER_PLUGIN_FOR_CSV_FILE = true
 
 // Uncomment this to help track down MST errors like:
 // "You are trying to read or write to an object that is no longer part of a state tree"
@@ -69,6 +76,7 @@ export const App = observer(function App() {
   const {isOpen: isOpenUserEntry, onOpen: onOpenUserEntry, onClose: onCloseUserEntry}
     = useDisclosure({defaultIsOpen: true})
   const [isDragOver, setIsDragOver] = useState(false)
+  const cfmRef = useRef<CloudFileManager | null>(null)
 
   useKeyboardShortcuts()
 
@@ -76,34 +84,13 @@ export const App = observer(function App() {
     onCloseUserEntry()
   }, [onCloseUserEntry])
 
-  const handleLoadWebView = useCallback((url: string) => {
+  const loadWebView = useCallback((url: string) => {
     const tile = appState.document.content?.createOrShowTile(kWebViewTileType)
     isWebViewModel(tile?.content) && tile?.content.setUrl(url)
   }, [])
 
-  const handleUrlImported = useCallback((url: string) => {
-    const importableCSVUrl = isImportableCSVUrl(url)
-    const genericallyImportableUrl = isGenericallyImportableUrl(url)
-
-    if (importableCSVUrl) {
-      initiateImportFromCsv(importableCSVUrl)
-    } else if (genericallyImportableUrl) {
-      initiateGenericImport(genericallyImportableUrl)
-    } else {
-      handleLoadWebView(url)
-    }
-  }, [handleLoadWebView])
-
-  const cfmOptions: IUseCloudFileManagerHookOptions = useMemo(() => ({
-    onFileOpened: handleFileOpened,
-    onUrlImported: handleUrlImported,
-  }), [handleFileOpened, handleUrlImported])
-
-  const { cfm, cfmReadyPromise } = useCloudFileManager(
-    {appOrMenuElemId: kMenuBarElementId}, cfmOptions)
-
-  const handleImportDataSet = useCallback(
-    function handleImportDataSet(data: IDataSet, options?: IImportDataSetOptions) {
+  const importDataSet = useCallback(
+    function importDataSet(data: IDataSet, options?: IImportDataSetOptions) {
       let sharedData: ISharedDataSet | undefined
       appState.document.content?.applyModelChange(() => {
         sharedData = appState.document.content?.importDataSet(data, options)
@@ -117,23 +104,111 @@ export const App = observer(function App() {
       // return to "normal" after import process is complete
       sharedData?.dataSet.completeSnapshot()
       onCloseUserEntry()
-    }, [onCloseUserEntry])
-
-  const handleImportDocument = useCallback((file: File) => {
-    cfm?.client.openLocalFileWithConfirmation(file)
-    onCloseUserEntry()
-  }, [cfm, onCloseUserEntry])
-
-  const handleUrlDrop = useCallback((url: string) => {
-    handleLoadWebView(url)
-    onCloseUserEntry()
   }, [onCloseUserEntry])
+
+  const importFile = useCallback((type?: ImportableFileType, options?: {file?: File|null, url?: string|null}) => {
+    const {file, url} = options || {}
+    let objectUrl: string | undefined
+
+    switch (type) {
+      case "codap":
+        if (file) {
+          cfmRef.current?.client.openLocalFileWithConfirmation(file)
+        } else if (url) {
+          loadWebView(url)
+        }
+        break
+      case "csv":
+        if (file) {
+          if (USE_IMPORTER_PLUGIN_FOR_CSV_FILE) {
+            // For .csv import via Importer plugin
+            initiateImportFromCsv({ file })
+          }
+          else {
+            // For local .csv import without Importer plugin
+            importCsvFile(file, (results: CsvParseResult, aFile: any) => {
+              const ds = convertParsedCsvToDataSet(results, aFile.name)
+              importDataSet(ds)
+            })
+          }
+        } else if (url) {
+          initiateImportFromCsv({ url })
+        }
+        break
+      case "geojson":
+        initiateGenericImport({ file, url, contentType: "application/geo+json" })
+        break
+      case "google-sheets":
+        // no file option for Google Sheets
+        initiateGenericImport({ url, contentType: "application/vnd.google-apps.spreadsheet" })
+        break
+      case "html":
+        initiateGenericImport({ file, url, contentType: "text/html" })
+        break
+      case "image":
+        objectUrl = file ? URL.createObjectURL(file) : undefined
+        if (objectUrl) {
+          loadWebView(objectUrl)
+        } else if (url) {
+          loadWebView(url)
+        }
+        break
+      default:
+        // Unsupported file type
+        cfmRef.current?.client.alert(`Unsupported file type: ${file?.name}`, "Drop File")
+        break
+    }
+    onCloseUserEntry()
+  }, [importDataSet, loadWebView, onCloseUserEntry])
+
+  const handleUrlImported = useCallback((url: string) => {
+    importFile(getImportableFileTypeFromUrl(url), { url })
+  }, [importFile])
+
+  const handleFileImported = useCallback((file: IImportedFile) => {
+    importFile(getImportableFileTypeFromFile(file), { file: file.object })
+  }, [importFile])
+
+  const handleDataTransferItem = useCallback(
+    async function handleDataTransferItem(item: DataTransferItem) {
+      let type: ImportableFileType | undefined
+      let file: File | null = null
+      let url: string | null = null
+
+      if (item.kind === 'file') {
+        file = item.getAsFile()
+        type = getImportableFileTypeFromDataTransferFile(item)
+      } else if (item.kind === 'string' && item.type === 'text/uri-list') {
+        const urlPromise = new Promise<string>((resolve) => {
+          item.getAsString((itemUrl) => resolve(itemUrl))
+        })
+        url = await urlPromise
+        // pick di parameter if present
+        url = (/di=(.+)/.exec(url))?.[1] || url
+        type = getImportableFileTypeFromUrl(url)
+      }
+
+      if (file || url) {
+        importFile(type, { file, url })
+      }
+  }, [importFile])
+
+  const cfmOptions: IUseCloudFileManagerHookOptions = useMemo(() => ({
+    onFileOpened: handleFileOpened,
+    onUrlImported: handleUrlImported,
+    onFileImported: handleFileImported,
+  }), [handleFileOpened, handleUrlImported, handleFileImported])
+
+  const { cfm, cfmReadyPromise } = useCloudFileManager(
+    {appOrMenuElemId: kMenuBarElementId}, cfmOptions)
+
+  // the handleUrlImported and handleFileImported callback are both options and users of the CFM
+  // so we need to keep a ref to the CFM to avoid a circular dependency
+  cfmRef.current = cfm
 
   useDropHandler({
     selector: isOpenUserEntry ? `#${kUserEntryDropOverlay}` : `#${kCodapAppElementId}`,
-    onImportDataSet: handleImportDataSet,
-    onImportDocument: handleImportDocument,
-    onHandleUrlDrop: handleUrlDrop,
+    onDataTransferItem: handleDataTransferItem,
     onSetIsDragOver: setIsDragOver
   })
 

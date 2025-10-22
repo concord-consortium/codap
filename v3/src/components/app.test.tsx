@@ -2,10 +2,6 @@ import { CloudFileManager, CloudFileManagerClientEvent } from "@concord-consorti
 import { act, render, screen } from "@testing-library/react"
 import React, { ReactNode } from "react"
 import { Root } from "react-dom/client"
-import { IDropHandler } from "../hooks/use-drop-handler"
-import { appState } from "../models/app-state"
-import { DataSet } from "../models/data/data-set"
-import { getSharedDataSets } from "../models/shared/shared-data-utils"
 import { prf } from "../utilities/profiler"
 import { setUrlParams } from "../utilities/url-params"
 import { App } from "./app"
@@ -54,20 +50,6 @@ jest.mock("./tool-shelf/tool-shelf", () => ({
   ToolShelf: () => null
 }))
 
-const testImportDataSet = jest.fn()
-
-jest.mock("../hooks/use-drop-handler", () => ({
-  useDropHandler: ({ onImportDataSet }: IDropHandler) => {
-    testImportDataSet.mockImplementation(() => {
-      const data = DataSet.create()
-      data.addAttribute({ id: "aId", name: "a", values: ["1", "2", "3"]})
-      data.addAttribute({ id: "bId", name: "b", values: ["4", "5", "6"]})
-      data.addAttribute({ id: "cId", name: "c", values: ["7", "8", "9"]})
-      onImportDataSet?.(data)
-    })
-  }
-}))
-
 describe.skip("App component", () => {
 
   afterEach(() => {
@@ -110,13 +92,4 @@ describe.skip("App component", () => {
     expect(screen.getByTestId("codap-app")).toBeInTheDocument()
   })
 
-  it("should import a data set", () => {
-    render(<App/>)
-
-    expect(getSharedDataSets(appState.document).length).toBe(1)
-    act(() => {
-      testImportDataSet()
-    })
-    expect(getSharedDataSets(appState.document).length).toBe(2)
-  })
 })
