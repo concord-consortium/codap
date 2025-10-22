@@ -2,7 +2,6 @@ import {comparer, reaction} from "mobx"
 import {geoJSON, LeafletMouseEvent, point, Popup, popup} from "leaflet"
 import React, {useCallback, useEffect} from "react"
 import {useMap} from "react-leaflet"
-import {useDebouncedCallback} from "use-debounce"
 import {DEBUG_MAP, debugLog} from "../../../lib/debug"
 import {isSelectionAction, isSetCaseValuesAction} from "../../../models/data/data-set-actions"
 import {safeJsonParse} from "../../../utilities/js-utils"
@@ -12,7 +11,7 @@ import {transitionDuration} from "../../data-display/data-display-types"
 import {handleClickOnCase} from "../../data-display/data-display-utils"
 import {useDataDisplayLayout} from "../../data-display/hooks/use-data-display-layout"
 import { PixiBackgroundPassThroughEvent } from "../../data-display/pixi/pixi-points"
-import { useLastRenderedMapLayer } from "../hooks/use-last-rendered-map-layer"
+import { useLeafletMapLayers } from "../hooks/use-leaflet-map-layers"
 import {useMapModelContext} from "../hooks/use-map-model-context"
 import {
   GeoJsonObject, kDefaultMapFillOpacity, kMapAreaNoLegendColor,
@@ -30,9 +29,9 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
     {dataConfiguration, displayItemDescription } = mapLayerModel,
     dataset = dataConfiguration?.dataset,
     mapModel = useMapModelContext(),
+    leafletMapLayers = useLeafletMapLayers(),
     leafletMap = useMap(),
-    layout = useDataDisplayLayout(),
-    [ , setLastRenderedMapLayer] = useLastRenderedMapLayer()
+    layout = useDataDisplayLayout()
 
   // useDataTips({dotsRef, dataset, displayModel: mapLayerModel})
 
@@ -67,7 +66,7 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
     })
   }, [dataset, dataConfiguration, mapLayerModel, displayItemDescription])
 
-  const refreshPolygons = useDebouncedCallback((selectedOnly: boolean) => {
+  const refreshPolygons = useCallback(() => {
     if (!dataset) return
     const
       stashFeature = (caseID: string, jsonObject: GeoJsonObject, error: string) => {
@@ -157,8 +156,11 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
     })
     // Now that we're sure we have the right polygon features, update their styles
     refreshPolygonStyles()
-    setLastRenderedMapLayer("polygon")
-  }, 10)
+  }, [dataConfiguration, dataset, leafletMap, mapLayerModel, mapModel, refreshPolygonStyles])
+
+  const refreshPolygonLayer = useCallback(() => {
+    leafletMapLayers?.updateLayer(mapLayerModel, refreshPolygons)
+  }, [leafletMapLayers, mapLayerModel, refreshPolygons])
 
   // Actions in the dataset can trigger need to update polygons
   useEffect(function setupResponsesToDatasetActions() {
@@ -167,12 +169,12 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
         if (isSelectionAction(action)) {
           refreshPolygonStyles()
         } else if (isSetCaseValuesAction(action) || ["addCases", "removeCases"].includes(action.name)) {
-          refreshPolygons(false)
+          refreshPolygonLayer()
         }
       })
       return () => disposer()
     }
-  }, [dataset, refreshPolygons, refreshPolygonStyles])
+  }, [dataset, refreshPolygonLayer, refreshPolygonStyles])
 
   // Changes in layout or map pan/zoom require repositioning points
   useEffect(function setupResponsesToLayoutChanges() {
@@ -183,39 +185,39 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
         return { contentWidth, contentHeight, center, zoom }
       },
       () => {
-        refreshPolygons(false)
+        refreshPolygonLayer()
       }, {name: "MapPolygonLayer.respondToLayoutChanges", equals: comparer.structural, fireImmediately: true}
     )
-  }, [layout, mapModel.leafletMapState, refreshPolygons])
+  }, [layout, mapModel.leafletMapState, refreshPolygonLayer])
 
   // Changes in legend attribute require repositioning polygons
   useEffect(function setupResponsesToLegendAttribute() {
     const disposer = reaction(
       () => [dataConfiguration.attributeID('legend')],
       () => {
-        refreshPolygons(false)
+        refreshPolygonLayer()
       }, {name: "MapPolygonLayer.setupResponsesToLegendAttribute", equals: comparer.structural}
     )
     return () => disposer()
-  }, [dataConfiguration, refreshPolygons])
+  }, [dataConfiguration, refreshPolygonLayer])
 
   useEffect(function setupResponseToChangeInNumberOfCases() {
     return mstReaction(
       () => dataConfiguration?.getCaseDataArray(0).length,
       () => {
-        refreshPolygons(false)
+        refreshPolygonLayer()
       }, {name: "MapPolygonLayer.setupResponseToChangeInNumberOfCases"}, dataConfiguration
     )
-  }, [dataConfiguration, refreshPolygons])
+  }, [dataConfiguration, refreshPolygonLayer])
 
   useEffect(function setupResponseToChangeInVisibility() {
     return mstReaction(
       () => mapLayerModel.isVisible,
       () => {
-        refreshPolygons(false)
+        refreshPolygonLayer()
       }, {name: "MapPolygonLayer.setupResponseToChangeInVisibility"}, mapLayerModel
     )
-  }, [dataConfiguration, mapLayerModel, refreshPolygons])
+  }, [dataConfiguration, mapLayerModel, refreshPolygonLayer])
 
   // respond to item visual properties change
   useEffect(function respondToItemVisualChange() {

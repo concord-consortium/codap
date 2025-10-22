@@ -74,6 +74,13 @@ export const MapContentModel = DataDisplayContentModel
     _ignoreLeafletClicks: false,
   }))
   .views(self => ({
+    get layerIndexMap() {
+      const layerIndexMap = new Map<string, number>()
+      self.layers.forEach((layer, index) => {
+        layerIndexMap.set(layer.id, index)
+      })
+      return layerIndexMap
+    },
     get latLongBounds() {
       let overallBounds: LatLngBounds | undefined
 

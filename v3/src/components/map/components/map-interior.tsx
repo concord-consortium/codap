@@ -1,12 +1,13 @@
 import {observer} from "mobx-react-lite"
 import React, {useEffect} from "react"
-import { useMobXObservableValue } from "../../../hooks/use-mobx-observable-value"
+import { useMemo } from "use-memo-one"
 import { mstAutorun } from "../../../utilities/mst-autorun"
 import { DataConfigurationContext } from "../../data-display/hooks/use-data-configuration-context"
 import {PixiPoints} from "../../data-display/pixi/pixi-points"
-import { LastRenderedMapLayerContext } from "../hooks/use-last-rendered-map-layer"
+import { LeafletMapLayersContext } from "../hooks/use-leaflet-map-layers"
 import {useMapModel} from "../hooks/use-map-model"
 import {useMapModelContext} from "../hooks/use-map-model-context"
+import { LeafletMapLayers } from "../models/leaflet-map-layers"
 import {kMapPinLayerType, kMapPointLayerType, kMapPolygonLayerType} from "../map-types"
 import { isMapPinLayerModel } from "../models/map-pin-layer-model"
 import {isMapPointLayerModel} from "../models/map-point-layer-model"
@@ -22,7 +23,7 @@ interface IProps {
 
 export const MapInterior = observer(function MapInterior({setPixiPointsLayer}: IProps) {
   const mapModel = useMapModelContext()
-  const [getLastRenderedMapLayer, setLastRenderedMapLayer] = useMobXObservableValue<"polygon" | "grid">()
+  const leafletMapLayers = useMemo(() => new LeafletMapLayers(mapModel), [mapModel])
 
   useMapModel()
 
@@ -69,8 +70,8 @@ export const MapInterior = observer(function MapInterior({setPixiPointsLayer}: I
   }
 
   return (
-    <LastRenderedMapLayerContext.Provider value={[getLastRenderedMapLayer, setLastRenderedMapLayer]}>
+    <LeafletMapLayersContext.Provider value={leafletMapLayers}>
       {renderMapLayerComponents()}
-    </LastRenderedMapLayerContext.Provider>
+    </LeafletMapLayersContext.Provider>
   )
 })

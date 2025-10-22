@@ -25,6 +25,7 @@ export const kMapPolygonLayerType = "mapPolygonLayer"
 export const kMapPointLayerType = "mapPointLayer"
 export const kMapPinLayerType = "mapPinLayer"
 export const kMapLayerTypes = [kMapPolygonLayerType, kMapPointLayerType, kMapPinLayerType]
+export const kMapLayerTypeIndices = new Map<string, number>(kMapLayerTypes.map((type, index) => [type, index]))
 
 export const kMapClass = "codap-map"
 export const kMapClassSelector = `.${kMapClass}`
