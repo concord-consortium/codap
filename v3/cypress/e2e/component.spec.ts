@@ -67,4 +67,24 @@ context("Component UI", () => {
       })
     })
   })
+  it("puts tile in focus when the tile's resize elements are clicked", () => {
+    c.getComponentTile("table").should("not.have.class", "focused")
+    c.getResizeControl("table").trigger("pointerdown")
+    c.getComponentTile("table").should("have.class", "focused")
+
+    c.getComponentTitleBar("text").trigger("click") // blur table
+    c.getComponentTile("table").should("not.have.class", "focused")
+    c.getResizeBorder("left").trigger("pointerdown")
+    c.getComponentTile("table").should("have.class", "focused")
+
+    c.getComponentTitleBar("text").trigger("click") // blur table
+    c.getComponentTile("table").should("not.have.class", "focused")
+    c.getResizeBorder("right").trigger("pointerdown")
+    c.getComponentTile("table").should("have.class", "focused")
+
+    c.getComponentTitleBar("text").trigger("click") // blur table
+    c.getComponentTile("table").should("not.have.class", "focused")
+    c.getResizeBorder("bottom").trigger("pointerdown")
+    c.getComponentTile("table").should("have.class", "focused")
+  })
 })
