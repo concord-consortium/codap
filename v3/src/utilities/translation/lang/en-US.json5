@@ -226,6 +226,14 @@
     "V3.AppController.optionMenuItems.positionToolShelfLeft": "Toolbar Position: Top",
     "V3.AppController.optionMenuItems.positionToolShelfTop": "Toolbar Position: Left",
 
+    // These strings are from a recent version of V2
+    "DG.Undo.legend.lockQuantiles": "Undo locking legend color bins",
+    "DG.Redo.legend.lockQuantiles": "Redo locking legend color bins",
+    "DG.Undo.legend.unlockQuantiles": "Undo unlocking legend color bins",
+    "DG.Redo.legend.unlockQuantiles": "Redo unlocking legend color bins",
+    "DG.Inspector.lockLegendQuantiles": "Lock legend color bins",
+    "DG.Inspector.lockLegendQuantilesTooltip": "When checked, the color bins will not change when the values change.",
+
     // CFM/File menu
     "DG.fileMenu.fileMenuName": "File",
     "DG.fileMenu.menuItem.newDocument": "New",

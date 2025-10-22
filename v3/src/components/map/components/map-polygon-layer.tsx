@@ -4,6 +4,7 @@ import React, {useCallback, useEffect} from "react"
 import {useMap} from "react-leaflet"
 import {DEBUG_MAP, debugLog} from "../../../lib/debug"
 import {isSelectionAction, isSetCaseValuesAction} from "../../../models/data/data-set-actions"
+import { transparentColor } from "../../../utilities/color-utils"
 import {safeJsonParse} from "../../../utilities/js-utils"
 import {onAnyAction} from "../../../utilities/mst-utils"
 import {mstReaction} from "../../../utilities/mst-reaction"
@@ -46,7 +47,7 @@ export const MapPolygonLayer = function MapPolygonLayer(props: {
         isSelected = selectedCases.includes(featureCaseID),
         // todo: fillColor, strokeColor and opacity are going to need
         //  to draw from what the user has set in the layers palette
-        fillColor = hasLegend ? dataConfiguration.getLegendColorForCase(featureCaseID)
+        fillColor = hasLegend ? dataConfiguration.getLegendColorForCase(featureCaseID, transparentColor)
           : (isSelected ? kMapAreaNoLegendSelectedColor : displayItemDescription.itemColor),
         strokeColor = hasLegend
           ? (isSelected ? kMapAreaWithLegendSelectedBorderColor

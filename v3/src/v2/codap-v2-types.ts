@@ -394,6 +394,7 @@ export interface ICodapV2GraphStorage extends ICodapV2BaseComponentStorage {
   legendAttributeType: number
   numberOfLegendQuantiles?: number
   legendQuantilesAreLocked?: boolean
+  legendQuantiles?: number[]
   pointColor?: string
   strokeColor?: string
   pointSizeMultiplier?: number
@@ -512,6 +513,10 @@ export interface ICodapV2MapLayerBaseStorage {
   legendAttributeType: number
   isVisible: boolean
   strokeSameAsFill?: boolean
+  // These legend properties are not used by V2 code, but are saved/restored for V3 compatibility
+  numberOfLegendQuantiles?: number
+  legendQuantilesAreLocked?: boolean
+  legendQuantiles?: number[]
 
   // v3 extensions
   v3?: {
