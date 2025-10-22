@@ -75,10 +75,12 @@ export const useRows = (gridElement: HTMLDivElement | null) => {
   const syncRowsToDom = useCallback(() => {
     prf.measure("Table.useRows[syncRowsToDom]", () => {
       const collection = data?.getCollection(collectionId)
-      const domRows = gridElement?.querySelectorAll(".rdg-row")
+      const domRows = gridElement?.querySelectorAll<HTMLDivElement>(".rdg-row")
       domRows?.forEach(row => {
-        const rowIndex = Number(row.getAttribute("aria-rowindex")) - 2
-        const caseId = collection?.caseIds[rowIndex]
+        const caseId = row.dataset.caseId
+        if (!caseId || caseId === kInputRowKey) return
+        const isCollapsed = row.dataset.isCollapsed === "true"
+        if (isCollapsed) return
         const rowHeight = collectionTableModel?.rowHeight
         const cells = row.querySelectorAll(".rdg-cell")
         cells.forEach(cell => {
@@ -88,9 +90,7 @@ export const useRows = (gridElement: HTMLDivElement | null) => {
           if (data && caseId && attr && cellSpan) {
             const strValue = data.getStrValue(caseId, attr.id)
             const numValue = data.getNumeric(caseId, attr.id)
-            // don't pass input row id to common code
-            const _caseId = caseId === kInputRowKey ? undefined : caseId
-            const { value } = renderAttributeValue(strValue, numValue, attr, { caseId: _caseId, rowHeight })
+            const { value } = renderAttributeValue(strValue, numValue, attr, { caseId, rowHeight })
             cellSpan.textContent = value
             setCachedDomAttr(caseId, attr.id)
           }
