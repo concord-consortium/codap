@@ -1,11 +1,12 @@
 import iframePhone from "iframe-phone"
 import { reaction } from "mobx"
 import React, { useEffect } from "react"
+import { isV2CaseTableComponent } from "../../data-interactive/data-interactive-component-types"
 import { getDIHandler } from "../../data-interactive/data-interactive-handler"
+import { errorResult } from "../../data-interactive/handlers/di-results"
 import {
   DIAction, DIHandler, DIRequest, DIRequestCallback, DIRequestResponse
 } from "../../data-interactive/data-interactive-types"
-import "../../data-interactive/register-handlers"
 import { parseResourceSelector, resolveResources } from "../../data-interactive/resource-parser"
 import { DEBUG_PLUGINS, debugLog } from "../../lib/debug"
 import { ITileModel } from "../../models/tiles/tile-model"
@@ -13,7 +14,8 @@ import { uiState } from "../../models/ui-state"
 import { t } from "../../utilities/translation/translate"
 import { RequestQueue } from "./request-queue"
 import { isWebViewModel } from "./web-view-model"
-import { errorResult } from "../../data-interactive/handlers/di-results"
+
+import "../../data-interactive/register-handlers"
 
 function extractOrigin(url?: string) {
   if (!url) return
@@ -75,6 +77,14 @@ export function useDataInteractiveController(iframeRef: React.RefObject<HTMLIFra
           const processAction = async (action: DIAction) => {
             if (!action) return errorResult(t("V3.DI.Error.noAction"))
             if (!tile) return errorResult(t("V3.DI.Error.noTile"))
+
+            const { action: _action, values } = action
+
+            // We handle a special case for V2 compatibility: Request is for creating a caseTable
+            // but there is no specified dataContext though there is a specified name.
+            if (_action === "create" && isV2CaseTableComponent(values) && !values.dataContext && values.name) {
+              values.dataContext = values.name
+            }
 
             const resourceSelector = parseResourceSelector(action.resource)
             const resources = resolveResources(resourceSelector, action.action, tile)
