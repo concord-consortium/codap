@@ -45,11 +45,29 @@ export const ComponentResizeWidgets = observer(function ComponentResizeWidgets(p
     <>
       <Portal containerRef={containerRef}>
         {!isFixedWidth &&
-          <ComponentResizeBorder edge="left" onPointerDown={handleLeftPointerDown} componentRef={componentRef} />}
+          <ComponentResizeBorder
+            edge="left"
+            tileId={tile.id}
+            onPointerDown={handleLeftPointerDown}
+            componentRef={componentRef}
+          />
+        }
         {!isFixedWidth &&
-          <ComponentResizeBorder edge="right" onPointerDown={handleRightPointerDown} componentRef={componentRef} />}
+          <ComponentResizeBorder
+            edge="right"
+            tileId={tile.id}
+            onPointerDown={handleRightPointerDown}
+            componentRef={componentRef}
+          />
+        }
         {!isFixedHeight &&
-          <ComponentResizeBorder edge="bottom" onPointerDown={handleBottomPointerDown} componentRef={componentRef} />}
+          <ComponentResizeBorder
+            edge="bottom"
+            tileId={tile.id}
+            onPointerDown={handleBottomPointerDown}
+            componentRef={componentRef}
+          />
+        }
       </Portal>
       {!(isFixedWidth && isFixedHeight) &&
         <div className="codap-component-corner bottom-left" onPointerDown={handleBottomLeftPointerDown}/>

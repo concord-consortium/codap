@@ -70,8 +70,8 @@ export const ComponentElements = {
   getResizeControl(component: string, index = 0) {
     return this.getComponentTile(component, index).parent().find(".codap-component-corner.bottom-right")
   },
-  getResizeBorder(edge: string, index = 0) {
-    return cy.get(`.codap-component-border.${edge}`).eq(index)
+  getResizeBorder(tileId: string, edge: string) {
+    return cy.get(`[data-testid=resize-border-${tileId}-${edge}]`)
   },
   checkToolTip(element: JQuery<HTMLElement>, tooltipText: string) {
     cy.wrap(element).invoke("attr", "title").should("contain", tooltipText)

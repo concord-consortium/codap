@@ -6,10 +6,11 @@ import { kResizeBorderOverlap } from "./constants"
 interface IProps {
   componentRef: React.RefObject<HTMLElement | null>
   edge: "left" | "right" | "bottom"
+  tileId?: string
   onPointerDown?: (e: React.PointerEvent<HTMLDivElement>) => void
 }
 
-export function ComponentResizeBorder({ componentRef, edge, onPointerDown }: IProps) {
+export function ComponentResizeBorder({ componentRef, edge, tileId, onPointerDown }: IProps) {
 
   // Use floating-ui for positioning
   const { elements: { reference }, refs: { setFloating, setReference }, floatingStyles, update } = useFloating({
@@ -50,6 +51,12 @@ export function ComponentResizeBorder({ componentRef, edge, onPointerDown }: IPr
   const classes = clsx("codap-component-border", edge)
 
   return (
-    <div ref={setFloating} className={classes} style={floatingStyles} onPointerDown={onPointerDown}/>
+    <div
+      ref={setFloating}
+      className={classes}
+      style={floatingStyles}
+      onPointerDown={onPointerDown}
+      data-testid={tileId ? `resize-border-${tileId}-${edge}` : `resize-border-${edge}`}
+    />
   )
 }
