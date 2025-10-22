@@ -1,10 +1,11 @@
+import { comparer } from "mobx"
 import React, {useCallback, useEffect, useRef} from "react"
 import {DomEvent, LeafletMouseEvent, point, popup, Rectangle, rectangle} from "leaflet"
 import {useMap} from "react-leaflet"
 import {useMemo} from "use-memo-one"
 import { setOrExtendSelection } from "../../../models/data/data-set-utils"
-import {mstAutorun} from "../../../utilities/mst-autorun"
 import {mstReaction} from "../../../utilities/mst-reaction"
+import { useLeafletMapLayers } from "../hooks/use-leaflet-map-layers"
 import {IMapPointLayerModel} from "../models/map-point-layer-model"
 import {getCaseCountString, getCategoryBreakdownHtml} from "../utilities/map-utils"
 
@@ -15,6 +16,7 @@ export interface IMapPointGridProps {
 export const MapPointGrid = function MapPointGrid(props: IMapPointGridProps) {
   const {mapLayerModel} = props
   const mapGridModel = mapLayerModel.gridModel
+  const leafletMapLayers = useLeafletMapLayers()
   const leafletMap = useMap()
   const leafletRectsRef = useRef<Array<Rectangle>>([])
   const leafletPopup = useMemo(() => popup({
@@ -87,37 +89,29 @@ export const MapPointGrid = function MapPointGrid(props: IMapPointGridProps) {
       })
       refreshGridSelection()
     }
-  }, [leafletMap, leafletPopup, mapGridModel, mapLayerModel.isVisible, refreshGridSelection])
+  }, [leafletMap, leafletPopup, mapGridModel, mapLayerModel, refreshGridSelection])
 
-  useEffect(function syncMapGridRectangles() {
-    return mstAutorun(() => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-expressions -- used for side effect
-      mapGridModel.gridMultiplier
-      refreshLeafletRects()
-    }, {name: "syncMapGridRectangles"}, mapGridModel)
-  }, [mapGridModel, refreshLeafletRects])
+  const refreshGridLayer = useCallback(() => {
+    leafletMapLayers?.updateLayer(mapLayerModel, refreshLeafletRects)
+  }, [leafletMapLayers, mapLayerModel, refreshLeafletRects])
+
+  useEffect(function syncMapGridModel() {
+    return mstReaction(
+      () => [mapGridModel.changeCount, mapGridModel.isVisible, mapGridModel.gridMultiplier],
+      () => refreshGridLayer(),
+      {name: "syncMapGridModel", equals: comparer.structural}, mapGridModel)
+  }, [mapGridModel, refreshGridLayer])
 
   useEffect(function respondToHiddenCasesChange() {
     return mstReaction(
       () => mapLayerModel.dataConfiguration?.hiddenCases.length,
-      () => {
-        refreshLeafletRects()
-      }, {name: 'MapPointGrid respondToHiddenCasesChange'}, mapLayerModel)
-  }, [mapLayerModel, refreshLeafletRects])
+      () => refreshGridLayer(),
+      {name: 'MapPointGrid respondToHiddenCasesChange'}, mapLayerModel)
+  }, [mapLayerModel, refreshGridLayer])
 
   useEffect(() => {
-    return mstReaction(
-      () => mapGridModel.changeCount,
-      () => {
-        refreshLeafletRects()
-        refreshGridSelection()
-      }, {name: 'MapPointGrid respondToGridChange'}, mapGridModel
-    )
-  }, [mapGridModel, refreshGridSelection, refreshLeafletRects])
-
-  useEffect(() => {
-    refreshLeafletRects()
-  }, [refreshLeafletRects])
+    refreshGridLayer()
+  }, [refreshGridLayer])
 
   return (
     <></>
