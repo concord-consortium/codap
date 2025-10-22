@@ -90,7 +90,7 @@ export const GraphComponent = observer(function GraphComponent({tile}: ITileBase
                   pixiPointsArray={pixiPointsArray}
                 />
               </AxisProviderContext.Provider>
-              <AttributeDragOverlay dragIdPrefix={instanceId} />
+              <AttributeDragOverlay dragIdPrefix={instanceId}/>
             </GraphContentModelContext.Provider>
           </AxisLayoutContext.Provider>
         </GraphLayoutContext.Provider>

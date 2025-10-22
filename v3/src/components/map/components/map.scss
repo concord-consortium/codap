@@ -1,8 +1,12 @@
 @use "../../vars";
 
-.codap-component.codap-map.minimized {
-  .map {
-    visibility: hidden;
+.codap-component.codap-map {
+  z-index: 0;
+
+  &.minimized {
+    .map {
+      visibility: hidden;
+    }
   }
 }
 
