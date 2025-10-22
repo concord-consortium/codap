@@ -1,12 +1,8 @@
 @use "../../vars";
 
-.codap-component.codap-graph {
-  z-index: 0;
-
-  &.minimized {
-    .graph-plot {
-      visibility: hidden;
-    }
+.codap-component.codap-graph.minimized {
+  .graph-plot {
+    visibility: hidden;
   }
 }
 
