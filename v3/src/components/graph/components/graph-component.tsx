@@ -1,5 +1,4 @@
 import { useDroppable } from '@dnd-kit/core'
-import { Portal } from '@chakra-ui/react'
 import { observer } from "mobx-react-lite"
 import React, { useCallback, useEffect, useRef } from "react"
 import { useResizeDetector } from "react-resize-detector"
@@ -91,9 +90,7 @@ export const GraphComponent = observer(function GraphComponent({tile}: ITileBase
                   pixiPointsArray={pixiPointsArray}
                 />
               </AxisProviderContext.Provider>
-              <Portal>
-                <AttributeDragOverlay dragIdPrefix={instanceId} />
-              </Portal>
+              <AttributeDragOverlay dragIdPrefix={instanceId} />
             </GraphContentModelContext.Provider>
           </AxisLayoutContext.Provider>
         </GraphLayoutContext.Provider>

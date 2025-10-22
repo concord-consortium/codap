@@ -61,7 +61,6 @@ export function AttributeDragOverlay ({
       modifiers={modifiers}
       style={style}
       key={key}
-      zIndex={999999}
     >
       {attr
         ? <div className="attribute-drag-overlay">
