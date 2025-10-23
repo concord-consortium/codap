@@ -220,7 +220,7 @@ export const AttributeHeader = observer(function AttributeHeader({
 
     return (
       <>
-        {attrName ? `${attrName}${description}` : ""}
+        {`${attrName}${description}`}
         {attribute?.formula &&
           <>
             <br />
