@@ -16,7 +16,6 @@ $inspector-panel-border-width: 2px;
   min-height: 50px;
   position: absolute;
   top: -$inspector-panel-border-width;
-  z-index: 15;
 
   &.very-narrow {
     width: $inspector-panel-width-very-narrow;
