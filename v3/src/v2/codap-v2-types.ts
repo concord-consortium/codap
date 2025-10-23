@@ -447,6 +447,11 @@ export interface ICodapV2GraphStorage extends ICodapV2BaseComponentStorage {
   enableMeasuresForSelection?: boolean | null
 
   hiddenCases?: number[]
+
+  // v3 extensions
+  v3?: {
+    filterFormula?: string
+  }
 }
 
 // This is differentiated from the current storage because it has no
@@ -507,6 +512,11 @@ export interface ICodapV2MapLayerBaseStorage {
   legendAttributeType: number
   isVisible: boolean
   strokeSameAsFill?: boolean
+
+  // v3 extensions
+  v3?: {
+    filterFormula?: string
+  }
 }
 
 export interface ICodapV2MapPointLayerStorage extends ICodapV2MapLayerBaseStorage {

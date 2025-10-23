@@ -5,6 +5,7 @@ import { toV2Id } from "../../utilities/codap-utils"
 import { defaultBackgroundColor, removeAlphaFromColor } from "../../utilities/color-utils"
 import { V2TileExportFn } from "../../v2/codap-v2-tile-exporters"
 import { CodapV2PlotType, guidLink, ICodapV2Adornment, ICodapV2GraphStorage, IGuidLink } from "../../v2/codap-v2-types"
+import { exportV3Properties } from "../../v2/codap-v2-type-utils"
 import { IAxisModel } from "../axis/models/axis-model"
 import { isAnyCategoricalAxisModel } from "../axis/models/categorical-axis-models"
 import { isAnyNumericAxisModel, isCountAxisModel } from "../axis/models/numeric-axis-models"
@@ -325,7 +326,9 @@ export const v2GraphExporter: V2TileExportFn = ({ tile }) => {
     ...getAxisClassAndBounds(graph, "top", graph.axes.get("topSplit")),
     ...getAxisClassAndBounds(graph, "right", graph.axes.get("rightSplit")),
     // plot models
-    ...getPlotModels(graph)
+    ...getPlotModels(graph),
+    // v3 extensions
+    ...exportV3Properties(graph.dataConfiguration)
   }
 
   return { type: "DG.GraphView", componentStorage }

@@ -5,6 +5,7 @@ import {V2TileImportArgs} from "../../v2/codap-v2-tile-importers"
 import {
   isV2MapComponent, isV2MapCurrentStorage, isV2MapPointLayerStorage, isV2MapPolygonLayerStorage
 } from "../../v2/codap-v2-types"
+import { importV3Properties } from "../../v2/codap-v2-type-utils"
 import {v3TypeFromV2TypeIndex} from "../../v2/codap-v2-data-context-types"
 import {AttrRole} from "../data-display/data-display-types"
 import { v2DataDisplayPostImportSnapshotProcessor } from "../data-display/v2-data-display-import-utils"
@@ -46,7 +47,7 @@ export function v2MapImporter({v2Component, v2Document, getCaseData, insertTile}
         ? v2LayerModel._links_.legendAttr[0] : v2LayerModel._links_.legendAttr,
       v3LegendAttrId = v2LegendAttribute ? toV3AttrId(v2LegendAttribute.id) : undefined,
       {sharedData, sharedMetadata} = getCaseData(contextId),
-      { isVisible, legendAttributeType, strokeSameAsFill } = v2LayerModel,
+      { isVisible, legendAttributeType, strokeSameAsFill, v3 } = v2LayerModel,
       v3LegendType = v3TypeFromV2TypeIndex[legendAttributeType]
     if (!sharedData?.dataSet) return
 
@@ -78,6 +79,7 @@ export function v2MapImporter({v2Component, v2Document, getCaseData, insertTile}
           metadata: sharedMetadata?.id,
           _attributeDescriptions,
           hiddenCases,
+          ...importV3Properties(v3)
         },
         isVisible,
         displayItemDescription: {
@@ -110,7 +112,8 @@ export function v2MapImporter({v2Component, v2Document, getCaseData, insertTile}
           dataset: sharedData?.dataSet.id,
           metadata: sharedMetadata?.id,
           _attributeDescriptions,
-          hiddenCases
+          hiddenCases,
+          ...importV3Properties(v3)
         },
         isVisible,
         displayItemDescription: {

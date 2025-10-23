@@ -25,7 +25,14 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
   const numUnselected = mapModel?.numUnselected() ?? 0
   const numHidden = mapModel?.numHidden() ?? 0
   const { isOpen, onClose, onOpen } = useDisclosure()
-  const dataConfig = mapModel?.layers.find(layer => layer.dataConfiguration)?.dataConfiguration
+  // TODO: The UI currently only supports one filter formula, even though each layer can have its own.
+  // For now, if there's an existing filter formula on any layer, we show that one in the editor.
+  // Otherwise, we just pick the first layer that has a data configuration.
+  const dataConfigWithFilter = mapModel?.layers.find(layer => {
+    return !!layer.dataConfiguration?.filterFormula?.display
+  })?.dataConfiguration
+  const dataConfig = dataConfigWithFilter ||
+                      mapModel?.layers.find(layer => layer.dataConfiguration)?.dataConfiguration
 
   const hideSelectedString = numSelected === 1
                               ? t("DG.DataDisplayMenu.hideSelectedSing")
@@ -92,7 +99,7 @@ export const HideShowMenuList = observer(function HideShowMenuList({tile}: IProp
         <MenuItem onClick={showAllCases} isDisabled={numHidden === 0} data-testid="show-all-cases">
           {t("DG.DataDisplayMenu.showAll")}
         </MenuItem>
-        <MenuItem onClick={onOpen} data-testid="map-edit-filter-formula">
+        <MenuItem onClick={onOpen} isDisabled={!dataConfig} data-testid="map-edit-filter-formula">
           {addOrEditFormulaString}
         </MenuItem>
       </MenuList>

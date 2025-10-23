@@ -153,6 +153,9 @@ export interface ICodapV2DataContext {
   contextStorage: ICodapV2DataContextStorage
   // Ignored: we are ignoring _permissions. It seems like a CFM artifact
   _permissions?: number
+  v3?: {
+    filterFormula?: string
+  }
 }
 
 // TODO_V2_IMPORT: we don't fully handle the GameContext
