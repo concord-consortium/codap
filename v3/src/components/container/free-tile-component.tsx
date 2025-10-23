@@ -9,6 +9,7 @@ import { getTileComponentInfo } from "../../models/tiles/tile-component-info"
 import { kDefaultMinWidth } from "../../models/tiles/tile-layout"
 import { ITileModel } from "../../models/tiles/tile-model"
 import { updateTileNotification } from "../../models/tiles/tile-notifications"
+import { uiState } from "../../models/ui-state"
 import { urlParams } from "../../utilities/url-params"
 import { CodapComponent } from "../codap-component"
 import { IChangingTileStyle, kTitleBarHeight } from "../constants"
@@ -62,6 +63,8 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
   const { handlePointerDown: handleMoveTilePointerDown } = useTileDrag({ row, tile, tileLayout, setChangingTileStyle })
 
   const handleResizePointerDown = useCallback((e: PointerEvent, _tileLayout: IFreeTileLayout, direction: string) => {
+    uiState.setFocusedTile(tileId)
+
     if (e.pointerId !== undefined) {
       e.currentTarget.setPointerCapture(e.pointerId)
     }
@@ -115,7 +118,7 @@ export const FreeTileComponent = observer(function FreeTileComponent({ row, tile
 
     document.body.addEventListener("pointermove", handlePointerMove, { capture: true })
     document.body.addEventListener("pointerup", handlePointerUp, { capture: true })
-  }, [row, tile])
+  }, [row, tile, tileId])
 
   const info = getTileComponentInfo(tileType)
   const style = changingTileStyle ??
