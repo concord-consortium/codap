@@ -88,12 +88,12 @@ describe("DataInteractive InteractiveFrameHandler", () => {
     tile.setUserTitle("Custom Title")
     expect(tile.title).toBe("Custom Title")
     expect(tile.userSetTitle).toBe(true)
-    
-    const result = handler.update?.({ interactiveFrame: tile }, { 
+
+    const result = handler.update?.({ interactiveFrame: tile }, {
       name: "Plugin Default Name",
-      title: "Plugin Default Title" 
+      title: "Plugin Default Title"
     })
-    
+
     expect(result?.success).toBe(true)
     expect(tile.title).toBe("Custom Title")
     expect(tile.userSetTitle).toBe(true)
@@ -103,11 +103,11 @@ describe("DataInteractive InteractiveFrameHandler", () => {
     const tile = appState.document.content!.createOrShowTile(kWebViewTileType)!
     expect(tile.userSetTitle).toBeUndefined()
 
-    const result = handler.update?.({ interactiveFrame: tile }, { 
+    const result = handler.update?.({ interactiveFrame: tile }, {
       name: "Plugin Name",
-      title: "Plugin Title" 
+      title: "Plugin Title"
     })
-    
+
     expect(result?.success).toBe(true)
     expect(tile.title).toBe("Plugin Title")
   })
