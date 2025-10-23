@@ -82,4 +82,33 @@ describe("DataInteractive InteractiveFrameHandler", () => {
     expect(tile.title).toBe(name)
     expect(webViewContent.version).toBe(version)
   })
+
+  it("update respects userSetTitle flag when updating title", () => {
+    const tile = appState.document.content!.createOrShowTile(kWebViewTileType)!
+    tile.setUserTitle("Custom Title")
+    expect(tile.title).toBe("Custom Title")
+    expect(tile.userSetTitle).toBe(true)
+    
+    const result = handler.update?.({ interactiveFrame: tile }, { 
+      name: "Plugin Default Name",
+      title: "Plugin Default Title" 
+    })
+    
+    expect(result?.success).toBe(true)
+    expect(tile.title).toBe("Custom Title")
+    expect(tile.userSetTitle).toBe(true)
+  })
+
+  it("update allows title change when userSetTitle is false", () => {
+    const tile = appState.document.content!.createOrShowTile(kWebViewTileType)!
+    expect(tile.userSetTitle).toBeUndefined()
+
+    const result = handler.update?.({ interactiveFrame: tile }, { 
+      name: "Plugin Name",
+      title: "Plugin Title" 
+    })
+    
+    expect(result?.success).toBe(true)
+    expect(tile.title).toBe("Plugin Title")
+  })
 })
