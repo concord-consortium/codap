@@ -126,12 +126,14 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
         notify: tile ? tileNotification(`change bin parameter`, {}, tile) : undefined
      })
     } else {
-      // Limit the number of characters that can be entered, but allow deletion and navigation keys.
+      // Limit the number of characters that can be entered, but allow deletion and navigation keys, and
+      // overwriting if the user has selected characters they intend to change.
       const allowedKeys = new Set([ "Backspace", "Delete", "ArrowLeft", "ArrowRight", "Home", "End", "Tab" ])
       const isModifierKeyPressed = e.ctrlKey || e.metaKey
       const isAllowedKey = allowedKeys.has(e.key) || isModifierKeyPressed
+      const hasSelection = e.currentTarget.selectionStart !== e.currentTarget.selectionEnd
 
-      if (e.currentTarget.value.length >= kInputMaxCharacters && !isAllowedKey) {
+      if (e.currentTarget.value.length >= kInputMaxCharacters && !isAllowedKey && !hasSelection) {
         e.preventDefault()
       }
     }
@@ -248,7 +250,6 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
                   useEffect in BinnedDotPlotDots. */}
               <Input
                 className="form-input"
-                type="number"
                 value={binWidthValue ?? ""}
                 width={`${String(binWidthValue ?? "").length + kBufferChars}ch`}
                 onBlur={(e) => handleBinOptionBlur(e, "binWidth")}
@@ -262,7 +263,6 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
               </FormLabel>
               <Input
                 className="form-input"
-                type="number"
                 value={binAlignmentValue ?? ""}
                 width={`${String(binAlignmentValue ?? "").length + kBufferChars}ch`}
                 onBlur={(e) => handleBinOptionBlur(e, "binAlignment")}
