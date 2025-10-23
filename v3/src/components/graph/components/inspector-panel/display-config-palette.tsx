@@ -1,6 +1,6 @@
 import { Checkbox, Box, Flex, FormLabel, Input, Radio, RadioGroup, Stack } from "@chakra-ui/react"
 import {observer} from "mobx-react-lite"
-import React, { useEffect, useRef } from "react"
+import React, { useEffect, useState } from "react"
 import BarChartIcon from "../../../../assets/icons/icon-segmented-bar-chart.svg"
 import { useForceUpdate } from "../../../../hooks/use-force-update"
 import { logMessageWithReplacement } from "../../../../lib/log-message"
@@ -42,14 +42,9 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
   const showBarForEachPoint = graphModel?.plot?.isUnivariateNumeric &&
                             graphModel?.dataConfiguration.primaryAttributeType !== "date"
   const kInputMaxCharacters = 12
-  const binWidthInputRef = useRef<HTMLInputElement>(null)
-  const binAlignmentInputRef = useRef<HTMLInputElement>(null)
-
-  const adjustInputWidth = (input: HTMLInputElement) => {
-    const kBufferChars = 2 // used to account for input field padding
-    const contentLength = input.value.length || 1
-    input.style.width = `${contentLength + kBufferChars}ch`
-  }
+  const kBufferChars = 2 // used to account for input field padding
+  const [binWidthValue, setBinWidthValue] = useState<number|undefined>(binDetails?.binWidth)
+  const [binAlignmentValue, setBinAlignmentValue] = useState<number|undefined>(binDetails?.binAlignment)
 
   const handleDisplayTypeChange = (configType: string) => {
     if (isPointDisplayType(configType) || configType === "bins") {
@@ -99,8 +94,20 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
     }
   }
 
-  const handleBinOptionInput = (e: React.FormEvent<HTMLInputElement>) => {
-    adjustInputWidth(e.currentTarget)
+  const parseNumberInput = (value: string): number | undefined => {
+    if (value === "") return undefined
+    const numValue = Number(value)
+    return isNaN(numValue) ? undefined : numValue
+  }
+
+  const handleBinWidthInput = (e: React.FormEvent<HTMLInputElement>) => {
+    const value = parseNumberInput(e.currentTarget.value)
+    setBinWidthValue(value)
+  }
+
+  const handleBinAlignmentInput = (e: React.FormEvent<HTMLInputElement>) => {
+    const value = parseNumberInput(e.currentTarget.value)
+    setBinAlignmentValue(value)
   }
 
   const handleBinOptionKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, option: BinOption) => {
@@ -184,14 +191,9 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
       {name: "formulaEditorIsOpen"}, barChart)
   }, [barChart, forceUpdate])
 
-  // Sync input widths to current values.
   useEffect(() => {
-    if (binWidthInputRef.current) {
-      adjustInputWidth(binWidthInputRef.current)
-    }
-    if (binAlignmentInputRef.current) {
-      adjustInputWidth(binAlignmentInputRef.current)
-    }
+    setBinWidthValue(binDetails?.binWidth)
+    setBinAlignmentValue(binDetails?.binAlignment)
   }, [binDetails?.binWidth, binDetails?.binAlignment])
 
   return (
@@ -245,12 +247,12 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
                   width. Currently, enforcing of the min pixel width is handled by the enforceMinBinPixelWidth
                   useEffect in BinnedDotPlotDots. */}
               <Input
-                ref={binWidthInputRef}
                 className="form-input"
                 type="number"
-                defaultValue={binDetails?.binWidth}
+                value={binWidthValue ?? ""}
+                width={`${String(binWidthValue ?? "").length + kBufferChars}ch`}
                 onBlur={(e) => handleBinOptionBlur(e, "binWidth")}
-                onInput={handleBinOptionInput}
+                onChange={handleBinWidthInput}
                 onKeyDown={(e) => handleBinOptionKeyDown(e, "binWidth")}
               />
             </Box>
@@ -259,12 +261,12 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
                 {t("DG.Inspector.graphAlignment")}
               </FormLabel>
               <Input
-                ref={binAlignmentInputRef}
                 className="form-input"
                 type="number"
-                defaultValue={binDetails?.binAlignment}
+                value={binAlignmentValue ?? ""}
+                width={`${String(binAlignmentValue ?? "").length + kBufferChars}ch`}
                 onBlur={(e) => handleBinOptionBlur(e, "binAlignment")}
-                onInput={handleBinOptionInput}
+                onChange={handleBinAlignmentInput}
                 onKeyDown={(e) => handleBinOptionKeyDown(e, "binAlignment")}
               />
             </Box>
