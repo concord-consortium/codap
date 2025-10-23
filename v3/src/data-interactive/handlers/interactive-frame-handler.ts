@@ -66,7 +66,9 @@ export const diInteractiveFrameHandler: DIHandler = {
       if (dimensions) {
         appState.document.content?.setTileDimensions(interactiveFrame.id, dimensions)
       }
-      if (name) interactiveFrame.setTitle(name)
+      if (name && !interactiveFrame.userSetTitle) {
+        interactiveFrame.setTitle(name)
+      }
       if (blockAPIRequestsWhileEditing != null) {
         webViewContent?.setBlockAPIRequestsWhileEditing(blockAPIRequestsWhileEditing)
       }
@@ -80,7 +82,9 @@ export const diInteractiveFrameHandler: DIHandler = {
       if (subscribeToDocuments != null) {
         webViewContent?.setSubscribeToDocuments(subscribeToDocuments)
       }
-      if (title) interactiveFrame.setTitle(title)
+      if (title && !interactiveFrame.userSetTitle) {
+        interactiveFrame.setTitle(title)
+      }
       if (version) webViewContent?.setVersion(version)
     })
     return { success: true }
