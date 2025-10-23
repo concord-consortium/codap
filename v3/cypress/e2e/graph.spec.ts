@@ -549,6 +549,45 @@ context("Graph UI", () => {
       cy.get("[data-testid=bin-ticks-graph-1]").find("path.draggable-bin-boundary").should("have.length", 4)
       cy.get("[data-testid=bin-ticks-graph-1]").find("path.draggable-bin-boundary-cover").should("have.length", 4)
     })
+    it("should dynamically adjust bin width and alignment input field widths based on content", () => {
+      ah.openAxisAttributeMenu("bottom")
+      ah.selectMenuAttribute("Sleep", "bottom")
+      graph.getDisplayConfigButton().click()
+      cy.get("[data-testid=bins-radio-button]").click()
+
+      const widthsAfterTyping: Record<string, string> = {}    
+      const fields = [
+        { testId: "graph-bin-width-setting", initialValue: "2", longValue: "12345" },
+        { testId: "graph-bin-alignment-setting", initialValue: "2", longValue: "987654" }
+      ]
+    
+      // Check that input fields expand when longer values are entered
+      fields.forEach((field) => {
+        cy.get(`[data-testid=${field.testId}]`).should("be.visible")
+        cy.get(`[data-testid=${field.testId}]`).find("input").should("have.value", field.initialValue)
+        cy.get(`[data-testid=${field.testId}]`).find("input").invoke("css", "width").then((initialWidth) => {
+          cy.get(`[data-testid=${field.testId}]`).find("input").clear().type(field.longValue)
+          cy.get(`[data-testid=${field.testId}]`).find("input").invoke("css", "width").then((longerWidth) => {
+            expect(parseFloat(String(longerWidth))).to.be.greaterThan(parseFloat(String(initialWidth)))
+            widthsAfterTyping[field.testId] = String(longerWidth)
+          })
+        })
+      })
+    
+      // Close and reopen palette to verify widths persist
+      cy.get(`[data-testid=${fields[1].testId}]`).find("input").type("{enter}")
+      cy.get("[data-testid=graph]").click()
+      cy.get(`[data-testid=${fields[1].testId}]`).should("not.exist")
+      graph.getDisplayConfigButton().click()
+
+      fields.forEach((field) => {
+        cy.get(`[data-testid=${field.testId}]`).should("be.visible")
+        cy.get(`[data-testid=${field.testId}]`).find("input").should("have.value", field.longValue)
+        cy.get(`[data-testid=${field.testId}]`).find("input").invoke("css", "width").then((width) => {
+          expect(width).to.equal(widthsAfterTyping[field.testId])
+        })
+      })
+    })
     it("should reset bin width and alignment to default for new value range when attribute changes", () => {
       ah.openAxisAttributeMenu("bottom")
       ah.selectMenuAttribute("Sleep", "bottom") // Sleep => x-axis

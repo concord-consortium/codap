@@ -1,6 +1,6 @@
 import { Checkbox, Box, Flex, FormLabel, Input, Radio, RadioGroup, Stack } from "@chakra-ui/react"
 import {observer} from "mobx-react-lite"
-import React, { useEffect } from "react"
+import React, { useEffect, useState } from "react"
 import BarChartIcon from "../../../../assets/icons/icon-segmented-bar-chart.svg"
 import { useForceUpdate } from "../../../../hooks/use-force-update"
 import { logMessageWithReplacement } from "../../../../lib/log-message"
@@ -41,6 +41,10 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
   const showBreakdownTypes = graphModel?.plot?.showBreakdownTypes
   const showBarForEachPoint = graphModel?.plot?.isUnivariateNumeric &&
                             graphModel?.dataConfiguration.primaryAttributeType !== "date"
+  const kInputMaxCharacters = 12
+  const kBufferChars = 2 // used to account for input field padding
+  const [binWidthValue, setBinWidthValue] = useState<number|undefined>(binDetails?.binWidth)
+  const [binAlignmentValue, setBinAlignmentValue] = useState<number|undefined>(binDetails?.binAlignment)
 
   const handleDisplayTypeChange = (configType: string) => {
     if (isPointDisplayType(configType) || configType === "bins") {
@@ -90,6 +94,22 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
     }
   }
 
+  const parseNumberInput = (value: string): number | undefined => {
+    if (value === "") return undefined
+    const numValue = parseFloat(value)
+    return isNaN(numValue) ? undefined : numValue
+  }
+
+  const handleBinWidthInput = (e: React.FormEvent<HTMLInputElement>) => {
+    const value = parseNumberInput(e.currentTarget.value)
+    setBinWidthValue(value)
+  }
+
+  const handleBinAlignmentInput = (e: React.FormEvent<HTMLInputElement>) => {
+    const value = parseNumberInput(e.currentTarget.value)
+    setBinAlignmentValue(value)
+  }
+
   const handleBinOptionKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, option: BinOption) => {
     if (e.key === "Enter") {
       e.preventDefault()
@@ -105,6 +125,17 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
         redoStringKey: option === "binWidth" ? "DG.Redo.graph.changeBinWidth" : "DG.Redo.graph.changeBinAlignment",
         notify: tile ? tileNotification(`change bin parameter`, {}, tile) : undefined
      })
+    } else {
+      // Limit the number of characters that can be entered, but allow deletion and navigation keys, and
+      // overwriting if the user has selected characters they intend to change.
+      const allowedKeys = new Set([ "Backspace", "Delete", "ArrowLeft", "ArrowRight", "Home", "End", "Tab" ])
+      const isModifierKeyPressed = e.ctrlKey || e.metaKey
+      const isAllowedKey = allowedKeys.has(e.key) || isModifierKeyPressed
+      const hasSelection = e.currentTarget.selectionStart !== e.currentTarget.selectionEnd
+
+      if (e.currentTarget.value.length >= kInputMaxCharacters && !isAllowedKey && !hasSelection) {
+        e.preventDefault()
+      }
     }
   }
 
@@ -162,6 +193,11 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
       {name: "formulaEditorIsOpen"}, barChart)
   }, [barChart, forceUpdate])
 
+  useEffect(() => {
+    setBinWidthValue(binDetails?.binWidth)
+    setBinAlignmentValue(binDetails?.binAlignment)
+  }, [binDetails?.binWidth, binDetails?.binAlignment])
+
   return (
     <InspectorPalette
       title={t("DG.Inspector.configuration")}
@@ -214,9 +250,10 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
                   useEffect in BinnedDotPlotDots. */}
               <Input
                 className="form-input"
-                type="number"
-                defaultValue={binDetails?.binWidth}
+                value={binWidthValue ?? ""}
+                width={`${String(binWidthValue ?? "").length + kBufferChars}ch`}
                 onBlur={(e) => handleBinOptionBlur(e, "binWidth")}
+                onChange={handleBinWidthInput}
                 onKeyDown={(e) => handleBinOptionKeyDown(e, "binWidth")}
               />
             </Box>
@@ -226,9 +263,10 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
               </FormLabel>
               <Input
                 className="form-input"
-                type="number"
-                defaultValue={binDetails?.binAlignment}
+                value={binAlignmentValue ?? ""}
+                width={`${String(binAlignmentValue ?? "").length + kBufferChars}ch`}
                 onBlur={(e) => handleBinOptionBlur(e, "binAlignment")}
+                onChange={handleBinAlignmentInput}
                 onKeyDown={(e) => handleBinOptionKeyDown(e, "binAlignment")}
               />
             </Box>
