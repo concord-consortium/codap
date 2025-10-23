@@ -224,7 +224,7 @@ export const AttributeHeader = observer(function AttributeHeader({
         {attribute?.formula &&
           <>
             <br />
-            {`${attrName} = ${attribute.formula.display}`.trim()}
+            {`${attrName} = ${attribute.formula.display}`}
           </>
         }
       </>
