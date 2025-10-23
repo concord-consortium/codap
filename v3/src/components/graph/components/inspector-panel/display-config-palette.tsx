@@ -96,7 +96,7 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
 
   const parseNumberInput = (value: string): number | undefined => {
     if (value === "") return undefined
-    const numValue = Number(value)
+    const numValue = parseFloat(value)
     return isNaN(numValue) ? undefined : numValue
   }
 
