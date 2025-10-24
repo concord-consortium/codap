@@ -10,6 +10,7 @@ import {
   guidLink, ICodapV2BaseComponentStorage, ICodapV2MapLayerBaseStorage, ICodapV2MapLayerStorage,
   ICodapV2MapPointLayerStorage, ICodapV2MapPolygonLayerStorage, ICodapV2MapStorage
 } from "../../v2/codap-v2-types"
+import { exportV3Properties } from "../../v2/codap-v2-type-utils"
 import { IDataDisplayLayerModel } from "../data-display/models/data-display-layer-model"
 import { BaseMapKey, kLatNames, kLongNames, kMapPointLayerType, kMapPolygonLayerType } from "./map-types"
 import { isMapContentModel } from "./models/map-content-model"
@@ -67,7 +68,8 @@ function exportMapBaseLayerStorage(layer: IMapLayerModel): ICodapV2MapLayerBaseS
     },
     isVisible: isVisible ?? false,
     legendRole: 0,
-    legendAttributeType
+    legendAttributeType,
+    ...exportV3Properties(dataConfiguration)
   }
 }
 

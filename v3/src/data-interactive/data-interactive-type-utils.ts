@@ -9,11 +9,12 @@ import { IV2CollectionDefaults } from "../models/shared/data-set-metadata"
 import { getMetadataFromDataSet } from "../models/shared/shared-data-utils"
 import { kAttrIdPrefix, maybeToV2Id, toV2Id, toV2ItemId, toV3AttrId } from "../utilities/codap-utils"
 import {
-  ICodapV2Attribute, ICodapV2Case, ICodapV2CategoryMap, ICodapV2CollectionV3, ICodapV2DataContextSelectedCase,
-  v3TypeFromV2TypeString
+  ICodapV2Attribute, ICodapV2Case, ICodapV2CategoryMap, ICodapV2CollectionV3,
+  ICodapV2DataContextSelectedCase, v3TypeFromV2TypeString
 } from "../v2/codap-v2-data-context-types"
 import { GameContextMetadataMap } from "../v2/codap-v2-tile-exporters"
 import { ICodapV2DataContextV3 } from "../v2/codap-v2-types"
+import { exportV3Properties } from "../v2/codap-v2-type-utils"
 import { DIGetCaseResult, DIAttribute } from "./data-interactive-data-set-types"
 import { DIResources, DISingleValues } from "./data-interactive-types"
 import { getCaseValues } from "./data-interactive-utils"
@@ -263,7 +264,8 @@ export function convertDataSetToV2(dataSet: IDataSet, options?: IConvertDataSetT
     contextStorage: {
       _links_: { selectedCases },
       ...(gameContextMetadata ?? {})
-    }
+    },
+    ...exportV3Properties(dataSet)
   }
 }
 

@@ -17,6 +17,7 @@ import {
   ICodapV2Attribute, ICodapV2Case, ICodapV2Collection, ICodapV2DataContext, ICodapV2DataContextStorage,
   ICodapV2GameContext, ICodapV2SetAsideItem, isV2SetAsideItem, v3TypeFromV2TypeString
 } from "./codap-v2-data-context-types"
+import { importV3Properties } from "./codap-v2-type-utils"
 
 interface V2CaseIdInfo {
   // cumulative list of ordered attribute names used for grouping
@@ -52,11 +53,12 @@ export class CodapV2DataSetImporter {
   }
 
   importContext(context: ImportableContext, sharedModelManager?: ISharedModelManager) {
-    const { collections = [], guid, name = "", title, contextStorage, setAsideItems } = context
+    const { collections = [], guid, name = "", title, contextStorage, setAsideItems, v3 } = context
     const dataSetId = toV3DataSetId(guid)
+    const v3Props = importV3Properties(v3)
 
     // add shared models
-    const sharedDataSet = SharedDataSet.create({ dataSet: { id: dataSetId, name, _title: title } })
+    const sharedDataSet = SharedDataSet.create({ dataSet: { id: dataSetId, name, _title: title, ...v3Props } })
     sharedModelManager?.addSharedModel(sharedDataSet)
     const metadata = DataSetMetadata.create()
     sharedModelManager?.addSharedModel(metadata)
