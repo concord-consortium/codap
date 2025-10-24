@@ -47,8 +47,7 @@ export function v2MapImporter({v2Component, v2Document, getCaseData, insertTile}
         ? v2LayerModel._links_.legendAttr[0] : v2LayerModel._links_.legendAttr,
       v3LegendAttrId = v2LegendAttribute ? toV3AttrId(v2LegendAttribute.id) : undefined,
       {sharedData, sharedMetadata} = getCaseData(contextId),
-      { isVisible, legendAttributeType, strokeSameAsFill,
-        legendQuantilesAreLocked, legendQuantiles, numberOfLegendQuantiles, v3} = v2LayerModel,
+      { isVisible, legendAttributeType, strokeSameAsFill, v3 } = v2LayerModel,
       v3LegendType = v3TypeFromV2TypeIndex[legendAttributeType]
     if (!sharedData?.dataSet) return
 
@@ -80,9 +79,6 @@ export function v2MapImporter({v2Component, v2Document, getCaseData, insertTile}
           metadata: sharedMetadata?.id,
           _attributeDescriptions,
           hiddenCases,
-          numberOfLegendQuantiles,
-          legendQuantilesAreLocked,
-          legendQuantiles,
           ...importV3Properties(v3)
         },
         isVisible,
@@ -117,9 +113,6 @@ export function v2MapImporter({v2Component, v2Document, getCaseData, insertTile}
           metadata: sharedMetadata?.id,
           _attributeDescriptions,
           hiddenCases,
-          numberOfLegendQuantiles,
-          legendQuantilesAreLocked,
-          legendQuantiles,
           ...importV3Properties(v3)
         },
         isVisible,

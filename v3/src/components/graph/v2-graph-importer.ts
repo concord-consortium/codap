@@ -3,7 +3,7 @@ import {toV3AttrId, toV3Id} from "../../utilities/codap-utils"
 import {defaultBackgroundColor, parseColorToHex} from "../../utilities/color-utils"
 import {V2TileImportArgs} from "../../v2/codap-v2-tile-importers"
 import { IGuidLink, isV2GraphComponent } from "../../v2/codap-v2-types"
-import { importV3Properties } from "../../v2/codap-v2-type-utils"
+import { importLegendQuantileProps, importV3Properties } from "../../v2/codap-v2-type-utils"
 import {v3TypeFromV2TypeIndex} from "../../v2/codap-v2-data-context-types"
 import {GraphAttrRole, PrimaryAttrRole, axisPlaceToAttrRole} from "../data-display/data-display-types"
 import { v2DataDisplayPostImportSnapshotProcessor } from "../data-display/v2-data-display-import-utils"
@@ -49,9 +49,7 @@ export function v2GraphImporter({v2Component, v2Document, getCaseData, insertTil
       name, title, userSetTitle, _links_: links, plotModels, hiddenCases: _hiddenCaseIds, cannotClose,
       pointColor, transparency, strokeColor, strokeTransparency, pointSizeMultiplier,
       strokeSameAsFill, isTransparent, displayOnlySelected, enableMeasuresForSelection,
-      enableNumberToggle, numberToggleLastMode,
-      plotBackgroundImage, plotBackgroundImageLockInfo, numberOfLegendQuantiles, legendQuantilesAreLocked,
-      legendQuantiles, v3
+      enableNumberToggle, numberToggleLastMode, plotBackgroundImage, plotBackgroundImageLockInfo, v3
     }
   } = v2Component
   const plotBackgroundOpacity = v2Component.componentStorage.plotBackgroundOpacity ?? 1
@@ -204,9 +202,7 @@ export function v2GraphImporter({v2Component, v2Document, getCaseData, insertTil
         _yAttributeDescriptions,
         displayOnlySelectedCases: displayOnlySelected,
         showMeasuresForSelection: enableMeasuresForSelection || undefined,
-        numberOfLegendQuantiles,
-        legendQuantilesAreLocked,
-        legendQuantiles,
+        ...importLegendQuantileProps(v2Component.componentStorage),
         ...importV3Properties(v3)
       }
     }]

@@ -9,10 +9,10 @@ import {
 } from "../../../models/shared/data-set-metadata-constants"
 import { t } from "../../../utilities/translation/translate"
 import { IMapPointLayerModel, isMapPointDisplayType } from "../../map/models/map-point-layer-model"
+import { getScaleThresholds } from "../components/legend/choropleth-legend/choropleth-legend"
 import { PointDisplayType } from "../data-display-types"
 import { IDataConfigurationModel } from "../models/data-configuration-model"
 import { IDisplayItemDescriptionModel } from "../models/display-item-description-model"
-import { getScaleThresholds } from "../components/legend/choropleth-legend/choropleth-legend"
 import { PointColorSetting } from "./point-color-setting"
 
 import "./inspector-panel.scss"
@@ -117,7 +117,7 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
   }
 
   const handleLockQuantilesChange = (areLocked: boolean) => {
-    const suffix = areLocked ? "lock" : "unlock"
+    const prefix = areLocked ? "lock" : "unlock"
     dataConfiguration.applyModelChange(
       () => {
         const quantiles = areLocked ? getScaleThresholds(dataConfiguration.legendNumericColorScale) : []
@@ -125,9 +125,9 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
         dataConfiguration.setLegendQuantilesAreLocked(areLocked)
       },
       {
-        undoStringKey: `DG.Undo.legend.${suffix}Quantiles`,
-        redoStringKey: `DG.Redo.legend.${suffix}Quantiles`,
-        log: `Set legend quantiles to be ${suffix}ed`
+        undoStringKey: `DG.Undo.legend.${prefix}Quantiles`,
+        redoStringKey: `DG.Redo.legend.${prefix}Quantiles`,
+        log: `Set legend quantiles to be ${prefix}ed`
       }
     )
   }
@@ -273,9 +273,7 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
                 <FormControl>
                   <Checkbox data-testid="lock-legend-quantiles-checkbox"
                             mt="6px" isChecked={dataConfiguration.legendQuantilesAreLocked}
-                            onChange={e => {
-                              handleLockQuantilesChange(e.target.checked)
-                            }}>
+                            onChange={(e) => handleLockQuantilesChange(e.target.checked)}>
                     {t("DG.Inspector.lockLegendQuantiles")}
                   </Checkbox>
                 </FormControl>

@@ -69,10 +69,8 @@ function exportMapBaseLayerStorage(layer: IMapLayerModel): ICodapV2MapLayerBaseS
     isVisible: isVisible ?? false,
     legendRole: 0,
     legendAttributeType,
-    numberOfLegendQuantiles: dataConfiguration.numberOfLegendQuantiles ?? 0,
-    legendQuantilesAreLocked: dataConfiguration.legendQuantilesAreLocked ?? false,
-    legendQuantiles: dataConfiguration.legendQuantiles ?? [],
-    ...exportV3Properties(dataConfiguration)
+    // legend quantiles aren't serialized for maps in v2, so we treat them as v3 extensions
+    ...exportV3Properties(dataConfiguration, { includeLegendQuantiles: true })
   }
 }
 

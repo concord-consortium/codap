@@ -102,7 +102,7 @@ export const DataConfigurationModel = types
     filterFormula: types.maybe(Formula),
     numberOfLegendQuantiles: types.maybe(types.number),
     legendQuantilesAreLocked: types.maybe(types.boolean),
-    legendQuantiles: types.optional(types.array(types.number), []),
+    legendQuantiles: types.array(types.number)
   })
   .volatile(() => ({
     actionHandlerDisposer: undefined as (() => void) | undefined,
