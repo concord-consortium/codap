@@ -43,8 +43,8 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
                             graphModel?.dataConfiguration.primaryAttributeType !== "date"
   const kInputMaxCharacters = 12
   const kBufferChars = 2 // used to account for input field padding
-  const [binWidthValue, setBinWidthValue] = useState<number|undefined>(binDetails?.binWidth)
-  const [binAlignmentValue, setBinAlignmentValue] = useState<number|undefined>(binDetails?.binAlignment)
+  const [binWidthInput, setBinWidthInput] = useState(String(binDetails?.binWidth))
+  const [binAlignmentInput, setBinAlignmentInput] = useState(String(binDetails?.binAlignment))
 
   const handleDisplayTypeChange = (configType: string) => {
     if (isPointDisplayType(configType) || configType === "bins") {
@@ -94,20 +94,25 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
     }
   }
 
-  const parseNumberInput = (value: string): number | undefined => {
-    if (value === "") return undefined
-    const numValue = parseFloat(value)
-    return isNaN(numValue) ? undefined : numValue
+  const filterNumericInput = (value: string): string => {
+    // Remove characters that are not digits or a decimal point.
+    let filteredValue = value.replace(/[^0-9.]/g, "")
+    // Only allow one decimal point.
+    const parts = filteredValue.split('.')
+    if (parts.length > 2) {
+      filteredValue = `${parts.shift()}.${parts.join('')}`
+    }
+    return filteredValue
   }
 
   const handleBinWidthInput = (e: React.FormEvent<HTMLInputElement>) => {
-    const value = parseNumberInput(e.currentTarget.value)
-    setBinWidthValue(value)
+    const value = filterNumericInput(e.currentTarget.value)
+    setBinWidthInput(value)
   }
 
   const handleBinAlignmentInput = (e: React.FormEvent<HTMLInputElement>) => {
-    const value = parseNumberInput(e.currentTarget.value)
-    setBinAlignmentValue(value)
+    const value = filterNumericInput(e.currentTarget.value)
+    setBinAlignmentInput(value)
   }
 
   const handleBinOptionKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, option: BinOption) => {
@@ -194,8 +199,8 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
   }, [barChart, forceUpdate])
 
   useEffect(() => {
-    setBinWidthValue(binDetails?.binWidth)
-    setBinAlignmentValue(binDetails?.binAlignment)
+    setBinWidthInput(String(binDetails?.binWidth))
+    setBinAlignmentInput(String(binDetails?.binAlignment))
   }, [binDetails?.binWidth, binDetails?.binAlignment])
 
   return (
@@ -250,8 +255,8 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
                   useEffect in BinnedDotPlotDots. */}
               <Input
                 className="form-input"
-                value={binWidthValue ?? ""}
-                width={`${String(binWidthValue ?? "").length + kBufferChars}ch`}
+                value={binWidthInput}
+                width={`${binWidthInput.length + kBufferChars}ch`}
                 onBlur={(e) => handleBinOptionBlur(e, "binWidth")}
                 onChange={handleBinWidthInput}
                 onKeyDown={(e) => handleBinOptionKeyDown(e, "binWidth")}
@@ -263,8 +268,8 @@ export const DisplayConfigPalette = observer(function DisplayConfigPanel(props: 
               </FormLabel>
               <Input
                 className="form-input"
-                value={binAlignmentValue ?? ""}
-                width={`${String(binAlignmentValue ?? "").length + kBufferChars}ch`}
+                value={binAlignmentInput}
+                width={`${binAlignmentInput.length + kBufferChars}ch`}
                 onBlur={(e) => handleBinOptionBlur(e, "binAlignment")}
                 onChange={handleBinAlignmentInput}
                 onKeyDown={(e) => handleBinOptionKeyDown(e, "binAlignment")}
