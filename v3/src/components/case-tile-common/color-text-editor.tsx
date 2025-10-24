@@ -127,7 +127,7 @@ export default function ColorTextEditor({attributeId, caseId, value, acceptValue
                 isPaletteOpen={isPaletteOpen} inputValue={String(inputValue) || "#ffffff"}
                 swatchBackgroundColor={color || "#ffffff"} setPlacement={setPlacement} placement={placement}
                 buttonRef={triggerButtonRef} showArrow={true} onColorChange={handleUpdateValue}
-                onAccept={()=>handleSubmit} onReject={handleCancel} onUpdateValue={handleUpdateValue}/>
+                onAccept={handleSubmit} onReject={handleCancel} onUpdateValue={handleUpdateValue}/>
             </Portal>
           </Popover>
         </div>
