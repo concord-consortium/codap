@@ -93,7 +93,7 @@ export const BoxPlotAdornmentModel = UnivariateMeasureAdornmentModel
     },
     computeICIRange(attrId: string, cellKey: Record<string, string>, dataConfig: IGraphDataConfigurationModel) {
       const caseValues = self.getCaseValues(attrId, cellKey, dataConfig)
-      const medianValue = Number(self.computeMeasureValue(attrId, cellKey, dataConfig))
+      const medianValue = median(caseValues)
       const interquartileRange = self.interquartileRange(caseValues)
       const ici = 1.5 * interquartileRange / Math.sqrt(caseValues.length)
       return { min: medianValue - ici, max: medianValue + ici }
