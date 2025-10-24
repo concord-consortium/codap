@@ -49,7 +49,7 @@ export const EditAttributePropertiesModal = ({ attributeId, isOpen, onClose }: I
   const applyChanges = () => {
     if (attribute && attributeId) {
       data?.applyModelChange(() => {
-        if (attributeName !== attribute.name) {
+        if (attributeName && attributeName !== attribute.name) {
           const newName = uniqueName(attributeName,
             (aName: string) => (aName === columnName) || !data?.attributes.find(attr => aName === attr.name)
           )
