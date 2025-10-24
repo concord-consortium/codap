@@ -100,6 +100,8 @@ const exportFn: V2TileExportFn = ({ tile, row, gameContextMetadataMap }) => {
       componentStorage: {
         currentGameUrl: url,
         currentGameName: tile.name,
+        title: tile._title,
+        userSetTitle: tile.userSetTitle,
         savedGameState: state ?? undefined,
         ...(allowEmptyAttributeDeletion === false ? { allowEmptyAttributeDeletion: false } : {}),
         allowInitGameOverride: true, // unused by v2, but exported for compatibility
