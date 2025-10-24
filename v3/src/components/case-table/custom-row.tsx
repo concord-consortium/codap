@@ -4,7 +4,7 @@ import React, { useEffect, useRef } from "react"
 import { Row } from "react-data-grid"
 import { TRenderRowProps } from "./case-table-types"
 import { useCollectionContext } from "../../hooks/use-collection-context"
-import { useDataSetContext } from "../../hooks/use-data-set-context"
+import { useDataSet } from "../../hooks/use-data-set"
 import { IDataSet } from "../../models/data/data-set"
 import { parseColorToHex } from "../../utilities/color-utils"
 
@@ -30,10 +30,11 @@ function getRowColor(data: IDataSet | undefined, collectionId: string, caseId: s
 }
 
 export const CustomRow = observer(function CustomRow(props: TRenderRowProps) {
-  const data = useDataSetContext()
+  const { data, metadata } = useDataSet()
   const collectionId = useCollectionContext()
   const rowRef = useRef<HTMLDivElement | null>(null)
   const { row: { __id__: caseId } } = props
+  const isCollapsedProp = metadata?.getCollapsedAncestor(caseId) ? { "data-is-collapsed": "true" } : {}
   const rowColor = getRowColor(data, collectionId, caseId) ?? ""
 
   useEffect(() => {
@@ -42,7 +43,7 @@ export const CustomRow = observer(function CustomRow(props: TRenderRowProps) {
     }
   }, [rowColor])
 
-  return <Row ref={rowRef} {...props}></Row>
+  return <Row ref={rowRef} data-case-id={caseId} {...isCollapsedProp} {...props}></Row>
 })
 
 export function customRenderRow(key: React.Key, props: TRenderRowProps) {
