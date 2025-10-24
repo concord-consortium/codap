@@ -50,7 +50,8 @@ export function v2GraphImporter({v2Component, v2Document, getCaseData, insertTil
       pointColor, transparency, strokeColor, strokeTransparency, pointSizeMultiplier,
       strokeSameAsFill, isTransparent, displayOnlySelected, enableMeasuresForSelection,
       enableNumberToggle, numberToggleLastMode,
-      plotBackgroundImage, plotBackgroundImageLockInfo, numberOfLegendQuantiles, legendQuantilesAreLocked, v3
+      plotBackgroundImage, plotBackgroundImageLockInfo, numberOfLegendQuantiles, legendQuantilesAreLocked,
+      legendQuantiles, v3
     }
   } = v2Component
   const plotBackgroundOpacity = v2Component.componentStorage.plotBackgroundOpacity ?? 1
@@ -184,8 +185,6 @@ export function v2GraphImporter({v2Component, v2Document, getCaseData, insertTil
     isTransparent: isTransparent ?? false,
     showParentToggles: enableNumberToggle ?? undefined,
     showOnlyLastCase: numberToggleLastMode,
-    numberOfLegendQuantiles,
-    legendQuantilesAreLocked,
     pointDescription: {
       _itemColors: pointColor ? [parseColorToHex(pointColor, {colorNames: true, alpha: transparency})] : [],
       _itemStrokeColor: strokeColor ? parseColorToHex(strokeColor, {colorNames: true, alpha: strokeTransparency})
@@ -205,6 +204,9 @@ export function v2GraphImporter({v2Component, v2Document, getCaseData, insertTil
         _yAttributeDescriptions,
         displayOnlySelectedCases: displayOnlySelected,
         showMeasuresForSelection: enableMeasuresForSelection || undefined,
+        numberOfLegendQuantiles,
+        legendQuantilesAreLocked,
+        legendQuantiles,
         ...importV3Properties(v3)
       }
     }]

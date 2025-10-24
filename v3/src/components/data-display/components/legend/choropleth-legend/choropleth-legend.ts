@@ -1,4 +1,5 @@
-import { axisBottom, format, max, min, NumberValue, range, scaleLinear, ScaleQuantile, ScaleQuantize, select } from "d3"
+import {axisBottom, format, max, min, NumberValue, range, scaleLinear, ScaleQuantile, ScaleQuantize,
+        ScaleThreshold, select} from "d3"
 import { measureTextExtent } from "../../../../../hooks/use-measure-text"
 import {
   determineLevels, formatDate, kDatePrecisionNone, mapLevelToPrecision
@@ -20,14 +21,20 @@ export type ChoroplethLegendProps = {
   casesInBinSelectedHandler: (bin: number) => boolean
 }
 
-type ChoroplethScale = ScaleQuantile<string> | ScaleQuantize<string>
+type ChoroplethScale = ScaleQuantile<string> | ScaleQuantize<string> | ScaleThreshold<number, string>
 
 function isScaleQuantile(scale: ChoroplethScale): scale is ScaleQuantile<string> {
   return "quantiles" in scale
 }
 
+function isScaleQuantize(scale: ChoroplethScale): scale is ScaleQuantize<string> {
+  return "nice" in scale
+}
+
 export function getScaleThresholds(scale: ChoroplethScale) {
-  return isScaleQuantile(scale) ? scale.quantiles() : scale.thresholds()
+  return isScaleQuantile(scale) ? scale.quantiles()
+    : isScaleQuantize(scale) ? scale.thresholds()
+      : scale.domain()
 }
 
 export function choroplethLegend(scale: ChoroplethScale, choroplethElt: SVGGElement, props: ChoroplethLegendProps) {

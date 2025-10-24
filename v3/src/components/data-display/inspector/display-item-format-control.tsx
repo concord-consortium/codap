@@ -12,6 +12,7 @@ import { IMapPointLayerModel, isMapPointDisplayType } from "../../map/models/map
 import { PointDisplayType } from "../data-display-types"
 import { IDataConfigurationModel } from "../models/data-configuration-model"
 import { IDisplayItemDescriptionModel } from "../models/display-item-description-model"
+import { getScaleThresholds } from "../components/legend/choropleth-legend/choropleth-legend"
 import { PointColorSetting } from "./point-color-setting"
 
 import "./inspector-panel.scss"
@@ -115,6 +116,22 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
     )
   }
 
+  const handleLockQuantilesChange = (areLocked: boolean) => {
+    const suffix = areLocked ? "lock" : "unlock"
+    dataConfiguration.applyModelChange(
+      () => {
+        const quantiles = areLocked ? getScaleThresholds(dataConfiguration.legendNumericColorScale) : []
+        dataConfiguration.setLegendQuantiles(quantiles)
+        dataConfiguration.setLegendQuantilesAreLocked(areLocked)
+      },
+      {
+        undoStringKey: `DG.Undo.legend.${suffix}Quantiles`,
+        redoStringKey: `DG.Redo.legend.${suffix}Quantiles`,
+        log: `Set legend quantiles to be ${suffix}ed`
+      }
+    )
+  }
+
   const renderPlotControlsIfAny = () => {
     if (onBackgroundTransparencyChange && onBackgroundColorChange) {
       return (
@@ -204,6 +221,22 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
                             onColorChange={(color)=>handlePointStrokeColorChange(color)}
                             swatchBackgroundColor={displayItemDescription.pointStrokeColor}/>
         </Flex>
+        <FormControl>
+          <Checkbox data-testid="stroke-same-as-fill-checkbox"
+                    mt="6px" isChecked={displayItemDescription.pointStrokeSameAsFill}
+                    onChange={e => {
+                      displayItemDescription.applyModelChange(
+                        () => displayItemDescription.setPointStrokeSameAsFill(e.target.checked),
+                        {
+                          undoStringKey: "DG.Undo.graph.changeStrokeColor",
+                          redoStringKey: "DG.Redo.graph.changeStrokeColor",
+                          log: "Changed stroke color"
+                        }
+                      )
+                    }}>
+            {t("DG.Inspector.strokeSameAsFill")}
+          </Checkbox>
+        </FormControl>
         <>
           {dataConfiguration.attributeID("legend") &&
             attrType === "categorical"
@@ -220,23 +253,33 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
                 })}
                 </FormControl>
               : attrType === "numeric"
-                ? <FormControl className="num-color-setting">
-                    <Flex className="palette-row color-picker-row">
-                      <FormLabel className="form-label color-picker">{t("DG.Inspector.legendColor")}</FormLabel>
-                      {/* Sets the min and max colors for numeric legend. Currently not implemented so
-                                    this sets the same color for all the points*/}
-                      <PointColorSetting
-                        propertyLabel={t("DG.Inspector.legendColor")}
-                        onColorChange={(color) => handleLowAttributeColorChange(color)}
-                        swatchBackgroundColor={colorRange?.low ?? kDefaultLowAttributeColor}
-                      />
-                      <PointColorSetting
-                        propertyLabel={t("DG.Inspector.legendColor")}
-                        onColorChange={(color) => handleHighAttributeColorChange(color)}
-                        swatchBackgroundColor={colorRange?.high ?? kDefaultHighAttributeColor}
-                      />
-                    </Flex>
-                  </FormControl>
+                ?
+              <>
+                <FormControl className="num-color-setting">
+                  <Flex className="palette-row color-picker-row">
+                    <FormLabel className="form-label color-picker">{t("DG.Inspector.legendColor")}</FormLabel>
+                    <PointColorSetting
+                      propertyLabel={t("DG.Inspector.legendColor")}
+                      onColorChange={(color) => handleLowAttributeColorChange(color)}
+                      swatchBackgroundColor={colorRange?.low ?? kDefaultLowAttributeColor}
+                    />
+                    <PointColorSetting
+                      propertyLabel={t("DG.Inspector.legendColor")}
+                      onColorChange={(color) => handleHighAttributeColorChange(color)}
+                      swatchBackgroundColor={colorRange?.high ?? kDefaultHighAttributeColor}
+                    />
+                  </Flex>
+                </FormControl>
+                <FormControl>
+                  <Checkbox data-testid="lock-legend-quantiles-checkbox"
+                            mt="6px" isChecked={dataConfiguration.legendQuantilesAreLocked}
+                            onChange={e => {
+                              handleLockQuantilesChange(e.target.checked)
+                            }}>
+                    {t("DG.Inspector.lockLegendQuantiles")}
+                  </Checkbox>
+                </FormControl>
+              </>
                 : attrType === "color"
                   ? null
                   : (
@@ -249,22 +292,6 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
                   )
           }
         </>
-      </FormControl>
-      <FormControl>
-        <Checkbox data-testid="stroke-same-as-fill-checkbox"
-          mt="6px" isChecked={displayItemDescription.pointStrokeSameAsFill}
-          onChange={e => {
-            displayItemDescription.applyModelChange(
-              () => displayItemDescription.setPointStrokeSameAsFill(e.target.checked),
-              {
-                undoStringKey: "DG.Undo.graph.changeStrokeColor",
-                redoStringKey: "DG.Redo.graph.changeStrokeColor",
-                log: "Changed stroke color"
-              }
-            )
-          }}>
-          {t("DG.Inspector.strokeSameAsFill")}
-        </Checkbox>
       </FormControl>
       {attrType === "numeric" &&
         <FormControl>

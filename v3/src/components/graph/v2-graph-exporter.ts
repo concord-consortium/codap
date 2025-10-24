@@ -310,8 +310,9 @@ export const v2GraphExporter: V2TileExportFn = ({ tile }) => {
     isTransparent: graph.isTransparent,
     enableNumberToggle: graph.showParentToggles,
     numberToggleLastMode: graph.showOnlyLastCase,
-    numberOfLegendQuantiles: graph.numberOfLegendQuantiles,
-    legendQuantilesAreLocked: graph.legendQuantilesAreLocked,
+    numberOfLegendQuantiles: graph.dataConfiguration.numberOfLegendQuantiles,
+    legendQuantilesAreLocked: graph.dataConfiguration.legendQuantilesAreLocked,
+    legendQuantiles: graph.dataConfiguration.legendQuantiles.slice(),
     // attribute roles and types
     ...getAttrRoleAndType(graph, "x", "x"),
     ...getAttrRoleAndType(graph, "y", "y"),

@@ -69,6 +69,9 @@ function exportMapBaseLayerStorage(layer: IMapLayerModel): ICodapV2MapLayerBaseS
     isVisible: isVisible ?? false,
     legendRole: 0,
     legendAttributeType,
+    numberOfLegendQuantiles: dataConfiguration.numberOfLegendQuantiles ?? 0,
+    legendQuantilesAreLocked: dataConfiguration.legendQuantilesAreLocked ?? false,
+    legendQuantiles: dataConfiguration.legendQuantiles ?? [],
     ...exportV3Properties(dataConfiguration)
   }
 }
