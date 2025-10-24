@@ -82,7 +82,7 @@ const Controls = observer(function Controls() {
       return (
         <FormControl isDisabled={!existingAdornment?.isVisible}>
           <Checkbox
-            data-testid={`adornment-checkbox-${kBoxPlotClass}-show-outliers`}
+            data-testid={`adornment-checkbox-${kBoxPlotClass}-show-ici`}
             defaultChecked={existingAdornment?.showICI}
             onChange={e => handleShowIciSetting(e.target.checked)}
           >
