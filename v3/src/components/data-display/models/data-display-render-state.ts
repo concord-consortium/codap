@@ -1,3 +1,4 @@
+import { Map } from "leaflet"
 import { graphSnapshot, IGraphSvgOptions } from "../../graph/utilities/image-utils"
 import { PixiPointsArray } from "../pixi/pixi-points"
 
@@ -5,15 +6,18 @@ export class DataDisplayRenderState {
   pixiPointsArray: PixiPointsArray
   displayElement: HTMLElement
   dataUri?: string
+  map?: Map
 
   constructor(
     pixiPointsArray: PixiPointsArray,
     displayElement: HTMLElement,
-    dataUri?: string
+    dataUri?: string,
+    map?: Map
   ) {
     this.pixiPointsArray = pixiPointsArray
     this.displayElement = displayElement
     this.dataUri = dataUri
+    this.map = map
   }
 
   setDataUri(dataUri: string) {
@@ -30,7 +34,8 @@ export class DataDisplayRenderState {
       rootEl: this.displayElement,
       graphWidth: width,
       graphHeight: height,
-      pixiPoints
+      pixiPoints,
+      map: this.map
     }
   }
 
