@@ -120,8 +120,6 @@ export const DisplayItemFormatControl = observer(function PointFormatControl(pro
     const prefix = areLocked ? "lock" : "unlock"
     dataConfiguration.applyModelChange(
       () => {
-        const quantiles = areLocked ? getScaleThresholds(dataConfiguration.legendNumericColorScale) : []
-        dataConfiguration.setLegendQuantiles(quantiles)
         dataConfiguration.setLegendQuantilesAreLocked(areLocked)
       },
       {
