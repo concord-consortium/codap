@@ -62,6 +62,12 @@ export const SaveImageMenuList = ({tile}: IProps) => {
     const imageString = await getImageDataString("png")
     if (imageString) {
       cfm?.client.saveSecondaryFileAsDialog(imageString, "png", "image/png", () => null)
+    } else {
+      // TODO: determine final message and translate it
+      const message = "Unable to export PNG image."
+      cfm?.client.alert(message, t("DG.DataDisplayMenu.exportPngImage"), () => {
+        cfm?.client.hideAlert()
+      })
     }
   }
 
@@ -71,6 +77,12 @@ export const SaveImageMenuList = ({tile}: IProps) => {
       // NOTE: Using application/octet-stream so that the CFM does not try to convert from base64
       // as it does by default for image-based mime types.
       cfm?.client.saveSecondaryFileAsDialog(imageString, "svg", "application/octet-stream", () => null)
+    } else {
+      // TODO: determine final message and translate it
+      const message = "Unable to export SVG image."
+      cfm?.client.alert(message, t("DG.DataDisplayMenu.exportSvgImage"), () => {
+        cfm?.client.hideAlert()
+      })
     }
   }
 
