@@ -1,12 +1,13 @@
 import { MenuItem, MenuList } from "@chakra-ui/react"
 import React from "react"
-import { toPng, toSvg } from 'html-to-image';
+import { toPng, toSvg } from 'html-to-image'
 
 import { ITileModel } from "../../../../models/tiles/tile-model"
 import { t } from "../../../../utilities/translation/translate"
 import { openInDrawTool } from "../../../data-display/data-display-image-utils"
 import { isMapContentModel } from "../../models/map-content-model"
 import { useCfmContext } from "../../../../hooks/use-cfm-context"
+import { useProgress } from "../../../../hooks/use-progress"
 
 type ExportableFormat = "png" | "svg"
 
@@ -16,6 +17,7 @@ interface IProps {
 
 export const SaveImageMenuList = ({tile}: IProps) => {
   const cfm = useCfmContext()
+  const { setProgressMessage, clearProgressMessage } = useProgress()
   const mapModel = isMapContentModel(tile?.content) ? tile?.content : undefined
 
   const getImageDataUri = async (format: ExportableFormat) => {
@@ -25,16 +27,16 @@ export const SaveImageMenuList = ({tile}: IProps) => {
     const {displayElement} = mapModel.renderState
     let dataUri: string|undefined = undefined
 
-    // TODO: show a "in progress" indicator while the image is being generated
-    // as it can take a noticeable amount of time
+    // TODO: add translation for progress message
+    setProgressMessage("Exporting map ...")
     try {
       dataUri = await (format === "png"
         ? toPng(displayElement)
         : toSvg(displayElement))
     } catch (error) {
       console.error(`Error generating ${format.toUpperCase()} image:`, error)
-      // TODO: report error to user in translatable string
     }
+    clearProgressMessage()
 
     return dataUri
   }
