@@ -215,7 +215,22 @@ export const AttributeHeader = observer(function AttributeHeader({
     }
   }, [line1, line2, isOverflowed, line2Truncated])
 
-  const description = attribute?.description ? `: ${attribute.description}` : ""
+  const renderTooltipLabel = useMemo(() => {
+    const description = attribute?.description ? `: ${attribute.description}` : ""
+
+    return (
+      <>
+        {`${attrName}${description}`}
+        {attribute?.formula &&
+          <>
+            <br />
+            {`${attrName} = ${attribute.formula.display}`}
+          </>
+        }
+      </>
+    )
+  }, [attribute?.description, attribute?.formula, attrName])
+
   const isIndex = attributeId === kIndexColumnKey
   const headerContentClasses = clsx("codap-column-header-content", { "index-column-header": isIndex })
   return (
@@ -227,7 +242,7 @@ export const AttributeHeader = observer(function AttributeHeader({
         // ensure selected header is styled correctly.
         if (isMenuOpen.current) onOpenMenu?.()
         return (
-          <Tooltip label={`${attrName ?? ""} ${description}`} fontSize="12px" color="white"
+          <Tooltip label={renderTooltipLabel} fontSize="12px" color="white"
               openDelay={1000} placement="bottom" bottom="15px" left="15px" isDisabled={tooltipDisabled}
           >
             <div className={headerContentClasses} ref={setHeaderContentRef} {...draggableProps}
