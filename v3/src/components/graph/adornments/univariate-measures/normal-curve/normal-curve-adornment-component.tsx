@@ -291,7 +291,7 @@ export const NormalCurveAdornmentComponent = observer(
     selectionsObj.normalCurveHoverCover = select(valueRef.current).append("path")
       .attr("class", `${kNormalCurveClass}-hover-cover`)
       .attr("id", `${helper.generateIdString("path")}`)
-      .attr("data-testid", `${helper.measureSlug}-normal-curve`)
+      .attr("data-testid", `${helper.measureSlug}-hover-cover`)
       .attr("d", theSymbolPath)
   }, [binnedPlot, caseCount, cellCounts, countScale, graphModel, helper, isHistogram, isVerticalRef,
       layout, mean, numStdErrs, numericScale, stdDev, stdError, valueRef])
