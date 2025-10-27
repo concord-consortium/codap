@@ -5,7 +5,7 @@ import { toV2Id } from "../../utilities/codap-utils"
 import { defaultBackgroundColor, removeAlphaFromColor } from "../../utilities/color-utils"
 import { V2TileExportFn } from "../../v2/codap-v2-tile-exporters"
 import { CodapV2PlotType, guidLink, ICodapV2Adornment, ICodapV2GraphStorage, IGuidLink } from "../../v2/codap-v2-types"
-import { exportV3Properties } from "../../v2/codap-v2-type-utils"
+import { exportLegendQuantileProps, exportV3Properties } from "../../v2/codap-v2-type-utils"
 import { IAxisModel } from "../axis/models/axis-model"
 import { isAnyCategoricalAxisModel } from "../axis/models/categorical-axis-models"
 import { isAnyNumericAxisModel, isCountAxisModel } from "../axis/models/numeric-axis-models"
@@ -310,8 +310,7 @@ export const v2GraphExporter: V2TileExportFn = ({ tile }) => {
     isTransparent: graph.isTransparent,
     enableNumberToggle: graph.showParentToggles,
     numberToggleLastMode: graph.showOnlyLastCase,
-    numberOfLegendQuantiles: graph.numberOfLegendQuantiles,
-    legendQuantilesAreLocked: graph.legendQuantilesAreLocked,
+    ...exportLegendQuantileProps(graph.dataConfiguration),
     // attribute roles and types
     ...getAttrRoleAndType(graph, "x", "x"),
     ...getAttrRoleAndType(graph, "y", "y"),
@@ -328,7 +327,7 @@ export const v2GraphExporter: V2TileExportFn = ({ tile }) => {
     // plot models
     ...getPlotModels(graph),
     // v3 extensions
-    ...exportV3Properties(graph.dataConfiguration)
+    ...exportV3Properties(graph.dataConfiguration, { includeLegendQuantiles: false })
   }
 
   return { type: "DG.GraphView", componentStorage }

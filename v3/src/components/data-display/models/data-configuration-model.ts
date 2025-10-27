@@ -1,4 +1,4 @@
-import {extent, scaleQuantile, scaleQuantize} from "d3"
+import { extent, ScaleQuantile, scaleQuantile, ScaleQuantize, scaleQuantize, scaleThreshold, ScaleThreshold } from "d3"
 import {comparer, observable, reaction} from "mobx"
 import {
   addDisposer, getEnv, getSnapshot, hasEnv, IAnyStateTreeNode, Instance, ISerializedActionCall,
@@ -99,7 +99,10 @@ export const DataConfigurationModel = types
     }),
     hiddenCases: types.array(types.string),
     displayOnlySelectedCases: types.maybe(types.boolean),
-    filterFormula: types.maybe(Formula)
+    filterFormula: types.maybe(Formula),
+    numberOfLegendQuantiles: types.maybe(types.number),
+    legendQuantilesAreLocked: types.maybe(types.boolean),
+    legendQuantiles: types.array(types.number)
   })
   .volatile(() => ({
     actionHandlerDisposer: undefined as (() => void) | undefined,
@@ -111,7 +114,10 @@ export const DataConfigurationModel = types
     filteredOutCaseIds: observable.set<string>(),
     filterFormulaError: "",
     // The following is set in useSubAxis:setupCategories based on how many fit in available space
-    numberOfCategoriesLimitByRole: observable.map<AttrRole, Maybe<number>>()
+    numberOfCategoriesLimitByRole: observable.map<AttrRole, Maybe<number>>(),
+    // When legendQuantilesAreLocked is true, this holds the quantile thresholds
+    _legendNumericColorScale: null as ScaleQuantize<string, never> | ScaleQuantile<string, never> |
+      ScaleThreshold<number, string, never> | null,
   }))
   .views(self => ({
     get axisAttributeIDs() {
@@ -539,6 +545,9 @@ export const DataConfigurationModel = types
       // The best solution might be to separate the displayOnlySelectedCases from FilterCases,
       // perhaps by renaming it PlottableCases and then apply the displayOnlySelectedCases
       // criteria further up chain of filters.
+      if (self.legendQuantilesAreLocked && self._legendNumericColorScale) {
+        return self._legendNumericColorScale
+      }
       const values = self.numericValuesForAttrRole("legend") ?? []
 
       const legendAttrId = self.attributeID("legend")
@@ -708,7 +717,7 @@ export const DataConfigurationModel = types
             return 0
         }
       },
-      getLegendColorForCase(id: string): string {
+      getLegendColorForCase(id: string, colorIfMissing = missingColor): string {
 
         const collectionOfLegendIsMoreChildmost = () => {
           const legendCollectionID = self.dataset?.getCollectionForAttribute(legendID)?.id,
@@ -726,11 +735,11 @@ export const DataConfigurationModel = types
         }
         const legendType = self.attributeType('legend')
         if (collectionOfLegendIsMoreChildmost()) {
-          return missingColor
+          return colorIfMissing
         }
         const legendValue = self.dataset?.getStrValue(id, legendID)
         if (!legendValue) {
-          return missingColor
+          return colorIfMissing
         }
         switch (legendType) {
           case 'categorical':
@@ -740,7 +749,7 @@ export const DataConfigurationModel = types
           case 'date':
             return self.getLegendColorForDateValue(legendValue)
           case 'color':
-            return parseColor(legendValue, { colorNames: true }) ? legendValue : missingColor
+            return parseColor(legendValue, { colorNames: true }) ? legendValue : colorIfMissing
           case 'checkbox':
             return self.getLegendColorForCategory(legendValue)
           default:
@@ -868,6 +877,30 @@ export const DataConfigurationModel = types
     },
   }))
   .actions(self => ({
+    setNumberOfLegendQuantiles(numQuantiles: number | undefined) {
+      self.numberOfLegendQuantiles = numQuantiles
+    },
+    setLegendQuantiles(quantiles: number[]) {
+      self.legendQuantiles.replace(quantiles)
+    },
+    setLegendQuantilesAreLocked(areLocked: boolean | undefined) {
+      if (areLocked === self.legendQuantilesAreLocked) {
+        return
+      }
+      if (areLocked) {
+        const scale = self.legendNumericColorScale
+        const thresholds = getScaleThresholds(scale)
+        this.setLegendQuantiles(thresholds)
+        this.setNumberOfLegendQuantiles(thresholds.length)
+        self._legendNumericColorScale = scale
+      }
+      else {
+        self._legendNumericColorScale = null
+        this.setLegendQuantiles([])
+        this.setNumberOfLegendQuantiles(undefined)
+      }
+      self.legendQuantilesAreLocked = areLocked
+    },
     setLegendColorForCategory(cat: string, color: string) {
       const categorySet = self.categorySetForAttrRole('legend')
       categorySet?.setColorForCategory(cat, color)
@@ -928,6 +961,9 @@ export const DataConfigurationModel = types
   }))
   .actions(self => ({
     afterCreate() {
+      if (self.legendQuantilesAreLocked && self.legendQuantiles.length > 0) {
+        self._legendNumericColorScale = scaleThreshold(self.legendQuantiles, self.choroplethColors)
+      }
       // respond to change of dataset
       addDisposer(self, reaction(
         () => self.dataset,

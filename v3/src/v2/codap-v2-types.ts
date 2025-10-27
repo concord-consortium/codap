@@ -394,6 +394,7 @@ export interface ICodapV2GraphStorage extends ICodapV2BaseComponentStorage {
   legendAttributeType: number
   numberOfLegendQuantiles?: number
   legendQuantilesAreLocked?: boolean
+  legendQuantiles?: number[] | null[] // null occurs in some documents, presumably as a result of a bug
   pointColor?: string
   strokeColor?: string
   pointSizeMultiplier?: number

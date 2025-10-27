@@ -3,7 +3,7 @@ import {applyModelChange} from "../../../models/history/apply-model-change"
 import {defaultPointColor, defaultStrokeColor, kellyColors} from "../../../utilities/color-utils"
 
 export const DisplayItemDescriptionModel = types
-  .model("PointDescriptionModel", {
+  .model("DisplayItemDescriptionModel", {
     _itemColors: types.optional(types.array(types.string), [defaultPointColor]),
     _itemStrokeColor: defaultStrokeColor,
     _itemStrokeSameAsFill: false,
@@ -32,7 +32,7 @@ export const DisplayItemDescriptionModel = types
     },
     setPointsHaveBeenReduced(reduced: boolean) {
       self.pointsHaveBeenReduced = reduced
-    },
+    }
   }))
   .views(self => ({
     get pointSizeMultiplier() {
