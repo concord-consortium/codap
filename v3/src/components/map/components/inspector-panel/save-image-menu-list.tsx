@@ -73,6 +73,10 @@ export const SaveImageMenuList = ({tile}: IProps) => {
     }
   }
 
+  /*
+
+  DISABLED FOR NOW: SVG export is not yet working well enough to expose to users.
+
   const handleExportSVG = async () => {
     const imageString = await getImageDataString("svg")
     if (imageString) {
@@ -87,6 +91,7 @@ export const SaveImageMenuList = ({tile}: IProps) => {
       })
     }
   }
+  */
 
   return (
     <MenuList data-testid="save-image-menu-list">
@@ -96,9 +101,11 @@ export const SaveImageMenuList = ({tile}: IProps) => {
       <MenuItem data-testid="export-png-image" onClick={handleExportPNG}>
         {t("DG.DataDisplayMenu.exportPngImage")}
       </MenuItem>
+      {/*
       <MenuItem data-testid="export-svg-image" onClick={handleExportSVG}>
         {t("DG.DataDisplayMenu.exportSvgImage")}
       </MenuItem>
+      */}
     </MenuList>
   )
 }
