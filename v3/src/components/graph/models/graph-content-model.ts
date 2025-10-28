@@ -389,7 +389,7 @@ export const GraphContentModel = DataDisplayContentModel
       const secondaryGap = self.pointsFusedIntoBars ? 0 : 5
       const maxInCell = dataConfig.maxOverAllCells(extraPrimaryAttrRole, extraSecondaryAttrRole) ?? 0
       const allowedPointsPerColumn = Math.max(1, Math.floor((primaryHeight - secondaryGap) / pointDiameter))
-      const primaryGap = self.pointsFusedIntoBars ? 0 : 18
+      const primaryGap = self.pointsFusedIntoBars ? 0 : self.getPointRadius()
       const allowedPointsPerRow = Math.max(1, Math.floor((primaryCellWidth - primaryGap) / pointDiameter))
       const numPointsInRow = self.pointsFusedIntoBars
         ? 1
