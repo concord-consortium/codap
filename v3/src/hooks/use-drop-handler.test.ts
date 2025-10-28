@@ -3,7 +3,6 @@ import { useDropHandler } from "./use-drop-handler"
 
 const mockData = [{ a: 1, b: 2 }, { a: 3, b: 4 }]
 const mockFilename = "mockFile.csv"
-const mockInitiateImportFromCsv = jest.fn()
 
 jest.mock("papaparse", () => ({
   // mock parse() to return mock data
@@ -11,12 +10,6 @@ jest.mock("papaparse", () => ({
     options.complete({ data: mockData }, { name: mockFilename })
   }
 }))
-
-jest.mock("../utilities/csv-import", () => {
-  return {
-    initiateImportFromCsv: (file: File) => mockInitiateImportFromCsv(file)
-  }
-})
 
 describe("useDropHandler", () => {
 
@@ -58,24 +51,22 @@ describe("useDropHandler", () => {
 
   it("handles drops with file as DataTransfer item", () => {
     const handler = jest.fn()
-    const params = { selector: "body", onImportDataSet: handler, onImportDocument: handler }
+    const params = { selector: "body", onDataTransferItem: handler }
     const { rerender, result } = renderHook(() => useDropHandler(params))
     rerender()  // make sure effect has a chance to run
     expect(result.current).toBeTruthy()
     if (!result.current) throw new Error("Hook did not return a valid element")
     fireEvent.dragOver(result.current)
     expect(handler).not.toHaveBeenCalled()
-    expect(mockInitiateImportFromCsv).not.toHaveBeenCalled()
     fireEvent.drop(result.current, { dataTransfer: mockDataTransferWithItems })
-    expect(handler).not.toHaveBeenCalled()
-    expect(mockInitiateImportFromCsv).toHaveBeenCalled()
-    const file = mockInitiateImportFromCsv.mock.calls[0][0].file as File
+    expect(handler).toHaveBeenCalled()
+    const file = handler.mock.calls[0][0].getAsFile()
     expect(file.name).toBe(mockFilename)
   })
 
   it("ignores drops without DataTransfer items", () => {
     const handler = jest.fn()
-    const params = { selector: "body", onImportDataSet: handler, onImportDocument: handler }
+    const params = { selector: "body" }
     const { rerender, result } = renderHook(() => useDropHandler(params))
     rerender()  // make sure effect has a chance to run
     expect(result.current).toBeTruthy()
