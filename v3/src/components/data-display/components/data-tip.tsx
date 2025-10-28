@@ -1,6 +1,6 @@
 import React, { Fragment, useCallback, useEffect, useRef, useState } from "react"
 import * as PIXI from "pixi.js"
-import { computePosition, offset, useFloating } from "@floating-ui/react"
+import { computePosition, flip, offset, shift, useFloating } from "@floating-ui/react"
 import { useDataDisplayModelContext } from "../hooks/use-data-display-model"
 import { IDataSet } from "../../../models/data/data-set"
 import {IPixiPointMetadata, PixiPoints} from "../pixi/pixi-points"
@@ -64,7 +64,11 @@ export const DataTip = (props: IDataTipProps) => {
     if (refs.reference.current && refs.floating.current) {
       computePosition(refs.reference.current, refs.floating.current, {
         placement: "top",
-        middleware: [offset({mainAxis: 10})]
+        middleware: [
+          offset({mainAxis: 10}),
+          flip(),
+          shift({padding: 5})
+        ]
       }).then(({x, y}) => {
         refs.floating.current && Object.assign(refs.floating.current.style, {
           transform: `translate(${x}px, ${y}px)`
