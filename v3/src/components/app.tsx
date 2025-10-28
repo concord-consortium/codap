@@ -46,6 +46,8 @@ import { convertParsedCsvToDataSet, CsvParseResult, importCsvFile,
          initiateImportFromCsv } from "../utilities/csv-import"
 import { ImportableFileType, getImportableFileTypeFromDataTransferFile, getImportableFileTypeFromFile,
          getImportableFileTypeFromUrl } from "../utilities/importable-files"
+import { ProgressContext, useProgressContextProviderValue } from "../hooks/use-progress"
+import { Progress } from "./progress"
 
 import "../lib/debug-event-modification"
 import "../models/shared/data-set-metadata-registration"
@@ -77,6 +79,8 @@ export const App = observer(function App() {
     = useDisclosure({defaultIsOpen: true})
   const [isDragOver, setIsDragOver] = useState(false)
   const cfmRef = useRef<CloudFileManager | null>(null)
+
+  const progressContextValue = useProgressContextProviderValue()
 
   useKeyboardShortcuts()
 
@@ -300,25 +304,28 @@ export const App = observer(function App() {
     <CodapDndContext>
       <DocumentContentContext.Provider value={appState.document.content}>
         <CfmContext.Provider value={cfm}>
-          <div className="codap-app" data-testid="codap-app">
-            <MenuBar/>
-            <ErrorBoundary fallbackRender={fallbackRender}>
-              <div className={toolbarContainerClassName}>
-                <ToolShelf document={appState.document}/>
-                <Container/>
-              </div>
-            </ErrorBoundary>
-          </div>
-          {isOpenUserEntry &&
-            <div id={`${kUserEntryDropOverlay}`}
-              className={`${isOpenUserEntry && isDragOver ? "show-highlight" : ""}`}
-            >
-              <UserEntryModal
-                isOpen={isOpenUserEntry}
-                onClose={onCloseUserEntry}
-              />
+          <ProgressContext.Provider value={progressContextValue}>
+            <div className="codap-app" data-testid="codap-app">
+              <MenuBar/>
+              <ErrorBoundary fallbackRender={fallbackRender}>
+                <div className={toolbarContainerClassName}>
+                  <ToolShelf document={appState.document}/>
+                  <Container/>
+                </div>
+              </ErrorBoundary>
             </div>
-          }
+            {isOpenUserEntry &&
+              <div id={`${kUserEntryDropOverlay}`}
+                className={`${isOpenUserEntry && isDragOver ? "show-highlight" : ""}`}
+              >
+                <UserEntryModal
+                  isOpen={isOpenUserEntry}
+                  onClose={onCloseUserEntry}
+                />
+              </div>
+            }
+            <Progress />
+          </ProgressContext.Provider>
         </CfmContext.Provider>
       </DocumentContentContext.Provider>
     </CodapDndContext>
