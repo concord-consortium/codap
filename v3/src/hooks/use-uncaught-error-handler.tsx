@@ -7,7 +7,8 @@ import { t } from "../utilities/translation/translate"
 const errorsToIgnore = [
   // This error occurs when Google Docs sends a non-JSON postMessage that is ignorable.
   // Ideally, iFramePhone would handle this internally, but for now we just ignore it here.
-  "Unexpected token '!', \"!_{\"h\":\"\"}\" is not valid JSON"
+  "Unexpected token '!', \"!_{\"h\":\"\"}\" is not valid JSON",
+  "JSON Parse error: Unrecognized token '!'"
 ]
 
 export function useUncaughtErrorHandler(cfm: CloudFileManager) {
