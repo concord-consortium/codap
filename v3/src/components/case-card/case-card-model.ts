@@ -70,7 +70,7 @@ export const CaseCardModel = TileContentModel
       // Returns a string summarizing the selected values of the attribute
       if (attr.isNumeric) {
         const numericValues = attr.numValues.filter((_v, i) => attr.isValueNumeric(i))
-        const formatter = getNumFormatterForAttribute(attr)?.format
+        const formatter = getNumFormatterForAttribute(attr)
         const minValue = Math.min(...numericValues)
         const maxValue = Math.max(...numericValues)
         const minValueStr = formatter?.(minValue) ?? minValue.toString()

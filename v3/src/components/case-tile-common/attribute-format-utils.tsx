@@ -15,20 +15,32 @@ import {
 } from "../case-table/case-table-types"
 import {CheckboxCell, isBoolean} from "./checkbox-cell"
 
+export const UNICODE_MINUS = "\u2212"
+
 // cache number formatters so we don't have to generate them on every render
-const formatters = new Map<string, Intl.NumberFormat>()
+interface IFormatterPair {
+  numberFormat: Intl.NumberFormat
+  formatFn: (n: number) => string
+}
+const formatters = new Map<string, IFormatterPair>()
 
 // expects d3-format style format strings like ",.2~f"
 export const getNumFormatter = (formatStr: string) => {
-  let formatter = formatters.get(formatStr)
-  if (formatStr && !formatter) {
+  let formatterPair = formatters.get(formatStr)
+  if (!formatterPair) {
     const match = formatStr.match(/,?\.([0-9])~f/)
     const precision = match?.[1] ? parseInt(match[1], 10) : kDefaultNumPrecision
     const useGrouping = formatStr.startsWith(",")
-    formatter = new Intl.NumberFormat(gLocale.current, { maximumFractionDigits: precision, useGrouping })
-    formatters.set(formatStr, formatter)
+    const numberFormat = new Intl.NumberFormat(gLocale.current, { maximumFractionDigits: precision, useGrouping })
+    const formatFn = (n: number) => {
+      const str = numberFormat.format(n)
+      if (str === "-0") return "0"
+      return str.startsWith("-") ? UNICODE_MINUS + str.slice(1) : str
+    }
+    formatterPair = { numberFormat, formatFn }
+    formatters.set(formatStr, formatterPair)
   }
-  return formatter
+  return formatterPair.formatFn
 }
 
 export function getNumFormatterForAttribute(attr?: IAttribute) {
@@ -98,7 +110,7 @@ export function renderAttributeValue(str = "", num = NaN, attr?: IAttribute, opt
   if (isFinite(num)) {
     const formatter = getNumFormatterForAttribute(attr)
     if (formatter) {
-      str = `${formatter.format(num)}${showUnits ? ` ${attr?.units}` : ""}`
+      str = `${formatter(num)}${showUnits ? ` ${attr?.units}` : ""}`
       formatClass = "numeric-format"
     }
   }
