@@ -28,13 +28,14 @@ const formatters = new Map<string, IFormatterPair>()
 export const getNumFormatter = (formatStr: string) => {
   let formatterPair = formatters.get(formatStr)
   if (!formatterPair) {
-    const match = formatStr.match(/,?\.([0-9])~f/)
+    const match = formatStr.match(/,?\.([0-9]+)~f/)
     const precision = match?.[1] ? parseInt(match[1], 10) : kDefaultNumPrecision
     const useGrouping = formatStr.startsWith(",")
     const numberFormat = new Intl.NumberFormat(gLocale.current, { maximumFractionDigits: precision, useGrouping })
     const formatFn = (n: number) => {
       const str = numberFormat.format(n)
-      if (str === "-0") return "0"
+      const _match = /^-(0\.?0*)$/.exec(str)
+      if (_match?.[1]) return _match[1] // handle negative zero
       return str.startsWith("-") ? UNICODE_MINUS + str.slice(1) : str
     }
     formatterPair = { numberFormat, formatFn }
