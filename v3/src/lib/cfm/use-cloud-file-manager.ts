@@ -257,13 +257,20 @@ function getMenuBar(cfm: CloudFileManager) {
   }
 }
 
+export interface IImportedFile {
+  name: string;
+  contents: string;
+  object: File;
+}
+
 export interface IUseCloudFileManagerHookOptions {
   onFileOpened?: () => void;
   onUrlImported?: (url: string) => void;
+  onFileImported?: (file: IImportedFile) => void;
 }
 
 export function useCloudFileManager(optionsArg: CFMAppOptions, hookOptions?: IUseCloudFileManagerHookOptions) {
-  const {onFileOpened, onUrlImported} = hookOptions || {}
+  const {onFileOpened, onUrlImported, onFileImported} = hookOptions || {}
   const options = useRef(optionsArg)
   const rootRef = useRef<Root | undefined>()
   const containerRef = useRef<HTMLElement | null>(null)
@@ -367,8 +374,12 @@ export function useCloudFileManager(optionsArg: CFMAppOptions, hookOptions?: IUs
       if (event.type === "openedFile" && onFileOpened) {
         onFileOpened()
       }
-      if (event.type === "importedData" && event.data.url && onUrlImported) {
-        onUrlImported(event.data.url)
+      if (event.type === "importedData") {
+        if (event.data.url && onUrlImported) {
+          onUrlImported(event.data.url)
+        } else if (event.data.file && onFileImported) {
+          onFileImported(event.data.file)
+        }
       }
       const cfmReadyEvents = ["fileOpened", "ready"]
       if (cfmReadyEvents.includes(event.type)) {
@@ -377,7 +388,7 @@ export function useCloudFileManager(optionsArg: CFMAppOptions, hookOptions?: IUs
     })
 
     appState.setCFM(cfm)
-  }, [cfm, onFileOpened, onUrlImported])
+  }, [cfm, onFileOpened, onUrlImported, onFileImported])
 
   useEffect(() => {
     // Ideally, the CFM would be responsible for marking its images as non-draggable,

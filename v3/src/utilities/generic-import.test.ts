@@ -1,37 +1,6 @@
-import { getWebViewSnapshotState, isGenericallyImportableUrl } from "./generic-import"
+import { getWebViewSnapshotState } from "./generic-import"
 
 describe("Generic import", () => {
-  describe("isGenericallyImportableUrl", () => {
-    it("correctly identifies importable URLs", () => {
-      const testCases: Array<{ url: string; expected: false | { url: string; contentType: string } }> = [
-        {
-          url: "http://example.com/data.geojson",
-          expected: { url: "http://example.com/data.geojson", contentType: "application/geo+json" },
-        },
-        {
-          url: "https://example.com/path/to/file.GEOJSON",
-          expected: { url: "https://example.com/path/to/file.GEOJSON", contentType: "application/geo+json" },
-        },
-        {
-          url: "http://example.com/data.json",
-          expected: false,
-        },
-        {
-          url: "http://example.com/data.csv",
-          expected: false,
-        },
-        {
-          url: "http://example.com/data",
-          expected: false,
-        },
-      ]
-
-      for (const { url, expected } of testCases) {
-        expect(isGenericallyImportableUrl(url)).toEqual(expected)
-      }
-    })
-  })
-
   describe("getWebViewSnapshotState", () => {
     it("generates the correct WebView snapshot state for file imports", () => {
       const options = {
