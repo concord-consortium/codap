@@ -1,5 +1,4 @@
 import { clsx } from "clsx"
-import { format } from "d3-format"
 import React from "react"
 import { measureText } from "../../hooks/use-measure-text"
 import { getBoundaryValueFromString, hasBoundaryThumbnail } from "../../models/boundaries/boundary-types"
@@ -9,23 +8,34 @@ import { parseColor } from "../../utilities/color-utils"
 import { isStdISODateString } from "../../utilities/date-iso-utils"
 import { parseDate } from "../../utilities/date-parser"
 import { formatDate } from "../../utilities/date-utils"
+import { gLocale } from "../../utilities/translation/locale"
 import {
   kCaseTableBodyFont, kCaseTableHeaderFont, kDefaultRowHeight,
   kMaxAutoColumnWidth, kMinAutoColumnWidth, kSnapToLineHeight
 } from "../case-table/case-table-types"
 import {CheckboxCell, isBoolean} from "./checkbox-cell"
 
-// cache d3 number formatters so we don't have to generate them on every render
-type TNumberFormatter = (n: number) => string
-const formatters = new Map<string, TNumberFormatter>()
+// cache number formatters so we don't have to generate them on every render
+const formatters = new Map<string, Intl.NumberFormat>()
 
+// expects d3-format style format strings like ",.2~f"
 export const getNumFormatter = (formatStr: string) => {
   let formatter = formatters.get(formatStr)
   if (formatStr && !formatter) {
-    formatter = format(formatStr)
+    const match = formatStr.match(/,?\.([0-9])~f/)
+    const precision = match?.[1] ? parseInt(match[1], 10) : kDefaultNumPrecision
+    const useGrouping = formatStr.startsWith(",")
+    formatter = new Intl.NumberFormat(gLocale.current, { maximumFractionDigits: precision, useGrouping })
     formatters.set(formatStr, formatter)
   }
   return formatter
+}
+
+export function getNumFormatterForAttribute(attr?: IAttribute) {
+  // uses d3-format style format strings like ",.2~f"
+  const grouping = attr?.isInferredYearType?.() ? "" : ","
+  const formatStr = `${grouping}.${attr?.numPrecision ?? kDefaultNumPrecision}~f`
+  return getNumFormatter(formatStr)
 }
 
 export interface IRenderAttributeValueOptions {
@@ -36,7 +46,7 @@ export interface IRenderAttributeValueOptions {
 }
 
 export function renderAttributeValue(str = "", num = NaN, attr?: IAttribute, options?: IRenderAttributeValueOptions) {
-  const { type, userType, numPrecision, datePrecision, id: attrId } = attr || {}
+  const { type, userType, datePrecision, id: attrId } = attr || {}
   const { caseId, key, rowHeight = kDefaultRowHeight, showUnits } = options || {}
   let formatClass = ""
   // https://css-tricks.com/almanac/properties/l/line-clamp/
@@ -86,10 +96,9 @@ export function renderAttributeValue(str = "", num = NaN, attr?: IAttribute, opt
 
   // numbers
   if (isFinite(num)) {
-    const formatStr = `.${numPrecision ?? kDefaultNumPrecision}~f`
-    const formatter = getNumFormatter(formatStr)
+    const formatter = getNumFormatterForAttribute(attr)
     if (formatter) {
-      str = `${formatter(num)}${showUnits ? ` ${attr?.units}` : ""}`
+      str = `${formatter.format(num)}${showUnits ? ` ${attr?.units}` : ""}`
       formatClass = "numeric-format"
     }
   }

@@ -120,6 +120,20 @@ export const Attribute = V2Model.named("Attribute").props({
       })
       return numCount > 0 && isEveryValueNumericOrEmpty
     }),
+    // tracks whether every non-empty value could be a year (1000-2999)
+    isInferredYearType: cachedFnFactory<boolean>(() => {
+      let potentialYearCount = 0
+      const isEveryValuePotentialYearOrEmpty = self.strValues.every((strValue, index) => {
+        if (strValue == null || strValue === "") return true
+        const num = self.numValues[index]
+        if (isFinite(num) && Number.isInteger(num) && 1000 <= num && num < 3000) {
+          ++potentialYearCount
+          return true
+        }
+        return false
+      })
+      return potentialYearCount > 0 && isEveryValuePotentialYearOrEmpty
+    }),
     isInferredColorType: cachedFnFactory<boolean>(() => {
       let colorCount = 0
       const isEveryValueColorOrEmpty = self.strValues.every((strValue, index) => {
@@ -172,6 +186,7 @@ export const Attribute = V2Model.named("Attribute").props({
   .actions(self => ({
     incChangeCount() {
       self.isInferredNumericType.invalidate()
+      self.isInferredYearType.invalidate()
       self.isInferredColorType.invalidate()
       self.isInferredBoundaryType.invalidate()
       self.isInferredDateType.invalidate()
@@ -184,6 +199,7 @@ export const Attribute = V2Model.named("Attribute").props({
       // cache the numeric conversion of each value in volatile `numValues`
       self.numValues = self.strValues.map(v => self.toNumeric(v))
       self.isInferredNumericType.invalidate()
+      self.isInferredYearType.invalidate()
     }
   }))
   .volatile(self => ({
