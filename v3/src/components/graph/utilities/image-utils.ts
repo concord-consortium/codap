@@ -1,4 +1,6 @@
+import { Map } from "leaflet"
 import { PixiPoints } from "../../data-display/pixi/pixi-points"
+import leafletImage from "leaflet-image"
 
 const disallowedElementClasses = new Set([
   "axis-legend-attribute-menu",
@@ -19,9 +21,30 @@ export interface IGraphSvgOptions {
   graphWidth: number
   graphHeight: number
   pixiPoints: PixiPoints
+  map?: Map
+  backgroundImageUrl?: string
 }
 
-export function graphSvg({ rootEl, graphWidth, graphHeight, pixiPoints }: IGraphSvgOptions): string {
+function createLeafletImageCanvas(map?: Map): Promise<HTMLCanvasElement|undefined> {
+  if (!map) {
+    return Promise.resolve(undefined)
+  }
+
+  return new Promise((resolve, reject) => {
+    leafletImage(map, function(err: Error | null, leafletCanvas: HTMLCanvasElement | null) {
+      if (err) {
+        reject(err)
+      } else if (leafletCanvas) {
+        resolve(leafletCanvas)
+      } else {
+        reject(new Error("Leaflet image generation failed without error"))
+      }
+    })
+  })
+}
+
+export function graphSvg(options: IGraphSvgOptions): string {
+  const { rootEl, graphWidth, graphHeight, pixiPoints, backgroundImageUrl } = options
   // Gather CSS styles
   const getCssText = (): string => {
     const text: string[] = []
@@ -107,7 +130,10 @@ export function graphSvg({ rootEl, graphWidth, graphHeight, pixiPoints }: IGraph
 
   // Remove elements we don't want to include in the snapshot
   const isAllowedElement = (_element: Element): boolean => {
-    if (_element instanceof HTMLInputElement || _element instanceof HTMLTextAreaElement) return false
+    const isDisallowedElement = _element instanceof HTMLInputElement
+      || _element instanceof HTMLTextAreaElement
+      || _element instanceof HTMLImageElement
+    if (isDisallowedElement) return false
     return Array.from(_element.classList).every((className) => !disallowedElementClasses.has(className))
   }
 
@@ -133,6 +159,16 @@ export function graphSvg({ rootEl, graphWidth, graphHeight, pixiPoints }: IGraph
     }
   }
 
+  const backgroundImage = backgroundImageUrl ? document.createElementNS(svgNS, "image") : null
+  if (backgroundImage && backgroundImageUrl) {
+    backgroundImage.setAttribute("x", "0")
+    backgroundImage.setAttribute("y", "0")
+    backgroundImage.setAttribute("width", graphWidth.toString())
+    backgroundImage.setAttribute("height", graphHeight.toString())
+    backgroundImage.setAttributeNS(svgNS, "href", backgroundImageUrl)
+    foreignObject.appendChild(backgroundImage)
+  }
+
   // Wrap in a div to ensure proper layout in foreignObject
   const wrapper = document.createElementNS(xhtmlNS, "div")
   wrapper.setAttribute("xmlns", xhtmlNS)
@@ -152,7 +188,7 @@ interface IGraphSnapshotOptions extends IGraphSvgOptions {
 }
 
 export const graphSnapshot = (options: IGraphSnapshotOptions): Promise<string | Blob> => {
-  const { rootEl, graphWidth, graphHeight, asDataURL, pixiPoints } = options
+  const { rootEl, graphWidth, graphHeight, asDataURL, pixiPoints, map } = options
 
   // Create a canvas to render the snapshot
   const mainCanvas = document.createElement("canvas")
@@ -169,10 +205,12 @@ export const graphSnapshot = (options: IGraphSnapshotOptions): Promise<string | 
    * then rasterizing the SVG to the canvas. This preserves HTML structure and styles.
    * @param element The HTML element to render.
    */
-  const renderGraphToCanvas = async () => {
+  const renderGraphToCanvas = async (backgroundImageUrl?: string) => {
     // Serialize SVG
-    const svgString = graphSvg({ rootEl, graphWidth, graphHeight, pixiPoints })
+    const svgString = graphSvg({ rootEl, graphWidth, graphHeight, pixiPoints, backgroundImageUrl })
     const svgDataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgString)}`
+
+    console.log(svgString)
 
     // Draw SVG to canvas
     await new Promise<void>((resolve, reject) => {
@@ -201,7 +239,18 @@ export const graphSnapshot = (options: IGraphSnapshotOptions): Promise<string | 
   }
 
   const renderImage = async () => {
-    await renderGraphToCanvas()
+
+    let backgroundImageUrl: string | undefined
+    const leafletCanvas = await createLeafletImageCanvas(map)
+    if (leafletCanvas && mainCtx) {
+      backgroundImageUrl = leafletCanvas.toDataURL("image/png")
+      // mainCtx.drawImage(leafletCanvas, 0, 0, graphWidth, graphHeight)
+    }
+
+    // eslint-disable-next-line no-constant-condition
+    if (true) {
+      await renderGraphToCanvas(backgroundImageUrl)
+    }
     return Promise.resolve(asDataURL ? mainCanvas.toDataURL("image/png") : makeCanvasBlob(mainCanvas))
   }
   return renderImage()

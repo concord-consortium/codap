@@ -132,7 +132,9 @@ export const CodapMap = observer(function CodapMap({setMapRef}: IProps) {
               BaseMapKeys.map(mapKey => {
                 const url = kMapUrls[mapKey]
                 const show = mapModel.baseMapLayerIsVisible && mapModel.baseMapLayerName === mapKey
-                return show && <TileLayer key={mapKey} attribution={kMapAttribution} url={url}/>
+                return show && (
+                  <TileLayer key={mapKey} attribution={kMapAttribution} url={url} crossOrigin={true} />
+                )
               })
             }
           </>

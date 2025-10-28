@@ -33,7 +33,7 @@ export const MapComponent = observer(function MapComponent({tile}: ITileBaseProp
     const elementParent = ref?.parentElement
     const dataUri = mapModel?.renderState?.dataUri
     if (elementParent) {
-      const renderState = new DataDisplayRenderState(pixiPointsArray, elementParent, dataUri)
+      const renderState = new DataDisplayRenderState(pixiPointsArray, elementParent, dataUri, mapModel?.leafletMap)
       mapModel?.setRenderState(renderState)
     }
   }, [mapModel, pixiPointsArray])
