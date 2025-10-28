@@ -13,7 +13,7 @@ import {
   ICodapV2WebViewStorage
 } from "../../v2/codap-v2-types"
 import { kWebViewTileType } from "./web-view-defs"
-import { isWebViewModel } from "./web-view-model"
+import { isWebViewModel, IWebViewModel } from "./web-view-model"
 import "./web-view-registration"
 
 const path = require("path")
@@ -407,5 +407,28 @@ describe("WebView registration", () =>  {
     expect(hasOwnProperty(contentStorage, "name")).toBe(true)
     expect(contentStorage.name).toBe("forest fire slider.png")
     expect(contentStorage.URL).toContain("data:image/png;base64")
+  })
+
+  it("imports/exports v2 game view components with custom title", () => {
+    const codapDoc = createCodapDocument()
+    const docContent = codapDoc.content!
+    docContent.setRowCreator(() => FreeTileRow.create())
+    const sharedModelManager = getSharedModelManager(docContent)
+    const tile = docContent.createTile(kWebViewTileType)!
+    const content = tile.content as IWebViewModel
+
+    content.setUrl("https://example.com/plugin.html")
+    content.setSubType("plugin")
+    tile.setName("Default Plugin Name")
+    tile.setUserTitle("Custom Plugin Title")
+    expect(tile._title).toBe("Custom Plugin Title")
+    expect(tile.userSetTitle).toBe(true)
+
+    const row = docContent.getRowByIndex(0) as IFreeTileRow
+    const componentExport = exportV2Component({ tile, row, sharedModelManager })
+    const contentStorage = componentExport?.componentStorage as ICodapV2GameViewStorage
+    expect(contentStorage.currentGameName).toBe("Default Plugin Name")
+    expect(contentStorage.title).toBe("Custom Plugin Title")
+    expect(contentStorage.userSetTitle).toBe(true)
   })
 })

@@ -28,9 +28,9 @@ function isInspectorHidden(tile: ITileModel): boolean {
   const { subType, isPluginCandidate } = tile.content
 
   if (subType === "plugin") return true
-  
+
   if (subType === "guide" || subType === "image") return false
-  
+
   // For web views without subType, use isPluginCandidate flag:
   // - true = plugin candidate (hide inspector)
   // - false = regular web view (show inspector)
