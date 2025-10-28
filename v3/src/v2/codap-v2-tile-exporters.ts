@@ -48,17 +48,17 @@ export function registerV2TileExporter(tileType: string, exportFn: V2TileExportF
 
 // export the specified v2 component using the appropriate registered exporter
 export function exportV2Component(args: V2TileExportArgs): Maybe<CodapV2Component> {
-  const v2ExportFn = gV2TileExporters.get(args.tile.content.type)
+  const { tile } = args
+  const v2ExportFn = gV2TileExporters.get(tile.content.type)
   const suppressName = v2ExportFn?.options?.(args).suppressName
   const output = v2ExportFn?.(args)
   if (!output) return
 
-  const layout = args.row?.getTileLayout(args.tile.id)
+  const layout = args.row?.getTileLayout(tile.id)
   if (!isFreeTileLayout(layout)) return
 
-  const id = toV2Id(args.tile.id)
-  const name = suppressName ? undefined : { name: args.tile.name }
-
+  const id = toV2Id(tile.id)
+  const name = suppressName ? undefined : { name: tile.name }
   const tileWidth = layout.width ?? kDefaultTileWidth
   const tileHeight = layout.height ?? kDefaultTileHeight
 
@@ -68,10 +68,9 @@ export function exportV2Component(args: V2TileExportArgs): Maybe<CodapV2Componen
     id,
     componentStorage: {
       ...name,
-      title: args.tile._title,
-      cannotClose: args.tile.cannotClose,
-      // TODO_V2_EXPORT check this logic
-      userSetTitle: !!args.tile._title && args.tile._title !== args.tile.name,
+      title: tile._title,
+      cannotClose: tile.cannotClose,
+      userSetTitle: tile.userSetTitle || (!!tile._title && tile._title !== tile.name),
       // include the component-specific storage
       ...output.componentStorage
     },
