@@ -4,13 +4,6 @@ import { CloudFileManager } from "@concord-consortium/cloud-file-manager"
 import { appState } from "../models/app-state"
 import { t } from "../utilities/translation/translate"
 
-const errorsToIgnore = [
-  // This error occurs when Google Docs sends a non-JSON postMessage that is ignorable.
-  // Ideally, iFramePhone would handle this internally, but for now we just ignore it here.
-  "Unexpected token '!', \"!_{\"h\":\"\"}\" is not valid JSON",
-  "JSON Parse error: Unrecognized token '!'"
-]
-
 export function useUncaughtErrorHandler(cfm: CloudFileManager) {
   const userCanSaveCopy = useCallback(() => {
     // TODO: There are other cases where the user can't save a copy
@@ -46,12 +39,6 @@ export function useUncaughtErrorHandler(cfm: CloudFileManager) {
 
   useEffect(() => {
     const showErrorDialog = (error: ErrorEvent) => {
-      if (errorsToIgnore.some(ignorable => error.message.includes(ignorable))) {
-        error.preventDefault()
-        error.stopPropagation()
-        return
-      }
-
       const dialogMessage = [
         t("V3.app.errorDialog.description"),
         userCanSaveCopy()

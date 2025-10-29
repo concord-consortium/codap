@@ -130,7 +130,7 @@ export const WebViewModel = TileContentModel
           self.dataInteractiveController?.call({
             "action": "get",
             "resource": "interactiveState"
-          } as any, (result) => {
+          }, (result) => {
             if (result) {
               const state = result.values || result.state
               if (state) {

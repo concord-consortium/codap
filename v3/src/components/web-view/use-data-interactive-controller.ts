@@ -50,7 +50,7 @@ export function useDataInteractiveController(iframeRef: React.RefObject<HTMLIFra
       }
       const rpcEndpoint = new iframePhone.IframePhoneRpcEndpoint(handler,
         "data-interactive", iframeRef.current, originUrl, phone)
-      rpcEndpoint.call({message: "codap-present"} as any,
+      rpcEndpoint.call({message: "codap-present"},
         reply => debugLog(DEBUG_PLUGINS, `Reply to codap-present: `, JSON.stringify(reply)))
       webViewModel?.setDataInteractiveController(rpcEndpoint)
       webViewModel?.applyModelChange(() => {}, {log: {message: "Plugin initialized", args:{}, category: "plugin"}})
