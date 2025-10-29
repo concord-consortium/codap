@@ -40,10 +40,29 @@ interface PendingMessage {
   parameters?: Record<string, unknown>
 }
 
+type GAEventArgs = Record<string, Maybe<string | number | boolean>>
 interface IGAData {
   readonly eventCategory: AnalyticsCategory;
   readonly eventAction: string;
+  readonly eventArgs?: GAEventArgs;
   readonly eventLabel: string;
+}
+
+// We limit the arguments that are logged to GA to avoid sending too much data.
+const kGAEventArgNamesToLog = ["filename", "url"]
+
+function extractGAEventArgs(args?: Record<string, unknown>): Maybe<GAEventArgs> {
+  if (!args) return undefined
+  const gaEventArgs: GAEventArgs = {}
+  for (const argName of kGAEventArgNamesToLog) {
+    if (argName in args) {
+      const value = args[argName]
+      if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+        gaEventArgs[argName] = value
+      }
+    }
+  }
+  return Object.keys(gaEventArgs).length > 0 ? gaEventArgs : undefined
 }
 
 interface IAnalyticsService {
@@ -124,7 +143,7 @@ export class Logger {
     const logMessage = this.createLogMessage(time, event, documentTitle, event_value, args)
     debugLog(DEBUG_LOGGER, "logMessage:", logMessage)
     sendToLoggingService(logMessage)
-    sendToAnalyticsService(event, category)
+    sendToAnalyticsService(event, category, extractGAEventArgs(args))
   }
 
   private createLogMessage(
@@ -172,12 +191,13 @@ function sendToLoggingService(data: LogMessage) {
   request.send(JSON.stringify(data))
 }
 
-function sendToAnalyticsService(event: string, category: AnalyticsCategory) {
+function sendToAnalyticsService(eventAction: string, eventCategory: AnalyticsCategory, eventArgs?: GAEventArgs) {
   const windowWithPossibleGa = (window as IAnalyticsService)
 
   const payload: IGAData = {
-    eventCategory: category,
-    eventAction: event,
+    eventCategory,
+    eventAction,
+    eventArgs,
     eventLabel: "CODAPV3"
   }
 
@@ -191,7 +211,7 @@ function sendToAnalyticsService(event: string, category: AnalyticsCategory) {
       return
     }
 
-    gtagFunction("event", event, payload)
+    gtagFunction("event", eventAction, payload)
   } catch (e) {
     console.error("Unable to send Google Analytics:", e)
   }
