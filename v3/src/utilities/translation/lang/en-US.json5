@@ -239,7 +239,7 @@
     "DG.fileMenu.menuItem.newDocument": "New",
     "DG.fileMenu.menuItem.openDocument": "Open...",
     "DG.fileMenu.menuItem.closeDocument": "Close",
-    "DG.fileMenu.menuItem.importFile": "Import Data...",
+    "DG.fileMenu.menuItem.importFile": "Import...",
     "DG.fileMenu.menuItem.revertTo": "Revert",
     "DG.fileMenu.menuItem.revertToOpened": "Recently opened state...",
     "DG.fileMenu.menuItem.revertToShared": "Shared view...",
