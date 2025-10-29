@@ -1,18 +1,19 @@
 import { CloudFileManagerClient, CloudFileManagerClientEvent } from "@concord-consortium/cloud-file-manager"
 import { cloneDeep } from "lodash"
 import build from "../../../build_number.json"
-import pkg from "../../../package.json"
+import { version } from "../../../package.json"
 import { appState } from "../../models/app-state"
 import { t } from "../../utilities/translation/translate"
 import { removeDevUrlParams, urlParams } from "../../utilities/url-params"
+import { isCodapV2Document } from "../../v2/codap-v2-types"
 import { DEBUG_CFM_EVENTS, DEBUG_CFM_NO_AUTO_SAVE } from "../debug"
+import { Logger } from "../logger"
 import { wrapCfmCallback } from "./cfm-utils"
 import { resolveDocument } from "./resolve-document"
 import { hideSplashScreen } from "./splash-screen"
-import { isCodapV2Document } from "../../v2/codap-v2-types"
 
-// -1 is used to disable autosave because the CFM's client.autoSave function only takes 
-// numbers and -1 it is more clear than 0. Also if the autoSaveInterval is falsy, then 
+// -1 is used to disable autosave because the CFM's client.autoSave function only takes
+// numbers and -1 it is more clear than 0. Also if the autoSaveInterval is falsy, then
 // in some places the CFM will not disable the autoSave if it was already enabled.
 export const kCFMAutoSaveDisabledInterval = -1
 export const kCFMAutoSaveInterval = DEBUG_CFM_NO_AUTO_SAVE ? kCFMAutoSaveDisabledInterval : 5
@@ -28,12 +29,12 @@ export async function handleCFMEvent(cfmClient: CloudFileManagerClient, event: C
     case "connected":
       cfmClient.setProviderOptions("documentStore", {
         appName: "DG",  // TODO: is this necessary for backward-compatibility?
-        appVersion: pkg.version,
+        appVersion: version,
         appBuildNum: build.buildNumber
       })
       // pass the version number for display in the CFM menu bar
-      wrapCfmCallback(() => cfmClient._ui.setMenuBarInfo(`v${pkg.version} (${build.buildNumber})`))
-      appState.setVersion(pkg.version)
+      wrapCfmCallback(() => cfmClient._ui.setMenuBarInfo(`v${version} (${build.buildNumber})`))
+      appState.setVersion(version)
 
       // load initial document specified via `url` parameter (if any)
       if (urlParams.url) {
@@ -75,6 +76,18 @@ export async function handleCFMEvent(cfmClient: CloudFileManagerClient, event: C
     case "openedFile": {
       const { content, metadata } = event.data
 
+      // log open document events if there is useful document metadata
+      const metadataObj = !!metadata && typeof metadata === "object" ? metadata : {}
+      const hasFilename = "filename" in metadataObj && typeof metadataObj.filename === "string"
+      const hasUrl = "url" in metadataObj && typeof metadataObj.url === "string"
+      if (hasFilename || hasUrl) {
+        const logArgs = {
+          ...(hasFilename ? { filename: metadataObj.filename as string } : {}),
+          ...(hasUrl ? { url: metadataObj.url as string } : {})
+        }
+        Logger.log("Opened document", logArgs, "document")
+      }
+
       try {
         // Pull the shared metadata out of the content if it exists
         // Otherwise use the shared metadata passed from the CFM
@@ -87,7 +100,7 @@ export async function handleCFMEvent(cfmClient: CloudFileManagerClient, event: C
         const clonedCfmSharedMetadata = cloneDeep(cfmSharedMetadata)
 
         const resolvedDocument = await resolveDocument(content, metadata)
-        
+
         let shouldAutoSaveDocument = true
         if (isCodapV2Document(resolvedDocument)) {
           // Disable autoSave for v2 documents that were not saved by CODAP v3
@@ -113,12 +126,12 @@ export async function handleCFMEvent(cfmClient: CloudFileManagerClient, event: C
             cfmClient.autoSave(kCFMAutoSaveDisabledInterval)
           }
           // If shouldAutoSaveDocument is true, we do not enable autoSave yet.
-          // At this point the appState.document will still be the original document 
+          // At this point the appState.document will still be the original document
           // not the new one we are trying to open. The new document gets set by
           // setDocument below. If autoSave is enabled before this, the CFM might decide
           // to save the original document before the new document is set. The original
           // document might be one that we don't want to autoSave.
-        } 
+        }
         await appState.setDocument(resolvedDocument, metadata)
 
         // Now that the new document is set as the appState.document, it is
