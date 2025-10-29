@@ -1,16 +1,16 @@
 import { CloudFileManagerClient, CloudFileManagerClientEvent } from "@concord-consortium/cloud-file-manager"
 import { cloneDeep } from "lodash"
 import build from "../../../build_number.json"
-import pkg from "../../../package.json"
+import { version } from "../../../package.json"
 import { appState } from "../../models/app-state"
 import { t } from "../../utilities/translation/translate"
 import { removeDevUrlParams, urlParams } from "../../utilities/url-params"
+import { isCodapV2Document } from "../../v2/codap-v2-types"
 import { DEBUG_CFM_EVENTS, DEBUG_CFM_NO_AUTO_SAVE } from "../debug"
+import { Logger } from "../logger"
 import { wrapCfmCallback } from "./cfm-utils"
 import { resolveDocument } from "./resolve-document"
 import { hideSplashScreen } from "./splash-screen"
-import { isCodapV2Document } from "../../v2/codap-v2-types"
-import { Logger } from "../logger"
 
 // -1 is used to disable autosave because the CFM's client.autoSave function only takes
 // numbers and -1 it is more clear than 0. Also if the autoSaveInterval is falsy, then
@@ -29,12 +29,12 @@ export async function handleCFMEvent(cfmClient: CloudFileManagerClient, event: C
     case "connected":
       cfmClient.setProviderOptions("documentStore", {
         appName: "DG",  // TODO: is this necessary for backward-compatibility?
-        appVersion: pkg.version,
+        appVersion: version,
         appBuildNum: build.buildNumber
       })
       // pass the version number for display in the CFM menu bar
-      wrapCfmCallback(() => cfmClient._ui.setMenuBarInfo(`v${pkg.version} (${build.buildNumber})`))
-      appState.setVersion(pkg.version)
+      wrapCfmCallback(() => cfmClient._ui.setMenuBarInfo(`v${version} (${build.buildNumber})`))
+      appState.setVersion(version)
 
       // load initial document specified via `url` parameter (if any)
       if (urlParams.url) {
