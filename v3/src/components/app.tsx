@@ -74,7 +74,7 @@ export const App = observer(function App() {
   useKeyboardShortcuts()
 
   const {
-    handleDataTransferItem, handleUrlImported, handleFileImported
+    handleDataTransferItem, handleFileImported, handleUrlImported
   } = useImportHelpers({ cfmRef, onCloseUserEntry })
 
   const handleFileOpened = useCallback(() => {
@@ -85,10 +85,9 @@ export const App = observer(function App() {
     onFileOpened: handleFileOpened,
     onUrlImported: handleUrlImported,
     onFileImported: handleFileImported,
-  }), [handleFileOpened, handleUrlImported, handleFileImported])
+  }), [handleFileImported, handleFileOpened, handleUrlImported])
 
-  const { cfm, cfmReadyPromise } = useCloudFileManager(
-    {appOrMenuElemId: kMenuBarElementId}, cfmOptions)
+  const { cfm, cfmReadyPromise } = useCloudFileManager({appOrMenuElemId: kMenuBarElementId}, cfmOptions)
 
   // the handleUrlImported and handleFileImported callback are both options and users of the CFM
   // so we need to keep a ref to the CFM to avoid a circular dependency
