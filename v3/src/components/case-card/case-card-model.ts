@@ -1,12 +1,11 @@
 import { Instance, SnapshotIn, types } from "mobx-state-tree"
 import { IAttribute } from "../../models/data/attribute"
-import { kDefaultNumPrecision } from "../../models/data/attribute-types"
 import { ICollectionModel } from "../../models/data/collection"
 import { ICaseCreation } from "../../models/data/data-set-types"
 import { getTileCaseMetadata, getTileDataSet } from "../../models/shared/shared-data-tile-utils"
 import { ISharedModel } from "../../models/shared/shared-model"
 import { ITileContentModel, TileContentModel } from "../../models/tiles/tile-content"
-import { getNumFormatter } from "../case-tile-common/attribute-format-utils"
+import { getNumFormatterForAttribute } from "../case-tile-common/attribute-format-utils"
 import { kCaseCardTileType } from "./case-card-defs"
 
 export const CaseCardModel = TileContentModel
@@ -71,8 +70,7 @@ export const CaseCardModel = TileContentModel
       // Returns a string summarizing the selected values of the attribute
       if (attr.isNumeric) {
         const numericValues = attr.numValues.filter((_v, i) => attr.isValueNumeric(i))
-        const formatStr = `.${attr.numPrecision ?? kDefaultNumPrecision}~f`
-        const formatter = getNumFormatter(formatStr)
+        const formatter = getNumFormatterForAttribute(attr)
         const minValue = Math.min(...numericValues)
         const maxValue = Math.max(...numericValues)
         const minValueStr = formatter?.(minValue) ?? minValue.toString()
