@@ -42,10 +42,10 @@ interface PendingMessage {
 
 type GAEventArgs = Record<string, Maybe<string | number | boolean>>
 interface IGAData {
-  readonly eventCategory: AnalyticsCategory;
-  readonly eventAction: string;
-  readonly eventArgs?: GAEventArgs;
-  readonly eventLabel: string;
+  readonly eventCategory: AnalyticsCategory
+  readonly eventAction: string
+  readonly eventArgs?: GAEventArgs
+  readonly eventLabel: string
 }
 
 // We limit the arguments that are logged to GA to avoid sending too much data.
@@ -66,7 +66,7 @@ function extractGAEventArgs(args?: Record<string, unknown>): Maybe<GAEventArgs> 
 }
 
 interface IAnalyticsService {
-  gtag?: (type: "event", event: string, data: IGAData) => void;
+  gtag?: (type: "event", event: string, data: IGAData) => void
 }
 
 type ILogListener = (logMessage: LogMessage) => void
