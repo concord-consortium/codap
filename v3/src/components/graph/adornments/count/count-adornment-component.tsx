@@ -1,7 +1,8 @@
 import { clsx } from "clsx"
+import { isEqual } from "lodash"
 import { comparer } from "mobx"
 import { observer } from "mobx-react-lite"
-import React, { useCallback, useEffect, useRef } from "react"
+import React, { useCallback, useEffect, useRef, useState } from "react"
 import { useForceUpdate } from "../../../../hooks/use-force-update"
 import { measureText } from "../../../../hooks/use-measure-text"
 import { mstAutorun } from "../../../../utilities/mst-autorun"
@@ -14,7 +15,7 @@ import { useAdornmentCells } from "../../hooks/use-adornment-cells"
 import { useGraphContentModelContext } from "../../hooks/use-graph-content-model-context"
 import { useGraphDataConfigurationContext } from "../../hooks/use-graph-data-configuration-context"
 import { isBinnedDotPlotModel } from "../../plots/binned-dot-plot/binned-dot-plot-model"
-import { INumDenom } from "../../plots/plot-model"
+import { ICountAdornmentValues, INumDenom } from "../../plots/plot-model"
 import { percentString } from "../../utilities/graph-utils"
 import { IAdornmentComponentProps } from "../adornment-component-info"
 import { kDefaultFontSize } from "../adornment-types"
@@ -47,10 +48,17 @@ export const CountAdornment = observer(function CountAdornment(props: IAdornment
   const prevCellWidth = useRef(plotWidth)
   const prevSubPlotRegionWidth = useRef(plotWidth)
 
-  const countAdornmentValues =
-    graphModel.plot.countAdornmentValues({cellKey, percentType, movableValues, primaryAxisDomain})
+  const [countAdornmentValues, setCountAdornmentValues] = useState<Maybe<ICountAdornmentValues>>()
+  // Update the adornment values on every render; the deep equality check prevents recursion
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    const values = graphModel.plot.countAdornmentValues({cellKey, percentType, movableValues, primaryAxisDomain})
+    if (!isEqual(values, countAdornmentValues)) {
+      setCountAdornmentValues(values)
+    }
+  })
 
-  const computeTextContent = useCallback(({numerator, denominator}:INumDenom) => {
+  const computeTextContent = useCallback(({numerator, denominator}: INumDenom) => {
     const countNoSelection = 'DG.PlottedCount.withoutSelection',
       countWithSelection = 'DG.PlottedCount.withSelection',
       percentNoSelection = 'DG.PlottedPercent.withoutSelection',
@@ -105,21 +113,21 @@ export const CountAdornment = observer(function CountAdornment(props: IAdornment
 
   const longestDisplayText = useCallback(() => {
     let longest = ""
-    countAdornmentValues.values.forEach((value) => {
+    countAdornmentValues?.values.forEach((value) => {
       const displayText = computeTextContent(value)
       if (displayText.length > longest.length) {
         longest = displayText
       }
     })
     return longest
-  }, [computeTextContent, countAdornmentValues.values])
+  }, [computeTextContent, countAdornmentValues?.values])
 
   const resizeText = useCallback(() => {
     const minFontSize = 6
     const maxFontSize = kDefaultFontSize
     const textToMeasure = longestDisplayText()
     const textWidth = measureText(textToMeasure, `${fontSize}px Lato, sans-serif`)
-    const subPlotRegionWidth = plotWidth / countAdornmentValues.numHorizontalRegions
+    const subPlotRegionWidth = plotWidth / (countAdornmentValues?.numHorizontalRegions ?? 1)
     const textWidthIsTooWide = textWidth > plotWidth || textWidth > subPlotRegionWidth
     const isContainerShrinking = prevCellWidth.current > plotWidth ||
                                  prevSubPlotRegionWidth.current > subPlotRegionWidth
@@ -135,17 +143,17 @@ export const CountAdornment = observer(function CountAdornment(props: IAdornment
     if (fontSize !== defaultFontSize) {
       graphModel.adornmentsStore.setDefaultFontSize(fontSize)
     }
-  }, [countAdornmentValues.numHorizontalRegions, defaultFontSize, fontSize,
+  }, [countAdornmentValues?.numHorizontalRegions, defaultFontSize, fontSize,
             graphModel.adornmentsStore, longestDisplayText, plotWidth])
 
   const divsToDisplay = useCallback(() => {
-    const numBins = countAdornmentValues.values.length
-    const width = plotWidth / countAdornmentValues.numHorizontalRegions
+    const numBins = countAdornmentValues?.values.length ?? 1
+    const width = plotWidth / (countAdornmentValues?.numHorizontalRegions ?? 1)
     const range = primaryAttrRole === "x" ? xScale.range() : yScale.range()
     return (
       <>
         {
-          countAdornmentValues.values.map((value: INumDenom, i: number) => {
+          countAdornmentValues?.values.map((value: INumDenom, i: number) => {
             const {startFraction, endFraction} = value
             const className = clsx(
               {"count": numBins === 1},
@@ -172,7 +180,7 @@ export const CountAdornment = observer(function CountAdornment(props: IAdornment
         }
       </>
     )
-  }, [computeTextContent, countAdornmentValues.numHorizontalRegions, countAdornmentValues.values,
+  }, [computeTextContent, countAdornmentValues?.numHorizontalRegions, countAdornmentValues?.values,
             isBinnedPlot, plotWidth, primaryAttrRole, xScale, yScale])
 
   useEffect(function resizeTextOnCellWidthChange() {
