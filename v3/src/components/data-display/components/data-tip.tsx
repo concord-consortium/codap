@@ -88,6 +88,10 @@ export const DataTip = (props: IDataTipProps) => {
     refs.setPositionReference(virtualElement)
     // Open the data tip
     context.onOpenChange(true)
+    // Reposition the tip immediately (important when moving between adjacent points)
+    setTimeout(() => {
+      positionDataTip()
+    }, 0)
   }
 
   const showPixiDataTip = (event: PointerEvent, sprite: PIXI.Sprite, metadata: IPixiPointMetadata) => {
@@ -98,10 +102,6 @@ export const DataTip = (props: IDataTipProps) => {
     event.stopPropagation()
     context.onOpenChange(false)
   }
-
-  useEffect(() => {
-    isTipOpen && positionDataTip()
-  }, [isTipOpen, positionDataTip])
 
   // support disabling data tips via url parameter for jest tests
   if (urlParams.noDataTips === undefined && pixiPoints && dataDisplayModel) {
