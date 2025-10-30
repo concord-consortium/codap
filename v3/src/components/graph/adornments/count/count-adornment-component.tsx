@@ -147,7 +147,7 @@ export const CountAdornment = observer(function CountAdornment(props: IAdornment
             graphModel.adornmentsStore, longestDisplayText, plotWidth])
 
   const divsToDisplay = useCallback(() => {
-    const numBins = countAdornmentValues?.values.length ?? 1
+    const numBins = countAdornmentValues?.values.length || 1
     const width = plotWidth / (countAdornmentValues?.numHorizontalRegions ?? 1)
     const range = primaryAttrRole === "x" ? xScale.range() : yScale.range()
     return (
