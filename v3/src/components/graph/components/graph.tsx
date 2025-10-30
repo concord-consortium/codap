@@ -70,14 +70,16 @@ export const Graph = observer(function Graph({graphController, setGraphRef, pixi
     belowPointsGroupRef = useRef<SVGGElement>(null),
     abovePointsGroupRef = useRef<SVGGElement>(null),
     backgroundSvgRef = useRef<SVGGElement>(null),
+    // Temporary HTML host to avoid <foreignObject> issues in Safari
+    pixiHostRef = useRef<HTMLDivElement>(null),
     pixiContainerRef = useRef<SVGForeignObjectElement>(null),
     prevAttrCollectionsMapRef = useRef<Record<string, string>>({}),
     graphRef = useRef<HTMLDivElement | null>(null)
 
-  if (pixiPoints?.canvas && pixiContainerRef.current && pixiContainerRef.current.children.length === 0) {
-    pixiContainerRef.current.appendChild(pixiPoints.canvas)
+  if (pixiPoints?.canvas && pixiHostRef.current && pixiHostRef.current.children.length === 0) {
+    pixiHostRef.current.appendChild(pixiPoints.canvas)
     pixiPoints.setupBackgroundEventDistribution({
-      elementToHide: pixiContainerRef.current
+      elementToHide: pixiHostRef.current
     })
   }
 
@@ -115,10 +117,18 @@ export const Graph = observer(function Graph({graphController, setGraphRef, pixi
       // - https://github.com/bkrem/react-d3-tree/issues/284
       select(belowPointsGroupRef.current).attr("transform", translate)
       select(abovePointsGroupRef.current).attr("transform", translate)
-      select(pixiContainerRef.current)
-        .attr("x", x).attr("y", y) // translate won't work in Safari!
-        .attr("width", `${Math.max(0, layout.plotWidth)}px`)
-        .attr("height", `${Math.max(0, layout.plotHeight)}px`)
+      // Position the HTML host (absolute) to overlay the plot area
+      const host = pixiHostRef.current
+      if (host) {
+        const w = Math.max(0, layout.plotWidth)
+        const h = Math.max(0, layout.plotHeight)
+        host.style.position = "absolute"
+        host.style.left = `${x}px`
+        host.style.top = `${y}px`
+        host.style.width = `${w}px`
+        host.style.height = `${h}px`
+        host.style.pointerEvents = "auto"
+      }
 
       updateCellMasks({ dataConfig: graphModel.dataConfiguration, layout, pixiPoints })
     }
@@ -364,7 +374,7 @@ export const Graph = observer(function Graph({graphController, setGraphRef, pixi
 
   return (
     <GraphDataConfigurationContext.Provider value={graphModel.dataConfiguration}>
-      <div className={clsx(kGraphClass, kPortalClass)} ref={mySetGraphRef} data-testid="graph">
+      <div className={clsx(kGraphClass, kPortalClass)} ref={mySetGraphRef} data-testid="graph" style={{ position: "relative" }}>
         {graphModel.showParentToggles && <ParentToggles/>}
         <svg className='graph-svg' ref={svgRef}>
           <Background
@@ -388,7 +398,10 @@ export const Graph = observer(function Graph({graphController, setGraphRef, pixi
             {renderDisplayOnlySelectedWarning()}
             {renderPlotComponent()}
           </g>
-          <foreignObject ref={pixiContainerRef} />
+        </svg>
+        {/* HTML host for Pixi canvas to avoid Safari foreignObject issues */}
+        <div ref={pixiHostRef} className="pixi-points-host" />
+        <svg>
           <g className="above-points-group" ref={abovePointsGroupRef}>
             {/* Components rendered on top of the dots/points should be added to this group. */}
             <Marquee marqueeState={marqueeState}/>
