@@ -9,7 +9,6 @@ import {
 } from "../../../models/shared/data-set-metadata-constants"
 import { t } from "../../../utilities/translation/translate"
 import { IMapPointLayerModel, isMapPointDisplayType } from "../../map/models/map-point-layer-model"
-import { getScaleThresholds } from "../components/legend/choropleth-legend/choropleth-legend"
 import { PointDisplayType } from "../data-display-types"
 import { IDataConfigurationModel } from "../models/data-configuration-model"
 import { IDisplayItemDescriptionModel } from "../models/display-item-description-model"
