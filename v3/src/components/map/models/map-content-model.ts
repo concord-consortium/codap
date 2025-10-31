@@ -142,12 +142,13 @@ export const MapContentModel = DataDisplayContentModel
         const gisAttributeRole = isMapPointLayerModel(layer) ? 'lat'
           : isMapPolygonLayerModel(layer) ? 'polygon' : 'pinLat'
         const gisAttributeId = layer.dataConfiguration.attributeID(gisAttributeRole)
-        return getCollectionIndex(layer.data!, gisAttributeId)
+        if (!layer.data) return -1
+        return getCollectionIndex(layer.data, gisAttributeId)
       }
 
       const legendDataset = getDataSetFromId(self, datasetID)
       const legendCollectionIndex = getCollectionIndex(legendDataset!, attributeID)
-      if (!legendDataset || legendCollectionIndex === undefined || legendCollectionIndex < 0) return
+      if (!legendDataset || legendCollectionIndex < 0) return
       const candidateLayers = self.layers.slice()
           .filter(layer => layerIsMapLayerAndIsVisible(layer) && layer.data?.id === datasetID)
           .filter(layer => {
