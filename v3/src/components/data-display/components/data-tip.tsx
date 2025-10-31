@@ -1,4 +1,4 @@
-import React, { Fragment, useCallback, useEffect, useRef, useState } from "react"
+import React, { Fragment, useCallback, useRef, useState } from "react"
 import * as PIXI from "pixi.js"
 import { computePosition, flip, offset, shift, useFloating } from "@floating-ui/react"
 import { useDataDisplayModelContext } from "../hooks/use-data-display-model"

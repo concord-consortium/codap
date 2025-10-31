@@ -1,5 +1,63 @@
 # Changelog
 
+## Version 3.0.0-beta.2549 - October 31, 2025
+
+### ✨ Features & Improvements:
+- **CODAP-54:** Counts and percents in graphs respond correctly to Show Measures for Selection
+- **CODAP-84:** Implement import URL from hamburger menu functionality
+- **CODAP-642:** Implement remaining semi-aggregate functions: percentile, rollingMean
+- **CODAP-890:** You can drop a geojson into the document to import GIS data
+- **CODAP-907:** Maps respond to the "Open in Draw Tool" menu item under the Image icon to open a draw tool plugin with the map image
+- **CODAP-908:** Maps can be exported as 'png' images
+- **CODAP-921** Show formula in tooltip on attribute hover
+- **CODAP-922:** Clicking on tile drag areas, whether to resize or not, should select the tile
+- **CODAP-925:** Document scrolls to include selected component
+- **CODAP-936:** Ability to lock legend color bins
+- **CODAP-964:** Log open document events to Google analytics
+- **CODAP-970:** Support all import methods
+- **CODAP-979:** The File menu item "Import Data…" should instead be "Import…"
+
+### 🐞 Bug Fixes:
+- **CODAP-107:** fix: case table rendering when dragging points in graph
+- **CODAP-110:** Microdata portal is not displaying the state boundaries properly
+- **CODAP-211:** Fix ICI not appearing
+- **CODAP-303:** Saving locally on iPad creates file with '.txt' suffix
+- **CODAP-685:** Graph: hover label of a node/dot gets cut off by the edge of screen/app
+- **CODAP-777:** Case Card attribute drag preview lags behind mouse
+- **CODAP-800:** Measures for Selection overlays (covers up) Parent Visibility Toggles when both are shown
+- **CODAP-867:** Connecting lines not respecting top level category attribute
+- **CODAP-900:** Story Builder transition between moments that have a dataset generates MST errors
+- **CODAP-912:** Map boundaries not being painted correctly when map has legend
+- **CODAP-918:** Connecting line draws outside plot bounds
+- **CODAP-924:** Problem using "More" button in color picker — Set Color can act like Cancel
+- **CODAP-926:** Graph resize handle doesn't work when it overlaps x-axis attribute name
+- **CODAP-928:** Table horizontal scroll position is saved and restored
+- **CODAP-932:** Should not allow "Fuse into Bars" when binned plot is split by categorical
+- **CODAP-935:** Histogram doesn't update when bar width is changed
+- **CODAP-940:** Hover tip for attribute names in case table gets cut off when it's long
+- **CODAP-943:** Plugin title is not being saved and restored
+- **CODAP-944:** Filtered cases are not exported in the v2 format
+- **CODAP-945:** Filter formulas are not round tripped through the v2 format
+- **CODAP-947:** Fix v2 import/export of computed bar chart
+- **CODAP-951:** Dot chart not taking full advantage of bin width
+- **CODAP-954:** Map grid is not restored**
+- **CODAP-955:** An attribute typed as numeric displays large numbers with comma separation
+- **CODAP-956:** Cannot get Systolic blood pressure data in NHANES plugin
+- **CODAP-957:** The map image that appears in the Draw Tool when user selects "Open in Draw Tool" is not complete
+- **CODAP-958:** Document opens with an error dialog box showing
+- **CODAP-963:** Simmer plugin showing case table not working
+- **CODAP-966:** Fields for bin width and alignment don't accommodate numbers well
+- **CODAP-980:** CountAdornmentComponent warning on opening Mammals example document
+
+### 🛠️ Under the Hood:
+- **CODAP-900:** Use full document applySnapshot in di doc update
+
+### Asset Sizes
+|      File |          Size | % Increase from Previous Release |
+|-----------|---------------|----------------------------------|
+|  main.css |  208567 bytes |                           <0.01% |
+|  index.js | 6957067 bytes |                            0.01% |
+
 ## Version 3.0.0-beta.2503 - October 3, 2025
 
 ### ✨ Features & Improvements:
@@ -14,7 +72,7 @@
 ### 🐞 Bug Fixes:
 - **CODAP-778:** Clicking attribute menu should not trigger drag of attribute
 - **CODAP-840:** Disable dragging icons from the CFM toolbar
-- **CODAP-844:** Dot plot crash on setting point size to zero
+- **CODAP-884:** Dot plot crash on setting point size to zero
 - **CODAP-914:** Don't show html formatting in hover tips
 - **CODAP-915:** Fix crash on marquee select in maps
 - **CODAP-920:** Fix subtraction of dates
@@ -62,6 +120,7 @@
 - **CODAP-853:** Story Builder moment title not synching with associated text component title
 - **CODAP-855:** Formula evaluation with empty strings is broken
 - **CODAP-858:** Minimized background component made active on attribute drop
+- **CODAP-860:** Shared view "Copy" button styling
 - **CODAP-862:** Fix for movable line causing invalid document
 - **CODAP-863:** Movable line misbehaviors
 - **CODAP-865:** "Group into bins" is not undoable
