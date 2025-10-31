@@ -6,22 +6,22 @@ import {IDataSet} from "../../../models/data/data-set"
 import {applyModelChange} from "../../../models/history/apply-model-change"
 import {withoutUndo} from "../../../models/history/without-undo"
 import {ISharedDataSet, kSharedDataSetType, SharedDataSet} from "../../../models/shared/shared-data-set"
-import {getMetadataFromDataSet} from "../../../models/shared/shared-data-utils"
+import { getDataSetFromId, getMetadataFromDataSet } from "../../../models/shared/shared-data-utils"
 import {ITileContentModel, ITileContentSnapshot} from "../../../models/tiles/tile-content"
 import { getFormulaManager } from "../../../models/tiles/tile-environment"
+import { getCollectionAttrs } from "../../../models/data/data-set-utils"
 import { typeV3Id } from "../../../utilities/codap-utils"
 import {GraphPlace} from "../../axis-graph-shared"
 import {IDataConfigurationModel} from "../../data-display/models/data-configuration-model"
 import {DataDisplayContentModel} from "../../data-display/models/data-display-content-model"
+import { IDataDisplayLayerModel } from "../../data-display/models/data-display-layer-model"
 import {kMapModelName, kMapTileType} from "../map-defs"
 import {BaseMapKey, BaseMapKeys, kMapBoundsExtensionFactor} from "../map-types"
-import {
-  datasetHasBoundaryData, datasetHasLatLongData, datasetHasPinData, expandLatLngBounds, getLatLongBounds,
-  latLongAttributesFromDataSet, pinAttributesFromDataSet
-} from "../utilities/map-utils"
+import { datasetHasBoundaryData, datasetHasLatLongData, datasetHasPinData, expandLatLngBounds, getLatLongBounds,
+  latLongAttributesFromDataSet, pinAttributesFromDataSet } from "../utilities/map-utils"
 import {ILatLngSnapshot, LatLngModel} from "../map-model-types"
 import {LeafletMapState} from "./leaflet-map-state"
-import {isMapLayerModel} from "./map-layer-model"
+import { IMapLayerModel, isMapLayerModel } from "./map-layer-model"
 import { isMapPinLayerModel, MapPinLayerModel } from "./map-pin-layer-model"
 import {isMapPointLayerModel, MapPointLayerModel} from "./map-point-layer-model"
 import {isMapPolygonLayerModel, MapPolygonLayerModel} from "./map-polygon-layer-model"
@@ -126,12 +126,41 @@ export const MapContentModel = DataDisplayContentModel
     }
   }))
   .actions(self => ({
-    // Each layer can have one legend attribute. The layer that can handle the given legend attribute must already
-    // be present in the layers array
+    // Each layer can have one legend attribute. The layer that can handle the given legend attribute must be visible.
+    // Priority is given to the layer whose collection for its GIS attribute is closest to the collection of the
+    // legend attribute.
     setLegendAttribute(datasetID: string, attributeID: string, type?: AttributeType) {
-      const foundLayer = self.layers.find(layer => layer.data?.id === datasetID)
-      if (foundLayer) {
-        foundLayer.dataConfiguration.setAttribute('legend', {attributeID, type})
+      const layerIsMapLayerAndIsVisible = (layer: IDataDisplayLayerModel) => {
+        return isMapLayerModel(layer) && layer.isVisible
+      }
+      const getCollectionIndex = (dataset: IDataSet, attrID: string) => {
+        return dataset.collections.findIndex(col => {
+          return getCollectionAttrs(col, dataset).some(attr => attr.id === attrID)
+        })
+      }
+      const getGisCollectionIndex = (layer: IMapLayerModel) => {
+        const gisAttributeRole = isMapPointLayerModel(layer) ? 'lat'
+          : isMapPolygonLayerModel(layer) ? 'polygon' : 'pinLat'
+        const gisAttributeId = layer.dataConfiguration.attributeID(gisAttributeRole)
+        if (!layer.data) return -1
+        return getCollectionIndex(layer.data, gisAttributeId)
+      }
+
+      const legendDataset = getDataSetFromId(self, datasetID)
+      const legendCollectionIndex = getCollectionIndex(legendDataset!, attributeID)
+      if (!legendDataset || legendCollectionIndex < 0) return
+      const candidateLayers = self.layers.slice()
+          .filter(layer => layerIsMapLayerAndIsVisible(layer) && layer.data?.id === datasetID)
+          .filter(layer => {
+            const gisAttrCollectionIndex = getGisCollectionIndex(layer as IMapLayerModel)
+            return gisAttrCollectionIndex >= legendCollectionIndex
+      }).sort((layerA, layerB) => {
+        const aIndex = getGisCollectionIndex(layerA as IMapLayerModel),
+          bIndex = getGisCollectionIndex(layerB as IMapLayerModel)
+        return aIndex - bIndex
+      })
+      if (candidateLayers.length > 0) {
+        candidateLayers[0].dataConfiguration.setAttribute('legend', {attributeID, type})
       }
     },
     setCenterAndZoom(center: ILatLngSnapshot, zoom: number) {
@@ -190,7 +219,7 @@ export const MapContentModel = DataDisplayContentModel
       return newPointLayer
     },
     addPolygonLayer(dataSet: IDataSet) {
-      const newPolygonLayer = MapPolygonLayerModel.create()
+      const newPolygonLayer = MapPolygonLayerModel.create({layerIndex: self.layers.length})
       self.layers.push(newPolygonLayer) // We have to do this first so safe references will work
       newPolygonLayer.setDataset(dataSet)
       return newPolygonLayer
