@@ -128,7 +128,7 @@ class Profiler {
     t0 && (entry.time += performance.now() - t0)
   }
 
-  measure(path: string, callback: () => any) {
+  measure<T>(path: string, callback: () => T) {
     try {
       this.begin(path)
       return callback()
