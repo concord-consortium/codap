@@ -1,5 +1,6 @@
 import {ScaleBand, ScaleLinear, drag, select} from "d3"
 import {observer} from "mobx-react-lite"
+import { comparer } from "mobx"
 import React, {useCallback, useEffect, useRef} from "react"
 import { createPortal } from "react-dom"
 import { clsx } from "clsx"
@@ -183,6 +184,27 @@ export const BinnedDotPlot = observer(function BinnedDotPlot({pixiPoints, aboveP
       }, {name: "enforceMinBinPixelWidth"}, binnedPlot
     )
   }, [binnedPlot, primaryAxisScale])
+
+  // When binWidth or binAlignment changes we may need to adjust the primaryAxisScale's domain
+  useEffect(function respondToBinChange() {
+    return mstReaction(
+      () => {
+        return { width: binnedPlot?.binWidth, alignment: binnedPlot?.binAlignment }
+      },
+      ({ width, alignment }) => {
+        const { totalNumberOfBins, minBinEdge } = binnedPlot?.binDetails() || {}
+        const newDomain =
+          (isFiniteNumber(width) && isFiniteNumber(minBinEdge) && isFiniteNumber(totalNumberOfBins))
+        ? [minBinEdge, minBinEdge + width * totalNumberOfBins]
+        : primaryAxisScale.domain()
+        // Because the axis model and numeric scale get out of sync easily, we force them both to use the new domain
+        const axisModel = graphModel.getNumericAxis(primaryPlace)
+        axisModel?.setAllowRangeToShrink(true)  // Because it gets reset to false in setDomain
+        axisModel?.setDomain(newDomain[0], newDomain[1])
+        primaryAxisScale.domain(newDomain)
+      }, {name: "enforceMinBinPixelWidth", equals: comparer.structural}, binnedPlot
+    )
+  }, [binnedPlot, graphModel, primaryAxisScale, primaryPlace])
 
   // eslint-disable-next-line @typescript-eslint/no-unused-expressions
   primaryAxisModel?.labelsAreRotated  // Observe labelsAreRotated to force re-render
