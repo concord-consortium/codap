@@ -58,8 +58,10 @@ export const CaseTable = observer(function CaseTable() {
       }
     }
 
-    // Initial scroll is delayed a frame to let RDG do its thing
-    setTimeout(() => updateScroll(tableModel?._horizontalScrollOffset))
+    // Initial scroll is delayed to let RDG do its thing. Otherwise, the scrollLeft change
+    // is ignored if the scrollable content hasn't been fully rendered.
+    // File => Make a Copy seems to require a longer delay.
+    setTimeout(() => updateScroll(tableModel?._horizontalScrollOffset), 50)
 
     // Reaction handles changes to the model, such as via the API
     return tableModel && mstReaction(
